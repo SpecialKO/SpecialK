@@ -1686,10 +1686,10 @@ SK_Exception_HandleThreadName (
       info->szName  != nullptr &&
       SUCCEEDED (
         StringCbLengthA (
-        info->szName,
-        255, &len)
+          info->szName,
+            255, &len   )
       )                        &&
-      len   > 0       &&
+               len   > 0       &&
       info->dwFlags == 0       &&
       info->dwType  == 4096;
 
@@ -1699,8 +1699,8 @@ SK_Exception_HandleThreadName (
       static auto& SelfTitled  = _SK_SelfTitledThreads;
 
       DWORD dwTid  =  ( info->dwThreadID != -1 ?
-                       info->dwThreadID :
-                       GetCurrentThreadId () );
+                        info->dwThreadID :
+                        GetCurrentThreadId () );
 
       SelfTitled.insert (dwTid);
 
@@ -1818,7 +1818,7 @@ SK_Exception_HandleThreadName (
 
               else
                 if ( strstr (info->szName, "TaskThread") == info->szName &&
-                  (strcmp (info->szName, "TaskThread0")))
+                    (strcmp (info->szName, "TaskThread0")))
                 {
                   SetThreadPriority (hThread.m_h, THREAD_PRIORITY_ABOVE_NORMAL);
 
@@ -1834,12 +1834,59 @@ SK_Exception_HandleThreadName (
                 }
       }
 
+      else if (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia)
+      {
+        HANDLE hThread =
+          OpenThread ( THREAD_ALL_ACCESS,
+                         FALSE,
+                           dwTid );
+
+        if (hThread > 0)
+        {
+          extern SK_MMCS_TaskEntry*
+            SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid,       const char* name,
+                                           const char* task1, const char* task2 );
+
+          if (StrStrA (info->szName, "RenderWorkerThread"))
+          {
+            static volatile LONG count = 0;
+
+            InterlockedIncrement (&count);
+
+            auto* task =
+              SK_MMCS_GetTaskForThreadIDEx ( dwTid,
+                                               SK_FormatString ("Render Thread #%li", count).c_str (),
+                                                    "Games", "DisplayPostProcessing" );
+
+            if (task != nullptr)
+            {
+              task->queuePriority (AVRT_PRIORITY_NORMAL);
+            }
+          }
+
+          else if (StrStrA (info->szName, "WorkThread"))
+          {
+            auto* task =
+              SK_MMCS_GetTaskForThreadIDEx ( dwTid,
+                                               "Work Thread",
+                                                 "Playback", "Distribution" );
+
+            if (task != nullptr)
+            {
+              task->queuePriority (AVRT_PRIORITY_HIGH);
+            }
+          }
+          CloseHandle (hThread);
+        }
+      }
+
       else if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
       {
         HANDLE hThread =
           OpenThread ( THREAD_ALL_ACCESS,
-                      FALSE,
-                      dwTid );
+                         FALSE,
+                           dwTid );
+
         if (hThread != 0)
         {
           extern SK_MMCS_TaskEntry*

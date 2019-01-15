@@ -3602,7 +3602,7 @@ SteamAPI_PumpThread (LPVOID user)
   if (! start_immediately)
   {
     // Wait 5 seconds, then begin a timing investigation
-    SleepEx (5000, FALSE);
+    SK_Sleep (5000);
 
     // First, begin a timing probe.
     //
@@ -3613,7 +3613,7 @@ SteamAPI_PumpThread (LPVOID user)
 
     LONGLONG callback_count0 = SK_SteamAPI_CallbackRunCount;
 
-    SleepEx (TEST_PERIOD * 1000UL, FALSE);
+    SK_Sleep (TEST_PERIOD * 1000UL);
 
     LONGLONG callback_count1 = SK_SteamAPI_CallbackRunCount;
 
@@ -3639,7 +3639,7 @@ SteamAPI_PumpThread (LPVOID user)
       {
         SK::SteamAPI::Pump ();
 
-        SleepEx (125, FALSE);
+        SK_Sleep (125);
       }
     }
 
@@ -4303,7 +4303,7 @@ SteamAPI_Shutdown_Detour (void)
 
       for (int i = 0; i < 1500; i++)
       {
-        SleepEx (1L, FALSE);
+        SK_Sleep (1UL);
 
         if (ReadAcquire (&__SK_DLL_Ending))
         {
@@ -4512,10 +4512,9 @@ DWORD
 WINAPI
 SteamAPI_Delay_Init (LPVOID)
 {
-  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST  );
-  SetCurrentThreadDescription (            L"[SK] SteamAPI Delayed Init. Thread" );
-  SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                     );
-
+  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
+  SetCurrentThreadDescription (            L"[SK] SteamAPI Delayed Init. Thread"     );
+  SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                         );
 
   //if (! SK_IsInjected ())
   //{
@@ -4527,9 +4526,9 @@ SteamAPI_Delay_Init (LPVOID)
   int tries = 0;
 
   while ( (! ReadAcquire (&__SK_Steam_init)) &&
-         tries < 120 )
+             tries < 120 )
   {
-    SleepEx (std::max (2, config.steam.init_delay), FALSE);
+    SK_Sleep (std::max (0, config.steam.init_delay));
 
     if (SK_GetFramesDrawn () < 1)
       continue;
@@ -4540,7 +4539,7 @@ SteamAPI_Delay_Init (LPVOID)
     }
 
     if (SteamAPI_Init_Original != nullptr)
-      SteamAPI_Init_Detour ();
+        SteamAPI_Init_Detour ();
 
     ++tries;
   }
@@ -4552,7 +4551,7 @@ SteamAPI_Delay_Init (LPVOID)
 
 std::wstring
 SK_RecursiveFileSearch ( const wchar_t* wszDir,
-                        const wchar_t* wszFile );
+                         const wchar_t* wszFile );
 
 #include <unordered_set>
 
@@ -4564,12 +4563,12 @@ enum SK_File_SearchStopCondition {
 
 std::unordered_set <std::wstring>
 SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
-                          const wchar_t* wszExtension,
-                          std::unordered_set <std::wstring>& cwsFileNames,
-                          std::vector        <
-                          std::pair          < std::wstring, bool >
-                          >&&             preferred_dirs = { },
-                          SK_File_SearchStopCondition stop_condition = FirstMatchFound );
+                           const wchar_t* wszExtension,
+                           std::unordered_set <std::wstring>& cwsFileNames,
+                           std::vector        <
+                           std::pair          < std::wstring, bool >
+                           >&&             preferred_dirs = { },
+                           SK_File_SearchStopCondition stop_condition = FirstMatchFound );
 
 int
 SK_HookSteamAPI (void)
@@ -4580,7 +4579,7 @@ SK_HookSteamAPI (void)
     SK_Steam_GetDLLPath ();
 
   SK_RunOnce ( SK::SteamAPI::steam_size =
-              SK_File_GetSize (wszSteamAPI) );
+               SK_File_GetSize (wszSteamAPI) );
 
   if (config.steam.silent)
     return hooks;
@@ -4602,27 +4601,27 @@ SK_HookSteamAPI (void)
 
     SK_CreateDLLHook2 ( wszSteamAPI,
                        "SteamAPI_Init",
-                       SteamAPI_Init_Detour,
-                       static_cast_p2p <void> (&SteamAPI_Init_Original),
-                       static_cast_p2p <void> (&SteamAPI_Init) );                       ++hooks;
+                        SteamAPI_Init_Detour,
+                        static_cast_p2p <void> (&SteamAPI_Init_Original),
+                        static_cast_p2p <void> (&SteamAPI_Init) );                       ++hooks;
 
     SK_CreateDLLHook2 ( wszSteamAPI,
                        "SteamAPI_RegisterCallback",
-                       SteamAPI_RegisterCallback_Detour,
-                       static_cast_p2p <void> (&SteamAPI_RegisterCallback_Original),
-                       static_cast_p2p <void> (&SteamAPI_RegisterCallback) );           ++hooks;
+                        SteamAPI_RegisterCallback_Detour,
+                        static_cast_p2p <void> (&SteamAPI_RegisterCallback_Original),
+                        static_cast_p2p <void> (&SteamAPI_RegisterCallback) );           ++hooks;
 
     SK_CreateDLLHook2 ( wszSteamAPI,
                        "SteamAPI_UnregisterCallback",
-                       SteamAPI_UnregisterCallback_Detour,
-                       static_cast_p2p <void> (&SteamAPI_UnregisterCallback_Original),
-                       static_cast_p2p <void> (&SteamAPI_UnregisterCallback) );         ++hooks;
+                        SteamAPI_UnregisterCallback_Detour,
+                        static_cast_p2p <void> (&SteamAPI_UnregisterCallback_Original),
+                        static_cast_p2p <void> (&SteamAPI_UnregisterCallback) );         ++hooks;
 
     SK_CreateDLLHook2 ( wszSteamAPI,
                        "SteamAPI_RunCallbacks",
-                       SteamAPI_RunCallbacks_Detour,
-                       static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
-                       static_cast_p2p <void> (&SteamAPI_RunCallbacks) );               ++hooks;
+                        SteamAPI_RunCallbacks_Detour,
+                        static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
+                        static_cast_p2p <void> (&SteamAPI_RunCallbacks) );               ++hooks;
 
     //
     // Do not queue these up (by calling CreateDLLHook2),
@@ -4631,9 +4630,9 @@ SK_HookSteamAPI (void)
     //
     SK_CreateDLLHook  ( wszSteamAPI,
                        "SteamAPI_Shutdown",
-                       SteamAPI_Shutdown_Detour,
-                       static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
-                       static_cast_p2p <void> (&SteamAPI_Shutdown) );                   ++hooks;
+                        SteamAPI_Shutdown_Detour,
+                        static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
+                        static_cast_p2p <void> (&SteamAPI_Shutdown) );                   ++hooks;
 
     std::unordered_set <std::wstring> matches;
     std::unordered_set <std::wstring> pattern = {
@@ -4693,8 +4692,8 @@ SK_SteamAPI_ContextInit (HMODULE hSteamAPI)
     steam_ctx.InitSteamAPI (hSteamAPI);
 
     bool
-      SK_Steam_HookController (void);
-    SK_Steam_HookController ();
+    SK_Steam_HookController (void);
+    SK_Steam_HookController (    );
   }
 }
 
@@ -4733,7 +4732,7 @@ SK_SteamAPI_InitManagers (void)
 
       steam_log.LogEx (false, L"\n");
 
-      user_manager         = new SK_Steam_UserManager    ();
+      user_manager = new SK_Steam_UserManager ();
     }
 
     if (steam_ctx.Utils () && (! overlay_manager))

@@ -188,7 +188,7 @@ SK_SOM_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  while (! InterlockedAdd (&__SOM_init, 0)) SleepEx (16, FALSE);
+  while (! InterlockedAdd (&__SOM_init, 0)) SK_Sleep (16);
 
   return S_OK;
 }

@@ -25,6 +25,7 @@
 #include <SpecialK/control_panel/osd.h>
 
 #include <SpecialK/osd/text.h>
+#include <SpecialK/framerate.h>
 
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
@@ -71,7 +72,7 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
 
         toggle_state_s* pToggle = (toggle_state_s *)toggle;
 
-        SleepEx (pToggle->time_to_wait, FALSE);
+        SK_Sleep (pToggle->time_to_wait);
 
         if (SK_GetFramesDrawn () <= pToggle->frames_drawn + 1)
         {

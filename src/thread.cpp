@@ -374,24 +374,6 @@ SetThreadAffinityMask_Detour (
     SK_GetSystemInfo (&sysinfo);
   }
 
-  //if ( //(int)hThread != -2 &&
-  //    ( dwThreadAffinityMask ==  0x1 ||
-  //      dwThreadAffinityMask == (0x1ULL << (sysinfo.dwNumberOfProcessors-1) ) ) )
-  //{
-  //  dll_log.Log (L"Bingo!! (hThread=%p, Mask=%x) -- %s", hThread, dwThreadAffinityMask, SK_SummarizeCaller ().c_str ());
-  //
-  //  DWORD_PTR dwRet_ =
-  //    SetThreadAffinityMask_Original (
-  //      hThread,
-  //        (DWORD_PTR)-1 );
-  //  SetThreadAffinityMask_Original (
-  //      hThread,
-  //        dwRet_ );
-  //
-  //  return dwRet_;
-  //}
-
-
   DWORD_PTR dwRet = 0;
   DWORD     dwTid = ( hThread ==
     SK_GetCurrentThread (              ) ) ?
@@ -457,7 +439,7 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
  (SK_ThreadBaseParams *)lpUserPassThrough;
 
   while (pStartParams->hHandleToStuffInternally == INVALID_HANDLE_VALUE)
-    SleepEx (0, FALSE);
+    SK_Sleep (1);
 
   SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
     SK_TLS_Bottom () : nullptr;

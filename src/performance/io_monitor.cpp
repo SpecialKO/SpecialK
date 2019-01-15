@@ -398,8 +398,15 @@ DWORD
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
+  // This thread may be frequently rescheduled onto different CPU cores
+  //   in order to read MSR registers from individual cores and take
+  //     hardware monitoring readings...
+  //
+  //  => It's important this rescheduling be assigned a VERY low
+  //       (but not idle) priority to prevent disrupting stuff.
+  //
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-  SetCurrentThreadDescription  (L"[SK] NtDll CPU Monitoring Thread");
+  SetCurrentThreadDescription  (L"[SK] CPU Performance Probe");
 
   if (NtQuerySystemInformation == nullptr)
   {
@@ -421,8 +428,8 @@ SK_MonitorCPU (LPVOID user_param)
 
   UNREFERENCED_PARAMETER (user_param);
 
-  cpu_perf_t&  cpu    = __SK_WMI_CPUStats ();
-  const double update = config.cpu.interval;
+  cpu_perf_t& cpu    = __SK_WMI_CPUStats ();
+       float& update = config.cpu.interval;
 
   cpu.hShutdownSignal =
     SK_CreateEvent ( nullptr, FALSE, FALSE, L"CPUMon Shutdown Signal" );
@@ -443,21 +450,14 @@ SK_MonitorCPU (LPVOID user_param)
   while (dwRet != WAIT_OBJECT_0)
   {
     dwRet = 
-      MsgWaitForMultipleObjectsEx ( 1, const_cast <const HANDLE *> (&cpu.hShutdownSignal),
-                                       ( DWORD (update * 1000.0) ),
-                                         QS_ALLEVENTS, 0x0       );
-
-    extern void SK_CPU_UpdateAllSensors (void);
-                SK_CPU_UpdateAllSensors ();
-
-    ////void
-    ////SK_CPU_UpdatePackageSensors (int package);
-    ////
-    ////SK_CPU_UpdatePackageSensors (0);
-
+      WaitForSingleObject ( *const_cast <const HANDLE *> (&cpu.hShutdownSignal), 
+                              DWORD (update * 1000.0f) );
     // Only poll WMI while the data view is visible
     if (! (config.cpu.show || SK_ImGui_Widgets.cpu_monitor->isActive ()))
       continue;
+
+    extern void SK_CPU_UpdateAllSensors (void);
+                SK_CPU_UpdateAllSensors ();
 
     PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION pPerformance =
       (PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION)

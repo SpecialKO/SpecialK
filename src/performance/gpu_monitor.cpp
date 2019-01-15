@@ -82,7 +82,7 @@ SK_GPUPollingThread (LPVOID user)
     static int iters = 0;
 
     if ((iters++ % 13) == 0)
-      SleepEx (1, FALSE);
+      SK_Sleep (1);
 
     else if ((iters % 9) != 0)
       SwitchToThread ();

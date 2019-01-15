@@ -1019,7 +1019,7 @@ SK_Attach (DLL_ROLE role)
       if (GetFileAttributesW (L"SpecialK.WaitForDebugger") != INVALID_FILE_ATTRIBUTES)
       {
         while (! SK_IsDebuggerPresent ())
-          SleepEx (50, FALSE);
+          SK_Sleep (50);
       }
 
       try {

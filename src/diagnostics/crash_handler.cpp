@@ -553,6 +553,94 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   strncpy_s (szDupName, MAX_PATH * 2, szModName, _TRUNCATE);
   char* pszShortName =
              szDupName;
+  
+  auto _IsScaleform = [&](void) ->
+  bool
+  {
+    CONTEXT ctx (*ExceptionInfo->ContextRecord);
+
+#ifdef _WIN64
+    STACKFRAME64 stackframe = { };
+                 stackframe.AddrStack.Offset = ctx.Rsp;
+                 stackframe.AddrFrame.Offset = ctx.Rbp;
+#else
+    STACKFRAME   stackframe = { };
+                 stackframe.AddrStack.Offset = ctx.Esp;
+                 stackframe.AddrFrame.Offset = ctx.Ebp;
+#endif
+
+    stackframe.AddrPC.Mode   = AddrModeFlat;
+    stackframe.AddrPC.Offset = ip;
+
+    stackframe.AddrStack.Mode = AddrModeFlat;
+    stackframe.AddrFrame.Mode = AddrModeFlat;
+
+    ip = stackframe.AddrPC.Offset;
+
+    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+              reinterpret_cast <LPCWSTR> (ip),
+                                 &hModSource ) )
+    {
+      GetModuleFileNameA (hModSource, szModName, MAX_PATH);
+    }
+
+    MODULEINFO mod_info = { };
+
+    GetModuleInformation (
+      GetCurrentProcess (), hModSource, &mod_info, sizeof (mod_info)
+    );
+
+#ifdef _WIN64
+    BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
+#else
+    BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
+#endif
+
+    strncpy_s     (szDupName, MAX_PATH * 2, szModName, _TRUNCATE);
+    pszShortName = szDupName;
+
+    PathStripPathA (pszShortName);
+
+    SK_SymLoadModule ( hProc,
+                         nullptr,
+                          pszShortName,
+                            nullptr,
+                              BaseAddr,
+                                mod_info.SizeOfImage );
+
+    SYMBOL_INFO_PACKAGE sip = { };
+
+    sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+    sip.si.MaxNameLen   = sizeof sip.name;
+
+    DWORD64 Displacement = 0;
+
+    if ( SymFromAddr ( hProc,
+             static_cast <DWORD64> (ip),
+                           &Displacement,
+                             &sip.si ) )
+    {
+      if (StrStrIA (sip.si.Name, "Scaleform"))
+        return true;
+    }
+
+    return false;
+  };
+
+  // Seriously, WTF Scaleform?
+  if (_IsScaleform ())
+  {
+    const bool repeated = ( ! memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
+                          ( ! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
+
+    last_ctx = *ExceptionInfo->ContextRecord;
+    last_exc = *ExceptionInfo->ExceptionRecord;
+  
+    //if (repeated)
+      return EXCEPTION_EXECUTE_HANDLER;
+  }
+
 
   PathStripPathA (pszShortName);
 

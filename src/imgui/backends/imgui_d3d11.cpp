@@ -866,7 +866,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
   // Create the vertex shader
   {
-    static const char* vertexShader =
+    static const char vertexShader [] =
      "#pragma warning ( disable : 3571 )\n                        \
       cbuffer vertexBuffer : register (b0)                        \
       {                                                           \
@@ -910,7 +910,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     CComPtr <ID3D10Blob> blob_msg_vtx;
 
     D3DCompile ( vertexShader,
-                   strlen (vertexShader),
+                   sizeof (vertexShader),
                      nullptr, nullptr, nullptr,
                        "main", "vs_4_0",
                          0, 0,
@@ -943,7 +943,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
       return false;
 
 
-    static const char* vertexShaderSteamHDR =
+    static const char vertexShaderSteamHDR [] =
    "#pragma warning ( disable : 3571 )\n                    \
     cbuffer vertexBuffer : register (b0)                    \
     {                                                       \
@@ -979,7 +979,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
       return output;                                        \
     }";
 
-   static const char* vertexShaderuPlayHDR =
+   static const char vertexShaderuPlayHDR [] =
    "#pragma warning ( disable : 3571 )\n                    \
     cbuffer vertexBuffer : register (b0)                    \
     {                                                       \
@@ -1013,7 +1013,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     }";
 
     D3DCompile ( vertexShaderSteamHDR,
-                   strlen (vertexShaderSteamHDR),
+                   sizeof (vertexShaderSteamHDR),
                      nullptr, nullptr, nullptr,
                        "main", "vs_4_0",
                          0, 0,
@@ -1046,7 +1046,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
       return false;
 
     D3DCompile ( vertexShaderuPlayHDR,
-                   strlen (vertexShaderuPlayHDR),
+                   sizeof (vertexShaderuPlayHDR),
                      nullptr, nullptr, nullptr,
                        "main", "vs_4_0",
                          0, 0,
@@ -1116,7 +1116,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
   // Create the pixel shader
   {
-    static const char* pixelShader =
+    static const char pixelShader [] =
      "#pragma warning ( disable : 3571 )\n                                    \
       struct PS_INPUT                                                         \
       {                                                                       \
@@ -1212,7 +1212,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     CComPtr <ID3D10Blob> blob_msg_pix;
 
     D3DCompile ( pixelShader,
-                   strlen (pixelShader),
+                   sizeof (pixelShader),
                      nullptr, nullptr, nullptr,
                        "main", "ps_4_0",
                          0, 0,
@@ -1249,7 +1249,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
 
     ///////
-    static const char* pixelShaderSteamHDR =
+    static const char pixelShaderSteamHDR [] =
    "#pragma warning ( disable : 3571 )\n                         \
     struct PS_INPUT                                              \
     {                                                            \
@@ -1286,7 +1286,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
         float4 (out_col.rgb, saturate (out_col.a));              \
     }";
 
-   static const char* pixelShaderuPlayHDR =
+   static const char pixelShaderuPlayHDR [] =
    "#pragma warning ( disable : 3571 )\n                         \
     struct PS_INPUT                                              \
     {                                                            \
@@ -1322,7 +1322,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     }";
 
     D3DCompile ( pixelShaderSteamHDR,
-                   strlen (pixelShaderSteamHDR),
+                   sizeof (pixelShaderSteamHDR),
                      nullptr, nullptr, nullptr,
                        "main", "ps_4_0",
                          0, 0,
@@ -1353,7 +1353,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
       return false;
 
     D3DCompile ( pixelShaderuPlayHDR,
-                   strlen (pixelShaderuPlayHDR),
+                   sizeof (pixelShaderuPlayHDR),
                      nullptr, nullptr, nullptr,
                        "main", "ps_4_0",
                          0, 0,

@@ -935,7 +935,7 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
       ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF_config.exe", nullptr, nullptr, SW_NORMAL);
 
       while (SK_IsProcessRunning (L"WOFF_config.exe"))
-        SleepEx (250UL, FALSE);
+        SK_Sleep (250UL);
 
       ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF.exe",        nullptr, nullptr, SW_NORMAL);
       ExitProcess   (0x00);

@@ -321,7 +321,7 @@ CSteamworks_Delay_Init (LPVOID user)
   while ( (! ReadAcquire (&__SK_Steam_init)) &&
             tries < 120 )
   {
-    SleepEx (config.steam.init_delay, FALSE);
+    SK_Sleep (config.steam.init_delay);
 
     if (ReadAcquire (&__SK_Steam_init))
       break;

@@ -544,7 +544,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     else
     {
       double seconds =
-        SK_DeltaPerfMS (liStartTime.QuadPart, 1.0) / 1000.0;
+        SK_DeltaPerfMS (liStartTime.QuadPart, 1) / 1000.0;
 
       SK_LOG0 ( (L"Fetched %ws from [%ws] in %4.1f seconds (%ws/sec)",
                  SK_File_SizeToString (

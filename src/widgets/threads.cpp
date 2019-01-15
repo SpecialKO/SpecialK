@@ -1679,16 +1679,15 @@ public:
 
       if (ImGui::Combo ("Priority", &prio, "Very Low\0Low\0Normal\0High\0Critical\0\0"))
       {
-        task->change.priority =
-          AVRT_PRIORITY (prio - 2);
-
         strncpy (task->change.task0, task->task0, 64);
         strncpy (task->change.task1, task->task1, 64);
 
-        task->change.flush ();
+        task->queuePriority (
+          AVRT_PRIORITY (prio - 2)
+        );
       }
       else if (! ReadAcquire (&task->change.pending))
-        task->change.priority = task->priority;
+        task->priority = task->change.priority;
 
       //ImGui::NextColumn ( );
       //
@@ -1888,7 +1887,7 @@ public:
 
                   if (SuspendThread (hThread__) != (DWORD)-1)
                   {
-                    SleepEx (90, FALSE);
+                    SK_Sleep (90);
 
                     if (SK_GetFramesDrawn () <= ((suspend_params_s *)user)->frames)
                     {

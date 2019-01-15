@@ -207,17 +207,19 @@ SK_ICommandProcessor::FindCommand (const char* szCommand) const
 const SK_IVariable*
 SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariable)
 {
-  if (szVariable == nullptr || strlen (szVariable) < 1)
+  if (pVariable == nullptr)
     return nullptr;
 
-  if (pVariable == nullptr)
+  if (szVariable == nullptr || strlen (szVariable) < 1)
     return nullptr;
 
   /* Variable already exists, what should we do?! */
   if (FindVariable (szVariable) != nullptr)
     return nullptr;
 
-  variables_.insert (SK_VariableRecord (szVariable, pVariable));
+  variables_.emplace (
+    SK_VariableRecord (szVariable, pVariable)
+  );
 
   return pVariable;
 }

@@ -87,7 +87,7 @@ struct mem_addr_s
     {
       scanned_addr = SK_ScanAlignedEx (pattern, pattern_len, pattern_mask);
 
-      dll_log.Log (L"Scanned address for: %s: %p", desc, scanned_addr);
+      dll_log.Log (L"Scanned address for: %s: %p (alignment=%lu)", desc, scanned_addr, (uintptr_t)scanned_addr % 16);
     }
   }
 
@@ -109,6 +109,12 @@ struct mem_addr_s
       else if (rep_size == 2)
       {
         InterlockedExchange16 ((volatile SHORT*)((intptr_t)scanned_addr + rep_off), *(SHORT *)"\x77\xBD");
+      }
+
+      // Other sizes are not atomic, so... not threadsafe
+      else
+      {
+        memcpy ((void *)((intptr_t)scanned_addr + rep_off), orig_bytes.data (), rep_size);
       }
 
       VirtualProtect ((void*)((intptr_t)scanned_addr + rep_off), rep_size, dwProtect, &dwProtect);
@@ -142,6 +148,11 @@ struct mem_addr_s
       else if (rep_size == 2)
       {
         InterlockedExchange16 ((volatile SHORT*)((intptr_t)scanned_addr + rep_off), *(SHORT *)"\x90\x90");
+      }
+
+      else
+      {
+        memset ((void *)((intptr_t)scanned_addr + rep_off), 0x90, rep_size);
       }
 
       VirtualProtect ((void*)((intptr_t)scanned_addr + rep_off), rep_size, dwProtect, &dwProtect);
@@ -312,7 +323,7 @@ SK_NNK2_InitPlugin (void)
     // Fix for window-management issues in windowed mode
     while (SK_GetFramesDrawn () < 8)
     {
-      SleepEx (16UL, FALSE);
+      SK_Sleep (16UL);
     }
 
 

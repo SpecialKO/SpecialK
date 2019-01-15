@@ -494,7 +494,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
 
                  while ( ReadAcquire (&__SK_DLL_Attached) || SK_GetHostAppUtil ().isInjectionTool () )
                  {
-                   SleepEx (750UL, FALSE);
+                   SK_Sleep (750UL);
                    //SK_WaitForSingleObject (hShutdownSignal, INFINITE);
                    //           CloseHandle (hShutdownSignal);
                    //                        hShutdownSignal = INVALID_HANDLE_VALUE;
@@ -515,7 +515,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
         // Closes itself
         DBG_UNREFERENCED_LOCAL_VARIABLE (hThread);
 
-        SleepEx (INFINITE, FALSE);
+        SK_Sleep (INFINITE);
       }
     }
   }
@@ -1011,7 +1011,7 @@ SK_Inject_Stop (void)
     if (hWndExisting)
     {
       SendMessage (hWndExisting, WM_USER + 0x122, 0, 0);
-      SleepEx     (333UL, FALSE);
+      SK_Sleep    (333UL);
     }
 
     // Worst-case, we do this manually and confuse Steam
@@ -1021,7 +1021,7 @@ SK_Inject_Stop (void)
                                "open", "SKIM64.exe",
                                "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (),
                                  SW_FORCEMINIMIZE );
-      SleepEx              ( 333UL, FALSE);
+      SK_Sleep             ( 333UL );
       SK_ExitRemoteProcess ( L"SKIM64.exe", 0x00);
     }
 
@@ -1087,7 +1087,7 @@ SK_Inject_Start (void)
     if (hWndExisting)
     {
       SendMessage (hWndExisting, WM_USER + 0x125, 0, 0);
-      SleepEx     (250UL, FALSE);
+      SK_Sleep    (250UL);
       SendMessage (hWndExisting, WM_USER + 0x124, 0, 0);
     }
 

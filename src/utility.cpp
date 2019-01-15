@@ -889,7 +889,7 @@ struct SK_MemScan_Params__v0
 
 
 bool
-SK_ValidatePointer (LPCVOID addr)
+SK_ValidatePointer (LPCVOID addr, bool silent)
 {
   MEMORY_BASIC_INFORMATION minfo = { };
 
@@ -906,10 +906,11 @@ SK_ValidatePointer (LPCVOID addr)
     }
   }
 
-  if (bFail)
+  if (bFail && (! silent))
   {
-    SK_LOG0 ( ( L"Address Validation for addr. %s FAILED!",
-                  SK_MakePrettyAddress (addr).c_str () ),
+    SK_LOG0 ( ( L"Address Validation for addr. %s FAILED!  --  %s",
+                  SK_MakePrettyAddress (addr).c_str (),
+                  SK_SummarizeCaller   (    ).c_str () ),
                 L" SK Debug " );
   }
 
@@ -917,7 +918,7 @@ SK_ValidatePointer (LPCVOID addr)
 }
 
 bool
-SK_IsAddressExecutable (LPCVOID addr)
+SK_IsAddressExecutable (LPCVOID addr, bool silent)
 {
   MEMORY_BASIC_INFORMATION minfo = { };
 
@@ -938,9 +939,13 @@ SK_IsAddressExecutable (LPCVOID addr)
     }
   }
 
-  SK_LOG0 ( ( L"Executable Address Validation for addr. %s FAILED!",
-                SK_MakePrettyAddress (addr).c_str () ),
-              L" SK Debug " );
+  if (! silent)
+  {
+    SK_LOG0 ( ( L"Executable Address Validation for addr. %s FAILED!  --  %s",
+                  SK_MakePrettyAddress (addr).c_str (),
+                  SK_SummarizeCaller   (    ).c_str () ),
+                L" SK Debug " );
+  }
 
   return false;
 }
@@ -1726,8 +1731,11 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
 
   uint8_t* end_addr = base_addr + pNT->OptionalHeader.SizeOfImage;
 #else
-           base_addr = static_cast <uint8_t *> (minfo.BaseAddress);
-  uint8_t* end_addr  = static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
+           base_addr = static_cast <uint8_t *> (
+                                      (void *)GetModuleHandle (nullptr)
+                                               );
+  uint8_t* end_addr  = static_cast <uint8_t *> (    minfo.BaseAddress    ) +
+                                                    minfo.RegionSize;
 
   ///if (base_addr != (uint8_t *)0x400000)
   ///{
@@ -1827,7 +1835,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
          (! (minfo.State    & MEM_COMMIT))  ||
              minfo.Protect  & PAGE_NOACCESS ||
              minfo.Protect == 0             ||
-           ( ! params.testPrivs (minfo) )   ||
+         ( ! params.testPrivs (minfo) )     ||
 
         // It is not a good idea to scan Special K's DLL, since in many cases the pattern
         //   we are scanning for becomes a part of the DLL and makes an exhaustive search
@@ -1850,14 +1858,23 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
     if (next_rgn >= end_addr)
       break;
 
-    while (it <= next_rgn)
+    while (it < next_rgn)
     {
       uint8_t* scan_addr = it;
 
       uint8_t test_val = static_cast <const uint8_t *> (pattern)[idx];
       uint8_t mask_val = 0x0;
 
-      bool match = (*scan_addr == test_val);
+      bool match = false;
+
+      __try {
+        match =
+          (*scan_addr == test_val);
+      }
+
+      __except (EXCEPTION_EXECUTE_HANDLER) {
+        //continue;
+      }
 
       if (mask != nullptr)
       {

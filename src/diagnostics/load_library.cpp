@@ -1528,8 +1528,8 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
       GetProcAddress (hModNtDLL, "RtlGetUnloadEventTraceEx")
     );
 
-    if (RtlGetUnloadEventTraceEx == nullptr)
-      return;
+  if (RtlGetUnloadEventTraceEx == nullptr)
+    return;
 
   PULONG element_size  = nullptr,
          element_count = nullptr;
@@ -1559,7 +1559,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
 
     for (ULONG i = 0; i < ElementCount; i++)
     {
-      if (! SK_ValidatePointer (pTraceEntry))
+      if (! SK_ValidatePointer (pTraceEntry, true))
         continue;
 
       if (pTraceEntry->BaseAddress != nullptr)
@@ -3401,7 +3401,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       static volatile LONG                walking  =  0;
       //while (InterlockedCompareExchange (&walking, 1, 0))
       //{
-      //  SleepEx (20UL, FALSE);
+      //  SK_Sleep (20UL);
       //}
 
       auto CleanupLog =

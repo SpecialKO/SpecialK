@@ -189,7 +189,7 @@ SK_FlushLog (iSK_Logger* pLog)
   if (! ReadAcquire (&__SK_DLL_Ending))
   {
     while ((intptr_t)hFlushReq <= 0)
-      SleepEx (1, FALSE);
+      SK_Sleep (1);
 
     if ( (! flush_set.count ( pLog )) ||
             flush_set       [ pLog ] == false )

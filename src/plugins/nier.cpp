@@ -690,7 +690,7 @@ SK_FAR_OSD_Disclaimer (LPVOID user)
   UNREFERENCED_PARAMETER (user);
 
   while ((volatile bool&)config.osd.show)
-    SleepEx (66, FALSE);
+    SK_Sleep (66);
 
   far_osd_disclaimer->store     (false);
 
@@ -3398,7 +3398,7 @@ SK_FAR_OSD_Disclaimer (LPVOID user)
   UNREFERENCED_PARAMETER (user);
 
   while ((volatile bool&)config.osd.show)
-    SleepEx (66, FALSE);
+    SK_Sleep (66);
 
   far_osd_disclaimer->store     (false);
   far_prefs->write              (far_prefs_file);
@@ -3515,7 +3515,7 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
   UNREFERENCED_PARAMETER (Flags);
 
   // Wait for the mod to init, it may be held up during version check
-  while (! ReadAcquire (&__FAR_init)) SleepEx (16, FALSE);
+  while (! ReadAcquire (&__FAR_init)) SK_Sleep (16);
 
   {
     game_state.enforce_cap = (! far_uncap_fps->get_value ());
