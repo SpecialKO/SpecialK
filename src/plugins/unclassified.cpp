@@ -1080,19 +1080,3 @@ SK_ACO_PlugInCfg (void)
 
   return true;
 }
-
-
-bool __SK_TVFix_NoRenderSleep = true;
-
-bool
-SK_TVFix_PlugInCfg (void)
-{
-  if (ImGui::CollapsingHeader ("Tales of Vesperia Definitive Edition", ImGuiTreeNodeFlags_DefaultOpen))
-  {
-    ImGui::TreePush ("");
-    ImGui::Checkbox ("Fix Microstutter", &__SK_TVFix_NoRenderSleep);
-    ImGui::TreePop  (  );
-  }
-
-  return true;
-}

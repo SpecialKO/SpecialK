@@ -63,6 +63,9 @@ SK_IT_InitPlugin (void);
 void
 SK_NNK2_InitPlugin (void);
 
+void
+SK_TVFix_InitPlugin (void);
+
 bool SK_FO4_UseFlipMode        (void);
 bool SK_FO4_IsFullscreen       (void);
 bool SK_FO4_IsBorderlessWindow (void);
