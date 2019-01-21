@@ -172,9 +172,6 @@
     <Filter Include="Header Files\Plugins\OSD">
       <UniqueIdentifier>{8fbcdce6-8e2c-4712-9b40-d4085ce8ac67}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Backends\Render\DDraw\D3D9">
-      <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Config\DLL Export Definitions">
       <UniqueIdentifier>{5b9c5ae0-a6ca-41ed-bf90-f9485960db1e}</UniqueIdentifier>
     </Filter>
@@ -225,6 +222,9 @@
     </Filter>
     <Filter Include="Tobii">
       <UniqueIdentifier>{5c1eb938-d54a-4f55-a3cd-8db762fba7c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\D3D9">
+      <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -394,7 +394,7 @@
       <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_backend.h">
-      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\vk\vulkan_backend.h">
       <Filter>Header Files\Backends\Render\Vulkan</Filter>
@@ -424,7 +424,7 @@
       <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h">
-      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\load_library.h">
       <Filter>Header Files\Diagnostics</Filter>
@@ -514,13 +514,13 @@
       <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\d3d9.h">
-      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_device.h">
-      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_swapchain.h">
-      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
@@ -1007,11 +1007,14 @@
     <ClCompile Include="src\osd\popup.cpp">
       <Filter>Source Files\OSD</Filter>
     </ClCompile>
-    <ClCompile Include="src\performance\io_monitor.cpp">
-      <Filter>Source Files\Update</Filter>
-    </ClCompile>
     <ClCompile Include="src\diagnostics\cpu.cpp">
       <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\performance\io_monitor.cpp">
+      <Filter>Source Files\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\tales_of_vesperia.cpp">
+      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1144,6 +1147,16 @@
     <None Include="SpecialK.def">
       <Filter>Header Files\Config\DLL Export Definitions</Filter>
     </None>
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />

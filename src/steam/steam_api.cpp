@@ -403,8 +403,8 @@ SK_Steam_FindInstallPath (uint32_t appid)
 
         auto szManifestData =
           std::make_unique <char []> (
-            std::size_t (dwSize + 1)
-            );
+            std::size_t (dwSize) + std::size_t (1)
+          );
 
         if (! szManifestData.get ())
           continue;
@@ -3833,7 +3833,7 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
           SK_TLS_Bottom ();
 
         char* data = (char *)
-          pTLS->steam.allocScratchText (dwSize + 1);
+          pTLS->steam.allocScratchText (dwSize + 4);
 
         if (data == nullptr)
           return steam_libs;
@@ -3934,7 +3934,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
 
         auto szManifestData =
           std::make_unique <char []> (
-            std::size_t (dwSize + 1)
+            std::size_t (dwSize) + std::size_t (1)
           );
         auto manifest_data =
           szManifestData.get ();

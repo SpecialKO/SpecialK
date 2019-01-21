@@ -38,12 +38,12 @@ struct thread_events
 } extern perfmon;
 
 struct io_perf_t {
-  bool           init          = false;
+  bool           init         = false;
 
-  ULARGE_INTEGER last_update;
-  IO_COUNTERS    accum;
-  ULONGLONG      dt;
-  IO_COUNTERS    last_counter;
+  ULARGE_INTEGER last_update  = { 0, 0 };
+  IO_COUNTERS    accum        = {      };
+  ULONGLONG      dt           =     0ULL;
+  IO_COUNTERS    last_counter = {      };
 
   double         read_mb_sec   = 0.0;
   double         write_mb_sec  = 0.0;

@@ -583,19 +583,46 @@ SK_ImGui_ControlPanelTitle (void)
 void
 SK_ImGui_AdjustCursor (void)
 {
-  SK_Thread_Create (
-    [](LPVOID)->
+  static          HANDLE hAdjustEvent = 0;
+  static volatile LONG   lInit        = 0;
+
+  if (! InterlockedCompareExchange (&lInit, 1, 0))
+  {
+    hAdjustEvent =
+      CreateEvent (nullptr, FALSE, FALSE, nullptr);
+
+    SK_Thread_Create ([](LPVOID pUser)->
     DWORD
     {
       SetCurrentThreadDescription (L"[SK] Cursor Adjustment Thread");
 
-      SK_ClipCursor (nullptr);
-        SK_AdjustWindow   ();        // Restore game's clip cursor behavior
+      InterlockedIncrement (&lInit);
+
+
+      HANDLE hEvent = (HANDLE)pUser;
+
+      while (! ReadAcquire (&__SK_DLL_Ending))
+      {
+        if ( WaitForSingleObject ((HANDLE)pUser, INFINITE) == WAIT_OBJECT_0 )
+        {
+          SK_ClipCursor (nullptr);
+             SK_AdjustWindow   ();       // Restore game's clip cursor behavior
+        }
+      }
+      hAdjustEvent = INVALID_HANDLE_VALUE;
+      CloseHandle (hEvent);
+                   
 
       SK_Thread_CloseSelf ();
 
       return 0;
-    });
+    }, (LPVOID)hAdjustEvent);
+  }
+
+  SK_Thread_SpinUntilAtomicMin (&lInit, 2);
+
+  if ((uintptr_t)hAdjustEvent > 0)
+       SetEvent (hAdjustEvent);
 }
 
 bool reset_frame_history = true;

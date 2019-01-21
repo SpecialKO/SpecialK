@@ -138,8 +138,8 @@ struct SK_FFXV_Thread
       CloseHandle (hThread);
   }
 
-  HANDLE               hThread;
-  volatile LONG        dwPrio = THREAD_PRIORITY_NORMAL;
+  HANDLE               hThread = 0;
+  volatile LONG        dwPrio  = THREAD_PRIORITY_NORMAL;
 
   sk::ParameterInt* prio_cfg;
 

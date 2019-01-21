@@ -503,9 +503,11 @@ SK_InitCore (std::wstring, void* callback)
       break;
 
     case SK_GAME_ID::NiNoKuni2:
-      extern void
-      SK_NNK2_InitPlugin (void);
       SK_NNK2_InitPlugin ();
+      break;
+
+    case SK_GAME_ID::Tales_of_Vesperia:
+      SK_TVFix_InitPlugin ();
       break;
 
     case SK_GAME_ID::FarCry5:
@@ -557,28 +559,28 @@ SK_InitCore (std::wstring, void* callback)
               SK_LOG0 ( ( L"Unpacking EasyAntiCheatDefeat for FarCry 5" ),
                           L"AntiDefeat" );
 
-             wcscpy      (wszArchive, wszDestination);
-             PathAppendW (wszArchive, L"EasyAntiCheatDefeat.7z");
+              wcscpy      (wszArchive, wszDestination);
+              PathAppendW (wszArchive, L"EasyAntiCheatDefeat.7z");
 
-             FILE* fPackedCompiler =
-               _wfopen   (wszArchive, L"wb");
+              FILE* fPackedCompiler =
+                _wfopen   (wszArchive, L"wb");
 
-             if (fPackedCompiler != nullptr)
-             {
-               fwrite    (locked, 1, res_size, fPackedCompiler);
-               fclose    (fPackedCompiler);
-             }
+              if (fPackedCompiler != nullptr)
+              {
+                fwrite    (locked, 1, res_size, fPackedCompiler);
+                fclose    (fPackedCompiler);
+              }
 
-             using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+              using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
-             extern
-             HRESULT
-             SK_Decompress7zEx ( const wchar_t*            wszArchive,
-                                 const wchar_t*            wszDestination,
-                                 SK_7Z_DECOMP_PROGRESS_PFN callback );
+              extern
+              HRESULT
+              SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                                  const wchar_t*            wszDestination,
+                                  SK_7Z_DECOMP_PROGRESS_PFN callback );
 
-             SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
-             DeleteFileW       (wszArchive);
+              SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+              DeleteFileW       (wszArchive);
             }
           }
 
@@ -725,7 +727,6 @@ D3DStripShader_47_Detour     (
   return S_OK;
 }
 
-
 void
 WaitForInit (void)
 {
@@ -765,6 +766,10 @@ WaitForInit (void)
 
   if (! InterlockedCompareExchangeAcquire (&__SK_Init, TRUE, FALSE))
   {
+    //SK_AutoHandle hTempInit (
+    //  (HANDLE)ReadPointerAcquire (&hInitThread)
+    //);
+
     if ( ReadULongAcquire   (&dwInitThreadId) != dwThreadId &&
          ReadPointerAcquire (&hInitThread)    != INVALID_HANDLE_VALUE )
     {
@@ -821,14 +826,10 @@ WaitForInit (void)
         }
       }
 
-      WriteULongRelease (&dwInitThreadId, 0);
-
-      CloseHandle (
-        reinterpret_cast <HANDLE> (
-          InterlockedExchangePointer ( const_cast <void **> (&hInitThread),
-                                         INVALID_HANDLE_VALUE )
-        )
-      );
+      WriteULongRelease   (                       &dwInitThreadId,
+                              0                    );
+      WritePointerRelease ( const_cast <void **> (&hInitThread),
+                              INVALID_HANDLE_VALUE );
     }
 
     // Load user-defined DLLs (Lazy)
@@ -1493,8 +1494,9 @@ void
 __stdcall
 SK_EstablishRootPath (void)
 {
-  wchar_t wszConfigPath [MAX_PATH * 3 + 1] = { };
+  wchar_t wszConfigPath [MAX_PATH * 2 + 1] = { };
   GetCurrentDirectory   (MAX_PATH, wszConfigPath);
+  lstrcatW (wszConfigPath, LR"(\)");
 
   // File permissions don't permit us to store logs in the game's directory,
   //   so implicitly turn on the option to relocate this stuff.
@@ -1502,7 +1504,7 @@ SK_EstablishRootPath (void)
     config.system.central_repository = true;
   }
 
-  ZeroMemory (wszConfigPath, sizeof (wchar_t) * (MAX_PATH * 2 + 1));
+  SecureZeroMemory (wszConfigPath, sizeof (wchar_t) * (MAX_PATH * 2 + 1));
 
   // Store config profiles in a centralized location rather than relative to the game's executable
   //
@@ -1565,9 +1567,6 @@ SK_EstablishRootPath (void)
 ////
 ////  SK_StartupCore (params->backend.c_str (), params->callback);
 ////}
-
-
-typedef BOOL (WINAPI *SetProcessDEPPolicy_pfn)(_In_ DWORD dwFlags);
 
 
 #include <SpecialK/steam_api.h>
@@ -1706,13 +1705,10 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  ////if ( IsProcessDPIAware () )
-  ////{
-  ////  SK_DisableDPIScaling ();
-  ////}
-
-  HMODULE hModK32 =
-    SK_GetModuleHandleW (L"kernel32");
+  //if ( IsProcessDPIAware () )
+  //{
+  //  SK_DisableDPIScaling ();
+  //}
 
   __SK_BootedCore = backend;
 
@@ -1720,15 +1716,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   //  to determine if the Steam client has given us the AppID without having
   //    to initialize SteamAPI first.
   SK_Steam_GetAppID_NoAPI ();
-
-  static SetProcessDEPPolicy_pfn _SetProcessDEPPolicy =
-    (SetProcessDEPPolicy_pfn)
-      GetProcAddress ( hModK32, "SetProcessDEPPolicy" );
-
-  // Disable DEP for stupid Windows 7 machines
-  if (_SetProcessDEPPolicy  != nullptr)
-      _SetProcessDEPPolicy (0);
-
 
 
   // Allow users to centralize all files if they want
@@ -2879,24 +2866,17 @@ SK_BeginBufferSwap (void)
     auto* task =
       SK_MMCS_GetTaskForThreadIDEx ( GetCurrentThreadId (),
                                        "[SK] Primary Render Thread",
-                                         "Games",
-                                         "DisplayPostProcessing" );
+                                         "Games", "DisplayPostProcessing" );
 
-     if ( task             != nullptr               &&
-          task->dwTid      == GetCurrentThreadId () &&
+     if ( task             != nullptr &&
           task->dwFrames++ == 0 )
      {
        if (game_id != SK_GAME_ID::AssassinsCreed_Odyssey)
-         task->setPriority (AVRT_PRIORITY_CRITICAL);
+         task->queuePriority (AVRT_PRIORITY_CRITICAL);
        else
-         task->setPriority (AVRT_PRIORITY_LOW);
-
+         task->queuePriority (AVRT_PRIORITY_LOW);
 
        SK_BufferFlinger.dwTid = task->dwTid;
-
-       CHandle hThread (OpenThread (THREAD_ALL_ACCESS, FALSE, task->dwTid));
-
-       SetThreadPriorityBoost (hThread.m_h, FALSE);
      }
   }
 
@@ -3155,7 +3135,7 @@ SK_Input_PollKeyboard (void)
 #if 0
   if (ullNow.QuadPart < last_poll + poll_interval)
   {
-    SleepEx (10, FALSE);
+    SK_Sleep (10);
     last_poll = ullNow.QuadPart;
   }
 #endif

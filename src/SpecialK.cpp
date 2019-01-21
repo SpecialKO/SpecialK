@@ -186,11 +186,11 @@ SK_KeepAway (void)
   return FALSE;
 #endif
 
+//#define SK_PARANOID
+#ifdef SK_PARANOID
   if (! SK_COM_TestInit ())
     return TRUE;
 
-#define SK_PARANOID
-#ifdef SK_PARANOID
   BOOL  bNotAUserInteractiveApplication = FALSE;
   DWORD dwIntegrityLevel                = std::numeric_limits <DWORD>::max ();
 

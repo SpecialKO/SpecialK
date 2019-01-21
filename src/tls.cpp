@@ -1039,6 +1039,18 @@ SK_DXTex_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   return freed;
 }
 
+size_t
+SK_Sched_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
+{
+  if (sub_2ms_sleep != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle (sub_2ms_sleep);
+    sub_2ms_sleep = INVALID_HANDLE_VALUE;
+  }
+
+  return 0;
+}
+
 
 
 
@@ -1057,6 +1069,7 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
   freed += steam         .Cleanup (reason);
   freed += d3d11         .Cleanup (reason);
   freed += dxtex         .Cleanup (reason);
+  freed += scheduler     .Cleanup (reason);
 
 
   if (known_modules.pResolved != nullptr)

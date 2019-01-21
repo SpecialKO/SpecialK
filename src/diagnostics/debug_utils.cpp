@@ -1576,7 +1576,7 @@ struct SK_FFXV_Thread
   HANDLE               hThread = 0;
   volatile LONG        dwPrio  = THREAD_PRIORITY_NORMAL;
 
-  sk::ParameterInt* prio_cfg;
+  sk::ParameterInt* prio_cfg   = nullptr;
 
   void setup (HANDLE hThread);
 } extern sk_ffxv_swapchain,
@@ -1870,7 +1870,19 @@ SK_Exception_HandleThreadName (
               SK_MMCS_GetTaskForThreadIDEx ( dwTid,
                                                "Work Thread",
                                                  "Playback", "Distribution" );
-
+          
+            if (task != nullptr)
+            {
+              task->queuePriority (AVRT_PRIORITY_CRITICAL);
+            }
+          }
+          else if (StrStrA (info->szName, "BusyThread"))
+          {
+            auto* task =
+              SK_MMCS_GetTaskForThreadIDEx ( dwTid,
+                                               "Busy Thread",
+                                                 "Playback", "Distribution" );
+          
             if (task != nullptr)
             {
               task->queuePriority (AVRT_PRIORITY_HIGH);
@@ -2285,6 +2297,26 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
   return bAllow;
 }
 
+FILE* SK::Diagnostics::Debugger::fStdErr = nullptr;
+FILE* SK::Diagnostics::Debugger::fStdIn  = nullptr;
+FILE* SK::Diagnostics::Debugger::fStdOut = nullptr;
+
+class SK_DebuggerCleanup
+{
+public:
+  ~SK_DebuggerCleanup (void)
+  {
+    if (SK::Diagnostics::Debugger::fStdErr != nullptr)
+      fclose (SK::Diagnostics::Debugger::fStdErr);
+
+    if (SK::Diagnostics::Debugger::fStdIn != nullptr)
+      fclose (SK::Diagnostics::Debugger::fStdIn);
+
+    if (SK::Diagnostics::Debugger::fStdOut != nullptr)
+      fclose (SK::Diagnostics::Debugger::fStdOut);
+  }
+} _DebuggerCleanup;
+
 void
 SK::Diagnostics::Debugger::SpawnConsole (void)
 {
@@ -2294,9 +2326,9 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
 
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    _wfreopen (L"CONIN$",  L"r", stdin);
-    _wfreopen (L"CONOUT$", L"w", stdout);
-    _wfreopen (L"CONOUT$", L"w", stderr);
+    fStdIn  = _wfreopen (L"CONIN$",  L"r", stdin);
+    fStdOut = _wfreopen (L"CONOUT$", L"w", stdout);
+    fStdErr = _wfreopen (L"CONOUT$", L"w", stderr);
   }
 }
 

@@ -324,6 +324,9 @@ _CreateConfigParameter ( std::type_index type,
       _TryLoadParam = [&](void) ->
       bool
       {
+        if (! pBackingStore)
+          return false;
+
         switch (specialization)
         {
           case _ParameterType::Bool:
@@ -331,7 +334,7 @@ _CreateConfigParameter ( std::type_index type,
             return
               dynamic_cast <sk::ParameterBool *> (
                 pParam
-                )->load (*static_cast <bool *> (pBackingStore));
+              )->load (*static_cast <bool *> (pBackingStore));
           } break;
 
           case _ParameterType::Int:
@@ -339,7 +342,7 @@ _CreateConfigParameter ( std::type_index type,
             return
               dynamic_cast <sk::ParameterInt *> (
                 pParam
-                )->load (*static_cast <int *> (pBackingStore));
+              )->load (*static_cast <int *> (pBackingStore));
           } break;
 
           case _ParameterType::Float:

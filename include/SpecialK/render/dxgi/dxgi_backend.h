@@ -423,7 +423,8 @@ void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 class SK_D3D11_TexMgr {
 public:
   SK_D3D11_TexMgr (void) {
-    QueryPerformanceFrequency (&PerfFreq);
+    PerfFreq = SK_GetPerfFreq ();
+
     HashMap_2D.resize   (20);
     Blacklist_2D.resize (20);
 
@@ -559,10 +560,10 @@ public:
   std::unordered_map <uint32_t, std::wstring> tex_hashes_ex;
   
   std::unordered_set <uint32_t>               dumped_textures;
-  uint64_t                                    dumped_texture_bytes;
+  uint64_t                                    dumped_texture_bytes     = 0ULL;
   std::unordered_set <uint32_t>               dumped_collisions;
   std::unordered_set <uint32_t>               injectable_textures;
-  uint64_t                                    injectable_texture_bytes;
+  uint64_t                                    injectable_texture_bytes = 0ULL;
   std::unordered_set <uint32_t>               injected_collisions;
   
   std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
@@ -1007,7 +1008,7 @@ struct d3d11_shader_tracking_s
 
   struct
   {
-    std::array < bool, SK_D3D11_MAX_DEV_CONTEXTS+1 > contexts;
+    std::array < bool, SK_D3D11_MAX_DEV_CONTEXTS+1 > contexts = { };
 
     // Only examine the hash map when at least one context is active,
     //   or we will kill performance!
@@ -1142,7 +1143,7 @@ struct d3d11_shader_tracking_s
 
 //  std::vector <shader_constant_s> constants;
 
-    SK_D3D11_ShaderType type_;
+    SK_D3D11_ShaderType type_ = SK_D3D11_ShaderType::Invalid;
 };
 
 struct SK_D3D11_KnownShaders
@@ -1501,6 +1502,15 @@ void SK_CEGUI_QueueResetD3D11 (void);
 
 void SK_D3D11_AssociateVShaderWithHUD (uint32_t crc32, bool set = true);
 void SK_D3D11_AssociatePShaderWithHUD (uint32_t crc32, bool set = true);
+
+
+#define SK_D3D11_DeclHUDShader_Vtx(crc32c) {  \
+    SK_D3D11_Shaders.vertex.addTrackingRef (  \
+      SK_D3D11_Shaders.vertex.hud, (crc32c)); }
+
+#define SK_D3D11_DeclHUDShader_Pix(crc32c) { \
+    SK_D3D11_Shaders.pixel.addTrackingRef  ( \
+      SK_D3D11_Shaders.pixel.hud, (crc32c)); }
 
 
 #define SK_D3D11_DeclHUDShader(crc32c,type) \

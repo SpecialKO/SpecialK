@@ -1482,8 +1482,8 @@ NtUserGetCursor_Detour (VOID)
 {
   SK_LOG_FIRST_CALL
 
-  return
-    NtUserGetCursor_Original ();
+  //return
+  //  NtUserGetCursor_Original ();
 
   static auto& io =
     ImGui::GetIO ();

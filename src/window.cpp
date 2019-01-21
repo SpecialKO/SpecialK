@@ -4529,7 +4529,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         }
       }
 
-      else if (uMsg == WM_ACTIVATE)
+      else //if (uMsg == WM_ACTIVATE)
       {
         const wchar_t* source   = L"UNKKNOWN";
         bool           activate = false;

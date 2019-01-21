@@ -345,10 +345,10 @@ struct TexThreadStats {
       concurrent_queue <TexLoadRef>                     textures_to_stream;
       concurrent_queue <TexLoadRef>                     finished_loads;
 
-      CRITICAL_SECTION                                  cs_tex_stream;
-      CRITICAL_SECTION                                  cs_tex_resample;
-      CRITICAL_SECTION                                  cs_tex_dump;
-      CRITICAL_SECTION                                  cs_tex_blacklist;
+      CRITICAL_SECTION                                  cs_tex_stream    = { };
+      CRITICAL_SECTION                                  cs_tex_resample  = { };
+      CRITICAL_SECTION                                  cs_tex_dump      = { };
+      CRITICAL_SECTION                                  cs_tex_blacklist = { };
 
       volatile  LONG                                    streaming;//       = 0L;
       volatile ULONG                                    streaming_bytes;// = 0UL;
@@ -862,7 +862,7 @@ public:
         LPVOID dontcare;
         if (FAILED (pTex->QueryInterface (IID_SKTextureD3D9, &dontcare)) && (! freed))
         {
-          if (pTex != nullptr) pTex->Release         ();
+          pTex->Release ();
 
           if (pTexOverride != nullptr)
           {
@@ -900,7 +900,7 @@ public:
     if (config.system.log_level > 1)
     {
       tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetPrivateData (%x, %ph, %lu, %x)",
-                      refguid,
+                      refguid.Data1,
                         pData,
                           SizeOfData,
                             Flags );
@@ -916,7 +916,7 @@ public:
     if (config.system.log_level > 1)
     {
       tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetPrivateData (%x, %ph, %lu)",
-                      refguid,
+                      refguid.Data1,
                         pData,
                           *pSizeOfData );
     }
@@ -928,7 +928,7 @@ public:
   }
   STDMETHOD(FreePrivateData)(THIS_ REFGUID refguid)  override {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::FreePrivateData (%x)",
-                    refguid );
+                    refguid.Data1 );
 
     if (pTex == nullptr)
       return E_FAIL;
@@ -1128,10 +1128,10 @@ public:
                                     //     
                                     //     
 
-  D3DLOCKED_RECT     lock_lvl0;
-  int                uses;
-  LARGE_INTEGER      begin_map;
-  LARGE_INTEGER      end_map;
+  D3DLOCKED_RECT     lock_lvl0  = {      };
+  int                uses       =      0;
+  LARGE_INTEGER      begin_map  = { 0, 0 };
+  LARGE_INTEGER      end_map    = { 0, 0 };
 
   ContentPreference  img_to_use;
 };

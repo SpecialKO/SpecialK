@@ -219,9 +219,9 @@ public:
           case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:
           case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:
             return G24;
+          default:
+            return NONE;
         }
-
-        return NONE;
       }
   } scanout;
 

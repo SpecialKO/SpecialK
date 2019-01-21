@@ -3809,6 +3809,11 @@ SK_DXGI_Present ( IDXGISwapChain *This,
                   UINT            SyncInterval,
                   UINT            Flags )
 {
+  SK_ReleaseAssert (Flags <= (2 * DXGI_PRESENT_ALLOW_TEARING));
+
+  if (Flags > 2 * DXGI_PRESENT_ALLOW_TEARING)
+      Flags = 0x0;
+
   HRESULT hr = S_OK;
 
   if (ReadAcquire (&__SK_SHENMUE_EarlyPresent) == 1)
@@ -3822,7 +3827,8 @@ SK_DXGI_Present ( IDXGISwapChain *This,
   }
 
   __try                                {
-    hr = Present_Original (This, SyncInterval, Flags);
+    hr =
+      Present_Original (This, SyncInterval, Flags);
   }
 
   // Release all resources, claim the presentation was successful and
@@ -3911,6 +3917,51 @@ SK_DXGI_TestPresentFlags (DWORD Flags)
   }
 
   return true;
+}
+
+void
+SK_DXGI_SetupPluginOnFirstFrame ( IDXGISwapChain *This,
+                                  UINT            SyncInterval,
+                                  UINT            Flags )
+{
+#ifdef _WIN64
+  static auto game_id =
+    SK_GetCurrentGameID ();
+
+  switch (game_id)
+  {
+    case SK_GAME_ID::Fallout4:
+      SK_FO4_PresentFirstFrame (This, SyncInterval, Flags);
+      break;
+
+    case SK_GAME_ID::DarkSouls3:
+      SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
+      break;
+
+    case SK_GAME_ID::NieRAutomata:
+      SK_FAR_PresentFirstFrame (This, SyncInterval, Flags);
+      break;
+
+    case SK_GAME_ID::BlueReflection:
+      SK_IT_PresentFirstFrame (This, SyncInterval, Flags);
+      break;
+
+    case SK_GAME_ID::DotHackGU:
+      SK_DGPU_PresentFirstFrame (This, SyncInterval, Flags);
+      break;
+
+    case SK_GAME_ID::Tales_of_Vesperia:
+      SK_TVFIX_PresentFirstFrame (This, SyncInterval, Flags);
+      break;
+
+    case SK_GAME_ID::WorldOfFinalFantasy:
+    {
+      SK_DeferCommand ("Window.Borderless toggle");
+      SK_Sleep        (33);
+      SK_DeferCommand ("Window.Borderless toggle");
+    } break;
+  }
+#endif
 }
 
 
@@ -4099,40 +4150,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
       if (hooked > 0)
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
 
-#ifdef _WIN64
-      static auto game_id =
-        SK_GetCurrentGameID ();
-
-      switch (game_id)
-      {
-        case SK_GAME_ID::Fallout4:
-          SK_FO4_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::DarkSouls3:
-          SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::NieRAutomata:
-          SK_FAR_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::BlueReflection:
-          SK_IT_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::DotHackGU:
-          SK_DGPU_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::WorldOfFinalFantasy:
-        {
-          SK_DeferCommand ("Window.Borderless toggle");
-          SleepEx (33, FALSE);
-          SK_DeferCommand ("Window.Borderless toggle");
-        } break;
-      }
-#endif
+      SK_DXGI_SetupPluginOnFirstFrame (This, SyncInterval, Flags);
 
       // TODO: Clean this code up
       CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
@@ -4239,7 +4257,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
       if (pSwapChain2 != nullptr)
       {
-        CHandle hWait (pSwapChain2->GetFrameLatencyWaitableObject ());
+        SK_AutoHandle hWait (pSwapChain2->GetFrameLatencyWaitableObject ());
 
         MsgWaitForMultipleObjectsEx ( 1,
                                         &hWait.m_h,
@@ -4481,40 +4499,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
       if (hooked > 0)
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
 
-#ifdef _WIN64
-      static const auto&
-        game_id = SK_GetCurrentGameID ();
-
-      switch (game_id)
-      {
-        case SK_GAME_ID::Fallout4:
-          SK_FO4_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::DarkSouls3:
-          SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::NieRAutomata:
-          SK_FAR_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::BlueReflection:
-          SK_IT_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::DotHackGU:
-          SK_DGPU_PresentFirstFrame (This, SyncInterval, Flags);
-          break;
-
-        case SK_GAME_ID::WorldOfFinalFantasy:
-        {
-          SK_DeferCommand ("Window.Borderless toggle");
-          SleepEx (33, FALSE);
-          SK_DeferCommand ("Window.Borderless toggle");
-        } break;
-      }
-#endif
+      SK_DXGI_SetupPluginOnFirstFrame (This, SyncInterval, Flags);
 
       // TODO: Clean this code up
       CComQIPtr <IDXGIDevice>  pDevDXGI = (pDev.p);
@@ -4647,7 +4632,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
       if (pSwapChain2 != nullptr)
       {
-        CHandle hWait (pSwapChain2->GetFrameLatencyWaitableObject ());
+        SK_AutoHandle hWait (pSwapChain2->GetFrameLatencyWaitableObject ());
 
         SK_WaitForSingleObject (&hWait.m_h, config.render.framerate.swapchain_wait);
         ///MsgWaitForMultipleObjectsEx ( 1,
@@ -6042,6 +6027,11 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
               pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
               dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
               break;
+            case DXGI_FORMAT_B8G8R8A8_UNORM:
+            case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+              pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+              dll_log.Log ( L"[ DXGI 1.2 ]  >> BGRA (R8G8B8A8) Override Required to Enable Flip Model" );
+              break;
             case DXGI_FORMAT_R10G10B10A2_UNORM:
             case DXGI_FORMAT_R10G10B10A2_TYPELESS:
               pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -6364,7 +6354,7 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     {
       if (bFlipMode && bWait)
       {
-        CHandle hWait (pSwapChain2->GetFrameLatencyWaitableObject ());
+        SK_AutoHandle hWait (pSwapChain2->GetFrameLatencyWaitableObject ());
 
         MsgWaitForMultipleObjectsEx ( 1,
                                         &hWait.m_h,
@@ -7962,9 +7952,6 @@ IDXGISwapChain3_SetColorSpace1_Override         ( IDXGISwapChain3       *This,
                 DXGIColorSpaceToStr (ColorSpace) ),
               L"   DXGI   " );
 
-  HRESULT hr =
-    E_NOT_SET;
-
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -7979,7 +7966,7 @@ IDXGISwapChain3_SetColorSpace1_Override         ( IDXGISwapChain3       *This,
     ColorSpace = (DXGI_COLOR_SPACE_TYPE)rb.scanout.colorspace_override;
   }
 
-  hr =
+  HRESULT hr =
     IDXGISwapChain3_SetColorSpace1_Original (
       This, ColorSpace
     );
@@ -8612,7 +8599,7 @@ HookDXGI (LPVOID user)
     D3D_FEATURE_LEVEL              featureLevel;
     ID3D11Device                  *pDevice           = nullptr;
     ID3D11DeviceContext           *pImmediateContext = nullptr;
-    ID3D11DeviceContext           *pDeferredContext  = nullptr;
+//    ID3D11DeviceContext           *pDeferredContext  = nullptr;
 
     // DXGI stuff is ready at this point, we'll hook the swapchain stuff
     //   after this call.
@@ -8622,14 +8609,14 @@ HookDXGI (LPVOID user)
     CComPtr <IDXGISwapChain> pSwapChain = nullptr;
     DXGI_SWAP_CHAIN_DESC     desc       = { };
 
-    desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.BufferDesc.Format           = DXGI_FORMAT_B8G8R8A8_UNORM;
     desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
     desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
     desc.SampleDesc.Count            = 1;
     desc.SampleDesc.Quality          = 0;
     desc.BufferDesc.Width            = 2;
     desc.BufferDesc.Height           = 2;
-    desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_BACK_BUFFER;
+    desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_RENDER_TARGET_OUTPUT;
     desc.BufferCount                 = 1;
     desc.OutputWindow                = SK_Win32_CreateDummyWindow ();
     desc.Windowed                    = TRUE;
@@ -8665,90 +8652,70 @@ HookDXGI (LPVOID user)
                         &featureLevel,
                           (ID3D11DeviceContext **)&pImmediateContext );
 
-    CComQIPtr <ID3D11Device1> pDevice1 (pDevice);
-
-    if (pDevice1 != nullptr)
-    {
-      pDevice->Release ();
-
-      CComQIPtr <ID3D11Device2> pDevice2 (pDevice1);
-
-      if (pDevice2 != nullptr)
-      {
-                  pDevice1.Release ();
-        pImmediateContext->Release ();
-
-        CComQIPtr <ID3D11Device3> pDevice3 (pDevice2);
-
-        if (pDevice3 != nullptr)
-        {
-          pDevice2.Release ();
-
-          CComQIPtr <ID3D11Device4> pDevice4 (pDevice3);
-
-          if (pDevice4 != nullptr)
-          {
-            pDevice3.Release ();
-
-            CComQIPtr <ID3D11Device5> pDevice5 (pDevice4);
-
-            if (pDevice5 != nullptr)
-            {
-              pDevice4.Release ();
-
-              pDevice5->GetImmediateContext3   (      (ID3D11DeviceContext3 **)&pImmediateContext);
-              pDevice5->CreateDeferredContext3 (0x00, (ID3D11DeviceContext3 **)&pDeferredContext);
-
-              pDevice = pDevice5;
-              pDevice->AddRef ();
-            }
-
-            else
-            {
-              pDevice4->GetImmediateContext3   (      (ID3D11DeviceContext3 **)&pImmediateContext);
-              pDevice4->CreateDeferredContext3 (0x00, (ID3D11DeviceContext3 **)&pDeferredContext);
-
-              pDevice = pDevice4;
-              pDevice->AddRef ();
-            }
-          }
-
-          else
-          {
-            pDevice3->GetImmediateContext3   (      (ID3D11DeviceContext3 **)&pImmediateContext);
-            pDevice3->CreateDeferredContext3 (0x00, (ID3D11DeviceContext3 **)&pDeferredContext);
-
-            pDevice = pDevice3;
-            pDevice->AddRef ();
-          }
-        }
-
-        else
-        {
-          pDevice2->GetImmediateContext2   (      (ID3D11DeviceContext2 **)&pImmediateContext);
-          pDevice2->CreateDeferredContext2 (0x00, (ID3D11DeviceContext2 **)&pDeferredContext);
-
-          pDevice = pDevice2;
-          pDevice->AddRef ();
-        }
-      }
-
-      else
-      {
-        pImmediateContext->Release ();
-
-        pDevice1->GetImmediateContext1   (      (ID3D11DeviceContext1 **)&pImmediateContext);
-        pDevice1->CreateDeferredContext1 (0x00, (ID3D11DeviceContext1 **)&pDeferredContext);
-
-        pDevice = pDevice1;
-        pDevice->AddRef ();
-      }
-    }
+    /////IUnknown *pPromotion = nullptr;
+    /////
+    /////if ( SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device5, (void **)&pPromotion)) ||
+    /////     SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device4, (void **)&pPromotion)) ||
+    /////     SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device3, (void **)&pPromotion)) )
+    /////{
+    /////  pDevice->Release ();
+    /////  pDevice =
+    /////    reinterpret_cast <ID3D11Device *> (pPromotion);
+    /////
+    /////  ID3D11Device3* pDevice3 =
+    /////    reinterpret_cast <ID3D11Device3 *> (pDevice);
+    /////
+    /////  pDevice3->GetImmediateContext3   (      (ID3D11DeviceContext3 **)&pImmediateContext);
+    /////  pDevice3->CreateDeferredContext3 (0x00, (ID3D11DeviceContext3 **)&pDeferredContext);
+    /////
+    /////  IUnknown *pPromotion2 = nullptr;
+    /////
+    /////  if ( SUCCEEDED (pImmediateContext->QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion2)) )
+    /////  {
+    /////    pImmediateContext->Release ();
+    /////    pImmediateContext = (ID3D11DeviceContext *)pPromotion2;
+    /////  }
+    /////}
+    /////
+    /////else if ( SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device2, (void **)&pPromotion)) )
+    /////{
+    /////  pDevice->Release ();
+    /////  pDevice =
+    /////    reinterpret_cast <ID3D11Device *> (pPromotion);
+    /////
+    /////  ID3D11Device2* pDevice2 =
+    /////    reinterpret_cast <ID3D11Device2 *> (pDevice);
+    /////  
+    /////  pDevice2->GetImmediateContext2   (      (ID3D11DeviceContext2 **)&pImmediateContext);
+    /////  pDevice2->CreateDeferredContext2 (0x00, (ID3D11DeviceContext2 **)&pDeferredContext);
+    /////}
+    /////
+    /////else if ( SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device1, (void **)&pPromotion)) )
+    /////{
+    /////  pDevice->Release ();
+    /////  pDevice =
+    /////    reinterpret_cast <ID3D11Device *> (pPromotion);
+    /////
+    /////  ID3D11Device1* pDevice1 =
+    /////    reinterpret_cast <ID3D11Device1 *> (pDevice);
+    /////  
+    /////  pDevice1->GetImmediateContext1   (      (ID3D11DeviceContext1 **)&pImmediateContext);
+    /////  pDevice1->CreateDeferredContext1 (0x00, (ID3D11DeviceContext1 **)&pDeferredContext);
+    /////}
+    /////
+    /////else
+    /////{
+    /////  pDevice->GetImmediateContext   (      (ID3D11DeviceContext **)&pImmediateContext);
+    /////  pDevice->CreateDeferredContext (0x00, (ID3D11DeviceContext **)&pDeferredContext);
+    /////}
 
     sk_hook_d3d11_t d3d11_hook_ctx;
 
     d3d11_hook_ctx.ppDevice           = &pDevice;
     d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
+
+    ////if (pDeferredContext != nullptr)
+    ////    pDeferredContext->Release ();
 
     CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
     CComPtr <IDXGIAdapter> pAdapter = nullptr;
@@ -8759,13 +8726,15 @@ HookDXGI (LPVOID user)
          SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
          SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
     {
-      ///if (config.render.dxgi.deferred_isolation)
-      ///{
-      ///      pDevice->CreateDeferredContext (0x0, &pDeferredContext);
-      ///  d3d11_hook_ctx.ppImmediateContext = &pDeferredContext;
-      ///}
+      //if (config.render.dxgi.deferred_isolation)
+      //{
+        //    pDevice->CreateDeferredContext (0x0, &pDeferredContext);
+        //d3d11_hook_ctx.ppImmediateContext = &pDeferredContext;
+      //}
 
-      HookD3D11             (&d3d11_hook_ctx);
+      //if (SK_GetCurrentGameID () != SK_GAME_ID::Tales_of_Vesperia)
+        HookD3D11           (&d3d11_hook_ctx);
+
       SK_DXGI_HookFactory   (pFactory);
     //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
         SK_DXGI_HookSwapChain (pSwapChain.p);
@@ -8781,8 +8750,8 @@ HookDXGI (LPVOID user)
 
       SK_ApplyQueuedHooks ();
 
-      extern volatile LONG   SK_D3D11_initialized;
-      InterlockedIncrement (&SK_D3D11_initialized);
+      extern volatile LONG          SK_D3D11_initialized;
+      InterlockedIncrementRelease (&SK_D3D11_initialized);
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
@@ -8790,7 +8759,7 @@ HookDXGI (LPVOID user)
 /////      if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
 /////#endif
 
-      InterlockedExchange (&__dxgi_ready, TRUE);
+      WriteRelease (&__dxgi_ready, TRUE);
     }
 
     else
@@ -9162,7 +9131,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
   budget_log.silent = true;
   params->tid       = GetCurrentThreadId ();
 
-  InterlockedExchange ( &params->ready, TRUE );
+  InterlockedExchangeAcquire ( &params->ready, TRUE );
 
 
   SK_AutoCOMInit auto_com;
@@ -9197,8 +9166,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
     if (dwWaitStatus == WAIT_OBJECT_0 + 1)
     {
-      InterlockedExchange ( &params->ready, FALSE );
-      ResetEvent          (  params->shutdown     );
+      WriteRelease ( &params->ready, FALSE );
+      ResetEvent   (  params->shutdown     );
       break;
     }
 
@@ -9444,8 +9413,8 @@ SK::DXGI::ShutdownBudgetThread ( void )
 {
   SK_AutoClose_Log (budget_log);
 
-  if (                              budget_thread.handle != INVALID_HANDLE_VALUE &&
-       InterlockedCompareExchange (&budget_thread.ready, 0, 1) )
+  if (                                     budget_thread.handle != INVALID_HANDLE_VALUE &&
+       InterlockedCompareExchangeRelease (&budget_thread.ready, 0, 1) )
   {
     dll_log.LogEx (
       true,

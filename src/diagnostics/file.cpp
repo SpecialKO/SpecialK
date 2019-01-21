@@ -40,15 +40,14 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
 
   *pwszFileName = L'\0';
 
-  wchar_t* ptrcFni =
-    reinterpret_cast <wchar_t *>
+  FILE_NAME_INFO* ptrcFni =
+    reinterpret_cast <FILE_NAME_INFO *>
     ( SK_TLS_Bottom ()->scratch_memory.cmd.alloc   (
-        sizeof (wchar_t)        *
+        sizeof (FILE_NAME_INFO)        *
        (sizeof (FILE_NAME_INFO) + _MAX_PATH), true )
     );
 
-  FILE_NAME_INFO *pFni =
-    reinterpret_cast <FILE_NAME_INFO *>(ptrcFni);
+  FILE_NAME_INFO *pFni = ptrcFni;
 
   const BOOL success =
     GetFileInformationByHandleEx ( hFile, 
@@ -262,6 +261,46 @@ SK_File_InitHooks (void)
 #include <aclapi.h>
 #include <SpecialK/log.h>
 
+BOOL
+SK_GetFileSD ( const wchar_t              *wszPath,
+                     PSECURITY_DESCRIPTOR *pFileSD,
+                     PACL                 *pACL )
+{
+  BOOL  bRetVal = FALSE;
+  DWORD dwErr   = 0;
+
+  SECURITY_INFORMATION secInfo =
+    DACL_SECURITY_INFORMATION;
+
+  if (! wcslen (wszPath))
+    return bRetVal;
+
+  SK_AutoHandle hFile (
+    CreateFile ( wszPath, READ_CONTROL,
+                       0, nullptr,
+                       OPEN_EXISTING,
+                         FILE_ATTRIBUTE_DIRECTORY |
+                         FILE_FLAG_BACKUP_SEMANTICS,
+                           nullptr )
+  );
+
+  if (hFile == INVALID_HANDLE_VALUE)
+    bRetVal = FALSE;
+  else
+  {
+    dwErr = GetSecurityInfo (
+      hFile,   SE_FILE_OBJECT,
+      secInfo, nullptr, nullptr,
+         pACL, nullptr, pFileSD );
+  }
+
+  bRetVal =
+    ( dwErr == ERROR_SUCCESS );
+
+  return
+    bRetVal;
+}
+
 PSID
 SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic);
 
@@ -272,45 +311,101 @@ SK_Win32_ReleaseTokenSid (PSID pSid);
 bool
 SK_File_CanUserWriteToPath (const wchar_t* wszPath)
 {
-  bool        bWritable = false;
-  PSID pSid    =
-    (PSID)SK_Win32_GetTokenSid (TokenUser);
+  bool  bRet   = false;
+  DWORD length = 0;
 
-  if (pSid == nullptr)
+  PACL                 pFileDACL = nullptr;
+  PSECURITY_DESCRIPTOR pFileSD   = nullptr;
+
+  SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
+
+  if (! GetFileSecurity ( wszPath,
+                            OWNER_SECURITY_INFORMATION |
+                            GROUP_SECURITY_INFORMATION |
+                            DACL_SECURITY_INFORMATION,
+                              nullptr, 0, &length ) && ERROR_INSUFFICIENT_BUFFER == GetLastError () )
   {
-    return bWritable;
-  }
+    PSECURITY_DESCRIPTOR security =
+      static_cast< PSECURITY_DESCRIPTOR > (malloc (length));
 
-  PACL                 pDACL = nullptr;
-  PSECURITY_DESCRIPTOR pSD   = nullptr;
-
-  if ( ERROR_SUCCESS ==
-         GetNamedSecurityInfoW ( wszPath,
-                                   SE_FILE_OBJECT, DACL_SECURITY_INFORMATION,
-                                     nullptr,  nullptr,
-                                       &pDACL, nullptr,
-                                         &pSD
-                               )
-     )
-  {
-    ACCESS_MASK access_mask = { };
-    TRUSTEE_W   trustee     = { };
-
-    BuildTrusteeWithSidW (&trustee, pSid);
-
-    if ( ERROR_SUCCESS ==
-           GetEffectiveRightsFromAclW ( pDACL, &trustee, &access_mask )
-       )
+    if ( security && GetFileSecurity ( wszPath,
+                                       OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION |
+                                       DACL_SECURITY_INFORMATION,
+                                         security, length, &length ) )
     {
-      bWritable =
-        (access_mask & WRITE_DAC) != 0;
+      if ( OpenProcessToken ( SK_GetCurrentProcess (), TOKEN_IMPERSONATE | TOKEN_QUERY | 
+                                                       TOKEN_DUPLICATE   | STANDARD_RIGHTS_READ,
+                                                         &hToken.m_h ) )
+      {
+        SK_AutoHandle hImpersonatedToken (INVALID_HANDLE_VALUE);
+
+        if ( DuplicateToken ( hToken, SecurityImpersonation, &hImpersonatedToken.m_h ) )
+        {
+          GENERIC_MAPPING mapping          = { 0xFFFFFFFF };
+          PRIVILEGE_SET   privileges       = {         0  };
+          DWORD           grantedAccess    = 0,
+                          privilegesLength = sizeof privileges;
+          BOOL            result           = FALSE;
+ 
+          mapping.GenericRead    = FILE_GENERIC_READ;
+          mapping.GenericWrite   = FILE_GENERIC_WRITE;
+          mapping.GenericExecute = FILE_GENERIC_EXECUTE;
+          mapping.GenericAll     = FILE_ALL_ACCESS;
+ 
+          DWORD dwMask =
+            GENERIC_WRITE;
+
+          MapGenericMask (&dwMask, &mapping);
+
+          if ( AccessCheck ( security, hImpersonatedToken, dwMask, 
+                               &mapping, &privileges,
+                                 &privilegesLength, &grantedAccess,
+                                   &result ) )
+          {
+            bRet =
+              ( result == TRUE );
+          }
+        }
+      }
     }
 
-    //SK_LocalFree ((HLOCAL)pDACL);
-    SK_LocalFree ((HLOCAL)pSD);
+    if (security != nullptr)
+    {
+      free (security);
+            security = nullptr;
+    }
+  }
+  
+  if (pFileSD != nullptr)
+  {
+    SK_LocalFree (pFileSD);
+                  pFileSD = nullptr;
+  }
+ 
+  if (! bRet)
+  {
+    if (SK_GetFileSD (wszPath, &pFileSD, &pFileDACL))
+    {
+      // ALL ACCESS if NULL
+      if (pFileDACL == nullptr)
+      {
+        if (pFileSD != nullptr) SK_LocalFree (pFileSD);
+
+        return TRUE;
+      }
+    }
+
+    FILE *fTest =
+      _wfsopen (L"SK_TEST_FILE.tmp", L"wbS", _SH_DENYNO);
+
+    if (fTest != nullptr)
+    {
+      fclose      (fTest);
+      DeleteFileW (L"SK_TEST_FILE.tmp");
+
+      bRet = true;
+    }
   }
 
-  SK_Win32_ReleaseTokenSid (pSid);
-
-  return bWritable;
+  return bRet;
 }

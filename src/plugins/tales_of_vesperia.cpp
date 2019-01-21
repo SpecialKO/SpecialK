@@ -32,7 +32,7 @@
 
 #include <imgui/imgui.h>
 
-#define TVFIX_VERSION_NUM L"0.2.0"
+#define TVFIX_VERSION_NUM L"0.4.0"
 #define TVFIX_VERSION_STR LR"(Tales of Vesperia "Fix" v )" TVFIX_VERSION_NUM
 
 extern iSK_INI*             dll_ini;
@@ -125,12 +125,12 @@ struct tv_mem_addr_s
 
       VirtualProtect ((void*)((intptr_t)scanned_addr + rep_off), rep_size, PAGE_EXECUTE_READWRITE, &dwProtect);
 
-      if (rep_size == 8)
+      if (rep_size == 8 && (! ((intptr_t)scanned_addr % 8)))
       {
         InterlockedExchange64 ((volatile LONG64*)((intptr_t)scanned_addr + rep_off), *(__int64 *)orig_bytes.data ());
       }
 
-      else if (rep_size == 2)
+      else if (rep_size == 2 && (! ((intptr_t)scanned_addr % 2)))
       {
         InterlockedExchange16 ((volatile SHORT*)((intptr_t)scanned_addr + rep_off), *(SHORT *)"\x77\xBD");
       }
@@ -157,12 +157,12 @@ struct tv_mem_addr_s
 
       VirtualProtect ((void*)((intptr_t)scanned_addr + rep_off), rep_size, PAGE_EXECUTE_READWRITE, &dwProtect);
 
-      if (rep_size == 8)
+      if (rep_size == 8 && (! ((intptr_t)scanned_addr % 8)))
       {
         InterlockedExchange64 ((volatile LONG64*)((intptr_t)scanned_addr + rep_off), *(LONG64 *)"\x90\x90\x90\x90\x90\x90\x90\x90");
       }
 
-      else if (rep_size == 2)
+      else if (rep_size == 2 && (! ((intptr_t)scanned_addr % 2)))
       {
         InterlockedExchange16 ((volatile SHORT*)((intptr_t)scanned_addr + rep_off), *(SHORT *)"\x90\x90");
       }
@@ -202,6 +202,70 @@ bool              __SK_TVFix_DisableBlur = false;
 
 sk::ParameterBool* _SK_TVFix_DisableBloom;
 bool              __SK_TVFix_DisableBloom = false;
+
+sk::ParameterBool* _SK_TVFix_ActiveAntiStutter;
+bool              __SK_TVFix_ActiveAntiStutter = true;
+
+static volatile LONG __TVFIX_init = 0;
+
+HRESULT
+STDMETHODCALLTYPE
+SK_TVFIX_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
+{
+  UNREFERENCED_PARAMETER (pSwapChain);
+  UNREFERENCED_PARAMETER (SyncInterval);
+  UNREFERENCED_PARAMETER (Flags);
+
+  if (! InterlockedCompareExchange (&__TVFIX_init, 1, 0))
+  { 
+    SK_D3D11_DeclHUDShader_Vtx (0xb0831a43);
+    SK_D3D11_DeclHUDShader_Vtx (0xf4dac9d5);
+  //SK_D3D11_DeclHUDShader_Pix (0x6d243285);
+
+    instn__model_animation.scan  ();
+    instn__particle_effects.scan ();
+    instn__depth_of_field.scan   ();
+    instn__blur.scan             ();
+    instn__bloom.scan            ();
+
+    _SK_TVFix_DisableDepthOfField =
+      _CreateConfigParameterBool ( L"TVFix.Render",
+                                   L"DisableDepthOfField",  __SK_TVFix_DisableDepthOfField,
+                                   L"Disable Depth of Field" );
+
+    _SK_TVFix_DisableBloom =
+      _CreateConfigParameterBool ( L"TVFix.Render",
+                                   L"DisableBloom",  __SK_TVFix_DisableBloom,
+                                   L"Disable Bloom Lighting" );
+
+    _SK_TVFix_DisableBlur =
+      _CreateConfigParameterBool ( L"TVFix.Render",
+                                   L"DisableBlur",  __SK_TVFix_DisableBlur,
+                                   L"Disable Blur" );
+
+    _SK_TVFix_ActiveAntiStutter =
+      _CreateConfigParameterBool ( L"TVFix.FrameRate",
+                                   L"EliminateMicroStutter", __SK_TVFix_ActiveAntiStutter,
+                                   L"Active Anti-Stutter" );
+
+    if (__SK_TVFix_DisableDepthOfField)
+    {
+      instn__depth_of_field.disable ();
+    }
+
+    if (__SK_TVFix_DisableBloom)
+    {
+      instn__bloom.disable ();
+    }
+
+    if (__SK_TVFix_DisableBlur)
+    {
+      instn__blur.disable ();
+    }
+  }
+
+  return S_OK;
+}
 
 void
 SK_TVFix_InitPlugin (void)
@@ -256,42 +320,6 @@ SK_TVFix_InitPlugin (void)
     5, 5, 0,    true, nullptr,
 
     { }, L"Enable Bloom Lighting", (void *)0x6f632a };
-
-//instn__model_animation.scan  ();
-  instn__particle_effects.scan ();
-  instn__depth_of_field.scan   ();
-  instn__blur.scan             ();
-  instn__bloom.scan            ();
-
-  _SK_TVFix_DisableDepthOfField =
-    _CreateConfigParameterBool ( L"TVFix.Render",
-                                 L"DisableDepthOfField",  __SK_TVFix_DisableDepthOfField,
-                                 L"Disable Depth of Field" );
-
-  _SK_TVFix_DisableBloom =
-    _CreateConfigParameterBool ( L"TVFix.Render",
-                                 L"DisableBloom",  __SK_TVFix_DisableBloom,
-                                 L"Disable Bloom Lighting" );
-
-  _SK_TVFix_DisableBlur =
-    _CreateConfigParameterBool ( L"TVFix.Render",
-                                 L"DisableBlur",  __SK_TVFix_DisableBlur,
-                                 L"Disable Blur" );
-
-  if (__SK_TVFix_DisableDepthOfField)
-  {
-    instn__depth_of_field.disable ();
-  }
-
-  if (__SK_TVFix_DisableBloom)
-  {
-    instn__bloom.disable ();
-  }
-
-  if (__SK_TVFix_DisableBlur)
-  {
-    instn__blur.disable ();
-  }
 }
 
 bool
@@ -300,6 +328,14 @@ SK_TVFix_PlugInCfg (void)
   if (ImGui::CollapsingHeader ("Tales of Vesperia Definitive Edition", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
+
+    if (ImGui::Checkbox ("Aggressive Anti-Stutter", &__SK_TVFix_ActiveAntiStutter))
+    {
+      _SK_TVFix_ActiveAntiStutter->store (__SK_TVFix_ActiveAntiStutter);
+    }
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Eliminate Microstutter, but will raise CPU usage %");
 
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
@@ -346,8 +382,7 @@ SK_TVFix_PlugInCfg (void)
     const bool tex_manage =
       ImGui::CollapsingHeader ("Texture Management##ToV", ImGuiTreeNodeFlags_DefaultOpen);
 
-    static DWORD dwLastActive = 0;
-            bool changed      = false;
+    bool changed = false;
 
     if (tex_manage)
     {
@@ -357,18 +392,19 @@ SK_TVFix_PlugInCfg (void)
 
       if (ImGui::IsItemHovered ())
       {
-        ImGui::BeginTooltip    ();
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.5f, 0.f, 1.f, 1.f));
-        ImGui::TextUnformatted ("Builds Complete Mipchains (Mipmap LODs) for all Textures");
-        ImGui::Separator       ();
-        ImGui::PopStyleColor   ();
-        ImGui::Bullet          (); ImGui::SameLine ();
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.15f, 1.0f, 1.0f));
-        ImGui::TextUnformatted ("SIGNIFICANTLY");
-        ImGui::PopStyleColor   (); ImGui::SameLine ();
-        ImGui::TextUnformatted ("reduces texture aliasing");
-        ImGui::BulletText      ("May increase load-times");
-        ImGui::EndTooltip      ();
+        ImGui::SetTooltip ("NOTE: This is broken on some systems. Do not use it for now and make sure to purge any existing cache.");
+        //ImGui::BeginTooltip    ();
+        //ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.5f, 0.f, 1.f, 1.f));
+        //ImGui::TextUnformatted ("Builds Complete Mipchains (Mipmap LODs) for all Textures");
+        //ImGui::Separator       ();
+        //ImGui::PopStyleColor   ();
+        //ImGui::Bullet          (); ImGui::SameLine ();
+        //ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.15f, 1.0f, 1.0f));
+        //ImGui::TextUnformatted ("SIGNIFICANTLY");
+        //ImGui::PopStyleColor   (); ImGui::SameLine ();
+        //ImGui::TextUnformatted ("reduces texture aliasing");
+        //ImGui::BulletText      ("May increase load-times");
+        //ImGui::EndTooltip      ();
       }
 
       if (config.textures.d3d11.generate_mips)
@@ -427,8 +463,8 @@ SK_TVFix_PlugInCfg (void)
               ImGui::SetTooltip    ("%ws", wszPath);
         }
 
-        // For safety, never allow a user to touch the final 256 MiB of storage on their device
-        const ULONG FILESYSEM_RESERVE_MIB = 256UL;
+        //// For safety, never allow a user to touch the final 256 MiB of storage on their device
+        //const ULONG FILESYSEM_RESERVE_MIB = 256UL;
 
         if (SK_D3D11_MipmapCacheSize > 0)
         {
@@ -496,12 +532,12 @@ SK_TVFix_PlugInCfg (void)
 
       ImGui::Checkbox ("Reduce Microstutter", &__SK_TVFix_NoRenderSleep);
 
-      //if ( instn__model_animation.scanned_addr != nullptr &&
-      //     ImGui::Checkbox ("Enable Model Animation", &instn__model_animation.enabled) )
-      //{
-      //  instn__model_animation.enabled = !instn__model_animation.enabled;
-      //  instn__model_animation.toggle ();
-      //}
+      if ( instn__model_animation.scanned_addr != nullptr &&
+           ImGui::Checkbox ("Enable Model Animation", &instn__model_animation.enabled) )
+      {
+        instn__model_animation.enabled = !instn__model_animation.enabled;
+        instn__model_animation.toggle ();
+      }
 
     //ImGui::SameLine ();
 

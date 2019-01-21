@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <builddir>SPecialK-cppcheck-build-dir</builddir>
+    <platform>win32W</platform>
+    <importproject>SpecialK.sln</importproject>
+    <analyze-all-vs-configs>false</analyze-all-vs-configs>
+    <libraries>
+        <library>windows</library>
+    </libraries>
+    <addons>
+        <addon>threadsafety</addon>
+        <addon>y2038</addon>
+    </addons>
+</project>

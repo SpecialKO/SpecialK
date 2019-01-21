@@ -5497,6 +5497,9 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     ImGui::EndGroup ();
   }
 
+  else
+    ImGui::EndChild   ();
+
   ImGui::PopItemWidth ();
 }
 
@@ -6862,7 +6865,8 @@ SK_D3D9_TextureModDlg (void)
 
         D3DSURFACE_DESC desc;
 
-        if (            pTex->d3d9_tex->pTexOverride != nullptr &&
+        if (            pTex->d3d9_tex != nullptr               &&
+                        pTex->d3d9_tex->pTexOverride != nullptr &&
              SUCCEEDED (pTex->d3d9_tex->pTexOverride->GetLevelDesc (0, &desc)) )
         {
           bool override_tex = (pTex->d3d9_tex->getDrawTexture () == pTex->d3d9_tex->pTexOverride);

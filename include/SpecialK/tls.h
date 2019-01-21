@@ -464,7 +464,7 @@ class SK_Input_ThreadContext
 public:
   BOOL                      hid             = FALSE;
   BOOL                      ctx_init_thread = FALSE;
-  SK_ImGui_InputLanguage_s  input_language;
+  SK_ImGui_InputLanguage_s  input_language  = {   };
 };
 
 
@@ -588,7 +588,7 @@ public:
 };
 
 
-class SK_Sched_ThreadContext
+class SK_Sched_ThreadContext : public SK_TLS_DynamicContext
 {
 public:
   DWORD         priority      = THREAD_PRIORITY_NORMAL;
@@ -599,6 +599,7 @@ public:
   SK_MMCS_TaskEntry*
                 mmcs_task     = nullptr;
 
+  HANDLE        sub_2ms_sleep = INVALID_HANDLE_VALUE;
   ULONG         sleep0_count  = 0UL;
   ULONG         last_frame    = 0UL;
   ULONG         switch_count  = 0UL;
@@ -614,7 +615,7 @@ public:
   };
 
   std::unordered_map <HANDLE, wait_record_s>*
-    objects_waited;
+    objects_waited = { };
 
   struct most_recent_wait_s
   {
@@ -626,6 +627,9 @@ public:
 
     float getRate (void);
   } mru_wait;
+
+public:
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
 

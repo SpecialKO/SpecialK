@@ -2197,7 +2197,7 @@ void
 SK_PathRemoveExtension (wchar_t* wszInOut)
 {
   wchar_t *wszEnd  = wszInOut,
-          *wszPrev = nullptr;
+          *wszPrev;
 
   while (*CharNextW (wszEnd) != L'\0')
     wszEnd = CharNextW (wszEnd);
@@ -3716,7 +3716,10 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
           log_file = &budget_log;
         }
 
-        if (log_file != nullptr && log_file->fLog)
+        const bool lock_and_move =
+          log_file != nullptr && log_file->fLog;
+
+        if (lock_and_move)
         {
           log_file->lockless = false;
           fflush (log_file->fLog);
@@ -3730,7 +3733,7 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
 
         ++moved;
 
-        if (log_file != nullptr && log_file->fLog)// && log_file != &crash_log)
+        if (lock_and_move)
         {
           log_file->name = wszNew;
           log_file->fLog = _wfopen (log_file->name.c_str (), L"a");

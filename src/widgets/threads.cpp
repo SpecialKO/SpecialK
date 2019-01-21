@@ -529,6 +529,8 @@ ProcessInformation ( PDWORD    pdData,
                      PNTSTATUS pns,
                      SK_TLS*   pTLS )
 {
+  PSYSTEM_PROCESS_INFORMATION ret = nullptr;
+
   if (NtQuerySystemInformation == nullptr)
   {
     if (! SK_GetModuleHandleW (L"NtDll"))
@@ -540,64 +542,64 @@ ProcessInformation ( PDWORD    pdData,
                             "NtQuerySystemInformation");
   }
 
-  if (! NtQuerySystemInformation)
-    return nullptr;
-
-  if (! pTLS)
+  if (NtQuerySystemInformation)
   {
     pTLS =
       SK_TLS_Bottom ();
   }
 
-  if (! pTLS) return nullptr;
-
-  size_t                       dSize;
-  DWORD                        dData = 0;
-  NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
-
-  if (pTLS->local_scratch.NtQuerySystemInformation.len  < 16384)
-      pTLS->local_scratch.NtQuerySystemInformation.alloc (16384, true);
-
-  void* pspi = nullptr;
-
-  for ( dSize = pTLS->local_scratch.NtQuerySystemInformation.len;
-             (pspi == nullptr) && dSize;
-                                  dSize <<= 1 )
+  if (pTLS)
   {
-    pTLS->local_scratch.NtQuerySystemInformation.alloc (dSize, true);
+    size_t                       dSize;
+    DWORD                        dData = 0;
+    NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
 
-    if (pTLS->local_scratch.NtQuerySystemInformation.len < dSize)
+    if (pTLS->local_scratch.NtQuerySystemInformation.len  < 16384)
+        pTLS->local_scratch.NtQuerySystemInformation.alloc (16384, true);
+
+    void* pspi = nullptr;
+
+    for ( dSize = pTLS->local_scratch.NtQuerySystemInformation.len;
+               (pspi == nullptr) && dSize;
+                                    dSize <<= 1 )
     {
-      ns = STATUS_NO_MEMORY;
-      break;
+      pTLS->local_scratch.NtQuerySystemInformation.alloc (dSize, true);
+
+      if (pTLS->local_scratch.NtQuerySystemInformation.len < dSize)
+      {
+        ns = STATUS_NO_MEMORY;
+        break;
+      }
+
+      dSize =
+        pTLS->local_scratch.NtQuerySystemInformation.len;
+
+      pspi =
+        pTLS->local_scratch.NtQuerySystemInformation.data;
+
+      ns =
+        NtQuerySystemInformation ( SystemProcessInformation,
+                                     (PSYSTEM_PROCESS_INFORMATION)pspi,
+                                       (DWORD)dSize,
+                                         &dData );
+
+      if (ns != STATUS_SUCCESS)
+      {
+        dData = 0;
+        pspi  = nullptr;
+
+        if (ns != STATUS_INFO_LENGTH_MISMATCH) break;
+      }
     }
 
-    dSize =
-      pTLS->local_scratch.NtQuerySystemInformation.len;
+    if (pdData != nullptr) *pdData = dData;
+    if (pns    != nullptr) *pns    = ns;
 
-    pspi =
-      pTLS->local_scratch.NtQuerySystemInformation.data;
-
-    ns =
-      NtQuerySystemInformation ( SystemProcessInformation,
-                                   (PSYSTEM_PROCESS_INFORMATION)pspi,
-                                     (DWORD)dSize,
-                                       &dData );
-
-    if (ns != STATUS_SUCCESS)
-    {
-      dData = 0;
-      pspi  = nullptr;
-
-      if (ns != STATUS_INFO_LENGTH_MISMATCH) break;
-    }
+    ret = (PSYSTEM_PROCESS_INFORMATION)pspi;
   }
 
-  if (pdData != nullptr) *pdData = dData;
-  if (pns    != nullptr) *pns    = ns;
-
   return
-    (PSYSTEM_PROCESS_INFORMATION)pspi;
+    ret;
 }
 
 #include <process.h>

@@ -268,17 +268,13 @@ iSK_Logger::close (void)
     DeleteFileW  (full_name.c_str ());
   }
 
+  initialized = false;
+  silent      = true;
 
-  if (initialized)
-  {
-    initialized = false;
-    silent      = true;
+  Release ();
 
-    Release ();
-
-    LeaveCriticalSection  (&log_mutex);
-    DeleteCriticalSection (&log_mutex);
-  }
+  LeaveCriticalSection  (&log_mutex);
+  DeleteCriticalSection (&log_mutex);
 }
 
 

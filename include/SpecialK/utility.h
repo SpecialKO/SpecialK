@@ -37,6 +37,7 @@ struct IUnknown;
 #include <SpecialK/SpecialK.h>
 #include <SpecialK/core.h>
 #include <SpecialK/sha1.h>
+#include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 
 using HANDLE = void *;
@@ -197,8 +198,8 @@ public:
   {
     // We cannot close these handles because technically they
     //   were never opened (by usermode code).
-    if (m_h < 0)
-        m_h = 0;
+    if ((intptr_t)m_h < 0)
+                  m_h = 0;
 
     // Signed handles are often special cases
     //   such as -2 = Current Thread, -1 = Current Process
@@ -485,13 +486,13 @@ private:
 
       // Capture vendor string
       //
-      char vendor [0x20] = { };
+      int vendor  [8] = { };
+        * vendor      = data_ [0][1];
+        *(vendor + 1) = data_ [0][3];
+        *(vendor + 2) = data_ [0][2];
 
-      *reinterpret_cast <int *>(vendor    ) = data_ [0][1];
-      *reinterpret_cast <int *>(vendor + 4) = data_ [0][3];
-      *reinterpret_cast <int *>(vendor + 8) = data_ [0][2];
-
-      vendor_ = vendor;
+      vendor_ =
+        reinterpret_cast <char *> (vendor);
 
            if  (vendor_ == "GenuineIntel")  isIntel_ = true;
       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;

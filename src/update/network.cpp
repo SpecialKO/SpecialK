@@ -1095,12 +1095,12 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
   iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
 
   struct {
-    signed int   installed;
-    wchar_t      branch  [128];
+    signed int   installed     =  -1;
+    wchar_t      branch  [128] = { }; 
 
     struct {
-      signed int in_branch; // TODO
-      wchar_t    package [128];
+      signed int in_branch     =  -1; // TODO
+      wchar_t    package [128] = { };
     } latest = { 0, { } };
   } build    = { 0, { } };
 

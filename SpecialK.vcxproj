@@ -2110,6 +2110,7 @@ Exit 0</Command>
     <ClCompile Include="src\plugins\monster_hunter_world.cpp" />
     <ClCompile Include="src\plugins\ninokuni2.cpp" />
     <ClCompile Include="src\plugins\secret_of_mana.cpp" />
+    <ClCompile Include="src\plugins\tales_of_vesperia.cpp" />
     <ClCompile Include="src\plugins\unclassified.cpp" />
     <ClCompile Include="src\plugins\yakuza0.cpp" />
     <ClCompile Include="src\plugins\ys8.cpp" />

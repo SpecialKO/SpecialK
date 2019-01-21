@@ -138,8 +138,11 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   std::vector <sk_file_entry_s>     all_files;
   SK_Get7ZFileContents (wszArchive, all_files);
 
-  std::vector <sk_file_entry_s> reg_files (all_files.size ());
-  std::vector <sk_file_entry_s> cfg_files (all_files.size ());
+  const size_t needed_size =
+    all_files.size ();
+
+  std::vector <sk_file_entry_s> reg_files (needed_size);
+  std::vector <sk_file_entry_s> cfg_files (needed_size);
 
   for ( auto&& it  = all_files.begin ();
                it != all_files.end   ();

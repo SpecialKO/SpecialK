@@ -1851,7 +1851,7 @@ auto DeclKeybind =
       case SK_GAME_ID::Tales_of_Vesperia:
       {
         config.render.framerate.limiter_tolerance
-                                                = 0.02f;
+                                                = 0.015f;
         config.window.treat_fg_as_active        = true;
         config.input.ui.use_hw_cursor           = false;
         config.textures.d3d11.uncompressed_mips = true;

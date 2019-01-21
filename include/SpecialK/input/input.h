@@ -270,8 +270,8 @@ struct SK_ImGui_InputLanguage_s
 {
   // Cause the keybd_layout to be populated the
   //   first time update (...) is called
-  bool changed = true; // ^^^^ Default = true
-  HKL  keybd_layout;
+  bool changed      = true; // ^^^^ Default = true
+  HKL  keybd_layout = 0;
 
   void update (void);
 };

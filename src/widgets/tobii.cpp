@@ -60,6 +60,7 @@ static auto
 Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
 auto
 {
+  bool        ret   = false;
   std::string label =
     SK_WideCharToUTF8 (binding->human_readable) + "###";
 
@@ -81,10 +82,10 @@ auto
 
     SK_SaveConfig ();
 
-    return true;
+    ret = true;
   }
 
-  return false;
+  return ret;
 };
 
 

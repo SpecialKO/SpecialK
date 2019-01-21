@@ -629,17 +629,17 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   };
 
   // Seriously, WTF Scaleform?
-  if (_IsScaleform ())
-  {
-    const bool repeated = ( ! memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
-                          ( ! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
-
-    last_ctx = *ExceptionInfo->ContextRecord;
-    last_exc = *ExceptionInfo->ExceptionRecord;
-  
-    //if (repeated)
-      return EXCEPTION_EXECUTE_HANDLER;
-  }
+  //if (_IsScaleform ())
+  //{
+  //  const bool repeated = ( ! memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
+  //                        ( ! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
+  //
+  //  last_ctx = *ExceptionInfo->ContextRecord;
+  //  last_exc = *ExceptionInfo->ExceptionRecord;
+  //
+  //  //if (repeated)
+  //    return EXCEPTION_EXECUTE_HANDLER;
+  //}
 
 
   PathStripPathA (pszShortName);
@@ -930,8 +930,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
         AddStackEntry ();
       }
 
-      if (StrStrIA (sip.si.Name, "Scaleform"))
-        scaleform = true;
+      ////if (StrStrIA (sip.si.Name, "Scaleform"))
+      ////  scaleform = true;
 
       //if (*szTopFunc == '\0')
       //{

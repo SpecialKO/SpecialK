@@ -149,7 +149,7 @@ SK_BootD3D9 (void)
   ///while (backend_dll == nullptr)
   ///{
   ///  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
-  ///  SleepEx (100UL, FALSE);
+  ///  SK_Sleep    (100UL);
   ///}
 
   SK_D3D9_QuickHook ();
@@ -224,7 +224,7 @@ SK_BootD3D8 (void)
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (100UL, FALSE);
+    SK_Sleep (100UL);
   }
 
   // Establish the minimal set of APIs necessary to work as d3d8.dll
@@ -272,7 +272,7 @@ SK_BootDDraw (void)
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (100UL, FALSE);
+    SK_Sleep    (100UL);
   }
 
   // Establish the minimal set of APIs necessary to work as ddraw.dll
@@ -330,7 +330,7 @@ SK_BootDXGI (void)
   ////while (backend_dll == nullptr)
   ////{
   ////  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());
-  ////  SleepEx (100UL, FALSE);
+  ////  SK_Sleep    (100UL);
   ////}
 
   // Establish the minimal set of APIs necessary to work as dxgi.dll
@@ -393,7 +393,7 @@ SK_BootOpenGL (void)
   //while (backend_dll == nullptr)
   //{
   //  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", GetCurrentThreadId ());
-  //  SleepEx (100UL, FALSE);
+  //  SK_Sleep    (100UL);
   //}
 
   // Establish the minimal set of APIs necessary to work as OpenGL32.dll
