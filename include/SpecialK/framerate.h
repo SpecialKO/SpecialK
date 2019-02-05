@@ -43,31 +43,46 @@ namespace SK
     void Init     (void);
     void Shutdown (void);
 
-    void Tick     (double& dt, LARGE_INTEGER& now);
+    void Tick     (long double& dt, LARGE_INTEGER& now);
 
     class Limiter {
     public:
-      Limiter (double target = 60.0);
+      Limiter (long double target = 60.0l);
 
       ~Limiter (void) = default;
 
-      void     init (double target);
-      void     wait (void);
-      bool try_wait (void); // No actual wait, just return
-                            //  whether a wait would have occurred.
+      void            init            (long double target);
+      void            wait            (void);
+      bool        try_wait            (void); // No actual wait, just return
+                                              //  whether a wait would have occurred.
 
-      void   set_limit (double target);
-      double get_limit (void) { return fps; };
+      void        set_limit           (long double target);
+      long double get_limit           (void) { return fps; };
 
-      double effective_frametime (void);
+      long double effective_frametime (void);
 
-      int32_t suspend (void) { return ++limit_behavior; }
-      int32_t resume  (void) { return --limit_behavior; }
+      int32_t     suspend             (void) { return ++limit_behavior; }
+      int32_t     resume              (void) { return --limit_behavior; }
+
+      void        reset (bool full = false) {
+        if (full) full_restart = true;
+        else           restart = true;
+      }
 
     private:
-      double        ms, fps, effective_ms;
-      LARGE_INTEGER start, last, next, time, freq;
-      uint32_t      frames;
+      bool          restart      = false;
+      bool          full_restart = false;
+
+      long double   ms           = 0.0L,
+                    fps          = 0.0L,
+                    effective_ms = 0.0L;
+
+      LARGE_INTEGER time   = { },
+                    start  = { },
+                    next   = { },
+                    last   = { },
+                    freq   = { };
+      uint32_t      frames = 0;
 
 #define LIMIT_APPLY     0
 #define LIMIT_UNDEFLOW  (limit_behavvior < 0)
@@ -128,12 +143,12 @@ namespace SK
 
     #define MAX_SAMPLES 120
       struct sample_t {
-        double        val  = 0.0;
+        long double   val  = 0.0;
         LARGE_INTEGER when = { 0ULL };
       } data [MAX_SAMPLES];
       int    samples       = 0;
 
-      void addSample (double sample, LARGE_INTEGER time) 
+      void addSample (long double sample, LARGE_INTEGER time) 
       {
         data [samples % MAX_SAMPLES].val  = sample;
         data [samples % MAX_SAMPLES].when = time;
@@ -141,11 +156,11 @@ namespace SK
         samples++;
       }
 
-      double calcMean (double seconds = 1.0);
+      long double calcMean (long double seconds = 1.0L);
 
-      double calcMean (LARGE_INTEGER start) 
+      long double calcMean (LARGE_INTEGER start) 
       {
-        double mean = 0.0;
+        long double mean = 0.0L;
 
         int samples_used = 0;
 
@@ -158,14 +173,14 @@ namespace SK
           }
         }
 
-        return mean / static_cast <double> (samples_used);
+        return mean / static_cast <long double> (samples_used);
       }
 
-      double calcSqStdDev (double mean, double seconds = 1.0);
+      long double calcSqStdDev (long double mean, long double seconds = 1.0L);
 
-      double calcSqStdDev (double mean, LARGE_INTEGER start) 
+      long double calcSqStdDev (long double mean, LARGE_INTEGER start) 
       {
-        double sd = 0.0;
+        long double sd = 0.0;
 
         int samples_used = 0;
 
@@ -179,14 +194,14 @@ namespace SK
           }
         }
 
-        return sd / static_cast <double> (samples_used);
+        return sd / static_cast <long double> (samples_used);
       }
 
-      double calcMin (double seconds = 1.0);
+      long double calcMin (long double seconds = 1.0L);
 
-      double calcMin (LARGE_INTEGER start) 
+      long double calcMin (LARGE_INTEGER start) 
       {
-        double min = INFINITY;
+        long double min = INFINITY;
 
         for ( const auto& i : data )
         {
@@ -200,11 +215,11 @@ namespace SK
         return min;
       }
 
-      double calcMax (double seconds = 1.0);
+      long double calcMax (long double seconds = 1.0L);
 
-      double calcMax (LARGE_INTEGER start) 
+      long double calcMax (LARGE_INTEGER start) 
       {
-        double max = -INFINITY;
+        long double max = -INFINITY;
 
         for ( const auto& i : data )
         {
@@ -218,9 +233,9 @@ namespace SK
         return max;
       }
 
-      int calcHitches (double tolerance, double mean, double seconds = 1.0);
+      int calcHitches (long double tolerance, long double mean, long double seconds = 1.0);
 
-      int calcHitches (double tolerance, double mean, LARGE_INTEGER start) 
+      int calcHitches (long double tolerance, long double mean, LARGE_INTEGER start) 
       {
         int hitches = 0;
 
@@ -266,7 +281,7 @@ namespace SK
         return hitches;
       }
 
-      int calcNumSamples (double seconds = 1.0);
+      int calcNumSamples (long double seconds = 1.0);
 
       int calcNumSamples (LARGE_INTEGER start) 
       {
@@ -295,7 +310,7 @@ SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount);
 using  Sleep_pfn                   = void (WINAPI *)(      DWORD          dwMilliseconds);
 extern Sleep_pfn Sleep_Original;
 
-using  SleepEx_pfn                   = void (WINAPI *)(      DWORD          dwMilliseconds, BOOL bAlertable);
+using  SleepEx_pfn                   = DWORD (WINAPI *)(      DWORD          dwMilliseconds, BOOL bAlertable);
 extern SleepEx_pfn SleepEx_Original;
 
 extern LARGE_INTEGER  SK_GetPerfFreq (void);

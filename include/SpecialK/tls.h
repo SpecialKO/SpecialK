@@ -375,8 +375,6 @@ public:
   UINT                     StencilRefOrig          = 0;
   UINT                     StencilRefNew           = 0;
 
-  ID3D11ShaderResourceView* newResourceViews [128] = { };
-
   SK_D3D11_Stateblock_Lite* stateBlock             = nullptr;
   size_t                    stateBlockSize         = 0;
 

@@ -38,6 +38,8 @@
 
 #include <SpecialK/thread.h>
 #include <SpecialK/window.h>
+#include <SpecialK/config.h>
+#include <SpecialK/log.h>
 
 #include <Windows.h>
 #include <windowsx.h>
@@ -65,6 +67,8 @@ bool
 __cdecl
 SK_IsSuperSpecialK (void);
 
+static const int SK_UPDATE_TIMER = 68991;
+
 enum {
   STATUS_INVALID   = 0,
   STATUS_UPDATED   = 1,
@@ -87,6 +91,35 @@ bool    update_dlg_keep   = false;
 wchar_t update_dlg_file     [MAX_PATH]                 = { };
 wchar_t update_dlg_build    [MAX_PATH]                 = { };
 wchar_t update_dlg_relnotes [INTERNET_MAX_PATH_LENGTH] = { };
+
+
+auto _ShowCursor = [&](void) ->
+int
+{
+  int refs = 0;
+
+  CURSORINFO ci = { sizeof (CURSORINFO),
+                      0x0, nullptr,
+                        { 0, 0 } };
+
+  SK_GetCursorInfo (&ci);
+
+  if (! (ci.flags & CURSOR_SHOWING))
+  {
+    int nButtons =
+      SK_GetSystemMetrics (SM_CMOUSEBUTTONS);
+
+    if (nButtons > 0)
+    {
+      do
+      {
+        ++refs;
+      } while (! ShowCursor (TRUE));
+    }
+  }
+
+  return refs;
+};
 
 
 DWORD
@@ -341,10 +374,67 @@ RemindMeLater_DlgProc (
   HWND hWndNextCheck =
     GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
 
+  static int cursor_refs = 0;
+
   switch (uMsg)
   {
+    case WM_TIMER:
+    {
+      if (wParam == SK_UPDATE_TIMER)
+      {
+        CURSORINFO ci = { };
+                   ci.cbSize = sizeof (CURSORINFO);
+
+        SK_GetCursorInfo (&ci);
+
+        if (! (ci.flags & CURSOR_SHOWING))
+        {
+          int nButtons =
+            SK_GetSystemMetrics (SM_CMOUSEBUTTONS);
+
+          while (nButtons > 0 && (! ShowCursor (TRUE)))
+          {
+            cursor_refs++;
+          }
+        }
+
+        HWND hWndFocus =
+          GetFocus ();
+
+        if ( game_window.hWnd != HWND_DESKTOP    &&
+               ( hWndFocus == game_window.hWnd   ||
+                            ( game_window.active &&
+                              hWndDlg            != GetForegroundWindow () ) ) )
+        {
+          SetForegroundWindow ( hWndDlg );
+          SK_SetWindowPos     ( hWndDlg, HWND_TOP,
+                                0, 0, 0, 0,
+                                SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                                SWP_NOSIZE         | SWP_NOMOVE       |
+                                SWP_NOSENDCHANGING   );
+        }
+      }
+    } break;
+
+    case WM_DESTROY:
+    {
+      KillTimer (hWndDlg, SK_UPDATE_TIMER);
+
+      if (cursor_refs > 0)
+      {
+        for ( int i = 0 ; i < cursor_refs ; i++ )
+        {
+          ShowCursor (FALSE);
+        }
+
+        cursor_refs = 0;
+      }
+    } break;
+
     case WM_INITDIALOG:
     {
+      SetTimer (hWndDlg, SK_UPDATE_TIMER, 150, nullptr);
+
       HRSRC   default_sound =
         FindResource (__SK_hModSelf, MAKEINTRESOURCE (IDR_ANNOYING), L"WAVE");
 
@@ -500,6 +590,7 @@ DownloadDialogCallback (
   _In_ LPARAM   lParam,
   _In_ LONG_PTR dwRefData )
 {
+  static int     cursor_refs = 0;
   static HWND    hWndOrigTop = nullptr;
   static HCURSOR hCursorOrig = nullptr;
 
@@ -517,70 +608,65 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_TIMER)
   {
-    while (! ShowCursor (TRUE))
-      ;
+    cursor_refs += _ShowCursor ();
 
-    if (GetFocus            () != hWnd ||
-        GetForegroundWindow () != hWnd)
+    HWND hWndFocus =
+      GetFocus ();
+
+    if ( game_window.hWnd != HWND_DESKTOP    &&
+           ( hWndFocus == game_window.hWnd   ||
+                        ( game_window.active &&
+                          hWnd               != GetForegroundWindow () ) ) )
     {
-      SetForegroundWindow (hWnd);
-      SetWindowPos        (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
-                           SWP_NOSIZE         | SWP_NOMOVE       |
-                           SWP_NOSENDCHANGING   );
+      SetForegroundWindow ( hWnd );
+      SK_SetWindowPos     ( hWnd, HWND_TOP,
+                            0, 0, 0, 0,
+                            SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                            SWP_NOSIZE         | SWP_NOMOVE       |
+                            SWP_NOSENDCHANGING   );
     }
 
     if ( get->status == STATUS_UPDATED   ||
          get->status == STATUS_CANCELLED ||
          get->status == STATUS_REMINDER )
     {
-    //SK_RealizeForegroundWindow (game_window.hWnd);
       EndDialog ( hWnd, 0 );
 
       return S_OK;
     }
   }
 
-  if (uNotification == TDN_HYPERLINK_CLICKED)
+  else if (uNotification == TDN_HYPERLINK_CLICKED)
   {
     ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOWMAXIMIZED);
 
     return S_OK;
   }
 
-  if (uNotification == TDN_DIALOG_CONSTRUCTED)
+  else if (uNotification == TDN_DIALOG_CONSTRUCTED)
   {
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, 1));
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_POS,   1,           0L);
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_STATE, PBST_PAUSED, 0L);
 
     SK_RealizeForegroundWindow (hWnd);
-
-    if (game_window.hWnd != nullptr)
-    {
-      SetWindowPos ( game_window.hWnd, HWND_DESKTOP, 0, 0, 0, 0,
-                     SWP_ASYNCWINDOWPOS | SWP_HIDEWINDOW   |
-                     SWP_NOSIZE         | SWP_NOMOVE       |
-                     SWP_NOSENDCHANGING | SWP_NOREPOSITION   );
-    }
-
-    SetForegroundWindow (hWnd);
-    SetWindowLongW      (hWnd, GWL_EXSTYLE,
-     ( (GetWindowLongW  (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
-    BringWindowToTop    (hWnd);
+  //SK_SetWindowLongW          (hWnd, GWL_EXSTYLE,
+  // ( (SK_GetWindowLongW      (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
 
     return S_OK;
   }
 
-  if (uNotification == TDN_CREATED)
+  else if (uNotification == TDN_CREATED)
   {
     return S_OK;
   }
 
-  if (uNotification == TDN_BUTTON_CLICKED)
+  else if (uNotification == TDN_BUTTON_CLICKED)
   {
     if (wParam == ID_REMIND)
     {
+      game_window.active = true;
+
       hWndRemind =
         CreateDialog ( __SK_hModSelf,
                          MAKEINTRESOURCE (IDD_REMIND_ME_LATER),
@@ -618,16 +704,26 @@ DownloadDialogCallback (
     }
   }
 
-  if (uNotification == TDN_DESTROYED)
+  else if (uNotification == TDN_DESTROYED)
   {
+    if (cursor_refs > 0)
+    {
+      for (int i = 0; i < cursor_refs; i++)
+      {
+        ShowCursor (FALSE);
+      }
+
+      cursor_refs = 0;
+    }
+
     if (game_window.hWnd != nullptr)
     {
-      SetForegroundWindow (game_window.hWnd);
-      SetWindowPos        (game_window.hWnd, HWND_TOP, 0, 0, 0, 0,
-                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW |
-                           SWP_NOSIZE         | SWP_NOMOVE     |
-                           SWP_NOREPOSITION   | SWP_NOACTIVATE |
-                           SWP_NOSENDCHANGING );
+      SetForegroundWindow ( game_window.hWnd);
+      SK_SetWindowPos     ( game_window.hWnd, HWND_TOP, 0, 0, 0, 0,
+                            SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW |
+                            SWP_NOSIZE         | SWP_NOMOVE     |
+                            SWP_NOREPOSITION   | SWP_NOACTIVATE |
+                            SWP_NOSENDCHANGING );
       ShowWindowAsync     (game_window.hWnd,    SW_SHOWNORMAL);
     }
   }
@@ -667,6 +763,8 @@ Update_DlgProc (
   _In_ LPARAM lParam )
 {
   UNREFERENCED_PARAMETER (lParam);
+
+  static int cursor_refs = 0;
 
   switch (uMsg)
   {
@@ -951,14 +1049,53 @@ Update_DlgProc (
 
     case WM_DESTROY:
     {
+      KillTimer (hWndDlg, SK_UPDATE_TIMER+1);
+
+      if (cursor_refs > 0)
+      {
+        for ( int i = 0 ; i < cursor_refs ; i++ )
+        {
+          ShowCursor (FALSE);
+        }
+
+        cursor_refs = 0;
+      }
+
       hWndUpdateDlg =
         static_cast <HWND> (INVALID_HANDLE_VALUE);
 
       return 0;
-    }
+    } break;
+
+    case WM_TIMER:
+    {
+      if (wParam == SK_UPDATE_TIMER+1)
+      {
+        cursor_refs +=
+          _ShowCursor ();
+
+        HWND hWndFocus =
+          GetFocus ();
+
+        if ( game_window.hWnd != HWND_DESKTOP    &&
+               ( hWndFocus == game_window.hWnd   ||
+                            ( game_window.active &&
+                              hWndDlg            != GetForegroundWindow () ) ) )
+        {
+          SetForegroundWindow ( hWndDlg );
+          SK_SetWindowPos     ( hWndDlg, HWND_TOP,
+                                0, 0, 0, 0,
+                                SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                                SWP_NOSIZE         | SWP_NOMOVE       |
+                                SWP_NOSENDCHANGING   );
+        }
+      }
+    } break;
 
     case WM_CREATE:
     {
+      SetTimer (hWndDlg, SK_UPDATE_TIMER+1, 150, nullptr);
+
       SK_RealizeForegroundWindow (hWndDlg);
       InterlockedExchange        ( &__SK_UpdateStatus, 0 );
     } break;
@@ -985,16 +1122,30 @@ UpdateDlg_Thread (LPVOID user)
 
   bool started = false;
 
+  game_window.active = true;
+
   HWND hWndDlg =
-    CreateDialog ( __SK_hModSelf,
-                     MAKEINTRESOURCE (IDD_UPDATE),
-                       (HWND)user,
-                         Update_DlgProc );
+    CreateDialogW ( __SK_hModSelf,
+                      MAKEINTRESOURCE (IDD_UPDATE),
+                        (HWND)user,
+                          Update_DlgProc );
+
+  if (! hWndDlg)
+  {
+    SK_LOG0 ( ( L"Unable to Create Update Dialog :: GetLastError () = %lu", GetLastError () ),
+                L"AutoUpdate" );
+
+    InterlockedExchange ( &__SK_UpdateStatus, -1 );
+
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  }
 
   MSG  msg;
   BOOL bRet;
 
-  while ((bRet = GetMessage (&msg, hWndDlg, 0, 0)) != 0)
+  while ((bRet = SK_GetMessageW (&msg, hWndDlg, 0, 0)) != 0)
   {
     if (bRet == -1)
     {
@@ -1002,8 +1153,8 @@ UpdateDlg_Thread (LPVOID user)
       return 0;
     }
 
-    TranslateMessage (&msg);
-    DispatchMessage  (&msg);
+    TranslateMessage    (&msg);
+    SK_DispatchMessageW (&msg);
 
     if ((! started) && msg.hwnd == hWndDlg)
     {
@@ -1255,7 +1406,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
-          SK_Thread_Create ( UpdateDlg_Thread, GetActiveWindow () );
+          SK_Thread_Create ( UpdateDlg_Thread, HWND_DESKTOP );
 
           LONG status = 0;
 

@@ -1392,7 +1392,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
 extern INT
 __stdcall
-SK_D3D11_BytesPerPixel (DXGI_FORMAT fmt);
+SK_DXGI_BytesPerPixel (DXGI_FORMAT fmt);
 
 void
 STDMETHODCALLTYPE
@@ -1428,7 +1428,7 @@ SK_YS8_CopyResource (
       pTex2D->GetDesc (&desc);
 
       const LONG64 llSize =
-        SK_D3D11_BytesPerPixel (desc.Format) * desc.Width * desc.Height;
+        SK_DXGI_BytesPerPixel (desc.Format) * desc.Width * desc.Height;
 
       if (desc.Width == 256 && desc.Height == 128)
       {

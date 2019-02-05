@@ -427,7 +427,7 @@ struct sk_config_t
       bool    highlight_debug     = true;
       bool    injection_keeps_fmt = false;
       bool    generate_mips       = false;
-      bool    cache_gen_mips      = true;
+      bool    cache_gen_mips      = false;// true;
       bool    uncompressed_mips   = false;
     } d3d11;
     struct {

@@ -93,9 +93,9 @@ SK_SymSetOpts (void)
 
 // Set to true during abnormal program termination;
 //   used primarily for prognostics in the global injector.
-bool __SK_Crashed = false;
+static volatile LONG __SK_Crashed = 0;
 
-bool SK_Debug_IsCrashing (void) { __try { return __SK_Crashed; } __except (EXCEPTION_EXECUTE_HANDLER) { return true; } }
+bool SK_Debug_IsCrashing (void) { __try { return ReadAcquire (&__SK_Crashed) != 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return true; } }
 
 
 struct sk_crash_sound_s {
@@ -1116,16 +1116,19 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
             {
               ++files;
 
+              bool locked = false;
+
               if ( log_file       != nullptr &&
                    log_file->fLog != nullptr &&
                    log_file       != &crash_log )
               {
                 if (! InterlockedCompareExchange (&log_file->relocated, 1, 0))
                 {
-                  log_file->lockless = false;
-                  fflush (log_file->fLog);
-                  log_file->lock ();
+                                            log_file->lockless = false;
+                  fflush (log_file->fLog);  log_file->lock ();
                   fclose (log_file->fLog);
+
+                  locked = true;
                 }
                 else
                   SK_Thread_SpinUntilAtomicMin (&log_file->relocated, 2);
@@ -1140,7 +1143,12 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
               {
                 log_file->name = wszDestPath;
                 log_file->fLog = _wfopen (log_file->name.c_str (), L"a");
-                log_file->unlock ();
+
+                if (locked)
+                {
+                  locked = false;
+                  log_file->unlock ();
+                }
 
                 InterlockedIncrement (&log_file->relocated);
               }
@@ -1172,7 +1180,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       }
     }
 
-    __SK_Crashed = true;
+    InterlockedExchange (&__SK_Crashed, 1);
 
     // CEGUI is potentially the reason we crashed, so ...
     //   set it back to its original state.

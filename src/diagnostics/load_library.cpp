@@ -1205,7 +1205,8 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 
   if (! InterlockedCompareExchangeAcquire (&init, 1, 0))
   {
-    InitializeCriticalSectionAndSpinCount (&cs_thread_walk, 32);
+    InitializeCriticalSectionEx (&cs_thread_walk, 32, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                                      SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
     InterlockedIncrementRelease           (&init);
   }
 
@@ -3007,7 +3008,8 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 
   if (! InterlockedCompareExchangeAcquire (&init, 1, 0))
   {
-    InitializeCriticalSectionAndSpinCount (&cs_thread_walk, 32);
+    InitializeCriticalSectionEx (&cs_thread_walk, 32, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                                      SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
     InterlockedIncrementRelease           (&init);
   }
 

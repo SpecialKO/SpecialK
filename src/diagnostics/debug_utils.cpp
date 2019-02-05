@@ -114,15 +114,34 @@ SK_Debug_LoadHelper (void)
   static          HMODULE hModDbgHelp  = nullptr;
   static volatile LONG    __init       = 0;
 
+  // Isolate and load the system DLL as a different module since
+  //   dbghelp.dll is not threadsafe and other software may be using
+  //     the system DLL.
   if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
   {
-    wchar_t wszSystemDbgHelp [MAX_PATH * 2 + 1] = { };
+    static std::wstring path_to_driver =
+      SK_FormatStringW ( LR"(%ws\Drivers\Dbghelp\)",
+                        std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
+      );
+
+    wchar_t wszSystemDbgHelp   [MAX_PATH * 2 + 1] = { };
+    wchar_t wszIsolatedDbgHelp [MAX_PATH * 2 + 1] = { };
 
     GetSystemDirectory ( wszSystemDbgHelp, MAX_PATH * 2   );
     PathAppendW        ( wszSystemDbgHelp, L"dbghelp.dll" );
 
+    lstrcatW           ( wszIsolatedDbgHelp, path_to_driver.c_str () );
+    PathAppendW        ( wszIsolatedDbgHelp, SK_RunLHIfBitness (64, L"dbghelp_sk64.dll",
+                                                                    L"dbghelp_sk32.dll") );
+
+    if (! PathFileExistsW (wszIsolatedDbgHelp))
+    {
+      SK_CreateDirectories (wszIsolatedDbgHelp);
+      CopyFileW            (wszSystemDbgHelp, wszIsolatedDbgHelp, TRUE);
+    }
+
     hModDbgHelp =
-      SK_Modules.LoadLibrary (wszSystemDbgHelp);
+      SK_Modules.LoadLibrary (wszIsolatedDbgHelp);
 
     InterlockedIncrementRelease (&__init);
   }
@@ -744,7 +763,7 @@ ResetEvent_Detour (
 
 NTSTATUS
 NtTerminateProcess_Detour ( HANDLE   ProcessHandle,
-                           NTSTATUS ExitStatus )
+                            NTSTATUS ExitStatus )
 {
   bool abnormal_dll_state =
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
@@ -755,14 +774,14 @@ NtTerminateProcess_Detour ( HANDLE   ProcessHandle,
     if (GetProcessId (ProcessHandle) == GetCurrentProcessId ())
     {
       dll_log.Log ( L" *** BLOCKED NtTerminateProcess (%x) ***\t -- %s",
-                   SK_SummarizeCaller ().c_str (), ExitStatus );
+                   ExitStatus, SK_SummarizeCaller ().c_str () );
 
 #define STATUS_INFO_LENGTH_MISMATCH   ((NTSTATUS)0xC0000004L)
 #define STATUS_BUFFER_TOO_SMALL       ((NTSTATUS)0xC0000023L)
 #define STATUS_PROCESS_IS_TERMINATING ((NTSTATUS)0xC000010AL)
 
       return
-        0x0;// STATUS_PROCESS_IS_TERMINATING;
+        STATUS_SUCCESS;// STATUS_PROCESS_IS_TERMINATING;
     }
   }
 
@@ -1860,7 +1879,7 @@ SK_Exception_HandleThreadName (
 
             if (task != nullptr)
             {
-              task->queuePriority (AVRT_PRIORITY_NORMAL);
+              task->queuePriority (AVRT_PRIORITY_HIGH);
             }
           }
 
@@ -1869,23 +1888,24 @@ SK_Exception_HandleThreadName (
             auto* task =
               SK_MMCS_GetTaskForThreadIDEx ( dwTid,
                                                "Work Thread",
-                                                 "Playback", "Distribution" );
+                                                 "Games", "DisplayPostProcessing" );
           
             if (task != nullptr)
             {
               task->queuePriority (AVRT_PRIORITY_CRITICAL);
             }
           }
+
           else if (StrStrA (info->szName, "BusyThread"))
           {
             auto* task =
               SK_MMCS_GetTaskForThreadIDEx ( dwTid,
                                                "Busy Thread",
-                                                 "Playback", "Distribution" );
+                                                 "Games", "Playback" );
           
             if (task != nullptr)
             {
-              task->queuePriority (AVRT_PRIORITY_HIGH);
+              task->queuePriority (AVRT_PRIORITY_NORMAL);
             }
           }
           CloseHandle (hThread);
@@ -2682,8 +2702,7 @@ SymCleanup (
 
 
 
-concurrency::concurrent_unordered_set <HMODULE> _SK_DbgHelp_LoadedModules__32;
-concurrency::concurrent_unordered_set <HMODULE> _SK_DbgHelp_LoadedModules__64;
+concurrency::concurrent_unordered_set <DWORD64> _SK_DbgHelp_LoadedModules;
 
 DWORD
 IMAGEAPI
@@ -2696,50 +2715,43 @@ SymLoadModule (
   _In_     DWORD  SizeOfDll
 )
 {
-  HMODULE hMod = { };
+  BOOL bRet = FALSE;
 
-  if (! GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                              (LPCWSTR)(DWORD_PTR)BaseOfDll, &hMod ) )
+  if (SymLoadModule_Imp != nullptr)
   {
-    return FALSE;
-  }
+    size_t loaded =
+      _SK_DbgHelp_LoadedModules.count (BaseOfDll);
 
-  if (! _SK_DbgHelp_LoadedModules__32.count (hMod))
-  {
-    if (SymLoadModule_Imp != nullptr)
+    if (! loaded)
     {
       if (cs_dbghelp != nullptr && (ReadAcquire (&__SK_DLL_Attached) && (! ReadAcquire (&__SK_DLL_Ending))))
       {
-        BOOL bRet;
+        SK_RunOnce (SK_SymSetOpts ());
 
-        if (! _SK_DbgHelp_LoadedModules__32.count (hMod))
+        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+        if (! _SK_DbgHelp_LoadedModules.count (BaseOfDll))
         {
-          std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-          SK_RunOnce (SK_SymSetOpts ());
-
-          bRet =
-            ( SymLoadModule_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll ) != 0 );
-        }
-        else
-        {
-          return
-            TRUE;
+          if ( SymLoadModule_Imp (
+                 hProcess, hFile, ImageName,
+                   ModuleName,    BaseOfDll,
+                                  SizeOfDll  )
+             )
+          {
+            _SK_DbgHelp_LoadedModules.insert (BaseOfDll);
+          }
         }
 
-        if (bRet)
-        {
-          _SK_DbgHelp_LoadedModules__32.insert (hMod);
-          return TRUE;
-        }
+        loaded = 1;
       }
     }
 
-    return FALSE;
+    bRet =
+      ( loaded != 0 );
   }
 
-  return TRUE;
+  return
+    bRet;
 }
 
 DWORD64
@@ -2753,55 +2765,43 @@ SymLoadModule64 (
   _In_     DWORD   SizeOfDll
 )
 {
-  HMODULE hMod = { };
+  BOOL bRet = FALSE;
 
-  if (! GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                              (LPCWSTR)BaseOfDll, &hMod ) )
+  if (SymLoadModule64_Imp != nullptr)
   {
-    return FALSE;
-  }
+    size_t loaded =
+      _SK_DbgHelp_LoadedModules.count (BaseOfDll);
 
-  if (! _SK_DbgHelp_LoadedModules__64.count (hMod))
-  {
-    if (SymLoadModule64_Imp != nullptr)
+    if (! loaded)
     {
       if (cs_dbghelp != nullptr && (ReadAcquire (&__SK_DLL_Attached) && (! ReadAcquire (&__SK_DLL_Ending))))
       {
-        BOOL bRet;
+        SK_RunOnce (SK_SymSetOpts ());
 
-        if (! _SK_DbgHelp_LoadedModules__64.count (hMod))
+        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+        if (! _SK_DbgHelp_LoadedModules.count (BaseOfDll))
         {
-          std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-          SK_RunOnce (SK_SymSetOpts ());
-
-          bRet =
-            ( 0 != SymLoadModule64_Imp (
-                     hProcess, hFile, ImageName,
-                       ModuleName,    BaseOfDll,
-                                      SizeOfDll  )
-            );
+          if ( SymLoadModule64_Imp (
+                 hProcess, hFile, ImageName,
+                   ModuleName,    BaseOfDll,
+                                  SizeOfDll  )
+             )
+          {
+            _SK_DbgHelp_LoadedModules.insert (BaseOfDll);
+          }
         }
 
-        else
-        {
-          return TRUE;
-        }
-
-        if (bRet)
-        {
-          _SK_DbgHelp_LoadedModules__64.insert (hMod);
-
-          return TRUE;
-        }
+        loaded = 1;
       }
     }
 
-    return FALSE;
+    bRet =
+      ( loaded != 0 );
   }
 
-  return TRUE;
+  return
+    bRet;
 }
 
 typedef BOOL (IMAGEAPI *SymSetSearchPathW_pfn)(HANDLE,PCWSTR);

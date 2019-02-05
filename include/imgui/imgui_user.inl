@@ -1278,7 +1278,7 @@ SK_ImGui_FilterXInput (
 
   if (disable)
   {
-    ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
+    RtlSecureZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
     // SDL Keepalive
     pState->dwPacketNumber =

@@ -3124,7 +3124,7 @@ SK_AdjustWindow (void)
 
     // Adjust the window to fit if it's not fullscreen
     if ( (full_height < mon_height ) ||
-      (full_width  < mon_width  ) )
+         (full_width  < mon_width  ) )
     {
       SK_AdjustWindowRect (
         &game_window.actual.window,
@@ -3669,6 +3669,26 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 
 BOOL
 WINAPI
+SK_GetMessageW (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
+{
+  if (GetMessageW_Original != nullptr)
+    return GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
+
+  return GetMessageW (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
+}
+
+LRESULT
+WINAPI
+SK_DispatchMessageW (_In_ const MSG *lpMsg)
+{
+  if (DispatchMessageW_Original != nullptr)
+    return DispatchMessageW_Original (lpMsg);
+
+  return DispatchMessageW (lpMsg);
+}
+
+BOOL
+WINAPI
 GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
   SK_LOG_FIRST_CALL
@@ -3700,9 +3720,9 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 
   BOOL bRet =
     GetFunc ( lpMsg,
-                   hWnd,
-                     wMsgFilterMin,
-                     wMsgFilterMax );
+                hWnd,
+                  wMsgFilterMin,
+                  wMsgFilterMax );
 
   if ( bRet )
   {
@@ -3834,6 +3854,16 @@ GetActiveWindow_Detour (void)
 
 HWND
 WINAPI
+SK_SetActiveWindow (HWND hWnd)
+{
+  if (SetActiveWindow_Original != nullptr)
+    return SetActiveWindow_Original (hWnd);
+
+  return SetActiveWindow (hWnd);
+}
+
+HWND
+WINAPI
 SetActiveWindow_Detour (HWND hWnd)
 {
   SK_LOG_FIRST_CALL
@@ -3945,22 +3975,22 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
          static_cast <LONG> (wi.cxWindowBorders) == 0L )
     {
 
-      SetWindowPos ( hWndOrig, HWND_DESKTOP, 0, 0, 0, 0,
-                    SWP_HIDEWINDOW     | SWP_NOACTIVATE   |
-                    SWP_NOSIZE         | SWP_NOMOVE       |
-                    SWP_NOSENDCHANGING | SWP_NOREPOSITION );
+      SK_SetWindowPos ( hWndOrig, HWND_DESKTOP, 0, 0, 0, 0,
+                        SWP_HIDEWINDOW     | SWP_NOACTIVATE   |
+                        SWP_NOSIZE         | SWP_NOMOVE       |
+                        SWP_NOSENDCHANGING | SWP_NOREPOSITION );
     }
   }
 
   SetForegroundWindow (hWndForeground);
-  SetWindowPos        (hWndForeground, HWND_TOPMOST,
+  SK_SetWindowPos     (hWndForeground, HWND_TOPMOST,
                        0, 0,
                        0, 0, SWP_NOSIZE         | SWP_NOMOVE     |
                        SWP_SHOWWINDOW     | SWP_NOACTIVATE |
                        SWP_NOSENDCHANGING | SWP_NOCOPYBITS );
 
   SetForegroundWindow (hWndForeground);
-  SetWindowPos        (hWndForeground, HWND_NOTOPMOST,
+  SK_SetWindowPos     (hWndForeground, HWND_NOTOPMOST,
                        0, 0,
                        0, 0, SWP_NOSIZE     | SWP_NOMOVE     |
                        SWP_SHOWWINDOW | SWP_NOACTIVATE |
@@ -3970,7 +4000,7 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
 
   AttachThreadInput   (dwOrigThreadId, dwThreadId, false);
 
-  SetActiveWindow     (hWndForeground);
+  SK_SetActiveWindow  (hWndForeground);
   BringWindowToTop    (hWndForeground);
   SetFocus            (hWndForeground);
 
@@ -4408,7 +4438,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     } break;
 
 
-  //case WM_SETFOCUS:
+    case WM_SETFOCUS:
+      ActivateWindow (hWnd, true);
+      break;
+
     case WM_KILLFOCUS:
       if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
       {
@@ -4416,6 +4449,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         return
           game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
       }
+      ActivateWindow (hWnd, false);
       break;
 
     // Ignore (and physically remove) this event from the message queue if background_render = true
@@ -4762,7 +4796,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_MOUSEMOVE:
       if (! game_window.active)
-        SK_GetCursorPos (&game_window.cursor_pos);
+      {
+        POINT pt;
+        pt.x = GET_X_LPARAM (lParam);
+        pt.y = GET_Y_LPARAM (lParam);
+
+        ClientToScreen (hWnd, &pt);
+
+        game_window.cursor_pos = pt;
+      }
       else
         ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
       break;

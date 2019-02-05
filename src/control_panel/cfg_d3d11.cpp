@@ -393,7 +393,7 @@ SK::ControlPanel::D3D11::Draw (void)
           ImGui::SetTooltip ("Reduces input latency, BUT makes it impossible to change resolution.");
 
         if (waitable) {
-          ImGui::SliderInt ("Maximum Wait Period", &config.render.framerate.swapchain_wait, 1, 66);
+          ImGui::SliderInt ("Maximum Wait Period", &config.render.framerate.swapchain_wait, 1, 500);
         }
 
         if (SK_DXGI_SupportsTearing ())

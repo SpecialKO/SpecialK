@@ -1617,7 +1617,7 @@ public:
             ImGui::TextUnformatted (u8"ー");
             ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.3f - (0.3f * std::min (1.0f, ((static_cast <float> (dTemp) / 2.0f) / 100.0f))), 1.f, 1.f, 1.f));
             ImGui::SameLine        ();
-            ImGui::Text            ("%s", temp.c_str ());
+            ImGui::TextUnformatted (temp.c_str ());
             ImGui::PopStyleColor   (2);
           }
 

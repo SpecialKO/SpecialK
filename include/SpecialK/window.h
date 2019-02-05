@@ -523,4 +523,16 @@ SK_AdjustWindowRectEx (
   _In_    BOOL   bMenu,
   _In_    DWORD  dwExStyle );
 
+LRESULT
+WINAPI
+SK_DispatchMessageW (_In_ const MSG *lpMsg);
+
+BOOL
+WINAPI
+SK_GetMessageW (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
+
+HWND
+WINAPI
+SK_SetActiveWindow (HWND hWnd);
+
 #endif /* __SK__WINDOW_H__ */

@@ -32,6 +32,11 @@ HMODULE
 __stdcall
 SK_ReShade_GetDLL (void)
 {
+  static HMODULE hModReShade = (HMODULE)INVALID_HANDLE_VALUE;
+
+  if (hModReShade != (HMODULE)INVALID_HANDLE_VALUE)
+    return hModReShade;
+
   for (int i = 0; i < SK_MAX_IMPORTS; i++)
   {
     if (imports [i].hLibrary != nullptr)
@@ -49,13 +54,22 @@ SK_ReShade_GetDLL (void)
             SK_SHIM_GetReShade ();
 
           if (hModReal)
-            return hModReal;
+          {
+            hModReShade =
+              hModReal;
+
+            break;
+          }
         }
 
-        return imports [i].hLibrary;
+        hModReShade =
+          imports [i].hLibrary;
+
+        break;
       }
     }
   }
 
-  return static_cast <HMODULE> (nullptr);
+  return
+    hModReShade;
 };

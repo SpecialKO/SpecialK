@@ -39,7 +39,8 @@ SK_GetCommandProcessor (void)
     command =
       new SK_ICommandProcessor ();
 
-    InitializeCriticalSectionAndSpinCount (&cs_process_cmd, 104858);
+    InitializeCriticalSectionEx (&cs_process_cmd, 104858, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                                          SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
   }
 
   return command;

@@ -2409,35 +2409,42 @@ SK_ShutdownCore (const wchar_t* backend)
   }
 
 
-  SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+  if (! SK_Debug_IsCrashing ())
+  {
+    SK_GetCurrentRenderBackend ().releaseOwnedResources ();
 
 
-  SK_UnloadImports        ();
-  SK::Framerate::Shutdown ();
+    SK_UnloadImports        ();
+    SK::Framerate::Shutdown ();
 
-  dll_log.LogEx        (true, L"[ SpecialK ] Shutting down MinHook...                     ");
+    dll_log.LogEx        (true, L"[ SpecialK ] Shutting down MinHook...                     ");
 
-  dwTime = timeGetTime ();
-  SK_MinHook_UnInit    ();
-  dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
-
-
-  dll_log.LogEx        (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
-  dwTime = timeGetTime ();
-  SK_WMI_Shutdown      ();
-  dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+    dwTime = timeGetTime ();
+    SK_MinHook_UnInit    ();
+    dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
 
+    dll_log.LogEx        (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
+    dwTime = timeGetTime ();
+    SK_WMI_Shutdown      ();
+    dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
-  if (nvapi_init)
-    sk::NVAPI::UnloadLibrary ();
+
+
+    if (nvapi_init)
+      sk::NVAPI::UnloadLibrary ();
+  }
 
 
   dll_log.Log (L"[ SpecialK ] Custom %s.dll Detached (pid=0x%04x)",
     backend, GetCurrentProcessId ());
 
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Shutdown ();
+
+  if (! SK_Debug_IsCrashing ())
+  {
+    if (config.system.handle_crashes)
+      SK::Diagnostics::CrashHandler::Shutdown ();
+  }
 
   WriteRelease (&__SK_Init, -2);
 
@@ -2888,6 +2895,12 @@ SK_BeginBufferSwap (void)
       extern void SK_Yakuza0_BeginFrame (void);
                   SK_Yakuza0_BeginFrame ();
     } break;
+
+    case SK_GAME_ID::Tales_of_Vesperia:
+    {
+      extern void SK_TVFix_BeginFrame (void);
+                  SK_TVFix_BeginFrame ();
+    } break;
   }
 
 
@@ -2954,8 +2967,6 @@ SK_BeginBufferSwap (void)
                 extern float target_fps;
                              target_fps = config.render.framerate.target_fps;
       SK::Framerate::GetLimiter ()->init (config.render.framerate.target_fps);
-
-      SetThreadAffinityMask (GetCurrentThread (), (DWORD_PTR)-1);
     } break;
 
 
@@ -3383,8 +3394,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
 
+  long double          dt;
   LARGE_INTEGER            now;
-  double               dt;
   SK::Framerate::Tick (dt, now);
 
   //

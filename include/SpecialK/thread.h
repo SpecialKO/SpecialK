@@ -26,6 +26,19 @@
 #include <avrt.h>
 
 
+ 
+#define RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO         0x01000000
+#define RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN          0x02000000
+#define RTL_CRITICAL_SECTION_FLAG_STATIC_INIT           0x04000000
+#define RTL_CRITICAL_SECTION_FLAG_RESOURCE_TYPE         0x08000000
+#define RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO      0x10000000
+#define RTL_CRITICAL_SECTION_ALL_FLAG_BITS              0xFF000000
+
+#define SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO       0x0
+//0x10000000
+
+#define RTL_CRITICAL_SECTION_FLAG_RESERVED              (RTL_CRITICAL_SECTION_ALL_FLAG_BITS & (~(RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO | RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN | RTL_CRITICAL_SECTION_FLAG_STATIC_INIT | RTL_CRITICAL_SECTION_FLAG_RESOURCE_TYPE | RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO))) 
+
 
 static inline constexpr
   const HANDLE
@@ -91,7 +104,7 @@ public:
   SK_Thread_HybridSpinlock (int spin_count = 3000) :
                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
   {
-    InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+    InitializeCriticalSectionEx (cs_, spin_count, SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO | RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN);
   }
 
   ~SK_Thread_HybridSpinlock (void) ///

@@ -95,9 +95,11 @@ SK_Thread_HasCustomName (DWORD dwTid)
   return false;
 }
 
-std::wstring
+std::wstring&
 SK_Thread_GetName (DWORD dwTid)
 {
+  static std::wstring noname (L"");
+
   static auto& names =
     _SK_ThreadNames;
 
@@ -108,13 +110,14 @@ SK_Thread_GetName (DWORD dwTid)
     return (*it).second;
 
   return
-    std::wstring ();
+    noname;
 }
 
-std::wstring
+std::wstring&
 SK_Thread_GetName (HANDLE hThread)
 {
-  return SK_Thread_GetName (GetThreadId (hThread));
+  return
+    SK_Thread_GetName (GetThreadId (hThread));
 }
 
 extern "C" {
@@ -295,6 +298,20 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
   return hr;
 }
 
+typedef void (WINAPI *InitializeCriticalSection_pfn)(
+  LPCRITICAL_SECTION lpCriticalSection
+);
+InitializeCriticalSection_pfn InitializeCriticalSection_Original = nullptr;
+
+void
+WINAPI
+InitializeCriticalSection_Detour (
+  LPCRITICAL_SECTION lpCriticalSection
+)
+{
+  InitializeCriticalSectionEx (lpCriticalSection, 0, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN);
+}
+
 
 bool
 SK_Thread_InitDebugExtras (void)
@@ -303,6 +320,9 @@ SK_Thread_InitDebugExtras (void)
 
   if (! InterlockedCompareExchangeAcquire (&run_once, 1, 0))
   {
+    // Hook QPC and Sleep
+    SK::Framerate::Init ();
+
     // Only available in Windows 10
     //
     SetThreadDescription =

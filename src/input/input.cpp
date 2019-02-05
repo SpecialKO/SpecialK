@@ -848,7 +848,8 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
     {
       if (pData != nullptr)
       {
-        ZeroMemory (pData, *pcbSize);
+        RtlSecureZeroMemory (pData, *pcbSize);
+
         const int max_items = (sizeof RAWINPUT / *pcbSize);
               int count     =                            0;
             auto *pTemp     =
@@ -1225,7 +1226,7 @@ SK_ImGui_WantKeyboardCapture (void)
   if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
     imgui_capture = true;
 
-  if (config.input.keyboard.disabled_to_game)
+  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
     imgui_capture = true;
 
   return
@@ -1243,7 +1244,7 @@ SK_ImGui_WantTextCapture (void)
   if (io.WantTextInput && game_window.active)
     imgui_capture = true;
 
-  if (config.input.keyboard.disabled_to_game)
+  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
     imgui_capture = true;
 
   return imgui_capture;
@@ -1272,7 +1273,7 @@ SK_ImGui_WantGamepadCapture (void)
   if (SK_ImGui_GamepadComboDialogActive)
     imgui_capture = true;
 
-  if (config.input.gamepad.disabled_to_game)
+  if (config.input.gamepad.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
     imgui_capture = true;
 
   return imgui_capture;
@@ -1297,7 +1298,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
 
-    if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game)
+    if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
       imgui_capture = true;
   }
 
@@ -1505,6 +1506,11 @@ NtUserGetCursorInfo_Detour (PCURSORINFO pci)
 {
   SK_LOG_FIRST_CALL
 
+  if (config.input.mouse.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  {
+    return FALSE;
+  }
+
   POINT   pt        = pci->ptScreenPos;
   BOOL    ret       = SK_GetCursorInfo (pci);
 
@@ -1578,6 +1584,10 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 {
   SK_LOG_FIRST_CALL
 
+  if (config.input.mouse.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  {
+    return FALSE;
+  }
 
   if (config.window.background_render && (! game_window.active))
   {
@@ -1687,6 +1697,11 @@ WINAPI
 SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
   SK_LOG_FIRST_CALL
+
+  if (config.input.mouse.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  {
+    return FALSE;
+  }
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -1837,6 +1852,11 @@ NtUserGetAsyncKeyState_Detour (_In_ int vKey)
       SK_ConsumeVKey (vKey);
   }
 
+  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  {
+    return 0;
+  }
+
   return
     SK_GetAsyncKeyState (vKey);
 }
@@ -1887,6 +1907,11 @@ NtUserGetKeyState_Detour (_In_ int nVirtKey)
       SK_ConsumeVirtKey (nVirtKey);
   }
 
+  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  {
+    return 0;
+  }
+
   return SK_GetKeyState (nVirtKey);
 }
 
@@ -1914,11 +1939,16 @@ NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
   if (bRet)
   {
     if (SK_ImGui_WantKeyboardCapture ())
-      RtlZeroMemory (&lpKeyState [7], 247);
+      RtlSecureZeroMemory (&lpKeyState [7], 247);
 
     // Some games use this API for mouse buttons, for reasons that are beyond me...
     if (SK_ImGui_WantMouseCapture ())
-      RtlZeroMemory (lpKeyState, 7);
+      RtlSecureZeroMemory (lpKeyState, 7);
+  }
+
+  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  {
+    return FALSE;
   }
 
   return bRet;
@@ -1953,8 +1983,14 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
   ///assert ( lpMsg->hwnd == 0 ||
   ///         lpMsg->hwnd == game_window.hWnd );
 
-
   bool handled = false;
+
+  if ((! lpMsg) || ( lpMsg->hwnd != game_window.hWnd && 
+                               0 != game_window.hWnd &&
+                               0 != lpMsg->hwnd ))
+  {
+    return handled;
+  }
 
   ////SK_LOG1 ( ( L"Handle Message? %04x, HWND=%04x", lpMsg->message, lpMsg->hwnd ),
   ////            L"ImGuiTrace" );
@@ -1976,8 +2012,10 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
   {
     case WM_CHAR:
     case WM_MENUCHAR:
-        return SK_ImGui_WantTextCapture ();
-      break;
+    {
+      return
+        SK_ImGui_WantTextCapture ();
+    } break;
 
 
     // Fix for Melody's Escape, which attempts to remove these messages!
@@ -1986,33 +2024,10 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
     case WM_SYSKEYDOWN:
     case WM_SYSKEYUP:
     {
-      if (lpMsg->time >= dwTickBase)
-      {                  dwTickBase = lpMsg->time;
-      ///    static
-      ///     uint32_t last_msg  = 0;
-      ///     uint32_t signature =
-      ///crc32c (0x0, lpMsg, sizeof (MSG));
-
-      ///if (signature != last_msg)
-      ///{
-      ///  last_msg = signature;
-        handled  =
-          ImGui_WndProcHandler  ( lpMsg->hwnd,   lpMsg->message,
-                                  lpMsg->wParam, lpMsg->lParam ) &&
-            SK_ImGui_WantKeyboardCapture ();
-      }
-
-      //if (handled)
-      //{
-      //  //DefWindowProcW ( lpMsg->hwnd,   lpMsg->message,
-      //  //                 lpMsg->wParam, lpMsg->lParam );
-      //
-      //  lpMsg->message = WM_NULL;
-      //  lpMsg->hwnd    = HWND_DESKTOP;
-      //  lpMsg->pt      = { 0, 0 };
-      //  lpMsg->lParam  =   0;
-      //  lpMsg->wParam  =   0;
-      //}
+      handled  =
+        ImGui_WndProcHandler  ( lpMsg->hwnd,   lpMsg->message,
+                                lpMsg->wParam, lpMsg->lParam ) &&
+          SK_ImGui_WantKeyboardCapture ();
     } break;
 
     case WM_SETCURSOR:
@@ -2108,20 +2123,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
 
     default:
     {
-    //  static __declspec (thread)
-    //         uint32_t last_msg  = 0;
-    //         uint32_t signature =
-    //    crc32c (0x0, lpMsg, sizeof (MSG));
-    //
-    //  if (signature != last_msg)
-    //  {
-    //    last_msg = signature;
-        //handled  =
-        //  ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
-        //                         lpMsg->wParam, lpMsg->lParam );
-    //  }
-    //  //else
-    //  //  DefWindowProcW       (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
     } break;
   }
 

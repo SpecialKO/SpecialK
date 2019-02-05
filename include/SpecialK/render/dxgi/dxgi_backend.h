@@ -476,6 +476,8 @@ public:
                          _In_opt_ HMODULE               hModCaller = (HMODULE)(intptr_t)-1,
                          _In_opt_ SK_TLS               *pTLS       = SK_TLS_Bottom () );
 
+  void            updateDebugNames (void);
+
   // Some texture upload paths (i.e. CopyResource or UpdateSubresoure)
   //   result in cache hits where no new object is created; call this to
   //     indicate a cache hit, but leave the reference count alone.
@@ -497,6 +499,7 @@ public:
         bool              discard    = false;
     uint32_t              last_frame = 0UL;
     uint64_t              last_used  = 0ULL;
+    std::string           debug_name =  "";
     std::wstring          file_name  = L"";  // If injected, this is the source file
   };
 
@@ -505,7 +508,8 @@ public:
   struct lod_hash_table_s
   {
     lod_hash_table_s (void) {
-      InitializeCriticalSectionAndSpinCount (&mutex, 120);
+      InitializeCriticalSectionEx ( &mutex, 120, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                                 SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
     }
 
     ~lod_hash_table_s (void)
@@ -613,6 +617,11 @@ typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext2_pfn)(
 typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext3_pfn)( 
   _In_            ID3D11Device          *This,
   _Out_           ID3D11DeviceContext3 **ppImmediateContext
+);
+typedef HRESULT (WINAPI *D3D11Dev_CreateRasterizerState_pfn)(
+        ID3D11Device            *This,
+  const D3D11_RASTERIZER_DESC   *pRasterizerDesc,
+        ID3D11RasterizerState  **ppRasterizerState
 );
 typedef HRESULT (WINAPI *D3D11Dev_CreateSamplerState_pfn)(
   _In_            ID3D11Device        *This,
@@ -894,6 +903,7 @@ struct SK_D3D11_ShaderDesc
   SK_D3D11_ShaderType type    = SK_D3D11_ShaderType::Invalid;
   uint32_t            crc32c  = 0UL;
   IUnknown*           pShader = nullptr;
+  std::string         name    = "";
 
   std::vector <BYTE>  bytecode;
 
@@ -937,7 +947,8 @@ struct d3d11_shader_tracking_s
 
     num_draws = 0;
 
-    if ( set_of_views.empty () &&
+    if ( set_of_res.empty   () &&
+         set_of_views.empty () &&
          used_views.empty   () &&
          classes.empty      () )
     {
@@ -971,6 +982,7 @@ struct d3d11_shader_tracking_s
     for ( auto it : set_of_views )
       it->Release ();
 
+    set_of_res.clear   ();
     set_of_views.clear ();
     used_views.clear   ();
 
@@ -1073,6 +1085,7 @@ struct d3d11_shader_tracking_s
   // The slot used has meaning, but I think we can ignore it for now...
   //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;
 
+  std::set    <ID3D11Resource *          > set_of_res;
   std::set    <ID3D11ShaderResourceView *> set_of_views;
   std::vector <ID3D11ShaderResourceView *> used_views;
 
@@ -1182,7 +1195,7 @@ struct SK_D3D11_KnownShaders
     std::unordered_map <uint32_t, LONG>                  rewind;
     std::unordered_map <uint32_t, LONG>                  hud;
 
-    std::unordered_map <uint32_t, std::wstring>          names;
+    std::unordered_map <uint32_t, std::string>           names;
 
     struct {
       std::unordered_map <uint32_t, LONG> before;
@@ -1228,8 +1241,11 @@ struct SK_D3D11_KnownShaders
     d3d11_shader_tracking_s                              tracked;
 
     struct {
-      uint32_t                  shader [SK_D3D11_MAX_DEV_CONTEXTS+1];
-      ID3D11ShaderResourceView* views  [SK_D3D11_MAX_DEV_CONTEXTS+1][128];
+      uint32_t                  shader    [SK_D3D11_MAX_DEV_CONTEXTS+1]      =   { }  ;
+      ID3D11ShaderResourceView* views     [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
+      ID3D11ShaderResourceView* tmp_views [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
+      // Avoid allocating memory on the heap/stack when we have to manipulate an array
+      //   large enough to store all D3D11 Shader Resource Views.
     } current;
 
     volatile LONG                                        changes_last_frame = 0;
@@ -1545,5 +1561,13 @@ const wchar_t* SK_D3D11_DescribeUsage     (D3D11_USAGE              usage)  ;
 const wchar_t* SK_D3D11_DescribeFilter    (D3D11_FILTER             filter) ;
 std::wstring   SK_D3D11_DescribeMiscFlags (D3D11_RESOURCE_MISC_FLAG flags);
 std::wstring   SK_D3D11_DescribeBindFlags (D3D11_BIND_FLAG          flags);
+
+
+constexpr int VERTEX_SHADER_STAGE   = 0;
+constexpr int PIXEL_SHADER_STAGE    = 1;
+constexpr int GEOMETRY_SHADER_STAGE = 2;
+constexpr int HULL_SHADER_STAGE     = 3;
+constexpr int DOMAIN_SHADER_STAGE   = 4;
+constexpr int COMPUTE_SHADER_STAGE  = 5;
 
 #endif /* __SK__DXGI_BACKEND_H__ */

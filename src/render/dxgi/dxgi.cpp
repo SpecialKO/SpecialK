@@ -849,7 +849,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     CComQIPtr <IDXGISwapChain3> pSwap3 (This);
 
                       UINT currentBuffer = 0;
-    if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
+  //if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
 
     if ( SUCCEEDED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer))) )
     {
@@ -2434,6 +2434,31 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
   }
 };
 
+void
+SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext*       pImmediateContext,
+                             SK_D3D11_Stateblock_Lite** pSB )
+{
+  if (pSB != nullptr)
+  {
+    if (! *pSB)
+    {
+      *pSB = new SK_D3D11_Stateblock_Lite ();
+    }
+
+    RtlZeroMemory ( *pSB,
+                      sizeof (SK_D3D11_Stateblock_Lite) );
+  
+    (*pSB)->capture (pImmediateContext);
+  }
+}
+
+void
+SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
+                           ID3D11DeviceContext*      pDevCtx )
+{
+  pBlock->apply (pDevCtx);
+}
+
 SK_D3D11_Stateblock_Lite*
 SK_D3D11_CreateAndCaptureStateBlock (ID3D11DeviceContext* pImmediateContext)
 {
@@ -3083,7 +3108,7 @@ SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb)
   delete sb;
 }
 
-#define _SK_D3D11_LITE_STATEBLOCKS
+//#define _SK_D3D11_LITE_STATEBLOCKS
 
 extern bool
 SK_Screenshot_IsCapturingHUDless (void);
@@ -3097,13 +3122,15 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   static auto & rb =
     SK_GetCurrentRenderBackend ();
 
-  CComPtr <ID3D11Device> pDev = nullptr;
+  CComQIPtr <ID3D11Device> pDev (rb.device.p);
 
   InterlockedIncrement (&__osd_frames_drawn);
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
+                             pTLS->imgui.drawing                       = FALSE;
+                             pTLS->texture_management.injection_thread = FALSE;
   SK_ScopedBool auto_bool0 (&pTLS->imgui.drawing);
   SK_ScopedBool auto_bool1 (&pTLS->texture_management.injection_thread);
                              pTLS->imgui.drawing                       = TRUE;
@@ -3181,7 +3208,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     hr =
       This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer));
 
-    if (FAILED (hr))
+    if (FAILED (hr) || pBackBuffer == nullptr)
     {
       ///if (rb.api != SK_RenderAPI::D3D11On12)
       ///{
@@ -3380,13 +3407,13 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 #endif
 
       pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView.p, nullptr);
-
+      
       D3D11_VIEWPORT       vp              = { };
       D3D11_BLEND_DESC     blend           = { };
       D3D11_TEXTURE2D_DESC backbuffer_desc = { };
-
+      
       pBackBuffer->GetDesc (&backbuffer_desc);
-
+      
       blend.RenderTarget [0].BlendEnable           = TRUE;
       blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
       blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
@@ -3395,17 +3422,17 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
       blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
       blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
+      
       if (SUCCEEDED (pDev->CreateBlendState (&blend, &pBlendState)))
          pImmediateContext->OMSetBlendState (         pBlendState, nullptr, 0xffffffff);
-
+      
       vp.Width    = static_cast <float> (backbuffer_desc.Width);
       vp.Height   = static_cast <float> (backbuffer_desc.Height);
       vp.MinDepth = 0.0f;
       vp.MaxDepth = 1.0f;
       vp.TopLeftX = 0.0f;
       vp.TopLeftY = 0.0f;
-
+      
       auto DrawSteamPopups = [&](void) ->
       void
       {
@@ -3419,16 +3446,16 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
           }
         }
       };
-
+      
       pImmediateContext->RSSetViewports (1, &vp);
       {
         bool hudless  =
           SK_Screenshot_IsCapturingHUDless (),
-
+      
         hdr_mode =
          ( rb.isHDRCapable () &&
           (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
-
+      
         if ((uintptr_t)cegD3D11 > 1)
         {
           if (hdr_mode || (! hudless))
@@ -3439,26 +3466,26 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                         cegD3D11->endRendering ();
           }
         }
-
+      
         if (hdr_mode)
         {
           //if (! hudless)
           //{
             DrawSteamPopups ();
-
+      
             // Last-ditch effort to get the HDR post-process done before the UI.
             void SK_HDR_SnapshotSwapchain (void);
                  SK_HDR_SnapshotSwapchain (    );
           //}
         }
-
+      
         // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
         if (ImGui_DX11Startup             ( This                         ))
         {
           extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                        SK_ImGui_DrawFrame (       0x00,          nullptr );
         }
-
+      
         if ((! hdr_mode))// && hudless)
         {
           DrawSteamPopups ();
@@ -4204,7 +4231,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
     if (bFlipMode)
     {
-      flags |= DXGI_PRESENT_USE_DURATION | DXGI_PRESENT_RESTART;
+      //flags |= DXGI_PRESENT_RESTART;
 
       if (bWait)
         flags |= DXGI_PRESENT_DO_NOT_WAIT;
@@ -4550,7 +4577,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
     if (bFlipMode)
     {
-      flags |= DXGI_PRESENT_USE_DURATION | DXGI_PRESENT_RESTART;
+      //flags |= DXGI_PRESENT_RESTART;
 
       if (bWait)
         flags |= DXGI_PRESENT_DO_NOT_WAIT;
@@ -4573,7 +4600,11 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
         //else
         //  SK_UI_DrawD3D12    (This);
 
-        hr = Present            (interval, flags);
+        hr = E_NOT_SET;
+
+        do {
+          hr = Present            (interval, flags);
+        } while (hr == DXGI_ERROR_WAS_STILL_DRAWING);
       }
 
       else
@@ -4612,7 +4643,11 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
           //else
           //  SK_UI_DrawD3D12    (This);
 
-          hr = Present            (interval, flags);
+          hr = E_NOT_SET;
+
+          do {
+            hr = Present            (interval, flags);
+          } while (hr == DXGI_ERROR_WAS_STILL_DRAWING);
         }
       }
 
@@ -6140,9 +6175,9 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         if (bWait)
           pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
-        // Flip Presentation Model requires 3 Buffers
+        // Flip Presentation Model requires 3 Buffers (1 is implicit)
         config.render.framerate.buffer_count =
-          std::max (3, config.render.framerate.buffer_count);
+          std::max (2, std::min (4, config.render.framerate.buffer_count));
 
         if (config.render.framerate.flip_discard &&
             dxgi_caps.present.flip_discard)
@@ -8652,70 +8687,69 @@ HookDXGI (LPVOID user)
                         &featureLevel,
                           (ID3D11DeviceContext **)&pImmediateContext );
 
-    /////IUnknown *pPromotion = nullptr;
-    /////
-    /////if ( SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device5, (void **)&pPromotion)) ||
-    /////     SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device4, (void **)&pPromotion)) ||
-    /////     SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device3, (void **)&pPromotion)) )
-    /////{
-    /////  pDevice->Release ();
-    /////  pDevice =
-    /////    reinterpret_cast <ID3D11Device *> (pPromotion);
-    /////
-    /////  ID3D11Device3* pDevice3 =
-    /////    reinterpret_cast <ID3D11Device3 *> (pDevice);
-    /////
-    /////  pDevice3->GetImmediateContext3   (      (ID3D11DeviceContext3 **)&pImmediateContext);
-    /////  pDevice3->CreateDeferredContext3 (0x00, (ID3D11DeviceContext3 **)&pDeferredContext);
-    /////
-    /////  IUnknown *pPromotion2 = nullptr;
-    /////
-    /////  if ( SUCCEEDED (pImmediateContext->QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion2)) )
-    /////  {
-    /////    pImmediateContext->Release ();
-    /////    pImmediateContext = (ID3D11DeviceContext *)pPromotion2;
-    /////  }
-    /////}
-    /////
-    /////else if ( SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device2, (void **)&pPromotion)) )
-    /////{
-    /////  pDevice->Release ();
-    /////  pDevice =
-    /////    reinterpret_cast <ID3D11Device *> (pPromotion);
-    /////
-    /////  ID3D11Device2* pDevice2 =
-    /////    reinterpret_cast <ID3D11Device2 *> (pDevice);
-    /////  
-    /////  pDevice2->GetImmediateContext2   (      (ID3D11DeviceContext2 **)&pImmediateContext);
-    /////  pDevice2->CreateDeferredContext2 (0x00, (ID3D11DeviceContext2 **)&pDeferredContext);
-    /////}
-    /////
-    /////else if ( SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device1, (void **)&pPromotion)) )
-    /////{
-    /////  pDevice->Release ();
-    /////  pDevice =
-    /////    reinterpret_cast <ID3D11Device *> (pPromotion);
-    /////
-    /////  ID3D11Device1* pDevice1 =
-    /////    reinterpret_cast <ID3D11Device1 *> (pDevice);
-    /////  
-    /////  pDevice1->GetImmediateContext1   (      (ID3D11DeviceContext1 **)&pImmediateContext);
-    /////  pDevice1->CreateDeferredContext1 (0x00, (ID3D11DeviceContext1 **)&pDeferredContext);
-    /////}
-    /////
-    /////else
-    /////{
-    /////  pDevice->GetImmediateContext   (      (ID3D11DeviceContext **)&pImmediateContext);
-    /////  pDevice->CreateDeferredContext (0x00, (ID3D11DeviceContext **)&pDeferredContext);
-    /////}
+    ///IUnknown *pPromotion = nullptr;
+    ///
+    ///CComPtr <ID3D11DeviceContext> pDeferredContext;
+    ///
+    ///if ( SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device5, (void **)&pPromotion)) ||
+    ///     SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device4, (void **)&pPromotion)) ||
+    ///     SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device3, (void **)&pPromotion)) )
+    ///{
+    ///  pDevice->Release ();
+    ///  pDevice =
+    ///    reinterpret_cast <ID3D11Device *> (pPromotion);
+    ///
+    ///  ID3D11Device3* pDevice3 =
+    ///    reinterpret_cast <ID3D11Device3 *> (pDevice);
+    ///
+    ///  pDevice3->GetImmediateContext3   (      (ID3D11DeviceContext3 **)&pImmediateContext);
+    ///  pDevice3->CreateDeferredContext3 (0x00, (ID3D11DeviceContext3 **)&pDeferredContext);
+    ///
+    ///  IUnknown *pPromotion2 = nullptr;
+    ///
+    ///  if ( SUCCEEDED (pImmediateContext->QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion2)) )
+    ///  {
+    ///    pImmediateContext->Release ();
+    ///    pImmediateContext = (ID3D11DeviceContext *)pPromotion2;
+    ///  }
+    ///}
+    ///
+    ///else if ( SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device2, (void **)&pPromotion)) )
+    ///{
+    ///  pDevice->Release ();
+    ///  pDevice =
+    ///    reinterpret_cast <ID3D11Device *> (pPromotion);
+    ///
+    ///  ID3D11Device2* pDevice2 =
+    ///    reinterpret_cast <ID3D11Device2 *> (pDevice);
+    ///  
+    ///  pDevice2->GetImmediateContext2   (      (ID3D11DeviceContext2 **)&pImmediateContext);
+    ///  pDevice2->CreateDeferredContext2 (0x00, (ID3D11DeviceContext2 **)&pDeferredContext);
+    ///}
+    ///
+    ///else if ( SUCCEEDED (pDevice->QueryInterface (IID_ID3D11Device1, (void **)&pPromotion)) )
+    ///{
+    ///  pDevice->Release ();
+    ///  pDevice =
+    ///    reinterpret_cast <ID3D11Device *> (pPromotion);
+    ///
+    ///  ID3D11Device1* pDevice1 =
+    ///    reinterpret_cast <ID3D11Device1 *> (pDevice);
+    ///  
+    ///  pDevice1->GetImmediateContext1   (      (ID3D11DeviceContext1 **)&pImmediateContext);
+    ///  pDevice1->CreateDeferredContext1 (0x00, (ID3D11DeviceContext1 **)&pDeferredContext);
+    ///}
+    ///
+    ///else
+    ///{
+    ///  pDevice->GetImmediateContext   (      (ID3D11DeviceContext **)&pImmediateContext);
+    ///  pDevice->CreateDeferredContext (0x00, (ID3D11DeviceContext **)&pDeferredContext);
+    ///}
 
     sk_hook_d3d11_t d3d11_hook_ctx;
 
     d3d11_hook_ctx.ppDevice           = &pDevice;
     d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
-
-    ////if (pDeferredContext != nullptr)
-    ////    pDeferredContext->Release ();
 
     CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
     CComPtr <IDXGIAdapter> pAdapter = nullptr;
@@ -9079,7 +9113,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
         dll_log.LogEx ( false,
                           L" Node%i       (Reserve: %#5llu / %#5llu MiB - "
-                                         L"Budget: %#5llu / %#5llu MiB)",
+                                          L"Budget: %#5llu / %#5llu MiB)",
                             i++,
                               _mem_info.CurrentReservation      >> 20ULL,
                               _mem_info.AvailableForReservation >> 20ULL,
@@ -9101,8 +9135,8 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
         }
       }
 
-      ::mem_info [0].nodes = ( i - 1 );
-      ::mem_info [1].nodes = ( i - 1 );
+      mem_info [0].nodes = ( i - 1 );
+      mem_info [1].nodes = ( i - 1 );
 
       dll_log.LogEx ( false, L"\n" );
     }
@@ -9211,17 +9245,23 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     //
     for ( node = 0; node < MAX_GPU_NODES; )
     {
+      int next_node =
+               node + 1;
+
       if ( FAILED (
              params->pAdapter->QueryVideoMemoryInfo (
                node,
                  DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-                   &mem_info [buffer].local [node++]
+                   &mem_info [buffer].local [node]
              )
            )
          )
       {
+        node = next_node;
         break;
       }
+
+      node = next_node;
     }
 
 
@@ -9234,17 +9274,23 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     //
     for ( node = 0; node < MAX_GPU_NODES; )
     {
+      int next_node =
+               node + 1;
+
       if ( FAILED (
              params->pAdapter->QueryVideoMemoryInfo (
                node,
                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-                   &mem_info [buffer].nonlocal [node++]
+                   &mem_info [buffer].nonlocal [node]
              )
            )
          )
       {
+        node = next_node;
         break;
       }
+
+      node = next_node;
     }
 
 

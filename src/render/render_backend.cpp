@@ -794,7 +794,7 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
 SK_RenderBackend_V2::SK_RenderBackend_V2 (void)
 {
-  InitializeCriticalSectionAndSpinCount (&cs_res, 1024*1024);
+  InitializeCriticalSectionEx (&cs_res, 64*64, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN | SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
 }
 
 SK_RenderBackend_V2::~SK_RenderBackend_V2 (void)

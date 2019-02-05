@@ -1642,19 +1642,19 @@ SK_XInput_PollController ( INT           iJoyID,
   //   in its import table and also not caught by our LoadLibrary hook
   if (first_frame)
   {
-    if ( SK_Modules.isValid       (
-         SK_Modules.LoadLibraryLL (L"XInput1_3.dll")
-                                  )
+    if ( SK_Modules.isValid     (
+         GetModuleHandleW       (L"XInput1_3.dll")
+                                )
        ) SK_Input_HookXInput1_3 ();
 
-    if ( SK_Modules.isValid       (
-         SK_Modules.LoadLibraryLL (L"XInput1_4.dll")
-                                  )
+    if ( SK_Modules.isValid     (
+         GetModuleHandleW       (L"XInput1_4.dll")
+                                )
        ) SK_Input_HookXInput1_4 ();
 
-    if ( SK_Modules.isValid       (
-         SK_Modules.LoadLibraryLL (L"XInput9_1_0.dll")
-                                  )
+    if ( SK_Modules.isValid     (
+         GetModuleHandleW       (L"XInput9_1_0.dll")
+                                )
        ) SK_Input_HookXInput9_1_0 ();
 
     first_frame  = false;
@@ -1754,13 +1754,13 @@ SK_Input_PreHookXInput (void)
       if (tests [2].used) SK_Input_HookXInput9_1_0 ();
     }
 
-    if (SK_Modules.isValid (SK_Modules.LoadLibraryLL (L"XInput1_3.dll")))
+    if (GetModuleHandleW (L"XInput1_3.dll"))
       SK_Input_HookXInput1_3 ();
 
-    if (SK_Modules.isValid (SK_Modules.LoadLibraryLL (L"XInput1_4.dll")))
+    if (GetModuleHandleW (L"XInput1_4.dll"))
       SK_Input_HookXInput1_4 ();
 
-    if (SK_Modules.isValid (SK_Modules.LoadLibraryLL (L"XInput9_1_0.dll")))
+    if (GetModuleHandleW (L"XInput9_1_0.dll"))
       SK_Input_HookXInput9_1_0 ();
   }
 }

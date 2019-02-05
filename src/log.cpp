@@ -308,7 +308,9 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   fLog   = _wfopen (full_name.c_str (), wszMode);
   silent = false;
 
-  BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 400);
+  BOOL bRet =
+    InitializeCriticalSectionEx (&log_mutex, 400, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                                  SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
    lockless = true;
 
   if ((! bRet) || (fLog == nullptr))

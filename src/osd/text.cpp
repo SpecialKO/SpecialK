@@ -69,7 +69,8 @@ CRITICAL_SECTION       SK_TextOverlayManager::cs_   = {     };
 
 SK_TextOverlayManager::SK_TextOverlayManager (void)
 {
-  InitializeCriticalSectionAndSpinCount (&cs_, 104858);
+  InitializeCriticalSectionEx (&cs_, 104858, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                             SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
 
   gui_ctx_         = nullptr;
   need_full_reset_ = false;
@@ -648,22 +649,22 @@ SK_DrawOSD (void)
 
   if (config.fps.show)
   {
-    double mean    = frame_history->calcMean     ();
-    double sd      = frame_history->calcSqStdDev (mean);
-    double min     = frame_history->calcMin      ();
-    double max     = frame_history->calcMax      ();
-    int    hitches = frame_history->calcHitches  (1.2, mean);
+    long double mean    = frame_history->calcMean     ();
+    long double sd      = frame_history->calcSqStdDev (mean);
+    long double min     = frame_history->calcMin      ();
+    long double max     = frame_history->calcMax      ();
+    int         hitches = frame_history->calcHitches  (1.2L, mean);
 
-    double effective_mean = frame_history2->calcMean  ();
+    long double effective_mean = frame_history2->calcMean  ();
 
-    static double fps           = 0.0;
+    static double fps           = 0.0L;
     static DWORD  last_fps_time = timeGetTime ();
 
     const DWORD dwTime = timeGetTime ();
 
     if (dwTime - last_fps_time > 666)
     {
-      fps           = 1000.0 / mean;
+      fps           = (double)(1000.0L / mean);
       last_fps_time = dwTime;
     }
 

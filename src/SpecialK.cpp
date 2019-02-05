@@ -413,7 +413,7 @@ DllMain ( HMODULE hModule,
 
         if (pTLS != nullptr)
         {
-            pTLS->debug.mapped = true;
+          pTLS->debug.mapped = true;
         }
       }
     }

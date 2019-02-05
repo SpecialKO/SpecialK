@@ -327,14 +327,14 @@ public:
                                  L"Preset",               __SK_HDR_Preset,
                                  L"Light Adaptation Preset" );
 
+    if (! config.render.framerate.flip_discard)
+      __SK_HDR_16BitSwap = false;
 
     if ( __SK_HDR_Preset < 0 ||
-        __SK_HDR_Preset >= MAX_HDR_PRESETS )
+         __SK_HDR_Preset >= MAX_HDR_PRESETS )
     {
       __SK_HDR_Preset = 0;
     }
-
-    hdr_presets [__SK_HDR_Preset].activate ();
 
     if (_SK_HDR_10BitSwapChain->load (__SK_HDR_10BitSwap))
     {
@@ -345,7 +345,7 @@ public:
       }
     }
 
-    else if (_SK_HDR_16BitSwapChain->load (__SK_HDR_16BitSwap))
+    else if (config.render.framerate.flip_discard && _SK_HDR_16BitSwapChain->load (__SK_HDR_16BitSwap))
     {
       if (__SK_HDR_16BitSwap)
       {
@@ -354,6 +354,18 @@ public:
         rb.scanout.colorspace_override =
           DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
       }
+    } 
+
+    else
+    {
+      __SK_HDR_16BitSwap = false;
+       _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+    }
+
+    if (__SK_HDR_16BitSwap ||
+        __SK_HDR_10BitSwap)
+    {
+      hdr_presets [__SK_HDR_Preset].activate ();
     }
   }
 

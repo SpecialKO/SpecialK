@@ -1117,7 +1117,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   // Create the pixel shader
   {
     static const char pixelShader [] =
-     "#pragma warning ( disable : 3571 )\n                                    \
+      "#pragma warning ( disable : 3571 )\n                                    \
       struct PS_INPUT                                                         \
       {                                                                       \
         float4 pos : SV_POSITION;                                             \
@@ -1191,7 +1191,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
               float4 (hdrUnderlay.Sample (sampler0, input.pos.xy/             \
                                                      viewport.zw).rgb, 1.0f); \
             under_color.rgb =                                                 \
-              ApplyREC709Curve (RemoveSRGBCurve (under_color.rgb)/(RemoveSRGBCurve (under_color.rgb)+(1.666f*      \
+              RemoveSRGBCurve (under_color.rgb/(under_color.rgb+(1.666f*      \
                                (2.0f-blend_alpha))));                         \
             out_col =                                                         \
               pow (abs (input.col * out_col), float4 (input.uv3.yyy, 1.0f)) * \

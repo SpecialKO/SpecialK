@@ -141,21 +141,19 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   const size_t needed_size =
     all_files.size ();
 
-  std::vector <sk_file_entry_s> reg_files (needed_size);
-  std::vector <sk_file_entry_s> cfg_files (needed_size);
+  std::vector <sk_file_entry_s> reg_files;
+  std::vector <sk_file_entry_s> cfg_files;
 
-  for ( auto&& it  = all_files.begin ();
-               it != all_files.end   ();
-             ++it )
+  for ( auto& it : all_files )
   {
-    if (wcsstr (it->name.c_str (), L"default_"))
+    if (wcsstr (it.name.c_str (), L"default_"))
     {
-      cfg_files.emplace (it);
+      cfg_files.push_back (it);
     }
 
     else
     {
-      reg_files.emplace (it);
+      reg_files.push_back (it);
     }
   }
 

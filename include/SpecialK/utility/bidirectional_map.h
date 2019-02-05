@@ -489,8 +489,8 @@ protected:
     }
 
 private:
-  std::unordered_map <_K, _V> fwd_map;
-  std::unordered_map <_V, _K> rev_map;
+  std::unordered_map <_K, _V> fwd_map = { };
+  std::unordered_map <_V, _K> rev_map = { };
 };
 
 SK_INCLUDE_END_CPP   (BIDIRECTIONAL_MAP)

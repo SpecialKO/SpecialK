@@ -887,6 +887,9 @@ SK_Steam_ScreenshotManager::getExternalScreenshotRepository (bool refresh)
 SK_Steam_ScreenshotManager *screenshot_manager = nullptr;
 
 
+bool  __SK_Steam_IgnoreOverlayActivation = false;
+DWORD __SK_Steam_MagicThread             =     0;
+
 class SK_Steam_OverlayManager
 {
 public:
@@ -904,10 +907,12 @@ public:
   }
 
   STEAM_CALLBACK ( SK_Steam_OverlayManager,
-                  OnActivate,
-                  GameOverlayActivated_t,
-                  activation )
+                   OnActivate,
+                   GameOverlayActivated_t,
+                   activation )
   {
+    if (__SK_Steam_IgnoreOverlayActivation)
+      return;
 #if 0
     if (active_ != (pParam->m_bActive != 0))
     {
@@ -1130,7 +1135,11 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   // Don't care about OUR OWN callbacks ;)
   if (SK_GetCallingDLL () == SK_GetDLL ())
   {
-    SteamAPI_RegisterCallback_Original (pCallback, iCallback);
+    if ((! __SK_Steam_IgnoreOverlayActivation) || iCallback != GameOverlayActivated_t::k_iCallback)
+    {
+      SteamAPI_RegisterCallback_Original (pCallback, iCallback);
+    }
+
     return;
   }
   std::wstring caller =
@@ -1143,11 +1152,17 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   {
     case GameOverlayActivated_t::k_iCallback:
     {
-      steam_log.Log ( L" * (%-28s) Installed Overlay Activation Callback",
-                     caller.c_str () );
+      if (!__SK_Steam_IgnoreOverlayActivation)
+      {
+        steam_log.Log (L" * (%-28s) Installed Overlay Activation Callback",
+                       caller.c_str ());
 
-      if (SK_ValidatePointer (pCallback))
-        overlay_activation_callbacks.insert (pCallback);
+        if (SK_ValidatePointer (pCallback))
+          overlay_activation_callbacks.insert (pCallback);
+      }
+
+      else
+        iCallback = UserStatsReceived_t::k_iCallback;
     } break;
 
     case ScreenshotRequested_t::k_iCallback:
@@ -3407,10 +3422,10 @@ SteamAPI_RunCallbacks_Detour (void)
   if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
-
   static bool failure = false;
 
-  SK_TLS* pTLS = SK_TLS_Bottom ();
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
   if (pTLS != nullptr) InterlockedIncrement64 (&pTLS->steam.callback_count);
 
@@ -4116,6 +4131,9 @@ SK_Steam_InvokeOverlayActivationCallback ( SK_Steam_Callback_pfn CallbackFn,
                                            CCallbackBase*        pClosure,
                                            bool                  active )
 {
+  if (__SK_Steam_IgnoreOverlayActivation)
+    return;
+
   __try
   {
     GameOverlayActivated_t activated = {
@@ -4143,6 +4161,9 @@ __stdcall
 SK::SteamAPI::SetOverlayState (bool active)
 {
   if (config.steam.silent)
+    return;
+
+  if (__SK_Steam_IgnoreOverlayActivation)
     return;
 
   if (steam_callback_cs != nullptr)
@@ -4528,7 +4549,9 @@ SteamAPI_Delay_Init (LPVOID)
   while ( (! ReadAcquire (&__SK_Steam_init)) &&
              tries < 120 )
   {
-    SK_Sleep (std::max (0, config.steam.init_delay));
+    SK_Sleep (std::max (1, config.steam.init_delay));
+
+    ++tries;
 
     if (SK_GetFramesDrawn () < 1)
       continue;
@@ -4540,8 +4563,6 @@ SteamAPI_Delay_Init (LPVOID)
 
     if (SteamAPI_Init_Original != nullptr)
         SteamAPI_Init_Detour ();
-
-    ++tries;
   }
 
   SK_Thread_CloseSelf ();
@@ -4735,11 +4756,15 @@ SK_SteamAPI_InitManagers (void)
       user_manager = new SK_Steam_UserManager ();
     }
 
-    if (steam_ctx.Utils () && (! overlay_manager))
-      overlay_manager      = new SK_Steam_OverlayManager ();
+    if (! __SK_Steam_IgnoreOverlayActivation)
+    {
+      if (steam_ctx.Utils () && (! overlay_manager))
+        overlay_manager      = new SK_Steam_OverlayManager ();
+    }
 
     // Failed, try again later...
-    if (overlay_manager == nullptr || steam_achievements == nullptr)
+    if (((! __SK_Steam_IgnoreOverlayActivation) && overlay_manager    == nullptr) ||
+                                                   steam_achievements == nullptr)
       InterlockedExchange (&SK_SteamAPI_ManagersInitialized, 0);
   }
 }
@@ -6566,11 +6591,14 @@ SK_SteamAPIContext::ReleaseThreadUser (void)
 std::string
 SK::SteamAPI::GetConfigDir (void)
 {
-  if (steam_ctx.ClientUser () != nullptr)
+  auto* user =
+    steam_ctx.ClientUser ();
+
+  if (user != nullptr)
   {
     char szDir [MAX_PATH * 2] = { };
 
-    if (((IClientUser_001_Ext *)steam_ctx.ClientUser ())->GetUserConfigFolder (szDir, MAX_PATH))
+    if (((IClientUser_001_Ext *)user)->GetUserConfigFolder (szDir, MAX_PATH))
       return szDir;
   }
 
@@ -6581,11 +6609,14 @@ SK::SteamAPI::GetConfigDir (void)
 std::string
 SK::SteamAPI::GetDataDir (void)
 {
-  if (steam_ctx.ClientUser () != nullptr)
+  auto* user =
+    steam_ctx.ClientUser ();
+
+  if (user != nullptr)
   {
     char szDir [MAX_PATH * 2] = { };
 
-    if (((IClientUser_001_Ext *)steam_ctx.ClientUser ())->GetUserDataFolder (CGameID (SK::SteamAPI::AppID ()), szDir, MAX_PATH))
+    if (((IClientUser_001_Ext *)user)->GetUserDataFolder (CGameID (SK::SteamAPI::AppID ()), szDir, MAX_PATH))
       return szDir;
   }
 

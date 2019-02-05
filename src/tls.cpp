@@ -40,7 +40,7 @@ volatile DWORD __SK_TLS_INDEX =
   TLS_OUT_OF_INDEXES;
 
 SK_TlsRecord*
-SK_GetTLS (SK_TLS** ppTLS)
+SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
 {
   auto& pTLS =
     *ppTLS;
@@ -52,6 +52,9 @@ SK_GetTLS (SK_TLS** ppTLS)
 
   if (pTLS == nullptr)
   {
+    if (no_create)
+      return nullptr;
+
 #ifdef _DEBUG
     if (GetLastError () == ERROR_SUCCESS)
     {
@@ -104,6 +107,13 @@ SK_TLS_Map (void)
 
   return
     __tls_map;
+}
+
+SK_TlsRecord*
+SK_GetTLS (SK_TLS** ppTLS)
+{
+  return
+    SK_GetTLSEx (ppTLS, false);
 }
 
 static const int RESOLVE_MAX = 8;
@@ -231,7 +241,7 @@ SK_CleanupTLS (void)
 {
   SK_TLS* pTLS       = nullptr;
   auto    pTLSRecord =
-    SK_GetTLS (&pTLS);
+    SK_GetTLSEx (&pTLS, true);
 
   if ( pTLSRecord       == nullptr ||
        pTLSRecord->pTLS == nullptr ||

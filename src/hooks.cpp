@@ -41,6 +41,8 @@ struct IUnknown;
 HMODULE
 SK_GetModuleHandleW (PCWSTR lpModuleName)
 {
+  if (lpModuleName == nullptr)
+    return GetModuleHandleW (nullptr);
   HMODULE hMod = nullptr;
 
   typedef void (WINAPI *RtlInitUnicodeString_pfn)(

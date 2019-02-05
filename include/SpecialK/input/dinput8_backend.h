@@ -4321,7 +4321,7 @@ extern HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFI
 #define DIPOV_ANY_3                             0xFF004603 
 #define DIPOV_ANY_4                             0xFF004604 
 
-#define DIBUTTON_ANY(instance)                  ( 0xFF004400 | instance )
+#define DIBUTTON_ANY(instance)                  ( 0xFF004400 | (instance) )
 
 
 #endif /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) */

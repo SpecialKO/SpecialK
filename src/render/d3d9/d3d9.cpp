@@ -3042,6 +3042,10 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
   }
 
 
+  if (! (pRealSource && pRealDest))
+    return D3DERR_INVALIDCALL;
+
+
   HRESULT hr =
     D3D9Device_UpdateTexture_Original ( This,
                                           pRealSource,
@@ -3050,8 +3054,10 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
   if (SUCCEEDED (hr) && src_is_wrapped && dst_is_wrapped)
   {
-    auto* pSrc = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture);
-    auto* pDst = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
+    auto* pSrc =
+      dynamic_cast <ISKTextureD3D9 *> (pSourceTexture);
+    auto* pDst =
+      dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
 
     extern
     LARGE_INTEGER                liLastReset;

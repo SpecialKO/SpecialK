@@ -137,8 +137,8 @@ using SymLoadModule64_pfn = DWORD64 (IMAGEAPI *)( _In_     HANDLE  hProcess,
                                                   _In_     DWORD   SizeOfDll );
 
 
-std::wstring SK_Thread_GetName (DWORD  dwTid);
-std::wstring SK_Thread_GetName (HANDLE hThread);
+std::wstring& SK_Thread_GetName (DWORD  dwTid);
+std::wstring& SK_Thread_GetName (HANDLE hThread);
 
 
 #include <cassert>
@@ -153,6 +153,8 @@ std::wstring SK_Thread_GetName (HANDLE hThread);
 }
 
 #define SK_ASSERT_NOT_DLLMAIN_THREAD() assert (! SK_TLS_Bottom ()->debug.in_DllMain);
+
+extern bool SK_Debug_IsCrashing (void);
 
 
 #include <concurrent_unordered_set.h>

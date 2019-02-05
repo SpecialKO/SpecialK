@@ -2131,6 +2131,21 @@ SK_ImGui_ControlPanel (void)
             //  ImGui::Text           ("  Lower = Stricter, but setting");
             //  ImGui::SameLine       ();
 
+            CComQIPtr <ID3D11Device> pDev     (rb.device);
+            CComQIPtr  <IDXGIDevice> pDXGIDev (pDev);
+
+            if (pDXGIDev != nullptr)
+            {
+              static INT nPrio  = -8;
+              if        (nPrio == -8) pDXGIDev->GetGPUThreadPriority (&nPrio);
+
+              if (ImGui::SliderInt ("GPU Priority", &nPrio, -7, 7))
+              {
+                if (SUCCEEDED (pDXGIDev->SetGPUThreadPriority ( nPrio)))
+                               pDXGIDev->GetGPUThreadPriority (&nPrio);
+              }
+            }
+
             ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.01f, 1.0f);
 
             if (ImGui::IsItemHovered ())
@@ -2490,6 +2505,19 @@ extern bool                         SK_Tobii_IsCursorVisible (void);
 static bool keep_open;
 
 void
+SK_Steam_GetUserName (char* pszName, int max_len = 512)
+{
+  if (SK_SteamAPI_Friends ())
+  {
+    __try {
+      strncpy_s (pszName, max_len, SK_SteamAPI_Friends ()->GetPersonaName (), _TRUNCATE);
+    } __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+    { }
+  }
+}
+
+void
 SK_ImGui_StageNextFrame (void)
 {
   SK_TLS* pTLS =
@@ -2776,12 +2804,9 @@ SK_ImGui_StageNextFrame (void)
     __stdcall
     SK_GetPluginName (void);
 
-    char szName [512] = { };
+    static char szName [512] = { };
+    SK_Steam_GetUserName (szName);
 
-    if (SK_SteamAPI_Friends ())
-    {
-      strcpy (szName, SK_SteamAPI_Friends ()->GetPersonaName ());
-    }
 
     ImGui::TextColored     (ImColor::HSV (.11f, 1.f, 1.f),  "%ws   ", SK_GetPluginName ().c_str ()); ImGui::SameLine ();
 

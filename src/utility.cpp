@@ -1614,7 +1614,8 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
   if (dwSize < 128)
     return L"N/A";
 
-  (++dwSize) *=
+  dwSize++;
+  dwSize *=
     sizeof (wchar_t);
 
   SK_TLS *pTLS =

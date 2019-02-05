@@ -48,7 +48,7 @@ skMemCmd::execute (const char* szArgs)
   char      type      =  0;
   char      val [256] = { };
 
-  sscanf (szArgs, "%c %" PRIXPTR " %255s", &type, &addr, val);
+  sscanf (szArgs, "%c %" SCNxPTR " %255s", &type, &addr, val);
 
   static uint8_t* base_addr = nullptr;
 

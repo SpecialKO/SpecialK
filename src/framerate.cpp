@@ -29,6 +29,8 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/window.h>
 
+#include <SpecialK/commands/limit_reset.inl>
+
 #include <d3d9.h>
 #include <d3d11.h>
 #include <atlbase.h>
@@ -214,7 +216,8 @@ SK_Sched_ThreadContext::most_recent_wait_s::getRate (void)
         SK_CurrentPerf ().QuadPart - (last_wait.QuadPart - start.QuadPart), 1
       );
 
-    return static_cast <float> ( ms / static_cast <double> (sequence) );
+    return
+      static_cast <float> ( ms / long_double_cast (sequence) );
   }
 
   // Sequence just started
@@ -571,6 +574,18 @@ NtWaitForSingleObject_Detour (
       );
   }
 
+  //if (config.system.log_level > 0)
+  //{
+  //  dll_log.Log ( L"tid=%lu (\"%s\") WaitForSingleObject [Alertable: %lu] Timeout: %lli",
+  //                  pTLS->debug.tid,
+  //                    pTLS->debug.mapped ? pTLS->debug.name : L"Unnamed",
+  //                      Alertable,
+  //                        Timeout != nullptr ? Timeout->QuadPart : -1
+  //              );
+  //}
+  //
+  //if (Timeout != nullptr)
+  //  Timeout = nullptr;
 
   if (pTLS->scheduler.mmcs_task > (SK_MMCS_TaskEntry *) 1)
   {
@@ -771,34 +786,46 @@ SwitchToThread_Detour (void)
 }
 
 
+volatile LONG __sleep_init = 0;
+
 void
 WINAPI
 SK_Sleep (DWORD dwMilliseconds)
 {
+  if (! ReadAcquire (&__sleep_init))
+    return Sleep (dwMilliseconds);
+
   Sleep_Original != nullptr       ?
   Sleep_Original (dwMilliseconds) :
   Sleep          (dwMilliseconds);
 }
 
-void
+DWORD
 WINAPI
 SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
 {
-  SleepEx_Original != nullptr       ?
-    SleepEx_Original (dwMilliseconds, bAlertable) :
-    SleepEx          (dwMilliseconds, bAlertable);
+  if (! ReadAcquire (&__sleep_init))
+    return SleepEx (dwMilliseconds, bAlertable);
+
+  return
+    SleepEx_Original != nullptr       ?
+      SleepEx_Original (dwMilliseconds, bAlertable) :
+      SleepEx          (dwMilliseconds, bAlertable);
 }
 
-void
+DWORD
 WINAPI
 SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 {
   if (   ReadAcquire (&__SK_DLL_Ending  ) ||
       (! ReadAcquire (&__SK_DLL_Attached) ) )
-  return;
+  return 0;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
+
+  static auto game_id =
+    SK_GetCurrentGameID ();
 
 
   bool bWantThreadClassification =
@@ -806,8 +833,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       config.render.framerate.sleepless_window );
 
   bWantThreadClassification |=
-    ( ( SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia ) &&
-                dwMilliseconds == 1 );
+    ( game_id == SK_GAME_ID::Tales_of_Vesperia &&
+            1 == dwMilliseconds );
 
   DWORD dwTid =
     bWantThreadClassification ?
@@ -823,7 +850,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   if (bRenderThread)
   {
-    if (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia)
+    if (game_id == SK_GAME_ID::Tales_of_Vesperia)
     {
       extern bool __SK_TVFix_NoRenderSleep;
 
@@ -831,7 +858,9 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       {
         //dll_log.Log ( L"Sleep (1) - %s <%p>", SK_SummarizeCaller ().c_str (),
         //                                          _ReturnAddress () );
-        return;
+        YieldProcessor ();
+      //SwitchToThread ();
+        return 0;
       }
     }
 
@@ -851,10 +880,11 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
       if (dwMilliseconds <= 1)
       {
-        SleepEx_Original (0, bAlertable);
+        return
+          SleepEx_Original (0, bAlertable);
       }
 
-      return;
+      return 0;
     }
 
     SK::Framerate::events->getRenderThreadStats ().sleep  (dwMilliseconds);
@@ -889,18 +919,31 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   extern bool __SK_TVFix_ActiveAntiStutter;
 
-  if ( SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia &&
-       __SK_TVFix_ActiveAntiStutter )
+  if ( game_id == SK_GAME_ID::Tales_of_Vesperia &&
+                   __SK_TVFix_ActiveAntiStutter )
   {
-    SK_TLS* pTLS =
-      SK_TLS_Bottom ();
+    if (dwTid == 0)
+        dwTid = GetCurrentThreadId ();
 
-    std::wstring thread_name =
-      pTLS->debug.name;
+    static DWORD   dwTidBusy = 0;
+    static DWORD   dwTidWork = 0;
+    static SK_TLS *pTLSBusy  = nullptr;
+    static SK_TLS *pTLSWork  = nullptr;
 
-    if (thread_name == L"BusyThread" ||
-        thread_name == L"WorkThread")
+    if (dwTid != 0 && ( dwTidBusy == 0 || dwTidWork == 0 ))
     {
+      SK_TLS* pTLS =
+        SK_TLS_Bottom ();
+
+           if (! _wcsicmp (pTLS->debug.name, L"BusyThread")) { dwTidBusy = dwTid; pTLSBusy = pTLS; }
+      else if (! _wcsicmp (pTLS->debug.name, L"WorkThread")) { dwTidWork = dwTid; pTLSWork = pTLS; }
+    }
+
+    if ( dwTidBusy == dwTid || dwTidWork == dwTid )
+    {
+      SK_TLS* pTLS = ( dwTidBusy == dwTid ? pTLSBusy :
+                                            pTLSWork );
+
       ULONG ulFrames =
         SK_GetFramesDrawn ();
 
@@ -914,20 +957,40 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
       //SK_Sleep (pTLS->scheduler.switch_count++);
 
-      if (++pTLS->scheduler.switch_count > 256)
+      if (pTLS->scheduler.switch_count++   > 16)
       {
-        dwMilliseconds               = 0;
-        pTLS->scheduler.switch_count = 0;
+        if (pTLS->scheduler.switch_count  <= 42)
+        {
+          if (pTLS->scheduler.switch_count > 26)
+            SK_Sleep (0);
+          else
+            SwitchToThread_Original ();
+        }
       }
 
       else
-      {
-        if (! (pTLS->scheduler.switch_count % 16))
-          YieldProcessor ();
+        YieldProcessor ();
 
-        SwitchToThread ();
-        return;
-      }
+      return 0;
+
+      ////if (++pTLS->scheduler.switch_count > 2048)
+      ////{
+      ////  dwMilliseconds               = 0;
+      ////  pTLS->scheduler.switch_count = 0;
+      ////  SwitchToThread                ();
+      ////
+      ////  return 0;
+      ////}
+      ////
+      ////else
+      ////{
+      ////  extern bool
+      ////        __SK_TVFix_NoRenderSleep;
+      ////  if (! __SK_TVFix_NoRenderSleep)
+      ////    SwitchToThread ();
+      ////
+      ////  return 0;
+      ////}
 
       //max_delta_time = std::max (2UL, max_delta_time);
     }
@@ -945,14 +1008,15 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   if ( max_delta_time <= dwMilliseconds )
   {
     //dll_log.Log (L"SleepEx (%lu, %s) -- %s", dwMilliseconds, bAlertable ? L"Alertable" : L"Non-Alertable", SK_SummarizeCaller ().c_str ());
-    SleepEx_Original (dwMilliseconds, bAlertable);
+    return
+      SleepEx_Original (dwMilliseconds, bAlertable);
   }
 
   else
   {
     static volatile LONG __init = 0;
 
-    double dMinRes = 0.498800;
+    long double dMinRes = 0.498800;
 
     if (! InterlockedCompareExchange (&__init, 1, 0))
     {
@@ -975,17 +1039,16 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         ULONG min, max, cur;
         NtQueryTimerResolution (&min, &max, &cur);
         dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                        static_cast <float> (cur * 100)/1000000.0f );
+                           long_double_cast (cur * 100)/1000000.0F );
         NtSetTimerResolution   (max, TRUE,  &cur);
         dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
-                        static_cast <float> (cur * 100)/1000000.0f );
+                           long_double_cast (cur * 100)/1000000.0L );
 
         dMinRes =
-                       static_cast <double> (cur * 100)/1000000.0;
+                           long_double_cast (cur * 100)/1000000.0L;
       }
     }
-    SK_TLS *pTLS = SK_TLS_Bottom ();
-
+    //SK_TLS *pTLS = SK_TLS_Bottom ();
     //pTLS->scheduler.alert_waits++;
 
 #if 0
@@ -1023,14 +1086,15 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         NtDelayExecution ((BOOLEAN)bAlertable, &liDelay);
 #endif
   }
+
+  return 0;
 }
 
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
-  return
-    SleepEx_Detour (dwMilliseconds, FALSE);
+  SleepEx_Detour (dwMilliseconds, FALSE);
 }
 
 float __SK_SHENMUE_ClockFuzz = 20.0f;
@@ -1156,9 +1220,9 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 
           lpPerformanceCount->QuadPart +=
             static_cast <LONGLONG> (
-                                     ( static_cast <long double> (lpPerformanceCount->QuadPart) -
-                                       static_cast <long double> (last_poll.QuadPart)           *
-                                       static_cast <long double> (__SK_SHENMUE_ClockFuzz)       )
+                                     ( long_double_cast (lpPerformanceCount->QuadPart) -
+                                       long_double_cast (last_poll.QuadPart)           *
+                                       long_double_cast (__SK_SHENMUE_ClockFuzz)       )
                                    );
 
           last_poll.QuadPart =
@@ -1179,8 +1243,6 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 }
 
 float target_fps = 0.0;
-
-static volatile LONG frames_ahead = 0;
 
 void
 SK::Framerate::Init (void)
@@ -1222,20 +1284,20 @@ SK::Framerate::Init (void)
     pCommandProc->AddVariable ( "MaxRenderAhead",
             new SK_IVarStub <int> (&config.render.framerate.max_render_ahead));
 
-    RtlQueryPerformanceFrequency = 
-      (QueryPerformanceCounter_pfn)
-      SK_GetProcAddress ( L"NtDll",
-                           "RtlQueryPerformanceFrequency" );
-
-    RtlQueryPerformanceCounter = 
-    (QueryPerformanceCounter_pfn)
-      SK_GetProcAddress ( L"NtDll",
-                           "RtlQueryPerformanceCounter" );
-
-    ZwQueryPerformanceCounter = 
-      (QueryPerformanceCounter_pfn)
-      SK_GetProcAddress ( L"NtDll",
-                           "ZwQueryPerformanceCounter" );
+    ////RtlQueryPerformanceFrequency = 
+    ////  (QueryPerformanceCounter_pfn)
+    ////  SK_GetProcAddress ( L"NtDll",
+    ////                       "RtlQueryPerformanceFrequency" );
+    ////
+    ////RtlQueryPerformanceCounter = 
+    ////(QueryPerformanceCounter_pfn)
+    ////  SK_GetProcAddress ( L"NtDll",
+    ////                       "RtlQueryPerformanceCounter" );
+    ////
+    ////ZwQueryPerformanceCounter = 
+    ////  (QueryPerformanceCounter_pfn)
+    ////  SK_GetProcAddress ( L"NtDll",
+    ////                       "ZwQueryPerformanceCounter" );
 
     NtDelayExecution =
       (NtDelayExecution_pfn)
@@ -1282,6 +1344,9 @@ SK::Framerate::Init (void)
                               "NtWaitForMultipleObjects",
                                NtWaitForMultipleObjects_Detour,
       static_cast_p2p <void> (&NtWaitForMultipleObjects_Original) );
+
+    SK_ApplyQueuedHooks ();
+    InterlockedExchange (&__sleep_init, 1);
 
 #ifdef NO_HOOK_QPC
       QueryPerformanceCounter_Original =
@@ -1334,7 +1399,7 @@ SK::Framerate::Shutdown (void)
   //SK_DisableHook (pfnQueryPerformanceCounter);
 }
 
-SK::Framerate::Limiter::Limiter (double target)
+SK::Framerate::Limiter::Limiter (long double target)
 {
   effective_ms = 0.0;
 
@@ -1411,12 +1476,12 @@ SK_D3D9_GetTimingDevice (void)
 
 
 void
-SK::Framerate::Limiter::init (double target)
+SK::Framerate::Limiter::init (long double target)
 {
   QueryPerformanceFrequency (&freq);
 
-  ms  = 1000.0 / target;
-  fps = target;
+  ms  = 1000.0L / long_double_cast (target);
+  fps =           long_double_cast (target);
 
   frames = 0;
 
@@ -1472,11 +1537,9 @@ SK::Framerate::Limiter::init (double target)
 
   SK_QueryPerformanceCounter (&start);
 
-  InterlockedExchange (&frames_ahead, 0);
-
   time.QuadPart = 0ULL;
-  last.QuadPart = static_cast <LONGLONG> (start.QuadPart - (ms / 1000.0) * freq.QuadPart);
-  next.QuadPart = static_cast <LONGLONG> (start.QuadPart + (ms / 1000.0) * freq.QuadPart);
+  last.QuadPart = static_cast <LONGLONG> (start.QuadPart - (ms / 1000.0L) * freq.QuadPart);
+  next.QuadPart = static_cast <LONGLONG> (start.QuadPart + (ms / 1000.0L) * freq.QuadPart);
 }
 
 #include <SpecialK/window.h>
@@ -1493,10 +1556,10 @@ SK::Framerate::Limiter::try_wait (void)
   LARGE_INTEGER next_;
   next_.QuadPart =
     static_cast <LONGLONG> (
-      start.QuadPart                                +
-      (  static_cast <long double> (frames) + 1.0 ) *
-                                   (ms  / 1000.0L ) *
-         static_cast <long double>  (freq.QuadPart)
+      start.QuadPart                               +
+      (          long_double_cast (frames) + 1.0L) *
+                                  ( ms / 1000.0L)  *
+                 long_double_cast (freq.QuadPart)
     );
 
   SK_QueryPerformanceCounter (&time);
@@ -1523,9 +1586,6 @@ SK::Framerate::Limiter::wait (void)
   //SK_RunOnce ( SetThreadPriority ( SK_GetCurrentThread (),
   //                                   THREAD_PRIORITY_ABOVE_NORMAL ) );
 
-  static bool restart      = false;
-  static bool full_restart = false;
-
   if (fps != target_fps)
     init (target_fps);
 
@@ -1540,33 +1600,60 @@ SK::Framerate::Limiter::wait (void)
   //bool bNeedWait =
   //  time.QuadPart < next.QuadPart;
 
-  ///if (bNeedWait && ReadAcquire (&frames_ahead) < ( config.render.framerate.max_render_ahead + 1 ))
-  ///{
-  ///  InterlockedIncrement (&frames_ahead);
-  ///  return;
-  ///}
-  ///
-  ///else if (bNeedWait && InterlockedCompareExchange (&frames_ahead, 0, 1) > 1)
-  ///                      InterlockedDecrement       (&frames_ahead);
-
-
   // Actual frametime before we forced a delay
   effective_ms =
-    static_cast <double> (
-      1000.0L * ( static_cast <double> (time.QuadPart - last.QuadPart) /
-                  static_cast <double> (freq.QuadPart)                 )
+    1000.0L * ( long_double_cast (time.QuadPart - last.QuadPart) /
+                long_double_cast (freq.QuadPart)                 );
+
+  next.QuadPart =
+    static_cast <LONGLONG> (
+      long_double_cast (start.QuadPart) +
+      long_double_cast (    frames    ) *
+      long_double_cast ( ms / 1000.0L ) *
+      long_double_cast ( freq.QuadPart)
     );
 
-  if ( static_cast <double> (time.QuadPart - last.QuadPart) /
-       static_cast <double> (freq.QuadPart)                 /
-                            ( ms / 1000.0L)                 >
+  long double frames_ahead =
+      ( long_double_cast (time.QuadPart)  -
+          ( long_double_cast (start.QuadPart) +
+            long_double_cast (    frames    ) *
+            long_double_cast ( ms / 1000.0L ) *
+            long_double_cast ( freq.QuadPart) )
+      ) / ( long_double_cast ( ms / 1000.0L ) *
+            long_double_cast ( freq.QuadPart) );
+
+  static DWORD dwLastFullReset        = 0;
+   const DWORD dwMinTimeBetweenResets = 3333UL;
+   static BOOL needReset              = FALSE;
+
+  if (frames_ahead > 3.0L || needReset)
+  {
+    if (timeGetTime () - dwMinTimeBetweenResets > dwLastFullReset)
+    {
+      SK_LOG1 ( ( L"Framerate limiter is running too far behind... (%f frames late)",
+                    frames_ahead ),
+                  L"Frame Rate" );
+
+      full_restart    = true;
+      dwLastFullReset = timeGetTime ();
+      needReset       = FALSE;
+    }
+
+    else
+      needReset = TRUE;
+  }
+
+  else
+  if ( long_double_cast (time.QuadPart - last.QuadPart) /
+       long_double_cast (freq.QuadPart)                 /
+                        ( ms / 1000.0L)                 >
       ( config.render.framerate.limiter_tolerance * fps )
      )
   {
     //dll_log.Log ( L" * Frame ran long (%3.01fx expected) - restarting"
                   //L" limiter...",
             //(double)(time.QuadPart - next.QuadPart) /
-            //(double)freq.QuadPart / (ms / 1000.0) / fps );
+            //(double)freq.QuadPart / (ms / 1000.0L) / fps );
     restart = true;
 
 #if 0
@@ -1583,33 +1670,25 @@ SK::Framerate::Limiter::wait (void)
 
   if (restart || full_restart)
   {
-    frames         = 0;
-    start.QuadPart = static_cast <LONGLONG> (
-                       static_cast <double> (time.QuadPart) +
-                                            ( ms / 1000.0L) *
-                       static_cast <double> (freq.QuadPart)
-                     );
-    restart        = false;
-
-    time.QuadPart = 0ULL;
-    start.QuadPart = static_cast <LONGLONG> (start.QuadPart - (ms / 1000.0) * freq.QuadPart);
-     next.QuadPart = static_cast <LONGLONG> (start.QuadPart + (ms / 1000.0) * freq.QuadPart);
-
     if (full_restart)
     {
       init (target_fps);
       full_restart = false;
     }
-    //return;
+
+    frames         = 0;
+    start.QuadPart = static_cast <LONGLONG> (
+                                long_double_cast (SK_QueryPerf ().QuadPart) +
+                                                 ( ms / 1000.0L) *
+                                long_double_cast (freq.QuadPart)
+                     );
+    restart        = false;
+
+     time.QuadPart = start.QuadPart;
+  //start.QuadPart = static_cast <LONGLONG> (start.QuadPart - (ms / 1000.0L) * freq.QuadPart);
+     next.QuadPart = start.QuadPart;// static_cast <LONGLONG> (start.QuadPart + (ms / 1000.0L) * freq.QuadPart);
   }
 
-  next.QuadPart =
-    static_cast <LONGLONG> (
-      long_double_cast (start.QuadPart) +
-      long_double_cast (    frames    ) *
-      long_double_cast ( ms / 1000.0L ) *
-      long_double_cast ( freq.QuadPart)
-    );
 
 
   auto
@@ -1635,7 +1714,7 @@ SK::Framerate::Limiter::wait (void)
   LARGE_INTEGER liDelay;
                 liDelay.QuadPart =
                   static_cast <LONGLONG> (
-                    to_next_in_secs * 1000.0l * 0.9875l
+                    to_next_in_secs * 1000.0L * 0.94378L
                   );
 
   //dll_log.Log (L"Wait MS: %f", to_next_in_secs * 1000.0 );
@@ -1651,19 +1730,22 @@ SK::Framerate::Limiter::wait (void)
     if ( SetWaitableTimer ( hLimitTimer, &liDelay,
                               0, NULL, NULL, 0 ) )
     {
-      DWORD dwWait = 0;
+      DWORD dwWait = 1337;
 
       while (dwWait != WAIT_OBJECT_0)
       {
         to_next_in_secs =
           SK_RecalcTimeToNextFrame ();
 
-        if (to_next_in_secs <= 0.0l)
+        if (to_next_in_secs <= 0.0L)
+        {
+          ResetEvent (hLimitTimer);
           break;
+        }
 
         LARGE_INTEGER uSecs;
                       uSecs.QuadPart =
-          static_cast <LONGLONG> (to_next_in_secs * 1000.0l * 1000.0l);
+          static_cast <LONGLONG> (to_next_in_secs * 1000.0L * 1000.0L);
 
         dwWait =
           SK_WaitForSingleObject_Micro ( &hLimitTimer,
@@ -1725,10 +1807,10 @@ SK::Framerate::Limiter::wait (void)
     {
       // Attempt to use a deeper sleep when possible instead of hammering the
       //   CPU into submission ;)
-      if ( ( static_cast <double> (next.QuadPart  - time.QuadPart) >
-             static_cast <double> (freq.QuadPart) * 0.001 *
-                                   config.render.framerate.busy_wait_limiter) &&
-                                  (! (config.render.framerate.yield_once && bYielded))
+      if ( ( long_double_cast (next.QuadPart  - time.QuadPart) >
+             long_double_cast (freq.QuadPart) * 0.001 *
+                                  config.render.framerate.busy_wait_limiter) &&
+                              (! (config.render.framerate.yield_once && bYielded))
          )
       {
         if ( config.render.framerate.wait_for_vblank )
@@ -1744,10 +1826,10 @@ SK::Framerate::Limiter::wait (void)
         {
           auto dwWaitMS =
             static_cast <DWORD>
-              ( (config.render.framerate.max_sleep_percent * 10.0f) / target_fps ); // 10% of full frame
+              ( (config.render.framerate.max_sleep_percent * 10.0F) / target_fps ); // 10% of full frame
 
-          if ( ( static_cast <long double> (next.QuadPart - time.QuadPart) /
-                 static_cast <long double> (freq.QuadPart                ) ) * 1000.0 >
+          if ( ( long_double_cast (next.QuadPart - time.QuadPart) /
+                 long_double_cast (freq.QuadPart                ) ) * 1000.0L >
                    dwWaitMS )
           {
             SK_Sleep (dwWaitMS);
@@ -1758,6 +1840,7 @@ SK::Framerate::Limiter::wait (void)
       }
 
       SK_QueryPerformanceCounter (&time);
+                  YieldProcessor (     );
     }
   }
 
@@ -1771,12 +1854,12 @@ SK::Framerate::Limiter::wait (void)
 }
 
 void
-SK::Framerate::Limiter::set_limit (double target)
+SK::Framerate::Limiter::set_limit (long double target)
 {
   init (target);
 }
 
-double
+long double
 SK::Framerate::Limiter::effective_frametime (void)
 {
   return effective_ms;
@@ -1791,6 +1874,9 @@ SK::Framerate::GetLimiter (void)
 
   if (! InterlockedCompareExchangeAcquire (&init, 1, 0))
   {
+    SK_GetCommandProcessor ()->AddCommand (
+      "SK::Framerate::ResetLimit", new skLimitResetCmd ());
+
     limiter =
       new Limiter (config.render.framerate.target_fps);
 
@@ -1809,7 +1895,7 @@ SK::Framerate::GetLimiter (void)
 }
 
 void
-SK::Framerate::Tick (double& dt, LARGE_INTEGER& now)
+SK::Framerate::Tick (long double& dt, LARGE_INTEGER& now)
 {
   if ( frame_history  == nullptr ||
        frame_history2 == nullptr )
@@ -1822,15 +1908,14 @@ SK::Framerate::Tick (double& dt, LARGE_INTEGER& now)
 
   now = SK_CurrentPerf ();
 
-  dt = static_cast <double> (
-    static_cast <long double> (now.QuadPart -  last_frame.QuadPart) /
-    static_cast <long double> (SK::Framerate::Stats::freq.QuadPart)
-  );
+  dt =
+    long_double_cast (now.QuadPart -  last_frame.QuadPart) /
+    long_double_cast (SK::Framerate::Stats::freq.QuadPart);
 
 
   // What the bloody hell?! How do we ever get a dt value near 0?
-  if (dt > 0.000001)
-    frame_history->addSample (1000.0 * dt, now);
+  if (dt > 0.000001L)
+    frame_history->addSample (1000.0L * dt, now);
   else // Less than single-precision FP epsilon, toss this frame out
     frame_history->addSample (INFINITY, now);
 
@@ -1846,43 +1931,43 @@ SK::Framerate::Tick (double& dt, LARGE_INTEGER& now)
 };
 
 
-double
-SK::Framerate::Stats::calcMean (double seconds)
+long double
+SK::Framerate::Stats::calcMean (long double seconds)
 {
   return
     calcMean (SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
-double
-SK::Framerate::Stats::calcSqStdDev (double mean, double seconds)
+long double
+SK::Framerate::Stats::calcSqStdDev (long double mean, long double seconds)
 {
   return
     calcSqStdDev (mean, SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
-double
-SK::Framerate::Stats::calcMin (double seconds)
+long double
+SK::Framerate::Stats::calcMin (long double seconds)
 {
   return
     calcMin (SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
-double
-SK::Framerate::Stats::calcMax (double seconds)
+long double
+SK::Framerate::Stats::calcMax (long double seconds)
 {
   return
     calcMax (SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
 int
-SK::Framerate::Stats::calcHitches (double tolerance, double mean, double seconds)
+SK::Framerate::Stats::calcHitches (long double tolerance, long double mean, long double seconds)
 {
   return
     calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
 int
-SK::Framerate::Stats::calcNumSamples (double seconds)
+SK::Framerate::Stats::calcNumSamples (long double seconds)
 {
   return
     calcNumSamples (SK_DeltaPerf (seconds, freq.QuadPart));
@@ -1897,18 +1982,18 @@ SK_GetPerfFreq (void)
   
   if (ReadAcquire (&init) < 2)
   {
-      RtlQueryPerformanceFrequency = 
-        (QueryPerformanceCounter_pfn)
-    SK_GetProcAddress ( L"NtDll",
-                         "RtlQueryPerformanceFrequency" );
+    ///  RtlQueryPerformanceFrequency = 
+    ///    (QueryPerformanceCounter_pfn)
+    ///SK_GetProcAddress ( L"NtDll",
+    ///                     "RtlQueryPerformanceFrequency" );
 
     if (! InterlockedCompareExchange (&init, 1, 0))
     {
-      //if (QueryPerformanceFrequency_Original != nullptr)
-      //    QueryPerformanceFrequency_Original (&freq);
-      //else
-        RtlQueryPerformanceFrequency (&freq);
-        //QueryPerformanceFrequency (&freq);
+      if (QueryPerformanceFrequency_Original != nullptr)
+          QueryPerformanceFrequency_Original (&freq);
+      else
+        //RtlQueryPerformanceFrequency (&freq);
+        QueryPerformanceFrequency (&freq);
 
       InterlockedIncrement (&init);
 
@@ -1919,12 +2004,12 @@ SK_GetPerfFreq (void)
     {
       LARGE_INTEGER freq2 = { };
 
-      RtlQueryPerformanceFrequency (&freq2);
-      //if (QueryPerformanceFrequency_Original != nullptr)
-      //    QueryPerformanceFrequency_Original (&freq2);
+      //RtlQueryPerformanceFrequency (&freq2);
+      if (QueryPerformanceFrequency_Original != nullptr)
+          QueryPerformanceFrequency_Original (&freq2);
 
-      //else
-      //  QueryPerformanceFrequency (&freq2);
+      else
+        QueryPerformanceFrequency (&freq2);
 
       return
         freq2;

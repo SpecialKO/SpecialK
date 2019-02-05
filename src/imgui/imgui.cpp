@@ -2557,7 +2557,7 @@ static void NavUpdate()
     g.NavInitDefaultResultId = 0;
 
     // Process navigation move request
-    if (g.NavMoveRequest && g.NavMoveResultId != 0)
+    if (g.NavMoveRequest && g.NavMoveResultId != 0 && g.NavWindow != nullptr)
     {
         IM_ASSERT(g.NavWindow);
 
@@ -2616,13 +2616,13 @@ static void NavUpdate()
     if (!g.NavWindowingTarget && IsNavInputPressed(ImGuiNavInput_PadMenu, ImGuiNavReadMode_Pressed))
     {
         ImGuiWindow* window = g.NavWindow;
-        if (!window)
-            window = FindWindowNavigable(g.Windows.Size-1, -1, -1);
+        if (! window)
+              window = FindWindowNavigable(g.Windows.Size-1, -1, -1);
         if (window)
         {
-            g.NavWindowingTarget = window->RootNonPopupWindow;
+            g.NavWindowingTarget       = window->RootNonPopupWindow;
             g.NavWindowingDisplayAlpha = 0.0f;
-            g.NavWindowingToggleLayer = true;
+            g.NavWindowingToggleLayer  = true;
         }
     }
     if (g.NavWindowingTarget)
@@ -7013,7 +7013,7 @@ bool ImGui::CollapsingHeader(const char* label, bool* p_open, ImGuiTreeNodeFlags
         // Create a small overlapping close button // FIXME: We can evolve this into user accessible helpers to add extra buttons on title bars, headers, etc.
         ImGuiContext& g = *GImGui;
         float button_sz = g.FontSize * 0.5f;
-        if (CloseButton(window->GetID((void*)(uintptr_t)(id+1)), ImVec2(ImMin(window->DC.LastItemRect.Max.x, window->ClipRect.Max.x) - g.Style.FramePadding.x - button_sz, window->DC.LastItemRect.Min.y + g.Style.FramePadding.y + button_sz), button_sz))
+        if (CloseButton(window->GetID((void*)(uintptr_t)((uintptr_t)(id)+(uintptr_t)1)), ImVec2(ImMin(window->DC.LastItemRect.Max.x, window->ClipRect.Max.x) - g.Style.FramePadding.x - button_sz, window->DC.LastItemRect.Min.y + g.Style.FramePadding.y + button_sz), button_sz))
             *p_open = false;
     }
 
