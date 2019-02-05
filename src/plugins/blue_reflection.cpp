@@ -56,8 +56,8 @@ SK_SetPluginName (std::wstring name);
 static D3D11Dev_CreateBuffer_pfn              _D3D11Dev_CreateBuffer_Original              = nullptr;
 static D3D11Dev_CreateShaderResourceView_pfn  _D3D11Dev_CreateShaderResourceView_Original  = nullptr;
 static D3D11Dev_CreateTexture2D_pfn           _D3D11Dev_CreateTexture2D_Original           = nullptr;
-static D3D11_Unmap_pfn                        _D3D11Dev_Unmap_Original                     = nullptr;
-static D3D11_Map_pfn                          _D3D11Dev_Map_Original                       = nullptr;
+static D3D11_Unmap_pfn                        _D3D11_Unmap_Original                        = nullptr;
+static D3D11_Map_pfn                          _D3D11_Map_Original                          = nullptr;
 
 struct it_cfg_s
 {
@@ -90,7 +90,7 @@ using D3D11Dev_CreateTexture2D_pfn = HRESULT (WINAPI *)(
 
 extern HRESULT
 STDMETHODCALLTYPE
-D3D11Dev_Map_Override (
+D3D11_Map_Override (
    _In_ ID3D11DeviceContext      *This,
    _In_ ID3D11Resource           *pResource,
    _In_ UINT                      Subresource,
@@ -177,7 +177,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     pMappedResource = &desc;
 
   HRESULT hr =
-    _D3D11Dev_Map_Original (This, pResource, Subresource, MapType, MapFlags, pMappedResource);
+    _D3D11_Map_Original (This, pResource, Subresource, MapType, MapFlags, pMappedResource);
 
   if (SUCCEEDED (hr))
   {
@@ -304,7 +304,7 @@ SK_IT_Unmap (
     }
   }
 
-  _D3D11Dev_Unmap_Original (This, pResource, Subresource);
+  _D3D11_Unmap_Original (This, pResource, Subresource);
 }
 
 HRESULT
@@ -489,16 +489,16 @@ SK_IT_InitPlugin (void)
   MH_QueueEnableHook (         D3D11Dev_CreateTexture2D_Override  );
 
   SK_CreateFuncHook (       L"ID3D11Device::Map",
-                                  D3D11Dev_Map_Override,
-                                     SK_IT_Map,
-        static_cast_p2p <void> (&_D3D11Dev_Map_Original) );
-  MH_QueueEnableHook (            D3D11Dev_Map_Override  );
+                                  D3D11_Map_Override,
+                                  SK_IT_Map,
+        static_cast_p2p <void> (&_D3D11_Map_Original) );
+  MH_QueueEnableHook (            D3D11_Map_Override  );
 
-  SK_CreateFuncHook (       L"ID3D11Device::Unmap",
-                                  D3D11_Unmap_Override,
-                                  SK_IT_Unmap,
-     static_cast_p2p <void> (&_D3D11Dev_Unmap_Original) );
-  MH_QueueEnableHook (            D3D11_Unmap_Override  );
+  SK_CreateFuncHook (    L"ID3D11Device::Unmap",
+                               D3D11_Unmap_Override,
+                               SK_IT_Unmap,
+     static_cast_p2p <void> (&_D3D11_Unmap_Original) );
+  MH_QueueEnableHook (         D3D11_Unmap_Override  );
 
   SK_CreateFuncHook (       L"SK_PlugIn_ControlPanelWidget",
                               SK_PlugIn_ControlPanelWidget,

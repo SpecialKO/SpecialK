@@ -47,6 +47,8 @@ bool         SK_D3D11_cache_textures      = false;
 bool         SK_D3D11_mark_textures       = false;
 std::wstring SK_D3D11_res_root            = L"SK_Res";
 
+std::unordered_map <ID3D11DeviceContext *, mapped_resources_s> mapped_resources;
+
 
 bool SK_D3D11_IsTexInjectThread (SK_TLS *pTLS)
 {
@@ -2646,3 +2648,172 @@ SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ff
 
   return wszTex;
 }
+
+
+HRESULT
+SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
+                         SK_TLS*          pTLS )
+{
+  static auto& textures =
+    SK_D3D11_Textures;
+
+  static const
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
+  HRESULT hr =
+    E_UNEXPECTED;
+
+  SK_ScopedBool auto_bool  (&pTLS->texture_management.injection_thread);
+  SK_ScopedBool auto_bool2 (&pTLS->imgui.drawing);
+
+  pTLS->texture_management.injection_thread = true;
+  pTLS->imgui.drawing                       = true;
+  {
+    SK_D3D11_TexMgr::tex2D_descriptor_s texDesc2D =
+      textures.Textures_2D [pTex];
+
+    std::wstring fname =
+      SK_D3D11_TexNameFromChecksum (texDesc2D.crc32c, 0x00);
+
+    if (fname.empty ()) fname = texDesc2D.file_name;
+
+    else
+      texDesc2D.file_name = fname;
+
+    if (GetFileAttributes (fname.c_str ()) != INVALID_FILE_ATTRIBUTES)
+    {
+#define D3DX11_DEFAULT static_cast <UINT> (-1)
+
+      DirectX::TexMetadata mdata;
+      const LARGE_INTEGER  load_start =
+        SK_QueryPerf ();
+
+      if ( SUCCEEDED (
+        ( hr = DirectX::GetMetadataFromDDSFile ( fname.c_str (),
+      	                                         0x0,    mdata )
+        )            )
+         )
+      {
+        D3DX11_IMAGE_INFO      img_info  = { };
+        D3DX11_IMAGE_LOAD_INFO load_info = { };
+
+        load_info.BindFlags      = texDesc2D.desc.BindFlags;
+        load_info.CpuAccessFlags = texDesc2D.desc.CPUAccessFlags;
+        load_info.Depth          = texDesc2D.desc.ArraySize;
+        load_info.Filter         = D3DX11_DEFAULT;
+        load_info.FirstMipLevel  = 0;
+
+        if (config.textures.d3d11.injection_keeps_fmt)
+          load_info.Format       = texDesc2D.desc.Format;
+        else
+          load_info.Format       = mdata.format;
+
+        load_info.Height         = texDesc2D.desc.Height;
+        load_info.MipFilter      = D3DX11_DEFAULT;
+        load_info.MipLevels      = texDesc2D.desc.MipLevels;
+        load_info.MiscFlags      = texDesc2D.desc.MiscFlags;
+        load_info.Usage          = D3D11_USAGE_DEFAULT;
+        load_info.Width          = texDesc2D.desc.Width;
+
+        DirectX::ScratchImage scratch;
+
+        CComPtr   <ID3D11Texture2D> pInjTex = nullptr;
+        CComQIPtr <ID3D11Device>    pDev (rb.device);
+
+        hr =
+          DirectX::LoadFromDDSFile (fname.c_str (), 0x0, &mdata, scratch);
+
+        if (SUCCEEDED (hr))
+        {
+          if ( SUCCEEDED (
+               DirectX::CreateTexture (pDev, scratch.GetImages (), scratch.GetImageCount (), mdata, (ID3D11Resource **)&pInjTex.p)
+                         )
+             )
+          {
+            CComQIPtr <ID3D11DeviceContext> pDevCtx (
+              rb.d3d11.immediate_ctx
+            );
+
+            pDevCtx->CopyResource (pTex, pInjTex);
+
+            const LARGE_INTEGER load_end =
+              SK_QueryPerf ();
+
+            textures.Textures_2D [pTex].load_time =
+                (load_end.QuadPart - load_start.QuadPart);
+
+            return S_OK;
+          }
+        }
+      }
+    }
+  }
+
+  SK_LOG0 ( ( L" >> Texture Reload Failure (HRESULT: %x)", hr),
+              L"DX11TexMgr" );
+
+  return
+    E_FAIL;
+}
+
+
+int
+SK_D3D11_ReloadAllTextures (void)
+{
+  static auto& textures =
+    SK_D3D11_Textures;
+
+  SK_D3D11_PopulateResourceList (true);
+
+  int count = 0;
+
+  for ( auto& it : textures.Textures_2D )
+  {
+    if (SK_D3D11_TextureIsCached (it.first))
+    {
+      if (! (it.second.injected || it.second.discard))
+        continue;
+
+      if (SUCCEEDED (SK_D3D11_ReloadTexture (it.first)))
+        ++count;
+    }
+  }
+
+  return count;
+}
+
+
+
+bool
+SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
+                              ID3D11Resource           *pRes,
+                              SK_TLS                   *pTLS )
+{
+  if ( config.textures.cache.allow_staging && pRes != nullptr &&
+                                              rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D )
+  {
+    CComQIPtr <ID3D11Texture2D> pTex (pRes);
+
+    if (pTex)
+    {
+      D3D11_TEXTURE2D_DESC tex_desc = { };
+           pTex->GetDesc (&tex_desc);
+
+      const SK_D3D11_TEXTURE2D_DESC desc (tex_desc);
+
+      if (desc.Usage != D3D11_USAGE_STAGING || (desc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE))
+      {
+        if (pTLS == nullptr)
+            pTLS = SK_TLS_Bottom ();
+
+        if (! (pTLS->imgui.drawing || pTLS->texture_management.injection_thread))
+          return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+std::unordered_set <ID3D11Texture2D *> used_textures;

@@ -201,21 +201,14 @@ SK_ImGui_DrawTexCache_Chart (void)
 }
 
 #include <SpecialK/tls.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
 extern bool SK_D3D11_ShaderModDlg (SK_TLS *pTLS = SK_TLS_Bottom ());
 
 using SK_ReShade_OnDrawD3D11_pfn =
 void (__stdcall *)(void*, ID3D11DeviceContext*, unsigned int);
 
-struct SK_RESHADE_CALLBACK_DRAW
-{
-  SK_ReShade_OnDrawD3D11_pfn fn   = nullptr;
-  void*                      data = nullptr;
-  __forceinline void call (ID3D11DeviceContext*, unsigned int, SK_TLS*) { }
-};
-
-extern
-SK_RESHADE_CALLBACK_DRAW SK_ReShade_DrawCallback;
+extern SK_RESHADE_CALLBACK_DRAW SK_ReShade_DrawCallback;
 
 bool
 SK::ControlPanel::D3D11::Draw (void)

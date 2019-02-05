@@ -206,7 +206,7 @@ D3D11Dev_CreateTexture2D_Override (
 extern
 HRESULT
 STDMETHODCALLTYPE
-D3D11Dev_Map_Override (
+D3D11_Map_Override (
    _In_ ID3D11DeviceContext      *This,
    _In_ ID3D11Resource           *pResource,
    _In_ UINT                      Subresource,
@@ -1694,10 +1694,10 @@ SK_YS8_InitPlugin (void)
   MH_QueueEnableHook (         D3D11Dev_CreateTexture2D_Override  );
 
   SK_CreateFuncHook (       L"ID3D11DeviceContext::Map",
-                               D3D11Dev_Map_Override,
+                                  D3D11_Map_Override,
                                  SK_YS8_Map,
         static_cast_p2p <void> (&_D3D11_Map_Original) );
-  MH_QueueEnableHook (         D3D11Dev_Map_Override  );
+  MH_QueueEnableHook (            D3D11_Map_Override  );
 
   SK_CreateFuncHook (       L"ID3D11DeviceContext::CopyResource",
                                   D3D11_CopyResource_Override,

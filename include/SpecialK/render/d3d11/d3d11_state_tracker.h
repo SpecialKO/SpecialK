@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <SpecialK/render/d3d11/d3d11_core.h>
+
 // For really wacky engines that wrap shader interfaces w/o correct layering
 static const GUID SKID_D3D11KnownShaderCrc32c =
 // {5C5298BB-0F9D-5022-A19D-A2E69792AE14}
