@@ -26,8 +26,7 @@
 #include <atlbase.h>
 
 // {9A222196-4D44-45C3-AAA4-2FD47915CC70}
-static const GUID IID_IUnwrappedD3D11DeviceContext = 
-{ 0xe8a22a3f, 0x1405, 0x424c, { 0xae, 0x99, 0xd, 0x3e, 0x9d, 0x54, 0x7c, 0x32 } };
+extern const GUID IID_IUnwrappedD3D11DeviceContext;
 
 struct __declspec (uuid ("9A222196-4D44-45C3-AAA4-2FD47915CC70")) IUnwrappedD3D11DeviceContext;
 

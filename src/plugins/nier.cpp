@@ -59,7 +59,7 @@
 volatile LONG   __FAR_init        = FALSE;
          float  __FAR_MINIMUM_EXT = 0.0f;
          bool   __FAR_Freelook    = false;
-         double __FAR_TargetFPS   = 59.94;
+    long double __FAR_TargetFPS   = 59.94L;
 
 
 #define WORKING_FPS_UNCAP

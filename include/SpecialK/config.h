@@ -338,7 +338,7 @@ struct sk_config_t
   struct {
     struct {
       float   target_fps        =  0.0f;
-      float   limiter_tolerance =  1.666f;
+      float   limiter_tolerance =  2.0f;
       float   sleep_deadline    = 3.3f;
       float   max_sleep_percent = 59.998800f;
       int     max_render_ahead  =  0;

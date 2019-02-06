@@ -56,6 +56,7 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/vk/vulkan_backend.h>
+#include <SpecialK/render/d3d11/d3d11_4.h>
 
 #include <SpecialK/plugin/plugin_mgr.h>
 

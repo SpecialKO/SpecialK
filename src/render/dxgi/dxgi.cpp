@@ -3108,7 +3108,7 @@ SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb)
   delete sb;
 }
 
-//#define _SK_D3D11_LITE_STATEBLOCKS
+#define _SK_D3D11_LITE_STATEBLOCKS
 
 extern bool
 SK_Screenshot_IsCapturingHUDless (void);

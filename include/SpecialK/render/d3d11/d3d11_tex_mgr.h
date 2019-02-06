@@ -18,11 +18,11 @@
 *   If not, see <http://www.gnu.org/licenses/>.
 *
 **/
+#pragma once
+
 #include <com_util.h>
 
-static const GUID SKID_D3D11Texture2D_DISCARD =
-// {5C5298CA-0F9C-4931-A19D-A2E69792AE02}
-{ 0x5c5298ca, 0xf9c,  0x4931, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x2 } };
+extern const GUID SKID_D3D11Texture2D_DISCARD;
 
 struct cache_params_s {
   uint32_t max_entries       = 4096UL;

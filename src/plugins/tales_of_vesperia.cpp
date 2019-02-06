@@ -32,8 +32,11 @@
 
 #include <imgui/imgui.h>
 
-#define TVFIX_VERSION_NUM L"0.5.1.2"
+#define TVFIX_VERSION_NUM L"0.5.2"
 #define TVFIX_VERSION_STR LR"(Tales of Vesperia "Fix" v )" TVFIX_VERSION_NUM
+
+#pragma warning(push)
+#pragma warning(disable: 4244)
 
 extern iSK_INI*             dll_ini;
 extern sk::ParameterFactory g_ParameterFactory;
@@ -1115,7 +1118,8 @@ SK_TVFix_D3D11_RSSetScissorRects_Callback (
     D3D11_RECT rect = *pRects;
 
     if (                rect.left   == 0                             &&
-        SK_EpsilonTest (rect.right,    sixteen_by_nine_width,  2.0f) &&
+        SK_EpsilonTest (rect.right,    
+        sixteen_by_nine_width,  2.0f) &&
         SK_EpsilonTest (rect.bottom,   sixteen_by_nine_height, 2.0f) &&
                         rect.top    == 0 )
     {
@@ -1145,3 +1149,5 @@ SK_TVFix_D3D11_RSSetScissorRects_Callback (
 
   return false;
 }
+
+#pragma warning (pop)

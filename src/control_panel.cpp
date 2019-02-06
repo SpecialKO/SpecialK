@@ -2146,7 +2146,7 @@ SK_ImGui_ControlPanel (void)
               }
             }
 
-            ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.01f, 1.0f);
+            ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 1.0f, 24.0f);
 
             if (ImGui::IsItemHovered ())
             {

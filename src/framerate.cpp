@@ -858,7 +858,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       {
         //dll_log.Log ( L"Sleep (1) - %s <%p>", SK_SummarizeCaller ().c_str (),
         //                                          _ReturnAddress () );
-        YieldProcessor ();
+      //YieldProcessor ();
       //SwitchToThread ();
         return 0;
       }
@@ -957,19 +957,19 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
       //SK_Sleep (pTLS->scheduler.switch_count++);
 
-      if (pTLS->scheduler.switch_count++   > 16)
-      {
-        if (pTLS->scheduler.switch_count  <= 42)
-        {
-          if (pTLS->scheduler.switch_count > 26)
-            SK_Sleep (0);
-          else
-            SwitchToThread_Original ();
-        }
-      }
-
-      else
-        YieldProcessor ();
+      //if (pTLS->scheduler.switch_count++   > 16)
+      //{
+      //  if (pTLS->scheduler.switch_count  <= 42)
+      //  {
+      //    if (pTLS->scheduler.switch_count > 26)
+      //      SK_Sleep (0);
+      //    else
+      //      SwitchToThread_Original ();
+      //  }
+      //}
+      //
+      //else
+        //YieldProcessor ();
 
       return 0;
 
@@ -1623,10 +1623,9 @@ SK::Framerate::Limiter::wait (void)
             long_double_cast ( freq.QuadPart) );
 
   static DWORD dwLastFullReset        = 0;
-   const DWORD dwMinTimeBetweenResets = 3333UL;
-   static BOOL needReset              = FALSE;
+   const DWORD dwMinTimeBetweenResets = 133UL;
 
-  if (frames_ahead > 3.0L || needReset)
+  if (frames_ahead > config.render.framerate.limiter_tolerance)
   {
     if (timeGetTime () - dwMinTimeBetweenResets > dwLastFullReset)
     {
@@ -1636,37 +1635,17 @@ SK::Framerate::Limiter::wait (void)
 
       full_restart    = true;
       dwLastFullReset = timeGetTime ();
-      needReset       = FALSE;
     }
-
-    else
-      needReset = TRUE;
   }
 
-  else
-  if ( long_double_cast (time.QuadPart - last.QuadPart) /
-       long_double_cast (freq.QuadPart)                 /
-                        ( ms / 1000.0L)                 >
-      ( config.render.framerate.limiter_tolerance * fps )
-     )
-  {
-    //dll_log.Log ( L" * Frame ran long (%3.01fx expected) - restarting"
-                  //L" limiter...",
-            //(double)(time.QuadPart - next.QuadPart) /
-            //(double)freq.QuadPart / (ms / 1000.0L) / fps );
-    restart = true;
-
-#if 0
-    extern SK::Framerate::Stats frame_history;
-    extern SK::Framerate::Stats frame_history2;
-
-    double mean    = frame_history.calcMean     ();
-    double sd      = frame_history.calcSqStdDev (mean);
-
-    if (sd > 5.0f)
-      full_restart = true;
-#endif
-  }
+  //extern SK::Framerate::Stats frame_history;
+  //extern SK::Framerate::Stats frame_history2;
+  //
+  //double mean    = frame_history.calcMean     ();
+  //double sd      = frame_history.calcSqStdDev (mean);
+  //
+  //if (sd > 5.0f)
+  //  full_restart = true;
 
   if (restart || full_restart)
   {
@@ -1685,8 +1664,8 @@ SK::Framerate::Limiter::wait (void)
     restart        = false;
 
      time.QuadPart = start.QuadPart;
-  //start.QuadPart = static_cast <LONGLONG> (start.QuadPart - (ms / 1000.0L) * freq.QuadPart);
      next.QuadPart = start.QuadPart;// static_cast <LONGLONG> (start.QuadPart + (ms / 1000.0L) * freq.QuadPart);
+    start.QuadPart = static_cast <LONGLONG> (start.QuadPart - (ms / 1000.0L) * freq.QuadPart);
   }
 
 

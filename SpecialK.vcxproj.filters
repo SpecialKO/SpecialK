@@ -1046,13 +1046,13 @@
     <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_vftable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_wraped.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_state_tracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_wrapped.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1186,6 +1186,8 @@
     <None Include="SpecialK.def">
       <Filter>Header Files\Config\DLL Export Definitions</Filter>
     </None>
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />

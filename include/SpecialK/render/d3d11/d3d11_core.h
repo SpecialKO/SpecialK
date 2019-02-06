@@ -76,6 +76,49 @@ struct IUnknown;
 
 #define SK_D3D11_IsDevCtxDeferred(ctx) (ctx)->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED
 
+extern const GUID IID_ID3D11Device2;
+extern const GUID IID_ID3D11Device3;
+extern const GUID IID_ID3D11Device4;
+extern const GUID IID_ID3D11Device5;
+
+
+
+
+__declspec (noinline)
+HRESULT
+WINAPI
+D3D11CreateDevice_Detour (
+  _In_opt_                            IDXGIAdapter         *pAdapter,
+                                      D3D_DRIVER_TYPE       DriverType,
+                                      HMODULE               Software,
+                                      UINT                  Flags,
+  _In_opt_                      const D3D_FEATURE_LEVEL    *pFeatureLevels,
+                                      UINT                  FeatureLevels,
+                                      UINT                  SDKVersion,
+  _Out_opt_                           ID3D11Device        **ppDevice,
+  _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
+  _Out_opt_                           ID3D11DeviceContext **ppImmediateContext);
+
+__declspec (noinline)
+HRESULT
+WINAPI
+D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
+                                      D3D_DRIVER_TYPE        DriverType,
+                                      HMODULE                Software,
+                                      UINT                   Flags,
+ _In_reads_opt_ (FeatureLevels) CONST D3D_FEATURE_LEVEL     *pFeatureLevels,
+                                      UINT                   FeatureLevels,
+                                      UINT                   SDKVersion,
+ _In_opt_                       CONST DXGI_SWAP_CHAIN_DESC  *pSwapChainDesc,
+ _Out_opt_                            IDXGISwapChain       **ppSwapChain,
+ _Out_opt_                            ID3D11Device         **ppDevice,
+ _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
+ _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext);
+
+
+// The device context a command list was built using
+extern const GUID SKID_D3D11DeviceContextOrigin;
+
 extern SK_Thread_HybridSpinlock* cs_shader;
 extern SK_Thread_HybridSpinlock* cs_shader_vs;
 extern SK_Thread_HybridSpinlock* cs_shader_ps;
@@ -223,6 +266,14 @@ extern "C" __declspec (dllexport) extern FARPROC D3DPerformance_BeginEvent;
 extern "C" __declspec (dllexport) extern FARPROC D3DPerformance_EndEvent;
 extern "C" __declspec (dllexport) extern FARPROC D3DPerformance_GetStatus;
 extern "C" __declspec (dllexport) extern FARPROC D3DPerformance_SetMarker;
+
+
+void
+SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
+                             ID3D11DeviceContext *pMerge );
+
+void
+SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx);
 
 
 struct shader_stage_s {
@@ -1122,3 +1173,9 @@ D3D11_UpdateSubresource1_Override (
 
 bool
 SK_D3D11_OverrideDepthStencil (DXGI_FORMAT& fmt);
+
+class SK_D3D11_Wrapper_Factory
+{
+public:
+  ID3D11DeviceContext4* wrapDeviceContext (ID3D11DeviceContext* dev_ctx);
+} extern SK_D3D11_WrapperFactory;

@@ -1854,7 +1854,7 @@ auto DeclKeybind =
                     __SK_Steam_IgnoreOverlayActivation = true;
 
         config.render.framerate.limiter_tolerance
-                                                = 0.015f;
+                                                = 4.25f;
         config.window.treat_fg_as_active        = true;
         config.input.ui.use_hw_cursor           = false;
         SK_ImGui_Cursor.prefs.no_warp.ui_open   = false;
@@ -1873,7 +1873,7 @@ auto DeclKeybind =
         config.steam.auto_pump_callbacks = true;
         config.steam.dll_path = L"kaldaien_api64.dll";
         config.render.framerate.limiter_tolerance
-                                         = 0.925f;
+                                         = 1.5f;
         // Normally I would turn this on by default, but I replaced
         //   the game's stupid SwitchToThread (...) nightmare with
         //     a functional Win32 message pump.
@@ -1996,6 +1996,9 @@ auto DeclKeybind =
   render.framerate.sleepless_render->load   (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->load   (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->load       (config.render.framerate.enable_mmcss);
+
+  if (config.render.framerate.limiter_tolerance < 1.0f)
+      config.render.framerate.limiter_tolerance = 2.75f;
 
   extern float target_fps;
 

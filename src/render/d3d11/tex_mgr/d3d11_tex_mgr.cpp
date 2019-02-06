@@ -49,6 +49,10 @@ std::wstring SK_D3D11_res_root            = L"SK_Res";
 
 std::unordered_map <ID3D11DeviceContext *, mapped_resources_s> mapped_resources;
 
+const GUID SKID_D3D11Texture2D_DISCARD =
+// {5C5298CA-0F9C-4931-A19D-A2E69792AE02}
+{ 0x5c5298ca, 0xf9c,  0x4931, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x2 } };
+
 
 bool SK_D3D11_IsTexInjectThread (SK_TLS *pTLS)
 {
