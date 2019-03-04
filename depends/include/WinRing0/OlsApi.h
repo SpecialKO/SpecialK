@@ -62,8 +62,6 @@ typedef BOOL (WINAPI *InitializeOls_pfn)(void);
 // DeinitializeOls
 //-----------------------------------------------------------------------------
 //VOID WINAPI DeinitializeOls();
-typedef VOID (WINAPI *DeinitializeOls_pfn)(void);
-               extern DeinitializeOls_pfn DeinitializeOls;
 
 /******************************************************************************
 **
