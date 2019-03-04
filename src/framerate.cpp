@@ -285,20 +285,23 @@ WINAPI
 SK_WaitForSingleObject (_In_ HANDLE hHandle,
                         _In_ DWORD  dwMilliseconds )
 {
-  if (dwMilliseconds == INFINITE)
-  {
-    return
-      SK_WaitForSingleObject_Micro ( hHandle, nullptr );
-  }
-
-  LARGE_INTEGER usecs;
-                usecs.QuadPart =
-                  static_cast <LONGLONG> (
-                    dwMilliseconds
-                  ) * 1000ULL;
-
   return
-    SK_WaitForSingleObject_Micro ( hHandle, &usecs );
+    WaitForSingleObject (hHandle, dwMilliseconds);
+
+  //if (dwMilliseconds == INFINITE)
+  //{
+  //  return
+  //    SK_WaitForSingleObject_Micro ( hHandle, nullptr );
+  //}
+  //
+  //LARGE_INTEGER usecs;
+  //              usecs.QuadPart =
+  //                static_cast <LONGLONG> (
+  //                  dwMilliseconds
+  //                ) * 1000ULL;
+  //
+  //return
+  //  SK_WaitForSingleObject_Micro ( hHandle, &usecs );
 }
 
 typedef enum _OBJECT_WAIT_TYPE {
@@ -788,18 +791,6 @@ SwitchToThread_Detour (void)
 
 volatile LONG __sleep_init = 0;
 
-void
-WINAPI
-SK_Sleep (DWORD dwMilliseconds)
-{
-  if (! ReadAcquire (&__sleep_init))
-    return Sleep (dwMilliseconds);
-
-  Sleep_Original != nullptr       ?
-  Sleep_Original (dwMilliseconds) :
-  Sleep          (dwMilliseconds);
-}
-
 DWORD
 WINAPI
 SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
@@ -812,6 +803,14 @@ SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
       SleepEx_Original (dwMilliseconds, bAlertable) :
       SleepEx          (dwMilliseconds, bAlertable);
 }
+
+void
+WINAPI
+SK_Sleep (DWORD dwMilliseconds)
+{
+  SK_SleepEx (dwMilliseconds, FALSE);
+}
+
 
 DWORD
 WINAPI
@@ -856,10 +855,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
       if (__SK_TVFix_NoRenderSleep)
       {
-        //dll_log.Log ( L"Sleep (1) - %s <%p>", SK_SummarizeCaller ().c_str (),
-        //                                          _ReturnAddress () );
-      //YieldProcessor ();
-      //SwitchToThread ();
+        YieldProcessor ( );
         return 0;
       }
     }
@@ -955,44 +951,9 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       pTLS->scheduler.last_frame =
         ulFrames;
 
-      //SK_Sleep (pTLS->scheduler.switch_count++);
-
-      //if (pTLS->scheduler.switch_count++   > 16)
-      //{
-      //  if (pTLS->scheduler.switch_count  <= 42)
-      //  {
-      //    if (pTLS->scheduler.switch_count > 26)
-      //      SK_Sleep (0);
-      //    else
-      //      SwitchToThread_Original ();
-      //  }
-      //}
-      //
-      //else
-        //YieldProcessor ();
+      YieldProcessor ();
 
       return 0;
-
-      ////if (++pTLS->scheduler.switch_count > 2048)
-      ////{
-      ////  dwMilliseconds               = 0;
-      ////  pTLS->scheduler.switch_count = 0;
-      ////  SwitchToThread                ();
-      ////
-      ////  return 0;
-      ////}
-      ////
-      ////else
-      ////{
-      ////  extern bool
-      ////        __SK_TVFix_NoRenderSleep;
-      ////  if (! __SK_TVFix_NoRenderSleep)
-      ////    SwitchToThread ();
-      ////
-      ////  return 0;
-      ////}
-
-      //max_delta_time = std::max (2UL, max_delta_time);
     }
 
     else if ( dwMilliseconds == 0 ||
@@ -1009,7 +970,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   {
     //dll_log.Log (L"SleepEx (%lu, %s) -- %s", dwMilliseconds, bAlertable ? L"Alertable" : L"Non-Alertable", SK_SummarizeCaller ().c_str ());
     return
-      SleepEx_Original (dwMilliseconds, bAlertable);
+      SK_SleepEx (dwMilliseconds, bAlertable);
   }
 
   else
@@ -1284,20 +1245,20 @@ SK::Framerate::Init (void)
     pCommandProc->AddVariable ( "MaxRenderAhead",
             new SK_IVarStub <int> (&config.render.framerate.max_render_ahead));
 
-    ////RtlQueryPerformanceFrequency = 
-    ////  (QueryPerformanceCounter_pfn)
-    ////  SK_GetProcAddress ( L"NtDll",
-    ////                       "RtlQueryPerformanceFrequency" );
-    ////
-    ////RtlQueryPerformanceCounter = 
-    ////(QueryPerformanceCounter_pfn)
-    ////  SK_GetProcAddress ( L"NtDll",
-    ////                       "RtlQueryPerformanceCounter" );
-    ////
-    ////ZwQueryPerformanceCounter = 
-    ////  (QueryPerformanceCounter_pfn)
-    ////  SK_GetProcAddress ( L"NtDll",
-    ////                       "ZwQueryPerformanceCounter" );
+    RtlQueryPerformanceFrequency = 
+      (QueryPerformanceCounter_pfn)
+      SK_GetProcAddress ( L"NtDll",
+                           "RtlQueryPerformanceFrequency" );
+    
+    RtlQueryPerformanceCounter = 
+    (QueryPerformanceCounter_pfn)
+      SK_GetProcAddress ( L"NtDll",
+                           "RtlQueryPerformanceCounter" );
+    
+    ZwQueryPerformanceCounter = 
+      (QueryPerformanceCounter_pfn)
+      SK_GetProcAddress ( L"NtDll",
+                           "ZwQueryPerformanceCounter" );
 
     NtDelayExecution =
       (NtDelayExecution_pfn)
@@ -1483,6 +1444,11 @@ SK::Framerate::Limiter::init (long double target)
   ms  = 1000.0L / long_double_cast (target);
   fps =           long_double_cast (target);
 
+  ticks_per_frame =
+    static_cast <ULONGLONG> (
+      ( ms / 1000.0L ) * long_double_cast ( freq.QuadPart )
+    );
+
   frames = 0;
 
   CComPtr <IDirect3DDevice9Ex> d3d9ex      = nullptr;
@@ -1555,12 +1521,7 @@ SK::Framerate::Limiter::try_wait (void)
 
   LARGE_INTEGER next_;
   next_.QuadPart =
-    static_cast <LONGLONG> (
-      start.QuadPart                               +
-      (          long_double_cast (frames) + 1.0L) *
-                                  ( ms / 1000.0L)  *
-                 long_double_cast (freq.QuadPart)
-    );
+    start.QuadPart + frames * ticks_per_frame;
 
   SK_QueryPerformanceCounter (&time);
 
@@ -1583,9 +1544,6 @@ SK::Framerate::Limiter::wait (void)
   if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
-  //SK_RunOnce ( SetThreadPriority ( SK_GetCurrentThread (),
-  //                                   THREAD_PRIORITY_ABOVE_NORMAL ) );
-
   if (fps != target_fps)
     init (target_fps);
 
@@ -1596,45 +1554,40 @@ SK::Framerate::Limiter::wait (void)
 
   SK_QueryPerformanceCounter (&time);
 
-
-  //bool bNeedWait =
-  //  time.QuadPart < next.QuadPart;
-
   // Actual frametime before we forced a delay
   effective_ms =
     1000.0L * ( long_double_cast (time.QuadPart - last.QuadPart) /
                 long_double_cast (freq.QuadPart)                 );
 
   next.QuadPart =
-    static_cast <LONGLONG> (
-      long_double_cast (start.QuadPart) +
-      long_double_cast (    frames    ) *
-      long_double_cast ( ms / 1000.0L ) *
-      long_double_cast ( freq.QuadPart)
-    );
+    start.QuadPart + frames * ticks_per_frame;
 
-  long double frames_ahead =
-      ( long_double_cast (time.QuadPart)  -
-          ( long_double_cast (start.QuadPart) +
-            long_double_cast (    frames    ) *
-            long_double_cast ( ms / 1000.0L ) *
-            long_double_cast ( freq.QuadPart) )
-      ) / ( long_double_cast ( ms / 1000.0L ) *
-            long_double_cast ( freq.QuadPart) );
+  long double missed_frames,
+              missing_time =
+    long_double_cast ( time.QuadPart - next.QuadPart ) /
+    long_double_cast ( ticks_per_frame ),
+              edge_distance =
+      modfl ( missing_time, &missed_frames );
 
-  static DWORD dwLastFullReset        = 0;
-   const DWORD dwMinTimeBetweenResets = 133UL;
+  static DWORD dwLastFullReset        = timeGetTime ();
+   const DWORD dwMinTimeBetweenResets = 333L;
 
-  if (frames_ahead > config.render.framerate.limiter_tolerance)
+  if (missing_time > config.render.framerate.limiter_tolerance)
   {
-    if (timeGetTime () - dwMinTimeBetweenResets > dwLastFullReset)
+    if (edge_distance > 0.333L && edge_distance < 0.666L)
     {
-      SK_LOG1 ( ( L"Framerate limiter is running too far behind... (%f frames late)",
-                    frames_ahead ),
-                  L"Frame Rate" );
+      if (timeGetTime () - dwMinTimeBetweenResets > dwLastFullReset)
+      {
+        SK_LOG1 ( ( L"Framerate limiter is running too far behind... (%f frames late)",
+                      missed_frames ),
+                    L"Frame Rate" );
 
-      full_restart    = true;
-      dwLastFullReset = timeGetTime ();
+        if (missing_time > 3 * config.render.framerate.limiter_tolerance)
+          full_restart = true;
+
+        restart         = true;
+        dwLastFullReset = timeGetTime ();
+      }
     }
   }
 
@@ -1655,17 +1608,11 @@ SK::Framerate::Limiter::wait (void)
       full_restart = false;
     }
 
-    frames         = 0;
-    start.QuadPart = static_cast <LONGLONG> (
-                                long_double_cast (SK_QueryPerf ().QuadPart) +
-                                                 ( ms / 1000.0L) *
-                                long_double_cast (freq.QuadPart)
-                     );
     restart        = false;
-
-     time.QuadPart = start.QuadPart;
-     next.QuadPart = start.QuadPart;// static_cast <LONGLONG> (start.QuadPart + (ms / 1000.0L) * freq.QuadPart);
-    start.QuadPart = static_cast <LONGLONG> (start.QuadPart - (ms / 1000.0L) * freq.QuadPart);
+    frames         = 0;
+    start.QuadPart = SK_QueryPerf ().QuadPart - ticks_per_frame;
+     time.QuadPart = start.QuadPart           + ticks_per_frame;
+     next.QuadPart =  time.QuadPart;
   }
 
 
@@ -1686,56 +1633,56 @@ SK::Framerate::Limiter::wait (void)
         return ldRet;
       };
 
-  long double
-    to_next_in_secs =
-      SK_RecalcTimeToNextFrame ();
-
-  LARGE_INTEGER liDelay;
-                liDelay.QuadPart =
-                  static_cast <LONGLONG> (
-                    to_next_in_secs * 1000.0L * 0.94378L
-                  );
-
-  //dll_log.Log (L"Wait MS: %f", to_next_in_secs * 1000.0 );
-
-  // Create an unnamed waitable timer.
-  static HANDLE hLimitTimer =
-    CreateWaitableTimer (NULL, FALSE, NULL);
-
-  if ( liDelay.QuadPart > 0)
-  {
-    liDelay.QuadPart = -(liDelay.QuadPart * 10000);
-
-    if ( SetWaitableTimer ( hLimitTimer, &liDelay,
-                              0, NULL, NULL, 0 ) )
-    {
-      DWORD dwWait = 1337;
-
-      while (dwWait != WAIT_OBJECT_0)
-      {
-        to_next_in_secs =
-          SK_RecalcTimeToNextFrame ();
-
-        if (to_next_in_secs <= 0.0L)
-        {
-          ResetEvent (hLimitTimer);
-          break;
-        }
-
-        LARGE_INTEGER uSecs;
-                      uSecs.QuadPart =
-          static_cast <LONGLONG> (to_next_in_secs * 1000.0L * 1000.0L);
-
-        dwWait =
-          SK_WaitForSingleObject_Micro ( &hLimitTimer,
-                                           &uSecs );
-      }
-    }
-  }
-
-
   if (next.QuadPart > 0ULL)
   {
+    long double
+      to_next_in_secs =
+        SK_RecalcTimeToNextFrame ();
+    
+    LARGE_INTEGER liDelay;
+                  liDelay.QuadPart =
+                    static_cast <LONGLONG> (
+                      to_next_in_secs * 1000.0L * 0.75L
+                    );
+
+    //dll_log.Log (L"Wait MS: %f", to_next_in_secs * 1000.0 );
+
+    // Create an unnamed waitable timer.
+    static HANDLE hLimitTimer =
+      CreateWaitableTimer (NULL, FALSE, NULL);
+    
+    if ( liDelay.QuadPart > 0)
+    {
+      liDelay.QuadPart = -(liDelay.QuadPart * 10000);
+    
+      if ( SetWaitableTimer ( hLimitTimer, &liDelay,
+                                0, NULL, NULL, 0 ) )
+      {
+        DWORD dwWait = 1337;
+    
+        while (dwWait != WAIT_OBJECT_0)
+        {
+          to_next_in_secs =
+            SK_RecalcTimeToNextFrame ();
+    
+          if (to_next_in_secs <= 0.0L)
+          {
+            ResetEvent (hLimitTimer);
+            break;
+          }
+    
+          LARGE_INTEGER uSecs;
+                        uSecs.QuadPart =
+            static_cast <LONGLONG> (to_next_in_secs * 1000.0L * 1000.0L);
+    
+          dwWait =
+            //SK_WaitForSingleObject (hLimitTimer, to_next_in_secs * 1000.0);
+            SK_WaitForSingleObject_Micro ( &hLimitTimer,
+                                             &uSecs );
+          YieldProcessor ();
+        }
+      }
+    }
     // If available (Windows 7+), wait on the swapchain
     CComPtr <IDirect3DDevice9Ex>  d3d9ex = nullptr;
 
@@ -1780,46 +1727,31 @@ SK::Framerate::Limiter::wait (void)
       }
     }
 
-    bool bYielded = false;
-
-    while (time.QuadPart < next.QuadPart)
+    while (time.QuadPart <= next.QuadPart)
     {
+      DWORD dwWaitMS =
+        static_cast <DWORD> (
+          std::max (0.0L, SK_RecalcTimeToNextFrame () * 1000.0L - 1.0L)
+        );
+
       // Attempt to use a deeper sleep when possible instead of hammering the
       //   CPU into submission ;)
-      if ( ( long_double_cast (next.QuadPart  - time.QuadPart) >
-             long_double_cast (freq.QuadPart) * 0.001 *
-                                  config.render.framerate.busy_wait_limiter) &&
-                              (! (config.render.framerate.yield_once && bYielded))
-         )
+      if (dwWaitMS > 3)
       {
-        if ( config.render.framerate.wait_for_vblank )
-        {
-          if (d3d9ex != nullptr)
-            d3d9ex->WaitForVBlank (0);
-
-          else if (dxgi_output != nullptr)
-            dxgi_output->WaitForVBlank ();
-        }
-
-        else if (! config.render.framerate.busy_wait_limiter)
-        {
-          auto dwWaitMS =
-            static_cast <DWORD>
-              ( (config.render.framerate.max_sleep_percent * 10.0F) / target_fps ); // 10% of full frame
-
-          if ( ( long_double_cast (next.QuadPart - time.QuadPart) /
-                 long_double_cast (freq.QuadPart                ) ) * 1000.0L >
-                   dwWaitMS )
-          {
-            SK_Sleep (dwWaitMS);
-
-            bYielded = true;
-          }
-        }
+        SK_Sleep (1);// dwWaitMS);
       }
 
+      if ( config.render.framerate.wait_for_vblank )
+      {
+        if (d3d9ex != nullptr)
+          d3d9ex->WaitForVBlank (0);
+
+        else if (dxgi_output != nullptr)
+          dxgi_output->WaitForVBlank ();
+      }
+
+      YieldProcessor             (     );
       SK_QueryPerformanceCounter (&time);
-                  YieldProcessor (     );
     }
   }
 
@@ -1961,10 +1893,10 @@ SK_GetPerfFreq (void)
   
   if (ReadAcquire (&init) < 2)
   {
-    ///  RtlQueryPerformanceFrequency = 
-    ///    (QueryPerformanceCounter_pfn)
-    ///SK_GetProcAddress ( L"NtDll",
-    ///                     "RtlQueryPerformanceFrequency" );
+      RtlQueryPerformanceFrequency = 
+        (QueryPerformanceCounter_pfn)
+    SK_GetProcAddress ( L"NtDll",
+                         "RtlQueryPerformanceFrequency" );
 
     if (! InterlockedCompareExchange (&init, 1, 0))
     {
@@ -1983,12 +1915,12 @@ SK_GetPerfFreq (void)
     {
       LARGE_INTEGER freq2 = { };
 
-      //RtlQueryPerformanceFrequency (&freq2);
-      if (QueryPerformanceFrequency_Original != nullptr)
-          QueryPerformanceFrequency_Original (&freq2);
+      RtlQueryPerformanceFrequency (&freq2);
+      //if (QueryPerformanceFrequency_Original != nullptr)
+      //    QueryPerformanceFrequency_Original (&freq2);
 
-      else
-        QueryPerformanceFrequency (&freq2);
+      //else
+      //  QueryPerformanceFrequency (&freq2);
 
       return
         freq2;
