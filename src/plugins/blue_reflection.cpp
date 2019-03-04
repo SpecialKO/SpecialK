@@ -155,8 +155,22 @@ float fBiasMultipliers [3][4] = { { 1.3000f, 1.1000f, 1.0000f, 0.6800f },
                                   { 2.1000f, 1.3400f, 1.0910f, 1.3483f },
                                   { 1.1500f, 1.2600f, 1.0000f, 0.9300f } };
 
-std::array <std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE>, SK_D3D11_MAX_DEV_CONTEXTS> mapped_shafts;
-std::array <std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE>, SK_D3D11_MAX_DEV_CONTEXTS> mapped_shadows;
+std::array <std::map <ID3D11Resource*, D3D11_MAPPED_SUBRESOURCE>, SK_D3D11_MAX_DEV_CONTEXTS> _mapped_shafts (void)
+{
+  static std::array <std::map <ID3D11Resource*, D3D11_MAPPED_SUBRESOURCE>, SK_D3D11_MAX_DEV_CONTEXTS> mapped_shafts;
+
+  return mapped_shafts;
+}
+
+std::array <std::map <ID3D11Resource*, D3D11_MAPPED_SUBRESOURCE>, SK_D3D11_MAX_DEV_CONTEXTS> _mapped_shadows (void)
+{
+  static std::array <std::map <ID3D11Resource*, D3D11_MAPPED_SUBRESOURCE>, SK_D3D11_MAX_DEV_CONTEXTS> mapped_shadows;
+
+  return mapped_shadows;
+}
+
+#define mapped_shafts  _mapped_shafts()
+#define mapped_shadows _mapped_shadows()
 
 bool  dump_bias       = false;
 float min_shadow_bias = 0.0f;

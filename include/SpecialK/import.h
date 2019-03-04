@@ -53,11 +53,23 @@ struct import_s
 };
 
 
-extern import_s  imports          [SK_MAX_IMPORTS];
-extern import_s  host_executable;
-extern import_s* dgvoodoo_d3d8;
-extern import_s* dgvoodoo_ddraw;
-extern import_s* dgvoodoo_d3dimm;
+struct SK_Import_Datastore {
+  import_s imports [SK_MAX_IMPORTS] = { };
+  import_s host_executable          = { };
+
+  import_s* dgvoodoo_d3d8           = nullptr;
+  import_s* dgvoodoo_ddraw          = nullptr;
+  import_s* dgvoodoo_d3dimm         = nullptr;
+};
+
+extern SK_Import_Datastore& __SK_GetImports (void);
+
+#define host_executable __SK_GetImports ().host_executable
+#define imports         __SK_GetImports ().imports
+
+#define dgvoodoo_d3d8   __SK_GetImports ().dgvoodoo_d3d8
+#define dgvoodoo_ddraw  __SK_GetImports ().dgvoodoo_ddraw
+#define dgvoodoo_d3dimm __SK_GetImports ().dgvoodoo_d3dimm
 
 void SK_LoadEarlyImports64 (void);
 void SK_LoadLateImports64  (void);

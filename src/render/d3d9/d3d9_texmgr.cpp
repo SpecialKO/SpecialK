@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -680,10 +680,18 @@ SK::D3D9::TextureWorkerThread::TextureWorkerThread (SK::D3D9::TextureThreadPool*
   control_.shutdown =
     SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
+  static volatile LONG worker = 0;
+
+  name_ =
+      SK_FormatStringW ( L"[SK] D3D9 Texture Worker < %02lu >",
+        (uint32_t)(-1 + InterlockedIncrement (&worker))
+      );
+
   thread_id_ = 
     GetThreadId ( ( thread_ =
-                      SK_Thread_CreateEx ( ThreadProc,  nullptr,
-                                           this ) ) );
+                      SK_Thread_CreateEx ( ThreadProc,
+                                             name_.c_str (),
+                                               this ) ) );
 }
 
 SK::D3D9::TextureWorkerThread::~TextureWorkerThread (void)
@@ -1445,9 +1453,6 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
 
 #include <set>
 
-
- static bool TOS = ( GetModuleHandle  (L"TOS.exe") != nullptr );
-
 uint32_t
 safe_crc32c (uint32_t seed, const void* pData, size_t size)
 {
@@ -1455,16 +1460,20 @@ safe_crc32c (uint32_t seed, const void* pData, size_t size)
   if (size > (1024ULL * 1024ULL * 1024ULL * 48) || pData == nullptr)
     return seed;
 
-  __try
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try
   {
-    if (TOS)
-      return crc32 (seed, pData, size);
+    //static bool TOS =
+    //  SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Symphonia;
+    //if (TOS)
+    //  return crc32 (seed, pData, size);
 
     return crc32c (seed, pData, size);
   }
 
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
-             EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+  //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+  //           EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+  catch (...)
   {
     return 0x00;
   }
@@ -3773,7 +3782,7 @@ SK::D3D9::TextureThreadPool::postJob (TexLoadRequest* job)
   if (! spool_thread_)
   {
     spool_thread_ =
-      SK_Thread_CreateEx ( Spooler, nullptr, this );
+      SK_Thread_CreateEx ( Spooler, L"[SK] D3D9 Texture Dispatch", this );
   }
 
   // Don't let the game free this while we are working on it...
@@ -3915,10 +3924,11 @@ ISKTextureD3D9::UnlockRect (UINT Level)
 
     uint32_t crc32c_ = 0x00;
 
-    D3DSURFACE_DESC desc = { };
+    D3DSURFACE_DESC             desc = { };
     pTex->GetLevelDesc (Level, &desc);
 
-    INT stride = SK_D3D9_BytesPerPixel (desc.Format);
+    INT stride =
+      SK_D3D9_BytesPerPixel (desc.Format);
 
     // BCn compressed textures have to be read 4-rows at a time.
     bool BCn_tex = stride < 0;
@@ -3943,7 +3953,8 @@ ISKTextureD3D9::UnlockRect (UINT Level)
                                                   desc.Height % 4) :
                                         stride * desc.Height;
 
-      crc32c_ = safe_crc32c (crc32c_, sptr, lod_size );
+      crc32c_ =
+        safe_crc32c (crc32c_, sptr, lod_size );
     }
 
     // Slow-path:  Must checksum 1 or more rows over multiple scans

@@ -36,6 +36,7 @@
 #include <strsafe.h>
 #include <string>
 
+extern volatile LONG __SK_Init;
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -60,22 +61,22 @@ extern volatile LONG __SK_DLL_Attached;
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
 
-concurrency::concurrent_unordered_map <DWORD, std::wstring>&
+concurrency::concurrent_unordered_map <DWORD, std::wstring>*
 __SK_GetThreadNames (void)
 {
-  static concurrency::concurrent_unordered_map <DWORD, std::wstring> __ThreadNames (32);
+  static concurrency::concurrent_unordered_map <DWORD, std::wstring> __ThreadNames (64);
 
   return
-    __ThreadNames;
+    &__ThreadNames;
 }
 
-concurrency::concurrent_unordered_set <DWORD>&
+concurrency::concurrent_unordered_set <DWORD>*
 __SK_GetSelfTitledThreads (void)
 {
-  static concurrency::concurrent_unordered_set <DWORD>                __SelfTitled (32);
+  static concurrency::concurrent_unordered_set <DWORD>                __SelfTitled (64);
 
   return
-    __SelfTitled;
+    &__SelfTitled;
 }
 
 #define _SK_SelfTitledThreads __SK_GetSelfTitledThreads ()
@@ -87,7 +88,7 @@ SK_Thread_HasCustomName (DWORD dwTid)
 {
   static auto&
     SelfTitled =
-      _SK_SelfTitledThreads;
+      *_SK_SelfTitledThreads;
 
   if (SelfTitled.count (dwTid) != 0)
     return true;
@@ -101,7 +102,7 @@ SK_Thread_GetName (DWORD dwTid)
   static std::wstring noname (L"");
 
   static auto& names =
-    _SK_ThreadNames;
+    *_SK_ThreadNames;
 
   auto it  =
     names.find (dwTid);
@@ -132,8 +133,8 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-SetThreadDescription_pfn SetThreadDescription = &SetThreadDescription_NOP;
-GetThreadDescription_pfn GetThreadDescription = &GetThreadDescription_NOP;
+SetThreadDescription_pfn SK_SetThreadDescription = &SetThreadDescription_NOP;
+GetThreadDescription_pfn SK_GetThreadDescription = &GetThreadDescription_NOP;
 
 // Avoid SEH unwind problems
 void
@@ -141,7 +142,7 @@ __make_self_titled (DWORD dwTid)
 {
   static auto&
     SelfTitled =
-      _SK_SelfTitledThreads;
+      *_SK_SelfTitledThreads;
 
   SelfTitled.insert (dwTid);
 }
@@ -153,15 +154,17 @@ HRESULT
 WINAPI
 SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 {
-  auto&
-    ThreadNames =
-      _SK_ThreadNames;
-
   if (lpThreadDescription == nullptr)
     return E_POINTER;
 
-  if (SK_GetHostAppUtil ().isInjectionTool ())
+  if (SK_GetHostAppUtil ()->isInjectionTool ())
     return S_OK;
+
+  //if (! ReadAcquire (&__SK_DLL_Attached))
+  //{
+  //  return E_NOT_VALID_STATE;
+  //}
+
 
   size_t len;
 
@@ -173,10 +176,15 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
   if (non_empty)
   {
-    SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
-      SK_TLS_Bottom () : nullptr;
+    auto&
+      ThreadNames =
+        *_SK_ThreadNames;
 
-    DWORD               dwTid  = GetCurrentThreadId ();
+    SK_TLS *pTLS     = ( ReadAcquire (&__SK_DLL_Attached) ||
+                      (! ReadAcquire (&__SK_DLL_Ending)))  ?
+    SK_TLS_Bottom () : nullptr;
+
+    DWORD                 dwTid  = GetCurrentThreadId ();
     __make_self_titled (dwTid);
            ThreadNames [dwTid] = lpThreadDescription;
 
@@ -203,7 +211,9 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
       const DWORD argc = sizeof (info) /
                          sizeof (ULONG_PTR);
 
-      __try
+      auto orig_se =
+      _set_se_translator (SK_BasicStructuredExceptionTranslator);
+      try
       {
         constexpr int SK_EXCEPTION_CONTINUABLE = 0x0;
 
@@ -212,15 +222,16 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
                              argc,
                                reinterpret_cast <const ULONG_PTR *>(&info) );
       }
-      __except (EXCEPTION_EXECUTE_HANDLER) { }
+      catch (const SK_SEH_IgnoredException&) { };
+      _set_se_translator (orig_se);
     }
 
 
     // Windows 7 / 8 can go no further, they will have to be happy with the
     //   TLS-backed name or a debugger must catch the exception above.
     //
-    if ( SetThreadDescription == &SetThreadDescription_NOP ||
-         SetThreadDescription == nullptr ) // Will be nullptr in SKIM64
+    if ( SK_SetThreadDescription == &SetThreadDescription_NOP ||
+         SK_SetThreadDescription == nullptr ) // Will be nullptr in SKIM64
       return S_OK;
 
 
@@ -237,7 +248,7 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
                                     0 ) )
     {
       hr =
-        SetThreadDescription (hRealHandle, lpThreadDescription);
+        SK_SetThreadDescription (hRealHandle, lpThreadDescription);
 
       CloseHandle (hRealHandle);
     }
@@ -273,8 +284,8 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
 
   // No TLS, no GetThreadDescription (...) -- we are boned :-\
   //
-  if ( GetThreadDescription == &GetThreadDescription_NOP ||
-       GetThreadDescription ==  nullptr )
+  if ( SK_GetThreadDescription == &GetThreadDescription_NOP ||
+       SK_GetThreadDescription ==  nullptr )
   {
     return E_NOTIMPL;
   }
@@ -291,8 +302,8 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
                                  0 ) )
   {
     hr =
-      GetThreadDescription ( hRealHandle,
-                               threadDescription );
+      SK_GetThreadDescription ( hRealHandle,
+                                  threadDescription );
   }
 
   return hr;
@@ -325,20 +336,20 @@ SK_Thread_InitDebugExtras (void)
 
     // Only available in Windows 10
     //
-    SetThreadDescription =
+    SK_SetThreadDescription =
       (SetThreadDescription_pfn)
         GetProcAddress ( SK_Modules.getLibrary (L"kernel32", true, true),
                                                  "SetThreadDescription" );
-    GetThreadDescription =
+    SK_GetThreadDescription =
       (GetThreadDescription_pfn)
       GetProcAddress ( SK_Modules.getLibrary (L"kernel32", true, true),
                                                "GetThreadDescription" );
 
-    if (SetThreadDescription == nullptr)
-      SetThreadDescription = &SetThreadDescription_NOP;
+    if (SK_SetThreadDescription == nullptr)
+      SK_SetThreadDescription = &SetThreadDescription_NOP;
 
-    if (GetThreadDescription == nullptr)
-      GetThreadDescription = &GetThreadDescription_NOP;
+    if (SK_GetThreadDescription == nullptr)
+      SK_GetThreadDescription = &GetThreadDescription_NOP;
 
     InterlockedIncrementRelease (&run_once);
   }
@@ -346,7 +357,7 @@ SK_Thread_InitDebugExtras (void)
   else
     SK_Thread_SpinUntilAtomicMin (&run_once, 2);
 
-  if (GetThreadDescription != &GetThreadDescription_NOP)
+  if (SK_GetThreadDescription != &GetThreadDescription_NOP)
     return true;
 
   return false;
@@ -464,6 +475,9 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
   SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
     SK_TLS_Bottom () : nullptr;
 
+  if (pStartParams->lpThreadName != nullptr)
+    SetCurrentThreadDescription (pStartParams->lpThreadName);
+
   if (pTLS != nullptr)
   {
     pTLS->debug.handle = pStartParams->hHandleToStuffInternally;
@@ -484,7 +498,7 @@ extern "C"
 HANDLE
 WINAPI
 SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
-                     const wchar_t*       /*lpThreadName*/,
+                     const wchar_t*         lpThreadName,
                      LPVOID                 lpUserParams )
 {
   SK_ThreadBaseParams
@@ -496,7 +510,7 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
   assert (params != nullptr);
 
   *params = {
-    lpStartFunc,  nullptr,
+    lpStartFunc,  lpThreadName,
     lpUserParams, INVALID_HANDLE_VALUE
   };
 

@@ -139,7 +139,8 @@ SK_CountIO (io_perf_t& ioc, const double update)
   }
 }
 
-
+#include <ntverp.h>
+#if (VER_PRODUCTBUILD < 10011)
 typedef enum _CPU_SET_INFORMATION_TYPE { 
   CpuSetInformation
 } CPU_SET_INFORMATION_TYPE,
@@ -177,6 +178,7 @@ typedef struct _SYSTEM_CPU_SET_INFORMATION {
   } CpuSet;
 } SYSTEM_CPU_SET_INFORMATION,
 *PSYSTEM_CPU_SET_INFORMATION;
+#endif
 
 int cpu_perf_t::cpu_stat_s::parked_node_count   = 0;
 int cpu_perf_t::cpu_stat_s::unparked_node_count = 0;
@@ -447,11 +449,17 @@ SK_MonitorCPU (LPVOID user_param)
   static ULONG ulAllocatedPerfBytes =
       cpu.num_cpus * sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION);
 
-  while (dwRet != WAIT_OBJECT_0)
+  HANDLE wait_objs [] = {
+    *const_cast <const HANDLE*> (&cpu.hShutdownSignal),
+                               __SK_DLL_TeardownEvent };
+
+  while ( dwRet !=  WAIT_OBJECT_0 &&
+          dwRet != (WAIT_OBJECT_0 + 1) )
   {
-    dwRet = 
-      WaitForSingleObject ( *const_cast <const HANDLE *> (&cpu.hShutdownSignal), 
+    dwRet =
+      WaitForMultipleObjects (2, wait_objs, FALSE,
                               DWORD (update * 1000.0f) );
+
     // Only poll WMI while the data view is visible
     if (! (config.cpu.show || SK_ImGui_Widgets.cpu_monitor->isActive ()))
       continue;
@@ -512,22 +520,22 @@ SK_MonitorCPU (LPVOID user_param)
         PSYSTEM_CPU_SET_INFORMATION             pCSIEnd =
           (PSYSTEM_CPU_SET_INFORMATION)((BYTE *)pCSI    + ulCSIAlloc);
 
-        SYSTEM_CPU_SET_INFORMATION::DataSet* pData =
+        auto* pData =
           &pCSI->CpuSet;
 
         while ((uintptr_t) pData < (uintptr_t) pCSIEnd)
         {
           int logic_idx =
-            pData->CpuSet.LogicalProcessorIndex;
+            pData->LogicalProcessorIndex;
 
-          if (               pData->CpuSet.Parked            &&
+          if (               pData->Parked                &&
                cpu.cpus [logic_idx].parked_since.QuadPart == 0 )
           {
             cpu.cpus [logic_idx].parked_since =
               SK_QueryPerf ();
           }
           
-          else if ( (! pData->CpuSet.Parked)                    &&
+          else if ( (! pData->Parked)                           &&
                      cpu.cpus [logic_idx].parked_since.QuadPart != 0 )
           {
             cpu.cpus [logic_idx].parked_since.QuadPart = 0;
@@ -618,7 +626,8 @@ SK_MonitorDisk (LPVOID user)
   disk.dwNumReturned = 0;
   disk.dwNumObjects  = 0;
 
-  disk.hShutdownSignal = SK_CreateEvent (nullptr, FALSE, FALSE, L"DiskMon Shutdown Signal");
+  disk.hShutdownSignal =
+    SK_CreateEvent (nullptr, FALSE, FALSE, L"DiskMon Shutdown Signal");
 
   COM::base.wmi.Unlock ();
 

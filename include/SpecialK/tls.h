@@ -23,7 +23,7 @@
 // Useless warning:  'typedef ': ignored on left of '' when no variable is declared
 #pragma warning (disable: 4091)
 
-struct IUnknown;
+#include <comdef.h>
 #include <Unknwnbase.h>
 
 #include <Windows.h>
@@ -37,15 +37,12 @@ struct IUnknown;
 
 struct SK_MMCS_TaskEntry;
 
-struct ID3D11Buffer;
-struct ID3D11SamplerState;
-struct ID3D11DeviceContext;
-struct ID3D11RasterizerState;
-struct ID3D11DepthStencilState;
-struct ID3D11DepthStencilView;
-struct ID3D11ShaderResourceView;
-struct ID3D11RenderTargetView;
-struct ID3D11BlendState;
+#ifdef _WINGDI_
+#undef _WINGDI_
+#endif
+
+#include <d3d11.h>
+#include <atlbase.h>
 
 #ifndef _D3D11_CONSTANTS
 #define	D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT	( 15 )
@@ -357,18 +354,18 @@ class SK_D3D11_ThreadContext : public SK_TLS_DynamicContext,
                                public SK_TLS_RenderContext
 {
 public:
-  ID3D11DeviceContext*     pDevCtx                 = nullptr;
+  CComPtr <ID3D11DeviceContext>     pDevCtx;
 
-  ID3D11RasterizerState*   pRasterStateOrig        = nullptr;
-  ID3D11RasterizerState*   pRasterStateNew         = nullptr;
+  CComPtr <ID3D11RasterizerState>   pRasterStateOrig;
+  CComPtr <ID3D11RasterizerState>   pRasterStateNew;
 
-  ID3D11DepthStencilState* pDepthStencilStateOrig  = nullptr;
-  ID3D11DepthStencilState* pDepthStencilStateNew   = nullptr;
-  ID3D11DepthStencilView*  pDSVOrig                = nullptr;
+  CComPtr <ID3D11DepthStencilState> pDepthStencilStateOrig;
+  CComPtr <ID3D11DepthStencilState> pDepthStencilStateNew;
+  CComPtr <ID3D11DepthStencilView>  pDSVOrig;
 
-  ID3D11RenderTargetView*  pRTVOrig                = nullptr;
+  CComPtr <ID3D11RenderTargetView>  pRTVOrig;
 
-  ID3D11BlendState*        pOrigBlendState         = nullptr;
+  CComPtr <ID3D11BlendState>        pOrigBlendState;
   UINT                     uiOrigBlendMask         = 0x0;
   FLOAT                    fOrigBlendFactors [4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
 
@@ -379,11 +376,12 @@ public:
   size_t                    stateBlockSize         = 0;
 
   // Sampler to share between ImGui and CEGUI
-  ID3D11SamplerState*       uiSampler_clamp        = nullptr;
-  ID3D11SamplerState*       uiSampler_wrap         = nullptr;
+  CComPtr <ID3D11SamplerState>       uiSampler_clamp        = nullptr;
+  CComPtr <ID3D11SamplerState>       uiSampler_wrap         = nullptr;
 
-  ID3D11Buffer*             pOriginalCBuffers [6][D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT]
-                                                   = { };
+  CComPtr <ID3D11Buffer>             pOriginalCBuffers [6][D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT]
+                                                            = { };
+  bool                               empty_cbuffers    [6]  = { false };
 
   // Prevent recursion during hook installation
   BOOL                      skip_d3d11_create_device = FALSE;

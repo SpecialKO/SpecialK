@@ -89,6 +89,7 @@ BOOL __stdcall SK_EstablishDllRole    ( skWin32Module&& module );
 
 extern HMODULE                  backend_dll;
 
+extern          HANDLE   __SK_DLL_TeardownEvent;
 extern volatile LONG     __SK_DLL_Ending;
 extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
 

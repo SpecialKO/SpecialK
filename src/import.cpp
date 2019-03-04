@@ -51,8 +51,12 @@ const std::wstring SK_IMPORT_ROLE_3RDPARTY = L"ThirdParty";
 const std::wstring SK_IMPORT_ARCH_X64      = L"x64";
 const std::wstring SK_IMPORT_ARCH_WIN32    = L"Win32";
 
-import_s imports [SK_MAX_IMPORTS] = { };
-import_s host_executable          = { };
+SK_Import_Datastore& __SK_GetImports (void)
+{
+  static SK_Import_Datastore data;
+  return data;
+}
+
 
 extern
 HMODULE
@@ -900,7 +904,9 @@ _IsRoleSame ( const std::wstring& role,
 void
 SK_UnloadImports (void)
 {
-  __try {
+  auto orig_se =
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try {
     // Unload in reverse order, because that's safer :)
     for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
     {
@@ -948,8 +954,9 @@ SK_UnloadImports (void)
     }
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  catch (const SK_SEH_IgnoredException&)
   { }
+  _set_se_translator (orig_se);
 }
 
 

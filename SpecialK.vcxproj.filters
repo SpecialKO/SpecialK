@@ -1229,6 +1229,20 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

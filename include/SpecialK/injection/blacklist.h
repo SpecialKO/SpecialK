@@ -1,18 +1,60 @@
-const
-std::unordered_set <std::wstring> __blacklist = {
+const std::unordered_set <std::wstring> __graylist = {
   L"steamwebhelper.exe",
   L"streaming_client.exe",
   L"steam.exe",
   L"html5app_steam.exe",
   L"wow_helper.exe",
-  L"uninstall.exe",
-  
   L"writeminidump.exe",
   L"crashreporter.exe",
   L"supporttool.exe",
   L"crashsender1400.exe",
   L"firaxisbugreporter.exe",
-  
+  L"nvcontainer.exe",
+  L"nvdisplay.container.exe",
+  L"nvtelemetrycontainer.exe",
+  L"nvidia web helper.exe",
+  L"ism2.exe",
+  L"chrome.exe",
+  L"googlecrashhandler64.exe",
+  L"googlecrashhandler.exe",
+
+  L"servicehub.settingshost.exe",
+  L"servicehub.host.clr.x86.exe",
+  L"servicehub.identityhost.exe",
+  L"servicehub.vsdetouredhost.exe",
+
+  L"servicehub.datawarehousehost.exe",
+  L"microsoft.servicehub.controller.exe",
+  L"scriptedsandbox64.exe",
+
+  L"msmpeng.exe",L"systemsettings.exe",
+
+  L"onedrive.exe",
+  L"wmiprvse.exe",
+  L"dllhost.exe",
+  L"microsoft.servicehub.controller.exe",
+  L"perfwatson2.exe",
+  L"browser_broker.exe",
+  L"settingsynchost.exe",
+  L"shellexperiencehost.exe", L"sihost.exe",
+  L"conhost.exe", L"svchost.exe",
+  L"explorer.exe", L"taskhostw.exe"
+  L"scriptedsandbox.exe",
+  L"scriptedsandbox64.exe",
+  L"applicationframehost.exe",
+  L"microsoftedge.exe",
+  L"microsoftedgecp.exe",
+
+  L"skypebackgroundhost.exe",
+  L"skypebridge.exe",
+
+  L"smartscreen.exe",
+};
+
+const
+std::unordered_set <std::wstring> __blacklist = {
+  L"uninstall.exe",
+
   L"dxsetup.exe",
   L"setup.exe",
   L"vc_redist.x64.exe",
@@ -65,13 +107,6 @@ std::unordered_set <std::wstring> __blacklist = {
   L"activationui.exe",
   L"zossteamstarter.exe",
   L"eac.exe",
-  L"devenv.exe",
-  L"vcpkgsrv.exe",
-
-  L"nvcontainer.exe",
-  L"nvdisplay.container.exe",
-  L"nvtelemetrycontainer.exe",
-  L"nvidia web helper.exe",
   
   L"gameserver.exe",// Sacred   game server
   L"s2gs.exe",      // Sacred 2 game server
@@ -94,23 +129,6 @@ std::unordered_set <std::wstring> __blacklist = {
   L"powerdvd17agent.exe",
   L"powerdvd17ml.exe",
   L"powerdvd17movie.exe",
-
-  L"ism2.exe",
-  L"chrome.exe",
-  L"perfwatson2.exe",
-
-  L"browser_broker.exe",
-  L"microsoftedge.exe",
-  L"microsoftedgecp.exe",
-
-  L"shellexperiencehost.exe",
-
-  L"conhost.exe", L"svchost.exe",
-
-  //L"explorer.exe",
-  L"scriptedsandbox.exe",
-  L"scriptedsandbox64.exe",
-  L"applicationframehost.exe"
 };
 
 //// DLL must go in, but not be initialized...

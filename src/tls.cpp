@@ -321,6 +321,18 @@ SK_TLS_LogLeak ( const wchar_t* wszFunc,
 SK_TLS*
 SK_TLS_Bottom (void)
 {
+  //static volatile SK_TLS* pLastTLS = nullptr;
+  //
+  //SK_TLS* pTLStoTest = (SK_TLS *)
+  //  ReadPointerAcquire ((PVOID const volatile *)&pLastTLS);
+  //
+  //if (pTLStoTest != nullptr)
+  //{
+  //  if (pTLStoTest->debug.tid == GetCurrentThreadId ())
+  //  {
+  //    return pTLStoTest;
+  //  }
+  //}
   ////SK_TlsRecord *pTlsRec =
   ////  SK_TLS_FindInCache (dwTid);
   ////
@@ -350,7 +362,6 @@ SK_TLS_Bottom (void)
   auto    pTLSRecord =
     SK_GetTLS (&pTLS);
 
-  //extern volatile LONG __SK_DLL_Attached;
   //
   //SK_ReleaseAssert ( (! ReadAcquire (&__SK_DLL_Attached)) ||
   //                      tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
@@ -405,7 +416,9 @@ SK_TLS_Bottom (void)
   ////}
 
   if (pTLSRecord == nullptr)
+  {
     return nullptr;
+  }
 
   return
     pTLS;
@@ -421,7 +434,11 @@ SK_TLS_BottomEx (DWORD dwTid)
   auto tls_slot =
     tls_map [dwTid];
 
-  __try {
+  auto orig_se =
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try {
+    _set_se_translator (orig_se);
+
     // If out-of-indexes, then the thread was probably destroyed
     if ( tls_slot                                !=     nullptr &&
          tls_slot->pTLS                          !=     nullptr &&
@@ -433,12 +450,12 @@ SK_TLS_BottomEx (DWORD dwTid)
           );
     }
   }
-  __except (EXCEPTION_EXECUTE_HANDLER)
+
+  catch (const SK_SEH_IgnoredException&)
   {
     SK_ReleaseAssert (! (L"Bad TLS"))
-
-    return nullptr;
   }
+  _set_se_translator (orig_se);
 
   //SK_ReleaseAssert (tls_slot != tls_map.end ())
 

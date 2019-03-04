@@ -43,19 +43,19 @@ struct SK_ImGui_WidgetRegistry
 {
   bool texcache = false;
 
-  SK_Widget* frame_pacing;
-  SK_Widget* volume_control;
-  SK_Widget* gpu_monitor;
-  SK_Widget* cpu_monitor;
-  SK_Widget* d3d11_pipeline;
-  SK_Widget* thread_profiler;
+  SK_Widget* frame_pacing    = nullptr;
+  SK_Widget* volume_control  = nullptr;
+  SK_Widget* gpu_monitor     = nullptr;
+  SK_Widget* cpu_monitor     = nullptr;
+  SK_Widget* d3d11_pipeline  = nullptr;
+  SK_Widget* thread_profiler = nullptr;
 
-  SK_Widget* hdr_control;
-  SK_Widget* tobii;
+  SK_Widget* hdr_control     = nullptr;
+  SK_Widget* tobii           = nullptr;
 
-  SK_Widget* cmd_console;
-  SK_Widget* txt_editor;
-  SK_Widget* file_browser;
+  SK_Widget* cmd_console     = nullptr;
+  SK_Widget* txt_editor      = nullptr;
+  SK_Widget* file_browser    = nullptr;
 
   //SK_Widget* texcache;
 
@@ -172,8 +172,8 @@ protected:
 
   virtual void OnConfig (ConfigEvent event) { UNREFERENCED_PARAMETER (event); };
 
-  virtual void load (iSK_INI* config);
-  virtual void save (iSK_INI* config);
+  virtual void load (iSK_INI* config_file);
+  virtual void save (iSK_INI* config_file);
 
   // This will be private when I get the factory setup
   SK_Widget (const char* szName) : name (szName)

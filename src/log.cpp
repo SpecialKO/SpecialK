@@ -139,8 +139,18 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
       }
     }
 
-    SK_WaitForSingleObject (hFlushReq, INFINITE);
-    ResetEvent             (hFlushReq);
+    static HANDLE wait_objects [] = {
+      hFlushReq, __SK_DLL_TeardownEvent
+    };
+
+    DWORD dwWait =
+      WaitForMultipleObjects (2, wait_objects, FALSE, INFINITE);
+
+    if (dwWait == WAIT_OBJECT_0)
+      ResetEvent (hFlushReq);
+
+    //else if (dwWait == WAIT_OBJECT_0 + 1)
+    //  break;
   }
 
   CloseHandle (hFlushReq);

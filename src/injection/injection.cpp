@@ -69,7 +69,7 @@ extern "C"
 //   This struct will be filled-in when SK boots up using the loose mess of
 //     variables below, in order to make working with that data less insane.
 //
-SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
+SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { 0 };
 
 #pragma data_seg (".SK_Hooks")
 //__declspec (dllexport)          HANDLE hShutdownSignal= INVALID_HANDLE_VALUE;
@@ -155,10 +155,11 @@ SK_Inject_InitShutdownEvent (void)
     dwHookPID          = GetCurrentProcessId ();
 
     //hShutdownSignal =
-    //  SK_CreateEvent ( nullptr, FALSE, FhShutdown
-    //                  ALSE,
+    //  SK_CreateEvent ( nullptr, TRUE, FALSE,
     //                     SK_RunLHIfBitness ( 32, LR"(Local\SK_Injection_Terminate32)",
     //                                             LR"(Local\SK_Injection_Terminate64)") );
+
+    //ResetEvent (hShutdownSignal);
   }
 }
 
@@ -247,11 +248,96 @@ SK_Inject_ReleaseProcess (void)
   //FreeLibrary (hModHookInstance);
 }
 
+
+
+#include <AccCtrl.h>
+#include <AclAPI.h>
+#include <sddl.h>
+
+class SK_Auto_Local {
+public:
+  SK_Auto_Local (LPVOID* ppMem) : mem_ (ppMem)
+  { };
+
+  ~SK_Auto_Local (void)
+  {
+    if (mem_ != nullptr && (*mem_) != nullptr)
+    {
+      SK_LocalFree ((HLOCAL)*mem_);
+                            *mem_ = nullptr;
+    }
+  }
+
+private:
+  LPVOID* mem_;
+};
+
+DWORD
+SetPermissions (std::wstring wstrFilePath)
+{
+  PACL                 pOldDACL = nullptr,
+                       pNewDACL = nullptr;
+  PSECURITY_DESCRIPTOR pSD      = nullptr;
+  EXPLICIT_ACCESS      eaAccess = {     };
+  SECURITY_INFORMATION siInfo   = DACL_SECURITY_INFORMATION;
+  DWORD                dwResult = ERROR_SUCCESS;
+  PSID                 pSID     = nullptr;
+
+  SK_Auto_Local auto_sid  ((LPVOID *)&pSID);
+  SK_Auto_Local auto_dacl ((LPVOID *)&pNewDACL);
+  
+  // Get a pointer to the existing DACL
+  dwResult =
+    GetNamedSecurityInfo ( wstrFilePath.c_str (),
+                           SE_FILE_OBJECT,
+                           DACL_SECURITY_INFORMATION,
+                             nullptr, nullptr,
+                               &pOldDACL, nullptr,
+                                 &pSD );
+
+  if (dwResult != ERROR_SUCCESS)
+    return dwResult;
+
+  // Get the SID for ALL APPLICATION PACKAGES using its SID string
+  ConvertStringSidToSid (L"S-1-15-2-1", &pSID);
+
+  if (pSID == nullptr)
+    return dwResult;
+
+  eaAccess.grfAccessPermissions = GENERIC_READ | GENERIC_EXECUTE;
+  eaAccess.grfAccessMode        = SET_ACCESS;
+  eaAccess.grfInheritance       = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+  eaAccess.Trustee.TrusteeForm  = TRUSTEE_IS_SID;
+  eaAccess.Trustee.TrusteeType  = TRUSTEE_IS_WELL_KNOWN_GROUP;
+  eaAccess.Trustee.ptstrName    = static_cast <LPWSTR> (pSID);
+
+  // Create a new ACL that merges the new ACE into the existing DACL
+  dwResult =
+    SetEntriesInAcl (1, &eaAccess, pOldDACL, &pNewDACL);
+
+  if (ERROR_SUCCESS != dwResult)
+    return dwResult;
+
+  // Attach the new ACL as the object's DACL
+  dwResult =
+    SetNamedSecurityInfo ( const_cast <LPWSTR> (wstrFilePath.c_str ()),
+                             SE_FILE_OBJECT, siInfo,
+                               nullptr, nullptr,
+                                 pNewDACL, nullptr );
+
+  return
+    dwResult;
+}
+
 void
 SK_Inject_AcquireProcess (void)
 {
   if (! SK_IsInjected ())
     return;
+
+  SetPermissions (
+    SK_GetModuleFullName (__SK_hModSelf)
+  );
 
   for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
@@ -351,7 +437,7 @@ CBTProc ( _In_ int    nCode,
 
   return
     CallNextHookEx (
-      SKX_GetCBTHook (),
+      0,//SKX_GetCBTHook (),
         nCode, wParam, lParam
     );
 }
@@ -375,10 +461,6 @@ void
 __stdcall
 SKX_InstallCBTHook (void)
 {
-  // Pre-emptively install the driver if permissions permit
-  extern bool SK_WR0_Init (void);
-              SK_WR0_Init ();
-
   // Nothing to do here, move along.
   if (SKX_GetCBTHook () != nullptr)
     return;
@@ -394,11 +476,11 @@ SKX_InstallCBTHook (void)
   {
     SK_Inject_InitShutdownEvent ();
 
-    if (SK_GetHostAppUtil ().isInjectionTool ())
+    if (SK_GetHostAppUtil ()->isInjectionTool ())
       InterlockedIncrementRelease (&injected_procs);
 
     InterlockedExchangePointerAcquire ( (PVOID *)&hHookCBT,
-      SetWindowsHookEx (WH_CALLWNDPROCRET, CBTProc, hMod, 0)
+      SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0)
     );
   }
 }
@@ -408,7 +490,7 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
-  if (SK_GetHostAppUtil ().isInjectionTool ())
+  if (SK_GetHostAppUtil ()->isInjectionTool ())
   {
     InterlockedDecrement (&injected_procs);
   }
@@ -431,17 +513,17 @@ SKX_RemoveCBTHook (void)
   }
 
   dwHookPID = 0x0;
+}
 
-  //HANDLE
-  //  hShutdownCopy =
-  //    SK_CreateEvent ( nullptr, FALSE, FALSE,
-  //                       SK_RunLHIfBitness ( 32, LR"(Local\SK_Injection_Terminate32)",
-  //                                               LR"(Local\SK_Injection_Terminate64)") );
-  //if (hShutdownCopy != INVALID_HANDLE_VALUE)
-  //{
-  //  SetEvent    (hShutdownCopy);
-  //  CloseHandle (hShutdownCopy);
-  //}
+void
+SK_Inject_WaitOnUnhook (void)
+{
+  do
+  {
+    MsgWaitForMultipleObjects ( 0, nullptr,
+                                  FALSE, 7500UL,
+                                    QS_SENDMESSAGE );
+  } while (SKX_IsHookingCBT ());
 }
 
 bool
@@ -488,16 +570,24 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
            [](LPVOID user) ->
              DWORD
                {
-                 // Pre-emptively install the driver if permissions permit
-                 extern bool SK_WR0_Init (void);
-                             SK_WR0_Init ();
-
-                 while ( ReadAcquire (&__SK_DLL_Attached) || SK_GetHostAppUtil ().isInjectionTool () )
+                 while ( ReadAcquire (&__SK_DLL_Attached) || SK_GetHostAppUtil ()->isInjectionTool () )
                  {
-                   SK_Sleep (750UL);
-                   //SK_WaitForSingleObject (hShutdownSignal, INFINITE);
-                   //           CloseHandle (hShutdownSignal);
-                   //                        hShutdownSignal = INVALID_HANDLE_VALUE;
+                   if (__SK_DLL_TeardownEvent != 0)
+                   {
+                     DWORD dwWait =
+                       WaitForSingleObject (__SK_DLL_TeardownEvent, INFINITE);
+                     
+                     if ( dwWait == WAIT_OBJECT_0    ||
+                          dwWait == WAIT_ABANDONED_0 ||
+                          dwWait == WAIT_TIMEOUT     ||
+                          dwWait == WAIT_FAILED )
+                     {
+                        break;
+                      }
+                   }
+
+                   else
+                     SK_Sleep (1UL);
                  }
 
                  SK_Thread_CloseSelf ();
@@ -715,8 +805,8 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 
     *wszIn = L'\0';
 
-    std::wstring ver_dir   =
-      SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
+    std::wstring      ver_dir;
+    SK_FormatStringW (ver_dir, LR"(%s\Version)", SK_GetConfigPath ());
 
     const DWORD dwAttribs =
       GetFileAttributesW (ver_dir.c_str ());
@@ -861,8 +951,8 @@ SK_Inject_SwitchToRenderWrapper (void)
 
     *wszIn = L'\0';
 
-    std::wstring ver_dir   =
-      SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
+    std::wstring      ver_dir;
+    SK_FormatStringW (ver_dir, LR"(%s\Version)", SK_GetConfigPath ());
 
     const DWORD dwAttribs =
       GetFileAttributesW (ver_dir.c_str ());

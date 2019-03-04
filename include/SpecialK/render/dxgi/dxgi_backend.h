@@ -570,10 +570,10 @@ public:
   std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
 };
 
-using  SK_D3D11_TexMgr_Singleton = SK_D3D11_TexMgr&;
+using  SK_D3D11_TexMgr_Singleton = SK_D3D11_TexMgr*;
 extern SK_D3D11_TexMgr_Singleton __SK_Singleton_D3D11_Textures (void);
 
-#define SK_D3D11_Textures __SK_Singleton_D3D11_Textures()
+#define SK_D3D11_Textures (*__SK_Singleton_D3D11_Textures ())
 
 
 interface ID3D11DeviceContext2;
@@ -974,26 +974,14 @@ struct d3d11_shader_tracking_s
       }
     };
 
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock_gs (*shader_class_crit_sec ());
-
-    for ( auto it : set_of_views )
-      it->Release ();
+    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*shader_class_crit_sec ());
 
     set_of_res.clear   ();
     set_of_views.clear ();
     used_views.clear   ();
+    classes.clear      ();
 
-
-    for ( auto it : classes )
-      it->Release ();
-
-    classes.clear ();
-
-    if ( pre_hud_rtv != nullptr)
-    {
-         pre_hud_rtv->Release ();
-         pre_hud_rtv = nullptr;
-    }
+    pre_hud_rtv = nullptr;
 
     //used_textures.clear ();
 
@@ -1074,17 +1062,18 @@ struct d3d11_shader_tracking_s
   std::atomic_ulong       num_draws        =     0;
 
 
-  std::atomic_bool        pre_hud_source   =   false;
-  std::atomic_long        pre_hud_rt_slot  =      -1;
-  std::atomic_long        pre_hud_srv_slot =      -1;
-  ID3D11RenderTargetView* pre_hud_rtv      = nullptr;
+  
+  std::atomic_bool                   pre_hud_source   =   false;
+  std::atomic_long                   pre_hud_rt_slot  =      -1;
+  std::atomic_long                   pre_hud_srv_slot =      -1;
+  SK_ComPtr <ID3D11RenderTargetView> pre_hud_rtv      = nullptr;
 
   // The slot used has meaning, but I think we can ignore it for now...
   //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;
 
-  std::set    <ID3D11Resource *          > set_of_res;
-  std::set    <ID3D11ShaderResourceView *> set_of_views;
-  std::vector <ID3D11ShaderResourceView *> used_views;
+  std::set    <SK_ComPtr <ID3D11Resource>           > set_of_res;
+  std::set    <SK_ComPtr <ID3D11ShaderResourceView> > set_of_views;
+  std::vector <SK_ComPtr <ID3D11ShaderResourceView> > used_views;
 
 
   struct cbuffer_override_s {
@@ -1126,13 +1115,10 @@ struct d3d11_shader_tracking_s
   void addClassInstance (ID3D11ClassInstance* pInstance)
   {
     if (! classes.count (pInstance))
-    {
-      pInstance->AddRef ();
-      classes.insert    (pInstance);
-    }
+          classes.insert (pInstance);
   }
 
-  std::set <ID3D11ClassInstance *> classes;
+  std::set <SK_ComPtr <ID3D11ClassInstance> > classes;
 
 //  struct shader_constant_s
 //  {
@@ -1238,9 +1224,9 @@ struct SK_D3D11_KnownShaders
     d3d11_shader_tracking_s                              tracked;
 
     struct {
-      uint32_t                  shader    [SK_D3D11_MAX_DEV_CONTEXTS+1]      =   { }  ;
-      ID3D11ShaderResourceView* views     [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
-      ID3D11ShaderResourceView* tmp_views [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
+      uint32_t                             shader    [SK_D3D11_MAX_DEV_CONTEXTS+1]      =   { }  ;
+                 ID3D11ShaderResourceView* views     [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
+                 ID3D11ShaderResourceView* tmp_views [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
       // Avoid allocating memory on the heap/stack when we have to manipulate an array
       //   large enough to store all D3D11 Shader Resource Views.
     } current;
@@ -1262,12 +1248,12 @@ struct SK_D3D11_KnownShaders
   ShaderRegistry <ID3D11ComputeShader>  compute;
 };
 
-using  SK_D3D11_KnownShaders_Singleton = SK_D3D11_KnownShaders&;
+using  SK_D3D11_KnownShaders_Singleton = SK_D3D11_KnownShaders*;
 extern SK_D3D11_KnownShaders_Singleton __SK_Singleton_D3D11_Shaders (void);
 
-extern SK_D3D11_KnownShaders_Singleton& SK_D3D11_Shader_Lambda (void);
+extern SK_D3D11_KnownShaders_Singleton SK_D3D11_Shader_Lambda (void);
 
-#define SK_D3D11_Shaders SK_D3D11_Shader_Lambda()
+#define SK_D3D11_Shaders (*SK_D3D11_Shader_Lambda ())
 
 
 typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(

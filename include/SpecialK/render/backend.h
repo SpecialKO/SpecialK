@@ -161,8 +161,10 @@ public:
   CComPtr <IUnknown>      swapchain            = nullptr;
   // Different views of the same resource (API interop)
   struct {
-    IDirect3DSurface9*    d3d9                 = nullptr;
-    IDXGISurface*         dxgi                 = nullptr;
+    CComPtr <IDirect3DSurface9>
+                          d3d9                 = nullptr;
+    CComPtr <IDXGISurface>
+                          dxgi                 = nullptr;
     NVDX_ObjectHandle     nvapi                = nullptr;
   } surface;
   bool                    fullscreen_exclusive = false;

@@ -202,4 +202,49 @@ DebuggableLambda <typename std::remove_reference <F>::type>
 # define SK_DEBUGGABLE_LAMBDA(F) F
 #endif
 
+
+
+#ifndef UNREFERENCED_PARAMETER
+#define UNREFERENCED_PARAMETER(P) (P)
+#endif
+
+std::wstring
+SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool crash_log = false);
+
+class SK_SEH_IgnoredException
+{
+public:
+};
+
+void
+SK_SEH_LogException ( unsigned int        nExceptionCode,
+                      EXCEPTION_POINTERS* pException,
+                      LPVOID              lpRetAddr );
+
+#define SK_BasicStructuredExceptionTranslator         \
+  []( unsigned int        nExceptionCode,             \
+      EXCEPTION_POINTERS* pException )->              \
+  void {                                              \
+    SK_SEH_LogException ( nExceptionCode, pException, \
+                            _ReturnAddress ());       \
+    throw SK_SEH_IgnoredException ();                 \
+  }
+
+#define SK_FilteringStructuredExceptionTranslator(Filter) \
+  []( unsigned int        nExceptionCode,             \
+      EXCEPTION_POINTERS* pException )->              \
+  void {                                              \
+    SK_SEH_LogException ( nExceptionCode, pException, \
+                            _ReturnAddress ());       \
+    if (nExceptionCode == Filter)                     \
+    {                                                 \
+      throw SK_SEH_IgnoredException ();               \
+    }                                                 \
+    else                                              \
+      RaiseException ( nExceptionCode, pException->ExceptionRecord->ExceptionFlags,         \
+                                       pException->ExceptionRecord->NumberParameters,       \
+                                       pException->ExceptionRecord->ExceptionInformation ); \
+  }
+
+
 #endif /* __SK__DEBUG_UTILS_H__ */

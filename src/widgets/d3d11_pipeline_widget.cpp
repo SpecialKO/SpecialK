@@ -330,5 +330,11 @@ private:
       SK_Stat_DataHistory <float, 600> dispatches;
     } compute;
   } pipeline;
-} __d3d11_pipeline__;
+};
+
+SKWG_D3D11_Pipeline* SK_Widget_GetD3D11Pipeline (void)
+{
+  static SKWG_D3D11_Pipeline  __d3d11_pipeline__;
+  return                     &__d3d11_pipeline__;
+}
 

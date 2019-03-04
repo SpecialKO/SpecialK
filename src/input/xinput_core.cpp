@@ -1006,10 +1006,13 @@ SK_Input_HookXInput1_4 (void)
   if (! config.input.gamepad.hook_xinput)
     return;
 
-  SK_TLS* pTLS =
-   SK_TLS_Bottom ();
+  static
+    volatile LONG hooked = FALSE;
+  if (ReadAcquire (&hooked) >= 2)
+    return;
 
-  static volatile LONG hooked = FALSE;
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
@@ -1053,8 +1056,10 @@ SK_Input_HookXInput1_3 (void)
   if (! config.input.gamepad.hook_xinput)
     return;
 
-  static volatile LONG hooked = FALSE;
-
+  static
+      volatile LONG hooked = FALSE;
+  if (ReadAcquire (&hooked) >= 2)
+    return;
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -1101,7 +1106,10 @@ SK_Input_HookXInput9_1_0 (void)
   if (! config.input.gamepad.hook_xinput)
     return;
 
-  static volatile LONG hooked = FALSE;
+  static
+      volatile LONG hooked = FALSE;
+  if (ReadAcquire (&hooked) >= 2)
+    return;
 
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
@@ -1630,8 +1638,8 @@ SK_XInput_PollController ( INT           iJoyID,
       {
         pCtx->XInputGetState_Original =
           (XInputGetState_pfn)
-            GetProcAddress ( hModXInput1_3,
-                             "XInputGetState" );
+            SK_GetProcAddress ( L"XInput1_3.dll",
+                                 "XInputGetState" );
       }
     }
 

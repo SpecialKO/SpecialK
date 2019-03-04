@@ -675,7 +675,68 @@ struct sk_config_t
     bool    central_repository  = false;
     bool    ignore_rtss_delay   = false;
   } system;
-} extern config;
+};
+
+template <class T>
+class SK_DanglingRef
+{
+protected:
+  typedef T* (*init_fn)(void);
+               init_fn init = nullptr;
+
+  T* pPtr = nullptr;
+
+public:
+  SK_DanglingRef (void)
+  {
+    pPtr = nullptr;
+    init = nullptr;
+  }
+
+  SK_DanglingRef (T* pRef, init_fn _init)
+  {
+    pPtr =  pRef;
+    init = _init;
+  }
+
+  SK_DanglingRef (init_fn _init)
+  {
+    pPtr = nullptr;
+    init = _init;
+  }
+
+  operator SK_DanglingRef& (void) = delete;
+  operator SK_DanglingRef  (void) = delete;
+
+
+  operator T& ()
+  {
+    if (pPtr != nullptr)
+      return *pPtr;
+
+    else if (init != nullptr)
+    {
+      pPtr = init ();
+    }
+
+    return *pPtr;
+  }
+
+  T* operator -> ()
+  {
+    if (pPtr != nullptr)
+      return pPtr;
+
+    else if (init != nullptr)
+    {
+      pPtr = init ();
+    }
+
+    return pPtr;
+  }
+};
+extern sk_config_t* __config__;
+#define config (*(sk_config_t *)__config__)
 
 struct SK_KeyCommand
 {
@@ -742,6 +803,7 @@ enum class SK_GAME_ID
   DragonsDogma,                 // DDDA.exe
   EverQuest,                    // eqgame.exe
   GodEater2RageBurst,           // GE2RB.exe
+  GodEater3,                    // ge3.exe
   WatchDogs2,                   // WatchDogs2.exe
   NieRAutomata,                 // NieRAutomata.exe
   Warframe_x64,                 // Warframe.x64.exe
@@ -758,7 +820,7 @@ enum class SK_GAME_ID
   LifeIsStrange_BeforeTheStorm, // Life is Strange - Before the Storm.exe
   Tales_of_Symphonia,           // TOS.exe
   Tales_of_Zestiria,            // Tales of Zestiria.exe
-  Tales_of_Vesperia,            // TOE_DE.exe
+  Tales_of_Vesperia,            // TOV_DE.exe
   DivinityOriginalSin,          // EoCApp.exe
   Hob,                          // Hob.exe and HobLauncher.exe
   DukeNukemForever,             // DukeForever.exe
@@ -795,7 +857,7 @@ enum class SK_GAME_ID
 };
 
 __forceinline
-const SK_GAME_ID&
+const SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void);
 

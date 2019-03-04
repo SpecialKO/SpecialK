@@ -32,6 +32,13 @@ extern iSK_INI* osd_ini;
 extern bool
 SK_ImGui_IsWindowRightClicked (const ImGuiIO& io = ImGui::GetIO ());
 
+extern void __stdcall
+SK_ImGui_KeybindDialog (SK_Keybind* keybind);
+
+extern LONG SK_D3D11_ToggleGameHUD          (void);
+extern void SK_TriggerHudFreeScreenshot     (void) noexcept;
+extern void SK_YS0_TriggerHudFreeScreenshot (void);
+
 
 void
 SK_Widget::run_base (void) 
@@ -119,9 +126,13 @@ SK_Widget::run_base (void)
 #include <imgui/imgui_internal.h>
 
 void
-SK_Widget_CalcClipRect (SK_Widget* pWidget, bool n, bool s, bool e, bool w, ImVec2& min, ImVec2& max)
+SK_Widget_CalcClipRect ( SK_Widget* pWidget,
+                             bool n, bool s,
+                             bool e, bool w,
+                                ImVec2& min,
+                                ImVec2& max )
 {
-  ImGuiIO& io (ImGui::GetIO ());
+  static ImGuiIO& io (ImGui::GetIO ());
 
   // Docking alignment visualiztion
   bool draw_horz_ruler = false;
@@ -130,12 +141,16 @@ SK_Widget_CalcClipRect (SK_Widget* pWidget, bool n, bool s, bool e, bool w, ImVe
   ImVec2 pos  = pWidget->getPos  ();
   ImVec2 size = pWidget->getSize ();
 
-  ImGuiContext& g = *ImGui::GetCurrentContext ();
+  ImGuiContext& g =
+    *ImGui::GetCurrentContext ();
 
   if (n || s)
   {
-    if (pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered () ) ||
-                                   ( ImGui::IsNavDragging   ( ) && g.NavWindowingTarget == ImGui::GetCurrentWindow () ) ))
+    if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging  (0) && ImGui::IsWindowHovered () ) ||
+                                    ( ImGui::IsNavDragging    ( ) && g.NavWindowingTarget     ==
+                                      ImGui::GetCurrentWindow ( )                              )
+                                  )
+       )
     {
       draw_horz_ruler = true;
     }
@@ -144,63 +159,67 @@ SK_Widget_CalcClipRect (SK_Widget* pWidget, bool n, bool s, bool e, bool w, ImVe
       pos.y = 0.0;
 
     if (s)
-      pos.y = io.DisplaySize.y - size.y;
+    {
+      pos.y =
+        io.DisplaySize.y - size.y;
+    }
   }
 
 
   if (e || w)
   {
-    if (pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered () ) ||
-                                   ( ImGui::IsNavDragging   ( ) && g.NavWindowingTarget == ImGui::GetCurrentWindow () ) ))
+    if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging  (0) && ImGui::IsWindowHovered () ) ||
+                                    ( ImGui::IsNavDragging    ( ) && g.NavWindowingTarget     ==
+                                      ImGui::GetCurrentWindow ( )                              )
+                                  )
+       )
     {
       draw_vert_ruler = true;
     }
 
     if (e)
-      pos.x = io.DisplaySize.x - size.x;
+    {
+      pos.x =
+        io.DisplaySize.x - size.x;
+    }
 
     if (w)
       pos.x = 0.0;
   }
 
 
-  if (                   size.x > 0 &&                    size.y > 0 &&
-      io.DisplaySize.x - size.x > 0 && io.DisplaySize.y - size.y > 0)
+  if (                    size.x > 0 &&                    size.y > 0 &&
+       io.DisplaySize.x - size.x > 0 && io.DisplaySize.y - size.y > 0  )
   {
     pos.x = std::max (0.0f, std::min (pos.x, io.DisplaySize.x - size.x));
     pos.y = std::max (0.0f, std::min (pos.y, io.DisplaySize.y - size.y));
   }
 
-  if (draw_horz_ruler ^ draw_vert_ruler)
-  {
-    if (draw_vert_ruler)
-    {
-      ImVec2 horz_pos =
-        ImVec2 ( (e ? io.DisplaySize.x - size.x 
-                    :                    size.x),
-                   0.0f );
-
-      min = ImVec2 ( 0.0f,       0.0f             );
-      max = ImVec2 ( horz_pos.x, io.DisplaySize.y );
-    }
+  if (  draw_horz_ruler ^ draw_vert_ruler )
+  { if (draw_vert_ruler)
+    { ImVec2 horz_pos =
+        ImVec2 ( ( e  ?  io.DisplaySize.x - size.x 
+                      :                     size.x ),
+                     0.0f );                         min =
+            ImVec2 ( 0.0f,       0.0f             ); max =
+            ImVec2 ( horz_pos.x, io.DisplaySize.y );     }
 
     if (draw_horz_ruler)
-    {
-      ImVec2 vert_pos =
-        ImVec2 ( 0.0f, 
-             ( s ? io.DisplaySize.y - size.y :
-                                      size.y   ) );
-
-      min = ImVec2 ( 0.0f,             0          );
-      max = ImVec2 ( io.DisplaySize.x, vert_pos.y );
-    }
+    { ImVec2 vert_pos =
+        ImVec2 ( 0.0f, ( s ? io.DisplaySize.y - size.y
+                           :                    size.y)
+               );         min =
+                 ImVec2 ( 0.0f,             0          ); max =
+                 ImVec2 ( io.DisplaySize.x, vert_pos.y );     }
   }
 }
 
 void
-SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
+SK_Widget_ProcessDocking ( SK_Widget* pWidget,
+                               bool n, bool s,
+                               bool e, bool w )
 {
-  ImGuiIO& io (ImGui::GetIO ());
+  static auto& io (ImGui::GetIO ());
 
   // Docking alignment visualization
   bool draw_horz_ruler = false;
@@ -209,12 +228,15 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
   ImVec2 pos  = pWidget->getPos  ();
   ImVec2 size = pWidget->getSize ();
 
-  ImGuiContext& g = *ImGui::GetCurrentContext ();
+  ImGuiContext& g =
+    *ImGui::GetCurrentContext ();
 
   if (n || s)
   {
-    if (pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered () ) ||
-                                   ( ImGui::IsNavDragging   ( ) && g.NavWindowingTarget == ImGui::GetCurrentWindow () ) ))
+    if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered  ( ) )  ||
+                                    ( ImGui::IsNavDragging   ( ) && ImGui::GetCurrentWindow ( ) == 
+                                                                        g.NavWindowingTarget  ) )
+       )
     {
       draw_horz_ruler = true;
     }
@@ -223,7 +245,10 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
       pos.y = 0.0;
 
     if (s)
-      pos.y = io.DisplaySize.y - size.y;
+    {
+      pos.y =
+        io.DisplaySize.y - size.y;
+    }
   }
 
 
@@ -243,11 +268,13 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
   }
 
 
-  if (                   size.x > 0 &&                    size.y > 0 &&
-      io.DisplaySize.x - size.x > 0 && io.DisplaySize.y - size.y > 0)
+  if ( (                    size.x > 0 ) && (                    size.y ) > 0 &&
+       ( io.DisplaySize.x - size.x > 0 ) && ( io.DisplaySize.y - size.y ) > 0 )
   {
-    pos.x = std::max (0.0f, std::min (pos.x, io.DisplaySize.x - size.x));
-    pos.y = std::max (0.0f, std::min (pos.y, io.DisplaySize.y - size.y));
+    pos.x
+    = std::max (0.0f, std::min (pos.x, io.DisplaySize.x - size.x));
+    pos.y 
+    = std::max (0.0f, std::min (pos.y, io.DisplaySize.y - size.y));
   }
 
 
@@ -258,7 +285,8 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
   }
 
 
-  if (draw_horz_ruler ^ draw_vert_ruler)
+  if ( draw_horz_ruler ^
+       draw_vert_ruler   )
   {
     ImVec2 xy0, xy1;
 
@@ -351,16 +379,21 @@ SK_Widget::draw_base (void)
     flags |= ImGuiWindowFlags_NoResize;
 
   if (click_through && (! SK_ImGui_Active ()) && state__ != 1)
-    flags |= ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+    flags |= ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove
+                                       | ImGuiWindowFlags_NoResize;
 
 
   // Modal State:  Config
   if (state__ == 1)
   {
-    flags &= ~(ImGuiWindowFlags_AlwaysAutoResize);
-    flags |=  (ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
+    flags &= ~( ImGuiWindowFlags_AlwaysAutoResize );
+    flags |=  ( ImGuiWindowFlags_NoResize       |
+                ImGuiWindowFlags_AlwaysAutoResize );
 
-    ImGui::SetNextWindowSize (ImVec2 (std::max (size.x, 420.0f), std::max (size.y, 190.0f)));
+    ImGui::SetNextWindowSize (
+      ImVec2 ( std::max ( size.x, 420.0f ),
+               std::max ( size.y, 190.0f )
+             )               );
 
     if (! SK_ImGui_Active ())
       nav_usable = true;
@@ -371,18 +404,23 @@ SK_Widget::draw_base (void)
     if (! SK_ImGui_Active ())
       nav_usable = false;
 
-    if ((! autofit) && (! resizable))
+    if ( (! autofit) &&
+         (! resizable) )
     {
-      ImGui::SetNextWindowSize (ImVec2 ( std::min ( max_size.x, std::max ( size.x, min_size.x ) ),
-                                         std::min ( max_size.y, std::max ( size.y, min_size.y ) ) ) );
+      ImGui::SetNextWindowSize (
+        ImVec2 ( std::min (         max_size.x,
+                 std::max ( size.x, min_size.x ) ),
+                 std::min (         max_size.y,
+                 std::max ( size.y, min_size.y ) )
+               )               );
     }
   }
 
 
-  bool n = static_cast <int> (docking) & static_cast <int> (DockAnchor::North),
-       s = static_cast <int> (docking) & static_cast <int> (DockAnchor::South),
-       e = static_cast <int> (docking) & static_cast <int> (DockAnchor::East),
-       w = static_cast <int> (docking) & static_cast <int> (DockAnchor::West);
+  bool n = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::North) ) != 0,
+       s = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::South) ) != 0,
+       e = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::East ) ) != 0,
+       w = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::West ) ) != 0;
 
 
   extern bool    SK_Tobii_WantWidgetGazing (void);
@@ -397,7 +435,7 @@ SK_Widget::draw_base (void)
 
   // Since the Tobii widget is used to configure gazing, it should
   //   not be subject to gazing.
-  if (this != SK_ImGui_Widgets.tobii)
+  if ( this != SK_ImGui_Widgets.tobii )
   {
     if (SK_Tobii_WantWidgetGazing ())
     {
@@ -478,17 +516,20 @@ SK_Widget::draw_base (void)
 
   ImGui::SetWindowFontScale (SK_ImGui_Widgets.scale);
 
-  static SK_Widget* focus_widget = nullptr;
-
+  static SK_Widget*
+       focus_widget = nullptr;
   bool focus_change = false;
 
-  if (ImGui::IsWindowFocused () && focus_widget != this)
+  if ( ImGui::IsWindowFocused ()   &&
+                      focus_widget != this )
   {
     focus_widget = this;
     focus_change = true;
   }
 
-  ImGui::PushItemWidth (0.5f * ImGui::GetWindowWidth ());
+  ImGui::PushItemWidth (
+    0.5f * ImGui::GetWindowWidth ()
+  );
 
   // Modal State:  Normal drawing
   if (state__ == 0)
@@ -526,8 +567,8 @@ SK_Widget::draw_base (void)
         ImGui::GetIO ().WantMoveMouse = true;
 
         ImGui::GetIO ().MousePos =
-          ImVec2 ( pos.x + size.x / 2.0f,
-                   pos.y + size.y / 2.0f );
+          ImVec2 ( ( pos.x + size.x ) / 2.0f,
+                   ( pos.y + size.y ) / 2.0f );
       }
     }
 
@@ -569,6 +610,13 @@ SK_Widget::save (iSK_INI* /*ini*/)
   OnConfig (ConfigEvent::SaveComplete);
 }
 
+class SKWG_D3D11_Pipeline : public SK_Widget { };
+class SKWG_CPU_Monitor    : public SK_Widget { };
+
+
+extern SKWG_D3D11_Pipeline* SK_Widget_GetD3D11Pipeline (void);
+extern SKWG_CPU_Monitor*    SK_Widget_GetCPU           (void);
+
 void
 SK_Widget::config_base (void) 
 {
@@ -584,6 +632,7 @@ SK_Widget::config_base (void)
   }
 
   ImGui::SameLine ();
+
   if (ImGui::Checkbox ("Resizable", &resizable))
   {
     setResizable (resizable);
@@ -593,6 +642,7 @@ SK_Widget::config_base (void)
   if (! resizable)
   {
     ImGui::SameLine ();
+
     if (ImGui::Checkbox ("Auto-Fit", &autofit))
     {
       setAutoFit (autofit);
@@ -604,6 +654,7 @@ SK_Widget::config_base (void)
     setAutoFit (false);
 
   ImGui::SameLine ();
+
   if (ImGui::Checkbox ("Click-Through", &click_through))
   {
     setClickThrough (click_through);
@@ -611,43 +662,43 @@ SK_Widget::config_base (void)
   }
 
   ImGui::SameLine ();
+
   if (ImGui::Checkbox ("Draw Border", &border))
   {
     setBorder (border);
     changed = true;
   }
 
-  bool n = static_cast <int> (docking) & static_cast <int> (DockAnchor::North),
-       s = static_cast <int> (docking) & static_cast <int> (DockAnchor::South),
-       e = static_cast <int> (docking) & static_cast <int> (DockAnchor::East),
-       w = static_cast <int> (docking) & static_cast <int> (DockAnchor::West);
+  bool n = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::North) ) != 0,
+       s = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::South) ) != 0,
+       e = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::East ) ) != 0,
+       w = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::West ) ) != 0;
 
-  const char* anchors = "Undocked\0North\0South\0\0";
+  const char* anchors =
+    "Undocked\0North\0South\0\0";
 
-  int dock = 0;
-
+          int dock = 0;
        if (n) dock = 1;
   else if (s) dock = 2;
 
   if (ImGui::Combo ("Vertical Docking Anchor", &dock, anchors, 3))
   {
-    int mask = (dock == 1 ? static_cast <int> (DockAnchor::North) : 0x0) |
-               (dock == 2 ? static_cast <int> (DockAnchor::South) : 0x0);
+    int mask = ( dock == 1 ? static_cast <int> (DockAnchor::North) : 0x0 ) |
+               ( dock == 2 ? static_cast <int> (DockAnchor::South) : 0x0 );
 
-    docking = static_cast <DockAnchor> (
-                 mask | static_cast <int>     (docking) & ~(
-                            static_cast <int> (DockAnchor::North) |
-                            static_cast <int> (DockAnchor::South)
-                                                           )
-              );
-
+    docking =
+      static_cast <DockAnchor> (
+             mask | static_cast <int> (     docking     ) & ~(
+                    static_cast <int> (DockAnchor::North) |
+                    static_cast <int> (DockAnchor::South)    )
+                               );
     changed = true;
   }
 
-  anchors = "Undocked\0West\0East\0\0";
+  anchors =
+    "Undocked\0West\0East\0\0";
 
-  dock = 0;
-
+              dock = 0;
        if (w) dock = 1;
   else if (e) dock = 2;
 
@@ -656,13 +707,12 @@ SK_Widget::config_base (void)
     int mask = (dock == 1 ? static_cast <int> (DockAnchor::West) : 0x0) |
                (dock == 2 ? static_cast <int> (DockAnchor::East) : 0x0);
 
-    docking = static_cast <DockAnchor> (
-                 mask | static_cast <int>     (docking) & ~(
-                            static_cast <int> (DockAnchor::West) |
-                            static_cast <int> (DockAnchor::East)
-                                                           )
-              );
-
+    docking =
+      static_cast <DockAnchor> (
+             mask | static_cast <int> (     docking    ) & ~(
+                    static_cast <int> (DockAnchor::West) |
+                    static_cast <int> (DockAnchor::East)    )
+                               );
     changed = true;
   }
 
@@ -671,7 +721,8 @@ SK_Widget::config_base (void)
   auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
     auto
     {
-      std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+      std::string label  = 
+        SK_WideCharToUTF8 (binding->human_readable) + "###";
                   label += binding->bind_name;
 
       if (ImGui::Selectable (label.c_str (), false))
@@ -679,9 +730,9 @@ SK_Widget::config_base (void)
         ImGui::OpenPopup (binding->bind_name);
       }
 
-      std::wstring original_binding = binding->human_readable;
+      std::wstring original_binding =
+                            binding->human_readable;
 
-      extern void __stdcall SK_ImGui_KeybindDialog (SK_Keybind* keybind);
       SK_ImGui_KeybindDialog (binding);
 
       if (original_binding != binding->human_readable)
@@ -700,45 +751,35 @@ SK_Widget::config_base (void)
 
   ImGui::Text       ("Key Bindings");
   ImGui::TreePush   ("");
-
   ImGui::BeginGroup (  );
+
   if (toggle_key_val != nullptr)
     ImGui::Text     ("Widget Toggle");
   if (focus_key_val != nullptr)
     ImGui::Text     ("Widget Focus");
+
   ImGui::EndGroup   (  );
-
   ImGui::SameLine   (  );
-
   ImGui::BeginGroup (  );
+
   if (toggle_key_val != nullptr)
     Keybinding      (&toggle_key, toggle_key_val);
   if (focus_key_val != nullptr)
     Keybinding      (&focus_key,  focus_key_val);
+
   ImGui::EndGroup   (  );
   ImGui::TreePop    (  );
-
   ImGui::Separator  (  );
   ImGui::SliderFloat("Widget Scale", &scale, 0.25f, 2.0f);
   ImGui::Separator  (  );
 
-  bool done = false;
+  bool done =
+    ImGui::Button   ("  Save  ");
 
-  done |= ImGui::Button ("  Save  ");
-
-  if (done)
-  {
-    if (changed)
-    {
-      extern iSK_INI* osd_ini;
-
-      save (osd_ini);
-
-      changed = false;
-    }
-
-    state__ = 0;
-  }
+  if (done)      {
+    if (changed) { save (osd_ini);
+        changed = false;         }
+        state__ = 0;             }
 }
 
 
@@ -758,17 +799,11 @@ SK_Widget::load (iSK_INI*)
                               (((shift)!= 0) << 10) |   \
                               (((alt)  != 0) << 11))
 
-static auto widgets =
-  { SK_ImGui_Widgets.frame_pacing,   SK_ImGui_Widgets.volume_control,
-    SK_ImGui_Widgets.gpu_monitor,    SK_ImGui_Widgets.cpu_monitor,
-    SK_ImGui_Widgets.d3d11_pipeline, SK_ImGui_Widgets.thread_profiler,
-    SK_ImGui_Widgets.hdr_control,    SK_ImGui_Widgets.tobii
-  };
-
 SK_Widget*
 SK_HDR_GetWidget (void)
 {
-  return SK_ImGui_Widgets.hdr_control;
+  return
+    SK_ImGui_Widgets.hdr_control;
 }
 
 extern
@@ -780,14 +815,24 @@ SK_HDR_KeyPress ( BOOL Control,
                   BYTE vkCode );
 
 BOOL
-SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
+SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
+                                            BOOL Shift,
+                                            BOOL Alt,
+                                            BYTE vkCode )
 {
   BOOL dispatched = FALSE;
 
   auto uiMaskedKeyCode =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-  for (auto widget : widgets)
+  auto widgets =
+  { SK_ImGui_Widgets.frame_pacing,   SK_ImGui_Widgets.volume_control,
+    SK_ImGui_Widgets.gpu_monitor,    SK_ImGui_Widgets.cpu_monitor,
+    SK_ImGui_Widgets.d3d11_pipeline, SK_ImGui_Widgets.thread_profiler,
+    SK_ImGui_Widgets.hdr_control,    SK_ImGui_Widgets.tobii
+  };
+
+  for (auto& widget : widgets)
   {
     if (widget)
     {
@@ -816,46 +861,56 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
   //
   // TEMP HACK: Screenshots
   //
-  static const std::set < SK_ConfigSerializedKeybind * > screenshot_keys = {
-    &config.steam.screenshots.game_hud_free_keybind,
-    &config.steam.screenshots.sk_osd_free_keybind,
-    &config.steam.screenshots.sk_osd_insertion_keybind
-  };
+  static
+    const
+      std::set <SK_ConfigSerializedKeybind *>
+        screenshot_keys = {
+          &config.steam.screenshots.game_hud_free_keybind,
+          &config.steam.screenshots.sk_osd_free_keybind,
+          &config.steam.screenshots.sk_osd_insertion_keybind
+        };
 
   if ( uiMaskedKeyCode ==
          SK_MakeKeyMask ( 'H', false, true,
                                       true )
      )
   {
-    extern LONG SK_D3D11_ToggleGameHUD (void);
-                SK_D3D11_ToggleGameHUD (    );
+    SK_D3D11_ToggleGameHUD ();
 
     dispatched = TRUE;
   }
 
+  static const auto& game_id =
+    SK_GetCurrentGameID ();
 
   for ( auto& keybind : screenshot_keys )
   {
     if ( uiMaskedKeyCode == keybind->masked_code )
     {
-      if       ( keybind == &config.steam.screenshots.game_hud_free_keybind    )
+      if (       keybind == &config.steam.screenshots.game_hud_free_keybind )
       {
-        if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
+        if (     game_id == SK_GAME_ID::Yakuza0  )
         {
-          extern void SK_YS0_TriggerHudFreeScreenshot (void);
-                      SK_YS0_TriggerHudFreeScreenshot ();
+          SK_YS0_TriggerHudFreeScreenshot ();
         }
 
         else
-        {
-          extern void SK_TriggerHudFreeScreenshot (void) noexcept;
-                      SK_TriggerHudFreeScreenshot ();
-        }
+          SK_TriggerHudFreeScreenshot ();
       }
-      else if ( keybind == &config.steam.screenshots.sk_osd_free_keybind      )
-        SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::BeforeOSD);
-      else if ( keybind == &config.steam.screenshots.sk_osd_insertion_keybind )
-        SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::EndOfFrame);
+
+      else if (  keybind == &config.steam.screenshots.sk_osd_free_keybind )
+      {
+        SK::SteamAPI::TakeScreenshot (
+          SK::ScreenshotStage::BeforeOSD
+        );
+      }
+
+      else if (  keybind == &config.steam.screenshots.sk_osd_insertion_keybind )
+      {
+        SK::SteamAPI::TakeScreenshot (
+          SK::ScreenshotStage::EndOfFrame
+        );
+      }
 
       dispatched = TRUE;
     }
@@ -868,7 +923,23 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
 BOOL
 SK_ImGui_WidgetRegistry::SaveConfig (void)
 {
-  for ( auto& widget : widgets ) widget->save (osd_ini);
+  SK_RunOnce (SK_ImGui_Widgets.d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
+  SK_RunOnce (SK_ImGui_Widgets.cpu_monitor    = SK_Widget_GetCPU ());
+
+  auto widgets =
+  { SK_ImGui_Widgets.frame_pacing,   SK_ImGui_Widgets.volume_control,
+    SK_ImGui_Widgets.gpu_monitor,    SK_ImGui_Widgets.cpu_monitor,
+    SK_ImGui_Widgets.d3d11_pipeline, SK_ImGui_Widgets.thread_profiler,
+    SK_ImGui_Widgets.hdr_control,    SK_ImGui_Widgets.tobii
+  };
+
+  for ( auto& widget : widgets )
+  {
+    assert (widget != nullptr);
+
+    if (widget != nullptr)
+        widget->save (osd_ini);
+  }
 
   return TRUE;
 }

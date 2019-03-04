@@ -1292,8 +1292,6 @@ SK_Input_HookDI7 (void)
         SK_Input_HookDI8 ();
       }
 
-      SK_ApplyQueuedHooks ();
-
       InterlockedIncrementRelease (&hooked);
     }
 

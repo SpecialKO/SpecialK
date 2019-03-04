@@ -32,7 +32,7 @@
 
 #include <imgui/imgui.h>
 
-#define TVFIX_VERSION_NUM L"0.5.2"
+#define TVFIX_VERSION_NUM L"0.5.2.5"
 #define TVFIX_VERSION_STR LR"(Tales of Vesperia "Fix" v )" TVFIX_VERSION_NUM
 
 #pragma warning(push)
@@ -70,14 +70,16 @@ struct tv_mem_addr_s
         void* expected =
           (void *)((uintptr_t)GetModuleHandle (nullptr) + (uintptr_t)expected_addr);
 
-        __try
+        _set_se_translator (SK_BasicStructuredExceptionTranslator);
+        try
         {
           if (! memcmp (pattern, expected, pattern_len))
             scanned_addr = expected;
         }
         
-        __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
-                 EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+        //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
+        //         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+        catch (...)
         {
         }
 
@@ -91,13 +93,15 @@ struct tv_mem_addr_s
       // Fallback to exhaustive search if not there
       if (scanned_addr == nullptr)
       {
-        __try {
+        _set_se_translator (SK_BasicStructuredExceptionTranslator);
+        try {
           scanned_addr =
             SK_ScanAlignedEx (pattern, pattern_len, pattern_mask);
         }
 
-        __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
-                 EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+        //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
+        //         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+        catch (...)
         {
         }
       }
@@ -258,16 +262,28 @@ SK_TVFix_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  extern bool
-    __stdcall
-    SK_FetchVersionInfo (const wchar_t* wszProduct);
+  SK_Thread_Create ([](LPVOID)->
+    DWORD
+    {
+      while (SK_GetFramesDrawn () < 5)
+        ;
 
-  extern HRESULT
-    __stdcall
-    SK_UpdateSoftware (const wchar_t* wszProduct);
+      extern bool
+        __stdcall
+        SK_FetchVersionInfo (const wchar_t* wszProduct);
 
-  if (SK_FetchVersionInfo (L"TVF"))
-    SK_UpdateSoftware   (L"TVF");
+      extern HRESULT
+        __stdcall
+        SK_UpdateSoftware (const wchar_t* wszProduct);
+
+      if (SK_FetchVersionInfo (L"TVF"))
+          SK_UpdateSoftware   (L"TVF");
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }
+  );
 
   return 0;
 }
@@ -739,8 +755,8 @@ SK_TVFix_BeginFrame (void)
 
   if (rb.device != nullptr && InterlockedCompareExchange (&__init, 1, 0))
   {
-    CComQIPtr <ID3D11Device> pDev     (rb.device);
-    CComQIPtr  <IDXGIDevice> pDXGIDev (pDev);
+    SK_ComQIPtr <ID3D11Device> pDev     (rb.device);
+    SK_ComQIPtr  <IDXGIDevice> pDXGIDev (pDev);
 
     if (pDXGIDev != nullptr)
     {   pDXGIDev->SetGPUThreadPriority (5); }
@@ -764,8 +780,8 @@ SK_TVFix_BeginFrame (void)
 
     if (ulFramesDrawn == 31)
     {
-      CComQIPtr <ID3D11Device> pDevD3D11 (rb.device);
-      CComQIPtr <IDXGIDevice>  pDXGIDev  (pDevD3D11);
+      SK_ComQIPtr <ID3D11Device> pDevD3D11 (rb.device);
+      SK_ComQIPtr <IDXGIDevice>  pDXGIDev  (pDevD3D11);
 
       if (pDXGIDev != nullptr)
       {
@@ -898,24 +914,31 @@ SK_TVFix_DrawHandler_D3D11 (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr
   UNREFERENCED_PARAMETER (d_idx);
   UNREFERENCED_PARAMETER (pTLS);
 
-  CComPtr <ID3D11RasterizerState> pRaster         = nullptr;
-  CComPtr <ID3D11RasterizerState> pRasterOverride = nullptr;
+  SK_ComPtr <ID3D11RasterizerState> pRaster         = nullptr;
+  SK_ComPtr <ID3D11RasterizerState> pRasterOverride = nullptr;
 
+  // It's not necessarily the case that anything has been bound
+  //   by RSSetState, thus producing nullptr.
+  //
+  //   --> We could fill-in the default RASTERIZER_DESC if this happens,
+  //         but realistically we skipping it is better.
   pDevCtx->RSGetState (&pRaster.p);
 
   D3D11_TEXTURE2D_DESC  texDesc    = {};
   D3D11_RASTERIZER_DESC rasterDesc = {};
-  pRaster->GetDesc    (&rasterDesc);
 
-  ID3D11RenderTargetView*          pRTV [8] = { };
-  CComPtr <ID3D11DepthStencilView> pDSV      = nullptr;
+  if (pRaster != nullptr)
+    pRaster->GetDesc  (&rasterDesc);
+  else
+  {
+    return false;
+  }
 
-  pDevCtx->OMGetRenderTargets (8, &pRTV [0], &pDSV.p);
 
-  CComPtr <ID3D11RenderTargetView> rtvs_ [8] = {
-    pRTV [ 0], pRTV [ 1], pRTV [ 2], pRTV [ 3],
-    pRTV [ 4], pRTV [ 5], pRTV [ 6], pRTV [ 7]
-  };
+  SK_ComPtr <ID3D11RenderTargetView> pRTV [8] = { };
+  SK_ComPtr <ID3D11DepthStencilView> pDSV     = nullptr;
+
+  pDevCtx->OMGetRenderTargets (8, &pRTV [0].p, &pDSV.p);
 
   struct {
     bool depth_stencil = false;
@@ -961,8 +984,8 @@ SK_TVFix_DrawHandler_D3D11 (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr
        rasterDesc.ScissorEnable     == FALSE &&
        compatibility.color )
   {
-    CComPtr <ID3D11Device> pDev = nullptr;
-    pDevCtx->GetDevice   (&pDev.p);
+    SK_ComPtr <ID3D11Device> pDev = nullptr;
+      pDevCtx->GetDevice   (&pDev.p);
 
     SK_RunOnce (
       dll_log.Log (L"[  ToVFix  ]  Multisample Rasterization -FORCED- ON")
@@ -1002,8 +1025,8 @@ SK_TVFix_DrawHandler_D3D11 (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr
       D3D11_BUFFER_DESC bufDesc = { };
       pBuffer->GetDesc (&bufDesc);
 
-      CComPtr <ID3D11Buffer> pCopyBuf = nullptr;
-      CComPtr <ID3D11Device> pDevice  = nullptr;
+      SK_ComPtr <ID3D11Buffer> pCopyBuf = nullptr;
+      SK_ComPtr <ID3D11Device> pDevice  = nullptr;
       pDevCtx->GetDevice (&pDevice);
 
       bufDesc.Usage          = D3D11_USAGE_STAGING;

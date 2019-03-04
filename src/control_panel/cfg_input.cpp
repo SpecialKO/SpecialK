@@ -937,6 +937,7 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::Checkbox  ("Disable Keyboard Input to Game", &config.input.keyboard.disabled_to_game);
       ImGui::SameLine  ();
       ImGui::Checkbox  ("Disable Gamepad Input to Game",  &config.input.gamepad.disabled_to_game);
+#if 0
       ImGui::Separator ();
 
       static std::vector <RAWINPUTDEVICE> keyboards_ = SK_RawInput_GetKeyboards ();
@@ -1031,11 +1032,11 @@ extern float SK_ImGui_PulseNav_Strength;
           }
         };
 
-      static std::vector <RAWINPUTDEVICE> mice      = SK_RawInput_GetMice      ();
-      static std::vector <RAWINPUTDEVICE> keyboards = SK_RawInput_GetKeyboards ();
+      std::vector <RAWINPUTDEVICE> mice      = SK_RawInput_GetMice      ();
+      std::vector <RAWINPUTDEVICE> keyboards = SK_RawInput_GetKeyboards ();
 
-      std::vector <std::vector <std::string>> mouse_flags    (mice.size ());
-      std::vector <std::vector <std::string>> mouse_descs    (mice.size ());
+      std::vector <std::vector <std::string>> mouse_flags    (mice.size      ());
+      std::vector <std::vector <std::string>> mouse_descs    (mice.size      ());
       std::vector <std::vector <std::string>> keyboard_flags (keyboards.size ());
       std::vector <std::vector <std::string>> keyboard_descs (keyboards.size ());
 
@@ -1043,56 +1044,62 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePush ("");
 
       ImGui::BeginGroup (           );
-      ImGui::Text       ("Mice"     );
-      ImGui::Separator  (           );
+      if (mice.size ())
+      {
+        ImGui::Text       ("Mice"     );
+        ImGui::Separator  (           );
 
-      int idx = 0;
-      for (          auto& mouse : mice )                {
-        _EnumDeviceFlags ( mouse, mouse_flags [  idx],
-                                  mouse_descs [idx++] ); }
+        int idx = 0;
+        for (          auto& mouse : mice )                {
+          _EnumDeviceFlags ( mouse, mouse_flags [  idx],
+                                    mouse_descs [idx++] ); }
 
-      ImGui::BeginGroup   ();
-      for (  auto& flag_array   : mouse_flags )
-      { for (auto& flag         : flag_array  )
-        { ImGui::TextUnformatted (flag.c_str ());
-      } } ImGui::EndGroup ();
-      ImGui::SameLine     ();
-      ImGui::BeginGroup   ();
-      for (  auto& desc_array   : mouse_descs )
-      { for (auto& desc         : desc_array  )
-        { ImGui::TextUnformatted (desc.c_str ());
-      } } ImGui::EndGroup ();
-      ImGui::EndGroup     (                    );
-      ImGui::SameLine     (                    );
+        ImGui::BeginGroup   ();
+        for (  auto& flag_array   : mouse_flags )
+        { for (auto& flag         : flag_array  )
+          { ImGui::TextUnformatted (flag.c_str ());
+        } } ImGui::EndGroup ();
+        ImGui::SameLine     ();
+        ImGui::BeginGroup   ();
+        for (  auto& desc_array   : mouse_descs )
+        { for (auto& desc         : desc_array  )
+          { ImGui::TextUnformatted (desc.c_str ());
+        } } ImGui::EndGroup ();
+        ImGui::EndGroup     (                    );
+      }
 
-      ImGui::BeginGroup   (                    );
-      ImGui::Text         ("Keyboards"         );
-      ImGui::Separator    (                    );
+      if (keyboards.size ())
+      {
+        ImGui::SameLine     (                    );
+        ImGui::BeginGroup   (                    );
+        ImGui::Text         ("Keyboards"         );
+        ImGui::Separator    (                    );
 
-          idx = 0;
-      for (          auto& keyboard : keyboards )               {
-        _EnumDeviceFlags ( keyboard,  keyboard_flags [  idx],
-                                      keyboard_descs [idx++] ); }
+        int idx = 0;
+        for (          auto& keyboard : keyboards )               {
+          _EnumDeviceFlags ( keyboard,  keyboard_flags [  idx],
+                                        keyboard_descs [idx++] ); }
 
-      ImGui::BeginGroup     ();
-      for (  auto& flag_array : keyboard_flags )
-      { for (auto& flag       : flag_array     )
-        { ImGui::TextUnformatted (flag.c_str ());
-      } } ImGui::EndGroup   ();
-      ImGui::SameLine       ();
-      ImGui::BeginGroup     ();
-      for (  auto& desc_array : keyboard_descs )
-      { for (auto& desc       : desc_array     )
-        { ImGui::TextUnformatted (desc.c_str ());
-      } } ImGui::EndGroup   ();
-      ImGui::EndGroup       (                  );
-
-      ImGui::TreePop        ();
-      ImGui::TreePop        ();
+        ImGui::BeginGroup     ();
+        for (  auto& flag_array : keyboard_flags )
+        { for (auto& flag       : flag_array     )
+          { ImGui::TextUnformatted (flag.c_str ());
+        } } ImGui::EndGroup   ();
+        ImGui::SameLine       ();
+        ImGui::BeginGroup     ();
+        for (  auto& desc_array : keyboard_descs )
+        { for (auto& desc       : desc_array     )
+          { ImGui::TextUnformatted (desc.c_str ());
+        } } ImGui::EndGroup   ();
+      }
+      ImGui::EndGroup ();
+#endif
+      ImGui::TreePop  ();
     }
 
     ImGui::TreePop       ( );
     ImGui::PopStyleColor (3);
+    ImGui::TreePop       ( );
 
     return true;
   }

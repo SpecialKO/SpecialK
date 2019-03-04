@@ -34,13 +34,13 @@
 #include <processthreadsapi.h>
 #include <avrt.h>
 
-extern concurrency::concurrent_unordered_map <DWORD, std::wstring>&
+extern concurrency::concurrent_unordered_map <DWORD, std::wstring>*
 __SK_GetThreadNames (void);
-extern concurrency::concurrent_unordered_set <DWORD>&
+extern concurrency::concurrent_unordered_set <DWORD>*
 __SK_GetSelfTitledThreads (void);
 
-#define _SK_SelfTitledThreads __SK_GetSelfTitledThreads ()
-#define _SK_ThreadNames       __SK_GetThreadNames       ()
+#define _SK_SelfTitledThreads (*__SK_GetSelfTitledThreads ())
+#define _SK_ThreadNames       (*__SK_GetThreadNames       ())
 
 #pragma pack(push,8)
 typedef LONG NTSTATUS;
@@ -48,6 +48,8 @@ typedef      NTSTATUS (WINAPI *NtQueryInformationThread_pfn)(HANDLE,/*THREADINFO
 
 #define ThreadQuerySetWin32StartAddress 9
 
+#include <ntverp.h>
+#if (VER_PRODUCTBUILD < 10011)
 enum THREAD_INFORMATION_CLASS_EX {
 //ThreadMemoryPriority      = 0,
 //ThreadAbsoluteCpuPriority = 1,
@@ -67,6 +69,10 @@ typedef struct _THREAD_POWER_THROTTLING_STATE {
 
 typedef BOOL (WINAPI *GetThreadInformation_pfn)(HANDLE, THREAD_INFORMATION_CLASS_EX, LPVOID, DWORD);
 typedef BOOL (WINAPI *SetThreadInformation_pfn)(HANDLE, THREAD_INFORMATION_CLASS_EX, LPVOID, DWORD);
+#else
+typedef BOOL (WINAPI* GetThreadInformation_pfn)(HANDLE, THREAD_INFORMATION_CLASS, LPVOID, DWORD);
+typedef BOOL (WINAPI* SetThreadInformation_pfn)(HANDLE, THREAD_INFORMATION_CLASS, LPVOID, DWORD);
+#endif
 
 // Windows 8+
 GetThreadInformation_pfn k32GetThreadInformation = nullptr;

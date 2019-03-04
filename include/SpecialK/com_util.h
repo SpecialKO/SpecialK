@@ -158,6 +158,80 @@ extern "C++"
     return
       ( *ppT == reinterpret_cast <T *> (pPolymorph) );
   }
+
+
+  template <class T>
+  class SK_ComPtr :
+      public CComPtrBase <T>
+  {
+  public:
+    SK_ComPtr (void) throw ()
+    {
+    }
+    SK_ComPtr (_Inout_opt_ T* lp) throw () :
+      CComPtrBase <T> (lp)
+    {
+    }
+    SK_ComPtr (_Inout_ const SK_ComPtr <T>& lp) throw () :
+      CComPtrBase<T>(lp.p)
+    {
+    }
+    T* operator= (_Inout_opt_ T* lp) throw ()
+    {
+      if (*this != lp)
+      {
+        SK_ComPtr (lp).Swap (*this);
+      }
+      return *this;
+    }
+    template <typename Q>
+    T* operator= (_Inout_ const SK_ComPtr <Q>& lp) throw ()
+    {
+      if (! this->IsEqualObject (lp))
+      {
+        AtlComQIPtrAssign2 ((IUnknown**)&this->p, lp, __uuidof (T));
+      }
+      return *this;
+    }
+    T* operator= (_Inout_ const SK_ComPtr <T>& lp) throw ()
+    {
+      if (*this != lp)
+      {
+        SK_ComPtr (lp).Swap (*this);
+      }
+      return *this;
+    }
+    SK_ComPtr (_Inout_ SK_ComPtr <T>&& lp) throw () :
+      CComPtrBase <T> ()
+    {
+      lp.Swap (*this);
+    }
+    T* operator= (_Inout_ SK_ComPtr <T>&& lp) throw ()
+    {
+      if (*this != lp)
+      {
+        SK_ComPtr (static_cast <SK_ComPtr&&> (lp)).Swap (*this);
+      }
+  
+      return *this;
+    }
+  };
+
+  template <class T>
+  using SK_ComQIPtr = CComQIPtr <T>;
+  
+  namespace std
+  {
+    template <class T>
+    struct hash < SK_ComPtr <T> >
+    {
+      std::size_t operator()(const SK_ComPtr <T>& key) const
+      {
+        return
+          std::hash <T*>()(key.p);
+      }
+    };
+  }
 }
 
 

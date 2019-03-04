@@ -56,9 +56,8 @@ typedef void* LPDDENUMCALLBACKEX;
 
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/import.h>
 
-         import_s* dgvoodoo_ddraw  = nullptr;
-         import_s* dgvoodoo_d3dimm = nullptr;
 volatile LONG      __ddraw_ready   = FALSE;
 
 unsigned int

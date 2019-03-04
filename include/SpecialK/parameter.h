@@ -30,6 +30,8 @@ struct IUnknown;
 #include <vector>
 #include <typeindex>
 
+#include <string>
+
 #ifndef IM_VEC2_DEFINED
 #define IM_VEC2_DEFINED
 struct ImVec2

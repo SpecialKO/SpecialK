@@ -22,6 +22,8 @@
 #ifndef __SK__THREAD_H__
 #define __SK__THREAD_H__
 
+#define _PROCESSTHREADSAPI_H_
+
 #include <Windows.h>
 #include <avrt.h>
 
@@ -244,15 +246,14 @@ SK_Thread_CloseSelf (void);
 extern "C" BOOL WINAPI SK_Thread_SetCurrentPriority (int prio);
 extern "C" int  WINAPI SK_Thread_GetCurrentPriority (void);
 
-
 typedef HRESULT (WINAPI *SetThreadDescription_pfn)(
   _In_ HANDLE hThread,
   _In_ PCWSTR lpThreadDescription
 );
 
 typedef HRESULT (WINAPI *GetThreadDescription_pfn)(
-  _In_  HANDLE hThread,
-  _Out_ PWSTR  *threadDescription
+  _In_              HANDLE hThread,
+  _Outptr_result_z_ PWSTR* ppszThreadDescription
 );
 
 typedef DWORD_PTR (WINAPI *SetThreadAffinityMask_pfn)(
@@ -260,8 +261,8 @@ typedef DWORD_PTR (WINAPI *SetThreadAffinityMask_pfn)(
   _In_ DWORD_PTR dwThreadAffinityMask
 );
 
-extern "C" SetThreadDescription_pfn SetThreadDescription;
-extern "C" GetThreadDescription_pfn GetThreadDescription;
+extern "C" SetThreadDescription_pfn SK_SetThreadDescription;
+extern "C" GetThreadDescription_pfn SK_GetThreadDescription;
 
 extern "C" HRESULT WINAPI SetCurrentThreadDescription (_In_  PCWSTR lpThreadDescription);
 extern "C" HRESULT WINAPI GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription);

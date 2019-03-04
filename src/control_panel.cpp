@@ -922,8 +922,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
               u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
                 sum / frames,
                   target_frametime,
-                    min, max, max - min,
-                      1000.0f / (sum / frames), (max - min) / (1000.0f / (sum / frames)) );
+                    min, max, (double)max - (double)min,
+                      1000.0f / (sum / frames), ((double)max - (double)min) / (1000.0f / (sum / frames)) );
 
   ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                             ImColor::HSV ( 0.31f - 0.31f *
@@ -1123,12 +1123,12 @@ SK_ImGui_ControlPanel (void)
           ShellExecuteW (GetActiveWindow (), L"explore", reshade_dir.c_str (), nullptr, nullptr, SW_NORMAL);
         }
 
-        ImGui::Separator ();
-
         static bool wrappable = true;
 
         if (SK_IsInjected () && wrappable)
         {
+          ImGui::Separator ();
+
           if (ImGui::MenuItem ("Install Wrapper DLL for this game"))
           {
             if (SK_Inject_SwitchToRenderWrapper ())
@@ -1136,8 +1136,10 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        else
+        else if (wrappable)
         {
+          ImGui::Separator ();
+
           if (ImGui::MenuItem ("Uninstall Wrapper DLL for this game"))
           {
             wrappable =
@@ -2509,11 +2511,15 @@ SK_Steam_GetUserName (char* pszName, int max_len = 512)
 {
   if (SK_SteamAPI_Friends ())
   {
-    __try {
+    auto orig_se =
+    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    try {
       strncpy_s (pszName, max_len, SK_SteamAPI_Friends ()->GetPersonaName (), _TRUNCATE);
-    } __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+    }
+
+    catch (const SK_SEH_IgnoredException&)
     { }
+    _set_se_translator (orig_se);
   }
 }
 
@@ -3181,7 +3187,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   POINT             orig_pos;
   SK_GetCursorPos (&orig_pos);
 
-  SK_ImGui_Cursor.update ();
+//SK_ImGui_Cursor.update ();
 
   //// The only reason this might be used is to reset the window's
   ////   class cursor. SK_ImGui_Cursor.update (...) doesn't reposition

@@ -59,16 +59,16 @@ extern void SK_Steam_ClearPopups (void);
 //SK_OpenGL_KnownTextures SK_GL_Textures;
 //SK_OpenGL_KnownBuffers  SK_GL_Buffers;
 
-static SK_Thread_HybridSpinlock *cs_gl_ctx = nullptr;
-static HGLRC                             __gl_primary_context = nullptr;
-static std::unordered_map <HGLRC, HGLRC> __gl_shared_contexts;
-static std::unordered_map <HGLRC, BOOL>  init_;
+SK_Thread_HybridSpinlock *cs_gl_ctx = nullptr;
+HGLRC                             __gl_primary_context = nullptr;
+std::unordered_map <HGLRC, HGLRC> __gl_shared_contexts;
+std::unordered_map <HGLRC, BOOL>  init_;
 
 struct SK_GL_Context {
 };
 
-static unsigned int SK_GL_SwapHook = 0;
-static volatile LONG __gl_ready = FALSE;
+unsigned int SK_GL_SwapHook = 0;
+volatile LONG __gl_ready = FALSE;
 
 
 void __stdcall
@@ -1382,11 +1382,14 @@ wglDeleteContext (HGLRC hglrc)
 {
   WaitForInit_GL ();
 
-  if (config.system.log_level >= 0)
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (config.system.log_level >= 0 && pTLS != nullptr)
   {
     dll_log.Log ( L"[%x (tid=%x)]  wglDeleteContext "
                   L"(hglrc=%x)",
-                    WindowFromDC         (SK_TLS_Bottom ()->gl.current_hdc),
+                    WindowFromDC         (pTLS->gl.current_hdc),
                       GetCurrentThreadId (   ),
                                          hglrc );
   }
@@ -1396,6 +1399,10 @@ wglDeleteContext (HGLRC hglrc)
   {
     wglMakeCurrent (SK_GL_GetCurrentDC (), nullptr);
   }
+
+
+  if (! pTLS)
+    return wgl_delete_context (hglrc);
 
 
   const std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_gl_ctx);
@@ -1881,8 +1888,13 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                   L" initialized using a different OpenGL context." ),
                   L" OpenGL32 " );
 
-      if (wglShareLists (__gl_primary_context, thread_hglrc))
+      if (thread_hglrc == 0 || wglShareLists (__gl_primary_context, thread_hglrc))
+      {
         compatible_dc = true;
+
+        if (thread_hglrc == 0)
+            thread_hglrc = __gl_primary_context;
+      }
     }
   }
 
@@ -2998,7 +3010,10 @@ SK_GL_GetCurrentContext (void)
   if (      imp_wglGetCurrentContext != nullptr)
     hglrc = imp_wglGetCurrentContext ();
 
-  SK_TLS_Bottom ()->gl.current_hglrc = hglrc;
+  SK_TLS* pTLS = SK_TLS_Bottom ();
+
+  if (pTLS != nullptr)
+      pTLS->gl.current_hglrc = hglrc;
 
   return hglrc;
 }
@@ -3012,7 +3027,7 @@ SK_GL_GetCurrentDC (void)
 
   using wglGetCurrentDC_pfn = HDC (WINAPI *)(void);
 
-  auto __imp__wglGetCurrentDC =
+  static auto __imp__wglGetCurrentDC =
     (wglGetCurrentDC_pfn)GetProcAddress (local_gl, "wglGetCurrentDC");
 
   if (    __imp__wglGetCurrentDC != nullptr)
@@ -3022,8 +3037,11 @@ SK_GL_GetCurrentDC (void)
 
   SK_TLS* pTLS = SK_TLS_Bottom ();
 
-  pTLS->gl.current_hwnd = hwnd;
-  pTLS->gl.current_hdc  = hdc;
+  if (pTLS != nullptr)
+  {
+    pTLS->gl.current_hwnd = hwnd;
+    pTLS->gl.current_hdc  = hdc;
+  }
 
   return hdc;
 }

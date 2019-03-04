@@ -778,8 +778,23 @@ static ImFontAtlas      GImDefaultFontAtlas;
 // - Having multiple instances of the ImGui code compiled inside different namespace (easiest/safest, if you have a finite number of contexts)
 // - or: Changing this variable to be TLS. You may #define GImGui in imconfig.h for further custom hackery. Future development aim to make this context pointer explicit to all calls. Also read https://github.com/ocornut/imgui/issues/586
 #ifndef GImGui
+#if 0
 static ImGuiContext     GImDefaultContext;
-ImGuiContext*           GImGui = &GImDefaultContext;
+ImGuiContext* GImGui = &GImDefaultContext;
+void SK_ImGui_Init (void) { };
+#else
+ImGuiContext* SK_GImDefaultContext (void)
+{
+  static ImGuiContext GImDefaultContext;
+  return             &GImDefaultContext;
+}
+ImGuiContext* GImGui = nullptr;
+
+void SK_ImGui_Init (void)
+{
+  GImGui = SK_GImDefaultContext ();
+}
+#endif
 #endif
 
 //-----------------------------------------------------------------------------
@@ -10912,5 +10927,10 @@ void ImGui::ShowMetricsWindow(bool* p_open)
 #ifdef IMGUI_INCLUDE_IMGUI_USER_INL
 #include <imgui/imgui_user.inl>
 #endif
+
+void SK_PushMultiItemsWidths (int components, float w_full)
+{
+  PushMultiItemsWidths (components, w_full);
+}
 
 //-----------------------------------------------------------------------------

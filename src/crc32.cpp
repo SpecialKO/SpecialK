@@ -94,8 +94,8 @@ static uint32_t crc32_tab [] =
 #include <SpecialK/utility.h>
 
 // Initialize static member data
-const InstructionSet::InstructionSet_Internal
-      InstructionSet::CPU_Rep;
+InstructionSet::InstructionSet_Internal*
+InstructionSet::CPU_Rep;
 
 extern "C"
 uint32_t
@@ -511,7 +511,7 @@ calculate_table_hw (void)
   }
 }
 
-static uint32_t (__cdecl *append_func)(uint32_t, const void*, size_t) = nullptr;
+uint32_t (__cdecl *append_func)(uint32_t, const void*, size_t) = nullptr;
 
 #include <Windows.h>
 #include <SpecialK/thread.h>
@@ -532,6 +532,8 @@ __crc32_init (void)
   if ( InterlockedCompareExchangeAcquire (&__crc32c_init, 1, 0)
                                                           == 0 )
   {
+    InstructionSet::deferredInit ();
+
     if (crc32c_hw_available ())
     {
       //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");

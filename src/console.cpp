@@ -133,7 +133,7 @@ SK_Console::End (void)
 void
 SK_Console::reset (void)
 {
-  memset (keys_, 0, 256);
+  RtlSecureZeroMemory (keys_, 256);
 }
 
 

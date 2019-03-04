@@ -530,7 +530,10 @@ protected:
   std::unordered_map  <std::wstring, HMODULE>        _known_module_names;
 
   std::unordered_map  <HMODULE,      skWin32Module>  _loaded_libraries;
-} extern SK_Modules;
+};
+
+extern skModuleRegistry* SK_Singleton_Modules (void);
+#define SK_Modules (*SK_Singleton_Modules ())
 
 
 #define __SK_hModSelf skModuleRegistry::Self    ()

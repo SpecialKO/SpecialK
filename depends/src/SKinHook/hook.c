@@ -665,15 +665,14 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
     do {
       if (spinCount != 0)
       {
-        wchar_t wszOutput [256];
-               *wszOutput = L'\0';
-       *(wszOutput + 255) = L'\0';
+        wchar_t     wszOutput [256];
+        ZeroMemory (wszOutput, sizeof (wchar_t) * 256);
 
 #ifdef _WIN64
-        swprintf_s (wszOutput, 255, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %I64u }",
+        swprintf_s (wszOutput, 254, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %I64u }",
                     frozen_ratio, (float)frozen, (float)running, spinCount);
 #else
-        swprintf_s (wszOutput, 255, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %Iu }",
+        swprintf_s (wszOutput, 254, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %Iu }",
                     frozen_ratio, (float)frozen, (float)running, spinCount);
 #endif
 

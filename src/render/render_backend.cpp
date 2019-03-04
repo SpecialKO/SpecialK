@@ -467,9 +467,6 @@ SK_RenderBackend_V2::gsync_s::update (void)
        rb.swapchain     == nullptr ||
        rb.surface.nvapi == nullptr )
   {
-    if (rb.surface.d3d9 != nullptr) rb.surface.d3d9->Release ();
-    if (rb.surface.dxgi != nullptr) rb.surface.dxgi->Release ();
-
     rb.surface.d3d9 = nullptr;
     rb.surface.dxgi = nullptr;
 
@@ -753,11 +750,17 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     //d3d11.interop.backbuffer_rtv   = nullptr;
     //d3d11.interop.backbuffer_tex2D = nullptr;
 
+    if (d3d11.immediate_ctx != nullptr)
+    {
+      ID3D11RenderTargetView* pRTVs [] = { nullptr };
+
+      d3d11.immediate_ctx->OMSetRenderTargets   (1, pRTVs, nullptr);
+      d3d11.immediate_ctx->PSSetShaderResources (0,     0, nullptr);
+      d3d11.immediate_ctx->Flush                (                 );
+    }
+
     d3d11.deferred_ctx  = nullptr;
     d3d11.immediate_ctx = nullptr;
-
-    static auto& rb =
-      SK_GetCurrentRenderBackend ();
 
     ////extern ID3D12DescriptorHeap* g_pd3dSrvDescHeap;
     ////
@@ -770,7 +773,7 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     ////  g_pd3dSrvDescHeap = nullptr;
     ////}
 
-    if (rb.api != SK_RenderAPI::D3D11On12)
+    if (api != SK_RenderAPI::D3D11On12)
     {
       swapchain         = nullptr;
       device            = nullptr;
@@ -779,14 +782,12 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
   if (surface.d3d9 != nullptr)
   {
-    surface.d3d9->Release ();
     surface.d3d9  = nullptr;
     surface.nvapi = nullptr;
   }
 
   if (surface.dxgi != nullptr)
   {
-    surface.dxgi->Release ();
     surface.dxgi  = nullptr;
     surface.nvapi = nullptr;
   }

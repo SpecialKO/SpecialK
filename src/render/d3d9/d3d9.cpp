@@ -452,7 +452,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       {
         SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
                       it->target.symbol_name,
-          SK_StripUserNameFromPathW (
+       SK_ConcealUserDir (
             std::wstring (
                       it->target.module_path
                          ).data ()
@@ -1254,13 +1254,14 @@ SK_D3D9_Present (IDirect3DDevice9 *This,
   HRESULT
     hr = S_OK;
 
-  __try           { hr = SK_D3D9_Trampoline (D3D9Device, Present)
-                                              ( This,
-                                                  pSourceRect,
-                                                    pDestRect,
-                                                      hDestWindowOverride,
-                                                        pDirtyRegion ); }
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try           { hr = SK_D3D9_Trampoline (D3D9Device, Present)
+                                            ( This,
+                                                pSourceRect,
+                                                  pDestRect,
+                                                    hDestWindowOverride,
+                                                      pDirtyRegion ); }
+  catch (...)
   {
     hr = _HandleSwapChainException (L"IDirect3DDevice9::Present");
   }
@@ -1281,16 +1282,18 @@ SK_D3D9_PresentEx (IDirect3DDevice9Ex *This,
   HRESULT
     hr = S_OK;
 
-  __try           { hr = SK_D3D9_Trampoline (D3D9ExDevice, PresentEx)
-                                              ( This,
-                                                  pSourceRect,
-                                                    pDestRect,
-                                                      hDestWindowOverride,
-                                                        pDirtyRegion,
-                                                          dwFlags );    }
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try           { hr = SK_D3D9_Trampoline (D3D9ExDevice, PresentEx)
+                                            ( This,
+                                                pSourceRect,
+                                                  pDestRect,
+                                                    hDestWindowOverride,
+                                                      pDirtyRegion,
+                                                        dwFlags );    }
+  catch (...)
   {
-    hr = _HandleSwapChainException (L"IDirect3DDevice9Ex::PresentEx");
+    hr =
+      _HandleSwapChainException (L"IDirect3DDevice9Ex::PresentEx");
   }
 
   return hr;
@@ -1309,16 +1312,18 @@ SK_D3D9_PresentSwap (IDirect3DSwapChain9 *This,
   HRESULT
     hr = S_OK;
 
-  __try           { hr = SK_D3D9_Trampoline (D3D9Swap, Present)
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try           { hr = SK_D3D9_Trampoline (D3D9Swap, Present)
                                               ( This,
                                                   pSourceRect,
                                                     pDestRect,
                                                       hDestWindowOverride,
                                                         pDirtyRegion,
                                                           dwFlags );    }
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  catch (...)
   {
-    hr = _HandleSwapChainException (L"IDirect3DSwapChain9::Present");
+    hr =
+      _HandleSwapChainException (L"IDirect3DSwapChain9::Present");
   }
 
   return hr;
@@ -1513,7 +1518,6 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
     if (rb.surface.d3d9 != nullptr)
     {
-      rb.surface.d3d9->Release ();
       rb.surface.d3d9  = nullptr;
       rb.surface.nvapi = 0;
     }

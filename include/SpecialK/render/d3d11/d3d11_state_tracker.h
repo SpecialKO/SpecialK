@@ -52,8 +52,8 @@ enum class sk_shader_class {
 
 struct SK_D3D11_ContextResources
 {
-  std::unordered_set <ID3D11Texture2D *> used_textures;
-  std::unordered_set <IUnknown        *> temp_resources;
+  std::unordered_set <SK_ComPtr <ID3D11Texture2D> > used_textures;
+  std::unordered_set <SK_ComPtr <IUnknown       > > temp_resources;
 
   volatile LONG                writing_ = 0;
   UINT                         ctx_id_  = 0;
@@ -277,14 +277,13 @@ struct target_tracking_s
     active_set.clear_using (empty_set);
   }
 
-  volatile ID3D11RenderTargetView*       resource     =  reinterpret_cast <ID3D11RenderTargetView *>(INTPTR_MAX);
-
-  std::atomic_bool                       active [SK_D3D11_MAX_DEV_CONTEXTS+1][D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT]
+  volatile ID3D11RenderTargetView* resource     = nullptr;
+  std::atomic_bool                 active       [SK_D3D11_MAX_DEV_CONTEXTS+1][D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT]
     = { };
-  std::atomic <uint32_t>                 active_count [SK_D3D11_MAX_DEV_CONTEXTS+1]
+  std::atomic <uint32_t>           active_count [SK_D3D11_MAX_DEV_CONTEXTS+1]
     = { };
 
-  std::atomic <uint32_t>                 num_draws    =     0;
+  std::atomic <uint32_t>           num_draws    =     0;
 
   concurrency::concurrent_unordered_set <uint32_t>& ref_vs =
     active_set.ref_vs;
@@ -630,38 +629,45 @@ SK_D3D11_ShouldTrackDrawCall (       ID3D11DeviceContext* pDevCtx,
 
 struct SK_D3D11_KnownTargets
 {
-  std::unordered_set <ID3D11RenderTargetView *> rt_views;
-  std::unordered_set <ID3D11DepthStencilView *> ds_views;
-
-  SK_D3D11_KnownTargets (void)
+  SK_D3D11_KnownTargets (void) : pRt_views ( new
+                                               std::unordered_set <SK_ComPtr <ID3D11RenderTargetView> > () ),
+                                 pDs_views ( new
+                                               std::unordered_set <SK_ComPtr <ID3D11DepthStencilView> > () ),
+                                 rt_views (*pRt_views),
+                                 ds_views (*pDs_views)
   {
     rt_views.reserve (128);
     ds_views.reserve ( 64);
+  }
+
+  ~SK_D3D11_KnownTargets (void)
+  {
+    if (pRt_views != nullptr)
+      delete pRt_views;
+
+    if (pDs_views != nullptr)
+      delete pDs_views;
   }
 
   void clear (void)
   {
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
 
-    for (auto it : rt_views)
-    {
-      if (it != nullptr)
-        it->Release ();
-    }
-
-    for (auto it : ds_views)
-    {
-      if (it != nullptr)
-        it->Release ();
-    }
-
     rt_views.clear ();
     ds_views.clear ();
   }
+
+  std::unordered_set <SK_ComPtr <ID3D11RenderTargetView> > *pRt_views;
+  std::unordered_set <SK_ComPtr <ID3D11DepthStencilView> > *pDs_views;
+
+  std::unordered_set <SK_ComPtr <ID3D11RenderTargetView> >& rt_views;
+  std::unordered_set <SK_ComPtr <ID3D11DepthStencilView> >& ds_views;
 };
 
-extern std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>
-                        SK_D3D11_RenderTargets;
+extern std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>&
+                       _SK_D3D11_RenderTargets (void);
+#define SK_D3D11_RenderTargets _SK_D3D11_RenderTargets()
+
 extern ID3D11Texture2D* SK_D3D11_TrackedTexture;
 extern DWORD            tracked_tex_blink_duration;
 extern DWORD            tracked_shader_blink_duration;
@@ -676,4 +682,4 @@ extern volatile ULONG SK_D3D11_LiveTexturesDirty;
 
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
-extern std::vector <IUnknown *> SK_D3D11_TempResources;
+extern std::vector <SK_ComPtr <IUnknown> > SK_D3D11_TempResources;

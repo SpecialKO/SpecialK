@@ -79,28 +79,28 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SpecialK</RootNamespace>
     <TargetPlatformVersion>8.1</TargetPlatformVersion>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName />
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -109,7 +109,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TVFix|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -118,7 +118,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -126,7 +126,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -134,7 +134,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -142,7 +142,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -150,7 +150,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -158,7 +158,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -166,7 +166,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -175,7 +175,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -184,7 +184,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -192,7 +192,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -200,7 +200,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -208,7 +208,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -216,7 +216,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FAR|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <SpectreMitigation>false</SpectreMitigation>
@@ -224,7 +224,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -484,7 +484,6 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -493,10 +492,9 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>true</BufferSecurityCheck>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MinimalRebuild>true</MinimalRebuild>
-      <SDLCheck>true</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -524,7 +522,6 @@
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <OutputFile>\\zilcho\Tales of Symphonia\d3d9.dll</OutputFile>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
@@ -589,10 +586,9 @@
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <MinimalRebuild>true</MinimalRebuild>
-      <SDLCheck>true</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -603,7 +599,6 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <PreprocessKeepComments>true</PreprocessKeepComments>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <BrowseInformation>true</BrowseInformation>
       <SupportJustMyCode>false</SupportJustMyCode>
       <ConformanceMode>true</ConformanceMode>
@@ -628,7 +623,6 @@
       <AssemblyDebug>true</AssemblyDebug>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib</AdditionalDependencies>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -676,7 +670,6 @@
       <BrowseInformation>false</BrowseInformation>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <AssemblerOutput>NoListing</AssemblerOutput>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -693,15 +686,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
-      <SDLCheck>false</SDLCheck>
       <EnableModules>false</EnableModules>
       <AdditionalOptions>
       </AdditionalOptions>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
       <OpenMPSupport>false</OpenMPSupport>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <StructMemberAlignment>Default</StructMemberAlignment>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -727,11 +719,11 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -772,7 +764,6 @@
       <BrowseInformation>false</BrowseInformation>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <AssemblerOutput>NoListing</AssemblerOutput>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -789,7 +780,6 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
-      <SDLCheck>false</SDLCheck>
       <EnableModules>false</EnableModules>
       <AdditionalOptions>
       </AdditionalOptions>
@@ -797,7 +787,7 @@
       <OpenMPSupport>false</OpenMPSupport>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <StructMemberAlignment>Default</StructMemberAlignment>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -828,7 +818,7 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -872,7 +862,6 @@
       <BrowseInformation>false</BrowseInformation>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <AssemblerOutput>All</AssemblerOutput>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -885,10 +874,9 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
-      <SDLCheck>true</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -923,7 +911,6 @@
       <AssemblyDebug>true</AssemblyDebug>
       <SectionAlignment>
       </SectionAlignment>
-      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
@@ -979,7 +966,6 @@
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>NoListing</AssemblerOutput>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -989,7 +975,6 @@
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -1019,7 +1004,6 @@
       <ImportLibrary>
       </ImportLibrary>
       <AssemblyDebug>true</AssemblyDebug>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <RegisterOutput>false</RegisterOutput>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
@@ -1069,7 +1053,6 @@
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>NoListing</AssemblerOutput>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -1079,7 +1062,6 @@
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -1109,7 +1091,6 @@
       <ImportLibrary>
       </ImportLibrary>
       <AssemblyDebug>true</AssemblyDebug>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <RegisterOutput>false</RegisterOutput>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
@@ -1161,7 +1142,6 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>All</AssemblerOutput>
       <PreprocessKeepComments>false</PreprocessKeepComments>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -1171,7 +1151,6 @@
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -1195,7 +1174,6 @@
       <MapExports>false</MapExports>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib</AdditionalDependencies>
@@ -1251,7 +1229,6 @@ Exit 0</Command>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>All</AssemblerOutput>
       <PreprocessKeepComments>false</PreprocessKeepComments>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -1261,7 +1238,6 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -1285,7 +1261,6 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib</AdditionalDependencies>
@@ -1341,7 +1316,6 @@ Exit 0</Command>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <PreprocessKeepComments>false</PreprocessKeepComments>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -1351,7 +1325,6 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -1375,7 +1348,6 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib</AdditionalDependencies>
@@ -1440,17 +1412,15 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
       <AdditionalOptions>
       </AdditionalOptions>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <DisableLanguageExtensions>
       </DisableLanguageExtensions>
-      <SDLCheck>false</SDLCheck>
       <OpenMPSupport>false</OpenMPSupport>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <StructMemberAlignment>Default</StructMemberAlignment>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1478,11 +1448,11 @@ Exit 0</Command>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1542,13 +1512,11 @@ Exit 0</Command>
       <ExceptionHandling>Async</ExceptionHandling>
       <DisableLanguageExtensions>
       </DisableLanguageExtensions>
-      <SDLCheck>false</SDLCheck>
       <OpenMPSupport>false</OpenMPSupport>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <StructMemberAlignment>Default</StructMemberAlignment>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1581,7 +1549,7 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1630,7 +1598,7 @@ Exit 0</Command>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061;5999</DisableSpecificWarnings>
       <BufferSecurityCheck>true</BufferSecurityCheck>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <UseFullPaths>true</UseFullPaths>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <BrowseInformation>true</BrowseInformation>
@@ -1638,7 +1606,6 @@ Exit 0</Command>
       <OmitFramePointers>false</OmitFramePointers>
       <ExceptionHandling>Async</ExceptionHandling>
       <MinimalRebuild>false</MinimalRebuild>
-      <SDLCheck>true</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -1650,7 +1617,6 @@ Exit 0</Command>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <ConformanceMode>true</ConformanceMode>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <DisableLanguageExtensions>
       </DisableLanguageExtensions>
     </ClCompile>
@@ -1679,7 +1645,6 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -1740,7 +1705,6 @@ Exit 0</Command>
       <OmitFramePointers>false</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -1763,7 +1727,6 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -1827,7 +1790,6 @@ Exit 0</Command>
       <OmitFramePointers>false</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -1850,7 +1812,6 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -1914,7 +1875,6 @@ Exit 0</Command>
       <OmitFramePointers>false</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -1937,7 +1897,6 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -2002,7 +1961,6 @@ Exit 0</Command>
       <OmitFramePointers>false</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -2020,7 +1978,6 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -2090,7 +2047,6 @@ Exit 0</Command>
       <OmitFramePointers>false</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
@@ -2113,7 +2069,6 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>

@@ -52,8 +52,8 @@ struct IUnknown;
 #include <SpecialK/com_util.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/import.h>
 
-         import_s* dgvoodoo_d3d8 = nullptr;
 volatile LONG      __d3d8_ready  = FALSE;
 
 unsigned int

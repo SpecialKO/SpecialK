@@ -249,8 +249,8 @@ public:
     return false;
   }
 
-  std::unordered_map <HWND, bool> active_windows;
-  std::unordered_set <HWND>       moving_windows;
+  concurrency::concurrent_unordered_map <HWND, bool> active_windows;
+  concurrency::concurrent_unordered_map <HWND, bool> moving_windows;
 
 protected:
   bool On_WINDOWPOSCHANGING (HWND hWnd, const WPARAM& wParam, const LPARAM& lParam, LRESULT *pRet);
@@ -892,6 +892,9 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
 {
   SK_ASSERT_NOT_THREADSAFE ();
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   bool state_changed =
     (wm_dispatch.active_windows [hWnd] != active && hWnd == SK_GetGameWindow ());
 
@@ -928,8 +931,8 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
     //
 
     if ( active && config.display.force_fullscreen &&
-      ( static_cast <int> (SK_GetCurrentRenderBackend ().api)  &
-        static_cast <int> (SK_RenderAPI::D3D9               )
+      ( static_cast <int> (rb.api)                 &
+        static_cast <int> (SK_RenderAPI::D3D9        )
         )
         )
     {
@@ -947,11 +950,11 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
     // Engage fullscreen
     if ( config.display.force_fullscreen )
     {
-      SK_GetCurrentRenderBackend ().requestFullscreenMode (true);
+      rb.requestFullscreenMode (true);
     }
 
 
-    if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+    if ((! rb.fullscreen_exclusive) && config.window.background_render)
     {
       if (! game_window.cursor_visible)
       {
@@ -966,7 +969,7 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
 
   else if ((! active) && state_changed)
   {
-    if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+    if ((! rb.fullscreen_exclusive) && config.window.background_render)
     {
       game_window.cursor_visible =
         ShowCursor (TRUE) >= 1;
@@ -1026,7 +1029,7 @@ window_message_dispatch_s::On_ENTERSIZEMOVE ( HWND     hWnd,
 {
   ClipCursor (nullptr);
 
-  moving_windows.emplace (hWnd);
+  moving_windows.insert (std::make_pair (hWnd, true));
 
   return false;
 }
@@ -1038,12 +1041,12 @@ window_message_dispatch_s::On_EXITSIZEMOVE ( HWND     hWnd,
                                              LRESULT * )
 {
   if ( moving_windows.count (hWnd) ||
-      moving_windows.count (game_window.hWnd) )
+       moving_windows.count (game_window.hWnd) )
   {
-    if (moving_windows.count (hWnd))
-      moving_windows.erase (hWnd);
+    if (moving_windows.count (hWnd) && moving_windows [hWnd])
+        moving_windows [hWnd] = false;
     else
-      moving_windows.erase (game_window.hWnd);
+      moving_windows [game_window.hWnd] = false;
 
     SK_AdjustWindow ();
 
@@ -3457,7 +3460,6 @@ SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
     }
 
     //ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-    ////SK_DetourWindowProc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
     if (remove)
       lpMsg->message = WM_NULL;
@@ -3838,7 +3840,8 @@ GetActiveWindow_Detour (void)
 
   if (pTLS != nullptr)
   {
-    if (pTLS->win32.active == (HWND)-1)
+    if (pTLS->win32.active == (HWND)-1 ||
+        pTLS->win32.active == HWND_DESKTOP)
     {
       pTLS->win32.active =
         GetActiveWindow_Original ();
@@ -4354,6 +4357,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   static bool first_run = true;
 
   if (first_run)
@@ -4378,7 +4384,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     //  }
     //}
 
-    SK_GetCurrentRenderBackend ().windows.setFocus (hWnd);
+    rb.windows.setFocus (hWnd);
 
     DWORD dwFocus, dwForeground;
 
@@ -4433,8 +4439,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_SYSCOMMAND:
     {
-      if (! ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
+      if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
+      {
         return 0;
+      }
     } break;
 
 
@@ -4443,13 +4451,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       break;
 
     case WM_KILLFOCUS:
-      if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+      if ((! rb.fullscreen_exclusive) && config.window.background_render)
       {
         // Blocking this message helps with many games that mute audio in the background
         return
           game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
       }
-      ActivateWindow (hWnd, false);
+      ////ActivateWindow (hWnd, false);
       break;
 
     // Ignore (and physically remove) this event from the message queue if background_render = true
@@ -4459,7 +4467,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         ActivateWindow (hWnd, true);
 
-        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+        if ((! rb.fullscreen_exclusive) && config.window.background_render)
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
                    L"Window Mgr" );
@@ -4473,14 +4481,14 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         // Game window was deactivated, but the game doesn't need to know this!
         //   in fact, it needs to be told the opposite.
-        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+        if ((! rb.fullscreen_exclusive) && config.window.background_render)
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
                    L"Window Mgr" );
           return MA_ACTIVATE;
         }
 
-        //SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+        //rb.fullscreen_exclusive = false;
       }
 
 
@@ -4516,21 +4524,21 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             // We must fully consume one of these messages or audio will stop playing
             //   when the game loses focus, so do not simply pass this through to the
             //     default window procedure.
-            if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+            if ( (! rb.fullscreen_exclusive) &&
                     config.window.background_render
                 )
             {
-              game_window.CallProc (
+              SK_COMPAT_SafeCallProc (&game_window,
                 hWnd,
                   uMsg,
                     TRUE,
                       reinterpret_cast <LPARAM> (hWnd) );
 
               return
-                game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);;
+                game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
             }
 
-            SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+            rb.fullscreen_exclusive = false;
           }
         }
 
@@ -4545,11 +4553,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           // We must fully consume one of these messages or audio will stop playing
           //   when the game loses focus, so do not simply pass this through to the
           //     default window procedure.
-          if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+          if ( (! rb.fullscreen_exclusive) &&
                   config.window.background_render
              )
           {
-            game_window.CallProc (
+            SK_COMPAT_SafeCallProc (&game_window,
               hWnd,
                 uMsg,
                   TRUE,
@@ -4559,7 +4567,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
               game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
           }
 
-          SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+          rb.fullscreen_exclusive = false;
         }
       }
 
@@ -4608,13 +4616,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             break;
         }
 
-        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+        if ((! rb.fullscreen_exclusive) && config.window.background_render)
         {
           return 1;
         }
 
         if (! activate)
-          SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+          rb.fullscreen_exclusive = false;
 
         if ( SK_GetForegroundWindow () == game_window.hWnd ||
                 GetFocus            () == game_window.hWnd ) ActivateWindow (game_window.hWnd, true);
@@ -4654,7 +4662,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       // Filter this message
       if (config.window.borderless && config.window.fullscreen)
-        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      {
+        game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+        return 0;
+      }
     } break;
 
 
@@ -4726,7 +4737,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       // Filter this message
       if (config.window.borderless && config.window.fullscreen)
-        return 1;
+      {
+        game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+        return 0;
+      }
     } break;
 
 
@@ -4747,7 +4761,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       // Filter this message
       if (config.window.borderless && config.window.fullscreen)
-        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      {
+        game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+        return 0;
+      }
     } break;
 
 
@@ -4758,40 +4775,35 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       // Filter this message
       if (config.window.borderless && config.window.fullscreen)
-        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);;
+      {
+        game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+        return 1;
+      }
       break;
 
 
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
-      if (game_window.active)
+      if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
       {
-        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
+        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
         {
-          ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
-
-          return
-            SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+          game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+          return 0;
         }
       }
-      else
-        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
       break;
 
     case WM_KEYUP:
     case WM_SYSKEYUP:
-      if (game_window.active)
+      if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
       {
-        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
+        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
         {
-          ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
-
-          return
-            SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+          game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+          return 0;
         }
       }
-      else
-        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
       break;
 
     case WM_MOUSEMOVE:
@@ -4805,33 +4817,30 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         game_window.cursor_pos = pt;
       }
+
       else
-        ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+      {
+        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
+        {
+          if (SK_ImGui_WantMouseCapture ())
+            return 0;
+        }
+      }
       break;
 
     case WM_SETCURSOR:
     {
-      if (game_window.active)
+      if (SK_ImGui_WantMouseCapture ())
       {
         if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
-          return TRUE;
-      }
-      else
-      {
-        return
-          game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+        {
+          return 1;
+        }
       }
     } break;
   }
 
   bool handled = false;
-  static bool eqgame  = (SK_GetCurrentGameID () == SK_GAME_ID::EverQuest);
-
-  if (eqgame)
-  {
-    handled =
-      ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
-  }
 
 
 
@@ -4856,8 +4865,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //
   if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
   {
-    if (! eqgame)
-      handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+    handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
     if ((! handled) && config.input.mouse.fix_synaptics)
     {
@@ -4890,11 +4898,17 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //
   //   [ Mostly for EverQuest ]
   //
-  if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture    ())
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture ())
+  {
+    game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+    return 0;
+  }
 
   if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && SK_ImGui_WantKeyboardCapture ())
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  {
+    game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+    return 0;
+  }
 
   if (uMsg == WM_INPUT)
   {
@@ -4905,13 +4919,22 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
 
     if (mouse && SK_ImGui_WantMouseCapture ())
-      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+    {
+      game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      return 0;
+    }
 
     if (keyboard && SK_ImGui_WantKeyboardCapture ())
-      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+    {
+      game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      return 0;
+    }
 
     if (gamepad && SK_ImGui_WantGamepadCapture ())
-      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+    {
+      game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      return 0;
+    }
   }
 
 
@@ -4937,13 +4960,14 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
   else {
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+    return
+      game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
 
   // Filter this out for fullscreen override safety
-  ////if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-  ////if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  //if (uMsg == WM_DISPLAYCHANGE)    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  //if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 
 
@@ -5076,8 +5100,11 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   game_window.game.style_ex = game_window.actual.style_ex;
 
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   auto& windows =
-    SK_GetCurrentRenderBackend ().windows;
+    rb.windows;
 
   windows.setFocus  (hWnd);
   windows.setDevice (
@@ -5108,7 +5135,8 @@ SK_InstallWindowHook (HWND hWnd)
     return;
 
 
-  if (game_window.WndProc_Original != nullptr)
+  
+  if (SK_IsAddressExecutable (game_window.WndProc_Original, true))
     return;
 
   static volatile LONG               __installed =      FALSE;
@@ -5359,13 +5387,13 @@ bool
 __stdcall
 SK_IsGameWindowActive (void)
 {
-  ///DWORD dwProcId;
-  ///
-  ///if (GetWindowThreadProcessId (GetActiveWindow (), &dwProcId))
-  ///{
-  ///  if (dwProcId != GetCurrentProcessId ())
-  ///    return false;
-  ///}
+  DWORD dwProcId;
+  
+  if (GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwProcId))
+  {
+    if (dwProcId == GetCurrentProcessId ())
+      return true;
+  }
 
   return
     game_window.active;
@@ -5423,7 +5451,7 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
          )
        )
     {
-      MH_QueueEnableHook (target_proc);
+      MH_EnableHook (target_proc);
 
       dll_log.Log (L"[Window Mgr]  >> Hooked %s.", ( target_proc == class_proc ? L"ClassProc" :
                    L"WndProc" ) );
@@ -5441,7 +5469,7 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
                              )
             )
     {
-      MH_QueueEnableHook (alt_proc);
+      MH_EnableHook (alt_proc);
 
       dll_log.Log (L"[Window Mgr]  >> Hooked %s.", ( alt_proc == class_proc ? L"ClassProc" :
                    L"WndProc" ) );
@@ -5455,7 +5483,8 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
       game_window.WndProc_Original = nullptr;
     }
 
-    SK_ApplyQueuedHooks ();
+    //if (game_window.WndProc_Original != nullptr)
+    //  SK_ApplyQueuedHooks ();
   }
 
 
@@ -6046,6 +6075,14 @@ sk_window_s::CallProc (
   _In_ WPARAM  wParam,
   _In_ LPARAM  lParam )
 {
+  if ( (! SK_IsAddressExecutable (WndProc_Original, true)) )//// || hWnd_ != game_window.hWnd )
+  {
+    return IsWindowUnicode (hWnd_) ?
+             CallWindowProcW ((WNDPROC)SK_GetWindowLongPtrW (hWnd_, GWLP_WNDPROC), hWnd_, Msg, wParam, lParam) :
+             CallWindowProcA ((WNDPROC)SK_GetWindowLongPtrA (hWnd_, GWLP_WNDPROC), hWnd_, Msg, wParam, lParam);
+  }
+
+
   // We subclassed the window instead of hooking the game's window proc
   if (! hooked)
     return CallWindowProc (WndProc_Original, hWnd_, Msg, wParam, lParam);
@@ -6060,16 +6097,21 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
   if (pWin == nullptr)
     return 1;
 
-  __try {
-    return pWin->CallProc (hWnd_, Msg, wParam, lParam);
-  }
+  LRESULT ret = 1;
 
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-            EXCEPTION_EXECUTE_HANDLER :
-            EXCEPTION_CONTINUE_SEARCH )
-  {
-    return 1;
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
+    ret =
+      pWin->CallProc (hWnd_, Msg, wParam, lParam);
   }
+  catch (const SK_SEH_IgnoredException&)
+  {
+    assert (false);
+  }
+  _set_se_translator (orig_se);
+
+  return ret;
 }
 
 #include <SpecialK/tls.h>

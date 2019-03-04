@@ -842,9 +842,9 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
   //                          NvAPI_QueryInterface_Detour,
   // static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
 
-#ifdef SK_AGGRESSIVE_HOOKS
-      SK_ApplyQueuedHooks ();
-#endif
+//#ifdef SK_AGGRESSIVE_HOOKS
+//      SK_ApplyQueuedHooks ();
+//#endif
     }
 
     else {

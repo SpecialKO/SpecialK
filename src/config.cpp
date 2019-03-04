@@ -53,29 +53,100 @@ iSK_INI*             dll_ini         = nullptr;
 iSK_INI*             osd_ini         = nullptr;
 iSK_INI*             achievement_ini = nullptr;
 iSK_INI*             macro_ini       = nullptr;
-sk_config_t          config;
 sk::ParameterFactory g_ParameterFactory;
 
+sk_config_t* SK_Singleton_Config (void)
+{
+  static sk_config_t  _config;
+  return             &_config;
+}
 
-static std::unordered_map <std::wstring, SK_GAME_ID> games;
+sk_config_t* __config__ = SK_Singleton_Config ();
+
 
 __forceinline
-const SK_GAME_ID&
+const SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void)
 {
   static SK_GAME_ID current_game =
-    games.count (SK_GetHostApp ()) ?
-          games [SK_GetHostApp ()] :
-          SK_GAME_ID::UNKNOWN_GAME;
+    SK_GAME_ID::UNKNOWN_GAME;
 
   static bool first_check = true;
   if         (first_check)
   {
+    static std::unordered_map <std::wstring, SK_GAME_ID> _games = {
+      { L"Tyranny.exe",                            SK_GAME_ID::Tyranny                      },
+      { L"TidesOfNumenera.exe",                    SK_GAME_ID::TidesOfNumenera              },
+      { L"MassEffectAndromeda.exe",                SK_GAME_ID::MassEffect_Andromeda         },
+      { L"MadMax.exe",                             SK_GAME_ID::MadMax                       },
+      { L"Dreamfall Chapters.exe",                 SK_GAME_ID::Dreamfall_Chapters           },
+      { L"TheWitness.exe",                         SK_GAME_ID::TheWitness                   },
+      { L"Obduction-Win64-Shipping.exe",           SK_GAME_ID::Obduction                    },
+      { L"witcher3.exe",                           SK_GAME_ID::TheWitcher3                  },
+      { L"re7.exe",                                SK_GAME_ID::ResidentEvil7                },
+      { L"DDDA.exe",                               SK_GAME_ID::DragonsDogma                 },
+      { L"eqgame.exe",                             SK_GAME_ID::EverQuest                    },
+      { L"GE2RB.exe",                              SK_GAME_ID::GodEater2RageBurst           },
+      { L"ge3.exe",                                SK_GAME_ID::GodEater3                    },
+      { L"WatchDogs2.exe",                         SK_GAME_ID::WatchDogs2                   },
+      { L"NieRAutomata.exe",                       SK_GAME_ID::NieRAutomata                 },
+      { L"Warframe.x64.exe",                       SK_GAME_ID::Warframe_x64                 },
+      { L"LEGOLCUR_DX11.exe",                      SK_GAME_ID::LEGOCityUndercover           },
+      { L"Sacred.exe",                             SK_GAME_ID::Sacred                       },
+      { L"sacred2.exe",                            SK_GAME_ID::Sacred2                      },
+      { L"FF9.exe",                                SK_GAME_ID::FinalFantasy9                },
+      { L"FinchGame.exe",                          SK_GAME_ID::EdithFinch                   },
+      { L"FFX.exe",                                SK_GAME_ID::FinalFantasyX_X2             },
+      { L"FFX-2.exe",                              SK_GAME_ID::FinalFantasyX_X2             },
+      { L"FFX&X-2_Will.exe",                       SK_GAME_ID::FinalFantasyX_X2             },
+      { L"DP.exe",                                 SK_GAME_ID::DeadlyPremonition            },
+      { L"GG2Game.exe",                            SK_GAME_ID::GalGun_Double_Peace          },
+      { L"AkibaUU.exe",                            SK_GAME_ID::AKIBAs_Trip                  },
+      { L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     },
+      { L"TOS.exe",                                SK_GAME_ID::Tales_of_Symphonia           },
+      { L"Tales of Zestiria.exe",                  SK_GAME_ID::Tales_of_Zestiria            },
+      { L"TOV_DE.exe",                             SK_GAME_ID::Tales_of_Vesperia            },
+      { L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm },
+      { L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          },
+      { L"Hob.exe",                                SK_GAME_ID::Hob                          },
+      { L"DukeForever.exe",                        SK_GAME_ID::DukeNukemForever             },
+      { L"BLUE_REFLECTION.exe",                    SK_GAME_ID::BlueReflection               },
+      { L"Zero Escape.exe",                        SK_GAME_ID::ZeroEscape                   },
+      { L"hackGU.exe",                             SK_GAME_ID::DotHackGU                    },
+      { L"WOFF.exe",                               SK_GAME_ID::WorldOfFinalFantasy          },
+      { L"StarOceanTheLastHope.exe",               SK_GAME_ID::StarOcean4                   },
+      { L"LEGOMARVEL2_DX11.exe",                   SK_GAME_ID::LEGOMarvelSuperheroes2       },
+      { L"okami.exe",                              SK_GAME_ID::Okami                        },
+      { L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          },
+      { L"mafia3.exe",                             SK_GAME_ID::Mafia3                       },
+      { L"Owlboy.exe",                             SK_GAME_ID::Owlboy                       },
+      { L"DarkSoulsIII.exe",                       SK_GAME_ID::DarkSouls3                   },
+      { L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     },
+      { L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    },
+      { L"Secret_of_Mana.exe",                     SK_GAME_ID::SecretOfMana                 },
+      { L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           },
+      { L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    },
+      { L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      },
+      { L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                },
+      { L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     },
+      { L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           },
+      { L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      },
+      { L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           },
+      { L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      },
+      { L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      },
+      { L"SteamLauncher.exe",                      SK_GAME_ID::Shenmue                      }, // Bad idea
+      { L"DRAGON QUEST XI.exe",                    SK_GAME_ID::DragonQuestXI                },
+      { L"ACOdyssey.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
+      { L"ACOrigins.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
+      { L"JustCause3.exe",                         SK_GAME_ID::JustCause3                   },
+      { L"ed8.exe",                                SK_GAME_ID::TrailsOfColdSteel            }
+    };
+
     first_check = false;
 
     // For games that can't be matched using a single executable filename
-    if (current_game == SK_GAME_ID::UNKNOWN_GAME)
+    if (! _games.count (SK_GetHostApp ()))
     {
       if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) )
       {
@@ -85,6 +156,9 @@ SK_GetCurrentGameID (void)
                     SK_FFXV_InitPlugin ();
       }
     }
+
+    else
+      current_game = _games [SK_GetHostApp ()];
   }
 
   return current_game;
@@ -605,11 +679,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
   std::wstring osd_config, achievement_config, macro_config;
 
   full_name =
-  {
-    SK_FormatStringW   ( L"%s%s.ini",
-      SK_GetConfigPath (), name.c_str ()
-    )
-  };
+    SK_FormatStringW ( L"%s%s.ini",
+                         SK_GetConfigPath (), name.c_str () );
+  
 
   std::wstring undecorated_name (name);
 
@@ -620,11 +692,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   }
 
   custom_name =
-  {
     SK_FormatStringW ( L"%scustom_%s.ini",
-      SK_GetConfigPath (), undecorated_name.c_str ()
-    )
-  };
+                       SK_GetConfigPath (), undecorated_name.c_str () );
 
 
   if (create)
@@ -1327,71 +1396,6 @@ auto DeclKeybind =
   config.render.dxgi.exception_mode = -1;
   config.render.dxgi.scaling_mode   = -1;
 
-  games.emplace ( L"Tyranny.exe",                            SK_GAME_ID::Tyranny                      );
-  games.emplace ( L"TidesOfNumenera.exe",                    SK_GAME_ID::TidesOfNumenera              );
-  games.emplace ( L"MassEffectAndromeda.exe",                SK_GAME_ID::MassEffect_Andromeda         );
-  games.emplace ( L"MadMax.exe",                             SK_GAME_ID::MadMax                       );
-  games.emplace ( L"Dreamfall Chapters.exe",                 SK_GAME_ID::Dreamfall_Chapters           );
-  games.emplace ( L"TheWitness.exe",                         SK_GAME_ID::TheWitness                   );
-  games.emplace ( L"Obduction-Win64-Shipping.exe",           SK_GAME_ID::Obduction                    );
-  games.emplace ( L"witcher3.exe",                           SK_GAME_ID::TheWitcher3                  );
-  games.emplace ( L"re7.exe",                                SK_GAME_ID::ResidentEvil7                );
-  games.emplace ( L"DDDA.exe",                               SK_GAME_ID::DragonsDogma                 );
-  games.emplace ( L"eqgame.exe",                             SK_GAME_ID::EverQuest                    );
-  games.emplace ( L"GE2RB.exe",                              SK_GAME_ID::GodEater2RageBurst           );
-  games.emplace ( L"WatchDogs2.exe",                         SK_GAME_ID::WatchDogs2                   );
-  games.emplace ( L"NieRAutomata.exe",                       SK_GAME_ID::NieRAutomata                 );
-  games.emplace ( L"Warframe.x64.exe",                       SK_GAME_ID::Warframe_x64                 );
-  games.emplace ( L"LEGOLCUR_DX11.exe",                      SK_GAME_ID::LEGOCityUndercover           );
-  games.emplace ( L"Sacred.exe",                             SK_GAME_ID::Sacred                       );
-  games.emplace ( L"sacred2.exe",                            SK_GAME_ID::Sacred2                      );
-  games.emplace ( L"FF9.exe",                                SK_GAME_ID::FinalFantasy9                );
-  games.emplace ( L"FinchGame.exe",                          SK_GAME_ID::EdithFinch                   );
-  games.emplace ( L"FFX.exe",                                SK_GAME_ID::FinalFantasyX_X2             );
-  games.emplace ( L"FFX-2.exe",                              SK_GAME_ID::FinalFantasyX_X2             );
-  games.emplace ( L"FFX&X-2_Will.exe",                       SK_GAME_ID::FinalFantasyX_X2             );
-  games.emplace ( L"DP.exe",                                 SK_GAME_ID::DeadlyPremonition            );
-  games.emplace ( L"GG2Game.exe",                            SK_GAME_ID::GalGun_Double_Peace          );
-  games.emplace ( L"AkibaUU.exe",                            SK_GAME_ID::AKIBAs_Trip                  );
-  games.emplace ( L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     );
-  games.emplace ( L"TOS.exe",                                SK_GAME_ID::Tales_of_Symphonia           );
-  games.emplace ( L"Tales of Zestiria.exe",                  SK_GAME_ID::Tales_of_Zestiria            );
-  games.emplace ( L"TOV_DE.exe",                             SK_GAME_ID::Tales_of_Vesperia            );
-  games.emplace ( L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm );
-  games.emplace ( L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          );
-  games.emplace ( L"Hob.exe",                                SK_GAME_ID::Hob                          );
-  games.emplace ( L"DukeForever.exe",                        SK_GAME_ID::DukeNukemForever             );
-  games.emplace ( L"BLUE_REFLECTION.exe",                    SK_GAME_ID::BlueReflection               );
-  games.emplace ( L"Zero Escape.exe",                        SK_GAME_ID::ZeroEscape                   );
-  games.emplace ( L"hackGU.exe",                             SK_GAME_ID::DotHackGU                    );
-  games.emplace ( L"WOFF.exe",                               SK_GAME_ID::WorldOfFinalFantasy          );
-  games.emplace ( L"StarOceanTheLastHope.exe",               SK_GAME_ID::StarOcean4                   );
-  games.emplace ( L"LEGOMARVEL2_DX11.exe",                   SK_GAME_ID::LEGOMarvelSuperheroes2       );
-  games.emplace ( L"okami.exe",                              SK_GAME_ID::Okami                        );
-  games.emplace ( L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          );
-  games.emplace ( L"mafia3.exe",                             SK_GAME_ID::Mafia3                       );
-  games.emplace ( L"Owlboy.exe",                             SK_GAME_ID::Owlboy                       );
-  games.emplace ( L"DarkSoulsIII.exe",                       SK_GAME_ID::DarkSouls3                   );
-  games.emplace ( L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     );
-  games.emplace ( L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    );
-  games.emplace ( L"Secret_of_Mana.exe",                     SK_GAME_ID::SecretOfMana                 );
-  games.emplace ( L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           );
-  games.emplace ( L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    );
-  games.emplace ( L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      );
-  games.emplace ( L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                );
-  games.emplace ( L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     );
-  games.emplace ( L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           );
-  games.emplace ( L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      );
-  games.emplace ( L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           );
-  games.emplace ( L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      );
-  games.emplace ( L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      );
-  games.emplace ( L"SteamLauncher.exe",                      SK_GAME_ID::Shenmue                      ); // Bad idea
-  games.emplace ( L"DRAGON QUEST XI.exe",                    SK_GAME_ID::DragonQuestXI                );
-  games.emplace ( L"ACOdyssey.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       );
-  games.emplace ( L"ACOrigins.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       );
-  games.emplace ( L"JustCause3.exe",                         SK_GAME_ID::JustCause3                   );
-  games.emplace ( L"ed8.exe",                                SK_GAME_ID::TrailsOfColdSteel            );
-
   //
   // Application Compatibility Overrides
   // ===================================
@@ -1532,6 +1536,11 @@ auto DeclKeybind =
         //config.compatibility.d3d9.rehook_reset = true;
         break;
 
+
+      case SK_GAME_ID::GodEater3:
+        //Does not support XInput hot-plugging, needs Special K loving :)
+        config.input.gamepad.xinput.placehold [0] = true;
+        break;
 
       case SK_GAME_ID::GodEater2RageBurst:
         //Does not support XInput hot-plugging, needs Special K loving :)
@@ -1850,8 +1859,8 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Tales_of_Vesperia:
       {
-        extern bool __SK_Steam_IgnoreOverlayActivation;
-                    __SK_Steam_IgnoreOverlayActivation = true;
+        //extern bool __SK_Steam_IgnoreOverlayActivation;
+        //            __SK_Steam_IgnoreOverlayActivation = true;
 
         config.render.framerate.limiter_tolerance
                                                 = 4.25f;
@@ -2624,9 +2633,9 @@ auto DeclKeybind =
   {
     scanned = true;
 
-    if (games.count (std::wstring (SK_GetHostApp ())))
+    if (SK_GetCurrentGameID () != SK_GAME_ID::UNKNOWN_GAME)
     {
-      switch (games [std::wstring (SK_GetHostApp ())])
+      switch (SK_GetCurrentGameID ())
       {
         case SK_GAME_ID::GalGun_Double_Peace:
         case SK_GAME_ID::DuckTalesRemastered:
@@ -3902,8 +3911,8 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
     //   so construct path by treating name as a C-String.
     path =
       SK_FormatStringW ( LR"(%s\%s\)",
-                           path.c_str (),
-                             name.c_str () );
+                         path.c_str (),
+                         name.c_str () );
 
     SK_StripTrailingSlashesW (path.data ());
 

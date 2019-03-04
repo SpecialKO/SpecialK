@@ -349,9 +349,9 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
     // Aw, the game doesn't have any mice -- let's fix that.
     if (raw_mice.empty ())
     {
-      //raw_devices.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
-      //raw_mice.push_back    (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
-      //raw_overrides.mouse.legacy_messages = true;
+      raw_devices.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
+      raw_mice.push_back    (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
+      raw_overrides.mouse.legacy_messages = true;
     }
 
     for (auto& it : raw_mice)
@@ -405,9 +405,9 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
     // Aw, the game doesn't have any keyboards -- let's fix that.
     if (raw_keyboards.empty ())
     {
-      //raw_devices.push_back   (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
-      //raw_keyboards.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
-      //raw_overrides.keyboard.legacy_messages = true;
+      raw_devices.push_back   (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
+      raw_keyboards.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
+      raw_overrides.keyboard.legacy_messages = true;
     }
 
     for (auto& it : raw_keyboards)
@@ -959,7 +959,6 @@ SK_ImGui_IsMouseRelevant (void)
       // ^^^ These are our floating widgets
 }
 
-//__inline
 void
 sk_imgui_cursor_s::update (void)
 {
@@ -1142,43 +1141,59 @@ ImGuiCursor_Impl (void)
   }
 }
 
+static HCURSOR wait_cursor  = 0;
+static HCURSOR arrow_cursor = 0;
+
 void
 sk_imgui_cursor_s::showSystemCursor (bool system)
 {
-  CURSORINFO cursor_info = { };
-  cursor_info.cbSize     = sizeof (CURSORINFO);
+  if (wait_cursor == 0)
+    wait_cursor = LoadCursor (nullptr, IDC_WAIT);
 
-  static HCURSOR wait_cursor  =
-    LoadCursor (nullptr, IDC_WAIT);
-  static HCURSOR arrow_cursor =
-    LoadCursor (nullptr, IDC_ARROW);
+  if (arrow_cursor == 0)
+    arrow_cursor = LoadCursor (nullptr, IDC_ARROW);
 
-  if (SK_ImGui_Cursor.orig_img == wait_cursor)
-      SK_ImGui_Cursor.orig_img = arrow_cursor;
-
-  if (system)
+  // This throws a Structured Exception if no mouse is present,
+  //   which slows games down. It's a continuable exception, so
+  //     just ignore it.
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try
   {
-    //if (refs_added == 0) { ShowCursor (TRUE); ++refs_added; }
+    CURSORINFO cursor_info = { };
+    cursor_info.cbSize     = sizeof (CURSORINFO);
 
-    SK_GetCursorInfo (&cursor_info);
+    if (SK_ImGui_Cursor.orig_img == wait_cursor)
+        SK_ImGui_Cursor.orig_img = arrow_cursor;
 
-    ///FIXME
-    //if (cursor_info.hCursor != SK_ImGui_Cursor.orig_img)
-    { SK_SetCursor            (SK_ImGui_Cursor.orig_img);
+    if (system)
+    {
+      //if (refs_added == 0) { ShowCursor (TRUE); ++refs_added; }
+
       SK_GetCursorInfo (&cursor_info);
+
+      ///FIXME
+      if (cursor_info.hCursor != SK_ImGui_Cursor.orig_img)
+      { SK_SetCursor            (SK_ImGui_Cursor.orig_img);
+        SK_GetCursorInfo (&cursor_info);
+      }
+
+      if ((! SK_ImGui_IsMouseRelevant ()) || (cursor_info.flags & CURSOR_SHOWING))
+        ImGui::GetIO ().MouseDrawCursor = false;
+
+      else
+        ImGuiCursor_Impl ();
     }
 
-    if ((! SK_ImGui_IsMouseRelevant ()) || (cursor_info.flags & CURSOR_SHOWING))
-      ImGui::GetIO ().MouseDrawCursor = false;
-
     else
+    {
+      //if (refs_added == 1) { --refs_added; ShowCursor (FALSE); }
       ImGuiCursor_Impl ();
+    }
   }
 
-  else
+  catch (...)
   {
-    //if (refs_added == 1) { --refs_added; ShowCursor (FALSE); }
-    ImGuiCursor_Impl ();
+    SK_ReleaseAssert (! "Exception caught in sk_imgui_cursor_s::showSystemCursor (...");
   }
 }
 
@@ -1226,11 +1241,11 @@ SK_ImGui_WantKeyboardCapture (void)
   if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
     imgui_capture = true;
 
-  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  if (config.input.keyboard.disabled_to_game)
     imgui_capture = true;
 
   return
-    imgui_capture && game_window.active;
+    imgui_capture;
 }
 
 bool
@@ -1244,7 +1259,7 @@ SK_ImGui_WantTextCapture (void)
   if (io.WantTextInput && game_window.active)
     imgui_capture = true;
 
-  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  if (config.input.keyboard.disabled_to_game)
     imgui_capture = true;
 
   return imgui_capture;
@@ -1273,7 +1288,7 @@ SK_ImGui_WantGamepadCapture (void)
   if (SK_ImGui_GamepadComboDialogActive)
     imgui_capture = true;
 
-  if (config.input.gamepad.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  if (config.input.gamepad.disabled_to_game)
     imgui_capture = true;
 
   return imgui_capture;
@@ -1287,18 +1302,18 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   bool imgui_capture = false;
 
-  if (SK_ImGui_IsMouseRelevant () && game_window.active)
+  if (SK_ImGui_IsMouseRelevant ())
   {
     ImGuiIO& io =
       ImGui::GetIO ();
 
-    if (config.input.ui.capture_mouse || io.WantCaptureMouse/* || io.WantTextInput*/)
+    if (config.input.ui.capture_mouse || io.WantCaptureMouse)
       imgui_capture = true;
 
-    if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
+    else if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game)
       imgui_capture = true;
 
-    if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+    else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
   }
 
@@ -1802,9 +1817,9 @@ mouse_event_Detour (
 }
 
 
-GetKeyState_pfn             GetKeyState_Original             = nullptr;
-GetAsyncKeyState_pfn        GetAsyncKeyState_Original        = nullptr;
-GetKeyboardState_pfn        GetKeyboardState_Original        = nullptr;
+GetKeyState_pfn      GetKeyState_Original      = nullptr;
+GetAsyncKeyState_pfn GetAsyncKeyState_Original = nullptr;
+GetKeyboardState_pfn GetKeyboardState_Original = nullptr;
 
 SHORT
 WINAPI
@@ -1813,7 +1828,8 @@ SK_GetAsyncKeyState (int vKey)
   if (GetAsyncKeyState_Original != nullptr)
     return GetAsyncKeyState_Original (vKey);
 
-  return GetAsyncKeyState (vKey);
+  return
+    GetAsyncKeyState (vKey);
 }
 
 SHORT
@@ -1962,16 +1978,6 @@ LRESULT
 WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-__declspec (noinline)
-LRESULT
-CALLBACK
-SK_DetourWindowProc ( _In_  HWND   hWnd,
-                      _In_  UINT   uMsg,
-                      _In_  WPARAM wParam,
-                      _In_  LPARAM lParam );
-
-DWORD dwLastTick [0xFFFF] = { };
-
 extern BOOL
 SK_IsChild (HWND hWndParent, HWND hWnd);
 
@@ -2004,10 +2010,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
   ////  return false;
   ////}
 
-
-  DWORD& dwTickBase =
-         dwLastTick [lpMsg->message & 0xFFFF];
-
   switch (lpMsg->message)
   {
     case WM_CHAR:
@@ -2032,25 +2034,14 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
 
     case WM_SETCURSOR:
     {
-      if (lpMsg->time >= dwTickBase)
-      {                  dwTickBase = lpMsg->time;
+      if (SK_ImGui_WantMouseCapture ())
+      {
         if (lpMsg->hwnd == game_window.hWnd &&
                            game_window.hWnd != nullptr)
         {
-          if (SK_ImGui_IsMouseRelevant ())
-          {   SK_ImGui_Cursor.update   (); }
+          handled = true;
         }
       }
-
-      //else if ( lpMsg->hwnd != game_window.hWnd )
-      //{
-      //  SK_LOG0 ( ( L"WM_SETCURSOR (%lu:%lu) received for HWND=%x; "
-      //              L"game HWND=%x",
-      //                lpMsg->wParam, lpMsg->lParam,
-      //                lpMsg->hwnd, game_window.hWnd ),
-      //              __SK_SUBSYSTEM__ );
-      //}
-
     } break;
 
     // TODO: Does this message have an HWND always?
@@ -2080,13 +2071,10 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
     case WM_MOUSEWHEEL:
     case WM_MOUSEHWHEEL:
     {
-      if (lpMsg->time >= dwTickBase)
-      {                  dwTickBase = lpMsg->time;
-        handled  =
-          ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
-                                 lpMsg->wParam, lpMsg->lParam )
-            && SK_ImGui_WantMouseCapture ();
-      }
+      handled  =
+        ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
+                               lpMsg->wParam, lpMsg->lParam )
+          && SK_ImGui_WantMouseCapture ();
     } break;
 
     case WM_INPUT:
@@ -2102,22 +2090,9 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
 
       else
       {
-        //if (lpMsg->time <= dwTickBase)
-        //{
-        //  handled = true;
-        //
-        //  DefWindowProcW (//game_window.DefWindowProc (
-        //    lpMsg->hwnd,   lpMsg->message,
-        //    lpMsg->wParam, lpMsg->lParam
-        //  );
-        //}
-
-        //if (lpMsg->time > dwTickBase)
-        //{                 dwTickBase = lpMsg->time;
-          handled  =
-            ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
-                                   lpMsg->wParam, lpMsg->lParam   );
-        //}
+        handled =
+          ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
+                                 lpMsg->wParam, lpMsg->lParam   );
       }
     } break;
 
@@ -2141,15 +2116,15 @@ void SK_Input_Init (void);
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {
-  if (SK_GetProcAddress (L"Win32U", "NtUserGetRawInputData") != nullptr)
-  {
-    SK_CreateDLLHook2 (       L"Win32U",
-                        "NtUserGetRawInputData",
-                         NtUserGetRawInputData_Detour,
-      static_cast_p2p <void> (&GetRawInputData_Original) );
-  }
-
-  else
+  //if (SK_GetProcAddress (L"Win32U", "NtUserGetRawInputData") != nullptr)
+  //{
+  //  SK_CreateDLLHook2 (       L"Win32U",
+  //                      "NtUserGetRawInputData",
+  //                       NtUserGetRawInputData_Detour,
+  //    static_cast_p2p <void> (&GetRawInputData_Original) );
+  //}
+  //
+  //else
   {
     SK_CreateDLLHook2 (       L"user32",
                                "GetRawInputData",
@@ -2157,7 +2132,7 @@ void SK_Input_PreInit (void)
        static_cast_p2p <void> (&GetRawInputData_Original) );
   }
 
-#if 1
+#if 0
   SK_CreateUser32Hook (      "NtUserGetAsyncKeyState",
                               NtUserGetAsyncKeyState_Detour,
      static_cast_p2p <void> (&GetAsyncKeyState_Original) );
@@ -2181,7 +2156,10 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&GetKeyState_Original) );
 #endif
 
-  SK_CreateUser32Hook (      "NtUserGetKeyboardState",
+  //SK_CreateUser32Hook (      "NtUserGetKeyboardState",
+  SK_CreateDLLHook2 (       L"user32",
+                                   "GetKeyboardState",
+                             //"NtUserGetKeyboardState",
                               NtUserGetKeyboardState_Detour,
      static_cast_p2p <void> (&GetKeyboardState_Original) );
 
@@ -2192,9 +2170,14 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&GetCursorPos_Original) );
 
 
-  SK_CreateUser32Hook (      "NtUserGetCursorInfo",
+  //SK_CreateUser32Hook (      "NtUserGetCursorInfo",
+  //                            NtUserGetCursorInfo_Detour,
+  //   static_cast_p2p <void> (&GetCursorInfo_Original) );
+
+  SK_CreateDLLHook2 (      L"user32",
+                                   "GetCursorInfo",
                               NtUserGetCursorInfo_Detour,
-     static_cast_p2p <void> (&GetCursorInfo_Original) );
+           static_cast_p2p <void> (&GetCursorInfo_Original) );
 
 
   SK_CreateDLLHook2 (       L"user32",
@@ -2203,11 +2186,15 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&GetMouseMovePointsEx_Original) );
 
 
-  SK_CreateUser32Hook (      "NtUserSetCursor",
+  SK_CreateDLLHook2 (       L"user32",
+                                   "SetCursor",
+//SK_CreateUser32Hook (      "NtUserSetCursor",
                               NtUserSetCursor_Detour,
      static_cast_p2p <void> (&NtUserSetCursor_Original) );
 
-  SK_CreateUser32Hook (      "NtUserGetCursor",
+  SK_CreateDLLHook2 (       L"user32",
+                                   "GetCursor",
+//SK_CreateUser32Hook (      "NtUserGetCursor",
                               NtUserGetCursor_Detour,
      static_cast_p2p <void> (&NtUserGetCursor_Original) );
 
@@ -2239,11 +2226,15 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&keybd_event_Original) );
 
 
-  SK_CreateUser32Hook (      "NtUserRegisterRawInputDevices",
+  //SK_CreateUser32Hook (      "NtUserRegisterRawInputDevices",
+  SK_CreateDLLHook2 (       L"user32",
+                                   "RegisterRawInputDevices",
                               NtUserRegisterRawInputDevices_Detour,
      static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
 
-  SK_CreateUser32Hook (      "NtUserGetRegisteredRawInputDevices",
+  //SK_CreateUser32Hook (      "NtUserGetRegisteredRawInputDevices",
+  SK_CreateDLLHook2 (       L"user32",
+                                   "GetRegisteredRawInputDevices",
                               NtUserGetRegisteredRawInputDevices_Detour,
      static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
 

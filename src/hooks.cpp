@@ -394,7 +394,7 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
                       L" { Last seen in '%s' }",
                                   it->target.symbol_name,
             SK_MakePrettyAddress (    target_addr).c_str (),
-       SK_StripUserNameFromPathW (
+               SK_ConcealUserDir (
                     std::wstring (it->target.module_path).data ()) ),
                       L"Hook Cache" );
 
@@ -446,7 +446,7 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
                       L" { Last seen in '%s' }",
                                   it->target.symbol_name,
             SK_MakePrettyAddress (it->target.addr).c_str (),
-       SK_StripUserNameFromPathW (
+               SK_ConcealUserDir (
                     std::wstring (it->target.module_path).data ()) ),
                       L"Hook Cache");
 
@@ -768,6 +768,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
       SK_Modules.LoadLibrary (pwszModule);
 
     if (hMod != skModuleRegistry::INVALID_MODULE)
+
       GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN |
                            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (wchar_t *)hMod, &hMod );
   }
@@ -812,9 +813,9 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
       snprintf  ( szProcName, 127, "Ordinal%u",
                     static_cast <WORD> ( ordinal & 0xFFFFU ) );
 
-    wcsncpy_s                 ( wszModName, MAX_PATH + 2,
-                                pwszModule, _TRUNCATE );
-    SK_StripUserNameFromPathW ( wszModName );
+    wcsncpy_s         ( wszModName, MAX_PATH + 2,
+                        pwszModule, _TRUNCATE );
+    SK_ConcealUserDir ( wszModName );
 
 
     if (status == MH_ERROR_ALREADY_CREATED)
@@ -995,9 +996,9 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
       snprintf  ( szProcName, 127, "Ordinal%u",
                     static_cast <WORD> ( ordinal & 0xFFFFU ) );
 
-    wcsncpy_s                 ( wszModName, MAX_PATH + 2,
-                                pwszModule, _TRUNCATE );
-    SK_StripUserNameFromPathW ( wszModName );
+    wcsncpy_s         ( wszModName, MAX_PATH + 2,
+                        pwszModule, _TRUNCATE );
+    SK_ConcealUserDir ( wszModName );
 
 
     if (status == MH_ERROR_ALREADY_CREATED)
@@ -1133,9 +1134,9 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
       snprintf  ( szProcName, 127, "Ordinal%u",
                     static_cast <WORD> ( ordinal & 0xFFFFU ) );
 
-    wcsncpy_s                 ( wszModName, MAX_PATH + 2,
-                                pwszModule, _TRUNCATE );
-    SK_StripUserNameFromPathW ( wszModName );
+    wcsncpy_s         ( wszModName, MAX_PATH + 2,
+                        pwszModule, _TRUNCATE );
+    SK_ConcealUserDir ( wszModName );
 
 
     // Silently ignore this problem

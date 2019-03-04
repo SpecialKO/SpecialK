@@ -10,7 +10,17 @@
 class IWrapSteamUGC;
 
 #include <concurrent_unordered_map.h>
-concurrency::concurrent_unordered_map <ISteamUGC*, IWrapSteamUGC*>   SK_SteamWrapper_remap_ugc;
+typedef concurrency::concurrent_unordered_map <ISteamUGC*, IWrapSteamUGC*> SK_SteamWrap_Concurrent_RemapUGC;
+
+SK_SteamWrap_Concurrent_RemapUGC*
+SK_Singleton_RemapUGC (void)
+{
+  static SK_SteamWrap_Concurrent_RemapUGC  remap_ugc;
+  return                                  &remap_ugc;
+}
+SK_DanglingRef  <SK_SteamWrap_Concurrent_RemapUGC> __remap_ugc__ (nullptr, SK_Singleton_RemapUGC);
+
+#define SK_SteamWrapper_remap_ugc ((SK_SteamWrap_Concurrent_RemapUGC&)__remap_ugc__)
 
 class IWrapSteamUGC010 : public ISteamUGC
 {

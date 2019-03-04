@@ -45,9 +45,18 @@ public:
                                                  parent (nullptr) {
   }
 
+  iSK_INISection (const std::wstring& sec_name) : name   (sec_name),
+                                                  parent (nullptr) {
+  }
+
   iSK_INISection ( const wchar_t* section_name,
-                         iSK_INI* _parent)     : name   (section_name),
+                         iSK_INI* _parent )     : name   (section_name),
                                                  parent (_parent) {
+  }
+
+  iSK_INISection ( const std::wstring& sec_name,
+                              iSK_INI* _parent) : name   (sec_name),
+                                                  parent (_parent) {
   }
 
   virtual ~iSK_INISection (void) { };

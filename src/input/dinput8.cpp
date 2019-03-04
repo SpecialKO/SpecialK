@@ -927,13 +927,17 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
       auto* out =
         static_cast <DIJOYSTATE2 *> (lpvData);
 
-      SK_DI8_TranslateToXInput (reinterpret_cast <DIJOYSTATE *> (out));
-
       bool disabled_to_game =
         ( config.input.gamepad.disabled_to_game ||
           SK_ImGui_WantGamepadCapture ()           );
 
-      if (disabled_to_game || (! game_window.active))
+      if (SUCCEEDED (hr))
+      {
+        memcpy (&last_state, out, cbData);
+        SK_DI8_TranslateToXInput (reinterpret_cast <DIJOYSTATE *> (out));
+      }
+
+      if (disabled_to_game || FAILED (hr))
       {
         RtlZeroMemory (out, cbData);
 
@@ -941,10 +945,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [2] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
-      }
-      
-      else if (SUCCEEDED (hr))
-        memcpy (&last_state, out, cbData);
+      }   
     }
 
     else if (cbData == sizeof DIJOYSTATE)
@@ -958,13 +959,17 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
       auto* out =
         static_cast <DIJOYSTATE *> (lpvData);
 
-      SK_DI8_TranslateToXInput (out);
-
       bool disabled_to_game =
         ( config.input.gamepad.disabled_to_game ||
           SK_ImGui_WantGamepadCapture ()           );
 
-      if (disabled_to_game || (! game_window.active))
+      if (SUCCEEDED (hr))
+      {
+        SK_DI8_TranslateToXInput (out);
+        memcpy (&last_state, out, cbData);
+      }
+
+      if (disabled_to_game || FAILED (hr))
       {
         RtlZeroMemory (out, cbData);
 
@@ -972,10 +977,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [2] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
-      }
-      
-      else if (SUCCEEDED (hr))
-        memcpy (&last_state, out, cbData);
+      } 
     }
 
     else if (This == _dik.pDev || cbData == 256)
@@ -986,14 +988,11 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         ( config.input.keyboard.disabled_to_game ||
           SK_ImGui_WantKeyboardCapture ()           );
 
-      if (disabled_to_game || (! game_window.active))
-        RtlZeroMemory (lpvData, cbData);
+      if (SUCCEEDED (hr))
+        memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
 
-      if (game_window.active)
-      {
-        if (hr == S_OK)
-          memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
-      }
+      if (disabled_to_game || (! game_window.active) || FAILED (hr))
+        RtlZeroMemory (lpvData, cbData);
     }
 
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
@@ -1010,16 +1009,11 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         ( config.input.mouse.disabled_to_game ||
           SK_ImGui_WantMouseCapture ()           );
 
-      if (game_window.active)
-      {
-        if (hr == S_OK)
-          memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);
-      }
+      if (SUCCEEDED (hr))
+        memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);
 
-      if (disabled_to_game || (! game_window.active))
-      {
+      if (disabled_to_game || (! game_window.active) || FAILED (hr))
         RtlZeroMemory (lpvData, cbData);
-      }
     }
   }
 

@@ -77,6 +77,8 @@ namespace SK
                     fps          = 0.0L,
                     effective_ms = 0.0L;
 
+      ULONGLONG     ticks_per_frame = 0ULL;
+
       LARGE_INTEGER time   = { },
                     start  = { },
                     next   = { },

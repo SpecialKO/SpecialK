@@ -474,6 +474,8 @@ public:
     volatile LONGLONG     bytes_loaded_ = 0LL;
     volatile LONG         jobs_retired_ = 0L;
 
+    std::wstring          name_;
+
     struct {
       FILETIME start, end;
       FILETIME user,  kernel;
