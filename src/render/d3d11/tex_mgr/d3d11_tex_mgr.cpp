@@ -1210,12 +1210,12 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   return E_FAIL;
 }
 
-__forceinline
-SK_D3D11_TexMgr_Singleton&
+__declspec (noinline)
+SK_D3D11_TexMgr_Singleton
 __SK_Singleton_D3D11_Textures (void)
 {
-  static SK_D3D11_TexMgr _SK_D3D11_Textures;
-  return                 _SK_D3D11_Textures;
+  static SK_D3D11_TexMgr  _SK_D3D11_Textures;
+  return                 &_SK_D3D11_Textures;
 }
 
 

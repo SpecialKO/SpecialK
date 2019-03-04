@@ -42,18 +42,23 @@ safe_crc32c_ex (uint32_t seed, const void* pData, size_t size, bool* failed)
     return seed;
   }
 
-  __try
+  uint32_t ret = 0x0;
+
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try
   {
-    return crc32c (seed, pData, size);
+    ret =
+      crc32c (seed, pData, size);
   }
 
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
-             EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+  catch (const SK_SEH_IgnoredException&)
   {
     *failed = true;
-
-    return 0x00;
   }
+  _set_se_translator (orig_se);
+
+  return ret;
 }
 
 
@@ -162,15 +167,15 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
           ( stride * ( height / 4 +
                        height % 4 ) );
 
-        __try {
+        auto orig_se =
+        _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+        try {
           checksum  = safe_crc32c (checksum, (const uint8_t *)pData, lod_size);
           size     += lod_size;
         }
 
         // Triggered by a certain JRPG that shall remain nameless (not so Marvelous!)
-        __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-                     EXCEPTION_EXECUTE_HANDLER :
-                     EXCEPTION_CONTINUE_SEARCH )
+        catch (const SK_SEH_IgnoredException&)
         {
           size +=
             ( static_cast <size_t> (stride) * ( static_cast <size_t> (height) /
@@ -180,8 +185,11 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
 
           SK_LOG0 ( ( L"Access Violation while Hashing Texture: %x", checksum ),
                       L" Tex Hash " );
+
+          _set_se_translator (orig_se);
           return 0;
         }
+        _set_se_translator (orig_se);
       }
 
       else

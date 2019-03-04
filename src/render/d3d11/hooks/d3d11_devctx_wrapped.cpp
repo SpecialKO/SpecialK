@@ -27,6 +27,8 @@
 #include <SpecialK/render/d3d11/d3d11_interfaces.h>
 #include <SpecialK/render/d3d11/utility/d3d11_texture.h>
 
+#include <ntverp.h>
+#if (VER_PRODUCTBUILD < 10011)
 const GUID IID_ID3D11DeviceContext2 =
 { 0x420d5b32, 0xb90c, 0x4da4, { 0xbe, 0xf0, 0x35, 0x9f, 0x6a, 0x24, 0xa8, 0x3a } };
 const GUID IID_ID3D11DeviceContext3 =
@@ -36,10 +38,18 @@ const GUID IID_ID3D11DeviceContext4 =
 
 const GUID IID_ID3D11Fence   =
 { 0xaffde9d1, 0x1df7, 0x4bb7, { 0x8a, 0x34, 0x0f, 0x46, 0x25, 0x1d, 0xab, 0x80 } };
+#endif
 
 // {9A222196-4D44-45C3-AAA4-2FD47915CC70}
 const GUID IID_IUnwrappedD3D11DeviceContext = 
 { 0xe8a22a3f, 0x1405, 0x424c, { 0xae, 0x99, 0xd, 0x3e, 0x9d, 0x54, 0x7c, 0x32 } };
+
+
+extern memory_tracking_s* __mem_map_stats__ (void);
+extern target_tracking_s* __tracked_rtv__   (void);
+#define mem_map_stats  (* __mem_map_stats__ ())
+#define tracked_rtv    (* __tracked_rtv__   ())
+
 
 class SK_IWrapD3D11DeviceContext : public ID3D11DeviceContext4
 {

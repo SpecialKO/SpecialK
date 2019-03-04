@@ -25,6 +25,11 @@
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/utility/d3d11_texture.h>
 
+extern memory_tracking_s* __mem_map_stats__ (void);
+extern target_tracking_s* __tracked_rtv__   (void);
+#define mem_map_stats  (* __mem_map_stats__ ())
+#define tracked_rtv    (* __tracked_rtv__   ())
+
 __declspec (noinline)
 HRESULT
 WINAPI

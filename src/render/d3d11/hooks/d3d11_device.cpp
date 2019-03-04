@@ -183,15 +183,15 @@ D3D11Dev_CreateShaderResourceView_Override (
         ///  }
         ///}
 
-        if ( pDesc->Format      == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB &&
-             tex_desc.Format    == DXGI_FORMAT_R8G8B8A8_UNORM      &&
-            (tex_desc.BindFlags &  D3D11_BIND_RENDER_TARGET) )
-        {
-          override  = true;
-          newFormat = tex_desc.Format;
-        }
+        ///if ( pDesc->Format      == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB &&
+        ///     tex_desc.Format    == DXGI_FORMAT_R8G8B8A8_UNORM      &&
+        ///    (tex_desc.BindFlags &  D3D11_BIND_RENDER_TARGET) )
+        ///{
+        ///  override  = true;
+        ///  newFormat = tex_desc.Format;
+        ///}
 
-        else if (pDesc->Format != tex_desc.Format)
+        if (DirectX::BitsPerPixel (pDesc->Format) != DirectX::BitsPerPixel (tex_desc.Format))
         {
           override  = true;
           newFormat = tex_desc.Format;
@@ -261,7 +261,7 @@ D3D11Dev_CreateShaderResourceView_Override (
                   &descCopy, ppSRView                    );
           }
 
-          catch ( _com_error& eCOM )
+          catch ( const _com_error& eCOM )
           {
             SK_LOG0 ( ( L"!! COM Error During "
                         L"CreateShaderResourceView (...) - '%s'",
@@ -616,12 +616,14 @@ D3D11Dev_CreateTexture2D_Override (
 
   if (SUCCEEDED (hr))
   {
-    __try {
+    auto orig_se =
+    _set_se_translator (SK_BasicStructuredExceptionTranslator);
+    try {
       *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) =
         descCopy;
     }
-    __except (EXCEPTION_EXECUTE_HANDLER)
-    { }
+    catch (const SK_SEH_IgnoredException&) { };
+    _set_se_translator (orig_se);
 
 
   //if (pDesc && pDesc->Usage == D3D11_USAGE_STAGING)

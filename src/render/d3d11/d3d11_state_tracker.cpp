@@ -134,9 +134,15 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
 
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
-std::vector <IUnknown *> SK_D3D11_TempResources;
+std::vector <SK_ComPtr <IUnknown> > SK_D3D11_TempResources;
 
-std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1> SK_D3D11_RenderTargets;
+std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>&
+_SK_D3D11_RenderTargets (void)
+{
+  static std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1> _targets;
+
+  return _targets;
+}
 
 void
 SK_D3D11_KnownThreads::clear_all (void)
@@ -188,10 +194,14 @@ SK_D3D11_KnownThreads::mark (void)
 
 #include <array>
 
-memory_tracking_s mem_map_stats;
-target_tracking_s tracked_rtv;
+extern memory_tracking_s* __mem_map_stats__ (void);
+extern target_tracking_s* __tracked_rtv__   (void);
+#define mem_map_stats  (* __mem_map_stats__ ())
+#define tracked_rtv    (* __tracked_rtv__   ())
 
-ID3D11Texture2D* SK_D3D11_TrackedTexture       = nullptr;
+// This is not a smart ptr., it may point to something, but we're not
+//   holding any references. The pointer is used only for comparison.
+ID3D11Texture2D *SK_D3D11_TrackedTexture       = nullptr;
 DWORD            tracked_tex_blink_duration    = 666UL;
 DWORD            tracked_shader_blink_duration = 666UL;
 
@@ -338,7 +348,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx)
         shaders.vertex.current.shader [dev_idx]   = 0x0;
         break;
       case SK_D3D11_ShaderType::Pixel:
-        shaders.pixel.current.shader  [dev_idx]    = 0x0;
+        shaders.pixel.current.shader  [dev_idx]   = 0x0;
         break;
       case SK_D3D11_ShaderType::Geometry:
         shaders.geometry.current.shader [dev_idx] = 0x0;
