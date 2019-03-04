@@ -399,7 +399,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
                     reinterpret_cast <const char *> (lpFileName),
                               _TRUNCATE );
 
-      SK_StripUserNameFromPathA (szFileName);
+      SK_ConcealUserDirA (szFileName);
 
       dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%14hs> { '%21hs' }",
                       wszModName,
@@ -415,7 +415,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
                   reinterpret_cast <const wchar_t *> (lpFileName),
                               _TRUNCATE );
 
-      SK_StripUserNameFromPathW (wszFileName);
+      SK_ConcealUserDir (wszFileName);
 
       dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116ws' <%14ws> { '%21hs' }",
                       wszModName,
@@ -522,6 +522,17 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
 BOOL
 WINAPI
+SK_FreeLibrary (HMODULE hLibModule)
+{
+  if (FreeLibrary_Original == nullptr)
+    return FreeLibrary (hLibModule);
+
+  return
+    FreeLibrary_Original (hLibModule);
+}
+
+BOOL
+WINAPI
 FreeLibrary_Detour (HMODULE hLibModule)
 {
 #ifdef _WIN64
@@ -623,18 +634,20 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
     }
   }
 
-  __try {
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_INVALID_HANDLE));
+  try
+  {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                            static_cast <LPCWSTR> (compliant_path),
                              &hModEarly );
   }
 
-  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
-                         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH  )
+  catch (const SK_SEH_IgnoredException&)
   {
     SetLastError (0);
   }
-
+  _set_se_translator (orig_se);
 
   if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
   {
@@ -645,10 +658,14 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
 
   HMODULE hMod = hModEarly;
 
-  __try      { hMod = LoadLibraryW_Original (compliant_path); }
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-                       EXCEPTION_EXECUTE_HANDLER :
-                       EXCEPTION_CONTINUE_SEARCH )
+  orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try
+  {
+    hMod = LoadLibraryW_Original (compliant_path);
+  }
+
+  catch (const SK_SEH_IgnoredException&)
   {
     wchar_t                     caller [128] = { };
     SKX_SummarizeCaller (lpRet, caller);
@@ -658,6 +675,7 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
                     wszSourceFunc, compliant_path,
                     caller );
   }
+  _set_se_translator (orig_se);
 
 
   if (hModEarly != hMod)
@@ -722,15 +740,16 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 
   lpLibFileName = compliant_path;
 
-  __try {
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_INVALID_HANDLE));
+  try {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpLibFileName, &hModEarly );
   }
-  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
-                           EXCEPTION_EXECUTE_HANDLER :
-                           EXCEPTION_CONTINUE_SEARCH )
+  catch (const SK_SEH_IgnoredException&)
   {
     SetLastError (0);
   }
+  _set_se_translator (orig_se);
 
 
   if (hModEarly == nullptr && BlacklistLibrary (lpLibFileName))
@@ -793,17 +812,17 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
 
   HMODULE hModEarly = nullptr;
 
-  __try
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_INVALID_HANDLE));
+  try
   {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, compliant_path, &hModEarly );
   }
-
-  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
-                           EXCEPTION_EXECUTE_HANDLER :
-                           EXCEPTION_CONTINUE_SEARCH )
+  catch (const SK_SEH_IgnoredException&)
   {
     SetLastError (0);
   }
+  _set_se_translator (orig_se);
 
   if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
   {
@@ -814,10 +833,12 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
 
   HMODULE hMod = hModEarly;
 
-  __try                                  { hMod = LoadLibraryExW_Original (compliant_path, hFile, dwFlags); }
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-                       EXCEPTION_EXECUTE_HANDLER :
-                       EXCEPTION_CONTINUE_SEARCH )
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try                                  { hMod = LoadLibraryExW_Original (compliant_path, hFile, dwFlags); }
+  //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+  //                     EXCEPTION_EXECUTE_HANDLER :
+  //                     EXCEPTION_CONTINUE_SEARCH )
+  catch (...)
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
                   L" %s ('%ws')!",
@@ -1181,7 +1202,7 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
                    L"  %s",
                                              base_addr,
                  gsl::narrow_cast <int32_t> (mod_size),
-                        SK_StripUserNameFromPathW (wszModNameCopy) );
+                          SK_ConcealUserDir (wszModNameCopy) );
   }
 
   if (ver_str.length () > 3)
@@ -1240,7 +1261,8 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
   {
     wchar_t wszModName [MAX_PATH + 2] = { };
 
-    __try
+    _set_se_translator (SK_BasicStructuredExceptionTranslator);
+    try
     {
       // Get the full path to the module's file.
       if ( (! logged_modules.count (pWorkingSet_->modules [i])) &&
@@ -1279,10 +1301,11 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
       }
     }
 
-    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
-                 GetExceptionCode () == EXCEPTION_INVALID_HANDLE )  ?
-                         EXCEPTION_EXECUTE_HANDLER :
-                         EXCEPTION_CONTINUE_SEARCH )
+    //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
+    //             GetExceptionCode () == EXCEPTION_INVALID_HANDLE )  ?
+    //                     EXCEPTION_EXECUTE_HANDLER :
+    //                     EXCEPTION_CONTINUE_SEARCH )
+    catch (...)
     {
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }
@@ -1398,7 +1421,8 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
   {
     wchar_t wszModName [MAX_PATH + 2] = { };
 
-    __try
+    _set_se_translator (SK_BasicStructuredExceptionTranslator);
+    try
     {
       // Get the full path to the module's file.
       if ( GetModuleFileNameW ( hMods [i],
@@ -1480,9 +1504,10 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
       }
     }
 
-    __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
-                           EXCEPTION_EXECUTE_HANDLER :
-                           EXCEPTION_CONTINUE_SEARCH  )
+    //__except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
+    //                       EXCEPTION_EXECUTE_HANDLER :
+    //                       EXCEPTION_CONTINUE_SEARCH  )
+    catch (...)
     {
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }

@@ -95,7 +95,18 @@ SK_SymSetOpts (void)
 //   used primarily for prognostics in the global injector.
 static volatile LONG __SK_Crashed = 0;
 
-bool SK_Debug_IsCrashing (void) { __try { return ReadAcquire (&__SK_Crashed) != 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return true; } }
+bool SK_Debug_IsCrashing (void)
+{
+  bool ret = true;
+
+  auto orig_se =
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try                                    { ret = ReadAcquire (&__SK_Crashed) != 0; }
+  catch (const SK_SEH_IgnoredException&) { }
+  _set_se_translator (orig_se);
+
+  return ret;
+}
 
 
 struct sk_crash_sound_s {
@@ -110,21 +121,27 @@ struct sk_crash_sound_s {
 bool
 SK_Crash_PlaySound (void)
 {
+  bool ret = false;
+
   // Rare WinMM (SDL/DOSBox) crashes may prevent this from working, so...
   //   don't create another top-level exception.
-  __try {
+  auto orig_se =
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try {
     PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound.buf),
                   nullptr,
                     SND_SYNC |
                     SND_MEMORY );
 
-    return true;
+    ret = true;
   }
   
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  catch (const SK_SEH_IgnoredException&)
   {
-    return false;
   }
+  _set_se_translator (orig_se);
+
+  return ret;
 }
 
 bool
@@ -369,163 +386,15 @@ extern iSK_Logger budget_log;
 extern iSK_Logger game_debug;
 extern iSK_Logger tex_log;
 
-LONG
-WINAPI
-SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
+std::wstring
+SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool crash_handled)
 {
-  // Sadly, if this ever happens, there's no way to report the problem, so just
-  //   terminate with exit code = -666.
-  if ( ReadAcquire (&__SK_DLL_Ending) != 0 )
-  {
-    if (SK_IsDebuggerPresent ())
-    {
-      __debugbreak ();
-    }
-
-    else
-    {
-      SK_SelfDestruct     (   );
-      SK_TerminateProcess (0x0);
-      SK_ExitProcess      (0x0);
-    }
-  }
-
-  bool scaleform = false;
-
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
-
-  CONTEXT&          last_ctx    = pTLS->debug.last_ctx;
-  EXCEPTION_RECORD& last_exc    = pTLS->debug.last_exc;
+  std::wstring log_entry;
+  log_entry.reserve (16384);
 
   const wchar_t* desc = L"";
 
-
-  //if ( (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) &&
-  //     SK_IsDebuggerPresent () )
-  //{
-  //  __debugbreak ();
-  //}
-
-
-  switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
-  {
-    case EXCEPTION_ACCESS_VIOLATION:
-      desc = L"\t<< EXCEPTION_ACCESS_VIOLATION >>";
-             //L"The thread tried to read from or write to a virtual address "
-             //L"for which it does not have the appropriate access.";
-      break;
-
-    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-      desc = L"\t<< EXCEPTION_ARRAY_BOUNDS_EXCEEDED >>";
-             //L"The thread tried to access an array element that is out of "
-             //L"bounds and the underlying hardware supports bounds checking.";
-      break;
-
-    case EXCEPTION_BREAKPOINT:
-      desc = L"\t<< EXCEPTION_BREAKPOINT >>";
-             //L"A breakpoint was encountered.";
-      break;
-
-    case EXCEPTION_DATATYPE_MISALIGNMENT:
-      desc = L"\t<< EXCEPTION_DATATYPE_MISALIGNMENT >>";
-             //L"The thread tried to read or write data that is misaligned on "
-             //L"hardware that does not provide alignment.";
-      break;
-
-    case EXCEPTION_FLT_DENORMAL_OPERAND:
-      desc = L"\t<< EXCEPTION_FLT_DENORMAL_OPERAND >>";
-             //L"One of the operands in a floating-point operation is denormal.";
-      break;
-
-    case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-      desc = L"\t<< EXCEPTION_FLT_DIVIDE_BY_ZERO >>";
-             //L"The thread tried to divide a floating-point value by a "
-             //L"floating-point divisor of zero.";
-      break;
-
-    case EXCEPTION_FLT_INEXACT_RESULT:
-      desc = L"\t<< EXCEPTION_FLT_INEXACT_RESULT >>";
-             //L"The result of a floating-point operation cannot be represented "
-             //L"exactly as a decimal fraction.";
-      break;
-
-    case EXCEPTION_FLT_INVALID_OPERATION:
-      desc = L"\t<< EXCEPTION_FLT_INVALID_OPERATION >>";
-      break;
-
-    case EXCEPTION_FLT_OVERFLOW:
-      desc = L"\t<< EXCEPTION_FLT_OVERFLOW >>";
-             //L"The exponent of a floating-point operation is greater than the "
-             //L"magnitude allowed by the corresponding type.";
-      break;
-
-    case EXCEPTION_FLT_STACK_CHECK:
-      desc = L"\t<< EXCEPTION_FLT_STACK_CHECK >>";
-             //L"The stack overflowed or underflowed as the result of a "
-             //L"floating-point operation.";
-      break;
-
-    case EXCEPTION_FLT_UNDERFLOW:
-      desc = L"\t<< EXCEPTION_FLT_UNDERFLOW >>";
-             //L"The exponent of a floating-point operation is less than the "
-             //L"magnitude allowed by the corresponding type.";
-      break;
-
-    case EXCEPTION_ILLEGAL_INSTRUCTION:
-      desc = L"\t<< EXCEPTION_ILLEGAL_INSTRUCTION >>";
-             //L"The thread tried to execute an invalid instruction.";
-      break;
-
-    case EXCEPTION_IN_PAGE_ERROR:
-      desc = L"\t<< EXCEPTION_IN_PAGE_ERROR >>";
-             //L"The thread tried to access a page that was not present, "
-             //L"and the system was unable to load the page.";
-      break;
-
-    case EXCEPTION_INT_DIVIDE_BY_ZERO:
-      desc = L"\t<< EXCEPTION_INT_DIVIDE_BY_ZERO >>";
-             //L"The thread tried to divide an integer value by an integer "
-             //L"divisor of zero.";
-      break;
-
-    case EXCEPTION_INT_OVERFLOW:
-      desc = L"\t<< EXCEPTION_INT_OVERFLOW >>";
-             //L"The result of an integer operation caused a carry out of the "
-             //L"most significant bit of the result.";
-      break;
-
-    case EXCEPTION_INVALID_DISPOSITION:
-      desc = L"\t<< EXCEPTION_INVALID_DISPOSITION >>";
-             //L"An exception handler returned an invalid disposition to the "
-             //L"exception dispatcher.";
-      break;
-
-    case EXCEPTION_NONCONTINUABLE_EXCEPTION:
-      desc = L"\t<< EXCEPTION_NONCONTINUABLE_EXCEPTION >>";
-             //L"The thread tried to continue execution after a noncontinuable "
-             //L"exception occurred.";
-      break;
-
-    case EXCEPTION_PRIV_INSTRUCTION:
-      desc = L"\t<< EXCEPTION_PRIV_INSTRUCTION >>";
-             //L"The thread tried to execute an instruction whose operation is "
-             //L"not allowed in the current machine mode.";
-      break;
-
-    case EXCEPTION_SINGLE_STEP:
-      desc = L"\t<< EXCEPTION_SINGLE_STEP >>";
-             //L"A trace trap or other single-instruction mechanism signaled "
-             //L"that one instruction has been executed.";
-      break;
-
-    case EXCEPTION_STACK_OVERFLOW:
-      desc = L"\t<< EXCEPTION_STACK_OVERFLOW >>";
-             //L"The thread used up its stack.";
-      break;
-  }
-
-  HMODULE hModSource               = nullptr;
+    HMODULE hModSource               = nullptr;
   char    szModName [MAX_PATH + 2] = { };
   HANDLE  hProc                    = SK_GetCurrentProcess ();
 
@@ -554,107 +423,133 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   char* pszShortName =
              szDupName;
   
-  auto _IsScaleform = [&](void) ->
-  bool
-  {
-    CONTEXT ctx (*ExceptionInfo->ContextRecord);
-
-#ifdef _WIN64
-    STACKFRAME64 stackframe = { };
-                 stackframe.AddrStack.Offset = ctx.Rsp;
-                 stackframe.AddrFrame.Offset = ctx.Rbp;
-#else
-    STACKFRAME   stackframe = { };
-                 stackframe.AddrStack.Offset = ctx.Esp;
-                 stackframe.AddrFrame.Offset = ctx.Ebp;
-#endif
-
-    stackframe.AddrPC.Mode   = AddrModeFlat;
-    stackframe.AddrPC.Offset = ip;
-
-    stackframe.AddrStack.Mode = AddrModeFlat;
-    stackframe.AddrFrame.Mode = AddrModeFlat;
-
-    ip = stackframe.AddrPC.Offset;
-
-    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-              reinterpret_cast <LPCWSTR> (ip),
-                                 &hModSource ) )
-    {
-      GetModuleFileNameA (hModSource, szModName, MAX_PATH);
-    }
-
-    MODULEINFO mod_info = { };
-
-    GetModuleInformation (
-      GetCurrentProcess (), hModSource, &mod_info, sizeof (mod_info)
-    );
-
-#ifdef _WIN64
-    BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
-#else
-    BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
-#endif
-
-    strncpy_s     (szDupName, MAX_PATH * 2, szModName, _TRUNCATE);
-    pszShortName = szDupName;
-
-    PathStripPathA (pszShortName);
-
-    SK_SymLoadModule ( hProc,
-                         nullptr,
-                          pszShortName,
-                            nullptr,
-                              BaseAddr,
-                                mod_info.SizeOfImage );
-
-    SYMBOL_INFO_PACKAGE sip = { };
-
-    sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-    sip.si.MaxNameLen   = sizeof sip.name;
-
-    DWORD64 Displacement = 0;
-
-    if ( SymFromAddr ( hProc,
-             static_cast <DWORD64> (ip),
-                           &Displacement,
-                             &sip.si ) )
-    {
-      if (StrStrIA (sip.si.Name, "Scaleform"))
-        return true;
-    }
-
-    return false;
-  };
-
-  // Seriously, WTF Scaleform?
-  //if (_IsScaleform ())
-  //{
-  //  const bool repeated = ( ! memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
-  //                        ( ! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
-  //
-  //  last_ctx = *ExceptionInfo->ContextRecord;
-  //  last_exc = *ExceptionInfo->ExceptionRecord;
-  //
-  //  //if (repeated)
-  //    return EXCEPTION_EXECUTE_HANDLER;
-  //}
-
-
   PathStripPathA (pszShortName);
 
-  std::wstring log_entry;
-  log_entry.reserve (16384);
+#define log_entry_format log_entry.append (SK_FormatStringW
 
-  #define log_entry_format log_entry.append (SK_FormatStringW
+  if (crash_handled)
+  {
+    switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
+    {
+      case EXCEPTION_ACCESS_VIOLATION:
+        desc = L"\t<< EXCEPTION_ACCESS_VIOLATION >>";
+               //L"The thread tried to read from or write to a virtual address "
+               //L"for which it does not have the appropriate access.";
+        break;
 
-  crash_log.Log   (L"\n\tUnhandled Top-Level Exception (%x):\n",
-                   ExceptionInfo->ExceptionRecord->ExceptionCode);
+      case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+        desc = L"\t<< EXCEPTION_ARRAY_BOUNDS_EXCEEDED >>";
+               //L"The thread tried to access an array element that is out of "
+               //L"bounds and the underlying hardware supports bounds checking.";
+        break;
 
-  log_entry.append (L"-----------------------------------------------------------\n");
-  log_entry_format (L"[! Except !] %s\n", desc));
-  log_entry.append (L"-----------------------------------------------------------\n");
+      case EXCEPTION_BREAKPOINT:
+        desc = L"\t<< EXCEPTION_BREAKPOINT >>";
+               //L"A breakpoint was encountered.";
+        break;
+
+      case EXCEPTION_DATATYPE_MISALIGNMENT:
+        desc = L"\t<< EXCEPTION_DATATYPE_MISALIGNMENT >>";
+               //L"The thread tried to read or write data that is misaligned on "
+               //L"hardware that does not provide alignment.";
+        break;
+
+      case EXCEPTION_FLT_DENORMAL_OPERAND:
+        desc = L"\t<< EXCEPTION_FLT_DENORMAL_OPERAND >>";
+               //L"One of the operands in a floating-point operation is denormal.";
+        break;
+
+      case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+        desc = L"\t<< EXCEPTION_FLT_DIVIDE_BY_ZERO >>";
+               //L"The thread tried to divide a floating-point value by a "
+               //L"floating-point divisor of zero.";
+        break;
+
+      case EXCEPTION_FLT_INEXACT_RESULT:
+        desc = L"\t<< EXCEPTION_FLT_INEXACT_RESULT >>";
+               //L"The result of a floating-point operation cannot be represented "
+               //L"exactly as a decimal fraction.";
+        break;
+
+      case EXCEPTION_FLT_INVALID_OPERATION:
+        desc = L"\t<< EXCEPTION_FLT_INVALID_OPERATION >>";
+        break;
+
+      case EXCEPTION_FLT_OVERFLOW:
+        desc = L"\t<< EXCEPTION_FLT_OVERFLOW >>";
+               //L"The exponent of a floating-point operation is greater than the "
+               //L"magnitude allowed by the corresponding type.";
+        break;
+
+      case EXCEPTION_FLT_STACK_CHECK:
+        desc = L"\t<< EXCEPTION_FLT_STACK_CHECK >>";
+               //L"The stack overflowed or underflowed as the result of a "
+               //L"floating-point operation.";
+        break;
+
+      case EXCEPTION_FLT_UNDERFLOW:
+        desc = L"\t<< EXCEPTION_FLT_UNDERFLOW >>";
+               //L"The exponent of a floating-point operation is less than the "
+               //L"magnitude allowed by the corresponding type.";
+        break;
+
+      case EXCEPTION_ILLEGAL_INSTRUCTION:
+        desc = L"\t<< EXCEPTION_ILLEGAL_INSTRUCTION >>";
+               //L"The thread tried to execute an invalid instruction.";
+        break;
+
+      case EXCEPTION_IN_PAGE_ERROR:
+        desc = L"\t<< EXCEPTION_IN_PAGE_ERROR >>";
+               //L"The thread tried to access a page that was not present, "
+               //L"and the system was unable to load the page.";
+        break;
+
+      case EXCEPTION_INT_DIVIDE_BY_ZERO:
+        desc = L"\t<< EXCEPTION_INT_DIVIDE_BY_ZERO >>";
+               //L"The thread tried to divide an integer value by an integer "
+               //L"divisor of zero.";
+        break;
+
+      case EXCEPTION_INT_OVERFLOW:
+        desc = L"\t<< EXCEPTION_INT_OVERFLOW >>";
+               //L"The result of an integer operation caused a carry out of the "
+               //L"most significant bit of the result.";
+        break;
+
+      case EXCEPTION_INVALID_DISPOSITION:
+        desc = L"\t<< EXCEPTION_INVALID_DISPOSITION >>";
+               //L"An exception handler returned an invalid disposition to the "
+               //L"exception dispatcher.";
+        break;
+
+      case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+        desc = L"\t<< EXCEPTION_NONCONTINUABLE_EXCEPTION >>";
+               //L"The thread tried to continue execution after a noncontinuable "
+               //L"exception occurred.";
+        break;
+
+      case EXCEPTION_PRIV_INSTRUCTION:
+        desc = L"\t<< EXCEPTION_PRIV_INSTRUCTION >>";
+               //L"The thread tried to execute an instruction whose operation is "
+               //L"not allowed in the current machine mode.";
+        break;
+
+      case EXCEPTION_SINGLE_STEP:
+        desc = L"\t<< EXCEPTION_SINGLE_STEP >>";
+               //L"A trace trap or other single-instruction mechanism signaled "
+               //L"that one instruction has been executed.";
+        break;
+
+      case EXCEPTION_STACK_OVERFLOW:
+        desc = L"\t<< EXCEPTION_STACK_OVERFLOW >>";
+               //L"The thread used up its stack.";
+        break;
+    }
+
+    log_entry.append (L"-----------------------------------------------------------\n");
+    log_entry_format (L"[! Except !] %s\n", desc));
+    log_entry.append (L"-----------------------------------------------------------\n");
+  }
 
   wchar_t* wszThreadDescription = nullptr;
 
@@ -976,6 +871,51 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   }
 
   log_entry.append (L"-----------------------------------------------------------\n\n");
+
+  return log_entry;
+}
+
+LONG
+WINAPI
+SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
+{
+  // Sadly, if this ever happens, there's no way to report the problem, so just
+  //   terminate with exit code = -666.
+  if ( ReadAcquire (&__SK_DLL_Ending) != 0 )
+  {
+    if (SK_IsDebuggerPresent ())
+    {
+      __debugbreak ();
+    }
+
+    else
+    {
+      SK_SelfDestruct     (   );
+      SK_TerminateProcess (0x0);
+      SK_ExitProcess      (0x0);
+    }
+  }
+
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  CONTEXT&          last_ctx    = pTLS->debug.last_ctx;
+  EXCEPTION_RECORD& last_exc    = pTLS->debug.last_exc;
+
+
+  //if ( (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) &&
+  //     SK_IsDebuggerPresent () )
+  //{
+  //  __debugbreak ();
+  //}
+
+  std::wstring log_entry =
+    SK_SEH_SummarizeException (ExceptionInfo, true);
+
+  crash_log.Log   (L"\n\tUnhandled Top-Level Exception (%x):\n",
+                   ExceptionInfo->ExceptionRecord->ExceptionCode);
+
+
   crash_log.LogEx  (false, L"%ws", log_entry.c_str ());
 
   fflush (crash_log.fLog);
@@ -987,8 +927,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                         ( !memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
   const bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
-  if ( (repeated || non_continue) && (! scaleform)
-                                  && wcslen (desc) /*&&
+  if ( (repeated || non_continue) /*&&
       (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)*/ )
   {
     if (! config.system.handle_crashes)
@@ -1206,9 +1145,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   last_exc = *ExceptionInfo->ExceptionRecord;
 
 
-  if ( ExceptionInfo->ExceptionRecord->ExceptionFlags == 0 ||
-       (! wcslen (desc))
-     )
+  if ( ExceptionInfo->ExceptionRecord->ExceptionFlags == 0 )
   {
     return EXCEPTION_CONTINUE_EXECUTION;
   }

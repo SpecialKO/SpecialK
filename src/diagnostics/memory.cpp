@@ -318,6 +318,9 @@ SK_Memory_InitHooks (void)
 void
 SK_Memory_RemoveHooks (void)
 {
+  if (! config.threads.enable_mem_alloc_trace)
+    return;
+
   SK_QueueDisableDLLHook ( L"kernel32",
                             "LocalAlloc" );
 

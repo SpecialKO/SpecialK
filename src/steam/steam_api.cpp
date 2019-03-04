@@ -1256,16 +1256,17 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 void
 SK_SteamAPI_EraseActivationCallback (class CCallbackBase *pCallback)
 {
-  __try
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try
   {
     overlay_activation_callbacks.erase (pCallback);
   }
 
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-            EXCEPTION_EXECUTE_HANDLER :
-            EXCEPTION_CONTINUE_SEARCH )
+  catch (const SK_SEH_IgnoredException&)
   {
   }
+  _set_se_translator (orig_se);
 }
 
 S_API
@@ -2851,7 +2852,7 @@ public:
          (! xbox) &&
          (!   dt) && (fWAV = _wfopen (wszFileName, L"rb")) != nullptr )
     {
-      SK_StripUserNameFromPathW (wszFileName);
+      SK_ConcealUserDir (wszFileName);
 
       steam_log.LogEx ( true,
                           L"  >> Loading Achievement Unlock Sound: '%s'...",
@@ -3470,7 +3471,9 @@ SteamAPI_RunCallbacks_Detour (void)
           SteamAPI_InitSafe_Detour ();
     }
 
-    __try
+    auto orig_se =
+    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    try
     {
       SK_Steam_SetNotifyCorner ();
 
@@ -3485,13 +3488,12 @@ SteamAPI_RunCallbacks_Detour (void)
       SteamAPI_RunCallbacks_Original ();
     }
 
-    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-                              EXCEPTION_EXECUTE_HANDLER :
-                              EXCEPTION_CONTINUE_SEARCH )
+    catch (const SK_SEH_IgnoredException&)
     {
       failure = true;
       steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
     }
+    _set_se_translator (orig_se);
 
     steam_mutex->unlock ();
 
@@ -3502,7 +3504,9 @@ SteamAPI_RunCallbacks_Detour (void)
   {
     static bool try_me = true;
 
-    __try
+    auto orig_se =
+    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    try
     {
       if (try_me)
       {
@@ -3523,22 +3527,19 @@ SteamAPI_RunCallbacks_Detour (void)
       }
     }
 
-    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-                              EXCEPTION_EXECUTE_HANDLER :
-                              EXCEPTION_CONTINUE_SEARCH )
+    catch (const SK_SEH_IgnoredException&)
     {
       try_me = false;
     }
 
-
-    __try
+    orig_se =
+    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    try
     {
       SteamAPI_RunCallbacks_Original ();
     }
 
-    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-                              EXCEPTION_EXECUTE_HANDLER :
-                              EXCEPTION_CONTINUE_SEARCH )
+    catch (const SK_SEH_IgnoredException&)
     {
       if (! failure)
       {
@@ -3546,6 +3547,7 @@ SteamAPI_RunCallbacks_Detour (void)
         failure = true;
       }
     }
+    _set_se_translator (orig_se);
   }
 
   steam_mutex->unlock ();
@@ -3650,12 +3652,15 @@ SteamAPI_PumpThread (LPVOID user)
 
       steam_log.Log ( L" >> Installing a callback auto-pump at 8 Hz.\n\n");
 
-      while (! ReadAcquire (&__SK_DLL_Ending))
+      do
       {
         SK::SteamAPI::Pump ();
 
-        SK_Sleep (125);
-      }
+        if ( WAIT_OBJECT_0 ==
+               WaitForSingleObject (__SK_DLL_TeardownEvent, 125) )
+          break;
+
+      } while (! ReadAcquire (&__SK_DLL_Ending));
     }
 
     else
@@ -3732,7 +3737,8 @@ SK::SteamAPI::UserSteamID (void)
 uint32_t
 SK::SteamAPI::AppID (void)
 {
-  ISteamUtils* utils = steam_ctx.Utils ();
+  ISteamUtils* utils =
+    steam_ctx.Utils ();
 
   if (utils != nullptr)
   {
@@ -4134,7 +4140,9 @@ SK_Steam_InvokeOverlayActivationCallback ( SK_Steam_Callback_pfn CallbackFn,
   if (__SK_Steam_IgnoreOverlayActivation)
     return;
 
-  __try
+  auto orig_se =
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  try
   {
     GameOverlayActivated_t activated = {
       active
@@ -4149,10 +4157,12 @@ SK_Steam_InvokeOverlayActivationCallback ( SK_Steam_Callback_pfn CallbackFn,
 
     SK::SteamAPI::overlay_state = active;
   }
-  __except (EXCEPTION_EXECUTE_HANDLER)
+
+  catch (...)
   {
     // Oh well, we literally tried...
   }
+  _set_se_translator (orig_se);
 }
 
 
@@ -4364,15 +4374,16 @@ bool
 SK_SAFE_SteamAPI_Init (void)
 {
   bool bRet = false;
-  __try {
+
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
     bRet =
       SteamAPI_Init_Original ();
   }
 
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-            EXCEPTION_EXECUTE_HANDLER :
-            EXCEPTION_CONTINUE_SEARCH ) {
-  }
+  catch (const SK_SEH_IgnoredException&) { }
+  _set_se_translator (orig_se);
 
   return bRet;
 }
@@ -4611,7 +4622,7 @@ SK_HookSteamAPI (void)
   if (! InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
   {
     steam_log.Log ( L"%s was loaded, hooking...",
-                   SK_StripUserNameFromPathW ( std::wstring (wszSteamAPI).data () )
+                    SK_ConcealUserDir ( std::wstring (wszSteamAPI).data () )
     );
 
     SK_CreateDLLHook2 ( wszSteamAPI,
@@ -5718,15 +5729,17 @@ SK_SteamOverlay_GoToFriendStats (CSteamID friend_sid)
 ISteamMusic*
 SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
-  __try {
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
+    _set_se_translator (orig_se);
+
     if (SK_IsAddressExecutable ((*(void ***)*&pClient)[24]))
       return pClient->GetISteamMusic (hSteamuser, hSteamPipe, pchVersion);
   }
 
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-            EXCEPTION_EXECUTE_HANDLER :
-            EXCEPTION_CONTINUE_SEARCH ) {
-  }
+  catch (const SK_SEH_IgnoredException&) { };
+  _set_se_translator (orig_se);
 
   return nullptr;
 }
@@ -5734,15 +5747,17 @@ SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hS
 ISteamController*
 SAFE_GetISteamController (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
-  __try {
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
+    _set_se_translator (orig_se);
+
     if (SK_IsAddressExecutable ((*(void ***)*&pClient)[21]))
       return pClient->GetISteamController (hSteamuser, hSteamPipe, pchVersion);
   }
 
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-            EXCEPTION_EXECUTE_HANDLER :
-            EXCEPTION_CONTINUE_SEARCH ) {
-  }
+  catch (const SK_SEH_IgnoredException&) { };
+  _set_se_translator (orig_se);
 
   return nullptr;
 }
@@ -5750,14 +5765,17 @@ SAFE_GetISteamController (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPi
 ISteamRemoteStorage*
 SAFE_GetISteamRemoteStorage (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
-  __try {
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
+    _set_se_translator (orig_se);
+
     if (SK_IsAddressExecutable ((*(void ***)*&pClient)[13]))
       return pClient->GetISteamRemoteStorage (hSteamuser, hSteamPipe, pchVersion);
   }
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-            EXCEPTION_EXECUTE_HANDLER :
-            EXCEPTION_CONTINUE_SEARCH ) {
-  }
+
+  catch (const SK_SEH_IgnoredException&) { };
+  _set_se_translator (orig_se);
 
   return nullptr;
 }
@@ -5765,14 +5783,17 @@ SAFE_GetISteamRemoteStorage (ISteamClient* pClient, HSteamUser hSteamuser, HStea
 ISteamUGC*
 SAFE_GetISteamUGC (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
-  __try {
+  auto orig_se =
+  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
+    _set_se_translator (orig_se);
+
     if (SK_IsAddressExecutable ((*(void ***)*&pClient)[23]))
       return pClient->GetISteamUGC (hSteamuser, hSteamPipe, pchVersion);
   }
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-            EXCEPTION_EXECUTE_HANDLER :
-            EXCEPTION_CONTINUE_SEARCH ) {
-  }
+
+  catch (const SK_SEH_IgnoredException&) { };
+  _set_se_translator (orig_se);
 
   return nullptr;
 }
