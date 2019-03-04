@@ -136,14 +136,10 @@ SK_CPU_InstallHooks (void)
   //                           GetLogicalProcessorInformation_Detour,
   //  static_cast_p2p <void> (&GetLogicalProcessorInformation_Original) );
   
-  SK_CreateDLLHook2 (      L"Kernel32",
+  SK_CreateDLLHook2 (     L"Kernel32",
                             "GetSystemInfo",
                              GetSystemInfo_Detour,
     static_cast_p2p <void> (&GetSystemInfo_Original) );
-  
-#ifdef SK_AGGRESSIVE_HOOKS
-  SK_ApplyQueuedHooks ();
-#endif
 }
 
 
