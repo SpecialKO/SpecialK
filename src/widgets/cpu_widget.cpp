@@ -124,7 +124,7 @@ typedef struct
       Reserved2        :  8-7,
       DiodeOffset      : 14-8,  // offset should be added to the external temp.
       Reserved3        : 16-14,
-      CurrentTemp      : 24-16, // 00h = -49C , 01h = -48C ... ffh = 206C 
+      CurrentTemp      : 24-16, // 00h = -49C , 01h = -48C ... ffh = 206C
       TjOffset         : 29-24, // Tcontrol = CurTmp - TjOffset * 2 - 49
       Reserved4        : 31-29,
       SwThermTrip      : 32-31; // diagnostic bit, for testing purposes only.
@@ -153,7 +153,7 @@ BOOL  WINAPI Rdmsr_NOP               ( DWORD, PDWORD,
                                        PDWORD             ) {return FALSE;}
 
 volatile LONG __SK_WR0_Init  = 0L;
-static HMODULE  hModWinRing0 = 0;
+static HMODULE  hModWinRing0 = nullptr;
          bool   SK_CPU_IsZen          (bool retest = false);
          void   SK_WinRing0_Install   (void);
          void   SK_WinRing0_Uninstall (void);
@@ -162,7 +162,7 @@ volatile LONG __SK_WR0_NoThreads = 0;
 void
 SK_WinRing0_Unpack (void)
 {
-  HMODULE hModSelf = 
+  HMODULE hModSelf =
     SK_GetDLL ();
 
   HRSRC res =
@@ -311,7 +311,7 @@ struct SK_CPU_CoreSensors
         WriteULongRelease (&tick,                         new_val);
         WriteRelease64    (&update_time, SK_QueryPerf ().QuadPart);
 
-      //dll_log.Log (L"elapsed_ms=%f, value=%f, core=%p", result.elapsed_ms, result.value, this);
+      //dll_log->Log (L"elapsed_ms=%f, value=%f, core=%p", result.elapsed_ms, result.value, this);
       }
 
       return
@@ -367,9 +367,9 @@ struct SK_CPU_Package
     double temperature = 0.0;
   } offsets;
 
-  SK_CPU_CoreSensors pkg_sensor;
-  SK_CPU_CoreSensors cores [64];
-  DWORD              core_count;
+  SK_CPU_CoreSensors pkg_sensor = { };
+  SK_CPU_CoreSensors cores [64] = { };
+  DWORD              core_count =  0 ;
 } ;
 
 SK_CPU_Package& __SK_CPU__ (void)
@@ -478,7 +478,7 @@ SK_WR0_Init (void)
       (Rdmsr_pfn)SK_GetProcAddress ( hModWinRing0,
                                        "Rdmsr" );
 
-    if ( InitializeOls != nullptr && 
+    if ( InitializeOls != nullptr &&
          InitializeOls () )
     {
       __SK_CPU.intel_arch =
@@ -554,7 +554,8 @@ SK_CPU_GetIntelMicroarch (void)
     cpu.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
 
 
-  DWORD eax, edx;
+  DWORD eax = 0,
+        edx = 0;
 
   if (cpu.intel_arch == SK_CPU_IntelMicroarch::KnownIntelArchs)
   {
@@ -633,7 +634,7 @@ SK_CPU_GetIntelMicroarch (void)
 
           case 0x1A: // Intel Core i7 LGA1366 (45nm)
           case 0x1E: // Intel Core i5, i7 LGA1156 (45nm)
-          case 0x1F: // Intel Core i5, i7 
+          case 0x1F: // Intel Core i5, i7
           case 0x25: // Intel Core i3, i5, i7 LGA1156 (32nm)
           case 0x2C: // Intel Core i7 LGA1366 (32nm) 6 Core
           case 0x2E: // Intel Xeon Processor 7500 series (45nm)
@@ -662,7 +663,7 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x3F: // Intel Xeon E5-2600/1600 v3, Core i7-59xx
                      // LGA2011-v3, Haswell-E (22nm)
           case 0x45: // Intel Core i5, i7 4xxxU (22nm)
-          case 0x46: 
+          case 0x46:
             cpu.intel_arch = SK_CPU_IntelMicroarch::Haswell;
             for ( auto& core : cpu.cores ) core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
@@ -708,7 +709,7 @@ SK_CPU_GetIntelMicroarch (void)
               SK_CPU_GetIntelTjMax (core.cpu_core);
             break;
 
-          case 0x8E: 
+          case 0x8E:
           case 0x9E: // Intel Core i5, i7 7xxxx (14nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::KabyLake;
             for ( auto& core : cpu.cores ) core.tjMax =
@@ -776,7 +777,7 @@ SK_CPU_GetIntelMicroarch (void)
       case SK_CPU_IntelMicroarch::Nehalem:
       case SK_CPU_IntelMicroarch::SandyBridge:
       case SK_CPU_IntelMicroarch::IvyBridge:
-      case SK_CPU_IntelMicroarch::Haswell: 
+      case SK_CPU_IntelMicroarch::Haswell:
       case SK_CPU_IntelMicroarch::Broadwell:
       case SK_CPU_IntelMicroarch::Silvermont:
       case SK_CPU_IntelMicroarch::Skylake:
@@ -791,7 +792,7 @@ SK_CPU_GetIntelMicroarch (void)
         }
       } break;
 
-      default: 
+      default:
         cpu.coefficients.intel.tsc = 0.0;
         break;
     }
@@ -803,21 +804,21 @@ SK_CPU_GetIntelMicroarch (void)
         case SK_CPU_IntelMicroarch::Silvermont:
         case SK_CPU_IntelMicroarch::Airmont:
           cpu.coefficients.energy =
-            1.0e-6 * static_cast <double> (1 << (int)((eax >> 8) & 0x1F));
+            1.0e-6 * static_cast <double> (1ULL << gsl::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
           break;
 
         default:
           cpu.coefficients.energy =
-            1.0 / static_cast <double> (1 << (int)((eax >> 8) & 0x1F));
+            1.0 / static_cast <double> (1ULL << gsl::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
           break;
       }
 
       cpu.coefficients.power =
-        1.0 / static_cast <double> (1 << (int)(eax & 0x0F));
+        1.0 / static_cast <double> (1ULL << gsl::narrow_cast <uint64_t> (eax & 0x0FULL));
 
       cpu.coefficients.time   =
         1000.0 *
-         ( 1.0 / static_cast <double> (1 << (int)((eax >> 16) & 0x0F)) );
+         ( 1.0 / static_cast <double> (1ULL << gsl::narrow_cast <uint64_t> ((eax >> 16ULL) & 0x0FULL)) );
 
       SK_LOG0 ( ( L"Power Units: %f, Energy Units: %f, Time Units: %f",
                   cpu.coefficients.power, cpu.coefficients.energy, cpu.coefficients.time ),
@@ -853,11 +854,11 @@ SK_CPU_MakePowerUnit_Zen (SK_CPU_ZenCoefficients* pCoeffs)
     if (Rdmsr (RAPL_POWER_UNIT_ZEN, &eax, &edx))
     {
       one_size_fits_all.power  =
-        1.0 / static_cast <double> (1 << (int)( eax        & 0x0F));
+        1.0 / static_cast <double> (1ULL << static_cast <uint64_t>( eax          & 0x0FULL));
       one_size_fits_all.energy =
-        1.0 / static_cast <double> (1 << (int)((eax >> 8)  & 0x1F));
+        1.0 / static_cast <double> (1ULL << static_cast <uint64_t>((eax >> 8ULL)  & 0x1FULL));
       one_size_fits_all.time   =
-        1.0 / static_cast <double> (1 << (int)((eax >> 16) & 0x0F));
+        1.0 / static_cast <double> (1ULL << static_cast <uint64_t>((eax >> 16ULL) & 0x0FULL));
 
       SK_LOG0 ( ( L"Power Units: %f, Energy Units: %f, Time Units: %f",
                       one_size_fits_all.power,
@@ -987,7 +988,7 @@ SK_CPU_AssertPowerUnit_Zen (int64_t core)
   {
     if (((eax >> 8UL) & 0x1FUL) != 16UL)
     {
-      dll_log.Log (
+      dll_log->Log (
         L"Unexpected Energy Units for Model 17H: %lu",
           (eax >> 8UL) & 0x1FUL
       );
@@ -1046,7 +1047,7 @@ SK_CPU_GetJoulesConsumedTotal (DWORD_PTR package)
       ret =
         cpu.pkg_sensor.accum.update (eax, cpu.coefficients.energy).value;
 
-      //dll_log.Log (
+      //dll_log->Log (
       //  L"Package Total: { [%f J] :: (coeff=%f) }",
       //    ret, cpu.coefficients.energy
       //);
@@ -1068,7 +1069,7 @@ SK_CPU_GetJoulesConsumed (int64_t core)
     __SK_CPU;
 
          double ret   = 0.0;
-  static double denom = 
+  static double denom =
                   1.0 / static_cast <double> (cpu.core_count);
 
   DWORD_PTR thread_mask = (1ULL << core);
@@ -1112,7 +1113,7 @@ SK_CPU_GetJoulesConsumed (int64_t core)
       static_cast <double>            (denom) *
         cpu.cores [core].accum.update (eax, cpu.coefficients.energy).value;
 
-    //dll_log.Log (
+    //dll_log->Log (
     //    L"Core[%lli] Energy: { [%f J] :: (coeff=%f) } - "
     //                    L"< thread_mask=%x, orig=%x > - ( msr0=%x, msr1=%x )",
     //      core, ret, cpu.coefficients.energy,
@@ -1232,9 +1233,10 @@ SK_CPU_UpdateCoreSensors (int core_idx)
   }
 
   DWORD_PTR thread_mask = (1ULL << core_idx);
-  DWORD     eax,  edx;
+  DWORD     eax         = 0,
+            edx         = 0;
 
-  DWORD_PTR orig_mask =
+  const DWORD_PTR orig_mask =
     SK_SetThreadAffinityMask (
                     SK_GetCurrentThread (),
                       thread_mask
@@ -1247,8 +1249,8 @@ SK_CPU_UpdateCoreSensors (int core_idx)
   {
     Rdmsr (AMD_ZEN_MSR_PSTATE_STATUS, &eax, &edx);
 
-    int Did = (int)((eax >> 8) & 0x3F);
-    int Fid = (int)( eax       & 0xFF);
+    const int Did = (int)((eax >> 8) & 0x3F);
+    const int Fid = (int)( eax       & 0xFF);
 
     core.clock_MHz =
       static_cast <double> (
@@ -1271,13 +1273,13 @@ SK_CPU_UpdateCoreSensors (int core_idx)
            (eax & 0x80000000) != 0 )
     {
       // get the dist from tjMax from bits 22:16
-      double deltaT = static_cast <double> (((eax & 0x007F0000UL) >> 16UL));
-      double tjMax  = core.tjMax;
-      double tSlope = 1.0;
+      const double deltaT = static_cast <double> (((eax & 0x007F0000UL) >> 16UL));
+      const double tjMax  = core.tjMax;
+      const double tSlope = 1.0;
         core.temperature_C =
           static_cast <double> (tjMax - tSlope * deltaT);
     }
-    
+
     else {
       core.temperature_C = 0.0;
     }
@@ -1286,7 +1288,7 @@ SK_CPU_UpdateCoreSensors (int core_idx)
     {
       SK_CPU_GetJoulesConsumed (core_idx);
 
-      static double denom = 
+      static double denom =
         1.0 / static_cast <double> (cpu.core_count);
 
       core.power_W =
@@ -1396,7 +1398,7 @@ public:
       _DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS dnsp = {
         SK_CPU_DeviceNotifyCallback, nullptr
       };
-      
+
       PowerSettingRegisterNotification ( &GUID_POWERSCHEME_PERSONALITY,
                                            DEVICE_NOTIFY_CALLBACK,
                                              (HANDLE)&dnsp,
@@ -1404,11 +1406,11 @@ public:
     }
   };
 
-  virtual ~SKWG_CPU_Monitor (void)
+  ~SKWG_CPU_Monitor (void)
   {
     if (active_scheme.notify != INVALID_HANDLE_VALUE)
     {
-      DWORD dwRet =
+      const DWORD dwRet =
         PowerSettingUnregisterNotification (active_scheme.notify);
 
       assert (dwRet == ERROR_SUCCESS);
@@ -1470,8 +1472,8 @@ public:
          last_update           < ( SK::ControlPanel::current_time - update_freq ) &&
           cpu_stats.num_cpus   > 0 )
     {
-      if (   cpu_records.size () < ( cpu_stats.num_cpus + 1 )
-         ) { cpu_records.resize    ( cpu_stats.num_cpus + 1 ); }
+      if (   cpu_records.size () < ( static_cast <size_t> (cpu_stats.num_cpus) + 1 )
+         ) { cpu_records.resize    ( static_cast <size_t> (cpu_stats.num_cpus) + 1 ); }
 
       for (unsigned int i = 1; i < cpu_stats.num_cpus + 1 ; i++)
       {
@@ -1523,7 +1525,7 @@ public:
         __AverageEffectiveClock.cumulative_MHz = 0;
       }
 
-      bool changed =
+      const bool changed =
         ReadAcquire (&active_scheme.dirty) > 0;
 
       if (changed)
@@ -1548,7 +1550,7 @@ public:
 
   void draw (void) override
   {
-    if (! ImGui::GetFont ()) return;
+    if (ImGui::GetFont () == nullptr) return;
 
     const  float font_size    = ImGui::GetFont ()->FontSize;
     static char  szAvg [1024] = { };
@@ -1592,10 +1594,10 @@ public:
                                   SK_ImGui_Visible &&
             ReadAcquire (&__SK_WR0_NoThreads) == 0;
 
-    auto _DrawButtonPanel =
+    const auto _DrawButtonPanel =
       [&]( int NorthSouth ) ->
     void
-    {      
+    {
       if (show_mode_buttons || show_install_button)
       {
         ImGui::BeginGroup   ();
@@ -1620,7 +1622,7 @@ public:
             HANDLE hUninstallEvent =
               CreateEvent ( nullptr, FALSE, FALSE,
                             nullptr/*L"WinRing0_Uninstall"*/ );
-            HANDLE hMgmtThread     = 0;
+            HANDLE hMgmtThread     = nullptr;
           } static SK_WinRing0;
 
 
@@ -1790,16 +1792,16 @@ public:
           }
           ImGui::PopStyleColor  (  );
           }
-  
+
           else if ( SK_ImGui_Visible                       &&
                     ReadAcquire (&__SK_WR0_Init)      == 1 &&
                     ReadAcquire (&__SK_WR0_NoThreads) == 0 )
           {
             ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.f, 0.f, 1.f, 1.f));
-  
+
             if (SK_ImGui::VerticalToggleButton ("Uninstall Driver", &never))
               SetEvent            (SK_WinRing0.hUninstallEvent);
-  
+
             ImGui::PopStyleColor  ();
           }
         }
@@ -1897,14 +1899,14 @@ public:
 
         snprintf (szName, 127, "###CPU_%u", i-1);
 
-        float samples = 
+        const float samples =
           std::min ( (float)cpu_records [i].getUpdates  (),
                      (float)cpu_records [i].getCapacity () );
 
         if (i == 1)
           ImGui::Separator ();
 
-        ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
+        ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                             ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, cpu_records [i].getAvg () / 100.0f ),
                                              0.86f,
@@ -1930,8 +1932,8 @@ public:
         ImGui::PopStyleColor ();
 
         bool found = false;
-  
-        auto DrawHeader = [&](int j) -> bool
+
+        const auto DrawHeader = [&](int j) -> bool
         {
           if (j == 0)
           {
@@ -2061,7 +2063,7 @@ public:
           {
             found = true;
 
-            auto& core_sensors =
+            const auto& core_sensors =
               __SK_CPU.cores [j - 1];
               //SK_CPU_UpdateCoreSensors (j - 1);
 
@@ -2090,7 +2092,7 @@ public:
             if (core_sensors.temperature_C != 0.0)
             {
               static std::string core_temp;
-              
+
               //if (! SK_CPU_IsZen ())
               //{
                 core_temp.assign (
@@ -2185,9 +2187,8 @@ public:
                           last_longest_line =
                                std::max (longest_line, 450.0f);
 
-    if (show_mode_buttons || show_install_button)
-    if (                            EastWest &
-         static_cast <int> (DockAnchor::West) )
+    if ( (show_mode_buttons || show_install_button) &&
+         (EastWest & static_cast <int> (DockAnchor::West)) )
     {
       ImGui::SameLine    ();
       ImGui::BeginGroup  ();
@@ -2203,7 +2204,7 @@ public:
   }
 
 
-  virtual void OnConfig (ConfigEvent event) override
+  void OnConfig (ConfigEvent event) override
   {
     switch (event)
     {
@@ -2260,7 +2261,7 @@ SK_CPU_DeviceNotifyCallback (
 /**
 ░▓┏──────────┓▓░LVT Thermal Sensor
 ░▓┃ APICx330 ┃▓░╰╾╾╾ThermalLvtEntry
-░▓┗──────────┛▓░ 
+░▓┗──────────┛▓░
 
 Reset: 0001_0000h.
 
@@ -2271,8 +2272,8 @@ Reset: 0001_0000h.
   Core::X86::Apic::ThermalLvtEntry_lthree [ 1 : 0 ]
                                   _core   [ 3 : 0 ]
                                   _thread [ 1 : 0 ];
-                                  
+
 ░▓┏──────────┓▓░ { Core::X86::Msr::APIC_BAR [
 ░▓┃ APICx330 ┃▓░                    ApicBar [ 47 : 12 ]
 ░▓┗──────────┛▓░                            ],          000h }
-**/	
+**/

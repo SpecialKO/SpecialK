@@ -84,13 +84,13 @@ D3D12CreateDevice_Detour (
 
   DXGI_LOG_CALL_0 ( L"D3D12CreateDevice" );
 
-  dll_log.LogEx ( true,
-                    L"[  D3D 12  ]  <~> Minimum Feature Level - %s\n",
-                        SK_DXGI_FeatureLevelsToStr (
-                          1,
-                            (DWORD *)&MinimumFeatureLevel
-                        ).c_str ()
-                );
+  dll_log->LogEx ( true,
+                     L"[  D3D 12  ]  <~> Minimum Feature Level - %s\n",
+                         SK_DXGI_FeatureLevelsToStr (
+                           1,
+                             (DWORD *)&MinimumFeatureLevel
+                         ).c_str ()
+                 );
 
   if ( pAdapter != nullptr )
   {
@@ -106,7 +106,7 @@ D3D12CreateDevice_Detour (
 
   HRESULT res;
 
-  DXGI_CALL (res, 
+  DXGI_CALL (res,
     D3D12CreateDevice_Import ( pAdapter,
                                  MinimumFeatureLevel,
                                    riid,
@@ -123,12 +123,12 @@ D3D12CreateDevice_Detour (
       //if ( *ppDevice != g_pD3D12Dev )
       //{
         // TODO: This isn't the right way to get the feature level
-        dll_log.Log ( L"[  D3D 12  ] >> Device = %ph (Feature Level:%s)",
-                        *ppDevice,
-                          SK_DXGI_FeatureLevelsToStr ( 1,
-                                                        (DWORD *)&MinimumFeatureLevel//(DWORD *)&ret_level
-                                                     ).c_str ()
-                    );
+        dll_log->Log ( L"[  D3D 12  ] >> Device = %ph (Feature Level:%s)",
+                         *ppDevice,
+                           SK_DXGI_FeatureLevelsToStr ( 1,
+                                                         (DWORD *)&MinimumFeatureLevel//(DWORD *)&ret_level
+                                                      ).c_str ()
+                     );
 
         //g_pD3D12Dev =
         //  (IUnknown *)*ppDevice;
@@ -152,7 +152,7 @@ SK_D3D12_Init (void)
 
   if (SK::DXGI::hModD3D12 != nullptr)
   {
-    if ( MH_OK == 
+    if ( MH_OK ==
            SK_CreateDLLHook ( L"d3d12.dll",
                                "D3D12CreateDevice",
                                 D3D12CreateDevice_Detour,
@@ -208,7 +208,7 @@ HookD3D12 (LPVOID user)
   {
     //bool success = SUCCEEDED (CoInitializeEx (nullptr, COINIT_MULTITHREADED))
 
-    dll_log.Log (L"[  D3D 12  ]   Hooking D3D12");
+    dll_log->Log (L"[  D3D 12  ]   Hooking D3D12");
 
 #if 0
     CComPtr <IDXGIFactory>  pFactory  = nullptr;
@@ -328,7 +328,7 @@ SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
                                   IID_PPV_ARGS (&cmd_queue) );
 
       if (query_res == nullptr) {
-        D3D12_HEAP_PROPERTIES heap_props = { D3D12_HEAP_TYPE_READBACK, 
+        D3D12_HEAP_PROPERTIES heap_props = { D3D12_HEAP_TYPE_READBACK,
                                              D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
                                              D3D12_MEMORY_POOL_UNKNOWN,
                                              0xFF,

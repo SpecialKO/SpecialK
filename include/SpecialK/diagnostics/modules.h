@@ -28,6 +28,7 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/core.h>
 #include <mutex>
+#include <minwindef.h>
 
 
 #define SK_GetModuleHandle SK_GetModuleHandleW
@@ -142,12 +143,12 @@ public:
    using _AddressRange = std::pair <LPVOID, LPVOID>;
 
 
-   skWin32Module (void)             : hMod_ (Uninitialized),
+   skWin32Module (void) noexcept            : hMod_ (Uninitialized),
                                               refs_ (0) { };
 
    skWin32Module ( HMODULE        hModWin32,
                    MODULEINFO&    info,
-                   const wchar_t* name    ) : hMod_ (hModWin32), refs_ (1)
+                   const wchar_t* name    ) noexcept : hMod_ (hModWin32), refs_ (1)
    {
      base_ = info.lpBaseOfDll;
      size_ = info.SizeOfImage;
@@ -156,7 +157,7 @@ public:
      AddRef ();
    };
 
-   skWin32Module ( HMODULE hModWin32 )      : hMod_ (hModWin32), refs_ (1)
+   skWin32Module ( HMODULE hModWin32 ) noexcept : hMod_ (hModWin32), refs_ (1)
    {
      DWORD dwNameLen=0;    BOOL       bHasValidInfo              = FALSE;
                            MODULEINFO mod_info                   = {   };
@@ -176,7 +177,7 @@ public:
        std::move (skWin32Module (hModWin32, mod_info, wszName));
    };
 
-  ~skWin32Module (void)///
+  ~skWin32Module (void) noexcept///
   {
     const LONG refs =
       ReadAcquire (&refs_);
@@ -200,13 +201,13 @@ public:
   }
 
 
-  LONG AddRef  (void) ;
-  LONG Release (void);
+  LONG AddRef  (void) noexcept;
+  LONG Release (void) noexcept;
 
 
   // Assigning an arbitrary HMODULE causes us to track, but not
   //   assume ownership of the Win32 module
-  const skWin32Module& operator= (const HMODULE hModWin32)
+  const skWin32Module& operator= (const HMODULE hModWin32) noexcept
   {
     if (hMod_ != Uninitialized) {
       Release (); assert (ReadAcquire (&refs_) == 0);
@@ -217,10 +218,10 @@ public:
                skWin32Module (hModWin32) );
   }
 
-  operator const HMODULE&       (void) const {
+  operator const HMODULE&       (void) const noexcept {
     return hMod_;
   };
-  operator const _AddressRange& (void) const {
+  operator const _AddressRange& (void) const noexcept {
     return
       std::make_pair ( base_,
                          reinterpret_cast   <LPVOID>    (
@@ -231,16 +232,16 @@ public:
   operator const std::wstring&  (void) {
     if (cache_name_ != nullptr) return *cache_name_;
 
-    return *(cache_name_ = new std::wstring (name_));
+    return *(cache_name_ = new (std::nothrow) std::wstring (name_));
   }
-  operator const wchar_t*       (void) const {
+  operator const wchar_t*       (void) const noexcept {
     return name_;
   }
 
 
   static constexpr HMODULE  Uninitialized = nullptr;
   static constexpr LONG     Unreferenced  =  0;
-  static constexpr LPVOID   Unaddressable =  0;
+  static constexpr LPVOID   Unaddressable = nullptr;
   static constexpr size_t   Unallocated   =  0;
   static constexpr const wchar_t*
                       const Unnamed       = L"";
@@ -265,19 +266,24 @@ protected:
 class skModuleRegistry
 {
 public:
-  skModuleRegistry (void)
+  skModuleRegistry (void) noexcept
   {
-    _known_module_bases.reserve (96);
-    _known_module_names.reserve (96);
-    _loaded_libraries.reserve   (96);
+    try {
+      _known_module_bases.reserve (96);
+      _known_module_names.reserve (96);
+      _loaded_libraries.reserve   (96);
+    }
+    catch (...)
+    {
+    }
   }
 
-  static constexpr HMODULE INVALID_MODULE = nullptr;
+  static inline HMODULE INVALID_MODULE = nullptr;
 
   bool
-    isValid (HMODULE hModTest) const
+    isValid (const HMODULE hModTest) const noexcept
   {
-    return ( hModTest > 0 //&&
+    return ( hModTest > nullptr //&&
                        );// hModTest != INVALID_MODULE );
   }
 
@@ -541,7 +547,7 @@ extern skModuleRegistry* SK_Singleton_Modules (void);
 
 __inline
 LONG
-skWin32Module::AddRef (void)
+skWin32Module::AddRef (void) noexcept
 {
   // This would add an actual reference in Win32, but we should be able to
   //   get away with ONE OS-level reference and our own counter.
@@ -556,7 +562,7 @@ skWin32Module::AddRef (void)
 
 __inline
 LONG
-skWin32Module::Release (void)
+skWin32Module::Release (void) noexcept
 {
   const LONG ret =
     InterlockedDecrement (&refs_);

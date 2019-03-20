@@ -150,7 +150,7 @@ LoadFileInResource ( int          name,
 }
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
-extern bool           SK_ImGui_Visible;
+       bool IMGUI_API SK_ImGui_Visible;
        bool           SK_ReShade_Visible        = false;
        bool           SK_ControlPanel_Activated = false;
 
@@ -165,8 +165,6 @@ struct show_eula_s {
 #include <unordered_set>
 #include <unordered_map>
 #include <d3d11.h>
-
-extern std::unordered_map <BYTE, std::wstring> virtKeyCodeToHumanKeyName;
 
 #include <ImGui/imgui_internal.h>
 
@@ -238,7 +236,7 @@ namespace SK_ImGui
     ImGui::PopID ();
 
     if (ret)
-      *v ^= 1;
+      *v ^= 1UL;
 
     return ret;
   }
@@ -345,7 +343,7 @@ SK_ImGui_PopNav (void)
 
   // Underflow?
   if (SK_ImGui_NavStack.empty ()) {
-    dll_log.Log (L"ImGui Nav State Underflow");
+    dll_log->Log (L"ImGui Nav State Underflow");
     return;
   }
 
@@ -533,7 +531,7 @@ SK_ImGui_ControlPanelTitle (void)
     __time64_t now     = 0ULL;
      _time64 (&now);
 
-    auto       elapsed = static_cast <uint32_t> (now - __SK_DLL_AttachTime);
+    auto       elapsed = gsl::narrow_cast <uint32_t> (now - __SK_DLL_AttachTime);
 
     uint32_t   secs    =  elapsed % 60ULL;
     uint32_t   mins    = (elapsed / 60ULL) % 60ULL;
@@ -611,7 +609,7 @@ SK_ImGui_AdjustCursor (void)
       }
       hAdjustEvent = INVALID_HANDLE_VALUE;
       CloseHandle (hEvent);
-                   
+
 
       SK_Thread_CloseSelf ();
 
@@ -978,7 +976,7 @@ SK_ImGui_ControlPanel (void)
 
   if (ImGui::GetFont () == nullptr)
   {
-    dll_log.Log (L"[   ImGui   ]  Fatal Error:  No Font Loaded!");
+    dll_log->Log (L"[   ImGui   ]  Fatal Error:  No Font Loaded!");
     return false;
   }
 
@@ -1521,13 +1519,16 @@ SK_ImGui_ControlPanel (void)
            ImGui::EndTooltip ();
          }
        }
+
        else
+       {
          ImGui::MenuItem ( "Special K Bootstrapper",
                              SK_FormatString (
                                "%ws API Wrapper  %s",
                                  SK_GetBackend (), SK_VERSION_STR_A
                              ).c_str (), ""
                          );
+       }
 
        if (host_executable.product_desc.length () > 4)
        {
@@ -1665,8 +1666,6 @@ SK_ImGui_ControlPanel (void)
 
   style.WindowMinSize.x = title_len * 1.075f * io.FontGlobalScale;
   style.WindowMinSize.y = 200;
-
-  extern bool nav_usable;
 
   if (nav_usable)
     ImGui::PushStyleColor ( ImGuiCol_Text, ImColor::HSV ( (float)(current_time % 2800) / 2800.0f,
@@ -2239,8 +2238,6 @@ SK_ImGui_ControlPanel (void)
 
             ImGui::SameLine ();
 
-            extern float
-                target_fps;
             if (target_fps > 0.000001f)
             {
               ImGui::SliderInt ("When to apply framerate limit", &__SK_FramerateLimitApplicationSite, 0, 4);
@@ -2500,7 +2497,9 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 #include <SpecialK/tls.h>
 
 
-extern SK_D3D11_TexCacheResidency_s SK_D3D11_TexCacheResidency;
+extern SK_D3D11_TexCacheResidency_s& SK_D3D11_GetTexCacheResidency (void);
+#define SK_D3D11_TexCacheResidency   SK_D3D11_GetTexCacheResidency ()
+
 extern bool                         SK_Tobii_IsCursorVisible (void);
 
 
@@ -2526,6 +2525,9 @@ SK_Steam_GetUserName (char* pszName, int max_len = 512)
 void
 SK_ImGui_StageNextFrame (void)
 {
+  static auto& humanToVirtual = humanKeyNameToVirtKeyCode.get ();
+  static auto& virtualToHuman = virtKeyCodeToHumanKeyName.get ();
+
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
@@ -2724,6 +2726,16 @@ SK_ImGui_StageNextFrame (void)
 
   reset_frame_history = false;
 
+  extern void SK_Widget_InitFramePacing    (void);
+  extern void SK_Widget_InitThreadProfiler (void);
+  extern void SK_Widget_InitVolumeControl  (void);
+  extern void SK_Widget_InitGPUMonitor     (void);
+  extern void SK_Widget_InitTobii          (void);
+  SK_RunOnce (SK_Widget_InitThreadProfiler (    ));
+  SK_RunOnce (SK_Widget_InitFramePacing    (    ));
+  SK_RunOnce (SK_Widget_InitVolumeControl  (    ));
+  SK_RunOnce (SK_Widget_InitTobii          (    ));
+  SK_RunOnce (SK_Widget_InitGPUMonitor     (    ));
 
   static bool init_widgets = true;
   static auto widgets =
@@ -2909,9 +2921,9 @@ SK_ImGui_StageNextFrame (void)
 
     ImGui::TextUnformatted (                                  "Press");                            ImGui::SameLine ();
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('%ws + %ws + %ws')",
-                                            virtKeyCodeToHumanKeyName [VK_CONTROL].c_str (),
-                                            virtKeyCodeToHumanKeyName [VK_SHIFT].c_str   (),
-                                            virtKeyCodeToHumanKeyName [VK_BACK].c_str    () );     ImGui::SameLine ();
+                                                       virtualToHuman [VK_CONTROL].c_str (),
+                                                       virtualToHuman [VK_SHIFT].c_str   (),
+                                                       virtualToHuman [VK_BACK].c_str    () );     ImGui::SameLine ();
     ImGui::TextUnformatted (                                  ", ");                               ImGui::SameLine ();
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('Select + Start' (PlayStation))"); ImGui::SameLine ();
     ImGui::TextUnformatted (                                  "or ");                              ImGui::SameLine ();
@@ -2932,7 +2944,7 @@ SK_ImGui_StageNextFrame (void)
     {
       if (! SK_ImGui_Active ())
       {
-        ImGuiWindow* pWin =
+        const ImGuiWindow* pWin =
           ImGui::FindWindowByName ("ReShade 3.0.8 by crosire; modified for Special K by Kaldaien###ReShade_Main");
 
         if (pWin)
@@ -2967,7 +2979,8 @@ SK_ImGui_StageNextFrame (void)
       extern LONG SK_D3D11_Resampler_GetWaitingJobCount (void);
       extern LONG SK_D3D11_Resampler_GetErrorCount      (void);
 
-      LONG jobs = SK_D3D11_Resampler_GetActiveJobCount () + SK_D3D11_Resampler_GetWaitingJobCount ();
+      const LONG jobs =
+        ( SK_D3D11_Resampler_GetActiveJobCount () + SK_D3D11_Resampler_GetWaitingJobCount () );
 
       static DWORD dwLastActive = 0;
 
@@ -3352,7 +3365,6 @@ SK_ImGui_Toggle (void)
       if (config.steam.reuse_overlay_pause)
         SK::SteamAPI::SetOverlayState (false);
 
-      extern bool nav_usable;
       nav_usable = false;
     }
 

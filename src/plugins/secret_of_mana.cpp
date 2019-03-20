@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -64,6 +64,10 @@ struct som_cfg_s
   {
     sk::ParameterFloat* scale = nullptr;
   } shadows;
+
+  constexpr som_cfg_s (void)
+  {
+  }
 } som_config;
 
 static float shadow_scale = 1.0f;
@@ -76,7 +80,7 @@ using D3D11Dev_CreateTexture2D_pfn = HRESULT (WINAPI *)(
   _Out_opt_       ID3D11Texture2D        **ppTexture2D
 );
 
-extern 
+extern
 HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
@@ -129,7 +133,7 @@ SK_SOM_CreateTexture2D (
         }
       }
     } break;
-  
+
     default:
       break;
   };
@@ -210,7 +214,7 @@ SK_SOM_InitPlugin (void)
      static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
-  
+
   som_config.shadows.scale =
       dynamic_cast <sk::ParameterFloat *>
         (som_config.factory.create_parameter <float> (L"Shadow Rescale"));

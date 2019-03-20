@@ -90,10 +90,7 @@ SK_Thread_HasCustomName (DWORD dwTid)
     SelfTitled =
       *_SK_SelfTitledThreads;
 
-  if (SelfTitled.count (dwTid) != 0)
-    return true;
-
-  return false;
+  return (SelfTitled.count (dwTid) != 0);
 }
 
 std::wstring&
@@ -104,7 +101,7 @@ SK_Thread_GetName (DWORD dwTid)
   static auto& names =
     *_SK_ThreadNames;
 
-  auto it  =
+  const auto it  =
     names.find (dwTid);
 
   if (it != names.end ())
@@ -205,8 +202,11 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
       char      szDesc [256] = { };
       wcstombs (szDesc, lpThreadDescription, 255);
 
-      const THREADNAME_INFO info =
-      { 4096, szDesc, (DWORD)-1, 0x0 };
+      THREADNAME_INFO info = {       };
+      info.dwType          =      4096;
+      info.szName          =    szDesc;
+      info.dwThreadID      = (DWORD)-1;
+      info.dwFlags         =       0x0;
 
       const DWORD argc = sizeof (info) /
                          sizeof (ULONG_PTR);
@@ -467,7 +467,7 @@ WINAPI
 SKX_ThreadThunk ( LPVOID lpUserPassThrough )
 {
   SK_ThreadBaseParams *pStartParams =
- (SK_ThreadBaseParams *)lpUserPassThrough;
+    static_cast <SK_ThreadBaseParams *> (lpUserPassThrough);
 
   while (pStartParams->hHandleToStuffInternally == INVALID_HANDLE_VALUE)
     SK_Sleep (1);
@@ -576,12 +576,11 @@ SK_Thread_CloseSelf (void)
 #include <concurrent_unordered_map.h>
 #include <avrt.h>
 
-static
-concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry *> task_map;
-
 concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry *>&
-SK_MMCS_GetTaskMap (void)
+SK_MMCS_GetTaskMap (void) noexcept
 {
+  static concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry*> task_map;
+
   return
     task_map;
 }
@@ -590,16 +589,25 @@ size_t
 SK_MMCS_GetTaskCount (void)
 {
   return
-    task_map.size ();
+    SK_MMCS_GetTaskMap ().size ();
 }
 
 std::vector <SK_MMCS_TaskEntry *>
 SK_MMCS_GetTasks (void)
 {
+  static auto& task_map =
+    SK_MMCS_GetTaskMap ();
+
   std::vector <SK_MMCS_TaskEntry *> tasks;
 
-  for ( auto& task : task_map )
-    tasks.push_back (task.second);
+  std::transform ( task_map.begin (),
+                   task_map.end   (),
+                     std::back_inserter (tasks),
+                     []( std::pair < DWORD,
+                                     SK_MMCS_TaskEntry *> c) ->
+                             auto {                return c.second;
+                                  }
+                 );
 
   return
     tasks;
@@ -610,6 +618,9 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
                                             const char* task1,
                                             const char* task2 )
 {
+  static auto& task_map =
+    SK_MMCS_GetTaskMap ();
+
   SK_MMCS_TaskEntry* task_me =
     nullptr;
 
@@ -656,6 +667,13 @@ SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name)
     SK_MMCS_GetTaskForThreadIDEx ( dwTid, name,
                                      "Games",
                                      "Playback" );
+}
+
+SK_MMCS_TaskEntry&
+__SK_MMCS_GetNulTaskRef (void)
+{
+  static SK_MMCS_TaskEntry nul_ref;
+  return                   nul_ref;
 }
 
 

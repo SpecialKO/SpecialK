@@ -115,25 +115,25 @@ SK_DescribeVkResult (VkResult result)
       return L"VK_ERROR_INVALID_SHADER_NV";
 
   default:
-    dll_log.Log (L" *** Encountered unknown VkResult: (0x%08X)",
+    dll_log->Log (L" *** Encountered unknown VkResult: (0x%08X)",
       static_cast <unsigned long> (result));
     return L"UNKNOWN";
   }
 }
 
 
-#define VK_CALL(_Ret, _Call) {                                        \
-  (_Ret) = (_Call);                                                   \
-  dll_log.Log ( L"[  Vulkan  ] [@]  Return: %s  -  < " L#_Call L" >", \
-                SK_DescribeVkResult (_Ret) );                         \
+#define VK_CALL(_Ret, _Call) {                                         \
+  (_Ret) = (_Call);                                                    \
+  dll_log->Log ( L"[  Vulkan  ] [@]  Return: %s  -  < " L#_Call L" >", \
+                 SK_DescribeVkResult (_Ret) );                         \
 }
 
 #define VK_LOG_CALL(_Name,_Format)                        \
-  dll_log.LogEx (true, L"[  Vulkan  ] [!] %s (", _Name);  \
-  dll_log.LogEx (false, _Format
+  dll_log->LogEx (true, L"[  Vulkan  ] [!] %s (", _Name); \
+  dll_log->LogEx (false, _Format
 
 #define VK_LOG_CALL_END                                   \
-  dll_log.LogEx (false, L") -- [%s, tid=0x%04x]\n",       \
+  dll_log->LogEx (false, L") -- [%s, tid=0x%04x]\n",      \
     SK_GetCallerName ().c_str (), GetCurrentThreadId ());
 
 VkResult
@@ -245,7 +245,8 @@ vulkan_init_callback (finish_pfn finish)
 {
   SK_BootVulkan ();
 
-  finish ();
+  if (finish != nullptr)
+      finish ();
 }
 
 void
@@ -261,12 +262,12 @@ SK_HookVulkan (void)
   if (! config.apis.Vulkan.hook)
     return;
 
-  if (! StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
+  if (! StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (),
                    L"Vulkan-1.dll" ) ) {
-    dll_log.Log (L"[  Vulkan  ] Additional Vulkan Initialization");
-    dll_log.Log (L"[  Vulkan  ] ================================");
+    dll_log->Log (L"[  Vulkan  ] Additional Vulkan Initialization");
+    dll_log->Log (L"[  Vulkan  ] ================================");
 
-    dll_log.Log (L"[  Vulkan  ] Hooking Vk (1.x)");
+    dll_log->Log (L"[  Vulkan  ] Hooking Vk (1.x)");
 
     SK_CreateDLLHook2 (      L"vulkan-1.dll",
                               "vkCreateWin32SurfaceKHR",

@@ -842,14 +842,14 @@ SK_Bypass_CRT (LPVOID)
          nRadioPressed          == 0 /* Auto */   &&
          config.apis.last_known == SK_RenderAPI::Reserved )
     {
-      MessageBoxA   ( HWND_DESKTOP,
+      MessageBoxA   ( SK_HWND_DESKTOP,
                         SK_FormatString ( "API detection may be incorrect, delete '%ws.dll' "
                                           "manually if Special K does not inject "
                                           "itself.", SK_GetBackend () ).c_str (),
                           "Possible API Detection Problems",
                             MB_ICONINFORMATION | MB_OK
                     );
-      ShellExecuteW ( HWND_DESKTOP, L"explore", SK_GetHostPath (), nullptr, nullptr, SW_SHOWNORMAL );
+      ShellExecuteW ( SK_HWND_DESKTOP, L"explore", SK_GetHostPath (), nullptr, nullptr, SW_SHOWNORMAL );
     }
 
     if (disable)

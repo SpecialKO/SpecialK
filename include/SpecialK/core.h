@@ -27,6 +27,7 @@ struct IUnknown;
 
 #include <SpecialK/SpecialK.h>
 #include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/utility/lazy_global.h>
 
 class           SK_TLS;
 extern __inline SK_TLS* SK_TLS_Bottom (void);
@@ -54,7 +55,7 @@ enum DLL_ROLE
   // -------------------------------------
   //
   //  Special K merely exports the correct symbols
-  //    for binary compatibility; it has no native 
+  //    for binary compatibility; it has no native
   //      support for rendering in these APIs.
   //
   D3D8       = 0xC0000010,
@@ -134,6 +135,13 @@ void           __cdecl   SK_SetDLLRole        (DLL_ROLE role);
 bool           __cdecl   SK_IsHostAppSKIM     (void);
 bool           __stdcall SK_IsInjected        (bool set = false);
 bool           __stdcall SK_HasGlobalInjector (void);
+
+extern SK_LazyGlobal <iSK_Logger> dll_log;
+extern SK_LazyGlobal <iSK_Logger> crash_log;
+extern SK_LazyGlobal <iSK_Logger> budget_log;
+extern SK_LazyGlobal <iSK_Logger> game_debug;
+extern SK_LazyGlobal <iSK_Logger> tex_log;
+extern SK_LazyGlobal <iSK_Logger> steam_log;
 
 
 // Pass nullptr to cleanup ALL windows; for internal use only.

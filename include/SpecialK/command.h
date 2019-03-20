@@ -74,13 +74,13 @@ private:
 interface SK_ICommand
 {
   virtual  SK_ICommandResult execute (const char* szArgs) = 0;
-  virtual ~SK_ICommand               (      void        ) { };
+  virtual ~SK_ICommand               (      void        ) noexcept { };
 
-  virtual const char* getHelp            (void)  { return "No Help Available"; }
+  virtual const char* getHelp            (void) noexcept { return "No Help Available"; }
 
-  virtual int         getNumArgs         (void)   { return 0; }
-  virtual int         getNumOptionalArgs (void)  { return 0; }
-  virtual int         getNumRequiredArgs (void) {
+  virtual int         getNumArgs         (void) noexcept { return 0; }
+  virtual int         getNumOptionalArgs (void) noexcept { return 0; }
+  virtual int         getNumRequiredArgs (void) noexcept {
     return getNumArgs () - getNumOptionalArgs ();
   }
 };
@@ -131,13 +131,13 @@ interface SK_IVarStub : public SK_IVariable
   SK_IVarStub ( T*                    var,
                 SK_IVariableListener* pListener = nullptr );
 
-  virtual SK_IVariable::VariableType getType (void) const override
+  SK_IVariable::VariableType getType (void) const override
   {
     return type_;
   }
 
-  virtual void          getValueString  ( _Out_opt_ char*     szOut,
-                                          _Inout_   uint32_t* dwLen ) const override {
+  void          getValueString  ( _Out_opt_ char*     szOut,
+                                  _Inout_   uint32_t* dwLen ) const override {
     if (szOut != nullptr)
       strncpy_s (szOut, 7, "(null)", *dwLen);
 
@@ -153,7 +153,7 @@ interface SK_IVarStub : public SK_IVariable
   }
 
   // Public interface, the other one is not visible outside this DLL.
-  virtual void* getValuePointer (void) const override {
+  void* getValuePointer (void) const override {
     return (void *)getValuePtr ();
   }
 
@@ -197,8 +197,8 @@ private:
   _Pr comp;
 };
 
-using SK_CommandRecord  = std::pair <std::string, SK_ICommand*>;
-using SK_VariableRecord = std::pair <std::string, SK_IVariable*>;
+using SK_CommandRecord  = std::pair <std::string, std::unique_ptr <SK_ICommand>>;
+using SK_VariableRecord = std::pair <std::string, std::unique_ptr <SK_IVariable>>;
 
 
 interface SK_ICommandProcessor
@@ -227,9 +227,9 @@ interface SK_ICommandProcessor
 
 protected:
 private:
-  std::unordered_map < std::string, SK_ICommand*,
+  std::unordered_map < std::string, std::unique_ptr <SK_ICommand>,
     str_hash_compare <std::string> > commands_;
-  std::unordered_map < std::string, SK_IVariable*,
+  std::unordered_map < std::string, std::unique_ptr <SK_IVariable>,
     str_hash_compare <std::string> > variables_;
 };
 

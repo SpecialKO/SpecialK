@@ -332,13 +332,14 @@ WMI_CLEANUP:
   return 0;
 }
 
+static HMODULE hModCOMBase = nullptr;
+
 extern "C"
 bool
 SK_WMI_Init (void)
 {
-  const wchar_t*
-           wszCOMBase  = L"combase.dll";
-  HMODULE  hModCOMBase = SK_Modules.LoadLibrary (wszCOMBase);
+  const wchar_t* wszCOMBase  = L"combase.dll";
+                 hModCOMBase = SK_Modules.LoadLibrary (wszCOMBase);
 
   if (hModCOMBase == nullptr)
   {
@@ -437,6 +438,12 @@ SK_WMI_Shutdown (void)
         break;
 
       MsgWaitForMultipleObjectsEx (0, nullptr, 16, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);
+    }
+
+    if (hModCOMBase != nullptr)
+    {
+      FreeLibrary (hModCOMBase);
+                   hModCOMBase = nullptr;
     }
   }
 }

@@ -79,8 +79,8 @@ public:
      const char* pszRet =
        pRealStorage->GetFileNameAndSize (iFile, pnFileSizeInBytes);
 
-     steam_log.Log ( L"ISteamRemoteStorage ** File: (%hs:%lu) - %lu Bytes",
-                       pszRet, iFile, pnFileSizeInBytes != nullptr ? *pnFileSizeInBytes : 0 );
+     steam_log->Log ( L"ISteamRemoteStorage ** File: (%hs:%lu) - %lu Bytes",
+                        pszRet, iFile, pnFileSizeInBytes != nullptr ? *pnFileSizeInBytes : 0 );
 
      return pszRet;
    }
@@ -104,7 +104,7 @@ public:
   SteamAPICall_t              UGCDownload               ( UGCHandle_t hContent,
                                                           uint32      unPriority       ) override
    {
-     steam_log.Log (L"ISteamRemoteStorage::UGCDownload (...)");
+     steam_log->Log (L"ISteamRemoteStorage::UGCDownload (...)");
 
      return pRealStorage->UGCDownload (hContent, unPriority);                                            }
 
@@ -123,7 +123,7 @@ public:
                                              OUT_STRUCT() CSteamID     *pSteamIDOwner  ) override
    { return pRealStorage->GetUGCDetails (hContent, pnAppID, ppchName, pnFileSizeInBytes, pSteamIDOwner); }
 
-  // After download, gets the content of the file.  
+  // After download, gets the content of the file.
   // Small files can be read all at once by calling this function with an offset of 0 and cubDataToRead equal to the size of the file.
   // Larger files can be read in chunks to reduce memory usage (since both sides of the IPC client and the game itself must allocate
   // enough memory for each chunk).  Once the last byte is read, the file is implicitly closed and further calls to UGCRead will fail
@@ -139,7 +139,7 @@ public:
   // Functions to iterate through UGC that has finished downloading but has not yet been read via UGCRead()
   int32	                      GetCachedUGCCount         ( void                    ) override
    {
-     steam_log.Log (L"ISteamRemoteStorage::GetCachedUGCCount (...)");
+     steam_log->Log (L"ISteamRemoteStorage::GetCachedUGCCount (...)");
 
      return pRealStorage->GetCachedUGCCount ();                                                     }
   UGCHandle_t                 GetCachedUGCHandle        ( int32 iCachedContent    ) override
@@ -191,14 +191,14 @@ public:
   // enumerate the files that the current user published with this app
   SteamAPICall_t              EnumerateUserPublishedFiles             (       uint32                                 unStartIndex         ) override
    {
-    steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedFiles (...)");
+    steam_log->Log (L"ISteamRemoteStorage::EnumeratePublishedFiles (...)");
 
      return pRealStorage->EnumerateUserPublishedFiles  (unStartIndex);                                                                                      }
   SteamAPICall_t              SubscribePublishedFile                  (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->SubscribePublishedFile       (unPublishedFileId);                                                                                 }
   SteamAPICall_t              EnumerateUserSubscribedFiles            (       uint32                                 unStartIndex         ) override
    {
-     steam_log.Log (L"ISteamRemoteStorage::EnumerateSubscribedFiles (...)");
+     steam_log->Log (L"ISteamRemoteStorage::EnumerateSubscribedFiles (...)");
 
      return pRealStorage->EnumerateUserSubscribedFiles (unStartIndex);                                                                                      }
   SteamAPICall_t              UnsubscribePublishedFile                (       PublishedFileId_t                      unPublishedFileId    ) override
@@ -236,7 +236,7 @@ public:
   SteamAPICall_t              EnumeratePublishedFilesByUserAction     (       EWorkshopFileAction                    eAction,
                                                                               uint32                                 unStartIndex         ) override
    {
-     steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedFilesByUserAction (...)");
+     steam_log->Log (L"ISteamRemoteStorage::EnumeratePublishedFilesByUserAction (...)");
 
      return pRealStorage->EnumeratePublishedFilesByUserAction (eAction, unStartIndex);                                                                      }
 
@@ -247,8 +247,8 @@ public:
                                                                               uint32                                 unDays,
                                                                               SteamParamStringArray_t               *pTags,
                                                                               SteamParamStringArray_t               *pUserTags            ) override
-   { 
-     steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedWorkshopFiles (...)");
+   {
+     steam_log->Log (L"ISteamRemoteStorage::EnumeratePublishedWorkshopFiles (...)");
 
      return pRealStorage->EnumeratePublishedWorkshopFiles (eEnumerationType, unStartIndex, unCount, unDays, pTags, pUserTags);                               }
 
@@ -274,12 +274,12 @@ class ISteamRemoteStorage014
 		// file operations
 		virtual bool	FileWrite( const char *pchFile, const void *pvData, int32 cubData ) = 0;
 		virtual int32	FileRead( const char *pchFile, void *pvData, int32 cubDataToRead ) = 0;
-		
+
 		virtual SteamAPICall_t FileWriteAsync( const char *pchFile, const void *pvData, uint32 cubData ) = 0;
-		
+
 		virtual SteamAPICall_t FileReadAsync( const char *pchFile, uint32 nOffset, uint32 cubToRead ) = 0;
 		virtual bool	FileReadAsyncComplete( SteamAPICall_t hReadCall, void *pvBuffer, uint32 cubToRead ) = 0;
-		
+
 		virtual bool	FileForget( const char *pchFile ) = 0;
 		virtual bool	FileDelete( const char *pchFile ) = 0;
 
@@ -316,7 +316,7 @@ class ISteamRemoteStorage014
 		// value are completed.  Downloads with equal priority will occur simultaneously.
 
 		virtual SteamAPICall_t UGCDownload( UGCHandle_t hContent, uint32 unPriority ) = 0;
-		
+
 		// Gets the amount of data downloaded so far for a piece of content. pnBytesExpected can be 0 if function returns false
 		// or if the transfer hasn't started yet, so be careful to check for that before dividing to get a percentage
 		virtual bool	GetUGCDownloadProgress( UGCHandle_t hContent, int32 *pnBytesDownloaded, int32 *pnBytesExpected ) = 0;
@@ -324,7 +324,7 @@ class ISteamRemoteStorage014
 		// Gets metadata for a file after it has been downloaded. This is the same metadata given in the RemoteStorageDownloadUGCResult_t call result
 		virtual bool	GetUGCDetails( UGCHandle_t hContent, AppId_t *pnAppID, char **ppchName, int32 *pnFileSizeInBytes, OUT_STRUCT() CSteamID *pSteamIDOwner ) = 0;
 
-		// After download, gets the content of the file.  
+		// After download, gets the content of the file.
 		// Small files can be read all at once by calling this function with an offset of 0 and cubDataToRead equal to the size of the file.
 		// Larger files can be read in chunks to reduce memory usage (since both sides of the IPC client and the game itself must allocate
 		// enough memory for each chunk).  Once the last byte is read, the file is implicitly closed and further calls to UGCRead will fail
@@ -338,7 +338,7 @@ class ISteamRemoteStorage014
 
 		// The following functions are only necessary on the Playstation 3. On PC & Mac, the Steam client will handle these operations for you
 		// On Playstation 3, the game controls which files are stored in the cloud, via FilePersist, FileFetch, and FileForget.
-			
+
 #if defined(_PS3) || defined(_SERVER)
 		// Connect to Steam and get a list of files in the Cloud - results in a RemoteStorageAppSyncStatusCheck_t callback
 		virtual void GetFileListFromServer() = 0;
@@ -465,7 +465,7 @@ public:
        return true;
 
      //if (SK_SteamUser_BLoggedOn () == SK_SteamUser_LoggedOn_e::Online)
-       return pRealStorage->FileForget (pchFile);
+     return pRealStorage->FileForget (pchFile);
 
      //return true;
    }
@@ -483,7 +483,7 @@ public:
    {
      if (SK_Steam_IsCloudFileBlacklisted (pchFile))
         return 0;
-   
+
      return pRealStorage->FileShare (pchFile);
    }
   bool                        SetSyncPlatforms          ( const char                   *pchFile,
@@ -500,7 +500,7 @@ public:
    {
       if (SK_Steam_IsCloudFileBlacklisted (pchFile))
         return SK_STEAM_INVALID_UGC_FILE;
-   
+
      return pRealStorage->FileWriteStreamOpen (pchFile);
    }
   bool                        FileWriteStreamWriteChunk (       UGCFileWriteStreamHandle_t  writeHandle,
@@ -509,7 +509,7 @@ public:
    {
      if (writeHandle == SK_STEAM_INVALID_UGC_FILE)
        return true;
-   
+
      return pRealStorage->FileWriteStreamWriteChunk (writeHandle, pvData, cubData);
    }
   bool                        FileWriteStreamClose      (       UGCFileWriteStreamHandle_t  writeHandle  ) override
@@ -530,7 +530,7 @@ public:
   // file information
   bool                        FileExists                ( const char *pchFile ) override
    {
-   //steam_log.Log (L"ISteamRemoteStorage::FileExists (%hs)", pchFile);
+   //steam_log->Log (L"ISteamRemoteStorage::FileExists (%hs)", pchFile);
 
      //if (SK_SteamUser_BLoggedOn () == SK_SteamUser_LoggedOn_e::Online)
      //{
@@ -559,7 +559,7 @@ public:
   // iteration
   int32                       GetFileCount              ( void                     ) override
    {
-   //steam_log.Log (L"ISteamRemoteStorage::GetFileCount ()");
+   //steam_log->Log (L"ISteamRemoteStorage::GetFileCount ()");
 
      //if (SK_SteamUser_BLoggedOn () == SK_SteamUser_LoggedOn_e::Online)
       return pRealStorage->GetFileCount ();
@@ -575,8 +575,8 @@ public:
      const char* pszRet =
        pRealStorage->GetFileNameAndSize (iFile, pnFileSizeInBytes);
 
-     steam_log.Log ( L"ISteamRemoteStorage014 ** File: (%hs:%lu) - %lu Bytes",
-                       pszRet, iFile, pnFileSizeInBytes != nullptr ? *pnFileSizeInBytes : 0 );
+     steam_log->Log ( L"ISteamRemoteStorage014 ** File: (%hs:%lu) - %lu Bytes",
+                        pszRet, iFile, pnFileSizeInBytes != nullptr ? *pnFileSizeInBytes : 0 );
 
      if (SK_Steam_IsCloudFileBlacklisted (pszRet))
        return "BlackListed.IAm"; // Sam
@@ -620,7 +620,7 @@ public:
                                              OUT_STRUCT() CSteamID     *pSteamIDOwner  ) override
    { return pRealStorage->GetUGCDetails (hContent, pnAppID, ppchName, pnFileSizeInBytes, pSteamIDOwner); }
 
-  // After download, gets the content of the file.  
+  // After download, gets the content of the file.
   // Small files can be read all at once by calling this function with an offset of 0 and cubDataToRead equal to the size of the file.
   // Larger files can be read in chunks to reduce memory usage (since both sides of the IPC client and the game itself must allocate
   // enough memory for each chunk).  Once the last byte is read, the file is implicitly closed and further calls to UGCRead will fail
@@ -635,8 +635,8 @@ public:
 
   // Functions to iterate through UGC that has finished downloading but has not yet been read via UGCRead()
   int32	                      GetCachedUGCCount         ( void                    ) override
-   { 
-     steam_log.Log (L"ISteamRemoteStorage::GetCachedUGCCount ()");
+   {
+     steam_log->Log (L"ISteamRemoteStorage::GetCachedUGCCount ()");
 
      return pRealStorage->GetCachedUGCCount  ();                                                    }
   UGCHandle_t                 GetCachedUGCHandle        ( int32 iCachedContent    ) override
@@ -688,13 +688,13 @@ public:
 
   // enumerate the files that the current user published with this app
   SteamAPICall_t              EnumerateUserPublishedFiles             (       uint32                                 unStartIndex         ) override
-   { steam_log.Log (L"ISteamRemoteStorage::EnumerateUserPublishedFiles ()");
+   { steam_log->Log (L"ISteamRemoteStorage::EnumerateUserPublishedFiles ()");
 
      return pRealStorage->EnumerateUserPublishedFiles  (unStartIndex);                                                                                      }
   SteamAPICall_t              SubscribePublishedFile                  (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->SubscribePublishedFile       (unPublishedFileId);                                                                                 }
   SteamAPICall_t              EnumerateUserSubscribedFiles            (       uint32                                 unStartIndex         ) override
-   { steam_log.Log (L"ISteamRemoteStorage::EnumerateUserSubscribedFiles ()");
+   { steam_log->Log (L"ISteamRemoteStorage::EnumerateUserSubscribedFiles ()");
 
      return pRealStorage->EnumerateUserSubscribedFiles (unStartIndex);                                                                                      }
   SteamAPICall_t              UnsubscribePublishedFile                (       PublishedFileId_t                      unPublishedFileId    ) override
@@ -714,7 +714,7 @@ public:
                                                                               SteamParamStringArray_t               *pRequiredTags,
                                                                               SteamParamStringArray_t               *pExcludedTags        ) override
    {
-     steam_log.Log (L"ISteamRemoteStorage::EnumerateUserSharedWorkshopFiles ()");
+     steam_log->Log (L"ISteamRemoteStorage::EnumerateUserSharedWorkshopFiles ()");
 
      return pRealStorage->EnumerateUserSharedWorkshopFiles (steamId, unStartIndex, pRequiredTags, pExcludedTags);                                           }
   SteamAPICall_t              PublishVideo                            (       EWorkshopVideoProvider                 eVideoProvider,
@@ -734,7 +734,7 @@ public:
    { return pRealStorage->SetUserPublishedFileAction (unPublishedFileId, eAction);                                                                          }
   SteamAPICall_t              EnumeratePublishedFilesByUserAction     (       EWorkshopFileAction                    eAction,
                                                                               uint32                                 unStartIndex         ) override
-   { steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedFilesByUserAction ()");
+   { steam_log->Log (L"ISteamRemoteStorage::EnumeratePublishedFilesByUserAction ()");
 
     return pRealStorage->EnumeratePublishedFilesByUserAction (eAction, unStartIndex);                                                                      }
 
@@ -746,7 +746,7 @@ public:
                                                                               SteamParamStringArray_t               *pTags,
                                                                               SteamParamStringArray_t               *pUserTags            ) override
    {
-     steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedWorkshopFiles ()");
+     steam_log->Log (L"ISteamRemoteStorage::EnumeratePublishedWorkshopFiles ()");
 
      return pRealStorage->EnumeratePublishedWorkshopFiles ( eEnumerationType, unStartIndex, unCount, unDays, pTags, pUserTags );                            }
 
@@ -779,7 +779,7 @@ SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour ( ISteamClient *This,
                                                       const char   *pchVersion )
 {
   SK_RunOnce (
-    steam_log.Log ( L"[!] %hs (..., %hs)",
+    steam_log->Log ( L"[!] %hs (..., %hs)",
                       __FUNCTION__, pchVersion )
   );
 
@@ -828,7 +828,7 @@ SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour ( ISteamClient *This,
     else
     {
       SK_RunOnce (
-        steam_log.Log ( L"Game requested unexpected interface version (%hs)!",
+        steam_log->Log ( L"Game requested unexpected interface version (%hs)!",
                           pchVersion )
       );
 
@@ -846,7 +846,7 @@ SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage ( ISteamClient *This,
                                                        const char   *pchVersion )
 {
   SK_RunOnce (
-    steam_log.Log ( L"[!] %hs (..., %hs)",
+    steam_log->Log ( L"[!] %hs (..., %hs)",
                       __FUNCTION__, pchVersion )
   );
 
@@ -894,7 +894,7 @@ SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage ( ISteamClient *This,
     else
     {
       SK_RunOnce (
-        steam_log.Log ( L"Game requested unexpected interface version (%hs)!",
+        steam_log->Log ( L"Game requested unexpected interface version (%hs)!",
                           pchVersion )
       );
 
@@ -915,7 +915,7 @@ S_CALLTYPE
 SteamRemoteStorage_Detour (void)
 {
   SK_RunOnce (
-    steam_log.Log ( L"[!] %hs ()",
+    steam_log->Log ( L"[!] %hs ()",
                       __FUNCTION__ )
   );
 
@@ -926,7 +926,7 @@ SteamRemoteStorage_Detour (void)
   {
     ISteamRemoteStorage* pRemoteStorage =
       static_cast <ISteamRemoteStorage *> ( SteamRemoteStorage_Original () );
-    
+
     if (SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
        return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
 

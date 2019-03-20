@@ -192,7 +192,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
                     UINT currentBuffer = 0;
 //if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
 
-  
+
   pSwapChain->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer));
 
   if (! pBackBuffer)
@@ -532,7 +532,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
           SK_HDR_GetUnderlayResourceView (void);
 
         ID3D11ShaderResourceView* views [2] =
-        { 
+        {
            *(ID3D11ShaderResourceView **)&pcmd->TextureId,
            SK_HDR_GetUnderlayResourceView ()
         };
@@ -657,7 +657,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 
   // Store our identifier
   io.Fonts->TexID =
-    static_cast <void *> (g_pFontTextureView);
+    g_pFontTextureView;
 
   // Create texture sampler
   {
@@ -722,7 +722,7 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
                                    &NumStackDestroyingInstances_ProbablyZero1 );
 
     pDevCtx->VSGetConstantBuffers ( 0, 1, &pOrigVtxCB.p );
-    pDevCtx->VSSetShader          ( g_pVertexShaderuPlayHDR, 
+    pDevCtx->VSSetShader          ( g_pVertexShaderuPlayHDR,
                                       nullptr, 0 );
     pDevCtx->PSSetShader          ( g_pPixelShaderuPlayHDR,
                                       nullptr, 0 );
@@ -789,7 +789,7 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
                                    &NumStackDestroyingInstances_ProbablyZero1 );
 
     pDevCtx->VSGetConstantBuffers ( 0, 1, &pOrigVtxCB.p );
-    pDevCtx->VSSetShader          ( g_pVertexShaderSteamHDR, 
+    pDevCtx->VSSetShader          ( g_pVertexShaderSteamHDR,
                                       nullptr, 0 );
     pDevCtx->PSSetShader          ( g_pPixelShaderSteamHDR,
                                       nullptr, 0 );
@@ -859,7 +859,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   ///if (rb.api == SK_RenderAPI::D3D11On12)
   ///{
   ///  rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
-  ///  
+  ///
   ///                              rb.d3d11.immediate_ctx = nullptr;
   ///  pDev->GetImmediateContext (&rb.d3d11.immediate_ctx.p);
   ///}
@@ -927,7 +927,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
       if (! err.empty ())
       {
-        dll_log.LogEx (true, L"ImGui D3D11 Vertex Shader: %hs", err.c_str ());
+        dll_log->LogEx (true, L"ImGui D3D11 Vertex Shader: %hs", err.c_str ());
       }
     }
 
@@ -1030,7 +1030,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
       if (! err.empty ())
       {
-        dll_log.LogEx (true, L"Steam HDR D3D11 Vertex Shader: %hs", err.c_str ());
+        dll_log->LogEx (true, L"Steam HDR D3D11 Vertex Shader: %hs", err.c_str ());
       }
     }
 
@@ -1063,7 +1063,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
       if (! err.empty ())
       {
-        dll_log.LogEx (true, L"uPlay HDR D3D11 Vertex Shader: %hs", err.c_str ());
+        dll_log->LogEx (true, L"uPlay HDR D3D11 Vertex Shader: %hs", err.c_str ());
       }
     }
 
@@ -1229,11 +1229,11 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
       if (! err.empty ())
       {
-        dll_log.LogEx (true, L"ImGui D3D11 Pixel Shader:  %hs", err.c_str ());
+        dll_log->LogEx (true, L"ImGui D3D11 Pixel Shader:  %hs", err.c_str ());
       }
     }
 
-    // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in 
+    // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in
     //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
     if (g_pPixelShaderBlob == nullptr)
       return false;
@@ -1241,7 +1241,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     if ( pDev->CreatePixelShader ( static_cast <DWORD *> (g_pPixelShaderBlob->GetBufferPointer ()),
                                      g_pPixelShaderBlob->GetBufferSize (),
                                        nullptr,
-                                         &g_pPixelShader ) != S_OK ) 
+                                         &g_pPixelShader ) != S_OK )
     {
       return false;
     }
@@ -1339,7 +1339,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
       if (! err.empty ())
       {
-        dll_log.LogEx (true, L"Steam HDR D3D11 Pixel Shader: %hs", err.c_str ());
+        dll_log->LogEx (true, L"Steam HDR D3D11 Pixel Shader: %hs", err.c_str ());
       }
     }
 
@@ -1370,7 +1370,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
       if (! err.empty ())
       {
-        dll_log.LogEx (true, L"uPlay HDR D3D11 Pixel Shader: %hs", err.c_str ());
+        dll_log->LogEx (true, L"uPlay HDR D3D11 Pixel Shader: %hs", err.c_str ());
       }
     }
 
@@ -1624,7 +1624,7 @@ ImGui_ImplDX11_NewFrame (void)
 
   if (! rb.device)
     return;
-  
+
   ImGuiIO& io (ImGui::GetIO ());
 
   if (! g_pFontSampler_clamp)

@@ -80,7 +80,7 @@ extern IMGUI_API ImGuiContext* GImGui;  // Current implicit ImGui context pointe
 // Helpers
 //-----------------------------------------------------------------------------
 
-#define IM_ARRAYSIZE(_ARR)      ((int)(sizeof(_ARR)/sizeof(*_ARR)))
+#define IM_ARRAYSIZE(_ARR)      ((int)(sizeof((_ARR))/sizeof(*(_ARR))))
 #define IM_PI                   3.14159265358979323846f
 #define IM_OFFSETOF(_TYPE,_ELM) ((size_t)&(((_TYPE*)0)->_ELM))
 
@@ -94,7 +94,7 @@ IMGUI_API int           ImTextCountUtf8BytesFromStr(const ImWchar* in_text, cons
 // Helpers: Misc
 IMGUI_API ImU32         ImHash(const void* data, int data_size, ImU32 seed = 0);    // Pass data_size==0 for zero-terminated strings
 IMGUI_API void*         ImFileLoadToMemory(const char* filename, const char* file_open_mode, int* out_file_size = NULL, int padding_bytes = 0);
-IMGUI_API FILE*         ImFileOpen(const char* filename, const char* file_open_mode);         
+IMGUI_API FILE*         ImFileOpen(const char* filename, const char* file_open_mode);
 IMGUI_API bool          ImIsPointInTriangle(const ImVec2& p, const ImVec2& a, const ImVec2& b, const ImVec2& c);
 static inline bool      ImCharIsSpace(int c)            { return c == ' ' || c == '\t' || c == 0x3000; }
 static inline int       ImUpperPowerOfTwo(int v)        { v--; v |= v >> 1; v |= v >> 2; v |= v >> 4; v |= v >> 8; v |= v >> 16; v++; return v; }
@@ -430,7 +430,7 @@ struct ImGuiContext
     ImGuiWindow*            NavWindow;                          // Nav/focused window for navigation
     ImGuiID                 NavId;                              // Nav/focused item for navigation
     ImGuiID                 NavActivateId, NavInputId;          // ~~ IsKeyPressedMap(ImGuiKey_NavActive) ? NavId : 0, etc. (to make widget code terser)
-    ImGuiID                 NavTabbedId;                        // 
+    ImGuiID                 NavTabbedId;                        //
     ImRect                  NavRefRectRel, NavScoringRectScreen;// Reference rectangle, in window space. Modified rectangle for directional navigation scoring, in screen space.
     ImGuiWindow*            NavWindowingTarget;
     float                   NavWindowingDisplayAlpha;

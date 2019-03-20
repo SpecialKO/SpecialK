@@ -26,7 +26,7 @@
 #include <SpecialK/render/d3d9/d3d9_device.h>
 #include <algorithm>
 
-#include <assert.h>
+#include <cassert>
 #include <d3d11.h>
 
 volatile LONG SK_D3D9_LiveWrappedSwapChains   = 0;
@@ -53,7 +53,7 @@ IWrapDirect3DSwapChain9::QueryInterface (REFIID riid, void **ppvObj)
     if (! d3d9ex_ && riid == __uuidof (IDirect3DSwapChain9Ex))
     {
       IDirect3DSwapChain9Ex *swapchainex = nullptr;
-  
+
       if (FAILED (pReal->QueryInterface (IID_PPV_ARGS (&swapchainex))))
       {
         return E_NOINTERFACE;
@@ -75,12 +75,12 @@ IWrapDirect3DSwapChain9::QueryInterface (REFIID riid, void **ppvObj)
                                  pReal->AddRef  ();
     InterlockedExchange (&refs_, pReal->Release ());
     AddRef ();
-    
+
     *ppvObj = this;
-    
+
     return S_OK;
   }
-  
+
   return pReal->QueryInterface (riid, ppvObj);
 }
 
@@ -147,13 +147,13 @@ IWrapDirect3DSwapChain9::Release (void)
 HRESULT
 STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::Present (const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion, DWORD dwFlags)
-{ 
+{
   sk_d3d9_swap_dispatch_s dispatch =
   {
     pDev,                pReal,
     pSourceRect,         pDestRect,
     hDestWindowOverride, pDirtyRegion,
-    dwFlags, 
+    dwFlags,
     nullptr,
     SK_D3D9_PresentSource::Wrapper,
     SK_D3D9_PresentType::SwapChain9_Present
@@ -215,7 +215,7 @@ STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::GetLastPresentCount (UINT *pLastPresentCount)
 {
   assert(d3d9ex_);
-  
+
   return static_cast <IDirect3DSwapChain9Ex *>(pReal)->GetLastPresentCount (pLastPresentCount);
 }
 HRESULT
@@ -223,7 +223,7 @@ STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::GetPresentStats (D3DPRESENTSTATS *pPresentationStatistics)
 {
   assert(d3d9ex_);
-  
+
   return static_cast <IDirect3DSwapChain9Ex *>(pReal)->GetPresentStats (pPresentationStatistics);
 }
 HRESULT
@@ -231,6 +231,6 @@ STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::GetDisplayModeEx (D3DDISPLAYMODEEX *pMode, D3DDISPLAYROTATION *pRotation)
 {
   assert(d3d9ex_);
-  
+
   return static_cast <IDirect3DSwapChain9Ex *>(pReal)->GetDisplayModeEx(pMode, pRotation);
 }

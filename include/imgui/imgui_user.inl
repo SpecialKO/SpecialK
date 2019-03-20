@@ -6,9 +6,6 @@
 volatile LONG
   __SK_KeyMessageCount = 0;
 
-IMGUI_API
-bool SK_ImGui_Visible = false;
-
 #include <SpecialK/utility.h>
 #include <SpecialK/config.h>
 #include <SpecialK/thread.h>
@@ -18,8 +15,10 @@ bool SK_ImGui_Visible = false;
 #include <SpecialK/window.h>
 
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
-extern IMGUI_API bool SK_ImGui_Visible;
+extern bool IMGUI_API SK_ImGui_Visible;
 extern bool           SK_ImGui_IsMouseRelevant (void);
 
 extern HWND SK_GetParentWindow (HWND);
@@ -641,7 +640,7 @@ MessageProc ( const HWND&   hWnd,
       {
         case FAPPCOMMAND_KEY:
         {
-          dll_log.Log (L"WM_APPCOMMAND Keyboard Event");
+          dll_log->Log (L"WM_APPCOMMAND Keyboard Event");
 
           //if (SK_ImGui_WantKeyboardCapture ())
           //{
@@ -654,18 +653,18 @@ MessageProc ( const HWND&   hWnd,
         {
           if (SK_ImGui_WantMouseCapture ())
           {
-            dll_log.Log (L"Removed WM_APPCOMMAND Mouse Event");
+            dll_log->Log (L"Removed WM_APPCOMMAND Mouse Event");
             return true;
           }
 
-          dll_log.Log (L"WM_APPCOMMAND Mouse Event");
+          dll_log->Log (L"WM_APPCOMMAND Mouse Event");
 
           DWORD dwPos = GetMessagePos ();
           LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
 
           if (lRet >= 0)
           {
-            dll_log.Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
+            dll_log->Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
             return true;
           }
         } break;
@@ -1127,7 +1126,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
                config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
           {
-            dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
+            dll_log->Log (L"[XInput_Hot]  (Input Device Connected)");
             return true;
           }
         }
@@ -1144,7 +1143,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
                config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
           {
-            dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
+            dll_log->Log (L"[XInput_Hot]  (Input Device Disconnected)");
             return true;
           }
         }
@@ -1228,8 +1227,6 @@ float analog_sensitivity = 333.33f;
 #include <SpecialK/input/xinput.h>
 
 bool  nav_usable       = false;
-
-extern bool SK_ImGui_Visible;
 
 bool
 _Success_(false)
@@ -2048,9 +2045,7 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
 }
 
 
-#include <imgui/imgui_internal.h>
 #include <SpecialK/control_panel.h>
-
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
 void

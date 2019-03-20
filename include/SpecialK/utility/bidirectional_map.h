@@ -146,11 +146,11 @@ public:
       return false;
   }
 
-  inline typename std::unordered_map <_V, _K>::iterator 
+  inline typename std::unordered_map <_V, _K>::iterator
   begin_v (void)
   {
     std::unordered_map <_V, _K>::iterator it;
-    
+
     if (! begin_ (&it))
     {
       return
@@ -174,11 +174,11 @@ public:
     return it;
   }
 
-  inline typename std::unordered_map <_K, _V>::iterator 
+  inline typename std::unordered_map <_K, _V>::iterator
   begin_k (void)
   {
     std::unordered_map <_K, _V>::iterator it;
-    
+
     if (! begin_ (&it))
     {
       return
@@ -253,11 +253,11 @@ public:
     return true;
   }
 
-  inline typename std::unordered_map <_V, _K>::iterator 
+  inline typename std::unordered_map <_V, _K>::iterator
   end_v (void)
   {
     std::unordered_map <_V, _K>::iterator it;
-    
+
     if (! end_ (&it))
     {
       return
@@ -281,12 +281,12 @@ public:
     return it;
   }
 
-  
-  inline typename std::unordered_map <_K, _V>::iterator 
+
+  inline typename std::unordered_map <_K, _V>::iterator
   end_k (void)
   {
     std::unordered_map <_K, _V>::iterator it;
-    
+
     if (! end_ (&it))
     {
       return

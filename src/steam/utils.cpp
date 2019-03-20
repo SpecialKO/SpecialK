@@ -21,55 +21,55 @@ public:
                     pRealUtils (pUtils) {
   };
 
-  virtual uint32               GetSecondsSinceAppActive       (void)                            override
+  uint32               GetSecondsSinceAppActive       (void)                            override
    { return pRealUtils->GetSecondsSinceAppActive       ();                                              }
-  virtual uint32               GetSecondsSinceComputerActive  (void)                            override
+  uint32               GetSecondsSinceComputerActive  (void)                            override
    { return pRealUtils->GetSecondsSinceComputerActive  ();                                              }
-  virtual EUniverse            GetConnectedUniverse           (void)                            override
+  EUniverse            GetConnectedUniverse           (void)                            override
    { return pRealUtils->GetConnectedUniverse           ();                                              }
-  virtual uint32               GetServerRealTime              (void)                            override
-   { //steam_log.Log (L"[!] ISteamUtils::GetServerRealTime (...)");
+  uint32               GetServerRealTime              (void)                            override
+   { //steam_log->Log (L"[!] ISteamUtils::GetServerRealTime (...)");
      return pRealUtils->GetServerRealTime              ();                                              }
 
-  virtual const char*          GetIPCountry                   (void)                            override
+  const char*          GetIPCountry                   (void)                            override
    { return pRealUtils->GetIPCountry                   ();                                              }
 
-  virtual bool                 GetImageSize                   ( int     iImage,
-                                                                uint32 *pnWidth,
-                                                                uint32 *pnHeight )              override
+  bool                 GetImageSize                   ( int     iImage,
+                                                        uint32 *pnWidth,
+                                                        uint32 *pnHeight )              override
    { return pRealUtils->GetImageSize            (iImage, pnWidth, pnHeight);                            }
-  virtual bool                 GetImageRGBA                   ( int    iImage,
+  bool                 GetImageRGBA                   ( int    iImage,
                                                                 uint8 *pubDest,
                                                                 int    nDestBufferSize )        override
    { return pRealUtils->GetImageRGBA            (iImage, pubDest, nDestBufferSize);                     }
 
-  virtual bool                 GetCSERIPPort                  ( uint32 *unIP,
-                                                                uint16 *usPort )                override
+  bool                 GetCSERIPPort                  ( uint32 *unIP,
+                                                        uint16 *usPort )                override
    { return pRealUtils->GetCSERIPPort           (unIP, usPort);                                         }
 
-  virtual uint8                GetCurrentBatteryPower         (void)                            override
+  uint8                GetCurrentBatteryPower         (void)                            override
    { return pRealUtils->GetCurrentBatteryPower  ();                                                     }
 
-  virtual uint32               GetAppID                       (void)                            override
+  uint32               GetAppID                       (void)                            override
    { return pRealUtils->GetAppID                ();                                                     }
 
-  virtual void                 SetOverlayNotificationPosition ( ENotificationPosition
-                                                                eNotificationPosition )         override
+  void                 SetOverlayNotificationPosition ( ENotificationPosition
+                                                        eNotificationPosition )         override
    { return pRealUtils->SetOverlayNotificationPosition (eNotificationPosition);                         }
 
 
-  virtual bool                 IsAPICallCompleted             ( SteamAPICall_t  hSteamAPICall,
-                                                                bool           *pbFailed )      override
+  bool                 IsAPICallCompleted             ( SteamAPICall_t  hSteamAPICall,
+                                                        bool           *pbFailed )      override
    { return pRealUtils->IsAPICallCompleted      (hSteamAPICall, pbFailed);                              }
 
-  virtual ESteamAPICallFailure GetAPICallFailureReason        ( SteamAPICall_t  hSteamAPICall ) override
+  ESteamAPICallFailure GetAPICallFailureReason        ( SteamAPICall_t  hSteamAPICall ) override
    { return pRealUtils->GetAPICallFailureReason (hSteamAPICall);                                        }
 
-  virtual bool                 GetAPICallResult               ( SteamAPICall_t  hSteamAPICall,
-                                                                void           *pCallback,
-                                                                int             cubCallback,
-                                                                int             iCallbackExpected,
-                                                                bool           *pbFailed )      override
+  bool                 GetAPICallResult               ( SteamAPICall_t  hSteamAPICall,
+                                                        void           *pCallback,
+                                                        int             cubCallback,
+                                                        int             iCallbackExpected,
+                                                        bool           *pbFailed )      override
    {
 #if 0
      if (iCallbackExpected == k_iSteamUserStatsCallbacks + 1)
@@ -99,72 +99,72 @@ public:
                                                    pbFailed );                                          }
 
 
-  virtual void                 RunFrame                       (void)                            override
+  void                 RunFrame                       (void)                            override
    { return pRealUtils->RunFrame              ();                                                       }
 
 
-  virtual uint32               GetIPCCallCount                (void)                            override
+  uint32               GetIPCCallCount                (void)                            override
    { return pRealUtils->GetIPCCallCount       ();                                                       }
 
 
-  virtual void                 SetWarningMessageHook          ( SteamAPIWarningMessageHook_t
+  void                 SetWarningMessageHook          ( SteamAPIWarningMessageHook_t
                                                                  pFunction )                    override
    { return pRealUtils->SetWarningMessageHook (pFunction);                                              }
 
 
-  virtual bool                 IsOverlayEnabled               (void)                            override
+  bool                 IsOverlayEnabled               (void)                            override
    { return pRealUtils->IsOverlayEnabled      ();                                                       }
 
 
-  virtual bool                 BOverlayNeedsPresent           (void)                            override
+  bool                 BOverlayNeedsPresent           (void)                            override
    { return pRealUtils->BOverlayNeedsPresent  ();                                                       }
 
 
-  virtual SteamAPICall_t       CheckFileSignature             ( const char *szFileName )        override
+  SteamAPICall_t       CheckFileSignature             ( const char *szFileName )        override
    { return pRealUtils->CheckFileSignature    (szFileName);                                             }
 
 
-  virtual bool                 ShowGamepadTextInput           ( EGamepadTextInputMode      eInputMode,
-                                                                EGamepadTextInputLineMode  eLineInputMode,
-                                                                const char                *pchDescription,
-                                                                      uint32               unCharMax,
-                                                                const char                *pchExistingText ) override
+  bool                 ShowGamepadTextInput           ( EGamepadTextInputMode      eInputMode,
+                                                        EGamepadTextInputLineMode  eLineInputMode,
+                                                        const char                *pchDescription,
+                                                              uint32               unCharMax,
+                                                        const char                *pchExistingText ) override
    { return pRealUtils->ShowGamepadTextInput ( eInputMode,
                                                  eLineInputMode,
                                                    pchDescription,
                                                      unCharMax,
                                                        pchExistingText );                                             }
 
-  virtual uint32               GetEnteredGamepadTextLength    (void)                            override
+  uint32               GetEnteredGamepadTextLength    (void)                            override
    { return pRealUtils->GetEnteredGamepadTextLength  ();                                                }
-  virtual bool                 GetEnteredGamepadTextInput     ( char *pchText, uint32 cchText ) override
+  bool                 GetEnteredGamepadTextInput     ( char *pchText, uint32 cchText ) override
    { return pRealUtils->GetEnteredGamepadTextInput   (pchText, cchText);                                }
 
 
-  virtual const char*          GetSteamUILanguage             (void)                            override
+  const char*          GetSteamUILanguage             (void)                            override
    { return pRealUtils->GetSteamUILanguage           ();                                                }
 
 
-  virtual bool                 IsSteamRunningInVR             (void)                            override
+  bool                 IsSteamRunningInVR             (void)                            override
    { return pRealUtils->IsSteamRunningInVR           ();                                                }
 
 
-  virtual void                 SetOverlayNotificationInset    ( int nHorizontalInset,
-                                                                int nVerticalInset )            override
+  void                 SetOverlayNotificationInset    ( int nHorizontalInset,
+                                                        int nVerticalInset )            override
    { return pRealUtils->SetOverlayNotificationInset  (nHorizontalInset, nVerticalInset);                }
 
 
   // 008
-  virtual bool                 IsSteamInBigPictureMode        (void)                            override
+  bool                 IsSteamInBigPictureMode        (void)                            override
    { return pRealUtils->IsSteamInBigPictureMode      ();                                                }
 
 
   // 009
-  virtual void                 StartVRDashboard               (void)                            override
+  void                 StartVRDashboard               (void)                            override
    { return pRealUtils->StartVRDashboard             ();                                                }
-  virtual bool                 IsVRHeadsetStreamingEnabled    (void)                            override
+  bool                 IsVRHeadsetStreamingEnabled    (void)                            override
    { return pRealUtils->IsVRHeadsetStreamingEnabled  ();                                                }
-  virtual void                 SetVRHeadsetStreamingEnabled   (bool bEnabled)                   override
+  void                 SetVRHeadsetStreamingEnabled   (bool bEnabled)                   override
    { return pRealUtils->SetVRHeadsetStreamingEnabled (bEnabled); }
 
 
@@ -193,8 +193,8 @@ SteamAPI_ISteamClient_GetISteamUtils_Detour ( ISteamClient *This,
                                               const char   *pchVersion )
 {
   SK_RunOnce (
-    steam_log.Log ( L"[!] %hs (..., %hs)",
-                      __FUNCTION__, pchVersion )
+    steam_log->Log ( L"[!] %hs (..., %hs)",
+                       __FUNCTION__, pchVersion )
   );
 
   ISteamUtils* pUtils =
@@ -225,8 +225,8 @@ SteamAPI_ISteamClient_GetISteamUtils_Detour ( ISteamClient *This,
     else
     {
       SK_RunOnce (
-        steam_log.Log ( L"Game requested unexpected interface version (%hs)!",
-                          pchVersion )
+        steam_log->Log ( L"Game requested unexpected interface version (%hs)!",
+                           pchVersion )
       );
 
       return pUtils;
@@ -242,8 +242,8 @@ SK_SteamWrapper_WrappedClient_GetISteamUtils ( ISteamClient *This,
                                                const char   *pchVersion )
 {
   SK_RunOnce (
-    steam_log.Log ( L"[!] %hs (..., %hs)",
-                      __FUNCTION__, pchVersion )
+    steam_log->Log ( L"[!] %hs (..., %hs)",
+                       __FUNCTION__, pchVersion )
   );
 
   ISteamUtils* pUtils =
@@ -273,8 +273,8 @@ SK_SteamWrapper_WrappedClient_GetISteamUtils ( ISteamClient *This,
     else
     {
       SK_RunOnce (
-        steam_log.Log ( L"Game requested unexpected interface version (%hs)!",
-                          pchVersion )
+        steam_log->Log ( L"Game requested unexpected interface version (%hs)!",
+                           pchVersion )
       );
 
       return pUtils;
@@ -294,8 +294,8 @@ S_CALLTYPE
 SteamUtils_Detour (void)
 {
   SK_RunOnce (
-    steam_log.Log ( L"[!] %hs ()",
-                      __FUNCTION__ )
+    steam_log->Log ( L"[!] %hs ()",
+                       __FUNCTION__ )
   );
 
 #ifndef DANGEROUS_INTERFACE_ALIASING

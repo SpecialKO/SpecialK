@@ -111,7 +111,6 @@ SK_DXGI_MakeTypedFormat (DXGI_FORMAT typeless)
     case DXGI_FORMAT_R32G8X24_TYPELESS:
     case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
       return DXGI_FORMAT_R32G32_FLOAT;
-      return DXGI_FORMAT_R32G32_FLOAT;
 
 
     default:

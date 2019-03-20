@@ -39,8 +39,8 @@
 
 DWORD dwInetCtx;
 
-         std::wstring __SK_LastProductTested    = L"";
-volatile DWORD        __SK_LastVersionCheckTime = 0UL;
+volatile DWORD               __SK_LastVersionCheckTime = 0UL;
+SK_LazyGlobal <std::wstring> __SK_LastProductTested;
 
 
 #include <SpecialK/core.h>
@@ -116,16 +116,16 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   // If no log is initialized yet, it's because SKIM is doing
   //   something with this DLL. Init. the log so we can trace
   //     install issues.
-  if (! dll_log.initialized)
+  if (! dll_log->initialized)
   {
-    dll_log.init (L"logs/installer.log", L"wt+,ccs=UTF-8");
+    dll_log->init (L"logs/installer.log", L"wt+,ccs=UTF-8");
   }
 
   if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.empty () ?
-                   L"SpecialK" : __SK_LastProductTested.c_str ();
+    wszProduct = __SK_LastProductTested->empty () ?
+                   L"SpecialK" : __SK_LastProductTested->c_str ();
 
-  __SK_LastProductTested = wszProduct;
+  __SK_LastProductTested.get () = wszProduct;
 
   if (! force)
   {
@@ -336,7 +336,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
         uliModify.LowPart  = ftModify.dwLowDateTime;
         uliModify.HighPart = ftModify.dwHighDateTime;
 
-        LONGLONG age = 
+        LONGLONG age =
           ( uliNow.QuadPart - uliModify.QuadPart );
 
         // Check Version:  User Preference (default=6h)
@@ -433,7 +433,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   PCWSTR  rgpszAcceptTypes []         = { L"*/*", nullptr };
 
-  DWORD dwFlags =   INTERNET_FLAG_IGNORE_CERT_DATE_INVALID | INTERNET_FLAG_IGNORE_CERT_CN_INVALID 
+  DWORD dwFlags =   INTERNET_FLAG_IGNORE_CERT_DATE_INVALID | INTERNET_FLAG_IGNORE_CERT_CN_INVALID
                   | INTERNET_FLAG_NEED_FILE                | INTERNET_FLAG_PRAGMA_NOCACHE
                   | INTERNET_FLAG_RESYNCHRONIZE;
 
@@ -587,7 +587,7 @@ __stdcall
 SK_FetchVersionInfo (const wchar_t* wszProduct)
 {
   if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+    wszProduct = __SK_LastProductTested->c_str ();
 
   return SK_FetchVersionInfo1 (wszProduct);
 }
@@ -597,7 +597,7 @@ SK_VersionInfo
 SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
 {
   if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+    wszProduct = __SK_LastProductTested->c_str ();
 
   SK_FetchVersionInfo (wszProduct);
 
@@ -608,7 +608,7 @@ SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
   {
     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
-  
+
     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
     wchar_t wszBranchSection [128] = { };
@@ -638,7 +638,7 @@ SK_VersionInfo
 SK_Version_GetLocalInfo_V1 (const wchar_t* wszProduct)
 {
   if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+    wszProduct = __SK_LastProductTested->c_str ();
 
   SK_FetchVersionInfo (wszProduct);
 
@@ -719,7 +719,7 @@ std::vector <std::string>
 SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
 {
   if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+    wszProduct = __SK_LastProductTested->c_str ();
 
   std::vector <std::string> branches;
 
@@ -891,7 +891,7 @@ SK_BranchInfo_V1
 SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBranch)
 {
   if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+    wszProduct = __SK_LastProductTested->c_str ();
 
 
   static SK_BranchInfo_V1 __INVAID_BRANCH

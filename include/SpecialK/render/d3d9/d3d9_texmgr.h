@@ -9,8 +9,6 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 
-extern iSK_Logger tex_log;
-
 //#include "render.h"
 
 #include <d3d9.h>
@@ -129,7 +127,7 @@ struct TexThreadStats {
     Blocking,
     DontCare
   };
-  
+
   struct TexRecord {
     unsigned int           archive = std::numeric_limits <unsigned int>::max ();
              int           fileno  = 0UL;
@@ -168,17 +166,17 @@ struct TexThreadStats {
     LARGE_INTEGER       start = { 0LL };
     LARGE_INTEGER       end   = { 0LL };
   };
-  
+
   class TexLoadRef
   {
   public:
      TexLoadRef (TexLoadRequest* ref)  { ref_ = ref;}
     ~TexLoadRef (void) = default;
-  
+
     operator TexLoadRequest* (void)  {
       return ref_;
     }
-  
+
   protected:
     TexLoadRequest* ref_;
   };
@@ -241,7 +239,7 @@ struct TexThreadStats {
 
     size_t                     getUsedRenderTargets (std::vector <IDirect3DBaseTexture9 *>& targets) const;
 
-    uint32_t                   getRenderTargetCreationTime 
+    uint32_t                   getRenderTargetCreationTime
                                                     (IDirect3DBaseTexture9* rt);
     void                       trackRenderTarget    (IDirect3DBaseTexture9* rt);
     bool                       isRenderTarget       (IDirect3DBaseTexture9* rt) const;
@@ -277,7 +275,7 @@ struct TexThreadStats {
     int                        loadQueuedTextures   (void);
 
 
-    BOOL                       isTexturePowerOfTwo (UINT sampler) 
+    BOOL                       isTexturePowerOfTwo (UINT sampler)
     {
       return sampler_flags [sampler < 255 ? sampler : 255].power_of_two;
     }
@@ -362,7 +360,7 @@ struct TexThreadStats {
       //   as the e9ped parameter
       concurrent_unordered_map <IDirect3DBaseTexture9 *, uint32_t> render_targets;
     } known;
-    
+
     struct {
       concurrent_unordered_set <IDirect3DBaseTexture9 *>           render_targets;
     } used;
@@ -399,47 +397,47 @@ public:
   class TextureWorkerThread
   {
   friend class TextureThreadPool;
-  
+
   public:
      TextureWorkerThread (TextureThreadPool* pool);
     ~TextureWorkerThread (void);
-  
+
     void startJob  (TexLoadRequest* job) {
       job_ = job;
       SetEvent (control_.start);
     }
-  
+
     void trim (void) {
       SetEvent (control_.trim);
     }
-  
+
     void finishJob (void);
-  
+
     bool isBusy   (void)  {
       return (job_ != nullptr);
     }
-  
+
     void shutdown (void) {
       SetEvent (control_.shutdown);
     }
-  
+
     size_t bytesLoaded (void)  {
-      return static_cast <size_t> (InterlockedExchangeAdd64 (&bytes_loaded_, 0ULL));
+      return gsl::narrow_cast <size_t> (InterlockedExchangeAdd64 (&bytes_loaded_, 0ULL));
     }
-  
+
     int    jobsRetired  (void)  {
       return InterlockedExchangeAdd (&jobs_retired_, 0L);
     }
-  
+
     FILETIME idleTime   (void)
     {
       GetThreadTimes ( thread_,
                          &runtime_.start, &runtime_.end,
                            &runtime_.kernel, &runtime_.user );
-  
+
       FILETIME now;
       GetSystemTimeAsFileTime (&now);
-  
+
       //ULONGLONG elapsed =
       //  ULARGE_INTEGER { now.dwLowDateTime,            now.dwHighDateTime            }.QuadPart -
       //  ULARGE_INTEGER { runtime_.start.dwLowDateTime, runtime_.start.dwHighDateTime }.QuadPart;
@@ -452,25 +450,25 @@ public:
 
       //InterlockedAdd64 (&idle, elapsed);
       //InterlockedAdd64 (&idle, -busy);
-  
+
       return FILETIME { (DWORD) idle        & 0xFFFFFFFF,
                         (DWORD)(idle >> 31) & 0xFFFFFFFF };
     }
     FILETIME userTime   (void)  { return runtime_.user;   };
     FILETIME kernelTime (void)  { return runtime_.kernel; };
-  
+
   protected:
     static volatile LONG  num_threads_init;
-  
+
     static DWORD __stdcall ThreadProc (LPVOID user);
-  
+
     TextureThreadPool*    pool_;
-  
+
     DWORD                 thread_id_;
     HANDLE                thread_;
-  
+
     TexLoadRequest*       job_;
-  
+
     volatile LONGLONG     bytes_loaded_ = 0LL;
     volatile LONG         jobs_retired_ = 0L;
 
@@ -481,7 +479,7 @@ public:
       FILETIME user,  kernel;
       FILETIME idle; // Computed: (now - start) - (user + kernel)
     } runtime_ { 0, 0, 0, 0, 0 };
-  
+
     struct {
       union {
         struct {
@@ -493,26 +491,26 @@ public:
       };
     } control_;
   };
-  
+
   class TextureThreadPool
   {
   friend class TextureWorkerThread;
 
   public:
-    TextureThreadPool (void)/// 
+    TextureThreadPool (void)///
     {
       events_.jobs_added =
         SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
-  
+
       events_.results_waiting =
         SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
-  
+
       events_.shutdown =
         SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
-  
+
       InitializeCriticalSectionAndSpinCount (&cs_jobs,     100UL);
       InitializeCriticalSectionAndSpinCount (&cs_results, 1000UL);
-  
+
       const int MAX_THREADS = 5;///*config.textures.worker_threads*/ 4 / 2;
 
       if (! init_worker_sync)
@@ -521,32 +519,32 @@ public:
         //   in the other pool to initialize. This design is flawed, but safe.
         init_worker_sync = true;
       }
-  
+
       for (int i = 0; i < MAX_THREADS; i++)
       {
         auto* pWorker =
           new TextureWorkerThread (this);
-  
+
         workers_.emplace_back (pWorker);
       }
-  
+
       // This will be deferred until it is first needed...
       spool_thread_ = nullptr;
     }
-  
-    ~TextureThreadPool (void)/// 
+
+    ~TextureThreadPool (void)///
     {
       if (spool_thread_ != nullptr)
       {
         shutdown ();
-  
+
         WaitForSingleObject (spool_thread_, INFINITE);
         CloseHandle         (spool_thread_);
       }
-  
+
       DeleteCriticalSection (&cs_results);
       DeleteCriticalSection (&cs_jobs);
-  
+
       CloseHandle (events_.results_waiting);
       CloseHandle (events_.jobs_added);
       CloseHandle (events_.shutdown);
@@ -579,40 +577,40 @@ public:
       LeaveCriticalSection (&cs_results);
     }
 
-    bool   working     (void) { return ReadAcquire (&jobs_done_) > 0; }
-    void   shutdown    (void) { SetEvent (events_.shutdown);  }
-  
+    bool   working     (void) noexcept { return ReadAcquire (&jobs_done_) > 0; }
+    void   shutdown    (void) noexcept { SetEvent (events_.shutdown);  }
+
     size_t queueLength (void)
     {
       return ReadAcquire (&jobs_waiting_);
     }
-  
-  
+
+
     std::vector <SK::D3D9::TexThreadStats>
     getWorkerStats (void)
     {
       std::vector <SK::D3D9::TexThreadStats> stats;
-  
+
       for ( auto it : workers_ )
       {
         SK::D3D9::TexThreadStats stat;
-  
+
         stat.bytes_loaded   = it->bytesLoaded ();
         stat.jobs_retired   = it->jobsRetired ();
         stat.runtime.idle   = it->idleTime    ();
         stat.runtime.kernel = it->kernelTime  ();
         stat.runtime.user   = it->userTime    ();
-  
+
         stats.emplace_back (stat);
       }
-  
+
       return stats;
     }
-  
-  
+
+
   protected:
     static DWORD __stdcall Spooler (LPVOID user);
-  
+
     TexLoadRequest* getNextJob   (void)
     {
       TexLoadRequest* job       = nullptr;
@@ -655,30 +653,30 @@ public:
       }
       LeaveCriticalSection (&cs_results);
     }
-  
+
   private:
     volatile LONG                       jobs_waiting_ = 0L;
     volatile LONG                       jobs_done_    = 0L;
 
     concurrent_queue <TexLoadRef>       jobs_;
     concurrent_queue <TexLoadRef>       results_;
-  
+
     std::vector <TextureWorkerThread *> workers_;
-  
+
     struct {
       HANDLE jobs_added;
       HANDLE results_waiting;
       HANDLE shutdown;
     } events_;
-  
+
     CRITICAL_SECTION cs_jobs;
     CRITICAL_SECTION cs_results;
-  
+
     HANDLE spool_thread_;
 
     bool init_worker_sync = false;
   };//extern *resample_pool;
-  
+
   //
   // Split stream jobs into small and large in order to prevent
   //   starvation from wreaking havoc on load times.
@@ -698,14 +696,14 @@ public:
 
       return false;
     }
-  
+
     size_t queueLength (void)
     {
       size_t len = 0;
-  
+
       if (lrg_tex) len += lrg_tex->queueLength ();
       if (sm_tex)  len += sm_tex->queueLength  ();
-  
+
       return len;
     }
 
@@ -731,7 +729,7 @@ public:
       else
         sm_tex->postJob (job);
     }
-  
+
     TextureThreadPool* lrg_tex = nullptr;
     TextureThreadPool* sm_tex  = nullptr;
   };
@@ -765,7 +763,7 @@ struct SK_D3D9_TextureStorageBase
   concurrent_unordered_map <uint32_t, size_t>             _injected_sizes;
   Concurrency::
   concurrent_unordered_map <uint32_t, int32_t>            _injected_refs;
-  
+
   SK_ThreadSafe_HashSet <IDirect3DSurface9 *>             _outstanding_screenshots;
                                            // Not excellent screenshots, but screenhots
                                            //   that aren't finished yet and we can't reset
@@ -800,7 +798,7 @@ public:
 
   virtual ~ISKTextureD3D9 (void) { };
 
-  ISKTextureD3D9 (IDirect3DTexture9 **ppTex, SIZE_T size, uint32_t crc32c) 
+  ISKTextureD3D9 (IDirect3DTexture9 **ppTex, SIZE_T size, uint32_t crc32c)
   {
       pTexOverride  = nullptr;
       can_free      = false;
@@ -890,7 +888,7 @@ public:
 
   /*** IDirect3DBaseTexture9 methods ***/
   STDMETHOD(GetDevice)(THIS_ IDirect3DDevice9** ppDevice)  override {
-    tex_log.Log (L"[ Tex. Mgr ] ISKTextureD3D9::GetDevice (%ph)", ppDevice);
+    tex_log->Log (L"[ Tex. Mgr ] ISKTextureD3D9::GetDevice (%ph)", ppDevice);
 
     if (pTex == nullptr)
       return E_FAIL;
@@ -901,11 +899,11 @@ public:
   {
     if (config.system.log_level > 1)
     {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetPrivateData (%x, %ph, %lu, %x)",
-                      refguid.Data1,
-                        pData,
-                          SizeOfData,
-                            Flags );
+      tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetPrivateData (%x, %ph, %lu, %x)",
+                       refguid.Data1,
+                         pData,
+                           SizeOfData,
+                             Flags );
     }
 
     if (pTex == nullptr)
@@ -917,10 +915,10 @@ public:
   {
     if (config.system.log_level > 1)
     {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetPrivateData (%x, %ph, %lu)",
-                      refguid.Data1,
-                        pData,
-                          *pSizeOfData );
+      tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetPrivateData (%x, %ph, %lu)",
+                       refguid.Data1,
+                         pData,
+                           *pSizeOfData );
     }
 
     if (pTex == nullptr)
@@ -929,8 +927,8 @@ public:
     return pTex->GetPrivateData (refguid, pData, pSizeOfData);
   }
   STDMETHOD(FreePrivateData)(THIS_ REFGUID refguid)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::FreePrivateData (%x)",
-                    refguid.Data1 );
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::FreePrivateData (%x)",
+                     refguid.Data1 );
 
     if (pTex == nullptr)
       return E_FAIL;
@@ -938,8 +936,8 @@ public:
     return pTex->FreePrivateData (refguid);
   }
   STDMETHOD_(DWORD, SetPriority)(THIS_ DWORD PriorityNew)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetPriority (%lu)",
-                    PriorityNew );
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetPriority (%lu)",
+                     PriorityNew );
 
     if (pTex == nullptr)
       return 0;
@@ -947,7 +945,7 @@ public:
     return pTex->SetPriority (PriorityNew);
   }
   STDMETHOD_(DWORD, GetPriority)(THIS)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetPriority ()" );
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetPriority ()" );
 
     if (pTex == nullptr)
       return 0;
@@ -955,7 +953,7 @@ public:
     return pTex->GetPriority ();
   }
   STDMETHOD_(void, PreLoad)(THIS)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::PreLoad ()" );
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::PreLoad ()" );
 
     if (pTex == nullptr)
       return;
@@ -963,7 +961,7 @@ public:
     pTex->PreLoad ();
   }
   STDMETHOD_(D3DRESOURCETYPE, GetType)(THIS)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetType ()" );
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetType ()" );
 
     if (pTex == nullptr)
       return D3DRTYPE_TEXTURE;
@@ -971,7 +969,7 @@ public:
     return pTex->GetType ();
   }
   STDMETHOD_(DWORD, SetLOD)(THIS_ DWORD LODNew)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetLOD (%lu)",
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetLOD (%lu)",
                      LODNew );
 
     if (pTex == nullptr)
@@ -980,8 +978,8 @@ public:
     return pTex->SetLOD (LODNew);
   }
   STDMETHOD_(DWORD, GetLOD)(THIS)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetLOD ()" );
-  
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetLOD ()" );
+
     if (pTex == nullptr)
       return 0;
 
@@ -991,7 +989,7 @@ public:
   {
     if (config.system.log_level > 1)
     {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetLevelCount ()" );
+      tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetLevelCount ()" );
     }
 
     if (pTex == nullptr)
@@ -1000,16 +998,16 @@ public:
     return pTex->GetLevelCount ();
   }
   STDMETHOD(SetAutoGenFilterType)(THIS_ D3DTEXTUREFILTERTYPE FilterType)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetAutoGenFilterType (%x)",
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetAutoGenFilterType (%x)",
                     FilterType );
-  
+
     if (pTex == nullptr)
       return S_OK;
 
     return pTex->SetAutoGenFilterType (FilterType);
   }
   STDMETHOD_(D3DTEXTUREFILTERTYPE, GetAutoGenFilterType)(THIS)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetAutoGenFilterType ()" );
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetAutoGenFilterType ()" );
 
     if (pTex == nullptr)
       return D3DTEXF_POINT;
@@ -1017,7 +1015,7 @@ public:
     return pTex->GetAutoGenFilterType ();
   }
   STDMETHOD_(void, GenerateMipSubLevels)(THIS)  override {
-    tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GenerateMipSubLevels ()" );
+    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GenerateMipSubLevels ()" );
 
     if (pTex == nullptr)
       return;
@@ -1028,7 +1026,7 @@ public:
   {
     if (config.system.log_level > 1)
     {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetLevelDesc (%lu, %ph)",
+      tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetLevelDesc (%lu, %ph)",
                      Level,
                        pDesc );
     }
@@ -1042,7 +1040,7 @@ public:
   {
     if (config.system.log_level > 1)
     {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetSurfaceLevel (%lu, %ph)",
+      tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetSurfaceLevel (%lu, %ph)",
                       Level,
                         ppSurfaceLevel );
     }
@@ -1056,11 +1054,11 @@ public:
   {
     if (config.system.log_level > 1)
     {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::LockRect (%lu, %ph, %ph, %x)",
-                      Level,
-                        pLockedRect,
-                          pRect,
-                            Flags );
+      tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::LockRect (%lu, %ph, %ph, %x)",
+                       Level,
+                         pLockedRect,
+                           pRect,
+                             Flags );
     }
 
     if (pTex == nullptr)
@@ -1086,13 +1084,13 @@ public:
   {
     if (config.system.log_level > 1)
     {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::AddDirtyRect (...)" );
+      tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::AddDirtyRect (...)" );
     }
 
     if (pTex == nullptr)
       return S_OK;
 
-    const HRESULT hr = 
+    const HRESULT hr =
       pTex->AddDirtyRect (pDirtyRect);
 
     if (SUCCEEDED (hr))
@@ -1115,20 +1113,20 @@ public:
 
   bool               dirty  = false;//   If the game has changed this texture
   bool               freed  = false;
-  
+
   IDirect3DTexture9* pTex;          // The original texture data
   SSIZE_T            tex_size;      //   Original data size
   uint32_t           tex_crc32c;    //   Original data checksum
-  
+
   IDirect3DTexture9* pTexOverride;  // The overridden texture data (nullptr if unchanged)
   SSIZE_T            override_size; //   Override data size
-  
+
   volatile LONG      refs;
   LARGE_INTEGER      last_used;     // The last time this texture was used (for rendering)
                                     //   different from the last time referenced, this is
                                     //     set when SetTexture (...) is called.
-                                    //     
-                                    //     
+                                    //
+                                    //
 
   D3DLOCKED_RECT     lock_lvl0  = {      };
   int                uses       =      0;

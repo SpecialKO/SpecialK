@@ -186,7 +186,7 @@ ISteamController_Init_Detour (ISteamController *This)
   {
     bool
     SK_Steam_HookController (void);
-  
+
     if (! ( SK_Steam_HookController () && ISteamController_Init_Original != nullptr) )
     {
       return false;
@@ -650,12 +650,9 @@ SK_Steam_HookController (void)
     return true;
   }
 
-  else
-  {
-    SK_LOG0 ( ( L"SteamAPI DLL ('%s') does not export SteamAPI_ISteamController_GetAnalogActionData; "
-                L"disabling SK SteamInput support.", steam_dll ),
-               L"SteamInput" );
-  }
+  SK_LOG0 ( ( L"SteamAPI DLL ('%s') does not export SteamAPI_ISteamController_GetAnalogActionData; "
+              L"disabling SK SteamInput support.", steam_dll ),
+             L"SteamInput" );
 
   return false;
 }

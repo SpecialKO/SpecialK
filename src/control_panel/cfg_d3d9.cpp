@@ -122,12 +122,14 @@ SK::ControlPanel::D3D9::Draw (void)
 
         if (dwLastVRAMUpdate < current_time - 1500)
         {
-          CComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
+          SK_ComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
 
           if (pDev != nullptr)
           {
             d3d9_tex_mem_avail =
-              pDev->GetAvailableTextureMem () / 1048576UL;
+              static_cast <size_t> (
+                pDev->GetAvailableTextureMem () / 1048576ui32
+              );
             dwLastVRAMUpdate = current_time;
           }
         }
@@ -264,12 +266,14 @@ SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9 *pSwap9)
       ImGui::TextUnformatted ("Resolution:");
       ImGui::TextUnformatted ("Back Buffers:");
       if (! pparams.Windowed)
-      ImGui::TextUnformatted ("Refresh Rate:");
+        ImGui::TextUnformatted
+                             ("Refresh Rate:");
       ImGui::TextUnformatted ("Swap Interval:");
       ImGui::TextUnformatted ("Swap Effect:");
       ImGui::TextUnformatted ("MSAA Samples:");
       if (pparams.Flags != 0)
-      ImGui::TextUnformatted ("Flags:");
+        ImGui::TextUnformatted
+                             ("Flags:");
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
 
@@ -282,7 +286,7 @@ SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9 *pSwap9)
       ImGui::Text            ("%ux%u",                                   pparams.BackBufferWidth, pparams.BackBufferHeight);
       ImGui::Text            ("%u",                                      pparams.BackBufferCount);
       if (! pparams.Windowed)
-      ImGui::Text            ("%u Hz",                                   pparams.FullScreen_RefreshRateInHz);
+        ImGui::Text          ("%u Hz",                                   pparams.FullScreen_RefreshRateInHz);
       if (pparams.PresentationInterval == 0)
         ImGui::Text          ("%u: VSYNC OFF",                           pparams.PresentationInterval);
       else if (pparams.PresentationInterval == 1)
@@ -298,7 +302,8 @@ SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9 *pSwap9)
       ImGui::Text            ("%ws",            SK_D3D9_SwapEffectToStr (pparams.SwapEffect).c_str ());
       ImGui::Text            ("%u",                                      pparams.MultiSampleType);
       if (pparams.Flags != 0)
-      ImGui::Text            ("%ws", SK_D3D9_PresentParameterFlagsToStr (pparams.Flags).c_str ()) ;
+        ImGui::Text
+                             ("%ws", SK_D3D9_PresentParameterFlagsToStr (pparams.Flags).c_str ()) ;
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
       ImGui::EndTooltip      ();

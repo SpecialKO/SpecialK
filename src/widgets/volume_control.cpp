@@ -27,7 +27,7 @@ extern void SK_ImGui_VolumeManager (void);
 class SKWG_VolumeControl : public SK_Widget
 {
 public:
-  SKWG_VolumeControl (void) : SK_Widget ("VolumeControl")
+  SKWG_VolumeControl (void) noexcept : SK_Widget ("VolumeControl")
   {
     SK_ImGui_Widgets.volume_control = this;
 
@@ -56,7 +56,7 @@ public:
     SK_ImGui_VolumeManager ();
   }
 
-  virtual void OnConfig (ConfigEvent event) override
+  void OnConfig (ConfigEvent event) noexcept override
   {
     switch (event)
     {
@@ -67,4 +67,11 @@ public:
         break;
     }
   }
-} __volume_control__;
+};
+
+SK_LazyGlobal <SKWG_VolumeControl> __volume_control__;
+
+void SK_Widget_InitVolumeControl (void)
+{
+  SK_RunOnce (__volume_control__.getPtr ());
+}

@@ -38,7 +38,7 @@ public:
   operator CEGUI::Window* (void);
 
 protected:
-  SK_PopupWindow (const char* szLayout)
+  explicit SK_PopupWindow (const char* szLayout)
   {
     if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return;
 

@@ -11,7 +11,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sub license, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -150,7 +150,7 @@ struct far_cam_state_s
 
   // Memory addresses courtesy of Idk31 and Smithfield
   //  Ptr at  { F3 44 0F 11 88 74 02 00 00 89 88 84 02 00 00 }  +  4
-  vec3_t* pCamera    = reinterpret_cast <vec3_t *> (0x141605400);//0x1415EB950; 
+  vec3_t* pCamera    = reinterpret_cast <vec3_t *> (0x141605400);//0x1415EB950;
   vec3_t* pLook      = reinterpret_cast <vec3_t *> (0x141605410);//0x1415EB960;
   float*  pRoll      = reinterpret_cast <float  *> (0x141415B90);//1415EB990;
 
@@ -425,11 +425,11 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
 
     if ( (psleep = static_cast <uint8_t *> (SK_ScanAligned ( sleep_wait, 6, nullptr, 1 ))) == nullptr )
     {
-      dll_log.Log (L"[ FARLimit ]  Could not locate Framerate Limiter Sleep Addr.");
+      dll_log->Log (L"[ FARLimit ]  Could not locate Framerate Limiter Sleep Addr.");
     }
     else {
       psleep += 4;
-      dll_log.Log (L"[ FARLimit ]  Scanned Framerate Limiter Sleep Addr.: 0x%p", psleep);
+      dll_log->Log (L"[ FARLimit ]  Scanned Framerate Limiter Sleep Addr.: 0x%p", psleep);
       memcpy      (sleep_wait, psleep, 6);
 
       pspinlock  = psleep + 0x48;
@@ -441,7 +441,7 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
       pmin_tstep = static_cast <uint8_t *> (SK_ScanAligned ( tstep0, sizeof tstep0, tstep0_mask, 4 ));
       pmax_tstep = pmin_tstep + 0x2c;
 
-      dll_log.Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
+      dll_log->Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
 
       //{ 0xF3, 0x0F, 0x11, 0x44, 0x24, 0x20, 0xF3, 0x0F, 0x11, 0x4C, 0x24, 0x24, 0xF3, 0x0F, 0x11, 0x54, 0x24, 0x28, 0xF3, 0x0F, 0x11, 0x5C, 0x24, 0x2C }    (-4) = HUD Opacity
     }
@@ -497,8 +497,8 @@ SK_FAR_EndFrame (void)
       validation += "FRAME: ";
 
       static char szFrameNum [32] = { '\0' };
-      snprintf (szFrameNum, 31, "%lli (%c) ", frames_drawn, 'A' + 
-                            static_cast <int>(frames_drawn++ % 26LL) );
+      snprintf (szFrameNum, 31, "%lli (%c) ", frames_drawn, 'A' +
+                            gsl::narrow_cast <int>(frames_drawn++ % 26LL) );
 
       validation += szFrameNum;
     }
@@ -559,7 +559,7 @@ SK_FAR_EndFrame (void)
       game_state.capFPS ();
       game_state.capped = true;
     }
-    
+
     if ((! game_state.needFPSCap ()) && game_state.capped)
     {
       game_state.uncapFPS ();
@@ -579,7 +579,7 @@ SK_FAR_EndFrame (void)
 
       else if (__FAR_HUDLESS.clear <= 0)
       {
-        (*game_state.pHUDOpacity) = 
+        (*game_state.pHUDOpacity) =
           __FAR_HUDLESS.opacity;
 
         __FAR_HUDLESS.clear   = 4;
@@ -670,11 +670,11 @@ SK_FAR_EndFrame (void)
     dX = ddY * diff [0] / hypXY;
     dY = ddY * diff [2] / hypXY;
     dZ = ddY * diff [1] / hypXY;
-    
-    
+
+
     (*far_cam.pLook) [0]   = target [0] + dX;
     (*far_cam.pLook) [2]   = target [2] + dY;
-    
+
     (*far_cam.pCamera) [0] = pos    [0] + dX;
     (*far_cam.pCamera) [2] = pos    [2] + dY;
   }
@@ -838,7 +838,7 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
       if (! warned)
       {
         warned = true;
-        
+
         SK_MessageBox ( L"RivaTuner Statistics Server Detected\r\n\r\n\t"
                         L"If FAR does not work correctly, this is probably why.",
                           L"Incompatible Third-Party Software", MB_OK | MB_ICONWARNING );
@@ -870,10 +870,10 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
 //    2) Adjust the viewport and some constant shader parameter each time they are rendered to
 //
 //  Examples here:
-//    http://abload.de/img/bloom_defaultjhuq9.jpg 
+//    http://abload.de/img/bloom_defaultjhuq9.jpg
 //    http://abload.de/img/bloom_fixedp7uef.jpg
 //
-//  Note that there are more low-res 800x450 buffers not yet handled by this, 
+//  Note that there are more low-res 800x450 buffers not yet handled by this,
 //  but which could probably be handled similarly. Primarily, SSAO.
 
 __declspec (noinline)
@@ -907,7 +907,7 @@ SK_FAR_CreateTexture2D (
               (pDesc->Width == 800 && pDesc->Height == 450)
            || (pDesc->Width == 400 && pDesc->Height == 225)
            || (pDesc->Width == 200 && pDesc->Height == 112)
-           || (pDesc->Width == 100 && pDesc->Height == 56) 
+           || (pDesc->Width == 100 && pDesc->Height == 56)
            /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/
          )
       {
@@ -994,7 +994,7 @@ SK_FAR_CreateTexture2D (
 
 // High level description:
 //
-//  IF we have 
+//  IF we have
 //   - 1 viewport
 //   - with the size of one of the 4 elements of the pyramid we changed
 //   - and a primary rendertarget of type R11G11B10
@@ -1113,7 +1113,7 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 D3D11_SUBRESOURCE_DATA initialdata;
 
                 // Bloom
-                //   If we are not rendering to a mip map for hierarchical Z, the format is 
+                //   If we are not rendering to a mip map for hierarchical Z, the format is
                 //   [ 0.5f / W, 0.5f / H, W, H ] (half-pixel size and total dimensions)
                 if (desc.Texture2D.MipSlice == 0 && far_bloom.width != -1)
                 {
@@ -1272,7 +1272,7 @@ SK_FAR_DrawIndexed (
 {
   bool cull   = false;
   bool aspect = false;
- 
+
   if (IndexCount == 4 && StartIndexLocation == 0 && BaseVertexLocation == 0)
     cull = SK_FAR_PreDraw (This);
   else
@@ -1514,7 +1514,7 @@ SK_FAR_InitPlugin (void)
     far_prefs =
       SK_CreateINI (far_prefs_file);
 
-    far_gi_workgroups = 
+    far_gi_workgroups =
         dynamic_cast <sk::ParameterInt *>
           (far_factory.create_parameter <int> (L"Global Illumination Compute Shader Workgroups"));
 
@@ -1541,7 +1541,7 @@ SK_FAR_InitPlugin (void)
     far_gi_min_light_extent->store     (__FAR_MINIMUM_EXT);
 
 
-    far_limiter_busy = 
+    far_limiter_busy =
         dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"Favor Busy-Wait For Better Timing"));
 
@@ -1576,7 +1576,7 @@ SK_FAR_InitPlugin (void)
 #endif
 
 
-    far_rtss_warned = 
+    far_rtss_warned =
         dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"RTSS Warning Issued"));
 
@@ -1610,7 +1610,7 @@ SK_FAR_InitPlugin (void)
     //far_slow_state_cache->store     ();
 
 
-    far_osd_disclaimer = 
+    far_osd_disclaimer =
         dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"OSD Disclaimer Dismissed"));
 
@@ -1624,7 +1624,7 @@ SK_FAR_InitPlugin (void)
     }
 
 
-    far_accepted_license = 
+    far_accepted_license =
         dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"Has accepted the license terms"));
 
@@ -2340,7 +2340,7 @@ far_game_state_s::capFPS (void)
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -2482,7 +2482,7 @@ struct far_cam_state_s
 
   // Memory addresses courtesy of Idk31 and Smithfield
   //  Ptr at  { F3 44 0F 11 88 74 02 00 00 89 88 84 02 00 00 }  +  4
-  vec3_t* pCamera    = reinterpret_cast <vec3_t *> (0x141605400);//0x1415EB950; 
+  vec3_t* pCamera    = reinterpret_cast <vec3_t *> (0x141605400);//0x1415EB950;
   vec3_t* pLook      = reinterpret_cast <vec3_t *> (0x141605410);//0x1415EB960;
   float*  pRoll      = reinterpret_cast <float  *> (0x141415B90);//1415EB990;
 
@@ -2563,13 +2563,13 @@ struct {
                                                   ID3D11RenderTargetView *>& rtv_pair )
                              { rtv_pair.second->Release (); }
                      );
-       
+
        std::for_each ( replacement_srvs_.begin (), replacement_srvs_.end (),
                             []( const std::pair < ID3D11ShaderResourceView *,
                                                   ID3D11ShaderResourceView *>& srv_pair )
                              { srv_pair.second->Release (); }
                      );
-       
+
        std::for_each ( replacement_uavs_.begin (), replacement_uavs_.end (),
                             [](const std::pair < ID3D11UnorderedAccessView *,
                                                  ID3D11UnorderedAccessView *>& uav_pair )
@@ -2668,22 +2668,22 @@ struct {
       {
         D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
                          srv->GetDesc (&srv_desc);
-    
+
         CComPtr   <ID3D11ShaderResourceView> pSrc    = srv;
         CComPtr   <ID3D11Resource>           pSrcRes = nullptr;
                                  srv->GetResource (&pSrcRes);
         CComQIPtr <ID3D11Texture2D>        pSrcTex (pSrcRes);
-    
+
         ID3D11ShaderResourceView* pDst = nullptr;
-    
+
         HRESULT hr =
           _D3D11Dev_CreateShaderResourceView_Original (pDevice, replacement_textures_ [pSrcTex], nullptr, &pDst);
-    
+
         if (SUCCEEDED (hr))
         {
           replacement_srvs_.emplace (std::make_pair (srv, pDst));
         }
-    
+
         else
           SK_LOG0 ( ( L"Failure to create replacement bloom shader resource view (MipLevels=%lu, MostDetailedMip=%lu)",
                         srv_desc.Texture2D.MipLevels, srv_desc.Texture2D.MostDetailedMip ),
@@ -2723,9 +2723,9 @@ struct {
 
     if (replacement_srvs_.size () == srvs_.size ())
       return S_OK;
-    
+
     ResetResources ();
-    
+
     return E_FAIL;
   }
 } far_bloom;
@@ -3205,7 +3205,7 @@ SK_FAR_EndFrame (void)
       validation += "FRAME: ";
 
       static char szFrameNum [32] = { '\0' };
-      snprintf (szFrameNum, 31, "%lli (%c) ", frames_drawn, 'A' + 
+      snprintf (szFrameNum, 31, "%lli (%c) ", frames_drawn, 'A' +
                             static_cast <int>(frames_drawn++ % 26LL) );
 
       validation += szFrameNum;
@@ -3267,7 +3267,7 @@ SK_FAR_EndFrame (void)
       game_state.capFPS ();
       game_state.capped = true;
     }
-    
+
     if ((! game_state.needFPSCap ()) && game_state.capped)
     {
       game_state.uncapFPS ();
@@ -3287,7 +3287,7 @@ SK_FAR_EndFrame (void)
 
       else if (__FAR_HUDLESS.clear <= 0)
       {
-        (*game_state.pHUDOpacity) = 
+        (*game_state.pHUDOpacity) =
           __FAR_HUDLESS.opacity;
 
         __FAR_HUDLESS.clear   = 4;
@@ -3378,11 +3378,11 @@ SK_FAR_EndFrame (void)
     dX = ddY * diff [0] / hypXY;
     dY = ddY * diff [2] / hypXY;
     dZ = ddY * diff [1] / hypXY;
-    
-    
+
+
     (*far_cam.pLook) [0]   = target [0] + dX;
     (*far_cam.pLook) [2]   = target [2] + dY;
-    
+
     (*far_cam.pCamera) [0] = pos    [0] + dX;
     (*far_cam.pCamera) [2] = pos    [2] + dY;
   }
@@ -3544,7 +3544,7 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
     if (! warned)
     {
       warned = true;
-      
+
       SK_MessageBox ( L"RivaTuner Statistics Server Detected\r\n\r\n\t"
                       L"If FAR does not work correctly, this is probably why.",
                         L"Incompatible Third-Party Software", MB_OK | MB_ICONWARNING );
@@ -3577,10 +3577,10 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
 //    2) Adjust the viewport and some constant shader parameter each time they are rendered to
 //
 //  Examples here:
-//    http://abload.de/img/bloom_defaultjhuq9.jpg 
+//    http://abload.de/img/bloom_defaultjhuq9.jpg
 //    http://abload.de/img/bloom_fixedp7uef.jpg
 //
-//  Note that there are more low-res 800x450 buffers not yet handled by this, 
+//  Note that there are more low-res 800x450 buffers not yet handled by this,
 //  but which could probably be handled similarly. Primarily, SSAO.
 
 __declspec (noinline)
@@ -3617,7 +3617,7 @@ SK_FAR_CreateTexture2D (
               (pDesc->Width == 800 && pDesc->Height == 450)
            || (pDesc->Width == 400 && pDesc->Height == 225)
            || (pDesc->Width == 200 && pDesc->Height == 112)
-           || (pDesc->Width == 100 && pDesc->Height == 56) 
+           || (pDesc->Width == 100 && pDesc->Height == 56)
            //|| (pDesc->Width == 50 && pDesc->Height == 28)
          )
       {
@@ -3719,7 +3719,7 @@ SK_FAR_CreateTexture2D (
 
 // High level description:
 //
-//  IF we have 
+//  IF we have
 //   - 1 viewport
 //   - with the size of one of the 4 elements of the pyramid we changed
 //   - and a primary rendertarget of type R11G11B10
@@ -3827,7 +3827,7 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 D3D11_SUBRESOURCE_DATA initialdata = { };
 
                 // Bloom
-                //   If we are not rendering to a mip map for hierarchical Z, the format is 
+                //   If we are not rendering to a mip map for hierarchical Z, the format is
                 //   [ 0.5f / W, 0.5f / H, W, H ] (half-pixel size and total dimensions)
                 if (desc.Texture2D.MipSlice == 0)// && far_bloom.width != -1)
                 {
@@ -4082,7 +4082,7 @@ SK_FAR_CSSetShaderResources (
   //  {
   //    const uint32_t crc32c_ps =
   //      SK_D3D11_Shaders.pixel.current.shader [This];
-  //    
+  //
   //    const uint32_t ping = 0xc28681e1,
   //                   pong = 0x29e46089;
   //
@@ -4139,7 +4139,7 @@ SK_FAR_CSSetUnorderedAccessViews (
     //{
     //  const uint32_t crc32c_ps =
     //    SK_D3D11_Shaders.pixel.current.shader [This];
-    //  
+    //
     //  const uint32_t ping = 0xc28681e1,
     //                 pong = 0x29e46089;
     //
@@ -4360,7 +4360,7 @@ SK_FAR_InitPlugin (void)
                                  SK_FAR_CreateRenderTargetView,
      static_cast_p2p <void> (&_D3D11Dev_CreateRenderTargetView_Original) );
   MH_QueueEnableHook (         D3D11Dev_CreateRenderTargetView_Override  );
-  
+
   //SK_CreateFuncHook (       L"ID3D11Device::CreateUnorderedAccessView",
   //                             D3D11Dev_CreateUnorderedAccessView_Override,
   //                               SK_FAR_CreateUnorderedAccessView,
@@ -4439,7 +4439,7 @@ SK_FAR_InitPlugin (void)
     far_prefs =
       SK_CreateINI (far_prefs_file);
 
-    far_gi_workgroups = 
+    far_gi_workgroups =
         dynamic_cast <sk::ParameterInt *>
           (far_factory.create_parameter <int> (L"Global Illumination Compute Shader Workgroups"));
 
@@ -4462,7 +4462,7 @@ SK_FAR_InitPlugin (void)
     far_gi_min_light_extent->store (__FAR_MINIMUM_EXT);
 
 
-    far_limiter_busy = 
+    far_limiter_busy =
         dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"Favor Busy-Wait For Better Timing"));
 
@@ -4497,7 +4497,7 @@ SK_FAR_InitPlugin (void)
 #endif
 
 
-    far_rtss_warned = 
+    far_rtss_warned =
         dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"RTSS Warning Issued"));
 
@@ -4531,7 +4531,7 @@ SK_FAR_InitPlugin (void)
     //far_slow_state_cache->store     ();
 
 
-    far_osd_disclaimer = 
+    far_osd_disclaimer =
         dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"OSD Disclaimer Dismissed"));
 
@@ -4545,7 +4545,7 @@ SK_FAR_InitPlugin (void)
     }
 
 
-    far_accepted_license = 
+    far_accepted_license =
         dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"Has accepted the license terms"));
 

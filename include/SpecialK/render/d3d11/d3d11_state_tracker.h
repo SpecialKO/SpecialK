@@ -64,7 +64,7 @@ struct memory_tracking_s
 {
   static const int __types = 5;
 
-  memory_tracking_s (void)  : cs (cs_mmio)
+  memory_tracking_s (void) : cs (cs_mmio.get ())
   {
   }
 
@@ -183,7 +183,7 @@ struct memory_tracking_s
     last_frame.clear (cs);
   }
 
-  SK_Thread_HybridSpinlock*& cs;
+  SK_Thread_HybridSpinlock* cs;
 } extern mem_map_stats;
 
 struct target_tracking_s
@@ -301,7 +301,7 @@ struct target_tracking_s
 
 struct SK_D3D11_KnownThreads
 {
-  SK_D3D11_KnownThreads (void) ///
+  SK_D3D11_KnownThreads (void) noexcept ///
   {
     InitializeCriticalSectionEx (&cs, 0x400, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN | SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
 
@@ -372,8 +372,11 @@ SK_D3D11_CreateShader_Impl (
   _In_            SIZE_T                BytecodeLength,
   _In_opt_        ID3D11ClassLinkage   *pClassLinkage,
   _Out_opt_       IUnknown            **ppShader,
-                  sk_shader_class       type ) 
+                  sk_shader_class       type )
 {
+  if (pShaderBytecode == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
+
   const auto InvokeCreateRoutine =
   [&]
   {
@@ -448,37 +451,37 @@ SK_D3D11_CreateShader_Impl (
     {
       default:
       case sk_shader_class::Vertex:
-        *ppCritical     = cs_shader_vs;
+        *ppCritical     = cs_shader_vs.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
                            &shaders.vertex
                           );
          break;
       case sk_shader_class::Pixel:
-        *ppCritical     = cs_shader_ps;
+        *ppCritical     = cs_shader_ps.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
                            &shaders.pixel
                           );
          break;
       case sk_shader_class::Geometry:
-        *ppCritical     = cs_shader_gs;
+        *ppCritical     = cs_shader_gs.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
                            &shaders.geometry
                           );
          break;
       case sk_shader_class::Domain:
-        *ppCritical     = cs_shader_ds;
+        *ppCritical     = cs_shader_ds.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
                            &shaders.domain
                           );
          break;
       case sk_shader_class::Hull:
-        *ppCritical     = cs_shader_hs;
+        *ppCritical     = cs_shader_hs.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
                            &shaders.hull
                           );
          break;
       case sk_shader_class::Compute:
-        *ppCritical     = cs_shader_cs;
+        *ppCritical     = cs_shader_cs.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
                            &shaders.compute
                           );
@@ -491,7 +494,7 @@ SK_D3D11_CreateShader_Impl (
 
   GetResources (&pCritical, &pShaderRepo);
 
- 
+
   uint32_t checksum =
     SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
 
@@ -501,7 +504,7 @@ SK_D3D11_CreateShader_Impl (
     hr = InvokeCreateRoutine ();
   }
 
-  else
+  else if (pCritical != nullptr)
   {
     pCritical->lock ();     // Lock during cache check
 

@@ -1,3 +1,4 @@
+#include <SpecialK/core.h>
 #include <SpecialK/steam_api.h>
 #include <vector>
 
@@ -11,7 +12,7 @@ struct denuvo_file_s
   SYSTEMTIME   st_local;
 };
 
-std::vector <denuvo_file_s> denuvo_files;
+SK_LazyGlobal <std::vector <denuvo_file_s>> denuvo_files;
 
 extern const wchar_t*
 SK_GetSteamDir (void);
@@ -26,7 +27,7 @@ SK_Denuvo_UsedByGame (bool retest)
   if (retest)
   {
     tested = false;
-    denuvo_files.clear ();
+    denuvo_files->clear ();
   }
 
 
@@ -85,7 +86,7 @@ SK_Denuvo_UsedByGame (bool retest)
           file.user   = usr_id;
           file.ft_key = fd.ftLastWriteTime;
 
-          HANDLE hFile = 
+          HANDLE hFile =
             CreateFileW ( file.path.c_str (), GENERIC_READ,
                                                 FILE_SHARE_READ,
                                                   nullptr,
@@ -103,7 +104,7 @@ SK_Denuvo_UsedByGame (bool retest)
             file.hash =
               _wtoll (fd.cFileName);
 
-            denuvo_files.emplace_back (file);
+            denuvo_files->emplace_back (file);
 
             ++files;
 
@@ -125,8 +126,8 @@ SK_Denuvo_UsedByGame (bool retest)
 
   if (files > 0)
   {
-    std::sort ( denuvo_files.begin (),
-                denuvo_files.end   (),
+    std::sort ( denuvo_files->begin (),
+                denuvo_files->end   (),
       []( denuvo_file_s& a,
           denuvo_file_s& b )
       {

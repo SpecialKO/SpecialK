@@ -325,7 +325,7 @@ SK_DS3_CheckVersion (LPVOID user)
   extern bool
   __stdcall
   SK_FetchVersionInfo (const wchar_t* wszProduct);
-  
+
   extern HRESULT
   __stdcall
   SK_UpdateSoftware (const wchar_t* wszProduct);
@@ -353,8 +353,8 @@ SK_DS3_Scan (uint8_t* pattern, size_t len, uint8_t* mask)
   uint8_t* end_addr  = (uint8_t *)mem_info.BaseAddress + mem_info.RegionSize;
 
   if (base_addr != (uint8_t *)0x400000) {
-    dll_log.Log ( L"[ Sig Scan ] Expected module base addr. 40000h, but got: %ph",
-                    base_addr );
+    dll_log->Log ( L"[ Sig Scan ] Expected module base addr. 40000h, but got: %ph",
+                     base_addr );
   }
 
   size_t pages = 0;
@@ -381,20 +381,20 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 36));
     pages += VirtualQuery (end_addr, &mem_info, sizeof mem_info);
 
     end_addr = (uint8_t *)mem_info.BaseAddress + mem_info.RegionSize;
-  } 
+  }
 
   if (end_addr > PAGE_WALK_LIMIT) {
-    dll_log.Log ( L"[ Sig Scan ] Module page walk resulted in end addr. out-of-range: %ph",
-                    end_addr );
-    dll_log.Log ( L"[ Sig Scan ]  >> Restricting to %ph",
-                    PAGE_WALK_LIMIT );
+    dll_log->Log ( L"[ Sig Scan ] Module page walk resulted in end addr. out-of-range: %ph",
+                     end_addr );
+    dll_log->Log ( L"[ Sig Scan ]  >> Restricting to %ph",
+                     PAGE_WALK_LIMIT );
     end_addr = (uint8_t *)PAGE_WALK_LIMIT;
   }
 
-  dll_log.Log ( L"[ Sig Scan ] Module image consists of %zu pages, from %ph to %ph",
-                  pages,
-                    base_addr,
-                      end_addr );
+  dll_log->Log ( L"[ Sig Scan ] Module image consists of %zu pages, from %ph to %ph",
+                   pages,
+                     base_addr,
+                       end_addr );
 
   __SK_DS3_base_img_addr = base_addr;
   __SK_DS3_end_img_addr  = end_addr;
@@ -526,13 +526,13 @@ SK_DS3_CenterWindow_Thread (LPVOID user)
   if (! sus_state.Center)
     return 0;
 
-  dll_log.Log ( L"[SUS PlugIn] [!] SK_DS3_CenterWindow (void) -- [Calling Thread: 0x%04x]",
-                  GetCurrentThreadId () );
-  dll_log.Log ( L"[SUS PlugIn] \tMonitor: [%lux%lu] <-> Window: [%lux%lu] :: { %s }, <HWND: 0x%04X>",
-                  ds3_state.monitor.Width, ds3_state.monitor.Height,
-                    ds3_state.Width, ds3_state.Height,
-                      ds3_state.Fullscreen ? L"Fullscreen" : L"Windowed",
-                        ds3_state.Window );
+  dll_log->Log ( L"[SUS PlugIn] [!] SK_DS3_CenterWindow (void) -- [Calling Thread: 0x%04x]",
+                   GetCurrentThreadId () );
+  dll_log->Log ( L"[SUS PlugIn] \tMonitor: [%lux%lu] <-> Window: [%lux%lu] :: { %s }, <HWND: 0x%04X>",
+                   ds3_state.monitor.Width, ds3_state.monitor.Height,
+                     ds3_state.Width, ds3_state.Height,
+                       ds3_state.Fullscreen ? L"Fullscreen" : L"Windowed",
+                         ds3_state.Window );
 
   if ((! ds3_state.Fullscreen) || ds3_cfg.window.borderless) {
     int x_off = 0;
@@ -700,8 +700,8 @@ SK_DS3_InitPlugin (void)
       SK_CreateINI (ds3_prefs_file);
   }
 
-  ds3_hud_res_x = 
-      static_cast <sk::ParameterInt *>
+  ds3_hud_res_x =
+      dynamic_cast <sk::ParameterInt *>
         (ds3_factory.create_parameter <int> (L"HUDResX"));
   ds3_hud_res_x->register_to_ini ( ds3_prefs,
                                     L"SUS.Display",
@@ -709,8 +709,8 @@ SK_DS3_InitPlugin (void)
 
   ds3_hud_res_x->load (ds3_cfg.hud.res_x);
 
-  ds3_hud_res_y = 
-      static_cast <sk::ParameterInt *>
+  ds3_hud_res_y =
+      dynamic_cast <sk::ParameterInt *>
         (ds3_factory.create_parameter <int> (L"HUDResY"));
   ds3_hud_res_y->register_to_ini ( ds3_prefs,
                                     L"SUS.Display",
@@ -718,8 +718,8 @@ SK_DS3_InitPlugin (void)
 
   ds3_hud_res_y->load (ds3_cfg.hud.res_y);
 
-  ds3_hud_offset_x = 
-      static_cast <sk::ParameterInt *>
+  ds3_hud_offset_x =
+      dynamic_cast <sk::ParameterInt *>
         (ds3_factory.create_parameter <int> (L"HUDOffsetX"));
   ds3_hud_offset_x->register_to_ini ( ds3_prefs,
                                         L"SUS.Display",
@@ -727,8 +727,8 @@ SK_DS3_InitPlugin (void)
 
   ds3_hud_offset_x->load (ds3_cfg.hud.offset_x);
 
-  ds3_hud_offset_y = 
-      static_cast <sk::ParameterInt *>
+  ds3_hud_offset_y =
+      dynamic_cast <sk::ParameterInt *>
         (ds3_factory.create_parameter <int> (L"HUDOffsetY"));
   ds3_hud_offset_y->register_to_ini ( ds3_prefs,
                                         L"SUS.Display",
@@ -736,8 +736,8 @@ SK_DS3_InitPlugin (void)
 
   ds3_hud_offset_y->load (ds3_cfg.hud.offset_y);
 
-  ds3_hud_stretch = 
-      static_cast <sk::ParameterBool *>
+  ds3_hud_stretch =
+      dynamic_cast <sk::ParameterBool *>
         (ds3_factory.create_parameter <bool> (L"StretchHUD"));
   ds3_hud_stretch->register_to_ini ( ds3_prefs,
                                         L"SUS.Display",
@@ -747,7 +747,7 @@ SK_DS3_InitPlugin (void)
 
 
   ds3_flip_mode =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (ds3_factory.create_parameter <bool> (L"FlipMode"));
   ds3_flip_mode->register_to_ini ( ds3_prefs,
                                      L"SUS.Render",
@@ -756,7 +756,7 @@ SK_DS3_InitPlugin (void)
   ds3_flip_mode->load (ds3_cfg.render.flip_mode);
 
   ds3_start_fullscreen =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (ds3_factory.create_parameter <bool> (L"Start in Fullscreen"));
   ds3_start_fullscreen->register_to_ini ( ds3_prefs,
                                             L"SUS.Render",
@@ -766,7 +766,7 @@ SK_DS3_InitPlugin (void)
 
 
   ds3_borderless =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (ds3_factory.create_parameter <bool> (L"Borderless"));
   ds3_borderless->register_to_ini ( ds3_prefs,
                                       L"SUS.Window",
@@ -776,7 +776,7 @@ SK_DS3_InitPlugin (void)
 
 
   ds3_fullscreen =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (ds3_factory.create_parameter <bool> (L"Forceful Fullscreen Windows"));
   ds3_fullscreen->register_to_ini ( ds3_prefs,
                                       L"SUS.Window",
@@ -789,7 +789,7 @@ SK_DS3_InitPlugin (void)
 
 
   ds3_center =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (ds3_factory.create_parameter <bool> (L"Center Windows"));
   ds3_center->register_to_ini ( ds3_prefs,
                                   L"SUS.Window",
@@ -803,7 +803,7 @@ SK_DS3_InitPlugin (void)
 
 
   ds3_last_addr =
-    static_cast <sk::ParameterInt64 *>
+    dynamic_cast <sk::ParameterInt64 *>
       (ds3_factory.create_parameter <int64_t> (L"Last Known Address"));
   ds3_last_addr->register_to_ini ( ds3_prefs,
                                      L"SUS.System",
@@ -811,7 +811,7 @@ SK_DS3_InitPlugin (void)
 
 
   ds3_osd_disclaimer =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (ds3_factory.create_parameter <bool> (L"Show OSD Disclaimer"));
   ds3_osd_disclaimer->register_to_ini ( ds3_prefs,
                                           L"SUS.System",
@@ -828,7 +828,7 @@ SK_DS3_InitPlugin (void)
 
 #if 0
   sk::ParameterStringW ini_ver =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (ds3_factory.create_parameter <std::wstring> (L"Last Version"));
   ds3_last_addr->register_to_ini ( ds3_prefs,
                                      L"SUS.System",
@@ -836,7 +836,7 @@ SK_DS3_InitPlugin (void)
 #endif
 
   ds3_default_res_x =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (ds3_factory.create_parameter <int> (L"Base (Windowed) Resolution"));
   ds3_default_res_x->register_to_ini ( ds3_prefs,
                                          L"SUS.Render",
@@ -845,7 +845,7 @@ SK_DS3_InitPlugin (void)
   ((sk::iParameter *)ds3_default_res_x)->load ();
 
   ds3_default_res_y =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (ds3_factory.create_parameter <int> (L"Base (Windowed) Resolution"));
   ds3_default_res_y->register_to_ini ( ds3_prefs,
                                          L"SUS.Render",
@@ -855,7 +855,7 @@ SK_DS3_InitPlugin (void)
 
 
   ds3_sacrificial_x =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
     (ds3_factory.create_parameter <int> (L"Sacrificial (Windowed) Resolution"));
   ds3_sacrificial_x->register_to_ini ( ds3_prefs,
                                          L"SUS.Render",
@@ -864,7 +864,7 @@ SK_DS3_InitPlugin (void)
   ds3_sacrificial_x->load ((int &)ds3_cfg.render.sacrifice_x);
 
   ds3_sacrificial_y =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
     (ds3_factory.create_parameter <int> (L"Sacrificial (Windowed) Resolution"));
   ds3_sacrificial_y->register_to_ini ( ds3_prefs,
                                          L"SUS.Render",
@@ -899,8 +899,8 @@ SK_DS3_InitPlugin (void)
       res_addr = nullptr;
 
     if (res_addr != nullptr && (! memcmp (res_addr, res_sig, 8))) {
-      dll_log.Log ( L"[Asp. Ratio] Skipping Signature Scan,"
-                    L" Last Known Address = GOOD" );
+      dll_log->Log ( L"[Asp. Ratio] Skipping Signature Scan,"
+                     L" Last Known Address = GOOD" );
     } else {
       res_addr = nullptr;
     }
@@ -921,16 +921,16 @@ SK_DS3_InitPlugin (void)
     {
       SK_InjectMemory (res_addr_x, (uint8_t *)&res_x, 4, PAGE_EXECUTE_READWRITE);
       SK_InjectMemory (res_addr_y, (uint8_t *)&res_y, 4, PAGE_EXECUTE_READWRITE);
-      dll_log.Log ( L"[Asp. Ratio] Custom Default Resolution: (%lux%lu) {%3.2f}",
-                      res_x, res_y,
-                        (float)res_x / (float)res_y );
-      dll_log.Log ( L"[Asp. Ratio]   >> Sacrifice Address: %ph", res_addr);
+      dll_log->Log ( L"[Asp. Ratio] Custom Default Resolution: (%lux%lu) {%3.2f}",
+                       res_x, res_y,
+                         (float)res_x / (float)res_y );
+      dll_log->Log ( L"[Asp. Ratio]   >> Sacrifice Address: %ph", res_addr);
     }
-  } 
-  
+  }
+
   else {
-    dll_log.Log ( L"[Asp. Ratio] >> ERROR: Unable to locate memory address for %lux%lu... <<",
-                  *(uint32_t *)res_sig, *((uint32_t *)res_sig+1) );
+    dll_log->Log ( L"[Asp. Ratio] >> ERROR: Unable to locate memory address for %lux%lu... <<",
+                   *(uint32_t *)res_sig, *((uint32_t *)res_sig+1) );
   }
 
 
@@ -1068,9 +1068,9 @@ SK_DS3_SetFullscreenState (
     int virtual_x    = GetSystemMetrics (SM_CXVIRTUALSCREEN);
     int virtual_y    = GetSystemMetrics (SM_CYVIRTUALSCREEN);
 
-    dll_log.Log ( L"[ Monitors ]  + Display Topology: %lu Monitors - "
-                                      L"(Virtual Res: %lux%lu)",
-                    num_monitors, virtual_x, virtual_y );
+    dll_log->Log ( L"[ Monitors ]  + Display Topology: %lu Monitors - "
+                                       L"(Virtual Res: %lux%lu)",
+                     num_monitors, virtual_x, virtual_y );
 
     if (ds3_cfg.window.borderless && sus_state.MaxWindow)
     {

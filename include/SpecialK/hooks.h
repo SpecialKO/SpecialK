@@ -31,6 +31,9 @@ struct IUnknown;
 
 #include <vector>
 
+#include <SpecialK/config.h>
+#include <SpecialK/log.h>
+
 
 #ifndef __SK__INI_H__
 struct iSK_INI;
@@ -119,9 +122,18 @@ SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  &cache,
                             void                   **base,
                             int                      idx   ) 
 {
-  cache.active      = TRUE;
-  cache.target.addr =
-    (*(void***)*(base))[idx];
+  if (  base != nullptr &&
+       *base != nullptr )
+  {
+    cache.active      = TRUE;
+    cache.target.addr =
+      (*(void***)*(base))[idx];
+  }
+
+  else
+  {
+    SK_ReleaseAssert (! L"WTF?! Hooking a NULL VfTable?!");
+  }
 };
 
 
@@ -143,8 +155,16 @@ auto SK_Hook_PullGlobalCacheDownToLocal =
 []( sk_hook_cache_record_s* global,
     sk_hook_cache_record_s* local   ) 
 {
-  // LOL, right?
-  *local = *global;
+  if ( local != nullptr &&
+       global != nullptr )
+  {
+    // LOL, right?
+    *local = *global;
+  }
+  else
+  {
+    SK_ReleaseAssert (!L"WTF?! Local or Global Hook Tables are Corrupt");
+  }
 };
 
 

@@ -452,9 +452,9 @@ _CreateConfigParameter ( std::type_index type,
         if ( wszOldSectionName != nullptr ||
              wszOldKeyName     != nullptr )
         {
-          const wchar_t* wszAltSection = ( wszOldSectionName ?
+          const wchar_t* wszAltSection = ( wszOldSectionName != nullptr ?
                                            wszOldSectionName : wszSection );
-          const wchar_t* wszAltKey     = ( wszOldKeyName     ?
+          const wchar_t* wszAltKey     = ( wszOldKeyName     != nullptr ?
                                            wszOldKeyName     : wszKey     );
 
           pParam->register_to_ini (

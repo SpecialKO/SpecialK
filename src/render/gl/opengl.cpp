@@ -233,7 +233,7 @@ typedef struct tagPIXELFORMATDESCRIPTOR
       imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
-        dll_log.Log (                                                    \
+        dll_log->Log (                                                   \
           L"[ OpenGL32 ] Unable to locate symbol %s in OpenGL32.dll",    \
           L#_Name);                                                      \
         return 0;                                                        \
@@ -255,7 +255,7 @@ typedef struct tagPIXELFORMATDESCRIPTOR
       imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
-        dll_log.Log (                                                    \
+        dll_log->Log (                                                   \
           L"[ OpenGL32 ] Unable to locate symbol %s in OpenGL32.dll",    \
           L#_Name);                                                      \
         return;                                                          \
@@ -1356,11 +1356,11 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
 
   if (config.system.log_level > 1)
   {
-    dll_log.Log ( L"[%x (tid=%x)]  wglMakeCurrent "
-                  L"(hDC=%x, hglrc=%x)",
-                    WindowFromDC         (hDC),
-                      GetCurrentThreadId (   ),
-                                          hDC, hglrc );
+    dll_log->Log ( L"[%x (tid=%x)]  wglMakeCurrent "
+                   L"(hDC=%x, hglrc=%x)",
+                     WindowFromDC         (hDC),
+                       GetCurrentThreadId (   ),
+                                           hDC, hglrc );
   }
 
   BOOL ret =
@@ -1387,11 +1387,11 @@ wglDeleteContext (HGLRC hglrc)
 
   if (config.system.log_level >= 0 && pTLS != nullptr)
   {
-    dll_log.Log ( L"[%x (tid=%x)]  wglDeleteContext "
-                  L"(hglrc=%x)",
-                    WindowFromDC         (pTLS->gl.current_hdc),
-                      GetCurrentThreadId (   ),
-                                         hglrc );
+    dll_log->Log ( L"[%x (tid=%x)]  wglDeleteContext "
+                   L"(hglrc=%x)",
+                     WindowFromDC         (pTLS->gl.current_hdc),
+                       GetCurrentThreadId (   ),
+                                          hglrc );
   }
 
 
@@ -1736,11 +1736,11 @@ SK_Overlay_DrawGL (void)
   glActiveTexture   (GL_TEXTURE0);
   glBindSampler     (0, 0);
   glViewport        (0, 0,
-                       static_cast <GLsizei> (rect.right  - rect.left),
-                       static_cast <GLsizei> (rect.bottom - rect.top));
+                  gsl::narrow_cast <GLsizei> (rect.right  - rect.left),
+                  gsl::narrow_cast <GLsizei> (rect.bottom - rect.top));
   glScissor         (0, 0,
-                       static_cast <GLsizei> (rect.right  - rect.left),
-                       static_cast <GLsizei> (rect.bottom - rect.top));
+                  gsl::narrow_cast <GLsizei> (rect.right  - rect.left),
+                  gsl::narrow_cast <GLsizei> (rect.bottom - rect.top));
   glColorMask       (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
   glDisable         (GL_STENCIL_TEST);
   glDisable         (GL_DEPTH_TEST);
@@ -1772,7 +1772,7 @@ SK_Overlay_DrawGL (void)
 
   if (config.cegui.enable && cegGL != nullptr)
   {
-    if (SK_Steam_DrawOSD ())
+    if (SK_Steam_DrawOSD () != 0)
     {
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
     }
@@ -1888,11 +1888,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                   L" initialized using a different OpenGL context." ),
                   L" OpenGL32 " );
 
-      if (thread_hglrc == 0 || wglShareLists (__gl_primary_context, thread_hglrc))
+      if (thread_hglrc == nullptr || wglShareLists (__gl_primary_context, thread_hglrc))
       {
         compatible_dc = true;
 
-        if (thread_hglrc == 0)
+        if (thread_hglrc == nullptr)
             thread_hglrc = __gl_primary_context;
       }
     }
@@ -1966,7 +1966,7 @@ wglSwapBuffers (HDC hDC)
   WaitForInit_GL ();
 
   if (config.system.log_level > 1)
-    dll_log.Log (L"[%x (tid=%x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC);
+    dll_log->Log (L"[%x (tid=%x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC);
 
   SK_GL_TrackHDC (hDC);
 
@@ -1993,7 +1993,7 @@ SwapBuffers (HDC hDC)
   WaitForInit_GL ();
 
   if (config.system.log_level > 1)
-    dll_log.Log (L"[%x (tid=%x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC);
+    dll_log->Log (L"[%x (tid=%x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC);
 
   SK_GL_TrackHDC (hDC);
 
@@ -2029,9 +2029,12 @@ DWORD
 WINAPI
 wglSwapMultipleBuffers (UINT n, const WGLSWAP* ps)
 {
+  if (ps == nullptr)
+    return 0;
+
   WaitForInit_GL ();
 
-  dll_log.Log (L"wglSwapMultipleBuffers [%lu]", n);
+  dll_log->Log (L"wglSwapMultipleBuffers [%lu]", n);
 
   DWORD dwTotal = 0;
   DWORD dwRet   = 0;
@@ -2057,7 +2060,7 @@ wglSwapMultipleBuffers (UINT n, const WGLSWAP* ps)
 typedef int64_t  GLint64;
 typedef uint64_t GLuint64;
 
-typedef GLvoid    (WINAPI *glGenQueries_pfn)   (GLsizei n​,       GLuint *ids​);
+typedef GLvoid    (WINAPI *glGenQueries_pfn)   (GLsizei n,       GLuint *ids​);
 typedef GLvoid    (WINAPI *glDeleteQueries_pfn)(GLsizei n​, const GLuint *ids​);
 
 typedef GLvoid    (WINAPI *glBeginQuery_pfn)       (GLenum target​, GLuint id​);
@@ -2422,8 +2425,8 @@ SK::OpenGL::getPipelineStatsDesc (void)
     _swprintf ( wszDesc,
                   L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
                     wszDesc, 100.0f *
-                        ( static_cast <float> (stats.CPrimitives) /
-                          static_cast <float> (stats.CInvocations) ),
+                        ( static_cast <long double> (stats.CPrimitives) /
+                          static_cast <long double> (stats.CInvocations) ),
                       SK_CountToString (stats.CInvocations).c_str () );
   }
 
@@ -2523,8 +2526,8 @@ SK_HookGL (void)
       pTLS->gl.ctx_init_thread = true;
     }
 
-    dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
-    dll_log.Log (L"[ OpenGL32 ] ================================");
+    dll_log->Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
+    dll_log->Log (L"[ OpenGL32 ] ================================");
 
     if ( StrStrIW ( static_cast <const std::wstring &> (
                       skModuleRegistry::Self ()
@@ -2536,7 +2539,7 @@ SK_HookGL (void)
 
     else
     {
-      dll_log.Log (L"[ OpenGL32 ] Hooking OpenGL");
+      dll_log->Log (L"[ OpenGL32 ] Hooking OpenGL");
 
       SK_LoadRealGL ();
 
@@ -2939,8 +2942,8 @@ SK_HookGL (void)
       SK_GL_HOOK(wglRealizeLayerPalette);
       SK_GL_HOOK(wglSetLayerPaletteEntries);
 
-      dll_log.Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
-                      GL_HOOKS );
+      dll_log->Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
+                       GL_HOOKS );
     }
 
     //
@@ -2973,11 +2976,11 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
 {
   WaitForInit_GL ();
 
-  dll_log.Log ( L"[%x (tid=%x)]  wglShareLists "
-                L"(ctx0=%x, ctx1=%x)",
-                  SK_TLS_Bottom ()->gl.current_hwnd,
-                    GetCurrentThreadId (   ),
-                                        ctx0, ctx1 );
+  dll_log->Log ( L"[%x (tid=%x)]  wglShareLists "
+                 L"(ctx0=%x, ctx1=%x)",
+                   SK_TLS_Bottom ()->gl.current_hwnd,
+                     GetCurrentThreadId (   ),
+                                         ctx0, ctx1 );
 
   BOOL ret =
     wgl_share_lists (ctx0, ctx1);

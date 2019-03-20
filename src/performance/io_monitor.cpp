@@ -711,7 +711,7 @@ SK_MonitorDisk (LPVOID user)
 
       if (disk.apEnumAccess [0] == nullptr)
       {
-        dll_log.Log (L"[ WMI Wbem ] Disk apEnumAccess [0] = nullptr");
+        dll_log->Log (L"[ WMI Wbem ] Disk apEnumAccess [0] = nullptr");
         goto DISK_CLEANUP;
       }
 
@@ -933,7 +933,7 @@ SK_MonitorDisk (LPVOID user)
   COM::base.wmi.Lock ();
 
 DISK_CLEANUP:
-  //dll_log.Log (L" >> DISK_CLEANUP");
+  //dll_log->Log (L" >> DISK_CLEANUP");
 
   if (disk.apEnumAccess != nullptr)
   {
@@ -1081,7 +1081,7 @@ SK_MonitorPagefile (LPVOID user)
     if (hr == WBEM_E_BUFFER_TOO_SMALL 
         && pagefile.dwNumReturned > pagefile.dwNumObjects)
     {
-      pagefile.apEnumAccess = new IWbemObjectAccess* [pagefile.dwNumReturned + 1];
+      pagefile.apEnumAccess = new IWbemObjectAccess* [pagefile.dwNumReturned + 1UL];
       if (pagefile.apEnumAccess == nullptr)
       {
         hr = E_OUTOFMEMORY;
@@ -1121,14 +1121,14 @@ SK_MonitorPagefile (LPVOID user)
     {
       if (pagefile.dwNumReturned <= 0)
       {
-        dll_log.Log (L"[ WMI Wbem ] No pagefile exists");
+        dll_log->Log (L"[ WMI Wbem ] No pagefile exists");
         config.pagefile.show = false;
         goto PAGEFILE_CLEANUP;
       }
 
       if (pagefile.apEnumAccess [0] == nullptr)
       {
-        dll_log.Log (L"[ WMI Wbem ] Pagefile apEnumAccess [0] = nullptr");
+        dll_log->Log (L"[ WMI Wbem ] Pagefile apEnumAccess [0] = nullptr");
         config.pagefile.show = false;
         goto PAGEFILE_CLEANUP;
       }
@@ -1263,7 +1263,7 @@ SK_MonitorPagefile (LPVOID user)
   COM::base.wmi.Lock ();
 
 PAGEFILE_CLEANUP:
-  //dll_log.Log (L" >> PAGEFILE_CLEANUP");
+  //dll_log->Log (L" >> PAGEFILE_CLEANUP");
 
   if (pagefile.apEnumAccess != nullptr)
   {
@@ -1341,7 +1341,7 @@ SK_MonitorProcess (LPVOID user)
   DWORD   dwProcessSize = MAX_PATH * 2;
   wchar_t wszProcessName [MAX_PATH * 2 + 1] = { };
 
-  GetModuleFileNameW (0, wszProcessName, dwProcessSize);
+  GetModuleFileNameW (nullptr, wszProcessName, dwProcessSize);
 
   wchar_t* pwszShortName = wcsrchr (wszProcessName, L'\\') + 1;
   wchar_t* pwszTruncName = wcsrchr (pwszShortName,  L'.');
@@ -1556,7 +1556,7 @@ SK_MonitorProcess (LPVOID user)
   COM::base.wmi.Lock ();
 
 PROC_CLEANUP:
-  // dll_log.Log (L" >> PROC_CLEANUP");
+  // dll_log->Log (L" >> PROC_CLEANUP");
 
   if (proc.pAccess != nullptr)
   {

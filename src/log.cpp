@@ -24,7 +24,7 @@
 struct IUnknown;
 #include <Unknwnbase.h>
 
-#include <stdio.h>
+#include <cstdio>
 #include <Shlwapi.h>
 #include <SpecialK/log.h>
 #include <SpecialK/tls.h>
@@ -41,6 +41,9 @@ using GetSystemTimePreciseAsFileTime_pfn = void ( WINAPI * )(
 WORD
 SK_Timestamp (wchar_t* const out)
 {
+  if (out == nullptr)
+    return 0;
+
   SYSTEMTIME stLogTime;
 
   // Check for Windows 8 / Server 2012
@@ -221,8 +224,6 @@ SK_FlushLog (iSK_Logger* pLog)
   return TRUE;
 }
 
-iSK_Logger dll_log, budget_log;
-
 
 std::wstring
 __stdcall
@@ -361,6 +362,7 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   va_list   _ArgList;
   va_start (_ArgList, _Format);
   size_t len =
+    (size_t)
     _vscwprintf (      _Format,
             _ArgList) + 1 + 48 + 2; // 48 extra for timestamp
   va_end   (_ArgList);
@@ -443,6 +445,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   va_start (_ArgList, _Format);
 
   size_t len =
+    (size_t)
     _vscwprintf (     _Format,
             _ArgList) + 1 + 2  //  2 extra for CrLf
                          + 48; // 32 extra for timestamp
@@ -539,7 +542,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 }
 
 HRESULT
-iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj)
+iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj) noexcept
 {
   if (IsEqualGUID (riid, IID_SK_Logger))
   {
@@ -554,14 +557,14 @@ iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 }
 
 ULONG
-iSK_Logger::AddRef (THIS)
+iSK_Logger::AddRef (THIS) noexcept
 {
   return
     InterlockedIncrement (&refs);
 }
 
 ULONG
-iSK_Logger::Release (THIS)
+iSK_Logger::Release (THIS) noexcept
 {
   if (   InterlockedDecrement (&refs) != 0UL )
     return (ULONG)ReadAcquire (&refs);
@@ -583,8 +586,11 @@ SK_CreateLog (const wchar_t* const wszName)
   auto* pLog =
     new iSK_Logger ();
 
-  pLog->init   (wszName, L"wtc+,ccs=UTF-8");
-  pLog->silent = false;
+  if (wszName != nullptr)
+  {
+    pLog->init   (wszName, L"wtc+,ccs=UTF-8");
+    pLog->silent = false;
+  }
 
   return pLog;
 }

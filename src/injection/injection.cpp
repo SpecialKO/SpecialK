@@ -38,7 +38,7 @@
 
 #include <set>
 #include <Shlwapi.h>
-#include <time.h>
+#include <ctime>
 
 typedef HHOOK (NTAPI *NtUserSetWindowsHookEx_pfn)(
  _In_     int       idHook,
@@ -256,7 +256,7 @@ SK_Inject_ReleaseProcess (void)
 
 class SK_Auto_Local {
 public:
-  SK_Auto_Local (LPVOID* ppMem) : mem_ (ppMem)
+  explicit SK_Auto_Local (LPVOID* ppMem) : mem_ (ppMem)
   { };
 
   ~SK_Auto_Local (void)
@@ -285,7 +285,7 @@ SetPermissions (std::wstring wstrFilePath)
 
   SK_Auto_Local auto_sid  ((LPVOID *)&pSID);
   SK_Auto_Local auto_dacl ((LPVOID *)&pNewDACL);
-  
+
   // Get a pointer to the existing DACL
   dwResult =
     GetNamedSecurityInfo ( wstrFilePath.c_str (),
@@ -387,7 +387,7 @@ SK_Inject_IsInvadingProcess (DWORD dwThreadId)
 {
   for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
-    if (ReadAcquire (&hooked_pid) == static_cast <LONG> (dwThreadId))
+    if (ReadAcquire (&hooked_pid) == gsl::narrow_cast <LONG> (dwThreadId))
       return true;
   }
 
@@ -480,7 +480,7 @@ SKX_InstallCBTHook (void)
       InterlockedIncrementRelease (&injected_procs);
 
     InterlockedExchangePointerAcquire ( (PVOID *)&hHookCBT,
-      SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0)
+      SetWindowsHookEx (WH_SHELL, CBTProc, hMod, 0)
     );
   }
 }
@@ -576,7 +576,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
                    {
                      DWORD dwWait =
                        WaitForSingleObject (__SK_DLL_TeardownEvent, INFINITE);
-                     
+
                      if ( dwWait == WAIT_OBJECT_0    ||
                           dwWait == WAIT_ABANDONED_0 ||
                           dwWait == WAIT_TIMEOUT     ||

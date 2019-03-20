@@ -202,15 +202,15 @@ class CCallResult : private CCallbackBase
 public:
   typedef void (T::*func_t)( P*, bool );
 
-  CCallResult()
+  CCallResult() noexcept
   {
-    m_hAPICall = k_uAPICallInvalid;
-    m_pObj = NULL;
-    m_Func = NULL;
+    m_hAPICall  = k_uAPICallInvalid;
+    m_pObj      = nullptr;
+    m_Func      = nullptr;
     m_iCallback = P::k_iCallback;
   }
 
-  void Set( SteamAPICall_t hAPICall, T *p, func_t func )
+  void Set( SteamAPICall_t hAPICall, T *p, func_t func ) noexcept
   {
     if ( m_hAPICall )
     {
@@ -231,12 +231,12 @@ public:
     }
   }
 
-  bool IsActive() const
+  bool IsActive() const noexcept
   {
     return ( m_hAPICall != k_uAPICallInvalid );
   }
 
-  void Cancel()
+  void Cancel () noexcept
   {
     if ( m_hAPICall != k_uAPICallInvalid )
     {
@@ -248,19 +248,22 @@ public:
     
   }
 
-  ~CCallResult()
+  virtual ~CCallResult() noexcept
   {
     Cancel();
   }
 
-  void SetGameserverFlag() { m_nCallbackFlags |= k_ECallbackFlagsGameServer; }
+  void SetGameserverFlag() noexcept { m_nCallbackFlags |= k_ECallbackFlagsGameServer; }
+
+
+protected:
 private:
-  virtual void Run( void *pvParam )
+  void Run( void *pvParam ) noexcept override
   {
     m_hAPICall = k_uAPICallInvalid; // caller unregisters for us
     (m_pObj->*m_Func)( (P *)pvParam, false );    
   }
-  void Run( void *pvParam, bool bIOFailure, SteamAPICall_t hSteamAPICall )
+  void Run( void *pvParam, bool bIOFailure, SteamAPICall_t hSteamAPICall ) noexcept override
   {
     if ( hSteamAPICall == m_hAPICall )
     {
@@ -268,7 +271,7 @@ private:
       (m_pObj->*m_Func)( (P *)pvParam, bIOFailure );      
     }
   }
-  int GetCallbackSizeBytes()
+  int GetCallbackSizeBytes() noexcept override
   {
     return sizeof( P );
   }
@@ -304,20 +307,20 @@ public:
   // CCallback() {}
   
   // constructor for initializing this object in owner's constructor
-  CCallback( T *pObj, func_t func ) : m_pObj( pObj ), m_Func( func )
+  CCallback( T *pObj, func_t func ) noexcept : m_pObj( pObj ), m_Func( func )
   {
     if ( pObj && func )
       Register( pObj, func );
   }
 
-  ~CCallback()
+  virtual ~CCallback() noexcept
   {
     if ( m_nCallbackFlags & k_ECallbackFlagsRegistered )
       Unregister();
   }
 
   // manual registration of the callback
-  void Register( T *pObj, func_t func )
+  void Register( T *pObj, func_t func ) noexcept
   {
     if ( !pObj || !func )
       return;
@@ -338,7 +341,7 @@ public:
     // SteamAPI_RegisterCallback sets k_ECallbackFlagsRegistered
   }
 
-  void Unregister()
+  void Unregister() noexcept
   {
     // SteamAPI_UnregisterCallback removes k_ECallbackFlagsRegistered
     if (SteamAPI_UnregisterCallback_Original != nullptr)
@@ -348,17 +351,17 @@ public:
   //SteamAPI_UnregisterCallback( this );
   }
 
-  void SetGameserverFlag() { m_nCallbackFlags |= k_ECallbackFlagsGameServer; }
+  void SetGameserverFlag() noexcept { m_nCallbackFlags |= k_ECallbackFlagsGameServer; }
 protected:
-  virtual void Run( void *pvParam )
+  void Run( void *pvParam ) noexcept override
   {
     (m_pObj->*m_Func)( (P *)pvParam );
   }
-  virtual void Run( void *pvParam, bool, SteamAPICall_t )
+  void Run( void *pvParam, bool, SteamAPICall_t ) noexcept override
   {
     (m_pObj->*m_Func)( (P *)pvParam );
   }
-  int GetCallbackSizeBytes()
+  int GetCallbackSizeBytes() noexcept override
   {
     return sizeof( P );
   }

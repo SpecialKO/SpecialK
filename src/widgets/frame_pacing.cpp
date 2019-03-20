@@ -37,7 +37,7 @@ static bool has_battery = false;
 class SKWG_FramePacing : public SK_Widget
 {
 public:
-  SKWG_FramePacing (void) : SK_Widget ("FramePacing")
+  SKWG_FramePacing (void) noexcept : SK_Widget ("FramePacing")
   {
     SK_ImGui_Widgets.frame_pacing = this;
 
@@ -45,9 +45,9 @@ public:
     setDockingPoint (DockAnchor::SouthEast).setClickThrough (true).setVisible (false);
   };
 
-  void run (void) override
+  void run (void) noexcept override
   {
-    if (! ImGui::GetFont ())
+    if (ImGui::GetFont () == nullptr)
       return;
 
     const float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
@@ -60,19 +60,17 @@ public:
       ImGui::SetNextWindowSize (new_size, ImGuiSetCond_Always);
   }
 
-  void draw (void) override
+  void draw (void) noexcept override
   {
-    if (! ImGui::GetFont ())
+    if (ImGui::GetFont () == nullptr)
       return;
 
     ImGuiIO& io (ImGui::GetIO ());
 
     static bool move = true;
-    
+
     if (move)
     {
-      const float font_size = ImGui::GetFont ()->FontSize;
-
       ImGui::SetWindowPos (ImVec2 (io.DisplaySize.x - getSize ().x, io.DisplaySize.y - getSize ().y ));
       move = false;
     }
@@ -82,7 +80,7 @@ public:
     has_battery = SK_ImGui::BatteryMeter ();
   }
 
-  virtual void OnConfig (ConfigEvent event) override
+  void OnConfig (ConfigEvent event) noexcept override
   {
     switch (event)
     {
@@ -93,4 +91,11 @@ public:
         break;
     }
   }
-} __frame_pacing__;
+};
+
+SK_LazyGlobal <SKWG_FramePacing> __frame_pacing__;
+
+void SK_Widget_InitFramePacing (void)
+{
+  SK_RunOnce (__frame_pacing__.get ());
+}

@@ -47,7 +47,7 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
     return true;
   }
 
-  else if (GetFileAttributesW (path) != INVALID_FILE_ATTRIBUTES)
+  if (GetFileAttributesW (path) != INVALID_FILE_ATTRIBUTES)
   {
     wchar_t wszImportRecord [4096] = { };
 
@@ -145,9 +145,6 @@ SK::ControlPanel::PlugIns::Draw (void)
     wchar_t imp_path_reshade_ex [MAX_PATH + 2] = { };
     wchar_t imp_name_reshade_ex [64]           = { };
 
-    const wchar_t* wszShimFormat =
-      LR"(%s\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
-
 #ifdef _WIN64
     wcscat   (imp_name_reshade, L"Import.ReShade64");
     wsprintf (imp_path_reshade, LR"(%s\PlugIns\ThirdParty\ReShade\ReShade64.dll)", std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
@@ -161,6 +158,9 @@ SK::ControlPanel::PlugIns::Draw (void)
 
     else
     {
+      const wchar_t* wszShimFormat =
+        LR"(%s\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
+
       wsprintf ( imp_path_reshade_ex, wszShimFormat,
                    std::wstring (SK_GetDocumentsDir        (                 ) +
                                              LR"(\My Mods\SpecialK)").c_str (  ),
@@ -179,6 +179,9 @@ SK::ControlPanel::PlugIns::Draw (void)
 
     else
     {
+      const wchar_t* wszShimFormat =
+        LR"(%s\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
+
       wsprintf ( imp_path_reshade_ex, wszShimFormat,
                    std::wstring (SK_GetDocumentsDir        (                ) +
                                              L"\\My Mods\\SpecialK").c_str (  ),
@@ -200,7 +203,7 @@ SK::ControlPanel::PlugIns::Draw (void)
     if (ImGui::CollapsingHeader ("Third-Party"))
     {
       ImGui::TreePush    ("");
-      changed |= 
+      changed |=
           SK_ImGui_PlugInSelector (dll_ini, "ReShade (Official)", imp_path_reshade, imp_name_reshade, reshade_official, order, 1);
       ImGui::TreePop     (  );
     }

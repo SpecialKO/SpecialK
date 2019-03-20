@@ -276,8 +276,8 @@ SK_IT_Unmap (
 
         if (dump_bias)
         {
-          dll_log.Log (L"Shadowmap Bias: %f, %f, %f, %f",
-                         pShadow [0], pShadow [1], pShadow [2], pShadow [3]);
+          dll_log->Log (L"Shadowmap Bias: %f, %f, %f, %f",
+                          pShadow [0], pShadow [1], pShadow [2], pShadow [3]);
         }
 
         // Landscape shadows (need an increased bias)

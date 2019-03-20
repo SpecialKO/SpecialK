@@ -65,20 +65,23 @@ struct sk_sensor_prefs_s
 class SKWG_GPU_Monitor : public SK_Widget
 {
 public:
-  SKWG_GPU_Monitor (void) : SK_Widget ("GPUMonitor")
+  SKWG_GPU_Monitor (void) noexcept : SK_Widget ("GPUMonitor")
   {
     SK_ImGui_Widgets.gpu_monitor = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
 
-  virtual void load (iSK_INI* cfg)
+  void load (iSK_INI* cfg) noexcept override
   {
     SK_Widget::load (cfg);
   }
 
-  virtual void save (iSK_INI* cfg)
+  void save (iSK_INI* cfg) noexcept override
   {
+    if (cfg == nullptr)
+      return;
+
     for ( auto it : prefs)
     {
       if (it->params.enable != nullptr)
@@ -94,7 +97,7 @@ public:
     cfg->write (cfg->get_filename ());
   }
 
-  void run (void) override
+  void run (void) noexcept override
   {
     static bool first_run = true;
 
@@ -106,20 +109,20 @@ public:
       {
         it->params.enable =
           dynamic_cast <sk::ParameterBool *> (
-            SK_Widget_ParameterFactory.create_parameter <bool> (L"Enable Widget")
+            SK_Widget_ParameterFactory->create_parameter <bool> (L"Enable Widget")
           );
 
         it->params.min =
           dynamic_cast <sk::ParameterFloat *> (
-            SK_Widget_ParameterFactory.create_parameter <float> (L"Minimum Value")
+            SK_Widget_ParameterFactory->create_parameter <float> (L"Minimum Value")
           );
 
         it->params.max =
           dynamic_cast <sk::ParameterFloat *> (
-            SK_Widget_ParameterFactory.create_parameter <float> (L"Maximum Value")
+            SK_Widget_ParameterFactory->create_parameter <float> (L"Maximum Value")
           );
 
-        it->params.enable->register_to_ini ( osd_ini, 
+        it->params.enable->register_to_ini ( osd_ini,
           SK_FormatStringW ( L"GPU0.%s", it->ini_name.c_str () ),
                              L"EnableSensor" );
 
@@ -127,7 +130,7 @@ public:
           SK_FormatStringW ( L"GPU0.%s", it->ini_name.c_str () ),
                              L"MaxValue" );
 
-        it->params.min->register_to_ini ( osd_ini, 
+        it->params.min->register_to_ini ( osd_ini,
           SK_FormatStringW ( L"GPU0.%s", it->ini_name.c_str () ),
                              L"MinValue" );
       }
@@ -160,8 +163,6 @@ public:
                            }
         );
       }
-
-      extern sk::ParameterFactory SK_Widget_ParameterFactory;
 
       for (auto it : params)
       {
@@ -211,7 +212,7 @@ public:
     }
   }
 
-  virtual void config_base (void)
+  void config_base (void) noexcept override
   {
     SK_Widget::config_base ();
 
@@ -276,9 +277,9 @@ public:
     }
   }
 
-  void draw (void) override
+  void draw (void) noexcept override
   {
-    if (! ImGui::GetFont ()) return;
+    if (ImGui::GetFont () == nullptr) return;
 
     const  float font_size = ImGui::GetFont ()->FontSize;//* scale;
 
@@ -315,7 +316,7 @@ public:
                   gpu_load.getMin (), gpu_load.getMax (),
                     gpu_load.getAvg () );
 
-      float samples = 
+      float samples =
         std::min ( (float)gpu_load.getUpdates  (),
                    (float)gpu_load.getCapacity () );
 
@@ -343,7 +344,7 @@ public:
                   gpu_temp_c.getMin   (), gpu_temp_c.getMax (),
                     gpu_temp_c.getAvg () );
 
-      float samples = 
+      float samples =
         std::min ( (float)gpu_temp_c.getUpdates  (),
                    (float)gpu_temp_c.getCapacity () );
 
@@ -375,7 +376,7 @@ public:
                   fan_rpm.getMin   (), fan_rpm.getMax (),
                     fan_rpm.getAvg () );
 
-      float samples = 
+      float samples =
         std::min ( (float)fan_rpm.getUpdates  (),
                    (float)fan_rpm.getCapacity () );
 
@@ -408,7 +409,7 @@ public:
                   core_clock_ghz.getMin   (), core_clock_ghz.getMax (),
                     core_clock_ghz.getAvg () );
 
-      float samples = 
+      float samples =
         std::min ( (float)core_clock_ghz.getUpdates  (),
                    (float)core_clock_ghz.getCapacity () );
 
@@ -443,7 +444,7 @@ public:
                   vram_clock_ghz.getMin   (), vram_clock_ghz.getMax (),
                     vram_clock_ghz.getAvg () );
 
-      float samples = 
+      float samples =
         std::min ( (float)vram_clock_ghz.getUpdates  (),
                    (float)vram_clock_ghz.getCapacity () );
 
@@ -483,7 +484,7 @@ public:
                   vram_used_mib.getMin   (), max_use,
                     vram_used_mib.getAvg () );
 
-      float samples = 
+      float samples =
         std::min ( (float)vram_used_mib.getUpdates  (),
                    (float)vram_used_mib.getCapacity () );
 
@@ -499,7 +500,7 @@ public:
                                vram_used_mib.getOffset (),
                                  szAvg,
                                    0.0f,//vram_used_mib.getMin () / 1.1f,
-                                     capacity_in_mib       * 1.05f, 
+                                     capacity_in_mib       * 1.05f,
                                        ImVec2 (
                                          ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
                                            4, _MinVal (0.0f,            &vram_used_prefs),
@@ -507,7 +508,7 @@ public:
     }
   }
 
-  virtual void OnConfig (ConfigEvent event) override
+  void OnConfig (ConfigEvent event) override
   {
     switch (event)
     {
@@ -558,5 +559,12 @@ protected:
       &core_clock_prefs, &vram_clock_prefs,
       &vram_used_prefs };
 
-} __gpu_monitor__;
+};
+
+SK_LazyGlobal <SKWG_GPU_Monitor> __gpu_monitor__;
+
+void SK_Widget_InitGPUMonitor (void)
+{
+  SK_RunOnce (__gpu_monitor__.getPtr ());
+}
 

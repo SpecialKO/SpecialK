@@ -113,11 +113,16 @@ struct gaze_cursor_s {
   float color
          [4] = { 1.f,  0.85f, 0.15f, 1.f };
   ImVec2 pos = { 0.0f, 0.0f };
-} gaze_cursor;
+};
+
+static SK_LazyGlobal <gaze_cursor_s> tobii_cursor;
 
 ImVec2&
 SK_Tobii_GetGazePosition (void)
 {
+  static auto gaze_cursor =
+    tobii_cursor.get ();
+
   return
     gaze_cursor.pos;
 }
@@ -126,6 +131,9 @@ void
 SK_Tobii_Callback_GazePoint ( tobii_gaze_point_t const* gaze_point,
                                                   void* /*user_data*/ )
 {
+  static auto gaze_cursor =
+    tobii_cursor.get ();
+
   if (gaze_point->validity == TOBII_VALIDITY_VALID)
   {
     auto& io =
@@ -150,11 +158,14 @@ SK_Tobii_URL_Receiver ( char const* url,
   char* buffer =
     (char *)user_data;
 
-  if (*buffer != '\0')
-    return; // only keep first value
+  if (buffer != nullptr)
+  {
+    if (*buffer != '\0')
+      return; // only keep first value
 
-  if (strlen (url) < 256)
-    strcpy (buffer, url);
+    if (strlen (url) < 256)
+      strcpy (buffer, url);
+  }
 }
 
 
@@ -164,7 +175,7 @@ SK_Tobii_URL_Receiver ( char const* url,
 void
 SK_UnpackTobiiStreamEngine (void)
 {
-  HMODULE hModSelf = 
+  HMODULE hModSelf =
     SK_GetDLL ();
 
   HRSRC res =
@@ -241,6 +252,9 @@ bool widget_gazing   = false;
 
 bool SK_Tobii_IsCursorVisible (void)
 {
+  static auto gaze_cursor =
+    tobii_cursor.get ();
+
   return gaze_cursor.draw;
 }
 
@@ -277,17 +291,23 @@ protected:
     };
 
 public:
-  SKWG_Tobii (void) : SK_Widget ("Tobii")
+  SKWG_Tobii (void) noexcept : SK_Widget ("Tobii")
   {
     SK_ImGui_Widgets.tobii = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::NorthEast).setClickThrough (false);
   };
 
-  void save (iSK_INI* config_file) override
+  void save (iSK_INI* config_file) noexcept override
   {
+    if (config_file == nullptr)
+      return;
+
     if (_SK_Tobii_ShowGazeCursor != nullptr)
     {
+      static auto gaze_cursor =
+        tobii_cursor.get ();
+
       _SK_Tobii_ShowGazeCursor->store (gaze_cursor.draw);
       _SK_Tobii_WidgetGazing->store   (widget_gazing);
       _SK_Tobii_CursorType->store     (gaze_cursor.type);
@@ -303,8 +323,11 @@ public:
     }
   }
 
-  bool keyboard (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode) override
+  bool keyboard (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode) noexcept override
   {
+    static auto gaze_cursor =
+      tobii_cursor.get ();
+
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt)             \
     static_cast <UINT>((vKey) | (((ctrl) != 0) <<  9) | \
                                 (((shift)!= 0) << 10) | \
@@ -339,6 +362,9 @@ public:
   {
            bool first = false;
     SK_RunOnce (first = true);
+
+    static auto gaze_cursor =
+      tobii_cursor.get ();
 
     if (first)
     {
@@ -398,6 +424,9 @@ public:
 
       for ( auto& keybind : keybinds )
       {
+        if (keybind == nullptr)
+          continue;
+
         keybind->param =
           DeclKeybind (keybind, osd_ini, SK_TOBII_SECTION);
 
@@ -441,6 +470,9 @@ public:
 
     else if (has_tobii)
     {
+      static auto gaze_cursor =
+        tobii_cursor.get ();
+
       bool draw_gaze_cursor =
         ( ( gaze_cursor.pos.x + 1.f ) *
           ( gaze_cursor.pos.y + 1.f ) ) > 1.0f;
@@ -569,7 +601,7 @@ public:
       changed |= ImGui::MenuItem ("Draw Gaze Cursor", nullptr, &gaze_cursor.draw);
       changed |= ImGui::MenuItem ("Widget Gazing",    nullptr, &widget_gazing);
       ImGui::EndGroup   ();
-      ImGui::SameLine   (); ImGui::Spacing  (); 
+      ImGui::SameLine   (); ImGui::Spacing  ();
       ImGui::NextColumn ();
       ImGui::Spacing    (); ImGui::SameLine ();
       ImGui::BeginGroup ();
@@ -589,7 +621,7 @@ public:
       ImGui::Columns  (1);
 
 
-      
+
       static tobii_device_info_t tdi = { };
 
       if (*tdi.firmware_version == '\0' && device != nullptr)
@@ -630,7 +662,7 @@ public:
     }
   }
 
-  virtual void OnConfig (ConfigEvent event) override
+  void OnConfig (ConfigEvent event) noexcept override
   {
     switch (event)
     {
@@ -645,9 +677,14 @@ public:
 protected:
 
 private:
-} __tobii_widget__;
+};
 
+SK_LazyGlobal <SKWG_Tobii> __tobii_widget__;
 
+void SK_Widget_InitTobii (void)
+{
+  SK_RunOnce (__tobii_widget__.getPtr ());
+}
 
 void
 SK_Tobii_Startup ( tobii_api_t*&    api,
@@ -733,8 +770,8 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
 
   error =
     tobii_gaze_point_subscribe ( device,
-                                SK_Tobii_Callback_GazePoint,
-                                0 );
+                                   SK_Tobii_Callback_GazePoint,
+                                     nullptr );
 
   SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR)
 
@@ -770,7 +807,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
     {
       if (error == TOBII_ERROR_CONNECTION_FAILED)
       {
-        do 
+        do
         {
           tobii_reconnect++;
 
@@ -785,7 +822,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
               SleepEx   (retry_wait_period, TRUE);
 
               error =
-                tobii_device_reconnect (__tobii_widget__.device);
+                tobii_device_reconnect (__tobii_widget__->device);
 
               retry_wait_period =
                 ( error != TOBII_ERROR_NO_ERROR ) ?
@@ -807,7 +844,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
 
       error =
         tobii_wait_for_callbacks (
-          nullptr,   1,   &__tobii_widget__.device
+          nullptr,   1,   &__tobii_widget__->device
         );
 
       assert ( error == TOBII_ERROR_NO_ERROR ||
@@ -822,29 +859,29 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
       if (error != TOBII_ERROR_TIMED_OUT)
       {
         error =
-          tobii_device_process_callbacks ( __tobii_widget__.device );
+          tobii_device_process_callbacks ( __tobii_widget__->device );
       }
     }
 
     error =
-      tobii_gaze_point_unsubscribe (__tobii_widget__.device);
+      tobii_gaze_point_unsubscribe (__tobii_widget__->device);
 
     SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR);
 
     error =
-      tobii_device_destroy (__tobii_widget__.device);
+      tobii_device_destroy (__tobii_widget__->device);
 
     SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR);
 
     error =
-      tobii_api_destroy (__tobii_widget__.api);
+      tobii_api_destroy (__tobii_widget__->api);
 
     SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR);
 
     FreeLibrary ((HMODULE)module);
 
-    __tobii_widget__.api    = nullptr;
-    __tobii_widget__.device = nullptr;
+    __tobii_widget__->api    = nullptr;
+    __tobii_widget__->device = nullptr;
 
     tobii_lost = true;
 

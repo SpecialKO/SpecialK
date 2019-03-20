@@ -86,6 +86,8 @@ bool
 SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
                                SK_TLS**             ppTLS )
 {
+  if (pDevCtx == nullptr) return false;
+
   //if (! SK_D3D11_EnableTracking)
   //  return false;
 
@@ -124,7 +126,7 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
        pTLS->imgui.drawing )
   {
     //SK_ReleaseAssert (! "ShouldTrackRenderOp: ImGui Is Drawing");
-  
+
     return false;
   }
 
@@ -211,8 +213,8 @@ struct SK_DisjointTimerQueryD3D11 d3d11_shader_tracking_s::disjoint_query;
 
 void
 d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
-                                   ID3D11ClassInstance *const *ppClassInstances,
-                                   UINT                        NumClassInstances )
+                                    ID3D11ClassInstance *const *ppClassInstances,
+                                    UINT                        NumClassInstances )
 {
   if (! pDevContext) return;
 
@@ -228,11 +230,11 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
   const bool is_active =
     active.get (dev_idx);
 
-  static auto& shaders =
-    SK_D3D11_Shaders;
-
   if ((! is_active))
   {
+    static auto& shaders =
+      SK_D3D11_Shaders;
+
     active.set (dev_idx, true);
 
     switch (type_)
@@ -327,11 +329,11 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx)
   const bool is_active =
     active.get (dev_idx);
 
-  static auto& shaders =
-    SK_D3D11_Shaders;
-
   if (is_active)
   {
+    static auto& shaders =
+      SK_D3D11_Shaders;
+
     active.set (dev_idx, false);
 
     bool end_of_frame = false;
@@ -339,7 +341,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx)
     if (pDevCtx == nullptr)
     {
       end_of_frame = true;
-      pDevCtx      = static_cast <ID3D11DeviceContext *>(rb.d3d11.immediate_ctx.p);
+      pDevCtx      = rb.d3d11.immediate_ctx.p;
     }
 
     switch (type_)
@@ -372,7 +374,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx)
 
 
   if (pDevCtx == nullptr)
-    pDevCtx  = static_cast <ID3D11DeviceContext *>(rb.d3d11.immediate_ctx.p);
+    pDevCtx  = rb.d3d11.immediate_ctx.p;
 
 
   // Timing is very difficult on deferred contexts; will finish later (years?)

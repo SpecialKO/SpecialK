@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -52,7 +52,7 @@ m2_WindowControl_resizeRenderBuffers_pfn m2_WindowControl_resizeRenderBuffers_Or
 bool
 SK_Okami_m2_WindowControl_resizeBackBuffers_Detour (LPVOID This, unsigned short width, unsigned short height, bool unknown)
 {
-  dll_log.Log (L"m2::WindowControl::resizeBackBuffers (%ph, %ux%u, %lu)", This, width, height, unknown);
+  dll_log->Log (L"m2::WindowControl::resizeBackBuffers (%ph, %ux%u, %lu)", This, width, height, unknown);
 
   if ((! config.window.res.override.isZero ()) && width > 853)
   {
@@ -67,7 +67,7 @@ SK_Okami_m2_WindowControl_resizeBackBuffers_Detour (LPVOID This, unsigned short 
 bool
 SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour (LPVOID This, unsigned int width, unsigned int height, bool unknown)
 {
-  dll_log.Log (L"m2::WindowControl::resizeRenderBuffers (%ph, %lux%lu, %lu)", This, width, height, unknown);
+  dll_log->Log (L"m2::WindowControl::resizeRenderBuffers (%ph, %lux%lu, %lu)", This, width, height, unknown);
 
   if ((! config.window.res.override.isZero ()) && width > 853)
   {
@@ -135,10 +135,13 @@ SK_Okami_SaveConfig (void)
 bool
 SK_Okami_PlugInCfg (void)
 {
+  static auto cp =
+    SK_GetCommandProcessor ();
+
   if (ImGui::CollapsingHeader (u8"OKAMI HD / 大神 絶景版", ImGuiTreeNodeFlags_DefaultOpen))
   {
     struct patch_addr_s {
-      void*       addr        = 0x0;
+      void*       addr        = nullptr;
       const char* orig_bytes  = nullptr;
       const char* patch_bytes = nullptr;
       size_t      size        = 0;
@@ -150,32 +153,34 @@ SK_Okami_PlugInCfg (void)
     SK_ScanAlignedEx2 (const void* pattern, size_t len, const void* mask, void* after, int align, uint8_t* base_addr);
 
     static patch_addr_s addrs [] = {
-      { 0x00, "\xC6\x05\x48\x0A\xA2\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
-      { 0x00, "\xC6\x05\xED\x0B\xA2\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
-      { 0x00, "\xC6\x05\xDD\x64\x6D\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
-      { 0x00, "\xC6\x05\x99\x65\x75\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+      { nullptr, "\xC6\x05\x48\x0A\xA2\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+      { nullptr, "\xC6\x05\xED\x0B\xA2\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+      { nullptr, "\xC6\x05\xDD\x64\x6D\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+      { nullptr, "\xC6\x05\x99\x65\x75\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
 
-      { 0x00, "\xC7\x05\x42\x49\x6B\x00\x00\x00\x80\x3F", "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10, false },
-      { 0x00, "\xC7\x05\x16\x49\x6B\x00\x00\x00\x00\x3F", "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10, false }
+      { nullptr, "\xC7\x05\x42\x49\x6B\x00\x00\x00\x80\x3F", "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10, false },
+      { nullptr, "\xC7\x05\x16\x49\x6B\x00\x00\x00\x00\x3F", "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10, false }
     };
 
-    if (addrs [0].addr == (uintptr_t)0x00)
+    if (addrs [0].addr == nullptr)
     {
-      for (int i = 0; i < 6; i++)
+      int idx = 0;
+
+      for ( auto& entry : addrs )
       {
-        addrs [i].addr =
-          SK_ScanAlignedEx2 (addrs [i].orig_bytes, addrs [i].size, nullptr, nullptr, 1, reinterpret_cast <uint8_t *> (GetModuleHandle (L"main.dll")));
-        dll_log.Log (L"[Okami60FPS] Patch Address #%lu: %ph", i, addrs [i].addr);
+        entry.addr =
+          SK_ScanAlignedEx2 (entry.orig_bytes, entry.size, nullptr, nullptr, 1, reinterpret_cast <uint8_t *> (GetModuleHandle (L"main.dll")));
+        dll_log->Log (L"[Okami60FPS] Patch Address #%lu: %ph", idx++, entry.addr);
       }
 
-      if (addrs [0].addr == 0x0)
+      if (addrs [0].addr == nullptr)
       {
         addrs [0].addr = (void *)0x1;
       }
     }
 
 
-    if (addrs [0].addr != 0x0 && addrs [0].addr != (void *)0x1)
+    if (addrs [0].addr != nullptr && reinterpret_cast <uintptr_t> (addrs [0].addr) != 0x1)
     {
       bool enabled =
         addrs [0].enabled;
@@ -185,23 +190,28 @@ SK_Okami_PlugInCfg (void)
         std::queue <DWORD> tids =
           SK_SuspendAllOtherThreads ();
 
-        for (int i = 0; i < 6; i++)
+        int idx = 0;
+
+        for ( auto& entry : addrs )
         {
-          if (addrs [i].addr != nullptr)
+          if ( entry.addr != nullptr)
           {
             DWORD dwOrig = 0x0;
-            VirtualProtect ( addrs [i].addr, addrs [i].size, PAGE_EXECUTE_READWRITE, &dwOrig );
-            memcpy         ( addrs [i].addr, enabled ? addrs [i].patch_bytes :
-                                                       addrs [i].orig_bytes, addrs [i].size );
-            VirtualProtect ( addrs [i].addr, addrs [i].size, dwOrig,                 &dwOrig );
 
-            addrs [i].enabled = enabled;
+            VirtualProtect ( entry.addr,           entry.size, PAGE_EXECUTE_READWRITE, &dwOrig );
+            memcpy         ( entry.addr, enabled ? entry.patch_bytes : entry.orig_bytes,
+                                                   entry.size                                  );
+            VirtualProtect ( entry.addr,           entry.size, dwOrig,                 &dwOrig );
+
+            entry.enabled = enabled;
           }
 
           else
           {
-            dll_log.Log (L" Missing Pattern #%lu", i);
+            dll_log->Log (L" Missing Pattern #%lu", idx);
           }
+
+          idx++;
         }
 
         static DWORD*   dwTick0     = (DWORD *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC3C);
@@ -226,8 +236,8 @@ SK_Okami_PlugInCfg (void)
         *bTick1 = enabled ? 1 : 2;
         VirtualProtect ( bTick1, 1, dwOrig, &dwOrig);
 
-        if (enabled) { SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 60.0"); SK_GetCommandProcessor ()->ProcessCommandLine ("PresentationInterval 1"); }
-        else         { SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 30.0"); SK_GetCommandProcessor ()->ProcessCommandLine ("PresentationInterval 2"); }
+        if (enabled) { cp->ProcessCommandLine ("TargetFPS 60.0"); cp->ProcessCommandLine ("PresentationInterval 1"); }
+        else         { cp->ProcessCommandLine ("TargetFPS 30.0"); cp->ProcessCommandLine ("PresentationInterval 2"); }
 
         SK_ResumeThreads (tids);
       }
@@ -289,14 +299,14 @@ SK_Okami_PlugInCfg (void)
     {
       changed = true;
 
-      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 06ef081f Disable");
+      cp->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 06ef081f Disable");
     }
 
     if (ImGui::Checkbox ("Smoke", &smoke))
     {
       changed = true;
 
-      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Vertex be4b62c2 Disable");
+      cp->ProcessCommandLine ("D3D11.ShaderMods.Toggle Vertex be4b62c2 Disable");
     }
 
     ImGui::EndGroup   ();
@@ -307,9 +317,9 @@ SK_Okami_PlugInCfg (void)
     {
       changed = true;
 
-      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 939da69c Disable");
-      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel fa2af8ba Disable");
-      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel c75b0341 Disable");
+      cp->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 939da69c Disable");
+      cp->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel fa2af8ba Disable");
+      cp->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel c75b0341 Disable");
     }
 
     if (ImGui::Checkbox ("Grain", &SK_Okami_use_grain))
@@ -338,7 +348,6 @@ SK_Okami_PlugInCfg (void)
       SK_D3D11_ReloadAllTextures (void);
       SK_D3D11_ReloadAllTextures ();
 
-      extern void SK_Okami_SaveConfig (void);
       SK_Okami_SaveConfig ();
     }
 
@@ -349,7 +358,7 @@ SK_Okami_PlugInCfg (void)
     {
       changed = true;
 
-      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.ToggleConfig d3d11_shaders-nohud.ini");
+      cp->ProcessCommandLine ("D3D11.ShaderMods.ToggleConfig d3d11_shaders-nohud.ini");
     }
 
     //ImGui::InputInt2 ("Forced Internal Resolution", )

@@ -26,11 +26,11 @@
 
 class skLimitResetCmd : public SK_ICommand {
 public:
-  virtual SK_ICommandResult execute (const char* szArgs)  override;
+  SK_ICommandResult execute (const char* szArgs) override;
 
-  virtual int getNumArgs         (void)  override { return 0; }
-  virtual int getNumOptionalArgs (void)  override { return 0; }
-  virtual int getNumRequiredArgs (void)  override {
+  int getNumArgs         (void) noexcept override { return 0; }
+  int getNumOptionalArgs (void) noexcept override { return 0; }
+  int getNumRequiredArgs (void) noexcept override {
     return getNumArgs () - getNumOptionalArgs ();
   }
 
@@ -39,12 +39,13 @@ private:
 };
 
 SK_ICommandResult
-skLimitResetCmd::execute (const char* szArgs) 
+skLimitResetCmd::execute (const char* szArgs)
 {
   SK::Framerate::Limiter *pLimiter =
     SK::Framerate::GetLimiter ();
 
-  pLimiter->reset (true);
+  if (pLimiter != nullptr)
+      pLimiter->reset (true);
 
   return
     SK_ICommandResult ("Framerate Limiter Reset...", szArgs);

@@ -275,7 +275,7 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
     );
 
 
-  if (this == &sk_ffxv_swapchain) 
+  if (this == &sk_ffxv_swapchain)
   {
 #if 0
     SK_CreateDLLHook2 (      L"kernel32",
@@ -309,7 +309,7 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
   int                  prio                       = 0;
   if ( prio_cfg->load (prio) && prio < 4 && prio >= 0 )
   {
-    InterlockedExchange ( &dwPrio, 
+    InterlockedExchange ( &dwPrio,
                             priority_levels [prio] );
 
     SetThreadPriority ( hThread, ReadAcquire (&dwPrio) );
@@ -402,9 +402,9 @@ SK_FFXV_PlugInCfg (void)
     {
       ImGui::PushID (name);
 
-      int idx = ( static_cast <int> (thread.dwPrio) == priority_levels [0] ? 0 :
-                ( static_cast <int> (thread.dwPrio) == priority_levels [1] ? 1 :
-                ( static_cast <int> (thread.dwPrio) == priority_levels [2] ? 2 : 3 ) ) );
+      int idx = ( gsl::narrow_cast <int> (thread.dwPrio) == priority_levels [0] ? 0 :
+                ( gsl::narrow_cast <int> (thread.dwPrio) == priority_levels [1] ? 1 :
+                ( gsl::narrow_cast <int> (thread.dwPrio) == priority_levels [2] ? 2 : 3 ) ) );
 
       if ( thread.hThread )
       {
@@ -472,7 +472,7 @@ SK_FFXV_PlugInCfg (void)
             label_me != &z   )
       {
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.12f, 0.9f, 0.95f));
-        ImGui::BulletText     ("Change this for better performance!"); 
+        ImGui::BulletText     ("Change this for better performance!");
         ImGui::PopStyleColor  ();
       }
 
@@ -550,7 +550,7 @@ SK_POE2_PlugInCfg (void)
       ) {
         SK_POE2_Stage3UnityFix = (lvl > 1);
         SK_POE2_Stage2UnityFix = (lvl > 0);
-      } 
+      }
       ImGui::EndGroup   ();
 
       ImGui::SameLine   ();
@@ -580,7 +580,7 @@ SK_POE2_PlugInCfg (void)
     static SYSTEM_INFO             si = { };
     SK_RunOnce (SK_GetSystemInfo (&si));
 
-    if ((! spoof) || static_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
+    if ((! spoof) || gsl::narrow_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
     {
       ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.14f, .8f, .9f));
       ImGui::BulletText     ("It is strongly suggested that you reduce worker threads to 1/2 max. or lower");
@@ -750,6 +750,9 @@ SK_IVariable *pVarBypassLimiter;
 void
 SK_SM_PlugInInit (void)
 {
+  auto cp =
+    SK_GetCommandProcessor ();
+
        if (! _wcsicmp (SK_GetHostApp (), L"Shenmue.exe"))
     __SK_SHENMUE_ClockFuzz = 20.0f;
   else if (! _wcsicmp (SK_GetHostApp (), L"Shenmue2.exe"))
@@ -782,12 +785,14 @@ SK_SM_PlugInInit (void)
   }
 
 
-  SK_GetCommandProcessor ()->AddVariable ( "Shenmue.ClockFuzz",
-                                             new SK_IVarStub <float> ((float *)&__SK_SHENMUE_ClockFuzz));
+  cp->AddVariable ( "Shenmue.ClockFuzz",
+                      new SK_IVarStub <float> ((float *)&__SK_SHENMUE_ClockFuzz));
 
   class listen : public SK_IVariableListener
   {
   public:
+    virtual ~listen (void) = default;
+
     bool OnVarChange (SK_IVariable* var, void* val = nullptr) override
     {
       if (var == pVarWideCutscenes)
@@ -836,18 +841,18 @@ SK_SM_PlugInInit (void)
               &stay_a_while_and_listen
     );
 
-  SK_GetCommandProcessor ()->AddVariable ("Shenmue.NoCrops",       pVarWideCutscenes);
-  SK_GetCommandProcessor ()->AddVariable ("Shenmue.BypassLimiter", pVarBypassLimiter);
-             
+  cp->AddVariable ("Shenmue.NoCrops",       pVarWideCutscenes);
+  cp->AddVariable ("Shenmue.BypassLimiter", pVarBypassLimiter);
+
 
   if (SK_Shenmue_Limiter.want_bypass)
   {
     if (config.render.framerate.target_fps == 0)
-      SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 30.0");
-  
+      cp->ProcessCommandLine ("TargetFPS 30.0");
+
     else
     {
-      SK_GetCommandProcessor ()->ProcessCommandFormatted (
+      cp->ProcessCommandFormatted (
         "TargetFPS %f", config.render.framerate.target_fps
       );
     }
@@ -857,8 +862,12 @@ SK_SM_PlugInInit (void)
 auto Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
 auto
 {
-  std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
-  label += binding->bind_name;
+  if (param == nullptr)
+    return false;
+
+  std::string label =
+    SK_WideCharToUTF8 (binding->human_readable) + "###";
+              label += binding->bind_name;
 
   if (ImGui::Selectable (label.c_str (), false))
   {
@@ -1062,7 +1071,7 @@ SK_ACO_PlugInCfg (void)
 
     ImGui::SameLine ();
 
-    
+
     if (ImGui::SliderFloat ("Re-Balance Interval", &__SK_Thread_RebalanceEveryNSeconds, 0.0f, 60.0f, "%.3f Seconds"))
     {
       changed = true;

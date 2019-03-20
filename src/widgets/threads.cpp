@@ -556,7 +556,7 @@ ProcessInformation ( PDWORD    pdData,
 
   if (pTLS)
   {
-    size_t                       dSize;
+    size_t                       dSize = 0;
     DWORD                        dData = 0;
     NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
 
@@ -601,7 +601,8 @@ ProcessInformation ( PDWORD    pdData,
     if (pdData != nullptr) *pdData = dData;
     if (pns    != nullptr) *pns    = ns;
 
-    ret = (PSYSTEM_PROCESS_INFORMATION)pspi;
+    ret =
+      static_cast <PSYSTEM_PROCESS_INFORMATION> (pspi);
   }
 
   return
@@ -746,8 +747,8 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
         IMAGEHLP_LINE   ihl              = {                  };
                         ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 #endif
-        BOOL bFileAndLine =
-          SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
+        const bool bFileAndLine =
+          ( SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl ) != FALSE );
 
         if (bFileAndLine)
         {
@@ -919,7 +920,7 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
           IMAGEHLP_LINE   ihl = {                  };
           ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 #endif
-          BOOL bFileAndLine =
+          const BOOL bFileAndLine =
             SK_SymGetLineFromAddr (hProc, ip, &Disp, &ihl);
 
           file_names.emplace_back   (pszShortName);
@@ -1043,14 +1044,14 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
 class SKWG_Thread_Profiler : public SK_Widget
 {
 public:
-  SKWG_Thread_Profiler (void) : SK_Widget ("Thread Profiler")
+  SKWG_Thread_Profiler (void) noexcept : SK_Widget ("Thread Profiler")
   {
     SK_ImGui_Widgets.thread_profiler = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
 
-  void run (void)  override
+  void run (void) override
   {
     SK_RunOnce (
       k32SetThreadInformation =
@@ -1135,7 +1136,7 @@ public:
           }
         }
 
-        SK_TLS* pTLS =
+        const SK_TLS* pTLS =
           SK_TLS_BottomEx (it.second->dwTid);
 
         if (! pTLS)
@@ -1151,15 +1152,17 @@ public:
       }
 
       std::sort ( rebalance_list.begin (), rebalance_list.end (),
-           [](SKWG_Thread_Entry *lh, SKWG_Thread_Entry *rh) ->
+           []( SKWG_Thread_Entry *lh,
+               SKWG_Thread_Entry *rh ) ->
            bool
            {
-             LARGE_INTEGER lil = { (DWORD)lh->runtimes.user.dwLowDateTime,
-                                    (LONG)lh->runtimes.user.dwHighDateTime },
-                           lir = { (DWORD)rh->runtimes.user.dwLowDateTime,
-                                    (LONG)rh->runtimes.user.dwHighDateTime };
+             LARGE_INTEGER lil = { gsl::narrow_cast <DWORD> (lh->runtimes.user.dwLowDateTime),
+                                   gsl::narrow_cast <LONG>  (lh->runtimes.user.dwHighDateTime) },
+                           lir = { gsl::narrow_cast <DWORD> (rh->runtimes.user.dwLowDateTime),
+                                   gsl::narrow_cast <LONG>  (rh->runtimes.user.dwHighDateTime) };
 
-             return lil.QuadPart < lir.QuadPart;
+             return
+               ( lil.QuadPart < lir.QuadPart );
            }
       );
     }
@@ -1172,7 +1175,7 @@ public:
       {
         if (rebalance_idx == idx)
         {
-          SK_TLS* pTLS =
+          const SK_TLS* pTLS =
             SK_TLS_BottomEx (it->dwTid);
 
           if (! pTLS)
@@ -1192,7 +1195,7 @@ public:
             SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
           GetExitCodeThread         (it->hThread, &dwExitCode);
 
-          if ( pnum != (DWORD)-1 && dwExitCode == STILL_ACTIVE )
+          if ( pnum != gsl::narrow_cast <DWORD> (-1) && dwExitCode == STILL_ACTIVE )
           {
             static SYSTEM_INFO
                 sysinfo = { };
@@ -1203,7 +1206,7 @@ public:
 
             static DWORD ideal = 0;
 
-            DWORD_PTR dwMask =
+            const DWORD_PTR dwMask =
               pTLS->scheduler.affinity_mask;
 
             if (pnum != ideal && ( (dwMask >> pnum)  & 0x1)
@@ -1255,9 +1258,9 @@ public:
               const DWORD _UPDATE_INTERVAL2_MS = 5000; // Refresh at least once every 5 seconds
     static          DWORD dwLastTime           =    0;
 
-    LONG  last  =
+    const LONG  last  =
       ReadAcquire (&lLastThreadCreate);
-    DWORD dwNow = timeGetTime ();
+    const DWORD dwNow = timeGetTime ();
 
     // If true, no new threads have been created since we
     //   last enumerated our list.
@@ -1310,7 +1313,7 @@ public:
 
       if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
       {
-        int threads =
+        const int threads =
           pProc->dThreadCount;
 
         for (i = 0; i < threads; i++)
@@ -1401,7 +1404,7 @@ public:
           SKWG_Thread_Entry* ptEnt =
             SKWG_Threads [dwLocalTID];
 
-          auto& thread =
+          const auto& thread =
             pProc->aThreads [i];
 
           ptEnt->wait_reason =
@@ -1434,16 +1437,16 @@ public:
   }
 
 
-  void draw (void)  override
+  void draw (void) override
   {
-    if (! ImGui::GetFont ()) return;
+    if (ImGui::GetFont () == nullptr) return;
 
     DWORD dwNow = timeGetTime ();
 
            bool drew_tooltip   = false;
     static bool show_callstack = false;
 
-    auto ThreadMemTooltip = [&](DWORD dwSelectedTid) ->
+    const auto ThreadMemTooltip = [&](DWORD dwSelectedTid) ->
     void
     {
       if (drew_tooltip)
@@ -2037,7 +2040,7 @@ public:
 
         if (GetThreadPriorityBoost (hSelectedThread, &bDisableBoost))
         {
-          bool boost = (! bDisableBoost);
+          bool boost = (bDisableBoost != TRUE);
           if (ImGui::Checkbox ("Enable Dynamic Boost", &boost))
           {
             SetThreadPriorityBoost (hSelectedThread, ! boost);
@@ -2072,7 +2075,7 @@ public:
         //  }
         //}
 
-        bool contains_thread =
+        const bool contains_thread =
           SKWG_Threads.count (dwSelectedTid) != 0;
 
         bool throttle =
@@ -2098,7 +2101,7 @@ public:
       ImGui::EndPopup ();
     }
 
-    auto IsThreadNonIdle =
+    const auto IsThreadNonIdle =
     [&](SKWG_Thread_Entry& tent) ->
     bool
     {
@@ -2254,10 +2257,6 @@ public:
         ULONG ulLen             = 191;
 
         SK::Diagnostics::CrashHandler::InitSyms ();
-
-        ULONG
-        SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
-                                         char*   pszOut, ULONG     ulLen );
 
         ulLen = SK_GetSymbolNameFromModuleAddr (
                 SK_GetModuleFromAddr ((LPCVOID)pdwStartAddress),
@@ -2597,7 +2596,7 @@ public:
   }
 
 
-  virtual void OnConfig (ConfigEvent event) override
+  void OnConfig (ConfigEvent event) noexcept override
   {
     switch (event)
     {
@@ -2611,4 +2610,11 @@ public:
 
 protected:
 private:
-} __thread_profiler__;
+};
+
+SK_LazyGlobal <SKWG_Thread_Profiler> __thread_profiler__;
+
+void SK_Widget_InitThreadProfiler (void)
+{
+  SK_RunOnce (__thread_profiler__.get ());
+}

@@ -67,8 +67,6 @@ __SK_GetSelfTitledThreads (void);
 
 extern volatile LONG          __SK_Init;
 
-iSK_Logger game_debug;
-
 const wchar_t*
 SK_SEH_CompatibleCallerName (LPCVOID lpAddr);
 
@@ -107,6 +105,8 @@ ExitProcess_pfn        ExitProcess_Hook            = nullptr;
 OutputDebugStringA_pfn OutputDebugStringA_Original = nullptr;
 OutputDebugStringW_pfn OutputDebugStringW_Original = nullptr;
 #include <Shlwapi.h>
+
+bool SK_SEH_CompatibleCallerName (LPCVOID lpAddr, wchar_t* wszDllFullName);
 
 HMODULE
 SK_Debug_LoadHelper (void)
@@ -269,7 +269,7 @@ SK_Module_IsProcAddrLocal ( HMODULE                hModExpected,
     if (ppldrEntry != nullptr)
       *ppldrEntry = pLdrEntry;
 
-    UNICODE_STRING* ShortDllName =
+    const UNICODE_STRING* ShortDllName =
       (UNICODE_STRING *)(pLdrEntry->Reserved4);
 
     std::wstring ucs_short (
@@ -365,14 +365,14 @@ GetProcAddress_Detour     (
   }
 
 
-  
-  HMODULE hModCaller =
+
+  const HMODULE hModCaller =
     SK_GetCallingDLL ();
 
   if (hModCaller == SK_GetDLL ())
     return GetProcAddress_Original (hModule, lpProcName);
 
-  static HMODULE hModSteamOverlay = 0;//
+  static HMODULE hModSteamOverlay = nullptr;//
     //GetModuleHandleW ( SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
     //                                           L"GameOverlayRenderer.dll") );
   static HMODULE hModSteamClient =
@@ -450,9 +450,9 @@ GetProcAddress_Detour     (
         static FARPROC far_CreateDXGIFactory2 =
           reinterpret_cast <FARPROC> (CreateDXGIFactory2);
 
-        bool factory1 =
+        const bool factory1 =
           (! lstrcmpiA (lpProcName, "CreateDXGIFactory1"));
-        bool factory2 = (! factory1) &&
+        const bool factory2 = (! factory1) &&
           (! lstrcmpiA (lpProcName, "CreateDXGIFactory2"));
 
         if ( factory1 ||
@@ -627,7 +627,7 @@ GetProcAddress_Detour     (
     // We need to filter this event because the Steam overlay goes berserk at startup
     //   trying to get a different proc. addr for Ordinal 100 (XInputGetStateEx).
     //
-    if (config.system.log_level > 0 && dll_log.lines > 15)
+    if (config.system.log_level > 0 && dll_log->lines > 15)
     {
       if (hModCaller != SK_GetDLL ())
       {
@@ -655,7 +655,7 @@ GetProcAddress_Detour     (
   {
     if (! strcmp (lpProcName, "NvOptimusEnablement"))
     {
-      dll_log.Log (L"Optimus Enablement");
+      dll_log->Log (L"Optimus Enablement");
       return (FARPROC)&dwOptimus;
     }
 
@@ -736,7 +736,7 @@ BOOL
 __stdcall
 SK_TerminateProcess (UINT uExitCode)
 {
-  bool abnormal_dll_state =
+  const bool abnormal_dll_state =
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
       ReadAcquire (&__SK_DLL_Ending)   != 0  );
 
@@ -774,7 +774,7 @@ ResetEvent_Detour (
   // Compliance failure in some games makes application verifier useless
   if (hEvent == nullptr)
   {
-    SK_RunOnce (dll_log.Log ( L"[DebugUtils] Invalid handle passed to ResetEvent (...) - %s",
+    SK_RunOnce (dll_log->Log ( L"[DebugUtils] Invalid handle passed to ResetEvent (...) - %s",
                 SK_SummarizeCaller ().c_str () ));
     return FALSE;
   }
@@ -788,7 +788,7 @@ NTSTATUS
 NtTerminateProcess_Detour ( HANDLE   ProcessHandle,
                             NTSTATUS ExitStatus )
 {
-  bool abnormal_dll_state =
+  const bool abnormal_dll_state =
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
       ReadAcquire (&__SK_DLL_Ending)   != 0  );
 
@@ -796,8 +796,8 @@ NtTerminateProcess_Detour ( HANDLE   ProcessHandle,
   {
     if (GetProcessId (ProcessHandle) == GetCurrentProcessId ())
     {
-      dll_log.Log ( L" *** BLOCKED NtTerminateProcess (%x) ***\t -- %s",
-                   ExitStatus, SK_SummarizeCaller ().c_str () );
+      dll_log->Log ( L" *** BLOCKED NtTerminateProcess (%x) ***\t -- %s",
+                    ExitStatus, SK_SummarizeCaller ().c_str () );
 
 #define STATUS_INFO_LENGTH_MISMATCH   ((NTSTATUS)0xC0000004L)
 #define STATUS_BUFFER_TOO_SMALL       ((NTSTATUS)0xC0000023L)
@@ -872,7 +872,7 @@ TerminateProcess_Detour ( HANDLE hProcess,
                                     uExitCode );
   }
 
-  bool abnormal_dll_state =
+  const bool abnormal_dll_state =
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
       ReadAcquire (&__SK_DLL_Ending)   != 0  );
 
@@ -894,14 +894,14 @@ TerminateProcess_Detour ( HANDLE hProcess,
         extern void SK_ImGui_Warning (const wchar_t* wszMessage);
 
         SK_Thread_Create ([](LPVOID)->DWORD {
-          auto orig_se =
+          auto orig_se_thread =
           _set_se_translator (SK_BasicStructuredExceptionTranslator);
           try {
             SK_LOG0 ( ( L" !!! Denuvo Catastrophe Avoided !!!" ),
                         L"AntiTamper" );
           }
           catch (const SK_SEH_IgnoredException&) { };
-          _set_se_translator (orig_se);
+          _set_se_translator (orig_se_thread);
 
           SK_Thread_CloseSelf ();
 
@@ -915,24 +915,22 @@ TerminateProcess_Detour ( HANDLE hProcess,
         return TRUE;
       }
 
-      bool
-        SK_SEH_CompatibleCallerName (LPCVOID lpAddr, wchar_t *wszDllFullName);
-
       SK_Thread_Create ([](LPVOID ret_addr)->DWORD
       {
-        wchar_t wszCaller [MAX_PATH];
-        auto orig_se =
+        wchar_t wszCaller [MAX_PATH] = { };
+
+        auto orig_se_thread =
         _set_se_translator (SK_BasicStructuredExceptionTranslator);
         try
         {
           if (SK_SEH_CompatibleCallerName (ret_addr, wszCaller))
           {
-            dll_log.Log (L" *** BLOCKED TerminateProcess (...) ***\t -- %s",
-                         wszCaller);
+            dll_log->Log (L" *** BLOCKED TerminateProcess (...) ***\t -- %s",
+                          wszCaller);
           }
         }
         catch (const SK_SEH_IgnoredException&) { }
-        _set_se_translator (orig_se);
+        _set_se_translator (orig_se_thread);
 
         SK_Thread_CloseSelf ();
 
@@ -954,7 +952,7 @@ WINAPI
 TerminateThread_Detour ( HANDLE  hThread,
                         DWORD  dwExitCode )
 {
-  bool abnormal_dll_state =
+  const bool abnormal_dll_state =
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
       ReadAcquire (&__SK_DLL_Ending)   != 0  );
 
@@ -988,12 +986,9 @@ TerminateThread_Detour ( HANDLE  hThread,
       return TRUE;
     }
 
-    bool
-      SK_SEH_CompatibleCallerName (LPCVOID lpAddr, wchar_t *wszDllFullName);
-
     SK_Thread_Create ([](LPVOID ret_addr)->DWORD
     {
-      wchar_t wszCaller [MAX_PATH];
+      wchar_t wszCaller [MAX_PATH] = { };
 
       auto orig_se =
       _set_se_translator (SK_BasicStructuredExceptionTranslator);
@@ -1001,8 +996,8 @@ TerminateThread_Detour ( HANDLE  hThread,
       {
         if (SK_SEH_CompatibleCallerName ((LPCVOID)ret_addr, wszCaller))
         {
-          dll_log.Log (L"TerminateThread (...) ***\t -- %s",
-                       wszCaller);
+          dll_log->Log (L"TerminateThread (...) ***\t -- %s",
+                        wszCaller);
         }
       }
       catch (const SK_SEH_IgnoredException&) { };
@@ -1026,42 +1021,48 @@ TerminateThread_Detour ( HANDLE  hThread,
 
 void
 WINAPI
-SK_ExitProcess (UINT uExitCode)
+SK_ExitProcess (UINT uExitCode) noexcept
 {
   auto jmpExitProcess =
     SK_Hook_GetTrampoline (ExitProcess);
 
   // Since many, many games don't shutdown cleanly, let's unload ourself.
-  SK_SelfDestruct (         );
+  SK_SelfDestruct (         ); if (jmpExitProcess != nullptr)
   jmpExitProcess  (uExitCode);
 }
 
 void
 WINAPI
-SK_ExitThread (DWORD dwExitCode)
+SK_ExitThread (DWORD dwExitCode) noexcept
 {
   auto jmpExitThread =
     SK_Hook_GetTrampoline (ExitThread);
 
-  jmpExitThread (dwExitCode);
+  if (jmpExitThread != nullptr)
+      jmpExitThread (dwExitCode);
 }
 
 BOOL
 WINAPI
 SK_TerminateThread ( HANDLE    hThread,
-                    DWORD     dwExitCode )
+                     DWORD     dwExitCode ) noexcept
 {
   auto jmpTerminateThread =
     SK_Hook_GetTrampoline (TerminateThread);
 
-  return
-    jmpTerminateThread (hThread, dwExitCode);
+  if (jmpTerminateThread != nullptr)
+  {
+    return
+      jmpTerminateThread (hThread, dwExitCode);
+  }
+
+  return FALSE;
 }
 
 BOOL
 WINAPI
 SK_TerminateProcess ( HANDLE    hProcess,
-                     UINT      uExitCode )
+                      UINT      uExitCode ) noexcept
 {
   auto jmpTerminateProcess =
     SK_Hook_GetTrampoline (TerminateProcess);
@@ -1072,18 +1073,24 @@ SK_TerminateProcess ( HANDLE    hProcess,
     SK_SelfDestruct ();
   }
 
-  return
-    jmpTerminateProcess (hProcess, uExitCode);
+  if (jmpTerminateProcess != nullptr)
+  {
+    return
+      jmpTerminateProcess (hProcess, uExitCode);
+  }
+
+  return FALSE;
 }
 
 void
 __cdecl
-SK__endthreadex (_In_ unsigned _ReturnCode)
+SK__endthreadex (_In_ unsigned _ReturnCode) noexcept
 {
   auto jmp_endthreadex =
     SK_Hook_GetTrampoline (_endthreadex);
 
-  jmp_endthreadex (_ReturnCode);
+  if (jmp_endthreadex != nullptr)
+      jmp_endthreadex (_ReturnCode);
 }
 
 
@@ -1091,7 +1098,7 @@ void
 __cdecl
 _endthreadex_Detour ( _In_ unsigned _ReturnCode )
 {
-  bool abnormal_dll_state =
+  const bool abnormal_dll_state =
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
       ReadAcquire (&__SK_DLL_Ending)   != 0  );
 
@@ -1132,7 +1139,7 @@ void
 WINAPI
 ExitThread_Detour ( DWORD dwExitCode )
 {
-  bool abnormal_dll_state =
+  const bool abnormal_dll_state =
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
       ReadAcquire (&__SK_DLL_Ending)   != 0  );
 
@@ -1177,9 +1184,12 @@ ExitProcess_Detour (UINT uExitCode)
 
   if (ExitProcess_Original != nullptr)
   {
-    const ExitProcess_pfn callthrough = ExitProcess_Original;
-    ExitProcess_Original        = nullptr;
-    callthrough (uExitCode);
+    const ExitProcess_pfn callthrough =
+          ExitProcess_Original;
+          ExitProcess_Original        = nullptr;
+
+    if (callthrough != nullptr)
+        callthrough (uExitCode);
   }
 
   else
@@ -1266,11 +1276,11 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
   wcsncpy (wszModule, SK_GetModuleFullNameFromAddr (_ReturnAddress ()).c_str (),
            MAX_PATH - 1);
 
-  game_debug.LogEx (true,   L"%-72ws:  %hs", wszModule, lpOutputString);
+  game_debug->LogEx (true,   L"%-72ws:  %hs", wszModule, lpOutputString);
   //fwprintf         (stdout, L"%hs",          lpOutputString);
 
   if (! strchr (lpOutputString, '\n'))
-    game_debug.LogEx (false, L"\n");
+    game_debug->LogEx (false, L"\n");
 
   OutputDebugStringA_Original (lpOutputString);
 }
@@ -1283,11 +1293,11 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
   wcsncpy_s (wszModule, MAX_PATH * 2, SK_GetModuleFullNameFromAddr (_ReturnAddress ()).c_str (),
              _TRUNCATE);
 
-  game_debug.LogEx (true,   L"%-72ws:  %ws", wszModule, lpOutputString);
+  game_debug->LogEx (true,   L"%-72ws:  %ws", wszModule, lpOutputString);
   //fwprintf         (stdout, L"%ws",                     lpOutputString);
 
   if (! wcschr (lpOutputString, L'\n'))
-    game_debug.LogEx (false, L"\n");
+    game_debug->LogEx (false, L"\n");
 
   OutputDebugStringW_Original (lpOutputString);
 }
@@ -1345,8 +1355,8 @@ NtSetInformationThread_Detour (
 {
   SK_LOG_FIRST_CALL
 
-    if ( ThreadInformationClass  == ThreadHideFromDebugger &&
-        ThreadInformation       == 0                      &&
+    if ( ThreadInformationClass == ThreadHideFromDebugger &&
+        ThreadInformation       == nullptr                &&
         ThreadInformationLength == 0 )
     {
       SK_LOG0 ( ( L"tid=%x tried to hide itself from debuggers; please attach one and investigate!",
@@ -1410,12 +1420,6 @@ NtCreateThreadEx_Detour (
 #define SK_SymGetLineFromAddr SymGetLineFromAddr
 #endif
 
-#ifdef _WIN64
-    DWORD64 BaseAddr;
-#else
-    DWORD   BaseAddr;
-#endif
-
     CHeapPtr <char> szDupName (_strdup (SK_WideCharToUTF8 (SK_GetModuleFullNameFromAddr (StartRoutine)).c_str ()));
 
     MODULEINFO mod_info = { };
@@ -1425,9 +1429,9 @@ NtCreateThreadEx_Detour (
     );
 
 #ifdef _WIN64
-    BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
+    DWORD64 BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
 #else
-    BaseAddr =   (DWORD)mod_info.lpBaseOfDll;
+    DWORD   BaseAddr =   (DWORD)mod_info.lpBaseOfDll;
 #endif
 
     char* pszShortName = szDupName.m_pData;
@@ -1756,7 +1760,7 @@ SK_Exception_HandleThreadName (
 
     size_t len = 0;
 
-    bool non_empty =
+    const bool non_empty =
       info->szName  != nullptr &&
       SUCCEEDED (
         StringCbLengthA (
@@ -1921,7 +1925,7 @@ SK_Exception_HandleThreadName (
             SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid,       const char* name,
                                            const char* task1, const char* task2 );
 
-          if (StrStrA (info->szName, "RenderWorkerThread"))
+          if (StrStrA (info->szName, "RenderWorkerThread") != nullptr)
           {
             static volatile LONG count = 0;
 
@@ -1944,7 +1948,7 @@ SK_Exception_HandleThreadName (
               SK_MMCS_GetTaskForThreadIDEx ( dwTid,
                                                "Work Thread",
                                                  "Games", "DisplayPostProcessing" );
-          
+
             if (task != nullptr)
             {
               task->queuePriority (AVRT_PRIORITY_CRITICAL);
@@ -1957,7 +1961,7 @@ SK_Exception_HandleThreadName (
               SK_MMCS_GetTaskForThreadIDEx ( dwTid,
                                                "Busy Thread",
                                                  "Games", "Playback" );
-          
+
             if (task != nullptr)
             {
               task->queuePriority (AVRT_PRIORITY_NORMAL);
@@ -1981,7 +1985,7 @@ SK_Exception_HandleThreadName (
 
           bool killed = false;
 
-          if (StrStrA (info->szName, "Intecept"))
+          if (StrStrA (info->szName, "Intecept") != nullptr)
           {
             //SK_MMCS_TaskEntry* task_me =
             //  ( config.render.framerate.enable_mmcss ?
@@ -1998,7 +2002,7 @@ SK_Exception_HandleThreadName (
             //}
           }
 
-          else if (StrStrA (info->szName, "Loader"))
+          else if (StrStrA (info->szName, "Loader") != nullptr)
           {
             //SK_MMCS_TaskEntry* task_me =
             //  ( config.render.framerate.enable_mmcss ?
@@ -2015,7 +2019,7 @@ SK_Exception_HandleThreadName (
             //}
           }
 
-          else if (StrStrA (info->szName, "Rendering Thread"))
+          else if (StrStrA (info->szName, "Rendering Thread") != nullptr)
           {
             //SK_MMCS_TaskEntry* task_me =
             //  ( config.render.framerate.enable_mmcss ?
@@ -2032,7 +2036,7 @@ SK_Exception_HandleThreadName (
             //}
           }
 
-          else if (StrStrA (info->szName, "Job Thread"))
+          else if (StrStrA (info->szName, "Job Thread") != nullptr)
           {
             static int idx = 0;
 
@@ -2040,7 +2044,7 @@ SK_Exception_HandleThreadName (
             SK_GetSystemInfo (&si);
 
             if (StrStrA (info->szName, "Job Thread") == info->szName)
-              sscanf (info->szName, "Job Thread - %i", &idx);
+                 sscanf (info->szName, "Job Thread - %i", &idx);
 
             extern bool __SK_MHW_JobParity;
             extern bool __SK_MHW_JobParityPhysical;
@@ -2179,13 +2183,13 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
         // ANSI (almost always)
         if (ExceptionRecord->ExceptionCode == DBG_PRINTEXCEPTION_C)
         {
-          game_debug.LogEx (true, L"%-72ws:  %.*hs", wszModule, ExceptionRecord->ExceptionInformation [0], ExceptionRecord->ExceptionInformation [1]);
+          game_debug->LogEx (true, L"%-72ws:  %.*hs", wszModule, ExceptionRecord->ExceptionInformation [0], ExceptionRecord->ExceptionInformation [1]);
         }
 
         // UTF-16 (rarely ever seen)
         else
         {
-          game_debug.LogEx (true, L"%-72ws:  %.*ws", wszModule, ExceptionRecord->ExceptionInformation [0], ExceptionRecord->ExceptionInformation [1]);
+          game_debug->LogEx (true, L"%-72ws:  %.*ws", wszModule, ExceptionRecord->ExceptionInformation [0], ExceptionRecord->ExceptionInformation [1]);
 
           //if (((wchar_t *)ExceptionRecord->ExceptionInformation [1]))(ExceptionRecord->ExceptionInformation [0]) != L'\n')
             //game_debug.LogEx (false, L"\n");
@@ -2222,7 +2226,7 @@ RaiseException_Detour (
 
     if (pTlsThis) InterlockedIncrement (&pTlsThis->debug.exceptions);
 
-    auto SK_ExceptionFlagsToStr = [](DWORD dwFlags) -> const char*
+    const auto SK_ExceptionFlagsToStr = [](DWORD dwFlags) -> const char*
     {
       if (dwFlags & EXCEPTION_NONCONTINUABLE)  return "Non-Continuable";
       if (dwFlags & EXCEPTION_UNWINDING)       return "Unwind In Progress";
@@ -2418,10 +2422,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                               "SetLastError",
                                SetLastError_Detour,
       static_cast_p2p <void> (&SetLastError_Original) );
-
-    //#ifdef SK_AGGRESSIVE_HOOKS
-    SK_ApplyQueuedHooks ();
-    //#endif
 
     InterlockedIncrementRelease (&__init);
   }
@@ -2764,6 +2764,9 @@ SAFE_SymFromAddr (
   _Inout_   PSYMBOL_INFO    Symbol,
   SymFromAddr_pfn Trampoline )
 {
+  if (Trampoline == nullptr)
+    return FALSE;
+
   auto orig_se =
   _set_se_translator (SK_BasicStructuredExceptionTranslator);
   try {
@@ -2771,10 +2774,10 @@ SAFE_SymFromAddr (
     return Trampoline (hProcess, Address, Displacement, Symbol);
   }
   catch (const SK_SEH_IgnoredException&) {
-    _set_se_translator (orig_se); 
+    _set_se_translator (orig_se);
     return FALSE;
   }
-  return false;
+  return FALSE;
   //__except ( (GetExceptionCode () & EXCEPTION_NONCONTINUABLE) ? EXCEPTION_EXECUTE_HANDLER :
   //          EXCEPTION_CONTINUE_SEARCH ) { return FALSE; }
 }
@@ -3054,7 +3057,6 @@ SK_Win32_FormatMessageForException (
   wchar_t*&    lpMsgBuf,
   unsigned int nExceptionCode, ... )
 {
-  va_list  args        = nullptr;
   wchar_t* lpMsgFormat = nullptr;
 
   FormatMessage ( FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -3073,13 +3075,17 @@ SK_Win32_FormatMessageForException (
     lpMsgBuf =
       (wchar_t *)SK_LocalAlloc (LPTR, 8193);
 
-    va_start    (args,           lpMsgFormat);
-    vswprintf_s (lpMsgBuf, 4096, lpMsgFormat, args);
-    va_end      (args);
+    if (lpMsgBuf != nullptr)
+    {
+      va_list      args = nullptr;
+      va_start    (args,           lpMsgFormat);
+      vswprintf_s (lpMsgBuf, 4096, lpMsgFormat, args);
+      va_end      (args);
 
-    SK_LocalFree (               lpMsgFormat);
+      SK_LocalFree (               lpMsgFormat);
 
-    return true;
+      return true;
+    }
   }
 
   return false;
@@ -3101,7 +3107,7 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
 
   wchar_t* lpMsgBuf = nullptr;
 
-  ULONG ulDosError =
+  const ULONG ulDosError =
     RtlNtStatusToDosError (nExceptionCode);
 
   if (ulDosError != ERROR_MR_MID_NOT_FOUND)
@@ -3127,7 +3133,7 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
   );
 
 
-  dll_log.LogEx ( false,
+  dll_log->LogEx ( false,
     L"===================================== "
     L"--------------------------------------"
     L"----------------------\n" );
@@ -3147,7 +3153,7 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
              L"SEH-Except"
   );
 
-  
+
 
   // Hopelessly impossible to debug software; just ignore the exceptions it creates
   if ( *szSymbol == 'S' &&
@@ -3157,7 +3163,7 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
   }
 
 
-  dll_log.LogEx ( false,
+  dll_log->LogEx ( false,
     (SK_SEH_SummarizeException (pException) + L"\n").c_str ()
   );
 }

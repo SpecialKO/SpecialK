@@ -51,7 +51,7 @@
 #pragma comment (lib, "Shlwapi.lib")
 #include <Shlwapi.h>
 #include <atlbase.h>
-#include <float.h>
+#include <cfloat>
 #include <io.h>
 #include <tchar.h>
 
@@ -1558,7 +1558,7 @@ SK_CEGUI_GL_PopVertexState (void);
 
 
 
-#include <stdio.h>
+#include <cstdio>
 #include <windows.h>
 #include <eh.h>
 
@@ -1912,7 +1912,7 @@ SK_TextOverlay::update (const char* szText)
 float
 SK_TextOverlay::draw (float x, float y, bool full)
 {
-  if (geometry_)
+  if (geometry_ != nullptr)
   {
     geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
 
@@ -2065,13 +2065,6 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
 float
 SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 {
-  // This is a terrible design, but I don't care.
-  extern void
-  SK_CEGUI_QueueResetD3D11 (void);
-
-  extern void
-  SK_CEGUI_QueueResetD3D9  (void);
-
   SK_AutoCriticalSection auto_crit (&cs_);
 
   float base_y = y;
@@ -2212,7 +2205,7 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
     return true;
   }
 
-  else if (var == sli_.show)
+  if (var == sli_.show)
   {
     if (            nvapi_init  &&
          sk::NVAPI::nv_hardware &&
@@ -2227,9 +2220,9 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
     return false;
   }
 
-  else if ( var == io_.show  ||
-            var == gpu_.show ||
-            var == fps_.show )
+  if ( var == io_.show  ||
+       var == gpu_.show ||
+       var == fps_.show )
   {
     *static_cast <bool *> (var->getValuePointer ()) =
     *static_cast <bool *> (val);
@@ -2237,7 +2230,7 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
     return true;
   }
 
-  else if (var == osd_.show)
+  if (var == osd_.show)
   {
     *static_cast <bool *> (var->getValuePointer ()) =
     *static_cast <bool *> (val);

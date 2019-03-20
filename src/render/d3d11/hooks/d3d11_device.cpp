@@ -127,9 +127,6 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
-  static auto& textures =
-    SK_D3D11_Textures;
-
   if (pDesc != nullptr && pResource != nullptr)
   {
     D3D11_RESOURCE_DIMENSION   dim;
@@ -137,12 +134,6 @@ D3D11Dev_CreateShaderResourceView_Override (
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      ////if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
-      ////{
-      ////  if (pDesc != nullptr && pDesc->Format == DXGI_FORMAT_B8G8R8A8_UNORM)
-      ////    ((D3D11_SHADER_RESOURCE_VIEW_DESC *)pDesc)->Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-      ////}
-
       DXGI_FORMAT newFormat    = pDesc->Format;
       UINT        newMipLevels = pDesc->Texture2D.MipLevels;
 
@@ -155,42 +146,6 @@ D3D11Dev_CreateShaderResourceView_Override (
       {
         bool override = false;
 
-        ///static bool bVesperia =
-        ///  SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia;
-        ///
-        ///if (bVesperia)
-        ///{
-        ///  if (pDesc->Format == DXGI_FORMAT_B8G8R8A8_UNORM)
-        ///  {
-        ///    static auto& rb =
-        ///      SK_GetCurrentRenderBackend ();
-        ///
-        ///    CComQIPtr <IDXGISwapChain> pSwap (rb.swapchain);
-        ///
-        ///    if (pSwap != nullptr)
-        ///    {
-        ///      DXGI_SWAP_CHAIN_DESC swapDesc = { };
-        ///          pSwap->GetDesc (&swapDesc);
-        ///
-        ///      if ( __SK_HDR_16BitSwap && (tex_desc.BindFlags & D3D11_BIND_RENDER_TARGET) &&
-        ///           tex_desc.Width  == 3840 &&
-        ///           tex_desc.Height == 2160 )
-        ///      {
-        ///        override  = true;
-        ///        newFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
-        ///      }
-        ///    }
-        ///  }
-        ///}
-
-        ///if ( pDesc->Format      == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB &&
-        ///     tex_desc.Format    == DXGI_FORMAT_R8G8B8A8_UNORM      &&
-        ///    (tex_desc.BindFlags &  D3D11_BIND_RENDER_TARGET) )
-        ///{
-        ///  override  = true;
-        ///  newFormat = tex_desc.Format;
-        ///}
-
         if (DirectX::BitsPerPixel (pDesc->Format) != DirectX::BitsPerPixel (tex_desc.Format))
         {
           override  = true;
@@ -202,16 +157,20 @@ D3D11Dev_CreateShaderResourceView_Override (
 
         if ( SK_D3D11_TextureIsCached (pTex) )
         {
+          static auto& textures =
+            SK_D3D11_Textures;
+
           auto& cache_desc =
             textures.Textures_2D [pTex];
-  
+
           newFormat =
             cache_desc.desc.Format;
 
           newMipLevels =
             pDesc->Texture2D.MipLevels;
 
-          if (pDesc->Format != newFormat)// && SK_DXGI_FormatToStr (pDesc->Format) != L"UNKNOWN")
+          if ( DirectX::MakeTypeless (pDesc->Format) !=
+               DirectX::MakeTypeless (newFormat    )  )
           {
             if (DirectX::IsSRGB (pDesc->Format))
               newFormat = DirectX::MakeSRGB (newFormat);
@@ -247,8 +206,8 @@ D3D11Dev_CreateShaderResourceView_Override (
 
           if (newMipLevels != pDesc->Texture2D.MipLevels)
           {
-            descCopy.Texture2D.MipLevels       = static_cast <UINT>(-1);
-            descCopy.Texture2D.MostDetailedMip =                     0;
+            descCopy.Texture2D.MipLevels       = gsl::narrow_cast <UINT>(-1);
+            descCopy.Texture2D.MostDetailedMip =                           0;
           }
 
           HRESULT hr =

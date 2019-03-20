@@ -120,7 +120,7 @@ using namespace IMGUI_STB_NAMESPACE;
 
 static const ImVec4 GNullClipRect(-8192.0f, -8192.0f, +8192.0f, +8192.0f); // Large values that are easy to encode in a few bits+shift
 
-void ImDrawList::Clear()
+void ImDrawList::Clear() noexcept
 {
     CmdBuffer.resize(0);
     IdxBuffer.resize(0);
@@ -136,7 +136,7 @@ void ImDrawList::Clear()
     // NB: Do not clear channels so our allocations are re-used after the first frame.
 }
 
-void ImDrawList::ClearFreeMemory()
+void ImDrawList::ClearFreeMemory() noexcept
 {
     CmdBuffer.clear();
     IdxBuffer.clear();
@@ -442,9 +442,9 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
         const int vtx_count = thick_line ? points_count*4 : points_count*3;
         PrimReserve(idx_count, vtx_count);
 
-        
+
         // Temporary buffer
-        ImVec2* temp_normals = 
+        ImVec2* temp_normals =
           (ImVec2*)GImGui->ThreadContext->imgui.allocPolylineStorage (
             points_count * ( thick_line ? 5 : 3 ) * sizeof (ImVec2)
           );
@@ -633,7 +633,7 @@ void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_coun
         }
 
         // Compute normals
-        ImVec2* temp_normals = 
+        ImVec2* temp_normals =
           (ImVec2*)GImGui->ThreadContext->imgui.allocPolylineStorage (
             points_count * sizeof (ImVec2)
           );
@@ -2128,9 +2128,11 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
                 {
                     unprintable_chars.emplace ((unsigned short)c);
 
+                    extern SK_LazyGlobal <iSK_Logger> dll_log;
+
                     // Some characters used for Steam account names are outside the 2-byte range
-                    dll_log.Log ( L"[ImGui Font] Unprintable Character: '%wc' (U+%lx)",
-                                    (wchar_t)c, (wchar_t)c );
+                    dll_log->Log ( L"[ImGui Font] Unprintable Character: '%wc' (U+%lx)",
+                                     (wchar_t)c, (wchar_t)c );
                 }
             }
 
@@ -2319,10 +2321,10 @@ static unsigned int stb_decompress(unsigned char *output, unsigned char *i, unsi
                 if (stb_adler32(1, output, olen) != (unsigned int) stb__in4(2))
                     return 0;
                 return olen;
-            } else {
-                IM_ASSERT(0); /* NOTREACHED */
-                return 0;
             }
+
+            IM_ASSERT(0); /* NOTREACHED */
+            return 0;
         }
         IM_ASSERT(stb__dout <= output + olen);
         if (stb__dout > output + olen)

@@ -21,6 +21,8 @@
 struct IUnknown;
 #include <Unknwnbase.h>
 
+#include<corecrt.h>
+
 #ifndef _WIN64
 
 #include <SpecialK/render/d3d8/d3d8_backend.h>
@@ -91,11 +93,11 @@ Direct3DCreate8 (UINT SDKVersion)
   WaitForInit_D3D8 ();
   WaitForInit      ();
 
-  dll_log.Log ( L"[   D3D8   ] [!] %s (%lu) - "
-                L"%s",
-                  L"Direct3DCreate8",
-                    SDKVersion,
-                      SK_SummarizeCaller ().c_str () );
+  dll_log->Log ( L"[   D3D8   ] [!] %s (%lu) - "
+                 L"%s",
+                   L"Direct3DCreate8",
+                     SDKVersion,
+                       SK_SummarizeCaller ().c_str () );
 
   if (Direct3DCreate8_Import)
     return Direct3DCreate8_Import (SDKVersion);
@@ -111,13 +113,13 @@ SK_HookD3D8 (void)
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
-    HMODULE hBackend = 
+    HMODULE hBackend =
       (SK_GetDLLRole () & DLL_ROLE::D3D8) ? backend_dll :
                                       GetModuleHandle (L"d3d8.dll");
 
-    dll_log.Log (L"[   D3D8   ] Importing Direct3DCreate8.......");
-    dll_log.Log (L"[   D3D8   ] ================================");
-    
+    dll_log->Log (L"[   D3D8   ] Importing Direct3DCreate8.......");
+    dll_log->Log (L"[   D3D8   ] ================================");
+
     if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d8.dll"))
     {
       Direct3DCreate8_Import =  \
@@ -234,7 +236,7 @@ HookD3D8 (LPVOID user)
     if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
       SK::DXGI::StartBudgetThread_NoAdapter ();
   }
- 
+
   return 0;
 }
 #else

@@ -288,8 +288,11 @@ SK_Inject_DeferredUnload (HMODULE hModule)
       char      szDesc [256] = { };
       wcstombs (szDesc, L"[SK] Global Hook Pacifier", 255);
 
-      const THREADNAME_INFO info =
-      { 4096, szDesc, (DWORD)-1, 0x0 };
+      THREADNAME_INFO info = {  };
+      info.dwType     =      4096;
+      info.szName     =    szDesc;
+      info.dwThreadID = (DWORD)-1;
+      info.dwFlags    =       0x0;
 
       const DWORD argc = sizeof (info) /
                          sizeof (ULONG_PTR);
@@ -299,19 +302,19 @@ SK_Inject_DeferredUnload (HMODULE hModule)
                            reinterpret_cast <const ULONG_PTR *>(&info) );
     }
     __except (EXCEPTION_EXECUTE_HANDLER) { };
-  
+
     SK_Inject_WaitOnUnhook ();
-  
+
     FlsFree (
       ReadULongAcquire (&__SK_TLS_INDEX)
     );
-  
+
     SK_Thread_CloseSelf ();
-  
+
     FreeLibraryAndExitThread (
       (HMODULE)lpUser, 0x0
     );
-  
+
     return 0;
   }, (LPVOID)hModule);
 }
@@ -482,10 +485,10 @@ DllMain ( HMODULE hModule,
               DWORD_PTR dwpResult;
 
               SendMessageTimeout ( HWND_BROADCAST,
-                                   WM_NULL, 0, 0,
-                                   SMTO_ABORTIFHUNG |
-                                   SMTO_NOTIMEOUTIFNOTHUNG,
-                                   1000UL, &dwpResult );
+                                     WM_NULL, 0, 0,
+                                       SMTO_ABORTIFHUNG |
+                                       SMTO_NOTIMEOUTIFNOTHUNG,
+                                         1000UL, &dwpResult );
 
               SK_Thread_CloseSelf ();
 
@@ -503,7 +506,7 @@ DllMain ( HMODULE hModule,
         FlsFree (
           InterlockedCompareExchangeRelease ( &__SK_TLS_INDEX, TLS_OUT_OF_INDEXES,
                      ReadULongAcquire      (  &__SK_TLS_INDEX                      )
-                                            ) 
+                                            )
                 );
       }
 
@@ -513,7 +516,7 @@ DllMain ( HMODULE hModule,
 #ifdef DEBUG
       else {
       //Sanity FAILURE: Attempt to detach something that was not properly attached?!
-        dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
+        dll_log->Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
       }
 #endif
     } break;
@@ -746,7 +749,7 @@ SK_EstablishDllRole (skWin32Module&& module)
     CharNextW ( SK_Path_wcsrchr ( wszSelfTitledDLL, *LR"(\)" ) );
 
   // The DLL path was _already_ in non-fully-qualified form... oops?
-  if (wszShort == static_cast <const wchar_t *>(nullptr) + 1)
+  if (wszShort == reinterpret_cast <const wchar_t *> (1))
     wszShort = wszSelfTitledDLL;
 
 
@@ -1175,8 +1178,6 @@ SK_Attach (DLL_ROLE role)
         void SK_D3D11_InitMutexes (void);
              SK_D3D11_InitMutexes (    );
 
-        __crc32_init ();
-
         void SK_ImGui_Init (void);
              SK_ImGui_Init (    );
 
@@ -1249,7 +1250,7 @@ SK_Detach (DLL_ROLE role)
   }
 
   else {
-    dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
+    dll_log->Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
   }
 
   return FALSE;

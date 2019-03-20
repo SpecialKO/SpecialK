@@ -169,7 +169,7 @@ using GetSystemMetrics_pfn = int (WINAPI *)(
 );
 
 using GetWindowRect_pfn    = BOOL (WINAPI *)(
-  HWND, 
+  HWND,
   LPRECT
 );
 using GetClientRect_pfn    = BOOL (WINAPI *)(
@@ -289,9 +289,19 @@ extern GetRawInputData_pfn         GetRawInputData_Original;
 extern GetRawInputBuffer_pfn       GetRawInputBuffer_Original;
 extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
 
+#define SK_HWND_DESKTOP                            nullptr
+#define SK_HWND_BOTTOM    reinterpret_cast <HWND> (   1   )
+#define SK_HWND_DUMMY     reinterpret_cast <HWND> (  -1   )
+#define SK_HWND_NOTOPMOST reinterpret_cast <HWND> (  -2   )
+
+#define SK_HWND_TOP        SK_HWND_DESKTOP
+#define SK_HWND_TOPMOST    SK_HWND_DUMMY
+
 #include <SpecialK/input/input.h>
 
 struct sk_window_s {
+  constexpr sk_window_s (void) { };
+
   bool       unicode          = false;
 
   HWND       hWnd             = nullptr;
@@ -394,6 +404,30 @@ struct sk_window_s {
 };
 
 extern sk_window_s game_window;
+
+//sk_window_s*
+//SK_Win32_InitializeWindow (void)
+//{
+//  sk_window_s* game_window = nullptr;
+//
+//  if (game_window != nullptr)
+//  {
+//    delete game_window;
+//           game_window = nullptr;
+//  }
+//
+//  if (game_window == nullptr)
+//  {
+//    game_window =
+//      new sk_window_s ();
+//  }
+//
+//  if (game_window != nullptr)
+//  {
+//    delete ::game_window;
+//           ::game_window = nullptr;
+//  }
+//}
 
 struct window_t {
   DWORD proc_id;

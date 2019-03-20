@@ -135,11 +135,11 @@ DirectDrawCreate (_In_  GUID         FAR *lpGUID,
 
   //StringFromGUID2
 
-  dll_log.Log ( L"[   DDraw  ] [!] %s (...) - "
-                L"%s",
-                  L"DirectDrawCreate",
-                    /*SDKVersion,*/
-                      SK_SummarizeCaller ().c_str () );
+  dll_log->Log ( L"[   DDraw  ] [!] %s (...) - "
+                 L"%s",
+                   L"DirectDrawCreate",
+                     /*SDKVersion,*/
+                       SK_SummarizeCaller ().c_str () );
 
   HRESULT hr = E_NOTIMPL;
 
@@ -164,11 +164,11 @@ DirectDrawCreateEx (_In_  GUID         FAR *lpGUID,
 
   //StringFromGUID2
 
-  dll_log.Log ( L"[   DDraw  ] [!] %s (...) - "
-                L"%s",
-                  L"DirectDrawCreateEx",
-                    /*SDKVersion,*/
-                      SK_SummarizeCaller ().c_str () );
+  dll_log->Log ( L"[   DDraw  ] [!] %s (...) - "
+                 L"%s",
+                   L"DirectDrawCreateEx",
+                     /*SDKVersion,*/
+                       SK_SummarizeCaller ().c_str () );
 
   HRESULT hr = E_NOTIMPL;
 
@@ -293,19 +293,19 @@ SK_HookDDraw (void)
         );
     };
 
-    dll_log.Log (L"[   DDraw  ] Importing DirectDrawCreate{Ex}..");
-    dll_log.Log (L"[   DDraw  ] ================================");
+    dll_log->Log (L"[   DDraw  ] Importing DirectDrawCreate{Ex}..");
+    dll_log->Log (L"[   DDraw  ] ================================");
 
     if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"ddraw.dll"))
     {
-      dll_log.Log (L"[   DDraw  ]   DirectDrawCreate:   %08" PRIxPTR L"h",
+      dll_log->Log (L"[   DDraw  ]   DirectDrawCreate:   %08" PRIxPTR L"h",
         (uintptr_t)(DirectDrawCreate_Import =
           reinterpret_cast <DirectDrawCreate_pfn> (
             GetProcAddress (hBackend, "DirectDrawCreate")
           )
         )
       );
-      dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %08" PRIxPTR L"h",
+      dll_log->Log (L"[   DDraw  ]   DirectDrawCreateEx: %08" PRIxPTR L"h",
         (uintptr_t)(DirectDrawCreateEx_Import =
           reinterpret_cast <DirectDrawCreateEx_pfn> (
             GetProcAddress (hBackend, "DirectDrawCreateEx")
@@ -319,7 +319,7 @@ SK_HookDDraw (void)
       //                                  DllCanUnloadNow_Override,
       //         static_cast_p2p <void> (&DllCanUnloadNow_Import) ) )
       //{
-      //  dll_log.Log ( L"[   DDraw  ]   DllCanUnloadNow:    %08" PRIxPTR L"h",
+      //  dll_log->Log ( L"[   DDraw  ]   DllCanUnloadNow:    %08" PRIxPTR L"h",
       //                 (uintptr_t)DllCanUnloadNow_Import );
       //  SK_ApplyQueuedHooks ();
       //}
@@ -382,11 +382,11 @@ SK_HookDDraw (void)
           LoadSupplementalImports ();
         }
 
-        dll_log.Log (L"[   DDraw  ]   DirectDrawCreate:   %08"
-                       PRIxPTR L"h  { Hooked }",
+        dll_log->Log (L"[   DDraw  ]   DirectDrawCreate:   %08"
+                        PRIxPTR L"h  { Hooked }",
           (uintptr_t)DirectDrawCreate_Import );
-        dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %08"
-                       PRIxPTR L"h  { Hooked }",
+        dll_log->Log (L"[   DDraw  ]   DirectDrawCreateEx: %08"
+                        PRIxPTR L"h  { Hooked }",
           (uintptr_t)DirectDrawCreateEx_Import );
       }
     }

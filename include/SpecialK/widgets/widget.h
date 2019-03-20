@@ -34,7 +34,7 @@ struct IUnknown;
 #include <string>
 #include <map>
 
-extern sk::ParameterFactory SK_Widget_ParameterFactory;
+extern SK_LazyGlobal <sk::ParameterFactory> SK_Widget_ParameterFactory;
 
 struct ImGuiWindow;
 class  SK_Widget;
@@ -62,7 +62,7 @@ struct SK_ImGui_WidgetRegistry
   SK_Widget* memory_monitor = nullptr;
   SK_Widget* disk_monitor   = nullptr;
 
-  BOOL DispatchKeybinds ( BOOL Control, BOOL Shift, 
+  BOOL DispatchKeybinds ( BOOL Control, BOOL Shift,
                           BOOL Alt,     BYTE vkCode );
   BOOL SaveConfig (void);
 
@@ -106,7 +106,7 @@ public:
   virtual void draw_base   (void);
   virtual void config_base (void);
 
-  virtual bool keyboard ( BOOL Control, BOOL Shift, 
+  virtual bool keyboard ( BOOL Control, BOOL Shift,
                           BOOL Alt,     BYTE vkCode )
   {
     UNREFERENCED_PARAMETER (Control); UNREFERENCED_PARAMETER (Shift);
@@ -116,53 +116,53 @@ public:
   };
 
 
-  SK_Widget& setName         (const char* szName)       { name          = szName;        return *this; }
-  SK_Widget& setScale        (float       fScale)       { scale         = fScale;        return *this; }
+  SK_Widget& setName         (const char* szName)                 { name          = szName;        return *this; }
+  SK_Widget& setScale        (float       fScale)        noexcept { scale         = fScale;        return *this; }
 //---------------------
-  SK_Widget& setVisible      (bool        bVisible)     { visible       = bVisible;
-                                                          if (visible) setActive (visible);
+  SK_Widget& setVisible      (bool        bVisible)      noexcept { visible       = bVisible;
+                                                                    if (visible) setActive (visible);
 
-                                                        //if (param_visible != nullptr)
-                                                        //{
-                                                        //  param_visible->store (visible);
-                                                        //}
+                                                                  //if (param_visible != nullptr)
+                                                                  //{
+                                                                  //  param_visible->store (visible);
+                                                                  //}
                                                                                          return *this; }
-  SK_Widget& setActive       (bool        bActive)      { active        = bActive;       return *this; }
+  SK_Widget& setActive       (bool        bActive)       noexcept { active        = bActive;       return *this; }
 //--------------------
-  SK_Widget& setMovable      (bool        bMovable)     { movable       = bMovable;      return *this; }
-  SK_Widget& setResizable    (bool        bResizable)   { resizable     = bResizable;    return *this; }
-  SK_Widget& setAutoFit      (bool        bAutofit)     { autofit       = bAutofit;      return *this; }
-  SK_Widget& setBorder       (bool        bBorder)      { border        = bBorder;       return *this; }
-  SK_Widget& setClickThrough (bool        bClickthrough){ click_through = bClickthrough; return *this; }
-  SK_Widget& setMinSize      (ImVec2&     iv2MinSize)   { min_size      = iv2MinSize;    return *this; }
-  SK_Widget& setMaxSize      (ImVec2&     iv2MaxSize)   { max_size      = iv2MaxSize;    return *this; }
-  SK_Widget& setSize         (ImVec2&     iv2Size)      { size          = iv2Size;       return *this; }
-  SK_Widget& setPos          (ImVec2&     iv2Pos)       { pos           = iv2Pos;
+  SK_Widget& setMovable      (bool        bMovable)      noexcept { movable       = bMovable;      return *this; }
+  SK_Widget& setResizable    (bool        bResizable)    noexcept { resizable     = bResizable;    return *this; }
+  SK_Widget& setAutoFit      (bool        bAutofit)      noexcept { autofit       = bAutofit;      return *this; }
+  SK_Widget& setBorder       (bool        bBorder)       noexcept { border        = bBorder;       return *this; }
+  SK_Widget& setClickThrough (bool        bClickthrough) noexcept { click_through = bClickthrough; return *this; }
+  SK_Widget& setMinSize      (ImVec2&     iv2MinSize)    noexcept { min_size      = iv2MinSize;    return *this; }
+  SK_Widget& setMaxSize      (ImVec2&     iv2MaxSize)    noexcept { max_size      = iv2MaxSize;    return *this; }
+  SK_Widget& setSize         (ImVec2&     iv2Size)       noexcept { size          = iv2Size;       return *this; }
+  SK_Widget& setPos          (ImVec2&     iv2Pos)        noexcept { pos           = iv2Pos;
 
                                                            //if (param_pos) param_pos->store (pos);
 
-                                                                                         return *this; }
-  SK_Widget& setDockingPoint (DockAnchor  dock_anchor) { docking       = dock_anchor;    return *this; }
+                                                                                                    return *this; }
+  SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   noexcept { docking       = dock_anchor;    return *this; }
 
 
-  const std::string& getName         (void) const { return    name;           }
-        float        getScale        (void) const { return    scale;          }
-        bool         isVisible       (void) const { return    visible &&
-                                               (! SK_ImGui_Widgets.hide_all); }
-        bool         isActive        (void) const { return    active;         }
-        bool         isMovable       (void) const { return    movable;        }
-        bool         isResizable     (void) const { return    resizable;      }
-        bool         isAutoFitted    (void) const { return    autofit;        }
-        bool         isClickable     (void) const { return (! click_through); }
-        bool         hasBorder       (void) const { return    border;         }
-  const ImVec2&      getMinSize      (void) const { return    min_size;       }
-  const ImVec2&      getMaxSize      (void) const { return    max_size;       }
-  const ImVec2&      getSize         (void) const { return    size;           }
-  const ImVec2&      getPos          (void) const { return    pos;            }
-  const DockAnchor&  getDockingPoint (void) const { return    docking;        }
+  const std::string& getName         (void) const noexcept { return    name;           }
+        float        getScale        (void) const noexcept { return    scale;          }
+        bool         isVisible       (void) const noexcept { return    visible &&
+                                                        (! SK_ImGui_Widgets.hide_all); }
+        bool         isActive        (void) const noexcept { return    active;         }
+        bool         isMovable       (void) const noexcept { return    movable;        }
+        bool         isResizable     (void) const noexcept { return    resizable;      }
+        bool         isAutoFitted    (void) const noexcept { return    autofit;        }
+        bool         isClickable     (void) const noexcept { return (! click_through); }
+        bool         hasBorder       (void) const noexcept { return    border;         }
+  const ImVec2&      getMinSize      (void) const noexcept { return    min_size;       }
+  const ImVec2&      getMaxSize      (void) const noexcept { return    max_size;       }
+  const ImVec2&      getSize         (void) const noexcept { return    size;           }
+  const ImVec2&      getPos          (void) const noexcept { return    pos;            }
+  const DockAnchor&  getDockingPoint (void) const noexcept { return    docking;        }
 
-  const SK_Keybind&  getToggleKey    (void) const { return    toggle_key;     }
-  const SK_Keybind&  getFocusKey     (void) const { return    focus_key;      }
+  const SK_Keybind&  getToggleKey    (void) const noexcept { return    toggle_key;     }
+  const SK_Keybind&  getFocusKey     (void) const noexcept { return    focus_key;      }
 
   virtual ~SK_Widget (void) { };
 
@@ -260,18 +260,21 @@ LoadWidgetKeybind ( SK_Keybind *binding,
 {
   sk::ParameterStringW* ret =
     dynamic_cast <sk::ParameterStringW *>
-      (SK_Widget_ParameterFactory.create_parameter <std::wstring> (wszDesc));
+      (SK_Widget_ParameterFactory->create_parameter <std::wstring> (wszDesc));
 
-  ret->register_to_ini ( ini_file, sec_name, key_name );
-
-  if (! ret->load (binding->human_readable))
+  if (ret != nullptr)
   {
-    binding->parse  ();
-    ret->store      (binding->human_readable);
-  }
+    ret->register_to_ini ( ini_file, sec_name, key_name );
 
-  binding->human_readable = ret->get_value ();
-  binding->parse  ();
+    if (! ret->load (binding->human_readable))
+    {
+      binding->parse  ();
+      ret->store      (binding->human_readable);
+    }
+
+    binding->human_readable = ret->get_value ();
+    binding->parse  ();
+  }
 
   return ret;
 }
@@ -287,18 +290,21 @@ LoadWidgetBool ( bool    *pbVal,
 {
   sk::ParameterBool* ret =
     dynamic_cast <sk::ParameterBool *>
-      (SK_Widget_ParameterFactory.create_parameter <bool> (wszDesc));
+      (SK_Widget_ParameterFactory->create_parameter <bool> (wszDesc));
 
-  ret->register_to_ini ( ini_file,
-                           sec_name,
-                             key_name );
-
-  if (! ret->load (*pbVal))
+  if (ret != nullptr)
   {
-    ret->store    (*pbVal);
-  }
+    ret->register_to_ini ( ini_file,
+                             sec_name,
+                               key_name );
 
-  *pbVal = ret->get_value ();
+    if (! ret->load (*pbVal))
+    {
+      ret->store    (*pbVal);
+    }
+
+    *pbVal = ret->get_value ();
+  }
 
   return ret;
 }
@@ -314,16 +320,19 @@ LoadWidgetDocking ( SK_Widget::DockAnchor *pdaVal,
 {
   sk::ParameterInt* ret =
    dynamic_cast <sk::ParameterInt *>
-    (SK_Widget_ParameterFactory.create_parameter <int> (wszDesc));
+    (SK_Widget_ParameterFactory->create_parameter <int> (wszDesc));
 
-  ret->register_to_ini ( ini_file, sec_name, key_name );
-
-  if (! ret->load (*reinterpret_cast <int *> (pdaVal)))
+  if (ret != nullptr)
   {
-    ret->store    (*reinterpret_cast <int *> (pdaVal));
-  }
+    ret->register_to_ini ( ini_file, sec_name, key_name );
 
-  *reinterpret_cast <int *> (pdaVal) = ret->get_value ();
+    if (! ret->load (*reinterpret_cast <int *> (pdaVal)))
+    {
+      ret->store    (*reinterpret_cast <int *> (pdaVal));
+    }
+
+    *reinterpret_cast <int *> (pdaVal) = ret->get_value ();
+  }
 
   return ret;
 }
@@ -339,16 +348,19 @@ LoadWidgetVec2 ( ImVec2  *piv2Val,
 {
   sk::ParameterVec2f* ret =
    dynamic_cast <sk::ParameterVec2f *>
-    (SK_Widget_ParameterFactory.create_parameter <ImVec2> (wszDesc));
+    (SK_Widget_ParameterFactory->create_parameter <ImVec2> (wszDesc));
 
-  ret->register_to_ini ( ini_file, sec_name, key_name );
-
-  if (! ret->load (*piv2Val))
+  if (ret != nullptr)
   {
-    ret->store    (*piv2Val);
-  }
+    ret->register_to_ini ( ini_file, sec_name, key_name );
 
-  *piv2Val = ret->get_value ();
+    if (! ret->load (*piv2Val))
+    {
+      ret->store    (*piv2Val);
+    }
+
+    *piv2Val = ret->get_value ();
+  }
 
   return ret;
 }
@@ -362,12 +374,12 @@ template <typename _T, int max_samples>
 class SK_Stat_DataHistory
 {
 public:
-  int   getCapacity   (void)
+  int   getCapacity   (void) noexcept
   {
     return max_samples;
   };
 
-  int   getUpdates    (void)
+  int   getUpdates    (void) noexcept
   {
     return updates;
   }
@@ -381,15 +393,16 @@ public:
       return values [(idx + values_offset) % max_samples];
   }
 
-  _T    getLastValue (void)
+  _T    getLastValue (void) noexcept
   {
     return last_val;
   }
 
 
-  void addValue (_T val, bool only_if_different = false)
+  void addValue (_T val, bool only_if_different = false) noexcept
   {
-    bool insert = (! only_if_different) || (last_val != val);
+    const bool insert =
+      (! only_if_different) || (last_val != val);
 
     if (insert)
     {
@@ -403,27 +416,27 @@ public:
   }
 
 
-  std::type_info getType (void)
+  std::type_info getType (void) noexcept
   {
     return std::typeindex (typeid (_T));
   }
 
 
-  _T getMin (void)
+  _T getMin (void) noexcept
   {
     calcStats ();
 
     return cached_stats.min;
   }
 
-  _T getMax (void)
+  _T getMax (void) noexcept
   {
     calcStats ();
 
     return cached_stats.max;
   }
 
-  _T getAvg (void)
+  _T getAvg (void) noexcept
   {
     calcStats ();
 
@@ -432,17 +445,17 @@ public:
 
 
 
-  int                           getOffset (void) { return values_offset; };
-  std::array <_T, max_samples>& getValues (void) { return values;        };
+  int                           getOffset (void) noexcept { return values_offset; };
+  std::array <_T, max_samples>& getValues (void) noexcept { return values;        };
 
-  void   reset     (void)
+  void   reset     (void) noexcept
   {
     values_offset = 0;
     updates       = 0;
   }
 
 protected:
-  void calcStats (void)
+  void calcStats (void) noexcept
   {
     if (cached_stats.last_calc != updates)
     {

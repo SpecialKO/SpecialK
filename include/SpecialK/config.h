@@ -42,18 +42,17 @@ extern struct sk_dxgi_hook_cache_s SK_DXGI_HookCache;
 
 struct SK_Keybind
 {
-  const char*  bind_name;
-  std::wstring human_readable;
+  const char*  bind_name      = nullptr;
+  std::wstring human_readable =     L"";
 
   struct {
-    BOOL ctrl,
-         shift,
-         alt;
+    BOOL ctrl  = FALSE,
+         shift = FALSE,
+         alt   = FALSE;
   };
 
-  SHORT vKey;
-
-  UINT  masked_code; // For fast comparison
+  SHORT vKey        =   0;
+  UINT  masked_code = 0x0; // For fast comparison
 
   void parse  (void);
   void update (void);
@@ -148,7 +147,7 @@ struct sk_config_t
   struct {
     GUID      power_scheme_guid      = { };
     GUID      power_scheme_guid_orig = { };
-    
+
     float  interval       = 0.33333333f;
 
     bool   simple         = true;
@@ -302,7 +301,7 @@ struct sk_config_t
     struct screenshot_handler_s {
       bool    enable_hook         = true;
       bool    png_compress        = true;
-      bool    show_osd_by_default = true;     
+      bool    show_osd_by_default = true;
 
       SK_ConfigSerializedKeybind
               game_hud_free_keybind = {
@@ -346,7 +345,7 @@ struct sk_config_t
       int     pre_render_limit  = -1;
       int     present_interval  = -1;
       int     buffer_count      = -1;
-      int     max_delta_time    =  0; // Bad old setting; needs to be phased 
+      int     max_delta_time    =  0; // Bad old setting; needs to be phased
       int     swapchain_wait    =  0;
       int     refresh_rate      = -1;
       int     pin_render_thread = -1;
@@ -369,12 +368,12 @@ struct sk_config_t
         struct {
           unsigned int x        =  0;
           unsigned int y        =  0;
-          bool isZero (void)  { return x == 0 && y == 0; };
+          bool isZero (void) noexcept { return x == 0 && y == 0; };
         } min;
         struct {
           unsigned int x        =  0;
           unsigned int y        =  0;
-          bool isZero (void)  { return x == 0 && y == 0; };
+          bool isZero (void) noexcept { return x == 0 && y == 0; };
         } max;
       } res;
       int     exception_mode     =    -1; // -1 = Don't Care
@@ -562,7 +561,7 @@ struct sk_config_t
     bool    enable_mem_alloc_trace = false;
     bool    enable_file_io_trace   = false;
   } threads;
-  
+
   struct {
     struct {
       bool  use_static_addresses = false;
@@ -578,7 +577,7 @@ struct sk_config_t
       int   absolute            = 0;
       float percent             = 0.0f;
       } x, y;
-      bool isZero (void) 
+      bool isZero (void) noexcept
             { return x.absolute == 0        && y.absolute == 0        &&
                      x.percent  > -0.00001f && x.percent   < 0.00001f &&
                      y.percent  > -0.00001f && y.percent   < 0.00001f; }
@@ -599,7 +598,7 @@ struct sk_config_t
         unsigned int x          = 0;
         unsigned int y          = 0;
         bool         fix_mouse  = false;
-        bool isZero (void)  { return x == 0 && y == 0; };
+        bool isZero (void) noexcept { return x == 0 && y == 0; };
       } override;
     } res;
   } window;
@@ -741,7 +740,7 @@ extern sk_config_t* __config__;
 struct SK_KeyCommand
 {
   SK_Keybind   binding;
-  std::wstring command;  
+  std::wstring command;
 };
 
 
@@ -783,7 +782,9 @@ struct SK_AppCache_Manager
 
 protected:
   iSK_INI* app_cache_db = nullptr;
-} extern app_cache_mgr;
+};
+
+extern SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
 
 
@@ -810,7 +811,7 @@ enum class SK_GAME_ID
   LEGOCityUndercover,           // LEGOLCUR_DX11.exe
   Sacred,                       // sacred.exe
   Sacred2,                      // sacred2.exe
-  FinalFantasy9,                // FF9.exe   
+  FinalFantasy9,                // FF9.exe
   EdithFinch,                   // FinchGame.exe
   FinalFantasyX_X2,             // FFX.exe / FFX-2.exe / FFX&X-2_Will.exe
   DeadlyPremonition,            // DP.exe DPLauncher.exe
@@ -873,4 +874,7 @@ extern __declspec (dllexport) void
 __stdcall
 SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
-#endif __SK__CONFIG_H__
+extern SK_LazyGlobal <std::unordered_map <std::wstring, BYTE>> humanKeyNameToVirtKeyCode;
+extern SK_LazyGlobal <std::unordered_map <BYTE, std::wstring>> virtKeyCodeToHumanKeyName;
+
+#endif /* __SK__CONFIG_H__ */

@@ -32,18 +32,19 @@ SK_ICommandProcessor*
 __stdcall
 SK_GetCommandProcessor (void)
 {
-  static SK_ICommandProcessor* command = nullptr;
+  static std::unique_ptr <SK_ICommandProcessor> command = nullptr;
 
   if (command == nullptr)
   {
     command =
-      new SK_ICommandProcessor ();
+      std::make_unique <SK_ICommandProcessor> ();
 
     InitializeCriticalSectionEx (&cs_process_cmd, 104858, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
                                                           SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
   }
 
-  return command;
+  return
+    command.get ();
 }
 
 
@@ -89,7 +90,7 @@ str_hash_compare <std::string, std::less <std::string> >::operator() (const std:
 class SK_SourceCmd : public SK_ICommand
 {
 public:
-  SK_SourceCmd (SK_ICommandProcessor* cmd_proc)
+  explicit SK_SourceCmd (SK_ICommandProcessor* cmd_proc)
   {
     processor_ = cmd_proc;
   }
@@ -103,10 +104,9 @@ public:
     {
       return
         SK_ICommandResult ( "source", szArgs,
-          "Could not open file!",
-          false,
-          nullptr,
-          this );
+                              "Could not open file!",
+                                false, nullptr,
+                                  this );
     }
 
           char line [1024] = { };
@@ -133,15 +133,15 @@ public:
                                        this );
   }
 
-  int getNumArgs (void) override {
+  int getNumArgs (void) noexcept override {
     return 1;
   }
 
-  int getNumOptionalArgs (void) override {
+  int getNumOptionalArgs (void) noexcept override {
     return 0;
   }
 
-  const char* getHelp (void) override {
+  const char* getHelp (void) noexcept override {
     return "Load and execute a file containing multiple commands "
       "(such as a config file).";
   }
@@ -153,9 +153,7 @@ private:
 
 SK_ICommandProcessor::SK_ICommandProcessor (void)
 {
-  SK_ICommand* src = new SK_SourceCmd (this);
-
-  AddCommand ("source", src);
+  AddCommand ("source", new SK_SourceCmd (this));
 }
 
 const SK_ICommand*
@@ -171,7 +169,7 @@ SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
   if (FindCommand (szCommand) != nullptr)
     return nullptr;
 
-  commands_.insert (SK_CommandRecord (szCommand, pCommand));
+  commands_.insert (SK_CommandRecord (szCommand, std::unique_ptr <SK_ICommand> (pCommand)));
 
   return pCommand;
 }
@@ -181,7 +179,7 @@ SK_ICommandProcessor::RemoveCommand (const char* szCommand)
 {
   if (FindCommand (szCommand) != nullptr)
   {
-    auto command =
+    const auto command =
       commands_.find (szCommand);
 
     commands_.erase (command);
@@ -194,11 +192,11 @@ SK_ICommandProcessor::RemoveCommand (const char* szCommand)
 SK_ICommand*
 SK_ICommandProcessor::FindCommand (const char* szCommand) const
 {
-  auto command =
+  const auto command =
     commands_.find (szCommand);
 
   if (command != commands_.end ())
-    return (command)->second;
+    return (command)->second.get ();
 
   return nullptr;
 }
@@ -219,7 +217,7 @@ SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariab
     return nullptr;
 
   variables_.emplace (
-    SK_VariableRecord (szVariable, pVariable)
+    SK_VariableRecord (szVariable, std::unique_ptr <SK_IVariable> (pVariable))
   );
 
   return pVariable;
@@ -230,7 +228,7 @@ SK_ICommandProcessor::RemoveVariable (const char* szVariable)
 {
   if (FindVariable (szVariable) != nullptr)
   {
-    auto variable =
+    const auto variable =
       variables_.find (szVariable);
 
     variables_.erase (variable);
@@ -243,11 +241,11 @@ SK_ICommandProcessor::RemoveVariable (const char* szVariable)
 const SK_IVariable*
 SK_ICommandProcessor::FindVariable (const char* szVariable) const
 {
-  auto variable =
+  const auto variable =
     variables_.find (szVariable);
 
   if (variable != variables_.end ())
-    return (variable)->second;
+    return (variable)->second.get ();
 
   return nullptr;
 }
@@ -323,7 +321,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
         if (command_args_len > 0)
         {
           auto* bool_var = (SK_IVarStub <bool>*) var;
-          bool  bool_val = false;
+          bool  bool_val;
 
           /* False */
           if (! (_stricmp (cmd_args.c_str (), "false") && _stricmp (cmd_args.c_str (), "0") &&
@@ -429,24 +427,25 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
         }
       }
 
-      uint32_t                       len = 256;
+      uint32_t                       len = 256UL;
       var->getValueString (nullptr, &len);
 
       auto* pszNew =
         SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
-          len + 1, true
+          static_cast <size_t> (len) + 1UL, true
         );
 
       ++len;
 
       var->getValueString (pszNew, &len);
 
-      return SK_ICommandResult (
-        cmd_word.c_str (),
-        cmd_args.c_str (),
-          pszNew, true,
-            var,  nullptr
-      );
+      return
+        SK_ICommandResult (
+          cmd_word.c_str (),
+          cmd_args.c_str (),
+            pszNew, true,
+               var, nullptr
+        );
     }
 
     else
@@ -516,7 +515,7 @@ SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
   if (getValue ())
   {
     len =
-      static_cast <uint32_t> (strlen ("true"));
+      gsl::narrow_cast <uint32_t> (strlen ("true"));
 
     if (szOut != nullptr)
       strncpy (szOut, "true", *dwLen);
@@ -527,7 +526,7 @@ SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
   else
   {
     len =
-      static_cast <uint32_t> (strlen ("false"));
+      gsl::narrow_cast <uint32_t> (strlen ("false"));
 
     if (szOut != nullptr)
       strncpy (szOut, "false", *dwLen);
@@ -617,7 +616,7 @@ SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
     *dwLen = snprintf (szOut, *dwLen, "%f", getValue ());
 
     // Remove trailing 0's after the .
-    *dwLen = static_cast <uint32_t> (SK_RemoveTrailingDecimalZeros (szOut, *dwLen));
+    *dwLen = gsl::narrow_cast <uint32_t> (SK_RemoveTrailingDecimalZeros (szOut, *dwLen));
   }
 
   else

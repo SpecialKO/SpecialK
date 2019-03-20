@@ -20,7 +20,7 @@
 **/
 
 #define __SK_SUBSYSTEM__ L"D3D11 Wrap"
-                          
+
 #include <SpecialK/render/d3d11/d3d11_3.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
@@ -41,7 +41,7 @@ const GUID IID_ID3D11Fence   =
 #endif
 
 // {9A222196-4D44-45C3-AAA4-2FD47915CC70}
-const GUID IID_IUnwrappedD3D11DeviceContext = 
+const GUID IID_IUnwrappedD3D11DeviceContext =
 { 0xe8a22a3f, 0x1405, 0x424c, { 0xae, 0x99, 0xd, 0x3e, 0x9d, 0x54, 0x7c, 0x32 } };
 
 
@@ -54,7 +54,7 @@ extern target_tracking_s* __tracked_rtv__   (void);
 class SK_IWrapD3D11DeviceContext : public ID3D11DeviceContext4
 {
 public:
-  SK_IWrapD3D11DeviceContext (ID3D11DeviceContext* dev_ctx) : pReal (dev_ctx)
+  explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext* dev_ctx) : pReal (dev_ctx)
   {
     InterlockedExchange (&refs_, dev_ctx->AddRef  ());
     dev_ctx->Release ();
@@ -92,7 +92,8 @@ public:
                   __SK_SUBSYSTEM__ );
     }
   };
-  SK_IWrapD3D11DeviceContext (ID3D11DeviceContext1* dev_ctx) : pReal (dev_ctx)
+
+  explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext1* dev_ctx) : pReal (dev_ctx)
   {
     InterlockedExchange (&refs_, dev_ctx->AddRef  ());
     dev_ctx->Release ();
@@ -102,8 +103,8 @@ public:
     IUnknown *pPromotion = nullptr;
 
     if ( SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
-        SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) ||
-        SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion)) )
+         SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) ||
+         SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion)) )
     {
       pPromotion->Release ();
 
@@ -111,7 +112,8 @@ public:
                   __SK_SUBSYSTEM__ );
     }
   };
-  SK_IWrapD3D11DeviceContext (ID3D11DeviceContext2* dev_ctx) : pReal (dev_ctx)
+
+  explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext2* dev_ctx) : pReal (dev_ctx)
   {
     InterlockedExchange (&refs_, dev_ctx->AddRef  ());
     dev_ctx->Release ();
@@ -128,7 +130,8 @@ public:
                   __SK_SUBSYSTEM__ );
     }
   };
-  SK_IWrapD3D11DeviceContext (ID3D11DeviceContext3* dev_ctx) : pReal (dev_ctx)
+
+  explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext3* dev_ctx) : pReal (dev_ctx)
   {
     InterlockedExchange (&refs_, dev_ctx->AddRef  ());
     dev_ctx->Release ();
@@ -144,16 +147,15 @@ public:
                   __SK_SUBSYSTEM__ );
     }
   };
-  SK_IWrapD3D11DeviceContext (ID3D11DeviceContext4* dev_ctx) : pReal (dev_ctx)
+
+  explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext4* dev_ctx) : pReal (dev_ctx)
   {
     InterlockedExchange (&refs_, dev_ctx->AddRef  ());
     dev_ctx->Release ();
     ver_ = 4;
   };
 
-  virtual ~SK_IWrapD3D11DeviceContext (void)
-  {
-  };
+  virtual ~SK_IWrapD3D11DeviceContext (void) = default;
 
   HRESULT STDMETHODCALLTYPE QueryInterface ( REFIID riid,
                                             _COM_Outptr_ void
@@ -408,14 +410,14 @@ public:
       pReal->PSSetConstantBuffers (StartSlot, NumBuffers, ppConstantBuffers);
   }
 
-  void STDMETHODCALLTYPE IASetInputLayout ( 
+  void STDMETHODCALLTYPE IASetInputLayout (
     _In_opt_  ID3D11InputLayout *pInputLayout ) override
   {
     return
       pReal->IASetInputLayout (pInputLayout);
   }
 
-  void STDMETHODCALLTYPE IASetVertexBuffers ( 
+  void STDMETHODCALLTYPE IASetVertexBuffers (
     _In_range_( 0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - 1 )               UINT                 StartSlot,
     _In_range_( 0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - StartSlot )       UINT                 NumBuffers,
     _In_reads_opt_(NumBuffers)                                                   ID3D11Buffer *const *ppVertexBuffers,
@@ -624,7 +626,7 @@ public:
         auto&                              rt_views =
           SK_D3D11_RenderTargets [dev_idx].rt_views;
 
-        const auto* tracked_rtv_res = 
+        const auto* tracked_rtv_res =
           static_cast <ID3D11RenderTargetView *> (
             ReadPointerAcquire ((volatile PVOID *)&tracked_rtv.resource)
             );
@@ -634,11 +636,11 @@ public:
           if (ppRenderTargetViews [i] && rt_views.emplace (ppRenderTargetViews [i]).second)
             ppRenderTargetViews [i]->AddRef ();
 
-          const bool active_before = tracked_rtv.active_count [dev_idx] > 0 ? 
+          const bool active_before = tracked_rtv.active_count [dev_idx] > 0 ?
             tracked_rtv.active       [dev_idx][i].load ()
             : false;
 
-          const bool active = 
+          const bool active =
             ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
             true :
             false;
@@ -852,7 +854,7 @@ public:
     ///  if (pTex)
     ///  {
     ///    D3D11_BOX box = { };
-    ///    
+    ///
     ///    if (pSrcBox != nullptr)
     ///        box = *pSrcBox;
     ///
@@ -861,11 +863,11 @@ public:
     ///      D3D11_TEXTURE2D_DESC tex_desc = {};
     ///           pTex->GetDesc (&tex_desc);
     ///
-    ///      box.left  = 0; box.right  = tex_desc.Width; 
+    ///      box.left  = 0; box.right  = tex_desc.Width;
     ///      box.top   = 0; box.bottom = tex_desc.Height;
     ///      box.front = 0; box.back   = 1;
     ///    }
-    ///    
+    ///
     ///    dll_log.Log ( L"CopySubresourceRegion:  { %s <%lu> [ %lu/%lu, %lu/%lu, %lu/%lu ] } -> { %s <%lu> (%lu,%lu,%lu) }",
     ///                    DescribeResource (pSrcResource).c_str (), SrcSubresource, box.left,box.right, box.top,box.bottom, box.front,box.back,
     ///                    DescribeResource (pDstResource).c_str (), DstSubresource, DstX, DstY, DstZ );
@@ -883,12 +885,13 @@ public:
     ///                                         pSrcBox );
     ///}
 
+    SK_TLS* pTLS =
+      SK_TLS_Bottom ();
+
     static auto& textures =
       SK_D3D11_Textures;
 
-    SK_TLS* pTLS = SK_TLS_Bottom ();
-
-    CComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
+    SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
 
     if (pDstTex != nullptr)
     {
@@ -1160,19 +1163,20 @@ public:
       if (pCommandList == nullptr)
         return pReal->ExecuteCommandList (pCommandList, RestoreContextState);
 
-    CComPtr <ID3D11DeviceContext> pBuildContext;
-    UINT                          size = 0;
+    SK_ComPtr <ID3D11DeviceContext> pBuildContext;
+    UINT                            size = 0;
 
     if ( SUCCEEDED ( pCommandList->GetPrivateData (
-      SKID_D3D11DeviceContextOrigin,
-      &size, &pBuildContext )
-      )    &&    (! pBuildContext.IsEqualObject (this) )
+                       SKID_D3D11DeviceContextOrigin,
+                         &size, &pBuildContext )
+                   )    &&
+             (! pBuildContext.IsEqualObject (this) )
       )
     {
       SK_D3D11_MergeCommandLists ( pBuildContext,        this    );
 
       pBuildContext->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
-                                     sizeof (ptrdiff_t), nullptr );
+                                        sizeof (ptrdiff_t), nullptr );
 
     }
 
@@ -1287,7 +1291,7 @@ public:
       ppShaderResourceViews    );
   }
 
-  void STDMETHODCALLTYPE CSSetUnorderedAccessViews ( 
+  void STDMETHODCALLTYPE CSSetUnorderedAccessViews (
     _In_range_( 0, D3D11_1_UAV_SLOT_COUNT - 1 )         UINT                              StartSlot,
     _In_range_( 0, D3D11_1_UAV_SLOT_COUNT - StartSlot ) UINT                              NumUAVs,
     _In_reads_opt_(NumUAVs)                             ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
@@ -1404,7 +1408,7 @@ public:
     return pReal->IAGetIndexBuffer (pIndexBuffer, Format, Offset);
   }
 
-  void STDMETHODCALLTYPE GSGetConstantBuffers( 
+  void STDMETHODCALLTYPE GSGetConstantBuffers(
     _In_range_( 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - 1 )  UINT StartSlot,
     _In_range_( 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot )  UINT NumBuffers,
     _Out_writes_opt_(NumBuffers)  ID3D11Buffer **ppConstantBuffers) override
@@ -1434,7 +1438,7 @@ public:
     return pReal->VSGetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
   }
 
-  void STDMETHODCALLTYPE VSGetSamplers( 
+  void STDMETHODCALLTYPE VSGetSamplers(
     _In_range_( 0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - 1 )  UINT StartSlot,
     _In_range_( 0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot )  UINT NumSamplers,
     _Out_writes_opt_(NumSamplers)  ID3D11SamplerState **ppSamplers) override
@@ -1449,7 +1453,7 @@ public:
     return pReal->GetPredication (ppPredicate, pPredicateValue);
   }
 
-  void STDMETHODCALLTYPE GSGetShaderResources( 
+  void STDMETHODCALLTYPE GSGetShaderResources(
     _In_range_( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1 )  UINT StartSlot,
     _In_range_( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot )  UINT NumViews,
     _Out_writes_opt_(NumViews)  ID3D11ShaderResourceView **ppShaderResourceViews) override
@@ -1498,27 +1502,27 @@ public:
     return pReal->OMGetBlendState (ppBlendState, BlendFactor, pSampleMask);
   }
 
-  void STDMETHODCALLTYPE OMGetDepthStencilState( 
+  void STDMETHODCALLTYPE OMGetDepthStencilState(
     _Out_opt_  ID3D11DepthStencilState **ppDepthStencilState,
     _Out_opt_  UINT *pStencilRef) override
   {
     return pReal->OMGetDepthStencilState (ppDepthStencilState, pStencilRef);
   }
 
-  void STDMETHODCALLTYPE SOGetTargets( 
+  void STDMETHODCALLTYPE SOGetTargets(
     _In_range_( 0, D3D11_SO_BUFFER_SLOT_COUNT )  UINT NumBuffers,
     _Out_writes_opt_(NumBuffers)  ID3D11Buffer **ppSOTargets) override
   {
     return pReal->SOGetTargets (NumBuffers, ppSOTargets);
   }
 
-  void STDMETHODCALLTYPE RSGetState( 
+  void STDMETHODCALLTYPE RSGetState(
     _Out_  ID3D11RasterizerState **ppRasterizerState) override
   {
     return pReal->RSGetState (ppRasterizerState);
   }
 
-  void STDMETHODCALLTYPE RSGetViewports( 
+  void STDMETHODCALLTYPE RSGetViewports(
     _Inout_ /*_range(0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE )*/   UINT *pNumViewports,
     _Out_writes_opt_(*pNumViewports)  D3D11_VIEWPORT *pViewports) override
   {
@@ -1532,7 +1536,7 @@ public:
     return pReal->RSGetScissorRects (pNumRects, pRects);
   }
 
-  void STDMETHODCALLTYPE HSGetShaderResources( 
+  void STDMETHODCALLTYPE HSGetShaderResources(
     _In_range_( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1 )  UINT StartSlot,
     _In_range_( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot )  UINT NumViews,
     _Out_writes_opt_(NumViews)  ID3D11ShaderResourceView **ppShaderResourceViews) override
@@ -1834,7 +1838,7 @@ public:
     return
       static_cast <ID3D11DeviceContext1 *>(pReal)->HSGetConstantBuffers1 (StartSlot, NumBuffers, ppConstantBuffers, pFirstConstant, pNumConstants);
   }
-  void STDMETHODCALLTYPE DSGetConstantBuffers1( 
+  void STDMETHODCALLTYPE DSGetConstantBuffers1(
     _In_range_( 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - 1 )  UINT StartSlot,
     _In_range_( 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot )  UINT NumBuffers,
     _Out_writes_opt_(NumBuffers)  ID3D11Buffer **ppConstantBuffers,

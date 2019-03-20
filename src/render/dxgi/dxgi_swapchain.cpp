@@ -27,7 +27,7 @@
 
 #include <unordered_map>
 
-#include <assert.h>
+#include <cassert>
 #include <d3d11.h>
 
 
@@ -491,7 +491,7 @@ IWrapDXGISwapChain::SetMatrixTransform (const DXGI_MATRIX_3X2_F *pMatrix)
   assert(ver_ >= 2);
 
   return
-    static_cast<IDXGISwapChain2 *>(pReal)->SetMatrixTransform (pMatrix);
+    static_cast <IDXGISwapChain2 *>(pReal)->SetMatrixTransform (pMatrix);
 }
 HRESULT
 STDMETHODCALLTYPE
@@ -511,7 +511,7 @@ IWrapDXGISwapChain::GetCurrentBackBufferIndex (void)
   assert (ver_ >= 3);
 
   return
-    static_cast<IDXGISwapChain3 *>(pReal)->GetCurrentBackBufferIndex ();
+    static_cast <IDXGISwapChain3 *>(pReal)->GetCurrentBackBufferIndex ();
 }
 
 HRESULT
@@ -598,7 +598,7 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
 {
   assert (ver_ >= 4);
 
-  dll_log.Log (L"HDR Metadata");
+  dll_log->Log (L"HDR Metadata");
 
   //SK_LOG_FIRST_CALL
 

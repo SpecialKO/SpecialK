@@ -158,7 +158,7 @@ if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateAct
           wchar_t* wszDisplayName = nullptr;
           if (SUCCEEDED (pSessionCtl2->GetSessionIdentifier (&wszDisplayName)))
           {
-            dll_log.Log   (L"Name: %ws", wszDisplayName);
+            dll_log->Log  (L"Name: %ws", wszDisplayName);
             CoTaskMemFree (wszDisplayName);
           }
 
@@ -390,9 +390,9 @@ SK_WASAPI_GetChannelName (int channel_idx)
     DWORD dwConfig = 0x00;
 
     using DirectSoundCreate_pfn = HRESULT (WINAPI *)(
-      LPGUID         lpGuid, 
-      LPDIRECTSOUND* ppDS, 
-      LPUNKNOWN      pUnkOuter 
+      LPGUID         lpGuid,
+      LPDIRECTSOUND* ppDS,
+      LPUNKNOWN      pUnkOuter
     );
 
     HMODULE hModDSound =
@@ -568,7 +568,7 @@ SK_WASAPI_AudioSession::OnStateChanged (AudioSessionState NewState)
 
   return S_OK;
 }
-        
+
 HRESULT
 SK_WASAPI_AudioSession::OnSessionDisconnected (AudioSessionDisconnectReason DisconnectReason)
 {

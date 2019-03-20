@@ -27,7 +27,7 @@
 
 GlobalAlloc_pfn  GlobalAlloc_Original  = nullptr;
 GlobalFree_pfn   GlobalFree_Original   = nullptr;
-                                       
+
 LocalAlloc_pfn   LocalAlloc_Original   = nullptr;
 LocalFree_pfn    LocalFree_Original    = nullptr;
 
@@ -52,7 +52,7 @@ GlobalAlloc_Detour (
   HGLOBAL hgRet =
     GlobalAlloc_Original (uFlags, dwBytes);
 
-  if (hgRet != 0)
+  if (hgRet != nullptr)
   {
     if (ReadAcquire (&__SK_DLL_Attached) &&
         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
@@ -75,7 +75,7 @@ HLOCAL
 WINAPI
 SK_LocalAlloc (
   _In_ UINT   uFlags,
-  _In_ SIZE_T uBytes )
+  _In_ SIZE_T uBytes ) noexcept
 {
   if (LocalAlloc_Original != nullptr)
     return LocalAlloc_Original (uFlags, uBytes);
@@ -92,12 +92,12 @@ LocalAlloc_Detour (
   HLOCAL hlRet =
     LocalAlloc_Original (uFlags, uBytes);
 
-  if (hlRet != 0)
+  if (hlRet != nullptr)
   {
     if (ReadAcquire (&__SK_DLL_Attached)  &&
         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
     {
-      SK_TLS* pTLS = 
+      SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
       if (pTLS != nullptr)
@@ -126,7 +126,7 @@ RtlAllocateHeap_Detour (
     if ( ReadAcquire (&__SK_DLL_Attached)  &&
          ReadAcquire (&_SK_IgnoreTLSAlloc) == 0 )
     {
-      SK_TLS* pTLS = 
+      SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
       if (pTLS != nullptr)
@@ -155,9 +155,9 @@ VirtualAlloc_Detour (
     if (ReadAcquire (&__SK_DLL_Attached)  &&
         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
     {
-      SK_TLS* pTLS = 
+      SK_TLS* pTLS =
         SK_TLS_Bottom ();
-      
+
       if (pTLS != nullptr)
       {
         InterlockedAdd64 (&pTLS->memory.virtual_bytes, dwSize);
@@ -187,7 +187,7 @@ SK_VirtualAlloc (
 HGLOBAL
 WINAPI
 GlobalFree_Detour   (
-  _In_ HGLOBAL hMem ) 
+  _In_ HGLOBAL hMem )
 {
   return
     GlobalFree_Original (hMem);
@@ -196,7 +196,7 @@ GlobalFree_Detour   (
 HLOCAL
 WINAPI
 SK_LocalFree       (
-  _In_ HLOCAL hMem )
+  _In_ HLOCAL hMem ) noexcept
 {
   if (LocalFree_Original != nullptr)
     return LocalFree_Original (hMem);
@@ -207,7 +207,7 @@ SK_LocalFree       (
 HLOCAL
 WINAPI
 LocalFree_Detour   (
-  _In_ HLOCAL hMem ) 
+  _In_ HLOCAL hMem )
 {
   return
     LocalFree_Original (hMem);
@@ -259,7 +259,7 @@ WINAPI
 HeapFree_Detour (
   _In_ HANDLE hHeap,
   _In_ DWORD  dwFlags,
-  _In_ LPVOID lpMem ) 
+  _In_ LPVOID lpMem )
 {
   return
     HeapFree_Original (hHeap, dwFlags, lpMem);
@@ -355,4 +355,4 @@ SK_Memory_RemoveHooks (void)
   HeapFree_Original        = nullptr;
 
   SK_ApplyQueuedHooks ();
-} 
+}

@@ -25,6 +25,7 @@
 
 #include <comdef.h>
 #include <Unknwnbase.h>
+#include <gsl/gsl_util>
 
 #include <Windows.h>
 #include <algorithm>
@@ -164,13 +165,13 @@ public:
 HLOCAL
 WINAPI
 SK_LocalFree       (
-  _In_ HLOCAL hMem );
+  _In_ HLOCAL hMem ) noexcept;
 
 HLOCAL
 WINAPI
 SK_LocalAlloc (
   _In_ UINT   uFlags,
-  _In_ SIZE_T uBytes );
+  _In_ SIZE_T uBytes ) noexcept;
 
 template <typename _T>
 class SK_TLS_LocalDataStore
@@ -246,7 +247,10 @@ public:
 class SK_TLS_DynamicContext
 {
 public:
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t virtual Cleanup                (SK_TLS_CleanupReason_e reason = Unload);
+
+                  SK_TLS_DynamicContext (void) noexcept { };
+         virtual ~SK_TLS_DynamicContext (void) { };
 };
 
 class SK_TLS_ScratchMemory : public SK_TLS_DynamicContext
@@ -271,7 +275,7 @@ public:
     SK_TLS_HeapDataStore <wchar_t> formatted_output;
   } log;
 
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
 class SK_TLS_ScratchMemoryLocal : public SK_TLS_DynamicContext
@@ -281,7 +285,7 @@ public:
 
   SK_TLS_LocalDataStore <BYTE> NtQuerySystemInformation;
 
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
 
@@ -337,7 +341,7 @@ public:
   // Needed to safely override D3D9Ex fullscreen mode during device
   //   creation
 
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t virtual Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
 class SK_D3D8_ThreadContext : public SK_TLS_RenderContext
@@ -395,15 +399,15 @@ public:
 
   SK_D3D11_Stateblock_Lite* getStateBlock (void);
 
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
 class SK_GL_ThreadContext : public SK_TLS_RenderContext
 {
 public:
-  HGLRC current_hglrc = 0;
-  HDC   current_hdc   = 0;
-  HWND  current_hwnd  = 0;
+  HGLRC current_hglrc = nullptr;
+  HDC   current_hdc   = nullptr;
+  HWND  current_hwnd  = nullptr;
 };
 
 
@@ -417,7 +421,7 @@ public:
   bool     tryTrim      (void);
   void     moveAlloc    (void);
 
-  size_t Cleanup (SK_TLS_CleanupReason_e);
+  size_t Cleanup (SK_TLS_CleanupReason_e) override;
 
 private:
   uint8_t* buffer  = nullptr;
@@ -450,7 +454,7 @@ public:
 
   HRAWINPUT       last_input  = nullptr;
 
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
 #include <SpecialK/input/input.h>
@@ -471,7 +475,7 @@ public:
 
   LONG GUI                 = -1;
   HWND active              = (HWND)-1;
-  
+
 
   int  thread_prio         =  0;
 
@@ -501,7 +505,7 @@ public:
   void*  polyline_storage  = nullptr;
   size_t polyline_capacity = 0UL;
 
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
 class SK_OSD_ThreadContext : public SK_TLS_DynamicContext
@@ -514,7 +518,7 @@ public:
   char*  text          = nullptr;
   size_t text_capacity = 0;
 
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
 class SK_Steam_ThreadContext : public SK_TLS_DynamicContext
@@ -532,7 +536,7 @@ public:
 
   volatile LONG64 callback_count = 0;
 
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
 
@@ -625,7 +629,7 @@ public:
   } mru_wait;
 
 public:
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
 
@@ -696,7 +700,7 @@ public:
     HANDLE           handle        = INVALID_HANDLE_VALUE;
     DWORD            tls_idx       =     0;
     DWORD            tid           =     0;
-    ULONG            last_frame    = static_cast <ULONG>(-1);
+    ULONG            last_frame    = gsl::narrow_cast <ULONG>(-1);
     volatile LONG    exceptions    =     0;
     bool             mapped        = false;
     bool             last_chance   = false;
@@ -725,7 +729,7 @@ public:
   //  static const int max     = 1;
   //} stack;
 
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+  virtual size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
 //SK_TLS* __cdecl SK_TLS_Get      (void); // Alias: SK_TLS_Top

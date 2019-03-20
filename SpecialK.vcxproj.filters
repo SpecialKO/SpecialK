@@ -666,6 +666,9 @@
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_state_tracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\utility\lazy_global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -1037,9 +1040,6 @@
     <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\d3d11\hooks\d3d11_device.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1053,6 +1053,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_wrapped.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1242,6 +1245,24 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="include\SpecialK\commands\limit_reset.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="src\imgui\LICENSE" />
+    <None Include="include\gsl\gsl_algorithm" />
+    <None Include="include\gsl\gsl_util" />
+    <None Include="include\gsl\gsl_byte" />
+    <None Include="include\gsl\multi_span" />
+    <None Include="include\gsl\span" />
+    <None Include="include\gsl\string_span" />
+    <None Include="include\gsl\pointers" />
     <None Include="@(NativeLibs)" />
   </ItemGroup>
   <ItemGroup>

@@ -59,32 +59,32 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
     if (GetLastError () == ERROR_SUCCESS)
     {
 #endif
-      if ( FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
-                           nullptr )
-         )
-      {
-        InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-        try {
-          pTLS =
-            new SK_TLS (
-              ReadULongAcquire (&__SK_TLS_INDEX)
-            );
+    if ( FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
+                         nullptr )
+       )
+    {
+      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+      try {
+        pTLS =
+          new SK_TLS (
+            ReadULongAcquire (&__SK_TLS_INDEX)
+          );
 
-          FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
-                          pTLS );
-        }
-
-        catch (std::bad_alloc&)
-        {
-          pTLS = nullptr;
-        }
-        InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+        FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
+                        pTLS );
       }
 
-      ////pTLS->scheduler.objects_waited =
-      ////  new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
+      catch (std::bad_alloc&)
+      {
+        pTLS = nullptr;
+      }
+      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+    }
 
-      SK_ReleaseAssert (pTLS != nullptr);
+    ////pTLS->scheduler.objects_waited =
+    ////  new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
+
+    SK_ReleaseAssert (pTLS != nullptr);
 #ifdef _DEBUG
     }
 #endif
@@ -116,126 +116,6 @@ SK_GetTLS (SK_TLS** ppTLS)
     SK_GetTLSEx (ppTLS, false);
 }
 
-static const int RESOLVE_MAX = 8;
-
-
-struct SK_TLS_ThreadCache {
-  using         cache_record         =
-  typename std::pair <DWORD, SK_TLS *>;
-
-  //------------------------------------------//
-
-  cache_record last_resolve [RESOLVE_MAX] = { };
-  volatile LONG              resolve_idx  =  0;
-
-} static cache_ctx;
-
-
-SK_TlsRecord*
-SK_TLS_FindInCache (DWORD dwTid)
-{
-  UNREFERENCED_PARAMETER (dwTid);
-  ////auto midpoint =
-  ////  ReadAcquire (&cache_ctx.resolve_idx);
-  ////
-  ////for ( auto idx = midpoint ;
-  ////           idx < RESOLVE_MAX ;
-  ////         ++idx )
-  ////{
-  ////  auto record =
-  ////    cache_ctx.last_resolve [idx];
-  ////
-  ////  if ( record.first  == dwTid &&
-  ////       record.second != nullptr )
-  ////  {
-  ////    if (record.second->context_record.pTLS->debug.tid == dwTid) return
-  ////       &record.second->context_record;
-  ////  }
-  ////}
-  ////
-  ////for ( auto idx  = midpoint ;
-  ////           idx >= 0        ;
-  ////         --idx )
-  ////{
-  ////  auto record =
-  ////    cache_ctx.last_resolve [idx];
-  ////
-  ////  if ( record.first  == dwTid &&
-  ////       record.second != nullptr )
-  ////  {
-  ////    if (record.second->context_record.pTLS->debug.tid == dwTid) return
-  ////       &record.second->context_record;
-  ////  }
-  ////}
-
-  return nullptr;
-}
-
-bool
-SK_TLS_RemoveFromCache (DWORD dwTid)
-{
-  UNREFERENCED_PARAMETER (dwTid);
-
-  //auto midpoint =
-  //  ReadAcquire (&cache_ctx.resolve_idx);
-  //
-  //for ( auto idx = midpoint ;
-  //           idx < RESOLVE_MAX ;
-  //         ++idx )
-  //{
-  //  auto& record =
-  //    cache_ctx.last_resolve [idx];
-  //
-  //  if ( record.first  == dwTid &&
-  //       record.second != nullptr )
-  //  {
-  //    SK_TLS_ThreadCache::cache_record
-  //      swap_record = record;
-  //
-  //    if (swap_record.first == dwTid)
-  //    {
-  //      swap_record.first  = 0;
-  //      swap_record.second = nullptr;
-  //
-  //      cache_ctx.last_resolve [idx] = swap_record;
-  //    //std::swap (record, swap_record);
-  //
-  //      return true;
-  //    }
-  //  }
-  //}
-  //
-  //for ( auto idx  = midpoint ;
-  //           idx >= 0        ;
-  //         --idx )
-  //{
-  //  auto& record =
-  //    cache_ctx.last_resolve [idx];
-  //
-  //  if ( record.first  == dwTid &&
-  //       record.second != nullptr )
-  //  {
-  //    SK_TLS_ThreadCache::cache_record
-  //      swap_record = record;
-  //
-  //    if (swap_record.first == dwTid)
-  //    {
-  //      swap_record.first  = 0;
-  //      swap_record.second = nullptr;
-  //
-  //      cache_ctx.last_resolve [idx] = swap_record;
-  //    //std::swap (record, swap_record);
-  //
-  //      return true;
-  //    }
-  //  }
-  //}
-
-  //return false;
-
-  return true;
-}
-
 SK_TLS*
 SK_CleanupTLS (void)
 {
@@ -251,18 +131,16 @@ SK_CleanupTLS (void)
       nullptr;
   }
 
-  const DWORD dwTid =
-    pTLS->debug.tid;
-
   if ( pTLS->context_record.pTLS     ==  pTLS &&
        pTLS->context_record.dwTlsIdx != -1 )
   {
-    SK_ReleaseAssert (SK_TLS_RemoveFromCache (dwTid) == true);
+    // ...
   }
 
   if (pTLS->debug.mapped)
   {   pTLS->debug.mapped = false;
-
+    ////////const DWORD dwTid =
+    ////////  pTLS->debug.tid;
     ////////auto& tls_map =
     ////////  SK_TLS_Map ();
     ////////
@@ -321,41 +199,6 @@ SK_TLS_LogLeak ( const wchar_t* wszFunc,
 SK_TLS*
 SK_TLS_Bottom (void)
 {
-  //static volatile SK_TLS* pLastTLS = nullptr;
-  //
-  //SK_TLS* pTLStoTest = (SK_TLS *)
-  //  ReadPointerAcquire ((PVOID const volatile *)&pLastTLS);
-  //
-  //if (pTLStoTest != nullptr)
-  //{
-  //  if (pTLStoTest->debug.tid == GetCurrentThreadId ())
-  //  {
-  //    return pTLStoTest;
-  //  }
-  //}
-  ////SK_TlsRecord *pTlsRec =
-  ////  SK_TLS_FindInCache (dwTid);
-  ////
-  ////if ( pTlsRec                  != nullptr &&
-  ////     pTlsRec->pTLS            != nullptr &&
-  ////     pTlsRec->pTLS->debug.tid == dwTid )
-  ////{
-  ////  return
-  ////    pTlsRec->pTLS;
-  ////}
-  ////
-  ////
-  ////auto _CacheResolution =
-  ////  [&](LONG idx, SK_TLS* pTLS) ->
-  ////  void
-  ////  {
-  ////    SK_TLS_ThreadCache::cache_record cache =
-  ////      std::make_pair (pTLS->debug.tid, pTLS);
-  ////
-  ////    std::swap (cache_ctx.last_resolve [idx], cache);
-  ////  };
-
-
   InterlockedIncrement (&_SK_IgnoreTLSAlloc);
 
   SK_TLS *pTLS       = nullptr;
@@ -364,7 +207,7 @@ SK_TLS_Bottom (void)
 
   //
   //SK_ReleaseAssert ( (! ReadAcquire (&__SK_DLL_Attached)) ||
-  //                      tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
+  //                tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
 
 ////#ifdef _DEBUG
 ////  if ( tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES ||
@@ -396,25 +239,6 @@ SK_TLS_Bottom (void)
 
   //SK_ReleaseAssert (pTLS != nullptr)
 
-  ////LONG idx = 0;
-  ////
-  ////if (pTLS != nullptr)
-  ////{
-  ////  while (InterlockedCompareExchange (&cache_ctx.resolve_idx, 0, RESOLVE_MAX) != RESOLVE_MAX)
-  ////  {
-  ////    idx = ReadAcquire (&cache_ctx.resolve_idx);
-  ////
-  ////    if (idx >= RESOLVE_MAX)
-  ////    {
-  ////      InterlockedExchange (&cache_ctx.resolve_idx, 0);
-  ////      continue;
-  ////    }
-  ////
-  ////    _CacheResolution (InterlockedIncrement (&cache_ctx.resolve_idx), pTLS);
-  ////    break;
-  ////  }
-  ////}
-
   if (pTLSRecord == nullptr)
   {
     return nullptr;
@@ -445,9 +269,7 @@ SK_TLS_BottomEx (DWORD dwTid)
          tls_slot->pTLS->context_record.dwTlsIdx == ReadULongAcquire (&__SK_TLS_INDEX) )
     {
       return
-        static_cast <SK_TLS *> (
-          tls_slot->pTLS
-          );
+        tls_slot->pTLS;
     }
   }
 
@@ -602,6 +424,14 @@ SK_RawInput_ThreadContext::allocateDevices (size_t needed)
 
 
 size_t
+SK_TLS_DynamicContext::Cleanup (SK_TLS_CleanupReason_e reason)
+{
+  UNREFERENCED_PARAMETER (reason);
+
+  return 0;
+}
+
+size_t
 SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0UL;
@@ -613,7 +443,12 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   freed += log.formatted_output.reclaim ();
 
   for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
-    freed += segment->reclaim ();
+  {
+    if (segment != nullptr)
+    {
+      freed += segment->reclaim ();
+    }
+  }
 
   return freed;
 }
@@ -990,8 +825,8 @@ SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
   {
     if (reserve < elems)
     {
-      dll_log.Log (L"Growing tid %x's DXTex memory pool from %lu to %lu",
-                   GetCurrentThreadId (), reserve, elems);
+      dll_log->Log (L"Growing tid %x's DXTex memory pool from %lu to %lu",
+                    GetCurrentThreadId (), reserve, elems);
 
       _aligned_free (buffer);
                      buffer = (uint8_t *)_aligned_malloc (elems, alignment);
@@ -1027,8 +862,8 @@ SK_DXTex_ThreadContext::tryTrim (void)
   if (        reserve > _SlackSpace &&
        timeGetTime () - last_trim   >= _TimeBetweenTrims )
   {
-    dll_log.Log (L"Trimming tid %x's DXTex memory pool from %lu to %lu",
-                 GetCurrentThreadId (), reserve, _SlackSpace);
+    dll_log->Log (L"Trimming tid %x's DXTex memory pool from %lu to %lu",
+                  GetCurrentThreadId (), reserve, _SlackSpace);
 
     buffer = static_cast <uint8_t *>              (
       _aligned_realloc (buffer,  _SlackSpace, 16) );
@@ -1040,6 +875,7 @@ SK_DXTex_ThreadContext::tryTrim (void)
 
   return false;
 }
+
 
 size_t
 SK_DXTex_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)

@@ -254,18 +254,18 @@ D3D11_GetData_Override (
     This,    pAsync,
       pData, DataSize,
           GetDataFlags     );
- 
+
 #if 1
   return hr;
 #else
-  dll_log.Log (L"Query Type: %lu, Misc Flags: %x - Result: %x, Value: %llu", qDesc.Query,
-               qDesc.MiscFlags, hr, *(uint64_t *)pData);
+  dll_log->Log (L"Query Type: %lu, Misc Flags: %x - Result: %x, Value: %llu", qDesc.Query,
+                qDesc.MiscFlags, hr, *(uint64_t *)pData);
 
-  dll_log.Log (L"Query - Size: %lu", DataSize);
+  dll_log->Log (L"Query - Size: %lu", DataSize);
 
   if (pCounter)
   {
-    dll_log.Log (L"Counter - Size: %lu", DataSize);
+    dll_log->Log (L"Counter - Size: %lu", DataSize);
   }
   auto isDataReady =
    [&](void)
@@ -295,7 +295,7 @@ D3D11_GetData_Override (
                     GetDataFlags
                                    );
         };
- 
+
   extern bool
          __SK_DQXI_MakeAsyncObjectsGreatAgain;
   if ((! __SK_DQXI_MakeAsyncObjectsGreatAgain) ||
@@ -305,13 +305,13 @@ D3D11_GetData_Override (
     return
       finishGetData ();
   }
- 
+
   int spins = 0;
- 
+
   do
   {
     YieldProcessor ();
- 
+
     if (++spins > 3)
     {
       break;
@@ -546,7 +546,7 @@ D3D11_VSSetConstantBuffers_Override (
   UINT                  NumBuffers,
   ID3D11Buffer *const  *ppConstantBuffers )
 {
-  //dll_log.Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
+  //dll_log->Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
   return
     D3D11_VSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
 }
@@ -560,7 +560,7 @@ D3D11_PSSetConstantBuffers_Override (
   UINT                  NumBuffers,
   ID3D11Buffer *const  *ppConstantBuffers )
 {
-  //dll_log.Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
+  //dll_log->Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
   return
     D3D11_PSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
 }
@@ -740,24 +740,24 @@ D3D11_UpdateSubresource1_Override (
   }
 
 
-  dll_log.Log (L"UpdateSubresource1 ({%s}", SK_D3D11_DescribeResource (pDstResource).c_str ());
+  dll_log->Log (L"UpdateSubresource1 ({%s}", SK_D3D11_DescribeResource (pDstResource).c_str ());
 
 
-  //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource1 (%ph, %lu, %ph, %ph, %lu, %lu, %x)",
-  //          pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch, CopyFlags);
+  //dll_log->Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource1 (%ph, %lu, %ph, %ph, %lu, %lu, %x)",
+  //           pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch, CopyFlags);
 
   D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
   pDstResource->GetType  (&rdim);
 
   if (SK_D3D11_IsStagingCacheable (rdim, pDstResource) && DstSubresource == 0)
   {
-    static auto& textures =
-      SK_D3D11_Textures;
-
-    CComQIPtr <ID3D11Texture2D> pTex (pDstResource);
+    SK_ComQIPtr <ID3D11Texture2D> pTex (pDstResource);
 
     if (pTex != nullptr)
     {
+      static auto& textures =
+        SK_D3D11_Textures;
+
       D3D11_TEXTURE2D_DESC desc = { };
            pTex->GetDesc (&desc);
 
@@ -778,12 +778,12 @@ D3D11_UpdateSubresource1_Override (
 
       const auto start            = SK_QueryPerf ().QuadPart;
 
-      CComPtr <ID3D11Texture2D> pCachedTex =
+      SK_ComPtr <ID3D11Texture2D> pCachedTex =
         textures.getTexture2D (cache_tag, &desc, nullptr, nullptr, pTLS);
 
       if (pCachedTex != nullptr)
       {
-        CComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
+        SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
 
         D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
 
@@ -1003,7 +1003,7 @@ D3D11_CopySubresourceRegion_Override (
 
   SK_TLS* pTLS = SK_TLS_Bottom ();
 
-  CComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
+  SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
 
   if (pDstTex != nullptr)
   {
@@ -1322,7 +1322,7 @@ D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
   if (SK_D3D11_DispatchHandler (This, pTLS))
     return;
 
- 
+
   SK_ReShade_DrawCallback.call (This, 64, pTLS);
 
   D3D11_DispatchIndirect_Original ( This,
@@ -1386,7 +1386,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
     for (auto&& i : tracked_rtv.active [dev_idx]) i.store (false);
 
     tracked_rtv.active_count [dev_idx] = 0;
- 
+
     D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
       This, NumRTVs, ppRenderTargetViews,
         pDSV, UAVStartSlot, NumUAVs,

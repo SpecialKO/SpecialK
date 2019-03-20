@@ -135,7 +135,7 @@ SK_Crash_PlaySound (void)
 
     ret = true;
   }
-  
+
   catch (const SK_SEH_IgnoredException&)
   {
   }
@@ -286,11 +286,11 @@ CrashHandler::Init (void)
             }
           }
 
-          if (! crash_log.initialized)
+          if (! crash_log->initialized)
           {
-            crash_log.flush_freq = 0;
-            crash_log.lockless   = true;
-            crash_log.init       (L"logs/crash.log", L"wt+,ccs=UTF-8");
+            crash_log->flush_freq = 0;
+            crash_log->lockless   = true;
+            crash_log->init       (L"logs/crash.log", L"wt+,ccs=UTF-8");
           }
 
           Reinstall ();
@@ -311,10 +311,10 @@ CrashHandler::Shutdown (void)
 //SK_SymCleanup (GetCurrentProcess ());
 
   // Strip the blank line and cause empty-file deletion to happen
-  if (crash_log.lines == 1)
-      crash_log.lines =  0;
+  if (crash_log->lines == 1)
+      crash_log->lines =  0;
 
-  crash_log.close ();
+  crash_log->close ();
 }
 
 
@@ -379,20 +379,12 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   return ret;
 }
 
-iSK_Logger crash_log;
-
-extern iSK_Logger steam_log;
-extern iSK_Logger budget_log;
-extern iSK_Logger game_debug;
-extern iSK_Logger tex_log;
-
 std::wstring
 SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool crash_handled)
 {
-  std::wstring log_entry;
-  log_entry.reserve (16384);
-
-  const wchar_t* desc = L"";
+  std::wstring
+    log_entry;
+    log_entry.reserve (16384);
 
     HMODULE hModSource               = nullptr;
   char    szModName [MAX_PATH + 2] = { };
@@ -422,13 +414,15 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   strncpy_s (szDupName, MAX_PATH * 2, szModName, _TRUNCATE);
   char* pszShortName =
              szDupName;
-  
+
   PathStripPathA (pszShortName);
 
 #define log_entry_format log_entry.append (SK_FormatStringW
 
   if (crash_handled)
   {
+    const wchar_t* desc = L"";
+
     switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
     {
       case EXCEPTION_ACCESS_VIOLATION:
@@ -671,7 +665,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
 
   BOOL ret = TRUE;
 
-  
+
   size_t max_symbol_len = 0,
          max_module_len = 0,
          max_file_len   = 0;
@@ -912,13 +906,13 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   std::wstring log_entry =
     SK_SEH_SummarizeException (ExceptionInfo, true);
 
-  crash_log.Log   (L"\n\tUnhandled Top-Level Exception (%x):\n",
-                   ExceptionInfo->ExceptionRecord->ExceptionCode);
+  crash_log->Log   (L"\n\tUnhandled Top-Level Exception (%x):\n",
+                    ExceptionInfo->ExceptionRecord->ExceptionCode);
 
 
-  crash_log.LogEx  (false, L"%ws", log_entry.c_str ());
+  crash_log->LogEx  (false, L"%ws", log_entry.c_str ());
 
-  fflush (crash_log.fLog);
+  fflush (crash_log->fLog);
 
 
   // On second chance it's pretty clear that no exception handler exists,
@@ -996,34 +990,34 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
           {
             iSK_Logger*       log_file = nullptr;
 
-            if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
+            if (dll_log->name.find (fd.cFileName) != std::wstring::npos)
             {
-              log_file = &dll_log;
+              log_file = dll_log.getPtr ();
             }
 
-            else if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
+            else if (steam_log->name.find (fd.cFileName) != std::wstring::npos)
             {
-              log_file = &steam_log;
+              log_file = steam_log.getPtr ();
             }
 
-            else if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
+            else if (crash_log->name.find (fd.cFileName) != std::wstring::npos)
             {
-              log_file = &crash_log;
+              log_file = crash_log.getPtr ();
             }
 
-            else if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
+            else if (game_debug->name.find (fd.cFileName) != std::wstring::npos)
             {
-              log_file = &game_debug;
+              log_file = game_debug.getPtr ();
             }
 
-            else if (tex_log.name.find (fd.cFileName) != std::wstring::npos)
+            else if (tex_log->name.find (fd.cFileName) != std::wstring::npos)
             {
-              log_file = &tex_log;
+              log_file = tex_log.getPtr ();
             }
 
-            else if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
+            else if (budget_log->name.find (fd.cFileName) != std::wstring::npos)
             {
-              log_file = &budget_log;
+              log_file = budget_log.getPtr ();
             }
 
             // There's a small chance that we may crash prior to loading CEGUI's DLLs, in which case
@@ -1059,7 +1053,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
               if ( log_file       != nullptr &&
                    log_file->fLog != nullptr &&
-                   log_file       != &crash_log )
+                   log_file       != crash_log.getPtr () )
               {
                 if (! InterlockedCompareExchange (&log_file->relocated, 1, 0))
                 {
@@ -1078,7 +1072,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
               if ( log_file != nullptr &&
                    log_file->fLog      &&
-                   log_file != &crash_log )
+                   log_file != crash_log.getPtr () )
               {
                 log_file->name = wszDestPath;
                 log_file->fLog = _wfopen (log_file->name.c_str (), L"a");
@@ -1104,8 +1098,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       FindClose (hFind);
     }
 
-    crash_log.silent = true;
-    crash_log.lines++;
+    crash_log->silent = true;
+    crash_log->lines++;
 
     //if (! (crash_log.initialized && crash_log.silent))
     {
@@ -1157,8 +1151,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 }
 
 ULONG
-SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
-                                 char*   pszOut, ULONG     ulLen )
+SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
+                                 gsl::span <char> pszOut, ULONG     ulLen )
 {
   ULONG ret = 0;
 
@@ -1170,7 +1164,7 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
       GetCurrentProcess (), hMod, &mod_info, sizeof (mod_info)
     );
 
-    auto  BaseAddr =
+    const auto BaseAddr =
       (DWORD64)mod_info.lpBaseOfDll;
 
     char szModName [MAX_PATH + 2] = {  };
@@ -1211,18 +1205,18 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
                          &Displacement,
                            &sip.si ) )
   {
-    *pszOut = '\0';
+    pszOut [0] = '\0';
 
-    strncat             ( pszOut, sip.si.Name,
+    strncat             ( pszOut.data (), sip.si.Name,
                             std::min (ulLen, sip.si.NameLen) );
     ret =
-      static_cast <ULONG> (strlen (pszOut));
+      gsl::narrow_cast <ULONG> (strlen (pszOut.data ()));
   }
 
   else
   {
-    *pszOut = '\0';
-    ret     = 0;
+    pszOut [0] = '\0';
+    ret        = 0;
   }
 
   return ret;
@@ -1238,7 +1232,7 @@ SK_SymRefreshModuleList ( HANDLE hProc )
 }
 
 using SteamAPI_SetBreakpadAppID_pfn = void (__cdecl *)( uint32_t unAppID );
-using SteamAPI_UseBreakpadCrashHandler_pfn = void (__cdecl *)( char const *pchVersion, char const *pchDate, 
+using SteamAPI_UseBreakpadCrashHandler_pfn = void (__cdecl *)( char const *pchVersion, char const *pchDate,
                                                               char const *pchTime,    bool        bFullMemoryDumps,
                                                               void       *pvContext,  LPVOID      m_pfnPreMinidumpCallback );
 
@@ -1282,13 +1276,13 @@ SK_BypassSteamCrashHandler (void)
     {
       if (SK_Modules.LoadLibraryLL (wszSteamDLL))
       {
-        crash_log.Log (L"Disabling Steam Breakpad...");
+        crash_log->Log (L"Disabling Steam Breakpad...");
 
         SK_CreateDLLHook2 (       wszSteamDLL,
                                   "SteamAPI_UseBreakpadCrashHandler",
                                    SteamAPI_UseBreakpadCrashHandler_Detour,
           static_cast_p2p <void> (&SteamAPI_UseBrakepadCrashHandler_NEVER) );
-      
+
         SK_CreateDLLHook2 (       wszSteamDLL,
                                   "SteamAPI_SetBreakpadAppID",
                                    SteamAPI_SetBreakpadAppID_Detour,

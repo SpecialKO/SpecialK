@@ -65,23 +65,23 @@ public:
   virtual int                  GetClanChatMessage              ( CSteamID steamIDClanChat, int iMessage, void *prgchText, int cchTextMax, EChatEntryType *peChatEntryType, OUT_STRUCT() CSteamID *psteamidChatter ) = 0;
   virtual bool                 IsClanChatAdmin                 ( CSteamID steamIDClanChat, CSteamID steamIDUser ) = 0;
 
-  virtual bool                 IsClanChatWindowOpenInSteam     ( CSteamID steamIDClanChat ) override { return pRealFriends->IsClanChatWindowOpenInSteam (steamIDClanChat); }
-  virtual bool                 OpenClanChatWindowInSteam       ( CSteamID steamIDClanChat ) override { return pRealFriends->OpenClanChatWindowInSteam   (steamIDClanChat); }
-  virtual bool                 CloseClanChatWindowInSteam      ( CSteamID steamIDClanChat ) override { return pRealFriends->CloseClanChatWindowInSteam  (steamIDClanChat); }
+          bool                 IsClanChatWindowOpenInSteam     ( CSteamID steamIDClanChat ) override { return pRealFriends->IsClanChatWindowOpenInSteam (steamIDClanChat); }
+          bool                 OpenClanChatWindowInSteam       ( CSteamID steamIDClanChat ) override { return pRealFriends->OpenClanChatWindowInSteam   (steamIDClanChat); }
+          bool                 CloseClanChatWindowInSteam      ( CSteamID steamIDClanChat ) override { return pRealFriends->CloseClanChatWindowInSteam  (steamIDClanChat); }
 
   virtual bool                 SetListenForFriendsMessages     ( bool     bInterceptEnabled ) override { return pRealFriends->SetListenForFriendsMessages (bInterceptEnabled); }
 
   virtual bool                 ReplyToFriendMessage            ( CSteamID        steamIDFriend, const char *pchMsgToSend) = 0;
-  virtual int                  GetFriendMessage                ( CSteamID        steamIDFriend,       int    iMessageID,
+          int                  GetFriendMessage                ( CSteamID        steamIDFriend,       int    iMessageID,
                                                                  void           *pvData,              int    cubData,
                                                                  EChatEntryType *peChatEntryType) override
   {
     return pRealFriends->GetFriendMessage (steamIDFriend, iMessageID, pvData, cubData, peChatEntryType);
   }
 
-  virtual SteamAPICall_t       GetFollowerCount                ( CSteamID steamID      ) override { return pRealFriends->GetFollowerCount       (steamID);      };
-  virtual SteamAPICall_t       IsFollowing                     ( CSteamID steamID      ) override { return pRealFriends->IsFollowing            (steamID);      };
-  virtual SteamAPICall_t       EnumerateFollowingList          ( uint32   unStartIndex ) override { return pRealFriends->EnumerateFollowingList (unStartIndex); };
+          SteamAPICall_t       GetFollowerCount                ( CSteamID steamID      ) override { return pRealFriends->GetFollowerCount       (steamID);      };
+          SteamAPICall_t       IsFollowing                     ( CSteamID steamID      ) override { return pRealFriends->IsFollowing            (steamID);      };
+          SteamAPICall_t       EnumerateFollowingList          ( uint32   unStartIndex ) override { return pRealFriends->EnumerateFollowingList (unStartIndex); };
 
 
 private:

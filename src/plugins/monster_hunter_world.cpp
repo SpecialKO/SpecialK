@@ -49,7 +49,10 @@ bool              __SK_MHW_KillAntiDebug      = true;
 
 sk::ParameterInt*   _SK_MHW_AlternateTonemap;
 
-extern concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
+extern SK_LazyGlobal <
+  concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s>
+> __SK_D3D11_PixelShader_CBuffer_Overrides;
+
 d3d11_shader_tracking_s::cbuffer_override_s* SK_MHW_CB_Override;
 
 #include <SpecialK/plugin/plugin_mgr.h>
@@ -74,7 +77,7 @@ SK_MHW_PlugInInit (void)
 #define SK_MHW_HDR_SECTION     L"MonsterHunterWorld.HDR"
 #define SK_MHW_HDR_SECTION_OLD L"MonsterHuntersWorld.HDR"
 
-  __SK_D3D11_PixelShader_CBuffer_Overrides.push_back
+  __SK_D3D11_PixelShader_CBuffer_Overrides->push_back
   (
 /*
  * 0: Hash,    1: CBuffer Size
@@ -91,10 +94,10 @@ SK_MHW_PlugInInit (void)
 
 
   SK_MHW_CB_Override =
-    &__SK_D3D11_PixelShader_CBuffer_Overrides.back ();
+    &__SK_D3D11_PixelShader_CBuffer_Overrides->back ();
 
   *(reinterpret_cast <UINT *> (SK_MHW_CB_Override->Values)) =
-         static_cast <UINT  > (-1);
+    gsl::narrow_cast <UINT  > (-1);
 
   int* pCBufferOverrideVal =
     reinterpret_cast <int *> (SK_MHW_CB_Override->Values);

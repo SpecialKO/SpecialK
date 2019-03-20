@@ -41,7 +41,7 @@ extern void SK_YS0_TriggerHudFreeScreenshot (void);
 
 
 void
-SK_Widget::run_base (void) 
+SK_Widget::run_base (void)
 {
   if ((! run_once__ )&& osd_ini)
   {
@@ -132,16 +132,19 @@ SK_Widget_CalcClipRect ( SK_Widget* pWidget,
                                 ImVec2& min,
                                 ImVec2& max )
 {
+  if (pWidget == nullptr)
+    return;
+
   static ImGuiIO& io (ImGui::GetIO ());
 
   // Docking alignment visualiztion
   bool draw_horz_ruler = false;
   bool draw_vert_ruler = false;
 
-  ImVec2 pos  = pWidget->getPos  ();
-  ImVec2 size = pWidget->getSize ();
+        ImVec2 pos  = pWidget->getPos  ();
+  const ImVec2 size = pWidget->getSize ();
 
-  ImGuiContext& g =
+  const ImGuiContext& g =
     *ImGui::GetCurrentContext ();
 
   if (n || s)
@@ -197,15 +200,15 @@ SK_Widget_CalcClipRect ( SK_Widget* pWidget,
 
   if (  draw_horz_ruler ^ draw_vert_ruler )
   { if (draw_vert_ruler)
-    { ImVec2 horz_pos =
-        ImVec2 ( ( e  ?  io.DisplaySize.x - size.x 
+    { const ImVec2 horz_pos =
+        ImVec2 ( ( e  ?  io.DisplaySize.x - size.x
                       :                     size.x ),
                      0.0f );                         min =
             ImVec2 ( 0.0f,       0.0f             ); max =
             ImVec2 ( horz_pos.x, io.DisplaySize.y );     }
 
     if (draw_horz_ruler)
-    { ImVec2 vert_pos =
+    { const ImVec2 vert_pos =
         ImVec2 ( 0.0f, ( s ? io.DisplaySize.y - size.y
                            :                    size.y)
                );         min =
@@ -225,16 +228,16 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
   bool draw_horz_ruler = false;
   bool draw_vert_ruler = false;
 
-  ImVec2 pos  = pWidget->getPos  ();
-  ImVec2 size = pWidget->getSize ();
+        ImVec2 pos  = pWidget->getPos  ();
+  const ImVec2 size = pWidget->getSize ();
 
-  ImGuiContext& g =
+  const ImGuiContext& g =
     *ImGui::GetCurrentContext ();
 
   if (n || s)
   {
     if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered  ( ) )  ||
-                                    ( ImGui::IsNavDragging   ( ) && ImGui::GetCurrentWindow ( ) == 
+                                    ( ImGui::IsNavDragging   ( ) && ImGui::GetCurrentWindow ( ) ==
                                                                         g.NavWindowingTarget  ) )
        )
     {
@@ -273,7 +276,7 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
   {
     pos.x
     = std::max (0.0f, std::min (pos.x, io.DisplaySize.x - size.x));
-    pos.y 
+    pos.y
     = std::max (0.0f, std::min (pos.y, io.DisplaySize.y - size.y));
   }
 
@@ -292,7 +295,7 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
 
     if (draw_vert_ruler)
     {
-      ImVec2 horz_pos =
+      const ImVec2 horz_pos =
         ImVec2 ( (e ? io.DisplaySize.x - size.x :
                                          size.x   ),
                    0.0f );
@@ -303,7 +306,7 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
 
     if (draw_horz_ruler)
     {
-      ImVec2 vert_pos =
+      const ImVec2 vert_pos =
         ImVec2 ( 0.0f,
                 ( s ? io.DisplaySize.y - size.y :
                                          size.y   )
@@ -313,17 +316,18 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
       xy1 = ImVec2 ( io.DisplaySize.x, vert_pos.y );
     }
 
-    ImVec4 col = ImColor::HSV ( 0.133333f, 
-                                    std::min ( static_cast <float>(0.161616f +  (timeGetTime () % 250) / 250.0f -
-                                                                        floor ( (timeGetTime () % 250) / 250.0f) ), 1.0f),
-                                        std::min ( static_cast <float>(0.333 +  (timeGetTime () % 500) / 500.0f -
-                                                                        floor ( (timeGetTime () % 500) / 500.0f) ), 1.0f) );
+    const ImVec4 col =
+      ImColor::HSV ( 0.133333f,
+                       std::min ( static_cast <float>(0.161616f +  (timeGetTime () % 250) / 250.0f -
+                                                           floor ( (timeGetTime () % 250) / 250.0f) ), 1.0f),
+                           std::min ( static_cast <float>(0.333 +  (timeGetTime () % 500) / 500.0f -
+                                                           floor ( (timeGetTime () % 500) / 500.0f) ), 1.0f) );
     const ImU32 col32 =
       ImColor (col);
-    
+
     ImDrawList* draw_list =
       ImGui::GetWindowDrawList ();
-    
+
     draw_list->PushClipRectFullScreen (                                   );
     draw_list->AddRect                ( xy0, xy1, col32, 0.0f, 0x00, 2.5f );
     draw_list->PopClipRect            (                                   );
@@ -331,7 +335,7 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
 }
 
 void
-SK_Widget::draw_base (void) 
+SK_Widget::draw_base (void)
 {
   if (SK_ImGui_Widgets.hide_all)
     return;
@@ -340,11 +344,11 @@ SK_Widget::draw_base (void)
   //if (ReadAcquire (&__SK_ScreenShot_CapturingHUDless))
   //    return;
 
-  if (! ImGui::GetFont ())
+  if (ImGui::GetFont () == nullptr)
     return;
 
 
-  float fScale = 
+  const float fScale =
     ImGui::GetFont ()->Scale;
 
                    ImGui::GetFont ()->Scale = scale;
@@ -439,23 +443,23 @@ SK_Widget::draw_base (void)
   {
     if (SK_Tobii_WantWidgetGazing ())
     {
-      ImVec2 vPos =
+      const ImVec2 vPos =
         getPos ();
 
-      ImVec2 vSize =
+      const ImVec2 vSize =
         getSize ();
 
-      bool bad_data =
+      const bool bad_data =
         (    vTobiiPos.x == 0.0f &&
              vTobiiPos.y == 0.0f    );
 
-      ImVec2 vMousePos =
+      const ImVec2 vMousePos =
         ImGui::GetMousePos ();
 
       // First test the regular cursor -- if that's hovering the widget,
       //   it's pretty darn important the widget be bright enough to use.
       bool outside  =
-        (! ( vMousePos.x <= (vPos.x + vSize.x) && 
+        (! ( vMousePos.x <= (vPos.x + vSize.x) &&
              vMousePos.x >=  vPos.x            &&
              vMousePos.y <= (vPos.y + vSize.y) &&
              vMousePos.y >=  vPos.y          )    );
@@ -464,7 +468,7 @@ SK_Widget::draw_base (void)
       {
         // Cursor's not hovering, maybe Tobii is?
         outside =
-          (! ( vTobiiPos.x <= (vPos.x + vSize.x + vSize.x * 0.125f) && 
+          (! ( vTobiiPos.x <= (vPos.x + vSize.x + vSize.x * 0.125f) &&
                vTobiiPos.x >=  vPos.x -           vSize.x * 0.125f  &&
                vTobiiPos.y <= (vPos.y + vSize.y + vSize.y * 0.125f) &&
                vTobiiPos.y >=  vPos.y -           vSize.y * 0.125f)    );
@@ -545,7 +549,7 @@ SK_Widget::draw_base (void)
 
   ImGui::PopItemWidth ();
 
-  bool right_clicked =
+  const bool right_clicked =
     SK_ImGui_IsWindowRightClicked ();
 
   pos  = ImGui::GetWindowPos  ();
@@ -555,8 +559,8 @@ SK_Widget::draw_base (void)
 
   if (right_clicked || focus_change)
   {
-    ImVec2 min (pos.x,          pos.y);
-    ImVec2 max (pos.x + size.x, pos.y + size.y);
+    const ImVec2 min (pos.x,          pos.y);
+    const ImVec2 max (pos.x + size.x, pos.y + size.y);
 
     extern bool SK_ControlPanel_Activated;
 
@@ -618,7 +622,7 @@ extern SKWG_D3D11_Pipeline* SK_Widget_GetD3D11Pipeline (void);
 extern SKWG_CPU_Monitor*    SK_Widget_GetCPU           (void);
 
 void
-SK_Widget::config_base (void) 
+SK_Widget::config_base (void)
 {
   static bool changed = false;
 
@@ -669,10 +673,10 @@ SK_Widget::config_base (void)
     changed = true;
   }
 
-  bool n = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::North) ) != 0,
-       s = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::South) ) != 0,
-       e = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::East ) ) != 0,
-       w = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::West ) ) != 0;
+  const bool n = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::North) ) != 0,
+             s = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::South) ) != 0,
+             e = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::East ) ) != 0,
+             w = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::West ) ) != 0;
 
   const char* anchors =
     "Undocked\0North\0South\0\0";
@@ -683,8 +687,8 @@ SK_Widget::config_base (void)
 
   if (ImGui::Combo ("Vertical Docking Anchor", &dock, anchors, 3))
   {
-    int mask = ( dock == 1 ? static_cast <int> (DockAnchor::North) : 0x0 ) |
-               ( dock == 2 ? static_cast <int> (DockAnchor::South) : 0x0 );
+    const int mask = ( dock == 1 ? static_cast <int> (DockAnchor::North) : 0x0 ) |
+                     ( dock == 2 ? static_cast <int> (DockAnchor::South) : 0x0 );
 
     docking =
       static_cast <DockAnchor> (
@@ -704,8 +708,8 @@ SK_Widget::config_base (void)
 
   if (ImGui::Combo ("Horizontal Docking Anchor", &dock, anchors, 3))
   {
-    int mask = (dock == 1 ? static_cast <int> (DockAnchor::West) : 0x0) |
-               (dock == 2 ? static_cast <int> (DockAnchor::East) : 0x0);
+    const int mask = (dock == 1 ? static_cast <int> (DockAnchor::West) : 0x0) |
+                     (dock == 2 ? static_cast <int> (DockAnchor::East) : 0x0);
 
     docking =
       static_cast <DockAnchor> (
@@ -721,7 +725,10 @@ SK_Widget::config_base (void)
   auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
     auto
     {
-      std::string label  = 
+      if (param == nullptr || binding == nullptr)
+        return false;
+
+      std::string label  =
         SK_WideCharToUTF8 (binding->human_readable) + "###";
                   label += binding->bind_name;
 
@@ -773,7 +780,7 @@ SK_Widget::config_base (void)
   ImGui::SliderFloat("Widget Scale", &scale, 0.25f, 2.0f);
   ImGui::Separator  (  );
 
-  bool done =
+  const bool done =
     ImGui::Button   ("  Save  ");
 
   if (done)      {
@@ -822,7 +829,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 {
   BOOL dispatched = FALSE;
 
-  auto uiMaskedKeyCode =
+  const auto uiMaskedKeyCode =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
   auto widgets =
@@ -944,4 +951,4 @@ SK_ImGui_WidgetRegistry::SaveConfig (void)
   return TRUE;
 }
 
-sk::ParameterFactory SK_Widget_ParameterFactory;
+SK_LazyGlobal <sk::ParameterFactory> SK_Widget_ParameterFactory;

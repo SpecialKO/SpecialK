@@ -26,15 +26,15 @@
 
 #define SK_MAX_IMPORTS 8
 
-extern const std::wstring SK_IMPORT_EARLY;
-extern const std::wstring SK_IMPORT_LATE;
-extern const std::wstring SK_IMPORT_LAZY;
+extern const wchar_t* SK_IMPORT_EARLY;
+extern const wchar_t* SK_IMPORT_LATE;
+extern const wchar_t* SK_IMPORT_LAZY;
 
-extern const std::wstring SK_IMPORT_ROLE_DXGI;
-extern const std::wstring SK_IMPORT_ROLE_D3D11;
+extern const wchar_t* SK_IMPORT_ROLE_DXGI;
+extern const wchar_t* SK_IMPORT_ROLE_D3D11;
 
-extern const std::wstring SK_IMPORT_ARCH_X64;
-extern const std::wstring SK_IMPORT_ARCH_WIN32;
+extern const wchar_t* SK_IMPORT_ARCH_X64;
+extern const wchar_t* SK_IMPORT_ARCH_WIN32;
 
 struct import_s
 {

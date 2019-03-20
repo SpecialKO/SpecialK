@@ -98,8 +98,9 @@ SK_File_GetHash_32 (       sk_hash_algo                 algorithm,
             break;
 
           case SK_CRC32C:
-            _hash32 = crc32c ( _hash32, buf, dwReadChunk );
-            break;
+          {
+            _hash32 = crc32c (_hash32, buf, dwReadChunk);
+          } break;
         }
         qwReadTotal += dwReadChunk;
 

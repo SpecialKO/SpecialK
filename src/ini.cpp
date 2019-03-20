@@ -68,7 +68,7 @@ ErrorMessage (errno_t        err,
 }
 
 #define TRY_FILE_IO(x,y,z) { (z) = ##x; if ((z) == nullptr) \
-dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LINE__, __FUNCTION__, __FILE__).c_str ()); }
+dll_log->Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LINE__, __FUNCTION__, __FILE__).c_str ()); }
 
 iSK_INI::iSK_INI (const wchar_t* filename)
 {
@@ -102,13 +102,13 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     sections.clear ();
 
     auto size =
-      static_cast <long> (SK_File_GetSize (wszName));
+      gsl::narrow_cast <long> (SK_File_GetSize (wszName));
 
     // A 4 MiB INI file seems pretty dman unlikely...
     SK_ReleaseAssert (size >= 0 && size < (4L * 1024L * 1024L))
 
     wszData =
-      new wchar_t [size + 3] { };
+      new (std::nothrow) wchar_t [size + 3] { };
 
     SK_ReleaseAssert (wszData != nullptr)
 
@@ -134,9 +134,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     // UTF16-BE  (Somehow we are swapped)
     else if (*wszData == 0xFFFE)
     {
-      dll_log.Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
-                    L"file ('%s'), attempting to recover...",
-                      wszName );
+      dll_log->Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
+                     L"file ('%s'), attempting to recover...",
+                       wszName );
 
       wchar_t* wszSwapMe = wszData;
 
@@ -167,13 +167,13 @@ iSK_INI::iSK_INI (const wchar_t* filename)
         utf8 ? 3 : 0;
 
       const int       real_size =
-        size - static_cast <int> (offset);
+        size - gsl::narrow_cast <int> (offset);
 
       char*           start_addr =
       (reinterpret_cast <char *> (wszData)) + offset;
 
       auto*           string =
-        new char [real_size + 3] { };
+        new (std::nothrow) char [real_size + 3] { };
 
       SK_ReleaseAssert (string != nullptr)
 
@@ -202,9 +202,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
       if (! converted_size)
       {
-        dll_log.Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
-                      L".ini file ('%s') to UTF-16, aborting!",
-                        wszName );
+        dll_log->Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
+                       L".ini file ('%s') to UTF-16, aborting!",
+                         wszName );
 
         if (string != nullptr)
         {
@@ -216,7 +216,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
       }
 
       wszData =
-        new wchar_t [converted_size + 3] { };
+        new (std::nothrow) wchar_t [converted_size + 3] { };
 
       SK_ReleaseAssert (wszData != nullptr)
 
@@ -226,7 +226,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
         MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
                                 wszData, converted_size );
 
-        //dll_log.Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
+        //dll_log->Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
                         //wszName );
       }
 
@@ -282,12 +282,13 @@ auto wcrlen =
       size_t  _len    = 0;
       const
       wchar_t*  _it   = _start;
-      while   ( _it   > 0    &&
+      while   ( _it   > nullptr &&
                 _it   < _end )
       {         _it   =
      CharNextW (_it);
             ++_len;
-           if (*_it == L'\0') break;
+           if ( _it != nullptr &&
+               *_it == L'\0' ) break;
       }return _len;
     };
 
@@ -312,7 +313,7 @@ Process_Section ( iSK_INISection  &kSection,
   const wchar_t* penultimate = CharPrevW (start, end);
         wchar_t* key         = start;
 
-  for (wchar_t* k = key; k < end; k = CharNextW (k))
+  for (wchar_t* k = key; k < end && k != nullptr; k = CharNextW (k))
   {
     if (k < penultimate && *k == L'=')
     {
@@ -384,7 +385,7 @@ Import_Section ( iSK_INISection  &section,
   const wchar_t* penultimate = CharPrevW (start, end);
         wchar_t* key         = start;
 
-  for (wchar_t* k = key; k < end; k = CharNextW (k))
+  for (wchar_t* k = key; k < end && k != nullptr; k = CharNextW (k))
   {
     if (k < penultimate && *k == L'=')
     {
@@ -595,7 +596,7 @@ iSK_INI::parse (void)
 
 
 
-  if (crc32c_ == 0x0)
+  if (crc32_ == 0x0)
   {
     std::wstring outbuf = L"";
                  outbuf.reserve (16384);
@@ -633,9 +634,9 @@ iSK_INI::parse (void)
       outbuf.resize (outbuf.size () - 1);
     }
 
-    crc32c_ =
-      crc32c ( 0x0, outbuf.data   (),
-                    outbuf.length () * sizeof (wchar_t) );
+    crc32_ =
+      crc32 ( 0x0, outbuf.data   (),
+                   outbuf.length () * sizeof (wchar_t) );
   }
 }
 
@@ -827,7 +828,7 @@ iSK_INISection::set_name (const wchar_t* name_)
   if (parent != nullptr)
   {
     if (name != name_)
-      parent->crc32c_ = 0x0;
+      parent->crc32_ = 0x0;
   }
 
   name = name_;
@@ -853,7 +854,7 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
     ordered_keys.emplace_back (key);
 
     if (parent != nullptr)
-        parent->crc32c_ = 0x0;
+        parent->crc32_ = 0x0;
   }
 
   else
@@ -864,7 +865,7 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
     {
       if (parent != nullptr)
       {
-        parent->crc32c_ = 0x0;
+        parent->crc32_ = 0x0;
       }
 
       add.first->second =
@@ -976,13 +977,13 @@ iSK_INI::write (const wchar_t* fname)
   }
 
 
-  uint32_t new_crc32c =
-    crc32c ( 0x0, outbuf.data   (),
-                  outbuf.length () * sizeof (wchar_t) );
+  uint32_t new_crc32 =
+    crc32 ( 0x0, outbuf.data   (),
+                 outbuf.length () * sizeof (wchar_t) );
 
-//dll_log.Log (L"%s => Old: %x, New: %x", get_filename ( ), crc32c_, new_crc32c);
+//dll_log->Log (L"%s => Old: %x, New: %x", get_filename ( ), crc32c_, new_crc32c);
 
-  if (new_crc32c == crc32c_)
+  if (new_crc32 == crc32_)
     return;
 
 
@@ -1016,7 +1017,7 @@ iSK_INI::write (const wchar_t* fname)
   fputws (outbuf.c_str (), fOut);
   fclose (fOut);
 
-  crc32c_ = new_crc32c;
+  crc32_ = new_crc32;
 }
 
 
@@ -1097,7 +1098,7 @@ iSK_INISection::remove_key (const wchar_t* wszKey)
     keys.erase         (key_w);
 
     if (parent != nullptr)
-        parent->crc32c_ = 0x0;
+        parent->crc32_ = 0x0;
 
     return true;
   }
@@ -1160,7 +1161,7 @@ iSK_INI::import_file (const wchar_t* fname)
   // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
   //   actual pointer we need to free...
   CHeapPtr <wchar_t> wszImportName (
-    new wchar_t [len + 2] { }
+    new (std::nothrow) wchar_t [len + 2] { }
   );
 
   if (wszImportName == nullptr)
@@ -1179,11 +1180,11 @@ iSK_INI::import_file (const wchar_t* fname)
   if (fImportINI != nullptr)
   {
     auto size =
-      static_cast <long> (
+      gsl::narrow_cast <long> (
         SK_File_GetSize (fname)
       );
 
-        wszImportData  = new wchar_t [size + 3] { };
+        wszImportData  = new (std::nothrow) wchar_t [size + 3] { };
     if (wszImportData == nullptr)
     {
       SK_ReleaseAssert (wszImportData != nullptr)
@@ -1209,9 +1210,9 @@ iSK_INI::import_file (const wchar_t* fname)
     // UTF16-BE  (Somehow we are swapped)
     else if (*wszImportData == 0xFFFE)
     {
-      dll_log.Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
-                    L"file ('%s'), attempting to recover...",
-                      wszImportName.m_pData );
+      dll_log->Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
+                     L"file ('%s'), attempting to recover...",
+                       wszImportName.m_pData );
 
       wchar_t* wszSwapMe = wszImportData;
 
@@ -1241,13 +1242,13 @@ iSK_INI::import_file (const wchar_t* fname)
         utf8 ? 3 : 0;
 
       const int       real_size  =
-        size - static_cast <int> (offset);
+        size - gsl::narrow_cast <int> (offset);
 
       char*           start_addr =
       (reinterpret_cast <char *> (wszImportData)) + offset;
 
       auto*           string =
-        new char [real_size + 2] { };
+        new (std::nothrow) char [real_size + 2] { };
 
       if (string != nullptr)
       {
@@ -1274,9 +1275,9 @@ iSK_INI::import_file (const wchar_t* fname)
       {
         if (real_size > 0)
         {
-          dll_log.Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
-                        L".ini file ('%s') to UTF-16, aborting!",
-                          wszImportName.m_pData );
+          dll_log->Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
+                         L".ini file ('%s') to UTF-16, aborting!",
+                           wszImportName.m_pData );
         }
 
         if (        string != nullptr)
@@ -1289,7 +1290,7 @@ iSK_INI::import_file (const wchar_t* fname)
       }
 
       wszImportData =
-        new wchar_t [converted_size + 2] { };
+        new (std::nothrow) wchar_t [converted_size + 2] { };
 
       SK_ReleaseAssert (
           wszImportData != nullptr)
@@ -1300,7 +1301,7 @@ iSK_INI::import_file (const wchar_t* fname)
           MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
                                wszImportData, converted_size );
 
-          //dll_log.Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
+          //dll_log->Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
           //wszImportName );
 
           delete [] string;
@@ -1334,7 +1335,7 @@ __stdcall
 SK_CreateINI (const wchar_t* const wszName)
 {
   auto* pINI =
-    new iSK_INI (wszName);
+    new (std::nothrow) iSK_INI (wszName);
 
   return pINI;
 }

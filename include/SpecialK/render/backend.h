@@ -126,7 +126,7 @@ struct sk_hwnd_cache_s
 
   sk_hwnd_cache_s (HWND wnd);
 
-  operator const HWND& (void) const  { return hwnd; };
+  operator const HWND& (void) const noexcept { return hwnd; };
 };
 
 constexpr
@@ -157,13 +157,13 @@ public:
    SK_RenderBackend_V2 (void);
   ~SK_RenderBackend_V2 (void);
 
-  CComPtr <IUnknown>      device               = nullptr;
-  CComPtr <IUnknown>      swapchain            = nullptr;
+  SK_ComPtr <IUnknown>      device               = nullptr;
+  SK_ComPtr <IUnknown>      swapchain            = nullptr;
   // Different views of the same resource (API interop)
   struct {
-    CComPtr <IDirect3DSurface9>
+    SK_ComPtr <IDirect3DSurface9>
                           d3d9                 = nullptr;
-    CComPtr <IDXGISurface>
+    SK_ComPtr <IDXGISurface>
                           dxgi                 = nullptr;
     NVDX_ObjectHandle     nvapi                = nullptr;
   } surface;
@@ -186,7 +186,7 @@ public:
     enum SK_HDR_TRANSFER_FUNC
     {
       sRGB,        // ~= Power-Law: 2.2
-                   
+
       scRGB,       // Linear, but source material is generally sRGB
                    //  >> And you have to undo that transformation!
 
@@ -203,7 +203,7 @@ public:
     };
 
     SK_HDR_TRANSFER_FUNC
-      getEOTF (void)
+      getEOTF (void) noexcept
       {
         switch (dxgi_colorspace)
         {
@@ -236,7 +236,7 @@ public:
     struct sub_event     {
       LARGE_INTEGER time = LARGE_INTEGER { 0LL, 0LL };
     } submit,
-      begin_overlays, 
+      begin_overlays,
       begin_cegui,   end_cegui,
       begin_imgui,   end_imgui,
       begin_texmgmt, end_texmgmt;
@@ -266,17 +266,17 @@ public:
   // TODO: Proper abstraction
   struct d3d11_s
   {
-    //MIDL_INTERFACE ("c0bfa96c-e089-44fb-8eaf-26f8796190da")     
-    CComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
-    CComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
-    CComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
+    //MIDL_INTERFACE ("c0bfa96c-e089-44fb-8eaf-26f8796190da")
+    SK_ComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
+    SK_ComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
+    SK_ComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
 
     struct {
-      UINT                             buffer_idx       = UINT_MAX;
-      CComPtr <ID3D11Texture2D>        backbuffer_tex2D = nullptr;
-      CComPtr <ID3D11RenderTargetView> backbuffer_rtv   = nullptr;
+      UINT                               buffer_idx       = UINT_MAX;
+      SK_ComPtr <ID3D11Texture2D>        backbuffer_tex2D = nullptr;
+      SK_ComPtr <ID3D11RenderTargetView> backbuffer_rtv   = nullptr;
     } interop;
-    
+
   } d3d11;
 
 
@@ -353,7 +353,7 @@ __stdcall
 SK_GetFramesDrawn (void)
 {
   return
-    ULONG { static_cast <ULONG> (ReadAcquire (&SK_RenderBackend::frames_drawn)) };
+    ULONG { gsl::narrow_cast <ULONG> (ReadAcquire (&SK_RenderBackend::frames_drawn)) };
 }
 
 

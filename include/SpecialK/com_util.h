@@ -20,7 +20,7 @@
 **/
 
 struct IUnknown;
-#include <Unknwnbase.h>
+//#include <Unknwnbase.h>
 
 #include <SpecialK/SpecialK.h>
 #include <SpecialK/core.h>
@@ -57,11 +57,11 @@ public:
       CoUninitialize ();
   }
 
-  bool  isInit       (void) { return success_;    }
-  DWORD getInitFlags (void) { return init_flags_; }
+  bool  isInit       (void) noexcept { return success_;    }
+  DWORD getInitFlags (void) noexcept { return init_flags_; }
 
 protected:
-  static bool _assert_not_dllmain (void) ;
+  static bool _assert_not_dllmain (void);
 
 private:
   DWORD init_flags_ = COINIT_MULTITHREADED;
@@ -140,7 +140,7 @@ extern "C++"
       );
     }
   }
-  
+
   template <class T>
   bool
   SK_COM_PromoteInterface ( T        **ppT,
@@ -148,13 +148,13 @@ extern "C++"
   {
     if (pPolymorph == nullptr)
       return false;
-  
+
     SK_COM_SafeRelease (ppT);
                        *ppT =
      reinterpret_cast <T *> (
        pPolymorph
      );
-  
+
     return
       ( *ppT == reinterpret_cast <T *> (pPolymorph) );
   }
@@ -165,18 +165,24 @@ extern "C++"
       public CComPtrBase <T>
   {
   public:
-    SK_ComPtr (void) throw ()
+    SK_ComPtr (void) noexcept
     {
     }
-    SK_ComPtr (_Inout_opt_ T* lp) throw () :
+    SK_ComPtr (_Inout_opt_ T* lp) noexcept :
       CComPtrBase <T> (lp)
     {
     }
-    SK_ComPtr (_Inout_ const SK_ComPtr <T>& lp) throw () :
+    SK_ComPtr (_Inout_ const SK_ComPtr <T>& lp) noexcept :
       CComPtrBase<T>(lp.p)
     {
     }
-    T* operator= (_Inout_opt_ T* lp) throw ()
+    void Swap (SK_ComPtr& other) noexcept
+    {
+      T* pTemp = p;
+                 p = other.p;
+           other.p = pTemp;
+    }
+    T* operator= (_Inout_opt_ T* lp)
     {
       if (*this != lp)
       {
@@ -185,7 +191,7 @@ extern "C++"
       return *this;
     }
     template <typename Q>
-    T* operator= (_Inout_ const SK_ComPtr <Q>& lp) throw ()
+    T* operator= (_Inout_ const SK_ComPtr <Q>& lp) noexcept
     {
       if (! this->IsEqualObject (lp))
       {
@@ -193,7 +199,7 @@ extern "C++"
       }
       return *this;
     }
-    T* operator= (_Inout_ const SK_ComPtr <T>& lp) throw ()
+    T* operator= (_Inout_ const SK_ComPtr <T>& lp)
     {
       if (*this != lp)
       {
@@ -201,25 +207,25 @@ extern "C++"
       }
       return *this;
     }
-    SK_ComPtr (_Inout_ SK_ComPtr <T>&& lp) throw () :
+    SK_ComPtr (_Inout_ SK_ComPtr <T>&& lp) noexcept :
       CComPtrBase <T> ()
     {
       lp.Swap (*this);
     }
-    T* operator= (_Inout_ SK_ComPtr <T>&& lp) throw ()
+    T* operator= (_Inout_ SK_ComPtr <T>&& lp) noexcept
     {
       if (*this != lp)
       {
         SK_ComPtr (static_cast <SK_ComPtr&&> (lp)).Swap (*this);
       }
-  
+
       return *this;
     }
   };
 
   template <class T>
   using SK_ComQIPtr = CComQIPtr <T>;
-  
+
   namespace std
   {
     template <class T>

@@ -93,8 +93,8 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
 
   // Setup viewport, orthographic projection matrix
   glViewport ( 0, 0,
-                 static_cast <GLsizei> (fb_width),
-                 static_cast <GLsizei> (fb_height) );
+                 gsl::narrow_cast <GLsizei> (fb_width),
+                 gsl::narrow_cast <GLsizei> (fb_height) );
 
   const float ortho_projection [4][4] =
   {
@@ -112,7 +112,7 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
   for (int n = 0; n < draw_data->CmdListsCount; n++)
   {
     const ImDrawList* cmd_list          = draw_data->CmdLists [n];
-    const ImDrawIdx*  idx_buffer_offset = 0;
+    const ImDrawIdx*  idx_buffer_offset = nullptr;
 
     if (config.imgui.render.disable_alpha)
     {
@@ -234,7 +234,7 @@ ImGui_ImplGL3_CreateFontsTexture (void)
   //  If your ImTextureId represent a higher-level concept than just a GL texture id,
   //    consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
   io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
-  
+
   // Upload texture to graphics system
   GLint last_texture;
 
@@ -245,14 +245,14 @@ ImGui_ImplGL3_CreateFontsTexture (void)
   glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR    );
   glTexImage2D    ( GL_TEXTURE_2D, 0, GL_RGBA, width, height,    0,
                                      GL_RGBA, GL_UNSIGNED_BYTE, pixels );
-  
+
   // Store our identifier
   io.Fonts->TexID =
     (void *)(intptr_t)g_FontTexture;
-  
+
   // Restore state
   glBindTexture (GL_TEXTURE_2D, last_texture);
-  
+
   return true;
 }
 
@@ -389,8 +389,8 @@ ImGui_ImplGL3_InvalidateDeviceObjects (void)
     ImGuiIO& io (ImGui::GetIO ());
 
     glDeleteTextures (1, &g_FontTexture);
-    io.Fonts->TexID = 0;
-    g_FontTexture   = 0;
+    io.Fonts->TexID = nullptr;
+    g_FontTexture   =       0;
   }
 }
 
@@ -472,7 +472,7 @@ ImGui_ImplGL3_NewFrame (void)
 
   io.DisplaySize             =
     ImVec2 ( static_cast <float> (w), static_cast <float> (h) );
-  io.DisplayFramebufferScale = 
+  io.DisplayFramebufferScale =
     ImVec2 ( static_cast <float> (w), static_cast <float> (h) );
 
 

@@ -26,11 +26,11 @@
 
 class skMemCmd : public SK_ICommand {
 public:
-  virtual SK_ICommandResult execute (const char* szArgs)  override;
+  SK_ICommandResult execute (const char* szArgs) override;
 
-  virtual int getNumArgs         (void)  override { return 2; }
-  virtual int getNumOptionalArgs (void)  override { return 1; }
-  virtual int getNumRequiredArgs (void)  override {
+  int getNumArgs         (void) noexcept override { return 2; }
+  int getNumOptionalArgs (void) noexcept override { return 1; }
+  int getNumRequiredArgs (void) noexcept override {
     return getNumArgs () - getNumOptionalArgs ();
   }
 
@@ -39,7 +39,7 @@ private:
 };
 
 SK_ICommandResult
-skMemCmd::execute (const char* szArgs) 
+skMemCmd::execute (const char* szArgs)
 {
   if (szArgs == nullptr)
     return SK_ICommandResult ("mem", szArgs);
@@ -59,7 +59,7 @@ skMemCmd::execute (const char* szArgs)
     MEMORY_BASIC_INFORMATION basic_mem_info;
     VirtualQuery (base_addr, &basic_mem_info, sizeof basic_mem_info);
 
-    base_addr = reinterpret_cast <uint8_t *> (basic_mem_info.BaseAddress);
+    base_addr = static_cast <uint8_t *> (basic_mem_info.BaseAddress);
   }
 
   addr += reinterpret_cast <uintptr_t> (base_addr);

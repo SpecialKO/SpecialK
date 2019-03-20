@@ -4,8 +4,8 @@
 #define SK_MAJOR 0
 #define SK_MINOR 10
 #define SK_BUILD 0
-#define SK_REV_N 6
-#define SK_REV   XDR-Beta6
+#define SK_REV_N 9
+#define SK_REV   XDR-Gamma2
 
 
 

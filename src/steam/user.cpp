@@ -26,10 +26,10 @@ public:
                    pRealUser (pUser) {
   };
 
-  virtual HSteamUser GetHSteamUser          ( void ) override { return pRealUser->GetHSteamUser (); };
+  HSteamUser GetHSteamUser          ( void ) override { return pRealUser->GetHSteamUser (); };
 
 
-  virtual bool       BLoggedOn              ( void ) override
+  bool       BLoggedOn              ( void ) override
   {
     __SK_SteamUser_BLoggedOn =
       static_cast <int> ( pRealUser->BLoggedOn () ? SK_SteamUser_LoggedOn_e::Online :
@@ -47,62 +47,62 @@ public:
   };
 
 
-  virtual CSteamID   GetSteamID             ( void ) override { return pRealUser->GetSteamID    (); };
+  CSteamID   GetSteamID             ( void ) override { return pRealUser->GetSteamID    (); };
 
-  virtual int        InitiateGameConnection ( void     *pAuthBlob,
-                                              int       cbMaxAuthBlob,
-                                              CSteamID  steamIDGameServer,
-                                              uint32    unIPServer,
-                                              uint16    usPortServer,
-                                              bool      bSecure )                        override
+  int        InitiateGameConnection ( void     *pAuthBlob,
+                                      int       cbMaxAuthBlob,
+                                      CSteamID  steamIDGameServer,
+                                      uint32    unIPServer,
+                                      uint16    usPortServer,
+                                      bool      bSecure )                        override
   {
     return pRealUser->InitiateGameConnection ( pAuthBlob,
-                                                 cbMaxAuthBlob, 
-                                                   steamIDGameServer, 
-                                                     unIPServer, 
-                                                       usPortServer, 
+                                                 cbMaxAuthBlob,
+                                                   steamIDGameServer,
+                                                     unIPServer,
+                                                       usPortServer,
                                                          bSecure );
   };
-  virtual void         TerminateGameConnection( uint32 unIPServer, uint16 usPortServer ) override
+  void         TerminateGameConnection( uint32 unIPServer, uint16 usPortServer ) override
   {
     return pRealUser->TerminateGameConnection ( unIPServer,
                                                   usPortServer );
   };
-  virtual void         TrackAppUsageEvent    (       CGameID  gameID,
-                                                     int      eAppUsageEvent,
-                                               const char    *pchExtraInfo = "" )        override
+  void         TrackAppUsageEvent    (       CGameID  gameID,
+                                             int      eAppUsageEvent,
+                                       const char    *pchExtraInfo = "" )        override
   {
     return pRealUser->TrackAppUsageEvent    ( gameID,
                                                 eAppUsageEvent,
                                                   pchExtraInfo );
   };
-  virtual bool         GetUserDataFolder     ( char *pchBuffer,
-                                               int   cubBuffer ) override
+  bool         GetUserDataFolder     ( char *pchBuffer,
+                                       int   cubBuffer ) override
   {
     return pRealUser->GetUserDataFolder     ( pchBuffer,
                                                 cubBuffer );
   };
 
-  virtual void         StartVoiceRecording   (void) override { return pRealUser->StartVoiceRecording (); };
-  virtual void         StopVoiceRecording    (void) override { return pRealUser->StopVoiceRecording  (); };
+  void         StartVoiceRecording   (void) override { return pRealUser->StartVoiceRecording (); };
+  void         StopVoiceRecording    (void) override { return pRealUser->StopVoiceRecording  (); };
 
-  virtual EVoiceResult GetAvailableVoice     ( uint32 *pcbCompressed,
-                                               uint32 *pcbUncompressed,
-                                               uint32  nUncompressedVoiceDesiredSampleRate ) override
+  EVoiceResult GetAvailableVoice     ( uint32 *pcbCompressed,
+                                       uint32 *pcbUncompressed,
+                                       uint32  nUncompressedVoiceDesiredSampleRate ) override
   {
     return pRealUser->GetAvailableVoice     ( pcbCompressed,
                                                 pcbUncompressed,
                                                   nUncompressedVoiceDesiredSampleRate );
   }
-  virtual EVoiceResult GetVoice              ( bool    bWantCompressed,
-                                               void   *pDestBuffer,
-                                               uint32  cbDestBufferSize,
-                                               uint32 *nBytesWritten,
-                                               bool    bWantUncompressed,
-                                               void   *pUncompressedDestBuffer,
-                                               uint32  cbUncompressedDestBufferSize,
-                                               uint32 *nUncompressBytesWritten,
-                                               uint32  nUncompressedVoiceDesiredSampleRate ) override
+  EVoiceResult GetVoice              ( bool    bWantCompressed,
+                                       void   *pDestBuffer,
+                                       uint32  cbDestBufferSize,
+                                       uint32 *nBytesWritten,
+                                       bool    bWantUncompressed,
+                                       void   *pUncompressedDestBuffer,
+                                       uint32  cbUncompressedDestBufferSize,
+                                       uint32 *nUncompressBytesWritten,
+                                       uint32  nUncompressedVoiceDesiredSampleRate ) override
   {
     return pRealUser->GetVoice              ( bWantCompressed,
                                                 pDestBuffer,
@@ -114,12 +114,12 @@ public:
                                                             nUncompressBytesWritten,
                                                               nUncompressedVoiceDesiredSampleRate );
   }
-  virtual EVoiceResult DecompressVoice       ( const void    *pCompressed, 
-                                                     uint32   cbCompressed, 
-                                                     void    *pDestBuffer, 
-                                                     uint32   cbDestBufferSize, 
-                                                     uint32  *nBytesWritten, 
-                                                     uint32   nDesiredSampleRate ) override
+  EVoiceResult DecompressVoice       ( const void    *pCompressed,
+                                             uint32   cbCompressed,
+                                             void    *pDestBuffer,
+                                             uint32   cbDestBufferSize,
+                                             uint32  *nBytesWritten,
+                                             uint32   nDesiredSampleRate ) override
   {
     return pRealUser->DecompressVoice       ( pCompressed,
                                                 cbCompressed,
@@ -128,73 +128,73 @@ public:
                                                       nBytesWritten,
                                                         nDesiredSampleRate );
   }
-  virtual uint32       GetVoiceOptimalSampleRate (void) override { return pRealUser->GetVoiceOptimalSampleRate (); }
+  uint32       GetVoiceOptimalSampleRate (void) override { return pRealUser->GetVoiceOptimalSampleRate (); }
 
-  virtual HAuthTicket  GetAuthSessionTicket      ( void   *pTicket,
-                                                   int     cbMaxTicket,
-                                                   uint32 *pcbTicket )                          override
+  HAuthTicket  GetAuthSessionTicket      ( void   *pTicket,
+                                           int     cbMaxTicket,
+                                           uint32 *pcbTicket )                          override
   {
     return pRealUser->GetAuthSessionTicket  ( pTicket,
                                                 cbMaxTicket,
                                                   pcbTicket );
   }
-  virtual EBeginAuthSessionResult     BeginAuthSession     ( const void     *pAuthTicket,
-                                                                   int       cbAuthTicket,
-                                                                   CSteamID  steamID )          override
+  EBeginAuthSessionResult     BeginAuthSession     ( const void     *pAuthTicket,
+                                                           int       cbAuthTicket,
+                                                           CSteamID  steamID )          override
   {
     return pRealUser->BeginAuthSession      ( pAuthTicket,
                                                 cbAuthTicket,
                                                   steamID );
   }
-  virtual void                        EndAuthSession       (CSteamID steamID)                   override
+  void                        EndAuthSession       (CSteamID steamID)                   override
   {
     return pRealUser->EndAuthSession        (steamID);
   }
-  virtual void                        CancelAuthTicket     (HAuthTicket hAuthTicket)            override
+  void                        CancelAuthTicket     (HAuthTicket hAuthTicket)            override
   {
     return pRealUser->CancelAuthTicket      (hAuthTicket);
   }
-  virtual EUserHasLicenseForAppResult UserHasLicenseForApp ( CSteamID steamID,
-                                                             AppId_t  appID )                   override
+  EUserHasLicenseForAppResult UserHasLicenseForApp ( CSteamID steamID,
+                                                     AppId_t  appID )                   override
   {
     return pRealUser->UserHasLicenseForApp  ( steamID,
                                                 appID );
   }
-  virtual bool                        BIsBehindNAT         (void) override { return pRealUser->BIsBehindNAT (); }
+  bool                        BIsBehindNAT         (void) override { return pRealUser->BIsBehindNAT (); }
 
-  virtual void                        AdvertiseGame        ( CSteamID steamIDGameServer,
-                                                             uint32   unIPServer,
-                                                             uint16   usPortServer )            override
+  void                        AdvertiseGame        ( CSteamID steamIDGameServer,
+                                                     uint32   unIPServer,
+                                                     uint16   usPortServer )            override
   {
     return pRealUser->AdvertiseGame         ( steamIDGameServer,
                                                 unIPServer,
                                                   usPortServer );
   }
-  virtual SteamAPICall_t              RequestEncryptedAppTicket ( void *pDataToInclude,
-                                                                  int   cbDataToInclude )       override
+  SteamAPICall_t              RequestEncryptedAppTicket ( void *pDataToInclude,
+                                                          int   cbDataToInclude )       override
   {
     return pRealUser->RequestEncryptedAppTicket ( pDataToInclude,
                                                     cbDataToInclude );
   }
-  virtual bool                        GetEncryptedAppTicket     ( void   *pTicket,
-                                                                  int     cbMaxTicket,
-                                                                  uint32 *pcbTicket )           override
+  bool                        GetEncryptedAppTicket     ( void   *pTicket,
+                                                          int     cbMaxTicket,
+                                                          uint32 *pcbTicket )           override
   {
     return pRealUser->GetEncryptedAppTicket ( pTicket,
                                                 cbMaxTicket,
                                                   pcbTicket );
   }
-  virtual int                         GetGameBadgeLevel         ( int  nSeries,
-                                                                  bool bFoil )                  override
+  int                         GetGameBadgeLevel         ( int  nSeries,
+                                                          bool bFoil )                  override
   {
     return pRealUser->GetGameBadgeLevel     ( nSeries,
                                                 bFoil );
   }
-  virtual int                         GetPlayerSteamLevel       (void)                          override
+  int                         GetPlayerSteamLevel       (void)                          override
   {
     return pRealUser->GetPlayerSteamLevel   ();
   };
-  virtual SteamAPICall_t              RequestStoreAuthURL       ( const char *pchRedirectURL )  override
+  SteamAPICall_t              RequestStoreAuthURL       ( const char *pchRedirectURL )  override
   {
     return pRealUser->RequestStoreAuthURL   (pchRedirectURL);
   };
@@ -202,19 +202,19 @@ public:
 
   // 019
   //
-  virtual bool                        BIsPhoneVerified          (void)                          override
+  bool                        BIsPhoneVerified          (void)                          override
   {
     return pRealUser->BIsPhoneVerified              ();
   }
-  virtual bool                        BIsTwoFactorEnabled       (void)                          override
+  bool                        BIsTwoFactorEnabled       (void)                          override
   {
     return pRealUser->BIsTwoFactorEnabled           ();
   }
-  virtual bool                        BIsPhoneIdentifying       (void)                          override
+  bool                        BIsPhoneIdentifying       (void)                          override
   {
     return pRealUser->BIsPhoneIdentifying           ();
   }
-  virtual bool                        BIsPhoneRequiringVerification (void)                      override
+  bool                        BIsPhoneRequiringVerification (void)                      override
   {
     return pRealUser->BIsPhoneRequiringVerification ();
   }
@@ -241,8 +241,8 @@ SteamAPI_ISteamClient_GetISteamUser_Detour (ISteamClient *This,
                                             const char   *pchVersion)
 {
   SK_RunOnce (
-    steam_log.Log ( L"[!] %hs (..., %hs)",
-                      __FUNCTION__, pchVersion )
+    steam_log->Log ( L"[!] %hs (..., %hs)",
+                       __FUNCTION__, pchVersion )
   );
 
   ISteamUser* pUser =
@@ -272,8 +272,8 @@ SteamAPI_ISteamClient_GetISteamUser_Detour (ISteamClient *This,
     else
     {
       SK_RunOnce (
-        steam_log.Log ( L"Game requested unexpected interface version (%hs)!",
-                          pchVersion )
+        steam_log->Log ( L"Game requested unexpected interface version (%hs)!",
+                           pchVersion )
       );
 
       return pUser;
@@ -291,8 +291,8 @@ SK_SteamWrapper_WrappedClient_GetISteamUser ( ISteamClient *This,
                                               const char   *pchVersion )
 {
   SK_RunOnce (
-    steam_log.Log ( L"[!] %hs (..., %hs)",
-                      __FUNCTION__, pchVersion )
+    steam_log->Log ( L"[!] %hs (..., %hs)",
+                       __FUNCTION__, pchVersion )
   );
 
   ISteamUser* pUser =
@@ -321,8 +321,8 @@ SK_SteamWrapper_WrappedClient_GetISteamUser ( ISteamClient *This,
     else
     {
       SK_RunOnce (
-        steam_log.Log ( L"Game requested unexpected interface version (%hs)!",
-                          pchVersion )
+        steam_log->Log ( L"Game requested unexpected interface version (%hs)!",
+                           pchVersion )
       );
 
       return pUser;
@@ -342,8 +342,8 @@ S_CALLTYPE
 SteamUser_Detour (void)
 {
   SK_RunOnce (
-    steam_log.Log ( L"[!] %hs ()",
-                      __FUNCTION__ )
+    steam_log->Log ( L"[!] %hs ()",
+                       __FUNCTION__ )
   );
 
 #ifndef DANGEROUS_INTERFACE_ALIASING

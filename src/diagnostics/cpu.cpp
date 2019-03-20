@@ -56,10 +56,10 @@ GetLogicalProcessorInformation_Detour (
       GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
   }
 
-  const BOOL bRet = 
+  const BOOL bRet =
     GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
 
-  if (bRet)
+  if (bRet && ReturnedLength != nullptr)
   {
     PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
       Buffer;
@@ -68,7 +68,7 @@ GetLogicalProcessorInformation_Detour (
 
     while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= *ReturnedLength)
     {
-      switch (lpi->Relationship) 
+      switch (lpi->Relationship)
       {
         case RelationProcessorCore:
         {
@@ -95,7 +95,7 @@ GetLogicalProcessorInformation_Detour (
       lpi++;
     }
   }
-  
+
   return bRet;
 }
 
@@ -135,7 +135,7 @@ SK_CPU_InstallHooks (void)
   //                          "GetLogicalProcessorInformation",
   //                           GetLogicalProcessorInformation_Detour,
   //  static_cast_p2p <void> (&GetLogicalProcessorInformation_Original) );
-  
+
   SK_CreateDLLHook2 (     L"Kernel32",
                             "GetSystemInfo",
                              GetSystemInfo_Detour,
@@ -175,7 +175,7 @@ SK_CPU_CountPhysicalCores (void)
         DWORD  dwOffset = 0;
         while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= dwNeededBytes)
         {
-          switch (lpi->Relationship) 
+          switch (lpi->Relationship)
           {
             case RelationProcessorCore:
             {
@@ -222,16 +222,14 @@ SK_CPU_GetLogicalCorePairs (void)
        (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
                               new uint8_t [dwNeededBytes] { };
 
-      DWORD dwOffset = 0;
-
       if (GetLogicalProcessorInformation_Original (pLogProcInfo, &dwNeededBytes))
       {
-        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
-          pLogProcInfo;
+        DWORD                                 dwOffset = 0;
+        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi      = pLogProcInfo;
 
         while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= dwNeededBytes)
         {
-          switch (lpi->Relationship) 
+          switch (lpi->Relationship)
           {
             case RelationProcessorCore:
             {
@@ -239,7 +237,7 @@ SK_CPU_GetLogicalCorePairs (void)
               //{
               //  DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
               //  DWORD     bitSetCount = 0;
-              //  ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;    
+              //  ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;
               //  DWORD     i;
               //
               //  for (i = 0; i <= LSHIFT; ++i)
@@ -280,7 +278,7 @@ auto CountSetBits = [](ULONG_PTR bitMask) -> DWORD
 {
   DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
   DWORD     bitSetCount = 0;
-  ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;    
+  ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;
   DWORD     i;
 
   for (i = 0; i <= LSHIFT; ++i)
@@ -325,6 +323,8 @@ SK_CPU_CountLogicalCores (void)
     }
   }
 
-  if (has_logical_processors) return logical_cores;
-  else                        return 0;
+  if ( has_logical_processors )
+    return logical_cores;
+
+  return 0;
 }

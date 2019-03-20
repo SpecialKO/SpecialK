@@ -102,37 +102,37 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
 
   if (SteamAPI_GetHSteamUser == nullptr)
   {
-    steam_log.Log (L"Could not load GetHSteamUser (...)");
+    steam_log->Log (L"Could not load GetHSteamUser (...)");
     success = false;
   }
 
   if (SteamAPI_GetHSteamPipe == nullptr)
   {
-    steam_log.Log (L"Could not load GetHSteamPipe (...)");
+    steam_log->Log (L"Could not load GetHSteamPipe (...)");
     success = false;
   }
 
   if (SteamClient == nullptr)
   {
-    steam_log.Log (L"Could not load SteamClient (...)");
+    steam_log->Log (L"Could not load SteamClient (...)");
     success = false;
   }
 
   if (SteamAPI_RegisterCallback == nullptr)
   {
-    steam_log.Log (L"Could not load RegisterCallback (...)");
+    steam_log->Log (L"Could not load RegisterCallback (...)");
     success = false;
   }
 
   if (SteamAPI_UnregisterCallback == nullptr)
   {
-    steam_log.Log (L"Could not load UnregisterCallback (...)");
+    steam_log->Log (L"Could not load UnregisterCallback (...)");
     success = false;
   }
 
   if (SteamAPI_RunCallbacks == nullptr)
   {
-    steam_log.Log (L"Could not load RunCallbacks (...)");
+    steam_log->Log (L"Could not load RunCallbacks (...)");
     success = false;
   }
 
@@ -156,8 +156,8 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
 
   if (user_ == nullptr)
   {
-    steam_log.Log ( L" >> ISteamUser NOT FOUND for version %hs <<",
-                      STEAMUSER_INTERFACE_VERSION );
+    steam_log->Log ( L" >> ISteamUser NOT FOUND for version %hs <<",
+                       STEAMUSER_INTERFACE_VERSION );
     return false;
   }
 
@@ -170,8 +170,8 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
 
   if (friends_ == nullptr)
   {
-    steam_log.Log ( L" >> ISteamFriends NOT FOUND for version %hs <<",
-                      STEAMFRIENDS_INTERFACE_VERSION );
+    steam_log->Log ( L" >> ISteamFriends NOT FOUND for version %hs <<",
+                       STEAMFRIENDS_INTERFACE_VERSION );
     return false;
   }
 
@@ -184,8 +184,8 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
 
   if (user_stats_ == nullptr)
   {
-    steam_log.Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
-                      STEAMUSERSTATS_INTERFACE_VERSION );
+    steam_log->Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
+                       STEAMUSERSTATS_INTERFACE_VERSION );
     return false;
   }
 
@@ -198,8 +198,8 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
 
   if (apps_ == nullptr)
   {
-    steam_log.Log ( L" >> ISteamApps NOT FOUND for version %hs <<",
-                      STEAMAPPS_INTERFACE_VERSION );
+    steam_log->Log ( L" >> ISteamApps NOT FOUND for version %hs <<",
+                       STEAMAPPS_INTERFACE_VERSION );
     return false;
   }
 
@@ -209,8 +209,8 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
 
   if (utils_ == nullptr)
   {
-    steam_log.Log ( L" >> ISteamUtils NOT FOUND for version %hs <<",
-                      STEAMUTILS_INTERFACE_VERSION );
+    steam_log->Log ( L" >> ISteamUtils NOT FOUND for version %hs <<",
+                       STEAMUTILS_INTERFACE_VERSION );
     return false;
   }
 
@@ -221,16 +221,16 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
 
   if (screenshots_ == nullptr)
   {
-    steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
-                      STEAMSCREENSHOTS_INTERFACE_VERSION );
+    steam_log->Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
+                       STEAMSCREENSHOTS_INTERFACE_VERSION );
 
     screenshots_ =
       client_->GetISteamScreenshots ( hSteamUser,
                                         hSteamPipe,
                                           "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
 
-    steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
-                      "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
+    steam_log->Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
+                       "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
 
 
     //return false;
@@ -272,9 +272,9 @@ InitSafe_Detour (void)
 
   if (++init_tries == 0)
   {
-    steam_log.Log ( L"Initializing CSteamWorks Backend  << %s >>",
-                      SK_GetCallerName ().c_str () );
-    steam_log.Log (L"-----------(InitSafe)-----------\n");
+    steam_log->Log ( L"Initializing CSteamWorks Backend  << %s >>",
+                       SK_GetCallerName ().c_str () );
+    steam_log->Log (L"-----------(InitSafe)-----------\n");
   }
 
   if (InitSafe_Original ())
@@ -282,16 +282,16 @@ InitSafe_Detour (void)
     InterlockedExchange (&__SK_Steam_init, TRUE);
 
     HMODULE hSteamAPI =
-      SK_Modules.LoadLibraryLL (L"CSteamworks.dll");
+      SK_Modules.LoadLibrary (L"CSteamworks.dll");
 
     if (hSteamAPI)
     {
       if (! steam_ctx.UserStats ())
         steam_ctx.InitCSteamworks (hSteamAPI);
 
-      steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
-                        init_tries + 1,
-                          SK::SteamAPI::AppID () );
+      steam_log->Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
+                         init_tries + 1,
+                           SK::SteamAPI::AppID () );
 
       SK_Steam_StartPump ();
 
@@ -354,7 +354,7 @@ SK_HookCSteamworks (void)
     return;
   }
 
-  steam_log.Log (L"CSteamworks.dll was loaded, hooking...");
+  steam_log->Log (L"CSteamworks.dll was loaded, hooking...");
 
   // Get the full path to the module's file.
   HMODULE hMod = GetModuleHandle (L"CSteamworks.dll");
@@ -382,8 +382,8 @@ SK_HookCSteamworks (void)
 
     if (SK_Modules.LoadLibraryLL (wszModName))
     {
-      steam_log.Log ( L" >>> Located a real steam_api DLL: '%s'...",
-                      wszModName );
+      steam_log->Log ( L" >>> Located a real steam_api DLL: '%s'...",
+                       wszModName );
 
       has_steamapi = true;
 
@@ -400,19 +400,19 @@ SK_HookCSteamworks (void)
                          SteamAPI_InitSafe_Detour,
               (LPVOID *)&SteamAPI_InitSafe_Original,
               (LPVOID *)&SteamAPI_InitSafe );
-     
+
       SK_CreateDLLHook3 ( wszModName,
                           "SteamAPI_Init",
                          SteamAPI_Init_Detour,
               (LPVOID *)&SteamAPI_Init_Original,
               (LPVOID *)&SteamAPI_Init );
-     
+
       SK_CreateDLLHook3 ( wszModName,
                           "SteamAPI_RegisterCallback",
                           SteamAPI_RegisterCallback_Detour,
                (LPVOID *)&SteamAPI_RegisterCallback_Original,
                (LPVOID *)&SteamAPI_RegisterCallback );
-     
+
       SK_CreateDLLHook3 ( wszModName,
                           "SteamAPI_UnregisterCallback",
                           SteamAPI_UnregisterCallback_Detour,
@@ -423,29 +423,29 @@ SK_HookCSteamworks (void)
                          "InitSafe",
                          InitSafe_Detour,
               (LPVOID *)&InitSafe_Original );
-      
+
       SK_CreateDLLHook3 ( L"CSteamworks.dll",
                          "Init",
                         SteamAPI_Init_Detour,
               (LPVOID *)&SteamAPI_Init_Original );
-      
+
       SK_CreateDLLHook3 ( L"CSteamworks.dll",
                           "Shutdown",
                           SteamAPI_Shutdown_Detour,
                (LPVOID *)&SteamAPI_Shutdown_Original );
-      
+
       SK_CreateDLLHook3 ( L"CSteamworks.dll",
                          "RegisterCallback",
                          SteamAPI_RegisterCallback_Detour,
               (LPVOID *)&SteamAPI_RegisterCallback_Original,
               (LPVOID *)&SteamAPI_RegisterCallback );
-      
+
       SK_CreateDLLHook3 ( L"CSteamworks.dll",
                          "UnregisterCallback",
                          SteamAPI_UnregisterCallback_Detour,
               (LPVOID *)&SteamAPI_UnregisterCallback_Original,
               (LPVOID *)&SteamAPI_UnregisterCallback );
-      
+
       SK_CreateDLLHook3 ( L"CSteamworks.dll",
                          "RunCallbacks",
                          SteamAPI_RunCallbacks_Detour,

@@ -60,10 +60,10 @@ struct sk_imgui_cursor_s
   HCURSOR orig_img     =        nullptr;
   POINT   orig_pos     =       { 0, 0 };
   bool    orig_vis     =          false;
-                              
+
   HCURSOR img          =        nullptr;
   POINT   pos          =       { 0, 0 };
-                              
+
   bool    visible      =          false;
   bool    idle         =          false; // Hasn't moved
   DWORD   last_move    =       MAXDWORD;
@@ -111,12 +111,14 @@ struct sk_input_api_context_s
     bool keyboard, mouse, gamepad, other;
   } active;
 
-  void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
-                                                                                         type == sk_input_dev_type::Keyboard ? 1 :
-                                                                                         type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
-  void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
-                                                                                         type == sk_input_dev_type::Keyboard ? 1 :
-                                                                                         type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+  void markRead  (sk_input_dev_type type) noexcept
+  { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+                                                 type == sk_input_dev_type::Keyboard ? 1 :
+                                                 type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+  void markWrite  (sk_input_dev_type type) noexcept
+  { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
+                                                type == sk_input_dev_type::Keyboard ? 1 :
+                                                type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
 
   bool nextFrame (void)
   {
@@ -127,14 +129,14 @@ struct sk_input_api_context_s
     active.mouse    = false; active.other   = false;
 
 
-    InterlockedAdd  (&reads   [0], last_frame.reads  [0]); 
+    InterlockedAdd  (&reads   [0], last_frame.reads  [0]);
     InterlockedAdd  (&writes  [0], last_frame.writes [0]);
 
       if (ReadAcquire (&last_frame.reads  [0]))  { active.keyboard = true; active_data = true; }
       if (ReadAcquire (&last_frame.writes [0]))  { active.keyboard = true; active_data = true; }
 
     InterlockedAdd  (&reads   [1], last_frame.reads  [1]);
-    InterlockedAdd  (&writes  [1], last_frame.writes [1]); 
+    InterlockedAdd  (&writes  [1], last_frame.writes [1]);
 
       if (ReadAcquire (&last_frame.reads  [1]))  { active.mouse    = true; active_data = true; }
       if (ReadAcquire (&last_frame.writes [1]))  { active.mouse    = true; active_data = true; }
@@ -182,7 +184,7 @@ enum class SK_Input_BindFlags
      Exclusive      = ( 1UL << 1 ),
   ModeAgnostic      = ( NonExclusive  |
                         Exclusive     ),
-  
+
   ActivateOnPress   = ( 1UL << 2 ),
   ActivateOnRelease = ( 1UL << 3 ),
 
@@ -228,7 +230,7 @@ struct SK_Input_Duration
 };
 
 struct SK_Input_KeyBinding
-{ 
+{
   struct key_s
   {
     SK_Input_Duration   duration   = {    };
@@ -271,7 +273,7 @@ struct SK_ImGui_InputLanguage_s
   // Cause the keybd_layout to be populated the
   //   first time update (...) is called
   bool changed      = true; // ^^^^ Default = true
-  HKL  keybd_layout = 0;
+  HKL  keybd_layout = nullptr;
 
   void update (void);
 };

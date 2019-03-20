@@ -650,8 +650,7 @@ SwitchToThread_Detour (void)
 
   static volatile DWORD dwAntiDebugTid = 0;
 
-  extern bool
-  __SK_MHW_KillAntiDebug;
+  extern bool __SK_MHW_KillAntiDebug;
 
   if (is_mhw && __SK_MHW_KillAntiDebug)
   {
@@ -664,7 +663,7 @@ SwitchToThread_Detour (void)
       SK_TLS *pTLS =
         SK_TLS_Bottom ();
 
-      if ( pTLS->win32.getThreadPriority () != 
+      if ( pTLS->win32.getThreadPriority () !=
              THREAD_PRIORITY_HIGHEST )
       {
         return
@@ -865,7 +864,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       static bool reported = false;
             if (! reported)
             {
-              dll_log.Log (L"[FrameLimit] Sleep called from render thread: %lu ms!", dwMilliseconds);
+              dll_log->Log (L"[FrameLimit] Sleep called from render thread: %lu ms!", dwMilliseconds);
               reported = true;
             }
 
@@ -999,14 +998,14 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       {
         ULONG min, max, cur;
         NtQueryTimerResolution (&min, &max, &cur);
-        dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                           long_double_cast (cur * 100)/1000000.0F );
+        dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
+                            long_double_cast (cur * 100)/1000000.0F );
         NtSetTimerResolution   (max, TRUE,  &cur);
-        dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
-                           long_double_cast (cur * 100)/1000000.0L );
+        dll_log->Log ( L"[  Timing  ] New resolution....: %f ms",
+                            long_double_cast (cur * 100)/1000000.0L );
 
         dMinRes =
-                           long_double_cast (cur * 100)/1000000.0L;
+                            long_double_cast (cur * 100)/1000000.0L;
       }
     }
     //SK_TLS *pTLS = SK_TLS_Bottom ();
@@ -1015,7 +1014,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 #if 0
     if ( ! (pTLS->scheduler.alert_waits++ % 2) )
     {
-        
+
       LARGE_INTEGER liDelay = { };
                     liDelay.QuadPart =
         (LONGLONG)(-10000.0l * (long double)dwMilliseconds);
@@ -1030,7 +1029,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       LARGE_INTEGER uSecs;
       uSecs.QuadPart =
         static_cast <LONGLONG> ((long double)dwMilliseconds * 500.0l);
-    
+
       if (pTLS->scheduler.sub_2ms_sleep != INVALID_HANDLE_VALUE)
       {
         if ( SetWaitableTimer ( pTLS->scheduler.sub_2ms_sleep, &liDelay,
@@ -1042,7 +1041,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         SK_WaitForSingleObject_Micro ( &pTLS->scheduler.sub_2ms_sleep,
                                        &uSecs );
       }
-      
+
       else
         NtDelayExecution ((BOOLEAN)bAlertable, &liDelay);
 #endif
@@ -1225,6 +1224,11 @@ SK::Framerate::Init (void)
     SK_ICommandProcessor* pCommandProc =
       SK_GetCommandProcessor ();
 
+
+    if (! pCommandProc) // TODO: Error message
+      return;
+
+
     // TEMP HACK BECAUSE THIS ISN'T STORED in D3D9.INI
     if (GetModuleHandle (L"AgDrag.dll"))
       config.render.framerate.max_delta_time = 5;
@@ -1245,17 +1249,17 @@ SK::Framerate::Init (void)
     pCommandProc->AddVariable ( "MaxRenderAhead",
             new SK_IVarStub <int> (&config.render.framerate.max_render_ahead));
 
-    RtlQueryPerformanceFrequency = 
+    RtlQueryPerformanceFrequency =
       (QueryPerformanceCounter_pfn)
       SK_GetProcAddress ( L"NtDll",
                            "RtlQueryPerformanceFrequency" );
-    
-    RtlQueryPerformanceCounter = 
+
+    RtlQueryPerformanceCounter =
     (QueryPerformanceCounter_pfn)
       SK_GetProcAddress ( L"NtDll",
                            "RtlQueryPerformanceCounter" );
-    
-    ZwQueryPerformanceCounter = 
+
+    ZwQueryPerformanceCounter =
       (QueryPerformanceCounter_pfn)
       SK_GetProcAddress ( L"NtDll",
                            "ZwQueryPerformanceCounter" );
@@ -1306,7 +1310,7 @@ SK::Framerate::Init (void)
                                NtWaitForMultipleObjects_Detour,
       static_cast_p2p <void> (&NtWaitForMultipleObjects_Original) );
 
-    SK_ApplyQueuedHooks ();
+  //SK_ApplyQueuedHooks ();
     InterlockedExchange (&__sleep_init, 1);
 
 #ifdef NO_HOOK_QPC
@@ -1339,11 +1343,11 @@ SK::Framerate::Init (void)
         {
           ULONG min, max, cur;
           NtQueryTimerResolution (&min, &max, &cur);
-          dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                          static_cast <float> (cur * 100)/1000000.0f );
+          dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
+                           static_cast <float> (cur * 100)/1000000.0f );
           NtSetTimerResolution   (max, TRUE,  &cur);
-          dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
-                          static_cast <float> (cur * 100)/1000000.0f );
+          dll_log->Log ( L"[  Timing  ] New resolution....: %f ms",
+                           static_cast <float> (cur * 100)/1000000.0f );
         }
       }
     }
@@ -1638,7 +1642,7 @@ SK::Framerate::Limiter::wait (void)
     long double
       to_next_in_secs =
         SK_RecalcTimeToNextFrame ();
-    
+
     LARGE_INTEGER liDelay;
                   liDelay.QuadPart =
                     static_cast <LONGLONG> (
@@ -1650,31 +1654,31 @@ SK::Framerate::Limiter::wait (void)
     // Create an unnamed waitable timer.
     static HANDLE hLimitTimer =
       CreateWaitableTimer (NULL, FALSE, NULL);
-    
+
     if ( liDelay.QuadPart > 0)
     {
       liDelay.QuadPart = -(liDelay.QuadPart * 10000);
-    
+
       if ( SetWaitableTimer ( hLimitTimer, &liDelay,
                                 0, NULL, NULL, 0 ) )
       {
         DWORD dwWait = 1337;
-    
+
         while (dwWait != WAIT_OBJECT_0)
         {
           to_next_in_secs =
             SK_RecalcTimeToNextFrame ();
-    
+
           if (to_next_in_secs <= 0.0L)
           {
             ResetEvent (hLimitTimer);
             break;
           }
-    
+
           LARGE_INTEGER uSecs;
                         uSecs.QuadPart =
             static_cast <LONGLONG> (to_next_in_secs * 1000.0L * 1000.0L);
-    
+
           dwWait =
             //SK_WaitForSingleObject (hLimitTimer, to_next_in_secs * 1000.0);
             SK_WaitForSingleObject_Micro ( &hLimitTimer,
@@ -1757,7 +1761,7 @@ SK::Framerate::Limiter::wait (void)
 
   else
   {
-    dll_log.Log (L"[FrameLimit] Framerate limiter lost time?! (non-monotonic clock)");
+    dll_log->Log (L"[FrameLimit] Framerate limiter lost time?! (non-monotonic clock)");
     start.QuadPart += -next.QuadPart;
   }
 
@@ -1780,8 +1784,8 @@ SK::Framerate::Limiter::effective_frametime (void)
 SK::Framerate::Limiter*
 SK::Framerate::GetLimiter (void)
 {
-  static          Limiter *limiter = nullptr;
-  static volatile LONG     init    = 0;
+  static          std::unique_ptr <Limiter> limiter = nullptr;
+  static volatile LONG                      init    = 0;
 
   if (! InterlockedCompareExchangeAcquire (&init, 1, 0))
   {
@@ -1789,7 +1793,7 @@ SK::Framerate::GetLimiter (void)
       "SK::Framerate::ResetLimit", new skLimitResetCmd ());
 
     limiter =
-      new Limiter (config.render.framerate.target_fps);
+      std::make_unique <Limiter> (config.render.framerate.target_fps);
 
     SK_ReleaseAssert (limiter != nullptr)
 
@@ -1802,7 +1806,8 @@ SK::Framerate::GetLimiter (void)
   else
     SK_Thread_SpinUntilAtomicMin (&init, 2);
 
-  return limiter;
+  return
+    limiter.get ();
 }
 
 void
@@ -1890,10 +1895,10 @@ SK_GetPerfFreq (void)
 {
   static LARGE_INTEGER freq = { 0UL };
   static volatile LONG init = FALSE;
-  
+
   if (ReadAcquire (&init) < 2)
   {
-      RtlQueryPerformanceFrequency = 
+      RtlQueryPerformanceFrequency =
         (QueryPerformanceCounter_pfn)
     SK_GetProcAddress ( L"NtDll",
                          "RtlQueryPerformanceFrequency" );

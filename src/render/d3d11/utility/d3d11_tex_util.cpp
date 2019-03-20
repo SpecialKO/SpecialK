@@ -380,8 +380,8 @@ SK_D3D11_ComputeTextureSize (const D3D11_TEXTURE2D_DESC* pDesc)
                static_cast <size_t> (std::max (1UL, (std::max (1U, (pDesc->Width >> i)) + 3UL) / 4UL)) * 16UL;
 
       const size_t lod_size =
-        static_cast <size_t> (stride) * (static_cast <size_t> (pDesc->Height >> i) / 4 +
-                                         static_cast <size_t> (pDesc->Height >> i) % 4);
+        gsl::narrow_cast <size_t> (stride) * (gsl::narrow_cast <size_t> (pDesc->Height >> i) / 4 +
+                                              gsl::narrow_cast <size_t> (pDesc->Height >> i) % 4);
 
       size += lod_size;
     }

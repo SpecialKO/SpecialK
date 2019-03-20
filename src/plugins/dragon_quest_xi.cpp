@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -40,22 +40,6 @@ extern sk::ParameterFactory g_ParameterFactory;
 
 #include <SpecialK\widgets\widget.h>
 
-
-static
-std::unordered_set <uint32_t>
-  __SK_DQXI_UI_Vtx_Shaders =
-  {
-    0x56f732c6, 0xf3c19cc1,
-    0x6f046ebc, 0x711c9eeb
-  };
-
-static
-std::unordered_set <uint32_t>
-  __SK_DQXI_UI_Pix_Shaders =
-  {
-    0x0fbd3754, 0x26c739a9, 0x7a28c784,
-    0x7dc782b6, 0xd95be234
-  };
 
 ////struct SK_DQXI_UE4_Tweaks
 ////{
@@ -204,24 +188,37 @@ d3d11_shader_tracking_s::cbuffer_override_s* SK_DQXI_CB_Override;
 
 auto DeclKeybind =
 [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
-auto
+sk::ParameterStringW*
 {
+  if (binding == nullptr || ini == nullptr || sec == nullptr)
+    return nullptr;
+
   auto* ret =
     dynamic_cast <sk::ParameterStringW *>
     (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
-  ret->register_to_ini ( ini, sec, binding->short_name );
+  if (ret != nullptr)
+    ret->register_to_ini ( ini, sec, binding->short_name );
 
   return ret;
 };
 
-SK_ConfigSerializedKeybind
-  escape_keybind = {
-    SK_Keybind {
-      "Remap Escape Key", L"Backspace",
-        false, false, false, VK_BACK
-    }, L"RemapEscape"
-  };
+static
+SK_ConfigSerializedKeybind&
+escape_keybind_getter (void)
+{
+  static SK_ConfigSerializedKeybind
+    keybind = {
+      SK_Keybind {
+        "Remap Escape Key", L"Backspace",
+          false, false, false, VK_BACK
+      }, L"RemapEscape"
+    };
+
+  return keybind;
+};
+
+#define escape_keybind escape_keybind_getter()
 
 extern bool
 SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool);
@@ -375,6 +372,23 @@ SK_DQXI_PlugInInit (void)
 
   //ue4_cfg.init ();
 
+  static
+  std::unordered_set <uint32_t>
+    __SK_DQXI_UI_Vtx_Shaders =
+    {
+      0x56f732c6, 0xf3c19cc1,
+      0x6f046ebc, 0x711c9eeb
+    };
+
+  static
+  std::unordered_set <uint32_t>
+    __SK_DQXI_UI_Pix_Shaders =
+    {
+      0x0fbd3754, 0x26c739a9, 0x7a28c784,
+      0x7dc782b6, 0xd95be234
+    };
+
+
   for (               auto& it : __SK_DQXI_UI_Vtx_Shaders)
   SK_D3D11_DeclHUDShader   (it,        ID3D11VertexShader);
 
@@ -460,7 +474,7 @@ SK_DQXI_PlugInCfg (void)
     //  ImGui::BulletText      ("I do not expect any performance gains/losses but possibly weird timing glitches.");
     //  ImGui::EndTooltip      ();
     //}
-  
+
     ////if ( ue4_cfg.pINI != nullptr &&
     ////       ImGui::CollapsingHeader (
     ////         u8"Unreal® Engine 4:  Advanced Engine Tuning",
@@ -562,17 +576,17 @@ SK_DQXI_PlugInCfg (void)
     ////}
     ////
     ////ImGui::Separator ();
-  
+
     if (config.steam.screenshots.enable_hook)
     {
       ImGui::PushID    ("DQXI_Screenshots");
       ImGui::Separator ();
-  
+
       static std::set <SK_ConfigSerializedKeybind *>
         keybinds = {
         &config.steam.screenshots.game_hud_free_keybind
       };
-  
+
       ImGui::SameLine   ();
       ImGui::BeginGroup ();
       for ( auto& keybind : keybinds )
@@ -588,39 +602,39 @@ SK_DQXI_PlugInCfg (void)
         Keybinding ( keybind, keybind->param );
       }
       ImGui::EndGroup   ();
-  
+
       bool png_changed = false;
-  
+
       if (config.steam.screenshots.enable_hook)
       {
         png_changed =
           ImGui::Checkbox ( "Keep Lossless .PNG Screenshots",
                            &config.steam.screenshots.png_compress      );
       }
-  
+
       if ( ( screenshot_manager != nullptr &&
              screenshot_manager->getExternalScreenshotRepository ().files > 0 ) )
       {
         ImGui::SameLine ();
-  
+
         const SK_Steam_ScreenshotManager::screenshot_repository_s& repo =
           screenshot_manager->getExternalScreenshotRepository (png_changed);
-  
+
         ImGui::BeginGroup (  );
         ImGui::TreePush   ("");
         ImGui::Text ( "%lu files using %ws",
                      repo.files,
                      SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
         );
-  
+
         if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip ( "Steam does not support .png screenshots, so "
                              "SK maintains its own storage for lossless screenshots." );
         }
-  
+
         ImGui::SameLine ();
-  
+
         if (ImGui::Button ("Browse"))
         {
           ShellExecuteW ( GetActiveWindow (),
@@ -630,22 +644,22 @@ SK_DQXI_PlugInCfg (void)
                                  SW_NORMAL
           );
         }
-  
+
         ImGui::TreePop  ();
         ImGui::EndGroup ();
       }
       ImGui::PopID      ();
     }
-  
+
     if (ImGui::CollapsingHeader ("Input Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush ("");
-  
+
       if (ImGui::Checkbox ("Remap Escape Key", &__SK_DQXI_IgnoreExit))
       {
         _SK_DQXI_IgnoreExitKeys->store (__SK_DQXI_IgnoreExit);
       }
-  
+
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
@@ -655,26 +669,26 @@ SK_DQXI_PlugInCfg (void)
         ImGui::BulletText   ("Special K's Alt+F4 confirmation is presented in-game!");
         ImGui::EndTooltip   ();
       }
-  
+
       if (__SK_DQXI_IgnoreExit)
       {
         ImGui::SameLine (); ImGui::Spacing ();
         ImGui::SameLine (); ImGui::Spacing ();
         ImGui::SameLine (); ImGui::Spacing ();
-        ImGui::SameLine (); 
+        ImGui::SameLine ();
         ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.66f, 0.66f, 0.66f, 1.f));
         ImGui::TextUnformatted("Remapped Key: ");
         ImGui::PopStyleColor  ();
-        ImGui::SameLine       (); 
+        ImGui::SameLine       ();
         Keybinding ( &escape_keybind,
                     (&escape_keybind)->param );
       }
-  
+
       if (ImGui::Checkbox ("Alias WASD and Arrow Keys", &__SK_DQXI_AliasArrowsAndWASD))
       {
         _SK_DQXI_AliasArrowsAndWASD->store (__SK_DQXI_AliasArrowsAndWASD);
       }
-  
+
       ImGui::TreePop ();
     }
 

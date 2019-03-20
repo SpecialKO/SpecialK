@@ -88,7 +88,7 @@ namespace SK
       k_ELogonStateLoggingOff  = 2,
       k_ELogonStateLoggedOn    = 3
     };
-    
+
     // Exposes a few operations not found in modern SteamAPI interfaces,
     //   some of which are needed to stop the Steam client from doing crazy
     //     things during debug sessions.
@@ -102,7 +102,7 @@ namespace SK
     public:
       // returns the HSteamUser this interface represents
       virtual HSteamUser  GetHSteamUser (void)             = 0;
-    
+
       // steam account management functions
       virtual void        LogOn         (CSteamID steamID) = 0;
       virtual void        LogOff        (void)             = 0;
@@ -110,7 +110,7 @@ namespace SK
       virtual ELogonState GetLogonState (void)             = 0;
       virtual bool        BConnected    (void)             = 0;
       virtual CSteamID    GetSteamID    (void)             = 0;
-    
+
       // The vftable is quite a bit largest than this, but it's all supposedly
       //   obsolete and of no interest. This is the minimal ABI for our purposes.
     };
@@ -155,33 +155,33 @@ struct SK_SteamAchievement
   const char* name_;          // UTF-8 (I think?)
   const char* human_name_;    // UTF-8
   const char* desc_;          // UTF-8
-  
+
   float       global_percent_;
-  
+
   struct
   {
     int unlocked; // Number of friends who have unlocked
     int possible; // Number of friends who may be able to unlock
   } friends_;
-  
+
   // Raw pixel data (RGB8) for achievement icons
   struct
   {
     uint8_t*  achieved;
     uint8_t*  unachieved;
   } icons_;
-  
+
   struct
   {
     int current;
     int max;
-  
-    __forceinline float getPercent (void) 
+
+    __forceinline float getPercent (void)
     {
       return 100.0f * (float)current / (float)max;
     }
   } progress_;
-  
+
   bool        unlocked_;
   __time32_t  time_;
 };
@@ -252,11 +252,6 @@ protected:
 
 private:
 } extern *screenshot_manager;
-
-
-
-
-extern iSK_Logger steam_log;
 
 size_t SK_SteamAPI_GetNumPossibleAchievements (void);
 
@@ -413,7 +408,9 @@ class SK_SteamAPIContext : public SK_IVariableListener
 using ISteamUser004_Light = SK::SteamAPI::ISteamUser004_Light;
 
 public:
-  virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
+  virtual ~SK_SteamAPIContext (void) { };
+
+  bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
 
   bool InitCSteamworks (HMODULE hSteamDLL);
   bool InitSteamAPI    (HMODULE hSteamDLL);
@@ -425,21 +422,21 @@ public:
 
   void Shutdown (void);
 
-  ISteamUser*          User                 (void)  { return user_;               }
-  int                  UserVersion          (void)  { return user_ver_;           }
-  ISteamUser004_Light* UserEx               (void)  { return user_ex_;            }
-  ISteamUserStats*     UserStats            (void)  { return user_stats_;         }
-  ISteamApps*          Apps                 (void)  { return apps_;               }
-  ISteamFriends*       Friends              (void)  { return friends_;            }
-  ISteamUtils*         Utils                (void)  { return utils_;              }
-  int                  UtilsVersion         (void)  { return utils_ver_;          }
-  ISteamScreenshots*   Screenshots          (void)  { return screenshots_;        }
-  ISteamController*    Controller           (void)  { return controller_;         }
-  ISteamMusic*         Music                (void)  { return music_;              }
-  ISteamRemoteStorage* RemoteStorage        (void)  { return remote_storage_;     }
-  int                  RemoteStorageVersion (void)  { return remote_storage_ver_; }
-  ISteamUGC*           UGC                  (void)  { return ugc_;                }
-  int                  UGCVersion           (void)  { return ugc_ver_;            }
+  ISteamUser*          User                 (void) noexcept { return user_;               }
+  int                  UserVersion          (void) noexcept { return user_ver_;           }
+  ISteamUser004_Light* UserEx               (void) noexcept { return user_ex_;            }
+  ISteamUserStats*     UserStats            (void) noexcept { return user_stats_;         }
+  ISteamApps*          Apps                 (void) noexcept { return apps_;               }
+  ISteamFriends*       Friends              (void) noexcept { return friends_;            }
+  ISteamUtils*         Utils                (void) noexcept { return utils_;              }
+  int                  UtilsVersion         (void) noexcept { return utils_ver_;          }
+  ISteamScreenshots*   Screenshots          (void) noexcept { return screenshots_;        }
+  ISteamController*    Controller           (void) noexcept { return controller_;         }
+  ISteamMusic*         Music                (void) noexcept { return music_;              }
+  ISteamRemoteStorage* RemoteStorage        (void) noexcept { return remote_storage_;     }
+  int                  RemoteStorageVersion (void) noexcept { return remote_storage_ver_; }
+  ISteamUGC*           UGC                  (void) noexcept { return ugc_;                }
+  int                  UGCVersion           (void) noexcept { return ugc_ver_;            }
 
   SK_IVariable*      popup_origin   = nullptr;
   SK_IVariable*      notify_corner  = nullptr;
@@ -467,6 +464,7 @@ public:
   bool  ReleaseThreadUser (void);
 
 protected:
+
 private:
   HSteamPipe           hSteamPipe      = 0;
   HSteamUser           hSteamUser      = 0;
@@ -488,15 +486,15 @@ private:
   int                  user_ver_           = 0;
   int                  utils_ver_          = 0;
   int                  remote_storage_ver_ = 0;
-} extern steam_ctx;
+};
 
+extern SK_SteamAPIContext& _SK_Singleton_SteamAPIContext (void) noexcept;
+#define steam_ctx          _SK_Singleton_SteamAPIContext()
 
 #include <SpecialK/log.h>
 
 extern volatile LONG             __SK_Steam_init;
 extern volatile LONG             __SteamAPI_hook;
-
-extern          iSK_Logger       steam_log;
 
 extern          CRITICAL_SECTION callback_cs;
 extern          CRITICAL_SECTION init_cs;
@@ -567,6 +565,202 @@ SK_Steam_ConnectUserIfNeeded (CSteamID user);
 
 std::string
 SK_UseManifestToGetAppName (uint32_t appid);
+
+
+
+#include <stack>
+
+// Barely functional Steam Key/Value Parser
+//   -> Does not handle unquoted kv pairs.
+class SK_Steam_KeyValues
+{
+public:
+  static
+  std::string
+  getValue ( std::string              input,
+             std::deque <std::string> sections,
+             std::string              key )
+  {
+    if (sections.empty () || input.empty () || key.empty ())
+      return "";
+
+    struct {
+      std::stack <std::string> path;
+
+      struct {
+        std::string actual;
+        std::string test;
+      } heap;
+
+      void heapify (std::deque <std::string> const* sections = nullptr)
+      {
+        int i = 0;
+
+        auto& in  = (sections == nullptr) ? path._Get_container () : *sections;
+        auto& out = (sections == nullptr) ? heap.actual            : heap.test;
+
+        out = "";
+
+        for ( auto& str : in )
+        {
+          if (i++ > 0) out += "\x01";
+                       out += str;
+        }
+      }
+    } search_tree;
+
+    search_tree.heapify (&sections);
+
+    std::string name   = "";
+    std::string value  = "";
+    int         quotes = 0;
+
+    auto clear = [&](void)
+    {
+      name   = ""; value = "";
+      quotes = 0;
+    };
+
+    for (auto c : input)
+    {
+      if (c == '"')
+        ++quotes;
+
+      else if (c != '{')
+      {
+        if (quotes == 1)
+        {
+          name += c;
+        }
+
+        if (quotes == 3)
+        {
+          value += c;
+        }
+      }
+
+      if (quotes == 4)
+      {
+        if (! _stricmp ( search_tree.heap.test.c_str   (),
+                         search_tree.heap.actual.c_str () ) )
+        {
+          if (! _stricmp (name.c_str (), key.c_str ()))
+            return value;
+        }
+
+        clear ();
+      }
+
+      if (c == '{')
+      {
+        search_tree.path.push (name);
+        search_tree.heapify   (    );
+
+        clear ();
+      }
+
+      else if (c == '}')
+      {
+        search_tree.path.pop ();
+
+        clear ();
+      }
+    }
+
+    return "";
+  }
+
+#if 0
+  struct ValueKey
+  {
+    std::string name;
+    std::string value;
+  };
+
+  struct ParentKey
+  {
+    std::string name;
+
+    std::vector <ValueKey>  keys;
+    std::vector <ParentKey> children;
+  };
+
+  ParentKey root;
+
+  void parse (std::string input)
+  {
+    std::string name   = "";
+    std::string value  = "";
+    int         quotes = 0;
+
+    std::stack <ParentKey> parents;
+    ParentKey              parent;
+
+    for (auto c : input)
+    {
+      if (c == '"')
+        quotes++;
+
+      else if (c != '{')
+      {
+        if (quotes == 1)
+        {
+          name += c;
+        }
+
+        if (quotes == 3)
+        {
+          value += c;
+        }
+      }
+
+      if (quotes == 4)
+      {
+        quotes = 0;
+        parent.keys.emplace_back (ValueKey { name, value });
+
+        //dll_log->Log (L"Key/Value: %hs, %hs", name.c_str (), value.c_str ());
+
+        name = ""; value = "";
+      }
+
+      if (c == '{')
+      {
+        //dll_log->Log (L"------ %hs ----- { ", name.c_str ());
+
+        parent = { name, { }, { } };
+        quotes = 0;
+        name   = "";
+
+        parents.emplace (parent);
+      }
+
+      else if (c == '}')
+      {
+        //dll_log->Log (L"------ %hs ----- } ", parents.top ().name.c_str ());
+
+        name = ""; value = "";
+
+        if (parents.size () == 1)
+        {
+          root = std::move (parents.top ());
+                            parents.pop ();
+        }
+
+        else
+        {
+          auto child =
+            parents.top ();
+
+          parents.pop ();
+          parents.top ().children.emplace_back (child);
+        }
+      }
+    }
+  }
+#endif
+};
+
 
 
 

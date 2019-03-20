@@ -43,7 +43,7 @@ public:
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
 
-  void run (void)  override
+  void run (void) override
   {
     if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
             static_cast <int> (SK_RenderAPI::D3D11              ) ) )
@@ -80,7 +80,7 @@ public:
     }
   }
 
-  void draw (void)  override
+  void draw (void) override
   {
     if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
             static_cast <int> (SK_RenderAPI::D3D11              ) ) )
@@ -98,9 +98,9 @@ public:
 
     if (pipeline.vertex.verts_invoked.getAvg () > 0)
     {
-      static uint64_t max_invoke = (                     static_cast <uint64_t> (pipeline.vertex.verts_invoked.getMax ()));
-                      max_invoke = static_cast<uint64_t>(static_cast <float> (max_invoke) * 0.8888f);
-                      max_invoke = std::max (max_invoke, static_cast <uint64_t> (pipeline.vertex.verts_invoked.getMax ()));
+      static uint64_t max_invoke = (                      static_cast <uint64_t>    (pipeline.vertex.verts_invoked.getMax ()));
+                      max_invoke = static_cast<uint64_t> (static_cast <long double> (max_invoke) * 0.8888f);
+                      max_invoke = std::max (max_invoke,  static_cast <uint64_t>    (pipeline.vertex.verts_invoked.getMax ()));
 
       snprintf
         ( szAvg,
@@ -111,7 +111,7 @@ public:
                     SK_CountToString (max_invoke).c_str                                                         (),
                       SK_CountToString (static_cast <uint64_t> (pipeline.vertex.verts_invoked.getAvg ())).c_str () );
 
-      int samples = 
+      int samples =
         std::min ( pipeline.vertex.verts_invoked.getUpdates  (),
                    pipeline.vertex.verts_invoked.getCapacity () );
 
@@ -126,9 +126,9 @@ public:
                                        ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
                                          sizeof (float), 0.0f, static_cast <float> (max_invoke) );
 
-      static uint64_t max_verts = (                    static_cast <uint64_t> (pipeline.vertex.verts_input.getMax ()));
-                      max_verts = static_cast<uint64_t>(static_cast <float> (max_verts) * 0.8888f);
-                      max_verts = std::max (max_verts, static_cast <uint64_t> (pipeline.vertex.verts_input.getMax ()));
+      static uint64_t max_verts = (                     static_cast <uint64_t>    (pipeline.vertex.verts_input.getMax ()));
+                      max_verts = static_cast<uint64_t>(static_cast <long double> (max_verts) * 0.8888f);
+                      max_verts = std::max (max_verts,  static_cast <uint64_t>    (pipeline.vertex.verts_input.getMax ()));
 
       snprintf
         ( szAvg,
@@ -139,7 +139,7 @@ public:
                     SK_CountToString   (max_verts).c_str                                                      (),
                       SK_CountToString (static_cast <uint64_t> (pipeline.vertex.verts_input.getAvg ())).c_str () );
 
-      samples = 
+      samples =
         std::min ( pipeline.vertex.verts_input.getUpdates  (),
                    pipeline.vertex.verts_input.getCapacity () );
 
@@ -154,9 +154,9 @@ public:
                                        ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
                                          sizeof (float), 0.0f, static_cast <float> (max_verts) );
 
-      static uint64_t max_prims = (                     static_cast <uint64_t> (pipeline.vertex.prims_input.getMax ()));
-                      max_prims = static_cast<uint64_t>(static_cast <float>    (max_prims) * 0.8888f);
-                      max_prims = std::max (max_prims,  static_cast <uint64_t> (pipeline.vertex.prims_input.getMax ()));
+      static uint64_t max_prims = (                     static_cast <uint64_t>    (pipeline.vertex.prims_input.getMax ()));
+                      max_prims = static_cast<uint64_t>(static_cast <long double> (max_prims) * 0.8888f);
+                      max_prims = std::max (max_prims,  static_cast <uint64_t>    (pipeline.vertex.prims_input.getMax ()));
 
       snprintf
         ( szAvg,
@@ -167,7 +167,7 @@ public:
                     SK_CountToString   (max_prims).c_str                                                      (),
                       SK_CountToString (static_cast <uint64_t> (pipeline.vertex.prims_input.getAvg ())).c_str () );
 
-      samples = 
+      samples =
         std::min ( pipeline.vertex.prims_input.getUpdates  (),
                    pipeline.vertex.prims_input.getCapacity () );
 
@@ -200,7 +200,7 @@ public:
                 pipeline.raster.fill_ratio.getMin   (), pipeline.raster.fill_ratio.getMax (),
                   pipeline.raster.fill_ratio.getAvg () );
 
-      int samples = 
+      int samples =
         std::min ( pipeline.raster.fill_ratio.getUpdates  (),
                    pipeline.raster.fill_ratio.getCapacity () );
 
@@ -219,7 +219,7 @@ public:
                                          0.0, 100.0, 0.0, true );
 
       static uint64_t max_fill = (   static_cast <uint64_t> (pipeline.raster.pixels_filled.getMax ()) );
-                      max_fill =      static_cast<uint64_t> (static_cast <float> (max_fill) * 0.8888f);
+                      max_fill =      static_cast<uint64_t> (static_cast <long double> (max_fill) * 0.8888f);
                       max_fill = std::max (
                                    max_fill,
                                      static_cast <uint64_t> (pipeline.raster.pixels_filled.getMax ())
@@ -235,7 +235,7 @@ public:
                   SK_CountToString   (max_fill).c_str                                                         (),
                     SK_CountToString (static_cast <uint64_t> (pipeline.raster.pixels_filled.getAvg ())).c_str () );
 
-      samples = 
+      samples =
         std::min ( pipeline.raster.pixels_filled.getUpdates  (),
                    pipeline.raster.pixels_filled.getCapacity () );
 
@@ -254,7 +254,7 @@ public:
     if (pipeline.compute.dispatches.getAvg () > 0)
     {
       static uint64_t max_dispatch = (   static_cast <uint64_t> (pipeline.compute.dispatches.getMax ()) );
-                      max_dispatch =     static_cast <uint64_t> (static_cast <float> (max_dispatch) * 0.8888f);
+                      max_dispatch =     static_cast <uint64_t> (static_cast <double> (max_dispatch) * 0.8888);
                       max_dispatch = std::max (
                                        max_dispatch,
                                          static_cast <uint64_t> (pipeline.compute.dispatches.getMax ())
@@ -269,7 +269,7 @@ public:
                   SK_CountToString   (max_dispatch).c_str                                                   (),
                     SK_CountToString (static_cast <uint64_t> (pipeline.compute.dispatches.getAvg ())).c_str () );
 
-      int samples = 
+      int samples =
         std::min ( pipeline.compute.dispatches.getUpdates  (),
                    pipeline.compute.dispatches.getCapacity () );
 
@@ -286,7 +286,7 @@ public:
     }
   }
 
-  virtual void OnConfig (ConfigEvent event) override
+  void OnConfig (ConfigEvent event) noexcept override
   {
     switch (event)
     {

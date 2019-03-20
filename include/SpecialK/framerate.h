@@ -31,7 +31,7 @@ struct IUnknown;
 #include <forward_list>
 
 template <class T, class U>
-constexpr T narrow_cast(U&& u) 
+constexpr T narrow_cast(U&& u)
 {
   return static_cast<T>(std::forward<U>(u));
 }
@@ -57,14 +57,14 @@ namespace SK
                                               //  whether a wait would have occurred.
 
       void        set_limit           (long double target);
-      long double get_limit           (void) { return fps; };
+      long double get_limit           (void) noexcept { return fps; };
 
       long double effective_frametime (void);
 
-      int32_t     suspend             (void) { return ++limit_behavior; }
-      int32_t     resume              (void) { return --limit_behavior; }
+      int32_t     suspend             (void) noexcept { return ++limit_behavior; }
+      int32_t     resume              (void) noexcept { return --limit_behavior; }
 
-      void        reset (bool full = false) {
+      void        reset (bool full = false) noexcept {
         if (full) full_restart = true;
         else           restart = true;
       }
@@ -114,17 +114,17 @@ namespace SK
         } time;
 
 
-        void sleep (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);                                    
+        void sleep (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);
                                             InterlockedAdd       (&time.allowed,  narrow_cast <ULONG> (dwMilliseconds)); }
         void wake  (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);
                                             InterlockedIncrement (&rejections);
                                             InterlockedAdd       (&time.deprived, narrow_cast <ULONG> (dwMilliseconds)); }
       };
 
-      SleepStats& getMessagePumpStats  (void)  { return message_pump;  }
-      SleepStats& getRenderThreadStats (void)  { return render_thread; }
-      SleepStats& getMicroStats        (void)  { return micro_sleep;   }
-      SleepStats& getMacroStats        (void)  { return macro_sleep;   }
+      SleepStats& getMessagePumpStats  (void) noexcept { return message_pump;  }
+      SleepStats& getRenderThreadStats (void) noexcept { return render_thread; }
+      SleepStats& getMicroStats        (void) noexcept { return micro_sleep;   }
+      SleepStats& getMacroStats        (void) noexcept { return macro_sleep;   }
 
     protected:
       SleepStats message_pump, render_thread,
@@ -132,14 +132,14 @@ namespace SK
     } extern *events;
 
 
-    static inline EventCounter* GetEvents  (void)  { return events; }
+    static inline EventCounter* GetEvents  (void) noexcept { return events; }
                   Limiter*      GetLimiter (void);
 
     class Stats {
     public:
       static LARGE_INTEGER freq;
 
-      Stats (void) {
+      Stats (void) noexcept {
         QueryPerformanceFrequency (&freq);
       }
 
@@ -150,7 +150,7 @@ namespace SK
       } data [MAX_SAMPLES];
       int    samples       = 0;
 
-      void addSample (long double sample, LARGE_INTEGER time) 
+      void addSample (long double sample, LARGE_INTEGER time) noexcept
       {
         data [samples % MAX_SAMPLES].val  = sample;
         data [samples % MAX_SAMPLES].when = time;
@@ -160,7 +160,7 @@ namespace SK
 
       long double calcMean (long double seconds = 1.0L);
 
-      long double calcMean (LARGE_INTEGER start) 
+      long double calcMean (LARGE_INTEGER start) noexcept
       {
         long double mean = 0.0L;
 
@@ -180,7 +180,7 @@ namespace SK
 
       long double calcSqStdDev (long double mean, long double seconds = 1.0L);
 
-      long double calcSqStdDev (long double mean, LARGE_INTEGER start) 
+      long double calcSqStdDev (long double mean, LARGE_INTEGER start) noexcept
       {
         long double sd = 0.0;
 
@@ -201,7 +201,7 @@ namespace SK
 
       long double calcMin (long double seconds = 1.0L);
 
-      long double calcMin (LARGE_INTEGER start) 
+      long double calcMin (LARGE_INTEGER start) noexcept
       {
         long double min = INFINITY;
 
@@ -219,7 +219,7 @@ namespace SK
 
       long double calcMax (long double seconds = 1.0L);
 
-      long double calcMax (LARGE_INTEGER start) 
+      long double calcMax (LARGE_INTEGER start) noexcept
       {
         long double max = -INFINITY;
 
@@ -237,7 +237,7 @@ namespace SK
 
       int calcHitches (long double tolerance, long double mean, long double seconds = 1.0);
 
-      int calcHitches (long double tolerance, long double mean, LARGE_INTEGER start) 
+      int calcHitches (long double tolerance, long double mean, LARGE_INTEGER start) noexcept
       {
         int hitches = 0;
 
@@ -285,7 +285,7 @@ namespace SK
 
       int calcNumSamples (long double seconds = 1.0);
 
-      int calcNumSamples (LARGE_INTEGER start) 
+      int calcNumSamples (LARGE_INTEGER start) noexcept
       {
         int samples_used = 0;
 
@@ -331,7 +331,7 @@ static auto SK_DeltaPerf =
    {
      LARGE_INTEGER time = SK_CurrentPerf ();
 
-     time.QuadPart -= static_cast <LONGLONG> (delta * freq);
+     time.QuadPart -= gsl::narrow_cast <LONGLONG> (delta * freq);
 
      return time;
    };

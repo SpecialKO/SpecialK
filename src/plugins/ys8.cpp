@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -121,7 +121,10 @@ struct ys8_cfg_s
 
 
 #include <concurrent_vector.h>
-extern concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
+extern SK_LazyGlobal <
+  concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s>
+> __SK_D3D11_PixelShader_CBuffer_Overrides;
+
 d3d11_shader_tracking_s::cbuffer_override_s* SK_YS8_CB_Override;
 
 
@@ -142,7 +145,7 @@ struct sk_disk_cache_metadata_s {
     ULONG read_time;
   } timing;
 
-  struct 
+  struct
   {
     ULONG total_refs;
     ULONG last_time;
@@ -150,9 +153,12 @@ struct sk_disk_cache_metadata_s {
   } usage;
 };
 
-concurrency::concurrent_unordered_map <
-  ID3D11Resource *, BOOL
->   ys8_dirty_resources (8);
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <
+    ID3D11Resource *, BOOL
+  >
+> ys8_dirty_resources;
+
 int ys8_dirty_buckets  = 8;
 
 static bool ManageCleanMemory    = true;
@@ -194,7 +200,7 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView );
 
-extern 
+extern
 HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
@@ -222,7 +228,7 @@ D3D11_CopyResource_Override (
   _In_ ID3D11Resource      *pDstResource,
   _In_ ID3D11Resource      *pSrcResource );
 
-extern 
+extern
 void
 WINAPI
 D3D11_RSSetViewports_Override (
@@ -290,7 +296,7 @@ SK_YS8_RecursiveFileExport (
     }
 
     if ( (! (            fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) &&
-           _TryPatterns (fd.cFileName)                                  
+           _TryPatterns (fd.cFileName)
        )
     {
       std::wstring in_file =
@@ -303,7 +309,7 @@ SK_YS8_RecursiveFileExport (
                             wszRoot, wszSubDir,
                               fd.cFileName );
 
-      const size_t size = static_cast <size_t> (
+      const size_t size = gsl::narrow_cast <size_t> (
         SK_File_GetSize (in_file.c_str ())
       );
 
@@ -318,7 +324,7 @@ SK_YS8_RecursiveFileExport (
 
       for (size_t i = 0; i < size; i++)
       {
-        data [i] = (  (data [i] << 4U) | 
+        data [i] = (  (data [i] << 4U) |
                      ~(data [i] >> 4U) & 0xFU )
                                        & 0xFF;
       }
@@ -338,7 +344,7 @@ SK_YS8_RecursiveFileExport (
     {
       wchar_t   wszDescend [MAX_PATH * 2] = { };
       swprintf (wszDescend, LR"(%s\%s)", wszSubDir, fd.cFileName);
-    
+
       SK_YS8_RecursiveFileExport (wszRoot, wszDescend, patterns);
     }
   } while (FindNextFile (hFind, &fd));
@@ -385,7 +391,7 @@ const
     }
 
     if ( (! (            fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) &&
-           _TryPatterns (fd.cFileName)                                  
+           _TryPatterns (fd.cFileName)
        )
     {
       std::wstring in_file =
@@ -403,7 +409,7 @@ const
                             wszRoot, wszSubDir,
                               fd.cFileName );
 
-      const size_t size = static_cast <size_t> (
+      const size_t size = gsl::narrow_cast <size_t> (
         SK_File_GetSize (in_file.c_str ())
       );
 
@@ -448,7 +454,7 @@ const
     {
       wchar_t   wszDescend [MAX_PATH * 2] = { };
       swprintf (wszDescend, LR"(%s\%s)", wszSubDir, fd.cFileName);
-    
+
       const auto recursive_work =
         SK_YS8_RecursiveFileImport (wszRoot, wszDescend, patterns, backup);
 
@@ -509,7 +515,7 @@ _SK_RecursiveFileSizeProbe (const wchar_t *wszDir, bool top_lvl = false)
     {
       wchar_t   wszDescend [MAX_PATH * 2] = { };
       swprintf (wszDescend, LR"(%s\%s)", wszDir, fd.cFileName);
-    
+
       size += _SK_RecursiveFileSizeProbe (wszDescend);
     }
   } while (FindNextFile (hFind, &fd));
@@ -565,7 +571,7 @@ SK_YS8_ControlPanel (void)
         ImGui::PushStyleColor ( ImGuiCol_Text,
                                   ImColor::HSV ( 0.4f - ( 0.4f * (
                                                  SK_D3D11_Resampler_GetActiveJobCount ()
-                                                                 ) / 
+                                                                 ) /
                                                static_cast <float> (jobs)
                                                         ), 0.15f,
                                                              1.0f
@@ -634,14 +640,14 @@ SK_YS8_ControlPanel (void)
         }
 
         extern uint64_t SK_D3D11_MipmapCacheSize;
-        
+
         if (ImGui::Checkbox ("Cache Mipmaps to Disk", &config.textures.d3d11.cache_gen_mips))
         {
           changed = true;
 
           ys8_config.mipmaps.cache->store (config.textures.d3d11.cache_gen_mips);
         }
-        
+
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ();
@@ -659,7 +665,7 @@ SK_YS8_ControlPanel (void)
 
           wcscpy ( wszPath,
                      SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
-        
+
           lstrcatW (wszPath, LR"(\inject\textures\MipmapCache\)");
           lstrcatW (wszPath, SK_GetHostApp ());
           lstrcatW (wszPath, LR"(\)");
@@ -669,7 +675,7 @@ SK_YS8_ControlPanel (void)
         {
               ImGui::SameLine (               );
           if (ImGui::Button   (" Purge Cache "))
-          {        
+          {
             SK_D3D11_MipmapCacheSize -= SK_DeleteTemporaryFiles (wszPath, L"*.dds");
 
             assert ((int64_t)SK_D3D11_MipmapCacheSize > 0LL);
@@ -700,7 +706,7 @@ SK_YS8_ControlPanel (void)
 
         //
         // GetDiskFreeSpaceEx has highly unpredictable call overhead
-        //  
+        //
         //   ... so try to be careful with it!
         //
         if (SK_D3D11_MipmapCacheSize != last_MipmapCacheSize)
@@ -733,7 +739,7 @@ SK_YS8_ControlPanel (void)
         if (SK_D3D11_MipmapCacheSize > 0)
         {
           ImGui::ProgressBar ( static_cast <float> (static_cast <long double> (ulBytesAvailable.QuadPart) /
-                                                    static_cast <long double> (ulBytesTotal.QuadPart)       ),  
+                                                    static_cast <long double> (ulBytesTotal.QuadPart)       ),
                                  ImVec2 (-1, 0),
               SK_WideCharToUTF8 (
                 SK_File_SizeToStringF (ulBytesAvailable.QuadPart, 2, 3) + L" Remaining Storage Capacity"
@@ -759,7 +765,7 @@ SK_YS8_ControlPanel (void)
 
         if (changed) ys8_config.mipmaps.anisotropy->store (max_anisotropy);
       }
-      
+
       //if (! SK_IsInjected ())
       {
         enum {
@@ -878,8 +884,8 @@ SK_YS8_ControlPanel (void)
                                      (long double)(llTotalBytes)), ImVec2 (-1,0),
           SK_FormatString ("%ws out of %ws were avoided\t\t\t\tDirty Hash (%ws :: Load=%4.2f)", SK_File_SizeToString (ReadAcquire64 (&llBytesSkipped)).c_str (),
                                                                                                 SK_File_SizeToString (llTotalBytes).c_str (),
-                                                                                                SK_File_SizeToString (ys8_dirty_resources.size () * (sizeof (uintptr_t) + sizeof (bool))).c_str (),
-                                                                                                                      ys8_dirty_resources.load_factor ()).c_str ());
+                                                                                                SK_File_SizeToString (ys8_dirty_resources->size () * (sizeof (uintptr_t) + sizeof (bool))).c_str (),
+                                                                                                                      ys8_dirty_resources->load_factor ()).c_str ());
         ImGui::PopStyleColor ();
       }
 
@@ -1015,7 +1021,7 @@ const
       bool activate_menu =
         ImGui::MenuItem (eval_dir_utf8.c_str (), SK_WideCharToUTF8 (
                                                    SK_File_SizeToStringF (
-                                                     _SK_RecursiveFileSizeProbe ( probe_dir.c_str (), true ), 3, 2 
+                                                     _SK_RecursiveFileSizeProbe ( probe_dir.c_str (), true ), 3, 2
                                                    )
                                                  ).c_str ()
                         );
@@ -1093,7 +1099,7 @@ const
         );
       } ImGui::SameLine (); ImGui::Checkbox ("Backup Imported Files", &backup);
 
-      if (has_exports [export_dir]) 
+      if (has_exports [export_dir])
           has_exports [export_dir] = _LinkToExportedDataFolder (wszSubdir);
 
       ImGui::TreePop  (  );
@@ -1122,22 +1128,22 @@ const
                                      "Export##SK_YS8_EXP_VO_EN",
                                      "Import##SK_YS8_IMP_VO_EN",  LR"(voice\en)", { L".wav" } );
         }
-        
+
         if (ImGui::CollapsingHeader ("Voices (Japanese)"))
         {
           _SK_YS8_ImportExportUI ( SK_FormatStringW (LR"(%s\SK_Export\voice\ja)", wszWorkDir).c_str (),
                                      "Export##SK_YS8_EXP_VO_JA",
                                      "Import##SK_YS8_IMP_VO_JA",  LR"(voice\ja)", { L".wav" } );
         }
-        
-        
+
+
         if (ImGui::CollapsingHeader ("Sound Effects"))
         {
           _SK_YS8_ImportExportUI ( SK_FormatStringW (LR"(%s\SK_Export\se)", wszWorkDir).c_str (),
                                      "Export##SK_YS8_EXP_SE",
                                      "Import##SK_YS8_IMP_SE",  LR"(se)", { L".wav" } );
         }
-        
+
         if (ImGui::CollapsingHeader ("Music"))
         {
           _SK_YS8_ImportExportUI ( SK_FormatStringW (LR"(%s\SK_Export\bgm)", wszWorkDir).c_str (),
@@ -1169,7 +1175,7 @@ const
 
 
       bool expand_headers = ImGui::CollapsingHeader ("C/C++ Data Structures");
-      
+
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ( );
@@ -1179,7 +1185,7 @@ const
         ImGui::BulletText   (  "If ancient Chinese squiggles confuse you, the C headers are still useful for CheatEngine");
         ImGui::EndTooltip   ();
       }
-      
+
       if (expand_headers)
       {
         _SK_YS8_ImportExportUI ( SK_FormatStringW (LR"(%s\SK_Export\inc)", wszWorkDir).c_str (),
@@ -1233,7 +1239,7 @@ const
 
 
 constexpr          uint32_t
-SK_NextPowerOfTwo (uint32_t n) 
+SK_NextPowerOfTwo (uint32_t n)
 {
    n--;    n |= n >> 1;
            n |= n >> 2;   n |= n >> 4;
@@ -1315,7 +1321,7 @@ SK_YS8_CreateFileA (
   _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
   _In_     DWORD                 dwCreationDisposition,
   _In_     DWORD                 dwFlagsAndAttributes,
-  _In_opt_ HANDLE                hTemplateFile ) 
+  _In_opt_ HANDLE                hTemplateFile )
 {
   dwFlagsAndAttributes &= ~FILE_FLAG_RANDOM_ACCESS;
   dwFlagsAndAttributes |=  FILE_FLAG_SEQUENTIAL_SCAN;
@@ -1336,7 +1342,7 @@ SK_YS8_CreateFileW (
   _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
   _In_     DWORD                 dwCreationDisposition,
   _In_     DWORD                 dwFlagsAndAttributes,
-  _In_opt_ HANDLE                hTemplateFile ) 
+  _In_opt_ HANDLE                hTemplateFile )
 {
   dwFlagsAndAttributes &= ~FILE_FLAG_RANDOM_ACCESS;
   dwFlagsAndAttributes |=  FILE_FLAG_SEQUENTIAL_SCAN;
@@ -1377,11 +1383,11 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
         D3D11_RESOURCE_DIMENSION rDim;
             pResource->GetType (&rDim);
 
-        if (rDim == D3D11_RESOURCE_DIMENSION_TEXTURE2D && ys8_dirty_resources [pResource] == FALSE)
+        if (rDim == D3D11_RESOURCE_DIMENSION_TEXTURE2D && ys8_dirty_resources.get ()[pResource] == FALSE)
         {
           //dll_log.Log (L"[tid=%x] Map Write  (Clean->Dirty)  <%s>", GetCurrentThreadId (), DescribeResource (pResource).c_str ());
 
-          ys8_dirty_resources [pResource] = TRUE;
+          ys8_dirty_resources.get ()[pResource] = TRUE;
         }
       }
     }
@@ -1409,10 +1415,10 @@ SK_YS8_CopyResource (
 
   if (ManageCleanMemory)
   {
-    if (ys8_dirty_resources.load_factor () > 3.333)
+    if (ys8_dirty_resources->load_factor () > 3.333)
     {
-                                  ys8_dirty_buckets *= 2;
-      ys8_dirty_resources.rehash (ys8_dirty_buckets);
+                                   ys8_dirty_buckets *= 2;
+      ys8_dirty_resources->rehash (ys8_dirty_buckets);
     }
 
     D3D11_RESOURCE_DIMENSION rDim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
@@ -1422,9 +1428,9 @@ SK_YS8_CopyResource (
     if (rDim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
       CComQIPtr <ID3D11Texture2D>  pTex2D (pSrcResource);
-      
+
       D3D11_TEXTURE2D_DESC desc = {};
-      
+
       pTex2D->GetDesc (&desc);
 
       const LONG64 llSize =
@@ -1432,12 +1438,12 @@ SK_YS8_CopyResource (
 
       if (desc.Width == 256 && desc.Height == 128)
       {
-        if ((! ys8_dirty_resources.count (pSrcResource)) || ys8_dirty_resources [pSrcResource] == FALSE)
+        if ((! ys8_dirty_resources->count (pSrcResource)) || ys8_dirty_resources.get ()[pSrcResource] == FALSE)
         {
           InterlockedIncrement (&iCopyOpsSkipped);
           InterlockedAdd64     (&llBytesSkipped, llSize);
 
-          ys8_dirty_resources [pDstResource] = FALSE;
+          ys8_dirty_resources.get ()[pDstResource] = FALSE;
         //dll_log.Log (L"Skipped CopyResource (256x128) - Not Dirty");
           return;
         }
@@ -1447,19 +1453,19 @@ SK_YS8_CopyResource (
           InterlockedIncrement (&iCopyOpsRun);
           InterlockedAdd64     (&llBytesCopied, llSize);
 
-          ys8_dirty_resources [pSrcResource] = FALSE;
-          ys8_dirty_resources [pDstResource] = FALSE;
+          ys8_dirty_resources.get ()[pSrcResource] = FALSE;
+          ys8_dirty_resources.get ()[pDstResource] = FALSE;
         }
       }
-      
+
       else if (desc.Width == 1024 && desc.Height == 64)
       {
-        if ((! ys8_dirty_resources.count (pSrcResource)) || ys8_dirty_resources [pSrcResource] == FALSE)
+        if ((! ys8_dirty_resources->count (pSrcResource)) || ys8_dirty_resources.get ()[pSrcResource] == FALSE)
         {
           InterlockedIncrement (&iCopyOpsSkipped);
           InterlockedAdd64     (&llBytesSkipped, llSize);
 
-          ys8_dirty_resources [pDstResource] = FALSE;
+          ys8_dirty_resources.get ()[pDstResource] = FALSE;
         //dll_log.Log (L"Skipped CopyResource (1024x64) - Not Dirty");
           return;
         }
@@ -1469,19 +1475,19 @@ SK_YS8_CopyResource (
           InterlockedIncrement (&iCopyOpsRun);
           InterlockedAdd64     (&llBytesCopied, llSize);
 
-          ys8_dirty_resources [pSrcResource] = FALSE;
-          ys8_dirty_resources [pDstResource] = FALSE;
+          ys8_dirty_resources.get ()[pSrcResource] = FALSE;
+          ys8_dirty_resources.get ()[pDstResource] = FALSE;
         }
       }
 
       else if (CatchAllMemoryFaults && desc.Usage == D3D11_USAGE_STAGING)
       {
-        if ((! ys8_dirty_resources.count (pSrcResource)) || ys8_dirty_resources [pSrcResource] == FALSE)
+        if ((! ys8_dirty_resources->count (pSrcResource)) || ys8_dirty_resources.get ()[pSrcResource] == FALSE)
         {
           InterlockedIncrement (&iCopyOpsSkipped);
           InterlockedAdd64     (&llBytesSkipped, llSize);
 
-          ys8_dirty_resources [pDstResource] = FALSE;
+          ys8_dirty_resources.get ()[pDstResource] = FALSE;
         //dll_log.Log (L"Skipped CopyResource (3840x2160) - Not Dirty");
           return;
         }
@@ -1495,8 +1501,8 @@ SK_YS8_CopyResource (
             InterlockedAdd64     (&llBytesCopied, llSize);
           }
 
-          ys8_dirty_resources [pSrcResource] = FALSE;
-          ys8_dirty_resources [pDstResource] = FALSE;
+          ys8_dirty_resources.get ()[pSrcResource] = FALSE;
+          ys8_dirty_resources.get ()[pDstResource] = FALSE;
         }
       }
 
@@ -1522,7 +1528,7 @@ WINAPI
 SK_YS8_CreateSamplerState (
   _In_            ID3D11Device        *This,
   _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
-  _Out_opt_       ID3D11SamplerState **ppSamplerState ) 
+  _Out_opt_       ID3D11SamplerState **ppSamplerState )
 {
   extern D3D11Dev_CreateSamplerState_pfn D3D11Dev_CreateSamplerState_Original;
 
@@ -1559,7 +1565,7 @@ SK_YS8_CreateSamplerState (
         new_desc.Filter = anisotropic_filter ? D3D11_FILTER_COMPARISON_ANISOTROPIC :
                                                D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
       }
-      
+
       pSamplerDesc = &new_desc;
     }
   }
@@ -1576,7 +1582,7 @@ SK_YS8_CreateShaderResourceView (
   _In_           ID3D11Device                     *This,
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView        **ppSRView ) 
+  _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
   return
     _D3D11Dev_CreateShaderResourceView_Original ( This, pResource, pDesc, ppSRView );
@@ -1626,10 +1632,10 @@ SK_YS8_CreateTexture2D (
     //
     //else if (pDesc->Width == 2048 && pDesc->Height == 720)
     //{
-    //  newDesc.Width  = 1280;  
+    //  newDesc.Width  = 1280;
     //  newDesc.Height = 720;
     //}
-    
+
 
     //extern std::wstring
     //__stdcall
@@ -1746,7 +1752,7 @@ SK_YS8_InitPlugin (void)
                                SK_YS8_CreateFileW,
              static_cast_p2p <void> (&CreateFileW_Original) );
 
-  
+
   ys8_config.shadows.scale =
       dynamic_cast <sk::ParameterFloat *>
         (ys8_config.factory.create_parameter <float> (L"Shadow Rescale"));
@@ -1884,7 +1890,7 @@ SK_YS8_InitPlugin (void)
 
 
 
-  ys8_config.postproc.override_postproc = 
+  ys8_config.postproc.override_postproc =
       dynamic_cast <sk::ParameterBool *>
         (ys8_config.factory.create_parameter <bool> (L"Override post-processing"));
 
@@ -1916,11 +1922,11 @@ SK_YS8_InitPlugin (void)
                                                        L"Sharpness" );
 
 
-  __SK_D3D11_PixelShader_CBuffer_Overrides.push_back (
+  __SK_D3D11_PixelShader_CBuffer_Overrides->push_back (
     { 0x05da09bd, 48, false, 0, 0, 48, { 0.0f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f } }
   );
 
-  SK_YS8_CB_Override = &__SK_D3D11_PixelShader_CBuffer_Overrides.back ();
+  SK_YS8_CB_Override = &__SK_D3D11_PixelShader_CBuffer_Overrides->back ();
 
   ys8_config.postproc.override_postproc->load (SK_YS8_CB_Override->Enable);
   ys8_config.postproc.contrast->load          (SK_YS8_CB_Override->Values [0]);

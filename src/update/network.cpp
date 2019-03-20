@@ -145,7 +145,7 @@ DownloadThread (LPVOID user)
         return NULL;
       };
 
-  auto SetProgress = 
+  auto SetProgress =
     [&](double cur, double max)
     {
       TaskMsg ( TDM_SET_PROGRESS_BAR_POS,
@@ -356,10 +356,12 @@ HWND hWndRemind    = nullptr;
 
 #define ID_REMIND 0
 
-struct {
+struct sk_pcm_sound_s {
   HGLOBAL  ref = nullptr;
   uint8_t* buf = nullptr;
-} static annoy_sound;
+};
+
+SK_LazyGlobal <sk_pcm_sound_s> annoy_sound;
 
 INT_PTR
 CALLBACK
@@ -401,13 +403,13 @@ RemindMeLater_DlgProc (
         HWND hWndFocus =
           GetFocus ();
 
-        if ( game_window.hWnd != HWND_DESKTOP    &&
+        if ( game_window.hWnd != SK_HWND_DESKTOP    &&
                ( hWndFocus == game_window.hWnd   ||
                             ( game_window.active &&
                               hWndDlg            != GetForegroundWindow () ) ) )
         {
           SetForegroundWindow ( hWndDlg );
-          SK_SetWindowPos     ( hWndDlg, HWND_TOP,
+          SK_SetWindowPos     ( hWndDlg, SK_HWND_TOP,
                                 0, 0, 0, 0,
                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
                                 SWP_NOSIZE         | SWP_NOMOVE       |
@@ -440,11 +442,11 @@ RemindMeLater_DlgProc (
 
       if (default_sound != nullptr)
       {
-        annoy_sound.ref   =
+        annoy_sound->ref   =
           LoadResource (__SK_hModSelf, default_sound);
 
-        if (annoy_sound.ref != nullptr)
-          annoy_sound.buf = (uint8_t *)LockResource (annoy_sound.ref);
+        if (annoy_sound->ref != nullptr)
+          annoy_sound->buf = (uint8_t *)LockResource (annoy_sound->ref);
       }
 
       ComboBox_InsertString (hWndNextCheck, 0, L"Next launch");
@@ -466,7 +468,7 @@ RemindMeLater_DlgProc (
         srand (GetCurrentProcessId ());
 
         if (! (rand () % 2))
-          PlaySound ( (LPCWSTR)annoy_sound.buf,
+          PlaySound ( (LPCWSTR)annoy_sound->buf,
                       nullptr,
                         SND_ASYNC |
                         SND_MEMORY );
@@ -537,14 +539,17 @@ RemindMeLater_DlgProc (
               ParameterFactory.create_parameter <int64_t> (L"Reminder")
             );
 
-          remind_time->register_to_ini (
-            &install_ini,
-              L"Update.User",
-                L"Reminder"
-          );
+          if (remind_time != nullptr)
+          {
+            remind_time->register_to_ini (
+              &install_ini,
+                L"Update.User",
+                  L"Reminder"
+            );
 
-                 remind_time->store ((int64_t)next);
-          delete remind_time;
+                   remind_time->store ((int64_t)next);
+            delete remind_time;
+          }
         }
 
         else
@@ -556,16 +561,19 @@ RemindMeLater_DlgProc (
               )
             );
 
-          frequency->register_to_ini (
-            &install_ini,
-              L"Update.User",
-                L"Frequency"
-          );
+          if (frequency != nullptr)
+          {
+            frequency->register_to_ini (
+              &install_ini,
+                L"Update.User",
+                  L"Frequency"
+            );
 
-          user_prefs.remove_key (L"Reminder");
+            user_prefs.remove_key (L"Reminder");
 
-                 frequency->store (L"never");
-          delete frequency;
+                   frequency->store (L"never");
+            delete frequency;
+          }
         }
 
         install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
@@ -613,13 +621,13 @@ DownloadDialogCallback (
     HWND hWndFocus =
       GetFocus ();
 
-    if ( game_window.hWnd != HWND_DESKTOP    &&
+    if ( game_window.hWnd != SK_HWND_DESKTOP &&
            ( hWndFocus == game_window.hWnd   ||
                         ( game_window.active &&
                           hWnd               != GetForegroundWindow () ) ) )
     {
       SetForegroundWindow ( hWnd );
-      SK_SetWindowPos     ( hWnd, HWND_TOP,
+      SK_SetWindowPos     ( hWnd, SK_HWND_TOP,
                             0, 0, 0, 0,
                             SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
                             SWP_NOSIZE         | SWP_NOMOVE       |
@@ -952,7 +960,7 @@ Update_DlgProc (
               UNREFERENCED_PARAMETER (wParam);
               UNREFERENCED_PARAMETER (lParam);
               UNREFERENCED_PARAMETER (dwRefData);
-               
+
               switch (uNotification)
               {
                 case TDN_CREATED:
@@ -1077,13 +1085,13 @@ Update_DlgProc (
         HWND hWndFocus =
           GetFocus ();
 
-        if ( game_window.hWnd != HWND_DESKTOP    &&
+        if ( game_window.hWnd != SK_HWND_DESKTOP &&
                ( hWndFocus == game_window.hWnd   ||
                             ( game_window.active &&
                               hWndDlg            != GetForegroundWindow () ) ) )
         {
           SetForegroundWindow ( hWndDlg );
-          SK_SetWindowPos     ( hWndDlg, HWND_TOP,
+          SK_SetWindowPos     ( hWndDlg, SK_HWND_TOP,
                                 0, 0, 0, 0,
                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
                                 SWP_NOSIZE         | SWP_NOMOVE       |
@@ -1247,7 +1255,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
   struct {
     signed int   installed     =  -1;
-    wchar_t      branch  [128] = { }; 
+    wchar_t      branch  [128] = { };
 
     struct {
       signed int in_branch     =  -1; // TODO

@@ -282,7 +282,7 @@ sk::NVAPI::EnumGPUs_DXGI (void)
       static_cast <size_t> (meminfo.dedicatedVideoMemory) << 10;
     adapterDesc.DedicatedSystemMemory =
       static_cast <size_t> (meminfo.systemVideoMemory)    << 10;
-    adapterDesc.SharedSystemMemory    = 
+    adapterDesc.SharedSystemMemory    =
       static_cast <size_t> (meminfo.sharedSystemMemory)   << 10;
 
     _nv_dxgi_adapters [i] = adapterDesc;
@@ -397,7 +397,7 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
           rb.setHDRCapable (true);
     }
 
-    dll_log.LogEx ( true,
+    dll_log->LogEx ( true,
       L"[ HDR Caps ]\n"
       L"  +-----------------+---------------------\n"
       L"  | Red Primary.... |  %f, %f\n"
@@ -415,9 +415,9 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
         pHdrCapabilities->display_data.displayPrimary_x0,   pHdrCapabilities->display_data.displayPrimary_y0,
         pHdrCapabilities->display_data.displayPrimary_x1,   pHdrCapabilities->display_data.displayPrimary_y1,
         pHdrCapabilities->display_data.displayPrimary_x2,   pHdrCapabilities->display_data.displayPrimary_y2,
-        pHdrCapabilities->display_data.displayWhitePoint_x, pHdrCapabilities->display_data.displayWhitePoint_y, 
+        pHdrCapabilities->display_data.displayWhitePoint_x, pHdrCapabilities->display_data.displayWhitePoint_y,
         (float)pHdrCapabilities->display_data.desired_content_min_luminance,
-        (float)pHdrCapabilities->display_data.desired_content_max_luminance, 
+        (float)pHdrCapabilities->display_data.desired_content_max_luminance,
         (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
                pHdrCapabilities->isEdrSupported                 ? L"Yes" : L"No",
                pHdrCapabilities->isST2084EotfSupported          ? L"Yes" : L"No",
@@ -490,11 +490,11 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     SK_LOG0 ( ( L"HDR:  Max Master Luma: %7.1f, Min Master Luma: %7.5f",
       static_cast <float> (pHdrColorData->mastering_display_data.max_display_mastering_luminance),
       static_cast <float> (
-        static_cast <float> 
+        static_cast <float>
                           (pHdrColorData->mastering_display_data.min_display_mastering_luminance) * 0.0001f
                           )
               ), __SK_SUBSYSTEM__ );
-  
+
     SK_LOG0 ( ( L"HDR:  Max Avg. Luma: %7.1f, Max Luma: %7.1f",
       static_cast <float> (pHdrColorData->mastering_display_data.max_frame_average_light_level),
       static_cast <float> (pHdrColorData->mastering_display_data.max_content_light_level)
@@ -633,7 +633,7 @@ NvAPI_QueryInterface_Detour (unsigned int ordinal)
   {
     logged_ordinals.insert (ordinal);
 
-    dll_log.Log (L"NvAPI Ordinal: %lu  --  %s", ordinal, SK_SummarizeCaller ().c_str ());
+    dll_log->Log (L"NvAPI Ordinal: %lu  --  %s", ordinal, SK_SummarizeCaller ().c_str ());
   }
 
   return NvAPI_QueryInterface_Original (ordinal);
@@ -692,16 +692,16 @@ SK_NvAPI_PreInitHDR (void)
 
       if (NvAPI_QueryInterface != nullptr)
       {
-        SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl", 
+        SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl",
                               NvAPI_QueryInterface (891134500),
                               NvAPI_Disp_HdrColorControl_Override,
     static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
-     
-        SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities", 
+
+        SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities",
                               NvAPI_QueryInterface (2230495455),
                               NvAPI_Disp_GetHdrCapabilities_Override,
      static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
-    
+
         MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
         MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
       }
@@ -781,43 +781,43 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
         (NvAPI_GetGPUIDFromPhysicalGPU_pfn)NvAPI_QueryInterface   (0x6533EA3Eu);
 
       if (NvAPI_GPU_GetRamType == nullptr) {
-        dll_log.LogEx (false, L"missing NvAPI_GPU_GetRamType ");
+        dll_log->LogEx (false, L"missing NvAPI_GPU_GetRamType ");
         nv_hardware = false;
       }
 
       if (NvAPI_GPU_GetFBWidthAndLocation == nullptr) {
-        dll_log.LogEx (false, L"missing NvAPI_GPU_GetFBWidthAndLocation ");
+        dll_log->LogEx (false, L"missing NvAPI_GPU_GetFBWidthAndLocation ");
         nv_hardware = false;
       }
 
       if (NvAPI_GPU_GetPCIEInfo == nullptr) {
-        dll_log.LogEx (false, L"missing NvAPI_GPU_GetPCIEInfo ");
+        dll_log->LogEx (false, L"missing NvAPI_GPU_GetPCIEInfo ");
         nv_hardware = false;
       }
 
       if (NvAPI_GetPhysicalGPUFromGPUID == nullptr) {
-        dll_log.LogEx (false, L"missing NvAPI_GetPhysicalGPUFromGPUID ");
+        dll_log->LogEx (false, L"missing NvAPI_GetPhysicalGPUFromGPUID ");
         nv_hardware = false;
       }
 
       if (NvAPI_GetGPUIDFromPhysicalGPU == nullptr) {
-        dll_log.LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
+        dll_log->LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
         nv_hardware = false;
       }
 
 
       if (NvAPI_Disp_HdrColorControl_Original == nullptr)
       {
-        SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl", 
+        SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl",
                               NvAPI_QueryInterface (891134500),
                               NvAPI_Disp_HdrColorControl_Override,
      static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
-  
-        SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities", 
+
+        SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities",
                               NvAPI_QueryInterface (2230495455),
                               NvAPI_Disp_GetHdrCapabilities_Override,
      static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
-  
+
         MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
         MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
       }
@@ -848,7 +848,7 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
     }
 
     else {
-      dll_log.Log (L"unable to complete LoadLibrary (...) ");
+      dll_log->Log (L"unable to complete LoadLibrary (...) ");
       nv_hardware = false;
     }
 
@@ -908,7 +908,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   NvDRSProfileHandle hProfile;
   NVDRS_APPLICATION  app = { };
 
-  NvU32 compat_bits_enum = 
+  NvU32 compat_bits_enum =
     (SK_GetDLLRole () == DXGI ? AA_COMPAT_BITS_DXGI_ID :
                                 AA_COMPAT_BITS_DX9_ID);
 
@@ -932,7 +932,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   unsigned int override    = std::numeric_limits <unsigned int>::max ();
   unsigned int auto_bias   = std::numeric_limits <unsigned int>::max ();
 
-  while ( prop.wszName  != nullptr && 
+  while ( prop.wszName  != nullptr &&
           prop.wszValue != nullptr )
   {
     // ...
@@ -1072,8 +1072,8 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
 
     // Driver's not being cooperative, we have no choice but to bail-out
     else {
-      dll_log.Log ( L"[  NvAPI   ] Could not find or create application profile for '%s' (%s)",
-                      friendly_name.c_str (), app_name.c_str () );
+      dll_log->LogEx ( L"[  NvAPI   ] Could not find or create application profile for '%s' (%s)",
+                       friendly_name.c_str (), app_name.c_str () );
 
       NVAPI_CALL (DRS_DestroySession (hSession));
 
@@ -1135,7 +1135,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
     // Not running as admin, don't do the override!
     if (ret == NVAPI_INVALID_USER_PRIVILEGE)
     {
-      int result = 
+      int result =
         MessageBox ( nullptr,
                        L"Please run this game as Administrator to install Anti-Aliasing "
                        L"compatibility bits\r\n\r\n"
@@ -1203,8 +1203,8 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
 
   else
   {
-    dll_log.Log ( L"[  NvAPI   ] *** Cannot set NvDRS Profile Setting '%x' as a normal user, skipping...",
-                    aa_fix_enum );
+    dll_log->Log ( L"[  NvAPI   ] *** Cannot set NvDRS Profile Setting '%x' as a normal user, skipping...",
+                     aa_fix_enum );
   }
 
   if (autobias_val.u32CurrentValue != auto_bias && auto_bias != -1)
@@ -1218,7 +1218,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
     NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &autobias_val));
     NVAPI_VERBOSE   ();
 
-    already_set = FALSE;    
+    already_set = FALSE;
   }
 
   if (override_val.u32CurrentValue != override && override != -1)
@@ -1451,7 +1451,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
          NvDRSProfileHandle hProfile = { };
   static NVDRS_APPLICATION  app      = { };
 
-  NvU32 compat_bits_enum = 
+  NvU32 compat_bits_enum =
     (role == DXGI ? SLI_COMPAT_BITS_DXGI_ID :
                     SLI_COMPAT_BITS_DX9_ID);
 
@@ -1487,8 +1487,8 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
            mode_str == L"afr of sfr  fallback 3afr")
     render_mode = SLI_RENDERING_MODE_FORCE_AFR_OF_SFR__FALLBACK_3AFR;
   else
-    dll_log.Log ( L"[  NvAPI   ] >> Unknown SLI Mode: '%s', falling back to 'Auto'",
-                    wszModeName );
+    dll_log->Log ( L"[  NvAPI   ] >> Unknown SLI Mode: '%s', falling back to 'Auto'",
+                     wszModeName );
 
   wchar_t* wszGPUCountLower = _wcsdup (wszGPUCount);
   std::wstring gpu_count_str (_wcslwr (wszGPUCountLower));
@@ -1507,8 +1507,8 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   else if (gpu_count_str == L"four"  || gpu_count_str == L"4")
     gpu_count = SLI_GPU_COUNT_FOUR;
   else
-    dll_log.Log ( L"[  NvAPI   ] >> Unknown SLI GPU Count: '%s', falling back to 'Auto'",
-                    wszGPUCount );
+    dll_log->Log ( L"[  NvAPI   ] >> Unknown SLI GPU Count: '%s', falling back to 'Auto'",
+                     wszGPUCount );
 
   compat_bits = wcstoul (wszCompatBits, nullptr, 16);
 
@@ -1599,7 +1599,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
     // Not running as admin, don't do the override!
     if (ret == NVAPI_INVALID_USER_PRIVILEGE)
     {
-      int result = 
+      int result =
         MessageBox ( nullptr,
                        L"Please run this game as Administrator to install SLI "
                        L"compatibility bits\r\n\r\n"

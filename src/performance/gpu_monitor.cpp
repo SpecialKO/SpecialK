@@ -461,7 +461,7 @@ SK_GPUPollingThread (LPVOID user)
 
         if (pAdapter->iAdapterIndex >= ADL_MAX_ADAPTERS || pAdapter->iAdapterIndex < 0)
         {
-          dll_log.Log (L"[DisplayLib] INVALID ADL ADAPTER: %i", pAdapter->iAdapterIndex);
+          dll_log->Log (L"[DisplayLib] INVALID ADL ADAPTER: %i", pAdapter->iAdapterIndex);
           break;
         }
 

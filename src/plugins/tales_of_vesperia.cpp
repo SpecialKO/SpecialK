@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -55,14 +55,14 @@ struct tv_mem_addr_s
   bool           enabled        =   false;
   void*          scanned_addr   = nullptr;
 
-  std::vector<BYTE> orig_bytes  =     { };
+  std::vector<BYTE> orig_bytes;
 
   const wchar_t* desc           = nullptr;
   void*          expected_addr  = nullptr;
 
   void scan (void)
   {
-    if (! scanned_addr)
+    if (scanned_addr == nullptr)
     {
       // First try the expected addressexpected_addr
       if (expected_addr != nullptr)
@@ -76,7 +76,7 @@ struct tv_mem_addr_s
           if (! memcmp (pattern, expected, pattern_len))
             scanned_addr = expected;
         }
-        
+
         //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
         //         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
         catch (...)
@@ -106,7 +106,7 @@ struct tv_mem_addr_s
         }
       }
 
-      dll_log.Log (L"Scanned address for: %s: %p (alignment=%lu)", desc, scanned_addr, (uintptr_t)scanned_addr % 16);
+      dll_log->Log (L"Scanned address for: %s: %p (alignment=%lu)", desc, scanned_addr, (uintptr_t)scanned_addr % 16);
 
       if (scanned_addr != nullptr)
       {
@@ -370,7 +370,7 @@ SK_TVFix_InitPlugin (void)
   instn__blur =
   {
     "\xE8\x92\xC0\xFC\xFF",
-    
+
     //----------------------------------------------//
     "\xFF\xFF\xFF\xFF\xFF",
     5, 5, 0,    true, nullptr,
@@ -588,7 +588,7 @@ SK_TVFix_PlugInCfg (void)
         ImGui::SameLine ();
 
         extern uint64_t SK_D3D11_MipmapCacheSize;
-        
+
         ///if (ImGui::Checkbox ("Cache Mipmaps to Disk", &config.textures.d3d11.cache_gen_mips))
         ///{
         ///  changed = true;
@@ -613,7 +613,7 @@ SK_TVFix_PlugInCfg (void)
 
           wcscpy ( wszPath,
                      SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
-        
+
           lstrcatW (wszPath, LR"(\inject\textures\MipmapCache\)");
           lstrcatW (wszPath, SK_GetHostApp ());
           lstrcatW (wszPath, LR"(\)");
@@ -623,7 +623,7 @@ SK_TVFix_PlugInCfg (void)
         {
               ImGui::SameLine (               );
           if (ImGui::Button   (" Purge Cache "))
-          {        
+          {
             SK_D3D11_MipmapCacheSize -= SK_DeleteTemporaryFiles (wszPath, L"*.dds");
 
             assert ((int64_t)SK_D3D11_MipmapCacheSize > 0LL);
@@ -654,7 +654,7 @@ SK_TVFix_PlugInCfg (void)
 
         //
         // GetDiskFreeSpaceEx has highly unpredictable call overhead
-        //  
+        //
         //   ... so try to be careful with it!
         //
         if (SK_D3D11_MipmapCacheSize != last_MipmapCacheSize)
@@ -668,7 +668,7 @@ SK_TVFix_PlugInCfg (void)
         if (SK_D3D11_MipmapCacheSize > 0)
         {
           ImGui::ProgressBar ( static_cast <float> (static_cast <long double> (ulBytesAvailable.QuadPart) /
-                                                    static_cast <long double> (ulBytesTotal.QuadPart)       ),  
+                                                    static_cast <long double> (ulBytesTotal.QuadPart)       ),
                                  ImVec2 (-1, 0),
               SK_WideCharToUTF8 (
                 SK_File_SizeToStringF (ulBytesAvailable.QuadPart, 2, 3) + L" Remaining Storage Capacity"
@@ -788,7 +788,7 @@ SK_TVFix_BeginFrame (void)
         INT nPrio = 0;
         //pDXGIDev->GetGPUThreadPriority (&nPrio);
 
-        dll_log.Log (L"GPU Priority Was: %li", nPrio);
+        dll_log->Log (L"GPU Priority Was: %li", nPrio);
 
         //pDev->SetGPUThreadPriority (7);
         //pDev->GetGPUThreadPriority (&nPrio);
@@ -834,7 +834,7 @@ SK_TVFix_BeginFrame (void)
       if (__SK_TVFix_DisableDepthOfField)
       {
         ////instn__depth_of_field.disable ();
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x27fbcdeb); 
+        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x27fbcdeb);
         SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x8dfd78fd);
       }
 
@@ -973,7 +973,7 @@ SK_TVFix_DrawHandler_D3D11 (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr
     D3D11_RENDER_TARGET_VIEW_DESC
                         rtvDesc = { };
     pRTV [0]->GetDesc (&rtvDesc);
-    
+
     if (rtvDesc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS)
     {
       compatibility.color = true;
@@ -988,7 +988,7 @@ SK_TVFix_DrawHandler_D3D11 (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr
       pDevCtx->GetDevice   (&pDev.p);
 
     SK_RunOnce (
-      dll_log.Log (L"[  ToVFix  ]  Multisample Rasterization -FORCED- ON")
+      dll_log->Log (L"[  ToVFix  ]  Multisample Rasterization -FORCED- ON")
     );
 
     SK_LOG2 ( ( L"Multisample Rasterization -FORCED- ON" ),
@@ -1002,7 +1002,7 @@ SK_TVFix_DrawHandler_D3D11 (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr
   else if (rasterDesc.MultisampleEnable)
   {
     SK_RunOnce (
-      dll_log.Log (L"[  ToVFix  ]  Multisample Rasterization *already* on")
+      dll_log->Log (L"[  ToVFix  ]  Multisample Rasterization *already* on")
     );
 
     SK_LOG2 ( ( L"Multisample Rasterization: *already* on" ),
@@ -1091,9 +1091,9 @@ SK_TVFix_D3D11_RSSetViewports_Callback (
     if (SK_EpsilonTest (vp.Width, 16.0f * ((float)__SK_TVFix_LastKnown_YRes / 9.0f), 2.0f) &&
         SK_EpsilonTest (vp.Height,         (float)__SK_TVFix_LastKnown_YRes,         2.0f))
     {
-      float expected = 
+      float expected =
         vp.Width;
-      float actual   = 
+      float actual   =
         (float)__SK_TVFix_LastKnown_XRes;
 
       vp.Width = actual;
@@ -1104,10 +1104,10 @@ SK_TVFix_D3D11_RSSetViewports_Callback (
 
     if (config.system.log_level > 1)
     {
-      dll_log.Log ( L"  VP0 -- (%8.3f x %8.3f) | <%5.2f, %5.2f> | [%3.1f - %3.1f]",
-                   pViewports->Width,    pViewports->Height,
-                   pViewports->TopLeftX, pViewports->TopLeftY,
-                   pViewports->MinDepth, pViewports->MaxDepth );
+      dll_log->Log ( L"  VP0 -- (%8.3f x %8.3f) | <%5.2f, %5.2f> | [%3.1f - %3.1f]",
+                    pViewports->Width,    pViewports->Height,
+                    pViewports->TopLeftX, pViewports->TopLeftY,
+                    pViewports->MinDepth, pViewports->MaxDepth );
     }
 
     This->RSSetViewports (1, &vp);
@@ -1141,7 +1141,7 @@ SK_TVFix_D3D11_RSSetScissorRects_Callback (
     D3D11_RECT rect = *pRects;
 
     if (                rect.left   == 0                             &&
-        SK_EpsilonTest (rect.right,    
+        SK_EpsilonTest (rect.right,
         sixteen_by_nine_width,  2.0f) &&
         SK_EpsilonTest (rect.bottom,   sixteen_by_nine_height, 2.0f) &&
                         rect.top    == 0 )
@@ -1160,9 +1160,9 @@ SK_TVFix_D3D11_RSSetScissorRects_Callback (
 
     if (config.system.log_level > 1)
     {
-      dll_log.Log ( L"  Scissor0 -- (%li - %li), (%li - %li)",
-                   rect.left,    rect.right,
-                   rect.bottom,  rect.top );
+      dll_log->Log ( L"  Scissor0 -- (%li - %li), (%li - %li)",
+                    rect.left,    rect.right,
+                    rect.bottom,  rect.top );
     }
 
     This->RSSetScissorRects (1, &rect);

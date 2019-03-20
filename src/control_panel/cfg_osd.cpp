@@ -243,11 +243,14 @@ SK::ControlPanel::OSD::Draw (void)
     {
       ImGui::TreePush ("");
 
-      float color [3] = { static_cast <float> (config.osd.red)   / 255.0f,
-                          static_cast <float> (config.osd.green) / 255.0f,
-                          static_cast <float> (config.osd.blue)  / 255.0f };
+      float r = static_cast <float> (config.osd.red)   / 255.0f,
+            g = static_cast <float> (config.osd.green) / 255.0f,
+            b = static_cast <float> (config.osd.blue)  / 255.0f;
 
-      float default_r, default_g, default_b;
+      float color [3] = { r, g, b };
+      float       default_r,
+                     default_g,
+                        default_b;
 
       SK_OSD_GetDefaultColor (default_r, default_g, default_b);
 

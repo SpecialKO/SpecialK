@@ -365,7 +365,6 @@ __SK_Singleton_D3D9_VS_Disassembly (void)
 #define vs_disassembly __SK_Singleton_D3D9_VS_Disassembly()
 
 
-void SK_D3D9_InitShaderModTools   (void);
 bool SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, UINT StartVertex, bool& wireframe);
 void SK_D3D9_EndFrame             (void);
 void SK_D3D9_EndScene             (void);
@@ -779,7 +778,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
       if (SK_GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
       {
         try {
-          cegD3D9 = dynamic_cast <CEGUI::Direct3D9Renderer *> (
+          cegD3D9 = static_cast <CEGUI::Direct3D9Renderer *> (
             &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev)
           );
         }
@@ -1108,11 +1107,11 @@ SK::D3D9::Shutdown (void)
                         _Original, _Type );                            \
 }
 
-#define D3D9_CALL(_Ret, _Call) {                              \
-  (_Ret) = (_Call);                                           \
-  dll_log.Log ( L"[   D3D9   ] [@]  Return: %s  -  "          \
-                                   L"< " __FUNCTIONW__ L" >", \
-                  SK_DescribeHRESULT (_Ret) );                \
+#define D3D9_CALL(_Ret, _Call) {                               \
+  (_Ret) = (_Call);                                            \
+  dll_log->Log ( L"[   D3D9   ] [@]  Return: %s  -  "          \
+                                    L"< " __FUNCTIONW__ L" >", \
+                   SK_DescribeHRESULT (_Ret) );                \
 }
 
 void
@@ -1162,8 +1161,8 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
     if ( pPresentationParameters           != nullptr &&
          pPresentationParameters->Windowed == FALSE)
     {
-      dll_log.Log ( L"[  D3D9  ]  >> Refresh Rate Override: %li",
-                      config.render.framerate.refresh_rate );
+      dll_log->Log ( L"[  D3D9  ]  >> Refresh Rate Override: %li",
+                       config.render.framerate.refresh_rate );
 
       Refresh = config.render.framerate.refresh_rate;
 
@@ -1208,9 +1207,9 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
     if (       config.render.framerate.buffer_count != -1 &&
          (UINT)config.render.framerate.buffer_count !=
            pPresentationParameters->BackBufferCount ) {
-      dll_log.Log ( L"[   D3D9   ]  >> Backbuffer Override: (Requested=%lu, Override=%li)",
-                      pPresentationParameters->BackBufferCount,
-                        config.render.framerate.buffer_count );
+      dll_log->Log ( L"[   D3D9   ]  >> Backbuffer Override: (Requested=%lu, Override=%li)",
+                       pPresentationParameters->BackBufferCount,
+                         config.render.framerate.buffer_count );
       pPresentationParameters->BackBufferCount =
         config.render.framerate.buffer_count;
     }
@@ -1218,9 +1217,9 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
     if (       config.render.framerate.present_interval != -1 &&
          (UINT)config.render.framerate.present_interval !=
             pPresentationParameters->PresentationInterval ) {
-      dll_log.Log ( L"[   D3D9   ]  >> VSYNC Override: (Requested=1:%lu, Override=1:%li)",
-                      pPresentationParameters->PresentationInterval,
-                        config.render.framerate.present_interval );
+      dll_log->Log ( L"[   D3D9   ]  >> VSYNC Override: (Requested=1:%lu, Override=1:%li)",
+                       pPresentationParameters->PresentationInterval,
+                         config.render.framerate.present_interval );
       pPresentationParameters->PresentationInterval =
         config.render.framerate.present_interval;
     }
@@ -1714,7 +1713,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
         GetProcAddress (backend_dll, szName);                             \
                                                                           \
       if (_default_impl == nullptr) {                                     \
-        dll_log.Log (                                                     \
+        dll_log->Log (                                                    \
           L"[   D3D9   ] Unable to locate symbol '%s' in d3d9.dll",       \
           L#_Name);                                                       \
         return E_NOTIMPL;                                                 \
@@ -1742,7 +1741,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
         GetProcAddress (backend_dll, szName);                             \
                                                                           \
       if (_default_impl == nullptr) {                                     \
-        dll_log.Log (                                                     \
+        dll_log->Log (                                                    \
           L"[   D3D9   ] Unable to locate symbol '%s' in d3d9.dll",       \
           L#_Name);                                                       \
         return nullptr;                                                   \
@@ -1770,7 +1769,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
         GetProcAddress (backend_dll, szName);                             \
                                                                           \
       if (_default_impl == nullptr) {                                     \
-        dll_log.Log (                                                     \
+        dll_log->Log (                                                    \
           L"[   D3D9   ] Unable to locate symbol '%s' in d3d9.dll",       \
           L#_Name);                                                       \
         return;                                                           \
@@ -1798,7 +1797,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
         GetProcAddress (backend_dll, szName);                             \
                                                                           \
       if (_default_impl == nullptr) {                                     \
-        dll_log.Log (                                                     \
+        dll_log->Log (                                                    \
           L"[   D3D9   ] Unable to locate symbol '%s' in d3d9.dll",       \
           L#_Name);                                                       \
         return 0;                                                         \
@@ -1880,7 +1879,7 @@ D3D9CreateAdditionalSwapChain_Override ( IDirect3DDevice9       *This,
                                          D3DPRESENT_PARAMETERS  *pPresentationParameters,
                                          IDirect3DSwapChain9   **ppSwapChain )
 {
-  dll_log.Log (L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h,"
+  dll_log->Log (L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h,"
                                    L" %08" PRIxPTR L"h) - "
     L"%s",
     L"IDirect3DDevice9::CreateAdditionalSwapChain", This,
@@ -2224,11 +2223,11 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   }
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
-                L"%s",
-                L"IDirect3DDevice9::Reset",
-                  (uintptr_t)This, (uintptr_t)pPresentationParameters,
-                    SK_SummarizeCaller ().c_str ()
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
+                 L"%s",
+                 L"IDirect3DDevice9::Reset",
+                   (uintptr_t)This, (uintptr_t)pPresentationParameters,
+                     SK_SummarizeCaller ().c_str ()
   );
 
   SK_InitWindow ( pPresentationParameters->hDeviceWindow,
@@ -2283,13 +2282,13 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   }
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h,"
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h,"
                                     L" %08" PRIxPTR L"h) - "
-                L"%s",
-                  L"IDirect3DDevice9Ex::ResetEx",
-                    (uintptr_t)This, (uintptr_t)pPresentationParameters,
-                    (uintptr_t)pFullscreenDisplayMode,
-                      SK_SummarizeCaller ().c_str () );
+                 L"%s",
+                   L"IDirect3DDevice9Ex::ResetEx",
+                     (uintptr_t)This, (uintptr_t)pPresentationParameters,
+                     (uintptr_t)pFullscreenDisplayMode,
+                       SK_SummarizeCaller ().c_str () );
 
   SK_InitWindow ( pPresentationParameters->hDeviceWindow,
                (! pPresentationParameters->Windowed) );
@@ -2330,7 +2329,7 @@ D3D9SetGammaRamp_Override ( IDirect3DDevice9 *This,
                  _In_       DWORD             Flags,
                  _In_ const D3DGAMMARAMP     *pRamp )
 {
-  dll_log.Log (L"[   D3D9   ] SetGammaRamp (...) ");
+  dll_log->Log (L"[   D3D9   ] SetGammaRamp (...) ");
 
   return
     D3D9Device_SetGammaRamp_Original ( This,
@@ -3035,14 +3034,14 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
       pSourceTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
   {
     src_is_wrapped = true;
-    pRealSource    = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture)->pTex;
+    pRealSource    = static_cast <ISKTextureD3D9 *> (pSourceTexture)->pTex;
   }
 
   if (pDestinationTexture != nullptr &&
       pDestinationTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
   {
     dst_is_wrapped = true;
-    pRealDest      = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->pTex;
+    pRealDest      = static_cast <ISKTextureD3D9 *> (pDestinationTexture)->pTex;
   }
 
 
@@ -3059,9 +3058,9 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
   if (SUCCEEDED (hr) && src_is_wrapped && dst_is_wrapped)
   {
     auto* pSrc =
-      dynamic_cast <ISKTextureD3D9 *> (pSourceTexture);
+      static_cast <ISKTextureD3D9 *> (pSourceTexture);
     auto* pDst =
-      dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
+      static_cast <ISKTextureD3D9 *> (pDestinationTexture);
 
     extern
     LARGE_INTEGER                liLastReset;
@@ -3118,8 +3117,8 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
           //
           if (tex_mgr.isTextureInjectable (pDst->tex_crc32c))
           {
-            tex_log.LogEx (true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
-                           pDst->tex_crc32c);
+            tex_log->LogEx (true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
+                            pDst->tex_crc32c);
 
             TexRecord& record =
               tex_mgr.getInjectableTexture (pDst->tex_crc32c);
@@ -3165,21 +3164,21 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
             if (load_op->type == TexLoadRequest::Stream)
             {
               if (( !remap_stream ))
-                tex_log.LogEx (false, L"streaming\n");
+                tex_log->LogEx (false, L"streaming\n");
               else
-                tex_log.LogEx (false, L"in-flight already\n");
+                tex_log->LogEx (false, L"in-flight already\n");
             }
 
             else
             {
-              tex_log.LogEx (false, L"blocking (deferred)\n");
+              tex_log->LogEx (false, L"blocking (deferred)\n");
             }
 
             if ( load_op->type == TexLoadRequest::Stream ||
                  load_op->type == TexLoadRequest::Immediate )
             {
               load_op->SrcDataSize =
-                static_cast <UINT> (
+                gsl::narrow_cast <UINT> (
                   record.size
                 );
 
@@ -3192,7 +3191,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
               tex_mgr.injector.lockStreaming ();
 
               if (load_op->type == TexLoadRequest::Immediate)
-                dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
+                static_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
 
               if (tex_mgr.injector.isStreaming (load_op->checksum))
               {
@@ -3218,7 +3217,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                            i < pExistingTex->refs;
                          ++i)
                   {
-                    dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->AddRef ();
+                    static_cast <ISKTextureD3D9 *> (pDestinationTexture)->AddRef ();
                   }
                 }
 
@@ -3257,11 +3256,11 @@ D3D9StretchRect_Override (      IDirect3DDevice9    *This,
   {
     if (pSourceRect != nullptr && pDestRect != nullptr)
     {
-      dll_log.Log ( L"[CompatHack] StretchRect: { %i, %i, %ix%i } -> { %i, %i, %ix%i }",
-                      pSourceRect->left, pSourceRect->top, pSourceRect->right  - pSourceRect->left,
-                                                           pSourceRect->bottom - pSourceRect->top,
-                      pDestRect->left,   pDestRect->top,   pDestRect->right    - pDestRect->left,
-                                                           pDestRect->bottom   - pDestRect->top );
+      dll_log->Log ( L"[CompatHack] StretchRect: { %i, %i, %ix%i } -> { %i, %i, %ix%i }",
+                       pSourceRect->left, pSourceRect->top, pSourceRect->right  - pSourceRect->left,
+                                                            pSourceRect->bottom - pSourceRect->top,
+                       pDestRect->left,   pDestRect->top,   pDestRect->right    - pDestRect->left,
+                                                            pDestRect->bottom   - pDestRect->top );
     }
   }
 
@@ -3373,7 +3372,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   {
     if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven && pparams != nullptr)
     {
-      dll_log.Log (L"[CompatHack] D3D9 Backbuffer using format %s changed to %s.",
+      dll_log->Log (L"[CompatHack] D3D9 Backbuffer using format %s changed to %s.",
         SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
         SK_D3D9_FormatToStr (D3DFMT_X8R8G8B8).c_str ());
 
@@ -3563,9 +3562,9 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
           pparams->BackBufferWidth  = ( wnd_rect.right  - wnd_rect.left );
           pparams->BackBufferHeight = ( wnd_rect.bottom - wnd_rect.top  );
 
-          dll_log.Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
-                          pparams->BackBufferWidth,
-                            pparams->BackBufferHeight );
+          dll_log->Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
+                           pparams->BackBufferWidth,
+                             pparams->BackBufferHeight );
         }
       }
 
@@ -4375,16 +4374,16 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   }
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu,"
-                                    L" %08" PRIxPTR L"h, 0x%04X,"
-                                    L" %08" PRIxPTR L"h, %08" PRIxPTR L"h,"
-                                    L" %08" PRIxPTR L"h) - "
-                L"%s",
-                L"IDirect3D9Ex::CreateDeviceEx",
-                  (uintptr_t)This, Adapter, (DWORD)DeviceType,
-                    hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
-                      (uintptr_t)pFullscreenDisplayMode, (uintptr_t)ppReturnedDeviceInterface,
-                        SK_SummarizeCaller ().c_str () );
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu,"
+                                     L" %08" PRIxPTR L"h, 0x%04X,"
+                                     L" %08" PRIxPTR L"h, %08" PRIxPTR L"h,"
+                                     L" %08" PRIxPTR L"h) - "
+                 L"%s",
+                 L"IDirect3D9Ex::CreateDeviceEx",
+                   (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                     hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                       (uintptr_t)pFullscreenDisplayMode, (uintptr_t)ppReturnedDeviceInterface,
+                         SK_SummarizeCaller ().c_str () );
 
   HRESULT ret = E_FAIL;
 
@@ -4463,7 +4462,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
 
     if (pWrappedDevice != nullptr)
     {
-      dll_log.Log (L"Using (D3D9Ex) wrapper for ResetCEGUI_D3D9!");
+      dll_log->Log (L"Using (D3D9Ex) wrapper for ResetCEGUI_D3D9!");
       ResetCEGUI_D3D9 ((pWrappedDevice));
     }
 
@@ -4512,15 +4511,15 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   }
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu, %08"
-                                            PRIxPTR L"h, 0x%04X, %08"
-                                            PRIxPTR L"h, %08"
-                                            PRIxPTR L"h) - "
-                L"%s",
-                  L"IDirect3D9::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
-                    hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
-                      (uintptr_t)ppReturnedDeviceInterface,
-                        SK_SummarizeCaller ().c_str () );
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu, %08"
+                                             PRIxPTR L"h, 0x%04X, %08"
+                                             PRIxPTR L"h, %08"
+                                             PRIxPTR L"h) - "
+                 L"%s",
+                   L"IDirect3D9::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                     hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                       (uintptr_t)ppReturnedDeviceInterface,
+                         SK_SummarizeCaller ().c_str () );
 
 
   if ( pPresentationParameters != nullptr &&
@@ -4580,7 +4579,7 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   {
     if (pPresentationParameters != nullptr)
     {
-      dll_log.LogEx (true,
+      dll_log->LogEx (true,
                 L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%ws, "
                                         L"Count=%lu - "
                                         L"SwapEffect: %ws, Flags: 0x%04X, "
@@ -4599,10 +4598,10 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
 
       if (! pPresentationParameters->Windowed)
       {
-        dll_log.LogEx (true,
+        dll_log->LogEx (true,
                 L"[   D3D9   ]  Fullscreen Settings:  Refresh Rate: %u\n",
                    pPresentationParameters->FullScreen_RefreshRateInHz);
-        dll_log.LogEx (true,
+        dll_log->LogEx (true,
                 L"[   D3D9   ]  Multisample Settings: Type: %X, Quality: %u\n",
                    pPresentationParameters->MultiSampleType,
                    pPresentationParameters->MultiSampleQuality);
@@ -4667,13 +4666,13 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
 
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu, %08" PRIxPTR
-                          L"h, 0x%04X, %08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
-                L"%s",
-                  L"IDirect3D9Ex::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
-                    hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
-                      (uintptr_t)ppReturnedDeviceInterface,
-                        SK_SummarizeCaller ().c_str () );
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu, %08" PRIxPTR
+                           L"h, 0x%04X, %08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
+                 L"%s",
+                   L"IDirect3D9Ex::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                     hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                       (uintptr_t)ppReturnedDeviceInterface,
+                         SK_SummarizeCaller ().c_str () );
 
   DeviceType = D3DDEVTYPE_HAL;
 
@@ -4709,31 +4708,31 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
   //     might help diagnose the problem.
   if (! SUCCEEDED (ret))
   {
-    dll_log.LogEx (true,
-              L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%04i, "
-                                      L"Count=%lu - "
-                                      L"SwapEffect: 0x%02X, Flags: 0x%04X,"
-                                      L"AutoDepthStencil: %s "
-                                      L"PresentationInterval: %u\n",
-                 pPresentationParameters->BackBufferWidth,
-                 pPresentationParameters->BackBufferHeight,
-                 pPresentationParameters->BackBufferFormat,
-                 pPresentationParameters->BackBufferCount,
-                 pPresentationParameters->SwapEffect,
-                 pPresentationParameters->Flags,
-                 pPresentationParameters->EnableAutoDepthStencil ? L"true" :
-                                                                   L"false",
-                 pPresentationParameters->PresentationInterval);
+    dll_log->LogEx (true,
+               L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%04i, "
+                                       L"Count=%lu - "
+                                       L"SwapEffect: 0x%02X, Flags: 0x%04X,"
+                                       L"AutoDepthStencil: %s "
+                                       L"PresentationInterval: %u\n",
+                  pPresentationParameters->BackBufferWidth,
+                  pPresentationParameters->BackBufferHeight,
+                  pPresentationParameters->BackBufferFormat,
+                  pPresentationParameters->BackBufferCount,
+                  pPresentationParameters->SwapEffect,
+                  pPresentationParameters->Flags,
+                  pPresentationParameters->EnableAutoDepthStencil ? L"true" :
+                                                                    L"false",
+                  pPresentationParameters->PresentationInterval);
 
     if (! pPresentationParameters->Windowed)
     {
-      dll_log.LogEx (true,
-              L"[   D3D9   ]  Fullscreen Settings:  Refresh Rate: %u\n",
-                 pPresentationParameters->FullScreen_RefreshRateInHz);
-      dll_log.LogEx (true,
-              L"[   D3D9   ]  Multisample Settings: Type: %X, Quality: %u\n",
-                 pPresentationParameters->MultiSampleType,
-                 pPresentationParameters->MultiSampleQuality);
+      dll_log->LogEx (true,
+               L"[   D3D9   ]  Fullscreen Settings:  Refresh Rate: %u\n",
+                  pPresentationParameters->FullScreen_RefreshRateInHz);
+      dll_log->LogEx (true,
+               L"[   D3D9   ]  Multisample Settings: Type: %X, Quality: %u\n",
+                  pPresentationParameters->MultiSampleType,
+                  pPresentationParameters->MultiSampleQuality);
     }
 
     return ret;
@@ -4766,11 +4765,11 @@ Direct3DCreate9 (UINT SDKVersion)
     WaitForInit       ();
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
-                L"%s",
-                  L"Direct3DCreate9",
-                    SDKVersion,
-                      SK_SummarizeCaller ().c_str () );
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%lu) - "
+                 L"%s",
+                   L"Direct3DCreate9",
+                     SDKVersion,
+                       SK_SummarizeCaller ().c_str () );
 
   bool force_d3d9ex = config.render.d3d9.force_d3d9ex;
 
@@ -4779,8 +4778,8 @@ Direct3DCreate9 (UINT SDKVersion)
   {
     if (SK_GetModuleHandle (L"GeDoSaTo.dll"))
     {
-      dll_log.Log ( L"[CompatHack] <!> Disabling D3D9Ex optimizations "
-                                       "because GeDoSaTo.dll is present!" );
+      dll_log->Log ( L"[CompatHack] <!> Disabling D3D9Ex optimizations "
+                                        "because GeDoSaTo.dll is present!" );
       force_d3d9ex = false;
     }
   }
@@ -4795,10 +4794,10 @@ Direct3DCreate9 (UINT SDKVersion)
     {
       if (force_d3d9ex)
       {
-        dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
-          L"%s",
-          L"Direct3DCreate9", SDKVersion,
-            SK_SummarizeCaller ().c_str () );
+        dll_log->Log ( L"[   D3D9   ] [!] %s (%lu) - "
+           L"%s",
+           L"Direct3DCreate9", SDKVersion,
+             SK_SummarizeCaller ().c_str () );
       }
 
       d3d9 = Direct3DCreate9_Import (SDKVersion);
@@ -4829,12 +4828,12 @@ Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
     WaitForInit       ();
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %08" PRIxPTR L"h) - "
-                L"%s",
-                  L"Direct3DCreate9Ex",
-                    SDKVersion,
-                      (uintptr_t)ppD3D,
-                        SK_SummarizeCaller ().c_str () );
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%lu, %08" PRIxPTR L"h) - "
+                 L"%s",
+                   L"Direct3DCreate9Ex",
+                     SDKVersion,
+                       (uintptr_t)ppD3D,
+                         SK_SummarizeCaller ().c_str () );
 
   HRESULT       hr     = E_FAIL;
   IDirect3D9Ex* d3d9ex = nullptr;
@@ -5019,7 +5018,7 @@ HookD3D9 (LPVOID user)
 
         CComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
 
-        dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
+        dll_log->Log (L"[   D3D9   ]  Hooking D3D9...");
 
         pTLS->d3d9.ctx_init_thread = true;
 
@@ -5049,14 +5048,14 @@ HookD3D9 (LPVOID user)
                 (void **)&pD3D9.p, 16 );
           }
 
-          dll_log.Log (L"[   D3D9   ]   * Success");
+          dll_log->Log (L"[   D3D9   ]   * Success");
         }
 
         else
         {
           _com_error err (hr);
-          dll_log.Log ( L"[   D3D9   ]   * Failure  (%s)",
-                        err.ErrorMessage () );
+          dll_log->Log ( L"[   D3D9   ]   * Failure  (%s)",
+                         err.ErrorMessage () );
 
           if (! LocalHook_D3D9CreateDevice.active)
           {
@@ -5089,7 +5088,7 @@ HookD3D9 (LPVOID user)
 
         if (SUCCEEDED (hr))
         {
-          dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
+          dll_log->Log (L"[   D3D9   ]  Hooking D3D9Ex...");
 
           hwnd    =
             SK_Win32_CreateDummyWindow ();
@@ -5135,12 +5134,12 @@ HookD3D9 (LPVOID user)
 
             SK_D3D9_HookDeviceAndSwapchain (pD3D9DevEx);
 
-            dll_log.Log (L"[   D3D9   ]   * Success");
+            dll_log->Log (L"[   D3D9   ]   * Success");
           }
 
           else
           {
-            dll_log.Log (L"[   D3D9   ]   * Failure");
+            dll_log->Log (L"[   D3D9   ]   * Failure");
 
             if (! LocalHook_D3D9CreateDeviceEx.active)
             {
@@ -5254,7 +5253,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     [](unsigned int archive_no) ->
       enumerated_source_s
       {
-        enumerated_source_s source;
+        enumerated_source_s source = { };
 
         char szFileName [MAX_PATH] = { '\0' };
 
@@ -5381,7 +5380,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
     last_sel = sel;
 
-    for ( int line = 0; line < static_cast <int> (sources.size ()); line++)
+    for ( int line = 0; line < gsl::narrow_cast <int> (sources.size ()); line++)
     {
       if (line == sel)
       {
@@ -6476,10 +6475,10 @@ SK_D3D9_TextureModDlg (void)
 
         else
         {
-          if (tex_dbg_idx >= static_cast <int32_t> (textures_used_last_dump.size ()))
+          if (tex_dbg_idx >= gsl::narrow_cast <int32_t> (textures_used_last_dump.size ()))
           {
             tex_dbg_idx =
-              std::max (0UL, static_cast <uint32_t> (textures_used_last_dump.size ()) - 1UL);
+              std::max (0UL, gsl::narrow_cast <uint32_t> (textures_used_last_dump.size ()) - 1UL);
           }
         }
 
@@ -6679,7 +6678,7 @@ SK_D3D9_TextureModDlg (void)
 
      last_sel = sel;
 
-     for ( int line = 0; line < static_cast <int> (textures_used_last_dump.size ()); line++)
+     for ( int line = 0; line < gsl::narrow_cast <int> (textures_used_last_dump.size ()); line++)
      {
        if (line == sel)
        {
@@ -7081,7 +7080,7 @@ SK_D3D9_TextureModDlg (void)
 
      last_sel = sel;
 
-     for ( int line = 0; line < static_cast <int> (render_textures.size ()); line++ )
+     for ( int line = 0; line < gsl::narrow_cast <int> (render_textures.size ()); line++ )
      {
        D3DSURFACE_DESC desc;
 
@@ -7805,8 +7804,8 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
                                          strstr (szDisasm,          "\n ") : nullptr;
     char* footer_begins = comments_end ? strstr (comments_end + 1, "\n\n") : nullptr;
 
-    if (comments_end)  *comments_end  = '\0'; else (comments_end  = (char *)"  ");
-    if (footer_begins) *footer_begins = '\0'; else (footer_begins = (char *)"  ");
+    if (comments_end  != nullptr) *comments_end  = '\0'; else (comments_end  = (char *)"  ");
+    if (footer_begins != nullptr) *footer_begins = '\0'; else (footer_begins = (char *)"  ");
 
     if (! _wcsicmp (wszPrefix, L"ps"))
     {
@@ -8037,8 +8036,6 @@ SK_D3D9_EndFrame (void)
 
     if (pDev == nullptr || (pDev->GetAvailableTextureMem () / 1048576UL) < 64UL)
     {
-      void
-      SK_D3D9_TriggerReset (bool temporary);
       SK_D3D9_TriggerReset (false);
     }
   }
@@ -8166,7 +8163,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
     tracked_vb.instances  = draw_state.instances;
 
-    InterlockedExchangeAdd (&tracked_vb.instanced, static_cast <ULONG> (draw_state.instances));
+    InterlockedExchangeAdd (&tracked_vb.instanced, gsl::narrow_cast <ULONG> (draw_state.instances));
     InterlockedIncrement   (&tracked_vb.num_draws);
 
     if (tracked_vb.wireframe)
@@ -8346,7 +8343,7 @@ SK_D3D9_QuickHook (void)
   if (config.steam.preload_overlay)
     return;
 
-    extern BOOL
+  extern BOOL
       __SK_DisableQuickHook;
   if (__SK_DisableQuickHook)
     return;
@@ -8460,7 +8457,7 @@ SK_D3D9_FormatToDXGI (D3DFORMAT format)
 class SK_D3D9_Screenshot
 {
 public:
-  explicit SK_D3D9_Screenshot (SK_D3D9_Screenshot&& rkMove)
+  explicit SK_D3D9_Screenshot (SK_D3D9_Screenshot&& rkMove) noexcept
   {
     pDev                     = rkMove.pDev;
     pSwapChain               = rkMove.pSwapChain;

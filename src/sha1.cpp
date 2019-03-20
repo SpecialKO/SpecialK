@@ -50,22 +50,22 @@ A million repetitions of "a"
 /* blk0() and blk() perform the initial expand. */
 /* I got the idea of expanding during the round function from SSLeay */
 #if BYTE_ORDER == LITTLE_ENDIAN
-#define blk0(i) (block->l [i] = (rol (block->l [i], 24) & 0xFF00FF00) \
-                               |(rol (block->l [i],  8) & 0x00FF00FF))
+#define blk0(i) (block->l [(i)] = (rol (block->l [(i)], 24) & 0xFF00FF00) \
+                                 |(rol (block->l [(i)],  8) & 0x00FF00FF))
 #elif BYTE_ORDER == BIG_ENDIAN
 #define blk0(i) block->l [i]
 #else
 #error "Endianness not defined!"
 #endif
-#define blk(i) (block->l [ i & 15] = rol (block->l [(i + 13) & 15] ^ block->l [(i + 8) & 15] \
-              ^ block->l [(i + 2) & 15] ^ block->l [ i & 15],  1))
+#define blk(i) (block->l [ (i) & 15] = rol (block->l [((i) + 13) & 15] ^ block->l [((i) + 8) & 15] \
+              ^ block->l [((i) + 2) & 15] ^ block->l [ (i) & 15],  1))
 
 /* (R0+R1), R2, R3, R4 are the different operations used in SHA1 */
-#define R0(v,w,x,y,z,i) z += ((w & (x  ^ y)) ^ y)      + blk0 (i) + 0x5A827999 + rol (v, 5); w = rol (w, 30);
-#define R1(v,w,x,y,z,i) z += ((w & (x  ^ y)) ^ y)      + blk  (i) + 0x5A827999 + rol (v, 5); w = rol (w, 30);
-#define R2(v,w,x,y,z,i) z += (  w ^ x  ^ y)            + blk  (i) + 0x6ED9EBA1 + rol (v, 5); w = rol (w, 30);
-#define R3(v,w,x,y,z,i) z += (((w | x) & y) | (w & x)) + blk  (i) + 0x8F1BBCDC + rol (v, 5); w = rol (w, 30);
-#define R4(v,w,x,y,z,i) z += (  w ^ x  ^ y)            + blk  (i) + 0xCA62C1D6 + rol (v, 5); w = rol (w, 30);
+#define R0(v,w,x,y,z,i) (z) += (( (w) & ((x)  ^ (y))) ^ (y))        + blk0 ((i)) + 0x5A827999 + rol ((v), 5); (w) = rol ((w), 30);
+#define R1(v,w,x,y,z,i) (z) += (( (w) & ((x)  ^ (y))) ^ (y))        + blk  ((i)) + 0x5A827999 + rol ((v), 5); (w) = rol ((w), 30);
+#define R2(v,w,x,y,z,i) (z) += (  (w) ^  (x)  ^ (y))                + blk  ((i)) + 0x6ED9EBA1 + rol ((v), 5); (w) = rol ((w), 30);
+#define R3(v,w,x,y,z,i) (z) += ((((w) |  (x)) & (y)) | ((w) & (x))) + blk  ((i)) + 0x8F1BBCDC + rol ((v), 5); (w) = rol ((w), 30);
+#define R4(v,w,x,y,z,i) (z) += (  (w) ^  (x)  ^ (y))                + blk  ((i)) + 0xCA62C1D6 + rol ((v), 5); (w) = rol ((w), 30);
 
 
 /* Hash a single 512-bit block. This is the core of the algorithm. */
@@ -85,7 +85,7 @@ SHA1Transform (
 
 #ifdef SHA1HANDSOFF
   CHAR64LONG16 block[1];      /* use array to appear as a pointer */
-  
+
   memcpy (block, buffer, 64);
 #else
   /* The following had better never be used because it causes the
@@ -222,9 +222,11 @@ SHA1Update (
  const unsigned char *data,
        uint32_t       len )
 {
-  uint32_t i, j;
+  if (data == nullptr)
+    return;
 
-  j = context->count [0];
+  uint32_t i =                 0,
+           j = context->count [0];
 
   if ((context->count [0] += len << 3) < j)
        context->count [1]++;
@@ -260,9 +262,9 @@ SHA1Final (
   unsigned char  digest [20],
   SHA1_CTX      *context )
 {
-  unsigned      i;
-  unsigned char finalcount [8];
-  unsigned char c;
+  unsigned      i              =    0;
+  unsigned char finalcount [8] = {  };
+  unsigned char c              = 0200;
 
 #if 0    /* untested "improvement" by DHR */
   /* Convert context->count to a sequence of bytes
@@ -285,7 +287,7 @@ SHA1Final (
       ((context->count [(i >= 4 ? 0 : 1)] >> ((3 - (i & 3)) * 8)) & 255);
   }
 #endif
-                        c = 0200;
+
   SHA1Update (context, &c, 1);
 
   while ((context->count [0] & 504) != 448)
@@ -314,9 +316,9 @@ SHA1 (
         unsigned int                            len,
         SK_HashProgressCallback_pfn             callback )
 {
-  SHA1_CTX     ctx;
-  unsigned int ii;
-  
+  SHA1_CTX     ctx = { };
+  unsigned int ii  =   0;
+
   SHA1Init (&ctx);
 
   for (ii = 0; ii < len; ii += 1)
@@ -337,9 +339,9 @@ SHA1_File (
         char                        *hash_out,
         SK_HashProgressCallback_pfn  callback )
 {
-  SHA1_CTX     ctx;
-  unsigned int ii;
-  
+  SHA1_CTX     ctx = { };
+  unsigned int ii  =   0;
+
   SHA1Init (&ctx);
 
   DWORD dwFileAttribs =
@@ -447,7 +449,7 @@ SK_GetFileHash_SHA (       sk_hash_algo               /*algorithm*/,
                      const wchar_t                     *wszFile,
                            SK_HashProgressCallback_pfn  callback = nullptr )
 {
-  SK_SHA1_Hash out;
+  SK_SHA1_Hash out = { };
 
   SHA1_File (wszFile, (char *)out.hash, callback);
 
@@ -472,7 +474,7 @@ SK_File_GetSHA1StrA ( const char                        *szFile,
                             char                        *szOut,
                             SK_HashProgressCallback_pfn  callback )
 {
-  SK_SHA1_Hash sha1_hash;
+  SK_SHA1_Hash sha1_hash = { };
 
   bool bRet =
     SHA1_File ( SK_UTF8ToWideChar (szFile).c_str (), (char *)sha1_hash.hash, callback );
@@ -490,7 +492,7 @@ SK_File_GetSHA1StrW ( const wchar_t                     *wszFile,
                             wchar_t                     *wszOut,
                             SK_HashProgressCallback_pfn  callback )
 {
-  SK_SHA1_Hash sha1_hash;
+  SK_SHA1_Hash sha1_hash = { };
 
   bool bRet =
     SHA1_File ( wszFile, (char *)sha1_hash.hash, callback );

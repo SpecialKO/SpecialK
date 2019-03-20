@@ -27,6 +27,8 @@ struct IUnknown;
 #include <intrin.h>
 #include <Unknwn.h>
 
+#include <SpecialK/core.h>
+
 #if 0
 #include <cstdio>
 #include <string>
@@ -35,7 +37,7 @@ struct IUnknown;
 #include <minwinbase.h>
 
 // {A4BF1773-CAAB-48F3-AD88-C2AB5C23BD6F}
-static const GUID IID_SK_Logger = 
+static const GUID IID_SK_Logger =
 { 0xa4bf1773, 0xcaab, 0x48f3, { 0xad, 0x88, 0xc2, 0xab, 0x5c, 0x23, 0xbd, 0x6f } };
 
 #define SK_AutoClose_Log(log) iSK_Logger::AutoClose closeme_##log = (log).auto_close ();
@@ -50,7 +52,7 @@ static const GUID IID_SK_Logger =
 //
 //        * Consdier using a stack-based approach if these logs become
 //            indecipherable in the future.
-//            
+//
 interface iSK_Logger : public IUnknown
 {
   class AutoClose
@@ -118,10 +120,6 @@ interface iSK_Logger : public IUnknown
   } buffers;
 };
 
-extern iSK_Logger dll_log;
-extern iSK_Logger crash_log;
-extern iSK_Logger budget_log;
-
 iSK_Logger*
 __stdcall
 SK_CreateLog (const wchar_t* const wszName);
@@ -134,10 +132,11 @@ SK_CreateLog (const wchar_t* const wszName);
 //#include <minwinbase.h>
 
 // {A4BF1773-CAAB-48F3-AD88-C2AB5C23BD6F}
-static const GUID IID_SK_Logger = 
+static const GUID IID_SK_Logger =
 { 0xa4bf1773, 0xcaab, 0x48f3, { 0xad, 0x88, 0xc2, 0xab, 0x5c, 0x23, 0xbd, 0x6f } };
 
-#define SK_AutoClose_Log(log) iSK_Logger::AutoClose closeme_##log ((log).auto_close ());
+#define SK_AutoClose_Log(log)        iSK_Logger::AutoClose closeme_##log  ((log).auto_close ());
+#define SK_AutoClose_LogEx(log,name) iSK_Logger::AutoClose closeme_##name (log->auto_close ());
 
 //
 // NOTE: This is a barbaric approach to the problem... we clearly have a
@@ -149,14 +148,14 @@ static const GUID IID_SK_Logger =
 //
 //        * Consdier using a stack-based approach if these logs become
 //            indecipherable in the future.
-//            
+//
 interface iSK_Logger : public IUnknown
 {
   class AutoClose
   {
   friend interface iSK_Logger;
   public:
-    ~AutoClose (void) 
+    ~AutoClose (void)
     {
       if (log_ != nullptr)
       {
@@ -169,28 +168,29 @@ interface iSK_Logger : public IUnknown
     AutoClose (AutoClose &&) = default;
 
   protected:
-    AutoClose (iSK_Logger* log) : log_ (log) { }
+    AutoClose (iSK_Logger* log)                  noexcept : log_ (log)           { }
+    AutoClose (SK_LazyGlobal <iSK_Logger>&& log)          : log_ (log.getPtr ()) { }
 
   private:
     iSK_Logger *log_;
   };
 
-  AutoClose auto_close (void) {
+  AutoClose auto_close (void) noexcept {
     return this;
   }
 
-  iSK_Logger (void) {
+  iSK_Logger (void) noexcept {
     AddRef ();
   }
 
-  virtual ~iSK_Logger (void) {
+  virtual ~iSK_Logger (void) noexcept {
     Release ();
   }
 
   /*** IUnknown methods ***/
-  STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);
-  STDMETHOD_ (ULONG, AddRef)        (THIS);
-  STDMETHOD_ (ULONG, Release)       (THIS);
+  STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj) noexcept override;
+  STDMETHOD_ (ULONG, AddRef)        (THIS) noexcept override;
+  STDMETHOD_ (ULONG, Release)       (THIS) noexcept override;
 
   STDMETHOD_ (bool, init)(THIS_ const wchar_t* const wszFilename,
                                 const wchar_t* const wszMode );
@@ -226,10 +226,6 @@ public:
   volatile LONG    relocated   = FALSE;
 };
 
-extern iSK_Logger dll_log;
-extern iSK_Logger crash_log;
-extern iSK_Logger budget_log;
-
 interface iSK_Logger*
 __stdcall
 SK_CreateLog (const wchar_t* const wszName);
@@ -254,7 +250,7 @@ SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
                   szSymbol,                         \
                     ulLen );                        \
                                                     \
-  dll_log.Log ( L"[%hs][!] %32s - %s",              \
+  dll_log->Log ( L"[%hs][!] %32s - %s",             \
                  (source),                          \
                    __FUNCTIONW__,                   \
                      SK_SummarizeCaller ().c_str () \
@@ -270,7 +266,7 @@ SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
 
 #define SK_LOG_EX(level,first,expr)       \
   if (config.system.log_level >= (level)) \
-    dll_log.LogEx (first, SK_VARIADIC (expr))
+    dll_log->LogEx (first, SK_VARIADIC (expr))
 
 #define SK_LOG0_EX(first,expr) SK_LOG_EX(0,first,expr)
 #define SK_LOG1_EX(first,expr) SK_LOG_EX(1,first,expr)
@@ -280,7 +276,7 @@ SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
 
 #define SK_LOG(expr,level,source)       \
   if (config.system.log_level >= level) \
-    dll_log.Log (L"[" source L"] " SK_VARIADIC (expr))
+    dll_log->Log (L"[" source L"] " SK_VARIADIC (expr))
 
 #define SK_LOG0(expr,src) SK_LOG(expr,0,src)
 #define SK_LOG1(expr,src) SK_LOG(expr,1,src)

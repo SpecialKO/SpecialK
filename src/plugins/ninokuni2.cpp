@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -87,7 +87,7 @@ struct mem_addr_s
     {
       scanned_addr = SK_ScanAlignedEx (pattern, pattern_len, pattern_mask);
 
-      dll_log.Log (L"Scanned address for: %s: %p (alignment=%lu)", desc, scanned_addr, (uintptr_t)scanned_addr % 16);
+      dll_log->Log (L"Scanned address for: %s: %p (alignment=%lu)", desc, scanned_addr, (uintptr_t)scanned_addr % 16);
     }
   }
 
@@ -185,7 +185,7 @@ SK_NNK2_CheckVersion (LPVOID user)
   extern bool
   __stdcall
   SK_FetchVersionInfo (const wchar_t* wszProduct);
-  
+
   extern HRESULT
   __stdcall
   SK_UpdateSoftware (const wchar_t* wszProduct);
@@ -218,7 +218,7 @@ SK_NNK2_CreateSamplerState
 (
   _In_            ID3D11Device        *This,
   _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
-  _Out_opt_       ID3D11SamplerState **ppSamplerState ) 
+  _Out_opt_       ID3D11SamplerState **ppSamplerState )
 {
   D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
 
@@ -306,7 +306,7 @@ SK_NNK2_InitPlugin (void)
 
 
     instn__write_dt_render =
-        { "\xF3\x0F\x11\x3D"     "\x73\xD9\x85\x00"  "\xE8", 
+        { "\xF3\x0F\x11\x3D"     "\x73\xD9\x85\x00"  "\xE8",
       //----------------------------------------------//
          "\xF3\x0F\x11\x3D"      "\x00\x00\x00\x00"  "\xE8",
                  9,  8, 0,    true, nullptr,

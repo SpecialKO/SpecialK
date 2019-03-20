@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -101,7 +101,7 @@ D3D11_RSSetViewports_Override (
         UINT                 NumViewports,
   const D3D11_VIEWPORT*      pViewports );
 
-extern 
+extern
 HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
@@ -149,16 +149,16 @@ SK_MSS_CreateTexture2D (
     if ( (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) &&
           pDesc->Format == DXGI_FORMAT_R8G8B8A8_UNORM )
     {
-      copy.Width  = static_cast <UINT> (3840);
-      copy.Height = static_cast <UINT> (2160);
+      copy.Width  = gsl::narrow_cast <UINT> (3840);
+      copy.Height = gsl::narrow_cast <UINT> (2160);
 
       ui_tex = true;
     }
 
     else if (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL)
     {
-      copy.Width  = static_cast <UINT> (3840);
-      copy.Height = static_cast <UINT> (2160);
+      copy.Width  = gsl::narrow_cast <UINT> (3840);
+      copy.Height = gsl::narrow_cast <UINT> (2160);
 
       ui_tex = true;
     }
@@ -210,7 +210,7 @@ SK_MSS_RSSetScissorRects (
 
           float right_ndc  = 2.0f * (static_cast <FLOAT> (pRects [i].right)  / 1920.0f) - 1.0f;
           float bottom_ndc = 2.0f * (static_cast <FLOAT> (pRects [i].bottom) / 1080.0f) - 1.0f;
-  
+
           rects [i].left   = static_cast <UINT> ((left_ndc  * static_cast <float> (mss_res.x) + static_cast <float> (mss_res.x)) / 2.0f);
           rects [i].right  = static_cast <UINT> ((right_ndc * static_cast <float> (mss_res.x) + static_cast <float> (mss_res.x)) / 2.0f);
 
@@ -237,7 +237,7 @@ SK_MSS_RSSetViewports (
   if (NumViewports > 0)
   {
     D3D11_VIEWPORT vps [16] = { };
-    
+
     CComPtr <ID3D11RenderTargetView> pRTV = nullptr;
     CComPtr <ID3D11DepthStencilView> pDSV = nullptr;
 
@@ -259,10 +259,10 @@ SK_MSS_RSSetViewports (
           {
             float left_ndc = 2.0f * (vps [i].TopLeftX / vps [i].Width)  - 1.0f;
             float top_ndc  = 2.0f * (vps [i].TopLeftY / vps [i].Height) - 1.0f;
-  
+
             vps [i].Width  = static_cast <FLOAT> (mss_res.x);
             vps [i].Height = static_cast <FLOAT> (mss_res.y);
-  
+
             vps [i].TopLeftX = ((top_ndc  * vps [i].Height + vps [i].Height) / 2.0f);
             vps [i].TopLeftY = ((left_ndc * vps [i].Width  + vps [i].Width)  / 2.0f);
           }
@@ -364,7 +364,7 @@ SK_MSS_InitPlugin (void)
      static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
-  
+
   mss_config.ui.res_x =
     dynamic_cast <sk::ParameterInt *>
       (mss_config.factory.create_parameter <int> (L"X Resolution"));

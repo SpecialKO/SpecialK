@@ -41,6 +41,9 @@
 
 #include <SpecialK/thread.h>
 
+#include <process.h>
+#include <strsafe.h>
+
 bool config_files_changed = false;
 
 static ISzAlloc      g_Alloc  = { SzAlloc, SzFree };
@@ -93,10 +96,9 @@ SK_Get7ZFileContents (                 const wchar_t* wszArchive,
                          &thread_alloc,
                            &thread_tmp_alloc ) == SZ_OK )
   {
-    uint32_t i;
     wchar_t  wszEntry [MAX_PATH * 2 + 1] = { };
 
-    for (i = 0; i < arc.NumFiles; i++)
+    for (uint32_t i = 0; i < arc.NumFiles; i++)
     {
       if (SzArEx_IsDir (&arc, i))
         continue;
@@ -138,8 +140,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   std::vector <sk_file_entry_s>     all_files;
   SK_Get7ZFileContents (wszArchive, all_files);
 
-  const size_t needed_size =
-    all_files.size ();
+  ///const size_t needed_size =
+  ///  all_files.size ();
 
   std::vector <sk_file_entry_s> reg_files;
   std::vector <sk_file_entry_s> cfg_files;
@@ -185,16 +187,18 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
-    dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
-                    wszArchive );
+    dll_log->Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
+                     wszArchive );
 
     SzArEx_Free (&arc, &thread_alloc);
 
     return E_FAIL;
   }
 
-  const size_t old_ver_len   = wszOldVersion != nullptr ?
-    lstrlenW (wszOldVersion) : 0;
+  size_t old_ver_len = 0;
+  
+  if (wszOldVersion != nullptr)
+    StringCbLengthW (wszOldVersion, MAX_PATH + 2, &old_ver_len);
 
   int            i = 0;
   for ( auto& file : reg_files )
@@ -204,8 +208,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     size_t   offset        = 0;
     size_t   decomp_size   = 0;
 
-    dll_log.Log ( L"[AutoUpdate] Extracting file ('%s')",
-                    file.name.c_str () );
+    dll_log->Log ( L"[AutoUpdate] Extracting file ('%s')",
+                     file.name.c_str () );
 
     if ( SZ_OK !=
            SzArEx_Extract ( &arc,          &look_stream.s, file.fileno,
@@ -213,8 +217,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
-      dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
-                      file.name.c_str () );
+      dll_log->Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
+                       file.name.c_str () );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -296,8 +300,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
     else
     {
-      dll_log.Log ( L"[AutoUpdate] Failed to open file: '%s'",
-                      wszDestPath );
+      dll_log->Log ( L"[AutoUpdate] Failed to open file: '%s'",
+                       wszDestPath );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -322,8 +326,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
-    dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
-                    wszArchive );
+    dll_log->Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
+                     wszArchive );
 
     SzArEx_Free (&arc, &thread_alloc);
 
@@ -338,8 +342,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     size_t   offset        = 0;
     size_t   decomp_size   = 0;
 
-    dll_log.Log ( L"[AutoUpdate] Extracting config file ('%s')",
-                    cfg_file.name.c_str () );
+    dll_log->Log ( L"[AutoUpdate] Extracting config file ('%s')",
+                     cfg_file.name.c_str () );
 
     if ( SZ_OK !=
            SzArEx_Extract ( &arc,          &look_stream.s, cfg_file.fileno,
@@ -347,8 +351,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
-      dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip config file ('%s')",
-                   cfg_file.name.c_str () );
+      dll_log->Log ( L"[AutoUpdate] Failed to extract 7-zip config file ('%s')",
+                    cfg_file.name.c_str () );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -443,8 +447,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
     else
     {
-      dll_log.Log ( L"[AutoUpdate] Failed to create file: '%s'",
-                      wszNewConfig );
+      dll_log->Log ( L"[AutoUpdate] Failed to create file: '%s'",
+                       wszNewConfig );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -503,8 +507,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
-    dll_log.Log ( L"[7ZIP-Unpak]  ** Cannot open archive file: %s",
-                    wszArchive );
+    dll_log->Log ( L"[7ZIP-Unpak]  ** Cannot open archive file: %s",
+                     wszArchive );
 
     SzArEx_Free (&arc, &thread_alloc);
 
@@ -521,8 +525,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
     size_t   offset        = 0;
     size_t   decomp_size   = 0;
 
-    dll_log.Log ( L"[7ZIP-Unpak] Extracting file ('%s')",
-                    files [i].name.c_str () );
+    dll_log->Log ( L"[7ZIP-Unpak] Extracting file ('%s')",
+                     files [i].name.c_str () );
 
     if ( SZ_OK !=
            SzArEx_Extract ( &arc,          &look_stream.s, file.fileno,
@@ -530,8 +534,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
-      dll_log.Log ( L"[7ZIP-Unpak] Failed to extract 7-zip file ('%s')",
-                      file.name.c_str () );
+      dll_log->Log ( L"[7ZIP-Unpak] Failed to extract 7-zip file ('%s')",
+                       file.name.c_str () );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -571,8 +575,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
 
     else
     {
-      dll_log.Log ( L"[7ZIP-Unpak] Failed to open file: '%s'",
-                      wszDestPath );
+      dll_log->Log ( L"[7ZIP-Unpak] Failed to open file: '%s'",
+                       wszDestPath );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);

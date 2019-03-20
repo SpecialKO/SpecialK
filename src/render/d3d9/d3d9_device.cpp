@@ -27,7 +27,7 @@
 #include <cinttypes>
 #include <algorithm>
 
-#include <assert.h>
+#include <cassert>
 #include <d3d11.h>
 
 volatile LONG SK_D3D9_LiveWrappedDevices   = 0;
@@ -54,7 +54,7 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
     if ((! d3d9ex_) && riid == __uuidof (IDirect3DDevice9Ex))
     {
       IDirect3DDevice9Ex *deviceex = nullptr;
-      
+
       if (FAILED (pReal->QueryInterface (IID_PPV_ARGS (&deviceex))))
       {
         return E_NOINTERFACE;
@@ -205,7 +205,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetSwapChain(UINT iSwapChain, ID
   {
     if (iSwapChain < GetNumberOfSwapChains ())
     {
-                                                          additional_swapchains_ [iSwapChain - 1]->AddRef ();
+                                                           additional_swapchains_ [iSwapChain - 1]->AddRef ();
       *ppSwapChain = static_cast <IDirect3DSwapChain9 *> (additional_swapchains_ [iSwapChain - 1]);
       return D3D_OK;
     }
@@ -213,7 +213,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetSwapChain(UINT iSwapChain, ID
       return D3DERR_INVALIDCALL;
   }
                                                       implicit_swapchain_->AddRef ();
-  *ppSwapChain = static_cast <IDirect3DSwapChain9 *> (implicit_swapchain_);
+  *ppSwapChain = static_cast <IDirect3DSwapChain9 *> (implicit_swapchain_.get ());
   return D3D_OK;
 }
 UINT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetNumberOfSwapChains (void)
@@ -222,7 +222,7 @@ UINT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetNumberOfSwapChains (void)
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
-  HRESULT hr = 
+  HRESULT hr =
     static_cast <IDirect3DDevice9 *>(pReal)->Reset(pPresentationParameters);
 
   return hr;
@@ -232,10 +232,10 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Present(const RECT *pSourceRect,
 {
   sk_d3d9_swap_dispatch_s dispatch =
   {
-    pReal,               implicit_swapchain_,
+    pReal,               implicit_swapchain_.get (),
     pSourceRect,         pDestRect,
     hDestWindowOverride, pDirtyRegion,
-    0x00, 
+    0x00,
     nullptr,
     SK_D3D9_PresentSource::Wrapper,
     SK_D3D9_PresentType::Device9_Present
@@ -701,10 +701,10 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::PresentEx(const RECT *pSourceRec
 
   sk_d3d9_swap_dispatch_s dispatch =
   {
-    pReal,               implicit_swapchain_,
+    pReal,               implicit_swapchain_.get (),
     pSourceRect,         pDestRect,
     hDestWindowOverride, pDirtyRegion,
-    dwFlags, 
+    dwFlags,
     nullptr,
     SK_D3D9_PresentSource::Wrapper,
     SK_D3D9_PresentType::Device9Ex_PresentEx
@@ -786,7 +786,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::ResetEx(D3DPRESENT_PARAMETERS *p
 {
   assert (d3d9ex_);
 
-  HRESULT hr = 
+  HRESULT hr =
     static_cast <IDirect3DDevice9Ex *>(pReal)->ResetEx (pPresentationParameters, pFullscreenDisplayMode);
 
   return hr;
@@ -806,6 +806,6 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDisplayModeEx(UINT iSwapChain
       return D3DERR_INVALIDCALL;
   }
 
-  
-  return static_cast <IDirect3DSwapChain9Ex *>(implicit_swapchain_)->GetDisplayModeEx (pMode, pRotation);
+
+  return static_cast <IDirect3DSwapChain9Ex *>(implicit_swapchain_.get ())->GetDisplayModeEx (pMode, pRotation);
 }

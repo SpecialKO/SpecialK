@@ -65,8 +65,11 @@ SK_D3D9_TestFramebufferDimensions (float& width, float& height)
     return true;
   }
 
-  else if (width != client_width || height != client_height)
+  if ( width  != client_width ||
+       height != client_height )
+  {
     return false;
+  }
 
   return true;
 }
@@ -138,8 +141,8 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
     return;
 
   // Copy and convert all vertices into a single contiguous buffer
-  CUSTOMVERTEX* vtx_dst = 0;
-  ImDrawIdx*    idx_dst = 0;
+  CUSTOMVERTEX* vtx_dst = nullptr;
+  ImDrawIdx*    idx_dst = nullptr;
 
   if ( g_pVB->Lock ( 0,
     static_cast <UINT> (draw_data->TotalVtxCount * sizeof CUSTOMVERTEX),
@@ -219,8 +222,8 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   g_pd3dDevice->SetViewport (&vp);
 
   if (config.system.log_level > 3)
-    dll_log.Log ( L"io.DisplaySize.x = %f, io.DisplaySize.y = %f",
-                    io.DisplaySize.x,      io.DisplaySize.y );
+    dll_log->Log ( L"io.DisplaySize.x = %f, io.DisplaySize.y = %f",
+                     io.DisplaySize.x,      io.DisplaySize.y );
 
   // Setup render state: fixed-pipeline, alpha-blending, no face culling, no depth testing
   g_pd3dDevice->SetPixelShader       (NULL);
@@ -239,7 +242,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   }
 
   g_pd3dDevice->GetDepthStencilSurface (&pDS);
-  
+
   if (SUCCEEDED (g_pd3dDevice->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer.p)))
   {
     g_pd3dDevice->SetRenderTarget        (0, pBackBuffer);
@@ -263,8 +266,8 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           FALSE);
 
   g_pd3dDevice->SetRenderState       (D3DRS_SRGBWRITEENABLE,   FALSE);
-  g_pd3dDevice->SetRenderState       (D3DRS_COLORWRITEENABLE,  D3DCOLORWRITEENABLE_RED   | 
-                                                               D3DCOLORWRITEENABLE_GREEN | 
+  g_pd3dDevice->SetRenderState       (D3DRS_COLORWRITEENABLE,  D3DCOLORWRITEENABLE_RED   |
+                                                               D3DCOLORWRITEENABLE_GREEN |
                                                                D3DCOLORWRITEENABLE_BLUE  |
                                                                D3DCOLORWRITEENABLE_ALPHA );
 
@@ -544,7 +547,7 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
   if ( LPDIRECT3DTEXTURE9 tex = (LPDIRECT3DTEXTURE9)io.Fonts->TexID )
   {
     tex->Release ();
-    io.Fonts->TexID = 0;
+    io.Fonts->TexID = nullptr;
   }
 
   g_FontTexture = NULL;
@@ -595,11 +598,11 @@ ImGui_ImplDX9_NewFrame (void)
   }
 
 //dll_log.Log (L"Window Width: %lu, Height: %lu", rect.right  - rect.left, rect.bottom - rect.top);
-  
-  
+
+
   if (! g_pd3dDevice)
   {
-     dll_log.Log (L"No device!");
+     dll_log->Log (L"No device!");
     return;
   }
 
@@ -617,7 +620,7 @@ ImGui_ImplDX9_NewFrame (void)
         io.DisplaySize.x = static_cast <float> (pp.BackBufferWidth);
         io.DisplaySize.y = static_cast <float> (pp.BackBufferHeight);
 
-        io.DisplayFramebufferScale = 
+        io.DisplayFramebufferScale =
           ImVec2 ( static_cast <float> (pp.BackBufferWidth),
                    static_cast <float> (pp.BackBufferHeight) );
       }

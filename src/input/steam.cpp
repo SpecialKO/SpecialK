@@ -22,8 +22,8 @@ SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
                                                    HSteamPipe    hSteamPipe,
                                                    const char   *pchVersion )
 {
-  steam_log.Log ( L"[!] %ws (%ws)",
-                    __FUNCTIONW__, SK_UTF8ToWideChar (pchVersion).c_str () );
+  steam_log->Log ( L"[!] %ws (%ws)",
+                     __FUNCTIONW__, SK_UTF8ToWideChar (pchVersion).c_str () );
 
   ISteamController* pController =
     SteamAPI_ISteamClient_GetISteamController_Original ( This,
@@ -50,8 +50,8 @@ SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
     else
     {
       SK_RunOnce (
-        steam_log.Log ( L"Game requested unexpected interface version (%s)!",
-                          SK_UTF8ToWideChar (pchVersion).c_str () )
+        steam_log->Log ( L"Game requested unexpected interface version (%s)!",
+                           SK_UTF8ToWideChar (pchVersion).c_str () )
       );
 
       return pController;
@@ -67,7 +67,7 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
                                                     HSteamPipe    hSteamPipe,
                                                     const char   *pchVersion )
 {
-  steam_log.Log ( L"[Steam Wrap] [!] GetISteamController (%ws)", SK_UTF8ToWideChar (pchVersion).c_str () );
+  steam_log->Log ( L"[Steam Wrap] [!] GetISteamController (%ws)", SK_UTF8ToWideChar (pchVersion).c_str () );
 
   if (! lstrcmpA (pchVersion, "SteamController"))
   {
@@ -78,14 +78,14 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
     //if (pController != nullptr)
     //{
     //  if (SK_SteamWrapper_remap_controller0.count (pController))
-    //     return dynamic_cast <ISteamController *> (SK_SteamWrapper_remap_controller0 [pController]);
+    //     return static_cast <ISteamController *> (SK_SteamWrapper_remap_controller0 [pController]);
     //
     //  else
     //  {
     //    SK_SteamWrapper_remap_controller0 [pController] =
     //            new ISteamControllerFake0 (pController);
     //
-    //    return dynamic_cast <ISteamController *> (SK_SteamWrapper_remap_controller0 [pController]);
+    //    return static_cast <ISteamController *> (SK_SteamWrapper_remap_controller0 [pController]);
     //  }
     //}
   }
@@ -112,19 +112,19 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
     //else
     {
       auto *pController =
-        reinterpret_cast <ISteamController *> ( pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion) );
-  
+         pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion);
+
       if (pController != nullptr)
       {
         if (SK_SteamWrapper_remap_controller.count (pController) && SK_SteamWrapper_remap_controller [pController] != nullptr)
-          return dynamic_cast <ISteamController *> ( SK_SteamWrapper_remap_controller [pController] );
-  
+          return static_cast <ISteamController *> ( SK_SteamWrapper_remap_controller [pController] );
+
         else
         {
           SK_SteamWrapper_remap_controller [pController] =
             new IWrapSteamController (pController);
-  
-          return dynamic_cast <ISteamController *> ( SK_SteamWrapper_remap_controller [pController] );
+
+          return static_cast <ISteamController *> ( SK_SteamWrapper_remap_controller [pController] );
         }
       }
     }

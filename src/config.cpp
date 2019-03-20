@@ -39,6 +39,8 @@
 
 #include <unordered_map>
 #include <typeindex>
+#include <gsl/gsl>
+#include <memory>
 
 #include <Shlwapi.h>
 #include <powrprof.h>
@@ -62,6 +64,9 @@ sk_config_t* SK_Singleton_Config (void)
 }
 
 sk_config_t* __config__ = SK_Singleton_Config ();
+
+SK_LazyGlobal <std::unordered_map <std::wstring, BYTE>> humanKeyNameToVirtKeyCode;
+SK_LazyGlobal <std::unordered_map <BYTE, std::wstring>> virtKeyCodeToHumanKeyName;
 
 
 __forceinline
@@ -172,14 +177,17 @@ auto LoadKeybind =
       auto ret =
         binding->param;
 
-      if (! static_cast <sk::iParameter *> (ret)->load ())
+      if (ret != nullptr && binding != nullptr)
       {
-        binding->parse ();
-        ret->store     (binding->human_readable);
-      }
+        if (! static_cast <sk::iParameter *> (ret)->load ())
+        {
+          binding->parse ();
+          ret->store     (binding->human_readable);
+        }
 
-      binding->human_readable = ret->get_value ();
-      binding->parse ();
+        binding->human_readable = ret->get_value ();
+        binding->parse ();
+      }
 
       return ret;
     };
@@ -587,7 +595,7 @@ SK_LoadConfig (const std::wstring& name) {
 extern volatile LONG SK_SteamAPI_CallbackRateLimit;
 
 
-SK_AppCache_Manager app_cache_mgr;
+SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
 
 __declspec (noinline)
@@ -603,7 +611,7 @@ SK_GetConfigPathEx (bool reset = false)
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
     InterlockedIncrement (&init);
-    app_cache_mgr.loadAppCacheForExe         ( SK_GetFullyQualifiedApp () );
+    app_cache_mgr->loadAppCacheForExe         ( SK_GetFullyQualifiedApp () );
   }
 
   else
@@ -614,7 +622,7 @@ SK_GetConfigPathEx (bool reset = false)
   if (reset || ReadAcquire (&init) == 2)
   {
     wcscpy ( cached_path,
-               app_cache_mgr.getConfigPathFromAppPath (
+               app_cache_mgr->getConfigPathFromAppPath (
                  SK_GetFullyQualifiedApp ()
                ).c_str ()
            );
@@ -651,7 +659,8 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
         wszDescription )
     );
 
-  ret->register_to_ini (pINIFile, wszSection, wszKey);
+  if (ret != nullptr)
+      ret->register_to_ini (pINIFile, wszSection, wszKey);
 
   return ret;
 };
@@ -681,7 +690,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   full_name =
     SK_FormatStringW ( L"%s%s.ini",
                          SK_GetConfigPath (), name.c_str () );
-  
+
 
   std::wstring undecorated_name (name);
 
@@ -760,7 +769,10 @@ auto DeclKeybind =
        dynamic_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
-      ret->register_to_ini ( ini, sec, binding->short_name );
+      if (ret != nullptr && binding != nullptr)
+      {
+        ret->register_to_ini ( ini, sec, binding->short_name );
+      }
 
       return ret;
     };
@@ -2296,7 +2308,7 @@ auto DeclKeybind =
 
     int idx = 0;
 
-    while (wszTok && idx < 4)
+    while (wszTok != nullptr && idx < 4)
     {
       config.input.gamepad.xinput.assignment [idx++] =
         _wtoi (wszTok);
@@ -2702,11 +2714,7 @@ auto DeclKeybind =
     }
   }
 
-
-  if (empty)
-    return false;
-
-  return true;
+  return (! empty);
 }
 
 void
@@ -2732,14 +2740,8 @@ SK_ResHack_PatchGame ( uint32_t width,
   res_mod.pattern.w = width;
   res_mod.pattern.h = height;
 
-        uint32_t* pOut;
+        uint32_t* pOut     = nullptr;
   const void*     pPattern = &res_mod.pattern;
-
-  pOut =
-    reinterpret_cast <uint32_t *> (
-      nullptr
-    );
-
 
   for (int i = 0 ; i < 3; i++)
   {
@@ -2765,11 +2767,11 @@ SK_ResHack_PatchGame ( uint32_t width,
 
     else
     {
-      dll_log.Log ( L"[GalGunHACK] ** %lu Resolution Replacements Made  ==>  "
-                                         L"( %lux%lu --> %lux%lu )",
-                      replacements,
-                        width, height,
-                          res_mod.replacement.w, res_mod.replacement.h );
+      dll_log->Log ( L"[GalGunHACK] ** %lu Resolution Replacements Made  ==>  "
+                                          L"( %lux%lu --> %lux%lu )",
+                       replacements,
+                         width, height,
+                           res_mod.replacement.w, res_mod.replacement.h );
       break;
     }
   }
@@ -2792,10 +2794,10 @@ SK_ResHack_PatchGame3 ( uint32_t width,
                      "\xFF\xFF\x00\x00\x00\x00"
                      "\xFF\xFF\xFF\xFF";
 
-  *(uint32_t *)((uint8_t *)(orig +  6)) = width;
-  *(uint32_t *)((uint8_t *)(orig + 16)) = height;
+  *((uint32_t *)(uint8_t*)(orig +  6)) = width;
+  *((uint32_t *)(uint8_t*)(orig + 16)) = height;
 
-  auto* pOut = reinterpret_cast <uint8_t *> (nullptr);
+  uint8_t* pOut = nullptr;
 
   for (int i = 0 ; i < 5; i++)
   {
@@ -2810,8 +2812,8 @@ SK_ResHack_PatchGame3 ( uint32_t width,
 
       memcpy (data, pOut, 20);
 
-      *(uint32_t *)((uint8_t *)(data +  6)) = static_cast <uint32_t> (config.window.res.override.x);
-      *(uint32_t *)((uint8_t *)(data + 16)) = static_cast <uint32_t> (config.window.res.override.y);
+      *((uint32_t *)(uint8_t *)(data +  6)) = (uint32_t)(config.window.res.override.x);
+      *((uint32_t *)(uint8_t *)(data + 16)) = (uint32_t)(config.window.res.override.y);
 
       if ( SK_InjectMemory ( pOut,
                                data,
@@ -2827,11 +2829,11 @@ SK_ResHack_PatchGame3 ( uint32_t width,
 
     if (pOut == nullptr)
     {
-      dll_log.Log ( L"[Resolution] ** %lu Resolution Replacements Made  ==>  "
-                                      L"( %lux%lu --> %lux%lu )",
-                      replacements,
-                        width, height,
-                          config.window.res.override.x, config.window.res.override.y );
+      dll_log->Log ( L"[Resolution] ** %lu Resolution Replacements Made  ==>  "
+                                       L"( %lux%lu --> %lux%lu )",
+                       replacements,
+                         width, height,
+                           config.window.res.override.x, config.window.res.override.y );
       break;
     }
   }
@@ -2849,7 +2851,7 @@ SK_ResHack_PatchGame2 ( uint32_t width,
   *(orig + 0) = width;
   *(orig + 1) = height;
 
-  auto* pOut = reinterpret_cast <uint32_t *> (nullptr);
+  uint32_t *pOut = nullptr;
     //reinterpret_cast  <uint32_t *> (SK_GetModuleHandle (nullptr));
 
   for (int i = 0 ; i < 5; i++)
@@ -2862,9 +2864,9 @@ SK_ResHack_PatchGame2 ( uint32_t width,
     if (pOut != nullptr)
     {
       struct {
-        uint32_t w = static_cast <uint32_t> (config.window.res.override.x),
-                 h = static_cast <uint32_t> (config.window.res.override.y);
-      } out_data;
+        uint32_t w = gsl::narrow_cast <uint32_t> (config.window.res.override.x),
+                 h = gsl::narrow_cast <uint32_t> (config.window.res.override.y);
+      } out_data = { };
 
 
       if ( SK_InjectMemory ( pOut,
@@ -2881,11 +2883,11 @@ SK_ResHack_PatchGame2 ( uint32_t width,
 
     if (pOut == nullptr)
     {
-      dll_log.Log ( L"[Resolution] ** %lu Resolution Replacements Made  ==>  "
-                                      L"( %lux%lu --> %lux%lu )",
-                      replacements,
-                        width, height,
-                          config.window.res.override.x, config.window.res.override.y );
+      dll_log->Log ( L"[Resolution] ** %lu Resolution Replacements Made  ==>  "
+                                       L"( %lux%lu --> %lux%lu )",
+                       replacements,
+                         width, height,
+                           config.window.res.override.x, config.window.res.override.y );
       break;
     }
   }
@@ -3072,7 +3074,7 @@ SK_SaveConfig ( std::wstring name,
   else
   {
        wchar_t wszPercent [16] = { };
-    _swprintf (wszPercent, L"%08.6f", 100.0f * config.window.offset.x.percent);
+    _swprintf (wszPercent, L"%08.6f", 100.0 * config.window.offset.x.percent);
 
     SK_RemoveTrailingDecimalZeros (wszPercent);
 
@@ -3092,7 +3094,7 @@ SK_SaveConfig ( std::wstring name,
   else
   {
        wchar_t wszPercent [16] = { };
-    _swprintf (wszPercent, L"%08.6f", 100.0f * config.window.offset.y.percent);
+    _swprintf (wszPercent, L"%08.6f", 100.0 * config.window.offset.y.percent);
 
     SK_RemoveTrailingDecimalZeros (wszPercent);
     lstrcatW                      (wszPercent, L"%");
@@ -3117,10 +3119,10 @@ SK_SaveConfig ( std::wstring name,
 
   window.override->store (wszFormattedRes);
 
-  extern float target_fps;
-
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
+
+  extern float target_fps;
 
   render.framerate.target_fps->store          (target_fps);
   render.framerate.limiter_tolerance->store   (config.render.framerate.limiter_tolerance);
@@ -3451,10 +3453,6 @@ SK_GetVersionStr (void)
 
 
 #include <unordered_map>
-
-std::unordered_map <std::wstring, BYTE> humanKeyNameToVirtKeyCode;
-std::unordered_map <BYTE, std::wstring> virtKeyCodeToHumanKeyName;
-
 #include <queue>
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
@@ -3467,7 +3465,8 @@ SK_Keybind::update (void)
 {
   human_readable.clear ();
 
-  std::wstring key_name = virtKeyCodeToHumanKeyName [(BYTE)(vKey & 0xFF)];
+  const std::wstring& key_name =
+    virtKeyCodeToHumanKeyName [(BYTE)(vKey & 0xFF)];
 
   if (! key_name.length ())
     return;
@@ -3475,15 +3474,15 @@ SK_Keybind::update (void)
   std::queue <std::wstring> words;
 
   if (ctrl)
-    words.push (L"Ctrl");
+    words.emplace (L"Ctrl");
 
   if (alt)
-    words.push (L"Alt");
+    words.emplace (L"Alt");
 
   if (shift)
-    words.push (L"Shift");
+    words.emplace (L"Shift");
 
-  words.push (key_name);
+  words.emplace (key_name);
 
   while (! words.empty ())
   {
@@ -3494,7 +3493,8 @@ SK_Keybind::update (void)
       human_readable += L"+";
   }
 
-  masked_code = SK_MakeKeyMask (vKey & 0xFF, ctrl, shift, alt);
+  masked_code =
+    SK_MakeKeyMask (vKey & 0xFF, ctrl, shift, alt);
 }
 
 void
@@ -3503,6 +3503,9 @@ SK_Keybind::parse (void)
   vKey = 0x00;
 
   static bool init = false;
+
+  static auto& humanToVirtual = humanKeyNameToVirtKeyCode.get ();
+  static auto& virtualToHuman = virtKeyCodeToHumanKeyName.get ();
 
   if (! init)
   {
@@ -3545,7 +3548,7 @@ SK_Keybind::parse (void)
         default:
         {
           unsigned int scanCode =
-            ( MapVirtualKey (i, 0) & 0xFF );;
+            ( MapVirtualKey (i, 0) & 0xFFU );
           unsigned short int temp      =  0;
 
           bool asc = (i <= 32);
@@ -3556,11 +3559,11 @@ SK_Keybind::parse (void)
              asc = ToAscii ( i, scanCode, buf, &temp, 1 );
           }
 
-          scanCode            <<= 16;
-          scanCode   |= ( 0x1 <<  25  );
+          scanCode             <<= 16U;
+          scanCode   |= ( 0x1U <<  25U  );
 
           if (! asc)
-            scanCode |= ( 0x1 << 24   );
+            scanCode |= ( 0x1U << 24U   );
 
           GetKeyNameText ( scanCode,
                              name,
@@ -3576,34 +3579,34 @@ SK_Keybind::parse (void)
            i != VK_LMENU    && i != VK_RMENU )
       {
 
-        humanKeyNameToVirtKeyCode.emplace (name, (BYTE)i);
-        virtKeyCodeToHumanKeyName.emplace ((BYTE)i, name);
+        humanToVirtual.emplace (name, gsl::narrow_cast <BYTE> (i));
+        virtualToHuman.emplace (      gsl::narrow_cast <BYTE> (i), name);
       }
     }
 
-    humanKeyNameToVirtKeyCode.emplace (L"Plus",        (BYTE)VK_OEM_PLUS);
-    humanKeyNameToVirtKeyCode.emplace (L"Minus",       (BYTE)VK_OEM_MINUS);
-    humanKeyNameToVirtKeyCode.emplace (L"Ctrl",        (BYTE)VK_CONTROL);
-    humanKeyNameToVirtKeyCode.emplace (L"Alt",         (BYTE)VK_MENU);
-    humanKeyNameToVirtKeyCode.emplace (L"Shift",       (BYTE)VK_SHIFT);
-    humanKeyNameToVirtKeyCode.emplace (L"Left Shift",  (BYTE)VK_LSHIFT);
-    humanKeyNameToVirtKeyCode.emplace (L"Right Shift", (BYTE)VK_RSHIFT);
-    humanKeyNameToVirtKeyCode.emplace (L"Left Alt",    (BYTE)VK_LMENU);
-    humanKeyNameToVirtKeyCode.emplace (L"Right Alt",   (BYTE)VK_RMENU);
-    humanKeyNameToVirtKeyCode.emplace (L"Left Ctrl",   (BYTE)VK_LCONTROL);
-    humanKeyNameToVirtKeyCode.emplace (L"Right Ctrl",  (BYTE)VK_RCONTROL);
+    humanToVirtual.emplace (L"Plus",        gsl::narrow_cast <BYTE> (VK_OEM_PLUS));
+    humanToVirtual.emplace (L"Minus",       gsl::narrow_cast <BYTE> (VK_OEM_MINUS));
+    humanToVirtual.emplace (L"Ctrl",        gsl::narrow_cast <BYTE> (VK_CONTROL));
+    humanToVirtual.emplace (L"Alt",         gsl::narrow_cast <BYTE> (VK_MENU));
+    humanToVirtual.emplace (L"Shift",       gsl::narrow_cast <BYTE> (VK_SHIFT));
+    humanToVirtual.emplace (L"Left Shift",  gsl::narrow_cast <BYTE> (VK_LSHIFT));
+    humanToVirtual.emplace (L"Right Shift", gsl::narrow_cast <BYTE> (VK_RSHIFT));
+    humanToVirtual.emplace (L"Left Alt",    gsl::narrow_cast <BYTE> (VK_LMENU));
+    humanToVirtual.emplace (L"Right Alt",   gsl::narrow_cast <BYTE> (VK_RMENU));
+    humanToVirtual.emplace (L"Left Ctrl",   gsl::narrow_cast <BYTE> (VK_LCONTROL));
+    humanToVirtual.emplace (L"Right Ctrl",  gsl::narrow_cast <BYTE> (VK_RCONTROL));
 
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_CONTROL,   L"Ctrl");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_MENU,      L"Alt");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_SHIFT,     L"Shift");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_OEM_PLUS,  L"Plus");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_OEM_MINUS, L"Minus");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LSHIFT,    L"Left Shift");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RSHIFT,    L"Right Shift");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LMENU,     L"Left Alt");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RMENU,     L"Right Alt");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LCONTROL,  L"Left Ctrl");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RCONTROL,  L"Right Ctrl");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_CONTROL),   L"Ctrl");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_MENU),      L"Alt");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_SHIFT),     L"Shift");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_OEM_PLUS),  L"Plus");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_OEM_MINUS), L"Minus");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_LSHIFT),    L"Left Shift");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_RSHIFT),    L"Right Shift");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_LMENU),     L"Left Alt");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_RMENU),     L"Right Alt");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_LCONTROL),  L"Left Ctrl");
+    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_RCONTROL),  L"Right Ctrl");
 
     init = true;
   }
@@ -3621,12 +3624,12 @@ SK_Keybind::parse (void)
 
   if (wszTok == nullptr)
   {
-    vKey = humanKeyNameToVirtKeyCode [wszKeyBind];
+    vKey = humanToVirtual [wszKeyBind];
   }
 
   while (wszTok)
   {
-    BYTE vKey_ = humanKeyNameToVirtKeyCode [wszTok];
+    BYTE vKey_ = humanToVirtual [wszTok];
 
     if (vKey_ == VK_CONTROL)
       ctrl  = true;
@@ -3640,7 +3643,8 @@ SK_Keybind::parse (void)
     wszTok = std::wcstok (nullptr, L"+", &wszBuf);
   }
 
-  masked_code = SK_MakeKeyMask (vKey & 0xFFUL, ctrl, shift, alt);
+  masked_code =
+    SK_MakeKeyMask (vKey & 0xFFU, ctrl, shift, alt);
 }
 
 

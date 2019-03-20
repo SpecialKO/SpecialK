@@ -31,7 +31,7 @@ struct IUnknown;
 #include <Unknwnbase.h>
 
 // {B526D074-2F4D-4BAE-B6EC-11CB3779B199}
-static const GUID IID_SK_INISection = 
+static const GUID IID_SK_INISection =
 { 0xb526d074, 0x2f4d, 0x4bae, { 0xb6, 0xec, 0x11, 0xcb, 0x37, 0x79, 0xb1, 0x99 } };
 
 interface iSK_INISection : public IUnknown
@@ -83,7 +83,7 @@ public:
 };
 
 // {DD2B1E00-6C14-4659-8B45-FCEF1BC2C724}
-static const GUID IID_SK_INI = 
+static const GUID IID_SK_INI =
 { 0xdd2b1e00, 0x6c14, 0x4659, { 0x8b, 0x45, 0xfc, 0xef, 0x1b, 0xc2, 0xc7, 0x24 } };
 
 interface iSK_INI : public IUnknown
@@ -143,8 +143,8 @@ private:
     INI_UTF16BE = 0x04 // Not natively supported, but can be converted
   } encoding_;
 
-  ULONG    refs_   = 0;
-  uint32_t crc32c_ = 0; // Skip writing config files that haven't changed
+  ULONG    refs_  = 0;
+  uint32_t crc32_ = 0; // Skip writing config files that haven't changed
 };
 
 iSK_INI*

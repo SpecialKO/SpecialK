@@ -19146,36 +19146,40 @@ extern "C"{
 
 interface ID3D11Device;
 interface ID3D12Device;
-
 #include <atlbase.h>
 struct IWrapDXGISwapChain : IDXGISwapChain4
 {
   IWrapDXGISwapChain ( ID3D11Device   *pDevice,
                        IDXGISwapChain *pSwapChain ) :
-    pReal (pSwapChain),
-    pDev  (pDevice),
-    ver_  (0)
+                                                      pReal (pSwapChain),
+                                                      pDev  (pDevice),
+                                                      ver_  (0)
   {
+    if (! pSwapChain)
+      return;
                                   pSwapChain->AddRef  (),
     InterlockedExchange  (&refs_, pSwapChain->Release ());
     InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChains);
 
     //// Immediately try to upgrade
-    CComQIPtr <IDXGISwapChain4> pSwap4 (this);
+    SK_ComQIPtr <IDXGISwapChain4> pSwap4 (this);
   }
 
   IWrapDXGISwapChain ( ID3D11Device    *pDevice,
                        IDXGISwapChain1 *pSwapChain ) :
-    pReal (pSwapChain),
-    pDev  (pDevice),
-    ver_  (1)
+                                                       pReal (pSwapChain),
+                                                       pDev  (pDevice),
+                                                       ver_  (1)
   {
+    if (! pSwapChain)
+      return;
+
                                   pSwapChain->AddRef  (),
     InterlockedExchange  (&refs_, pSwapChain->Release ());
     InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
 
     //// Immediately try to upgrade
-    CComQIPtr <IDXGISwapChain4> pSwap4 (this);
+    SK_ComQIPtr <IDXGISwapChain4> pSwap4 (this);
   }
 
   //IWrapDXGISwapChain ( ID3D12Device   *pDevice12,

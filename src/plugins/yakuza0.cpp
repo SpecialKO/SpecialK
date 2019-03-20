@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -68,14 +68,14 @@ struct {
   float lock_level    =  1.0f;
   bool  quiet_start   =  true;
   float quiet_level   = 0.10f;
-  int   __quiet_mode  = false;
+  bool  __quiet_mode  = false;
 } _SK_Y0_Cfg;
 
 bool __SK_Y0_FixShadowAniso  = false;
 bool __SK_Y0_FixAniso        =  true;
 bool __SK_Y0_ClampLODBias    =  true;
 int  __SK_Y0_ForceAnisoLevel =     0;
-bool __SK_Y0_FilterUpdate    = false; 
+bool __SK_Y0_FilterUpdate    = false;
 
 // The two pixel shaders are for the foreground DepthOfField effect
 #define SK_Y0_DOF_PS0_CRC32C 0x10d88ce3
@@ -213,15 +213,15 @@ SK_Yakuza0_PlugInInit (void)
   );
 
 
-  _SK_Y0_FixAniso = 
+  _SK_Y0_FixAniso =
     dynamic_cast <sk::ParameterBool *> (
       g_ParameterFactory.create_parameter <bool> (L"Fix Anisotropy")
       );
-  _SK_Y0_ClampLODBias = 
+  _SK_Y0_ClampLODBias =
     dynamic_cast <sk::ParameterBool *> (
       g_ParameterFactory.create_parameter <bool> (L"Clamp Negative LOD Bias")
       );
-  _SK_Y0_ForceAniso = 
+  _SK_Y0_ForceAniso =
     dynamic_cast <sk::ParameterInt *> (
       g_ParameterFactory.create_parameter <int> (L"Force Anisotropic Filtering")
       );
@@ -281,8 +281,6 @@ SK_Yakuza0_PlugInInit (void)
   _SK_Y0_FixAniso->load     (__SK_Y0_FixAniso);
   _SK_Y0_ClampLODBias->load (__SK_Y0_ClampLODBias);
 
-  extern bool SK_D3D11_EnableTracking;
-
   if ( _SK_Y0_Cfg.no_fp_blur ||
        _SK_Y0_Cfg.no_dof     ||
        _SK_Y0_Cfg.no_ssao       ) SK_D3D11_EnableTracking = true;
@@ -291,7 +289,7 @@ SK_Yakuza0_PlugInInit (void)
   { SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0x97837269);
     SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0x7cc07f78);
     SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0xe5d4a297);
-    SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x4d2973a3); 
+    SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x4d2973a3);
     SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x0ed648e1);
     SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x170885b9);
     SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x4d2973a3);
@@ -304,7 +302,7 @@ SK_Yakuza0_PlugInInit (void)
     SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  SK_Y0_DOF_PS1_CRC32C); }
 
   if (_SK_Y0_Cfg.no_fp_blur)
-  { SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0xb008686a); 
+  { SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0xb008686a);
     SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x1c599fa7); }
 }
 
@@ -532,7 +530,7 @@ SK_Yakuza0_PlugInCfg (void)
       { SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0x97837269);
         SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0x7cc07f78);
         SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0xe5d4a297);
-        SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.vertex.blacklist, 0x4d2973a3); 
+        SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.vertex.blacklist, 0x4d2973a3);
         SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.vertex.blacklist, 0x0ed648e1);
         SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.vertex.blacklist, 0x170885b9);
         SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.vertex.blacklist, 0x4d2973a3);
@@ -542,7 +540,7 @@ SK_Yakuza0_PlugInCfg (void)
       { SK_D3D11_Shaders.vertex.releaseTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0x97837269);
         SK_D3D11_Shaders.vertex.releaseTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0x7cc07f78);
         SK_D3D11_Shaders.vertex.releaseTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0xe5d4a297);
-        SK_D3D11_Shaders.pixel.releaseTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x4d2973a3); 
+        SK_D3D11_Shaders.pixel.releaseTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x4d2973a3);
         SK_D3D11_Shaders.pixel.releaseTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x0ed648e1);
         SK_D3D11_Shaders.pixel.releaseTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x170885b9);
         SK_D3D11_Shaders.pixel.releaseTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x4d2973a3);
@@ -563,10 +561,10 @@ SK_Yakuza0_PlugInCfg (void)
 
       // First Person Blur
       if (_SK_Y0_Cfg.no_fp_blur)
-      { SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0xb008686a); 
+      { SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0xb008686a);
         SK_D3D11_Shaders.pixel.addTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x1c599fa7); }
       else
-      { SK_D3D11_Shaders.vertex.releaseTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0xb008686a); 
+      { SK_D3D11_Shaders.vertex.releaseTrackingRef (SK_D3D11_Shaders.vertex.blacklist, 0xb008686a);
         SK_D3D11_Shaders.pixel.releaseTrackingRef  (SK_D3D11_Shaders.pixel.blacklist,  0x1c599fa7); }
 
       _SK_Y0_NoDOF->store    (_SK_Y0_Cfg.no_dof);
@@ -576,8 +574,6 @@ SK_Yakuza0_PlugInCfg (void)
       SK_GetDLLConfig   ( )->write (
         SK_GetDLLConfig ( )->get_filename ( )
                                    );
-
-      extern bool SK_D3D11_EnableTracking;
 
       if ( _SK_Y0_Cfg.no_fp_blur ||
            _SK_Y0_Cfg.no_dof     ||

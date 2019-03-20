@@ -36,7 +36,7 @@
 #include <dinput.h>
 #include <comdef.h>
 
-#include <stdarg.h>
+#include <cstdarg>
 
 #include <imgui/imgui.h>
 #include <SpecialK/tls.h>
@@ -140,7 +140,7 @@ HidD_GetPreparsedData_Detour (
     HidD_GetPreparsedData_Original ( HidDeviceObject,
                                        &pData );
 
-  if (bRet)
+  if (bRet && pData != nullptr)
   {
     SK_HID_PreparsedDataP = PreparsedData;
     SK_HID_PreparsedData  = pData;
@@ -237,7 +237,8 @@ HidP_GetData_Detour (
   if (! filter)
     return ret;
 
-  else {
+  else if (DataLength != nullptr)
+  {
     memset (DataList, 0, *DataLength);
            *DataLength = 0;
   }
@@ -665,8 +666,8 @@ NtUserGetRegisteredRawInputDevices_Detour (
   //}
 
 
-  if (*puiNumDevices < static_cast <UINT> (raw_devices.size ()))
-  {   *puiNumDevices = static_cast <UINT> (raw_devices.size ());
+  if (*puiNumDevices < gsl::narrow_cast <UINT> (raw_devices.size ()))
+  {   *puiNumDevices = gsl::narrow_cast <UINT> (raw_devices.size ());
 
     SetLastError (ERROR_INSUFFICIENT_BUFFER);
 
@@ -686,7 +687,7 @@ NtUserGetRegisteredRawInputDevices_Detour (
   else
   {
     idx +=
-      static_cast <int> (raw_devices.size ());
+      gsl::narrow_cast <int> (raw_devices.size ());
   }
 
   return idx;
@@ -1991,7 +1992,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
 
   bool handled = false;
 
-  if ((! lpMsg) || ( lpMsg->hwnd != game_window.hWnd && 
+  if ((! lpMsg) || ( lpMsg->hwnd != game_window.hWnd &&
                                0 != game_window.hWnd &&
                                0 != lpMsg->hwnd ))
   {
@@ -2109,9 +2110,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool /*remove*/, bool /*peek*/)
 
 
 #include <SpecialK/input/xinput_hotplug.h>
-
-void SK_Input_Init (void);
-
 
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)

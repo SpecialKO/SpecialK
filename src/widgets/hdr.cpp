@@ -49,9 +49,12 @@ auto
 {
   auto* ret =
     dynamic_cast <sk::ParameterStringW *>
-    (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
+      (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
-  ret->register_to_ini ( ini, sec, binding->short_name );
+  if (ret != nullptr)
+  {
+    ret->register_to_ini ( ini, sec, binding->short_name );
+  }
 
   return ret;
 };
@@ -60,6 +63,9 @@ static auto
 Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
 auto
 {
+  if (param == nullptr)
+    return false;
+
   std::string label =
     SK_WideCharToUTF8 (binding->human_readable) + "###";
 
@@ -242,7 +248,7 @@ SK_HDR_KeyPress ( BOOL Control,
       it.activate ();
 
       return TRUE;
-    }     
+    }
   }
 
   return FALSE;
@@ -260,7 +266,7 @@ extern iSK_INI* osd_ini;
 class SKWG_HDR_Control : public SK_Widget
 {
 public:
-  SKWG_HDR_Control (void) : SK_Widget ("DXGI_HDR")
+  SKWG_HDR_Control (void) noexcept : SK_Widget ("DXGI_HDR")
   {
     SK_ImGui_Widgets.hdr_control = this;
 
@@ -289,7 +295,7 @@ public:
           DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
       }
 
-      CComQIPtr <IDXGISwapChain3> pSwap3 (
+      SK_ComQIPtr <IDXGISwapChain3> pSwap3 (
         rb.swapchain.p
       );
 
@@ -354,7 +360,7 @@ public:
         rb.scanout.colorspace_override =
           DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
       }
-    } 
+    }
 
     else
     {
@@ -371,7 +377,7 @@ public:
 
   void draw (void) override
   {
-    if (! ImGui::GetFont ())
+    if (ImGui::GetFont () == nullptr)
       return;
 
     static auto& rb =
@@ -592,7 +598,7 @@ public:
     }
 
     ////if (bRetro)
-    ////{ 
+    ////{
     ////  ImGui::Separator (  );
     ////  ImGui::TreePush  ("");
     ////
@@ -621,7 +627,7 @@ public:
       //ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f, 0.28f, 0.94f)); ImGui::SameLine ();
       //ImGui::Text ("This is pure magic"); if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Essence of Pirate reasoning is required; harvesting takes time and quite possibly your sanity.");
       //ImGui::PopStyleColor  (2);
-      
+
       ////if (ImGui::IsItemHovered ())
       ////{
       ////  ImGui::BeginTooltip ();
@@ -644,7 +650,7 @@ public:
     if ( __SK_HDR_10BitSwap ||
          __SK_HDR_16BitSwap    )
     {
-      CComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);
+      SK_ComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);
 
       if (pSwap4.p != nullptr)
       {
@@ -654,16 +660,16 @@ public:
 
         if (out_desc.BitsPerColor == 0)
         {
-          CComPtr <IDXGIOutput>
+          SK_ComPtr <IDXGIOutput>
             pOutput = nullptr;
 
           if ( SUCCEEDED (
                 pSwap4->GetContainingOutput (&pOutput.p)
-                         ) 
+                         )
              )
           {
-            CComQIPtr <IDXGIOutput6> pOutput6 (pOutput);
-                                     pOutput6->GetDesc1 (&out_desc);
+            SK_ComQIPtr <IDXGIOutput6> pOutput6 (pOutput);
+                                       pOutput6->GetDesc1 (&out_desc);
           }
 
           else
@@ -690,7 +696,7 @@ public:
             float WhiteY;
           } const DisplayChromacityList [] =
           {
-            { 0.64000f, 0.33000f, 0.30000f, 0.60000f, 0.15000f, 0.06000f, 0.31270f, 0.32900f }, // Display Gamut Rec709 
+            { 0.64000f, 0.33000f, 0.30000f, 0.60000f, 0.15000f, 0.06000f, 0.31270f, 0.32900f }, // Display Gamut Rec709
             { 0.70800f, 0.29200f, 0.17000f, 0.79700f, 0.13100f, 0.04600f, 0.31270f, 0.32900f }, // Display Gamut Rec2020
             { out_desc.RedPrimary   [0], out_desc.RedPrimary   [1],
               out_desc.GreenPrimary [0], out_desc.GreenPrimary [1],
@@ -711,7 +717,7 @@ public:
                rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )
           {
             hdr_gamut_support = true;
-            ImGui::RadioButton ("Rec 709",  &cspace, 0); ImGui::SameLine (); 
+            ImGui::RadioButton ("Rec 709",  &cspace, 0); ImGui::SameLine ();
           }
           //else if (cspace == 0) cspace = 1;
 
@@ -851,7 +857,7 @@ public:
           ImGui::EndGroup   ();
           ImGui::SameLine   (); ImGui::Spacing ();
           ImGui::SameLine   (); ImGui::Spacing ();
-          ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine (); 
+          ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine ();
           ImGui::BeginGroup ();
           for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
           {
@@ -874,7 +880,7 @@ public:
           ImGui::SameLine   (); ImGui::Spacing ();
           ImGui::SameLine   (); ImGui::Spacing ();
           ImGui::SameLine   (); ImGui::Spacing ();
-          ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine (); 
+          ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine ();
           ImGui::BeginGroup ();
 
           for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
@@ -905,7 +911,7 @@ public:
           auto& preset =
             hdr_presets [__SK_HDR_Preset];
 
-          if ( ImGui::Combo ( "Source ColorSpace##SK_HDR_GAMUT_IN", 
+          if ( ImGui::Combo ( "Source ColorSpace##SK_HDR_GAMUT_IN",
                                              &preset.colorspace.in,
                 __SK_HDR_ColorSpaceComboStr)                        )
           {
@@ -923,7 +929,7 @@ public:
             }
           }
 
-          if ( ImGui::Combo ( "Output ColorSpace##SK_HDR_GAMUT_OUT", 
+          if ( ImGui::Combo ( "Output ColorSpace##SK_HDR_GAMUT_OUT",
                                              &preset.colorspace.out,
                 __SK_HDR_ColorSpaceComboStr )                       )
           {
@@ -993,17 +999,17 @@ public:
 
               /////if (rb.scanout.bpc == 10)
               /////  swap_desc.BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-          
+
               //pSwap4->SetHDRMetaData (DXGI_HDR_METADATA_TYPE_NONE, 0, nullptr);
               //
               //if (swap_desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
               //{
               //  pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
               //}
-          
+
               //else if (cspace == 0) pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
               //else                  pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
-          
+
               pSwap4->SetHDRMetaData (DXGI_HDR_METADATA_TYPE_HDR10, sizeof (HDR10MetaData), &HDR10MetaData);
               pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
             }
@@ -1022,7 +1028,7 @@ public:
     }
   }
 
-  virtual void OnConfig (ConfigEvent event) override
+  void OnConfig (ConfigEvent event) override
   {
     switch (event)
     {
@@ -1037,7 +1043,13 @@ public:
 protected:
 
 private:
-} __dxgi_hdr__;
+};
+
+SK_LazyGlobal <SKWG_HDR_Control> __dxgi_hdr__;
+void SK_Widget_InitHDR (void)
+{
+  SK_RunOnce (__dxgi_hdr__.get ());
+}
 
 
 
@@ -1093,10 +1105,10 @@ SK_ImGui_DrawGamut (void)
 
   const ImU32 col32 =
     ImColor (col);
-  
+
   ImDrawList* draw_list =
     ImGui::GetWindowDrawList ();
-  
+
   static const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -1123,7 +1135,7 @@ SK_ImGui_DrawGamut (void)
 
       double A =
         fabs (r_x*(b_y-g_y) + g_x*(b_y-r_y) + b_x*(r_y-g_y));
-      
+
       _area = A;
 
       show = true;
@@ -1149,7 +1161,7 @@ SK_ImGui_DrawGamut (void)
       {
         color_triangle_s ( "DCI-P3",        SK_ColorSpace { 0.68, 0.32,  0.265, 0.69,  0.15, 0.06,
                                                               D65, 1.0 - 0.3127 - 0.329 } ),
-                                            
+
         color_triangle_s ( "ITU-R BT.709",  SK_ColorSpace { 0.64, 0.33,  0.3, 0.6,  0.15, 0.06,
                                                               D65, 1.0 } ),
 
@@ -1162,7 +1174,7 @@ SK_ImGui_DrawGamut (void)
         color_triangle_s { "NTSC",          SK_ColorSpace { 0.67, 0.33,  0.21, 0.71,  0.14, 0.08,
                                                               0.31, 0.316, 1.0 - 0.31 - 0.316 } }
       };
-  
+
   static const
     glm::vec3 r (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (1.f, 0.f, 0.f))),
               g (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 1.f, 0.f))),
@@ -1236,7 +1248,7 @@ SK_ImGui_DrawGamut (void)
   {
     if (space.show)
     {
-      const ImU32 outline_color = 
+      const ImU32 outline_color =
         ImColor::HSV ( idx / 5.0f, 0.85f, 0.98f );
 
       draw_list->AddTriangle ( ImVec2 (X0 + (float)space.r.x * width, Y0 + (height - (float)space.r.y * height)),

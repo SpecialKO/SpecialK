@@ -128,30 +128,25 @@ struct SK_XInputContext
     {
       if (! InterlockedCompareExchange (&locks [dwUserIndex], 1, 0))
         return false;
-      else
+
+      static volatile ULONG warned [4] = { FALSE, FALSE, FALSE, FALSE };
+
+      if (! InterlockedCompareExchange (&warned [dwUserIndex], 1, 0))
       {
-        static volatile ULONG warned [4] = { FALSE, FALSE, FALSE, FALSE };
+        SK_LOG0 ( ( L"WARNING: Recursive haptic feedback loop detected on XInput controller %lu!",
+                     dwUserIndex ),
+                  L"  Input   " );
 
-        if (! InterlockedCompareExchange (&warned [dwUserIndex], 1, 0))
-        {
-          SK_LOG0 ( ( L"WARNING: Recursive haptic feedback loop detected on XInput controller %lu!",
-                       dwUserIndex ),
-                    L"  Input   " );
-
-          ////extern void
-          ////SK_ImGui_Warning (const wchar_t* wszMessage);
-          ////
-          ////SK_ImGui_Warning (L"Problematic XInput software detected (infinite haptic feedback loop), please restart the Steam client.");
-        }
-
-        return true;
+        ////extern void
+        ////SK_ImGui_Warning (const wchar_t* wszMessage);
+        ////
+        ////SK_ImGui_Warning (L"Problematic XInput software detected (infinite haptic feedback loop), please restart the Steam client.");
       }
+
+      return true;
     }
 
-    else
-    {
-      InterlockedDecrement (&locks [dwUserIndex]);
-    }
+    InterlockedDecrement (&locks [dwUserIndex]);
 
     return false;
   }
@@ -178,10 +173,10 @@ SK_XInput_GetPrimaryHookName (void)
   if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_3)
     return "XInput 1.3";
 
-  else if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_4)
+  if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_4)
     return "XInput 1.4";
 
-  else if (xinput_ctx.primary_hook == &xinput_ctx.XInput9_1_0)
+  if (xinput_ctx.primary_hook == &xinput_ctx.XInput9_1_0)
     return "XInput 9_1_0";
 
   return "Unknown";
@@ -210,7 +205,7 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
                    ReadPointerAcquire ((volatile LPVOID*)&xinput_ctx.primary_hook) != nullptr)
   {
     std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.cs_hook [0]);
-  
+
     if (! warned_modules.count (hModCaller))
     {
       SK_LOG0 ( ( L"WARNING: Third-party module '%s' uses different XInput interface version "
@@ -221,7 +216,7 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
                      (LPVOID *)&xinput_ctx.primary_hook
                    ))->wszModuleName ),
                   L"Input Mgr." );
-  
+
       warned_modules.insert (hModCaller);
     }
   }
@@ -330,7 +325,7 @@ XInputGetStateEx1_3_Detour (
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
-  
+
   SK_XInputContext::instance_s* pCtx =
     (xinput_ctx.XInput1_4.hMod != 0) ? &xinput_ctx.XInput1_4 :
                                        &xinput_ctx.XInput1_3;
@@ -1780,7 +1775,7 @@ WINAPI
 SK_XInput_ZeroHaptics (INT iJoyID)
 {
   auto steam_idx =
-    static_cast <ControllerIndex_t> (iJoyID);
+    gsl::narrow_cast <ControllerIndex_t> (iJoyID);
 
   if (steam_input.count && ControllerPresent (steam_idx))
   {

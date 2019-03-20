@@ -31,17 +31,19 @@ struct IUnknown;
 #include <vector>
 
 #include <cstdint>
+#include <memory>
 
 class SK_Console
 {
 public:
 //private:
-  HANDLE               hMsgPump = nullptr;
+  HANDLE        hMsgPump = nullptr;
 
-  static SK_Console*   pConsole;
+  static std::unique_ptr <SK_Console>
+                pConsole;
 
   char          text  [4096]   = {      };
-                               
+
   BYTE          keys_ [256]    = {      };
   bool          visible        = false;
 
@@ -53,7 +55,7 @@ public:
     size_t                    idx     = MAXSIZE_T;
   } commands;
 
-protected:
+//protected:
   SK_Console (void);
 
 public:

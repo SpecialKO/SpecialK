@@ -120,9 +120,6 @@ NtReadFile_Detour (
       if (pTLS->disk.ignore_reads)
         return ntStatus;
 
-      auto& file_log =
-        *read_log;
-
       if (pTLS->disk.last_file_read != FileHandle)
       {   pTLS->disk.last_file_read  = FileHandle;
         wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
@@ -139,6 +136,9 @@ NtReadFile_Detour (
           pTLS->disk.ignore_reads  = TRUE;
           pTLS->disk.ignore_writes = TRUE;
         }
+
+        auto& file_log =
+          *read_log;
 
         if (ByteOffset != nullptr)
         {
@@ -195,9 +195,6 @@ NtWriteFile_Detour (
       if (pTLS->disk.ignore_writes)
         return ntStatus;
 
-      auto& file_log =
-        *write_log;
-
       if (pTLS->disk.last_file_written != FileHandle)
       {   pTLS->disk.last_file_written  = FileHandle;
         wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
@@ -211,6 +208,9 @@ NtWriteFile_Detour (
 
         else if (config.file_io.ignore_writes.single_file.count (wszFileName))
           return ntStatus;
+
+        auto& file_log =
+          *write_log;
 
         if (ByteOffset != nullptr)
         {
@@ -266,8 +266,7 @@ SK_GetFileSD ( const wchar_t              *wszPath,
                      PSECURITY_DESCRIPTOR *pFileSD,
                      PACL                 *pACL )
 {
-  BOOL  bRetVal = FALSE;
-  DWORD dwErr   = 0;
+  BOOL bRetVal = FALSE;
 
   SECURITY_INFORMATION secInfo =
     DACL_SECURITY_INFORMATION;
@@ -276,26 +275,29 @@ SK_GetFileSD ( const wchar_t              *wszPath,
     return bRetVal;
 
   SK_AutoHandle hFile (
-    CreateFile ( wszPath, READ_CONTROL,
-                       0, nullptr,
-                       OPEN_EXISTING,
-                         FILE_ATTRIBUTE_DIRECTORY |
-                         FILE_FLAG_BACKUP_SEMANTICS,
-                           nullptr )
+    CreateFile ( wszPath,
+                   READ_CONTROL,
+                     0, nullptr,
+                     OPEN_EXISTING,
+                       FILE_ATTRIBUTE_DIRECTORY |
+                       FILE_FLAG_BACKUP_SEMANTICS,
+                         nullptr )
   );
 
-  if (hFile == INVALID_HANDLE_VALUE)
-    bRetVal = FALSE;
+  if (hFile == INVALID_HANDLE_VALUE) { bRetVal = FALSE; }
+
   else
   {
-    dwErr = GetSecurityInfo (
-      hFile,   SE_FILE_OBJECT,
-      secInfo, nullptr, nullptr,
-         pACL, nullptr, pFileSD );
-  }
+    DWORD dwErr =
+      GetSecurityInfo (
+        hFile,   SE_FILE_OBJECT,
+        secInfo, nullptr, nullptr,
+           pACL, nullptr, pFileSD
+      );
 
-  bRetVal =
-    ( dwErr == ERROR_SUCCESS );
+    bRetVal =
+      ( dwErr == ERROR_SUCCESS );
+  }
 
   return
     bRetVal;
@@ -314,8 +316,8 @@ SK_File_CanUserWriteToPath (const wchar_t* wszPath)
   bool  bRet   = false;
   DWORD length = 0;
 
-  PACL                 pFileDACL = nullptr;
-  PSECURITY_DESCRIPTOR pFileSD   = nullptr;
+//PACL                 pFileDACL = nullptr;
+//PSECURITY_DESCRIPTOR pFileSD   = nullptr;
 
   SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
 
@@ -326,7 +328,7 @@ SK_File_CanUserWriteToPath (const wchar_t* wszPath)
                               nullptr, 0, &length ) && ERROR_INSUFFICIENT_BUFFER == GetLastError () )
   {
     PSECURITY_DESCRIPTOR security =
-      static_cast< PSECURITY_DESCRIPTOR > (malloc (length));
+      static_cast< PSECURITY_DESCRIPTOR > (new (std::nothrow) uint8_t [length]);
 
     if ( security && GetFileSecurity ( wszPath,
                                        OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION |
@@ -371,40 +373,39 @@ SK_File_CanUserWriteToPath (const wchar_t* wszPath)
 
     if (security != nullptr)
     {
-      free (security);
-            security = nullptr;
+      delete (SECURITY_DESCRIPTOR*)security;
     }
   }
   
-  if (pFileSD != nullptr)
-  {
-    SK_LocalFree (pFileSD);
-                  pFileSD = nullptr;
-  }
+//if (pFileSD != nullptr)
+//{
+//  SK_LocalFree (pFileSD);
+//                pFileSD = nullptr;
+//}
  
   if (! bRet)
   {
-    if (SK_GetFileSD (wszPath, &pFileSD, &pFileDACL))
-    {
-      // ALL ACCESS if NULL
-      if (pFileDACL == nullptr)
-      {
-        if (pFileSD != nullptr) SK_LocalFree (pFileSD);
-
-        return TRUE;
-      }
-    }
-
-    FILE *fTest =
-      _wfsopen (L"SK_TEST_FILE.tmp", L"wbS", _SH_DENYNO);
-
-    if (fTest != nullptr)
-    {
-      fclose      (fTest);
-      DeleteFileW (L"SK_TEST_FILE.tmp");
-
-      bRet = true;
-    }
+    ////if (SK_GetFileSD (wszPath, &pFileSD, &pFileDACL))
+    ////{
+    ////  // ALL ACCESS if NULL
+    ////  if (pFileDACL == nullptr)
+    ////  {
+    ////    if (pFileSD != nullptr) SK_LocalFree (pFileSD);
+    ////
+    ////    return TRUE;
+    ////  }
+    ////}
+    ////
+    ////FILE *fTest =
+    ////  _wfsopen (L"SK_TEST_FILE.tmp", L"wbS", _SH_DENYNO);
+    ////
+    ////if (fTest != nullptr)
+    ////{
+    ////  fclose      (fTest);
+    ////  DeleteFileW (L"SK_TEST_FILE.tmp");
+    ////
+    ////  bRet = true;
+    ////}
   }
 
   return bRet;

@@ -97,8 +97,8 @@ typedef void (*ImGuiSizeConstraintCallback)(ImGuiSizeConstraintCallbackData* dat
 struct ImVec2
 {
     float x, y;
-    ImVec2() { x = y = 0.0f; }
-    ImVec2(float _x, float _y) { x = _x; y = _y; }
+    ImVec2 ()                   noexcept { x = y = 0.0f; }
+    ImVec2 (float _x, float _y) noexcept { x = _x; y = _y; }
 #ifdef IM_VEC2_CLASS_EXTRA          // Define constructor and implicit cast operators in imconfig.h to convert back<>forth from your math types and ImVec2.
     IM_VEC2_CLASS_EXTRA
 #endif
@@ -108,8 +108,8 @@ struct ImVec2
 struct ImVec4
 {
     float x, y, z, w;
-    ImVec4() { x = y = z = w = 0.0f; }
-    ImVec4(float _x, float _y, float _z, float _w) { x = _x; y = _y; z = _z; w = _w; }
+    ImVec4 ()                                       noexcept { x = y = z = w = 0.0f; }
+    ImVec4 (float _x, float _y, float _z, float _w) noexcept { x = _x; y = _y; z = _z; w = _w; }
 #ifdef IM_VEC4_CLASS_EXTRA          // Define constructor and implicit cast operators in imconfig.h to convert back<>forth from your math types and ImVec4.
     IM_VEC4_CLASS_EXTRA
 #endif
@@ -161,7 +161,7 @@ namespace ImGui
     IMGUI_API void          SetNextWindowCollapsed(bool collapsed, ImGuiSetCond cond = 0);      // set next window collapsed state. call before Begin()
     IMGUI_API void          SetNextWindowFocus();                                               // set next window to be focused / front-most. call before Begin()
     IMGUI_API void          SetWindowPos(const ImVec2& pos, ImGuiSetCond cond = 0);             // (not recommended) set current window position - call within Begin()/End(). prefer using SetNextWindowPos(), as this may incur tearing and side-effects.
-    IMGUI_API void          SetWindowSize(const ImVec2& size, ImGuiSetCond cond = 0);           // (not recommended) set current window size - call within Begin()/End(). set to ImVec2(0,0) to force an auto-fit. prefer using SetNextWindowSize(), as this may incur tearing and minor side-effects.    
+    IMGUI_API void          SetWindowSize(const ImVec2& size, ImGuiSetCond cond = 0);           // (not recommended) set current window size - call within Begin()/End(). set to ImVec2(0,0) to force an auto-fit. prefer using SetNextWindowSize(), as this may incur tearing and minor side-effects.
     IMGUI_API void          SetWindowCollapsed(bool collapsed, ImGuiSetCond cond = 0);          // (not recommended) set current window collapsed state. prefer using SetNextWindowCollapsed().
     IMGUI_API void          SetWindowFocus();                                                   // (not recommended) set current window to be focused / front-most. prefer using SetNextWindowFocus().
     IMGUI_API void          SetWindowPos(const char* name, const ImVec2& pos, ImGuiSetCond cond = 0);      // set named window position.
@@ -470,18 +470,18 @@ namespace ImGui
     IMGUI_API bool          IsNavDragging(int stick_no = 1, float lock_threshold = -1.0f);
 
     // Helpers functions to access functions pointers in ImGui::GetIO()
-    IMGUI_API void*         MemAlloc(size_t sz);
-    IMGUI_API void          MemFree(void* ptr);
-    IMGUI_API const char*   GetClipboardText();
-    IMGUI_API void          SetClipboardText(const char* text);
+    IMGUI_API void*         MemAlloc         (size_t sz)        noexcept;
+    IMGUI_API void          MemFree          (void* ptr)        noexcept;
+    IMGUI_API const char*   GetClipboardText ()                 noexcept;
+    IMGUI_API void          SetClipboardText (const char* text) noexcept;
 
     // Internal context access - if you want to use multiple context, share context between modules (e.g. DLL). There is a default context created and active by default.
     // All contexts share a same ImFontAtlas by default. If you want different font atlas, you can new() them and overwrite the GetIO().Fonts variable of an ImGui context.
-    IMGUI_API const char*   GetVersion();
+    IMGUI_API const char*   GetVersion () noexcept;
     IMGUI_API ImGuiContext* CreateContext(void* (*malloc_fn)(size_t) = NULL, void (*free_fn)(void*) = NULL);
     IMGUI_API void          DestroyContext(ImGuiContext* ctx);
-    IMGUI_API ImGuiContext* GetCurrentContext();
-    IMGUI_API void          SetCurrentContext(ImGuiContext* ctx);
+    IMGUI_API ImGuiContext* GetCurrentContext ()                  noexcept;
+    IMGUI_API void          SetCurrentContext (ImGuiContext* ctx) noexcept;
 
     // Obsolete (will be removed)
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
@@ -566,7 +566,7 @@ enum ImGuiTreeNodeFlags_
     ImGuiTreeNodeFlags_DefaultOpen          = 1 << 5,   // Default node to be open
     ImGuiTreeNodeFlags_OpenOnDoubleClick    = 1 << 6,   // Need double-click to open node
     ImGuiTreeNodeFlags_OpenOnArrow          = 1 << 7,   // Only open when clicking on the arrow part. If ImGuiTreeNodeFlags_OpenOnDoubleClick is also set, single-click arrow or double-click all box to open.
-    ImGuiTreeNodeFlags_Leaf                 = 1 << 8,   // No collapsing, no arrow (use as a convenience for leaf nodes). 
+    ImGuiTreeNodeFlags_Leaf                 = 1 << 8,   // No collapsing, no arrow (use as a convenience for leaf nodes).
     ImGuiTreeNodeFlags_Bullet               = 1 << 9,   // Display a bullet instead of arrow
     //ImGuITreeNodeFlags_SpanAllAvailWidth  = 1 << 10,  // FIXME: TODO: Extend hit box horizontally even if not framed
     //ImGuiTreeNodeFlags_NoScrollOnOpen     = 1 << 11,  // FIXME: TODO: Disable automatic scroll on TreePop() if node got just open and contents is not visible
@@ -679,7 +679,7 @@ enum ImGuiCol_
     ImGuiCol_PlotHistogramHovered,
     ImGuiCol_TextSelectedBg,
     ImGuiCol_ModalWindowDarkening,  // darken entire screen when a modal window is active
-    ImGuiCol_NavHighlight,          // gamepad/keyboard: current highlighted item 
+    ImGuiCol_NavHighlight,          // gamepad/keyboard: current highlighted item
     ImGuiCol_NavWindowingHighlight, // gamepad/keyboard: when holding NavMenu to focus/move/resize windows
     ImGuiCol_COUNT
 };
@@ -906,32 +906,31 @@ public:
     typedef value_type*         iterator;
     typedef const value_type*   const_iterator;
 
-    ImVector()                  { Size = Capacity = 0; Data = NULL; }
-    ~ImVector()                 { if (Data) ImGui::MemFree(Data); }
+    ImVector  () noexcept { Size = Capacity = 0; Data = NULL; }
+    ~ImVector () noexcept { if (Data) ImGui::MemFree(Data); }
 
-    inline bool                 empty() const                   { return Size == 0; }
-    inline int                  size() const                    { return Size; }
-    inline int                  capacity() const                { return Capacity; }
+    inline bool                 empty   () const noexcept         { return Size == 0; }
+    inline int                  size    () const noexcept         { return Size; }
+    inline int                  capacity() const noexcept         { return Capacity; }
 
-    inline value_type&          operator[](int i)               { IM_ASSERT(i < Size); return Data[i]; }
-    inline const value_type&    operator[](int i) const         { IM_ASSERT(i < Size); return Data[i]; }
+    inline value_type&          operator[](int i) noexcept        { IM_ASSERT(i < Size); return Data[i]; }
+    inline const value_type&    operator[](int i) const noexcept  { IM_ASSERT(i < Size); return Data[i]; }
 
-    inline void                 clear()                         { if (Data) { Size = Capacity = 0; ImGui::MemFree(Data); Data = NULL; } }
-    inline iterator             begin()                         { return Data; }
-    inline const_iterator       begin() const                   { return Data; }
-    inline iterator             end()                           { return Data + Size; }
-    inline const_iterator       end() const                     { return Data + Size; }
-    inline value_type&          front()                         { IM_ASSERT(Size > 0); return Data[0]; }
-    inline const value_type&    front() const                   { IM_ASSERT(Size > 0); return Data[0]; }
-    inline value_type&          back()                          { IM_ASSERT(Size > 0); return Data[Size-1]; }
-    inline const value_type&    back() const                    { IM_ASSERT(Size > 0); return Data[Size-1]; }
-    inline void                 swap(ImVector<T>& rhs)          { int rhs_size = rhs.Size; rhs.Size = Size; Size = rhs_size; int rhs_cap = rhs.Capacity; rhs.Capacity = Capacity; Capacity = rhs_cap; value_type* rhs_data = rhs.Data; rhs.Data = Data; Data = rhs_data; }
+    inline void                 clear () noexcept                 { if (Data) { Size = Capacity = 0; ImGui::MemFree(Data); Data = NULL; } }
+    inline iterator             begin () noexcept                 { return Data; }
+    inline const_iterator       begin () const noexcept           { return Data; }
+    inline iterator             end   () noexcept                 { return Data + Size; }
+    inline const_iterator       end   () const noexcept           { return Data + Size; }
+    inline value_type&          front () noexcept                 { IM_ASSERT(Size > 0); return Data[0]; }
+    inline const value_type&    front () const noexcept           { IM_ASSERT(Size > 0); return Data[0]; }
+    inline value_type&          back  () noexcept                 { IM_ASSERT(Size > 0); return Data[Size-1]; }
+    inline const value_type&    back  () const noexcept           { IM_ASSERT(Size > 0); return Data[Size-1]; }
+    inline void                 swap  (ImVector<T>& rhs)  noexcept{ int rhs_size = rhs.Size; rhs.Size = Size; Size = rhs_size; int rhs_cap = rhs.Capacity; rhs.Capacity = Capacity; Capacity = rhs_cap; value_type* rhs_data = rhs.Data; rhs.Data = Data; Data = rhs_data; }
 
-    
-inline int                  _grow_capacity(int new_size)    { int new_capacity = Capacity ? (Capacity + Capacity/2) : 8; return new_capacity > new_size ? new_capacity : new_size; }
+    inline int              _grow_capacity (int new_size) noexcept{ int new_capacity = Capacity ? (Capacity + Capacity/2) : 8; return new_capacity > new_size ? new_capacity : new_size; }
 
-    inline void                 resize(int new_size)            { if (new_size > Capacity) reserve(_grow_capacity(new_size)); Size = new_size; }
-    inline void                 reserve(int new_capacity)
+    inline void                 resize  (int new_size)    noexcept{ if (new_size > Capacity) reserve(_grow_capacity(new_size)); Size = new_size; }
+    inline void                 reserve (int new_capacity)noexcept
     {
         if (new_capacity <= Capacity) return;
         T* new_data = (value_type*)ImGui::MemAlloc((size_t)new_capacity * sizeof(value_type));
@@ -942,11 +941,12 @@ inline int                  _grow_capacity(int new_size)    { int new_capacity =
         Capacity = new_capacity;
     }
 
-    inline void                 push_back(const value_type& v)  { if (Size == Capacity) reserve(_grow_capacity(Size+1)); Data[Size++] = v; }
-    inline void                 pop_back()                      { IM_ASSERT(Size > 0); Size--; }
+    inline void                 push_back (const value_type& v) noexcept  { if (Size == Capacity) reserve(_grow_capacity(Size+1)); Data[Size++] = v; }
+    inline void                 pop_back  ()                    noexcept  { IM_ASSERT(Size > 0); Size--; }
 
-    inline iterator             erase(const_iterator it)        { IM_ASSERT(it >= Data && it < Data+Size); const ptrdiff_t off = it - Data; memmove(Data + off, Data + off + 1, ((size_t)Size - (size_t)off - 1) * sizeof(value_type)); Size--; return Data + off; }
-    inline iterator             insert(const_iterator it, const value_type& v)  { IM_ASSERT(it >= Data && it <= Data+Size); const ptrdiff_t off = it - Data; if (Size == Capacity) reserve(Capacity ? Capacity * 2 : 4); if (off < (int)Size) memmove(Data + off + 1, Data + off, ((size_t)Size - (size_t)off) * sizeof(value_type)); Data[off] = v; Size++; return Data + off; }
+    inline iterator             erase  (const_iterator it)      noexcept  { IM_ASSERT(it >= Data && it < Data+Size); const ptrdiff_t off = it - Data; memmove(Data + off, Data + off + 1, ((size_t)Size - (size_t)off - 1) * sizeof(value_type)); Size--; return Data + off; }
+    inline iterator             insert (const_iterator it, const value_type& v)
+                                                                noexcept  { IM_ASSERT(it >= Data && it <= Data+Size); const ptrdiff_t off = it - Data; if (Size == Capacity) reserve(Capacity ? Capacity * 2 : 4); if (off < (int)Size) memmove(Data + off + 1, Data + off, ((size_t)Size - (size_t)off) * sizeof(value_type)); Data[off] = v; Size++; return Data + off; }
 };
 
 // Helper: execute a block of code at maximum once a frame
@@ -1140,7 +1140,7 @@ struct ImColor
 
 // Helper: Manually clip large list of items.
 // If you are submitting lots of evenly spaced items and you have a random access to the list, you can perform coarse clipping based on visibility to save yourself from processing those items at all.
-// The clipper calculates the range of visible items and advance the cursor to compensate for the non-visible items we have skipped. 
+// The clipper calculates the range of visible items and advance the cursor to compensate for the non-visible items we have skipped.
 // ImGui already clip items based on their bounds but it needs to measure text size to do so. Coarse clipping before submission makes this cost and your own data fetching/submission cost null.
 // Usage:
 //     ImGuiListClipper clipper(1000);  // we have 1000 elements, evenly spaced.
@@ -1294,8 +1294,8 @@ struct ImDrawList
 
     // Internal helpers
     // NB: all primitives needs to be reserved via PrimReserve() beforehand!
-    IMGUI_API void  Clear();
-    IMGUI_API void  ClearFreeMemory();
+    IMGUI_API void  Clear           () noexcept;
+    IMGUI_API void  ClearFreeMemory () noexcept;
     IMGUI_API void  PrimReserve(int idx_count, int vtx_count);
     IMGUI_API void  PrimRect(const ImVec2& a, const ImVec2& b, ImU32 col);      // Axis aligned rectangle (composed of two triangles)
     IMGUI_API void  PrimRectUV(const ImVec2& a, const ImVec2& b, const ImVec2& uv_a, const ImVec2& uv_b, ImU32 col);

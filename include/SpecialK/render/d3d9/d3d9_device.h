@@ -53,7 +53,7 @@ enum class SK_D3D9_PresentType
   Invalid             = 3
 };
 
-struct sk_d3d9_swap_dispatch_s 
+struct sk_d3d9_swap_dispatch_s
 {
         IUnknown              *pDevice              = nullptr;
         IUnknown              *pSwapChain           = nullptr;
@@ -79,7 +79,7 @@ static const GUID IID_IWrapDirect3DDevice9 =
   { 0x6dec0d40, 0x1339, 0x4bda, { 0xa5, 0xf2, 0x22, 0x31, 0xd4, 0x1, 0xf, 0xd1 } };
 
 // {9A222196-4D44-45C3-AAA4-2FD47915CC70}
-static const GUID IID_IWrapDirect3DDevice9Ex = 
+static const GUID IID_IWrapDirect3DDevice9Ex =
   { 0x9a222196, 0x4d44, 0x45c3, { 0xaa, 0xa4, 0x2f, 0xd4, 0x79, 0x15, 0xcc, 0x70 } };
 
 struct __declspec (uuid ("6DEC0D40-1339-4BDA-A5F2-2231D4010FD1")) IWrapDirect3DDevice9;
@@ -96,7 +96,7 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
     pReal->GetSwapChain (0, &pTemp);
 
     implicit_swapchain_ =
-      new IWrapDirect3DSwapChain9 (this, pTemp);
+      std::make_unique <IWrapDirect3DSwapChain9> (this, pTemp);
 
                                   orig->AddRef  ();
     InterlockedExchange  (&refs_, orig->Release ());
@@ -118,7 +118,7 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
     CComQIPtr <IDirect3DSwapChain9Ex> pTempEx (pTemp);
 
     implicit_swapchain_ =
-      new IWrapDirect3DSwapChain9 (this, pTempEx);
+      std::make_unique <IWrapDirect3DSwapChain9> (this, pTempEx);
 
                                   orig->AddRef  ();
     InterlockedExchange  (&refs_, orig->Release ());
@@ -274,8 +274,8 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
   IDirect3DDevice9 *pReal;
   bool              d3d9ex_ = false;
 
-  IWrapDirect3DSwapChain9 
-                  *implicit_swapchain_   = nullptr;
+  std::unique_ptr <IWrapDirect3DSwapChain9>
+                   implicit_swapchain_   = nullptr;
   concurrency::concurrent_vector <IWrapDirect3DSwapChain9 *>
                    additional_swapchains_;
 };

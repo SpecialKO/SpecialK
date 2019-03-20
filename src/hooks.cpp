@@ -112,7 +112,7 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
   HMODULE hModLib =
     SK_GetModuleHandle (wszPath);
 
-  if (hModLib == 0)
+  if (hModLib == nullptr)
   {
     hModLib =
       SK_Modules.LoadLibraryLL (wszPath);
@@ -136,7 +136,7 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
     }
   }
 
-  addr = 0;
+  addr = nullptr;
 
   return L"";
 }
@@ -586,8 +586,8 @@ SK_CreateFuncHook ( const wchar_t  *pwszFuncName,
   {
     if (MH_OK == (status = MH_RemoveHook (pTarget)))
     {
-      dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%s'... software "
-                    L"is probably going to explode!", pwszFuncName );
+      dll_log->Log ( L"[HookEngine] Removing Corrupted Hook for '%s'... software "
+                     L"is probably going to explode!", pwszFuncName );
 
       return SK_CreateFuncHook (pwszFuncName, pTarget, pDetour, ppOriginal);
     } else
@@ -630,8 +630,8 @@ SK_CreateFuncHookEx ( const wchar_t *pwszFuncName,
   {
     if (MH_OK == (status = MH_RemoveHookEx (pTarget, idx)))
     {
-      dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%s'... software "
-                    L"is probably going to explode!", pwszFuncName );
+      dll_log->Log ( L"[HookEngine] Removing Corrupted Hook for '%s'... software "
+                     L"is probably going to explode!", pwszFuncName );
 
       return SK_CreateFuncHookEx (pwszFuncName, pTarget, pDetour, ppOriginal, idx);
     } else
@@ -652,7 +652,7 @@ SK_ValidateHookAddress ( const wchar_t * /*wszModuleName*/,
                                HMODULE   /*hModule*/,
                                void    * /*pHookAddr*/ )
 {
-  
+
   ///MODULEINFO mod_info = { };
   ///bool       known    = false;
   ///
@@ -811,7 +811,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
                   pszProcName, _TRUNCATE );
     else
       snprintf  ( szProcName, 127, "Ordinal%u",
-                    static_cast <WORD> ( ordinal & 0xFFFFU ) );
+                    gsl::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
 
     wcsncpy_s         ( wszModName, MAX_PATH + 2,
                         pwszModule, _TRUNCATE );
@@ -836,8 +836,8 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
 
       else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
       {
-        dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
-                      L"is probably going to explode!", szProcName );
+        dll_log->Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
+                       L"is probably going to explode!", szProcName );
 
         return SK_CreateDLLHook (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
       }
@@ -994,7 +994,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
                   pszProcName, _TRUNCATE );
     else
       snprintf  ( szProcName, 127, "Ordinal%u",
-                    static_cast <WORD> ( ordinal & 0xFFFFU ) );
+                    gsl::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
 
     wcsncpy_s         ( wszModName, MAX_PATH + 2,
                         pwszModule, _TRUNCATE );
@@ -1019,8 +1019,8 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
       else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
       {
-        dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
-                      L"is probably going to explode!", szProcName );
+        dll_log->Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
+                       L"is probably going to explode!", szProcName );
 
         return SK_CreateDLLHook2 (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
       }
@@ -1132,7 +1132,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
                   pszProcName, _TRUNCATE );
     else
       snprintf  ( szProcName, 127, "Ordinal%u",
-                    static_cast <WORD> ( ordinal & 0xFFFFU ) );
+                    gsl::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
 
     wcsncpy_s         ( wszModName, MAX_PATH + 2,
                         pwszModule, _TRUNCATE );

@@ -40,7 +40,7 @@ NvAPI_GPU_GetMemoryInfo_Detour ( NvPhysicalGpuHandle            hPhysicalGpu,
 {
   if (fo4_spoof_memory == nullptr) {
     fo4_spoof_memory =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (fo4_factory.create_parameter <int> (L"Memory Multiplier"));
     fo4_spoof_memory->register_to_ini ( fo4_prefs,
                                         L"Display",
@@ -109,7 +109,7 @@ SK_FO4_MaximizeBorderless (void)
   if (fo4w_fullscreen == nullptr)
   {
     fo4w_fullscreen =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Maximize Borderless Window"));
     fo4w_fullscreen->register_to_ini ( dll_ini,
                                         L"FO4W.PlugIn",
@@ -132,7 +132,7 @@ SK_FO4_CenterWindow (void)
 
   if (fo4w_center == nullptr) {
     fo4w_center =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Center Borderless Window"));
     fo4w_center->register_to_ini ( dll_ini,
                                      L"FO4W.PlugIn",
@@ -156,7 +156,7 @@ SK_FO4_UseFlipMode (void)
   if (fo4w_flipmode == nullptr)
   {
     fo4w_flipmode =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Use Flip Mode"));
     fo4w_flipmode->register_to_ini ( dll_ini,
                                        L"FO4W.PlugIn",
@@ -177,7 +177,7 @@ SK_FO4_IsFullscreen (void)
   if (fo4_fullscreen == nullptr)
   {
     fo4_fullscreen =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Fullscreen Mode"));
     fo4_fullscreen->register_to_ini ( fo4_prefs,
                                         L"Display",
@@ -199,7 +199,7 @@ SK_FO4_IsBorderlessWindow (void)
   if (fo4_borderless == nullptr)
   {
     fo4_borderless =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Borderless Window"));
     fo4_borderless->register_to_ini ( fo4_prefs,
                                         L"Display",
@@ -298,7 +298,7 @@ static GetWindowRect_pfn GetWindowRect_Original = nullptr;
 typedef BOOL (WINAPI *GetClientRect_pfn)(HWND, LPRECT);
 static GetClientRect_pfn GetClientRect_Original = nullptr;
 
-static 
+static
 BOOL
 WINAPI
 GetClientRect_Detour (

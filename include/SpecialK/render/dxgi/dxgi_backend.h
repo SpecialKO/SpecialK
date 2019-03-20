@@ -68,16 +68,17 @@ struct IUnknown;
 
 #define DXGI_CALL(_Ret, _Call) {                                            \
   (_Ret) = (_Call);                                                         \
-  dll_log.Log ( L"[   DXGI   ] [@]  Return: %s  -  < " __FUNCTIONW__ L" >", \
+  dll_log->Log ( L"[   DXGI   ] [@]  Return: %s  -  < " __FUNCTIONW__ L" >",\
                 SK_DescribeHRESULT (_Ret) );                                \
 }
 
   // Interface-based DXGI call
 #define DXGI_LOG_CALL_I(_Interface,_Name,_Format)                            \
   {                                                                          \
-    wchar_t* pwszBuffer        = new wchar_t [4096] { };                     \
-    wchar_t*  wszPreFormatted  = pwszBuffer;                                 \
-    wchar_t*  wszPostFormatted = pwszBuffer + 1024;                          \
+    std::unique_ptr    <wchar_t[]> pwszBuffer =                              \
+      std::make_unique <wchar_t[]> (4096);                                   \
+    wchar_t*  wszPreFormatted  = pwszBuffer.get ();                          \
+    wchar_t*  wszPostFormatted = pwszBuffer.get () + 1024;                   \
     if (pwszBuffer != nullptr)                                               \
     {                                                                        \
       _swprintf ( wszPreFormatted,  L"%s::%s (", _Interface, _Name );        \
@@ -86,9 +87,10 @@ struct IUnknown;
   // Global DXGI call
 #define DXGI_LOG_CALL(_Name,_Format)                                         \
   {                                                                          \
-    wchar_t* pwszBuffer        = new wchar_t [4096] { };                     \
-    wchar_t*  wszPreFormatted  = pwszBuffer;                                 \
-    wchar_t*  wszPostFormatted = pwszBuffer + 1024;                          \
+    std::unique_ptr    <wchar_t[]>  pwszBuffer =                             \
+      std::make_unique <wchar_t[]> (4096);                                   \
+    wchar_t*  wszPreFormatted  = pwszBuffer.get ();                          \
+    wchar_t*  wszPostFormatted = pwszBuffer.get () + 1024;                   \
     if (pwszBuffer != nullptr)                                               \
     {                                                                        \
       _swprintf (wszPreFormatted,  L"%s (", _Name);                          \
@@ -98,9 +100,8 @@ struct IUnknown;
       wchar_t* wszFullyFormatted = wszPostFormatted + 1024;                  \
       _swprintf   ( wszFullyFormatted, L"%s%s)",                             \
                       wszPreFormatted, wszPostFormatted );                   \
-      dll_log.Log ( L"[   DXGI   ] [!] %-102s -- %s", wszFullyFormatted,     \
+      dll_log->Log ( L"[   DXGI   ] [!] %-102s -- %s", wszFullyFormatted,    \
                       SK_SummarizeCaller ().c_str () );                      \
-      delete [] pwszBuffer;                                                  \
     }                                                                        \
   }
 
@@ -504,12 +505,12 @@ public:
 
   struct lod_hash_table_s
   {
-    lod_hash_table_s (void) {
+    lod_hash_table_s (void) noexcept {
       InitializeCriticalSectionEx ( &mutex, 120, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
                                                  SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
     }
 
-    ~lod_hash_table_s (void)
+    ~lod_hash_table_s (void) noexcept
     {
       DeleteCriticalSection (&mutex);
     }
@@ -559,14 +560,14 @@ public:
 
   std::unordered_map <uint32_t, std::wstring> tex_hashes;
   std::unordered_map <uint32_t, std::wstring> tex_hashes_ex;
-  
+
   std::unordered_set <uint32_t>               dumped_textures;
   uint64_t                                    dumped_texture_bytes     = 0ULL;
   std::unordered_set <uint32_t>               dumped_collisions;
   std::unordered_set <uint32_t>               injectable_textures;
   uint64_t                                    injectable_texture_bytes = 0ULL;
   std::unordered_set <uint32_t>               injected_collisions;
-  
+
   std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
 };
 
@@ -579,39 +580,39 @@ extern SK_D3D11_TexMgr_Singleton __SK_Singleton_D3D11_Textures (void);
 interface ID3D11DeviceContext2;
 interface ID3D11DeviceContext3;
 
-typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext_pfn)( 
+typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext_pfn)(
   _In_            ID3D11Device         *This,
   _In_            UINT                  ContextFlags,
   _Out_opt_       ID3D11DeviceContext **ppDeferredContext
 );
-typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext1_pfn)( 
+typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext1_pfn)(
   _In_            ID3D11Device          *This,
   _In_            UINT                   ContextFlags,
   _Out_opt_       ID3D11DeviceContext1 **ppDeferredContext
 );
-typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext2_pfn)( 
+typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext2_pfn)(
   _In_            ID3D11Device          *This,
   _In_            UINT                   ContextFlags,
   _Out_opt_       ID3D11DeviceContext2 **ppDeferredContext
 );
-typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext3_pfn)( 
+typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext3_pfn)(
   _In_            ID3D11Device          *This,
   _In_            UINT                   ContextFlags,
   _Out_opt_       ID3D11DeviceContext3 **ppDeferredContext
 );
-typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext_pfn)( 
+typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext_pfn)(
   _In_            ID3D11Device         *This,
   _Out_           ID3D11DeviceContext **ppImmediateContext
 );
-typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext1_pfn)( 
+typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext1_pfn)(
   _In_            ID3D11Device          *This,
   _Out_           ID3D11DeviceContext1 **ppImmediateContext
 );
-typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext2_pfn)( 
+typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext2_pfn)(
   _In_            ID3D11Device          *This,
   _Out_           ID3D11DeviceContext2 **ppImmediateContext
 );
-typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext3_pfn)( 
+typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext3_pfn)(
   _In_            ID3D11Device          *This,
   _Out_           ID3D11DeviceContext3 **ppImmediateContext
 );
@@ -794,7 +795,7 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateUnorderedAccessView_pfn)(
 );
 
 typedef HRESULT (WINAPI *D3D11Dev_CheckFeatureSupport_pfn)(
-  _In_            ID3D11Device  *This, 
+  _In_            ID3D11Device  *This,
   _In_            D3D11_FEATURE  Feature,
   _Out_           void           *pFeatureSupportData,
   _In_            UINT            FeatureSupportDataSize );
@@ -952,25 +953,26 @@ struct d3d11_shader_tracking_s
       return;
     }
 
-    auto shader_class_crit_sec = [&](void)
+    auto shader_class_crit_sec = [&](void) noexcept
     {
-      extern SK_Thread_HybridSpinlock *cs_shader_vs, *cs_shader_ps,
-                                      *cs_shader_gs,
-                                      *cs_shader_hs, *cs_shader_ds,
-                                      *cs_shader_cs;
+      extern std::unique_ptr <SK_Thread_HybridSpinlock>
+                                      cs_shader_vs, cs_shader_ps,
+                                      cs_shader_gs,
+                                      cs_shader_hs, cs_shader_ds,
+                                      cs_shader_cs;
 
       switch (type_)
       {
         default:
         //assert (false);
-          return cs_shader_vs;
+          return cs_shader_vs.get ();
 
-        case SK_D3D11_ShaderType::Vertex:   return cs_shader_vs;
-        case SK_D3D11_ShaderType::Pixel:    return cs_shader_ps;
-        case SK_D3D11_ShaderType::Geometry: return cs_shader_gs;
-        case SK_D3D11_ShaderType::Hull:     return cs_shader_hs;
-        case SK_D3D11_ShaderType::Domain:   return cs_shader_ds;
-        case SK_D3D11_ShaderType::Compute:  return cs_shader_cs;
+        case SK_D3D11_ShaderType::Vertex:   return cs_shader_vs.get ();
+        case SK_D3D11_ShaderType::Pixel:    return cs_shader_ps.get ();
+        case SK_D3D11_ShaderType::Geometry: return cs_shader_gs.get ();
+        case SK_D3D11_ShaderType::Hull:     return cs_shader_hs.get ();
+        case SK_D3D11_ShaderType::Domain:   return cs_shader_ds.get ();
+        case SK_D3D11_ShaderType::Compute:  return cs_shader_cs.get ();
       }
     };
 
@@ -1010,7 +1012,7 @@ struct d3d11_shader_tracking_s
     // Only examine the hash map when at least one context is active,
     //   or we will kill performance!
     volatile LONG
-      active_count = 0L; 
+      active_count = 0L;
 
     bool get (int dev_idx)
     {
@@ -1062,7 +1064,7 @@ struct d3d11_shader_tracking_s
   std::atomic_ulong       num_draws        =     0;
 
 
-  
+
   std::atomic_bool                   pre_hud_source   =   false;
   std::atomic_long                   pre_hud_rt_slot  =      -1;
   std::atomic_long                   pre_hud_srv_slot =      -1;
@@ -1236,14 +1238,14 @@ struct SK_D3D11_KnownShaders
     SK_D3D11_ShaderType type_;
   };
 
-  
+
   //static std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1> reshade_triggered;
   static bool reshade_triggered;
 
-  ShaderRegistry <ID3D11PixelShader>    pixel; 
+  ShaderRegistry <ID3D11PixelShader>    pixel;
   ShaderRegistry <ID3D11VertexShader>   vertex;
   ShaderRegistry <ID3D11GeometryShader> geometry;
-  ShaderRegistry <ID3D11HullShader>     hull; 
+  ShaderRegistry <ID3D11HullShader>     hull;
   ShaderRegistry <ID3D11DomainShader>   domain;
   ShaderRegistry <ID3D11ComputeShader>  compute;
 };
@@ -1294,23 +1296,23 @@ typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
 );
 
 #include <../depends/include/nvapi/nvapi_lite_common.h>
-typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateVertexShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in     const void                *pShaderBytecode, 
-                                                                      __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage  *pClassLinkage, 
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateVertexShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in     const void                *pShaderBytecode,
+                                                                      __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage  *pClassLinkage,
                                                                       __in  const LPVOID                                                            pCreateVertexShaderExArgs,
                                                                       __out       ID3D11VertexShader                                              **ppVertexShader );
 
-typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateHullShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in const void               *pShaderBytecode, 
-                                                                    __in        SIZE_T        BytecodeLength, __in_opt   ID3D11ClassLinkage *pClassLinkage, 
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateHullShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in const void               *pShaderBytecode,
+                                                                    __in        SIZE_T        BytecodeLength, __in_opt   ID3D11ClassLinkage *pClassLinkage,
                                                                     __in  const LPVOID                                                       pCreateHullShaderExArgs,
                                                                     __out       ID3D11HullShader                                           **ppHullShader );
 
-typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateDomainShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode, 
-                                                                      __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage, 
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateDomainShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode,
+                                                                      __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage,
                                                                       __in  const LPVOID                                                           pCreateDomainShaderExArgs,
                                                                       __out       ID3D11DomainShader                                             **ppDomainShader );
 
-typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateGeometryShaderEx_2_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode, 
-                                                                          __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage, 
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateGeometryShaderEx_2_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode,
+                                                                          __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage,
                                                                           __in  const LPVOID                                                           pCreateGeometryShaderExArgs,
                                                                           __out       ID3D11GeometryShader                                           **ppGeometryShader );
 
@@ -1319,7 +1321,7 @@ typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateFastGeometryShaderExplicit_pfn)
                                                                                   __in  const LPVOID                                                           pCreateFastGSArgs,
                                                                                   __out       ID3D11GeometryShader                                           **ppGeometryShader );
 
-typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateFastGeometryShader_pfn)( __in  ID3D11Device *pDevice,        __in     const void                *pShaderBytecode, 
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateFastGeometryShader_pfn)( __in  ID3D11Device *pDevice,        __in     const void                *pShaderBytecode,
                                                                           __in  SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage  *pClassLinkage,
                                                                           __out ID3D11GeometryShader                                            **ppGeometryShader );
 
@@ -1451,7 +1453,7 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
 
 HRESULT
 STDMETHODCALLTYPE
-DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *This,                           
+DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *This,
                                        _In_           IUnknown               *pDevice,
                                        _In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
                                        _In_opt_       IDXGIOutput            *pRestrictToOutput,
@@ -1467,7 +1469,7 @@ namespace SK
   {
     struct PipelineStatsD3D11
     {
-      struct StatQueryD3D11  
+      struct StatQueryD3D11
       {
         volatile ID3D11Query* async  = nullptr;
         volatile LONG         active = FALSE;

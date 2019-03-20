@@ -25,6 +25,7 @@
 #include <Mmdeviceapi.h>
 #include <audiopolicy.h>
 #include <endpointvolume.h>
+#include <SpecialK/com_util.h>
 
 void                    __stdcall SK_SetGameMute                    (bool bMute);
 
@@ -53,8 +54,8 @@ class SK_WASAPI_SessionManager;
 class SK_WASAPI_AudioSession : public IAudioSessionEvents
 {
 public:
-  SK_WASAPI_AudioSession ( IAudioSessionControl2* pSession,
-                        SK_WASAPI_SessionManager* pParent  ) :
+  SK_WASAPI_AudioSession ( IAudioSessionControl2    *pSession,
+                           SK_WASAPI_SessionManager *pParent  ) :
     control_ (pSession),
      parent_ (pParent),
        refs_ (1)
@@ -66,7 +67,7 @@ public:
 
     const DWORD proc_id =
       getProcessId ();
-    
+
     window_t win =
       SK_FindRootWindow (proc_id);
 
@@ -169,7 +170,7 @@ public:
   HRESULT
   STDMETHODCALLTYPE
   QueryInterface (REFIID riid, void **ppv) override
-  {    
+  {
     if (! ppv)
       return E_INVALIDARG;
 
@@ -193,19 +194,19 @@ public:
 
     return S_OK;
   }
-  
+
   ULONG STDMETHODCALLTYPE AddRef (void) override
   {
     return
       InterlockedIncrement (&refs_);
   }
-   
+
   ULONG STDMETHODCALLTYPE Release (void) override
   {
     const ULONG ulRef =
       InterlockedDecrement (&refs_);
 
-    if (ulRef == 0) 
+    if (ulRef == 0)
     {
       delete this;
     }
@@ -221,7 +222,7 @@ public:
 
     return S_OK;
   };
-        
+
   HRESULT
   STDMETHODCALLTYPE
   OnIconPathChanged (LPCWSTR NewIconPath, LPCGUID EventContext)  override {
@@ -230,7 +231,7 @@ public:
 
     return S_OK;
   };
-        
+
   HRESULT
   STDMETHODCALLTYPE
   OnSimpleVolumeChanged (float NewVolume, BOOL NewMute, LPCGUID EventContext)  override {
@@ -240,7 +241,7 @@ public:
 
     return S_OK;
   };
-      
+
   HRESULT
   STDMETHODCALLTYPE
   OnChannelVolumeChanged (DWORD ChannelCount, float NewChannelVolumeArray[  ], DWORD ChangedChannel, LPCGUID EventContext)  override {
@@ -252,7 +253,7 @@ public:
 
     return S_OK;
   };
-      
+
   HRESULT
   STDMETHODCALLTYPE
   OnGroupingParamChanged (LPCGUID NewGroupingParam, LPCGUID EventContext)  override {
@@ -265,7 +266,7 @@ public:
   HRESULT
   STDMETHODCALLTYPE
   OnStateChanged (AudioSessionState NewState)  override;
-        
+
   HRESULT
   STDMETHODCALLTYPE
   OnSessionDisconnected (AudioSessionDisconnectReason DisconnectReason)  override;
@@ -281,27 +282,27 @@ public:
 
 protected:
 private:
-  volatile LONG                   refs_;
-  CComPtr <IAudioSessionControl2> control_;
-  std::string                     app_name_;
-  SK_WASAPI_SessionManager*       parent_;
+  volatile LONG                     refs_;
+  SK_ComPtr <IAudioSessionControl2> control_;
+  std::string                       app_name_;
+  SK_WASAPI_SessionManager*         parent_;
 };
 
 class SK_WASAPI_SessionManager : public IAudioSessionNotification
 {
 public:
-  SK_WASAPI_SessionManager (void)  : refs_ (1) {
+  SK_WASAPI_SessionManager (void) noexcept : refs_ (1) {
 
   };
 
   virtual
-  ~SK_WASAPI_SessionManager (void) /// 
+  ~SK_WASAPI_SessionManager (void) ///
   {
     if (session_mgr_ != nullptr)
       session_mgr_->UnregisterSessionNotification (this);
   }
 
-  void Deactivate (void)  
+  void Deactivate (void)
   {
     meter_info_   = nullptr;
     endpoint_vol_ = nullptr;
@@ -323,7 +324,7 @@ public:
     if (meter_info_ != nullptr && (! sessions_.empty ()))
       return;
 
-    CComPtr <IMMDeviceEnumerator> pDevEnum;
+    SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
     if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
       return;
 
@@ -334,7 +335,7 @@ public:
     //     going to appreciate having muted :) Consider overloading this function
     //       to allow independent control.
     //
-    CComPtr <IMMDevice> pDevice;
+    SK_ComPtr <IMMDevice> pDevice;
     if ( FAILED (
            pDevEnum->GetDefaultAudioEndpoint ( eRender,
                                                  eMultimedia,
@@ -351,7 +352,7 @@ public:
            )
        ) return;
 
-    CComPtr <IAudioSessionEnumerator> pSessionEnum;
+    SK_ComPtr <IAudioSessionEnumerator> pSessionEnum;
     if (FAILED (session_mgr_->GetSessionEnumerator (&pSessionEnum)))
       return;
 
@@ -362,7 +363,7 @@ public:
 
     for (int i = 0; i < num_sessions; i++)
     {
-      CComPtr <IAudioSessionControl> pSessionCtl;
+      SK_ComPtr <IAudioSessionControl> pSessionCtl;
       if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
         continue;
 
@@ -443,14 +444,14 @@ public:
 
     return S_OK;
   }
-  
-  ULONG STDMETHODCALLTYPE AddRef (void) override
+
+  ULONG STDMETHODCALLTYPE AddRef (void) noexcept override
   {
     return
       InterlockedIncrement (&refs_);
   }
-   
-  ULONG STDMETHODCALLTYPE Release (void) override
+
+  ULONG STDMETHODCALLTYPE Release (void) noexcept override
   {
     const ULONG ulRef =
       InterlockedDecrement (&refs_);
@@ -461,12 +462,12 @@ public:
     return ulRef;
   }
 
-  IAudioMeterInformation* getMeterInfo (void) 
+  IAudioMeterInformation* getMeterInfo (void) noexcept
   {
     return meter_info_;
   }
 
-  SK_WASAPI_AudioSession** getActive   (int* pCount = nullptr) 
+  SK_WASAPI_AudioSession** getActive   (int* pCount = nullptr) noexcept
   {
     if (pCount)
       *pCount = (int)active_sessions_.view.size ();
@@ -474,14 +475,14 @@ public:
     return active_sessions_.view.data ();
   }
 
-  SK_WASAPI_AudioSession** getInactive (int* pCount = nullptr) 
+  SK_WASAPI_AudioSession** getInactive (int* pCount = nullptr) noexcept
   {
     if (pCount)
       *pCount = (int)inactive_sessions_.view.size ();
 
     return inactive_sessions_.view.data ();
   }
-  
+
   HRESULT
   STDMETHODCALLTYPE
   OnSessionCreated (IAudioSessionControl *pNewSession) override
@@ -490,7 +491,7 @@ public:
     {
       pNewSession->AddRef ();
 
-      CComPtr <IAudioSessionControl2> pSessionCtl2;
+      SK_ComPtr <IAudioSessionControl2> pSessionCtl2;
       if (SUCCEEDED (pNewSession->QueryInterface <IAudioSessionControl2> (&pSessionCtl2)))
       {
         DWORD dwProcess = 0;
@@ -589,7 +590,7 @@ protected:
       pSession->Release ();
     }
   }
-  
+
 
 
 private:
@@ -600,12 +601,12 @@ private:
       std::set    <SK_WASAPI_AudioSession *> data;
       std::vector <SK_WASAPI_AudioSession *> view;
     } active_sessions_, inactive_sessions_;
-    
-    CComPtr <IAudioSessionManager2>                session_mgr_;
-    CComPtr <IAudioMeterInformation>               meter_info_;
-    CComPtr <IAudioEndpointVolume>                 endpoint_vol_;
-    CComPtr <IAudioLoudness>                       loudness_;
-    CComPtr <IAudioAutoGainControl>                auto_gain_;
+
+    SK_ComPtr <IAudioSessionManager2>              session_mgr_;
+    SK_ComPtr <IAudioMeterInformation>             meter_info_;
+    SK_ComPtr <IAudioEndpointVolume>               endpoint_vol_;
+    SK_ComPtr <IAudioLoudness>                     loudness_;
+    SK_ComPtr <IAudioAutoGainControl>              auto_gain_;
 };
 
 

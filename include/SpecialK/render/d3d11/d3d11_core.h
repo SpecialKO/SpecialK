@@ -119,15 +119,15 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 // The device context a command list was built using
 extern const GUID SKID_D3D11DeviceContextOrigin;
 
-extern SK_Thread_HybridSpinlock* cs_shader;
-extern SK_Thread_HybridSpinlock* cs_shader_vs;
-extern SK_Thread_HybridSpinlock* cs_shader_ps;
-extern SK_Thread_HybridSpinlock* cs_shader_gs;
-extern SK_Thread_HybridSpinlock* cs_shader_hs;
-extern SK_Thread_HybridSpinlock* cs_shader_ds;
-extern SK_Thread_HybridSpinlock* cs_shader_cs;
-extern SK_Thread_HybridSpinlock* cs_mmio;
-extern SK_Thread_HybridSpinlock* cs_render_view;
+extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader;
+extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader_vs;
+extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader_ps;
+extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader_gs;
+extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader_hs;
+extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader_ds;
+extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader_cs;
+extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_mmio;
+extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_render_view;
 
 
 // VFTABLE Hooks
@@ -325,7 +325,7 @@ struct SK_RESHADE_CALLBACK_DRAW
   { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui.drawing))) fn (data, context, vertices); }
 } extern SK_ReShade_DrawCallback;
 
-struct SK_RESHADE_CALLBACK_SetDSV 
+struct SK_RESHADE_CALLBACK_SetDSV
 {
   SK_ReShade_OnSetDepthStencilViewD3D11_pfn fn   = nullptr;
   void*                                     data = nullptr;

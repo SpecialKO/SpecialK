@@ -28,7 +28,7 @@
 #include <avrt.h>
 
 
- 
+
 #define RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO         0x01000000
 #define RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN          0x02000000
 #define RTL_CRITICAL_SECTION_FLAG_STATIC_INIT           0x04000000
@@ -39,29 +39,29 @@
 #define SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO       0x0
 //0x10000000
 
-#define RTL_CRITICAL_SECTION_FLAG_RESERVED              (RTL_CRITICAL_SECTION_ALL_FLAG_BITS & (~(RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO | RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN | RTL_CRITICAL_SECTION_FLAG_STATIC_INIT | RTL_CRITICAL_SECTION_FLAG_RESOURCE_TYPE | RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO))) 
+#define RTL_CRITICAL_SECTION_FLAG_RESERVED              (RTL_CRITICAL_SECTION_ALL_FLAG_BITS & (~(RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO | RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN | RTL_CRITICAL_SECTION_FLAG_STATIC_INIT | RTL_CRITICAL_SECTION_FLAG_RESOURCE_TYPE | RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO)))
 
 
 static inline constexpr
   const HANDLE
-    SK_GetCurrentThread  (void) { return (PVOID)-2; };
+    SK_GetCurrentThread  (void) noexcept { return (PVOID)-2; };
 
 static inline constexpr
   const HANDLE
-    SK_GetCurrentProcess (void) { return (PVOID)-1; };
+    SK_GetCurrentProcess (void) noexcept { return (PVOID)-1; };
 
 
 
 class SK_Thread_ScopedPriority
 {
 public:
-  SK_Thread_ScopedPriority (int prio) : hThread (GetCurrentThread ())
+  SK_Thread_ScopedPriority (int prio) noexcept : hThread (GetCurrentThread ())
   {
     orig_prio = GetThreadPriority (hThread);
                 SetThreadPriority (hThread, prio);
   }
 
- ~SK_Thread_ScopedPriority (void) ///
+ ~SK_Thread_ScopedPriority (void) noexcept ///
   {
     SetThreadPriority (hThread, orig_prio);
   }
@@ -75,23 +75,23 @@ protected:
 class SK_Thread_CriticalSection
 {
 public:
-  SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+  SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS ) noexcept
   {
     cs_ = pCS;
   };
 
-  ~SK_Thread_CriticalSection (void) = default;
+  ~SK_Thread_CriticalSection (void) noexcept = default;
 
-  void lock (void) {
+  void lock (void) noexcept {
     EnterCriticalSection (cs_);
   }
 
-  void unlock (void)
+  void unlock (void) noexcept
   {
     LeaveCriticalSection (cs_);
   }
 
-  bool try_lock (void)
+  bool try_lock (void) noexcept
   {
     return TryEnterCriticalSection (cs_);
   }
@@ -103,13 +103,13 @@ protected:
 class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
 {
 public:
-  SK_Thread_HybridSpinlock (int spin_count = 3000) :
-                                                     SK_Thread_CriticalSection (new CRITICAL_SECTION)
+  SK_Thread_HybridSpinlock (int spin_count = 3000) noexcept :
+                                                              SK_Thread_CriticalSection (new (std::nothrow) CRITICAL_SECTION)
   {
     InitializeCriticalSectionEx (cs_, spin_count, SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO | RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN);
   }
 
-  ~SK_Thread_HybridSpinlock (void) ///
+  ~SK_Thread_HybridSpinlock (void) noexcept///
   {
     DeleteCriticalSection (cs_);
     delete cs_;
@@ -119,7 +119,7 @@ public:
 class SK_AutoCriticalSection {
 public:
   SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
-                           bool              try_only = false )
+                           bool              try_only = false ) noexcept
   {
     acquired_ = false;
     cs_       = pCS;
@@ -131,17 +131,17 @@ public:
     }
   }
 
-  ~SK_AutoCriticalSection (void) ///
+  ~SK_AutoCriticalSection (void) noexcept ///
   {
     Leave ();
   }
 
-  bool try_result (void)
+  bool try_result (void) noexcept
   {
     return acquired_;
   }
 
-  void enter (void)
+  void enter (void) noexcept
   {
     EnterCriticalSection (this->cs_);
 
@@ -149,19 +149,19 @@ public:
   }
 
 protected:
-  bool TryEnter (_Acquires_lock_(* this->cs_) void)
+  bool TryEnter (_Acquires_lock_(* this->cs_) void) noexcept
   {
     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
   }
 
-  void Enter (_Acquires_lock_(* this->cs_) void)
+  void Enter (_Acquires_lock_(* this->cs_) void) noexcept
   {
     EnterCriticalSection (cs_);
 
     acquired_ = true;
   }
 
-  void Leave (_Releases_lock_(* this->cs_) void)
+  void Leave (_Releases_lock_(* this->cs_) void) noexcept
   {
     if (acquired_ != false)
       LeaveCriticalSection (cs_);
@@ -194,7 +194,7 @@ SK_WaitForSingleObject_Micro ( _In_ HANDLE        hHandle,
 
 __forceinline
 static void
-SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 75L)
+SK_Thread_SpinUntilFlagged (volatile LONG const *pFlag, LONG _SpinMax = 75L)
 {
   while (! ReadAcquire (pFlag))
   {
@@ -211,7 +211,7 @@ SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 75L)
 
 __forceinline
 static void
-SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 75L)
+SK_Thread_SpinUntilAtomicMin (volatile LONG const *pVar, LONG count, LONG _SpinMax = 75L)
 {
   while (ReadAcquire (pVar) < count)
   {
@@ -290,12 +290,12 @@ struct SK_MMCS_TaskEntry {
     char          task0 [64] = { };
     char          task1 [64] = { };
 
-    void flush (void) {
+    void flush (void) noexcept {
       InterlockedExchange (&pending, TRUE);
     }
   } change;
 
-  void queuePriority (AVRT_PRIORITY prio)
+  void queuePriority (AVRT_PRIORITY prio) noexcept
   {
     change.priority =
       prio;
@@ -324,7 +324,7 @@ struct SK_MMCS_TaskEntry {
     hTask =
       AvSetMmMaxThreadCharacteristicsA (first_task, second_task, &dwTaskIdx);
 
-    if (hTask != 0)
+    if (hTask != nullptr)
     {
       strncpy (task0, first_task,  63);
       strncpy (task1, second_task, 63);
@@ -347,14 +347,17 @@ struct SK_MMCS_TaskEntry {
     hTask =
       AvSetMmMaxThreadCharacteristicsA (task0, task1, &dwTaskIdx);
 
-    if (hTask != 0)
+    if (hTask != nullptr)
     {
       AvSetMmThreadPriority (hTask, priority);
     }
 
     return hTask;
   }
-} static nul_task_ref;
+};
+
+extern SK_MMCS_TaskEntry& __SK_MMCS_GetNulTaskRef (void);
+#define nul_task_ref() __SK_MMCS_GetNulTaskRef ()
 
 size_t
 SK_MMCS_GetTaskCount (void);

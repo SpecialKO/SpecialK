@@ -31,9 +31,15 @@
 
 #include <TlHelp32.h>
 
+class SK_MMDev_AudioEndpointVolumeCallback;
+std::unique_ptr <SK_MMDev_AudioEndpointVolumeCallback> volume_mgr = nullptr;
+
 SK_WASAPI_SessionManager&
 SK_WASAPI_GetSessionManager (void)
 {
+  if (volume_mgr == nullptr)
+    volume_mgr = std::make_unique <SK_MMDev_AudioEndpointVolumeCallback> ();
+
   static SK_WASAPI_SessionManager sessions;
   return                          sessions;
 }
@@ -41,15 +47,15 @@ SK_WASAPI_GetSessionManager (void)
 SK_WASAPI_AudioSession*&
 SK_WASAPI_GetAudioSession (void)
 {
+  if (volume_mgr == nullptr)
+    volume_mgr = std::make_unique <SK_MMDev_AudioEndpointVolumeCallback> ();
+
   static SK_WASAPI_AudioSession* audio_session;
   return                         audio_session;
 }
 
 #define sessions      SK_WASAPI_GetSessionManager ()
 #define audio_session SK_WASAPI_GetAudioSession   ()
-
-
-#define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 using namespace SK::ControlPanel;
 
@@ -206,29 +212,27 @@ SK_ImGui_SelectAudioSessionDlg (void)
 }
 
 class SK_MMDev_AudioEndpointVolumeCallback :
-       public IAudioEndpointVolumeCallback
+  public IAudioEndpointVolumeCallback
 {
-volatile LONG _cRef = 0;
+  volatile LONG _cRef = 0;
 
 public:
   SK_MMDev_AudioEndpointVolumeCallback (void)
   {
     InterlockedExchange (&_cRef, 1);
-  } 
-
-  ~SK_MMDev_AudioEndpointVolumeCallback (void)
-  {
   }
 
-  ULONG STDMETHODCALLTYPE AddRef (void)
+  virtual ~SK_MMDev_AudioEndpointVolumeCallback (void) = default;
+
+  ULONG STDMETHODCALLTYPE AddRef (void) override
   {
     return
       InterlockedIncrement (&_cRef);
   }
 
-  ULONG STDMETHODCALLTYPE Release (void)
+  ULONG STDMETHODCALLTYPE Release (void) override
   {
-    ULONG ulRef = 
+    const ULONG ulRef =
       InterlockedDecrement (&_cRef);
 
     if (0 == ulRef)
@@ -239,23 +243,21 @@ public:
     return ulRef;
   }
 
-  HRESULT STDMETHODCALLTYPE QueryInterface ( REFIID   riid,
-                                             VOID   **ppvInterface )
+  HRESULT STDMETHODCALLTYPE QueryInterface (REFIID   riid,
+    VOID** ppvInterface) override
   {
     if (IID_IUnknown == riid)
     {
       AddRef ();
 
-      *ppvInterface =
-        static_cast <IUnknown *> (this);
+      *ppvInterface = this;
     }
 
-    else if ( __uuidof (IAudioEndpointVolumeCallback) == riid )
+    else if (__uuidof (IAudioEndpointVolumeCallback) == riid)
     {
       AddRef ();
 
-      *ppvInterface =
-        static_cast <IAudioEndpointVolumeCallback *> (this);
+      *ppvInterface = this;
     }
 
     else
@@ -269,14 +271,14 @@ public:
     return S_OK;
   }
 
-  HRESULT STDMETHODCALLTYPE OnNotify (PAUDIO_VOLUME_NOTIFICATION_DATA pNotify)
+  HRESULT STDMETHODCALLTYPE OnNotify (PAUDIO_VOLUME_NOTIFICATION_DATA pNotify) noexcept override
   {
-    if (pNotify == NULL)
+    if (pNotify == nullptr)
       return E_INVALIDARG;
 
     return S_OK;
   }
-} volume_mgr;
+};
 
 void
 SK_ImGui_VolumeManager (void)
@@ -351,7 +353,7 @@ SK_ImGui_VolumeManager (void)
 
 
       keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY,                   0);
-      keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0); 
+      keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
     }
 
     ImGui::SameLine ();
@@ -506,7 +508,7 @@ SK_ImGui_VolumeManager (void)
                                     "in %06.03f dB steps", min_dB, max_dB, incr_dB);
             ImGui::Separator       ();
             ImGui::BulletText      ("-dB represents attenuation from reference volume");
-            ImGui::BulletText      ("+dB represents gain (amplification)%s", max_dB > 0.0f ? 
+            ImGui::BulletText      ("+dB represents gain (amplification)%s", max_dB > 0.0f ?
                                              " " : " - your hardware does not support gain." );
             ImGui::Separator       ();
             ImGui::TextUnformatted ("Hold Ctrl for faster +/- adjustment.");
@@ -553,7 +555,7 @@ SK_ImGui_VolumeManager (void)
       ImGui::TextColored ( ImColor::HSV ( 0.15f, 0.9f,
                                             0.5f + master_vol * 0.5f),
                              "(%03.1f%%)  ",
-                               master_vol * 100.0f );
+                               master_vol * 100.0 );
 
       ImGui::PopStyleColor (5);
       ImGui::Separator     ( );
@@ -622,7 +624,7 @@ SK_ImGui_VolumeManager (void)
             snprintf (channel_volumes [i].slider_label, 7, "##vol%u",      i);
           }
 
-          if (             pChannelVolume != nullptr   && 
+          if (             pChannelVolume != nullptr   &&
                SUCCEEDED ( pChannelVolume->GetChannelVolume (
                             i,  &channel_volumes [i].volume )
                          )
@@ -648,7 +650,7 @@ SK_ImGui_VolumeManager (void)
             ImGui::TextColored (ImColor::HSV (
                                         0.25f, 0.9f,
                                           0.5f + ch_vol.volume * 0.5f),
-                                                                    "%03.1f%%   ", 100.0f * ch_vol.volume);
+                                                                    "%03.1f%%   ", 100.0 * ch_vol.volume);
             ImGui::EndGroup    ();
 
             ImGui::BeginGroup  ();
@@ -656,10 +658,10 @@ SK_ImGui_VolumeManager (void)
                    val        = ch_vol.muted ? 0.1f : 0.5f;
             float *pSliderVal = ch_vol.muted ? &ch_vol.normalized : &ch_vol.volume;
 
-            ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor::HSV ( ( i + 1 ) / (float)channels, 0.5f, val));
-            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor::HSV ( ( i + 1 ) / (float)channels, 0.6f, val));
-            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor::HSV ( ( i + 1 ) / (float)channels, 0.7f, val));
-            ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor::HSV ( ( i + 1 ) / (float)channels, 0.9f, 0.9f));
+            ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.5f, val));
+            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.6f, val));
+            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.7f, val));
+            ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.9f, 0.9f));
 
             changed =
               ImGui::VSliderFloat ( ch_vol.slider_label,

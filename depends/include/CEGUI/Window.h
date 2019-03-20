@@ -95,7 +95,7 @@ public:
 
     static return_type fromString(const String& str)
     {
-    
+
         if (str == "Always")
         {
             return WUM_ALWAYS;
@@ -177,7 +177,7 @@ public:
     static const String RestoreOldCapturePropertyName;
     //! Name of property to access for the text / caption for the Window.
     static const String TextPropertyName;
-    //! Name of property to access for the 'z-order changing enabled' setting for the Window. 
+    //! Name of property to access for the 'z-order changing enabled' setting for the Window.
     static const String ZOrderingEnabledPropertyName;
     //! Name of property to access for whether the window will receive double-click and triple-click events.
     static const String WantsMultiClickEventsPropertyName;
@@ -189,7 +189,7 @@ public:
     static const String AutoRepeatRatePropertyName;
     //! Name of property to access for the whether captured inputs are passed to child windows.
     static const String DistributeCapturedInputsPropertyName;
-    //! Name of property to access for the custom tooltip for the window. 
+    //! Name of property to access for the custom tooltip for the window.
     static const String TooltipTypePropertyName;
     //! Name of property to access for the tooltip text for the window.
     static const String TooltipTextPropertyName;
@@ -209,7 +209,7 @@ public:
     static const String MarginPropertyName;
     //! Name of property to access for the window update mode setting.
     static const String UpdateModePropertyName;
-    //! Name of property to access whether unhandled mouse inputs should be propagated back to the Window's parent. 
+    //! Name of property to access whether unhandled mouse inputs should be propagated back to the Window's parent.
     static const String MouseInputPropagationEnabledPropertyName;
     //! Name of property to access whether the system considers this window to be an automatically created sub-component window.
     static const String AutoWindowPropertyName;
@@ -225,7 +225,7 @@ public:
      * Handlers are passed a const UpdateEventArgs reference.
      */
     static const String EventUpdated;
-    
+
     /** Event fired when the text string for the Window has changed.
      * Handlers are passed a const WindowEventArgs reference with
      * WindowEventArgs::window set to the Window whose text was changed.
@@ -331,7 +331,7 @@ public:
     static const String EventInvalidated;
     /** Event fired when rendering of the Window has started.  In this context
      * 'rendering' is the population of the GeometryBuffer with geometry for the
-     * window, not the actual rendering of that GeometryBuffer content to the 
+     * window, not the actual rendering of that GeometryBuffer content to the
      * display.
      * Handlers are passed a const WindowEventArgs reference with
      * WindowEventArgs::window set to the Window whose rendering has started.
@@ -339,7 +339,7 @@ public:
     static const String EventRenderingStarted;
     /** Event fired when rendering of the Window has ended.  In this context
      * 'rendering' is the population of the GeometryBuffer with geometry for the
-     * window, not the actual rendering of that GeometryBuffer content to the 
+     * window, not the actual rendering of that GeometryBuffer content to the
      * display.
      * Handlers are passed a const WindowEventArgs reference with
      * WindowEventArgs::window set to the Window whose rendering has ended.
@@ -724,7 +724,7 @@ public:
     {
         return static_cast<Window*>(getChildElementAtIdx(idx));
     }
-    
+
     /*!
     \brief
         return the attached child window that the given name path references.
@@ -1082,7 +1082,7 @@ public:
         Pointer to the child Window that was hit according to the location
         \a position, or 0 if no child of this window was hit.
     */
-    Window* getTargetChildAtPosition(const Vector2f& position, 
+    Window* getTargetChildAtPosition(const Vector2f& position,
                                      const bool allow_disabled = false) const;
 
     /*!
@@ -1269,7 +1269,7 @@ public:
         be used instead.
 
     \return
-        String object holding the current tooltip text of this window or the 
+        String object holding the current tooltip text of this window or the
         tooltip text this window inherited.
      */
     const String& getTooltipTextIncludingInheritance(void) const;
@@ -1668,11 +1668,11 @@ public:
     \brief
         Insert the text string \a text into the current text string for the
         Window object at the position specified by \a position.
-     
+
     \param text
         String object holding the text that is to be inserted into the Window
         object's current text string.
-     
+
     \param position
         The characted index position where the string \a text should be
         inserted.
@@ -1683,7 +1683,7 @@ public:
     \brief
         Append the string \a text to the currect text string for the Window
         object.
-     
+
     \param text
         String object holding the text that is to be appended to the Window
         object's current text string.
@@ -1738,7 +1738,7 @@ public:
     /*!
     \brief
         Creates a child window attached to this window.
-    
+
     \param type
         String that describes the type of Window to be created.  A valid
         WindowFactory for the specified type must be registered.
@@ -1769,7 +1769,7 @@ public:
         Name path that references the window to destroy
     */
     void destroyChild(const String& name_path);
-    
+
     /*!
     \brief
         Move the Window to the top of the z order.
@@ -1831,11 +1831,11 @@ public:
         The sibling window that this window will be moved behind.
     */
     void moveBehind(const Window* const window);
-    
+
     /*!
     \brief
         Return the (visual) z index of the window on it's parent.
-        
+
         The z index is a number that indicates the order that windows will be
         drawn (but is not a 'z co-ordinate', as such).  Higher numbers are in
         front of lower numbers.
@@ -2021,7 +2021,7 @@ public:
         Nothing.
     */
     void setUserData(void* user_data)   {d_userData = user_data;}
-    
+
     /*!
     \brief
         Set whether z-order changes are enabled or disabled for this Window.
@@ -2045,7 +2045,7 @@ public:
         Nothing.
     */
     void    setZOrderingEnabled(bool setting);
-    
+
     /*!
     \brief
         Set whether this window will receive multi-click events or multiple
@@ -2259,7 +2259,7 @@ public:
         code is supposed to use skins is by defining a Falagard mapping (either
         in a scheme xml file or in code) and then create instances of that
         mapped type via WindowManager.  See
-        WindowFactoryManager::addFalagardWindowMapping and \ref xml_scheme. 
+        WindowFactoryManager::addFalagardWindowMapping and \ref xml_scheme.
         With that being said, it is possible for client code to use this
         function so long as you are aware of the implications of doing so:
         - Automatically created child windows (AutoWindows) will be deleted, and
@@ -2364,38 +2364,38 @@ public:
         Nothing.
     */
     virtual void update(float elapsed);
-    
+
     /*!
     \brief
         Asks the widget to perform a clipboard copy to the provided clipboard
-        
+
     \param clipboard
         Target clipboard class
-        
+
     \return
         true if the copy was successful and allowed, false otherwise
     */
     virtual bool performCopy(Clipboard& clipboard);
-    
+
     /*!
     \brief
         Asks the widget to perform a clipboard cut to the provided clipboard
-     
+
     \param clipboard
         Target clipboard class
-     
+
     \return
         true if the cut was successful and allowed, false otherwise
     */
     virtual bool performCut(Clipboard& clipboard);
-    
+
     /*!
     \brief
         Asks the widget to perform a clipboard paste from the provided clipboard
-     
+
     \param clipboard
         Source clipboard class
-     
+
     \return
         true if the paste was successful and allowed, false otherwise
      */
@@ -2456,7 +2456,7 @@ public:
         code is supposed to use skins is by defining a Falagard mapping (either
         in a scheme xml file or in code) and then create instances of that
         mapped type via WindowManager.  See
-        WindowFactoryManager::addFalagardWindowMapping and \ref xml_scheme. 
+        WindowFactoryManager::addFalagardWindowMapping and \ref xml_scheme.
     */
     void setWindowRenderer(const String& name);
 
@@ -2630,7 +2630,7 @@ public:
         Please note that properties that are not writable (read-only properties) are
         implicitly/automatically banned from XML, no need to ban them manually.
 
-    \param property_name 
+    \param property_name
         Name of the property you want to ban
     */
     void banPropertyFromXML(const String& property_name);
@@ -2644,7 +2644,7 @@ public:
         Please note that properties that are not writable (read-only properties) are
         implicitly/automatically banned from XML, no need to ban them manually.
 
-    \param property_name 
+    \param property_name
         Name of the property you want to ban
     */
     void banPropertyFromXMLRecursive(const String& property_name);
@@ -2657,7 +2657,7 @@ public:
         Please note that properties that are not writable (read-only properties) are
         implicitly/automatically banned from XML.
 
-    \param property_name 
+    \param property_name
         Name of the property you want to unban
     */
     void unbanPropertyFromXML(const String& property_name);
@@ -2670,11 +2670,11 @@ public:
         Please note that properties that are not writable (read-only properties) are
         implicitly/automatically banned from XML.
 
-    \param property_name 
+    \param property_name
         Name of the property you want to unban
     */
     void unbanPropertyFromXMLRecursive(const String& property_name);
-    
+
 
     /*!
     \brief
@@ -2714,7 +2714,7 @@ public:
         windows and widgets; updates should be disabled selectively and
         cautiously - if you are unsure of what you are doing, leave the mode
         set to WUM_ALWAYS.
-    
+
     \param mode
         One of the WindowUpdateMode enumerated values indicating the mode to
         set for this Window.
@@ -2733,7 +2733,7 @@ public:
         windows and widgets; updates should be disabled selectively and
         cautiously - if you are unsure of what you are doing, leave the mode
         set to WUM_ALWAYS.
-    
+
     \return
         One of the WindowUpdateMode enumerated values indicating the current
         mode set for this Window.
@@ -2843,7 +2843,7 @@ protected:
         'this'.
     */
     virtual void onMoved(ElementEventArgs& e);
-    
+
     virtual void onRotated(ElementEventArgs& e);
 
     /*!
@@ -3462,7 +3462,7 @@ protected:
 
     //! \copydoc Element::setArea_impl
     virtual void setArea_impl(const UVector2& pos, const USize& size, bool topLeftSizing = false, bool fireEvents = true);
-    
+
     /*!
     \brief
         Cleanup child windows
@@ -3534,7 +3534,7 @@ protected:
         Nothing.
     */
     void removeWindowFromDrawList(const Window& wnd);
-    
+
     /*!
     \brief
         Return whether the window is at the top of the Z-Order.  This will
@@ -3579,7 +3579,7 @@ protected:
     virtual Rectf getInnerRectClipper_impl() const;
     //! Default implementation of function to return Window hit-test area.
     virtual Rectf getHitTestRect_impl() const;
-    
+
     virtual int writePropertiesXML(XMLSerializer& xml_stream) const;
     virtual int writeChildWindowsXML(XMLSerializer& xml_stream) const;
     virtual bool writeAutoChildWindowXML(XMLSerializer& xml_stream) const;

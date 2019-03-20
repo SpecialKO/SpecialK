@@ -121,7 +121,7 @@ using SymInitialize_pfn = BOOL (IMAGEAPI *)( _In_     HANDLE hProcess,
                                              _In_opt_ PCSTR  UserSearchPath,
                                              _In_     BOOL   fInvadeProcess );
 using SymCleanup_pfn    = BOOL (IMAGEAPI *)( _In_ HANDLE hProcess );
-                        
+
 
 using SymLoadModule_pfn   = DWORD (IMAGEAPI *)( _In_     HANDLE hProcess,
                                                 _In_opt_ HANDLE hFile,
@@ -211,36 +211,49 @@ DebuggableLambda <typename std::remove_reference <F>::type>
 std::wstring
 SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool crash_log = false);
 
-class SK_SEH_IgnoredException
-{
-public:
-};
 
 void
 SK_SEH_LogException ( unsigned int        nExceptionCode,
                       EXCEPTION_POINTERS* pException,
                       LPVOID              lpRetAddr );
 
+class SK_SEH_IgnoredException
+{
+public:
+  SK_SEH_IgnoredException ( unsigned int        nExceptionCode,
+                            EXCEPTION_POINTERS* pException,
+                            LPVOID              lpRetAddr )
+  {
+    SK_SEH_LogException ( nExceptionCode, pException,
+                                         lpRetAddr );
+  }
+
+  // Really, and truly ignored, since we know nothing about it
+  SK_SEH_IgnoredException (void) noexcept
+  {
+  }
+};
+
+
 #define SK_BasicStructuredExceptionTranslator         \
   []( unsigned int        nExceptionCode,             \
       EXCEPTION_POINTERS* pException )->              \
   void {                                              \
-    SK_SEH_LogException ( nExceptionCode, pException, \
-                            _ReturnAddress ());       \
-    throw SK_SEH_IgnoredException ();                 \
+    throw                                             \
+      SK_SEH_IgnoredException (                       \
+        nExceptionCode, pException,                   \
+          _ReturnAddress ()   );                      \
   }
 
 #define SK_FilteringStructuredExceptionTranslator(Filter) \
   []( unsigned int        nExceptionCode,             \
       EXCEPTION_POINTERS* pException )->              \
   void {                                              \
-    SK_SEH_LogException ( nExceptionCode, pException, \
-                            _ReturnAddress ());       \
-    if (nExceptionCode == Filter)                     \
-    {                                                 \
-      throw SK_SEH_IgnoredException ();               \
-    }                                                 \
-    else                                              \
+    throw                                             \
+      SK_SEH_IgnoredException (                       \
+        nExceptionCode, pException,                   \
+          _ReturnAddress ()   );                      \
+    if (nExceptionCode != Filter)                     \
       RaiseException ( nExceptionCode, pException->ExceptionRecord->ExceptionFlags,         \
                                        pException->ExceptionRecord->NumberParameters,       \
                                        pException->ExceptionRecord->ExceptionInformation ); \

@@ -65,9 +65,9 @@ SK_Console*
 SK_Console::getInstance (void)
 {
   if (pConsole == nullptr)
-    pConsole = new SK_Console ();
+    pConsole = std::make_unique <SK_Console> ();
 
-  return pConsole;
+  return pConsole.get ();
 }
 
 void
@@ -248,15 +248,15 @@ SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
         // This will pause/unpause the game
         SK::SteamAPI::SetOverlayState (visible);
 
-        return 1;
+        return true;
       }
     }
 
     else
-      return 1;
+      return true;
   }
 
-  return 0;
+  return false;
 };
 
 int
@@ -338,7 +338,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
         commands.idx++;
 
       // Clamp the index
-      if (static_cast <int> (commands.idx) < 0)
+      if (gsl::narrow_cast <int> (commands.idx) < 0)
         commands.idx = 0;
       else if (commands.idx >= commands.history.size ())
         commands.idx = commands.history.size () - 1;
@@ -469,4 +469,4 @@ SK_IsConsoleVisible (void)
     SK_Console::getInstance ()->isVisible ();
 }
 
-SK_Console* SK_Console::pConsole = nullptr;
+std::unique_ptr <SK_Console> SK_Console::pConsole = nullptr;

@@ -22,7 +22,13 @@
 #include <SpecialK/crc32.h>
 #include <SpecialK/hash.h>
 
+#include <cstdint>
 #include <gsl/gsl>
+#include <gsl/span>
+#include <gsl/string_span>
+#include <memory>
+
+
 
 
 extern "C"
@@ -100,7 +106,7 @@ InstructionSet::CPU_Rep;
 extern "C"
 uint32_t
 __cdecl
-crc32 (uint32_t crc, _Notnull_ const void *buf, size_t size) 
+crc32 (uint32_t crc, _Notnull_ const void *buf, size_t size)
 {
   const auto *p =
        static_cast <const uint8_t *> (buf);
@@ -147,9 +153,9 @@ crc32 (uint32_t crc, _Notnull_ const void *buf, size_t size)
 
 #include <algorithm>
 
-#define POLY        0x82f63b78
-#define LONG_SHIFT  8192
-#define SHORT_SHIFT 256
+#define POLY        0x82f63b78UL
+#define LONG_SHIFT  8192UL
+#define SHORT_SHIFT 256UL
 
 using buffer = const uint8_t *;
 
@@ -167,7 +173,7 @@ extern "C" void __cdecl calculate_table (void) ;
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_sw (uint32_t crci, const void *input, size_t length) 
+crc32c_append_sw (uint32_t crci, const void *input, size_t length)
 {
   auto next =
     static_cast <buffer> (input);
@@ -251,7 +257,7 @@ crc32c_append_sw (uint32_t crci, const void *input, size_t length)
 static
 inline
 uint32_t
-shift_crc ( const uint32_t shift_table[][256], uint32_t crc ) 
+shift_crc ( const uint32_t shift_table[][256], uint32_t crc )
 {
   return shift_table [0][ crc        & 0xff]
        ^ shift_table [1][(crc >> 8)  & 0xff]
@@ -263,7 +269,7 @@ shift_crc ( const uint32_t shift_table[][256], uint32_t crc )
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_hw (uint32_t crc, const void *buf, size_t len) 
+crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
 {
   if (buf == nullptr || len < 1)
     return crc;
@@ -298,7 +304,7 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
      to an eight-byte boundary */
   while (len && (reinterpret_cast <uintptr_t> (next) & 7) != 0)
   {
-    crc0 = _mm_crc32_u8 (gsl::narrow <uint32_t> (crc0), *next);
+    crc0 = _mm_crc32_u8 (gsl::narrow_cast <uint32_t> (crc0), *next);
     ++next;
     --len;
   }
@@ -322,8 +328,8 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
       next += 8;
     } while (next < end);
 
-    crc0 = shift_crc (long_shifts, gsl::narrow <uint32_t> (crc0)) ^ crc1;
-    crc0 = shift_crc (long_shifts, gsl::narrow <uint32_t> (crc0)) ^ crc2;
+    crc0 = shift_crc (long_shifts, gsl::narrow_cast <uint32_t> (crc0)) ^ crc1;
+    crc0 = shift_crc (long_shifts, gsl::narrow_cast <uint32_t> (crc0)) ^ crc2;
 
     next += 2 * LONG_SHIFT;
     len  -= 3 * LONG_SHIFT;
@@ -345,8 +351,8 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
       next += 8;
     } while (next < end);
 
-    crc0 = shift_crc (short_shifts, gsl::narrow <uint32_t> (crc0)) ^ crc1;
-    crc0 = shift_crc (short_shifts, gsl::narrow <uint32_t> (crc0)) ^ crc2;
+    crc0 = shift_crc (short_shifts, gsl::narrow_cast <uint32_t> (crc0)) ^ crc1;
+    crc0 = shift_crc (short_shifts, gsl::narrow_cast <uint32_t> (crc0)) ^ crc2;
 
     next += 2 * SHORT_SHIFT;
     len  -= 3 * SHORT_SHIFT;
@@ -423,19 +429,20 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
   /* compute the crc for up to seven trailing bytes */
   while (len)
   {
-    crc0 = _mm_crc32_u8 (gsl::narrow <uint32_t> (crc0), *next);
+    crc0 = _mm_crc32_u8 (gsl::narrow_cast <uint32_t> (crc0), *next);
     ++next;
     --len;
   }
 
   /* return a post-processed crc */
-  return gsl::narrow <uint32_t> (crc0) ^ 0xffffffff;
+  return
+    gsl::narrow_cast <uint32_t> (crc0) ^ 0xffffffff;
 }
 
 extern "C"
 int
 __cdecl
-crc32c_hw_available (void) 
+crc32c_hw_available (void)
 {
   int      info [4];
   __cpuid (info, 1);
@@ -446,12 +453,12 @@ crc32c_hw_available (void)
 extern "C"
 void
 __cdecl
-calculate_table (void) 
+calculate_table (void)
 {
   for (int i = 0; i < 256; i++)
   {
     auto res =
-      gsl::narrow <uint32_t> (i);
+      gsl::narrow_cast <uint32_t> (i);
 
     for (auto& t : table)
     {
@@ -468,42 +475,42 @@ calculate_table (void)
 extern "C"
 void
 __cdecl
-calculate_table_hw (void) 
+calculate_table_hw (void)
 {
-  for (int i = 0; i < 256; i++) 
+  for (unsigned int i = 0; i < 256UL; i++)
   {
     auto res =
-      static_cast <uint32_t> (i);
+      gsl::narrow_cast <uint32_t> (i);
 
-    for (int k = 0; k < 8 * (SHORT_SHIFT - 4); k++)
+    for (unsigned int k = 0; k < 8UL * (SHORT_SHIFT - 4UL); k++)
     {
-      res = (res & 1) == 1 ? POLY ^ (res >> 1) :
-                                    (res >> 1);
+      res = (res & 1UL) == 1UL ? POLY ^ (res >> 1UL) :
+                                        (res >> 1UL);
     }
 
-    for (int t = 0; t < 4; t++)
+    for (unsigned int t = 0; t < 4UL; t++)
     {
-      for (int k = 0; k < 8; k++)
+      for (unsigned int k = 0; k < 8UL; k++)
       {
-        res = (res & 1) == 1 ? POLY ^ (res >> 1) :
-                                      (res >> 1);
+        res = (res & 1UL) == 1UL ? POLY ^ (res >> 1UL) :
+                                          (res >> 1UL);
       }
 
       short_shifts [3 - t][i] = res;
     }
 
-    for (int k = 0; k < 8 * (LONG_SHIFT - 4 - SHORT_SHIFT); k++)
+    for (unsigned int k = 0; k < 8UL * (LONG_SHIFT - 4UL - SHORT_SHIFT); k++)
     {
-      res = (res & 1) == 1 ? POLY ^ (res >> 1) :
-                                    (res >> 1);
+      res = (res & 1UL) == 1UL ? POLY ^ (res >> 1UL) :
+                                        (res >> 1UL);
     }
 
-    for (int t = 0; t < 4; t++)
+    for (unsigned int t = 0; t < 4UL; t++)
     {
-      for (int k = 0; k < 8; k++)
+      for (unsigned int k = 0; k < 8UL; k++)
       {
-        res = (res & 1) == 1 ? POLY ^ (res >> 1) :
-                                      (res >> 1);
+        res = (res & 1UL) == 1UL ? POLY ^ (res >> 1UL) :
+                                          (res >> 1UL);
       }
 
       long_shifts [3 - t][i] = res;
@@ -569,7 +576,19 @@ _Notnull_ const void    *input,
 {
   if (append_func == nullptr)
   {
-    __crc32_init ();
+    static volatile LONG __init = 0;
+
+    if (InterlockedCompareExchange (&__init, 1, 0) == 0)
+    {
+      __crc32_init ();
+
+      InterlockedIncrement (&__init);
+    }
+
+    else if (ReadAcquire (&__init) < 2)
+    {
+      SK_Thread_SpinUntilAtomicMin (&__init, 2);
+    }
   }
 
   if ( input       != nullptr &&

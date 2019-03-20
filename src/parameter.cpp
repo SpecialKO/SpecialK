@@ -616,7 +616,7 @@ sk::ParameterVec2f::store_str (const std::wstring& str)
 bool
 sk::ParameterVec2f::load (ImVec2& ref)
 {
-  bool bRet =
+  const bool bRet =
     iParameter::load ();
 
   if (bRet)
@@ -632,10 +632,13 @@ sk::ParameterFactory::create_parameter <int> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter* param = new ParameterInt ();
-  params.push_back (param);
+  std::lock_guard <std::mutex> _scope_lock (lock);
 
-  return param;
+  params.emplace_back (
+    std::make_unique <ParameterInt> ()
+  );
+
+  return params.back ().get ();
 }
 
 #if 0
@@ -655,12 +658,13 @@ sk::ParameterFactory::create_parameter <int64_t> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter*       param =
-    new ParameterInt64 ();
+  std::lock_guard <std::mutex> _scope_lock (lock);
 
-  params.push_back (param);
+  params.emplace_back (
+    std::make_unique <ParameterInt64> ()
+  );
 
-  return param;
+  return params.back ().get ();
 }
 
 template <>
@@ -669,12 +673,13 @@ sk::ParameterFactory::create_parameter <bool> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter* param =
-    new ParameterBool ();
+  std::lock_guard <std::mutex> _scope_lock (lock);
 
-  params.push_back (param);
+  params.emplace_back (
+    std::make_unique <ParameterBool> ()
+  );
 
-  return param;
+  return params.back ().get ();
 }
 
 template <>
@@ -683,10 +688,13 @@ sk::ParameterFactory::create_parameter <float> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter* param = new ParameterFloat ();
-  params.push_back (param);
+  std::lock_guard <std::mutex> _scope_lock (lock);
 
-  return param;
+  params.emplace_back (
+    std::make_unique <ParameterFloat> ()
+  );
+
+  return params.back ().get ();
 }
 
 template <>
@@ -695,12 +703,13 @@ sk::ParameterFactory::create_parameter <std::wstring> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter* param =
-    new ParameterStringW ();
+  std::lock_guard <std::mutex> _scope_lock (lock);
 
-  params.push_back (param);
+  params.emplace_back (
+    std::make_unique <ParameterStringW> ()
+  );
 
-  return param;
+  return params.back ().get ();
 }
 
 template <>
@@ -709,12 +718,13 @@ sk::ParameterFactory::create_parameter <ImVec2> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter* param =
-    new ParameterVec2f ();
+  std::lock_guard <std::mutex> _scope_lock (lock);
 
-  params.push_back (param);
+  params.emplace_back (
+    std::make_unique <ParameterVec2f> ()
+  );
 
-  return param;
+  return params.back ().get ();
 }
 
 

@@ -50,7 +50,7 @@ struct denuvo_file_s
   SYSTEMTIME   st_local;
 };
 
-extern std::vector <denuvo_file_s> denuvo_files;
+extern SK_LazyGlobal <std::vector <denuvo_file_s>> denuvo_files;
 
 bool
 SK::ControlPanel::Steam::Draw (void)
@@ -60,7 +60,7 @@ SK::ControlPanel::Steam::Draw (void)
 
   if (SK::SteamAPI::AppID () != 0)
   {
-    if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader | 
+    if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader |
                                                         ImGuiTreeNodeFlags_DefaultOpen ) )
     {
       ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
@@ -76,10 +76,10 @@ SK::ControlPanel::Steam::Draw (void)
         const size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
 
         snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
-                     ratio * 100.0f, static_cast <uint32_t> ((ratio * static_cast <float> (num_achievements))),
-                                     static_cast <uint32_t> (                              num_achievements) );
+                     ratio * 100.0f, gsl::narrow_cast <uint32_t> ((ratio * gsl::narrow_cast <float> (num_achievements))),
+                                     gsl::narrow_cast <uint32_t> (                                   num_achievements) );
 
-        ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
+        ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) );
         ImGui::ProgressBar    ( ratio,
                                   ImVec2 (-1, 0),
                                     szProgress );
@@ -101,8 +101,8 @@ SK::ControlPanel::Steam::Draw (void)
 
           ImGui::BeginGroup     ();
 
-          ImGui::PushStyleColor ( ImGuiCol_Text,          ImColor (255, 255, 255)              ); 
-          ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
+          ImGui::PushStyleColor ( ImGuiCol_Text,          ImColor (255, 255, 255)              );
+          ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) );
 
           for (int i = 0; i < (int)((float)friends * SK_SteamAPI_FriendStatPercentage ()); i++)
           {
@@ -158,12 +158,12 @@ SK::ControlPanel::Steam::Draw (void)
           if (config.steam.achievements.play_sound)
           {
             ImGui::SameLine ();
-            
+
             static SKTL_BidirectionalHashMap <std::wstring, int> sound_map
             {  { L"psn", 0 }, { L"xbox", 1 }, { L"dream_theater", 2 }  };
 
             int i = 0;
-            
+
             const auto& it =
               sound_map.find (config.steam.achievements.sound_file);
 
@@ -174,7 +174,7 @@ SK::ControlPanel::Steam::Draw (void)
               else
                 i = 3;
             }
-            
+
             if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
             {
               config.steam.achievements.sound_file =
@@ -255,7 +255,7 @@ SK::ControlPanel::Steam::Draw (void)
               ImGui::EndGroup  ( );
             }
             ImGui::EndGroup    ( );
-            
+
             //ImGui::SliderFloat ("Inset Percentage",    &config.steam.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
             ImGui::TreePop     ( );
           }
@@ -604,7 +604,7 @@ SK::ControlPanel::Steam::Draw (void)
           size_t idx = 0;
 
           ImGui::BeginGroup ();
-          for ( auto it : denuvo_files )
+          for ( auto it : denuvo_files.get () )
           {
             const size_t found =
               it.path.find_last_of (L'\\');
@@ -620,7 +620,7 @@ SK::ControlPanel::Steam::Draw (void)
             ImGui::BeginGroup      ();
             ImGui::Text            ( "%ws", &it.path.c_str ()[found + 1] );
 
-            if (denuvo_files.size () > idx)
+            if (denuvo_files->size () > idx)
             {
               ImGui::SameLine      ();
               ImGui::TextColored   (ImColor::HSV (0.08f, 1.f, 1.f), " [ Expired ]");
@@ -637,7 +637,7 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::SameLine          ();
 
           ImGui::BeginGroup        ();
-          for ( auto it : denuvo_files )
+          for ( auto it : denuvo_files.get () )
           {
             const size_t found =
               it.path.find_last_of (L'\\');
@@ -727,7 +727,7 @@ SK::ControlPanel::Steam::Draw (void)
       bool valid =
         (! config.steam.silent) &&
         (! SK_Steam_PiratesAhoy ());
-      
+
       if (valid)
         ImGui::MenuItem ("SteamAPI Valid",   "", &valid, false);
       else
@@ -775,7 +775,7 @@ SK::ControlPanel::Steam::Draw (void)
     void
     {
       int rate = ReadAcquire (&SK_SteamAPI_CallbackRateLimit);
-      
+
       if (ImGui::SliderInt ("Limit SteamAPI Rate", &rate, -1, 240))
           InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, rate);
     };
@@ -796,7 +796,7 @@ SK::ControlPanel::Steam::Draw (void)
       {
         ImGui::BeginTooltip   (       );
         ImGui::Text           ( "In"  );                 ImGui::SameLine ();
-        ImGui::PushStyleColor ( ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f) ); 
+        ImGui::PushStyleColor ( ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f) );
         ImGui::Text           ( "Steam Overlay Aware");  ImGui::SameLine ();
         ImGui::PopStyleColor  (       );
         ImGui::Text           ( "software, click to toggle the game's overlay pause mode." );
@@ -804,7 +804,7 @@ SK::ControlPanel::Steam::Draw (void)
       }
 
       if (ImGui::BeginPopup ("SteamOverlayPauseMenu"))
-      {                     
+      {
         if (ImGui::Checkbox ("Pause Game while Control Panel is Visible",
             &config.steam.reuse_overlay_pause))
         {
@@ -824,7 +824,7 @@ SK::ControlPanel::Steam::Draw (void)
     }
 
     if (ImGui::BeginPopup ("SteamCallbackRateMenu"))
-    {                     
+    {
       SteamCallbackThrottleSubMenu ();
 
       ImGui::EndPopup     ();
@@ -836,8 +836,8 @@ SK::ControlPanel::Steam::Draw (void)
 
     // If fetching stats and online...
     if ( (! SK_SteamAPI_FriendStatsFinished  ())        &&
-            SK_SteamAPI_GetNumPlayers        ()  > 1    && 
-            SK_SteamAPI_FriendStatPercentage () != 0.0f && 
+            SK_SteamAPI_GetNumPlayers        ()  > 1    &&
+            SK_SteamAPI_FriendStatPercentage () != 0.0f &&
             config.steam.achievements.pull_friend_stats )
     {
       const float ratio   = SK_SteamAPI_FriendStatPercentage ();
@@ -857,9 +857,9 @@ static_cast <uint32_t> (
                       ratio * static_cast <float>    (friends))
                     )
                );
-      
-      ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
-      ImGui::PushStyleColor ( ImGuiCol_Text,          ImColor (255, 255, 255)              ); 
+
+      ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) );
+      ImGui::PushStyleColor ( ImGuiCol_Text,          ImColor (255, 255, 255)              );
       ImGui::ProgressBar (
         SK_SteamAPI_FriendStatPercentage (),
           ImVec2 (-1, 0), szLabel );

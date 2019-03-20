@@ -396,7 +396,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>SpecialK64</TargetName>
     <OutDir>C:\Users\amcol\Documents\My Mods\SpecialK\</OutDir>
-    <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK;$(WindowsSdk_71A_IncludePath);$(UniversalCRT_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK;$(WindowsSdk_71A_IncludePath);$(UniversalCRT_IncludePath);C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\ucrt</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
     <CodeAnalysisRuleSet>SpecialK.ruleset</CodeAnalysisRuleSet>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
@@ -684,12 +684,12 @@
       <OmitFramePointers>false</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
       <EnableModules>false</EnableModules>
       <AdditionalOptions>
       </AdditionalOptions>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
       <OpenMPSupport>false</OpenMPSupport>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
@@ -721,7 +721,7 @@
       <Profile>true</Profile>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <OptimizeReferences>true</OptimizeReferences>
+      <OptimizeReferences>false</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
@@ -1408,11 +1408,11 @@ Exit 0</Command>
       <OmitFramePointers>false</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
       <AdditionalOptions>
       </AdditionalOptions>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <DisableLanguageExtensions>
       </DisableLanguageExtensions>
@@ -1450,7 +1450,7 @@ Exit 0</Command>
       <Profile>true</Profile>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <OptimizeReferences>true</OptimizeReferences>
+      <OptimizeReferences>false</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
@@ -2274,6 +2274,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\render\vk\vulkan_backend.h" />
     <ClInclude Include="include\SpecialK\DLL_VERSION.H" />
     <ClInclude Include="include\SpecialK\utility\bidirectional_map.h" />
+    <ClInclude Include="include\SpecialK\utility\lazy_global.h" />
     <ClInclude Include="include\SpecialK\widgets\widget.h" />
     <ClInclude Include="include\SpecialK\window.h" />
     <ClInclude Include="include\stb\rect_pack.h" />
@@ -2353,9 +2354,9 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\hooks\d3d11_device.cpp" />
-    <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp" />
     <ClCompile Include="src\render\d3d11\d3d11_utility.cpp" />
     <ClCompile Include="src\render\d3d11\d3d11_state_tracker.cpp" />
+    <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp" />
     <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp" />
     <ClCompile Include="src\render\dxgi\dxgi_util.cpp" />
     <ClCompile Include="src\steam\CSteamWorks.cpp" />
@@ -3537,8 +3538,16 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="include\gsl\gsl" />
+    <None Include="include\gsl\gsl_algorithm" />
     <None Include="include\gsl\gsl_assert" />
+    <None Include="include\gsl\gsl_byte" />
+    <None Include="include\gsl\gsl_util" />
+    <None Include="include\gsl\multi_span" />
+    <None Include="include\gsl\pointers" />
+    <None Include="include\gsl\span" />
+    <None Include="include\gsl\string_span" />
     <None Include="include\imgui\imgui_user.inl" />
+    <None Include="include\SpecialK\commands\limit_reset.inl" />
     <None Include="include\SpecialK\commands\mem.inl" />
     <None Include="include\SpecialK\commands\update.inl" />
     <None Include="injector64.dll" />
@@ -3636,6 +3645,7 @@ Exit 0</Command>
       <FileType>Document</FileType>
     </None>
     <None Include="SpecialK.ruleset" />
+    <None Include="src\imgui\LICENSE" />
     <None Include="Tobii\API-Reference.pdf" />
     <None Include="Tobii\SDK-License_en.pdf" />
     <None Include="Tobii\SDK-License_zh.pdf" />

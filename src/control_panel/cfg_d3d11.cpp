@@ -79,7 +79,13 @@ extern bool
 WINAPI
 SK_DXGI_IsTrackingBudget (void);
 
-SK_D3D11_TexCacheResidency_s SK_D3D11_TexCacheResidency;
+SK_D3D11_TexCacheResidency_s&
+SK_D3D11_GetTexCacheResidency (void)
+{
+  static SK_D3D11_TexCacheResidency_s _residency;
+  return _residency;
+}
+;
 
 void
 SK_ImGui_DrawTexCache_Chart (void)
@@ -106,12 +112,12 @@ SK_ImGui_DrawTexCache_Chart (void)
     ImGui::PushStyleColor(ImGuiCol_Border, ImColor(0.5f, 0.5f, 0.5f, 0.666f));
     ImGui::Columns   ( 3 );
       ImGui::Text    ( "%#7zu      MiB",
-                                                     SK_D3D11_Textures.AggregateSize_2D >> 20ULL );     ImGui::NextColumn (); 
+                                                     SK_D3D11_Textures.AggregateSize_2D >> 20ui64 );    ImGui::NextColumn (); 
        ImGui::TextColored
                      (ImVec4 (0.3f, 1.0f, 0.3f, 1.0f),
                        "%#5lu      Hits",            SK_D3D11_Textures.RedundantLoads_2D.load () );     ImGui::NextColumn ();
        if (SK_D3D11_Textures.Budget != 0)
-         ImGui::Text ( "Budget:  %#7zu MiB  ",       SK_D3D11_Textures.Budget / 1048576ULL );
+         ImGui::Text ( "Budget:  %#7zu MiB  ",       SK_D3D11_Textures.Budget / 1048576ui64 );
     ImGui::Columns   ( 1 );
 
     ImGui::Separator (   );
@@ -130,9 +136,9 @@ SK_ImGui_DrawTexCache_Chart (void)
       ImGui::Text    ( "%#6lu   Evictions",            SK_D3D11_Textures.Evicted_2D.load ()   );        ImGui::NextColumn ();
       ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)SK_D3D11_Textures.RedundantLoads_2D / 
                                                           (float)SK_D3D11_Textures.CacheMisses_2D, 0.4f ), 0.95f, 0.8f),
-                       " %.2f  Hit/Miss",                  (double)SK_D3D11_Textures.RedundantLoads_2D / 
-                                                           (double)SK_D3D11_Textures.CacheMisses_2D  ); ImGui::NextColumn ();
-      ImGui::Text    ( "Driver I/O: %#7llu MiB  ",     SK_D3D11_Textures.RedundantData_2D >> 20ULL );
+                       " %.2f  Hit/Miss",                (double)SK_D3D11_Textures.RedundantLoads_2D / 
+                                                         (double)SK_D3D11_Textures.CacheMisses_2D  );   ImGui::NextColumn ();
+      ImGui::Text    ( "Driver I/O: %#7llu MiB  ",     SK_D3D11_Textures.RedundantData_2D >> 20ui64 );
 
     ImGui::Columns   ( 1 );
 
@@ -232,10 +238,8 @@ SK::ControlPanel::D3D11::Draw (void)
     else
     {
       char* szThreadLocalStr =
-        static_cast <char *> (
           SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
-                        256,   true                  )
-                             );
+                        256,   true                  );
 
       bool tracking = false;
 

@@ -183,7 +183,7 @@ SK_BootD3D9 (void)
       tex_mgr.Init ();
     }
 
-    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
+    dll_log->Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
 
     if (SK_GetDLLRole () == DLL_ROLE::D3D9)
     {
@@ -223,7 +223,7 @@ SK_BootD3D8 (void)
 
   while (backend_dll == nullptr)
   {
-    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
+    dll_log->Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
     SK_Sleep (100UL);
   }
 
@@ -238,7 +238,7 @@ SK_BootD3D8 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
-    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
+    dll_log->Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
 
     if (SK_GetDLLRole () == DLL_ROLE::D3D8)
     {
@@ -271,7 +271,7 @@ SK_BootDDraw (void)
 
   while (backend_dll == nullptr)
   {
-    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
+    dll_log->Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
     SK_Sleep    (100UL);
   }
 
@@ -287,7 +287,7 @@ SK_BootDDraw (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
-    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>");
+    dll_log->Log (L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>");
 
     if (SK_GetDLLRole () == DLL_ROLE::DDraw)
     {
@@ -352,7 +352,7 @@ SK_BootDXGI (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
-    dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
+    dll_log->Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
     if (SK_GetDLLRole () & DLL_ROLE::DXGI)
     {
@@ -410,7 +410,7 @@ SK_BootOpenGL (void)
   {
     pTLS->gl.ctx_init_thread = true;
 
-    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
+    dll_log->Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
     if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
     {
@@ -854,7 +854,7 @@ SK_RenderBackend_V2::window_registry_s::getFocus (void)
 void
 SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 {
-  if (focus.hwnd == nullptr || ( GetFocus () == hWnd && hWnd != 0 && GetActiveWindow () == hWnd ) )
+  if (focus.hwnd == nullptr || ( GetFocus () == hWnd && hWnd != nullptr && GetActiveWindow () == hWnd ) )
   {
     focus              = hWnd;
     game_window.hWnd   = hWnd;
