@@ -531,9 +531,9 @@ std::map <DWORD,    SKWG_Thread_Entry*> SKWG_Threads;
 std::map <LONGLONG, SKWG_Thread_Entry*> SKWG_Ordered_Threads;
 
 PSYSTEM_PROCESS_INFORMATION
-ProcessInformation ( PDWORD    pdData,
-                     PNTSTATUS pns,
-                     SK_TLS*   pTLS )
+ProcessInformation ( PDWORD                       pdData,
+                     PNTSTATUS                    pns,
+                     SK_NtQuerySystemInformation* pQuery )
 {
   PSYSTEM_PROCESS_INFORMATION ret = nullptr;
 
@@ -548,61 +548,60 @@ ProcessInformation ( PDWORD    pdData,
                             "NtQuerySystemInformation");
   }
 
-  if (NtQuerySystemInformation)
+  if (NtQuerySystemInformation != nullptr)
   {
-    pTLS =
-      SK_TLS_Bottom ();
-  }
-
-  if (pTLS)
-  {
-    size_t                       dSize = 0;
-    DWORD                        dData = 0;
-    NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
-
-    if (pTLS->local_scratch.NtQuerySystemInformation.len  < 16384)
-        pTLS->local_scratch.NtQuerySystemInformation.alloc (16384, true);
-
-    void* pspi = nullptr;
-
-    for ( dSize = pTLS->local_scratch.NtQuerySystemInformation.len;
-               (pspi == nullptr) && dSize;
-                                    dSize <<= 1 )
+    if (pQuery != nullptr)
     {
-      pTLS->local_scratch.NtQuerySystemInformation.alloc (dSize, true);
+      size_t                       dSize = 0;
+      DWORD                        dData = 0;
+      NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
 
-      if (pTLS->local_scratch.NtQuerySystemInformation.len < dSize)
+      if (pQuery->NtInfo.len  < 16384)
+          pQuery->NtInfo.alloc (16384, true);
+
+      void* pspi = nullptr;
+
+      for ( dSize = pQuery->NtInfo.len;
+                 (pspi == nullptr) && dSize;
+                                      dSize <<= 1 )
       {
-        ns = STATUS_NO_MEMORY;
-        break;
+        pQuery->NtInfo.alloc (dSize, true);
+
+        if (pQuery->NtInfo.len < dSize)
+        {
+          ns = STATUS_NO_MEMORY;
+          break;
+        }
+
+        dSize =
+          pQuery->NtInfo.len;
+
+        pspi =
+          pQuery->NtInfo.data;
+
+        ns =
+          NtQuerySystemInformation ( SystemProcessInformation,
+                                       (PSYSTEM_PROCESS_INFORMATION)pspi,
+                                         (DWORD)dSize,
+                                           &dData );
+
+        if (ns != STATUS_SUCCESS)
+        {
+          dData = 0;
+          pspi  = nullptr;
+
+          if (ns != STATUS_INFO_LENGTH_MISMATCH) break;
+        }
       }
 
-      dSize =
-        pTLS->local_scratch.NtQuerySystemInformation.len;
+      if (pdData != nullptr) *pdData = dData;
+      if (pns    != nullptr) *pns    = ns;
 
-      pspi =
-        pTLS->local_scratch.NtQuerySystemInformation.data;
+      ret =
+        static_cast <PSYSTEM_PROCESS_INFORMATION> (pspi);
 
-      ns =
-        NtQuerySystemInformation ( SystemProcessInformation,
-                                     (PSYSTEM_PROCESS_INFORMATION)pspi,
-                                       (DWORD)dSize,
-                                         &dData );
-
-      if (ns != STATUS_SUCCESS)
-      {
-        dData = 0;
-        pspi  = nullptr;
-
-        if (ns != STATUS_INFO_LENGTH_MISMATCH) break;
-      }
+      pQuery->NtStatus = ns;
     }
-
-    if (pdData != nullptr) *pdData = dData;
-    if (pns    != nullptr) *pns    = ns;
-
-    ret =
-      static_cast <PSYSTEM_PROCESS_INFORMATION> (pspi);
   }
 
   return
@@ -1254,7 +1253,7 @@ public:
     // Snapshotting is _slow_, so only do it when a thread has been created...
     extern volatile LONG  lLastThreadCreate;
     static          LONG  lLastThreadRefresh   =  -69;
-              const DWORD _UPDATE_INTERVAL1_MS =   25; // Refresh no more than once every 25 ms
+              const DWORD _UPDATE_INTERVAL1_MS =  100; // Refresh no more than once every 100 ms
               const DWORD _UPDATE_INTERVAL2_MS = 5000; // Refresh at least once every 5 seconds
     static          DWORD dwLastTime           =    0;
 
@@ -1278,18 +1277,105 @@ public:
 
     dwLastTime = dwNow;
 
-    SK_TLS* pTLS =
-      SK_TLS_Bottom ();
 
-    NTSTATUS nts =
-      STATUS_INVALID_PARAMETER;
+    //
+    // Producer / Consumer for NtQuerySystemInformation
+    //
+    struct DataCollectionThread {
+      volatile SK_NtQuerySystemInformation* pQuery;          // Double-buffered
+               HANDLE                       hProduceThread = INVALID_HANDLE_VALUE;
+               HANDLE                       hSignalProduce =
+                 SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
+               HANDLE                       hSignalConsume =
+                 SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+               HANDLE                       hSignalShutdown =
+                 SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
-    ProcessInformation (nullptr, &nts, pTLS);
+      DataCollectionThread (void)
+      {
+        hProduceThread =
+          SK_Thread_CreateEx ([](LPVOID user) ->
+            DWORD
+            {
+              SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
 
-    PSYSTEM_PROCESS_INFORMATION pInfo =
-      reinterpret_cast <PSYSTEM_PROCESS_INFORMATION> (
-        pTLS->local_scratch.NtQuerySystemInformation.data
-      );
+              SK_TLS* pTLS =
+                SK_TLS_Bottom ();
+
+              DataCollectionThread* pParams =
+                reinterpret_cast <DataCollectionThread*>(user);
+
+              HANDLE hSignals [] = {
+                pParams->hSignalProduce,
+                pParams->hSignalShutdown
+              };
+
+              DWORD dwWaitState = 0;
+              int   write_idx   = 0;
+              int   read_idx    = 1;
+
+              constexpr int WAIT_PRODUCE_DATA    = WAIT_OBJECT_0;
+              constexpr int WAIT_SHUTDOWN_THREAD = WAIT_OBJECT_0 + 1;
+
+              do
+              {
+                dwWaitState =
+                   WaitForMultipleObjects (2, hSignals, FALSE, INFINITE);
+
+                SK_NtQuerySystemInformation* pWrite =
+                  &pTLS->local_scratch.query [write_idx];
+
+                if (dwWaitState == WAIT_PRODUCE_DATA)
+                {
+                  ProcessInformation (nullptr, &pWrite->NtStatus, pWrite);
+
+                  if (pWrite->NtStatus == STATUS_SUCCESS)
+                  {
+                    std::swap (write_idx, read_idx);
+
+                    InterlockedExchangePointer (
+                      (void**)&pParams->pQuery,
+                      &pTLS->local_scratch.query [read_idx]
+                    );
+
+                    SetEvent (pParams->hSignalConsume);
+                  }
+                }
+              } while (dwWaitState != WAIT_SHUTDOWN_THREAD);
+
+              return 0;
+            },
+          L"[SK] Thread Analytics Producer",
+        (LPVOID)this );
+      }
+
+      ~DataCollectionThread (void)
+      {
+        SignalObjectAndWait (hSignalShutdown, hProduceThread, 100, FALSE);
+        CloseHandle         (hSignalProduce);  CloseHandle (hSignalConsume);
+        CloseHandle         (hSignalShutdown); CloseHandle (hProduceThread);
+      }
+    } static data_thread;
+
+    static PSYSTEM_PROCESS_INFORMATION pInfo = nullptr;
+    static NTSTATUS                    nts   = STATUS_INVALID_PARAMETER;
+
+    if (WaitForSingleObject (data_thread.hSignalConsume, 0) == WAIT_OBJECT_0)
+    {
+      // The producer is double-buffered, this always points to the last finished
+      //   data collection cycle.
+      SK_NtQuerySystemInformation* pLatestQuery =
+        reinterpret_cast <SK_NtQuerySystemInformation *> (
+          ReadPointerAcquire ((volatile LPVOID*)& data_thread.pQuery)
+        );
+
+      pInfo =
+        reinterpret_cast <PSYSTEM_PROCESS_INFORMATION> (
+              pLatestQuery->NtInfo.data );
+      nts   = pLatestQuery->NtStatus;
+
+      SetEvent (data_thread.hSignalProduce);
+    }
 
     if (pInfo != nullptr && nts == STATUS_SUCCESS)
     {

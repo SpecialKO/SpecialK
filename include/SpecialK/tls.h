@@ -278,12 +278,17 @@ public:
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
+struct SK_NtQuerySystemInformation {
+  SK_TLS_LocalDataStore <BYTE> NtInfo;
+  LONG                         NtStatus;
+};
+
 class SK_TLS_ScratchMemoryLocal : public SK_TLS_DynamicContext
 {
 public:
   SK_TLS_ScratchMemoryLocal (void) = default;
 
-  SK_TLS_LocalDataStore <BYTE> NtQuerySystemInformation;
+  SK_NtQuerySystemInformation query [2] = { };
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
@@ -739,7 +744,7 @@ extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
 class SK_ScopedBool
 {
 public:
-  SK_ScopedBool (_Notnull_ BOOL* pBool) noexcept
+  SK_ScopedBool (BOOL *pBool) noexcept
   {
     pBool_ =  pBool;
     bOrig_ = *pBool;

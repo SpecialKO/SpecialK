@@ -26,7 +26,7 @@
 
 #include <Windows.h>
 #include <avrt.h>
-
+#include <gsl/gsl>
 
 
 #define RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO         0x01000000
@@ -44,11 +44,11 @@
 
 static inline constexpr
   const HANDLE
-    SK_GetCurrentThread  (void) noexcept { return (PVOID)-2; };
+    SK_GetCurrentThread  (void) noexcept { return reinterpret_cast <PVOID> (-2); };
 
 static inline constexpr
   const HANDLE
-    SK_GetCurrentProcess (void) noexcept { return (PVOID)-1; };
+    SK_GetCurrentProcess (void) noexcept { return reinterpret_cast <PVOID> (-1); };
 
 
 
@@ -82,15 +82,18 @@ public:
 
   ~SK_Thread_CriticalSection (void) noexcept = default;
 
+  _Acquires_exclusive_lock_ (*this->cs_)
   void lock (void) noexcept {
     EnterCriticalSection (cs_);
   }
 
+  _Releases_exclusive_lock_ (*this->cs_)
   void unlock (void) noexcept
   {
     LeaveCriticalSection (cs_);
   }
 
+  _Acquires_exclusive_lock_ (*this->cs_)
   bool try_lock (void) noexcept
   {
     return TryEnterCriticalSection (cs_);
@@ -118,6 +121,7 @@ public:
 
 class SK_AutoCriticalSection {
 public:
+  _Acquires_exclusive_lock_ (*this->cs_)
   SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
                            bool              try_only = false ) noexcept
   {
@@ -131,6 +135,7 @@ public:
     }
   }
 
+  _Releases_exclusive_lock_ (*this->cs_)
   ~SK_AutoCriticalSection (void) noexcept ///
   {
     Leave ();
@@ -141,27 +146,32 @@ public:
     return acquired_;
   }
 
+  _Acquires_exclusive_lock_ (*this->cs_)
   void enter (void) noexcept
-  {
-    EnterCriticalSection (this->cs_);
-
-    acquired_ = true;
-  }
-
-protected:
-  bool TryEnter (_Acquires_lock_(* this->cs_) void) noexcept
-  {
-    return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
-  }
-
-  void Enter (_Acquires_lock_(* this->cs_) void) noexcept
   {
     EnterCriticalSection (cs_);
 
     acquired_ = true;
   }
 
-  void Leave (_Releases_lock_(* this->cs_) void) noexcept
+protected:
+  _Acquires_exclusive_lock_ (*this->cs_)
+  bool TryEnter (void) noexcept
+  {
+    return
+      ( acquired_ = (TryEnterCriticalSection (cs_) != FALSE) );
+  }
+
+  _Acquires_exclusive_lock_ (*this->cs_)
+  void Enter (void) noexcept
+  {
+    EnterCriticalSection (cs_);
+
+    acquired_ = true;
+  }
+
+  _Releases_exclusive_lock_ (*this->cs_)
+  void Leave (void) noexcept
   {
     if (acquired_ != false)
       LeaveCriticalSection (cs_);
@@ -194,7 +204,8 @@ SK_WaitForSingleObject_Micro ( _In_ HANDLE        hHandle,
 
 __forceinline
 static void
-SK_Thread_SpinUntilFlagged (volatile LONG const *pFlag, LONG _SpinMax = 75L)
+SK_Thread_SpinUntilFlagged ( _In_ _Interlocked_operand_ LONG volatile const *pFlag,
+                                                        LONG                 _SpinMax = 75L )
 {
   while (! ReadAcquire (pFlag))
   {
@@ -211,7 +222,9 @@ SK_Thread_SpinUntilFlagged (volatile LONG const *pFlag, LONG _SpinMax = 75L)
 
 __forceinline
 static void
-SK_Thread_SpinUntilAtomicMin (volatile LONG const *pVar, LONG count, LONG _SpinMax = 75L)
+SK_Thread_SpinUntilAtomicMin ( _In_ _Interlocked_operand_ LONG volatile const *pVar,
+                                                          LONG                 count,
+                                                          LONG                 _SpinMax = 75L )
 {
   while (ReadAcquire (pVar) < count)
   {
@@ -374,7 +387,7 @@ __forceinline
 DWORD
 SK_GetCurrentThreadId (void)
 {
-  return ((DWORD *)NtCurrentTeb ()) [
+  return reinterpret_cast <DWORD *> (NtCurrentTeb ()) [
 #ifdef _WIN64
     18
 #else
