@@ -69,22 +69,6 @@ SK_IsSuperSpecialK (void);
 
 static const int SK_UPDATE_TIMER = 68991;
 
-enum {
-  STATUS_INVALID   = 0,
-  STATUS_UPDATED   = 1,
-  STATUS_REMINDER  = 2,
-  STATUS_CANCELLED = 4,
-  STATUS_FAILED    = 8
-};
-
-struct sk_internet_get_t {
-  wchar_t wszHostName  [INTERNET_MAX_HOST_NAME_LENGTH] = { };
-  wchar_t wszHostPath  [INTERNET_MAX_PATH_LENGTH]      = { };
-  wchar_t wszLocalPath [MAX_PATH]                      = { };
-  HWND    hTaskDlg                                     = HWND_DESKTOP;
-  int     status                                       = STATUS_INVALID;
-};
-
 bool    update_dlg_backup = false;
 bool    update_dlg_keep   = false;
 
@@ -93,7 +77,7 @@ wchar_t update_dlg_build    [MAX_PATH]                 = { };
 wchar_t update_dlg_relnotes [INTERNET_MAX_PATH_LENGTH] = { };
 
 
-auto _ShowCursor = [&](void) ->
+auto constexpr _ShowCursor = [&](void) ->
 int
 {
   int refs = 0;
@@ -126,7 +110,7 @@ DWORD
 WINAPI
 DownloadThread (LPVOID user)
 {
-  SetCurrentThreadDescription (L"[SK] HTTP Download Thread");
+  SetCurrentThreadDescription (L"[SK] HTTP Worker Thread");
 
   ULONG ulTimeout = 2500UL;
 
@@ -170,7 +154,7 @@ DownloadThread (LPVOID user)
       // Re-name the update button from Yes to Retry
       SetDlgItemTextW (get->hTaskDlg, IDYES, L"Retry");
 
-      get->status = STATUS_FAILED;
+      get->status = sk_internet_get_t::STATUS_FAILED;
     };
 
   TaskMsg (TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, MAXINT16));
@@ -319,7 +303,7 @@ DownloadThread (LPVOID user)
     //HttpEndRequest ( hInetHTTPGetReq, nullptr, 0x00, 0 );
 
     if (dwTotalBytesDownloaded >= dwContentLength)
-      get->status = STATUS_UPDATED;
+      get->status = sk_internet_get_t::STATUS_UPDATED;
 
     else
       SetErrorState ();
@@ -634,9 +618,9 @@ DownloadDialogCallback (
                             SWP_NOSENDCHANGING   );
     }
 
-    if ( get->status == STATUS_UPDATED   ||
-         get->status == STATUS_CANCELLED ||
-         get->status == STATUS_REMINDER )
+    if ( get->status == sk_internet_get_t::STATUS_UPDATED   ||
+         get->status == sk_internet_get_t::STATUS_CANCELLED ||
+         get->status == sk_internet_get_t::STATUS_REMINDER )
     {
       EndDialog ( hWnd, 0 );
 
@@ -681,7 +665,7 @@ DownloadDialogCallback (
                            hWnd,
                              RemindMeLater_DlgProc );
 
-      get->status = STATUS_REMINDER;
+      get->status = sk_internet_get_t::STATUS_REMINDER;
     }
 
     else if (wParam == IDYES)
@@ -702,7 +686,7 @@ DownloadDialogCallback (
 
     else if (wParam == IDCANCEL)
     {
-      get->status = STATUS_CANCELLED;
+      get->status = sk_internet_get_t::STATUS_CANCELLED;
     }
 
     else
@@ -1379,7 +1363,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
       if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr)))
       {
-        if (get->status == STATUS_UPDATED)
+        if (get->status == sk_internet_get_t::STATUS_UPDATED)
         {
           sk::ParameterFactory ParameterFactory;
 
@@ -1467,7 +1451,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
           }
         }
 
-        else if (get->status == STATUS_CANCELLED)
+        else if (get->status == sk_internet_get_t::STATUS_CANCELLED)
         {
           DeleteFileW (SK_Version_GetInstallIniPath ().c_str ());
           return E_FAIL;

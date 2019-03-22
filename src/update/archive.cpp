@@ -67,21 +67,23 @@ SK_Get7ZFileContents (                 const wchar_t* wszArchive,
   SK_7Z_TableInit ();
 
   CFileInStream arc_stream       = { };
-  CLookToRead   look_stream      = { };
   ISzAlloc      thread_alloc     = { };
   ISzAlloc      thread_tmp_alloc = { };
 
+  std::unique_ptr    <CLookToRead> look_stream =
+    std::make_unique <CLookToRead> ();
+
   FileInStream_CreateVTable (&arc_stream);
-  LookToRead_CreateVTable   (&look_stream, False);
+  LookToRead_CreateVTable   (look_stream.get (), False);
 
-  look_stream.realStream = &arc_stream.s;
-  LookToRead_Init         (&look_stream);
+  look_stream->realStream = &arc_stream.s;
+  LookToRead_Init          (look_stream.get ());
 
-  thread_alloc.Alloc     = SzAlloc;
-  thread_alloc.Free      = SzFree;
+  thread_alloc.Alloc      = SzAlloc;
+  thread_alloc.Free       = SzFree;
 
-  thread_tmp_alloc.Alloc = SzAllocTemp;
-  thread_tmp_alloc.Free  = SzFreeTemp;
+  thread_tmp_alloc.Alloc  = SzAllocTemp;
+  thread_tmp_alloc.Free   = SzFreeTemp;
 
   if (SZ_OK != InFile_OpenW (&arc_stream.file, wszArchive))
   {
@@ -92,7 +94,7 @@ SK_Get7ZFileContents (                 const wchar_t* wszArchive,
   SzArEx_Init (&arc);
 
   if ( SzArEx_Open ( &arc,
-                       &look_stream.s,
+                       &look_stream->s,
                          &thread_alloc,
                            &thread_tmp_alloc ) == SZ_OK )
   {
@@ -160,15 +162,17 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   }
 
   CFileInStream arc_stream       = { };
-  CLookToRead   look_stream      = { };
   ISzAlloc      thread_alloc     = { };
   ISzAlloc      thread_tmp_alloc = { };
 
-  FileInStream_CreateVTable (&arc_stream);
-  LookToRead_CreateVTable   (&look_stream, False);
+  std::unique_ptr    <CLookToRead> look_stream =
+    std::make_unique <CLookToRead> ();
 
-  look_stream.realStream = &arc_stream.s;
-  LookToRead_Init         (&look_stream);
+  FileInStream_CreateVTable (&arc_stream);
+  LookToRead_CreateVTable   (look_stream.get (), False);
+
+  look_stream->realStream = &arc_stream.s;
+  LookToRead_Init          (look_stream.get ());
 
   thread_alloc.Alloc     = SzAlloc;
   thread_alloc.Free      = SzFree;
@@ -183,7 +187,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
   if ( InFile_OpenW (&arc_stream.file, wszArchive) ||
        SzArEx_Open ( &arc,
-                       &look_stream.s,
+                       &look_stream->s,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
@@ -196,7 +200,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   }
 
   size_t old_ver_len = 0;
-  
+
   if (wszOldVersion != nullptr)
     StringCbLengthW (wszOldVersion, MAX_PATH + 2, &old_ver_len);
 
@@ -212,8 +216,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                      file.name.c_str () );
 
     if ( SZ_OK !=
-           SzArEx_Extract ( &arc,          &look_stream.s, file.fileno,
-                            &block_idx,    &out,           &out_len,
+           SzArEx_Extract ( &arc,          &look_stream->s, file.fileno,
+                            &block_idx,    &out,            &out_len,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
@@ -322,7 +326,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
   if ( InFile_OpenW (&arc_stream.file, wszArchive) ||
        SzArEx_Open ( &arc,
-                       &look_stream.s,
+                       &look_stream->s,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
@@ -346,8 +350,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                      cfg_file.name.c_str () );
 
     if ( SZ_OK !=
-           SzArEx_Extract ( &arc,          &look_stream.s, cfg_file.fileno,
-                            &block_idx,    &out,           &out_len,
+           SzArEx_Extract ( &arc,          &look_stream->s, cfg_file.fileno,
+                            &block_idx,    &out,            &out_len,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
@@ -480,15 +484,17 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
   SK_Get7ZFileContents (wszArchive, files);
 
   CFileInStream arc_stream       = { };
-  CLookToRead   look_stream      = { };
   ISzAlloc      thread_alloc     = { };
   ISzAlloc      thread_tmp_alloc = { };
 
-  FileInStream_CreateVTable (&arc_stream);
-  LookToRead_CreateVTable   (&look_stream, True);
+  std::unique_ptr    <CLookToRead> look_stream =
+    std::make_unique <CLookToRead> ();
 
-  look_stream.realStream = &arc_stream.s;
-  LookToRead_Init         (&look_stream);
+  FileInStream_CreateVTable (&arc_stream);
+  LookToRead_CreateVTable   (look_stream.get (), True);
+
+  look_stream->realStream = &arc_stream.s;
+  LookToRead_Init          (look_stream.get ());
 
   thread_alloc.Alloc     = SzAlloc;
   thread_alloc.Free      = SzFree;
@@ -503,7 +509,7 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
 
   if ( InFile_OpenW (&arc_stream.file, wszArchive) ||
        SzArEx_Open ( &arc,
-                       &look_stream.s,
+                       &look_stream->s,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
@@ -529,8 +535,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                      files [i].name.c_str () );
 
     if ( SZ_OK !=
-           SzArEx_Extract ( &arc,          &look_stream.s, file.fileno,
-                            &block_idx,    &out,           &out_len,
+           SzArEx_Extract ( &arc,          &look_stream->s, file.fileno,
+                            &block_idx,    &out,            &out_len,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {

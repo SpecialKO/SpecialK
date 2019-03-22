@@ -33,7 +33,10 @@
 
 #include <SpecialK/steam_api.h>
 
+#include <memory>
+
 extern volatile LONG SK_SteamAPI_CallbackRateLimit;
+extern volatile LONG __SK_Steam_Downloading;
 
 using namespace SK::ControlPanel;
 
@@ -76,7 +79,7 @@ SK::ControlPanel::Steam::Draw (void)
         const size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
 
         snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
-                     ratio * 100.0f, gsl::narrow_cast <uint32_t> ((ratio * gsl::narrow_cast <float> (num_achievements))),
+                     100.0 * ratio,  gsl::narrow_cast <uint32_t> ((ratio * gsl::narrow_cast <float> (num_achievements))),
                                      gsl::narrow_cast <uint32_t> (                                   num_achievements) );
 
         ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) );
@@ -460,7 +463,8 @@ SK::ControlPanel::Steam::Draw (void)
 
         if (config.steam.screenshots.enable_hook)
         {
-          auto Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
+          const auto Keybinding =
+          [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
           auto
           {
             if (! (binding != nullptr && param != nullptr))
@@ -771,7 +775,8 @@ SK::ControlPanel::Steam::Draw (void)
       SK_SteamAPI_SetOverlayState (pause);
     }
 
-    auto SteamCallbackThrottleSubMenu = [&](void) ->
+    const auto SteamCallbackThrottleSubMenu =
+    [&](void) ->
     void
     {
       int rate = ReadAcquire (&SK_SteamAPI_CallbackRateLimit);
@@ -847,7 +852,7 @@ SK::ControlPanel::Steam::Draw (void)
 
       snprintf ( szLabel, 511,
                    "Fetching Achievements... %.2f%% (%u/%u) : %s",
-                     100.0f * ratio,
+                     100.0 * ratio,
 static_cast <uint32_t> (
                       ratio * static_cast <float>    (friends)
                      ),
@@ -872,113 +877,771 @@ static_cast <uint32_t> (
   return false;
 }
 
+#include <SpecialK/update/network.h>
+
+SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t,           SK_DepotList> > SK_Steam_DepotManifestRegistry;
+SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
+
+SK_DepotList&
+SK_AppCache_Manager::getAvailableManifests (DepotId_t steam_depot)
+{
+  return
+    SK_Steam_DepotManifestRegistry [steam_depot];
+}
+
+ManifestId_t
+SK_AppCache_Manager::getInstalledManifest (DepotId_t steam_depot)
+{
+  if (! app_cache_db)
+    return 0ULL;
+
+  auto& sec =
+    app_cache_db->get_section_f (L"Depot.%lu", steam_depot);
+
+  if (! sec.contains_key (L"Installed"))
+    return 0ULL;
+
+  return
+    atoll (SK_WideCharToUTF8 (sec.get_value (L"Installed")).c_str ());
+}
+
+int
+SK_AppCache_Manager::loadDepotCache (DepotId_t steam_depot)
+{
+  if (! app_cache_db)
+    return 0;
+
+  for ( auto& cache_record : SK_Steam_DepotManifestRegistry.get () )
+    cache_record.second.clear ();
+
+  SK_Steam_DepotManifestRegistry->clear ();
+  SK_Steam_InstalledManifest->clear     ();
+
+  auto& sections =
+    app_cache_db->get_sections ();
+
+  for ( auto& sec : sections )
+  {
+    if (StrStrIW (sec.first.c_str (), L"Depot."))
+    {
+      std::string   depot_name = "";
+      unsigned long depot_id   = 0;
+
+      if (! std::swscanf (sec.first.c_str (), L"Depot.%lu", &depot_id))
+        continue;
+
+      if ( steam_depot != 0 &&
+           steam_depot != depot_id )
+      {
+        continue;
+      }
+
+      for ( auto& key : sec.second.keys )
+      {
+        if ( key.first._Equal (L"Installed") )
+        {
+          SK_Steam_InstalledManifest [depot_id].depot.id    = depot_id;
+          SK_Steam_InstalledManifest [depot_id].manifest.id =
+            atoll (SK_WideCharToUTF8 (key.second).c_str ());
+        }
+
+        else if ( key.first._Equal (L"Name") )
+        {
+          depot_name =
+            SK_WideCharToUTF8 (key.second);
+
+          SK_Steam_InstalledManifest [depot_id].depot.name =
+            depot_name;
+        }
+
+        else
+        {
+          unsigned long long manifest_id =
+            atoll (SK_WideCharToUTF8 (key.first).c_str ());
+
+          SK_Steam_DepotManifest depot_record;
+
+          depot_record.manifest.id   = manifest_id;
+          depot_record.manifest.date = SK_WideCharToUTF8 (key.second);
+
+          SK_Steam_DepotManifestRegistry [depot_id].emplace_back (depot_record);
+        }
+      }
+
+      for ( auto& cache_entry : SK_Steam_DepotManifestRegistry [depot_id] )
+      {
+        cache_entry.depot.name = depot_name;
+        cache_entry.depot.id   = depot_id;
+      }
+    }
+  }
+
+  return 0;
+}
+
+int
+SK_AppCache_Manager::storeDepotCache (DepotId_t steam_depot)
+{
+  for ( auto& depot : SK_Steam_DepotManifestRegistry.get () )
+  {
+    if ( steam_depot != 0 &&
+         steam_depot != depot.first )
+    {
+      continue;
+    }
+
+    auto& sec =
+      app_cache_db->get_section_f (L"Depot.%lu", depot.first);
+
+    for ( auto& cache_entry : depot.second )
+    {
+      if (! cache_entry.depot.name.empty ())
+      {
+        sec.add_key_value ( L"Name",
+          SK_UTF8ToWideChar (cache_entry.depot.name).c_str ()
+        );
+      }
+
+      sec.add_key_value ( std::to_wstring   (cache_entry.manifest.id  ).c_str (),
+                          SK_UTF8ToWideChar (cache_entry.manifest.date).c_str () );
+    }
+
+    sec.add_key_value ( L"Installed",
+                          std::to_wstring (
+                            SK_Steam_InstalledManifest [depot.first].manifest.id
+                          ).c_str ()
+                      );
+  }
+
+  return 0;
+}
+
+struct sk_depot_get_t {
+  wchar_t   wszHostName [INTERNET_MAX_HOST_NAME_LENGTH] = { };
+  wchar_t   wszHostPath [INTERNET_MAX_PATH_LENGTH]      = { };
+  DepotId_t depot_id;
+};
+
+const wchar_t*
+SK_SteamDB_BuildRandomAgentString (void)
+{
+  const wchar_t* wszAgents0 [] = {
+    L"Mozilla/5.0 (Windows; U; Windows NT 10.0; ",
+    L"Mozilla/5.0 (Windows; U; Windows NT 10.0; ",
+    L"Mozilla/5.0 (Windows; U; Windows NT 6.2; ",
+    L"Mozilla/5.0 (Windows; U; Windows NT 6.1; ",
+    L"Mozilla/5.0 (Windows; U; Windows NT 6.1; ",
+    L"Mozilla/5.0 (X11; Linux x86_64; "
+  };
+  const wchar_t* wszAgents1 [] = {
+    L"en-US; ",
+    L"ja-JP; ",
+    L"sv-SE; ",
+    L"pt-BR; ",
+    L"en-US; ",
+    L"fr-FR; "
+  };
+  const wchar_t* wszAgents2 [] = {
+    L"Valve Steam GameOverlay/1551832902; ) ",
+    L"Valve Steam GameOverlay/1258164314; ) ",
+    L"Valve Steam GameOverlay/1035679203; ) ",
+    L"Valve Steam GameOverlay/1327041285; ) "
+  };
+  const wchar_t* wszAgents3 [] = {
+    L"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
+    L"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36",
+    L"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36",
+    L"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+    L"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36"
+  };
+
+  SK_RunOnce (srand (timeGetTime ()));
+
+  // Use one of these fake agent strings for the entire runtime of the application.
+  static unsigned int agent_idx0 =
+    ( rand () % (sizeof (wszAgents0) / sizeof (wchar_t*)) );
+  static unsigned int agent_idx1 =
+    ( rand () % (sizeof (wszAgents1) / sizeof (wchar_t*)) );
+  static unsigned int agent_idx2 =
+    ( rand () % (sizeof (wszAgents2) / sizeof (wchar_t*)) );
+  static unsigned int agent_idx3 =
+    ( rand () % (sizeof (wszAgents3) / sizeof (wchar_t*)) );
+
+  static std::wstring random_agent =
+    SK_FormatStringW (L"%s%s%s%s", wszAgents0 [agent_idx0],
+                                   wszAgents1 [agent_idx1],
+                                   wszAgents2 [agent_idx2],
+                                   wszAgents3 [agent_idx3]);
+
+  return
+    random_agent.c_str ();
+}
+
+DWORD
+WINAPI
+SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
+{
+  SetCurrentThreadDescription (L"[SK] Patch Steam Roller(backer)");
+
+  ULONG ulTimeout = 5000UL;
+
+  PCWSTR rgpszAcceptTypes [] = { L"*/*", nullptr };
+  HINTERNET hInetHTTPGetReq  = nullptr,
+            hInetHost        = nullptr,
+  hInetRoot                  =
+    InternetOpen (
+      SK_SteamDB_BuildRandomAgentString (),
+        INTERNET_OPEN_TYPE_DIRECT,
+          nullptr, nullptr,
+            0x00
+    );
+
+  // (Cleanup On Error)
+  auto CLEANUP = [&](void) ->
+  DWORD
+  {
+    if (hInetHTTPGetReq != nullptr) InternetCloseHandle (hInetHTTPGetReq);
+    if (hInetHost       != nullptr) InternetCloseHandle (hInetHost);
+    if (hInetRoot       != nullptr) InternetCloseHandle (hInetRoot);
+
+    if (get != nullptr)
+    {
+      sk_depot_get_t* to_delete = nullptr;
+      std::swap (get, to_delete);
+      delete          to_delete;
+    }
+
+    return 0;
+  };
+
+  if (hInetRoot == nullptr)
+    return CLEANUP ();
+
+  DWORD_PTR dwInetCtx = 0;
+
+  hInetHost =
+    InternetConnect ( hInetRoot,
+                        get->wszHostName,
+                          INTERNET_DEFAULT_HTTP_PORT,
+                            nullptr, nullptr,
+                              INTERNET_SERVICE_HTTP,
+                                0x00,
+                                  (DWORD_PTR)&dwInetCtx );
+
+  if (hInetHost == nullptr)
+  {
+    return CLEANUP ();
+  }
+
+  hInetHTTPGetReq =
+    HttpOpenRequest ( hInetHost,
+                        nullptr,
+                          get->wszHostPath,
+                            L"HTTP/1.1",
+                              nullptr,
+                                rgpszAcceptTypes,
+                                                                    INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
+                                  INTERNET_FLAG_CACHE_IF_NET_FAIL | INTERNET_FLAG_IGNORE_CERT_CN_INVALID   |
+                                  INTERNET_FLAG_RESYNCHRONIZE     | INTERNET_FLAG_CACHE_ASYNC,
+                                    (DWORD_PTR)&dwInetCtx );
+
+
+  // Wait 2500 msecs for a dead connection, then give up
+  //
+  InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT,
+                         &ulTimeout,      sizeof ULONG );
+
+
+  if (hInetHTTPGetReq == nullptr)
+  {
+    return CLEANUP ();
+  }
+
+  if ( HttpSendRequestW ( hInetHTTPGetReq,
+                            nullptr,
+                              0,
+                                nullptr,
+                                  0 ) )
+  {
+
+    DWORD dwContentLength     = 0;
+    DWORD dwContentLength_Len = sizeof DWORD;
+    DWORD dwSizeAvailable;
+
+    HttpQueryInfo ( hInetHTTPGetReq,
+                      HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER,
+                        &dwContentLength,
+                          &dwContentLength_Len,
+                            nullptr );
+
+    std::vector <char> http_chunk;
+    std::vector <char> concat_buffer;
+
+    while ( InternetQueryDataAvailable ( hInetHTTPGetReq,
+                                           &dwSizeAvailable,
+                                             0x00, NULL )
+      )
+    {
+      if (dwSizeAvailable > 0)
+      {
+        DWORD dwSizeRead = 0;
+
+        if (http_chunk.size () < dwSizeAvailable)
+            http_chunk.resize   (dwSizeAvailable);
+
+        if ( InternetReadFile ( hInetHTTPGetReq,
+                                  http_chunk.data (),
+                                    dwSizeAvailable,
+                                      &dwSizeRead )
+           )
+        {
+          if (dwSizeRead == 0)
+            break;
+
+          concat_buffer.insert ( concat_buffer.end   (),
+                                  http_chunk.begin   (),
+                                    http_chunk.begin () + dwSizeRead );
+
+          if (dwSizeRead < dwSizeAvailable)
+            break;
+        }
+      }
+
+      else
+        break;
+    }
+
+    concat_buffer.insert (concat_buffer.end (), '\0');
+    concat_buffer.insert (concat_buffer.end (), '\0');
+
+    char *szDepotName =
+      StrStrIA (concat_buffer.data (),"<td>Name</td>\n<td>");
+
+    std::string name;
+
+    if (szDepotName != nullptr)
+    {
+      szDepotName += 18;
+
+      const char* szDepotEndTag =
+        StrStrIA (szDepotName, "</td>");
+
+      name = szDepotName;
+      name.resize (szDepotEndTag - szDepotName);
+    }
+
+    char *szManifestHeading =
+      StrStrIA (concat_buffer.data (), "<h2>Previous manifests</h2>");
+    char *szTableBegin = nullptr,
+         *szTableEnd   = nullptr;
+
+    if (szManifestHeading != nullptr)
+    {
+      szTableBegin =
+        StrStrIA (szManifestHeading, "<tbody>");
+
+      if (szTableBegin != nullptr)
+      {
+        szTableEnd =
+          StrStrIA (szTableBegin, "</tbody>");
+      }
+    }
+
+
+    if (szTableEnd != nullptr)
+    {
+      char *pos         = szTableBegin;
+      char *closing_tag = nullptr;
+
+      while ( pos != nullptr &&
+              pos <  szTableEnd )
+      {
+        SK_Steam_DepotManifest package;
+
+        pos =
+          StrStrIA (pos, "<td class=\"text-right\">") + 23;
+
+
+        if (reinterpret_cast <char *> (23) == pos)
+          break;
+
+        closing_tag =
+          StrStrIA (pos, "</td>");
+
+        package.depot.name    =
+          SK_WideCharToUTF8 (SK_UTF8ToWideChar (name));
+
+        package.manifest.date =
+          SK_WideCharToUTF8 (
+            SK_UTF8ToWideChar (
+              std::string ( pos, closing_tag - pos )
+                              )
+                            );
+
+        pos =
+          StrStrIA (closing_tag, "<td>") + 4;
+
+        if (reinterpret_cast <char *> (4) == pos)
+          break;
+
+        closing_tag =
+          StrStrIA (pos, "</td>");
+
+        package.manifest.id =
+          atoll ( std::string (pos, closing_tag - pos).c_str () );
+
+        SK_Steam_DepotManifestRegistry [get->depot_id].emplace_back (
+          package
+        );
+
+        pos = closing_tag;
+      }
+    }
+  }
+
+  CLEANUP ();
+
+  return 1;
+}
+
+#if 0
+  FILE* fHTML =
+    fopen (R"(C:\users\amcol\Documents\My Mods\SpecialK\manifest.html)", "r+");
+
+  if (fHTML != nullptr)
+  {
+    uint64_t size =
+      SK_File_GetSize (LR"(C:\users\amcol\Documents\My Mods\SpecialK\manifest.html)");
+
+
+  }
+#endif
+
+#include <mshtmcid.h>
+
 bool
 SK::ControlPanel::Steam::DrawMenu (void)
 {
-  if (SK::SteamAPI::AppID () != 0 && steam_ctx.UserEx () != nullptr)
+  if (SK::SteamAPI::AppID () != 0)
   {
     if (ImGui::BeginMenu ("Steam"))
     {
       auto* user_ex =
         steam_ctx.UserEx ();
 
-      if (! user_ex->BConnected ())
+      if (user_ex != nullptr)
       {
-        if (ImGui::MenuItem ("Connect to Steam"))
+        if (! user_ex->BConnected ())
         {
-          SK_Steam_ConnectUserIfNeeded (user_ex->GetSteamID ());
+          if (ImGui::MenuItem ("Connect to Steam"))
+          {
+            SK_Steam_ConnectUserIfNeeded (user_ex->GetSteamID ());
+          }
+        }
+
+        else
+        {
+          const auto logon_state =
+            user_ex->GetLogonState ();
+
+          static DWORD dwStartLogOffTime = SK::ControlPanel::current_time;
+          static DWORD dwStartLogOnTime  = SK::ControlPanel::current_time;
+
+          switch (logon_state)
+          {
+            case SK::SteamAPI::k_ELogonStateNotLoggedOn:
+            case SK::SteamAPI::k_ELogonStateLoggingOff:
+            {
+              if (ImGui::MenuItem ("Log On"))
+              {
+                dwStartLogOnTime = SK::ControlPanel::current_time;
+                user_ex->LogOn (user_ex->GetSteamID ());
+              }
+
+              if (logon_state == SK::SteamAPI::k_ELogonStateLoggingOff)
+              {
+                ImGui::Separator  (  );
+                ImGui::TreePush   ("");
+                ImGui::BulletText ("Logging off... (%3.1f seconds)",
+                  double (SK::ControlPanel::current_time - dwStartLogOffTime)
+                         / 1000.0
+                );
+                ImGui::TreePop    (  );
+              }
+            } break;
+
+            case SK::SteamAPI::k_ELogonStateLoggedOn:
+            case SK::SteamAPI::k_ELogonStateLoggingOn:
+            {
+              if (ImGui::MenuItem ("Log Off"))
+              {
+                dwStartLogOffTime = SK::ControlPanel::current_time;
+                user_ex->LogOff ();
+              }
+
+              if (logon_state == SK::SteamAPI::k_ELogonStateLoggingOn)
+              {
+                ImGui::Separator  (  );
+                ImGui::TreePush   ("");
+                ImGui::BulletText ("Logging on... (%3.1f seconds)",
+                  double (SK::ControlPanel::current_time - dwStartLogOnTime)
+                         / 1000.0
+                );
+                ImGui::TreePop    (  );
+              }
+
+              //
+              // This broke when Valve introduced the overhauled chat system,
+              //   it's more or less obsolete now thanks to the Invisible mode.
+              //
+              ////else
+              ////{
+              ////  ImGui::Separator ();
+              ////
+              ////  int state =
+              ////    SK::SteamAPI::GetPersonaState ();
+              ////
+              ////  bool always_anti_social =
+              ////    config.steam.online_status != -1;
+              ////
+              ////  if (ImGui::Checkbox ("Always Appear", &always_anti_social))
+              ////  {
+              ////    if (always_anti_social) config.steam.online_status = state;
+              ////    else                    config.steam.online_status =    -1;
+              ////  }
+              ////
+              ////  ImGui::SameLine ();
+              ////
+              ////  // Range restrict -- there are online states that are meaningless while in-game,
+              ////  //                     we want to hide these, but not force them on/off.
+              ////  state = std::min (2, std::max (0, state));
+              ////
+              ////  if ( ImGui::Combo ( "###Steam_Social_Status",
+              ////                        &state,
+              ////                          "Offline\0"
+              ////                          "Online\0"
+              ////                          "Busy\0\0",
+              ////                            3 ) )
+              ////  {
+              ////    if (always_anti_social)
+              ////      config.steam.online_status = state;
+              ////
+              ////    SK::SteamAPI::SetPersonaState ((EPersonaState)state);
+              ////  }
+              ////}
+            } break;
+          }
         }
       }
 
-      else
+      //try {
+      //  SK_RunOnce (
+      //    manifest_version =
+      //    std::stoull (manifest_query.empty () ? "0" : manifest_query)
+      //  );
+      //} catch (...) { }
+
+      auto InitializeSteamDepots = [&](void) ->
+      void
       {
-        const auto logon_state =
-          user_ex->GetLogonState ();
+        for ( auto& cache_record : SK_Steam_DepotManifestRegistry.get () )
+          cache_record.second.clear ();
 
-        static DWORD dwStartLogOffTime = SK::ControlPanel::current_time;
-        static DWORD dwStartLogOnTime  = SK::ControlPanel::current_time;
+        SK_Steam_DepotManifestRegistry->clear ();
+        SK_Steam_InstalledManifest->clear ();
 
-        switch (logon_state)
+        SK_Thread_Create ([](LPVOID)->
+        DWORD
         {
-          case SK::SteamAPI::k_ELogonStateNotLoggedOn:
-          case SK::SteamAPI::k_ELogonStateLoggingOff:
+          std::vector <SK_Steam_Depot> depots =
+            SK_UseManifestToGetDepots (SK::SteamAPI::AppID ());
+
+          for ( auto& it : depots )
           {
-            if (ImGui::MenuItem ("Log On"))
+            auto* get =
+              new sk_depot_get_t { };
+
+            URL_COMPONENTSW urlcomps = { };
+
+            urlcomps.dwStructSize     = sizeof URL_COMPONENTSW;
+
+            urlcomps.lpszHostName     = get->wszHostName;
+            urlcomps.dwHostNameLength = INTERNET_MAX_HOST_NAME_LENGTH;
+
+            urlcomps.lpszUrlPath      = get->wszHostPath;
+            urlcomps.dwUrlPathLength  = INTERNET_MAX_PATH_LENGTH;
+
+            if (SK_Steam_InstalledManifest->count (it.depot) == 0)
             {
-              dwStartLogOnTime = SK::ControlPanel::current_time;
-              user_ex->LogOn (user_ex->GetSteamID ());
+              SK_Steam_InstalledManifest [it.depot].manifest.id =
+                SK_UseManifestToGetDepotManifest (SK::SteamAPI::AppID (), it.depot);
             }
 
-            if (logon_state == SK::SteamAPI::k_ELogonStateLoggingOff)
+            get->depot_id = it.depot;
+
+            std::wstring url  = L"http://steamdb.info/depot/";
+                         url += std::to_wstring (it.depot);
+                         url += L"/manifests/";
+
+            if ( InternetCrackUrl (          url.c_str  (),
+                   gsl::narrow_cast <DWORD> (url.length ()),
+                                      0x00,
+                                        &urlcomps
+                                  )
+               )
             {
-              ImGui::Separator  (  );
-              ImGui::TreePush   ("");
-              ImGui::BulletText ("Logging off... (%3.1f seconds)",
-                double(SK::ControlPanel::current_time - dwStartLogOffTime)
-                     / 1000.0);
-              ImGui::TreePop    (  );
-            }
-          } break;
-
-          case SK::SteamAPI::k_ELogonStateLoggedOn:
-          case SK::SteamAPI::k_ELogonStateLoggingOn:
-          {
-            if (ImGui::MenuItem ("Log Off"))
-            {
-              dwStartLogOffTime = SK::ControlPanel::current_time;
-              user_ex->LogOff ();
-            }
-
-            if (logon_state == SK::SteamAPI::k_ELogonStateLoggingOn)
-            {
-              ImGui::Separator  (  );
-              ImGui::TreePush   ("");
-              ImGui::BulletText ("Logging on... (%3.1f seconds)",
-                double(SK::ControlPanel::current_time - dwStartLogOnTime)
-                     / 1000.0);
-              ImGui::TreePop    (  );
-            }
-
-            else
-            {
-              ImGui::Separator ();
-
-              int state =
-                SK::SteamAPI::GetPersonaState ();
-
-              bool always_anti_social =
-                config.steam.online_status != -1;
-
-              if (ImGui::Checkbox ("Always Appear", &always_anti_social))
+              if (! SK_SteamDB_ManifestFetch (get))
               {
-                if (always_anti_social) config.steam.online_status = state;
-                else                    config.steam.online_status =    -1;
-              }
-
-              ImGui::SameLine ();
-
-              // Range restrict -- there are online states that are meaningless while in-game,
-              //                     we want to hide these, but not force them on/off.
-              state = std::min (2, std::max (0, state));
-
-              if ( ImGui::Combo ( "###Steam_Social_Status",
-                                    &state,
-                                      "Offline\0"
-                                      "Online\0"
-                                      "Busy\0\0",
-                                        3 ) )
-              {
-                if (always_anti_social)
-                  config.steam.online_status = state;
-
-                SK::SteamAPI::SetPersonaState ((EPersonaState)state);
+                SK_LOG0 ( ( L"Failed to fetch depot manifest info for (appid=%lu, depot=%lu)",
+                            SK::SteamAPI::AppID (), it.depot ),
+                            L" Steam DB " );
               }
             }
-          } break;
+          }
+
+          // Stash and cache
+          app_cache_mgr->saveAppCache ();
+
+          SK_Thread_CloseSelf ();
+
+          return 0;
+        });
+      };
+
+      if (SK_Steam_DepotManifestRegistry->empty ())
+        SK_RunOnce (InitializeSteamDepots ());
+
+      ImGui::Separator ();
+
+      bool unroll =
+        ImGui::BeginMenu (  SK_FormatString ( "Steam Unroller (%d Depots)###SK_STEAMROLL_PATCH_FIX",
+                                                SK_Steam_DepotManifestRegistry.get ().size ()
+                                            ).c_str ()
+                         );
+
+      if (unroll)
+      {
+        if (! SK_Steam_DepotManifestRegistry->empty ())
+        {
+          for ( auto& it : SK_Steam_DepotManifestRegistry.get () )
+          {
+            if (ImGui::BeginMenu (it.second.front ().depot.name.c_str ()))
+            {
+              for ( auto& it2 : it.second )
+              {
+                bool selected =
+                  ( SK_Steam_InstalledManifest [it.first].manifest.id == it2.manifest.id );
+
+                if (ImGui::MenuItem ( SK_FormatString ( "%s##%llu",
+                                                          it2.manifest.date.c_str (),
+                                                            it2.manifest.id
+                                                      ).c_str (), "",  &selected )
+                   )
+                {
+                  if (OpenClipboard (nullptr))
+                  {
+                    std::wstring command =
+                      SK_FormatStringW ( L"download_depot %u %u %llu %llu",
+                                         SK::SteamAPI::AppID (),
+                                                       it.first,
+                                                             it2.manifest.id,
+                           SK_Steam_InstalledManifest [it.first].manifest.id
+                                       );
+
+                    const SIZE_T len =
+                      command.length () + 1;
+
+                    HGLOBAL hGlobal =
+                      GlobalAlloc (GHND, len * sizeof (wchar_t));
+
+                    if (hGlobal != nullptr)
+                    {
+                      wchar_t *wszCommand =
+                        gsl::narrow_cast <wchar_t *> (
+                          GlobalLock (hGlobal)
+                        );
+
+                      wcscpy (wszCommand, command.c_str ());
+
+                      GlobalUnlock     (hGlobal);
+                      EmptyClipboard   (       );
+                      SetClipboardData (CF_UNICODETEXT,
+                                        hGlobal);
+                      CloseClipboard   (       );
+
+                      HWND hWndOriginal =
+                        GetForegroundWindow ();
+
+                      ShellExecuteW (HWND_DESKTOP, L"OPEN", L"steam://nav/console", wszCommand, nullptr, SW_SHOWNORMAL);
+
+                      SK_ImGui_Warning ( L"An unpatch command has been added to the clipboard; paste it to Steam's console and press Enter.\n\n\t"
+                                         L"Once the Steam console indicates completion, copy files:"
+                                         L"\n\n\t\tfrom 'content\\app_...\\depot_...\\' to your game's install directory." );
+
+                      ///SK_Steam_InstalledManifest [it.first].manifest.id =
+                      ///  atoll (SK_WideCharToUTF8 (sec.get_value (key_to_use.c_str ())).c_str ());
+
+                      InterlockedExchange (&__SK_Steam_Downloading, it.first);
+
+                      SK_Steam_InstalledManifest [it.first].manifest.id =
+                        it2.manifest.id;
+
+                      SK_Thread_Create ([](LPVOID hWndOriginal) ->
+                        DWORD
+                        {
+                          do {
+                            SK_Sleep (50UL);
+                          } while (GetForegroundWindow () == (HWND)hWndOriginal);
+
+                        //SK_ImGui_Warning (L"\tPaste (Ctrl + V) the Generated Command in the Steam Console and Press Enter.");
+
+                          extern const wchar_t*
+                            SK_GetSteamDir (void);
+
+                          std::wstring content_dir =
+                            SK_GetSteamDir ();
+
+                          content_dir +=
+                            SK_FormatStringW ( LR"(\steamapps\content\app_%lu\depot_%lu)",
+                                                 SK::SteamAPI::AppID (),
+                                                   ReadAcquire (&__SK_Steam_Downloading) );
+
+                          int tries = 0;
+
+                          do {
+                            SK_Sleep (1000UL);
+                          } while ((! ::PathIsDirectory (content_dir.c_str ())) && tries++ < 30);
+
+                          ShellExecuteW ( HWND_DESKTOP, L"OPEN",
+                                            content_dir.c_str (), nullptr,
+                                            content_dir.c_str (), SW_SHOWNORMAL );
+
+                          app_cache_mgr->saveAppCache ();
+
+                          SK_Thread_CloseSelf ();
+
+                          return 0;
+                        },(LPVOID)hWndOriginal
+                      );
+                    }
+                  }
+                }
+              }
+
+              ImGui::EndMenu ();
+            }
+          }
+
+          ImGui::Separator ();
         }
-      }
 
-      ImGui::EndMenu ();
+        bool selected = false;
+
+        if (ImGui::MenuItem ("Refresh Patch List", "", &selected))
+          InitializeSteamDepots ();
+
+        ImGui::EndMenu (); // Steam Unroll
+      } ImGui::EndMenu (); // Steam
 
       return  true;
     }

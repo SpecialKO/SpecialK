@@ -176,9 +176,10 @@ struct SK_SteamAchievement
     int current;
     int max;
 
-    __forceinline float getPercent (void)
+    __forceinline float getPercent (void) noexcept
     {
-      return 100.0f * (float)current / (float)max;
+      return 100.0f * gsl::narrow_cast <float> (current) /
+                      gsl::narrow_cast <float> (max);
     }
   } progress_;
 
@@ -305,6 +306,7 @@ ISteamRemoteStorage*  SK_SteamAPI_RemoteStorage                 (void);
 ISteamFriends*        SK_SteamAPI_Friends                       (void);
 
 uint32_t __stdcall    SK_Steam_PiratesAhoy                      (void);
+
 
 
 
@@ -563,8 +565,24 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase = false);
 bool
 SK_Steam_ConnectUserIfNeeded (CSteamID user);
 
+std::wstring
+SK_Steam_GetApplicationManifestPath (AppId_t appid = 0);
+
 std::string
-SK_UseManifestToGetAppName (uint32_t appid);
+SK_UseManifestToGetAppName (AppId_t appid = 0);
+
+struct SK_Steam_Depot
+{
+  std::string  name; // Has to be queried w/ WebAPI
+  DepotId_t    depot;
+  ManifestId_t manifest;
+};
+
+std::vector <SK_Steam_Depot>
+SK_UseManifestToGetDepots (AppId_t appid = 0);
+
+ManifestId_t
+SK_UseManifestToGetDepotManifest (AppId_t appid, DepotId_t depot);
 
 
 
@@ -576,13 +594,15 @@ class SK_Steam_KeyValues
 {
 public:
   static
-  std::string
-  getValue ( std::string              input,
-             std::deque <std::string> sections,
-             std::string              key )
+  std::vector <std::string>
+  getKeys ( std::string                input,
+            std::deque  <std::string>  sections,
+            std::vector <std::string>* values = nullptr )
   {
-    if (sections.empty () || input.empty () || key.empty ())
-      return "";
+    std::vector <std::string> ret;
+
+    if (sections.empty () || input.empty ())
+      return ret;
 
     struct {
       std::stack <std::string> path;
@@ -615,13 +635,14 @@ public:
     std::string value  = "";
     int         quotes = 0;
 
-    auto clear = [&](void)
+    const auto clear =
+   [&](void)
     {
       name   = ""; value = "";
       quotes = 0;
     };
 
-    for (auto c : input)
+    for (auto& c : input)
     {
       if (c == '"')
         ++quotes;
@@ -644,8 +665,10 @@ public:
         if (! _stricmp ( search_tree.heap.test.c_str   (),
                          search_tree.heap.actual.c_str () ) )
         {
-          if (! _stricmp (name.c_str (), key.c_str ()))
-            return value;
+          ret.emplace_back (name);
+
+          if (values != nullptr)
+            values->emplace_back (value);
         }
 
         clear ();
@@ -667,98 +690,31 @@ public:
       }
     }
 
+    return ret;
+  }
+
+  static
+  std::string
+  getValue ( std::string              input,
+             std::deque <std::string> sections,
+             std::string              key )
+  {
+    std::vector <std::string> values;
+    std::vector <std::string> keys (
+      SK_Steam_KeyValues::getKeys (input, sections, &values)
+    );
+
+    int idx = 0;
+    for ( auto& it : keys )
+    {
+      if (it._Equal (key))
+        return values [idx];
+
+      ++idx;
+    }
+
     return "";
   }
-
-#if 0
-  struct ValueKey
-  {
-    std::string name;
-    std::string value;
-  };
-
-  struct ParentKey
-  {
-    std::string name;
-
-    std::vector <ValueKey>  keys;
-    std::vector <ParentKey> children;
-  };
-
-  ParentKey root;
-
-  void parse (std::string input)
-  {
-    std::string name   = "";
-    std::string value  = "";
-    int         quotes = 0;
-
-    std::stack <ParentKey> parents;
-    ParentKey              parent;
-
-    for (auto c : input)
-    {
-      if (c == '"')
-        quotes++;
-
-      else if (c != '{')
-      {
-        if (quotes == 1)
-        {
-          name += c;
-        }
-
-        if (quotes == 3)
-        {
-          value += c;
-        }
-      }
-
-      if (quotes == 4)
-      {
-        quotes = 0;
-        parent.keys.emplace_back (ValueKey { name, value });
-
-        //dll_log->Log (L"Key/Value: %hs, %hs", name.c_str (), value.c_str ());
-
-        name = ""; value = "";
-      }
-
-      if (c == '{')
-      {
-        //dll_log->Log (L"------ %hs ----- { ", name.c_str ());
-
-        parent = { name, { }, { } };
-        quotes = 0;
-        name   = "";
-
-        parents.emplace (parent);
-      }
-
-      else if (c == '}')
-      {
-        //dll_log->Log (L"------ %hs ----- } ", parents.top ().name.c_str ());
-
-        name = ""; value = "";
-
-        if (parents.size () == 1)
-        {
-          root = std::move (parents.top ());
-                            parents.pop ();
-        }
-
-        else
-        {
-          auto child =
-            parents.top ();
-
-          parents.pop ();
-          parents.top ().children.emplace_back (child);
-        }
-      }
-    }
-  }
-#endif
 };
 
 

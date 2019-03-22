@@ -3699,6 +3699,8 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
     app_cache_db =
       SK_CreateINI         (wszAppCache);
 
+    loadDepotCache ();
+
     if ( need_to_create )
       app_cache_db->write (app_cache_db->get_filename ());
   }
@@ -3960,6 +3962,8 @@ SK_AppCache_Manager::saveAppCache (bool close)
 {
   if (app_cache_db != nullptr)
   {
+    storeDepotCache ();
+
     app_cache_db->write ( app_cache_db->get_filename () );
 
     if (close)

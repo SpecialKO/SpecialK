@@ -31,4 +31,23 @@ extern HRESULT
   __stdcall
     SK_UpdateSoftware (const wchar_t* wszProduct);
 
+#include <WinInet.h>
+
+
+struct sk_internet_get_t {
+  enum {
+    STATUS_INVALID   = 0,
+    STATUS_UPDATED   = 1,
+    STATUS_REMINDER  = 2,
+    STATUS_CANCELLED = 4,
+    STATUS_FAILED    = 8
+  };
+
+  wchar_t wszHostName  [INTERNET_MAX_HOST_NAME_LENGTH] = { };
+  wchar_t wszHostPath  [INTERNET_MAX_PATH_LENGTH]      = { };
+  wchar_t wszLocalPath [MAX_PATH]                      = { };
+  HWND    hTaskDlg                                     = HWND_DESKTOP;
+  int     status                                       = STATUS_INVALID;
+};
+
 #endif /* __SK_Update__Network_H__ */

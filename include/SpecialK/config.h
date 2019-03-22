@@ -761,30 +761,59 @@ SK_Config_GetTargetFPS (void);
 
 struct iSK_INI;
 
+typedef uint32_t DepotId_t;
+typedef uint64_t ManifestId_t;
+
+struct SK_Steam_DepotManifest {
+  struct {
+    std::string  name;
+    DepotId_t    id;
+  } depot;
+
+  struct
+  {
+    std::string  date;
+    ManifestId_t id;
+  } manifest;
+};
+
+typedef std::vector <SK_Steam_DepotManifest> SK_DepotList;
+
 struct SK_AppCache_Manager
 {
-  bool         saveAppCache       (bool           close = false);
-  bool         loadAppCacheForExe (const wchar_t* wszExe);
+  bool          saveAppCache       (bool           close = false);
+  bool          loadAppCacheForExe (const wchar_t* wszExe);
 
-  uint32_t     getAppIDFromPath   (const wchar_t* wszPath) const;
-  std::wstring getAppNameFromID   (uint32_t       uiAppID) const;
-  std::wstring getAppNameFromPath (const wchar_t* wszPath) const;
+  uint32_t      getAppIDFromPath   (const wchar_t* wszPath) const;
+  std::wstring  getAppNameFromID   (uint32_t       uiAppID) const;
+  std::wstring  getAppNameFromPath (const wchar_t* wszPath) const;
 
-  bool         addAppToCache      ( const wchar_t* wszRelativePath,
-                                    const wchar_t* wszExecutable,
-                                    const wchar_t* wszAppName,
-                                          uint32_t uiAppID );
+  bool          addAppToCache      ( const wchar_t* wszRelativePath,
+                                     const wchar_t* wszExecutable,
+                                     const wchar_t* wszAppName,
+                                           uint32_t uiAppID );
 
-  std::wstring getConfigPathFromAppPath (const wchar_t* wszPath) const;
-  std::wstring getConfigPathForAppID    (uint32_t       uiAppID) const;
+  std::wstring  getConfigPathFromAppPath (const wchar_t* wszPath) const;
+  std::wstring  getConfigPathForAppID    (uint32_t       uiAppID) const;
 
-  int          migrateProfileData       (LPVOID reserved = nullptr);
+  int           migrateProfileData       (LPVOID reserved = nullptr);
+
+  SK_DepotList& getAvailableManifests    (DepotId_t steam_depot);
+  ManifestId_t  getInstalledManifest     (DepotId_t steam_depot);
+  int           loadDepotCache           (DepotId_t steam_depot = 0);
+  int           storeDepotCache          (DepotId_t steam_depot = 0);
+
 
 protected:
   iSK_INI* app_cache_db = nullptr;
 };
 
 extern SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
+
+#include <concurrent_unordered_map.h>
+
+extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t,           SK_DepotList> > SK_Steam_DepotManifestRegistry;
+extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
 
 
 
