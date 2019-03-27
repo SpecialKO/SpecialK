@@ -136,15 +136,8 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
 
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
-std::vector <SK_ComPtr <IUnknown> > SK_D3D11_TempResources;
-
-std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>&
-_SK_D3D11_RenderTargets (void)
-{
-  static std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1> _targets;
-
-  return _targets;
-}
+SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown> > >                               SK_D3D11_TempResources;
+SK_LazyGlobal <std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1> > SK_D3D11_RenderTargets;
 
 void
 SK_D3D11_KnownThreads::clear_all (void)
@@ -196,10 +189,8 @@ SK_D3D11_KnownThreads::mark (void)
 
 #include <array>
 
-extern memory_tracking_s* __mem_map_stats__ (void);
-extern target_tracking_s* __tracked_rtv__   (void);
-#define mem_map_stats  (* __mem_map_stats__ ())
-#define tracked_rtv    (* __tracked_rtv__   ())
+extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
+extern SK_LazyGlobal <target_tracking_s> tracked_rtv;
 
 // This is not a smart ptr., it may point to something, but we're not
 //   holding any references. The pointer is used only for comparison.
@@ -214,23 +205,27 @@ struct SK_DisjointTimerQueryD3D11 d3d11_shader_tracking_s::disjoint_query;
 void
 d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
                                     ID3D11ClassInstance *const *ppClassInstances,
-                                    UINT                        NumClassInstances )
+                                    UINT                        NumClassInstances,
+                                    UINT                        dev_idx )
 {
   if (! pDevContext) return;
 
   for ( UINT i = 0 ; i < NumClassInstances ; i++ )
   {
     if (ppClassInstances && ppClassInstances [i])
-      addClassInstance   (ppClassInstances [i]);
+        addClassInstance   (ppClassInstances [i]);
   }
 
-  const UINT dev_idx =
-    SK_D3D11_GetDeviceContextHandle (pDevContext);
+  if (dev_idx == UINT_MAX)
+  {
+    dev_idx =
+      SK_D3D11_GetDeviceContextHandle (pDevContext);
+  }
 
   const bool is_active =
     active.get (dev_idx);
 
-  if ((! is_active))
+  //if ((! is_active))
   {
     static auto& shaders =
       SK_D3D11_Shaders;
@@ -240,28 +235,28 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     switch (type_)
     {
       case SK_D3D11_ShaderType::Vertex:
-        shaders.vertex.current.shader   [dev_idx] = crc32c.load ();
+        shaders->vertex.current.shader   [dev_idx] = crc32c.load ();
         break;
       case SK_D3D11_ShaderType::Pixel:
-        shaders.pixel.current.shader    [dev_idx] = crc32c.load ();
+        shaders->pixel.current.shader    [dev_idx] = crc32c.load ();
         break;
       case SK_D3D11_ShaderType::Geometry:
-        shaders.geometry.current.shader [dev_idx] = crc32c.load ();
+        shaders->geometry.current.shader [dev_idx] = crc32c.load ();
         break;
       case SK_D3D11_ShaderType::Domain:
-        shaders.domain.current.shader   [dev_idx] = crc32c.load ();
+        shaders->domain.current.shader   [dev_idx] = crc32c.load ();
         break;
       case SK_D3D11_ShaderType::Hull:
-        shaders.hull.current.shader     [dev_idx] = crc32c.load ();
+        shaders->hull.current.shader     [dev_idx] = crc32c.load ();
         break;
       case SK_D3D11_ShaderType::Compute:
-        shaders.compute.current.shader  [dev_idx] = crc32c.load ();
+        shaders->compute.current.shader  [dev_idx] = crc32c.load ();
         break;
     }
   }
 
-  else
-    return;
+  //else
+  //  return;
 
 
   // Timing is very difficult on deferred contexts; will finish later (years?)
@@ -318,13 +313,16 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 }
 
 void
-d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx)
+d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 {
   static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  const UINT dev_idx =
-    SK_D3D11_GetDeviceContextHandle (pDevCtx);
+  if (dev_idx == UINT_MAX)
+  {
+    dev_idx =
+      SK_D3D11_GetDeviceContextHandle (pDevCtx);
+  }
 
   const bool is_active =
     active.get (dev_idx);
@@ -347,22 +345,22 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx)
     switch (type_)
     {
       case SK_D3D11_ShaderType::Vertex:
-        shaders.vertex.current.shader [dev_idx]   = 0x0;
+        shaders->vertex.current.shader   [dev_idx] = 0x0;
         break;
       case SK_D3D11_ShaderType::Pixel:
-        shaders.pixel.current.shader  [dev_idx]   = 0x0;
+        shaders->pixel.current.shader    [dev_idx] = 0x0;
         break;
       case SK_D3D11_ShaderType::Geometry:
-        shaders.geometry.current.shader [dev_idx] = 0x0;
+        shaders->geometry.current.shader [dev_idx] = 0x0;
         break;
       case SK_D3D11_ShaderType::Domain:
-        shaders.domain.current.shader [dev_idx]   = 0x0;
+        shaders->domain.current.shader   [dev_idx] = 0x0;
         break;
       case SK_D3D11_ShaderType::Hull:
-        shaders.hull.current.shader [dev_idx]     = 0x0;
+        shaders->hull.current.shader     [dev_idx] = 0x0;
         break;
       case SK_D3D11_ShaderType::Compute:
-        shaders.compute.current.shader [dev_idx]  = 0x0;
+        shaders->compute.current.shader  [dev_idx] = 0x0;
         break;
     }
 
@@ -442,7 +440,7 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
 
   if ( SK_ReShade_DrawCallback.fn != nullptr &&
                                reshadable () &&
-       (! SK_D3D11_Shaders.reshade_triggered) )
+       (! SK_D3D11_Shaders->reshade_triggered) )
   {
     process = true;
   }
@@ -462,7 +460,7 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
     process;
 }
 
-SK_D3D11_KnownThreads SK_D3D11_MemoryThreads;
-SK_D3D11_KnownThreads SK_D3D11_DrawThreads;
-SK_D3D11_KnownThreads SK_D3D11_DispatchThreads;
-SK_D3D11_KnownThreads SK_D3D11_ShaderThreads;
+SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_MemoryThreads;
+SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_DrawThreads;
+SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_DispatchThreads;
+SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_ShaderThreads;

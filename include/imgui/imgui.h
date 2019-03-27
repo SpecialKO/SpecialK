@@ -1469,3 +1469,4 @@ extern           bool SK_ReShade_Visible;
 extern           bool nav_usable;
 
 static inline bool SK_ImGui_Active (void) { return SK_ImGui_Visible || SK_ReShade_Visible; };
+              void SK_ImGui_Warning (const wchar_t* wszMessage);

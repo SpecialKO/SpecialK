@@ -57,8 +57,8 @@ public:
                                     hDC_  (hDC) { };
   ~SK_AutoDC (void)    { ReleaseDC (hWnd_, hDC_); }
 
-  HDC  hDC  (void) { return hDC_;  }
-  HWND hWnd (void) { return hWnd_; }
+  HDC  hDC  (void) noexcept { return hDC_;  }
+  HWND hWnd (void) noexcept { return hWnd_; }
 
 private:
   HWND hWnd_;
@@ -459,7 +459,7 @@ SK_RenderBackend_V2::gsync_s::update (void)
     return;
 
 
-  SK_RenderBackend& rb =
+  static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -522,7 +522,7 @@ SK_RenderBackend_V2::gsync_s::update (void)
 bool
 SK_RenderBackendUtil_IsFullscreen (void)
 {
-  SK_RenderBackend& rb =
+  static const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
@@ -695,7 +695,7 @@ SK_COM_ValidateRelease (IUnknown** ppObj)
   if ((! ppObj) || (! ReadPointerAcquire ((volatile LPVOID *)ppObj)))
     return nullptr;
 
-  ULONG refs =
+  const ULONG refs =
     (*ppObj)->Release ();
 
   assert (refs == 0);
@@ -706,27 +706,6 @@ SK_COM_ValidateRelease (IUnknown** ppObj)
   }
 
   return *ppObj;
-}
-
-__declspec (noinline)
-void
-SK_RenderBackend_V2::setHDRCapable (bool set)
-{
-  hdr_capable = set;
-}
-
-__declspec (noinline)
-bool
-SK_RenderBackend_V2::isHDRCapable (void)
-{
-  if (framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
-    hdr_capable = true;
-
-  if (driver_based_hdr)
-    hdr_capable = true;
-
-  return
-    hdr_capable;
 }
 
 void
@@ -892,7 +871,7 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
 sk_hwnd_cache_s::devcaps_s&
 sk_hwnd_cache_s::getDevCaps (void)
 {
-  DWORD dwNow = timeGetTime ();
+  const DWORD dwNow = timeGetTime ();
 
   if (devcaps.last_checked < dwNow - 333UL)
   {
@@ -914,20 +893,23 @@ sk_hwnd_cache_s::getDevCaps (void)
 const wchar_t*
 SK_Render_GetAPIName (SK_RenderAPI api)
 {
-  std::unordered_map <SK_RenderAPI, const wchar_t *> api_map {
-    { SK_RenderAPI::D3D11,  L"D3D11" },
-    { SK_RenderAPI::D3D9,   L"D3D9"  }, { SK_RenderAPI::D3D9Ex,   L"D3D9Ex" },
-    { SK_RenderAPI::OpenGL, L"OpenGL"}, { SK_RenderAPI::D3D8,     L"D3D8"   },
-    { SK_RenderAPI::DDraw,  L"DDraw" }, { SK_RenderAPI::Reserved, L"N/A"    }
-  };
+  static const
+    std::unordered_map <SK_RenderAPI, const wchar_t *>
+      api_map {
+        { SK_RenderAPI::D3D11,  L"D3D11" },
+        { SK_RenderAPI::D3D9,   L"D3D9"  }, { SK_RenderAPI::D3D9Ex,   L"D3D9Ex" },
+        { SK_RenderAPI::OpenGL, L"OpenGL"}, { SK_RenderAPI::D3D8,     L"D3D8"   },
+        { SK_RenderAPI::DDraw,  L"DDraw" }, { SK_RenderAPI::Reserved, L"N/A"    }
+      };
 
   if (api_map.count (api) != 0)
-    return api_map [api];
+    return api_map.at (api);
 
   SK_LOG0 ( ( L"Missing render API name mapping for %x", (unsigned int)api ),
               L"  FIXME!  " );
 
-  return L"Unknown API";
+  return
+    L"Unknown API";
 }
 
 

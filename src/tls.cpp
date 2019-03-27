@@ -45,9 +45,15 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
   auto& pTLS =
     *ppTLS;
 
+  ULONG dwTLSIndex =
+    ReadULongAcquire (&__SK_TLS_INDEX);
+
+  if (dwTLSIndex == 4294967295UL)
+    return nullptr;
+
   pTLS =
     static_cast <SK_TLS *> (
-      FlsGetValue (ReadULongAcquire (&__SK_TLS_INDEX))
+      FlsGetValue (dwTLSIndex)
     );
 
   if (pTLS == nullptr)
@@ -59,18 +65,16 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
     if (GetLastError () == ERROR_SUCCESS)
     {
 #endif
-    if ( FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
-                         nullptr )
+    if ( FlsSetValue (dwTLSIndex,
+                        nullptr )
        )
     {
       InterlockedIncrement (&_SK_IgnoreTLSAlloc);
       try {
         pTLS =
-          new SK_TLS (
-            ReadULongAcquire (&__SK_TLS_INDEX)
-          );
+          new SK_TLS ( dwTLSIndex );
 
-        FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
+        FlsSetValue ( dwTLSIndex,
                         pTLS );
       }
 

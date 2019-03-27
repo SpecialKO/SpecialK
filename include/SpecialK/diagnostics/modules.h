@@ -24,6 +24,7 @@
 
 #include <SpecialK/diagnostics/load_library.h>
 
+#include <SpecialK/utility/lazy_global.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/core.h>
@@ -192,12 +193,7 @@ public:
       Release ();
     }
 
-    if (cache_name_ != nullptr)
-    {
-      std::wstring* toDelete = cache_name_;
-                               cache_name_ = nullptr;
-             delete toDelete;
-    }
+    cache_name_.reset ();
   }
 
 
@@ -207,15 +203,18 @@ public:
 
   // Assigning an arbitrary HMODULE causes us to track, but not
   //   assume ownership of the Win32 module
-  const skWin32Module& operator= (const HMODULE hModWin32) noexcept
+  const skWin32Module&
+  operator= (const HMODULE hModWin32) noexcept
   {
     if (hMod_ != Uninitialized) {
       Release (); assert (ReadAcquire (&refs_) == 0);
                // iff~ => you just leaked a module!
     }
 
-    return ( *this =
-               skWin32Module (hModWin32) );
+    *this =
+      skWin32Module (hModWin32);
+
+    return *this;
   }
 
   operator const HMODULE&       (void) const noexcept {
@@ -229,10 +228,17 @@ public:
                                                         )
                      );
   }
-  operator const std::wstring&  (void) {
-    if (cache_name_ != nullptr) return *cache_name_;
+  operator const
+  std::wstring& (void)
+  {
+    if (cache_name_ != nullptr)
+      return *cache_name_.get ();
 
-    return *(cache_name_ = new (std::nothrow) std::wstring (name_));
+    cache_name_
+      = std::make_shared <std::wstring> (name_);
+
+    return
+      *cache_name_;
   }
   operator const wchar_t*       (void) const noexcept {
     return name_;
@@ -253,7 +259,8 @@ protected:
            size_t       size_  { Unallocated   };
   volatile LONG         refs_  { Unreferenced  };
            wchar_t      name_ [MAX_PATH * 2 + 1] = { };
-  std::wstring*   cache_name_                    = nullptr;
+  std::shared_ptr <std::wstring>
+                        cache_name_              = nullptr;
 };
 
 
@@ -372,7 +379,7 @@ private:
     if (_known_module_names.empty ())
       return INVALID_MODULE;
 
-    const auto& it =
+    const auto it =
       _known_module_names.find ( wszLibrary );
 
     if ( it != _known_module_names.cend () )
@@ -504,10 +511,10 @@ public:
   HMODULE
   FreeLibrary (const wchar_t *wszLibrary)
   {
-    auto&& it =
+    const auto it =
       _known_module_names.find ( std::wstring (wszLibrary) );
 
-    if (it != _known_module_names.end ())
+    if (it != _known_module_names.cend ())
     {
       return
         _ReleaseLibrary (_loaded_libraries [it->second]);
@@ -538,8 +545,7 @@ protected:
   std::unordered_map  <HMODULE,      skWin32Module>  _loaded_libraries;
 };
 
-extern skModuleRegistry* SK_Singleton_Modules (void);
-#define SK_Modules (*SK_Singleton_Modules ())
+extern SK_LazyGlobal <skModuleRegistry> SK_Modules;
 
 
 #define __SK_hModSelf skModuleRegistry::Self    ()

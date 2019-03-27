@@ -1851,8 +1851,8 @@ SK_ImGui_PollGamepad (void)
   {
     if (last_toggle < SK_GetFramesDrawn () - 1)
     {
-      SK_ImGui_Widgets.hide_all = (! SK_ImGui_Widgets.hide_all);
-      last_toggle               =    SK_GetFramesDrawn ();
+      SK_ImGui_Widgets->hide_all = (! SK_ImGui_Widgets->hide_all);
+      last_toggle                =    SK_GetFramesDrawn ();
     }
   }
 }

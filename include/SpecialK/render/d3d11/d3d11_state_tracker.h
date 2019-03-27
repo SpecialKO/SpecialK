@@ -184,7 +184,7 @@ struct memory_tracking_s
   }
 
   SK_Thread_HybridSpinlock* cs;
-} extern mem_map_stats;
+};
 
 struct target_tracking_s
 {
@@ -297,7 +297,7 @@ struct target_tracking_s
     active_set.ref_ds;
   concurrency::concurrent_unordered_set <uint32_t>& ref_cs =
     active_set.ref_cs;
-} extern tracked_rtv;
+};
 
 struct SK_D3D11_KnownThreads
 {
@@ -341,11 +341,11 @@ struct SK_D3D11_KnownThreads
     {
       SK_AutoCriticalSection auto_cs (&cs);
       return static_cast <float> (active.size ())/
-        static_cast <float> (ids.size    ());
+             static_cast <float> (ids.size    ());
     }
 
     return static_cast <float> (active.size ())/
-      static_cast <float> (ids.size    ());
+           static_cast <float> (ids.size    ());
   }
 
   static void mark (void) ;
@@ -357,10 +357,10 @@ private:
   bool             use_lock = true;
 };
 
-extern SK_D3D11_KnownThreads SK_D3D11_MemoryThreads;
-extern SK_D3D11_KnownThreads SK_D3D11_DrawThreads;
-extern SK_D3D11_KnownThreads SK_D3D11_DispatchThreads;
-extern SK_D3D11_KnownThreads SK_D3D11_ShaderThreads;
+extern SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_MemoryThreads;
+extern SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_DrawThreads;
+extern SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_DispatchThreads;
+extern SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_ShaderThreads;
 
 
 static
@@ -435,7 +435,7 @@ SK_D3D11_CreateShader_Impl (
   //   >> Ideally, we must keep our own locking to a minimum otherwise we
   //        can derail game's performance! <<
   //
-  SK_D3D11_ShaderThreads.mark ();
+  SK_D3D11_ShaderThreads->mark ();
 
   HRESULT hr =
     S_OK;
@@ -453,37 +453,37 @@ SK_D3D11_CreateShader_Impl (
       case sk_shader_class::Vertex:
         *ppCritical     = cs_shader_vs.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders.vertex
+                           &shaders->vertex
                           );
          break;
       case sk_shader_class::Pixel:
         *ppCritical     = cs_shader_ps.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders.pixel
+                           &shaders->pixel
                           );
          break;
       case sk_shader_class::Geometry:
         *ppCritical     = cs_shader_gs.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders.geometry
+                           &shaders->geometry
                           );
          break;
       case sk_shader_class::Domain:
         *ppCritical     = cs_shader_ds.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders.domain
+                           &shaders->domain
                           );
          break;
       case sk_shader_class::Hull:
         *ppCritical     = cs_shader_hs.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders.hull
+                           &shaders->hull
                           );
          break;
       case sk_shader_class::Compute:
         *ppCritical     = cs_shader_cs.get ();
         *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders.compute
+                           &shaders->compute
                           );
          break;
     }
@@ -537,10 +537,10 @@ SK_D3D11_CreateShader_Impl (
         desc.crc32c  =  checksum;
         desc.pShader = *ppShader;
 
-      desc.bytecode.insert ( desc.bytecode.end  (),
-        &((uint8_t *) pShaderBytecode) [0],
-        &((uint8_t *) pShaderBytecode) [BytecodeLength]
-      );
+        desc.bytecode.insert ( desc.bytecode.end  (),
+          &((uint8_t *) pShaderBytecode) [0],
+          &((uint8_t *) pShaderBytecode) [BytecodeLength]
+        );
 
         pCritical->lock (); // Re-acquire before cache manipulation
 
@@ -632,44 +632,27 @@ SK_D3D11_ShouldTrackDrawCall (       ID3D11DeviceContext* pDevCtx,
 
 struct SK_D3D11_KnownTargets
 {
-  SK_D3D11_KnownTargets (void) : pRt_views ( new
-                                               std::unordered_set <SK_ComPtr <ID3D11RenderTargetView> > () ),
-                                 pDs_views ( new
-                                               std::unordered_set <SK_ComPtr <ID3D11DepthStencilView> > () ),
-                                 rt_views (*pRt_views),
-                                 ds_views (*pDs_views)
+  SK_D3D11_KnownTargets (void)
   {
-    rt_views.reserve (128);
-    ds_views.reserve ( 64);
+    //rt_views.resize (128);
+    //ds_views.resize ( 64);
   }
 
   ~SK_D3D11_KnownTargets (void)
   {
-    if (pRt_views != nullptr)
-      delete pRt_views;
-
-    if (pDs_views != nullptr)
-      delete pDs_views;
   }
 
   void clear (void)
   {
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
-
     rt_views.clear ();
     ds_views.clear ();
   }
 
-  std::unordered_set <SK_ComPtr <ID3D11RenderTargetView> > *pRt_views;
-  std::unordered_set <SK_ComPtr <ID3D11DepthStencilView> > *pDs_views;
-
-  std::unordered_set <SK_ComPtr <ID3D11RenderTargetView> >& rt_views;
-  std::unordered_set <SK_ComPtr <ID3D11DepthStencilView> >& ds_views;
+  Concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11RenderTargetView> > rt_views;
+  Concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11DepthStencilView> > ds_views;
 };
 
-extern std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>&
-                       _SK_D3D11_RenderTargets (void);
-#define SK_D3D11_RenderTargets _SK_D3D11_RenderTargets()
+extern SK_LazyGlobal <std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>> SK_D3D11_RenderTargets;
 
 extern ID3D11Texture2D* SK_D3D11_TrackedTexture;
 extern DWORD            tracked_tex_blink_duration;
@@ -685,4 +668,4 @@ extern volatile ULONG SK_D3D11_LiveTexturesDirty;
 
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
-extern std::vector <SK_ComPtr <IUnknown> > SK_D3D11_TempResources;
+extern SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown> > > SK_D3D11_TempResources;

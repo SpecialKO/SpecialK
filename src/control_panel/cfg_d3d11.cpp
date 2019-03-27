@@ -79,13 +79,7 @@ extern bool
 WINAPI
 SK_DXGI_IsTrackingBudget (void);
 
-SK_D3D11_TexCacheResidency_s&
-SK_D3D11_GetTexCacheResidency (void)
-{
-  static SK_D3D11_TexCacheResidency_s _residency;
-  return _residency;
-}
-;
+SK_LazyGlobal <SK_D3D11_TexCacheResidency_s> SK_D3D11_TexCacheResidency;
 
 void
 SK_ImGui_DrawTexCache_Chart (void)
@@ -112,33 +106,33 @@ SK_ImGui_DrawTexCache_Chart (void)
     ImGui::PushStyleColor(ImGuiCol_Border, ImColor(0.5f, 0.5f, 0.5f, 0.666f));
     ImGui::Columns   ( 3 );
       ImGui::Text    ( "%#7zu      MiB",
-                                                     SK_D3D11_Textures.AggregateSize_2D >> 20ui64 );    ImGui::NextColumn (); 
+                                                     SK_D3D11_Textures->AggregateSize_2D >> 20ui64 );    ImGui::NextColumn ();
        ImGui::TextColored
                      (ImVec4 (0.3f, 1.0f, 0.3f, 1.0f),
-                       "%#5lu      Hits",            SK_D3D11_Textures.RedundantLoads_2D.load () );     ImGui::NextColumn ();
-       if (SK_D3D11_Textures.Budget != 0)
-         ImGui::Text ( "Budget:  %#7zu MiB  ",       SK_D3D11_Textures.Budget / 1048576ui64 );
+                       "%#5lu      Hits",            SK_D3D11_Textures->RedundantLoads_2D.load () );     ImGui::NextColumn ();
+       if (SK_D3D11_Textures->Budget != 0)
+         ImGui::Text ( "Budget:  %#7zu MiB  ",       SK_D3D11_Textures->Budget / 1048576ui64 );
     ImGui::Columns   ( 1 );
 
     ImGui::Separator (   );
 
     ImGui::Columns   ( 3 );
-      ImGui::Text    ( "%#7zu Textures",             SK_D3D11_Textures.Entries_2D.load () );            ImGui::NextColumn ();
+      ImGui::Text    ( "%#7zu Textures",             SK_D3D11_Textures->Entries_2D.load () );            ImGui::NextColumn ();
       ImGui::TextColored
                      ( ImVec4 (1.0f, 0.3f, 0.3f, 1.60f),
-                       "%#5lu   Misses",             SK_D3D11_Textures.CacheMisses_2D.load () );        ImGui::NextColumn ();
-     ImGui::Text   ( "Time:        %#7.01lf ms  ", SK_D3D11_Textures.RedundantTime_2D         );
+                       "%#5lu   Misses",           SK_D3D11_Textures->CacheMisses_2D.load () );          ImGui::NextColumn ();
+     ImGui::Text   ( "Time:        %#7.01lf ms  ", SK_D3D11_Textures->RedundantTime_2D       );
     ImGui::Columns   ( 1 );
 
     ImGui::Separator (   );
 
-    ImGui::Columns   ( 3 );  
-      ImGui::Text    ( "%#6lu   Evictions",            SK_D3D11_Textures.Evicted_2D.load ()   );        ImGui::NextColumn ();
-      ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)SK_D3D11_Textures.RedundantLoads_2D / 
-                                                          (float)SK_D3D11_Textures.CacheMisses_2D, 0.4f ), 0.95f, 0.8f),
-                       " %.2f  Hit/Miss",                (double)SK_D3D11_Textures.RedundantLoads_2D / 
-                                                         (double)SK_D3D11_Textures.CacheMisses_2D  );   ImGui::NextColumn ();
-      ImGui::Text    ( "Driver I/O: %#7llu MiB  ",     SK_D3D11_Textures.RedundantData_2D >> 20ui64 );
+    ImGui::Columns   ( 3 );
+      ImGui::Text    ( "%#6lu   Evictions",            SK_D3D11_Textures->Evicted_2D.load ()   );        ImGui::NextColumn ();
+      ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)SK_D3D11_Textures->RedundantLoads_2D /
+                                                          (float)SK_D3D11_Textures->CacheMisses_2D, 0.4f ), 0.95f, 0.8f),
+                       " %.2f  Hit/Miss",                (double)SK_D3D11_Textures->RedundantLoads_2D /
+                                                         (double)SK_D3D11_Textures->CacheMisses_2D  );   ImGui::NextColumn ();
+      ImGui::Text    ( "Driver I/O: %#7llu MiB  ",     SK_D3D11_Textures->RedundantData_2D >> 20ui64 );
 
     ImGui::Columns   ( 1 );
 
@@ -149,7 +143,7 @@ SK_ImGui_DrawTexCache_Chart (void)
     int size = config.textures.cache.max_size;
 
     ImGui::TreePush  ( "" );
- 
+
     if (ImGui::SliderInt ( "Maximum Cache Size", &size, 256, 8192, "%.0f MiB"))
     {
       config.textures.cache.max_size = size;
@@ -170,13 +164,13 @@ SK_ImGui_DrawTexCache_Chart (void)
 
       if (config.textures.cache.residency_managemnt)
       {
-        const int fully_resident = ReadAcquire (&SK_D3D11_TexCacheResidency.count.InVRAM);
-        const int shared_memory  = ReadAcquire (&SK_D3D11_TexCacheResidency.count.Shared);
-        const int on_disk        = ReadAcquire (&SK_D3D11_TexCacheResidency.count.PagedOut);
+        const int fully_resident = ReadAcquire (&SK_D3D11_TexCacheResidency->count.InVRAM);
+        const int shared_memory  = ReadAcquire (&SK_D3D11_TexCacheResidency->count.Shared);
+        const int on_disk        = ReadAcquire (&SK_D3D11_TexCacheResidency->count.PagedOut);
 
-        const LONG64 size_vram   = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.InVRAM);
-        const LONG64 size_shared = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.Shared);
-        const LONG64 size_disk   = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.PagedOut);
+        const LONG64 size_vram   = ReadAcquire64 (&SK_D3D11_TexCacheResidency->size.InVRAM);
+        const LONG64 size_shared = ReadAcquire64 (&SK_D3D11_TexCacheResidency->size.Shared);
+        const LONG64 size_disk   = ReadAcquire64 (&SK_D3D11_TexCacheResidency->size.PagedOut);
 
         ImGui::BeginGroup ();
         if (fully_resident != 0)
@@ -230,7 +224,7 @@ SK::ControlPanel::D3D11::Draw (void)
     ImGui::TextUnformatted ("     Tracking:  ");
 
     ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.173f, 0.428f, 0.96f));
-    ImGui::SameLine (); 
+    ImGui::SameLine ();
 
     if (SK_D3D11_EnableTracking)
       ImGui::TextUnformatted ("( ALL State/Ops --> [Mod Tools Window Active] )");
@@ -428,7 +422,7 @@ SK::ControlPanel::D3D11::Draw (void)
     if (ImGui::CollapsingHeader ("Texture Management"))
     {
       ImGui::TreePush ("");
-      ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache); 
+      ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache);
 
       if (ImGui::IsItemHovered ())
       {
@@ -566,7 +560,7 @@ SK::ControlPanel::D3D11::Draw (void)
       SK_ImGui_DrawTexCache_Chart ();
     }
 
-    static bool enable_resolution_limits = ! ( config.render.dxgi.res.min.isZero () && 
+    static bool enable_resolution_limits = ! ( config.render.dxgi.res.min.isZero () &&
                                                config.render.dxgi.res.max.isZero () );
 
     const bool res_limits =
@@ -803,27 +797,27 @@ void
 SK::ControlPanel::D3D11::TextureMenu (void)
 {
   if (ImGui::BeginMenu ("Browse Texture Assets"))
-  {  
+  {
     wchar_t wszPath [MAX_PATH * 2] = { };
-  
-    if (ImGui::MenuItem ("Injectable Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures.injectable_texture_bytes).c_str ()).c_str (), nullptr))
+
+    if (ImGui::MenuItem ("Injectable Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures->injectable_texture_bytes).c_str ()).c_str (), nullptr))
     {
       wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
       PathAppendW (wszPath, LR"(inject\textures)");
-  
+
       ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
     }
-  
-    if ((! SK_D3D11_Textures.dumped_textures.empty ()) &&
-          ImGui::MenuItem ("Dumped Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures.dumped_texture_bytes).c_str ()).c_str (), nullptr))
+
+    if ((! SK_D3D11_Textures->dumped_textures.empty ()) &&
+          ImGui::MenuItem ("Dumped Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures->dumped_texture_bytes).c_str ()).c_str (), nullptr))
     {
       wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
       PathAppendW (wszPath, LR"(dump\textures)");
       PathAppendW (wszPath, SK_GetHostApp ());
-  
+
       ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
     }
-  
+
     ImGui::EndMenu ();
   }
 }

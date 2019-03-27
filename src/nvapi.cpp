@@ -473,6 +473,12 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     };
   };
 
+  //if (true)
+  //  pHdrColorData->hdrMode = NV_HDR_MODE_UHDA_PASSTHROUGH;
+
+  rb.scanout.nvapi_hdr10 =
+    ( pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH ||
+      pHdrColorData->hdrMode == NV_HDR_MODE_UHDA );
 
   //SK_LOG0 ( ( L"NV_HDR_COLOR_DATA Version: %lu", pHdrColorData->version ),
   //            __SK_SUBSYSTEM__ );
@@ -541,7 +547,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     extern bool __SK_HDR_16BitSwap;
 
     if (pHdrColorData->hdrMode == NV_HDR_MODE_OFF)
-    {         rb.driver_based_hdr   = false;     }
+    {     rb.driver_based_hdr   = false;         }
 
     if ( __SK_HDR_10BitSwap == false &&
          __SK_HDR_16BitSwap == false )
@@ -671,14 +677,14 @@ SK_NvAPI_PreInitHDR (void)
   {
 #ifdef _WIN64
     HMODULE hLib =
-      SK_Modules.LoadLibraryLL (L"nvapi64.dll");
+      SK_Modules->LoadLibraryLL (L"nvapi64.dll");
 
     if (hLib)
     {
       GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
 #else
     HMODULE hLib =
-      SK_Modules.LoadLibraryLL (L"nvapi.dll");
+      SK_Modules->LoadLibraryLL (L"nvapi.dll");
 
     if (hLib)
     {
@@ -905,8 +911,10 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   NVAPI_CALL (DRS_CreateSession (&hSession));
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
-  NvDRSProfileHandle hProfile;
-  NVDRS_APPLICATION  app = { };
+  NvDRSProfileHandle                     hProfile;
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     = *app_ptr;
 
   NvU32 compat_bits_enum =
     (SK_GetDLLRole () == DXGI ? AA_COMPAT_BITS_DXGI_ID :
@@ -1057,7 +1065,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
 
     if (ret == NVAPI_OK)
     {
-      app = { };
+      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -1236,9 +1244,9 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   {
 #if 0
 #ifndef _WIN64
-    HMODULE hLib = SK_Modules.LoadLibraryLL (L"nvapi.dll");
+    HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi.dll");
 #else
-    HMODULE hLib = SK_Modules.LoadLibraryLL (L"nvapi64.dll");
+    HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
@@ -1392,9 +1400,9 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
 
   if (! already_set) {
 #ifdef WIN32
-    HMODULE hLib = SK_Modules.LoadLibraryLL (L"nvapi.dll");
+    HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi.dll");
 #else
-    HMODULE hLib = SK_Modules.LoadLibraryLL (L"nvapi64.dll");
+    HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
@@ -1448,8 +1456,10 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   NVAPI_CALL (DRS_CreateSession (&hSession));
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
-         NvDRSProfileHandle hProfile = { };
-  static NVDRS_APPLICATION  app      = { };
+                     NvDRSProfileHandle hProfile = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     = *app_ptr;
 
   NvU32 compat_bits_enum =
     (role == DXGI ? SLI_COMPAT_BITS_DXGI_ID :
@@ -1550,7 +1560,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
 
     if (ret == NVAPI_OK)
     {
-      app = { };
+      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -1697,8 +1707,10 @@ SK_NvAPI_AddLauncherToProf (void)
   NVAPI_CALL (DRS_CreateSession (&hSession));
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
-  NvDRSProfileHandle hProfile  = { };
-  static NVDRS_APPLICATION app = { };
+                     NvDRSProfileHandle hProfile = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     = *app_ptr;
 
   //SK_NvAPI_GetAppProfile (hSession, &hProfile, &app);
   NVAPI_SILENT ();
@@ -1742,7 +1754,7 @@ SK_NvAPI_AddLauncherToProf (void)
 
     if (ret == NVAPI_OK)
     {
-       app         = {   };
+      RtlSecureZeroMemory (app_ptr.get (), sizeof (NVDRS_APPLICATION));
       *app.appName = L'\0';
 
       //lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
@@ -1756,7 +1768,7 @@ SK_NvAPI_AddLauncherToProf (void)
       NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
     }
   } else {
-     app         = {   };
+    RtlSecureZeroMemory (app_ptr.get (), sizeof (NVDRS_APPLICATION));
     *app.appName = L'\0';
 
     //lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());

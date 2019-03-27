@@ -2383,9 +2383,12 @@ ImGuiContext* ImGui::CreateContext(void* (*malloc_fn)(size_t), void (*free_fn)(v
     if (!malloc_fn) malloc_fn = malloc;
 
     ImGuiContext* ctx = (ImGuiContext*)_aligned_malloc(sizeof(ImGuiContext),16);//(ImGuiContext*)malloc_fn(sizeof(ImGuiContext));
-    IM_PLACEMENT_NEW(ctx) ImGuiContext();
-    ctx->IO.MemAllocFn = _aligned_malloc;//malloc_fn;
-    ctx->IO.MemFreeFn = /*free_fn ? free_fn :*/ _aligned_free;
+    if (ctx != nullptr)
+    {
+      IM_PLACEMENT_NEW(ctx) ImGuiContext();
+      ctx->IO.MemAllocFn = _aligned_malloc;//malloc_fn;
+      ctx->IO.MemFreeFn = /*free_fn ? free_fn :*/ _aligned_free;
+    }
     return ctx;
 }
 

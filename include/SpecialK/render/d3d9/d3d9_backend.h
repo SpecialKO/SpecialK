@@ -35,14 +35,23 @@ struct IUnknown;
 #include <unordered_set>
 #include <cstdint>
 
+#include <dxgiformat.h>
+
 void SK_D3D9_QuickHook (void);
+
+std::wstring  SK_D3D9_FormatToStr                (D3DFORMAT Format, bool include_ordinal);
+std::wstring  SK_D3D9_PresentParameterFlagsToStr (DWORD dwFlags);
+std::wstring  SK_D3D9_SwapEffectToStr            (D3DSWAPEFFECT Effect);
+INT __stdcall SK_D3D9_BytesPerPixel              (D3DFORMAT Format);
+std::wstring  SK_D3D9_UsageToStr                 (DWORD dwUsage);
+DXGI_FORMAT   SK_D3D9_FormatToDXGI               (D3DFORMAT format);
 
 namespace SK   {
 namespace D3D9 {
   struct KnownShaders
   {
     //typedef std::unordered_map <uint32_t, std::unordered_set <ID3D11ShaderResourceView *>> conditional_blacklist_t;
-  
+
     template <typename _T>
     struct ShaderRegistry
     {
@@ -50,35 +59,35 @@ namespace D3D9 {
       {
         rev.clear   ();
         clear_state ();
-  
+
         changes_last_frame = 0;
       }
-  
+
       void clear_state (void)
       {
         current.crc32c = 0x0;
         current.ptr    = nullptr;
       }
-  
+
       std::unordered_map <_T*, uint32_t>      rev;
       //std::unordered_map <uint32_t, SK_D3D11_ShaderDesc> descs;
-  
+
       std::unordered_set <uint32_t>           wireframe;
       std::unordered_set <uint32_t>           blacklist;
-  
+
       //conditional_blacklist_t                 blacklist_if_texture;
-  
+
       struct
       {
         uint32_t                              crc32c = 0x00;
         _T*                                   ptr    = nullptr;
       } current;
-  
+
       //d3d11_shader_tracking_s                 tracked;
-  
+
       ULONG                                   changes_last_frame = 0;
     };
-  
+
     ShaderRegistry <IDirect3DPixelShader9>    pixel;
     ShaderRegistry <IDirect3DVertexShader9>   vertex;
   } extern Shaders;
@@ -96,19 +105,19 @@ namespace D3D9 {
     bool            alpha_test      = false; // Test Alpha?
     DWORD           alpha_ref       = 0;     // Value to test.
     bool            zwrite          = false; // Depth Mask
-  
+
     volatile ULONG  draws           = 0; // Number of draw calls
     volatile ULONG  frames          = 0;
-  
+
     bool            cegui_active    = false;
-    
+
     int             instances       = 0;
-  
+
     uint32_t        current_tex  [256];
     float           viewport_off [4]  = { 0.0f }; // Most vertex shaders use this and we can
                                                   //   test the set values to determine if a draw
                                                   //     is HUD or world-space.
-                                                  //     
+                                                  //
     volatile ULONG  draw_count  = 0;
     volatile ULONG  next_draw   = 0;
     volatile ULONG  scene_count = 0;
@@ -117,52 +126,64 @@ namespace D3D9 {
 
   struct FrameState
   {
-    void clear (void) 
-    { pixel_shaders.clear (); vertex_shaders.clear (); vertex_buffers.dynamic.clear (); vertex_buffers.immutable.clear (); }
-  
+    void clear (void) noexcept
+    {
+      pixel_shaders.clear          (); vertex_shaders.clear           ();
+      vertex_buffers.dynamic.clear (); vertex_buffers.immutable.clear ();
+    }
+
     std::unordered_set <uint32_t>                 pixel_shaders;
     std::unordered_set <uint32_t>                 vertex_shaders;
-  
+
     struct {
       std::unordered_set <IDirect3DVertexBuffer9 *> dynamic;
       std::unordered_set <IDirect3DVertexBuffer9 *> immutable;
     } vertex_buffers;
   } extern last_frame;
-  
+
   struct KnownObjects
   {
-    void clear (void)  { static_vbs.clear (); dynamic_vbs.clear (); };
-  
+    void clear (void) noexcept {
+      static_vbs.clear  ();
+      dynamic_vbs.clear ();
+    };
+
     std::unordered_set <IDirect3DVertexBuffer9 *> static_vbs;
     std::unordered_set <IDirect3DVertexBuffer9 *> dynamic_vbs;
   } extern known_objs;
-  
+
   struct RenderTargetTracker
   {
-    void clear (void)  { pixel_shaders.clear (); vertex_shaders.clear (); active = false; }
-  
+    void clear (void) noexcept
+    {
+      pixel_shaders.clear  ();
+      vertex_shaders.clear ();
+
+      active = false;
+    }
+
     IDirect3DBaseTexture9*        tracking_tex  = nullptr;
-  
+
     std::unordered_set <uint32_t> pixel_shaders;
     std::unordered_set <uint32_t> vertex_shaders;
-  
+
     bool                          active        = false;
   } extern tracked_rt;
-  
+
   struct ShaderTracker
   {
-    void clear (void) 
+    void clear (void)
     {
       active    = false;
       InterlockedExchange (&num_draws, 0);
       used_textures.clear ();
-  
+
       for (auto& current_texture : current_textures)
         current_texture = 0x00;
     }
-  
+
     void use (IUnknown* pShader);
-  
+
     uint32_t                      crc32c       =  0x00;
     bool                          cancel_draws = false;
     bool                          clamp_coords = false;
@@ -170,12 +191,12 @@ namespace D3D9 {
     volatile LONG                 num_draws    =     0;
     std::unordered_set <IDirect3DBaseTexture9*> used_textures;
                         IDirect3DBaseTexture9*  current_textures [16];
-  
+
     //std::vector <IDirect3DBaseTexture9 *> samplers;
-  
+
     IUnknown*                     shader_obj  = nullptr;
     ID3DXConstantTable*           ctable      = nullptr;
-  
+
     struct shader_constant_s
     {
       char                Name [128];
@@ -192,24 +213,24 @@ namespace D3D9 {
       bool                Override;
       float               Data [4]; // TEMP HACK
     };
-  
+
     std::vector <shader_constant_s> constants;
   };
-  
+
   extern ShaderTracker tracked_vs;
   extern ShaderTracker tracked_ps;
-  
+
   struct VertexBufferTracker
   {
     void clear (void);
     void use   (void);
-  
+
     IDirect3DVertexBuffer9*       vertex_buffer = nullptr;
-  
+
     std::unordered_set <
       IDirect3DVertexDeclaration9*
     >                             vertex_decls;
-  
+
     //uint32_t                      crc32c       =  0x00;
     bool                          cancel_draws  = false;
     bool                          wireframe     = false;
@@ -217,15 +238,15 @@ namespace D3D9 {
     volatile LONG                 num_draws     =     0L;
     volatile LONG                 instanced     =     0L;
     int                           instances     =     1;
-  
+
     std::unordered_set <uint32_t> vertex_shaders;
     std::unordered_set <uint32_t> pixel_shaders;
     std::unordered_set <uint32_t> textures;
-  
+
     std::unordered_set <IDirect3DVertexBuffer9 *>
                                   wireframes;
   } extern tracked_vb;
-  
+
   struct ShaderDisassembly {
     std::string header;
     std::string code;
@@ -258,7 +279,7 @@ namespace SK
         bool             active = false;
       } query;
 
-      D3DDEVINFO_D3D9PIPELINETIMINGS 
+      D3DDEVINFO_D3D9PIPELINETIMINGS
                  last_results;
     } extern pipeline_stats_d3d9;
   }

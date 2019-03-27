@@ -68,7 +68,9 @@ struct SK_ImGui_WidgetRegistry
 
   bool   hide_all = false;
   float  scale    = 1.0f;
-} extern SK_ImGui_Widgets;
+};
+
+extern SK_LazyGlobal <SK_ImGui_WidgetRegistry> SK_ImGui_Widgets;
 
 
 
@@ -148,7 +150,7 @@ public:
   const std::string& getName         (void) const noexcept { return    name;           }
         float        getScale        (void) const noexcept { return    scale;          }
         bool         isVisible       (void) const noexcept { return    visible &&
-                                                        (! SK_ImGui_Widgets.hide_all); }
+                                                       (! SK_ImGui_Widgets->hide_all); }
         bool         isActive        (void) const noexcept { return    active;         }
         bool         isMovable       (void) const noexcept { return    movable;        }
         bool         isResizable     (void) const noexcept { return    resizable;      }

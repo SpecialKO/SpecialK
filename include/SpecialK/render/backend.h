@@ -182,6 +182,7 @@ public:
     DXGI_COLOR_SPACE_TYPE colorspace_override  = DXGI_COLOR_SPACE_CUSTOM;
     DXGI_COLOR_SPACE_TYPE dxgi_colorspace      = DXGI_COLOR_SPACE_CUSTOM;
     DXGI_COLOR_SPACE_TYPE dwm_colorspace       = DXGI_COLOR_SPACE_CUSTOM;
+    bool                  nvapi_hdr10          = false;
 
     enum SK_HDR_TRANSFER_FUNC
     {
@@ -205,6 +206,12 @@ public:
     SK_HDR_TRANSFER_FUNC
       getEOTF (void) noexcept
       {
+        if (nvapi_hdr10)
+        {
+          return
+            SMPTE_2084;
+        }
+
         switch (dxgi_colorspace)
         {
           case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:
@@ -229,8 +236,18 @@ public:
 
   wchar_t                 display_name [128]   = { };
 
-  bool isHDRCapable  (void    );
-  void setHDRCapable (bool set);
+  __inline void setHDRCapable (bool set) { hdr_capable = set; }
+  __inline bool isHDRCapable  (void)
+  {
+    if (framebuffer_flags& SK_FRAMEBUFFER_FLAG_HDR)
+      hdr_capable = true;
+
+    if (driver_based_hdr)
+      hdr_capable = true;
+
+    return
+      hdr_capable;
+  }
 
   struct                 {
     struct sub_event     {

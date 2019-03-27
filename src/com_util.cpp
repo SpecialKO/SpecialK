@@ -222,7 +222,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
   }
 
 
-  SetCurrentThreadDescription (L"[SK] WMI Server Thread");
+  SetCurrentThreadDescription (L"[SK] WMI Server");
 
   SK_AutoCOMInit auto_com;
 
@@ -339,12 +339,12 @@ bool
 SK_WMI_Init (void)
 {
   const wchar_t* wszCOMBase  = L"combase.dll";
-                 hModCOMBase = SK_Modules.LoadLibrary (wszCOMBase);
+                 hModCOMBase = SK_Modules->LoadLibrary (wszCOMBase);
 
   if (hModCOMBase == nullptr)
   {
     wszCOMBase  = L"ole32.dll";
-    hModCOMBase = SK_Modules.LoadLibrary (wszCOMBase);
+    hModCOMBase = SK_Modules->LoadLibrary (wszCOMBase);
   }
 
 #if 0

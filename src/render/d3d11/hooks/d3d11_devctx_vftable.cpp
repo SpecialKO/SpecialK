@@ -25,10 +25,8 @@
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/utility/d3d11_texture.h>
 
-extern memory_tracking_s* __mem_map_stats__ (void);
-extern target_tracking_s* __tracked_rtv__   (void);
-#define mem_map_stats  (* __mem_map_stats__ ())
-#define tracked_rtv    (* __tracked_rtv__   ())
+extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
+extern SK_LazyGlobal <target_tracking_s> tracked_rtv;
 
 __declspec (noinline)
 HRESULT
@@ -779,7 +777,7 @@ D3D11_UpdateSubresource1_Override (
       const auto start            = SK_QueryPerf ().QuadPart;
 
       SK_ComPtr <ID3D11Texture2D> pCachedTex =
-        textures.getTexture2D (cache_tag, &desc, nullptr, nullptr, pTLS);
+        textures->getTexture2D (cache_tag, &desc, nullptr, nullptr, pTLS);
 
       if (pCachedTex != nullptr)
       {
@@ -811,7 +809,7 @@ D3D11_UpdateSubresource1_Override (
 
         if (desc.Usage == D3D11_USAGE_STAGING)
         {
-          auto&& map_ctx = mapped_resources [This];
+          auto& map_ctx = mapped_resources [This];
 
           map_ctx.dynamic_textures  [pDstResource] = checksum;
           map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
@@ -857,9 +855,9 @@ D3D11_UpdateSubresource1_Override (
                           desc.Width, desc.Height, top_crc32c ),
                         L"DX11TexMgr" );
 
-            textures.CacheMisses_2D++;
-            textures.refTexture2D ( pTex, &desc, cache_tag, size, elapsed, top_crc32c,
-                                      L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS );
+            textures->CacheMisses_2D++;
+            textures->refTexture2D ( pTex, &desc, cache_tag, size, elapsed, top_crc32c,
+                                       L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS );
 
             return;
           }
@@ -1072,16 +1070,16 @@ D3D11_CopySubresourceRegion_Override (
 
   if (SK_D3D11_EnableMMIOTracking)
   {
-    SK_D3D11_MemoryThreads.mark ();
+    SK_D3D11_MemoryThreads->mark ();
 
     switch (res_dim)
     {
       case D3D11_RESOURCE_DIMENSION_UNKNOWN:
-        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_UNKNOWN]++;
+        mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_UNKNOWN]++;
         break;
       case D3D11_RESOURCE_DIMENSION_BUFFER:
       {
-        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_BUFFER]++;
+        mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_BUFFER]++;
 
         ID3D11Buffer* pBuffer = nullptr;
 
@@ -1093,31 +1091,31 @@ D3D11_CopySubresourceRegion_Override (
             ////std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
             if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
-              mem_map_stats.last_frame.buffer_types [0]++;
-              //mem_map_stats.last_frame.index_buffers.insert (pBuffer);
+              mem_map_stats->last_frame.buffer_types [0]++;
+              //mem_map_stats->last_frame.index_buffers.insert (pBuffer);
 
             if (buf_desc.BindFlags & D3D11_BIND_VERTEX_BUFFER)
-              mem_map_stats.last_frame.buffer_types [1]++;
-              //mem_map_stats.last_frame.vertex_buffers.insert (pBuffer);
+              mem_map_stats->last_frame.buffer_types [1]++;
+              //mem_map_stats->last_frame.vertex_buffers.insert (pBuffer);
 
             if (buf_desc.BindFlags & D3D11_BIND_CONSTANT_BUFFER)
-              mem_map_stats.last_frame.buffer_types [2]++;
-              //mem_map_stats.last_frame.constant_buffers.insert (pBuffer);
+              mem_map_stats->last_frame.buffer_types [2]++;
+              //mem_map_stats->last_frame.constant_buffers.insert (pBuffer);
           }
 
-          mem_map_stats.last_frame.bytes_copied += buf_desc.ByteWidth;
+          mem_map_stats->last_frame.bytes_copied += buf_desc.ByteWidth;
 
           pBuffer->Release ();
         }
       } break;
       case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
-        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE1D]++;
+        mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE1D]++;
         break;
       case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
-        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE2D]++;
+        mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE2D]++;
         break;
       case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
-        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE3D]++;
+        mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE3D]++;
         break;
     }
   }
@@ -1128,7 +1126,7 @@ D3D11_CopySubresourceRegion_Override (
   if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) ||
          SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
   {
-    auto&& map_ctx = mapped_resources [This];
+    auto& map_ctx = mapped_resources [This];
 
     if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource))
     {
@@ -1146,7 +1144,7 @@ D3D11_CopySubresourceRegion_Override (
         static auto& textures =
           SK_D3D11_Textures;
 
-        textures.refTexture2D ( pDstTex,
+        textures->refTexture2D ( pDstTex,
                                   &dst_desc,
                                     cache_tag,
                                       map_ctx.dynamic_sizes2   [checksum],
@@ -1383,9 +1381,9 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
   // ImGui gets to pass-through without invoking the hook
   if (! SK_D3D11_ShouldTrackRenderOp (This, &pTLS))
   {
-    for (auto&& i : tracked_rtv.active [dev_idx]) i.store (false);
+    for (auto& i : tracked_rtv->active [dev_idx]) i.store (false);
 
-    tracked_rtv.active_count [dev_idx] = 0;
+    tracked_rtv->active_count [dev_idx] = 0;
 
     D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
       This, NumRTVs, ppRenderTargetViews,
@@ -1411,16 +1409,18 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
 
       const auto* tracked_rtv_res =
         static_cast <ID3D11RenderTargetView *> (
-          ReadPointerAcquire ((volatile PVOID *)&tracked_rtv.resource)
+          ReadPointerAcquire ((volatile PVOID *)&tracked_rtv->resource)
         );
 
       for (UINT i = 0; i < NumRTVs; i++)
       {
-        if (ppRenderTargetViews [i] && rt_views.emplace (ppRenderTargetViews [i]).second)
-            ppRenderTargetViews [i]->AddRef ();
+        if (! rt_views.count (ppRenderTargetViews [i]))
+        {
+          rt_views.insert (ppRenderTargetViews [i]);
+        }
 
-        const bool active_before = tracked_rtv.active_count [dev_idx] > 0 ?
-                                   tracked_rtv.active       [dev_idx][i].load ()
+        const bool active_before = tracked_rtv->active_count [dev_idx] > 0 ?
+                                   tracked_rtv->active       [dev_idx][i].load ()
                                                                     : false;
 
         const bool active =
@@ -1430,10 +1430,10 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
 
         if (active_before != active)
         {
-          tracked_rtv.active [dev_idx][i] = active;
+          tracked_rtv->active [dev_idx][i] = active;
 
-          if      (            active                    ) tracked_rtv.active_count [dev_idx]++;
-          else if (tracked_rtv.active_count [dev_idx] > 0) tracked_rtv.active_count [dev_idx]--;
+          if      (             active                    ) tracked_rtv->active_count [dev_idx]++;
+          else if (tracked_rtv->active_count [dev_idx] > 0) tracked_rtv->active_count [dev_idx]--;
         }
       }
     }
@@ -1445,7 +1445,6 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
 
       if (! ds_views.count (pDepthStencilView))
       {
-                         pDepthStencilView->AddRef ();
         ds_views.insert (pDepthStencilView);
       }
     }

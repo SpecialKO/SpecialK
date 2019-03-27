@@ -3891,11 +3891,6 @@ ISKTextureD3D9::toggleOriginal (void)
     img_to_use = ContentPreference::DontCare;
 }
 
-
-extern INT
-__stdcall
-SK_D3D9_BytesPerPixel (D3DFORMAT Format);
-
 COM_DECLSPEC_NOTHROW
 HRESULT
 ISKTextureD3D9::UnlockRect (UINT Level)

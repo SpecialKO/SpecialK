@@ -23,6 +23,7 @@
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_device.h>
 #include <SpecialK/render/d3d9/d3d9_texmgr.h>
+#include <SpecialK/render/d3d9/d3d9_screenshot.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/backend.h>
 #include <SpecialK/import.h>
@@ -267,7 +268,7 @@ D3D9CreateOffscreenPlainSurface_Override (
   }                                                                      \
 }
 
-void SK_D3D9_ProcessScreenshotQueue (int stage);
+
 
 CRITICAL_SECTION cs_vs = { };
 CRITICAL_SECTION cs_ps = { };
@@ -347,23 +348,8 @@ SK::D3D9::VertexBufferTracker::use (void)
 // For now, let's just focus on stream0 and pretend nothing else exists...
 IDirect3DVertexBuffer9* vb_stream0 = nullptr;
 
-
-std::unordered_map <uint32_t, ShaderDisassembly>&
-__SK_Singleton_D3D9_PS_Disassembly (void)
-{
-  static std::unordered_map <uint32_t, ShaderDisassembly> _ps_disassembly; return _ps_disassembly;
-}
-
-
-std::unordered_map <uint32_t, ShaderDisassembly>&
-__SK_Singleton_D3D9_VS_Disassembly (void)
-{
-  static std::unordered_map <uint32_t, ShaderDisassembly> _vs_disassembly; return _vs_disassembly;
-}
-
-#define ps_disassembly __SK_Singleton_D3D9_PS_Disassembly()
-#define vs_disassembly __SK_Singleton_D3D9_VS_Disassembly()
-
+SK_LazyGlobal <std::unordered_map <uint32_t, ShaderDisassembly>> ps_disassembly;
+SK_LazyGlobal <std::unordered_map <uint32_t, ShaderDisassembly>> vs_disassembly;
 
 bool SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, UINT StartVertex, bool& wireframe);
 void SK_D3D9_EndFrame             (void);
@@ -855,7 +841,7 @@ SK_HookD3D9 (void)
     // XXX: Kind of a hack, we may need to implicitly load-up D3D9.DLL so
     //        we can wait for VBlank in OpenGL..
     if (! SK_GetModuleHandle (L"d3d9.dll"))
-      SK_Modules.LoadLibraryLL (L"d3d9.dll");
+      SK_Modules->LoadLibraryLL (L"d3d9.dll");
 
 
     HMODULE hBackend =
@@ -1530,13 +1516,13 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
       rb.swapchain = pSwapChain;
 
       // Queue-up Pre-SK OSD Screenshots
-      SK_D3D9_ProcessScreenshotQueue (1);
+      SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage::BeforeOSD);
 
       SK_CEGUI_DrawD3D9 ( pDev,
                             pSwapChain );
 
       // Queue-up Post-SK OSD Screenshots
-      SK_D3D9_ProcessScreenshotQueue (2);
+      SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage::EndOfFrame);
 
       //
       // Update G-Sync; doing this here prevents trying to do this on frames where
@@ -4790,7 +4776,7 @@ Direct3DCreate9 (UINT SDKVersion)
 
   if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex (SDKVersion, &pD3D9Ex)))
   {
-    if (Direct3DCreate9_Import)
+    if (Direct3DCreate9_Import != nullptr)
     {
       if (force_d3d9ex)
       {
@@ -4809,7 +4795,9 @@ Direct3DCreate9 (UINT SDKVersion)
     return pD3D9Ex;
   }
 
-  if (d3d9 == nullptr)
+  SK_ReleaseAssert (Direct3DCreate9_Import != nullptr);
+
+  if (d3d9 == nullptr && Direct3DCreate9_Import != nullptr)
   {
     d3d9 = Direct3DCreate9_Import (SDKVersion);
   }
@@ -5553,8 +5541,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
                                                               last_frame.vertex_shaders.end   () );
 
   std::unordered_map <uint32_t, SK::D3D9::ShaderDisassembly>&
-    disassembly = ( shader_type == SK::D3D9::ShaderClass::Pixel ? ps_disassembly :
-                                                                  vs_disassembly );
+    disassembly = ( shader_type == SK::D3D9::ShaderClass::Pixel ? *ps_disassembly :
+                                                                  *vs_disassembly );
 
   const char*
     szShaderWord =  shader_type == SK::D3D9::ShaderClass::Pixel ? "Pixel" :
@@ -7809,7 +7797,7 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
 
     if (! _wcsicmp (wszPrefix, L"ps"))
     {
-      ps_disassembly.emplace ( crc32c, SK::D3D9::ShaderDisassembly {
+      ps_disassembly->emplace ( crc32c, SK::D3D9::ShaderDisassembly {
                                          szDisasm,
                                            comments_end + 1,
                                              footer_begins + 1 }
@@ -7818,7 +7806,7 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
 
     else
     {
-      vs_disassembly.emplace ( crc32c, SK::D3D9::ShaderDisassembly {
+      vs_disassembly->emplace ( crc32c, SK::D3D9::ShaderDisassembly {
                                          szDisasm,
                                            comments_end + 1,
                                              footer_begins + 1 }
@@ -8205,8 +8193,8 @@ SK_D3D9_InitShaderModTools (void)
   last_frame.vertex_buffers.immutable.reserve (256);
   known_objs.dynamic_vbs.reserve              (2048);
   known_objs.static_vbs.reserve               (8192);
-  ps_disassembly.reserve                      (512);
-  vs_disassembly.reserve                      (512);
+  ps_disassembly->reserve                     (512);
+  vs_disassembly->reserve                     (512);
   Shaders.vertex.rev.reserve                  (8192);
   Shaders.pixel.rev.reserve                   (8192);
 
@@ -8450,500 +8438,4 @@ SK_D3D9_FormatToDXGI (D3DFORMAT format)
   }
 
   return DXGI_FORMAT_UNKNOWN;
-}
-
-#include <tuple>
-
-class SK_D3D9_Screenshot
-{
-public:
-  explicit SK_D3D9_Screenshot (SK_D3D9_Screenshot&& rkMove) noexcept
-  {
-    pDev                     = rkMove.pDev;
-    pSwapChain               = rkMove.pSwapChain;
-    pBackbufferSurface       = rkMove.pBackbufferSurface;
-    pSurfScreenshot          = rkMove.pSurfScreenshot;
-    ulCommandIssuedOnFrame   = rkMove.ulCommandIssuedOnFrame;
-
-
-    framebuffer.Width        = rkMove.framebuffer.Width;
-    framebuffer.Height       = rkMove.framebuffer.Height;
-    framebuffer.NativeFormat = rkMove.framebuffer.NativeFormat;
-
-    framebuffer.PixelBuffer.Attach (rkMove.framebuffer.PixelBuffer.Detach ());
-  }
-
-  SK_D3D9_Screenshot            (const SK_D3D9_Screenshot&) = delete;
-  SK_D3D9_Screenshot &operator= (const SK_D3D9_Screenshot&) = delete;
-
-
-  explicit SK_D3D9_Screenshot (const CComQIPtr <IDirect3DDevice9>& pDevice)
-  {
-    pDev = pDevice;
-
-    if (pDev.p != nullptr)
-    {
-      if ( SUCCEEDED ( SK_GetCurrentRenderBackend ().swapchain.QueryInterface (
-                         &pSwapChain                                          )
-                     )
-         )
-      {
-        ulCommandIssuedOnFrame = SK_GetFramesDrawn ();
-
-        if ( SUCCEEDED ( pSwapChain->GetBackBuffer ( 0, D3DBACKBUFFER_TYPE_MONO,
-                                                       &pBackbufferSurface
-                                                   )
-                       )
-           )
-        {
-          D3DSURFACE_DESC               backbuffer_desc = { };
-          pBackbufferSurface->GetDesc (&backbuffer_desc);
-
-          framebuffer.Width        = backbuffer_desc.Width;
-          framebuffer.Height       = backbuffer_desc.Height;
-          framebuffer.NativeFormat = backbuffer_desc.Format;
-
-          if (pBackbufferSurface == nullptr)
-            return;
-
-          D3DSURFACE_DESC                            desc = { };
-          HRESULT hr = pBackbufferSurface->GetDesc (&desc);
-
-          if (FAILED (hr)) return;
-
-          //static D3DXLoadSurfaceFromSurface_pfn
-          //  D3DXLoadSurfaceFromSurface =
-          //    (D3DXLoadSurfaceFromSurface_pfn)
-          //      GetProcAddress ( d3dx9_43_dll, "D3DXLoadSurfaceFromSurface" );
-
-          if (SUCCEEDED ( pDev->CreateRenderTarget ( desc.Width, desc.Height,
-                                                       desc.Format, desc.MultiSampleType,
-                                                                    desc.MultiSampleQuality,
-                                                         TRUE,
-                                                           &pSurfScreenshot, nullptr
-                                                 )
-                        )
-             )
-          {
-            if ( SUCCEEDED ( pDev->StretchRect ( pBackbufferSurface, nullptr,
-                                                 pSurfScreenshot,    nullptr,
-                                                   D3DTEXF_NONE
-                                             )
-                           )
-               )
-            {
-              outstanding_screenshots.emplace (pSurfScreenshot);
-
-              return;
-            }
-          }
-        }
-      }
-    }
-
-    dispose ();
-  }
-
-  ~SK_D3D9_Screenshot (void) { dispose (); }
-
-
-  bool isValid (void) { return true; }
-  bool isReady (void)
-  {
-    if (! isValid ())
-      return false;
-
-    if (ulCommandIssuedOnFrame == SK_GetFramesDrawn ())
-      return false;
-
-    return false;
-  }
-
-  void dispose (void)
-  {
-    if (outstanding_screenshots.contains (pBackbufferSurface))
-        outstanding_screenshots.erase    (pBackbufferSurface);
-
-    pBackbufferSurface     = nullptr;
-    pSwapChain             = nullptr;
-    pDev                   = nullptr;
-
-    if (framebuffer.PixelBuffer.m_pData != nullptr)
-        framebuffer.PixelBuffer.Free ();
-  };
-
-
-  bool getData ( UINT     *pWidth,
-                 UINT     *pHeight,
-                 uint8_t **ppData,
-                 UINT     *pPitch,
-                 bool      Wait = false )
-  {
-    auto ReadBack = [&](void) -> bool
-    {
-      if (ulCommandIssuedOnFrame < SK_GetFramesDrawn () - 2)
-      {
-        const size_t BytesPerPel =
-          SK_D3D9_BytesPerPixel (framebuffer.NativeFormat);
-
-        D3DLOCKED_RECT finished_copy = { };
-        UINT           PackedDstPitch;
-
-        if ( SUCCEEDED ( pSurfScreenshot->LockRect ( &finished_copy,
-                                                       nullptr, 0x0 )
-                       )
-           )
-        {
-          PackedDstPitch = finished_copy.Pitch;
-
-          if ( framebuffer.PixelBuffer.AllocateBytes ( framebuffer.Height *
-                                                         PackedDstPitch
-                                                     )
-             )
-          {
-            *pWidth  = framebuffer.Width;
-            *pHeight = framebuffer.Height;
-
-            uint8_t* pSrc =  (uint8_t *)finished_copy.pBits;
-            uint8_t* pDst = framebuffer.PixelBuffer.m_pData;
-
-            for ( UINT i = 0; i < framebuffer.Height; ++i )
-            {
-              memcpy ( pDst, pSrc, finished_copy.Pitch );
-
-              // Eliminate pre-multiplied alpha problems (the stupid way)
-              for ( UINT j = 3 ; j < PackedDstPitch ; j += 4 )
-              {
-                pDst [j] = 255UL;
-              }
-
-              pSrc += finished_copy.Pitch;
-              pDst +=         PackedDstPitch;
-            }
-
-            *pPitch = PackedDstPitch;
-          }
-
-          SK_LOG0 ( ( L"Screenshot Readback Complete after %li frames",
-                        SK_GetFramesDrawn () - ulCommandIssuedOnFrame ),
-                      L"D3D11SShot" );
-
-
-          HRESULT hr =
-            pSurfScreenshot->UnlockRect ();
-
-          if (hr != S_OK) assert (false);
-
-          *ppData = framebuffer.PixelBuffer.m_pData;
-
-          return true;
-        }
-      }
-
-      return false;
-    };
-
-
-    bool ready_to_read = false;
-
-
-    if (! Wait)
-    {
-      if (isReady ())
-      {
-        ready_to_read = true;
-      }
-    }
-
-    else if (isValid ())
-    {
-      ready_to_read = true;
-    }
-
-
-    return ( ready_to_read ? ReadBack () :
-                             false         );
-  }
-
-  D3DFORMAT
-  getInternalFormat (void)
-  {
-    return framebuffer.NativeFormat;
-  }
-
-
-protected:
-  CComPtr <IDirect3DDevice9>    pDev                   = nullptr;
-  CComPtr <IDirect3DSwapChain9> pSwapChain             = nullptr;
-  CComPtr <IDirect3DSurface9>   pBackbufferSurface     = nullptr;
-  CComPtr <IDirect3DSurface9>   pSurfScreenshot        = nullptr;
-  ULONG                         ulCommandIssuedOnFrame = 0;
-
-  struct framebuffer_s
-  {
-    UINT               Width        = 0,
-                       Height       = 0;
-    D3DFORMAT          NativeFormat = D3DFMT_UNKNOWN;
-
-    CHeapPtr <uint8_t> PixelBuffer;
-  } framebuffer;
-};
-
-
-struct
-{
-  union
-  {
-    volatile LONG stages [3];
-
-    struct
-    {
-      volatile LONG pre_game_hud;
-
-      volatile LONG without_sk_osd;
-      volatile LONG with_sk_osd;
-    };
-  };
-} static enqueued_screenshots { 0, 0, 0 };
-
-static concurrency::concurrent_queue <SK_D3D9_Screenshot*> screenshot_queue;
-
-
-bool
-SK_D3D9_CaptureSteamScreenshot  ( SK::ScreenshotStage when =
-                                  SK::ScreenshotStage::EndOfFrame )
-{
-  if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
-  {
-    int stage = 0;
-
-    static const std::map <SK::ScreenshotStage, int> __stage_map = {
-      { SK::ScreenshotStage::BeforeGameHUD, 0 },
-      { SK::ScreenshotStage::BeforeOSD,     1 },
-      { SK::ScreenshotStage::EndOfFrame,    2 }
-    };
-
-    const auto it = __stage_map.find (when);
-
-    if (it != __stage_map.cend ())
-    {
-      stage = it->second;
-
-      InterlockedIncrement (&enqueued_screenshots.stages [stage]);
-
-      return true;
-    }
-  }
-
-  return false;
-}
-
-#include <wincodec.h>
-
-ScreenshotHandle
-WINAPI
-SK_SteamAPI_AddScreenshotToLibraryEx ( const char *pchFilename,
-                                       const char *pchThumbnailFilename,
-                                             int   nWidth,
-                                             int   nHeight,
-                                             bool  Wait = false );
-
-
-#include <../depends/include/DirectXTex/DirectXTex.h>
-
-void
-SK_D3D9_ProcessScreenshotQueue (int stage = 2)
-{
-  const int __MaxStage = 2;
-
-  assert (stage >= 0 && stage <= __MaxStage);
-
-  if (ReadAcquire (&enqueued_screenshots.stages [stage]) > 0)
-  {
-    if (InterlockedDecrement (&enqueued_screenshots.stages [stage]) >= 0)
-    {
-      screenshot_queue.push (
-        new SK_D3D9_Screenshot (SK_GetCurrentRenderBackend ().device.p)
-      );
-    }
-
-    else InterlockedIncrement (&enqueued_screenshots.stages [stage]);
-  }
-
-
-  if (! screenshot_queue.empty ())
-  {
-    static volatile HANDLE hSignalScreenshot = INVALID_HANDLE_VALUE;
-
-    if (InterlockedCompareExchangePointer (&hSignalScreenshot, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
-    {
-      InterlockedExchangePointer ( (void **)&hSignalScreenshot,
-                                     SK_CreateEvent (nullptr, FALSE, TRUE, nullptr) );
-
-      SK_Thread_Create ([](LPVOID) -> DWORD
-      {
-        SetCurrentThreadDescription (          L"[SK] D3D9 Screenshot Capture Thread" );
-        SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL |
-                                                              THREAD_MODE_BACKGROUND_BEGIN );
-
-
-        HANDLE hSignal =
-          ReadPointerAcquire (&hSignalScreenshot);
-
-
-        // Any incomplete captures are pushed onto this queue, and then the pending
-        //   queue (once drained) is re-built.
-        //
-        //  This is faster than iterating a synchronized list in highly multi-threaded engines.
-        static concurrency::concurrent_queue <SK_D3D9_Screenshot*> rejected_screenshots;
-
-
-        while (! ReadAcquire (&__SK_DLL_Ending))
-        {
-          MsgWaitForMultipleObjectsEx ( 1, &hSignal, INFINITE, 0x0, 0x0 );
-
-          while (! screenshot_queue.empty ())
-          {
-            SK_D3D9_Screenshot* pop_off = nullptr;
-
-            if (screenshot_queue.try_pop (pop_off) && pop_off != nullptr)
-            {
-              UINT     Width, Height, Pitch;
-              uint8_t* pData;
-
-              if (pop_off->getData (&Width, &Height, &pData, &Pitch))
-              {
-                //HRESULT hr = E_UNEXPECTED;
-
-
-                wchar_t      wszAbsolutePathToScreenshot [ MAX_PATH * 2 + 1 ] = { };
-                wcsncpy_s   (wszAbsolutePathToScreenshot, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
-                //PathAppendW (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.png");
-                PathAppendW (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
-
-                //if ( SUCCEEDED (
-                //  SaveToWICFile ( raw_img, WIC_FLAGS_NONE,
-                //                     GetWICCodec (WIC_CODEC_JPEG),
-                //                    //GetWICCodec (WIC_CODEC_PNG),
-                //                      wszAbsolutePathToScreenshot )
-                //               )
-                //   )
-                //{
-                  wchar_t      wszAbsolutePathToThumbnail [ MAX_PATH * 2 + 1 ] = { };
-                  wcsncpy_s   (wszAbsolutePathToThumbnail, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
-                  PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
-
-                  float aspect = (float)Height /
-                                 (float)Width;
-
-#if 0
-                static CComPtr <IWICImagingFactory> pFactory = nullptr;
-
-                CComPtr <IWICBitmapEncoder>     pEncoder = nullptr;
-                CComPtr <IWICBitmapFrameEncode> pFrame   = nullptr;
-                CComPtr <IWICStream>            pStream  = nullptr;
-
-                if (! pFactory)
-                {
-                  if ( FAILED (
-                        CoCreateInstance ( CLSID_WICImagingFactory, nullptr,
-                                           CLSCTX_INPROC_SERVER,
-                                           IID_PPV_ARGS (&pFactory)
-                                         )
-                              )
-                     )
-                  {
-                    continue;
-                  }
-                }
-
-                GUID guidPixelFormat = GUID_WICPixelFormat24bppRGB;
-
-                if ( SUCCEEDED (pFactory->CreateStream          (&pStream))                                     &&
-                     SUCCEEDED (pStream->InitializeFromFilename (wszAbsolutePathToScreenshot, GENERIC_WRITE))   &&
-                     SUCCEEDED (pFactory->CreateEncoder         (GUID_ContainerFormatJpeg, nullptr, &pEncoder)) &&
-                     SUCCEEDED (pEncoder->Initialize            (pStream, WICBitmapEncoderNoCache))             &&
-                     SUCCEEDED (pEncoder->CreateNewFrame        (&pFrame, nullptr))                             &&
-                     SUCCEEDED (pFrame->Initialize              (nullptr))                                      &&
-                     SUCCEEDED (pFrame->SetSize                 (Width, Height))                                &&
-                     SUCCEEDED (pFrame->SetPixelFormat          (&guidPixelFormat))                             &&
-                     SUCCEEDED (pFrame->WritePixels             (Height, Pitch, Pitch * Height, pData))         &&
-                     SUCCEEDED (pFrame->Commit                  ())                                             &&
-                     SUCCEEDED (pEncoder->Commit                ()) )
-                {
-#else
-                {
-                  using namespace DirectX;
-
-                  DXGI_FORMAT dxgi_format =
-                    SK_D3D9_FormatToDXGI (pop_off->getInternalFormat ());
-
-                  Image raw_img = { };
-
-                  ComputePitch (
-                    dxgi_format,
-                      Width, Height,
-                        raw_img.rowPitch, raw_img.slicePitch
-                  );
-
-                  raw_img.format = dxgi_format;
-                  raw_img.width  = Width;
-                  raw_img.height = Height;
-                  raw_img.pixels = pData;
-
-
-                    ScratchImage thumbnailImage;
-
-                    Resize ( raw_img, 200, (size_t)(200 * aspect), TEX_FILTER_TRIANGLE, thumbnailImage );
-
-                    SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_NONE,
-                                      GetWICCodec (WIC_CODEC_JPEG),
-                                        wszAbsolutePathToThumbnail );
-#endif
-
-                  ScreenshotHandle screenshot =
-                    SK_SteamAPI_AddScreenshotToLibraryEx ( SK_WideCharToUTF8 (wszAbsolutePathToScreenshot).c_str  (),
-                                                             nullptr,//SK_WideCharToUTF8 (wszAbsolutePathToThumbnail).c_str (),
-                                                               Width, Height, true );
-
-                  SK_LOG0 ( ( L"Finished Steam Screenshot Import for Handle: '%x'",
-                              screenshot ), L"SteamSShot" );
-
-                  // Remove the temporary files...
-                  DeleteFileW (wszAbsolutePathToScreenshot);
-                  DeleteFileW (wszAbsolutePathToThumbnail);
-
-                  delete pop_off;
-
-                  continue;
-                }
-              }
-
-              rejected_screenshots.push (pop_off);
-            }
-          }
-
-          while (! rejected_screenshots.empty ())
-          {
-            SK_D3D9_Screenshot* push_back = nullptr;
-
-            if ( rejected_screenshots.try_pop (push_back) &&
-                                               push_back != nullptr )
-            {
-              screenshot_queue.push (push_back);
-            }
-          }
-        }
-
-        SK_Thread_CloseSelf ();
-
-        CloseHandle (hSignal);
-
-        return 0;
-      });
-    }
-
-    else
-      SetEvent (hSignalScreenshot);
-  }
 }

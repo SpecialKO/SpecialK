@@ -353,14 +353,6 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
       float luma = 0.0f,
             exp  = 0.0f;
 
-      //switch (SK_GetCurrentGameID ())
-      //{
-      //  //case SK_GAME_ID::MonsterHunterWorld:
-      //  //  luma = __SK_MHW_HDR_Luma;
-      //  //  exp  = __SK_MHW_HDR_Exp;
-      //  //  break;
-      //
-      //  default:
       luma = __SK_HDR_Luma;
       exp  = __SK_HDR_Exp;
 
@@ -370,17 +362,19 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
       bool bEOTF_is_PQ =
         (eotf == SK_RenderBackend::scan_out_s::SMPTE_2084);
 
-      constant_buffer->luminance_scale [0] = ( bEOTF_is_PQ ? 1.0f :  rb.ui_luminance );
-      constant_buffer->luminance_scale [1] = ( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
-                                                                                  1.0f));
+      constant_buffer->luminance_scale [0] = ( bEOTF_is_PQ ? -80.0f * rb.ui_luminance :
+                                                                      rb.ui_luminance );
+      constant_buffer->luminance_scale [1] = 2.2f;
       constant_buffer->luminance_scale [2] = ( bEOTF_is_PQ ? 1.0f : luma );
       constant_buffer->luminance_scale [3] = ( bEOTF_is_PQ ? 1.0f : exp  );
-      constant_buffer->steam_luminance [0] = ( bEOTF_is_PQ ? 1.0f : config.steam.overlay_hdr_luminance );
-      constant_buffer->steam_luminance [1] = ( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
-                                                                                  1.0f));
-      constant_buffer->steam_luminance [2] = ( bEOTF_is_PQ ? 1.0f : config.uplay.overlay_luminance );
-      constant_buffer->steam_luminance [3] = ( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
-                                                             1.0f));
+      constant_buffer->steam_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.steam.overlay_hdr_luminance :
+                                                                      config.steam.overlay_hdr_luminance );
+      constant_buffer->steam_luminance [1] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
+                                                  //                                     1.0f));
+      constant_buffer->steam_luminance [2] = ( bEOTF_is_PQ ? -80.0f * config.uplay.overlay_luminance :
+                                                                      config.uplay.overlay_luminance );
+      constant_buffer->steam_luminance [3] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
+                                                  //                1.0f));
     }
 
     pDevCtx->Unmap (g_pVertexConstantBuffer, 0);
@@ -1116,97 +1110,165 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
   // Create the pixel shader
   {
-    static const char pixelShader [] =
-      "#pragma warning ( disable : 3571 )\n                                    \
-      struct PS_INPUT                                                         \
-      {                                                                       \
-        float4 pos : SV_POSITION;                                             \
-        float4 col : COLOR0;                                                  \
-        float2 uv  : TEXCOORD0;                                               \
-        float2 uv2 : TEXCOORD1;                                               \
-        float2 uv3 : TEXCOORD2;                                               \
-      };                                                                      \
-                                                                              \
-      cbuffer viewportDims : register (b0)                                    \
-      {                                                                       \
-        float4 viewport;                                                      \
-      };                                                                      \
-                                                                              \
-      sampler   sampler0    : register (s0);                                  \
-                                                                              \
-      Texture2D texture0    : register (t0);                                  \
-      Texture2D hdrUnderlay : register (t1);                                  \
-      Texture2D hdrHUD      : register (t2);                                  \
-                                                                              \
-      float3 RemoveSRGBCurve (float3 x)                                       \
-      {                                                                       \
-        /* Approximately pow(x, 2.2)*/                                        \
-        return x < 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);       \
-      }                                                                       \
-                                                                              \
-      float3 ApplyREC709Curve (float3 x)                                      \
-      {                                                                       \
-        return x < 0.0181 ? 4.5 * x : 1.0993 * pow(x, 0.45) - 0.0993;         \
-      }                                                                       \
-      float Luma (float3 color)                                               \
-      {                                                                       \
-        return                                                                \
-          dot (color, float3 (0.299f, 0.587f, 0.114f));                       \
-      }                                                                       \
-                                                                              \
-      float4 main (PS_INPUT input) : SV_Target                                \
-      {                                                                       \
-        float4 out_col =                                                      \
-          texture0.Sample (sampler0, input.uv);                               \
-                                                                              \
-        if (viewport.z > 0.f)                                                 \
-        {                                                                     \
-          float4 under_color;                                                 \
-                                                                              \
-          float blend_alpha =                                                 \
-            saturate (input.col.a * out_col.a);                               \
-                                                                              \
-          if (abs (blend_alpha) < 0.001f) blend_alpha = 0.0f;                 \
-          if (abs (blend_alpha) > 0.999f) blend_alpha = 1.0f;                 \
-                                                                              \
-          float4 hud = float4 (0.0f, 0.0f, 0.0f, 0.0f);                       \
-                                                                              \
-          if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)                       \
-          {                                                                   \
-            hud = hdrHUD.Sample (sampler0, input.uv);                         \
-            hud.rbg     = RemoveSRGBCurve (hud.rgb);                          \
-            hud.rgb    *= ( input.uv3.xxx );                                  \
-            out_col.rgb = RemoveSRGBCurve (out_col.rgb);                      \
-            out_col =                                                         \
-              pow (abs (out_col), float4 (input.uv2.yyy, 1.0f)) *             \
-                input.uv2.xxxx;                                               \
-            out_col.a   = 1.0f;                                               \
-            blend_alpha = 1.0f;                                               \
-            under_color = float4 (0.0f, 0.0f, 0.0f, 0.0f);                    \
-          }                                                                   \
-                                                                              \
-          else                                                                \
-          {                                                                   \
-            under_color =                                                     \
-              float4 (hdrUnderlay.Sample (sampler0, input.pos.xy/             \
-                                                     viewport.zw).rgb, 1.0f); \
-            under_color.rgb =                                                 \
-              RemoveSRGBCurve (under_color.rgb/(under_color.rgb+(1.666f*      \
-                               (2.0f-blend_alpha))));                         \
-            out_col =                                                         \
-              pow (abs (input.col * out_col), float4 (input.uv3.yyy, 1.0f)) * \
-                                              float4 (input.uv3.xxx, 1.0f);   \
-            out_col.rgb *= blend_alpha;                                       \
-          }                                                                   \
-                                                                              \
-          return                                                              \
-            float4 (                         out_col.rgb +                    \
-                  (1.0f - blend_alpha) * under_color.rgb * 0.666f,            \
-                          blend_alpha);                                       \
-        }                                                                     \
-                                                                              \
-        return                                                                \
-          ( input.col * out_col );                                            \
+    static const char pixelShader[] =
+      "#pragma warning ( disable : 3571 )\n                                      \
+      struct PS_INPUT                                                         \n\
+      {                                                                       \n\
+        float4 pos : SV_POSITION;                                             \n\
+        float4 col : COLOR0;                                                  \n\
+        float2 uv  : TEXCOORD0;                                               \n\
+        float2 uv2 : TEXCOORD1;                                               \n\
+        float2 uv3 : TEXCOORD2;                                               \n\
+      };                                                                      \n\
+                                                                              \n\
+      cbuffer viewportDims : register (b0)                                    \n\
+      {                                                                       \n\
+        float4 viewport;                                                      \n\
+      };                                                                      \n\
+                                                                              \n\
+      sampler   sampler0    : register (s0);                                  \n\
+                                                                              \n\
+      Texture2D texture0    : register (t0);                                  \n\
+      Texture2D hdrUnderlay : register (t1);                                  \n\
+      Texture2D hdrHUD      : register (t2);                                  \n\
+                                                                              \n\
+      float3 RemoveSRGBCurve (float3 x)                                       \n\
+      {                                                                       \n\
+        /* Approximately pow(x, 2.2)*/                                        \n\
+        return x < 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);       \n\
+      }                                                                       \n\
+                                                                              \n\
+      float3 ApplyREC709Curve (float3 x)                                      \n\
+      {                                                                       \n\
+        return x < 0.0181 ? 4.5 * x : 1.0993 * pow(x, 0.45) - 0.0993;         \n\
+      }                                                                       \n\
+      float Luma (float3 color)                                               \n\
+      {                                                                       \n\
+        return                                                                \n\
+          dot (color, float3 (0.299f, 0.587f, 0.114f));                       \n\
+      }                                                                       \n\
+                                                                              \n\
+      float3 ApplyREC2084Curve (float3 L, float maxLuminance)                 \n\
+      {                                                                       \n\
+        float m1 = 2610.0 / 4096.0 / 4;                                       \n\
+        float m2 = 2523.0 / 4096.0 * 128;                                     \n\
+        float c1 = 3424.0 / 4096.0;                                           \n\
+        float c2 = 2413.0 / 4096.0 * 32;                                      \n\
+        float c3 = 2392.0 / 4096.0 * 32;                                      \n\
+                                                                              \n\
+        float maxLuminanceScale = maxLuminance / 10000.0f;                    \n\
+        L *= maxLuminanceScale;                                               \n\
+                                                                              \n\
+        float3 Lp = pow (L, m1);                                              \n\
+                                                                              \n\
+        return pow ((c1 + c2 * Lp) / (1 + c3 * Lp), m2);                      \n\
+      }                                                                       \n\
+                                                                              \n\
+      float3 REC709toREC2020 (float3 RGB709)                                  \n\
+      {                                                                       \n\
+        static const float3x3 ConvMat =                                       \n\
+        {                                                                     \n\
+          0.627402, 0.329292, 0.043306,                                       \n\
+          0.069095, 0.919544, 0.011360,                                       \n\
+          0.016394, 0.088028, 0.895578                                        \n\
+        };                                                                    \n\
+        return mul (ConvMat, RGB709);                                         \n\
+      }                                                                       \n\
+                                                                              \n\
+      float3 REC2020toREC709 (float3 RGB2020)                                 \n\
+      {                                                                       \n\
+        static const float3x3 ConvMat =                                       \n\
+        {                                                                     \n\
+           1.660496, -0.587656, -0.072840,                                    \n\
+          -0.124546,  1.132895,  0.008348,                                    \n\
+          -0.018154, -0.100597,  1.118751                                     \n\
+        };                                                                    \n\
+        return mul (ConvMat, RGB2020);                                        \n\
+      }                                                                       \n\
+                                                                              \n\
+      float4 main (PS_INPUT input) : SV_Target                                \n\
+      {                                                                       \n\
+        float4 out_col =                                                      \n\
+          texture0.Sample (sampler0, input.uv);                               \n\
+                                                                              \n\
+        bool hdr10 = ( input.uv3.x < 0.0 );                                   \n\
+                                                                              \n\
+        if (viewport.z > 0.f)                                                 \n\
+        {                                                                     \n\
+          float4 under_color;                                                 \n\
+                                                                              \n\
+          float blend_alpha =                                                 \n\
+            saturate (input.col.a * out_col.a);                               \n\
+                                                                              \n\
+          if (abs (blend_alpha) < 0.001f) blend_alpha = 0.0f;                 \n\
+          if (abs (blend_alpha) > 0.999f) blend_alpha = 1.0f;                 \n\
+                                                                              \n\
+          float4 hud = float4 (0.0f, 0.0f, 0.0f, 0.0f);                       \n\
+                                                                              \n\
+          if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)                       \n\
+          {                                                                   \n\
+            hud = hdrHUD.Sample (sampler0, input.uv);                         \n\
+            hud.rbg     = RemoveSRGBCurve (hud.rgb);                          \n\
+            hud.rgb    *= ( input.uv3.xxx );                                  \n\
+            out_col.rgb = RemoveSRGBCurve (out_col.rgb);                      \n\
+            out_col =                                                         \n\
+              pow (abs (out_col), float4 (input.uv2.yyy, 1.0f)) *             \n\
+                input.uv2.xxxx;                                               \n\
+            out_col.a   = 1.0f;                                               \n\
+            blend_alpha = 1.0f;                                               \n\
+            under_color = float4 (0.0f, 0.0f, 0.0f, 0.0f);                    \n\
+          }                                                                   \n\
+                                                                              \n\
+          else                                                                \n\
+          {                                                                   \n\
+            under_color =                                                     \n\
+              float4 (hdrUnderlay.Sample (sampler0, input.pos.xy/             \n\
+                                                     viewport.zw).rgb, 1.0f); \n\
+            if (hdr10)                                                        \n\
+            {                                                                 \n\
+              blend_alpha =                                                   \n\
+                ApplyREC2084Curve (float3 (blend_alpha, blend_alpha,          \n\
+                                           blend_alpha), -input.uv3.x).r;     \n\
+              under_color.rgb =                                               \n\
+                REC2020toREC709 (under_color.rgb/(under_color.rgb+(1.666f*    \n\
+                                 (2.0f-blend_alpha))));                       \n\
+            }                                                                 \n\
+            else                                                              \n\
+            {                                                                 \n\
+              under_color.rgb =                                               \n\
+                ( under_color.rgb / ( under_color.rgb + ( 1.666f *            \n\
+                                    ( 2.0f - blend_alpha ) ) )                \n\
+                );                                                            \n\
+            }                                                                 \n\
+                                                                              \n\
+            out_col =                                                         \n\
+              pow (abs (input.col * out_col), float4 (input.uv3.yyy, 1.0f));  \n\
+                                                                              \n\
+            if (! hdr10)                                                      \n\
+            {                                                                 \n\
+              out_col    *= float4 (input.uv3.xxx, 1.0f);                     \n\
+            }                                                                 \n\
+                                                                              \n\
+            out_col.rgb *= blend_alpha;                                       \n\
+          }                                                                   \n\
+                                                                              \n\
+          float4 final =                                                      \n\
+            float4 (                         out_col.rgb +                    \n\
+                  (1.0f - blend_alpha) * under_color.rgb * 0.666f,            \n\
+                          blend_alpha);                                       \n\
+                                                                              \n\
+          if (hdr10)                                                          \n\
+          {                                                                   \n\
+            final.rgb =                                                       \n\
+              ApplyREC2084Curve ( REC709toREC2020 (final.rgb),                \n\
+                                    -input.uv3.x );                           \n\
+          }                                                                   \n\
+                                                                              \n\
+          return final;                                                       \n\
+        }                                                                     \n\
+                                                                              \n\
+        return                                                                \n\
+          ( input.col * out_col );                                            \n\
       }";
 
     CComPtr <ID3D10Blob> blob_msg_pix;
@@ -1225,7 +1287,8 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
       err.reserve (blob_msg_pix->GetBufferSize    ());
       err = (
-           (char *)blob_msg_pix->GetBufferPointer ());
+           (char *)blob_msg_pix->GetBufferPointer ()
+      );
 
       if (! err.empty ())
       {
@@ -1249,26 +1312,84 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
 
     ///////
-    static const char pixelShaderSteamHDR [] =
+    static const char pixelShaderSteamHDR[] =
    "#pragma warning ( disable : 3571 )\n                         \
-    struct PS_INPUT                                              \
-    {                                                            \
-      float4 pos : SV_POSITION;                                  \
-      float4 col : COLOR;                                        \
-      float2 uv  : TEXCOORD0;                                    \
-      float2 uv2 : TEXCOORD1;                                    \
-    };                                                           \
-                                                                 \
-    sampler   PS_QUAD_Sampler   : register (s0);                 \
-    Texture2D PS_QUAD_Texture2D : register (t0);                 \
-                                                                 \
-    float3 RemoveSRGBCurve(float3 x)                             \
-    {                                                            \
-      /* Approximately pow(x, 2.2)*/                             \
-      return x < 0.04045 ? x / 12.92 :                           \
-                      pow((x + 0.055) / 1.055, 2.4);             \
-    }                                                            \
-                                                                 \
+    struct PS_INPUT                                              \n\
+    {                                                            \n\
+      float4 pos : SV_POSITION;                                  \n\
+      float4 col : COLOR;                                        \n\
+      float2 uv  : TEXCOORD0;                                    \n\
+      float2 uv2 : TEXCOORD1;                                    \n\
+    };                                                           \n\
+                                                                 \n\
+    sampler   PS_QUAD_Sampler   : register (s0);                 \n\
+    Texture2D PS_QUAD_Texture2D : register (t0);                 \n\
+                                                                 \n\
+    float3 RemoveSRGBCurve(float3 x)                             \n\
+    {                                                            \n\
+      /* Approximately pow(x, 2.2)*/                             \n\
+      return x < 0.04045 ? x / 12.92 :                           \n\
+                      pow((x + 0.055) / 1.055, 2.4);             \n\
+    }                                                            \n\
+                                                                 \n\
+    float3 ApplyREC2084Curve (float3 L, float maxLuminance)      \n\
+    {                                                            \n\
+      float m1 = 2610.0 / 4096.0 / 4;                            \n\
+      float m2 = 2523.0 / 4096.0 * 128;                          \n\
+      float c1 = 3424.0 / 4096.0;                                \n\
+      float c2 = 2413.0 / 4096.0 * 32;                           \n\
+      float c3 = 2392.0 / 4096.0 * 32;                           \n\
+                                                                 \n\
+      float maxLuminanceScale = maxLuminance / 10000.0f;         \n\
+      L *= maxLuminanceScale;                                    \n\
+                                                                 \n\
+      float3 Lp = pow (L, m1);                                   \n\
+                                                                 \n\
+      return pow ((c1 + c2 * Lp) / (1 + c3 * Lp), m2);           \n\
+    }                                                            \n\
+                                                                 \n\
+    float3 REC709toREC2020 (float3 RGB709)                       \n\
+    {                                                            \n\
+      static const float3x3 ConvMat =                            \n\
+      {                                                          \n\
+        0.627402, 0.329292, 0.043306,                            \n\
+        0.069095, 0.919544, 0.011360,                            \n\
+        0.016394, 0.088028, 0.895578                             \n\
+      };                                                         \n\
+      return mul (ConvMat, RGB709);                              \n\
+    }                                                            \n\
+                                                                 \n\
+    float4 main (PS_INPUT input) : SV_Target                     \n\
+    {                                                            \n\
+      float4 gamma_exp  = float4 (input.uv2.yyy, 1.f);           \n\
+      float4 linear_mul = float4 (input.uv2.xxx, 1.f);           \n\
+                                                                 \n\
+      float4 out_col =                                           \n\
+        PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);    \n\
+                                                                 \n\
+      out_col =                                                  \n\
+        float4 (RemoveSRGBCurve (input.col.rgb * out_col.rgb),   \n\
+                                 input.col.a   * out_col.a);     \n\
+                                                                 \n\
+      // Negative = HDR10                                        \n\
+      if (linear_mul.x < 0.0)                                    \n\
+      {                                                          \n\
+        out_col.rgb =                                            \n\
+          ApplyREC2084Curve ( REC709toREC2020 (out_col.rgb),     \n\
+                                -linear_mul.x );                 \n\
+                                                                 \n\
+      }                                                          \n\
+                                                                 \n\
+      // Positive = scRGB                                        \n\
+      else                                                       \n\
+        out_col *= linear_mul;                                   \n\
+                                                                 \n\
+      return                                                     \n\
+        float4 (out_col.rgb, saturate (out_col.a));              \n\
+    }";
+
+#if 0
+    "
     float4 main (PS_INPUT input) : SV_Target                     \
     {                                                            \
       float4 gamma_exp  = float4 (input.uv2.yyy, 1.f);           \
@@ -1284,7 +1405,9 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                  \
       return                                                     \
         float4 (out_col.rgb, saturate (out_col.a));              \
-    }";
+      "
+#endif
+
 
    static const char pixelShaderuPlayHDR [] =
    "#pragma warning ( disable : 3571 )\n                         \
@@ -1479,14 +1602,14 @@ SKX_ImGui_UnregisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
 void
 SK_ImGui_ResetExternal (void)
 {
-  for ( auto it : external_resources )
+  for ( auto& it : external_resources )
   {
     it->Release ();
   }
 
   external_resources.clear ();
 
-  for ( auto reset_fn : reset_callbacks )
+  for ( auto& reset_fn : reset_callbacks )
   {
     reset_fn ();
   }

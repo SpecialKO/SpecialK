@@ -415,7 +415,8 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext*        pDevCtx,
                           sk_shader_class             type,
                           ID3D11ClassInstance *const *ppClassInstances,
                           UINT                        NumClassInstances,
-                          bool                        Wrapped = false );
+                          bool                        Wrapped = false,
+                          UINT                        dev_idx = UINT_MAX );
 
 void
 SK_D3D11_SetShaderResources_Impl (
@@ -425,7 +426,8 @@ SK_D3D11_SetShaderResources_Impl (
    ID3D11DeviceContext *Wrapper,    // non-null indicates a wrapper
    UINT                 StartSlot,
    UINT                 NumViews,
-   _In_opt_             ID3D11ShaderResourceView* const *ppShaderResourceViews );
+   _In_opt_             ID3D11ShaderResourceView* const *ppShaderResourceViews,
+   UINT                 dev_idx = UINT_MAX );
 
 void
 STDMETHODCALLTYPE
@@ -468,13 +470,14 @@ SK_D3D11_CopyResource_Impl (
 
 void
 STDMETHODCALLTYPE
-SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped);
+SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped, UINT dev_idx = UINT_MAX);
 
 void
 SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
                     UINT                 VertexCount,
                     UINT                 StartVertexLocation,
-                    bool                 Wrapped = false );
+                    bool                 Wrapped = false,
+                    UINT                 dev_idx = UINT_MAX );
 
 void
 STDMETHODCALLTYPE
@@ -483,7 +486,8 @@ SK_D3D11_DrawIndexed_Impl (
   _In_ UINT                 IndexCount,
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation,
-       BOOL                 bWrapped );
+       BOOL                 bWrapped,
+       UINT                 dev_idx = UINT_MAX );
 
 void
 STDMETHODCALLTYPE
@@ -494,7 +498,8 @@ SK_D3D11_DrawIndexedInstanced_Impl (
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation,
   _In_ UINT                 StartInstanceLocation,
-       BOOL                 bWrapped );
+       BOOL                 bWrapped,
+       UINT                 dev_idx = UINT_MAX );
 
 void
 STDMETHODCALLTYPE
@@ -502,7 +507,8 @@ SK_D3D11_DrawIndexedInstancedIndirect_Impl (
   _In_ ID3D11DeviceContext *pDevCtx,
   _In_ ID3D11Buffer        *pBufferForArgs,
   _In_ UINT                 AlignedByteOffsetForArgs,
-       BOOL                 bWrapped );
+       BOOL                 bWrapped,
+       UINT                 dev_idx = UINT_MAX );
 
 void
 STDMETHODCALLTYPE
@@ -512,7 +518,8 @@ SK_D3D11_DrawInstanced_Impl (
   _In_ UINT                 InstanceCount,
   _In_ UINT                 StartVertexLocation,
   _In_ UINT                 StartInstanceLocation,
-       BOOL                 bWrapped );
+       BOOL                 bWrapped,
+       UINT                 dev_idx = UINT_MAX );
 
 void
 STDMETHODCALLTYPE
@@ -520,7 +527,8 @@ SK_D3D11_DrawInstancedIndirect_Impl (
   _In_ ID3D11DeviceContext *pDevCtx,
   _In_ ID3D11Buffer        *pBufferForArgs,
   _In_ UINT                 AlignedByteOffsetForArgs,
-       BOOL                 bWrapped );
+       BOOL                 bWrapped,
+       UINT                 dev_idx = UINT_MAX );
 
 void
 STDMETHODCALLTYPE
@@ -529,7 +537,8 @@ SK_D3D11_OMSetRenderTargets_Impl (
 _In_     UINT                           NumViews,
 _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
 _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
-         BOOL                           bWrapped );
+         BOOL                           bWrapped,
+         UINT                           dev_idx = UINT_MAX );
 
 
 
@@ -1178,4 +1187,20 @@ class SK_D3D11_Wrapper_Factory
 {
 public:
   ID3D11DeviceContext4* wrapDeviceContext (ID3D11DeviceContext* dev_ctx);
-} extern SK_D3D11_WrapperFactory;
+};
+
+// Keep a tally of shader states loaded that require tracking all draws
+//   and ignore conditional tracking states (i.e. HUD)
+//
+//   This allows a shader config file that only defines HUD shaders
+//     to bypass state tracking overhead until the user requests that
+//       HUD shaders be skipped.
+//
+struct SK_D3D11_StateTrackingCounters
+{
+  volatile LONG Always = 0;
+  volatile LONG Conditional = 0;
+};
+
+extern SK_LazyGlobal <SK_D3D11_Wrapper_Factory>       SK_D3D11_WrapperFactory;
+extern SK_LazyGlobal <SK_D3D11_StateTrackingCounters> SK_D3D11_TrackingCount;

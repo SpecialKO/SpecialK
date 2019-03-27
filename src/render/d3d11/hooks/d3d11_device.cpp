@@ -161,7 +161,7 @@ D3D11Dev_CreateShaderResourceView_Override (
             SK_D3D11_Textures;
 
           auto& cache_desc =
-            textures.Textures_2D [pTex];
+            textures->Textures_2D [pTex];
 
           newFormat =
             cache_desc.desc.Format;
@@ -693,7 +693,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
   if (SUCCEEDED (hr) && ppGeometryShader)
   {
     static auto& geo_shaders =
-      SK_D3D11_Shaders.geometry;
+      SK_D3D11_Shaders->geometry;
 
     uint32_t checksum =
       SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
@@ -730,7 +730,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
     cs_shader_gs->unlock ();
 
     InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
-                _time64 (&desc.usage.last_time);
+              //_time64 (&desc.usage.last_time);
   }
 
   return hr;

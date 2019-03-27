@@ -43,8 +43,8 @@ extern int   __SK_HDR_input_gamut;
 extern int   __SK_HDR_output_gamut;
 
 
-static auto DeclKeybind =
-[](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
+auto constexpr
+DeclKeybind = [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
 auto
 {
   auto* ret =
@@ -59,7 +59,7 @@ auto
   return ret;
 };
 
-static auto
+auto constexpr
 Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
 auto
 {
@@ -268,7 +268,7 @@ class SKWG_HDR_Control : public SK_Widget
 public:
   SKWG_HDR_Control (void) noexcept : SK_Widget ("DXGI_HDR")
   {
-    SK_ImGui_Widgets.hdr_control = this;
+    SK_ImGui_Widgets->hdr_control = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::NorthEast).setClickThrough (false);
   };
@@ -1077,7 +1077,7 @@ SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::highp_vec3 RGB )
                                   Yr, Yg, Yb,
                                   Zr, Zg, Zb );
 
-  glm::highp_vec3 S       ( xyz_primary._inverse () *
+  glm::highp_vec3 S       ( glm::inverse (xyz_primary) *
                               glm::highp_vec3 (cs.Xw, cs.Yw, cs.Zw) );
 
   return RGB *

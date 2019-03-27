@@ -33,6 +33,7 @@ struct IUnknown;
 #include <SpecialK/tls.h>
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
+#include <concurrent_vector.h>
 
 #include <string>
 #include <typeindex>
@@ -571,10 +572,7 @@ public:
   std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
 };
 
-using  SK_D3D11_TexMgr_Singleton = SK_D3D11_TexMgr*;
-extern SK_D3D11_TexMgr_Singleton __SK_Singleton_D3D11_Textures (void);
-
-#define SK_D3D11_Textures (*__SK_Singleton_D3D11_Textures ())
+extern SK_LazyGlobal <SK_D3D11_TexMgr> SK_D3D11_Textures;
 
 
 interface ID3D11DeviceContext2;
@@ -947,7 +945,6 @@ struct d3d11_shader_tracking_s
 
     if ( set_of_res.empty   () &&
          set_of_views.empty () &&
-         used_views.empty   () &&
          classes.empty      () )
     {
       return;
@@ -976,11 +973,10 @@ struct d3d11_shader_tracking_s
       }
     };
 
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*shader_class_crit_sec ());
-
     set_of_res.clear   ();
     set_of_views.clear ();
-    used_views.clear   ();
+
+    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*shader_class_crit_sec ());
     classes.clear      ();
 
     pre_hud_rtv = nullptr;
@@ -996,8 +992,10 @@ struct d3d11_shader_tracking_s
   // Used for timing queries and interface tracking
   void activate   ( ID3D11DeviceContext        *pDevContext,
                     ID3D11ClassInstance *const *ppClassInstances,
-                    UINT                        NumClassInstances );
-  void deactivate ( ID3D11DeviceContext        *pDevContext );
+                    UINT                        NumClassInstances,
+                    UINT                        dev_idx = UINT_MAX );
+  void deactivate ( ID3D11DeviceContext        *pDevContext,
+                    UINT                        dev_idx = UINT_MAX );
 
   std::atomic_uint32_t    crc32c           =  0x00;
   std::atomic_bool        cancel_draws     = false;
@@ -1073,9 +1071,8 @@ struct d3d11_shader_tracking_s
   // The slot used has meaning, but I think we can ignore it for now...
   //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;
 
-  std::set    <SK_ComPtr <ID3D11Resource>           > set_of_res;
-  std::set    <SK_ComPtr <ID3D11ShaderResourceView> > set_of_views;
-  std::vector <SK_ComPtr <ID3D11ShaderResourceView> > used_views;
+  Concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11Resource>           > set_of_res;
+  Concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView> > set_of_views;
 
 
   struct cbuffer_override_s {
@@ -1249,14 +1246,6 @@ struct SK_D3D11_KnownShaders
   ShaderRegistry <ID3D11DomainShader>   domain;
   ShaderRegistry <ID3D11ComputeShader>  compute;
 };
-
-using  SK_D3D11_KnownShaders_Singleton = SK_D3D11_KnownShaders*;
-extern SK_D3D11_KnownShaders_Singleton __SK_Singleton_D3D11_Shaders (void);
-
-extern SK_D3D11_KnownShaders_Singleton SK_D3D11_Shader_Lambda (void);
-
-#define SK_D3D11_Shaders (*SK_D3D11_Shader_Lambda ())
-
 
 typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
   _In_opt_                            IDXGIAdapter         *pAdapter,
@@ -1505,13 +1494,15 @@ void SK_D3D11_AssociateVShaderWithHUD (uint32_t crc32, bool set = true);
 void SK_D3D11_AssociatePShaderWithHUD (uint32_t crc32, bool set = true);
 
 
-#define SK_D3D11_DeclHUDShader_Vtx(crc32c) {  \
-    SK_D3D11_Shaders.vertex.addTrackingRef (  \
-      SK_D3D11_Shaders.vertex.hud, (crc32c)); }
+extern SK_LazyGlobal <SK_D3D11_KnownShaders> SK_D3D11_Shaders;
 
-#define SK_D3D11_DeclHUDShader_Pix(crc32c) { \
-    SK_D3D11_Shaders.pixel.addTrackingRef  ( \
-      SK_D3D11_Shaders.pixel.hud, (crc32c)); }
+#define SK_D3D11_DeclHUDShader_Vtx(crc32c)  {  \
+    SK_D3D11_Shaders->vertex.addTrackingRef (  \
+      SK_D3D11_Shaders->vertex.hud, (crc32c)); }
+
+#define SK_D3D11_DeclHUDShader_Pix(crc32c)  { \
+    SK_D3D11_Shaders->pixel.addTrackingRef  ( \
+      SK_D3D11_Shaders->pixel.hud, (crc32c)); }
 
 
 #define SK_D3D11_DeclHUDShader(crc32c,type) \

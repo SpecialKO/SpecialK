@@ -12261,8 +12261,7 @@ struct SK_D3D11_TexCacheResidency_s
   } size;
 };
 
-SK_D3D11_TexCacheResidency_s& SK_D3D11_GetTexCacheResidency (void);
-#define SK_D3D11_TexCacheResidency SK_D3D11_GetTexCacheResidency ()
+extern SK_LazyGlobal <SK_D3D11_TexCacheResidency_s> SK_D3D11_TexCacheResidency;
 
 
 #endif /* __SK__DXGI_INTERFACES_H__ */

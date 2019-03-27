@@ -29,6 +29,7 @@
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/screenshot.h>
 #include <SpecialK/render/backend.h>
 #include <SpecialK/window.h>
 
@@ -191,7 +192,6 @@ std::vector <sk_hook_cache_record_s *> local_dxgi_records =
 
 extern SK_Thread_HybridSpinlock cs_mmio;
 
-extern void SK_D3D11_ProcessScreenshotQueue (int stage);
 extern void SK_D3D11_EndFrame               (SK_TLS* pTLS = SK_TLS_Bottom ());
 extern void SK_DXGI_UpdateSwapChain         (IDXGISwapChain*);
 
@@ -1147,11 +1147,12 @@ enum SK_DXGI_ResType {
   HEIGHT = 1
 };
 
-auto SK_DXGI_RestrictResMax = []( SK_DXGI_ResType dim,
-                                  auto&           last,
-                                  auto            idx,
-                                  auto            covered,
-                  gsl::not_null <DXGI_MODE_DESC*> pDescRaw )->
+auto constexpr
+SK_DXGI_RestrictResMax = []( SK_DXGI_ResType dim,
+                             auto&           last,
+                             auto            idx,
+                             auto            covered,
+             gsl::not_null <DXGI_MODE_DESC*> pDescRaw )->
 bool
  {
   auto pDesc =
@@ -1196,11 +1197,12 @@ bool
    return false;
  };
 
-auto SK_DXGI_RestrictResMin = []( SK_DXGI_ResType dim,
-                                  auto&           first,
-                                  auto            idx,
-                                  auto            covered,
-                                  DXGI_MODE_DESC* pDesc )->
+auto constexpr
+SK_DXGI_RestrictResMin = []( SK_DXGI_ResType dim,
+                             auto&           first,
+                             auto            idx,
+                             auto            covered,
+                             DXGI_MODE_DESC* pDesc )->
 bool
  {
    UNREFERENCED_PARAMETER (first);
@@ -3132,9 +3134,6 @@ SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb)
 
 #define _SK_D3D11_LITE_STATEBLOCKS
 
-extern bool
-SK_Screenshot_IsCapturingHUDless (void);
-
 void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 {
@@ -3522,7 +3521,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
 
       // Queue-up Post-SK OSD Screenshots
-      SK_D3D11_ProcessScreenshotQueue (2);
+      SK_Screenshot_ProcessQueue (SK_ScreenshotStage::EndOfFrame);
 
 
       //
@@ -4104,7 +4103,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
 
     // Queue-up Pre-SK OSD Screenshots
-    SK_D3D11_ProcessScreenshotQueue (1);
+    SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD);
 
     static auto& rb =
       SK_GetCurrentRenderBackend ();
@@ -4352,8 +4351,8 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
           }
         }
 
-        SK_D3D11_ProcessScreenshotQueue (3);
-        SK_D3D11_TexCacheCheckpoint     ( );
+        SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue);
+        SK_D3D11_TexCacheCheckpoint (                               );
       }
 
       return ret;
@@ -4461,7 +4460,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 ////SK_D3D12_UpdateRenderStats (This);
 
     // Queue-up Pre-SK OSD Screenshots
-    SK_D3D11_ProcessScreenshotQueue (1);
+    SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD);
 
 
     // Establish the API used this frame (and handle possible translation layers)
@@ -4739,8 +4738,8 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
           }
         }
 
-        SK_D3D11_ProcessScreenshotQueue (3);
-        SK_D3D11_TexCacheCheckpoint     ( );
+        SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue);
+        SK_D3D11_TexCacheCheckpoint (                               );
       }
 
       return ret;
@@ -7336,7 +7335,7 @@ SK_D3D11_GetSystemDLL (void)
     lstrcatW  (wszPath, LR"(\d3d11.dll)");
 
     hModSystemD3D11 =
-      SK_Modules.LoadLibraryLL (wszPath);
+      SK_Modules->LoadLibraryLL (wszPath);
   }
 
   return hModSystemD3D11;
@@ -7350,7 +7349,7 @@ SK_D3D11_GetLocalDLL (void)
   if (hModLocalD3D11 == nullptr)
   {
     hModLocalD3D11 =
-      SK_Modules.LoadLibraryLL (L"d3d11.dll");
+      SK_Modules->LoadLibraryLL (L"d3d11.dll");
   }
 
   return hModLocalD3D11;
@@ -7383,8 +7382,15 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
             WaitForInitDXGI ();
   }
 
-  HRESULT ret;
-  DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
+  HRESULT ret =
+    DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
+
+  if (CreateDXGIFactory_Import != nullptr)
+  {
+    DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
+  }
+
+  else SK_ReleaseAssert (CreateDXGIFactory_Import != nullptr)
 
   return ret;
 }
@@ -7610,7 +7616,7 @@ SK_HookDXGI (void)
 
     HMODULE hBackend =
       ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ? backend_dll :
-                                                               SK_Modules.LoadLibraryLL (L"dxgi.dll");
+                                                               SK_Modules->LoadLibraryLL (L"dxgi.dll");
 
 
     dll_log->Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
@@ -8558,7 +8564,7 @@ DWORD
 __stdcall
 HookDXGI (LPVOID user)
 {
-  SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler Thread");
+  SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
 
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
@@ -9085,7 +9091,7 @@ DWORD
 WINAPI
 SK::DXGI::BudgetThread ( LPVOID user_data )
 {
-  SetCurrentThreadDescription (L"[SK] DXGI Budget Tracking Thread");
+  SetCurrentThreadDescription (L"[SK] DXGI Budget Tracker");
 
   auto* params =
     static_cast <budget_thread_params_t *> (user_data);
@@ -9155,8 +9161,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       mem_info [node].buffer;
 
 
-    SK_D3D11_Textures.Budget = mem_info [buffer].local [0].Budget -
-                               mem_info [buffer].local [0].CurrentUsage;
+    SK_D3D11_Textures->Budget = mem_info [buffer].local [0].Budget -
+                                mem_info [buffer].local [0].CurrentUsage;
 
 
     // Double-Buffer Updates
@@ -9346,7 +9352,7 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
   SK_AutoCOMInit auto_com;
 
   static HMODULE
-    hDXGI = SK_Modules.LoadLibraryLL ( L"dxgi.dll" );
+    hDXGI = SK_Modules->LoadLibraryLL ( L"dxgi.dll" );
 
   if (hDXGI)
   {

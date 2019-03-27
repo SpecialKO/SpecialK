@@ -31,7 +31,7 @@ template <typename T>
 class SK_LazyGlobal
 {
 public:
-  inline T* getPtr (void)
+  __forceinline T* getPtr (void)
   {
     static_assert ( std::is_reference_v <T> != true,
                     "SK_LazyGlobal does not support reference types" );
@@ -56,13 +56,14 @@ public:
       pDeferredObject.get ();
   }
 
-    inline T& get         (void)          { return *getPtr ();      }
-           T* operator->  (void)          { return  getPtr ();      }
-  operator T&             (void)          { return  get    ();      }
-        auto& operator [] (const int idx) { return  get    ()[idx]; }
+       inline    T& get         (void)          { return   *getPtr ();       }
+__forceinline    T* operator->  (void)          { return    getPtr ();       }
+__forceinline    T& operator*   (void)          { return   *getPtr ();       }
+     operator    T&             (void)          { return    get    ();       }
+__forceinline auto& operator [] (const int idx) { return  (*getPtr ())[idx]; }
 
-  SK_LazyGlobal            (const SK_LazyGlobal&) = delete;
-  SK_LazyGlobal& operator= (const SK_LazyGlobal ) = delete;
+  SK_LazyGlobal              (const SK_LazyGlobal&) = delete;
+  SK_LazyGlobal& operator=   (const SK_LazyGlobal ) = delete;
 
   constexpr SK_LazyGlobal (void) {
   }
