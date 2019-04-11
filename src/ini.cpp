@@ -1330,6 +1330,24 @@ iSK_INI::import_file (const wchar_t* fname)
   return false;
 }
 
+bool
+iSK_INI::rename (const wchar_t* fname)
+{
+  if (wcslen (fname))
+  {
+    if (wszName)
+    {
+      free (wszName);
+    }
+
+    wszName = _wcsdup (fname);
+
+    return true;
+  }
+
+  return false;
+}
+
 iSK_INI*
 __stdcall
 SK_CreateINI (const wchar_t* const wszName)
