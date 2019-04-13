@@ -98,19 +98,19 @@ public:
         the OpenGL (desktop or ES) context that was current when this method was called.
     */
     void init();
-    
+
     /*!
     \brief
         Type of the OpenGL (desktop or ES) context
     */
     Type type() const { return d_type; }
-    
+
     /*!
     \brief
         Returns true if using Desktop OpenGL.
     */
     bool isUsingDesktopOpengl() const { return type() == TYPE_DESKTOP; }
-    
+
     /*!
     \brief
         Returns true if using OpenGL ES.
@@ -123,7 +123,7 @@ public:
         Otherwise returns -1;
     */
     GLint verMajor() const { return d_verMajor; }
-    
+
     /*!
     \brief
         Returns OpenGL (desktop or ES) minor version. Only supports Epoxy!
@@ -193,14 +193,14 @@ public:
        used to check OpenGL ES 2.0 when the context is actually OpenGL ES 3.0
        (which is compatible with OpenGL ES 2.0). */
     void verForce(GLint verMajor_, GLint verMinor_);
-      
+
 private:
 
     static OpenGLInfo s_instance;
     OpenGLInfo();
     void initTypeAndVer();
     void initSupportedFeatures();
-    
+
     Type d_type;
     GLint d_verMajor;
     GLint d_verMinor;
