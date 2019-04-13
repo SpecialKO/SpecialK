@@ -147,7 +147,8 @@ typedef enum _NVAPI_D3D_SETRESOURCEHINT_CATEGORY
 
 //
 //  NVAPI_D3D_SRH_SLI_APP_CONTROLLED_INTERFRAME_CONTENT_SYNC:
-//  NVAPI_D3D_SRH_SLI_ASK_FOR_BROADCAST_USING: 
+//  NVAPI_D3D_SRH_SLI_ASK_FOR_BROADCAST_USING:
+//  NVAPI_D3D_SRH_SLI_RESPECT_DRIVER_INTERFRAME_CONTENT_SYNC:
 
 
 //! \ingroup dx
@@ -160,11 +161,18 @@ typedef enum _NVAPI_D3D_SETRESOURCEHINT_CATEGORY
 //!  NVAPI_D3D_SRH_SLI_ASK_FOR_BROADCAST_USAGE: Valid values : 0 or 1 \n
 //!  Default value: 0 \n
 //!  Explanation: If the value is 1, the driver will try to perform operations which involved target resource in broadcast, 
-//!  where its possible. Hint is static and must be set before resource starts using. 
+//!  where it's possible. Hint is static and must be set before resource starts using.
+//!  
+//!  NVAPI_D3D_SRH_SLI_RESPECT_DRIVER_INTERFRAME_CONTENT_SYNC: Valid values : 0 or 1 \n
+//!  Default value: 0 \n
+//!  Explanation: If the value is 1, the driver will do dirty resource resolve regardless of discard flags in the application profile or 
+//!  AFR-FriendlyD3DHints.exe name using.
+//!
 typedef enum _NVAPI_D3D_SETRESOURCEHINT_SLI
 {
     NVAPI_D3D_SRH_SLI_APP_CONTROLLED_INTERFRAME_CONTENT_SYNC = 1,
-    NVAPI_D3D_SRH_SLI_ASK_FOR_BROADCAST_USAGE = 2
+    NVAPI_D3D_SRH_SLI_ASK_FOR_BROADCAST_USAGE = 2,
+    NVAPI_D3D_SRH_SLI_RESPECT_DRIVER_INTERFRAME_CONTENT_SYNC = 3
 }  NVAPI_D3D_SETRESOURCEHINT_SLI;
 
 //! \ingroup dx
@@ -179,7 +187,7 @@ NVAPI_INTERFACE NvAPI_D3D_SetResourceHint(IUnknown *pDev, NVDX_ObjectHandle obj,
 //
 // FUNCTION NAME: NvAPI_D3D_BeginResourceRendering
 //
-//! \fn NvAPI_D3D_BeginResourceRendering(IUnknown *pDev, NVDX_ObjectHandle obj, NvU32 Flags)
+//! \fn NvAPI_D3D_BeginResourceRendering(IUnknown *pDeviceOrContext, NVDX_ObjectHandle obj, NvU32 Flags)
 //!   DESCRIPTION: This function tells the driver that the resource will begin to receive updates. It must be used in combination with NvAPI_D3D_EndResourceRendering(). 
 //!                The primary use of this function is allow the driver to initiate early inter-frame synchronization of resources while running in AFR SLI mode. 
 //!
@@ -188,7 +196,7 @@ NVAPI_INTERFACE NvAPI_D3D_SetResourceHint(IUnknown *pDev, NVDX_ObjectHandle obj,
 //!
 //! \since Release: 185
 //!
-//! \param [in]  pDev         The ID3D10Device or IDirect3DDevice9 that is a using the resource
+//! \param [in]  pDev         IDirect3DDevice9, ID3D10Device, ID3D11Device or ID3D11DeviceContext that is using the resource
 //! \param [in]  obj          Previously obtained HV resource handle
 //! \param [in]  Flags        The flags for functionality applied to resource while being used.
 //!
@@ -209,7 +217,7 @@ typedef enum  _NVAPI_D3D_RESOURCERENDERING_FLAG
 } NVAPI_D3D_RESOURCERENDERING_FLAG;
 
 //! \ingroup dx
-NVAPI_INTERFACE NvAPI_D3D_BeginResourceRendering(IUnknown *pDev, NVDX_ObjectHandle obj, NvU32 Flags);
+NVAPI_INTERFACE NvAPI_D3D_BeginResourceRendering(IUnknown *pDeviceOrContext, NVDX_ObjectHandle obj, NvU32 Flags);
 
 #endif //defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__)
 
@@ -227,7 +235,7 @@ NVAPI_INTERFACE NvAPI_D3D_BeginResourceRendering(IUnknown *pDev, NVDX_ObjectHand
 //!
 //! \since Release: 185
 //!
-//! \param [in]  pDev         The ID3D10Device or IDirect3DDevice9 thatis a using the resource
+//! \param [in]  pDev         IDirect3DDevice9, ID3D10Device, ID3D11Device or ID3D11DeviceContext that is using the resource
 //! \param [in]  obj          Previously obtained HV resource handle
 //! \param [in]  Flags        Reserved, must be zero
 //
@@ -237,7 +245,7 @@ NVAPI_INTERFACE NvAPI_D3D_BeginResourceRendering(IUnknown *pDev, NVDX_ObjectHand
 //!
 //! \ingroup dx
 ///////////////////////////////////////////////////////////////////////////////
-NVAPI_INTERFACE NvAPI_D3D_EndResourceRendering(IUnknown *pDev, NVDX_ObjectHandle obj, NvU32 Flags);
+NVAPI_INTERFACE NvAPI_D3D_EndResourceRendering(IUnknown *pDeviceOrContext, NVDX_ObjectHandle obj, NvU32 Flags);
 #endif //if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__)
 
 #include"nvapi_lite_salend.h"

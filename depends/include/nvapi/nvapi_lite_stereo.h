@@ -104,7 +104,7 @@ NVAPI_INTERFACE NvAPI_Stereo_Disable(void);
 //! \ingroup stereoapi
 ///////////////////////////////////////////////////////////////////////////////
 NVAPI_INTERFACE NvAPI_Stereo_IsEnabled(NvU8 *pIsStereoEnabled);
-#if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__)
+#if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__)|| defined(__d3d12_h__)
 
 ///////////////////////////////////////////////////////////////////////////////
 //

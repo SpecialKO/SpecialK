@@ -76,7 +76,6 @@ RWStructuredBuffer<NvShaderExtnStruct> g_NvidiaExt : register( NV_SHADER_EXTN_SL
 RWStructuredBuffer<NvShaderExtnStruct> g_NvidiaExt : register( NV_SHADER_EXTN_SLOT );
 #endif
 
-
 //----------------------------------------------------------------------------//
 // the exposed SHFL instructions accept a mask parameter in src2
 // To compute lane mask from width of segment:
@@ -290,9 +289,16 @@ void __NvReferenceUAVForOp(RWTexture3D<int> uav)
 
 //----------------------------------------------------------------------------//
 // ATOMIC op sub-opcodes
+#define NV_EXTN_ATOM_AND                            0
+#define NV_EXTN_ATOM_OR                             1
+#define NV_EXTN_ATOM_XOR                            2
+
 #define NV_EXTN_ATOM_ADD                            3
 #define NV_EXTN_ATOM_MAX                            6
 #define NV_EXTN_ATOM_MIN                            7
+
+#define NV_EXTN_ATOM_SWAP                           8
+#define NV_EXTN_ATOM_CAS                            9
 
 //----------------------------------------------------------------------------//
 
@@ -460,8 +466,9 @@ uint2 __fp32x4Tofp16x4(float4 val)
     return uint2( (f32tof16(val.y)<<16) | f32tof16(val.x), (f32tof16(val.w)<<16) | f32tof16(val.z) ) ;
 }
 
-// FP32 Atomic functions
+//----------------------------------------------------------------------------//
 
+// FP32 Atomic functions
 // performs Atomic operation treating the uav as float (fp32) values
 // the passed sub-opcode 'op' should be an immediate constant
 // byteAddress must be multiple of 4
@@ -513,3 +520,118 @@ float __NvAtomicAddFP32(RWTexture3D<float> uav, uint3 address, float val)
     return asfloat(g_NvidiaExt[index].dst0u.x);
 }
 
+//----------------------------------------------------------------------------//
+
+// UINT64 Atmoic Functions
+// The functions below performs atomic operation on the given UAV treating the value as uint64
+// byteAddress must be multiple of 8
+// The returned value is the value present in memory location before the atomic operation
+// uint2 vector type is used to represent a single uint64 value with the x component containing the low 32 bits and y component the high 32 bits.
+
+uint2 __NvAtomicCompareExchangeUINT64(RWByteAddressBuffer uav, uint byteAddress, uint2 compareValue, uint2 value)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x  = byteAddress;
+    g_NvidiaExt[index].src1u.xy = compareValue;
+    g_NvidiaExt[index].src1u.zw = value;
+    g_NvidiaExt[index].src2u.x  = NV_EXTN_ATOM_CAS;
+    g_NvidiaExt[index].opcode   = NV_EXTN_OP_UINT64_ATOMIC;
+
+    return g_NvidiaExt[index].dst0u.xy;
+}
+
+uint2 __NvAtomicOpUINT64(RWByteAddressBuffer uav, uint byteAddress, uint2 value, uint atomicOpType)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x  = byteAddress;
+    g_NvidiaExt[index].src1u.xy = value;
+    g_NvidiaExt[index].src2u.x  = atomicOpType;
+    g_NvidiaExt[index].opcode   = NV_EXTN_OP_UINT64_ATOMIC;
+
+    return g_NvidiaExt[index].dst0u.xy;
+}
+
+uint2 __NvAtomicCompareExchangeUINT64(RWTexture1D<uint2> uav, uint address, uint2 compareValue, uint2 value)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x  = address;
+    g_NvidiaExt[index].src1u.xy = compareValue;
+    g_NvidiaExt[index].src1u.zw = value;
+    g_NvidiaExt[index].src2u.x  = NV_EXTN_ATOM_CAS;
+    g_NvidiaExt[index].opcode   = NV_EXTN_OP_UINT64_ATOMIC;
+
+    return g_NvidiaExt[index].dst0u.xy;
+}
+
+uint2 __NvAtomicOpUINT64(RWTexture1D<uint2> uav, uint address, uint2 value, uint atomicOpType)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x  = address;
+    g_NvidiaExt[index].src1u.xy = value;
+    g_NvidiaExt[index].src2u.x  = atomicOpType;
+    g_NvidiaExt[index].opcode   = NV_EXTN_OP_UINT64_ATOMIC;
+
+    return g_NvidiaExt[index].dst0u.xy;
+}
+
+uint2 __NvAtomicCompareExchangeUINT64(RWTexture2D<uint2> uav, uint2 address, uint2 compareValue, uint2 value)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy  = address;
+    g_NvidiaExt[index].src1u.xy = compareValue;
+    g_NvidiaExt[index].src1u.zw = value;
+    g_NvidiaExt[index].src2u.x  = NV_EXTN_ATOM_CAS;
+    g_NvidiaExt[index].opcode   = NV_EXTN_OP_UINT64_ATOMIC;
+
+    return g_NvidiaExt[index].dst0u.xy;
+}
+
+uint2 __NvAtomicOpUINT64(RWTexture2D<uint2> uav, uint2 address, uint2 value, uint atomicOpType)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy  = address;
+    g_NvidiaExt[index].src1u.xy = value;
+    g_NvidiaExt[index].src2u.x  = atomicOpType;
+    g_NvidiaExt[index].opcode   = NV_EXTN_OP_UINT64_ATOMIC;
+
+    return g_NvidiaExt[index].dst0u.xy;
+}
+
+uint2 __NvAtomicCompareExchangeUINT64(RWTexture3D<uint2> uav, uint3 address, uint2 compareValue, uint2 value)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz  = address;
+    g_NvidiaExt[index].src1u.xy = compareValue;
+    g_NvidiaExt[index].src1u.zw = value;
+    g_NvidiaExt[index].src2u.x  = NV_EXTN_ATOM_CAS;
+    g_NvidiaExt[index].opcode   = NV_EXTN_OP_UINT64_ATOMIC;
+
+    return g_NvidiaExt[index].dst0u.xy;
+}
+
+uint2 __NvAtomicOpUINT64(RWTexture3D<uint2> uav, uint3 address, uint2 value, uint atomicOpType)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz  = address;
+    g_NvidiaExt[index].src1u.xy = value;
+    g_NvidiaExt[index].src2u.x  = atomicOpType;
+    g_NvidiaExt[index].opcode   = NV_EXTN_OP_UINT64_ATOMIC;
+
+    return g_NvidiaExt[index].dst0u.xy;
+}
