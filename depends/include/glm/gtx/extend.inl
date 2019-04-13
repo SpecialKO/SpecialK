@@ -1,53 +1,46 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// OpenGL Mathematics Copyright (c) 2005 - 2013 G-Truc Creation (www.g-truc.net)
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Created : 2006-01-07
-// Updated : 2008-10-05
-// Licence : This source is under MIT License
-// File    : glm/gtx/extend.inl
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ref gtx_extend
 
 namespace glm
 {
-	template <typename genType>
-	genType extend
+	template<typename genType>
+	GLM_FUNC_QUALIFIER genType extend
 	(
-		genType const & Origin, 
-		genType const & Source, 
-		genType const & Distance
+		genType const& Origin,
+		genType const& Source,
+		genType const& Distance
 	)
 	{
 		return Origin + (Source - Origin) * Distance;
 	}
 
-	template <typename valType>
-	detail::tvec2<valType> extend
+	template<typename T, qualifier Q>
+	GLM_FUNC_QUALIFIER vec<2, T, Q> extend
 	(
-		detail::tvec2<valType> const & Origin, 
-		detail::tvec2<valType> const & Source, 
-		valType const & Distance
+		vec<2, T, Q> const& Origin,
+		vec<2, T, Q> const& Source,
+		T const& Distance
 	)
 	{
 		return Origin + (Source - Origin) * Distance;
 	}
 
-	template <typename valType>
-	detail::tvec3<valType> extend
+	template<typename T, qualifier Q>
+	GLM_FUNC_QUALIFIER vec<3, T, Q> extend
 	(
-		detail::tvec3<valType> const & Origin, 
-		detail::tvec3<valType> const & Source, 
-		valType const & Distance
+		vec<3, T, Q> const& Origin,
+		vec<3, T, Q> const& Source,
+		T const& Distance
 	)
 	{
 		return Origin + (Source - Origin) * Distance;
 	}
 
-	template <typename valType>
-	detail::tvec4<valType> extend
+	template<typename T, qualifier Q>
+	GLM_FUNC_QUALIFIER vec<4, T, Q> extend
 	(
-		detail::tvec4<valType> const & Origin, 
-		detail::tvec4<valType> const & Source, 
-		valType const & Distance
+		vec<4, T, Q> const& Origin,
+		vec<4, T, Q> const& Source,
+		T const& Distance
 	)
 	{
 		return Origin + (Source - Origin) * Distance;

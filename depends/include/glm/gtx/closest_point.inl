@@ -1,36 +1,45 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// OpenGL Mathematics Copyright (c) 2005 - 2013 G-Truc Creation (www.g-truc.net)
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Created : 2005-12-30
-// Updated : 2008-10-05
-// Licence : This source is under MIT License
-// File    : glm/gtx/closest_point.inl
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-#ifndef glm_gtx_closest_point
-#define glm_gtx_closest_point
+/// @ref gtx_closest_point
 
 namespace glm
 {
-	template <typename valType> 
-	GLM_FUNC_QUALIFIER detail::tvec3<valType> closestPointOnLine
+	template<typename T, qualifier Q>
+	GLM_FUNC_QUALIFIER vec<3, T, Q> closestPointOnLine
 	(
-		detail::tvec3<valType> const & point, 
-		detail::tvec3<valType> const & a, 
-		detail::tvec3<valType> const & b
+		vec<3, T, Q> const& point,
+		vec<3, T, Q> const& a,
+		vec<3, T, Q> const& b
 	)
 	{
-		valType LineLength = distance(a, b);
-		detail::tvec3<valType> Vector = point - a;
-		detail::tvec3<valType> LineDirection = (b - a) / LineLength;
+		T LineLength = distance(a, b);
+		vec<3, T, Q> Vector = point - a;
+		vec<3, T, Q> LineDirection = (b - a) / LineLength;
 
 		// Project Vector to LineDirection to get the distance of point from a
-		valType Distance = dot(Vector, LineDirection);
+		T Distance = dot(Vector, LineDirection);
 
-		if(Distance <= valType(0)) return a;
+		if(Distance <= T(0)) return a;
 		if(Distance >= LineLength) return b;
 		return a + LineDirection * Distance;
 	}
-}//namespace glm
 
-#endif//glm_gtx_closest_point
+	template<typename T, qualifier Q>
+	GLM_FUNC_QUALIFIER vec<2, T, Q> closestPointOnLine
+	(
+		vec<2, T, Q> const& point,
+		vec<2, T, Q> const& a,
+		vec<2, T, Q> const& b
+	)
+	{
+		T LineLength = distance(a, b);
+		vec<2, T, Q> Vector = point - a;
+		vec<2, T, Q> LineDirection = (b - a) / LineLength;
+
+		// Project Vector to LineDirection to get the distance of point from a
+		T Distance = dot(Vector, LineDirection);
+
+		if(Distance <= T(0)) return a;
+		if(Distance >= LineLength) return b;
+		return a + LineDirection * Distance;
+	}
+
+}//namespace glm

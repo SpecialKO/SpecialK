@@ -1,20 +1,9 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// OpenGL Mathematics Copyright (c) 2005 - 2013 G-Truc Creation (www.g-truc.net)
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Created : 2005-12-21
-// Updated : 2009-03-06
-// Licence : This source is under MIT License
-// File    : glm/gtx/projection.inl
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ref gtx_projection
 
 namespace glm
 {
-	template <typename vecType> 
-	GLM_FUNC_QUALIFIER vecType proj
-	(
-		vecType const & x, 
-		vecType const & Normal
-	)
+	template<typename genType>
+	GLM_FUNC_QUALIFIER genType proj(genType const& x, genType const& Normal)
 	{
 		return glm::dot(x, Normal) / glm::dot(Normal, Normal) * Normal;
 	}

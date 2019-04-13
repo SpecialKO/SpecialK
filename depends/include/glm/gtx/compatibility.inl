@@ -1,56 +1,58 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// OpenGL Mathematics Copyright (c) 2005 - 2013 G-Truc Creation (www.g-truc.net)
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Created : 2007-03-16
-// Updated : 2008-10-24
-// Licence : This source is under MIT License
-// File    : glm/gtx/compatibility.inl
-///////////////////////////////////////////////////////////////////////////////////////////////////
+#include <limits>
 
 namespace glm
 {
 	// isfinite
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_QUALIFIER bool isfinite(
-		genType const & x)
+		genType const& x)
 	{
-#		if(GLM_COMPILER & GLM_COMPILER_VC)
-			return _finite(x);
-#		elif(GLM_COMPILER & GLM_COMPILER_GCC)
-#			if(GLM_PLATFORM & GLM_PLATFORM_ANDROID)
-				return _isfinite(x) != 0;
-#			else
-				return std::isfinite(x) != 0;
-#			endif
-#		else
+#		if GLM_HAS_CXX11_STL
 			return std::isfinite(x) != 0;
+#		elif GLM_COMPILER & GLM_COMPILER_VC
+			return _finite(x) != 0;
+#		elif GLM_COMPILER & GLM_COMPILER_GCC && GLM_PLATFORM & GLM_PLATFORM_ANDROID
+			return _isfinite(x) != 0;
+#		else
+			if (std::numeric_limits<genType>::is_integer || std::denorm_absent == std::numeric_limits<genType>::has_denorm)
+				return std::numeric_limits<genType>::min() <= x && std::numeric_limits<genType>::max() >= x;
+			else
+				return -std::numeric_limits<genType>::max() <= x && std::numeric_limits<genType>::max() >= x;
 #		endif
 	}
 
-	template <typename valType> 
-	GLM_FUNC_QUALIFIER detail::tvec2<bool> isfinite(
-		detail::tvec2<valType> const & x)
+	template<typename T, qualifier Q>
+	GLM_FUNC_QUALIFIER vec<1, bool, Q> isfinite(
+		vec<1, T, Q> const& x)
 	{
-		return detail::tvec2<bool>(
+		return vec<1, bool, Q>(
+			isfinite(x.x));
+	}
+
+	template<typename T, qualifier Q>
+	GLM_FUNC_QUALIFIER vec<2, bool, Q> isfinite(
+		vec<2, T, Q> const& x)
+	{
+		return vec<2, bool, Q>(
 			isfinite(x.x),
 			isfinite(x.y));
 	}
 
-	template <typename valType> 
-	GLM_FUNC_QUALIFIER detail::tvec3<bool> isfinite(
-		detail::tvec3<valType> const & x)
+	template<typename T, qualifier Q>
+	GLM_FUNC_QUALIFIER vec<3, bool, Q> isfinite(
+		vec<3, T, Q> const& x)
 	{
-		return detail::tvec3<bool>(
+		return vec<3, bool, Q>(
 			isfinite(x.x),
 			isfinite(x.y),
 			isfinite(x.z));
 	}
 
-	template <typename valType> 
-	GLM_FUNC_QUALIFIER detail::tvec4<bool> isfinite(
-		detail::tvec4<valType> const & x)
+	template<typename T, qualifier Q>
+	GLM_FUNC_QUALIFIER vec<4, bool, Q> isfinite(
+		vec<4, T, Q> const& x)
 	{
-		return detail::tvec4<bool>(
+		return vec<4, bool, Q>(
 			isfinite(x.x),
 			isfinite(x.y),
 			isfinite(x.z),

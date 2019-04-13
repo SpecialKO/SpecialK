@@ -1,48 +1,26 @@
-///////////////////////////////////////////////////////////////////////////////////
-/// OpenGL Mathematics (glm.g-truc.net)
-///
-/// Copyright (c) 2005 - 2013 G-Truc Creation (www.g-truc.net)
-/// Permission is hereby granted, free of charge, to any person obtaining a copy
-/// of this software and associated documentation files (the "Software"), to deal
-/// in the Software without restriction, including without limitation the rights
-/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-/// copies of the Software, and to permit persons to whom the Software is
-/// furnished to do so, subject to the following conditions:
-/// 
-/// The above copyright notice and this permission notice shall be included in
-/// all copies or substantial portions of the Software.
-/// 
-/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-/// THE SOFTWARE.
-///
 /// @ref gtx_color_space
 /// @file glm/gtx/color_space.hpp
-/// @date 2005-12-21 / 2011-06-07
-/// @author Christophe Riccio
 ///
 /// @see core (dependence)
 ///
 /// @defgroup gtx_color_space GLM_GTX_color_space
 /// @ingroup gtx
-/// 
-/// @brief Related to RGB to HSV conversions and operations.
-/// 
-/// <glm/gtx/color_space.hpp> need to be included to use these functionalities.
-///////////////////////////////////////////////////////////////////////////////////
+///
+/// Include <glm/gtx/color_space.hpp> to use the features of this extension.
+///
+/// Related to RGB to HSV conversions and operations.
 
-#ifndef GLM_GTX_color_space
-#define GLM_GTX_color_space GLM_VERSION
+#pragma once
 
 // Dependency:
 #include "../glm.hpp"
 
-#if(defined(GLM_MESSAGES) && !defined(glm_ext))
-#	pragma message("GLM: GLM_GTX_color_space extension included")
+#if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
+#	ifndef GLM_ENABLE_EXPERIMENTAL
+#		pragma message("GLM: GLM_GTX_color_space is an experimental extension and may change in the future. Use #define GLM_ENABLE_EXPERIMENTAL before including it, if you really want to use it.")
+#	elif
+#		pragma message("GLM: GLM_GTX_color_space extension included")
+#	endif
 #endif
 
 namespace glm
@@ -52,45 +30,43 @@ namespace glm
 
 	/// Converts a color from HSV color space to its color in RGB color space.
 	/// @see gtx_color_space
-    template <typename valType> 
-	detail::tvec3<valType> rgbColor(
-		detail::tvec3<valType> const & hsvValue);
+	template<typename T, qualifier Q>
+	GLM_FUNC_DECL vec<3, T, Q> rgbColor(
+		vec<3, T, Q> const& hsvValue);
 
 	/// Converts a color from RGB color space to its color in HSV color space.
 	/// @see gtx_color_space
-    template <typename valType> 
-	detail::tvec3<valType> hsvColor(
-		detail::tvec3<valType> const & rgbValue);
-		
+	template<typename T, qualifier Q>
+	GLM_FUNC_DECL vec<3, T, Q> hsvColor(
+		vec<3, T, Q> const& rgbValue);
+
 	/// Build a saturation matrix.
 	/// @see gtx_color_space
-    template <typename valType> 
-	detail::tmat4x4<valType> saturation(
-		valType const s);
+	template<typename T>
+	GLM_FUNC_DECL mat<4, 4, T, defaultp> saturation(
+		T const s);
 
-    /// Modify the saturation of a color.
-	/// @see gtx_color_space
-	template <typename valType> 
-	detail::tvec3<valType> saturation(
-		valType const s, 
-		detail::tvec3<valType> const & color);
-		
 	/// Modify the saturation of a color.
 	/// @see gtx_color_space
-    template <typename valType> 
-	detail::tvec4<valType> saturation(
-		valType const s, 
-		detail::tvec4<valType> const & color);
-		
+	template<typename T, qualifier Q>
+	GLM_FUNC_DECL vec<3, T, Q> saturation(
+		T const s,
+		vec<3, T, Q> const& color);
+
+	/// Modify the saturation of a color.
+	/// @see gtx_color_space
+	template<typename T, qualifier Q>
+	GLM_FUNC_DECL vec<4, T, Q> saturation(
+		T const s,
+		vec<4, T, Q> const& color);
+
 	/// Compute color luminosity associating ratios (0.33, 0.59, 0.11) to RGB canals.
 	/// @see gtx_color_space
-	template <typename valType> 
-	valType luminosity(
-		detail::tvec3<valType> const & color);
+	template<typename T, qualifier Q>
+	GLM_FUNC_DECL T luminosity(
+		vec<3, T, Q> const& color);
 
 	/// @}
 }//namespace glm
 
 #include "color_space.inl"
-
-#endif//GLM_GTX_color_space
