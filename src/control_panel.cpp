@@ -19,49 +19,13 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_gl3.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/backends/imgui_d3d12.h>
-
-#include <SpecialK/render/backend.h>
-
-#include <SpecialK/widgets/widget.h>
-
-#include <SpecialK/config.h>
-#include <SpecialK/core.h>
-#include <SpecialK/DLL_VERSION.H>
-#include <SpecialK/command.h>
-#include <SpecialK/console.h>
-#include <SpecialK/utility.h>
-
-#include <SpecialK/window.h>
-#include <SpecialK/log.h>
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/update/version.h>
-#include <SpecialK/update/network.h>
-#include <SpecialK/framerate.h>
-
-#include <SpecialK/nvapi.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/import.h>
-#include <SpecialK/thread.h>
-
-#include <SpecialK/input/xinput.h>
-#include <SpecialK/injection/injection.h>
-
-#include <SpecialK/performance/io_monitor.h>
-#include <SpecialK/plugin/reshade.h>
-#include <SpecialK/plugin/plugin_mgr.h>
-
-#include <concurrent_queue.h>
-
-#include <windows.h>
-#include <cstdio>
-
-#include "resource.h"
 
 #include <SpecialK/control_panel.h>
 
@@ -76,10 +40,6 @@
 #include <SpecialK/control_panel/sound.h>
 #include <SpecialK/control_panel/plugins.h>
 #include <SpecialK/control_panel/compatibility.h>
-
-#include <SpecialK/render/dxgi/dxgi_hdr.h>
-
-#include <SpecialK/diagnostics/modules.h>
 
 // Fixed-width font
 #define SK_IMGUI_FIXED_FONT 1
@@ -177,7 +137,7 @@ namespace SK_ImGui
   VerticalToggleButton (const char *text, bool *v)
   {
           ImFont        *font_     = GImGui->Font;
-    const ImFont::Glyph *glyph     = nullptr;
+    const ImFontGlyph   *glyph     = nullptr;
           char           c         = 0;
           bool           ret       = false;
     const ImGuiContext&  g         = *GImGui;
@@ -226,7 +186,7 @@ namespace SK_ImGui
 
                   text_color );
 
-      pos.y -= glyph->XAdvance;
+      pos.y -= glyph->AdvanceX;
 
       // Do not print embedded hash codes
       if (hash_mark != nullptr && text >= hash_mark)
@@ -287,11 +247,11 @@ namespace SK_ImGui
                 0.166f + (0.5f + (sin ((float)(current_time % 2000) / 2000.0f)) * 0.5f) / 2.0f :
                 0.666f;
 
-          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV (battery_ratio * 0.278f, 0.88f, luminance));
-          ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (255, 255, 255));
-          ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
+          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  (unsigned int&&)ImColor::HSV (battery_ratio * 0.278f, 0.88f, luminance));
+          ImGui::PushStyleColor (ImGuiCol_Text,           (unsigned int&&)ImColor (255, 255, 255));
+          ImGui::PushStyleColor (ImGuiCol_FrameBg,        (unsigned int&&)ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (unsigned int&&)ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (unsigned int&&)ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
 
           ImGui::ProgressBar ( battery_ratio,
                                  ImVec2 (-1, 0),
@@ -318,90 +278,130 @@ struct sk_imgui_nav_state_s {
   bool io_NavActive = false;
 };
 
-#include <stack>
-std::stack <sk_imgui_nav_state_s> SK_ImGui_NavStack;
+////e#include <stack>
+////estd::stack <sk_imgui_nav_state_s> SK_ImGui_NavStack;
+////e
+////evoid
+////eSK_ImGui_PushNav (bool enable)
+////e{
+////e  ImGuiIO& io =
+////e    ImGui::GetIO ();
+////e
+////e  SK_ImGui_NavStack.push ( { nav_usable, io.NavUsable, io.NavActive } );
+////e
+////e  if (enable)
+////e  {
+////e    nav_usable = true; io.NavUsable = true; io.NavActive = true;
+////e  }
+////e}
+////e
+////evoid
+////eSK_ImGui_PopNav (void)
+////e{
+////e  ImGuiIO& io =
+////e    ImGui::GetIO ();
+////e
+////e  // Underflow?
+////e  if (SK_ImGui_NavStack.empty ()) {
+////e    dll_log->Log (L"ImGui Nav State Underflow");
+////e    return;
+////e  }
+////e
+////e  auto& stack_top =
+////e    SK_ImGui_NavStack.top ();
+////e
+////e  nav_usable   = stack_top.nav_usable;
+////e  io.NavActive = stack_top.io_NavActive;
+////e  io.NavUsable = stack_top.io_NavUsable;
+////e
+////e  SK_ImGui_NavStack.pop ();
+////e}
+
+
+
+struct SK_Warning {
+  std::string  title;   // UTF-8   for ImGui
+  std::wstring message; // UTF-16L for Win32 (will be converted when displayed)
+};
+
+SK_LazyGlobal <concurrency::concurrent_queue <SK_Warning>> SK_ImGui_Warnings;
 
 void
-SK_ImGui_PushNav (bool enable)
+SK_ImGui_WarningWithTitle ( const wchar_t* wszMessage,
+                            const    char*  szTitle )
 {
-  ImGuiIO& io =
-    ImGui::GetIO ();
-
-  SK_ImGui_NavStack.push ( { nav_usable, io.NavUsable, io.NavActive } );
-
-  if (enable)
-  {
-    nav_usable = true; io.NavUsable = true; io.NavActive = true;
-  }
+  SK_ImGui_Warnings->push (     {
+      std::string  ( szTitle  ),
+      std::wstring (wszMessage) }
+  );
 }
 
 void
-SK_ImGui_PopNav (void)
+SK_ImGui_WarningWithTitle ( const wchar_t* wszMessage,
+                            const wchar_t* wszTitle )
 {
-  ImGuiIO& io =
-    ImGui::GetIO ();
-
-  // Underflow?
-  if (SK_ImGui_NavStack.empty ()) {
-    dll_log->Log (L"ImGui Nav State Underflow");
-    return;
-  }
-
-  auto& stack_top =
-    SK_ImGui_NavStack.top ();
-
-  nav_usable   = stack_top.nav_usable;
-  io.NavActive = stack_top.io_NavActive;
-  io.NavUsable = stack_top.io_NavUsable;
-
-  SK_ImGui_NavStack.pop ();
+  SK_ImGui_WarningWithTitle (
+                       wszMessage,
+    SK_WideCharToUTF8 (wszTitle).c_str ()
+  );
 }
-
-
-
-concurrency::concurrent_queue <std::wstring> SK_ImGui_Warnings;
 
 void
 SK_ImGui_Warning (const wchar_t* wszMessage)
 {
-  SK_ImGui_Warnings.push (wszMessage);
+  SK_ImGui_WarningWithTitle (wszMessage, "Special K Warning");
+}
+
+void
+SK_ImGui_SetNextWindowPosCenter (ImGuiCond cond)
+{
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  static const ImVec2 vCenterPivot   (0.5f, 0.5f);
+         const ImVec2 vDisplayCenter (
+    io.DisplaySize.x / 2.0f, io.DisplaySize.y / 2.0f
+  );
+
+  ImGui::SetNextWindowPos (vDisplayCenter, cond, vCenterPivot);
 }
 
 void
 SK_ImGui_ProcessWarnings (void)
 {
-  static std::wstring warning_msg = L"";
+  static SK_Warning warning =
+    { u8"", L"" };
 
-  if (! SK_ImGui_Warnings.empty ())
+  if (! SK_ImGui_Warnings->empty ())
   {
-    if (warning_msg.empty ())
-      SK_ImGui_Warnings.try_pop (warning_msg);
+    if (warning.message.empty ())
+      SK_ImGui_Warnings->try_pop (warning);
   }
 
-  if (warning_msg.empty ())
+  if (warning.message.empty ())
     return;
 
-  ImGuiIO& io = ImGui::GetIO ();
+  ImGuiIO& io =
+    ImGui::GetIO ();
 
   // Stupid hack to show ImGui windows without the control panel open
   SK_ReShade_Visible = true;
 
-  ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+  SK_ImGui_SetNextWindowPosCenter     (ImGuiCond_Always);
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
                                                                          0.925f * io.DisplaySize.y ) );
 
-  ImGui::OpenPopup ("Special K Warning");
+  ImGui::OpenPopup (warning.title.c_str ());
 
-
-  if ( ImGui::BeginPopupModal ( "Special K Warning",
+  if ( ImGui::BeginPopupModal ( warning.title.c_str (),
                                   nullptr,
-                                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                    ImGuiWindowFlags_AlwaysAutoResize |
                                     ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse )
      )
   {
     ImGui::FocusWindow (ImGui::GetCurrentWindow ());
 
-    ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n         %ws         \n\n", warning_msg.c_str ());
+    ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n\t%ws\t\n\n", warning.message.c_str ());
 
     ImGui::Separator ();
 
@@ -414,7 +414,7 @@ SK_ImGui_ProcessWarnings (void)
     if (ImGui::Button ("Okay"))
     {
       SK_ReShade_Visible = false;
-      warning_msg.clear ();
+      warning.message.clear ();
 
       ImGui::CloseCurrentPopup ();
     }
@@ -434,7 +434,7 @@ SK_ImGui_ConfirmExit (void)
 
   SK_ImGui_WantExit = true;
 
-  ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+  SK_ImGui_SetNextWindowPosCenter     (ImGuiCond_Always);
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
                                                                          0.925f * io.DisplaySize.y ) );
 
@@ -449,7 +449,7 @@ SK_ImGui_IsItemClicked (void)
 
   if (ImGui::IsItemHovered ())
   {
-    if (ImGui::GetIO ().NavInputsDownDuration [ImGuiNavInput_PadActivate] == 0.0f)
+    if (ImGui::GetIO ().NavInputsDownDuration [ImGuiNavInput_Activate] == 0.0f)
     {
       return true;
     }
@@ -468,9 +468,9 @@ SK_ImGui_IsItemRightClicked (void)
   {
     ImGuiIO& io = ImGui::GetIO ();
 
-    if (io.NavInputsDownDuration [ImGuiNavInput_PadActivate] > 0.4f)
+    if (io.NavInputsDownDuration [ImGuiNavInput_Activate] > 0.4f)
     {
-      io.NavInputsDownDuration [ImGuiNavInput_PadActivate] = 0.0f;
+      io.NavInputsDownDuration [ImGuiNavInput_Activate] = 0.0f;
       return true;
     }
   }
@@ -483,7 +483,7 @@ SK_ImGui_IsWindowRightClicked (const ImGuiIO& io)
 {
   if (ImGui::IsWindowFocused () || ImGui::IsWindowHovered ())
   {
-    if (ImGui::IsAnyWindowHovered () && io.MouseClicked [1])
+    if (ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow) && io.MouseClicked [1])
       return true;
 
     if (ImGui::IsWindowFocused () && io.MouseDoubleClicked [4])
@@ -496,7 +496,14 @@ SK_ImGui_IsWindowRightClicked (const ImGuiIO& io)
 };
 
 
-ImVec2 SK_ImGui_LastWindowCenter  (-1.0f, -1.0f);
+ImVec2&
+__SK_ImGui_LastWindowCenter (void)
+{
+  static ImVec2 vec2 (-1.0f, -1.0f);
+  return        vec2;
+}
+
+#define SK_ImGui_LastWindowCenter  __SK_ImGui_LastWindowCenter()
 
 void SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter);
 void SK_ImGui_UpdateCursor      (void);
@@ -636,7 +643,7 @@ public:
   }
 };
 
-SK_ImGui_FrameHistory SK_ImGui_Frames;
+SK_LazyGlobal <SK_ImGui_FrameHistory> SK_ImGui_Frames;
 
 
 #pragma optimize( "", off )
@@ -790,6 +797,205 @@ DisplayModeMenu (bool windowed)
         ImGui::BulletText   ("Set to Unspecified to CORRECTLY run Fullscreen Display Native Resolution");
         ImGui::EndTooltip   ();
       }
+
+      static DXGI_SWAP_CHAIN_DESC last_swapDesc = { };
+
+      static auto& io =
+        ImGui::GetIO ();
+
+      auto _ComputeRefresh =
+        [&](const std::pair <UINT, UINT>& fractional) ->
+        long double
+        {
+          return
+            gsl::narrow_cast <long double> (fractional.first)/
+            gsl::narrow_cast <long double> (fractional.second);
+        };
+
+      static std::string           combo_str    = "";
+      static UINT                  num_modes    =  0;
+      static int                   current_item = -1;
+      static std::vector
+            <   DXGI_MODE_DESC   > dxgi_modes;
+      static std::map   < UINT,
+              std::pair < UINT,
+                          UINT > > refresh_rates;
+
+      SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+
+      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+      pSwapChain->GetDesc (&swapDesc);
+
+      static int orig_item =
+        current_item;
+
+      // Re-build the set of options if resolution changes,
+      //   or if the swapchain buffer format does
+      if ( ! ( last_swapDesc.BufferDesc.Width  == swapDesc.BufferDesc.Width  &&
+               last_swapDesc.BufferDesc.Height == swapDesc.BufferDesc.Height &&
+               last_swapDesc.BufferDesc.Format == swapDesc.BufferDesc.Format  )
+         )
+      {
+        last_swapDesc.BufferDesc.Width  =
+             swapDesc.BufferDesc.Width;
+        last_swapDesc.BufferDesc.Height =
+             swapDesc.BufferDesc.Height;
+        last_swapDesc.BufferDesc.Format =
+             swapDesc.BufferDesc.Format;
+
+        num_modes            = 0;
+        combo_str            = "";
+
+        refresh_rates.clear ( );
+        dxgi_modes.resize   (0);
+
+        // -1 == Don't Care
+        current_item = -1;
+
+        SK_ComPtr <IDXGIOutput> pContainer;
+
+        if (SUCCEEDED (pSwapChain->GetContainingOutput (&pContainer)))
+        {
+          pContainer->GetDisplayModeList ( swapDesc.BufferDesc.Format, 0x0,
+                                           &num_modes, nullptr );
+
+          dxgi_modes.resize (num_modes);
+
+          if ( SUCCEEDED ( pContainer->GetDisplayModeList ( swapDesc.BufferDesc.Format, 0x0,
+                                                            &num_modes, dxgi_modes.data () ) ) )
+          {
+            int idx = 1;
+
+            combo_str += "No Override";
+            combo_str += '\0';
+
+            for ( auto& dxgi_mode : dxgi_modes )
+            {
+              if ( dxgi_mode.Format == swapDesc.BufferDesc.Format &&
+                   dxgi_mode.Width  == swapDesc.BufferDesc.Width  &&
+                   dxgi_mode.Height == swapDesc.BufferDesc.Height )
+              {
+                ///dll_log->Log ( L" ( %lux%lu -<+| %ws |+>- ) @ %f Hz",
+                ///                             mode.Width,
+                ///                             mode.Height,
+                ///        SK_DXGI_FormatToStr (mode.Format).c_str (),
+                ///              ( (long double)mode.RefreshRate.Numerator /
+                ///                (long double)mode.RefreshRate.Denominator )
+                ///             );
+
+                UINT integer_refresh =
+                  gsl::narrow_cast <UINT> (
+                    std::ceil (
+                        gsl::narrow_cast <long double> (dxgi_mode.RefreshRate.Numerator) /
+                        gsl::narrow_cast <long double> (dxgi_mode.RefreshRate.Denominator)
+                                          )
+                    );
+
+                if ( ! refresh_rates.count (integer_refresh) )
+                {      refresh_rates       [integer_refresh] = std::make_pair (
+                                                                 dxgi_mode.RefreshRate.Numerator,
+                                                                   dxgi_mode.RefreshRate.Denominator );
+
+                  // Exact Match -- Hurray!
+                  if ( config.render.framerate.rescan_.Numerator == dxgi_mode.RefreshRate.Numerator  &&
+                       config.render.framerate.rescan_.Denom     == dxgi_mode.RefreshRate.Denominator )
+                  {
+                    current_item = idx-2;
+                  }
+
+                  ++idx;
+                }
+              }
+            }
+
+            for ( auto& unique_refresh : refresh_rates )
+            {
+              combo_str +=
+                SK_FormatString ("%6.02f Hz", _ComputeRefresh (unique_refresh.second)) + '\0';
+            }
+
+            // No Exact Match, but we can probably find something close...
+            if ( -1 == current_item &&
+                 -1 != gsl::narrow_cast <INT> (config.render.framerate.refresh_rate) )
+            {
+              int lvl2_idx = 1;
+
+              for ( auto& nomnom : refresh_rates )
+              {
+                long double ldRefresh =
+                  _ComputeRefresh (nomnom.second);
+
+                if ( ldRefresh < gsl::narrow_cast <long double> (config.render.framerate.refresh_rate + 0.333f) &&
+                     ldRefresh > gsl::narrow_cast <long double> (config.render.framerate.refresh_rate - 0.333f) )
+                {
+                  current_item = lvl2_idx-2;
+                  break;
+                }
+
+                ++lvl2_idx;
+              }
+            }
+
+            combo_str += '\0';
+          }
+        }
+      }
+
+      int     rel_item =
+        ( current_item == -1 ? 0 : current_item );
+
+      bool refresh_change =
+        ImGui::Combo ("Refresh Rate###SubMenu_RefreshRate_Combo", &rel_item, combo_str.c_str ());
+
+      if (refresh_change)
+      {
+        current_item =
+          ( rel_item == 0 ? -1 : rel_item );
+
+        if (current_item > 0)
+        {
+          const auto& map_entry = [&](int idx) ->
+          const auto&
+          {
+            for ( const auto& entry : refresh_rates )
+            {
+              if (idx-- == 0) return entry;
+            }
+
+            return
+              *refresh_rates.crbegin ();
+          };
+
+          auto& refresh =
+            map_entry (current_item - 1);
+
+          config.render.framerate.rescan_.Numerator = refresh.second.first;
+          config.render.framerate.rescan_.Denom     = refresh.second.second;
+          config.render.framerate.refresh_rate      =
+            gsl::narrow_cast <float> (
+              _ComputeRefresh (refresh.second)
+            );
+          config.render.framerate.rescan_ratio      =
+            SK_FormatStringW ( L"%lu/%lu", config.render.framerate.rescan_.Numerator,
+                                           config.render.framerate.rescan_.Denom );
+
+          // Now comes the magic, try to apply the refresh rate immediately and not crash...
+          rb.requestFullscreenMode ();
+        }
+
+        // Don't Care = No Override --> Do Nothing on-screen, but store "No Override" in cfg
+        else
+        {
+          config.render.framerate.refresh_rate      =     -1.0f;
+          config.render.framerate.rescan_ratio      =   L"-1/1";
+          config.render.framerate.rescan_.Numerator = UINT (-1);
+          config.render.framerate.rescan_.Denom     = UINT ( 1);
+        }
+
+        orig_item = current_item;
+
+        SK_SaveConfig ();
+      }
     }
   }
 
@@ -878,7 +1084,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   float min = FLT_MAX;
   float max = 0.0f;
 
-  for ( const auto& val : SK_ImGui_Frames.getValues () )
+  for ( const auto& val : SK_ImGui_Frames->getValues () )
   {
     sum += val;
 
@@ -896,8 +1102,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
                               ( 1000.0f / (ffx ? 30.0f : 60.0f) ) :
                                 ( 1000.0f / fabs (target_fps) );
 
-  float frames = std::min ( (float)SK_ImGui_Frames.getUpdates  (),
-                            (float)SK_ImGui_Frames.getCapacity () );
+  float frames = std::min ( (float)SK_ImGui_Frames->getUpdates  (),
+                            (float)SK_ImGui_Frames->getCapacity () );
 
 
   if (ffx)
@@ -924,15 +1130,15 @@ SK_ImGui_DrawGraph_FramePacing (void)
                       1000.0f / (sum / frames), ((double)max - (double)min) / (1000.0f / (sum / frames)) );
 
   ImGui::PushStyleColor ( ImGuiCol_PlotLines,
-                            ImColor::HSV ( 0.31f - 0.31f *
+                            (ImVec4&&)ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
                                              0.86f,
                                                0.95f ) );
 
   ImGui::PlotLines ( SK_ImGui_Visible ? "###ControlPanel_FramePacing" : "###Floating_FramePacing",
-                       SK_ImGui_Frames.getValues     ().data (),
+                       SK_ImGui_Frames->getValues     ().data (),
       static_cast <int> (frames),
-                           SK_ImGui_Frames.getOffset (),
+                           SK_ImGui_Frames->getOffset (),
                              szAvg,
                                -.1f,
                                  2.0f * target_frametime + 0.1f,
@@ -990,7 +1196,18 @@ SK_ImGui_ControlPanel (void)
         //SK_Steam_LoadOverlayEarly ();
 
       //ImGui::Separator ();
-      ImGui::MenuItem ("Virtual Gamepad/Keyboard Cursor", "", &io.NavMovesMouse);
+      bool nav_moves_mouse =
+        io.ConfigFlags & ImGuiConfigFlags_NavEnableSetMousePos;
+
+      if (
+        ImGui::MenuItem ("Virtual Gamepad/Keyboard Cursor", "", &nav_moves_mouse)
+      )
+      {
+        io.ConfigFlags = nav_moves_mouse ?
+          ( io.ConfigFlags |  ImGuiConfigFlags_NavEnableSetMousePos ) :
+          ( io.ConfigFlags & ~ImGuiConfigFlags_NavEnableSetMousePos );
+      }
+
       ImGui::MenuItem ("Display Active Input APIs",       "", &config.imgui.show_input_apis);
 
 
@@ -1005,8 +1222,6 @@ SK_ImGui_ControlPanel (void)
       ImGui::Separator ();
 
       DisplayModeMenu (windowed);
-
-      //ImGui::MenuItem ("ImGui Demo",              "", &show_test_window);
     };
 
 
@@ -1185,6 +1400,141 @@ SK_ImGui_ControlPanel (void)
       }
 
 
+
+            static auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      auto HDRMenu =
+      [&](void)
+      {
+        float imgui_nits =
+          rb.ui_luminance / 1.0_Nits;
+
+        if ( ImGui::SliderFloat ( "Special K Luminance###IMGUI_LUMINANCE",
+                                   &imgui_nits,
+                                    80.0f, rb.display_gamut.maxLocalY,
+                                      u8"%.1f cd/m²" ) )
+        {
+          rb.ui_luminance =
+               imgui_nits * 1.0_Nits;
+
+          SK_SaveConfig ();
+        }
+
+#define STEAM_OVERLAY_VS_CRC32C 0xf48cf597
+#define UPLAY_OVERLAY_PS_CRC32C 0x35ae281c
+
+        static bool steam_overlay = false;
+        static long first_try     = SK_GetFramesDrawn ();
+
+        if ((! steam_overlay) && ((SK_GetFramesDrawn () - first_try) < 240))
+               steam_overlay = SK_D3D11_IsShaderLoaded <ID3D11VertexShader> (STEAM_OVERLAY_VS_CRC32C);
+
+        if (steam_overlay)
+        {
+          float steam_nits =
+            config.steam.overlay_hdr_luminance / 1.0_Nits;
+
+          if ( ImGui::SliderFloat ( "Steam Overlay Luminance###STEAM_LUMINANCE",
+                                     &steam_nits,
+                                      80.0f, rb.display_gamut.maxY,
+                                        u8"%.1f cd/m²" ) )
+          {
+            config.steam.overlay_hdr_luminance =
+                                    steam_nits * 1.0_Nits;
+
+            SK_SaveConfig ();
+          }
+        }
+
+        static bool uplay_overlay = false;
+
+        if ((! uplay_overlay) && ((SK_GetFramesDrawn () - first_try) < 240))
+               uplay_overlay = SK_D3D11_IsShaderLoaded <ID3D11PixelShader> (UPLAY_OVERLAY_PS_CRC32C);
+
+        if (uplay_overlay)
+        {
+          float uplay_nits =
+            config.uplay.overlay_luminance / 1.0_Nits;
+
+          if ( ImGui::SliderFloat ( "uPlay Overlay Luminance###UPLAY_LUMINANCE",
+                                     &uplay_nits,
+                                      80.0f, rb.display_gamut.maxY,
+                                        u8"%.1f cd/m²" ) )
+          {
+            config.uplay.overlay_luminance =
+                                    uplay_nits * 1.0_Nits;
+
+            SK_SaveConfig ();
+          }
+        }
+
+        ImGui::Separator ();
+
+        bool hdr_changed = false;
+
+        if (config.steam.screenshots.enable_hook)
+        {
+          hdr_changed =
+            ImGui::Checkbox ( "Keep Full-Range JPEG-XR HDR Screenshots (.JXR)",
+                                &config.steam.screenshots.png_compress );
+        }
+
+        if ( ( screenshot_manager != nullptr &&
+               screenshot_manager->getExternalScreenshotRepository ().files > 0 ) )
+        {
+          const SK_Steam_ScreenshotManager::screenshot_repository_s& repo =
+            screenshot_manager->getExternalScreenshotRepository (hdr_changed);
+
+          ImGui::BeginGroup (  );
+          ImGui::TreePush   ("");
+          ImGui::Text ( "%lu files using %ws",
+                          repo.files,
+                            SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
+                      );
+
+          ImGui::SameLine ();
+
+          if (ImGui::Button ("Browse"))
+          {
+            ShellExecuteW ( GetActiveWindow (),
+              L"explore",
+                screenshot_manager->getExternalScreenshotPath (),
+                  nullptr, nullptr,
+                        SW_NORMAL
+            );
+          }
+
+          ImGui::TreePop  ();
+          ImGui::EndGroup ();
+        }
+
+        ImGui::Separator ();
+
+        bool hdr =
+          SK_ImGui_Widgets->hdr_control->isVisible ();
+
+        if (ImGui::Checkbox ("HDR Widget", &hdr))
+        {
+          SK_ImGui_Widgets->hdr_control->setVisible (hdr).setActive (hdr);
+        }
+
+        ImGui::SameLine ();
+
+        ImGui::TextColored (ImColor::HSV (0.07f, 0.8f, .9f), "For advanced users; experimental");
+      };
+
+      if (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR))
+      {
+        if (ImGui::BeginMenu ("HDR"))
+        {
+          HDRMenu ();
+          ImGui::EndMenu ();
+        }
+      }
+
+
+
       auto PopulateBranches = [](auto branches) ->
         std::map <std::string, SK_BranchInfo>
         {
@@ -1268,7 +1618,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::Separator ();
 
             ImGui::TreePush       ("");
-            ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.125f, 0.9f, 0.75f));
+            ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.125f, 0.9f, 0.75f));
             ImGui::Text           ("Most of my projects have branches that pre-date this menu...");
             ImGui::BulletText     ("Changing branches here may be a one-way trip :)");
             ImGui::PopStyleColor  ();
@@ -1376,7 +1726,9 @@ SK_ImGui_ControlPanel (void)
       }
 
 
+
       SK::ControlPanel::Steam::DrawMenu ();
+
 
 
       if (ImGui::BeginMenu ("Help"))
@@ -1613,8 +1965,6 @@ SK_ImGui_ControlPanel (void)
   static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
   static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");
 
-  static bool show_test_window = false;
-
   static float last_width  = -1;
   static float last_height = -1;
 
@@ -1626,7 +1976,7 @@ SK_ImGui_ControlPanel (void)
     SK_ImGui_LastWindowCenter.x = -1.0f;
     SK_ImGui_LastWindowCenter.y = -1.0f;
 
-    ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+    SK_ImGui_SetNextWindowPosCenter (ImGuiCond_Always);
     last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
   }
 
@@ -1644,7 +1994,8 @@ SK_ImGui_ControlPanel (void)
   // Initialize the dialog using the user's scale preference
   if (first_frame)
   {
-    io.NavMovesMouse = true;
+    io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableSetMousePos;
 
     // Range-restrict for sanity!
     config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
@@ -1668,13 +2019,13 @@ SK_ImGui_ControlPanel (void)
   style.WindowMinSize.y = 200;
 
   if (nav_usable)
-    ImGui::PushStyleColor ( ImGuiCol_Text, ImColor::HSV ( (float)(current_time % 2800) / 2800.0f,
+    ImGui::PushStyleColor ( ImGuiCol_Text, (ImVec4&&)ImColor::HSV ( (float)(current_time % 2800) / 2800.0f,
                                             (0.5f + (sin ((float)(current_time % 500)  / 500.0f)) * 0.5f) / 2.0f,
                                              1.0f ) );
   else
-    ImGui::PushStyleColor ( ImGuiCol_Text, ImColor (255, 255, 255) );
+    ImGui::PushStyleColor ( ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f) );
 
-  ImGui::Begin            ( szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+  ImGui::Begin            ( szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize |
                                        (config.imgui.use_mac_style_menu ? 0x00: ImGuiWindowFlags_MenuBar ) );
 
   style = orig;
@@ -1719,7 +2070,7 @@ SK_ImGui_ControlPanel (void)
     if (SK_ImGui_IsItemRightClicked ())
     {
       ImGui::OpenPopup         ("RenderSubMenu");
-      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
     }
 
     if (ImGui::BeginPopup      ("RenderSubMenu"))
@@ -1787,7 +2138,7 @@ SK_ImGui_ControlPanel (void)
       if (refresh_rate != 0.0f)
       {
         strcat ( szResolution,
-                   SK_FormatString (" @ %4.1f Hz", refresh_rate).c_str ()
+                   SK_FormatString (" @ %6.02f Hz", refresh_rate).c_str ()
                );
       }
 
@@ -2019,6 +2370,12 @@ SK_ImGui_ControlPanel (void)
         extern bool SK_TVFix_PlugInCfg (void);
                     SK_TVFix_PlugInCfg ();
       } break;
+
+      case SK_GAME_ID::Sekiro:
+      {
+        extern bool SK_Sekiro_PlugInCfg (void);
+                    SK_Sekiro_PlugInCfg ();
+      }
     };
 #endif
 
@@ -2066,15 +2423,18 @@ SK_ImGui_ControlPanel (void)
                                                       target_fps < 0 ? "%6.3f fps  (Graphing Only)" :
                                                                        "60.000 fps (No Preference)" ) )
         {
+          static auto cp =
+            SK_GetCommandProcessor ();
+
           target_fps = target_fps < 0.0f ? (-1.0f * target_mag) :
                                                     target_mag;
 
           if (target_fps > 10.0f || target_fps == 0.0f)
-            SK_GetCommandProcessor ()->ProcessCommandFormatted ("TargetFPS %f", target_fps);
+            cp->ProcessCommandFormatted ("TargetFPS %f", target_fps);
           else if (target_fps < 0.0f)
           {
             float graph_target = target_fps;
-            SK_GetCommandProcessor ()->ProcessCommandLine      ("TargetFPS 0.0");
+            cp->ProcessCommandLine      ("TargetFPS 0.0");
                   target_fps   = graph_target;
           }
           else
@@ -2152,15 +2512,15 @@ SK_ImGui_ControlPanel (void)
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip   ();
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.95f, 0.75f, 0.25f, 1.0f));
               ImGui::Text           ("Controls Framerate Smoothness\n\n");
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.75f, 0.75f, 0.75f, 1.0f));
               ImGui::Text           ("  Lower = Stricter, but setting");
               ImGui::SameLine       ();
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 1.0f, 0.65f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.95f, 1.0f, 0.65f, 1.0f));
               ImGui::Text           ("too low");
               ImGui::SameLine       ();
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.75f, 0.75f, 0.75f, 1.0f));
               ImGui::Text           ("will cause framerate instability...");
               ImGui::PopStyleColor (4);
               ImGui::Separator      ( );
@@ -2342,54 +2702,54 @@ SK_ImGui_ControlPanel (void)
 
   if (open_widgets)
   {
-    bool framepacing   = SK_ImGui_Widgets.frame_pacing->isVisible    ();
-    bool gpumon        = SK_ImGui_Widgets.gpu_monitor->isVisible     ();
-    bool volumecontrol = SK_ImGui_Widgets.volume_control->isVisible  ();
-    bool cpumon        = SK_ImGui_Widgets.cpu_monitor->isVisible     ();
-    bool pipeline      = SK_ImGui_Widgets.d3d11_pipeline->isVisible  ();
-    bool threads       = SK_ImGui_Widgets.thread_profiler->isVisible ();
-    bool hdr           = SK_ImGui_Widgets.hdr_control->isVisible     ();
-    bool tobii         = SK_ImGui_Widgets.tobii->isVisible           ();
+    bool framepacing   = SK_ImGui_Widgets->frame_pacing->isVisible    ();
+    bool gpumon        = SK_ImGui_Widgets->gpu_monitor->isVisible     ();
+    bool volumecontrol = SK_ImGui_Widgets->volume_control->isVisible  ();
+    bool cpumon        = SK_ImGui_Widgets->cpu_monitor->isVisible     ();
+    bool pipeline      = SK_ImGui_Widgets->d3d11_pipeline->isVisible  ();
+    bool threads       = SK_ImGui_Widgets->thread_profiler->isVisible ();
+    bool hdr           = SK_ImGui_Widgets->hdr_control->isVisible     ();
+    bool tobii         = SK_ImGui_Widgets->tobii->isVisible           ();
 
     ImGui::TreePush ("");
 
     if (ImGui::Checkbox ("Framepacing", &framepacing))
     {
-      SK_ImGui_Widgets.frame_pacing->setVisible (framepacing).setActive (framepacing);
+      SK_ImGui_Widgets->frame_pacing->setVisible (framepacing).setActive (framepacing);
     }
     ImGui::SameLine ();
 
     if (ImGui::Checkbox ("CPU",         &cpumon))
     {
-      SK_ImGui_Widgets.cpu_monitor->setVisible (cpumon);
+      SK_ImGui_Widgets->cpu_monitor->setVisible (cpumon);
     }
     ImGui::SameLine ();
 
     if (ImGui::Checkbox ("GPU",         &gpumon))
     {
-      SK_ImGui_Widgets.gpu_monitor->setVisible (gpumon);//.setActive (gpumon);
+      SK_ImGui_Widgets->gpu_monitor->setVisible (gpumon);//.setActive (gpumon);
     }
     ImGui::SameLine ();
 
-    //ImGui::Checkbox ("Memory",       &SK_ImGui_Widgets.memory);
+    //ImGui::Checkbox ("Memory",       &SK_ImGui_Widgets->memory);
     //ImGui::SameLine ();
-    //ImGui::Checkbox ("Disk",         &SK_ImGui_Widgets.disk);
+    //ImGui::Checkbox ("Disk",         &SK_ImGui_Widgets->disk);
     //ImGui::SameLine ();
 
     if (ImGui::Checkbox ("Volume Control", &volumecontrol))
     {
-      SK_ImGui_Widgets.volume_control->setVisible (volumecontrol).setActive (volumecontrol);
+      SK_ImGui_Widgets->volume_control->setVisible (volumecontrol).setActive (volumecontrol);
     }
 
     if ( (int)render_api & (int)SK_RenderAPI::D3D11 )
     {
       ImGui::SameLine ();
-      ImGui::Checkbox ("Texture Cache", &SK_ImGui_Widgets.texcache);
+      ImGui::Checkbox ("Texture Cache", &SK_ImGui_Widgets->texcache);
 
       ImGui::SameLine ();
       if (ImGui::Checkbox ("Pipeline Stats", &pipeline))
       {
-        SK_ImGui_Widgets.d3d11_pipeline->setVisible (pipeline).setActive (pipeline);
+        SK_ImGui_Widgets->d3d11_pipeline->setVisible (pipeline).setActive (pipeline);
       }
 
       ////SK_DXGI_HDRControl* pHDRCtl =
@@ -2402,7 +2762,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::SameLine ();
         if (ImGui::Checkbox ("HDR Display", &hdr))
         {
-          SK_ImGui_Widgets.hdr_control->setVisible (hdr).setActive (hdr);
+          SK_ImGui_Widgets->hdr_control->setVisible (hdr).setActive (hdr);
         }
       }
     }
@@ -2411,13 +2771,13 @@ SK_ImGui_ControlPanel (void)
 
     if (ImGui::Checkbox ("Tobii Eyetracker", &tobii))
     {
-      SK_ImGui_Widgets.tobii->setVisible (tobii).setActive (tobii);
+      SK_ImGui_Widgets->tobii->setVisible (tobii).setActive (tobii);
     }
 
     ImGui::SameLine ();
     if (ImGui::Checkbox ("Threads", &threads))
     {
-      SK_ImGui_Widgets.thread_profiler->setVisible (threads).setActive (threads);
+      SK_ImGui_Widgets->thread_profiler->setVisible (threads).setActive (threads);
     }
 
     ImGui::TreePop  ();
@@ -2438,8 +2798,6 @@ SK_ImGui_ControlPanel (void)
     SK_ImGui_CenterCursorAtPos ();
 
 
-  if (show_test_window)
-    ImGui::ShowTestWindow (&show_test_window);
   }
 
   ImGui::End           ();
@@ -2462,33 +2820,36 @@ SK_ImGui_ControlPanel (void)
 using SK_ImGui_DrawCallback_pfn      = UINT (__stdcall *)(void *user);
 using SK_ImGui_OpenCloseCallback_pfn = bool (__stdcall *)(void *user);
 
-struct
+struct SK_ImGui_DrawCallback_s
 {
   SK_ImGui_DrawCallback_pfn fn   = nullptr;
   void*                     data = nullptr;
-} SK_ImGui_DrawCallback;
+};
 
-struct
+struct SK_ImGui_OpenCloseCallback_s
 {
   SK_ImGui_OpenCloseCallback_pfn fn   = nullptr;
   void*                          data = nullptr;
-} SK_ImGui_OpenCloseCallback;
+};
+
+SK_LazyGlobal <SK_ImGui_DrawCallback_s>      SK_ImGui_DrawCallback;
+SK_LazyGlobal <SK_ImGui_OpenCloseCallback_s> SK_ImGui_OpenCloseCallback;
 
 __declspec (noinline)
 IMGUI_API
 void
 SK_ImGui_InstallDrawCallback (SK_ImGui_DrawCallback_pfn fn, void* user)
 {
-  SK_ImGui_DrawCallback.fn   = fn;
-  SK_ImGui_DrawCallback.data = user;
+  SK_ImGui_DrawCallback->fn   = fn;
+  SK_ImGui_DrawCallback->data = user;
 }
 
 IMGUI_API
 void
 SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user)
 {
-  SK_ImGui_OpenCloseCallback.fn   = fn;
-  SK_ImGui_OpenCloseCallback.data = user;
+  SK_ImGui_OpenCloseCallback->fn   = fn;
+  SK_ImGui_OpenCloseCallback->data = user;
 }
 
 
@@ -2497,8 +2858,7 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 #include <SpecialK/tls.h>
 
 
-extern SK_D3D11_TexCacheResidency_s& SK_D3D11_GetTexCacheResidency (void);
-#define SK_D3D11_TexCacheResidency   SK_D3D11_GetTexCacheResidency ()
+extern SK_LazyGlobal <SK_D3D11_TexCacheResidency_s> SK_D3D11_TexCacheResidency;
 
 extern bool                         SK_Tobii_IsCursorVisible (void);
 
@@ -2629,78 +2989,6 @@ SK_ImGui_StageNextFrame (void)
                               &&
         desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
     {
-      //extern ID3D11ShaderResourceView*
-      //  SK_D3D11_GetRawHDRView (bool capture = true);
-
-      //ImTextureID pTexture =
-      //  static_cast <ImTextureID> (SK_D3D11_GetRawHDRView (false));
-      //
-      //if (pTexture != 0)
-      {
-        ////const ImVec2 fb_dims [] = {
-        ////  { 0.0f,             0.0f             },
-        ////  { io.DisplaySize.x, io.DisplaySize.y }
-        ////};
-        ////
-        ////static bool open = true;
-        ////
-        ////ImGui::PushStyleVar (ImGuiStyleVar_WindowPadding,  ImVec2 (0.0f, 0.0f));
-        ////ImGui::PushStyleVar (ImGuiStyleVar_WindowMinSize,  fb_dims [1]);
-        ////ImGui::PushStyleVar (ImGuiStyleVar_FramePadding,   ImVec2 (0.0f, 0.0f));
-        ////ImGui::PushStyleVar (ImGuiStyleVar_FrameRounding,  0.0f);
-        ////ImGui::PushStyleVar (ImGuiStyleVar_ItemSpacing,    ImVec2 (0.0f, 0.0f));
-        ////ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding, 0.0f);
-        ////
-        ////ImGui::SetNextWindowPos  (fb_dims [0], ImGuiSetCond_Always);
-        ////ImGui::SetNextWindowSize (fb_dims [1], ImGuiSetCond_Always);
-        ////
-        ////ImGui::Begin ("##HDR_Overlay", &open, ImGuiWindowFlags_NoTitleBar            | ImGuiWindowFlags_NoInputs         |
-        ////                                      ImGuiWindowFlags_NoScrollbar           | ImGuiWindowFlags_AlwaysAutoResize |
-        ////                                      ImGuiWindowFlags_NoFocusOnAppearing    | ImGuiWindowFlags_NoNavFocus       |
-        ////                                      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs);
-        ////
-        ////ImGui::Image ( pTexture, fb_dims [1],
-        ////                 ImVec2 (-2, -2),
-        ////                 ImVec2 ( 2,  2) ); // Will be saturated
-        ////ImGui::End ();
-        ////
-        ////ImGui::PopStyleVar (6);
-        ////
-        ////
-        ////
-        ////extern ID3D11ShaderResourceView*
-        ////SK_D3D11_GetHDRHUDTexture (void);
-        ////
-        ////ImTextureID pHUDTexture =
-        ////  static_cast <ImTextureID> (SK_D3D11_GetHDRHUDTexture ());
-        ////
-        ////if (pHUDTexture != 0)
-        ////{
-        ////  static bool open = true;
-        ////
-        ////  ImGui::PushStyleVar (ImGuiStyleVar_WindowPadding,  ImVec2 (0.0f, 0.0f));
-        ////  ImGui::PushStyleVar (ImGuiStyleVar_WindowMinSize,  fb_dims [1]);
-        ////  ImGui::PushStyleVar (ImGuiStyleVar_FramePadding,   ImVec2 (0.0f, 0.0f));
-        ////  ImGui::PushStyleVar (ImGuiStyleVar_FrameRounding,  0.0f);
-        ////  ImGui::PushStyleVar (ImGuiStyleVar_ItemSpacing,    ImVec2 (0.0f, 0.0f));
-        ////  ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding, 0.0f);
-        ////
-        ////  ImGui::SetNextWindowPos  (fb_dims [0], ImGuiSetCond_Always);
-        ////  ImGui::SetNextWindowSize (fb_dims [1], ImGuiSetCond_Always);
-        ////
-        ////  ImGui::Begin ("##HDR_HUD_Overlay", &open, ImGuiWindowFlags_NoTitleBar            | ImGuiWindowFlags_NoInputs         |
-        ////                                            ImGuiWindowFlags_NoScrollbar           | ImGuiWindowFlags_AlwaysAutoResize |
-        ////                                            ImGuiWindowFlags_NoFocusOnAppearing    | ImGuiWindowFlags_NoNavFocus       |
-        ////                                            ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs);
-        ////
-        ////  ImGui::Image ( pHUDTexture, fb_dims [1],
-        ////                   ImVec2 (-2, -2),
-        ////                   ImVec2 ( 2,  2) ); // Will be saturated
-        ////  ImGui::End ();
-        ////
-        ////  ImGui::PopStyleVar (6);
-        ////}
-      }
     }
   }
 
@@ -2719,10 +3007,10 @@ SK_ImGui_StageNextFrame (void)
   //
   if (! (reset_frame_history || skip_frame_history))
   {
-    SK_ImGui_Frames.timeFrame (io.DeltaTime);
+    SK_ImGui_Frames->timeFrame (io.DeltaTime);
   }
 
-  else if (reset_frame_history) SK_ImGui_Frames.reset ();
+  else if (reset_frame_history) SK_ImGui_Frames->reset ();
 
   reset_frame_history = false;
 
@@ -2740,14 +3028,14 @@ SK_ImGui_StageNextFrame (void)
   static bool init_widgets = true;
   static auto widgets =
   {
-    SK_ImGui_Widgets.frame_pacing,
-      SK_ImGui_Widgets.volume_control,
-        SK_ImGui_Widgets.gpu_monitor,
-          SK_ImGui_Widgets.cpu_monitor,
-            SK_ImGui_Widgets.d3d11_pipeline,
-              SK_ImGui_Widgets.thread_profiler,
-                SK_ImGui_Widgets.hdr_control,
-                  SK_ImGui_Widgets.tobii
+    SK_ImGui_Widgets->frame_pacing,
+      SK_ImGui_Widgets->volume_control,
+        SK_ImGui_Widgets->gpu_monitor,
+          SK_ImGui_Widgets->cpu_monitor,
+            SK_ImGui_Widgets->d3d11_pipeline,
+              SK_ImGui_Widgets->thread_profiler,
+                SK_ImGui_Widgets->hdr_control,
+                  SK_ImGui_Widgets->tobii
   };
 
   if (init_widgets)
@@ -2782,15 +3070,15 @@ SK_ImGui_StageNextFrame (void)
     if (widget->isActive ())
       widget->run_base ();
 
-    else if (widget == SK_ImGui_Widgets.hdr_control ||
-             widget == SK_ImGui_Widgets.thread_profiler)
+    else if (widget == SK_ImGui_Widgets->hdr_control ||
+             widget == SK_ImGui_Widgets->thread_profiler)
     {
       widget->setActive (true);
     }
 
     if ( widget->isVisible () ||
          // Tobii widget needs to be drawn to show its cursor
-         ( widget == SK_ImGui_Widgets.tobii &&
+         ( widget == SK_ImGui_Widgets->tobii &&
            SK_Tobii_IsCursorVisible ()         )
        )
     {
@@ -2807,9 +3095,9 @@ SK_ImGui_StageNextFrame (void)
     ImGui::PushStyleColor    (ImGuiCol_WindowBg, ImVec4 (.333f, .333f, .333f, 0.828282f));
     ImGui::SetNextWindowPos  (ImVec2 (10, 10));
     ImGui::SetNextWindowSize (ImVec2 ( ImGui::GetIO ().DisplayFramebufferScale.x - 20.0f,
-                                       ImGui::GetItemsLineHeightWithSpacing ()   * 4.5f  ), ImGuiSetCond_Always );
+                                       ImGui::GetFrameHeightWithSpacing ()   * 4.5f  ), ImGuiCond_Always );
     ImGui::Begin             ( "Splash Screen##SpecialK",
-                                 nullptr, ImVec2 (), -1,
+                                 nullptr,
                                    ImGuiWindowFlags_NoTitleBar      |
                                    ImGuiWindowFlags_NoScrollbar     |
                                    ImGuiWindowFlags_NoMove          |
@@ -2876,8 +3164,8 @@ SK_ImGui_StageNextFrame (void)
     if (! current_branch.release.description.empty ())
     {
       ImGui::BeginChildFrame ( ImGui::GetID ("###SpecialK_SplashScreenFrame"),
-                               ImVec2 (-1,ImGui::GetItemsLineHeightWithSpacing () * 2.1f),
-                               ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize );
+                               ImVec2 (-1.0f, ImGui::GetFrameHeightWithSpacing () * 2.1f),
+                               ImGuiWindowFlags_AlwaysAutoResize );
 
       std::chrono::time_point <std::chrono::system_clock> now =
         std::chrono::system_clock::now ();
@@ -2938,9 +3226,9 @@ SK_ImGui_StageNextFrame (void)
 
 
 
-  if (SK_ImGui_DrawCallback.fn != nullptr)
+  if (SK_ImGui_DrawCallback->fn != nullptr)
   {
-    if (SK_ImGui_DrawCallback.fn (SK_ImGui_DrawCallback.data) > 0)
+    if (SK_ImGui_DrawCallback->fn (SK_ImGui_DrawCallback->data) > 0)
     {
       if (! SK_ImGui_Active ())
       {
@@ -2963,12 +3251,12 @@ SK_ImGui_StageNextFrame (void)
 
   if (d3d11)
   {
-    if (SK_ImGui_Widgets.texcache)
+    if (SK_ImGui_Widgets->texcache)
     {
       static bool move = true;
       if (move)
       {
-        ImGui::SetNextWindowPos (ImVec2 ((io.DisplaySize.x + font.size * 35) / 2.0f, 0.0f), ImGuiSetCond_Always);
+        ImGui::SetNextWindowPos (ImVec2 ((io.DisplaySize.x + font.size * 35) / 2.0f, 0.0f), ImGuiCond_Always);
         move = false;
       }
 
@@ -2989,12 +3277,12 @@ SK_ImGui_StageNextFrame (void)
 
       if (config.textures.cache.residency_managemnt)
       {
-        if (ReadAcquire (&SK_D3D11_TexCacheResidency.count.InVRAM)   > 0) extra_lines++;
-        if (ReadAcquire (&SK_D3D11_TexCacheResidency.count.Shared)   > 0) extra_lines++;
-        if (ReadAcquire (&SK_D3D11_TexCacheResidency.count.PagedOut) > 0) extra_lines++;
+        if (ReadAcquire (&SK_D3D11_TexCacheResidency->count.InVRAM)   > 0) extra_lines++;
+        if (ReadAcquire (&SK_D3D11_TexCacheResidency->count.Shared)   > 0) extra_lines++;
+        if (ReadAcquire (&SK_D3D11_TexCacheResidency->count.PagedOut) > 0) extra_lines++;
       }
 
-      ImGui::SetNextWindowSize  (ImVec2 (font.size * 35, font.size_multiline * (7.25f + extra_lines)), ImGuiSetCond_Always);
+      ImGui::SetNextWindowSize  (ImVec2 (font.size * 35, font.size_multiline * (7.25f + extra_lines)), ImGuiCond_Always);
 
       ImGui::Begin            ("###Widget_TexCacheD3D11", nullptr, ImGuiWindowFlags_NoTitleBar         | ImGuiWindowFlags_NoResize         |
                                                                    ImGuiWindowFlags_NoScrollbar        | ImGuiWindowFlags_AlwaysAutoResize |
@@ -3007,9 +3295,9 @@ SK_ImGui_StageNextFrame (void)
           dwLastActive = timeGetTime ();
 
         if (jobs > 0)
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (SK_D3D11_Resampler_GetActiveJobCount ()) / (float)jobs), 0.15f, 1.0f));
+          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (SK_D3D11_Resampler_GetActiveJobCount ()) / (float)jobs), 0.15f, 1.0f));
         else
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - dwLastActive) / 500.0f), 1.0f, 0.8f));
+          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (timeGetTime () - dwLastActive) / 500.0f), 1.0f, 0.8f));
 
         ImGui::SameLine       ();
         if (SK_D3D11_Resampler_GetErrorCount ())
@@ -3047,7 +3335,7 @@ SK_ImGui_StageNextFrame (void)
 
     if ( ImGui::BeginPopupModal ( "Confirm Forced Software Termination",
                                     nullptr,
-                                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                      ImGuiWindowFlags_AlwaysAutoResize |
                                       ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse )
        )
     {
@@ -3089,9 +3377,7 @@ SK_ImGui_StageNextFrame (void)
     }
   }
 
-
-
-  if (io.WantMoveMouse)
+  if (io.WantSetMousePos)
   {
     SK_ImGui_Cursor.pos.x = static_cast <LONG> (io.MousePos.x);
     SK_ImGui_Cursor.pos.y = static_cast <LONG> (io.MousePos.y);
@@ -3115,6 +3401,14 @@ SK_ImGui_StageNextFrame (void)
   imgui_staged = true;
   imgui_staged_frames++;
 }
+
+
+extern IMGUI_API void ImGui_ImplGL3_RenderDrawData  (ImDrawData* draw_data);
+extern IMGUI_API void ImGui_ImplDX9_RenderDrawData  (ImDrawData* draw_data);
+extern IMGUI_API void ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data);
+//#ifdef _WIN64
+//extern           void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data);
+//#endif
 
 //
 // Hook this to override Special K's GUI
@@ -3153,6 +3447,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     gl = true;
 
     ImGui::Render ();
+    ImGui_ImplGL3_RenderDrawData (ImGui::GetDrawData ());
   }
 
   else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
@@ -3169,6 +3464,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
        )
     {
       ImGui::Render  ();
+      ImGui_ImplDX9_RenderDrawData (ImGui::GetDrawData ());
       pDev->EndScene ();
     }
   }
@@ -3178,6 +3474,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     d3d11 = true;
 
     ImGui::Render ();
+    ImGui_ImplDX11_RenderDrawData (ImGui::GetDrawData ());
   }
 
   else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))
@@ -3371,10 +3668,10 @@ SK_ImGui_Toggle (void)
   //reset_frame_history = true;
   }
 
-  if ((! SK_ImGui_Visible) && SK_ImGui_OpenCloseCallback.fn != nullptr)
+  if ((! SK_ImGui_Visible) && SK_ImGui_OpenCloseCallback->fn != nullptr)
   {
-    if (SK_ImGui_OpenCloseCallback.fn (SK_ImGui_OpenCloseCallback.data))
-      SK_ImGui_OpenCloseCallback.fn (SK_ImGui_OpenCloseCallback.data);
+    if (SK_ImGui_OpenCloseCallback->fn (SK_ImGui_OpenCloseCallback->data))
+      SK_ImGui_OpenCloseCallback->fn (SK_ImGui_OpenCloseCallback->data);
   }
 }
 

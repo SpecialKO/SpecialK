@@ -18,8 +18,9 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+
+#include <SpecialK/stdafx.h>
 #include <SpecialK/plugin/plugin_mgr.h>
-#include <string>
 
 //Stupid Hack, rewrite me... (IN PROGRESS - see isPlugin below)
 bool isArkhamKnight    = false;

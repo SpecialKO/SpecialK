@@ -19,17 +19,9 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <SpecialK/crc32.h>
 #include <SpecialK/hash.h>
-
-#include <cstdint>
-#include <gsl/gsl>
-#include <gsl/span>
-#include <gsl/string_span>
-#include <memory>
-
-
-
 
 extern "C"
 uint32_t
@@ -100,8 +92,7 @@ static uint32_t crc32_tab [] =
 #include <SpecialK/utility.h>
 
 // Initialize static member data
-InstructionSet::InstructionSet_Internal*
-InstructionSet::CPU_Rep;
+std::unique_ptr <InstructionSet::InstructionSet_Internal> InstructionSet::CPU_Rep;
 
 extern "C"
 uint32_t

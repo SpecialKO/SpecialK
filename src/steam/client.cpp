@@ -1,12 +1,6 @@
-struct IUnknown;
-#include <Unknwnbase.h>
+#include <SpecialK/stdafx.h>
 
-#include <Windows.h>
 #include <SpecialK/steam_api.h>
-#include <SpecialK/utility.h>
-#include <cstdint>
-
-#include <unordered_map>
 
 class ISteamUser;
 class IWrapSteamUser;
@@ -22,8 +16,6 @@ class IWrapSteamRemoteStorage;
 
 class ISteamClient;
 class IWrapSteamClient;
-
-#include <concurrent_unordered_map.h>
 
 extern concurrency::concurrent_unordered_map <ISteamUser*,          IWrapSteamUser*>          SK_SteamWrapper_remap_user;
 extern concurrency::concurrent_unordered_map <ISteamUtils*,         IWrapSteamUtils*>         SK_SteamWrapper_remap_utils;

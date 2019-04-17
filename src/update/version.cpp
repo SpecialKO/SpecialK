@@ -19,32 +19,12 @@
  *
 **/
 
-#include <SpecialK/ini.h>
-#include <SpecialK/parameter.h>
-
-// TODO: Rename this timer or something more sensible :)
-#include <SpecialK/framerate.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/log.h>
-
-#include <SpecialK/update/version.h>
-
-#include <Windows.h>
-#include <Shlwapi.h>
-#include <Wininet.h>
-#pragma comment (lib, "wininet.lib")
-
-#include <cstdint>
-#include <atlbase.h>
+#include <SpecialK/stdafx.h>
 
 DWORD dwInetCtx;
 
 volatile DWORD               __SK_LastVersionCheckTime = 0UL;
 SK_LazyGlobal <std::wstring> __SK_LastProductTested;
-
-
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
 
 std::wstring
 SK_SYS_GetVersionPath (void)

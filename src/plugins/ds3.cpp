@@ -1,20 +1,10 @@
-#include <string>
+#include <SpecialK/stdafx.h>
 
-struct IUnknown;
-#include <Unknwnbase.h>
-
-#include <Windows.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/utility.h>
-
-#include <SpecialK/log.h>
-#include <SpecialK/config.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-
-#include <process.h>
+#if (defined (NOGDI) || (! defined (_WINGDI_)))
+#undef        NOGDI
+#undef      _WINGDI_
+#include    <wingdi.h>
+#endif
 
 //
 // Hook Special K's shutdown function
@@ -51,7 +41,7 @@ typedef HWND (WINAPI *SetActiveWindow_pfn)(
 
 
 static EnumDisplaySettingsA_pfn EnumDisplaySettingsA_Original = nullptr;
-static SetWindowPos_pfn         SetWindowPos_Original         = nullptr;
+static SetWindowPos_pfn         SetWindowPos_DS3_Original     = nullptr;
 static SetActiveWindow_pfn      SetActiveWindow_Original      = nullptr;
 
 
@@ -100,7 +90,8 @@ typedef HRESULT (STDMETHODCALLTYPE *DXGISwap_SetFullscreenState_pfn)(
 
 interface ID3DX11ThreadPump;
 
-static D3D11_RSSetViewports_pfn   D3D11_RSSetViewports_Original          = nullptr;
+static D3D11_RSSetViewports_pfn
+       D3D11_RSSetViewports_Local = nullptr;
 
 DXGISwap_ResizeTarget_pfn         DXGISwap_ResizeTarget_Original         = nullptr;
 DXGISwap_ResizeBuffers_pfn        DXGISwap_ResizeBuffers_Original        = nullptr;
@@ -630,7 +621,7 @@ SK_DS3_SetWindowPos (
   if (hWnd == ds3_state.Window)
     return TRUE;
   else
-    return SetWindowPos_Original (
+    return SetWindowPos_DS3_Original (
       hWnd,
         hWndInsertAfter,
           X, Y,
@@ -942,7 +933,7 @@ SK_DS3_InitPlugin (void)
   SK_CreateFuncHook ( L"ID3D11DeviceContext::RSSetViewports",
                                        D3D11_RSSetViewports_Override,
                                       SK_DS3_RSSetViewports,
-              static_cast_p2p <void> (&D3D11_RSSetViewports_Original) );
+              static_cast_p2p <void> (&D3D11_RSSetViewports_Local) );
   MH_QueueEnableHook (                 D3D11_RSSetViewports_Override);
 
   SK_CreateFuncHook ( L"IDXGISwapChain::ResizeTarget",
@@ -1282,7 +1273,7 @@ SK_DS3_RSSetViewports ( ID3D11DeviceContext* This,
 #endif
   }
 
-  D3D11_RSSetViewports_Original (This, NumViewports, pNewViewports);
+  D3D11_RSSetViewports_Local (This, NumViewports, pNewViewports);
 
   delete [] pNewViewports;
 }

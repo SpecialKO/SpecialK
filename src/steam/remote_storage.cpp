@@ -1,16 +1,9 @@
+#include <SpecialK/stdafx.h>
 #include <SpecialK/steam_api.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-
-#include <Windows.h>
-#include <cstdint>
-
-#include <unordered_map>
 
 class ISteamRemoteStorage;
 class IWrapSteamRemoteStorage;
 
-#include <concurrent_unordered_map.h>
 concurrency::concurrent_unordered_map <ISteamRemoteStorage*, IWrapSteamRemoteStorage*>   SK_SteamWrapper_remap_remotestorage;
 
 class IWrapSteamRemoteStorage012 : public ISteamRemoteStorage

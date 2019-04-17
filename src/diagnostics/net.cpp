@@ -19,10 +19,7 @@
  *
 **/
 
-#include <SpecialK/TLS.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/diagnostics/network.h>
+#include <SpecialK/stdafx.h>
 
 WSARecv_pfn WSARecv_Original = nullptr;
 WSASend_pfn WSASend_Original = nullptr;

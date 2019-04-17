@@ -20,29 +20,16 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include <SpecialK/stdafx.h>
+
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/command.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/framerate.h>
 #include <SpecialK/steam_api.h>
 
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/xinput.h>
 
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-#include <process.h>
-
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
-
-#include <atlbase.h>
 
 #define SOM_VERSION_NUM L"0.0.1"
 #define SOM_VERSION_STR L"Secret of Mantrap v " SOM_VERSION_NUM

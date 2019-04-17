@@ -19,8 +19,7 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
+#include <SpecialK/stdafx.h>
 
 typedef void* LPDIRECTDRAW;
 typedef void* LPDDENUMCALLBACK;
@@ -31,32 +30,6 @@ typedef void* LPDDENUMCALLBACKEX;
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/backend.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-#include <SpecialK/import.h>
-
-#include <SpecialK/config.h>
-#include <SpecialK/command.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/window.h>
-
-#include <SpecialK/steam_api.h>
-
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-#include <cinttypes>
-
-#include <atlbase.h>
-#include <comdef.h>
-
-#include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/compatibility.h>
-#include <SpecialK/import.h>
 
 volatile LONG      __ddraw_ready   = FALSE;
 
@@ -433,14 +406,14 @@ SK::DDraw::Startup (void)
   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
   dgvoodoo_d3dimm               = new import_s ();
-  dgvoodoo_d3dimm->hLibrary     = SK_Modules.LoadLibraryW (wszImmediateMode);
+  dgvoodoo_d3dimm->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
   dgvoodoo_d3dimm->name         = L"API Support Plug-In";
   dgvoodoo_d3dimm->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3dimm->hLibrary).c_str ());
 
   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
   dgvoodoo_d3d8               = new import_s ();
-  dgvoodoo_d3d8->hLibrary     = SK_Modules.LoadLibraryW (wszImmediateMode);
+  dgvoodoo_d3d8->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
   dgvoodoo_d3d8->name         = L"API Support Plug-In";
   dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3d8->hLibrary).c_str ());
 

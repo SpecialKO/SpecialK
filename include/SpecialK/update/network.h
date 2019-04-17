@@ -22,6 +22,7 @@
 #define __SK__Update__Network_H__
 
 #include <winnt.h>
+#include <WinInet.h>
 
 extern HRESULT
   __stdcall
@@ -30,8 +31,6 @@ extern HRESULT
 extern HRESULT
   __stdcall
     SK_UpdateSoftware (const wchar_t* wszProduct);
-
-#include <WinInet.h>
 
 
 struct sk_internet_get_t {

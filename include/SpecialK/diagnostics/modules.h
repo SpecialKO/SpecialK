@@ -290,7 +290,7 @@ public:
   bool
     isValid (const HMODULE hModTest) const noexcept
   {
-    return ( hModTest > nullptr //&&
+    return ( hModTest > (HMODULE)0 //&&
                        );// hModTest != INVALID_MODULE );
   }
 
@@ -397,7 +397,7 @@ private:
 
     //BOOL bHasValidInfo =
       GetModuleInformation (
-        GetCurrentProcess (), hMod, &mod_info, sizeof MODULEINFO
+        GetCurrentProcess (), hMod, &mod_info, sizeof (MODULEINFO)
       );
 
     std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (

@@ -18,33 +18,14 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-struct IUnknown;
-#include <Unknwnbase.h>
 
-#include <Windows.h>
-#include <process.h>
-#include <Shlwapi.h>
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/steam_api.h>
 #include <SpecialK/resource.h>
 
-#include <SpecialK/thread.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-
-#include <SpecialK/config.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/log.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-
 #include <SpecialK/osd/popup.h>
 #include <SpecialK/osd/text.h>
-#include <SpecialK/render/backend.h>
-
-#include <SpecialK/command.h>
-#include <SpecialK/utility.h>
 
 extern SK_Thread_HybridSpinlock* steam_init_cs;
 
@@ -282,7 +263,7 @@ InitSafe_Detour (void)
     InterlockedExchange (&__SK_Steam_init, TRUE);
 
     HMODULE hSteamAPI =
-      SK_Modules.LoadLibrary (L"CSteamworks.dll");
+      SK_Modules->LoadLibrary (L"CSteamworks.dll");
 
     if (hSteamAPI)
     {
@@ -380,7 +361,7 @@ SK_HookCSteamworks (void)
     lstrcatW (wszModName, L"steam_api.dll");
 #endif
 
-    if (SK_Modules.LoadLibraryLL (wszModName))
+    if (SK_Modules->LoadLibraryLL (wszModName))
     {
       steam_log->Log ( L" >>> Located a real steam_api DLL: '%s'...",
                        wszModName );

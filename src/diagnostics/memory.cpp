@@ -19,11 +19,7 @@
  *
 **/
 
-#include <SpecialK/TLS.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/diagnostics/memory.h>
+#include <SpecialK/stdafx.h>
 
 GlobalAlloc_pfn  GlobalAlloc_Original  = nullptr;
 GlobalFree_pfn   GlobalFree_Original   = nullptr;

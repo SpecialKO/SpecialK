@@ -19,53 +19,52 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <SpecialK/plugin/reshade.h>
-
-#include <Windows.h>
-#include <Shlwapi.h>
-#include <string>
-
-#include <SpecialK/parameter.h>
-#include <SpecialK/import.h>
 
 HMODULE
 __stdcall
 SK_ReShade_GetDLL (void)
 {
-  static HMODULE hModReShade = (HMODULE)INVALID_HANDLE_VALUE;
+  static HMODULE hModReShade =
+    gsl::narrow_cast <HMODULE> (INVALID_HANDLE_VALUE);
 
-  if (hModReShade != (HMODULE)INVALID_HANDLE_VALUE)
-    return hModReShade;
+  static bool tried_once = false;
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  if (! tried_once)
   {
-    if (imports [i].hLibrary != nullptr)
+    tried_once = true;
+
+    for (int i = 0; i < SK_MAX_IMPORTS; i++)
     {
-      if (StrStrIW (imports [i].filename->get_value_ref ().c_str (), L"ReShade"))
+      if (imports [i].hLibrary != nullptr)
       {
-        typedef HMODULE (__stdcall *SK_SHIM_GetReShade_pfn)(void);
-
-        SK_SHIM_GetReShade_pfn SK_SHIM_GetReShade =
-          (SK_SHIM_GetReShade_pfn)GetProcAddress (imports [i].hLibrary, "SK_SHIM_GetReShade");
-
-        if (SK_SHIM_GetReShade != nullptr)
+        if (StrStrIW (imports [i].filename->get_value_ref ().c_str (), L"ReShade"))
         {
-          HMODULE hModReal =
-            SK_SHIM_GetReShade ();
+          typedef HMODULE (__stdcall *SK_SHIM_GetReShade_pfn)(void);
 
-          if (hModReal)
+          SK_SHIM_GetReShade_pfn SK_SHIM_GetReShade =
+            (SK_SHIM_GetReShade_pfn)GetProcAddress (imports [i].hLibrary, "SK_SHIM_GetReShade");
+
+          if (SK_SHIM_GetReShade != nullptr)
           {
-            hModReShade =
-              hModReal;
+            HMODULE hModReal =
+              SK_SHIM_GetReShade ();
 
-            break;
+            if (hModReal)
+            {
+              hModReShade =
+                hModReal;
+
+              break;
+            }
           }
+
+          hModReShade =
+            imports [i].hLibrary;
+
+          break;
         }
-
-        hModReShade =
-          imports [i].hLibrary;
-
-        break;
       }
     }
   }

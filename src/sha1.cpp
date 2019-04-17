@@ -35,15 +35,12 @@ A million repetitions of "a"
 /* #define LITTLE_ENDIAN * This should be #define'd already, if true. */
 /* #define SHA1HANDSOFF * Copies data before messing with it. */
 
+#include <SpecialK/stdafx.h>
+
 #define SHA1HANDSOFF
 
 #include <SpecialK/sha1.h>
 #include <SpecialK/utility.h>
-
-#include <cstdio>
-#include <cstring>
-#include <cstdint>
-
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 

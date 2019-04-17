@@ -80,4 +80,11 @@ SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState
 void
 SK_XInput_InitHotPlugHooks (void);
 
+void
+SK_XInput_NotifyDeviceArrival (void);
+
+HDEVNOTIFY
+WINAPI
+SK_RegisterDeviceNotification (_In_ HANDLE hRecipient);
+
 #endif /* __SK__XINPUT_HOTPLUG_H__ */

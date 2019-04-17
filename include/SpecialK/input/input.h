@@ -411,5 +411,7 @@ SK_SetCursor (_In_opt_ HCURSOR hCursor);
 SHORT WINAPI SK_GetKeyState      (int   nVirtKey);
 BOOL  WINAPI SK_GetKeyboardState (PBYTE lpKeyState);
 
+extern char SK_KeyMap_LeftHand_Arrow (char key);
+
 
 #endif /* __SK__INPUT_H__ */

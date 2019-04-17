@@ -4,7 +4,7 @@
                 |                  The CEGUI Development Team
   SILLY         |  2004 - 2006   Paul D Turner &
                 |                  The CEGUI Development Team
-  dear ImGui    |  2014 - 2016   Omar Cornut and 
+  dear ImGui    |  2014 - 2019   Omar Cornut and
                 |                  ImGui contributors
   SteamAPI      |  1996 - 2008   Valve Corporation
   ADL           |  2008 - 2013   Advanced Micro Devices, Inc.
@@ -23,7 +23,7 @@
   GLFW 2.7.2    |  2002 - 2006   Marcus Geelnard
                 |  2006 - 2010   Camilla Berglund    <elmindreda@elmindreda.org>
                 |  2002          Lev Povalahev
-  GLM           |  2005 - 2013   G-Truc Creation
+  GLM           |  2005 - 2018   G-Truc Creation
   Mesa 3-D 7    |  1999 - 2007   Brian Paul
                 |  2007          The Khronos Group Inc.
   Vulkan        |  2015 - 2016   The Khronos Group Inc.

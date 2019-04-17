@@ -19,14 +19,12 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/plugins.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
 
 extern iSK_INI* dll_ini;
 
@@ -79,7 +77,7 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
 void
 SK_ImGui_PlugInDisclaimer (void)
 {
-  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
+  ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.15f, 0.95f, 0.98f));
   ImGui::TextWrapped    ("If you run into problems with a Plug-In, pressing and holding Ctrl + Shift at game startup can disable them.");
   ImGui::PopStyleColor  ();
 }
@@ -222,7 +220,7 @@ SK::ControlPanel::PlugIns::Draw (void)
       const bool unofficial =
         ImGui::CollapsingHeader ("Unofficial");
 
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.247f, .95f, .98f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.247f, .95f, .98f));
       ImGui::SameLine       ();
       ImGui::Text           ("           Customized for Special K");
       ImGui::PopStyleColor  ();

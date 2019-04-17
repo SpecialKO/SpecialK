@@ -19,6 +19,8 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #include <SpecialK/render/d3d11/d3d11_screenshot.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
@@ -392,22 +394,98 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComQIPtr <ID3D11Device>& pDev
 
                 static bool compiled = true;
 
-                SK_RunOnce (
-                  compiled =
-                    PixelShader_HDR10toscRGB.compileShaderFile (
-                      std::wstring (debug_shader_dir +
-                        LR"(HDR10_to_scRGB.hlsl)").c_str (),
-                          "main", "ps_5_0", true
-                    )
+                SK_RunOnce ( compiled =
+                  PixelShader_HDR10toscRGB.compileShaderString (
+                    "#pragma warning ( disable : 3571 )                  \n\
+                    struct PS_INPUT                                      \n\
+                    {                                                    \n\
+                      float4 pos      : SV_POSITION;                     \n\
+                      float4 color    : COLOR0;                          \n\
+                      float2 uv       : TEXCOORD0;                       \n\
+                      float2 coverage : TEXCOORD1;                       \n\
+                    };                                                   \n\
+                                                                         \n\
+                    sampler   sampler0 : register (s0);                  \n\
+                    Texture2D texHDR10 : register (t0);                  \n\
+                                                                         \n\
+                    static const double3x3 from2020to709 = {             \n\
+                       1.660496, -0.587656, -0.072840,                   \n\
+                      -0.124546,  1.132895,  0.008348,                   \n\
+                      -0.018154, -0.100597,  1.118751                    \n\
+                    };                                                   \n\
+                                                                         \n\
+                    double3 RemoveREC2084Curve (double3 N)               \n\
+                    {                                                    \n\
+                      double  m1 = 2610.0 / 4096.0 / 4;                  \n\
+                      double  m2 = 2523.0 / 4096.0 * 128;                \n\
+                      double  c1 = 3424.0 / 4096.0;                      \n\
+                      double  c2 = 2413.0 / 4096.0 * 32;                 \n\
+                      double  c3 = 2392.0 / 4096.0 * 32;                 \n\
+                      double3 Np = pow (N, 1 / m2);                      \n\
+                                                                         \n\
+                      return                                             \n\
+                        pow (max (Np - c1, 0) / (c2 - c3 * Np), 1 / m1); \n\
+                    }                                                    \n\
+                                                                         \n\
+                    float4 main ( PS_INPUT input ) : SV_TARGET           \n\
+                    {                                                    \n\
+                      double4 hdr10_color =                              \n\
+                        texHDR10.Sample (sampler0, input.uv);            \n\
+                                                                         \n\
+                      // HDR10 (normalized) is 125x brighter than scRGB  \n\
+                      hdr10_color.rgb =                                  \n\
+                        125.0 *                                          \n\
+                          mul ( from2020to709,                           \n\
+                                  RemoveREC2084Curve ( hdr10_color.rgb ) \n\
+                              );                                         \n\
+                                                                         \n\
+                      return                                             \n\
+                        float4 (hdr10_color.rgb, 1.0);                   \n\
+                    }", L"HDR10->scRGB Color Transform", "main", "ps_5_0", true )
                 );
 
-                SK_RunOnce (
-                  compiled &=
-                    VertexShaderHDR_Util.compileShaderFile (
-                      std::wstring (debug_shader_dir +
-                        LR"(vs_colorutil.hlsl)").c_str (),
-                          "main", "vs_5_0", true
-                    )
+                SK_RunOnce ( compiled &=
+                  VertexShaderHDR_Util.compileShaderString (
+                    "cbuffer vertexBuffer : register (b0)       \n\
+                    {                                           \n\
+                      float4 Luminance;                         \n\
+                    };                                          \n\
+                                                                \n\
+                    struct PS_INPUT                             \n\
+                    {                                           \n\
+                      float4 pos      : SV_POSITION;            \n\
+                      float4 col      : COLOR0;                 \n\
+                      float2 uv       : TEXCOORD0;              \n\
+                      float2 coverage : TEXCOORD1;              \n\
+                    };                                          \n\
+                                                                \n\
+                    struct VS_INPUT                             \n\
+                    {                                           \n\
+                      uint vI : SV_VERTEXID;                    \n\
+                    };                                          \n\
+                                                                \n\
+                    PS_INPUT main ( VS_INPUT input )            \n\
+                    {                                           \n\
+                      PS_INPUT                                  \n\
+                        output;                                 \n\
+                                                                \n\
+                        output.uv  = float2 (input.vI  & 1,     \n\
+                                             input.vI >> 1);    \n\
+                        output.col = float4 (Luminance.rgb,1);  \n\
+                        output.pos =                            \n\
+                          float4 ( ( output.uv.x - 0.5f ) * 2,  \n\
+                                  -( output.uv.y - 0.5f ) * 2,  \n\
+                                                   0.0f,        \n\
+                                                   1.0f );      \n\
+                                                                \n\
+                        output.coverage =                       \n\
+                          float2 ( (Luminance.z * .5f + .5f),   \n\
+                                   (Luminance.w * .5f + .5f) ); \n\
+                                                                \n\
+                      return                                    \n\
+                        output;                                 \n\
+                    }", L"HDR Color Utility Vertex Shader",
+                         "main", "vs_5_0", true )
                 );
 
                 if (compiled)
@@ -469,8 +547,8 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComQIPtr <ID3D11Device>& pDev
 
                     blend_desc.AlphaToCoverageEnable                  = false;
                     blend_desc.RenderTarget [0].BlendEnable           = true;
-                    blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_SRC_ALPHA;
-                    blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+                    blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+                    blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
                     blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
                     blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
                     blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
@@ -738,12 +816,6 @@ SK_D3D11_Screenshot::getData ( UINT     *pWidth,
         *pWidth  = framebuffer.Width;
         *pHeight = framebuffer.Height;
 
-        static const glm::mat3x3 from2020to709 (
-          glm::vec3 ( 1.660496f, -0.587656f, -0.072840f ),
-          glm::vec3 (-0.124546f,  1.132895f,  0.008348f ),
-          glm::vec3 (-0.018154f, -0.100597f,  1.118751f )
-        );
-
         uint8_t* pSrc = (uint8_t *)finished_copy.pData;
         uint8_t* pDst = framebuffer.PixelBuffer.m_pData;
 
@@ -752,56 +824,6 @@ SK_D3D11_Screenshot::getData ( UINT     *pWidth,
           for ( UINT i = 0; i < framebuffer.Height; ++i )
           {
             memcpy ( pDst, pSrc, finished_copy.RowPitch );
-
-#if 1
-            // Eliminate pre-multiplied alpha problems (the stupid way)
-            switch (framebuffer.NativeFormat)
-            {
-              case DXGI_FORMAT_B8G8R8A8_UNORM:
-              case DXGI_FORMAT_R8G8B8A8_UNORM:
-              {
-                for ( UINT j = 3                          ;
-                           j < framebuffer.PackedDstPitch ;
-                           j += 4 )
-                {    pDst [j] = 255UL;        }
-              } break;
-
-              case DXGI_FORMAT_R10G10B10A2_UNORM:
-              {
-                for ( UINT j = 0              ;
-                           j < framebuffer.PackedDstPitch ;
-                           j += 4 )
-                {
-                  glm::vec4 color =
-                    glm::unpackUnorm3x10_1x2 (*((uint32*)& (pDst [j])));
-
-                  color.a = 1.0f;
-
-                  *((uint32 *)&(pDst [j])) = glm::packUnorm3x10_1x2 (color);
-                }
-                for ( UINT j = 3                          ;
-                           j < framebuffer.PackedDstPitch ;
-                           j += 4 )
-                {    pDst [j]  |=  0x3;       }
-              } break;
-
-              case DXGI_FORMAT_R16G16B16A16_FLOAT:
-              {
-                for ( UINT j  = 0                          ;
-                           j < framebuffer.PackedDstPitch  ;
-                           j += 8 )
-                {
-                  glm::vec4 color =
-                    glm::unpackHalf4x16 (*((glm::uint64*)&(pDst [j])));
-
-                  color.a = 1.0f;
-
-                  *((glm::uint64*)& (pDst[j])) =
-                    glm::packHalf4x16 (color);
-                }
-              } break;
-            }
-#endif
 
             pSrc += finished_copy.RowPitch;
             pDst +=         PackedDstPitch;
@@ -897,7 +919,7 @@ SK_D3D11_ToggleGameHUD (void)
   static volatile LONG last_state =
     (ReadAcquire (&__SK_HUD_YesOrNo) > 0);
 
-  if (last_state)
+  if (ReadAcquire (&last_state))
   {
     SK_D3D11_HideGameHUD ();
 
@@ -1163,7 +1185,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
     hWriteThread =
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
-      SetCurrentThreadDescription (                L"[SK] D3D11 Screenshot Reader" );
+      SetCurrentThreadDescription (               L"[SK] D3D11 Screenshot Capture" );
       SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
 
       HANDLE hSignal0 =
@@ -1254,6 +1276,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               meta.mipLevels = 1;
               meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
 
+
               un_srgb.Initialize          (meta);
               un_srgb.InitializeFromImage (raw_img);
 
@@ -1333,6 +1356,17 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 std::swap (un_scrgb, un_srgb);
 #endif
 
+                auto ApplyGamma_sRGB = [](float* fOutPixel) ->
+                void
+                {
+                  if (fOutPixel [0] < 0.0031308f) fOutPixel [0] = 12.92f * fOutPixel [0];
+                  else                            fOutPixel [0] = 1.055f * pow (fOutPixel [0], 1.0f / 2.4f) - 0.055f;
+                  if (fOutPixel [1] < 0.0031308f) fOutPixel [1] = 12.92f * fOutPixel [1];
+                  else                            fOutPixel [1] = 1.055f * pow (fOutPixel [1], 1.0f / 2.4f) - 0.055f;
+                  if (fOutPixel [2] < 0.0031308f) fOutPixel [2] = 12.92f * fOutPixel [2];
+                  else                            fOutPixel [2] = 1.055f * pow (fOutPixel [2], 1.0f / 2.4f) - 0.055f;
+                };
+
                 XMVECTOR maxLum = XMVectorZero ();
 
                 hr =
@@ -1389,6 +1423,11 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                   value =
                           XMVectorSelect   (value, nvalue, g_XMSelect1110);
                         outPixels [j]   =   value;
+
+                        if (rb.isHDRCapable () && rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084)
+                        {
+                          ApplyGamma_sRGB ((float*)& outPixels[j]);
+                        }
                       }
                     }, un_scrgb);
 
@@ -1422,7 +1461,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 ScratchImage thumbnailImage;
 
                 Resize ( *un_scrgb.GetImages (), 200,
-                           static_cast <size_t> (200 * aspect),
+                           static_cast <size_t> (200.0 * aspect),
                             TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC |
                             TEX_FILTER_SEPARATE_ALPHA   | TEX_FILTER_TRIANGLE,
                               thumbnailImage );
@@ -1530,7 +1569,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 images_to_write =
                   (concurrency::concurrent_queue <SK_D3D11_Screenshot::framebuffer_s *>*)pUser;
 
-              SetCurrentThreadDescription (                      L"[SK] D3D11 Screenshot Writer" );
+              SetCurrentThreadDescription (                     L"[SK] D3D11 Screenshot Encoder" );
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
 
@@ -1587,15 +1626,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                     Image raw_img = { };
 
-
-                    static const glm::mat3x3 from2020to709 (
-                      glm::vec3 ( 1.660496f, -0.587656f, -0.072840f ),
-                      glm::vec3 (-0.124546f,  1.132895f,  0.008348f ),
-                      glm::vec3 (-0.018154f, -0.100597f,  1.118751f )
-                    );
-
-
-#if 0
+#if 1
                     uint8_t* pDst =
                       pFrameData->PixelBuffer.m_pData;
 
@@ -1615,54 +1646,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                         case DXGI_FORMAT_R10G10B10A2_UNORM:
                         {
-                          for ( UINT j = 0              ;
-                                     j < pFrameData->PackedDstPitch ;
-                                     j += 4 )
-                          {
-                            glm::vec4 color =
-                              glm::unpackUnorm3x10_1x2 (*((uint32*)& (pDst [j])));
-
-
-                            auto RemoveSRGB = [](glm::vec4& color) ->
-                            glm::vec4&
-                            {
-                              for ( int i = 0 ; i < 3 ; i++ )
-                              {
-                                if (color [i] < 0.04045f)
-                                    color [i] = color [i] / 12.92f;
-                                else
-                                {
-                                  color [i] =
-                                    (pow ((color [i] + 0.055f) / 1.055f, 2.4f));
-                                }
-                              }
-
-                              return color;
-                            };
-
-                            glm::vec3 rgb (color.r, color.g, color.b);
-                            rgb     = rgb * from2020to709;
-
-                            float red   = rgb.r;
-                            float green = rgb.g;
-                            float blue  = rgb.b;
-
-                            red =
-                              glm::pow (glm::max (glm::pow (glm::abs (red),   1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f) * glm::pow (glm::abs (red),   1.0f / 78.84375f), 1.0f / 0.1593017578f);
-                            green =
-                              glm::pow (glm::max (glm::pow (glm::abs (green), 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f) * glm::pow (glm::abs (green), 1.0f / 78.84375f), 1.0f / 0.1593017578f);
-                            blue =
-                              glm::pow (glm::max (glm::pow (glm::abs (blue),  1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f) * glm::pow (glm::abs (blue),  1.0f / 78.84375f), 1.0f / 0.1593017578f);
-
-                            color.r = red;
-                            color.g = green;
-                            color.b = blue;
-                            color.a = 1.0f;
-
-                            RemoveSRGB (color);
-
-                            *((uint32 *)&(pDst [j])) = glm::packUnorm3x10_1x2 (color);
-                          }
                           for ( UINT j = 3                          ;
                                      j < pFrameData->PackedDstPitch ;
                                      j += 4 )
@@ -1843,9 +1826,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
       {
         if ( purge && (! screenshot_write_queue->empty ()) )
         {
-          SetThreadPriority   ( hWriteThread,     THREAD_PRIORITY_TIME_CRITICAL );
-          SignalObjectAndWait ( hSignalAbortStart,
-                                hSignalAbortDone, INFINITE,              FALSE  );
+          SetThreadPriority   ( hWriteThread,                           THREAD_PRIORITY_TIME_CRITICAL );
+          SignalObjectAndWait ( ReadPointerAcquire (&hSignalAbortStart),
+                                ReadPointerAcquire (&hSignalAbortDone), INFINITE,              FALSE  );
         }
 
         wait  = false;

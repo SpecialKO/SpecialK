@@ -19,70 +19,51 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
-#include <Windows.h>
-
-#undef min
-#undef max
+#include <SpecialK/stdafx.h>
 
 #include <CEGUI/CEGUI.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility/bidirectional_map.h>
 
-class SK_PopupWindow {
-friend class SK_PopupManager;
+SK_PopupWindow::SK_PopupWindow (const char* szLayout)
+{
+  if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return;
 
-public:
-  CEGUI::Window* getChild (const char* szName);
-  operator CEGUI::Window* (void);
 
-protected:
-  explicit SK_PopupWindow (const char* szLayout)
+  try
   {
-    if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return;
+    CEGUI::WindowManager& window_mgr =
+      CEGUI::WindowManager::getDllSingleton ();
+
+    window_ =
+      window_mgr.loadLayoutFromFile (szLayout);
+  }
+
+  catch (...)
+  {
+  }
+}
+
+SK_PopupWindow::~SK_PopupWindow (void)
+{
+  if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return;
 
 
+  if (window_ != nullptr)
+  {
     try
     {
       CEGUI::WindowManager& window_mgr =
         CEGUI::WindowManager::getDllSingleton ();
 
-      window_ =
-        window_mgr.loadLayoutFromFile (szLayout);
+      window_mgr.destroyWindow (window_);
+
+      window_ = nullptr;
     }
 
     catch (...)
     {
     }
   }
-
-  ~SK_PopupWindow (void)
-  {
-    if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return;
-
-
-    if (window_ != nullptr)
-    {
-      try
-      {
-        CEGUI::WindowManager& window_mgr =
-          CEGUI::WindowManager::getDllSingleton ();
-
-        window_mgr.destroyWindow (window_);
-
-        window_ = nullptr;
-      }
-
-      catch (...)
-      {
-      }
-    }
-  }
-
-private:
-  CEGUI::Window* window_;
-};
+}
 
 CEGUI::Window*
 SK_PopupWindow::getChild (const char* szName)
@@ -106,33 +87,6 @@ SK_PopupWindow::operator CEGUI::Window* (void)
 {
   return window_;
 }
-
-class SK_PopupManager {
-public:
-  static SK_PopupManager* getInstance (void);
-
-  SK_PopupWindow* createPopup      (const char* szLayout);
-  void            destroyPopup     (SK_PopupWindow* popup);
-  void            destroyAllPopups (void);
-
-  void            drawAllPopups    (void);
-  bool            isPopup          (SK_PopupWindow* popup);
-
-  bool            OnDestroyPopup   (const CEGUI::EventArgs& e);
-
-protected:
-  SK_PopupManager (void);
-
-private:
-  static SK_PopupManager* __manager__;
-  static CRITICAL_SECTION cs;
-
-  SKTL_BidirectionalHashMap <
-    SK_PopupWindow *, CEGUI::Window  *
-  > popups_ { };
-
-  CEGUI::GUIContext*                            gui_ctx_;
-};
 
 
 

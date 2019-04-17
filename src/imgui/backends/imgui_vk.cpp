@@ -1,15 +1,32 @@
-struct IUnknown;
-#include <Unknwnbase.h>
+/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
 
-#include <Windows.h>
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
 
 #include <imgui/backends/imgui_vk.h>
-#include <SpecialK/window.h>
-#include <SpecialK/framerate.h>
 
 // Data
 static INT64        g_Time                   = 0;
@@ -137,8 +154,8 @@ static PFN_vkCreateBuffer                      vkCreateBuffer;
 static PFN_vkDestroyBuffer                     vkDestroyBuffer;
 static PFN_vkCreateImage                       vkCreateImage;
 static PFN_vkDestroyImage                      vkDestroyImage;
-static PFN_vkCreateImageView                   vkCreateImageView;  
-static PFN_vkDestroyImageView                  vkDestroyImageView; 
+static PFN_vkCreateImageView                   vkCreateImageView;
+static PFN_vkDestroyImageView                  vkDestroyImageView;
 static PFN_vkCreateShaderModule                vkCreateShaderModule;
 static PFN_vkDestroyShaderModule               vkDestroyShaderModule;
 static PFN_vkCreateGraphicsPipelines           vkCreateGraphicsPipelines;
@@ -958,8 +975,8 @@ ImGui_ImplVulkan_Init (ImGui_ImplVulkan_Init_Data* init_data)
   SK_IMPORT_VK_FUNC (vkDestroyBuffer)
   SK_IMPORT_VK_FUNC (vkCreateImage)
   SK_IMPORT_VK_FUNC (vkDestroyImage)
-  SK_IMPORT_VK_FUNC (vkCreateImageView)  
-  SK_IMPORT_VK_FUNC (vkDestroyImageView) 
+  SK_IMPORT_VK_FUNC (vkCreateImageView)
+  SK_IMPORT_VK_FUNC (vkDestroyImageView)
   SK_IMPORT_VK_FUNC (vkCreateShaderModule)
   SK_IMPORT_VK_FUNC (vkDestroyShaderModule)
   SK_IMPORT_VK_FUNC (vkCreateGraphicsPipelines)
@@ -1007,7 +1024,6 @@ ImGui_ImplVulkan_Init (ImGui_ImplVulkan_Init_Data* init_data)
   io.KeyMap [ImGuiKey_Y]          = 'Y';
   io.KeyMap [ImGuiKey_Z]          = 'Z';
 
-  io.RenderDrawListsFn = ImGui_ImplVulkan_RenderDrawLists;
   io.ClipboardUserData = game_window.hWnd;
   io.ImeWindowHandle   = game_window.hWnd;
 

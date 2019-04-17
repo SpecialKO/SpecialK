@@ -6,14 +6,17 @@
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
+#ifndef _d3d9TYPES_H_
+#undef  _D3D9_H_
 #include <d3d9.h>
+#endif
 
 #include "../imgui.h"
 
 IMGUI_API bool        ImGui_ImplDX9_Init     (void* hwnd, IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* pparams);
 IMGUI_API void        ImGui_ImplDX9_Shutdown ();
 IMGUI_API void        ImGui_ImplDX9_NewFrame ();
- 
+
 // Use if // Use if you want to reset your rendering device without losing ImGui state.
 IMGUI_API void        ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams);
 IMGUI_API bool        ImGui_ImplDX9_CreateDeviceObjects     ();

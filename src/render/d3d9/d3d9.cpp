@@ -19,49 +19,27 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_device.h>
 #include <SpecialK/render/d3d9/d3d9_texmgr.h>
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/backend.h>
-#include <SpecialK/import.h>
-#include <SpecialK/diagnostics/compatibility.h>
 
 MIDL_INTERFACE("D0223B96-BF7A-43fd-92BD-A43B0D82B9EB") IDirect3DDevice9;
 MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-
-#include <SpecialK/stdafx.h>
-#include <SpecialK/nvapi.h>
-#include <SpecialK/config.h>
-
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-#include <cinttypes>
-
-#include <atlbase.h>
-#include <comdef.h>
-#include <SpecialK/com_util.h>
-
-#include <SpecialK/log.h>
-#include <SpecialK/crc32.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/command.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/window.h>
-#include <SpecialK/steam_api.h>
-
+#include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d9.h>
 
-#include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
+#include <d3dx9core.h>
+#include <d3dx9shader.h>
+
+#include <d3d9.h>
+#include <SpecialK/nvapi.h>
+#include <SpecialK/adl.h>
 
 using namespace SK::D3D9;
 
@@ -85,8 +63,11 @@ apiset##_##func##_pfn apiset##_##func##_Original = nullptr;
 #define SK_D3D9_Trampoline(apiset,func) apiset##_##func##_Original
 #define SK_D3D9_TrampolineForVFTblHook(apiset,func) SK_D3D9_Trampoline(apiset,func), apiset##_##func##_pfn
 
-Direct3DCreate9_pfn             Direct3DCreate9_Import                 = nullptr;
-Direct3DCreate9Ex_pfn           Direct3DCreate9Ex_Import               = nullptr;
+Direct3DCreate9_pfn
+Direct3DCreate9_Import   = nullptr;
+
+Direct3DCreate9Ex_pfn
+Direct3DCreate9Ex_Import = nullptr;
 
 SK_D3D9_DeclTrampoline (D3D9,         CreateDevice)
 SK_D3D9_DeclTrampoline (D3D9Ex,       CreateDeviceEx)
@@ -231,7 +212,7 @@ D3D9CreateOffscreenPlainSurface_Override (
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
   {
-    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+    SK_ComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)))
     {
@@ -359,7 +340,6 @@ void SK_D3D9_SetPixelShader       ( IDirect3DDevice9       *pDev,
 void SK_D3D9_SetVertexShader      ( IDirect3DDevice9       *pDev,
                                     IDirect3DVertexShader9 *pShader );
 
-#include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 #include <CEGUI/DefaultResourceProvider.h>
 #include <CEGUI/ImageManager.h>
@@ -399,12 +379,8 @@ _SKC_MakeCEGUILib ("CEGUIRapidXMLParser")
 _SKC_MakeCEGUILib ("CEGUICommonDialogs-0")
 _SKC_MakeCEGUILib ("CEGUISTBImageCodec")
 
-#include <delayimp.h>
-#include <CEGUI/CEGUI.h>
 #include <CEGUI/Rect.h>
 #include <CEGUI/RendererModules/Direct3D9/Renderer.h>
-
-#pragma comment (lib, "delayimp.lib")
 
 static
 CEGUI::Direct3D9Renderer* cegD3D9 = nullptr;
@@ -517,7 +493,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
   else if (pDev != nullptr)
   {
-    CComPtr <IDirect3DStateBlock9>       pStateBlock = nullptr;
+    SK_ComPtr <IDirect3DStateBlock9>       pStateBlock = nullptr;
     pDev->CreateStateBlock (D3DSBT_ALL, &pStateBlock.p);
 
     if (! pStateBlock)
@@ -585,9 +561,9 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     D3DCAPS9              caps  = { };
     pDev->GetDeviceCaps (&caps);
 
-    CComPtr <IDirect3DSurface9> pBackBuffer = nullptr;
-    CComPtr <IDirect3DSurface9> rts [8]     = { };
-    CComPtr <IDirect3DSurface9> ds          = nullptr;
+    SK_ComPtr <IDirect3DSurface9> pBackBuffer = nullptr;
+    SK_ComPtr <IDirect3DSurface9> rts [8]     = { };
+    SK_ComPtr <IDirect3DSurface9> ds          = nullptr;
 
     for (UINT target = 0; target < std::min (caps.NumSimultaneousRTs, 8UL); target++) {
       pDev->GetRenderTarget (target, &rts [target].p);
@@ -954,8 +930,6 @@ SK_HookD3D9 (void)
   SK_Thread_SpinUntilFlagged   (&__d3d9_ready);
 }
 
-#include <SpecialK/resource.h>
-
 auto SK_UnpackD3DX9 =
 [](void) -> void
 {
@@ -1040,9 +1014,6 @@ d3d9_init_callback (finish_pfn finish)
 
   finish ();
 }
-
-
-#include <SpecialK/ini.h>
 
 bool
 SK::D3D9::Startup (void)
@@ -1150,7 +1121,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
       dll_log->Log ( L"[  D3D9  ]  >> Refresh Rate Override: %li",
                        config.render.framerate.refresh_rate );
 
-      Refresh = config.render.framerate.refresh_rate;
+      Refresh = (int)config.render.framerate.refresh_rate;
 
       if ( pFullscreenMode != nullptr )
         pFullscreenMode->RefreshRate = Refresh;
@@ -1624,7 +1595,7 @@ D3D9Device_Present ( IDirect3DDevice9 *This,
   if (This == nullptr)
     return E_NOINTERFACE;
 
-  CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+  SK_ComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
 
   if ( SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)) &&
@@ -1661,7 +1632,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
   if (This == nullptr)
     return E_NOINTERFACE;
 
-  CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+  SK_ComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
   if ( SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)) &&
                                           pSwapChain != nullptr )
@@ -1832,7 +1803,7 @@ D3D9Swap_Present ( IDirect3DSwapChain9 *This,
  if (This == nullptr)
     return E_NOINTERFACE;
 
-  CComPtr <IDirect3DDevice9> pDevice = nullptr;
+  SK_ComPtr <IDirect3DDevice9> pDevice = nullptr;
 
   if (SUCCEEDED (This->GetDevice (&pDevice.p)) && pDevice != nullptr)
   {
@@ -2036,7 +2007,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
 
   if (! LocalHook_D3D9PresentSwap.active)
   {
-    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+    SK_ComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     if (SUCCEEDED (pDev->GetSwapChain (0, &pSwapChain.p)))
     {
@@ -2895,7 +2866,7 @@ D3D9CreateRenderTarget_Override (IDirect3DDevice9     *This,
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
   {
-    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+    SK_ComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)))
     {
@@ -2937,7 +2908,7 @@ D3D9CreateDepthStencilSurface_Override ( IDirect3DDevice9     *This,
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
   {
-    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+    SK_ComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)))
     {
@@ -3335,7 +3306,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
     }
   }
 
-  CComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
+  SK_ComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
 
   if (pparams != nullptr && pDevice != nullptr && ( SUCCEEDED (((IUnknown *)pDevice)->QueryInterface <IDirect3DDevice9Ex> (&pDevEx.p))))
   {
@@ -3442,10 +3413,10 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
         }
       }
 
-      if (config.render.framerate.refresh_rate != -1)
+      if (config.render.framerate.refresh_rate != -1.0f)
       {
         pparams->FullScreen_RefreshRateInHz =
-          config.render.framerate.refresh_rate;
+          (UINT)config.render.framerate.refresh_rate;
       }
 
       if (pparams->FullScreen_RefreshRateInHz != 0)
@@ -4849,7 +4820,7 @@ SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pD
   PipelineStatsD3D9& pipeline_stats =
     pipeline_stats_d3d9;
 
-  CComPtr <IDirect3DDevice9> dev = pDevice;
+  SK_ComPtr <IDirect3DDevice9> dev = pDevice;
 
   if (  pDevice    != nullptr ||
        (pSwapChain != nullptr && SUCCEEDED (pSwapChain->GetDevice (&dev.p))) )
@@ -4983,8 +4954,8 @@ HookD3D9 (LPVOID user)
     {
       pTLS->d3d9.ctx_init_thread = true;
 
-      HWND                 hwnd  = nullptr;
-      CComPtr <IDirect3D9> pD3D9 =
+      HWND                   hwnd  = nullptr;
+      SK_ComPtr <IDirect3D9> pD3D9 =
          Direct3DCreate9_Import (D3D_SDK_VERSION);
 
       pTLS->d3d9.ctx_init_thread = false;
@@ -5004,7 +4975,7 @@ HookD3D9 (LPVOID user)
         pparams.BackBufferHeight      = 2;
         pparams.BackBufferWidth       = 2;
 
-        CComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
+        SK_ComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
 
         dll_log->Log (L"[   D3D9   ]  Hooking D3D9...");
 
@@ -5061,7 +5032,7 @@ HookD3D9 (LPVOID user)
 
         SK_Win32_CleanupDummyWindow (hwnd);
 
-        CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
+        SK_ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
         pTLS->d3d9.ctx_init_thread = true;
 
@@ -5090,7 +5061,7 @@ HookD3D9 (LPVOID user)
           pparams.BackBufferHeight      = 2;
           pparams.BackBufferWidth       = 2;
 
-          CComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
+          SK_ComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
 
           pTLS->d3d9.ctx_init_thread = true;
 
@@ -5191,22 +5162,6 @@ SK_D3D9_TriggerReset (bool temporary)
 }
 
 
-
-
-
-
-#include "DLL_VERSION.H"
-#include <imgui/imgui.h>
-
-#include <string>
-#include <vector>
-#include <algorithm>
-
-#include "config.h"
-#include "command.h"
-
-#include <atlbase.h>
-
 extern bool
 SK_ImGui_IsItemClicked (void);
 
@@ -5303,8 +5258,8 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     list_dirty = false;
   }
 
-  ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
-  ImGui::PushStyleColor (ImGuiCol_Border,                   ImVec4 (0.4f, 0.6f, 0.9f, 1.0f));
+  ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
+  ImGui::PushStyleColor (ImGuiCol_Border,             ImVec4 (0.4f, 0.6f, 0.9f, 1.0f));
 
 #define FILE_LIST_WIDTH  (font_size * 20)
 #define FILE_LIST_HEIGHT (font_size * (sources.size () + 3))
@@ -5377,7 +5332,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
         if (sel_changed)
         {
-          ImGui::SetScrollHere        (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+          ImGui::SetScrollHereY       (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
           ImGui::SetKeyboardFocusHere (    );
 
           sel_changed = false;
@@ -5585,7 +5540,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
     else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
   }
 
-  ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
+  ImGui::PushStyleVar   (ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
 
   ImGui::BeginChild ( ImGui::GetID (szShaderWord),
@@ -5632,7 +5587,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
 
         if (sel_changed)
         {
-          ImGui::SetScrollHere        (0.5f);
+          ImGui::SetScrollHereY       (0.5f);
           ImGui::SetKeyboardFocusHere (    );
 
           sel_changed     = false;
@@ -5662,7 +5617,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
   ImGui::SameLine      ();
   ImGui::BeginGroup    ();
 
-  if (ImGui::IsItemHoveredRect ()) {
+  if (ImGui::IsItemHovered (ImGuiHoveredFlags_RectOnly)) {
          if (ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) list->sel--;
     else if (ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) list->sel++;
   }
@@ -5689,7 +5644,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
     ImGui::Separator      ();
     ImGui::EndGroup       ();
 
-    if (ImGui::IsItemHoveredRect () && ! tracker->used_textures.empty ())
+    if (ImGui::IsItemHovered (ImGuiHoveredFlags_RectOnly) && ! tracker->used_textures.empty ())
     {
       ImGui::BeginTooltip ();
 
@@ -6011,7 +5966,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
     else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
   }
 
-  ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
+  ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
   ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
 
   ImGui::BeginChild ( ImGui::GetID ("Stream 0"),
@@ -6059,7 +6014,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
 
         if (sel_changed)
         {
-          ImGui::SetScrollHere (0.5f);
+          ImGui::SetScrollHereY (0.5f);
 
           sel_changed            = false;
           list->last_sel         = (uintptr_t)buffers [list->sel];
@@ -6092,7 +6047,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
   ImGui::SameLine      ();
   ImGui::BeginGroup    ();
 
-  if (ImGui::IsItemHoveredRect ())
+  if (ImGui::IsItemHovered (ImGuiHoveredFlags_RectOnly))
   {
          if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
     else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
@@ -6150,7 +6105,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
     if (SUCCEEDED (tracker->vertex_buffer->GetDesc (&desc)))
     {
       ImGui::BeginGroup   ();
-      ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding, 20.0f);
+      ImGui::PushStyleVar (ImGuiStyleVar_ChildRounding, 20.0f);
 
       ImVec4 border_color = wireframe ? ImVec4 (1.0f, 0.5f, 0.5f, 1.0f) :
                               tracker->wireframe ?
@@ -6494,14 +6449,13 @@ SK_D3D9_TextureModDlg (void)
 
 
 
-  ImGui::SetNextWindowSize            (ImVec2 (io.DisplaySize.x * 0.66f, io.DisplaySize.y * 0.42f), ImGuiSetCond_Appearing);
+  ImGui::SetNextWindowSize            (ImVec2 (io.DisplaySize.x * 0.66f, io.DisplaySize.y * 0.42f), ImGuiCond_Appearing);
   ImGui::SetNextWindowSizeConstraints ( /*ImVec2 (768.0f, 384.0f),*/
                                        ImVec2 (io.DisplaySize.x * 0.16f, io.DisplaySize.y * 0.16f),
                                        ImVec2 (io.DisplaySize.x * 0.96f, io.DisplaySize.y * 0.96f));
 
   ImGui::Begin ( "D3D9 Render Mod Toolkit (v " SK_VERSION_STR_A ")",
-                   &show_dlg,
-                     ImGuiWindowFlags_ShowBorders );
+                   &show_dlg );
 
   bool can_scroll = ImGui::IsWindowFocused () && ImGui::IsMouseHoveringRect ( ImVec2 (ImGui::GetWindowPos ().x,                             ImGui::GetWindowPos ().y),
                                                                               ImVec2 (ImGui::GetWindowPos ().x + ImGui::GetWindowSize ().x, ImGui::GetWindowPos ().y + ImGui::GetWindowSize ().y) );
@@ -6646,7 +6600,7 @@ SK_D3D9_TextureModDlg (void)
 
     ImGui::BeginGroup ();
 
-    ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
+    ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
     ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
 
     ImGui::BeginChild ( ImGui::GetID ("Item List"),
@@ -6675,7 +6629,7 @@ SK_D3D9_TextureModDlg (void)
 
          if (sel_changed)
          {
-           ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+           ImGui::SetScrollHereY (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
            sel_changed = false;
          }
        }
@@ -6716,7 +6670,7 @@ SK_D3D9_TextureModDlg (void)
    }
 
    ImGui::SameLine     ();
-   ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding, 20.0f);
+   ImGui::PushStyleVar (ImGuiStyleVar_ChildRounding, 20.0f);
 
    last_ht    = std::max (last_ht,    16.0f);
    last_width = std::max (last_width, 16.0f);
@@ -6842,7 +6796,7 @@ SK_D3D9_TextureModDlg (void)
 
           ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
           ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_XXX"), ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8),
-                                  ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoScrollbar );
+                                  ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar );
           ImGui::Image           ( pTex->d3d9_tex->pTex,
                                      ImVec2 ((float)desc.Width, (float)desc.Height),
                                        uv0,                       uv1,
@@ -6974,7 +6928,7 @@ SK_D3D9_TextureModDlg (void)
 
             ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
             ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_YYY"), ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8),
-                                    ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoInputs |
+                                    ImGuiWindowFlags_NoInputs    |
                                     ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Image           ( pTex->d3d9_tex->pTexOverride,
                                        ImVec2 ((float)desc.Width, (float)desc.Height),
@@ -7048,7 +7002,7 @@ SK_D3D9_TextureModDlg (void)
       }
     }
 
-    ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
+    ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
     ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
 
     ImGui::BeginChild ( ImGui::GetID ("Item List2"),
@@ -7072,7 +7026,7 @@ SK_D3D9_TextureModDlg (void)
      {
        D3DSURFACE_DESC desc;
 
-       CComPtr <IDirect3DTexture9> pTex = nullptr;
+       SK_ComPtr <IDirect3DTexture9> pTex = nullptr;
 
        if (SUCCEEDED (render_textures [line]->QueryInterface (IID_PPV_ARGS (&pTex.p))))
        {
@@ -7085,7 +7039,7 @@ SK_D3D9_TextureModDlg (void)
 
              if (sel_changed)
              {
-               ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+               ImGui::SetScrollHereY (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
                ImGui::SetKeyboardFocusHere ( );
 
                sel_changed = false;
@@ -7116,7 +7070,7 @@ SK_D3D9_TextureModDlg (void)
    ImGui::PopStyleColor ();
    ImGui::PopStyleVar   ();
 
-   CComPtr <IDirect3DTexture9> pTex = nullptr;
+   SK_ComPtr <IDirect3DTexture9> pTex = nullptr;
 
    if ((! render_textures.empty ()) && sel >= 0)
      render_textures [sel]->QueryInterface (IID_PPV_ARGS (&pTex.p));
@@ -7160,7 +7114,7 @@ SK_D3D9_TextureModDlg (void)
 
         ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
         ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_ZZZ"), ImVec2 (effective_width + 8.0f, effective_height + 8.0f),
-                                  ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNavInputs |
+                                  ImGuiWindowFlags_NoInputs    | ImGuiWindowFlags_NoNavInputs |
                                   ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize );
         ImGui::Image           ( pTex,
                                    ImVec2 (effective_width, effective_height),
@@ -7758,7 +7712,7 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
   /////
   /////  if ( GetFileAttributes (wszDumpName) == INVALID_FILE_ATTRIBUTES )
   /////  {
-  /////    CComPtr <ID3DXBuffer> pDisasm = nullptr;
+  /////    SK_ComPtr <ID3DXBuffer> pDisasm = nullptr;
   /////
   /////    HRESULT hr =
   /////      D3DXDisassembleShader ((DWORD *)pbFunc, TRUE, "", &pDisasm);
@@ -7779,7 +7733,7 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
   /////  }
   /////}
 
-  CComPtr <ID3DXBuffer> pDisasm = nullptr;
+  SK_ComPtr <ID3DXBuffer> pDisasm = nullptr;
 
   HRESULT hr =
     D3DXDisassembleShader ((DWORD *)pbFunc, FALSE, "", &pDisasm);
@@ -8039,7 +7993,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   if (SK_GetCurrentRenderBackend ().device == nullptr)
     return false;
 
-  CComPtr <IDirect3DDevice9> pDevice = nullptr;
+  SK_ComPtr <IDirect3DDevice9> pDevice = nullptr;
 
   if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface <IDirect3DDevice9> (&pDevice.p)))
     return false;
@@ -8290,7 +8244,7 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
                        )
            )
         {
-          CComPtr <ID3DXConstantTable> pConstantTable = nullptr;
+          SK_ComPtr <ID3DXConstantTable> pConstantTable = nullptr;
 
           if (SUCCEEDED (D3DXGetShaderConstantTable ((DWORD *)pbFunc, &pConstantTable)))
           {

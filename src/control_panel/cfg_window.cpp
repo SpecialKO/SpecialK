@@ -19,16 +19,11 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <imgui/imgui.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/window.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-
-#include <SpecialK/window.h>
 
 bool
 SK::ControlPanel::Window::Draw (void)
@@ -59,7 +54,7 @@ SK::ControlPanel::Window::Draw (void)
           SK_DeferCommand ("Window.Borderless toggle");
       }
 
-      if (ImGui::IsItemHovered ()) 
+      if (ImGui::IsItemHovered ())
       {
         if (! config.window.fullscreen)
         {
@@ -188,25 +183,35 @@ SK::ControlPanel::Window::Draw (void)
           bool right_align  = config.window.offset.x.absolute < 0;
           bool bottom_align = config.window.offset.y.absolute < 0;
 
-          int  extent_x     = (mi.rcMonitor.right  - mi.rcMonitor.left) / 2 + 1;
-          int  extent_y     = (mi.rcMonitor.bottom - mi.rcMonitor.top)  / 2 + 1;
+          float extent_x    = gsl::narrow_cast <float> (mi.rcMonitor.right  - mi.rcMonitor.left) / 2.0f + 1.0f;
+          float extent_y    = gsl::narrow_cast <float> (mi.rcMonitor.bottom - mi.rcMonitor.top)  / 2.0f + 1.0f;
 
           if (config.window.center) {
-            extent_x /= 2;
-            extent_y /= 2;
+            extent_x /= 2.0f;
+            extent_y /= 2.0;
           }
 
           // Do NOT Apply Immediately or the Window Will Oscillate While
           //   Adjusting the Slider
           static bool queue_move = false;
 
-          moved  = ImGui::SliderInt ("X Offset##WindowPix",       &x_pos, 0, extent_x, "%.0f pixels"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox  ("Right-aligned##WindowPix",  &right_align);
-          moved |= ImGui::SliderInt ("Y Offset##WindowPix",       &y_pos, 0, extent_y, "%.0f pixels"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox  ("Bottom-aligned##WindowPix", &bottom_align);
+          float fx_pos =
+            gsl::narrow_cast <float> (x_pos),
+                fy_pos =
+            gsl::narrow_cast <float> (y_pos);
+
+          moved  = ImGui::SliderFloat ("X Offset##WindowPix",       &fx_pos, 0, extent_x, "%.0f pixels"); ImGui::SameLine ();
+          moved |= ImGui::Checkbox    ("Right-aligned##WindowPix",  &right_align);
+          moved |= ImGui::SliderFloat ("Y Offset##WindowPix",       &fy_pos, 0, extent_y, "%.0f pixels"); ImGui::SameLine ();
+          moved |= ImGui::Checkbox    ("Bottom-aligned##WindowPix", &bottom_align);
 
           if (moved)
+          {
+            x_pos = gsl::narrow_cast <int> (fx_pos);
+            y_pos = gsl::narrow_cast <int> (fy_pos);
+
             queue_move = true;
+          }
 
           // We need to set pixel offset to 1 to do what the user expects
           //   these values to do... 0 = NO OFFSET, but the slider may move
@@ -369,7 +374,7 @@ SK::ControlPanel::Window::Draw (void)
 
       if ( ImGui::Checkbox ( "Mute Game ", &background_mute ) )
         SK_DeferCommand    ("Window.BackgroundMute toggle");
-      
+
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Mute the Game when Another Window has Input Focus");
 
@@ -396,7 +401,7 @@ SK::ControlPanel::Window::Draw (void)
 
       ImGui::Text     ("Cursor Boundaries");
       ImGui::TreePush ("");
-      
+
       int  ovr     = 0;
       bool changed = false;
 

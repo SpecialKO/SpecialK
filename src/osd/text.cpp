@@ -19,25 +19,11 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define OSD_IMP
 #include <SpecialK/osd/text.h>
 
-#include <SpecialK/log.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/command.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/framerate.h>
-
-#include <SpecialK/performance/io_monitor.h>
-#include <SpecialK/performance/gpu_monitor.h>
-#include <SpecialK/performance/memory_monitor.h>
-
-#include <SpecialK/diagnostics/modules.h>
-
-#include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
@@ -46,25 +32,20 @@
 #include <CEGUI/Rect.h>
 #include <CEGUI/Renderer.h>
 
-#include <map>
+#include <GL/glew.h>
 
-#pragma comment (lib, "Shlwapi.lib")
-#include <Shlwapi.h>
-#include <atlbase.h>
-#include <cfloat>
-#include <io.h>
-#include <tchar.h>
-
+#include <SpecialK/nvapi.h>
+#include <SpecialK/adl.h>
 
 SK_TextOverlayManager*
 SK_TextOverlayManager::getInstance (void)
 {
   return
-    ( pSelf == nullptr ? (pSelf = new SK_TextOverlayManager ()) :
-                          pSelf );
+    ( pSelf == nullptr ? ( (pSelf = std::make_unique <SK_TextOverlayManager> ()).get () ) :
+                                                                           pSelf.get () );
 }
 
-SK_TextOverlayManager* SK_TextOverlayManager::pSelf = nullptr;
+std::unique_ptr <SK_TextOverlayManager> SK_TextOverlayManager::pSelf = nullptr;
 CRITICAL_SECTION       SK_TextOverlayManager::cs_   = {     };
 
 SK_TextOverlayManager::SK_TextOverlayManager (void)
@@ -78,55 +59,58 @@ SK_TextOverlayManager::SK_TextOverlayManager (void)
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();
 
-  cmd->AddVariable ("OSD.Red",   SK_CreateVar (SK_IVariable::Int, &config.osd.red));
-  cmd->AddVariable ("OSD.Green", SK_CreateVar (SK_IVariable::Int, &config.osd.green));
-  cmd->AddVariable ("OSD.Blue",  SK_CreateVar (SK_IVariable::Int, &config.osd.blue));
+  if (cmd != nullptr)
+  {
+    cmd->AddVariable ("OSD.Red",   SK_CreateVar (SK_IVariable::Int, &config.osd.red));
+    cmd->AddVariable ("OSD.Green", SK_CreateVar (SK_IVariable::Int, &config.osd.green));
+    cmd->AddVariable ("OSD.Blue",  SK_CreateVar (SK_IVariable::Int, &config.osd.blue));
 
-  pos_.x = SK_CreateVar (SK_IVariable::Int,   &config.osd.pos_x, this);
-  pos_.y = SK_CreateVar (SK_IVariable::Int,   &config.osd.pos_y, this);
-  scale_ = SK_CreateVar (SK_IVariable::Float, &config.osd.scale, this);
+    pos_.x = SK_CreateVar (SK_IVariable::Int,   &config.osd.pos_x, this);
+    pos_.y = SK_CreateVar (SK_IVariable::Int,   &config.osd.pos_y, this);
+    scale_ = SK_CreateVar (SK_IVariable::Float, &config.osd.scale, this);
 
-  cmd->AddVariable ("OSD.PosX",  pos_.x);
-  cmd->AddVariable ("OSD.PosY",  pos_.y);
-  cmd->AddVariable ("OSD.Scale", scale_);
+    cmd->AddVariable ("OSD.PosX",  pos_.x);
+    cmd->AddVariable ("OSD.PosY",  pos_.y);
+    cmd->AddVariable ("OSD.Scale", scale_);
 
-  osd_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.osd.show);
-  fps_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.fps.show);
-  gpu_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.gpu.show);
-  cpu_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.cpu.show);
-  mem_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.mem.show);
-  disk_.show     = SK_CreateVar (SK_IVariable::Boolean, &config.disk.show);
-  io_.show       = SK_CreateVar (SK_IVariable::Boolean, &config.io.show);
-  pagefile_.show = SK_CreateVar (SK_IVariable::Boolean, &config.pagefile.show);
-  sli_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.sli.show);
+    osd_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.osd.show);
+    fps_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.fps.show);
+    gpu_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.gpu.show);
+    cpu_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.cpu.show);
+    mem_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.mem.show);
+    disk_.show     = SK_CreateVar (SK_IVariable::Boolean, &config.disk.show);
+    io_.show       = SK_CreateVar (SK_IVariable::Boolean, &config.io.show);
+    pagefile_.show = SK_CreateVar (SK_IVariable::Boolean, &config.pagefile.show);
+    sli_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.sli.show);
 
-  cmd->AddVariable ("OSD.Show",                osd_.show);
+    cmd->AddVariable ("OSD.Show",                osd_.show);
 
-  cmd->AddVariable ("OSD.FPS.Show",            fps_.show);
-  cmd->AddVariable ("OSD.Shaders.Show",        SK_CreateVar (SK_IVariable::Boolean, &config.render.show));
+    cmd->AddVariable ("OSD.FPS.Show",            fps_.show);
+    cmd->AddVariable ("OSD.Shaders.Show",        SK_CreateVar (SK_IVariable::Boolean, &config.render.show));
 
-  cmd->AddVariable ("OSD.Memory.Show",         mem_.show);
-  cmd->AddVariable ("OSD.Memory.UpdateFreq",   SK_CreateVar (SK_IVariable::Float,   &config.mem.interval));
+    cmd->AddVariable ("OSD.Memory.Show",         mem_.show);
+    cmd->AddVariable ("OSD.Memory.UpdateFreq",   SK_CreateVar (SK_IVariable::Float,   &config.mem.interval));
 
-  cmd->AddVariable ("OSD.SLI.Show",            sli_.show);
+    cmd->AddVariable ("OSD.SLI.Show",            sli_.show);
 
-  cmd->AddVariable ("OSD.CPU.Show",            cpu_.show);
-  cmd->AddVariable ("OSD.CPU.Simple",          SK_CreateVar (SK_IVariable::Boolean, &config.cpu.simple));
-  cmd->AddVariable ("OSD.CPU.UpdateFreq",      SK_CreateVar (SK_IVariable::Float,   &config.cpu.interval));
+    cmd->AddVariable ("OSD.CPU.Show",            cpu_.show);
+    cmd->AddVariable ("OSD.CPU.Simple",          SK_CreateVar (SK_IVariable::Boolean, &config.cpu.simple));
+    cmd->AddVariable ("OSD.CPU.UpdateFreq",      SK_CreateVar (SK_IVariable::Float,   &config.cpu.interval));
 
-  cmd->AddVariable ("OSD.GPU.Show",            gpu_.show);
-  cmd->AddVariable ("OSD.GPU.PrintSlowdown",   SK_CreateVar (SK_IVariable::Boolean, &config.gpu.print_slowdown));
-  cmd->AddVariable ("OSD.GPU.UpdateFreq",      SK_CreateVar (SK_IVariable::Float,   &config.gpu.interval));
+    cmd->AddVariable ("OSD.GPU.Show",            gpu_.show);
+    cmd->AddVariable ("OSD.GPU.PrintSlowdown",   SK_CreateVar (SK_IVariable::Boolean, &config.gpu.print_slowdown));
+    cmd->AddVariable ("OSD.GPU.UpdateFreq",      SK_CreateVar (SK_IVariable::Float,   &config.gpu.interval));
 
-  cmd->AddVariable ("OSD.Disk.Show",           disk_.show);
-  cmd->AddVariable ("OSD.Disk.Type",           SK_CreateVar (SK_IVariable::Int,     &config.disk.type));
-  cmd->AddVariable ("OSD.Disk.UpdateFreq",     SK_CreateVar (SK_IVariable::Float,   &config.disk.interval));
+    cmd->AddVariable ("OSD.Disk.Show",           disk_.show);
+    cmd->AddVariable ("OSD.Disk.Type",           SK_CreateVar (SK_IVariable::Int,     &config.disk.type));
+    cmd->AddVariable ("OSD.Disk.UpdateFreq",     SK_CreateVar (SK_IVariable::Float,   &config.disk.interval));
 
-  cmd->AddVariable ("OSD.Pagefile.Show",       pagefile_.show);
-  cmd->AddVariable ("OSD.Pagefile.UpdateFreq", SK_CreateVar (SK_IVariable::Float,   &config.pagefile.interval));
+    cmd->AddVariable ("OSD.Pagefile.Show",       pagefile_.show);
+    cmd->AddVariable ("OSD.Pagefile.UpdateFreq", SK_CreateVar (SK_IVariable::Float,   &config.pagefile.interval));
 
-  cmd->AddVariable ("OSD.IOPS.Show",           io_.show);
-  cmd->AddVariable ("OSD.IOPS.UpdateFreq",     SK_CreateVar (SK_IVariable::Float,   &config.io.interval));
+    cmd->AddVariable ("OSD.IOPS.Show",           io_.show);
+    cmd->AddVariable ("OSD.IOPS.UpdateFreq",     SK_CreateVar (SK_IVariable::Float,   &config.io.interval));
+  }
 }
 
 
@@ -152,7 +136,7 @@ SK_TextOverlayManager::createTextOverlay (const char *szAppName)
     new SK_TextOverlay (szAppName);
 
   overlay->setPos   ( static_cast <float> (config.osd.pos_x),
-                        static_cast <float> (config.osd.pos_y) );
+                      static_cast <float> (config.osd.pos_y) );
   overlay->setScale ( config.osd.scale );
 
 
@@ -266,7 +250,6 @@ SK_TextOverlay::~SK_TextOverlay (void)
 
 char szOSD [32768] = { };
 
-#include <SpecialK/nvapi.h>
 extern NV_GET_CURRENT_SLI_STATE sli_state;
 extern BOOL nvapi_init;
 
@@ -477,13 +460,13 @@ SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
   return szOut;
 }
 
-std::string external_osd_name;
+SK_LazyGlobal <std::string> external_osd_name;
 
 BOOL
 __stdcall
 SK_DrawExternalOSD (std::string app_name, std::string text)
 {
-  external_osd_name = app_name;
+  external_osd_name.get () = app_name;
 
   SK_UpdateOSD (text.c_str (), nullptr, app_name.c_str ());
 
@@ -494,15 +477,13 @@ BOOL
 __stdcall
 SKX_DrawExternalOSD (const char* szAppName, const char* szText)
 {
-  external_osd_name = szAppName;
+  external_osd_name.get () = szAppName;
 
   SK_UpdateOSD (szText, nullptr, szAppName);
 
   return TRUE;
 }
 
-
-#include <SpecialK/plugin/plugin_mgr.h>
 
 // This is a terrible design, but I don't care.
 extern void
@@ -531,10 +512,6 @@ SK_InstallOSD (void)
 
 extern SK::Framerate::Stats* frame_history;
 extern SK::Framerate::Stats* frame_history2;
-
-#include <SpecialK/command.h>
-
-#include <SpecialK/diagnostics/debug_utils.h>
 
 BOOL
 __stdcall
@@ -568,8 +545,8 @@ SK_DrawOSD (void)
   static io_perf_t
     io_counter;
 
-  buffer_t buffer = mem_info [0].buffer;
-  int      nodes  = mem_info [buffer].nodes;
+  buffer_t buffer = dxgi_mem_info [     0].buffer;
+  int      nodes  = dxgi_mem_info [buffer].nodes;
 
   if (config.time.show)
   {
@@ -585,7 +562,7 @@ SK_DrawOSD (void)
                             time,
                               127 );
 
-    static HMODULE hModGame = SK_Modules.HostApp ();
+    static HMODULE hModGame = SK_Modules->HostApp ();
     static wchar_t wszGameName [MAX_PATH + 1] = { };
 
     if (wszGameName [0] == L'\0')
@@ -649,13 +626,13 @@ SK_DrawOSD (void)
 
   if (config.fps.show)
   {
-    long double mean    = frame_history->calcMean     ();
-    long double sd      = frame_history->calcSqStdDev (mean);
-    long double min     = frame_history->calcMin      ();
-    long double max     = frame_history->calcMax      ();
-    int         hitches = frame_history->calcHitches  (1.2L, mean);
+    const long double mean    = frame_history->calcMean     ();
+    const long double sd      = frame_history->calcSqStdDev (mean);
+    const long double min     = frame_history->calcMin      ();
+    const long double max     = frame_history->calcMax      ();
+    const int         hitches = frame_history->calcHitches  (1.2L, mean);
 
-    long double effective_mean = frame_history2->calcMean  ();
+    const long double effective_mean = frame_history2->calcMean  ();
 
     static double fps           = 0.0L;
     static DWORD  last_fps_time = timeGetTime ();
@@ -664,12 +641,12 @@ SK_DrawOSD (void)
 
     if (dwTime - last_fps_time > 666)
     {
-      fps           = (double)(1000.0L / mean);
+      fps           = gsl::narrow_cast <double>(1000.0L / mean);
       last_fps_time = dwTime;
     }
 
 
-    bool gsync =
+    const bool gsync =
      ( sk::NVAPI::nv_hardware     && config.apis.NvAPI.gsync_status &&
        SK_GetCurrentRenderBackend ().gsync_state.capable            &&
        SK_GetCurrentRenderBackend ().gsync_state.active                );
@@ -679,7 +656,7 @@ SK_DrawOSD (void)
     {
       const char* format = "";
 
-      bool has_cpu_frametime =
+      const bool has_cpu_frametime =
         SK::Framerate::GetLimiter ()->get_limit () > 0.0 &&
                                    (! isTalesOfZestiria) &&
                  frame_history2->calcNumSamples () >   0;
@@ -902,7 +879,7 @@ SK_DrawOSD (void)
       {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
           i,
-                                   mem_info [buffer].local    [i].CurrentUsage            >>   20ULL,
+                              dxgi_mem_info [buffer].local    [i].CurrentUsage            >>   20ULL,
                                                gpu_stats.gpus [i].loads_percent.fb,
 static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
                        static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
@@ -914,7 +891,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       else
       {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
-          i, mem_info [buffer].local [i].CurrentUsage >> 20ULL
+          i, dxgi_mem_info [buffer].local [i].CurrentUsage >> 20ULL
         OSD_END
       }
 
@@ -951,7 +928,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
           i,
-           mem_info [buffer].nonlocal [i].CurrentUsage               >>  20ULL,
+      dxgi_mem_info [buffer].nonlocal [i].CurrentUsage               >>  20ULL,
                        gpu_stats.gpus [i].loads_percent.bus,
                        gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
  static_cast <double> (gpu_stats.gpus [i].loads_percent.bus)          /  100.0,
@@ -965,7 +942,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
           i,
-          mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
+     dxgi_mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
           pcie_gen,
           gpu_stats.gpus [i].hwinfo.pcie_lanes
         OSD_END
@@ -975,7 +952,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB      \n",
           i,
-          mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL
+     dxgi_mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL
         OSD_END
       }
     }
@@ -995,7 +972,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
           i,
-          mem_info [buffer].local    [i].CurrentUsage >> 20ULL,
+     dxgi_mem_info [buffer].local    [i].CurrentUsage >> 20ULL,
                       gpu_stats.gpus [i].loads_percent.fb,
 static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
                        static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
@@ -1100,8 +1077,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     }
   }
 
-  static auto& cpu_stats =
-    __SK_WMI_CPUStats ();
+  static auto& cpu_stats = *SK_WMI_CPUStats;
 
   if (cpu_stats.booting)
   {
@@ -1110,8 +1086,8 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
   else
   {
-    auto& cpus     = cpu_stats.cpus;
-    auto& num_cpus = cpu_stats.num_cpus;
+    const auto& cpus     = cpu_stats.cpus;
+    const auto& num_cpus = cpu_stats.num_cpus;
 
     OSD_C_PRINTF "\n  Total  : %#3li%%  -  (Kernel: %#3li%%   "
                    "User: %#3li%%   Interrupt: %#3li%%)\n",
@@ -1174,10 +1150,10 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
                    " Budget:  %#5llu / %#5llu MiB)",
                   nodes > 1 ? (nvapi_init ? "SLI Node" : "CFX Node") : "GPU",
                   i,
-                  mem_info [buffer].local [i].CurrentReservation      >> 20ULL,
-                  mem_info [buffer].local [i].AvailableForReservation >> 20ULL,
-                  mem_info [buffer].local [i].CurrentUsage            >> 20ULL,
-                  mem_info [buffer].local [i].Budget                  >> 20ULL
+             dxgi_mem_info [buffer].local [i].CurrentReservation      >> 20ULL,
+             dxgi_mem_info [buffer].local [i].AvailableForReservation >> 20ULL,
+             dxgi_mem_info [buffer].local [i].CurrentUsage            >> 20ULL,
+             dxgi_mem_info [buffer].local [i].Budget                  >> 20ULL
       OSD_END
 
       //
@@ -1205,16 +1181,16 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
     while (i < nodes)
     {
-      if ((mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL) > 0)
+      if ((dxgi_mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL) > 0)
       {
         OSD_M_PRINTF "  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  "
                      "Budget:  %#5llu / %#5llu MiB)\n",
                          nodes > 1 ? "SLI Node" : "GPU",
                          i,
-                mem_info [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
-                mem_info [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
-                mem_info [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
-                mem_info [buffer].nonlocal [i].Budget                  >> 20ULL
+           dxgi_mem_info [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
+           dxgi_mem_info [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
+           dxgi_mem_info [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
+           dxgi_mem_info [buffer].nonlocal [i].Budget                  >> 20ULL
         OSD_END
       }
 
@@ -1225,24 +1201,23 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
                  "--------------------------------------\n"
     OSD_END
 
-    int64_t headroom = mem_info [buffer].local [0].Budget -
-                       mem_info [buffer].local [0].CurrentUsage;
+    int64_t headroom = dxgi_mem_info [buffer].local [0].Budget -
+                       dxgi_mem_info [buffer].local [0].CurrentUsage;
 
     OSD_M_PRINTF "  Max. Resident Set:  %#5llu MiB  -"
                  "  Max. Over Budget:  %#5llu MiB\n"
                  "     Budget Changes:  %#5llu      - "
                   "      Budget Left:  %#5lli MiB\n",
-                                    mem_stats [0].max_usage       >> 20ULL,
-                                    mem_stats [0].max_over_budget >> 20ULL,
-                                    mem_stats [0].budget_changes,
+                               dxgi_mem_stats [0].max_usage       >> 20ULL,
+                               dxgi_mem_stats [0].max_over_budget >> 20ULL,
+                               dxgi_mem_stats [0].budget_changes,
                                     headroom / 1024 / 1024
     OSD_END
   }
 
   OSD_M_PRINTF "\n" OSD_END
 
-  static auto& process_stats =
-    __SK_WMI_ProcessStats ();
+  static auto& process_stats = *SK_WMI_ProcessStats;
 
   if (process_stats.booting)
   {
@@ -1296,8 +1271,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
   extern int gpu_prio;
 
-  static auto& disk_stats =
-    __SK_WMI_DiskStats ();
+  static auto& disk_stats = *SK_WMI_DiskStats;
 
   if (disk_stats.booting)
   {
@@ -1368,8 +1342,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
   }
 #endif
 
-  static auto& pagefile_stats =
-    __SK_WMI_PagefileStats ();
+  static auto& pagefile_stats = *SK_WMI_PagefileStats;
 
   if (pagefile_stats.booting)
   {
@@ -1404,16 +1377,19 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  bool inj_thr = pTLS->texture_management.injection_thread;
-  pTLS->texture_management.injection_thread = true;
+  const bool inj_thr =
+    pTLS->texture_management.injection_thread;
+    pTLS->texture_management.injection_thread = true;
 
-  BOOL ret = SK_UpdateOSD (szOSD);
+  const BOOL bRet =
+    SK_UpdateOSD (szOSD);
 
   pTLS->texture_management.injection_thread = inj_thr;
 
   //game_debug.Log (L"%hs", szOSD);
 
-  return ret;
+  return
+    bRet;
 }
 
 BOOL
@@ -1477,8 +1453,8 @@ SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
 
   if (overlay != nullptr)
   {
-    auto fX = static_cast <float> (x);
-    auto fY = static_cast <float> (y);
+    const auto fX = static_cast <float> (x);
+    const auto fY = static_cast <float> (y);
 
     overlay->setPos (fX, fY);
   }
@@ -1514,25 +1490,36 @@ SK_SetOSDScale ( float  fScale,
   SK_TextOverlayManager* overlay_mgr =
     SK_TextOverlayManager::getInstance ();
 
-  SK_TextOverlay* overlay =
-    overlay_mgr->getTextOverlay (lpAppName);
-
-  if (overlay != nullptr)
+  if (overlay_mgr != nullptr)
   {
-    if (relative)
-      overlay->resize (fScale);
-    else
-      overlay->setScale (fScale);
+    SK_TextOverlay* overlay =
+      overlay_mgr->getTextOverlay (lpAppName);
 
-    // TEMP HACK
-    // ---------
-    //
-    // If the primary overlay is rescaled, rescale everything else with it...
-    if (overlay == overlay_mgr->getTextOverlay ("Special K"))
-      SK_GetCommandProcessor ()->ProcessCommandFormatted (
-        "OSD.Scale %f",
-          overlay->getScale ()
-      );
+    if (overlay != nullptr)
+    {
+      if (relative)
+        overlay->resize (fScale);
+      else
+        overlay->setScale (fScale);
+
+      // TEMP HACK
+      // ---------
+      //
+      // If the primary overlay is rescaled, rescale everything else with it...
+      if (overlay == overlay_mgr->getTextOverlay ("Special K"))
+      {
+        static auto* cp =
+          SK_GetCommandProcessor ();
+
+        if (cp != nullptr)
+        {
+          cp->ProcessCommandFormatted (
+            "OSD.Scale %f",
+              overlay->getScale ()
+          );
+        }
+      }
+    }
   }
 }
 
@@ -1557,11 +1544,6 @@ void
 SK_CEGUI_GL_PopVertexState (void);
 
 
-
-#include <cstdio>
-#include <windows.h>
-#include <eh.h>
-
 void trans_func (unsigned int, EXCEPTION_POINTERS*);
 void
 SE_Func         (CEGUI::Renderer*& pRenderer, SK_TextOverlay& overlay, const CEGUI::Rectf& scrn);
@@ -1583,7 +1565,6 @@ private:
   unsigned int nSE;
 };
 
-#include <GL/glew.h>
 void
 SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
 {
@@ -1695,7 +1676,7 @@ strtok_ex (char* str, char* seps)
 }
 
 auto SK_CountLines =
-[](const char* line)
+[](const char* line) noexcept
 {
   int num_lines;
 
@@ -1709,7 +1690,7 @@ auto SK_CountLines =
 
 void
 __stdcall
-SK_OSD_GetDefaultColor (float& r, float& g, float& b)
+SK_OSD_GetDefaultColor (float& r, float& g, float& b) noexcept
 {
   r = (238.0f / 255.0f);
   g = (250.0f / 255.0f);
@@ -1719,7 +1700,9 @@ SK_OSD_GetDefaultColor (float& r, float& g, float& b)
 float
 SK_TextOverlay::update (const char* szText)
 {
-  size_t len = szText != nullptr ? strlen (szText) : 0;
+  const size_t len =
+    ( szText != nullptr ? strlen (szText) :
+                                     0   );
 
   if (szText != nullptr) {
     *data_.text = '\0';
@@ -1737,8 +1720,8 @@ SK_TextOverlay::update (const char* szText)
       return data_.extent;
     }
 
-    float baseline = 0.0f;
-    float spacing  = font_.cegui->getLineSpacing () * font_.scale;
+          float baseline = 0.0f;
+    const float spacing  = font_.cegui->getLineSpacing () * font_.scale;
 
     float red   = static_cast <float> (config.osd.red)   / 255.0f;
     float green = static_cast <float> (config.osd.green) / 255.0f;
@@ -1848,7 +1831,7 @@ SK_TextOverlay::update (const char* szText)
       // Fast-path: Skip blank lines
       if (*line != '\0')
       {
-        size_t line_len =
+        const size_t line_len =
           strlen (line);
 
         if (cegui_line.capacity () < line_len)
@@ -1929,7 +1912,7 @@ SK_TextOverlay::draw (float x, float y, bool full)
 }
 
 void
-SK_TextOverlay::setScale (float scale)
+SK_TextOverlay::setScale (float scale) noexcept
 {
   if (scale >= 0.1f)
     font_.scale = scale;
@@ -1938,19 +1921,19 @@ SK_TextOverlay::setScale (float scale)
 }
 
 float
-SK_TextOverlay::getScale (void)
+SK_TextOverlay::getScale (void) noexcept
 {
   return font_.scale;
 }
 
 void
-SK_TextOverlay::resize (float incr)
+SK_TextOverlay::resize (float incr) noexcept
 {
   setScale (getScale () + incr);
 }
 
 void
-SK_TextOverlay::move (float  x_off, float  y_off)
+SK_TextOverlay::move (float  x_off, float  y_off) noexcept
 {
   float x,y;
 
@@ -1959,7 +1942,7 @@ SK_TextOverlay::move (float  x_off, float  y_off)
 }
 
 void
-SK_TextOverlay::setPos (float x,float y)
+SK_TextOverlay::setPos (float x,float y) noexcept
 {
   // We cannot anchor the command console to the left or bottom...
   if (! strcmp (data_.name, "SpecialK Console"))
@@ -1973,7 +1956,7 @@ SK_TextOverlay::setPos (float x,float y)
 }
 
 void
-SK_TextOverlay::getPos (float& x, float& y)
+SK_TextOverlay::getPos (float& x, float& y) noexcept
 {
   x = pos_.x;
   y = pos_.y;
@@ -2067,7 +2050,7 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 {
   SK_AutoCriticalSection auto_crit (&cs_);
 
-  float base_y = y;
+  const float base_y = y;
 
   // Draw top-down
   if (config.osd.pos_y >= 0)
@@ -2169,8 +2152,8 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
       auto  it =  overlays_.begin ();
     while ( it != overlays_.end   () )
     {
-      auto pos_x = static_cast <float> (config.osd.pos_x);
-      auto pos_y = static_cast <float> (config.osd.pos_y);
+      const auto pos_x = static_cast <float> (config.osd.pos_x);
+      const auto pos_y = static_cast <float> (config.osd.pos_y);
 
       if (var == pos_.x || var == pos_.y)
         it->second->setPos (pos_x, pos_y);

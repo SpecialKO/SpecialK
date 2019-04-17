@@ -70,6 +70,7 @@ struct IUnknown;
 #include <concurrent_queue.h>
 #include <atlbase.h>
 
+#include <dxgicommon.h>
 #include <d3d11.h>
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
@@ -273,7 +274,7 @@ SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
                              ID3D11DeviceContext *pMerge );
 
 void
-SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx);
+SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx, UINT dev_idx = UINT_MAX);
 
 
 struct shader_stage_s {
@@ -408,15 +409,6 @@ D3D11Dev_CreateTexture2D_Impl (
                     SK_TLS                  *pTLS = SK_TLS_Bottom () );
 
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
-
-void
-SK_D3D11_SetShader_Impl ( ID3D11DeviceContext*        pDevCtx,
-                          IUnknown*                   pShader,
-                          sk_shader_class             type,
-                          ID3D11ClassInstance *const *ppClassInstances,
-                          UINT                        NumClassInstances,
-                          bool                        Wrapped = false,
-                          UINT                        dev_idx = UINT_MAX );
 
 void
 SK_D3D11_SetShaderResources_Impl (

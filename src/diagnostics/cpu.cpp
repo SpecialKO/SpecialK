@@ -19,14 +19,9 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
-#include <Windows.h>
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/diagnostics/cpu.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/config.h>
-#include <SpecialK/hooks.h>
 
 typedef void (WINAPI *GetSystemInfo_pfn)(LPSYSTEM_INFO);
                       GetSystemInfo_pfn
@@ -39,7 +34,6 @@ typedef BOOL (WINAPI *GetLogicalProcessorInformation_pfn)(PSYSTEM_LOGICAL_PROCES
 const std::vector <uintptr_t>&
 SK_CPU_GetLogicalCorePairs (void);
 
-#include <SpecialK/log.h>
 #define __SK_SUBSYSTEM__ "  CPUMgr  "
 
 BOOL

@@ -19,55 +19,12 @@
 *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
-#include <Windows.h>
-#include <SpecialK/window.h>
+#include "SpecialK/stdafx.h"
 
 #define __SK_SUBSYSTEM__ L"Window Mgr"
 
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-#include <SpecialK/console.h>
-#include <SpecialK/sound.h>
-#include <SpecialK/tls.h>
-
-#include <cstdint>
-#include <gsl/gsl>
-#include <memory>
-
-#include <string>
-#include <algorithm>
-#include <numeric>
-#include <unordered_map>
-#include <unordered_set>
-#include <SpecialK/steam_api.h>
-#include <SpecialK/framerate.h>
-
-#include <SpecialK/log.h>
-#include <SpecialK/config.h>
-#include <SpecialK/command.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/osd/text.h>
-#include <SpecialK/thread.h>
-
-
-#include <imgui/backends/imgui_d3d11.h>
+// For SK_D3D9_TriggerReset .... (should probably be in SK_RenderBackend_v{2|3+})
 #include <SpecialK/render/d3d9/d3d9_backend.h>
-#include <SpecialK/diagnostics/debug_utils.h>
-
-#include <SpecialK/control_panel.h>
-
-#include <mmsystem.h>
-#pragma comment (lib, "winmm.lib")
-
-#include <comdef.h>
-#include <process.h>
-
-#include <windowsx.h>
-
-#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-#include <imgui/imgui.h>
 
 // WS_SYSMENU keeps the window's icon unchanged
 #define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | WS_SYSMENU | \
@@ -170,7 +127,7 @@ BOOL
 SK_Window_IsUnicode (HWND hWnd)
 {
   struct cache_entry_s {
-    cache_entry_s (HWND hWnd)
+    explicit cache_entry_s (HWND hWnd)
     {
       unicode = IsWindowUnicode (hWnd);
       hwnd    = hWnd;
@@ -222,53 +179,53 @@ SK_IsChild (HWND hWndParent, HWND hWnd)
 
 struct sk_window_message_dispatch_s {
 public:
-  bool ProcessMessage (HWND hWnd, UINT uMsg, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet = nullptr)
-  {
-    switch (uMsg)
-    {
-      case WM_WINDOWPOSCHANGING:
-        return On_WINDOWPOSCHANGING (hWnd, wParam, lParam, pRet);
-      case WM_WINDOWPOSCHANGED:
-        return On_WINDOWPOSCHANGED  (hWnd, wParam, lParam, pRet);
-
-      case WM_MOUSEACTIVATE:
-        return On_MOUSEACTIVATE     (hWnd, wParam, lParam, pRet);
-
-      case WM_ACTIVATEAPP:
-        return On_ACTIVATEAPP       (hWnd, wParam, lParam, pRet);
-      case WM_ACTIVATE:
-        return On_ACTIVATE          (hWnd, wParam, lParam, pRet);
-      case WM_NCACTIVATE:
-        return On_NCACTIVATE        (hWnd, wParam, lParam, pRet);
-
-      case WM_MOUSEMOVE:
-        return On_MOUSEMOVE         (hWnd, wParam, lParam, pRet);
-
-      case WM_ENTERSIZEMOVE:
-        return On_ENTERSIZEMOVE     (hWnd, wParam, lParam, pRet);
-      case WM_EXITSIZEMOVE:
-        return On_EXITSIZEMOVE      (hWnd, wParam, lParam, pRet);
-    }
-
-    return false;
-  }
-
+///  bool ProcessMessage (HWND hWnd, UINT uMsg, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet = nullptr)
+///  {
+///    switch (uMsg)
+///    {
+///      case WM_WINDOWPOSCHANGING:
+///        return On_WINDOWPOSCHANGING (hWnd, wParam, lParam, pRet);
+///      case WM_WINDOWPOSCHANGED:
+///        return On_WINDOWPOSCHANGED  (hWnd, wParam, lParam, pRet);
+///
+///      case WM_MOUSEACTIVATE:
+///        return On_MOUSEACTIVATE     (hWnd, wParam, lParam, pRet);
+///
+///      case WM_ACTIVATEAPP:
+///        return On_ACTIVATEAPP       (hWnd, wParam, lParam, pRet);
+///      case WM_ACTIVATE:
+///        return On_ACTIVATE          (hWnd, wParam, lParam, pRet);
+///      case WM_NCACTIVATE:
+///        return On_NCACTIVATE        (hWnd, wParam, lParam, pRet);
+///
+///      case WM_MOUSEMOVE:
+///        return On_MOUSEMOVE         (hWnd, wParam, lParam, pRet);
+///
+///      case WM_ENTERSIZEMOVE:
+///        return On_ENTERSIZEMOVE     (hWnd, wParam, lParam, pRet);
+///      case WM_EXITSIZEMOVE:
+///        return On_EXITSIZEMOVE      (hWnd, wParam, lParam, pRet);
+///    }
+///
+///    return false;
+///  }
+///
   concurrency::concurrent_unordered_map <HWND, bool> active_windows;
   concurrency::concurrent_unordered_map <HWND, bool> moving_windows;
-
-protected:
-  bool On_WINDOWPOSCHANGING (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_WINDOWPOSCHANGED  (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-
-  bool On_MOUSEACTIVATE     (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_ACTIVATEAPP       (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_ACTIVATE          (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_NCACTIVATE        (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-
-  bool On_MOUSEMOVE         (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-
-  bool On_ENTERSIZEMOVE     (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_EXITSIZEMOVE      (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+///
+///protected:
+///  bool On_WINDOWPOSCHANGING (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+///  bool On_WINDOWPOSCHANGED  (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+///
+///  bool On_MOUSEACTIVATE     (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+///  bool On_ACTIVATEAPP       (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+///  bool On_ACTIVATE          (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+///  bool On_NCACTIVATE        (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+///
+///  bool On_MOUSEMOVE         (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+///
+///  bool On_ENTERSIZEMOVE     (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+///  bool On_EXITSIZEMOVE      (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
 };
 
 SK_LazyGlobal <sk_window_message_dispatch_s> wm_dispatch;
@@ -900,7 +857,7 @@ private:
 const int PreventAlwaysOnTop = 0;
 const int        AlwaysOnTop = 1;
 
-auto ActivateWindow =[&](HWND hWnd, bool active = false)
+auto constexpr ActivateWindow =[&](HWND hWnd, bool active = false)
 {
   SK_ASSERT_NOT_THREADSAFE ();
 
@@ -1033,254 +990,257 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
   wm_dispatch->active_windows [hWnd] = active;
 };
 
-bool
-sk_window_message_dispatch_s::On_ENTERSIZEMOVE ( HWND    hWnd,
-                                                 WPARAM  &,
-                                                 LPARAM  &,
-                                                 LRESULT * )
-{
-  ClipCursor (nullptr);
-
-  moving_windows.insert (std::make_pair (hWnd, true));
-
-  return false;
-}
-
-bool
-sk_window_message_dispatch_s::On_EXITSIZEMOVE ( HWND     hWnd,
-                                                WPARAM  &,
-                                                LPARAM  &,
-                                                LRESULT * )
-{
-  if ( moving_windows.count (hWnd) ||
-       moving_windows.count (game_window.hWnd) )
-  {
-    if (moving_windows.count (hWnd) && moving_windows [hWnd])
-        moving_windows [hWnd] = false;
-    else
-      moving_windows [game_window.hWnd] = false;
-
-    SK_AdjustWindow ();
-
-    if (config.window.unconfine_cursor)
-      SK_ClipCursor (nullptr);
-
-    if (config.window.confine_cursor)
-      SK_ClipCursor (&game_window.actual.window);
-  }
-
-  return false;
-}
-
-bool
-sk_window_message_dispatch_s::On_MOUSEMOVE ( HWND,
-                                             WPARAM  &,
-                                             LPARAM  &,
-                                             LRESULT * )
-{
-  if (! game_window.active)
-    SK_GetCursorPos (&game_window.cursor_pos);
-
-  return false;
-}
-
-bool
-sk_window_message_dispatch_s::On_MOUSEACTIVATE ( HWND     hWnd,
-                                                 WPARAM  &wParam,
-                                                 LPARAM  &,
-                                                 LRESULT *pRet )
-{
-  static SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
-
-
-  if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
-  {
-    ActivateWindow (hWnd, true);
-
-    if ((! rb.fullscreen_exclusive) && config.window.background_render)
-    {
-      SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
-                  L"Window Mgr" );
-      if (pRet) *pRet = MA_ACTIVATEANDEAT;
-
-      return true;
-    }
-  }
-
-  else
-  {
-    ActivateWindow (hWnd, false);
-
-    // Game window was deactivated, but the game doesn't need to know this!
-    //   in fact, it needs to be told the opposite.
-    if ((! rb.fullscreen_exclusive) && config.window.background_render)
-    {
-      SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
-                  L"Window Mgr" );
-      if (pRet) *pRet = MA_ACTIVATE;
-
-      return true;
-    }
-
-    rb.fullscreen_exclusive = false;
-  }
-
-  return false;
-}
-
-
-bool
-sk_window_message_dispatch_s::On_NCACTIVATE ( HWND     hWnd,
-                                              WPARAM  &wParam,
-                                              LPARAM  &lParam,
-                                              LRESULT * )
-{
-  SK_ASSERT_NOT_THREADSAFE ();
-
-  if (wParam != FALSE)
-  {
-    if (active_windows [hWnd] == false)
-      SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
-                  L"Window Mgr" );
-
-    ActivateWindow (hWnd, true);
-  }
-
-  else
-  {
-    if (active_windows [hWnd] == true)
-      SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
-                  L"Window Mgr" );
-
-    ActivateWindow (hWnd, false);
-
-    // We must fully consume one of these messages or audio will stop playing
-    //   when the game loses focus, so do not simply pass this through to the
-    //     default window procedure.
-    if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
-                 config.window.background_render
-       )
-    {
-      wParam = TRUE,
-      lParam = (LPARAM)(hWnd);
-    }
-
-    SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
-  }
-
-  return false;
-}
-
-bool
-sk_window_message_dispatch_s::On_ACTIVATEAPP ( HWND     hWnd,
-                                               WPARAM  &wParam,
-                                               LPARAM  &lParam,
-                                               LRESULT * )
-{
-  SK_ASSERT_NOT_THREADSAFE ();
-
-  if (wParam != FALSE)
-  {
-    if (active_windows [hWnd] == false)
-      SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
-                  L"Window Mgr" );
-
-    ActivateWindow (hWnd, true);
-  }
-
-  else
-  {
-    if (active_windows [hWnd] == true)
-      SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
-                  L"Window Mgr" );
-
-    ActivateWindow (hWnd, false);
-
-    // We must fully consume one of these messages or audio will stop playing
-    //   when the game loses focus, so do not simply pass this through to the
-    //     default window procedure.
-    if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
-        config.window.background_render
-        )
-    {
-      wParam = TRUE,
-      lParam = (LPARAM)(hWnd);
-    }
-
-    SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
-  }
-
-  return false;
-}
-
-bool
-sk_window_message_dispatch_s::On_ACTIVATE ( HWND     hWnd,
-                                            WPARAM  &wParam,
-                                            LPARAM  &lParam,
-                                            LRESULT *pRet )
-{
-  const wchar_t* source   = L"UNKKNOWN";
-  bool           activate = false;
-
-  bool last_active =
-    active_windows [hWnd];
-
-  switch (LOWORD (wParam))
-  {
-    case WA_ACTIVE:
-    case WA_CLICKACTIVE:
-    default: // Unknown
-    {
-      activate =
-        ( (HWND)(lParam) !=
-           game_window.hWnd );
-
-      source   = LOWORD (wParam)  ==  1 ?
-        L"(WM_ACTIVATE [ WA_ACTIVE ])"  :
-        L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
-      ActivateWindow (hWnd, activate);
-    } break;
-
-    case WA_INACTIVE:
-    {
-      activate = ( lParam         == 0                ) ||
-                 ( (HWND)(lParam) == game_window.hWnd );
-      source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
-      ActivateWindow (hWnd, activate);
-    } break;
-  }
-
-  switch (last_active)
-  {
-    case true:
-      if (! activate)
-      {
-        SK_LOG2 ( ( L"Application Deactivated %s", source ),
-                    L"Window Mgr" );
-      }
-      break;
-
-    case false:
-      if (activate)
-      {
-        SK_LOG2 ( ( L"Application Activated %s", source ),
-                    L"Window Mgr" );
-      }
-      break;
-  }
-
-  if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
-  {
-    if (pRet) *pRet = 1;
-    return true;
-  }
-
-  if (! activate)
-    SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
-
-  return false;
-}
+//bool
+//sk_window_message_dispatch_s::On_ENTERSIZEMOVE ( HWND    hWnd,
+//                                                 WPARAM  &,
+//                                                 LPARAM  &,
+//                                                 LRESULT * )
+//{
+//  ClipCursor (nullptr);
+//
+//  moving_windows.insert (std::make_pair (hWnd, true));
+//
+//  return false;
+//}
+//
+//bool
+//sk_window_message_dispatch_s::On_EXITSIZEMOVE ( HWND     hWnd,
+//                                                WPARAM  &,
+//                                                LPARAM  &,
+//                                                LRESULT * )
+//{
+//  if ( moving_windows.count (hWnd) ||
+//       moving_windows.count (game_window.hWnd) )
+//  {
+//    if (moving_windows.count (hWnd) && moving_windows [hWnd])
+//        moving_windows [hWnd] = false;
+//    else
+//      moving_windows [game_window.hWnd] = false;
+//
+//    SK_AdjustWindow ();
+//
+//    if (config.window.unconfine_cursor)
+//      SK_ClipCursor (nullptr);
+//
+//    if (config.window.confine_cursor)
+//      SK_ClipCursor (&game_window.actual.window);
+//  }
+//
+//  return false;
+//}
+//
+//bool
+//sk_window_message_dispatch_s::On_MOUSEMOVE ( HWND,
+//                                             WPARAM  &,
+//                                             LPARAM  &,
+//                                             LRESULT * )
+//{
+//  if (! game_window.active)
+//    SK_GetCursorPos (&game_window.cursor_pos);
+//
+//  return false;
+//}
+//
+//bool
+//sk_window_message_dispatch_s::On_MOUSEACTIVATE ( HWND     hWnd,
+//                                                 WPARAM  &wParam,
+//                                                 LPARAM  &,
+//                                                 LRESULT *pRet )
+//{
+//  static SK_RenderBackend& rb =
+//    SK_GetCurrentRenderBackend ();
+//
+//
+//  if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
+//  {
+//    ActivateWindow (hWnd, true);
+//
+//    if ((! rb.fullscreen_exclusive) && config.window.background_render)
+//    {
+//      SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
+//                  L"Window Mgr" );
+//      if (pRet) *pRet = MA_ACTIVATEANDEAT;
+//
+//      return true;
+//    }
+//  }
+//
+//  else
+//  {
+//    ActivateWindow (hWnd, false);
+//
+//    // Game window was deactivated, but the game doesn't need to know this!
+//    //   in fact, it needs to be told the opposite.
+//    if ((! rb.fullscreen_exclusive) && config.window.background_render)
+//    {
+//      SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
+//                  L"Window Mgr" );
+//      if (pRet) *pRet = MA_ACTIVATE;
+//
+//      return true;
+//    }
+//
+//    rb.fullscreen_exclusive = false;
+//  }
+//
+//  return false;
+//}
+//
+//
+//bool
+//sk_window_message_dispatch_s::On_NCACTIVATE ( HWND     hWnd,
+//                                              WPARAM  &wParam,
+//                                              LPARAM  &lParam,
+//                                              LRESULT * )
+//{
+//  SK_ASSERT_NOT_THREADSAFE ();
+//
+//  if (wParam != FALSE)
+//  {
+//    if (active_windows [hWnd] == false)
+//      SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
+//                  L"Window Mgr" );
+//
+//    ActivateWindow (hWnd, true);
+//  }
+//
+//  else
+//  {
+//    if (active_windows [hWnd] == true)
+//      SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+//                  L"Window Mgr" );
+//
+//    ActivateWindow (hWnd, false);
+//
+//    // We must fully consume one of these messages or audio will stop playing
+//    //   when the game loses focus, so do not simply pass this through to the
+//    //     default window procedure.
+//    if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+//                 config.window.background_render
+//       )
+//    {
+//      wParam = TRUE,
+//      lParam = (LPARAM)(hWnd);
+//    }
+//
+//    SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+//  }
+//
+//  return false;
+//}
+//
+//bool
+//sk_window_message_dispatch_s::On_ACTIVATEAPP ( HWND     hWnd,
+//                                               WPARAM  &wParam,
+//                                               LPARAM  &lParam,
+//                                               LRESULT * )
+//{
+//  SK_ASSERT_NOT_THREADSAFE ();
+//
+//  if (wParam != FALSE)
+//  {
+//    if (active_windows [hWnd] == false)
+//      SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
+//                  L"Window Mgr" );
+//
+//    ActivateWindow (hWnd, true);
+//  }
+//
+//  else
+//  {
+//    if (active_windows [hWnd] == true)
+//      SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+//                  L"Window Mgr" );
+//
+//    ActivateWindow (hWnd, false);
+//
+//    // We must fully consume one of these messages or audio will stop playing
+//    //   when the game loses focus, so do not simply pass this through to the
+//    //     default window procedure.
+//    if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+//        config.window.background_render
+//        )
+//    {
+//      wParam = TRUE,
+//      lParam = (LPARAM)(hWnd);
+//    }
+//
+//    SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+//  }
+//
+//  return false;
+//}
+//
+//bool
+//sk_window_message_dispatch_s::On_ACTIVATE ( HWND     hWnd,
+//                                            WPARAM  &wParam,
+//                                            LPARAM  &lParam,
+//                                            LRESULT *pRet )
+//{
+//  const wchar_t* source   = L"UNKKNOWN";
+//  bool           activate = false;
+//
+//  bool last_active =
+//    active_windows [hWnd];
+//
+//  switch (LOWORD (wParam))
+//  {
+//    case WA_ACTIVE:
+//    case WA_CLICKACTIVE:
+//    default: // Unknown
+//    {
+//      activate =
+//        ( (HWND)(lParam) !=
+//           game_window.hWnd );
+//
+//      source   = LOWORD (wParam)  ==  1 ?
+//        L"(WM_ACTIVATE [ WA_ACTIVE ])"  :
+//        L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
+//      ActivateWindow (hWnd, activate);
+//    } break;
+//
+//    case WA_INACTIVE:
+//    {
+//      activate = ( lParam         == 0                ) ||
+//                 ( (HWND)(lParam) == game_window.hWnd );
+//      source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
+//      ActivateWindow (hWnd, activate);
+//    } break;
+//  }
+//
+//  switch (last_active)
+//  {
+//    case true:
+//      if (! activate)
+//      {
+//        SK_LOG2 ( ( L"Application Deactivated %s", source ),
+//                    L"Window Mgr" );
+//      }
+//      break;
+//
+//    case false:
+//      if (activate)
+//      {
+//        if (config.render.framerate.refresh_rate != -1)
+//          SK_GetCurrentRenderBackend ().requestFullscreenMode ();
+//
+//        SK_LOG2 ( ( L"Application Activated %s", source ),
+//                    L"Window Mgr" );
+//      }
+//      break;
+//  }
+//
+//  if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+//  {
+//    if (pRet) *pRet = 1;
+//    return true;
+//  }
+//
+//  if (! activate)
+//    SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+//
+//  return false;
+//}
 
 UINT
 SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
@@ -4024,12 +3984,6 @@ GetForegroundWindow_Detour (void)
 }
 
 
-
-#include <SpecialK/render/backend.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/dxgi/dxgi_interfaces.h>
-
-
 HWND
 WINAPI
 SK_RealizeForegroundWindow (HWND hWndForeground)
@@ -4121,178 +4075,178 @@ LRESULT
 WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-bool
-sk_window_message_dispatch_s::On_WINDOWPOSCHANGING ( HWND     hWnd,
-                                                     WPARAM  &,
-                                                     LPARAM  &lParam,
-                                                     LRESULT *pRet )
-{
-  if (hWnd != game_window.hWnd)
-    return false;
+//bool
+//sk_window_message_dispatch_s::On_WINDOWPOSCHANGING ( HWND     hWnd,
+//                                                     WPARAM  &,
+//                                                     LPARAM  &lParam,
+//                                                     LRESULT *pRet )
+//{
+//  if (hWnd != game_window.hWnd)
+//    return false;
+//
+//  auto wnd_pos =
+//    reinterpret_cast <LPWINDOWPOS> (lParam);
+//
+//  if ( (wnd_pos->flags ^ SWP_NOSIZE) ||
+//       (wnd_pos->flags ^ SWP_NOMOVE) )
+//  {
+//    ImGui_ImplDX11_InvalidateDeviceObjects ();
+//
+//    //GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+//    //GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+//
+//    int width  = wnd_pos->cx;
+//    int height = wnd_pos->cy;
+//
+//    if (wnd_pos->flags & SWP_NOMOVE)
+//    {
+//      //game_window.game.window.left   = wnd_pos->x;
+//      //game_window.game.window.top    = wnd_pos->y;
+//
+//      game_window.game.window.right  = game_window.game.window.left   + width;
+//      game_window.game.window.bottom = game_window.game.window.bottom + height;
+//    }
+//
+//    if (wnd_pos->flags & SWP_NOSIZE)
+//    {
+//      width  = game_window.game.window.right  - game_window.game.window.left;
+//      height = game_window.game.window.bottom - game_window.game.window.top;
+//
+//      game_window.game.window.right  = game_window.game.window.left + width;
+//      game_window.game.window.bottom = game_window.game.window.top  + height;
+//    }
+//  }
+//
+//  //if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
+//  //  SK_AdjustBorder ();
+//
+//  //game_window.game.client = game_window.game.window;
+//
+//  if (((! (wnd_pos->flags & SWP_NOMOVE)) || (! (wnd_pos->flags & SWP_NOSIZE))))
+//  {
+//    // Filter this message
+//    if (config.window.borderless && config.window.fullscreen)
+//    {
+//      HMONITOR hMonitor =
+//        MonitorFromWindow ( hWnd,
+//                           MONITOR_DEFAULTTONEAREST );
+//
+//      MONITORINFO mi = { 0 };
+//      mi.cbSize      = sizeof (mi);
+//
+//      GetMonitorInfo (hMonitor, &mi);
+//
+//      game_window.actual.window = mi.rcMonitor;
+//
+//      (game_window.actual.window.right  -= game_window.actual.window.left);
+//      (game_window.actual.window.bottom -= game_window.actual.window.top);
+//
+//      game_window.actual.client.left   = 0;
+//      game_window.actual.client.right  = game_window.actual.window.right;
+//      game_window.actual.client.top    = 0;
+//      game_window.actual.client.bottom = game_window.actual.window.bottom;
+//
+//      wnd_pos->x  = 0;
+//      wnd_pos->y  = 0;
+//      wnd_pos->cx = game_window.actual.window.right  - game_window.actual.window.left;
+//      wnd_pos->cy = game_window.actual.window.bottom - game_window.actual.window.top;
+//
+//      wnd_pos->flags |= (SWP_NOMOVE | SWP_NOSIZE | SWP_NOSENDCHANGING);
+//
+//      if (pRet) *pRet = 0;
+//
+//      if (wnd_pos->flags & SWP_NOACTIVATE)
+//        return true;
+//    }
+//  }
+//
+//  return false;
+//}
 
-  auto wnd_pos =
-    reinterpret_cast <LPWINDOWPOS> (lParam);
-
-  if ( (wnd_pos->flags ^ SWP_NOSIZE) ||
-       (wnd_pos->flags ^ SWP_NOMOVE) )
-  {
-    ImGui_ImplDX11_InvalidateDeviceObjects ();
-
-    //GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-    //GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
-
-    int width  = wnd_pos->cx;
-    int height = wnd_pos->cy;
-
-    if (wnd_pos->flags & SWP_NOMOVE)
-    {
-      //game_window.game.window.left   = wnd_pos->x;
-      //game_window.game.window.top    = wnd_pos->y;
-
-      game_window.game.window.right  = game_window.game.window.left   + width;
-      game_window.game.window.bottom = game_window.game.window.bottom + height;
-    }
-
-    if (wnd_pos->flags & SWP_NOSIZE)
-    {
-      width  = game_window.game.window.right  - game_window.game.window.left;
-      height = game_window.game.window.bottom - game_window.game.window.top;
-
-      game_window.game.window.right  = game_window.game.window.left + width;
-      game_window.game.window.bottom = game_window.game.window.top  + height;
-    }
-  }
-
-  //if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
-  //  SK_AdjustBorder ();
-
-  //game_window.game.client = game_window.game.window;
-
-  if (((! (wnd_pos->flags & SWP_NOMOVE)) || (! (wnd_pos->flags & SWP_NOSIZE))))
-  {
-    // Filter this message
-    if (config.window.borderless && config.window.fullscreen)
-    {
-      HMONITOR hMonitor =
-        MonitorFromWindow ( hWnd,
-                           MONITOR_DEFAULTTONEAREST );
-
-      MONITORINFO mi = { 0 };
-      mi.cbSize      = sizeof (mi);
-
-      GetMonitorInfo (hMonitor, &mi);
-
-      game_window.actual.window = mi.rcMonitor;
-
-      (game_window.actual.window.right  -= game_window.actual.window.left);
-      (game_window.actual.window.bottom -= game_window.actual.window.top);
-
-      game_window.actual.client.left   = 0;
-      game_window.actual.client.right  = game_window.actual.window.right;
-      game_window.actual.client.top    = 0;
-      game_window.actual.client.bottom = game_window.actual.window.bottom;
-
-      wnd_pos->x  = 0;
-      wnd_pos->y  = 0;
-      wnd_pos->cx = game_window.actual.window.right  - game_window.actual.window.left;
-      wnd_pos->cy = game_window.actual.window.bottom - game_window.actual.window.top;
-
-      wnd_pos->flags |= (SWP_NOMOVE | SWP_NOSIZE | SWP_NOSENDCHANGING);
-
-      if (pRet) *pRet = 0;
-
-      if (wnd_pos->flags & SWP_NOACTIVATE)
-        return true;
-    }
-  }
-
-  return false;
-}
-
-bool
-sk_window_message_dispatch_s::On_WINDOWPOSCHANGED ( HWND     hWnd,
-                                                    WPARAM  &,
-                                                    LPARAM  &lParam,
-                                                    LRESULT *pRet )
-{
-  if (game_window.hWnd != hWnd)
-    return false;
-
-  auto wnd_pos =
-    reinterpret_cast <LPWINDOWPOS> (lParam);
-
-  bool offset = false;
-
-  // Test for user-defined position; if it exists, then we must
-  //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
-  if ( config.window.offset.x.absolute               || config.window.offset.y.absolute ||
-      (config.window.offset.x.percent >  0.000001f   ||
-       config.window.offset.x.percent < -0.000001f ) ||
-      (config.window.offset.y.percent >  0.000001f   ||
-       config.window.offset.y.percent < -0.000001f )
-     )
-  {
-    offset = true;
-  }
-
-  bool temp_override = false;
-
-  // Prevent all of this craziness from resizing the window accidentally
-  if (config.window.res.override.isZero ())
-  {
-    temp_override = true;
-    RECT client        = {  };
-
-    SK_GetClientRect (game_window.hWnd, &client);
-
-    config.window.res.override.x = client.right  - client.left;
-    config.window.res.override.y = client.bottom - client.top;
-  }
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  if (   (    config.window.center && (! ( (config.window.fullscreen &&
-                                            config.window.borderless)  ||
-              rb.fullscreen_exclusive  ) ) )
-      || (    offset                                   &&  (!(wnd_pos->flags & SWP_NOMOVE)) )
-      || (! ( config.window.res.override.isZero () ||
-      (    temp_override                           ))  &&  (!(wnd_pos->flags & SWP_NOSIZE)) )
-      )
-  {
-    wnd_pos->flags |= ( SWP_NOSENDCHANGING );
-    SK_AdjustWindow ();
-  }
-
-  if (temp_override)
-  {
-    config.window.res.override.x = 0;
-    config.window.res.override.y = 0;
-  }
-
-  wnd_pos->x  = game_window.actual.window.left;
-  wnd_pos->y  = game_window.actual.window.top;
-
-  wnd_pos->cx = game_window.actual.window.right  - game_window.actual.window.left;
-  wnd_pos->cy = game_window.actual.window.bottom - game_window.actual.window.top;
-
-  game_window.game.window = game_window.actual.window;
-
-  if (config.window.confine_cursor && (! moving_windows.count (hWnd)))
-    SK_ClipCursor (&game_window.actual.window);
-  else if (config.window.unconfine_cursor)
-    SK_ClipCursor (nullptr);
-
-  // Filter this message
-  if (config.window.borderless && config.window.fullscreen)
-  {
-    if (pRet) *pRet = 1;
-
-    //return true;
-  }
-
-  return false;
-}
+///bool
+///sk_window_message_dispatch_s::On_WINDOWPOSCHANGED ( HWND     hWnd,
+///                                                    WPARAM  &,
+///                                                    LPARAM  &lParam,
+///                                                    LRESULT *pRet )
+///{
+///  if (game_window.hWnd != hWnd)
+///    return false;
+///
+///  auto wnd_pos =
+///    reinterpret_cast <LPWINDOWPOS> (lParam);
+///
+///  bool offset = false;
+///
+///  // Test for user-defined position; if it exists, then we must
+///  //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
+///  if ( config.window.offset.x.absolute               || config.window.offset.y.absolute ||
+///      (config.window.offset.x.percent >  0.000001f   ||
+///       config.window.offset.x.percent < -0.000001f ) ||
+///      (config.window.offset.y.percent >  0.000001f   ||
+///       config.window.offset.y.percent < -0.000001f )
+///     )
+///  {
+///    offset = true;
+///  }
+///
+///  bool temp_override = false;
+///
+///  // Prevent all of this craziness from resizing the window accidentally
+///  if (config.window.res.override.isZero ())
+///  {
+///    temp_override = true;
+///    RECT client        = {  };
+///
+///    SK_GetClientRect (game_window.hWnd, &client);
+///
+///    config.window.res.override.x = client.right  - client.left;
+///    config.window.res.override.y = client.bottom - client.top;
+///  }
+///
+///  static auto& rb =
+///    SK_GetCurrentRenderBackend ();
+///
+///  if (   (    config.window.center && (! ( (config.window.fullscreen &&
+///                                            config.window.borderless)  ||
+///              rb.fullscreen_exclusive  ) ) )
+///      || (    offset                                   &&  (!(wnd_pos->flags & SWP_NOMOVE)) )
+///      || (! ( config.window.res.override.isZero () ||
+///      (    temp_override                           ))  &&  (!(wnd_pos->flags & SWP_NOSIZE)) )
+///      )
+///  {
+///    wnd_pos->flags |= ( SWP_NOSENDCHANGING );
+///    SK_AdjustWindow ();
+///  }
+///
+///  if (temp_override)
+///  {
+///    config.window.res.override.x = 0;
+///    config.window.res.override.y = 0;
+///  }
+///
+///  wnd_pos->x  = game_window.actual.window.left;
+///  wnd_pos->y  = game_window.actual.window.top;
+///
+///  wnd_pos->cx = game_window.actual.window.right  - game_window.actual.window.left;
+///  wnd_pos->cy = game_window.actual.window.bottom - game_window.actual.window.top;
+///
+///  game_window.game.window = game_window.actual.window;
+///
+///  if (config.window.confine_cursor && (! moving_windows.count (hWnd)))
+///    SK_ClipCursor (&game_window.actual.window);
+///  else if (config.window.unconfine_cursor)
+///    SK_ClipCursor (nullptr);
+///
+///  // Filter this message
+///  if (config.window.borderless && config.window.fullscreen)
+///  {
+///    if (pRet) *pRet = 1;
+///
+///    //return true;
+///  }
+///
+///  return false;
+///}
 
 __declspec (noinline)
 LRESULT
@@ -4477,13 +4431,24 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     rb.windows.setFocus (hWnd);
 
-    DWORD dwFocus, dwForeground;
+    DWORD dwFocus,
+          dwForeground;
 
-    GetWindowThreadProcessId (   GetFocus            (), &dwFocus);
-    GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwForeground);
+    HWND  hWndFocus      =    GetFocus            (),
+          hWndForeground = SK_GetForegroundWindow ();
 
-    game_window.active       = ( dwFocus      == GetCurrentProcessId () ||
-                                 dwForeground == GetCurrentProcessId () );
+    if (! ( game_window.hWnd == hWndFocus   ||
+            game_window.hWnd == hWndForeground ) )
+    {
+      GetWindowThreadProcessId (hWndFocus,      &dwFocus);
+      GetWindowThreadProcessId (hWndForeground, &dwForeground);
+
+      game_window.active       = ( dwFocus      == GetCurrentProcessId () ||
+                                   dwForeground == GetCurrentProcessId () );
+    }
+    else
+      game_window.active = true;
+
     game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
     game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
     game_window.unicode      =          SK_Window_IsUnicode (game_window.hWnd)   != FALSE;
@@ -6215,8 +6180,6 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
 
   return ret;
 }
-
-#include <SpecialK/tls.h>
 
 BOOL
 SK_Win32_IsGUIThread ( DWORD    dwTid,

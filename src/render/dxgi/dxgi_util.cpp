@@ -19,6 +19,8 @@
 *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"DXGI Util."
 
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>

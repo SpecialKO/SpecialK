@@ -18,43 +18,16 @@
 *   If not, see <http://www.gnu.org/licenses/>.
 *
 **/
-struct IUnknown;
-#include <Unknwnbase.h>
 
-#include<corecrt.h>
+#include <SpecialK/stdafx.h>
+
+#include <corecrt.h>
 
 #ifndef _WIN64
 
 #include <SpecialK/render/d3d8/d3d8_backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/backend.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-#include <SpecialK/import.h>
-
-#include <SpecialK/config.h>
-
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-
-#include <atlbase.h>
-#include <comdef.h>
-
-#include <SpecialK/log.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/command.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/window.h>
-#include <SpecialK/steam_api.h>
-#include <SpecialK/tls.h>
-
-#include <SpecialK/com_util.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/compatibility.h>
-#include <SpecialK/import.h>
 
 volatile LONG      __d3d8_ready  = FALSE;
 

@@ -19,16 +19,7 @@
  *
 **/
 
-struct IUnknown;
-
-#include <SpecialK/log.h>
-#include <SpecialK/TLS.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/diagnostics/file.h>
-
-#include <memory>
+#include <SpecialK/stdafx.h>
 
 BOOL
 SK_File_GetNameFromHandle ( HANDLE   hFile,

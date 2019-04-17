@@ -20,33 +20,13 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include <SpecialK/stdafx.h>
+
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/command.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/input/input.h>
-#include <SpecialK/input/xinput.h>
-
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
 #include <SpecialK/control_panel.h>
-#include <process.h>
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
-
-#include <atlbase.h>
-
-#include <cinttypes>
 
 #define YS8_VERSION_NUM L"0.8.0"
 #define YS8_VERSION_STR L"Ys8 Fixin' Stuff v " YS8_VERSION_NUM
@@ -569,7 +549,7 @@ SK_YS8_ControlPanel (void)
       if (jobs > 0)
       {
         ImGui::PushStyleColor ( ImGuiCol_Text,
-                                  ImColor::HSV ( 0.4f - ( 0.4f * (
+                        (ImVec4&&)ImColor::HSV ( 0.4f - ( 0.4f * (
                                                  SK_D3D11_Resampler_GetActiveJobCount ()
                                                                  ) /
                                                static_cast <float> (jobs)
@@ -581,7 +561,7 @@ SK_YS8_ControlPanel (void)
       else
       {
         ImGui::PushStyleColor ( ImGuiCol_Text,
-                                  ImColor::HSV ( 0.4f - ( 0.4f * (timeGetTime () - dwLastActive) /
+                        (ImVec4&&)ImColor::HSV ( 0.4f - ( 0.4f * (timeGetTime () - dwLastActive) /
                                                           500.0f ),
                                                    1.0f,
                                                      0.8f
@@ -612,12 +592,12 @@ SK_YS8_ControlPanel (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip    ();
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.5f, 0.f, 1.f, 1.f));
+        ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.5f, 0.f, 1.f, 1.f));
         ImGui::TextUnformatted ("Builds Complete Mipchains (Mipmap LODs) for all Textures");
         ImGui::Separator       ();
         ImGui::PopStyleColor   ();
         ImGui::Bullet          (); ImGui::SameLine ();
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.15f, 1.0f, 1.0f));
+        ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.15f, 1.0f, 1.0f));
         ImGui::TextUnformatted ("SIGNIFICANTLY");
         ImGui::PopStyleColor   (); ImGui::SameLine ();
         ImGui::TextUnformatted ("reduces texture aliasing");
@@ -879,7 +859,7 @@ SK_YS8_ControlPanel (void)
         const LONG64 llTotalBytes =
           ReadAcquire64 (&llBytesSkipped) + ReadAcquire64 (&llBytesCopied);
 
-        ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV ((float)std::min ((long double)1.0, (long double)ReadAcquire64 (&llBytesSkipped) / (long double)(llTotalBytes)) * 0.278f, 0.88f, 0.333f));
+        ImGui::PushStyleColor (ImGuiCol_PlotHistogram, (ImVec4&&)ImColor::HSV ((float)std::min ((long double)1.0, (long double)ReadAcquire64 (&llBytesSkipped) / (long double)(llTotalBytes)) * 0.278f, 0.88f, 0.333f));
         ImGui::ProgressBar ( float (((long double)ReadAcquire64 (&llBytesSkipped)) /
                                      (long double)(llTotalBytes)), ImVec2 (-1,0),
           SK_FormatString ("%ws out of %ws were avoided\t\t\t\tDirty Hash (%ws :: Load=%4.2f)", SK_File_SizeToString (ReadAcquire64 (&llBytesSkipped)).c_str (),
@@ -952,14 +932,14 @@ SK_YS8_ControlPanel (void)
 
       if (orig_sel != sel)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
         ImGui::BulletText     ("Game Restart Required");
         ImGui::PopStyleColor  ();
       }
 
       if (__SK_YS8_ShadowScale > 3)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.14f, .8f, .9f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.14f, .8f, .9f));
         ImGui::BulletText     ("Strongly consider a lower quality setting for best performance");
         ImGui::PopStyleColor  ();
       }

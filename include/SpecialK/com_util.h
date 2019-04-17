@@ -25,6 +25,8 @@ struct IUnknown;
 #include <SpecialK/SpecialK.h>
 #include <SpecialK/core.h>
 
+#define _WIN32_DCOM
+#include <Wbemidl.h>
 #include <objbase.h>
 
 #include <cstdlib>
@@ -67,11 +69,6 @@ private:
   DWORD init_flags_ = COINIT_MULTITHREADED;
   bool  success_    = false;
 };
-
-
-
-#define _WIN32_DCOM
-#include <Wbemidl.h>
 
 namespace COM {
   struct Base {

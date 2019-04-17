@@ -19,63 +19,24 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"   DXGI   "
 
-#include <SpecialK/stdafx.h>
-#include <SpecialK/import.h>
+#include <d3d11_2.h>
 
-#include <Windows.h>
-
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/screenshot.h>
-#include <SpecialK/render/backend.h>
-#include <SpecialK/window.h>
-
-#include <SpecialK/diagnostics/compatibility.h>
-
-#include <comdef.h>
-#include <atlbase.h>
-
-#include <SpecialK/nvapi.h>
-#include <SpecialK/config.h>
-
-#include <cinttypes>
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-#include <memory>
-#include <set>
-#include <queue>
-#include <vector>
-#include <limits>
-#include <algorithm>
-#include <functional>
-#include <gsl/gsl>
-
-
-#include <SpecialK/log.h>
-#include <SpecialK/utility.h>
-
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/command.h>
-#include <SpecialK/console.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-#include <SpecialK/diagnostics/crash_handler.h>
-
-#include <SpecialK/plugin/plugin_mgr.h>
+#include <SpecialK/render/d3d11/d3d11_3.h>
+#include <SpecialK/render/d3d11/d3d11_4.h>
 
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/backends/imgui_d3d12.h>
 
+#include <SpecialK/nvapi.h>
+#include <SpecialK/adl.h>
 
 using D3D11On12CreateDevice_pfn =
   HRESULT (WINAPI *)(              _In_ IUnknown*             pDevice,
@@ -89,8 +50,8 @@ using D3D11On12CreateDevice_pfn =
                        _COM_Outptr_opt_ ID3D11DeviceContext** ppImmediateContext,
                        _Out_opt_        D3D_FEATURE_LEVEL*    pChosenFeatureLevel );
 
-D3D11On12CreateDevice_pfn
-D3D11On12CreateDevice = nullptr;
+//D3D11On12CreateDevice_pfn
+//D3D11On12CreateDevice = nullptr;
 
 
 
@@ -188,9 +149,7 @@ std::vector <sk_hook_cache_record_s *> local_dxgi_records =
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
 
-  extern bool __SK_bypass;
-
-extern SK_Thread_HybridSpinlock cs_mmio;
+extern bool __SK_bypass;
 
 extern void SK_D3D11_EndFrame               (SK_TLS* pTLS = SK_TLS_Bottom ());
 extern void SK_DXGI_UpdateSwapChain         (IDXGISwapChain*);
@@ -237,7 +196,6 @@ _SKC_MakeCEGUILib ("CEGUISTBImageCodec")
 #include <delayimp.h>
 #pragma comment (lib, "delayimp.lib")
 
-#include <CEGUI/CEGUI.h>
 #include <CEGUI/Rect.h>
 #include <CEGUI/RendererModules/Direct3D11/Renderer.h>
 
@@ -1654,9 +1612,6 @@ typedef HRESULT (WINAPI *IDXGISwapChain3_SetColorSpace1_pfn)        (IDXGISwapCh
 typedef HRESULT (WINAPI *IDXGISwapChain4_SetHDRMetaData_pfn)(IDXGISwapChain4*, DXGI_HDR_METADATA_TYPE, UINT, void*);
                          IDXGISwapChain4_SetHDRMetaData_pfn
                          IDXGISwapChain4_SetHDRMetaData_Original = nullptr;
-
-#include <SpecialK/render/dxgi/dxgi_hdr.h>
-#include <SpecialK/nvapi.h>
 
 const uint8_t
   edid_v1_header [] =
@@ -3875,7 +3830,7 @@ SK_DXGI_Present ( IDXGISwapChain *This,
   }
 
   auto orig_se =
-  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  _set_se_translator (SK_BasicStructuredExceptionTranslator);
   try                                {
     hr =
       Present_Original (This, SyncInterval, Flags);
@@ -4007,6 +3962,10 @@ SK_DXGI_SetupPluginOnFirstFrame ( IDXGISwapChain *This,
 
     case SK_GAME_ID::Tales_of_Vesperia:
       SK_TVFIX_PresentFirstFrame (This, SyncInterval, Flags);
+      break;
+
+    case SK_GAME_ID::Sekiro:
+      SK_Sekiro_PresentFirstFrame (This, SyncInterval, Flags);
       break;
 
     case SK_GAME_ID::WorldOfFinalFantasy:
@@ -4769,8 +4728,6 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
                               SK_DXGI_Present, SK_DXGI_PresentSource::Hook );
 }
 
-#include <SpecialK/crc32.h>
-
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -4957,6 +4914,243 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   return hr;
 }
 
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
+              _In_  const DXGI_MODE_DESC *pModeToMatch,
+                   _Out_  DXGI_MODE_DESC *pClosestMatch,
+                _In_opt_  IUnknown       *pConcernedDevice,
+                          BOOL            bApplyOverrides )
+{
+  SK_ComPtr <IDXGIDevice> pSwapDevice;
+  SK_ComPtr <IDXGIOutput> pSwapOutput;
+
+  if ( SUCCEEDED (
+         pSwapChain->GetContainingOutput (&pSwapOutput.p)
+                 )
+           &&
+       SUCCEEDED (
+         pSwapChain->GetDevice (__uuidof (IDXGIDevice), (void**)& pSwapDevice.p)
+                 )
+     )
+  {
+    DXGI_MODE_DESC mode_to_match = *pModeToMatch;
+
+    if (bApplyOverrides)
+    {
+      if (config.render.framerate.rescan_.Denom != 1)
+      {
+        mode_to_match.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
+        mode_to_match.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+      }
+
+      else if (config.render.framerate.refresh_rate != -1 &&
+                mode_to_match.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate)
+      {
+        mode_to_match.RefreshRate.Numerator   = (UINT)config.render.framerate.refresh_rate;
+        mode_to_match.RefreshRate.Denominator = 1;
+      }
+
+      if ( config.render.dxgi.scaling_mode != -1 &&
+                     mode_to_match.Scaling != config.render.dxgi.scaling_mode &&
+                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_CENTERED)
+      {
+        mode_to_match.Scaling =
+          (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+      }
+    }
+
+    pModeToMatch = &mode_to_match;
+
+    HRESULT hr =
+      FindClosestMatchingMode_Original (pSwapOutput.p, pModeToMatch, pClosestMatch, pConcernedDevice);
+
+    // Overrides forced _AFTER_ asking DXGI for a match
+    if (bApplyOverrides)
+    {
+      if (SK_GetCurrentGameID () == SK_GAME_ID::Sekiro)
+        pClosestMatch->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+    }
+
+    return
+      hr;
+  }
+
+  return DXGI_ERROR_DEVICE_REMOVED;
+}
+
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
+                  _In_ DXGI_MODE_DESC *pNewTargetParameters,
+                       BOOL            bApplyOverrides )
+{
+  if (bApplyOverrides)
+  {
+    // Can't do this if waitable
+    if ( dxgi_caps.present.waitable &&
+         config.render.framerate.swapchain_wait > 0 )
+    {
+      return S_OK;
+    }
+  }
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
+  {
+    SK_ComQIPtr <IDXGISwapChain3>
+        pSwap3 (This);
+    if (pSwap3 != nullptr)
+    {
+      SK_DXGI_UpdateColorSpace (pSwap3);
+    }
+  }
+
+  assert (pNewTargetParameters != nullptr);
+
+  HRESULT ret =
+    E_UNEXPECTED;
+
+  DXGI_MODE_DESC new_new_params =
+    *pNewTargetParameters;
+
+  DXGI_MODE_DESC* pNewNewTargetParameters =
+    &new_new_params;
+
+  if (bApplyOverrides)
+  {
+    if ( config.window.borderless ||
+         ( config.render.dxgi.scaling_mode != -1 &&
+            pNewTargetParameters->Scaling  !=
+              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+                                  ||
+         ( config.render.framerate.refresh_rate          != -1 &&
+             pNewTargetParameters->RefreshRate.Numerator !=
+               (UINT)config.render.framerate.refresh_rate )
+      )
+    {
+      if ( config.render.framerate.rescan_.Denom != 1 ||
+           (config.render.framerate.refresh_rate != -1 &&
+            new_new_params.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate) )
+      {
+        DXGI_MODE_DESC modeDesc  = { };
+        DXGI_MODE_DESC modeMatch = { };
+
+        modeDesc.Format           = new_new_params.Format;
+        modeDesc.Width            = new_new_params.Width;
+        modeDesc.Height           = new_new_params.Height;
+        modeDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
+        modeDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+
+        if (config.render.framerate.rescan_.Denom != 1)
+        {
+          modeDesc.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
+          modeDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+        }
+
+        else
+        {
+          modeDesc.RefreshRate.Numerator   = (UINT)std::ceilf (config.render.framerate.refresh_rate);
+          modeDesc.RefreshRate.Denominator = 1;
+        }
+
+        if (SUCCEEDED (SK_DXGI_FindClosestMode (This, &modeDesc, &modeMatch, FALSE)))
+        {
+          new_new_params.RefreshRate.Numerator   = modeMatch.RefreshRate.Numerator;
+          new_new_params.RefreshRate.Denominator = modeMatch.RefreshRate.Denominator;
+        }
+      }
+
+      if ( config.render.dxgi.scanline_order        != -1 &&
+            pNewTargetParameters->ScanlineOrdering  !=
+              (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
+      {
+        new_new_params.ScanlineOrdering =
+          (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
+      }
+
+      if ( config.render.dxgi.scaling_mode != -1 &&
+            pNewTargetParameters->Scaling  !=
+              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+      {
+        new_new_params.Scaling =
+          (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+      }
+
+      if (! config.window.res.override.isZero ())
+      {
+        new_new_params.Width  = config.window.res.override.x;
+        new_new_params.Height = config.window.res.override.y;
+      }
+
+      else if ( (! config.window.fullscreen) &&
+                   config.window.borderless )
+      {
+        SK_DXGI_BorderCompensation (new_new_params.Width, new_new_params.Height);
+      }
+
+      // Clamp the buffer dimensions if the user has a min/max resolution preference
+      const UINT max_x = config.render.dxgi.res.max.x < new_new_params.Width  ?
+                         config.render.dxgi.res.max.x : new_new_params.Width,
+                 min_x = config.render.dxgi.res.min.x > new_new_params.Width  ?
+                         config.render.dxgi.res.min.x : new_new_params.Width,
+                 max_y = config.render.dxgi.res.max.y < new_new_params.Height ?
+                         config.render.dxgi.res.max.y : new_new_params.Height,
+                 min_y = config.render.dxgi.res.min.y > new_new_params.Height ?
+                         config.render.dxgi.res.min.y : new_new_params.Height;
+
+      new_new_params.Width   =  std::max ( max_x , min_x );
+      new_new_params.Height  =  std::max ( max_y , min_y );
+
+      pNewNewTargetParameters->Format =
+        SK_DXGI_PickHDRFormat (pNewNewTargetParameters->Format);
+
+      //SK_DXGI_ValidateSwapChainResize (This, 0, pNewNewTargetParameters->Width, pNewNewTargetParameters->Height, pNewNewTargetParameters->Format);
+    }
+
+    ret =
+      ResizeTarget_Original (This, pNewNewTargetParameters);
+
+    if (FAILED (ret))
+    {
+      void
+        __stdcall
+        SK_D3D11_ResetTexCache (void);
+
+      SK_D3D11_EndFrame        ();
+      SK_D3D11_ResetTexCache   ();
+      SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+
+      ret =
+        ResizeTarget_Original (This, pNewNewTargetParameters);
+    }
+
+    if (SUCCEEDED (ret))
+    {
+      if ( pNewNewTargetParameters->Width  != 0 &&
+           pNewNewTargetParameters->Height != 0 )
+      {
+        SK_SetWindowResX (pNewNewTargetParameters->Width);
+        SK_SetWindowResY (pNewNewTargetParameters->Height);
+      }
+
+      else
+      {
+        RECT client = { };
+
+        GetClientRect (game_window.hWnd, &client);
+
+        SK_SetWindowResX (client.right  - client.left);
+        SK_SetWindowResY (client.bottom - client.top);
+      }
+    }
+  }
+
+  return ret;
+}
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -4988,20 +5182,31 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
 
   DXGI_MODE_DESC mode_to_match = *pModeToMatch;
 
-  if ( config.render.framerate.refresh_rate != -1 &&
-       mode_to_match.RefreshRate.Numerator  != (UINT)config.render.framerate.refresh_rate )
+  if ( config.render.framerate.rescan_.Denom !=  1 ||
+      (config.render.framerate.refresh_rate  != -1 &&
+        mode_to_match.RefreshRate.Numerator  != (UINT)config.render.framerate.refresh_rate) )
   {
     dll_log->Log ( L"[   DXGI   ]  >> Refresh Override "
-                   L"(Requested: %f, Using: %li)",
+                   L"(Requested: %f, Using: %f)",
                      mode_to_match.RefreshRate.Denominator != 0 ?
                        static_cast <float> (mode_to_match.RefreshRate.Numerator) /
                        static_cast <float> (mode_to_match.RefreshRate.Denominator) :
                          std::numeric_limits <float>::quiet_NaN (),
-                       config.render.framerate.refresh_rate
+                       static_cast <float> (config.render.framerate.rescan_.Numerator) /
+                       static_cast <float> (config.render.framerate.rescan_.Denom)
                  );
 
-    mode_to_match.RefreshRate.Numerator   = (UINT)config.render.framerate.refresh_rate;
-    mode_to_match.RefreshRate.Denominator =       1;
+    if (config.render.framerate.rescan_.Denom != 1)
+    {
+      mode_to_match.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
+      mode_to_match.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+    }
+
+    else
+    {
+      mode_to_match.RefreshRate.Numerator = (UINT)config.render.framerate.refresh_rate;
+      mode_to_match.RefreshRate.Denominator = 1;
+    }
   }
 
   if ( config.render.dxgi.scaling_mode != -1 &&
@@ -5027,6 +5232,9 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
 
   HRESULT ret;
   DXGI_CALL (ret, FindClosestMatchingMode_Original (This, pModeToMatch, pClosestMatch, pConcernedDevice));
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Sekiro)
+    pClosestMatch->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
 
   SK_LOG0 ( ( L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, Scanlines=%s",
               pClosestMatch->Width, pClosestMatch->Height,
@@ -5061,9 +5269,6 @@ DXGISwap_GetFullscreenState_Override ( IDXGISwapChain  *This,
 {
   return GetFullscreenState_Original (This, pFullscreen, ppTarget);
 }
-
-#include <shellapi.h>
-#include <SpecialK/utility.h>
 
 // Classifies a swapchain as dummy (used by some libraries during init) or
 //   real (potentially used to do actual rendering).
@@ -5103,6 +5308,12 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                                        BOOL            Fullscreen,
                                        IDXGIOutput    *pTarget )
 {
+  //if (Fullscreen)
+  //{
+  //  void SK_NvAPI_ReIssueLastHdrColorControl (void);
+  //       SK_NvAPI_ReIssueLastHdrColorControl (    );
+  //}
+
   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
                      L"%s, %08" PRIxPTR L"h",
                       Fullscreen ? L"{ Fullscreen }" :
@@ -5473,9 +5684,11 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
 
   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
-                       L"%lu,%lu,%lu,fmt=%lu,0x%08X",
+                       L"%lu,%lu,%lu,%s,0x%08X",
                          BufferCount, Width, Height,
-                   (UINT)NewFormat, SwapChainFlags );
+               SK_DXGI_FormatToStr (NewFormat).c_str (), SwapChainFlags );
+
+  //NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
 
 
   // Can't do this if waitable
@@ -5675,15 +5888,17 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
   assert (pNewTargetParameters != nullptr);
 
+  //((DXGI_MODE_DESC *)(pNewTargetParameters))->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+
   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
                        L"{ (%lux%lu@%3.1f Hz),"
-                       L"fmt=%lu,scaling=0x%02x,scanlines=0x%02x }",
+                       L"fmt=%s,scaling=0x%02x,scanlines=0x%02x }",
                           pNewTargetParameters->Width, pNewTargetParameters->Height,
                           pNewTargetParameters->RefreshRate.Denominator != 0 ?
            static_cast <float> (pNewTargetParameters->RefreshRate.Numerator) /
            static_cast <float> (pNewTargetParameters->RefreshRate.Denominator) :
                               std::numeric_limits <float>::quiet_NaN (),
-            static_cast <UINT> (pNewTargetParameters->Format),
+           SK_DXGI_FormatToStr (pNewTargetParameters->Format).c_str (),
                                 pNewTargetParameters->Scaling,
                                 pNewTargetParameters->ScanlineOrdering );
 
@@ -5703,20 +5918,31 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     DXGI_MODE_DESC new_new_params =
       *pNewTargetParameters;
 
-    if ( config.render.framerate.refresh_rate != -1 &&
-         new_new_params.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
+    if ( config.render.framerate.rescan_.Denom != 1 ||
+        (config.render.framerate.refresh_rate  != -1 &&
+         new_new_params.RefreshRate.Numerator  != (UINT)config.render.framerate.refresh_rate) )
     {
       dll_log->Log ( L"[   DXGI   ]  >> Refresh Override "
-                     L"(Requested: %f, Using: %li)",
+                     L"(Requested: %f, Using: %f)",
                        new_new_params.RefreshRate.Denominator != 0 ?
                          static_cast <float> (new_new_params.RefreshRate.Numerator) /
                          static_cast <float> (new_new_params.RefreshRate.Denominator) :
                            std::numeric_limits <float>::quiet_NaN (),
-                         config.render.framerate.refresh_rate
+        static_cast <float> (config.render.framerate.rescan_.Numerator) /
+        static_cast <float> (config.render.framerate.rescan_.Denom)
                    );
 
-      new_new_params.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
-      new_new_params.RefreshRate.Denominator = 1;
+      if (config.render.framerate.rescan_.Denom != 1)
+      {
+        new_new_params.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
+        new_new_params.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+      }
+
+      else
+      {
+        new_new_params.RefreshRate.Numerator   = (UINT)std::ceilf (config.render.framerate.refresh_rate);
+        new_new_params.RefreshRate.Denominator = 1;
+      }
     }
 
     if ( config.render.dxgi.scanline_order        != -1 &&
@@ -5814,7 +6040,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
     if (SUCCEEDED (ret))
     {
-      if (pNewNewTargetParameters->Width != 0 && pNewNewTargetParameters->Height != 0)
+      if ( pNewNewTargetParameters->Width  != 0 &&
+           pNewNewTargetParameters->Height != 0 )
       {
         SK_SetWindowResX (pNewNewTargetParameters->Width);
         SK_SetWindowResY (pNewNewTargetParameters->Height);
@@ -5822,9 +6049,10 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
       else
       {
-        RECT client;
+        RECT client = { };
 
         GetClientRect (game_window.hWnd, &client);
+
         SK_SetWindowResX (client.right  - client.left);
         SK_SetWindowResY (client.bottom - client.top);
       }
@@ -5954,6 +6182,15 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       //pDesc->BufferDesc.RefreshRate.Denominator = 0;
       //pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+    }
+
+
+    if (config.render.framerate.disable_flip)
+    {
+      if (     pDesc->SwapEffect == (DXGI_SWAP_EFFECT)DXGI_SWAP_EFFECT_FLIP_DISCARD)
+               pDesc->SwapEffect =                         DXGI_SWAP_EFFECT_DISCARD;
+      else if (pDesc->SwapEffect == (DXGI_SWAP_EFFECT)DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL)
+               pDesc->SwapEffect =                         DXGI_SWAP_EFFECT_SEQUENTIAL;
     }
 
 
@@ -6124,20 +6361,31 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
       }
 
-      if ( config.render.framerate.refresh_rate    != -1 &&
-           pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
+      if ( config.render.framerate.rescan_.Denom   !=  1 ||
+          (config.render.framerate.refresh_rate    != -1 &&
+           pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate) )
       {
         dll_log->Log ( L"[   DXGI   ]  >> Refresh Override "
-                       L"(Requested: %f, Using: %li)",
+                       L"(Requested: %f, Using: %f)",
                     pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
             static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
             static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
                         std::numeric_limits <float>::quiet_NaN (),
-                           config.render.framerate.refresh_rate
+            static_cast <float> (config.render.framerate.rescan_.Numerator) /
+            static_cast <float> (config.render.framerate.rescan_.Denom)
                      );
 
-        pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
-        pDesc->BufferDesc.RefreshRate.Denominator = 1;
+        if (config.render.framerate.rescan_.Denom != 1)
+        {
+          pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
+          pDesc->BufferDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+        }
+
+        else
+        {
+          pDesc->BufferDesc.RefreshRate.Numerator   = (UINT)std::ceilf (config.render.framerate.refresh_rate);
+          pDesc->BufferDesc.RefreshRate.Denominator = 1;
+        }
       }
 
       bWait =
@@ -7356,8 +7604,8 @@ SK_D3D11_GetLocalDLL (void)
 }
 
 HRESULT
-STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
-                               _Out_ void   **ppFactory)
+WINAPI CreateDXGIFactory (REFIID   riid,
+                    _Out_ void   **ppFactory)
 {
   // For DXGI compliance, do not mix-and-match
   //if (CreateDXGIFactory2_Import != nullptr)
@@ -7396,8 +7644,8 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
 }
 
 HRESULT
-STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
-                                _Out_ void   **ppFactory)
+WINAPI CreateDXGIFactory1 (REFIID   riid,
+                     _Out_ void   **ppFactory)
 
 {
   ////// For DXGI compliance, do not mix-and-match
@@ -7432,9 +7680,9 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
 }
 
 HRESULT
-STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
-                                      REFIID   riid,
-                                _Out_ void   **ppFactory)
+WINAPI CreateDXGIFactory2 (UINT     Flags,
+                           REFIID   riid,
+                     _Out_ void   **ppFactory)
 {
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
@@ -7779,9 +8027,6 @@ dxgi_init_callback (finish_pfn finish)
   finish ();
 }
 
-
-#include <SpecialK/ini.h>
-
 bool
 SK::DXGI::Startup (void)
 {
@@ -7795,9 +8040,6 @@ SK::DXGI::Startup (void)
 #ifdef _WIN64
 extern bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t* backend);
 #endif
-
-#pragma warning (disable:4091)
-#include <DbgHelp.h>
 
 void
 SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain)
@@ -8060,8 +8302,6 @@ using IDXGIOutput6_GetDesc1_pfn = HRESULT (WINAPI *)(IDXGIOutput6*, DXGI_OUTPUT_
       IDXGIOutput6_GetDesc1_pfn
       IDXGIOutput6_GetDesc1_Original = nullptr;
 
-#include <SpecialK/../../depends/include/glm/glm.hpp>
-#include <SpecialK/render/backend.h>
 
 extern glm::vec3 SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::vec3 RGB );
 
@@ -8239,6 +8479,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
+    if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
     if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
     {
       DXGI_VIRTUAL_HOOK ( &pSwapChain, 10, "IDXGISwapChain::SetFullscreenState",
@@ -8545,12 +8786,6 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 }
 
 
-#include <mmsystem.h>
-#include <d3d11_2.h>
-#include <SPecialK/render/d3d11/d3d11_3.h>
-#include <SPecialK/render/d3d11/d3d11_4.h>
-#include <SpecialK/com_util.h>
-
 void
 SK_DXGI_InitHooksBeforePlugIn (void)
 {
@@ -8817,8 +9052,8 @@ SK_DXGI_SetPreferredAdapter (int override_id)
 
 extern bool SK_D3D11_need_tex_reset;
 
-memory_stats_t   mem_stats [MAX_GPU_NODES] = { };
-mem_info_t       mem_info  [NumBuffers]    = { };
+memory_stats_t   dxgi_mem_stats [MAX_GPU_NODES] = { };
+mem_info_t       dxgi_mem_info  [NumBuffers]    = { };
 
 struct budget_thread_params_t
 {
@@ -8830,6 +9065,13 @@ struct budget_thread_params_t
            DWORD          cookie   = 0UL;
   volatile LONG           ready    = FALSE;
 } budget_thread;
+
+void
+SK_DXGI_SignalBudgetThread (void)
+{
+  if (budget_thread.event != INVALID_HANDLE_VALUE)
+    SetEvent (budget_thread.event);
+}
 
 bool
 WINAPI
@@ -8875,14 +9117,14 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
       budget_log->silent     = true;
       budget_thread.event    =
         SK_CreateEvent ( nullptr,
-                        TRUE,
-                          FALSE, nullptr );
-                            //L"DXGIMemoryBudget" );
+                           TRUE,
+                             FALSE, nullptr );
+                               //L"DXGIMemoryBudget" );
       budget_thread.shutdown =
         SK_CreateEvent ( nullptr,
-                        TRUE,
-                          FALSE, nullptr );
-                            //L"DXGIMemoryBudget_Shutdown" );
+                           TRUE,
+                             FALSE, nullptr );
+                               //L"DXGIMemoryBudget_Shutdown" );
 
       budget_thread.handle =
         SK_Thread_CreateEx
@@ -9069,8 +9311,8 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
         }
       }
 
-      mem_info [0].nodes = ( i - 1 );
-      mem_info [1].nodes = ( i - 1 );
+      dxgi_mem_info [0].nodes = ( i - 1 );
+      dxgi_mem_info [1].nodes = ( i - 1 );
 
       dll_log->LogEx ( false, L"\n" );
     }
@@ -9079,7 +9321,6 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
   return hr;
 }
 
-#include <ctime>
 #define min_max(ref,min,max) if ((ref) > (max)) (max) = (ref); \
                              if ((ref) < (min)) (min) = (ref);
 
@@ -9124,7 +9365,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       WaitForMultipleObjects ( 2,
                                  phEvents,
                                    FALSE,
-                                     BUDGET_POLL_INTERVAL * 3 );
+                                     INFINITE );
 
     if (! ReadAcquire ( &params->ready ) )
     {
@@ -9158,11 +9399,11 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     int         node = 0;
 
     buffer_t buffer  =
-      mem_info [node].buffer;
+      dxgi_mem_info [node].buffer;
 
 
-    SK_D3D11_Textures->Budget = mem_info [buffer].local [0].Budget -
-                                mem_info [buffer].local [0].CurrentUsage;
+    SK_D3D11_Textures->Budget = dxgi_mem_info [buffer].local [0].Budget -
+                                dxgi_mem_info [buffer].local [0].CurrentUsage;
 
 
     // Double-Buffer Updates
@@ -9172,7 +9413,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       buffer = Front;
 
 
-    GetLocalTime ( &mem_info [buffer].time );
+    GetLocalTime ( &dxgi_mem_info [buffer].time );
 
     //
     // Sample Fast nUMA (On-GPU / Dedicated) Memory
@@ -9186,7 +9427,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
              params->pAdapter->QueryVideoMemoryInfo (
                node,
                  DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-                   &mem_info [buffer].local [node]
+                   &dxgi_mem_info [buffer].local [node]
              )
            )
          )
@@ -9215,7 +9456,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
              params->pAdapter->QueryVideoMemoryInfo (
                node,
                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-                   &mem_info [buffer].nonlocal [node]
+                   &dxgi_mem_info [buffer].nonlocal [node]
              )
            )
          )
@@ -9229,10 +9470,10 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
 
     // Set the number of SLI/CFX Nodes
-    mem_info [buffer].nodes = nodes;
+    dxgi_mem_info [buffer].nodes = nodes;
 
     static uint64_t
-      last_budget = mem_info [buffer].local [0].Budget;
+      last_budget = dxgi_mem_info [buffer].local [0].Budget;
 
 
     if ( nodes > 0 )
@@ -9249,19 +9490,19 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
           static UINT64
             LastBudget = 0ULL;
 
-          mem_stats [i].budget_changes++;
+          dxgi_mem_stats [i].budget_changes++;
 
           const int64_t over_budget =
-            ( mem_info [buffer].local [i].CurrentUsage -
-              mem_info [buffer].local [i].Budget );
+            ( dxgi_mem_info [buffer].local [i].CurrentUsage -
+              dxgi_mem_info [buffer].local [i].Budget );
 
             //LastBudget -
-            //mem_info [buffer].local [i].Budget;
+            //dxgi_mem_info [buffer].local [i].Budget;
 
           SK_D3D11_need_tex_reset = ( over_budget > 0 );
 
           LastBudget =
-            mem_info [buffer].local [i].Budget;
+            dxgi_mem_info [buffer].local [i].Budget;
         }
 
         if ( i > 0 )
@@ -9275,38 +9516,38 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
                       L"Budget: %#5llu / %#5llu MiB)",
           i,
-            mem_info       [buffer].local [i].CurrentReservation      >> 20ULL,
-              mem_info     [buffer].local [i].AvailableForReservation >> 20ULL,
-                mem_info   [buffer].local [i].CurrentUsage            >> 20ULL,
-                  mem_info [buffer].local [i].Budget                  >> 20ULL
+            dxgi_mem_info       [buffer].local [i].CurrentReservation      >> 20ULL,
+              dxgi_mem_info     [buffer].local [i].AvailableForReservation >> 20ULL,
+                dxgi_mem_info   [buffer].local [i].CurrentUsage            >> 20ULL,
+                  dxgi_mem_info [buffer].local [i].Budget                  >> 20ULL
         );
 
-        min_max ( mem_info [buffer].local [i].AvailableForReservation,
-                                mem_stats [i].min_avail_reserve,
-                                mem_stats [i].max_avail_reserve );
+        min_max ( dxgi_mem_info [buffer].local [i].AvailableForReservation,
+                                dxgi_mem_stats [i].min_avail_reserve,
+                                dxgi_mem_stats [i].max_avail_reserve );
 
-        min_max ( mem_info [buffer].local [i].CurrentReservation,
-                                mem_stats [i].min_reserve,
-                                mem_stats [i].max_reserve );
+        min_max ( dxgi_mem_info [buffer].local [i].CurrentReservation,
+                                dxgi_mem_stats [i].min_reserve,
+                                dxgi_mem_stats [i].max_reserve );
 
-        min_max ( mem_info [buffer].local [i].CurrentUsage,
-                                mem_stats [i].min_usage,
-                                mem_stats [i].max_usage );
+        min_max ( dxgi_mem_info [buffer].local [i].CurrentUsage,
+                                dxgi_mem_stats [i].min_usage,
+                                dxgi_mem_stats [i].max_usage );
 
-        min_max ( mem_info [buffer].local [i].Budget,
-                                mem_stats [i].min_budget,
-                                mem_stats [i].max_budget );
+        min_max ( dxgi_mem_info [buffer].local [i].Budget,
+                                dxgi_mem_stats [i].min_budget,
+                                dxgi_mem_stats [i].max_budget );
 
-        if ( mem_info [buffer].local [i].CurrentUsage >
-             mem_info [buffer].local [i].Budget)
+        if ( dxgi_mem_info [buffer].local [i].CurrentUsage >
+             dxgi_mem_info [buffer].local [i].Budget)
         {
           uint64_t over_budget =
-             ( mem_info [buffer].local [i].CurrentUsage -
-               mem_info [buffer].local [i].Budget );
+             ( dxgi_mem_info [buffer].local [i].CurrentUsage -
+               dxgi_mem_info [buffer].local [i].Budget );
 
           min_max ( over_budget,
-                           mem_stats [i].min_over_budget,
-                           mem_stats [i].max_over_budget );
+                           dxgi_mem_stats [i].min_over_budget,
+                           dxgi_mem_stats [i].max_over_budget );
         }
       }
 
@@ -9325,10 +9566,10 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
           false,
             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
                       L"Budget: %#5llu / %#5llu MiB)",    i,
-         mem_info    [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
-          mem_info   [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
-           mem_info  [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
-            mem_info [buffer].nonlocal [i].Budget                  >> 20ULL );
+         dxgi_mem_info    [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
+          dxgi_mem_info   [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
+           dxgi_mem_info  [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
+            dxgi_mem_info [buffer].nonlocal [i].Budget                  >> 20ULL );
       }
 
       budget_log->LogEx ( false, L"\n" );
@@ -9337,8 +9578,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
                ( params->event != nullptr ) ?
     ResetEvent ( params->event )            : 0;
 
-    mem_info [0].buffer =
-                 buffer;
+    dxgi_mem_info [0].buffer =
+                      buffer;
   }
 
   return 0;
@@ -9440,32 +9681,32 @@ SK::DXGI::ShutdownBudgetThread ( void )
 
     // in %10u seconds\n",
     budget_log->Log ( L" Memory Budget Changed %llu times\n",
-                        mem_stats [0].budget_changes );
+                        dxgi_mem_stats [0].budget_changes );
 
     for ( int i = 0; i < 4; i++ )
     {
-      if ( mem_stats [i].max_usage > 0 )
+      if ( dxgi_mem_stats [i].max_usage > 0 )
       {
-        if ( mem_stats [i].min_reserve     == UINT64_MAX )
-             mem_stats [i].min_reserve     =  0ULL;
+        if ( dxgi_mem_stats [i].min_reserve     == UINT64_MAX )
+             dxgi_mem_stats [i].min_reserve     =  0ULL;
 
-        if ( mem_stats [i].min_over_budget == UINT64_MAX )
-             mem_stats [i].min_over_budget =  0ULL;
+        if ( dxgi_mem_stats [i].min_over_budget == UINT64_MAX )
+             dxgi_mem_stats [i].min_over_budget =  0ULL;
 
         budget_log->LogEx ( true,
                              L" GPU%i: Min Budget:        %05llu MiB\n",
                                           i,
-                               mem_stats [i].min_budget >> 20ULL );
+                               dxgi_mem_stats [i].min_budget >> 20ULL );
         budget_log->LogEx ( true,
                              L"       Max Budget:        %05llu MiB\n",
-                               mem_stats [i].max_budget >> 20ULL );
+                               dxgi_mem_stats [i].max_budget >> 20ULL );
 
         budget_log->LogEx ( true,
                              L"       Min Usage:         %05llu MiB\n",
-                               mem_stats [i].min_usage  >> 20ULL );
+                               dxgi_mem_stats [i].min_usage  >> 20ULL );
         budget_log->LogEx ( true,
                              L"       Max Usage:         %05llu MiB\n",
-                               mem_stats [i].max_usage  >> 20ULL );
+                               dxgi_mem_stats [i].max_usage  >> 20ULL );
 
         /*
         SK_BLogEx (params, true, L"       Min Reserve:       %05u MiB\n",
@@ -9480,9 +9721,9 @@ SK::DXGI::ShutdownBudgetThread ( void )
 
         budget_log->LogEx ( true,  L"------------------------------------\n" );
         budget_log->LogEx ( true,  L" Minimum Over Budget:     %05llu MiB\n",
-                                     mem_stats [i].min_over_budget >> 20ULL  );
+                                dxgi_mem_stats [i].min_over_budget >> 20ULL  );
         budget_log->LogEx ( true,  L" Maximum Over Budget:     %05llu MiB\n",
-                                     mem_stats [i].max_over_budget >> 20ULL  );
+                                dxgi_mem_stats [i].max_over_budget >> 20ULL  );
         budget_log->LogEx ( true,  L"------------------------------------\n" );
         budget_log->LogEx ( false, L"\n"                                     );
       }
@@ -9497,20 +9738,6 @@ SK::DXGI::ShutdownBudgetThread ( void )
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-#include <SpecialK/ini.h>
 
 bool
 SK_D3D11_QuickHooked (void);

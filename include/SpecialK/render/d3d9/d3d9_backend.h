@@ -24,12 +24,27 @@
 
 #undef D3D_DISABLE_9EX
 
+struct ID3DXConstantTable;
+
+typedef enum _D3DXREGISTER_SET    D3DXREGISTER_SET,    *LPD3DXREGISTER_SET;
+typedef enum _D3DXPARAMETER_CLASS D3DXPARAMETER_CLASS, *LPD3DXPARAMETER_CLASS;
+typedef enum _D3DXPARAMETER_TYPE  D3DXPARAMETER_TYPE,  *LPD3DXPARAMETER_TYPE;
+
 struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <Windows.h>
+
+#if (defined (NOGDI) || (! defined (_WINGDI_)))
+#undef        NOGDI
+#undef      _WINGDI_
+#include    <wingdi.h>
+#endif
+
+#if (! (defined (_d3d9TYPES_H_) && defined (_D3D9_H_))) || ((! defined (DIRECT3D_VERSION)) || DIRECT3D_VERSION < 0x0900) || (! defined (D3DAPI))
+#undef  _D3D9_H_
 #include <d3d9.h>
-#include <d3dx9shader.h>
+#endif
 
 #include <unordered_map>
 #include <unordered_set>

@@ -20,16 +20,9 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#include <SpecialK/ini.h>
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/command.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/log.h>
+#include <SpecialK/stdafx.h>
 
 #include <imgui/imgui.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 sk::ParameterFactory okami_factory;
 sk::ParameterBool*   sk_okami_grain;
@@ -283,11 +276,11 @@ SK_Okami_PlugInCfg (void)
     bool motion_blur, bloom,
          smoke,       HUD;
 
-    motion_blur = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x06ef081f));
-    bloom       = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x939da69c));
-    smoke       = (! SK_D3D11_Shaders.vertex.blacklist.count (0xbe4b62c2));
+    motion_blur = (! SK_D3D11_Shaders->pixel.blacklist.count  (0x06ef081f));
+    bloom       = (! SK_D3D11_Shaders->pixel.blacklist.count  (0x939da69c));
+    smoke       = (! SK_D3D11_Shaders->vertex.blacklist.count (0xbe4b62c2));
 
-    HUD         = (SK_D3D11_Shaders.pixel.blacklist_if_texture [0xec31f12f].empty ());
+    HUD         = (SK_D3D11_Shaders->pixel.blacklist_if_texture [0xec31f12f].empty ());
 
     ImGui::TreePush ("");
 

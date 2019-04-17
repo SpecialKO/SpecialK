@@ -33,20 +33,13 @@ struct IUnknown;
 #include <steamapi/steam_api.h>
 #include <SpecialK/log.h>
 #include <SpecialK/command.h>
+#include <SpecialK/render/screenshot.h>
 
 
 #define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
 
 namespace SK
 {
-  enum class ScreenshotStage
-  {
-    BeforeGameHUD = 0,    // Requires a game profile indicating trigger shader
-    BeforeOSD     = 1,    // Before SK draws its OSD
-
-    EndOfFrame    = 2, ///0xff  // Generally captures all add-on overlays (including the Steam overlay)
-  };
-
   namespace SteamAPI
   {
     void Init     (bool preload);
@@ -63,7 +56,7 @@ namespace SK
 
     float __stdcall PercentOfAchievementsUnlocked (void);
 
-    bool  __stdcall TakeScreenshot   (ScreenshotStage when = ScreenshotStage::EndOfFrame);
+    bool  __stdcall TakeScreenshot   (SK_ScreenshotStage when = SK_ScreenshotStage::EndOfFrame);
 
 
     uint32_t    AppID        (void);
@@ -490,8 +483,8 @@ private:
   int                  remote_storage_ver_ = 0;
 };
 
-extern SK_SteamAPIContext& _SK_Singleton_SteamAPIContext (void) noexcept;
-#define steam_ctx          _SK_Singleton_SteamAPIContext()
+extern SK_LazyGlobal <SK_SteamAPIContext> pSteamCtx;
+#define steam_ctx (*pSteamCtx)
 
 #include <SpecialK/log.h>
 
@@ -716,6 +709,16 @@ public:
     return "";
   }
 };
+
+
+
+ScreenshotHandle
+WINAPI
+SK_SteamAPI_AddScreenshotToLibraryEx ( const char *pchFilename,
+                                       const char *pchThumbnailFilename,
+                                             int   nWidth,
+                                             int   nHeight,
+                                             bool  Wait = false );
 
 
 

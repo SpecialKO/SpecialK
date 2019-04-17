@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -20,23 +20,8 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include <SpecialK/stdafx.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/command.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/input/input.h>
-#include <SpecialK/input/xinput.h>
-
-#include <process.h>
-#include <atlbase.h>
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
@@ -246,7 +231,7 @@ SK_DGPU_UpdateFlareBuffers (void)
 
   FlareData_G.pSysMem           = &SK_DGPU_ScreenFlare_Global.data.gBlendType [0];
   FlareData_L.pSysMem           = &SK_DGPU_ScreenFlare_Local.data.gBlendType  [0];
-  
+
   CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
 
   pDev->CreateBuffer (&FlareDesc, &FlareData_G, &SK_DGPU_ScreenFlare_Global.buffer);
@@ -349,9 +334,9 @@ SK_DGPU_ControlPanel (void)
         dwLastActive = timeGetTime ();
 
       if (jobs > 0)
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (SK_D3D11_Resampler_GetActiveJobCount ()) / (float)jobs), 0.15f, 1.0f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (SK_D3D11_Resampler_GetActiveJobCount ()) / (float)jobs), 0.15f, 1.0f));
       else
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - dwLastActive) / 500.0f), 1.0f, 0.8f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (timeGetTime () - dwLastActive) / 500.0f), 1.0f, 0.8f));
 
       ImGui::SameLine       ();
       if (SK_D3D11_Resampler_GetErrorCount ())
@@ -376,12 +361,12 @@ SK_DGPU_ControlPanel (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip    ();
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.5f, 0.f, 1.f, 1.f));
+        ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.5f, 0.f, 1.f, 1.f));
         ImGui::TextUnformatted ("Builds Complete Mipchains (Mipmap LODs) for all Textures");
         ImGui::Separator       ();
         ImGui::PopStyleColor   ();
         ImGui::Bullet          (); ImGui::SameLine ();
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.15f, 1.0f, 1.0f));
+        ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.15f, 1.0f, 1.0f));
         ImGui::TextUnformatted ("SIGNIFICANTLY");
         ImGui::PopStyleColor   (); ImGui::SameLine ();
         ImGui::TextUnformatted ("reduces texture aliasing");
@@ -402,11 +387,11 @@ SK_DGPU_ControlPanel (void)
         ImGui::BeginGroup      ();
 
         ImGui::TextUnformatted ("Mipmap Quality "); ImGui::SameLine ();
-        
+
         int sel = config.textures.d3d11.uncompressed_mips ? 1 : 0;
-        
+
         changed |= ImGui::Combo ("###dGPU_MipmapQuality", &sel, "Compressed (Low)\0Uncompressed (High)\0\0", 2);
-        
+
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Uncompressed textures stutter less at load-time, but use significantly more memory.");
 
@@ -548,11 +533,11 @@ typedef bool (*SK_D3D11_DrawHandler_pfn)(ID3D11DeviceContext* pDevCtx, SK_TLS* p
 bool
 SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS, INT d_idx)
 {
-  if ( SK_DGPU_ScreenFlare_Local.override || 
+  if ( SK_DGPU_ScreenFlare_Local.override ||
        SK_DGPU_ScreenFlare_Global.override )
   {
-    uint32_t current_pixel_shader = 
-      SK_D3D11_Shaders.pixel.current.shader [SK_D3D11_GetDeviceContextHandle (pDevCtx)];
+    uint32_t current_pixel_shader =
+      SK_D3D11_Shaders->pixel.current.shader [SK_D3D11_GetDeviceContextHandle (pDevCtx)];
 
     const uint32_t PS_GLOBAL_FLARE = 0xD18AEDF1;  // Has position, but we're not going to bother with that.
     const uint32_t PS_LOCAL_FLARE  = 0xBDCAA539;  // No position, just one constant color screwing up the whole screen!

@@ -24,6 +24,8 @@
 
 #include <Windows.h>
 #include <utility>
+#include <cstdint>
+#include <SpecialK/performance/memory_monitor.h>
 
 struct thread_events
 {
@@ -35,7 +37,9 @@ struct thread_events
     HANDLE shutdown;
   } gpu, cpu,     IO,
     disk, memory, pagefile;
-} extern perfmon;
+};
+
+extern SK_LazyGlobal <thread_events> perfmon;
 
 struct io_perf_t {
   bool           init         = false;
@@ -77,17 +81,15 @@ struct WMI_refresh_thread_t
   bool                     booting                      = true;
 };
 
-#include <stdint.h>
-
-typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
+typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK {
   LARGE_INTEGER IdleTime;
   LARGE_INTEGER KernelTime;
   LARGE_INTEGER UserTime;
   LARGE_INTEGER DpcTime;
   LARGE_INTEGER InterruptTime;
   ULONG         InterruptCount;
-}  SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION,
- *PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION;
+}  SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK,
+ *PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK;
 
 
 struct cpu_perf_t : WMI_refresh_thread_t
@@ -100,37 +102,37 @@ struct cpu_perf_t : WMI_refresh_thread_t
     volatile LONG          percent_interrupt            = 0;
     volatile LONG          joules_consumed              = 0;
 
-    SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION
+    SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK
       last_perf_count    = { },
       current_perf_count = { };
-    
-    SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION
-    getAllDeltas (void)
-    {
-      SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION ret;
 
-      ret.DpcTime.QuadPart       = 
+    SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK
+    getAllDeltas (void) noexcept
+    {
+      SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK ret;
+
+      ret.DpcTime.QuadPart       =
         ( current_perf_count.DpcTime.QuadPart       - last_perf_count.DpcTime.QuadPart       );
-      ret.IdleTime.QuadPart      = 
+      ret.IdleTime.QuadPart      =
         ( current_perf_count.IdleTime.QuadPart      - last_perf_count.IdleTime.QuadPart      );
       ret.InterruptTime.QuadPart =
         ( current_perf_count.InterruptTime.QuadPart - last_perf_count.InterruptTime.QuadPart );
-      ret.UserTime.QuadPart      = 
+      ret.UserTime.QuadPart      =
         ( current_perf_count.UserTime.QuadPart      - last_perf_count.UserTime.QuadPart      );
-      ret.KernelTime.QuadPart    = 
+      ret.KernelTime.QuadPart    =
         ( current_perf_count.KernelTime.QuadPart    - last_perf_count.KernelTime.QuadPart    );
 
       return ret;
     }
 
     LARGE_INTEGER
-    updatePercentages (void) 
+    updatePercentages (void)
     {
-      SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION&& dt_cpu =
+      const SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK& dt_cpu =
         getAllDeltas ();
 
-      LARGE_INTEGER total_delta_run, total_delta_idle,
-                    total_delta_all;
+      LARGE_INTEGER total_delta_run = { }, total_delta_idle = { },
+                    total_delta_all = { };
 
                     total_delta_run.QuadPart  =
         ( dt_cpu.DpcTime.QuadPart  + dt_cpu.InterruptTime.QuadPart +
@@ -141,14 +143,15 @@ struct cpu_perf_t : WMI_refresh_thread_t
 
                     total_delta_all.QuadPart =
                   ( total_delta_run.QuadPart + total_delta_idle.QuadPart );
-                           
-      long double rational_cpu_load =
-        std::min   (100.0l,
-          std::max (  0.0l,
-            ( 100.0l - (static_cast <long double> (dt_cpu.IdleTime.QuadPart)/
-                        static_cast <long double> (total_delta_run.QuadPart)) * 100.0l )
-          )
-        );
+
+      const long double
+        rational_cpu_load =
+          std::min   (100.0l,
+            std::max (  0.0l,
+              ( 100.0l - (static_cast <long double> (dt_cpu.IdleTime.QuadPart)/
+                          static_cast <long double> (total_delta_run.QuadPart)) * 100.0l )
+            )
+          );
 
       InterlockedExchange (
         &percent_load,      static_cast < LONG > (rational_cpu_load)
@@ -177,11 +180,11 @@ struct cpu_perf_t : WMI_refresh_thread_t
     };
 
     LARGE_INTEGER
-    recordNewData ( SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION& new_perf_count )
+    recordNewData (const SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK& new_perf_count )
     {
       std::swap (current_perf_count, last_perf_count);
                  current_perf_count = new_perf_count;
-     
+
       return std::move (
         updatePercentages ()
       );
@@ -205,7 +208,7 @@ struct cpu_perf_t : WMI_refresh_thread_t
 
 
   LARGE_INTEGER
-  addToAggregate ( SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION& single_node_perf )
+  addToAggregate ( const SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK& single_node_perf ) noexcept
   {
     cpus [64].current_perf_count.DpcTime.QuadPart       +=
       single_node_perf.DpcTime.QuadPart;
@@ -224,7 +227,7 @@ struct cpu_perf_t : WMI_refresh_thread_t
     return { 0 };
   }
 
-  void beginNewAggregate (void)
+  void beginNewAggregate (void) noexcept
   {
     std::swap ( cpus [64].current_perf_count, cpus [64].last_perf_count );
                 cpus [64].current_perf_count             =      { };
@@ -240,7 +243,7 @@ struct cpu_perf_t : WMI_refresh_thread_t
       cpus [64].updatePercentages ();
   }
 
-   
+
 
   DWORD                    num_cpus                     = 0;
 };
@@ -300,8 +303,9 @@ DWORD WINAPI SK_MonitorCPU      (LPVOID user);
 DWORD WINAPI SK_MonitorDisk     (LPVOID user);
 DWORD WINAPI SK_MonitorPagefile (LPVOID user);
 
-cpu_perf_t&      __SK_WMI_CPUStats      (void);
-disk_perf_t&     __SK_WMI_DiskStats     (void);
-pagefile_perf_t& __SK_WMI_PagefileStats (void);
+extern SK_LazyGlobal <process_stats_t> SK_WMI_ProcessStats;
+extern SK_LazyGlobal <cpu_perf_t>      SK_WMI_CPUStats;
+extern SK_LazyGlobal <disk_perf_t>     SK_WMI_DiskStats;
+extern SK_LazyGlobal <pagefile_perf_t> SK_WMI_PagefileStats;
 
 #endif /* __ SK__IO_MONITOR_H__ */

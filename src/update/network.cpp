@@ -19,43 +19,7 @@
  *
 **/
 
-// Use the modern Common Controls and not those God-awful Windows 95 era
-//   buttons !!
-#define ISOLATION_AWARE_ENABLED              1
-#define ISOLATION_AWARE_BUILD_STATIC_LIBRARY 1
-
-#include <SpecialK/ini.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/utility.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/resource.h>
-
-#include <SpecialK/framerate.h>
-#include <SpecialK/update/version.h>
-#include <SpecialK/update/archive.h>
-#include <SpecialK/update/network.h>
-
-#include <SpecialK/thread.h>
-#include <SpecialK/window.h>
-#include <SpecialK/config.h>
-#include <SpecialK/log.h>
-
-#include <Windows.h>
-#include <windowsx.h>
-#include <CommCtrl.h>
-
-#include <process.h>
-#include <cstdint>
-#include <Wininet.h>
-
-#pragma comment (lib,    "wininet.lib")
-#pragma comment (lib,    "comctl32.lib")
-#pragma comment (linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' "  \
-                         "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
-                         " language='*'\"")
-
-#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/stdafx.h>
 
 extern void
 SK_Inject_Stop (void);

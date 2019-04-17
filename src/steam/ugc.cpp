@@ -1,15 +1,8 @@
+#include <SpecialK/stdafx.h>
 #include <SpecialK/steam_api.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-
-#include <Windows.h>
-#include <cstdint>
-
-#include <unordered_map>
 
 class IWrapSteamUGC;
 
-#include <concurrent_unordered_map.h>
 typedef concurrency::concurrent_unordered_map <ISteamUGC*, IWrapSteamUGC*> SK_SteamWrap_Concurrent_RemapUGC;
 
 SK_SteamWrap_Concurrent_RemapUGC*

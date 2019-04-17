@@ -485,16 +485,16 @@ wglCopyContext             = wglCopyContext
 wglCreateContext           = wglCreateContext
 wglCreateLayerContext      = wglCreateLayerContext
 wglDeleteContext           = wglDeleteContext
-wglDescribeLayerPlane      = wglDescribeLayerPlane
+;wglDescribeLayerPlane      = wglDescribeLayerPlane
 wglDescribePixelFormat     = wglDescribePixelFormat
 wglGetCurrentContext       = wglGetCurrentContext
 wglGetCurrentDC            = wglGetCurrentDC
 ;wglGetDefaultProcAddress   = wglGetDefaultProcAddress    ?????
-wglGetLayerPaletteEntries  = wglGetLayerPaletteEntries
+;wglGetLayerPaletteEntries  = wglGetLayerPaletteEntries
 wglGetPixelFormat          = wglGetPixelFormat
 wglGetProcAddress          = wglGetProcAddress
-wglRealizeLayerPalette     = wglRealizeLayerPalette
-wglSetLayerPaletteEntries  = wglSetLayerPaletteEntries
+;wglRealizeLayerPalette     = wglRealizeLayerPalette
+;wglSetLayerPaletteEntries  = wglSetLayerPaletteEntries
 wglSetPixelFormat          = wglSetPixelFormat
 wglSwapLayerBuffers        = wglSwapLayerBuffers
 ;wglSwapMultipleBuffers     = wglSwapMultipleBuffers
@@ -561,7 +561,7 @@ SK_CreateVar                     = SK_CreateVar
 SK_CreateDirectories             = SK_CreateDirectories
 SK_IsConsoleVisible              = SK_IsConsoleVisible
 SK_SelfDestruct                  = SK_SelfDestruct                   PRIVATE
-                                 
+
 SK_FetchVersionInfo              = SK_FetchVersionInfo               PRIVATE
 SK_UpdateSoftware                = SK_UpdateSoftware                 PRIVATE
 SK_FetchVersionInfo1             = SK_FetchVersionInfo1              PRIVATE
@@ -571,12 +571,12 @@ SK_UpdateSoftware1               = SK_UpdateSoftware1                PRIVATE
 SK_GetFileCRC32                  = SK_File_GetCRC32
 SK_GetFileCRC32C                 = SK_File_GetCRC32C
 SK_GetFileHash_32                = SK_File_GetHash_32
-                                 
+
 QueryPerformanceCounter_Detour   = QueryPerformanceCounter_Detour    PRIVATE
 Sleep_Detour                     = Sleep_Detour                      PRIVATE
 GetAsyncKeyState_Detour          = NtUserGetAsyncKeyState_Detour     PRIVATE
 GetRawInputData_Detour           = NtUserGetRawInputData_Detour      PRIVATE
-                                 
+
 SK_NvAPI_IsInit                  = SK_NvAPI_IsInit
 SK_NvAPI_SetAntiAliasingOverride = SK_NvAPI_SetAntiAliasingOverride
 SK_NvAPI_SetFramerateLimit       = SK_NvAPI_SetFramerateLimit
@@ -617,7 +617,7 @@ SK_DXTex_LoadFromDDSFile         = LoadFromDDSFile                        PRIVAT
 SK_DXTex_CreateTexture           = SK_DXTex_CreateTexture                 PRIVATE
 
 SK_Render_GetDevice              = SK_Render_GetDevice PRIVATE
-                                     
+
 
 
 ;

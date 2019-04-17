@@ -19,8 +19,11 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"Input Mgr."
 
+#if 0
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/dinput8_backend.h>
 #include <SpecialK/diagnostics/modules.h>
@@ -42,6 +45,7 @@
 #include <SpecialK/tls.h>
 
 #include <SpecialK/input/xinput.h>
+#endif
 
 
 bool
@@ -747,6 +751,10 @@ NtUserRegisterRawInputDevices_Detour (
                       pDevices [i].hwndTarget, wszWindowClass, wszWindowTitle ),
                         __SK_SUBSYSTEM__ );
       }
+
+      // Sekiro Fix
+      //if (pDevices [i].hwndTarget == 0 && pDevices [i].dwFlags == RIDEV_REMOVE)
+      //  return true;
     }
 
     SK_RawInput_ClassifyDevices ();
@@ -956,7 +964,7 @@ SK_ImGui_IsMouseRelevant (void)
   //   but we also have floating widgets that may capture mouse
   //     input.
   return config.input.mouse.disabled_to_game || SK_ImGui_Active () ||
-         ImGui::IsAnyWindowHovered ();
+         ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow);
       // ^^^ These are our floating widgets
 }
 
@@ -995,10 +1003,15 @@ sk_imgui_cursor_s::LocalToScreen (LPPOINT lpPoint)
   ClientToScreen (game_window.hWnd, lpPoint);
 }
 
+extern ImGuiContext* SK_GImDefaultContext (void);
+
 void
 sk_imgui_cursor_s::LocalToClient (LPPOINT lpPoint)
 {
-  RECT real_client;
+  if (! SK_GImDefaultContext ())
+    return;
+
+  RECT                              real_client = { };
   GetClientRect (game_window.hWnd, &real_client);
 
   ImVec2 local_dims =
@@ -1025,7 +1038,10 @@ sk_imgui_cursor_s::LocalToClient (LPPOINT lpPoint)
 void
 sk_imgui_cursor_s::ClientToLocal    (LPPOINT lpPoint)
 {
-  RECT real_client;
+  if (! SK_GImDefaultContext ())
+    return;
+
+  RECT                              real_client = { };
   GetClientRect (game_window.hWnd, &real_client);
 
   const ImVec2 local_dims =
@@ -1234,6 +1250,9 @@ HCURSOR game_cursor = nullptr;
 bool
 SK_ImGui_WantKeyboardCapture (void)
 {
+  if (! SK_GImDefaultContext ())
+    return false;
+
   bool imgui_capture = false;
 
   ImGuiIO& io =
@@ -1252,6 +1271,9 @@ SK_ImGui_WantKeyboardCapture (void)
 bool
 SK_ImGui_WantTextCapture (void)
 {
+  if (! SK_GImDefaultContext ())
+    return false;
+
   bool imgui_capture = false;
 
   ImGuiIO& io =
@@ -1269,6 +1291,9 @@ SK_ImGui_WantTextCapture (void)
 bool
 SK_ImGui_WantGamepadCapture (void)
 {
+  if (! SK_GImDefaultContext ())
+    return false;
+
   bool imgui_capture = false;
 
   if (SK_ImGui_Active ())
@@ -1301,6 +1326,9 @@ static const DWORD REASON_DISABLED = 0x4;
 bool
 SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
+  if (! SK_GImDefaultContext ())
+    return false;
+
   bool imgui_capture = false;
 
   if (SK_ImGui_IsMouseRelevant ())
@@ -2289,9 +2317,96 @@ GetKeyboardLayout_Detour (_In_ DWORD idThread)
 
 #include <SpecialK/command.h>
 
+
+SK_LazyGlobal <std::unordered_map <char, char>> SK_Keyboard_LH_Arrows;
+
+char SK_KeyMap_LeftHand_Arrow (char key)
+{
+  if (SK_Keyboard_LH_Arrows->count (key))
+    return SK_Keyboard_LH_Arrows [key];
+
+  return '\0';
+}
+
 void
 SK_Input_Init (void)
 {
+  bool azerty  = false;
+  bool regular = false;
+
+    static const auto test_chars = {
+    'W', 'Q', 'Y'
+  };
+
+  static const std::multimap <char, UINT> known_sig_parts = {
+    { 'W', 0x11 }, { 'W', 0x2c },
+    { 'Q', 0x10 }, { 'Q', 0x1e },
+    { 'Y', 0x15 }
+  };
+
+  UINT layout_sig [] =
+  { 0x0, 0x0, 0x0 };
+
+  int idx = 0;
+
+  for ( auto& ch : test_chars )
+  {
+    bool matched = false;
+    UINT scode   =
+      MapVirtualKeyEx (ch, MAPVK_VK_TO_VSC, GetKeyboardLayout (SK_GetCurrentThreadId ()));
+
+    if (known_sig_parts.find (ch) != known_sig_parts.end ())
+    {
+      auto range =
+        known_sig_parts.equal_range (ch);
+
+      for_each (range.first, range.second,
+        [&](const std::unordered_multimap <char, UINT>::value_type & cmd_pair)
+        {
+          if (cmd_pair.second == scode)
+          {
+            matched = true;
+          }
+        }
+      );
+    }
+
+    if (! matched)
+    {
+      SK_LOG0 ( ( L"Unexpected Keyboard Layout -- Scancode 0x%x maps to Virtual Key '%c'",
+                    scode, ch ),
+                  L"Key Layout" );
+    }
+
+    layout_sig [idx++] = scode;
+  }
+
+  azerty  = ( layout_sig [0] == 0x2c && layout_sig [1] == 0x1e );
+  regular = ( layout_sig [0] == 0x11 && layout_sig [1] == 0x10 &&
+              layout_sig [2] == 0x15 );
+
+  if (! azerty) SK_Keyboard_LH_Arrows ['W'] = 'W'; else SK_Keyboard_LH_Arrows ['W'] = 'Z';
+  if (! azerty) SK_Keyboard_LH_Arrows ['A'] = 'A'; else SK_Keyboard_LH_Arrows ['A'] = 'Q';
+
+  SK_Keyboard_LH_Arrows ['S'] = 'S';
+  SK_Keyboard_LH_Arrows ['D'] = 'D';
+
+  std::wstring layout_desc = L"Unexpected";
+
+  if (azerty)
+  {
+    layout_desc = L"AZERTY";
+  }
+
+  else if (regular)
+  {
+    layout_desc = L"QWERTY";
+  }
+
+  SK_LOG0 ( ( L" -( Keyboard Class:  %s  *  [ W=%x, Q=%x, Y=%x ] )-",
+                layout_desc.c_str (), layout_sig [0], layout_sig [1], layout_sig [2] ),
+              L"Key Layout" );
+
   auto CreateInputVar_Bool = [](auto name, auto config_var)
   {
     SK_GetCommandProcessor ()->AddVariable (

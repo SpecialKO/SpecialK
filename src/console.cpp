@@ -19,32 +19,7 @@
  *
 **/
 
-#include <SpecialK/console.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-
-#include <SpecialK/window.h>
-
-#include <cstdint>
-
-#include <string>
-#include <algorithm>
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/log.h>
-#include <SpecialK/config.h>
-#include <SpecialK/command.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/osd/text.h>
-#include <SpecialK/widgets/widget.h>
-
-#include <mmsystem.h>
-#pragma comment (lib, "winmm.lib")
-
-#include <comdef.h>
-#include <process.h>
-
-#include <windowsx.h>
+#include <SpecialK/stdafx.h>
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
   (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
@@ -137,7 +112,7 @@ SK_Console::reset (void)
 }
 
 
-std::unordered_multimap <uint32_t, SK_KeyCommand> SK_KeyboardMacros;
+SK_LazyGlobal <std::unordered_multimap <uint32_t, SK_KeyCommand>> SK_KeyboardMacros;
 
 
 // Plugins can hook this if they do not have their own input handler
@@ -160,7 +135,7 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   Alt = ImGui::GetIO ().KeyAlt;
 
 
-  if (! SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode))
+  if (! SK_ImGui_Widgets->DispatchKeybinds (Control, Shift, Alt, vkCode))
   {
 
   }
@@ -169,10 +144,10 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   auto masked =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-  if (SK_KeyboardMacros.find (masked) != SK_KeyboardMacros.end ())
+  if (SK_KeyboardMacros->find (masked) != SK_KeyboardMacros->end ())
   {
     auto range =
-      SK_KeyboardMacros.equal_range (masked);
+      SK_KeyboardMacros->equal_range (masked);
 
     for_each ( range.first, range.second,
       [] (std::unordered_multimap <uint32_t, SK_KeyCommand>::value_type& cmd_pair)

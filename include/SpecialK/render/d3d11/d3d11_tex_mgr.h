@@ -127,7 +127,7 @@ __stdcall
 SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D*      pTex,
                                      uint32_t              crc32c,
                                      SK_TLS*               pTLS = SK_TLS_Bottom (),
-                                     ID3D11DeviceContext*  pDevCtx = (ID3D11DeviceContext *)SK_GetCurrentRenderBackend ().d3d11.immediate_ctx.p,
+                                     ID3D11DeviceContext*  pDevCtx = (ID3D11DeviceContext *)SK_GetCurrentRenderBackend ().d3d11.immediate_ctx,
                                      ID3D11Device*         pDev    = (ID3D11Device        *)SK_GetCurrentRenderBackend ().device.p );
 
 HRESULT __stdcall SK_D3D11_DumpTexture2D       (_In_ ID3D11Texture2D* pTex, uint32_t crc32c);

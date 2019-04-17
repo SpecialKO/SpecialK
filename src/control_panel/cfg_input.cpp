@@ -19,31 +19,15 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <imgui/imgui.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/input.h>
 
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-
-#include <SpecialK/window.h>
-
-#include <SpecialK/input/steam.h>
-#include <SpecialK/input/xinput.h>
-#include <SpecialK/input/xinput_hotplug.h>
-#include <SpecialK/framerate.h>
-
-#include <string>
-#include <sstream>
-
-
 bool cursor_vis = false;
 
-
 using namespace SK::ControlPanel;
-
-
 
 extern std::vector <RAWINPUTDEVICE>
 SK_RawInput_GetMice      (bool* pDifferent = nullptr);
@@ -63,7 +47,8 @@ void SK_ImGui_UpdateCursor (void)
   SK_SetCursorPos (orig_pos.x, orig_pos.y);
 }
 
-extern ImVec2 SK_ImGui_LastWindowCenter;
+extern ImVec2& __SK_ImGui_LastWindowCenter (void);
+#define SK_ImGui_LastWindowCenter  __SK_ImGui_LastWindowCenter()
 
 void
 SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
@@ -164,7 +149,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_steam > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_steam ) / 500.0f ), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_steam ) / 500.0f ), 1.0f, 0.8f));
       ImGui::SameLine ( );
       ImGui::Text ("       Steam");
       ImGui::PopStyleColor ( );
@@ -179,7 +164,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_xinput > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_xinput) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_xinput) / 500.0f), 1.0f, 0.8f));
       ImGui::SameLine       ();
       ImGui::Text           ("       %s", SK_XInput_GetPrimaryHookName ());
       ImGui::PopStyleColor  ();
@@ -194,7 +179,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_hid > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_hid) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_hid) / 500.0f), 1.0f, 0.8f));
       ImGui::SameLine       ();
       ImGui::Text           ("       HID");
       ImGui::PopStyleColor  ();
@@ -216,7 +201,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_di7 > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_di7) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_di7) / 500.0f), 1.0f, 0.8f));
       ImGui::SameLine       ();
       ImGui::Text           ("       DirectInput 7");
       ImGui::PopStyleColor  ();
@@ -241,7 +226,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_di8 > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_di8) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_di8) / 500.0f), 1.0f, 0.8f));
       ImGui::SameLine       ();
       ImGui::Text           ("       DirectInput 8");
       ImGui::PopStyleColor  ();
@@ -266,7 +251,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_rawinput > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_rawinput) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_rawinput) / 500.0f), 1.0f, 0.8f));
       ImGui::SameLine       ();
       ImGui::Text           ("       Raw Input");
       ImGui::PopStyleColor  ();
@@ -319,10 +304,10 @@ SK::ControlPanel::Input::Draw (void)
       const float val =
         config.input.cursor.manage ? 1.0f : 0.0f;
 
-      ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f,  val));
-      ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f,  val));
-      ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f,  val));
-      ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor ( 1.0f,  1.0f,  1.0f, 1.0f));
+      ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 ( 0.3f,  0.3f,  0.3f,  val));
+      ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 ( 0.6f,  0.6f,  0.6f,  val));
+      ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
+      ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
 
       if ( ImGui::SliderFloat ( "Seconds Before Hiding",
                                   &seconds, 0.0f, 30.0f ) )
@@ -1099,7 +1084,6 @@ extern float SK_ImGui_PulseNav_Strength;
 
     ImGui::TreePop       ( );
     ImGui::PopStyleColor (3);
-    ImGui::TreePop       ( );
 
     return true;
   }
@@ -1123,7 +1107,7 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
   ImGui::SetNextWindowSizeConstraints ( ImVec2   (font_size *  9, font_size * 3),
                                           ImVec2 (font_size * 30, font_size * 6) );
 
-  if (ImGui::BeginPopupModal (keybind->bind_name, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+  if (ImGui::BeginPopupModal (keybind->bind_name, nullptr, ImGuiWindowFlags_AlwaysAutoResize |
                                                            ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
   {
     io.WantCaptureKeyboard = true;
@@ -1183,12 +1167,12 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
   ImGui::SetNextWindowSizeConstraints ( ImVec2   (font_size *  9, font_size * 3),
                                           ImVec2 (font_size * 30, font_size * 6) );
 
-  if (ImGui::BeginPopupModal (combo->combo_name.c_str (), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+  if (ImGui::BeginPopupModal (combo->combo_name.c_str (), nullptr, ImGuiWindowFlags_AlwaysAutoResize |
                                                                    ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
   {
     SK_ImGui_GamepadComboDialogActive = true;
     nav_usable                        = false;
-    io.NavUsable                      = false;
+    io.NavVisible                     = false;
     io.NavActive                      = false;
 
     io.WantCaptureKeyboard = true;
@@ -1265,7 +1249,7 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 
         SK_ImGui_GamepadComboDialogActive = false;
         nav_usable                        = true;
-        io.NavUsable                      = true;
+        io.NavVisible                     = true;
         io.NavActive                      = true;
         last_combo                        = nullptr;
         ImGui::CloseCurrentPopup ();

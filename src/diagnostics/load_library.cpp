@@ -19,50 +19,7 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
-
-#include <Windows.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-#include <SpecialK/diagnostics/compatibility.h>
-#include <SpecialK/diagnostics/crash_handler.h>
-#include <SpecialK/diagnostics/debug_utils.h>
-#include <process.h>
-
-#include <gsl/gsl>
-
-#pragma warning (disable:4091)
-#define _IMAGEHLP_SOURCE_
-#include <DbgHelp.h>
-
-#include <array>
-#include <string>
-#include <memory>
-#include <typeindex>
-
-#include <unordered_set>
-
-#include <cassert>
-
-#include <SpecialK/config.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/input/input.h>
-#include <SpecialK/input/xinput.h>
-#include <SpecialK/input/dinput7_backend.h>
-#include <SpecialK/input/dinput8_backend.h>
-
-#include <SpecialK/DLL_VERSION.H>
-
-
+#include <SpecialK/stdafx.h>
 
 __declspec (noinline)
 concurrency::concurrent_unordered_set <HMODULE>&
@@ -71,7 +28,6 @@ SK_DbgHlp_Callers (void)
   static concurrency::concurrent_unordered_set <HMODULE> _callers (32);
   return                                                 _callers;
 }
-
 
 #define SK_CHAR(x) (_T)        (_T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
 #define SK_TEXT(x) (const _T*) (LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
@@ -902,7 +858,7 @@ struct SK_ThirdPartyDLLs {
     HMODULE steam_overlay = nullptr;
   } overlays;
 
-  constexpr SK_ThirdPartyDLLs (void) {
+  constexpr SK_ThirdPartyDLLs (void) noexcept {
   };
 } third_party_dlls;
 
@@ -1605,8 +1561,8 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
       {
         pLogger->Log ( L"[%02lu] Unloaded '%32ws' [ (0x%p) : (0x%p) ]",
                       pTraceEntry->Sequence,    pTraceEntry->ImageName,
-                      pTraceEntry->BaseAddress, (uintptr_t)pTraceEntry->BaseAddress +
-                                                           pTraceEntry->SizeOfImage );
+                      pTraceEntry->BaseAddress, (LPVOID)((uintptr_t)pTraceEntry->BaseAddress +
+                                                                    pTraceEntry->SizeOfImage) );
 
         std::wstring ver_str =
           SK_GetDLLVersionStr (pTraceEntry->ImageName);
@@ -1672,7 +1628,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
     SK_Thread_Create ([](LPVOID user) -> DWORD
     {
-      SetCurrentThreadDescription (L"[SK] DLL Enumeration Thread");
+      SetCurrentThreadDescription (L"[SK] DLL Enumerator");
       SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
       static volatile LONG                walking  =  0;
@@ -1832,7 +1788,7 @@ BlacklistLibrary (const _T* lpFileName)
       init = true;
     }
 
-    for ( auto&& it : nv_blacklist )
+    for ( auto& it : nv_blacklist )
     {
       if (StrStrI (lpFileName, it))
       {

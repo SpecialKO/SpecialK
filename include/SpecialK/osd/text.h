@@ -47,7 +47,7 @@ void __stdcall SK_SetOSDColor      (int red, int green, int blue,             LP
 void __stdcall SK_SetOSDScale      (float fScale, bool relative = false,      LPCSTR lpAppName = nullptr);
 void __stdcall SK_ResizeOSD        (float scale_incr,                         LPCSTR lpAppName = nullptr);
 
-void __stdcall SK_OSD_GetDefaultColor (float& r,  float& g,  float& b);
+void __stdcall SK_OSD_GetDefaultColor (float& r,  float& g,  float& b) noexcept;
 
 #include <map>
 
@@ -70,13 +70,13 @@ public:
   float draw      (float x = 0.0f, float y = 0.0f, bool full = false);
   void  reset     (CEGUI::Renderer* renderer);
 
-  void  resize    (float incr);
-  void  setScale  (float scale);
-  float getScale  (void);
+  void  resize    (float incr)                 noexcept;
+  void  setScale  (float scale)                noexcept;
+  float getScale  (void)                       noexcept;
 
-  void  move      (float  x_off, float  y_off);
-  void  setPos    (float  x,     float  y);
-  void  getPos    (float& x,     float& y);
+  void  move      (float  x_off, float  y_off) noexcept;
+  void  setPos    (float  x,     float  y)     noexcept;
+  void  getPos    (float& x,     float& y)     noexcept;
 
   char* getName   (void) noexcept { return data_.name; }
   char* getText   (void) noexcept { return data_.text; }
@@ -85,7 +85,7 @@ protected:
    SK_TextOverlay (const char* szAppName);
 
 private:
-  struct 
+  struct
   {
     char   name [64] = { };
 
@@ -121,11 +121,11 @@ public:
 class SK_TextOverlayManager : public SK_IVariableListener
 {
 private: // Singleton
-  static SK_TextOverlayManager* pSelf;
-  static CRITICAL_SECTION       cs_;
+  static                  CRITICAL_SECTION       cs_;
 
 public:
-  static SK_TextOverlayManager* getInstance (void);
+  static std::unique_ptr <SK_TextOverlayManager> pSelf;
+  static SK_TextOverlayManager*                  getInstance (void);
 
   SK_TextOverlay* createTextOverlay (const char* szAppName);
   bool            removeTextOverlay (const char* szAppName);
@@ -142,7 +142,7 @@ public:
   virtual
     ~SK_TextOverlayManager (void) { };
 
-protected:
+//protected:
   SK_TextOverlayManager (void);
 
 private:
@@ -165,7 +165,7 @@ private:
           sli_;
 
 public:
-  virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
+  bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
 };
 
 #endif /* __SK__OSD_TEXT_H__ */

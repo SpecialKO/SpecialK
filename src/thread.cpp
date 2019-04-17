@@ -19,22 +19,9 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"ThreadUtil"
-
-#include <SpecialK/log.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/utility.h>
-
-#include <SpecialK/ini.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-
-#include <SpecialK/diagnostics/memory.h>
-#include <SpecialK/diagnostics/debug_utils.h>
-
-#include <strsafe.h>
-#include <string>
 
 extern volatile LONG __SK_Init;
 
@@ -61,26 +48,8 @@ extern volatile LONG __SK_DLL_Attached;
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
 
-concurrency::concurrent_unordered_map <DWORD, std::wstring>*
-__SK_GetThreadNames (void)
-{
-  static concurrency::concurrent_unordered_map <DWORD, std::wstring> __ThreadNames (64);
-
-  return
-    &__ThreadNames;
-}
-
-concurrency::concurrent_unordered_set <DWORD>*
-__SK_GetSelfTitledThreads (void)
-{
-  static concurrency::concurrent_unordered_set <DWORD>                __SelfTitled (64);
-
-  return
-    &__SelfTitled;
-}
-
-#define _SK_SelfTitledThreads __SK_GetSelfTitledThreads ()
-#define _SK_ThreadNames       __SK_GetThreadNames       ()
+SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, std::wstring>> _SK_ThreadNames;
+SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>               _SK_SelfTitledThreads;
 
 // Game has given this thread a custom name, it's special :)
 bool
@@ -338,11 +307,11 @@ SK_Thread_InitDebugExtras (void)
     //
     SK_SetThreadDescription =
       (SetThreadDescription_pfn)
-        GetProcAddress ( SK_Modules.getLibrary (L"kernel32", true, true),
+        GetProcAddress ( SK_Modules->getLibrary (L"kernel32", true, true),
                                                  "SetThreadDescription" );
     SK_GetThreadDescription =
       (GetThreadDescription_pfn)
-      GetProcAddress ( SK_Modules.getLibrary (L"kernel32", true, true),
+      GetProcAddress ( SK_Modules->getLibrary (L"kernel32", true, true),
                                                "GetThreadDescription" );
 
     if (SK_SetThreadDescription == nullptr)
@@ -576,27 +545,20 @@ SK_Thread_CloseSelf (void)
 #include <concurrent_unordered_map.h>
 #include <avrt.h>
 
-concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry *>&
-SK_MMCS_GetTaskMap (void) noexcept
-{
-  static concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry*> task_map;
-
-  return
-    task_map;
-}
+SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry*>> SK_MMCS_TaskMap;
 
 size_t
 SK_MMCS_GetTaskCount (void)
 {
   return
-    SK_MMCS_GetTaskMap ().size ();
+    SK_MMCS_TaskMap->size ();
 }
 
 std::vector <SK_MMCS_TaskEntry *>
 SK_MMCS_GetTasks (void)
 {
   static auto& task_map =
-    SK_MMCS_GetTaskMap ();
+    *SK_MMCS_TaskMap;
 
   std::vector <SK_MMCS_TaskEntry *> tasks;
 
@@ -619,7 +581,7 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
                                             const char* task2 )
 {
   static auto& task_map =
-    SK_MMCS_GetTaskMap ();
+    *SK_MMCS_TaskMap;
 
   SK_MMCS_TaskEntry* task_me =
     nullptr;

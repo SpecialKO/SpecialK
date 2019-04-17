@@ -19,23 +19,9 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"Input Mgr."
-
-#include <SpecialK/input/input.h>
-#include <SpecialK/input/xinput.h>
-#include <SpecialK/input/xinput_hotplug.h>
-#include <SpecialK/log.h>
-#include <SpecialK/config.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/tls.h>
-
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-
-#include <cstdint>
-#include <algorithm>
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0;                   { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 
@@ -185,9 +171,6 @@ SK_XInput_GetPrimaryHookName (void)
 #define SK_XINPUT_READ(type)  SK_XInput_Backend.markRead  (type);
 #define SK_XINPUT_WRITE(type) SK_XInput_Backend.markWrite (type);
 
-
-#include <unordered_set>
-
 static std::unordered_set <HMODULE> warned_modules;
 
 void
@@ -195,7 +178,7 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
                                  SK_XInputContext::instance_s* pCtx )
 {
   // Calling module (return address) indicates the game made this call
-  if (hModCaller == SK_Modules.HostApp ())
+  if (hModCaller == SK_Modules->HostApp ())
     InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, pCtx);
 
   // Third-party software polled the controller, it better be using the same
@@ -1021,9 +1004,9 @@ SK_Input_HookXInput1_4 (void)
                 L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput1_4.dll";
-    pCtx->hMod                               = SK_Modules.LoadLibraryLL (pCtx->wszModuleName);
+    pCtx->hMod                               = SK_Modules->LoadLibraryLL (pCtx->wszModuleName);
 
-    if (SK_Modules.isValid (pCtx->hMod))
+    if (SK_Modules->isValid (pCtx->hMod))
     {
       pCtx->XInputEnable_Detour                = XInputEnable1_4_Detour;
       pCtx->XInputGetState_Detour              = XInputGetState1_4_Detour;
@@ -1071,9 +1054,9 @@ SK_Input_HookXInput1_3 (void)
                 L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput1_3.dll";
-    pCtx->hMod                               = SK_Modules.LoadLibraryLL (pCtx->wszModuleName);
+    pCtx->hMod                               = SK_Modules->LoadLibraryLL (pCtx->wszModuleName);
 
-    if (SK_Modules.isValid (pCtx->hMod))
+    if (SK_Modules->isValid (pCtx->hMod))
     {
       pCtx->XInputEnable_Detour                = XInputEnable1_3_Detour;
       pCtx->XInputGetState_Detour              = XInputGetState1_3_Detour;
@@ -1121,9 +1104,9 @@ SK_Input_HookXInput9_1_0 (void)
                 L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput9_1_0.dll";
-    pCtx->hMod                               = SK_Modules.LoadLibraryLL (pCtx->wszModuleName);
+    pCtx->hMod                               = SK_Modules->LoadLibraryLL (pCtx->wszModuleName);
 
-    if (SK_Modules.isValid (pCtx->hMod))
+    if (SK_Modules->isValid (pCtx->hMod))
     {
       pCtx->XInputGetState_Detour              = XInputGetState9_1_0_Detour;
       pCtx->XInputGetStateEx_Detour            = nullptr; // Not supported
@@ -1528,8 +1511,6 @@ SK_XInput_PulseController ( INT   iJoyID,
   if (ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
     return false;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.cs_haptic [iJoyID]);
-
   auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
       (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
@@ -1544,6 +1525,8 @@ SK_XInput_PulseController ( INT   iJoyID,
   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
     return false;
 
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.cs_haptic[iJoyID]);
+
   XINPUT_VIBRATION vibes;
 
   vibes.wLeftMotorSpeed  = (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f);
@@ -1552,11 +1535,55 @@ SK_XInput_PulseController ( INT   iJoyID,
   if ( pCtx                          != nullptr &&
        pCtx->XInputSetState_Original != nullptr )
   {
-    pCtx->XInputSetState_Original ( iJoyID, &vibes );
-    return true;
+    static std::unordered_map <INT, XINPUT_VIBRATION> set_values;
+
+    if (set_values.count (iJoyID))
+    {
+      auto& last_val =
+        set_values [iJoyID];
+
+      // Avoid redundant call and performance bottleneck caused by Steam overlay
+      if ( last_val.wLeftMotorSpeed  == vibes.wLeftMotorSpeed &&
+           last_val.wRightMotorSpeed == vibes.wRightMotorSpeed )
+      {
+        return true;
+      }
+    }
+
+    set_values [iJoyID] = vibes;
+
+    if ( ERROR_SUCCESS ==
+           pCtx->XInputSetState_Original ( iJoyID, &vibes ) )
+    {
+      return true;
+    }
   }
 
   return false;
+}
+
+
+static volatile DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
+static volatile DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
+                                                      ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
+
+volatile ULONG SK_XInput_RefreshTime = 500UL;
+
+void SK_XInput_SetRefreshInterval (ULONG ulIntervalMS)
+{
+  InterlockedExchange (&SK_XInput_RefreshTime, ulIntervalMS);
+}
+
+void SK_XInput_Refresh (UINT iJoyID)
+{
+  WriteULongRelease (&last_poll [iJoyID], 0UL);
+}
+
+static bool
+_ShouldRecheckStatus (INT iJoyID)
+{
+  return
+    (ReadULongAcquire (&last_poll [iJoyID]) < (timeGetTime () - ReadULongAcquire (&SK_XInput_RefreshTime)));
 }
 
 bool
@@ -1564,6 +1591,8 @@ WINAPI
 SK_XInput_PollController ( INT           iJoyID,
                            XINPUT_STATE* pState )
 {
+  SK_RunOnce (SK_XInput_NotifyDeviceArrival ());
+
   bool queued_hooks = false;
 
   iJoyID =
@@ -1572,7 +1601,7 @@ SK_XInput_PollController ( INT           iJoyID,
   if (! config.input.gamepad.hook_xinput)
     return false;
 
-//std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.cs_poll [iJoyID]);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.cs_poll [iJoyID]);
 
   auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
@@ -1627,9 +1656,9 @@ SK_XInput_PollController ( INT           iJoyID,
           (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
 
       HMODULE hModXInput1_3 =
-        SK_Modules.LoadLibraryLL (L"XInput1_3.dll");
+        SK_Modules->LoadLibraryLL (L"XInput1_3.dll");
 
-      if (SK_Modules.isValid (hModXInput1_3))
+      if (SK_Modules->isValid (hModXInput1_3))
       {
         pCtx->XInputGetState_Original =
           (XInputGetState_pfn)
@@ -1645,17 +1674,17 @@ SK_XInput_PollController ( INT           iJoyID,
   //   in its import table and also not caught by our LoadLibrary hook
   if (first_frame)
   {
-    if ( SK_Modules.isValid     (
+    if ( SK_Modules->isValid    (
          GetModuleHandleW       (L"XInput1_3.dll")
                                 )
        ) SK_Input_HookXInput1_3 ();
 
-    if ( SK_Modules.isValid     (
+    if ( SK_Modules->isValid    (
          GetModuleHandleW       (L"XInput1_4.dll")
                                 )
        ) SK_Input_HookXInput1_4 ();
 
-    if ( SK_Modules.isValid     (
+    if ( SK_Modules->isValid    (
          GetModuleHandleW       (L"XInput9_1_0.dll")
                                 )
        ) SK_Input_HookXInput9_1_0 ();
@@ -1683,18 +1712,15 @@ SK_XInput_PollController ( INT           iJoyID,
   XINPUT_STATE_EX xstate = { };
   xstate.dwPacketNumber  =  1;
 
-  static DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
-  static DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
-                                               ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
-
   // This function is actually a performance hazzard when no controllers
   //   are plugged in, so ... throttle the sucker.
-  if (last_poll [iJoyID] < timeGetTime () - 500UL && pCtx != nullptr)
+  if (_ShouldRecheckStatus (iJoyID) && pCtx != nullptr)
   {
     if (pCtx->XInputGetStateEx_Original != nullptr)
     {
-      dwRet [iJoyID] =
-        pCtx->XInputGetStateEx_Original (iJoyID, &xstate);
+      WriteULongRelease (&dwRet [iJoyID],
+        pCtx->XInputGetStateEx_Original (iJoyID, &xstate)
+      );
     }
 
     // Down-level XInput
@@ -1702,23 +1728,24 @@ SK_XInput_PollController ( INT           iJoyID,
     {
       if (pCtx->XInputGetState_Original != nullptr)
       {
-        dwRet [iJoyID] =
-          pCtx->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate);
+        WriteULongRelease (&dwRet [iJoyID],
+          pCtx->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate)
+        );
       }
     }
 
-    if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
-      last_poll [iJoyID] = timeGetTime ();
+    if (ReadULongAcquire (&dwRet [iJoyID]) == ERROR_DEVICE_NOT_CONNECTED)
+      WriteULongRelease (&last_poll [iJoyID], timeGetTime ());
   }
 
-  InterlockedExchange (&xinput_ctx.LastSlotState [iJoyID], dwRet [iJoyID]);
+  InterlockedExchange (&xinput_ctx.LastSlotState [iJoyID], ReadULongAcquire (&dwRet [iJoyID]));
 
-  if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
+  if (ReadULongAcquire (&dwRet [iJoyID]) == ERROR_DEVICE_NOT_CONNECTED)
     return false;
 
-  last_poll [iJoyID] = 0; // Feel free to poll this controller again immediately,
-                          //   the performance penalty from a disconnected controller
-                          //     won't be there.
+  WriteULongRelease (&last_poll [iJoyID], 0); // Feel free to poll this controller again immediately,
+                                              //   the performance penalty from a disconnected controller
+                                              //     won't be there.
 
   if (pState != nullptr)
     memcpy (pState, &xstate, sizeof XINPUT_STATE);
@@ -1746,7 +1773,7 @@ SK_Input_PreHookXInput (void)
                                          { "XInput1_4.dll",   false },
                                          { "XInput9_1_0.dll", false } };
 
-    SK_TestImports (SK_Modules.HostApp (), tests, 3);
+    SK_TestImports (SK_Modules->HostApp (), tests, 3);
 
     if (tests [0].used || tests [1].used || tests [2].used)
     {
@@ -1790,8 +1817,6 @@ SK_XInput_ZeroHaptics (INT iJoyID)
   if (ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
     return;
 
-
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.cs_haptic [iJoyID]);
 
   auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>

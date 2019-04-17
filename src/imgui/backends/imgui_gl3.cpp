@@ -6,16 +6,13 @@
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 
-#include <Windows.h>
-
-#include <SpecialK/framerate.h>
 #include <SpecialK/render/backend.h>
 #include <../depends/include/GL/glew.h>
 #include <SpecialK/render/gl/opengl_backend.h>
-
-#include <SpecialK/window.h>
 
 extern void
 SK_ImGui_User_NewFrame (void);
@@ -40,12 +37,11 @@ static unsigned int g_VboHandle              = 0,
 
 #include <config.h>
 
-// This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
 IMGUI_API
 void
-ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
+ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
 {
   // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
   ImGuiIO& io (ImGui::GetIO ());
@@ -118,24 +114,32 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
     {
       for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
       {
-        ImU32& color =
-          cmd_list->VtxBuffer.Data [i].col;
+        SK_ReleaseAssert (cmd_list->VtxBuffer.Data [i].col.x < 1.0 &&
+                          cmd_list->VtxBuffer.Data [i].col.y < 1.0 &&
+                          cmd_list->VtxBuffer.Data [i].col.z < 1.0 &&
+                          cmd_list->VtxBuffer.Data [i].col.w < 1.0 );
+        ImColor color (
+          cmd_list->VtxBuffer.Data [i].col
+        );
 
-        uint8_t alpha = (((color & 0xFF000000U) >> 24U) & 0xFFU);
+        uint8_t alpha = ((((unsigned int)color & 0xFF000000U) >> 24U) & 0xFFU);
 
         // Boost alpha for visibility
         if (alpha < 93 && alpha != 0)
           alpha += (93  - alpha) / 2;
 
-        float a = ((float)                       alpha / 255.0f);
-        float r = ((float)((color & 0xFF0000U) >> 16U) / 255.0f);
-        float g = ((float)((color & 0x00FF00U) >>  8U) / 255.0f);
-        float b = ((float)((color & 0x0000FFU)       ) / 255.0f);
+        float a = ((float)                                     alpha / 255.0f);
+        float r = ((float)(((unsigned int)color & 0xFF0000U) >> 16U) / 255.0f);
+        float g = ((float)(((unsigned int)color & 0x00FF00U) >>  8U) / 255.0f);
+        float b = ((float)(((unsigned int)color & 0x0000FFU)       ) / 255.0f);
 
         color =                    0xFF000000U  |
                 ((UINT)((r * a) * 255U) << 16U) |
                 ((UINT)((g * a) * 255U) <<  8U) |
                 ((UINT)((b * a) * 255U)       );
+
+        cmd_list->VtxBuffer.Data[i].col =
+          color;
       }
     }
 
@@ -341,8 +345,8 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
   reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, uv) )
                         );
   glVertexAttribPointer ( g_AttribLocationColor,
-                            4, GL_UNSIGNED_BYTE,
-                              GL_TRUE,  sizeof (ImDrawVert),
+                            4, GL_FLOAT,// GL_UNSIGNED_BYTE,
+                               FALSE,  sizeof (ImDrawVert),
   reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, col) )
                         );
 #undef OFFSETOF
@@ -427,6 +431,7 @@ ImGui_ImplGL3_Init (void)
   io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
   io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
   io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
+  io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
   io.KeyMap [ImGuiKey_A]          = 'A';
   io.KeyMap [ImGuiKey_C]          = 'C';
   io.KeyMap [ImGuiKey_V]          = 'V';
@@ -434,7 +439,6 @@ ImGui_ImplGL3_Init (void)
   io.KeyMap [ImGuiKey_Y]          = 'Y';
   io.KeyMap [ImGuiKey_Z]          = 'Z';
 
-  io.RenderDrawListsFn  = ImGui_ImplGL3_RenderDrawLists;       // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
   //io.SetClipboardTextFn = ImGui_ImplGL3_SetClipboardText;
   //io.GetClipboardTextFn = ImGui_ImplGL3_GetClipboardText;
   io.ClipboardUserData  = game_window.hWnd;

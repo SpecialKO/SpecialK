@@ -45,6 +45,54 @@ namespace SK
   }
 }
 
+typedef struct _UNICODE_STRING_SK {
+  USHORT Length;
+  USHORT MaximumLength;
+  PWSTR  Buffer;
+} UNICODE_STRING_SK;
+
+typedef struct _LDR_DATA_TABLE_ENTRY__SK
+{
+  LIST_ENTRY        InLoadOrderLinks;
+  LIST_ENTRY        InMemoryOrderLinks;
+  LIST_ENTRY        InInitializationOrderLinks;
+  PVOID             DllBase;
+  PVOID             EntryPoint;
+  ULONG             SizeOfImage;
+  UNICODE_STRING_SK FullDllName;
+  UNICODE_STRING_SK BaseDllName;
+  ULONG             Flags;
+  WORD              LoadCount;
+  WORD              TlsIndex;
+
+  union
+  {
+    LIST_ENTRY   HashLinks;
+    struct
+    {
+      PVOID      SectionPointer;
+      ULONG      CheckSum;
+    };
+  };
+
+  union
+  {
+    ULONG        TimeDateStamp;
+    PVOID        LoadedImports;
+  };
+
+  _ACTIVATION_CONTEXT
+    *EntryPointActivationContext;
+  PVOID          PatchInformation;
+  LIST_ENTRY     ForwarderLinks;
+  LIST_ENTRY     ServiceTagLinks;
+  LIST_ENTRY     StaticLinks;
+} LDR_DATA_TABLE_ENTRY__SK, *PLDR_DATA_TABLE_ENTRY__SK;
+
+typedef NTSTATUS (NTAPI *LdrFindEntryForAddress_pfn)
+( HMODULE                    hMod,
+  LDR_DATA_TABLE_ENTRY__SK **ppLdrDat              );
+
 
 void WINAPI SK_SymRefreshModuleList (HANDLE hProc = GetCurrentProcess ());
 BOOL WINAPI SK_IsDebuggerPresent    (void);

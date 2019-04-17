@@ -19,17 +19,12 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/sound.h>
-
-#include <SpecialK/sound.h>
-
-#include <map>
-#include <string>
-
-#include <TlHelp32.h>
 
 class SK_MMDev_AudioEndpointVolumeCallback;
 std::unique_ptr <SK_MMDev_AudioEndpointVolumeCallback> volume_mgr = nullptr;
@@ -72,7 +67,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
                                         ImVec2 (io.DisplaySize.x * 0.75f,
                                                 io.DisplaySize.y * 0.666f) );
 
-  if (ImGui::BeginPopupModal ("Audio Session Selector", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+  if (ImGui::BeginPopupModal ("Audio Session Selector", nullptr, ImGuiWindowFlags_AlwaysAutoResize |
                                                                  ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse))
   {
     int sel_idx = -1;
@@ -108,8 +103,8 @@ SK_ImGui_SelectAudioSessionDlg (void)
     //if (ImGui::ListBoxHeader ("##empty", count, std::min (count + 3, 10)))
     ImGui::BeginGroup ();
     {
-      ImGui::PushStyleColor (ImGuiCol_ChildWindowBg, ImColor (0, 0, 0, 0));
-      ImGui::BeginChild     ("SessionSelectData",    ImVec2  (0, 0), true,  ImGuiWindowFlags_NavFlattened);
+      ImGui::PushStyleColor (ImGuiCol_ChildBg,   ImVec4 (0.f, 0.f, 0.f, 0.f));
+      ImGui::BeginChild     ("SessionSelectData",ImVec2 (0, 0), true,  ImGuiWindowFlags_NavFlattened);
 
       ImGui::BeginGroup ();//"SessionSelectData");
       ImGui::Columns    (2);
@@ -150,11 +145,11 @@ SK_ImGui_SelectAudioSessionDlg (void)
           char      szLabel [32] = { };
           snprintf (szLabel, 31, "###VolumeSlider%i", i);
 
-          ImGui::PushStyleColor (ImGuiCol_Text,           mute ? ImColor (0.5f, 0.5f, 0.5f) : ImColor (1.0f, 1.0f, 1.0f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor::HSV ( 0.4f * volume, 0.6f, mute ? 0.2f : 0.4f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor::HSV ( 0.4f * volume, 0.7f, mute ? 0.2f : 0.4f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor::HSV ( 0.4f * volume, 0.8f, mute ? 0.2f : 0.4f));
-          ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor::HSV ( 0.4f * volume, 0.9f,        0.6f * (mute ? 0.5f : 1.0f)));
+          ImGui::PushStyleColor (ImGuiCol_Text,           mute ? ImVec4 (0.5f, 0.5f, 0.5f, 1.f) : ImVec4 (1.0f, 1.0f, 1.0f, 1.f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBg,        (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.6f, mute ? 0.2f : 0.4f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.7f, mute ? 0.2f : 0.4f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.8f, mute ? 0.2f : 0.4f));
+          ImGui::PushStyleColor (ImGuiCol_SliderGrab,     (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.9f,        0.6f * (mute ? 0.5f : 1.0f)));
 
           volume *= 100.0f;
 
@@ -447,10 +442,11 @@ SK_ImGui_VolumeManager (void)
           float disp_max = FLT_MIN;
         } vu_peaks;
 
-        float peaks    [120] = {   };
-        int   current_idx    =   0L ;
-        DWORD update_time    =  0UL ;
-      } static history [ 32] = {   };
+        float peaks       [120] = {   };
+        int   current_idx       =   0L ;
+        DWORD update_time       =  0UL ;
+        char  hashed_name [ 32] = {   };
+      } static history    [ 32] = {   };
 
       #define VUMETER_TIME 333
 
@@ -532,11 +528,11 @@ SK_ImGui_VolumeManager (void)
 
       float val = master_mute ? 0.0f : 1.0f;
 
-      ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f,  val));
-      ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f,  val));
-      ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f,  val));
-      ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor ( 1.0f,  1.0f,  1.0f, 1.0f));
-      ImGui::PushStyleColor (ImGuiCol_Text,           ImColor::HSV ( 0.15f, 0.0f,
+      ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 ( 0.3f,  0.3f,  0.3f,  val));
+      ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 ( 0.6f,  0.6f,  0.6f,  val));
+      ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
+      ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV ( 0.15f, 0.0f,
                                                                        0.5f + master_vol * 0.5f) );
 
       if (ImGui::SliderFloat ("     Session Master Volume   ", &master_vol, 0.0, 1.0, ""))
@@ -658,10 +654,10 @@ SK_ImGui_VolumeManager (void)
                    val        = ch_vol.muted ? 0.1f : 0.5f;
             float *pSliderVal = ch_vol.muted ? &ch_vol.normalized : &ch_vol.volume;
 
-            ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.5f, val));
-            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.6f, val));
-            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.7f, val));
-            ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.9f, 0.9f));
+            ImGui::PushStyleColor (ImGuiCol_FrameBg,        (ImVec4&&)ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.5f, val));
+            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (ImVec4&&)ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.6f, val));
+            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (ImVec4&&)ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.7f, val));
+            ImGui::PushStyleColor (ImGuiCol_SliderGrab,     (ImVec4&&)ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.9f, 0.9f));
 
             changed =
               ImGui::VSliderFloat ( ch_vol.slider_label,
@@ -709,9 +705,15 @@ SK_ImGui_VolumeManager (void)
             ImGui::SameLine ();
           }
 
+          if (*history [i].hashed_name == '\0')
+          {
+            lstrcatA (history [i].hashed_name, "##ChannelHistogram");
+            lstrcatA (history [i].hashed_name, std::to_string (i).c_str ());
+          }
+
           ImGui::BeginGroup ();
-          ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ( ( i + 1 ) / (float)channels, 1.0f, val));
-          ImGui::PlotHistogram ( "",
+          ImGui::PushStyleColor (ImGuiCol_PlotHistogram, (ImVec4&&)ImColor::HSV ( ( i + 1 ) / (float)channels, 1.0f, val));
+          ImGui::PlotHistogram ( history [i].hashed_name,
                                    history [i].peaks,
                                      IM_ARRAYSIZE (history [i].peaks),
                                        history [i].current_idx,

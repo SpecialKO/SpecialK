@@ -19,38 +19,8 @@
  *
 **/
 
-#include <SpecialK/SpecialK.h>
-#include <SpecialK/core.h>
 #include <SpecialK/stdafx.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/window.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/widgets/widget.h>
 
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-#include <SpecialK/diagnostics/compatibility.h>
-#include <SpecialK/diagnostics/crash_handler.h>
-#include <SpecialK/diagnostics/debug_utils.h>
-
-#include <SpecialK/performance/memory_monitor.h>
-#include <SpecialK/performance/io_monitor.h>
-#include <SpecialK/performance/gpu_monitor.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/com_util.h>
-
-#include <SpecialK/log.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/sound.h>
-#include <SpecialK/tls.h>
-
-#include <SpecialK/osd/text.h>
-#include <SpecialK/import.h>
-#include <SpecialK/console.h>
-#include <SpecialK/command.h>
-
-#include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
@@ -58,51 +28,15 @@
 #include <SpecialK/render/vk/vulkan_backend.h>
 #include <SpecialK/render/d3d11/d3d11_4.h>
 
-#include <SpecialK/plugin/plugin_mgr.h>
-
-#include <SpecialK/resource.h>
-
-#include <SpecialK/nvapi.h>
-#include <SpecialK/adl.h>
-
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/update/version.h>
-#include <SpecialK/update/network.h>
-
-#include <SpecialK/widgets/widget.h>
-
-#include <SpecialK/input/dinput7_backend.h>
-#include <SpecialK/input/dinput8_backend.h>
-
-#include <SpecialK/injection/injection.h>
-
-#include <SpecialK/control_panel.h>
-
-#include <atlbase.h>
-#include <comdef.h>
-#include <delayimp.h>
-#include <ShlObj.h>
-#include <LibLoaderAPI.h>
-#include <powersetting.h>
-
-#include <gsl/pointers>
-
-#pragma warning   (push)
-#pragma warning   (disable: 4091)
-#define _IMAGEHLP_SOURCE_
-#  include <DbgHelp.h>
-#pragma warning   (pop)
-
-#include <avrt.h>
-#pragma comment (lib, "avrt.lib")
-
 #include <d3d9.h>
 #include <d3d11.h>
 #include <wingdi.h>
 #include <gl/gl.h>
 
 #include <imgui/imgui.h>
+
+#include <SpecialK/nvapi.h>
+#include <SpecialK/adl.h>
 
 extern void SK_Input_PreInit (void);
 
@@ -153,16 +87,17 @@ SK_GetInitParams (void)
 #define THREAD_CREATE_FLAGS_INITIAL_THREAD          0x00000080
 
 
-enum THREADINFOCLASS {
+typedef enum _THREADINFOCLASS_SK {
   ThreadBasicInformation,
-};
+  ThreadIsIoPending = 16
+} THREADINFOCLASS_SK;
 
 NTSTATUS WINAPI NtQueryInformationThread(
-  _In_      HANDLE          ThreadHandle,
-  _In_      THREADINFOCLASS ThreadInformationClass,
-  _Inout_   PVOID           ThreadInformation,
-  _In_      ULONG           ThreadInformationLength,
-  _Out_opt_ PULONG          ReturnLength
+  _In_      HANDLE             ThreadHandle,
+  _In_      THREADINFOCLASS_SK ThreadInformationClass,
+  _Inout_   PVOID              ThreadInformation,
+  _In_      ULONG              ThreadInformationLength,
+  _Out_opt_ PULONG             ReturnLength
 );
 
 
@@ -298,21 +233,21 @@ SK_StartPerfMonThreads (void)
   //
   // Spawn CPU Refresh Thread
   //
-  if (config.cpu.show || ( SK_ImGui_Widgets.cpu_monitor != nullptr &&
-                           SK_ImGui_Widgets.cpu_monitor->isActive () ))
-    SpawnMonitorThread (&__SK_WMI_CPUStats ().hThread, L"CPU Monitor", SK_MonitorCPU);
+  if (config.cpu.show || ( SK_ImGui_Widgets->cpu_monitor != nullptr &&
+                           SK_ImGui_Widgets->cpu_monitor->isActive () ))
+    SpawnMonitorThread (&SK_WMI_CPUStats->hThread, L"CPU Monitor", SK_MonitorCPU);
 
   //
   // Spawn Process Monitor Thread
   //
   if (config.mem.show)
-    SpawnMonitorThread (&__SK_WMI_ProcessStats ().hThread,  L"Process Monitor",  SK_MonitorProcess);
+    SpawnMonitorThread (&SK_WMI_ProcessStats->hThread,  L"Process Monitor",  SK_MonitorProcess);
 
   if (config.disk.show)
-    SpawnMonitorThread (&__SK_WMI_DiskStats ().hThread,     L"Disk Monitor",     SK_MonitorDisk);
+    SpawnMonitorThread (&SK_WMI_DiskStats->hThread,     L"Disk Monitor",     SK_MonitorDisk);
 
   if (config.pagefile.show)
-    SpawnMonitorThread (&__SK_WMI_PagefileStats ().hThread, L"Pagefile Monitor", SK_MonitorPagefile);
+    SpawnMonitorThread (&SK_WMI_PagefileStats->hThread, L"Pagefile Monitor", SK_MonitorPagefile);
 }
 
 
@@ -472,6 +407,8 @@ SK_InitFinishCallback (void);
 void
 SK_UnpackD3DShaderCompiler (void);
 
+extern ImGuiContext* SK_GImDefaultContext (void);
+
 void
 __stdcall
 SK_InitCore (std::wstring, void* callback)
@@ -484,7 +421,6 @@ SK_InitCore (std::wstring, void* callback)
 
 
   init_mutex->lock ();
-
 
   switch (SK_GetCurrentGameID ())
   {
@@ -507,6 +443,11 @@ SK_InitCore (std::wstring, void* callback)
 
     case SK_GAME_ID::Tales_of_Vesperia:
       SK_TVFix_InitPlugin ();
+      break;
+
+    case SK_GAME_ID::Sekiro:
+      extern void SK_Sekiro_InitPlugin (void);
+                  SK_Sekiro_InitPlugin (    );
       break;
 
     case SK_GAME_ID::FarCry5:
@@ -612,264 +553,6 @@ SK_InitCore (std::wstring, void* callback)
       break;
 #endif
   }
-
-#if 0
-  DWORD
-  WINAPI
-  DownloadThread (LPVOID user)
-  {
-    SetCurrentThreadDescription (L"[SK] HTTP Download Thread");
-
-    ULONG ulTimeout = 2500UL;
-
-    auto* get =
-      static_cast <sk_internet_get_t *> (user);
-
-    SK_RunOnce (srand (timeGetTime ()));
-
-    const wchar_t* wszAgents[] = {
-      L"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36",
-      L"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36",
-      L"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0"
-    };
-
-    PCWSTR rgpszAcceptTypes [] = { L"*/*", nullptr };
-    HINTERNET hInetHTTPGetReq  = 0,
-              hInetHost        = 0,
-    hInetRoot                  =
-      InternetOpen (
-        wszAgents [rand () % 3],
-          INTERNET_OPEN_TYPE_DIRECT,
-            nullptr, nullptr,
-              0x00
-      );
-
-    if (! hInetRoot)
-      goto CLEANUP;
-
-    DWORD dwInetCtx;
-
-    hInetHost =
-      InternetConnect ( hInetRoot,
-                          get->wszHostName,
-                            INTERNET_DEFAULT_HTTP_PORT,
-                              nullptr, nullptr,
-                                INTERNET_SERVICE_HTTP,
-                                  0x00,
-                                    (DWORD_PTR)&dwInetCtx );
-
-    if (! hInetHost)
-    {
-      InternetCloseHandle (hInetRoot);
-      goto CLEANUP;
-    }
-
-    hInetHTTPGetReq =
-      HttpOpenRequest ( hInetHost,
-                          nullptr,
-                            get->wszHostPath,
-                              L"HTTP/1.1",
-                                nullptr,
-                                  rgpszAcceptTypes,
-                                                                      INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
-                                    INTERNET_FLAG_CACHE_IF_NET_FAIL | INTERNET_FLAG_IGNORE_CERT_CN_INVALID   |
-                                    INTERNET_FLAG_RESYNCHRONIZE     | INTERNET_FLAG_CACHE_ASYNC,
-                                      (DWORD_PTR)&dwInetCtx );
-
-
-    // Wait 2500 msecs for a dead connection, then give up
-    //
-    InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT,
-                           &ulTimeout,      sizeof ULONG );
-
-
-    if (! hInetHTTPGetReq)
-    {
-      InternetCloseHandle (hInetHost);
-      InternetCloseHandle (hInetRoot);
-      goto CLEANUP;
-    }
-
-    if ( HttpSendRequestW ( hInetHTTPGetReq,
-                              nullptr,
-                                0,
-                                  nullptr,
-                                    0 ) )
-    {
-
-      DWORD dwContentLength     = 0;
-      DWORD dwContentLength_Len = sizeof DWORD;
-      DWORD dwSize;
-
-      HttpQueryInfo ( hInetHTTPGetReq,
-                        HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER,
-                          &dwContentLength,
-                            &dwContentLength_Len,
-                              nullptr );
-
-      DWORD dwTotalBytesDownloaded = 0UL;
-
-      if ( InternetQueryDataAvailable ( hInetHTTPGetReq,
-                                          &dwSize,
-                                            0x00, NULL )
-        )
-      {
-        HANDLE hGetFile =
-          CreateFileW ( get->wszLocalPath,
-                          GENERIC_WRITE,
-                            FILE_SHARE_READ,
-                              nullptr,
-                                CREATE_ALWAYS,
-                                  FILE_ATTRIBUTE_NORMAL |
-                                  FILE_FLAG_SEQUENTIAL_SCAN,
-                                    nullptr );
-
-        while (hGetFile != INVALID_HANDLE_VALUE && dwSize > 0)
-        {
-          DWORD  dwRead = 0;
-          auto  *pData  =
-            static_cast <uint8_t *> (malloc (dwSize));
-
-          if (! pData)
-            break;
-
-          if ( InternetReadFile ( hInetHTTPGetReq,
-                                    pData,
-                                      dwSize,
-                                        &dwRead )
-            )
-          {
-            DWORD dwWritten;
-
-            WriteFile ( hGetFile,
-                          pData,
-                            dwRead,
-                              &dwWritten,
-                                nullptr );
-
-            dwTotalBytesDownloaded += dwRead;
-          }
-
-          free (pData);
-          pData = nullptr;
-
-          if (! InternetQueryDataAvailable ( hInetHTTPGetReq,
-                                               &dwSize,
-                                                 0x00, NULL
-                                           )
-             ) break;
-        }
-
-        if (hGetFile != INVALID_HANDLE_VALUE)
-          CloseHandle (hGetFile);
-      }
-
-      //HttpEndRequest ( hInetHTTPGetReq, nullptr, 0x00, 0 );
-    }
-
-    InternetCloseHandle (hInetHTTPGetReq);
-    InternetCloseHandle (hInetHost);
-    InternetCloseHandle (hInetRoot);
-
-    goto END;
-
-
-    // (Cleanup On Error)
-  CLEANUP:
-  END:
-
-
-    SK_Thread_CloseSelf ();
-
-    return 0;
-  }
-
-  FILE* fHTML =
-    fopen (R"(C:\users\amcol\Documents\My Mods\SpecialK\manifest.html)", "r+");
-
-  if (fHTML != nullptr)
-  {
-    uint64_t size =
-      SK_File_GetSize (LR"(C:\users\amcol\Documents\My Mods\SpecialK\manifest.html)");
-
-    std::unique_ptr <char[]> html_text =
-      std::make_unique <char> (size + 1);
-
-    fread  (html_text.get (), size, 1, fHTML);
-    fclose (fHTML);
-
-    char *szManifestHeading =
-      StrStrIA (html_text.get (), "<h2>Previous manifests</h2>");
-    char *szTableBegin = nullptr,
-         *szTableEnd   = nullptr;
-
-    if (szManifestHeading != nullptr)
-    {
-      szTableBegin =
-        StrStrIA (szManifestHeading, "<tbody>");
-
-      if (szTableBegin != nullptr)
-      {
-        szTableEnd =
-          StrStrIA (szTableBegin, "</tbody>");
-        *szTableEnd = '\0';
-      }
-    }
-
-    struct depot_manifest_s {
-      std::string date;
-      std::string manifest_id;
-    };
-
-    std::vector <depot_manifest_s> manifests;
-
-    if (szTableEnd != nullptr)
-    {
-      char *pos         = szTableBegin;
-      char *closing_tag = nullptr;
-
-      while (pos != nullptr && pos < szTableEnd)
-      {
-        depot_manifest_s manifest;
-
-        pos  = StrStrIA (pos, "<td class=\"text-right\">");
-
-        if (pos == nullptr)
-          break;
-
-        pos += 23;
-
-        closing_tag = StrStrIA (pos, "</td>");
-
-        manifest.date =
-          std::string (pos, closing_tag - pos);
-
-        pos         = StrStrIA (closing_tag, "<td>");
-
-        if (pos == nullptr)
-          break;
-
-        pos += 5;
-
-        closing_tag = StrStrIA (pos,         "</td>");
-
-        manifest.manifest_id =
-          std::string (pos, closing_tag - pos);
-
-        manifests.emplace_back (manifest);
-
-        pos         = closing_tag;
-      }
-    }
-    for ( auto& manifest : manifests )
-    {
-      dll_log->Log (L"Manifest:  { %33s }  - [ %19s ]",
-        SK_UTF8ToWideChar (manifest.date).c_str        (),
-        SK_UTF8ToWideChar (manifest.manifest_id).c_str ()
-      );
-    }
-  }
-#endif
 
   callback_fn (SK_InitFinishCallback);
 }
@@ -1282,7 +965,7 @@ SK_InitFinishCallback (void)
   //   immediately...
   SK_Thread_Create ([](LPVOID) -> DWORD
   {
-    SetCurrentThreadDescription (    L"[SK] GPU Vendor Support Library Thread" );
+    SetCurrentThreadDescription (    L"[SK] GPU Vendor Extension Bootstrapper"   );
     SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
     SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                   );
 
@@ -1321,7 +1004,7 @@ DWORD
 WINAPI
 CheckVersionThread (LPVOID)
 {
-  SetCurrentThreadDescription (                   L"[SK] Auto-Update Thread"   );
+  SetCurrentThreadDescription (                   L"[SK] Auto-Update Worker"   );
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
 
   // If a local repository is present, use that.
@@ -1612,14 +1295,6 @@ SK_HasGlobalInjector (void)
 
 extern std::pair <std::queue <DWORD>, BOOL> __stdcall SK_BypassInject (void);
 
-struct sk_user_profile_s
-{
-  wchar_t wszProfile    [MAX_PATH] = { };
-  wchar_t wszDocs       [MAX_PATH] = { };
-  wchar_t wszEnvProfile [MAX_PATH] = { };
-  wchar_t wszEnvDocs    [MAX_PATH] = { };
-} static user_profile;
-
 const wchar_t*
 __stdcall
 SK_GetDebugSymbolPath (void)
@@ -1641,7 +1316,7 @@ SK_GetDebugSymbolPath (void)
 
 
     std::wstring symbol_file =
-      SK_GetModuleFullName (SK_Modules.Self ());
+      SK_GetModuleFullName (SK_Modules->Self ());
 
     wchar_t wszSelfName [MAX_PATH * 3 + 1] = { };
     wcsncpy_s ( wszSelfName,           MAX_PATH * 3,
@@ -2088,6 +1763,25 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       game_debug->lockless = true;
 
 
+
+      if (! SK_GImDefaultContext ())
+      {
+        ImGui::CreateContext      ();
+        ImGui::StyleColorsClassic (&SK_GImDefaultContext ()->Style);
+
+        ImGuiIO& io =
+          ImGui::GetIO ();
+
+        io.ConfigFlags |= ( ImGuiConfigFlags_NavEnableKeyboard |
+                            ImGuiConfigFlags_NavEnableGamepad  |
+                            ImGuiConfigFlags_NavEnableSetMousePos );
+
+        io.BackendFlags |= ( ImGuiBackendFlags_HasGamepad |
+                           /*ImGuiBackendFlags_HasMouseCursors |*/
+                             ImGuiBackendFlags_HasSetMousePos );
+      }
+
+
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary     ();
       SK_MinHook_Init           ();
@@ -2111,9 +1805,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       SK_Thread_Create ([](LPVOID) -> DWORD
       {
-        SetCurrentThreadDescription (                         L"[SK] Init Cleanup Thread" );
-        SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST     );
-        SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                        );
+        SetCurrentThreadDescription (                         L"[SK] Init Cleanup"    );
+        SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST );
+        SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                    );
 
         WaitForInit           ();
 
@@ -2268,7 +1962,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
             //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
             //     the game won't be happy about that!
             kick_start =
-              (! SK_Modules.LoadLibrary (SK_Steam_GetDLLPath ())) ||
+              (! SK_Modules->LoadLibrary (SK_Steam_GetDLLPath ())) ||
                     config.steam.force_load_steamapi;
           }
         }
@@ -2358,12 +2052,12 @@ BACKEND_INIT:
   // Pre-Load the original DLL into memory
   if (dll_name != wszBackendDLL)
   {
-                  SK_Modules.LoadLibraryLL (wszBackendDLL);
-    backend_dll = SK_Modules.LoadLibraryLL (dll_name);
+                  SK_Modules->LoadLibraryLL (wszBackendDLL);
+    backend_dll = SK_Modules->LoadLibraryLL (dll_name);
   }
 
   else
-    backend_dll = SK_Modules.LoadLibraryLL (dll_name);
+    backend_dll = SK_Modules->LoadLibraryLL (dll_name);
 
   if (backend_dll != nullptr)
     dll_log->LogEx (false, L" (%s)\n",         SK_ConcealUserDir (std::wstring (dll_name).data ()));
@@ -2435,7 +2129,7 @@ BACKEND_INIT:
     extern void SK_Widget_InitHDR            (void);
     SK_RunOnce (SK_Widget_InitHDR            ());
 
-    SK_ImGui_Widgets.hdr_control->run ();
+    SK_ImGui_Widgets->hdr_control->run ();
 
     bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
          dxgi = false, d3d8   = false, ddraw = false, glide = false;
@@ -2481,15 +2175,17 @@ BACKEND_INIT:
 }
 
 
-struct {
+struct SK_DummyWindows {
   std::set <HWND> list;
   std::mutex      lock;
-} dummy_windows;
+};
+
+SK_LazyGlobal <SK_DummyWindows> dummy_windows;
 
 HWND
 SK_Win32_CreateDummyWindow (void)
 {
-  std::lock_guard <std::mutex> auto_lock (dummy_windows.lock);
+  std::lock_guard <std::mutex> auto_lock (dummy_windows->lock);
 
   static WNDCLASSW wc          = {
     CS_OWNDC,
@@ -2523,7 +2219,7 @@ SK_Win32_CreateDummyWindow (void)
     if (hWnd != SK_HWND_DESKTOP)
     {
       ShowWindowAsync (hWnd, SW_SHOWMINNOACTIVE);
-      dummy_windows.list.emplace (hWnd);
+      dummy_windows->list.emplace (hWnd);
     }
 
     return hWnd;
@@ -2540,11 +2236,11 @@ SK_Win32_CreateDummyWindow (void)
 void
 SK_Win32_CleanupDummyWindow (HWND hwnd)
 {
-  std::lock_guard <std::mutex> auto_lock (dummy_windows.lock);
+  std::lock_guard <std::mutex> auto_lock (dummy_windows->lock);
 
   std::set <HWND> cleaned_windows;
 
-  for ( auto& it : dummy_windows.list )
+  for ( auto& it : dummy_windows->list )
   {
     if (it == hwnd || hwnd == nullptr)
     {
@@ -2556,9 +2252,9 @@ SK_Win32_CleanupDummyWindow (HWND hwnd)
   }
 
   for ( auto& it : cleaned_windows )
-    dummy_windows.list.erase (it);
+    dummy_windows->list.erase (it);
 
-  if (dummy_windows.list.empty ())
+  if (dummy_windows->list.empty ())
     UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
 }
 
@@ -2656,10 +2352,10 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log->LogEx (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
   };
 
-  auto& process_stats  = __SK_WMI_ProcessStats  ();
-  auto& cpu_stats      = __SK_WMI_CPUStats      ();
-  auto& disk_stats     = __SK_WMI_DiskStats     ();
-  auto& pagefile_stats = __SK_WMI_PagefileStats ();
+  auto& process_stats  = *SK_WMI_ProcessStats;
+  auto& cpu_stats      = *SK_WMI_CPUStats;
+  auto& disk_stats     = *SK_WMI_DiskStats;
+  auto& pagefile_stats = *SK_WMI_PagefileStats;
 
   ShutdownWMIThread (process_stats.hShutdownSignal,   process_stats.hThread, L"Process Monitor" );
   ShutdownWMIThread (cpu_stats .hShutdownSignal,          cpu_stats.hThread, L"CPU Monitor"     );
@@ -2685,7 +2381,6 @@ SK_ShutdownCore (const wchar_t* backend)
   if (! SK_Debug_IsCrashing ())
   {
     SK_GetCurrentRenderBackend ().releaseOwnedResources ();
-
 
     SK_UnloadImports        ();
     SK::Framerate::Shutdown ();
@@ -2823,7 +2518,7 @@ SKX_Window_EstablishRoot (void)
     }
   }
 
-  if (hWndTarget == HWND_DESKTOP)
+  else if (hWndTarget == HWND_DESKTOP)
   {
      GetWindowThreadProcessId (hWndFocus, &dwWindowPid);
 
@@ -3759,7 +3454,7 @@ RunDLL_RestartGame ( HWND  hwnd,        HINSTANCE hInst,
 
 
 
-SK_ImGui_WidgetRegistry SK_ImGui_Widgets;
+SK_LazyGlobal <SK_ImGui_WidgetRegistry> SK_ImGui_Widgets;
 
 
 #ifdef _WIN64

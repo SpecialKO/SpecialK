@@ -1,15 +1,15 @@
 // A bunch of stupid "plug-ins," not even worth copyrighting.
 //
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 
-#include <SpecialK/config.h>
 #include <SpecialK/control_panel.h>
+#include <SpecialK/plugin/plugin_mgr.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-
-#include <SpecialK/parameter.h>
 
 extern bool SK_D3D11_EnableTracking;
 
@@ -71,14 +71,14 @@ SK_LSBTS_PlugInCfg (void)
     {
       if (wired)
       {
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.wireframe, ps_skin);
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.wireframe, ps_face);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.wireframe, ps_skin);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.wireframe, ps_face);
       }
 
       else
       {
-        SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.wireframe, ps_skin);
-        SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.wireframe, ps_face);
+        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.wireframe, ps_skin);
+        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.wireframe, ps_face);
       }
     }
 
@@ -86,12 +86,12 @@ SK_LSBTS_PlugInCfg (void)
     {
       if (evil)
       {
-        SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.blacklist, vs_eyes);
+        SK_D3D11_Shaders->vertex.addTrackingRef (SK_D3D11_Shaders->vertex.blacklist, vs_eyes);
       }
 
       else
       {
-        SK_D3D11_Shaders.vertex.releaseTrackingRef (SK_D3D11_Shaders.vertex.blacklist, vs_eyes);
+        SK_D3D11_Shaders->vertex.releaseTrackingRef (SK_D3D11_Shaders->vertex.blacklist, vs_eyes);
       }
     }
 
@@ -99,14 +99,14 @@ SK_LSBTS_PlugInCfg (void)
     {
       if (even_stranger)
       {
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, ps_face);
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, ps_skin);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_face);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_skin);
       }
 
       else
       {
-        SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, ps_face);
-        SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, ps_skin);
+        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_face);
+        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_skin);
       }
     }
 
@@ -129,8 +129,6 @@ static const int priority_levels [] =
   { THREAD_PRIORITY_NORMAL,  THREAD_PRIORITY_ABOVE_NORMAL,
     THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL };
 
-#include <unordered_set>
-
 struct SK_FFXV_Thread
 {
   ~SK_FFXV_Thread (void) {///noexcept {
@@ -139,64 +137,19 @@ struct SK_FFXV_Thread
   }
 
   HANDLE               hThread = 0;
-  volatile LONG        dwPrio  = THREAD_PRIORITY_NORMAL;
+  volatile LONG        dwPrio = THREAD_PRIORITY_NORMAL;
 
   sk::ParameterInt* prio_cfg;
 
   void setup (HANDLE __hThread);
-} sk_ffxv_swapchain,
-  sk_ffxv_vsync,
-  sk_ffxv_async_run;
+};
+
+SK_LazyGlobal <SK_FFXV_Thread> sk_ffxv_swapchain,
+                               sk_ffxv_vsync,
+                               sk_ffxv_async_run;
 
 extern iSK_INI*             dll_ini;
 extern sk::ParameterFactory g_ParameterFactory;
-
-#if 0
-using SleepConditionVariableCS_pfn = BOOL (WINAPI *)(PCONDITION_VARIABLE, PCRITICAL_SECTION, DWORD);
-SleepConditionVariableCS_pfn SleepConditionVariableCS_Original = nullptr;
-
-#include <SpecialK/hooks.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/log.h>
-
-#define __SK_SUBSYSTEM__ L"FFXV_Fix"
-
-BOOL
-WINAPI
-SleepConditionVariableCS_Detour (
-  _Inout_ PCONDITION_VARIABLE ConditionVariable,
-  _Inout_ PCRITICAL_SECTION   CriticalSection,
-  _In_    DWORD               dwMilliseconds )
-{
-  extern float target_fps;
-  if (target_fps != 0.0f)
-  {
-    extern DWORD dwRenderThread;
-
-    if (GetCurrentThreadId () == dwRenderThread)
-    {
-      SK_LOG_FIRST_CALL
-
-      LeaveCriticalSection (CriticalSection);
-
-      //SleepConditionVariableCS_Original ( ConditionVariable, CriticalSection, 0 );
-
-      EnterCriticalSection (CriticalSection);
-
-      SetLastError (ERROR_TIMEOUT);
-
-      return 0;
-    }
-  }
-
-  return
-    SleepConditionVariableCS_Original ( ConditionVariable, CriticalSection, dwMilliseconds );
-}
-#endif
-
-#include <SpecialK/hooks.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/log.h>
 
 typedef DWORD (WINAPI *GetEnvironmentVariableA_pfn)(
   LPCSTR lpName,
@@ -275,7 +228,7 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
     );
 
 
-  if (this == &sk_ffxv_swapchain)
+  if (this == &*sk_ffxv_swapchain)
   {
 #if 0
     SK_CreateDLLHook2 (      L"kernel32",
@@ -289,12 +242,12 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
     prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"SwapChainPriority" );
   }
 
-  else if (this == &sk_ffxv_vsync)
+  else if (this == &*sk_ffxv_vsync)
   {
     prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"VSyncPriority" );
   }
 
-  else if (this == &sk_ffxv_async_run)
+  else if (this == &*sk_ffxv_async_run)
   {
     prio_cfg->register_to_ini ( dll_ini, L"FFXV.DiskFix", L"AsyncFileRun" );
   }
@@ -321,20 +274,20 @@ SK_FFXV_SetupThreadPriorities (void)
 {
   static int iters = 0;
 
-  if (sk_ffxv_swapchain.hThread == 0)
+  if (sk_ffxv_swapchain->hThread == 0)
   {
     SK_AutoHandle hThread (
       OpenThread ( THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId () )
     );
 
-    sk_ffxv_swapchain.setup (hThread.m_h);
+    sk_ffxv_swapchain->setup (hThread.m_h);
   }
 
   else  if ((iters++ % 120) == 0)
   {
-    SetThreadPriority (sk_ffxv_swapchain.hThread, sk_ffxv_swapchain.dwPrio);
-    SetThreadPriority (sk_ffxv_vsync.hThread,     sk_ffxv_vsync.dwPrio);
-    SetThreadPriority (sk_ffxv_async_run.hThread, sk_ffxv_async_run.dwPrio);
+    SetThreadPriority (sk_ffxv_swapchain->hThread, sk_ffxv_swapchain->dwPrio);
+    SetThreadPriority (sk_ffxv_vsync->hThread,     sk_ffxv_vsync->dwPrio);
+    SetThreadPriority (sk_ffxv_async_run->hThread, sk_ffxv_async_run->dwPrio);
   }
 }
 
@@ -355,11 +308,11 @@ SK_FFXV_PlugInCfg (void)
     {
       if (ignis_vision)
       {
-        SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.wireframe, 0x89d01dda);
-        SK_D3D11_Shaders.vertex.addTrackingRef (SK_D3D11_Shaders.vertex.on_top,    0x89d01dda);
+        SK_D3D11_Shaders->vertex.addTrackingRef (SK_D3D11_Shaders->vertex.wireframe, 0x89d01dda);
+        SK_D3D11_Shaders->vertex.addTrackingRef (SK_D3D11_Shaders->vertex.on_top,    0x89d01dda);
       } else {
-        SK_D3D11_Shaders.vertex.releaseTrackingRef (SK_D3D11_Shaders.vertex.wireframe, 0x89d01dda);
-        SK_D3D11_Shaders.vertex.releaseTrackingRef (SK_D3D11_Shaders.vertex.on_top,    0x89d01dda);
+        SK_D3D11_Shaders->vertex.releaseTrackingRef (SK_D3D11_Shaders->vertex.wireframe, 0x89d01dda);
+        SK_D3D11_Shaders->vertex.releaseTrackingRef (SK_D3D11_Shaders->vertex.on_top,    0x89d01dda);
       }
     }
 
@@ -370,29 +323,29 @@ SK_FFXV_PlugInCfg (void)
       if (hair_club)
       {
         // Normal Hair
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x1a77046d);
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x132b907a);
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x8a0dbca1);
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0xc9bb3e7f);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x1a77046d);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x132b907a);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8a0dbca1);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xc9bb3e7f);
 
         // Wet Hair
-        //SK_D3D11_Shaders.pixel.blacklist.emplace (0x41c6add3);
-        //SK_D3D11_Shaders.pixel.blacklist.emplace (0x4524bf4f);
-        //SK_D3D11_Shaders.pixel.blacklist.emplace (0x62f9cfe8);
-        //SK_D3D11_Shaders.pixel.blacklist.emplace (0x95f7de71);
+        //SK_D3D11_Shaders->pixel.blacklist.emplace (0x41c6add3);
+        //SK_D3D11_Shaders->pixel.blacklist.emplace (0x4524bf4f);
+        //SK_D3D11_Shaders->pixel.blacklist.emplace (0x62f9cfe8);
+        //SK_D3D11_Shaders->pixel.blacklist.emplace (0x95f7de71);
 
         // HairWorks
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x2d6f6ee8);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x2d6f6ee8);
       } else {
-        SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x1a77046d);
-        SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x132b907a);
-        SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x8a0dbca1);
-        SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0xc9bb3e7f);
-        SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x2d6f6ee8);
-        //SK_D3D11_Shaders.pixel.blacklist.erase (0x41c6add3);
-        //SK_D3D11_Shaders.pixel.blacklist.erase (0x4524bf4f);
-        //SK_D3D11_Shaders.pixel.blacklist.erase (0x62f9cfe8);
-        //SK_D3D11_Shaders.pixel.blacklist.erase (0x95f7de71);
+        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x1a77046d);
+        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x132b907a);
+        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8a0dbca1);
+        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xc9bb3e7f);
+        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x2d6f6ee8);
+        //SK_D3D11_Shaders->pixel.blacklist.erase (0x41c6add3);
+        //SK_D3D11_Shaders->pixel.blacklist.erase (0x4524bf4f);
+        //SK_D3D11_Shaders->pixel.blacklist.erase (0x62f9cfe8);
+        //SK_D3D11_Shaders->pixel.blacklist.erase (0x95f7de71);
       }
     }
 
@@ -426,7 +379,7 @@ SK_FFXV_PlugInCfg (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ( );
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.075, 0.8, 0.9));
+          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.075, 0.8, 0.9));
           ImGui::Text         ( "The graphics engine has bass-acwkwards scheduling priorities." );
           ImGui::PopStyleColor ();
           ImGui::Separator    ( );
@@ -441,7 +394,7 @@ SK_FFXV_PlugInCfg (void)
           ImGui::BulletText  ("--- Rendering is completely different ---");
           ImGui::TreePush    ("");
           ImGui::BulletText  ("The engine starves threads with more important work to do because it assigned them the wrong priority too.");
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.25, 0.8, 0.9));
+          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.25, 0.8, 0.9));
           ImGui::BulletText  ("LOWER the priority of all render-related threads for best results.");
           ImGui::PopStyleColor ();
           ImGui::TreePop     (  );
@@ -471,7 +424,7 @@ SK_FFXV_PlugInCfg (void)
       if ( *label_me == 3 &&
             label_me != &z   )
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.12f, 0.9f, 0.95f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.12f, 0.9f, 0.95f));
         ImGui::BulletText     ("Change this for better performance!");
         ImGui::PopStyleColor  ();
       }
@@ -582,7 +535,7 @@ SK_POE2_PlugInCfg (void)
 
     if ((! spoof) || gsl::narrow_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.14f, .8f, .9f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.14f, .8f, .9f));
       ImGui::BulletText     ("It is strongly suggested that you reduce worker threads to 1/2 max. or lower");
       ImGui::PopStyleColor  ();
     }
@@ -603,7 +556,7 @@ SK_POE2_PlugInCfg (void)
 
     if (config.render.framerate.override_num_cpus != orig)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
       ImGui::BulletText     ("Game Restart Required");
       ImGui::PopStyleColor  ();
     }
@@ -620,14 +573,11 @@ volatile LONG __SK_SHENMUE_FinishedButNotPresented = 0;
 volatile LONG __SK_SHENMUE_FullAspectCutscenes     = 1;
          bool  bSK_SHENMUE_FullAspectCutscenes     = true;
 
+sk::ParameterBool*    _SK_SM_FullAspectCutscenes = nullptr;
+sk::ParameterStringW* _SK_SM_FullAspectToggle    = nullptr;
 
-#include <SpecialK/plugin/plugin_mgr.h>
-
-sk::ParameterBool*    _SK_SM_FullAspectCutscenes;
-sk::ParameterStringW* _SK_SM_FullAspectToggle;
-
-sk::ParameterFloat*   _SK_SM_ClockFuzz;
-sk::ParameterBool*    _SK_SM_BypassLimiter;
+sk::ParameterFloat*   _SK_SM_ClockFuzz           = nullptr;
+sk::ParameterBool*    _SK_SM_BypassLimiter       = nullptr;
 
 bool SK_Shenmue_UseNtDllQPC = true;
 
@@ -645,7 +595,7 @@ public:
     {
       if ( SK_IsAddressExecutable (lpQueryAddr) &&
            SK_GetModuleFromAddr   (lpQueryAddr) ==
-           SK_Modules.HostApp     (           )    )
+           SK_Modules->HostApp    (           )    )
       {
         qpc_loop_addr =
            lpQueryAddr;
@@ -741,8 +691,6 @@ SK_Shenmue_InitLimiterOverride (LPVOID pQPCRetAddr)
   return
     SK_Shenmue_Limiter.initialize (pQPCRetAddr);
 }
-
-#include <command.h>
 
 SK_IVariable *pVarWideCutscenes;
 SK_IVariable *pVarBypassLimiter;
@@ -1050,7 +998,7 @@ SK_ACO_PlugInCfg (void)
       ImGui::EndTooltip      ();
     }
 
-    ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.18f, 0.85f, 0.95f));
+    ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.18f, 0.85f, 0.95f));
     ImGui::TextUnformatted ("Thread Rebalancing is CRITICAL for AMD Ryzen CPUs");
     ImGui::PopStyleColor   ();
 

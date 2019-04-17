@@ -19,14 +19,8 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <SpecialK/widgets/widget.h>
-#include <SpecialK/render/backend.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/performance/gpu_monitor.h>
-
-#include <SpecialK/control_panel.h>
-
-#include <algorithm>
 
 extern iSK_INI* osd_ini;
 
@@ -38,7 +32,7 @@ class SKWG_D3D11_Pipeline : public SK_Widget
 public:
   SKWG_D3D11_Pipeline (void) : SK_Widget ("D3D11_Pipeline")
   {
-    SK_ImGui_Widgets.d3d11_pipeline = this;
+    SK_ImGui_Widgets->d3d11_pipeline = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };

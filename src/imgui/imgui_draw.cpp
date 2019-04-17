@@ -485,7 +485,7 @@ void ImDrawList::UpdateTextureID()
 #undef GetCurrentTextureId
 
 // Render-level scissoring. This is passed down to your render function but not used for CPU-side coarse clipping. Prefer using higher-level ImGui::PushClipRect() to affect logic (hit-testing and widget culling)
-void ImDrawList::PushClipRect(ImVec2 cr_min, ImVec2 cr_max, bool intersect_with_current_clip_rect)
+void ImDrawList::PushClipRect (const ImVec2& cr_min, const ImVec2& cr_max, bool intersect_with_current_clip_rect)
 {
     ImVec4 cr(cr_min.x, cr_min.y, cr_max.x, cr_max.y);
     if (intersect_with_current_clip_rect && _ClipRectStack.Size)
@@ -693,7 +693,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, const
         // Anti-aliased stroke
         const float AA_SIZE = 1.0f;
 
-        const ImVec4 col_trans (col.Value.x, col.Value.y, col.Value.z, 0.0f);
+        const ImVec4 col_trans (col.Value.x, col.Value.y, col.Value.z, 1.0f);
 
         const int idx_count = thick_line ? count*18 : count*12;
         const int vtx_count = thick_line ? points_count*4 : points_count*3;
@@ -880,7 +880,7 @@ void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_coun
     {
         // Anti-aliased Fill
         const float AA_SIZE = 1.0f;
-        const ImColor col_trans (col.Value.x, col.Value.y, col.Value.z, 0.0f);
+        const ImColor col_trans (col.Value.x, col.Value.y, col.Value.z, 1.0f);
         const int idx_count = (points_count-2)*3 + points_count*6;
         const int vtx_count = (points_count*2);
         PrimReserve(idx_count, vtx_count);
@@ -1073,7 +1073,7 @@ void ImDrawList::AddLine(const ImVec2& a, const ImVec2& b, const ImColor& col, f
 // a: upper-left, b: lower-right. we don't render 1 px sized rectangles properly.
 void ImDrawList::AddRect(const ImVec2& a, const ImVec2& b, const ImColor& col, float rounding, int rounding_corners_flags, float thickness)
 {
-    if (col.Value.w < 0.000001)
+    if (((unsigned int)col & IM_COL32_A_MASK) == 0)
         return;
     if (Flags & ImDrawListFlags_AntiAliasedLines)
         PathRect(a + ImVec2(0.5f,0.5f), b - ImVec2(0.50f,0.50f), rounding, rounding_corners_flags);
@@ -1084,7 +1084,7 @@ void ImDrawList::AddRect(const ImVec2& a, const ImVec2& b, const ImColor& col, f
 
 void ImDrawList::AddRectFilled(const ImVec2& a, const ImVec2& b, const ImColor& col, float rounding, int rounding_corners_flags)
 {
-    if (col.Value.w < 0.000001)
+    if (((unsigned int)col & IM_COL32_A_MASK) == 0)
         return;
     if (rounding > 0.0f)
     {
@@ -1328,19 +1328,20 @@ void ImDrawData::ScaleClipRects(const ImVec2& fb_scale)
 // Generic linear color gradient, write to RGB fields, leave A untouched.
 void ImGui::ShadeVertsLinearColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, const ImColor& col0, const ImColor& col1)
 {
-    ImVec2 gradient_extent = gradient_p1 - gradient_p0;
-    float gradient_inv_length2 = 1.0f / ImLengthSqr(gradient_extent);
-    ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
-    ImDrawVert* vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
+    ImVec2      gradient_extent      = gradient_p1 - gradient_p0;
+     float      gradient_inv_length2 = 1.0f / ImLengthSqr(gradient_extent);
+    ImDrawVert* vert_start           = draw_list->VtxBuffer.Data + vert_start_idx;
+    ImDrawVert* vert_end             = draw_list->VtxBuffer.Data + vert_end_idx;
+
     for (ImDrawVert* vert = vert_start; vert < vert_end; vert++)
     {
-        float d = ImDot(vert->pos - gradient_p0, gradient_extent);
+        float d = ImDot  (vert->pos - gradient_p0, gradient_extent);
         float t = ImClamp(d * gradient_inv_length2, 0.0f, 1.0f);
-        int   r = ImLerp((int)((unsigned int)col0 >> IM_COL32_R_SHIFT) & 0xFF, (int)((unsigned int)col1 >> IM_COL32_R_SHIFT) & 0xFF, t);
-        int   g = ImLerp((int)((unsigned int)col0 >> IM_COL32_G_SHIFT) & 0xFF, (int)((unsigned int)col1 >> IM_COL32_G_SHIFT) & 0xFF, t);
-        int   b = ImLerp((int)((unsigned int)col0 >> IM_COL32_B_SHIFT) & 0xFF, (int)((unsigned int)col1 >> IM_COL32_B_SHIFT) & 0xFF, t);
+        float r = ImLerp (col0.Value.x, col1.Value.x, t);
+        float g = ImLerp (col0.Value.y, col1.Value.y, t);
+        float b = ImLerp (col0.Value.z, col1.Value.z, t);
         vert->col =
-          ImColor ((r << IM_COL32_R_SHIFT) | (g << IM_COL32_G_SHIFT) | (b << IM_COL32_B_SHIFT) | ((unsigned int)ImColor (vert->col) & IM_COL32_A_MASK));
+          ImColor (r, g, b, vert->col.w);
     }
 }
 

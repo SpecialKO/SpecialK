@@ -19,12 +19,7 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
-
-#include <cstdint>
-#include <Windows.h>
-#include <atlbase.h>
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/hash.h>
 #include <SpecialK/utility.h>

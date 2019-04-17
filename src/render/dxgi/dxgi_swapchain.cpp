@@ -19,15 +19,9 @@
  *
 **/
 
-#include <SpecialK/log.h>
-#include <SpecialK/config.h>
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
-#include <algorithm>
-
-#include <unordered_map>
-
-#include <cassert>
 #include <d3d11.h>
 
 

@@ -22,9 +22,6 @@
 #ifndef __SK__CONSOLE_H__
 #define __SK__CONSOLE_H__
 
-struct IUnknown;
-#include <Unknwnbase.h>
-
 #include <Windows.h>
 
 #include <string>

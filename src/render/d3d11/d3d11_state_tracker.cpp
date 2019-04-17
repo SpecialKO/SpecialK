@@ -19,6 +19,8 @@
 *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
 #include <SpecialK/control_panel/d3d11.h>
@@ -339,7 +341,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
     if (pDevCtx == nullptr)
     {
       end_of_frame = true;
-      pDevCtx      = rb.d3d11.immediate_ctx.p;
+      pDevCtx      = rb.d3d11.immediate_ctx;
     }
 
     switch (type_)
@@ -372,7 +374,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 
 
   if (pDevCtx == nullptr)
-    pDevCtx  = rb.d3d11.immediate_ctx.p;
+    pDevCtx  = rb.d3d11.immediate_ctx;
 
 
   // Timing is very difficult on deferred contexts; will finish later (years?)
@@ -464,3 +466,37 @@ SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_MemoryThreads;
 SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_DrawThreads;
 SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_DispatchThreads;
 SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_ShaderThreads;
+
+
+
+
+
+bool SKX_D3D11_IsVtxShaderLoaded (uint32_t crc32c)
+{
+  auto crit_sec =
+    cs_shader_vs.get ();
+
+  crit_sec->lock ();
+
+  bool bRet =
+    SK_D3D11_Shaders->vertex.descs.count (crc32c) != 0;
+
+  crit_sec->unlock ();
+
+  return bRet;
+}
+
+bool SKX_D3D11_IsPixShaderLoaded (uint32_t crc32c)
+{
+  auto crit_sec =
+    cs_shader_ps.get ();
+
+  crit_sec->lock ();
+
+  bool bRet =
+    SK_D3D11_Shaders->pixel.descs.count (crc32c) != 0;
+
+  crit_sec->unlock ();
+
+  return bRet;
+}

@@ -19,19 +19,7 @@
  *
 **/
 
-#pragma warning (disable: 4996)
-
-struct IUnknown;
-#include <Unknwnbase.h>
-
-#include <cstdio>
-#include <Shlwapi.h>
-#include <SpecialK/log.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-
+#include <SpecialK/stdafx.h>
 
 using GetSystemTimePreciseAsFileTime_pfn = void ( WINAPI * )(
   _Out_ LPFILETIME lpSystemTimeAsFileTime
@@ -386,12 +374,20 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
 
   if (! wszOut)
   {
-    wszOut =
-      static_cast <wchar_t *> (
-        _alloca ( len *
-           sizeof (wchar_t)
-        )
-      );
+    __try {
+      wszOut =
+        static_cast <wchar_t *> (
+          _alloca ( len *
+             sizeof (wchar_t)
+          )
+        );
+    }
+    __except ( GetExceptionCode () == EXCEPTION_STACK_OVERFLOW  ?
+                                      EXCEPTION_EXECUTE_HANDLER :
+                                      EXCEPTION_CONTINUE_SEARCH )
+    {
+      wszOut = nullptr;
+    }
   }
 
   if (! wszOut)

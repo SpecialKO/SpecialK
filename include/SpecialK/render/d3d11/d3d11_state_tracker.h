@@ -362,6 +362,58 @@ extern SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_DrawThreads;
 extern SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_DispatchThreads;
 extern SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_ShaderThreads;
 
+template <typename _T>
+class SK_D3D11_IsShaderLoaded
+{
+public:
+  SK_D3D11_IsShaderLoaded (uint32_t crc32c)
+  {
+    static auto& shaders =
+      SK_D3D11_Shaders;
+
+    static
+      std::map < std::type_index,
+                 std::pair < SK_Thread_CriticalSection*,
+                             SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           >
+               >
+      _ShaderMap =
+      {
+        { std::type_index (typeid (ID3D11VertexShader)),   { cs_shader_vs.get (), reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&shaders->vertex)   } },
+        { std::type_index (typeid (ID3D11PixelShader)),    { cs_shader_ps.get (), reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&shaders->pixel)    } },
+        { std::type_index (typeid (ID3D11GeometryShader)), { cs_shader_gs.get (), reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&shaders->geometry) } },
+        { std::type_index (typeid (ID3D11DomainShader)),   { cs_shader_ds.get (), reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&shaders->domain)   } },
+        { std::type_index (typeid (ID3D11HullShader)),     { cs_shader_hs.get (), reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&shaders->hull)     } },
+        { std::type_index (typeid (ID3D11ComputeShader)),  { cs_shader_cs.get (), reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&shaders->compute)  } }
+      };
+
+    const auto&& map_entry =
+      _ShaderMap.find (std::type_index (typeid (_T)));
+
+    if (map_entry == _ShaderMap.cend ())
+      loaded = false;
+
+    else
+    {
+      auto& crit_sec =
+        map_entry->second.first;
+      auto& repository =
+        map_entry->second.second;
+
+      crit_sec->lock ();
+
+      loaded =
+        ( repository->descs.count (crc32c) != 0 );
+
+      crit_sec->unlock ();
+    }
+  }
+
+  operator bool (void) const { return loaded; }
+
+private:
+  bool loaded;
+};
 
 static
 __declspec (noinline)
@@ -629,7 +681,8 @@ SK_D3D11_ShouldTrackDrawCall (       ID3D11DeviceContext* pDevCtx,
                                const SK_D3D11DrawType     draw_type,
                                      SK_TLS**             ppTLS = nullptr );
 
-
+// All known targets are indexed using the calling device context,
+//   no internal locking is necessary as long as dev ctx's are one per-thread.
 struct SK_D3D11_KnownTargets
 {
   SK_D3D11_KnownTargets (void)
@@ -648,8 +701,8 @@ struct SK_D3D11_KnownTargets
     ds_views.clear ();
   }
 
-  Concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11RenderTargetView> > rt_views;
-  Concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11DepthStencilView> > ds_views;
+  std::unordered_set <SK_ComPtr <ID3D11RenderTargetView>> rt_views;
+  std::unordered_set <SK_ComPtr <ID3D11DepthStencilView>> ds_views;
 };
 
 extern SK_LazyGlobal <std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>> SK_D3D11_RenderTargets;
@@ -669,3 +722,14 @@ extern volatile ULONG SK_D3D11_LiveTexturesDirty;
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
 extern SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown> > > SK_D3D11_TempResources;
+
+
+
+void
+SK_D3D11_SetShader_Impl ( ID3D11DeviceContext*        pDevCtx,
+                          IUnknown*                   pShader,
+                          sk_shader_class             type,
+                          ID3D11ClassInstance *const *ppClassInstances,
+                          UINT                        NumClassInstances,
+                          bool                        Wrapped = false,
+                          UINT                        dev_idx = UINT_MAX );

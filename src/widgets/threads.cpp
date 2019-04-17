@@ -18,29 +18,12 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#include <SpecialK/widgets/widget.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/diagnostics/memory.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/debug_utils.h>
-#include <SpecialK/diagnostics/crash_handler.h>
-#include <SpecialK/performance/gpu_monitor.h>
-#include <SpecialK/control_panel.h>
 
-#include <unordered_set>
-#include  <concurrent_unordered_map.h>
+#include <SpecialK/stdafx.h>
+#include <bcrypt.h>
 
-#include <processthreadsapi.h>
-#include <avrt.h>
-
-extern concurrency::concurrent_unordered_map <DWORD, std::wstring>*
-__SK_GetThreadNames (void);
-extern concurrency::concurrent_unordered_set <DWORD>*
-__SK_GetSelfTitledThreads (void);
-
-#define _SK_SelfTitledThreads (*__SK_GetSelfTitledThreads ())
-#define _SK_ThreadNames       (*__SK_GetThreadNames       ())
+extern SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, std::wstring>> _SK_ThreadNames;
+extern SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>               _SK_SelfTitledThreads;
 
 #pragma pack(push,8)
 typedef LONG NTSTATUS;
@@ -48,7 +31,6 @@ typedef      NTSTATUS (WINAPI *NtQueryInformationThread_pfn)(HANDLE,/*THREADINFO
 
 #define ThreadQuerySetWin32StartAddress 9
 
-#include <ntverp.h>
 #if (VER_PRODUCTBUILD < 10011)
 enum THREAD_INFORMATION_CLASS_EX {
 //ThreadMemoryPriority      = 0,
@@ -488,6 +470,16 @@ enum class ThreadState
 
 float __SK_Thread_RebalanceEveryNSeconds = 12.5f;
 
+struct SK_ProcessTimeCounters {
+  FILETIME ftCreate, ftExit,
+           ftKernel, ftUser;
+
+  constexpr SK_ProcessTimeCounters (void) : ftCreate ({ 0LL, 0LL }), ftKernel ({ 0LL, 0LL }),
+                                            ftUser   ({ 0LL, 0LL }), ftExit   ({ 0LL, 0LL })  { }
+} process_time;
+
+const DWORD SNAP_FREQUENCY = 30000UL;
+
 struct SKWG_Thread_Entry
 {
   HANDLE hThread;
@@ -527,8 +519,8 @@ struct SKWG_Thread_Entry
 bool
 SK_Thread_HasCustomName (DWORD dwTid);
 
-std::map <DWORD,    SKWG_Thread_Entry*> SKWG_Threads;
-std::map <LONGLONG, SKWG_Thread_Entry*> SKWG_Ordered_Threads;
+SK_LazyGlobal <std::map <DWORD,    SKWG_Thread_Entry*>> SKWG_Threads;
+SK_LazyGlobal <std::map <LONGLONG, SKWG_Thread_Entry*>> SKWG_Ordered_Threads;
 
 PSYSTEM_PROCESS_INFORMATION
 ProcessInformation ( PDWORD                       pdData,
@@ -539,8 +531,8 @@ ProcessInformation ( PDWORD                       pdData,
 
   if (NtQuerySystemInformation == nullptr)
   {
-    if (! SK_GetModuleHandleW (L"NtDll"))
-       SK_Modules.LoadLibrary (L"NtDll");
+    if (! SK_GetModuleHandleW  (L"NtDll"))
+       SK_Modules->LoadLibrary (L"NtDll");
 
     NtQuerySystemInformation =
       (NtQuerySystemInformation_pfn)
@@ -579,11 +571,19 @@ ProcessInformation ( PDWORD                       pdData,
         pspi =
           pQuery->NtInfo.data;
 
-        ns =
-          NtQuerySystemInformation ( SystemProcessInformation,
-                                       (PSYSTEM_PROCESS_INFORMATION)pspi,
-                                         (DWORD)dSize,
-                                           &dData );
+        if (pspi != nullptr)
+        {
+          ns =
+            NtQuerySystemInformation ( SystemProcessInformation,
+                                         (PSYSTEM_PROCESS_INFORMATION)pspi,
+                                           (DWORD)dSize,
+                                             &dData );
+        }
+
+        else
+        {
+          ns = STATUS_NO_MEMORY;
+        }
 
         if (ns != STATUS_SUCCESS)
         {
@@ -607,14 +607,6 @@ ProcessInformation ( PDWORD                       pdData,
   return
     ret;
 }
-
-#include <process.h>
-#include <tlhelp32.h>
-
-#include <SpecialK/log.h>
-
-#define _IMAGEHLP_SOURCE_
-#include <dbghelp.h>
 
 #ifdef _WIN64
 #define SK_StackWalk          StackWalk64
@@ -964,13 +956,13 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
     extern HMODULE __stdcall SK_GetDLL (void);
 
     static std::string self_ansi =
-      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules.Self ()));
+      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules->Self ()));
     static std::string host_ansi =
-      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules.HostApp ()));
+      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules->HostApp ()));
 
 
-    ImGui::PushStyleColor (ImGuiCol_Text,   ImColor::HSV (0.15f, 0.95f, 0.99f));
-    ImGui::PushStyleColor (ImGuiCol_Border, ImColor::HSV (0.15f, 0.95f, 0.99f));
+    ImGui::PushStyleColor (ImGuiCol_Text,   (ImVec4&&)ImColor::HSV (0.15f, 0.95f, 0.99f));
+    ImGui::PushStyleColor (ImGuiCol_Border, (ImVec4&&)ImColor::HSV (0.15f, 0.95f, 0.99f));
     ImGui::Separator      (  );
     ImGui::PopStyleColor  (02);
 
@@ -1045,7 +1037,7 @@ class SKWG_Thread_Profiler : public SK_Widget
 public:
   SKWG_Thread_Profiler (void) noexcept : SK_Widget ("Thread Profiler")
   {
-    SK_ImGui_Widgets.thread_profiler = this;
+    SK_ImGui_Widgets->thread_profiler = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
@@ -1104,7 +1096,7 @@ public:
         static_cast <float> (timeGetTime ()) /
                                1000.0f;
 
-      for ( auto& it : SKWG_Ordered_Threads )
+      for ( auto& it : *SKWG_Ordered_Threads )
       {
         if (                  it.second         == nullptr ||
                               it.second->exited == true    ||
@@ -1331,6 +1323,13 @@ public:
 
                   if (pWrite->NtStatus == STATUS_SUCCESS)
                   {
+                    // Cumulative times; sample them as close to the thread snapshot as possible or
+                    //   the load %'s will not be accurate.
+                    GetProcessTimes ( GetCurrentProcess (), &process_time.ftCreate, &process_time.ftExit,
+                                                            &process_time.ftKernel, &process_time.ftUser );
+
+                    WaitForSingleObject (pParams->hSignalShutdown, 6UL);
+
                     std::swap (write_idx, read_idx);
 
                     InterlockedExchangePointer (
@@ -1360,6 +1359,8 @@ public:
     static PSYSTEM_PROCESS_INFORMATION pInfo = nullptr;
     static NTSTATUS                    nts   = STATUS_INVALID_PARAMETER;
 
+    bool update = false;
+
     if (WaitForSingleObject (data_thread.hSignalConsume, 0) == WAIT_OBJECT_0)
     {
       // The producer is double-buffered, this always points to the last finished
@@ -1375,9 +1376,11 @@ public:
       nts   = pLatestQuery->NtStatus;
 
       SetEvent (data_thread.hSignalProduce);
+
+      update = true;
     }
 
-    if (pInfo != nullptr && nts == STATUS_SUCCESS)
+    if (update && pInfo != nullptr && nts == STATUS_SUCCESS)
     {
       int i = 0;
 
@@ -1411,7 +1414,7 @@ public:
           DWORD dwLocalTID =
             (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueThread & 0xFFFFFFFFU);
 
-          if (! SKWG_Threads.count (dwLocalTID))
+          if (! SKWG_Threads->count (dwLocalTID))
           {
             new_thread = true;
 
@@ -1430,7 +1433,7 @@ public:
                  SK_Thread_GetName (dwLocalTID)
               };
 
-            SKWG_Threads.insert (
+            SKWG_Threads->insert (
               std::make_pair ( dwLocalTID, ptEntry )
             );
 
@@ -1511,7 +1514,7 @@ public:
             liCreate.HighPart = ptEnt->runtimes.created.dwHighDateTime;
             liCreate.LowPart  = ptEnt->runtimes.created.dwLowDateTime;
 
-            SKWG_Ordered_Threads [liCreate.QuadPart] =
+            (*SKWG_Ordered_Threads)[liCreate.QuadPart] =
               ptEnt;
           }
         }
@@ -1679,14 +1682,14 @@ public:
 
           if (hThreadStack.m_h != INVALID_HANDLE_VALUE)
           {
-            FILETIME ftCreate, ftUser,
-                     ftKernel, ftExit;
+            FILETIME ftCreateStack, ftUserStack,
+                     ftKernelStack, ftExitStack;
 
-            GetThreadTimes           ( hThreadStack, &ftCreate, &ftExit, &ftKernel, &ftUser );
-            SK_ImGui_ThreadCallstack ( hThreadStack, LARGE_INTEGER {       ftUser.dwLowDateTime,
-                                                                     (LONG)ftUser.dwHighDateTime   },
-                                                     LARGE_INTEGER {       ftKernel.dwLowDateTime,
-                                                                     (LONG)ftKernel.dwHighDateTime } );
+            GetThreadTimes           ( hThreadStack, &ftCreateStack, &ftExitStack, &ftKernelStack, &ftUserStack );
+            SK_ImGui_ThreadCallstack ( hThreadStack, LARGE_INTEGER {       ftUserStack.dwLowDateTime,
+                                                                     (LONG)ftUserStack.dwHighDateTime   },
+                                                     LARGE_INTEGER {       ftKernelStack.dwLowDateTime,
+                                                                     (LONG)ftKernelStack.dwHighDateTime } );
           }
         }
 
@@ -1751,21 +1754,27 @@ public:
 
       for ( auto& task : tasks )
       {
+        if (task == nullptr)
+          continue;
+
         fSpacingMax =
           std::fmaxf ( ImGui::CalcTextSize (task->name).x,
                          fSpacingMax );
       }
 
-        ImGui::Columns (2);//(4);
-      for ( auto& task : tasks ) {
+      ImGui::Columns (2);//(4);
+      for ( auto& task : tasks )
+      {
+        if (task == nullptr)
+          continue;
+
         ImGui::PushID  (task->dwTid);
 
         static const float const_spacing =
           ImGui::CalcTextSize ("[SK] ").x;
 
       ImGui::SetColumnOffset ( 0, 0.0f   );
-      ImGui::SetColumnOffset ( 1, fSpacingMax +
-                           const_spacing );
+      ImGui::SetColumnOffset ( 1, fSpacingMax + const_spacing );
 
       ImGui::Spacing         ( ); ImGui::SameLine ();
       ImGui::TextUnformatted (task->name);
@@ -1934,8 +1943,8 @@ public:
         ImGui::BeginGroup ();
 
         bool suspended =
-         ( SKWG_Threads.count (dwSelectedTid) &&
-           SKWG_Threads [      dwSelectedTid]->wait_reason == WaitReason::Suspended );
+         ( SKWG_Threads->count (dwSelectedTid) &&
+           SKWG_Threads  [      dwSelectedTid]->wait_reason == WaitReason::Suspended );
 
         if (GetCurrentThreadId () != GetThreadId (hSelectedThread) )
         {
@@ -1982,14 +1991,48 @@ public:
                                      dwTid )
                   );
 
-                  if (SuspendThread (hThread__) != (DWORD)-1)
-                  {
-                    SK_Sleep (90);
+                  static constexpr
+                    DWORD  dwMilliseconds = 500UL;
+                        HANDLE hWaitTimer =
+                    CreateWaitableTimer (NULL, FALSE, NULL);
 
-                    if (SK_GetFramesDrawn () <= ((suspend_params_s *)user)->frames)
+                  if (hWaitTimer != 0)
+                  {
+                    LARGE_INTEGER liDelay = { };
+                                  liDelay.QuadPart =
+                                    (LONGLONG)(-10000.0l * (long double)500UL);
+
+                    if ( SetWaitableTimer ( hWaitTimer, &liDelay,
+                                              dwMilliseconds, NULL, NULL, 0 )
+                       )
                     {
-                      ResumeThread (hThread__);
+                      DWORD dwFramesBefore =
+                        SK_GetFramesDrawn ();
+
+                      if (SuspendThread (hThread__) != (DWORD)-1)
+                      {
+                        HANDLE hWaitArray [] = { hWaitTimer, hThread__.m_h };
+
+                        WaitForMultipleObjects (2, hWaitArray, FALSE, 500UL);
+
+                        //if (SK_GetFramesDrawn () <= ((suspend_params_s*)user)->frames)
+                        //{
+                        //  ResumeThread (hThread__);
+                        //}
+
+                        // If not enough frames have been drawn, consider the possibility
+                        //   that the suspended thread was holding a lock that prevents the
+                        //     game from continuing ... and resume the thread for safety.
+                        if (dwFramesBefore > (SK_GetFramesDrawn () - 6))
+                        {
+                          ResumeThread (hThread__);
+                        }
+                      }
+
+                      CancelWaitableTimer (hWaitTimer);
                     }
+
+                    CloseHandle (hWaitTimer);
                   }
                 }
 
@@ -2000,7 +2043,7 @@ public:
 
                 return 0;
               }, nullptr,
-        (LPVOID)&params);
+                   (LPVOID)&params);
             }
 
             else if (hRecoveryEvent != INVALID_HANDLE_VALUE)
@@ -2162,7 +2205,7 @@ public:
         //}
 
         const bool contains_thread =
-          SKWG_Threads.count (dwSelectedTid) != 0;
+          SKWG_Threads->count (dwSelectedTid) != 0;
 
         bool throttle =
           ( contains_thread && SKWG_Threads [dwSelectedTid]->power_throttle );
@@ -2219,7 +2262,7 @@ public:
     };
 
     ImGui::BeginGroup ();
-    for ( auto& it : SKWG_Ordered_Threads )
+    for ( auto& it : *SKWG_Ordered_Threads )
     {
       if (it.second == nullptr)
         continue;
@@ -2261,22 +2304,22 @@ public:
       } else { dwExitCode =  0; }
 
 
-      if (SKWG_Threads.count (it.second->dwTid) &&
-          SKWG_Threads       [it.second->dwTid]->wait_reason == WaitReason::Suspended)
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.85f, 0.95f, 0.99f));
+      if (SKWG_Threads->count (it.second->dwTid) &&
+          SKWG_Threads        [it.second->dwTid]->wait_reason == WaitReason::Suspended)
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.85f, 0.95f, 0.99f));
       else if (dwExitCode == STILL_ACTIVE)
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.3f, 0.95f, 0.99f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.3f, 0.95f, 0.99f));
       else
       {
         it.second->exited = true;
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.99f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.15f, 0.95f, 0.99f));
       }
 
       bool selected = false;
       if (ImGui::Selectable (SK_FormatString ("Thread %x###thr_%x", it.second->dwTid,it.second->dwTid).c_str (), &selected))
       {
         ImGui::PopStyleColor     ();
-        ImGui::PushStyleColor    (ImGuiCol_Text, ImColor::HSV (0.5f, 0.99f, 0.999f));
+        ImGui::PushStyleColor    (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.5f, 0.99f, 0.999f));
 
         // We sure as hell cannot suspend the thread that's drawing the UI! :)
         if ( dwExitCode            == STILL_ACTIVE )
@@ -2287,7 +2330,7 @@ public:
         dwSelectedTid =
           it.second->dwTid;
 
-        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
       }
 
       ImGui::PopStyleColor ();
@@ -2303,7 +2346,7 @@ public:
 
     ImGui::BeginGroup ( );
 
-    for ( auto& it : SKWG_Ordered_Threads )
+    for ( auto& it : *SKWG_Ordered_Threads )
     {
       if (it.second == nullptr)
         continue;
@@ -2317,9 +2360,9 @@ public:
       }
 
       if (it.second->self_titled)
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.572222, 0.63f, 0.95f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.572222, 0.63f, 0.95f));
       else
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.472222, 0.23f, 0.91f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.472222, 0.23f, 0.91f));
 
       if (it.second->name.length () > 1)
         ImGui::Text ("%ws", it.second->name.c_str ());
@@ -2369,7 +2412,7 @@ public:
           wcsncpy (pTLS->debug.name, SK_UTF8ToWideChar (thread_name).c_str (), 255);
 
         {
-          if (! _SK_ThreadNames.count (it.second->dwTid))
+          if (! _SK_ThreadNames->count (it.second->dwTid))
           {
             _SK_ThreadNames [it.second->dwTid] =
               SK_UTF8ToWideChar (thread_name);
@@ -2389,7 +2432,7 @@ public:
 
 
     ImGui::BeginGroup ();
-    for (auto& it : SKWG_Ordered_Threads)
+    for (auto& it : *SKWG_Ordered_Threads)
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
@@ -2419,7 +2462,7 @@ public:
 
 
     ImGui::BeginGroup ();
-    for ( auto& it : SKWG_Ordered_Threads )
+    for ( auto& it : *SKWG_Ordered_Threads )
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
@@ -2480,22 +2523,15 @@ public:
     static DWORD    dwLastSnap = 0;
     static FILETIME ftSnapKernel, ftSnapUser;
 
-    FILETIME ftCreate, ftExit,
-             ftKernel, ftUser;
-
-    const DWORD SNAP_FREQUENCY = 30000UL;
-
-    GetProcessTimes (GetCurrentProcess (), &ftCreate, &ftExit, &ftKernel, &ftUser);
-
     if ( (reset_stats && (dwLastSnap < dwNow - SNAP_FREQUENCY)) ||
           clear_counters )
     {
-      ftSnapKernel = ftKernel;
-      ftSnapUser   = ftUser;
+      ftSnapKernel = process_time.ftKernel;
+      ftSnapUser   = process_time.ftUser;
     }
 
-    LARGE_INTEGER liKernel; liKernel.LowPart  = ftKernel.dwLowDateTime;
-                            liKernel.HighPart = ftKernel.dwHighDateTime;
+    LARGE_INTEGER liKernel; liKernel.LowPart  = process_time.ftKernel.dwLowDateTime;
+                            liKernel.HighPart = process_time.ftKernel.dwHighDateTime;
 
                             LARGE_INTEGER liSnapDeltaK;
                                           liSnapDeltaK.LowPart  = ftSnapKernel.dwLowDateTime;
@@ -2503,8 +2539,8 @@ public:
 
                                           liKernel.QuadPart -= liSnapDeltaK.QuadPart;
 
-    LARGE_INTEGER liUser;   liUser.LowPart    = ftUser.dwLowDateTime;
-                            liUser.HighPart   = ftUser.dwHighDateTime;
+    LARGE_INTEGER liUser;   liUser.LowPart    = process_time.ftUser.dwLowDateTime;
+                            liUser.HighPart   = process_time.ftUser.dwHighDateTime;
 
                             LARGE_INTEGER liSnapDeltaU;
                                           liSnapDeltaU.LowPart  = ftSnapUser.dwLowDateTime;
@@ -2515,7 +2551,7 @@ public:
     long double p_kmax = 0.0;
     long double p_umax = 0.0;
 
-    for ( auto& it : SKWG_Ordered_Threads )
+    for ( auto& it : *SKWG_Ordered_Threads )
     {
       if ( (reset_stats && (dwLastSnap < dwNow - SNAP_FREQUENCY)) ||
             clear_counters )
@@ -2545,12 +2581,14 @@ public:
                        liThreadUser.QuadPart -= liThreadSnapDeltaU.QuadPart;
 
       it.second->runtimes.percent_kernel =
-        100.0 * static_cast <long double> ( liThreadKernel.QuadPart ) /
-                      static_cast <long double> ( liKernel.QuadPart );
+        std::min ( 100.0L,
+          100.0L * static_cast <long double> ( liThreadKernel.QuadPart ) /
+                   static_cast <long double> (       liKernel.QuadPart ) );
 
       it.second->runtimes.percent_user =
-        100.0 * static_cast <long double> ( liThreadUser.QuadPart ) /
-                static_cast <long double> (       liUser.QuadPart );
+        std::min ( 100.0L,
+          100.0L * static_cast <long double> ( liThreadUser.QuadPart ) /
+                   static_cast <long double> (       liUser.QuadPart ) );
 
       p_kmax = std::fmax (p_kmax, it.second->runtimes.percent_kernel);
       p_umax = std::fmax (p_umax, it.second->runtimes.percent_user);
@@ -2561,12 +2599,12 @@ public:
 
 
     ImGui::BeginGroup ();
-    for ( auto& it : SKWG_Ordered_Threads )
+    for ( auto& it : *SKWG_Ordered_Threads )
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
       if (it.second->runtimes.percent_kernel == p_kmax)
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.0944444, 0.79f, 1.0f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.0944444, 0.79f, 1.0f));
 
       if (it.second->runtimes.percent_kernel >= 0.001)
         ImGui::Text ("%6.2f%% Kernel", it.second->runtimes.percent_kernel);
@@ -2582,12 +2620,12 @@ public:
 
 
     ImGui::BeginGroup ();
-    for ( auto& it : SKWG_Ordered_Threads )
+    for ( auto& it : *SKWG_Ordered_Threads )
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
       if (it.second->runtimes.percent_user == p_umax)
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.0944444, 0.79f, 1.0f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.0944444, 0.79f, 1.0f));
 
       if (it.second->runtimes.percent_user >= 0.001)
         ImGui::Text ("%6.2f%% User", it.second->runtimes.percent_user);
@@ -2603,7 +2641,7 @@ public:
 
 
     ImGui::BeginGroup ();
-    for (auto& it : SKWG_Ordered_Threads)
+    for (auto& it : *SKWG_Ordered_Threads)
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
@@ -2631,7 +2669,7 @@ public:
     const  DWORD WAIT_GRACE    = 666UL;
 
     ImGui::BeginGroup ();
-    for (auto& it : SKWG_Ordered_Threads)
+    for (auto& it : *SKWG_Ordered_Threads)
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
@@ -2663,7 +2701,7 @@ public:
   //ImGui::EndChildFrame ();
     ImGui::EndGroup      ();
 
-    for (auto& it : SKWG_Ordered_Threads)
+    for (auto& it : *SKWG_Ordered_Threads)
     {
       if ( it.second->hThread != 0 &&
            it.second->hThread != INVALID_HANDLE_VALUE )

@@ -19,9 +19,8 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <imgui/imgui.h>
-
-#include <SpecialK/config.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/d3d9.h>
@@ -92,7 +91,7 @@ SK::ControlPanel::D3D9::Draw (void)
       SK::D3D9::TextureManager& tex_mgr =
         SK_D3D9_GetTextureManager ();
 
-      ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding, 15.0f);
+      ImGui::PushStyleVar (ImGuiStyleVar_ChildRounding, 15.0f);
       ImGui::TreePush     ("");
 
       ImGui::BeginChild  ("Texture Details", ImVec2 ( font.size           * 30,
@@ -142,9 +141,9 @@ SK::ControlPanel::D3D9::Draw (void)
 
       ImGui::Separator (   );
 
-      ImColor  active   ( 1.0f,  1.0f,  1.0f, 1.0f);
-      ImColor  inactive (0.75f, 0.75f, 0.75f, 1.0f);
-      ImColor& color   = __remap_textures ? inactive : active;
+      ImVec4  active   ( 1.0f,  1.0f,  1.0f, 1.0f);
+      ImVec4  inactive (0.75f, 0.75f, 0.75f, 1.0f);
+      ImVec4& color   = __remap_textures ? inactive : active;
 
       ImGui::PushStyleColor (ImGuiCol_Text, color);
 
@@ -254,13 +253,13 @@ SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9 *pSwap9)
     if (SUCCEEDED (pSwap9->GetPresentParameters (&pparams)))
     {
       ImGui::BeginTooltip    ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.95f, 0.95f, 0.45f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
       ImGui::TextUnformatted ("Framebuffer and Presentation Setup");
       ImGui::PopStyleColor   ();
       ImGui::Separator       ();
 
       ImGui::BeginGroup      ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.685f, 0.685f, 0.685f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.0f));
       ImGui::TextUnformatted ("Color:");
       ImGui::TextUnformatted ("Depth/Stencil:");
       ImGui::TextUnformatted ("Resolution:");
@@ -280,7 +279,7 @@ SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9 *pSwap9)
       ImGui::SameLine        ();
 
       ImGui::BeginGroup      ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (1.0f, 1.0f, 1.0f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
       ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.BackBufferFormat).c_str       ());
       ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.AutoDepthStencilFormat).c_str ());
       ImGui::Text            ("%ux%u",                                   pparams.BackBufferWidth, pparams.BackBufferHeight);

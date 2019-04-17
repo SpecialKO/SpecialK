@@ -19,10 +19,10 @@
  *
 **/
 
-#include <SpecialK/widgets/widget.h>
-#include <SpecialK/utility.h>
+#include <SpecialK/stdafx.h>
 
-#include <unordered_set>
+#include <SpecialK/widgets/widget.h>
+#include <imgui/imgui.h>
 
 
 extern iSK_INI* osd_ini;
@@ -149,9 +149,9 @@ SK_Widget_CalcClipRect ( SK_Widget* pWidget,
 
   if (n || s)
   {
-    if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging  (0) && ImGui::IsWindowHovered () ) ||
-                                    ( ImGui::IsNavDragging    ( ) && g.NavWindowingTarget     ==
-                                      ImGui::GetCurrentWindow ( )                              )
+    if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging  (0)      && ImGui::IsWindowHovered () ) ||
+                                    ( ImGui::IsNavDragging    (0,0.0f) && g.NavWindowingTarget        ==
+                                      ImGui::GetCurrentWindow ( )                                   )
                                   )
        )
     {
@@ -171,9 +171,9 @@ SK_Widget_CalcClipRect ( SK_Widget* pWidget,
 
   if (e || w)
   {
-    if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging  (0) && ImGui::IsWindowHovered () ) ||
-                                    ( ImGui::IsNavDragging    ( ) && g.NavWindowingTarget     ==
-                                      ImGui::GetCurrentWindow ( )                              )
+    if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging  (0)      && ImGui::IsWindowHovered () ) ||
+                                    ( ImGui::IsNavDragging    (0,0.0f) && g.NavWindowingTarget        ==
+                                      ImGui::GetCurrentWindow ( )                                   )
                                   )
        )
     {
@@ -236,9 +236,9 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
 
   if (n || s)
   {
-    if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered  ( ) )  ||
-                                    ( ImGui::IsNavDragging   ( ) && ImGui::GetCurrentWindow ( ) ==
-                                                                        g.NavWindowingTarget  ) )
+    if ( pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0)      && ImGui::IsWindowHovered  ( ) )  ||
+                                    ( ImGui::IsNavDragging   (0,0.0f) && ImGui::GetCurrentWindow ( )    ==
+                                                                             g.NavWindowingTarget  ) )
        )
     {
       draw_horz_ruler = true;
@@ -257,8 +257,8 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
 
   if (e || w)
   {
-    if (pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered () ) ||
-                                   ( ImGui::IsNavDragging   ( ) && g.NavWindowingTarget == ImGui::GetCurrentWindow () ) ))
+    if (pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0)      && ImGui::IsWindowHovered () ) ||
+                                   ( ImGui::IsNavDragging   (0,0.0f) && g.NavWindowingTarget == ImGui::GetCurrentWindow () ) ))
     {
       draw_vert_ruler = true;
     }
@@ -284,7 +284,7 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
   if (pWidget->getDockingPoint () != SK_Widget::DockAnchor::None)
   {
         pWidget->setPos (pos);
-    ImGui::SetWindowPos (pos, ImGuiSetCond_Always);
+    ImGui::SetWindowPos (pos, ImGuiCond_Always);
   }
 
 
@@ -337,7 +337,7 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
 void
 SK_Widget::draw_base (void)
 {
-  if (SK_ImGui_Widgets.hide_all)
+  if (SK_ImGui_Widgets->hide_all)
     return;
 
   //extern volatile LONG __SK_ScreenShot_CapturingHUDless;
@@ -371,7 +371,7 @@ SK_Widget::draw_base (void)
 
   int flags = ImGuiWindowFlags_NoTitleBar      | ImGuiWindowFlags_NoCollapse         |
               ImGuiWindowFlags_NoScrollbar     | ImGuiWindowFlags_NoFocusOnAppearing |
-              ImGuiWindowFlags_NoSavedSettings | (border ? ImGuiWindowFlags_ShowBorders : 0x0);
+              ImGuiWindowFlags_NoSavedSettings | (border ? 0x0 : ImGuiWindowFlags_NoBackground);
 
   if (autofit)
     flags |= ImGuiWindowFlags_AlwaysAutoResize;
@@ -439,7 +439,7 @@ SK_Widget::draw_base (void)
 
   // Since the Tobii widget is used to configure gazing, it should
   //   not be subject to gazing.
-  if ( this != SK_ImGui_Widgets.tobii )
+  if ( this != SK_ImGui_Widgets->tobii )
   {
     if (SK_Tobii_WantWidgetGazing ())
     {
@@ -494,31 +494,34 @@ SK_Widget::draw_base (void)
       ImGui::PushStyleVar (ImGuiStyleVar_WindowPadding,       ImVec2 (0.0f, 0.0f));
       ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding,                    0.0f );
       ImGui::PushStyleVar (ImGuiStyleVar_GrabMinSize,                       0.0f );
-      ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding,               0.0f );
+      ImGui::PushStyleVar (ImGuiStyleVar_ChildRounding,                     0.0f );
       ImGui::PushStyleVar (ImGuiStyleVar_ItemSpacing,         ImVec2 (0.0f, 0.0f));
       ImGui::PushStyleVar (ImGuiStyleVar_ItemInnerSpacing,    ImVec2 (0.0f, 0.0f));
       ImGui::PushStyleVar (ImGuiStyleVar_IndentSpacing,                     0.0f );
 
-      ImGui::SetNextWindowSize (ImVec2 (    0.0f, 0.0f    ),    ImGuiSetCond_Once);
+      ImGui::SetNextWindowSize (ImVec2 (    0.0f, 0.0f    ),    ImGuiCond_Once);
 
       // No border, because it would be a white dot
-      flags &= ~ImGuiWindowFlags_ShowBorders;
+      flags &= ImGuiWindowFlags_NoBackground;///~ImGuiWindowFlags_ShowBorders;
 
       pushed_style_vars = 10;
     }
   }
 
 
-       char  hashed_name [64] = { "##Widget_" };
-  lstrcatA ( hashed_name,
-                    name.c_str () );
+  char
+    hashed_name [128];
+   *hashed_name = '\0';
 
+  lstrcatA (hashed_name, name.c_str ());
+  lstrcatA (hashed_name, "##Widget_");
+  lstrcatA (hashed_name, name.c_str ());
 
   ImGui::PushStyleVar (ImGuiStyleVar_Alpha, fAlpha);
   ImGui::Begin        ( hashed_name,
                           nullptr, flags );
 
-  ImGui::SetWindowFontScale (SK_ImGui_Widgets.scale);
+  ImGui::SetWindowFontScale (SK_ImGui_Widgets->scale);
 
   static SK_Widget*
        focus_widget = nullptr;
@@ -566,13 +569,16 @@ SK_Widget::draw_base (void)
 
     if (SK_ControlPanel_Activated)
     {
-      if (! ImGui::IsMouseHoveringRect (min, max)/* && ImGui::IsWindowFocused ()*/)
+      if (ImGui::IsWindowAppearing ())
       {
-        ImGui::GetIO ().WantMoveMouse = true;
+        if (! ImGui::IsMouseHoveringRect (min, max)/* && ImGui::IsWindowFocused ()*/)
+        {
+          ImGui::GetIO ().WantSetMousePos = true;
 
-        ImGui::GetIO ().MousePos =
-          ImVec2 ( ( pos.x + size.x ) / 2.0f,
-                   ( pos.y + size.y ) / 2.0f );
+          ImGui::GetIO ().MousePos =
+            ImVec2 ( ( pos.x + size.x ) / 2.0f,
+                     ( pos.y + size.y ) / 2.0f );
+        }
       }
     }
 
@@ -810,7 +816,7 @@ SK_Widget*
 SK_HDR_GetWidget (void)
 {
   return
-    SK_ImGui_Widgets.hdr_control;
+    SK_ImGui_Widgets->hdr_control;
 }
 
 extern
@@ -833,10 +839,10 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
   auto widgets =
-  { SK_ImGui_Widgets.frame_pacing,   SK_ImGui_Widgets.volume_control,
-    SK_ImGui_Widgets.gpu_monitor,    SK_ImGui_Widgets.cpu_monitor,
-    SK_ImGui_Widgets.d3d11_pipeline, SK_ImGui_Widgets.thread_profiler,
-    SK_ImGui_Widgets.hdr_control,    SK_ImGui_Widgets.tobii
+  { SK_ImGui_Widgets->frame_pacing,   SK_ImGui_Widgets->volume_control,
+    SK_ImGui_Widgets->gpu_monitor,    SK_ImGui_Widgets->cpu_monitor,
+    SK_ImGui_Widgets->d3d11_pipeline, SK_ImGui_Widgets->thread_profiler,
+    SK_ImGui_Widgets->hdr_control,    SK_ImGui_Widgets->tobii
   };
 
   for (auto& widget : widgets)
@@ -908,14 +914,14 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
       else if (  keybind == &config.steam.screenshots.sk_osd_free_keybind )
       {
         SK::SteamAPI::TakeScreenshot (
-          SK::ScreenshotStage::BeforeOSD
+          SK_ScreenshotStage::BeforeOSD
         );
       }
 
       else if (  keybind == &config.steam.screenshots.sk_osd_insertion_keybind )
       {
         SK::SteamAPI::TakeScreenshot (
-          SK::ScreenshotStage::EndOfFrame
+          SK_ScreenshotStage::EndOfFrame
         );
       }
 
@@ -930,14 +936,14 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 BOOL
 SK_ImGui_WidgetRegistry::SaveConfig (void)
 {
-  SK_RunOnce (SK_ImGui_Widgets.d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
-  SK_RunOnce (SK_ImGui_Widgets.cpu_monitor    = SK_Widget_GetCPU ());
+  SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
+  SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU ());
 
   auto widgets =
-  { SK_ImGui_Widgets.frame_pacing,   SK_ImGui_Widgets.volume_control,
-    SK_ImGui_Widgets.gpu_monitor,    SK_ImGui_Widgets.cpu_monitor,
-    SK_ImGui_Widgets.d3d11_pipeline, SK_ImGui_Widgets.thread_profiler,
-    SK_ImGui_Widgets.hdr_control,    SK_ImGui_Widgets.tobii
+  { SK_ImGui_Widgets->frame_pacing,   SK_ImGui_Widgets->volume_control,
+    SK_ImGui_Widgets->gpu_monitor,    SK_ImGui_Widgets->cpu_monitor,
+    SK_ImGui_Widgets->d3d11_pipeline, SK_ImGui_Widgets->thread_profiler,
+    SK_ImGui_Widgets->hdr_control,    SK_ImGui_Widgets->tobii
   };
 
   for ( auto& widget : widgets )

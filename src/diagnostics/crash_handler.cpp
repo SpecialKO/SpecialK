@@ -19,44 +19,7 @@
  *
 **/
 
-#include <SpecialK/config.h>
-#include <SpecialK/core.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/log.h>
-#include <SpecialK/sound.h>
-#include <SpecialK/resource.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/tls.h>
-
-#include <SpecialK/diagnostics/debug_utils.h>
-
-#include <Windows.h>
-#include <intsafe.h>
-#include <Shlwapi.h>
-#include <algorithm>
-#include <memory>
-#include <ctime>
-
-#include <CEGUI/CEGUI.h>
-#include <CEGUI/System.h>
-
-#include <diagnostics/compatibility.h>
-#include <diagnostics/modules.h>
-
-
-#include <SpecialK/diagnostics/load_library.h>
-#include <SpecialK/diagnostics/crash_handler.h>
-
-
-//#define STRICT_COMPLIANCE
-
-// Fix warnings in dbghelp.h
-#pragma warning (disable : 4091)
-
-#define _IMAGEHLP_SOURCE_
-#include <dbghelp.h>
-
+#include <SpecialK/stdafx.h>
 
 #ifdef _WIN64
 #define SK_StackWalk          StackWalk64
@@ -1274,7 +1237,7 @@ SK_BypassSteamCrashHandler (void)
 
     if (SK_File_GetSize (wszSteamDLL) > 0)
     {
-      if (SK_Modules.LoadLibraryLL (wszSteamDLL))
+      if (SK_Modules->LoadLibraryLL (wszSteamDLL))
       {
         crash_log->Log (L"Disabling Steam Breakpad...");
 

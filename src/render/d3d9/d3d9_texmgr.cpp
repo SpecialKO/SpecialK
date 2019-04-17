@@ -19,44 +19,15 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_texmgr.h>
-#include <SpecialK/config.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/log.h>
-#include <SpecialK/crc32.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/core.h>
-#include <process.h>
 
 #include <d3d9.h>
-#include <cstdint>
-#include <algorithm>
-
-#include "command.h"
-
-#include <lzma/7z.h>
-#include <lzma/7zAlloc.h>
-#include <lzma/7zBuf.h>
-#include <lzma/7zCrc.h>
-#include <lzma/7zFile.h>
-#include <lzma/7zVersion.h>
+#include <d3dx9tex.h>
 
 static ISzAlloc g_Alloc = { SzAlloc, SzFree };
-
-#include <atlbase.h>
-#include <memory>
-#include <ctime>
-#include <map>
-#include <set>
-#include <queue>
-#include <vector>
-#include <unordered_set>
-#include <unordered_map>
-
-#include <comdef.h>
 
 using namespace SK::D3D9;
 

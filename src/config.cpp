@@ -18,52 +18,22 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+#include <SpecialK/stdafx.h>
 
-#include <SpecialK/resource.h>
-#include <SpecialK/config.h>
-#include <SpecialK/core.h>
-#include <SpecialK/render/dxgi/dxgi_interfaces.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/import.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/log.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/steam_api.h>
 #include <SpecialK/nvapi.h>
-
-#include <SpecialK/DLL_VERSION.H>
-#include <SpecialK/input/input.h>
-#include <SpecialK/widgets/widget.h>
-
-#include <unordered_map>
-#include <typeindex>
-#include <gsl/gsl>
-#include <memory>
-
-#include <Shlwapi.h>
-#include <powrprof.h>
-#include <powerbase.h>
-#include <powersetting.h>
+#include <SpecialK/adl.h>
 
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
 const wchar_t*       SK_VER_STR = SK_VERSION_STR_W;
 
-iSK_INI*             dll_ini         = nullptr;
-iSK_INI*             osd_ini         = nullptr;
-iSK_INI*             achievement_ini = nullptr;
-iSK_INI*             macro_ini       = nullptr;
+iSK_INI*             dll_ini   = nullptr;
+iSK_INI*             osd_ini   = nullptr;
+iSK_INI*             steam_ini = nullptr;
+iSK_INI*             macro_ini = nullptr;
 sk::ParameterFactory g_ParameterFactory;
 
-sk_config_t* SK_Singleton_Config (void)
-{
-  static sk_config_t  _config;
-  return             &_config;
-}
-
-sk_config_t* __config__ = SK_Singleton_Config ();
+SK_LazyGlobal <sk_config_t> _config;
 
 SK_LazyGlobal <std::unordered_map <std::wstring, BYTE>> humanKeyNameToVirtKeyCode;
 SK_LazyGlobal <std::unordered_map <BYTE, std::wstring>> virtKeyCodeToHumanKeyName;
@@ -145,7 +115,8 @@ SK_GetCurrentGameID (void)
       { L"ACOdyssey.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
       { L"ACOrigins.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
       { L"JustCause3.exe",                         SK_GAME_ID::JustCause3                   },
-      { L"ed8.exe",                                SK_GAME_ID::TrailsOfColdSteel            }
+      { L"ed8.exe",                                SK_GAME_ID::TrailsOfColdSteel            },
+      { L"sekiro.exe",                             SK_GAME_ID::Sekiro                       }
     };
 
     first_check = false;
@@ -371,6 +342,7 @@ struct {
 
   struct {
     sk::ParameterBool*    disable;
+    sk::ParameterBool*    disable_hdr;
   } api;
 
   struct
@@ -408,7 +380,9 @@ struct {
     sk::ParameterInt*     buffer_count;
     sk::ParameterInt*     max_delta_time;
     sk::ParameterBool*    flip_discard;
-    sk::ParameterInt*     refresh_rate;
+    sk::ParameterBool*    disable_flip_model;
+    sk::ParameterFloat*   refresh_rate;
+    sk::ParameterStringW* rescan_ratio;
     sk::ParameterBool*    wait_for_vblank;
     sk::ParameterBool*    allow_dwm_tearing;
     sk::ParameterBool*    sleepless_window;
@@ -685,7 +659,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   std::wstring full_name;
   std::wstring custom_name; // User may have custom prefs
 
-  std::wstring osd_config, achievement_config, macro_config;
+  std::wstring osd_config, steam_config, macro_config;
 
   full_name =
     SK_FormatStringW ( L"%s%s.ini",
@@ -723,8 +697,24 @@ SK_LoadConfigEx (std::wstring name, bool create)
   osd_config         =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\osd.ini)";
 
-  achievement_config =
-    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\achievements.ini)";
+  steam_config =
+    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\steam.ini)";
+
+  std::wstring migrate_steam_config = L"";
+
+  /////////if (! PathFileExistsW (steam_config.c_str ()))
+  /////////{
+  /////////  std::wstring achievement_config =
+  /////////    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\achievements.ini)";
+  /////////
+  /////////  if (PathFileExistsW (achievement_config.c_str ()))
+  /////////  {
+  /////////    migrate_steam_config =
+  /////////      steam_config;
+  /////////    steam_config =
+  /////////      achievement_config;
+  /////////  }
+  /////////}
 
   macro_config       =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\macros.ini)";
@@ -755,8 +745,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     osd_ini         =
       SK_CreateINI (osd_config.c_str ());
 
-    achievement_ini =
-      SK_CreateINI (achievement_config.c_str ());
+    steam_ini =
+      SK_CreateINI (steam_config.c_str ());
 
     macro_ini       =
       SK_CreateINI (macro_config.c_str ());
@@ -1003,6 +993,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
 
     ConfigEntry (render.framerate.refresh_rate,          L"Fullscreen Refresh Rate",                                   dll_ini,         L"Render.FrameRate",      L"RefreshRate"),
+    ConfigEntry (render.framerate.rescan_ratio,          L"Fullscreen Rational Scan Rate (precise refresh rate)",      dll_ini,         L"Render.FrameRate",      L"RescanRatio"),
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
 
@@ -1024,6 +1015,7 @@ auto DeclKeybind =
 
     ConfigEntry (render.framerate.max_delta_time,        L"Maximum Frame Delta Time",                                  dll_ini,         L"Render.DXGI",           L"MaxDeltaTime"),
     ConfigEntry (render.framerate.flip_discard,          L"Use Flip Discard - Windows 10+",                            dll_ini,         L"Render.DXGI",           L"UseFlipDiscard"),
+    ConfigEntry (render.framerate.disable_flip_model,    L"Disable Flip Model - Fix AMD Drivers in Yakuza0",           dll_ini,         L"Render.DXGI",           L"DisableFlipModel"),
 
     ConfigEntry (render.dxgi.adapter_override,           L"Override DXGI Adapter",                                     dll_ini,         L"Render.DXGI",           L"AdapterOverride"),
     ConfigEntry (render.dxgi.max_res,                    L"Maximum Resolution To Report",                              dll_ini,         L"Render.DXGI",           L"MaxRes"),
@@ -1072,6 +1064,7 @@ auto DeclKeybind =
 
 
     ConfigEntry (nvidia.api.disable,                     L"Disable NvAPI",                                             dll_ini,         L"NVIDIA.API",            L"Disable"),
+    ConfigEntry (nvidia.api.disable_hdr,                 L"Prevent Game from Using NvAPI HDR Features",                dll_ini,         L"NVIDIA.API",            L"DisableHDR"),
     ConfigEntry (nvidia.sli.compatibility,               L"SLI Compatibility Bits",                                    dll_ini,         L"NVIDIA.SLI",            L"CompatibilityBits"),
     ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
     ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
@@ -1099,14 +1092,14 @@ auto DeclKeybind =
     // Steam Achievement Enhancements  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (steam.achievements.play_sound,          L"Silence is Bliss?",                                         achievement_ini, L"Steam.Achievements",    L"PlaySound"),
-    ConfigEntry (steam.achievements.take_screenshot,     L"Precious Memories",                                         achievement_ini, L"Steam.Achievements",    L"TakeScreenshot"),
-    ConfigEntry (steam.achievements.fetch_friend_stats,  L"Friendly Competition",                                      achievement_ini, L"Steam.Achievements",    L"FetchFriendStats"),
-    ConfigEntry (steam.achievements.popup.origin,        L"Achievement Popup Position",                                achievement_ini, L"Steam.Achievements",    L"PopupOrigin"),
-    ConfigEntry (steam.achievements.popup.animate,       L"Achievement Notification Animation",                        achievement_ini, L"Steam.Achievements",    L"AnimatePopup"),
-    ConfigEntry (steam.achievements.popup.show_title,    L"Achievement Popup Includes Game Title?",                    achievement_ini, L"Steam.Achievements",    L"ShowPopupTitle"),
-    ConfigEntry (steam.achievements.popup.inset,         L"Achievement Notification Inset X",                          achievement_ini, L"Steam.Achievements",    L"PopupInset"),
-    ConfigEntry (steam.achievements.popup.duration,      L"Achievement Popup Duration (in ms)",                        achievement_ini, L"Steam.Achievements",    L"PopupDuration"),
+    ConfigEntry (steam.achievements.play_sound,          L"Silence is Bliss?",                                         steam_ini,       L"Steam.Achievements",    L"PlaySound"),
+    ConfigEntry (steam.achievements.take_screenshot,     L"Precious Memories",                                         steam_ini,       L"Steam.Achievements",    L"TakeScreenshot"),
+    ConfigEntry (steam.achievements.fetch_friend_stats,  L"Friendly Competition",                                      steam_ini,       L"Steam.Achievements",    L"FetchFriendStats"),
+    ConfigEntry (steam.achievements.popup.origin,        L"Achievement Popup Position",                                steam_ini,       L"Steam.Achievements",    L"PopupOrigin"),
+    ConfigEntry (steam.achievements.popup.animate,       L"Achievement Notification Animation",                        steam_ini,       L"Steam.Achievements",    L"AnimatePopup"),
+    ConfigEntry (steam.achievements.popup.show_title,    L"Achievement Popup Includes Game Title?",                    steam_ini,       L"Steam.Achievements",    L"ShowPopupTitle"),
+    ConfigEntry (steam.achievements.popup.inset,         L"Achievement Notification Inset X",                          steam_ini,       L"Steam.Achievements",    L"PopupInset"),
+    ConfigEntry (steam.achievements.popup.duration,      L"Achievement Popup Duration (in ms)",                        steam_ini,       L"Steam.Achievements",    L"PopupDuration"),
 
     ConfigEntry (steam.system.notify_corner,             L"Overlay Notification Position  (non-Big Picture Mode)",     dll_ini,         L"Steam.System",          L"NotifyCorner"),
     ConfigEntry (steam.system.appid,                     L"Steam AppID",                                               dll_ini,         L"Steam.System",          L"AppID"),
@@ -1129,16 +1122,16 @@ auto DeclKeybind =
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
 
     // These are all system-wide for all Steam games
-    ConfigEntry (steam.overlay.hdr_luminance,            L"Make the Steam Overlay visible in HDR mode!",               achievement_ini, L"Steam.Overlay",         L"Luminance_scRGB"),
-    ConfigEntry (steam.screenshots.include_osd_default,  L"Should a screenshot triggered BY Steam include SK's OSD?",  achievement_ini, L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
-    ConfigEntry (steam.screenshots.keep_png_copy,        L"Keep a .PNG compressed copy of each screenshot?",           achievement_ini, L"Steam.Screenshots",     L"KeepLosslessPNG"),
+    ConfigEntry (steam.overlay.hdr_luminance,            L"Make the Steam Overlay visible in HDR mode!",               steam_ini,       L"Steam.Overlay",         L"Luminance_scRGB"),
+    ConfigEntry (steam.screenshots.include_osd_default,  L"Should a screenshot triggered BY Steam include SK's OSD?",  steam_ini,       L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
+    ConfigEntry (steam.screenshots.keep_png_copy,        L"Keep a .PNG compressed copy of each screenshot?",           steam_ini,       L"Steam.Screenshots",     L"KeepLosslessPNG"),
 
     Keybind     (&config.steam.screenshots.game_hud_free_keybind,
-                                                         L"Take a screenshot without the HUD",                         achievement_ini, L"Steam.Screenshots"),
+                                                         L"Take a screenshot without the HUD",                         steam_ini,       L"Steam.Screenshots"),
     Keybind     (&config.steam.screenshots.sk_osd_free_keybind,
-                                                         L"Take a screenshot without SK's OSD",                        achievement_ini, L"Steam.Screenshots"),
+                                                         L"Take a screenshot without SK's OSD",                        steam_ini,       L"Steam.Screenshots"),
     Keybind     (&config.steam.screenshots.sk_osd_insertion_keybind,
-                                                         L"Take a screenshot and insert SK's OSD",                     achievement_ini, L"Steam.Screenshots"),
+                                                         L"Take a screenshot and insert SK's OSD",                     steam_ini,       L"Steam.Screenshots"),
 
 
     // Swashbucklers pay attention
@@ -1150,7 +1143,7 @@ auto DeclKeybind =
   };
 
 
-  for ( auto&& decl : params_to_build )
+  for ( auto& decl : params_to_build )
   {
     if ( decl.type_ == std::type_index ( typeid ( sk::ParameterBool* ) ) )
     {
@@ -1222,9 +1215,9 @@ auto DeclKeybind =
 
 
 
-  extern std::unordered_multimap <uint32_t, SK_KeyCommand> SK_KeyboardMacros;
+  extern SK_LazyGlobal <std::unordered_multimap <uint32_t, SK_KeyCommand>> SK_KeyboardMacros;
 
-  SK_KeyboardMacros.clear   ();
+  SK_KeyboardMacros->clear   ();
 
 
 
@@ -1322,7 +1315,7 @@ auto DeclKeybind =
 
         cmd.command = it.second;
 
-        SK_KeyboardMacros.emplace (cmd.binding.masked_code, cmd);
+        SK_KeyboardMacros->emplace (cmd.binding.masked_code, cmd);
       }
     }
 
@@ -1375,7 +1368,7 @@ auto DeclKeybind =
 
         cmd.command = it.second;
 
-        SK_KeyboardMacros.emplace (cmd.binding.masked_code, cmd);
+        SK_KeyboardMacros->emplace (cmd.binding.masked_code, cmd);
       }
     }
 
@@ -1806,6 +1799,32 @@ auto DeclKeybind =
         SK_D3D11_DeclHUDShader (0x75cf58de, ID3D11VertexShader);
         break;
 
+      case SK_GAME_ID::Sekiro:
+        config.input.gamepad.xinput.placehold [0] = true;
+        config.input.gamepad.xinput.placehold [1] = true;
+        config.input.gamepad.xinput.placehold [2] = true;
+        config.input.gamepad.xinput.placehold [3] = true;
+        config.render.framerate.buffer_count      = 3;
+        config.render.framerate.pre_render_limit  = 4;
+        config.render.framerate.limiter_tolerance = 4.0f;
+        SK_D3D11_DeclHUDShader (0x15888ef2, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x1893edbd, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x26dc61b1, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x3d205776, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x4c8dd6ec, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x5e74f0b4, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0xc4ee4c93, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0xd931a68c, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0xdb921b64, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0xe15a43f4, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0xf497bad8, ID3D11VertexShader);
+        config.render.dxgi.deferred_isolation = true;
+
+        // ReShade will totally crash if it is permitted to hook D3D9
+        config.apis.d3d9.hook                 = false;
+        config.apis.d3d9ex.hook               = false;
+        break;
+
 
 #ifdef _WIN64
       case SK_GAME_ID::Yakuza0:
@@ -1816,6 +1835,7 @@ auto DeclKeybind =
         config.render.dxgi.deferred_isolation     = false;
         config.textures.cache.residency_managemnt = false;
         config.cegui.enable                       = false; // Off by default
+        config.render.framerate.disable_flip      = true;
         //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
         break;
 
@@ -1947,6 +1967,11 @@ auto DeclKeybind =
   imgui.antialias_contours->load         (config.imgui.render.antialias_contours);
 
 
+  config.imgui.show_eula =
+    app_cache_mgr->getLicenseRevision () !=
+         SK_LICENSE_REVISION;
+
+
   if (((sk::iParameter *)monitoring.io.show)->load     () && config.osd.remember_state)
     config.io.show =     monitoring.io.show->get_value ();
                          monitoring.io.interval->load  (config.io.interval);
@@ -2004,6 +2029,8 @@ auto DeclKeybind =
 
   if (nvidia.api.disable->load (config.apis.NvAPI.enable))
      config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
+
+  nvidia.api.disable_hdr->load (config.apis.NvAPI.disable_hdr);
 
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
@@ -2066,6 +2093,27 @@ auto DeclKeybind =
     render.framerate.refresh_rate->load     (config.render.framerate.refresh_rate);
   }
 
+  if (render.framerate.rescan_ratio)
+  {
+    render.framerate.rescan_ratio->load     (config.render.framerate.rescan_ratio);
+
+    if (! config.render.framerate.rescan_ratio.empty ())
+    {
+      swscanf (config.render.framerate.rescan_ratio.c_str (), L"%li/%li", &config.render.framerate.rescan_.Numerator,
+                                                                          &config.render.framerate.rescan_.Denom);
+    }
+
+    if ( config.render.framerate.rescan_.Numerator != -1 &&
+         config.render.framerate.rescan_.Denom     !=  0 )
+    {
+      config.render.framerate.refresh_rate =
+        gsl::narrow_cast <float> (
+          gsl::narrow_cast <long double> (config.render.framerate.rescan_.Numerator) /
+          gsl::narrow_cast <long double> (config.render.framerate.rescan_.Denom)
+        );
+    }
+  }
+
   render.d3d9.force_d3d9ex->load        (config.render.d3d9.force_d3d9ex);
   render.d3d9.impure->load              (config.render.d3d9.force_impure);
   render.d3d9.enable_texture_mods->load (config.textures.d3d9_mod);
@@ -2075,11 +2123,25 @@ auto DeclKeybind =
   //
   render.framerate.max_delta_time->load (config.render.framerate.max_delta_time);
 
-  if (render.framerate.flip_discard->load (config.render.framerate.flip_discard))
+  if (render.framerate.flip_discard->load (config.render.framerate.flip_discard) && config.render.framerate.flip_discard)
   {
+    config.render.framerate.disable_flip = false;
+
     if (render.framerate.allow_dwm_tearing->load (config.render.dxgi.allow_tearing))
     {
       //if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
+    }
+  }
+
+  if (render.framerate.disable_flip_model->load (config.render.framerate.disable_flip))
+  {
+    if (config.render.framerate.disable_flip)
+    {
+      if (config.render.framerate.flip_discard)
+        SK_ImGui_Warning (L"Conflicting Flip Model Overrides Detected (Disable and Force)");
+
+      config.render.framerate.flip_discard = false;
+      config.render.dxgi.allow_tearing     = false;
     }
   }
 
@@ -2556,12 +2618,12 @@ auto DeclKeybind =
 
   bool global_override = false;
 
-  if (achievement_ini->contains_section (L"Steam.Social"))
+  if (steam_ini->contains_section (L"Steam.Social"))
   {
-    if (achievement_ini->get_section (L"Steam.Social").contains_key (L"OnlineStatus"))
+    if (steam_ini->get_section (L"Steam.Social").contains_key (L"OnlineStatus"))
     {
-      swscanf ( achievement_ini->get_section (L"Steam.Social").
-                                 get_value   (L"OnlineStatus").c_str (),
+      swscanf ( steam_ini->get_section (L"Steam.Social").
+                           get_value   (L"OnlineStatus").c_str (),
                   L"%d", &config.steam.online_status );
       global_override = true;
     }
@@ -2713,6 +2775,11 @@ auto DeclKeybind =
       }
     }
   }
+
+  // The name of this config file is different in 0.10.x, but want to load existing values
+  //   if the user has any; that involves renaming the file after loading it.
+  if (! migrate_steam_config.empty ())
+    steam_ini->rename (migrate_steam_config.c_str ());
 
   return (! empty);
 }
@@ -3008,6 +3075,8 @@ SK_SaveConfig ( std::wstring name,
   apis.Vulkan.hook->store                     (config.apis.Vulkan.hook);
 #endif
 
+  nvidia.api.disable_hdr->store               (config.apis.NvAPI.disable_hdr);
+
   input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);
   input.keyboard.disabled_to_game->store      (config.input.keyboard.disabled_to_game);
 
@@ -3150,6 +3219,27 @@ SK_SaveConfig ( std::wstring name,
     render.framerate.buffer_count->store      (config.render.framerate.buffer_count);
     render.framerate.present_interval->store  (config.render.framerate.present_interval);
 
+    if (render.framerate.rescan_ratio != nullptr)
+    {
+      render.framerate.rescan_ratio->store    (config.render.framerate.rescan_ratio);
+
+      if (! config.render.framerate.rescan_ratio.empty ())
+      {
+        swscanf (config.render.framerate.rescan_ratio.c_str (), L"%li/%li", &config.render.framerate.rescan_.Numerator,
+                                                                            &config.render.framerate.rescan_.Denom);
+      }
+
+      if ( config.render.framerate.rescan_.Numerator != -1 &&
+           config.render.framerate.rescan_.Denom     !=  0 )
+      {
+        config.render.framerate.refresh_rate =
+          gsl::narrow_cast <float> (
+            gsl::narrow_cast <long double> (config.render.framerate.rescan_.Numerator) /
+            gsl::narrow_cast <long double> (config.render.framerate.rescan_.Denom)
+          );
+      }
+    }
+
     if (render.framerate.refresh_rate != nullptr)
       render.framerate.refresh_rate->store    (config.render.framerate.refresh_rate);
 
@@ -3165,6 +3255,7 @@ SK_SaveConfig ( std::wstring name,
     {
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
+      render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
@@ -3409,11 +3500,11 @@ SK_SaveConfig ( std::wstring name,
   if (dll_ini != nullptr)
       dll_ini->write ( wszFullName );
 
-  SK_ImGui_Widgets.SaveConfig ();
+  SK_ImGui_Widgets->SaveConfig ();
 
-  if (osd_ini)         osd_ini->write         ( osd_ini->get_filename         () );
-  if (achievement_ini) achievement_ini->write ( achievement_ini->get_filename () );
-  if (macro_ini)       macro_ini->write       ( macro_ini->get_filename       () );
+  if (osd_ini)   osd_ini->write   ( osd_ini->get_filename   () );
+  if (steam_ini) steam_ini->write ( steam_ini->get_filename () );
+  if (macro_ini) macro_ini->write ( macro_ini->get_filename () );
 
 
   if (close_config)
@@ -3430,10 +3521,10 @@ SK_SaveConfig ( std::wstring name,
              osd_ini = nullptr;
     }
 
-    if (achievement_ini != nullptr)
+    if (steam_ini != nullptr)
     {
-      delete achievement_ini;
-             achievement_ini = nullptr;
+      delete steam_ini;
+             steam_ini = nullptr;
     }
 
     if (macro_ini != nullptr)
@@ -3466,7 +3557,7 @@ SK_Keybind::update (void)
   human_readable.clear ();
 
   const std::wstring& key_name =
-    virtKeyCodeToHumanKeyName [(BYTE)(vKey & 0xFF)];
+    (*virtKeyCodeToHumanKeyName)[(BYTE)(vKey & 0xFF)];
 
   if (! key_name.length ())
     return;
@@ -3976,6 +4067,285 @@ SK_AppCache_Manager::saveAppCache (bool close)
   }
 
   return false;
+}
+
+
+time_t
+SK_AppCache_Manager::setFriendOwnership ( uint64_t                       friend_,
+                                          SK_AppCache_Manager::Ownership owns   )
+{
+  if (app_cache_db == nullptr)
+    return 0;
+
+  auto& sec =
+    app_cache_db->get_section (L"Friend.Ownership");
+
+  static_assert ( sizeof (time_t) ==
+                  sizeof (unsigned long long) );
+
+  SK_AppCache_Manager::Ownership ownership    = SK_AppCache_Manager::Unknown;
+  time_t                         last_updated = 0ULL;
+
+  time_t update_time;
+  time (&update_time);
+
+  if (sec.contains_key (std::to_wstring (friend_).c_str ()))
+  {
+    std::wstring friend_status =
+      sec.get_value (std::to_wstring (friend_).c_str ());
+
+    if ( 2 ==
+           std::swscanf ( friend_status.c_str (),
+                            L"%li {%llu}",
+                              &ownership, &last_updated
+                        )
+       )
+    {
+      if (ownership != owns)
+      {
+        last_updated = update_time;
+
+        sec.add_key_value ( std::to_wstring (friend_).c_str (),
+                              SK_FormatStringW (
+                                L"%li {%llu}",
+                                  owns,
+                                    last_updated
+                              ).c_str ()
+                          );
+      }
+
+      return last_updated;
+    }
+  }
+
+  last_updated = update_time;
+
+  sec.add_key_value ( std::to_wstring (friend_).c_str (),
+                        SK_FormatStringW (
+                          L"%li {%llu}",
+                            owns,
+                              last_updated
+                        ).c_str ()
+                    );
+
+  return last_updated;
+}
+
+SK_AppCache_Manager::Ownership
+SK_AppCache_Manager::getFriendOwnership ( uint64_t friend_,
+                                          time_t*  updated )
+{
+  if (app_cache_db != nullptr)
+  {
+    auto& sec =
+      app_cache_db->get_section (L"Friend.Ownership");
+
+    SK_AppCache_Manager::Ownership ownership    = SK_AppCache_Manager::Unknown;
+    time_t                         last_updated = 0ULL;
+
+    static_assert ( sizeof (time_t) ==
+                    sizeof (unsigned long long) );
+
+    if (sec.contains_key (std::to_wstring (friend_).c_str ()))
+    {
+      std::wstring friend_status =
+        sec.get_value (std::to_wstring (friend_).c_str ());
+
+      if ( 2 ==
+             std::swscanf ( friend_status.c_str (),
+                              L"%li {%llu}",
+                                &ownership,
+                                  &last_updated
+                          )
+         )
+      {
+        if (updated != nullptr)
+           *updated  = last_updated;
+
+        return
+          SK_AppCache_Manager::Ownership (ownership);
+      }
+    }
+  }
+
+  if (updated != nullptr)
+    *updated = 0;
+
+  return
+    SK_AppCache_Manager::Unknown;
+}
+
+time_t
+SK_AppCache_Manager::setFriendAchievPct (uint64_t friend_, float new_percent)
+{
+  if (app_cache_db == nullptr)
+    return 0;
+
+  auto& sec =
+    app_cache_db->get_section (L"Friend.Achievements");
+
+  static_assert ( sizeof (time_t) ==
+                  sizeof (unsigned long long) );
+
+   float percent      = 0.0f;
+  time_t last_updated = 0ULL;
+
+  time_t update_time;
+  time (&update_time);
+
+  if (sec.contains_key (std::to_wstring (friend_).c_str ()))
+  {
+    std::wstring friend_status =
+      sec.get_value (std::to_wstring (friend_).c_str ());
+
+    if ( 2 ==
+           std::swscanf ( friend_status.c_str (),
+                            L"%f {%llu}",
+                              &percent, &last_updated
+                        )
+       )
+    {
+      if (new_percent != percent)
+      {
+        last_updated = update_time;
+
+        sec.add_key_value ( std::to_wstring (friend_).c_str (),
+                              SK_FormatStringW (
+                                L"%f {%llu}",
+                                  new_percent,
+                                    last_updated
+                              ).c_str ()
+                          );
+      }
+
+      return last_updated;
+    }
+  }
+
+  last_updated = update_time;
+
+  sec.add_key_value ( std::to_wstring (friend_).c_str (),
+                        SK_FormatStringW (
+                          L"%f {%llu}",
+                            new_percent,
+                              last_updated
+                        ).c_str ()
+                    );
+
+  return last_updated;
+}
+
+float
+SK_AppCache_Manager::getFriendAchievPct (uint64_t friend_, time_t* updated)
+{
+  if (app_cache_db != nullptr)
+  {
+    auto& sec =
+      app_cache_db->get_section (L"Friend.Achievements");
+
+    float  percent      = 0.0f;
+    time_t last_updated = 0ULL;
+
+    static_assert ( sizeof (time_t) ==
+                    sizeof (unsigned long long) );
+
+    time_t update_time;
+    time (&update_time);
+
+    if (sec.contains_key (std::to_wstring (friend_).c_str ()))
+    {
+      std::wstring friend_status =
+        sec.get_value (std::to_wstring (friend_).c_str ());
+
+      if ( 2 ==
+             std::swscanf ( friend_status.c_str (),
+                              L"%f {%llu}",
+                                &percent,
+                                  &last_updated
+                          )
+         )
+      {
+        if (updated != nullptr)
+           *updated  = last_updated;
+
+        return
+          percent;
+      }
+    }
+  }
+
+  if (updated != nullptr)
+    time (updated);
+
+  return
+    0.0f;
+}
+
+bool
+SK_AppCache_Manager::wantFriendStats (void)
+{
+  bool global_pref =
+    config.steam.achievements.pull_friend_stats;
+
+  if (app_cache_db == nullptr)
+    return global_pref;
+
+  auto& sec =
+    app_cache_db->get_section (L"Friend.Achievements");
+
+  if (sec.contains_key (L"FetchFromServer"))
+  {
+    std::wstring& val =
+      sec.get_value (L"FetchFromServer");
+
+    if (val._Equal (L"UseGlobalPreference"))
+      return global_pref;
+
+    return
+      SK_IsTrue (val.c_str ());
+  }
+
+  sec.add_key_value (L"FetchFromServer", L"UseGlobalPreference");
+
+  return
+    global_pref;
+}
+
+int
+SK_AppCache_Manager::getLicenseRevision (void)
+{
+  bool must_show =
+    config.imgui.show_eula;
+
+  if (app_cache_db == nullptr)
+    return must_show ? 0 : SK_LICENSE_REVISION;
+
+  auto& sec =
+    app_cache_db->get_section (L"License.Info");
+
+  if (sec.contains_key (L"LastRevision"))
+  {
+    std::wstring& val =
+      sec.get_value (L"LastRevision");
+
+    return
+      _wtoi (val.c_str ());
+  }
+
+  return 0;
+}
+
+void
+SK_AppCache_Manager::setLicenseRevision (int rev)
+{
+  if (app_cache_db == nullptr)
+    return;
+
+  auto& sec =
+    app_cache_db->get_section (L"License.Info");
+
+  sec.add_key_value ( L"LastRevision",
+                       std::to_wstring (rev).c_str () );
 }
 
 int

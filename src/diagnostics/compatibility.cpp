@@ -19,32 +19,8 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
-
-#include <Windows.h>
-
-#include <Commctrl.h>
-#include <Shlwapi.h>
-
-#pragma comment (linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' "  \
-                         "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
-                         " language='*'\"")
-
-
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/window.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/DLL_VERSION.H>
-#include <SpecialK/render/backend.h>
-#include <SpecialK/injection/injection.h>
-
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-
-#include <queue>
+#include <SpecialK/stdafx.h>
+#include <WinUser.h>
 
 volatile LONG __SK_TaskDialogActive = FALSE;
 
@@ -201,7 +177,7 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   TASKDIALOGCONFIG task_config    = {   };
 
   task_config.cbSize              = sizeof    (task_config);
-  task_config.hInstance           = SK_Modules.HostApp ();
+  task_config.hInstance           = SK_Modules->HostApp ();
   task_config.hwndParent          =        nullptr;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
@@ -1008,13 +984,13 @@ SK_COMPAT_UnloadFraps (void)
   if (SK_GetModuleHandle (L"fraps64.dll"))
   {
     UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps64.dll", "FrapsProcCBT"));
-    FreeLibrary (SK_GetModuleHandle (L"fraps64.dll"));
+    FreeLibrary (               SK_GetModuleHandle (L"fraps64.dll"));
   }
 #else
   if (SK_GetModuleHandle (L"fraps.dll"))
   {
     UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps.dll", "FrapsProcCBT"));
-    FreeLibrary (SK_GetModuleHandle (L"fraps.dll"));
+    FreeLibrary (               SK_GetModuleHandle (L"fraps.dll"));
   }
 #endif
 }

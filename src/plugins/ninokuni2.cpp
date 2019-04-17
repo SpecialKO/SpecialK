@@ -20,16 +20,10 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include <SpecialK/stdafx.h>
 
-#include <SpecialK/log.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/parameter.h>
 #include <SpecialK/plugin/plugin_mgr.h>
-
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-
 #include <imgui/imgui.h>
 
 extern iSK_INI*             dll_ini;

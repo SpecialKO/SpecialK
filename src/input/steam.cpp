@@ -1,10 +1,11 @@
+#include <SpecialK/stdafx.h>
+
 #include <SpecialK/steam_api.h>
 #include <SpecialK/input/steam.h>
 #include <SpecialK/input/input.h>
 
 sk_input_api_context_s SK_Steam_Backend;
 
-#include <concurrent_unordered_map.h>
 concurrency::concurrent_unordered_map <ISteamController*, IWrapSteamController*>  SK_SteamWrapper_remap_controller;
 
 using SteamAPI_ISteamClient_GetISteamController_pfn = ISteamController* (S_CALLTYPE *)(

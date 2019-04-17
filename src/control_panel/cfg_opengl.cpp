@@ -19,9 +19,8 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <imgui/imgui.h>
-
-#include <SpecialK/config.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/opengl.h>

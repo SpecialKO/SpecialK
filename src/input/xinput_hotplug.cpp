@@ -19,24 +19,36 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"XInput_Hot"
 
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/xinput.h>
 #include <SpecialK/input/xinput_hotplug.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/config.h>
-#include <SpecialK/log.h>
 
-#include <algorithm>
 #include <dbt.h>
 
 struct {
-  static const DWORD RecheckInterval = 1000UL;
+  volatile DWORD RecheckInterval = 2500UL;
+  volatile LONG  holding         = FALSE;
+  volatile DWORD last_polled     = 0UL;
 
-  bool  holding     = false;
-  DWORD last_polled = 0;
-} static placeholders [XUSER_MAX_COUNT + 1];
+  DWORD getRefreshTime (void) { return ReadULongAcquire (&RecheckInterval); }
+  DWORD lastPolled     (void) { return ReadULongAcquire (&last_polled);     }
+
+  void  setRefreshTime (DWORD dwTime)
+  {
+    WriteULongRelease (&RecheckInterval, dwTime);
+  }
+  void  updatePollTime (DWORD dwTime = timeGetTime ())
+  {
+    WriteULongRelease (&last_polled, dwTime);
+  }
+} static placeholders [XUSER_MAX_COUNT + 1] = {
+  { 3333UL, FALSE, 0 }, {  5000UL, FALSE, 0 }, {    6666UL, FALSE, 0 },
+                        { 10000UL, FALSE, 0 }, { 9999999UL, FALSE, 0 }
+};
 
 // One extra for overflow, XUSER_MAX_COUNT is never a valid index
 static SK_XInput_PacketJournal packets [XUSER_MAX_COUNT + 1];
@@ -49,7 +61,7 @@ SK_XInput_GetPacketJournal (DWORD dwUserIndex)
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   if (dwUserIndex >= XUSER_MAX_COUNT)
-    return packets [XUSER_MAX_COUNT];
+     return packets [XUSER_MAX_COUNT];
 
   return packets [dwUserIndex];
 }
@@ -61,7 +73,169 @@ SK_XInput_Holding (DWORD dwUserIndex)
   if (dwUserIndex >= XUSER_MAX_COUNT)
     return false;
 
-  return placeholders [dwUserIndex].holding;
+  if (ReadAcquire (&placeholders [dwUserIndex].holding))
+  {
+    DWORD dwRecheck =
+      placeholders [dwUserIndex].getRefreshTime ();
+
+    if (dwRecheck < 6666UL)
+      placeholders [dwUserIndex].setRefreshTime (dwRecheck * 2);
+    else
+      placeholders [dwUserIndex].setRefreshTime (timeGetTime ());
+
+    return true;
+  }
+
+  placeholders [dwUserIndex].setRefreshTime (133UL);
+
+  return false;
+}
+
+void
+SK_XInput_NotifyDeviceArrival (void)
+{
+  static HANDLE hNotifyEvent =
+    SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
+
+  static HANDLE hReconnectThread =
+    SK_Thread_CreateEx ([](LPVOID user)->
+      DWORD
+      {
+        HANDLE hNotify =
+          (HANDLE)user;
+
+        HANDLE phWaitObjects [2] = {
+          hNotify, __SK_DLL_TeardownEvent
+        };
+
+        static constexpr DWORD ArrivalEvent  = ( WAIT_OBJECT_0     );
+        static constexpr DWORD ShutdownEvent = ( WAIT_OBJECT_0 + 1 );
+
+        extern void SK_XInput_SetRefreshInterval (ULONG ulIntervalMS);
+        extern void SK_XInput_Refresh (UINT iJoyID);
+
+        auto SK_HID_DeviceNotifyProc =
+      [] (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+      -> LRESULT
+        {
+          switch (message)
+          {
+            case WM_DEVICECHANGE:
+            {
+              switch (wParam)
+              {
+                case DBT_DEVICEARRIVAL:
+                {
+                  SetEvent (hNotifyEvent);
+
+                  SK_LOG_FIRST_CALL //( ( L"USB HID Hotplug Notify is HOT; disabling lazy controller checks." ),
+                                          //L"XInput_Hot" ) );
+                } break;
+
+                case DBT_DEVICEREMOVECOMPLETE:
+                {
+                  SK_XInput_SetRefreshInterval (timeGetTime ());
+                } break;
+              }
+
+              int idx = 0;
+
+              for (auto& placeholder : placeholders)
+              {
+                if (idx++ != 0) WriteULongRelease (&placeholder.RecheckInterval, (333UL));
+                else            WriteULongRelease (&placeholder.RecheckInterval, (1UL));
+              }
+
+              return 0;
+            } break;
+          };
+
+          return
+            DefWindowProcW (hwnd, message, wParam, lParam);
+        };
+
+        WNDCLASSEXW wnd_class   = { };
+        wnd_class.hInstance     = GetModuleHandle (nullptr);
+        wnd_class.lpszClassName = L"SK_HID_Listener";
+        wnd_class.lpfnWndProc   = SK_HID_DeviceNotifyProc;
+        wnd_class.cbSize        = sizeof (WNDCLASSEXW);
+
+        if (RegisterClassEx (&wnd_class))
+        {
+          DWORD dwWaitStatus = WAIT_OBJECT_0;
+
+          HWND hWndDeviceListener =
+            (HWND)CreateWindowEx ( 0, L"SK_HID_Listener",    NULL, 0,
+                                   0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL );
+
+          HDEVNOTIFY hDevNotify =
+            SK_RegisterDeviceNotification (hWndDeviceListener);
+
+          do
+          {
+            auto MessagePump = [&] (void) ->
+            void
+            {
+              MSG                 msg = { };
+              while (PeekMessage (&msg, hWndDeviceListener, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
+              {
+                TranslateMessage (&msg);
+                DispatchMessage  (&msg);
+              }
+            };
+
+            if (dwWaitStatus == ArrivalEvent)
+            {
+              SK_XInput_Refresh (0);
+
+              int idx = 0;
+
+              for ( auto& placeholder : placeholders )
+              {
+                placeholder.updatePollTime (
+                  ( timeGetTime () - placeholder.getRefreshTime () )
+                );
+
+                if (ReadAcquire (&placeholder.holding) && idx != 0)
+                  SK_XInput_Refresh (idx);
+
+                ++idx;
+
+                if (MsgWaitForMultipleObjects (0, nullptr, FALSE, 66, QS_ALLINPUT) == WAIT_OBJECT_0)
+                {
+                  MessagePump ();
+                }
+              }
+
+              SK_XInput_SetRefreshInterval (15000UL);
+            }
+
+            dwWaitStatus =
+              MsgWaitForMultipleObjects (2, phWaitObjects, FALSE, INFINITE, QS_ALLINPUT);
+
+            if (dwWaitStatus == (WAIT_OBJECT_0 + 2))
+            {
+              MessagePump ();
+            }
+          } while (dwWaitStatus != ShutdownEvent);
+
+          UnregisterDeviceNotification (hDevNotify);
+          DestroyWindow                (hWndDeviceListener);
+          UnregisterClassW             (wnd_class.lpszClassName, wnd_class.hInstance);
+        }
+
+        else
+          SK_ReleaseAssert (! L"Failed to register Window Class!");
+
+        CloseHandle (hNotify);
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] HID Hotplug Dispatch", (LPVOID)hNotifyEvent
+    );
+
+  SetEvent (hNotifyEvent);
 }
 
 
@@ -75,26 +249,25 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
   if (pState      == nullptr)         return (DWORD)E_POINTER;
 
-  bool was_holding = placeholders [dwUserIndex].holding;
+  bool was_holding = ReadAcquire (&placeholders [dwUserIndex].holding);
 
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
-    if (! placeholders [dwUserIndex].holding)
+    if (! ReadAcquire (&placeholders [dwUserIndex].holding))
     {
-      placeholders [dwUserIndex].last_polled = timeGetTime ();
+      placeholders [dwUserIndex].updatePollTime ();
 
-      placeholders [dwUserIndex].holding =
-        true;//(! SK_XInput_PollController (dwUserIndex, pState));
+      WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
     }
 
     else
     {
-      if ( placeholders [dwUserIndex].last_polled <
-           timeGetTime () - placeholders [dwUserIndex].RecheckInterval )
+      if ( placeholders [dwUserIndex].lastPolled () <
+           timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
       {
         // Re-check the next time this controller is polled
-        placeholders [dwUserIndex].holding = false;
+        WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
       }
     }
 
@@ -145,21 +318,20 @@ SK_XInput_PlaceHoldCaps ( DWORD                dwRet,
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
-    if (! placeholders [dwUserIndex].holding)
+    if (! ReadAcquire (&placeholders [dwUserIndex].holding))
     {
-      placeholders [dwUserIndex].last_polled = timeGetTime ();
+      placeholders [dwUserIndex].updatePollTime ();
 
-      placeholders [dwUserIndex].holding =
-        true;//(! SK_XInput_PollController (dwUserIndex));
+      WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
     }
 
     else
     {
-      if ( placeholders [dwUserIndex].last_polled <
-           timeGetTime () - placeholders [dwUserIndex].RecheckInterval )
+      if ( placeholders [dwUserIndex].lastPolled () <
+           timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
       {
         // Re-check the next time this controller is polled
-        placeholders [dwUserIndex].holding = false;
+        WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
       }
     }
 
@@ -189,20 +361,19 @@ SK_XInput_PlaceHoldBattery ( DWORD                       dwRet,
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
-    if (! placeholders [dwUserIndex].holding) {
-      placeholders [dwUserIndex].last_polled = timeGetTime ();
+    if (! ReadAcquire (&placeholders [dwUserIndex].holding)) {
+      placeholders [dwUserIndex].updatePollTime ();
 
-      placeholders [dwUserIndex].holding =
-        true;//(! SK_XInput_PollController (dwUserIndex));
+      WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
     }
 
     else
     {
-      if ( placeholders [dwUserIndex].last_polled <
-           timeGetTime () - placeholders [dwUserIndex].RecheckInterval )
+      if ( placeholders [dwUserIndex].lastPolled () <
+           timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
       {
         // Re-check the next time this controller is polled
-        placeholders [dwUserIndex].holding = false;
+        WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
       }
     }
 
@@ -226,20 +397,19 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
-    if (! placeholders [dwUserIndex].holding)
+    if (! ReadAcquire (&placeholders [dwUserIndex].holding))
     {
-      placeholders [dwUserIndex].last_polled = timeGetTime ();
+      placeholders [dwUserIndex].updatePollTime ();
 
-      placeholders [dwUserIndex].holding = true;
-        //(! SK_XInput_PollController (dwUserIndex));
+      WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
     }
 
     else
     {
-      if ( placeholders [dwUserIndex].last_polled <
-           timeGetTime () - placeholders [dwUserIndex].RecheckInterval )
+      if ( placeholders [dwUserIndex].lastPolled () <
+           timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
       {
-        placeholders [dwUserIndex].holding = false;
+        WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
       }
     }
 
@@ -287,7 +457,7 @@ SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState
 
 
 
-static GUID GUID_Zero;
+GUID GUID_Zero;
 
 using RegisterDeviceNotification_pfn = HDEVNOTIFY (WINAPI *)(
   _In_ HANDLE hRecipient,
@@ -306,7 +476,7 @@ RegisterDeviceNotificationW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  auto* pNotifyFilter = 
+  auto* pNotifyFilter =
     static_cast <DEV_BROADCAST_DEVICEINTERFACE_W *> (NotificationFilter);
 
   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
@@ -331,11 +501,12 @@ RegisterDeviceNotificationW_Detour (
     }
   }
 
-  if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] || 
+  if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
        config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
     return nullptr;
 
-  return RegisterDeviceNotificationW_Original (hRecipient, NotificationFilter, Flags);
+  return
+    RegisterDeviceNotificationW_Original (hRecipient, NotificationFilter, Flags);
 }
 
 RegisterDeviceNotification_pfn RegisterDeviceNotificationA_Original = nullptr;
@@ -349,7 +520,7 @@ RegisterDeviceNotificationA_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  auto* pNotifyFilter = 
+  auto* pNotifyFilter =
     static_cast <DEV_BROADCAST_DEVICEINTERFACE_A *> (NotificationFilter);
 
   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
@@ -374,11 +545,12 @@ RegisterDeviceNotificationA_Detour (
     }
   }
 
-  if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] || 
+  if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
        config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
     return nullptr;
 
-  return RegisterDeviceNotificationA_Original (hRecipient, NotificationFilter, Flags);
+  return
+    RegisterDeviceNotificationA_Original (hRecipient, NotificationFilter, Flags);
 }
 
 #include <SpecialK/hooks.h>
@@ -399,4 +571,58 @@ SK_XInput_InitHotPlugHooks (void)
                              "RegisterDeviceNotificationA",
                               RegisterDeviceNotificationA_Detour,
      static_cast_p2p <void> (&RegisterDeviceNotificationA_Original) );
+}
+
+
+HDEVNOTIFY
+WINAPI
+SK_RegisterDeviceNotification (_In_ HANDLE hRecipient)
+{
+  GUID GUID_DEVINTERFACE_HID =
+    { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
+
+  bool bUnicode =
+    IsWindowUnicode ((HWND)hRecipient);
+
+  if (bUnicode)
+  {
+    DEV_BROADCAST_DEVICEINTERFACE_W
+    NotificationFilter                 = { };
+    NotificationFilter.dbcc_size       = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W);
+    NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+    NotificationFilter.dbcc_classguid  = GUID_DEVINTERFACE_HID;
+
+    if (RegisterDeviceNotificationW_Original != nullptr)
+    {
+      return
+        RegisterDeviceNotificationW_Original (hRecipient, &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
+    }
+
+    else
+    {
+      return
+        RegisterDeviceNotificationW (hRecipient, &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
+    }
+  }
+
+  else
+  {
+    DEV_BROADCAST_DEVICEINTERFACE_A
+    NotificationFilter                 = { };
+    NotificationFilter.dbcc_size       = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A);
+    NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+    NotificationFilter.dbcc_classguid  = GUID_DEVINTERFACE_HID;
+
+    if (RegisterDeviceNotificationA_Original != nullptr)
+    {
+      return
+        RegisterDeviceNotificationA_Original (hRecipient, &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
+    }
+
+    else
+    {
+      return
+        RegisterDeviceNotificationA (hRecipient, &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
+    }
+  }
 }

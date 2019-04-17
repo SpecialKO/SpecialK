@@ -40,6 +40,7 @@
 #include <d3d12.h>
 #include <d3d11_4.h>
 #else
+#include <dxgicommon.h>
 #include <d3d11_1.h>
 #endif
 

@@ -5685,8 +5685,8 @@ ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
     return;
   }
 
-  //const bool hovered =
-  //  ItemHoverable (frame_bb, id);
+  const bool hovered =
+    ItemHoverable (frame_bb, id);
 
   // Determine scale from values if not specified
   if ( scale_min == std::numeric_limits <float>::max () ||
@@ -5699,6 +5699,9 @@ ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
     {
       const float v =
         values_getter (data, i);
+
+      if (v != v) // Ignore NaN values
+        continue;
 
       v_min = ImMin (v_min, v);
       v_max = ImMax (v_max, v);
@@ -5717,6 +5720,23 @@ ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
   {
     int res_w      = ImMin ((int)frame_size.x, values_count) + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
     int item_count = values_count + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
+
+    // Tooltip on hover
+    int v_hovered = -1;
+    if (hovered && inner_bb.Contains (g.IO.MousePos))
+    {
+        const float t   = ImClamp((g.IO.MousePos.x - inner_bb.Min.x) / (inner_bb.Max.x - inner_bb.Min.x), 0.0f, 0.9999f);
+        const int v_idx = (int)(t * item_count);
+        IM_ASSERT(v_idx >= 0 && v_idx < values_count);
+
+        const float v0 = values_getter(data, (v_idx + values_offset) % values_count);
+        const float v1 = values_getter(data, (v_idx + 1 + values_offset) % values_count);
+        ///if (plot_type == ImGuiPlotType_Lines)
+        ///    SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx+1, v1);
+        ///else if (plot_type == ImGuiPlotType_Histogram)
+        ///    SetTooltip("%d: %8.4g", v_idx, v0);
+        v_hovered = v_idx;
+    }
 
     const float t_step    = 1.0f / (float)res_w;
     const float inv_scale = (scale_min == scale_max) ? 0.0f : (1.0f / (scale_max - scale_min));
@@ -5748,7 +5768,7 @@ ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
 
       if (plot_type == ImGuiPlotType_Lines)
       {
-        window->DrawList->AddLine ( pos0, pos1, col_base );
+        window->DrawList->AddLine ( pos0, pos1, v_hovered == v1_idx ? col_hovered : col_base );
       }
 
       else if (plot_type == ImGuiPlotType_Histogram)
@@ -5756,7 +5776,7 @@ ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
         if (pos1.x >= pos0.x + 2.0f)
             pos1.x -= 1.0f;
 
-        window->DrawList->AddRectFilled ( pos0, pos1, col_base );
+        window->DrawList->AddRectFilled ( pos0, pos1, v_hovered == v1_idx ? col_hovered : col_base);
       }
 
        t0 = t1;

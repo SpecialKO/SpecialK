@@ -19,6 +19,8 @@
 *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
 #include <SpecialK/render/d3d11/d3d11_core.h>

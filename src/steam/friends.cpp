@@ -1,3 +1,4 @@
+#include <SpecialK/stdafx.h>
 #include <SpecialK/steam_api.h>
 
 class IWrapSteamFriends : public ISteamFriends

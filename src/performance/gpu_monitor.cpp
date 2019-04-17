@@ -19,17 +19,10 @@
  *
 **/
 
-#include <SpecialK/render/backend.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/stdafx.h>
 
-#include <SpecialK/performance/gpu_monitor.h>
-#include <SpecialK/config.h>
-
-#include <SpecialK/log.h>
-
-#include <algorithm>
-#include <vector>
-#include <cassert>
+#include <SpecialK/nvapi.h>
+#include <SpecialK/adl.h>
 
 //
 // All GPU performance data are double-buffered and it is safe to read
@@ -41,12 +34,10 @@ volatile LONG           current_gpu_stat      =  0;
          gpu_sensors_t  gpu_stats_buffers [2] = { };
          gpu_sensors_t& gpu_stats             = gpu_stats_buffers [0];
 
-#include <SpecialK/nvapi.h>
 extern BOOL nvapi_init;
 
 //#define PCIE_WORKS
 
-#include <SpecialK/adl.h>
 extern BOOL ADL_init;
 
 #define NVAPI_GPU_UTILIZATION_DOMAIN_GPU 0
@@ -71,10 +62,10 @@ SK_GPUPollingThread (LPVOID user)
     hShutdownEvent
   };
 
-  SetCurrentThreadDescription  (     L"[SK] GPU Performance Monitoring Thread");
+  SetCurrentThreadDescription  (     L"[SK] GPU Performance Monitor");
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
-  
+
 
   auto SwitchToThreadMinPageFaults = [](void) ->
   void
@@ -120,6 +111,9 @@ SK_GPUPollingThread (LPVOID user)
         InterlockedCompareExchange (&current_gpu_stat, FALSE, TRUE);
 
     gpu_sensors_t& stats = gpu_stats_buffers [ReadAcquire (&current_gpu_stat)];
+
+    extern void SK_DXGI_SignalBudgetThread (void);
+                SK_DXGI_SignalBudgetThread (    );
 
     if (nvapi_init)
     {
@@ -320,7 +314,7 @@ SK_GPUPollingThread (LPVOID user)
         }
 
         static int iter = 0;
-        
+
         // This is an expensive operation for very little gain,
         //   it rarely changes, but it eats CPU time.
         if ((iter++ % 8) == 0 && config.gpu.print_slowdown)
@@ -659,11 +653,11 @@ uint64_t
 __stdcall
 SK_GPU_GetVRAMUsed          (int gpu)
 {
-  buffer_t buffer = mem_info [0].buffer;
-  int      nodes  = mem_info [buffer].nodes;
+  buffer_t buffer = dxgi_mem_info [0].buffer;
+  int      nodes  = dxgi_mem_info [buffer].nodes;
 
   return ( gpu   > -1   && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus )      ?
-         ( nodes >= gpu ?  mem_info [buffer].local [gpu].CurrentUsage            :
+         ( nodes >= gpu ?  dxgi_mem_info [buffer].local [gpu].CurrentUsage            :
                   gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].memory_B.local )    :
                                      0;
 }
@@ -672,11 +666,11 @@ uint64_t
 __stdcall
 SK_GPU_GetVRAMShared        (int gpu)
 {
-  buffer_t buffer = mem_info [0].buffer;
-  int      nodes  = mem_info [buffer].nodes;
+  buffer_t buffer = dxgi_mem_info [0].buffer;
+  int      nodes  = dxgi_mem_info [buffer].nodes;
 
   return ( gpu   > -1   && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus )      ?
-         ( nodes >= gpu ?  mem_info [buffer].nonlocal [gpu].CurrentUsage         :
+         ( nodes >= gpu ?  dxgi_mem_info [buffer].nonlocal [gpu].CurrentUsage                        :
                   gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].memory_B.nonlocal ) :
                                      0;
 }
@@ -694,11 +688,11 @@ uint64_t
 __stdcall
 SK_GPU_GetVRAMBudget        (int gpu)
 {
-  buffer_t buffer = mem_info [0].buffer;
-  int      nodes  = mem_info [buffer].nodes;
+  buffer_t buffer = dxgi_mem_info [0].buffer;
+  int      nodes  = dxgi_mem_info [buffer].nodes;
 
   return ( gpu   > -1   && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus ) ?
-         ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                                 :
+         ( nodes >= gpu ?  dxgi_mem_info [buffer].local [gpu].Budget                            :
                             SK_GPU_GetVRAMCapacity (gpu) )                                      :
                                      0;
 }

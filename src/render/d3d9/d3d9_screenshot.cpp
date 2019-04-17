@@ -19,6 +19,7 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
 #include <SpecialK/steam_api.h>
 

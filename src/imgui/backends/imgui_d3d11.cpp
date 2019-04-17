@@ -6,20 +6,14 @@
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
-#include <SpecialK/render/backend.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/config.h>
-#include <SpecialK/log.h>
 
 // DirectX
 #include <d3d11.h>
 #include <d3dcompiler.h>
-
-#include <atlbase.h>
-#include <Windows.h>
 
 bool __SK_ImGui_D3D11_DrawDeferred = false;
 bool running_on_12                 = false;
@@ -142,13 +136,11 @@ SK_ImGui_LoadFonts (void);
 
 #include <SpecialK/tls.h>
 
-
-// This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
 IMGUI_API
 void
-ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
+ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 {
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -275,8 +267,8 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     {
       for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
       {
-        ImU32& color =
-          cmd_list->VtxBuffer.Data [i].col;
+        ImU32 color =
+          ImColor (cmd_list->VtxBuffer.Data [i].col);
 
         uint8_t alpha = (((color & 0xFF000000U) >> 24U) & 0xFFU);
 
@@ -293,6 +285,9 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
                 ((UINT)((r * a) * 255U) << 16U) |
                 ((UINT)((g * a) * 255U) <<  8U) |
                 ((UINT)((b * a) * 255U)       );
+
+        cmd_list->VtxBuffer.Data[i].col =
+          (ImVec4)ImColor (color);
       }
     }
 
@@ -1073,15 +1068,16 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
     // Create the input layout
     D3D11_INPUT_ELEMENT_DESC local_layout [] = {
-      { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert *)nullptr)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert *)nullptr)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-      { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (size_t)(&((ImDrawVert *)nullptr)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (size_t)(&((ImDrawVert *)nullptr)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
 
-    if ( pDev->CreateInputLayout ( local_layout, 3,
-                                     g_pVertexShaderBlob->GetBufferPointer (),
-                                       g_pVertexShaderBlob->GetBufferSize  (),
-                                         &g_pInputLayout ) != S_OK )
+    if ( (! (g_pVertexShaderBlob && g_pVertexShaderBlob)) ||
+          pDev->CreateInputLayout ( local_layout, 3,
+                                    g_pVertexShaderBlob->GetBufferPointer (),
+                                      g_pVertexShaderBlob->GetBufferSize  (),
+                                        &g_pInputLayout ) != S_OK )
     {
       return false;
     }
@@ -1163,7 +1159,18 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                               \n\
         return pow ((c1 + c2 * Lp) / (1 + c3 * Lp), m2);                      \n\
       }                                                                       \n\
+      float3 RemoveREC2084Curve (float3 N)                                    \n\
+      {                                                                       \n\
+        float  m1 = 2610.0 / 4096.0 / 4;                                      \n\
+        float  m2 = 2523.0 / 4096.0 * 128;                                    \n\
+        float  c1 = 3424.0 / 4096.0;                                          \n\
+        float  c2 = 2413.0 / 4096.0 * 32;                                     \n\
+        float  c3 = 2392.0 / 4096.0 * 32;                                     \n\
+        float3 Np = pow (N, 1 / m2);                                          \n\
                                                                               \n\
+        return                                                                \n\
+          pow (max (Np - c1, 0) / (c2 - c3 * Np), 1 / m1);                    \n\
+      }                                                                       \n\
       float3 REC709toREC2020 (float3 RGB709)                                  \n\
       {                                                                       \n\
         static const float3x3 ConvMat =                                       \n\
@@ -1222,23 +1229,19 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
           else                                                                \n\
           {                                                                   \n\
             under_color =                                                     \n\
-              float4 (hdrUnderlay.Sample (sampler0, input.pos.xy/             \n\
-                                                     viewport.zw).rgb, 1.0f); \n\
+              float4 ( hdrUnderlay.Sample ( sampler0, input.pos.xy /          \n\
+                                                      viewport.zw ).rgb, 1.0);\n\
             if (hdr10)                                                        \n\
             {                                                                 \n\
-              blend_alpha =                                                   \n\
-                ApplyREC2084Curve (float3 (blend_alpha, blend_alpha,          \n\
-                                           blend_alpha), -input.uv3.x).r;     \n\
               under_color.rgb =                                               \n\
-                REC2020toREC709 (under_color.rgb/(under_color.rgb+(1.666f*    \n\
-                                 (2.0f-blend_alpha))));                       \n\
-            }                                                                 \n\
-            else                                                              \n\
-            {                                                                 \n\
-              under_color.rgb =                                               \n\
-                ( under_color.rgb / ( under_color.rgb + ( 1.666f *            \n\
-                                    ( 2.0f - blend_alpha ) ) )                \n\
+                125.0f * REC2020toREC709 (                                    \n\
+                  ( RemoveREC2084Curve (under_color.rgb) )                    \n\
                 );                                                            \n\
+                                                                              \n\
+              blend_alpha =                                                   \n\
+                ApplyREC2084Curve (                                           \n\
+                  float3 ( blend_alpha, blend_alpha, blend_alpha ),           \n\
+                                             -input.uv3.x / 1.45 ).r;         \n\
             }                                                                 \n\
                                                                               \n\
             out_col =                                                         \n\
@@ -1246,16 +1249,16 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                               \n\
             if (! hdr10)                                                      \n\
             {                                                                 \n\
-              out_col    *= float4 (input.uv3.xxx, 1.0f);                     \n\
+              out_col  *= float4 (input.uv3.xxx, 1.0f);                       \n\
             }                                                                 \n\
                                                                               \n\
-            out_col.rgb *= blend_alpha;                                       \n\
+            out_col.rgb *= blend_alpha * 1.55f;                               \n\
           }                                                                   \n\
                                                                               \n\
           float4 final =                                                      \n\
             float4 (                         out_col.rgb +                    \n\
-                  (1.0f - blend_alpha) * under_color.rgb * 0.666f,            \n\
-                          blend_alpha);                                       \n\
+                  (1.0f - blend_alpha) * under_color.rgb,                     \n\
+              min (1.0f,  blend_alpha));                                      \n\
                                                                               \n\
           if (hdr10)                                                          \n\
           {                                                                   \n\
@@ -1596,7 +1599,7 @@ __stdcall
 SKX_ImGui_UnregisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
 {
   if (reset_callbacks.count (pCallback))
-    reset_callbacks.erase (pCallback);
+      reset_callbacks.erase (pCallback);
 }
 
 void
@@ -1609,7 +1612,7 @@ SK_ImGui_ResetExternal (void)
 
   external_resources.clear ();
 
-  for ( auto& reset_fn : reset_callbacks )
+  for ( auto reset_fn : reset_callbacks )
   {
     reset_fn ();
   }
@@ -1701,6 +1704,7 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
   io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
   io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
   io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
+  io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
   io.KeyMap [ImGuiKey_A]          = 'A';
   io.KeyMap [ImGuiKey_C]          = 'C';
   io.KeyMap [ImGuiKey_V]          = 'V';
@@ -1708,8 +1712,6 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
   io.KeyMap [ImGuiKey_Y]          = 'Y';
   io.KeyMap [ImGuiKey_Z]          = 'Z';
 
-  // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
-  io.RenderDrawListsFn = ImGui_ImplDX11_RenderDrawLists;
   io.ImeWindowHandle   = g_hWnd;
 
   static auto& rb =

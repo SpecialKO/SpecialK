@@ -1,11 +1,5 @@
+#include <SpecialK/stdafx.h>
 #include <SpecialK/steam_api.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-
-#include <Windows.h>
-#include <cstdint>
-
-#include <unordered_map>
 
 class ISteamClient;
 class IWrapSteamClient;
@@ -13,7 +7,6 @@ class IWrapSteamClient;
 class ISteamUser;
 class IWrapSteamUser;
 
-#include <concurrent_unordered_map.h>
 concurrency::concurrent_unordered_map <ISteamUser*, IWrapSteamUser*>   SK_SteamWrapper_remap_user;
 
 int __SK_SteamUser_BLoggedOn =

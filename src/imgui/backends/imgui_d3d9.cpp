@@ -6,12 +6,11 @@
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/window.h>
-#include <SpecialK/log.h>
 
 extern void
 SK_ImGui_User_NewFrame (void);
@@ -79,7 +78,7 @@ SK_D3D9_TestFramebufferDimensions (float& width, float& height)
 // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
 IMGUI_API
 void
-ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
+ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
 {
   // Avoid rendering when minimized
   ImGuiIO& io (ImGui::GetIO ());
@@ -168,27 +167,44 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
       vtx_dst->pos [0] = vtx_src->pos.x;
       vtx_dst->pos [1] = vtx_src->pos.y;
       vtx_dst->pos [2] = 0.0f;
-      vtx_dst->col     = (vtx_src->col & 0xFF00FF00)      |
-                        ((vtx_src->col & 0xFF0000) >> 16) |
-                        ((vtx_src->col & 0xFF)     << 16); // RGBA --> ARGB for DirectX9
+
+      ImU32 u32_color =
+        (ImU32)ImColor (vtx_src->col);
+
+      u32_color =
+        (u32_color  & 0xFF00FF00)      |
+        ((u32_color & 0xFF0000) >> 16) |
+        ((u32_color & 0xFF)     << 16);
+
+      memcpy (
+        &vtx_dst->col, &u32_color, sizeof (uint32_t)); // RGBA --> ARGB for DirectX9
 
       if (config.imgui.render.disable_alpha)
       {
-        uint8_t alpha = (((vtx_dst->col & 0xFF000000U) >> 24U) & 0xFFU);
+        ImU32 u32_dst =
+          vtx_dst->col;////ImColor (ImVec4 (vtx_dst->col [0], vtx_dst->col [1], vtx_dst->col [2], vtx_dst->col [3]));
+
+        uint8_t alpha =
+          (((u32_dst & 0xFF000000U) >> 24U) & 0xFFU);
 
         // Boost alpha for visibility
-        if (alpha < 93 && alpha != 0)
-          alpha += (93 - alpha) / 2;
+        if (alpha <   93 && alpha != 0)
+            alpha += (93 - alpha) / 2;
 
-        float a = ((float)                              alpha / 255.0f);
-        float r = ((float)((vtx_src->col & 0xFF0000U) >> 16U) / 255.0f);
-        float g = ((float)((vtx_src->col & 0x00FF00U) >>  8U) / 255.0f);
-        float b = ((float)((vtx_src->col & 0x0000FFU)       ) / 255.0f);
+        float a = ((float)                         alpha / 255.0f);
+        float r = ((float)((u32_dst & 0xFF0000U) >> 16U) / 255.0f);
+        float g = ((float)((u32_dst & 0x00FF00U) >>  8U) / 255.0f);
+        float b = ((float)((u32_dst & 0x0000FFU)       ) / 255.0f);
 
-        vtx_dst->col =                    0xFF000000U  |
-                       ((UINT)((b * a) * 255U) << 16U) |
-                       ((UINT)((g * a) * 255U) <<  8U) |
-                       ((UINT)((r * a) * 255U)       );
+        vtx_dst->col = (
+          0xFF000000U |
+          ((UINT)((b * a) * 255U) << 16U) |
+          ((UINT)((g * a) * 255U) << 8U) |
+          ((UINT)((r * a) * 255U))
+        );
+
+        //memcpy (
+        //  vtx_dst->col, &((unsigned int)im_color), sizeof (uint32_t));
       }
 
       vtx_dst->uv  [0] = vtx_src->uv.x;
@@ -401,6 +417,7 @@ ImGui_ImplDX9_Init ( void*                  hwnd,
   io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
   io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
   io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
+  io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
   io.KeyMap [ImGuiKey_A]          = 'A';
   io.KeyMap [ImGuiKey_C]          = 'C';
   io.KeyMap [ImGuiKey_V]          = 'V';
@@ -409,8 +426,7 @@ ImGui_ImplDX9_Init ( void*                  hwnd,
   io.KeyMap [ImGuiKey_Z]          = 'Z';
 
   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
-  io.RenderDrawListsFn = ImGui_ImplDX9_RenderDrawLists;
-  io.ImeWindowHandle   = g_hWnd;
+  io.ImeWindowHandle = g_hWnd;
 
 
   float width  = 0.0f,

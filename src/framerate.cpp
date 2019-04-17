@@ -19,24 +19,16 @@
  *
 **/
 
-#include <SpecialK/framerate.h>
-#include <SpecialK/render/backend.h>
-
-#include <SpecialK/log.h>
-#include <SpecialK/config.h>
-#include <SpecialK/command.h>
-#include <SpecialK/core.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/window.h>
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/commands/limit_reset.inl>
 
+#ifndef _d3d9TYPES_H_
+#undef  _D3D9_H_
 #include <d3d9.h>
-#include <d3d11.h>
-#include <atlbase.h>
+#endif
 
-#include <SpecialK/tls.h>
-#include <SpecialK/thread.h>
+#include <d3d11.h>
 
 SK::Framerate::Stats* frame_history  = nullptr;
 SK::Framerate::Stats* frame_history2 = nullptr;
@@ -826,9 +818,12 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     SK_GetCurrentGameID ();
 
 
+  const bool sleepless_render = config.render.framerate.sleepless_render;
+  const bool sleepless_window = config.render.framerate.sleepless_window;
+
   bool bWantThreadClassification =
-    ( config.render.framerate.sleepless_render ||
-      config.render.framerate.sleepless_window );
+    ( sleepless_render ||
+      sleepless_window );
 
   bWantThreadClassification |=
     ( game_id == SK_GAME_ID::Tales_of_Vesperia &&
@@ -843,8 +838,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   //BOOL bGUIThread    = config.render.framerate.sleepless_window ? SK_Win32_IsGUIThread (dwTid, &pTLS)        :
   //                                                                                      false;
-  BOOL bRenderThread = config.render.framerate.sleepless_render ? ((DWORD)ReadAcquire (&rb.thread) == dwTid) :
-                                                                                        false;
+  BOOL bRenderThread = sleepless_render ? ((DWORD)ReadAcquire (&rb.thread) == dwTid) :
+                                                                              false;
 
   if (bRenderThread)
   {
@@ -859,7 +854,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       }
     }
 
-    if (config.render.framerate.sleepless_render && dwMilliseconds != INFINITE)
+    if (sleepless_render && dwMilliseconds != INFINITE)
     {
       static bool reported = false;
             if (! reported)
@@ -1120,8 +1115,6 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
     extern volatile LONG
       __SK_SHENMUE_FinishedButNotPresented;
 
-    static DWORD dwRenderThread = 0;
-
     if (ReadAcquire (&__SK_SHENMUE_FinishedButNotPresented))
     {
       if (dwRenderThread == 0)
@@ -1129,7 +1122,7 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 
       if ( GetCurrentThreadId () == dwRenderThread )
       {
-        if ( SK_GetCallingDLL () == SK_Modules.HostApp () )
+        if ( SK_GetCallingDLL () == SK_Modules->HostApp () )
         {
           static std::unordered_set <LPCVOID> ret_addrs;
 

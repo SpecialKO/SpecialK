@@ -1,6 +1,5 @@
+#include <SpecialK/stdafx.h>
 #include <SpecialK/steam_api.h>
-#include <SpecialK/input/xinput.h>
-#include <SpecialK/input/steam.h>
 
 ISteamController_Init_pfn                 ISteamController_Init_Original                 = nullptr;
 ISteamController_RunFrame_pfn             ISteamController_RunFrame_Original             = nullptr;
@@ -616,9 +615,9 @@ SK_Steam_HookController (void)
     SK_Steam_GetDLLPath ();
 
   HMODULE hMod =
-    SK_Modules.getLoadedLibrary (steam_dll, true);
+    SK_Modules->getLoadedLibrary (steam_dll, true);
 
-  if ( SK_Modules.isValid (hMod) &&
+  if ( SK_Modules->isValid (hMod) &&
            GetProcAddress (hMod,
          "SteamAPI_ISteamController_GetAnalogActionData"
                           )

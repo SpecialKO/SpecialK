@@ -34,6 +34,9 @@ public:
 protected:
    SK_PopupWindow (const char* szLayout);
   ~SK_PopupWindow (void);
+
+private:
+  CEGUI::Window* window_;
 };
 
 class SK_PopupManager {
@@ -55,6 +58,16 @@ public:
 
 protected:
   SK_PopupManager (void);
+
+private:
+  static SK_PopupManager* __manager__;
+  static CRITICAL_SECTION cs;
+
+  SKTL_BidirectionalHashMap <
+    SK_PopupWindow *, CEGUI::Window  *
+  > popups_ { };
+
+  CEGUI::GUIContext* gui_ctx_;
 };
 
 #endif /* __SK__OSD_POPUP_H__ */

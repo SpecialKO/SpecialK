@@ -19,40 +19,24 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
-
-#include <string>
-#include <cinttypes>
-#include <SpecialK/ini.h>
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-
+#include <SpecialK/stdafx.h>
 #include <winternl.h>
-
-#include <vector>
-#include <concurrent_unordered_map.h>
 
 HMODULE
 SK_GetModuleHandleW (PCWSTR lpModuleName)
 {
   if (lpModuleName == nullptr)
     return GetModuleHandleW (nullptr);
+
   HMODULE hMod = nullptr;
 
-  typedef void (WINAPI *RtlInitUnicodeString_pfn)(
-      PUNICODE_STRING DestinationString,
-      PCWSTR          SourceString
-  );
+  typedef void (WINAPI *RtlInitUnicodeString_pfn)
+  ( PUNICODE_STRING DestinationString,
+    PCWSTR          SourceString                );
 
-  typedef NTSTATUS (WINAPI *LdrGetDllHandle_pfn)(
-       ULONG,           ULONG,
- const UNICODE_STRING*, HMODULE* );
+  typedef NTSTATUS (WINAPI *LdrGetDllHandle_pfn)
+  (       ULONG,           ULONG,
+    const UNICODE_STRING*, HMODULE*            );
 
   static RtlInitUnicodeString_pfn
     RtlInitUnicodeString =
@@ -90,7 +74,8 @@ SK_GetModuleHandleW (PCWSTR lpModuleName)
               MH_StatusToString ((status)) ), \
                   L" Min Hook " );
 
-concurrency::concurrent_unordered_map <HMODULE, MODULEINFO> SK_KnownModules;
+//TODO: Deprecate, then Remove
+//SK_LazyGlobal <concurrency::concurrent_unordered_map <HMODULE, MODULEINFO>> SK_KnownModules;
 
 std::wstring
 sk_hook_target_s::serialize_ini (void)
@@ -115,7 +100,7 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
   if (hModLib == nullptr)
   {
     hModLib =
-      SK_Modules.LoadLibraryLL (wszPath);
+      SK_Modules->LoadLibraryLL (wszPath);
   }
 
   MODULEINFO mod_info = { };
@@ -388,7 +373,7 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
           continue;
         }
 
-        if (SK_Modules.LoadLibraryLL (it->target.module_path))
+        if (SK_Modules->LoadLibraryLL (it->target.module_path))
         {
           SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s'"
                       L" { Last seen in '%s' }",
@@ -502,7 +487,7 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
     iSK_INISection& cfg_sec =
       ini->get_section (wszSecName);
 
-    for ( auto& it : pools )
+    for ( auto it : pools )
     {
       std::wstring key_name =
         SK_FormatStringW (L"Enable%sCache", it.wszName);
@@ -650,7 +635,7 @@ __stdcall
 SK_ValidateHookAddress ( const wchar_t * /*wszModuleName*/,
                          const wchar_t * /*wszHookName*/,
                                HMODULE   /*hModule*/,
-                               void    * /*pHookAddr*/ )
+                               void    * /*pHookAddr*/ ) noexcept
 {
 
   ///MODULEINFO mod_info = { };
@@ -716,7 +701,7 @@ bool
 __stdcall
 SK_ValidateVFTableAddress ( const wchar_t * /*wszHookName*/,
                                   void    * /*pVFTable*/,
-                                  void    * /*pVFAddr*/ )
+                                  void    * /*pVFAddr*/ ) noexcept
 {
   ////HMODULE hModVFTable = nullptr;
   ////HMODULE hModVFAddr  = nullptr;
@@ -765,7 +750,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
     hMod =
-      SK_Modules.LoadLibrary (pwszModule);
+      SK_Modules->LoadLibrary (pwszModule);
 
     if (hMod != skModuleRegistry::INVALID_MODULE)
 
@@ -890,7 +875,7 @@ WINAPI
 SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
                              LPCSTR  lpProcName,
                             FARPROC  lpProcAddr,
-              PLDR_DATA_TABLE_ENTRY *ppldrEntry = nullptr );
+          PLDR_DATA_TABLE_ENTRY__SK *ppldrEntry = nullptr );
 
 MH_STATUS
 __stdcall
@@ -945,7 +930,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
     hMod =
-      SK_Modules.LoadLibrary (pwszModule);
+      SK_Modules->LoadLibrary (pwszModule);
 
     if (hMod != skModuleRegistry::INVALID_MODULE)
       GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN |
@@ -1088,7 +1073,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
     hMod =
-      SK_Modules.LoadLibrary (pwszModule);
+      SK_Modules->LoadLibrary (pwszModule);
 
     if (hMod != skModuleRegistry::INVALID_MODULE)
       GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN |
@@ -1252,13 +1237,18 @@ SK_CreateVFTableHook ( const wchar_t  *pwszFuncName,
   if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
     return MH_ERROR_DISABLED;
 
-
   MH_STATUS status =
-    SK_CreateFuncHook (
-      pwszFuncName,
-        ppVFTable [dwOffset],
-          pDetour,
-            ppOriginal );
+    MH_ERROR_NOT_EXECUTABLE;
+
+  if (ppVFTable != nullptr)
+  {
+    status =
+      SK_CreateFuncHook (
+        pwszFuncName,
+          ppVFTable [dwOffset],
+            pDetour,
+              ppOriginal );
+  }
 
   if (status == MH_OK)
   {
@@ -1290,14 +1280,19 @@ SK_CreateVFTableHookEx ( const wchar_t  *pwszFuncName,
   if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
     return MH_ERROR_DISABLED;
 
-
   MH_STATUS status =
-    SK_CreateFuncHookEx (
-      pwszFuncName,
-        ppVFTable [dwOffset],
-          pDetour,
-            ppOriginal,
-              idx );
+    MH_ERROR_NOT_EXECUTABLE;
+
+  if (ppVFTable != nullptr)
+  {
+    status =
+      SK_CreateFuncHookEx (
+        pwszFuncName,
+          ppVFTable [dwOffset],
+            pDetour,
+              ppOriginal,
+                idx );
+  }
 
   if (status == MH_OK)
   {
@@ -1328,13 +1323,18 @@ SK_CreateVFTableHook2 ( const wchar_t  *pwszFuncName,
   if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
     return MH_ERROR_DISABLED;
 
-
   MH_STATUS status =
-    SK_CreateFuncHook (
-      pwszFuncName,
-        ppVFTable [dwOffset],
-          pDetour,
-            ppOriginal );
+    MH_ERROR_NOT_EXECUTABLE;
+
+  if (ppVFTable != nullptr)
+  {
+    status =
+      SK_CreateFuncHook (
+        pwszFuncName,
+          ppVFTable [dwOffset],
+            pDetour,
+              ppOriginal );
+  }
 
   if (status == MH_OK)
   {
@@ -1365,13 +1365,18 @@ SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
   if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
     return MH_ERROR_DISABLED;
 
-
   MH_STATUS status =
-    SK_CreateFuncHook (
-      pwszFuncName,
-        ppVFTable [dwOffset],
-          pDetour,
-            ppOriginal );
+    MH_ERROR_NOT_EXECUTABLE;
+
+  if (ppVFTable != nullptr)
+  {
+    status =
+      SK_CreateFuncHook (
+        pwszFuncName,
+          ppVFTable [dwOffset],
+            pDetour,
+              ppOriginal );
+  }
 
   if (status == MH_OK)
   {
@@ -1411,7 +1416,8 @@ SK_ApplyQueuedHooks (void)
   if (config.system.log_level > 0) SK_LOG_CALL (" Min Hook ");
 #endif
 
-  DWORD dwStart = timeGetTime ();
+  const DWORD dwStart =
+    timeGetTime ();
 
   MH_STATUS status =
     MH_ApplyQueued ();
@@ -1436,8 +1442,7 @@ SK_EnableHook (void *pTarget)
   if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
     return MH_ERROR_DISABLED;
 
-
-  MH_STATUS status =
+  const MH_STATUS status =
     MH_EnableHook (pTarget);
 
   if (status != MH_OK && status != MH_ERROR_ENABLED)
@@ -1466,7 +1471,7 @@ SK_EnableHookEx (void *pTarget, UINT idx)
     return MH_ERROR_DISABLED;
 
 
-  MH_STATUS status =
+  const MH_STATUS status =
     MH_EnableHookEx (pTarget, idx);
 
   if (status != MH_OK && status != MH_ERROR_ENABLED)
@@ -1496,7 +1501,7 @@ SK_DisableHook (void *pTarget)
     return MH_ERROR_DISABLED;
 
 
-  MH_STATUS status =
+  const MH_STATUS status =
     MH_DisableHook (pTarget);
 
   if (status != MH_OK && status != MH_ERROR_DISABLED)
@@ -1525,7 +1530,7 @@ SK_RemoveHook (void *pTarget)
     return MH_ERROR_DISABLED;
 
 
-  MH_STATUS status =
+  const MH_STATUS status =
     MH_RemoveHook (pTarget);
 
   if (status != MH_OK)
@@ -1546,9 +1551,10 @@ SK_MinHook_Init (void)
     return MH_ERROR_DISABLED;
 
 
-  MH_STATUS status;
+  const MH_STATUS status =
+    MH_Initialize ();
 
-  if ((status = MH_Initialize ()) != MH_OK)
+  if (status != MH_OK)
   {
 #if 0
     dll_log.Log ( L"[ Min Hook ] Failed to Initialize MinHook Library!"
@@ -1568,9 +1574,10 @@ SK_MinHook_UnInit (void)
     return MH_ERROR_NOT_INITIALIZED;
 
 
-  MH_STATUS status;
+  const MH_STATUS status =
+    MH_Uninitialize ();
 
-  if ((status = MH_Uninitialize ()) != MH_OK)
+  if (status != MH_OK)
   {
     SK_LOG_MINHOOK ( status, L"Failed to Uninitialize MinHook Library!",0);
   }

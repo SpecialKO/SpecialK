@@ -19,22 +19,8 @@
  *
 **/
 
-#include <SpecialK/SpecialK.h>
+#include <SpecialK/stdafx.h>
 
-#include <Windows.h>
-#include <Shlwapi.h>
-#include <process.h>
-
-#include <SpecialK/diagnostics/memory.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/debug_utils.h>
-#include <SpecialK/diagnostics/load_library.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-
-#include <SpecialK/input/dinput8_backend.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 
@@ -42,16 +28,6 @@
 #include <SpecialK/render/d3d8/d3d8_backend.h>
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 #endif
-
-#include <SpecialK/log.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/tls.h>
-
-#include <SpecialK/hooks.h>
-#include <SpecialK/injection/injection.h>
-#include <SpecialK/diagnostics/modules.h>
-
 
 // Fix that stupid macro that redirects to Unicode/ANSI
 #undef LoadLibrary
@@ -62,11 +38,7 @@
 
 static bool _HasLocalDll = false;
 
-skModuleRegistry* SK_Singleton_Modules (void)
-{
-  static skModuleRegistry  mod_reg;
-  return                  &mod_reg;
-}
+SK_LazyGlobal <skModuleRegistry> SK_Modules;
 
 SK_Thread_HybridSpinlock* init_mutex          = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex        = nullptr;
@@ -305,9 +277,15 @@ SK_Inject_DeferredUnload (HMODULE hModule)
 
     SK_Inject_WaitOnUnhook ();
 
-    FlsFree (
-      ReadULongAcquire (&__SK_TLS_INDEX)
-    );
+    DWORD dwTlsIdx =
+      ReadULongAcquire (&__SK_TLS_INDEX);
+
+    if (dwTlsIdx != MAXDWORD)
+    {
+      FlsFree (
+        dwTlsIdx
+      );
+    }
 
     SK_Thread_CloseSelf ();
 
@@ -642,6 +620,7 @@ _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
   using role_from_api_tbl =
     std::map < SK_RenderAPI, std::tuple < DLL_ROLE, BOOL > >;
 
+  static
   role_from_api_tbl
     role_reversal =
     {
@@ -1089,8 +1068,9 @@ SK_EstablishDllRole (skWin32Module&& module)
         if (SK_GetDLLRole () == DLL_ROLE::INVALID)
           SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
 
-        extern sk_config_t* SK_Singleton_Config (void);
-                            SK_Singleton_Config ();
+        extern SK_LazyGlobal <sk_config_t> _config;
+                          auto& config_ = *_config;
+        DBG_UNREFERENCED_LOCAL_VARIABLE (config_);
 
         // Write any default values to the config file
         SK_LoadConfig (L"SpecialK");

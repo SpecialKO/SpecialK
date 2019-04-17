@@ -260,6 +260,9 @@ LoadWidgetKeybind ( SK_Keybind *binding,
             const std::wstring& sec_name,
             const std::wstring& key_name )
 {
+  if (! binding)
+    return nullptr;
+
   sk::ParameterStringW* ret =
     dynamic_cast <sk::ParameterStringW *>
       (SK_Widget_ParameterFactory->create_parameter <std::wstring> (wszDesc));

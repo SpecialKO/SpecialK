@@ -19,16 +19,9 @@
  *
 **/
 
-struct IUnknonwn;
-
-#include <Unknwnbase.h>
-#include <combaseapi.h>
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/adl.h>
-#include <SpecialK/log.h>
-
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
 
 BOOL      ADL_init = ADL_FALSE;
 HINSTANCE hADL_DLL;
@@ -48,7 +41,7 @@ ADL_OVERDRIVE5_CURRENTACTIVITY_GET ADL_Overdrive5_CurrentActivity_Get;
 // Memory allocation function
 void* __stdcall ADL_Main_Memory_Alloc ( int iSize )
 {
-  void* lpBuffer = malloc ( iSize );
+  void*  lpBuffer = malloc ( iSize );
   return lpBuffer;
 }
 
@@ -58,12 +51,12 @@ void __stdcall ADL_Main_Memory_Free ( void** lpBuffer )
   if ( lpBuffer != nullptr && *lpBuffer != nullptr )
   {
     free ( *lpBuffer );
-    *lpBuffer = nullptr;
+           *lpBuffer = nullptr;
   }
 }
 
-AdapterInfo adl_adapters [ADL_MAX_ADAPTERS] = { };
-AdapterInfo adl_active   [ADL_MAX_ADAPTERS] = { };
+static AdapterInfo adl_adapters [ADL_MAX_ADAPTERS] = { };
+static AdapterInfo adl_active   [ADL_MAX_ADAPTERS] = { };
 
 BOOL
 SK_InitADL (void)
@@ -78,11 +71,11 @@ SK_InitADL (void)
     adl_active   [i].iSize = sizeof (AdapterInfo);
   }
 
-  hADL_DLL = SK_Modules.LoadLibraryLL (L"atiadlxx.dll");
+  hADL_DLL = SK_Modules->LoadLibraryLL (L"atiadlxx.dll");
   if (hADL_DLL == nullptr) {
     // A 32 bit calling application on 64 bit OS will fail to LoadLibrary.
     // Try to load the 32 bit library (atiadlxy.dll) instead
-    hADL_DLL = SK_Modules.LoadLibraryLL (L"atiadlxy.dll");
+    hADL_DLL = SK_Modules->LoadLibraryLL (L"atiadlxy.dll");
   }
 
   if (hADL_DLL == nullptr) {

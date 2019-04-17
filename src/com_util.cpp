@@ -19,19 +19,7 @@
  *
 **/
 
-#include <SpecialK/com_util.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/config.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/log.h>
-
-#include <SpecialK/diagnostics/modules.h>
-
-#include <atlbase.h>
-#include <comdef.h>
-
-#pragma comment (lib, "wbemuuid.lib")
+#include <SpecialK/stdafx.h>
 
 COM::Base COM::base = { };
 
@@ -47,8 +35,6 @@ COM::Base::WMI::Unlock (void)
   wmi_cs->unlock ();
 }
 
-
-#include <dinput.h>
 DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 
@@ -447,8 +433,6 @@ SK_WMI_Shutdown (void)
     }
   }
 }
-
-#include <SpecialK/diagnostics/debug_utils.h>
 
 bool
 SK_AutoCOMInit::_assert_not_dllmain (void)

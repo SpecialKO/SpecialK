@@ -1,17 +1,10 @@
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/config.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/log.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-#include <SpecialK/nvapi.h>
+#include <SpecialK/stdafx.h>
 
-#include <process.h>
-
-#include <string>
-#include <algorithm>
+#if (defined (NOGDI) || (! defined (_WINGDI_)))
+#undef        NOGDI
+#undef      _WINGDI_
+#include    <wingdi.h>
+#endif
 
 sk::ParameterFactory fo4_factory;
 

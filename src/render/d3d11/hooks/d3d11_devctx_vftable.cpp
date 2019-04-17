@@ -19,6 +19,8 @@
 *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
@@ -234,7 +236,8 @@ D3D11_UpdateSubresource1_pfn                        D3D11_UpdateSubresource1_Ori
 // 114 FinishCommandList
 
 
-#include <../src/render/d3d11/d3d11_dev_ctx.cpp>
+// TODO
+//////#include <../src/render/d3d11/d3d11_dev_ctx.cpp>
 
 __declspec (noinline)
 HRESULT
@@ -1320,8 +1323,7 @@ D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
   if (SK_D3D11_DispatchHandler (This, pTLS))
     return;
 
-
-  SK_ReShade_DrawCallback.call (This, 64, pTLS);
+  //SK_ReShade_DrawCallback.call (This, 64, pTLS);
 
   D3D11_DispatchIndirect_Original ( This,
                                       pBufferForArgs,
@@ -1463,7 +1465,7 @@ D3D11_OMGetRenderTargets_Override (ID3D11DeviceContext     *This,
 
   if (ppDepthStencilView != nullptr && SK_ReShade_GetDepthStencilViewCallback.fn != nullptr)
   {
-    if (! SK_D3D11_IsDevCtxDeferred (This))
+    //if (! SK_D3D11_IsDevCtxDeferred (This))
       SK_ReShade_GetDepthStencilViewCallback.try_call (*ppDepthStencilView);
   }
 }

@@ -19,21 +19,12 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/steam.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/parameter.h>
-
-#include <SpecialK/utility/bidirectional_map.h>
-
-#include <SpecialK/steam_api.h>
-
-#include <memory>
 
 extern volatile LONG SK_SteamAPI_CallbackRateLimit;
 extern volatile LONG __SK_Steam_Downloading;
@@ -82,7 +73,7 @@ SK::ControlPanel::Steam::Draw (void)
                      100.0 * ratio,  gsl::narrow_cast <uint32_t> ((ratio * gsl::narrow_cast <float> (num_achievements))),
                                      gsl::narrow_cast <uint32_t> (                                   num_achievements) );
 
-        ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) );
+        ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
         ImGui::ProgressBar    ( ratio,
                                   ImVec2 (-1, 0),
                                     szProgress );
@@ -104,8 +95,8 @@ SK::ControlPanel::Steam::Draw (void)
 
           ImGui::BeginGroup     ();
 
-          ImGui::PushStyleColor ( ImGuiCol_Text,          ImColor (255, 255, 255)              );
-          ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) );
+          ImGui::PushStyleColor ( ImGuiCol_Text,          ImVec4 (1.f, 1.f, 1.f, 1.f)         );
+          ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
 
           for (int i = 0; i < (int)((float)friends * SK_SteamAPI_FriendStatPercentage ()); i++)
           {
@@ -119,7 +110,7 @@ SK::ControlPanel::Steam::Draw (void)
             {
               ImGui::ProgressBar    ( percent, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
               ImGui::SameLine       ( );
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (.81f, 0.81f, 0.81f));
+              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (.81f, 0.81f, 0.81f, 1.f));
               ImGui::Text           (szName);
               ImGui::PopStyleColor  (1);
 
@@ -199,7 +190,7 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
 
           const bool uncollapsed =
-            ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowOverlapMode);
+            ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowItemOverlap);
 
           ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.steam.achievements.pull_friend_stats);
 
@@ -597,7 +588,7 @@ SK::ControlPanel::Steam::Draw (void)
         ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
         ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
         ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
-        ImGui::PushStyleColor (ImGuiCol_Text,          ImColor::HSV (0.15f, 1.0f, 1.0f));
+        ImGui::PushStyleColor (ImGuiCol_Text,          (ImVec4&&)ImColor::HSV (0.15f, 1.0f, 1.0f));
 
         if (ImGui::CollapsingHeader ("Denuvo"))
         {
@@ -794,14 +785,14 @@ SK::ControlPanel::Steam::Draw (void)
       if (right_clicked)
       {
         ImGui::OpenPopup         ("SteamOverlayPauseMenu");
-        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
       }
 
       else if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip   (       );
         ImGui::Text           ( "In"  );                 ImGui::SameLine ();
-        ImGui::PushStyleColor ( ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f) );
+        ImGui::PushStyleColor ( ImGuiCol_Text, ImVec4 (0.95f, 0.75f, 0.25f, 1.0f) );
         ImGui::Text           ( "Steam Overlay Aware");  ImGui::SameLine ();
         ImGui::PopStyleColor  (       );
         ImGui::Text           ( "software, click to toggle the game's overlay pause mode." );
@@ -825,7 +816,7 @@ SK::ControlPanel::Steam::Draw (void)
     else if (right_clicked)
     {
       ImGui::OpenPopup         ("SteamCallbackRateMenu");
-      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
     }
 
     if (ImGui::BeginPopup ("SteamCallbackRateMenu"))
@@ -863,8 +854,8 @@ static_cast <uint32_t> (
                     )
                );
 
-      ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) );
-      ImGui::PushStyleColor ( ImGuiCol_Text,          ImColor (255, 255, 255)              );
+      ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
+      ImGui::PushStyleColor ( ImGuiCol_Text,          ImVec4 (1.0f,   1.0f,  1.0f,  1.0f) );
       ImGui::ProgressBar (
         SK_SteamAPI_FriendStatPercentage (),
           ImVec2 (-1, 0), szLabel );
@@ -886,7 +877,7 @@ SK_DepotList&
 SK_AppCache_Manager::getAvailableManifests (DepotId_t steam_depot)
 {
   return
-    SK_Steam_DepotManifestRegistry [steam_depot];
+    (*SK_Steam_DepotManifestRegistry)[steam_depot];
 }
 
 ManifestId_t
@@ -914,8 +905,6 @@ SK_AppCache_Manager::loadDepotCache (DepotId_t steam_depot)
   for ( auto& cache_record : SK_Steam_DepotManifestRegistry.get () )
     cache_record.second.clear ();
 
-  SK_Steam_DepotManifestRegistry->clear ();
-  SK_Steam_InstalledManifest->clear     ();
 
   auto& sections =
     app_cache_db->get_sections ();
@@ -1067,11 +1056,22 @@ SK_SteamDB_BuildRandomAgentString (void)
   static unsigned int agent_idx3 =
     ( rand () % (sizeof (wszAgents3) / sizeof (wchar_t*)) );
 
-  static std::wstring random_agent =
+  static const std::wstring random_agent =
     SK_FormatStringW (L"%s%s%s%s", wszAgents0 [agent_idx0],
                                    wszAgents1 [agent_idx1],
                                    wszAgents2 [agent_idx2],
                                    wszAgents3 [agent_idx3]);
+
+
+  static bool first = true;
+
+  if (first)
+  {
+    first = false;
+
+    SK_LOG0 ( ( L"Randomized User Agent: %s", random_agent.c_str () ),
+                L" Steam DB ");
+  }
 
   return
     random_agent.c_str ();
@@ -1097,19 +1097,27 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
     );
 
   // (Cleanup On Error)
-  auto CLEANUP = [&](void) ->
+  auto CLEANUP = [&](bool clean = false) ->
   DWORD
   {
+    if (! clean)
+    {
+      DWORD dwLastError =
+           GetLastError ();
+
+      SK_LOG0 ( ( L"WinInet Failure (%x): %ws",
+                    dwLastError,
+        _com_error (dwLastError).ErrorMessage ()
+                ), L" Steam DB " );
+    }
+
     if (hInetHTTPGetReq != nullptr) InternetCloseHandle (hInetHTTPGetReq);
     if (hInetHost       != nullptr) InternetCloseHandle (hInetHost);
     if (hInetRoot       != nullptr) InternetCloseHandle (hInetRoot);
 
-    if (get != nullptr)
-    {
-      sk_depot_get_t* to_delete = nullptr;
-      std::swap (get, to_delete);
-      delete          to_delete;
-    }
+    sk_depot_get_t* to_delete = nullptr;
+    std::swap (get, to_delete);
+    delete          to_delete;
 
     return 0;
   };
@@ -1149,7 +1157,7 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
   // Wait 2500 msecs for a dead connection, then give up
   //
   InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT,
-                         &ulTimeout,      sizeof ULONG );
+                         &ulTimeout,    sizeof ULONG );
 
 
   if (hInetHTTPGetReq == nullptr)
@@ -1299,25 +1307,41 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
     }
   }
 
-  CLEANUP ();
+  CLEANUP (true);
 
   return 1;
 }
 
-#if 0
-  FILE* fHTML =
-    fopen (R"(C:\users\amcol\Documents\My Mods\SpecialK\manifest.html)", "r+");
 
-  if (fHTML != nullptr)
+void
+SK_ShellExecute (const wchar_t* verb, const wchar_t* file)
+{
+  SHELLEXECUTEINFO
+  sei        = { 0 };
+  sei.cbSize = sizeof (sei);
+  sei.nShow  = SW_SHOWMAXIMIZED;
+
+  sei.fMask  = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC |
+               SEE_MASK_WAITFORINPUTIDLE;
+  sei.lpVerb = verb;
+  sei.lpFile = file;
+
+  if (ShellExecuteEx (&sei))
   {
-    uint64_t size =
-      SK_File_GetSize (LR"(C:\users\amcol\Documents\My Mods\SpecialK\manifest.html)");
+    DWORD                     shell_pid = GetProcessId (sei.hProcess);
+    AllowSetForegroundWindow (shell_pid);
 
+    window_t win =
+      SK_FindRootWindow (shell_pid);
 
+    if (win.root != nullptr)
+    {
+      SetForegroundWindow (win.root);
+      SetActiveWindow     (win.root);
+    }
+    CloseHandle (sei.hProcess);
   }
-#endif
-
-#include <mshtmcid.h>
+};
 
 bool
 SK::ControlPanel::Steam::DrawMenu (void)
@@ -1434,12 +1458,21 @@ SK::ControlPanel::Steam::DrawMenu (void)
         }
       }
 
-      //try {
-      //  SK_RunOnce (
-      //    manifest_version =
-      //    std::stoull (manifest_query.empty () ? "0" : manifest_query)
-      //  );
-      //} catch (...) { }
+
+      if (SK::SteamAPI::AppID () != 0)
+      {
+        ImGui::Separator ();
+
+        if (ImGui::MenuItem ("Edit Steam Application Manifest"))
+        {
+          ShellExecuteW ( HWND_DESKTOP,   L"OPEN",
+                          L"notepad.exe", SK_Steam_GetApplicationManifestPath ().c_str (),
+                          nullptr,        SW_SHOWMAXIMIZED );
+
+          SK_ImGui_Warning (L"Remember to close notepad, Steam will count the game as running until you do.");
+        }
+      }
+
 
       auto InitializeSteamDepots = [&](void) ->
       void
@@ -1448,7 +1481,6 @@ SK::ControlPanel::Steam::DrawMenu (void)
           cache_record.second.clear ();
 
         SK_Steam_DepotManifestRegistry->clear ();
-        SK_Steam_InstalledManifest->clear ();
 
         SK_Thread_Create ([](LPVOID)->
         DWORD
@@ -1535,7 +1567,8 @@ SK::ControlPanel::Steam::DrawMenu (void)
                 if (ImGui::MenuItem ( SK_FormatString ( "%s##%llu",
                                                           it2.manifest.date.c_str (),
                                                             it2.manifest.id
-                                                      ).c_str (), "",  &selected )
+                                                      ).c_str (), "",  &selected ) &&
+                     SK_Steam_InstalledManifest [it.first].manifest.id != it2.manifest.id
                    )
                 {
                   if (OpenClipboard (nullptr))
@@ -1568,11 +1601,9 @@ SK::ControlPanel::Steam::DrawMenu (void)
                       SetClipboardData (CF_UNICODETEXT,
                                         hGlobal);
                       CloseClipboard   (       );
+                      GlobalFree       (hGlobal);
 
-                      HWND hWndOriginal =
-                        GetForegroundWindow ();
-
-                      ShellExecuteW (HWND_DESKTOP, L"OPEN", L"steam://nav/console", wszCommand, nullptr, SW_SHOWNORMAL);
+                      SK_ShellExecute (L"OPEN", L"steam://nav/console");
 
                       SK_ImGui_Warning ( L"An unpatch command has been added to the clipboard; paste it to Steam's console and press Enter.\n\n\t"
                                          L"Once the Steam console indicates completion, copy files:"
@@ -1586,15 +1617,9 @@ SK::ControlPanel::Steam::DrawMenu (void)
                       SK_Steam_InstalledManifest [it.first].manifest.id =
                         it2.manifest.id;
 
-                      SK_Thread_Create ([](LPVOID hWndOriginal) ->
+                      SK_Thread_Create ([](LPVOID) ->
                         DWORD
                         {
-                          do {
-                            SK_Sleep (50UL);
-                          } while (GetForegroundWindow () == (HWND)hWndOriginal);
-
-                        //SK_ImGui_Warning (L"\tPaste (Ctrl + V) the Generated Command in the Steam Console and Press Enter.");
-
                           extern const wchar_t*
                             SK_GetSteamDir (void);
 
@@ -1602,26 +1627,23 @@ SK::ControlPanel::Steam::DrawMenu (void)
                             SK_GetSteamDir ();
 
                           content_dir +=
-                            SK_FormatStringW ( LR"(\steamapps\content\app_%lu\depot_%lu)",
+                            SK_FormatStringW ( LR"(\steamapps\content\app_%lu\depot_%lu\)",
                                                  SK::SteamAPI::AppID (),
                                                    ReadAcquire (&__SK_Steam_Downloading) );
 
                           int tries = 0;
-
                           do {
-                            SK_Sleep (1000UL);
-                          } while ((! ::PathIsDirectory (content_dir.c_str ())) && tries++ < 30);
+                            SK_Sleep (100UL);
+                          } while ((! ::PathIsDirectory (content_dir.c_str ())) && tries++ < 1200);
 
-                          ShellExecuteW ( HWND_DESKTOP, L"OPEN",
-                                            content_dir.c_str (), nullptr,
-                                            content_dir.c_str (), SW_SHOWNORMAL );
+                          SK_ShellExecute (L"EXPLORE", content_dir.c_str ());
 
                           app_cache_mgr->saveAppCache ();
 
                           SK_Thread_CloseSelf ();
 
                           return 0;
-                        },(LPVOID)hWndOriginal
+                        }
                       );
                     }
                   }

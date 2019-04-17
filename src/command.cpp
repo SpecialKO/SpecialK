@@ -19,14 +19,9 @@
  *
 **/
 
-#include <SpecialK/command.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/tls.h>
-
+#include <SpecialK/stdafx.h>
 
 static CRITICAL_SECTION cs_process_cmd = { };
-
 
 SK_ICommandProcessor*
 __stdcall

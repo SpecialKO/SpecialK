@@ -1529,6 +1529,7 @@ namespace ImGui
   IMGUI_API void          ClearDragDrop ();
   IMGUI_API bool          IsDragDropPayloadBeingAccepted ();
 
+
   // New Columns API (FIXME-WIP)
   IMGUI_API void          BeginColumns(const char* str_id, int count, ImGuiColumnsFlags flags = 0); // setup number of columns. use an identifier to distinguish multiple column sets. close with EndColumns().
   IMGUI_API void          EndColumns();                                                             // close columns

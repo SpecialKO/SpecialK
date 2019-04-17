@@ -19,15 +19,10 @@
  *
 **/
 
-#include <SpecialK/log.h>
-#include <SpecialK/config.h>
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_device.h>
-#include <algorithm>
-
-#include <cassert>
-#include <d3d11.h>
 
 volatile LONG SK_D3D9_LiveWrappedSwapChains   = 0;
 volatile LONG SK_D3D9_LiveWrappedSwapChainsEx = 0;

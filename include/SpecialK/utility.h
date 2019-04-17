@@ -19,6 +19,8 @@
  *
 **/
 
+#pragma once
+
 #ifndef __SK__UTILITY_H__
 #define __SK__UTILITY_H__
 
@@ -27,18 +29,23 @@ struct IUnknown;
 
 #include <intrin.h>
 #include <Windows.h>
-#include <ini.h>
 
 #include <cstdint>
-#include <queue>
-#include <string>
 #include <mutex>
+#include <queue>
+#include <vector>
+#include <bitset>
+#include <array>
+#include <string>
 
 #include <SpecialK/SpecialK.h>
+#include <SpecialK/ini.h>
 #include <SpecialK/core.h>
 #include <SpecialK/sha1.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/debug_utils.h>
+
+#include <atlbase.h>
 
 using HANDLE = void *;
 
@@ -55,7 +62,7 @@ template <typename T, typename T2, typename Q>
 template <typename T, typename Q>
   __inline
   T**
-    static_cast_p2p ( typename Q** p2p ) noexcept
+    static_cast_p2p (     Q **      p2p ) noexcept
     {
       return static_cast <T **> (
                static_cast <T*>   ( p2p )
@@ -167,7 +174,7 @@ wchar_t*       SK_StripUserNameFromPathW    (wchar_t* wszInOut);
 #define SK_ConcealUserDirA SK_StripUserNameFromPathA
 
 FARPROC WINAPI SK_GetProcAddress            (      HMODULE  hMod,      const char* szFunc) noexcept;
-FARPROC WINAPI SK_GetProcAddress            (const wchar_t* wszModule, const char* szFunc) noexcept;
+FARPROC WINAPI SK_GetProcAddress            (const wchar_t* wszModule, const char* szFunc);
 
 
 std::wstring
@@ -187,12 +194,6 @@ void           SK_GetSystemInfo             (LPSYSTEM_INFO lpSystemInfo);
 PSID SK_Win32_GetTokenSid     (_TOKEN_INFORMATION_CLASS tic );
 PSID SK_Win32_ReleaseTokenSid (PSID                     pSid);
 
-
-#ifdef _WINGDI_
-#undef _WINGDI_
-#endif
-
-#include <atlbase.h>
 
 class SK_AutoHandle : public CHandle
 {
@@ -369,13 +370,6 @@ SK_InjectMemory ( LPVOID  base_addr,
 bool
 SK_IsProcessRunning (const wchar_t* wszProcName);
 
-
-#include <vector>
-#include <bitset>
-#include <array>
-#include <string>
-#include <intrin.h>
-
 class InstructionSet
 {
   // Fwd decl
@@ -461,10 +455,10 @@ public:
   static bool _3DNOW        (void)          { return CPU_Rep->isAMD_   &&
                                                      CPU_Rep->f_81_EDX_ [31]; }
 
-  static void deferredInit  (void) noexcept { SK_RunOnce (CPU_Rep = new (std::nothrow) InstructionSet_Internal ()); }
+  static void deferredInit  (void)          { SK_RunOnce (CPU_Rep = std::make_unique <InstructionSet_Internal> ()); }
 
 private:
-  static InstructionSet_Internal* CPU_Rep;
+  static std::unique_ptr <InstructionSet_Internal> CPU_Rep;
 
   class InstructionSet_Internal
   {

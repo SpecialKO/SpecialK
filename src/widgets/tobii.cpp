@@ -19,12 +19,8 @@
 *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <SpecialK/widgets/widget.h>
-
-#include <SpecialK/config.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/control_panel.h>
-#include <SpecialK/utility.h>
 
 #include <SpecialK/plugin/plugin_mgr.h>
 
@@ -43,7 +39,7 @@ extern iSK_INI*             osd_ini;
 extern sk::ParameterFactory g_ParameterFactory;
 
 
-static auto DeclKeybind =
+auto constexpr DeclKeybind =
 [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
 auto
 {
@@ -56,7 +52,7 @@ auto
   return ret;
 };
 
-static auto
+auto constexpr
 Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
 auto
 {
@@ -293,7 +289,7 @@ protected:
 public:
   SKWG_Tobii (void) noexcept : SK_Widget ("Tobii")
   {
-    SK_ImGui_Widgets.tobii = this;
+    SK_ImGui_Widgets->tobii = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::NorthEast).setClickThrough (false);
   };
@@ -491,8 +487,7 @@ public:
           ImGui::PushStyleColor  ( ImGuiCol_Border, ImVec4 (0.369f, 0.369f, 0.369f, 1.0f));
           ImGui::BeginChildFrame ( ImGui::GetID ("Tobii_Eye_Cursor"),
                                      ImVec2 ( MAX_CURSOR_SIZE + CURSOR_BORDER,
-                                              MAX_CURSOR_SIZE + CURSOR_BORDER ),
-                                    ImGuiWindowFlags_ShowBorders );
+                                              MAX_CURSOR_SIZE + CURSOR_BORDER ) );
         }
 
         float fRadius =
@@ -708,7 +703,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
   static HMODULE hModTobii;
 
   hModTobii =
-    SK_Modules.LoadLibraryLL (wszDestination);
+    SK_Modules->LoadLibraryLL (wszDestination);
 
   if (! hModTobii)
   {
@@ -717,7 +712,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
 
     // Give up on second
     hModTobii =
-      SK_Modules.LoadLibraryLL (wszDestination);
+      SK_Modules->LoadLibraryLL (wszDestination);
 
     if (! hModTobii)
       return;

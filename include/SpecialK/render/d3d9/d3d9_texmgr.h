@@ -12,7 +12,6 @@
 //#include "render.h"
 
 #include <d3d9.h>
-#include <d3dx9tex.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 
@@ -77,6 +76,9 @@ private:
   std::unordered_set <_T> container_;
   CRITICAL_SECTION        cs_;
 };
+
+typedef struct _D3DXIMAGE_INFO       D3DXIMAGE_INFO;
+typedef enum   _D3DXIMAGE_FILEFORMAT D3DXIMAGE_FILEFORMAT;
 
 namespace SK   {
 namespace D3D9 {

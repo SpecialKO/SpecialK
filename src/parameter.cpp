@@ -19,9 +19,7 @@
  *
 **/
 
-#include <SpecialK/parameter.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/ini.h>
+#include <SpecialK/stdafx.h>
 
 // Read value from INI
 bool
@@ -624,109 +622,6 @@ sk::ParameterVec2f::load (ImVec2& ref)
 
   return bRet;
 }
-
-
-template <>
-sk::iParameter*
-sk::ParameterFactory::create_parameter <int> (const wchar_t* name)
-{
-  UNREFERENCED_PARAMETER (name);
-
-  std::lock_guard <std::mutex> _scope_lock (lock);
-
-  params.emplace_back (
-    std::make_unique <ParameterInt> ()
-  );
-
-  return params.back ().get ();
-}
-
-#if 0
-template<>
-sk::iParameter*
-sk::ParameterFactory::create_parameter (const wchar_t* name)
-{
-  UNREFERENCED_PARAMETER (name);
-
-  return nullptr;
-}
-#endif
-
-template <>
-sk::iParameter*
-sk::ParameterFactory::create_parameter <int64_t> (const wchar_t* name)
-{
-  UNREFERENCED_PARAMETER (name);
-
-  std::lock_guard <std::mutex> _scope_lock (lock);
-
-  params.emplace_back (
-    std::make_unique <ParameterInt64> ()
-  );
-
-  return params.back ().get ();
-}
-
-template <>
-sk::iParameter*
-sk::ParameterFactory::create_parameter <bool> (const wchar_t* name)
-{
-  UNREFERENCED_PARAMETER (name);
-
-  std::lock_guard <std::mutex> _scope_lock (lock);
-
-  params.emplace_back (
-    std::make_unique <ParameterBool> ()
-  );
-
-  return params.back ().get ();
-}
-
-template <>
-sk::iParameter*
-sk::ParameterFactory::create_parameter <float> (const wchar_t* name)
-{
-  UNREFERENCED_PARAMETER (name);
-
-  std::lock_guard <std::mutex> _scope_lock (lock);
-
-  params.emplace_back (
-    std::make_unique <ParameterFloat> ()
-  );
-
-  return params.back ().get ();
-}
-
-template <>
-sk::iParameter*
-sk::ParameterFactory::create_parameter <std::wstring> (const wchar_t* name)
-{
-  UNREFERENCED_PARAMETER (name);
-
-  std::lock_guard <std::mutex> _scope_lock (lock);
-
-  params.emplace_back (
-    std::make_unique <ParameterStringW> ()
-  );
-
-  return params.back ().get ();
-}
-
-template <>
-sk::iParameter*
-sk::ParameterFactory::create_parameter <ImVec2> (const wchar_t* name)
-{
-  UNREFERENCED_PARAMETER (name);
-
-  std::lock_guard <std::mutex> _scope_lock (lock);
-
-  params.emplace_back (
-    std::make_unique <ParameterVec2f> ()
-  );
-
-  return params.back ().get ();
-}
-
 
 #if 0
 bool

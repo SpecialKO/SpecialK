@@ -20,16 +20,10 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include <SpecialK/stdafx.h>
 
-#include <SpecialK/log.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/parameter.h>
 #include <SpecialK/plugin/plugin_mgr.h>
-
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-
 #include <imgui/imgui.h>
 
 #define TVFIX_VERSION_NUM L"0.5.2.5"
@@ -314,7 +308,7 @@ SteamAPI_RunCallbacks_Detour (void);
 
 typedef void (__cdecl *SteamAPI_RunCallbacks_Hook_pfn)(void);
                 static SteamAPI_RunCallbacks_Hook_pfn
-                       SteamAPI_RunCallbacks_Original = nullptr;
+                       SteamAPI_RunCallbacks_Local = nullptr;
 
 static void
 SteamAPI_RunCallbacks_Preamble (void)
@@ -322,7 +316,7 @@ SteamAPI_RunCallbacks_Preamble (void)
   if (GetCurrentThreadId () != __SK_TVFix_MagicSteamThread)
     return;
 
-  SteamAPI_RunCallbacks_Original ();
+  SteamAPI_RunCallbacks_Local ();
 }
 
 
@@ -334,8 +328,8 @@ SK_TVFix_InitPlugin (void)
   SK_CreateFuncHook (      L"SteamAPI_RunCallbacks_Detour",
                              SteamAPI_RunCallbacks_Detour,
                              SteamAPI_RunCallbacks_Preamble,
-    static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original) );
-  SK_EnableHook     (        SteamAPI_RunCallbacks_Detour    );
+    static_cast_p2p <void> (&SteamAPI_RunCallbacks_Local) );
+  SK_EnableHook     (        SteamAPI_RunCallbacks_Detour );
 
 
   _SK_TVFix_LastKnown_XRes =
@@ -469,7 +463,7 @@ SK_TVFix_PlugInCfg (void)
 
       if (orig_samples != config.render.dxgi.msaa_samples)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
         ImGui::BulletText     ("Game Restart Required");
         ImGui::PopStyleColor  ();
       }
@@ -492,7 +486,7 @@ SK_TVFix_PlugInCfg (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
 
     ImGui::BeginGroup ();
-    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlapMode))
+    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
     {
       ImGui::TreePush ("");
 
@@ -506,14 +500,14 @@ SK_TVFix_PlugInCfg (void)
 
         if (enable)
         {
-          SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x27fbcdeb);
-          SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x8dfd78fd);
+          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
+          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
         }
 
         else
         {
-          SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x27fbcdeb);
-          SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x8dfd78fd);
+          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
+          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
         }
 
         __SK_TVFix_DisableDepthOfField = (! enable);
@@ -570,12 +564,12 @@ SK_TVFix_PlugInCfg (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip    ();
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.5f, 0.f, 1.f, 1.f));
+        ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.5f, 0.f, 1.f, 1.f));
         ImGui::TextUnformatted ("Builds Complete Mipchains (Mipmap LODs) for all Textures");
         ImGui::Separator       ();
         ImGui::PopStyleColor   ();
         ImGui::Bullet          (); ImGui::SameLine ();
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.15f, 1.0f, 1.0f));
+        ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.15f, 1.0f, 1.0f));
         ImGui::TextUnformatted ("SIGNIFICANTLY");
         ImGui::PopStyleColor   (); ImGui::SameLine ();
         ImGui::TextUnformatted ("reduces texture aliasing");
@@ -834,8 +828,8 @@ SK_TVFix_BeginFrame (void)
       if (__SK_TVFix_DisableDepthOfField)
       {
         ////instn__depth_of_field.disable ();
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x27fbcdeb);
-        SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, 0x8dfd78fd);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
+        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
       }
 
       if (__SK_TVFix_DisableBloom)
@@ -906,160 +900,9 @@ SK_TVFix_CreateTexture2D (
 bool
 SK_TVFix_DrawHandler_D3D11 (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr, INT d_idx = -1)
 {
-  if (! __SK_TVFix_FixMSAA)
-  {
-    return false;
-  }
-
-  UNREFERENCED_PARAMETER (d_idx);
+  UNREFERENCED_PARAMETER (pDevCtx);
   UNREFERENCED_PARAMETER (pTLS);
-
-  SK_ComPtr <ID3D11RasterizerState> pRaster         = nullptr;
-  SK_ComPtr <ID3D11RasterizerState> pRasterOverride = nullptr;
-
-  // It's not necessarily the case that anything has been bound
-  //   by RSSetState, thus producing nullptr.
-  //
-  //   --> We could fill-in the default RASTERIZER_DESC if this happens,
-  //         but realistically we skipping it is better.
-  pDevCtx->RSGetState (&pRaster.p);
-
-  D3D11_TEXTURE2D_DESC  texDesc    = {};
-  D3D11_RASTERIZER_DESC rasterDesc = {};
-
-  if (pRaster != nullptr)
-    pRaster->GetDesc  (&rasterDesc);
-  else
-  {
-    return false;
-  }
-
-
-  SK_ComPtr <ID3D11RenderTargetView> pRTV [8] = { };
-  SK_ComPtr <ID3D11DepthStencilView> pDSV     = nullptr;
-
-  pDevCtx->OMGetRenderTargets (8, &pRTV [0].p, &pDSV.p);
-
-  struct {
-    bool depth_stencil = false;
-    bool color         = false;
-  } compatibility;
-
-  //
-  // Depth/Stencil must be multisampled or the whole thing will
-  //   blow up !!
-  //
-  //   -> Special Case: Rendering w/o a depth buffer
-  //
-  if (pDSV != nullptr)
-  {
-    D3D11_DEPTH_STENCIL_VIEW_DESC
-                    dsvDesc = { };
-    pDSV->GetDesc (&dsvDesc);
-
-    if (dsvDesc.ViewDimension != D3D11_DSV_DIMENSION_TEXTURE2DMS)
-    {
-      compatibility.depth_stencil = false;
-    }
-
-    else
-      compatibility.depth_stencil = true;
-  }
-
-  if ( compatibility.depth_stencil && pRTV [0] != nullptr )
-  {
-    SK_ReleaseAssert (pRTV [1] == nullptr);
-
-    D3D11_RENDER_TARGET_VIEW_DESC
-                        rtvDesc = { };
-    pRTV [0]->GetDesc (&rtvDesc);
-
-    if (rtvDesc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS)
-    {
-      compatibility.color = true;
-    }
-  }
-
-  if ( rasterDesc.MultisampleEnable != TRUE  &&
-       rasterDesc.ScissorEnable     == FALSE &&
-       compatibility.color )
-  {
-    SK_ComPtr <ID3D11Device> pDev = nullptr;
-      pDevCtx->GetDevice   (&pDev.p);
-
-    SK_RunOnce (
-      dll_log->Log (L"[  ToVFix  ]  Multisample Rasterization -FORCED- ON")
-    );
-
-    SK_LOG2 ( ( L"Multisample Rasterization -FORCED- ON" ),
-                L"  ToVFix  " );
-
-    rasterDesc.MultisampleEnable = TRUE;
-
-    pDev->CreateRasterizerState (&rasterDesc, &pRasterOverride.p);
-  }
-
-  else if (rasterDesc.MultisampleEnable)
-  {
-    SK_RunOnce (
-      dll_log->Log (L"[  ToVFix  ]  Multisample Rasterization *already* on")
-    );
-
-    SK_LOG2 ( ( L"Multisample Rasterization: *already* on" ),
-                L"  ToVFix  " );
-  }
-#if 0
-  UINT dev_idx =
-    SK_D3D11_GetDeviceContextHandle (pDevCtx);
-
-  uint32_t ps_crc32 =
-    SK_D3D11_Shaders.pixel.current.shader [dev_idx];
-
-  if (ps_crc32 == 0x995ecda7)
-  {
-    ID3D11Buffer* pBuffer = nullptr;
-    pDevCtx->PSGetConstantBuffers (0, 1, &pBuffer);
-
-    if (pBuffer != nullptr)
-    {
-      D3D11_BUFFER_DESC bufDesc = { };
-      pBuffer->GetDesc (&bufDesc);
-
-      SK_ComPtr <ID3D11Buffer> pCopyBuf = nullptr;
-      SK_ComPtr <ID3D11Device> pDevice  = nullptr;
-      pDevCtx->GetDevice (&pDevice);
-
-      bufDesc.Usage          = D3D11_USAGE_STAGING;
-      bufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-      bufDesc.BindFlags      = 0x0;
-
-      if (SUCCEEDED (pDevice->CreateBuffer (&bufDesc, nullptr, &pCopyBuf)))
-      {
-        pDevCtx->CopyResource   (pCopyBuf, pBuffer);
-
-        D3D11_MAPPED_SUBRESOURCE mapped = { };
-        pDevCtx->Map (pCopyBuf, 0, D3D11_MAP_READ, 0x0, &mapped);
-
-        float* fMap =
-          ((float *) mapped.pData);
-
-        for (int i = 0; i < 8; i++)
-        {
-          dll_log.Log (L"Row %lu: %6.4f, %6.4f, %6.4f, %6.4f",
-                       i, fMap [0], fMap [1], fMap [2], fMap [3]);
-          fMap += 4;
-        }
-
-        pDevCtx->Unmap (pCopyBuf, 0);
-      }
-
-      pBuffer->Release ();
-    }
-  }
-#endif
-
-  if (pRasterOverride != nullptr)
-    pDevCtx->RSSetState (pRasterOverride);
+  UNREFERENCED_PARAMETER (d_idx);
 
   return false;
 }

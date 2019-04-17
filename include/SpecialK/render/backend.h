@@ -30,6 +30,7 @@ struct IUnknown;
 
 #include <Windows.h>
 #include <../depends/include/nvapi/nvapi_lite_common.h>
+#include <../depends/include/nvapi/nvapi.h>
 
 #include <comdef.h>
 #include <atlbase.h>
@@ -148,6 +149,23 @@ struct SK_ColorSpace {
   float minY, maxLocalY, maxY;
 };
 
+
+static auto HDRModeToStr = [](NV_HDR_MODE mode) ->
+const wchar_t*
+{
+  switch (mode)
+  {
+    case NV_HDR_MODE_OFF:              return L"Off";
+    case NV_HDR_MODE_UHDA:             return L"HDR10";
+    case NV_HDR_MODE_EDR:              return L"Extended Dynamic Range";
+    case NV_HDR_MODE_SDR:              return L"Standard Dynamic Range";
+    case NV_HDR_MODE_DOLBY_VISION:     return L"Dolby Vision";
+    case NV_HDR_MODE_UHDA_PASSTHROUGH: return L"HDR10 Passthrough";
+    case NV_HDR_MODE_UHDA_NB:          return L"Notebook HDR";
+    default:                           return L"Invalid";
+  };
+};
+
 interface IDirect3DSurface9;
 interface IDXGISurface;
 
@@ -182,7 +200,56 @@ public:
     DXGI_COLOR_SPACE_TYPE colorspace_override  = DXGI_COLOR_SPACE_CUSTOM;
     DXGI_COLOR_SPACE_TYPE dxgi_colorspace      = DXGI_COLOR_SPACE_CUSTOM;
     DXGI_COLOR_SPACE_TYPE dwm_colorspace       = DXGI_COLOR_SPACE_CUSTOM;
-    bool                  nvapi_hdr10          = false;
+
+    struct nvapi_desc_s {
+      bool                active               = false;
+      NV_HDR_MODE         mode                 = NV_HDR_MODE_OFF;
+      NV_COLOR_FORMAT     color_format         = NV_COLOR_FORMAT_DEFAULT;
+      NV_DYNAMIC_RANGE    dynamic_range        = NV_DYNAMIC_RANGE_AUTO;
+      NV_BPC              bpc                  = NV_BPC_DEFAULT;
+
+      bool                isHDR10 (void) const { return ( mode == NV_HDR_MODE_UHDA ||
+                                                          mode == NV_HDR_MODE_UHDA_PASSTHROUGH ); }
+
+      const char* getBpcStr (void) const
+      {
+        static std::unordered_map <NV_BPC, const char*>
+          bpc_map =
+            { { NV_BPC_DEFAULT, "Default?" },
+              { NV_BPC_6,       "6 bpc"    },
+              { NV_BPC_8,       "8 bpc"    },
+              { NV_BPC_10,      "10 bpc"   },
+              { NV_BPC_12,      "12 bpc"   },
+              { NV_BPC_16,      "16 bpc"   } };
+
+        return bpc_map [bpc];
+      }
+
+      const char* getFormatStr (void) const
+      {
+        static std::unordered_map <NV_COLOR_FORMAT, const char*>
+          color_fmt_map =
+              { { NV_COLOR_FORMAT_RGB,    "RGB 4:4:4"  },
+                { NV_COLOR_FORMAT_YUV422, "YUV 4:2:2"  },
+                { NV_COLOR_FORMAT_YUV444, "YUV 4:4:4", },
+                { NV_COLOR_FORMAT_YUV420, "YUV 4:2:0", },
+                { NV_COLOR_FORMAT_DEFAULT,"Default?",  },
+                { NV_COLOR_FORMAT_AUTO,   "Auto",      } };
+
+        return color_fmt_map [color_format];
+      }
+
+      const char* getRangeStr (void) const
+      {
+        static std::unordered_map <_NV_DYNAMIC_RANGE, const char*>
+          dynamic_range_map =
+            { { NV_DYNAMIC_RANGE_VESA, "VESA" },
+              { NV_DYNAMIC_RANGE_CEA,  "CEA"  },
+              { NV_DYNAMIC_RANGE_AUTO, "Auto" } };
+
+        return dynamic_range_map [dynamic_range];
+      }
+    } nvapi_hdr;
 
     enum SK_HDR_TRANSFER_FUNC
     {
@@ -206,7 +273,7 @@ public:
     SK_HDR_TRANSFER_FUNC
       getEOTF (void) noexcept
       {
-        if (nvapi_hdr10)
+        if (nvapi_hdr.isHDR10 ())
         {
           return
             SMPTE_2084;
@@ -284,7 +351,8 @@ public:
   struct d3d11_s
   {
     //MIDL_INTERFACE ("c0bfa96c-e089-44fb-8eaf-26f8796190da")
-    SK_ComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
+               ID3D11DeviceContext* immediate_ctx = nullptr;
+  //SK_ComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
     SK_ComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
     SK_ComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
 

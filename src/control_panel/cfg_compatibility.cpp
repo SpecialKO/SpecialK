@@ -19,18 +19,12 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/compatibility.h>
-
-#include <SpecialK/diagnostics/debug_utils.h>
-#include <SpecialK/diagnostics/compatibility.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/window.h>
-#include <SpecialK/utility.h>
 
 using namespace SK::ControlPanel;
 
@@ -137,7 +131,7 @@ SK::ControlPanel::Compatibility::Draw (void)
       const int num_lines = 5; // + DirectDraw / Direct3D 8
 #endif
 
-      ImGui::PushStyleVar                                                                          (ImGuiStyleVar_ChildWindowRounding, 10.0f);
+      ImGui::PushStyleVar                                                                          (ImGuiStyleVar_ChildRounding, 10.0f);
       ImGui::BeginChild ("", ImVec2 (font.size * 39, font.size_multiline * num_lines * 1.1f), true, ImGuiWindowFlags_NavFlattened);
 
       ImGui::Columns    ( 2 );
@@ -199,7 +193,7 @@ SK::ControlPanel::Compatibility::Draw (void)
 #endif
 
       ImGui::Columns    ( 2 );
-                        
+
       ImGui::Checkbox   ("OpenGL ", &config.apis.OpenGL.hook); ImGui::SameLine ();
 #ifdef _WIN64
       ImGui::Checkbox   ("Vulkan ", &config.apis.Vulkan.hook);
@@ -390,7 +384,7 @@ SK::ControlPanel::Compatibility::Draw (void)
 
         DescribeRect  (&window,   "Window", "GetWindowRect"   );
         DescribeRect  (&client,   "Client", "GetClientRect"   );
-                           
+
         ImGui::Columns   (1);
         break;
 
@@ -416,7 +410,7 @@ SK::ControlPanel::Compatibility::Draw (void)
         ImGui::Text      ( "Unicode      : %8s, %8s",       rb.windows.focus.unicode  ? "Yes" : "No",
                                                             rb.windows.device.unicode ? "Yes" : "No" );
         ImGui::Text      ( "Top          : %08x, %08x",
-                             GetTopWindow (rb.windows.focus.hwnd), 
+                             GetTopWindow (rb.windows.focus.hwnd),
                              GetTopWindow (rb.windows.device.hwnd)     );
         ImGui::Text      ( "Parent       : %08x, %08x",
                                           (rb.windows.focus.parent),

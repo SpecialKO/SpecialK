@@ -18,6 +18,8 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+
+#include <SpecialK/stdafx.h>
 #include <SpecialK/widgets/widget.h>
 
 extern iSK_INI* osd_ini;
@@ -29,7 +31,7 @@ class SKWG_VolumeControl : public SK_Widget
 public:
   SKWG_VolumeControl (void) noexcept : SK_Widget ("VolumeControl")
   {
-    SK_ImGui_Widgets.volume_control = this;
+    SK_ImGui_Widgets->volume_control = this;
 
     setResizable    (                false).setAutoFit      (true).setMovable (false).
     setDockingPoint (DockAnchor::SouthWest).setClickThrough (false);

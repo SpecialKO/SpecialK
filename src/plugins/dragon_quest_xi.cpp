@@ -20,25 +20,16 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include <SpecialK/stdafx.h>
 #include <imgui/imgui.h>
-
-#include <SpecialK/config.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/control_panel.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 extern volatile
 LONG SK_D3D11_DrawTrackingReqs;
 extern volatile
 LONG SK_D3D11_CBufferTrackingReqs;
 
-#include <SpecialK/steam_api.h>
-#include <SpecialK/plugin/plugin_mgr.h>
-
 extern iSK_INI*             dll_ini;
 extern sk::ParameterFactory g_ParameterFactory;
-
-#include <SpecialK\widgets\widget.h>
 
 
 ////struct SK_DQXI_UE4_Tweaks
@@ -175,16 +166,11 @@ bool __SK_DQXI_IgnoreExit = true;
 sk::ParameterBool* _SK_DQXI_AliasArrowsAndWASD;
 bool __SK_DQXI_AliasArrowsAndWASD = true;
 
-
-#include <concurrent_vector.h>
 extern concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
 d3d11_shader_tracking_s::cbuffer_override_s* SK_DQXI_CB_Override;
 
 #define SK_DQXI_HDR_SECTION     L"DragonQuestXI.HDR"
 #define SK_DQXI_MISC_SECTION    L"DragonQuestXI.Misc"
-
-#include <SpecialK/ini.h>
-#include <SpecialK/config.h>
 
 auto DeclKeybind =
 [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
@@ -226,8 +212,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool);
 typedef bool (*SK_WindowMessageFilter_pfn)(LPMSG, bool, bool);
                SK_WindowMessageFilter_pfn
                SK_WindowMessageFilter = nullptr;
-
-#include <SpecialK/window.h>
 
 bool
 SK_DQXI_WindowMessageFilter (LPMSG lpMsg, bool bReserved0, bool bReserved1)
@@ -440,12 +424,12 @@ SK_DQXI_PlugInCfg (void)
      )
   {
     bool hdr_open =
-      SK_ImGui_Widgets.hdr_control->isVisible ();
+      SK_ImGui_Widgets->hdr_control->isVisible ();
 
     if ( ImGui::Button ( hdr_open ? u8"Close the stupid HDR Widget!" :
                                     u8"Open the astonishing HDR Widget!" ) )
     {
-      SK_ImGui_Widgets.hdr_control->setVisible (! hdr_open);
+      SK_ImGui_Widgets->hdr_control->setVisible (! hdr_open);
 
       if (! hdr_open)
       {

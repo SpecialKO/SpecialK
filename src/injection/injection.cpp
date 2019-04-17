@@ -19,25 +19,13 @@
  *
 **/
 
-
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/injection/injection.h>
 #include <SpecialK/diagnostics/compatibility.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/backend.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/window.h>
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/log.h>
-#include <SpecialK/utility.h>
 
-#include <set>
-#include <Shlwapi.h>
 #include <ctime>
 
 typedef HHOOK (NTAPI *NtUserSetWindowsHookEx_pfn)(
@@ -518,22 +506,48 @@ SKX_RemoveCBTHook (void)
 void
 SK_Inject_WaitOnUnhook (void)
 {
-  do
+  // Early-Out Edge Case
+  if (! SKX_IsHookingCBT ())
+    return;
+
+  static constexpr
+    DWORD  dwMilliseconds = 5555UL;
+    HANDLE hWaitTimer     =
+      CreateWaitableTimer ( NULL, FALSE, NULL );
+
+  if ( hWaitTimer != 0 )
   {
-    MsgWaitForMultipleObjects ( 0, nullptr,
-                                  FALSE, 7500UL,
-                                    QS_SENDMESSAGE );
-  } while (SKX_IsHookingCBT ());
+    LARGE_INTEGER liDelay = { };
+                  liDelay.QuadPart =
+      (LONGLONG)(-10000.0l * (long double)dwMilliseconds);
+
+    if ( SetWaitableTimer ( hWaitTimer,       &liDelay,
+                              dwMilliseconds, NULL, NULL, 0 )
+       )
+    {
+      do
+      {
+        MsgWaitForMultipleObjects ( 1, &hWaitTimer,
+                                      TRUE, 5555UL,
+                                        QS_SENDMESSAGE );
+      } while ( SKX_IsHookingCBT () );
+
+      CancelWaitableTimer ( hWaitTimer);
+    }
+
+    CloseHandle ( hWaitTimer );
+  }
 }
 
 bool
 __stdcall
 SKX_IsHookingCBT (void)
 {
-  return ReadPointerAcquire ( reinterpret_cast <LPVOID *> (
-                                    const_cast < HHOOK *> (&hHookCBT)
-                              )
-                            ) != nullptr;
+  return
+    ReadPointerAcquire ( reinterpret_cast <LPVOID *> (
+                               const_cast < HHOOK *> (&hHookCBT)
+                         )
+                       ) != nullptr;
 }
 
 
@@ -1023,25 +1037,21 @@ bool SK_Inject_JournalRecord (HMODULE hModule)
 
 
 
-#include <TlHelp32.h>
-#include <Shlwapi.h>
-
 bool
 SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 {
   UNREFERENCED_PARAMETER (uExitCode);
 
-
-  PROCESSENTRY32 pe32      = { };
-  SK_AutoHandle  hProcSnap   (
+  PROCESSENTRY32W pe32      = { };
+  SK_AutoHandle   hProcSnap   (
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0) );
 
   if (hProcSnap == INVALID_HANDLE_VALUE)
     return false;
 
-  pe32.dwSize = sizeof PROCESSENTRY32;
+  pe32.dwSize = sizeof PROCESSENTRY32W;
 
-  if (! Process32First (hProcSnap, &pe32))
+  if (! Process32FirstW (hProcSnap, &pe32))
   {
     return false;
   }
@@ -1050,13 +1060,14 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
   {
     if (StrStrIW (wszProcName, pe32.szExeFile))
     {
-      window_t win = SK_FindRootWindow (pe32.th32ProcessID);
+      window_t win =
+        SK_FindRootWindow (pe32.th32ProcessID);
 
       SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
 
       return true;
     }
-  } while (Process32Next (hProcSnap, &pe32));
+  } while (Process32NextW (hProcSnap, &pe32));
 
   return false;
 }

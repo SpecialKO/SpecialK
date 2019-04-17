@@ -19,26 +19,7 @@
  *
 **/
 
-#include <SpecialK/utility.h>
-#include <SpecialK/command.h>
-#include <SpecialK/config.h>
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-
-#include <SpecialK/thread.h>
-#include <SpecialK/diagnostics/modules.h>
-
-#include <userenv.h>
-#include <Shlobj.h>
-
-#include <process.h>
-#include <tlhelp32.h>
-
-#include <Shlwapi.h>
-#include <atlbase.h>
-
-#include <gsl/gsl>
-#include <memory>
+#include <SpecialK/stdafx.h>
 
 int
 SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
@@ -126,8 +107,7 @@ SK_GetDocumentsDir (void)
                                      TOKEN_READ, &hToken.m_h )
        )
     {
-      dir
-        = std::move (L"(null)");
+      dir = L"(null)";
 
       InterlockedIncrement (&__init);
       return dir;
@@ -139,7 +119,7 @@ SK_GetDocumentsDir (void)
       SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
 
     dir =
-      ( SUCCEEDED (hr) ? str : std::move (L"UNKNOWN") );
+      ( SUCCEEDED (hr) ? str : L"UNKNOWN" );
     if (SUCCEEDED (hr))
     {
       InterlockedIncrementRelease (&__init);
@@ -176,7 +156,7 @@ SK_GetRoamingDir (void)
   if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
                                                    TOKEN_READ, &hToken.m_h))
   {
-    dir = std::move (L"(null)");
+    dir = L"(null)";
     return dir;
   }
 
@@ -185,7 +165,7 @@ SK_GetRoamingDir (void)
   HRESULT hr =
     SHGetKnownFolderPath (FOLDERID_RoamingAppData, 0, hToken, &str);
 
-  dir = (SUCCEEDED (hr) ? str : std::move (L"UNKNOWN"));
+  dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
 
   if (SUCCEEDED (hr))
   {
@@ -219,7 +199,7 @@ SK_GetFontsDir (void)
     if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
                                                      TOKEN_READ, &hToken.m_h ) )
     {
-      dir = std::move (L"(null)");
+      dir = L"(null)";
 
       InterlockedIncrement (&__init);
 
@@ -231,7 +211,7 @@ SK_GetFontsDir (void)
     HRESULT hr =
       SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
 
-    dir = (SUCCEEDED (hr) ? str : std::move (L"UNKNOWN"));
+    dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
 
     if (SUCCEEDED (hr))
     {
@@ -252,23 +232,25 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
   const std::wstring& docs =
     SK_GetDocumentsDir ();
 
-  if (docs.empty ())
+  if (buf != nullptr)
   {
-    if (buf != nullptr && pdwLen != nullptr && *pdwLen > 0)
+    if (pdwLen != nullptr && *pdwLen > 0)
     {
-      *pdwLen = 0;
-      *buf    = L'\0';
+      *buf = '\0';
+
+      if (docs.empty ())
+      {
+        *pdwLen = 0;
+        return false;
+      }
+
+      wcsncat (buf, docs.c_str (), *pdwLen);
+
+      *pdwLen =
+        gsl::narrow_cast <uint32_t> (wcslen (buf));
+
+      return true;
     }
-
-    return false;
-  }
-
-  if (buf != nullptr && pdwLen != nullptr && *pdwLen > 0)
-  {
-    *buf = '\0';
-    wcsncat (buf, docs.c_str (), *pdwLen);
-
-    return true;
   }
 
   return false;
@@ -388,8 +370,6 @@ SK_EvalEnvironmentVars (const wchar_t* wszEvaluateMe)
     wszEvaluated;
 }
 
-#include <string>
-
 bool
 SK_IsTrue (const wchar_t* string)
 {
@@ -446,9 +426,6 @@ SK_File_IsDirectory (const wchar_t* wszPath)
 
   return false;
 }
-
-
-#include <Shlwapi.h>
 
 void
 SK_File_MoveNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
@@ -615,7 +592,7 @@ SK_IsAdmin (void)
 bool
 SK_IsProcessRunning (const wchar_t* wszProcName)
 {
-  PROCESSENTRY32 pe32 = { };
+  PROCESSENTRY32W pe32 = { };
 
   SK_AutoHandle hProcSnap (
     CreateToolhelp32Snapshot ( TH32CS_SNAPPROCESS,
@@ -626,10 +603,10 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
     return false;
 
   pe32.dwSize =
-    sizeof PROCESSENTRY32;
+    sizeof PROCESSENTRY32W;
 
-  if (! Process32First ( hProcSnap,
-                           &pe32    )
+  if (! Process32FirstW ( hProcSnap,
+                            &pe32    )
      )
   {
     return false;
@@ -643,8 +620,8 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
     {
       return true;
     }
-  } while ( Process32Next ( hProcSnap,
-                              &pe32    )
+  } while ( Process32NextW ( hProcSnap,
+                               &pe32    )
           );
 
   return false;
@@ -677,7 +654,7 @@ SK_GetProcAddress (HMODULE hMod, const char* szFunc) noexcept
 
 FARPROC
 WINAPI
-SK_GetProcAddress (const wchar_t* wszModule, const char* szFunc) noexcept
+SK_GetProcAddress (const wchar_t* wszModule, const char* szFunc)
 {
   HMODULE hMod =
     SK_GetModuleHandle (wszModule);
@@ -969,10 +946,10 @@ SK_LogSymbolName (LPCVOID addr)
 }
 
 
-PROCESSENTRY32
+PROCESSENTRY32W
 FindProcessByName (const wchar_t* wszName)
 {
-  PROCESSENTRY32 pe32 = { };
+  PROCESSENTRY32W pe32 = { };
 
   SK_AutoHandle hProcessSnap (
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0)
@@ -981,9 +958,9 @@ FindProcessByName (const wchar_t* wszName)
   if (hProcessSnap == INVALID_HANDLE_VALUE)
     return pe32;
 
-  pe32.dwSize = sizeof (PROCESSENTRY32);
+  pe32.dwSize = sizeof (PROCESSENTRY32W);
 
-  if (! Process32First (hProcessSnap, &pe32))
+  if (! Process32FirstW (hProcessSnap, &pe32))
   {
     return pe32;
   }
@@ -992,7 +969,7 @@ FindProcessByName (const wchar_t* wszName)
   {
     if (wcsstr (pe32.szExeFile, wszName))
       return pe32;
-  } while (Process32Next (hProcessSnap, &pe32));
+  } while (Process32NextW (hProcessSnap, &pe32));
 
   return pe32;
 }
@@ -1023,8 +1000,6 @@ SK_GetRTSSInstallDir (void)
 
   return wszPath;
 }
-
-#include <SpecialK/ini.h>
 
 iSK_INI*
 SK_GetDLLConfig (void)
@@ -1064,11 +1039,6 @@ SK_SelfDestruct (void) noexcept
   }
 }
 
-
-
-
-#include <SpecialK/tls.h>
-
 HMODULE
 SK_GetCallingDLL (LPCVOID pReturn)
 {
@@ -1088,8 +1058,6 @@ SK_GetCallerName (LPCVOID pReturn)
   return
     SK_GetModuleName (SK_GetCallingDLL (pReturn));
 }
-
-#include <queue>
 
 std::queue <DWORD>
 SK_SuspendAllOtherThreads (void)
@@ -1441,7 +1409,6 @@ SK_Path_wcsstr (const wchar_t* wszStr, const wchar_t* wszSubStr)
 }
 
 
-#include <Winver.h>
 static HMODULE hModVersion = nullptr;
 
 __forceinline
@@ -1450,8 +1417,8 @@ SK_Import_VersionDLL (void)
 {
   if (hModVersion == nullptr)
   {
-    //if(!(hModVersion = GetModuleHandle          (L"Version.dll")))
-    {      hModVersion = SK_Modules.LoadLibraryLL (L"Version.dll"); }
+    //if(!(hModVersion = GetModuleHandle           (L"Version.dll")))
+    {      hModVersion = SK_Modules->LoadLibraryLL (L"Version.dll"); }
   }
   //Api-ms-win-core-version-l1-1-0.dll");
 
@@ -2756,11 +2723,6 @@ void SK_WinRing0_Unpack (void);
 bool SK_WR0_Init        (void);
 void SK_WR0_Deinit      (void);
 
-
-#include <Windows.h>
-#include <objbase.h>
-#include <strsafe.h>
-
 // {3E5FC7F9-9A51-4367-9063-A120244FBEC7}
 static const GUID CLSID_SK_ADMINMONIKER =
 { 0x3E5FC7F9, 0x9A51, 0x4367, { 0x90, 0x63, 0xA1, 0x20, 0x24, 0x4F, 0xBE, 0xC7 } };
@@ -3373,8 +3335,6 @@ SK_ElevateToAdmin (void)
   SK_TerminateProcess (0x00);
 }
 
-#include <memory>
-
 std::string
 __cdecl
 SK_FormatString (char const* const _Format, ...)
@@ -3682,12 +3642,6 @@ SK_FixSlashesA (char* szInOut)
   }
 }
 
-
-#define SECURITY_WIN32
-#include <Security.h>
-
-#pragma comment (lib, "secur32.lib")
-
 _Success_(return != 0)
 BOOLEAN
 WINAPI
@@ -3922,9 +3876,6 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
 
   return wszInOut;
 }
-
-
-#include <concurrent_queue.h>
 
 void
 SK_DeferCommands (const char** szCommands, int count)
@@ -4456,9 +4407,6 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
   return moved;
 }
 
-
-#include <SpecialK/diagnostics/memory.h>
-
 PSID
 SK_Win32_ReleaseTokenSid (PSID pSid)
 {
@@ -4471,8 +4419,6 @@ SK_Win32_ReleaseTokenSid (PSID pSid)
 
   return pSid;
 }
-
-#include <aclapi.h>
 
 PSID
 SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic)

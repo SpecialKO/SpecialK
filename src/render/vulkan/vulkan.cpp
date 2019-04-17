@@ -19,27 +19,8 @@
  *
 **/
 
-#define WIN32_LEAN_AND_MEAN
-#define NOGDI
-
-#include <Windows.h>
-
-#undef _WINGDI_
-
+#include <SpecialK/stdafx.h>
 #include <SpecialK/render/vk/vulkan_backend.h>
-#include <SpecialK/log.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/core.h>
-
-#include <SpecialK/config.h>
-#include <SpecialK/hooks.h>
-
-#include <SpecialK/thread.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/compatibility.h>
-
-#include <Shlwapi.h>
-#include <process.h>
 
 volatile LONG __vk_ready = FALSE;
 

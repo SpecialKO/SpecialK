@@ -24,33 +24,17 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#include <SpecialK/config.h>
-#include <SpecialK/command.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/log.h>
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/input/input.h>
-#include <SpecialK/input/xinput.h>
-
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
+#include <SpecialK/stdafx.h>
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
 
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
-#include <atlbase.h>
-#include <process.h>
-
 #include <SpecialK/plugin/nier.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.24"
+#define FAR_VERSION_NUM L"0.7.0.25"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog

@@ -20,38 +20,18 @@
  *
 **/
 
-#include <SpecialK/com_util.h>
-#include <SpecialK/performance/io_monitor.h>
-#include <SpecialK/performance/memory_monitor.h>
-#include <SpecialK/log.h>
+#include <SpecialK/stdafx.h>
 
-#include <SpecialK/tls.h>
-#include <SpecialK/core.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
+#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
+#define STATUS_SUCCESS     0
 
-#include <SpecialK/widgets/widget.h>
+SK_LazyGlobal <thread_events>   perfmon;
 
-#include <unordered_map>
-#include <algorithm>
+SK_LazyGlobal <process_stats_t> SK_WMI_ProcessStats;
+SK_LazyGlobal <cpu_perf_t>      SK_WMI_CPUStats;
+SK_LazyGlobal <disk_perf_t>     SK_WMI_DiskStats;
+SK_LazyGlobal <pagefile_perf_t> SK_WMI_PagefileStats;
 
-#include <process.h>
-#include <comdef.h>
-
-thread_events   perfmon        = {};
-
-
-process_stats_t& __SK_WMI_ProcessStats (void)
- { static process_stats_t _process_stats;  return _process_stats;  };
-
-cpu_perf_t&      __SK_WMI_CPUStats      (void)
- { static cpu_perf_t      _cpu_stats;      return _cpu_stats;      };
-disk_perf_t&     __SK_WMI_DiskStats     (void)
- { static disk_perf_t     _disk_stats;     return _disk_stats;     };
-pagefile_perf_t& __SK_WMI_PagefileStats (void)
- { static pagefile_perf_t _pagefile_stats; return _pagefile_stats; };
 
 
 void
@@ -141,7 +121,7 @@ SK_CountIO (io_perf_t& ioc, const double update)
 
 #include <ntverp.h>
 #if (VER_PRODUCTBUILD < 10011)
-typedef enum _CPU_SET_INFORMATION_TYPE { 
+typedef enum _CPU_SET_INFORMATION_TYPE {
   CpuSetInformation
 } CPU_SET_INFORMATION_TYPE,
 *PCPU_SET_INFORMATION_TYPE;
@@ -196,15 +176,7 @@ static
 GetSystemCpuSetInformation_pfn
 GetSystemCpuSetInformation = nullptr;
 
-
-
-#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
-#define STATUS_SUCCESS     0
-
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-
-typedef enum _SYSTEM_INFORMATION_CLASS {
+typedef enum _SYSTEM_INFORMATION_CLASS_SK {
   SystemBasicInformation                                = 0,
   SystemProcessorInformation                            = 1,
   SystemPerformanceInformation                          = 2,
@@ -384,17 +356,17 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
   SystemCpuSetInformation                               = 175,
   SystemCpuSetTagInformation                            = 176,
   MaxSystemInfoClass                                    = 177,
-} SYSTEM_INFORMATION_CLASS;
+} SYSTEM_INFORMATION_CLASS_SK;
 
-typedef NTSTATUS (WINAPI *NtQuerySystemInformation_pfn)(
-  _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
-  _Inout_   PVOID                    SystemInformation,
-  _In_      ULONG                    SystemInformationLength,
-  _Out_opt_ PULONG                   ReturnLength
+typedef NTSTATUS (WINAPI *NtQuerySystemInformation_SK_pfn)(
+  _In_      SYSTEM_INFORMATION_CLASS_SK SystemInformationClass,
+  _Inout_   PVOID                       SystemInformation,
+  _In_      ULONG                       SystemInformationLength,
+  _Out_opt_ PULONG                      ReturnLength
   );
 
-static NtQuerySystemInformation_pfn
-       NtQuerySystemInformation = nullptr;
+static NtQuerySystemInformation_SK_pfn
+       NtQuerySystemInformation_SK = nullptr;
 
 DWORD
 WINAPI
@@ -410,10 +382,10 @@ SK_MonitorCPU (LPVOID user_param)
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
   SetCurrentThreadDescription  (L"[SK] CPU Performance Probe");
 
-  if (NtQuerySystemInformation == nullptr)
+  if (NtQuerySystemInformation_SK == nullptr)
   {
-    NtQuerySystemInformation =
-      (NtQuerySystemInformation_pfn)
+    NtQuerySystemInformation_SK =
+      (NtQuerySystemInformation_SK_pfn)
         SK_GetProcAddress ( L"NtDll.dll",
                              "NtQuerySystemInformation" );
   }
@@ -430,7 +402,7 @@ SK_MonitorCPU (LPVOID user_param)
 
   UNREFERENCED_PARAMETER (user_param);
 
-  cpu_perf_t& cpu    = __SK_WMI_CPUStats ();
+  cpu_perf_t& cpu    = *SK_WMI_CPUStats;
        float& update = config.cpu.interval;
 
   cpu.hShutdownSignal =
@@ -447,7 +419,7 @@ SK_MonitorCPU (LPVOID user_param)
     si.dwNumberOfProcessors;
 
   static ULONG ulAllocatedPerfBytes =
-      cpu.num_cpus * sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION);
+      cpu.num_cpus * sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK);
 
   HANDLE wait_objs [] = {
     *const_cast <const HANDLE*> (&cpu.hShutdownSignal),
@@ -461,31 +433,31 @@ SK_MonitorCPU (LPVOID user_param)
                               DWORD (update * 1000.0f) );
 
     // Only poll WMI while the data view is visible
-    if (! (config.cpu.show || SK_ImGui_Widgets.cpu_monitor->isActive ()))
+    if (! (config.cpu.show || SK_ImGui_Widgets->cpu_monitor->isActive ()))
       continue;
 
     extern void SK_CPU_UpdateAllSensors (void);
                 SK_CPU_UpdateAllSensors ();
 
-    PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION pPerformance =
-      (PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION)
-        pTLS->local_scratch.NtQuerySystemInformation.alloc
+    PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK pPerformance =
+      (PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK)
+        pTLS->local_scratch.query [0].NtInfo.alloc
         (
            (size_t)ulAllocatedPerfBytes,
                    true
         );
 
     if ( NT_SUCCESS (
-           NtQuerySystemInformation ( SystemProcessorPerformanceInformation, pPerformance,
-                                      ulAllocatedPerfBytes,         &ulAllocatedPerfBytes )
+           NtQuerySystemInformation_SK ( SystemProcessorPerformanceInformation, pPerformance,
+                                         ulAllocatedPerfBytes,         &ulAllocatedPerfBytes )
          )
        )
     {
       const int count =
-        ( ulAllocatedPerfBytes / sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION) );
+        ( ulAllocatedPerfBytes / sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK) );
 
-      PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION pCPU    =  pPerformance,
-                                                pEndCPU = &pCPU [count];
+      PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK pCPU    =  pPerformance,
+                                                    pEndCPU = &pCPU [count];
 
       assert (count < 64);
 
@@ -508,7 +480,7 @@ SK_MonitorCPU (LPVOID user_param)
 
       PSYSTEM_CPU_SET_INFORMATION pCSI =
         (PSYSTEM_CPU_SET_INFORMATION)
-          pTLS->local_scratch.NtQuerySystemInformation.alloc
+          pTLS->local_scratch.query [0].NtInfo.alloc
           (
              (size_t)ulCSIAlloc,
                      true
@@ -534,7 +506,7 @@ SK_MonitorCPU (LPVOID user_param)
             cpu.cpus [logic_idx].parked_since =
               SK_QueryPerf ();
           }
-          
+
           else if ( (! pData->Parked)                           &&
                      cpu.cpus [logic_idx].parked_since.QuadPart != 0 )
           {
@@ -562,7 +534,7 @@ WINAPI
 SK_MonitorDisk (LPVOID user)
 {
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-  SetCurrentThreadDescription  (L"[SK] WMI Disk Monitoring Thread");
+  SetCurrentThreadDescription  (L"[SK] WMI Disk Monitor");
 
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
@@ -578,7 +550,7 @@ SK_MonitorDisk (LPVOID user)
 
   //Win32_PerfFormattedData_PerfDisk_LogicalDisk
 
-  auto&         disk  = __SK_WMI_DiskStats ();
+  auto&         disk  = *SK_WMI_DiskStats;
   const double update = config.disk.interval;
 
   HRESULT hr;
@@ -587,7 +559,7 @@ SK_MonitorDisk (LPVOID user)
                      CLSID_WbemRefresher,
                      nullptr,
                      CLSCTX_INPROC_SERVER,
-                     IID_IWbemRefresher, 
+                     IID_IWbemRefresher,
                      (void**) &disk.pRefresher )
              )
      )
@@ -607,7 +579,7 @@ SK_MonitorDisk (LPVOID user)
   // Add an enumerator to the refresher.
   if (FAILED (hr = disk.pConfig->AddEnum (
                      COM::base.wmi.pNameSpace,
-                     config.disk.type == 1 ? 
+                     config.disk.type == 1 ?
                      L"Win32_PerfFormattedData_PerfDisk_LogicalDisk" :
                      L"Win32_PerfFormattedData_PerfDisk_PhysicalDisk",
                      0,
@@ -659,7 +631,7 @@ SK_MonitorDisk (LPVOID user)
 
     // If the buffer was not big enough,
     // allocate a bigger buffer and retry.
-    if (hr == WBEM_E_BUFFER_TOO_SMALL 
+    if (hr == WBEM_E_BUFFER_TOO_SMALL
         && disk.dwNumReturned > disk.dwNumObjects)
     {
       disk.apEnumAccess = new IWbemObjectAccess* [disk.dwNumReturned];
@@ -984,7 +956,7 @@ WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-  SetCurrentThreadDescription  (L"[SK] WMI Pagefile Monitoring Thread");
+  SetCurrentThreadDescription  (L"[SK] WMI Pagefile Monitor");
 
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
@@ -998,7 +970,7 @@ SK_MonitorPagefile (LPVOID user)
 
   COM::base.wmi.Lock ();
 
-  pagefile_perf_t&  pagefile = __SK_WMI_PagefileStats ();
+  pagefile_perf_t&  pagefile = *SK_WMI_PagefileStats;
 
                     pagefile.dwNumReturned = 0;
                     pagefile.dwNumObjects  = 0;
@@ -1011,7 +983,7 @@ SK_MonitorPagefile (LPVOID user)
                      CLSID_WbemRefresher,
                      nullptr,
                      CLSCTX_INPROC_SERVER,
-                     IID_IWbemRefresher, 
+                     IID_IWbemRefresher,
                      (void**) &pagefile.pRefresher )
              )
      )
@@ -1078,7 +1050,7 @@ SK_MonitorPagefile (LPVOID user)
 
     // If the buffer was not big enough,
     // allocate a bigger buffer and retry.
-    if (hr == WBEM_E_BUFFER_TOO_SMALL 
+    if (hr == WBEM_E_BUFFER_TOO_SMALL
         && pagefile.dwNumReturned > pagefile.dwNumObjects)
     {
       pagefile.apEnumAccess = new IWbemObjectAccess* [pagefile.dwNumReturned + 1UL];
@@ -1317,7 +1289,7 @@ WINAPI
 SK_MonitorProcess (LPVOID user)
 {
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-  SetCurrentThreadDescription  (L"[SK] WMI Memory Monitoring Thread");
+  SetCurrentThreadDescription  (L"[SK] WMI Memory Monitor");
 
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
@@ -1332,7 +1304,7 @@ SK_MonitorProcess (LPVOID user)
 
   COM::base.wmi.Lock ();
 
-  auto&            process_stats = __SK_WMI_ProcessStats ();
+  auto&            process_stats = *SK_WMI_ProcessStats;
   process_stats_t& proc          = process_stats;
   const double     update        = config.mem.interval;
 

@@ -307,7 +307,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>C:\Users\amcol\Documents\My Mods\SpecialK\</OutDir>
-    <CodeAnalysisRuleSet>SpecialK.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>CppCoreCheckBoundsRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TargetName>SpecialK32</TargetName>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK;$(UniversalCRT_IncludePath)</IncludePath>
@@ -398,10 +398,11 @@
     <OutDir>C:\Users\amcol\Documents\My Mods\SpecialK\</OutDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK;$(WindowsSdk_71A_IncludePath);$(UniversalCRT_IncludePath);C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\ucrt</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
-    <CodeAnalysisRuleSet>SpecialK.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>CppCoreCheckBoundsRules.ruleset</CodeAnalysisRuleSet>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
     <LinkIncremental>false</LinkIncremental>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">
     <TargetName>dxgi</TargetName>
@@ -654,8 +655,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>SK_BUILD_DLL=1;SK_EXPORTS;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;NOMINMAX;_UNICODE;UNICODE;WIN32;NDEBUG;LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;SK_BUILD_DLL=1;SK_EXPORTS;_USRDLL;_WINDOWS;DIRECTINPUT_VERSION=0x0800;GLEW_STATIC;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -694,6 +694,7 @@
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1385,7 +1386,7 @@ Exit 0</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PreprocessorDefinitions>SK_BUILD_DLL=1;SK_EXPORTS;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;NOMINMAX;_UNICODE;UNICODE;_WIN64;WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;SK_BUILD_DLL=1;SK_EXPORTS;_USRDLL;_WINDOWS;DIRECTINPUT_VERSION=0x0800;GLEW_STATIC;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -1421,6 +1422,8 @@ Exit 0</Command>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -2140,6 +2143,612 @@ Exit 0</Command>
     <ClInclude Include="depends\DirectXTex\DirectXTexP.h" />
     <ClInclude Include="depends\DirectXTex\Filters.h" />
     <ClInclude Include="depends\DirectXTex\scoped.h" />
+    <ClInclude Include="depends\include\adl\adl_defines.h" />
+    <ClInclude Include="depends\include\adl\adl_sdk.h" />
+    <ClInclude Include="depends\include\adl\adl_structures.h" />
+    <ClInclude Include="depends\include\CEGUI\Affector.h" />
+    <ClInclude Include="depends\include\CEGUI\Animation.h" />
+    <ClInclude Include="depends\include\CEGUI\AnimationInstance.h" />
+    <ClInclude Include="depends\include\CEGUI\AnimationManager.h" />
+    <ClInclude Include="depends\include\CEGUI\Animation_xmlHandler.h" />
+    <ClInclude Include="depends\include\CEGUI\Base.h" />
+    <ClInclude Include="depends\include\CEGUI\BasicImage.h" />
+    <ClInclude Include="depends\include\CEGUI\BasicRenderedStringParser.h" />
+    <ClInclude Include="depends\include\CEGUI\BidiVisualMapping.h" />
+    <ClInclude Include="depends\include\CEGUI\BoundSlot.h" />
+    <ClInclude Include="depends\include\CEGUI\CEGUI.h" />
+    <ClInclude Include="depends\include\CEGUI\CentredRenderedString.h" />
+    <ClInclude Include="depends\include\CEGUI\ChainedXMLHandler.h" />
+    <ClInclude Include="depends\include\CEGUI\Clipboard.h" />
+    <ClInclude Include="depends\include\CEGUI\Colour.h" />
+    <ClInclude Include="depends\include\CEGUI\ColourRect.h" />
+    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\ColourPicker.h" />
+    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\Controls.h" />
+    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\Conversions.h" />
+    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\Types.h" />
+    <ClInclude Include="depends\include\CEGUI\CommonDialogs\Module.h" />
+    <ClInclude Include="depends\include\CEGUI\CompositeResourceProvider.h" />
+    <ClInclude Include="depends\include\CEGUI\Config_xmlHandler.h" />
+    <ClInclude Include="depends\include\CEGUI\CoordConverter.h" />
+    <ClInclude Include="depends\include\CEGUI\DataContainer.h" />
+    <ClInclude Include="depends\include\CEGUI\DefaultLogger.h" />
+    <ClInclude Include="depends\include\CEGUI\DefaultRenderedStringParser.h" />
+    <ClInclude Include="depends\include\CEGUI\DefaultResourceProvider.h" />
+    <ClInclude Include="depends\include\CEGUI\DynamicModule.h" />
+    <ClInclude Include="depends\include\CEGUI\Element.h" />
+    <ClInclude Include="depends\include\CEGUI\Event.h" />
+    <ClInclude Include="depends\include\CEGUI\EventArgs.h" />
+    <ClInclude Include="depends\include\CEGUI\EventSet.h" />
+    <ClInclude Include="depends\include\CEGUI\Exceptions.h" />
+    <ClInclude Include="depends\include\CEGUI\FactoryModule.h" />
+    <ClInclude Include="depends\include\CEGUI\FactoryRegisterer.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\ComponentBase.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\Dimensions.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\Enums.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\EventAction.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\EventLinkDefinition.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\FalagardPropertyBase.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\FormattingSetting.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\FrameComponent.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\ImageryComponent.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\ImagerySection.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\LayerSpecification.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\NamedArea.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\NamedDefinitionCollator.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\PropertyDefinition.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\PropertyDefinitionBase.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\PropertyInitialiser.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\PropertyLinkDefinition.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\SectionSpecification.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\StateImagery.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\TextComponent.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\WidgetComponent.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\WidgetLookFeel.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\WidgetLookManager.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\XMLEnumHelper.h" />
+    <ClInclude Include="depends\include\CEGUI\falagard\XMLHandler.h" />
+    <ClInclude Include="depends\include\CEGUI\Font.h" />
+    <ClInclude Include="depends\include\CEGUI\FontGlyph.h" />
+    <ClInclude Include="depends\include\CEGUI\FontManager.h" />
+    <ClInclude Include="depends\include\CEGUI\Font_xmlHandler.h" />
+    <ClInclude Include="depends\include\CEGUI\FormattedRenderedString.h" />
+    <ClInclude Include="depends\include\CEGUI\ForwardRefs.h" />
+    <ClInclude Include="depends\include\CEGUI\FreeFunctionSlot.h" />
+    <ClInclude Include="depends\include\CEGUI\FreeTypeFont.h" />
+    <ClInclude Include="depends\include\CEGUI\FribidiVisualMapping.h" />
+    <ClInclude Include="depends\include\CEGUI\FunctorCopySlot.h" />
+    <ClInclude Include="depends\include\CEGUI\FunctorPointerSlot.h" />
+    <ClInclude Include="depends\include\CEGUI\FunctorReferenceBinder.h" />
+    <ClInclude Include="depends\include\CEGUI\FunctorReferenceSlot.h" />
+    <ClInclude Include="depends\include\CEGUI\GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\GlobalEventSet.h" />
+    <ClInclude Include="depends\include\CEGUI\GUIContext.h" />
+    <ClInclude Include="depends\include\CEGUI\GUILayout_xmlHandler.h" />
+    <ClInclude Include="depends\include\CEGUI\IconvStringTranscoder.h" />
+    <ClInclude Include="depends\include\CEGUI\Image.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\Corona\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\Corona\ImageCodecModule.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\DevIL\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\DevIL\ImageCodecModule.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\FreeImage\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\FreeImage\ImageCodecModule.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\PVR\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\PVR\ImageCodecModule.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SDL2\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SDL2\ImageCodecModule.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SILLY\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SILLY\ImageCodecModule.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\STB\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\STB\ImageCodecModule.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\TGA\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\TGA\ImageCodecModule.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageFactory.h" />
+    <ClInclude Include="depends\include\CEGUI\ImageManager.h" />
+    <ClInclude Include="depends\include\CEGUI\InjectedInputReceiver.h" />
+    <ClInclude Include="depends\include\CEGUI\InputEvent.h" />
+    <ClInclude Include="depends\include\CEGUI\Interpolator.h" />
+    <ClInclude Include="depends\include\CEGUI\IteratorBase.h" />
+    <ClInclude Include="depends\include\CEGUI\JustifiedRenderedString.h" />
+    <ClInclude Include="depends\include\CEGUI\KeyFrame.h" />
+    <ClInclude Include="depends\include\CEGUI\LeftAlignedRenderedString.h" />
+    <ClInclude Include="depends\include\CEGUI\LinkedEvent.h" />
+    <ClInclude Include="depends\include\CEGUI\Logger.h" />
+    <ClInclude Include="depends\include\CEGUI\MemberFunctionSlot.h" />
+    <ClInclude Include="depends\include\CEGUI\MemoryAllocatedObject.h" />
+    <ClInclude Include="depends\include\CEGUI\MemoryAllocation.h" />
+    <ClInclude Include="depends\include\CEGUI\MemoryOgreAllocator.h" />
+    <ClInclude Include="depends\include\CEGUI\MemoryStdAllocator.h" />
+    <ClInclude Include="depends\include\CEGUI\MemorySTLWrapper.h" />
+    <ClInclude Include="depends\include\CEGUI\MinibidiVisualMapping.h" />
+    <ClInclude Include="depends\include\CEGUI\MinizipResourceProvider.h" />
+    <ClInclude Include="depends\include\CEGUI\MouseCursor.h" />
+    <ClInclude Include="depends\include\CEGUI\NamedElement.h" />
+    <ClInclude Include="depends\include\CEGUI\NamedXMLResourceManager.h" />
+    <ClInclude Include="depends\include\CEGUI\PCRERegexMatcher.h" />
+    <ClInclude Include="depends\include\CEGUI\PixmapFont.h" />
+    <ClInclude Include="depends\include\CEGUI\Property.h" />
+    <ClInclude Include="depends\include\CEGUI\PropertyHelper.h" />
+    <ClInclude Include="depends\include\CEGUI\PropertySet.h" />
+    <ClInclude Include="depends\include\CEGUI\Quaternion.h" />
+    <ClInclude Include="depends\include\CEGUI\Rect.h" />
+    <ClInclude Include="depends\include\CEGUI\RefCounted.h" />
+    <ClInclude Include="depends\include\CEGUI\RegexMatcher.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderedString.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderedStringComponent.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderedStringImageComponent.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderedStringParser.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderedStringTextComponent.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderedStringWidgetComponent.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderedStringWordWrapper.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderEffect.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderEffectFactory.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderEffectManager.h" />
+    <ClInclude Include="depends\include\CEGUI\Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\TextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\ViewportTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\TextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\ViewportTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\TextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\ViewportTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\EventPusher.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\MemoryFile.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\RendererDef.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\ResourceProvider.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\TextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\WindowTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\TextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\ImageCodec.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\ResourceProvider.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\TextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\WindowTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\FBOTextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\GLES.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\ViewportTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\ApplePBTextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GeometryBufferBase.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL3FBOTextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL3GeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL3Renderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLFBOTextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLGeometryBuffer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GlmPimpl.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLRenderer.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLXPBTextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\RendererBase.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\Shader.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\ShaderManager.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\StandardShaderFrag.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\StandardShaderVert.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\StateChangeWrapper.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\TextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\ViewportTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\WGLPBTextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderingContext.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderingSurface.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderingWindow.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderQueue.h" />
+    <ClInclude Include="depends\include\CEGUI\RenderTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\ResourceProvider.h" />
+    <ClInclude Include="depends\include\CEGUI\RightAlignedRenderedString.h" />
+    <ClInclude Include="depends\include\CEGUI\Scheme.h" />
+    <ClInclude Include="depends\include\CEGUI\SchemeManager.h" />
+    <ClInclude Include="depends\include\CEGUI\Scheme_xmlHandler.h" />
+    <ClInclude Include="depends\include\CEGUI\ScriptModule.h" />
+    <ClInclude Include="depends\include\CEGUI\ScriptModules\Lua\Functor.h" />
+    <ClInclude Include="depends\include\CEGUI\ScriptModules\Lua\ScriptModule.h" />
+    <ClInclude Include="depends\include\CEGUI\SimpleTimer.h" />
+    <ClInclude Include="depends\include\CEGUI\Singleton.h" />
+    <ClInclude Include="depends\include\CEGUI\Size.h" />
+    <ClInclude Include="depends\include\CEGUI\SlotFunctorBase.h" />
+    <ClInclude Include="depends\include\CEGUI\String.h" />
+    <ClInclude Include="depends\include\CEGUI\StringTranscoder.h" />
+    <ClInclude Include="depends\include\CEGUI\SubscriberSlot.h" />
+    <ClInclude Include="depends\include\CEGUI\System.h" />
+    <ClInclude Include="depends\include\CEGUI\SystemKeys.h" />
+    <ClInclude Include="depends\include\CEGUI\Texture.h" />
+    <ClInclude Include="depends\include\CEGUI\TextureTarget.h" />
+    <ClInclude Include="depends\include\CEGUI\TextUtils.h" />
+    <ClInclude Include="depends\include\CEGUI\TplInterpolators.h" />
+    <ClInclude Include="depends\include\CEGUI\TplProperty.h" />
+    <ClInclude Include="depends\include\CEGUI\TplWindowFactory.h" />
+    <ClInclude Include="depends\include\CEGUI\TplWindowFactoryRegisterer.h" />
+    <ClInclude Include="depends\include\CEGUI\TplWindowProperty.h" />
+    <ClInclude Include="depends\include\CEGUI\TplWindowRendererFactory.h" />
+    <ClInclude Include="depends\include\CEGUI\TplWindowRendererProperty.h" />
+    <ClInclude Include="depends\include\CEGUI\TplWRFactoryRegisterer.h" />
+    <ClInclude Include="depends\include\CEGUI\TypedProperty.h" />
+    <ClInclude Include="depends\include\CEGUI\UDim.h" />
+    <ClInclude Include="depends\include\CEGUI\Vector.h" />
+    <ClInclude Include="depends\include\CEGUI\Vertex.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\All.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ButtonBase.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ClippedContainer.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Combobox.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ComboDropList.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\DefaultWindow.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\DragContainer.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Editbox.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\FrameWindow.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\GridLayoutContainer.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\GroupBox.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\HorizontalLayoutContainer.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ItemEntry.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ItemListBase.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ItemListbox.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\LayoutCell.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\LayoutContainer.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Listbox.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ListboxItem.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ListboxTextItem.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ListHeader.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ListHeaderSegment.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Menubar.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\MenuBase.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\MenuItem.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\MultiColumnList.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\MultiLineEditbox.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\PopupMenu.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ProgressBar.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\PushButton.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\RadioButton.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ScrollablePane.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Scrollbar.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ScrolledContainer.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ScrolledItemListBase.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\SequentialLayoutContainer.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Slider.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Spinner.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\TabButton.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\TabControl.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Thumb.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Titlebar.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\ToggleButton.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Tooltip.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\Tree.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\TreeItem.h" />
+    <ClInclude Include="depends\include\CEGUI\widgets\VerticalLayoutContainer.h" />
+    <ClInclude Include="depends\include\CEGUI\Win32StringTranscoder.h" />
+    <ClInclude Include="depends\include\CEGUI\Window.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowFactory.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowFactoryManager.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowManager.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRenderer.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererManager.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Button.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Default.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Editbox.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\FrameWindow.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ItemEntry.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ItemListbox.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Listbox.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ListHeader.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ListHeaderSegment.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Menubar.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\MenuItem.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Module.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\MultiColumnList.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\MultiLineEditbox.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\PopupMenu.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ProgressBar.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ScrollablePane.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Scrollbar.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Slider.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Static.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\StaticImage.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\StaticText.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\TabButton.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\TabControl.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Titlebar.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ToggleButton.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Tooltip.h" />
+    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Tree.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLAttributes.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLHandler.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParser.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Expat\XMLParser.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Expat\XMLParserModule.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Libxml2\XMLParser.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Libxml2\XMLParserModule.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\RapidXML\XMLParser.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\RapidXML\XMLParserModule.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\TinyXML\XMLParser.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\TinyXML\XMLParserModule.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Xerces\XMLParser.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Xerces\XMLParserModule.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Xerces\XMLParserProperties.h" />
+    <ClInclude Include="depends\include\CEGUI\XMLSerializer.h" />
+    <ClInclude Include="depends\include\DirectXTex\BC.h" />
+    <ClInclude Include="depends\include\DirectXTex\BCDirectCompute.h" />
+    <ClInclude Include="depends\include\DirectXTex\d3dx12.h" />
+    <ClInclude Include="depends\include\DirectXTex\DDS.h" />
+    <ClInclude Include="depends\include\DirectXTex\DirectXTex.h" />
+    <ClInclude Include="depends\include\DirectXTex\DirectXTexP.h" />
+    <ClInclude Include="depends\include\DirectXTex\Filters.h" />
+    <ClInclude Include="depends\include\DirectXTex\scoped.h" />
+    <ClInclude Include="depends\include\DXSDK\audiodefs.h" />
+    <ClInclude Include="depends\include\DXSDK\comdecl.h" />
+    <ClInclude Include="depends\include\DXSDK\D2D1.h" />
+    <ClInclude Include="depends\include\DXSDK\D2D1Helper.h" />
+    <ClInclude Include="depends\include\DXSDK\D2DBaseTypes.h" />
+    <ClInclude Include="depends\include\DXSDK\D2Derr.h" />
+    <ClInclude Include="depends\include\DXSDK\D3D10.h" />
+    <ClInclude Include="depends\include\DXSDK\D3D10effect.h" />
+    <ClInclude Include="depends\include\DXSDK\d3d10misc.h" />
+    <ClInclude Include="depends\include\DXSDK\d3d10sdklayers.h" />
+    <ClInclude Include="depends\include\DXSDK\D3D10shader.h" />
+    <ClInclude Include="depends\include\DXSDK\D3D10_1.h" />
+    <ClInclude Include="depends\include\DXSDK\D3D10_1shader.h" />
+    <ClInclude Include="depends\include\DXSDK\D3D11.h" />
+    <ClInclude Include="depends\include\DXSDK\D3D11SDKLayers.h" />
+    <ClInclude Include="depends\include\DXSDK\D3D11Shader.h" />
+    <ClInclude Include="depends\include\DXSDK\d3d9.h" />
+    <ClInclude Include="depends\include\DXSDK\d3d9caps.h" />
+    <ClInclude Include="depends\include\DXSDK\d3d9types.h" />
+    <ClInclude Include="depends\include\DXSDK\D3Dcommon.h" />
+    <ClInclude Include="depends\include\DXSDK\D3Dcompiler.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DCSX.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DX10.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx10async.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DX10core.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DX10math.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DX10mesh.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DX10tex.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DX11.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DX11async.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DX11core.h" />
+    <ClInclude Include="depends\include\DXSDK\D3DX11tex.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9anim.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9core.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9effect.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9math.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9mesh.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9shader.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9shape.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9tex.h" />
+    <ClInclude Include="depends\include\DXSDK\d3dx9xof.h" />
+    <ClInclude Include="depends\include\DXSDK\Dcommon.h" />
+    <ClInclude Include="depends\include\DXSDK\dinput.h" />
+    <ClInclude Include="depends\include\DXSDK\dinputd.h" />
+    <ClInclude Include="depends\include\DXSDK\dsconf.h" />
+    <ClInclude Include="depends\include\DXSDK\dsetup.h" />
+    <ClInclude Include="depends\include\DXSDK\dsound.h" />
+    <ClInclude Include="depends\include\DXSDK\DWrite.h" />
+    <ClInclude Include="depends\include\DXSDK\dxdiag.h" />
+    <ClInclude Include="depends\include\DXSDK\DxErr.h" />
+    <ClInclude Include="depends\include\DXSDK\dxfile.h" />
+    <ClInclude Include="depends\include\DXSDK\DXGI.h" />
+    <ClInclude Include="depends\include\DXSDK\DXGIFormat.h" />
+    <ClInclude Include="depends\include\DXSDK\DXGIType.h" />
+    <ClInclude Include="depends\include\DXSDK\dxsdkver.h" />
+    <ClInclude Include="depends\include\DXSDK\gameux.h" />
+    <ClInclude Include="depends\include\DXSDK\PIXPlugin.h" />
+    <ClInclude Include="depends\include\DXSDK\rmxfguid.h" />
+    <ClInclude Include="depends\include\DXSDK\rmxftmpl.h" />
+    <ClInclude Include="depends\include\DXSDK\rpcsal.h" />
+    <ClInclude Include="depends\include\DXSDK\X3DAudio.h" />
+    <ClInclude Include="depends\include\DXSDK\xact3.h" />
+    <ClInclude Include="depends\include\DXSDK\xact3d3.h" />
+    <ClInclude Include="depends\include\DXSDK\xact3wb.h" />
+    <ClInclude Include="depends\include\DXSDK\XAPO.h" />
+    <ClInclude Include="depends\include\DXSDK\XAPOBase.h" />
+    <ClInclude Include="depends\include\DXSDK\XAPOFX.h" />
+    <ClInclude Include="depends\include\DXSDK\XAudio2.h" />
+    <ClInclude Include="depends\include\DXSDK\XAudio2fx.h" />
+    <ClInclude Include="depends\include\DXSDK\XDSP.h" />
+    <ClInclude Include="depends\include\DXSDK\XInput.h" />
+    <ClInclude Include="depends\include\DXSDK\xma2defs.h" />
+    <ClInclude Include="depends\include\DXSDK\xnamath.h" />
+    <ClInclude Include="depends\include\glm\core\func_common.hpp" />
+    <ClInclude Include="depends\include\glm\core\func_exponential.hpp" />
+    <ClInclude Include="depends\include\glm\core\func_geometric.hpp" />
+    <ClInclude Include="depends\include\glm\core\func_integer.hpp" />
+    <ClInclude Include="depends\include\glm\core\func_matrix.hpp" />
+    <ClInclude Include="depends\include\glm\core\func_noise.hpp" />
+    <ClInclude Include="depends\include\glm\core\func_packing.hpp" />
+    <ClInclude Include="depends\include\glm\core\func_trigonometric.hpp" />
+    <ClInclude Include="depends\include\glm\core\func_vector_relational.hpp" />
+    <ClInclude Include="depends\include\glm\core\hint.hpp" />
+    <ClInclude Include="depends\include\glm\core\intrinsic_common.hpp" />
+    <ClInclude Include="depends\include\glm\core\intrinsic_exponential.hpp" />
+    <ClInclude Include="depends\include\glm\core\intrinsic_geometric.hpp" />
+    <ClInclude Include="depends\include\glm\core\intrinsic_matrix.hpp" />
+    <ClInclude Include="depends\include\glm\core\intrinsic_trigonometric.hpp" />
+    <ClInclude Include="depends\include\glm\core\intrinsic_vector_relational.hpp" />
+    <ClInclude Include="depends\include\glm\core\setup.hpp" />
+    <ClInclude Include="depends\include\glm\core\type.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_float.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_gentype.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_half.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_int.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat2x2.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat2x3.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat2x4.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat3x2.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat3x3.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat3x4.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat4x2.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat4x3.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_mat4x4.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_size.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_vec.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_vec1.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_vec2.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_vec3.hpp" />
+    <ClInclude Include="depends\include\glm\core\type_vec4.hpp" />
+    <ClInclude Include="depends\include\glm\core\_detail.hpp" />
+    <ClInclude Include="depends\include\glm\core\_fixes.hpp" />
+    <ClInclude Include="depends\include\glm\core\_swizzle.hpp" />
+    <ClInclude Include="depends\include\glm\core\_swizzle_func.hpp" />
+    <ClInclude Include="depends\include\glm\core\_vectorize.hpp" />
+    <ClInclude Include="depends\include\glm\ext.hpp" />
+    <ClInclude Include="depends\include\glm\glm.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\constants.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\epsilon.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\half_float.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\matrix_access.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\matrix_integer.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\matrix_inverse.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\matrix_transform.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\noise.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\quaternion.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\random.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\reciprocal.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\swizzle.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\type_precision.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\type_ptr.hpp" />
+    <ClInclude Include="depends\include\glm\gtc\ulp.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\associated_min_max.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\bit.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\closest_point.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\color_cast.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\color_space.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\color_space_YCoCg.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\compatibility.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\component_wise.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\constants.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\epsilon.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\euler_angles.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\extend.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\extented_min_max.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\fast_exponential.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\fast_square_root.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\fast_trigonometry.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\gradient_paint.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\handed_coordinate_space.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\inertia.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\integer.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\intersect.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\int_10_10_10_2.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\log_base.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\matrix_cross_product.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\matrix_interpolation.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\matrix_major_storage.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\matrix_operation.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\matrix_query.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\mixed_product.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\multiple.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\noise.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\norm.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\normal.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\normalize_dot.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\number_precision.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\ocl_type.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\optimum_pow.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\orthonormalize.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\perpendicular.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\polar_coordinates.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\projection.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\quaternion.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\random.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\raw_data.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\reciprocal.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\rotate_vector.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\simd_mat4.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\simd_vec4.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\spline.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\std_based_type.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\string_cast.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\transform.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\transform2.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\ulp.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\unsigned_int.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\vec1.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\vector_access.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\vector_angle.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\vector_query.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\verbose_operator.hpp" />
+    <ClInclude Include="depends\include\glm\gtx\wrap.hpp" />
+    <ClInclude Include="depends\include\glm\virtrev\xstream.hpp" />
+    <ClInclude Include="depends\include\GL\glew.h" />
+    <ClInclude Include="depends\include\GL\glfw.h" />
+    <ClInclude Include="depends\include\GL\glxew.h" />
+    <ClInclude Include="depends\include\GL\wglew.h" />
+    <ClInclude Include="depends\include\lzma\7z.h" />
+    <ClInclude Include="depends\include\lzma\7zAlloc.h" />
+    <ClInclude Include="depends\include\lzma\7zBuf.h" />
+    <ClInclude Include="depends\include\lzma\7zCrc.h" />
+    <ClInclude Include="depends\include\lzma\7zFile.h" />
+    <ClInclude Include="depends\include\lzma\7zTypes.h" />
+    <ClInclude Include="depends\include\lzma\7zVersion.h" />
+    <ClInclude Include="depends\include\lzma\Aes.h" />
+    <ClInclude Include="depends\include\lzma\Alloc.h" />
+    <ClInclude Include="depends\include\lzma\Bcj2.h" />
+    <ClInclude Include="depends\include\lzma\Bra.h" />
+    <ClInclude Include="depends\include\lzma\Compiler.h" />
+    <ClInclude Include="depends\include\lzma\CpuArch.h" />
+    <ClInclude Include="depends\include\lzma\Delta.h" />
+    <ClInclude Include="depends\include\lzma\LzFind.h" />
+    <ClInclude Include="depends\include\lzma\LzFindMt.h" />
+    <ClInclude Include="depends\include\lzma\LzHash.h" />
+    <ClInclude Include="depends\include\lzma\Lzma2Dec.h" />
+    <ClInclude Include="depends\include\lzma\Lzma2Enc.h" />
+    <ClInclude Include="depends\include\lzma\Lzma86.h" />
+    <ClInclude Include="depends\include\lzma\LzmaDec.h" />
+    <ClInclude Include="depends\include\lzma\LzmaEnc.h" />
+    <ClInclude Include="depends\include\lzma\LzmaLib.h" />
+    <ClInclude Include="depends\include\lzma\MtCoder.h" />
+    <ClInclude Include="depends\include\lzma\Ppmd.h" />
+    <ClInclude Include="depends\include\lzma\Ppmd7.h" />
+    <ClInclude Include="depends\include\lzma\Precomp.h" />
+    <ClInclude Include="depends\include\lzma\RotateDefs.h" />
+    <ClInclude Include="depends\include\lzma\Sha256.h" />
+    <ClInclude Include="depends\include\lzma\Sort.h" />
+    <ClInclude Include="depends\include\lzma\Threads.h" />
+    <ClInclude Include="depends\include\lzma\Xz.h" />
+    <ClInclude Include="depends\include\lzma\XzCrc64.h" />
+    <ClInclude Include="depends\include\lzma\XzEnc.h" />
+    <ClInclude Include="depends\include\MinHook\MinHook.h" />
+    <ClInclude Include="depends\include\nvapi\nvapi.h" />
+    <ClInclude Include="depends\include\nvapi\NvApiDriverSettings.h" />
+    <ClInclude Include="depends\include\nvapi\nvapi_lite_common.h" />
+    <ClInclude Include="depends\include\nvapi\nvapi_lite_d3dext.h" />
+    <ClInclude Include="depends\include\nvapi\nvapi_lite_salend.h" />
+    <ClInclude Include="depends\include\nvapi\nvapi_lite_salstart.h" />
+    <ClInclude Include="depends\include\nvapi\nvapi_lite_sli.h" />
+    <ClInclude Include="depends\include\nvapi\nvapi_lite_stereo.h" />
+    <ClInclude Include="depends\include\nvapi\nvapi_lite_surround.h" />
+    <ClInclude Include="depends\include\nvapi\nvHLSLExtns.h" />
+    <ClInclude Include="depends\include\nvapi\nvHLSLExtnsInternal.h" />
+    <ClInclude Include="depends\include\nvapi\nvShaderExtnEnums.h" />
     <ClInclude Include="depends\include\steamapi\isteamapplist.h" />
     <ClInclude Include="depends\include\steamapi\isteamapps.h" />
     <ClInclude Include="depends\include\steamapi\isteamappticket.h" />
@@ -2177,6 +2786,20 @@ Exit 0</Command>
     <ClInclude Include="depends\include\steamapi\steam_api.h" />
     <ClInclude Include="depends\include\steamapi\steam_api_flat.h" />
     <ClInclude Include="depends\include\steamapi\steam_gameserver.h" />
+    <ClInclude Include="depends\include\vulkan\vk_platform.h" />
+    <ClInclude Include="depends\include\vulkan\vulkan.h" />
+    <ClInclude Include="depends\include\WinRing0\dll\OpenLibSys.h" />
+    <ClInclude Include="depends\include\WinRing0\Driver.h" />
+    <ClInclude Include="depends\include\WinRing0\OlsApi.h" />
+    <ClInclude Include="depends\include\WinRing0\OlsApiInit.h" />
+    <ClInclude Include="depends\include\WinRing0\OlsApiInitDef.h" />
+    <ClInclude Include="depends\include\WinRing0\OlsApiInitExt.h" />
+    <ClInclude Include="depends\include\WinRing0\OlsDef.h" />
+    <ClInclude Include="depends\include\WinRing0\OlsDll.h" />
+    <ClInclude Include="depends\include\WinRing0\OlsIoctl.h" />
+    <ClInclude Include="depends\include\WinRing0\resource.h" />
+    <ClInclude Include="depends\include\WinRing0\stdafx.h" />
+    <ClInclude Include="depends\include\WinRing0\vxd\OpenLS.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d12.h" />
     <ClInclude Include="include\SpecialK\ansel.h" />
     <ClInclude Include="include\SpecialK\com_util.h" />
@@ -2219,11 +2842,13 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_4.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_core.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h" />
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_screenshot.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_tex_mgr.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_state_tracker.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\utility\d3d11_texture.h" />
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_interfaces.h" />
     <ClInclude Include="include\SpecialK\render\d3d8\d3d8_backend.h" />
+    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_screenshot.h" />
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h" />
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_backend.h" />
     <ClInclude Include="include\SpecialK\render\ddraw\ddraw_backend.h" />
@@ -2259,10 +2884,12 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_swapchain.h" />
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_swapchain.h" />
     <ClInclude Include="include\SpecialK\render\backend.h" />
+    <ClInclude Include="include\SpecialK\render\screenshot.h" />
     <ClInclude Include="include\SpecialK\resource.h" />
     <ClInclude Include="include\SpecialK\sha1.h" />
     <ClInclude Include="include\SpecialK\sound.h" />
     <ClInclude Include="include\SpecialK\SpecialK.h" />
+    <ClInclude Include="include\SpecialK\stdafx.h" />
     <ClInclude Include="include\SpecialK\steam_api.h" />
     <ClInclude Include="include\SpecialK\targetver.h" />
     <ClInclude Include="include\SpecialK\thread.h" />
@@ -2305,34 +2932,134 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\ansel.cpp" />
-    <ClCompile Include="src\com_util.cpp" />
-    <ClCompile Include="src\control_panel\cfg_compatibility.cpp" />
-    <ClCompile Include="src\control_panel\cfg_d3d11.cpp" />
-    <ClCompile Include="src\control_panel\cfg_d3d9.cpp" />
-    <ClCompile Include="src\control_panel\cfg_input.cpp" />
-    <ClCompile Include="src\control_panel\cfg_opengl.cpp" />
-    <ClCompile Include="src\control_panel\cfg_osd.cpp" />
-    <ClCompile Include="src\control_panel\cfg_plugins.cpp" />
-    <ClCompile Include="src\control_panel\cfg_sound.cpp" />
-    <ClCompile Include="src\control_panel\cfg_steam.cpp" />
-    <ClCompile Include="src\control_panel\cfg_window.cpp" />
-    <ClCompile Include="src\crc32.cpp" />
-    <ClCompile Include="src\diagnostics\cpu.cpp" />
-    <ClCompile Include="src\diagnostics\file.cpp" />
-    <ClCompile Include="src\diagnostics\load_library.cpp" />
-    <ClCompile Include="src\diagnostics\memory.cpp" />
-    <ClCompile Include="src\diagnostics\net.cpp" />
-    <ClCompile Include="src\imgui\backends\imgui_d3d12.cpp" />
-    <ClCompile Include="src\plugins\dragon_quest_xi.cpp" />
-    <ClCompile Include="src\plugins\monster_hunter_world.cpp" />
-    <ClCompile Include="src\plugins\ninokuni2.cpp" />
-    <ClCompile Include="src\plugins\secret_of_mana.cpp" />
-    <ClCompile Include="src\plugins\tales_of_vesperia.cpp" />
-    <ClCompile Include="src\plugins\unclassified.cpp" />
-    <ClCompile Include="src\plugins\yakuza0.cpp" />
-    <ClCompile Include="src\plugins\ys8.cpp" />
-    <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_vftable.cpp" />
+    <ClCompile Include="src\ansel.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\com_util.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_compatibility.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_d3d11.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_d3d9.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_input.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_opengl.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_osd.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_plugins.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_sound.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_steam.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_window.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\crc32.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\cpu.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\file.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\load_library.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\memory.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\net.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_d3d12.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_widgets.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\dragon_quest_xi.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\monster_hunter_world.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\ninokuni2.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\secret_of_mana.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\sekiro.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\tales_of_vesperia.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\unclassified.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\yakuza0.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\ys8.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11_screenshot.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_vftable.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_wrapped.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">false</ExcludedFromBuild>
@@ -2352,14 +3079,55 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</ExcludedFromBuild>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\render\d3d11\hooks\d3d11_device.cpp" />
-    <ClCompile Include="src\render\d3d11\d3d11_utility.cpp" />
-    <ClCompile Include="src\render\d3d11\d3d11_state_tracker.cpp" />
-    <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp" />
-    <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp" />
-    <ClCompile Include="src\render\dxgi\dxgi_util.cpp" />
-    <ClCompile Include="src\steam\CSteamWorks.cpp" />
+    <ClCompile Include="src\render\d3d11\hooks\d3d11_device.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11_utility.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11_state_tracker.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9_screenshot.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\dxgi\dxgi_util.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\screenshot.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</MultiProcessorCompilation>
+      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MultiProcessorCompilation>
+    </ClCompile>
+    <ClCompile Include="src\steam\CSteamWorks.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -2379,8 +3147,17 @@ Exit 0</Command>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\render\d3d11\d3d11_dev_ctx.cpp" />
+    <ClCompile Include="src\render\d3d11\d3d11_dev_ctx.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -2418,7 +3195,10 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\render\d3d8\d3d8.cpp" />
+    <ClCompile Include="src\render\d3d8\d3d8.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\render\d3d9\d3d9_texmgr.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -2438,7 +3218,10 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\render\ddraw\ddraw.cpp" />
+    <ClCompile Include="src\render\ddraw\ddraw.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\diagnostics\compatibility.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -2497,7 +3280,10 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\hash.cpp" />
+    <ClCompile Include="src\hash.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\hooks.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -2574,7 +3360,10 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\imgui\backends\imgui_gl3.cpp" />
+    <ClCompile Include="src\imgui\backends\imgui_gl3.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\imgui\backends\imgui_vk.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/Zo %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">/Zo %(AdditionalOptions)</AdditionalOptions>
@@ -2630,11 +3419,15 @@ Exit 0</Command>
       <DiagnosticsFormat Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">Column</DiagnosticsFormat>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">Level4</WarningLevel>
       <DiagnosticsFormat Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">Column</DiagnosticsFormat>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\imgui\EULA.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\imgui\imgui.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
@@ -2654,6 +3447,8 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\imgui\imgui_demo.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
@@ -2673,6 +3468,8 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\imgui\imgui_draw.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
@@ -2692,14 +3489,45 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\injection\injection.cpp" />
-    <ClCompile Include="src\input\dinput7.cpp" />
-    <ClCompile Include="src\input\dinput8.cpp" />
-    <ClCompile Include="src\input\input.cpp" />
-    <ClCompile Include="src\input\steam.cpp" />
-    <ClCompile Include="src\input\xinput_core.cpp" />
-    <ClCompile Include="src\input\xinput_hotplug.cpp" />
+    <ClCompile Include="src\injection\injection.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\input\dinput7.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\input\dinput8.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\input\input.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\input\steam.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\input\xinput_core.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\input\xinput_hotplug.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\osd\popup.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -2719,9 +3547,18 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\plugins\blue_reflection.cpp" />
-    <ClCompile Include="src\plugins\dothack_gu.cpp" />
-    <ClCompile Include="src\plugins\lego_marvel2.cpp" />
+    <ClCompile Include="src\plugins\blue_reflection.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\dothack_gu.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\lego_marvel2.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\plugins\nier.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
@@ -2732,13 +3569,33 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TVFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\plugins\okami.cpp" />
-    <ClCompile Include="src\plugins\plugin_mgr.cpp" />
-    <ClCompile Include="src\plugins\reshade.cpp" />
-    <ClCompile Include="src\render\d3d9\d3d9_device.cpp" />
-    <ClCompile Include="src\render\d3d9\d3d9_swapchain.cpp" />
-    <ClCompile Include="src\render\dxgi\dxgi_swapchain.cpp" />
+    <ClCompile Include="src\plugins\okami.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\plugin_mgr.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\plugins\reshade.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9_device.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9_swapchain.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\render\dxgi\dxgi_swapchain.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\render\render_backend.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -2758,7 +3615,10 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\sha1.cpp" />
+    <ClCompile Include="src\sha1.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\sound.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -2834,6 +3694,8 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/d2cgsummary %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/d2cgsummary %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="src\console.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
@@ -2872,6 +3734,10 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\render\d3d9\d3d9.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
@@ -2929,6 +3795,10 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</RemoveUnreferencedCodeData>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">false</RemoveUnreferencedCodeData>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</RemoveUnreferencedCodeData>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\framerate.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
@@ -3043,6 +3913,10 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\nvapi.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
@@ -3081,6 +3955,10 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\osd\text.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
@@ -3176,19 +4054,58 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\steam\apps.cpp" />
-    <ClCompile Include="src\steam\client.cpp" />
-    <ClCompile Include="src\steam\controller.cpp" />
-    <ClCompile Include="src\steam\friends.cpp" />
-    <ClCompile Include="src\steam\music.cpp" />
-    <ClCompile Include="src\steam\music_remote.cpp" />
-    <ClCompile Include="src\steam\networking.cpp" />
-    <ClCompile Include="src\steam\remote_storage.cpp" />
-    <ClCompile Include="src\steam\screenshots.cpp" />
-    <ClCompile Include="src\steam\ugc.cpp" />
-    <ClCompile Include="src\steam\user.cpp" />
-    <ClCompile Include="src\steam\user_stats.cpp" />
-    <ClCompile Include="src\steam\utils.cpp" />
+    <ClCompile Include="src\steam\apps.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\client.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\controller.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\friends.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\music.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\music_remote.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\networking.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\remote_storage.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\screenshots.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\ugc.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\user.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\user_stats.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\steam\utils.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\steam\steam_api.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -3208,8 +4125,14 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\thread.cpp" />
-    <ClCompile Include="src\tls.cpp" />
+    <ClCompile Include="src\thread.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\tls.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\update\archive.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -3305,16 +4228,50 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\widgets\cpu_widget.cpp" />
-    <ClCompile Include="src\widgets\d3d11_pipeline_widget.cpp" />
-    <ClCompile Include="src\widgets\denuvo.cpp" />
-    <ClCompile Include="src\widgets\frame_pacing.cpp" />
-    <ClCompile Include="src\widgets\gpu_widget.cpp" />
-    <ClCompile Include="src\widgets\hdr.cpp" />
-    <ClCompile Include="src\widgets\threads.cpp" />
-    <ClCompile Include="src\widgets\tobii.cpp" />
-    <ClCompile Include="src\widgets\volume_control.cpp" />
-    <ClCompile Include="src\widgets\widget.cpp" />
+    <ClCompile Include="src\cpu_widget.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\widgets\d3d11_pipeline_widget.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\widgets\denuvo.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\widgets\frame_pacing.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\widgets\gpu_widget.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\widgets\hdr.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\widgets\threads.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\widgets\tobii.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\widgets\volume_control.cpp">
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="src\widgets\widget.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="src\window.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
@@ -3333,10 +4290,125 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpecialK/stdafx.h</PrecompiledHeaderFile>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/d2cgsummary %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/d2cgsummary %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="CHANGELOG" />
+    <None Include="depends\include\DirectXTex\DirectXTex.inl" />
+    <None Include="depends\include\DXSDK\D3DX10math.inl" />
+    <None Include="depends\include\DXSDK\d3dx9math.inl" />
+    <None Include="depends\include\DXSDK\D3DX_DXGIFormatConvert.inl" />
+    <None Include="depends\include\DXSDK\xnamathconvert.inl" />
+    <None Include="depends\include\DXSDK\xnamathmatrix.inl" />
+    <None Include="depends\include\DXSDK\xnamathmisc.inl" />
+    <None Include="depends\include\DXSDK\xnamathvector.inl" />
+    <None Include="depends\include\glm\core\func_common.inl" />
+    <None Include="depends\include\glm\core\func_exponential.inl" />
+    <None Include="depends\include\glm\core\func_geometric.inl" />
+    <None Include="depends\include\glm\core\func_integer.inl" />
+    <None Include="depends\include\glm\core\func_matrix.inl" />
+    <None Include="depends\include\glm\core\func_noise.inl" />
+    <None Include="depends\include\glm\core\func_packing.inl" />
+    <None Include="depends\include\glm\core\func_trigonometric.inl" />
+    <None Include="depends\include\glm\core\func_vector_relational.inl" />
+    <None Include="depends\include\glm\core\intrinsic_common.inl" />
+    <None Include="depends\include\glm\core\intrinsic_exponential.inl" />
+    <None Include="depends\include\glm\core\intrinsic_geometric.inl" />
+    <None Include="depends\include\glm\core\intrinsic_matrix.inl" />
+    <None Include="depends\include\glm\core\intrinsic_trigonometric.inl" />
+    <None Include="depends\include\glm\core\intrinsic_vector_relational.inl" />
+    <None Include="depends\include\glm\core\type_gentype.inl" />
+    <None Include="depends\include\glm\core\type_half.inl" />
+    <None Include="depends\include\glm\core\type_mat.inl" />
+    <None Include="depends\include\glm\core\type_mat2x2.inl" />
+    <None Include="depends\include\glm\core\type_mat2x3.inl" />
+    <None Include="depends\include\glm\core\type_mat2x4.inl" />
+    <None Include="depends\include\glm\core\type_mat3x2.inl" />
+    <None Include="depends\include\glm\core\type_mat3x3.inl" />
+    <None Include="depends\include\glm\core\type_mat3x4.inl" />
+    <None Include="depends\include\glm\core\type_mat4x2.inl" />
+    <None Include="depends\include\glm\core\type_mat4x3.inl" />
+    <None Include="depends\include\glm\core\type_mat4x4.inl" />
+    <None Include="depends\include\glm\core\type_vec.inl" />
+    <None Include="depends\include\glm\core\type_vec1.inl" />
+    <None Include="depends\include\glm\core\type_vec2.inl" />
+    <None Include="depends\include\glm\core\type_vec3.inl" />
+    <None Include="depends\include\glm\core\type_vec4.inl" />
+    <None Include="depends\include\glm\gtc\constants.inl" />
+    <None Include="depends\include\glm\gtc\epsilon.inl" />
+    <None Include="depends\include\glm\gtc\half_float.inl" />
+    <None Include="depends\include\glm\gtc\matrix_access.inl" />
+    <None Include="depends\include\glm\gtc\matrix_inverse.inl" />
+    <None Include="depends\include\glm\gtc\matrix_transform.inl" />
+    <None Include="depends\include\glm\gtc\noise.inl" />
+    <None Include="depends\include\glm\gtc\quaternion.inl" />
+    <None Include="depends\include\glm\gtc\random.inl" />
+    <None Include="depends\include\glm\gtc\reciprocal.inl" />
+    <None Include="depends\include\glm\gtc\swizzle.inl" />
+    <None Include="depends\include\glm\gtc\type_precision.inl" />
+    <None Include="depends\include\glm\gtc\type_ptr.inl" />
+    <None Include="depends\include\glm\gtc\ulp.inl" />
+    <None Include="depends\include\glm\gtx\associated_min_max.inl" />
+    <None Include="depends\include\glm\gtx\bit.inl" />
+    <None Include="depends\include\glm\gtx\closest_point.inl" />
+    <None Include="depends\include\glm\gtx\color_cast.inl" />
+    <None Include="depends\include\glm\gtx\color_space.inl" />
+    <None Include="depends\include\glm\gtx\color_space_YCoCg.inl" />
+    <None Include="depends\include\glm\gtx\compatibility.inl" />
+    <None Include="depends\include\glm\gtx\component_wise.inl" />
+    <None Include="depends\include\glm\gtx\euler_angles.inl" />
+    <None Include="depends\include\glm\gtx\extend.inl" />
+    <None Include="depends\include\glm\gtx\extented_min_max.inl" />
+    <None Include="depends\include\glm\gtx\fast_exponential.inl" />
+    <None Include="depends\include\glm\gtx\fast_square_root.inl" />
+    <None Include="depends\include\glm\gtx\fast_trigonometry.inl" />
+    <None Include="depends\include\glm\gtx\gradient_paint.inl" />
+    <None Include="depends\include\glm\gtx\handed_coordinate_space.inl" />
+    <None Include="depends\include\glm\gtx\inertia.inl" />
+    <None Include="depends\include\glm\gtx\integer.inl" />
+    <None Include="depends\include\glm\gtx\intersect.inl" />
+    <None Include="depends\include\glm\gtx\int_10_10_10_2.inl" />
+    <None Include="depends\include\glm\gtx\log_base.inl" />
+    <None Include="depends\include\glm\gtx\matrix_cross_product.inl" />
+    <None Include="depends\include\glm\gtx\matrix_interpolation.inl" />
+    <None Include="depends\include\glm\gtx\matrix_major_storage.inl" />
+    <None Include="depends\include\glm\gtx\matrix_operation.inl" />
+    <None Include="depends\include\glm\gtx\matrix_query.inl" />
+    <None Include="depends\include\glm\gtx\mixed_product.inl" />
+    <None Include="depends\include\glm\gtx\multiple.inl" />
+    <None Include="depends\include\glm\gtx\norm.inl" />
+    <None Include="depends\include\glm\gtx\normal.inl" />
+    <None Include="depends\include\glm\gtx\normalize_dot.inl" />
+    <None Include="depends\include\glm\gtx\number_precision.inl" />
+    <None Include="depends\include\glm\gtx\ocl_type.inl" />
+    <None Include="depends\include\glm\gtx\optimum_pow.inl" />
+    <None Include="depends\include\glm\gtx\orthonormalize.inl" />
+    <None Include="depends\include\glm\gtx\perpendicular.inl" />
+    <None Include="depends\include\glm\gtx\polar_coordinates.inl" />
+    <None Include="depends\include\glm\gtx\projection.inl" />
+    <None Include="depends\include\glm\gtx\quaternion.inl" />
+    <None Include="depends\include\glm\gtx\raw_data.inl" />
+    <None Include="depends\include\glm\gtx\rotate_vector.inl" />
+    <None Include="depends\include\glm\gtx\simd_mat4.inl" />
+    <None Include="depends\include\glm\gtx\simd_vec4.inl" />
+    <None Include="depends\include\glm\gtx\spline.inl" />
+    <None Include="depends\include\glm\gtx\std_based_type.inl" />
+    <None Include="depends\include\glm\gtx\string_cast.inl" />
+    <None Include="depends\include\glm\gtx\transform.inl" />
+    <None Include="depends\include\glm\gtx\transform2.inl" />
+    <None Include="depends\include\glm\gtx\unsigned_int.inl" />
+    <None Include="depends\include\glm\gtx\vec1.inl" />
+    <None Include="depends\include\glm\gtx\vector_access.inl" />
+    <None Include="depends\include\glm\gtx\vector_angle.inl" />
+    <None Include="depends\include\glm\gtx\vector_query.inl" />
+    <None Include="depends\include\glm\gtx\verbose_operator.inl" />
+    <None Include="depends\include\glm\gtx\wrap.inl" />
     <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'">true</ExcludedFromBuild>
@@ -3553,6 +4625,7 @@ Exit 0</Command>
     <None Include="injector64.dll" />
     <None Include="installer.dll" />
     <None Include="installer64.dll" />
+    <None Include="LICENSE" />
     <None Include="packages.config" />
     <None Include="README.md" />
     <None Include="resource\cursors\ovr_horz.cur" />
@@ -3644,21 +4717,21 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </None>
-    <None Include="SpecialK.ruleset" />
     <None Include="src\imgui\LICENSE" />
     <None Include="Tobii\API-Reference.pdf" />
     <None Include="Tobii\SDK-License_en.pdf" />
     <None Include="Tobii\SDK-License_zh.pdf" />
     <None Include="TODO" />
-    <None Include="version.ini" />
     <None Include="SpecialK.def" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="depends\include\lzma\7zVersion.rc" />
     <ResourceCompile Include="resource\Resource.rc">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</DeploymentContent>
     </ResourceCompile>
+    <ResourceCompile Include="SpecialK.rc" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="resource\annoying.wav" />

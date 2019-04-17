@@ -43,12 +43,12 @@ namespace SK
 #include <unordered_map>
 #include <unordered_set>
 
-enum
-{
-  Texture,
-  Program,
-  VertexBuffer,
-};
+//enum
+//{
+//  Texture,
+//  Program,
+//  VertexBuffer,
+//};
 
 void
 SK_GL_PushMostStates (void);

@@ -19,18 +19,12 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <SpecialK/widgets/widget.h>
 
-#include <SpecialK/config.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/control_panel.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
-#include <SpecialK/utility.h>
-#include <SpecialK/steam_api.h>
 #include <SpecialK/plugin/plugin_mgr.h>
-
-#include <SpecialK/utility/bidirectional_map.h>
 
 #define SK_HDR_SECTION     L"SpecialK.HDR"
 #define SK_MISC_SECTION    L"SpecialK.Misc"
@@ -482,55 +476,12 @@ public:
     ////bool bRetro =
     ////  true && ImGui::CollapsingHeader ("HDR Retrofit", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlapMode);
 
-    if ( rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) &&
-         ImGui::CollapsingHeader ("HDR Overlays",  ImGuiTreeNodeFlags_DefaultOpen))
-    {
-      ImGui::TreePush ("");
-
-      float imgui_nits =
-        rb.ui_luminance / 1.0_Nits;
-
-      if ( ImGui::SliderFloat ( "Special K Luminance###IMGUI_LUMINANCE",
-                                 &imgui_nits,
-                                  80.0f, rb.display_gamut.maxLocalY,
-                                u8"%.1f cd/m²"))
-      {
-        rb.ui_luminance =
-             imgui_nits * 1.0_Nits;
-
-        SK_SaveConfig ();
-      }
-
-      float steam_nits =
-        config.steam.overlay_hdr_luminance / 1.0_Nits;
-
-      if ( ImGui::SliderFloat ( "Steam Overlay Luminance###STEAM_LUMINANCE",
-                                 &steam_nits,
-                                  80.0f, rb.display_gamut.maxY,
-                                u8"%.1f cd/m²"))
-      {
-        config.steam.overlay_hdr_luminance =
-                                steam_nits * 1.0_Nits;
-
-        SK_SaveConfig ();
-      }
-
-      float uplay_nits =
-        config.uplay.overlay_luminance / 1.0_Nits;
-
-      if ( ImGui::SliderFloat ( "uPlay Overlay Luminance###UPLAY_LUMINANCE",
-                                 &uplay_nits,
-                                  80.0f, rb.display_gamut.maxY,
-                                u8"%.1f cd/m²"))
-      {
-        config.uplay.overlay_luminance =
-                                uplay_nits * 1.0_Nits;
-
-        SK_SaveConfig ();
-      }
-
-      ImGui::TreePop  ();
-    }
+    ///if ( rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) &&
+    ///     ImGui::CollapsingHeader ("HDR Overlays",  ImGuiTreeNodeFlags_DefaultOpen))
+    ///{
+    ///  ImGui::TreePush ("");
+    ///  ImGui::TreePop  ();
+    ///}
 
     static bool TenBitSwap_Original     = __SK_HDR_10BitSwap;
     static bool SixteenBitSwap_Original = __SK_HDR_16BitSwap;
@@ -642,7 +593,7 @@ public:
     if ( ( TenBitSwap_Original     != __SK_HDR_10BitSwap ||
            SixteenBitSwap_Original != __SK_HDR_16BitSwap) )
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
       ImGui::BulletText     ("Game Restart Required");
       ImGui::PopStyleColor  ();
     }
@@ -762,7 +713,7 @@ public:
                                          out_desc.MinLuminance,
                                          2000.0f,       600.0f };
 
-              ImGui::InputFloat4 ("Luminance Coefficients", fLuma, 1);
+              ImGui::InputFloat4 ("Luminance Coefficients", fLuma);// , 1);
 
               HDR10MetaData.MaxMasteringLuminance     = static_cast <UINT>   (fLuma [0] * 10000.0f);
               HDR10MetaData.MinMasteringLuminance     = static_cast <UINT>   (fLuma [1] * 10000.0f);
@@ -889,16 +840,16 @@ public:
                         (&hdr_presets [i].preset_activate)->param );
           }
           ImGui::EndGroup   ();
-          ImGui::Separator  ();
-
-          static bool success = true;
-          if (ImGui::Button ("Recompile HDR Shaders"))
-          {
-            extern bool SK_HDR_RecompileShaders (void);
-            success =   SK_HDR_RecompileShaders (    );
-          }
-
-          if (! success) { ImGui::SameLine (); ImGui::TextUnformatted ("You dun screwed up!"); }
+          ////ImGui::Separator  ();
+          ////
+          ////static bool success = true;
+          ////if (ImGui::Button ("Recompile HDR Shaders"))
+          ////{
+          ////  extern bool SK_HDR_RecompileShaders (void);
+          ////  success =   SK_HDR_RecompileShaders (    );
+          ////}
+          ////
+          ////if (! success) { ImGui::SameLine (); ImGui::TextUnformatted ("You dun screwed up!"); }
 
           ImGui::Separator ();
 
@@ -1215,7 +1166,7 @@ SK_ImGui_DrawGamut (void)
   for ( auto& space : color_spaces )
   {
     ImGui::PushID         ((int)idx);
-    ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV ( idx / 5.0f, 0.85f, 0.98f ));
+    ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV ( idx / 5.0f, 0.85f, 0.98f ));
     ImGui::Checkbox       (space.name.c_str (), &space.show);
     ImGui::PopStyleColor  ();
     ImGui::PopID          ();

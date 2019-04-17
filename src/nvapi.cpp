@@ -19,27 +19,14 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
+#include <SpecialK/stdafx.h>
+
 #include <d3d9.h>
 #include <d3d11.h>
 
 #include <SpecialK/nvapi.h>
 #include <nvapi/NvApiDriverSettings.h>
 #include <nvapi/nvapi_lite_sli.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/log.h>
-
-#include <Windows.h>
-#include <dxgi.h>
-#include <string>
-
-#include <SpecialK/hooks.h>
-
-#include <SpecialK/diagnostics/compatibility.h>
-#include <SpecialK/utility.h>
 
 typedef NvAPI_Status (__cdecl *NvAPI_Disp_GetHdrCapabilities_pfn)(NvU32, NV_HDR_CAPABILITIES*);
 typedef NvAPI_Status (__cdecl *NvAPI_Disp_HdrColorControl_pfn)   (NvU32, NV_HDR_COLOR_DATA*);
@@ -371,6 +358,9 @@ __cdecl
 NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                                          NV_HDR_CAPABILITIES *pHdrCapabilities )
 {
+  if (config.apis.NvAPI.disable_hdr)
+    return NVAPI_LIBRARY_NOT_FOUND;
+
   SK_LOG_FIRST_CALL
 
   SK_LOG0 ( ( L"NV_HDR_CAPABILITIES Version: %lu", pHdrCapabilities->version ),
@@ -449,41 +439,129 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
   return ret;
 }
 
+static
+std::pair < NvAPI_Status,
+            std::pair < NvU32,
+                        NV_HDR_COLOR_DATA >
+          >
+  SK_NvAPI_LastHdrColorControl (
+    std::make_pair   ( (NvAPI_Status)NVAPI_ERROR,
+      std::make_pair ( (NvU32)0, NV_HDR_COLOR_DATA { } )
+    )
+);
+
+void
+SK_NvAPI_ReIssueLastHdrColorControl (void)
+{
+  if (SK_NvAPI_LastHdrColorControl.first == NVAPI_OK)
+  {
+    auto& reissue =
+       SK_NvAPI_LastHdrColorControl.second;
+    //auto off_copy         = reissue.second;
+    //     off_copy.cmd     = NV_HDR_CMD_SET;
+    //     off_copy.hdrMode = NV_HDR_MODE_OFF;
+    //NvAPI_Disp_HdrColorControl_Original (reissue.first, &off_copy);
+    NvAPI_Disp_HdrColorControl (reissue.first, &reissue.second);
+  }
+}
+
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
+
 NvAPI_Status
 __cdecl
 NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
                                       NV_HDR_COLOR_DATA *pHdrColorData )
 {
+  if (config.apis.NvAPI.disable_hdr)
+    return NVAPI_LIBRARY_NOT_FOUND;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_LOG_FIRST_CALL
 
-  auto HDRModeToStr = [](NV_HDR_MODE mode) ->
-  const wchar_t*
+  static NV_HDR_COLOR_DATA_V2  expandedData;
+         NV_HDR_COLOR_DATA_V1 *inputData = (NV_HDR_COLOR_DATA_V1 *)pHdrColorData;
+
+  if (pHdrColorData->version == NV_HDR_COLOR_DATA_VER1)
   {
-    switch (mode)
-    {
-      case NV_HDR_MODE_OFF:              return L"Off";
-      case NV_HDR_MODE_UHDA:             return L"HDR10";
-      case NV_HDR_MODE_EDR:              return L"Extended Dynamic Range";
-      case NV_HDR_MODE_SDR:              return L"Standard Dynamic Range";
-      case NV_HDR_MODE_UHDA_PASSTHROUGH: return L"HDR10 Passthrough";
-      default:                           return L"Invalid";
-    };
-  };
+    NV_HDR_COLOR_DATA_V1    origData =     *((NV_HDR_COLOR_DATA_V1 *)pHdrColorData);
+    memcpy (&expandedData, &origData, sizeof (NV_HDR_COLOR_DATA_V1));
 
-  //if (true)
-  //  pHdrColorData->hdrMode = NV_HDR_MODE_UHDA_PASSTHROUGH;
+    expandedData.version   = NV_HDR_COLOR_DATA_VER2;
+    pHdrColorData          = &expandedData;
 
-  rb.scanout.nvapi_hdr10 =
-    ( pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH ||
-      pHdrColorData->hdrMode == NV_HDR_MODE_UHDA );
+    pHdrColorData->cmd                           = inputData->cmd;
+    pHdrColorData->hdrMode                       = inputData->hdrMode;
+    pHdrColorData->static_metadata_descriptor_id = inputData->static_metadata_descriptor_id;
+
+    memcpy ( &pHdrColorData->mastering_display_data,
+                 &inputData->mastering_display_data,
+          sizeof (inputData->mastering_display_data) );
+  }
+
+  if (pHdrColorData->version == NV_HDR_COLOR_DATA_VER2)
+  {
+    auto& hdr_sec =
+      SK_GetDLLConfig ()->get_section (L"NvAPI.HDR");
+
+    auto& hdrBpc =
+      hdr_sec.get_value (L"hdrBpc");
+
+    auto& hdrColorFormat =
+      hdr_sec.get_value (L"hdrColorFormat");
+
+    auto& hdrDynamicRange =
+      hdr_sec.get_value (L"hdrDynamicRange");
+
+    static std::unordered_map <std::wstring, _NV_BPC>
+      bpc_map =
+        { { L"NV_BPC_DEFAULT", NV_BPC_DEFAULT },
+          { L"NV_BPC_6",       NV_BPC_6       },
+          { L"NV_BPC_8",       NV_BPC_8       },
+          { L"NV_BPC_10",      NV_BPC_10      },
+          { L"NV_BPC_12",      NV_BPC_12      },
+          { L"NV_BPC_16",      NV_BPC_16      } };
+
+    static std::unordered_map <std::wstring, NV_COLOR_FORMAT>
+      color_fmt_map =
+        { { L"NV_COLOR_FORMAT_RGB",     NV_COLOR_FORMAT_RGB     },
+          { L"NV_COLOR_FORMAT_YUV422",  NV_COLOR_FORMAT_YUV422  },
+          { L"NV_COLOR_FORMAT_YUV444",  NV_COLOR_FORMAT_YUV444  },
+          { L"NV_COLOR_FORMAT_YUV420",  NV_COLOR_FORMAT_YUV420  },
+          { L"NV_COLOR_FORMAT_DEFAULT", NV_COLOR_FORMAT_DEFAULT },
+          { L"NV_COLOR_FORMAT_AUTO",    NV_COLOR_FORMAT_AUTO    } };
+
+    static std::unordered_map <std::wstring, _NV_DYNAMIC_RANGE>
+      dynamic_range_map =
+        { { L"NV_DYNAMIC_RANGE_VESA", NV_DYNAMIC_RANGE_VESA  },
+          { L"NV_DYNAMIC_RANGE_CEA",  NV_DYNAMIC_RANGE_CEA   },
+          { L"NV_DYNAMIC_RANGE_AUTO", NV_DYNAMIC_RANGE_AUTO  } };
+
+    if (! hdrBpc.empty ())
+      pHdrColorData->hdrBpc = bpc_map [hdrBpc];
+
+    if (! hdrColorFormat.empty ())
+      pHdrColorData->hdrColorFormat = color_fmt_map [hdrColorFormat];
+
+    if (! hdrDynamicRange.empty ())
+      pHdrColorData->hdrDynamicRange = dynamic_range_map [hdrDynamicRange];
+
+    //if (pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH)
+    //    pHdrColorData->hdrMode =  NV_HDR_MODE_UHDA;
+  }
 
   //SK_LOG0 ( ( L"NV_HDR_COLOR_DATA Version: %lu", pHdrColorData->version ),
   //            __SK_SUBSYSTEM__ );
-  SK_LOG0 ( ( L"<%s> HDR Mode:    %s", pHdrColorData->cmd == NV_HDR_CMD_GET ?
-                                                        L"Get" : L"Set",
+  SK_LOG0 ( ( L"<%s> HDR Mode:    %s", pHdrColorData->cmd == NV_HDR_CMD_GET    ?
+                                                        L"Get"                 :
+                                       pHdrColorData->cmd == NV_HDR_CMD_SET    ?
+                                                        L"Set"                 :
+                                       pHdrColorData->cmd == NV_COLOR_CMD_IS_SUPPORTED_COLOR ?
+                                                        L"Check Color Support"               :
+                                       pHdrColorData->cmd == NV_COLOR_CMD_GET_DEFAULT        ?
+                                                        L"Get Default"                       :
+                                                        L"Unknown",
                                        HDRModeToStr (pHdrColorData->hdrMode) ),
               __SK_SUBSYSTEM__ );
 
@@ -493,17 +571,47 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   auto _LogGameRequestedValues = [&](void) ->
   void
   {
+    static SKTL_BidirectionalHashMap <std::wstring, _NV_BPC>
+      bpc_map =
+        { { L"Default bpc", NV_BPC_DEFAULT },
+          { L"6 bpc",       NV_BPC_6       },
+          { L"8 bpc",       NV_BPC_8       },
+          { L"10 bpc",      NV_BPC_10      },
+          { L"12 bpc",      NV_BPC_12      },
+          { L"16 bpc",      NV_BPC_16      } };
+
+    static SKTL_BidirectionalHashMap <std::wstring, NV_COLOR_FORMAT>
+      color_fmt_map =
+        { { L"RGB 4:4:4",  NV_COLOR_FORMAT_RGB     },
+          { L"YUV 4:2:2",  NV_COLOR_FORMAT_YUV422  },
+          { L"YUV 4:4:4",  NV_COLOR_FORMAT_YUV444  },
+          { L"YUV 4:2:0",  NV_COLOR_FORMAT_YUV420  },
+          { L"(Default?)", NV_COLOR_FORMAT_DEFAULT },
+          { L"[AUTO]",     NV_COLOR_FORMAT_AUTO    } };
+
+    static SKTL_BidirectionalHashMap <std::wstring, _NV_DYNAMIC_RANGE>
+      dynamic_range_map =
+        { { L"No Metadata",             NV_DYNAMIC_RANGE_VESA  },
+          { L"CEA-861.3, SMPTE ST2086", NV_DYNAMIC_RANGE_CEA   },
+          { L"[AUTO]",                  NV_DYNAMIC_RANGE_AUTO  } };
+
     SK_LOG0 ( ( L"HDR:  Max Master Luma: %7.1f, Min Master Luma: %7.5f",
-      static_cast <float> (pHdrColorData->mastering_display_data.max_display_mastering_luminance),
-      static_cast <float> (
-        static_cast <float>
-                          (pHdrColorData->mastering_display_data.min_display_mastering_luminance) * 0.0001f
+      static_cast <double> (pHdrColorData->mastering_display_data.max_display_mastering_luminance),
+      static_cast <double> (
+        static_cast <double>
+                          (pHdrColorData->mastering_display_data.min_display_mastering_luminance) * 0.0001
                           )
               ), __SK_SUBSYSTEM__ );
 
     SK_LOG0 ( ( L"HDR:  Max Avg. Luma: %7.1f, Max Luma: %7.1f",
-      static_cast <float> (pHdrColorData->mastering_display_data.max_frame_average_light_level),
-      static_cast <float> (pHdrColorData->mastering_display_data.max_content_light_level)
+      static_cast <double> (pHdrColorData->mastering_display_data.max_frame_average_light_level),
+      static_cast <double> (pHdrColorData->mastering_display_data.max_content_light_level)
+              ), __SK_SUBSYSTEM__ );
+
+    SK_LOG0 ( ( L"HDR:  Color ( Bit-Depth: %s, Sampling: %s ), Dynamic Range: %s",
+                bpc_map           [pHdrColorData->hdrBpc].         c_str (),
+                color_fmt_map     [pHdrColorData->hdrColorFormat]. c_str (),
+                dynamic_range_map [pHdrColorData->hdrDynamicRange].c_str ()
               ), __SK_SUBSYSTEM__ );
   };
 
@@ -543,66 +651,125 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   {
     _LogGameRequestedValues ();
 
-    extern bool __SK_HDR_10BitSwap;
-    extern bool __SK_HDR_16BitSwap;
+    //bool passthrough = (pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH);
 
-    if (pHdrColorData->hdrMode == NV_HDR_MODE_OFF)
-    {     rb.driver_based_hdr   = false;         }
+    //struct DisplayChromacities
+    //{
+    //  float RedX;
+    //  float RedY;
+    //  float GreenX;
+    //  float GreenY;
+    //  float BlueX;
+    //  float BlueY;
+    //  float WhiteX;
+    //  float WhiteY;
+    //} rec2020 = { 0.70800f, 0.29200f,
+    //              0.17000f, 0.79700f,
+    //              0.13100f, 0.04600f,
+    //              0.31270f, 0.32900f };
+    //
+		//DXGI_HDR_METADATA_HDR10 HDR10MetaData = { };
+    //
+		//HDR10MetaData.RedPrimary   [0] = static_cast <uint16_t>(rec2020.RedX   * 50000.0f);
+		//HDR10MetaData.RedPrimary   [1] = static_cast <uint16_t>(rec2020.RedY   * 50000.0f);
+		//HDR10MetaData.GreenPrimary [0] = static_cast <uint16_t>(rec2020.GreenX * 50000.0f);
+		//HDR10MetaData.GreenPrimary [1] = static_cast <uint16_t>(rec2020.GreenY * 50000.0f);
+		//HDR10MetaData.BluePrimary  [0] = static_cast <uint16_t>(rec2020.BlueX  * 50000.0f);
+		//HDR10MetaData.BluePrimary  [1] = static_cast <uint16_t>(rec2020.BlueY  * 50000.0f);
+		//HDR10MetaData.WhitePoint   [0] = static_cast <uint16_t>(rec2020.WhiteX * 50000.0f);
+		//HDR10MetaData.WhitePoint   [1] = static_cast <uint16_t>(rec2020.WhiteY * 50000.0f);
+		//HDR10MetaData.MaxMasteringLuminance     = static_cast <uint32_t>(100000.0f * 10000.0f);
+		//HDR10MetaData.MinMasteringLuminance     = static_cast <uint32_t>(0.001f    * 10000.0f);
+		//HDR10MetaData.MaxContentLightLevel      = static_cast <uint16_t>(2000);
+		//HDR10MetaData.MaxFrameAverageLightLevel = static_cast <uint16_t>(500);
+    //
+    //if (rb.swapchain.p != nullptr && passthrough)
+    //{
+    //  reinterpret_cast <IDXGISwapChain4*> (rb.swapchain.p)->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+    //  reinterpret_cast <IDXGISwapChain4*> (rb.swapchain.p)->SetHDRMetaData (DXGI_HDR_METADATA_TYPE_HDR10, sizeof (HDR10MetaData), &HDR10MetaData);
+    //}
+    //
+    //else
+    //  passthrough = false;
 
-    if ( __SK_HDR_10BitSwap == false &&
-         __SK_HDR_16BitSwap == false )
-    {
-      if (pHdrColorData->hdrMode == NV_HDR_MODE_OFF)
-      {
-        rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
-      }
-    }
 
-    else
-    {
-      pHdrColorData->mastering_display_data.max_display_mastering_luminance =
-        rb.display_gamut.maxY > 65535.0f ? 0xFFFF :
-        rb.display_gamut.maxY <     1.0f ? 0x0001 :
-                  static_cast <uint16_t> (rb.display_gamut.maxY);
-      pHdrColorData->mastering_display_data.min_display_mastering_luminance =
-        (rb.display_gamut.minY <     1.0f) ? 0x0001 :
-        (rb.display_gamut.minY > 6.55350f) ? 0xFFFF :
-                    static_cast <uint16_t> (rb.display_gamut.minY / 0.0001f);
-
-      pHdrColorData->mastering_display_data.max_frame_average_light_level =
-        rb.display_gamut.maxLocalY > 65535.0f ? 0xFFFF :
-        rb.display_gamut.maxLocalY <     1.0f ? 0x0001 :
-                       static_cast <uint16_t> (rb.display_gamut.maxLocalY);
-      pHdrColorData->mastering_display_data.max_content_light_level =
-        rb.display_gamut.maxY > 65535.0f ? 0xFFFF :
-        rb.display_gamut.maxY <     1.0f ? 0x0001 :
-                  static_cast <uint16_t> (rb.display_gamut.maxY);
+    //pHdrColorData->mastering_display_data.max_display_mastering_luminance =
+    //  rb.display_gamut.maxY > 65535.0f ? 0xFFFF :
+    //  rb.display_gamut.maxY <     1.0f ? 0x0001 :
+    //            static_cast <uint16_t> (rb.display_gamut.maxY);
+    //pHdrColorData->mastering_display_data.min_display_mastering_luminance =
+    //  (rb.display_gamut.minY <     1.0f) ? 0x0001 :
+    //  (rb.display_gamut.minY > 6.55350f) ? 0xFFFF :
+    //              static_cast <uint16_t> (rb.display_gamut.minY / 0.0001f);
+    //
+    //pHdrColorData->mastering_display_data.max_frame_average_light_level =
+    //  rb.display_gamut.maxLocalY > 65535.0f ? 0xFFFF :
+    //  rb.display_gamut.maxLocalY <     1.0f ? 0x0001 :
+    //                 static_cast <uint16_t> (rb.display_gamut.maxLocalY);
+    //pHdrColorData->mastering_display_data.max_content_light_level =
+    //  rb.display_gamut.maxY > 65535.0f ? 0xFFFF :
+    //  rb.display_gamut.maxY <     1.0f ? 0x0001 :
+    //            static_cast <uint16_t> (rb.display_gamut.maxY);
 
     //pHdrColorData->hdrMode = NV_HDR_MODE_EDR;
-      pHdrColorData->static_metadata_descriptor_id =
-                               NV_STATIC_METADATA_TYPE_1;
-      pHdrColorData->version = NV_HDR_COLOR_DATA_VER;
+    //pHdrColorData->static_metadata_descriptor_id =
+    //                         NV_STATIC_METADATA_TYPE_1;
+    //pHdrColorData->version = NV_HDR_COLOR_DATA_VER;
 
-      NvAPI_Status ret =
-        NvAPI_Disp_HdrColorControl_Original ( displayId, pHdrColorData );
+    NvAPI_Status ret =
+      NvAPI_Disp_HdrColorControl_Original ( displayId, pHdrColorData );
 
-      if (NVAPI_OK == ret)
+    if (NVAPI_OK == ret)
+    {
+      if (pHdrColorData->hdrMode != NV_HDR_MODE_OFF)
       {
-        if (pHdrColorData->hdrMode != NV_HDR_MODE_OFF)
-        {
-          rb.driver_based_hdr   = true;
-          rb.framebuffer_flags |=  SK_FRAMEBUFFER_FLAG_HDR;
-        }
+        rb.setHDRCapable       (true);
+        rb.driver_based_hdr   = true;
+        rb.framebuffer_flags |=  SK_FRAMEBUFFER_FLAG_HDR;
 
-        _Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
+        SK_NvAPI_LastHdrColorControl =
+          std::make_pair (ret, std::make_pair (displayId, *pHdrColorData));
+
+        rb.scanout.nvapi_hdr.mode = pHdrColorData->hdrMode;
+
+        //if (rb.swapchain.p != nullptr)
+        //{
+        //  reinterpret_cast <IDXGISwapChain*> (rb.swapchain.p)->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+        //}
+
+        NV_HDR_COLOR_DATA query_data         = { };
+                          query_data.version = NV_HDR_COLOR_DATA_VER;
+                          query_data.cmd     = NV_HDR_CMD_GET;
+
+        NvAPI_Disp_HdrColorControl_Original (displayId, &query_data);
+
+        rb.scanout.nvapi_hdr.color_format   = query_data.hdrColorFormat;
+        rb.scanout.nvapi_hdr.dynamic_range  = query_data.hdrDynamicRange;
+        rb.scanout.nvapi_hdr.bpc            = query_data.hdrBpc;
+
+        rb.scanout.nvapi_hdr.active         =
+       (rb.scanout.nvapi_hdr.mode != NV_HDR_MODE_OFF);
       }
 
-      return ret;
-    }
-  }
+      else
+      {
+        rb.driver_based_hdr         = false;
+        rb.scanout.nvapi_hdr.active = false;
 
-  if (pHdrColorData->cmd == NV_HDR_CMD_GET)
-  {
+        extern bool __SK_HDR_10BitSwap;
+        extern bool __SK_HDR_16BitSwap;
+
+        if ( __SK_HDR_10BitSwap == false &&
+             __SK_HDR_16BitSwap == false )
+        {
+          rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+        }
+      }
+
+      _Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
+    }
+
+    return ret;
   }
 
   ////pHDRCtl->meta._AdjustmentCount++;
@@ -616,8 +783,25 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
     if (ret == NVAPI_OK)
     {
+      rb.scanout.nvapi_hdr.mode           = pHdrColorData->hdrMode;
+      rb.scanout.nvapi_hdr.color_format   = pHdrColorData->hdrColorFormat;
+      rb.scanout.nvapi_hdr.dynamic_range  = pHdrColorData->hdrDynamicRange;
+      rb.scanout.nvapi_hdr.bpc            = pHdrColorData->hdrBpc;
+      rb.scanout.nvapi_hdr.active         =(pHdrColorData->hdrMode != NV_HDR_MODE_OFF);
+
       _Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
     }
+  }
+
+  if (inputData->version == NV_HDR_COLOR_DATA_VER1)
+  {
+    inputData->hdrMode                       = pHdrColorData->hdrMode;
+
+    memcpy (     &inputData->mastering_display_data,
+             &pHdrColorData->mastering_display_data,
+          sizeof (inputData->mastering_display_data) );
+
+    inputData->static_metadata_descriptor_id = pHdrColorData->static_metadata_descriptor_id;
   }
 
   return ret;

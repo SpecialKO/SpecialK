@@ -19,11 +19,8 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <SpecialK/tls.h>
-#include <SpecialK/log.h>
-#include <SpecialK/config.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/utility.h>
 
 //
 // Technically this has all been changed to Fiber Local Storage, but it is
@@ -33,8 +30,6 @@
 //  FLS is supposed to be a more portable solution, and should be the
 //    preferred storage for injecting code into threads SK didn't create.
 //
-
-#include <concurrent_unordered_map.h>
 
 volatile DWORD __SK_TLS_INDEX =
   TLS_OUT_OF_INDEXES;

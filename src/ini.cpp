@@ -19,23 +19,9 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
+#include <SpecialK/stdafx.h>
 
-#include <windows.h>
-#include <string>
 #include <sys/stat.h>
-
-#include <cassert>
-#include <atlbase.h>
-
-#include <SpecialK/ini.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/log.h>
-#include <SpecialK/hash.h>
-#include <SpecialK/crc32.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
 
 std::wstring
 ErrorMessage (errno_t        err,

@@ -21,11 +21,7 @@
 
 #pragma once
 
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/resource.h>
-#include <SpecialK/tls.h>
-#include <SpecialK/render/backend.h>
+#include <SpecialK/stdafx.h>
 
 #include <imgui/imgui.h>
 
@@ -106,7 +102,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   if (last_width != io.DisplaySize.x || last_height != io.DisplaySize.y)
   {
-    ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+    SK_ImGui_SetNextWindowPosCenter (ImGuiCond_Always);
     last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
   }
 
@@ -129,11 +125,11 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   const  float font_size = ImGui::GetFont  ()->FontSize * io.FontGlobalScale;
 
-  if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders /*| ImGuiWindowFlags_NavFlattened*/))
+  if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize /*| ImGuiWindowFlags_NavFlattened*/))
   {
-    ImGui::SetNextWindowPosCenter (ImGuiSetCond_Appearing);
-    ImGui::SetNextWindowFocus     ();
-    ImGui::FocusWindow            (ImGui::GetCurrentWindow ());
+    SK_ImGui_SetNextWindowPosCenter (ImGuiCond_Appearing);
+    ImGui::SetNextWindowFocus       ();
+    ImGui::FocusWindow              (ImGui::GetCurrentWindow ());
 
     //if (io.DisplaySize.x < 1024.0f || io.DisplaySize.y < 720.0f)
     //{
@@ -148,30 +144,43 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     //  goto END_POPUP;
     //}
 
-    bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
+    bool pirate = ( SK_SteamAPI_AppID    () != 0 &&
                     SK_Steam_PiratesAhoy () != 0x0 );
 
 
     ImGui::BeginGroup ();
 
-    ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.9f, 0.9f, 0.1f, 1.0f));
-    ImGui::Bullet   ();
-    ImGui::SameLine ();
+    ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.7f, 0.7f, 0.7f, 1.0f));
+    //
+    // 4/8/19: Corrected misleading language that may have implied DRM to some.
+    //
+    //    It has always and will always be permissible to compile the project from
+    //      source and do anything you want with it; the EULA is intended only to
+    //        indicate uses that will receive support from the developers.
+    //
     ImGui::TextWrapped (
-         "Use of this software is granted on the condition that any products being modified have been licensed to you under the "
-         "terms and conditions set forth by their respective copyright holders.\n"
+         "Pre-compiled distributions of Special K only support products in their"
+         " original form.\n"
     );
-    ImGui::PopStyleColor ();
+
+    ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.9f, 0.9f, 0.15f, 1.0f));
+    ImGui::Bullet         ();
+    ImGui::SameLine       ();
+    ImGui::TextWrapped    (
+      "Modifying copyright circumvented software is unsupported and probably"
+      " unstable."
+    );
+    ImGui::PopStyleColor  (2);
 
     ImGui::Separator ();
     ImGui::EndGroup  ();
 
 
-    ImGui::BeginChild ("EULA_Body",   ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 15.0f),     false);
+    ImGui::BeginChild ("EULA_Body",   ImVec2 (0.0f, ImGui::GetFrameHeightWithSpacing () * 15.0f),   false);
     ImGui::BeginGroup ();
-    ImGui::BeginChild ("EULA_Body2",  ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 13.666f), false,ImGuiWindowFlags_NavFlattened);
+    ImGui::BeginChild ("EULA_Body2",  ImVec2 (0.0f, ImGui::GetFrameHeightWithSpacing () * 13.666f), false, ImGuiWindowFlags_NavFlattened);
 
-    if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unlicensed" : 
+    if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unsupported" :
                                           "Overview of Products Licensed"))
     {
       ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
@@ -266,7 +275,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_STB).c_str ());
     }
 
-    
+
     if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Vulkan &&
            ImGui::CollapsingHeader ("Vulkan")
        )
@@ -280,7 +289,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     }
 
     ImGui::EndChild (); // EULA_Inset
-    ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 1.1616f), false, ImGuiWindowFlags_NavFlattened);
+    ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, ImGui::GetFrameHeightWithSpacing () * 1.1616f), false, ImGuiWindowFlags_NavFlattened);
     ImGui::Separator  ();
 
     ImGui::Columns  (2, "", false);
@@ -322,6 +331,12 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
       if (SK_IsInjected ())
         config_name = L"SpecialK";
+
+      if (((show_eula_s*)reserved)->never_show_again)
+      {
+        app_cache_mgr->setLicenseRevision (SK_LICENSE_REVISION);
+        app_cache_mgr->saveAppCache       ();
+      }
 
       SK_SaveConfig (config_name);
     }

@@ -28,6 +28,7 @@ struct IUnknown;
 #include <string>
 #include <set>
 #include <unordered_set>
+#include <concurrent_unordered_map.h>
 
 #include <SpecialK/render/backend.h>
 
@@ -338,8 +339,8 @@ struct sk_config_t
     struct {
       float   target_fps        =  0.0f;
       float   limiter_tolerance =  2.0f;
-      float   sleep_deadline    = 3.3f;
-      float   max_sleep_percent = 59.998800f;
+      float   sleep_deadline    =  3.3f;
+      float   max_sleep_percent =  59.998800f;
       int     max_render_ahead  =  0;
       int     override_num_cpus = -1;
       int     pre_render_limit  = -1;
@@ -347,9 +348,17 @@ struct sk_config_t
       int     buffer_count      = -1;
       int     max_delta_time    =  0; // Bad old setting; needs to be phased
       int     swapchain_wait    =  0;
-      int     refresh_rate      = -1;
+      float   refresh_rate      = -1.0f;
+ std::wstring rescan_ratio     =L"-1/1";
+      struct {
+        UINT Denom              =  1;
+        UINT Numerator          =
+                            UINT (-1);
+      } rescan_;
+      int     refresh_denom     =  1;
       int     pin_render_thread = -1;
       bool    flip_discard      = false;
+      bool    disable_flip      = false;
       bool    wait_for_vblank   = false;
       bool    sleepless_render  = false;
       bool    sleepless_window  = false;
@@ -478,6 +487,7 @@ struct sk_config_t
     } sli;
     struct {
     //bool    fix_10bit_gsync   = false;
+      bool    kill_hdr          = false;
     } bugs;
   } nvidia;
 
@@ -645,6 +655,7 @@ struct sk_config_t
     struct {
       bool   enable            = true;
       bool   gsync_status      = true;
+      bool   disable_hdr       = false;
     } NvAPI;
 
     struct {
@@ -734,8 +745,9 @@ public:
     return pPtr;
   }
 };
-extern sk_config_t* __config__;
-#define config (*(sk_config_t *)__config__)
+
+extern SK_LazyGlobal <sk_config_t> _config;
+#define config (*_config)
 
 struct SK_KeyCommand
 {
@@ -780,7 +792,11 @@ struct SK_Steam_DepotManifest {
 typedef std::vector <SK_Steam_DepotManifest> SK_DepotList;
 
 struct SK_AppCache_Manager
-{
+{ enum Ownership
+  { Unknown    = -1,
+    DoesNotOwn =  0,
+    OwnsGame   =  1 };
+
   bool          saveAppCache       (bool           close = false);
   bool          loadAppCacheForExe (const wchar_t* wszExe);
 
@@ -804,13 +820,27 @@ struct SK_AppCache_Manager
   int           storeDepotCache          (DepotId_t steam_depot = 0);
 
 
+  time_t        setFriendOwnership (uint64_t friend_, Ownership owns             );
+  Ownership     getFriendOwnership (uint64_t friend_, time_t*   updated = nullptr);
+
+  time_t        setFriendAchievPct (uint64_t friend_, float   percent          );
+  float         getFriendAchievPct (uint64_t friend_, time_t* updated = nullptr);
+
+  bool          wantFriendStats    (void); // Per-application override
+
+#define SK_LICENSE_REVISION 20190408
+
+  // For open source software license screen, only display when
+  //   licensed software is updated.
+  int           getLicenseRevision (void);
+  void          setLicenseRevision (int);
+
+
 protected:
   iSK_INI* app_cache_db = nullptr;
 };
 
 extern SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
-
-#include <concurrent_unordered_map.h>
 
 extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t,           SK_DepotList> > SK_Steam_DepotManifestRegistry;
 extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
@@ -883,6 +913,7 @@ enum class SK_GAME_ID
   JustCause3,                   // JustCause3.exe
   CallOfCthulhu,                // CallOfCthulhu.exe
   TrailsOfColdSteel,            // ed8.exe
+  Sekiro,                       // sekiro.exe
   UNKNOWN_GAME               = 0xffff
 };
 

@@ -18,12 +18,9 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+
+#include <SpecialK/stdafx.h>
 #include <SpecialK/widgets/widget.h>
-#include <SpecialK/utility.h>
-
-#include <SpecialK/performance/gpu_monitor.h>
-
-#include <SpecialK/control_panel.h>
 
 extern iSK_INI* osd_ini;
 
@@ -67,7 +64,7 @@ class SKWG_GPU_Monitor : public SK_Widget
 public:
   SKWG_GPU_Monitor (void) noexcept : SK_Widget ("GPUMonitor")
   {
-    SK_ImGui_Widgets.gpu_monitor = this;
+    SK_ImGui_Widgets->gpu_monitor = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
@@ -82,7 +79,7 @@ public:
     if (cfg == nullptr)
       return;
 
-    for ( auto it : prefs)
+    for ( auto& it : prefs)
     {
       if (it->params.enable != nullptr)
       {
@@ -105,7 +102,7 @@ public:
     {
       first_run = false;
 
-      for ( auto it : prefs)
+      for ( auto& it : prefs)
       {
         it->params.enable =
           dynamic_cast <sk::ParameterBool *> (
@@ -137,7 +134,7 @@ public:
 
       std::vector <std::tuple <sk::iParameter *, void *, std::type_index>> params;
 
-      for (auto it : prefs)
+      for (auto& it : prefs)
       {
         params.push_back ( { it->params.enable,
                             &it->enable,
@@ -164,7 +161,7 @@ public:
         );
       }
 
-      for (auto it : params)
+      for (auto& it : params)
       {
         const std::type_index tidx ( std::get <2> (it) );
 

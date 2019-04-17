@@ -252,7 +252,74 @@ public:
 
 class ParameterFactory {
 public:
-  template <typename _T> iParameter* create_parameter  (const wchar_t* name);
+  template <typename T>
+              iParameter* create_parameter (const wchar_t* name)
+  {
+    UNREFERENCED_PARAMETER (name);
+
+    std::lock_guard <std::mutex> _scope_lock (lock);
+
+    std::type_index typ_idx =
+      std::type_index (typeid (T));
+
+    if ( typ_idx ==
+           std::type_index (typeid (int)) )
+    {
+      params.emplace_back (
+        std::make_unique <ParameterInt> ()
+      );
+    }
+
+    else if ( typ_idx ==
+                std::type_index (typeid (int64_t)) )
+    {
+      params.emplace_back (
+        std::make_unique <ParameterInt64> ()
+      );
+    }
+
+    else if ( typ_idx ==
+                std::type_index (typeid (bool)) )
+    {
+      params.emplace_back (
+        std::make_unique <ParameterBool> ()
+      );
+    }
+
+    else if ( typ_idx ==
+                std::type_index (typeid (float)) )
+    {
+      params.emplace_back (
+        std::make_unique <ParameterFloat> ()
+      );
+    }
+
+    else if ( typ_idx ==
+                std::type_index (typeid (std::wstring)) )
+    {
+      params.emplace_back (
+        std::make_unique <ParameterStringW> ()
+      );
+    }
+
+    else if ( typ_idx ==
+                std::type_index (typeid (ImVec2)) )
+    {
+      params.emplace_back (
+        std::make_unique <ParameterVec2f> ()
+      );
+    }
+
+    return params.back ().get ();
+  }
+  //----------------------------------------------------------------------------
+  //template <> iParameter* create_parameter <int>          (const wchar_t* name);
+  //template <> iParameter* create_parameter <int64_t>      (const wchar_t* name);
+  //template <> iParameter* create_parameter <bool>         (const wchar_t* name);
+  //template <> iParameter* create_parameter <float>        (const wchar_t* name);
+  //template <> iParameter* create_parameter <std::wstring> (const wchar_t* name);
+  //template <> iParameter* create_parameter <ImVec2>       (const wchar_t* name);
+
 protected:
 private:
   std::mutex                                 lock;

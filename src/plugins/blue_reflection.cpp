@@ -20,29 +20,11 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include <SpecialK/stdafx.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/command.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/input/input.h>
-#include <SpecialK/input/xinput.h>
-
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-#include <process.h>
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
-
-#include <atlbase.h>
 
 #define IT_VERSION_NUM L"0.0.5"
 #define IT_VERSION_STR L"Indigo Translation v " IT_VERSION_NUM
@@ -269,7 +251,7 @@ SK_IT_Unmap (
 
     else if (mapped_shadows [dev_idx].count (pResource))
     {
-      if (SK_D3D11_Shaders.pixel.current.shader [dev_idx] == 0x2117b8e3)
+      if (SK_D3D11_Shaders->pixel.current.shader [dev_idx] == 0x2117b8e3)
       {
         auto* pShadow =
           static_cast <float *> (mapped_shadows [dev_idx][pResource].pData);

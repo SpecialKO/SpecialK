@@ -19,39 +19,9 @@
 *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
+#include <SpecialK/stdafx.h>
 
-#include <Windows.h>
-#include <process.h>
-#include <Shlwapi.h>
-
-#include <SpecialK/resource.h>
-
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-
-#include <SpecialK/config.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/log.h>
-#include <SpecialK/crc32.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-
-#include <SpecialK/osd/popup.h>
-#include <SpecialK/osd/text.h>
-#include <SpecialK/render/backend.h>
-
-#include <imgui/imgui.h>
-
-#include <SpecialK/tls.h>
-
-#include <array>
-#include <memory>
-#include <atlbase.h>
+#define __SK_SUBSYSTEM__ L" SteamAPI "
 
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
@@ -59,21 +29,14 @@ struct IUnknown;
 #include <SpecialK/steam_api.h>
 #include <../depends/include/steamapi/steamclientpublic.h>
 
-
-#include <concurrent_unordered_map.h>
-
 SK_LazyGlobal <SK_SteamAPIContext>                                   pSteamCtx;
 SK_LazyGlobal <Concurrency::concurrent_unordered_map <LPVOID, bool>> UserStatsReceived_callbacks;
 SK_LazyGlobal <std::multiset <class CCallbackBase*>>                 overlay_activation_callbacks;
+                                                                bool user_stats_run_once = false;
 
 volatile LONGLONG SK_SteamAPI_CallbackRunCount    =  0LL;
 volatile LONG     SK_SteamAPI_ManagersInitialized =  0L;
 volatile LONG     SK_SteamAPI_CallbackRateLimit   = -1L;
-
-// PlaySound
-#pragma comment (lib, "winmm.lib")
-
-#pragma warning (disable: 4706)
 
 volatile LONG             __SK_Steam_init = FALSE;
 volatile LONG             __SteamAPI_hook = FALSE;
@@ -82,11 +45,7 @@ extern SK_Thread_HybridSpinlock* steam_callback_cs;
 extern SK_Thread_HybridSpinlock* steam_popup_cs;
 extern SK_Thread_HybridSpinlock* steam_init_cs;
 
-#include <ctime>
-
 // To spoof Overlay Activation (pause the game)
-#include <set>
-#include <unordered_map>
 
 int  SK_HookSteamAPI                   (void);
 void SK_Steam_UpdateGlobalAchievements (void);
@@ -126,6 +85,12 @@ using SteamUtils_pfn = ISteamUtils* (S_CALLTYPE *)(
 extern                         SteamUtils_pfn
 SteamUtils_Original;
 extern ISteamUtils* S_CALLTYPE SteamUtils_Detour (void);
+
+
+typedef ISteamUserStats* (S_CALLTYPE* SteamUserStats_pfn)(void);
+                                      SteamUserStats_pfn
+                                      SteamUserStats_Original = nullptr;
+extern  ISteamUserStats*  S_CALLTYPE  SteamUserStats_Detour (void);
 
 
 using SteamInternal_CreateInterface_pfn       = void*       (S_CALLTYPE *)(
@@ -230,7 +195,7 @@ extern "C" SteamAPI_GetSteamInstallPath_pfn   SteamAPI_GetSteamInstallPath      
 LPVOID pfnSteamInternal_CreateInterface = nullptr;
 
 
-volatile LONG __SK_Steam_Downloading;
+volatile LONG __SK_Steam_Downloading = 0;
 
 
 auto constexpr _ConstructPath =
@@ -673,6 +638,14 @@ SK_Steam_PreHookCore (void)
       static_cast_p2p <void> (&SteamUGC_Original) );
   }
 
+  if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamUserStats"))
+  {
+    SK_CreateDLLHook2 (     wszSteamLib,
+                              "SteamUserStats",
+                               SteamUserStats_Detour,
+      static_cast_p2p <void> (&SteamUserStats_Original) );
+  }
+
   if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamUtils"))
   {
     SK_CreateDLLHook2 (     wszSteamLib,
@@ -1073,8 +1046,8 @@ public:
         io.WantTextInput       = false;//capture_text;
       }
 
-      if (active_) SK::Framerate::GetLimiter ()->suspend ();
-      else         SK::Framerate::GetLimiter ()->resume  ();
+      ///if (active_) SK::Framerate::GetLimiter ()->suspend ();
+      ///else         SK::Framerate::GetLimiter ()->resume  ();
     }
   }
 
@@ -1185,7 +1158,7 @@ SK_Steam_ClassifyCallback (int iCallback)
   }
 }
 
-S_API
+extern "C"
 void
 S_CALLTYPE
 SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
@@ -1327,7 +1300,7 @@ SK_SteamAPI_EraseActivationCallback (class CCallbackBase *pCallback)
   _set_se_translator (orig_se);
 }
 
-S_API
+extern "C"
 void
 S_CALLTYPE
 SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
@@ -1944,17 +1917,17 @@ public:
     percent_unlocked = 0.0f;
     lifetime_popups  = 0;
 
-    ISteamUserStats* user_stats = nullptr;
-    ISteamFriends*   friends    = nullptr;
+    ISteamUserStats* user_stats = steam_ctx.UserStats ();
+    ISteamFriends*   friends    = steam_ctx.Friends   ();
 
-    if (! (user_stats = steam_ctx.UserStats ()))
+    if (! user_stats)
     {
       steam_log->Log ( L" *** Cannot get ISteamUserStats interface, bailing-out of"
                       L" Achievement Manager Init. ***" );
       return;
     }
 
-    if (! (friends = steam_ctx.Friends ()))
+    if (! friends)
     {
       steam_log->Log ( L" *** Cannot get ISteamFriends interface, bailing-out of"
                       L" Achievement Manager Init. ***" );
@@ -2061,12 +2034,24 @@ public:
     if (app_id != SK::SteamAPI::AppID ())
     {
       steam_log->Log ( L" Got User Achievement Stats for Wrong Game (%lu)",
-                      app_id );
+                       app_id );
       return;
     }
 
     if (pParam->m_eResult == k_EResultOK)
     {
+      if (! user_stats_run_once)
+      {
+        for (auto& it : *UserStatsReceived_callbacks)
+        {
+          if (it.second)
+          {
+            ((class CCallbackBase*)it.first)->Run (pParam);
+            user_stats_run_once = true;
+          }
+        }
+      }
+
       ISteamUser*      user    = steam_ctx.User      ();
       ISteamUserStats* stats   = steam_ctx.UserStats ();
       ISteamFriends*   friends = steam_ctx.Friends   ();
@@ -2075,14 +2060,8 @@ public:
         return;
 
       if ( pParam->m_steamIDUser.GetAccountID () ==
-          user->GetSteamID ().GetAccountID   () )
+             user->GetSteamID ().GetAccountID () )
       {
-        for ( auto& it : *UserStatsReceived_callbacks )
-        {
-          if (it.second)
-            ((class CCallbackBase *)it.first)->Run (pParam);
-        }
-
         pullStats ();
 
         if (config.steam.achievements.pull_global_stats && (! has_global_data))
@@ -2145,7 +2124,6 @@ public:
     if (ReadAcquire (&__SK_DLL_Ending) || ReadAcquire (&__SK_Steam_Downloading))
       return;
 
-
     uint32 app_id =
       CGameID (pParam->m_nGameID).AppID ();
 
@@ -2167,6 +2145,18 @@ public:
     //   do this anyway and continue enumerating remaining friends.
     if (pParam->m_eResult == k_EResultOK)
     {
+      if (! user_stats_run_once)
+      {
+        for (auto& it : *UserStatsReceived_callbacks)
+        {
+          if (it.second)
+          {
+            ((class CCallbackBase*)it.first)->Run (pParam);
+            user_stats_run_once = true;
+          }
+        }
+      }
+
       // If the stats are not for the player, they are probably for one of
       //   the player's friends.
       if ( k_EFriendRelationshipFriend ==
@@ -2934,7 +2924,7 @@ public:
   }
 
   void
-    loadSound (const wchar_t* wszUnlockSound)
+  loadSound (const wchar_t* wszUnlockSound)
   {
     bool xbox = false,
          psn  = false,
@@ -2945,7 +2935,7 @@ public:
     if (*wszUnlockSound == L'\0')
     {
       std::wstring achievement_ini_path (
-        SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\achievements.ini)"
+        SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\steam.ini)"
       );
 
       iSK_INI achievement_ini (achievement_ini_path.c_str ());
@@ -3185,7 +3175,7 @@ protected:
       while (achievement->icons_.achieved == nullptr && tries < 8)
       {
         achievement->icons_.achieved =
-          (uint8_t *)_aligned_malloc (4 * w * h, 16);
+          (uint8_t *)_aligned_malloc (static_cast <size_t> (4) * w * h, 16);
 
         if (steam_ctx.Utils ())
         {
@@ -3359,7 +3349,7 @@ SK_Steam_UnlockAchievement (uint32_t idx)
   ISteamUserStats* stats = steam_ctx.UserStats ();
 
   if ( stats                        && idx <
-      stats->GetNumAchievements () )
+       stats->GetNumAchievements () )
   {
     const char* szName =
       _strdup (stats->GetAchievementName (idx));
@@ -3506,9 +3496,9 @@ public:
 
 protected:
   STEAM_CALLRESULT ( SK_Steam_UserManager,
-                    OnRecvNumCurrentPlayers,
-                    NumberOfCurrentPlayers_t,
-                    current_players_call )
+                     OnRecvNumCurrentPlayers,
+                     NumberOfCurrentPlayers_t,
+                     current_players_call )
   {
     current_players_call.Cancel ();
 
@@ -4151,7 +4141,7 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
     INVALID_HANDLE_VALUE;
 
   if (total_files != -1 && (! erase))
-    return size;
+    return ReadAcquire64 (&size);
 
   if ( INVALID_HANDLE_VALUE ==
          InterlockedCompareExchangePointer ( &hThread, (LPVOID)1,
@@ -5790,14 +5780,14 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
 
       SK_Thread_CloseSelf ();
 
-      CloseHandle (hSigNewSteamFileDetails);
-      hSigNewSteamFileDetails = INVALID_HANDLE_VALUE;
+      CloseHandle (ReadPointerAcquire (&hSigNewSteamFileDetails));
+      InterlockedExchangePointer (&hSigNewSteamFileDetails, INVALID_HANDLE_VALUE);
 
       return 0;
     }, (void *)&waiting_hash_jobs);
   }
 
-  else SetEvent (hSigNewSteamFileDetails);
+  else SetEvent (ReadPointerAcquire (&hSigNewSteamFileDetails));
 
 
   get_file_details.Cancel ();
@@ -6916,3 +6906,304 @@ uint64_t    SK::SteamAPI::steam_size                                    = 0ULL;
 
 // Must be global for x86 ABI problems
 CSteamID    SK::SteamAPI::player (0ULL);
+
+
+
+
+
+
+
+
+
+
+
+class IWrapSteamUserStats : public ISteamUserStats
+{
+public:
+  IWrapSteamUserStats (ISteamUserStats* pToWrap) : pReal (pToWrap) { };
+
+  ISteamUserStats* pReal;
+
+  // Ask the server to send down this user's data and achievements for this game
+  bool RequestCurrentStats () override {
+    steam_log->Log (L"ISteamUserStats::RequestUserStats ()"); return pReal->RequestCurrentStats ();
+  }
+
+  // Data accessors
+  bool GetStat (const char* pchName, int32* pData) override { SK_LOG_FIRST_CALL steam_log->Log (L"GetStat (%hs)", pchName); return pReal->GetStat (pchName, pData); }
+  bool GetStat (const char* pchName, float* pData) override { SK_LOG_FIRST_CALL steam_log->Log (L"GetStat (%hs)", pchName); return pReal->GetStat (pchName, pData); }
+
+  // Set / update data
+  bool SetStat           (const char* pchName, int32 nData) override { return pReal->SetStat (pchName, nData); }
+  bool SetStat           (const char* pchName, float fData) override { return pReal->SetStat (pchName, fData); }
+  bool UpdateAvgRateStat (const char* pchName, float flCountThisSession, double dSessionLength) override {
+    return pReal->UpdateAvgRateStat (pchName, flCountThisSession, dSessionLength);
+  }
+
+  // Achievement flag accessors
+  bool GetAchievement   (const char* pchName, bool* pbAchieved) override { SK_LOG_FIRST_CALL
+    bool bRet = pReal->GetAchievement (pchName, pbAchieved);
+    steam_log->Log (L"ISteamUserStats::GetAchievement (%hs) => { %ws [%ws] }", pchName, *pbAchieved ? L"Achieved" : L"Not Achieved", bRet ? L"true" : L"false");
+    return bRet;
+  }
+  bool SetAchievement   (const char* pchName)                   override { SK_LOG_FIRST_CALL return pReal->SetAchievement   (pchName); }
+  bool ClearAchievement (const char* pchName)                   override { SK_LOG_FIRST_CALL return pReal->ClearAchievement (pchName); }
+
+  // Get the achievement status, and the time it was unlocked if unlocked.
+  // If the return value is true, but the unlock time is zero, that means it was unlocked before Steam
+  // began tracking achievement unlock times (December 2009). Time is seconds since January 1, 1970.
+  bool GetAchievementAndUnlockTime (const char* pchName, bool* pbAchieved, uint32* punUnlockTime) override {
+    SK_LOG_FIRST_CALL
+
+    return pReal->GetAchievementAndUnlockTime (pchName, pbAchieved, punUnlockTime);
+  };
+
+  // Store the current data on the server, will get a callback when set
+  // And one callback for every new achievement
+  //
+  // If the callback has a result of k_EResultInvalidParam, one or more stats
+  // uploaded has been rejected, either because they broke constraints
+  // or were out of date. In this case the server sends back updated values.
+  // The stats should be re-iterated to keep in sync.
+  bool StoreStats (void) override {
+    SK_LOG_FIRST_CALL
+
+    return pReal->StoreStats ();
+  }
+
+  // Achievement / GroupAchievement metadata
+
+  // Gets the icon of the achievement, which is a handle to be used in ISteamUtils::GetImageRGBA(), or 0 if none set.
+  // A return value of 0 may indicate we are still fetching data, and you can wait for the UserAchievementIconFetched_t callback
+  // which will notify you when the bits are ready. If the callback still returns zero, then there is no image set for the
+  // specified achievement.
+  int GetAchievementIcon (const char* pchName) override {
+    return pReal->GetAchievementIcon (pchName);
+  }
+
+  // Get general attributes for an achievement. Accepts the following keys:
+  // - "name" and "desc" for retrieving the localized achievement name and description (returned in UTF8)
+  // - "hidden" for retrieving if an achievement is hidden (returns "0" when not hidden, "1" when hidden)
+  const char* GetAchievementDisplayAttribute (const char* pchName, const char* pchKey) override {
+    return pReal->GetAchievementDisplayAttribute (pchName, pchKey);
+  }
+
+  // Achievement progress - triggers an AchievementProgress callback, that is all.
+  // Calling this w/ N out of N progress will NOT set the achievement, the game must still do that.
+  bool IndicateAchievementProgress (const char* pchName, uint32 nCurProgress, uint32 nMaxProgress) override {
+    SK_LOG_FIRST_CALL
+
+    return pReal->IndicateAchievementProgress (pchName, nCurProgress, nMaxProgress);
+  }
+
+  // Used for iterating achievements. In general games should not need these functions because they should have a
+  // list of existing achievements compiled into them
+  uint32 GetNumAchievements () override {
+    SK_LOG_FIRST_CALL
+
+    return pReal->GetNumAchievements ();
+  }
+  // Get achievement name iAchievement in [0,GetNumAchievements)
+  const char* GetAchievementName (uint32 iAchievement) override {
+    return pReal->GetAchievementName (iAchievement);
+  }
+
+  // Friends stats & achievements
+
+  // downloads stats for the user
+  // returns a UserStatsReceived_t received when completed
+  // if the other user has no stats, UserStatsReceived_t.m_eResult will be set to k_EResultFail
+  // these stats won't be auto-updated; you'll need to call RequestUserStats() again to refresh any data
+  SteamAPICall_t RequestUserStats (CSteamID steamIDUser) override {
+    SK_LOG_FIRST_CALL
+
+    return pReal->RequestUserStats (steamIDUser);
+  };
+
+  // requests stat information for a user, usable after a successful call to RequestUserStats()
+  bool GetUserStat        (CSteamID steamIDUser, const char* pchName, int32* pData)     override { SK_LOG_FIRST_CALL return pReal->GetUserStat        (steamIDUser, pchName, pData); }
+  bool GetUserStat        (CSteamID steamIDUser, const char* pchName, float* pData)     override { SK_LOG_FIRST_CALL return pReal->GetUserStat        (steamIDUser, pchName, pData); }
+  bool GetUserAchievement (CSteamID steamIDUser, const char* pchName, bool* pbAchieved) override { SK_LOG_FIRST_CALL return pReal->GetUserAchievement (steamIDUser, pchName, pbAchieved); }
+  // See notes for GetAchievementAndUnlockTime above
+  bool GetUserAchievementAndUnlockTime (CSteamID steamIDUser, const char* pchName, bool* pbAchieved, uint32* punUnlockTime) override {
+    SK_LOG_FIRST_CALL
+
+    return pReal->GetUserAchievementAndUnlockTime (steamIDUser, pchName, pbAchieved, punUnlockTime);
+  }
+
+  // Reset stats
+  bool ResetAllStats (bool bAchievementsToo) override {
+    return pReal->ResetAllStats (bAchievementsToo);
+  }
+
+  // Leaderboard functions
+
+  // asks the Steam back-end for a leaderboard by name, and will create it if it's not yet
+  // This call is asynchronous, with the result returned in LeaderboardFindResult_t
+  SteamAPICall_t FindOrCreateLeaderboard (const char* pchLeaderboardName, ELeaderboardSortMethod eLeaderboardSortMethod, ELeaderboardDisplayType eLeaderboardDisplayType) override {
+    return pReal->FindOrCreateLeaderboard (pchLeaderboardName, eLeaderboardSortMethod, eLeaderboardDisplayType);
+  }
+
+  // as above, but won't create the leaderboard if it's not found
+  // This call is asynchronous, with the result returned in LeaderboardFindResult_t
+  SteamAPICall_t FindLeaderboard (const char* pchLeaderboardName) override {
+    return pReal->FindLeaderboard (pchLeaderboardName);
+  }
+
+  // returns the name of a leaderboard
+  const char* GetLeaderboardName (SteamLeaderboard_t hSteamLeaderboard) override {
+    return pReal->GetLeaderboardName (hSteamLeaderboard);
+  }
+
+  // returns the total number of entries in a leaderboard, as of the last request
+  int GetLeaderboardEntryCount (SteamLeaderboard_t hSteamLeaderboard) override {
+    return pReal->GetLeaderboardEntryCount (hSteamLeaderboard);
+  }
+
+  // returns the sort method of the leaderboard
+  ELeaderboardSortMethod GetLeaderboardSortMethod (SteamLeaderboard_t hSteamLeaderboard) override {
+    return pReal->GetLeaderboardSortMethod (hSteamLeaderboard);
+  }
+
+  // returns the display type of the leaderboard
+  ELeaderboardDisplayType GetLeaderboardDisplayType (SteamLeaderboard_t hSteamLeaderboard) override {
+    return pReal->GetLeaderboardDisplayType (hSteamLeaderboard);
+  }
+
+  // Asks the Steam back-end for a set of rows in the leaderboard.
+  // This call is asynchronous, with the result returned in LeaderboardScoresDownloaded_t
+  // LeaderboardScoresDownloaded_t will contain a handle to pull the results from GetDownloadedLeaderboardEntries() (below)
+  // You can ask for more entries than exist, and it will return as many as do exist.
+  // k_ELeaderboardDataRequestGlobal requests rows in the leaderboard from the full table, with nRangeStart & nRangeEnd in the range [1, TotalEntries]
+  // k_ELeaderboardDataRequestGlobalAroundUser requests rows around the current user, nRangeStart being negate
+  //   e.g. DownloadLeaderboardEntries( hLeaderboard, k_ELeaderboardDataRequestGlobalAroundUser, -3, 3 ) will return 7 rows, 3 before the user, 3 after
+  // k_ELeaderboardDataRequestFriends requests all the rows for friends of the current user
+  SteamAPICall_t DownloadLeaderboardEntries (SteamLeaderboard_t hSteamLeaderboard, ELeaderboardDataRequest eLeaderboardDataRequest, int nRangeStart, int nRangeEnd) override {
+    return pReal->DownloadLeaderboardEntries (hSteamLeaderboard, eLeaderboardDataRequest, nRangeStart, nRangeEnd);
+  }
+  // as above, but downloads leaderboard entries for an arbitrary set of users - ELeaderboardDataRequest is k_ELeaderboardDataRequestUsers
+  // if a user doesn't have a leaderboard entry, they won't be included in the result
+  // a max of 100 users can be downloaded at a time, with only one outstanding call at a time
+  ///METHOD_DESC (Downloads leaderboard entries for an arbitrary set of users - ELeaderboardDataRequest is k_ELeaderboardDataRequestUsers)
+  SteamAPICall_t DownloadLeaderboardEntriesForUsers (SteamLeaderboard_t hSteamLeaderboard, CSteamID* prgUsers, int cUsers) override {
+    return pReal->DownloadLeaderboardEntriesForUsers (hSteamLeaderboard, prgUsers, cUsers);
+  };
+
+  // Returns data about a single leaderboard entry
+  // use a for loop from 0 to LeaderboardScoresDownloaded_t::m_cEntryCount to get all the downloaded entries
+  // e.g.
+  //		void OnLeaderboardScoresDownloaded( LeaderboardScoresDownloaded_t *pLeaderboardScoresDownloaded )
+  //		{
+  //			for ( int index = 0; index < pLeaderboardScoresDownloaded->m_cEntryCount; index++ )
+  //			{
+  //				LeaderboardEntry_t leaderboardEntry;
+  //				int32 details[3];		// we know this is how many we've stored previously
+  //				GetDownloadedLeaderboardEntry( pLeaderboardScoresDownloaded->m_hSteamLeaderboardEntries, index, &leaderboardEntry, details, 3 );
+  //				assert( leaderboardEntry.m_cDetails == 3 );
+  //				...
+  //			}
+  // once you've accessed all the entries, the data will be free'd, and the SteamLeaderboardEntries_t handle will become invalid
+  bool GetDownloadedLeaderboardEntry (SteamLeaderboardEntries_t hSteamLeaderboardEntries, int index, LeaderboardEntry_t* pLeaderboardEntry, int32* pDetails, int cDetailsMax) override {
+    return pReal->GetDownloadedLeaderboardEntry (hSteamLeaderboardEntries, index, pLeaderboardEntry, pDetails, cDetailsMax);
+  }
+
+  // Uploads a user score to the Steam back-end.
+  // This call is asynchronous, with the result returned in LeaderboardScoreUploaded_t
+  // Details are extra game-defined information regarding how the user got that score
+  // pScoreDetails points to an array of int32's, cScoreDetailsCount is the number of int32's in the list
+  SteamAPICall_t UploadLeaderboardScore (SteamLeaderboard_t hSteamLeaderboard, ELeaderboardUploadScoreMethod eLeaderboardUploadScoreMethod, int32 nScore, const int32* pScoreDetails, int cScoreDetailsCount) override
+  {
+    return pReal->UploadLeaderboardScore (hSteamLeaderboard, eLeaderboardUploadScoreMethod, nScore, pScoreDetails, cScoreDetailsCount);
+  }
+
+  // Attaches a piece of user generated content the user's entry on a leaderboard.
+  // hContent is a handle to a piece of user generated content that was shared using ISteamUserRemoteStorage::FileShare().
+  // This call is asynchronous, with the result returned in LeaderboardUGCSet_t.
+  SteamAPICall_t AttachLeaderboardUGC (SteamLeaderboard_t hSteamLeaderboard, UGCHandle_t hUGC) override {
+    return pReal->AttachLeaderboardUGC (hSteamLeaderboard, hUGC);
+  }
+
+  // Retrieves the number of players currently playing your game (online + offline)
+  // This call is asynchronous, with the result returned in NumberOfCurrentPlayers_t
+  SteamAPICall_t GetNumberOfCurrentPlayers () override {
+    return pReal->GetNumberOfCurrentPlayers ();
+  }
+
+  // Requests that Steam fetch data on the percentage of players who have received each achievement
+  // for the game globally.
+  // This call is asynchronous, with the result returned in GlobalAchievementPercentagesReady_t.
+  SteamAPICall_t RequestGlobalAchievementPercentages () override {
+    SK_LOG_FIRST_CALL
+
+    return pReal->RequestGlobalAchievementPercentages ();
+  }
+
+  // Get the info on the most achieved achievement for the game, returns an iterator index you can use to fetch
+  // the next most achieved afterwards.  Will return -1 if there is no data on achievement
+  // percentages (ie, you haven't called RequestGlobalAchievementPercentages and waited on the callback).
+  int GetMostAchievedAchievementInfo (char* pchName, uint32 unNameBufLen, float* pflPercent, bool* pbAchieved) override {
+    return pReal->GetMostAchievedAchievementInfo (pchName, unNameBufLen, pflPercent, pbAchieved);
+  }
+
+  // Get the info on the next most achieved achievement for the game. Call this after GetMostAchievedAchievementInfo or another
+  // GetNextMostAchievedAchievementInfo call passing the iterator from the previous call. Returns -1 after the last
+  // achievement has been iterated.
+  int GetNextMostAchievedAchievementInfo (int iIteratorPrevious, char* pchName, uint32 unNameBufLen, float* pflPercent, bool* pbAchieved) override {
+    return pReal->GetNextMostAchievedAchievementInfo (iIteratorPrevious, pchName, unNameBufLen, pflPercent, pbAchieved);
+  }
+
+  // Returns the percentage of users who have achieved the specified achievement.
+  bool GetAchievementAchievedPercent (const char* pchName, float* pflPercent) override {
+    return pReal->GetAchievementAchievedPercent (pchName, pflPercent);
+  }
+
+  // Requests global stats data, which is available for stats marked as "aggregated".
+  // This call is asynchronous, with the results returned in GlobalStatsReceived_t.
+  // nHistoryDays specifies how many days of day-by-day history to retrieve in addition
+  // to the overall totals. The limit is 60.
+  SteamAPICall_t RequestGlobalStats (int nHistoryDays) override { SK_LOG_FIRST_CALL return pReal->RequestGlobalStats (nHistoryDays); }
+
+  // Gets the lifetime totals for an aggregated stat
+  bool GetGlobalStat (const char* pchStatName, int64* pData)  override { return pReal->GetGlobalStat (pchStatName, pData); };
+  bool GetGlobalStat (const char* pchStatName, double* pData) override { return pReal->GetGlobalStat (pchStatName, pData); };
+
+  // Gets history for an aggregated stat. pData will be filled with daily values, starting with today.
+  // So when called, pData[0] will be today, pData[1] will be yesterday, and pData[2] will be two days ago,
+  // etc. cubData is the size in bytes of the pubData buffer. Returns the number of
+  // elements actually set.
+  int32 GetGlobalStatHistory (const char* pchStatName, int64* pData, uint32 cubData)  override { return pReal->GetGlobalStatHistory (pchStatName, pData, cubData); }
+  int32 GetGlobalStatHistory (const char* pchStatName, double* pData, uint32 cubData) override { return pReal->GetGlobalStatHistory (pchStatName, pData, cubData); }
+
+#ifdef _PS3
+  // Call to kick off installation of the PS3 trophies. This call is asynchronous, and the results will be returned in a PS3TrophiesInstalled_t
+  // callback.
+  virtual bool InstallPS3Trophies () = 0;
+
+  // Returns the amount of space required at boot to install trophies. This value can be used when comparing the amount of space needed
+  // by the game to the available space value passed to the game at boot. The value is set during InstallPS3Trophies().
+  virtual uint64 GetTrophySpaceRequiredBeforeInstall () = 0;
+
+  // On PS3, user stats & achievement progress through Steam must be stored with the user's saved game data.
+  // At startup, before calling RequestCurrentStats(), you must pass the user's stats data to Steam via this method.
+  // If you do not have any user data, call this function with pvData = NULL and cubData = 0
+  virtual bool SetUserStatsData (const void* pvData, uint32 cubData) = 0;
+
+  // Call to get the user's current stats data. You should retrieve this data after receiving successful UserStatsReceived_t & UserStatsStored_t
+  // callbacks, and store the data with the user's save game data. You can call this method with pvData = NULL and cubData = 0 to get the required
+  // buffer size.
+  virtual bool GetUserStatsData (void* pvData, uint32 cubData, uint32* pcubWritten) = 0;
+#endif
+};
+
+ISteamUserStats*
+S_CALLTYPE
+SteamUserStats_Detour (void)
+{
+  SK_LOG_FIRST_CALL
+
+  static IWrapSteamUserStats wrap =
+    IWrapSteamUserStats (SteamUserStats_Original ());
+
+  return
+    (ISteamUserStats *)&wrap;
+}

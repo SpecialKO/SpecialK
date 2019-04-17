@@ -19,30 +19,7 @@
  *
 **/
 
-#include <SpecialK/log.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/core.h>
-#include <SpecialK/crc32.h>
-
-#include <cstdlib>
-#include <cstdint>
-
-#include <Shlwapi.h>
-
-#include <lzma/7z.h>
-#include <lzma/7zAlloc.h>
-#include <lzma/7zBuf.h>
-#include <lzma/7zCrc.h>
-#include <lzma/7zFile.h>
-#include <lzma/7zVersion.h>
-
-#include <SpecialK/update/version.h>
-#include <SpecialK/update/archive.h>
-
-#include <SpecialK/thread.h>
-
-#include <process.h>
-#include <strsafe.h>
+#include <SpecialK/stdafx.h>
 
 bool config_files_changed = false;
 

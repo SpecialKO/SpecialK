@@ -19,18 +19,14 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #include <SpecialK/config.h>
 #include <imgui/imgui.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/d3d11.h>
 #include <SpecialK/control_panel/osd.h>
-
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/dxgi/dxgi_swapchain.h>
-
-#include <SpecialK/window.h>
-#include <SpecialK/command.h>
 
 #include <SpecialK/nvapi.h>
 
@@ -86,7 +82,7 @@ SK_ImGui_DrawTexCache_Chart (void)
 {
   if (config.textures.d3d11.cache)
   {
-    ImGui::PushStyleColor (ImGuiCol_Border, ImColor (245,245,245));
+    ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.961f,0.961f,0.961f,1.f));
     ImGui::Separator (   );
     ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::Columns   ( 3 );
@@ -103,7 +99,7 @@ SK_ImGui_DrawTexCache_Chart (void)
     ImGui::Separator      ( );
     ImGui::PopStyleColor  (1);
 
-    ImGui::PushStyleColor(ImGuiCol_Border, ImColor(0.5f, 0.5f, 0.5f, 0.666f));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.5f, 0.5f, 0.5f, 0.666f));
     ImGui::Columns   ( 3 );
       ImGui::Text    ( "%#7zu      MiB",
                                                      SK_D3D11_Textures->AggregateSize_2D >> 20ui64 );    ImGui::NextColumn ();
@@ -140,13 +136,16 @@ SK_ImGui_DrawTexCache_Chart (void)
 
     ImGui::PopStyleColor ( );
 
-    int size = config.textures.cache.max_size;
+    float size =
+      gsl::narrow_cast <float> (config.textures.cache.max_size);
 
     ImGui::TreePush  ( "" );
 
-    if (ImGui::SliderInt ( "Maximum Cache Size", &size, 256, 8192, "%.0f MiB"))
+    if (ImGui::SliderFloat ( "Maximum Cache Size", &size, 256.f, 8192.f, "%.0f MiB"))
     {
-      config.textures.cache.max_size = size;
+      config.textures.cache.max_size =
+        gsl::narrow_cast <int> (size);
+
       SK_GetCommandProcessor ()->ProcessCommandFormatted ("TexCache.MaxSize %d ", config.textures.cache.max_size);
     }
 
@@ -223,7 +222,7 @@ SK::ControlPanel::D3D11::Draw (void)
     ImGui::SameLine ();
     ImGui::TextUnformatted ("     Tracking:  ");
 
-    ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.173f, 0.428f, 0.96f));
+    ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.173f, 0.428f, 0.96f));
     ImGui::SameLine ();
 
     if (SK_D3D11_EnableTracking)
@@ -411,7 +410,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
       if (changed)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
         ImGui::BulletText     ("Game Restart Required");
         ImGui::PopStyleColor  ();
       }
@@ -682,8 +681,9 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       static SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      CComPtr <ID3D11DeviceContext>   pDevCtx;
-      rb.d3d11.immediate_ctx.CopyTo (&pDevCtx.p);
+      ID3D11DeviceContext *pDevCtx = rb.d3d11.immediate_ctx;
+      //CComPtr <ID3D11DeviceContext>   pDevCtx;
+      //rb.d3d11.immediate_ctx.CopyTo (&pDevCtx.p);
 
       // This limits us to D3D11 for now, but who cares -- D3D10 sucks and D3D12 can't be drawn to yet :)
       if (! pDevCtx)
@@ -696,13 +696,13 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
                                              &swap_flag_count);
 
       ImGui::BeginTooltip    ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.95f, 0.95f, 0.45f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
       ImGui::TextUnformatted ("Framebuffer and Presentation Setup");
       ImGui::PopStyleColor   ();
       ImGui::Separator       ();
 
       ImGui::BeginGroup      ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.685f, 0.685f, 0.685f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.0f));
       ImGui::TextUnformatted ("Color:");
     //ImGui::TextUnformatted ("Depth/Stencil:");
       ImGui::TextUnformatted ("Resolution:");
@@ -733,7 +733,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::SameLine        ();
 
       ImGui::BeginGroup      ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (1.0f, 1.0f, 1.0f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
       ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.BufferDesc.Format).c_str ());
     //ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (dsv_desc.Format).c_str             ());
       ImGui::Text            ("%ux%u",                                   swap_desc.BufferDesc.Width, swap_desc.BufferDesc.Height);
@@ -777,12 +777,23 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         }
 
         ImGui::Separator  ();
-        ImGui::Text   ("%ws", rb.display_name);
-        if (_fullscreen)
-          ImGui::Text ("%ws",                DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dxgi_colorspace));
+        ImGui::Text ("%ws", rb.display_name);
+
+        if (! rb.scanout.nvapi_hdr.active)
+        {
+          if (_fullscreen)
+            ImGui::Text ("%ws",                DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dxgi_colorspace));
+          else
+            ImGui::Text ("%ws (DWM Assigned)", DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dwm_colorspace));
+          ImGui::Text   ("%lu", rb.scanout.bpc);
+        }
+
         else
-          ImGui::Text ("%ws (DWM Assigned)", DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dwm_colorspace));
-        ImGui::Text   ("%lu", rb.scanout.bpc);
+        {
+          ImGui::Text ("%ws (%s)", HDRModeToStr (rb.scanout.nvapi_hdr.mode),
+                                                 rb.scanout.nvapi_hdr.getFormatStr ());
+          ImGui::Text ("%s",                     rb.scanout.nvapi_hdr.getBpcStr    ());
+        }
       }
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();

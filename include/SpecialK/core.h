@@ -155,4 +155,12 @@ void __stdcall SK_StartPerfMonThreads (void);
 extern volatile LONG __SK_DLL_Ending;
 extern volatile LONG __SK_DLL_Attached;
 
+HANDLE
+WINAPI
+SK_CreateEvent (
+  _In_opt_ LPSECURITY_ATTRIBUTES lpEventAttributes,
+  _In_     BOOL                  bManualReset,
+  _In_     BOOL                  bInitialState,
+  _In_opt_ LPCWSTR               lpName);
+
 #endif /* __SK__CORE_H__ */

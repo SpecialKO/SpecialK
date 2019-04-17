@@ -19,8 +19,9 @@
 *
 **/
 
-#define __SK_SUBSYSTEM__ L"D3D11TxMgr"
+#include <SpecialK/stdafx.h>
 
+#define __SK_SUBSYSTEM__ L"D3D11TxMgr"
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
@@ -156,7 +157,7 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex, SK_TLS* pTLS = nullptr)
   // Also validate that the wrapper's QueryInterface method is
   //   invoking our hooks
   //
-  ID3D11Texture2D* pReferenced = nullptr;
+  ID3D11Texture2D*                              pReferenced = nullptr;
   pInputTex->QueryInterface <ID3D11Texture2D> (&pReferenced);
 
   if (! pReferenced)
@@ -197,6 +198,16 @@ IUnknown_Release (IUnknown* This)
 {
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
+
+  // Objects destroyed during DLL detach have the potential to
+  //   have no access to TLS, while still being obligated to release.
+  if (! pTLS)
+  {
+    if (     IUnknown_Release_Original != nullptr)
+      return IUnknown_Release_Original (This);
+
+    return 0;
+  }
 
   if ( This == pTLS->texture_management.refcount_obj     &&
       pTLS->texture_management.injection_thread != FALSE )

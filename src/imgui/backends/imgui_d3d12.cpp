@@ -17,13 +17,12 @@
 //  2018-06-08: DirectX12: Use draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix and clipping rectangle (to ease support for future multi-viewport).
 //  2018-02-22: Merged into master with all Win32 code synchronized to other examples.
 
+#include <SpecialK/stdafx.h>
+
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d12.h>
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/config.h>
-#include <SpecialK/log.h>
 
 
 

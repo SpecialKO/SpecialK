@@ -19,25 +19,13 @@
  *
 **/
 
-#include <SpecialK/core.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/command.h>
-#include <SpecialK/config.h>
-#include <SpecialK/log.h>
+#include <SpecialK/stdafx.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void);
-#include <SpecialK/framerate.h>
-
-#include <Windows.h>
-#include <atlbase.h>
 
 #define D3D12_IGNORE_SDK_LAYERS
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
-
-#include <SpecialK/diagnostics/load_library.h>
-
-#include <algorithm>
 
 LPVOID                pfnD3D12CreateDevice     = nullptr;
 D3D12CreateDevice_pfn D3D12CreateDevice_Import = nullptr;

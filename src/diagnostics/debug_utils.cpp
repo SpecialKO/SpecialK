@@ -19,51 +19,14 @@
 *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"DebugUtils"
 
-#include <SpecialK/diagnostics/debug_utils.h>
+#include <winternl.h>
 
-#include <SpecialK/utility.h>
-#include <SpecialK/config.h>
-#include <SpecialK/core.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/log.h>
-#include <SpecialK/resource.h>
-#include <SpecialK/thread.h>
-
-#include <avrt.h>
-
-#include <Windows.h>
-#include <Winternl.h>
-#include <strsafe.h>
-#include <unordered_set>
-
-#include <codecvt>
-
-// Fix warnings in dbghelp.h
-#pragma warning (disable : 4091)
-
-#define _IMAGEHLP_SOURCE_
-//#pragma comment (lib, "dbghelp.lib")
-#include <dbghelp.h>
-
-#include <SpecialK/diagnostics/file.h>
-#include <SpecialK/diagnostics/memory.h>
-#include <SpecialK/diagnostics/network.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-
-#include <concurrent_unordered_map.h>
-#include <concurrent_unordered_set.h>
-#include <SpecialK/diagnostics/crash_handler.h>
-
-extern concurrency::concurrent_unordered_map <DWORD, std::wstring>*
-__SK_GetThreadNames (void);
-extern concurrency::concurrent_unordered_set <DWORD>*
-__SK_GetSelfTitledThreads (void);
-
-#define _SK_SelfTitledThreads (*__SK_GetSelfTitledThreads ())
-#define _SK_ThreadNames       (*__SK_GetThreadNames       ())
+extern SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, std::wstring>> _SK_ThreadNames;
+extern SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>               _SK_SelfTitledThreads;
 
 extern volatile LONG          __SK_Init;
 
@@ -73,15 +36,17 @@ SK_SEH_CompatibleCallerName (LPCVOID lpAddr);
 extern SK_Thread_HybridSpinlock* cs_dbghelp;
 
 typedef LPWSTR (WINAPI *GetCommandLineW_pfn)(void);
-GetCommandLineW_pfn     GetCommandLineW_Original   = nullptr;
+                        GetCommandLineW_pfn
+                        GetCommandLineW_Original = nullptr;
 
-typedef LPSTR (WINAPI *GetCommandLineA_pfn)(void);
-GetCommandLineA_pfn    GetCommandLineA_Original   = nullptr;
+typedef LPSTR  (WINAPI *GetCommandLineA_pfn)(void);
+                        GetCommandLineA_pfn
+                        GetCommandLineA_Original = nullptr;
 
-typedef BOOL (WINAPI *TerminateThread_pfn)(
-  _In_ HANDLE hThread,
-  _In_ DWORD  dwExitCode
-  );
+typedef BOOL (WINAPI *TerminateThread_pfn)
+( _In_ HANDLE hThread,
+  _In_ DWORD  dwExitCode );
+
 TerminateThread_pfn
 TerminateThread_Original = nullptr;
 
@@ -96,15 +61,14 @@ _endthreadex_pfn
 _endthreadex_Original = nullptr;
 
 typedef NTSTATUS (*NtTerminateProcess_pfn)(HANDLE, NTSTATUS);
-NtTerminateProcess_pfn
-NtTerminateProcess_Original     = nullptr;
+                   NtTerminateProcess_pfn
+                   NtTerminateProcess_Original     = nullptr;
 
 TerminateProcess_pfn   TerminateProcess_Original   = nullptr;
 ExitProcess_pfn        ExitProcess_Original        = nullptr;
 ExitProcess_pfn        ExitProcess_Hook            = nullptr;
 OutputDebugStringA_pfn OutputDebugStringA_Original = nullptr;
 OutputDebugStringW_pfn OutputDebugStringW_Original = nullptr;
-#include <Shlwapi.h>
 
 bool SK_SEH_CompatibleCallerName (LPCVOID lpAddr, wchar_t* wszDllFullName);
 
@@ -141,7 +105,7 @@ SK_Debug_LoadHelper (void)
     }
 
     hModDbgHelp =
-      SK_Modules.LoadLibrary (wszIsolatedDbgHelp);
+      SK_Modules->LoadLibrary (wszIsolatedDbgHelp);
 
     InterlockedIncrementRelease (&__init);
   }
@@ -178,87 +142,43 @@ void
 SK_SymSetOpts (void);
 
 typedef void (WINAPI *SetLastError_pfn)(_In_ DWORD dwErrCode);
-SetLastError_pfn
-SetLastError_Original = nullptr;
+                      SetLastError_pfn
+                      SetLastError_Original = nullptr;
 
 typedef FARPROC (WINAPI *GetProcAddress_pfn)(HMODULE,LPCSTR);
-GetProcAddress_pfn
-GetProcAddress_Original = nullptr;
+                         GetProcAddress_pfn
+                         GetProcAddress_Original = nullptr;
 
 #define STATUS_SUCCESS     0
 
 
 typedef BOOL (WINAPI *SetThreadPriority_pfn)(HANDLE, int);
-SetThreadPriority_pfn
-SetThreadPriority_Original = nullptr;
-
-
-#if 0
-typedef struct _LDR_DATA_TABLE_ENTRY
-{
-  LIST_ENTRY     InLoadOrderLinks;
-  LIST_ENTRY     InMemoryOrderLinks;
-  LIST_ENTRY     InInitializationOrderLinks;
-  PVOID          DllBase;
-  PVOID          EntryPoint;
-  ULONG          SizeOfImage;
-  UNICODE_STRING FullDllName;
-  UNICODE_STRING BaseDllName;
-  ULONG          Flags;
-  WORD           LoadCount;
-  WORD           TlsIndex;
-
-  union
-  {
-    LIST_ENTRY   HashLinks;
-    struct
-    {
-      PVOID      SectionPointer;
-      ULONG      CheckSum;
-    };
-  };
-
-  union
-  {
-    ULONG        TimeDateStamp;
-    PVOID        LoadedImports;
-  };
-
-  _ACTIVATION_CONTEXT
-    *EntryPointActivationContext;
-  PVOID          PatchInformation;
-  LIST_ENTRY     ForwarderLinks;
-  LIST_ENTRY     ServiceTagLinks;
-  LIST_ENTRY     StaticLinks;
-} LDR_DATA_TABLE_ENTRY, *PLDR_DATA_TABLE_ENTRY;
-#endif
-
-typedef NTSTATUS (NTAPI *LdrFindEntryForAddress_pfn)(
-  HMODULE                 hMod,
-  LDR_DATA_TABLE_ENTRY **ppLdrData
-  );
+                      SetThreadPriority_pfn
+                      SetThreadPriority_Original = nullptr;
 
 BOOL
 WINAPI
-SK_Module_IsProcAddrLocal ( HMODULE                hModExpected,
-                            LPCSTR                 lpProcName,
-                            FARPROC                lpProcAddr,
-                            PLDR_DATA_TABLE_ENTRY *ppldrEntry = nullptr )
+SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
+                            LPCSTR                     lpProcName,
+                            FARPROC                    lpProcAddr,
+                            PLDR_DATA_TABLE_ENTRY__SK *ppldrEntry = nullptr )
 {
   if (! GetProcAddress_Original)
     return TRUE;
 
-  static LdrFindEntryForAddress_pfn LdrFindEntryForAddress =
-        (LdrFindEntryForAddress_pfn) GetProcAddress_Original (
-          SK_GetModuleHandleW (L"NtDll.dll"),
-                                "LdrFindEntryForAddress"
-        );
+  static LdrFindEntryForAddress_pfn
+         LdrFindEntryForAddress =
+        (LdrFindEntryForAddress_pfn)
+  ( SK_GetProcAddress     (
+      SK_GetModuleHandleW ( L"NtDll.dll" ),
+                             "LdrFindEntryForAddress"
+                          ) );
 
   // Indeterminate, so ... I guess no?
   if (! LdrFindEntryForAddress)
     return FALSE;
 
-  PLDR_DATA_TABLE_ENTRY pLdrEntry = { };
+  PLDR_DATA_TABLE_ENTRY__SK pLdrEntry = { };
 
   if ( NT_SUCCESS (
          LdrFindEntryForAddress ( (HMODULE)lpProcAddr,
@@ -269,8 +189,8 @@ SK_Module_IsProcAddrLocal ( HMODULE                hModExpected,
     if (ppldrEntry != nullptr)
       *ppldrEntry = pLdrEntry;
 
-    const UNICODE_STRING* ShortDllName =
-      (UNICODE_STRING *)(pLdrEntry->Reserved4);
+    const UNICODE_STRING_SK* ShortDllName =
+      &pLdrEntry->BaseDllName;
 
     std::wstring ucs_short (
        ShortDllName->Buffer,
@@ -278,7 +198,7 @@ SK_Module_IsProcAddrLocal ( HMODULE                hModExpected,
     );
 
     if ( StrStrIW ( SK_GetModuleName (hModExpected).c_str (),
-           ucs_short.c_str () ) )
+                                          ucs_short.c_str () ) )
     {
       return TRUE;
     }
@@ -291,11 +211,11 @@ SK_Module_IsProcAddrLocal ( HMODULE                hModExpected,
       );
 
       SK_LOG0 ( ( LR"(Procedure: '%hs' located by NtLdr in '%ws')",
-               lpProcName, ucs_full.c_str () ),
-               L"DebugUtils" );
+                    lpProcName, ucs_full.c_str () ),
+                  L"DebugUtils" );
       SK_LOG0 ( ( L"  >>  Expected Location:  '%ws'!",
-               SK_GetModuleFullName (hModExpected).c_str () ),
-               L"DebugUtils" );
+                    SK_GetModuleFullName (hModExpected).c_str () ),
+                  L"DebugUtils" );
 
       return FALSE;
     }
@@ -306,10 +226,6 @@ SK_Module_IsProcAddrLocal ( HMODULE                hModExpected,
 
   return FALSE;
 }
-
-
-#include <SpecialK/ansel.h>
-#include <concurrent_unordered_map.h>
 
 void
 WINAPI
@@ -434,16 +350,10 @@ GetProcAddress_Detour     (
   {
     if (hModule == __SK_hModSelf)
     {
+      extern HRESULT WINAPI CreateDXGIFactory2 (UINT Flags, REFIID riid, _Out_ void** ppFactory);
+
       if (SK_GetDLLRole () == DLL_ROLE::DXGI)
       {
-        HRESULT
-          STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
-                                                _Out_ void   **ppFactory);
-        HRESULT
-          STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
-                                                REFIID   riid,
-                                                _Out_ void   **ppFactory);
-
         static FARPROC far_CreateDXGIFactory1 =
           reinterpret_cast <FARPROC> (CreateDXGIFactory1);
 
@@ -551,7 +461,7 @@ GetProcAddress_Detour     (
     ///      DWORD      nNumberOfArguments,
     ///      const ULONG_PTR *lpArguments);
     ///
-    ///  //if (SK_GetCallingDLL () == SK_Modules.HostApp ())
+    ///  //if (SK_GetCallingDLL () == SK_Modules->HostApp ())
     ///  {
     ///    return
     ///      reinterpret_cast <FARPROC> (RaiseException_Trap);
@@ -1509,7 +1419,7 @@ NtCreateThreadEx_Detour (
       GetThreadId (*ThreadHandle);
 
     static auto& ThreadNames =
-      _SK_ThreadNames;
+      *_SK_ThreadNames;
 
     if (! ThreadNames.count (tid))
     {
@@ -1636,43 +1546,27 @@ DbgBreakPoint_Detour (void)
   return;
 }
 
+using RaiseException_pfn =
+  void (WINAPI *)(       DWORD      dwExceptionCode,
+                         DWORD      dwExceptionFlags,
+                         DWORD      nNumberOfArguments,
+                   const ULONG_PTR *lpArguments );
 
-#include <SpecialK/parameter.h>
+extern "C" RaiseException_pfn
+           RaiseException_Original = nullptr;
 
-using RaiseException_pfn = void (WINAPI *)(DWORD      dwExceptionCode,
-                                           DWORD      dwExceptionFlags,
-                                           DWORD      nNumberOfArguments,
-                                           const ULONG_PTR *lpArguments);
-extern "C" RaiseException_pfn RaiseException_Original = nullptr;
-
-#include <unordered_set>
-
-struct SK_FFXV_Thread
-{
-  ~SK_FFXV_Thread (void) { if (hThread) CloseHandle (hThread); }
-
-  HANDLE               hThread = 0;
-  volatile LONG        dwPrio  = THREAD_PRIORITY_NORMAL;
-
-  sk::ParameterInt* prio_cfg   = nullptr;
-
-  void setup (HANDLE hThread);
-} extern sk_ffxv_swapchain,
-sk_ffxv_vsync,
-sk_ffxv_async_run;
-
-
-constexpr static DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
-
+constexpr
+  static DWORD
+    MAGIC_THREAD_EXCEPTION = 0x406D1388;
 
 bool
 WINAPI
 SK_Exception_HandleCxx (
-  DWORD      dwExceptionCode,
-  DWORD      dwExceptionFlags,
-  DWORD      nNumberOfArguments,
+        DWORD      dwExceptionCode,
+        DWORD      dwExceptionFlags,
+        DWORD      nNumberOfArguments,
   const ULONG_PTR *lpArguments,
-  bool       pointOfOriginWas_CxxThrowException = false )
+        bool       pointOfOriginWas_CxxThrowException = false )
 {
   if ( SK_IsDebuggerPresent () || pointOfOriginWas_CxxThrowException )
   {
@@ -1717,9 +1611,9 @@ extern "C"
 void
 WINAPI
 SK_SEHCompatibleRaiseException (
-  DWORD      dwExceptionCode,
-  DWORD      dwExceptionFlags,
-  DWORD      nNumberOfArguments,
+        DWORD      dwExceptionCode,
+        DWORD      dwExceptionFlags,
+        DWORD      nNumberOfArguments,
   const ULONG_PTR *lpArguments         )
 {
   //if (dwExceptionCode == 0xe06d7363)
@@ -1735,6 +1629,25 @@ SK_SEHCompatibleRaiseException (
   RaiseException_Original ( dwExceptionCode,    dwExceptionFlags,
                            nNumberOfArguments, lpArguments       );
 }
+
+struct SK_FFXV_Thread
+{
+  ~SK_FFXV_Thread (void) {///noexcept {
+    if (hThread)
+      CloseHandle (hThread);
+  }
+
+  HANDLE               hThread = 0;
+  volatile LONG        dwPrio = THREAD_PRIORITY_NORMAL;
+
+  sk::ParameterInt* prio_cfg;
+
+  void setup (HANDLE __hThread);
+};
+
+extern SK_LazyGlobal <SK_FFXV_Thread> sk_ffxv_swapchain,
+                                      sk_ffxv_vsync,
+                                      sk_ffxv_async_run;
 
 bool
 SK_Exception_HandleThreadName (
@@ -1773,8 +1686,8 @@ SK_Exception_HandleThreadName (
 
     if (non_empty)
     {
-      static auto& ThreadNames = _SK_ThreadNames;
-      static auto& SelfTitled  = _SK_SelfTitledThreads;
+      static auto& ThreadNames = *_SK_ThreadNames;
+      static auto& SelfTitled  = *_SK_SelfTitledThreads;
 
       DWORD dwTid  =  ( info->dwThreadID != -1 ?
                         info->dwThreadID :
@@ -1808,14 +1721,14 @@ SK_Exception_HandleThreadName (
       {
         SK_AutoHandle hThread ( OpenThread ( THREAD_ALL_ACCESS, FALSE, dwTid ) );
 
-        if ((! sk_ffxv_vsync.hThread) && StrStrIA (info->szName, "VSync"))
+        if ((! sk_ffxv_vsync->hThread) && StrStrIA (info->szName, "VSync"))
         {
-          sk_ffxv_vsync.setup (hThread);
+          sk_ffxv_vsync->setup (hThread);
         }
 
-        else if ((! sk_ffxv_async_run.hThread) && StrStrIA (info->szName, "AsyncFile.Run"))
+        else if ((! sk_ffxv_async_run->hThread) && StrStrIA (info->szName, "AsyncFile.Run"))
         {
-          sk_ffxv_async_run.setup (hThread);
+          sk_ffxv_async_run->setup (hThread);
         }
       }
 
@@ -3104,6 +3017,9 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
         "RtlNtStatusToDosError" );
 
   SK_ReleaseAssert (RtlNtStatusToDosError != nullptr);
+
+  if (RtlNtStatusToDosError == nullptr)
+    return;
 
   wchar_t* lpMsgBuf = nullptr;
 

@@ -18,9 +18,9 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+
+#include <SpecialK/stdafx.h>
 #include <SpecialK/widgets/widget.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/config.h>
 
 extern iSK_INI* osd_ini;
 
@@ -39,7 +39,7 @@ class SKWG_FramePacing : public SK_Widget
 public:
   SKWG_FramePacing (void) noexcept : SK_Widget ("FramePacing")
   {
-    SK_ImGui_Widgets.frame_pacing = this;
+    SK_ImGui_Widgets->frame_pacing = this;
 
     setResizable    (                false).setAutoFit      (true).setMovable (false).
     setDockingPoint (DockAnchor::SouthEast).setClickThrough (true).setVisible (false);
@@ -57,7 +57,7 @@ public:
     setSize (new_size);
 
     if (isVisible ())
-      ImGui::SetNextWindowSize (new_size, ImGuiSetCond_Always);
+      ImGui::SetNextWindowSize (new_size, ImGuiCond_Always);
   }
 
   void draw (void) noexcept override

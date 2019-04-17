@@ -19,22 +19,7 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
-
-#include <Mmdeviceapi.h>
-#include <audiopolicy.h>
-#include <endpointvolume.h>
-#include <atlbase.h>
-
-#include <SpecialK/config.h>
-#include <SpecialK/log.h>
-#include <SpecialK/window.h>
-
-#include <SpecialK/diagnostics/modules.h>
-
-#include <unordered_map>
-#include <set>
+#include <SpecialK/stdafx.h>
 
 IAudioMeterInformation*
 __stdcall

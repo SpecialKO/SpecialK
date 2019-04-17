@@ -19,20 +19,11 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <imgui/imgui.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/osd.h>
-
-#include <SpecialK/osd/text.h>
-#include <SpecialK/framerate.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
-#include <SpecialK/thread.h>
-
-#include <algorithm>
-#include <set>
 
 using namespace SK::ControlPanel;
 
@@ -126,7 +117,7 @@ SK::ControlPanel::OSD::Draw (void)
       ImGui::TreePush ("");
 
       ImGui::BeginGroup ();
-      ImGui::Checkbox   ("Title/Clock ", &config.time.show); 
+      ImGui::Checkbox   ("Title/Clock ", &config.time.show);
       ImGui::SameLine   ();
       ImGui::Checkbox   ("GPU Stats",    &config.gpu.show);
       ImGui::EndGroup   ();
@@ -270,7 +261,7 @@ SK::ControlPanel::OSD::Draw (void)
 
         if ( color [0] >= default_r - 0.001f &&
              color [0] <= default_r + 0.001f    ) config.osd.red   = MAXDWORD;
-        if ( color [1] >= default_g - 0.001f && 
+        if ( color [1] >= default_g - 0.001f &&
              color [1] <= default_g + 0.001f    ) config.osd.green = MAXDWORD;
         if ( color [2] >= default_b - 0.001f &&
              color [2] <= default_b + 0.001f    ) config.osd.blue  = MAXDWORD;

@@ -1,3 +1,5 @@
+#include <SpecialK/stdafx.h>
+
 #if 0
 /**
  * This file is part of Special K.
@@ -19,6 +21,8 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+
+#include <SpecialK/stdafx.h>
 
 #include <SpecialK/tls.h>
 #include <SpecialK/thread.h>

@@ -75,7 +75,7 @@ typedef D3DCOLORVALUE DXGI_RGBA;
 #pragma once
 #endif
 
-/* Forward Declarations */ 
+/* Forward Declarations */
 
 #ifndef __IDXGIObject_FWD_DEFINED__
 #define __IDXGIObject_FWD_DEFINED__
@@ -182,11 +182,11 @@ typedef interface IDXGIDevice1 IDXGIDevice1;
 
 #ifdef __cplusplus
 extern "C"{
-#endif 
+#endif
 
 
   /* interface __MIDL_itf_dxgi_0000_0000 */
-  /* [local] */ 
+  /* [local] */
 
 //#include <winapifamily.h>
 #define DXGI_CPU_ACCESS_NONE                        (  0  )
@@ -269,7 +269,7 @@ extern "C"{
 #define	DXGI_RESOURCE_PRIORITY_HIGH	    ( 0xa0000000 )
 #define	DXGI_RESOURCE_PRIORITY_MAXIMUM  ( 0xc8000000 )
 
-  typedef 
+  typedef
   enum DXGI_RESIDENCY
   {
     DXGI_RESIDENCY_FULLY_RESIDENT	           = 1,
@@ -285,7 +285,7 @@ extern "C"{
     DXGI_SAMPLE_DESC SampleDesc;
   }   DXGI_SURFACE_DESC;
 
-  typedef 
+  typedef
   enum DXGI_SWAP_EFFECT
   {
     DXGI_SWAP_EFFECT_DISCARD         = 0,
@@ -294,7 +294,7 @@ extern "C"{
     DXGI_SWAP_EFFECT_FLIP_DISCARD    = 4
   }   DXGI_SWAP_EFFECT;
 
-  typedef 
+  typedef
   enum DXGI_SWAP_CHAIN_FLAG
   {
     DXGI_SWAP_CHAIN_FLAG_NONPREROTATED                   = 1,
@@ -330,7 +330,7 @@ extern "C"{
 #define __IDXGIObject_INTERFACE_DEFINED__
 
   /* interface IDXGIObject */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIObject;
@@ -341,31 +341,31 @@ extern "C"{
     IDXGIObject : public IUnknown
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE SetPrivateData( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE SetPrivateData(
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetPrivateDataInterface( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE SetPrivateDataInterface(
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetPrivateData( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetPrivateData(
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetParent( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetParent(
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent) = 0;
 
   };
@@ -377,47 +377,47 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIObject * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIObject * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIObject * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIObject * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIObject * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIObject * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIObject * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
     END_INTERFACE
@@ -434,26 +434,26 @@ extern "C"{
 
 
 #define IDXGIObject_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIObject_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIObject_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIObject_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIObject_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIObject_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIObject_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 #endif /* COBJMACROS */
 
@@ -470,7 +470,7 @@ extern "C"{
 #define __IDXGIDeviceSubObject_INTERFACE_DEFINED__
 
   /* interface IDXGIDeviceSubObject */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIDeviceSubObject;
@@ -481,10 +481,10 @@ extern "C"{
     IDXGIDeviceSubObject : public IDXGIObject
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetDevice( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDevice(
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice) = 0;
 
   };
@@ -496,54 +496,54 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIDeviceSubObject * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIDeviceSubObject * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIDeviceSubObject * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIDeviceSubObject * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIDeviceSubObject * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIDeviceSubObject * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIDeviceSubObject * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGIDeviceSubObject * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
     END_INTERFACE
@@ -560,30 +560,30 @@ extern "C"{
 
 
 #define IDXGIDeviceSubObject_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIDeviceSubObject_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIDeviceSubObject_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIDeviceSubObject_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIDeviceSubObject_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIDeviceSubObject_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIDeviceSubObject_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIDeviceSubObject_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 #endif /* COBJMACROS */
 
@@ -600,7 +600,7 @@ extern "C"{
 #define __IDXGIResource_INTERFACE_DEFINED__
 
   /* interface IDXGIResource */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIResource;
@@ -611,19 +611,19 @@ extern "C"{
     IDXGIResource : public IDXGIDeviceSubObject
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetSharedHandle( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetSharedHandle(
+      /* [annotation][out] */
       _Out_  HANDLE *pSharedHandle) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetUsage( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetUsage(
+      /* [annotation][out] */
       _Out_  DXGI_USAGE *pUsage) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetEvictionPriority( 
+    virtual HRESULT STDMETHODCALLTYPE SetEvictionPriority(
       /* [in] */ UINT EvictionPriority) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetEvictionPriority( 
-      /* [annotation][retval][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetEvictionPriority(
+      /* [annotation][retval][out] */
       _Out_  UINT *pEvictionPriority) = 0;
 
   };
@@ -635,73 +635,73 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIResource * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIResource * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIResource * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIResource * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIResource * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIResource * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIResource * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGIResource * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *GetSharedHandle )( 
+    HRESULT ( STDMETHODCALLTYPE *GetSharedHandle )(
       IDXGIResource * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HANDLE *pSharedHandle);
 
-    HRESULT ( STDMETHODCALLTYPE *GetUsage )( 
+    HRESULT ( STDMETHODCALLTYPE *GetUsage )(
       IDXGIResource * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_USAGE *pUsage);
 
-    HRESULT ( STDMETHODCALLTYPE *SetEvictionPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *SetEvictionPriority )(
       IDXGIResource * This,
       /* [in] */ UINT EvictionPriority);
 
-    HRESULT ( STDMETHODCALLTYPE *GetEvictionPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *GetEvictionPriority )(
       IDXGIResource * This,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  UINT *pEvictionPriority);
 
     END_INTERFACE
@@ -718,43 +718,43 @@ extern "C"{
 
 
 #define IDXGIResource_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIResource_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIResource_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIResource_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIResource_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIResource_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIResource_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIResource_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGIResource_GetSharedHandle(This,pSharedHandle)	\
-    ( (This)->lpVtbl -> GetSharedHandle(This,pSharedHandle) ) 
+    ( (This)->lpVtbl -> GetSharedHandle(This,pSharedHandle) )
 
 #define IDXGIResource_GetUsage(This,pUsage)	\
-    ( (This)->lpVtbl -> GetUsage(This,pUsage) ) 
+    ( (This)->lpVtbl -> GetUsage(This,pUsage) )
 
 #define IDXGIResource_SetEvictionPriority(This,EvictionPriority)	\
-    ( (This)->lpVtbl -> SetEvictionPriority(This,EvictionPriority) ) 
+    ( (This)->lpVtbl -> SetEvictionPriority(This,EvictionPriority) )
 
 #define IDXGIResource_GetEvictionPriority(This,pEvictionPriority)	\
-    ( (This)->lpVtbl -> GetEvictionPriority(This,pEvictionPriority) ) 
+    ( (This)->lpVtbl -> GetEvictionPriority(This,pEvictionPriority) )
 
 #endif /* COBJMACROS */
 
@@ -771,7 +771,7 @@ extern "C"{
 #define __IDXGIKeyedMutex_INTERFACE_DEFINED__
 
   /* interface IDXGIKeyedMutex */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIKeyedMutex;
@@ -782,11 +782,11 @@ extern "C"{
     IDXGIKeyedMutex : public IDXGIDeviceSubObject
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE AcquireSync( 
+    virtual HRESULT STDMETHODCALLTYPE AcquireSync(
       /* [in] */ UINT64 Key,
       /* [in] */ DWORD dwMilliseconds) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE ReleaseSync( 
+    virtual HRESULT STDMETHODCALLTYPE ReleaseSync(
       /* [in] */ UINT64 Key) = 0;
 
   };
@@ -798,62 +798,62 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIKeyedMutex * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIKeyedMutex * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIKeyedMutex * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIKeyedMutex * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIKeyedMutex * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIKeyedMutex * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIKeyedMutex * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGIKeyedMutex * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *AcquireSync )( 
+    HRESULT ( STDMETHODCALLTYPE *AcquireSync )(
       IDXGIKeyedMutex * This,
       /* [in] */ UINT64 Key,
       /* [in] */ DWORD dwMilliseconds);
 
-    HRESULT ( STDMETHODCALLTYPE *ReleaseSync )( 
+    HRESULT ( STDMETHODCALLTYPE *ReleaseSync )(
       IDXGIKeyedMutex * This,
       /* [in] */ UINT64 Key);
 
@@ -871,37 +871,37 @@ extern "C"{
 
 
 #define IDXGIKeyedMutex_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIKeyedMutex_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIKeyedMutex_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIKeyedMutex_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIKeyedMutex_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIKeyedMutex_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIKeyedMutex_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIKeyedMutex_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGIKeyedMutex_AcquireSync(This,Key,dwMilliseconds)	\
-    ( (This)->lpVtbl -> AcquireSync(This,Key,dwMilliseconds) ) 
+    ( (This)->lpVtbl -> AcquireSync(This,Key,dwMilliseconds) )
 
 #define IDXGIKeyedMutex_ReleaseSync(This,Key)	\
-    ( (This)->lpVtbl -> ReleaseSync(This,Key) ) 
+    ( (This)->lpVtbl -> ReleaseSync(This,Key) )
 
 #endif /* COBJMACROS */
 
@@ -915,7 +915,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi_0000_0004 */
-  /* [local] */ 
+  /* [local] */
 
 #define	DXGI_MAP_READ	( 1UL )
 
@@ -932,7 +932,7 @@ extern "C"{
 #define __IDXGISurface_INTERFACE_DEFINED__
 
   /* interface IDXGISurface */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGISurface;
@@ -943,12 +943,12 @@ extern "C"{
     IDXGISurface : public IDXGIDeviceSubObject
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetDesc( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDesc(
+      /* [annotation][out] */
       _Out_  DXGI_SURFACE_DESC *pDesc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE Map( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE Map(
+      /* [annotation][out] */
       _Out_  DXGI_MAPPED_RECT *pLockedRect,
       /* [in] */ UINT MapFlags) = 0;
 
@@ -963,68 +963,68 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGISurface * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGISurface * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGISurface * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGISurface * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGISurface * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGISurface * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGISurface * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGISurface * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGISurface * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SURFACE_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *Map )( 
+    HRESULT ( STDMETHODCALLTYPE *Map )(
       IDXGISurface * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MAPPED_RECT *pLockedRect,
       /* [in] */ UINT MapFlags);
 
-    HRESULT ( STDMETHODCALLTYPE *Unmap )( 
+    HRESULT ( STDMETHODCALLTYPE *Unmap )(
       IDXGISurface * This);
 
     END_INTERFACE
@@ -1041,40 +1041,40 @@ extern "C"{
 
 
 #define IDXGISurface_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISurface_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISurface_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISurface_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGISurface_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGISurface_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGISurface_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGISurface_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGISurface_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGISurface_Map(This,pLockedRect,MapFlags)	\
-    ( (This)->lpVtbl -> Map(This,pLockedRect,MapFlags) ) 
+    ( (This)->lpVtbl -> Map(This,pLockedRect,MapFlags) )
 
 #define IDXGISurface_Unmap(This)	\
-    ( (This)->lpVtbl -> Unmap(This) ) 
+    ( (This)->lpVtbl -> Unmap(This) )
 
 #endif /* COBJMACROS */
 
@@ -1091,7 +1091,7 @@ extern "C"{
 #define __IDXGISurface1_INTERFACE_DEFINED__
 
   /* interface IDXGISurface1 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGISurface1;
@@ -1102,13 +1102,13 @@ extern "C"{
     IDXGISurface1 : public IDXGISurface
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetDC( 
+    virtual HRESULT STDMETHODCALLTYPE GetDC(
       /* [in] */ BOOL Discard,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HDC *phdc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE ReleaseDC( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE ReleaseDC(
+      /* [annotation][in] */
       _In_opt_  RECT *pDirtyRect) = 0;
 
   };
@@ -1120,79 +1120,79 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGISurface1 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGISurface1 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGISurface1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGISurface1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGISurface1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGISurface1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGISurface1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGISurface1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGISurface1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SURFACE_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *Map )( 
+    HRESULT ( STDMETHODCALLTYPE *Map )(
       IDXGISurface1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MAPPED_RECT *pLockedRect,
       /* [in] */ UINT MapFlags);
 
-    HRESULT ( STDMETHODCALLTYPE *Unmap )( 
+    HRESULT ( STDMETHODCALLTYPE *Unmap )(
       IDXGISurface1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDC )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDC )(
       IDXGISurface1 * This,
       /* [in] */ BOOL Discard,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HDC *phdc);
 
-    HRESULT ( STDMETHODCALLTYPE *ReleaseDC )( 
+    HRESULT ( STDMETHODCALLTYPE *ReleaseDC )(
       IDXGISurface1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  RECT *pDirtyRect);
 
     END_INTERFACE
@@ -1209,47 +1209,47 @@ extern "C"{
 
 
 #define IDXGISurface1_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISurface1_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISurface1_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISurface1_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGISurface1_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGISurface1_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGISurface1_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGISurface1_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGISurface1_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGISurface1_Map(This,pLockedRect,MapFlags)	\
-    ( (This)->lpVtbl -> Map(This,pLockedRect,MapFlags) ) 
+    ( (This)->lpVtbl -> Map(This,pLockedRect,MapFlags) )
 
 #define IDXGISurface1_Unmap(This)	\
-    ( (This)->lpVtbl -> Unmap(This) ) 
+    ( (This)->lpVtbl -> Unmap(This) )
 
 
 #define IDXGISurface1_GetDC(This,Discard,phdc)	\
-    ( (This)->lpVtbl -> GetDC(This,Discard,phdc) ) 
+    ( (This)->lpVtbl -> GetDC(This,Discard,phdc) )
 
 #define IDXGISurface1_ReleaseDC(This,pDirtyRect)	\
-    ( (This)->lpVtbl -> ReleaseDC(This,pDirtyRect) ) 
+    ( (This)->lpVtbl -> ReleaseDC(This,pDirtyRect) )
 
 #endif /* COBJMACROS */
 
@@ -1263,7 +1263,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi_0000_0006 */
-  /* [local] */ 
+  /* [local] */
 
 
 
@@ -1275,7 +1275,7 @@ extern "C"{
 #define __IDXGIAdapter_INTERFACE_DEFINED__
 
   /* interface IDXGIAdapter */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIAdapter;
@@ -1286,19 +1286,19 @@ extern "C"{
     IDXGIAdapter : public IDXGIObject
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE EnumOutputs( 
+    virtual HRESULT STDMETHODCALLTYPE EnumOutputs(
       /* [in] */ UINT Output,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Out_  IDXGIOutput **ppOutput) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetDesc( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDesc(
+      /* [annotation][out] */
       _Out_  DXGI_ADAPTER_DESC *pDesc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CheckInterfaceSupport( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE CheckInterfaceSupport(
+      /* [annotation][in] */
       _In_  REFGUID InterfaceName,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  LARGE_INTEGER *pUMDVersion) = 0;
 
   };
@@ -1310,65 +1310,65 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIAdapter * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIAdapter * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIAdapter * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIAdapter * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIAdapter * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIAdapter * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIAdapter * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumOutputs )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumOutputs )(
       IDXGIAdapter * This,
       /* [in] */ UINT Output,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Out_  IDXGIOutput **ppOutput);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGIAdapter * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_ADAPTER_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *CheckInterfaceSupport )( 
+    HRESULT ( STDMETHODCALLTYPE *CheckInterfaceSupport )(
       IDXGIAdapter * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID InterfaceName,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  LARGE_INTEGER *pUMDVersion);
 
     END_INTERFACE
@@ -1385,36 +1385,36 @@ extern "C"{
 
 
 #define IDXGIAdapter_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIAdapter_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIAdapter_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIAdapter_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIAdapter_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIAdapter_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIAdapter_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIAdapter_EnumOutputs(This,Output,ppOutput)	\
-    ( (This)->lpVtbl -> EnumOutputs(This,Output,ppOutput) ) 
+    ( (This)->lpVtbl -> EnumOutputs(This,Output,ppOutput) )
 
 #define IDXGIAdapter_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIAdapter_CheckInterfaceSupport(This,InterfaceName,pUMDVersion)	\
-    ( (This)->lpVtbl -> CheckInterfaceSupport(This,InterfaceName,pUMDVersion) ) 
+    ( (This)->lpVtbl -> CheckInterfaceSupport(This,InterfaceName,pUMDVersion) )
 
 #endif /* COBJMACROS */
 
@@ -1428,7 +1428,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi_0000_0007 */
-  /* [local] */ 
+  /* [local] */
 
 #define	DXGI_ENUM_MODES_INTERLACED	( 1UL )
 
@@ -1443,7 +1443,7 @@ extern "C"{
 #define __IDXGIOutput_INTERFACE_DEFINED__
 
   /* interface IDXGIOutput */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIOutput;
@@ -1454,57 +1454,57 @@ extern "C"{
     IDXGIOutput : public IDXGIObject
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetDesc( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDesc(
+      /* [annotation][out] */
       _Out_  DXGI_OUTPUT_DESC *pDesc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetDisplayModeList( 
+    virtual HRESULT STDMETHODCALLTYPE GetDisplayModeList(
       /* [in] */ DXGI_FORMAT EnumFormat,
       /* [in] */ UINT Flags,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pNumModes,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC *pDesc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE FindClosestMatchingMode( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE FindClosestMatchingMode(
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC *pModeToMatch,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_DESC *pClosestMatch,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IUnknown *pConcernedDevice) = 0;
 
     virtual HRESULT STDMETHODCALLTYPE WaitForVBlank( void) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE TakeOwnership( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE TakeOwnership(
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
       BOOL Exclusive) = 0;
 
     virtual void STDMETHODCALLTYPE ReleaseOwnership( void) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetGammaControlCapabilities( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetGammaControlCapabilities(
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL_CAPABILITIES *pGammaCaps) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetGammaControl( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE SetGammaControl(
+      /* [annotation][in] */
       _In_  const DXGI_GAMMA_CONTROL *pArray) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetGammaControl( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetGammaControl(
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL *pArray) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetDisplaySurface( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE SetDisplaySurface(
+      /* [annotation][in] */
       _In_  IDXGISurface *pScanoutSurface) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetDisplaySurfaceData( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDisplaySurfaceData(
+      /* [annotation][in] */
       _In_  IDXGISurface *pDestination) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetFrameStatistics( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetFrameStatistics(
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS *pStats) = 0;
 
   };
@@ -1516,112 +1516,112 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIOutput * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIOutput * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIOutput * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIOutput * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIOutput * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIOutput * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIOutput * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGIOutput * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_OUTPUT_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )(
       IDXGIOutput * This,
       /* [in] */ DXGI_FORMAT EnumFormat,
       /* [in] */ UINT Flags,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pNumModes,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )( 
+    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )(
       IDXGIOutput * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC *pModeToMatch,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_DESC *pClosestMatch,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IUnknown *pConcernedDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )( 
+    HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )(
       IDXGIOutput * This);
 
-    HRESULT ( STDMETHODCALLTYPE *TakeOwnership )( 
+    HRESULT ( STDMETHODCALLTYPE *TakeOwnership )(
       IDXGIOutput * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
       BOOL Exclusive);
 
-    void ( STDMETHODCALLTYPE *ReleaseOwnership )( 
+    void ( STDMETHODCALLTYPE *ReleaseOwnership )(
       IDXGIOutput * This);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )(
       IDXGIOutput * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL_CAPABILITIES *pGammaCaps);
 
-    HRESULT ( STDMETHODCALLTYPE *SetGammaControl )( 
+    HRESULT ( STDMETHODCALLTYPE *SetGammaControl )(
       IDXGIOutput * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_GAMMA_CONTROL *pArray);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGammaControl )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGammaControl )(
       IDXGIOutput * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL *pArray);
 
-    HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )(
       IDXGIOutput * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGISurface *pScanoutSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )(
       IDXGIOutput * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGISurface *pDestination);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
       IDXGIOutput * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS *pStats);
 
     END_INTERFACE
@@ -1638,63 +1638,63 @@ extern "C"{
 
 
 #define IDXGIOutput_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIOutput_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIOutput_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIOutput_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIOutput_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIOutput_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIOutput_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIOutput_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIOutput_GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput_FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput_WaitForVBlank(This)	\
-    ( (This)->lpVtbl -> WaitForVBlank(This) ) 
+    ( (This)->lpVtbl -> WaitForVBlank(This) )
 
 #define IDXGIOutput_TakeOwnership(This,pDevice,Exclusive)	\
-    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) ) 
+    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) )
 
 #define IDXGIOutput_ReleaseOwnership(This)	\
-    ( (This)->lpVtbl -> ReleaseOwnership(This) ) 
+    ( (This)->lpVtbl -> ReleaseOwnership(This) )
 
 #define IDXGIOutput_GetGammaControlCapabilities(This,pGammaCaps)	\
-    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) ) 
+    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) )
 
 #define IDXGIOutput_SetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> SetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> SetGammaControl(This,pArray) )
 
 #define IDXGIOutput_GetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> GetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> GetGammaControl(This,pArray) )
 
 #define IDXGIOutput_SetDisplaySurface(This,pScanoutSurface)	\
-    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) ) 
+    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) )
 
 #define IDXGIOutput_GetDisplaySurfaceData(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) )
 
 #define IDXGIOutput_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 #endif /* COBJMACROS */
 
@@ -1708,7 +1708,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi_0000_0008 */
-  /* [local] */ 
+  /* [local] */
 
 #define DXGI_MAX_SWAP_CHAIN_BUFFERS        ( 16 )
 #define DXGI_PRESENT_TEST                      0x00000001UL
@@ -1728,7 +1728,7 @@ extern "C"{
 #define __IDXGISwapChain_INTERFACE_DEFINED__
 
   /* interface IDXGISwapChain */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGISwapChain;
@@ -1739,53 +1739,53 @@ extern "C"{
     IDXGISwapChain : public IDXGIDeviceSubObject
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE Present( 
+    virtual HRESULT STDMETHODCALLTYPE Present(
       /* [in] */ UINT SyncInterval,
       /* [in] */ UINT Flags) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetBuffer( 
+    virtual HRESULT STDMETHODCALLTYPE GetBuffer(
       /* [in] */ UINT Buffer,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Out_  void **ppSurface) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetFullscreenState( 
+    virtual HRESULT STDMETHODCALLTYPE SetFullscreenState(
       /* [in] */ BOOL Fullscreen,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pTarget) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetFullscreenState( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetFullscreenState(
+      /* [annotation][out] */
       _Out_opt_  BOOL *pFullscreen,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_opt_  IDXGIOutput **ppTarget) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetDesc( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDesc(
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_DESC *pDesc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE ResizeBuffers( 
+    virtual HRESULT STDMETHODCALLTYPE ResizeBuffers(
       /* [in] */ UINT BufferCount,
       /* [in] */ UINT Width,
       /* [in] */ UINT Height,
       /* [in] */ DXGI_FORMAT NewFormat,
       /* [in] */ UINT SwapChainFlags) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE ResizeTarget( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE ResizeTarget(
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC *pNewTargetParameters) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetContainingOutput( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetContainingOutput(
+      /* [annotation][out] */
       _Out_  IDXGIOutput **ppOutput) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetFrameStatistics( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetFrameStatistics(
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS *pStats) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetLastPresentCount( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetLastPresentCount(
+      /* [annotation][out] */
       _Out_  UINT *pLastPresentCount) = 0;
 
   };
@@ -1797,88 +1797,88 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGISwapChain * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGISwapChain * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGISwapChain * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGISwapChain * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGISwapChain * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGISwapChain * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGISwapChain * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGISwapChain * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *Present )( 
+    HRESULT ( STDMETHODCALLTYPE *Present )(
       IDXGISwapChain * This,
       /* [in] */ UINT SyncInterval,
       /* [in] */ UINT Flags);
 
-    HRESULT ( STDMETHODCALLTYPE *GetBuffer )( 
+    HRESULT ( STDMETHODCALLTYPE *GetBuffer )(
       IDXGISwapChain * This,
       /* [in] */ UINT Buffer,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Out_  void **ppSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )( 
+    HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )(
       IDXGISwapChain * This,
       /* [in] */ BOOL Fullscreen,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pTarget);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )(
       IDXGISwapChain * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_opt_  BOOL *pFullscreen,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_opt_  IDXGIOutput **ppTarget);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGISwapChain * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )( 
+    HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )(
       IDXGISwapChain * This,
       /* [in] */ UINT BufferCount,
       /* [in] */ UINT Width,
@@ -1886,24 +1886,24 @@ extern "C"{
       /* [in] */ DXGI_FORMAT NewFormat,
       /* [in] */ UINT SwapChainFlags);
 
-    HRESULT ( STDMETHODCALLTYPE *ResizeTarget )( 
+    HRESULT ( STDMETHODCALLTYPE *ResizeTarget )(
       IDXGISwapChain * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC *pNewTargetParameters);
 
-    HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )( 
+    HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )(
       IDXGISwapChain * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIOutput **ppOutput);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
       IDXGISwapChain * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS *pStats);
 
-    HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )( 
+    HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )(
       IDXGISwapChain * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pLastPresentCount);
 
     END_INTERFACE
@@ -1920,61 +1920,61 @@ extern "C"{
 
 
 #define IDXGISwapChain_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISwapChain_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISwapChain_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISwapChain_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGISwapChain_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGISwapChain_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGISwapChain_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGISwapChain_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGISwapChain_Present(This,SyncInterval,Flags)	\
-    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) ) 
+    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) )
 
 #define IDXGISwapChain_GetBuffer(This,Buffer,riid,ppSurface)	\
-    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) ) 
+    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) )
 
 #define IDXGISwapChain_SetFullscreenState(This,Fullscreen,pTarget)	\
-    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) ) 
+    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) )
 
 #define IDXGISwapChain_GetFullscreenState(This,pFullscreen,ppTarget)	\
-    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) ) 
+    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) )
 
 #define IDXGISwapChain_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGISwapChain_ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags)	\
-    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) ) 
+    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) )
 
 #define IDXGISwapChain_ResizeTarget(This,pNewTargetParameters)	\
-    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) ) 
+    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) )
 
 #define IDXGISwapChain_GetContainingOutput(This,ppOutput)	\
-    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) ) 
+    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) )
 
 #define IDXGISwapChain_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 #define IDXGISwapChain_GetLastPresentCount(This,pLastPresentCount)	\
-    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) ) 
+    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) )
 
 #endif /* COBJMACROS */
 
@@ -1988,7 +1988,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi_0000_0009 */
-  /* [local] */ 
+  /* [local] */
 
 #define DXGI_MWA_NO_WINDOW_CHANGES      ( 1 << 0 )
 #define DXGI_MWA_NO_ALT_ENTER           ( 1 << 1 )
@@ -2003,7 +2003,7 @@ extern "C"{
 #define __IDXGIFactory_INTERFACE_DEFINED__
 
   /* interface IDXGIFactory */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIFactory;
@@ -2014,30 +2014,30 @@ extern "C"{
     IDXGIFactory : public IDXGIObject
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE EnumAdapters( 
+    virtual HRESULT STDMETHODCALLTYPE EnumAdapters(
       /* [in] */ UINT Adapter,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE MakeWindowAssociation( 
+    virtual HRESULT STDMETHODCALLTYPE MakeWindowAssociation(
       HWND WindowHandle,
       UINT Flags) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetWindowAssociation( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetWindowAssociation(
+      /* [annotation][out] */
       _Out_  HWND *pWindowHandle) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CreateSwapChain( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE CreateSwapChain(
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_SWAP_CHAIN_DESC *pDesc,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain **ppSwapChain) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CreateSoftwareAdapter( 
+    virtual HRESULT STDMETHODCALLTYPE CreateSoftwareAdapter(
       /* [in] */ HMODULE Module,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter) = 0;
 
   };
@@ -2049,78 +2049,78 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIFactory * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIFactory * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIFactory * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIFactory * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIFactory * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIFactory * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIFactory * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumAdapters )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumAdapters )(
       IDXGIFactory * This,
       /* [in] */ UINT Adapter,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )( 
+    HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )(
       IDXGIFactory * This,
       HWND WindowHandle,
       UINT Flags);
 
-    HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )( 
+    HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )(
       IDXGIFactory * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HWND *pWindowHandle);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )(
       IDXGIFactory * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_SWAP_CHAIN_DESC *pDesc,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain **ppSwapChain);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )(
       IDXGIFactory * This,
       /* [in] */ HMODULE Module,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter);
 
     END_INTERFACE
@@ -2137,42 +2137,42 @@ extern "C"{
 
 
 #define IDXGIFactory_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIFactory_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIFactory_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIFactory_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIFactory_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIFactory_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIFactory_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIFactory_EnumAdapters(This,Adapter,ppAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) )
 
 #define IDXGIFactory_MakeWindowAssociation(This,WindowHandle,Flags)	\
-    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) ) 
+    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) )
 
 #define IDXGIFactory_GetWindowAssociation(This,pWindowHandle)	\
-    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) ) 
+    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) )
 
 #define IDXGIFactory_CreateSwapChain(This,pDevice,pDesc,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) )
 
 #define IDXGIFactory_CreateSoftwareAdapter(This,Module,ppAdapter)	\
-    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) ) 
+    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) )
 
 #endif /* COBJMACROS */
 
@@ -2186,7 +2186,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi_0000_0010 */
-  /* [local] */ 
+  /* [local] */
 
   extern RPC_IF_HANDLE __MIDL_itf_dxgi_0000_0010_v0_0_c_ifspec;
   extern RPC_IF_HANDLE __MIDL_itf_dxgi_0000_0010_v0_0_s_ifspec;
@@ -2195,7 +2195,7 @@ extern "C"{
 #define __IDXGIDevice_INTERFACE_DEFINED__
 
   /* interface IDXGIDevice */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIDevice;
@@ -2206,32 +2206,32 @@ extern "C"{
     IDXGIDevice : public IDXGIObject
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetAdapter( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetAdapter(
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **pAdapter) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CreateSurface( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE CreateSurface(
+      /* [annotation][in] */
       _In_  const DXGI_SURFACE_DESC *pDesc,
       /* [in] */ UINT NumSurfaces,
       /* [in] */ DXGI_USAGE Usage,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  const DXGI_SHARED_RESOURCE *pSharedResource,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISurface **ppSurface) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE QueryResourceResidency( 
-      /* [annotation][size_is][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE QueryResourceResidency(
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IUnknown *const *ppResources,
-      /* [annotation][size_is][out] */ 
+      /* [annotation][size_is][out] */
       _Out_writes_(NumResources)  DXGI_RESIDENCY *pResidencyStatus,
       /* [in] */ UINT NumResources) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetGPUThreadPriority( 
+    virtual HRESULT STDMETHODCALLTYPE SetGPUThreadPriority(
       /* [in] */ INT Priority) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetGPUThreadPriority( 
-      /* [annotation][retval][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetGPUThreadPriority(
+      /* [annotation][retval][out] */
       _Out_  INT *pPriority) = 0;
 
   };
@@ -2243,80 +2243,80 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIDevice * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIDevice * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIDevice * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIDevice * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIDevice * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIDevice * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIDevice * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetAdapter )( 
+    HRESULT ( STDMETHODCALLTYPE *GetAdapter )(
       IDXGIDevice * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **pAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSurface )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSurface )(
       IDXGIDevice * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SURFACE_DESC *pDesc,
       /* [in] */ UINT NumSurfaces,
       /* [in] */ DXGI_USAGE Usage,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  const DXGI_SHARED_RESOURCE *pSharedResource,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISurface **ppSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )( 
+    HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )(
       IDXGIDevice * This,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IUnknown *const *ppResources,
-      /* [annotation][size_is][out] */ 
+      /* [annotation][size_is][out] */
       _Out_writes_(NumResources)  DXGI_RESIDENCY *pResidencyStatus,
       /* [in] */ UINT NumResources);
 
-    HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )(
       IDXGIDevice * This,
       /* [in] */ INT Priority);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )(
       IDXGIDevice * This,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  INT *pPriority);
 
     END_INTERFACE
@@ -2333,42 +2333,42 @@ extern "C"{
 
 
 #define IDXGIDevice_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIDevice_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIDevice_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIDevice_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIDevice_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIDevice_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIDevice_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIDevice_GetAdapter(This,pAdapter)	\
-    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) ) 
+    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) )
 
 #define IDXGIDevice_CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface)	\
-    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) ) 
+    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) )
 
 #define IDXGIDevice_QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources)	\
-    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) ) 
+    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) )
 
 #define IDXGIDevice_SetGPUThreadPriority(This,Priority)	\
-    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) ) 
+    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) )
 
 #define IDXGIDevice_GetGPUThreadPriority(This,pPriority)	\
-    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) ) 
+    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) )
 
 #endif /* COBJMACROS */
 
@@ -2382,9 +2382,9 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi_0000_0011 */
-  /* [local] */ 
+  /* [local] */
 
-  typedef 
+  typedef
   enum DXGI_ADAPTER_FLAG
   {
     DXGI_ADAPTER_FLAG_NONE        = 0,
@@ -2423,7 +2423,7 @@ extern "C"{
 #define __IDXGIFactory1_INTERFACE_DEFINED__
 
   /* interface IDXGIFactory1 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIFactory1;
@@ -2434,9 +2434,9 @@ extern "C"{
     IDXGIFactory1 : public IDXGIFactory
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE EnumAdapters1( 
+    virtual HRESULT STDMETHODCALLTYPE EnumAdapters1(
       /* [in] */ UINT Adapter,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter1 **ppAdapter) = 0;
 
     virtual BOOL STDMETHODCALLTYPE IsCurrent( void) = 0;
@@ -2450,87 +2450,87 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIFactory1 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIFactory1 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIFactory1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIFactory1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIFactory1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIFactory1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIFactory1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumAdapters )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumAdapters )(
       IDXGIFactory1 * This,
       /* [in] */ UINT Adapter,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )( 
+    HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )(
       IDXGIFactory1 * This,
       HWND WindowHandle,
       UINT Flags);
 
-    HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )( 
+    HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )(
       IDXGIFactory1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HWND *pWindowHandle);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )(
       IDXGIFactory1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_SWAP_CHAIN_DESC *pDesc,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain **ppSwapChain);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )(
       IDXGIFactory1 * This,
       /* [in] */ HMODULE Module,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumAdapters1 )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumAdapters1 )(
       IDXGIFactory1 * This,
       /* [in] */ UINT Adapter,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter1 **ppAdapter);
 
-    BOOL ( STDMETHODCALLTYPE *IsCurrent )( 
+    BOOL ( STDMETHODCALLTYPE *IsCurrent )(
       IDXGIFactory1 * This);
 
     END_INTERFACE
@@ -2547,49 +2547,49 @@ extern "C"{
 
 
 #define IDXGIFactory1_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIFactory1_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIFactory1_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIFactory1_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIFactory1_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIFactory1_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIFactory1_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIFactory1_EnumAdapters(This,Adapter,ppAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) )
 
 #define IDXGIFactory1_MakeWindowAssociation(This,WindowHandle,Flags)	\
-    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) ) 
+    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) )
 
 #define IDXGIFactory1_GetWindowAssociation(This,pWindowHandle)	\
-    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) ) 
+    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) )
 
 #define IDXGIFactory1_CreateSwapChain(This,pDevice,pDesc,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) )
 
 #define IDXGIFactory1_CreateSoftwareAdapter(This,Module,ppAdapter)	\
-    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) ) 
+    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) )
 
 
 #define IDXGIFactory1_EnumAdapters1(This,Adapter,ppAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapters1(This,Adapter,ppAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapters1(This,Adapter,ppAdapter) )
 
 #define IDXGIFactory1_IsCurrent(This)	\
-    ( (This)->lpVtbl -> IsCurrent(This) ) 
+    ( (This)->lpVtbl -> IsCurrent(This) )
 
 #endif /* COBJMACROS */
 
@@ -2606,7 +2606,7 @@ extern "C"{
 #define __IDXGIAdapter1_INTERFACE_DEFINED__
 
   /* interface IDXGIAdapter1 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIAdapter1;
@@ -2617,8 +2617,8 @@ extern "C"{
     IDXGIAdapter1 : public IDXGIAdapter
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetDesc1( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDesc1(
+      /* [annotation][out] */
       _Out_  DXGI_ADAPTER_DESC1 *pDesc) = 0;
 
   };
@@ -2630,70 +2630,70 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIAdapter1 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIAdapter1 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIAdapter1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIAdapter1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIAdapter1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIAdapter1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIAdapter1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumOutputs )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumOutputs )(
       IDXGIAdapter1 * This,
       /* [in] */ UINT Output,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Out_  IDXGIOutput **ppOutput);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGIAdapter1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_ADAPTER_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *CheckInterfaceSupport )( 
+    HRESULT ( STDMETHODCALLTYPE *CheckInterfaceSupport )(
       IDXGIAdapter1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID InterfaceName,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  LARGE_INTEGER *pUMDVersion);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc1 )(
       IDXGIAdapter1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_ADAPTER_DESC1 *pDesc);
 
     END_INTERFACE
@@ -2710,40 +2710,40 @@ extern "C"{
 
 
 #define IDXGIAdapter1_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIAdapter1_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIAdapter1_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIAdapter1_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIAdapter1_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIAdapter1_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIAdapter1_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIAdapter1_EnumOutputs(This,Output,ppOutput)	\
-    ( (This)->lpVtbl -> EnumOutputs(This,Output,ppOutput) ) 
+    ( (This)->lpVtbl -> EnumOutputs(This,Output,ppOutput) )
 
 #define IDXGIAdapter1_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIAdapter1_CheckInterfaceSupport(This,InterfaceName,pUMDVersion)	\
-    ( (This)->lpVtbl -> CheckInterfaceSupport(This,InterfaceName,pUMDVersion) ) 
+    ( (This)->lpVtbl -> CheckInterfaceSupport(This,InterfaceName,pUMDVersion) )
 
 
 #define IDXGIAdapter1_GetDesc1(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc1(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc1(This,pDesc) )
 
 #endif /* COBJMACROS */
 
@@ -2760,7 +2760,7 @@ extern "C"{
 #define __IDXGIDevice1_INTERFACE_DEFINED__
 
   /* interface IDXGIDevice1 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIDevice1;
@@ -2771,11 +2771,11 @@ extern "C"{
     IDXGIDevice1 : public IDXGIDevice
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE SetMaximumFrameLatency( 
+    virtual HRESULT STDMETHODCALLTYPE SetMaximumFrameLatency(
       /* [in] */ UINT MaxLatency) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetMaximumFrameLatency( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetMaximumFrameLatency(
+      /* [annotation][out] */
       _Out_  UINT *pMaxLatency) = 0;
 
   };
@@ -2787,89 +2787,89 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIDevice1 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIDevice1 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIDevice1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIDevice1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIDevice1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIDevice1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIDevice1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetAdapter )( 
+    HRESULT ( STDMETHODCALLTYPE *GetAdapter )(
       IDXGIDevice1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **pAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSurface )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSurface )(
       IDXGIDevice1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SURFACE_DESC *pDesc,
       /* [in] */ UINT NumSurfaces,
       /* [in] */ DXGI_USAGE Usage,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  const DXGI_SHARED_RESOURCE *pSharedResource,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISurface **ppSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )( 
+    HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )(
       IDXGIDevice1 * This,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IUnknown *const *ppResources,
-      /* [annotation][size_is][out] */ 
+      /* [annotation][size_is][out] */
       _Out_writes_(NumResources)  DXGI_RESIDENCY *pResidencyStatus,
       /* [in] */ UINT NumResources);
 
-    HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )(
       IDXGIDevice1 * This,
       /* [in] */ INT Priority);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )(
       IDXGIDevice1 * This,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  INT *pPriority);
 
-    HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )( 
+    HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )(
       IDXGIDevice1 * This,
       /* [in] */ UINT MaxLatency);
 
-    HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )( 
+    HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )(
       IDXGIDevice1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pMaxLatency);
 
     END_INTERFACE
@@ -2886,49 +2886,49 @@ extern "C"{
 
 
 #define IDXGIDevice1_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIDevice1_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIDevice1_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIDevice1_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIDevice1_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIDevice1_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIDevice1_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIDevice1_GetAdapter(This,pAdapter)	\
-    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) ) 
+    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) )
 
 #define IDXGIDevice1_CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface)	\
-    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) ) 
+    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) )
 
 #define IDXGIDevice1_QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources)	\
-    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) ) 
+    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) )
 
 #define IDXGIDevice1_SetGPUThreadPriority(This,Priority)	\
-    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) ) 
+    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) )
 
 #define IDXGIDevice1_GetGPUThreadPriority(This,pPriority)	\
-    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) ) 
+    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) )
 
 
 #define IDXGIDevice1_SetMaximumFrameLatency(This,MaxLatency)	\
-    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) ) 
+    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) )
 
 #define IDXGIDevice1_GetMaximumFrameLatency(This,pMaxLatency)	\
-    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) ) 
+    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) )
 
 #endif /* COBJMACROS */
 
@@ -2942,7 +2942,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi_0000_0014 */
-  /* [local] */ 
+  /* [local] */
 
 #ifdef __cplusplus
 #endif /*__cplusplus*/
@@ -3016,7 +3016,7 @@ extern "C"{
 #pragma once
 #endif
 
-/* Forward Declarations */ 
+/* Forward Declarations */
 
 #ifndef __IDXGIDisplayControl_FWD_DEFINED__
 #define __IDXGIDisplayControl_FWD_DEFINED__
@@ -3086,11 +3086,11 @@ typedef interface IDXGIOutput1 IDXGIOutput1;
 
 #ifdef __cplusplus
 extern "C"{
-#endif 
+#endif
 
 
   /* interface __MIDL_itf_dxgi1_2_0000_0000 */
-  /* [local] */ 
+  /* [local] */
 
 //#include <winapifamily.h>
 #pragma region Desktop Family
@@ -3104,7 +3104,7 @@ extern "C"{
 #define __IDXGIDisplayControl_INTERFACE_DEFINED__
 
   /* interface IDXGIDisplayControl */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIDisplayControl;
@@ -3117,7 +3117,7 @@ extern "C"{
   public:
     virtual BOOL STDMETHODCALLTYPE IsStereoEnabled( void) = 0;
 
-    virtual void STDMETHODCALLTYPE SetStereoEnabled( 
+    virtual void STDMETHODCALLTYPE SetStereoEnabled(
       BOOL enabled) = 0;
 
   };
@@ -3129,22 +3129,22 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIDisplayControl * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIDisplayControl * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIDisplayControl * This);
 
-    BOOL ( STDMETHODCALLTYPE *IsStereoEnabled )( 
+    BOOL ( STDMETHODCALLTYPE *IsStereoEnabled )(
       IDXGIDisplayControl * This);
 
-    void ( STDMETHODCALLTYPE *SetStereoEnabled )( 
+    void ( STDMETHODCALLTYPE *SetStereoEnabled )(
       IDXGIDisplayControl * This,
       BOOL enabled);
 
@@ -3162,20 +3162,20 @@ extern "C"{
 
 
 #define IDXGIDisplayControl_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIDisplayControl_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIDisplayControl_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIDisplayControl_IsStereoEnabled(This)	\
-    ( (This)->lpVtbl -> IsStereoEnabled(This) ) 
+    ( (This)->lpVtbl -> IsStereoEnabled(This) )
 
 #define IDXGIDisplayControl_SetStereoEnabled(This,enabled)	\
-    ( (This)->lpVtbl -> SetStereoEnabled(This,enabled) ) 
+    ( (This)->lpVtbl -> SetStereoEnabled(This,enabled) )
 
 #endif /* COBJMACROS */
 
@@ -3189,7 +3189,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_2_0000_0001 */
-  /* [local] */ 
+  /* [local] */
 
   typedef struct DXGI_OUTDUPL_MOVE_RECT
   {
@@ -3210,7 +3210,7 @@ extern "C"{
     BOOL Visible;
   } 	DXGI_OUTDUPL_POINTER_POSITION;
 
-  typedef 
+  typedef
   enum DXGI_OUTDUPL_POINTER_SHAPE_TYPE
   {
     DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME	= 0x1,
@@ -3248,7 +3248,7 @@ extern "C"{
 #define __IDXGIOutputDuplication_INTERFACE_DEFINED__
 
   /* interface IDXGIOutputDuplication */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIOutputDuplication;
@@ -3259,46 +3259,46 @@ extern "C"{
     IDXGIOutputDuplication : public IDXGIObject
   {
   public:
-    virtual void STDMETHODCALLTYPE GetDesc( 
-      /* [annotation][out] */ 
+    virtual void STDMETHODCALLTYPE GetDesc(
+      /* [annotation][out] */
       _Out_  DXGI_OUTDUPL_DESC *pDesc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE AcquireNextFrame( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE AcquireNextFrame(
+      /* [annotation][in] */
       _In_  UINT TimeoutInMilliseconds,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_OUTDUPL_FRAME_INFO *pFrameInfo,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIResource **ppDesktopResource) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetFrameDirtyRects( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetFrameDirtyRects(
+      /* [annotation][in] */
       _In_  UINT DirtyRectsBufferSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_to_(DirtyRectsBufferSize, *pDirtyRectsBufferSizeRequired)  RECT *pDirtyRectsBuffer,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pDirtyRectsBufferSizeRequired) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetFrameMoveRects( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetFrameMoveRects(
+      /* [annotation][in] */
       _In_  UINT MoveRectsBufferSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_to_(MoveRectsBufferSize, *pMoveRectsBufferSizeRequired)  DXGI_OUTDUPL_MOVE_RECT *pMoveRectBuffer,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pMoveRectsBufferSizeRequired) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetFramePointerShape( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetFramePointerShape(
+      /* [annotation][in] */
       _In_  UINT PointerShapeBufferSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_to_(PointerShapeBufferSize, *pPointerShapeBufferSizeRequired)  void *pPointerShapeBuffer,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pPointerShapeBufferSizeRequired,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_OUTDUPL_POINTER_SHAPE_INFO *pPointerShapeInfo) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE MapDesktopSurface( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE MapDesktopSurface(
+      /* [annotation][out] */
       _Out_  DXGI_MAPPED_RECT *pLockedRect) = 0;
 
     virtual HRESULT STDMETHODCALLTYPE UnMapDesktopSurface( void) = 0;
@@ -3314,101 +3314,101 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIOutputDuplication * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIOutputDuplication * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIOutputDuplication * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIOutputDuplication * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIOutputDuplication * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIOutputDuplication * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIOutputDuplication * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    void ( STDMETHODCALLTYPE *GetDesc )( 
+    void ( STDMETHODCALLTYPE *GetDesc )(
       IDXGIOutputDuplication * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_OUTDUPL_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *AcquireNextFrame )( 
+    HRESULT ( STDMETHODCALLTYPE *AcquireNextFrame )(
       IDXGIOutputDuplication * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT TimeoutInMilliseconds,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_OUTDUPL_FRAME_INFO *pFrameInfo,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIResource **ppDesktopResource);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameDirtyRects )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameDirtyRects )(
       IDXGIOutputDuplication * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT DirtyRectsBufferSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_to_(DirtyRectsBufferSize, *pDirtyRectsBufferSizeRequired)  RECT *pDirtyRectsBuffer,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pDirtyRectsBufferSizeRequired);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameMoveRects )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameMoveRects )(
       IDXGIOutputDuplication * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT MoveRectsBufferSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_to_(MoveRectsBufferSize, *pMoveRectsBufferSizeRequired)  DXGI_OUTDUPL_MOVE_RECT *pMoveRectBuffer,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pMoveRectsBufferSizeRequired);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFramePointerShape )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFramePointerShape )(
       IDXGIOutputDuplication * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT PointerShapeBufferSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_to_(PointerShapeBufferSize, *pPointerShapeBufferSizeRequired)  void *pPointerShapeBuffer,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pPointerShapeBufferSizeRequired,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_OUTDUPL_POINTER_SHAPE_INFO *pPointerShapeInfo);
 
-    HRESULT ( STDMETHODCALLTYPE *MapDesktopSurface )( 
+    HRESULT ( STDMETHODCALLTYPE *MapDesktopSurface )(
       IDXGIOutputDuplication * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MAPPED_RECT *pLockedRect);
 
-    HRESULT ( STDMETHODCALLTYPE *UnMapDesktopSurface )( 
+    HRESULT ( STDMETHODCALLTYPE *UnMapDesktopSurface )(
       IDXGIOutputDuplication * This);
 
-    HRESULT ( STDMETHODCALLTYPE *ReleaseFrame )( 
+    HRESULT ( STDMETHODCALLTYPE *ReleaseFrame )(
       IDXGIOutputDuplication * This);
 
     END_INTERFACE
@@ -3425,51 +3425,51 @@ extern "C"{
 
 
 #define IDXGIOutputDuplication_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIOutputDuplication_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIOutputDuplication_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIOutputDuplication_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIOutputDuplication_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIOutputDuplication_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIOutputDuplication_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIOutputDuplication_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIOutputDuplication_AcquireNextFrame(This,TimeoutInMilliseconds,pFrameInfo,ppDesktopResource)	\
-    ( (This)->lpVtbl -> AcquireNextFrame(This,TimeoutInMilliseconds,pFrameInfo,ppDesktopResource) ) 
+    ( (This)->lpVtbl -> AcquireNextFrame(This,TimeoutInMilliseconds,pFrameInfo,ppDesktopResource) )
 
 #define IDXGIOutputDuplication_GetFrameDirtyRects(This,DirtyRectsBufferSize,pDirtyRectsBuffer,pDirtyRectsBufferSizeRequired)	\
-    ( (This)->lpVtbl -> GetFrameDirtyRects(This,DirtyRectsBufferSize,pDirtyRectsBuffer,pDirtyRectsBufferSizeRequired) ) 
+    ( (This)->lpVtbl -> GetFrameDirtyRects(This,DirtyRectsBufferSize,pDirtyRectsBuffer,pDirtyRectsBufferSizeRequired) )
 
 #define IDXGIOutputDuplication_GetFrameMoveRects(This,MoveRectsBufferSize,pMoveRectBuffer,pMoveRectsBufferSizeRequired)	\
-    ( (This)->lpVtbl -> GetFrameMoveRects(This,MoveRectsBufferSize,pMoveRectBuffer,pMoveRectsBufferSizeRequired) ) 
+    ( (This)->lpVtbl -> GetFrameMoveRects(This,MoveRectsBufferSize,pMoveRectBuffer,pMoveRectsBufferSizeRequired) )
 
 #define IDXGIOutputDuplication_GetFramePointerShape(This,PointerShapeBufferSize,pPointerShapeBuffer,pPointerShapeBufferSizeRequired,pPointerShapeInfo)	\
-    ( (This)->lpVtbl -> GetFramePointerShape(This,PointerShapeBufferSize,pPointerShapeBuffer,pPointerShapeBufferSizeRequired,pPointerShapeInfo) ) 
+    ( (This)->lpVtbl -> GetFramePointerShape(This,PointerShapeBufferSize,pPointerShapeBuffer,pPointerShapeBufferSizeRequired,pPointerShapeInfo) )
 
 #define IDXGIOutputDuplication_MapDesktopSurface(This,pLockedRect)	\
-    ( (This)->lpVtbl -> MapDesktopSurface(This,pLockedRect) ) 
+    ( (This)->lpVtbl -> MapDesktopSurface(This,pLockedRect) )
 
 #define IDXGIOutputDuplication_UnMapDesktopSurface(This)	\
-    ( (This)->lpVtbl -> UnMapDesktopSurface(This) ) 
+    ( (This)->lpVtbl -> UnMapDesktopSurface(This) )
 
 #define IDXGIOutputDuplication_ReleaseFrame(This)	\
-    ( (This)->lpVtbl -> ReleaseFrame(This) ) 
+    ( (This)->lpVtbl -> ReleaseFrame(This) )
 
 #endif /* COBJMACROS */
 
@@ -3483,13 +3483,13 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_2_0000_0002 */
-  /* [local] */ 
+  /* [local] */
 
 #endif /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) */
 #pragma endregion
 #pragma region App Family
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
-  typedef 
+  typedef
   enum DXGI_ALPHA_MODE
   {
     DXGI_ALPHA_MODE_UNSPECIFIED	= 0,
@@ -3508,7 +3508,7 @@ extern "C"{
 #define __IDXGISurface2_INTERFACE_DEFINED__
 
   /* interface IDXGISurface2 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGISurface2;
@@ -3519,12 +3519,12 @@ extern "C"{
     IDXGISurface2 : public IDXGISurface1
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetResource( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetResource(
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  void **ppParentResource,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pSubresourceIndex) = 0;
 
   };
@@ -3536,88 +3536,88 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGISurface2 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGISurface2 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGISurface2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGISurface2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGISurface2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGISurface2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGISurface2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGISurface2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGISurface2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SURFACE_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *Map )( 
+    HRESULT ( STDMETHODCALLTYPE *Map )(
       IDXGISurface2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MAPPED_RECT *pLockedRect,
       /* [in] */ UINT MapFlags);
 
-    HRESULT ( STDMETHODCALLTYPE *Unmap )( 
+    HRESULT ( STDMETHODCALLTYPE *Unmap )(
       IDXGISurface2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDC )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDC )(
       IDXGISurface2 * This,
       /* [in] */ BOOL Discard,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HDC *phdc);
 
-    HRESULT ( STDMETHODCALLTYPE *ReleaseDC )( 
+    HRESULT ( STDMETHODCALLTYPE *ReleaseDC )(
       IDXGISurface2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  RECT *pDirtyRect);
 
-    HRESULT ( STDMETHODCALLTYPE *GetResource )( 
+    HRESULT ( STDMETHODCALLTYPE *GetResource )(
       IDXGISurface2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  void **ppParentResource,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pSubresourceIndex);
 
     END_INTERFACE
@@ -3634,51 +3634,51 @@ extern "C"{
 
 
 #define IDXGISurface2_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISurface2_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISurface2_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISurface2_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGISurface2_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGISurface2_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGISurface2_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGISurface2_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGISurface2_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGISurface2_Map(This,pLockedRect,MapFlags)	\
-    ( (This)->lpVtbl -> Map(This,pLockedRect,MapFlags) ) 
+    ( (This)->lpVtbl -> Map(This,pLockedRect,MapFlags) )
 
 #define IDXGISurface2_Unmap(This)	\
-    ( (This)->lpVtbl -> Unmap(This) ) 
+    ( (This)->lpVtbl -> Unmap(This) )
 
 
 #define IDXGISurface2_GetDC(This,Discard,phdc)	\
-    ( (This)->lpVtbl -> GetDC(This,Discard,phdc) ) 
+    ( (This)->lpVtbl -> GetDC(This,Discard,phdc) )
 
 #define IDXGISurface2_ReleaseDC(This,pDirtyRect)	\
-    ( (This)->lpVtbl -> ReleaseDC(This,pDirtyRect) ) 
+    ( (This)->lpVtbl -> ReleaseDC(This,pDirtyRect) )
 
 
 #define IDXGISurface2_GetResource(This,riid,ppParentResource,pSubresourceIndex)	\
-    ( (This)->lpVtbl -> GetResource(This,riid,ppParentResource,pSubresourceIndex) ) 
+    ( (This)->lpVtbl -> GetResource(This,riid,ppParentResource,pSubresourceIndex) )
 
 #endif /* COBJMACROS */
 
@@ -3695,7 +3695,7 @@ extern "C"{
 #define __IDXGIResource1_INTERFACE_DEFINED__
 
   /* interface IDXGIResource1 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIResource1;
@@ -3706,19 +3706,19 @@ extern "C"{
     IDXGIResource1 : public IDXGIResource
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE CreateSubresourceSurface( 
+    virtual HRESULT STDMETHODCALLTYPE CreateSubresourceSurface(
       UINT index,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISurface2 **ppSurface) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CreateSharedHandle( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE CreateSharedHandle(
+      /* [annotation][in] */
       _In_opt_  const SECURITY_ATTRIBUTES *pAttributes,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DWORD dwAccess,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  LPCWSTR lpName,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HANDLE *pHandle) = 0;
 
   };
@@ -3730,90 +3730,90 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIResource1 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIResource1 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIResource1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIResource1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIResource1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIResource1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIResource1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGIResource1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *GetSharedHandle )( 
+    HRESULT ( STDMETHODCALLTYPE *GetSharedHandle )(
       IDXGIResource1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HANDLE *pSharedHandle);
 
-    HRESULT ( STDMETHODCALLTYPE *GetUsage )( 
+    HRESULT ( STDMETHODCALLTYPE *GetUsage )(
       IDXGIResource1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_USAGE *pUsage);
 
-    HRESULT ( STDMETHODCALLTYPE *SetEvictionPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *SetEvictionPriority )(
       IDXGIResource1 * This,
       /* [in] */ UINT EvictionPriority);
 
-    HRESULT ( STDMETHODCALLTYPE *GetEvictionPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *GetEvictionPriority )(
       IDXGIResource1 * This,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  UINT *pEvictionPriority);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSubresourceSurface )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSubresourceSurface )(
       IDXGIResource1 * This,
       UINT index,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISurface2 **ppSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSharedHandle )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSharedHandle )(
       IDXGIResource1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  const SECURITY_ATTRIBUTES *pAttributes,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DWORD dwAccess,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  LPCWSTR lpName,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HANDLE *pHandle);
 
     END_INTERFACE
@@ -3830,50 +3830,50 @@ extern "C"{
 
 
 #define IDXGIResource1_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIResource1_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIResource1_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIResource1_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIResource1_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIResource1_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIResource1_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIResource1_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGIResource1_GetSharedHandle(This,pSharedHandle)	\
-    ( (This)->lpVtbl -> GetSharedHandle(This,pSharedHandle) ) 
+    ( (This)->lpVtbl -> GetSharedHandle(This,pSharedHandle) )
 
 #define IDXGIResource1_GetUsage(This,pUsage)	\
-    ( (This)->lpVtbl -> GetUsage(This,pUsage) ) 
+    ( (This)->lpVtbl -> GetUsage(This,pUsage) )
 
 #define IDXGIResource1_SetEvictionPriority(This,EvictionPriority)	\
-    ( (This)->lpVtbl -> SetEvictionPriority(This,EvictionPriority) ) 
+    ( (This)->lpVtbl -> SetEvictionPriority(This,EvictionPriority) )
 
 #define IDXGIResource1_GetEvictionPriority(This,pEvictionPriority)	\
-    ( (This)->lpVtbl -> GetEvictionPriority(This,pEvictionPriority) ) 
+    ( (This)->lpVtbl -> GetEvictionPriority(This,pEvictionPriority) )
 
 
 #define IDXGIResource1_CreateSubresourceSurface(This,index,ppSurface)	\
-    ( (This)->lpVtbl -> CreateSubresourceSurface(This,index,ppSurface) ) 
+    ( (This)->lpVtbl -> CreateSubresourceSurface(This,index,ppSurface) )
 
 #define IDXGIResource1_CreateSharedHandle(This,pAttributes,dwAccess,lpName,pHandle)	\
-    ( (This)->lpVtbl -> CreateSharedHandle(This,pAttributes,dwAccess,lpName,pHandle) ) 
+    ( (This)->lpVtbl -> CreateSharedHandle(This,pAttributes,dwAccess,lpName,pHandle) )
 
 #endif /* COBJMACROS */
 
@@ -3887,14 +3887,14 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_2_0000_0004 */
-  /* [local] */ 
+  /* [local] */
 
-  typedef 
+  typedef
   enum _DXGI_OFFER_RESOURCE_PRIORITY
   {
     DXGI_OFFER_RESOURCE_PRIORITY_LOW	= 1,
     DXGI_OFFER_RESOURCE_PRIORITY_NORMAL	= ( DXGI_OFFER_RESOURCE_PRIORITY_LOW + 1 ) ,
-    DXGI_OFFER_RESOURCE_PRIORITY_HIGH	= ( DXGI_OFFER_RESOURCE_PRIORITY_NORMAL + 1 ) 
+    DXGI_OFFER_RESOURCE_PRIORITY_HIGH	= ( DXGI_OFFER_RESOURCE_PRIORITY_NORMAL + 1 )
   } 	DXGI_OFFER_RESOURCE_PRIORITY;
 
 
@@ -3906,7 +3906,7 @@ extern "C"{
 #define __IDXGIDevice2_INTERFACE_DEFINED__
 
   /* interface IDXGIDevice2 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIDevice2;
@@ -3917,24 +3917,24 @@ extern "C"{
     IDXGIDevice2 : public IDXGIDevice1
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE OfferResources( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE OfferResources(
+      /* [annotation][in] */
       _In_  UINT NumResources,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_OFFER_RESOURCE_PRIORITY Priority) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE ReclaimResources( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE ReclaimResources(
+      /* [annotation][in] */
       _In_  UINT NumResources,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-      /* [annotation][size_is][out] */ 
+      /* [annotation][size_is][out] */
       _Out_writes_all_opt_(NumResources)  BOOL *pDiscarded) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE EnqueueSetEvent( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE EnqueueSetEvent(
+      /* [annotation][in] */
       _In_  HANDLE hEvent) = 0;
 
   };
@@ -3946,112 +3946,112 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIDevice2 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIDevice2 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIDevice2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIDevice2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIDevice2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIDevice2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIDevice2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetAdapter )( 
+    HRESULT ( STDMETHODCALLTYPE *GetAdapter )(
       IDXGIDevice2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **pAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSurface )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSurface )(
       IDXGIDevice2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SURFACE_DESC *pDesc,
       /* [in] */ UINT NumSurfaces,
       /* [in] */ DXGI_USAGE Usage,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  const DXGI_SHARED_RESOURCE *pSharedResource,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISurface **ppSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )( 
+    HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )(
       IDXGIDevice2 * This,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IUnknown *const *ppResources,
-      /* [annotation][size_is][out] */ 
+      /* [annotation][size_is][out] */
       _Out_writes_(NumResources)  DXGI_RESIDENCY *pResidencyStatus,
       /* [in] */ UINT NumResources);
 
-    HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )(
       IDXGIDevice2 * This,
       /* [in] */ INT Priority);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )(
       IDXGIDevice2 * This,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  INT *pPriority);
 
-    HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )( 
+    HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )(
       IDXGIDevice2 * This,
       /* [in] */ UINT MaxLatency);
 
-    HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )( 
+    HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )(
       IDXGIDevice2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pMaxLatency);
 
-    HRESULT ( STDMETHODCALLTYPE *OfferResources )( 
+    HRESULT ( STDMETHODCALLTYPE *OfferResources )(
       IDXGIDevice2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT NumResources,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_OFFER_RESOURCE_PRIORITY Priority);
 
-    HRESULT ( STDMETHODCALLTYPE *ReclaimResources )( 
+    HRESULT ( STDMETHODCALLTYPE *ReclaimResources )(
       IDXGIDevice2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT NumResources,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-      /* [annotation][size_is][out] */ 
+      /* [annotation][size_is][out] */
       _Out_writes_all_opt_(NumResources)  BOOL *pDiscarded);
 
-    HRESULT ( STDMETHODCALLTYPE *EnqueueSetEvent )( 
+    HRESULT ( STDMETHODCALLTYPE *EnqueueSetEvent )(
       IDXGIDevice2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HANDLE hEvent);
 
     END_INTERFACE
@@ -4068,59 +4068,59 @@ extern "C"{
 
 
 #define IDXGIDevice2_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIDevice2_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIDevice2_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIDevice2_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIDevice2_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIDevice2_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIDevice2_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIDevice2_GetAdapter(This,pAdapter)	\
-    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) ) 
+    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) )
 
 #define IDXGIDevice2_CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface)	\
-    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) ) 
+    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) )
 
 #define IDXGIDevice2_QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources)	\
-    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) ) 
+    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) )
 
 #define IDXGIDevice2_SetGPUThreadPriority(This,Priority)	\
-    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) ) 
+    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) )
 
 #define IDXGIDevice2_GetGPUThreadPriority(This,pPriority)	\
-    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) ) 
+    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) )
 
 
 #define IDXGIDevice2_SetMaximumFrameLatency(This,MaxLatency)	\
-    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) ) 
+    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) )
 
 #define IDXGIDevice2_GetMaximumFrameLatency(This,pMaxLatency)	\
-    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) ) 
+    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) )
 
 
 #define IDXGIDevice2_OfferResources(This,NumResources,ppResources,Priority)	\
-    ( (This)->lpVtbl -> OfferResources(This,NumResources,ppResources,Priority) ) 
+    ( (This)->lpVtbl -> OfferResources(This,NumResources,ppResources,Priority) )
 
 #define IDXGIDevice2_ReclaimResources(This,NumResources,ppResources,pDiscarded)	\
-    ( (This)->lpVtbl -> ReclaimResources(This,NumResources,ppResources,pDiscarded) ) 
+    ( (This)->lpVtbl -> ReclaimResources(This,NumResources,ppResources,pDiscarded) )
 
 #define IDXGIDevice2_EnqueueSetEvent(This,hEvent)	\
-    ( (This)->lpVtbl -> EnqueueSetEvent(This,hEvent) ) 
+    ( (This)->lpVtbl -> EnqueueSetEvent(This,hEvent) )
 
 #endif /* COBJMACROS */
 
@@ -4134,7 +4134,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_2_0000_0005 */
-  /* [local] */ 
+  /* [local] */
 
 #define	DXGI_ENUM_MODES_STEREO	( 4UL )
 
@@ -4155,7 +4155,7 @@ extern "C"{
     BOOL Stereo;
   } 	DXGI_MODE_DESC1;
 
-  typedef 
+  typedef
   enum DXGI_SCALING
   {
     DXGI_SCALING_STRETCH	= 0,
@@ -4203,7 +4203,7 @@ extern "C"{
 #define __IDXGISwapChain1_INTERFACE_DEFINED__
 
   /* interface IDXGISwapChain1 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGISwapChain1;
@@ -4214,50 +4214,50 @@ extern "C"{
     IDXGISwapChain1 : public IDXGISwapChain
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetDesc1( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDesc1(
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_DESC1 *pDesc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetFullscreenDesc( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetFullscreenDesc(
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pDesc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetHwnd( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetHwnd(
+      /* [annotation][out] */
       _Out_  HWND *pHwnd) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetCoreWindow( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetCoreWindow(
+      /* [annotation][in] */
       _In_  REFIID refiid,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  void **ppUnk) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE Present1( 
+    virtual HRESULT STDMETHODCALLTYPE Present1(
       /* [in] */ UINT SyncInterval,
       /* [in] */ UINT PresentFlags,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_PRESENT_PARAMETERS *pPresentParameters) = 0;
 
     virtual BOOL STDMETHODCALLTYPE IsTemporaryMonoSupported( void) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetRestrictToOutput( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetRestrictToOutput(
+      /* [annotation][out] */
       _Out_  IDXGIOutput **ppRestrictToOutput) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetBackgroundColor( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE SetBackgroundColor(
+      /* [annotation][in] */
       _In_  const DXGI_RGBA *pColor) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetBackgroundColor( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetBackgroundColor(
+      /* [annotation][out] */
       _Out_  DXGI_RGBA *pColor) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetRotation( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE SetRotation(
+      /* [annotation][in] */
       _In_  DXGI_MODE_ROTATION Rotation) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetRotation( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetRotation(
+      /* [annotation][out] */
       _Out_  DXGI_MODE_ROTATION *pRotation) = 0;
 
   };
@@ -4269,88 +4269,88 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGISwapChain1 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGISwapChain1 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGISwapChain1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGISwapChain1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGISwapChain1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGISwapChain1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGISwapChain1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGISwapChain1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *Present )( 
+    HRESULT ( STDMETHODCALLTYPE *Present )(
       IDXGISwapChain1 * This,
       /* [in] */ UINT SyncInterval,
       /* [in] */ UINT Flags);
 
-    HRESULT ( STDMETHODCALLTYPE *GetBuffer )( 
+    HRESULT ( STDMETHODCALLTYPE *GetBuffer )(
       IDXGISwapChain1 * This,
       /* [in] */ UINT Buffer,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Out_  void **ppSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )( 
+    HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )(
       IDXGISwapChain1 * This,
       /* [in] */ BOOL Fullscreen,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pTarget);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_opt_  BOOL *pFullscreen,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_opt_  IDXGIOutput **ppTarget);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )( 
+    HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )(
       IDXGISwapChain1 * This,
       /* [in] */ UINT BufferCount,
       /* [in] */ UINT Width,
@@ -4358,81 +4358,81 @@ extern "C"{
       /* [in] */ DXGI_FORMAT NewFormat,
       /* [in] */ UINT SwapChainFlags);
 
-    HRESULT ( STDMETHODCALLTYPE *ResizeTarget )( 
+    HRESULT ( STDMETHODCALLTYPE *ResizeTarget )(
       IDXGISwapChain1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC *pNewTargetParameters);
 
-    HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )( 
+    HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIOutput **ppOutput);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS *pStats);
 
-    HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )( 
+    HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pLastPresentCount);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc1 )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_DESC1 *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *GetHwnd )( 
+    HRESULT ( STDMETHODCALLTYPE *GetHwnd )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HWND *pHwnd);
 
-    HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )( 
+    HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )(
       IDXGISwapChain1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID refiid,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  void **ppUnk);
 
-    HRESULT ( STDMETHODCALLTYPE *Present1 )( 
+    HRESULT ( STDMETHODCALLTYPE *Present1 )(
       IDXGISwapChain1 * This,
       /* [in] */ UINT SyncInterval,
       /* [in] */ UINT PresentFlags,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_PRESENT_PARAMETERS *pPresentParameters);
 
-    BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )( 
+    BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )(
       IDXGISwapChain1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )( 
+    HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIOutput **ppRestrictToOutput);
 
-    HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )( 
+    HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )(
       IDXGISwapChain1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_RGBA *pColor);
 
-    HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )( 
+    HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_RGBA *pColor);
 
-    HRESULT ( STDMETHODCALLTYPE *SetRotation )( 
+    HRESULT ( STDMETHODCALLTYPE *SetRotation )(
       IDXGISwapChain1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_MODE_ROTATION Rotation);
 
-    HRESULT ( STDMETHODCALLTYPE *GetRotation )( 
+    HRESULT ( STDMETHODCALLTYPE *GetRotation )(
       IDXGISwapChain1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_ROTATION *pRotation);
 
     END_INTERFACE
@@ -4449,95 +4449,95 @@ extern "C"{
 
 
 #define IDXGISwapChain1_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISwapChain1_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISwapChain1_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISwapChain1_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGISwapChain1_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGISwapChain1_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGISwapChain1_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGISwapChain1_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGISwapChain1_Present(This,SyncInterval,Flags)	\
-    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) ) 
+    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) )
 
 #define IDXGISwapChain1_GetBuffer(This,Buffer,riid,ppSurface)	\
-    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) ) 
+    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) )
 
 #define IDXGISwapChain1_SetFullscreenState(This,Fullscreen,pTarget)	\
-    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) ) 
+    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) )
 
 #define IDXGISwapChain1_GetFullscreenState(This,pFullscreen,ppTarget)	\
-    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) ) 
+    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) )
 
 #define IDXGISwapChain1_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGISwapChain1_ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags)	\
-    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) ) 
+    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) )
 
 #define IDXGISwapChain1_ResizeTarget(This,pNewTargetParameters)	\
-    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) ) 
+    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) )
 
 #define IDXGISwapChain1_GetContainingOutput(This,ppOutput)	\
-    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) ) 
+    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) )
 
 #define IDXGISwapChain1_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 #define IDXGISwapChain1_GetLastPresentCount(This,pLastPresentCount)	\
-    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) ) 
+    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) )
 
 
 #define IDXGISwapChain1_GetDesc1(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc1(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc1(This,pDesc) )
 
 #define IDXGISwapChain1_GetFullscreenDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) )
 
 #define IDXGISwapChain1_GetHwnd(This,pHwnd)	\
-    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) ) 
+    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) )
 
 #define IDXGISwapChain1_GetCoreWindow(This,refiid,ppUnk)	\
-    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) ) 
+    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) )
 
 #define IDXGISwapChain1_Present1(This,SyncInterval,PresentFlags,pPresentParameters)	\
-    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) ) 
+    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) )
 
 #define IDXGISwapChain1_IsTemporaryMonoSupported(This)	\
-    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) ) 
+    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) )
 
 #define IDXGISwapChain1_GetRestrictToOutput(This,ppRestrictToOutput)	\
-    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) ) 
+    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) )
 
 #define IDXGISwapChain1_SetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain1_GetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain1_SetRotation(This,Rotation)	\
-    ( (This)->lpVtbl -> SetRotation(This,Rotation) ) 
+    ( (This)->lpVtbl -> SetRotation(This,Rotation) )
 
 #define IDXGISwapChain1_GetRotation(This,pRotation)	\
-    ( (This)->lpVtbl -> GetRotation(This,pRotation) ) 
+    ( (This)->lpVtbl -> GetRotation(This,pRotation) )
 
 #endif /* COBJMACROS */
 
@@ -4554,7 +4554,7 @@ extern "C"{
 #define __IDXGIFactory2_INTERFACE_DEFINED__
 
   /* interface IDXGIFactory2 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIFactory2;
@@ -4567,82 +4567,82 @@ extern "C"{
   public:
     virtual BOOL STDMETHODCALLTYPE IsWindowedStereoEnabled( void) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CreateSwapChainForHwnd( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE CreateSwapChainForHwnd(
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HWND hWnd,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  const DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain1 **ppSwapChain) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CreateSwapChainForCoreWindow( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE CreateSwapChainForCoreWindow(
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pWindow,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain1 **ppSwapChain) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetSharedResourceAdapterLuid( 
-      /* [annotation] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetSharedResourceAdapterLuid(
+      /* [annotation] */
       _In_  HANDLE hResource,
-      /* [annotation] */ 
+      /* [annotation] */
       _Out_  LUID *pLuid) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE RegisterStereoStatusWindow( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE RegisterStereoStatusWindow(
+      /* [annotation][in] */
       _In_  HWND WindowHandle,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT wMsg,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE RegisterStereoStatusEvent( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE RegisterStereoStatusEvent(
+      /* [annotation][in] */
       _In_  HANDLE hEvent,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie) = 0;
 
-    virtual void STDMETHODCALLTYPE UnregisterStereoStatus( 
-      /* [annotation][in] */ 
+    virtual void STDMETHODCALLTYPE UnregisterStereoStatus(
+      /* [annotation][in] */
       _In_  DWORD dwCookie) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE RegisterOcclusionStatusWindow( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE RegisterOcclusionStatusWindow(
+      /* [annotation][in] */
       _In_  HWND WindowHandle,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT wMsg,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE RegisterOcclusionStatusEvent( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE RegisterOcclusionStatusEvent(
+      /* [annotation][in] */
       _In_  HANDLE hEvent,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie) = 0;
 
-    virtual void STDMETHODCALLTYPE UnregisterOcclusionStatus( 
-      /* [annotation][in] */ 
+    virtual void STDMETHODCALLTYPE UnregisterOcclusionStatus(
+      /* [annotation][in] */
       _In_  DWORD dwCookie) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CreateSwapChainForComposition( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE CreateSwapChainForComposition(
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Outptr_  IDXGISwapChain1 **ppSwapChain) = 0;
 
   };
@@ -4654,178 +4654,178 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIFactory2 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIFactory2 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIFactory2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumAdapters )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumAdapters )(
       IDXGIFactory2 * This,
       /* [in] */ UINT Adapter,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )( 
+    HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )(
       IDXGIFactory2 * This,
       HWND WindowHandle,
       UINT Flags);
 
-    HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )( 
+    HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )(
       IDXGIFactory2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HWND *pWindowHandle);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_SWAP_CHAIN_DESC *pDesc,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain **ppSwapChain);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )(
       IDXGIFactory2 * This,
       /* [in] */ HMODULE Module,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumAdapters1 )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumAdapters1 )(
       IDXGIFactory2 * This,
       /* [in] */ UINT Adapter,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter1 **ppAdapter);
 
-    BOOL ( STDMETHODCALLTYPE *IsCurrent )( 
+    BOOL ( STDMETHODCALLTYPE *IsCurrent )(
       IDXGIFactory2 * This);
 
-    BOOL ( STDMETHODCALLTYPE *IsWindowedStereoEnabled )( 
+    BOOL ( STDMETHODCALLTYPE *IsWindowedStereoEnabled )(
       IDXGIFactory2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForHwnd )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForHwnd )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HWND hWnd,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  const DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain1 **ppSwapChain);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForCoreWindow )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForCoreWindow )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pWindow,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain1 **ppSwapChain);
 
-    HRESULT ( STDMETHODCALLTYPE *GetSharedResourceAdapterLuid )( 
+    HRESULT ( STDMETHODCALLTYPE *GetSharedResourceAdapterLuid )(
       IDXGIFactory2 * This,
-      /* [annotation] */ 
+      /* [annotation] */
       _In_  HANDLE hResource,
-      /* [annotation] */ 
+      /* [annotation] */
       _Out_  LUID *pLuid);
 
-    HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusWindow )( 
+    HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusWindow )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HWND WindowHandle,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT wMsg,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie);
 
-    HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusEvent )( 
+    HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusEvent )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HANDLE hEvent,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie);
 
-    void ( STDMETHODCALLTYPE *UnregisterStereoStatus )( 
+    void ( STDMETHODCALLTYPE *UnregisterStereoStatus )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DWORD dwCookie);
 
-    HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusWindow )( 
+    HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusWindow )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HWND WindowHandle,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT wMsg,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie);
 
-    HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusEvent )( 
+    HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusEvent )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HANDLE hEvent,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie);
 
-    void ( STDMETHODCALLTYPE *UnregisterOcclusionStatus )( 
+    void ( STDMETHODCALLTYPE *UnregisterOcclusionStatus )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DWORD dwCookie);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForComposition )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForComposition )(
       IDXGIFactory2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Outptr_  IDXGISwapChain1 **ppSwapChain);
 
     END_INTERFACE
@@ -4842,83 +4842,83 @@ extern "C"{
 
 
 #define IDXGIFactory2_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIFactory2_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIFactory2_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIFactory2_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIFactory2_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIFactory2_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIFactory2_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIFactory2_EnumAdapters(This,Adapter,ppAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) )
 
 #define IDXGIFactory2_MakeWindowAssociation(This,WindowHandle,Flags)	\
-    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) ) 
+    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) )
 
 #define IDXGIFactory2_GetWindowAssociation(This,pWindowHandle)	\
-    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) ) 
+    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) )
 
 #define IDXGIFactory2_CreateSwapChain(This,pDevice,pDesc,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) )
 
 #define IDXGIFactory2_CreateSoftwareAdapter(This,Module,ppAdapter)	\
-    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) ) 
+    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) )
 
 
 #define IDXGIFactory2_EnumAdapters1(This,Adapter,ppAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapters1(This,Adapter,ppAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapters1(This,Adapter,ppAdapter) )
 
 #define IDXGIFactory2_IsCurrent(This)	\
-    ( (This)->lpVtbl -> IsCurrent(This) ) 
+    ( (This)->lpVtbl -> IsCurrent(This) )
 
 
 #define IDXGIFactory2_IsWindowedStereoEnabled(This)	\
-    ( (This)->lpVtbl -> IsWindowedStereoEnabled(This) ) 
+    ( (This)->lpVtbl -> IsWindowedStereoEnabled(This) )
 
 #define IDXGIFactory2_CreateSwapChainForHwnd(This,pDevice,hWnd,pDesc,pFullscreenDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForHwnd(This,pDevice,hWnd,pDesc,pFullscreenDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForHwnd(This,pDevice,hWnd,pDesc,pFullscreenDesc,pRestrictToOutput,ppSwapChain) )
 
 #define IDXGIFactory2_CreateSwapChainForCoreWindow(This,pDevice,pWindow,pDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForCoreWindow(This,pDevice,pWindow,pDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForCoreWindow(This,pDevice,pWindow,pDesc,pRestrictToOutput,ppSwapChain) )
 
 #define IDXGIFactory2_GetSharedResourceAdapterLuid(This,hResource,pLuid)	\
-    ( (This)->lpVtbl -> GetSharedResourceAdapterLuid(This,hResource,pLuid) ) 
+    ( (This)->lpVtbl -> GetSharedResourceAdapterLuid(This,hResource,pLuid) )
 
 #define IDXGIFactory2_RegisterStereoStatusWindow(This,WindowHandle,wMsg,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterStereoStatusWindow(This,WindowHandle,wMsg,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterStereoStatusWindow(This,WindowHandle,wMsg,pdwCookie) )
 
 #define IDXGIFactory2_RegisterStereoStatusEvent(This,hEvent,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterStereoStatusEvent(This,hEvent,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterStereoStatusEvent(This,hEvent,pdwCookie) )
 
 #define IDXGIFactory2_UnregisterStereoStatus(This,dwCookie)	\
-    ( (This)->lpVtbl -> UnregisterStereoStatus(This,dwCookie) ) 
+    ( (This)->lpVtbl -> UnregisterStereoStatus(This,dwCookie) )
 
 #define IDXGIFactory2_RegisterOcclusionStatusWindow(This,WindowHandle,wMsg,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterOcclusionStatusWindow(This,WindowHandle,wMsg,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterOcclusionStatusWindow(This,WindowHandle,wMsg,pdwCookie) )
 
 #define IDXGIFactory2_RegisterOcclusionStatusEvent(This,hEvent,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterOcclusionStatusEvent(This,hEvent,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterOcclusionStatusEvent(This,hEvent,pdwCookie) )
 
 #define IDXGIFactory2_UnregisterOcclusionStatus(This,dwCookie)	\
-    ( (This)->lpVtbl -> UnregisterOcclusionStatus(This,dwCookie) ) 
+    ( (This)->lpVtbl -> UnregisterOcclusionStatus(This,dwCookie) )
 
 #define IDXGIFactory2_CreateSwapChainForComposition(This,pDevice,pDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForComposition(This,pDevice,pDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForComposition(This,pDevice,pDesc,pRestrictToOutput,ppSwapChain) )
 
 #endif /* COBJMACROS */
 
@@ -4932,9 +4932,9 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_2_0000_0007 */
-  /* [local] */ 
+  /* [local] */
 
-  typedef 
+  typedef
   enum DXGI_GRAPHICS_PREEMPTION_GRANULARITY
   {
     DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY	= 0,
@@ -4944,7 +4944,7 @@ extern "C"{
     DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY	= 4
   } 	DXGI_GRAPHICS_PREEMPTION_GRANULARITY;
 
-  typedef 
+  typedef
   enum DXGI_COMPUTE_PREEMPTION_GRANULARITY
   {
     DXGI_COMPUTE_PREEMPTION_DMA_BUFFER_BOUNDARY	= 0,
@@ -4979,7 +4979,7 @@ extern "C"{
 #define __IDXGIAdapter2_INTERFACE_DEFINED__
 
   /* interface IDXGIAdapter2 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIAdapter2;
@@ -4990,8 +4990,8 @@ extern "C"{
     IDXGIAdapter2 : public IDXGIAdapter1
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetDesc2( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDesc2(
+      /* [annotation][out] */
       _Out_  DXGI_ADAPTER_DESC2 *pDesc) = 0;
 
   };
@@ -5003,75 +5003,75 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIAdapter2 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIAdapter2 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIAdapter2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIAdapter2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIAdapter2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIAdapter2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIAdapter2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumOutputs )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumOutputs )(
       IDXGIAdapter2 * This,
       /* [in] */ UINT Output,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Out_  IDXGIOutput **ppOutput);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGIAdapter2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_ADAPTER_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *CheckInterfaceSupport )( 
+    HRESULT ( STDMETHODCALLTYPE *CheckInterfaceSupport )(
       IDXGIAdapter2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID InterfaceName,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  LARGE_INTEGER *pUMDVersion);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc1 )(
       IDXGIAdapter2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_ADAPTER_DESC1 *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc2 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc2 )(
       IDXGIAdapter2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_ADAPTER_DESC2 *pDesc);
 
     END_INTERFACE
@@ -5088,44 +5088,44 @@ extern "C"{
 
 
 #define IDXGIAdapter2_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIAdapter2_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIAdapter2_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIAdapter2_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIAdapter2_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIAdapter2_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIAdapter2_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIAdapter2_EnumOutputs(This,Output,ppOutput)	\
-    ( (This)->lpVtbl -> EnumOutputs(This,Output,ppOutput) ) 
+    ( (This)->lpVtbl -> EnumOutputs(This,Output,ppOutput) )
 
 #define IDXGIAdapter2_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIAdapter2_CheckInterfaceSupport(This,InterfaceName,pUMDVersion)	\
-    ( (This)->lpVtbl -> CheckInterfaceSupport(This,InterfaceName,pUMDVersion) ) 
+    ( (This)->lpVtbl -> CheckInterfaceSupport(This,InterfaceName,pUMDVersion) )
 
 
 #define IDXGIAdapter2_GetDesc1(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc1(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc1(This,pDesc) )
 
 
 #define IDXGIAdapter2_GetDesc2(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc2(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc2(This,pDesc) )
 
 #endif /* COBJMACROS */
 
@@ -5142,7 +5142,7 @@ extern "C"{
 #define __IDXGIOutput1_INTERFACE_DEFINED__
 
   /* interface IDXGIOutput1 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIOutput1;
@@ -5153,30 +5153,30 @@ extern "C"{
     IDXGIOutput1 : public IDXGIOutput
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetDisplayModeList1( 
+    virtual HRESULT STDMETHODCALLTYPE GetDisplayModeList1(
       /* [in] */ DXGI_FORMAT EnumFormat,
       /* [in] */ UINT Flags,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pNumModes,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC1 *pDesc) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE FindClosestMatchingMode1( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE FindClosestMatchingMode1(
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC1 *pModeToMatch,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_DESC1 *pClosestMatch,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IUnknown *pConcernedDevice) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetDisplaySurfaceData1( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDisplaySurfaceData1(
+      /* [annotation][in] */
       _In_  IDXGIResource *pDestination) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE DuplicateOutput( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE DuplicateOutput(
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIOutputDuplication **ppOutputDuplication) = 0;
 
   };
@@ -5188,142 +5188,142 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIOutput1 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIOutput1 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIOutput1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGIOutput1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_OUTPUT_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )(
       IDXGIOutput1 * This,
       /* [in] */ DXGI_FORMAT EnumFormat,
       /* [in] */ UINT Flags,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pNumModes,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )( 
+    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC *pModeToMatch,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_DESC *pClosestMatch,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IUnknown *pConcernedDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )( 
+    HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )(
       IDXGIOutput1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *TakeOwnership )( 
+    HRESULT ( STDMETHODCALLTYPE *TakeOwnership )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
       BOOL Exclusive);
 
-    void ( STDMETHODCALLTYPE *ReleaseOwnership )( 
+    void ( STDMETHODCALLTYPE *ReleaseOwnership )(
       IDXGIOutput1 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )(
       IDXGIOutput1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL_CAPABILITIES *pGammaCaps);
 
-    HRESULT ( STDMETHODCALLTYPE *SetGammaControl )( 
+    HRESULT ( STDMETHODCALLTYPE *SetGammaControl )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_GAMMA_CONTROL *pArray);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGammaControl )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGammaControl )(
       IDXGIOutput1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL *pArray);
 
-    HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGISurface *pScanoutSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGISurface *pDestination);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
       IDXGIOutput1 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS *pStats);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )(
       IDXGIOutput1 * This,
       /* [in] */ DXGI_FORMAT EnumFormat,
       /* [in] */ UINT Flags,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pNumModes,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC1 *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )( 
+    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC1 *pModeToMatch,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_DESC1 *pClosestMatch,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IUnknown *pConcernedDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGIResource *pDestination);
 
-    HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )( 
+    HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )(
       IDXGIOutput1 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIOutputDuplication **ppOutputDuplication);
 
     END_INTERFACE
@@ -5340,76 +5340,76 @@ extern "C"{
 
 
 #define IDXGIOutput1_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIOutput1_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIOutput1_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIOutput1_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIOutput1_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIOutput1_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIOutput1_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIOutput1_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIOutput1_GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput1_FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput1_WaitForVBlank(This)	\
-    ( (This)->lpVtbl -> WaitForVBlank(This) ) 
+    ( (This)->lpVtbl -> WaitForVBlank(This) )
 
 #define IDXGIOutput1_TakeOwnership(This,pDevice,Exclusive)	\
-    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) ) 
+    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) )
 
 #define IDXGIOutput1_ReleaseOwnership(This)	\
-    ( (This)->lpVtbl -> ReleaseOwnership(This) ) 
+    ( (This)->lpVtbl -> ReleaseOwnership(This) )
 
 #define IDXGIOutput1_GetGammaControlCapabilities(This,pGammaCaps)	\
-    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) ) 
+    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) )
 
 #define IDXGIOutput1_SetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> SetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> SetGammaControl(This,pArray) )
 
 #define IDXGIOutput1_GetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> GetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> GetGammaControl(This,pArray) )
 
 #define IDXGIOutput1_SetDisplaySurface(This,pScanoutSurface)	\
-    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) ) 
+    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) )
 
 #define IDXGIOutput1_GetDisplaySurfaceData(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) )
 
 #define IDXGIOutput1_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 
 #define IDXGIOutput1_GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput1_FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput1_GetDisplaySurfaceData1(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) )
 
 #define IDXGIOutput1_DuplicateOutput(This,pDevice,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) )
 
 #endif /* COBJMACROS */
 
@@ -5423,7 +5423,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_2_0000_0009 */
-  /* [local] */ 
+  /* [local] */
 
 #endif /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) */
 #pragma endregion
@@ -5492,7 +5492,7 @@ extern "C"{
 #pragma once
 #endif
 
-/* Forward Declarations */ 
+/* Forward Declarations */
 
 #ifndef __IDXGIDevice3_FWD_DEFINED__
 #define __IDXGIDevice3_FWD_DEFINED__
@@ -5552,17 +5552,17 @@ typedef interface IDXGIOutput3 IDXGIOutput3;
 
 #ifdef __cplusplus
 extern "C"{
-#endif 
+#endif
 
 
   /* interface __MIDL_itf_dxgi1_3_0000_0000 */
-  /* [local] */ 
+  /* [local] */
 
 //#include <winapifamily.h>
 #pragma region App Family
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
 #define DXGI_CREATE_FACTORY_DEBUG 0x1
-  //HRESULT WINAPI CreateDXGIFactory2(UINT Flags, REFIID riid, _Out_ void **ppFactory);
+  HRESULT WINAPI CreateDXGIFactory2(UINT Flags, REFIID riid, _Out_ void **ppFactory);
   HRESULT WINAPI DXGIGetDebugInterface1(UINT Flags, REFIID riid, _COM_Outptr_ void **pDebug);
 
 
@@ -5573,7 +5573,7 @@ extern "C"{
 #define __IDXGIDevice3_INTERFACE_DEFINED__
 
   /* interface IDXGIDevice3 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIDevice3;
@@ -5595,115 +5595,115 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIDevice3 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIDevice3 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIDevice3 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIDevice3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIDevice3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIDevice3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIDevice3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetAdapter )( 
+    HRESULT ( STDMETHODCALLTYPE *GetAdapter )(
       IDXGIDevice3 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **pAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSurface )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSurface )(
       IDXGIDevice3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SURFACE_DESC *pDesc,
       /* [in] */ UINT NumSurfaces,
       /* [in] */ DXGI_USAGE Usage,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  const DXGI_SHARED_RESOURCE *pSharedResource,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISurface **ppSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )( 
+    HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )(
       IDXGIDevice3 * This,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IUnknown *const *ppResources,
-      /* [annotation][size_is][out] */ 
+      /* [annotation][size_is][out] */
       _Out_writes_(NumResources)  DXGI_RESIDENCY *pResidencyStatus,
       /* [in] */ UINT NumResources);
 
-    HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )(
       IDXGIDevice3 * This,
       /* [in] */ INT Priority);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )(
       IDXGIDevice3 * This,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  INT *pPriority);
 
-    HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )( 
+    HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )(
       IDXGIDevice3 * This,
       /* [in] */ UINT MaxLatency);
 
-    HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )( 
+    HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )(
       IDXGIDevice3 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pMaxLatency);
 
-    HRESULT ( STDMETHODCALLTYPE *OfferResources )( 
+    HRESULT ( STDMETHODCALLTYPE *OfferResources )(
       IDXGIDevice3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT NumResources,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_OFFER_RESOURCE_PRIORITY Priority);
 
-    HRESULT ( STDMETHODCALLTYPE *ReclaimResources )( 
+    HRESULT ( STDMETHODCALLTYPE *ReclaimResources )(
       IDXGIDevice3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT NumResources,
-      /* [annotation][size_is][in] */ 
+      /* [annotation][size_is][in] */
       _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-      /* [annotation][size_is][out] */ 
+      /* [annotation][size_is][out] */
       _Out_writes_all_opt_(NumResources)  BOOL *pDiscarded);
 
-    HRESULT ( STDMETHODCALLTYPE *EnqueueSetEvent )( 
+    HRESULT ( STDMETHODCALLTYPE *EnqueueSetEvent )(
       IDXGIDevice3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HANDLE hEvent);
 
-    void ( STDMETHODCALLTYPE *Trim )( 
+    void ( STDMETHODCALLTYPE *Trim )(
       IDXGIDevice3 * This);
 
     END_INTERFACE
@@ -5720,63 +5720,63 @@ extern "C"{
 
 
 #define IDXGIDevice3_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIDevice3_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIDevice3_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIDevice3_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIDevice3_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIDevice3_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIDevice3_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIDevice3_GetAdapter(This,pAdapter)	\
-    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) ) 
+    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) )
 
 #define IDXGIDevice3_CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface)	\
-    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) ) 
+    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) )
 
 #define IDXGIDevice3_QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources)	\
-    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) ) 
+    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) )
 
 #define IDXGIDevice3_SetGPUThreadPriority(This,Priority)	\
-    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) ) 
+    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) )
 
 #define IDXGIDevice3_GetGPUThreadPriority(This,pPriority)	\
-    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) ) 
+    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) )
 
 
 #define IDXGIDevice3_SetMaximumFrameLatency(This,MaxLatency)	\
-    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) ) 
+    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) )
 
 #define IDXGIDevice3_GetMaximumFrameLatency(This,pMaxLatency)	\
-    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) ) 
+    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) )
 
 
 #define IDXGIDevice3_OfferResources(This,NumResources,ppResources,Priority)	\
-    ( (This)->lpVtbl -> OfferResources(This,NumResources,ppResources,Priority) ) 
+    ( (This)->lpVtbl -> OfferResources(This,NumResources,ppResources,Priority) )
 
 #define IDXGIDevice3_ReclaimResources(This,NumResources,ppResources,pDiscarded)	\
-    ( (This)->lpVtbl -> ReclaimResources(This,NumResources,ppResources,pDiscarded) ) 
+    ( (This)->lpVtbl -> ReclaimResources(This,NumResources,ppResources,pDiscarded) )
 
 #define IDXGIDevice3_EnqueueSetEvent(This,hEvent)	\
-    ( (This)->lpVtbl -> EnqueueSetEvent(This,hEvent) ) 
+    ( (This)->lpVtbl -> EnqueueSetEvent(This,hEvent) )
 
 
 #define IDXGIDevice3_Trim(This)	\
-    ( (This)->lpVtbl -> Trim(This) ) 
+    ( (This)->lpVtbl -> Trim(This) )
 
 #endif /* COBJMACROS */
 
@@ -5790,7 +5790,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_3_0000_0001 */
-  /* [local] */ 
+  /* [local] */
 
   typedef struct DXGI_MATRIX_3X2_F
   {
@@ -5811,7 +5811,7 @@ extern "C"{
 #define __IDXGISwapChain2_INTERFACE_DEFINED__
 
   /* interface IDXGISwapChain2 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGISwapChain2;
@@ -5822,30 +5822,30 @@ extern "C"{
     IDXGISwapChain2 : public IDXGISwapChain1
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE SetSourceSize( 
+    virtual HRESULT STDMETHODCALLTYPE SetSourceSize(
       UINT Width,
       UINT Height) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetSourceSize( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetSourceSize(
+      /* [annotation][out] */
       _Out_  UINT *pWidth,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pHeight) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetMaximumFrameLatency( 
+    virtual HRESULT STDMETHODCALLTYPE SetMaximumFrameLatency(
       UINT MaxLatency) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetMaximumFrameLatency( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetMaximumFrameLatency(
+      /* [annotation][out] */
       _Out_  UINT *pMaxLatency) = 0;
 
     virtual HANDLE STDMETHODCALLTYPE GetFrameLatencyWaitableObject( void) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetMatrixTransform( 
+    virtual HRESULT STDMETHODCALLTYPE SetMatrixTransform(
       const DXGI_MATRIX_3X2_F *pMatrix) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetMatrixTransform( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetMatrixTransform(
+      /* [annotation][out] */
       _Out_  DXGI_MATRIX_3X2_F *pMatrix) = 0;
 
   };
@@ -5857,88 +5857,88 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGISwapChain2 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGISwapChain2 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGISwapChain2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGISwapChain2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGISwapChain2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGISwapChain2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGISwapChain2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDevice )(
       IDXGISwapChain2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *Present )( 
+    HRESULT ( STDMETHODCALLTYPE *Present )(
       IDXGISwapChain2 * This,
       /* [in] */ UINT SyncInterval,
       /* [in] */ UINT Flags);
 
-    HRESULT ( STDMETHODCALLTYPE *GetBuffer )( 
+    HRESULT ( STDMETHODCALLTYPE *GetBuffer )(
       IDXGISwapChain2 * This,
       /* [in] */ UINT Buffer,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Out_  void **ppSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )( 
+    HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )(
       IDXGISwapChain2 * This,
       /* [in] */ BOOL Fullscreen,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pTarget);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_opt_  BOOL *pFullscreen,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_opt_  IDXGIOutput **ppTarget);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )( 
+    HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )(
       IDXGISwapChain2 * This,
       /* [in] */ UINT BufferCount,
       /* [in] */ UINT Width,
@@ -5946,114 +5946,114 @@ extern "C"{
       /* [in] */ DXGI_FORMAT NewFormat,
       /* [in] */ UINT SwapChainFlags);
 
-    HRESULT ( STDMETHODCALLTYPE *ResizeTarget )( 
+    HRESULT ( STDMETHODCALLTYPE *ResizeTarget )(
       IDXGISwapChain2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC *pNewTargetParameters);
 
-    HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )( 
+    HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIOutput **ppOutput);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS *pStats);
 
-    HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )( 
+    HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pLastPresentCount);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc1 )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_DESC1 *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *GetHwnd )( 
+    HRESULT ( STDMETHODCALLTYPE *GetHwnd )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HWND *pHwnd);
 
-    HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )( 
+    HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )(
       IDXGISwapChain2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID refiid,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  void **ppUnk);
 
-    HRESULT ( STDMETHODCALLTYPE *Present1 )( 
+    HRESULT ( STDMETHODCALLTYPE *Present1 )(
       IDXGISwapChain2 * This,
       /* [in] */ UINT SyncInterval,
       /* [in] */ UINT PresentFlags,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_PRESENT_PARAMETERS *pPresentParameters);
 
-    BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )( 
+    BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )(
       IDXGISwapChain2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )( 
+    HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIOutput **ppRestrictToOutput);
 
-    HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )( 
+    HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )(
       IDXGISwapChain2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_RGBA *pColor);
 
-    HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )( 
+    HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_RGBA *pColor);
 
-    HRESULT ( STDMETHODCALLTYPE *SetRotation )( 
+    HRESULT ( STDMETHODCALLTYPE *SetRotation )(
       IDXGISwapChain2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_MODE_ROTATION Rotation);
 
-    HRESULT ( STDMETHODCALLTYPE *GetRotation )( 
+    HRESULT ( STDMETHODCALLTYPE *GetRotation )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_ROTATION *pRotation);
 
-    HRESULT ( STDMETHODCALLTYPE *SetSourceSize )( 
+    HRESULT ( STDMETHODCALLTYPE *SetSourceSize )(
       IDXGISwapChain2 * This,
       UINT Width,
       UINT Height);
 
-    HRESULT ( STDMETHODCALLTYPE *GetSourceSize )( 
+    HRESULT ( STDMETHODCALLTYPE *GetSourceSize )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pWidth,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pHeight);
 
-    HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )( 
+    HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )(
       IDXGISwapChain2 * This,
       UINT MaxLatency);
 
-    HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )( 
+    HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pMaxLatency);
 
-    HANDLE ( STDMETHODCALLTYPE *GetFrameLatencyWaitableObject )( 
+    HANDLE ( STDMETHODCALLTYPE *GetFrameLatencyWaitableObject )(
       IDXGISwapChain2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetMatrixTransform )( 
+    HRESULT ( STDMETHODCALLTYPE *SetMatrixTransform )(
       IDXGISwapChain2 * This,
       const DXGI_MATRIX_3X2_F *pMatrix);
 
-    HRESULT ( STDMETHODCALLTYPE *GetMatrixTransform )( 
+    HRESULT ( STDMETHODCALLTYPE *GetMatrixTransform )(
       IDXGISwapChain2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MATRIX_3X2_F *pMatrix);
 
     END_INTERFACE
@@ -6070,117 +6070,117 @@ extern "C"{
 
 
 #define IDXGISwapChain2_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISwapChain2_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISwapChain2_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISwapChain2_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGISwapChain2_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGISwapChain2_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGISwapChain2_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGISwapChain2_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGISwapChain2_Present(This,SyncInterval,Flags)	\
-    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) ) 
+    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) )
 
 #define IDXGISwapChain2_GetBuffer(This,Buffer,riid,ppSurface)	\
-    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) ) 
+    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) )
 
 #define IDXGISwapChain2_SetFullscreenState(This,Fullscreen,pTarget)	\
-    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) ) 
+    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) )
 
 #define IDXGISwapChain2_GetFullscreenState(This,pFullscreen,ppTarget)	\
-    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) ) 
+    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) )
 
 #define IDXGISwapChain2_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGISwapChain2_ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags)	\
-    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) ) 
+    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) )
 
 #define IDXGISwapChain2_ResizeTarget(This,pNewTargetParameters)	\
-    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) ) 
+    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) )
 
 #define IDXGISwapChain2_GetContainingOutput(This,ppOutput)	\
-    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) ) 
+    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) )
 
 #define IDXGISwapChain2_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 #define IDXGISwapChain2_GetLastPresentCount(This,pLastPresentCount)	\
-    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) ) 
+    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) )
 
 
 #define IDXGISwapChain2_GetDesc1(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc1(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc1(This,pDesc) )
 
 #define IDXGISwapChain2_GetFullscreenDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) )
 
 #define IDXGISwapChain2_GetHwnd(This,pHwnd)	\
-    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) ) 
+    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) )
 
 #define IDXGISwapChain2_GetCoreWindow(This,refiid,ppUnk)	\
-    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) ) 
+    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) )
 
 #define IDXGISwapChain2_Present1(This,SyncInterval,PresentFlags,pPresentParameters)	\
-    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) ) 
+    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) )
 
 #define IDXGISwapChain2_IsTemporaryMonoSupported(This)	\
-    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) ) 
+    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) )
 
 #define IDXGISwapChain2_GetRestrictToOutput(This,ppRestrictToOutput)	\
-    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) ) 
+    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) )
 
 #define IDXGISwapChain2_SetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain2_GetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain2_SetRotation(This,Rotation)	\
-    ( (This)->lpVtbl -> SetRotation(This,Rotation) ) 
+    ( (This)->lpVtbl -> SetRotation(This,Rotation) )
 
 #define IDXGISwapChain2_GetRotation(This,pRotation)	\
-    ( (This)->lpVtbl -> GetRotation(This,pRotation) ) 
+    ( (This)->lpVtbl -> GetRotation(This,pRotation) )
 
 
 #define IDXGISwapChain2_SetSourceSize(This,Width,Height)	\
-    ( (This)->lpVtbl -> SetSourceSize(This,Width,Height) ) 
+    ( (This)->lpVtbl -> SetSourceSize(This,Width,Height) )
 
 #define IDXGISwapChain2_GetSourceSize(This,pWidth,pHeight)	\
-    ( (This)->lpVtbl -> GetSourceSize(This,pWidth,pHeight) ) 
+    ( (This)->lpVtbl -> GetSourceSize(This,pWidth,pHeight) )
 
 #define IDXGISwapChain2_SetMaximumFrameLatency(This,MaxLatency)	\
-    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) ) 
+    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) )
 
 #define IDXGISwapChain2_GetMaximumFrameLatency(This,pMaxLatency)	\
-    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) ) 
+    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) )
 
 #define IDXGISwapChain2_GetFrameLatencyWaitableObject(This)	\
-    ( (This)->lpVtbl -> GetFrameLatencyWaitableObject(This) ) 
+    ( (This)->lpVtbl -> GetFrameLatencyWaitableObject(This) )
 
 #define IDXGISwapChain2_SetMatrixTransform(This,pMatrix)	\
-    ( (This)->lpVtbl -> SetMatrixTransform(This,pMatrix) ) 
+    ( (This)->lpVtbl -> SetMatrixTransform(This,pMatrix) )
 
 #define IDXGISwapChain2_GetMatrixTransform(This,pMatrix)	\
-    ( (This)->lpVtbl -> GetMatrixTransform(This,pMatrix) ) 
+    ( (This)->lpVtbl -> GetMatrixTransform(This,pMatrix) )
 
 #endif /* COBJMACROS */
 
@@ -6197,7 +6197,7 @@ extern "C"{
 #define __IDXGIOutput2_INTERFACE_DEFINED__
 
   /* interface IDXGIOutput2 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIOutput2;
@@ -6219,145 +6219,145 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIOutput2 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIOutput2 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIOutput2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGIOutput2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_OUTPUT_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )(
       IDXGIOutput2 * This,
       /* [in] */ DXGI_FORMAT EnumFormat,
       /* [in] */ UINT Flags,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pNumModes,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )( 
+    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC *pModeToMatch,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_DESC *pClosestMatch,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IUnknown *pConcernedDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )( 
+    HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )(
       IDXGIOutput2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *TakeOwnership )( 
+    HRESULT ( STDMETHODCALLTYPE *TakeOwnership )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
       BOOL Exclusive);
 
-    void ( STDMETHODCALLTYPE *ReleaseOwnership )( 
+    void ( STDMETHODCALLTYPE *ReleaseOwnership )(
       IDXGIOutput2 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )(
       IDXGIOutput2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL_CAPABILITIES *pGammaCaps);
 
-    HRESULT ( STDMETHODCALLTYPE *SetGammaControl )( 
+    HRESULT ( STDMETHODCALLTYPE *SetGammaControl )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_GAMMA_CONTROL *pArray);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGammaControl )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGammaControl )(
       IDXGIOutput2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL *pArray);
 
-    HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGISurface *pScanoutSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGISurface *pDestination);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
       IDXGIOutput2 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS *pStats);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )(
       IDXGIOutput2 * This,
       /* [in] */ DXGI_FORMAT EnumFormat,
       /* [in] */ UINT Flags,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pNumModes,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC1 *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )( 
+    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC1 *pModeToMatch,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_DESC1 *pClosestMatch,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IUnknown *pConcernedDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGIResource *pDestination);
 
-    HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )( 
+    HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )(
       IDXGIOutput2 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIOutputDuplication **ppOutputDuplication);
 
-    BOOL ( STDMETHODCALLTYPE *SupportsOverlays )( 
+    BOOL ( STDMETHODCALLTYPE *SupportsOverlays )(
       IDXGIOutput2 * This);
 
     END_INTERFACE
@@ -6374,80 +6374,80 @@ extern "C"{
 
 
 #define IDXGIOutput2_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIOutput2_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIOutput2_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIOutput2_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIOutput2_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIOutput2_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIOutput2_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIOutput2_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIOutput2_GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput2_FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput2_WaitForVBlank(This)	\
-    ( (This)->lpVtbl -> WaitForVBlank(This) ) 
+    ( (This)->lpVtbl -> WaitForVBlank(This) )
 
 #define IDXGIOutput2_TakeOwnership(This,pDevice,Exclusive)	\
-    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) ) 
+    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) )
 
 #define IDXGIOutput2_ReleaseOwnership(This)	\
-    ( (This)->lpVtbl -> ReleaseOwnership(This) ) 
+    ( (This)->lpVtbl -> ReleaseOwnership(This) )
 
 #define IDXGIOutput2_GetGammaControlCapabilities(This,pGammaCaps)	\
-    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) ) 
+    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) )
 
 #define IDXGIOutput2_SetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> SetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> SetGammaControl(This,pArray) )
 
 #define IDXGIOutput2_GetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> GetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> GetGammaControl(This,pArray) )
 
 #define IDXGIOutput2_SetDisplaySurface(This,pScanoutSurface)	\
-    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) ) 
+    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) )
 
 #define IDXGIOutput2_GetDisplaySurfaceData(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) )
 
 #define IDXGIOutput2_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 
 #define IDXGIOutput2_GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput2_FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput2_GetDisplaySurfaceData1(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) )
 
 #define IDXGIOutput2_DuplicateOutput(This,pDevice,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) )
 
 
 #define IDXGIOutput2_SupportsOverlays(This)	\
-    ( (This)->lpVtbl -> SupportsOverlays(This) ) 
+    ( (This)->lpVtbl -> SupportsOverlays(This) )
 
 #endif /* COBJMACROS */
 
@@ -6464,7 +6464,7 @@ extern "C"{
 #define __IDXGIFactory3_INTERFACE_DEFINED__
 
   /* interface IDXGIFactory3 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIFactory3;
@@ -6486,181 +6486,181 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIFactory3 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIFactory3 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIFactory3 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumAdapters )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumAdapters )(
       IDXGIFactory3 * This,
       /* [in] */ UINT Adapter,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )( 
+    HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )(
       IDXGIFactory3 * This,
       HWND WindowHandle,
       UINT Flags);
 
-    HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )( 
+    HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )(
       IDXGIFactory3 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  HWND *pWindowHandle);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_SWAP_CHAIN_DESC *pDesc,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain **ppSwapChain);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )(
       IDXGIFactory3 * This,
       /* [in] */ HMODULE Module,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter **ppAdapter);
 
-    HRESULT ( STDMETHODCALLTYPE *EnumAdapters1 )( 
+    HRESULT ( STDMETHODCALLTYPE *EnumAdapters1 )(
       IDXGIFactory3 * This,
       /* [in] */ UINT Adapter,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIAdapter1 **ppAdapter);
 
-    BOOL ( STDMETHODCALLTYPE *IsCurrent )( 
+    BOOL ( STDMETHODCALLTYPE *IsCurrent )(
       IDXGIFactory3 * This);
 
-    BOOL ( STDMETHODCALLTYPE *IsWindowedStereoEnabled )( 
+    BOOL ( STDMETHODCALLTYPE *IsWindowedStereoEnabled )(
       IDXGIFactory3 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForHwnd )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForHwnd )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HWND hWnd,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  const DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain1 **ppSwapChain);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForCoreWindow )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForCoreWindow )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pWindow,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain1 **ppSwapChain);
 
-    HRESULT ( STDMETHODCALLTYPE *GetSharedResourceAdapterLuid )( 
+    HRESULT ( STDMETHODCALLTYPE *GetSharedResourceAdapterLuid )(
       IDXGIFactory3 * This,
-      /* [annotation] */ 
+      /* [annotation] */
       _In_  HANDLE hResource,
-      /* [annotation] */ 
+      /* [annotation] */
       _Out_  LUID *pLuid);
 
-    HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusWindow )( 
+    HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusWindow )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HWND WindowHandle,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT wMsg,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie);
 
-    HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusEvent )( 
+    HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusEvent )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HANDLE hEvent,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie);
 
-    void ( STDMETHODCALLTYPE *UnregisterStereoStatus )( 
+    void ( STDMETHODCALLTYPE *UnregisterStereoStatus )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DWORD dwCookie);
 
-    HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusWindow )( 
+    HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusWindow )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HWND WindowHandle,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  UINT wMsg,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie);
 
-    HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusEvent )( 
+    HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusEvent )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  HANDLE hEvent,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DWORD *pdwCookie);
 
-    void ( STDMETHODCALLTYPE *UnregisterOcclusionStatus )( 
+    void ( STDMETHODCALLTYPE *UnregisterOcclusionStatus )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DWORD dwCookie);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForComposition )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForComposition )(
       IDXGIFactory3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Outptr_  IDXGISwapChain1 **ppSwapChain);
 
-    UINT ( STDMETHODCALLTYPE *GetCreationFlags )( 
+    UINT ( STDMETHODCALLTYPE *GetCreationFlags )(
       IDXGIFactory3 * This);
 
     END_INTERFACE
@@ -6677,87 +6677,87 @@ extern "C"{
 
 
 #define IDXGIFactory3_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIFactory3_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIFactory3_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIFactory3_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIFactory3_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIFactory3_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIFactory3_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIFactory3_EnumAdapters(This,Adapter,ppAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) )
 
 #define IDXGIFactory3_MakeWindowAssociation(This,WindowHandle,Flags)	\
-    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) ) 
+    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) )
 
 #define IDXGIFactory3_GetWindowAssociation(This,pWindowHandle)	\
-    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) ) 
+    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) )
 
 #define IDXGIFactory3_CreateSwapChain(This,pDevice,pDesc,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) )
 
 #define IDXGIFactory3_CreateSoftwareAdapter(This,Module,ppAdapter)	\
-    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) ) 
+    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) )
 
 
 #define IDXGIFactory3_EnumAdapters1(This,Adapter,ppAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapters1(This,Adapter,ppAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapters1(This,Adapter,ppAdapter) )
 
 #define IDXGIFactory3_IsCurrent(This)	\
-    ( (This)->lpVtbl -> IsCurrent(This) ) 
+    ( (This)->lpVtbl -> IsCurrent(This) )
 
 
 #define IDXGIFactory3_IsWindowedStereoEnabled(This)	\
-    ( (This)->lpVtbl -> IsWindowedStereoEnabled(This) ) 
+    ( (This)->lpVtbl -> IsWindowedStereoEnabled(This) )
 
 #define IDXGIFactory3_CreateSwapChainForHwnd(This,pDevice,hWnd,pDesc,pFullscreenDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForHwnd(This,pDevice,hWnd,pDesc,pFullscreenDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForHwnd(This,pDevice,hWnd,pDesc,pFullscreenDesc,pRestrictToOutput,ppSwapChain) )
 
 #define IDXGIFactory3_CreateSwapChainForCoreWindow(This,pDevice,pWindow,pDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForCoreWindow(This,pDevice,pWindow,pDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForCoreWindow(This,pDevice,pWindow,pDesc,pRestrictToOutput,ppSwapChain) )
 
 #define IDXGIFactory3_GetSharedResourceAdapterLuid(This,hResource,pLuid)	\
-    ( (This)->lpVtbl -> GetSharedResourceAdapterLuid(This,hResource,pLuid) ) 
+    ( (This)->lpVtbl -> GetSharedResourceAdapterLuid(This,hResource,pLuid) )
 
 #define IDXGIFactory3_RegisterStereoStatusWindow(This,WindowHandle,wMsg,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterStereoStatusWindow(This,WindowHandle,wMsg,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterStereoStatusWindow(This,WindowHandle,wMsg,pdwCookie) )
 
 #define IDXGIFactory3_RegisterStereoStatusEvent(This,hEvent,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterStereoStatusEvent(This,hEvent,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterStereoStatusEvent(This,hEvent,pdwCookie) )
 
 #define IDXGIFactory3_UnregisterStereoStatus(This,dwCookie)	\
-    ( (This)->lpVtbl -> UnregisterStereoStatus(This,dwCookie) ) 
+    ( (This)->lpVtbl -> UnregisterStereoStatus(This,dwCookie) )
 
 #define IDXGIFactory3_RegisterOcclusionStatusWindow(This,WindowHandle,wMsg,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterOcclusionStatusWindow(This,WindowHandle,wMsg,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterOcclusionStatusWindow(This,WindowHandle,wMsg,pdwCookie) )
 
 #define IDXGIFactory3_RegisterOcclusionStatusEvent(This,hEvent,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterOcclusionStatusEvent(This,hEvent,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterOcclusionStatusEvent(This,hEvent,pdwCookie) )
 
 #define IDXGIFactory3_UnregisterOcclusionStatus(This,dwCookie)	\
-    ( (This)->lpVtbl -> UnregisterOcclusionStatus(This,dwCookie) ) 
+    ( (This)->lpVtbl -> UnregisterOcclusionStatus(This,dwCookie) )
 
 #define IDXGIFactory3_CreateSwapChainForComposition(This,pDevice,pDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForComposition(This,pDevice,pDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForComposition(This,pDevice,pDesc,pRestrictToOutput,ppSwapChain) )
 
 
 #define IDXGIFactory3_GetCreationFlags(This)	\
-    ( (This)->lpVtbl -> GetCreationFlags(This) ) 
+    ( (This)->lpVtbl -> GetCreationFlags(This) )
 
 #endif /* COBJMACROS */
 
@@ -6771,7 +6771,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_3_0000_0004 */
-  /* [local] */ 
+  /* [local] */
 
 #endif /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) */
 #pragma endregion
@@ -6782,7 +6782,7 @@ extern "C"{
     UINT Flags;
   } 	DXGI_DECODE_SWAP_CHAIN_DESC;
 
-  typedef 
+  typedef
   enum DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAGS
   {
     DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAG_NOMINAL_RANGE	= 0x1,
@@ -6799,7 +6799,7 @@ extern "C"{
 #define __IDXGIDecodeSwapChain_INTERFACE_DEFINED__
 
   /* interface IDXGIDecodeSwapChain */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIDecodeSwapChain;
@@ -6810,36 +6810,36 @@ extern "C"{
     IDXGIDecodeSwapChain : public IUnknown
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE PresentBuffer( 
+    virtual HRESULT STDMETHODCALLTYPE PresentBuffer(
       UINT BufferToPresent,
       UINT SyncInterval,
       UINT Flags) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetSourceRect( 
+    virtual HRESULT STDMETHODCALLTYPE SetSourceRect(
       const RECT *pRect) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetTargetRect( 
+    virtual HRESULT STDMETHODCALLTYPE SetTargetRect(
       const RECT *pRect) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetDestSize( 
+    virtual HRESULT STDMETHODCALLTYPE SetDestSize(
       UINT Width,
       UINT Height) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetSourceRect( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetSourceRect(
+      /* [annotation][out] */
       _Out_  RECT *pRect) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetTargetRect( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetTargetRect(
+      /* [annotation][out] */
       _Out_  RECT *pRect) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE GetDestSize( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetDestSize(
+      /* [annotation][out] */
       _Out_  UINT *pWidth,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pHeight) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetColorSpace( 
+    virtual HRESULT STDMETHODCALLTYPE SetColorSpace(
       DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAGS ColorSpace) = 0;
 
     virtual DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAGS STDMETHODCALLTYPE GetColorSpace( void) = 0;
@@ -6853,59 +6853,59 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIDecodeSwapChain * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIDecodeSwapChain * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIDecodeSwapChain * This);
 
-    HRESULT ( STDMETHODCALLTYPE *PresentBuffer )( 
+    HRESULT ( STDMETHODCALLTYPE *PresentBuffer )(
       IDXGIDecodeSwapChain * This,
       UINT BufferToPresent,
       UINT SyncInterval,
       UINT Flags);
 
-    HRESULT ( STDMETHODCALLTYPE *SetSourceRect )( 
+    HRESULT ( STDMETHODCALLTYPE *SetSourceRect )(
       IDXGIDecodeSwapChain * This,
       const RECT *pRect);
 
-    HRESULT ( STDMETHODCALLTYPE *SetTargetRect )( 
+    HRESULT ( STDMETHODCALLTYPE *SetTargetRect )(
       IDXGIDecodeSwapChain * This,
       const RECT *pRect);
 
-    HRESULT ( STDMETHODCALLTYPE *SetDestSize )( 
+    HRESULT ( STDMETHODCALLTYPE *SetDestSize )(
       IDXGIDecodeSwapChain * This,
       UINT Width,
       UINT Height);
 
-    HRESULT ( STDMETHODCALLTYPE *GetSourceRect )( 
+    HRESULT ( STDMETHODCALLTYPE *GetSourceRect )(
       IDXGIDecodeSwapChain * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  RECT *pRect);
 
-    HRESULT ( STDMETHODCALLTYPE *GetTargetRect )( 
+    HRESULT ( STDMETHODCALLTYPE *GetTargetRect )(
       IDXGIDecodeSwapChain * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  RECT *pRect);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDestSize )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDestSize )(
       IDXGIDecodeSwapChain * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pWidth,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pHeight);
 
-    HRESULT ( STDMETHODCALLTYPE *SetColorSpace )( 
+    HRESULT ( STDMETHODCALLTYPE *SetColorSpace )(
       IDXGIDecodeSwapChain * This,
       DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAGS ColorSpace);
 
-    DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAGS ( STDMETHODCALLTYPE *GetColorSpace )( 
+    DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAGS ( STDMETHODCALLTYPE *GetColorSpace )(
       IDXGIDecodeSwapChain * This);
 
     END_INTERFACE
@@ -6922,41 +6922,41 @@ extern "C"{
 
 
 #define IDXGIDecodeSwapChain_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIDecodeSwapChain_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIDecodeSwapChain_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIDecodeSwapChain_PresentBuffer(This,BufferToPresent,SyncInterval,Flags)	\
-    ( (This)->lpVtbl -> PresentBuffer(This,BufferToPresent,SyncInterval,Flags) ) 
+    ( (This)->lpVtbl -> PresentBuffer(This,BufferToPresent,SyncInterval,Flags) )
 
 #define IDXGIDecodeSwapChain_SetSourceRect(This,pRect)	\
-    ( (This)->lpVtbl -> SetSourceRect(This,pRect) ) 
+    ( (This)->lpVtbl -> SetSourceRect(This,pRect) )
 
 #define IDXGIDecodeSwapChain_SetTargetRect(This,pRect)	\
-    ( (This)->lpVtbl -> SetTargetRect(This,pRect) ) 
+    ( (This)->lpVtbl -> SetTargetRect(This,pRect) )
 
 #define IDXGIDecodeSwapChain_SetDestSize(This,Width,Height)	\
-    ( (This)->lpVtbl -> SetDestSize(This,Width,Height) ) 
+    ( (This)->lpVtbl -> SetDestSize(This,Width,Height) )
 
 #define IDXGIDecodeSwapChain_GetSourceRect(This,pRect)	\
-    ( (This)->lpVtbl -> GetSourceRect(This,pRect) ) 
+    ( (This)->lpVtbl -> GetSourceRect(This,pRect) )
 
 #define IDXGIDecodeSwapChain_GetTargetRect(This,pRect)	\
-    ( (This)->lpVtbl -> GetTargetRect(This,pRect) ) 
+    ( (This)->lpVtbl -> GetTargetRect(This,pRect) )
 
 #define IDXGIDecodeSwapChain_GetDestSize(This,pWidth,pHeight)	\
-    ( (This)->lpVtbl -> GetDestSize(This,pWidth,pHeight) ) 
+    ( (This)->lpVtbl -> GetDestSize(This,pWidth,pHeight) )
 
 #define IDXGIDecodeSwapChain_SetColorSpace(This,ColorSpace)	\
-    ( (This)->lpVtbl -> SetColorSpace(This,ColorSpace) ) 
+    ( (This)->lpVtbl -> SetColorSpace(This,ColorSpace) )
 
 #define IDXGIDecodeSwapChain_GetColorSpace(This)	\
-    ( (This)->lpVtbl -> GetColorSpace(This) ) 
+    ( (This)->lpVtbl -> GetColorSpace(This) )
 
 #endif /* COBJMACROS */
 
@@ -6973,7 +6973,7 @@ extern "C"{
 #define __IDXGIFactoryMedia_INTERFACE_DEFINED__
 
   /* interface IDXGIFactoryMedia */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIFactoryMedia;
@@ -6984,25 +6984,25 @@ extern "C"{
     IDXGIFactoryMedia : public IUnknown
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE CreateSwapChainForCompositionSurfaceHandle( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE CreateSwapChainForCompositionSurfaceHandle(
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  HANDLE hSurface,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain1 **ppSwapChain) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CreateDecodeSwapChainForCompositionSurfaceHandle( 
+    virtual HRESULT STDMETHODCALLTYPE CreateDecodeSwapChainForCompositionSurfaceHandle(
       IUnknown *pDevice,
       HANDLE hSurface,
       DXGI_DECODE_SWAP_CHAIN_DESC *pDesc,
       IDXGIResource *pYuvDecodeBuffers,
       IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIDecodeSwapChain **ppSwapChain) = 0;
 
   };
@@ -7014,39 +7014,39 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIFactoryMedia * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIFactoryMedia * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIFactoryMedia * This);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForCompositionSurfaceHandle )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForCompositionSurfaceHandle )(
       IDXGIFactoryMedia * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  HANDLE hSurface,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGISwapChain1 **ppSwapChain);
 
-    HRESULT ( STDMETHODCALLTYPE *CreateDecodeSwapChainForCompositionSurfaceHandle )( 
+    HRESULT ( STDMETHODCALLTYPE *CreateDecodeSwapChainForCompositionSurfaceHandle )(
       IDXGIFactoryMedia * This,
       IUnknown *pDevice,
       HANDLE hSurface,
       DXGI_DECODE_SWAP_CHAIN_DESC *pDesc,
       IDXGIResource *pYuvDecodeBuffers,
       IDXGIOutput *pRestrictToOutput,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIDecodeSwapChain **ppSwapChain);
 
     END_INTERFACE
@@ -7063,20 +7063,20 @@ extern "C"{
 
 
 #define IDXGIFactoryMedia_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIFactoryMedia_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIFactoryMedia_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIFactoryMedia_CreateSwapChainForCompositionSurfaceHandle(This,pDevice,hSurface,pDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForCompositionSurfaceHandle(This,pDevice,hSurface,pDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForCompositionSurfaceHandle(This,pDevice,hSurface,pDesc,pRestrictToOutput,ppSwapChain) )
 
 #define IDXGIFactoryMedia_CreateDecodeSwapChainForCompositionSurfaceHandle(This,pDevice,hSurface,pDesc,pYuvDecodeBuffers,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateDecodeSwapChainForCompositionSurfaceHandle(This,pDevice,hSurface,pDesc,pYuvDecodeBuffers,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateDecodeSwapChainForCompositionSurfaceHandle(This,pDevice,hSurface,pDesc,pYuvDecodeBuffers,pRestrictToOutput,ppSwapChain) )
 
 #endif /* COBJMACROS */
 
@@ -7090,9 +7090,9 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_3_0000_0006 */
-  /* [local] */ 
+  /* [local] */
 
-  typedef 
+  typedef
   enum DXGI_FRAME_PRESENTATION_MODE
   {
     DXGI_FRAME_PRESENTATION_MODE_COMPOSED	= 0,
@@ -7120,7 +7120,7 @@ extern "C"{
 #define __IDXGISwapChainMedia_INTERFACE_DEFINED__
 
   /* interface IDXGISwapChainMedia */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGISwapChainMedia;
@@ -7131,18 +7131,18 @@ extern "C"{
     IDXGISwapChainMedia : public IUnknown
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE GetFrameStatisticsMedia( 
-      /* [annotation][out] */ 
+    virtual HRESULT STDMETHODCALLTYPE GetFrameStatisticsMedia(
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS_MEDIA *pStats) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE SetPresentDuration( 
+    virtual HRESULT STDMETHODCALLTYPE SetPresentDuration(
       UINT Duration) = 0;
 
-    virtual HRESULT STDMETHODCALLTYPE CheckPresentDurationSupport( 
+    virtual HRESULT STDMETHODCALLTYPE CheckPresentDurationSupport(
       UINT DesiredPresentDuration,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pClosestSmallerPresentDuration,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pClosestLargerPresentDuration) = 0;
 
   };
@@ -7154,33 +7154,33 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGISwapChainMedia * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGISwapChainMedia * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGISwapChainMedia * This);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameStatisticsMedia )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameStatisticsMedia )(
       IDXGISwapChainMedia * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS_MEDIA *pStats);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPresentDuration )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPresentDuration )(
       IDXGISwapChainMedia * This,
       UINT Duration);
 
-    HRESULT ( STDMETHODCALLTYPE *CheckPresentDurationSupport )( 
+    HRESULT ( STDMETHODCALLTYPE *CheckPresentDurationSupport )(
       IDXGISwapChainMedia * This,
       UINT DesiredPresentDuration,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pClosestSmallerPresentDuration,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pClosestLargerPresentDuration);
 
     END_INTERFACE
@@ -7197,23 +7197,23 @@ extern "C"{
 
 
 #define IDXGISwapChainMedia_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISwapChainMedia_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISwapChainMedia_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISwapChainMedia_GetFrameStatisticsMedia(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatisticsMedia(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatisticsMedia(This,pStats) )
 
 #define IDXGISwapChainMedia_SetPresentDuration(This,Duration)	\
-    ( (This)->lpVtbl -> SetPresentDuration(This,Duration) ) 
+    ( (This)->lpVtbl -> SetPresentDuration(This,Duration) )
 
 #define IDXGISwapChainMedia_CheckPresentDurationSupport(This,DesiredPresentDuration,pClosestSmallerPresentDuration,pClosestLargerPresentDuration)	\
-    ( (This)->lpVtbl -> CheckPresentDurationSupport(This,DesiredPresentDuration,pClosestSmallerPresentDuration,pClosestLargerPresentDuration) ) 
+    ( (This)->lpVtbl -> CheckPresentDurationSupport(This,DesiredPresentDuration,pClosestSmallerPresentDuration,pClosestLargerPresentDuration) )
 
 #endif /* COBJMACROS */
 
@@ -7227,9 +7227,9 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_3_0000_0007 */
-  /* [local] */ 
+  /* [local] */
 
-  typedef 
+  typedef
   enum DXGI_OVERLAY_SUPPORT_FLAG
   {
     DXGI_OVERLAY_SUPPORT_FLAG_DIRECT	= 0x1,
@@ -7245,7 +7245,7 @@ extern "C"{
 #define __IDXGIOutput3_INTERFACE_DEFINED__
 
   /* interface IDXGIOutput3 */
-  /* [unique][local][uuid][object] */ 
+  /* [unique][local][uuid][object] */
 
 
   EXTERN_C const IID IID_IDXGIOutput3;
@@ -7256,12 +7256,12 @@ extern "C"{
     IDXGIOutput3 : public IDXGIOutput2
   {
   public:
-    virtual HRESULT STDMETHODCALLTYPE CheckOverlaySupport( 
-      /* [annotation][in] */ 
+    virtual HRESULT STDMETHODCALLTYPE CheckOverlaySupport(
+      /* [annotation][in] */
       _In_  DXGI_FORMAT EnumFormat,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _In_  IUnknown *pConcernedDevice,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pFlags) = 0;
 
   };
@@ -7273,154 +7273,154 @@ extern "C"{
   {
     BEGIN_INTERFACE
 
-      HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+      HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
         IDXGIOutput3 * This,
         /* [in] */ REFIID riid,
-        /* [annotation][iid_is][out] */ 
+        /* [annotation][iid_is][out] */
         _COM_Outptr_  void **ppvObject);
 
-    ULONG ( STDMETHODCALLTYPE *AddRef )( 
+    ULONG ( STDMETHODCALLTYPE *AddRef )(
       IDXGIOutput3 * This);
 
-    ULONG ( STDMETHODCALLTYPE *Release )( 
+    ULONG ( STDMETHODCALLTYPE *Release )(
       IDXGIOutput3 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
       /* [in] */ UINT DataSize,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_reads_bytes_(DataSize)  const void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const IUnknown *pUnknown);
 
-    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFGUID Name,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pDataSize,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_bytes_(*pDataSize)  void *pData);
 
-    HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+    HRESULT ( STDMETHODCALLTYPE *GetParent )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  REFIID riid,
-      /* [annotation][retval][out] */ 
+      /* [annotation][retval][out] */
       _Out_  void **ppParent);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDesc )(
       IDXGIOutput3 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_OUTPUT_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )(
       IDXGIOutput3 * This,
       /* [in] */ DXGI_FORMAT EnumFormat,
       /* [in] */ UINT Flags,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pNumModes,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )( 
+    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC *pModeToMatch,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_DESC *pClosestMatch,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IUnknown *pConcernedDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )( 
+    HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )(
       IDXGIOutput3 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *TakeOwnership )( 
+    HRESULT ( STDMETHODCALLTYPE *TakeOwnership )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
       BOOL Exclusive);
 
-    void ( STDMETHODCALLTYPE *ReleaseOwnership )( 
+    void ( STDMETHODCALLTYPE *ReleaseOwnership )(
       IDXGIOutput3 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )(
       IDXGIOutput3 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL_CAPABILITIES *pGammaCaps);
 
-    HRESULT ( STDMETHODCALLTYPE *SetGammaControl )( 
+    HRESULT ( STDMETHODCALLTYPE *SetGammaControl )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_GAMMA_CONTROL *pArray);
 
-    HRESULT ( STDMETHODCALLTYPE *GetGammaControl )( 
+    HRESULT ( STDMETHODCALLTYPE *GetGammaControl )(
       IDXGIOutput3 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_GAMMA_CONTROL *pArray);
 
-    HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )( 
+    HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGISurface *pScanoutSurface);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGISurface *pDestination);
 
-    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+    HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
       IDXGIOutput3 * This,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_FRAME_STATISTICS *pStats);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )(
       IDXGIOutput3 * This,
       /* [in] */ DXGI_FORMAT EnumFormat,
       /* [in] */ UINT Flags,
-      /* [annotation][out][in] */ 
+      /* [annotation][out][in] */
       _Inout_  UINT *pNumModes,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC1 *pDesc);
 
-    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )( 
+    HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  const DXGI_MODE_DESC1 *pModeToMatch,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  DXGI_MODE_DESC1 *pClosestMatch,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_opt_  IUnknown *pConcernedDevice);
 
-    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )( 
+    HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IDXGIResource *pDestination);
 
-    HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )( 
+    HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  IUnknown *pDevice,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  IDXGIOutputDuplication **ppOutputDuplication);
 
-    BOOL ( STDMETHODCALLTYPE *SupportsOverlays )( 
+    BOOL ( STDMETHODCALLTYPE *SupportsOverlays )(
       IDXGIOutput3 * This);
 
-    HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )( 
+    HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )(
       IDXGIOutput3 * This,
-      /* [annotation][in] */ 
+      /* [annotation][in] */
       _In_  DXGI_FORMAT EnumFormat,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _In_  IUnknown *pConcernedDevice,
-      /* [annotation][out] */ 
+      /* [annotation][out] */
       _Out_  UINT *pFlags);
 
     END_INTERFACE
@@ -7437,84 +7437,84 @@ extern "C"{
 
 
 #define IDXGIOutput3_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIOutput3_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIOutput3_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIOutput3_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIOutput3_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIOutput3_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIOutput3_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIOutput3_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIOutput3_GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput3_FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput3_WaitForVBlank(This)	\
-    ( (This)->lpVtbl -> WaitForVBlank(This) ) 
+    ( (This)->lpVtbl -> WaitForVBlank(This) )
 
 #define IDXGIOutput3_TakeOwnership(This,pDevice,Exclusive)	\
-    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) ) 
+    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) )
 
 #define IDXGIOutput3_ReleaseOwnership(This)	\
-    ( (This)->lpVtbl -> ReleaseOwnership(This) ) 
+    ( (This)->lpVtbl -> ReleaseOwnership(This) )
 
 #define IDXGIOutput3_GetGammaControlCapabilities(This,pGammaCaps)	\
-    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) ) 
+    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) )
 
 #define IDXGIOutput3_SetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> SetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> SetGammaControl(This,pArray) )
 
 #define IDXGIOutput3_GetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> GetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> GetGammaControl(This,pArray) )
 
 #define IDXGIOutput3_SetDisplaySurface(This,pScanoutSurface)	\
-    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) ) 
+    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) )
 
 #define IDXGIOutput3_GetDisplaySurfaceData(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) )
 
 #define IDXGIOutput3_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 
 #define IDXGIOutput3_GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput3_FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput3_GetDisplaySurfaceData1(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) )
 
 #define IDXGIOutput3_DuplicateOutput(This,pDevice,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) )
 
 
 #define IDXGIOutput3_SupportsOverlays(This)	\
-    ( (This)->lpVtbl -> SupportsOverlays(This) ) 
+    ( (This)->lpVtbl -> SupportsOverlays(This) )
 
 
 #define IDXGIOutput3_CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags)	\
-    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) ) 
+    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) )
 
 #endif /* COBJMACROS */
 
@@ -7528,7 +7528,7 @@ extern "C"{
 
 
   /* interface __MIDL_itf_dxgi1_3_0000_0008 */
-  /* [local] */ 
+  /* [local] */
 
 #endif /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) */
 #pragma endregion
@@ -7561,23 +7561,23 @@ MIDL_INTERFACE("1bc6ea02-ef36-464f-bf0c-21ca39e5168a")
 IDXGIFactory4 : public IDXGIFactory3
 {
 public:
-  virtual HRESULT STDMETHODCALLTYPE EnumAdapterByLuid( 
-    /* [annotation] */ 
+  virtual HRESULT STDMETHODCALLTYPE EnumAdapterByLuid(
+    /* [annotation] */
     _In_  LUID AdapterLuid,
-    /* [annotation] */ 
+    /* [annotation] */
     _In_  REFIID riid,
-    /* [annotation] */ 
+    /* [annotation] */
     _COM_Outptr_  void **ppvAdapter) = 0;
 
-  virtual HRESULT STDMETHODCALLTYPE EnumWarpAdapter( 
-    /* [annotation] */ 
+  virtual HRESULT STDMETHODCALLTYPE EnumWarpAdapter(
+    /* [annotation] */
     _In_  REFIID riid,
-    /* [annotation] */ 
+    /* [annotation] */
     _COM_Outptr_  void **ppvAdapter) = 0;
 
 };
 
-typedef 
+typedef
 enum DXGI_MEMORY_SEGMENT_GROUP
 {
   DXGI_MEMORY_SEGMENT_GROUP_LOCAL	= 0,
@@ -7598,40 +7598,40 @@ MIDL_INTERFACE("645967A4-1392-4310-A798-8053CE3E93FD")
 IDXGIAdapter3 : public IDXGIAdapter2
 {
 public:
-  virtual HRESULT STDMETHODCALLTYPE RegisterHardwareContentProtectionTeardownStatusEvent( 
-    /* [annotation][in] */ 
+  virtual HRESULT STDMETHODCALLTYPE RegisterHardwareContentProtectionTeardownStatusEvent(
+    /* [annotation][in] */
     _In_  HANDLE hEvent,
-    /* [annotation][out] */ 
+    /* [annotation][out] */
     _Out_  DWORD *pdwCookie) = 0;
 
-  virtual void STDMETHODCALLTYPE UnregisterHardwareContentProtectionTeardownStatus( 
-    /* [annotation][in] */ 
+  virtual void STDMETHODCALLTYPE UnregisterHardwareContentProtectionTeardownStatus(
+    /* [annotation][in] */
     _In_  DWORD dwCookie) = 0;
 
-  virtual HRESULT STDMETHODCALLTYPE QueryVideoMemoryInfo( 
-    /* [annotation][in] */ 
+  virtual HRESULT STDMETHODCALLTYPE QueryVideoMemoryInfo(
+    /* [annotation][in] */
     _In_  UINT NodeIndex,
-    /* [annotation][in] */ 
+    /* [annotation][in] */
     _In_  DXGI_MEMORY_SEGMENT_GROUP MemorySegmentGroup,
-    /* [annotation][out] */ 
+    /* [annotation][out] */
     _Out_  DXGI_QUERY_VIDEO_MEMORY_INFO *pVideoMemoryInfo) = 0;
 
-  virtual HRESULT STDMETHODCALLTYPE SetVideoMemoryReservation( 
-    /* [annotation][in] */ 
+  virtual HRESULT STDMETHODCALLTYPE SetVideoMemoryReservation(
+    /* [annotation][in] */
     _In_  UINT NodeIndex,
-    /* [annotation][in] */ 
+    /* [annotation][in] */
     _In_  DXGI_MEMORY_SEGMENT_GROUP MemorySegmentGroup,
-    /* [annotation][in] */ 
+    /* [annotation][in] */
     _In_  UINT64 Reservation) = 0;
 
-  virtual HRESULT STDMETHODCALLTYPE RegisterVideoMemoryBudgetChangeNotificationEvent( 
-    /* [annotation][in] */ 
+  virtual HRESULT STDMETHODCALLTYPE RegisterVideoMemoryBudgetChangeNotificationEvent(
+    /* [annotation][in] */
     _In_  HANDLE hEvent,
-    /* [annotation][out] */ 
+    /* [annotation][out] */
     _Out_  DWORD *pdwCookie) = 0;
 
-  virtual void STDMETHODCALLTYPE UnregisterVideoMemoryBudgetChangeNotification( 
-    /* [annotation][in] */ 
+  virtual void STDMETHODCALLTYPE UnregisterVideoMemoryBudgetChangeNotification(
+    /* [annotation][in] */
     _In_  DWORD dwCookie) = 0;
 
 };
@@ -7994,7 +7994,7 @@ IDXGIFactory5 : public IDXGIFactory4
 #pragma once
 #endif
 
-/* Forward Declarations */ 
+/* Forward Declarations */
 
 #ifndef __IDXGIAdapter4_FWD_DEFINED__
 #define __IDXGIAdapter4_FWD_DEFINED__
@@ -8038,7 +8038,7 @@ typedef interface IDXGIOutput6 IDXGIOutput6;
 #pragma once
 #endif
 
-/* Forward Declarations */ 
+/* Forward Declarations */
 
 #ifndef __IDXGIOutput5_FWD_DEFINED__
 #define __IDXGIOutput5_FWD_DEFINED__
@@ -8098,7 +8098,7 @@ typedef interface IDXGIFactory5 IDXGIFactory5;
 #pragma once
 #endif
 
-/* Forward Declarations */ 
+/* Forward Declarations */
 
 #ifndef __IDXGISwapChain3_FWD_DEFINED__
 #define __IDXGISwapChain3_FWD_DEFINED__
@@ -8119,13 +8119,13 @@ typedef interface IDXGIOutput4 IDXGIOutput4;
 
 #ifdef __cplusplus
 extern "C"{
-#endif 
+#endif
 
 
 /* interface __MIDL_itf_dxgi1_4_0000_0000 */
-/* [local] */ 
+/* [local] */
 
-typedef 
+typedef
 enum DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG
     {
         DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT	= 0x1,
@@ -8141,9 +8141,9 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_4_0000_0000_v0_0_s_ifspec;
 #define __IDXGISwapChain3_INTERFACE_DEFINED__
 
 /* interface IDXGISwapChain3 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
-//typedef enum DXGI_COLOR_SPACE_TYPE { 
+//typedef enum DXGI_COLOR_SPACE_TYPE {
 //  DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709            = 0,
 //  DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709            = 1,
 //  DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709          = 2,
@@ -8176,279 +8176,279 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_4_0000_0000_v0_0_s_ifspec;
 EXTERN_C const IID IID_IDXGISwapChain3;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("94d99bdb-f1f8-4ab0-b236-7da0170edab1")
     IDXGISwapChain3 : public IDXGISwapChain2
     {
     public:
         virtual UINT STDMETHODCALLTYPE GetCurrentBackBufferIndex( void) = 0;
-        
-        virtual HRESULT STDMETHODCALLTYPE CheckColorSpaceSupport( 
-            /* [annotation][in] */ 
+
+        virtual HRESULT STDMETHODCALLTYPE CheckColorSpaceSupport(
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pColorSpaceSupport) = 0;
-        
-        virtual HRESULT STDMETHODCALLTYPE SetColorSpace1( 
-            /* [annotation][in] */ 
+
+        virtual HRESULT STDMETHODCALLTYPE SetColorSpace1(
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace) = 0;
-        
-        virtual HRESULT STDMETHODCALLTYPE ResizeBuffers1( 
-            /* [annotation][in] */ 
+
+        virtual HRESULT STDMETHODCALLTYPE ResizeBuffers1(
+            /* [annotation][in] */
             _In_  UINT BufferCount,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Width,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Height,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT Format,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT SwapChainFlags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(BufferCount)  const UINT *pCreationNodeMask,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(BufferCount)  IUnknown *const *ppPresentQueue) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGISwapChain3Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGISwapChain3 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGISwapChain3 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGISwapChain3 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDevice )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *Present )( 
+
+        HRESULT ( STDMETHODCALLTYPE *Present )(
             IDXGISwapChain3 * This,
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetBuffer )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetBuffer )(
             IDXGISwapChain3 * This,
             /* [in] */ UINT Buffer,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _COM_Outptr_  void **ppSurface);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )(
             IDXGISwapChain3 * This,
             /* [in] */ BOOL Fullscreen,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IDXGIOutput *pTarget);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_opt_  BOOL *pFullscreen,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_opt_result_maybenull_  IDXGIOutput **ppTarget);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_SWAP_CHAIN_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )(
             IDXGISwapChain3 * This,
             /* [in] */ UINT BufferCount,
             /* [in] */ UINT Width,
             /* [in] */ UINT Height,
             /* [in] */ DXGI_FORMAT NewFormat,
             /* [in] */ UINT SwapChainFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *ResizeTarget )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ResizeTarget )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC *pNewTargetParameters);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutput **ppOutput);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_FRAME_STATISTICS *pStats);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pLastPresentCount);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_SWAP_CHAIN_DESC1 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetHwnd )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetHwnd )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  HWND *pHwnd);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID refiid,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  void **ppUnk);
-        
-        HRESULT ( STDMETHODCALLTYPE *Present1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *Present1 )(
             IDXGISwapChain3 * This,
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT PresentFlags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_PRESENT_PARAMETERS *pPresentParameters);
-        
-        BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )( 
+
+        BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )(
             IDXGISwapChain3 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  IDXGIOutput **ppRestrictToOutput);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_RGBA *pColor);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_RGBA *pColor);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetRotation )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetRotation )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_MODE_ROTATION Rotation);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetRotation )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetRotation )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_ROTATION *pRotation);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetSourceSize )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetSourceSize )(
             IDXGISwapChain3 * This,
             UINT Width,
             UINT Height);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetSourceSize )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetSourceSize )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pWidth,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pHeight);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )(
             IDXGISwapChain3 * This,
             UINT MaxLatency);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pMaxLatency);
-        
-        HANDLE ( STDMETHODCALLTYPE *GetFrameLatencyWaitableObject )( 
+
+        HANDLE ( STDMETHODCALLTYPE *GetFrameLatencyWaitableObject )(
             IDXGISwapChain3 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetMatrixTransform )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetMatrixTransform )(
             IDXGISwapChain3 * This,
             const DXGI_MATRIX_3X2_F *pMatrix);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetMatrixTransform )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetMatrixTransform )(
             IDXGISwapChain3 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MATRIX_3X2_F *pMatrix);
-        
-        UINT ( STDMETHODCALLTYPE *GetCurrentBackBufferIndex )( 
+
+        UINT ( STDMETHODCALLTYPE *GetCurrentBackBufferIndex )(
             IDXGISwapChain3 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckColorSpaceSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckColorSpaceSupport )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pColorSpaceSupport);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetColorSpace1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetColorSpace1 )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace);
-        
-        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers1 )(
             IDXGISwapChain3 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT BufferCount,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Width,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Height,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT Format,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT SwapChainFlags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(BufferCount)  const UINT *pCreationNodeMask,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(BufferCount)  IUnknown *const *ppPresentQueue);
-        
+
         END_INTERFACE
     } IDXGISwapChain3Vtbl;
 
@@ -8457,136 +8457,136 @@ EXTERN_C const IID IID_IDXGISwapChain3;
         CONST_VTBL struct IDXGISwapChain3Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGISwapChain3_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISwapChain3_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISwapChain3_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISwapChain3_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGISwapChain3_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGISwapChain3_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGISwapChain3_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGISwapChain3_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGISwapChain3_Present(This,SyncInterval,Flags)	\
-    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) ) 
+    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) )
 
 #define IDXGISwapChain3_GetBuffer(This,Buffer,riid,ppSurface)	\
-    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) ) 
+    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) )
 
 #define IDXGISwapChain3_SetFullscreenState(This,Fullscreen,pTarget)	\
-    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) ) 
+    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) )
 
 #define IDXGISwapChain3_GetFullscreenState(This,pFullscreen,ppTarget)	\
-    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) ) 
+    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) )
 
 #define IDXGISwapChain3_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGISwapChain3_ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags)	\
-    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) ) 
+    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) )
 
 #define IDXGISwapChain3_ResizeTarget(This,pNewTargetParameters)	\
-    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) ) 
+    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) )
 
 #define IDXGISwapChain3_GetContainingOutput(This,ppOutput)	\
-    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) ) 
+    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) )
 
 #define IDXGISwapChain3_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 #define IDXGISwapChain3_GetLastPresentCount(This,pLastPresentCount)	\
-    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) ) 
+    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) )
 
 
 #define IDXGISwapChain3_GetDesc1(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc1(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc1(This,pDesc) )
 
 #define IDXGISwapChain3_GetFullscreenDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) )
 
 #define IDXGISwapChain3_GetHwnd(This,pHwnd)	\
-    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) ) 
+    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) )
 
 #define IDXGISwapChain3_GetCoreWindow(This,refiid,ppUnk)	\
-    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) ) 
+    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) )
 
 #define IDXGISwapChain3_Present1(This,SyncInterval,PresentFlags,pPresentParameters)	\
-    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) ) 
+    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) )
 
 #define IDXGISwapChain3_IsTemporaryMonoSupported(This)	\
-    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) ) 
+    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) )
 
 #define IDXGISwapChain3_GetRestrictToOutput(This,ppRestrictToOutput)	\
-    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) ) 
+    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) )
 
 #define IDXGISwapChain3_SetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain3_GetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain3_SetRotation(This,Rotation)	\
-    ( (This)->lpVtbl -> SetRotation(This,Rotation) ) 
+    ( (This)->lpVtbl -> SetRotation(This,Rotation) )
 
 #define IDXGISwapChain3_GetRotation(This,pRotation)	\
-    ( (This)->lpVtbl -> GetRotation(This,pRotation) ) 
+    ( (This)->lpVtbl -> GetRotation(This,pRotation) )
 
 
 #define IDXGISwapChain3_SetSourceSize(This,Width,Height)	\
-    ( (This)->lpVtbl -> SetSourceSize(This,Width,Height) ) 
+    ( (This)->lpVtbl -> SetSourceSize(This,Width,Height) )
 
 #define IDXGISwapChain3_GetSourceSize(This,pWidth,pHeight)	\
-    ( (This)->lpVtbl -> GetSourceSize(This,pWidth,pHeight) ) 
+    ( (This)->lpVtbl -> GetSourceSize(This,pWidth,pHeight) )
 
 #define IDXGISwapChain3_SetMaximumFrameLatency(This,MaxLatency)	\
-    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) ) 
+    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) )
 
 #define IDXGISwapChain3_GetMaximumFrameLatency(This,pMaxLatency)	\
-    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) ) 
+    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) )
 
 #define IDXGISwapChain3_GetFrameLatencyWaitableObject(This)	\
-    ( (This)->lpVtbl -> GetFrameLatencyWaitableObject(This) ) 
+    ( (This)->lpVtbl -> GetFrameLatencyWaitableObject(This) )
 
 #define IDXGISwapChain3_SetMatrixTransform(This,pMatrix)	\
-    ( (This)->lpVtbl -> SetMatrixTransform(This,pMatrix) ) 
+    ( (This)->lpVtbl -> SetMatrixTransform(This,pMatrix) )
 
 #define IDXGISwapChain3_GetMatrixTransform(This,pMatrix)	\
-    ( (This)->lpVtbl -> GetMatrixTransform(This,pMatrix) ) 
+    ( (This)->lpVtbl -> GetMatrixTransform(This,pMatrix) )
 
 
 #define IDXGISwapChain3_GetCurrentBackBufferIndex(This)	\
-    ( (This)->lpVtbl -> GetCurrentBackBufferIndex(This) ) 
+    ( (This)->lpVtbl -> GetCurrentBackBufferIndex(This) )
 
 #define IDXGISwapChain3_CheckColorSpaceSupport(This,ColorSpace,pColorSpaceSupport)	\
-    ( (This)->lpVtbl -> CheckColorSpaceSupport(This,ColorSpace,pColorSpaceSupport) ) 
+    ( (This)->lpVtbl -> CheckColorSpaceSupport(This,ColorSpace,pColorSpaceSupport) )
 
 #define IDXGISwapChain3_SetColorSpace1(This,ColorSpace)	\
-    ( (This)->lpVtbl -> SetColorSpace1(This,ColorSpace) ) 
+    ( (This)->lpVtbl -> SetColorSpace1(This,ColorSpace) )
 
 #define IDXGISwapChain3_ResizeBuffers1(This,BufferCount,Width,Height,Format,SwapChainFlags,pCreationNodeMask,ppPresentQueue)	\
-    ( (This)->lpVtbl -> ResizeBuffers1(This,BufferCount,Width,Height,Format,SwapChainFlags,pCreationNodeMask,ppPresentQueue) ) 
+    ( (This)->lpVtbl -> ResizeBuffers1(This,BufferCount,Width,Height,Format,SwapChainFlags,pCreationNodeMask,ppPresentQueue) )
 
 #endif /* COBJMACROS */
 
@@ -8600,9 +8600,9 @@ EXTERN_C const IID IID_IDXGISwapChain3;
 
 
 /* interface __MIDL_itf_dxgi1_4_0000_0001 */
-/* [local] */ 
+/* [local] */
 
-typedef 
+typedef
 enum DXGI_OVERLAY_COLOR_SPACE_SUPPORT_FLAG
     {
         DXGI_OVERLAY_COLOR_SPACE_SUPPORT_FLAG_PRESENT	= 0x1
@@ -8617,197 +8617,197 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_4_0000_0001_v0_0_s_ifspec;
 #define __IDXGIOutput4_INTERFACE_DEFINED__
 
 /* interface IDXGIOutput4 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGIOutput4;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("dc7dca35-2196-414d-9F53-617884032a60")
     IDXGIOutput4 : public IDXGIOutput3
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE CheckOverlayColorSpaceSupport( 
-            /* [annotation][in] */ 
+        virtual HRESULT STDMETHODCALLTYPE CheckOverlayColorSpaceSupport(
+            /* [annotation][in] */
             _In_  DXGI_FORMAT Format,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pConcernedDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGIOutput4Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGIOutput4 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGIOutput4 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGIOutput4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc )(
             IDXGIOutput4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_OUTPUT_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )(
             IDXGIOutput4 * This,
             /* [in] */ DXGI_FORMAT EnumFormat,
             /* [in] */ UINT Flags,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pNumModes,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )( 
+
+        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC *pModeToMatch,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_DESC *pClosestMatch,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IUnknown *pConcernedDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )( 
+
+        HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )(
             IDXGIOutput4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *TakeOwnership )( 
+
+        HRESULT ( STDMETHODCALLTYPE *TakeOwnership )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
             BOOL Exclusive);
-        
-        void ( STDMETHODCALLTYPE *ReleaseOwnership )( 
+
+        void ( STDMETHODCALLTYPE *ReleaseOwnership )(
             IDXGIOutput4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )(
             IDXGIOutput4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_GAMMA_CONTROL_CAPABILITIES *pGammaCaps);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetGammaControl )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetGammaControl )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_GAMMA_CONTROL *pArray);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGammaControl )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGammaControl )(
             IDXGIOutput4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_GAMMA_CONTROL *pArray);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGISurface *pScanoutSurface);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGISurface *pDestination);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
             IDXGIOutput4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_FRAME_STATISTICS *pStats);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )(
             IDXGIOutput4 * This,
             /* [in] */ DXGI_FORMAT EnumFormat,
             /* [in] */ UINT Flags,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pNumModes,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC1 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC1 *pModeToMatch,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_DESC1 *pClosestMatch,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IUnknown *pConcernedDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGIResource *pDestination);
-        
-        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutputDuplication **ppOutputDuplication);
-        
-        BOOL ( STDMETHODCALLTYPE *SupportsOverlays )( 
+
+        BOOL ( STDMETHODCALLTYPE *SupportsOverlays )(
             IDXGIOutput4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT EnumFormat,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _In_  IUnknown *pConcernedDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckOverlayColorSpaceSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckOverlayColorSpaceSupport )(
             IDXGIOutput4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT Format,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pConcernedDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags);
-        
+
         END_INTERFACE
     } IDXGIOutput4Vtbl;
 
@@ -8816,94 +8816,94 @@ EXTERN_C const IID IID_IDXGIOutput4;
         CONST_VTBL struct IDXGIOutput4Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGIOutput4_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIOutput4_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIOutput4_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIOutput4_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIOutput4_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIOutput4_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIOutput4_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIOutput4_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIOutput4_GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput4_FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput4_WaitForVBlank(This)	\
-    ( (This)->lpVtbl -> WaitForVBlank(This) ) 
+    ( (This)->lpVtbl -> WaitForVBlank(This) )
 
 #define IDXGIOutput4_TakeOwnership(This,pDevice,Exclusive)	\
-    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) ) 
+    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) )
 
 #define IDXGIOutput4_ReleaseOwnership(This)	\
-    ( (This)->lpVtbl -> ReleaseOwnership(This) ) 
+    ( (This)->lpVtbl -> ReleaseOwnership(This) )
 
 #define IDXGIOutput4_GetGammaControlCapabilities(This,pGammaCaps)	\
-    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) ) 
+    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) )
 
 #define IDXGIOutput4_SetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> SetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> SetGammaControl(This,pArray) )
 
 #define IDXGIOutput4_GetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> GetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> GetGammaControl(This,pArray) )
 
 #define IDXGIOutput4_SetDisplaySurface(This,pScanoutSurface)	\
-    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) ) 
+    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) )
 
 #define IDXGIOutput4_GetDisplaySurfaceData(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) )
 
 #define IDXGIOutput4_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 
 #define IDXGIOutput4_GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput4_FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput4_GetDisplaySurfaceData1(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) )
 
 #define IDXGIOutput4_DuplicateOutput(This,pDevice,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) )
 
 
 #define IDXGIOutput4_SupportsOverlays(This)	\
-    ( (This)->lpVtbl -> SupportsOverlays(This) ) 
+    ( (This)->lpVtbl -> SupportsOverlays(This) )
 
 
 #define IDXGIOutput4_CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags)	\
-    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) ) 
+    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) )
 
 
 #define IDXGIOutput4_CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags)	\
-    ( (This)->lpVtbl -> CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags) ) 
+    ( (This)->lpVtbl -> CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags) )
 
 #endif /* COBJMACROS */
 
@@ -8920,7 +8920,7 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_4_0000_0003_v0_0_c_ifspec;
 extern RPC_IF_HANDLE __MIDL_itf_dxgi1_4_0000_0003_v0_0_s_ifspec;
 
 /* interface __MIDL_itf_dxgi1_4_0000_0004 */
-/* [local] */ 
+/* [local] */
 
 DEFINE_GUID(IID_IDXGISwapChain3,0x94d99bdb,0xf1f8,0x4ab0,0xb2,0x36,0x7d,0xa0,0x17,0x0e,0xda,0xb1);
 DEFINE_GUID(IID_IDXGIOutput4,0xdc7dca35,0x2196,0x414d,0x9F,0x53,0x61,0x78,0x84,0x03,0x2a,0x60);
@@ -8943,16 +8943,16 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_4_0000_0004_v0_0_s_ifspec;
 
 #ifdef __cplusplus
 extern "C"{
-#endif 
+#endif
 
 
 /* interface __MIDL_itf_dxgi1_5_0000_0000 */
-/* [local] */ 
+/* [local] */
 
 /*#include <winapifamily.h>*/
 /*#pragma region App Family*/
 /*#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)*/
-typedef 
+typedef
 enum DXGI_OUTDUPL_FLAG
     {
         DXGI_OUTDUPL_COMPOSITED_UI_CAPTURE_ONLY	= 1
@@ -8967,210 +8967,210 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0000_v0_0_s_ifspec;
 #define __IDXGIOutput5_INTERFACE_DEFINED__
 
 /* interface IDXGIOutput5 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGIOutput5;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("80A07424-AB52-42EB-833C-0C42FD282D98")
     IDXGIOutput5 : public IDXGIOutput4
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE DuplicateOutput1( 
-            /* [annotation][in] */ 
+        virtual HRESULT STDMETHODCALLTYPE DuplicateOutput1(
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
             /* [in] */ UINT Flags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT SupportedFormatsCount,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(SupportedFormatsCount)  const DXGI_FORMAT *pSupportedFormats,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutputDuplication **ppOutputDuplication) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGIOutput5Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGIOutput5 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGIOutput5 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGIOutput5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc )(
             IDXGIOutput5 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_OUTPUT_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )(
             IDXGIOutput5 * This,
             /* [in] */ DXGI_FORMAT EnumFormat,
             /* [in] */ UINT Flags,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pNumModes,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )( 
+
+        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC *pModeToMatch,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_DESC *pClosestMatch,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IUnknown *pConcernedDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )( 
+
+        HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )(
             IDXGIOutput5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *TakeOwnership )( 
+
+        HRESULT ( STDMETHODCALLTYPE *TakeOwnership )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
             BOOL Exclusive);
-        
-        void ( STDMETHODCALLTYPE *ReleaseOwnership )( 
+
+        void ( STDMETHODCALLTYPE *ReleaseOwnership )(
             IDXGIOutput5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )(
             IDXGIOutput5 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_GAMMA_CONTROL_CAPABILITIES *pGammaCaps);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetGammaControl )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetGammaControl )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_GAMMA_CONTROL *pArray);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGammaControl )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGammaControl )(
             IDXGIOutput5 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_GAMMA_CONTROL *pArray);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGISurface *pScanoutSurface);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGISurface *pDestination);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
             IDXGIOutput5 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_FRAME_STATISTICS *pStats);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )(
             IDXGIOutput5 * This,
             /* [in] */ DXGI_FORMAT EnumFormat,
             /* [in] */ UINT Flags,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pNumModes,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC1 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC1 *pModeToMatch,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_DESC1 *pClosestMatch,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IUnknown *pConcernedDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGIResource *pDestination);
-        
-        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutputDuplication **ppOutputDuplication);
-        
-        BOOL ( STDMETHODCALLTYPE *SupportsOverlays )( 
+
+        BOOL ( STDMETHODCALLTYPE *SupportsOverlays )(
             IDXGIOutput5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT EnumFormat,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _In_  IUnknown *pConcernedDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckOverlayColorSpaceSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckOverlayColorSpaceSupport )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT Format,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pConcernedDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput1 )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
             /* [in] */ UINT Flags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT SupportedFormatsCount,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(SupportedFormatsCount)  const DXGI_FORMAT *pSupportedFormats,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutputDuplication **ppOutputDuplication);
-        
+
         END_INTERFACE
     } IDXGIOutput5Vtbl;
 
@@ -9179,98 +9179,98 @@ EXTERN_C const IID IID_IDXGIOutput5;
         CONST_VTBL struct IDXGIOutput5Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGIOutput5_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIOutput5_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIOutput5_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIOutput5_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIOutput5_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIOutput5_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIOutput5_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIOutput5_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIOutput5_GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput5_FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput5_WaitForVBlank(This)	\
-    ( (This)->lpVtbl -> WaitForVBlank(This) ) 
+    ( (This)->lpVtbl -> WaitForVBlank(This) )
 
 #define IDXGIOutput5_TakeOwnership(This,pDevice,Exclusive)	\
-    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) ) 
+    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) )
 
 #define IDXGIOutput5_ReleaseOwnership(This)	\
-    ( (This)->lpVtbl -> ReleaseOwnership(This) ) 
+    ( (This)->lpVtbl -> ReleaseOwnership(This) )
 
 #define IDXGIOutput5_GetGammaControlCapabilities(This,pGammaCaps)	\
-    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) ) 
+    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) )
 
 #define IDXGIOutput5_SetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> SetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> SetGammaControl(This,pArray) )
 
 #define IDXGIOutput5_GetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> GetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> GetGammaControl(This,pArray) )
 
 #define IDXGIOutput5_SetDisplaySurface(This,pScanoutSurface)	\
-    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) ) 
+    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) )
 
 #define IDXGIOutput5_GetDisplaySurfaceData(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) )
 
 #define IDXGIOutput5_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 
 #define IDXGIOutput5_GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput5_FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput5_GetDisplaySurfaceData1(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) )
 
 #define IDXGIOutput5_DuplicateOutput(This,pDevice,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) )
 
 
 #define IDXGIOutput5_SupportsOverlays(This)	\
-    ( (This)->lpVtbl -> SupportsOverlays(This) ) 
+    ( (This)->lpVtbl -> SupportsOverlays(This) )
 
 
 #define IDXGIOutput5_CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags)	\
-    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) ) 
+    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) )
 
 
 #define IDXGIOutput5_CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags)	\
-    ( (This)->lpVtbl -> CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags) ) 
+    ( (This)->lpVtbl -> CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags) )
 
 
 #define IDXGIOutput5_DuplicateOutput1(This,pDevice,Flags,SupportedFormatsCount,pSupportedFormats,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput1(This,pDevice,Flags,SupportedFormatsCount,pSupportedFormats,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput1(This,pDevice,Flags,SupportedFormatsCount,pSupportedFormats,ppOutputDuplication) )
 
 #endif /* COBJMACROS */
 
@@ -9284,9 +9284,9 @@ EXTERN_C const IID IID_IDXGIOutput5;
 
 
 /* interface __MIDL_itf_dxgi1_5_0000_0001 */
-/* [local] */ 
+/* [local] */
 
-typedef 
+typedef
 enum DXGI_HDR_METADATA_TYPE
     {
         DXGI_HDR_METADATA_TYPE_NONE	= 0,
@@ -9314,274 +9314,274 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0001_v0_0_s_ifspec;
 #define __IDXGISwapChain4_INTERFACE_DEFINED__
 
 /* interface IDXGISwapChain4 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGISwapChain4;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("3D585D5A-BD4A-489E-B1F4-3DBCB6452FFB")
     IDXGISwapChain4 : public IDXGISwapChain3
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE SetHDRMetaData( 
-            /* [annotation][in] */ 
+        virtual HRESULT STDMETHODCALLTYPE SetHDRMetaData(
+            /* [annotation][in] */
             _In_  DXGI_HDR_METADATA_TYPE Type,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Size,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_opt_(Size)  void *pMetaData) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGISwapChain4Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGISwapChain4 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGISwapChain4 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGISwapChain4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDevice )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *Present )( 
+
+        HRESULT ( STDMETHODCALLTYPE *Present )(
             IDXGISwapChain4 * This,
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetBuffer )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetBuffer )(
             IDXGISwapChain4 * This,
             /* [in] */ UINT Buffer,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _COM_Outptr_  void **ppSurface);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )(
             IDXGISwapChain4 * This,
             /* [in] */ BOOL Fullscreen,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IDXGIOutput *pTarget);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_opt_  BOOL *pFullscreen,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_opt_result_maybenull_  IDXGIOutput **ppTarget);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_SWAP_CHAIN_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )(
             IDXGISwapChain4 * This,
             /* [in] */ UINT BufferCount,
             /* [in] */ UINT Width,
             /* [in] */ UINT Height,
             /* [in] */ DXGI_FORMAT NewFormat,
             /* [in] */ UINT SwapChainFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *ResizeTarget )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ResizeTarget )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC *pNewTargetParameters);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutput **ppOutput);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_FRAME_STATISTICS *pStats);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pLastPresentCount);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_SWAP_CHAIN_DESC1 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetHwnd )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetHwnd )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  HWND *pHwnd);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID refiid,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  void **ppUnk);
-        
-        HRESULT ( STDMETHODCALLTYPE *Present1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *Present1 )(
             IDXGISwapChain4 * This,
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT PresentFlags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_PRESENT_PARAMETERS *pPresentParameters);
-        
-        BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )( 
+
+        BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )(
             IDXGISwapChain4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  IDXGIOutput **ppRestrictToOutput);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_RGBA *pColor);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_RGBA *pColor);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetRotation )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetRotation )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_MODE_ROTATION Rotation);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetRotation )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetRotation )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_ROTATION *pRotation);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetSourceSize )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetSourceSize )(
             IDXGISwapChain4 * This,
             UINT Width,
             UINT Height);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetSourceSize )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetSourceSize )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pWidth,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pHeight);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )(
             IDXGISwapChain4 * This,
             UINT MaxLatency);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pMaxLatency);
-        
-        HANDLE ( STDMETHODCALLTYPE *GetFrameLatencyWaitableObject )( 
+
+        HANDLE ( STDMETHODCALLTYPE *GetFrameLatencyWaitableObject )(
             IDXGISwapChain4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetMatrixTransform )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetMatrixTransform )(
             IDXGISwapChain4 * This,
             const DXGI_MATRIX_3X2_F *pMatrix);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetMatrixTransform )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetMatrixTransform )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MATRIX_3X2_F *pMatrix);
-        
-        UINT ( STDMETHODCALLTYPE *GetCurrentBackBufferIndex )( 
+
+        UINT ( STDMETHODCALLTYPE *GetCurrentBackBufferIndex )(
             IDXGISwapChain4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckColorSpaceSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckColorSpaceSupport )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pColorSpaceSupport);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetColorSpace1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetColorSpace1 )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace);
-        
-        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers1 )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT BufferCount,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Width,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Height,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT Format,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT SwapChainFlags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(BufferCount)  const UINT *pCreationNodeMask,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(BufferCount)  IUnknown *const *ppPresentQueue);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetHDRMetaData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetHDRMetaData )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_HDR_METADATA_TYPE Type,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Size,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_opt_(Size)  void *pMetaData);
-        
+
         END_INTERFACE
     } IDXGISwapChain4Vtbl;
 
@@ -9590,140 +9590,140 @@ EXTERN_C const IID IID_IDXGISwapChain4;
         CONST_VTBL struct IDXGISwapChain4Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGISwapChain4_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISwapChain4_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISwapChain4_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISwapChain4_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGISwapChain4_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGISwapChain4_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGISwapChain4_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGISwapChain4_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGISwapChain4_Present(This,SyncInterval,Flags)	\
-    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) ) 
+    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) )
 
 #define IDXGISwapChain4_GetBuffer(This,Buffer,riid,ppSurface)	\
-    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) ) 
+    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) )
 
 #define IDXGISwapChain4_SetFullscreenState(This,Fullscreen,pTarget)	\
-    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) ) 
+    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) )
 
 #define IDXGISwapChain4_GetFullscreenState(This,pFullscreen,ppTarget)	\
-    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) ) 
+    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) )
 
 #define IDXGISwapChain4_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGISwapChain4_ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags)	\
-    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) ) 
+    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) )
 
 #define IDXGISwapChain4_ResizeTarget(This,pNewTargetParameters)	\
-    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) ) 
+    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) )
 
 #define IDXGISwapChain4_GetContainingOutput(This,ppOutput)	\
-    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) ) 
+    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) )
 
 #define IDXGISwapChain4_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 #define IDXGISwapChain4_GetLastPresentCount(This,pLastPresentCount)	\
-    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) ) 
+    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) )
 
 
 #define IDXGISwapChain4_GetDesc1(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc1(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc1(This,pDesc) )
 
 #define IDXGISwapChain4_GetFullscreenDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) )
 
 #define IDXGISwapChain4_GetHwnd(This,pHwnd)	\
-    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) ) 
+    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) )
 
 #define IDXGISwapChain4_GetCoreWindow(This,refiid,ppUnk)	\
-    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) ) 
+    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) )
 
 #define IDXGISwapChain4_Present1(This,SyncInterval,PresentFlags,pPresentParameters)	\
-    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) ) 
+    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) )
 
 #define IDXGISwapChain4_IsTemporaryMonoSupported(This)	\
-    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) ) 
+    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) )
 
 #define IDXGISwapChain4_GetRestrictToOutput(This,ppRestrictToOutput)	\
-    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) ) 
+    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) )
 
 #define IDXGISwapChain4_SetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain4_GetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain4_SetRotation(This,Rotation)	\
-    ( (This)->lpVtbl -> SetRotation(This,Rotation) ) 
+    ( (This)->lpVtbl -> SetRotation(This,Rotation) )
 
 #define IDXGISwapChain4_GetRotation(This,pRotation)	\
-    ( (This)->lpVtbl -> GetRotation(This,pRotation) ) 
+    ( (This)->lpVtbl -> GetRotation(This,pRotation) )
 
 
 #define IDXGISwapChain4_SetSourceSize(This,Width,Height)	\
-    ( (This)->lpVtbl -> SetSourceSize(This,Width,Height) ) 
+    ( (This)->lpVtbl -> SetSourceSize(This,Width,Height) )
 
 #define IDXGISwapChain4_GetSourceSize(This,pWidth,pHeight)	\
-    ( (This)->lpVtbl -> GetSourceSize(This,pWidth,pHeight) ) 
+    ( (This)->lpVtbl -> GetSourceSize(This,pWidth,pHeight) )
 
 #define IDXGISwapChain4_SetMaximumFrameLatency(This,MaxLatency)	\
-    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) ) 
+    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) )
 
 #define IDXGISwapChain4_GetMaximumFrameLatency(This,pMaxLatency)	\
-    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) ) 
+    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) )
 
 #define IDXGISwapChain4_GetFrameLatencyWaitableObject(This)	\
-    ( (This)->lpVtbl -> GetFrameLatencyWaitableObject(This) ) 
+    ( (This)->lpVtbl -> GetFrameLatencyWaitableObject(This) )
 
 #define IDXGISwapChain4_SetMatrixTransform(This,pMatrix)	\
-    ( (This)->lpVtbl -> SetMatrixTransform(This,pMatrix) ) 
+    ( (This)->lpVtbl -> SetMatrixTransform(This,pMatrix) )
 
 #define IDXGISwapChain4_GetMatrixTransform(This,pMatrix)	\
-    ( (This)->lpVtbl -> GetMatrixTransform(This,pMatrix) ) 
+    ( (This)->lpVtbl -> GetMatrixTransform(This,pMatrix) )
 
 
 #define IDXGISwapChain4_GetCurrentBackBufferIndex(This)	\
-    ( (This)->lpVtbl -> GetCurrentBackBufferIndex(This) ) 
+    ( (This)->lpVtbl -> GetCurrentBackBufferIndex(This) )
 
 #define IDXGISwapChain4_CheckColorSpaceSupport(This,ColorSpace,pColorSpaceSupport)	\
-    ( (This)->lpVtbl -> CheckColorSpaceSupport(This,ColorSpace,pColorSpaceSupport) ) 
+    ( (This)->lpVtbl -> CheckColorSpaceSupport(This,ColorSpace,pColorSpaceSupport) )
 
 #define IDXGISwapChain4_SetColorSpace1(This,ColorSpace)	\
-    ( (This)->lpVtbl -> SetColorSpace1(This,ColorSpace) ) 
+    ( (This)->lpVtbl -> SetColorSpace1(This,ColorSpace) )
 
 #define IDXGISwapChain4_ResizeBuffers1(This,BufferCount,Width,Height,Format,SwapChainFlags,pCreationNodeMask,ppPresentQueue)	\
-    ( (This)->lpVtbl -> ResizeBuffers1(This,BufferCount,Width,Height,Format,SwapChainFlags,pCreationNodeMask,ppPresentQueue) ) 
+    ( (This)->lpVtbl -> ResizeBuffers1(This,BufferCount,Width,Height,Format,SwapChainFlags,pCreationNodeMask,ppPresentQueue) )
 
 
 #define IDXGISwapChain4_SetHDRMetaData(This,Type,Size,pMetaData)	\
-    ( (This)->lpVtbl -> SetHDRMetaData(This,Type,Size,pMetaData) ) 
+    ( (This)->lpVtbl -> SetHDRMetaData(This,Type,Size,pMetaData) )
 
 #endif /* COBJMACROS */
 
@@ -9737,15 +9737,15 @@ EXTERN_C const IID IID_IDXGISwapChain4;
 
 
 /* interface __MIDL_itf_dxgi1_5_0000_0002 */
-/* [local] */ 
+/* [local] */
 
-typedef 
+typedef
 enum _DXGI_OFFER_RESOURCE_FLAGS
     {
         DXGI_OFFER_RESOURCE_FLAG_ALLOW_DECOMMIT	= 0x1
     } 	DXGI_OFFER_RESOURCE_FLAGS;
 
-typedef 
+typedef
 enum _DXGI_RECLAIM_RESOURCE_RESULTS
     {
         DXGI_RECLAIM_RESOURCE_RESULT_OK	= 0,
@@ -9762,175 +9762,175 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0002_v0_0_s_ifspec;
 #define __IDXGIDevice4_INTERFACE_DEFINED__
 
 /* interface IDXGIDevice4 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGIDevice4;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("95B4F95F-D8DA-4CA4-9EE6-3B76D5968A10")
     IDXGIDevice4 : public IDXGIDevice3
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE OfferResources1( 
-            /* [annotation][in] */ 
+        virtual HRESULT STDMETHODCALLTYPE OfferResources1(
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_OFFER_RESOURCE_PRIORITY Priority,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Flags) = 0;
-        
-        virtual HRESULT STDMETHODCALLTYPE ReclaimResources1( 
-            /* [annotation][in] */ 
+
+        virtual HRESULT STDMETHODCALLTYPE ReclaimResources1(
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][size_is][out] */ 
+            /* [annotation][size_is][out] */
             _Out_writes_all_(NumResources)  DXGI_RECLAIM_RESOURCE_RESULTS *pResults) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGIDevice4Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGIDevice4 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGIDevice4 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGIDevice4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetAdapter )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetAdapter )(
             IDXGIDevice4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIAdapter **pAdapter);
-        
-        HRESULT ( STDMETHODCALLTYPE *CreateSurface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CreateSurface )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_SURFACE_DESC *pDesc,
             /* [in] */ UINT NumSurfaces,
             /* [in] */ DXGI_USAGE Usage,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const DXGI_SHARED_RESOURCE *pSharedResource,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGISurface **ppSurface);
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )(
             IDXGIDevice4 * This,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IUnknown *const *ppResources,
-            /* [annotation][size_is][out] */ 
+            /* [annotation][size_is][out] */
             _Out_writes_(NumResources)  DXGI_RESIDENCY *pResidencyStatus,
             /* [in] */ UINT NumResources);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )(
             IDXGIDevice4 * This,
             /* [in] */ INT Priority);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )(
             IDXGIDevice4 * This,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _Out_  INT *pPriority);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )(
             IDXGIDevice4 * This,
             /* [in] */ UINT MaxLatency);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )(
             IDXGIDevice4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pMaxLatency);
-        
-        HRESULT ( STDMETHODCALLTYPE *OfferResources )( 
+
+        HRESULT ( STDMETHODCALLTYPE *OfferResources )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_OFFER_RESOURCE_PRIORITY Priority);
-        
-        HRESULT ( STDMETHODCALLTYPE *ReclaimResources )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ReclaimResources )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][size_is][out] */ 
+            /* [annotation][size_is][out] */
             _Out_writes_all_opt_(NumResources)  BOOL *pDiscarded);
-        
-        HRESULT ( STDMETHODCALLTYPE *EnqueueSetEvent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *EnqueueSetEvent )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  HANDLE hEvent);
-        
-        void ( STDMETHODCALLTYPE *Trim )( 
+
+        void ( STDMETHODCALLTYPE *Trim )(
             IDXGIDevice4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *OfferResources1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *OfferResources1 )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_OFFER_RESOURCE_PRIORITY Priority,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Flags);
-        
-        HRESULT ( STDMETHODCALLTYPE *ReclaimResources1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ReclaimResources1 )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][size_is][out] */ 
+            /* [annotation][size_is][out] */
             _Out_writes_all_(NumResources)  DXGI_RECLAIM_RESOURCE_RESULTS *pResults);
-        
+
         END_INTERFACE
     } IDXGIDevice4Vtbl;
 
@@ -9939,76 +9939,76 @@ EXTERN_C const IID IID_IDXGIDevice4;
         CONST_VTBL struct IDXGIDevice4Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGIDevice4_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIDevice4_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIDevice4_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIDevice4_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIDevice4_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIDevice4_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIDevice4_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIDevice4_GetAdapter(This,pAdapter)	\
-    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) ) 
+    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) )
 
 #define IDXGIDevice4_CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface)	\
-    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) ) 
+    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) )
 
 #define IDXGIDevice4_QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources)	\
-    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) ) 
+    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) )
 
 #define IDXGIDevice4_SetGPUThreadPriority(This,Priority)	\
-    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) ) 
+    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) )
 
 #define IDXGIDevice4_GetGPUThreadPriority(This,pPriority)	\
-    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) ) 
+    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) )
 
 
 #define IDXGIDevice4_SetMaximumFrameLatency(This,MaxLatency)	\
-    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) ) 
+    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) )
 
 #define IDXGIDevice4_GetMaximumFrameLatency(This,pMaxLatency)	\
-    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) ) 
+    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) )
 
 
 #define IDXGIDevice4_OfferResources(This,NumResources,ppResources,Priority)	\
-    ( (This)->lpVtbl -> OfferResources(This,NumResources,ppResources,Priority) ) 
+    ( (This)->lpVtbl -> OfferResources(This,NumResources,ppResources,Priority) )
 
 #define IDXGIDevice4_ReclaimResources(This,NumResources,ppResources,pDiscarded)	\
-    ( (This)->lpVtbl -> ReclaimResources(This,NumResources,ppResources,pDiscarded) ) 
+    ( (This)->lpVtbl -> ReclaimResources(This,NumResources,ppResources,pDiscarded) )
 
 #define IDXGIDevice4_EnqueueSetEvent(This,hEvent)	\
-    ( (This)->lpVtbl -> EnqueueSetEvent(This,hEvent) ) 
+    ( (This)->lpVtbl -> EnqueueSetEvent(This,hEvent) )
 
 
 #define IDXGIDevice4_Trim(This)	\
-    ( (This)->lpVtbl -> Trim(This) ) 
+    ( (This)->lpVtbl -> Trim(This) )
 
 
 #define IDXGIDevice4_OfferResources1(This,NumResources,ppResources,Priority,Flags)	\
-    ( (This)->lpVtbl -> OfferResources1(This,NumResources,ppResources,Priority,Flags) ) 
+    ( (This)->lpVtbl -> OfferResources1(This,NumResources,ppResources,Priority,Flags) )
 
 #define IDXGIDevice4_ReclaimResources1(This,NumResources,ppResources,pResults)	\
-    ( (This)->lpVtbl -> ReclaimResources1(This,NumResources,ppResources,pResults) ) 
+    ( (This)->lpVtbl -> ReclaimResources1(This,NumResources,ppResources,pResults) )
 
 #endif /* COBJMACROS */
 
@@ -10019,7 +10019,7 @@ EXTERN_C const IID IID_IDXGIDevice4;
 
 
 /* interface __MIDL_itf_dxgi1_5_0000_0004 */
-/* [local] */ 
+/* [local] */
 
 /*#endif*/ /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) */
 /*#pragma endregion*/
@@ -10069,7 +10069,7 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0004_v0_0_s_ifspec;
 #pragma once
 #endif
 
-/* Forward Declarations */ 
+/* Forward Declarations */
 
 #ifndef __IDXGIOutput5_FWD_DEFINED__
 #define __IDXGIOutput5_FWD_DEFINED__
@@ -10104,16 +10104,16 @@ typedef interface IDXGIFactory5 IDXGIFactory5;
 
 #ifdef __cplusplus
 extern "C"{
-#endif 
+#endif
 
 
 /* interface __MIDL_itf_dxgi1_5_0000_0000 */
-/* [local] */ 
+/* [local] */
 
 /*#include <winapifamily.h>*/
 /*#pragma region App Family*/
 /*#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)*/
-typedef 
+typedef
 enum DXGI_OUTDUPL_FLAG
     {
         DXGI_OUTDUPL_COMPOSITED_UI_CAPTURE_ONLY	= 1
@@ -10128,210 +10128,210 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0000_v0_0_s_ifspec;
 #define __IDXGIOutput5_INTERFACE_DEFINED__
 
 /* interface IDXGIOutput5 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGIOutput5;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("80A07424-AB52-42EB-833C-0C42FD282D98")
     IDXGIOutput5 : public IDXGIOutput4
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE DuplicateOutput1( 
-            /* [annotation][in] */ 
+        virtual HRESULT STDMETHODCALLTYPE DuplicateOutput1(
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
             /* [in] */ UINT Flags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT SupportedFormatsCount,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(SupportedFormatsCount)  const DXGI_FORMAT *pSupportedFormats,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutputDuplication **ppOutputDuplication) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGIOutput5Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGIOutput5 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGIOutput5 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGIOutput5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc )(
             IDXGIOutput5 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_OUTPUT_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )(
             IDXGIOutput5 * This,
             /* [in] */ DXGI_FORMAT EnumFormat,
             /* [in] */ UINT Flags,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pNumModes,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )( 
+
+        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC *pModeToMatch,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_DESC *pClosestMatch,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IUnknown *pConcernedDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )( 
+
+        HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )(
             IDXGIOutput5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *TakeOwnership )( 
+
+        HRESULT ( STDMETHODCALLTYPE *TakeOwnership )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
             BOOL Exclusive);
-        
-        void ( STDMETHODCALLTYPE *ReleaseOwnership )( 
+
+        void ( STDMETHODCALLTYPE *ReleaseOwnership )(
             IDXGIOutput5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )(
             IDXGIOutput5 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_GAMMA_CONTROL_CAPABILITIES *pGammaCaps);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetGammaControl )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetGammaControl )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_GAMMA_CONTROL *pArray);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGammaControl )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGammaControl )(
             IDXGIOutput5 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_GAMMA_CONTROL *pArray);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGISurface *pScanoutSurface);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGISurface *pDestination);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
             IDXGIOutput5 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_FRAME_STATISTICS *pStats);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )(
             IDXGIOutput5 * This,
             /* [in] */ DXGI_FORMAT EnumFormat,
             /* [in] */ UINT Flags,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pNumModes,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC1 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC1 *pModeToMatch,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_DESC1 *pClosestMatch,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IUnknown *pConcernedDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGIResource *pDestination);
-        
-        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutputDuplication **ppOutputDuplication);
-        
-        BOOL ( STDMETHODCALLTYPE *SupportsOverlays )( 
+
+        BOOL ( STDMETHODCALLTYPE *SupportsOverlays )(
             IDXGIOutput5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT EnumFormat,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _In_  IUnknown *pConcernedDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckOverlayColorSpaceSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckOverlayColorSpaceSupport )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT Format,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pConcernedDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput1 )(
             IDXGIOutput5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
             /* [in] */ UINT Flags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT SupportedFormatsCount,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(SupportedFormatsCount)  const DXGI_FORMAT *pSupportedFormats,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutputDuplication **ppOutputDuplication);
-        
+
         END_INTERFACE
     } IDXGIOutput5Vtbl;
 
@@ -10340,98 +10340,98 @@ EXTERN_C const IID IID_IDXGIOutput5;
         CONST_VTBL struct IDXGIOutput5Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGIOutput5_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIOutput5_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIOutput5_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIOutput5_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIOutput5_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIOutput5_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIOutput5_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIOutput5_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIOutput5_GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput5_FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput5_WaitForVBlank(This)	\
-    ( (This)->lpVtbl -> WaitForVBlank(This) ) 
+    ( (This)->lpVtbl -> WaitForVBlank(This) )
 
 #define IDXGIOutput5_TakeOwnership(This,pDevice,Exclusive)	\
-    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) ) 
+    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) )
 
 #define IDXGIOutput5_ReleaseOwnership(This)	\
-    ( (This)->lpVtbl -> ReleaseOwnership(This) ) 
+    ( (This)->lpVtbl -> ReleaseOwnership(This) )
 
 #define IDXGIOutput5_GetGammaControlCapabilities(This,pGammaCaps)	\
-    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) ) 
+    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) )
 
 #define IDXGIOutput5_SetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> SetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> SetGammaControl(This,pArray) )
 
 #define IDXGIOutput5_GetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> GetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> GetGammaControl(This,pArray) )
 
 #define IDXGIOutput5_SetDisplaySurface(This,pScanoutSurface)	\
-    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) ) 
+    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) )
 
 #define IDXGIOutput5_GetDisplaySurfaceData(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) )
 
 #define IDXGIOutput5_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 
 #define IDXGIOutput5_GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput5_FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput5_GetDisplaySurfaceData1(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) )
 
 #define IDXGIOutput5_DuplicateOutput(This,pDevice,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) )
 
 
 #define IDXGIOutput5_SupportsOverlays(This)	\
-    ( (This)->lpVtbl -> SupportsOverlays(This) ) 
+    ( (This)->lpVtbl -> SupportsOverlays(This) )
 
 
 #define IDXGIOutput5_CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags)	\
-    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) ) 
+    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) )
 
 
 #define IDXGIOutput5_CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags)	\
-    ( (This)->lpVtbl -> CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags) ) 
+    ( (This)->lpVtbl -> CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags) )
 
 
 #define IDXGIOutput5_DuplicateOutput1(This,pDevice,Flags,SupportedFormatsCount,pSupportedFormats,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput1(This,pDevice,Flags,SupportedFormatsCount,pSupportedFormats,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput1(This,pDevice,Flags,SupportedFormatsCount,pSupportedFormats,ppOutputDuplication) )
 
 #endif /* COBJMACROS */
 
@@ -10445,9 +10445,9 @@ EXTERN_C const IID IID_IDXGIOutput5;
 
 
 /* interface __MIDL_itf_dxgi1_5_0000_0001 */
-/* [local] */ 
+/* [local] */
 
-typedef 
+typedef
 enum DXGI_HDR_METADATA_TYPE
     {
         DXGI_HDR_METADATA_TYPE_NONE	= 0,
@@ -10475,274 +10475,274 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0001_v0_0_s_ifspec;
 #define __IDXGISwapChain4_INTERFACE_DEFINED__
 
 /* interface IDXGISwapChain4 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGISwapChain4;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("3D585D5A-BD4A-489E-B1F4-3DBCB6452FFB")
     IDXGISwapChain4 : public IDXGISwapChain3
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE SetHDRMetaData( 
-            /* [annotation][in] */ 
+        virtual HRESULT STDMETHODCALLTYPE SetHDRMetaData(
+            /* [annotation][in] */
             _In_  DXGI_HDR_METADATA_TYPE Type,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Size,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_opt_(Size)  void *pMetaData) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGISwapChain4Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGISwapChain4 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGISwapChain4 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGISwapChain4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDevice )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDevice )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *Present )( 
+
+        HRESULT ( STDMETHODCALLTYPE *Present )(
             IDXGISwapChain4 * This,
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetBuffer )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetBuffer )(
             IDXGISwapChain4 * This,
             /* [in] */ UINT Buffer,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _COM_Outptr_  void **ppSurface);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetFullscreenState )(
             IDXGISwapChain4 * This,
             /* [in] */ BOOL Fullscreen,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IDXGIOutput *pTarget);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFullscreenState )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_opt_  BOOL *pFullscreen,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_opt_result_maybenull_  IDXGIOutput **ppTarget);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_SWAP_CHAIN_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers )(
             IDXGISwapChain4 * This,
             /* [in] */ UINT BufferCount,
             /* [in] */ UINT Width,
             /* [in] */ UINT Height,
             /* [in] */ DXGI_FORMAT NewFormat,
             /* [in] */ UINT SwapChainFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *ResizeTarget )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ResizeTarget )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC *pNewTargetParameters);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetContainingOutput )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutput **ppOutput);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_FRAME_STATISTICS *pStats);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetLastPresentCount )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pLastPresentCount);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_SWAP_CHAIN_DESC1 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFullscreenDesc )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetHwnd )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetHwnd )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  HWND *pHwnd);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetCoreWindow )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID refiid,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  void **ppUnk);
-        
-        HRESULT ( STDMETHODCALLTYPE *Present1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *Present1 )(
             IDXGISwapChain4 * This,
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT PresentFlags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_PRESENT_PARAMETERS *pPresentParameters);
-        
-        BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )( 
+
+        BOOL ( STDMETHODCALLTYPE *IsTemporaryMonoSupported )(
             IDXGISwapChain4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetRestrictToOutput )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  IDXGIOutput **ppRestrictToOutput);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetBackgroundColor )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_RGBA *pColor);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetBackgroundColor )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_RGBA *pColor);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetRotation )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetRotation )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_MODE_ROTATION Rotation);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetRotation )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetRotation )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_ROTATION *pRotation);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetSourceSize )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetSourceSize )(
             IDXGISwapChain4 * This,
             UINT Width,
             UINT Height);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetSourceSize )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetSourceSize )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pWidth,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pHeight);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )(
             IDXGISwapChain4 * This,
             UINT MaxLatency);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pMaxLatency);
-        
-        HANDLE ( STDMETHODCALLTYPE *GetFrameLatencyWaitableObject )( 
+
+        HANDLE ( STDMETHODCALLTYPE *GetFrameLatencyWaitableObject )(
             IDXGISwapChain4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetMatrixTransform )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetMatrixTransform )(
             IDXGISwapChain4 * This,
             const DXGI_MATRIX_3X2_F *pMatrix);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetMatrixTransform )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetMatrixTransform )(
             IDXGISwapChain4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MATRIX_3X2_F *pMatrix);
-        
-        UINT ( STDMETHODCALLTYPE *GetCurrentBackBufferIndex )( 
+
+        UINT ( STDMETHODCALLTYPE *GetCurrentBackBufferIndex )(
             IDXGISwapChain4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckColorSpaceSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckColorSpaceSupport )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pColorSpaceSupport);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetColorSpace1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetColorSpace1 )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace);
-        
-        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ResizeBuffers1 )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT BufferCount,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Width,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Height,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT Format,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT SwapChainFlags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(BufferCount)  const UINT *pCreationNodeMask,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(BufferCount)  IUnknown *const *ppPresentQueue);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetHDRMetaData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetHDRMetaData )(
             IDXGISwapChain4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_HDR_METADATA_TYPE Type,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Size,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_opt_(Size)  void *pMetaData);
-        
+
         END_INTERFACE
     } IDXGISwapChain4Vtbl;
 
@@ -10751,140 +10751,140 @@ EXTERN_C const IID IID_IDXGISwapChain4;
         CONST_VTBL struct IDXGISwapChain4Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGISwapChain4_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGISwapChain4_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGISwapChain4_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGISwapChain4_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGISwapChain4_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGISwapChain4_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGISwapChain4_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGISwapChain4_GetDevice(This,riid,ppDevice)	\
-    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) ) 
+    ( (This)->lpVtbl -> GetDevice(This,riid,ppDevice) )
 
 
 #define IDXGISwapChain4_Present(This,SyncInterval,Flags)	\
-    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) ) 
+    ( (This)->lpVtbl -> Present(This,SyncInterval,Flags) )
 
 #define IDXGISwapChain4_GetBuffer(This,Buffer,riid,ppSurface)	\
-    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) ) 
+    ( (This)->lpVtbl -> GetBuffer(This,Buffer,riid,ppSurface) )
 
 #define IDXGISwapChain4_SetFullscreenState(This,Fullscreen,pTarget)	\
-    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) ) 
+    ( (This)->lpVtbl -> SetFullscreenState(This,Fullscreen,pTarget) )
 
 #define IDXGISwapChain4_GetFullscreenState(This,pFullscreen,ppTarget)	\
-    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) ) 
+    ( (This)->lpVtbl -> GetFullscreenState(This,pFullscreen,ppTarget) )
 
 #define IDXGISwapChain4_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGISwapChain4_ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags)	\
-    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) ) 
+    ( (This)->lpVtbl -> ResizeBuffers(This,BufferCount,Width,Height,NewFormat,SwapChainFlags) )
 
 #define IDXGISwapChain4_ResizeTarget(This,pNewTargetParameters)	\
-    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) ) 
+    ( (This)->lpVtbl -> ResizeTarget(This,pNewTargetParameters) )
 
 #define IDXGISwapChain4_GetContainingOutput(This,ppOutput)	\
-    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) ) 
+    ( (This)->lpVtbl -> GetContainingOutput(This,ppOutput) )
 
 #define IDXGISwapChain4_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 #define IDXGISwapChain4_GetLastPresentCount(This,pLastPresentCount)	\
-    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) ) 
+    ( (This)->lpVtbl -> GetLastPresentCount(This,pLastPresentCount) )
 
 
 #define IDXGISwapChain4_GetDesc1(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc1(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc1(This,pDesc) )
 
 #define IDXGISwapChain4_GetFullscreenDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetFullscreenDesc(This,pDesc) )
 
 #define IDXGISwapChain4_GetHwnd(This,pHwnd)	\
-    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) ) 
+    ( (This)->lpVtbl -> GetHwnd(This,pHwnd) )
 
 #define IDXGISwapChain4_GetCoreWindow(This,refiid,ppUnk)	\
-    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) ) 
+    ( (This)->lpVtbl -> GetCoreWindow(This,refiid,ppUnk) )
 
 #define IDXGISwapChain4_Present1(This,SyncInterval,PresentFlags,pPresentParameters)	\
-    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) ) 
+    ( (This)->lpVtbl -> Present1(This,SyncInterval,PresentFlags,pPresentParameters) )
 
 #define IDXGISwapChain4_IsTemporaryMonoSupported(This)	\
-    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) ) 
+    ( (This)->lpVtbl -> IsTemporaryMonoSupported(This) )
 
 #define IDXGISwapChain4_GetRestrictToOutput(This,ppRestrictToOutput)	\
-    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) ) 
+    ( (This)->lpVtbl -> GetRestrictToOutput(This,ppRestrictToOutput) )
 
 #define IDXGISwapChain4_SetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> SetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain4_GetBackgroundColor(This,pColor)	\
-    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) ) 
+    ( (This)->lpVtbl -> GetBackgroundColor(This,pColor) )
 
 #define IDXGISwapChain4_SetRotation(This,Rotation)	\
-    ( (This)->lpVtbl -> SetRotation(This,Rotation) ) 
+    ( (This)->lpVtbl -> SetRotation(This,Rotation) )
 
 #define IDXGISwapChain4_GetRotation(This,pRotation)	\
-    ( (This)->lpVtbl -> GetRotation(This,pRotation) ) 
+    ( (This)->lpVtbl -> GetRotation(This,pRotation) )
 
 
 #define IDXGISwapChain4_SetSourceSize(This,Width,Height)	\
-    ( (This)->lpVtbl -> SetSourceSize(This,Width,Height) ) 
+    ( (This)->lpVtbl -> SetSourceSize(This,Width,Height) )
 
 #define IDXGISwapChain4_GetSourceSize(This,pWidth,pHeight)	\
-    ( (This)->lpVtbl -> GetSourceSize(This,pWidth,pHeight) ) 
+    ( (This)->lpVtbl -> GetSourceSize(This,pWidth,pHeight) )
 
 #define IDXGISwapChain4_SetMaximumFrameLatency(This,MaxLatency)	\
-    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) ) 
+    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) )
 
 #define IDXGISwapChain4_GetMaximumFrameLatency(This,pMaxLatency)	\
-    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) ) 
+    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) )
 
 #define IDXGISwapChain4_GetFrameLatencyWaitableObject(This)	\
-    ( (This)->lpVtbl -> GetFrameLatencyWaitableObject(This) ) 
+    ( (This)->lpVtbl -> GetFrameLatencyWaitableObject(This) )
 
 #define IDXGISwapChain4_SetMatrixTransform(This,pMatrix)	\
-    ( (This)->lpVtbl -> SetMatrixTransform(This,pMatrix) ) 
+    ( (This)->lpVtbl -> SetMatrixTransform(This,pMatrix) )
 
 #define IDXGISwapChain4_GetMatrixTransform(This,pMatrix)	\
-    ( (This)->lpVtbl -> GetMatrixTransform(This,pMatrix) ) 
+    ( (This)->lpVtbl -> GetMatrixTransform(This,pMatrix) )
 
 
 #define IDXGISwapChain4_GetCurrentBackBufferIndex(This)	\
-    ( (This)->lpVtbl -> GetCurrentBackBufferIndex(This) ) 
+    ( (This)->lpVtbl -> GetCurrentBackBufferIndex(This) )
 
 #define IDXGISwapChain4_CheckColorSpaceSupport(This,ColorSpace,pColorSpaceSupport)	\
-    ( (This)->lpVtbl -> CheckColorSpaceSupport(This,ColorSpace,pColorSpaceSupport) ) 
+    ( (This)->lpVtbl -> CheckColorSpaceSupport(This,ColorSpace,pColorSpaceSupport) )
 
 #define IDXGISwapChain4_SetColorSpace1(This,ColorSpace)	\
-    ( (This)->lpVtbl -> SetColorSpace1(This,ColorSpace) ) 
+    ( (This)->lpVtbl -> SetColorSpace1(This,ColorSpace) )
 
 #define IDXGISwapChain4_ResizeBuffers1(This,BufferCount,Width,Height,Format,SwapChainFlags,pCreationNodeMask,ppPresentQueue)	\
-    ( (This)->lpVtbl -> ResizeBuffers1(This,BufferCount,Width,Height,Format,SwapChainFlags,pCreationNodeMask,ppPresentQueue) ) 
+    ( (This)->lpVtbl -> ResizeBuffers1(This,BufferCount,Width,Height,Format,SwapChainFlags,pCreationNodeMask,ppPresentQueue) )
 
 
 #define IDXGISwapChain4_SetHDRMetaData(This,Type,Size,pMetaData)	\
-    ( (This)->lpVtbl -> SetHDRMetaData(This,Type,Size,pMetaData) ) 
+    ( (This)->lpVtbl -> SetHDRMetaData(This,Type,Size,pMetaData) )
 
 #endif /* COBJMACROS */
 
@@ -10898,15 +10898,15 @@ EXTERN_C const IID IID_IDXGISwapChain4;
 
 
 /* interface __MIDL_itf_dxgi1_5_0000_0002 */
-/* [local] */ 
+/* [local] */
 
-typedef 
+typedef
 enum _DXGI_OFFER_RESOURCE_FLAGS
     {
         DXGI_OFFER_RESOURCE_FLAG_ALLOW_DECOMMIT	= 0x1
     } 	DXGI_OFFER_RESOURCE_FLAGS;
 
-typedef 
+typedef
 enum _DXGI_RECLAIM_RESOURCE_RESULTS
     {
         DXGI_RECLAIM_RESOURCE_RESULT_OK	= 0,
@@ -10923,175 +10923,175 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0002_v0_0_s_ifspec;
 #define __IDXGIDevice4_INTERFACE_DEFINED__
 
 /* interface IDXGIDevice4 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGIDevice4;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("95B4F95F-D8DA-4CA4-9EE6-3B76D5968A10")
     IDXGIDevice4 : public IDXGIDevice3
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE OfferResources1( 
-            /* [annotation][in] */ 
+        virtual HRESULT STDMETHODCALLTYPE OfferResources1(
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_OFFER_RESOURCE_PRIORITY Priority,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Flags) = 0;
-        
-        virtual HRESULT STDMETHODCALLTYPE ReclaimResources1( 
-            /* [annotation][in] */ 
+
+        virtual HRESULT STDMETHODCALLTYPE ReclaimResources1(
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][size_is][out] */ 
+            /* [annotation][size_is][out] */
             _Out_writes_all_(NumResources)  DXGI_RECLAIM_RESOURCE_RESULTS *pResults) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGIDevice4Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGIDevice4 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGIDevice4 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGIDevice4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetAdapter )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetAdapter )(
             IDXGIDevice4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIAdapter **pAdapter);
-        
-        HRESULT ( STDMETHODCALLTYPE *CreateSurface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CreateSurface )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_SURFACE_DESC *pDesc,
             /* [in] */ UINT NumSurfaces,
             /* [in] */ DXGI_USAGE Usage,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const DXGI_SHARED_RESOURCE *pSharedResource,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGISurface **ppSurface);
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryResourceResidency )(
             IDXGIDevice4 * This,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IUnknown *const *ppResources,
-            /* [annotation][size_is][out] */ 
+            /* [annotation][size_is][out] */
             _Out_writes_(NumResources)  DXGI_RESIDENCY *pResidencyStatus,
             /* [in] */ UINT NumResources);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetGPUThreadPriority )(
             IDXGIDevice4 * This,
             /* [in] */ INT Priority);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGPUThreadPriority )(
             IDXGIDevice4 * This,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _Out_  INT *pPriority);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetMaximumFrameLatency )(
             IDXGIDevice4 * This,
             /* [in] */ UINT MaxLatency);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetMaximumFrameLatency )(
             IDXGIDevice4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pMaxLatency);
-        
-        HRESULT ( STDMETHODCALLTYPE *OfferResources )( 
+
+        HRESULT ( STDMETHODCALLTYPE *OfferResources )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_OFFER_RESOURCE_PRIORITY Priority);
-        
-        HRESULT ( STDMETHODCALLTYPE *ReclaimResources )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ReclaimResources )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][size_is][out] */ 
+            /* [annotation][size_is][out] */
             _Out_writes_all_opt_(NumResources)  BOOL *pDiscarded);
-        
-        HRESULT ( STDMETHODCALLTYPE *EnqueueSetEvent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *EnqueueSetEvent )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  HANDLE hEvent);
-        
-        void ( STDMETHODCALLTYPE *Trim )( 
+
+        void ( STDMETHODCALLTYPE *Trim )(
             IDXGIDevice4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *OfferResources1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *OfferResources1 )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_OFFER_RESOURCE_PRIORITY Priority,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT Flags);
-        
-        HRESULT ( STDMETHODCALLTYPE *ReclaimResources1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *ReclaimResources1 )(
             IDXGIDevice4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NumResources,
-            /* [annotation][size_is][in] */ 
+            /* [annotation][size_is][in] */
             _In_reads_(NumResources)  IDXGIResource *const *ppResources,
-            /* [annotation][size_is][out] */ 
+            /* [annotation][size_is][out] */
             _Out_writes_all_(NumResources)  DXGI_RECLAIM_RESOURCE_RESULTS *pResults);
-        
+
         END_INTERFACE
     } IDXGIDevice4Vtbl;
 
@@ -11100,76 +11100,76 @@ EXTERN_C const IID IID_IDXGIDevice4;
         CONST_VTBL struct IDXGIDevice4Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGIDevice4_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIDevice4_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIDevice4_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIDevice4_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIDevice4_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIDevice4_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIDevice4_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIDevice4_GetAdapter(This,pAdapter)	\
-    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) ) 
+    ( (This)->lpVtbl -> GetAdapter(This,pAdapter) )
 
 #define IDXGIDevice4_CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface)	\
-    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) ) 
+    ( (This)->lpVtbl -> CreateSurface(This,pDesc,NumSurfaces,Usage,pSharedResource,ppSurface) )
 
 #define IDXGIDevice4_QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources)	\
-    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) ) 
+    ( (This)->lpVtbl -> QueryResourceResidency(This,ppResources,pResidencyStatus,NumResources) )
 
 #define IDXGIDevice4_SetGPUThreadPriority(This,Priority)	\
-    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) ) 
+    ( (This)->lpVtbl -> SetGPUThreadPriority(This,Priority) )
 
 #define IDXGIDevice4_GetGPUThreadPriority(This,pPriority)	\
-    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) ) 
+    ( (This)->lpVtbl -> GetGPUThreadPriority(This,pPriority) )
 
 
 #define IDXGIDevice4_SetMaximumFrameLatency(This,MaxLatency)	\
-    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) ) 
+    ( (This)->lpVtbl -> SetMaximumFrameLatency(This,MaxLatency) )
 
 #define IDXGIDevice4_GetMaximumFrameLatency(This,pMaxLatency)	\
-    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) ) 
+    ( (This)->lpVtbl -> GetMaximumFrameLatency(This,pMaxLatency) )
 
 
 #define IDXGIDevice4_OfferResources(This,NumResources,ppResources,Priority)	\
-    ( (This)->lpVtbl -> OfferResources(This,NumResources,ppResources,Priority) ) 
+    ( (This)->lpVtbl -> OfferResources(This,NumResources,ppResources,Priority) )
 
 #define IDXGIDevice4_ReclaimResources(This,NumResources,ppResources,pDiscarded)	\
-    ( (This)->lpVtbl -> ReclaimResources(This,NumResources,ppResources,pDiscarded) ) 
+    ( (This)->lpVtbl -> ReclaimResources(This,NumResources,ppResources,pDiscarded) )
 
 #define IDXGIDevice4_EnqueueSetEvent(This,hEvent)	\
-    ( (This)->lpVtbl -> EnqueueSetEvent(This,hEvent) ) 
+    ( (This)->lpVtbl -> EnqueueSetEvent(This,hEvent) )
 
 
 #define IDXGIDevice4_Trim(This)	\
-    ( (This)->lpVtbl -> Trim(This) ) 
+    ( (This)->lpVtbl -> Trim(This) )
 
 
 #define IDXGIDevice4_OfferResources1(This,NumResources,ppResources,Priority,Flags)	\
-    ( (This)->lpVtbl -> OfferResources1(This,NumResources,ppResources,Priority,Flags) ) 
+    ( (This)->lpVtbl -> OfferResources1(This,NumResources,ppResources,Priority,Flags) )
 
 #define IDXGIDevice4_ReclaimResources1(This,NumResources,ppResources,pResults)	\
-    ( (This)->lpVtbl -> ReclaimResources1(This,NumResources,ppResources,pResults) ) 
+    ( (This)->lpVtbl -> ReclaimResources1(This,NumResources,ppResources,pResults) )
 
 #endif /* COBJMACROS */
 
@@ -11183,9 +11183,9 @@ EXTERN_C const IID IID_IDXGIDevice4;
 
 
 /* interface __MIDL_itf_dxgi1_5_0000_0003 */
-/* [local] */ 
+/* [local] */
 
-typedef 
+typedef
 enum DXGI_FEATURE
     {
         DXGI_FEATURE_PRESENT_ALLOW_TEARING	= 0
@@ -11200,232 +11200,232 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0003_v0_0_s_ifspec;
 #define __IDXGIFactory5_INTERFACE_DEFINED__
 
 /* interface IDXGIFactory5 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGIFactory5;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("7632e1f5-ee65-4dca-87fd-84cd75f8838d")
     IDXGIFactory5 : public IDXGIFactory4
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE CheckFeatureSupport( 
+        virtual HRESULT STDMETHODCALLTYPE CheckFeatureSupport(
             DXGI_FEATURE Feature,
-            /* [annotation] */ 
+            /* [annotation] */
             _Inout_updates_bytes_(FeatureSupportDataSize)  void *pFeatureSupportData,
             UINT FeatureSupportDataSize) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGIFactory5Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGIFactory5 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGIFactory5 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGIFactory5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *EnumAdapters )( 
+
+        HRESULT ( STDMETHODCALLTYPE *EnumAdapters )(
             IDXGIFactory5 * This,
             /* [in] */ UINT Adapter,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIAdapter **ppAdapter);
-        
-        HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )( 
+
+        HRESULT ( STDMETHODCALLTYPE *MakeWindowAssociation )(
             IDXGIFactory5 * This,
             HWND WindowHandle,
             UINT Flags);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetWindowAssociation )(
             IDXGIFactory5 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  HWND *pWindowHandle);
-        
-        HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CreateSwapChain )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_SWAP_CHAIN_DESC *pDesc,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain **ppSwapChain);
-        
-        HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CreateSoftwareAdapter )(
             IDXGIFactory5 * This,
             /* [in] */ HMODULE Module,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIAdapter **ppAdapter);
-        
-        HRESULT ( STDMETHODCALLTYPE *EnumAdapters1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *EnumAdapters1 )(
             IDXGIFactory5 * This,
             /* [in] */ UINT Adapter,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIAdapter1 **ppAdapter);
-        
-        BOOL ( STDMETHODCALLTYPE *IsCurrent )( 
+
+        BOOL ( STDMETHODCALLTYPE *IsCurrent )(
             IDXGIFactory5 * This);
-        
-        BOOL ( STDMETHODCALLTYPE *IsWindowedStereoEnabled )( 
+
+        BOOL ( STDMETHODCALLTYPE *IsWindowedStereoEnabled )(
             IDXGIFactory5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForHwnd )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForHwnd )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  HWND hWnd,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IDXGIOutput *pRestrictToOutput,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain1 **ppSwapChain);
-        
-        HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForCoreWindow )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForCoreWindow )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pWindow,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IDXGIOutput *pRestrictToOutput,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain1 **ppSwapChain);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetSharedResourceAdapterLuid )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetSharedResourceAdapterLuid )(
             IDXGIFactory5 * This,
-            /* [annotation] */ 
+            /* [annotation] */
             _In_  HANDLE hResource,
-            /* [annotation] */ 
+            /* [annotation] */
             _Out_  LUID *pLuid);
-        
-        HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusWindow )( 
+
+        HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusWindow )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  HWND WindowHandle,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT wMsg,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DWORD *pdwCookie);
-        
-        HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusEvent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *RegisterStereoStatusEvent )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  HANDLE hEvent,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DWORD *pdwCookie);
-        
-        void ( STDMETHODCALLTYPE *UnregisterStereoStatus )( 
+
+        void ( STDMETHODCALLTYPE *UnregisterStereoStatus )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DWORD dwCookie);
-        
-        HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusWindow )( 
+
+        HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusWindow )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  HWND WindowHandle,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT wMsg,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DWORD *pdwCookie);
-        
-        HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusEvent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *RegisterOcclusionStatusEvent )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  HANDLE hEvent,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DWORD *pdwCookie);
-        
-        void ( STDMETHODCALLTYPE *UnregisterOcclusionStatus )( 
+
+        void ( STDMETHODCALLTYPE *UnregisterOcclusionStatus )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DWORD dwCookie);
-        
-        HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForComposition )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CreateSwapChainForComposition )(
             IDXGIFactory5 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IDXGIOutput *pRestrictToOutput,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain1 **ppSwapChain);
-        
-        UINT ( STDMETHODCALLTYPE *GetCreationFlags )( 
+
+        UINT ( STDMETHODCALLTYPE *GetCreationFlags )(
             IDXGIFactory5 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *EnumAdapterByLuid )( 
+
+        HRESULT ( STDMETHODCALLTYPE *EnumAdapterByLuid )(
             IDXGIFactory5 * This,
-            /* [annotation] */ 
+            /* [annotation] */
             _In_  LUID AdapterLuid,
-            /* [annotation] */ 
+            /* [annotation] */
             _In_  REFIID riid,
-            /* [annotation] */ 
+            /* [annotation] */
             _COM_Outptr_  void **ppvAdapter);
-        
-        HRESULT ( STDMETHODCALLTYPE *EnumWarpAdapter )( 
+
+        HRESULT ( STDMETHODCALLTYPE *EnumWarpAdapter )(
             IDXGIFactory5 * This,
-            /* [annotation] */ 
+            /* [annotation] */
             _In_  REFIID riid,
-            /* [annotation] */ 
+            /* [annotation] */
             _COM_Outptr_  void **ppvAdapter);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckFeatureSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckFeatureSupport )(
             IDXGIFactory5 * This,
             DXGI_FEATURE Feature,
-            /* [annotation] */ 
+            /* [annotation] */
             _Inout_updates_bytes_(FeatureSupportDataSize)  void *pFeatureSupportData,
             UINT FeatureSupportDataSize);
-        
+
         END_INTERFACE
     } IDXGIFactory5Vtbl;
 
@@ -11434,104 +11434,104 @@ EXTERN_C const IID IID_IDXGIFactory5;
         CONST_VTBL struct IDXGIFactory5Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGIFactory5_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIFactory5_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIFactory5_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIFactory5_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIFactory5_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIFactory5_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIFactory5_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIFactory5_EnumAdapters(This,Adapter,ppAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapters(This,Adapter,ppAdapter) )
 
 #define IDXGIFactory5_MakeWindowAssociation(This,WindowHandle,Flags)	\
-    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) ) 
+    ( (This)->lpVtbl -> MakeWindowAssociation(This,WindowHandle,Flags) )
 
 #define IDXGIFactory5_GetWindowAssociation(This,pWindowHandle)	\
-    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) ) 
+    ( (This)->lpVtbl -> GetWindowAssociation(This,pWindowHandle) )
 
 #define IDXGIFactory5_CreateSwapChain(This,pDevice,pDesc,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChain(This,pDevice,pDesc,ppSwapChain) )
 
 #define IDXGIFactory5_CreateSoftwareAdapter(This,Module,ppAdapter)	\
-    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) ) 
+    ( (This)->lpVtbl -> CreateSoftwareAdapter(This,Module,ppAdapter) )
 
 
 #define IDXGIFactory5_EnumAdapters1(This,Adapter,ppAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapters1(This,Adapter,ppAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapters1(This,Adapter,ppAdapter) )
 
 #define IDXGIFactory5_IsCurrent(This)	\
-    ( (This)->lpVtbl -> IsCurrent(This) ) 
+    ( (This)->lpVtbl -> IsCurrent(This) )
 
 
 #define IDXGIFactory5_IsWindowedStereoEnabled(This)	\
-    ( (This)->lpVtbl -> IsWindowedStereoEnabled(This) ) 
+    ( (This)->lpVtbl -> IsWindowedStereoEnabled(This) )
 
 #define IDXGIFactory5_CreateSwapChainForHwnd(This,pDevice,hWnd,pDesc,pFullscreenDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForHwnd(This,pDevice,hWnd,pDesc,pFullscreenDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForHwnd(This,pDevice,hWnd,pDesc,pFullscreenDesc,pRestrictToOutput,ppSwapChain) )
 
 #define IDXGIFactory5_CreateSwapChainForCoreWindow(This,pDevice,pWindow,pDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForCoreWindow(This,pDevice,pWindow,pDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForCoreWindow(This,pDevice,pWindow,pDesc,pRestrictToOutput,ppSwapChain) )
 
 #define IDXGIFactory5_GetSharedResourceAdapterLuid(This,hResource,pLuid)	\
-    ( (This)->lpVtbl -> GetSharedResourceAdapterLuid(This,hResource,pLuid) ) 
+    ( (This)->lpVtbl -> GetSharedResourceAdapterLuid(This,hResource,pLuid) )
 
 #define IDXGIFactory5_RegisterStereoStatusWindow(This,WindowHandle,wMsg,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterStereoStatusWindow(This,WindowHandle,wMsg,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterStereoStatusWindow(This,WindowHandle,wMsg,pdwCookie) )
 
 #define IDXGIFactory5_RegisterStereoStatusEvent(This,hEvent,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterStereoStatusEvent(This,hEvent,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterStereoStatusEvent(This,hEvent,pdwCookie) )
 
 #define IDXGIFactory5_UnregisterStereoStatus(This,dwCookie)	\
-    ( (This)->lpVtbl -> UnregisterStereoStatus(This,dwCookie) ) 
+    ( (This)->lpVtbl -> UnregisterStereoStatus(This,dwCookie) )
 
 #define IDXGIFactory5_RegisterOcclusionStatusWindow(This,WindowHandle,wMsg,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterOcclusionStatusWindow(This,WindowHandle,wMsg,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterOcclusionStatusWindow(This,WindowHandle,wMsg,pdwCookie) )
 
 #define IDXGIFactory5_RegisterOcclusionStatusEvent(This,hEvent,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterOcclusionStatusEvent(This,hEvent,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterOcclusionStatusEvent(This,hEvent,pdwCookie) )
 
 #define IDXGIFactory5_UnregisterOcclusionStatus(This,dwCookie)	\
-    ( (This)->lpVtbl -> UnregisterOcclusionStatus(This,dwCookie) ) 
+    ( (This)->lpVtbl -> UnregisterOcclusionStatus(This,dwCookie) )
 
 #define IDXGIFactory5_CreateSwapChainForComposition(This,pDevice,pDesc,pRestrictToOutput,ppSwapChain)	\
-    ( (This)->lpVtbl -> CreateSwapChainForComposition(This,pDevice,pDesc,pRestrictToOutput,ppSwapChain) ) 
+    ( (This)->lpVtbl -> CreateSwapChainForComposition(This,pDevice,pDesc,pRestrictToOutput,ppSwapChain) )
 
 
 #define IDXGIFactory5_GetCreationFlags(This)	\
-    ( (This)->lpVtbl -> GetCreationFlags(This) ) 
+    ( (This)->lpVtbl -> GetCreationFlags(This) )
 
 
 #define IDXGIFactory5_EnumAdapterByLuid(This,AdapterLuid,riid,ppvAdapter)	\
-    ( (This)->lpVtbl -> EnumAdapterByLuid(This,AdapterLuid,riid,ppvAdapter) ) 
+    ( (This)->lpVtbl -> EnumAdapterByLuid(This,AdapterLuid,riid,ppvAdapter) )
 
 #define IDXGIFactory5_EnumWarpAdapter(This,riid,ppvAdapter)	\
-    ( (This)->lpVtbl -> EnumWarpAdapter(This,riid,ppvAdapter) ) 
+    ( (This)->lpVtbl -> EnumWarpAdapter(This,riid,ppvAdapter) )
 
 
 #define IDXGIFactory5_CheckFeatureSupport(This,Feature,pFeatureSupportData,FeatureSupportDataSize)	\
-    ( (This)->lpVtbl -> CheckFeatureSupport(This,Feature,pFeatureSupportData,FeatureSupportDataSize) ) 
+    ( (This)->lpVtbl -> CheckFeatureSupport(This,Feature,pFeatureSupportData,FeatureSupportDataSize) )
 
 #endif /* COBJMACROS */
 
@@ -11545,7 +11545,7 @@ EXTERN_C const IID IID_IDXGIFactory5;
 
 
 /* interface __MIDL_itf_dxgi1_5_0000_0004 */
-/* [local] */ 
+/* [local] */
 
 /*#endif*/ /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) */
 /*#pragma endregion*/
@@ -11570,17 +11570,17 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0004_v0_0_s_ifspec;
 
 #ifdef __cplusplus
 extern "C"{
-#endif 
+#endif
 
 
 /* interface __MIDL_itf_dxgi1_6_0000_0000 */
-/* [local] */ 
+/* [local] */
 
 // Copyright (c) Microsoft Corporation.  All Rights Reserved
 /*#include <winapifamily.h>*/
 /*#pragma region App Family*/
 /*#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)*/
-typedef 
+typedef
 enum DXGI_ADAPTER_FLAG3
 {
   DXGI_ADAPTER_FLAG3_NONE	                        = 0,
@@ -11620,148 +11620,148 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_6_0000_0000_v0_0_s_ifspec;
 #define __IDXGIAdapter4_INTERFACE_DEFINED__
 
 /* interface IDXGIAdapter4 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGIAdapter4;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("3c8d99d1-4fbf-4181-a82c-af66bf7bd24e")
     IDXGIAdapter4 : public IDXGIAdapter3
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE GetDesc3( 
-            /* [annotation][out] */ 
+        virtual HRESULT STDMETHODCALLTYPE GetDesc3(
+            /* [annotation][out] */
             _Out_  DXGI_ADAPTER_DESC3 *pDesc) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGIAdapter4Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGIAdapter4 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGIAdapter4 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGIAdapter4 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *EnumOutputs )( 
+
+        HRESULT ( STDMETHODCALLTYPE *EnumOutputs )(
             IDXGIAdapter4 * This,
             /* [in] */ UINT Output,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _COM_Outptr_  IDXGIOutput **ppOutput);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc )(
             IDXGIAdapter4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_ADAPTER_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckInterfaceSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckInterfaceSupport )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID InterfaceName,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  LARGE_INTEGER *pUMDVersion);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )(
             IDXGIAdapter4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_ADAPTER_DESC1 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc2 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc2 )(
             IDXGIAdapter4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_ADAPTER_DESC2 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *RegisterHardwareContentProtectionTeardownStatusEvent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *RegisterHardwareContentProtectionTeardownStatusEvent )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  HANDLE hEvent,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DWORD *pdwCookie);
-        
-        void ( STDMETHODCALLTYPE *UnregisterHardwareContentProtectionTeardownStatus )( 
+
+        void ( STDMETHODCALLTYPE *UnregisterHardwareContentProtectionTeardownStatus )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DWORD dwCookie);
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryVideoMemoryInfo )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryVideoMemoryInfo )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NodeIndex,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_MEMORY_SEGMENT_GROUP MemorySegmentGroup,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_QUERY_VIDEO_MEMORY_INFO *pVideoMemoryInfo);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetVideoMemoryReservation )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetVideoMemoryReservation )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT NodeIndex,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_MEMORY_SEGMENT_GROUP MemorySegmentGroup,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT64 Reservation);
-        
-        HRESULT ( STDMETHODCALLTYPE *RegisterVideoMemoryBudgetChangeNotificationEvent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *RegisterVideoMemoryBudgetChangeNotificationEvent )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  HANDLE hEvent,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DWORD *pdwCookie);
-        
-        void ( STDMETHODCALLTYPE *UnregisterVideoMemoryBudgetChangeNotification )( 
+
+        void ( STDMETHODCALLTYPE *UnregisterVideoMemoryBudgetChangeNotification )(
             IDXGIAdapter4 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DWORD dwCookie);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc3 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc3 )(
             IDXGIAdapter4 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_ADAPTER_DESC3 *pDesc);
-        
+
         END_INTERFACE
     } IDXGIAdapter4Vtbl;
 
@@ -11770,73 +11770,73 @@ EXTERN_C const IID IID_IDXGIAdapter4;
         CONST_VTBL struct IDXGIAdapter4Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGIAdapter4_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIAdapter4_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIAdapter4_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIAdapter4_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIAdapter4_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIAdapter4_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIAdapter4_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIAdapter4_EnumOutputs(This,Output,ppOutput)	\
-    ( (This)->lpVtbl -> EnumOutputs(This,Output,ppOutput) ) 
+    ( (This)->lpVtbl -> EnumOutputs(This,Output,ppOutput) )
 
 #define IDXGIAdapter4_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIAdapter4_CheckInterfaceSupport(This,InterfaceName,pUMDVersion)	\
-    ( (This)->lpVtbl -> CheckInterfaceSupport(This,InterfaceName,pUMDVersion) ) 
+    ( (This)->lpVtbl -> CheckInterfaceSupport(This,InterfaceName,pUMDVersion) )
 
 
 #define IDXGIAdapter4_GetDesc1(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc1(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc1(This,pDesc) )
 
 
 #define IDXGIAdapter4_GetDesc2(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc2(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc2(This,pDesc) )
 
 
 #define IDXGIAdapter4_RegisterHardwareContentProtectionTeardownStatusEvent(This,hEvent,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterHardwareContentProtectionTeardownStatusEvent(This,hEvent,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterHardwareContentProtectionTeardownStatusEvent(This,hEvent,pdwCookie) )
 
 #define IDXGIAdapter4_UnregisterHardwareContentProtectionTeardownStatus(This,dwCookie)	\
-    ( (This)->lpVtbl -> UnregisterHardwareContentProtectionTeardownStatus(This,dwCookie) ) 
+    ( (This)->lpVtbl -> UnregisterHardwareContentProtectionTeardownStatus(This,dwCookie) )
 
 #define IDXGIAdapter4_QueryVideoMemoryInfo(This,NodeIndex,MemorySegmentGroup,pVideoMemoryInfo)	\
-    ( (This)->lpVtbl -> QueryVideoMemoryInfo(This,NodeIndex,MemorySegmentGroup,pVideoMemoryInfo) ) 
+    ( (This)->lpVtbl -> QueryVideoMemoryInfo(This,NodeIndex,MemorySegmentGroup,pVideoMemoryInfo) )
 
 #define IDXGIAdapter4_SetVideoMemoryReservation(This,NodeIndex,MemorySegmentGroup,Reservation)	\
-    ( (This)->lpVtbl -> SetVideoMemoryReservation(This,NodeIndex,MemorySegmentGroup,Reservation) ) 
+    ( (This)->lpVtbl -> SetVideoMemoryReservation(This,NodeIndex,MemorySegmentGroup,Reservation) )
 
 #define IDXGIAdapter4_RegisterVideoMemoryBudgetChangeNotificationEvent(This,hEvent,pdwCookie)	\
-    ( (This)->lpVtbl -> RegisterVideoMemoryBudgetChangeNotificationEvent(This,hEvent,pdwCookie) ) 
+    ( (This)->lpVtbl -> RegisterVideoMemoryBudgetChangeNotificationEvent(This,hEvent,pdwCookie) )
 
 #define IDXGIAdapter4_UnregisterVideoMemoryBudgetChangeNotification(This,dwCookie)	\
-    ( (This)->lpVtbl -> UnregisterVideoMemoryBudgetChangeNotification(This,dwCookie) ) 
+    ( (This)->lpVtbl -> UnregisterVideoMemoryBudgetChangeNotification(This,dwCookie) )
 
 
 #define IDXGIAdapter4_GetDesc3(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc3(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc3(This,pDesc) )
 
 #endif /* COBJMACROS */
 
@@ -11850,7 +11850,7 @@ EXTERN_C const IID IID_IDXGIAdapter4;
 
 
 /* interface __MIDL_itf_dxgi1_6_0000_0001 */
-/* [local] */ 
+/* [local] */
 
 typedef struct DXGI_OUTPUT_DESC1
 {
@@ -11870,7 +11870,7 @@ typedef struct DXGI_OUTPUT_DESC1
   FLOAT                 MaxFullFrameLuminance;
 }   DXGI_OUTPUT_DESC1;
 
-typedef 
+typedef
 enum DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAGS
 {
   DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN	      = 1,
@@ -11888,217 +11888,217 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_6_0000_0001_v0_0_s_ifspec;
 #define __IDXGIOutput6_INTERFACE_DEFINED__
 
 /* interface IDXGIOutput6 */
-/* [unique][local][uuid][object] */ 
+/* [unique][local][uuid][object] */
 
 
 EXTERN_C const IID IID_IDXGIOutput6;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     MIDL_INTERFACE("068346e8-aaec-4b84-add7-137f513f77a1")
     IDXGIOutput6 : public IDXGIOutput5
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE GetDesc1( 
-            /* [annotation][out] */ 
+        virtual HRESULT STDMETHODCALLTYPE GetDesc1(
+            /* [annotation][out] */
             _Out_  DXGI_OUTPUT_DESC1 *pDesc) = 0;
-        
-        virtual HRESULT STDMETHODCALLTYPE CheckHardwareCompositionSupport( 
-            /* [annotation][out] */ 
+
+        virtual HRESULT STDMETHODCALLTYPE CheckHardwareCompositionSupport(
+            /* [annotation][out] */
             _Out_  UINT *pFlags) = 0;
-        
+
     };
-    
-    
+
+
 #else 	/* C style interface */
 
     typedef struct IDXGIOutput6Vtbl
     {
         BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
             IDXGIOutput6 * This,
             /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
+            /* [annotation][iid_is][out] */
             _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+
+        ULONG ( STDMETHODCALLTYPE *AddRef )(
             IDXGIOutput6 * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
+
+        ULONG ( STDMETHODCALLTYPE *Release )(
             IDXGIOutput6 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateData )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
             /* [in] */ UINT DataSize,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_bytes_(DataSize)  const void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetPrivateDataInterface )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  const IUnknown *pUnknown);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetPrivateData )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFGUID Name,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pDataSize,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_bytes_(*pDataSize)  void *pData);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetParent )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetParent )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  REFIID riid,
-            /* [annotation][retval][out] */ 
+            /* [annotation][retval][out] */
             _COM_Outptr_  void **ppParent);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc )(
             IDXGIOutput6 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_OUTPUT_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList )(
             IDXGIOutput6 * This,
             /* [in] */ DXGI_FORMAT EnumFormat,
             /* [in] */ UINT Flags,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pNumModes,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )( 
+
+        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC *pModeToMatch,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_DESC *pClosestMatch,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IUnknown *pConcernedDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )( 
+
+        HRESULT ( STDMETHODCALLTYPE *WaitForVBlank )(
             IDXGIOutput6 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *TakeOwnership )( 
+
+        HRESULT ( STDMETHODCALLTYPE *TakeOwnership )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
             BOOL Exclusive);
-        
-        void ( STDMETHODCALLTYPE *ReleaseOwnership )( 
+
+        void ( STDMETHODCALLTYPE *ReleaseOwnership )(
             IDXGIOutput6 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGammaControlCapabilities )(
             IDXGIOutput6 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_GAMMA_CONTROL_CAPABILITIES *pGammaCaps);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetGammaControl )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetGammaControl )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_GAMMA_CONTROL *pArray);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetGammaControl )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetGammaControl )(
             IDXGIOutput6 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_GAMMA_CONTROL *pArray);
-        
-        HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )( 
+
+        HRESULT ( STDMETHODCALLTYPE *SetDisplaySurface )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGISurface *pScanoutSurface);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGISurface *pDestination);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetFrameStatistics )(
             IDXGIOutput6 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_FRAME_STATISTICS *pStats);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplayModeList1 )(
             IDXGIOutput6 * This,
             /* [in] */ DXGI_FORMAT EnumFormat,
             /* [in] */ UINT Flags,
-            /* [annotation][out][in] */ 
+            /* [annotation][out][in] */
             _Inout_  UINT *pNumModes,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_writes_to_opt_(*pNumModes,*pNumModes)  DXGI_MODE_DESC1 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *FindClosestMatchingMode1 )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  const DXGI_MODE_DESC1 *pModeToMatch,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_MODE_DESC1 *pClosestMatch,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_opt_  IUnknown *pConcernedDevice);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDisplaySurfaceData1 )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IDXGIResource *pDestination);
-        
-        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )( 
+
+        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutputDuplication **ppOutputDuplication);
-        
-        BOOL ( STDMETHODCALLTYPE *SupportsOverlays )( 
+
+        BOOL ( STDMETHODCALLTYPE *SupportsOverlays )(
             IDXGIOutput6 * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckOverlaySupport )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT EnumFormat,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _In_  IUnknown *pConcernedDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckOverlayColorSpaceSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckOverlayColorSpaceSupport )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_FORMAT Format,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  DXGI_COLOR_SPACE_TYPE ColorSpace,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pConcernedDevice,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags);
-        
-        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *DuplicateOutput1 )(
             IDXGIOutput6 * This,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  IUnknown *pDevice,
             /* [in] */ UINT Flags,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_  UINT SupportedFormatsCount,
-            /* [annotation][in] */ 
+            /* [annotation][in] */
             _In_reads_(SupportedFormatsCount)  const DXGI_FORMAT *pSupportedFormats,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _COM_Outptr_  IDXGIOutputDuplication **ppOutputDuplication);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )( 
+
+        HRESULT ( STDMETHODCALLTYPE *GetDesc1 )(
             IDXGIOutput6 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  DXGI_OUTPUT_DESC1 *pDesc);
-        
-        HRESULT ( STDMETHODCALLTYPE *CheckHardwareCompositionSupport )( 
+
+        HRESULT ( STDMETHODCALLTYPE *CheckHardwareCompositionSupport )(
             IDXGIOutput6 * This,
-            /* [annotation][out] */ 
+            /* [annotation][out] */
             _Out_  UINT *pFlags);
-        
+
         END_INTERFACE
     } IDXGIOutput6Vtbl;
 
@@ -12107,105 +12107,105 @@ EXTERN_C const IID IID_IDXGIOutput6;
         CONST_VTBL struct IDXGIOutput6Vtbl *lpVtbl;
     };
 
-    
+
 
 #ifdef COBJMACROS
 
 
 #define IDXGIOutput6_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) )
 
 #define IDXGIOutput6_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
+    ( (This)->lpVtbl -> AddRef(This) )
 
 #define IDXGIOutput6_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
+    ( (This)->lpVtbl -> Release(This) )
 
 
 #define IDXGIOutput6_SetPrivateData(This,Name,DataSize,pData)	\
-    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) ) 
+    ( (This)->lpVtbl -> SetPrivateData(This,Name,DataSize,pData) )
 
 #define IDXGIOutput6_SetPrivateDataInterface(This,Name,pUnknown)	\
-    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) ) 
+    ( (This)->lpVtbl -> SetPrivateDataInterface(This,Name,pUnknown) )
 
 #define IDXGIOutput6_GetPrivateData(This,Name,pDataSize,pData)	\
-    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) ) 
+    ( (This)->lpVtbl -> GetPrivateData(This,Name,pDataSize,pData) )
 
 #define IDXGIOutput6_GetParent(This,riid,ppParent)	\
-    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) ) 
+    ( (This)->lpVtbl -> GetParent(This,riid,ppParent) )
 
 
 #define IDXGIOutput6_GetDesc(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc(This,pDesc) )
 
 #define IDXGIOutput6_GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput6_FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput6_WaitForVBlank(This)	\
-    ( (This)->lpVtbl -> WaitForVBlank(This) ) 
+    ( (This)->lpVtbl -> WaitForVBlank(This) )
 
 #define IDXGIOutput6_TakeOwnership(This,pDevice,Exclusive)	\
-    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) ) 
+    ( (This)->lpVtbl -> TakeOwnership(This,pDevice,Exclusive) )
 
 #define IDXGIOutput6_ReleaseOwnership(This)	\
-    ( (This)->lpVtbl -> ReleaseOwnership(This) ) 
+    ( (This)->lpVtbl -> ReleaseOwnership(This) )
 
 #define IDXGIOutput6_GetGammaControlCapabilities(This,pGammaCaps)	\
-    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) ) 
+    ( (This)->lpVtbl -> GetGammaControlCapabilities(This,pGammaCaps) )
 
 #define IDXGIOutput6_SetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> SetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> SetGammaControl(This,pArray) )
 
 #define IDXGIOutput6_GetGammaControl(This,pArray)	\
-    ( (This)->lpVtbl -> GetGammaControl(This,pArray) ) 
+    ( (This)->lpVtbl -> GetGammaControl(This,pArray) )
 
 #define IDXGIOutput6_SetDisplaySurface(This,pScanoutSurface)	\
-    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) ) 
+    ( (This)->lpVtbl -> SetDisplaySurface(This,pScanoutSurface) )
 
 #define IDXGIOutput6_GetDisplaySurfaceData(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData(This,pDestination) )
 
 #define IDXGIOutput6_GetFrameStatistics(This,pStats)	\
-    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) ) 
+    ( (This)->lpVtbl -> GetFrameStatistics(This,pStats) )
 
 
 #define IDXGIOutput6_GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc)	\
-    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) ) 
+    ( (This)->lpVtbl -> GetDisplayModeList1(This,EnumFormat,Flags,pNumModes,pDesc) )
 
 #define IDXGIOutput6_FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice)	\
-    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) ) 
+    ( (This)->lpVtbl -> FindClosestMatchingMode1(This,pModeToMatch,pClosestMatch,pConcernedDevice) )
 
 #define IDXGIOutput6_GetDisplaySurfaceData1(This,pDestination)	\
-    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) ) 
+    ( (This)->lpVtbl -> GetDisplaySurfaceData1(This,pDestination) )
 
 #define IDXGIOutput6_DuplicateOutput(This,pDevice,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput(This,pDevice,ppOutputDuplication) )
 
 
 #define IDXGIOutput6_SupportsOverlays(This)	\
-    ( (This)->lpVtbl -> SupportsOverlays(This) ) 
+    ( (This)->lpVtbl -> SupportsOverlays(This) )
 
 
 #define IDXGIOutput6_CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags)	\
-    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) ) 
+    ( (This)->lpVtbl -> CheckOverlaySupport(This,EnumFormat,pConcernedDevice,pFlags) )
 
 
 #define IDXGIOutput6_CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags)	\
-    ( (This)->lpVtbl -> CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags) ) 
+    ( (This)->lpVtbl -> CheckOverlayColorSpaceSupport(This,Format,ColorSpace,pConcernedDevice,pFlags) )
 
 
 #define IDXGIOutput6_DuplicateOutput1(This,pDevice,Flags,SupportedFormatsCount,pSupportedFormats,ppOutputDuplication)	\
-    ( (This)->lpVtbl -> DuplicateOutput1(This,pDevice,Flags,SupportedFormatsCount,pSupportedFormats,ppOutputDuplication) ) 
+    ( (This)->lpVtbl -> DuplicateOutput1(This,pDevice,Flags,SupportedFormatsCount,pSupportedFormats,ppOutputDuplication) )
 
 
 #define IDXGIOutput6_GetDesc1(This,pDesc)	\
-    ( (This)->lpVtbl -> GetDesc1(This,pDesc) ) 
+    ( (This)->lpVtbl -> GetDesc1(This,pDesc) )
 
 #define IDXGIOutput6_CheckHardwareCompositionSupport(This,pFlags)	\
-    ( (This)->lpVtbl -> CheckHardwareCompositionSupport(This,pFlags) ) 
+    ( (This)->lpVtbl -> CheckHardwareCompositionSupport(This,pFlags) )
 
 #endif /* COBJMACROS */
 
@@ -12219,7 +12219,7 @@ EXTERN_C const IID IID_IDXGIOutput6;
 
 
 /* interface __MIDL_itf_dxgi1_6_0000_0002 */
-/* [local] */ 
+/* [local] */
 
 /*#endif*/ /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) */
 /*#pragma endregion*/

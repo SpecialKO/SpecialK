@@ -37,6 +37,7 @@ struct IUnknown;
 
 #include <string>
 #include <typeindex>
+#include <dxgicommon.h>
 #include <d3d11.h>
 #include <d3d11_1.h>
 #include <SpecialK/render/d3d11/d3d11_3.h>
@@ -169,18 +170,34 @@ struct IUnknown;
 
 
 HRESULT
-STDMETHODCALLTYPE
+WINAPI
 CreateDXGIFactory  (       REFIID   riid,
                      _Out_ void   **ppFactory );
 HRESULT
-STDMETHODCALLTYPE
+WINAPI
 CreateDXGIFactory1 (       REFIID   riid,
                      _Out_ void   **ppFactory );
 HRESULT
-STDMETHODCALLTYPE
+WINAPI
 CreateDXGIFactory2 (       UINT     Flags,
                            REFIID   riid,
                      _Out_ void   **ppFactory );
+
+
+
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
+              _In_  const DXGI_MODE_DESC *pModeToMatch,
+                   _Out_  DXGI_MODE_DESC *pClosestMatch,
+                _In_opt_  IUnknown       *pConcernedDevice,
+                          BOOL            bApplyOverrides = FALSE );
+
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
+                  _In_ DXGI_MODE_DESC *pNewTargetParameters,
+                       BOOL            bApplyOverrides = FALSE );
 
 __declspec (noinline)
 HRESULT
@@ -250,7 +267,7 @@ struct memory_stats_t {
   uint64_t max_over_budget   = 0;
 
   uint64_t budget_changes    = 0;
-} extern mem_stats [MAX_GPU_NODES];
+} extern dxgi_mem_stats [MAX_GPU_NODES];
 
 enum buffer_t {
   Front = 0,
@@ -264,7 +281,7 @@ struct mem_info_t {
   SYSTEMTIME                   time                     = { };
   buffer_t                     buffer                   = Front;
   int                          nodes                    = 0;//MAX_GPU_NODES;
-} extern mem_info [NumBuffers];
+} extern dxgi_mem_info [NumBuffers];
 
 static const int SK_D3D11_MAX_DEV_CONTEXTS = 64;
 

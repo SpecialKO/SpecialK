@@ -20,16 +20,8 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include <SpecialK/stdafx.h>
 #include <imgui/imgui.h>
-
-#include <SpecialK/config.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/control_panel.h>
-#include <SpecialK/steam_api.h>
-#include <SpecialK/widgets/widget.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-
-#include <concurrent_vector.h>
 
 extern volatile
   LONG SK_D3D11_DrawTrackingReqs;
@@ -54,8 +46,6 @@ extern SK_LazyGlobal <
 > __SK_D3D11_PixelShader_CBuffer_Overrides;
 
 d3d11_shader_tracking_s::cbuffer_override_s* SK_MHW_CB_Override;
-
-#include <SpecialK/plugin/plugin_mgr.h>
 
 void
 SK_MHW_PlugInInit (void)
@@ -294,7 +284,7 @@ SK_MHW_PlugInCfg (void)
     if ( parity_orig != __SK_MHW_JobParity ||
          rule_orig   != __SK_MHW_JobParityPhysical )
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
       ImGui::BulletText ("Game Restart Required");
       ImGui::PopStyleColor ();
     }
@@ -321,11 +311,11 @@ SK_MHW_PlugInCfg (void)
       if (rb.isHDRCapable ())
       {
         bool hdr_open =
-          SK_ImGui_Widgets.hdr_control->isVisible ();
+          SK_ImGui_Widgets->hdr_control->isVisible ();
 
         if ( ImGui::Button ( u8"HDR Signal Control Panel" ) )
         {
-          SK_ImGui_Widgets.hdr_control->setVisible (! hdr_open);
+          SK_ImGui_Widgets->hdr_control->setVisible (! hdr_open);
 
           if (! hdr_open)
           {

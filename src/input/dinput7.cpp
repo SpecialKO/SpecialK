@@ -19,8 +19,7 @@
  *
 **/
 
-struct IUnknown;
-#include <Unknwnbase.h>
+#include <SpecialK/stdafx.h>
 
 #define __SK_SUBSYSTEM__ L" DInput 7 "
 
@@ -31,31 +30,6 @@ struct IUnknown;
 
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
-#include <SpecialK/core.h>
-#include <SpecialK/log.h>
-#include <SpecialK/import.h>
-
-#include <SpecialK/config.h>
-
-#include <SpecialK/crc32.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/command.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/window.h>
-#include <SpecialK/steam_api.h>
-
-#include <SpecialK/com_util.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-#include <cinttypes>
-
-#include <atlbase.h>
-#include <comdef.h>
 #include <guiddef.h>
 
 
@@ -328,7 +302,7 @@ SK_BootDI7 (void)
     {
       HMODULE hBackend =
         //(SK_GetDLLRole () & DLL_ROLE::DInput7) ? backend_dll :
-                                        SK_Modules.LoadLibraryLL (L"dinput.dll");
+                                        SK_Modules->LoadLibraryLL (L"dinput.dll");
 
       dll_log->Log (L"[ DInput 7 ] Importing DirectInputCreate....");
       dll_log->Log (L"[ DInput 7 ] ===============================");
@@ -1313,14 +1287,14 @@ SK_Input_PreHookDI7 (void)
     SK_TestImports (GetModuleHandle (nullptr), tests, 2);
 
     if (tests [1].used || SK_GetModuleHandle (L"dinput8.dll"))
-    {            SK_Modules.LoadLibraryLL (L"dinput8.dll");
+    {            SK_Modules->LoadLibraryLL (L"dinput8.dll");
 
       if (SK_GetDLLRole () != DLL_ROLE::DInput8)
         SK_Input_PreHookDI8 ();
     }
 
     if (tests [0].used || SK_GetModuleHandle (L"dinput.dll"))
-   {             SK_Modules.LoadLibraryLL (L"dinput.dll");
+   {             SK_Modules->LoadLibraryLL (L"dinput.dll");
 
       //if (SK_GetDLLRole () != DLL_ROLE::DInput7)
         SK_Input_HookDI7 ();

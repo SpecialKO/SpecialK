@@ -28,19 +28,17 @@
 #include <gsl/gsl_util>
 
 #include <Windows.h>
+#include <unordered_map>
 #include <algorithm>
 #include <cassert>
 //#include <SpecialK/com_util.h>
 //#include <SpecialK/log.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/input/input.h>
 
 #include <vcruntime_exception.h>
 
 struct SK_MMCS_TaskEntry;
-
-#ifdef _WINGDI_
-#undef _WINGDI_
-#endif
 
 #include <d3d11.h>
 #include <atlbase.h>
@@ -48,8 +46,6 @@ struct SK_MMCS_TaskEntry;
 #ifndef _D3D11_CONSTANTS
 #define	D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT	( 15 )
 #endif
-
-#include <unordered_map>
 
 class SK_ModuleAddrMap
 {
@@ -461,8 +457,6 @@ public:
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
-
-#include <SpecialK/input/input.h>
 
 class SK_Input_ThreadContext
 {

@@ -19,16 +19,19 @@
  *
 **/
 
+#pragma warning ( disable : 4273 )
+
 #define WIN32_LEAN_AND_MEAN
-#define NOGDI
 
 #include <cstdint>
-#include <SpecialK/stdafx.h>
-#include <SpecialK/tls.h>
-#include <Shlwapi.h>
 #include <Windows.h>
+#include <wingdi.h>
 
 #undef _WINGDI_
+
+#include <SpecialK/tls.h>
+#include <SpecialK/utility/bidirectional_map.h>
+#include <SpecialK/osd/popup.h>
 
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
@@ -43,9 +46,9 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/diagnostics/load_library.h>
-
-extern bool __SK_bypass;
-
+//
+//extern bool __SK_bypass;
+//
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
@@ -146,7 +149,7 @@ SK_LoadRealGL (void)
 
 
   if (local_gl == nullptr)
-    local_gl = SK_Modules.LoadLibrary (wszBackendDLL);
+    local_gl = SK_Modules->LoadLibrary (wszBackendDLL);
   else {
     HMODULE hMod;
     GetModuleHandleEx (0x00, wszBackendDLL, &hMod);
@@ -189,38 +192,6 @@ SK::OpenGL::Shutdown (void)
 
 extern "C"
 {
-/* Pixel format descriptor */
-typedef struct tagPIXELFORMATDESCRIPTOR
-{
-  WORD  nSize;
-  WORD  nVersion;
-  DWORD dwFlags;
-  BYTE  iPixelType;
-  BYTE  cColorBits;
-  BYTE  cRedBits;
-  BYTE  cRedShift;
-  BYTE  cGreenBits;
-  BYTE  cGreenShift;
-  BYTE  cBlueBits;
-  BYTE  cBlueShift;
-  BYTE  cAlphaBits;
-  BYTE  cAlphaShift;
-  BYTE  cAccumBits;
-  BYTE  cAccumRedBits;
-  BYTE  cAccumGreenBits;
-  BYTE  cAccumBlueBits;
-  BYTE  cAccumAlphaBits;
-  BYTE  cDepthBits;
-  BYTE  cStencilBits;
-  BYTE  cAuxBuffers;
-  BYTE  iLayerType;
-  BYTE  bReserved;
-  DWORD dwLayerMask;
-  DWORD dwVisibleMask;
-  DWORD dwDamageMask;
-} PIXELFORMATDESCRIPTOR, *PPIXELFORMATDESCRIPTOR, FAR *LPPIXELFORMATDESCRIPTOR;
-
-
 #define OPENGL_STUB(_Return, _Name, _Proto, _Args)                       \
     typedef _Return (WINAPI *imp_##_Name##_pfn) _Proto;                  \
     imp_##_Name##_pfn imp_##_Name = nullptr;                             \
@@ -1087,47 +1058,47 @@ OPENGL_STUB(BOOL, wglGetPixelFormat, (HDC hDC),
                                      (    hDC));
 
 /* Layer plane descriptor */
-typedef struct tagLAYERPLANEDESCRIPTOR { // lpd
-  WORD  nSize;
-  WORD  nVersion;
-  DWORD dwFlags;
-  BYTE  iPixelType;
-  BYTE  cColorBits;
-  BYTE  cRedBits;
-  BYTE  cRedShift;
-  BYTE  cGreenBits;
-  BYTE  cGreenShift;
-  BYTE  cBlueBits;
-  BYTE  cBlueShift;
-  BYTE  cAlphaBits;
-  BYTE  cAlphaShift;
-  BYTE  cAccumBits;
-  BYTE  cAccumRedBits;
-  BYTE  cAccumGreenBits;
-  BYTE  cAccumBlueBits;
-  BYTE  cAccumAlphaBits;
-  BYTE  cDepthBits;
-  BYTE  cStencilBits;
-  BYTE  cAuxBuffers;
-  BYTE  iLayerPlane;
-  BYTE  bReserved;
-  COLORREF crTransparent;
-} LAYERPLANEDESCRIPTOR, *PLAYERPLANEDESCRIPTOR, FAR *LPLAYERPLANEDESCRIPTOR;
+//typedef struct tagLAYERPLANEDESCRIPTOR { // lpd
+//  WORD  nSize;
+//  WORD  nVersion;
+//  DWORD dwFlags;
+//  BYTE  iPixelType;
+//  BYTE  cColorBits;
+//  BYTE  cRedBits;
+//  BYTE  cRedShift;
+//  BYTE  cGreenBits;
+//  BYTE  cGreenShift;
+//  BYTE  cBlueBits;
+//  BYTE  cBlueShift;
+//  BYTE  cAlphaBits;
+//  BYTE  cAlphaShift;
+//  BYTE  cAccumBits;
+//  BYTE  cAccumRedBits;
+//  BYTE  cAccumGreenBits;
+//  BYTE  cAccumBlueBits;
+//  BYTE  cAccumAlphaBits;
+//  BYTE  cDepthBits;
+//  BYTE  cStencilBits;
+//  BYTE  cAuxBuffers;
+//  BYTE  iLayerPlane;
+//  BYTE  bReserved;
+//  COLORREF crTransparent;
+//} LAYERPLANEDESCRIPTOR, *PLAYERPLANEDESCRIPTOR, FAR *LPLAYERPLANEDESCRIPTOR;
 
-OPENGL_STUB(BOOL, wglDescribeLayerPlane, (HDC hDC, DWORD PixelFormat, DWORD LayerPlane, UINT nBytes, LPLAYERPLANEDESCRIPTOR lpd),
-                                         (    hDC,       PixelFormat,       LayerPlane,      nBytes,                        lpd));
+//OPENGL_STUB(BOOL, wglDescribeLayerPlane, (HDC hDC, DWORD PixelFormat, DWORD LayerPlane, UINT nBytes, LPLAYERPLANEDESCRIPTOR lpd),
+//                                         (    hDC,       PixelFormat,       LayerPlane,      nBytes,                        lpd));
 
 OPENGL_STUB(DWORD, wglDescribePixelFormat, (HDC hDC, DWORD PixelFormat, UINT nBytes, LPPIXELFORMATDESCRIPTOR pfd),
                                            (    hDC,       PixelFormat,      nBytes,                         pfd));
 
-OPENGL_STUB(DWORD, wglGetLayerPaletteEntries, (HDC hDC, DWORD LayerPlane, DWORD Start, DWORD Entries, COLORREF *cr),
-                                              (    hDC,       LayerPlane,       Start,       Entries,           cr));
+//OPENGL_STUB(DWORD, wglGetLayerPaletteEntries, (HDC hDC, DWORD LayerPlane, DWORD Start, DWORD Entries, COLORREF *cr),
+//                                              (    hDC,       LayerPlane,       Start,       Entries,           cr));
 
-OPENGL_STUB(BOOL, wglRealizeLayerPalette, (HDC hDC, DWORD LayerPlane, BOOL Realize),
-                                          (    hDC,       LayerPlane,      Realize));
+//OPENGL_STUB(BOOL, wglRealizeLayerPalette, (HDC hDC, DWORD LayerPlane, BOOL Realize),
+//                                          (    hDC,       LayerPlane,      Realize));
 
-OPENGL_STUB(DWORD, wglSetLayerPaletteEntries, (HDC hDC, DWORD LayerPlane, DWORD Start, DWORD Entries, CONST COLORREF *cr),
-                                              (    hDC,       LayerPlane,       Start,       Entries,                 cr));
+//OPENGL_STUB(DWORD, wglSetLayerPaletteEntries, (HDC hDC, DWORD LayerPlane, DWORD Start, DWORD Entries, CONST COLORREF *cr),
+//                                              (    hDC,       LayerPlane,       Start,       Entries,                 cr));
 
 OPENGL_STUB(BOOL, wglSetPixelFormat, (HDC hDC, DWORD PixelFormat, CONST PIXELFORMATDESCRIPTOR *pdf),
                                      (    hDC,       PixelFormat,                              pdf));
@@ -1137,18 +1108,18 @@ OPENGL_STUB(BOOL, wglSwapLayerBuffers, ( HDC hDC, UINT nPlanes ),
                                        (     hDC,      nPlanes ));
 
 
-typedef struct _POINTFLOAT {
-  FLOAT   x;
-  FLOAT   y;
-} POINTFLOAT, *PPOINTFLOAT;
-
-typedef struct _GLYPHMETRICSFLOAT {
-  FLOAT       gmfBlackBoxX;
-  FLOAT       gmfBlackBoxY;
-  POINTFLOAT  gmfptGlyphOrigin;
-  FLOAT       gmfCellIncX;
-  FLOAT       gmfCellIncY;
-} GLYPHMETRICSFLOAT, *PGLYPHMETRICSFLOAT, FAR *LPGLYPHMETRICSFLOAT;
+//typedef struct _POINTFLOAT {
+//  FLOAT   x;
+//  FLOAT   y;
+//} POINTFLOAT, *PPOINTFLOAT;
+//
+//typedef struct _GLYPHMETRICSFLOAT {
+//  FLOAT       gmfBlackBoxX;
+//  FLOAT       gmfBlackBoxY;
+//  POINTFLOAT  gmfptGlyphOrigin;
+//  FLOAT       gmfCellIncX;
+//  FLOAT       gmfCellIncY;
+//} GLYPHMETRICSFLOAT, *PGLYPHMETRICSFLOAT, FAR *LPGLYPHMETRICSFLOAT;
 
 OPENGL_STUB(BOOL,wglUseFontOutlinesA,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, FLOAT f0, FLOAT f1, int i0, LPGLYPHMETRICSFLOAT pgmf),
                                      (    hDC,       dw0,       dw1,       dw2,       f0,       f1,     i0,                     pgmf));
@@ -2013,11 +1984,11 @@ SwapBuffers (HDC hDC)
 }
 
 
-typedef struct _WGLSWAP
-{
-  HDC  hDC;
-  UINT uiFlags;
-} WGLSWAP;
+//typedef struct _WGLSWAP
+//{
+//  HDC  hDC;
+//  UINT uiFlags;
+//} WGLSWAP;
 
 
 typedef DWORD (WINAPI *wglSwapMultipleBuffers_pfn)(UINT n, CONST WGLSWAP *ps);
@@ -2041,7 +2012,7 @@ wglSwapMultipleBuffers (UINT n, const WGLSWAP* ps)
 
   for (UINT i = 0; i < n; i++)
   {
-    dwRet    = SwapBuffers (ps [i].hDC);
+    dwRet    = SwapBuffers (ps [i].hdc);
     dwTotal += dwRet;
   }
 
@@ -2509,7 +2480,7 @@ SK_HookGL (void)
                       skModuleRegistry::Self ()
                     ).c_str (), wszBackendDLL ) )
     {
-      SK_Modules.LoadLibrary (L"gdi32.dll");
+      SK_Modules->LoadLibrary (L"gdi32.dll");
       SK_LoadRealGL ();
 
       wgl_swap_buffers =
@@ -2936,11 +2907,11 @@ SK_HookGL (void)
       SK_GL_HOOK(wglChoosePixelFormat);
 
       SK_GL_HOOK(wglDescribePixelFormat);
-      SK_GL_HOOK(wglDescribeLayerPlane);
+    //SK_GL_HOOK(wglDescribeLayerPlane);
       SK_GL_HOOK(wglCreateLayerContext);
-      SK_GL_HOOK(wglGetLayerPaletteEntries);
-      SK_GL_HOOK(wglRealizeLayerPalette);
-      SK_GL_HOOK(wglSetLayerPaletteEntries);
+    //SK_GL_HOOK(wglGetLayerPaletteEntries);
+    //SK_GL_HOOK(wglRealizeLayerPalette);
+    //SK_GL_HOOK(wglSetLayerPaletteEntries);
 
       dll_log->Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
                        GL_HOOKS );

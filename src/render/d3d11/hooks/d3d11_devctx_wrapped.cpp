@@ -19,6 +19,8 @@
 *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"D3D11 Wrap"
 
 #include <SpecialK/render/d3d11/d3d11_3.h>
@@ -1196,11 +1198,13 @@ public:
     }
 
     pReal->ExecuteCommandList  (pCommandList, RestoreContextState);
-    SK_D3D11_ResetContextState (pBuildContext);
+
+    if (pBuildContext.p != nullptr)
+      SK_D3D11_ResetContextState (pBuildContext, dev_ctx_handle_);
 
     if (! RestoreContextState)
     {
-      SK_D3D11_ResetContextState (pReal);
+      SK_D3D11_ResetContextState (pReal, dev_ctx_handle_);
     }
   }
 
@@ -1661,7 +1665,7 @@ public:
   {
     pReal->ClearState ();
 
-    SK_D3D11_ResetContextState (pReal);
+    SK_D3D11_ResetContextState (pReal, dev_ctx_handle_);
   }
 
   void STDMETHODCALLTYPE Flush (void) override
@@ -1698,12 +1702,12 @@ public:
       (*ppCommandList)->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
                                         sizeof (ptrdiff_t), this );
 
-      SK_D3D11_ResetContextState (pReal);
+      SK_D3D11_ResetContextState (pReal, dev_ctx_handle_);
     }
 
     else
     {
-      SK_D3D11_ResetContextState (pReal);
+      SK_D3D11_ResetContextState (pReal, dev_ctx_handle_);
     }
 
     return hr;

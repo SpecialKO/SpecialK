@@ -19,9 +19,10 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
+
 #define __SK_SUBSYSTEM__ L"RenderBase"
 
-#include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_texmgr.h>
@@ -29,23 +30,10 @@
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 
-#include <SpecialK/control_panel.h>
+#include <d3d9.h>
 
 #include <SpecialK/nvapi.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/config.h>
-#include <SpecialK/core.h>
-#include <SpecialK/command.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/log.h>
-#include <SpecialK/hooks.h>
-#include <SpecialK/import.h>
-
-#include <atlbase.h>
-#include <cassert>
-
-
+#include <SpecialK/adl.h>
 
 volatile LONG SK_RenderBackend::frames_drawn = 0;
 
@@ -129,8 +117,6 @@ SK_InitRenderBackends (void)
 //
 //////////////////////////////////////////////////////////////////////////
 #define D3D9_TEXTURE_MOD
-
-#include <delayimp.h>
 
 void
 SK_BootD3D9 (void)
@@ -527,8 +513,8 @@ SK_RenderBackendUtil_IsFullscreen (void)
 
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
-    CComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-    BOOL                       fullscreen = rb.fullscreen_exclusive;
+    SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+    BOOL                        fullscreen = rb.fullscreen_exclusive;
 
     if (pSwapChain != nullptr)
     {
@@ -541,7 +527,7 @@ SK_RenderBackendUtil_IsFullscreen (void)
 
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
   {
-    CComQIPtr <IDirect3DSwapChain9> pSwapChain (rb.swapchain);
+    SK_ComQIPtr <IDirect3DSwapChain9> pSwapChain (rb.swapchain);
 
     if (pSwapChain != nullptr)
     {
@@ -556,6 +542,9 @@ SK_RenderBackendUtil_IsFullscreen (void)
 
   return false;
 }
+
+// Refresh the cached refresh value?! :)
+bool refresh_refresh = false;
 
 void
 SK_RenderBackend_V2::requestFullscreenMode (bool override)
@@ -575,31 +564,105 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
     {
       SK_D3D9_TriggerReset (true);
     }
-
-    else if ((static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)) && swapchain != nullptr)
-    {
-      CComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
-
-      if (pSwapChain != nullptr)
-      {
-        pSwapChain->SetFullscreenState (TRUE, nullptr);
-      }
-    }
   }
 
   if ((static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)))
   {
+    if    (! swapchain) refresh_refresh = true;
+    else if (swapchain != nullptr)
+    {
+      SK_ComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
+
+      if (pSwapChain != nullptr)
+      {
+        DXGI_MODE_DESC idealModeDesc   = { };
+        DXGI_MODE_DESC actualModeDesc  = { };
+        DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+
+        pSwapChain->GetDesc (&swapDesc);
+
+        SK_ComPtr <IDXGIOutput>           pOutput;
+        pSwapChain->GetContainingOutput (&pOutput.p);
+
+        if (config.render.framerate.refresh_rate != -1)
+        {
+          if (config.render.framerate.rescan_.Denom != 1)
+          {
+            swapDesc.BufferDesc.RefreshRate.Numerator   =
+              config.render.framerate.rescan_.Numerator;
+            swapDesc.BufferDesc.RefreshRate.Denominator =
+              config.render.framerate.rescan_.Denom;
+          }
+
+          else
+          {
+            swapDesc.BufferDesc.RefreshRate.Numerator   =
+              (UINT)config.render.framerate.refresh_rate;
+            swapDesc.BufferDesc.RefreshRate.Denominator =
+              1;
+          }
+        }
+
+        idealModeDesc.Format      = swapDesc.BufferDesc.Format;
+        idealModeDesc.Height      = swapDesc.BufferDesc.Height;
+        idealModeDesc.Width       = swapDesc.BufferDesc.Width;
+        idealModeDesc.RefreshRate = swapDesc.BufferDesc.RefreshRate;
+        idealModeDesc.Scaling     = DXGI_MODE_SCALING_UNSPECIFIED;
+
+        SK_ComPtr <IDXGIDevice> pSwapDevice;
+
+        if ( SUCCEEDED (
+               pSwapChain->GetDevice ( __uuidof (IDXGIDevice),
+                                       (void **)&pSwapDevice.p )
+                       )
+           )
+        {
+          if ( SUCCEEDED
+               (
+                 SK_DXGI_FindClosestMode
+                 (
+                   pSwapChain,
+                     &idealModeDesc,
+                       &actualModeDesc,
+                         pSwapDevice.p, TRUE
+                 )
+               )
+             )
+          {
+            if ( FAILED (
+                   SK_DXGI_ResizeTarget (pSwapChain, &actualModeDesc, TRUE)
+                        )
+               )
+            {
+              SK_LOG0 ((L"Failed to Establish Fullscreen Mode for Swapchain"), L"   DXGI   ");
+            }
+          }
+        }
+
+        if ( SUCCEEDED (
+               pSwapChain->SetFullscreenState (TRUE, nullptr)
+                       )
+           )
+        {
+          SK_DXGI_ResizeTarget (pSwapChain, &actualModeDesc, TRUE);
+        }
+      }
+    }
+  }
+
+  if ((! fullscreen_exclusive) && (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)))
+  {
     DXGI_SWAP_CHAIN_DESC swap_desc = { };
 
-    CComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
+    SK_ComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
 
     if (pSwapChain != nullptr)
     {
       if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
       {
-        if (SUCCEEDED (pSwapChain->ResizeTarget (&swap_desc.BufferDesc)))
+        if (SUCCEEDED (SK_DXGI_ResizeTarget (pSwapChain, &swap_desc.BufferDesc, TRUE)))
         {
-          SendMessage ( swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED,
+          PostMessage ( swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED,
                           MAKELPARAM ( swap_desc.BufferDesc.Width,
                                        swap_desc.BufferDesc.Height ) );
         }
@@ -629,7 +692,7 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
 
     else if ((static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)) && swapchain != nullptr)
     {
-      CComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
+      SK_ComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
 
       if (pSwapChain != nullptr)
       {
@@ -645,11 +708,11 @@ SK_RenderBackend_V2::getActiveRefreshRate (void)
 {
   if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D9))
   {
-    CComQIPtr <IDirect3DDevice9> pDev9 (device);
+    SK_ComQIPtr <IDirect3DDevice9> pDev9 (device);
 
     if (pDev9 != nullptr)
     {
-      CComQIPtr <IDirect3DSwapChain9> pSwap9 (swapchain);
+      SK_ComQIPtr <IDirect3DSwapChain9> pSwap9 (swapchain);
 
       if (pSwap9 != nullptr)
       {
@@ -669,22 +732,87 @@ SK_RenderBackend_V2::getActiveRefreshRate (void)
 
   else if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
-    CComQIPtr <IDXGISwapChain> pSwapDXGI (swapchain);
+    constexpr
+      UINT MAX_CACHE_TTL = 500; // 500 Frames
 
-    if (pSwapDXGI != nullptr)
+    static
+      UINT uiCachedFrame =
+        SK_GetFramesDrawn ();
+
+    static float  fLastCache      = 0.0f;
+    static UINT  uiLastCacheFrame = uiCachedFrame - MAX_CACHE_TTL;
+
+    if ( refresh_refresh ||
+         uiLastCacheFrame < (SK_GetFramesDrawn () - MAX_CACHE_TTL) )
     {
-      DXGI_SWAP_CHAIN_DESC swap_desc = { };
-      pSwapDXGI->GetDesc (&swap_desc);
+      SK_ComQIPtr <IDXGISwapChain> pSwapDXGI (swapchain);
 
-      if (swap_desc.BufferDesc.RefreshRate.Denominator != 0)
+      if (pSwapDXGI != nullptr)
       {
-        return static_cast <float> (swap_desc.BufferDesc.RefreshRate.Numerator) /
-               static_cast <float> (swap_desc.BufferDesc.RefreshRate.Denominator);
+        DXGI_MODE_DESC        idealModeDesc  = { };
+        DXGI_MODE_DESC        activeModeDesc = { };
+        DXGI_SWAP_CHAIN_DESC  swapDesc       = { };
+        pSwapDXGI->GetDesc  (&swapDesc);
+
+        SK_ComPtr <IDXGIDevice>          pSwapDevice;
+        SK_ComPtr <IDXGIOutput>          pSwapOutput;
+        pSwapDXGI->GetContainingOutput (&pSwapOutput.p);
+
+        if ( SUCCEEDED (
+               pSwapDXGI->GetDevice (__uuidof (IDXGIDevice), (void **)&pSwapDevice.p)
+                       )
+           )
+        {
+          idealModeDesc.Format                  = swapDesc.BufferDesc.Format;
+          idealModeDesc.Height                  = swapDesc.BufferDesc.Height;
+          idealModeDesc.Width                   = swapDesc.BufferDesc.Width;
+          idealModeDesc.RefreshRate.Numerator   = swapDesc.BufferDesc.RefreshRate.Numerator;
+          idealModeDesc.RefreshRate.Denominator = swapDesc.BufferDesc.RefreshRate.Denominator;
+          idealModeDesc.Scaling                 = swapDesc.BufferDesc.Scaling;
+          idealModeDesc.ScanlineOrdering        = swapDesc.BufferDesc.ScanlineOrdering;
+
+          if ( SUCCEEDED (
+                 SK_DXGI_FindClosestMode (
+                   pSwapDXGI, &idealModeDesc, &activeModeDesc, pSwapDevice.p
+                                         )
+                         )
+             )
+          {
+            uiLastCacheFrame = SK_GetFramesDrawn ();
+             fLastCache      =
+               ( static_cast <float> (activeModeDesc.RefreshRate.Numerator  ) /
+                 static_cast <float> (activeModeDesc.RefreshRate.Denominator) );
+
+             refresh_refresh = false;
+
+             return
+               fLastCache;
+          }
+        }
+
+        DXGI_SWAP_CHAIN_DESC swap_desc = { };
+        pSwapDXGI->GetDesc (&swap_desc);
+
+        if (swap_desc.BufferDesc.RefreshRate.Denominator != 0)
+        {
+          uiLastCacheFrame = SK_GetFramesDrawn ();
+           fLastCache      =
+             ( static_cast <float> (swap_desc.BufferDesc.RefreshRate.Numerator  ) /
+               static_cast <float> (swap_desc.BufferDesc.RefreshRate.Denominator) );
+
+           refresh_refresh = false;
+
+           return
+             fLastCache;
+        }
       }
     }
   }
 
-  return SK_Display_GetDefaultRefreshRate ();
+  refresh_refresh = false;
+
+  return
+    SK_Display_GetDefaultRefreshRate ();
 }
 
 
@@ -731,15 +859,38 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
     if (d3d11.immediate_ctx != nullptr)
     {
-      ID3D11RenderTargetView* pRTVs [] = { nullptr };
+        d3d11.immediate_ctx->IASetVertexBuffers     (0,     0,   nullptr,
+                                                                 nullptr,
+                                                                 nullptr);
+        d3d11.immediate_ctx->IASetIndexBuffer       (nullptr,
+                                                     DXGI_FORMAT_UNKNOWN,
+                                                                       0);
+        d3d11.immediate_ctx->IASetInputLayout       (nullptr);
+        d3d11.immediate_ctx->SOSetTargets           (0, nullptr, nullptr);
+        d3d11.immediate_ctx->PSSetShader            (0,     0,         0);
+        d3d11.immediate_ctx->VSSetShader            (0,     0,         0);
+        d3d11.immediate_ctx->PSSetShaderResources   (0,     0,   nullptr);
+        d3d11.immediate_ctx->PSSetConstantBuffers   (0,     0,   nullptr);
+        d3d11.immediate_ctx->VSSetShaderResources   (0,     0,   nullptr);
+        d3d11.immediate_ctx->VSSetConstantBuffers   (0,     0,   nullptr);
 
-      d3d11.immediate_ctx->OMSetRenderTargets   (1, pRTVs, nullptr);
-      d3d11.immediate_ctx->PSSetShaderResources (0,     0, nullptr);
-      d3d11.immediate_ctx->Flush                (                 );
+      d3d11.immediate_ctx->OMSetRenderTargetsAndUnorderedAccessViews
+                                                  (0,          nullptr,
+                                                               nullptr,
+                                                   0,     0,   nullptr,
+                                                               nullptr);
+
+
+      // ^^^^ All of those commands can be performed with this single API
+      //        call, but it's better to issue each of the commands on a
+      //          one-by-one basis to reduce compatibility problems.
+      d3d11.immediate_ctx->ClearState             (                   );
+
+      d3d11.immediate_ctx = nullptr;
     }
 
-    d3d11.deferred_ctx  = nullptr;
-    d3d11.immediate_ctx = nullptr;
+    //if (d3d11.deferred_ctx != nullptr)
+    //    d3d11.deferred_ctx  = nullptr;
 
     ////extern ID3D12DescriptorHeap* g_pd3dSrvDescHeap;
     ////
@@ -827,8 +978,6 @@ SK_RenderBackend_V2::window_registry_s::getFocus (void)
   return focus;
 }
 
-
-#include <SpecialK/window.h>
 
 void
 SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
