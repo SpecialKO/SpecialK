@@ -3,9 +3,17 @@
 #include <d3d9.h>
 #endif
 
+#define D3D11_VIDEO_NO_HELPERS
+#define D3D11_NO_HELPERS
+
 #if (~(defined (__d3d11_h__) ||\
        defined (__d3d11_1_h__)))
-#include <dxgicommon.h>
+#ifndef __dxgicommon_h__
+#ifndef __dxgitype_h__
+#include <dxgitype.h>
+#endif
+#endif
+#include <d3d11.h>
 #include <d3d11_1.h>
 #endif
 #endif // ! defined (__SK_NODX__)

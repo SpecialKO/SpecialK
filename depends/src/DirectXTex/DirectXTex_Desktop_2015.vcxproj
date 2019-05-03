@@ -154,7 +154,7 @@
     <IncludePath>$(ProjectDir)..\..\include\DirectXTex;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>Bin\Desktop_2015\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)depends\lib\$(TargetName)\$(Platform)\</OutDir>
     <IntDir>Bin\Desktop_2015\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>DirectXTex</TargetName>
     <LinkIncremental>false</LinkIncremental>
@@ -178,7 +178,7 @@
     <IncludePath>$(ProjectDir)..\..\include\DirectXTex;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
-    <OutDir>Bin\Desktop_2015\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)depends\lib\$(TargetName)\$(Platform)\</OutDir>
     <IntDir>Bin\Desktop_2015\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>DirectXTex</TargetName>
     <LinkIncremental>false</LinkIncremental>
@@ -379,11 +379,11 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <ExceptionHandling>Async</ExceptionHandling>
-      <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings-</AdditionalOptions>
       <PreprocessorDefinitions>_UNICODE;UNICODE;WIN32;NDEBUG;_LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>DirectXTexP.h</PrecompiledHeaderFile>
-      <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(SolutionDir)depends\lib\$(TargetName)\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -391,14 +391,15 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <StringPooling>true</StringPooling>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <OmitFramePointers>false</OmitFramePointers>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -449,7 +450,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <StringPooling>true</StringPooling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -459,7 +460,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <OmitFramePointers>false</OmitFramePointers>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -555,15 +556,15 @@
       <OpenMPSupport>false</OpenMPSupport>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>Async</ExceptionHandling>
-      <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings-</AdditionalOptions>
       <PreprocessorDefinitions>_UNICODE;UNICODE;WIN32;NDEBUG;_LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>DirectXTexP.h</PrecompiledHeaderFile>
-      <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(SolutionDir)depends\lib\$(TargetName)\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <StringPooling>true</StringPooling>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>false</OmitFramePointers>
@@ -577,7 +578,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -636,9 +638,9 @@
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -956,8 +958,6 @@
     <None Include="Shaders\Compiled\BC7Encode_TryMode137CS.inc" />
     <None Include="Shaders\Compiled\BC7Encode_TryMode456CS.inc" />
     <None Include="Shaders\CompileShaders.cmd" />
-  </ItemGroup>
-  <ItemGroup>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

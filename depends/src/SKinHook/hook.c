@@ -45,7 +45,9 @@
 #define STATUS_INFO_LENGTH_MISMATCH             ((NTSTATUS)0xC0000004L)
 #define SystemProcessAndThreadInformation       5
 
-typedef LONG       NTSTATUS;
+typedef _Return_type_success_(return >= 0)
+        LONG       NTSTATUS;
+typedef NTSTATUS *PNTSTATUS;
 typedef LONG       KPRIORITY;
 typedef LONG       KWAIT_REASON;
 
@@ -133,6 +135,11 @@ typedef NTSTATUS (WINAPI *NtQuerySystemInformation_pfn)(
   _In_      ULONG                    SystemInformationLength,
   _Out_opt_ PULONG                   ReturnLength
 );
+
+typedef NTSTATUS (WINAPI *NtDelayExecution_pfn)(
+  _In_ BOOLEAN        Alertable,
+  _In_ PLARGE_INTEGER DelayInterval
+);
 #pragma pack (pop)
 
 
@@ -212,13 +219,14 @@ volatile LONG   g_isLocked = FALSE;
 struct
 {
   NtQuerySystemInformation_pfn QuerySystemInformation;
+  NtDelayExecution_pfn         DelayExecution;
 
   HMODULE                      Module;
   HANDLE                       hHeap;
   DWORD                        dwHeapSize;
   DWORD                        dwPadding0;
   PSYSTEM_PROCESS_INFORMATION  pSnapshot;
-} g_NtDll = { NULL, NULL, NULL, 0, 0, NULL };
+} g_NtDll = { NULL, NULL, NULL, NULL, 0, 0, NULL };
 
 // Hook entries.
 struct
@@ -229,6 +237,14 @@ struct
 } g_hooks [4];
 
 //-------------------------------------------------------------------------
+static
+VOID
+MicroSleep (VOID)
+{
+  static LARGE_INTEGER            liDelay = { -100LL };
+  g_NtDll.DelayExecution (FALSE, &liDelay);
+}
+
 static
 VOID
 EnterSpinLock (VOID)
@@ -242,14 +258,13 @@ EnterSpinLock (VOID)
     // generates a full memory barrier itself.
 
     // Prevent the loop from being too busy.
-    if (spinCount < 17)
+    if (spinCount++ < 17)
         ;
     else
     {
-      SleepEx ( 1, FALSE );
+      MicroSleep ();
+      spinCount = 0;
     }
-
-    spinCount++;
   }
 }
 
@@ -490,7 +505,7 @@ ProcessThreadIPs (HANDLE hThread, UINT pos, UINT action)
 
 PSYSTEM_PROCESS_INFORMATION
 SnapshotProcs_NtDll (void)
-{                          
+{
   DWORD                      dSize = 0;
   DWORD                      dData = 0;
   NTSTATUS                      ns = STATUS_INVALID_PARAMETER;
@@ -517,11 +532,11 @@ SnapshotProcs_NtDll (void)
   // Memory was not filled.
   if (ns != STATUS_SUCCESS)
   {
-    for (  dSize = g_NtDll.dwHeapSize   ; 
+    for (  dSize = g_NtDll.dwHeapSize   ;
           (pspi == NULL) && dSize  != 0 ;
                             dSize <<= 1  )
     {
-      if ( ( pspi = HeapReAlloc ( g_NtDll.hHeap,     0x0, 
+      if ( ( pspi = HeapReAlloc ( g_NtDll.hHeap,     0x0,
                                   g_NtDll.pSnapshot, dSize ) ) == NULL )
       {
         ns = STATUS_NO_MEMORY;
@@ -563,7 +578,7 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
     SnapshotProcs_NtDll ();
 
   int i = 0;
-  
+
   do
   {
     if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
@@ -575,7 +590,7 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
 
   if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
   {
-    int threads = 
+    int threads =
       pProc->TotalThreadCount;
 
     for ( i = 0; i < threads; ++i )
@@ -643,7 +658,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
   if (! GetThreadPriorityBoost (hThreadSelf, &pThreads->boost))
                                               pThreads->boost = -1;
   else  SetThreadPriorityBoost (hThreadSelf, FALSE);
-                                           
+
 
   EnumerateThreads (pThreads);
 
@@ -656,7 +671,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
 
     UINT i = 0, frozen = 0, running = 0;
 
-          float frozen_ratio     = 0.0f; 
+          float frozen_ratio     = 0.0f;
     const float frozen_threshold = 0.01666f;
 
     DWORD dwSelfThreadId =
@@ -684,7 +699,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
       running = 0;
 
       if ((spinCount % 7) == 0)
-        SleepEx (1, FALSE);
+        MicroSleep ();
 
       if (spinCount >= 56)
         break;
@@ -869,7 +884,7 @@ Unfreeze (PFROZEN_THREADS pThreads)
         if ( hThread != NULL )
         {
           DWORD                                dwExit;
-          if ( (! GetExitCodeThread (hThread, &dwExit)) || 
+          if ( (! GetExitCodeThread (hThread, &dwExit)) ||
                                                dwExit == STILL_ACTIVE )
           {
             for (j = 0; j < pThread->suspensions; ++j)
@@ -922,7 +937,7 @@ EnableHookLLEx (UINT pos, UINT8 enable, UINT idx)
     {
       PJMP_REL_SHORT pShortJmp = (PJMP_REL_SHORT)pHook->pTarget;
       pShortJmp->opcode        = 0xEB;
-      pShortJmp->operand       = (UINT8)(0 - (sizeof (JMP_REL_SHORT) + 
+      pShortJmp->operand       = (UINT8)(0 - (sizeof (JMP_REL_SHORT) +
                                               sizeof (JMP_REL)));
     }
   }
@@ -989,7 +1004,7 @@ EnableAllHooksLLEx (BOOL enable, UINT idx)
     {
       if (g_hooks [idx].pItems [i].isEnabled != enable)
       {
-        status = EnableHookLLEx (i, enable != FALSE ? 
+        status = EnableHookLLEx (i, enable != FALSE ?
                                          1 : 0, idx );
 
         if (status != MH_OK)
@@ -1017,6 +1032,16 @@ WINAPI
 MH_Initialize (VOID)
 {
   MH_STATUS status = MH_OK;
+
+  if (g_NtDll.DelayExecution == NULL)
+  {
+    g_NtDll.Module =
+      LoadLibraryW (L"NtDll.dll");
+
+    g_NtDll.DelayExecution =
+      (NtDelayExecution_pfn)
+        GetProcAddress (g_NtDll.Module, "NtDelayExecution");
+  }
 
   EnterSpinLock ();
 
@@ -1627,7 +1652,7 @@ SH_IntrospectEx ( LPVOID            pTarget,
   if (ppResult == NULL)
     return MH_ERROR_MEMORY_ALLOC;
 
-  UINT hook_entry = 
+  UINT hook_entry =
     FindHookEntryEx (pTarget, idx);
 
   if (hook_entry == INVALID_HOOK_POS)

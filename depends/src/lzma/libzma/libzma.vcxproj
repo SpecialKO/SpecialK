@@ -46,6 +46,7 @@
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TVFix|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -67,6 +68,7 @@
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TVFix|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -143,7 +145,6 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <SupportJustMyCode>false</SupportJustMyCode>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessKeepComments>true</PreprocessKeepComments>
       <SmallerTypeCheck>false</SmallerTypeCheck>
@@ -182,7 +183,6 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <SupportJustMyCode>false</SupportJustMyCode>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitFramePointers>false</OmitFramePointers>
       <PreprocessKeepComments>true</PreprocessKeepComments>
@@ -218,16 +218,17 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <SDLCheck>false</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <OpenMPSupport>false</OpenMPSupport>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings-</AdditionalOptions>
+      <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -251,7 +252,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <ControlFlowGuard>false</ControlFlowGuard>
@@ -262,11 +263,10 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <SDLCheck>false</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <OpenMPSupport>false</OpenMPSupport>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -294,7 +294,7 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Async</ExceptionHandling>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <Optimization>MaxSpeed</Optimization>
@@ -306,9 +306,10 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <SDLCheck>false</SDLCheck>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-</AdditionalOptions>
+      <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -347,9 +348,8 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <SDLCheck>false</SDLCheck>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

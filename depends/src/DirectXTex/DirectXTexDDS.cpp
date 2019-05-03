@@ -1,6 +1,6 @@
 //-------------------------------------------------------------------------------------
 // DirectXTexDDS.cpp
-//  
+//
 // DirectX Texture Library - Microsoft DirectDraw Surface (DDS) file format reader/writer
 //
 // THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
@@ -45,9 +45,9 @@ namespace
         CONV_FLAGS_A8P8 = 0x800,    // Has an 8-bit palette with an alpha channel
         CONV_FLAGS_DX10 = 0x10000,  // Has the 'DX10' extension header
         CONV_FLAGS_PMALPHA = 0x20000,  // Contains premultiplied alpha data
-        CONV_FLAGS_L8 = 0x40000,  // Source is a 8 luminance format 
-        CONV_FLAGS_L16 = 0x80000,  // Source is a 16 luminance format 
-        CONV_FLAGS_A8L8 = 0x100000, // Source is a 8:8 luminance format 
+        CONV_FLAGS_L8 = 0x40000,  // Source is a 8 luminance format
+        CONV_FLAGS_L16 = 0x80000,  // Source is a 16 luminance format
+        CONV_FLAGS_A8L8 = 0x100000, // Source is a 8:8 luminance format
     };
 
     struct LegacyDDS
@@ -57,7 +57,7 @@ namespace
         DDS_PIXELFORMAT ddpf;
     };
 
-    const LegacyDDS g_LegacyDDSMap[] =
+    static const LegacyDDS g_LegacyDDSMap [] =
     {
         { DXGI_FORMAT_BC1_UNORM,          CONV_FLAGS_NONE,        DDSPF_DXT1 }, // D3DFMT_DXT1
         { DXGI_FORMAT_BC2_UNORM,          CONV_FLAGS_NONE,        DDSPF_DXT3 }, // D3DFMT_DXT3
@@ -942,7 +942,7 @@ namespace
             switch (outFormat)
             {
             case DXGI_FORMAT_B4G4R4A4_UNORM:
-                // D3DFMT_A4L4 -> DXGI_FORMAT_B4G4R4A4_UNORM 
+                // D3DFMT_A4L4 -> DXGI_FORMAT_B4G4R4A4_UNORM
                 if (inSize >= 1 && outSize >= 2)
                 {
                     const uint8_t * __restrict sPtr = reinterpret_cast<const uint8_t*>(pSource);

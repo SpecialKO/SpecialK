@@ -1,6 +1,6 @@
 //-------------------------------------------------------------------------------------
 // scoped.h
-//  
+//
 // Utility header with helper classes for exception-safe handling of resources
 //
 // THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
@@ -18,7 +18,7 @@
 #include <malloc.h>
 
 //---------------------------------------------------------------------------------
-struct aligned_deleter { void operator()(void* p) { /*_aligned_free(p);*/ } };
+struct aligned_deleter { void operator()(void* p) { UNREFERENCED_PARAMETER (p);/*_aligned_free(p);*/ } };
 
 typedef std::unique_ptr<float[], aligned_deleter> ScopedAlignedArrayFloat;
 
@@ -27,14 +27,14 @@ typedef std::unique_ptr<DirectX::XMVECTOR[], aligned_deleter> ScopedAlignedArray
 //---------------------------------------------------------------------------------
 struct handle_closer { void operator()(HANDLE h) { assert(h != INVALID_HANDLE_VALUE); if (h) CloseHandle(h); } };
 
-typedef public std::unique_ptr<void, handle_closer> ScopedHandle;
+typedef std::unique_ptr<void, handle_closer> ScopedHandle;
 
 inline HANDLE safe_handle( HANDLE h ) { return (h == INVALID_HANDLE_VALUE) ? 0 : h; }
 
 //---------------------------------------------------------------------------------
 struct find_closer { void operator()(HANDLE h) { assert(h != INVALID_HANDLE_VALUE); if (h) FindClose(h); } };
 
-typedef public std::unique_ptr<void, find_closer> ScopedFindHandle;
+typedef std::unique_ptr<void, find_closer> ScopedFindHandle;
 
 //---------------------------------------------------------------------------------
 class auto_delete_file

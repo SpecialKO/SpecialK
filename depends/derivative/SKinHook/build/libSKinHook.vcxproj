@@ -43,12 +43,12 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -60,12 +60,12 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -159,10 +159,10 @@
       <ShowIncludes>true</ShowIncludes>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>__midl</UndefinePreprocessorDefinitions>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR- /cgthreads8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Lib />
     <Lib>
@@ -206,9 +206,9 @@
       <BrowseInformation>true</BrowseInformation>
       <ShowIncludes>true</ShowIncludes>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>__midl</UndefinePreprocessorDefinitions>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR- /cgthreads8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Lib />
     <Lib>
@@ -234,7 +234,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
@@ -243,13 +243,15 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <SDLCheck>false</SDLCheck>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <OpenMPSupport>false</OpenMPSupport>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <OmitFramePointers>false</OmitFramePointers>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-</AdditionalOptions>
+      <ProgramDataBaseFileName>$(SolutionDir)depends\lib\MinHook\$(Platform)\libMinHook.pdb</ProgramDataBaseFileName>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
@@ -272,19 +274,19 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <SDLCheck>false</SDLCheck>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <OpenMPSupport>false</OpenMPSupport>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <OmitFramePointers>false</OmitFramePointers>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR- /cgthreads8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
@@ -313,14 +315,16 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <SDLCheck>false</SDLCheck>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-</AdditionalOptions>
+      <ProgramDataBaseFileName>$(SolutionDir)depends\lib\MinHook\$(Platform)\libMinHook64.pdb</ProgramDataBaseFileName>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Lib />
     <Lib />
@@ -353,11 +357,11 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <SDLCheck>false</SDLCheck>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR- /cgthreads8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Lib />
     <Lib />

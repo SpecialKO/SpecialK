@@ -1,6 +1,6 @@
 //-------------------------------------------------------------------------------------
 // DirectXTex.h
-//  
+//
 // DirectX Texture Library
 //
 // THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
@@ -26,7 +26,12 @@
 #include <d3d11_x.h>
 #define DCOMMON_H_INCLUDED
 #else
-#include <dxgicommon.h>
+#ifndef __dxgicommon_h__
+#ifndef __dxgitype_h__
+#include <dxgitype.h>
+#endif
+#endif
+#include <d3d11.h>
 #include <d3d11_1.h>
 #endif
 #endif
@@ -152,7 +157,7 @@ namespace DirectX
             // Assume pitch is DWORD aligned instead of BYTE aligned (used by some legacy DDS files)
 
         DDS_FLAGS_NO_LEGACY_EXPANSION   = 0x2,
-            // Do not implicitly convert legacy formats that result in larger pixel sizes (24 bpp, 3:3:2, A8L8, A4L4, P8, A8P8) 
+            // Do not implicitly convert legacy formats that result in larger pixel sizes (24 bpp, 3:3:2, A8L8, A4L4, P8, A8P8)
 
         DDS_FLAGS_NO_R10B10G10A2_FIXUP  = 0x4,
             // Do not use work-around for long-standing D3DX DDS file format issue which reversed the 10:10:10:2 color order masks
@@ -268,7 +273,7 @@ namespace DirectX
         HRESULT __cdecl InitializeCube( _In_ DXGI_FORMAT fmt, _In_ size_t width, _In_ size_t height, _In_ size_t nCubes, _In_ size_t mipLevels, _In_ DWORD flags = CP_FLAGS_NONE );
 
         HRESULT __cdecl InitializeFromImage( _In_ const Image& srcImage, _In_ bool allow1D = false, _In_ DWORD flags = CP_FLAGS_NONE );
-        HRESULT __cdecl InitializeArrayFromImages( _In_reads_(nImages) const Image* images, _In_ size_t nImages, _In_ bool allow1D = false, _In_ DWORD flags = CP_FLAGS_NONE ); 
+        HRESULT __cdecl InitializeArrayFromImages( _In_reads_(nImages) const Image* images, _In_ size_t nImages, _In_ bool allow1D = false, _In_ DWORD flags = CP_FLAGS_NONE );
         HRESULT __cdecl InitializeCubeFromImages( _In_reads_(nImages) const Image* images, _In_ size_t nImages, _In_ DWORD flags = CP_FLAGS_NONE );
         HRESULT __cdecl Initialize3DFromImages( _In_reads_(depth) const Image* images, _In_ size_t depth, _In_ DWORD flags = CP_FLAGS_NONE );
 
@@ -466,7 +471,7 @@ namespace DirectX
     HRESULT __cdecl Convert( _In_reads_(nimages) const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
                              _In_ DXGI_FORMAT format, _In_ DWORD filter, _In_ float threshold, _Out_ ScratchImage& result );
         // Convert the image to a new format
-    
+
     HRESULT __cdecl ConvertToSinglePlane( _In_ const Image& srcImage, _Out_ ScratchImage& image );
     HRESULT __cdecl ConvertToSinglePlane( _In_reads_(nimages) const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
                                           _Out_ ScratchImage& image );
