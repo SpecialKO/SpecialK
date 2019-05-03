@@ -58,8 +58,6 @@ volatile LONG   iCopyOpsSkipped = 0;
 
 struct ys8_cfg_s
 {
-  sk::ParameterFactory factory;
-
   struct shadows_s
   {
     sk::ParameterFloat* scale = nullptr;
@@ -97,8 +95,9 @@ struct ys8_cfg_s
     sk::ParameterBool* manage_clean_memory    = nullptr;
     sk::ParameterBool* aggressive_memory_mgmt = nullptr;
   } performance;
-} ys8_config = { };
+};
 
+SK_LazyGlobal <ys8_cfg_s> ys8_config;
 
 #include <concurrent_vector.h>
 extern SK_LazyGlobal <
@@ -220,13 +219,6 @@ extern
 void
 __stdcall
 SK_PlugIn_ControlPanelWidget (void);
-
-
-
-
-Concurrency::concurrent_unordered_map <
-  uint32_t, std::pair <FILETIME, ULONG>
-> cache_usage;
 
 
 std::set <uint32_t>
@@ -384,11 +376,6 @@ const
                             wszRoot, wszSubDir,
                               fd.cFileName );
 
-      std::wstring out_file =
-        SK_FormatStringW ( LR"(%s\%s\%s)",
-                            wszRoot, wszSubDir,
-                              fd.cFileName );
-
       const size_t size = gsl::narrow_cast <size_t> (
         SK_File_GetSize (in_file.c_str ())
       );
@@ -409,6 +396,11 @@ const
           data [i] = ( ~(data [i] << 4U) & 0xF0U |
                         (data [i] >> 4U) &  0xFU ) & 0xFFU;
         }
+
+        std::wstring out_file =
+          SK_FormatStringW ( LR"(%s\%s\%s)",
+                              wszRoot, wszSubDir,
+                                fd.cFileName );
 
         if (backup)
         {
@@ -449,7 +441,7 @@ const
 }
 
 
-static std::unordered_map <std::wstring, uint64_t> _SK_YS8_CachedDirSizes;
+static SK_LazyGlobal <std::unordered_map <std::wstring, uint64_t>> _SK_YS8_CachedDirSizes;
 
 static
 uint64_t
@@ -457,9 +449,9 @@ _SK_RecursiveFileSizeProbe (const wchar_t *wszDir, bool top_lvl = false)
 {
   uint64_t cached_size = 0ULL;
 
-  if ( top_lvl && cached_size != 0ULL || _SK_YS8_CachedDirSizes.count (wszDir) )
+  if ( top_lvl && cached_size != 0ULL || _SK_YS8_CachedDirSizes->count (wszDir) )
   {
-    if (! cached_size) cached_size = _SK_YS8_CachedDirSizes [wszDir];
+    if (! cached_size) cached_size = _SK_YS8_CachedDirSizes.get()[wszDir];
 
     if (cached_size > 0ULL)
       return cached_size;
@@ -503,7 +495,7 @@ _SK_RecursiveFileSizeProbe (const wchar_t *wszDir, bool top_lvl = false)
   FindClose (hFind);
 
   if (top_lvl && size > 0ULL)
-    _SK_YS8_CachedDirSizes [wszDir] = size;
+    _SK_YS8_CachedDirSizes.get ()[wszDir] = size;
 
   return size;
 };
@@ -615,7 +607,7 @@ SK_YS8_ControlPanel (void)
                                                                                    "Long load screens; (Anti-Pop-In)\0\0")
            )
         {
-          ys8_config.mipmaps.stream_rate->store (SK_D3D11_TexStreamPriority);
+          ys8_config->mipmaps.stream_rate->store (SK_D3D11_TexStreamPriority);
           changed = true;
         }
 
@@ -625,7 +617,7 @@ SK_YS8_ControlPanel (void)
         {
           changed = true;
 
-          ys8_config.mipmaps.cache->store (config.textures.d3d11.cache_gen_mips);
+          ys8_config->mipmaps.cache->store (config.textures.d3d11.cache_gen_mips);
         }
 
         if (ImGui::IsItemHovered ())
@@ -641,10 +633,10 @@ SK_YS8_ControlPanel (void)
 
         if (*wszPath == L'\0')
         {
-          extern std::wstring SK_D3D11_res_root;
+          extern SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
 
           wcscpy ( wszPath,
-                     SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+                     SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str () );
 
           lstrcatW (wszPath, LR"(\inject\textures\MipmapCache\)");
           lstrcatW (wszPath, SK_GetHostApp ());
@@ -743,7 +735,7 @@ SK_YS8_ControlPanel (void)
           ImGui::SetTooltip ("Pro Tip:  Modern GPUs can do 4x Anisotropic Filtering without any performance penalties.");
         }
 
-        if (changed) ys8_config.mipmaps.anisotropy->store (max_anisotropy);
+        if (changed) ys8_config->mipmaps.anisotropy->store (max_anisotropy);
       }
 
       //if (! SK_IsInjected ())
@@ -818,7 +810,7 @@ SK_YS8_ControlPanel (void)
               break;
           }
 
-          ys8_config.style.pixel_style->store (style);
+          ys8_config->style.pixel_style->store (style);
         }
 
         if (ImGui::IsItemHovered ())
@@ -874,7 +866,7 @@ SK_YS8_ControlPanel (void)
       {
         changed = true;
 
-        ys8_config.performance.manage_clean_memory->store (ManageCleanMemory);
+        ys8_config->performance.manage_clean_memory->store (ManageCleanMemory);
       }
 
       if (ManageCleanMemory)
@@ -883,7 +875,7 @@ SK_YS8_ControlPanel (void)
         {
           changed = true;
 
-          ys8_config.performance.aggressive_memory_mgmt->store (CatchAllMemoryFaults);
+          ys8_config->performance.aggressive_memory_mgmt->store (CatchAllMemoryFaults);
         }
 
         if (ImGui::IsItemHovered ())
@@ -925,7 +917,7 @@ SK_YS8_ControlPanel (void)
       {
         changed = true;
 
-        ys8_config.shadows.scale->store (
+        ys8_config->shadows.scale->store (
           (__SK_YS8_ShadowScale = fwd_sel [sel])
         );
       }
@@ -1009,12 +1001,12 @@ const
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Right-click to reclaim this disk space");
 
-      if ( SK_ImGui_IsItemRightClicked () && _SK_YS8_CachedDirSizes [probe_dir] != 0 )
+      if ( SK_ImGui_IsItemRightClicked () && _SK_YS8_CachedDirSizes.get ()[probe_dir] != 0 )
       {
-        _SK_YS8_CachedDirSizes [probe_dir] =
+        _SK_YS8_CachedDirSizes.get ()[probe_dir] =
           static_cast <uint64_t> (
             std::max ( 0LL,
-              (int64_t)( _SK_YS8_CachedDirSizes [probe_dir.c_str ()] -
+              (int64_t)( _SK_YS8_CachedDirSizes.get ()[probe_dir.c_str ()] -
                            SK_DeleteTemporaryFiles ( probe_dir.c_str (), L"*.*" ) )
             )
           );
@@ -1201,10 +1193,13 @@ const
 
       if (changed)
       {
-        ys8_config.postproc.override_postproc->store (SK_YS8_CB_Override->Enable);
-        ys8_config.postproc.contrast->store          (SK_YS8_CB_Override->Values [0]);
-        ys8_config.postproc.vignette->store          (SK_YS8_CB_Override->Values [1]);
-        ys8_config.postproc.sharpness->store         (SK_YS8_CB_Override->Values [3]);
+        auto& postproc =
+          ys8_config->postproc;
+
+        postproc.override_postproc->store (SK_YS8_CB_Override->Enable);
+        postproc.contrast->store          (SK_YS8_CB_Override->Values [0]);
+        postproc.vignette->store          (SK_YS8_CB_Override->Values [1]);
+        postproc.sharpness->store         (SK_YS8_CB_Override->Values [3]);
       }
 
       ImGui::PopStyleColor (3);
@@ -1241,7 +1236,7 @@ SK_YS8_RSSetViewports (
   {
     // Safer than alloca
     D3D11_VIEWPORT* vps =
-   (D3D11_VIEWPORT *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+   (D3D11_VIEWPORT *)SK_TLS_Bottom ()->scratch_memory->cmd.alloc (
                                          sizeof (D3D11_VIEWPORT) * NumViewports
                      );
 
@@ -1733,31 +1728,31 @@ SK_YS8_InitPlugin (void)
              static_cast_p2p <void> (&CreateFileW_Original) );
 
 
-  ys8_config.shadows.scale =
+  ys8_config->shadows.scale =
       dynamic_cast <sk::ParameterFloat *>
-        (ys8_config.factory.create_parameter <float> (L"Shadow Rescale"));
+        (g_ParameterFactory->create_parameter <float> (L"Shadow Rescale"));
 
-  ys8_config.shadows.scale->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->shadows.scale->register_to_ini ( SK_GetDLLConfig (),
                                                 L"Ys8.Shadows",
                                                   L"Scale" );
 
-  ys8_config.shadows.scale->load (__SK_YS8_ShadowScale);
+  ys8_config->shadows.scale->load (__SK_YS8_ShadowScale);
 
   __SK_YS8_ShadowScale =
     std::fmax (  1.f,
      std::fmin ( 4.f, __SK_YS8_ShadowScale )
               );
 
-  ys8_config.style.pixel_style =
+  ys8_config->style.pixel_style =
     dynamic_cast <sk::ParameterStringW *>
-      (ys8_config.factory.create_parameter <std::wstring> (L"Art Style"));
+      (g_ParameterFactory->create_parameter <std::wstring> (L"Art Style"));
 
-  ys8_config.style.pixel_style->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->style.pixel_style->register_to_ini ( SK_GetDLLConfig (),
                                                     L"Ys8.Style",
                                                       L"PixelStyle" );
 
   std::wstring style;
-  ys8_config.style.pixel_style->load (style);
+  ys8_config->style.pixel_style->load (style);
 
   bool aa = true;
 
@@ -1820,84 +1815,84 @@ SK_YS8_InitPlugin (void)
 
 
 
-  ys8_config.mipmaps.cache =
+  ys8_config->mipmaps.cache =
       dynamic_cast <sk::ParameterBool *>
-        (ys8_config.factory.create_parameter <bool> (L"Store Completely Mipmapped Textures"));
+        (g_ParameterFactory->create_parameter <bool> (L"Store Completely Mipmapped Textures"));
 
-  ys8_config.mipmaps.cache->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->mipmaps.cache->register_to_ini ( SK_GetDLLConfig (),
                                                 L"Ys8.Mipmaps",
                                                   L"CacheToDisk" );
-  ys8_config.mipmaps.cache->load (config.textures.d3d11.cache_gen_mips);
+  ys8_config->mipmaps.cache->load (config.textures.d3d11.cache_gen_mips);
 
-  ys8_config.mipmaps.stream_rate =
+  ys8_config->mipmaps.stream_rate =
       dynamic_cast <sk::ParameterInt *>
-        (ys8_config.factory.create_parameter <int> (L"Streaming Priority"));
+        (g_ParameterFactory->create_parameter <int> (L"Streaming Priority"));
 
-  ys8_config.mipmaps.stream_rate->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->mipmaps.stream_rate->register_to_ini ( SK_GetDLLConfig (),
                                                       L"Ys8.Mipmaps",
                                                         L"StreamingPriority" );
 
-  ys8_config.mipmaps.anisotropy =
+  ys8_config->mipmaps.anisotropy =
       dynamic_cast <sk::ParameterInt *>
-        (ys8_config.factory.create_parameter <int> (L"Maximum Anisotropic Filtering Level"));
+        (g_ParameterFactory->create_parameter <int> (L"Maximum Anisotropic Filtering Level"));
 
-  ys8_config.mipmaps.anisotropy->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->mipmaps.anisotropy->register_to_ini ( SK_GetDLLConfig (),
                                                       L"Ys8.Mipmaps",
                                                         L"MaxAnisotropy" );
 
-  ys8_config.mipmaps.anisotropy->load (max_anisotropy);
+  ys8_config->mipmaps.anisotropy->load (max_anisotropy);
 
 
-  ys8_config.performance.manage_clean_memory =
+  ys8_config->performance.manage_clean_memory =
       dynamic_cast <sk::ParameterBool *>
-        (ys8_config.factory.create_parameter <bool> (L"Take control of redundant buffer uploads"));
+        (g_ParameterFactory->create_parameter <bool> (L"Take control of redundant buffer uploads"));
 
-  ys8_config.performance.manage_clean_memory->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->performance.manage_clean_memory->register_to_ini ( SK_GetDLLConfig (),
                                                                   L"Ys8.Memory",
                                                                     L"SkipUnchangedTextUploads" );
 
-  ys8_config.performance.manage_clean_memory->load (ManageCleanMemory);
+  ys8_config->performance.manage_clean_memory->load (ManageCleanMemory);
 
-  ys8_config.performance.aggressive_memory_mgmt =
+  ys8_config->performance.aggressive_memory_mgmt =
       dynamic_cast <sk::ParameterBool *>
-        (ys8_config.factory.create_parameter <bool> (L"Try to prevent even more"));
+        (g_ParameterFactory->create_parameter <bool> (L"Try to prevent even more"));
 
-  ys8_config.performance.aggressive_memory_mgmt->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->performance.aggressive_memory_mgmt->register_to_ini ( SK_GetDLLConfig (),
                                                                      L"Ys8.Memory",
                                                                        L"AggressiveMode" );
 
-  ys8_config.performance.aggressive_memory_mgmt->load (CatchAllMemoryFaults);
+  ys8_config->performance.aggressive_memory_mgmt->load (CatchAllMemoryFaults);
 
 
 
-  ys8_config.postproc.override_postproc =
+  ys8_config->postproc.override_postproc =
       dynamic_cast <sk::ParameterBool *>
-        (ys8_config.factory.create_parameter <bool> (L"Override post-processing"));
+        (g_ParameterFactory->create_parameter <bool> (L"Override post-processing"));
 
-  ys8_config.postproc.contrast =
+  ys8_config->postproc.contrast =
       dynamic_cast <sk::ParameterFloat *>
-        (ys8_config.factory.create_parameter <float> (L"Contrast"));
+        (g_ParameterFactory->create_parameter <float> (L"Contrast"));
 
-  ys8_config.postproc.sharpness =
+  ys8_config->postproc.sharpness =
       dynamic_cast <sk::ParameterFloat *>
-        (ys8_config.factory.create_parameter <float> (L"Sharpness"));
+        (g_ParameterFactory->create_parameter <float> (L"Sharpness"));
 
-  ys8_config.postproc.vignette =
+  ys8_config->postproc.vignette =
       dynamic_cast <sk::ParameterFloat *>
-        (ys8_config.factory.create_parameter <float> (L"Vignette"));
+        (g_ParameterFactory->create_parameter <float> (L"Vignette"));
 
 
-  ys8_config.postproc.override_postproc->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->postproc.override_postproc->register_to_ini ( SK_GetDLLConfig (),
                                                              L"Ys8.PostProcess",
                                                                L"Override" );
 
-  ys8_config.postproc.contrast->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->postproc.contrast->register_to_ini ( SK_GetDLLConfig (),
                                                     L"Ys8.PostProcess",
                                                       L"Contrast" );
-  ys8_config.postproc.vignette->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->postproc.vignette->register_to_ini ( SK_GetDLLConfig (),
                                                     L"Ys8.PostProcess",
                                                       L"Vignette" );
-  ys8_config.postproc.sharpness->register_to_ini ( SK_GetDLLConfig (),
+  ys8_config->postproc.sharpness->register_to_ini ( SK_GetDLLConfig (),
                                                      L"Ys8.PostProcess",
                                                        L"Sharpness" );
 
@@ -1908,10 +1903,10 @@ SK_YS8_InitPlugin (void)
 
   SK_YS8_CB_Override = &__SK_D3D11_PixelShader_CBuffer_Overrides->back ();
 
-  ys8_config.postproc.override_postproc->load (SK_YS8_CB_Override->Enable);
-  ys8_config.postproc.contrast->load          (SK_YS8_CB_Override->Values [0]);
-  ys8_config.postproc.vignette->load          (SK_YS8_CB_Override->Values [1]);
-  ys8_config.postproc.sharpness->load         (SK_YS8_CB_Override->Values [3]);
+  ys8_config->postproc.override_postproc->load (SK_YS8_CB_Override->Enable);
+  ys8_config->postproc.contrast->load          (SK_YS8_CB_Override->Values [0]);
+  ys8_config->postproc.vignette->load          (SK_YS8_CB_Override->Values [1]);
+  ys8_config->postproc.sharpness->load         (SK_YS8_CB_Override->Values [3]);
 
   SK_ApplyQueuedHooks ();
 

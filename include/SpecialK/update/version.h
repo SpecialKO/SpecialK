@@ -64,7 +64,7 @@ struct SK_BranchInfo_V1
     std::wstring      title;
     std::wstring      notes;
     std::wstring      description;
-    SK_VersionInfo_V1 vinfo;
+    SK_VersionInfo_V1 vinfo      = { };
   } release;
 
   struct {

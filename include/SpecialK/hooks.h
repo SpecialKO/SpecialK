@@ -120,7 +120,7 @@ static __forceinline
 void
 SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  &cache,
                             void                   **base,
-                            int                      idx   ) 
+                            int                      idx   )
 {
   if (  base != nullptr &&
        *base != nullptr )
@@ -153,9 +153,9 @@ auto SK_Hook_PushLocalCacheOntoGlobal =
 static
 auto SK_Hook_PullGlobalCacheDownToLocal =
 []( sk_hook_cache_record_s* global,
-    sk_hook_cache_record_s* local   ) 
+    sk_hook_cache_record_s* local   )
 {
-  if ( local != nullptr &&
+  if ( local  != nullptr &&
        global != nullptr )
   {
     // LOL, right?
@@ -215,7 +215,7 @@ MH_STATUS
 __stdcall
 SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
                          void     *pDetour,          void **ppOriginal,
-                         void    **ppFuncAddr 
+                         void    **ppFuncAddr
                                      = nullptr );
 
 // Queues a hook rather than enabling it immediately.
@@ -223,7 +223,7 @@ MH_STATUS
 __stdcall
 SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
                           void     *pDetour,          void **ppOriginal,
-                          void    **ppFuncAddr 
+                          void    **ppFuncAddr
                                       = nullptr );
 
 // Queues a hook rather than enabling it immediately.

@@ -20,14 +20,15 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/resource.h>
 
-#ifdef _WIN64
+#ifdef _M_AMD64
 #define SK_StackWalk          StackWalk64
 #define SK_SymLoadModule      SymLoadModule64
 #define SK_SymUnloadModule    SymUnloadModule64
 #define SK_SymGetModuleBase   SymGetModuleBase64
 #define SK_SymGetLineFromAddr SymGetLineFromAddr64
-#else
+#else /* _M_IX86 */
 #define SK_StackWalk          StackWalk
 #define SK_SymLoadModule      SymLoadModule
 #define SK_SymUnloadModule    SymUnloadModule
@@ -63,10 +64,10 @@ bool SK_Debug_IsCrashing (void)
   bool ret = true;
 
   auto orig_se =
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  SK_SEH_ApplyTranslator (SK_BasicStructuredExceptionTranslator);
   try                                    { ret = ReadAcquire (&__SK_Crashed) != 0; }
   catch (const SK_SEH_IgnoredException&) { }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 
   return ret;
 }
@@ -78,7 +79,9 @@ struct sk_crash_sound_s {
   ISimpleAudioVolume* volume_ctl = nullptr;
 
   bool play (void);
-} crash_sound;
+};
+
+SK_LazyGlobal <sk_crash_sound_s> crash_sound;
 
 
 bool
@@ -89,9 +92,9 @@ SK_Crash_PlaySound (void)
   // Rare WinMM (SDL/DOSBox) crashes may prevent this from working, so...
   //   don't create another top-level exception.
   auto orig_se =
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try {
-    PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound.buf),
+    PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound->buf),
                   nullptr,
                     SND_SYNC |
                     SND_MEMORY );
@@ -102,7 +105,7 @@ SK_Crash_PlaySound (void)
   catch (const SK_SEH_IgnoredException&)
   {
   }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 
   return ret;
 }
@@ -239,13 +242,13 @@ CrashHandler::Init (void)
 
           if (default_sound != nullptr)
           {
-            crash_sound.ref   =
+            crash_sound->ref   =
               LoadResource (SK_GetDLL (), default_sound);
 
-            if (crash_sound.ref != nullptr)
+            if (crash_sound->ref != nullptr)
             {
-              crash_sound.buf =
-                static_cast <uint8_t *> (LockResource (crash_sound.ref));
+              crash_sound->buf =
+                static_cast <uint8_t *> (LockResource (crash_sound->ref));
             }
           }
 
@@ -285,7 +288,7 @@ CrashHandler::Shutdown (void)
 std::string
 SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
 {
-  std::string ret = "";
+  std::string ret;
 
   HANDLE hProc =
     SK_GetCurrentProcess ();
@@ -296,9 +299,9 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
     GetCurrentProcess (), hMod, &mod_info, sizeof (mod_info)
   );
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   auto BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
-#else
+#else /* _M_IX86 */
   auto BaseAddr   = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
@@ -353,9 +356,9 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   char    szModName [MAX_PATH + 2] = { };
   HANDLE  hProc                    = SK_GetCurrentProcess ();
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   DWORD64  ip = ExceptionInfo->ContextRecord->Rip;
-#else
+#else /* _M_IX86 */
   DWORD    ip = ExceptionInfo->ContextRecord->Eip;
 #endif
 
@@ -366,9 +369,9 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     GetModuleFileNameA (hModSource, szModName, MAX_PATH);
   }
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   DWORD64 BaseAddr =
-#else
+#else /* _M_IX86 */
   DWORD   BaseAddr =
 #endif
     SK_SymGetModuleBase ( hProc, ip );
@@ -522,7 +525,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   }
 
   log_entry_format (L"[ FaultMod ]  # File.....: '%hs'\n",  szModName));
-#ifndef _WIN64
+#ifdef _M_IX86
   log_entry_format (L"[ FaultMod ]  * EIP Addr.: %hs+%08Xh\n", pszShortName, ip-BaseAddr));
 
   log_entry_format ( L"[StackFrame] <-> Eip=%08xh, Esp=%08xh, Ebp=%08xh\n",
@@ -541,7 +544,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
                      ExceptionInfo->ContextRecord->Edx ));
   log_entry_format ( L"[ GP Flags ]   EFlags: 0x%08x\n",
                      ExceptionInfo->ContextRecord->EFlags ));
-#else
+#else /* _M_AMD64 */
   log_entry_format ( L"[ FaultMod ]  * RIP Addr.: %hs+%ph\n",
                        pszShortName, (LPVOID)((uintptr_t)ip-(uintptr_t)BaseAddr)));
 
@@ -607,11 +610,11 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   CONTEXT ctx (*ExceptionInfo->ContextRecord);
 
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   STACKFRAME64 stackframe = { };
                stackframe.AddrStack.Offset = ctx.Rsp;
                stackframe.AddrFrame.Offset = ctx.Rbp;
-#else
+#else /* _M_IX86 */
   STACKFRAME   stackframe = { };
                stackframe.AddrStack.Offset = ctx.Esp;
                stackframe.AddrFrame.Offset = ctx.Ebp;
@@ -693,9 +696,9 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
       GetCurrentProcess (), hModSource, &mod_info, sizeof (mod_info)
     );
 
-#ifdef _WIN64
+#ifdef _M_AMD64
     BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
-#else
+#else /* _M_IX86 */
     BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
@@ -726,10 +729,10 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     {
       DWORD Disp = 0x00UL;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
       IMAGEHLP_LINE64 ihl              = {                    };
                       ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
-#else
+#else /* _M_IX86 */
       IMAGEHLP_LINE   ihl              = {                  };
                       ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 #endif
@@ -917,8 +920,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       wcscpy   (wszOutDir, wszBaseDir);
       lstrcatW (wszOutDir, LR"(crash\)");
 
-             time_t now = { };
-      struct tm     now_tm;
+             time_t now    = { };
+      struct tm     now_tm = { };
 
                       time (&now);
       localtime_s (&now_tm, &now);
@@ -1026,6 +1029,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
                   locked = true;
                 }
+
                 else
                   SK_Thread_SpinUntilAtomicMin (&log_file->relocated, 2);
               }
@@ -1048,6 +1052,12 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
                 InterlockedIncrement (&log_file->relocated);
               }
+              if ( log_file       != nullptr &&
+                  (log_file->fLog == nullptr ||
+                   log_file       == crash_log.getPtr ()) )
+              {
+                log_file->unlock ();
+              }
             }
           }
 
@@ -1066,7 +1076,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     //if (! (crash_log.initialized && crash_log.silent))
     {
-      if (! crash_sound.play ())
+      if (! crash_sound->play ())
       {
         // If we cannot play the sound, then give a message box so we don't
         //   appear to have vanished without a trace...
@@ -1091,6 +1101,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                     L"Prognostic" );
       config.cegui.enable = false;
     }
+
+    crash_log->unlock ();
 
     // Shutdown the module gracefully
     SK_SelfDestruct ();

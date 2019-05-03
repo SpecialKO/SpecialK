@@ -36,8 +36,6 @@
 #define SK_TOBII_SECTION   L"Widget.Tobii"
 
 extern iSK_INI*             osd_ini;
-extern sk::ParameterFactory g_ParameterFactory;
-
 
 auto constexpr DeclKeybind =
 [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
@@ -45,7 +43,7 @@ auto
 {
   auto* ret =
     dynamic_cast <sk::ParameterStringW *>
-    (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
+    (g_ParameterFactory->create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
   ret->register_to_ini ( ini, sec, binding->short_name );
 
@@ -809,12 +807,12 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
           switch (connection_tries++)
           {
             case 0:
-              SK_LOG0 ( ( L"Connection to Tobii Eyetracker was Lost, re-trying..." ),
+              SK_LOG0 ( ( L"Connection to Tobii Eyetracker was Lost, re-trying..." ), //-V796
                        L"Tobii Eyes");
             default:
             {
-              static int retry_wait_period = 150;
-              SleepEx   (retry_wait_period, TRUE);
+              static int  retry_wait_period = 150;
+              SK_SleepEx (retry_wait_period, TRUE);
 
               error =
                 tobii_device_reconnect (__tobii_widget__->device);

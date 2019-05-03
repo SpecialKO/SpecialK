@@ -250,18 +250,34 @@ SK_GetBitness (void)
         SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); } }
 
 
-#define SK_ReleaseAssertEx(_expr,_msg,_file,_line)            \
-{                                                             \
-  if (! (_expr))                                              \
-  {                                                           \
-    SK_LOG0 ( ( L"Critical Assertion Failure: '%ws' (%ws:%u)",\
-                  (_msg), (_file), (_line)                    \
-              ),L" SpecialK ");                               \
-    if (SK_IsDebuggerPresent ()) __debugbreak ();             \
-  }                                                           \
-}
-#define SK_ReleaseAssert(expr) SK_ReleaseAssertEx ( (expr),L#expr,     \
-                                                    __FILEW__,__LINE__ )
+void SK_ImGui_Warning          (const wchar_t* wszMessage);
+void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
+                                const wchar_t* wszTitle);
+
+#define SK_ReleaseAssertEx(_expr,_msg,_file,_line) {                   \
+  if (! (_expr))                                                       \
+  {                                                                    \
+    SK_LOG0 ( (  L"Critical Assertion Failure: '%ws' (%ws:%u)",        \
+                   (_msg), (_file), (_line)                            \
+              ), L" SpecialK ");                                       \
+                                                                       \
+    if (config.system.log_level > 1)                                   \
+    {                                                                  \
+      if (SK_IsDebuggerPresent ())                                     \
+             __debugbreak      ();                                     \
+    }                                                                  \
+                                                                       \
+    else                                                               \
+    { SK_RunOnce (                                                     \
+         SK_ImGui_WarningWithTitle (                                   \
+                  SK_FormatStringW ( L"Critical Assertion Failure: "   \
+                                     L"'%ws'",   (_msg) ).c_str (),    \
+                  SK_FormatStringW ( L"(%ws:%u)",                      \
+                                       (_file), (_line) ).c_str () )   \
+                 );                }                               }   }
+
+#define SK_ReleaseAssert(expr) { SK_ReleaseAssertEx ( (expr),L#expr,   \
+                                                    __FILEW__,__LINE__ ) }
 
 
 std::queue <DWORD>
@@ -575,6 +591,25 @@ private:
                   int,     4 >
                 >                      extdata_;
   };
+};
+
+static __forceinline
+DWORD
+CountSetBits (ULONG_PTR bitMask)
+{
+  DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
+  DWORD     bitSetCount = 0;
+  ULONG_PTR bitTest     =        (ULONG_PTR)1 << LSHIFT;
+  DWORD     i;
+
+  for (i = 0; i <= LSHIFT; ++i)
+  {
+    bitSetCount += ((bitMask & bitTest) ? 1 : 0);
+    bitTest     /= 2;
+  }
+
+  return
+    bitSetCount;
 };
 
 extern void WINAPI    SK_Sleep       (DWORD dwMilliseconds);

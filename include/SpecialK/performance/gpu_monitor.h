@@ -38,7 +38,7 @@ struct gpu_sensors_t
     //
     struct
     {
-      uint32_t gpu; // GPU
+      uint32_t gpu = 0; // GPU
 
       // NVIDIA ONLY
       struct
@@ -86,20 +86,20 @@ struct gpu_sensors_t
     //
     struct
     {
-      uint64_t local;
-      uint64_t nonlocal; // COMPUTED: (total - local)
-      uint64_t total;
-      uint64_t capacity;
+      uint64_t local    = 0ULL;
+      uint64_t nonlocal = 0ULL; // COMPUTED: (total - local)
+      uint64_t total    = 0ULL;
+      uint64_t capacity = 0ULL;
     } memory_B;
 
     struct
     {
-      uint32_t mem_type; // 8 == GDDR5
-      uint32_t mem_bus_width;
+      uint32_t mem_type           = 0UL; // 8 == GDDR5
+      uint32_t mem_bus_width      = 0UL;
 
-      uint32_t pcie_lanes;
-      uint32_t pcie_gen;
-      uint32_t pcie_transfer_rate;
+      uint32_t pcie_lanes         = 0UL;
+      uint32_t pcie_gen           = 0UL;
+      uint32_t pcie_transfer_rate = 0UL;
 
       double pcie_bandwidth_mb (void)
       {
@@ -118,15 +118,16 @@ struct gpu_sensors_t
       }
     } hwinfo;
 
-    uint32_t nv_gpuid;
-    uint32_t nv_perf_state;
+    uint32_t nv_gpuid      = 0UL;
+    uint32_t nv_perf_state = 0UL;
   } gpus [MAX_GPUS];
 
   int_fast32_t   num_gpus    =    0;
   ULARGE_INTEGER last_update = { 0ULL };
 };
 
-extern gpu_sensors_t& gpu_stats;
+gpu_sensors_t*
+  SK_GPU_CurrentSensorData (void);
 
 uint32_t __stdcall SK_GPU_GetClockRateInkHz    (int gpu);
 uint32_t __stdcall SK_GPU_GetMemClockRateInkHz (int gpu);

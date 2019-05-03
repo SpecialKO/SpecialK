@@ -22,12 +22,18 @@
 #include <SpecialK/stdafx.h>
 #include <bcrypt.h>
 
-extern SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, std::wstring>> _SK_ThreadNames;
-extern SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>               _SK_SelfTitledThreads;
+extern SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <DWORD, std::wstring>
+> _SK_ThreadNames;
+
+extern SK_LazyGlobal <
+  concurrency::concurrent_unordered_set <DWORD>
+> _SK_SelfTitledThreads;
 
 #pragma pack(push,8)
 typedef LONG NTSTATUS;
-typedef      NTSTATUS (WINAPI *NtQueryInformationThread_pfn)(HANDLE,/*THREADINFOCLASS*/LONG,DWORD_PTR*,ULONG,PULONG);
+typedef      NTSTATUS (WINAPI *NtQueryInformationThread_pfn)
+       (HANDLE,/*THREADINFOCLASS*/LONG,DWORD_PTR*,ULONG,PULONG);
 
 #define ThreadQuerySetWin32StartAddress 9
 
@@ -43,11 +49,12 @@ typedef struct _THREAD_POWER_THROTTLING_STATE {
   ULONG Version;
   ULONG ControlMask;
   ULONG StateMask;
-} THREAD_POWER_THROTTLING_STATE, *PTHREAD_POWER_THROTTLING_STATE;
+} THREAD_POWER_THROTTLING_STATE,
+ *PTHREAD_POWER_THROTTLING_STATE;
 
 #define THREAD_POWER_THROTTLING_CURRENT_VERSION 1
 #define THREAD_POWER_THROTTLING_EXECUTION_SPEED 1
-#define THREAD_POWER_THROTTLING_VALID_FLAGS 1
+#define THREAD_POWER_THROTTLING_VALID_FLAGS     1
 
 typedef BOOL (WINAPI *GetThreadInformation_pfn)(HANDLE, THREAD_INFORMATION_CLASS_EX, LPVOID, DWORD);
 typedef BOOL (WINAPI *SetThreadInformation_pfn)(HANDLE, THREAD_INFORMATION_CLASS_EX, LPVOID, DWORD);
@@ -55,6 +62,14 @@ typedef BOOL (WINAPI *SetThreadInformation_pfn)(HANDLE, THREAD_INFORMATION_CLASS
 typedef BOOL (WINAPI* GetThreadInformation_pfn)(HANDLE, THREAD_INFORMATION_CLASS, LPVOID, DWORD);
 typedef BOOL (WINAPI* SetThreadInformation_pfn)(HANDLE, THREAD_INFORMATION_CLASS, LPVOID, DWORD);
 #endif
+
+
+
+extern iSK_INI* osd_ini;
+
+bool SK_Thread_HasCustomName (DWORD dwTid);
+
+float __SK_Thread_RebalanceEveryNSeconds = 21.0f;
 
 // Windows 8+
 GetThreadInformation_pfn k32GetThreadInformation = nullptr;
@@ -113,13 +128,14 @@ typedef enum _PROCESS_INFORMATION_CLASS_FULL {
   ProcessTokenVirtualizationEnabled,
   ProcessConsoleHostProcess,
   ProcessWindowInformation,
-  MaxProcessInfoClass             // MaxProcessInfoClass should always be the last enum
-} PROCESS_INFORMATION_CLASS_FULL, *PPROCESS_INFORMATION_CLASS_FULL;
+  MaxProcessInfoClass // MaxProcessInfoClass should always be the last enum
+} PROCESS_INFORMATION_CLASS_FULL,
+ *PPROCESS_INFORMATION_CLASS_FULL;
 
-#define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
-#define STATUS_SUCCESS                          0
-#define STATUS_INFO_LENGTH_MISMATCH             ((NTSTATUS)0xC0000004L)
-#define SystemProcessAndThreadInformation       5
+#define NT_SUCCESS(Status)                ((NTSTATUS)(Status) >= 0)
+#define STATUS_SUCCESS                    0
+#define STATUS_INFO_LENGTH_MISMATCH       ((NTSTATUS)0xC0000004L)
+#define SystemProcessAndThreadInformation 5
 
 typedef LONG       NTSTATUS;
 typedef LONG       KPRIORITY;
@@ -141,7 +157,7 @@ typedef struct _SYSTEM_THREAD {
     FILETIME     ftUserTime;     // 100 nsec units
     FILETIME     ftCreateTime;   // relative to 01-01-1601
     ULONG        dWaitTime;
-#ifdef _WIN64
+#ifdef _M_AMD64
     DWORD32      dwPaddingFor64Bit;
 #endif
     PVOID        pStartAddress;
@@ -195,7 +211,9 @@ typedef struct _SYSTEM_PROCESS     // common members
     LARGE_INTEGER  WriteTransferCount;
     LARGE_INTEGER  OtherTransferCount;
     SYSTEM_THREAD  aThreads [1];
-} SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
+} SYSTEM_PROCESS_INFORMATION,
+*PSYSTEM_PROCESS_INFORMATION;
+
 #define SYSTEM_PROCESS_ sizeof (SYSTEM_PROCESS_INFORMATION)
 
 typedef enum _SYSTEM_INFORMATION_CLASS {
@@ -387,7 +405,8 @@ typedef NTSTATUS (WINAPI *NtQuerySystemInformation_pfn)(
   _Out_opt_ PULONG                   ReturnLength
 );
 
-static NtQuerySystemInformation_pfn NtQuerySystemInformation = nullptr;
+static NtQuerySystemInformation_pfn
+       NtQuerySystemInformation = nullptr;
 
 typedef struct _PEB {
   BYTE  Reserved1 [2];
@@ -395,7 +414,8 @@ typedef struct _PEB {
   BYTE  Reserved2 [229];
   PVOID Reserved3 [59];
   ULONG SessionId;
-} PEB, *PPEB;
+} PEB,
+*PPEB;
 
 typedef struct _PROCESS_BASIC_INFORMATION
 {
@@ -405,7 +425,8 @@ typedef struct _PROCESS_BASIC_INFORMATION
   KPRIORITY BasePriority;
   HANDLE    UniqueProcessId;
   HANDLE    InheritedFromUniqueProcessId;
-} PROCESS_BASIC_INFORMATION, *PPROCESS_BASIC_INFORMATION;
+} PROCESS_BASIC_INFORMATION,
+*PPROCESS_BASIC_INFORMATION;
 
 typedef NTSTATUS (NTAPI *NtQueryInformationProcess_pfn)(
 __in                                   HANDLE                         ProcessHandle,
@@ -414,9 +435,8 @@ __out_bcount(ProcessInformationLength) PVOID                          ProcessInf
 __in                                   ULONG                          ProcessInformationLength,
 __out_opt                              PULONG                         ReturnLength );
 
-NtQueryInformationProcess_pfn NtQueryInformationProcess = nullptr;
-
-extern iSK_INI* osd_ini;
+NtQueryInformationProcess_pfn
+NtQueryInformationProcess = nullptr;
 
 enum class WaitReason
 {
@@ -468,59 +488,58 @@ enum class ThreadState
 };
 #pragma pack(pop)
 
-float __SK_Thread_RebalanceEveryNSeconds = 12.5f;
-
-struct SK_ProcessTimeCounters {
-  FILETIME ftCreate, ftExit,
-           ftKernel, ftUser;
-
-  constexpr SK_ProcessTimeCounters (void) : ftCreate ({ 0LL, 0LL }), ftKernel ({ 0LL, 0LL }),
-                                            ftUser   ({ 0LL, 0LL }), ftExit   ({ 0LL, 0LL })  { }
-} process_time;
-
-const DWORD SNAP_FREQUENCY = 30000UL;
+static constexpr DWORD SNAP_FREQUENCY = 30000UL;
 
 struct SKWG_Thread_Entry
 {
-  HANDLE hThread;
-  DWORD  dwTid;
+  HANDLE hThread = nullptr;
+  DWORD  dwTid   = 0UL;
 
   struct runtimes_s
   {
-    FILETIME created;
-    FILETIME exited;
-    FILETIME user;
-    FILETIME kernel;
+    FILETIME created = { };
+    FILETIME exited  = { };
+    FILETIME user    = { };
+    FILETIME kernel  = { };
 
-    long double percent_user;
-    long double percent_kernel;
+    long double percent_user   = 0.0L;
+    long double percent_kernel = 0.0L;
 
     struct
     {
-      FILETIME user;
-      FILETIME kernel;
+      FILETIME user   = { };
+      FILETIME kernel = { };
     } snapshot;
   } runtimes;
 
   // Last time percentage was non-zero; used to hide inactive threads
-  DWORD last_nonzero;
-  bool  exited;
+  DWORD last_nonzero       = 0;
+  bool  exited             = false;
 
-  bool  power_throttle;
-  DWORD orig_prio;
+  bool  power_throttle     = false;
+  DWORD orig_prio          = DWORD_MAX;
 
   WaitReason  wait_reason  = WaitReason::NotWaiting;
   ThreadState thread_state = ThreadState::Running;
 
-  bool         self_titled;
-  std::wstring name;
+  bool         self_titled = false;
+  std::wstring name        = L"";
 };
-
-bool
-SK_Thread_HasCustomName (DWORD dwTid);
 
 SK_LazyGlobal <std::map <DWORD,    SKWG_Thread_Entry*>> SKWG_Threads;
 SK_LazyGlobal <std::map <LONGLONG, SKWG_Thread_Entry*>> SKWG_Ordered_Threads;
+
+struct SK_ProcessTimeCounters
+{
+  FILETIME ftCreate, ftExit,
+           ftKernel, ftUser;
+
+  constexpr SK_ProcessTimeCounters (void) :
+                  ftCreate ({ 0LL, 0LL }), ftKernel ({ 0LL, 0LL }),
+                  ftUser   ({ 0LL, 0LL }), ftExit   ({ 0LL, 0LL }) { }
+};
+
+SK_LazyGlobal <SK_ProcessTimeCounters> process_time;
 
 PSYSTEM_PROCESS_INFORMATION
 ProcessInformation ( PDWORD                       pdData,
@@ -608,7 +627,7 @@ ProcessInformation ( PDWORD                       pdData,
     ret;
 }
 
-#ifdef _WIN64
+#ifdef _M_AMD64
 #define SK_StackWalk          StackWalk64
 #define SK_SymLoadModule      SymLoadModule64
 #define SK_SymUnloadModule    SymUnloadModule64
@@ -629,7 +648,7 @@ static volatile LONG   rebalance_queue     = 0;
 void
 SK_Thread_RebalanceThreads (void)
 {
-  InterlockedIncrementRelease (&rebalance_queue);
+  InterlockedCompareExchange (&rebalance_queue, 1, 0);
 }
 
 void
@@ -637,8 +656,6 @@ SK_ImGui_RebalanceThreadButton (void)
 {
   if (! rebalance)
   {
-    ImGui::SameLine ();
-
     if (ImGui::Button ("Rebalance Threads"))
     {
       SK_Thread_RebalanceThreads ();
@@ -654,12 +671,12 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 
   static std::string symbol_name = "";
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   static DWORD64 last_ip = 0;
 
   DWORD64  ip       (reinterpret_cast <DWORD64> (ret_addr));
   DWORD64  BaseAddr = 0;
-#else
+#else /* _M_IX86 */
   static DWORD last_ip = 0;
 
   DWORD    ip       (reinterpret_cast <DWORD> (ret_addr));
@@ -690,14 +707,14 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
         &mod_info, sizeof (MODULEINFO)
     );
 
-#ifdef _WIN64
+#ifdef _M_AMD64
     BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
-#else
+#else /* _M_IX86 */
     BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
     char* szDupName =
-      pTLS->scratch_memory.sym_resolve.alloc (
+      pTLS->scratch_memory->sym_resolve.alloc (
         strlen (szModName) + 1
       );
 
@@ -709,7 +726,6 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 
       PathStripPathA (pszShortName);
 
-
       SK_SymLoadModule ( hProc,
                            nullptr,
                             pszShortName,
@@ -717,10 +733,10 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
                                 BaseAddr,
                                   mod_info.SizeOfImage );
 
-      SYMBOL_INFO_PACKAGE sip = { };
-
-      sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-      sip.si.MaxNameLen   = sizeof sip.name;
+      SYMBOL_INFO_PACKAGE
+        sip                 = {                  };
+        sip.si.SizeOfStruct = sizeof (SYMBOL_INFO);
+        sip.si.MaxNameLen   = sizeof (  sip.name );
 
       DWORD64 Displacement = 0;
 
@@ -729,12 +745,13 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
                              &Displacement,
                                &sip.si ) )
       {
-        DWORD Disp = 0x00UL;
+        DWORD Disp =
+          0x00UL;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
         IMAGEHLP_LINE64 ihl              = {                    };
                         ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
-#else
+#else /* _M_IX86 */
         IMAGEHLP_LINE   ihl              = {                  };
                         ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 #endif
@@ -745,7 +762,10 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
         {
           symbol_name =
             SK_FormatString ( "[%hs] %hs <%hs:%lu>",
-                                pszShortName, sip.si.Name, ihl.FileName,ihl.LineNumber );
+                                pszShortName,
+                                  sip.si.Name,
+                                     ihl.FileName,
+                                     ihl.LineNumber );
         }
 
         else
@@ -771,8 +791,12 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 }
 
 void
-SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER kernelTime)
+SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
+                                           LARGE_INTEGER kernelTime )
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   static LARGE_INTEGER lastUser   { 0, 0 },
                        lastKernel { 0, 0 };
   static DWORD         lastThreadId  = 0;
@@ -790,20 +814,22 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
 
   GetThreadContext (hThread, &thread_ctx);
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   DWORD64  ip       = thread_ctx.Rip;
   DWORD64  BaseAddr = 0;
 
-  STACKFRAME64 stackframe = { };
-               stackframe.AddrStack.Offset = thread_ctx.Rsp;
-               stackframe.AddrFrame.Offset = thread_ctx.Rbp;
-#else
+  STACKFRAME64
+    stackframe                  = {            };
+    stackframe.AddrStack.Offset = thread_ctx.Rsp;
+    stackframe.AddrFrame.Offset = thread_ctx.Rbp;
+#else /* _M_IX86 */
   DWORD    ip       = thread_ctx.Eip;
   DWORD    BaseAddr = 0;
 
-  STACKFRAME   stackframe = { };
-               stackframe.AddrStack.Offset = thread_ctx.Esp;
-               stackframe.AddrFrame.Offset = thread_ctx.Ebp;
+  STACKFRAME
+    stackframe                  = {            };
+    stackframe.AddrStack.Offset = thread_ctx.Esp;
+    stackframe.AddrFrame.Offset = thread_ctx.Ebp;
 #endif
 
   stackframe.AddrPC.Mode   = AddrModeFlat;
@@ -818,16 +844,13 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
   static std::vector <std::string> symbol_names;
   static std::vector <std::string> code_lines;
 
-  BOOL       ret   = TRUE;
-  static int lines = 0;
-
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
+         BOOL ret   = TRUE;
+  static int  lines = 0;
 
   if (
-#ifndef _WIN64
+#ifndef _M_AMD64
        last_ctx.Eip        != thread_ctx.Eip ||
-#else
+#else /* _M_IX86 */
        last_ctx.Rip        != thread_ctx.Rip ||
 #endif
      /*lastUser.QuadPart   != userTime.QuadPart   ||
@@ -864,14 +887,14 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
           &mod_info, sizeof (MODULEINFO)
       );
 
-#ifdef _WIN64
+#ifdef _M_AMD64
       BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
-#else
+#else /* _M_IX86 */
       BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
       char* szDupName =
-        pTLS->scratch_memory.cmd.alloc (
+        pTLS->scratch_memory->cmd.alloc (
           strlen (szModName) + 1, true );
 
       if (szDupName != nullptr)
@@ -904,12 +927,12 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
         {
           DWORD Disp = 0x00UL;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
           IMAGEHLP_LINE64 ihl = {                    };
-          ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
-#else
-          IMAGEHLP_LINE   ihl = {                  };
-          ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+          ihl.SizeOfStruct    = sizeof IMAGEHLP_LINE64;
+#else /* _M_IX86 */
+          IMAGEHLP_LINE ihl = {                  };
+          ihl.SizeOfStruct  = sizeof IMAGEHLP_LINE;
 #endif
           const BOOL bFileAndLine =
             SK_SymGetLineFromAddr (hProc, ip, &Disp, &ihl);
@@ -953,8 +976,6 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
 
   if (file_names.size ( ) > 2)
   {
-    extern HMODULE __stdcall SK_GetDLL (void);
-
     static std::string self_ansi =
       SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules->Self ()));
     static std::string host_ansi =
@@ -1035,6 +1056,96 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
 class SKWG_Thread_Profiler : public SK_Widget
 {
 public:
+  struct SK_Thread_DataCollector
+  {
+    volatile SK_NtQuerySystemInformation* pQuery;          // Double-buffered
+             HANDLE                       hProduceThread = INVALID_HANDLE_VALUE;
+             HANDLE                       hSignalProduce =
+               SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
+             HANDLE                       hSignalConsume =
+               SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+             HANDLE                       hSignalShutdown =
+               SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+             DWORD                        dwProducerTid;
+
+    SK_Thread_DataCollector (void)
+    {
+      hProduceThread =
+        SK_Thread_CreateEx ([](LPVOID user) ->
+          DWORD
+          {
+            auto& _process_time =
+                   process_time.get ();
+
+            SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+
+            SK_TLS* pTLS =
+              SK_TLS_Bottom ();
+
+            SK_Thread_DataCollector* pParams =
+              reinterpret_cast <SK_Thread_DataCollector*>(user);
+
+            HANDLE hSignals [] = {
+              pParams->hSignalProduce,
+              pParams->hSignalShutdown
+            };
+
+            DWORD dwWaitState = 0;
+            int   write_idx   = 0;
+            int   read_idx    = 1;
+
+            constexpr int WAIT_PRODUCE_DATA    = WAIT_OBJECT_0;
+            constexpr int WAIT_SHUTDOWN_THREAD = WAIT_OBJECT_0 + 1;
+
+            do
+            {
+              dwWaitState =
+                 WaitForMultipleObjects (2, hSignals, FALSE, INFINITE);
+
+              SK_NtQuerySystemInformation* pWrite =
+                &pTLS->local_scratch->query [write_idx];
+
+              if (dwWaitState == WAIT_PRODUCE_DATA)
+              {
+                ProcessInformation (nullptr, &pWrite->NtStatus, pWrite);
+
+                if (pWrite->NtStatus == STATUS_SUCCESS)
+                {
+                  // Cumulative times; sample them as close to the thread snapshot as possible or
+                  //   the load %'s will not be accurate.
+                  GetProcessTimes ( GetCurrentProcess (), &_process_time.ftCreate, &_process_time.ftExit,
+                                                          &_process_time.ftKernel, &_process_time.ftUser );
+
+                  std::swap (write_idx, read_idx);
+
+                  InterlockedExchangePointer (
+                       (void**)&pParams->pQuery,
+                    &pTLS->local_scratch->query [read_idx]
+                  );
+
+                  SetEvent (pParams->hSignalConsume);
+                }
+              }
+            } while (dwWaitState != WAIT_SHUTDOWN_THREAD);
+
+            return 0;
+          },
+        L"[SK] Thread Analytics Producer",
+      (LPVOID)this );
+
+      dwProducerTid =
+        GetThreadId (hProduceThread);
+    }
+
+    ~SK_Thread_DataCollector (void)
+    {
+      SignalObjectAndWait (hSignalShutdown, hProduceThread, 100, FALSE);
+      CloseHandle         (hSignalProduce);  CloseHandle (hSignalConsume);
+      CloseHandle         (hSignalShutdown); CloseHandle (hProduceThread);
+    }
+  };
+
+public:
   SKWG_Thread_Profiler (void) noexcept : SK_Widget ("Thread Profiler")
   {
     SK_ImGui_Widgets->thread_profiler = this;
@@ -1068,6 +1179,11 @@ public:
         )
     );
 
+    SK_RunOnce (
+      data_thread =
+        std::make_unique <SK_Thread_DataCollector> ()
+    );
+
 
     static float last_rebalance = 0.0f;
 
@@ -1079,9 +1195,8 @@ public:
     }
 
 
-    if ((! rebalance) && ReadAcquire (&rebalance_queue) > 0)
+    if ((! rebalance) && InterlockedCompareExchange (&rebalance_queue, 0, 1))
     {
-      InterlockedDecrementRelease (&rebalance_queue);
       rebalance     = true;
       rebalance_idx = 0;
     }
@@ -1105,29 +1220,7 @@ public:
           continue;
         }
 
-        if ( it.second->self_titled == false &&
-            (it.second->name.find (L"nvwgf2umx.dll") != std::wstring::npos ||
-             it.second->name.find (L"NVAPI_Thunk")   != std::wstring::npos   ) )
-        {
-          HANDLE hThreadOrig = it.second->hThread;
-
-          if (it.second->hThread == INVALID_HANDLE_VALUE)
-          {
-            it.second->hThread =
-              OpenThread (THREAD_ALL_ACCESS, FALSE, it.second->dwTid);
-          }
-
-//#define SK_DisableThreadPriorityBoost(thread) SetThreadPriorityBoost ((thread), TRUE)
-        //SK_DisableThreadPriorityBoost (it.second->hThread);
-
-          if (it.second->hThread != hThreadOrig)
-          {
-            CloseHandle (it.second->hThread);
-                         it.second->hThread = INVALID_HANDLE_VALUE;
-          }
-        }
-
-        const SK_TLS* pTLS =
+        SK_TLS* pTLS =
           SK_TLS_BottomEx (it.second->dwTid);
 
         if (! pTLS)
@@ -1160,18 +1253,18 @@ public:
 
     if (rebalance)
     {
-      size_t idx = 0;
+      size_t idx       = 0;
+      DWORD  dwTidSelf = SK_Thread_GetCurrentId ();
 
       for ( auto& it : rebalance_list )
       {
+        if ( it->dwTid == dwTidSelf )
+        {
+          ++rebalance_idx; ++idx; continue;
+        }
+
         if (rebalance_idx == idx)
         {
-          const SK_TLS* pTLS =
-            SK_TLS_BottomEx (it->dwTid);
-
-          if (! pTLS)
-            continue;
-
           HANDLE hThreadOrig =
             it->hThread;
 
@@ -1181,64 +1274,77 @@ public:
               OpenThread (THREAD_ALL_ACCESS, FALSE, it->dwTid);
           }
 
-          DWORD dwExitCode = 0;
-          DWORD pnum       =
-            SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
-          GetExitCodeThread         (it->hThread, &dwExitCode);
-
-          if ( pnum != gsl::narrow_cast <DWORD> (-1) && dwExitCode == STILL_ACTIVE )
+          if ( (intptr_t)it->hThread > 0 )
           {
-            static SYSTEM_INFO
-                sysinfo = { };
-            if (sysinfo.dwNumberOfProcessors == 0)
+            DWORD dwExitCode = 0;
+            DWORD pnum       =
+              SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
+            GetExitCodeThread         (it->hThread, &dwExitCode);
+
+            if ( pnum != gsl::narrow_cast <DWORD> (-1) && dwExitCode == STILL_ACTIVE )
             {
-              SK_GetSystemInfo (&sysinfo);
+              static SYSTEM_INFO
+                  sysinfo = { };
+              if (sysinfo.dwNumberOfProcessors == 0)
+              {
+                SK_GetSystemInfo (&sysinfo);
+              }
+
+              SK_TLS* pTLS =
+                SK_TLS_BottomEx (it->dwTid);
+
+              static DWORD     ideal  = 0;
+                     DWORD_PTR dwMask = pTLS   ?
+                pTLS->scheduler->affinity_mask : DWORD_PTR_MAX;
+
+              if (pnum != ideal && ( (dwMask >> pnum)  & 0x1)
+                                && ( (dwMask >> ideal) & 0x1))
+              {
+                if ( SetThreadIdealProcessor ( it->hThread, ideal ) != -1 )
+                  pnum = ideal;
+              }
+
+              if (pnum == ideal || (! ((dwMask >> ideal) & 0x1)))
+              {
+                if (pnum == ideal)
+                  rebalance_idx++;
+
+                ideal++;
+
+                if (ideal >= sysinfo.dwNumberOfProcessors)
+                  ideal = 0;
+              }
             }
 
-            static DWORD ideal = 0;
+            else
+              ++rebalance_idx;
 
-            const DWORD_PTR dwMask =
-              pTLS->scheduler.affinity_mask;
-
-            if (pnum != ideal && ( (dwMask >> pnum)  & 0x1)
-                              && ( (dwMask >> ideal) & 0x1))
+            if (it->hThread != hThreadOrig)
             {
-              if ( SetThreadIdealProcessor ( it->hThread, ideal ) != -1 )
-                pnum = ideal;
-            }
-
-            if (pnum == ideal || (! ((dwMask >> ideal) & 0x1)))
-            {
-              if (pnum == ideal)
-                rebalance_idx++;
-
-              ideal++;
-
-              if (ideal >= sysinfo.dwNumberOfProcessors)
-                ideal = 0;
+              CloseHandle (it->hThread);
+                           it->hThread = INVALID_HANDLE_VALUE;
             }
           }
 
-          else ++rebalance_idx;
-
-          if (it->hThread != hThreadOrig)
-          {
-            CloseHandle (it->hThread);
-                         it->hThread = INVALID_HANDLE_VALUE;
-          }
+          else
+            ++rebalance_idx;
         }
 
         // No more rebalancing to do!
-        if ( rebalance && (!  rebalance_list.empty () ) &&
-             rebalance_idx >= rebalance_list.size  ()   )
+        if ( rebalance_idx >= rebalance_list.size () )
         {
           rebalance = false;
+          break;
         }
 
         ++idx;
       }
 
-      if (! rebalance) rebalance_list.clear ();
+      if (! rebalance)
+      {
+        rebalance_list.clear ();
+        rebalance_idx = 0;
+      }
     }
 
 
@@ -1246,7 +1352,7 @@ public:
     extern volatile LONG  lLastThreadCreate;
     static          LONG  lLastThreadRefresh   =  -69;
               const DWORD _UPDATE_INTERVAL1_MS =  100; // Refresh no more than once every 100 ms
-              const DWORD _UPDATE_INTERVAL2_MS = 5000; // Refresh at least once every 5 seconds
+              const DWORD _UPDATE_INTERVAL2_MS = 3333; // Refresh at least once every 3.3 seconds
     static          DWORD dwLastTime           =    0;
 
     const LONG  last  =
@@ -1269,113 +1375,24 @@ public:
 
     dwLastTime = dwNow;
 
-
-    //
-    // Producer / Consumer for NtQuerySystemInformation
-    //
-    struct DataCollectionThread {
-      volatile SK_NtQuerySystemInformation* pQuery;          // Double-buffered
-               HANDLE                       hProduceThread = INVALID_HANDLE_VALUE;
-               HANDLE                       hSignalProduce =
-                 SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
-               HANDLE                       hSignalConsume =
-                 SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
-               HANDLE                       hSignalShutdown =
-                 SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
-
-      DataCollectionThread (void)
-      {
-        hProduceThread =
-          SK_Thread_CreateEx ([](LPVOID user) ->
-            DWORD
-            {
-              SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-
-              SK_TLS* pTLS =
-                SK_TLS_Bottom ();
-
-              DataCollectionThread* pParams =
-                reinterpret_cast <DataCollectionThread*>(user);
-
-              HANDLE hSignals [] = {
-                pParams->hSignalProduce,
-                pParams->hSignalShutdown
-              };
-
-              DWORD dwWaitState = 0;
-              int   write_idx   = 0;
-              int   read_idx    = 1;
-
-              constexpr int WAIT_PRODUCE_DATA    = WAIT_OBJECT_0;
-              constexpr int WAIT_SHUTDOWN_THREAD = WAIT_OBJECT_0 + 1;
-
-              do
-              {
-                dwWaitState =
-                   WaitForMultipleObjects (2, hSignals, FALSE, INFINITE);
-
-                SK_NtQuerySystemInformation* pWrite =
-                  &pTLS->local_scratch.query [write_idx];
-
-                if (dwWaitState == WAIT_PRODUCE_DATA)
-                {
-                  ProcessInformation (nullptr, &pWrite->NtStatus, pWrite);
-
-                  if (pWrite->NtStatus == STATUS_SUCCESS)
-                  {
-                    // Cumulative times; sample them as close to the thread snapshot as possible or
-                    //   the load %'s will not be accurate.
-                    GetProcessTimes ( GetCurrentProcess (), &process_time.ftCreate, &process_time.ftExit,
-                                                            &process_time.ftKernel, &process_time.ftUser );
-
-                    WaitForSingleObject (pParams->hSignalShutdown, 6UL);
-
-                    std::swap (write_idx, read_idx);
-
-                    InterlockedExchangePointer (
-                      (void**)&pParams->pQuery,
-                      &pTLS->local_scratch.query [read_idx]
-                    );
-
-                    SetEvent (pParams->hSignalConsume);
-                  }
-                }
-              } while (dwWaitState != WAIT_SHUTDOWN_THREAD);
-
-              return 0;
-            },
-          L"[SK] Thread Analytics Producer",
-        (LPVOID)this );
-      }
-
-      ~DataCollectionThread (void)
-      {
-        SignalObjectAndWait (hSignalShutdown, hProduceThread, 100, FALSE);
-        CloseHandle         (hSignalProduce);  CloseHandle (hSignalConsume);
-        CloseHandle         (hSignalShutdown); CloseHandle (hProduceThread);
-      }
-    } static data_thread;
-
     static PSYSTEM_PROCESS_INFORMATION pInfo = nullptr;
     static NTSTATUS                    nts   = STATUS_INVALID_PARAMETER;
 
     bool update = false;
 
-    if (WaitForSingleObject (data_thread.hSignalConsume, 0) == WAIT_OBJECT_0)
+    if (WaitForSingleObject (data_thread->hSignalConsume, 0) == WAIT_OBJECT_0)
     {
       // The producer is double-buffered, this always points to the last finished
       //   data collection cycle.
       SK_NtQuerySystemInformation* pLatestQuery =
         reinterpret_cast <SK_NtQuerySystemInformation *> (
-          ReadPointerAcquire ((volatile LPVOID*)& data_thread.pQuery)
+          ReadPointerAcquire ((volatile LPVOID*)& data_thread->pQuery)
         );
 
       pInfo =
         reinterpret_cast <PSYSTEM_PROCESS_INFORMATION> (
               pLatestQuery->NtInfo.data );
       nts   = pLatestQuery->NtStatus;
-
-      SetEvent (data_thread.hSignalProduce);
 
       update = true;
     }
@@ -1384,8 +1401,8 @@ public:
     {
       int i = 0;
 
-      const DWORD dwPID = GetCurrentProcessId (),
-                  dwTID = GetCurrentThreadId  ();
+      const DWORD dwPID = GetCurrentProcessId    (),
+                  dwTID = SK_Thread_GetCurrentId ();
 
       SYSTEM_PROCESS_INFORMATION* pProc = pInfo;
 
@@ -1436,7 +1453,6 @@ public:
             SKWG_Threads->insert (
               std::make_pair ( dwLocalTID, ptEntry )
             );
-
 
             if ( config.render.framerate.enable_mmcss &&
                  SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey )
@@ -1498,7 +1514,7 @@ public:
 
           ptEnt->wait_reason =
             static_cast <WaitReason>
-                (thread.WaitReason);
+                 (thread.WaitReason);
           ptEnt->thread_state =
             static_cast <ThreadState>
                 (thread.dThreadState);
@@ -1518,10 +1534,12 @@ public:
               ptEnt;
           }
         }
-
-        lLastThreadRefresh =
-          last;
       }
+
+      SetEvent (data_thread->hSignalProduce);
+
+      lLastThreadRefresh =
+        last;
     }
   }
 
@@ -1550,74 +1568,74 @@ public:
       {
         ImGui::BeginTooltip ();
 
-        if (ReadAcquire64 (&pTLS->memory.global_bytes)  ||
-            ReadAcquire64 (&pTLS->memory.local_bytes)   ||
-            ReadAcquire64 (&pTLS->memory.virtual_bytes) ||
-            ReadAcquire64 (&pTLS->memory.heap_bytes)       )
+        if (ReadAcquire64 (&pTLS->memory->global_bytes)  ||
+            ReadAcquire64 (&pTLS->memory->local_bytes)   ||
+            ReadAcquire64 (&pTLS->memory->virtual_bytes) ||
+            ReadAcquire64 (&pTLS->memory->heap_bytes)       )
         {
           ImGui::BeginGroup   ();
-          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::TextUnformatted ("Local Memory:\t");
-          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::TextUnformatted ("Global Memory:\t");
-          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::TextUnformatted ("Heap Memory:\t");
-          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::TextUnformatted ("Virtual Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory->local_bytes))   ImGui::TextUnformatted ("Local Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory->global_bytes))  ImGui::TextUnformatted ("Global Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory->heap_bytes))    ImGui::TextUnformatted ("Heap Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory->virtual_bytes)) ImGui::TextUnformatted ("Virtual Memory:\t");
           ImGui::EndGroup     ();
 
           ImGui::SameLine     ();
 
           ImGui::BeginGroup   ();
-          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory.local_bytes),   2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory.global_bytes),  2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory.heap_bytes),    2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory.virtual_bytes), 2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->local_bytes))   ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory->local_bytes),   2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->global_bytes))  ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory->global_bytes),  2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->heap_bytes))    ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory->heap_bytes),    2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->virtual_bytes)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory->virtual_bytes), 2, 3).c_str ());
           ImGui::EndGroup     ();
 
           ImGui::SameLine     ();
 
           ImGui::BeginGroup   ();
-          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::TextUnformatted ("\t(Lifetime)");
-          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::TextUnformatted ("\t(Lifetime)");
-          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::TextUnformatted ("\t(Lifetime)");
-          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::TextUnformatted ("\t(In-Use Now)");
+          if (ReadAcquire64 (&pTLS->memory->local_bytes))   ImGui::TextUnformatted ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory->global_bytes))  ImGui::TextUnformatted ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory->heap_bytes))    ImGui::TextUnformatted ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory->virtual_bytes)) ImGui::TextUnformatted ("\t(In-Use Now)");
           ImGui::EndGroup     ();
         }
 
-        if ( ReadAcquire64 (&pTLS->disk.bytes_read)    > 0 ||
-             ReadAcquire64 (&pTLS->disk.bytes_written) > 0    )
+        if ( ReadAcquire64 (&pTLS->disk->bytes_read)    > 0 ||
+             ReadAcquire64 (&pTLS->disk->bytes_written) > 0    )
         {
           ImGui::Separator ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->disk.bytes_read))    ImGui::TextUnformatted ("File Reads:\t\t\t");
-          if (ReadAcquire64 (&pTLS->disk.bytes_written)) ImGui::TextUnformatted ("File Writes:\t\t\t");
+          if (ReadAcquire64 (&pTLS->disk->bytes_read))    ImGui::TextUnformatted ("File Reads:\t\t\t");
+          if (ReadAcquire64 (&pTLS->disk->bytes_written)) ImGui::TextUnformatted ("File Writes:\t\t\t");
           ImGui::EndGroup   ();
 
           ImGui::SameLine   ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->disk.bytes_read))    ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->disk.bytes_read),    2, 3).c_str  ());
-          if (ReadAcquire64 (&pTLS->disk.bytes_written)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->disk.bytes_written), 2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->disk->bytes_read))    ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->disk->bytes_read),    2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->disk->bytes_written)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->disk->bytes_written), 2, 3).c_str  ());
           ImGui::EndGroup   ();
         }
 
-        if ( ReadAcquire64 (&pTLS->net.bytes_received) > 0 ||
-             ReadAcquire64 (&pTLS->net.bytes_sent)     > 0 )
+        if ( ReadAcquire64 (&pTLS->net->bytes_received) > 0 ||
+             ReadAcquire64 (&pTLS->net->bytes_sent)     > 0 )
         {
           ImGui::Separator ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->net.bytes_sent))     ImGui::TextUnformatted ("Network Sent:\t");
-          if (ReadAcquire64 (&pTLS->net.bytes_received)) ImGui::TextUnformatted ("Network Received:\t");
+          if (ReadAcquire64 (&pTLS->net->bytes_sent))     ImGui::TextUnformatted ("Network Sent:\t");
+          if (ReadAcquire64 (&pTLS->net->bytes_received)) ImGui::TextUnformatted ("Network Received:\t");
           ImGui::EndGroup   ();
 
           ImGui::SameLine   ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->net.bytes_sent))     ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net.bytes_sent),     2, 3).c_str  ());
-          if (ReadAcquire64 (&pTLS->net.bytes_received)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net.bytes_received), 2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->net->bytes_sent))     ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net->bytes_sent),     2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->net->bytes_received)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net->bytes_received), 2, 3).c_str  ());
           ImGui::EndGroup   ();
         }
 
-        LONG64 steam_calls = ReadAcquire64 (&pTLS->steam.callback_count);
+        LONG64 steam_calls = ReadAcquire64 (&pTLS->steam->callback_count);
 
         if ( steam_calls > 0 )
         {
@@ -1652,7 +1670,7 @@ public:
           ImGui::EndGroup        ();
         }
 
-        if (pTLS->win32.error_state.code != NO_ERROR)
+        if (pTLS->win32->error_state.code != NO_ERROR)
         {
           ImGui::Separator  ();
 
@@ -1663,14 +1681,14 @@ public:
 
           ImGui::SameLine   ();
 
-          _com_error err (pTLS->win32.error_state.code & 0xFFFF);
+          _com_error err (pTLS->win32->error_state.code & 0xFFFF);
 
           ImGui::BeginGroup ();
-          ImGui::Text       ("\t0x%04x (%ws)", (pTLS->win32.error_state.code & 0xFFFF), err.ErrorMessage ());
+          ImGui::Text       ("\t0x%04x (%ws)", (pTLS->win32->error_state.code & 0xFFFF), err.ErrorMessage ());
           ImGui::EndGroup   ();
 
           ImGui::BeginGroup ();
-          ImGui::Text       ("\t\t%hs", SKX_DEBUG_FastSymName (pTLS->win32.error_state.call_site));
+          ImGui::Text       ("\t\t%hs", SKX_DEBUG_FastSymName (pTLS->win32->error_state.call_site));
           ImGui::EndGroup   ();
         }
 
@@ -1695,12 +1713,12 @@ public:
 
 #if 0
         ImGui::Separator ();
-        ImGui::Text      ("Alertable Waits (APC): %lu", ReadAcquire (&pTLS->scheduler.alert_waits));
+        ImGui::Text      ("Alertable Waits (APC): %lu", ReadAcquire (&pTLS->scheduler->alert_waits));
         ImGui::TreePush  ("");
 
         std::map <HANDLE, SK_Sched_ThreadContext::wait_record_s>
-          objects_waited = { pTLS->scheduler.objects_waited->begin (),
-                             pTLS->scheduler.objects_waited->end   () };
+          objects_waited = { pTLS->scheduler->objects_waited->begin (),
+                             pTLS->scheduler->objects_waited->end   () };
 
         ImGui::BeginGroup ();
         for ( auto& it : objects_waited )
@@ -1747,7 +1765,7 @@ public:
     const auto& tasks =
       SK_MMCS_GetTasks ();
 
-    if ( tasks.size () > 0 &&
+    if ( (! tasks.empty ()) &&
          ImGui::CollapsingHeader ("Multi-Media Class Tasks", ImGuiTreeNodeFlags_DefaultOpen) )
     {
       float fSpacingMax = 0.0f;
@@ -1886,31 +1904,50 @@ public:
       } ImGui::Columns    (1);
     }
 
-    if ( tasks.size () == 0 ||
+    if ( tasks.empty () ||
          ImGui::CollapsingHeader ("Normal Win32 Threads", ImGuiTreeNodeFlags_DefaultOpen) )
     {
       ImGui::BeginGroup ();
 
-      ImGui::Checkbox ("Show Finished", &show_exited_threads);
-      ImGui::SameLine ();
-      ImGui::Checkbox ("Hide Inactive", &hide_inactive);
-      ImGui::SameLine ();
-      ImGui::Checkbox ("Reset Stats Every 30 Seconds", &reset_stats);
-      ImGui::SameLine ();
+      ImGui::BeginGroup ();
+      ImGui::BeginGroup ();
+      ImGui::Checkbox   ("Show Finished", &show_exited_threads);
+      extern volatile LONG _SK_TLS_AllocationFailures;
+      LONG lAllocFails =
+        ReadAcquire (&_SK_TLS_AllocationFailures);
+      if (lAllocFails > 0)
+      {
+        ImGui::Text ("TLS Allocation Failures: %li", lAllocFails);
+        if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Thread Local Storage is critical for Special K's thread performance.");
+      }
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::Checkbox   ("Hide Inactive", &hide_inactive);
+      ImGui::SameLine   ();
+      ImGui::Checkbox   ("Reset Stats Every 30 Seconds", &reset_stats);
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
       if (ImGui::Button ("Reset Performance Counters"))
         clear_counters = true;
-
       SK_ImGui_RebalanceThreadButton ();
-
-      ImGui::SameLine ();
-
-      ImGui::Checkbox ("Show Callstack Analysis", &show_callstack);
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+      ImGui::Checkbox   ("Show Callstack Analysis", &show_callstack);
 
       if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("This feature is experimental and may cause hitching while debug symbols are loaded.");
 
-      ImGui::Separator ();
+      static bool analytics =
+        config.threads.enable_file_io_trace;
 
-      ImGui::EndGroup ();
+      if (ImGui::Checkbox ("Enable File I/O Analytics", &config.threads.enable_file_io_trace))
+      {   SK_SaveConfig (); }
+      if (analytics != config.threads.enable_file_io_trace)
+      {   ImGui::BulletText ("Game Restart Required");    }
+      ImGui::EndGroup  ();
+      ImGui::Separator ();
+      ImGui::EndGroup  ();
 
     ImGui::BeginGroup ();
   //ImGui::BeginChildFrame (ImGui::GetID ("Thread_List2"), ImVec2 (0,0), ImGuiWindowFlags_NavFlattened | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_HorizontalScrollbar);
@@ -1946,120 +1983,148 @@ public:
          ( SKWG_Threads->count (dwSelectedTid) &&
            SKWG_Threads  [      dwSelectedTid]->wait_reason == WaitReason::Suspended );
 
-        if (GetCurrentThreadId () != GetThreadId (hSelectedThread) )
+        if (SK_Thread_GetCurrentId () != GetThreadId (hSelectedThread) )
         {
-        if ( ImGui::Button ( suspended ?  "Resume this Thread" :
-                                          "Suspend this Thread" ) )
-        {
-          suspended = (! suspended);
-
-          if (suspended)
+          if ( ImGui::Button ( suspended ?  "Resume this Thread" :
+                                            "Suspend this Thread" ) )
           {
-            struct suspend_params_s
-              { DWORD* pdwTid;
-                ULONG  frames; } static params { &dwSelectedTid,
-                                                  SK_GetFramesDrawn () };
+            suspended = (! suspended);
 
-            static HANDLE hThreadRecovery = INVALID_HANDLE_VALUE;
-            static HANDLE hRecoveryEvent  = INVALID_HANDLE_VALUE;
-
-            if (hThreadRecovery == INVALID_HANDLE_VALUE)
+            if (suspended)
             {
-              hRecoveryEvent  =
-              SK_CreateEvent  (nullptr, FALSE, TRUE, nullptr);
-              hThreadRecovery =
-              SK_Thread_CreateEx ([](LPVOID user) -> DWORD
+              struct suspend_params_s
               {
-                SetCurrentThreadDescription  (L"[SK] Thread Profiler Watchdog Timer");
-                SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+                HANDLE hThread;
+                DWORD  dwTid;
+                ULONG  frame_requested;
+                ULONG  time_requested;
+              };
 
-                while (true)
+              static concurrency::concurrent_queue <suspend_params_s>
+                to_suspend;
+
+              to_suspend.push (
+                { nullptr, dwSelectedTid, SK_GetFramesDrawn (), timeGetTime () }
+              );
+
+              static HANDLE hThreadRecovery = INVALID_HANDLE_VALUE;
+              static HANDLE hRecoveryEvent  = INVALID_HANDLE_VALUE;
+
+              if (hThreadRecovery == INVALID_HANDLE_VALUE)
+              {
+                static constexpr
+                  DWORD  dwMilliseconds = 500UL;
+                hRecoveryEvent =
+                  CreateWaitableTimer (NULL, FALSE, NULL);
+
+                if (hRecoveryEvent != 0)
                 {
-                  SK_WaitForSingleObject (hRecoveryEvent, INFINITE);
+                  LARGE_INTEGER liDelay = { };
+                                liDelay.QuadPart =
+                                  (LONGLONG)(-10000.0l * (long double)500UL);
 
-                  extern volatile LONG __SK_DLL_Ending;
-
-                  if (ReadAcquire (&__SK_DLL_Ending))
-                    break;
-
-                  DWORD dwTid =
-                    *((suspend_params_s *)user)->pdwTid;
-
-                  SK_AutoHandle hThread__ (
-                    OpenThread ( THREAD_SUSPEND_RESUME,
-                                   FALSE,
-                                     dwTid )
-                  );
-
-                  static constexpr
-                    DWORD  dwMilliseconds = 500UL;
-                        HANDLE hWaitTimer =
-                    CreateWaitableTimer (NULL, FALSE, NULL);
-
-                  if (hWaitTimer != 0)
+                  if ( SetWaitableTimer ( hRecoveryEvent, &liDelay,
+                                            dwMilliseconds, NULL, NULL, 0 )
+                     )
                   {
-                    LARGE_INTEGER liDelay = { };
-                                  liDelay.QuadPart =
-                                    (LONGLONG)(-10000.0l * (long double)500UL);
-
-                    if ( SetWaitableTimer ( hWaitTimer, &liDelay,
-                                              dwMilliseconds, NULL, NULL, 0 )
-                       )
+                    hThreadRecovery =
+                    SK_Thread_CreateEx ([](LPVOID pUser) ->
+                    DWORD
                     {
-                      DWORD dwFramesBefore =
-                        SK_GetFramesDrawn ();
+                      SK_Thread_DataCollector *pDataCollector =
+                        (SK_Thread_DataCollector *)pUser;
 
-                      if (SuspendThread (hThread__) != (DWORD)-1)
+                      concurrency::concurrent_queue <suspend_params_s>* pWaitQueue =
+                        (concurrency::concurrent_queue <suspend_params_s>*)&to_suspend;
+
+                      static std::vector <suspend_params_s> suspended_threads;
+
+                      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+
+                      do
                       {
-                        HANDLE hWaitArray [] = { hWaitTimer, hThread__.m_h };
+                        SK_WaitForSingleObject (hRecoveryEvent, INFINITE);
 
-                        WaitForMultipleObjects (2, hWaitArray, FALSE, 500UL);
-
-                        //if (SK_GetFramesDrawn () <= ((suspend_params_s*)user)->frames)
-                        //{
-                        //  ResumeThread (hThread__);
-                        //}
-
-                        // If not enough frames have been drawn, consider the possibility
-                        //   that the suspended thread was holding a lock that prevents the
-                        //     game from continuing ... and resume the thread for safety.
-                        if (dwFramesBefore > (SK_GetFramesDrawn () - 6))
+                        suspend_params_s            suspend_me = { };
+                        while (pWaitQueue->try_pop (suspend_me))
                         {
-                          ResumeThread (hThread__);
+                          // Two threads are always invalid for suspension:
+                          //
+                          //  1. The watchdog thread (this one)
+                          //  2. The kernel data collection thread
+                          //
+                          if ( suspend_me.dwTid == SK_Thread_GetCurrentId () ||
+                               suspend_me.dwTid == pDataCollector->dwProducerTid )
+                          {
+                            continue;
+                          }
+
+                          SK_AutoHandle hThread__ (
+                            OpenThread ( THREAD_SUSPEND_RESUME,
+                                           FALSE,
+                                             suspend_me.dwTid )
+                          );
+
+                          if (SuspendThread (hThread__) != -1)
+                          {
+                            suspend_me.time_requested  =
+                              timeGetTime       ();
+                            suspend_me.frame_requested =
+                              SK_GetFramesDrawn ();
+                            suspend_me.hThread         =
+                              hThread__.Detach  ();
+
+                            suspended_threads.emplace_back (
+                              suspend_me
+                            );
+                          }
                         }
-                      }
 
-                      CancelWaitableTimer (hWaitTimer);
-                    }
+#define CHECKUP_TIME 666UL
+#define MIN_FRAMES   4
 
-                    CloseHandle (hWaitTimer);
+                        std::vector <suspend_params_s> leftovers (
+                                             suspended_threads.size () );
+                        for ( auto& thread : suspended_threads )
+                        {
+                          if (thread.time_requested < (timeGetTime () - CHECKUP_TIME))
+                          {
+                            SK_AutoHandle hThread
+                                  (thread.hThread);
+
+                            if (thread.frame_requested > (SK_GetFramesDrawn () - MIN_FRAMES))
+                            {
+                              SK_ImGui_Warning (L"Unsafe thread suspension detected; thread resumed to prevent deadlock!");
+                              ResumeThread (hThread);
+                            }
+
+                            continue;
+                          }
+
+                          leftovers.emplace_back (thread);
+                        }
+
+                        std::swap (leftovers, suspended_threads);
+                      } while (! ReadAcquire (&__SK_DLL_Ending));
+
+                      CancelWaitableTimer (hRecoveryEvent);
+                      CloseHandle         (hRecoveryEvent);
+
+                      SK_Thread_CloseSelf ();
+
+                      return 0;
+                    }, L"[SK] Thread Profiler Watchdog Timer",
+                         (LPVOID)data_thread.get ());
                   }
                 }
-
-                CloseHandle (hRecoveryEvent);
-                             hRecoveryEvent = INVALID_HANDLE_VALUE;
-
-                SK_Thread_CloseSelf ();
-
-                return 0;
-              }, nullptr,
-                   (LPVOID)&params);
+              }
             }
 
-            else if (hRecoveryEvent != INVALID_HANDLE_VALUE)
+            else
             {
-              params.frames = SK_GetFramesDrawn ();
-              params.pdwTid = &dwSelectedTid;
-
-              SetEvent (hRecoveryEvent);
+              ResumeThread (hSelectedThread);
             }
           }
-
-          else
-          {
-            ResumeThread (hSelectedThread);
-          }
-        }
         }
 
         SYSTEM_INFO        sysinfo = { };
@@ -2077,7 +2142,7 @@ public:
             constexpr DWORD_PTR Processor0 = 0x1;
 
             bool affinity =
-              (pTLS->scheduler.affinity_mask & (Processor0 << j)) != 0;
+              (pTLS->scheduler->affinity_mask & (Processor0 << j)) != 0;
 
             UINT i =
               SetThreadIdealProcessor (hSelectedThread, MAXIMUM_PROCESSORS);
@@ -2085,7 +2150,7 @@ public:
             bool ideal = (i == j);
 
             float c_scale =
-              pTLS->scheduler.lock_affinity ? 0.5f : 1.0f;
+              pTLS->scheduler->lock_affinity ? 0.5f : 1.0f;
 
             ImGui::TextColored ( ideal    ? ImColor (0.5f   * c_scale, 1.0f   * c_scale,   0.5f * c_scale):
                                  affinity ? ImColor (1.0f   * c_scale, 1.0f   * c_scale,   1.0f * c_scale) :
@@ -2093,12 +2158,12 @@ public:
                                    "CPU%lu",
                                      j );
 
-            if (ImGui::IsItemClicked () && (! pTLS->scheduler.lock_affinity))
+            if (ImGui::IsItemClicked () && (! pTLS->scheduler->lock_affinity))
             {
               affinity = (! affinity);
 
               DWORD_PTR dwAffinityMask =
-                pTLS->scheduler.affinity_mask;
+                pTLS->scheduler->affinity_mask;
 
                 if (affinity) dwAffinityMask |=  (Processor0 << j);
                 else          dwAffinityMask &= ~(Processor0 << j);
@@ -2113,7 +2178,7 @@ public:
             }
           }
 
-          ImGui::Checkbox ("Prevent changes to affinity", &pTLS->scheduler.lock_affinity);
+          ImGui::Checkbox ("Prevent changes to affinity", &pTLS->scheduler->lock_affinity);
         }
         ImGui::EndGroup ();
         ImGui::SameLine ();
@@ -2242,7 +2307,7 @@ public:
 
       else
       {
-        if ( tent.hThread == 0 ||
+        if ( tent.hThread == nullptr ||
              tent.hThread == INVALID_HANDLE_VALUE )
         {    tent.exited   = true;                }
       }
@@ -2272,7 +2337,7 @@ public:
         HANDLE hThread =
           OpenThread ( THREAD_ALL_ACCESS, FALSE, it.second->dwTid );
 
-        if ( hThread == 0 ||
+        if ( hThread == nullptr ||
              hThread == INVALID_HANDLE_VALUE )
         {
           it.second->exited = true;
@@ -2297,7 +2362,7 @@ public:
 
           else
           {
-             it.second->hThread =         0;
+             it.second->hThread =   nullptr;
              dwExitCode         = (DWORD)-1;
           }
         }
@@ -2379,7 +2444,7 @@ public:
 
         ntStatus =
           NtQueryInformationThread (  hThread, ThreadQuerySetWin32StartAddress,
-                                     &pdwStartAddress, sizeof (DWORD), NULL );
+                                     &pdwStartAddress, sizeof (DWORD), nullptr );
 
         char  thread_name [512] = { };
         char  szSymbol    [256] = { };
@@ -2435,6 +2500,9 @@ public:
     for (auto& it : *SKWG_Ordered_Threads)
     {
       if (! IsThreadNonIdle (*it.second)) continue;
+
+      if (it.second->hThread == nullptr)
+        continue;
 
       UINT i =
         SetThreadIdealProcessor (it.second->hThread, MAXIMUM_PROCESSORS);
@@ -2523,15 +2591,17 @@ public:
     static DWORD    dwLastSnap = 0;
     static FILETIME ftSnapKernel, ftSnapUser;
 
+    auto& _process_time = process_time.get ();
+
     if ( (reset_stats && (dwLastSnap < dwNow - SNAP_FREQUENCY)) ||
           clear_counters )
     {
-      ftSnapKernel = process_time.ftKernel;
-      ftSnapUser   = process_time.ftUser;
+      ftSnapKernel = _process_time.ftKernel;
+      ftSnapUser   = _process_time.ftUser;
     }
 
-    LARGE_INTEGER liKernel; liKernel.LowPart  = process_time.ftKernel.dwLowDateTime;
-                            liKernel.HighPart = process_time.ftKernel.dwHighDateTime;
+    LARGE_INTEGER liKernel; liKernel.LowPart  = _process_time.ftKernel.dwLowDateTime;
+                            liKernel.HighPart = _process_time.ftKernel.dwHighDateTime;
 
                             LARGE_INTEGER liSnapDeltaK;
                                           liSnapDeltaK.LowPart  = ftSnapKernel.dwLowDateTime;
@@ -2539,8 +2609,8 @@ public:
 
                                           liKernel.QuadPart -= liSnapDeltaK.QuadPart;
 
-    LARGE_INTEGER liUser;   liUser.LowPart    = process_time.ftUser.dwLowDateTime;
-                            liUser.HighPart   = process_time.ftUser.dwHighDateTime;
+    LARGE_INTEGER liUser;   liUser.LowPart    = _process_time.ftUser.dwLowDateTime;
+                            liUser.HighPart   = _process_time.ftUser.dwHighDateTime;
 
                             LARGE_INTEGER liSnapDeltaU;
                                           liSnapDeltaU.LowPart  = ftSnapUser.dwLowDateTime;
@@ -2703,7 +2773,7 @@ public:
 
     for (auto& it : *SKWG_Ordered_Threads)
     {
-      if ( it.second->hThread != 0 &&
+      if ( it.second->hThread != nullptr &&
            it.second->hThread != INVALID_HANDLE_VALUE )
       {
         CloseHandle (it.second->hThread);
@@ -2733,6 +2803,11 @@ public:
   }
 
 protected:
+  //
+  // Producer / Consumer for NtQuerySystemInformation
+  //
+  std::unique_ptr <SK_Thread_DataCollector> data_thread;
+
 private:
 };
 

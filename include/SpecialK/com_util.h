@@ -35,6 +35,8 @@ SK_INCLUDE_START (COM_UTIL)
 
 #include <SpecialK/thread.h>
 
+bool SK_COM_TestInit (void);
+
 class SK_AutoCOMInit
 {
 public:
@@ -115,9 +117,10 @@ extern CoCreateInstanceEx_pfn CoCreateInstanceEx_Original;
 bool SK_WMI_Init     (void);
 void SK_WMI_Shutdown (void);
 
-static
-auto SK_WMI_WaitForInit = [&](void) ->
+
+static __inline
 void
+SK_WMI_WaitForInit (void)
 {
   SK_Thread_SpinUntilFlagged (&COM::base.wmi.init);
 };

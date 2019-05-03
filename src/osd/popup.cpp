@@ -37,8 +37,9 @@ SK_PopupWindow::SK_PopupWindow (const char* szLayout)
       window_mgr.loadLayoutFromFile (szLayout);
   }
 
-  catch (...)
+  catch (const CEGUI::GenericException& e)
   {
+    dll_log->Log (L"CEGUI Exception: %hs", e.getMessage ().c_str ());
   }
 }
 
@@ -59,7 +60,7 @@ SK_PopupWindow::~SK_PopupWindow (void)
       window_ = nullptr;
     }
 
-    catch (...)
+    catch (const CEGUI::GenericException&)
     {
     }
   }
@@ -76,7 +77,7 @@ SK_PopupWindow::getChild (const char* szName)
     return window_->getChild (szName);
   }
 
-  catch (...)
+  catch (const CEGUI::GenericException&)
   {
   }
 

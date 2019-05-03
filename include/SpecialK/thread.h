@@ -28,6 +28,17 @@
 #include <avrt.h>
 #include <gsl/gsl>
 
+constexpr static DWORD SK_WINNT_THREAD_NAME_EXCEPTION = 0x406D1388;
+
+#pragma pack(push,8)
+typedef struct tagTHREADNAME_INFO
+{
+  DWORD  dwType;     // Always 4096
+  LPCSTR szName;     // Pointer to name (in user addr space).
+  DWORD  dwThreadID; // Thread ID (-1=caller thread).
+  DWORD  dwFlags;    // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
 
 #define RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO         0x01000000
 #define RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN          0x02000000
@@ -109,7 +120,7 @@ public:
   SK_Thread_HybridSpinlock (int spin_count = 3000) noexcept :
                                                               SK_Thread_CriticalSection (new (std::nothrow) CRITICAL_SECTION)
   {
-    InitializeCriticalSectionEx (cs_, spin_count, SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO | RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN);
+    InitializeCriticalSectionEx (cs_, spin_count, SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
   }
 
   ~SK_Thread_HybridSpinlock (void) noexcept///
@@ -187,6 +198,9 @@ private:
 
 
 
+DWORD
+WINAPI
+SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable);
 
 DWORD
 WINAPI
@@ -215,7 +229,7 @@ SK_Thread_SpinUntilFlagged ( _In_ _Interlocked_operand_ LONG volatile const *pFl
     if (ReadAcquire (pFlag) == 1)
       break;
 
-    SleepEx (2UL, TRUE);
+    SK_SleepEx (0UL, TRUE);
   }
 }
 
@@ -234,7 +248,7 @@ SK_Thread_SpinUntilAtomicMin ( _In_ _Interlocked_operand_ LONG volatile const *p
     if (ReadAcquire (pVar) >= count)
       break;
 
-    SleepEx (2UL, TRUE);
+    SK_SleepEx (0UL, TRUE);
   }
 }
 
@@ -339,8 +353,8 @@ struct SK_MMCS_TaskEntry {
 
     if (hTask != nullptr)
     {
-      strncpy (task0, first_task,  63);
-      strncpy (task1, second_task, 63);
+      strncpy_s (task0, 63, first_task,  _TRUNCATE);
+      strncpy_s (task1, 63, second_task, _TRUNCATE);
     }
 
     else
@@ -369,15 +383,17 @@ struct SK_MMCS_TaskEntry {
   }
 };
 
-extern SK_MMCS_TaskEntry& __SK_MMCS_GetNulTaskRef (void);
+SK_MMCS_TaskEntry&     __SK_MMCS_GetNulTaskRef (void);
 #define nul_task_ref() __SK_MMCS_GetNulTaskRef ()
 
 size_t
 SK_MMCS_GetTaskCount (void);
 
-extern
 SK_MMCS_TaskEntry*
-SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name);
+SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid,       const char* name,
+                               const char* task1, const char* task2 );
+SK_MMCS_TaskEntry*
+SK_MMCS_GetTaskForThreadID   ( DWORD dwTid,        const char* name );
 
 
 #include <winnt.h>
@@ -388,9 +404,9 @@ DWORD
 SK_GetCurrentThreadId (void)
 {
   return reinterpret_cast <DWORD *> (NtCurrentTeb ()) [
-#ifdef _WIN64
+#ifdef _M_AMD64
     18
-#else
+#elif _M_IX86
      9
 #endif
   ];
@@ -412,12 +428,170 @@ SK_FAST_GetTLS (void)
     return nullptr;
 
   return *(SK_TLS **)((uintptr_t *)NtCurrentTeb ()) [
-#ifdef _WIN64
+#ifdef _M_AMD64
     0x290 + tls_idx
-#else
+#elif _M_IX86
     0x384 + tls_idx
+#else
+    static_assert (false, "Unsupported platform");
 #endif
   ];
+}
+
+
+#pragma pack (push,8)
+typedef struct _HANDLEENTRY_SK {
+  PVOID            phead;
+  PVOID            pOwner;
+  BYTE             bType;
+  BYTE             bFlags;
+  WORD             wUniq;
+} HANDLEENTRY_SK,
+*PHANDLEENTRY_SK;
+
+typedef struct _SERVERINFO_SK {
+  WORD             wRIPFlags;
+  WORD             wSRVIFlags;
+  WORD             wRIPPID;
+  WORD             wRIPError;
+  ULONG            cHandleEntries;
+} SERVERINFO_SK,
+*PSERVERINFO_SK;
+
+typedef struct _SHAREDINFO_SK {
+  PSERVERINFO_SK   psi;
+  PHANDLEENTRY_SK  aheList;
+  ULONG            HeEntrySize;
+} SHAREDINFO_SK,
+*PSHAREDINFO_SK;
+
+typedef struct _PEB_SK {
+  BYTE             Reserved1     [  2];
+  BYTE             BeingDebugged;
+  BYTE             Reserved2     [229];
+  PVOID            Reserved3     [ 59];
+  ULONG            SessionId;
+} PEB_SK,
+ *PPEB_SK;
+
+typedef struct _CLIENT_ID_SK
+{
+  HANDLE           UniqueProcess;
+  HANDLE           UniqueThread;
+} CLIENT_ID_SK,
+*PCLIENT_ID_SK;
+
+typedef struct _NT_TIB_SK {
+ struct _EXCEPTION_REGISTRATION_RECORD* ExceptionList;
+         PVOID                          StackBase;
+         PVOID                          StackLimit;
+         PVOID                          SubSystemTib;
+       union {
+         PVOID                          FiberData;
+         DWORD                          Version;
+       };
+         PVOID                          ArbitraryUserPointer;
+ struct _NT_TIB* Self;
+} NT_TIB_SK, *PNT_TIB_SK;
+
+typedef struct _UNICODE_STRING_SK {
+  USHORT           Length;
+  USHORT           MaximumLength;
+  PWSTR            Buffer;
+} UNICODE_STRING_SK;
+
+typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
+
+typedef struct _TEB_SK {
+  NT_TIB_SK         Tib;
+  PVOID             EnvironmentPointer;
+  CLIENT_ID_SK      Cid;
+  PVOID             ActiveRpcInfo;
+  PVOID             ThreadLocalStoragePointer;
+  PPEB_SK           Peb;
+  ULONG             LastErrorValue;
+  ULONG             CountOfOwnedCriticalSections;
+  PVOID             CsrClientThread;
+  PVOID             Win32ThreadInfo;
+  ULONG             Win32ClientInfo               [0x1F];
+  PVOID             WOW32Reserved;
+  ULONG             CurrentLocale;
+  ULONG             FpSoftwareStatusRegister;
+  PVOID             SystemReserved1               [0x36];
+  PVOID             Spare1;
+  ULONG             ExceptionCode;
+  ULONG             SpareBytes1                   [0x28];
+  PVOID             SystemReserved2               [0xA];
+  ULONG             GdiRgn;
+  ULONG             GdiPen;
+  ULONG             GdiBrush;
+  CLIENT_ID_SK      RealClientId;
+  PVOID             GdiCachedProcessHandle;
+  ULONG             GdiClientPID;
+  ULONG             GdiClientTID;
+  PVOID             GdiThreadLocaleInfo;
+  PVOID             UserReserved                  [5];
+  PVOID             GlDispatchTable               [0x118];
+  ULONG             GlReserved1                   [0x1A];
+  PVOID             GlReserved2;
+  PVOID             GlSectionInfo;
+  PVOID             GlSection;
+  PVOID             GlTable;
+  PVOID             GlCurrentRC;
+  PVOID             GlContext;
+  NTSTATUS          LastStatusValue;
+  UNICODE_STRING_SK StaticUnicodeString;
+  WCHAR             StaticUnicodeBuffer           [0x105];
+  PVOID             DeallocationStack;
+  PVOID             TlsSlots                      [0x40];
+  LIST_ENTRY        TlsLinks;
+  PVOID             Vdm;
+  PVOID             ReservedForNtRpc;
+  PVOID             DbgSsReserved                 [0x2];
+  ULONG             HardErrorDisabled;
+  PVOID             Instrumentation               [0x10];
+  PVOID             WinSockData;
+  ULONG             GdiBatchCount;
+  ULONG             Spare2;
+  ULONG             Spare3;
+  ULONG             Spare4;
+  PVOID             ReservedForOle;
+  ULONG             WaitingOnLoaderLock;
+  PVOID             StackCommit;
+  PVOID             StackCommitMax;
+  PVOID             StackReserved;
+} TEB_SK,
+*PTEB_SK;
+#pragma pack (pop)
+
+__forceinline
+TEB_SK*
+SK_Thread_GetTEB_FAST (void)
+{
+#ifdef _UNSTABLE
+#ifdef _M_IX86
+  return
+    reinterpret_cast <TEB_SK *> (__readfsdword (0x18));
+#elif _M_AMD64
+  return
+    reinterpret_cast <TEB_SK *> (__readgsqword (0x30));
+#endif
+#else
+  return
+    reinterpret_cast <TEB_SK *> (NtCurrentTeb ());
+#endif
+}
+
+__forceinline
+DWORD
+SK_Thread_GetCurrentId (void)
+{
+  return
+    gsl::narrow_cast   <DWORD    > (
+      reinterpret_cast <DWORD_PTR> (
+        SK_Thread_GetTEB_FAST ()->Cid.UniqueThread
+      ) & 0x00000000FFFFFFFFULL
+    );
 }
 
 

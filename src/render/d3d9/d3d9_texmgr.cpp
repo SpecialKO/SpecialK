@@ -31,7 +31,7 @@ static ISzAlloc g_Alloc = { SzAlloc, SzFree };
 
 using namespace SK::D3D9;
 
-extern std::wstring SK_D3D11_res_root;
+extern SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
 
 static D3DXCreateTextureFromFileInMemoryEx_pfn D3DXCreateTextureFromFileInMemoryEx_Original = nullptr;
 
@@ -345,7 +345,7 @@ D3D9StretchRect_Detour (      IDirect3DDevice9    *This,
 }
 
 
-std::set <UINT> SK::D3D9::active_samplers;
+SK_LazyGlobal <std::set <UINT>> SK::D3D9::active_samplers;
 
 COM_DECLSPEC_NOTHROW
 HRESULT
@@ -355,12 +355,6 @@ D3D9SetDepthStencilSurface_Detour (
                   _In_ IDirect3DSurface9 *pNewZStencil
 )
 {
-  // Ignore anything that's not the primary render device.
-  //if (! SK_GetCurrentRenderBackend ().device.IsEqualObject (This))
-  //{
-  //  return D3D9SetDepthStencilSurface_Original (This, pNewZStencil);
-  //}
-
   return D3D9SetDepthStencilSurface_Original (This, pNewZStencil);
 }
 
@@ -378,6 +372,11 @@ D3D9SetTexture_Detour (
                    _In_ IDirect3DBaseTexture9 *pTexture
 )
 {
+  auto& _Shaders    = Shaders.get    ();
+  auto& _tracked_rt = tracked_rt.get ();
+  auto& _tracked_vs = tracked_vs.get ();
+  auto& _tracked_ps = tracked_ps.get ();
+
   if (pTexture == nullptr)
     return D3D9SetTexture_Original (This, Sampler, pTexture);
 
@@ -389,21 +388,21 @@ D3D9SetTexture_Detour (
   SK::D3D9::TextureManager& tex_mgr =
     SK_D3D9_GetTextureManager ();
 
-  tex_mgr.applyTexture (pTexture);
-  tracked_rt.active  = (pTexture == tracked_rt.tracking_tex);
+  tex_mgr.applyTexture  (pTexture);
+  _tracked_rt.active  = (pTexture == _tracked_rt.tracking_tex);
 
-  if (tracked_rt.active)
+  if (_tracked_rt.active)
   {
-    tracked_rt.vertex_shaders.emplace (Shaders.vertex.current.crc32c);
-    tracked_rt.pixel_shaders.emplace  (Shaders.pixel.current.crc32c);
+    _tracked_rt.vertex_shaders.emplace (_Shaders.vertex.current.crc32c);
+    _tracked_rt.pixel_shaders.emplace  (_Shaders.pixel.current.crc32c);
   }
 
 
-  if (Shaders.vertex.current.crc32c == tracked_vs.crc32c)
-    tracked_vs.current_textures [std::min (15UL, Sampler)] = pTexture;
+  if (_Shaders.vertex.current.crc32c == _tracked_vs.crc32c)
+    _tracked_vs.current_textures [std::min (15UL, Sampler)] = pTexture;
 
-  if (Shaders.pixel.current.crc32c == tracked_ps.crc32c)
-    tracked_ps.current_textures [std::min (15UL, Sampler)] = pTexture;
+  if (_Shaders.pixel.current.crc32c == _tracked_ps.crc32c)
+    _tracked_ps.current_textures [std::min (15UL, Sampler)] = pTexture;
 
 
 
@@ -415,7 +414,6 @@ D3D9SetTexture_Detour (
 
   if (FAILED (hr))
     return D3D9SetTexture_Original (This, Sampler, pTexture);
-
 
   if ( hr == S_OK && pTexture != nullptr )
   {
@@ -473,10 +471,10 @@ D3D9SetTexture_Detour (
 
   bool clamp = false;
 
-  if (Shaders.pixel.current.crc32c == tracked_ps.crc32c && tracked_ps.clamp_coords)
+  if (_Shaders.pixel.current.crc32c  == _tracked_ps.crc32c && _tracked_ps.clamp_coords)
     clamp = true;
 
-  if (Shaders.vertex.current.crc32c ==tracked_vs.crc32c && tracked_vs.clamp_coords)
+  if (_Shaders.vertex.current.crc32c == _tracked_vs.crc32c && _tracked_vs.clamp_coords)
     clamp = true;
 
   if ( clamp )
@@ -585,7 +583,7 @@ D3D9BeginScene_Detour (IDirect3DDevice9* This)
   //  return D3D9BeginScene_Original (This);
   //}
 
-  draw_state.draws = 0;
+  draw_state->draws = 0;
 
   HRESULT result =
     D3D9BeginScene_Original (This);
@@ -780,8 +778,7 @@ namespace streaming_memory {
 
     if (mpool->data_len < len)
     {
-      if (mpool->data != nullptr)
-        free (mpool->data);
+      free (mpool->data);
 
       if (len < 8192 * 1024)
         mpool->data_len = 8192 * 1024;
@@ -1233,7 +1230,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
 
   int loads = 0;
 
-  std::vector <TexLoadRequest *> finished_resamples;
+  ///std::vector <TexLoadRequest *> finished_resamples;
   std::vector <TexLoadRequest *> finished_streams;
 
   stream_pool.getFinished (finished_streams);
@@ -1426,7 +1423,10 @@ safe_crc32c (uint32_t seed, const void* pData, size_t size)
   if (size > (1024ULL * 1024ULL * 1024ULL * 48) || pData == nullptr)
     return seed;
 
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  uint32_t ret = 0x0;
+
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try
   {
     //static bool TOS =
@@ -1434,19 +1434,23 @@ safe_crc32c (uint32_t seed, const void* pData, size_t size)
     //if (TOS)
     //  return crc32 (seed, pData, size);
 
-    return crc32c (seed, pData, size);
+    ret =
+      crc32c (seed, pData, size);
   }
 
   //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
   //           EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
-  catch (...)
+  catch (const SK_SEH_IgnoredException&)
   {
-    return 0x00;
+    dll_log->Log (L"safe_crc32c SEH Exception - Read Invalid Address.");
   }
+  SK_SEH_RemoveTranslator (orig_se);
+
+  return ret;
 }
 
-std::set <uint32_t> resample_blacklist;
-bool                resample_blacklist_init = false;
+SK_LazyGlobal <std::set <uint32_t>> resample_blacklist;
+bool                                resample_blacklist_init = false;
 
 COM_DECLSPEC_NOTHROW
 HRESULT
@@ -1573,7 +1577,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
       {
         if (true)//info.MipLevels > 1/* || config.textures.uncompressed*/)
         {
-          if ( resample_blacklist.count (checksum) == 0 )
+          if ( resample_blacklist->count (checksum) == 0 )
             resample = true;
         }
       }
@@ -1609,7 +1613,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
       if (record.method == TexLoadMethod::Streaming)
       {
         _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
-                      SK_D3D11_res_root.c_str (),
+                      SK_D3D11_res_root->c_str (),
                         checksum,
                           L".dds" );
       }
@@ -1617,7 +1621,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
       else if (record.method == TexLoadMethod::Blocking)
       {
         _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
-                      SK_D3D11_res_root.c_str (),
+                      SK_D3D11_res_root->c_str (),
                         checksum,
                           L".dds" );
       }
@@ -1866,7 +1870,7 @@ SK::D3D9::TextureManager::deleteDumpedTexture (D3DFORMAT fmt, uint32_t checksum)
     wchar_t wszFileName [MAX_PATH + 2] = { };
 
     _swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
-                  SK_D3D11_res_root.c_str (),
+                  SK_D3D11_res_root->c_str (),
                     SK_GetHostApp (),
                       SK_D3D9_FormatToStr (fmt, false).c_str () );
 
@@ -1910,7 +1914,7 @@ SK::D3D9::TextureManager::dumpTexture (D3DFORMAT fmt, uint32_t checksum, IDirect
     wchar_t wszFileName [MAX_PATH + 2] = { };
 
     _swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
-                  SK_D3D11_res_root.c_str (),
+                  SK_D3D11_res_root->c_str (),
                     SK_GetHostApp (),
                       SK_D3D9_FormatToStr (fmt_real, false).c_str () );
 
@@ -1934,7 +1938,7 @@ SK::D3D9::TextureManager::dumpTexture (D3DFORMAT fmt, uint32_t checksum, IDirect
   return hr;
 }
 
-concurrent_unordered_map <ISKTextureD3D9 *, bool> remove_textures;
+SK_LazyGlobal <concurrent_unordered_map <ISKTextureD3D9 *, bool>> remove_textures;
 
 void
 SK::D3D9::TextureManager::addInjected ( ISKTextureD3D9*    pWrapperTex,
@@ -1961,11 +1965,12 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
 {
   if (checksum == 0x00)
   {
-  std::vector <ISKTextureD3D9 *> unremove_textures;
+    std::vector <ISKTextureD3D9 *> unremove_textures;
 
-    auto  rem = remove_textures.begin ();
+    auto& _remove_textures = remove_textures.get ();
 
-    while (rem != remove_textures.end ())
+    auto  rem   = _remove_textures.begin ();
+    while (rem != _remove_textures.end   ())
     {
       if (rem->second == false)
       {
@@ -2017,10 +2022,10 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
       ++rem;
     }
 
-    remove_textures.clear ();
+    _remove_textures.clear ();
 
     for (auto it : unremove_textures)
-      remove_textures.insert (std::make_pair (it, true));
+      _remove_textures.insert (std::make_pair (it, true));
   }
 
     auto tex = textures.find (checksum);
@@ -2036,7 +2041,7 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
 void
 SK::D3D9::TextureManager::removeTexture (ISKTextureD3D9* pTexD3D9)
 {
-  remove_textures.insert (std::make_pair (pTexD3D9, true));
+  remove_textures->insert (std::make_pair (pTexD3D9, true));
 
   updateOSD ();
 }
@@ -2175,13 +2180,13 @@ SK::D3D9::TextureManager::Init (void)
   //textures_used.reserve               (2048);
   textures_last_frame.reserve         (1024);
 //non_power_of_two_textures.reserve   (512);
-  tracked_ps.used_textures.reserve    (512);
-  tracked_vs.used_textures.reserve    (512);
+  tracked_ps->used_textures.reserve    (512);
+  tracked_vs->used_textures.reserve    (512);
   //known.render_targets.reserve        (128);
   //used.render_targets.reserve         (64);
   //injector.textures_in_flight.reserve (32);
-  tracked_rt.pixel_shaders.reserve    (32);
-  tracked_rt.vertex_shaders.reserve   (32);
+  tracked_rt->pixel_shaders.reserve    (32);
+  tracked_rt->vertex_shaders.reserve   (32);
 
   injector.init ();
 
@@ -2196,7 +2201,7 @@ SK::D3D9::TextureManager::Init (void)
 
   // Create the directory to store dumped textures
   if (config.textures.d3d11.dump)
-    CreateDirectoryW (SK_D3D11_res_root.c_str (), nullptr);
+    CreateDirectoryW (SK_D3D11_res_root->c_str (), nullptr);
 
   tex_log->init (L"logs/textures.log", L"wt+,ccs=UTF-8");
 
@@ -2210,7 +2215,7 @@ SK::D3D9::TextureManager::Init (void)
   wchar_t     wszDumpBase [MAX_PATH + 2] = { };
   _swprintf ( wszDumpBase,
                 L"%s\\dump\\textures\\%s\\",
-                  SK_D3D11_res_root.c_str (), SK_GetHostApp () );
+                  SK_D3D11_res_root->c_str (), SK_GetHostApp () );
 
   if ( GetFileAttributesW (wszDumpBase) != INVALID_FILE_ATTRIBUTES )
   {
@@ -2501,6 +2506,8 @@ SK::D3D9::TextureManager::purge (void)
   if (shutting_down)
     return;
 
+  auto& _remove_textures = remove_textures.get ();
+
   int      released           = 0;
   int      released_injected  = 0;
    int64_t reclaimed          = 0;
@@ -2607,8 +2614,8 @@ SK::D3D9::TextureManager::purge (void)
       if (pSKTex->pTex)
         cleared.emplace     (pSKTex->pTex);
 
-      textures [checksum] = nullptr;
-      remove_textures [pSKTex] = false;
+       textures [checksum]      = nullptr;
+      _remove_textures [pSKTex] = false;
 
       pSKTex->freed = true;
     }
@@ -2682,6 +2689,8 @@ SK::D3D9::TextureManager::reset (void)
     return;
 
   QueryPerformanceCounter_Original (&liLastReset);
+
+  auto& _remove_textures = remove_textures.get ();
 
   if (! outstanding_screenshots.empty ())
   {
@@ -2809,8 +2818,8 @@ SK::D3D9::TextureManager::reset (void)
 
       ref_count += 1;
 
-      textures [pSKTex->tex_crc32c] = nullptr;
-      remove_textures [pSKTex] = true;
+       textures        [pSKTex->tex_crc32c] = nullptr;
+      _remove_textures [pSKTex]             = true;
 
       InterlockedAdd64     (&this->basic_size, -(SSIZE_T)base_size);
 
@@ -2840,7 +2849,7 @@ SK::D3D9::TextureManager::reset (void)
 
   else
   {
-    remove_textures.clear ();
+    remove_textures->clear ();
   }
 
   if ((int32_t)cacheSizeBasic () < 0)
@@ -3110,7 +3119,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
           {
             tex_log->Log ( L"[ Tex. Mgr ] Texture Resample Failure (hr=%x) for texture %x, blacklisting from future resamples...",
                              hr, pStream->checksum );
-            resample_blacklist.emplace (pStream->checksum);
+            resample_blacklist->emplace (pStream->checksum);
 
             pStream->pDest->Release ();
             pStream->pSrc = pStream->pDest;
@@ -3323,7 +3332,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
   // Walk injectable textures so we don't have to query the filesystem on every
   //   texture load to check if a injectable one exists.
   //
-  if ( GetFileAttributesW ((SK_D3D11_res_root + L"\\inject").c_str ()) !=
+  if ( GetFileAttributesW ((*SK_D3D11_res_root + L"\\inject").c_str ()) !=
          INVALID_FILE_ATTRIBUTES )
   {
     WIN32_FIND_DATA fd;
@@ -3334,7 +3343,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
     tex_log->LogEx ( true, L"[Inject Tex] Enumerating injectable textures..." );
 
     hFind =
-      FindFirstFileW ((SK_D3D11_res_root + L"\\inject\\textures\\blocking\\*").c_str (), &fd);
+      FindFirstFileW ((*SK_D3D11_res_root + L"\\inject\\textures\\blocking\\*").c_str (), &fd);
 
     if (hFind != INVALID_HANDLE_VALUE)
     {
@@ -3377,7 +3386,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
     }
 
     hFind =
-      FindFirstFileW ((SK_D3D11_res_root + L"\\inject\\textures\\streaming\\*").c_str (), &fd);
+      FindFirstFileW ((*SK_D3D11_res_root + L"\\inject\\textures\\streaming\\*").c_str (), &fd);
 
     if (hFind != INVALID_HANDLE_VALUE)
     {
@@ -3420,7 +3429,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
     }
 
     hFind =
-      FindFirstFileW ((SK_D3D11_res_root + L"\\inject\\textures\\*").c_str (), &fd);
+      FindFirstFileW ((*SK_D3D11_res_root + L"\\inject\\textures\\*").c_str (), &fd);
 
     if (hFind != INVALID_HANDLE_VALUE)
     {
@@ -3463,7 +3472,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
     }
 
     hFind =
-      FindFirstFileW ((SK_D3D11_res_root + L"\\inject\\*.*").c_str (), &fd);
+      FindFirstFileW ((*SK_D3D11_res_root + L"\\inject\\*.*").c_str (), &fd);
 
     if (hFind != INVALID_HANDLE_VALUE)
     {
@@ -3494,7 +3503,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
 
             _swprintf ( wszQualifiedArchiveName,
                           L"%s\\inject\\%s",
-                            SK_D3D11_res_root.c_str (),
+                            SK_D3D11_res_root->c_str (),
                               fd.cFileName );
 
             if (InFile_OpenW (&arc_stream.file, wszQualifiedArchiveName))
@@ -3655,7 +3664,7 @@ SK::D3D9::TextureManager::TextureManager::reloadTexture (uint32_t checksum)
     if (record.method == Streaming)
     {
       _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
-                    SK_D3D11_res_root.c_str (),
+                    SK_D3D11_res_root->c_str (),
                       checksum,
                         L".dds" );
     }
@@ -3663,7 +3672,7 @@ SK::D3D9::TextureManager::TextureManager::reloadTexture (uint32_t checksum)
     else if (record.method == Blocking)
     {
       _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
-                    SK_D3D11_res_root.c_str (),
+                    SK_D3D11_res_root->c_str (),
                       checksum,
                         L".dds" );
     }

@@ -667,19 +667,20 @@ SK_D3D11_CreateShader_Impl (
 
 bool
 SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
-                                         SK_TLS**             ppTLS = nullptr );
+                                         UINT                 dev_idx = (UINT)-1 );
 
 bool
 SK_D3D11_ShouldTrackMMIO ( ID3D11DeviceContext* pDevCtx,
                            SK_TLS**             ppTLS = nullptr );
+
 bool
 SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
-                               SK_TLS**             ppTLS = nullptr );
+                               UINT                 dev_idx = (UINT)-1 );
 
 bool
 SK_D3D11_ShouldTrackDrawCall (       ID3D11DeviceContext* pDevCtx,
                                const SK_D3D11DrawType     draw_type,
-                                     SK_TLS**             ppTLS = nullptr );
+                                     UINT                 dev_idx = (UINT)-1 );
 
 // All known targets are indexed using the calling device context,
 //   no internal locking is necessary as long as dev ctx's are one per-thread.
@@ -697,12 +698,20 @@ struct SK_D3D11_KnownTargets
 
   void clear (void)
   {
+    max_rt_views = std::max (max_rt_views, rt_views.size ());
+    max_ds_views = std::max (max_ds_views, ds_views.size ());
+
     rt_views.clear ();
     ds_views.clear ();
+
+    rt_views.reserve (max_rt_views);
+    ds_views.reserve (max_ds_views);
   }
 
   std::unordered_set <SK_ComPtr <ID3D11RenderTargetView>> rt_views;
   std::unordered_set <SK_ComPtr <ID3D11DepthStencilView>> ds_views;
+                                               size_t max_rt_views = 0;
+                                               size_t max_ds_views = 0;
 };
 
 extern SK_LazyGlobal <std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>> SK_D3D11_RenderTargets;

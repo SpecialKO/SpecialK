@@ -390,7 +390,7 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComQIPtr <ID3D11Device>& pDev
                 static ShaderBase <ID3D11PixelShader>  PixelShader_HDR10toscRGB;
                 static ShaderBase <ID3D11VertexShader> VertexShaderHDR_Util;
 
-                static std::wstring debug_shader_dir = SK_GetConfigPath ();
+              //static std::wstring debug_shader_dir = SK_GetConfigPath ();
 
                 static bool compiled = true;
 
@@ -1424,10 +1424,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           XMVectorSelect   (value, nvalue, g_XMSelect1110);
                         outPixels [j]   =   value;
 
-                        if (rb.isHDRCapable () && rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084)
-                        {
-                          ApplyGamma_sRGB ((float*)& outPixels[j]);
-                        }
+                        //if (rb.isHDRCapable () && rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084)
+                        //{
+                        //  ApplyGamma_sRGB ((float*)& outPixels[j]);
+                        //}
                       }
                     }, un_scrgb);
 
@@ -1527,7 +1527,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             if ( it                     == nullptr ||
                  it->getFinishedData () == nullptr )
             {
-              if (it != nullptr) delete it;
+              delete it;
 
               continue;
             }

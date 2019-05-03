@@ -24,6 +24,8 @@ volatile LONG
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
+#include <SpecialK/control_panel.h>
+
 extern bool IMGUI_API SK_ImGui_Visible;
 extern bool           SK_ImGui_IsMouseRelevant (void);
 
@@ -34,7 +36,6 @@ struct show_eula_s {
   bool show             = false;
   bool never_show_again = false;
 } eula;
-
 
 const ImWchar*
 SK_ImGui_GetGlyphRangesDefaultEx (void)
@@ -131,10 +132,8 @@ extern float analog_sensitivity;
 #include <SpecialK/log.h>
 
 
-extern INT SK_ImGui_ActivationKeys [256];
-
-#define SK_RAWINPUT_READ(type)  SK_RawInput_Backend.markRead  (type);
-#define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend.markWrite (type);
+#define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead  (type);
+#define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite (type);
 
 SK_LazyGlobal <SK_Thread_HybridSpinlock> raw_input_lock;
 
@@ -147,11 +146,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _In_      UINT      cbSizeHeader,
                                      BOOL      self )
 {
-  SK_TLS *pTLS = nullptr;
-    ;
-
-  if (                     pData == nullptr ||
-       (pTLS = SK_TLS_Bottom ()) == nullptr )
+  if (pData == nullptr)
   {
     return
       SK_GetRawInputData ( hRawInput, uiCommand,
@@ -160,9 +155,9 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   }
 
   auto pRawCtx =
-    &pTLS->raw_input;
+    SK_TLS_Bottom ()->raw_input.getPtr ();
 
-  bool focus = game_window.active;
+  bool focus = true;// game_window.active;
 
   bool already_processed =
     ( pRawCtx->last_input == hRawInput &&
@@ -412,7 +407,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               if (! (((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
               {
                 SK_Console::getInstance ()->KeyDown (VKey & 0xFF, MAXDWORD);
-                ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+                ImGui::GetIO ().KeysDown            [VKey & 0xFF] = true;
               }
 
               switch (((RAWINPUT *) pData)->data.keyboard.Message)
@@ -475,7 +470,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
 
         if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
-          ((RAWINPUT *) pData)->data.keyboard.VKey = 0;
+               ((RAWINPUT *)pData)->data.keyboard.VKey  = 0;
 
         // Fake key release
         ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
@@ -769,16 +764,17 @@ MessageProc ( const HWND&   hWnd,
     case WM_MOUSEWHEEL:
       io.MouseWheel +=
         static_cast <float> (GET_WHEEL_DELTA_WPARAM (wParam)) /
-        static_cast <float> (WHEEL_DELTA)                    ;
+        static_cast <float> (WHEEL_DELTA)                     ;
       return true;
 
     case WM_INPUTLANGCHANGE:
     {
       SK_ImGui_InputLanguage_s& language =
-        SK_TLS_Bottom ()->input_core.input_language;
+        SK_TLS_Bottom ()->input_core->input_language;
 
       language.changed      = true;
       language.keybd_layout = nullptr;
+
       return false;
     } break;
 
@@ -800,14 +796,21 @@ MessageProc ( const HWND&   hWnd,
         if      ((lParam & 0x40000000UL) == 0)
           SK_Console::getInstance ()->KeyDown (vkCode, MAXDWORD);
 
-        if (vkCode != VK_TAB || vkCode == VK_TAB && SK_ImGui_WantTextCapture ())
+        if (vkCode != VK_TAB || SK_ImGui_WantTextCapture ())
         {
           wchar_t key_str;
 
+          static HKL
+            keyboard_layout =
+              SK_Input_GetKeyboardLayout ();
+
           SK_ImGui_InputLanguage_s& language =
-            SK_TLS_Bottom ()->input_core.input_language;
+            SK_TLS_Bottom ()->input_core->input_language;
 
           language.update ();
+
+          keyboard_layout =
+            language.keybd_layout;
 
           if ( ToUnicodeEx ( vkCode,
                              scanCode,
@@ -815,14 +818,15 @@ MessageProc ( const HWND&   hWnd,
                             &key_str,
                              1,
                              0x04, // Win10-Specific Flag: No Keyboard State Change
-                             language.keybd_layout )
+                             keyboard_layout )
                    &&
                 iswprint ( key_str )
              )
           {
-            return MessageProc (
-              hWnd, WM_CHAR, (WPARAM)key_str, lParam
-            );
+            return
+              MessageProc ( hWnd,
+                  WM_CHAR, (WPARAM)key_str,
+                   lParam );
           }
         }
       }
@@ -975,17 +979,30 @@ MessageProc ( const HWND&   hWnd,
             (gamepad  && SK_ImGui_WantGamepadCapture  ()))
         {
           LPBYTE lpb =
-            SK_TLS_Bottom ()->raw_input.allocData (dwSize);
+            SK_TLS_Bottom ()->raw_input->allocData (dwSize);
 
-          if ( SK_ImGui_ProcessRawInput ( (HRAWINPUT)lParam, RID_INPUT,
-                                                        lpb, &dwSize,
-                                                        sizeof (RAWINPUTHEADER), TRUE ) > 0 )
+          if (lpb != nullptr)
           {
-            ///wParam       =
-            ///  ( ( wParam & ~0xFF )
-            ///             |  RIM_INPUTSINK );
+            if ( SK_ImGui_ProcessRawInput (
+                   (HRAWINPUT)lParam, RID_INPUT,
+                              lpb,    &dwSize,
+                 sizeof (RAWINPUTHEADER), TRUE ) > 0 )
+            {
+              ///wParam       =
+              ///  ( ( wParam & ~0xFF )
+              ///             |  RIM_INPUTSINK );
 
-            bRet = true;
+              bRet = true;
+            }
+          }
+
+          else
+          {
+            SK_RunOnce (
+              SK_ImGui_Warning (
+                L"Out Of Memory in SK_ImGui_ProcessRawInput (...)"
+              )
+            );
           }
         }
       }
@@ -1265,7 +1282,7 @@ struct {
           start,    end;
 
     float run (void) {
-      auto now = static_cast <float> (timeGetTime ());
+      auto now = static_cast <float> (SK::ControlPanel::current_time);
 
       return config.input.gamepad.haptic_ui ?
                std::max (0.0f, strength * ((end - now) / (end - start))) :
@@ -1304,7 +1321,7 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
   if (toggle_nav && SK_ImGui_Active ())
     nav_usable = (! nav_usable);
 
-  //if (nav_usable)
+  if (nav_usable)
     ImGui::SetNextWindowFocus ();
 
   toggle_ui  = SK_ImGui_Active ();
@@ -1312,7 +1329,7 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
 
   if (SK_ImGui_Active () && nav_usable)
   {
-    haptic_events.PulseTitle.start = static_cast <float> (timeGetTime ());
+    haptic_events.PulseTitle.start = static_cast <float> (SK::ControlPanel::current_time);
     haptic_events.PulseTitle.end   = haptic_events.PulseTitle.start +
                                        haptic_events.PulseTitle.duration;
   }
@@ -1338,8 +1355,8 @@ extern IDirectInputDevice8W_GetDeviceState_pfn
 extern XINPUT_STATE  di8_to_xi;
 extern XINPUT_STATE  joy_to_xi;
 
-void
-SK_ImGui_PollGamepad_EndFrame (void)
+bool
+SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 {
   ImGuiIO& io (ImGui::GetIO ());
 
@@ -1357,56 +1374,71 @@ SK_ImGui_PollGamepad_EndFrame (void)
     //LONG msg_cnt =
     //  ReadAcquire (&__SK_KeyMessageCount);
 
-    io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON)  & 0x8000) != 0;
-    io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON)  & 0x8000) != 0;
-    io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON)  & 0x8000) != 0;
-    io.MouseDown [3] = (SK_GetAsyncKeyState (VK_XBUTTON1) & 0x8000) != 0;
-    io.MouseDown [4] = (SK_GetAsyncKeyState (VK_XBUTTON2) & 0x8000) != 0;
+    io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON) ) != 0;
+    io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON) ) != 0;
+    io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON) ) != 0;
+    io.MouseDown [3] = (SK_GetAsyncKeyState (VK_XBUTTON1)) != 0;
+    io.MouseDown [4] = (SK_GetAsyncKeyState (VK_XBUTTON2)) != 0;
+
+    bool Alt =
+      (SK_GetAsyncKeyState (VK_MENU)    ) != 0;
+    bool Ctrl =
+      (SK_GetAsyncKeyState (VK_CONTROL) ) != 0;
+    bool Shift =
+      (SK_GetAsyncKeyState (VK_SHIFT)   ) != 0;
+
+    //io.KeysDown [VK_MENU]    = Alt;
+    //io.KeysDown [VK_CONTROL] = Ctrl;
+    //io.KeysDown [VK_SHIFT]   = Shift;
+
+    io.KeyAlt   = Alt;
+    io.KeyShift = Shift;
+    io.KeyCtrl  = Ctrl;
 
     ////if (last_key_msg_cnt != msg_cnt)
     //{
-    //  BYTE key_state [256] = { };
-    //
-    //  SK_GetKeyboardState (key_state);
-    //
-    //  io.MouseDown [0] = (key_state [VK_LBUTTON]  & 0x80) != 0; //(SK_GetAsyncKeyState (VK_LBUTTON) & 0x8000) != 0;
-    //  io.MouseDown [1] = (key_state [VK_RBUTTON]  & 0x80) != 0; //(SK_GetAsyncKeyState (VK_RBUTTON)  & 0x8000) != 0;
-    //  io.MouseDown [2] = (key_state [VK_MBUTTON]  & 0x80) != 0; //(SK_GetAsyncKeyState (VK_MBUTTON)  & 0x8000) != 0;
-    //  io.MouseDown [3] = (key_state [VK_XBUTTON1] & 0x80) != 0; //(SK_GetAsyncKeyState (VK_XBUTTON1) & 0x8000) != 0;
-    //  io.MouseDown [4] = (key_state [VK_XBUTTON2] & 0x80) != 0; //(SK_GetAsyncKeyState (VK_XBUTTON2) & 0x8000) != 0;
-    //
-    //
-    //  last_key_msg_cnt =
-    //    msg_cnt;
-    //
-    //  // This stupid hack prevents the Steam overlay from making the software
-    //  //   think tab is stuck down.
-    //  io.KeysDown [0x08]  = (key_state [0x08] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x08 ) & 0x8000) != 0;
-    //  io.KeysDown [0x09]  = (key_state [0x09] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x09 ) & 0x8000) != 0;
-    //  io.KeysDown [0x0C]  = (key_state [0x0C] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x0C ) & 0x8000) != 0;
-    //  io.KeysDown [0x0D]  = (key_state [0x0D] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x0D ) & 0x8000) != 0;
-    //  for (int i = 0x10; i < 0x16; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0x17; i < 0x1A; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0x1B; i < 0x3A; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0x41; i < 0x5E; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0x5F; i < 0x88; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0x90; i < 0x97; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0xA0; i < 0xB8; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0xBA; i < 0xC1; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0xDB; i < 0xE0; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0xE1; i < 0xE8; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //  for (int i = 0xE9; i < 0xFF; i++)
-    //    io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //BYTE key_state [256] = { };
+      //
+      //SK_GetKeyboardState (key_state);
+      //
+      //io.MouseDown [0] = (key_state [VK_LBUTTON]  & 0x80) != 0; //(SK_GetAsyncKeyState (VK_LBUTTON) & 0x8000) != 0;
+      //io.MouseDown [1] = (key_state [VK_RBUTTON]  & 0x80) != 0; //(SK_GetAsyncKeyState (VK_RBUTTON)  & 0x8000) != 0;
+      //io.MouseDown [2] = (key_state [VK_MBUTTON]  & 0x80) != 0; //(SK_GetAsyncKeyState (VK_MBUTTON)  & 0x8000) != 0;
+      //io.MouseDown [3] = (key_state [VK_XBUTTON1] & 0x80) != 0; //(SK_GetAsyncKeyState (VK_XBUTTON1) & 0x8000) != 0;
+      //io.MouseDown [4] = (key_state [VK_XBUTTON2] & 0x80) != 0; //(SK_GetAsyncKeyState (VK_XBUTTON2) & 0x8000) != 0;
+      //
+      //
+      ////last_key_msg_cnt =
+      ////  msg_cnt;
+      //
+      //// This stupid hack prevents the Steam overlay from making the software
+      ////   think tab is stuck down.
+      //io.KeysDown [0x08]  = (key_state [0x08] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x08 ) & 0x8000) != 0;
+      //io.KeysDown [0x09]  = (key_state [0x09] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x09 ) & 0x8000) != 0;
+      //io.KeysDown [0x0C]  = (key_state [0x0C] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x0C ) & 0x8000) != 0;
+      //io.KeysDown [0x0D]  = (key_state [0x0D] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x0D ) & 0x8000) != 0;
+      //for (int i = 0x10; i < 0x16; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0x17; i < 0x1A; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0x1B; i < 0x3A; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0x41; i < 0x5E; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0x5F; i < 0x88; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0x90; i < 0x97; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0xA0; i < 0xB8; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0xBA; i < 0xC1; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0xDB; i < 0xE0; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0xE1; i < 0xE8; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      //for (int i = 0xE9; i < 0xFF; i++)
+      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     //}
 
     ///if ( io.MouseDown [0] ||
@@ -1429,7 +1461,6 @@ SK_ImGui_PollGamepad_EndFrame (void)
     SecureZeroMemory (io.MouseDown, sizeof (bool) * 5);
   }
 
-         XINPUT_STATE state      = {      };
   static XINPUT_STATE last_state = { 1, 0 };
 
   bool api_bridge =
@@ -1464,9 +1495,13 @@ SK_ImGui_PollGamepad_EndFrame (void)
       *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
   }
 
+  bool bRet = false;
+
   if ( api_bridge ||
        SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) )
   {
+    bRet = true;
+
     if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&
          state.Gamepad.wButtons & XINPUT_GAMEPAD_START &&
          last_state.dwPacketNumber != state.dwPacketNumber )
@@ -1492,7 +1527,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
     if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
          (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )
     {
-      if (dwLastPress < timeGetTime () - LONG_PRESS)
+      if (dwLastPress < SK::ControlPanel::current_time - LONG_PRESS)
       {
         bool toggle_vis = (! SK_ImGui_Active ());
         bool toggle_nav =    true;
@@ -1505,7 +1540,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
     }
 
     else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
-      dwLastPress = timeGetTime ();
+      dwLastPress = SK::ControlPanel::current_time;
 
     else
       dwLastPress = MAXDWORD;
@@ -1524,7 +1559,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
     if (g.NavId != nav_id)
     {
-      if (haptic_events.PulseNav.end > static_cast <float> (timeGetTime ()))
+      if (haptic_events.PulseNav.end > static_cast <float> (SK::ControlPanel::current_time))
       {
         haptic_events.PulseNav.end   += haptic_events.PulseNav.duration;
         haptic_events.PulseNav.start += haptic_events.PulseNav.duration;
@@ -1532,7 +1567,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
       else
       {
-        haptic_events.PulseNav.start = static_cast <float> (timeGetTime ());
+        haptic_events.PulseNav.start = static_cast <float> (SK::ControlPanel::current_time);
         haptic_events.PulseNav.end   = haptic_events.PulseNav.start +
                                          haptic_events.PulseNav.duration;
       }
@@ -1540,7 +1575,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
     if (g.ActiveIdIsJustActivated)
     {
-      haptic_events.PulseButton.start = static_cast <float> (timeGetTime ());
+      haptic_events.PulseButton.start = static_cast <float> (SK::ControlPanel::current_time);
       haptic_events.PulseButton.end   = haptic_events.PulseButton.start +
                                           haptic_events.PulseButton.duration;
     }
@@ -1571,6 +1606,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
   }
 
   last_state = state;
+
+  return bRet;
 }
 
 
@@ -1591,28 +1628,39 @@ SK_ImGui_PollGamepad (void)
   for ( float& NavInput : io.NavInputs )
     NavInput = 0.0f;
 
-  bool api_bridge =
-    config.input.gamepad.native_ps4 || ControllerPresent (config.input.gamepad.steam.ui_slot);
-
-#if 1
-  state = joy_to_xi;
-#else
-  state = di8_to_xi;
-#endif
-
-  if (ControllerPresent (config.input.gamepad.steam.ui_slot))
+  if (SK_ImGui_PollGamepad_EndFrame (state))
   {
-    state =
-      *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
-  }
+    //auto& gamepad = state.Gamepad;
 
-  if ( ( api_bridge ||
-         SK_XInput_PollController ( config.input.gamepad.xinput.ui_slot,
-                                      &state
-                                  )
-       )
-     )
-  {
+  ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  //#define MAP_BUTTON(NAV_NO,BUTTON_ENUM)    \
+  //{ io.NavInputs   [(NAV_NO)] =             \
+  //  ( gamepad.wButtons  &  (BUTTON_ENUM)) ? \
+  //                 1.0f : 0.0f;           }
+  //#define MAP_ANALOG(NAV_NO,VALUE,V0,V1)                    \
+  //{ float vn = (float)((VALUE) - V0)  /  (float)(V1 - V0);  \
+  //  if (  vn > 1.0f                )             vn = 1.0f; \
+  //  if (  vn > 0.0f && io.NavInputs [(NAV_NO)] < vn)        \
+  //                     io.NavInputs [(NAV_NO)] = vn; }
+////-------------------------------------------------------------------------------------
+  //MAP_BUTTON (ImGuiNavInput_Activate,   XINPUT_GAMEPAD_A);              // Cross    / A
+  //MAP_BUTTON (ImGuiNavInput_Cancel,     XINPUT_GAMEPAD_B);              // Circle   / B
+  //MAP_BUTTON (ImGuiNavInput_Menu,       XINPUT_GAMEPAD_X);              // Square   / X
+  //MAP_BUTTON (ImGuiNavInput_Input,      XINPUT_GAMEPAD_Y);              // Triangle / Y
+  //MAP_BUTTON (ImGuiNavInput_DpadLeft,   XINPUT_GAMEPAD_DPAD_LEFT);      // D-Pad Left
+  //MAP_BUTTON (ImGuiNavInput_DpadRight,  XINPUT_GAMEPAD_DPAD_RIGHT);     // D-Pad Right
+  //MAP_BUTTON (ImGuiNavInput_DpadUp,     XINPUT_GAMEPAD_DPAD_UP);        // D-Pad Up
+  //MAP_BUTTON (ImGuiNavInput_DpadDown,   XINPUT_GAMEPAD_DPAD_DOWN);      // D-Pad Down
+  //MAP_BUTTON (ImGuiNavInput_FocusPrev,  XINPUT_GAMEPAD_LEFT_SHOULDER);  // L1 / LB
+  //MAP_BUTTON (ImGuiNavInput_FocusNext,  XINPUT_GAMEPAD_RIGHT_SHOULDER); // R1 / RB
+  //MAP_BUTTON (ImGuiNavInput_TweakSlow,  XINPUT_GAMEPAD_LEFT_SHOULDER);  // L1 / LB
+  //MAP_BUTTON (ImGuiNavInput_TweakFast,  XINPUT_GAMEPAD_RIGHT_SHOULDER); // R1 / RB
+//---------------------------------------------------------------------==================
+  //MAP_ANALOG (ImGuiNavInput_LStickLeft, gamepad.sThumbLX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
+  //MAP_ANALOG (ImGuiNavInput_LStickRight,gamepad.sThumbLX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+  //MAP_ANALOG (ImGuiNavInput_LStickUp,   gamepad.sThumbLY, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+  //MAP_ANALOG (ImGuiNavInput_LStickDown, gamepad.sThumbLY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32767);
+
     if (nav_usable)
     {
       // Non-repeating buttons
@@ -1703,49 +1751,46 @@ SK_ImGui_PollGamepad (void)
                            XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) /
                 ( 255.0f - XINPUT_GAMEPAD_TRIGGER_THRESHOLD     );
 
-        last_state = state;
+        //
+        // [ANALOG INPUTS]
+        //
+
+        // Press Button, Tweak Value                    // e.g. Circle button
+        if ((state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0)
+          io.NavInputs [ImGuiNavInput_Activate] = 1.0f;
+
+        // Access Menu, Focus, Move, Resize             // e.g. Square button
+        if ((state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0)
+          io.NavInputs [ImGuiNavInput_Menu] = 1.0f;
+
+        // Move Up, Resize Window (with PadMenu held)   // e.g. D-pad up/down/left/right
+        io.NavInputs [ImGuiNavInput_DpadUp]    +=  0.001f *
+          static_cast <float> (
+            (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0
+          );
+
+        // Move Down
+        io.NavInputs [ImGuiNavInput_DpadDown]  +=  0.001f *
+          static_cast <float> (
+            (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0
+          );
+
+        // Move Left
+        io.NavInputs [ImGuiNavInput_DpadLeft]  +=  0.001f *
+          static_cast <float> (
+            (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0
+          );
+
+        // Move Right
+        io.NavInputs [ImGuiNavInput_DpadRight] +=  0.001f *
+          static_cast <float> (
+            (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0
+          );
       }
-
-      //
-      // [ANALOG INPUTS]
-      //
-
-      // Press Button, Tweak Value                    // e.g. Circle button
-      if ((state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0)
-        io.NavInputs [ImGuiNavInput_Activate] = 1.0f;
-
-      // Access Menu, Focus, Move, Resize             // e.g. Square button
-      if ((state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0)
-        io.NavInputs [ImGuiNavInput_Menu] = 1.0f;
-
-      // Move Up, Resize Window (with PadMenu held)   // e.g. D-pad up/down/left/right
-      io.NavInputs [ImGuiNavInput_DpadUp]    +=  0.001f *
-        static_cast <float> (
-          (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0
-        );
-
-      // Move Down
-      io.NavInputs [ImGuiNavInput_DpadDown]  +=  0.001f *
-        static_cast <float> (
-          (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0
-        );
-
-      // Move Left
-      io.NavInputs [ImGuiNavInput_DpadLeft]  +=  0.001f *
-        static_cast <float> (
-          (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0
-        );
-
-      // Move Right
-      io.NavInputs [ImGuiNavInput_DpadRight] +=  0.001f *
-        static_cast <float> (
-          (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0
-        );
     }
+
+    last_state = state;
   }
-
-
-  SK_ImGui_PollGamepad_EndFrame ();
 
   extern bool __stdcall SK_IsGameWindowActive (void);
 
@@ -1902,8 +1947,9 @@ ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
   if (window->SkipItems)
     return;
 
-  ImGuiContext&     g     = *GImGui;
-  const ImGuiStyle& style = g.Style;
+        ImGuiContext& g     = *GImGui;
+  const ImGuiStyle&   style = g.Style;
+  const ImGuiID       id    = window->GetID (label);
 
   const ImVec2 label_size =
     CalcTextSize (label, nullptr, true);
@@ -1928,10 +1974,19 @@ ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
                                                 )
                         );
 
+  BeginChildFrame (
+    id, total_bb.GetSize (),
+      ImGuiWindowFlags_NoNav        | ImGuiWindowFlags_NoInputs     |
+      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground
+  );
+
   ItemSize (total_bb, style.FramePadding.y);
 
   if (! ItemAdd (total_bb, (ImGuiID)nullptr, &frame_bb))
+  {
+    EndChildFrame ();
     return;
+  }
 
   // Determine scale from values if not specified
   if ( scale_min == std::numeric_limits <float>::max () ||
@@ -2041,20 +2096,31 @@ ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
                           inner_bb.Min.y ),
                    label );
   }
+
+  EndChildFrame ();
 }
 
 struct SK_ImGuiPlotArrayGetterData
 {
   const float* Values;
-  int Stride;
+        int    Stride;
 
-  SK_ImGuiPlotArrayGetterData (const float* values, int stride) { Values = values; Stride = stride; }
+  SK_ImGuiPlotArrayGetterData (const float* values, int stride)
+  {
+    Values = values;
+    Stride = stride;
+  }
 };
 
 static float Plot_ArrayGetter (void* data, int idx)
 {
-  SK_ImGuiPlotArrayGetterData* plot_data = (SK_ImGuiPlotArrayGetterData*)data;
-  const float v = *(const float*)(const void*)((const unsigned char*)plot_data->Values + (size_t)idx * plot_data->Stride);
+  SK_ImGuiPlotArrayGetterData* plot_data =
+    (SK_ImGuiPlotArrayGetterData *)data;
+
+  const float v =
+    *(const float *)(const void *)((const unsigned char *)plot_data->Values
+                  + (size_t)idx * plot_data->Stride);
+
   return v;
 }
 
@@ -2067,20 +2133,6 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
                           float  min_color_val,       float  max_color_val,
                           float  avg,                 bool   inverse )
 {
-  static thread_local std::unordered_map <ImGuiWindow *, std::unordered_map <ImGuiID, float>> heights;
-  static thread_local std::unordered_map <ImGuiWindow *, std::unordered_map <ImGuiID, float>> widths;
-
-  ImGuiWindow* window =
-    ImGui::GetCurrentWindow ();
-
-  ImGuiID id =
-    window->GetID (label);
-
-  if (heights [window].count (id))
-    ImGui::BeginChild (id, ImVec2 (widths [window][id], heights [window][id]), false, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);
-
-  ImGui::BeginGroup ();
-
   SK_ImGuiPlotArrayGetterData data =
     SK_ImGuiPlotArrayGetterData (values, stride);
 
@@ -2093,21 +2145,6 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
                       avg,
                         inverse
           );
-
-  ImGui::EndGroup ();
-
-  if (heights [window].count (id)) {
-    widths  [window][id] = std::min (GetItemRectMax ().x - GetItemRectMin ().x, widths  [window][id] > (0.9995 * GetItemRectMax ().x - GetItemRectMin ().x) ? widths  [window][id] : GetItemRectMax ().x - GetItemRectMin ().x);
-    heights [window][id] = std::min (GetItemRectMax ().y - GetItemRectMin ().y, heights [window][id] > (0.9995 * GetItemRectMax ().y - GetItemRectMin ().y) ? heights [window][id] : GetItemRectMax ().y - GetItemRectMin ().y);
-
-    ImGui::EndChild ();
-  }
-
-  else
-  {
-    widths  [window][id] = std::min (GetItemRectMax ().x - GetItemRectMin ().x, widths  [window][id] > (0.9995 * GetItemRectMax ().x - GetItemRectMin ().x) ? widths  [window][id] : GetItemRectMax ().x - GetItemRectMin ().x);
-    heights [window][id] = std::min (GetItemRectMax ().y - GetItemRectMin ().y, heights [window][id] > (0.9995 * GetItemRectMax ().y - GetItemRectMin ().y) ? heights [window][id] : GetItemRectMax ().y - GetItemRectMin ().y);
-  }
 }
 
 
@@ -2134,11 +2171,11 @@ SK_ImGui_User_NewFrame (void)
     io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
   }
 
-  if ( ImGui::GetIO ().DisplaySize.x <= 0.0f ||
-       ImGui::GetIO ().DisplaySize.y <= 0.0f )
+  if ( io.DisplaySize.x <= 0.0f ||
+       io.DisplaySize.y <= 0.0f )
   {
-    ImGui::GetIO ().DisplaySize.x = 128.0f;
-    ImGui::GetIO ().DisplaySize.y = 128.0f;
+    io.DisplaySize.x = 128.0f;
+    io.DisplaySize.y = 128.0f;
   }
 
   ImGuiContext& g = *GImGui;
@@ -2146,24 +2183,31 @@ SK_ImGui_User_NewFrame (void)
   g.Style.AntiAliasedLines = config.imgui.render.antialias_lines;
   g.Style.AntiAliasedFill  = config.imgui.render.antialias_contours;
 
+
   ImGui::NewFrame ();
 
 
   //
   // Idle Cursor Detection  (when UI is visible, but mouse does not require capture)
   //
-  //          Remove the cursor after a brief timeout period (500 ms), it will come back if moved ;)
+  //          Remove the cursor after a brief timeout period (500 ms),
+  //            it will come back if moved ;)
   //
-  static int last_x, last_y;
+  static int last_x = 0,
+             last_y = 0;
 
-  if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCaptureEx (0x0))
+  if ( abs (last_x - SK_ImGui_Cursor.pos.x) > 3 ||
+       abs (last_y - SK_ImGui_Cursor.pos.y) > 3 ||
+          SK_ImGui_WantMouseCaptureEx (0x0) )
+  {
     SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time;
-
-  last_x = SK_ImGui_Cursor.pos.x; last_y = SK_ImGui_Cursor.pos.y;
+                    last_x    = SK_ImGui_Cursor.pos.x;
+                    last_y    = SK_ImGui_Cursor.pos.y;
+  }
 
   bool was_idle = SK_ImGui_Cursor.idle;
 
-  if (SK_ImGui_IsMouseRelevant () && SK_ImGui_Cursor.last_move < SK::ControlPanel::current_time - 500)
+  if (SK_ImGui_Cursor.last_move < SK::ControlPanel::current_time - 500)
     SK_ImGui_Cursor.idle = true;
 
   else
@@ -2171,7 +2215,6 @@ SK_ImGui_User_NewFrame (void)
 
   if (was_idle != SK_ImGui_Cursor.idle)
     SK_ImGui_Cursor.update ();
-
 
   if (eula.show)
     SK_ImGui_DrawEULA (&eula);

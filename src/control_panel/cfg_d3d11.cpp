@@ -30,6 +30,9 @@
 
 #include <SpecialK/nvapi.h>
 
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
+
 const wchar_t*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space);
 
@@ -163,13 +166,19 @@ SK_ImGui_DrawTexCache_Chart (void)
 
       if (config.textures.cache.residency_managemnt)
       {
-        const int fully_resident = ReadAcquire (&SK_D3D11_TexCacheResidency->count.InVRAM);
-        const int shared_memory  = ReadAcquire (&SK_D3D11_TexCacheResidency->count.Shared);
-        const int on_disk        = ReadAcquire (&SK_D3D11_TexCacheResidency->count.PagedOut);
+        auto& residency_count =
+          SK_D3D11_TexCacheResidency->count;
+        auto& residency_size  =
+          SK_D3D11_TexCacheResidency->size;
 
-        const LONG64 size_vram   = ReadAcquire64 (&SK_D3D11_TexCacheResidency->size.InVRAM);
-        const LONG64 size_shared = ReadAcquire64 (&SK_D3D11_TexCacheResidency->size.Shared);
-        const LONG64 size_disk   = ReadAcquire64 (&SK_D3D11_TexCacheResidency->size.PagedOut);
+
+        const int fully_resident = ReadAcquire (&residency_count.InVRAM);
+        const int shared_memory  = ReadAcquire (&residency_count.Shared);
+        const int on_disk        = ReadAcquire (&residency_count.PagedOut);
+
+        const LONG64 size_vram   = ReadAcquire64 (&residency_size.InVRAM);
+        const LONG64 size_shared = ReadAcquire64 (&residency_size.Shared);
+        const LONG64 size_disk   = ReadAcquire64 (&residency_size.PagedOut);
 
         ImGui::BeginGroup ();
         if (fully_resident != 0)
@@ -212,6 +221,9 @@ extern SK_RESHADE_CALLBACK_DRAW SK_ReShade_DrawCallback;
 bool
 SK::ControlPanel::D3D11::Draw (void)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   if (show_shader_mod_dlg)
     show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
 
@@ -220,7 +232,7 @@ SK::ControlPanel::D3D11::Draw (void)
        ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
   {
     ImGui::SameLine ();
-    ImGui::TextUnformatted ("     Tracking:  ");
+    ImGui::TextUnformatted ("     State Tracking:  ");
 
     ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.173f, 0.428f, 0.96f));
     ImGui::SameLine ();
@@ -231,7 +243,7 @@ SK::ControlPanel::D3D11::Draw (void)
     else
     {
       char* szThreadLocalStr =
-          SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+                      pTLS->scratch_memory->cmd.alloc (
                         256,   true                  );
 
       bool tracking = false;
@@ -354,7 +366,7 @@ SK::ControlPanel::D3D11::Draw (void)
         else if (config.render.framerate.pre_render_limit > config.render.framerate.buffer_count + 1)
           config.render.framerate.pre_render_limit = config.render.framerate.buffer_count + 1;
 
-        CComQIPtr <IDXGISwapChain> pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
+        SK_ComQIPtr <IDXGISwapChain> pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
 
         if (pSwapChain != nullptr)
         {
@@ -802,7 +814,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
   }
 }
 
-extern std::wstring SK_D3D11_res_root;
+extern SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
 
 void
 SK::ControlPanel::D3D11::TextureMenu (void)
@@ -813,7 +825,7 @@ SK::ControlPanel::D3D11::TextureMenu (void)
 
     if (ImGui::MenuItem ("Injectable Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures->injectable_texture_bytes).c_str ()).c_str (), nullptr))
     {
-      wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
+      wcscpy      (wszPath, SK_D3D11_res_root->c_str ());
       PathAppendW (wszPath, LR"(inject\textures)");
 
       ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
@@ -822,7 +834,7 @@ SK::ControlPanel::D3D11::TextureMenu (void)
     if ((! SK_D3D11_Textures->dumped_textures.empty ()) &&
           ImGui::MenuItem ("Dumped Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures->dumped_texture_bytes).c_str ()).c_str (), nullptr))
     {
-      wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
+      wcscpy      (wszPath, SK_D3D11_res_root->c_str ());
       PathAppendW (wszPath, LR"(dump\textures)");
       PathAppendW (wszPath, SK_GetHostApp ());
 

@@ -114,13 +114,17 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   const bool timer = true;
 #endif
 
+  static const std::wstring ver_str =
+    SK_FormatStringW ( L"Special K Compatibility Layer (v %ws)",
+                         SK_GetVersionStrW () );
+
   int              nButtonPressed = 0;
   TASKDIALOGCONFIG task_config    = {0};
 
   task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = __SK_hModHost;
-  task_config.hwndParent          =                   nullptr;
-  task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
+  task_config.hwndParent          = nullptr;
+  task_config.pszWindowTitle      = ver_str.c_str ();
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pButtons            = nullptr;
   task_config.cButtons            = 0;
@@ -173,13 +177,17 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   const bool timer = true;
 #endif
 
+  static const std::wstring ver_str =
+    SK_FormatStringW ( L"Special K Compatibility Layer (v %ws)",
+                         SK_GetVersionStrW () );
+
   int              nButtonPressed =   0;
   TASKDIALOGCONFIG task_config    = {   };
 
-  task_config.cbSize              = sizeof    (task_config);
+  task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = SK_Modules->HostApp ();
-  task_config.hwndParent          =        nullptr;
-  task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
+  task_config.hwndParent          = nullptr;
+  task_config.pszWindowTitle      = ver_str.c_str ();
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
 
   TASKDIALOG_BUTTON button;
@@ -232,8 +240,10 @@ enum {
 volatile LONG SK_BypassResult = SK_BYPASS_UNKNOWN;
 
 struct sk_bypass_s {
-  BOOL    disable;
-  wchar_t wszBlacklist [MAX_PATH];
+  constexpr sk_bypass_s (void) = default;
+
+  BOOL    disable                 = FALSE;
+  wchar_t wszBlacklist [MAX_PATH] = {   };
 } __bypass;
 
 
@@ -241,9 +251,6 @@ struct sk_bypass_s {
 LPVOID pfnGetClientRect    = nullptr;
 LPVOID pfnGetWindowRect    = nullptr;
 LPVOID pfnGetSystemMetrics = nullptr;
-
-std::queue <DWORD> suspended_tids;
-
 
 DWORD
 WINAPI
@@ -372,25 +379,28 @@ SK_Bypass_CRT (LPVOID)
 
   const TASKDIALOG_BUTTON rbuttons [] = {  { 0, wszAPIName          },
                                            { 1, L"Enable All APIs"  },
-#ifndef _WIN64
+#ifdef _M_IX86
                                            { 7, L"Direct3D8"        },
                                            { 8, L"DirectDraw"       },
 #endif
                                            { 2, L"Direct3D9{Ex}"    },
                                            { 3, L"Direct3D11"       },
-#ifdef _WIN64
+#ifdef _M_AMD64
                                            { 4, L"Direct3D12"       },
 #endif
                                            { 5, L"OpenGL"           },
-#ifdef _WIN64
+#ifdef _M_AMD64
                                            { 6, L"Vulkan"           }
 #endif
                                        };
+  static const std::wstring ver_str =
+    SK_FormatStringW ( L"Special K Compatibility Layer (v %ws)",
+                         SK_GetVersionStrW () );
 
   task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = __SK_hModHost;
-  task_config.hwndParent          =        nullptr;
-  task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
+  task_config.hwndParent          = nullptr;
+  task_config.pszWindowTitle      = ver_str.c_str ();
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pRadioButtons       = rbuttons;
   task_config.cRadioButtons       = ARRAYSIZE (rbuttons);
@@ -471,7 +481,7 @@ SK_Bypass_CRT (LPVOID)
     //wszConfigName = SK_GetBackend ();
   }
 
-  std::wstring temp_dll = L"";
+  std::wstring temp_dll;
 
 
   SK_LoadConfig (wszConfigName);
@@ -482,10 +492,10 @@ SK_Bypass_CRT (LPVOID)
 
   config.apis.OpenGL.hook     = false;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   config.apis.dxgi.d3d12.hook = false;
   config.apis.Vulkan.hook     = false;
-#else
+#else /* _M_IX86 */
   config.apis.d3d8.hook       = false;
   config.apis.ddraw.hook      = false;
 #endif
@@ -497,7 +507,7 @@ SK_Bypass_CRT (LPVOID)
       if (SK_GetDLLRole () & DLL_ROLE::DXGI)
       {
         config.apis.dxgi.d3d11.hook = true;
-#ifdef _WIN64
+#ifdef _M_AMD64
         config.apis.dxgi.d3d12.hook = true;
 #endif
       }
@@ -513,7 +523,7 @@ SK_Bypass_CRT (LPVOID)
         config.apis.OpenGL.hook = true;
       }
 
-#ifndef _WIN64
+#ifdef _M_IX86
       if (SK_GetDLLRole () & DLL_ROLE::D3D8)
       {
         config.apis.d3d8.hook       = true;
@@ -542,9 +552,9 @@ SK_Bypass_CRT (LPVOID)
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
-#ifndef _WIN64
+#ifdef _M_IX86
                              32
-#else
+#else /* _M_AMD64 */
                              64
 #endif
                          )
@@ -561,10 +571,10 @@ SK_Bypass_CRT (LPVOID)
 
         config.apis.OpenGL.hook     = true;
 
-#ifndef _WIN64
+#ifdef _M_IX86
         config.apis.d3d8.hook       = true;
         config.apis.ddraw.hook      = true;
-#else
+#else /* _M_AMD64 */
         config.apis.Vulkan.hook     = true;
         config.apis.dxgi.d3d12.hook = true;
 #endif
@@ -579,9 +589,9 @@ SK_Bypass_CRT (LPVOID)
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
-#ifndef _WIN64
+#ifdef _M_IX86
                              32
-#else
+#else /* _M_AMD64 */
                              64
 #endif
                          )
@@ -607,9 +617,9 @@ SK_Bypass_CRT (LPVOID)
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
-#ifndef _WIN64
+#ifdef _M_IX86
                              32
-#else
+#else /* _M_AMD64 */
                              64
 #endif
                          )
@@ -636,9 +646,9 @@ SK_Bypass_CRT (LPVOID)
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
-#ifndef _WIN64
+#ifdef _M_IX86
                              32
-#else
+#else /* _M_AMD64 */
                              64
 #endif
                          )
@@ -647,7 +657,7 @@ SK_Bypass_CRT (LPVOID)
         }
         break;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
       case 4:
         config.apis.dxgi.d3d11.hook = true; // Required by D3D12 code :P
         config.apis.dxgi.d3d12.hook = true;
@@ -665,9 +675,9 @@ SK_Bypass_CRT (LPVOID)
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
-#ifndef _WIN64
+#ifdef _M_IX86
                              32
-#else
+#else /* _M_AMD64 */
                              64
 #endif
                          )
@@ -694,9 +704,9 @@ SK_Bypass_CRT (LPVOID)
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
-#ifndef _WIN64
+#ifdef _M_IX86
                              32
-#else
+#else /* _M_AMD64 */
                              64
 #endif
                          )
@@ -705,13 +715,13 @@ SK_Bypass_CRT (LPVOID)
         }
         break;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
       case 6:
         config.apis.Vulkan.hook = true;
         break;
 #endif
 
-#ifndef _WIN64
+#ifdef _M_IX86
       case 7:
         config.apis.dxgi.d3d11.hook = true;  // D3D8 on D3D11 (not native D3D8)
         config.apis.d3d8.hook       = true;
@@ -731,9 +741,9 @@ SK_Bypass_CRT (LPVOID)
               temp_dll = SK_UTF8ToWideChar (
                            SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                              SK_GetDocumentsDir ().c_str (),
-#ifndef _WIN64
+#ifdef _M_IX86
                                32
-#else
+#else /* _M_AMD64 */
                                64
 #endif
                            )
@@ -760,9 +770,9 @@ SK_Bypass_CRT (LPVOID)
               temp_dll = SK_UTF8ToWideChar (
                            SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                              SK_GetDocumentsDir ().c_str (),
-#ifndef _WIN64
+#ifdef _M_IX86
                                32
-#else
+#else /* _M_AMD64 */
                                64
 #endif
                            )
@@ -782,10 +792,10 @@ SK_Bypass_CRT (LPVOID)
     {
       // TEMPORARY: There will be a function to disable plug-ins here, for now
       //              just disable ReShade.
-#ifdef _WIN64
+#ifdef _M_AMD64
       dll_ini->remove_section (L"Import.ReShade64");
       dll_ini->remove_section (L"Import.ReShade64_Custom");
-#else
+#else /* _M_IX86 */
       dll_ini->remove_section (L"Import.ReShade32");
       dll_ini->remove_section (L"Import.ReShade32_Custom");
 #endif
@@ -888,7 +898,7 @@ SK_BypassInject (void)
   SK_Thread_Create ( SK_Bypass_CRT, nullptr );
 
   return
-    std::make_pair (suspended_tids, __bypass.disable);
+    std::make_pair (std::queue <DWORD> { }, __bypass.disable);
 }
 
 
@@ -923,8 +933,6 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 
 #include <SpecialK/sound.h>
 
-#pragma comment (lib,"mmdevapi.lib")
-
 //
 // MSI Nahimic sometimes @#$%s the bed if MMDevAPI.dll is not loaded
 //   in the right order, so to make it happy, we need a link-time reference
@@ -936,7 +944,7 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 HRESULT
 SK_COMPAT_FixNahimicDeadlock (void)
 {
-  CComPtr <IActivateAudioInterfaceAsyncOperation> aOp;
+  SK_ComPtr <IActivateAudioInterfaceAsyncOperation> aOp;
 
   ActivateAudioInterfaceAsync ( L"I don't exist",
                                   __uuidof (IAudioClient),
@@ -961,9 +969,9 @@ SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally)
 
   wchar_t wszSystemDir [MAX_PATH * 2] = { };
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   GetSystemDirectoryW (wszSystemDir, MAX_PATH);
-#else
+#else /* _M_IX86 */
   BOOL bWoW64 = FALSE;
   if (IsWow64Process (SK_GetCurrentProcess (), &bWoW64) && bWoW64)
     GetSystemWow64DirectoryW (wszSystemDir, MAX_PATH);
@@ -973,20 +981,21 @@ SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally)
 
   PathAppendW (wszSystemDir, wszDll);
 
-  return GetFileAttributesW (wszSystemDir) != INVALID_FILE_ATTRIBUTES;
+  return
+    GetFileAttributesW (wszSystemDir) != INVALID_FILE_ATTRIBUTES;
 };
 
 
 void
 SK_COMPAT_UnloadFraps (void)
 {
-#ifdef _WIN64
+#ifdef _M_AMD64
   if (SK_GetModuleHandle (L"fraps64.dll"))
   {
     UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps64.dll", "FrapsProcCBT"));
     FreeLibrary (               SK_GetModuleHandle (L"fraps64.dll"));
   }
-#else
+#else /* _M_IX86 */
   if (SK_GetModuleHandle (L"fraps.dll"))
   {
     UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps.dll", "FrapsProcCBT"));
@@ -995,13 +1004,12 @@ SK_COMPAT_UnloadFraps (void)
 #endif
 }
 
-#include <SpecialK/control_panel.h>
 bool
 SK_COMPAT_IsFrapsPresent (void)
 {
-#ifdef _WIN64
+#ifdef _M_AMD64
   if (SK_GetModuleHandle (L"fraps64.dll") != nullptr)
-#else
+#else /* _M_IX86 */
   if (SK_GetModuleHandle (L"fraps.dll") != nullptr)
 #endif
   {

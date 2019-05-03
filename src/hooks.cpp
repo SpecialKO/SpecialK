@@ -273,9 +273,6 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
 
       if (hook_cfg.contains_key (cache.target.module_path))
       {
-        extern std::wstring __stdcall
-        SK_GetDLLVersionStr (const wchar_t* wszName);
-
         std::wstring& val =
           hook_cfg.get_value (cache.target.module_path);
 
@@ -332,9 +329,8 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
   if (ini == nullptr)
     return {};
 
-
-  extern bool __SK_bypass;
-          if (__SK_bypass) return sk_hook_cache_enablement_s { };
+  if (__SK_bypass)
+    return sk_hook_cache_enablement_s { };
 
   UNREFERENCED_PARAMETER (global_cache);
 

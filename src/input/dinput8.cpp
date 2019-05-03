@@ -28,6 +28,9 @@
 #include <SpecialK/input/input.h>
 #include <guiddef.h>
 
+#include <specialk/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
+
 
 extern bool nav_usable;
 
@@ -35,8 +38,8 @@ extern bool nav_usable;
 using finish_pfn = void (WINAPI *)(void);
 
 
-#define SK_DI8_READ(type)  SK_DI8_Backend.markRead  (type);
-#define SK_DI8_WRITE(type) SK_DI8_Backend.markWrite (type);
+#define SK_DI8_READ(type)  SK_DI8_Backend->markRead  (type);
+#define SK_DI8_WRITE(type) SK_DI8_Backend->markWrite (type);
 
 
 #define DINPUT8_CALL(_Ret, _Call) {                                     \
@@ -882,8 +885,14 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
                 cbData ),
               __SK_SUBSYSTEM__ );
 
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (! pTLS)
+    return E_UNEXPECTED;
+
   HRESULT hr =
-    SK_TLS_Bottom ()->dinput8.hr_GetDevicestate;
+    pTLS->dinput8->hr_GetDevicestate;
 
   if (lpvData != nullptr)
   {
@@ -1040,7 +1049,7 @@ IDirectInputDevice8A_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8A      This,
                                              DWORD                      cbData,
                                              LPVOID                     lpvData )
 {
-  SK_TLS_Bottom ()->dinput8.hr_GetDevicestate =
+  SK_TLS_Bottom ()->dinput8->hr_GetDevicestate =
     IDirectInputDevice8A_GetDeviceState_Original ( This, cbData, lpvData );
 
   return
@@ -1053,7 +1062,7 @@ IDirectInputDevice8W_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8W      This,
                                              DWORD                      cbData,
                                              LPVOID                     lpvData )
 {
-  SK_TLS_Bottom ()->dinput8.hr_GetDevicestate =
+  SK_TLS_Bottom ()->dinput8->hr_GetDevicestate =
     IDirectInputDevice8W_GetDeviceState_Original ( This, cbData, lpvData );
 
   return
@@ -1134,8 +1143,8 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
 
 
 
-concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8W> devices_w;
-concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8A> devices_a;
+static SK_LazyGlobal <concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8W>> devices_w;
+static SK_LazyGlobal <concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8A>> devices_a;
 
 HRESULT
 WINAPI
@@ -1151,10 +1160,12 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  if (devices_w.count (guid_crc32c))
+  auto& _devices_w = devices_w.get ();
+
+  if (_devices_w.count (guid_crc32c))
   {
-    *lplpDirectInputDevice = devices_w [guid_crc32c];
-                             devices_w [guid_crc32c]->AddRef ();
+    *lplpDirectInputDevice = _devices_w [guid_crc32c];
+                             _devices_w [guid_crc32c]->AddRef ();
     return S_OK;
   }
 
@@ -1255,10 +1266,12 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  if (devices_a.count (guid_crc32c))
+  auto& _devices_a = devices_a.get ();
+
+  if (_devices_a.count (guid_crc32c))
   {
-    *lplpDirectInputDevice = devices_a [guid_crc32c];
-                             devices_a [guid_crc32c]->AddRef ();
+    *lplpDirectInputDevice = _devices_a [guid_crc32c];
+                             _devices_a [guid_crc32c]->AddRef ();
     return S_OK;
   }
 
@@ -1387,7 +1400,8 @@ SK_Input_HookDI8 (void)
       InterlockedIncrementRelease (&hooked);
     }
 
-    SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+    else
+      SK_Thread_SpinUntilAtomicMin (&hooked, 2);
   }
 }
 
@@ -1425,4 +1439,4 @@ SK_Input_PreHookDI8 (void)
   }
 }
 
-sk_input_api_context_s SK_DI8_Backend;
+SK_LazyGlobal <sk_input_api_context_s> SK_DI8_Backend;

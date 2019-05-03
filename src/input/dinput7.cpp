@@ -39,8 +39,8 @@ extern bool nav_usable;
 using finish_pfn = void (WINAPI *)(void);
 
 
-#define SK_DI7_READ(type)  SK_DI7_Backend.markRead  (type);
-#define SK_DI7_WRITE(type) SK_DI7_Backend.markWrite (type);
+#define SK_DI7_READ(type)  SK_DI7_Backend->markRead  (type);
+#define SK_DI7_WRITE(type) SK_DI7_Backend->markWrite (type);
 
 
 #define DINPUT7_CALL(_Ret, _Call) {                                     \
@@ -757,7 +757,7 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
 
   HRESULT hr = S_OK;
 
-  if (SUCCEEDED (hr) && lpvData != nullptr)
+  if (lpvData != nullptr)
   {
     if (cbData == sizeof DIJOYSTATE2)
     {
@@ -1026,8 +1026,8 @@ IDirectInputDevice7A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE7A This,
 }
 
 
-static concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE7W> devices_w;
-static concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE7A> devices_a;
+static SK_LazyGlobal <concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE7W>> devices_w;
+static SK_LazyGlobal <concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE7A>> devices_a;
 
 HRESULT
 WINAPI
@@ -1043,7 +1043,7 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  if (devices_w.count (guid_crc32c))
+  if (devices_w->count (guid_crc32c))
   {
     *lplpDirectInputDevice = devices_w [guid_crc32c];
                              devices_w [guid_crc32c]->AddRef ();
@@ -1138,7 +1138,7 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  if (devices_a.count (guid_crc32c))
+  if (devices_a->count (guid_crc32c))
   {
     *lplpDirectInputDevice = devices_a [guid_crc32c];
                              devices_a [guid_crc32c]->AddRef ();
@@ -1269,7 +1269,8 @@ SK_Input_HookDI7 (void)
       InterlockedIncrementRelease (&hooked);
     }
 
-    SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+    else
+      SK_Thread_SpinUntilAtomicMin (&hooked, 2);
   }
 }
 
@@ -1307,4 +1308,4 @@ SK_Input_PreHookDI7 (void)
   }
 }
 
-sk_input_api_context_s SK_DI7_Backend;
+SK_LazyGlobal <sk_input_api_context_s> SK_DI7_Backend;

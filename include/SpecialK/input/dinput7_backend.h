@@ -38,8 +38,8 @@ void SK_Input_PreHookDI7 (void);
 using DirectInputCreateEx_pfn = HRESULT (WINAPI *)(
   HINSTANCE hinst,
   DWORD     dwVersion,
-  REFIID    riidltf, 
-  LPVOID   *ppvOut, 
+  REFIID    riidltf,
+  LPVOID   *ppvOut,
   LPUNKNOWN punkOuter
 );
 
@@ -100,17 +100,17 @@ using IDirectInputDevice7A_SetCooperativeLevel_pfn = HRESULT (WINAPI *)(
 #include <cstdint>
 
 struct SK_DI7_Keyboard {
-  LPDIRECTINPUTDEVICE7W pDev = nullptr;
-  uint8_t               state [512];
-  DWORD                 coop_level;     // The level the game requested, not necessarily
-                                        //   its current state (changes based on UI).
+  LPDIRECTINPUTDEVICE7W pDev        = nullptr;
+  uint8_t               state [512] = { };
+  DWORD                 coop_level  =  0; // The level the game requested, not necessarily
+                                          //   its current state (changes based on UI).
 };
 
 struct SK_DI7_Mouse {
-  LPDIRECTINPUTDEVICE7W pDev = nullptr;
-  DIMOUSESTATE2         state;
-  DWORD                 coop_level;     // The level the game requested, not necessarily
-                                        //   its current state (changes based on UI).
+  LPDIRECTINPUTDEVICE7W pDev        = nullptr;
+  DIMOUSESTATE2         state       = { };
+  DWORD                 coop_level  =  0; // The level the game requested, not necessarily
+                                          //   its current state (changes based on UI).
 
   // Weird hack for some touchpads that don't send out mousewheel events in any API
   //   other than Win32.

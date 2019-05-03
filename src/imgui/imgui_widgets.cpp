@@ -5632,27 +5632,14 @@ ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
           const char*         overlay_text,      float  scale_min,
                 float         scale_max,         ImVec2 frame_size )
 {
-  static thread_local std::unordered_map <ImGuiWindow *, std::unordered_map <ImGuiID, float>> heights;
-  static thread_local std::unordered_map <ImGuiWindow *, std::unordered_map <ImGuiID, float>> widths;
-
   ImGuiWindow* window = GetCurrentWindow ();
 
         ImGuiContext& g     = *GImGui;
   const ImGuiStyle&   style = g.Style;
   const ImGuiID       id    = window->GetID (label);
 
-  if (heights [window].count (id))
-    ImGui::BeginChild (id, ImVec2 (widths [window][id], heights [window][id]), false, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
-
-  ImGui::BeginGroup ();
-
   if (window->SkipItems)
   {
-    ImGui::EndGroup ();
-
-    if (heights [window].count (id))
-      ImGui::EndChild ();
-
     return;
   }
 
@@ -5673,14 +5660,18 @@ ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
                           frame_bb.Max + ImVec2 ( label_size.x > 0.0f ?
                               style.ItemInnerSpacing.x + label_size.x :
                                                                  0.0f, 0.0f ) );
+
+  BeginChildFrame (
+    id, total_bb.GetSize (),
+      ImGuiWindowFlags_NoNav        | ImGuiWindowFlags_NoInputs     |
+      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground
+  );
+
   ItemSize (total_bb, style.FramePadding.y);
 
   if (! ItemAdd (total_bb, 0, &frame_bb))
   {
-    ImGui::EndGroup ();
-
-    if (heights [window].count (id))
-      EndChild ();
+    EndChildFrame ();
 
     return;
   }
@@ -5805,23 +5796,7 @@ ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
     );
   }
 
-  ImGui::EndGroup ();
-
-  auto _UpdateHeights = [&](void) -> void
-  {
-    widths  [window][id] = std::min (GetItemRectMax ().x - GetItemRectMin ().x, widths  [window][id] > (0.95 * GetItemRectMax ().x - GetItemRectMin ().x) ? widths  [window][id] : GetItemRectMax ().x - GetItemRectMin ().x);
-    heights [window][id] = std::min (GetItemRectMax ().y - GetItemRectMin ().y, heights [window][id] > (0.95 * GetItemRectMax ().y - GetItemRectMin ().y) ? heights [window][id] : GetItemRectMax ().y - GetItemRectMin ().y);
-  };
-
-  if (heights [window].count (id))
-  {
-    _UpdateHeights ();
-
-    ImGui::EndChild ();
-  }
-
-  else
-    _UpdateHeights ();
+  EndChildFrame ();
 }
 
 struct ImGuiPlotArrayGetterData

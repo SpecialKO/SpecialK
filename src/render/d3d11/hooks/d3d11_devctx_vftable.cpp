@@ -236,6 +236,9 @@ D3D11_UpdateSubresource1_pfn                        D3D11_UpdateSubresource1_Ori
 // 114 FinishCommandList
 
 
+extern SK_LazyGlobal <std::unordered_set <ID3D11Texture2D *>>                         used_textures;
+extern SK_LazyGlobal <std::unordered_map <ID3D11DeviceContext *, mapped_resources_s>> mapped_resources;
+
 // TODO
 //////#include <../src/render/d3d11/d3d11_dev_ctx.cpp>
 
@@ -611,13 +614,13 @@ D3D11_GSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-    SK_D3D11_SetShaderResources_Impl (
-          SK_D3D11_ShaderType::Geometry,
-    SK_D3D11_IsDevCtxDeferred (This),
-                               This , nullptr,
-      StartSlot,
-        NumViews,
-          ppShaderResourceViews    );
+  SK_D3D11_SetShaderResources_Impl (
+        SK_D3D11_ShaderType::Geometry,
+  SK_D3D11_IsDevCtxDeferred (This),
+                             This , nullptr,
+    StartSlot,
+      NumViews,
+        ppShaderResourceViews    );
 }
 
 __declspec (noinline)
@@ -715,7 +718,7 @@ D3D11_UpdateSubresource1_Override (
 
   else
   {
-        early_out = (! SK_D3D11_ShouldTrackRenderOp (This, &pTLS));
+        early_out = (! SK_D3D11_ShouldTrackRenderOp (This));
     if (early_out)
     {
       early_out = (! SK_D3D11_ShouldTrackMMIO (This, &pTLS));
@@ -748,7 +751,7 @@ D3D11_UpdateSubresource1_Override (
   //           pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch, CopyFlags);
 
   D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
-  pDstResource->GetType  (&rdim);
+  pDstResource->GetType  (&rdim); //-V1004
 
   if (SK_D3D11_IsStagingCacheable (rdim, pDstResource) && DstSubresource == 0)
   {
@@ -812,7 +815,7 @@ D3D11_UpdateSubresource1_Override (
 
         if (desc.Usage == D3D11_USAGE_STAGING)
         {
-          auto& map_ctx = mapped_resources [This];
+          auto& map_ctx = (*mapped_resources)[This];
 
           map_ctx.dynamic_textures  [pDstResource] = checksum;
           map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
@@ -1002,7 +1005,8 @@ D3D11_CopySubresourceRegion_Override (
   ///}
 
 
-  SK_TLS* pTLS = SK_TLS_Bottom ();
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
   SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
 
@@ -1059,9 +1063,12 @@ D3D11_CopySubresourceRegion_Override (
 
 
   // ImGui gets to pass-through without invoking the hook
-  if (! SK_D3D11_ShouldTrackRenderOp (This, &pTLS))
+  if (! SK_D3D11_ShouldTrackRenderOp (This))
   {
-    D3D11_CopySubresourceRegion_Original (This, pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
+    D3D11_CopySubresourceRegion_Original (
+      This, pDstResource, DstSubresource,
+            DstX, DstY, DstZ, pSrcResource,
+              SrcSubresource, pSrcBox );
 
     return;
   }
@@ -1129,7 +1136,7 @@ D3D11_CopySubresourceRegion_Override (
   if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) ||
          SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
   {
-    auto& map_ctx = mapped_resources [This];
+    auto&& map_ctx = (*mapped_resources)[This];
 
     if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource))
     {
@@ -1279,9 +1286,7 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
 {
   SK_LOG_FIRST_CALL
 
-  SK_TLS *pTLS = nullptr;
-
-  if (SK_D3D11_IsDevCtxDeferred (This) || (! SK_D3D11_ShouldTrackRenderOp (This, &pTLS)))
+  if (SK_D3D11_IsDevCtxDeferred (This) || (! SK_D3D11_ShouldTrackRenderOp (This)))
   {
     return
       D3D11_Dispatch_Original ( This,
@@ -1290,7 +1295,10 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
                                       ThreadGroupCountZ );
   }
 
-  if (SK_D3D11_DispatchHandler (This, pTLS))
+  SK_TLS* pTLS    = nullptr;
+  UINT    dev_idx = UINT_MAX;
+
+  if (SK_D3D11_DispatchHandler (This, dev_idx, &pTLS))
     return;
 
   D3D11_Dispatch_Original ( This,
@@ -1298,7 +1306,7 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
                                 ThreadGroupCountY,
                                   ThreadGroupCountZ );
 
-  SK_D3D11_PostDispatch (This, pTLS);
+  SK_D3D11_PostDispatch (This, dev_idx, pTLS);
 }
 
 __declspec (noinline)
@@ -1310,9 +1318,7 @@ D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
 {
   SK_LOG_FIRST_CALL
 
-  SK_TLS *pTLS = nullptr;
-
-  if (SK_D3D11_IsDevCtxDeferred (This) || (! SK_D3D11_ShouldTrackRenderOp (This, &pTLS)))
+  if (SK_D3D11_IsDevCtxDeferred (This) || (! SK_D3D11_ShouldTrackRenderOp (This)))
   {
     return
       D3D11_DispatchIndirect_Original ( This,
@@ -1320,16 +1326,17 @@ D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
                                             AlignedByteOffsetForArgs );
   }
 
-  if (SK_D3D11_DispatchHandler (This, pTLS))
-    return;
+  SK_TLS* pTLS    = nullptr;
+  UINT    dev_idx = UINT_MAX;
 
-  //SK_ReShade_DrawCallback.call (This, 64, pTLS);
+  if (SK_D3D11_DispatchHandler (This, dev_idx, &pTLS))
+    return;
 
   D3D11_DispatchIndirect_Original ( This,
                                       pBufferForArgs,
                                         AlignedByteOffsetForArgs );
 
-  SK_D3D11_PostDispatch (This, pTLS);
+  SK_D3D11_PostDispatch (This, dev_idx, pTLS);
 }
 
 __declspec (noinline)
@@ -1349,14 +1356,15 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext              *This,
-                                            _In_           UINT                              NumRTVs,
-                                            _In_opt_       ID3D11RenderTargetView    *const *ppRenderTargetViews,
-                                            _In_opt_       ID3D11DepthStencilView           *pDepthStencilView,
-                                            _In_           UINT                              UAVStartSlot,
-                                            _In_           UINT                              NumUAVs,
-                                            _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
-                                            _In_opt_ const UINT                             *pUAVInitialCounts )
+D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
+                 ID3D11DeviceContext              *This,
+  _In_           UINT                              NumRTVs,
+  _In_opt_       ID3D11RenderTargetView    *const *ppRenderTargetViews,
+  _In_opt_       ID3D11DepthStencilView           *pDepthStencilView,
+  _In_           UINT                              UAVStartSlot,
+  _In_           UINT                              NumUAVs,
+  _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
+  _In_opt_ const UINT                             *pUAVInitialCounts )
 {
   ID3D11DepthStencilView *pDSV = pDepthStencilView;
 
@@ -1370,18 +1378,15 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
       );
   }
 
-  SK_TLS *pTLS = nullptr;
-
   UINT dev_idx =
     SK_D3D11_GetDeviceContextHandle (This);
 
-  if (pDepthStencilView != nullptr && SK_ReShade_SetDepthStencilViewCallback.fn != nullptr)
-  {
-    SK_ReShade_SetDepthStencilViewCallback.call (pDSV, pTLS);
-  }
+  if ( pDepthStencilView                         != nullptr &&
+       SK_ReShade_SetDepthStencilViewCallback.fn != nullptr )
+  {    SK_ReShade_SetDepthStencilViewCallback.call (pDSV);  }
 
   // ImGui gets to pass-through without invoking the hook
-  if (! SK_D3D11_ShouldTrackRenderOp (This, &pTLS))
+  if (! SK_D3D11_ShouldTrackRenderOp (This, dev_idx))
   {
     for (auto& i : tracked_rtv->active [dev_idx]) i.store (false);
 
@@ -1421,9 +1426,10 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
           rt_views.insert (ppRenderTargetViews [i]);
         }
 
-        const bool active_before = tracked_rtv->active_count [dev_idx] > 0 ?
-                                   tracked_rtv->active       [dev_idx][i].load ()
-                                                                    : false;
+        const bool active_before =
+          tracked_rtv->active_count [dev_idx] > 0 ?
+          tracked_rtv->active       [dev_idx][i].load ()
+                                           : false;
 
         const bool active =
           ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
@@ -1473,18 +1479,22 @@ D3D11_OMGetRenderTargets_Override (ID3D11DeviceContext     *This,
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Override (ID3D11DeviceContext        *This,
-                                                    _In_  UINT                        NumRTVs,
-                                                    _Out_ ID3D11RenderTargetView    **ppRenderTargetViews,
-                                                    _Out_ ID3D11DepthStencilView    **ppDepthStencilView,
-                                                    _In_  UINT                        UAVStartSlot,
-                                                    _In_  UINT                        NumUAVs,
-                                                    _Out_ ID3D11UnorderedAccessView **ppUnorderedAccessViews)
+D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Override (
+        ID3D11DeviceContext        *This,
+  _In_  UINT                        NumRTVs,
+  _Out_ ID3D11RenderTargetView    **ppRenderTargetViews,
+  _Out_ ID3D11DepthStencilView    **ppDepthStencilView,
+  _In_  UINT                        UAVStartSlot,
+  _In_  UINT                        NumUAVs,
+  _Out_ ID3D11UnorderedAccessView **ppUnorderedAccessViews)
 {
-  D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Original (This, NumRTVs, ppRenderTargetViews, ppDepthStencilView, UAVStartSlot, NumUAVs, ppUnorderedAccessViews);
+  D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Original (
+    This, NumRTVs, ppRenderTargetViews, ppDepthStencilView,
+          UAVStartSlot, NumUAVs, ppUnorderedAccessViews    );
 
-  if (ppDepthStencilView != nullptr && SK_ReShade_GetDepthStencilViewCallback.fn != nullptr)
-    SK_ReShade_GetDepthStencilViewCallback.try_call (*ppDepthStencilView);
+  if ( ppDepthStencilView                        != nullptr &&
+       SK_ReShade_GetDepthStencilViewCallback.fn != nullptr)
+  {    SK_ReShade_GetDepthStencilViewCallback.try_call (*ppDepthStencilView); }
 }
 
 __declspec (noinline)
@@ -1531,12 +1541,10 @@ D3D11_PSSetSamplers_Override
 #if 0
   if ( ppSamplers != nullptr )
   {
+    SK_TLS *pTLS;
     //if (SK_GetCurrentRenderBackend ().d3d11.immediate_ctx.IsEqualObject (This))
-    if (SK_GetCurrentRenderBackend ().device.p != nullptr)
+    if (SK_GetCurrentRenderBackend ().device.p != nullptr && (pTLS = SK_TLS_Bottom ()))
     {
-      SK_TLS *pTLS =
-        SK_TLS_Bottom ();
-
       ID3D11SamplerState** pSamplerCopy =
         (ID3D11SamplerState **)pTLS->scratch_memory.cmd.alloc (
            sizeof (ID3D11SamplerState  *) * 4096
@@ -1581,7 +1589,7 @@ D3D11_PSSetSamplers_Override
         }
       }
 
-      if (! (pTLS->imgui.drawing || ys8_clamp_ui || ys8_wrap_ui))
+      if (true)////! (pTLS->imgui.drawing || ys8_clamp_ui || ys8_wrap_ui))
       {
         for ( UINT i = 0 ; i < NumSamplers ; i++ )
         {
@@ -1604,9 +1612,9 @@ D3D11_PSSetSamplers_Override
         for ( UINT i = 0 ; i < NumSamplers ; i++ )
         {
           if (! ys8_wrap_ui)
-            pSamplerCopy [i] = pTLS->d3d11.uiSampler_clamp;
+            pSamplerCopy [i] = pTLS->d3d11->uiSampler_clamp;
           else
-            pSamplerCopy [i] = pTLS->d3d11.uiSampler_wrap;
+            pSamplerCopy [i] = pTLS->d3d11->uiSampler_wrap;
         }
       }
 

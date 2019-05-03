@@ -892,7 +892,7 @@ void
 SK_UnloadImports (void)
 {
   auto orig_se =
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try {
     // Unload in reverse order, because that's safer :)
     for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
@@ -943,7 +943,7 @@ SK_UnloadImports (void)
 
   catch (const SK_SEH_IgnoredException&)
   { }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 }
 
 

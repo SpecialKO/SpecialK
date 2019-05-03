@@ -49,6 +49,22 @@ bool
 __stdcall
 SK_HasPlugin (void);
 
+struct SK_PluginRegistry
+{
+  //Stupid Hack, rewrite me... (IN PROGRESS - see isPlugin below)
+  bool isArkhamKnight    = false;
+  bool isTalesOfZestiria = false;
+  bool isFallout4        = false;
+  bool isNieRAutomata    = false;
+  bool isDarkSouls3      = false;
+  bool isDivinityOrigSin = false;
+
+  bool isPlugin          = false;
+
+  std::wstring plugin_name;
+};
+extern SK_LazyGlobal <SK_PluginRegistry> plugin_mgr;
+
 #include <Windows.h>
 #include <render/dxgi/dxgi_interfaces.h>
 

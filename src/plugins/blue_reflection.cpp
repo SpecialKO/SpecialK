@@ -7,7 +7,7 @@
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
@@ -55,7 +55,9 @@ struct it_cfg_s
   {
     sk::ParameterFloat* min_bias = nullptr;
   } shadows;
-} it_config;
+};
+
+SK_LazyGlobal <it_cfg_s> it_config;
 
 using D3D11Dev_CreateBuffer_pfn = HRESULT (WINAPI *)(
   _In_           ID3D11Device            *This,
@@ -96,7 +98,7 @@ D3D11Dev_CreateBuffer_Override (
   _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
   _Out_opt_      ID3D11Buffer           **ppBuffer );
 
-extern 
+extern
 HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
@@ -235,7 +237,7 @@ SK_IT_Unmap (
       //dll_log.Log ( L"Original light shaft resolution: (%.6fx%.6f)",
       //                pShaft->img_size [0], pShaft->img_size [1] );
 
-      if ( pShaft->img_size [0] >= ImGui::GetIO ().DisplaySize.x - 0.1 && 
+      if ( pShaft->img_size [0] >= ImGui::GetIO ().DisplaySize.x - 0.1 &&
            pShaft->img_size [0] <= ImGui::GetIO ().DisplaySize.x + 0.1 &&
            pShaft->img_size [1] <= ImGui::GetIO ().DisplaySize.y + 0.1 &&
            pShaft->img_size [1] >= ImGui::GetIO ().DisplaySize.y - 0.1 )
@@ -395,8 +397,8 @@ SK_IT_ControlPanel (void)
 
       if (changed)
       {
-        it_config.godrays.max->store (shaft_prefs.max_intensity);
-        it_config.godrays.min->store (shaft_prefs.min_intensity);
+        it_config->godrays.max->store (shaft_prefs.max_intensity);
+        it_config->godrays.min->store (shaft_prefs.min_intensity);
 
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
       }
@@ -420,7 +422,7 @@ SK_IT_ControlPanel (void)
 
       if (changed)
       {
-        it_config.shadows.min_bias->store (min_shadow_bias);
+        it_config->shadows.min_bias->store (min_shadow_bias);
 
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
       }
@@ -502,34 +504,36 @@ SK_IT_InitPlugin (void)
      static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
-  
-  it_config.godrays.min =
+
+  auto& _it_config = it_config.get ();
+
+  _it_config.godrays.min =
       dynamic_cast <sk::ParameterFloat *>
-        (it_config.factory.create_parameter <float> (L"Minimum Godray Intensity"));
+        (_it_config.factory.create_parameter <float> (L"Minimum Godray Intensity"));
 
-  it_config.godrays.max =
+  _it_config.godrays.max =
       dynamic_cast <sk::ParameterFloat *>
-        (it_config.factory.create_parameter <float> (L"Maximum Godray Intensity"));
+        (_it_config.factory.create_parameter <float> (L"Maximum Godray Intensity"));
 
-  it_config.godrays.min->register_to_ini ( SK_GetDLLConfig (),
-                                             L"Indigo.Godrays",
-                                               L"MinimumIntensity" );
-  it_config.godrays.max->register_to_ini ( SK_GetDLLConfig (),
-                                             L"Indigo.Godrays",
-                                               L"MaximumIntensity" );
+  _it_config.godrays.min->register_to_ini ( SK_GetDLLConfig (),
+                                              L"Indigo.Godrays",
+                                                L"MinimumIntensity" );
+  _it_config.godrays.max->register_to_ini ( SK_GetDLLConfig (),
+                                              L"Indigo.Godrays",
+                                                L"MaximumIntensity" );
 
-  it_config.godrays.min->load (shaft_prefs.min_intensity);
-  it_config.godrays.max->load (shaft_prefs.max_intensity);
+  _it_config.godrays.min->load (shaft_prefs.min_intensity);
+  _it_config.godrays.max->load (shaft_prefs.max_intensity);
 
-  it_config.shadows.min_bias =
+  _it_config.shadows.min_bias =
       dynamic_cast <sk::ParameterFloat *>
-        (it_config.factory.create_parameter <float> (L"Minimum Shadowmap Bias"));
+        (_it_config.factory.create_parameter <float> (L"Minimum Shadowmap Bias"));
 
-  it_config.shadows.min_bias->register_to_ini ( SK_GetDLLConfig (),
-                                                  L"Indigo.Shadows",
-                                                    L"MinimumBias" );
+  _it_config.shadows.min_bias->register_to_ini ( SK_GetDLLConfig (),
+                                                   L"Indigo.Shadows",
+                                                     L"MinimumBias" );
 
-  if (! it_config.shadows.min_bias->load (min_shadow_bias))
+  if (! _it_config.shadows.min_bias->load (min_shadow_bias))
     min_shadow_bias = 0.000133f;
 
 

@@ -471,4 +471,6 @@ private:
 };
 #endif
 
+extern SK_LazyGlobal <sk::ParameterFactory> g_ParameterFactory;
+
 #endif /* __SK__PARAMETER_H__ */

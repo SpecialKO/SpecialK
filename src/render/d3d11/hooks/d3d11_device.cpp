@@ -139,7 +139,7 @@ D3D11Dev_CreateShaderResourceView_Override (
       DXGI_FORMAT newFormat    = pDesc->Format;
       UINT        newMipLevels = pDesc->Texture2D.MipLevels;
 
-      CComQIPtr <ID3D11Texture2D> pTex (pResource);
+      SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
 
       D3D11_TEXTURE2D_DESC        tex_desc = { };
       if (pTex) pTex->GetDesc   (&tex_desc);
@@ -215,6 +215,8 @@ D3D11Dev_CreateShaderResourceView_Override (
           HRESULT hr =
             DXGI_ERROR_INVALID_CALL;
 
+          auto orig_se =
+          SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
           try {
             hr =
               D3D11Dev_CreateShaderResourceView_Original (
@@ -222,13 +224,18 @@ D3D11Dev_CreateShaderResourceView_Override (
                   &descCopy, ppSRView                    );
           }
 
-          catch ( const _com_error& eCOM )
+          //catch ( _com_error& err )
+          //{
+          //  SK_LOG0 ( ( L"!! COM Error During "
+          //              L"CreateShaderResourceView (...) - '%s'",
+          //                err.ErrorMessage ()
+          //            ),L"   DXGI   " );
+          //}
+
+          catch (const SK_SEH_IgnoredException&) { };
           {
-            SK_LOG0 ( ( L"!! COM Error During "
-                        L"CreateShaderResourceView (...) - '%s'",
-                          eCOM.ErrorMessage ()
-                      ),L"   DXGI   " );
           }
+          SK_SEH_RemoveTranslator (orig_se);
 
           if (SUCCEEDED (hr))
           {
@@ -242,19 +249,28 @@ D3D11Dev_CreateShaderResourceView_Override (
   HRESULT hr =
     DXGI_ERROR_INVALID_CALL;
 
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try {
     hr =
       D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
                                                    pDesc, ppSRView );
   }
 
-  catch ( _com_error& eCOM )
+  //catch ( _com_error& err )
+  //{
+  //  SK_LOG0 ( ( L"!! COM Error During "
+  //              L"CreateShaderResourceView (...) - '%s'",
+  //                err.ErrorMessage ()
+  //            ),L"   DXGI   " );
+  //
+  //  SK_SEH_SetTranslator (orig_se);
+  //}
+
+  catch (const SK_SEH_IgnoredException&) { };
   {
-    SK_LOG0 ( ( L"!! COM Error During "
-                L"CreateShaderResourceView (...) - '%s'",
-                  eCOM.ErrorMessage ()
-              ),L"   DXGI   " );
   }
+  SK_SEH_RemoveTranslator (orig_se);
 
   return hr;
 }
@@ -279,8 +295,8 @@ D3D11Dev_CreateDepthStencilView_Override (
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      DXGI_FORMAT                 newFormat (pDesc->Format);
-      CComQIPtr <ID3D11Texture2D> pTex      (pResource);
+      DXGI_FORMAT                   newFormat (pDesc->Format);
+      SK_ComQIPtr <ID3D11Texture2D> pTex      (pResource);
 
       if (pTex != nullptr)
       {
@@ -331,8 +347,8 @@ D3D11Dev_CreateUnorderedAccessView_Override (
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      DXGI_FORMAT                 newFormat (pDesc->Format);
-      CComQIPtr <ID3D11Texture2D> pTex      (pResource);
+      DXGI_FORMAT                   newFormat (pDesc->Format);
+      SK_ComQIPtr <ID3D11Texture2D> pTex      (pResource);
 
       if (pTex != nullptr)
       {
@@ -420,6 +436,7 @@ D3D11Dev_CreateSamplerState_Override
       D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
   }
 
+#ifdef _M_AMD64
   if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
   {
     extern bool __SK_Y0_FixAniso;
@@ -464,6 +481,7 @@ D3D11Dev_CreateSamplerState_Override
     if (SUCCEEDED (hr))
       return hr;
   }
+#endif
 
   static bool bLegoMarvel2 =
     ( SK_GetCurrentGameID () == SK_GAME_ID::LEGOMarvelSuperheroes2 );
@@ -556,7 +574,7 @@ D3D11Dev_CreateTexture2D_Override (
   {
     D3D11_TEXTURE2D_DESC descCopy =
                    pDesc ?
-                  *pDesc    :
+                  *pDesc :
                    D3D11_TEXTURE2D_DESC { };
 
     return
@@ -577,14 +595,14 @@ D3D11Dev_CreateTexture2D_Override (
 
   if (SUCCEEDED (hr))
   {
-    auto orig_se =
-    _set_se_translator (SK_BasicStructuredExceptionTranslator);
-    try {
-      *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) =
-        descCopy;
-    }
-    catch (const SK_SEH_IgnoredException&) { };
-    _set_se_translator (orig_se);
+    //auto orig_se =
+    //SK_SEH_SetTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    //try {
+    //  *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) =
+    //    descCopy;
+    //}
+    //catch (const SK_SEH_IgnoredException&) { };
+    //SK_SEH_SetTranslator (orig_se);
 
 
   //if (pDesc && pDesc->Usage == D3D11_USAGE_STAGING)

@@ -4456,7 +4456,7 @@ static int stbtt__solve_cubic (float a, float b, float c, float* r)
     float u = (float)STBTT_sqrt (-p / 3);
     float v = (float)STBTT_acos (-STBTT_sqrt (-27 / p3) * q / 2) / 3; // p3 must be negative, since d is negative
     float m = (float)STBTT_cos (v);
-    float n = (float)STBTT_cos (v - 3.141592 / 2) * 1.732050808f;
+    float n = (float)STBTT_cos (v - 1.570796327f) * 1.732050808f;
     r[0] = s + u * 2 * m;
     r[1] = s - u * (m + n);
     r[2] = s - u * (m - n);

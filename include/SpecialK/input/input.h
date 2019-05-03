@@ -22,6 +22,8 @@
 #ifndef __SK__INPUT_H__
 #define __SK__INPUT_H__
 
+#include <SpecialK/utility/lazy_global.h>
+
 struct IUnknown;
 #include <Unknwnbase.h>
 
@@ -45,7 +47,8 @@ void SK_Input_HookXInput9_1_0 (void);
 
 void SK_Input_PreHookXInput   (void);
 
-void SK_Input_Init (void);
+void SK_Input_PreInit (void);
+void SK_Input_Init    (void);
 
 
 SHORT WINAPI SK_GetAsyncKeyState (int vKey);
@@ -101,15 +104,19 @@ enum class sk_input_dev_type {
 
 struct sk_input_api_context_s
 {
-  volatile LONG reads [4], writes [4];
+  constexpr sk_input_api_context_s (void) { };
+
+  volatile LONG reads  [4] = { },
+                writes [4] = { };
 
   struct {
-    volatile LONG reads [4], writes [4];
+    volatile LONG reads  [4] = { },
+                  writes [4] = { };
   } last_frame;
 
   struct {
     bool keyboard, mouse, gamepad, other;
-  } active;
+  } active { false, false, false, false };
 
   void markRead  (sk_input_dev_type type) noexcept
   { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
@@ -164,15 +171,15 @@ struct sk_input_api_context_s
   }
 };
 
-extern sk_input_api_context_s SK_XInput_Backend;
-extern sk_input_api_context_s SK_DI8_Backend;
-extern sk_input_api_context_s SK_DI7_Backend;
-extern sk_input_api_context_s SK_HID_Backend;
-extern sk_input_api_context_s SK_Win32_Backend;
-extern sk_input_api_context_s SK_RawInput_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_XInput_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_DI8_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_DI7_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_Win32_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
 
-extern sk_input_api_context_s SK_WinMM_Backend;
-extern sk_input_api_context_s SK_Steam_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_WinMM_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_Steam_Backend;
 
 
 
@@ -272,11 +279,19 @@ struct SK_ImGui_InputLanguage_s
 {
   // Cause the keybd_layout to be populated the
   //   first time update (...) is called
-  bool changed      = true; // ^^^^ Default = true
-  HKL  keybd_layout = nullptr;
+  static bool changed;
+  static HKL  keybd_layout;
 
   void update (void);
 };
+
+__forceinline
+HKL
+SK_Input_GetKeyboardLayout (void)
+{
+  return
+    SK_ImGui_InputLanguage_s::keybd_layout;
+}
 
 bool
 SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek);
@@ -373,9 +388,9 @@ using GetRegisteredRawInputDevices_pfn = UINT (WINAPI *)(
   _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
   _Inout_   PUINT           puiNumDevices,
   _In_      UINT            cbSize
-);
-
-extern GetRegisteredRawInputDevices_pfn GetRegisteredRawInputDevices_Original;
+);extern
+      GetRegisteredRawInputDevices_pfn
+      GetRegisteredRawInputDevices_Original;
 
 extern LONG  SK_RawInput_MouseX;
 extern LONG  SK_RawInput_MouseY;

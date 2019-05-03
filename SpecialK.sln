@@ -1,11 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28809.33
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpecialK", "SpecialK.vcxproj", "{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE} = {F142A341-5EE0-442D-A15F-98AE9B48DBAE}
+		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037} = {63D8FE45-68D6-4AD5-9807-DDC7A6B63037}
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77} = {371B9FA9-4C90-4AC6-A123-ACED756D6C77}
 	EndProjectSection
 EndProject
@@ -18,9 +19,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReShade_Shim", "..\ReShade_Shim\ReShade_Shim.vcxproj", "{BA616EFC-F8D5-4C47-B43B-C42AFBD9F43B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F47C123E-ECB9-40BA-A7F7-37DA33F55283}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -274,7 +272,9 @@ Global
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Rel_Debug|x86.Deploy.0 = Debug|Win32
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|AVX2.ActiveCfg = Release|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|VS2017 (x64).ActiveCfg = Release|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|VS2017 (x64).Build.0 = Release|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|VS2017 (x86).ActiveCfg = Release|Win32
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|VS2017 (x86).Build.0 = Release|Win32
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x64.ActiveCfg = Release|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x64.Build.0 = Release|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x86.ActiveCfg = Release|Win32
@@ -392,7 +392,9 @@ Global
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Rel_Debug|x86.Build.0 = Rel_Debug|Win32
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|AVX2.ActiveCfg = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|VS2017 (x64).ActiveCfg = Release|x64
+		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|VS2017 (x64).Build.0 = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|VS2017 (x86).ActiveCfg = Release|Win32
+		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|VS2017 (x86).Build.0 = Release|Win32
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x64.ActiveCfg = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x64.Build.0 = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x86.ActiveCfg = Release|Win32
@@ -504,7 +506,9 @@ Global
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Rel_Debug|x86.Deploy.0 = Debug|Win32
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|AVX2.ActiveCfg = Release|x64
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|VS2017 (x64).ActiveCfg = Release|x64
+		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|VS2017 (x64).Build.0 = Release|x64
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|VS2017 (x86).ActiveCfg = Release|Win32
+		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|VS2017 (x86).Build.0 = Release|Win32
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|x64.ActiveCfg = Release|x64
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|x64.Build.0 = Release|x64
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|x86.ActiveCfg = Release|Win32

@@ -10,10 +10,10 @@
 
 #include <concurrent_unordered_map.h>
 
-extern sk_input_api_context_s SK_Steam_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_Steam_Backend;
 
-#define SK_Steam_READ(type)  SK_Steam_Backend.markRead  (type);
-#define SK_Steam_WRITE(type) SK_Steam_Backend.markWrite (type);
+#define SK_Steam_READ(type)  SK_Steam_Backend->markRead  (type);
+#define SK_Steam_WRITE(type) SK_Steam_Backend->markWrite (type);
 
 typedef uint32_t ControllerIndex_t;
 
@@ -242,7 +242,7 @@ public:
     }
   } // 16
 
-  // Trigger a vibration event on supported controllers.  
+  // Trigger a vibration event on supported controllers.
   void TriggerVibration (ControllerHandle_t controllerHandle, unsigned short usLeftSpeed, unsigned short usRightSpeed) override
   {
     const ControllerIndex_t slot =
@@ -258,7 +258,7 @@ public:
     }
   } // 17
 
-  // Set the controller LED color on supported controllers.  
+  // Set the controller LED color on supported controllers.
   void SetLEDColor (ControllerHandle_t controllerHandle, uint8 nColorR, uint8 nColorG, uint8 nColorB, unsigned int nFlags) override
   {
     pRealController->SetLEDColor (controllerHandle, nColorR, nColorG, nColorB, nFlags);
@@ -299,7 +299,7 @@ public:
     return pRealController->GetStringForActionOrigin (eOrigin);
   } // 24
 
-  // Get a local path to art for on-screen glyph for a particular origin 
+  // Get a local path to art for on-screen glyph for a particular origin
   const char *GetGlyphForActionOrigin (EControllerActionOrigin eOrigin) override
   {
     return pRealController->GetGlyphForActionOrigin (eOrigin);

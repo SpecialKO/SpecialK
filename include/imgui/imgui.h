@@ -2229,3 +2229,17 @@ extern           bool nav_usable;
 
 static inline bool SK_ImGui_Active (void) { return SK_ImGui_Visible || SK_ReShade_Visible; };
               void SK_ImGui_Warning (const wchar_t* wszMessage);
+
+// Fixed-width font
+#define SK_IMGUI_FIXED_FONT 1
+
+class SK_ImGui_AutoFont {
+public:
+   SK_ImGui_AutoFont (ImFont* pFont);
+  ~SK_ImGui_AutoFont (void);
+
+  bool Detach (void);
+
+protected:
+  ImFont* font_ = nullptr;
+};

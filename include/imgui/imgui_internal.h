@@ -134,7 +134,7 @@ extern IMGUI_API ImGuiContext* GImGui;  // Current implicit ImGui context pointe
 #endif
 #define IM_TABSIZE      (4)
 
-#define IMGUI_DEBUG_LOG(_FMT,...)       printf("[%05d] " _FMT, GImGui->FrameCount, __VA_ARGS__)
+#define IMGUI_DEBUG_LOG(_FMT,...)       SK_LOG0 ( (L"(%05d) " _FMT, GImGui->FrameCount, __VA_ARGS__ ), L"ImGui 1.70")
 #define IM_STATIC_ASSERT(_COND)         typedef char static_assertion_##__line__[(_COND)?1:-1]
 #define IM_F32_TO_INT8_UNBOUND(_VAL)    ((int)((_VAL) * 255.0f + ((_VAL)>=0 ? 0.5f : -0.5f)))   // Unsaturated, for display purpose
 #define IM_F32_TO_INT8_SAT(_VAL)        ((int)(ImSaturate(_VAL) * 255.0f + 0.5f))               // Saturated, always output 0..255
@@ -168,8 +168,9 @@ IMGUI_API FILE* ImFileOpen         (const char* filename,       const char* file
 static inline bool      ImCharIsBlankA    (        char c) { return c == ' ' || c == '\t';                }
 static inline bool      ImCharIsBlankW    (unsigned int c) { return c == ' ' || c == '\t' || c == 0x3000; }
 static inline bool      ImIsPowerOfTwo    (         int v) { return v != 0   && (v & (v - 1))  == 0;      }
-static inline int       ImUpperPowerOfTwo (         int v) { --v |= v >> 1; v |= v >> 2; v |= v >> 4;
-                                                               v |= v >> 8; v |= v >> 16;     return ++v; }
+static inline int       ImUpperPowerOfTwo (         int v) { v--; v |= v >> 1; v |= v >> 2; v |= v >> 4; v |= v >> 8; v |= v >> 16; v++; return v; }
+                                                             //--v |= v >> 1; v |= v >> 2; v |= v >> 4;
+                                                             //  v |= v >> 8; v |= v >> 16;     return ++v; }
 #define ImQsort         qsort
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 static inline ImU32     ImHash (const void* data, int size, ImU32 seed = 0)
@@ -1025,7 +1026,7 @@ struct ImGuiContext
   int                     WantCaptureKeyboardNextFrame;
   int                     WantTextInputNextFrame;
   // Custom thread-local ptr for faster memory allocation
-  SK_TLS*                 ThreadContext;
+  SK_TLS*                 ThreadContext = nullptr;
   char                    TempBuffer[1024 * 64 + 1];          // Temporary text buffer
 
   ImGuiContext (ImFontAtlas* shared_font_atlas) : BackgroundDrawList (NULL), ForegroundDrawList (NULL)

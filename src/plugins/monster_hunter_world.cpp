@@ -21,6 +21,8 @@
 //
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <imgui/imgui.h>
 
 extern volatile
@@ -29,7 +31,6 @@ extern volatile
   LONG SK_D3D11_CBufferTrackingReqs;
 
 extern iSK_INI*             dll_ini;
-extern sk::ParameterFactory g_ParameterFactory;
 
 sk::ParameterBool*  _SK_MHW_JobParity;
 bool               __SK_MHW_JobParity         = true;
@@ -167,7 +168,7 @@ SK_MHW_ThreadStartStop (HANDLE hThread, int op = 0)
     if (! stopped_threads.count (hThread))
     {
       stopped_threads.insert (hThread);
-      SuspendThread          (hThread);
+      SuspendThread          (hThread); //-V720
     }
   }
 

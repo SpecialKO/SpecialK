@@ -70,7 +70,14 @@ struct IUnknown;
 #include <concurrent_queue.h>
 #include <atlbase.h>
 
-#include <dxgicommon.h>
+#define D3D11_VIDEO_NO_HELPERS
+#define D3D11_NO_HELPERS
+
+#ifndef __dxgicommon_h__
+#ifndef __dxgitype_h__
+#include <dxgitype.h>
+#endif
+#endif
 #include <d3d11.h>
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
@@ -323,7 +330,7 @@ struct SK_RESHADE_CALLBACK_DRAW
   SK_ReShade_OnDrawD3D11_pfn fn   = nullptr;
   void*                      data = nullptr;
   __forceinline void call (ID3D11DeviceContext *context, unsigned int vertices, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui.drawing))) fn (data, context, vertices); }
+  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, context, vertices); }
 } extern SK_ReShade_DrawCallback;
 
 struct SK_RESHADE_CALLBACK_SetDSV
@@ -338,7 +345,7 @@ struct SK_RESHADE_CALLBACK_SetDSV
   }
 
   __forceinline void call (ID3D11DepthStencilView *&depthstencil, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui.drawing))) fn (data, depthstencil); }
+  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, depthstencil); }
 } extern SK_ReShade_SetDepthStencilViewCallback;
 
 struct SK_RESHADE_CALLBACK_GetDSV
@@ -353,7 +360,7 @@ struct SK_RESHADE_CALLBACK_GetDSV
   }
 
   __forceinline void call (ID3D11DepthStencilView *&depthstencil, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui.drawing))) fn (data, depthstencil); }
+  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, depthstencil); }
 } extern SK_ReShade_GetDepthStencilViewCallback;
 
 struct SK_RESHADE_CALLBACK_ClearDSV
@@ -368,7 +375,7 @@ struct SK_RESHADE_CALLBACK_ClearDSV
   }
 
   __forceinline void call (ID3D11DepthStencilView *&depthstencil, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui.drawing))) fn (data, depthstencil); }
+  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, depthstencil); }
 } extern SK_ReShade_ClearDepthStencilViewCallback;
 
 struct SK_RESHADE_CALLBACK_CopyResource
@@ -376,7 +383,7 @@ struct SK_RESHADE_CALLBACK_CopyResource
   SK_ReShade_OnCopyResourceD3D11_pfn fn   = nullptr;
   void*                              data = nullptr;
   __forceinline void call (ID3D11Resource *&dest, ID3D11Resource *&source, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui.drawing))) fn (data, dest, source); }
+  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, dest, source); }
 } extern SK_ReShade_CopyResourceCallback;
 
 
@@ -536,10 +543,12 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
 
 bool
 SK_D3D11_DispatchHandler ( ID3D11DeviceContext* pDevCtx,
-                           SK_TLS*              pTLS = SK_TLS_Bottom () );
+                           UINT&                dev_idx,
+                           SK_TLS**             ppTLS = nullptr );
 
 void
 SK_D3D11_PostDispatch ( ID3D11DeviceContext* pDevCtx,
+                        UINT&                dev_idx,
                         SK_TLS*              pTLS = SK_TLS_Bottom () );
 
 

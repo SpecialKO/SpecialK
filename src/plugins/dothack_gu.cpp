@@ -72,10 +72,8 @@ struct SK_DGPU_ScreenFlare_Inst {
 } SK_DGPU_ScreenFlare_Global,
   SK_DGPU_ScreenFlare_Local;
 
-struct dpgu_cfg_s
+struct dgpu_cfg_s
 {
-  sk::ParameterFactory factory;
-
   struct antialiasing_s
   {
     sk::ParameterFloat* scale = nullptr;
@@ -109,7 +107,7 @@ struct dpgu_cfg_s
       {
         override =
           dynamic_cast <sk::ParameterBool *>
-            (dgpu_config.factory.create_parameter <bool> (L"Override Flares"));
+            (g_ParameterFactory->create_parameter <bool> (L"Override Flares"));
 
         override->register_to_ini ( SK_GetDLLConfig (),
                                       SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
@@ -117,7 +115,7 @@ struct dpgu_cfg_s
 
         blend_eq =
           dynamic_cast <sk::ParameterInt *>
-            (dgpu_config.factory.create_parameter <int> (L"Blend Equation"));
+            (g_ParameterFactory->create_parameter <int> (L"Blend Equation"));
 
         blend_eq->register_to_ini ( SK_GetDLLConfig (),
                                       SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
@@ -125,7 +123,7 @@ struct dpgu_cfg_s
 
         color_r =
           dynamic_cast <sk::ParameterInt *>
-            (dgpu_config.factory.create_parameter <int> (L"Constant Red Value"));
+            (g_ParameterFactory->create_parameter <int> (L"Constant Red Value"));
 
         color_r->register_to_ini ( SK_GetDLLConfig (),
                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
@@ -133,7 +131,7 @@ struct dpgu_cfg_s
 
         color_g =
           dynamic_cast <sk::ParameterInt *>
-            (dgpu_config.factory.create_parameter <int> (L"Constant Green Value"));
+            (g_ParameterFactory->create_parameter <int> (L"Constant Green Value"));
 
         color_g->register_to_ini ( SK_GetDLLConfig (),
                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
@@ -141,7 +139,7 @@ struct dpgu_cfg_s
 
         color_b =
           dynamic_cast <sk::ParameterInt *>
-            (dgpu_config.factory.create_parameter <int> (L"Constant Blue Value"));
+            (g_ParameterFactory->create_parameter <int> (L"Constant Blue Value"));
 
         color_b->register_to_ini ( SK_GetDLLConfig (),
                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
@@ -149,7 +147,7 @@ struct dpgu_cfg_s
 
         color_a =
           dynamic_cast <sk::ParameterInt *>
-            (dgpu_config.factory.create_parameter <int> (L"Constant Alpha Value"));
+            (g_ParameterFactory->create_parameter <int> (L"Constant Alpha Value"));
 
         color_a->register_to_ini ( SK_GetDLLConfig (),
                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
@@ -202,7 +200,9 @@ struct dpgu_cfg_s
     } global { "Global", &SK_DGPU_ScreenFlare_Global },
       local  { "Local",  &SK_DGPU_ScreenFlare_Local  };
   } flares;
-} dgpu_config;
+};
+
+SK_LazyGlobal <dgpu_cfg_s> dgpu_config;
 
 
 struct
@@ -301,7 +301,7 @@ SK_DGPU_ControlPanel (void)
                            level == 2 ? 2.0f :
                                         1.0f );
 
-        dgpu_config.antialiasing.scale->store (aa_prefs.scale);
+        dgpu_config->antialiasing.scale->store (aa_prefs.scale);
 
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
 
@@ -418,8 +418,8 @@ SK_DGPU_ControlPanel (void)
         {
           config.textures.d3d11.uncompressed_mips = (sel == 1 ? true : false);
 
-          dgpu_config.mipmaps.cache_mipmaps->store        (config.textures.d3d11.cache_gen_mips);
-          dgpu_config.mipmaps.uncompressed_mipmaps->store (config.textures.d3d11.uncompressed_mips);
+          dgpu_config->mipmaps.cache_mipmaps->store        (config.textures.d3d11.cache_gen_mips);
+          dgpu_config->mipmaps.uncompressed_mipmaps->store (config.textures.d3d11.uncompressed_mips);
 
           SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
         }
@@ -471,12 +471,12 @@ SK_DGPU_ControlPanel (void)
       };
 
       if (FlareMenu ("Stationary", &SK_DGPU_ScreenFlare_Global))
-        dgpu_config.flares.global.store ();
+        dgpu_config->flares.global.store ();
 
       ImGui::SameLine ();
 
       if (FlareMenu ("Positional", &SK_DGPU_ScreenFlare_Local))
-        dgpu_config.flares.local.store ();
+        dgpu_config->flares.local.store ();
 
       ImGui::TreePop  ();
     }
@@ -526,18 +526,29 @@ SK_DGPU_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT F
 
 #include <SpecialK/tls.h>
 
- extern bool   SK_D3D11_DrawHandler     (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS, INT);
-typedef bool (*SK_D3D11_DrawHandler_pfn)(ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS, INT);
-               SK_D3D11_DrawHandler_pfn SK_D3D11_DrawHandler_Original = nullptr;
+enum SK_D3D11_DrawHandlerState
+{
+  Normal,
+  Override,
+  Skipped
+};
 
-bool
-SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS, INT d_idx)
+ extern SK_D3D11_DrawHandlerState   SK_D3D11_DrawHandler     (ID3D11DeviceContext* pDevCtx, SK_TLS** ppTLS, UINT&);
+typedef SK_D3D11_DrawHandlerState (*SK_D3D11_DrawHandler_pfn)(ID3D11DeviceContext* pDevCtx, SK_TLS** ppTLS, UINT&);
+                                    SK_D3D11_DrawHandler_pfn
+                                    SK_D3D11_DrawHandler_Original = nullptr;
+
+SK_D3D11_DrawHandlerState
+SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS** ppTLS, UINT& d_idx)
 {
   if ( SK_DGPU_ScreenFlare_Local.override ||
        SK_DGPU_ScreenFlare_Global.override )
   {
+    if (d_idx == -1)
+        d_idx = SK_D3D11_GetDeviceContextHandle (pDevCtx);
+
     uint32_t current_pixel_shader =
-      SK_D3D11_Shaders->pixel.current.shader [SK_D3D11_GetDeviceContextHandle (pDevCtx)];
+      SK_D3D11_Shaders->pixel.current.shader [d_idx];
 
     const uint32_t PS_GLOBAL_FLARE = 0xD18AEDF1;  // Has position, but we're not going to bother with that.
     const uint32_t PS_LOCAL_FLARE  = 0xBDCAA539;  // No position, just one constant color screwing up the whole screen!
@@ -550,7 +561,8 @@ SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS, INT d_idx)
   }
 
 
-  return SK_D3D11_DrawHandler_Original (pDevCtx, pTLS, d_idx);
+  return
+    SK_D3D11_DrawHandler_Original (pDevCtx, ppTLS, d_idx);
 }
 
 
@@ -559,43 +571,43 @@ SK_DGPU_InitPlugin (void)
 {
   SK_SetPluginName (DGPU_VERSION_STR);
 
-  dgpu_config.antialiasing.scale =
+  dgpu_config->antialiasing.scale =
       dynamic_cast <sk::ParameterFloat *>
-        (dgpu_config.factory.create_parameter <float> (L"Anti-Aliasing Scale"));
+        (g_ParameterFactory->create_parameter <float> (L"Anti-Aliasing Scale"));
 
-  dgpu_config.antialiasing.scale->register_to_ini ( SK_GetDLLConfig (),
+  dgpu_config->antialiasing.scale->register_to_ini ( SK_GetDLLConfig (),
                                                       L"dGPU.Antialiasing",
                                                         L"Scale" );
 
-  dgpu_config.antialiasing.scale->load (aa_prefs.scale);
+  dgpu_config->antialiasing.scale->load (aa_prefs.scale);
 
 
-  dgpu_config.mipmaps.cache_mipmaps =
+  dgpu_config->mipmaps.cache_mipmaps =
       dynamic_cast <sk::ParameterBool *>
-        (dgpu_config.factory.create_parameter <bool> (L"Cache Mipmaps on Disk"));
+        (g_ParameterFactory->create_parameter <bool> (L"Cache Mipmaps on Disk"));
 
-  dgpu_config.mipmaps.cache_mipmaps->register_to_ini ( SK_GetDLLConfig (),
+  dgpu_config->mipmaps.cache_mipmaps->register_to_ini ( SK_GetDLLConfig (),
                                                          L"dGPU.Mipmaps",
                                                            L"CacheOnDisk" );
 
-  dgpu_config.mipmaps.uncompressed_mipmaps =
+  dgpu_config->mipmaps.uncompressed_mipmaps =
       dynamic_cast <sk::ParameterBool *>
-        (dgpu_config.factory.create_parameter <bool> (L"Do not compress mipmaps"));
+        (g_ParameterFactory->create_parameter <bool> (L"Do not compress mipmaps"));
 
-  dgpu_config.mipmaps.uncompressed_mipmaps->register_to_ini ( SK_GetDLLConfig (),
+  dgpu_config->mipmaps.uncompressed_mipmaps->register_to_ini ( SK_GetDLLConfig (),
                                                                 L"dGPU.Mipmaps",
                                                                   L"Uncompressed" );
 
 
-  dgpu_config.mipmaps.cache_mipmaps->load        (config.textures.d3d11.cache_gen_mips);
-  dgpu_config.mipmaps.uncompressed_mipmaps->load (config.textures.d3d11.uncompressed_mips);
+  dgpu_config->mipmaps.cache_mipmaps->load        (config.textures.d3d11.cache_gen_mips);
+  dgpu_config->mipmaps.uncompressed_mipmaps->load (config.textures.d3d11.uncompressed_mips);
 
 
-  dgpu_config.flares.global.init ();
-  dgpu_config.flares.local.init  ();
+  dgpu_config->flares.global.init ();
+  dgpu_config->flares.local.init  ();
 
-  dgpu_config.flares.global.load ();
-  dgpu_config.flares.local.load  ();
+  dgpu_config->flares.global.load ();
+  dgpu_config->flares.local.load  ();
 
 
   SK_CreateFuncHook (       L"SK_PlugIn_ControlPanelWidget",

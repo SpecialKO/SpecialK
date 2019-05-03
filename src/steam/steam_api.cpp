@@ -20,6 +20,9 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/resource.h>
+
+#include <SpecialK/render/backend.h>
 
 #define __SK_SUBSYSTEM__ L" SteamAPI "
 
@@ -55,35 +58,35 @@ using SteamClient_pfn = ISteamClient* (S_CALLTYPE *)(
   void
   );
 extern                          SteamClient_pfn
-SteamClient_Original;
+                                SteamClient_Original;
 extern ISteamClient* S_CALLTYPE SteamClient_Detour (void);
 
 using SteamUser_pfn = ISteamUser* (S_CALLTYPE *)(
   void
   );
 extern                        SteamUser_pfn
-SteamUser_Original;
+                              SteamUser_Original;
 extern ISteamUser* S_CALLTYPE SteamUser_Detour (void);
 
 using SteamRemoteStorage_pfn = ISteamRemoteStorage* (S_CALLTYPE *)(
   void
   );
 extern                                 SteamRemoteStorage_pfn
-SteamRemoteStorage_Original;
+                                       SteamRemoteStorage_Original;
 extern ISteamRemoteStorage* S_CALLTYPE SteamRemoteStorage_Detour (void);
 
 using SteamUGC_pfn = ISteamUGC* (S_CALLTYPE *)(
   void
   );
 extern                                 SteamUGC_pfn
-SteamUGC_Original;
+                                       SteamUGC_Original;
 extern ISteamUGC*           S_CALLTYPE SteamUGC_Detour (void);
 
 using SteamUtils_pfn = ISteamUtils* (S_CALLTYPE *)(
   void
   );
 extern                         SteamUtils_pfn
-SteamUtils_Original;
+                               SteamUtils_Original;
 extern ISteamUtils* S_CALLTYPE SteamUtils_Detour (void);
 
 
@@ -97,7 +100,7 @@ using SteamInternal_CreateInterface_pfn       = void*       (S_CALLTYPE *)(
   const char *ver
   );
 extern                      SteamInternal_CreateInterface_pfn
-SteamInternal_CreateInterface_Original;
+                            SteamInternal_CreateInterface_Original;
 extern     void* S_CALLTYPE SteamInternal_CreateInterface_Detour (const char *ver);
 
 using SteamAPI_ISteamClient_GetISteamUser_pfn = ISteamUser* (S_CALLTYPE *)(
@@ -126,7 +129,7 @@ using SteamAPI_ISteamClient_GetISteamController_pfn = ISteamController* (S_CALLT
   ISteamClient *This,
   HSteamUser    hSteamUser,
   HSteamPipe    hSteamPipe,
-  const char         *pchVersion
+  const char   *pchVersion
   );
 extern                              SteamAPI_ISteamClient_GetISteamController_pfn   SteamAPI_ISteamClient_GetISteamController_Original;
 extern ISteamController* S_CALLTYPE SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
@@ -286,7 +289,7 @@ std::wstring
 _SK_RecursiveFileSearch ( const wchar_t* wszDir,
                          const wchar_t* wszFile )
 {
-  std::wstring found = L"";
+  std::wstring found;
 
   wchar_t   wszPath [MAX_PATH * 2] = { };
   swprintf (wszPath, LR"(%s\*)", wszDir);
@@ -378,7 +381,7 @@ SK_Steam_GetApplicationManifestPath (AppId_t appid)
 std::string
 SK_GetManifestContentsForAppID (AppId_t appid)
 {
-  static std::string manifest = "";
+  static std::string manifest;
 
   if (! manifest.empty ())
     return manifest;
@@ -439,7 +442,7 @@ SK_GetManifestContentsForAppID (AppId_t appid)
 std::wstring
 SK_Steam_FindInstallPath (uint32_t appid)
 {
-  static std::wstring install_path = L"";
+  static std::wstring install_path;
 
   if (! install_path.empty ())
     return install_path;
@@ -483,12 +486,15 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
   static wchar_t
     dll_file [MAX_PATH * 2 + 1] = { };
 
-  // Already have a working DLL
-  if (SK_Modules->LoadLibrary (dll_file))
+  if (*dll_file != L'\0')
   {
-    wcsncpy_s (wszDestBuf, std::min (max_size, (size_t)MAX_PATH), dll_file, _TRUNCATE);
+    // Already have a working DLL
+    if (SK_Modules->LoadLibrary (dll_file))
+    {
+      wcsncpy_s (wszDestBuf, std::min (max_size, (size_t)MAX_PATH), dll_file, _TRUNCATE);
 
-    return true;
+      return true;
+    }
   }
 
   std::wstring& cfg_path =
@@ -677,7 +683,7 @@ SK_Steam_PreHookCore (void)
     /* 8/1/18 -- Disabled for Yukuza 0
     ------
 
-    Will cause SteamAPI problems at cloud-sync start; hook isn't needed since
+    Will cause `problems at cloud-sync start; hook isn't needed since
     SK's cloud features still aren't finished.
     */
     //SK_CreateDLLHook2 (          wszSteamLib,
@@ -767,8 +773,6 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
 void
 SK_Steam_CatastropicScreenshotFail (void)
 {
-  extern void SK_ImGui_Warning            (const wchar_t* wszMessage);
-
   SK_RunOnce (
     SK_ImGui_Warning ( L"Something went catastrophically wrong attempting to "
                        L"take a Smart Steam Screenshot -- DISABLING FEATURE." )
@@ -1288,7 +1292,7 @@ void
 SK_SteamAPI_EraseActivationCallback (class CCallbackBase *pCallback)
 {
   auto orig_se =
-  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try
   {
     overlay_activation_callbacks->erase (pCallback);
@@ -1297,7 +1301,7 @@ SK_SteamAPI_EraseActivationCallback (class CCallbackBase *pCallback)
   catch (const SK_SEH_IgnoredException&)
   {
   }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 }
 
 extern "C"
@@ -2514,7 +2518,7 @@ public:
           popups.push_back (popup);
         }
 
-        catch (...)
+        catch (const CEGUI::GenericException&)
         {
         }
 
@@ -2793,7 +2797,7 @@ public:
         ++drawn;
       }
 
-      catch (...) {}
+      catch (const CEGUI::GenericException&) {}
     }
     //SK_PopupManager::getInstance ()->unlockPopups ();
     if (steam_popup_cs != nullptr)
@@ -3232,7 +3236,7 @@ protected:
         ((CEGUI::BasicImage &)img).setAutoScaled (CEGUI::ASM_Both);
       }
 
-      catch (...)
+      catch (const CEGUI::GenericException&)
       {
       }
 
@@ -3245,7 +3249,7 @@ protected:
                                      achievement->name_ );
       }
 
-      catch (...)
+      catch (const CEGUI::GenericException&)
       {
       }
     }
@@ -3566,6 +3570,9 @@ SK_Steam_ShouldThrottleCallbacks (void)
 
 extern SK_Thread_HybridSpinlock* steam_mutex;
 
+
+SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>> dwSteamTids;
+
 void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
@@ -3573,14 +3580,74 @@ SteamAPI_RunCallbacks_Detour (void)
   if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
+  static bool first = true;
+
+  if (config.render.framerate.enable_mmcss)
+  {
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    const DWORD dwTid       =
+      SK_Thread_GetCurrentId (          ),
+                dwRenderTid =
+           ReadULongAcquire  (&rb.thread);
+
+    //
+    // ---------------------------------------------------------------------
+    // Identify scenarios where SteamAPI is running on a different thread
+    //   than handles rendering. Stuff tends to get a bit weird in these
+    //     games, with callback execution rates that are unbounded.
+    //
+    //   Since leaving callbacks unconstrained by anything would tie up an
+    //     entire CPU core, we would like to change this thread's scheduling
+    //       over to Multimedia Class, and then the poorly designed game may
+    //         run SteamAPI on a dedicated thread without starving others.
+    // ---------------------------------------------------------------------
+    //
+    if ( dwRenderTid != 0UL&&
+         dwRenderTid != dwTid )
+    {
+      SK_TLS* pTLS =
+        SK_TLS_Bottom ();
+
+      if ( pTLS->scheduler->mmcs_task == nullptr &&
+          (! dwSteamTids->count (dwTid) ) )
+      {
+        // The first thread seen gets special treatment
+        if (dwSteamTids->empty ())
+        {
+          auto* task =
+            SK_MMCS_GetTaskForThreadIDEx (dwTid,
+              "[SK] Primary SteamAPI Thread",
+                "Games", "Capture" );
+
+          task->queuePriority (AVRT_PRIORITY_HIGH);
+        }
+
+        // If the game is ping-ponging callbacks across threads, then stop
+        //   being generous. They're no longer special, just annoying.
+        else
+        {
+          auto* task =
+            SK_MMCS_GetTaskForThreadIDEx (dwTid,
+              "[SK] Secondary SteamAPI Thread",
+              "Games", "Capture" );
+
+          task->queuePriority (AVRT_PRIORITY_LOW);
+
+          // Ideally we'd demote the original primary thread, but that
+          //   requires making a call from the thread's execution context,
+          //     and this code isn't running on that thread.
+        }
+
+        dwSteamTids->insert (dwTid);
+      }
+    }
+  }
+
   static bool failure = false;
 
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
-
-  if (pTLS != nullptr)
-    InterlockedIncrement64 (&pTLS->steam.callback_count);
-
+  InterlockedIncrement64 (&SK_TLS_Bottom ()->steam->callback_count);
 
 
   if (! steam_mutex->try_lock ())
@@ -3623,7 +3690,7 @@ SteamAPI_RunCallbacks_Detour (void)
     }
 
     auto orig_se =
-    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
     try
     {
       SK_Steam_SetNotifyCorner ();
@@ -3644,7 +3711,7 @@ SteamAPI_RunCallbacks_Detour (void)
       failure = true;
       steam_log->Log (L" Caught a Structured Exception while running Steam Callbacks!");
     }
-    _set_se_translator (orig_se);
+    SK_SEH_RemoveTranslator (orig_se);
 
     steam_mutex->unlock ();
 
@@ -3656,7 +3723,7 @@ SteamAPI_RunCallbacks_Detour (void)
     static bool try_me = true;
 
     auto orig_se =
-    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
     try
     {
       if (try_me)
@@ -3682,9 +3749,10 @@ SteamAPI_RunCallbacks_Detour (void)
     {
       try_me = false;
     }
+    SK_SEH_RemoveTranslator (orig_se);
 
     orig_se =
-    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
     try
     {
       SteamAPI_RunCallbacks_Original ();
@@ -3698,7 +3766,7 @@ SteamAPI_RunCallbacks_Detour (void)
         failure = true;
       }
     }
-    _set_se_translator (orig_se);
+    SK_SEH_RemoveTranslator (orig_se);
   }
 
   steam_mutex->unlock ();
@@ -3742,7 +3810,8 @@ void SK::SteamAPI::Pump (void)
   }
 }
 
-volatile HANDLE hSteamPump = nullptr;
+volatile HANDLE hSteamPump     = nullptr;
+static   HANDLE hSteamPumpKill = INVALID_HANDLE_VALUE;
 
 DWORD
 WINAPI
@@ -3809,9 +3878,19 @@ SteamAPI_PumpThread (LPVOID user)
       {
         SK::SteamAPI::Pump ();
 
-        if ( WAIT_OBJECT_0 ==
-               WaitForSingleObject (__SK_DLL_TeardownEvent, 125) )
+        HANDLE hSignals [] = {
+          hSteamPumpKill, __SK_DLL_TeardownEvent
+        };
+
+        DWORD dwWait =
+          WaitForMultipleObjects (2, hSignals, FALSE, 125);
+
+        if ( dwWait ==  WAIT_OBJECT_0
+                ||
+             dwWait == (WAIT_OBJECT_0 + 1) )
+        {
           break;
+        }
 
       } while (! ReadAcquire (&__SK_DLL_Ending));
     }
@@ -3841,6 +3920,12 @@ SK_Steam_StartPump (bool force)
 
   if (config.steam.auto_pump_callbacks || force)
   {
+    if (hSteamPumpKill == INVALID_HANDLE_VALUE)
+    {
+      hSteamPumpKill =
+        CreateEvent (nullptr, False, FALSE, nullptr);
+    }
+
     LPVOID start_params =
       force ? (LPVOID)1 : nullptr;
 
@@ -3864,7 +3949,12 @@ SK_Steam_KillPump (void)
 
   if (hOriginal != nullptr)
   {
-    TerminateThread (hOriginal, 0x00);
+    if (hSteamPumpKill != nullptr)
+    {
+      SignalObjectAndWait (hOriginal, hSteamPumpKill, 100UL, FALSE);
+                         CloseHandle (hSteamPumpKill);
+                         CloseHandle (hOriginal);
+    }
   }
 }
 
@@ -4019,8 +4109,24 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
         SK_TLS *pTLS =
           SK_TLS_Bottom ();
 
-        char* data = (char *)
-          pTLS->steam.allocScratchText (dwSize + 4);
+        std::unique_ptr <char []>
+          local_data;
+        char*   data = nullptr;
+
+        // Heap Alloc (yuck)
+        if (! pTLS)
+        {
+          local_data =
+            std::make_unique <char []> (dwSize + 4);
+                data = local_data.get ();
+        }
+
+        // TLS Alloc (preferred)
+        else
+        {
+          data = (char *)
+            pTLS->steam->allocScratchText (dwSize + 4);
+        }
 
         if (data == nullptr)
           return steam_libs;
@@ -4029,6 +4135,8 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 
         if (ReadFile (hLibFolders, data, dwSize, &dwRead, nullptr))
         {
+          data [dwSize] = '\0';
+
           for (int i = 1; i < MAX_STEAM_LIBRARIES; i++)
           {
             std::string lib_path =
@@ -4276,31 +4384,32 @@ SK_Steam_InvokeOverlayActivationCallback ( SK_Steam_Callback_pfn CallbackFn,
     return;
 
   auto orig_se =
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try
   {
     GameOverlayActivated_t activated = {
       active
     };
 
-#ifndef _WIN64
+#ifndef _M_AMD64
     UNREFERENCED_PARAMETER (CallbackFn);
     pClosure->Run (&activated);
-#else
-    if (CallbackFn == nullptr)
-      return;
-
-    CallbackFn (pClosure, &activated);
+    {
+#else /* _M_IX86 */
+    if (CallbackFn != nullptr)
+    {
+      CallbackFn (pClosure, &activated);
 #endif
 
-    SK::SteamAPI::overlay_state = active;
+      SK::SteamAPI::overlay_state = active;
+    }
   }
 
-  catch (...)
+  catch (const SK_SEH_IgnoredException&)
   {
     // Oh well, we literally tried...
   }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 }
 
 
@@ -4422,34 +4531,54 @@ SteamAPI_InitSafe_Detour (void)
     steam_log->Log (L"----------(InitSafe)-----------\n");
   }
 
-  if ( SteamAPI_InitSafe_Original () )
+  bool bRet    = FALSE;
+  //auto orig_se =
+  //SK_SEH_SetTranslator (SK_BasicStructuredExceptionTranslator);
+  //try
+  //{
+    bRet =
+      SteamAPI_InitSafe_Original ();
+  //} catch (const SK_SEH_IgnoredException& e)
+  //{
+  //  steam_log->Log (L"SEH-Sez What?! : %hs", e.what ());
+  //  // ... Okay!
+  //}
+  //SK_SEH_SetTranslator (orig_se);
+
+  if (bRet)
   {
-    if (1 == InterlockedIncrement (&__SK_Steam_init))
+    if ( 1 ==
+             InterlockedIncrement (&__SK_Steam_init) )
     {
       const wchar_t* steam_dll_str =
         SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                           L"steam_api.dll"    );
+                                L"steam_api.dll"    );
 
-      HMODULE hSteamAPI = SK_Modules->LoadLibraryLL (steam_dll_str);
+      HMODULE hSteamAPI =
+        SK_Modules->LoadLibraryLL (steam_dll_str);
 
       SK_SteamAPI_ContextInit (hSteamAPI);
-      if (SK_GetFramesDrawn () > 1)
-        SK_ApplyQueuedHooks     (         );
 
-      steam_log->Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
-                         init_tries + 1,
-                           SK::SteamAPI::AppID () );
+      if (SK_GetFramesDrawn () > 1)
+        SK_ApplyQueuedHooks ();
+
+      steam_log->Log (
+        L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
+          init_tries + 1,
+            SK::SteamAPI::AppID () );
 
       SK_Steam_StartPump (config.steam.force_load_steamapi);
     }
 
     if (steam_init_cs != nullptr)
         steam_init_cs->unlock ();
+
     return true;
   }
 
   if (steam_init_cs != nullptr)
       steam_init_cs->unlock ();
+
   return false;
 }
 
@@ -4462,7 +4591,7 @@ SteamAPI_Shutdown_Detour (void)
   if (steam_init_cs != nullptr)
       steam_init_cs->lock   ();
 
-  SK_Steam_KillPump     ();
+  SK_Steam_KillPump         ();
 
   if (steam_init_cs != nullptr)
       steam_init_cs->unlock ();
@@ -4520,14 +4649,13 @@ SK_SAFE_SteamAPI_Init (void)
   bool bRet = false;
 
   auto orig_se =
-  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try {
     bRet =
       SteamAPI_Init_Original ();
   }
-
   catch (const SK_SEH_IgnoredException&) { }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 
   return bRet;
 }
@@ -4812,9 +4940,9 @@ SK_HookSteamAPI (void)
 
     std::unordered_set <std::wstring> matches;
     std::unordered_set <std::wstring> pattern = {
-#ifdef _WIN64
+#ifdef _M_AMD64
       L"steam_api64",
-#else
+#else /* _M_IX86 */
       L"steam_api",
 #endif
       L"csteamworks",
@@ -4842,7 +4970,8 @@ SK_HookSteamAPI (void)
     InterlockedIncrementRelease (&__SteamAPI_hook);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&__SteamAPI_hook, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&__SteamAPI_hook, 2);
 
   return hooks;
 }
@@ -5454,7 +5583,7 @@ static bool            decided        = false;
 
 alignas (_M128A)
 static volatile SteamAPICall_t hAsyncSigCheck = 0; // File Signature Validation
-static          std::string    check_file     = "";
+static          std::string    check_file;
 
 enum class SK_Steam_FileSigPass_e
 {
@@ -5877,6 +6006,8 @@ SK_SteamOverlay_GoToFriendStats (CSteamID friend_sid)
 ISteamMusic*
 SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
+  ISteamMusic* pMusic = nullptr;
+
   if (pClient != nullptr)
   {
     using SteamInternal_CreateInterface_pfn = void* (S_CALLTYPE*)(
@@ -5889,84 +6020,85 @@ SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hS
       if (SteamInternal_CreateInterface_Original (STEAMMUSIC_INTERFACE_VERSION) != nullptr)
       {
         auto orig_se =
-        _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
         try {
-          _set_se_translator (orig_se);
-
           if (SK_IsAddressExecutable ((*(void ***)*&pClient)[24]))
-            return pClient->GetISteamMusic (hSteamuser, hSteamPipe, pchVersion);
+          {
+            pMusic =
+              pClient->GetISteamMusic (hSteamuser, hSteamPipe, pchVersion);
+          }
         }
 
         catch (const SK_SEH_IgnoredException&) { };
-        _set_se_translator (orig_se);
+        SK_SEH_RemoveTranslator (orig_se);
       }
     }
   }
 
-  return nullptr;
+  return pMusic;
 }
 
 ISteamController*
 SAFE_GetISteamController (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
+  ISteamController* pController = nullptr;
+
   if (pClient != nullptr)
   {
     auto orig_se =
-    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
     try {
-      _set_se_translator (orig_se);
-
       if (SK_IsAddressExecutable ((*(void ***)*&pClient)[21]))
-        return pClient->GetISteamController (hSteamuser, hSteamPipe, pchVersion);
+        pController = pClient->GetISteamController (hSteamuser, hSteamPipe, pchVersion);
     }
 
     catch (const SK_SEH_IgnoredException&) { };
-    _set_se_translator (orig_se);
+    SK_SEH_RemoveTranslator (orig_se);
   }
 
-  return nullptr;
+  return pController;
 }
 
 ISteamRemoteStorage*
 SAFE_GetISteamRemoteStorage (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
+  ISteamRemoteStorage* pStorage = nullptr;
+
   if (pClient != nullptr)
   {
     auto orig_se =
-    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
     try {
-      _set_se_translator (orig_se);
-
       if (SK_IsAddressExecutable ((*(void ***)*&pClient)[13]))
-        return pClient->GetISteamRemoteStorage (hSteamuser, hSteamPipe, pchVersion);
+        pStorage = pClient->GetISteamRemoteStorage (hSteamuser, hSteamPipe, pchVersion);
     }
 
     catch (const SK_SEH_IgnoredException&) { };
-    _set_se_translator (orig_se);
+    SK_SEH_RemoveTranslator (orig_se);
   }
 
-  return nullptr;
+  return pStorage;
 }
 
 ISteamUGC*
 SAFE_GetISteamUGC (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
+  ISteamUGC* pUGC = nullptr;
+
   if (pClient != nullptr)
   {
     auto orig_se =
-    _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
     try {
-      _set_se_translator (orig_se);
-
       if (SK_IsAddressExecutable ((*(void ***)*&pClient)[23]))
-        return pClient->GetISteamUGC (hSteamuser, hSteamPipe, pchVersion);
+        pUGC = pClient->GetISteamUGC (hSteamuser, hSteamPipe, pchVersion);
     }
 
     catch (const SK_SEH_IgnoredException&) { };
-    _set_se_translator (orig_se);
+    SK_SEH_RemoveTranslator (orig_se);
   }
 
-  return nullptr;
+  return pUGC;
 }
 
 
@@ -6673,12 +6805,12 @@ SK_SteamAPIContext::ClientEngine (void)
   using  CreateInterface_pfn = void* (__cdecl *)(const char *ver, int* pError);
   static CreateInterface_pfn SteamClient_CreateInterface = nullptr;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   SteamClient_CreateInterface =
     (CreateInterface_pfn)
     GetProcAddress ( GetModuleHandle (L"steamclient64.dll"),
                     "CreateInterface" );
-#else
+#else /* _M_IX86 */
   SteamClient_CreateInterface =
     (CreateInterface_pfn)
     GetProcAddress ( GetModuleHandle (L"steamclient.dll"),
@@ -6831,7 +6963,7 @@ SK_Steam_ConnectUserIfNeeded (CSteamID user)
 bool
 SK_SteamAPIContext::ReleaseThreadPipe (void)
 {
-  HSteamPipe& pipe = SK_TLS_Bottom ()->steam.client_pipe;
+  HSteamPipe& pipe = SK_TLS_Bottom ()->steam->client_pipe;
 
   if (pipe != 0 && client_ != nullptr)
   {
@@ -6849,10 +6981,11 @@ SK_SteamAPIContext::ReleaseThreadPipe (void)
 bool
 SK_SteamAPIContext::ReleaseThreadUser (void)
 {
-  SK_TLS* pTLS =SK_TLS_Bottom ();
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
-  HSteamUser& user = pTLS->steam.client_user;
-  HSteamPipe& pipe = pTLS->steam.client_pipe;
+  HSteamUser& user = pTLS->steam->client_user;
+  HSteamPipe& pipe = pTLS->steam->client_pipe;
 
   if (user != 0 && client_ != nullptr)
   {

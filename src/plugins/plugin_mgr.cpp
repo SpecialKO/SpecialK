@@ -21,19 +21,13 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/plugin/plugin_mgr.h>
+#include <SpecialK/parameter.h>
+#include <SpecialK/config.h>
+#include <SpecialK/ini.h>
+#include <SpecialK/control_panel.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
 
-//Stupid Hack, rewrite me... (IN PROGRESS - see isPlugin below)
-bool isArkhamKnight    = false;
-bool isTalesOfZestiria = false;
-bool isFallout4        = false;
-bool isNieRAutomata    = false;
-bool isDarkSouls3      = false;
-bool isDivinityOrigSin = false;
-
-bool isPlugin          = false;
-
-
-std::wstring plugin_name = L"";
+SK_LazyGlobal <SK_PluginRegistry> plugin_mgr;
 
 // FIXME: For the love of @#$% do not pass std::wstring objects across
 //          DLL boundaries !!
@@ -41,24 +35,24 @@ void
 __stdcall
 SK_SetPluginName (std::wstring name)
 {
-  plugin_name = std::move (name);
-  isPlugin    = true;
+  plugin_mgr->plugin_name = std::move (name);
+  plugin_mgr->isPlugin    = true;
 }
 
 void
 __stdcall
 SKX_SetPluginName (const wchar_t* wszName)
 {
-  plugin_name = wszName;
-  isPlugin    = true;
+  plugin_mgr->plugin_name = wszName;
+  plugin_mgr->isPlugin    = true;
 }
 
 std::wstring
 __stdcall
 SK_GetPluginName (void)
 {
-  if (isPlugin)
-    return plugin_name;
+  if (plugin_mgr->isPlugin)
+    return plugin_mgr->plugin_name;
 
   return L"Special K";
 }
@@ -67,8 +61,10 @@ bool
 __stdcall
 SK_HasPlugin (void)
 {
-  return isPlugin;
+  return
+    plugin_mgr->isPlugin;
 }
+
 const wchar_t*
 SK_GetPlugInDirectory ( SK_PlugIn_Type type )
 {
@@ -264,16 +260,6 @@ SK_GetPlugInDirectory ( SK_PlugIn_Type type )
   }
 #endif
 
-
-
-#include <SpecialK/parameter.h>
-#include <SpecialK/config.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/control_panel.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-
-extern sk::ParameterFactory g_ParameterFactory;
-
 sk::iParameter*
 _CreateConfigParameter ( std::type_index type,
                          const wchar_t*  wszSection,
@@ -325,7 +311,7 @@ _CreateConfigParameter ( std::type_index type,
       _TryLoadParam = [&](void) ->
       bool
       {
-        if (! pBackingStore)
+        if (! ( pBackingStore && pParam ))
           return false;
 
         switch (specialization)
@@ -370,6 +356,9 @@ _CreateConfigParameter ( std::type_index type,
       _StoreParam = [&](void) ->
       void
       {
+        if (! pParam)
+          return;
+
         switch (specialization)
         {
           case _ParameterType::Bool:
@@ -408,25 +397,25 @@ _CreateConfigParameter ( std::type_index type,
       case _ParameterType::Bool:
       {
         pParam =
-          g_ParameterFactory.create_parameter <bool>  (wszDescription);
+          g_ParameterFactory->create_parameter <bool>  (wszDescription);
       } break;
 
       case _ParameterType::Int:
       {
         pParam =
-          g_ParameterFactory.create_parameter <int>   (wszDescription);
+          g_ParameterFactory->create_parameter <int>   (wszDescription);
       } break;
 
       case _ParameterType::Float:
       {
         pParam =
-          g_ParameterFactory.create_parameter <float> (wszDescription);
+          g_ParameterFactory->create_parameter <float> (wszDescription);
       } break;
 
       case _ParameterType::StringW:
       {
         pParam =
-          g_ParameterFactory.create_parameter <std::wstring> (wszDescription);
+          g_ParameterFactory->create_parameter <std::wstring> (wszDescription);
       } break;
     }
 

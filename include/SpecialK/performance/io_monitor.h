@@ -81,6 +81,7 @@ struct WMI_refresh_thread_t
   bool                     booting                      = true;
 };
 
+#pragma pack (push,8)
 typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK {
   LARGE_INTEGER IdleTime;
   LARGE_INTEGER KernelTime;
@@ -90,6 +91,7 @@ typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK {
   ULONG         InterruptCount;
 }  SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK,
  *PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK;
+#pragma pack (pop)
 
 
 struct cpu_perf_t : WMI_refresh_thread_t
@@ -263,7 +265,7 @@ struct disk_perf_t : WMI_refresh_thread_t
   long                     lPercentIdleTimeHandle       = 0;
 
   struct disk_stat_s {
-    char                   name [32];
+    char                   name [32]                    = { };
 
     uint64_t               percent_load                 = 0;
     uint64_t               percent_write                = 0;
@@ -288,7 +290,7 @@ struct pagefile_perf_t : WMI_refresh_thread_t
   long                     lPercentUsage_BaseHandle     = 0;
 
   struct {
-    char                   name [256];
+    char                   name [256]                   = { };
 
     DWORD                  size                         = 0;
     DWORD                  usage                        = 0;

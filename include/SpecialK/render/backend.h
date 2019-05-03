@@ -39,29 +39,29 @@ struct IUnknown;
 
 enum class SK_RenderAPI
 {
-  Reserved  = 0x0001,
+  Reserved  = 0x0001u,
 
   // Native API Implementations
-  OpenGL    = 0x0002,
-  Vulkan    = 0x0004,
-  D3D9      = 0x0008,
-  D3D9Ex    = 0x0018,
-  D3D10     = 0x0020, // Don't care
-  D3D11     = 0x0040,
-  D3D12     = 0x0080,
+  OpenGL    = 0x0002u,
+  Vulkan    = 0x0004u,
+  D3D9      = 0x0008u,
+  D3D9Ex    = 0x0018u,
+  D3D10     = 0x0020u, // Don't care
+  D3D11     = 0x0040u,
+  D3D12     = 0x0080u,
 
   // These aren't native, but we need the bitmask anyway
-  D3D8      = 0x2000,
-  DDraw     = 0x4000,
-  Glide     = 0x8000,
+  D3D8      = 0x2000u,
+  DDraw     = 0x4000u,
+  Glide     = 0x8000u,
 
   // Wrapped APIs (D3D12 Flavor)
-  D3D11On12 = 0x00C0,
+  D3D11On12 = 0x00C0u,
 
   // Wrapped APIs (D3D11 Flavor)
-  D3D8On11  = 0x2040,
-  DDrawOn11 = 0x4040,
-  GlideOn11 = 0x8040,
+  D3D8On11  = 0x2040u,
+  DDrawOn11 = 0x4040u,
+  GlideOn11 = 0x8040u,
 };
 
 class SK_RenderBackend_V1
@@ -73,25 +73,25 @@ public:
 
 enum
 {
-  SK_FRAMEBUFFER_FLAG_SRGB    = 0x01,
-  SK_FRAMEBUFFER_FLAG_FLOAT   = 0x02,
-  SK_FRAMEBUFFER_FLAG_RGB10A2 = 0x04,
-  SK_FRAMEBUFFER_FLAG_MSAA    = 0x08,
-  SK_FRAMEBUFFER_FLAG_HDR     = 0x10,
+  SK_FRAMEBUFFER_FLAG_SRGB    = 0x01u,
+  SK_FRAMEBUFFER_FLAG_FLOAT   = 0x02u,
+  SK_FRAMEBUFFER_FLAG_RGB10A2 = 0x04u,
+  SK_FRAMEBUFFER_FLAG_MSAA    = 0x08u,
+  SK_FRAMEBUFFER_FLAG_HDR     = 0x10u,
 };
 
 enum reset_stage_e
 {
-  Initiate = 0x0, // Fake device loss
-  Respond  = 0x1, // Fake device not reset
-  Clear    = 0x2  // Return status to normal
+  Initiate = 0x0u, // Fake device loss
+  Respond  = 0x1u, // Fake device not reset
+  Clear    = 0x2u  // Return status to normal
 } extern trigger_reset;
 
 enum mode_change_request_e
 {
-  Windowed   = 0,    // Switch from Fullscreen to Windowed
-  Fullscreen = 1,    // Switch from Windowed to Fullscreen
-  None       = 0xFF
+  Windowed   =    0U, // Switch from Fullscreen to Windowed
+  Fullscreen =    1U, // Switch from Windowed to Fullscreen
+  None       = 0xFFU
 } extern request_mode_change;
 
 
@@ -150,21 +150,8 @@ struct SK_ColorSpace {
 };
 
 
-static auto HDRModeToStr = [](NV_HDR_MODE mode) ->
 const wchar_t*
-{
-  switch (mode)
-  {
-    case NV_HDR_MODE_OFF:              return L"Off";
-    case NV_HDR_MODE_UHDA:             return L"HDR10";
-    case NV_HDR_MODE_EDR:              return L"Extended Dynamic Range";
-    case NV_HDR_MODE_SDR:              return L"Standard Dynamic Range";
-    case NV_HDR_MODE_DOLBY_VISION:     return L"Dolby Vision";
-    case NV_HDR_MODE_UHDA_PASSTHROUGH: return L"HDR10 Passthrough";
-    case NV_HDR_MODE_UHDA_NB:          return L"Notebook HDR";
-    default:                           return L"Invalid";
-  };
-};
+HDRModeToStr (NV_HDR_MODE mode);
 
 interface IDirect3DSurface9;
 interface IDXGISurface;
@@ -202,7 +189,29 @@ public:
     DXGI_COLOR_SPACE_TYPE dwm_colorspace       = DXGI_COLOR_SPACE_CUSTOM;
 
     struct nvapi_desc_s {
-      bool                active               = false;
+      bool                     active               = false;
+
+      struct {
+        NvU32                  supports_YUV422_12bit : 1;
+        NvU32                  supports_10b_12b_444  : 2;
+      } color_support_hdr = { };
+
+      struct {
+        NvU32                  display_id      = std::numeric_limits <NvU32>::max ();
+        NV_HDR_CAPABILITIES_V2 hdr_caps        = { };
+        NV_HDR_COLOR_DATA_V2   hdr_data        = { };
+
+        // TODO
+        //std::vector  <
+        //  std::tuple < NV_BPC,
+        //               NV_COLOR_FORMAT,
+        //               NV_DYNAMIC_RANGE >
+        //                                >   color_modes =
+        //                     { std::make_tuple ( NV_BPC_DEFAULT,
+        //                                         NV_COLOR_FORMAT_DEFAULT,
+        //                                         NV_DYNAMIC_RANGE_AUTO ); }
+      } raw = { };
+
       NV_HDR_MODE         mode                 = NV_HDR_MODE_OFF;
       NV_COLOR_FORMAT     color_format         = NV_COLOR_FORMAT_DEFAULT;
       NV_DYNAMIC_RANGE    dynamic_range        = NV_DYNAMIC_RANGE_AUTO;
@@ -210,6 +219,14 @@ public:
 
       bool                isHDR10 (void) const { return ( mode == NV_HDR_MODE_UHDA ||
                                                           mode == NV_HDR_MODE_UHDA_PASSTHROUGH ); }
+
+      bool setColorEncoding_HDR ( NV_COLOR_FORMAT fmt,
+                                  NV_BPC          bpc,
+                                  NvU32           display_id = std::numeric_limits <NvU32>::max () );
+
+      bool setColorEncoding_SDR ( NV_COLOR_FORMAT fmt,
+                                  NV_BPC          bpc,
+                                  NvU32           display_id = std::numeric_limits <NvU32>::max () );
 
       const char* getBpcStr (void) const
       {
@@ -243,13 +260,13 @@ public:
       {
         static std::unordered_map <_NV_DYNAMIC_RANGE, const char*>
           dynamic_range_map =
-            { { NV_DYNAMIC_RANGE_VESA, "VESA" },
-              { NV_DYNAMIC_RANGE_CEA,  "CEA"  },
-              { NV_DYNAMIC_RANGE_AUTO, "Auto" } };
+            { { NV_DYNAMIC_RANGE_VESA, "Limited"    },
+              { NV_DYNAMIC_RANGE_CEA,  "Full Range" },
+              { NV_DYNAMIC_RANGE_AUTO, "Auto"     } };
 
         return dynamic_range_map [dynamic_range];
       }
-    } nvapi_hdr;
+    } nvapi_hdr = { };
 
     enum SK_HDR_TRANSFER_FUNC
     {
@@ -271,34 +288,7 @@ public:
     };
 
     SK_HDR_TRANSFER_FUNC
-      getEOTF (void) noexcept
-      {
-        if (nvapi_hdr.isHDR10 ())
-        {
-          return
-            SMPTE_2084;
-        }
-
-        switch (dxgi_colorspace)
-        {
-          case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:
-            return Linear;
-          case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:
-            return sRGB;
-          case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:
-          case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:
-            return G22;
-          case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:
-          case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:
-            return SMPTE_2084;
-          // Pretty much only used by film
-          case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:
-          case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:
-            return G24;
-          default:
-            return NONE;
-        }
-      }
+    getEOTF (void);
   } scanout;
 
   wchar_t                 display_name [128]   = { };
@@ -382,7 +372,7 @@ public:
   //   This is the thread that handles SwapChain Presentation;
   //     nothing else can safely be inferred about this thread.
   //
-  volatile LONG           thread       =  0;
+  volatile DWORD          thread       =  0;
   CRITICAL_SECTION        cs_res       = { };
 
 

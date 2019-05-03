@@ -33,7 +33,7 @@ WSARecv_Detour (
   _Out_   LPDWORD lpNumberOfBytesRecvd,
   _Inout_ LPDWORD lpFlags,
   _In_    LPVOID  lpOverlapped,
-  _In_    LPVOID  lpCompletionRoutine ) 
+  _In_    LPVOID  lpCompletionRoutine )
 {
   const int ret =
     WSARecv_Original (s, lpBuffers, dwBufferCount, lpNumberOfBytesRecvd, lpFlags, lpOverlapped, lpCompletionRoutine);
@@ -43,10 +43,7 @@ WSARecv_Detour (
     SK_TLS* pTLS =
       SK_TLS_Bottom ();
 
-    if (pTLS != nullptr)
-    {
-      InterlockedAdd64 (&pTLS->net.bytes_received, *lpNumberOfBytesRecvd);
-    }
+    InterlockedAdd64 (&pTLS->net->bytes_received, *lpNumberOfBytesRecvd);
   }
 
   return ret;
@@ -71,10 +68,7 @@ WSASend_Detour (
     SK_TLS* pTLS =
       SK_TLS_Bottom ();
 
-    if (pTLS != nullptr)
-    {
-      InterlockedAdd64 (&pTLS->net.bytes_sent, *lpNumberOfBytesSent);
-    }
+    InterlockedAdd64 (&pTLS->net->bytes_sent, *lpNumberOfBytesSent);
   }
 
   return ret;

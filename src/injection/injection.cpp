@@ -406,20 +406,9 @@ CBTProc ( _In_ int    nCode,
   }
 
   static HMODULE hModule = nullptr;
-         LRESULT lRet    = 0;
-
-  if (hModule != nullptr)
-  {
-    lRet =
-      CallNextHookEx (
-        hHookCBT,
-          nCode, wParam, lParam
-      );
-  }
 
   if ( hModule == nullptr &&
-         GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+         GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                                (LPCWSTR)&CBTProc, &hModule )
      )
   {
@@ -434,15 +423,18 @@ CBTProc ( _In_ int    nCode,
       );
     }
 
-    SK_Thread_Create ([](LPVOID lpUser)->
+    CloseHandle  (
+    CreateThread (nullptr, 16384, [](LPVOID lpUser) ->
     DWORD
     {
+      HMODULE hMod = *((HMODULE *)lpUser);
+
       __try
       {
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-        char      szDesc [256] = { };
-        wcstombs (szDesc, L"[SK] Global Hook Pacifier", 255);
+        static const char* szDesc =
+          "[SK] Global Hook Pacifier";
 
         THREADNAME_INFO info = {  };
         info.dwType     =      4096;
@@ -455,7 +447,7 @@ CBTProc ( _In_ int    nCode,
 
         RaiseException ( SK_WINNT_THREAD_NAME_EXCEPTION,
                            0x0, argc,
-                             reinterpret_cast <const ULONG_PTR *>(&info) );
+                             (const ULONG_PTR *)&info );
       }
       __except (EXCEPTION_CONTINUE_EXECUTION) { };
 
@@ -466,7 +458,7 @@ CBTProc ( _In_ int    nCode,
             SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                    LR"(Local\SK_GlobalHookTeardown64)") );
 
-      DWORD  dwMilliseconds = 750UL;
+      DWORD  dwMilliseconds = 3333uL;
       HANDLE hWaitTimer     =
         CreateWaitableTimer ( NULL, FALSE, NULL );
 
@@ -506,14 +498,17 @@ CBTProc ( _In_ int    nCode,
         }
       }
 
-      *((HMODULE *)lpUser) = nullptr;
+      FreeLibraryAndExitThread (hMod, 0x0);
 
       return 0;
-    }, (LPVOID)&hModule);
+    }, (LPVOID)&hModule, 0x0, nullptr));
   }
 
   return
-    lRet;
+    CallNextHookEx (
+      hHookCBT,
+        nCode, wParam, lParam
+    );
 }
 
 BOOL
@@ -544,8 +539,6 @@ SKX_InstallCBTHook (void)
   if (SK_GetHostAppUtil ()->isInjectionTool ())
     InterlockedIncrementRelease (&injected_procs);
 
-  // TODO: Fix-up this reference count imbalance so that SKIM can unload
-  //         the DLL cleanly.
   HMODULE hModSelf;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                         (LPCWSTR)&CBTProc, &hModSelf );
@@ -582,9 +575,11 @@ SKX_RemoveCBTHook (void)
     if (hHookTeardown != 0)
       SetEvent (hHookTeardown);
 
+    std::set <DWORD> running_pids;
     std::set <DWORD> suspended_pids;
     LONG             hooked_pid_count =
-      std::min (MAX_HOOKED_PROCS, ReadAcquire (&num_hooked_pids));
+      std::max   (0L,
+        std::min (MAX_HOOKED_PROCS, ReadAcquire (&num_hooked_pids)));
 
     SK_Process_Snapshot ();
 
@@ -595,12 +590,20 @@ SKX_RemoveCBTHook (void)
       DWORD dwPid =
         ReadULongAcquire (&hooked_pids [i]);
 
-      if (                         dwPid != 0 &&
-           SK_Process_IsSuspended (dwPid) )
+      if (                      0 == dwPid ||
+           suspended_pids.count     (dwPid)||
+           running_pids.count       (dwPid)||
+           GetCurrentProcessId () == dwPid )
+        continue;
+
+      if (SK_Process_IsSuspended (dwPid))
       {
         suspended_pids.emplace (dwPid);
              SK_Process_Resume (dwPid);
       }
+
+      else
+        running_pids.emplace (dwPid);
     }
 
     // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
@@ -786,7 +789,7 @@ SK_Inject_EnableCentralizedConfig (void)
       SK_SaveConfig (L"d3d9");
       break;
 
-#ifndef _WIN64
+#ifndef _M_AMD64
   case SK_RenderAPI::D3D8On11:
     SK_SaveConfig (L"d3d8");
     break;
@@ -798,7 +801,7 @@ SK_Inject_EnableCentralizedConfig (void)
 
     case SK_RenderAPI::D3D10:
     case SK_RenderAPI::D3D11:
-#ifdef _WIN64
+#ifdef _M_AMD64
     case SK_RenderAPI::D3D12:
 #endif
     {
@@ -848,7 +851,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
       lstrcatW (wszOut, L"\\OpenGL32.dll");
       break;
 
-#ifndef _WIN64
+#ifndef _M_AMD64
     case DLL_ROLE::DDraw:
       lstrcatW (wszOut, L"\\ddraw.dll");
       break;
@@ -979,7 +982,7 @@ SK_Inject_SwitchToRenderWrapper (void)
       lstrcatW (wszOut, L"\\d3d9.dll");
       break;
 
-#ifndef _WIN64
+#ifndef _M_AMD64
     case SK_RenderAPI::D3D8On11:
       lstrcatW (wszOut, L"\\d3d8.dll");
       break;
@@ -991,7 +994,7 @@ SK_Inject_SwitchToRenderWrapper (void)
 
     case SK_RenderAPI::D3D10:
     case SK_RenderAPI::D3D11:
-#ifdef _WIN64
+#ifdef _M_AMD64
     case SK_RenderAPI::D3D12:
 #endif
     {

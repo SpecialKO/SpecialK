@@ -103,9 +103,6 @@ D3D12CreateDevice_Detour (
 
   if ( SUCCEEDED ( res ) )
   {
-    dwRenderThread =
-      GetCurrentThreadId ();
-
     if ( ppDevice != nullptr )
     {
       //if ( *ppDevice != g_pD3D12Dev )

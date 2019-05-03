@@ -4,7 +4,9 @@
 class ISteamRemoteStorage;
 class IWrapSteamRemoteStorage;
 
-concurrency::concurrent_unordered_map <ISteamRemoteStorage*, IWrapSteamRemoteStorage*>   SK_SteamWrapper_remap_remotestorage;
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <ISteamRemoteStorage*, IWrapSteamRemoteStorage*>
+> SK_SteamWrapper_remap_remotestorage;
 
 class IWrapSteamRemoteStorage012 : public ISteamRemoteStorage
 {
@@ -771,6 +773,9 @@ SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour ( ISteamClient *This,
                                                       HSteamPipe    hSteamPipe,
                                                       const char   *pchVersion )
 {
+  auto& _SK_SteamWrapper_remap_remotestorage =
+         SK_SteamWrapper_remap_remotestorage.get ();
+
   SK_RunOnce (
     steam_log->Log ( L"[!] %hs (..., %hs)",
                       __FUNCTION__, pchVersion )
@@ -786,35 +791,36 @@ SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour ( ISteamClient *This,
   {
     if ((! lstrcmpA (pchVersion, STEAMREMOTESTORAGE_INTERFACE_VERSION_012)))
     {
-      if (SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
-         return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+      if (_SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
+         return reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
 
       else
       {
-        SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
+        _SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
           reinterpret_cast <IWrapSteamRemoteStorage *> (
                 new IWrapSteamRemoteStorage012 (pRemoteStorage)
           );
 
-        return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+        return reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
       }
     }
 
     else if ((! lstrcmpA (pchVersion, STEAMREMOTESTORAGE_INTERFACE_VERSION_014)))
     {
-      if (SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
-         return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+      if (_SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
+         return reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
 
       else
       {
-        SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
+        _SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
           reinterpret_cast <IWrapSteamRemoteStorage *> (
                 new IWrapSteamRemoteStorage014 (
                   reinterpret_cast <ISteamRemoteStorage014 *> (pRemoteStorage)
                 )
           );
 
-        return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+        return
+          reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
       }
     }
 
@@ -838,6 +844,9 @@ SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage ( ISteamClient *This,
                                                        HSteamPipe    hSteamPipe,
                                                        const char   *pchVersion )
 {
+  auto _SK_SteamWrapper_remap_remotestorage =
+        SK_SteamWrapper_remap_remotestorage.get ();
+
   SK_RunOnce (
     steam_log->Log ( L"[!] %hs (..., %hs)",
                       __FUNCTION__, pchVersion )
@@ -852,35 +861,36 @@ SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage ( ISteamClient *This,
   {
     if ((! lstrcmpA (pchVersion, STEAMREMOTESTORAGE_INTERFACE_VERSION_012)))
     {
-      if (SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
-         return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+      if (_SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
+         return reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
 
       else
       {
-        SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
+        _SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
           reinterpret_cast <IWrapSteamRemoteStorage *> (
                 new IWrapSteamRemoteStorage012 (pRemoteStorage)
           );
 
-        return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+        return reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
       }
     }
 
     else if ((! lstrcmpA (pchVersion, STEAMREMOTESTORAGE_INTERFACE_VERSION_014)))
     {
-      if (SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
-         return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+      if (_SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
+         return reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
 
       else
       {
-        SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
+        _SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
           reinterpret_cast <IWrapSteamRemoteStorage *> (
                 new IWrapSteamRemoteStorage014 (
                   reinterpret_cast <ISteamRemoteStorage014 *> (pRemoteStorage)
                 )
           );
 
-        return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+        return
+          reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
       }
     }
 
@@ -915,22 +925,25 @@ SteamRemoteStorage_Detour (void)
 #ifndef DANGEROUS_INTERFACE_ALIASING
   return SteamRemoteStorage_Original ();
 #else
+  auto& _SK_SteamWrapper_remap_remotestorage =
+         SK_SteamWrapper_remap_remotestorage.get ();
+
   if (steam_ctx.RemoteStorageVersion () == 12)
   {
     ISteamRemoteStorage* pRemoteStorage =
       static_cast <ISteamRemoteStorage *> ( SteamRemoteStorage_Original () );
 
-    if (SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
-       return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+    if (_SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
+       return reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
 
     else
     {
-      SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
+      _SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
         reinterpret_cast <IWrapSteamRemoteStorage *> (
               new IWrapSteamRemoteStorage012 (pRemoteStorage)
         );
 
-      return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+      return reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
     }
   }
 
@@ -939,19 +952,20 @@ SteamRemoteStorage_Detour (void)
     ISteamRemoteStorage* pRemoteStorage =
       static_cast <ISteamRemoteStorage *> ( SteamRemoteStorage_Original () );
 
-    if (SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
-       return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+    if (_SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
+       return reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
 
     else
     {
-      SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
+      _SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
         reinterpret_cast <IWrapSteamRemoteStorage *> (
               new IWrapSteamRemoteStorage014 (
                 reinterpret_cast <ISteamRemoteStorage014 *> (pRemoteStorage)
               )
         );
 
-      return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+      return
+        reinterpret_cast <ISteamRemoteStorage *> (_SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
     }
   }
 

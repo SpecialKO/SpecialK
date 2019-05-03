@@ -261,7 +261,7 @@ SHA1Final (
 {
   unsigned      i              =    0;
   unsigned char finalcount [8] = {  };
-  unsigned char c              = 0200;
+  unsigned char c              =  128;
 
 #if 0    /* untested "improvement" by DHR */
   /* Convert context->count to a sequence of bytes

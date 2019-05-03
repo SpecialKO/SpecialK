@@ -107,43 +107,43 @@ SK::ControlPanel::Input::Draw (void)
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input { };
 
-    xinput.reads            = SK_XInput_Backend.reads   [2];
+    xinput.reads            = SK_XInput_Backend->reads   [2];
 
-    di7.kbd_reads           = SK_DI7_Backend.reads      [1];
-    di7.mouse_reads         = SK_DI7_Backend.reads      [0];
-    di7.gamepad_reads       = SK_DI7_Backend.reads      [2];
+    di7.kbd_reads           = SK_DI7_Backend->reads      [1];
+    di7.mouse_reads         = SK_DI7_Backend->reads      [0];
+    di7.gamepad_reads       = SK_DI7_Backend->reads      [2];
 
-    di8.kbd_reads           = SK_DI8_Backend.reads      [1];
-    di8.mouse_reads         = SK_DI8_Backend.reads      [0];
-    di8.gamepad_reads       = SK_DI8_Backend.reads      [2];
+    di8.kbd_reads           = SK_DI8_Backend->reads      [1];
+    di8.mouse_reads         = SK_DI8_Backend->reads      [0];
+    di8.gamepad_reads       = SK_DI8_Backend->reads      [2];
 
-    hid.kbd_reads           = SK_HID_Backend.reads      [1];
-    hid.mouse_reads         = SK_HID_Backend.reads      [0];
-    hid.gamepad_reads       = SK_HID_Backend.reads      [2];
+    hid.kbd_reads           = SK_HID_Backend->reads      [1];
+    hid.mouse_reads         = SK_HID_Backend->reads      [0];
+    hid.gamepad_reads       = SK_HID_Backend->reads      [2];
 
-    raw_input.kbd_reads     = SK_RawInput_Backend.reads [1];
-    raw_input.mouse_reads   = SK_RawInput_Backend.reads [0];
-    raw_input.gamepad_reads = SK_RawInput_Backend.reads [2];
+    raw_input.kbd_reads     = SK_RawInput_Backend->reads [1];
+    raw_input.mouse_reads   = SK_RawInput_Backend->reads [0];
+    raw_input.gamepad_reads = SK_RawInput_Backend->reads [2];
 
-    steam.reads             = SK_Steam_Backend.reads    [2];
+    steam.reads             = SK_Steam_Backend->reads    [2];
 
 
-    if (SK_XInput_Backend.nextFrame ())
+    if (SK_XInput_Backend->nextFrame ())
       last_xinput   = current_time;
 
-    if (SK_Steam_Backend.nextFrame ())
+    if (SK_Steam_Backend->nextFrame ())
       last_steam    = current_time;
 
-    if (SK_HID_Backend.nextFrame ())
+    if (SK_HID_Backend->nextFrame ())
       last_hid      = current_time;
 
-    if (SK_DI7_Backend.nextFrame ())
+    if (SK_DI7_Backend->nextFrame ())
       last_di7      = current_time;
 
-    if (SK_DI8_Backend.nextFrame ())
+    if (SK_DI8_Backend->nextFrame ())
       last_di8      = current_time;
 
-    if (SK_RawInput_Backend.nextFrame ())
+    if (SK_RawInput_Backend->nextFrame ())
       last_rawinput = current_time;
 
 
@@ -684,7 +684,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
       if (winmm)
       {
-        static DWORD dwLastCheck = timeGetTime   ();
+        static DWORD dwLastCheck = current_time;
         static UINT  dwLastCount = joyGetNumDevs ();
 
         const DWORD _CHECK_INTERVAL = 500UL;

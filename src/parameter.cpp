@@ -21,6 +21,8 @@
 
 #include <SpecialK/stdafx.h>
 
+SK_LazyGlobal <sk::ParameterFactory> g_ParameterFactory;
+
 // Read value from INI
 bool
 sk::iParameter::load (void)

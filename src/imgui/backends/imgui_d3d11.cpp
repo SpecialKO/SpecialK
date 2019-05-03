@@ -10,6 +10,8 @@
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
 // DirectX
 #include <d3d11.h>
@@ -24,6 +26,10 @@ SK_ImGui_User_NewFrame (void);
 // Data
 static INT64                    g_Time                  = 0;
 static INT64                    g_TicksPerSecond        = 0;
+
+static ImGuiMouseCursor         g_LastMouseCursor       = ImGuiMouseCursor_COUNT;
+static bool                     g_HasGamepad            = false;
+static bool                     g_WantUpdateHasGamepad  = true;
 
 static HWND                     g_hWnd                  = nullptr;
 static ID3D11Buffer*            g_pVB                   = nullptr;
@@ -56,6 +62,8 @@ static UINT                     g_frameBufferHeight     = 0UL;
 static int                      g_VertexBufferSize      = 5000,
                                 g_IndexBufferSize       = 10000;
 
+std::pair <BOOL*, BOOL>
+SK_ImGui_FlagDrawing_OnD3D11Ctx (size_t dev_idx);
 
 static void
 ImGui_ImplDX11_CreateFontsTexture (void);
@@ -142,12 +150,6 @@ IMGUI_API
 void
 ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 {
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
-
-  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
-                            pTLS->imgui.drawing = true;
-
   ImGuiIO& io =
     ImGui::GetIO ();
 
@@ -173,13 +175,12 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   if (! g_pPixelConstantBuffer)
     return;
 
+  SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
+  SK_ComQIPtr <IDXGISwapChain3>     pSwap3     (pSwapChain);
+  SK_ComQIPtr <ID3D11Device>        pDevice    (rb.device);
+  SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
 
-  CComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
-  CComQIPtr <IDXGISwapChain3>     pSwap3     (pSwapChain);
-  CComQIPtr <ID3D11Device>        pDevice    (rb.device);
-  CComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
-
-  CComPtr   <ID3D11Texture2D>     pBackBuffer = nullptr;
+  SK_ComPtr   <ID3D11Texture2D>     pBackBuffer = nullptr;
 
                     UINT currentBuffer = 0;
 //if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
@@ -189,6 +190,20 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
   if (! pBackBuffer)
     return;
+
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
+                            pTLS->imgui->drawing = true;
+
+  auto flag_result =
+    SK_ImGui_FlagDrawing_OnD3D11Ctx (
+      SK_D3D11_GetDeviceContextHandle (pDevCtx)
+    );
+
+  SK_ScopedBool auto_bool0 (flag_result.first);
+                           *flag_result.first = flag_result.second;
 
 
   D3D11_TEXTURE2D_DESC   backbuffer_desc = { };
@@ -526,7 +541,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
            SK_HDR_GetUnderlayResourceView ()
         };
 
-        pDevCtx->PSSetSamplers        (0, 1, &pTLS->d3d11.uiSampler_wrap);
+        pDevCtx->PSSetSamplers        (0, 1, &pTLS->d3d11->uiSampler_wrap);
         pDevCtx->PSSetShaderResources (0, 2, views);
         pDevCtx->RSSetScissorRects    (1, &r);
 
@@ -574,15 +589,19 @@ ImGui_ImplDX11_CreateFontsTexture (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
+  if (! pTLS) return;
+
   SK_ScopedBool auto_bool0 (&pTLS->texture_management.injection_thread);
-  SK_ScopedBool auto_bool1 (&pTLS->imgui.drawing                      );
+  SK_ScopedBool auto_bool1 (&pTLS->imgui->drawing                     );
 
   // Do not dump ImGui font textures
   pTLS->texture_management.injection_thread = true;
-  pTLS->imgui.drawing                       = true;
+  pTLS->imgui->drawing                      = true;
 
   // Build texture atlas
-  ImGuiIO& io (ImGui::GetIO ());
+  ImGuiIO& io (
+    ImGui::GetIO ()
+  );
 
   static bool           init   = false;
   static unsigned char* pixels = nullptr;
@@ -594,89 +613,97 @@ ImGui_ImplDX11_CreateFontsTexture (void)
   {
     SK_ImGui_LoadFonts ();
 
-    io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
-
-    init = true;
+    io.Fonts->GetTexDataAsRGBA32 ( &pixels,
+                                   &width, &height );
   }
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  CComQIPtr <ID3D11Device> pDev (rb.device);
-
-  ///if (rb.api == SK_RenderAPI::D3D11On12)
-  ///{
-  ///  rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
-  ///}
+  SK_ComQIPtr <ID3D11Device> pDev (rb.device);
 
   // Upload texture to graphics system
   {
-    D3D11_TEXTURE2D_DESC desc
-                          = { };
+    D3D11_TEXTURE2D_DESC
+      desc                                = { };
+      desc.Width                          = width;
+      desc.Height                         = height;
+      desc.MipLevels                      = 1;
+      desc.ArraySize                      = 1;
+      desc.Format                         = DXGI_FORMAT_R8G8B8A8_UNORM;
+      desc.SampleDesc.Count               = 1;
+      desc.Usage                          = D3D11_USAGE_IMMUTABLE;
+      desc.BindFlags                      = D3D11_BIND_SHADER_RESOURCE;
+      desc.CPUAccessFlags                 = 0;
 
-    desc.Width            = width;
-    desc.Height           = height;
-    desc.MipLevels        = 1;
-    desc.ArraySize        = 1;
-    desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
-    desc.SampleDesc.Count = 1;
-    desc.Usage            = D3D11_USAGE_IMMUTABLE;
-    desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
-    desc.CPUAccessFlags   = 0;
+    D3D11_SUBRESOURCE_DATA
+      subResource                         = { };
+      subResource.pSysMem                 = pixels;
+      subResource.SysMemPitch             = desc.Width * 4;
+      subResource.SysMemSlicePitch        = 0;
 
-    CComPtr <ID3D11Texture2D> pFontTexture = nullptr;
-    D3D11_SUBRESOURCE_DATA    subResource  = { };
+    SK_ComPtr <ID3D11Texture2D>
+                      pFontTexture = nullptr;
 
-    subResource.pSysMem          = pixels;
-    subResource.SysMemPitch      = desc.Width * 4;
-    subResource.SysMemSlicePitch = 0;
+    if ( SUCCEEDED (
+           pDev->CreateTexture2D ( &desc,
+                                     &subResource,
+                                       &pFontTexture ) ) )
+    {
+      // Create texture view
+      D3D11_SHADER_RESOURCE_VIEW_DESC
+        srvDesc = { };
+        srvDesc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
+        srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels       = desc.MipLevels;
+        srvDesc.Texture2D.MostDetailedMip = 0;
 
-    pDev->CreateTexture2D (&desc, &subResource, &pFontTexture.p);
+      if ( SUCCEEDED (
+             pDev->CreateShaderResourceView ( pFontTexture,
+                                                &srvDesc,
+                                                  &g_pFontTextureView ) ) )
+      {
+        // Store our identifier
+        io.Fonts->TexID =
+          g_pFontTextureView;
 
-    // Create texture view
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = { };
+      // Create texture sampler
+        D3D11_SAMPLER_DESC
+          sampler_desc                    = { };
+          sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_POINT;
+          sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_CLAMP;
+          sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_CLAMP;
+          sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_CLAMP;
+          sampler_desc.MipLODBias         = 0.f;
+          sampler_desc.ComparisonFunc     = D3D11_COMPARISON_ALWAYS;
+          sampler_desc.MinLOD             = 0.f;
+          sampler_desc.MaxLOD             = 0.f;
 
-    srvDesc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
-    srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels       = desc.MipLevels;
-    srvDesc.Texture2D.MostDetailedMip = 0;
+        if ( SUCCEEDED (
+               pDev->CreateSamplerState ( &sampler_desc,
+                                            &g_pFontSampler_clamp ) ) )
+        { pTLS->d3d11->uiSampler_clamp =     g_pFontSampler_clamp;
 
-    pDev->CreateShaderResourceView (pFontTexture, &srvDesc, &g_pFontTextureView);
-  }
+          sampler_desc = { };
 
-  // Store our identifier
-  io.Fonts->TexID =
-    g_pFontTextureView;
+          sampler_desc.Filter             = D3D11_FILTER_ANISOTROPIC;
+          sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_MIRROR;
+          sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_MIRROR;
+          sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_MIRROR;
+          sampler_desc.MipLODBias         = 0.f;
+          sampler_desc.ComparisonFunc     = D3D11_COMPARISON_ALWAYS;
+          sampler_desc.MinLOD             = 0.f;
+          sampler_desc.MaxLOD             = 0.f;
 
-  // Create texture sampler
-  {
-    D3D11_SAMPLER_DESC desc = { };
+          init = true;
 
-    desc.Filter         = D3D11_FILTER_MIN_MAG_MIP_POINT;
-    desc.AddressU       = D3D11_TEXTURE_ADDRESS_CLAMP;
-    desc.AddressV       = D3D11_TEXTURE_ADDRESS_CLAMP;
-    desc.AddressW       = D3D11_TEXTURE_ADDRESS_CLAMP;
-    desc.MipLODBias     = 0.f;
-    desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-    desc.MinLOD         = 0.f;
-    desc.MaxLOD         = 0.f;
-
-    pDev->CreateSamplerState (&desc, &g_pFontSampler_clamp);
-    pTLS->d3d11.uiSampler_clamp =     g_pFontSampler_clamp;
-
-    desc = { };
-
-    desc.Filter         = D3D11_FILTER_ANISOTROPIC;
-    desc.AddressU       = D3D11_TEXTURE_ADDRESS_MIRROR;
-    desc.AddressV       = D3D11_TEXTURE_ADDRESS_MIRROR;
-    desc.AddressW       = D3D11_TEXTURE_ADDRESS_MIRROR;
-    desc.MipLODBias     = 0.f;
-    desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-    desc.MinLOD         = 0.f;
-    desc.MaxLOD         = 0.f;
-
-    pDev->CreateSamplerState (&desc, &g_pFontSampler_wrap);
-    pTLS->d3d11.uiSampler_wrap =      g_pFontSampler_wrap;
+          if ( SUCCEEDED (
+                 pDev->CreateSamplerState ( &sampler_desc,
+                                              &g_pFontSampler_wrap ) ) )
+          { pTLS->d3d11->uiSampler_wrap =      g_pFontSampler_wrap; }
+        }
+      }
+    }
   }
 }
 
@@ -691,6 +718,14 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
        g_pVertexConstantBuffer != nullptr &&
        g_pPixelShaderSteamHDR  != nullptr    )
   {
+    auto flag_result =
+      SK_ImGui_FlagDrawing_OnD3D11Ctx (
+        SK_D3D11_GetDeviceContextHandle (pDevCtx)
+      );
+
+    SK_ScopedBool auto_bool0 (flag_result.first);
+                             *flag_result.first = flag_result.second;
+
     // Seriously, D3D, WTF? Let me first query the number of these and then decide
     //   whether I want to dedicate TLS or heap memory to this task.
     UINT NumStackDestroyingInstances_ProbablyZero0 = 0,
@@ -754,6 +789,14 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
                           _In_ UINT                 StartVertexLocation,
                           _In_ D3D11_Draw_pfn       pfnD3D11Draw )
 {
+  auto flag_result =
+    SK_ImGui_FlagDrawing_OnD3D11Ctx (
+      SK_D3D11_GetDeviceContextHandle (pDevCtx)
+    );
+
+  SK_ScopedBool auto_bool0 (flag_result.first);
+                           *flag_result.first = flag_result.second;
+
   if ( g_pVertexShaderSteamHDR != nullptr &&
        g_pVertexConstantBuffer != nullptr &&
        g_pPixelShaderSteamHDR  != nullptr    )
@@ -821,17 +864,19 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
+  if (! pTLS) return false;
+
+  SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
 
   // Do not dump ImGui font textures
-  pTLS->imgui.drawing = true;
+  pTLS->imgui->drawing = true;
 
   ImGui_ImplDX11_InvalidateDeviceObjects ();
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  CComQIPtr <ID3D11Device> pDev (rb.device);
+  SK_ComQIPtr <ID3D11Device> pDev (rb.device);
 
   ///if (rb.api != SK_RenderAPI::D3D11On12)
   ///{
@@ -1073,7 +1118,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
       { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
 
-    if ( (! (g_pVertexShaderBlob && g_pVertexShaderBlob)) ||
+    if ( (! g_pVertexShaderBlob) ||
           pDev->CreateInputLayout ( local_layout, 3,
                                     g_pVertexShaderBlob->GetBufferPointer (),
                                       g_pVertexShaderBlob->GetBufferSize  (),
@@ -1231,34 +1276,45 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
             under_color =                                                     \n\
               float4 ( hdrUnderlay.Sample ( sampler0, input.pos.xy /          \n\
                                                       viewport.zw ).rgb, 1.0);\n\
-            if (hdr10)                                                        \n\
-            {                                                                 \n\
-              under_color.rgb =                                               \n\
-                125.0f * REC2020toREC709 (                                    \n\
-                  ( RemoveREC2084Curve (under_color.rgb) )                    \n\
-                );                                                            \n\
-                                                                              \n\
-              blend_alpha =                                                   \n\
-                ApplyREC2084Curve (                                           \n\
-                  float3 ( blend_alpha, blend_alpha, blend_alpha ),           \n\
-                                             -input.uv3.x / 1.45 ).r;         \n\
-            }                                                                 \n\
-                                                                              \n\
             out_col =                                                         \n\
               pow (abs (input.col * out_col), float4 (input.uv3.yyy, 1.0f));  \n\
                                                                               \n\
-            if (! hdr10)                                                      \n\
+            if (hdr10)                                                        \n\
             {                                                                 \n\
-              out_col  *= float4 (input.uv3.xxx, 1.0f);                       \n\
+              under_color.rgb =                                               \n\
+                REC2020toREC709 (                                             \n\
+                  ( RemoveREC2084Curve (12.5f * under_color.rgb) )            \n\
+                );                                                            \n\
+                                                                              \n\
+              blend_alpha =                                                   \n\
+                Luma (                                                        \n\
+                  ApplyREC2084Curve (                                         \n\
+                    float3 ( blend_alpha, blend_alpha, blend_alpha ),         \n\
+                                                      -input.uv3.x )          \n\
+                );                                                            \n\
             }                                                                 \n\
                                                                               \n\
-            out_col.rgb *= blend_alpha * 1.55f;                               \n\
+            if (! hdr10)                                                      \n\
+            {                                                                 \n\
+              blend_alpha =                                                   \n\
+                Luma (                                                        \n\
+                  ApplyREC709Curve (                                          \n\
+                    float3 ( blend_alpha, blend_alpha, blend_alpha )          \n\
+                                   )                                          \n\
+                );                                                            \n\
+              under_color.rgb =                                               \n\
+                  RemoveSRGBCurve (under_color.rgb);                          \n\
+              under_color.rgb /= (1.0f + under_color.rgb);                    \n\
+              out_col.rgb *= input.uv3.x;                                     \n\
+            }                                                                 \n\
+                                                                              \n\
+            out_col.rgb *= blend_alpha;                                       \n\
           }                                                                   \n\
                                                                               \n\
           float4 final =                                                      \n\
             float4 (                         out_col.rgb +                    \n\
                   (1.0f - blend_alpha) * under_color.rgb,                     \n\
-              min (1.0f,  blend_alpha));                                      \n\
+                saturate (blend_alpha));                                      \n\
                                                                               \n\
           if (hdr10)                                                          \n\
           {                                                                   \n\
@@ -1573,15 +1629,15 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
 using SK_ImGui_ResetCallback_pfn = void (__stdcall *)(void);
 
-std::vector <IUnknown *>                 external_resources;
-std::set    <SK_ImGui_ResetCallback_pfn> reset_callbacks;
+SK_LazyGlobal <std::vector <IUnknown *>>                 external_resources;
+SK_LazyGlobal <std::set    <SK_ImGui_ResetCallback_pfn>> reset_callbacks;
 
 __declspec (dllexport)
 void
 __stdcall
 SKX_ImGui_RegisterResource (IUnknown* pRes)
 {
-  external_resources.push_back (pRes);
+  external_resources->push_back (pRes);
 }
 
 
@@ -1590,7 +1646,7 @@ void
 __stdcall
 SKX_ImGui_RegisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
 {
-  reset_callbacks.emplace (pCallback);
+  reset_callbacks->emplace (pCallback);
 }
 
 __declspec (dllexport)
@@ -1598,21 +1654,21 @@ void
 __stdcall
 SKX_ImGui_UnregisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
 {
-  if (reset_callbacks.count (pCallback))
-      reset_callbacks.erase (pCallback);
+  if (reset_callbacks->count (pCallback))
+      reset_callbacks->erase (pCallback);
 }
 
 void
 SK_ImGui_ResetExternal (void)
 {
-  for ( auto& it : external_resources )
+  for ( auto& it : external_resources.get () )
   {
     it->Release ();
   }
 
-  external_resources.clear ();
+  external_resources->clear ();
 
-  for ( auto reset_fn : reset_callbacks )
+  for ( auto reset_fn : reset_callbacks.get () )
   {
     reset_fn ();
   }
@@ -1625,10 +1681,10 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
+    //SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
 
-  // Do not dump ImGui font textures
-  pTLS->imgui.drawing = true;
+    // Do not dump ImGui font textures
+    //pTLS->imgui->drawing = true;
 
   SK_ImGui_ResetExternal ();
 
@@ -1657,8 +1713,8 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   if (g_pVertexShaderBlob2)    { g_pVertexShaderBlob2->Release    ();    g_pVertexShaderBlob2 = nullptr; }
   if (g_pVertexShaderBlob3)    { g_pVertexShaderBlob3->Release    ();    g_pVertexShaderBlob3 = nullptr; }
 
-  pTLS->d3d11.uiSampler_clamp = nullptr;
-  pTLS->d3d11.uiSampler_wrap  = nullptr;
+  pTLS->d3d11->uiSampler_clamp = nullptr;
+  pTLS->d3d11->uiSampler_wrap  = nullptr;
 }
 
 bool
@@ -1670,27 +1726,25 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
 
   if (first)
   {
-    if (! QueryPerformanceFrequency  (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
-      return false;
-
-    if (! SK_QueryPerformanceCounter (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
-      return false;
+    g_TicksPerSecond  =
+      SK_GetPerfFreq ( ).QuadPart;
+    g_Time            =
+      SK_QueryPerf   ( ).QuadPart;
 
     first = false;
   }
 
-  DXGI_SWAP_CHAIN_DESC  swap_desc  = { };
-  pSwapChain->GetDesc (&swap_desc);
-
-  g_hWnd              = swap_desc.OutputWindow;
-
-  g_frameBufferWidth  = swap_desc.BufferDesc.Width;
-  g_frameBufferHeight = swap_desc.BufferDesc.Height;
-
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
+  DXGI_SWAP_CHAIN_DESC  swap_desc  = { };
+  pSwapChain->GetDesc (&swap_desc);
+
+  g_frameBufferWidth  = swap_desc.BufferDesc.Width;
+  g_frameBufferHeight = swap_desc.BufferDesc.Height;
+  g_hWnd              = swap_desc.OutputWindow;
+  io.ImeWindowHandle  = g_hWnd;
+
   io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
   io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
   io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
@@ -1700,19 +1754,18 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
   io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
   io.KeyMap [ImGuiKey_Home]       = VK_HOME;
   io.KeyMap [ImGuiKey_End]        = VK_END;
+  io.KeyMap [ImGuiKey_Insert]     = VK_INSERT;
   io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
   io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
+  io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
   io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
   io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
-  io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
   io.KeyMap [ImGuiKey_A]          = 'A';
   io.KeyMap [ImGuiKey_C]          = 'C';
   io.KeyMap [ImGuiKey_V]          = 'V';
   io.KeyMap [ImGuiKey_X]          = 'X';
   io.KeyMap [ImGuiKey_Y]          = 'Y';
   io.KeyMap [ImGuiKey_Z]          = 'Z';
-
-  io.ImeWindowHandle   = g_hWnd;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -1724,14 +1777,6 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
 void
 ImGui_ImplDX11_Shutdown (void)
 {
-  SK_TLS *pTLS =
-    SK_TLS_Bottom ();
-
-  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
-
-  // Do not dump ImGui font textures
-  pTLS->imgui.drawing = true;
-
   ImGui_ImplDX11_InvalidateDeviceObjects ();
   ImGui::Shutdown                        ();
 }
@@ -1796,10 +1841,20 @@ ImGui_ImplDX11_NewFrame (void)
   //  SK_Input_DI8Mouse_Release ();
 
 
+  // Update OS mouse cursor with the cursor requested by imgui
+  //ImGuiMouseCursor mouse_cursor =
+  //           io.MouseDrawCursor ? ImGuiMouseCursor_None  :
+  //                                ImGui::GetMouseCursor ( );
+  //
+  //if (g_LastMouseCursor != mouse_cursor)
+  //{
+  //    g_LastMouseCursor = mouse_cursor;
+  //    ImGui_ImplWin32_UpdateMouseCursor();
+  //}
+
   SK_ImGui_PollGamepad ();
 
-
-  // Start the frame
+  //// Start the frame
   SK_ImGui_User_NewFrame ();
 }
 
@@ -1827,11 +1882,10 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
+  SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
 
   // Do not dump ImGui font textures
-  pTLS->imgui.drawing = true;
-
+  pTLS->imgui->drawing = true;
 
   assert (This == rb.swapchain);
 
@@ -1840,6 +1894,14 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
 
   if (rb.d3d11.immediate_ctx != nullptr)
   {
+    auto flag_result =
+      SK_ImGui_FlagDrawing_OnD3D11Ctx (
+        SK_D3D11_GetDeviceContextHandle (pDevCtx)
+      );
+
+    SK_ScopedBool auto_bool0 (flag_result.first);
+                             *flag_result.first = flag_result.second;
+
     HRESULT hr0 = rb.device->QueryInterface              <ID3D11Device>        (&pDev.p);
     HRESULT hr1 = rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx.p);
 

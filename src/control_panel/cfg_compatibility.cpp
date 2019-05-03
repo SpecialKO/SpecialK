@@ -62,12 +62,12 @@ SK::ControlPanel::Compatibility::Draw (void)
         switch (api)
         {
           case SK_RenderAPI::D3D9Ex:
-            config.apis.d3d9ex.hook     = true;
+            config.apis.d3d9ex.hook     = true; //-V796
           case SK_RenderAPI::D3D9:
             config.apis.d3d9.hook       = true;
             break;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
           case SK_RenderAPI::D3D12:
             config.apis.dxgi.d3d12.hook = true;
 #endif
@@ -75,7 +75,7 @@ SK::ControlPanel::Compatibility::Draw (void)
             config.apis.dxgi.d3d11.hook = true;
             break;
 
-#ifndef _WIN64
+#ifdef _M_IX86
           case SK_RenderAPI::DDrawOn11:
             config.apis.ddraw.hook       = true;
             config.apis.dxgi.d3d11.hook  = true;
@@ -91,7 +91,7 @@ SK::ControlPanel::Compatibility::Draw (void)
             config.apis.OpenGL.hook     = true;
             break;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
           case SK_RenderAPI::Vulkan:
             config.apis.Vulkan.hook     = true;
             break;
@@ -125,7 +125,7 @@ SK::ControlPanel::Compatibility::Draw (void)
         }
       };
 
-#ifdef _WIN64
+#ifdef _M_AMD64
       const int num_lines = 4; // Basic set of APIs
 #else
       const int num_lines = 5; // + DirectDraw / Direct3D 8
@@ -143,14 +143,14 @@ SK::ControlPanel::Compatibility::Draw (void)
 
       ImGui_CheckboxEx ("Direct3D 11",  &config.apis.dxgi.d3d11.hook);
 
-#ifdef _WIN64
+#ifdef _M_AMD64
       ImGui_CheckboxEx ("Direct3D 12",  &config.apis.dxgi.d3d12.hook, config.apis.dxgi.d3d11.hook);
 #endif
 
       ImGui::Columns    ( 1 );
       ImGui::Separator  (   );
 
-#ifndef _WIN64
+#ifdef _M_IX86
       ImGui::Columns    ( 2 );
 
       static bool has_dgvoodoo2 =
@@ -195,7 +195,7 @@ SK::ControlPanel::Compatibility::Draw (void)
       ImGui::Columns    ( 2 );
 
       ImGui::Checkbox   ("OpenGL ", &config.apis.OpenGL.hook); ImGui::SameLine ();
-#ifdef _WIN64
+#ifdef _M_AMD64
       ImGui::Checkbox   ("Vulkan ", &config.apis.Vulkan.hook);
 #endif
 
@@ -206,7 +206,7 @@ SK::ControlPanel::Compatibility::Draw (void)
         config.apis.d3d9ex.hook     = false; config.apis.d3d9.hook       = false;
         config.apis.dxgi.d3d11.hook = false;
         config.apis.OpenGL.hook     = false;
-#ifdef _WIN64
+#ifdef _M_AMD64
         config.apis.dxgi.d3d12.hook = false; config.apis.Vulkan.hook     = false;
 #else
         config.apis.d3d8.hook       = false; config.apis.ddraw.hook      = false;
@@ -344,21 +344,21 @@ SK::ControlPanel::Compatibility::Draw (void)
       ImGui::RadioButton ("Details",    &window_pane, 1);
       ImGui::Separator   (                             );
 
-        auto DescribeRect = [](LPRECT rect, const char* szType, const char* szName)
-        {
-          ImGui::Text (szType);
-          ImGui::NextColumn ();
-          ImGui::Text (szName);
-          ImGui::NextColumn ();
-          ImGui::Text ( "| (%4li,%4li) / %4lix%li |  ",
-                            rect->left, rect->top,
-                              rect->right-rect->left, rect->bottom - rect->top );
-          ImGui::NextColumn ();
-        };
+      auto DescribeRect = [](LPRECT rect, const char* szType, const char* szName)
+      {
+        ImGui::Text (szType);
+        ImGui::NextColumn ();
+        ImGui::Text (szName);
+        ImGui::NextColumn ();
+        ImGui::Text ( "| (%4li,%4li) / %4lix%li |  ",
+                          rect->left, rect->top,
+                            rect->right-rect->left, rect->bottom - rect->top );
+        ImGui::NextColumn ();
+      };
 
-#define __SK_ImGui_FixedWidthFont ImGui::GetIO ().Fonts->Fonts [1]
-
-      ImGui::PushFont    (__SK_ImGui_FixedWidthFont);
+      SK_ImGui_AutoFont fixed_font (
+        ImGui::GetIO ().Fonts->Fonts [1]
+      );
 
       switch (window_pane)
       {
@@ -418,7 +418,7 @@ SK::ControlPanel::Compatibility::Draw (void)
         break;
       }
 
-      ImGui::PopFont     ( );
+      fixed_font.Detach  ( );
       ImGui::Separator   ( );
 
       ImGui::Text        ( "ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }",

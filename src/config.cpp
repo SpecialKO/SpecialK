@@ -22,35 +22,38 @@
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
-const wchar_t*       SK_VER_STR = SK_VERSION_STR_W;
-
-iSK_INI*             dll_ini   = nullptr;
-iSK_INI*             osd_ini   = nullptr;
-iSK_INI*             steam_ini = nullptr;
-iSK_INI*             macro_ini = nullptr;
-sk::ParameterFactory g_ParameterFactory;
+iSK_INI*       dll_ini    = nullptr;
+iSK_INI*       osd_ini    = nullptr;
+iSK_INI*       steam_ini  = nullptr;
+iSK_INI*       macro_ini  = nullptr;
 
 SK_LazyGlobal <sk_config_t> _config;
 
 SK_LazyGlobal <std::unordered_map <std::wstring, BYTE>> humanKeyNameToVirtKeyCode;
 SK_LazyGlobal <std::unordered_map <BYTE, std::wstring>> virtKeyCodeToHumanKeyName;
 
+extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_DepotList> >           SK_Steam_DepotManifestRegistry;
+extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
 
-__forceinline
-const SK_GAME_ID
+extern float __target_fps;
+extern float __target_fps_bg;
+
+
+SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void)
 {
   static SK_GAME_ID current_game =
-    SK_GAME_ID::UNKNOWN_GAME;
+         SK_GAME_ID::UNKNOWN_GAME;
 
   static bool first_check = true;
   if         (first_check)
   {
-    static std::unordered_map <std::wstring, SK_GAME_ID> _games = {
+    static std::unordered_map <std::wstring,       SK_GAME_ID> _games =                     {
       { L"Tyranny.exe",                            SK_GAME_ID::Tyranny                      },
       { L"TidesOfNumenera.exe",                    SK_GAME_ID::TidesOfNumenera              },
       { L"MassEffectAndromeda.exe",                SK_GAME_ID::MassEffect_Andromeda         },
@@ -121,6 +124,7 @@ SK_GetCurrentGameID (void)
 
     first_check = false;
 
+#ifdef _M_AMD64
     // For games that can't be matched using a single executable filename
     if (! _games.count (SK_GetHostApp ()))
     {
@@ -134,6 +138,7 @@ SK_GetCurrentGameID (void)
     }
 
     else
+#endif
       current_game = _games [SK_GetHostApp ()];
   }
 
@@ -145,22 +150,27 @@ auto LoadKeybind =
   [](SK_ConfigSerializedKeybind* binding) ->
     auto
     {
-      auto ret =
-        binding->param;
-
-      if (ret != nullptr && binding != nullptr)
+      if (binding != nullptr)
       {
-        if (! static_cast <sk::iParameter *> (ret)->load ())
+        auto ret =
+          binding->param;
+
+        if (ret != nullptr)
         {
+          if (! static_cast <sk::iParameter *> (ret)->load ())
+          {
+            binding->parse ();
+            ret->store     (binding->human_readable);
+          }
+
+          binding->human_readable = ret->get_value ();
           binding->parse ();
-          ret->store     (binding->human_readable);
         }
 
-        binding->human_readable = ret->get_value ();
-        binding->parse ();
+        return ret;
       }
 
-      return ret;
+      return (sk::ParameterStringW *)nullptr;
     };
 
 
@@ -374,6 +384,7 @@ sk::ParameterStringW*     version; // Version at last boot
 struct {
   struct {
     sk::ParameterFloat*   target_fps;
+    sk::ParameterFloat*   target_fps_bg;
     sk::ParameterFloat*   limiter_tolerance;
     sk::ParameterInt*     prerender_limit;
     sk::ParameterInt*     present_interval;
@@ -392,12 +403,7 @@ struct {
 
     struct
     {
-      sk::ParameterBool*  busy_wait;
       sk::ParameterInt*   render_ahead;
-      sk::ParameterBool*  yield_once;
-      sk::ParameterBool*  minimize_latency;
-      sk::ParameterFloat* sleep_scale;
-      sk::ParameterFloat* deadline_transition;
     } control;
   } framerate;
   struct {
@@ -546,12 +552,12 @@ struct {
   struct {
     sk::ParameterBool*    hook;
   }
-#ifndef _WIN64
+#ifdef _M_IX86
       ddraw, d3d8,
 #endif
       d3d9,  d3d9ex,
       d3d11,
-#ifdef _WIN64
+#ifdef _M_AMD64
       d3d12,
       Vulkan,
 #endif
@@ -585,24 +591,28 @@ SK_GetConfigPathEx (bool reset = false)
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
     InterlockedIncrement (&init);
-    app_cache_mgr->loadAppCacheForExe         ( SK_GetFullyQualifiedApp () );
+    app_cache_mgr->loadAppCacheForExe ( SK_GetFullyQualifiedApp () );
   }
 
   else
-    SK_Thread_SpinUntilAtomicMin (&init, 3);
+    SK_Thread_SpinUntilAtomicMin (&init, 2);
 
-  static wchar_t cached_path [MAX_PATH * 2 + 1] = { };
+  static wchar_t
+    cached_path [MAX_PATH * 2 + 1] = { };
 
-  if (reset || ReadAcquire (&init) == 2)
+  if (reset || InterlockedCompareExchange (&init, 3, 2) == 2)
   {
     wcscpy ( cached_path,
                app_cache_mgr->getConfigPathFromAppPath (
                  SK_GetFullyQualifiedApp ()
                ).c_str ()
            );
+
+    InterlockedIncrement (&init);
   }
 
-  InterlockedIncrement (&init);
+  else
+    SK_Thread_SpinUntilAtomicMin (&init, 4);
 
   return
     cached_path;
@@ -629,7 +639,7 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
 
   auto ret =
     dynamic_cast <_Tp *> (
-      g_ParameterFactory.create_parameter <_Tp::value_type> (
+      g_ParameterFactory->create_parameter <_Tp::value_type> (
         wszDescription )
     );
 
@@ -739,6 +749,25 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini->get_sections ().empty ();
 
 
+    if (empty)
+    {
+      dll_ini->import ( L"[API.Hook]\n"
+                        L"LastKnown=2\n" // OpenGL = Default
+#ifdef _M_IX86
+                        L"ddraw=true\n"
+                        L"d3d8=true\n"
+#endif
+                        L"d3d9=true\n"
+                        L"d3d9ex=true\n"
+                        L"d3d11=true\n"
+#ifdef _M_AMD64
+                        L"d3d12=true\n"
+                        L"Vulkan=true\n"
+#endif
+                        L"OpenGL=true\n\n" );
+    }
+
+
     SK_CreateDirectories (osd_config.c_str ());
 
 
@@ -757,7 +786,7 @@ auto DeclKeybind =
     {
       auto* ret =
        dynamic_cast <sk::ParameterStringW *>
-        (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
+        (g_ParameterFactory->create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
       if (ret != nullptr && binding != nullptr)
       {
@@ -922,7 +951,7 @@ auto DeclKeybind =
 
     ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
-#ifndef _WIN64
+#ifdef _M_IX86
     ConfigEntry (apis.ddraw.hook,                        L"Enable DirectDraw Hooking",                                 dll_ini,         L"API.Hook",              L"ddraw"),
     ConfigEntry (apis.d3d8.hook,                         L"Enable Direct3D 8 Hooking",                                 dll_ini,         L"API.Hook",              L"d3d8"),
 #endif
@@ -931,7 +960,7 @@ auto DeclKeybind =
     ConfigEntry (apis.d3d9ex.hook,                       L"Enable Direct3D 9Ex Hooking",                               dll_ini,         L"API.Hook",              L"d3d9ex"),
     ConfigEntry (apis.d3d11.hook,                        L"Enable Direct3D 11 Hooking",                                dll_ini,         L"API.Hook",              L"d3d11"),
 
-#ifdef _WIN64
+#ifdef _M_AMD64
     ConfigEntry (apis.d3d12.hook,                        L"Enable Direct3D 12 Hooking",                                dll_ini,         L"API.Hook",              L"d3d12"),
     ConfigEntry (apis.Vulkan.hook,                       L"Enable Vulkan Hooking",                                     dll_ini,         L"API.Hook",              L"Vulkan"),
 #endif
@@ -972,6 +1001,7 @@ auto DeclKeybind =
     //////////////////////////////////////////////////////////////////////////
 
     ConfigEntry (render.framerate.target_fps,            L"Framerate Target (negative signed values are non-limiting)",dll_ini,         L"Render.FrameRate",      L"TargetFPS"),
+    ConfigEntry (render.framerate.target_fps_bg,         L"Framerate Target (window in background;  0.0 = same as fg)",dll_ini,         L"Render.FrameRate",      L"BackgroundFPS"),
     ConfigEntry (render.framerate.limiter_tolerance,     L"Limiter Tolerance",                                         dll_ini,         L"Render.FrameRate",      L"LimiterTolerance"),
     ConfigEntry (render.framerate.wait_for_vblank,       L"Limiter Will Wait for VBLANK",                              dll_ini,         L"Render.FrameRate",      L"WaitForVBLANK"),
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
@@ -980,22 +1010,13 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.sleepless_render,      L"Sleep Free Render Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessRenderThread"),
     ConfigEntry (render.framerate.sleepless_window,      L"Sleep Free Window Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessWindowThread"),
     ConfigEntry (render.framerate.enable_mmcss,          L"Enable Multimedia Class Scheduling for FPS Limiter Sleep",  dll_ini,         L"Render.FrameRate",      L"EnableMMCSS"),
-
-    ConfigEntry (render.framerate.control.busy_wait,     L"Burn through the render thread's CPU time so that a game's"
-                                                         L" own framerate limiter will never engage.",                 dll_ini,         L"FrameRate.Control",     L"AlwaysBusyWait"),
-    ConfigEntry (render.framerate.control.yield_once,    L"Offer a portion of the render thread's CPU time and then "
-                                                         L"switch to busy-wait heuristics.",                           dll_ini,         L"FrameRate.Control",     L"YieldThenSpin"),
-    ConfigEntry (render.framerate.control.
-                   minimize_latency,                     L"Maintain a healthy window message loop while waiting.",     dll_ini,         L"FrameRate.Control",     L"ReduceLatency"),
-    ConfigEntry (render.framerate.control.sleep_scale,   L"Ratio of full-frame deadline to longest possible sleep.",   dll_ini,         L"FrameRate.Control",     L"SleepScale"),
-    ConfigEntry (render.framerate.control.
-                   deadline_transition,                  L"Switch to more accurate timing when deadline approaches.",  dll_ini,         L"FrameRate.Control",     L"DeadlineTransition"),
-    ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
-
     ConfigEntry (render.framerate.refresh_rate,          L"Fullscreen Refresh Rate",                                   dll_ini,         L"Render.FrameRate",      L"RefreshRate"),
     ConfigEntry (render.framerate.rescan_ratio,          L"Fullscreen Rational Scan Rate (precise refresh rate)",      dll_ini,         L"Render.FrameRate",      L"RescanRatio"),
-    ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
+
+    ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
+
+    ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
 
     // OpenGL
     //////////////////////////////////////////////////////////////////////////
@@ -1240,7 +1261,7 @@ auto DeclKeybind =
 
       imports [import].filename =
          dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory.create_parameter <std::wstring> (
+             (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Import Filename")
              );
       imports [import].filename->register_to_ini (
@@ -1250,7 +1271,7 @@ auto DeclKeybind =
 
       imports [import].when =
          dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory.create_parameter <std::wstring> (
+             (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Import Timeframe")
              );
       imports [import].when->register_to_ini (
@@ -1260,7 +1281,7 @@ auto DeclKeybind =
 
       imports [import].role =
          dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory.create_parameter <std::wstring> (
+             (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Import Role")
              );
       imports [import].role->register_to_ini (
@@ -1270,7 +1291,7 @@ auto DeclKeybind =
 
       imports [import].architecture =
          dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory.create_parameter <std::wstring> (
+             (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Import Architecture")
              );
       imports [import].architecture->register_to_ini (
@@ -1280,7 +1301,7 @@ auto DeclKeybind =
 
       imports [import].blacklist =
          dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory.create_parameter <std::wstring> (
+             (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Blacklisted Executables")
              );
       imports [import].blacklist->register_to_ini (
@@ -1589,7 +1610,7 @@ auto DeclKeybind =
 
 
       case SK_GAME_ID::Sacred2:
-        config.display.force_windowed      = true; // Fullscreen is not particularly well
+        config.display.force_windowed      = true; // Fullscreen is not particularly well //-V796
                                                    //   supported in this game
       case SK_GAME_ID::Sacred:
         config.render.dxgi.safe_fullscreen = true; // dgVoodoo compat
@@ -1620,7 +1641,7 @@ auto DeclKeybind =
         //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
         break;
 
-#ifndef _WIN64
+#ifdef _M_IX86
       case SK_GAME_ID::DeadlyPremonition:
         config.steam.force_load_steamapi       = true;
         config.apis.d3d9.hook                  = true;
@@ -1630,7 +1651,7 @@ auto DeclKeybind =
         break;
 #endif
 
-#ifdef _WIN64
+#ifdef _M_AMD64
       case SK_GAME_ID::LifeIsStrange_BeforeTheStorm:
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
@@ -1650,7 +1671,7 @@ auto DeclKeybind =
         config.steam.force_load_steamapi = true;
         break;
 
-#ifndef _WIN64
+#ifdef _M_IX86
       case SK_GAME_ID::DukeNukemForever:
         // The mouse cursor's coordinate space is limited to 1920x1080 even at 4K, which
         //   has the unfortunate side effect of reducing aiming precision when the game
@@ -1739,16 +1760,23 @@ auto DeclKeybind =
 
         // Replace sleep calls that would normally block the message queue with
         //   calls that wakeup and dispatch these events.
-        config.render.framerate.sleepless_window = true;
+        config.render.framerate.sleepless_window = false;
 
-        config.textures.d3d11.cache           = false;
+        config.textures.d3d11.cache           = true;
         config.textures.cache.max_entries     = 16384; // Uses a ton of small textures
 
         // Don't show the cursor, ever, because the game doesn't use it.
         config.input.cursor.manage            = true;
         config.input.cursor.timeout           = 0;
 
+        config.threads.enable_file_io_trace   = true;
+
         config.steam.preload_overlay          = true;
+
+        SK_D3D11_DeclHUDShader (0x3be1c239, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x466e477c, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x588dea7a, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0xf15a90ab, ID3D11VertexShader);
 
         InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, 10);
         break;
@@ -1777,7 +1805,7 @@ auto DeclKeybind =
         exit (0);
         break;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
       case SK_GAME_ID::FarCry5:
       {
         // Game shares buggy XInput code with Watch_Dogs2
@@ -1818,6 +1846,7 @@ auto DeclKeybind =
         SK_D3D11_DeclHUDShader (0xdb921b64, ID3D11VertexShader);
         SK_D3D11_DeclHUDShader (0xe15a43f4, ID3D11VertexShader);
         SK_D3D11_DeclHUDShader (0xf497bad8, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x6fd3fed7, ID3D11VertexShader);
         config.render.dxgi.deferred_isolation = true;
 
         // ReShade will totally crash if it is permitted to hook D3D9
@@ -1826,7 +1855,7 @@ auto DeclKeybind =
         break;
 
 
-#ifdef _WIN64
+#ifdef _M_AMD64
       case SK_GAME_ID::Yakuza0:
         ///// Engine has a problem with its texture management that
         /////   makes texture caching / modding impossible.
@@ -1845,10 +1874,7 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                   = false;
         config.apis.Vulkan.hook                   = false;
         config.apis.dxgi.d3d12.hook               = false;
-        config.render.framerate.min_input_latency = false;
         config.render.framerate.enable_mmcss      = true;
-        config.render.framerate.busy_wait_limiter = false;
-        config.render.framerate.yield_once        = true;
         break;
 
       case SK_GAME_ID::AssassinsCreed_Odyssey:
@@ -1858,7 +1884,6 @@ auto DeclKeybind =
         config.apis.Vulkan.hook                   = false;
         config.render.framerate.enable_mmcss      = true;
         config.textures.cache.residency_managemnt = false;
-        config.render.framerate.busy_wait_limiter = true;
         config.render.framerate.buffer_count      = 3;
         config.render.framerate.pre_render_limit  = 4;
         config.textures.cache.max_size            = 5120;
@@ -1869,8 +1894,6 @@ auto DeclKeybind =
         config.textures.d3d11.uncompressed_mips   = true;
         config.textures.d3d11.cache_gen_mips      = true;
         config.render.framerate.target_fps        = 30.0f;
-        config.render.framerate.busy_wait_limiter = false;
-        config.render.framerate.yield_once        = true;
         break;
 
       case SK_GAME_ID::CallOfCthulhu:
@@ -1915,13 +1938,6 @@ auto DeclKeybind =
         config.steam.dll_path = L"kaldaien_api64.dll";
         config.render.framerate.limiter_tolerance
                                          = 1.5f;
-        // Normally I would turn this on by default, but I replaced
-        //   the game's stupid SwitchToThread (...) nightmare with
-        //     a functional Win32 message pump.
-        //
-        //  --> This framerate limiter feature isn't needed.
-        //
-        config.render.framerate.min_input_latency = false;
 
         // Prevent hitching
         config.input.gamepad.xinput.placehold [0] = true;
@@ -2007,7 +2023,7 @@ auto DeclKeybind =
 
   apis.last_known->load ((int &)config.apis.last_known);
 
-#ifndef _WIN64
+#ifdef _M_IX86
   apis.ddraw.hook->load (config.apis.ddraw.hook);
   apis.d3d8.hook->load  (config.apis.d3d8.hook);
 #endif
@@ -2017,13 +2033,13 @@ auto DeclKeybind =
   apis.d3d9ex.hook->load (config.apis.d3d9ex.hook);
   apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook);
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   apis.d3d12.hook->load (config.apis.dxgi.d3d12.hook);
 #endif
 
   apis.OpenGL.hook->load (config.apis.OpenGL.hook);
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   apis.Vulkan.hook->load (config.apis.Vulkan.hook);
 #endif
 
@@ -2040,6 +2056,7 @@ auto DeclKeybind =
   display.force_windowed->load              (config.display.force_windowed);
 
   render.framerate.target_fps->load         (config.render.framerate.target_fps);
+  render.framerate.target_fps_bg->load      (config.render.framerate.target_fps_bg);
   render.framerate.limiter_tolerance->load  (config.render.framerate.limiter_tolerance);
   render.framerate.sleepless_render->load   (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->load   (config.render.framerate.sleepless_window);
@@ -2048,18 +2065,9 @@ auto DeclKeybind =
   if (config.render.framerate.limiter_tolerance < 1.0f)
       config.render.framerate.limiter_tolerance = 2.75f;
 
-  extern float target_fps;
+  __target_fps    = config.render.framerate.target_fps;
+  __target_fps_bg = config.render.framerate.target_fps_bg;
 
-  target_fps = config.render.framerate.target_fps;
-
-  render.framerate.control.busy_wait->load  (config.render.framerate.busy_wait_limiter);
-  render.framerate.control.yield_once->load (config.render.framerate.yield_once);
-  render.framerate.control.
-                     minimize_latency->load (config.render.framerate.min_input_latency);
-  render.framerate.control.
-                          sleep_scale->load (config.render.framerate.max_sleep_percent);
-  render.framerate.control.
-                  deadline_transition->load (config.render.framerate.sleep_deadline);
   render.framerate.control.
                   render_ahead->load        (config.render.framerate.max_render_ahead);
   render.framerate.override_cpu_count->load (config.render.framerate.override_num_cpus);
@@ -2099,7 +2107,7 @@ auto DeclKeybind =
 
     if (! config.render.framerate.rescan_ratio.empty ())
     {
-      swscanf (config.render.framerate.rescan_ratio.c_str (), L"%li/%li", &config.render.framerate.rescan_.Numerator,
+      swscanf (config.render.framerate.rescan_ratio.c_str (), L"%ul/%ul", &config.render.framerate.rescan_.Numerator,
                                                                           &config.render.framerate.rescan_.Denom);
     }
 
@@ -3062,7 +3070,7 @@ SK_SaveConfig ( std::wstring name,
 
   apis.last_known->store                      (static_cast <int> (config.apis.last_known));
 
-#ifndef _WIN64
+#ifdef _M_IX86
   apis.ddraw.hook->store                      (config.apis.ddraw.hook);
   apis.d3d8.hook->store                       (config.apis.d3d8.hook);
 #endif
@@ -3070,7 +3078,7 @@ SK_SaveConfig ( std::wstring name,
   apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook);
   apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook);
   apis.OpenGL.hook->store                     (config.apis.OpenGL.hook);
-#ifdef _WIN64
+#ifdef _M_AMD64
   apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook);
   apis.Vulkan.hook->store                     (config.apis.Vulkan.hook);
 #endif
@@ -3191,22 +3199,13 @@ SK_SaveConfig ( std::wstring name,
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
 
-  extern float target_fps;
-
-  render.framerate.target_fps->store          (target_fps);
+  render.framerate.target_fps->store          (__target_fps);
+  render.framerate.target_fps_bg->store       (__target_fps_bg);
   render.framerate.limiter_tolerance->store   (config.render.framerate.limiter_tolerance);
   render.framerate.sleepless_render->store    (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->store    (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->store        (config.render.framerate.enable_mmcss);
 
-  render.framerate.control.busy_wait->store   (config.render.framerate.busy_wait_limiter);
-  render.framerate.control.yield_once->store  (config.render.framerate.yield_once);
-  render.framerate.control.
-                      minimize_latency->store (config.render.framerate.min_input_latency);
-  render.framerate.control.
-                           sleep_scale->store (config.render.framerate.max_sleep_percent);
-  render.framerate.control.
-                   deadline_transition->store (config.render.framerate.sleep_deadline);
   render.framerate.control.
                    render_ahead->store        (config.render.framerate.max_render_ahead);
   render.framerate.override_cpu_count->store  (config.render.framerate.override_num_cpus);
@@ -3225,7 +3224,7 @@ SK_SaveConfig ( std::wstring name,
 
       if (! config.render.framerate.rescan_ratio.empty ())
       {
-        swscanf (config.render.framerate.rescan_ratio.c_str (), L"%li/%li", &config.render.framerate.rescan_.Numerator,
+        swscanf (config.render.framerate.rescan_ratio.c_str (), L"%d/%d", &config.render.framerate.rescan_.Numerator,
                                                                             &config.render.framerate.rescan_.Denom);
       }
 
@@ -3483,7 +3482,7 @@ SK_SaveConfig ( std::wstring name,
   safe_cegui->store                      (config.cegui.safe_init);
   trace_libraries->store                 (config.system.trace_load_library);
   strict_compliance->store               (config.system.strict_compliance);
-  version->store                         (SK_VER_STR);
+  version->store                         (SK_GetVersionStrW ());
 
   if (dll_ini != nullptr && (! (nvapi_init && sk::NVAPI::nv_hardware) || (! sk::NVAPI::CountSLIGPUs ())))
     dll_ini->remove_section (L"NVIDIA.SLI");
@@ -3535,22 +3534,32 @@ SK_SaveConfig ( std::wstring name,
   }
 }
 
-const wchar_t*
-__stdcall
-SK_GetVersionStr (void)
-{
-  return SK_VER_STR;
-}
-
-
-#include <unordered_map>
-#include <queue>
-
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
   (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
                   (((shift)!= 0) << 10) |   \
                   (((alt)  != 0) << 11))
 
+void
+SK_KeyMap_StandardizeNames (wchar_t* wszNameToFormalize)
+{
+  wchar_t*                pwszName = wszNameToFormalize;
+              CharUpperW (pwszName);
+   pwszName = CharNextW  (pwszName);
+
+  bool lower = true;
+
+  while (*pwszName != L'\0')
+  {
+    if (lower) CharLowerW (pwszName);
+    else       CharUpperW (pwszName);
+
+    lower =
+      (! iswspace (*pwszName));
+
+    pwszName =
+      CharNextW (pwszName);
+  }
+}
 void
 SK_Keybind::update (void)
 {
@@ -3659,6 +3668,8 @@ SK_Keybind::parse (void)
           GetKeyNameText ( scanCode,
                              name,
                                32 );
+
+          SK_KeyMap_StandardizeNames (name);
         } break;
       }
 
@@ -3669,7 +3680,6 @@ SK_Keybind::parse (void)
            i != VK_LCONTROL && i != VK_RCONTROL &&
            i != VK_LMENU    && i != VK_RMENU )
       {
-
         humanToVirtual.emplace (name, gsl::narrow_cast <BYTE> (i));
         virtualToHuman.emplace (      gsl::narrow_cast <BYTE> (i), name);
       }
@@ -3715,12 +3725,18 @@ SK_Keybind::parse (void)
 
   if (wszTok == nullptr)
   {
-    vKey = humanToVirtual [wszKeyBind];
+    SK_KeyMap_StandardizeNames (wszKeyBind);
+
+    vKey =
+      humanToVirtual [wszKeyBind];
   }
 
   while (wszTok)
   {
-    BYTE vKey_ = humanToVirtual [wszTok];
+    SK_KeyMap_StandardizeNames (wszTok);
+
+    BYTE vKey_ =
+      humanToVirtual [wszTok];
 
     if (vKey_ == VK_CONTROL)
       ctrl  = true;
@@ -3731,7 +3747,8 @@ SK_Keybind::parse (void)
     else
       vKey = vKey_;
 
-    wszTok = std::wcstok (nullptr, L"+", &wszBuf);
+    wszTok =
+      std::wcstok (nullptr, L"+", &wszBuf);
   }
 
   masked_code =
@@ -4363,7 +4380,7 @@ SK_Render_GetAPIHookMask (void)
 {
   int mask = 0;
 
-#ifndef _WIN64
+#ifdef _M_IX86
   if (config.apis.d3d8.hook)       mask |= static_cast <int> (SK_RenderAPI::D3D8);
   if (config.apis.ddraw.hook)      mask |= static_cast <int> (SK_RenderAPI::DDraw);
 #endif
@@ -4371,7 +4388,7 @@ SK_Render_GetAPIHookMask (void)
   if (config.apis.d3d9ex.hook)     mask |= static_cast <int> (SK_RenderAPI::D3D9Ex);
   if (config.apis.dxgi.d3d11.hook) mask |= static_cast <int> (SK_RenderAPI::D3D11);
   if (config.apis.OpenGL.hook)     mask |= static_cast <int> (SK_RenderAPI::OpenGL);
-#ifdef _WIN64
+#ifdef _M_AMD64
   if (config.apis.Vulkan.hook)     mask |= static_cast <int> (SK_RenderAPI::Vulkan);
   if (config.apis.dxgi.d3d12.hook) mask |= static_cast <int> (SK_RenderAPI::D3D12);
 #endif

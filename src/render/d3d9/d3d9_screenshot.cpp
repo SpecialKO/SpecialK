@@ -201,7 +201,7 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
 
 
 
-static concurrency::concurrent_queue <SK_D3D9_Screenshot*> screenshot_queue;
+static SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D9_Screenshot*>> screenshot_queue;
 
 
 bool
@@ -249,7 +249,7 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
   {
     if (InterlockedDecrement (&enqueued_screenshots.stages [stage]) >= 0)
     {
-      screenshot_queue.push (
+      screenshot_queue->push (
         new SK_D3D9_Screenshot (SK_GetCurrentRenderBackend ().device.p)
       );
     }
@@ -258,7 +258,7 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
   }
 
 
-  if (! screenshot_queue.empty ())
+  if (! screenshot_queue->empty ())
   {
     static volatile
       HANDLE hSignalScreenshot = INVALID_HANDLE_VALUE;
@@ -291,11 +291,11 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
         {
           MsgWaitForMultipleObjectsEx ( 1, &hSignal, INFINITE, 0x0, 0x0 );
 
-          while (! screenshot_queue.empty ())
+          while (! screenshot_queue->empty ())
           {
             SK_D3D9_Screenshot* pop_off = nullptr;
 
-            if (screenshot_queue.try_pop (pop_off) && pop_off != nullptr)
+            if (screenshot_queue->try_pop (pop_off) && pop_off != nullptr)
             {
               UINT     Width, Height, Pitch;
               uint8_t* pData;
@@ -419,7 +419,7 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
             if ( rejected_screenshots.try_pop (push_back) &&
                                                push_back != nullptr )
             {
-              screenshot_queue.push (push_back);
+              screenshot_queue->push (push_back);
             }
           }
         }

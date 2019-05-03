@@ -121,7 +121,7 @@ struct TexThreadStats {
   };
 #endif
 
-  extern std::set <UINT> active_samplers;
+  extern SK_LazyGlobal <std::set <UINT>> active_samplers;
 
 
   enum TexLoadMethod {
@@ -150,17 +150,17 @@ struct TexThreadStats {
       Resample   // Change image properties             (pData is supplied)
     } type;
 
-    LPDIRECT3DDEVICE9   pDevice;
+    LPDIRECT3DDEVICE9   pDevice     = nullptr;
 
     // Resample only
-    LPVOID              pSrcData;
-    UINT                SrcDataSize;
+    LPVOID              pSrcData    = nullptr;
+    UINT                SrcDataSize = 0UL;
 
-    uint32_t            checksum;
-    uint32_t            size;
+    uint32_t            checksum    = 0UL;
+    uint32_t            size        = 0UL;
 
     // Stream / Immediate
-    wchar_t             wszFilename [MAX_PATH];
+    wchar_t             wszFilename [MAX_PATH] = { };
 
     LPDIRECT3DTEXTURE9  pDest = nullptr;
     LPDIRECT3DTEXTURE9  pSrc  = nullptr;
@@ -180,7 +180,7 @@ struct TexThreadStats {
     }
 
   protected:
-    TexLoadRequest* ref_;
+    TexLoadRequest* ref_ = nullptr;
   };
 
 
@@ -287,19 +287,19 @@ struct TexThreadStats {
     //     problems in the base game.
     struct
     {
-      BOOL power_of_two;
-    } sampler_flags [256] = { 0 };
+      BOOL power_of_two = FALSE;
+    } sampler_flags [256] = { };
 
 
     // The set of textures used during the last frame
-    std::vector        <uint32_t>                            textures_last_frame;
+    std::vector             <uint32_t>                         textures_last_frame;
     //SK_ThreadSafe_HashSet <uint32_t>                         textures_used;
-    concurrent_unordered_set <uint32_t>                            textures_used;
-//  std::unordered_set <uint32_t>                            non_power_of_two_textures;
+    concurrent_unordered_set <uint32_t>                        textures_used;
+//  std::unordered_set <uint32_t>                              non_power_of_two_textures;
 
     // Textures that we will not allow injection for
     //   (primarily to speed things up, but also for EULA-related reasons).
-    concurrent_unordered_set <uint32_t>                            inject_blacklist;
+    concurrent_unordered_set <uint32_t>                        inject_blacklist;
 
 
     //
@@ -350,10 +350,10 @@ struct TexThreadStats {
       CRITICAL_SECTION                                  cs_tex_dump      = { };
       CRITICAL_SECTION                                  cs_tex_blacklist = { };
 
-      volatile  LONG                                    streaming;//       = 0L;
-      volatile ULONG                                    streaming_bytes;// = 0UL;
+      volatile  LONG                                    streaming        = 0L;
+      volatile ULONG                                    streaming_bytes  = 0UL;
 
-      volatile  LONG                                    resampling;//      = 0L;
+      volatile  LONG                                    resampling       = 0L;
     } injector;
 
   private:
@@ -364,10 +364,10 @@ struct TexThreadStats {
     } known;
 
     struct {
-      concurrent_unordered_set <IDirect3DBaseTexture9 *>           render_targets;
+      concurrent_unordered_set <IDirect3DBaseTexture9 *>     render_targets;
     } used;
 
-    concurrent_unordered_map <uint32_t, Texture*>                  textures;
+    concurrent_unordered_map <uint32_t, Texture*>            textures;
 
     float                                                    time_saved      = 0.0f;
     volatile LONG64                                          bytes_saved     = 0LL;
@@ -383,9 +383,9 @@ struct TexThreadStats {
     bool                                                     want_screenshot = false;
 
 public:
-    CRITICAL_SECTION                                         cs_cache;
-    CRITICAL_SECTION                                         cs_free_list;
-    CRITICAL_SECTION                                         cs_unreferenced;
+    CRITICAL_SECTION                                         cs_cache        = { };
+    CRITICAL_SECTION                                         cs_free_list    = { };
+    CRITICAL_SECTION                                         cs_unreferenced = { };
 
     concurrent_unordered_map <uint32_t, TexRecord>           injectable_textures;
     std::vector              <std::wstring>                  archives;

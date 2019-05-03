@@ -32,15 +32,6 @@ struct IUnknown;
 
 #include <SpecialK/render/backend.h>
 
-extern const wchar_t* SK_VER_STR;
-
-const wchar_t*
-__stdcall
-SK_GetVersionStr (void);
-
-extern struct sk_dxgi_hook_cache_s SK_DXGI_HookCache;
-
-
 struct SK_Keybind
 {
   const char*  bind_name      = nullptr;
@@ -207,9 +198,9 @@ struct sk_config_t
 
 
   struct {
+    ULONG   frames_drawn       = 0;     //   Count the number of frames drawn using it
     bool    enable             = true;
     bool    orig_enable        = false; // Since CEGUI is a frequent source of crashes.
-    ULONG   frames_drawn       = 0;     //   Count the number of frames drawn using it
     bool    safe_init          = true;
   } cegui;
 
@@ -251,12 +242,12 @@ struct sk_config_t
         sound_file          = L"";
 
       struct {
+        float inset               = 0.005f;
+        int   origin              = 0;
+        int   duration            = 5000UL;
         bool  show                = true;
         bool  show_title          = true;
-        int   origin              = 0;
         bool  animate             = true;
-        int   duration            = 5000UL;
-        float inset               = 0.005f;
       } popup;
 
       bool    take_screenshot     = false;
@@ -270,39 +261,39 @@ struct sk_config_t
     } cloud;
 
     std::wstring
-            dll_path             = L"";
+            dll_path              = L"";
 
-    int     appid                = 0;
-    int     notify_corner        = 4; // 0=Top-Left,
-                                      // 1=Top-Right,
-                                      // 2=Bottom-Left,
-                                      // 3=Bottom-Right,
-                                      // 4=Don't Care
-    int     online_status        =   -1;  // Force a certain online status at all times
-    int     init_delay           = 0UL; // Disable to prevent crashing in many games
-    int     callback_throttle    = -1;
+    int     appid                 = 0;
+    int     notify_corner         = 4;   // 0=Top-Left,
+                                         // 1=Top-Right,
+                                         // 2=Bottom-Left,
+                                         // 3=Bottom-Right,
+                                         // 4=Don't Care
+    int     online_status         = -1;  // Force a certain online status at all times
+    int     init_delay            = 0UL; // Disable to prevent crashing in many games
+    int     callback_throttle     = -1;
 
-    float   overlay_hdr_luminance= 4.375f; // 350 nits
-                                           //   that do not use it
+    float   overlay_hdr_luminance = 4.375f; // 350 nits
+                                            //   that do not use it
 
-    bool    silent               = false;
-    bool    preload_client       = false;
-    bool    preload_overlay      = false; // For input processing, this is important
-    bool    show_playtime        = true;  // In the control panel title
-    bool    force_load_steamapi  = false; // Load steam_api{64}.dll even in games
-    bool    auto_pump_callbacks  = true;
-    bool    block_stat_callback  = false;
-    bool    filter_stat_callback = false;
-    bool    spoof_BLoggedOn      = false;
-    bool    overlay_hides_sk_osd = true;
-    bool    reuse_overlay_pause  = true;  // Use Steam's overlay pause mode for our own
+    bool      silent               = false;
+    bool      preload_client       = false;
+    bool      preload_overlay      = false; // For input processing, this is important
+    bool      show_playtime        = true;  // In the control panel title
+    bool      force_load_steamapi  = false; // Load steam_api{64}.dll even in games
+    bool      auto_pump_callbacks  = true;
+    bool      block_stat_callback  = false;
+    bool      filter_stat_callback = false;
+    bool      spoof_BLoggedOn      = false;
+    bool      overlay_hides_sk_osd = true;
+    bool      reuse_overlay_pause  = true;  // Use Steam's overlay pause mode for our own
                                           //   control panel
-    bool    auto_inject          = true;  // Control implicit steam_api.dll bootstrapping
+    bool      auto_inject          = true;  // Control implicit steam_api.dll bootstrapping
 
     struct screenshot_handler_s {
-      bool    enable_hook         = true;
-      bool    png_compress        = true;
-      bool    show_osd_by_default = true;
+      bool    enable_hook          = true;
+      bool    png_compress         = true;
+      bool    show_osd_by_default  = true;
 
       SK_ConfigSerializedKeybind
               game_hud_free_keybind = {
@@ -338,9 +329,8 @@ struct sk_config_t
   struct {
     struct {
       float   target_fps        =  0.0f;
+      float   target_fps_bg     =  0.0f;
       float   limiter_tolerance =  2.0f;
-      float   sleep_deadline    =  3.3f;
-      float   max_sleep_percent =  59.998800f;
       int     max_render_ahead  =  0;
       int     override_num_cpus = -1;
       int     pre_render_limit  = -1;
@@ -363,9 +353,6 @@ struct sk_config_t
       bool    sleepless_render  = false;
       bool    sleepless_window  = false;
       bool    enable_mmcss      = true;
-      bool    busy_wait_limiter = true;
-      bool    yield_once        = true;
-      bool    min_input_latency = true;
     } framerate;
     struct {
       bool    force_d3d9ex      = false;
@@ -399,7 +386,6 @@ struct sk_config_t
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
       bool    present_test_skip  = false;
-      bool    spoof_hdr          = false;
     } dxgi;
 
     struct {
@@ -413,7 +399,7 @@ struct sk_config_t
     // OSD Render Stats (D3D11 Only Right Now)
     bool      show               = false;
     struct {
-      BYTE toggle [4]      = { VK_CONTROL, VK_SHIFT, 'R', 0 };
+      BYTE    toggle [4]         = { VK_CONTROL, VK_SHIFT, 'R', 0 };
     } keys;
   } render;
 
@@ -552,7 +538,7 @@ struct sk_config_t
       //   >> Ideally we want absolute cursor position every frame for the UI, but
       //        that's not always possible. <<
       //
-      float   antiwarp_deadzone = 2.5f;
+      float   antiwarp_deadzone   = 2.5f;
 
       // Translate WM_MOUSEWHEEL messages into actual events that will trigger
       //   other mouse APIs such as DirectInput and RawInput.
@@ -563,7 +549,7 @@ struct sk_config_t
       bool    fix_synaptics       = false;
       // If absolute cursor position is stuck (i.e. Dreamfall Chapters) use this
       bool    add_relative_motion = true;
-      bool    disabled_to_game  = false;
+      bool    disabled_to_game    = false;
     } mouse;
   } input;
 
@@ -624,7 +610,7 @@ struct sk_config_t
       bool   hook              = true;
     } glide;
 
-#ifndef _WIN64
+#ifdef _M_IX86
     struct {
       bool   hook              = true;
     } d3d8, ddraw;
@@ -637,25 +623,19 @@ struct sk_config_t
     struct {
       struct {
         bool hook              = true;
-      }
-#ifdef _WIN64
-        d3d12,
-#endif
-        d3d11;
+      } d3d12, d3d11;
     } dxgi;
 
     struct {
       bool   hook              = true;
-    }
-#ifdef _WIN64
-      Vulkan,
-#endif
-      OpenGL;
+    } Vulkan, OpenGL;
 
     struct {
-      bool   enable            = true;
-      bool   gsync_status      = true;
-      bool   disable_hdr       = false;
+      bool         enable       = true;
+      bool         gsync_status = true;
+      bool         disable_hdr  = false;
+      std::wstring bpc_enum     = L"NV_BPC_DEFAULT";
+      std::wstring col_fmt_enum = L"NV_COLOR_FORMAT_AUTO";
     } NvAPI;
 
     struct {
@@ -667,7 +647,7 @@ struct sk_config_t
 
   struct {
     std::wstring
-            version             = SK_VER_STR;
+            version             = SK_GetVersionStrW ();
     int     log_level           = 0;
     float   global_inject_delay = 0.0f;
 #ifdef _DEBUG
@@ -728,6 +708,11 @@ public:
     {
       pPtr = init ();
     }
+
+    static T _dummy;
+
+    if (pPtr == nullptr)
+      return _dummy;
 
     return *pPtr;
   }
@@ -842,13 +827,6 @@ protected:
 
 extern SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
-extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t,           SK_DepotList> > SK_Steam_DepotManifestRegistry;
-extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
-
-
-
-
-
 enum class SK_GAME_ID
 {
   Tyranny,                      // Tyranny.exe
@@ -917,10 +895,13 @@ enum class SK_GAME_ID
   UNKNOWN_GAME               = 0xffff
 };
 
-__forceinline
-const SK_GAME_ID
+SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void);
+
+const wchar_t*
+__stdcall
+SK_GetConfigPath (void);
 
 const wchar_t*
 __stdcall
@@ -928,6 +909,10 @@ SK_GetNaiveConfigPath (void);
 
 extern const wchar_t*
 SK_GetFullyQualifiedApp (void);
+
+const wchar_t*
+__stdcall
+SK_GetVersionStr (void);
 
 
 extern __declspec (dllexport) void

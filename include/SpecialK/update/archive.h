@@ -30,13 +30,20 @@ struct sk_file_entry_s {
   std::wstring name;
 };
 
-using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+using SK_7Z_DECOMP_PROGRESS_PFN =
+  int (__stdcall *)(int current, int total);
 
 void
-SK_Get7ZFileContents (const wchar_t* wszArchive, std::vector <sk_file_entry_s>&);
+SK_Get7ZFileContents ( const wchar_t* wszArchive,
+                       std::vector <sk_file_entry_s>& );
 
 HRESULT
 SK_Decompress7z ( const wchar_t*            wszArchive,
                   const wchar_t*            wszOldVersion,
                   bool                      backup,
                   SK_7Z_DECOMP_PROGRESS_PFN callback );
+
+HRESULT
+SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                    const wchar_t*            wszDestination,
+                    SK_7Z_DECOMP_PROGRESS_PFN callback );

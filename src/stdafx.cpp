@@ -23,13 +23,9 @@
 // BMF.pch will be the pre-compiled header
 // stdafx.obj will contain the pre-compiled type information
 
-#include <SpecialK/stdafx.h>
-
 // TODO: reference any additional headers you need in STDAFX.H
 // and not in this file
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#undef COM_NO_WINDOWS_H
 
-#include <Windows.h>
-#include <windowsx.h>
-#include <CommCtrl.h>
+#include "targetver.h"
+
+#include <SpecialK/stdafx.h>

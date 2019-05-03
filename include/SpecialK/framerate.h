@@ -72,6 +72,7 @@ namespace SK
     private:
       bool          restart      = false;
       bool          full_restart = false;
+      bool          background   = false;
 
       long double   ms           = 0.0L,
                     fps          = 0.0L,
@@ -309,14 +310,17 @@ BOOL
 WINAPI
 SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount);
 
-using  Sleep_pfn                   = void (WINAPI *)(      DWORD          dwMilliseconds);
-extern Sleep_pfn Sleep_Original;
+using  Sleep_pfn = void (WINAPI *)(DWORD dwMilliseconds);
+extern Sleep_pfn
+       Sleep_Original;
 
-using  SleepEx_pfn                   = DWORD (WINAPI *)(      DWORD          dwMilliseconds, BOOL bAlertable);
-extern SleepEx_pfn SleepEx_Original;
+using  SleepEx_pfn = DWORD (WINAPI *)(DWORD dwMilliseconds,
+                                      BOOL  bAlertable);
+extern SleepEx_pfn
+       SleepEx_Original;
 
-extern LARGE_INTEGER  SK_GetPerfFreq (void);
-extern LARGE_INTEGER  SK_QueryPerf   (void);
+extern LARGE_INTEGER SK_GetPerfFreq (void);
+extern LARGE_INTEGER SK_QueryPerf   (void);
 
 static auto SK_CurrentPerf =
  []{
@@ -344,5 +348,7 @@ static auto SK_DeltaPerfMS =
        1000.0 * (double)(SK_DeltaPerf (delta, freq).QuadPart) /
                 (double)SK_GetPerfFreq           ().QuadPart;
    };
+
+extern int __SK_FramerateLimitApplicationSite;
 
 #endif /* __SK__FRAMERATE_H__ */

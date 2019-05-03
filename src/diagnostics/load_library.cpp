@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/DLL_VERSION.H>
 
 __declspec (noinline)
 concurrency::concurrent_unordered_set <HMODULE>&
@@ -45,10 +46,10 @@ BOOL __stdcall SK_TerminateParentProcess    (UINT uExitCode);
 bool SK_LoadLibrary_SILENCE = false;
 
 
-#ifdef _WIN64
+#ifdef _M_AMD64
 #define SK_STEAM_BIT_WSTRING L"64"
 #define SK_STEAM_BIT_STRING   "64"
-#else
+#else /* _M_IX86 */
 #define SK_STEAM_BIT_WSTRING L""
 #define SK_STEAM_BIT_STRING   ""
 #endif
@@ -253,13 +254,13 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
   if (GetModuleHandle (wszDbgHelp) && (! dbghelp_callers.count (hCallingMod)))
   {
-#ifdef _WIN64
+#ifdef _M_AMD64
 #define SK_StackWalk          StackWalk64
 #define SK_SymLoadModule      SymLoadModule64
 #define SK_SymUnloadModule    SymUnloadModule64
 #define SK_SymGetModuleBase   SymGetModuleBase64
 #define SK_SymGetLineFromAddr SymGetLineFromAddr64
-#else
+#else /* _M_IX86 */
 #define SK_StackWalk          StackWalk
 #define SK_SymLoadModule      SymLoadModule
 #define SK_SymUnloadModule    SymUnloadModule
@@ -284,9 +285,9 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
                          nullptr,
                           pszShortName,
                             nullptr,
-#ifdef _WIN64
+#ifdef _M_AMD64
                               (DWORD64)mod_info.lpBaseOfDll,
-#else
+#else /* _M_IX86 */
                                 (DWORD)mod_info.lpBaseOfDll,
 #endif
                                   mod_info.SizeOfImage );
@@ -415,7 +416,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
            StrStrI  (lpFileName, SK_TEXT("nvd3dum.dll")) ||
            StrStrIW (wszModName,        L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
-#ifndef _WIN64
+#ifdef _M_IX86
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D8)) && config.apis.d3d8.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d8.dll")) ||
                 StrStrIW (wszModName,        L"d3d8.dll")    ) )
@@ -429,7 +430,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
               ( StrStrI  (lpFileName, SK_TEXT("d3d11.dll")) ||
                 StrStrIW (wszModName,        L"d3d11.dll") ))
       SK_BootDXGI   ();
-#ifdef _WIN64
+#ifdef _M_AMD64
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d12.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d12.dll")) ||
                 StrStrIW (wszModName,        L"d3d12.dll") ))
@@ -495,10 +496,9 @@ BOOL
 WINAPI
 FreeLibrary_Detour (HMODULE hLibModule)
 {
-#ifdef _WIN64
-  if (true)
-  //if ( SK_GetCallingDLL () == GetModuleHandle (L"gameoverlayrenderer64.dll") )
-#else
+#ifdef _M_AMD64
+  if ( SK_GetCallingDLL () == GetModuleHandle (L"gameoverlayrenderer64.dll") )
+#else /* _M_IX86 */
   if ( SK_GetCallingDLL () == GetModuleHandle (L"gameoverlayrenderer.dll") )
 #endif
   {
@@ -569,7 +569,9 @@ SKX_SummarizeCaller ( LPVOID  lpRet,
 
 HMODULE
 WINAPI
-LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceFunc)
+LoadLibrary_Marshal ( LPVOID   lpRet,
+                      LPCWSTR  lpFileName,
+                const wchar_t *wszSourceFunc )
 {
   if (lpFileName == nullptr)
     return nullptr;
@@ -578,75 +580,89 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
 
   HMODULE hModEarly = nullptr;
 
+  std::unique_ptr <wchar_t []> cleanup;
+
   wchar_t*          compliant_path =
-            const_cast <wchar_t *> (lpFileName);
+          const_cast <wchar_t *> (lpFileName);
 
   if (     StrStrW (compliant_path, L"/"))
-  {                 compliant_path =
-    reinterpret_cast <wchar_t *> (
-                    SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
-                           (wcslen (lpFileName) + 1) *
-              sizeof (wchar_t), true                           )
-                                 );
-    if (compliant_path != nullptr)
+  {
+    SK_TLS* pTLS =
+      SK_TLS_Bottom ();
+
+                    compliant_path =
+      reinterpret_cast <wchar_t *> (
+                      pTLS->scratch_memory->cmd.alloc (
+                             (wcslen (lpFileName) + 1) *
+                              sizeof (wchar_t), true )
+                                   );
+
+    if (            compliant_path != nullptr)   {
+          lstrcatW (compliant_path, lpFileName);
+    SK_FixSlashesW (compliant_path);             } else
+                    compliant_path =
+                         (wchar_t *)lpFileName;
+  }
+
+  if (*compliant_path != L'\0')
+  {
+    auto orig_se =
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_INVALID_HANDLE));
+    try
     {
-            lstrcatW (compliant_path, lpFileName);
-      SK_FixSlashesW (compliant_path);
+      GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                             compliant_path,
+                               &hModEarly );
     }
-  }
 
-  auto orig_se =
-  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_INVALID_HANDLE));
-  try
-  {
-    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                           compliant_path,
-                             &hModEarly );
-  }
+    catch (const SK_SEH_IgnoredException&)
+    {
+      SetLastError (0);
+    }
+    SK_SEH_RemoveTranslator (orig_se);
 
-  catch (const SK_SEH_IgnoredException&)
-  {
-    SetLastError (0);
-  }
-  _set_se_translator (orig_se);
+    if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
+    {
+      SK_UnlockDllLoader ();
+      return nullptr;
+    }
 
-  if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
-  {
+    HMODULE hMod = hModEarly;
+
+    orig_se =
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    try
+    {
+      hMod = LoadLibraryW_Original (compliant_path);
+    }
+    catch (const SK_SEH_IgnoredException&)
+    {
+      wchar_t                     caller [128] = { };
+      SKX_SummarizeCaller (lpRet, caller);
+
+      dll_log->Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
+                       L" %s ('%ws')!  -  %s",
+                        wszSourceFunc, compliant_path,
+                        caller );
+    }
+    SK_SEH_RemoveTranslator (orig_se);
+
+
+    if (hModEarly != hMod)
+    {
+      SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
+                              compliant_path,
+                                wszSourceFunc, lpRet );
+    }
+
     SK_UnlockDllLoader ();
-    return nullptr;
+
+    return hMod;
   }
 
+  SetLastError (ERROR_FILE_NOT_FOUND);
 
-  HMODULE hMod = hModEarly;
-
-  orig_se =
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
-  try
-  {
-    hMod = LoadLibraryW_Original (compliant_path);
-  }
-  catch (const SK_SEH_IgnoredException&)
-  {
-    wchar_t                     caller [128] = { };
-    SKX_SummarizeCaller (lpRet, caller);
-
-    dll_log->Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
-                     L" %s ('%ws')!  -  %s",
-                      wszSourceFunc, compliant_path,
-                      caller );
-  }
-  _set_se_translator (orig_se);
-
-
-  if (hModEarly != hMod)
-  {
-    SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
-                            compliant_path,
-                              wszSourceFunc, lpRet );
-  }
-
-  SK_UnlockDllLoader ();
-  return hMod;
+  return nullptr;
 }
 
 HMODULE
@@ -686,22 +702,32 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 
   HMODULE hModEarly = nullptr;
 
-  wchar_t*        compliant_path =
-  reinterpret_cast <wchar_t *> (
-                  SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
-                         (wcslen (lpLibFileName) + 1) *
-            sizeof (wchar_t), true                           )
-                               );
-  if (            compliant_path != nullptr)   {
-        lstrcatW (compliant_path, lpLibFileName);
-  SK_FixSlashesW (compliant_path);             } else
-                  compliant_path =
-                       (wchar_t *)lpLibFileName;
+  wchar_t*          compliant_path =
+          const_cast <wchar_t *> (lpLibFileName);
+
+  if (     StrStrW (compliant_path, L"/"))
+  {
+    SK_TLS* pTLS =
+      SK_TLS_Bottom ();
+
+                    compliant_path =
+      reinterpret_cast <wchar_t *> (
+                      pTLS->scratch_memory->cmd.alloc (
+                             (wcslen (lpLibFileName) + 1) *
+                              sizeof (wchar_t), true )
+                                   );
+
+    if (            compliant_path != nullptr)   {
+          lstrcatW (compliant_path, lpLibFileName);
+    SK_FixSlashesW (compliant_path);             } else
+                    compliant_path =
+                         (wchar_t *)lpLibFileName;
+  }
 
   lpLibFileName = compliant_path;
 
   auto orig_se =
-  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_INVALID_HANDLE));
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_INVALID_HANDLE));
   try {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpLibFileName, &hModEarly );
   }
@@ -709,7 +735,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
   {
     SetLastError (0);
   }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 
 
   if (hModEarly == nullptr && BlacklistLibrary (lpLibFileName))
@@ -735,23 +761,30 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 
 HMODULE
 WINAPI
-LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags, const wchar_t* wszSourceFunc)
+LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
+                        HANDLE   hFile, DWORD   dwFlags,
+                  const wchar_t *wszSourceFunc)
 {
   //dwFlags &= ~LOAD_WITH_ALTERED_SEARCH_PATH;
 
   if (lpFileName == nullptr)
     return nullptr;
 
-    wchar_t*          compliant_path =
-            const_cast <wchar_t *> (lpFileName);
+  wchar_t*          compliant_path =
+          const_cast <wchar_t *> (lpFileName);
 
   if (     StrStrW (compliant_path, L"/"))
-  {                 compliant_path =
-    reinterpret_cast <wchar_t *> (
-                    SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
-                           (wcslen (lpFileName) + 1) *
-              sizeof (wchar_t), true                           )
-                                 );
+  {
+    SK_TLS* pTLS =
+      SK_TLS_Bottom ();
+
+                    compliant_path =
+      reinterpret_cast <wchar_t *> (
+                      pTLS->scratch_memory->cmd.alloc (
+                             (wcslen (lpFileName) + 1) *
+                              sizeof (wchar_t), true )
+                                   );
+
     if (            compliant_path != nullptr)   {
           lstrcatW (compliant_path, lpFileName);
     SK_FixSlashesW (compliant_path);             } else
@@ -773,7 +806,7 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
   HMODULE hModEarly = nullptr;
 
   auto orig_se =
-  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_INVALID_HANDLE));
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_INVALID_HANDLE));
   try
   {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, compliant_path, &hModEarly );
@@ -782,7 +815,7 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
   {
     SetLastError (0);
   }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 
   if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
   {
@@ -793,7 +826,8 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
 
   HMODULE hMod = hModEarly;
 
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try                                  { hMod = LoadLibraryExW_Original (compliant_path, hFile, dwFlags); }
   //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
   //                     EXCEPTION_EXECUTE_HANDLER :
@@ -804,6 +838,7 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
                    L" %s ('%ws')!",
                      wszSourceFunc, compliant_path );
   }
+  SK_SEH_RemoveTranslator (orig_se);
 
 
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
@@ -858,8 +893,7 @@ struct SK_ThirdPartyDLLs {
     HMODULE steam_overlay = nullptr;
   } overlays;
 
-  constexpr SK_ThirdPartyDLLs (void) noexcept {
-  };
+  constexpr SK_ThirdPartyDLLs (void) = default;
 } third_party_dlls;
 
 //
@@ -981,14 +1015,8 @@ SK_ReHookLoadLibrary (void)
   ////
   ////MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
 
-  if (calls++ > 0)
-  {
-#ifdef SK_AGGRESSIVE_HOOKS
-    SK_ApplyQueuedHooks ();
-#endif
-  }
-
-  SK_UnlockDllLoader ();
+  SK_ApplyQueuedHooks ();
+  SK_UnlockDllLoader  ();
 
   return (calls > 1);
 }
@@ -1105,7 +1133,7 @@ SK_InitCompatBlacklist (void)
 static bool loaded_gl     = false;
 static bool loaded_vulkan = false;
 static bool loaded_d3d9   = false;
-#ifndef _WIN64
+#ifdef _M_IX86
 static bool loaded_d3d8   = false;
 static bool loaded_ddraw  = false;
 #endif
@@ -1192,7 +1220,8 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
     InterlockedIncrementRelease           (&init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&init, 2);
 
 
   auto* pWorkingSet_ =
@@ -1225,7 +1254,8 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
   {
     *wszModName = L'\0';
 
-    _set_se_translator (SK_BasicStructuredExceptionTranslator);
+    auto orig_se =
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
     try
     {
       // Get the full path to the module's file.
@@ -1269,10 +1299,11 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
     //             GetExceptionCode () == EXCEPTION_INVALID_HANDLE )  ?
     //                     EXCEPTION_EXECUTE_HANDLER :
     //                     EXCEPTION_CONTINUE_SEARCH )
-    catch (...)
+    catch (const SK_SEH_IgnoredException&)
     {
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }
+    SK_SEH_RemoveTranslator (orig_se);
   };
 
   CloseHandle (pWorkingSet_->proc);
@@ -1295,58 +1326,58 @@ SK_BootModule (const wchar_t* wszModName)
       loaded_gl = true;
     }
 
-#ifdef _WIN64
-  else if ( config.apis.Vulkan.hook && StrStrIW (wszModName, L"vulkan-1.dll") &&
-                  (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan))) )
-  {
-    SK_BootVulkan ();
+#ifdef _M_AMD64
+    else if ( config.apis.Vulkan.hook && StrStrIW (wszModName, L"vulkan-1.dll") &&
+                    (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan))) )
+    {
+      SK_BootVulkan ();
 
-    loaded_vulkan = true;
-  }
+      loaded_vulkan = true;
+    }
 #endif
 
-  else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"d3d11.dll") &&
-                      (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) )
-  {
-    SK_BootDXGI ();
+    else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"d3d11.dll") &&
+                        (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) )
+    {
+      SK_BootDXGI ();
 
-    loaded_dxgi = true;
-  }
+      loaded_dxgi = true;
+    }
 
-#ifdef _WIN64
-  else if ( config.apis.dxgi.d3d12.hook && StrStrIW (wszModName, L"d3d12.dll") &&
-                      (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) )
-  {
-    SK_BootDXGI ();
+#ifdef _M_AMD64
+    else if ( config.apis.dxgi.d3d12.hook && StrStrIW (wszModName, L"d3d12.dll") &&
+                        (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) )
+    {
+      SK_BootDXGI ();
 
-    loaded_dxgi = true;
-  }
+      loaded_dxgi = true;
+    }
 #endif
 
-  else if ( config.apis.d3d9.hook && StrStrIW (wszModName, L"d3d9.dll") &&
-                (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9))) )
-  {
-    SK_BootD3D9 ();
+    else if ( config.apis.d3d9.hook && StrStrIW (wszModName, L"d3d9.dll") &&
+                  (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9))) )
+    {
+      SK_BootD3D9 ();
 
-    loaded_d3d9 = true;
-  }
+      loaded_d3d9 = true;
+    }
 
-#ifndef _WIN64
-  else if ( config.apis.d3d8.hook && StrStrIW (wszModName, L"d3d8.dll") &&
-                (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D8))) )
-  {
-    SK_BootD3D8 ();
+#ifdef _M_IX86
+    else if ( config.apis.d3d8.hook && StrStrIW (wszModName, L"d3d8.dll") &&
+                  (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D8))) )
+    {
+      SK_BootD3D8 ();
 
-    loaded_d3d8 = true;
-  }
+      loaded_d3d8 = true;
+    }
 
-  else if ( config.apis.ddraw.hook && StrStrIW (wszModName, L"\\ddraw.dll") &&
-                 (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DDraw))) )
-  {
-    SK_BootDDraw ();
+    else if ( config.apis.ddraw.hook && StrStrIW (wszModName, L"\\ddraw.dll") &&
+                   (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DDraw))) )
+    {
+      SK_BootDDraw ();
 
-    loaded_ddraw = true;
-  }
+      loaded_ddraw = true;
+    }
 #endif
   }
 
@@ -1360,7 +1391,7 @@ SK_BootModule (const wchar_t* wszModName)
 
     SK_TestRenderImports (SK_GetModuleHandleW (wszModName), &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
 
-#ifndef _WIN64
+#ifdef _M_IX86
     if (ddraw)
       SK_BootDDraw ();
     if (d3d8)
@@ -1387,7 +1418,8 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
   {
     *wszModName = L'\0';
 
-    _set_se_translator (SK_BasicStructuredExceptionTranslator);
+    auto orig_se =
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
     try
     {
       // Get the full path to the module's file.
@@ -1473,10 +1505,11 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
     //__except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
     //                       EXCEPTION_EXECUTE_HANDLER :
     //                       EXCEPTION_CONTINUE_SEARCH  )
-    catch (...)
+    catch (const SK_SEH_IgnoredException&)
     {
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }
+    SK_SEH_RemoveTranslator (orig_se);
   }
 
   if (rehook)
@@ -1500,6 +1533,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
   if (pLogger == nullptr)
     return;
 
+  #pragma pack (push,8)
   typedef struct _RTL_UNLOAD_EVENT_TRACE {
       PVOID BaseAddress;   // Base address of dll
       SIZE_T SizeOfImage;  // Size of image
@@ -1514,6 +1548,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
     _Out_ PULONG *ElementCount,
     _Out_ PVOID  *EventTrace
   );
+#pragma pack (pop)
 
   static HMODULE hModNtDLL =
     SK_GetModuleHandleW (L"NtDll.dll");//SK_Modules.LoadLibraryLL (L"ntdll.dll");

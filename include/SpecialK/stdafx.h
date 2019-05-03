@@ -24,32 +24,15 @@
 #pragma once
 
 #define _CRT_NON_CONFORMING_WCSTOK
-#define WIN32_LEAN_AND_MEAN
+//#define WIN32_LEAN_AND_MEAN
 
 #include "targetver.h"
 
-#ifndef WINVER
-#define WINVER 	_WIN32_WINNT_WIN7
-#endif
-
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 	_WIN32_WINNT_WIN7
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0501
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE _WIN32_IE_WIN7
-#endif
-
 #define UNICODE 1
-
-#include <SpecialK/DLL_VERSION.H>
 
 #include <Windows.h>
 #include <windowsx.h>
+#include <excpt.h>
 
 #include <wingdi.h>
 #include <atldef.h>
@@ -62,6 +45,47 @@
 
 #include <vcruntime_exception.h>
 
+#include <thread>
+#include <numeric>
+#include <ratio>
+#include <mutex>
+#include <chrono>
+#include <cassert>
+#include <typeindex>
+#include <forward_list>
+#include <initializer_list>
+
+#include <intrin.h>
+#include <setjmp.h>
+#include <intrin0.h>
+
+#include <vcruntime_typeinfo.h>
+#include <typeinfo>
+
+#include <xlocinfo.h>
+#include <xlocinfo>
+#include <ios>
+#include <iosfwd>
+#include <ostream>
+#include <istream>
+#include <iterator>
+#include <xlocnum>
+#include <streambuf>
+#include <xiosbase>
+#include <system_error>
+#include <cerrno>
+#include <xcall_once.h>
+#include <xerrc.h>
+#include <xlocale>
+#include <xfacet>
+#include <stdexcept>
+#include <corecrt_share.h>
+
+#include <xatomic.h>
+#include <xatomic0.h>
+#include <atomic>
+#include <thr/xtimec.h>
+
 #include <gsl/gsl>
 #include <gsl/span>
 #include <gsl/pointers>
@@ -70,6 +94,26 @@
 
 #include <eh.h>
 #include <io.h>
+#include <guiddef.h>
+#include <devguid.h>
+#include <setupapi.h>
+#include <devpropdef.h>
+#include <RegStr.h>
+
+#include <dbt.h>
+#include <wincodec.h>
+#include <math.h>
+#include <assert.h>
+#include <dcommon.h>
+#include <oleauto.h>
+#include <stralign.h>
+#include <mcx.h>
+#include <imm.h>
+#include <crtdbg.h>
+#include <comip.h>
+#include <shtypes.h>
+#include <oleacc.h>
+#include <Wbemidl.h>
 
 #include <SpecialK/hash.h>
 #include <SpecialK/crc32.h>
@@ -77,11 +121,11 @@
 
 #include <ctime>
 #include <cfloat>
+#include <climits>
 #include <limits>
 #include <numeric>
 #include <functional>
 #include <algorithm>
-#include <typeindex>
 
 #include <string>
 #include <sstream>
@@ -92,6 +136,8 @@
 #include <queue>
 #include <array>
 #include <vector>
+#include <bitset>
+#include <xtree>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -104,8 +150,19 @@
 #include <cassert>
 #include <codecvt>
 #include <cinttypes>
+#include <cwchar>
+
+#include <crtdefs.h>
+#include <sys/stat.h>
 
 #include <SpecialK/../../depends/include/glm/glm.hpp>
+#include <d3dcompiler.h>
+#include <d3d11shader.h>
+#include <DirectXMath.h>
+#include <DirectXMathConvert.inl>
+#include <DirectXMathVector.inl>
+#include <DirectXMathMatrix.inl>
+#include <DirectXMathMisc.inl>
 
 #include <LibLoaderAPI.h>
 
@@ -125,31 +182,32 @@
 #include <concurrent_vector.h>
 #include <concurrent_unordered_set.h>
 #include <concurrent_unordered_map.h>
+#include <concurrent_priority_queue.h>
 
 #include <SpecialK/SpecialK.h>
 
 #include <SpecialK/injection/injection.h>
 #include <SpecialK/plugin/reshade.h>
 
-#include <dxgi.h>
-#include <d3d11.h>
+//#include <dxgi.h>
+//#include <d3d11.h>
+//
+//#include <SpecialK/render/backend.h>
+//#include <SpecialK/render/dxgi/dxgi_hdr.h>
+//#include <SpecialK/render/dxgi/dxgi_backend.h>
+//#include <SpecialK/render/dxgi/dxgi_swapchain.h>
+//#include <SpecialK/render/dxgi/dxgi_interfaces.h>
+//#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
+//#include <SpecialK/render/d3d11/d3d11_4.h>
 
-#include <SpecialK/render/backend.h>
-#include <SpecialK/render/dxgi/dxgi_hdr.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/dxgi/dxgi_swapchain.h>
-#include <SpecialK/render/dxgi/dxgi_interfaces.h>
-#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
-#include <SpecialK/render/d3d11/d3d11_4.h>
+//#include <SpecialK/render/vk/vulkan_backend.h>
+//#include <SpecialK/render/gl/opengl_backend.h>
 
-#include <SpecialK/render/vk/vulkan_backend.h>
-#include <SpecialK/render/gl/opengl_backend.h>
-
-#include <SpecialK/render/screenshot.h>
+//#include <SpecialK/render/screenshot.h>
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
-#include <imgui/backends/imgui_d3d11.h>
+///#include <imgui/backends/imgui_d3d11.h>
 
 #include <mmsystem.h>
 #include <Mmdeviceapi.h>
@@ -209,12 +267,9 @@
 #include <SpecialK/update/archive.h>
 #include <SpecialK/update/network.h>
 
-
 #include <SpecialK/import.h>
-
 #include <SpecialK/ansel.h>
 
-#include <SpecialK/resource.h>
 #include <SpecialK/com_util.h>
 
 #include <dinput.h>
@@ -227,7 +282,6 @@
 
 #include <SpecialK/osd/text.h>
 
-#include <SpecialK/core.h>
 #include <SpecialK/sound.h>
 #include <SpecialK/console.h>
 #include <SpecialK/command.h>
@@ -237,7 +291,6 @@
 #include <SpecialK/log.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/hooks.h>
-#include <SpecialK/config.h>
 #include <SpecialK/window.h>
 #include <SpecialK/thread.h>
 
@@ -261,6 +314,37 @@
 #include <SpecialK/performance/io_monitor.h>
 #include <SpecialK/performance/gpu_monitor.h>
 #include <SpecialK/performance/memory_monitor.h>
+
+#include <dxgi1_3.h>
+#include <d3d11_2.h>
+
+#include <d3dx11.h>
+#include <d3dx11core.h>
+#include <d3dx11tex.h>
+#include <d3dx11async.h>
+
+#include <d3dx10.h>
+#include <d3dx10core.h>
+#include <d3dx10tex.h>
+#include <d3dx10async.h>
+
+#include <d3dx9.h>
+#include <d3dx9core.h>
+#include <d3dx9math.h>
+#include <d3dx9mesh.h>
+#include <d3dx9shader.h>
+#include <d3dx9effect.h>
+#include <d3dx9tex.h>
+#include <d3dx9core.h>
+#include <d3dx9shape.h>
+
+#include <DirectXTex/DirectXTex.h>
+
+#include <glm/detail/setup.hpp>
+#include <glm/gtc/type_precision.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/epsilon.hpp>
+#include <glm/gtc/packing.hpp>
 
 extern bool __SK_bypass;
 

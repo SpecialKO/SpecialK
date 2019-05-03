@@ -1108,10 +1108,11 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                     SK_LOG3 ( ( L"Create Bloom Buffer (%lu)", texdesc.Width ),
                                 L"FAR PlugIn" );
 
-                    float constants [4] = {
-                      0.5f / vp.Width, 0.5f / vp.Height,
-                             vp.Width,        vp.Height
-                    };
+                    static float constants [4];
+                                 constants [0] = 0.5f / vp.Width;
+                                 constants [1] = 0.5f / vp.Height;
+                                 constants [2] =        vp.Width;
+                                 constants [3] =        vp.Height;
 
                     initialdata.pSysMem = constants;
 
@@ -1140,10 +1141,12 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                     SK_LOG3 ( ( L"Create AO Buffer (%lu)", desc.Texture2D.MipSlice ),
                                 L"FAR PlugIn" );
 
-                    float constants [4] = {
-                                         vp.Width,                     vp.Height,
-                    static_cast <float> (desc.Texture2D.MipSlice) - 1, 0.0f
-                    };
+                    static float constants [4];
+                                 constants [0] = vp.Width;
+                                 constants [1] = vp.Height;
+                                 constants [2] =
+                            static_cast <float> (desc.Texture2D.MipSlice) - 1;
+                                 constants [3] = 0.0f;
 
                     initialdata.pSysMem = constants;
 

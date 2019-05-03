@@ -234,7 +234,8 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
 
 
 typedef bool (S_CALLTYPE *InitSafe_pfn)(void);
-InitSafe_pfn InitSafe_Original = nullptr;
+                          InitSafe_pfn
+                          InitSafe_Original = nullptr;
 
 bool
 S_CALLTYPE

@@ -168,12 +168,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
         memcpy (string, start_addr, real_size);
       }
 
-      if (wszData != nullptr)
-      {
-        delete [] wszData;
-                  wszData = nullptr;
-                  data    = nullptr;
-      }
+      delete [] wszData;
+                wszData = nullptr;
+                data    = nullptr;
 
       if (! string)
       {
@@ -192,11 +189,8 @@ iSK_INI::iSK_INI (const wchar_t* filename)
                        L".ini file ('%s') to UTF-16, aborting!",
                          wszName );
 
-        if (string != nullptr)
-        {
-          delete [] string;
-                    string = nullptr;
-        }
+        delete [] string;
+                  string = nullptr;
 
         return;
       }
@@ -216,11 +210,8 @@ iSK_INI::iSK_INI (const wchar_t* filename)
                         //wszName );
       }
 
-      if (string != nullptr)
-      {
-        delete [] string;
-                  string = nullptr;
-      }
+      delete [] string;
+                string = nullptr;
 
       // No Byte-Order Marker
       data      = wszData;
@@ -252,11 +243,8 @@ iSK_INI::~iSK_INI (void)
             wszName = nullptr;
     }
 
-    if (data != nullptr)
-    {
-      delete [] data;
-      data = nullptr;
-    }
+    delete [] data;
+    data = nullptr;
   }
 }
 
@@ -294,6 +282,14 @@ Process_Section ( iSK_INISection  &kSection,
   if (pTLS == nullptr)
       pTLS = SK_TLS_Bottom ();
 
+  // TODO: Re-write to fallback to heap allocated memory
+  //         if TLS is not working.
+  if (! pTLS)
+  {
+    static iSK_INISection fake;
+    return fake;
+  }
+
   auto& section = kSection;
 
   const wchar_t* penultimate = CharPrevW (start, end);
@@ -306,10 +302,10 @@ Process_Section ( iSK_INISection  &kSection,
 
       size_t     key_len =        wcrlen (key, k);
         auto*    key_str =
-                 pTLS->scratch_memory.ini.key.alloc
-                                      (   key_len + 2, true);
-      wcsncpy_s (key_str,                 key_len + 1,
-                                          key, _TRUNCATE);
+                 pTLS->scratch_memory->ini.key.alloc
+                                       (   key_len + 2, true);
+      wcsncpy_s (key_str,                  key_len + 1,
+                                           key, _TRUNCATE);
 
       wchar_t* value =
         CharNextW (k);
@@ -333,10 +329,10 @@ Process_Section ( iSK_INISection  &kSection,
 
           size_t     val_len =        wcrlen (value, l);
             auto*    val_str =
-                     pTLS->scratch_memory.ini.val.alloc
-                                          (   val_len + 2, true);
-          wcsncpy_s (val_str,                 val_len + 1,
-                                              value, _TRUNCATE);
+                     pTLS->scratch_memory->ini.val.alloc
+                                           (   val_len + 2, true);
+          wcsncpy_s (val_str,                  val_len + 1,
+                                               value, _TRUNCATE);
 
           section.add_key_value (
                      key_str,
@@ -367,6 +363,13 @@ Import_Section ( iSK_INISection  &section,
   if (pTLS == nullptr)
       pTLS = SK_TLS_Bottom ();
 
+  // TODO: Re-write to fallback to heap allocated memory
+  //         if TLS is not working.
+  if (! pTLS)
+  {
+    return false;
+  }
+
 
   const wchar_t* penultimate = CharPrevW (start, end);
         wchar_t* key         = start;
@@ -377,10 +380,10 @@ Import_Section ( iSK_INISection  &section,
     {
       size_t     key_len =        wcrlen (key, k);
         auto*    key_str =
-                 pTLS->scratch_memory.ini.key.alloc
-                                      (   key_len + 2, true);
-      wcsncpy_s (key_str,                 key_len + 1,
-                                          key, _TRUNCATE);
+                 pTLS->scratch_memory->ini.key.alloc
+                                       (   key_len + 2, true);
+      wcsncpy_s (key_str,                  key_len + 1,
+                                           key, _TRUNCATE);
 
       wchar_t* value =
         CharNextW (k);
@@ -404,10 +407,10 @@ Import_Section ( iSK_INISection  &section,
 
           size_t     val_len =        wcrlen (value, l);
             auto*    val_str =
-                     pTLS->scratch_memory.ini.val.alloc
-                                          (   val_len + 2, true);
-          wcsncpy_s (val_str,                 val_len + 1,
-                                              value, _TRUNCATE);
+                     pTLS->scratch_memory->ini.val.alloc
+                                           (   val_len + 2, true);
+          wcsncpy_s (val_str,                  val_len + 1,
+                                               value, _TRUNCATE);
 
           // Prefer to change an existing value
           if (section.contains_key (key_str))
@@ -445,6 +448,11 @@ iSK_INI::parse (void)
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
+
+  // TODO: Re-write to fallback to heap allocated memory
+  //         if TLS is not working.
+  if (! pTLS)
+    return;
 
   if (wszData != nullptr)
   {
@@ -530,10 +538,10 @@ iSK_INI::parse (void)
       {
         size_t   sec_len =        wcrlen (begin, end);
         auto*    sec_name =
-                 pTLS->scratch_memory.ini.sec.alloc
-                                      (   sec_len + 2, true);
-      wcsncpy_s (sec_name,                sec_len + 1,
-                                          begin, _TRUNCATE);
+                 pTLS->scratch_memory->ini.sec.alloc
+                                       (   sec_len + 2, true);
+      wcsncpy_s (sec_name,                 sec_len + 1,
+                                           begin, _TRUNCATE);
 
         wchar_t* start  = CharNextW (CharNextW (end));
         wchar_t* finish = start;
@@ -720,10 +728,10 @@ iSK_INI::import (const wchar_t* import_data)
       {
         size_t   sec_len =        wcrlen (begin, end);
         auto*    sec_name =
-                 pTLS->scratch_memory.ini.sec.alloc
-                                      (   sec_len + 2, true);
-      wcsncpy_s (sec_name,                sec_len + 1,
-                                          begin, _TRUNCATE);
+                 pTLS->scratch_memory->ini.sec.alloc
+                                       (   sec_len + 2, true);
+      wcsncpy_s (sec_name,                 sec_len + 1,
+                                           begin, _TRUNCATE);
 
         //MessageBoxW (NULL, sec_name, L"Section", MB_OK);
 
@@ -1173,8 +1181,6 @@ iSK_INI::import_file (const wchar_t* fname)
         wszImportData  = new (std::nothrow) wchar_t [size + 3] { };
     if (wszImportData == nullptr)
     {
-      SK_ReleaseAssert (wszImportData != nullptr)
-
       fclose (fImportINI);
       return false;
     }
@@ -1319,14 +1325,13 @@ iSK_INI::import_file (const wchar_t* fname)
 bool
 iSK_INI::rename (const wchar_t* fname)
 {
-  if (wcslen (fname))
+  if (  fname  != nullptr &&
+       *fname == L'\0' )
   {
-    if (wszName)
-    {
-      free (wszName);
-    }
+    free (wszName);
 
-    wszName = _wcsdup (fname);
+    wszName =
+      _wcsdup (fname);
 
     return true;
   }

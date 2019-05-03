@@ -1,134 +1,174 @@
-const std::unordered_set <std::wstring> __graylist = {
-  L"steamwebhelper.exe",
-  L"streaming_client.exe",
-  L"steam.exe",
-  L"html5app_steam.exe",
-  L"wow_helper.exe",
-  L"writeminidump.exe",
-  L"crashreporter.exe",
-  L"supporttool.exe",
-  L"crashsender1400.exe",
-  L"firaxisbugreporter.exe",
-  L"nvcontainer.exe",
-  L"nvdisplay.container.exe",
-  L"nvtelemetrycontainer.exe",
-  L"nvidia web helper.exe",
-  L"ism2.exe",
-  L"chrome.exe",
-  L"googlecrashhandler64.exe",
-  L"googlecrashhandler.exe",
+#define SK_MakeUnicode(str) RTL_CONSTANT_STRING(str)
+#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
 
-  L"servicehub.settingshost.exe",
-  L"servicehub.host.clr.x86.exe",
-  L"servicehub.identityhost.exe",
-  L"servicehub.vsdetouredhost.exe",
+#pragma pack (push,8)
+typedef struct _UNICODE_STRING {
+  USHORT         Length;
+  USHORT         MaximumLength;
+  PWSTR          Buffer;
+} UNICODE_STRING,
+*PUNICODE_STRING;
+#pragma pack (pop)
 
-  L"servicehub.datawarehousehost.exe",
-  L"microsoft.servicehub.controller.exe",
-  L"scriptedsandbox64.exe",
+typedef NTSTATUS (NTAPI* LdrGetDllHandle_pfn)(
+  _In_        PWORD           pwPath,
+  _In_        PVOID           Unused,
+  _In_  const UNICODE_STRING *ModuleFileName,
+  _Out_       PHANDLE         pHModule
+);
 
-  L"msmpeng.exe",L"systemsettings.exe",
+typedef NTSTATUS (__stdcall *LdrGetDllHandleByName_pfn)(
+  const PUNICODE_STRING  BaseDllName,
+  const PUNICODE_STRING  FullDllName,
+        PVOID           *DllHandle
+);
 
-  L"onedrive.exe",
-  L"wmiprvse.exe",
-  L"dllhost.exe",
-  L"microsoft.servicehub.controller.exe",
-  L"perfwatson2.exe",
-  L"browser_broker.exe",
-  L"settingsynchost.exe",
-  L"shellexperiencehost.exe", L"sihost.exe",
-  L"conhost.exe", L"svchost.exe",
-  L"explorer.exe", L"taskhostw.exe"
-  L"scriptedsandbox.exe",
-  L"scriptedsandbox64.exe",
-  L"applicationframehost.exe",
-  L"microsoftedge.exe",
-  L"microsoftedgecp.exe",
+static const UNICODE_STRING __graylist [] = {
+#ifdef _M_IX86
+  SK_MakeUnicode (L"steam.exe"),
+  SK_MakeUnicode (L"devenv.exe"),
+  SK_MakeUnicode (L"rzsynapse.exe"),
+  SK_MakeUnicode (L"msiafterburner.exe"),
+  SK_MakeUnicode (L"gameoverlayui.exe"),
 
-  L"skypebackgroundhost.exe",
-  L"skypebridge.exe",
+  SK_MakeUnicode (L"onedrive.exe"),
+  SK_MakeUnicode (L"scriptedsandbox.exe"),
+  SK_MakeUnicode (L"googlecrashhandler.exe"),
+  SK_MakeUnicode (L"servicehub.settingshost.exe"),
+  SK_MakeUnicode (L"servicehub.host.clr.x86.exe"),
+  SK_MakeUnicode (L"servicehub.identityhost.exe"),
+  SK_MakeUnicode (L"servicehub.vsdetouredhost.exe"),
+  SK_MakeUnicode (L"steelseriesengine3client.exe"),
+  SK_MakeUnicode (L"amazon music helper.exe"),
+  SK_MakeUnicode (L"amazon music.exe"),
+  SK_MakeUnicode (L"icloudphotos.exe"),
+  SK_MakeUnicode (L"icloudservices.exe"),
+  SK_MakeUnicode (L"applefirefoxhost.exe"),
+  SK_MakeUnicode (L"applephotostreams.exe"),
+  SK_MakeUnicode (L"samsungmagician.exe"),
+  SK_MakeUnicode (L"perfwatson2.exe"),
+  SK_MakeUnicode (L"lightshot.exe"),
+  SK_MakeUnicode (L"acrotray.exe"),
+  SK_MakeUnicode (L"sdtray.exe"),
+  SK_MakeUnicode (L"secd.exe"),
+  SK_MakeUnicode (L"crashsender1400.exe"),
+#else
+  SK_MakeUnicode (L"steamwebhelper.exe"),
+  SK_MakeUnicode (L"microsoft.servicehub.controller.exe"),
+  SK_MakeUnicode (L"googlecrashhandler64.exe"),
+  SK_MakeUnicode (L"applicationframehost.exe"),
+  SK_MakeUnicode (L"nvtelemetrycontainer.exe"),
+  SK_MakeUnicode (L"nvdisplay.container.exe"),
+  SK_MakeUnicode (L"shellexperiencehost.exe"),
+  SK_MakeUnicode (L"skypebackgroundhost.exe"),
+  SK_MakeUnicode (L"steelseriesengine3.exe"),
+  SK_MakeUnicode (L"scriptedsandbox64.exe"),
+  SK_MakeUnicode (L"settingsynchost.exe"),
+  SK_MakeUnicode (L"microsoftedgecp.exe"),
+  SK_MakeUnicode (L"systemsettings.exe"),
+  SK_MakeUnicode (L"browser_broker.exe"),
+  SK_MakeUnicode (L"microsoftedge.exe"),
+  SK_MakeUnicode (L"runtimebroker.exe"),
+  SK_MakeUnicode (L"ituneshelper.exe"),
+  SK_MakeUnicode (L"skypebridge.exe"),
+  SK_MakeUnicode (L"taskhostw.exe"),
+  SK_MakeUnicode (L"launchtm.exe"), // Task Manager
+  SK_MakeUnicode (L"explorer.exe"),
+  SK_MakeUnicode (L"wmiprvse.exe"),
+  SK_MakeUnicode (L"conhost.exe"),
+  SK_MakeUnicode (L"dllhost.exe"),
+  SK_MakeUnicode (L"svchost.exe"),
+  SK_MakeUnicode (L"sihost.exe"),
+  SK_MakeUnicode (L"chrome.exe"),
+#endif
 
-  L"smartscreen.exe",
+  SK_MakeUnicode (L"streaming_client.exe"),
+  SK_MakeUnicode (L"html5app_steam.exe"),
+  SK_MakeUnicode (L"wow_helper.exe"),
+  SK_MakeUnicode (L"firaxisbugreporter.exe"),
+  SK_MakeUnicode (L"writeminidump.exe"),
+  SK_MakeUnicode (L"crashreporter.exe"),
+  SK_MakeUnicode (L"supporttool.exe"),
+  SK_MakeUnicode (L"nvcontainer.exe"),
+  SK_MakeUnicode (L"nvidia web helper.exe"),
+  SK_MakeUnicode (L"ism2.exe"),
+
+  SK_MakeUnicode (L"servicehub.datawarehousehost.exe"),
+  SK_MakeUnicode (L"smartscreen.exe"),
+  SK_MakeUnicode (L"msmpeng.exe"),
 };
 
-const
-std::unordered_set <std::wstring> __blacklist = {
-  L"uninstall.exe",
+static const UNICODE_STRING __blacklist [] = {
+  SK_MakeUnicode (L"setup.exe"),
+  SK_MakeUnicode (L"oalinst.exe"),
+  SK_MakeUnicode (L"dxsetup.exe"),
+  SK_MakeUnicode (L"uninstall.exe"),
+  SK_MakeUnicode (L"dotnetfx35.exe"),
+  SK_MakeUnicode (L"dotnetfx35client.exe"),
+  SK_MakeUnicode (L"easyanticheat_setup.exe"),
+  SK_MakeUnicode (L"dotnetfx40_full_x86_x64.exe"),
+  SK_MakeUnicode (L"dotnetfx40_client_x86_x64.exe"),
+  SK_MakeUnicode (L"ndp451-kb2872776-x86-x64-allos-enu.exe"),
 
-  L"dxsetup.exe",
-  L"setup.exe",
-  L"vc_redist.x64.exe",
-  L"vc_redist.x86.exe"  
-  L"vc2010redist_x64.exe",
-  L"vc2010redist_x86.exe",
-  L"vcredist_x64.exe",
-  L"vcredist_x86.exe",
-  L"ndp451-kb2872776-x86-x64-allos-enu.exe",
-  L"dotnetfx35.exe",
-  L"dotnetfx35client.exe",
-  L"dotnetfx40_full_x86_x64.exe",
-  L"dotnetfx40_client_x86_x64.exe",
-  L"oalinst.exe",
-  L"easyanticheat_setup.exe",
-  L"uplayinstaller.exe",
-  
-  L"x64launcher.exe",
-  L"x86launcher.exe",
-  L"launcher.exe",
-  L"ffx&x-2_launcher.exe",
-  L"fallout4launcher.exe",
-  L"skyrimselauncher.exe",
-  L"modlauncher.exe",
-  L"akibauu_config.exe",
-  L"obduction.exe",
-  L"grandia2launcher.exe",
-  L"ffxiii2launcher.exe",
-  L"bethesda.net_launcher.exe",
-  L"ubisoftgamelauncher.exe",
-  L"ubisoftgamelauncher64.exe",
-  L"splashscreen.exe",
-  L"gamelaunchercefchildprocess.exe",
-  L"launchpad.exe",
-  L"cnnlauncher.exe",
-  L"ff9_launcher.exe",
-  L"a17config.exe",
-  L"a18config.exe", // Atelier Firis
-  L"dplauncher.exe",
-  L"zeroescape-launcher.exe",
-  L"gtavlauncher.exe",
-  L"gtavlanguageselect.exe",
-  L"nioh_launcher.exe",
-  L"rottlauncher.exe",
-  L"configtool.exe",
+#ifdef _M_AMD64
+  SK_MakeUnicode (L"vhui64.exe"),
+  SK_MakeUnicode (L"x64launcher.exe"),
+  SK_MakeUnicode (L"ff9_launcher.exe"),
+  SK_MakeUnicode (L"vcredist_x64.exe"),
+  SK_MakeUnicode (L"vc_redist.x64.exe"),
+  SK_MakeUnicode (L"vc2010redist_x64.exe"),
+  SK_MakeUnicode (L"ubisoftgamelauncher64.exe"),
+#else
+  SK_MakeUnicode (L"vacodeinspectionsserver.exe"),
 
-  L"coherentui_host.exe",
-  L"vhui64.exe",
-  L"vhui.exe",
-  L"activationui.exe",
-  L"zossteamstarter.exe",
-  L"eac.exe",
-  
-  L"gameserver.exe",// Sacred   game server
-  L"s2gs.exe",      // Sacred 2 game server
-  
-  L"launchtm.exe",
+  SK_MakeUnicode (L"vhui.exe"),
+  SK_MakeUnicode (L"x86launcher.exe"),
+  SK_MakeUnicode (L"vcredist_x86.exe"),
+  SK_MakeUnicode (L"vc_redist.x86.exe"),
+  SK_MakeUnicode (L"vc2010redist_x86.exe"),
+  SK_MakeUnicode (L"ffxiii2launcher.exe"),
+  SK_MakeUnicode (L"ffx&x-2_launcher.exe"),
+  SK_MakeUnicode (L"ubisoftgamelauncher.exe"),
+  SK_MakeUnicode (L"uplayinstaller.exe"),
 
-  L"activate.exe",
-  L"clmpsvc.exe",
-  L"clmshardwaretranscode.exe",
-  L"clupdater.exe",
+  SK_MakeUnicode (L"akibauu_config.exe"),
+  SK_MakeUnicode (L"gameserver.exe"),// Sacred   game server
+  SK_MakeUnicode (L"s2gs.exe"),      // Sacred 2 game server
+#endif
 
-  L"olrstatecheck.exe",
-  L"olrsubmission.exe",
+  SK_MakeUnicode (L"launcher.exe"),
+  SK_MakeUnicode (L"launchpad.exe"),
+  SK_MakeUnicode (L"fallout4launcher.exe"),
+  SK_MakeUnicode (L"skyrimselauncher.exe"),
+  SK_MakeUnicode (L"modlauncher.exe"),
+  SK_MakeUnicode (L"obduction.exe"),
+  SK_MakeUnicode (L"grandia2launcher.exe"),
+  SK_MakeUnicode (L"bethesda.net_launcher.exe"),
+  SK_MakeUnicode (L"splashscreen.exe"),
+  SK_MakeUnicode (L"gamelaunchercefchildprocess.exe"),
+  SK_MakeUnicode (L"dplauncher.exe"),
+  SK_MakeUnicode (L"cnnlauncher.exe"),
+  SK_MakeUnicode (L"a17config.exe"),
+  SK_MakeUnicode (L"a18config.exe"), // Atelier Firis
+  SK_MakeUnicode (L"zeroescape-launcher.exe"),
+  SK_MakeUnicode (L"gtavlauncher.exe"),
+  SK_MakeUnicode (L"gtavlanguageselect.exe"),
+  SK_MakeUnicode (L"nioh_launcher.exe"),
+  SK_MakeUnicode (L"rottlauncher.exe"),
+  SK_MakeUnicode (L"configtool.exe"),
 
-  L"pdvdlp.exe",
+  SK_MakeUnicode (L"coherentui_host.exe"),
+  SK_MakeUnicode (L"activationui.exe"),
+  SK_MakeUnicode (L"zossteamstarter.exe"),
+  SK_MakeUnicode (L"eac.exe"),
 
-  L"powerdvd.exe",
-  L"powerdvdmovie.exe",
-  L"powerdvd_help.exe",
-  L"powerdvd17agent.exe",
-  L"powerdvd17ml.exe",
-  L"powerdvd17movie.exe",
+  SK_MakeUnicode (L"clupdater.exe"),
+  SK_MakeUnicode (L"activate.exe"),
+  SK_MakeUnicode (L"clmpsvc.exe"),
+  SK_MakeUnicode (L"clmshardwaretranscode.exe"),
+
+  SK_MakeUnicode (L"olrstatecheck.exe"),
+  SK_MakeUnicode (L"olrsubmission.exe"),
 };
 
 //// DLL must go in, but not be initialized...

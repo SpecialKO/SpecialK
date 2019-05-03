@@ -47,9 +47,8 @@ bool         SK_D3D11_inject_textures_ffx = false;
 bool         SK_D3D11_inject_textures     = false;
 bool         SK_D3D11_cache_textures      = false;
 bool         SK_D3D11_mark_textures       = false;
-std::wstring SK_D3D11_res_root            = L"SK_Res";
 
-std::unordered_map <ID3D11DeviceContext *, mapped_resources_s> mapped_resources;
+SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
 
 const GUID SKID_D3D11Texture2D_DISCARD =
 // {5C5298CA-0F9C-4931-A19D-A2E69792AE02}
@@ -82,6 +81,7 @@ ULONG (WINAPI *)(IUnknown* This);
 IUnknown_Release_pfn IUnknown_Release_Original = nullptr;
 IUnknown_AddRef_pfn  IUnknown_AddRef_Original  = nullptr;
 
+volatile LONG SK_D3D11_TestingRefCounts = FALSE;
 volatile LONG SK_D3D11_TexRefCount_Failures = 0;
 //
 // If reference counting is broken by some weird COM wrapper
@@ -98,12 +98,14 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex, SK_TLS* pTLS = nullptr)
   if (config.textures.cache.allow_unsafe_refs)
     return TRUE;
 
-  if (pTLS == nullptr) pTLS = SK_TLS_Bottom ();
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
 
   auto SanityFail =
     [&](void)  ->
     BOOL
   {
+    InterlockedDecrement (&SK_D3D11_TestingRefCounts);
     InterlockedIncrement (&SK_D3D11_TexRefCount_Failures);
     return FALSE;
   };
@@ -111,9 +113,9 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex, SK_TLS* pTLS = nullptr)
 
   SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
   pTLS->texture_management.injection_thread = true;
+  pTLS->texture_management.refcount_obj     = pInputTex;
 
-
-  pTLS->texture_management.refcount_obj = pInputTex;
+  InterlockedIncrement (&SK_D3D11_TestingRefCounts);
 
   LONG initial =
     pTLS->texture_management.refcount_test;
@@ -131,7 +133,7 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex, SK_TLS* pTLS = nullptr)
   pTLS->texture_management.refcount_obj = nullptr;
 
   if ( initial != initial_plus_one - 1 ||
-      initial != initial_again )
+       initial != initial_again ) //-V560
   {
     SK_LOG1 ( (L"Expected %li after AddRef (); got %li.",
              initial + 1, initial_plus_one ),
@@ -140,7 +142,8 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex, SK_TLS* pTLS = nullptr)
              initial, initial_again ),
              L"DX11TexMgr" );
 
-    return SanityFail ();
+    return
+      SanityFail ();
   }
 
 
@@ -161,7 +164,10 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex, SK_TLS* pTLS = nullptr)
   pInputTex->QueryInterface <ID3D11Texture2D> (&pReferenced);
 
   if (! pReferenced)
-    return SanityFail ();
+  {
+    return
+      SanityFail ();
+  }
 
   pTLS->texture_management.refcount_obj = pReferenced;
 
@@ -183,9 +189,12 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex, SK_TLS* pTLS = nullptr)
              initial, initial_again ),
              L"DX11TexMgr" );
 
-    return SanityFail ();
+    return
+      SanityFail ();
   }
 
+
+  InterlockedDecrement (&SK_D3D11_TestingRefCounts);
 
   return TRUE;
 }
@@ -196,66 +205,70 @@ ULONG
 WINAPI
 IUnknown_Release (IUnknown* This)
 {
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
-
-  // Objects destroyed during DLL detach have the potential to
-  //   have no access to TLS, while still being obligated to release.
-  if (! pTLS)
+  if (ReadAcquire (&SK_D3D11_TestingRefCounts) > 0)
   {
-    if (     IUnknown_Release_Original != nullptr)
-      return IUnknown_Release_Original (This);
 
-    return 0;
+    SK_TLS* pTLS =
+      SK_TLS_Bottom ();
+
+    // Objects destroyed during DLL detach have the potential to
+    //   have no access to TLS, while still being obligated to release.
+    if (! pTLS)
+    {
+      if (     IUnknown_Release_Original != nullptr)
+        return IUnknown_Release_Original (This);
+
+      return 0;
+    }
+
+    if ( This == pTLS->texture_management.refcount_obj     &&
+        pTLS->texture_management.injection_thread != FALSE )
+    {
+      pTLS->texture_management.refcount_test--;
+    }
+
+    ////if (! SK_D3D11_IsTexInjectThread ())
+    ////{
+    ////  ID3D11Texture2D* pTex = (ID3D11Texture2D *)This;
+    ////
+    ////  LONG count =
+    ////    IUnknown_AddRef_Original  (pTex);
+    ////    IUnknown_Release_Original (pTex);
+    ////
+    ////
+    ////  static bool __yk0 =
+    ////    ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 );
+    ////
+    ////  if (__yk0)
+    ////  {
+    ////    if (count <= 1)
+    ////    {
+    ////      if (count > 0)
+    ////      {
+    ////        if (SK_D3D11_RemoveTexFromCache (pTex))
+    ////        {
+    ////          IUnknown_Release_Original (pTex);
+    ////        }
+    ////      }
+    ////
+    ////      return 0;
+    ////    }
+    ////  }
+    ////
+    ////
+    ////  // If count is == 0, something's screwy
+    ////  if (pTex != nullptr && count <= 2)
+    ////  {
+    ////    if (SK_D3D11_RemoveTexFromCache (pTex))
+    ////    {
+    ////      if (count < 2)
+    ////        SK_LOG0 ( ( L"Unexpected reference count: %lu", count ), L"DX11TexMgr" );
+    ////
+    ////      IUnknown_Release_Original (pTex);
+    ////    }
+    ////  }
+    ////}
   }
-
-  if ( This == pTLS->texture_management.refcount_obj     &&
-      pTLS->texture_management.injection_thread != FALSE )
-  {
-    pTLS->texture_management.refcount_test--;
-  }
-
-  ////if (! SK_D3D11_IsTexInjectThread ())
-  ////{
-  ////  ID3D11Texture2D* pTex = (ID3D11Texture2D *)This;
-  ////
-  ////  LONG count =
-  ////    IUnknown_AddRef_Original  (pTex);
-  ////    IUnknown_Release_Original (pTex);
-  ////
-  ////
-  ////  static bool __yk0 =
-  ////    ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 );
-  ////
-  ////  if (__yk0)
-  ////  {
-  ////    if (count <= 1)
-  ////    {
-  ////      if (count > 0)
-  ////      {
-  ////        if (SK_D3D11_RemoveTexFromCache (pTex))
-  ////        {
-  ////          IUnknown_Release_Original (pTex);
-  ////        }
-  ////      }
-  ////
-  ////      return 0;
-  ////    }
-  ////  }
-  ////
-  ////
-  ////  // If count is == 0, something's screwy
-  ////  if (pTex != nullptr && count <= 2)
-  ////  {
-  ////    if (SK_D3D11_RemoveTexFromCache (pTex))
-  ////    {
-  ////      if (count < 2)
-  ////        SK_LOG0 ( ( L"Unexpected reference count: %lu", count ), L"DX11TexMgr" );
-  ////
-  ////      IUnknown_Release_Original (pTex);
-  ////    }
-  ////  }
-  ////}
 
   return
     IUnknown_Release_Original (This);
@@ -270,30 +283,30 @@ IUnknown_AddRef (IUnknown* This)
     SK_TLS_Bottom ();
 
   if ( This == pTLS->texture_management.refcount_obj     &&
-      pTLS->texture_management.injection_thread != FALSE )
+               pTLS->texture_management.injection_thread != FALSE )
   {
     pTLS->texture_management.refcount_test++;
   }
 
-  if (! SK_D3D11_IsTexInjectThread ())
+  if (! SK_D3D11_IsTexInjectThread (pTLS))
   {
     // Flag this thread so we don't infinitely recurse when querying the interface
     bool orig_inject_state = pTLS->texture_management.injection_thread;
-    pTLS->texture_management.injection_thread = true;
+                             pTLS->texture_management.injection_thread = true;
 
     ID3D11Texture2D* pTex = nullptr;
     HRESULT          hr   = This->QueryInterface <ID3D11Texture2D> (&pTex);
 
-    pTLS->texture_management.injection_thread =
-      orig_inject_state;
-
     if (SUCCEEDED (hr) && pTex != nullptr)
     {
       if (SK_D3D11_TextureIsCached (pTex))
-        SK_D3D11_UseTexture (pTex);
+               SK_D3D11_UseTexture (pTex);
 
       pTex->Release ();
     }
+
+    pTLS->texture_management.injection_thread =
+      orig_inject_state;
   }
 
   return
@@ -563,7 +576,7 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
       wchar_t wszPath [ MAX_PATH + 2 ] = { };
 
       wcscpy ( wszPath,
-                 SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+                 SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str () );
 
       lstrcatW (wszPath, L"/dump/textures/");
       lstrcatW (wszPath, SK_GetHostApp ());
@@ -625,16 +638,16 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
        metadata.height < 4    ) return E_INVALIDARG;
 
   SK_ScopedBool auto_bool  (&pTLS->texture_management.injection_thread);
-  SK_ScopedBool auto_bool2 (&pTLS->imgui.drawing);
+  SK_ScopedBool auto_bool2 (&pTLS->imgui->drawing);
 
-  pTLS->texture_management.injection_thread = true;
-  pTLS->imgui.drawing                       = true;
+////pTLS->texture_management.injection_thread = true;
+////pTLS->imgui->drawing                       = true;
 
 
   wchar_t wszPath [ MAX_PATH + 2 ] = { };
 
   wcscpy ( wszPath,
-             SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+             SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str () );
 
   lstrcatW (wszPath, L"/inject/textures/MipmapCache/");
   lstrcatW (wszPath, SK_GetHostApp ());
@@ -657,8 +670,10 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
     mipmaps =
       new DirectX::ScratchImage;
   }
-  catch (...)
+  catch (const std::bad_alloc&)
   {
+    mipmaps = nullptr;
+    return E_OUTOFMEMORY;
   }
 
   HRESULT ret  = E_FAIL;
@@ -751,7 +766,7 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
   }
 
   if ( SUCCEEDED (ret) &&
-       mipmaps != nullptr )
+       mipmaps != nullptr ) //-V668
   {
     if (config.textures.d3d11.cache_gen_mips)
     {
@@ -818,14 +833,14 @@ SK_D3D11_MipmapMakeTexture2D ( ID3D11Device*        pDev,
     auto& metadata =
       img.GetMetadata ();
 
-    if ( metadata.width <  4 ||
+    if ( metadata.width  <  4 ||
          metadata.height < 4    ) return E_INVALIDARG;
 
     SK_ScopedBool auto_bool  (&pTLS->texture_management.injection_thread);
-    SK_ScopedBool auto_bool2 (&pTLS->imgui.drawing);
+    SK_ScopedBool auto_bool2 (&pTLS->imgui->drawing);
 
-    pTLS->texture_management.injection_thread = true;
-    pTLS->imgui.drawing                       = true;
+  ////pTLS->texture_management.injection_thread = true;
+  ////pTLS->imgui->drawing                       = true;
 
     const bool compressed =
       SK_DXGI_IsFormatCompressed (metadata.format);
@@ -935,8 +950,7 @@ SK_D3D11_MipmapMakeTexture2D ( ID3D11Device*        pDev,
     }
   }
 
-  if (mipmaps != nullptr)
-    delete mipmaps;
+  delete mipmaps;
 
   return ret;
 }
@@ -983,7 +997,7 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
   wchar_t wszPath [ MAX_PATH + 2 ] = { };
 
   wcscpy ( wszPath,
-             SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+             SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str () );
 
   lstrcatW (wszPath, L"/dump/textures/");
   lstrcatW (wszPath, SK_GetHostApp ());
@@ -1128,7 +1142,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   wchar_t wszPath [ MAX_PATH + 2 ] = { };
 
   wcscpy ( wszPath,
-             SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+             SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str () );
 
   lstrcatW (wszPath, L"/dump/textures/");
   lstrcatW (wszPath, SK_GetHostApp ());
@@ -1143,7 +1157,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   wchar_t wszOutName [MAX_PATH + 2] = { };
 
   wcscpy ( wszOutPath,
-             SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+             SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str () );
 
   lstrcatW (wszOutPath, LR"(\dump\textures\)");
   lstrcatW (wszOutPath, SK_GetHostApp ());
@@ -1438,13 +1452,16 @@ SK_D3D11_TexCacheCheckpoint (void)
 
       if (done)
       {
-        InterlockedExchange   (&SK_D3D11_TexCacheResidency->count.InVRAM,   fully_resident);
-        InterlockedExchange   (&SK_D3D11_TexCacheResidency->count.Shared,   shared_memory);
-        InterlockedExchange   (&SK_D3D11_TexCacheResidency->count.PagedOut, on_disk);
+        auto& count = SK_D3D11_TexCacheResidency->count;
+        auto& size  = SK_D3D11_TexCacheResidency->size;
 
-        InterlockedExchange64 (&SK_D3D11_TexCacheResidency->size.InVRAM,   size_vram);
-        InterlockedExchange64 (&SK_D3D11_TexCacheResidency->size.Shared,   size_shared);
-        InterlockedExchange64 (&SK_D3D11_TexCacheResidency->size.PagedOut, size_disk);
+        InterlockedExchange   (&count.InVRAM,   fully_resident);
+        InterlockedExchange   (&count.Shared,   shared_memory);
+        InterlockedExchange   (&count.PagedOut, on_disk);
+
+        InterlockedExchange64 (&size.InVRAM,   size_vram);
+        InterlockedExchange64 (&size.Shared,   size_shared);
+        InterlockedExchange64 (&size.PagedOut, size_disk);
 
         textures->AggregateSize_2D = size_vram      + size_shared + size_disk;
         textures->Entries_2D       = fully_resident + shared_memory + on_disk;
@@ -1750,7 +1767,7 @@ SK_D3D11_TexMgr::recordCacheHit ( ID3D11Texture2D *pTex )
       SK_TLS_Bottom ();
 
     // Don't record cache hits caused by the shader mod interface
-    if (! pTLS->imgui.drawing)
+    if (! (pTLS && pTLS->imgui->drawing))
     {
       desc2d.last_used =
         SK_QueryPerf ().QuadPart;
@@ -1812,7 +1829,7 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              tag,
             pTLS = SK_TLS_Bottom ();
 
         // Don't record cache hits caused by the shader mod interface
-        if (! pTLS->imgui.drawing)
+        if (! pTLS->imgui->drawing)
         {
           InterlockedIncrement (&desc2d.hits);
 
@@ -2010,7 +2027,8 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
     InterlockedIncrementRelease (&init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&init, 2);
 
 
 
@@ -2139,8 +2157,11 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
 #include <Shlwapi.h>
 
-std::unordered_map < std::wstring, uint32_t > SK_D3D11_EnumeratedMipmapCache;
-                                     uint64_t SK_D3D11_MipmapCacheSize;
+SK_LazyGlobal <
+    std::unordered_map < std::wstring, uint32_t >
+  >      SK_D3D11_EnumeratedMipmapCache;
+uint64_t SK_D3D11_MipmapCacheSize;
+
 void
 SK_D3D11_RecursiveEnumAndAddTex ( std::wstring   directory, unsigned int& files,
                                   LARGE_INTEGER& liSize,    wchar_t*      wszPattern = (wchar_t *)L"*" );
@@ -2151,7 +2172,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
 {
   static bool init = false;
 
-  if (((! refresh) && init) || SK_D3D11_res_root.empty ())
+  if (((! refresh) && init) || SK_D3D11_res_root->empty ())
     return;
 
   SK_AutoCriticalSection critical0 (&tex_cs);
@@ -2168,7 +2189,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
     textures->injectable_textures.clear ();
     textures->injectable_texture_bytes = 0;
 
-    SK_D3D11_EnumeratedMipmapCache.clear ();
+    SK_D3D11_EnumeratedMipmapCache->clear ();
                SK_D3D11_MipmapCacheSize = 0;
   }
 
@@ -2177,7 +2198,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
   wchar_t wszTexDumpDir_RAW [ MAX_PATH     ] = { };
   wchar_t wszTexDumpDir     [ MAX_PATH + 2 ] = { };
 
-  lstrcatW (wszTexDumpDir_RAW, SK_D3D11_res_root.c_str ());
+  lstrcatW (wszTexDumpDir_RAW, SK_D3D11_res_root->c_str ());
   lstrcatW (wszTexDumpDir_RAW, LR"(\dump\textures\)");
   lstrcatW (wszTexDumpDir_RAW, SK_GetHostApp ());
 
@@ -2310,7 +2331,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
   wchar_t wszTexInjectDir_RAW [ MAX_PATH + 2 ] = { };
   wchar_t wszTexInjectDir     [ MAX_PATH + 2 ] = { };
 
-  lstrcatW (wszTexInjectDir_RAW, SK_D3D11_res_root.c_str ());
+  lstrcatW (wszTexInjectDir_RAW, SK_D3D11_res_root->c_str ());
   lstrcatW (wszTexInjectDir_RAW, LR"(\inject\textures)");
 
   wcscpy ( wszTexInjectDir,
@@ -2335,7 +2356,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
   wchar_t wszTexInjectDir_FFX_RAW [ MAX_PATH     ] = { };
   wchar_t wszTexInjectDir_FFX     [ MAX_PATH + 2 ] = { };
 
-  lstrcatW (wszTexInjectDir_FFX_RAW, SK_D3D11_res_root.c_str ());
+  lstrcatW (wszTexInjectDir_FFX_RAW, SK_D3D11_res_root->c_str ());
   lstrcatW (wszTexInjectDir_FFX_RAW, LR"(\inject\textures\UnX_Old)");
 
   wcscpy ( wszTexInjectDir_FFX,
@@ -2388,7 +2409,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
                        files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
   }
 
-  for (auto& it : SK_D3D11_EnumeratedMipmapCache)
+  for (auto& it : SK_D3D11_EnumeratedMipmapCache.get ())
   {
     extern
       void __stdcall SK_D3D11_AddDumped (uint32_t top_crc32, uint32_t checksum);
@@ -2413,11 +2434,11 @@ SK_D3D11_SetResourceRoot (const wchar_t* root)
                                       SK_GetRootPath   (),  _TRUNCATE);
     PathAppendW (wszPath, root);
 
-    SK_D3D11_res_root = wszPath;
+    SK_D3D11_res_root->assign (wszPath);
   }
 
   else
-    SK_D3D11_res_root = root;
+    SK_D3D11_res_root->assign (root);
 }
 
 void
@@ -2565,7 +2586,7 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory, unsigned int&
           else
           {
             SK_D3D11_MipmapCacheSize += fsize.QuadPart;
-            SK_D3D11_EnumeratedMipmapCache.emplace (wszPath, top_crc32);
+            SK_D3D11_EnumeratedMipmapCache->emplace (wszPath, top_crc32);
           }
         }
       }
@@ -2592,7 +2613,7 @@ SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ff
 
   wchar_t wszTex [MAX_PATH * 2 + 1] = { };
 
-  static std::wstring res_root (SK_D3D11_res_root);
+  static std::wstring res_root (SK_D3D11_res_root.get ());
   static std::wstring eval     (SK_EvalEnvironmentVars (res_root.c_str ()));
 
   wcsncpy_s ( wszTex,          MAX_PATH * 2,
@@ -2679,10 +2700,10 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
     E_UNEXPECTED;
 
   SK_ScopedBool auto_bool  (&pTLS->texture_management.injection_thread);
-  SK_ScopedBool auto_bool2 (&pTLS->imgui.drawing);
+  SK_ScopedBool auto_bool2 (&pTLS->imgui->drawing);
 
-  pTLS->texture_management.injection_thread = true;
-  pTLS->imgui.drawing                       = true;
+  ////pTLS->texture_management.injection_thread = true;
+  ////pTLS->imgui->drawing                      = true;
   {
     SK_D3D11_TexMgr::tex2D_descriptor_s texDesc2D =
       textures->Textures_2D [pTex];
@@ -2697,8 +2718,6 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
 
     if (GetFileAttributes (fname.c_str ()) != INVALID_FILE_ATTRIBUTES)
     {
-#define D3DX11_DEFAULT static_cast <UINT> (-1)
-
       DirectX::TexMetadata mdata;
       const LARGE_INTEGER  load_start =
         SK_QueryPerf ();
@@ -2821,7 +2840,7 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
         if (pTLS == nullptr)
             pTLS = SK_TLS_Bottom ();
 
-        if (! (pTLS->imgui.drawing || pTLS->texture_management.injection_thread))
+        if ((! (pTLS->imgui->drawing || pTLS->texture_management.injection_thread)))
           return true;
       }
     }
@@ -2830,4 +2849,5 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
   return false;
 }
 
-std::unordered_set <ID3D11Texture2D *> used_textures;
+SK_LazyGlobal <std::unordered_set <ID3D11Texture2D *>>                         used_textures;
+SK_LazyGlobal <std::unordered_map <ID3D11DeviceContext *, mapped_resources_s>> mapped_resources;

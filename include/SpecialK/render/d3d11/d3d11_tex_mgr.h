@@ -46,9 +46,6 @@ struct mapped_resources_s {
   std::map           <uint32_t,         size_t>                   dynamic_sizes2;
 };
 
-extern std::unordered_map <ID3D11DeviceContext *, mapped_resources_s> mapped_resources;
-extern std::unordered_set <ID3D11Texture2D *>                         used_textures;
-
 struct SK_D3D11_TEXTURE2D_DESC
 {
   UINT                  Width;
@@ -84,7 +81,8 @@ extern CRITICAL_SECTION cache_cs;
 extern CRITICAL_SECTION inject_cs;
 extern CRITICAL_SECTION preload_cs;
 
-extern std::wstring SK_D3D11_res_root;
+extern SK_LazyGlobal <std::wstring>
+                    SK_D3D11_res_root;
 extern bool         SK_D3D11_need_tex_reset;
 extern bool         SK_D3D11_try_tex_reset;
 extern int32_t      SK_D3D11_amount_to_purge;

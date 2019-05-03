@@ -39,8 +39,8 @@ SK_CPU_GetLogicalCorePairs (void);
 BOOL
 WINAPI
 GetLogicalProcessorInformation_Detour (
-    _Out_writes_bytes_to_opt_ (*ReturnedLvength, *ReturnedLength) PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Buffer,
-    _Inout_                                                       PDWORD                                ReturnedLength )
+  PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Buffer,
+  PDWORD                                ReturnedLength )
 {
   SK_LOG_FIRST_CALL
 
@@ -58,27 +58,27 @@ GetLogicalProcessorInformation_Detour (
     PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
       Buffer;
 
-    DWORD dwOffset = 0;
-
-    while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= *ReturnedLength)
+    DWORD   dwOffset = 0;
+    while ( dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION)
+                    <= *ReturnedLength )
     {
       switch (lpi->Relationship)
       {
         case RelationProcessorCore:
         {
-          static const std::vector <uintptr_t>& pairs =
-            SK_CPU_GetLogicalCorePairs ();
+          static const
+            std::vector <uintptr_t>& pairs =
+              SK_CPU_GetLogicalCorePairs ();
 
-          static const std::set <uintptr_t>& masks =
-            std::set <uintptr_t> ( pairs.cbegin (), pairs.cend () );
-
-          if (pairs.size () != masks.size ())
-          {
-            //while (lpi->ProcessorMask >= 2)
-            //{
-            //  lpi->ProcessorMask >>= 1;
-            //}
-          }
+          //static const
+          //  std::set <uintptr_t> masks (
+          //    pairs.cbegin (), pairs.cend ()
+          //  );
+          //
+          //if (pairs.size () != masks.size ())
+          //{
+          //  // ...
+          //}
         } break;
 
         default:
@@ -147,6 +147,8 @@ SK_CPU_CountPhysicalCores (void)
 
   DWORD dwNeededBytes = 0;
 
+  SYSTEM_LOGICAL_PROCESSOR_INFORMATION* pLogProcInfo = nullptr;
+
   // We're not hooking anything, so use the regular import
   if (! GetLogicalProcessorInformation_Original)
         GetLogicalProcessorInformation_Original = GetLogicalProcessorInformation;
@@ -155,35 +157,42 @@ SK_CPU_CountPhysicalCores (void)
   {
     if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
     {
-        SYSTEM_LOGICAL_PROCESSOR_INFORMATION *pLogProcInfo =
-       (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
-                new uint8_t [dwNeededBytes] { };
+      try {
+        pLogProcInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
+          new uint8_t [dwNeededBytes] { };
+      }
+
+      catch (const std::bad_alloc&)
+      {
+                          pLogProcInfo  = nullptr;
+        SK_ReleaseAssert (pLogProcInfo != nullptr);
+      }
 
       if (pLogProcInfo != nullptr)
       {
         if (GetLogicalProcessorInformation_Original (pLogProcInfo, &dwNeededBytes))
         {
-        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
-          pLogProcInfo;
+          PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
+            pLogProcInfo;
 
-        DWORD  dwOffset = 0;
-        while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= dwNeededBytes)
-        {
-          switch (lpi->Relationship)
+          DWORD  dwOffset = 0;
+          while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= dwNeededBytes)
           {
-            case RelationProcessorCore:
+            switch (lpi->Relationship)
             {
-              logical_proc_siblings.emplace (lpi->ProcessorMask);
-            } break;
+              case RelationProcessorCore:
+              {
+                logical_proc_siblings.emplace (lpi->ProcessorMask);
+              } break;
 
-            default:
-              break;
+              default:
+                break;
+            }
+
+            dwOffset += sizeof SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+            lpi++;
           }
-
-          dwOffset += sizeof SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
-          lpi++;
         }
-      }
 
         delete [] pLogProcInfo;
       }
@@ -227,24 +236,6 @@ SK_CPU_GetLogicalCorePairs (void)
           {
             case RelationProcessorCore:
             {
-              //auto CountSetBits = [](ULONG_PTR bitMask) -> DWORD
-              //{
-              //  DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
-              //  DWORD     bitSetCount = 0;
-              //  ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;
-              //  DWORD     i;
-              //
-              //  for (i = 0; i <= LSHIFT; ++i)
-              //  {
-              //    bitSetCount += ((bitMask & bitTest) ? 1 : 0);
-              //    bitTest /= 2;
-              //  }
-              //
-              //  return bitSetCount;
-              //};
-              //
-              //logical_cores += CountSetBits (lpi->ProcessorMask);
-
 #if defined (_WIN64) && defined (_DEBUG)
               // Don't want to bother with server hardware! No gaming machine needs this many cores (2018)
               ////assert ((lpi->ProcessorMask & 0xFFFFFFFF00000000) == 0);
@@ -267,23 +258,6 @@ SK_CPU_GetLogicalCorePairs (void)
 
   return logical_proc_siblings;
 }
-
-auto CountSetBits = [](ULONG_PTR bitMask) -> DWORD
-{
-  DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
-  DWORD     bitSetCount = 0;
-  ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;
-  DWORD     i;
-
-  for (i = 0; i <= LSHIFT; ++i)
-  {
-    bitSetCount += ((bitMask & bitTest) ? 1 : 0);
-    bitTest /= 2;
-  }
-
-  return bitSetCount;
-};
-
 
 size_t
 SK_CPU_CountLogicalCores (void)

@@ -21,10 +21,10 @@
 //
 
 #include <SpecialK/stdafx.h>
-
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <imgui/imgui.h>
 
-sk::ParameterFactory okami_factory;
 sk::ParameterBool*   sk_okami_grain;
 
 bool SK_Okami_use_grain = true;
@@ -79,7 +79,7 @@ SK_Okami_LoadConfig (void)
 {
   sk_okami_grain =
     dynamic_cast <sk::ParameterBool *> (
-      okami_factory.create_parameter <bool> (
+      g_ParameterFactory->create_parameter <bool> (
         L"Use Grain?"
       )
     );

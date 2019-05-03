@@ -51,6 +51,9 @@ const GUID IID_IUnwrappedD3D11DeviceContext =
 extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
 extern SK_LazyGlobal <target_tracking_s> tracked_rtv;
 
+extern SK_LazyGlobal <std::unordered_set <ID3D11Texture2D *>>                         used_textures;
+extern SK_LazyGlobal <std::unordered_map <ID3D11DeviceContext *, mapped_resources_s>> mapped_resources;
+
 
 class SK_IWrapD3D11DeviceContext : public ID3D11DeviceContext4
 {
@@ -609,16 +612,14 @@ public:
   {
     ID3D11DepthStencilView *pDSV = pDepthStencilView;
 
-    SK_TLS *pTLS = nullptr;
-
     UINT dev_idx =
       SK_D3D11_GetDeviceContextHandle (pReal);
 
     if (pDepthStencilView != nullptr)
-      SK_ReShade_SetDepthStencilViewCallback.call (pDSV, pTLS);
+      SK_ReShade_SetDepthStencilViewCallback.call (pDSV);
 
     // ImGui gets to pass-through without invoking the hook
-    if (! SK_D3D11_ShouldTrackRenderOp (pReal, &pTLS))
+    if (! SK_D3D11_ShouldTrackRenderOp (pReal, dev_ctx_handle_))
     {
       for (auto& i : tracked_rtv->active [dev_idx]) i.store (false);
 
@@ -748,24 +749,24 @@ public:
   {
     SK_LOG_FIRST_CALL
 
-      SK_TLS *pTLS = nullptr;
+    SK_TLS *pTLS = nullptr;
 
-    if (! SK_D3D11_ShouldTrackRenderOp (pReal, &pTLS))
+    if (! SK_D3D11_ShouldTrackRenderOp (pReal, dev_ctx_handle_))
     {
       return
         pReal->Dispatch ( ThreadGroupCountX,
-                         ThreadGroupCountY,
-                         ThreadGroupCountZ );
+                          ThreadGroupCountY,
+                          ThreadGroupCountZ );
     }
 
-    if (SK_D3D11_DispatchHandler (pReal, pTLS))
+    if (SK_D3D11_DispatchHandler (pReal, dev_ctx_handle_, &pTLS))
       return;
 
     pReal->Dispatch ( ThreadGroupCountX,
-                     ThreadGroupCountY,
-                     ThreadGroupCountZ );
+                      ThreadGroupCountY,
+                      ThreadGroupCountZ );
 
-    SK_D3D11_PostDispatch (pReal, pTLS);  SK_LOG_FIRST_CALL
+    SK_D3D11_PostDispatch (pReal, dev_ctx_handle_, pTLS);  SK_LOG_FIRST_CALL
   }
 
   void STDMETHODCALLTYPE DispatchIndirect (
@@ -774,22 +775,22 @@ public:
   {
     SK_LOG_FIRST_CALL
 
-      SK_TLS *pTLS = nullptr;
+    SK_TLS *pTLS = nullptr;
 
-    if (! SK_D3D11_ShouldTrackRenderOp (pReal, &pTLS))
+    if (! SK_D3D11_ShouldTrackRenderOp (pReal, dev_ctx_handle_))
     {
       return
         pReal->DispatchIndirect ( pBufferForArgs,
-                                 AlignedByteOffsetForArgs );
+                                  AlignedByteOffsetForArgs );
     }
 
-    if (SK_D3D11_DispatchHandler (pReal, pTLS))
+    if (SK_D3D11_DispatchHandler (pReal, dev_ctx_handle_, &pTLS))
       return;
 
     pReal->DispatchIndirect ( pBufferForArgs,
-                             AlignedByteOffsetForArgs );
+                              AlignedByteOffsetForArgs );
 
-    SK_D3D11_PostDispatch (pReal, pTLS);
+    SK_D3D11_PostDispatch (pReal, dev_ctx_handle_, pTLS);
   }
 
   void STDMETHODCALLTYPE RSSetState (
@@ -963,7 +964,7 @@ public:
 
 
     // ImGui gets to pass-through without invoking the hook
-    if (! SK_D3D11_ShouldTrackRenderOp (pReal, &pTLS))
+    if (! SK_D3D11_ShouldTrackRenderOp (pReal, dev_ctx_handle_))
     {
       pReal->CopySubresourceRegion (pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
 
@@ -1028,12 +1029,13 @@ public:
     }
 
 
-    pReal->CopySubresourceRegion (pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
+    pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
+                                   pSrcResource, SrcSubresource, pSrcBox );
 
     if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) ||
-        SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
+           SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
     {
-      auto& map_ctx = mapped_resources [pReal];
+      auto& map_ctx = (*mapped_resources)[pReal];
 
       if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource))
       {
@@ -1051,7 +1053,7 @@ public:
           textures->refTexture2D ( pDstTex,
                                    &dst_desc,
                                    cache_tag,
-                                   map_ctx.dynamic_sizes2   [checksum],
+                                   map_ctx.dynamic_sizes2 [checksum],
                                    map_ctx.dynamic_times2 [checksum],
                                    top_crc32,
                                    L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
@@ -1085,9 +1087,9 @@ public:
     _In_           UINT            SrcDepthPitch ) override
   {
     SK_D3D11_UpdateSubresource_Impl ( pReal,
-                                     pDstResource, DstSubresource,
-                                     pDstBox, pSrcData, SrcRowPitch,
-                                     SrcDepthPitch, true );
+                                      pDstResource, DstSubresource,
+                                      pDstBox, pSrcData, SrcRowPitch,
+                                      SrcDepthPitch, true );
   }
 
   void STDMETHODCALLTYPE CopyStructureCount (
@@ -1180,21 +1182,23 @@ public:
       if (pCommandList == nullptr)
         return pReal->ExecuteCommandList (pCommandList, RestoreContextState);
 
-    SK_ComPtr <ID3D11DeviceContext> pBuildContext;
+    SK_ComPtr <ID3D11DeviceContext> pBuildContext (nullptr);
     UINT                            size = 0;
 
     if ( SUCCEEDED ( pCommandList->GetPrivateData (
                        SKID_D3D11DeviceContextOrigin,
-                         &size, &pBuildContext )
+                         &size, &pBuildContext.p )
                    )    &&
              (! pBuildContext.IsEqualObject (this) )
       )
     {
-      SK_D3D11_MergeCommandLists ( pBuildContext,        this    );
+      if (pBuildContext.p != nullptr)
+      {
+        SK_D3D11_MergeCommandLists ( pBuildContext,        this    );
 
-      pBuildContext->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
-                                        sizeof (ptrdiff_t), nullptr );
-
+        pBuildContext->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
+                                          0, nullptr );
+      }
     }
 
     pReal->ExecuteCommandList  (pCommandList, RestoreContextState);

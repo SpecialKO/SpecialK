@@ -137,7 +137,12 @@ IWrapDXGISwapChain::Release (void)
 {
   ULONG xrefs =
     InterlockedDecrement (&refs_),
-         refs = pReal->Release ();
+         refs = (ULONG)-1;
+
+  if (xrefs > 0)
+  {
+    refs = pReal->Release ();
+  }
 
   if (ReadAcquire (&refs_) == 0 && refs != 0)
   {
@@ -596,51 +601,11 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
 
   //SK_LOG_FIRST_CALL
 
-  if (Type == DXGI_HDR_METADATA_TYPE_HDR10)
-  {
-    if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
-    {
-      ///////DXGI_HDR_METADATA_HDR10* pData =
-      ///////  (DXGI_HDR_METADATA_HDR10*)pMetaData;
-
-      ////////SK_DXGI_HDRControl* pHDRCtl =
-      ////////  SK_HDR_GetControl ();
-      ////////
-      ////////
-      ////////if (! pHDRCtl->overrides.MaxContentLightLevel)
-      ////////  pHDRCtl->meta.MaxContentLightLevel = pData->MaxContentLightLevel;
-      ////////else
-      ////////  pData->MaxContentLightLevel = pHDRCtl->meta.MaxContentLightLevel;
-      ////////
-      ////////if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
-      ////////  pHDRCtl->meta.MaxFrameAverageLightLevel = pData->MaxFrameAverageLightLevel;
-      ////////else
-      ////////  pData->MaxFrameAverageLightLevel = pHDRCtl->meta.MaxFrameAverageLightLevel;
-      ////////
-      ////////
-      ////////if (! pHDRCtl->overrides.MinMaster)
-      ////////  pHDRCtl->meta.MinMasteringLuminance = pData->MinMasteringLuminance;
-      ////////else
-      ////////  pData->MinMasteringLuminance = pHDRCtl->meta.MinMasteringLuminance;
-      ////////
-      ////////if (! pHDRCtl->overrides.MaxMaster)
-      ////////  pHDRCtl->meta.MaxMasteringLuminance = pData->MaxMasteringLuminance;
-      ////////else
-      ////////  pData->MaxMasteringLuminance = pHDRCtl->meta.MaxMasteringLuminance;
-    }
-  }
-
   const HRESULT hr =
     static_cast <IDXGISwapChain4 *>(pReal)->
       SetHDRMetaData (Type, Size, pMetaData);
 
   ////////SK_HDR_GetControl ()->meta._AdjustmentCount++;
-
-  if (FAILED (hr))
-  {
-    if (config.render.dxgi.spoof_hdr)
-      return S_OK;
-  }
 
   return hr;
 }

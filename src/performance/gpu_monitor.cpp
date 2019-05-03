@@ -21,8 +21,11 @@
 
 #include <SpecialK/stdafx.h>
 
+#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
+
+static constexpr int GPU_SENSOR_BUFFERS = 3;
 
 //
 // All GPU performance data are double-buffered and it is safe to read
@@ -30,11 +33,11 @@
 //
 //  >> It will always reference the last complete set of performance data.
 //
-volatile LONG           current_gpu_stat      =  0;
-         gpu_sensors_t  gpu_stats_buffers [2] = { };
-         gpu_sensors_t& gpu_stats             = gpu_stats_buffers [0];
-
-extern BOOL nvapi_init;
+volatile LONG           gpu_sensor_frame  =  0;
+         // Double-buffered updates
+         gpu_sensors_t* gpu_stats_buffers = nullptr;
+volatile gpu_sensors_t* gpu_stats         = nullptr;
+         // ^^^ ptr to front
 
 //#define PCIE_WORKS
 
@@ -49,12 +52,33 @@ static HANDLE hPollEvent     = nullptr;
 static HANDLE hShutdownEvent = nullptr;
 static HANDLE hPollThread    = nullptr;
 
-static std::vector <NvU32> gpu_ids;
+void
+SK_GPU_InitSensorData (void)
+{
+  if (gpu_stats_buffers == nullptr)
+      gpu_stats_buffers = new gpu_sensors_t [GPU_SENSOR_BUFFERS] { };
+
+  // Num GPUs will be 0 unless either API is bootstrapped.
+  if ( nvapi_init || ADL_init )
+  {
+    for ( int i = 0 ; i < GPU_SENSOR_BUFFERS ; ++i )
+    { gpu_stats_buffers [i].num_gpus = 1; }
+  }
+
+  InterlockedExchangePointer (
+    (void **)&gpu_stats,
+             &gpu_stats_buffers [0]
+  );
+}
 
 DWORD
 __stdcall
 SK_GPUPollingThread (LPVOID user)
 {
+  static std::vector <NvU32> gpu_ids;
+
+  SK_GPU_InitSensorData ();
+
   UNREFERENCED_PARAMETER (user);
 
   const HANDLE hEvents [2] = {
@@ -107,13 +131,26 @@ SK_GPUPollingThread (LPVOID user)
     else if (dwWait != WAIT_OBJECT_0)
       break;
 
-    if (InterlockedCompareExchange (&current_gpu_stat, TRUE, FALSE))
-        InterlockedCompareExchange (&current_gpu_stat, FALSE, TRUE);
+    static LONG idx =
+      ( InterlockedIncrement (&gpu_sensor_frame) % GPU_SENSOR_BUFFERS );
 
-    gpu_sensors_t& stats = gpu_stats_buffers [ReadAcquire (&current_gpu_stat)];
+    // Previous data set, for stats that are not updated every cycle
+    gpu_sensors_t& stats0 =
+      gpu_stats_buffers [idx];
 
-    extern void SK_DXGI_SignalBudgetThread (void);
-                SK_DXGI_SignalBudgetThread (    );
+    idx =
+      ( InterlockedIncrement (&gpu_sensor_frame) % GPU_SENSOR_BUFFERS );
+
+    // The data set we will be working on.
+    gpu_sensors_t& stats =
+      gpu_stats_buffers [idx];
+
+    // Don't do this every frame
+    if ((ReadAcquire (&gpu_sensor_frame) % (GPU_SENSOR_BUFFERS * 2)) == 0)
+    {
+      extern void SK_DXGI_SignalBudgetThread (void);
+                  SK_DXGI_SignalBudgetThread (    );
+    }
 
     if (nvapi_init)
     {
@@ -170,6 +207,14 @@ SK_GPUPollingThread (LPVOID user)
             psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage;
           stats.gpus [i].loads_percent.bus =
             psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage;
+        }
+
+        else
+        {
+          stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
+          stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
+          stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
+          stats.gpus [i].loads_percent.bus = stats0.gpus [i].loads_percent.bus;
         }
 
 
@@ -239,6 +284,12 @@ SK_GPUPollingThread (LPVOID user)
             pcieinfo.info [0].unknown0;              //pstates [pstate].pciLinkTransferRate;
         }
 
+        else {
+          stats.gpus [i].hwinfo.pcie_gen           = stats0.gpus [i].hwinfo.pcie_gen;
+          stats.gpus [i].hwinfo.pcie_lanes         = stats0.gpus [i].hwinfo.pcie_lanes;
+          stats.gpus [i].hwinfo.pcie_transfer_rate = stats0.gpus [i].hwinfo.pcie_transfer_rate;
+        }
+
         NvU32 mem_width = 0,
               mem_loc   = 0,
               mem_type  = 0;
@@ -249,11 +300,16 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].hwinfo.mem_bus_width = mem_width;
         }
 
+        else stats.gpus [i].hwinfo.mem_bus_width = stats0.gpus [i].hwinfo.mem_bus_width;
+
+
         if (            NvAPI_GPU_GetRamType != nullptr &&
             NVAPI_OK == NvAPI_GPU_GetRamType (gpu, &mem_type))
         {
           stats.gpus [i].hwinfo.mem_type = mem_type;
         }
+
+        else stats.gpus [i].hwinfo.mem_type = stats0.gpus [i].hwinfo.mem_type;
 
         NV_DISPLAY_DRIVER_MEMORY_INFO meminfo = { };
                                       meminfo.version = NV_DISPLAY_DRIVER_MEMORY_INFO_VER;
@@ -276,6 +332,15 @@ SK_GPUPollingThread (LPVOID user)
             stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local;
         }
 
+        else
+        {
+          stats.gpus [i].memory_B.local    = stats0.gpus [i].memory_B.local;
+          stats.gpus [i].memory_B.capacity = stats0.gpus [i].memory_B.capacity;
+
+          stats.gpus [i].memory_B.total    = stats0.gpus [i].memory_B.total;
+          stats.gpus [i].memory_B.nonlocal = stats0.gpus [i].memory_B.nonlocal;
+        }
+
 
       //SwitchToThreadMinPageFaults ();
 
@@ -296,6 +361,18 @@ SK_GPUPollingThread (LPVOID user)
             ////stats.gpus [i].clocks_kHz.shader =
               ////freq.domain [NVAPI_GPU_PUBLIC_CLOCK_PROCESSOR].frequency;
           }
+
+          else
+          {
+            stats.gpus [i].clocks_kHz.gpu = stats0.gpus [i].clocks_kHz.gpu;
+            stats.gpus [i].clocks_kHz.ram = stats0.gpus [i].clocks_kHz.ram;
+          }
+        }
+
+        else
+        {
+          stats.gpus [i].clocks_kHz.gpu = stats0.gpus [i].clocks_kHz.gpu;
+          stats.gpus [i].clocks_kHz.ram = stats0.gpus [i].clocks_kHz.ram;
         }
 
         static int amortization1 = 0;
@@ -311,6 +388,18 @@ SK_GPUPollingThread (LPVOID user)
             stats.gpus [i].fans_rpm.gpu       = tach;
             stats.gpus [i].fans_rpm.supported = true;
           }
+
+          else
+          {
+            stats.gpus [i].fans_rpm.gpu       = stats0.gpus [i].fans_rpm.gpu;
+            stats.gpus [i].fans_rpm.supported = stats0.gpus [i].fans_rpm.supported;
+          }
+        }
+
+        else
+        {
+          stats.gpus [i].fans_rpm.gpu       = stats0.gpus [i].fans_rpm.gpu;
+          stats.gpus [i].fans_rpm.supported = stats0.gpus [i].fans_rpm.supported;
         }
 
         static int iter = 0;
@@ -325,6 +414,8 @@ SK_GPUPollingThread (LPVOID user)
 
           stats.gpus [i].nv_perf_state = perf_decrease_info;
         }
+
+        else { stats.gpus [i].nv_perf_state = stats0.gpus [i].nv_perf_state; }
 
         static NV_GPU_PERF_PSTATES20_INFO ps20info = {                            };
                ps20info.version                    = NV_GPU_PERF_PSTATES20_INFO_VER;
@@ -500,9 +591,17 @@ SK_GPUPollingThread (LPVOID user)
     else
       break;
 
-    gpu_stats = gpu_stats_buffers [ReadAcquire (&current_gpu_stat)];
+    InterlockedExchangePointer (
+      (void **)&gpu_stats,
+               &gpu_stats_buffers [idx]
+    );
+
   //ResetEvent (hPollEvent);
   }
+
+  InterlockedExchangePointer (
+    (void **)& gpu_stats, nullptr
+  );
 
   hPollThread = nullptr;
 
@@ -536,6 +635,14 @@ SK_EndGPUPolling (void)
     hShutdownEvent = nullptr;
     hPollThread    = nullptr;
   }
+
+  if (ReadAcquire (&__SK_DLL_Ending))
+  {
+    gpu_sensors_t* to_delete = nullptr;
+    std::swap     (to_delete, gpu_stats_buffers);
+
+    delete to_delete;
+  }
 }
 
 void
@@ -545,7 +652,12 @@ SK_PollGPU (void)
   {
     if (! ADL_init)
     {
-      gpu_stats.num_gpus = 0;
+      gpu_sensors_t* pSensors =
+        (gpu_sensors_t *)ReadPointerAcquire ((volatile PVOID *)&gpu_stats);
+
+      if (pSensors != nullptr)
+          pSensors->num_gpus = 0;
+
       return;
     }
   }
@@ -569,14 +681,31 @@ SK_PollGPU (void)
   update_ul.HighPart = update_ftime.dwHighDateTime;
   update_ul.LowPart  = update_ftime.dwLowDateTime;
 
+  gpu_sensors_t* pSensors =
+    (gpu_sensors_t *)ReadPointerAcquire ((volatile PVOID *)&gpu_stats);
+
+  while (pSensors == nullptr)
+  {
+    static int spins = 0;
+
+    SK_SleepEx (2UL, FALSE);
+
+    if (++spins > 3) {
+          spins = 0; return;
+    }
+
+    pSensors =
+      (gpu_sensors_t *)ReadPointerAcquire ((volatile PVOID *)&gpu_stats);
+  }
+
   const double dt =
-    (update_ul.QuadPart - gpu_stats_buffers [0].last_update.QuadPart) * 1.0e-7;
+    (update_ul.QuadPart - pSensors->last_update.QuadPart) * 1.0e-7;
 
   if (dt > config.gpu.interval)
   {
     if (SK_WaitForSingleObject (hPollEvent, 0) == WAIT_TIMEOUT)
     {
-      gpu_stats_buffers [0].last_update.QuadPart = update_ul.QuadPart;
+      pSensors->last_update.QuadPart = update_ul.QuadPart;
 
       if (hPollEvent != nullptr)
         SetEvent (hPollEvent);
@@ -585,114 +714,160 @@ SK_PollGPU (void)
 }
 
 
+gpu_sensors_t*
+SK_GPU_CurrentSensorData (void)
+{
+  if (gpu_stats == nullptr)
+  {
+    static gpu_sensors_t
+            nul_sensors = { };
+    return &nul_sensors;
+  }
+
+  return
+    (gpu_sensors_t *)(ReadPointerAcquire ((volatile PVOID *)&gpu_stats));
+}
 
 uint32_t
 __stdcall
 SK_GPU_GetClockRateInkHz (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus)                  ?
-                            gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].clocks_kHz.gpu  :
-                                              0;
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
+  return (gpu > -1 && gpu < pDataView->num_gpus)                  ?
+                            pDataView->gpus [gpu].clocks_kHz.gpu  :
+                                    0;
 }
 
 uint32_t
 __stdcall
 SK_GPU_GetMemClockRateInkHz (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus)                  ?
-                            gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].clocks_kHz.ram  :
-                                              0;
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
+  return (gpu > -1 && gpu < pDataView->num_gpus)                  ?
+                            pDataView->gpus [gpu].clocks_kHz.ram  :
+                                    0;
 };
 
 uint64_t
 __stdcall
 SK_GPU_GetMemoryBandwidth (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers    [ReadAcquire (&current_gpu_stat)].num_gpus) ?
-      (static_cast <uint64_t> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].clocks_kHz.ram) * 2ULL * 1000ULL *
-       static_cast <uint64_t> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].hwinfo.mem_bus_width)) / 8 :
-                                                 0;
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
+  return (gpu > -1 && gpu <    pDataView->num_gpus)                             ?
+      (static_cast <uint64_t> (pDataView->gpus [gpu].clocks_kHz.ram) * 2ULL * 1000ULL *
+       static_cast <uint64_t> (pDataView->gpus [gpu].hwinfo.mem_bus_width)) / 8 :
+                                    0;
 }
 
 float
 __stdcall
 SK_GPU_GetMemoryLoad (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus) ?
-       static_cast <float> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].loads_percent.fb) :
-                                             0.0f;
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
+  return (gpu > -1 && gpu < pDataView->num_gpus)                    ?
+       static_cast <float> (pDataView->gpus [gpu].loads_percent.fb) :
+                                    0.0f;
 }
 
 float
 __stdcall SK_GPU_GetGPULoad (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus) ?
-       static_cast <float> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].loads_percent.gpu) :
-                                             0.0f;
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
+  return (gpu > -1 && gpu < pDataView->num_gpus)                     ?
+       static_cast <float> (pDataView->gpus [gpu].loads_percent.gpu) :
+                                    0.0f;
 }
 
 float
 __stdcall
 SK_GPU_GetTempInC           (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus)               ?
-       static_cast <float> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].temps_c.gpu) :
-                                             0.0f;
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
+  return (gpu > -1 && gpu < pDataView->num_gpus)               ?
+       static_cast <float> (pDataView->gpus [gpu].temps_c.gpu) :
+                                    0.0f;
 }
 
 uint32_t
 __stdcall
 SK_GPU_GetFanSpeedRPM       (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus) ?
-    gpu_stats_buffers   [ReadAcquire (&current_gpu_stat)].gpus [gpu].fans_rpm.supported   ?
-      gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].fans_rpm.gpu : 0 : 0;
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
+  return (gpu > -1 && pDataView != nullptr && gpu < pDataView->num_gpus) ?
+                      pDataView->gpus [gpu].fans_rpm.supported           ?
+                      pDataView->gpus [gpu].fans_rpm.gpu : 0 : 0;
 }
 
 uint64_t
 __stdcall
 SK_GPU_GetVRAMUsed          (int gpu)
 {
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
   buffer_t buffer = dxgi_mem_info [0].buffer;
   int      nodes  = dxgi_mem_info [buffer].nodes;
 
-  return ( gpu   > -1   && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus )      ?
-         ( nodes >= gpu ?  dxgi_mem_info [buffer].local [gpu].CurrentUsage            :
-                  gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].memory_B.local )    :
-                                     0;
+  return ( gpu   > -1   && gpu < pDataView->num_gpus )                         ?
+         ( nodes >= gpu ?  dxgi_mem_info [buffer].local [gpu].CurrentUsage     :
+                                        pDataView->gpus [gpu].memory_B.local ) :
+                                    0;
 }
 
 uint64_t
 __stdcall
 SK_GPU_GetVRAMShared        (int gpu)
 {
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
   buffer_t buffer = dxgi_mem_info [0].buffer;
   int      nodes  = dxgi_mem_info [buffer].nodes;
 
-  return ( gpu   > -1   && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus )      ?
-         ( nodes >= gpu ?  dxgi_mem_info [buffer].nonlocal [gpu].CurrentUsage                        :
-                  gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].memory_B.nonlocal ) :
-                                     0;
+  return ( gpu   > -1   && gpu < pDataView->num_gpus )                               ?
+         ( nodes >= gpu ?  dxgi_mem_info [buffer].nonlocal [gpu].CurrentUsage        :
+                                           pDataView->gpus [gpu].memory_B.nonlocal ) :
+                                    0;
 }
 
 uint64_t
 __stdcall
 SK_GPU_GetVRAMCapacity      (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus)                    ?
-                            gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].memory_B.capacity :
-                                              0;
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
+  return (gpu > -1 && gpu < pDataView->num_gpus)                    ?
+                            pDataView->gpus [gpu].memory_B.capacity :
+                                    0;
 }
 
 uint64_t
 __stdcall
 SK_GPU_GetVRAMBudget        (int gpu)
 {
+  gpu_sensors_t* pDataView =
+    SK_GPU_CurrentSensorData ();
+
   buffer_t buffer = dxgi_mem_info [0].buffer;
   int      nodes  = dxgi_mem_info [buffer].nodes;
 
-  return ( gpu   > -1   && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus ) ?
-         ( nodes >= gpu ?  dxgi_mem_info [buffer].local [gpu].Budget                            :
-                            SK_GPU_GetVRAMCapacity (gpu) )                                      :
-                                     0;
+  return ( gpu   > -1   && gpu < pDataView->num_gpus ) ?
+         ( nodes >= gpu ?  dxgi_mem_info [buffer].local [gpu].Budget :
+                            SK_GPU_GetVRAMCapacity (gpu) )           :
+                                    0;
 }

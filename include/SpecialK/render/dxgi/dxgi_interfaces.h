@@ -24,6 +24,12 @@
 
 #include <SpecialK/com_util.h>
 
+#ifndef __dxgicommon_h__
+#ifndef __dxgitype_h__
+#include <dxgitype.h>
+#endif
+#endif
+
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
 
@@ -68,8 +74,6 @@ typedef struct _D3DCOLORVALUE {
 
 #define D3DCOLORVALUE_DEFINED
 #endif
-
-typedef D3DCOLORVALUE DXGI_RGBA;
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
@@ -178,7 +182,7 @@ typedef interface IDXGIDevice1 IDXGIDevice1;
 /* header files for imported files */
 #include "oaidl.h"
 #include "ocidl.h"
-#include "dxgitype.h"
+#include "dxgicommon.h"
 
 #ifdef __cplusplus
 extern "C"{

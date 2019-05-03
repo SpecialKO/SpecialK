@@ -90,7 +90,7 @@ WaitForInit_DDraw (void)
     SK_RunOnce (SK_BootDDraw ());
   }
 
-  if (SK_TLS_Bottom ()->ddraw.ctx_init_thread)
+  if (SK_TLS_Bottom ()->ddraw->ctx_init_thread)
     return;
 
   SK_Thread_SpinUntilFlagged (&__ddraw_ready);
@@ -238,7 +238,7 @@ SK_HookDDraw (void)
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
-    SK_TLS_Bottom ()->ddraw.ctx_init_thread = true;
+    SK_TLS_Bottom ()->ddraw->ctx_init_thread = true;
 
     HMODULE hBackend =
       (SK_GetDLLRole () & DLL_ROLE::DDraw) ? backend_dll :

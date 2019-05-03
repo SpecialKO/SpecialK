@@ -23,7 +23,8 @@
 
 using GetSystemTimePreciseAsFileTime_pfn = void ( WINAPI * )(
   _Out_ LPFILETIME lpSystemTimeAsFileTime
-  );                   GetSystemTimePreciseAsFileTime_pfn
+  );
+      GetSystemTimePreciseAsFileTime_pfn
   _k32GetSystemTimePreciseAsFileTime = nullptr;
 
 WORD
@@ -86,10 +87,6 @@ SK_Timestamp (wchar_t* const out)
 
   return stLogTime.wMilliseconds;
 }
-
-
-#include <concurrent_unordered_map.h>
-#include <SpecialK/thread.h>
 
 // Due to the way concurrent data structures grow, we can't shrink this beast
 //   and this _is_ technically a set, of sorts... but knowing if an element is
@@ -356,21 +353,13 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   va_end   (_ArgList);
 
 
-  SK_TLS *pTLS = nullptr;
-
-  extern volatile
-               LONG __SK_Threads_Attached;
-  if (ReadAcquire (&__SK_Threads_Attached) > 0)
-  {
-    pTLS =
-      SK_TLS_Bottom ();
-  }
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
   wchar_t* wszOut =
-    pTLS != nullptr ?
-    pTLS->scratch_memory.log.formatted_output.alloc (
+    pTLS->scratch_memory->log.formatted_output.alloc (
       len, true
-    )    : nullptr;
+    );
 
   if (! wszOut)
   {
@@ -448,21 +437,13 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   va_end   (_ArgList);
 
 
-  SK_TLS *pTLS = nullptr;
-
-  extern volatile
-               LONG __SK_Threads_Attached;
-  if (ReadAcquire (&__SK_Threads_Attached) > 0)
-  {
-    pTLS =
-      SK_TLS_Bottom ();
-  }
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
   wchar_t* wszOut =
-    pTLS != nullptr ?
-    pTLS->scratch_memory.log.formatted_output.alloc (
+    pTLS->scratch_memory->log.formatted_output.alloc (
       len, true
-    )    : nullptr;
+    );
 
   if (! wszOut)
   {
@@ -616,7 +597,7 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
 
            caller.c_str (),
              szSymbol,
-               GetCurrentThreadId                ()
+               SK_Thread_GetCurrentId             ()
     );
   }
 
@@ -624,8 +605,8 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
     swprintf_s ( wszSummary, 255,
                    L"[ %-58s, tid=0x%04x ]",
 
-           caller.c_str         (),
-             GetCurrentThreadId ()
+           caller.c_str             (),
+             SK_Thread_GetCurrentId ()
     );
   }
 

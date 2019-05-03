@@ -32,10 +32,8 @@
 #pragma warning(push)
 #pragma warning(disable: 4244)
 
-extern iSK_INI*             dll_ini;
-extern sk::ParameterFactory g_ParameterFactory;
-
-extern bool __SK_HDR_16BitSwap;
+extern iSK_INI* dll_ini;
+extern bool     __SK_HDR_16BitSwap;
 
 struct tv_mem_addr_s
 {
@@ -49,7 +47,7 @@ struct tv_mem_addr_s
   bool           enabled        =   false;
   void*          scanned_addr   = nullptr;
 
-  std::vector<BYTE> orig_bytes;
+  std::vector <BYTE> orig_bytes;
 
   const wchar_t* desc           = nullptr;
   void*          expected_addr  = nullptr;
@@ -64,7 +62,8 @@ struct tv_mem_addr_s
         void* expected =
           (void *)((uintptr_t)GetModuleHandle (nullptr) + (uintptr_t)expected_addr);
 
-        _set_se_translator (SK_BasicStructuredExceptionTranslator);
+        auto orig_se =
+        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
         try
         {
           if (! memcmp (pattern, expected, pattern_len))
@@ -76,6 +75,7 @@ struct tv_mem_addr_s
         catch (...)
         {
         }
+        SK_SEH_RemoveTranslator (orig_se);
 
         if (scanned_addr == nullptr)
         {
@@ -87,7 +87,8 @@ struct tv_mem_addr_s
       // Fallback to exhaustive search if not there
       if (scanned_addr == nullptr)
       {
-        _set_se_translator (SK_BasicStructuredExceptionTranslator);
+        auto orig_se =
+        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
         try {
           scanned_addr =
             SK_ScanAlignedEx (pattern, pattern_len, pattern_mask);
@@ -98,6 +99,7 @@ struct tv_mem_addr_s
         catch (...)
         {
         }
+        SK_SEH_RemoveTranslator (orig_se);
       }
 
       dll_log->Log (L"Scanned address for: %s: %p (alignment=%lu)", desc, scanned_addr, (uintptr_t)scanned_addr % 16);
@@ -190,65 +192,65 @@ struct tv_mem_addr_s
 };
 
 
-bool  __SK_TVFix_NoRenderSleep    = true;
+struct SK_TVFix_ModContext {
+  bool  __SK_TVFix_NoRenderSleep        = true;
+
+  //
+  // Callbacks are running on the wrong thread
+  //
+  //  ==> Serious deadlock hazard! <==
+  //
+  //  * We'll run the callbacks manually
+  //      from the swapchain thread.
+  //
+  DWORD __SK_TVFix_MagicSteamThread     = 0;
+
+  tv_mem_addr_s instn__model_animation  = { };
+  tv_mem_addr_s instn__particle_effects = { };
+  tv_mem_addr_s instn__blur             = { };
+  tv_mem_addr_s instn__depth_of_field   = { };
+  tv_mem_addr_s instn__bloom            = { };
+  tv_mem_addr_s instn__draw_HUD         = { };
+
+  // TOV_DE.exe+72AE99 - E8 92C0FCFF           - call TOV_DE.exe+6F6F30 { Depth of Field }
+  // TOV_DE.exe+6F632A - E8 C15C0300           - call TOV_DE.exe+72BFF0 { Bloom Lighting }
+  // TOV_DE.exe+6F6375 - E8 A69E0300           - call TOV_DE.exe+730220 { Bloom Lighting 2 }
 
 
-//
-// Callbacks are running on the wrong thread
-//
-//  ==> Serious deadlock hazard! <==
-//
-//  * We'll run the callbacks manually
-//      from the swapchain thread.
-//
-DWORD __SK_TVFix_MagicSteamThread = 0;
+  bool __SK_TVFix_AspectRatioCorrection = false;
 
+  sk::ParameterBool* _SK_TVFix_DisableDepthOfField;
+  bool              __SK_TVFix_DisableDepthOfField = false;
 
-tv_mem_addr_s instn__model_animation  = { };
-tv_mem_addr_s instn__particle_effects = { };
-tv_mem_addr_s instn__blur             = { };
-tv_mem_addr_s instn__depth_of_field   = { };
-tv_mem_addr_s instn__bloom            = { };
-tv_mem_addr_s instn__draw_HUD         = { };
+  sk::ParameterBool* _SK_TVFix_DisableBlur;
+  bool              __SK_TVFix_DisableBlur = false;
 
-// TOV_DE.exe+72AE99 - E8 92C0FCFF           - call TOV_DE.exe+6F6F30 { Depth of Field }
-// TOV_DE.exe+6F632A - E8 C15C0300           - call TOV_DE.exe+72BFF0 { Bloom Lighting }
-// TOV_DE.exe+6F6375 - E8 A69E0300           - call TOV_DE.exe+730220 { Bloom Lighting 2 }
+  sk::ParameterBool* _SK_TVFix_DisableBloom;
+  bool              __SK_TVFix_DisableBloom = false;
 
+  sk::ParameterBool* _SK_TVFix_ActiveAntiStutter;
+  bool              __SK_TVFix_ActiveAntiStutter = true;
 
-bool __SK_TVFix_AspectRatioCorrection = false;
+  sk::ParameterBool* _SK_TVFix_SharpenShadows;
+  bool              __SK_TVFix_SharpenShadows = true;
 
-sk::ParameterBool* _SK_TVFix_DisableDepthOfField;
-bool              __SK_TVFix_DisableDepthOfField = false;
+  sk::ParameterBool* _SK_TVFix_FixMSAA;
+  bool              __SK_TVFix_FixMSAA = true;
 
-sk::ParameterBool* _SK_TVFix_DisableBlur;
-bool              __SK_TVFix_DisableBlur = false;
+  sk::ParameterInt* _SK_TVFix_MultisampleCount;
+  int              __SK_TVFix_MultisampleCount = 4;
 
-sk::ParameterBool* _SK_TVFix_DisableBloom;
-bool              __SK_TVFix_DisableBloom = false;
+  sk::ParameterInt* _SK_TVFix_LastKnown_XRes;
+  int              __SK_TVFix_LastKnown_XRes = 3840;
 
-sk::ParameterBool* _SK_TVFix_ActiveAntiStutter;
-bool              __SK_TVFix_ActiveAntiStutter = true;
+  sk::ParameterInt* _SK_TVFix_LastKnown_YRes;
+  int              __SK_TVFix_LastKnown_YRes = 2160;
 
-sk::ParameterBool* _SK_TVFix_SharpenShadows;
-bool              __SK_TVFix_SharpenShadows = true;
-
-sk::ParameterBool* _SK_TVFix_FixMSAA;
-bool              __SK_TVFix_FixMSAA = true;
-
-sk::ParameterInt* _SK_TVFix_MultisampleCount;
-int              __SK_TVFix_MultisampleCount = 4;
-
-sk::ParameterInt* _SK_TVFix_LastKnown_XRes;
-int              __SK_TVFix_LastKnown_XRes = 3840;
-
-sk::ParameterInt* _SK_TVFix_LastKnown_YRes;
-int              __SK_TVFix_LastKnown_YRes = 2160;
-
-static volatile LONG __TVFIX_init = 0;
+  volatile LONG    __TVFIX_init = 0;
+};
+SK_LazyGlobal <SK_TVFix_ModContext> tvfix_ctx;
 
 #define PS_CRC32_SHADOWFILTER 0x84da24a5
-
 
 unsigned int
 __stdcall
@@ -291,9 +293,12 @@ SK_TVFIX_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT 
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  if (! InterlockedCompareExchange (&__TVFIX_init, 1, 0))
+  auto& plugin_ctx =
+    tvfix_ctx.get ();
+
+  if (! InterlockedCompareExchange (&plugin_ctx.__TVFIX_init, 1, 0))
   {
-    __SK_TVFix_MagicSteamThread = GetCurrentThreadId ();
+    plugin_ctx.__SK_TVFix_MagicSteamThread = SK_Thread_GetCurrentId ();
 
     SK_TVFix_CheckVersion (nullptr);
   }
@@ -313,7 +318,7 @@ typedef void (__cdecl *SteamAPI_RunCallbacks_Hook_pfn)(void);
 static void
 SteamAPI_RunCallbacks_Preamble (void)
 {
-  if (GetCurrentThreadId () != __SK_TVFix_MagicSteamThread)
+  if (SK_Thread_GetCurrentId () != tvfix_ctx->__SK_TVFix_MagicSteamThread)
     return;
 
   SteamAPI_RunCallbacks_Local ();
@@ -323,6 +328,9 @@ SteamAPI_RunCallbacks_Preamble (void)
 void
 SK_TVFix_InitPlugin (void)
 {
+  auto& plugin_ctx =
+         tvfix_ctx.get ();
+
   SK_SetPluginName (TVFIX_VERSION_STR);
 
   SK_CreateFuncHook (      L"SteamAPI_RunCallbacks_Detour",
@@ -332,18 +340,18 @@ SK_TVFix_InitPlugin (void)
   SK_EnableHook     (        SteamAPI_RunCallbacks_Detour );
 
 
-  _SK_TVFix_LastKnown_XRes =
+  plugin_ctx._SK_TVFix_LastKnown_XRes =
     _CreateConfigParameterInt ( L"TVFix.Render",
-                               L"LastRenderWidth", __SK_TVFix_LastKnown_XRes,
+                               L"LastRenderWidth", plugin_ctx.__SK_TVFix_LastKnown_XRes,
                                L"Store the last known width" );
 
-  _SK_TVFix_LastKnown_YRes =
+  plugin_ctx._SK_TVFix_LastKnown_YRes =
     _CreateConfigParameterInt ( L"TVFix.Render",
-                               L"LastRenderHeight", __SK_TVFix_LastKnown_YRes,
+                               L"LastRenderHeight", plugin_ctx.__SK_TVFix_LastKnown_YRes,
                                L"Store the last known height" );
 
 
-  instn__model_animation =
+  plugin_ctx.instn__model_animation =
   { "\xE8\xCE\x1C\x00\x00",
     //----------------------------------------------//
     "\xFF\xFF\xFF\xFF\xFF",
@@ -351,7 +359,7 @@ SK_TVFix_InitPlugin (void)
 
     { }, L"Enable Model Animation", (void *)0x6F7EED };
 
-  instn__particle_effects =
+  plugin_ctx.instn__particle_effects =
   { "\xE8\xA6\xD3\xFF\xFF",
     //----------------------------------------------//
     "\xFF\xFF\xFF\xFF\xFF",
@@ -361,7 +369,7 @@ SK_TVFix_InitPlugin (void)
 
   //"\xE8\xC6\xE2\xFF\xFF", -- All Post-Processing
 
-  instn__blur =
+  plugin_ctx.instn__blur =
   {
     "\xE8\x92\xC0\xFC\xFF",
 
@@ -371,7 +379,7 @@ SK_TVFix_InitPlugin (void)
 
     { }, L"Enable Blur", (void *)0x72AE99 };
 
-  instn__depth_of_field =
+  plugin_ctx.instn__depth_of_field =
   {
     "\xE8\xA6\x9E\x03\x00",
     //----------------------------------------------//
@@ -380,7 +388,7 @@ SK_TVFix_InitPlugin (void)
 
     { }, L"Enable Depth of Field", (void *)0x6F6375 };
 
-  instn__bloom =
+  plugin_ctx.instn__bloom =
   {
     "\xE8\xC1\x5C\x03\x00",
 
@@ -394,30 +402,33 @@ SK_TVFix_InitPlugin (void)
 bool
 SK_TVFix_PlugInCfg (void)
 {
+  auto& plugin_ctx =
+    tvfix_ctx.get ();
+
   if (ImGui::CollapsingHeader ("Tales of Vesperia Definitive Edition", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
 
-    if (ImGui::Checkbox ("Aggressive Anti-Stutter", &__SK_TVFix_ActiveAntiStutter))
+    if (ImGui::Checkbox ("Aggressive Anti-Stutter", &plugin_ctx.__SK_TVFix_ActiveAntiStutter))
     {
-      _SK_TVFix_ActiveAntiStutter->store (__SK_TVFix_ActiveAntiStutter);
+      plugin_ctx._SK_TVFix_ActiveAntiStutter->store (plugin_ctx.__SK_TVFix_ActiveAntiStutter);
     }
 
     if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Eliminate Microstutter, but will raise CPU usage %");
+        ImGui::SetTooltip ("Eliminate Microstutter, but will raise CPU usage %");
 
     ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine (); ImGui::Spacing ();
     ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
 
     ImGui::BeginGroup ();
-    ImGui::Checkbox   ("Fix MSAA###SK_TVFIX_MSAA", &__SK_TVFix_FixMSAA);
+    ImGui::Checkbox   ("Fix MSAA###SK_TVFIX_MSAA", &plugin_ctx.__SK_TVFix_FixMSAA);
 
     if (ImGui::IsItemHovered ())
     {
       ImGui::SetTooltip ("Render the Entire Scene Using MSAA Instead of Only a Handful of Geometry.");
     }
 
-    if (__SK_TVFix_FixMSAA || config.render.dxgi.msaa_samples != -1)
+    if (plugin_ctx.__SK_TVFix_FixMSAA || config.render.dxgi.msaa_samples != -1)
     {
       ImGui::SameLine ();
 
@@ -490,7 +501,7 @@ SK_TVFix_PlugInCfg (void)
     {
       ImGui::TreePush ("");
 
-      bool enable = (! __SK_TVFix_DisableDepthOfField);
+      bool enable = (! plugin_ctx.__SK_TVFix_DisableDepthOfField);
 
       if ( ImGui::Checkbox ("Enable Depth of Field", &enable) )
       {
@@ -510,37 +521,37 @@ SK_TVFix_PlugInCfg (void)
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
         }
 
-        __SK_TVFix_DisableDepthOfField = (! enable);
+        plugin_ctx.__SK_TVFix_DisableDepthOfField = (! enable);
 
-        _SK_TVFix_DisableDepthOfField->store (__SK_TVFix_DisableDepthOfField);
+        plugin_ctx._SK_TVFix_DisableDepthOfField->store (plugin_ctx.__SK_TVFix_DisableDepthOfField);
       }
 
-      if ( instn__bloom.scanned_addr != nullptr &&
-           ImGui::Checkbox ("Enable Atmospheric Bloom", &instn__bloom.enabled) )
+      if ( plugin_ctx.instn__bloom.scanned_addr != nullptr &&
+           ImGui::Checkbox ("Enable Atmospheric Bloom", &plugin_ctx.instn__bloom.enabled) )
       {
-        instn__bloom.enabled = !instn__bloom.enabled;
-        instn__bloom.toggle ();
+        plugin_ctx.instn__bloom.enabled = (! plugin_ctx.instn__bloom.enabled);
+        plugin_ctx.instn__bloom.toggle ();
 
-        _SK_TVFix_DisableBloom->store (! instn__bloom.enabled);
+        plugin_ctx._SK_TVFix_DisableBloom->store (! plugin_ctx.instn__bloom.enabled);
       }
 
-      if ( instn__blur.scanned_addr != nullptr &&
-           ImGui::Checkbox ("Enable Fullscene Blur", &instn__blur.enabled) )
+      if ( plugin_ctx.instn__blur.scanned_addr != nullptr &&
+           ImGui::Checkbox ("Enable Fullscene Blur", &plugin_ctx.instn__blur.enabled) )
       {
-        instn__blur.enabled = !instn__blur.enabled;
-        instn__blur.toggle ();
+        plugin_ctx.instn__blur.enabled = (! plugin_ctx.instn__blur.enabled);
+        plugin_ctx.instn__blur.toggle ();
 
-        _SK_TVFix_DisableBlur->store (! instn__blur.enabled);
+        plugin_ctx._SK_TVFix_DisableBlur->store (! plugin_ctx.instn__blur.enabled);
       }
 
-      if (ImGui::Checkbox ("Sharpen Shadows", &__SK_TVFix_SharpenShadows))
+      if (ImGui::Checkbox ("Sharpen Shadows", &plugin_ctx.__SK_TVFix_SharpenShadows))
       {
         //if (__SK_TVFix_SharpenShadows)
         //  SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist,     PS_CRC32_SHADOWFILTER);
         //else
         //  SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, PS_CRC32_SHADOWFILTER);
 
-        _SK_TVFix_SharpenShadows->store (__SK_TVFix_SharpenShadows);
+        plugin_ctx._SK_TVFix_SharpenShadows->store (plugin_ctx.__SK_TVFix_SharpenShadows);
       }
 
       ImGui::TreePop ();
@@ -603,10 +614,10 @@ SK_TVFix_PlugInCfg (void)
 
         if (*wszPath == L'\0')
         {
-          extern std::wstring SK_D3D11_res_root;
+          extern SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
 
           wcscpy ( wszPath,
-                     SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+                     SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str () );
 
           lstrcatW (wszPath, LR"(\inject\textures\MipmapCache\)");
           lstrcatW (wszPath, SK_GetHostApp ());
@@ -700,25 +711,25 @@ SK_TVFix_PlugInCfg (void)
       ImGui::TreePush   ("");
       ImGui::BeginGroup (  );
 
-      ImGui::Checkbox ("Reduce Microstutter", &__SK_TVFix_NoRenderSleep);
+      ImGui::Checkbox ("Reduce Microstutter", &plugin_ctx.__SK_TVFix_NoRenderSleep);
 
-      if ( instn__model_animation.scanned_addr != nullptr &&
-           ImGui::Checkbox ("Enable Model Animation", &instn__model_animation.enabled) )
+      if ( plugin_ctx.instn__model_animation.scanned_addr != nullptr &&
+           ImGui::Checkbox ("Enable Model Animation", &plugin_ctx.instn__model_animation.enabled) )
       {
-        instn__model_animation.enabled = !instn__model_animation.enabled;
-        instn__model_animation.toggle ();
+        plugin_ctx.instn__model_animation.enabled = (! plugin_ctx.instn__model_animation.enabled);
+        plugin_ctx.instn__model_animation.toggle ();
       }
 
     //ImGui::SameLine ();
 
-      if ( instn__particle_effects.scanned_addr != nullptr &&
-           ImGui::Checkbox ("Enable Particle Effects", &instn__particle_effects.enabled) )
+      if ( plugin_ctx.instn__particle_effects.scanned_addr != nullptr &&
+           ImGui::Checkbox ("Enable Particle Effects", &plugin_ctx.instn__particle_effects.enabled) )
       {
-        instn__particle_effects.enabled = !instn__particle_effects.enabled;
-        instn__particle_effects.toggle ();
+        plugin_ctx.instn__particle_effects.enabled = (! plugin_ctx.instn__particle_effects.enabled);
+        plugin_ctx.instn__particle_effects.toggle ();
       }
 
-      ImGui::Checkbox ("Aspect Ratio Correction", &__SK_TVFix_AspectRatioCorrection);
+      ImGui::Checkbox ("Aspect Ratio Correction", &plugin_ctx.__SK_TVFix_AspectRatioCorrection);
 
       ImGui::EndGroup (  );
       ImGui::TreePop  (  );
@@ -737,6 +748,9 @@ SK_TVFix_PlugInCfg (void)
 void
 SK_TVFix_BeginFrame (void)
 {
+  auto& plugin_ctx =
+    tvfix_ctx.get ();
+
   // Always run callbacks from the SwapChain thread,
   //   bad stuff will happen if Steam's overlay is loaded
   //     otherwise !!
@@ -794,63 +808,63 @@ SK_TVFix_BeginFrame (void)
       SK_D3D11_DeclHUDShader_Vtx (0xf4dac9d5);
     //SK_D3D11_DeclHUDShader_Pix (0x6d243285);
 
-      instn__model_animation.scan  ();
-      instn__particle_effects.scan ();
-      instn__depth_of_field.scan   ();
-      instn__blur.scan             ();
-      instn__bloom.scan            ();
+      plugin_ctx.instn__model_animation.scan  ();
+      plugin_ctx.instn__particle_effects.scan ();
+      plugin_ctx.instn__depth_of_field.scan   ();
+      plugin_ctx.instn__blur.scan             ();
+      plugin_ctx.instn__bloom.scan            ();
 
-      _SK_TVFix_DisableDepthOfField =
+      plugin_ctx._SK_TVFix_DisableDepthOfField =
         _CreateConfigParameterBool ( L"TVFix.Render",
-                                     L"DisableDepthOfField",  __SK_TVFix_DisableDepthOfField,
+                                     L"DisableDepthOfField",  plugin_ctx.__SK_TVFix_DisableDepthOfField,
                                      L"Disable Depth of Field" );
 
-      _SK_TVFix_DisableBloom =
+      plugin_ctx._SK_TVFix_DisableBloom =
         _CreateConfigParameterBool ( L"TVFix.Render",
-                                     L"DisableBloom",  __SK_TVFix_DisableBloom,
+                                     L"DisableBloom",  plugin_ctx.__SK_TVFix_DisableBloom,
                                      L"Disable Bloom Lighting" );
 
-      _SK_TVFix_DisableBlur =
+      plugin_ctx._SK_TVFix_DisableBlur =
         _CreateConfigParameterBool ( L"TVFix.Render",
-                                     L"DisableBlur",  __SK_TVFix_DisableBlur,
+                                     L"DisableBlur",  plugin_ctx.__SK_TVFix_DisableBlur,
                                      L"Disable Blur" );
 
-      _SK_TVFix_SharpenShadows =
+      plugin_ctx._SK_TVFix_SharpenShadows =
         _CreateConfigParameterBool ( L"TVFix.Render",
-                                    L"SharpenShadows",  __SK_TVFix_SharpenShadows,
+                                    L"SharpenShadows",  plugin_ctx.__SK_TVFix_SharpenShadows,
                                     L"Sharpen Shadows" );
 
-      _SK_TVFix_ActiveAntiStutter =
+      plugin_ctx._SK_TVFix_ActiveAntiStutter =
         _CreateConfigParameterBool ( L"TVFix.FrameRate",
-                                     L"EliminateMicroStutter", __SK_TVFix_ActiveAntiStutter,
+                                     L"EliminateMicroStutter", plugin_ctx.__SK_TVFix_ActiveAntiStutter,
                                      L"Active Anti-Stutter" );
 
-      if (__SK_TVFix_DisableDepthOfField)
+      if (plugin_ctx.__SK_TVFix_DisableDepthOfField)
       {
         ////instn__depth_of_field.disable ();
         SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
         SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
       }
 
-      if (__SK_TVFix_DisableBloom)
+      if (plugin_ctx.__SK_TVFix_DisableBloom)
       {
-        instn__bloom.disable ();
+        plugin_ctx.instn__bloom.disable ();
       }
 
-      if (__SK_TVFix_DisableBlur)
+      if (plugin_ctx.__SK_TVFix_DisableBlur)
       {
-        instn__blur.disable ();
+        plugin_ctx.instn__blur.disable ();
       }
 
-      if (__SK_TVFix_SharpenShadows)
+      if (plugin_ctx.__SK_TVFix_SharpenShadows)
       {
         //SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, PS_CRC32_SHADOWFILTER);
       }
     }
   }
 
-  _SK_TVFix_LastKnown_XRes->store ((int)ImGui::GetIO ().DisplaySize.x);
-  _SK_TVFix_LastKnown_YRes->store ((int)ImGui::GetIO ().DisplaySize.y);
+  plugin_ctx._SK_TVFix_LastKnown_XRes->store ((int)ImGui::GetIO ().DisplaySize.x);
+  plugin_ctx._SK_TVFix_LastKnown_YRes->store ((int)ImGui::GetIO ().DisplaySize.y);
 }
 
 
@@ -858,6 +872,9 @@ void
 SK_TVFix_CreateTexture2D (
   D3D11_TEXTURE2D_DESC    *pDesc )
 {
+  static auto& plugin_ctx =
+    tvfix_ctx.get ();
+
   ///if (pDesc->Width == 16 * (pDesc->Height / 9))
   ///{
   ///  if (pDesc->Height <= __SK_TVFix_LastKnown_YRes / 2)
@@ -878,8 +895,8 @@ SK_TVFix_CreateTexture2D (
     if ( ( pDesc->BindFlags & D3D11_BIND_RENDER_TARGET  ) &&
          ( pDesc->Format   == DXGI_FORMAT_B8G8R8A8_UNORM) )
     {
-      if ( (UINT)__SK_TVFix_LastKnown_XRes == pDesc->Width &&
-           (UINT)__SK_TVFix_LastKnown_YRes == pDesc->Height )
+      if ( (UINT)plugin_ctx.__SK_TVFix_LastKnown_XRes == pDesc->Width &&
+           (UINT)plugin_ctx.__SK_TVFix_LastKnown_YRes == pDesc->Height )
       {
         pDesc->Format = DXGI_FORMAT_R16G16B16A16_UNORM;
       }
@@ -927,17 +944,20 @@ SK_TVFix_D3D11_RSSetViewports_Callback (
         UINT                 NumViewports,
   const D3D11_VIEWPORT      *pViewports )
 {
-  if (NumViewports == 1 && __SK_TVFix_AspectRatioCorrection)
+  static auto& plugin_ctx =
+    tvfix_ctx.get ();
+
+  if (NumViewports == 1 && plugin_ctx.__SK_TVFix_AspectRatioCorrection)
   {
     D3D11_VIEWPORT vp = *pViewports;
 
-    if (SK_EpsilonTest (vp.Width, 16.0f * ((float)__SK_TVFix_LastKnown_YRes / 9.0f), 2.0f) &&
-        SK_EpsilonTest (vp.Height,         (float)__SK_TVFix_LastKnown_YRes,         2.0f))
+    if (SK_EpsilonTest (vp.Width, 16.0f * ((float)plugin_ctx.__SK_TVFix_LastKnown_YRes / 9.0f), 2.0f) &&
+        SK_EpsilonTest (vp.Height,         (float)plugin_ctx.__SK_TVFix_LastKnown_YRes,         2.0f))
     {
       float expected =
         vp.Width;
       float actual   =
-        (float)__SK_TVFix_LastKnown_XRes;
+        (float)plugin_ctx.__SK_TVFix_LastKnown_XRes;
 
       vp.Width = actual;
 
@@ -969,17 +989,20 @@ SK_TVFix_D3D11_RSSetScissorRects_Callback (
         UINT                 NumRects,
   const D3D11_RECT          *pRects )
 {
-  if (NumRects == 1 && __SK_TVFix_AspectRatioCorrection)
+  static auto& plugin_ctx =
+    tvfix_ctx.get ();
+
+  if (NumRects == 1 && plugin_ctx.__SK_TVFix_AspectRatioCorrection)
   {
     LONG sixteen_by_nine_width = LONG (
-      16.0f * ((float)__SK_TVFix_LastKnown_YRes / 9.0f)
+      16.0f * ((float)plugin_ctx.__SK_TVFix_LastKnown_YRes / 9.0f)
     );
     LONG sixteen_by_nine_height = LONG (
-      __SK_TVFix_LastKnown_YRes//9.0f * ((float)__SK_TVFix_LastKnown_XRes / 16.0f)
+      plugin_ctx.__SK_TVFix_LastKnown_YRes//9.0f * ((float)__SK_TVFix_LastKnown_XRes / 16.0f)
     );
 
     LONG overwidth_half_adjust =
-      ( __SK_TVFix_LastKnown_XRes - sixteen_by_nine_width ) / 2;
+      ( plugin_ctx.__SK_TVFix_LastKnown_XRes - sixteen_by_nine_width ) / 2;
 
     D3D11_RECT rect = *pRects;
 
@@ -989,7 +1012,7 @@ SK_TVFix_D3D11_RSSetScissorRects_Callback (
         SK_EpsilonTest (rect.bottom,   sixteen_by_nine_height, 2.0f) &&
                         rect.top    == 0 )
     {
-      rect.right = __SK_TVFix_LastKnown_XRes;
+      rect.right = plugin_ctx.__SK_TVFix_LastKnown_XRes;
     }
 
     if (SK_EpsilonTest (rect.left,   overwidth_half_adjust,  2.0f) &&
@@ -997,7 +1020,7 @@ SK_TVFix_D3D11_RSSetScissorRects_Callback (
         SK_EpsilonTest (rect.bottom, sixteen_by_nine_height, 2.0f) &&
         SK_EpsilonTest (rect.top,    0,                      2.0f))
     {
-      rect.right = __SK_TVFix_LastKnown_XRes;
+      rect.right = plugin_ctx.__SK_TVFix_LastKnown_XRes;
       rect.left  =    0;
     }
 
@@ -1014,6 +1037,21 @@ SK_TVFix_D3D11_RSSetScissorRects_Callback (
   }
 
   return false;
+}
+
+bool SK_TVFix_NoRenderSleep (void)
+{
+  return tvfix_ctx->__SK_TVFix_NoRenderSleep;
+}
+
+bool SK_TVFix_SharpenShadows (void)
+{
+  return tvfix_ctx->__SK_TVFix_SharpenShadows;
+}
+
+bool SK_TVFix_ActiveAntiStutter (void)
+{
+    return tvfix_ctx->__SK_TVFix_ActiveAntiStutter;
 }
 
 #pragma warning (pop)

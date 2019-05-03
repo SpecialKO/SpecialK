@@ -172,7 +172,7 @@ private:
 #define SK_CaseAdjust(ch,lower) ((lower) ? ::tolower ((int)(ch)) : (ch))
 
 // Hash function for UTF8 strings
-template < class _Kty, class _Pr = std::less <_Kty> >
+template < class _Kty, class _Pr = std::less <> >
 class str_hash_compare
 {
 public:

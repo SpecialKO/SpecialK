@@ -21,18 +21,103 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/tls.h>
+#include <winternl.h>
 
-//
-// Technically this has all been changed to Fiber Local Storage, but it is
-//   effectively the same thing up until you switch a thread to a fiber,
-//    which Special K never does.
-//
-//  FLS is supposed to be a more portable solution, and should be the
-//    preferred storage for injecting code into threads SK didn't create.
-//
+volatile LONG _SK_TLS_AllocationFailures = 0;
+
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <
+    DWORD, SK_TLS*>
+  > __SK_EmergencyTLS;
+   // ^^^ Backing store for games that have @#$%'d up TLS
 
 volatile DWORD __SK_TLS_INDEX =
   TLS_OUT_OF_INDEXES;
+
+
+SK_TLS*
+SK_TLS_FastTEBLookup (DWORD dwTlsIndex)
+{
+  // It's not often we get an index this low,
+  //   if we have one, it has a lower address in the TEB
+  if (dwTlsIndex < 64)
+  {
+    return
+      (SK_TLS *)(SK_Thread_GetTEB_FAST ()->TlsSlots [dwTlsIndex]);
+  }
+
+  //
+  // The remainder of the indexes are into an array at the end of
+  //   the Windows NT Thread Environment Block data structure.
+  //
+  //  * The original claimed limitation of 64 indexes has not been true
+  //      for a very long time. But there's still an upper-bound of ~1088.
+  //
+  else if (dwTlsIndex <= 1088)
+  {
+    TEB* pTEB =
+      (TEB *)SK_Thread_GetTEB_FAST ();
+
+    return ( pTEB->TlsExpansionSlots == nullptr ?
+                                        nullptr : (SK_TLS *)
+          ((&pTEB->TlsExpansionSlots) [dwTlsIndex - 64]) );
+  }
+
+  return nullptr;
+}
+
+//
+// Circumvent some anti-debug stuff by getting our hands dirty with the TEB
+//   manually and storing our allocated TLS data in the slot we rightfully own.
+//
+SK_TLS*
+SK_TLS_SetValue_NoFail (DWORD dwTlsIndex, SK_TLS *pTLS)
+{
+  TEB* pTEB =
+    (TEB *)SK_Thread_GetTEB_FAST ();
+
+  // It's not often we get an index this low,
+  //   if we have one, it has a lower address in the TEB
+  if (dwTlsIndex < 64)
+  {
+    SK_ReleaseAssert (pTEB->TlsSlots [dwTlsIndex] == nullptr ||
+                      pTEB->TlsSlots [dwTlsIndex] == pTLS);
+
+    if (pTEB->TlsSlots [dwTlsIndex] == nullptr)
+        pTEB->TlsSlots [dwTlsIndex] =  pTLS;
+
+    return
+      (SK_TLS *)pTEB->TlsSlots [dwTlsIndex];
+  }
+
+  //
+  // The remainder of the indexes are into an array at the end of
+  //   the Windows NT Thread Environment Block data structure.
+  //
+  //  * The original claimed limitation of 64 indexes has not been true
+  //      for a very long time. But there's still an upper-bound of ~1088.
+  //
+  else if (dwTlsIndex <= 1088)
+  {
+    SK_ReleaseAssert (pTEB->TlsExpansionSlots != nullptr);
+
+    if (pTEB->TlsExpansionSlots != nullptr)
+    {
+      SK_ReleaseAssert ((&pTEB->TlsExpansionSlots)[dwTlsIndex - 64] == nullptr ||
+                        (&pTEB->TlsExpansionSlots)[dwTlsIndex - 64] == pTLS);
+
+      if ((&pTEB->TlsExpansionSlots)[dwTlsIndex - 64] == nullptr)
+      {   (&pTEB->TlsExpansionSlots)[dwTlsIndex - 64]  = pTLS;  }
+
+      return
+        (SK_TLS *)
+          ((&pTEB->TlsExpansionSlots) [dwTlsIndex - 64]);
+    }
+  }
+
+  return nullptr;
+}
+
 
 SK_TlsRecord*
 SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
@@ -43,47 +128,90 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
   ULONG dwTLSIndex =
     ReadULongAcquire (&__SK_TLS_INDEX);
 
-  if (dwTLSIndex == 4294967295UL)
-    return nullptr;
-
   pTLS =
     static_cast <SK_TLS *> (
       FlsGetValue (dwTLSIndex)
     );
 
+
+  //
+  // If TLS allocation fails, a backing store will be recorded in this
+  //   container. This is a lock-contended data store, so it is important
+  //     to try and migrate the data into TLS as quickly as possible.
+  //
+  static auto& emergency_room =
+    __SK_EmergencyTLS.get ();
+
+
+  if ( pTLS == nullptr &&
+       emergency_room.count (SK_Thread_GetCurrentId ()) != 0 )
+  {
+    pTLS =
+      emergency_room [SK_Thread_GetCurrentId ()];
+
+    // Try to store it in TLS again, because this hash map is thread-safe,
+    //   but not exactly fast under high contention workloads.
+    if (dwTLSIndex > 0 && dwTLSIndex < 1088)
+      FlsSetValue ( dwTLSIndex, pTLS );
+  }
+
+  // We have no TLS data for this thread, time to allocate one.
   if (pTLS == nullptr)
   {
     if (no_create)
       return nullptr;
 
+    bool success = false;
+
 #ifdef _DEBUG
     if (GetLastError () == ERROR_SUCCESS)
     {
 #endif
-    if ( FlsSetValue (dwTLSIndex,
-                        nullptr )
-       )
-    {
-      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-      try {
-        pTLS =
-          new SK_TLS ( dwTLSIndex );
+    InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+    try {
+      pTLS =
+        new SK_TLS (dwTLSIndex);
 
-        FlsSetValue ( dwTLSIndex,
-                        pTLS );
-      }
-
-      catch (std::bad_alloc&)
+      if (! FlsSetValue ( dwTLSIndex,
+                            pTLS ) )
       {
-        pTLS = nullptr;
+        // The Win32 API call failed, but did manipulating the TEB manually
+        //   work?
+        if ( pTLS == SK_TLS_SetValue_NoFail ( dwTLSIndex, pTLS ) )
+        {
+          // Yay! Catastrophe avoided.
+          success = true;
+        }
+
+        else {
+          emergency_room [GetCurrentThreadId ()] = pTLS;
+          // We can't store the TLS index, but it's in a place where it can
+          //   be looked up as needed.
+          success = true;
+          InterlockedIncrement (&_SK_TLS_AllocationFailures);
+        }
       }
-      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
     }
 
+    catch (std::bad_alloc&)
+    {
+      pTLS = nullptr;
+      InterlockedIncrement (&_SK_TLS_AllocationFailures);
+    }
+    InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+
+     //if (! success)
+     //{
+     //  static bool warned = false;
+     //
+     //  if (! warned)
+     //  {
+     //    warned = true;
+     //    SK_ReleaseAssert (!"TLS Allocation Failed! Falling back to global heap (slow).");
+     //  }
+     //}
     ////pTLS->scheduler.objects_waited =
     ////  new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
-
-    SK_ReleaseAssert (pTLS != nullptr);
 #ifdef _DEBUG
     }
 #endif
@@ -115,6 +243,7 @@ SK_GetTLS (SK_TLS** ppTLS)
     SK_GetTLSEx (ppTLS, false);
 }
 
+
 SK_TLS*
 SK_CleanupTLS (void)
 {
@@ -137,18 +266,7 @@ SK_CleanupTLS (void)
   }
 
   if (pTLS->debug.mapped)
-  {   pTLS->debug.mapped = false;
-    ////////const DWORD dwTid =
-    ////////  pTLS->debug.tid;
-    ////////auto& tls_map =
-    ////////  SK_TLS_Map ();
-    ////////
-    ////////auto it =
-    ////////  tls_map [dwTid];
-    ////////
-    ////////it->pTLS     = nullptr;
-    ////////it->dwTlsIdx = TLS_OUT_OF_INDEXES;
-  }
+  {   pTLS->debug.mapped = false; }
 
 #ifdef _DEBUG
   size_t freed =
@@ -165,18 +283,19 @@ SK_CleanupTLS (void)
 
 #ifdef _DEBUG
   SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
-                freed, GetCurrentThreadId () ), L"TLS Memory" );
+                freed, SK_Thread_GetCurrentId () ), L"TLS Memory" );
 #endif
 
-  if ( FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
-                     nullptr ) )
+  if ( FlsSetValue (
+         ReadULongAcquire (&__SK_TLS_INDEX),
+           nullptr )
+     )
   {
-    return
-      pTLS;
+    // ...
   }
 
   return
-    nullptr;
+    pTLS;
 }
 
 
@@ -190,37 +309,42 @@ SK_TLS_LogLeak ( const wchar_t* wszFunc,
                         size_t size )
 {
   SK_LOG0 ( ( L"TLS Memory Leak - [%s] < %s:%lu > - (%lu Bytes)",
-             wszFunc, wszFile,
-             line, (uint32_t)size ),
-           L"SK TLS Mem" );
+                               wszFunc, wszFile,
+                                          line, (uint32_t)size ),
+              L"SK TLS Mem" );
 }
+
 
 SK_TLS*
 SK_TLS_Bottom (void)
 {
+  // This doesn't work for WOW64 executables, so
+  //   basically any 32-bit program on a modern
+  //     OS has to take the slow path.
+#ifdef _M_AMD64
+  // ----------- Fast Path ------------
+  ULONG dwTLSIndex =
+    ReadULongAcquire (&__SK_TLS_INDEX);
+
+  SK_TLS *pTLS =
+    SK_TLS_FastTEBLookup (dwTLSIndex);
+
+  if (pTLS != nullptr) return pTLS;
+  // ----------- Fast Path ------------
+#else
+  SK_TLS* pTLS = nullptr;
+#endif
+
   InterlockedIncrement (&_SK_IgnoreTLSAlloc);
 
-  SK_TLS *pTLS       = nullptr;
-  auto    pTLSRecord =
+  auto pTLSRecord =
     SK_GetTLS (&pTLS);
-
-  //
-  //SK_ReleaseAssert ( (! ReadAcquire (&__SK_DLL_Attached)) ||
-  //                tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
-
-////#ifdef _DEBUG
-////  if ( tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES ||
-////       tls_slot.pTLS     == nullptr )
-////  {
-////    return nullptr;
-////  }
-////#endif
 
   if ( (pTLSRecord          != nullptr) &&
        (pTLSRecord->pTLS    != nullptr) &&
      (! pTLSRecord->pTLS->debug.mapped) )
   {
-    auto& tls_map =
+    static auto& tls_map =
       SK_TLS_Map ();
 
     try
@@ -235,8 +359,6 @@ SK_TLS_Bottom (void)
   }
 
   InterlockedDecrement (&_SK_IgnoreTLSAlloc);
-
-  //SK_ReleaseAssert (pTLS != nullptr)
 
   if (pTLSRecord == nullptr)
   {
@@ -257,17 +379,19 @@ SK_TLS_BottomEx (DWORD dwTid)
   auto tls_slot =
     tls_map [dwTid];
 
-  auto orig_se =
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
-  try {
-    _set_se_translator (orig_se);
+  SK_TLS* pTLS = nullptr;
 
+  // NOTE: Do not use SK_SEH_SetTranslator here because it expects TLS to be
+  //         setup for the calling thread.
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
     // If out-of-indexes, then the thread was probably destroyed
     if ( tls_slot                                !=     nullptr &&
          tls_slot->pTLS                          !=     nullptr &&
          tls_slot->pTLS->context_record.dwTlsIdx == ReadULongAcquire (&__SK_TLS_INDEX) )
     {
-      return
+      pTLS =
         tls_slot->pTLS;
     }
   }
@@ -276,11 +400,11 @@ SK_TLS_BottomEx (DWORD dwTid)
   {
     SK_ReleaseAssert (! (L"Bad TLS"))
   }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 
   //SK_ReleaseAssert (tls_slot != tls_map.end ())
 
-  return nullptr;
+  return pTLS;
 }
 
 
@@ -826,7 +950,7 @@ SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
     if (reserve < elems)
     {
       dll_log->Log (L"Growing tid %x's DXTex memory pool from %lu to %lu",
-                    GetCurrentThreadId (), reserve, elems);
+                    SK_Thread_GetCurrentId (), reserve, elems);
 
       _aligned_free (buffer);
                      buffer = (uint8_t *)_aligned_malloc (elems, alignment);
@@ -863,7 +987,7 @@ SK_DXTex_ThreadContext::tryTrim (void)
        timeGetTime () - last_trim   >= _TimeBetweenTrims )
   {
     dll_log->Log (L"Trimming tid %x's DXTex memory pool from %lu to %lu",
-                  GetCurrentThreadId (), reserve, _SlackSpace);
+                  SK_Thread_GetCurrentId (), reserve, _SlackSpace);
 
     buffer = static_cast <uint8_t *>              (
       _aligned_realloc (buffer,  _SlackSpace, 16) );
@@ -923,29 +1047,37 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
 {
   size_t freed = 0UL;
 
-  freed += d3d9          .Cleanup (reason);
-  freed += imgui         .Cleanup (reason);
-  freed += osd           .Cleanup (reason);
-  freed += raw_input     .Cleanup (reason);
-  freed += scratch_memory.Cleanup (reason);
-  freed += local_scratch. Cleanup (reason);
-  freed += steam         .Cleanup (reason);
-  freed += d3d11         .Cleanup (reason);
-  freed += dxtex         .Cleanup (reason);
-  freed += scheduler     .Cleanup (reason);
+  freed += d3d9          ->Cleanup (reason);
+  freed += imgui         ->Cleanup (reason);
+  freed += osd           ->Cleanup (reason);
+  freed += raw_input     ->Cleanup (reason);
+  freed += scratch_memory->Cleanup (reason);
+  freed += local_scratch ->Cleanup (reason);
+  freed += steam         ->Cleanup (reason);
+  freed += d3d11         ->Cleanup (reason);
+  freed += scheduler     ->Cleanup (reason);
+  freed += dxtex          .Cleanup (reason);
+
+  if (debug.handle != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle (debug.handle);
+                 debug.handle = INVALID_HANDLE_VALUE;
+  }
 
 
-  if (known_modules.pResolved != nullptr)
+  if ( known_modules.isAllocated () &&
+       known_modules->pResolved  != nullptr )
   {
     auto pResolved =
-      static_cast <std::unordered_map <LPCVOID, HMODULE> *>(known_modules.pResolved);
+      static_cast <std::unordered_map <LPCVOID, HMODULE>*>
+      ( known_modules->pResolved );
 
     freed +=
       ( sizeof HMODULE *
-                  pResolved->size () * 2 );
+                   pResolved->size () * 2 );
 
-    delete        pResolved;
-    known_modules.pResolved = nullptr;
+    delete         pResolved;
+    known_modules->pResolved = nullptr;
   }
 
   // Include the size of the TLS data structure on thread unload

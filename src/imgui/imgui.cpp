@@ -1110,7 +1110,21 @@ ImGuiContext* SK_GImDefaultContext (void)
 
 void SK_ImGui_Init (void)
 {
-  GImGui = SK_GImDefaultContext ();
+  GImGui =
+    ImGui::CreateContext ();
+
+  ImGui::StyleColorsClassic (&SK_GImDefaultContext ()->Style);
+
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  io.ConfigFlags |= ( ImGuiConfigFlags_NavEnableKeyboard |
+                      ImGuiConfigFlags_NavEnableGamepad  |
+                      ImGuiConfigFlags_NavEnableSetMousePos );
+
+  io.BackendFlags |= ( ImGuiBackendFlags_HasGamepad |
+                     /*ImGuiBackendFlags_HasMouseCursors |*/
+                       ImGuiBackendFlags_HasSetMousePos );
 }
 #endif
 #endif
@@ -1461,9 +1475,9 @@ void ImStrTrimBlanks(char* buf)
 #include "imstb_sprintf.h"
 #endif
 
-#if defined(_MSC_VER) && !defined(vsnprintf)
-#define vsnprintf _vsnprintf
-#endif
+//#if defined(_MSC_VER) && !defined(vsnprintf)
+//#define vsnprintf _vsnprintf
+//#endif
 
 int ImFormatString(char* buf, size_t buf_size, const char* fmt, ...)
 {
@@ -9720,8 +9734,8 @@ void ImGui::ShowMetricsWindow(bool* p_open)
                             int vtx_i = idx_buffer ? idx_buffer[idx_i] : idx_i;
                             ImDrawVert& v = draw_list->VtxBuffer[vtx_i];
                             triangles_pos[n] = v.pos;
-                            buf_p += ImFormatString(buf_p, buf_end - buf_p, "%s %04d: pos (%8.2f,%8.2f), uv (%.6f,%.6f), col %08X\n",
-                                (n == 0) ? "idx" : "   ", idx_i, v.pos.x, v.pos.y, v.uv.x, v.uv.y, v.col);
+                            buf_p += ImFormatString(buf_p, buf_end - buf_p, "%s %04d: pos (%8.2f,%8.2f), uv (%.6f,%.6f)\n",//, col %08X\n",
+                                (n == 0) ? "idx" : "   ", idx_i, v.pos.x, v.pos.y, v.uv.x, v.uv.y/*, v.col*/);
                         }
                         ImGui::Selectable(buf, false);
                         if (fg_draw_list && ImGui::IsItemHovered ())

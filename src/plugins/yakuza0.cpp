@@ -29,8 +29,7 @@
 
 extern bool SK_D3D11_EnableTracking;
 
-extern iSK_INI*             dll_ini;
-extern sk::ParameterFactory g_ParameterFactory;
+extern iSK_INI* dll_ini;
 
 
 volatile LONG __SK_Y0_InitiateHudFreeShot = 0;
@@ -179,7 +178,7 @@ SK_Yakuza0_PlugInInit (void)
 
   _SK_Y0_SaveAnywhere =
     dynamic_cast <sk::ParameterInt *> (
-      g_ParameterFactory.create_parameter <int> (L"Save Anywhere")
+      g_ParameterFactory->create_parameter <int> (L"Save Anywhere")
     );
 
   _SK_Y0_SaveAnywhere->register_to_ini (_SK_Y0_Settings, L"General", L"SaveAnywhere");
@@ -187,17 +186,17 @@ SK_Yakuza0_PlugInInit (void)
 
   _SK_Y0_NoFPBlur =
     dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"No First-Person Blur")
+      g_ParameterFactory->create_parameter <bool> (L"No First-Person Blur")
       );
 
   _SK_Y0_NoSSAO =
     dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"No SSAO")
+      g_ParameterFactory->create_parameter <bool> (L"No SSAO")
       );
 
   _SK_Y0_NoDOF =
     dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"No Depth of Field")
+      g_ParameterFactory->create_parameter <bool> (L"No Depth of Field")
       );
 
   _SK_Y0_NoFPBlur->register_to_ini (
@@ -215,15 +214,15 @@ SK_Yakuza0_PlugInInit (void)
 
   _SK_Y0_FixAniso =
     dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Fix Anisotropy")
+      g_ParameterFactory->create_parameter <bool> (L"Fix Anisotropy")
       );
   _SK_Y0_ClampLODBias =
     dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Clamp Negative LOD Bias")
+      g_ParameterFactory->create_parameter <bool> (L"Clamp Negative LOD Bias")
       );
   _SK_Y0_ForceAniso =
     dynamic_cast <sk::ParameterInt *> (
-      g_ParameterFactory.create_parameter <int> (L"Force Anisotropic Filtering")
+      g_ParameterFactory->create_parameter <int> (L"Force Anisotropic Filtering")
       );
 
   _SK_Y0_FixAniso->register_to_ini (
@@ -239,20 +238,20 @@ SK_Yakuza0_PlugInInit (void)
 
   _SK_Y0_QuietStart =
     dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Quieter Start")
+      g_ParameterFactory->create_parameter <bool> (L"Quieter Start")
       );
   _SK_Y0_LockVolume =
     dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Prevent Volume Changes")
+      g_ParameterFactory->create_parameter <bool> (L"Prevent Volume Changes")
       );
 
   _SK_Y0_LockLevel =
     dynamic_cast <sk::ParameterFloat *> (
-      g_ParameterFactory.create_parameter <float> (L"Volume Lock Level")
+      g_ParameterFactory->create_parameter <float> (L"Volume Lock Level")
       );
   _SK_Y0_QuietLevel =
     dynamic_cast <sk::ParameterFloat *> (
-      g_ParameterFactory.create_parameter <float> (L"Volume Start Level")
+      g_ParameterFactory->create_parameter <float> (L"Volume Start Level")
       );
 
   _SK_Y0_QuietStart->register_to_ini (

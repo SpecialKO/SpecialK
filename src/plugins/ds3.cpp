@@ -181,8 +181,6 @@ SK_DS3_EndFrame (void);
 
 
 
-sk::ParameterFactory  ds3_factory;
-
 iSK_INI*              ds3_prefs                 =  nullptr;
 wchar_t               ds3_prefs_file [MAX_PATH] = { L'\0' };
 
@@ -693,7 +691,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_hud_res_x =
       dynamic_cast <sk::ParameterInt *>
-        (ds3_factory.create_parameter <int> (L"HUDResX"));
+        (g_ParameterFactory->create_parameter <int> (L"HUDResX"));
   ds3_hud_res_x->register_to_ini ( ds3_prefs,
                                     L"SUS.Display",
                                       L"HUDResX" );
@@ -702,7 +700,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_hud_res_y =
       dynamic_cast <sk::ParameterInt *>
-        (ds3_factory.create_parameter <int> (L"HUDResY"));
+        (g_ParameterFactory->create_parameter <int> (L"HUDResY"));
   ds3_hud_res_y->register_to_ini ( ds3_prefs,
                                     L"SUS.Display",
                                       L"HUDResY" );
@@ -711,7 +709,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_hud_offset_x =
       dynamic_cast <sk::ParameterInt *>
-        (ds3_factory.create_parameter <int> (L"HUDOffsetX"));
+        (g_ParameterFactory->create_parameter <int> (L"HUDOffsetX"));
   ds3_hud_offset_x->register_to_ini ( ds3_prefs,
                                         L"SUS.Display",
                                           L"HUDOffsetX" );
@@ -720,7 +718,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_hud_offset_y =
       dynamic_cast <sk::ParameterInt *>
-        (ds3_factory.create_parameter <int> (L"HUDOffsetY"));
+        (g_ParameterFactory->create_parameter <int> (L"HUDOffsetY"));
   ds3_hud_offset_y->register_to_ini ( ds3_prefs,
                                         L"SUS.Display",
                                           L"HUDOffsetY" );
@@ -729,7 +727,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_hud_stretch =
       dynamic_cast <sk::ParameterBool *>
-        (ds3_factory.create_parameter <bool> (L"StretchHUD"));
+        (g_ParameterFactory->create_parameter <bool> (L"StretchHUD"));
   ds3_hud_stretch->register_to_ini ( ds3_prefs,
                                         L"SUS.Display",
                                           L"StretchHUD" );
@@ -739,7 +737,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_flip_mode =
     dynamic_cast <sk::ParameterBool *>
-      (ds3_factory.create_parameter <bool> (L"FlipMode"));
+      (g_ParameterFactory->create_parameter <bool> (L"FlipMode"));
   ds3_flip_mode->register_to_ini ( ds3_prefs,
                                      L"SUS.Render",
                                        L"FlipMode" );
@@ -748,7 +746,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_start_fullscreen =
     dynamic_cast <sk::ParameterBool *>
-      (ds3_factory.create_parameter <bool> (L"Start in Fullscreen"));
+      (g_ParameterFactory->create_parameter <bool> (L"Start in Fullscreen"));
   ds3_start_fullscreen->register_to_ini ( ds3_prefs,
                                             L"SUS.Render",
                                               L"StartFullscreen" );
@@ -758,7 +756,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_borderless =
     dynamic_cast <sk::ParameterBool *>
-      (ds3_factory.create_parameter <bool> (L"Borderless"));
+      (g_ParameterFactory->create_parameter <bool> (L"Borderless"));
   ds3_borderless->register_to_ini ( ds3_prefs,
                                       L"SUS.Window",
                                         L"Borderless" );
@@ -768,7 +766,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_fullscreen =
     dynamic_cast <sk::ParameterBool *>
-      (ds3_factory.create_parameter <bool> (L"Forceful Fullscreen Windows"));
+      (g_ParameterFactory->create_parameter <bool> (L"Forceful Fullscreen Windows"));
   ds3_fullscreen->register_to_ini ( ds3_prefs,
                                       L"SUS.Window",
                                         L"Fullscreen" );
@@ -781,7 +779,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_center =
     dynamic_cast <sk::ParameterBool *>
-      (ds3_factory.create_parameter <bool> (L"Center Windows"));
+      (g_ParameterFactory->create_parameter <bool> (L"Center Windows"));
   ds3_center->register_to_ini ( ds3_prefs,
                                   L"SUS.Window",
                                     L"Center" );
@@ -795,7 +793,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_last_addr =
     dynamic_cast <sk::ParameterInt64 *>
-      (ds3_factory.create_parameter <int64_t> (L"Last Known Address"));
+      (g_ParameterFactory->create_parameter <int64_t> (L"Last Known Address"));
   ds3_last_addr->register_to_ini ( ds3_prefs,
                                      L"SUS.System",
                                        L"LastKnownAddr" );
@@ -803,7 +801,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_osd_disclaimer =
     dynamic_cast <sk::ParameterBool *>
-      (ds3_factory.create_parameter <bool> (L"Show OSD Disclaimer"));
+      (g_ParameterFactory->create_parameter <bool> (L"Show OSD Disclaimer"));
   ds3_osd_disclaimer->register_to_ini ( ds3_prefs,
                                           L"SUS.System",
                                             L"ShowOSDDisclaimer" );
@@ -820,7 +818,7 @@ SK_DS3_InitPlugin (void)
 #if 0
   sk::ParameterStringW ini_ver =
     dynamic_cast <sk::ParameterStringW *>
-      (ds3_factory.create_parameter <std::wstring> (L"Last Version"));
+      (g_ParameterFactory->create_parameter <std::wstring> (L"Last Version"));
   ds3_last_addr->register_to_ini ( ds3_prefs,
                                      L"SUS.System",
                                        L"Version" );
@@ -828,7 +826,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_default_res_x =
     dynamic_cast <sk::ParameterInt *>
-      (ds3_factory.create_parameter <int> (L"Base (Windowed) Resolution"));
+      (g_ParameterFactory->create_parameter <int> (L"Base (Windowed) Resolution"));
   ds3_default_res_x->register_to_ini ( ds3_prefs,
                                          L"SUS.Render",
                                            L"DefaultResX" );
@@ -837,7 +835,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_default_res_y =
     dynamic_cast <sk::ParameterInt *>
-      (ds3_factory.create_parameter <int> (L"Base (Windowed) Resolution"));
+      (g_ParameterFactory->create_parameter <int> (L"Base (Windowed) Resolution"));
   ds3_default_res_y->register_to_ini ( ds3_prefs,
                                          L"SUS.Render",
                                            L"DefaultResY" );
@@ -847,7 +845,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_sacrificial_x =
     dynamic_cast <sk::ParameterInt *>
-    (ds3_factory.create_parameter <int> (L"Sacrificial (Windowed) Resolution"));
+    (g_ParameterFactory->create_parameter <int> (L"Sacrificial (Windowed) Resolution"));
   ds3_sacrificial_x->register_to_ini ( ds3_prefs,
                                          L"SUS.Render",
                                            L"SacrificialResX" );
@@ -856,7 +854,7 @@ SK_DS3_InitPlugin (void)
 
   ds3_sacrificial_y =
     dynamic_cast <sk::ParameterInt *>
-    (ds3_factory.create_parameter <int> (L"Sacrificial (Windowed) Resolution"));
+    (g_ParameterFactory->create_parameter <int> (L"Sacrificial (Windowed) Resolution"));
   ds3_sacrificial_y->register_to_ini ( ds3_prefs,
                                          L"SUS.Render",
                                            L"SacrificialResY" );
@@ -1328,7 +1326,7 @@ SK_DS3_FullscreenToggle_Thread (LPVOID user)
           SetActiveWindow     (ds3_state.Window) ) )
     return std::numeric_limits <unsigned int>::max ();
 
-  Sleep (66);
+  SK_Sleep (66);
 
   SetFocus (ds3_state.Window);
 
@@ -1347,7 +1345,7 @@ SK_DS3_OSD_Disclaimer (LPVOID user)
   UNREFERENCED_PARAMETER (user);
 
   while ((volatile bool&)config.osd.show)
-    Sleep (66);
+    SK_Sleep (66);
 
   ds3_osd_disclaimer->store     (false);
 

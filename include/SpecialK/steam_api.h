@@ -631,7 +631,8 @@ public:
     const auto clear =
    [&](void)
     {
-      name   = ""; value = "";
+      name.clear  ();
+      value.clear ();
       quotes = 0;
     };
 

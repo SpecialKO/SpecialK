@@ -26,9 +26,7 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <imgui/imgui.h>
 
-extern iSK_INI*             dll_ini;
-extern sk::ParameterFactory g_ParameterFactory;
-
+extern iSK_INI* dll_ini;
 
 /*
 Nino2.exe+11DA450 // Input  timestep (single-precision float, in seconds)
@@ -263,7 +261,7 @@ SK_NNK2_InitPlugin (void)
 
   SK_NNK2_VirtualFPS =
     dynamic_cast <sk::ParameterFloat *> (
-      g_ParameterFactory.create_parameter <float> (L"Fixed-Tick Timestep")
+      g_ParameterFactory->create_parameter <float> (L"Fixed-Tick Timestep")
     );
 
   SK_NNK2_VirtualFPS->register_to_ini (
@@ -275,7 +273,7 @@ SK_NNK2_InitPlugin (void)
 
   SK_NNK2_ReduceShimmer =
     dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Eliminate negative LOD biases")
+      g_ParameterFactory->create_parameter <bool> (L"Eliminate negative LOD biases")
     );
 
   SK_NNK2_ReduceShimmer->register_to_ini (
@@ -376,10 +374,10 @@ SK_NNK2_PlugInCfg (void)
     {
       if (fixed_timestep)
       {
-        extern float target_fps;
+        extern float __target_fps;
 
         if (SK_NNK2_target_fps == 0.0f)
-          SK_NNK2_target_fps = ( target_fps == 0.0f ? 60.0f : std::fabs (target_fps) );
+            SK_NNK2_target_fps = ( __target_fps == 0.0f ? 60.0f : std::fabs (__target_fps) );
 
         config.window.background_render = true;
 

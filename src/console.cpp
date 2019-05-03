@@ -388,18 +388,30 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
         unsigned char key_str [2];
                       key_str [1] = '\0';
 
-        auto& language =
-          SK_TLS_Bottom ()->input_core.input_language;
+        SK_TLS* pTLS =
+          SK_TLS_Bottom ();
 
-        language.update ();
+        static HKL
+          keyboard_layout =
+            SK_Input_GetKeyboardLayout ();
 
+        if (pTLS != nullptr)
+        {
+          auto& language =
+            pTLS->input_core->input_language;
+
+          language.update ();
+
+          keyboard_layout =
+            language.keybd_layout;
+        }
 
         if (1 == ToAsciiEx ( vkCode,
                               scanCode,
                               keys_,
    reinterpret_cast <LPWORD> (key_str),
                               0x04,
-                              language.keybd_layout ) &&
+                              keyboard_layout ) &&
              isprint ( *key_str ) )
         {
           strncat (text, reinterpret_cast <char *> (key_str), 1);
@@ -407,7 +419,6 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
         }
       }
     }
-
     else if ((! keyDown))
       keys_ [vkCode] = 0x00;
   }

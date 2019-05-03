@@ -61,4 +61,8 @@ struct IUnknown;
 # define   SK_INCLUDE_END_CPP(Source) message ("Newer compiler required.")
 #endif
 
+#define SK_GetVersionStr SK_GetVersionStrW
+const wchar_t* __stdcall SK_GetVersionStrW (void);
+const char*    __stdcall SK_GetVersionStrA (void);
+
 #endif /* __SK__SPECIALK_H__ */

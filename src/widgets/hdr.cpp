@@ -30,7 +30,6 @@
 #define SK_MISC_SECTION    L"SpecialK.Misc"
 
 extern iSK_INI*             dll_ini;
-extern sk::ParameterFactory g_ParameterFactory;
 
 
 extern int   __SK_HDR_input_gamut;
@@ -43,7 +42,7 @@ auto
 {
   auto* ret =
     dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
+      (g_ParameterFactory->create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
   if (ret != nullptr)
   {
@@ -393,12 +392,14 @@ public:
     if (! rb.isHDRCapable ())
       return;
 
+    static auto& io (ImGui::GetIO ());
+
     ImVec2 v2Min (
-      ImGui::GetIO ().DisplaySize.x / 6.0f, ImGui::GetIO ().DisplaySize.y / 4.0f
+      io.DisplaySize.x / 6.0f, io.DisplaySize.y / 4.0f
     );
 
     ImVec2 v2Max (
-      ImGui::GetIO ().DisplaySize.x / 4.0f, ImGui::GetIO ().DisplaySize.y / 3.0f
+      io.DisplaySize.x / 4.0f, io.DisplaySize.y / 3.0f
     );
 
     setMinSize (v2Min);
@@ -810,20 +811,20 @@ public:
           ImGui::SameLine   (); ImGui::Spacing ();
           ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine ();
           ImGui::BeginGroup ();
-          for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
+          for ( auto& it : hdr_presets )
           {
             ImGui::Text ( u8"Peak White: %5.1f cd/m²",
-                          hdr_presets [i].peak_white_nits / 1.0_Nits );
+                          it.peak_white_nits / 1.0_Nits );
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   (); ImGui::Spacing ();
           ImGui::SameLine   (); ImGui::Spacing ();
           ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine ();
           ImGui::BeginGroup ();
-          for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
+          for ( auto& it : hdr_presets )
           {
             ImGui::Text ( u8"Power-Law ɣ: %3.1f",
-                            hdr_presets [i].eotf );
+                            it.eotf );
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   (); ImGui::Spacing ();
@@ -834,10 +835,10 @@ public:
           ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine ();
           ImGui::BeginGroup ();
 
-          for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
+          for ( auto& it : hdr_presets )
           {
-            Keybinding ( &hdr_presets [i].preset_activate,
-                        (&hdr_presets [i].preset_activate)->param );
+            Keybinding ( &it.preset_activate,
+                        (&it.preset_activate)->param );
           }
           ImGui::EndGroup   ();
           ////ImGui::Separator  ();

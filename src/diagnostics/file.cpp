@@ -33,7 +33,7 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
 
   FILE_NAME_INFO* ptrcFni =
     reinterpret_cast <FILE_NAME_INFO *>
-    ( SK_TLS_Bottom ()->scratch_memory.cmd.alloc   (
+    ( SK_TLS_Bottom ()->scratch_memory->cmd.alloc   (
         sizeof (FILE_NAME_INFO)        *
        (sizeof (FILE_NAME_INFO) + _MAX_PATH), true )
     );
@@ -41,7 +41,7 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
   FILE_NAME_INFO *pFni = ptrcFni;
 
   const BOOL success =
-    GetFileInformationByHandleEx ( hFile, 
+    GetFileInformationByHandleEx ( hFile,
                                      FileNameInfo,
                                        pFni,
                                          sizeof FILE_NAME_INFO +
@@ -102,30 +102,75 @@ NtReadFile_Detour (
     SK_TLS *pTLS =
       SK_TLS_Bottom ();
 
-    if (! pTLS) return ntStatus;
+    if (! pTLS)
+      return ntStatus;
 
-    InterlockedAdd64 (&pTLS->disk.bytes_read, Length);
+    UINT64 read_total =
+      InterlockedAdd64 (&pTLS->disk->bytes_read, Length);
+
+    if ( pTLS->scheduler->mmcs_task == nullptr  &&
+           config.render.framerate.enable_mmcss &&
+                 read_total > (666 * 1024 * 1024)    )
+    {
+      const DWORD dwTid =
+        SK_Thread_GetCurrentId ();
+
+      static auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      const DWORD dwRenderTid =
+        (DWORD)ReadULongAcquire (&rb.thread);
+
+      if ( dwRenderTid != 0UL&&
+           dwRenderTid != dwTid )
+      {
+        extern SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>> dwSteamTids;
+        static SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>> dwDiskTids;
+
+        if ( (! dwDiskTids->count  (dwTid) ) &&
+             (! dwSteamTids->count (dwTid) )    )
+        {
+          auto* task =
+            SK_MMCS_GetTaskForThreadIDEx ( dwTid,
+              "[SK] File I/O Centric Thread",
+                "Distribution", "Playback" );
+
+          // The first thread seen gets less special treatment
+          if (dwDiskTids->empty ())
+          {
+            if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+              task->queuePriority (AVRT_PRIORITY_CRITICAL);
+            else
+              task->queuePriority (AVRT_PRIORITY_NORMAL);
+          }
+          else
+            task->queuePriority (AVRT_PRIORITY_HIGH);
+
+          dwDiskTids->insert (dwTid);
+        }
+      }
+    }
 
     if (config.file_io.trace_reads)
     {
-      if (pTLS->disk.ignore_reads)
+      if (pTLS->disk->ignore_reads)
         return ntStatus;
 
-      if (pTLS->disk.last_file_read != FileHandle)
-      {   pTLS->disk.last_file_read  = FileHandle;
+      if (pTLS->disk->last_file_read != FileHandle)
+      {   pTLS->disk->last_file_read  = FileHandle;
         wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
         SK_File_GetNameFromHandle (FileHandle, wszFileName, MAX_PATH);
 
         if (config.file_io.ignore_reads.entire_thread.count (wszFileName))
-          pTLS->disk.ignore_reads = TRUE;
+          pTLS->disk->ignore_reads = TRUE;
 
         else if (config.file_io.ignore_reads.single_file.count (wszFileName))
           return ntStatus;
 
         else if (StrStrIW (wszFileName, LR"(\client_TOBII)") != nullptr)
         {
-          pTLS->disk.ignore_reads  = TRUE;
-          pTLS->disk.ignore_writes = TRUE;
+          pTLS->disk->ignore_reads  = TRUE;
+          pTLS->disk->ignore_writes = TRUE;
         }
 
         auto& file_log =
@@ -134,7 +179,7 @@ NtReadFile_Detour (
         if (ByteOffset != nullptr)
         {
           file_log.Log ( L"[tid=%4x]   File Read:  '%130ws'  <%#8lu bytes @+%-8llu>",
-            GetCurrentThreadId (),
+            SK_Thread_GetCurrentId (),
               wszFileName, Length, *ByteOffset
           );
         }
@@ -142,7 +187,7 @@ NtReadFile_Detour (
         else
         {
           file_log.Log ( L"[tid=%4x]   File Read:  '%130ws'  <%#8lu bytes>",
-            GetCurrentThreadId (),
+            SK_Thread_GetCurrentId (),
               wszFileName, Length
           );
         }
@@ -150,7 +195,8 @@ NtReadFile_Detour (
     }
   }
 
-  return ntStatus;
+  return
+    ntStatus;
 }
 
 NTSTATUS
@@ -179,15 +225,15 @@ NtWriteFile_Detour (
 
     if (! pTLS) return ntStatus;
 
-    InterlockedAdd64 (&pTLS->disk.bytes_written, Length);
+    InterlockedAdd64 (&pTLS->disk->bytes_written, Length);
 
     if (config.file_io.trace_writes)
     {
-      if (pTLS->disk.ignore_writes)
+      if (pTLS->disk->ignore_writes)
         return ntStatus;
 
-      if (pTLS->disk.last_file_written != FileHandle)
-      {   pTLS->disk.last_file_written  = FileHandle;
+      if (pTLS->disk->last_file_written != FileHandle)
+      {   pTLS->disk->last_file_written  = FileHandle;
         wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
         SK_File_GetNameFromHandle (FileHandle, wszFileName, MAX_PATH);
 
@@ -195,7 +241,7 @@ NtWriteFile_Detour (
           return ntStatus;
 
         if (config.file_io.ignore_writes.entire_thread.count (wszFileName))
-          pTLS->disk.ignore_writes = TRUE;
+          pTLS->disk->ignore_writes = TRUE;
 
         else if (config.file_io.ignore_writes.single_file.count (wszFileName))
           return ntStatus;
@@ -206,7 +252,7 @@ NtWriteFile_Detour (
         if (ByteOffset != nullptr)
         {
           file_log.Log ( L"[tid=%4x]   File Write:  '%130ws'  <%#8lu bytes @+%-8llu>",
-            GetCurrentThreadId (),
+            SK_Thread_GetCurrentId (),
               wszFileName, Length, *ByteOffset
           );
         }
@@ -214,7 +260,7 @@ NtWriteFile_Detour (
         else
         {
           file_log.Log ( L"[tid=%4x]   File Write:  '%130ws'  <%#8lu bytes>",
-            GetCurrentThreadId (),
+            SK_Thread_GetCurrentId (),
               wszFileName, Length
           );
         }
@@ -230,7 +276,7 @@ void
 SK_File_InitHooks (void)
 {
   if (! ( config.threads.enable_file_io_trace ||
-          config.file_io.trace_reads          || 
+          config.file_io.trace_reads          ||
           config.file_io.trace_writes            ))
   return;
 
@@ -239,7 +285,7 @@ SK_File_InitHooks (void)
                             "ZwReadFile",
                              NtReadFile_Detour,
     static_cast_p2p <void> (&NtReadFile_Original) );
-  
+
   SK_CreateDLLHook2 (      L"NtDll.dll",
                             "ZwWriteFile",
                              NtWriteFile_Detour,
@@ -326,7 +372,7 @@ SK_File_CanUserWriteToPath (const wchar_t* wszPath)
                                        DACL_SECURITY_INFORMATION,
                                          security, length, &length ) )
     {
-      if ( OpenProcessToken ( SK_GetCurrentProcess (), TOKEN_IMPERSONATE | TOKEN_QUERY | 
+      if ( OpenProcessToken ( SK_GetCurrentProcess (), TOKEN_IMPERSONATE | TOKEN_QUERY |
                                                        TOKEN_DUPLICATE   | STANDARD_RIGHTS_READ,
                                                          &hToken.m_h ) )
       {
@@ -339,41 +385,38 @@ SK_File_CanUserWriteToPath (const wchar_t* wszPath)
           DWORD           grantedAccess    = 0,
                           privilegesLength = sizeof privileges;
           BOOL            result           = FALSE;
- 
+
           mapping.GenericRead    = FILE_GENERIC_READ;
           mapping.GenericWrite   = FILE_GENERIC_WRITE;
           mapping.GenericExecute = FILE_GENERIC_EXECUTE;
           mapping.GenericAll     = FILE_ALL_ACCESS;
- 
+
           DWORD dwMask =
             GENERIC_WRITE;
 
           MapGenericMask (&dwMask, &mapping);
 
-          if ( AccessCheck ( security, hImpersonatedToken, dwMask, 
+          if ( AccessCheck ( security, hImpersonatedToken, dwMask,
                                &mapping, &privileges,
                                  &privilegesLength, &grantedAccess,
                                    &result ) )
           {
             bRet =
-              ( result == TRUE );
+              ( result != FALSE );
           }
         }
       }
     }
 
-    if (security != nullptr)
-    {
-      delete (SECURITY_DESCRIPTOR*)security;
-    }
+    delete [] (PSECURITY_DESCRIPTOR*)security;
   }
-  
+
 //if (pFileSD != nullptr)
 //{
 //  SK_LocalFree (pFileSD);
 //                pFileSD = nullptr;
 //}
- 
+
   if (! bRet)
   {
     ////if (SK_GetFileSD (wszPath, &pFileSD, &pFileDACL))

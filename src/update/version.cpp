@@ -1,4 +1,4 @@
-/**
+d/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -85,9 +85,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   } static last_result;
 
 
-  static volatile LONG spinlock = 0;
+  static volatile LONG lock = 0;
 
-  while (InterlockedCompareExchange (&spinlock, 1, 0) != 0)
+  while (InterlockedCompareExchange (&lock, 1, 0) != 0)
   {
     MsgWaitForMultipleObjectsEx (0, nullptr, 33, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);
   }
@@ -112,7 +112,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     if ((! last_result.product.empty ()) &&
            last_result.product.find (wszProduct) != std::wstring::npos)
     {
-      InterlockedExchange (&spinlock, 0);
+      InterlockedExchange (&lock, 0);
       return last_result.ret;
     }
   }
@@ -123,7 +123,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   if (! wcslen (wszProduct))
   {
-    InterlockedExchange (&spinlock, 0);
+    InterlockedExchange (&lock, 0);
     return false;
   }
 
@@ -134,8 +134,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   {
     if (! lstrcmpW (wszProduct, L"SpecialK"))
     {
+      InterlockedExchange (&lock, 0);
       return false;
-      InterlockedExchange (&spinlock, 0);
     }
   }
 #endif
@@ -243,11 +243,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
       {
         has_remind = true;
 
-        sk::ParameterFactory ParameterFactory;
-
         auto* remind_time =
           dynamic_cast <sk::ParameterInt64 *> (
-            ParameterFactory.create_parameter <int64_t> (L"Reminder")
+            g_ParameterFactory->create_parameter <int64_t> (L"Reminder")
           );
 
         remind_time->register_to_ini (
@@ -349,7 +347,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   {
     if (! (( should_fetch && (! has_remind)) || need_remind))
     {
-      InterlockedExchange (&spinlock, 0);
+      InterlockedExchange (&lock, 0);
       return false;
     }
   }
@@ -364,7 +362,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   if (! hInetRoot)
   {
-    InterlockedExchange (&spinlock, 0);
+    InterlockedExchange (&lock, 0);
     return false;
   }
 
@@ -380,16 +378,15 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   if (! hInetGitHub)
   {
     InternetCloseHandle (hInetRoot);
-    InterlockedExchange (&spinlock, 0);
+    InterlockedExchange (&lock, 0);
     return false;
   }
 
   wchar_t wszRemoteRepoURL [MAX_PATH] = { };
 
-  // TEMPORARILY REBASE TO 0.8.X
   if (! lstrcmpW (wszProduct, L"SpecialK"))
     swprintf ( wszRemoteRepoURL,
-                 L"/Kaldaien/%s/0.8.x/version.ini",
+                 L"/Kaldaien/%s/0.10.x/version.ini",
                    wszProduct );
   else if (wcschr (wszProduct, L'/'))
     swprintf ( wszRemoteRepoURL,
@@ -403,7 +400,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   ULONG ulTimeout = 5000UL;
   bool  bRet      = FALSE;
 
-  LARGE_INTEGER liStartTime =
+  LARGE_INTEGER liStartTime = //-V821
     SK_CurrentPerf ();
 
   InternetSetOptionW ( hInetGitHub, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
@@ -436,7 +433,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   {
     InternetCloseHandle (hInetGitHub);
     InternetCloseHandle (hInetRoot);
-    InterlockedExchange (&spinlock, 0);
+    InterlockedExchange (&lock, 0);
     return false;
   }
 
@@ -554,7 +551,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   last_result.product = wszProduct;
   last_result.ret     = bRet;
 
-  InterlockedExchange (&spinlock, 0);
+  InterlockedExchange (&lock, 0);
 
   if (bRet)
     InterlockedExchange (&__SK_LastVersionCheckTime, timeGetTime ());
@@ -640,27 +637,26 @@ SK_Version_GetLocalInfo_V1 (const wchar_t* wszProduct)
   return ver_info;
 }
 
+static SK_LazyGlobal <std::wstring> cached_time;
 
 std::wstring&
 SK_Version_GetLastCheckTime_WStr (void)
 {
-  static DWORD        last_check  =   1;
-  static std::wstring cached_time = L"";
+  static DWORD last_check = 1;
 
-  if (! cached_time.empty ())
+  if (! cached_time->empty ())
   {
     if ( ReadULongAcquire (&__SK_LastVersionCheckTime) ==
            last_check )
     {
       return
-        cached_time;
+        cached_time.get ();
     }
   }
 
-
   WIN32_FIND_DATA FindFileData;
   HANDLE            hFileBackup =
-    FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
+    FindFirstFile (SK_Version_GetRepoIniPath ().c_str (), &FindFileData);
 
   FILETIME   ftModified = { };
   SYSTEMTIME stModified = { };
@@ -670,26 +666,20 @@ SK_Version_GetLastCheckTime_WStr (void)
 
   FindClose (hFileBackup);
 
-  wchar_t wszFileTime [512] = { };
+  wchar_t wszFileTime [48] = { };
+  wchar_t wszDateTime [48] = { };
 
-  GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, nullptr, wszFileTime, 512);
+  GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, nullptr, wszFileTime, 47);
+  GetTimeFormat (LOCALE_USER_DEFAULT, TIME_NOSECONDS, &stModified, nullptr, wszDateTime, 47);
 
-  std::wstring date_time (wszFileTime);
-
-  GetTimeFormat (LOCALE_USER_DEFAULT, TIME_NOSECONDS, &stModified, nullptr, wszFileTime, 512);
-
-  date_time.append (L" ");
-  date_time.append (wszFileTime);
-
+  *cached_time =
+    SK_FormatStringW (L"%ws %ws", wszFileTime, wszDateTime);
 
   last_check =
     ReadULongAcquire (&__SK_LastVersionCheckTime);
 
-  cached_time =
-    std::move (date_time);
-
   return
-    cached_time;
+    cached_time.get ();
 }
 
 
@@ -876,7 +866,7 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
 
   static SK_BranchInfo_V1 __INVAID_BRANCH
   {
-    0x1, SK_VER_STR, L"N/A", L"No Description Available",
+    0x1, SK_GetVersionStrW (), L"N/A", L"No Description Available",
 
         SK_VersionInfo_V1 { L"Unknown (or Custom Install)", L"N/A", -1 },
 

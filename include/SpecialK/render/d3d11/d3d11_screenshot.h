@@ -79,9 +79,9 @@ public:
                        Height       = 0;
     DXGI_FORMAT        NativeFormat = DXGI_FORMAT_UNKNOWN;
 
-    LONG               PBufferSize =  0L;
-    size_t             PackedDstPitch,
-                       PackedDstSlicePitch;
+    LONG               PBufferSize         = 0L;
+    size_t             PackedDstPitch      = 0L,
+                       PackedDstSlicePitch = 0L;
 
     CHeapPtr <uint8_t> PixelBuffer = { };
   };

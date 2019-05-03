@@ -210,6 +210,9 @@ using GetCursorInfo_pfn    = BOOL (WINAPI *)(
   _Inout_ PCURSORINFO pci
 );
 
+using NtUserGetCursorInfo_pfn = BOOL (WINAPI *)(
+  _Inout_ PCURSORINFO pci
+);
 
 using GetAsyncKeyState_pfn = SHORT (WINAPI *)(
   _In_ int vKey
@@ -278,6 +281,7 @@ extern GetSystemMetrics_pfn        GetSystemMetrics_Original;
 extern GetCursorPos_pfn            GetCursorPos_Original;
 extern SetCursorPos_pfn            SetCursorPos_Original;
 extern GetCursorInfo_pfn           GetCursorInfo_Original;
+extern NtUserGetCursorInfo_pfn     NtUserGetCursorInfo_Original;
 
 extern SendInput_pfn               SendInput_Original;
 extern mouse_event_pfn             mouse_event_Original;
@@ -437,7 +441,7 @@ struct window_t {
 class SK_TLS;
 
 BOOL
-SK_Win32_IsGUIThread ( DWORD    dwTid = GetCurrentThreadId (),
+SK_Win32_IsGUIThread ( DWORD    dwTid = SK_Thread_GetCurrentId (),
                        SK_TLS **ppTLS = nullptr );
 
 window_t

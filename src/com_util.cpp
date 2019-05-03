@@ -26,13 +26,15 @@ COM::Base COM::base = { };
 void
 COM::Base::WMI::Lock (void)
 {
-  wmi_cs->lock ();
+  if (wmi_cs != nullptr)
+      wmi_cs->lock ();
 }
 
 void
 COM::Base::WMI::Unlock (void)
 {
-  wmi_cs->unlock ();
+  if (wmi_cs != nullptr)
+      wmi_cs->unlock ();
 }
 
 DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
@@ -439,12 +441,15 @@ SK_AutoCOMInit::_assert_not_dllmain (void)
 {
   SK_ASSERT_NOT_DLLMAIN_THREAD ();
 
-  SK_TLS *pTLS =
-    SK_TLS_Bottom ();
+  if (ReadAcquire (&__SK_DLL_Attached))
+  {
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
 
-  if (pTLS)
-    return (! pTLS->debug.in_DllMain);
+    if (pTLS)
+      return (! pTLS->debug.in_DllMain);
+  }
 
   // If we have no TLS, assume it's because we're in DLL main
-  return true;
+  return false;//return true;
 }

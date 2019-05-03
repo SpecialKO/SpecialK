@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/resource.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
@@ -44,11 +45,12 @@ MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 using namespace SK::D3D9;
 
 volatile LONG               __d3d9_ready = FALSE;
-PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
 
 volatile LONG ImGui_Init = FALSE;
 
 extern bool __SK_bypass;
+
+SK_LazyGlobal <PipelineStatsD3D9> SK::D3D9::pipeline_stats_d3d9;
 
 using Direct3DCreate9_pfn   =
   IDirect3D9* (STDMETHODCALLTYPE *)(UINT           SDKVersion);
@@ -191,7 +193,7 @@ WaitForInit_D3D9 (void)
     SK_RunOnce (SK_BootD3D9 ());
   }
 
-  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
     return;
 
   if (! ReadAcquire (&__d3d9_ready))
@@ -255,16 +257,16 @@ CRITICAL_SECTION cs_vs = { };
 CRITICAL_SECTION cs_ps = { };
 CRITICAL_SECTION cs_vb = { };
 
-KnownObjects        SK::D3D9::known_objs = { };
-KnownShaders        SK::D3D9::Shaders    = { };
-ShaderTracker       SK::D3D9::tracked_vs = { };
-ShaderTracker       SK::D3D9::tracked_ps = { };
+SK_LazyGlobal <KnownObjects>        SK::D3D9::known_objs;
+SK_LazyGlobal <KnownShaders>        SK::D3D9::Shaders;
+SK_LazyGlobal <ShaderTracker>       SK::D3D9::tracked_vs;
+SK_LazyGlobal <ShaderTracker>       SK::D3D9::tracked_ps;
 
-VertexBufferTracker SK::D3D9::tracked_vb = { };
-RenderTargetTracker SK::D3D9::tracked_rt = { };
+SK_LazyGlobal <VertexBufferTracker> SK::D3D9::tracked_vb;
+SK_LazyGlobal <RenderTargetTracker> SK::D3D9::tracked_rt;
 
-DrawState           SK::D3D9::draw_state = { };
-FrameState          SK::D3D9::last_frame = { };
+SK_LazyGlobal <DrawState>           SK::D3D9::draw_state;
+SK_LazyGlobal <FrameState>          SK::D3D9::last_frame;
 
 void
 SK::D3D9::VertexBufferTracker::clear (void)
@@ -297,8 +299,11 @@ SK::D3D9::VertexBufferTracker::use (void)
     return;
   }
 
-  const uint32_t vs_checksum = Shaders.vertex.current.crc32c;
-  const uint32_t ps_checksum = Shaders.pixel.current.crc32c;
+  auto& _Shaders    = Shaders.get    ();
+  auto& _draw_state = draw_state.get ();
+
+  const uint32_t vs_checksum = _Shaders.vertex.current.crc32c;
+  const uint32_t ps_checksum = _Shaders.pixel.current.crc32c;
 
   vertex_shaders.emplace (vs_checksum);
   pixel_shaders.emplace  (ps_checksum);
@@ -315,7 +320,7 @@ SK::D3D9::VertexBufferTracker::use (void)
       for ( UINT i = 0; i < num_elems; i++ )
       {
         if (elem_decl [i].Usage == D3DDECLUSAGE_TEXCOORD)
-          textures.emplace (draw_state.current_tex [elem_decl [i].UsageIndex]);
+          textures.emplace (_draw_state.current_tex [elem_decl [i].UsageIndex]);
       }
     }
 
@@ -1210,17 +1215,22 @@ SK_D3D9_Present (IDirect3DDevice9 *This,
   HRESULT
     hr = S_OK;
 
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try           { hr = SK_D3D9_Trampoline (D3D9Device, Present)
                                             ( This,
                                                 pSourceRect,
                                                   pDestRect,
                                                     hDestWindowOverride,
-                                                      pDirtyRegion ); }
+                                                      pDirtyRegion );
+  }
+
   catch (...)
   {
-    hr = _HandleSwapChainException (L"IDirect3DDevice9::Present");
+    hr =
+      _HandleSwapChainException (L"IDirect3DDevice9::Present");
   }
+  SK_SEH_RemoveTranslator (orig_se);
 
   return hr;
 }
@@ -1238,19 +1248,22 @@ SK_D3D9_PresentEx (IDirect3DDevice9Ex *This,
   HRESULT
     hr = S_OK;
 
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try           { hr = SK_D3D9_Trampoline (D3D9ExDevice, PresentEx)
                                             ( This,
                                                 pSourceRect,
                                                   pDestRect,
                                                     hDestWindowOverride,
                                                       pDirtyRegion,
-                                                        dwFlags );    }
+                                                        dwFlags );
+  }
   catch (...)
   {
     hr =
       _HandleSwapChainException (L"IDirect3DDevice9Ex::PresentEx");
   }
+  SK_SEH_RemoveTranslator (orig_se);
 
   return hr;
 }
@@ -1268,19 +1281,22 @@ SK_D3D9_PresentSwap (IDirect3DSwapChain9 *This,
   HRESULT
     hr = S_OK;
 
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try           { hr = SK_D3D9_Trampoline (D3D9Swap, Present)
                                               ( This,
                                                   pSourceRect,
                                                     pDestRect,
                                                       hDestWindowOverride,
                                                         pDirtyRegion,
-                                                          dwFlags );    }
+                                                          dwFlags );
+  }
   catch (...)
   {
     hr =
       _HandleSwapChainException (L"IDirect3DSwapChain9::Present");
   }
+  SK_SEH_RemoveTranslator (orig_se);
 
   return hr;
 }
@@ -1679,7 +1695,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
                                                                           \
     /*dll_log.Log (L"[!] %s %s - "                                      */\
              /*L"[Calling Thread: 0x%04x]",                             */\
-      /*L#_Name, L#_Proto, GetCurrentThreadId ());                      */\
+      /*L#_Name, L#_Proto, SK_Thread_GetCurrentId ());                  */\
                                                                           \
     return _default_impl _Args;                                           \
 }
@@ -1707,7 +1723,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
                                                                           \
     /*dll_log.Log (L"[!] %s %s - "                                      */\
            /*L"[Calling Thread: 0x%04x]",                               */\
-      /*L#_Name, L#_Proto, GetCurrentThreadId ());                      */\
+      /*L#_Name, L#_Proto, SK_Thread_GetCurrentId ());                  */\
                                                                           \
     return _default_impl _Args;                                           \
 }
@@ -1735,7 +1751,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
                                                                           \
     /*dll_log.Log (L"[!] %s %s - "                                      */\
              /*L"[Calling Thread: 0x%04x]",                             */\
-      /*L#_Name, L#_Proto, GetCurrentThreadId ());                      */\
+      /*L#_Name, L#_Proto, SK_Thread_GetCurrentId ());                  */\
                                                                           \
     _default_impl _Args;                                                  \
 }
@@ -1763,7 +1779,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
                                                                           \
     /*dll_log.Log (L"[!] %s %s - "                                      */\
              /*L"[Calling Thread: 0x%04x]",                             */\
-      /*L#_Name, L#_Proto, GetCurrentThreadId ());                      */\
+      /*L#_Name, L#_Proto, SK_Thread_GetCurrentId ());                  */\
                                                                           \
     return _default_impl _Args;                                           \
 }
@@ -1915,7 +1931,7 @@ D3D9EndScene_Override (IDirect3DDevice9 *This)
   //dll_log.Log (L"[   D3D9   ] [!] %s (%ph) - "
     //L"[Calling Thread: 0x%04x]",
     //L"IDirect3DDevice9::EndScene", This,
-    //GetCurrentThreadId ()
+    //SK_Thread_GetCurrentId ()
   //);
 
   SK_D3D9_EndScene ();
@@ -2106,25 +2122,25 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
     //need_reset.graphics = false;
     }
 
-    known_objs.clear ();
+    known_objs->clear ();
 
-    last_frame.clear ();
-    tracked_rt.clear ();
-    tracked_vs.clear ();
-    tracked_ps.clear ();
-    tracked_vb.clear ();
+    last_frame->clear ();
+    tracked_rt->clear ();
+    tracked_vs->clear ();
+    tracked_ps->clear ();
+    tracked_vb->clear ();
 
     // Clearing the tracked VB only clears state, it doesn't
     //   get rid of any data pointers.
     //
     //  (WE DID NOT QUERY THIS FROM THE D3D RUNTIME, DO NOT RELEASE)
-    tracked_vb.vertex_buffer = nullptr;
-    tracked_vb.wireframe     = false;
-    tracked_vb.wireframes.clear ();
+    tracked_vb->vertex_buffer = nullptr;
+    tracked_vb->wireframe     = false;
+    tracked_vb->wireframes.clear ();
     // ^^^^ This is stupid, add a reset method.
 
-    Shaders.vertex.clear ();
-    Shaders.pixel.clear  ();
+    Shaders->vertex.clear ();
+    Shaders->pixel.clear  ();
   }
 }
 
@@ -2173,7 +2189,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
  if (pPresentationParameters == nullptr)
    return D3DERR_INVALIDCALL;
 
-  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
   {
     return D3D9Device_Reset_Original ( This,
                                          pPresentationParameters );
@@ -2198,8 +2214,13 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   D3D9Reset_Pre           (This, pPresentationParameters, nullptr);
 
-  D3D9_CALL (hr, D3D9Device_Reset_Original (This,
-                                              pPresentationParameters));
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
+    D3D9_CALL (hr, D3D9Device_Reset_Original (This,
+                                                pPresentationParameters));
+  } catch (const SK_SEH_IgnoredException&) {  hr = D3DERR_DEVICENOTRESET; }
+  SK_SEH_RemoveTranslator (orig_se);
 
   if (SUCCEEDED (hr))
   {
@@ -2231,7 +2252,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
     return D3DERR_INVALIDCALL;
 
 
-  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
   {
     return D3D9ExDevice_ResetEx_Original ( This,
                                              pPresentationParameters,
@@ -2259,9 +2280,14 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   D3D9Reset_Pre           (This, pPresentationParameters, pFullscreenDisplayMode);
 
-  D3D9_CALL (hr, D3D9ExDevice_ResetEx_Original ( This,
-                                                   pPresentationParameters,
-                                                     pFullscreenDisplayMode ));
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
+    D3D9_CALL (hr, D3D9ExDevice_ResetEx_Original ( This,
+                                                     pPresentationParameters,
+                                                       pFullscreenDisplayMode ));
+  } catch (const SK_SEH_IgnoredException&) {  hr = D3DERR_DEVICENOTRESET; }
+  SK_SEH_RemoveTranslator (orig_se);
 
   if (SUCCEEDED (hr))
   {
@@ -2303,8 +2329,10 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
                              UINT              StartVertex,
                              UINT              PrimitiveCount )
 {
-  ++draw_state.draws;
-  ++draw_state.draw_count;
+  auto& _draw_state = draw_state.get ();
+
+  ++_draw_state.draws;
+  ++_draw_state.draw_count;
 
   bool wireframe = false;
 
@@ -2334,8 +2362,10 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                     UINT              startIndex,
                                     UINT              primCount )
 {
-  ++draw_state.draws;
-  ++draw_state.draw_count;
+  auto& _draw_state = draw_state.get ();
+
+  ++_draw_state.draws;
+  ++_draw_state.draw_count;
 
   bool wireframe = false;
 
@@ -2366,8 +2396,10 @@ D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                const void             *pVertexStreamZeroData,
                                      UINT              VertexStreamZeroStride )
 {
-  ++draw_state.draws;
-  ++draw_state.draw_count;
+  auto& _draw_state = draw_state.get ();
+
+  ++_draw_state.draws;
+  ++_draw_state.draw_count;
 
   bool wireframe = false;
 
@@ -2400,8 +2432,10 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                       const void             *pVertexStreamZeroData,
                                             UINT              VertexStreamZeroStride )
 {
-  ++draw_state.draws;
-  ++draw_state.draw_count;
+  auto& _draw_state = draw_state.get ();
+
+  ++_draw_state.draws;
+  ++_draw_state.draw_count;
 
   bool wireframe = false;
 
@@ -2612,8 +2646,8 @@ D3D9CreateTexture_Override ( IDirect3DDevice9   *This,
 }
 
 
-std::unordered_set <IDirect3DVertexBuffer9 *>        ffxiii_dynamic;
-std::unordered_map <IDirect3DVertexBuffer9 *, ULONG> ffxiii_dynamic_updates;
+SK_LazyGlobal <std::unordered_set <IDirect3DVertexBuffer9 *>>        ffxiii_dynamic;
+SK_LazyGlobal <std::unordered_map <IDirect3DVertexBuffer9 *, ULONG>> ffxiii_dynamic_updates;
 
 using D3D9VertexBuffer_Lock_pfn = HRESULT (STDMETHODCALLTYPE *)( IDirect3DVertexBuffer9 *This,
                                                                  UINT                    OffsetToLock,
@@ -2632,25 +2666,33 @@ D3D9VertexBuffer_Lock_Override ( IDirect3DVertexBuffer9 *This,
                                  void**                  ppbData,
                                  DWORD                   Flags )
 {
-  SK_AutoCriticalSection auto_cs (&cs_vb);
+  static bool ffxiii =
+    SK_GetModuleHandle (L"ffxiiiimg.exe") != nullptr;
 
-  if (ffxiii_dynamic.count (This))
+  if (ffxiii)
   {
-    ULONG current_frame = SK_GetFramesDrawn ();
-    DWORD dwFlags       = D3DLOCK_NOOVERWRITE;
+    SK_AutoCriticalSection auto_cs (&cs_vb);
 
-    if (ffxiii_dynamic_updates [This] != current_frame)
+    if (ffxiii_dynamic->count (This))
     {
-      // Discard each frame, and no-overwrite updates mid-frame
-      dwFlags                       = D3DLOCK_DISCARD;
-      ffxiii_dynamic_updates [This] = current_frame;
-    }
+      auto& _ffxiii_dynamic_updates =
+        ffxiii_dynamic_updates.get ();
 
-    return D3D9VertexBuffer_Lock_Original (This, OffsetToLock, SizeToLock, ppbData, dwFlags);
+      ULONG current_frame = SK_GetFramesDrawn ();
+      DWORD dwFlags       = D3DLOCK_NOOVERWRITE;
+
+      if (_ffxiii_dynamic_updates [This] != current_frame)
+      {
+        // Discard each frame, and no-overwrite updates mid-frame
+        dwFlags                       = D3DLOCK_DISCARD;
+        _ffxiii_dynamic_updates [This] = current_frame;
+      }
+
+      return D3D9VertexBuffer_Lock_Original (This, OffsetToLock, SizeToLock, ppbData, dwFlags);
+    }
   }
 
-  else
-    return D3D9VertexBuffer_Lock_Original (This, OffsetToLock, SizeToLock, ppbData, Flags);
+  return D3D9VertexBuffer_Lock_Original (This, OffsetToLock, SizeToLock, ppbData, Flags);
 }
 
 
@@ -2709,25 +2751,27 @@ D3D9CreateVertexBuffer_Override
         SK_ApplyQueuedHooks ( );
       }
 
-      ffxiii_dynamic.emplace (*ppVertexBuffer);
-      ffxiii_dynamic_updates [*ppVertexBuffer] = 0;
+      ffxiii_dynamic->emplace      (*ppVertexBuffer);
+      ffxiii_dynamic_updates.get ()[*ppVertexBuffer] = 0;
     }
 
     else
     {
-      ffxiii_dynamic.erase   (*ppVertexBuffer);
-      ffxiii_dynamic_updates [*ppVertexBuffer] = 0;
+      ffxiii_dynamic->erase        (*ppVertexBuffer);
+      ffxiii_dynamic_updates.get ()[*ppVertexBuffer] = 0;
     }
   }
 
   if (SUCCEEDED (hr))
   {
+    auto& _known_objs = known_objs.get ();
+
     SK_AutoCriticalSection auto_cs (&cs_vb);
 
     if (Usage & D3DUSAGE_DYNAMIC)
-      known_objs.dynamic_vbs.emplace (*ppVertexBuffer);
+      _known_objs.dynamic_vbs.emplace (*ppVertexBuffer);
     else
-      known_objs.static_vbs.emplace  (*ppVertexBuffer);
+      _known_objs.static_vbs.emplace  (*ppVertexBuffer);
   }
 
   return hr;
@@ -2753,14 +2797,17 @@ D3D9SetStreamSource_Override
 
   if (pStreamData != nullptr)
   {
+    auto& _known_objs = known_objs.get ();
+    auto& _last_frame = last_frame.get ();
+
     if (SUCCEEDED (hr))
     {
       SK_AutoCriticalSection auto_cs (&cs_vb);
 
-      if (known_objs.dynamic_vbs.count (pStreamData))
-        last_frame.vertex_buffers.dynamic.emplace (pStreamData);
-      else if (known_objs.static_vbs.count (pStreamData))
-        last_frame.vertex_buffers.immutable.emplace (pStreamData);
+      if (_known_objs.dynamic_vbs.count (pStreamData))
+        _last_frame.vertex_buffers.dynamic.emplace (pStreamData);
+      else if (_known_objs.static_vbs.count (pStreamData))
+        _last_frame.vertex_buffers.immutable.emplace (pStreamData);
 
       else
       {
@@ -2769,14 +2816,14 @@ D3D9SetStreamSource_Override
 
         if (desc.Usage & D3DUSAGE_DYNAMIC)
         {
-                         known_objs.dynamic_vbs.emplace (pStreamData);
-          last_frame.vertex_buffers.dynamic.emplace     (pStreamData);
+                         _known_objs.dynamic_vbs.emplace (pStreamData);
+          _last_frame.vertex_buffers.dynamic.emplace     (pStreamData);
         }
 
         else
         {
-                        known_objs.static_vbs.emplace (pStreamData);
-          last_frame.vertex_buffers.immutable.emplace (pStreamData);
+                        _known_objs.static_vbs.emplace (pStreamData);
+          _last_frame.vertex_buffers.immutable.emplace (pStreamData);
         }
       }
 
@@ -2801,7 +2848,7 @@ D3D9SetStreamSourceFreq_Override
 
   if (StreamNumber == 0 && FrequencyParameter & D3DSTREAMSOURCE_INDEXEDDATA)
   {
-    draw_state.instances = ( FrequencyParameter & ( ~D3DSTREAMSOURCE_INDEXEDDATA ) );
+    draw_state->instances = ( FrequencyParameter & ( ~D3DSTREAMSOURCE_INDEXEDDATA ) );
   }
 
   if (StreamNumber == 1 && FrequencyParameter & D3DSTREAMSOURCE_INSTANCEDATA)
@@ -2959,7 +3006,7 @@ D3D9SetDepthStencilSurface_Override ( IDirect3DDevice9  *This,
                                                    pNewZStencil );
 }
 
-extern std::wstring SK_D3D11_res_root;
+extern SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
 
 __declspec (noinline)
 HRESULT
@@ -3091,7 +3138,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
               if (record.method == TexLoadMethod::Streaming)
               {
                 _swprintf ( wszInjectFileName, LR"(%s\inject\textures\streaming\%08x%s)",
-                              SK_D3D11_res_root.c_str (),
+                              SK_D3D11_res_root->c_str (),
                                 pDst->tex_crc32c,
                                   L".dds" );
               }
@@ -3099,7 +3146,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
               else if (record.method == TexLoadMethod::Blocking)
               {
                 _swprintf ( wszInjectFileName, LR"(%s\inject\textures\blocking\%08x%s)",
-                              SK_D3D11_res_root.c_str (),
+                              SK_D3D11_res_root->c_str (),
                                 pDst->tex_crc32c,
                                   L".dds");
               }
@@ -3284,7 +3331,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
   {
     return pparams;
   }
@@ -3440,7 +3487,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
 
         if (*ppFullscreenDisplayMode == nullptr)
-          *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->d3d9.allocTempFullscreenStorage ();
+          *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->d3d9->allocTempFullscreenStorage ();
 
         if (*ppFullscreenDisplayMode != nullptr)
         {
@@ -4317,7 +4364,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                               D3DDISPLAYMODEEX       *pFullscreenDisplayMode,
                               IDirect3DDevice9Ex    **ppReturnedDeviceInterface )
 {
-  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
   {
     return
       D3D9Ex_CreateDeviceEx_Original ( This,
@@ -4455,7 +4502,7 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   }
 
 
-  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
   {
     return
       D3D9_CreateDevice_Original ( This,
@@ -4607,7 +4654,7 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
                               D3DPRESENT_PARAMETERS* pPresentationParameters,
                               IDirect3DDevice9**     ppReturnedDeviceInterface )
 {
-  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread || pPresentationParameters == nullptr)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread || pPresentationParameters == nullptr)
   {
     return
       D3D9Ex_CreateDeviceEx_Original ( (IDirect3D9Ex *)This,
@@ -4718,7 +4765,7 @@ Direct3DCreate9 (UINT SDKVersion)
 {
   WaitForInit_D3D9    ();
 
-  if (! SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+  if (! SK_TLS_Bottom ()->d3d9->ctx_init_thread)
     WaitForInit       ();
 
 
@@ -4783,7 +4830,7 @@ Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
 {
   WaitForInit_D3D9    ();
 
-  if (! SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+  if (! SK_TLS_Bottom ()->d3d9->ctx_init_thread)
     WaitForInit       ();
 
 
@@ -4866,7 +4913,7 @@ SK::D3D9::getPipelineStatsDesc (void)
   wchar_t wszDesc [1024] = { };
 
   D3DDEVINFO_D3D9PIPELINETIMINGS& stats =
-    pipeline_stats_d3d9.last_results;
+    pipeline_stats_d3d9->last_results;
 
   //
   // VERTEX SHADING
@@ -4952,13 +4999,13 @@ HookD3D9 (LPVOID user)
 
     SK_AutoCOMInit auto_com;
     {
-      pTLS->d3d9.ctx_init_thread = true;
+      pTLS->d3d9->ctx_init_thread  = true;
 
       HWND                   hwnd  = nullptr;
       SK_ComPtr <IDirect3D9> pD3D9 =
          Direct3DCreate9_Import (D3D_SDK_VERSION);
 
-      pTLS->d3d9.ctx_init_thread = false;
+      pTLS->d3d9->ctx_init_thread = false;
 
       if (pD3D9 != nullptr)
       {
@@ -4979,7 +5026,7 @@ HookD3D9 (LPVOID user)
 
         dll_log->Log (L"[   D3D9   ]  Hooking D3D9...");
 
-        pTLS->d3d9.ctx_init_thread = true;
+        pTLS->d3d9->ctx_init_thread = true;
 
         HRESULT hr =
           pD3D9->CreateDevice (
@@ -4990,7 +5037,7 @@ HookD3D9 (LPVOID user)
                           &pparams,
                             &pD3D9Dev.p );
 
-        pTLS->d3d9.ctx_init_thread = false;
+        pTLS->d3d9->ctx_init_thread = false;
 
         if (SUCCEEDED (hr))
         {
@@ -5034,14 +5081,14 @@ HookD3D9 (LPVOID user)
 
         SK_ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
-        pTLS->d3d9.ctx_init_thread = true;
+        pTLS->d3d9->ctx_init_thread = true;
 
         hr = (config.apis.d3d9ex.hook) ?
           Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex.p)
                            :
                       E_NOINTERFACE;
 
-        pTLS->d3d9.ctx_init_thread = false;
+        pTLS->d3d9->ctx_init_thread = false;
 
         hwnd = nullptr;
 
@@ -5063,7 +5110,7 @@ HookD3D9 (LPVOID user)
 
           SK_ComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
 
-          pTLS->d3d9.ctx_init_thread = true;
+          pTLS->d3d9->ctx_init_thread = true;
 
           hr = pD3D9Ex->CreateDeviceEx (
                 D3DADAPTER_DEFAULT,
@@ -5074,7 +5121,7 @@ HookD3D9 (LPVOID user)
                           nullptr,
                             &pD3D9DevEx.p );
 
-          pTLS->d3d9.ctx_init_thread = false;
+          pTLS->d3d9->ctx_init_thread = false;
 
           if ( SUCCEEDED (hr) )
           {
@@ -5132,7 +5179,8 @@ HookD3D9 (LPVOID user)
     InterlockedIncrementRelease (&__hooked);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&__hooked, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&__hooked, 2);
 
   return 0;
 }
@@ -5476,6 +5524,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
     ImVec2                    last_max   = ImVec2 (0.0f, 0.0f);
   };
 
+  auto& _last_frame = last_frame.get ();
+
   struct {
     shader_class_imp_s vs;
     shader_class_imp_s ps;
@@ -5486,14 +5536,14 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
                                                               &list_base.vs );
 
   SK::D3D9::ShaderTracker*
-    tracker = ( shader_type == SK::D3D9::ShaderClass::Pixel ? &tracked_ps :
-                                                              &tracked_vs );
+    tracker = ( shader_type == SK::D3D9::ShaderClass::Pixel ? tracked_ps.getPtr () :
+                                                              tracked_vs.getPtr () );
 
   std::vector <uint32_t>
-    shaders   ( shader_type == SK::D3D9::ShaderClass::Pixel ? last_frame.pixel_shaders.begin  () :
-                                                              last_frame.vertex_shaders.begin (),
-                shader_type == SK::D3D9::ShaderClass::Pixel ? last_frame.pixel_shaders.end    () :
-                                                              last_frame.vertex_shaders.end   () );
+    shaders   ( shader_type == SK::D3D9::ShaderClass::Pixel ? _last_frame.pixel_shaders.begin  () :
+                                                              _last_frame.vertex_shaders.begin (),
+                shader_type == SK::D3D9::ShaderClass::Pixel ? _last_frame.pixel_shaders.end    () :
+                                                              _last_frame.vertex_shaders.end   () );
 
   std::unordered_map <uint32_t, SK::D3D9::ShaderDisassembly>&
     disassembly = ( shader_type == SK::D3D9::ShaderClass::Pixel ? *ps_disassembly :
@@ -5685,7 +5735,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
       ImGui::EndTooltip ();
     }
 
-    ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
+    SK_ImGui_AutoFont fixed_font (ImGui::GetIO ().Fonts->Fonts[1]);
 
     ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.80f, 0.80f, 1.0f, 1.0f));
     ImGui::TextWrapped    (disassembly [tracker->crc32c].header.c_str ());
@@ -5863,7 +5913,6 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
 
     ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.5f, 0.95f, 0.5f, 1.0f));
     ImGui::TextWrapped    (disassembly [tracker->crc32c].footer.c_str ());
-    ImGui::PopFont        ();
 
     ImGui::PopStyleColor  (4);
     ImGui::PopID          ( );
@@ -5911,21 +5960,23 @@ SK_LiveVertexStreamView (bool& can_scroll)
     list    = &list_base.stream0;
 
   SK::D3D9::VertexBufferTracker*
-    tracker = &tracked_vb;
+    tracker = tracked_vb.getPtr ();
+
+  auto& _last_frame = last_frame.get ();
 
   std::vector <IDirect3DVertexBuffer9 *> buffers;
 
   switch (filter_type)
   {
     case 2:
-      for (auto it : last_frame.vertex_buffers.immutable) if (it != nullptr) buffers.emplace_back (it);
+      for (auto it : _last_frame.vertex_buffers.immutable) if (it != nullptr) buffers.emplace_back (it);
       break;
     case 1:
-      for (auto it : last_frame.vertex_buffers.dynamic)   if (it != nullptr) buffers.emplace_back (it);
+      for (auto it : _last_frame.vertex_buffers.dynamic)   if (it != nullptr) buffers.emplace_back (it);
       break;
     case 0:
-      for (auto it : last_frame.vertex_buffers.immutable) if (it != nullptr) buffers.emplace_back (it);
-      for (auto it : last_frame.vertex_buffers.dynamic)   if (it != nullptr) buffers.emplace_back (it);
+      for (auto it : _last_frame.vertex_buffers.immutable) if (it != nullptr) buffers.emplace_back (it);
+      for (auto it : _last_frame.vertex_buffers.dynamic)   if (it != nullptr) buffers.emplace_back (it);
       break;
   };
 
@@ -6091,8 +6142,8 @@ SK_LiveVertexStreamView (bool& can_scroll)
 
 
   if ( tracker->vertex_buffer != nullptr &&
-         ( last_frame.vertex_buffers.dynamic.count   (tracker->vertex_buffer) ||
-           last_frame.vertex_buffers.immutable.count (tracker->vertex_buffer) ) )
+         ( _last_frame.vertex_buffers.dynamic.count   (tracker->vertex_buffer) ||
+           _last_frame.vertex_buffers.immutable.count (tracker->vertex_buffer) ) )
   {
     bool wireframe =
       tracker->wireframes.count (tracker->vertex_buffer);
@@ -6448,14 +6499,24 @@ SK_D3D9_TextureModDlg (void)
   };
 
 
+  auto& _last_frame = last_frame.get ();
+  auto& _known_objs = known_objs.get ();
+  auto& _tracked_vs = tracked_vs.get ();
+  auto& _tracked_ps = tracked_ps.get ();
+  auto& _tracked_vb = tracked_vb.get ();
+  auto& _tracked_rt = tracked_rt.get ();
+
+
 
   ImGui::SetNextWindowSize            (ImVec2 (io.DisplaySize.x * 0.66f, io.DisplaySize.y * 0.42f), ImGuiCond_Appearing);
   ImGui::SetNextWindowSizeConstraints ( /*ImVec2 (768.0f, 384.0f),*/
                                        ImVec2 (io.DisplaySize.x * 0.16f, io.DisplaySize.y * 0.16f),
                                        ImVec2 (io.DisplaySize.x * 0.96f, io.DisplaySize.y * 0.96f));
 
-  ImGui::Begin ( "D3D9 Render Mod Toolkit (v " SK_VERSION_STR_A ")",
-                   &show_dlg );
+  static std::string ver_str =
+    SK_FormatString ("D3D9 Render Mod Toolkit (v %s)", SK_GetVersionStrA ());
+
+  ImGui::Begin ( ver_str.c_str (), &show_dlg );
 
   bool can_scroll = ImGui::IsWindowFocused () && ImGui::IsMouseHoveringRect ( ImVec2 (ImGui::GetWindowPos ().x,                             ImGui::GetWindowPos ().y),
                                                                               ImVec2 (ImGui::GetWindowPos ().x + ImGui::GetWindowSize ().x, ImGui::GetWindowPos ().y + ImGui::GetWindowSize ().y) );
@@ -6964,7 +7025,7 @@ SK_D3D9_TextureModDlg (void)
     std::vector <IDirect3DBaseTexture9*> render_textures;
            tex_mgr.getUsedRenderTargets (render_textures);
 
-    tracked_rt.tracking_tex = nullptr;
+    _tracked_rt.tracking_tex = nullptr;
 
     if (list_dirty)
     {
@@ -6995,7 +7056,7 @@ SK_D3D9_TextureModDlg (void)
         if ((uintptr_t)it == last_sel_ptr)
         {
           sel = idx;
-          tracked_rt.tracking_tex = render_textures [sel];
+          _tracked_rt.tracking_tex = render_textures [sel];
         }
 
         ++idx;
@@ -7052,10 +7113,10 @@ SK_D3D9_TextureModDlg (void)
 
              if (ImGui::Selectable (list_contents [line].c_str (), &selected))
              {
-               sel_changed  = true;
-               sel          =  line;
-               last_sel_ptr = (uintptr_t)render_textures [sel];
-               tracked_rt.tracking_tex = render_textures [sel];
+                sel_changed  = true;
+                sel          =  line;
+                last_sel_ptr = (uintptr_t)render_textures [sel];
+               _tracked_rt.tracking_tex = render_textures [sel];
              }
            }
          }
@@ -7081,8 +7142,8 @@ SK_D3D9_TextureModDlg (void)
 
       if (SUCCEEDED (pTex->GetLevelDesc (0, &desc)))
       {
-        size_t shaders = std::max ( tracked_rt.pixel_shaders.size  (),
-                                    tracked_rt.vertex_shaders.size () );
+        size_t shaders = std::max ( _tracked_rt.pixel_shaders.size  (),
+                                    _tracked_rt.vertex_shaders.size () );
 
         // Some Render Targets are MASSIVE, let's try to keep the damn things on the screen ;)
         float effective_width  = std::min (0.75f * ImGui::GetIO ().DisplaySize.x, (float)desc.Width  / 2.0f);
@@ -7127,12 +7188,12 @@ SK_D3D9_TextureModDlg (void)
         {
           ImGui::Columns (2);
 
-          for ( auto it : tracked_rt.vertex_shaders )
+          for ( auto it : _tracked_rt.vertex_shaders )
             ImGui::Text ("Vertex Shader: %08x", it);
 
           ImGui::NextColumn ();
 
-          for ( auto it : tracked_rt.pixel_shaders )
+          for ( auto it : _tracked_rt.pixel_shaders )
             ImGui::Text ("Pixel Shader: %08x", it);
 
           ImGui::Columns (1);
@@ -7205,8 +7266,8 @@ SK_D3D9_TextureModDlg (void)
   SK_AutoCriticalSection auto_cs1 (&cs_ps);
   SK_AutoCriticalSection auto_cs2 (&cs_vb);
 
-  tracked_ps.clear (); tracked_vs.clear (); last_frame.clear ();
-  tracked_rt.clear (); tracked_vb.clear (); known_objs.clear ();
+  _tracked_ps.clear (); _tracked_vs.clear (); _last_frame.clear ();
+  _tracked_rt.clear (); _tracked_vb.clear (); _known_objs.clear ();
 
   return show_dlg;
 }
@@ -7775,13 +7836,18 @@ void
 SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
                           IDirect3DVertexShader9 *pShader )
 {
-  if (Shaders.vertex.current.ptr != pShader)
+  auto& _Shaders    = Shaders.get    ();
+  auto& _last_frame = last_frame.get ();
+  auto& _tracked_rt = tracked_rt.get ();
+  auto& _tracked_vs = tracked_vs.get ();
+
+  if (_Shaders.vertex.current.ptr != pShader)
   {
     if (pShader != nullptr)
     {
       EnterCriticalSection (&cs_vs);
 
-      if (Shaders.vertex.rev.find (pShader) == Shaders.vertex.rev.end ())
+      if (_Shaders.vertex.rev.find (pShader) == _Shaders.vertex.rev.end ())
       {
         LeaveCriticalSection (&cs_vs);
 
@@ -7790,7 +7856,7 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
         pShader->GetFunction (nullptr, &len);
 
         void* pbFunc =
-          SK_TLS_Bottom ()->d3d9.allocStackScratchStorage (len);
+          SK_TLS_Bottom ()->d3d9->allocStackScratchStorage (len);
 
         if (pbFunc != nullptr)
         {
@@ -7803,7 +7869,7 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
 
           EnterCriticalSection (&cs_vs);
 
-          Shaders.vertex.rev [pShader] = checksum;
+          _Shaders.vertex.rev [pShader] = checksum;
 
           LeaveCriticalSection (&cs_vs);
         }
@@ -7814,31 +7880,31 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
     }
 
     else
-      Shaders.vertex.current.crc32c = 0;
+      _Shaders.vertex.current.crc32c = 0;
   }
 
 
   SK_AutoCriticalSection csVS (&cs_vs);
 
   const uint32_t vs_checksum =
-    Shaders.vertex.rev [pShader];
+    _Shaders.vertex.rev [pShader];
 
-  Shaders.vertex.current.crc32c = vs_checksum;
-  Shaders.vertex.current.ptr    = pShader;
+  _Shaders.vertex.current.crc32c = vs_checksum;
+  _Shaders.vertex.current.ptr    = pShader;
 
 
   if (vs_checksum != 0x00)
   {
-    last_frame.vertex_shaders.emplace (vs_checksum);
+    _last_frame.vertex_shaders.emplace (vs_checksum);
 
-    if (tracked_rt.active)
-      tracked_rt.vertex_shaders.emplace (vs_checksum);
+    if (_tracked_rt.active)
+      _tracked_rt.vertex_shaders.emplace (vs_checksum);
 
-    if (vs_checksum == tracked_vs.crc32c)
+    if (vs_checksum == _tracked_vs.crc32c)
     {
-      tracked_vs.use (pShader);
+      _tracked_vs.use (pShader);
 
-      for ( auto& current_texture : tracked_vs.current_textures )
+      for ( auto& current_texture : _tracked_vs.current_textures )
         current_texture = nullptr;
     }
   }
@@ -7848,13 +7914,18 @@ void
 SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
                          IDirect3DPixelShader9 *pShader )
 {
-  if (Shaders.pixel.current.ptr != pShader)
+  auto& _Shaders    = Shaders.get    ();
+  auto& _last_frame = last_frame.get ();
+  auto& _tracked_rt = tracked_rt.get ();
+  auto& _tracked_ps = tracked_ps.get ();
+
+  if (_Shaders.pixel.current.ptr != pShader)
   {
     if (pShader != nullptr)
     {
       EnterCriticalSection (&cs_ps);
 
-      if (Shaders.pixel.rev.find (pShader) == Shaders.pixel.rev.end ())
+      if (_Shaders.pixel.rev.find (pShader) == _Shaders.pixel.rev.end ())
       {
         LeaveCriticalSection (&cs_ps);
 
@@ -7863,7 +7934,7 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
         pShader->GetFunction (nullptr, &len);
 
         void* pbFunc =
-          SK_TLS_Bottom ()->d3d9.allocStackScratchStorage (len);
+          SK_TLS_Bottom ()->d3d9->allocStackScratchStorage (len);
 
         if (pbFunc != nullptr)
         {
@@ -7876,7 +7947,7 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
 
           EnterCriticalSection (&cs_ps);
 
-          Shaders.pixel.rev  [pShader] = checksum;
+          _Shaders.pixel.rev  [pShader] = checksum;
 
           LeaveCriticalSection (&cs_ps);
         }
@@ -7887,32 +7958,32 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
     }
 
     else
-      Shaders.pixel.current.crc32c = 0x0;
+      _Shaders.pixel.current.crc32c = 0x0;
   }
 
 
   SK_AutoCriticalSection csPS (&cs_ps);
 
   const uint32_t ps_checksum =
-    Shaders.pixel.rev [pShader];
+    _Shaders.pixel.rev [pShader];
 
-  Shaders.pixel.current.crc32c = ps_checksum;
-  Shaders.pixel.current.ptr    = pShader;
+  _Shaders.pixel.current.crc32c = ps_checksum;
+  _Shaders.pixel.current.ptr    = pShader;
 
 
 
   if (ps_checksum != 0x00)
   {
-    last_frame.pixel_shaders.emplace (ps_checksum);
+    _last_frame.pixel_shaders.emplace (ps_checksum);
 
-    if (tracked_rt.active)
-      tracked_rt.pixel_shaders.emplace (ps_checksum);
+    if (_tracked_rt.active)
+      _tracked_rt.pixel_shaders.emplace (ps_checksum);
 
-    if (ps_checksum == tracked_ps.crc32c)
+    if (ps_checksum == _tracked_ps.crc32c)
     {
-      tracked_ps.use (pShader);
+      _tracked_ps.use (pShader);
 
-      for ( auto& current_texture : tracked_ps.current_textures )
+      for ( auto& current_texture : _tracked_ps.current_textures )
         current_texture = nullptr;
     }
   }
@@ -7933,24 +8004,27 @@ SK_D3D9_EndScene (void)
 void
 SK_D3D9_EndFrame (void)
 {
+  auto& _Shaders    = Shaders.get    ();
+  auto& _draw_state = draw_state.get ();
+
   //draw_state.last_vs     = 0;
-  draw_state.scene_count = 0;
+  _draw_state.scene_count = 0;
 
-  draw_state.draw_count = 0;
-  draw_state.next_draw  = 0;
+  _draw_state.draw_count = 0;
+  _draw_state.next_draw  = 0;
 
-  Shaders.vertex.clear_state ();
-  Shaders.pixel.clear_state  ();
+  _Shaders.vertex.clear_state ();
+  _Shaders.pixel.clear_state  ();
 
   {
     SK_AutoCriticalSection csVS (&cs_vs);
-    last_frame.clear ();
+    last_frame->clear ();
 
 //    for (auto& it : tracked_vs.used_textures) it->Release ();
 
-    tracked_vs.clear ();
-    tracked_vb.clear ();
-    tracked_rt.clear ();
+    tracked_vs->clear ();
+    tracked_vb->clear ();
+    tracked_rt->clear ();
   }
 
   {
@@ -7958,7 +8032,7 @@ SK_D3D9_EndFrame (void)
 
 //    for (auto& it : tracked_ps.used_textures) it->Release ();
 
-    tracked_ps.clear ();
+    tracked_ps->clear ();
   }
 
   SK::D3D9::TextureManager& tex_mgr =
@@ -7998,12 +8072,18 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface <IDirect3DDevice9> (&pDevice.p)))
     return false;
 
-  const uint32_t vs_checksum = Shaders.vertex.current.crc32c;
-  const uint32_t ps_checksum = Shaders.pixel.current.crc32c;
+  auto& _Shaders    = Shaders.get    ();
+  auto& _tracked_vs = tracked_vs.get ();
+  auto& _tracked_ps = tracked_ps.get ();
+  auto& _tracked_vb = tracked_vb.get ();
+  auto& _draw_state = draw_state.get ();
 
-  const bool tracking_vs = ( vs_checksum == tracked_vs.crc32c );
-  const bool tracking_ps = ( ps_checksum == tracked_ps.crc32c );
-  const bool tracking_vb = { vb_stream0  == tracked_vb.vertex_buffer };
+  const uint32_t vs_checksum = _Shaders.vertex.current.crc32c;
+  const uint32_t ps_checksum = _Shaders.pixel.current.crc32c;
+
+  const bool tracking_vs = ( vs_checksum == _tracked_vs.crc32c );
+  const bool tracking_ps = ( ps_checksum == _tracked_ps.crc32c );
+  const bool tracking_vb = { vb_stream0  == _tracked_vb.vertex_buffer };
 
 
   bool skip = false;
@@ -8011,35 +8091,35 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   {
     SK_AutoCriticalSection auto_cs (&cs_vs);
 
-    if (Shaders.vertex.blacklist.count (vs_checksum))
+    if (_Shaders.vertex.blacklist.count (vs_checksum))
       skip      = true;
 
-    if (Shaders.vertex.wireframe.count (vs_checksum))
+    if (_Shaders.vertex.wireframe.count (vs_checksum))
       wireframe = true;
   }
 
   {
     SK_AutoCriticalSection auto_cs (&cs_ps);
 
-    if (Shaders.pixel.blacklist.count (ps_checksum))
+    if (_Shaders.pixel.blacklist.count (ps_checksum))
       skip      = true;
 
-    if (Shaders.pixel.wireframe.count (ps_checksum))
+    if (_Shaders.pixel.wireframe.count (ps_checksum))
       wireframe = true;
   }
 
 
   if (tracking_vs)
   {
-    InterlockedIncrementAcquire (&tracked_vs.num_draws);
+    InterlockedIncrementAcquire (&_tracked_vs.num_draws);
 
-    for (auto& current_texture : tracked_vs.current_textures)
+    for (auto& current_texture : _tracked_vs.current_textures)
     {
       if (current_texture != nullptr)
       {
-        if (! tracked_vs.used_textures.count (current_texture))
+        if (! _tracked_vs.used_textures.count (current_texture))
         {
-          tracked_vs.used_textures.emplace (current_texture);
+          _tracked_vs.used_textures.emplace (current_texture);
           //current_texture->AddRef ();
         }
       }
@@ -8048,7 +8128,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
     //
     // TODO: Make generic and move into class -- must pass shader type to function
     //
-    for (auto&& it : tracked_vs.constants)
+    for (auto&& it : _tracked_vs.constants)
     {
       for (auto&& it2 : it.struct_members)
       {
@@ -8065,15 +8145,15 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   {
     SK_AutoCriticalSection auto_cs (&cs_ps);
 
-    InterlockedIncrementAcquire (&tracked_ps.num_draws);
+    InterlockedIncrementAcquire (&_tracked_ps.num_draws);
 
-    for ( auto& current_texture : tracked_ps.current_textures )
+    for ( auto& current_texture : _tracked_ps.current_textures )
     {
       if (current_texture != nullptr)
       {
-        if (! tracked_ps.used_textures.count (current_texture))
+        if (! _tracked_ps.used_textures.count (current_texture))
         {
-          tracked_ps.used_textures.emplace (current_texture);
+          _tracked_ps.used_textures.emplace (current_texture);
           //current_texture->AddRef ();
         }
       }
@@ -8082,7 +8162,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
     //
     // TODO: Make generic and move into class -- must pass shader type to function
     //
-    for (auto& it : tracked_ps.constants)
+    for (auto& it : _tracked_ps.constants)
     {
       for (auto& it2 : it.struct_members)
       {
@@ -8096,19 +8176,19 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   }
 
 
-  if (tracked_vb.wireframes.count (vb_stream0))
+  if (_tracked_vb.wireframes.count (vb_stream0))
     wireframe = true;
 
   if (tracking_vb)
   {
-    tracked_vb.use ();
+    _tracked_vb.use ();
 
-    tracked_vb.instances  = draw_state.instances;
+    _tracked_vb.instances  = _draw_state.instances;
 
-    InterlockedExchangeAdd (&tracked_vb.instanced, gsl::narrow_cast <ULONG> (draw_state.instances));
-    InterlockedIncrement   (&tracked_vb.num_draws);
+    InterlockedExchangeAdd (&_tracked_vb.instanced, gsl::narrow_cast <ULONG> (_draw_state.instances));
+    InterlockedIncrement   (&_tracked_vb.num_draws);
 
-    if (tracked_vb.wireframe)
+    if (_tracked_vb.wireframe)
       wireframe = true;
   }
 
@@ -8117,14 +8197,14 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
     return true;
 
 
-  if (tracking_vb && tracked_vb.cancel_draws)
+  if (tracking_vb && _tracked_vb.cancel_draws)
     return true;
 
 
-  if (tracking_vs && tracked_vs.cancel_draws)
+  if (tracking_vs && _tracked_vs.cancel_draws)
     return true;
 
-  if (tracking_ps && tracked_ps.cancel_draws)
+  if (tracking_ps && _tracked_ps.cancel_draws)
     return true;
 
 
@@ -8141,16 +8221,20 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 void
 SK_D3D9_InitShaderModTools (void)
 {
-  last_frame.vertex_shaders.reserve           (256);
-  last_frame.pixel_shaders.reserve            (256);
-  last_frame.vertex_buffers.dynamic.reserve   (128);
-  last_frame.vertex_buffers.immutable.reserve (256);
-  known_objs.dynamic_vbs.reserve              (2048);
-  known_objs.static_vbs.reserve               (8192);
-  ps_disassembly->reserve                     (512);
-  vs_disassembly->reserve                     (512);
-  Shaders.vertex.rev.reserve                  (8192);
-  Shaders.pixel.rev.reserve                   (8192);
+  auto& _last_frame = last_frame.get ();
+  auto& _known_objs = known_objs.get ();
+  auto& _Shaders    = Shaders.get    ();
+
+  _last_frame.vertex_shaders.reserve           (256);
+  _last_frame.pixel_shaders.reserve            (256);
+  _last_frame.vertex_buffers.dynamic.reserve   (128);
+  _last_frame.vertex_buffers.immutable.reserve (256);
+  _known_objs.dynamic_vbs.reserve              (2048);
+  _known_objs.static_vbs.reserve               (8192);
+   ps_disassembly->reserve                     (512);
+   vs_disassembly->reserve                     (512);
+  _Shaders.vertex.rev.reserve                  (8192);
+  _Shaders.pixel.rev.reserve                   (8192);
 
   InitializeCriticalSectionAndSpinCount (&cs_vs, 1024 * 2048 * 2);
   InitializeCriticalSectionAndSpinCount (&cs_ps, 1024 * 2048 * 4);
@@ -8235,7 +8319,7 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
     if (SUCCEEDED (((IDirect3DVertexShader9 *)pShader)->GetFunction (nullptr, &len)))
     {
       void* pbFunc =
-        SK_TLS_Bottom ()->d3d9.allocStackScratchStorage (len);
+        SK_TLS_Bottom ()->d3d9->allocStackScratchStorage (len);
 
       if (pbFunc != nullptr)
       {

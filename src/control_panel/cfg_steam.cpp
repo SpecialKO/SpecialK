@@ -171,8 +171,9 @@ SK::ControlPanel::Steam::Draw (void)
 
             if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
             {
-              config.steam.achievements.sound_file =
-                sound_map [i];
+              config.steam.achievements.sound_file.assign (
+                sound_map [i]
+              );
 
               SK_Steam_LoadUnlockSound (
                 config.steam.achievements.sound_file.c_str ()
@@ -1008,7 +1009,7 @@ SK_AppCache_Manager::storeDepotCache (DepotId_t steam_depot)
 struct sk_depot_get_t {
   wchar_t   wszHostName [INTERNET_MAX_HOST_NAME_LENGTH] = { };
   wchar_t   wszHostPath [INTERNET_MAX_PATH_LENGTH]      = { };
-  DepotId_t depot_id;
+  DepotId_t depot_id                                    =  0;
 };
 
 const wchar_t*
@@ -1561,14 +1562,18 @@ SK::ControlPanel::Steam::DrawMenu (void)
             {
               for ( auto& it2 : it.second )
               {
+                // 4/28/19 -- Replaced repeated statement w/ this reference
+                auto&& test_manifest =
+                  SK_Steam_InstalledManifest [it.first].manifest;
+
                 bool selected =
-                  ( SK_Steam_InstalledManifest [it.first].manifest.id == it2.manifest.id );
+                  ( test_manifest.id == it2.manifest.id );
 
                 if (ImGui::MenuItem ( SK_FormatString ( "%s##%llu",
                                                           it2.manifest.date.c_str (),
                                                             it2.manifest.id
                                                       ).c_str (), "",  &selected ) &&
-                     SK_Steam_InstalledManifest [it.first].manifest.id != it2.manifest.id
+                                             test_manifest.id != it2.manifest.id
                    )
                 {
                   if (OpenClipboard (nullptr))
@@ -1578,7 +1583,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
                                          SK::SteamAPI::AppID (),
                                                        it.first,
                                                              it2.manifest.id,
-                           SK_Steam_InstalledManifest [it.first].manifest.id
+                                                            test_manifest.id
                                        );
 
                     const SIZE_T len =
@@ -1614,8 +1619,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
 
                       InterlockedExchange (&__SK_Steam_Downloading, it.first);
 
-                      SK_Steam_InstalledManifest [it.first].manifest.id =
-                        it2.manifest.id;
+                      test_manifest.id = it2.manifest.id;
 
                       SK_Thread_Create ([](LPVOID) ->
                         DWORD

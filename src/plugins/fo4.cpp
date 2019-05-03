@@ -6,8 +6,6 @@
 #include    <wingdi.h>
 #endif
 
-sk::ParameterFactory fo4_factory;
-
 // These are the actual GAME settings
 iSK_INI*             fo4_prefs        = nullptr;
 sk::ParameterBool*   fo4_fullscreen   = nullptr;
@@ -34,7 +32,7 @@ NvAPI_GPU_GetMemoryInfo_Detour ( NvPhysicalGpuHandle            hPhysicalGpu,
   if (fo4_spoof_memory == nullptr) {
     fo4_spoof_memory =
       dynamic_cast <sk::ParameterInt *>
-        (fo4_factory.create_parameter <int> (L"Memory Multiplier"));
+        (g_ParameterFactory->create_parameter <int> (L"Memory Multiplier"));
     fo4_spoof_memory->register_to_ini ( fo4_prefs,
                                         L"Display",
                                           L"iMemoryMultiplier" );
@@ -103,7 +101,7 @@ SK_FO4_MaximizeBorderless (void)
   {
     fo4w_fullscreen =
       dynamic_cast <sk::ParameterBool *>
-        (fo4_factory.create_parameter <bool> (L"Maximize Borderless Window"));
+        (g_ParameterFactory->create_parameter <bool> (L"Maximize Borderless Window"));
     fo4w_fullscreen->register_to_ini ( dll_ini,
                                         L"FO4W.PlugIn",
                                           L"FullscreenWindow" );
@@ -123,10 +121,11 @@ SK_FO4_CenterWindow (void)
 
   bool bRet = false;
 
-  if (fo4w_center == nullptr) {
+  if (fo4w_center == nullptr)
+  {
     fo4w_center =
       dynamic_cast <sk::ParameterBool *>
-        (fo4_factory.create_parameter <bool> (L"Center Borderless Window"));
+        (g_ParameterFactory->create_parameter <bool> (L"Center Borderless Window"));
     fo4w_center->register_to_ini ( dll_ini,
                                      L"FO4W.PlugIn",
                                        L"CenterWindow" );
@@ -150,7 +149,7 @@ SK_FO4_UseFlipMode (void)
   {
     fo4w_flipmode =
       dynamic_cast <sk::ParameterBool *>
-        (fo4_factory.create_parameter <bool> (L"Use Flip Mode"));
+        (g_ParameterFactory->create_parameter <bool> (L"Use Flip Mode"));
     fo4w_flipmode->register_to_ini ( dll_ini,
                                        L"FO4W.PlugIn",
                                          L"FlipMode" );
@@ -171,7 +170,7 @@ SK_FO4_IsFullscreen (void)
   {
     fo4_fullscreen =
       dynamic_cast <sk::ParameterBool *>
-        (fo4_factory.create_parameter <bool> (L"Fullscreen Mode"));
+        (g_ParameterFactory->create_parameter <bool> (L"Fullscreen Mode"));
     fo4_fullscreen->register_to_ini ( fo4_prefs,
                                         L"Display",
                                           L"bFull Screen" );
@@ -193,7 +192,7 @@ SK_FO4_IsBorderlessWindow (void)
   {
     fo4_borderless =
       dynamic_cast <sk::ParameterBool *>
-        (fo4_factory.create_parameter <bool> (L"Borderless Window"));
+        (g_ParameterFactory->create_parameter <bool> (L"Borderless Window"));
     fo4_borderless->register_to_ini ( fo4_prefs,
                                         L"Display",
                                           L"bBorderless" );

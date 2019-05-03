@@ -94,12 +94,12 @@ SK_InitRenderBackends (void)
 
   SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D11",
                                            new SK_IVarStub <bool> (&config.apis.dxgi.d3d11.hook ) );
-#ifdef _WIN64
+#ifdef _M_AMD64
   SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D12",
                                            new SK_IVarStub <bool> (&config.apis.dxgi.d3d12.hook ) );
   SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.Vulkan",
                                            new SK_IVarStub <bool> (&config.apis.Vulkan.hook ) );
-#else
+#else /* _M_IX86 */
   SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D8",
                                            new SK_IVarStub <bool> (&config.apis.d3d8.hook ) );
   SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.DDraw",
@@ -123,18 +123,18 @@ SK_BootD3D9 (void)
 {
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
-  if (SK_GetFramesDrawn ())
+  if (SK_GetFramesDrawn () > 0)
     return;
 
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  if (pTLS->d3d9.ctx_init_thread)
+  if (pTLS && pTLS->d3d9->ctx_init_thread)
     return;
 
   ///while (backend_dll == nullptr)
   ///{
-  ///  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
+  ///  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", SK_Thread_GetCurrentId ());
   ///  SK_Sleep    (100UL);
   ///}
 
@@ -157,7 +157,7 @@ SK_BootD3D9 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
-    pTLS->d3d9.ctx_init_thread = true;
+    pTLS->d3d9->ctx_init_thread = true;
 
     SK_D3D9_InitShaderModTools  ();
 
@@ -192,7 +192,7 @@ SK_BootD3D9 (void)
 }
 
 
-#ifndef _WIN64
+#ifndef _M_AMD64
 //////////////////////////////////////////////////////////////////////////
 //
 //  Direct3D 8
@@ -203,13 +203,13 @@ SK_BootD3D8 (void)
 {
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
-  if (SK_GetFramesDrawn ())
+  if (SK_GetFramesDrawn () > 0)
     return;
 
 
   while (backend_dll == nullptr)
   {
-    dll_log->Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
+    dll_log->Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", SK_Thread_GetCurrentId ());
     SK_Sleep (100UL);
   }
 
@@ -251,13 +251,13 @@ SK_BootDDraw (void)
 {
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
-  if (SK_GetFramesDrawn ())
+  if (SK_GetFramesDrawn () > 0)
     return;
 
 
   while (backend_dll == nullptr)
   {
-    dll_log->Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
+    dll_log->Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", SK_Thread_GetCurrentId ());
     SK_Sleep    (100UL);
   }
 
@@ -302,12 +302,12 @@ SK_BootDXGI (void)
   //SK_TLS *pTLS =
   //  SK_TLS_Bottom ();
   //
-  //if (pTLS->d3d11.ctx_init_thread)
+  //if (pTLS->d3d11->ctx_init_thread)
   //  return;
 
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
-  if (SK_GetFramesDrawn ())
+  if (SK_GetFramesDrawn () > 0)
     return;
 
 
@@ -315,7 +315,7 @@ SK_BootDXGI (void)
 
   ////while (backend_dll == nullptr)
   ////{
-  ////  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());
+  ////  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", SK_Thread_GetCurrentId ());
   ////  SK_Sleep    (100UL);
   ////}
 
@@ -323,7 +323,7 @@ SK_BootDXGI (void)
   if (SK_GetDLLRole () == DLL_ROLE::DXGI)
     config.apis.dxgi.d3d11.hook = true;
 
-#ifdef _WIN64
+#ifdef _M_AMD64
   //
   // TEMP HACK: D3D11 must be enabled to hook D3D12...
   //
@@ -367,18 +367,18 @@ SK_BootOpenGL (void)
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  if (pTLS->gl.ctx_init_thread)
-    return;
+  if ( pTLS &&
+       pTLS->gl->ctx_init_thread ) return;
 
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
-  //if (SK_GetFramesDrawn ())
+  //if (SK_GetFramesDrawn () > 0)
   //  return;
 
 
   //while (backend_dll == nullptr)
   //{
-  //  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", GetCurrentThreadId ());
+  //  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", SK_Thread_GetCurrentId ());
   //  SK_Sleep    (100UL);
   //}
 
@@ -394,7 +394,7 @@ SK_BootOpenGL (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
-    pTLS->gl.ctx_init_thread = true;
+    pTLS->gl->ctx_init_thread = true;
 
     dll_log->Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
@@ -418,7 +418,7 @@ SK_BootOpenGL (void)
 void
 SK_BootVulkan (void)
 {
-//#ifdef _WIN64
+//#ifdef _M_AMD64
 //  static volatile ULONG __booted = FALSE;
 //
 //  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
@@ -844,88 +844,77 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
   SK_AutoCriticalSection auto_cs (&cs_res);
 
-  //if (device != nullptr && swapchain != nullptr && d3d11.immediate_ctx != nullptr)
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try
   {
-    ////d3d11.immediate_ctx = SK_COM_ValidateRelease (&d3d11.immediate_ctx);
-    ////swapchain           = SK_COM_ValidateRelease (&swapchain);
-    ////device              = SK_COM_ValidateRelease (&device);
-
-    SK_LOG1 ( ( L"API: %x", api ),
-              __SK_SUBSYSTEM__ );
-
-    //// D3D11On12 (PHASING OUT)
-    //d3d11.interop.backbuffer_rtv   = nullptr;
-    //d3d11.interop.backbuffer_tex2D = nullptr;
-
-    if (d3d11.immediate_ctx != nullptr)
+    //if (device != nullptr && swapchain != nullptr && d3d11.immediate_ctx != nullptr)
     {
-        d3d11.immediate_ctx->IASetVertexBuffers     (0,     0,   nullptr,
-                                                                 nullptr,
-                                                                 nullptr);
-        d3d11.immediate_ctx->IASetIndexBuffer       (nullptr,
-                                                     DXGI_FORMAT_UNKNOWN,
-                                                                       0);
-        d3d11.immediate_ctx->IASetInputLayout       (nullptr);
-        d3d11.immediate_ctx->SOSetTargets           (0, nullptr, nullptr);
-        d3d11.immediate_ctx->PSSetShader            (0,     0,         0);
-        d3d11.immediate_ctx->VSSetShader            (0,     0,         0);
-        d3d11.immediate_ctx->PSSetShaderResources   (0,     0,   nullptr);
-        d3d11.immediate_ctx->PSSetConstantBuffers   (0,     0,   nullptr);
-        d3d11.immediate_ctx->VSSetShaderResources   (0,     0,   nullptr);
-        d3d11.immediate_ctx->VSSetConstantBuffers   (0,     0,   nullptr);
+      ////d3d11.immediate_ctx = SK_COM_ValidateRelease (&d3d11.immediate_ctx);
+      ////swapchain           = SK_COM_ValidateRelease (&swapchain);
+      ////device              = SK_COM_ValidateRelease (&device);
 
-      d3d11.immediate_ctx->OMSetRenderTargetsAndUnorderedAccessViews
-                                                  (0,          nullptr,
-                                                               nullptr,
-                                                   0,     0,   nullptr,
-                                                               nullptr);
+      SK_LOG1 ( ( L"API: %x", api ),
+                __SK_SUBSYSTEM__ );
 
+      //// D3D11On12 (PHASING OUT)
+      //d3d11.interop.backbuffer_rtv   = nullptr;
+      //d3d11.interop.backbuffer_tex2D = nullptr;
 
-      // ^^^^ All of those commands can be performed with this single API
-      //        call, but it's better to issue each of the commands on a
-      //          one-by-one basis to reduce compatibility problems.
-      d3d11.immediate_ctx->ClearState             (                   );
+      if (d3d11.immediate_ctx != nullptr)
+      {
+        //if (swapchain != nullptr) swapchain = nullptr;
+        //if (device    != nullptr) device    = nullptr;
 
-      d3d11.immediate_ctx = nullptr;
+        d3d11.immediate_ctx->PSSetShaderResources (0, 0, nullptr);
+        d3d11.immediate_ctx->VSSetShaderResources (0, 0, nullptr);
+      }
+
+      //if (d3d11.deferred_ctx != nullptr)
+      //    d3d11.deferred_ctx.Release ();
+
+      ////extern ID3D12DescriptorHeap* g_pd3dSrvDescHeap;
+      ////
+      ////if (g_pd3dSrvDescHeap != nullptr)
+      ////{
+      ////  extern void ImGui_ImplDX12_Shutdown (void);
+      ////              ImGui_ImplDX12_Shutdown (    );
+      ////
+      ////  g_pd3dSrvDescHeap->Release ();
+      ////  g_pd3dSrvDescHeap = nullptr;
+      ////}
+
+      if (api != SK_RenderAPI::D3D11On12)
+      {
+        swapchain.Release ();
+        device.Release    ();
+      }
     }
 
-    //if (d3d11.deferred_ctx != nullptr)
-    //    d3d11.deferred_ctx  = nullptr;
-
-    ////extern ID3D12DescriptorHeap* g_pd3dSrvDescHeap;
-    ////
-    ////if (g_pd3dSrvDescHeap != nullptr)
-    ////{
-    ////  extern void ImGui_ImplDX12_Shutdown (void);
-    ////              ImGui_ImplDX12_Shutdown (    );
-    ////
-    ////  g_pd3dSrvDescHeap->Release ();
-    ////  g_pd3dSrvDescHeap = nullptr;
-    ////}
-
-    if (api != SK_RenderAPI::D3D11On12)
+    if (surface.d3d9 != nullptr)
     {
-      swapchain         = nullptr;
-      device            = nullptr;
+      surface.d3d9.Release ();
+      surface.nvapi = nullptr;
     }
-  }
 
-  if (surface.d3d9 != nullptr)
-  {
-    surface.d3d9  = nullptr;
-    surface.nvapi = nullptr;
-  }
+    if (surface.dxgi != nullptr)
+    {
+      surface.dxgi.Release ();
+      surface.nvapi = nullptr;
+    }
 
-  if (surface.dxgi != nullptr)
-  {
-    surface.dxgi  = nullptr;
-    surface.nvapi = nullptr;
+    d3d11.immediate_ctx = nullptr;
   }
+  catch (const SK_SEH_IgnoredException&)
+  {
+  }
+  SK_SEH_RemoveTranslator (orig_se);
 }
 
 SK_RenderBackend_V2::SK_RenderBackend_V2 (void)
 {
-  InitializeCriticalSectionEx (&cs_res, 64*64, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN | SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
+  InitializeCriticalSectionEx ( &cs_res, 64*64, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                                SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
 }
 
 SK_RenderBackend_V2::~SK_RenderBackend_V2 (void)
@@ -1016,6 +1005,46 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
   SK_LOG1 ( (__FUNCTIONW__ L" (%X)", hWnd), L"  DEBUG!  " );
 }
 
+SK_RenderBackend_V2::scan_out_s::SK_HDR_TRANSFER_FUNC
+SK_RenderBackend_V2::scan_out_s::getEOTF (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (nvapi_hdr.isHDR10 ())
+  {
+    if (rb.framebuffer_flags & (uint64_t)SK_FRAMEBUFFER_FLAG_FLOAT)
+      return Linear; // Seems a 16-bit swapchain is always scRGB...
+    else
+      return SMPTE_2084;
+  }
+
+  switch (dwm_colorspace)//dxgi_colorspace)
+  {
+    case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:
+      return Linear;
+    case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:
+      return sRGB;
+    case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:
+      return G22;
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:
+    case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:
+    {
+      if (rb.framebuffer_flags & (uint64_t)SK_FRAMEBUFFER_FLAG_FLOAT)
+        return Linear; // Seems a 16-bit swapchain is always scRGB...
+      else
+        return SMPTE_2084;
+    } break;
+    // Pretty much only used by film
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:
+      return G24;
+    default:
+      return NONE;
+  }
+}
+
 
 sk_hwnd_cache_s::devcaps_s&
 sk_hwnd_cache_s::getDevCaps (void)
@@ -1090,3 +1119,20 @@ SK_GetFramesDrawn_NonInline (void)
 {
   return SK_GetFramesDrawn ();
 }
+
+
+const wchar_t*
+HDRModeToStr (NV_HDR_MODE mode)
+{
+  switch (mode)
+  {
+    case NV_HDR_MODE_OFF:              return L"Off";
+    case NV_HDR_MODE_UHDA:             return L"HDR10";
+    case NV_HDR_MODE_EDR:              return L"Extended Dynamic Range";
+    case NV_HDR_MODE_SDR:              return L"Standard Dynamic Range";
+    case NV_HDR_MODE_DOLBY_VISION:     return L"Dolby Vision";
+    case NV_HDR_MODE_UHDA_PASSTHROUGH: return L"HDR10 Passthrough";
+    case NV_HDR_MODE_UHDA_NB:          return L"Notebook HDR";
+    default:                           return L"Invalid";
+  };
+};

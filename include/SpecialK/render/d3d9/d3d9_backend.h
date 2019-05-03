@@ -72,7 +72,7 @@ namespace D3D9 {
     {
       void clear (void)
       {
-        rev.clear   ();
+        rev.clear ();
         clear_state ();
 
         changes_last_frame = 0;
@@ -81,7 +81,7 @@ namespace D3D9 {
       void clear_state (void)
       {
         current.crc32c = 0x0;
-        current.ptr    = nullptr;
+        current.ptr = nullptr;
       }
 
       std::unordered_map <_T*, uint32_t>      rev;
@@ -95,7 +95,7 @@ namespace D3D9 {
       struct
       {
         uint32_t                              crc32c = 0x00;
-        _T*                                   ptr    = nullptr;
+        _T* ptr = nullptr;
       } current;
 
       //d3d11_shader_tracking_s                 tracked;
@@ -105,7 +105,7 @@ namespace D3D9 {
 
     ShaderRegistry <IDirect3DPixelShader9>    pixel;
     ShaderRegistry <IDirect3DVertexShader9>   vertex;
-  } extern Shaders;
+  };
 
 // Dumb macro in WinUser.h
 #undef DrawState
@@ -136,8 +136,7 @@ namespace D3D9 {
     volatile ULONG  draw_count  = 0;
     volatile ULONG  next_draw   = 0;
     volatile ULONG  scene_count = 0;
-  } extern draw_state;
-
+  };
 
   struct FrameState
   {
@@ -154,7 +153,7 @@ namespace D3D9 {
       std::unordered_set <IDirect3DVertexBuffer9 *> dynamic;
       std::unordered_set <IDirect3DVertexBuffer9 *> immutable;
     } vertex_buffers;
-  } extern last_frame;
+  };
 
   struct KnownObjects
   {
@@ -165,7 +164,7 @@ namespace D3D9 {
 
     std::unordered_set <IDirect3DVertexBuffer9 *> static_vbs;
     std::unordered_set <IDirect3DVertexBuffer9 *> dynamic_vbs;
-  } extern known_objs;
+  };
 
   struct RenderTargetTracker
   {
@@ -183,7 +182,7 @@ namespace D3D9 {
     std::unordered_set <uint32_t> vertex_shaders;
 
     bool                          active        = false;
-  } extern tracked_rt;
+  };
 
   struct ShaderTracker
   {
@@ -232,9 +231,6 @@ namespace D3D9 {
     std::vector <shader_constant_s> constants;
   };
 
-  extern ShaderTracker tracked_vs;
-  extern ShaderTracker tracked_ps;
-
   struct VertexBufferTracker
   {
     void clear (void);
@@ -247,20 +243,29 @@ namespace D3D9 {
     >                             vertex_decls;
 
     //uint32_t                      crc32c       =  0x00;
-    bool                          cancel_draws  = false;
-    bool                          wireframe     = false;
-    bool                          active        = false;
-    volatile LONG                 num_draws     =     0L;
-    volatile LONG                 instanced     =     0L;
-    int                           instances     =     1;
+    bool                          cancel_draws = false;
+    bool                          wireframe    = false;
+    bool                          active       = false;
+    volatile LONG                 num_draws    = 0L;
+    volatile LONG                 instanced    = 0L;
+    int                           instances    = 1;
 
     std::unordered_set <uint32_t> vertex_shaders;
     std::unordered_set <uint32_t> pixel_shaders;
     std::unordered_set <uint32_t> textures;
 
-    std::unordered_set <IDirect3DVertexBuffer9 *>
-                                  wireframes;
-  } extern tracked_vb;
+    std::unordered_set <IDirect3DVertexBuffer9*>
+      wireframes;
+  };
+
+  extern SK_LazyGlobal <KnownShaders>        Shaders;
+  extern SK_LazyGlobal <DrawState>           draw_state;
+  extern SK_LazyGlobal <FrameState>          last_frame;
+  extern SK_LazyGlobal <KnownObjects>        known_objs;
+  extern SK_LazyGlobal <RenderTargetTracker> tracked_rt;
+  extern SK_LazyGlobal <ShaderTracker>       tracked_vs;
+  extern SK_LazyGlobal <ShaderTracker>       tracked_ps;
+  extern SK_LazyGlobal <VertexBufferTracker> tracked_vb;
 
   struct ShaderDisassembly {
     std::string header;
@@ -282,7 +287,6 @@ namespace SK
 {
   namespace D3D9
   {
-
     bool Startup  (void);
     bool Shutdown (void);
 
@@ -296,7 +300,9 @@ namespace SK
 
       D3DDEVINFO_D3D9PIPELINETIMINGS
                  last_results;
-    } extern pipeline_stats_d3d9;
+    };
+
+    extern SK_LazyGlobal <PipelineStatsD3D9> pipeline_stats_d3d9;
   }
 }
 

@@ -7,7 +7,9 @@ class IWrapSteamClient;
 class ISteamUser;
 class IWrapSteamUser;
 
-concurrency::concurrent_unordered_map <ISteamUser*, IWrapSteamUser*>   SK_SteamWrapper_remap_user;
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <ISteamUser*, IWrapSteamUser*>
+> SK_SteamWrapper_remap_user;
 
 int __SK_SteamUser_BLoggedOn =
   static_cast <int> (SK_SteamUser_LoggedOn_e::Unknown);
@@ -244,21 +246,24 @@ SteamAPI_ISteamClient_GetISteamUser_Detour (ISteamClient *This,
                                                        hSteamPipe,
                                                          pchVersion );
 
+  auto& _SK_SteamWrapper_remap_user =
+         SK_SteamWrapper_remap_user.get ();
+
   if (pUser != nullptr)
   {
     if ((! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_018)) ||
         (! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_019)) ||
         (! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_017)))
     {
-      if (SK_SteamWrapper_remap_user.count (pUser))
-         return SK_SteamWrapper_remap_user [pUser];
+      if (_SK_SteamWrapper_remap_user.count (pUser))
+         return _SK_SteamWrapper_remap_user  [pUser];
 
       else
       {
-        SK_SteamWrapper_remap_user [pUser] =
+        _SK_SteamWrapper_remap_user [pUser] =
                 new IWrapSteamUser (pUser);
 
-        return SK_SteamWrapper_remap_user [pUser];
+        return _SK_SteamWrapper_remap_user [pUser];
       }
     }
 
@@ -288,6 +293,9 @@ SK_SteamWrapper_WrappedClient_GetISteamUser ( ISteamClient *This,
                        __FUNCTION__, pchVersion )
   );
 
+  auto& _SK_SteamWrapper_remap_user =
+         SK_SteamWrapper_remap_user.get ();
+
   ISteamUser* pUser =
     This->GetISteamUser ( hSteamUser,
                             hSteamPipe,
@@ -299,15 +307,15 @@ SK_SteamWrapper_WrappedClient_GetISteamUser ( ISteamClient *This,
         (! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_019)) ||
         (! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_017)))
     {
-      if (SK_SteamWrapper_remap_user.count (pUser))
-         return SK_SteamWrapper_remap_user [pUser];
+      if (_SK_SteamWrapper_remap_user.count (pUser))
+         return _SK_SteamWrapper_remap_user [pUser];
 
       else
       {
-        SK_SteamWrapper_remap_user [pUser] =
-                new IWrapSteamUser (pUser);
+        _SK_SteamWrapper_remap_user [pUser] =
+                 new IWrapSteamUser (pUser);
 
-        return SK_SteamWrapper_remap_user [pUser];
+        return _SK_SteamWrapper_remap_user [pUser];
       }
     }
 
@@ -347,15 +355,15 @@ SteamUser_Detour (void)
 
   if (pUser != nullptr)
   {
-    if (SK_SteamWrapper_remap_user.count (pUser))
-       return SK_SteamWrapper_remap_user [pUser];
+    if (_SK_SteamWrapper_remap_user.count (pUser))
+       return _SK_SteamWrapper_remap_user [pUser];
 
     else
     {
-      SK_SteamWrapper_remap_user [pUser] =
+      _SK_SteamWrapper_remap_user [pUser] =
               new IWrapSteamUser (pUser);
 
-      return SK_SteamWrapper_remap_user [pUser];
+      return _SK_SteamWrapper_remap_user [pUser];
     }
   }
 

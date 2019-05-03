@@ -63,11 +63,25 @@ __forceinline    T* operator->  (void)          noexcept { return    getPtr (); 
 __forceinline    T& operator*   (void)          noexcept { return   *getPtr ();       }
 __forceinline       operator T& (void)          noexcept { return    get    ();       }
 __forceinline auto& operator [] (const int idx) noexcept { return  (*getPtr ())[idx]; }
+__forceinline bool  isAllocated (void)    const noexcept
+{
+  return
+    ( ReadAcquire (&_initlock) > 1 );
+}
 
   SK_LazyGlobal              (const SK_LazyGlobal&) = delete;
   SK_LazyGlobal& operator=   (const SK_LazyGlobal ) = delete;
 
   constexpr SK_LazyGlobal (void) {
+  }
+
+  ~SK_LazyGlobal (void)
+  {
+    if (isAllocated ())
+    {
+      InterlockedExchange (&_initlock, 0);
+      pDeferredObject.reset ();
+    }
   }
 
 protected:

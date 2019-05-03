@@ -37,7 +37,15 @@ struct IUnknown;
 
 #include <string>
 #include <typeindex>
-#include <dxgicommon.h>
+
+#define D3D11_VIDEO_NO_HELPERS
+#define D3D11_NO_HELPERS
+
+#ifndef __dxgicommon_h__
+#ifndef __dxgitype_h__
+#include <dxgitype.h>
+#endif
+#endif
 #include <d3d11.h>
 #include <d3d11_1.h>
 #include <SpecialK/render/d3d11/d3d11_3.h>
@@ -322,8 +330,6 @@ typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory_pfn)  \
 extern CreateDXGIFactory_pfn  CreateDXGIFactory_Import;
 extern CreateDXGIFactory1_pfn CreateDXGIFactory1_Import;
 extern CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
-
-extern DWORD dwRenderThread;
 
 std::wstring
 __stdcall
@@ -922,9 +928,9 @@ struct SK_D3D11_ShaderDesc
 
   struct
   {
-    volatile ULONG last_frame = 0UL;
-    __time64_t     last_time  = 0ULL;
-    ULONG          refs       = 0;
+             __time64_t last_time  = 0ULL;
+    volatile ULONG      last_frame = 0UL;
+             ULONG      refs       = 0;
   } usage;
 };
 
@@ -1344,45 +1350,9 @@ typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
   _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext);
 
-typedef enum D3DX11_IMAGE_FILE_FORMAT {
-  D3DX11_IFF_BMP          = 0,
-  D3DX11_IFF_JPG          = 1,
-  D3DX11_IFF_PNG          = 3,
-  D3DX11_IFF_DDS          = 4,
-  D3DX11_IFF_TIFF         = 10,
-  D3DX11_IFF_GIF          = 11,
-  D3DX11_IFF_WMP          = 12,
-  D3DX11_IFF_FORCE_DWORD  = 0x7fffffff
-} D3DX11_IMAGE_FILE_FORMAT, *LPD3DX11_IMAGE_FILE_FORMAT;
-
-typedef struct D3DX11_IMAGE_INFO {
-  UINT                     Width;
-  UINT                     Height;
-  UINT                     Depth;
-  UINT                     ArraySize;
-  UINT                     MipLevels;
-  UINT                     MiscFlags;
-  DXGI_FORMAT              Format;
-  D3D11_RESOURCE_DIMENSION ResourceDimension;
-  D3DX11_IMAGE_FILE_FORMAT ImageFileFormat;
-} D3DX11_IMAGE_INFO, *LPD3DX11_IMAGE_INFO;
-
-
-typedef struct D3DX11_IMAGE_LOAD_INFO {
-  UINT              Width;
-  UINT              Height;
-  UINT              Depth;
-  UINT              FirstMipLevel;
-  UINT              MipLevels;
-  D3D11_USAGE       Usage;
-  UINT              BindFlags;
-  UINT              CpuAccessFlags;
-  UINT              MiscFlags;
-  DXGI_FORMAT       Format;
-  UINT              Filter;
-  UINT              MipFilter;
-  D3DX11_IMAGE_INFO *pSrcInfo;
-} D3DX11_IMAGE_LOAD_INFO, *LPD3DX11_IMAGE_LOAD_INFO;
+typedef enum   D3DX11_IMAGE_FILE_FORMAT D3DX11_IMAGE_FILE_FORMAT, *LPD3DX11_IMAGE_FILE_FORMAT;
+typedef struct D3DX11_IMAGE_INFO        D3DX11_IMAGE_INFO,        *LPD3DX11_IMAGE_INFO;
+typedef struct D3DX11_IMAGE_LOAD_INFO   D3DX11_IMAGE_LOAD_INFO,   *LPD3DX11_IMAGE_LOAD_INFO;
 
 interface ID3DX11ThreadPump;
 

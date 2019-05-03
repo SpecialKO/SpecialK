@@ -4,9 +4,11 @@
 #include <SpecialK/input/steam.h>
 #include <SpecialK/input/input.h>
 
-sk_input_api_context_s SK_Steam_Backend;
+SK_LazyGlobal <sk_input_api_context_s> SK_Steam_Backend;
 
-concurrency::concurrent_unordered_map <ISteamController*, IWrapSteamController*>  SK_SteamWrapper_remap_controller;
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <ISteamController*, IWrapSteamController*>
+>  SK_SteamWrapper_remap_controller;
 
 using SteamAPI_ISteamClient_GetISteamController_pfn = ISteamController* (S_CALLTYPE *)(
   ISteamClient *This,
@@ -34,17 +36,21 @@ SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
 
   if (pController != nullptr)
   {
+    auto& _SK_SteamWrapper_remap_controller =
+           SK_SteamWrapper_remap_controller.get ();
+
     if (! lstrcmpA (pchVersion, STEAMCONTROLLER_INTERFACE_VERSION))
     {
-      if (SK_SteamWrapper_remap_controller.count (pController) && SK_SteamWrapper_remap_controller [pController] != nullptr)
-         return SK_SteamWrapper_remap_controller [pController];
+      if (_SK_SteamWrapper_remap_controller.count (pController) && _SK_SteamWrapper_remap_controller [pController] != nullptr)
+         return _SK_SteamWrapper_remap_controller [pController];
 
       else
       {
-        SK_SteamWrapper_remap_controller [pController] =
-                new IWrapSteamController (pController);
+        _SK_SteamWrapper_remap_controller [pController] =
+                 new IWrapSteamController (pController);
 
-        return SK_SteamWrapper_remap_controller [pController];
+        return
+          _SK_SteamWrapper_remap_controller [pController];
       }
     }
 
@@ -112,20 +118,24 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
 
     //else
     {
+      auto& _SK_SteamWrapper_remap_controller =
+             SK_SteamWrapper_remap_controller.get ();
+
       auto *pController =
          pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion);
 
       if (pController != nullptr)
       {
-        if (SK_SteamWrapper_remap_controller.count (pController) && SK_SteamWrapper_remap_controller [pController] != nullptr)
-          return static_cast <ISteamController *> ( SK_SteamWrapper_remap_controller [pController] );
+        if (_SK_SteamWrapper_remap_controller.count (pController) && _SK_SteamWrapper_remap_controller [pController] != nullptr)
+          return static_cast <ISteamController *> ( _SK_SteamWrapper_remap_controller [pController] );
 
         else
         {
-          SK_SteamWrapper_remap_controller [pController] =
-            new IWrapSteamController (pController);
+          _SK_SteamWrapper_remap_controller [pController] =
+                   new IWrapSteamController (pController);
 
-          return static_cast <ISteamController *> ( SK_SteamWrapper_remap_controller [pController] );
+          return
+            static_cast <ISteamController *> ( _SK_SteamWrapper_remap_controller [pController] );
         }
       }
     }

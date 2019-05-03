@@ -37,16 +37,11 @@ HRESULT WINAPI SetThreadDescription_NOP (HANDLE, PCWSTR) { return E_NOTIMPL; }
 HRESULT WINAPI GetThreadDescription_NOP (HANDLE, PWSTR*) { return E_NOTIMPL; }
 
 
-typedef HRESULT (WINAPI *SetThreadDescription_pfn)(HANDLE, PCWSTR);
-                         SetThreadDescription_pfn
-                         SetThreadDescription_Original = nullptr;
+using SetThreadDescription_pfn = HRESULT (WINAPI *)(HANDLE, PCWSTR);
+      SetThreadDescription_pfn
+      SetThreadDescription_Original = nullptr;
 
 const DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
-
-extern volatile LONG __SK_DLL_Attached;
-
-#include <concurrent_unordered_map.h>
-#include <concurrent_unordered_set.h>
 
 SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, std::wstring>> _SK_ThreadNames;
 SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>               _SK_SelfTitledThreads;
@@ -65,15 +60,15 @@ SK_Thread_HasCustomName (DWORD dwTid)
 std::wstring&
 SK_Thread_GetName (DWORD dwTid)
 {
-  static std::wstring noname (L"");
+  static std::wstring noname;
 
   static auto& names =
     *_SK_ThreadNames;
 
-  const auto it  =
+  const auto& it  =
     names.find (dwTid);
 
-  if (it != names.end ())
+  if (it != names.cend ())
     return (*it).second;
 
   return
@@ -88,17 +83,6 @@ SK_Thread_GetName (HANDLE hThread)
 }
 
 extern "C" {
-
-#pragma pack(push,8)
-typedef struct tagTHREADNAME_INFO
-{
-  DWORD  dwType;     // Always 4096
-  LPCSTR szName;     // Pointer to name (in user addr space).
-  DWORD  dwThreadID; // Thread ID (-1=caller thread).
-  DWORD  dwFlags;    // Reserved for future use, must be zero.
-} THREADNAME_INFO;
-#pragma pack(pop)
-
 SetThreadDescription_pfn SK_SetThreadDescription = &SetThreadDescription_NOP;
 GetThreadDescription_pfn SK_GetThreadDescription = &GetThreadDescription_NOP;
 
@@ -113,8 +97,25 @@ __make_self_titled (DWORD dwTid)
   SelfTitled.insert (dwTid);
 }
 
-using RtlRaiseException_pfn = void (WINAPI *)(_In_ PEXCEPTION_RECORD ExceptionRecord);
-extern "C" RtlRaiseException_pfn RtlRaiseException_Original;
+using      RtlRaiseException_pfn = void (WINAPI *)(_In_ PEXCEPTION_RECORD ExceptionRecord);
+extern "C" RtlRaiseException_pfn
+           RtlRaiseException_Original = nullptr;
+
+void
+SK_Thread_RaiseNameException (THREADNAME_INFO* pTni){__try
+{
+  constexpr int   SK_EXCEPTION_CONTINUABLE
+                       = 0x0;
+      const DWORD argc = sizeof (*pTni) /
+                           sizeof (ULONG_PTR);
+
+  RaiseException ( MAGIC_THREAD_EXCEPTION,
+                     SK_EXCEPTION_CONTINUABLE,
+                       argc,
+      (const ULONG_PTR *)pTni );
+}
+__except (EXCEPTION_CONTINUE_EXECUTION){}}
+
 
 HRESULT
 WINAPI
@@ -130,7 +131,6 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
   //{
   //  return E_NOT_VALID_STATE;
   //}
-
 
   size_t len;
 
@@ -150,7 +150,7 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
                       (! ReadAcquire (&__SK_DLL_Ending)))  ?
     SK_TLS_Bottom () : nullptr;
 
-    DWORD                 dwTid  = GetCurrentThreadId ();
+    DWORD                 dwTid  = SK_Thread_GetCurrentId ();
     __make_self_titled (dwTid);
            ThreadNames [dwTid] = lpThreadDescription;
 
@@ -166,34 +166,17 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
       );
     }
 
-    if (SK_IsDebuggerPresent ())
-    {
-      char      szDesc [256] = { };
-      wcstombs (szDesc, lpThreadDescription, 255);
 
-      THREADNAME_INFO info = {       };
-      info.dwType          =      4096;
-      info.szName          =    szDesc;
-      info.dwThreadID      = (DWORD)-1;
-      info.dwFlags         =       0x0;
+    char      szDesc [256] = { };
+    wcstombs (szDesc, lpThreadDescription, 255);
 
-      const DWORD argc = sizeof (info) /
-                         sizeof (ULONG_PTR);
+    THREADNAME_INFO info = {       };
+    info.dwType          =      4096;
+    info.szName          =    szDesc;
+    info.dwThreadID      = (DWORD)-1;
+    info.dwFlags         =       0x0;
 
-      auto orig_se =
-      _set_se_translator (SK_BasicStructuredExceptionTranslator);
-      try
-      {
-        constexpr int SK_EXCEPTION_CONTINUABLE = 0x0;
-
-        RaiseException ( MAGIC_THREAD_EXCEPTION,
-                           SK_EXCEPTION_CONTINUABLE,
-                             argc,
-                               reinterpret_cast <const ULONG_PTR *>(&info) );
-      }
-      catch (const SK_SEH_IgnoredException&) { };
-      _set_se_translator (orig_se);
-    }
+    SK_Thread_RaiseNameException (&info);
 
 
     // Windows 7 / 8 can go no further, they will have to be happy with the
@@ -201,25 +184,26 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     //
     if ( SK_SetThreadDescription == &SetThreadDescription_NOP ||
          SK_SetThreadDescription == nullptr ) // Will be nullptr in SKIM64
+    {
       return S_OK;
+    }
 
 
     // Finally, use the new API added in Windows 10...
-    HRESULT hr = E_UNEXPECTED;
-    HANDLE  hRealHandle;
+    HRESULT       hr         = E_UNEXPECTED;
+    SK_AutoHandle hRealHandle (INVALID_HANDLE_VALUE);
 
     if ( DuplicateHandle ( SK_GetCurrentProcess (),
                            SK_GetCurrentThread  (),
                            SK_GetCurrentProcess (),
-                             &hRealHandle,
+                             &hRealHandle.m_h,
                                THREAD_ALL_ACCESS,
                                  FALSE,
                                     0 ) )
     {
       hr =
-        SK_SetThreadDescription (hRealHandle, lpThreadDescription);
-
-      CloseHandle (hRealHandle);
+       ( SK_SetThreadDescription ( hRealHandle,
+             lpThreadDescription )             );
     }
 
     return hr;
@@ -278,10 +262,9 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
   return hr;
 }
 
-typedef void (WINAPI *InitializeCriticalSection_pfn)(
-  LPCRITICAL_SECTION lpCriticalSection
-);
-InitializeCriticalSection_pfn InitializeCriticalSection_Original = nullptr;
+using InitializeCriticalSection_pfn = void (WINAPI *)(LPCRITICAL_SECTION lpCriticalSection);
+      InitializeCriticalSection_pfn
+      InitializeCriticalSection_Original = nullptr;
 
 void
 WINAPI
@@ -367,7 +350,7 @@ SetThreadAffinityMask_Detour (
   _In_ DWORD_PTR dwThreadAffinityMask )
 {
   static SYSTEM_INFO
-    sysinfo = { };
+    sysinfo = {   };
 
   if (sysinfo.dwNumberOfProcessors == 0)
   {
@@ -377,7 +360,7 @@ SetThreadAffinityMask_Detour (
   DWORD_PTR dwRet = 0;
   DWORD     dwTid = ( hThread ==
     SK_GetCurrentThread (              ) ) ?
-            GetCurrentThreadId (       )   :
+        SK_Thread_GetCurrentId (       )   :
                    GetThreadId (hThread);
 
   if (dwTid == 0)
@@ -389,16 +372,16 @@ SetThreadAffinityMask_Detour (
   }
 
   SK_TLS*   pTLS  =
-    (dwTid == GetCurrentThreadId ()) ?
-      SK_TLS_Bottom   (     )        :
+    (dwTid == SK_Thread_GetCurrentId ()) ?
+      SK_TLS_Bottom   (     )            :
       SK_TLS_BottomEx (dwTid);
 
 
   if ( pTLS != nullptr &&
-       pTLS->scheduler.lock_affinity )
+       pTLS->scheduler->lock_affinity )
   {
     dwRet =
-      pTLS->scheduler.affinity_mask;
+      pTLS->scheduler->affinity_mask;
   }
 
   else
@@ -411,9 +394,9 @@ SetThreadAffinityMask_Detour (
 
 
   if ( pTLS != nullptr && dwRet != 0 &&
-    (! pTLS->scheduler.lock_affinity) )
+    (! pTLS->scheduler->lock_affinity) )
   {
-    pTLS->scheduler.affinity_mask =
+    pTLS->scheduler->affinity_mask =
       dwThreadAffinityMask;
   }
 
@@ -450,7 +433,7 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
   if (pTLS != nullptr)
   {
     pTLS->debug.handle = pStartParams->hHandleToStuffInternally;
-    pTLS->debug.tid    = GetCurrentThreadId ();
+    pTLS->debug.tid    = SK_Thread_GetCurrentId ();
   }
 
   DWORD dwRet =
@@ -470,6 +453,13 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
                      const wchar_t*         lpThreadName,
                      LPVOID                 lpUserParams )
 {
+  SK_LOG2 ( ( L" [+] SK_Thread_CreateEx (%ws, %ws, %p)",
+                     SK_SummarizeCaller (lpStartFunc).c_str (),
+                                       lpThreadName ? lpThreadName
+                                                    : L"{Unnamed}",
+                                       lpUserParams ),
+              L"ThreadBase" );
+
   SK_ThreadBaseParams
     *params =
       static_cast <SK_ThreadBaseParams *> (
@@ -539,19 +529,16 @@ SK_Thread_CloseSelf (void)
   return true;
 }
 
-
-
-
-#include <concurrent_unordered_map.h>
-#include <avrt.h>
-
 SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry*>> SK_MMCS_TaskMap;
 
 size_t
 SK_MMCS_GetTaskCount (void)
 {
+  static auto& task_map =
+    *SK_MMCS_TaskMap;
+
   return
-    SK_MMCS_TaskMap->size ();
+    task_map.size ();
 }
 
 std::vector <SK_MMCS_TaskEntry *>
@@ -610,8 +597,11 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
     SK_TLS* pTLS =
       SK_TLS_Bottom ();
 
-    pTLS->scheduler.mmcs_task =
-      new_entry;
+    if (pTLS != nullptr)
+    {
+      pTLS->scheduler->mmcs_task =
+        new_entry;
+    }
 
       task_map [dwTid] = new_entry;
     task_me =
@@ -631,13 +621,6 @@ SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name)
                                      "Playback" );
 }
 
-SK_MMCS_TaskEntry&
-__SK_MMCS_GetNulTaskRef (void)
-{
-  static SK_MMCS_TaskEntry nul_ref;
-  return                   nul_ref;
-}
-
 
 
 DWORD
@@ -647,5 +630,5 @@ SK_GetRenderThreadID (void)
     SK_GetCurrentRenderBackend ();
 
   return
-    ReadAcquire (&rb.thread);
+    ReadULongAcquire (&rb.thread);
 }

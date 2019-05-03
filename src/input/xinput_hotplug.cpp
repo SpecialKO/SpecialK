@@ -51,19 +51,23 @@ struct {
 };
 
 // One extra for overflow, XUSER_MAX_COUNT is never a valid index
-static SK_XInput_PacketJournal packets [XUSER_MAX_COUNT + 1];
+SK_LazyGlobal <std::array <SK_XInput_PacketJournal, XUSER_MAX_COUNT + 1>> xinput_packets;
 
 
 SK_XInput_PacketJournal
 SK_XInput_GetPacketJournal (DWORD dwUserIndex)
 {
+  static auto& packets =
+    xinput_packets.get ();
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   if (dwUserIndex >= XUSER_MAX_COUNT)
      return packets [XUSER_MAX_COUNT];
 
-  return packets [dwUserIndex];
+  return
+    packets [dwUserIndex];
 }
 
 
@@ -273,24 +277,29 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
 
     dwRet = ERROR_SUCCESS;
 
+    static auto& packets =
+      xinput_packets.get ();
+           auto& journal =
+      packets [dwUserIndex];
+
     if (! was_holding)
     {
-      packets [dwUserIndex].packet_count.virt++;
-      packets [dwUserIndex].sequence.current++;
+      journal.packet_count.virt++;
+      journal.sequence.current++;
     }
 
     SecureZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
     if (! was_holding)
     {
-      packets [dwUserIndex].sequence.current =
-        std::max   ( packets [dwUserIndex].sequence.current,
-          std::max ( packets [dwUserIndex].packet_count.real,
-                     packets [dwUserIndex].sequence.last ) );
+      journal.sequence.current =
+        std::max   ( journal.sequence.current,
+          std::max ( journal.packet_count.real,
+                     journal.sequence.last ) );
     }
 
-    pState->dwPacketNumber = packets [dwUserIndex].sequence.current;
-                             packets [dwUserIndex].sequence.last = 0;
+    pState->dwPacketNumber = journal.sequence.current;
+                             journal.sequence.last = 0;
   }
 
   return dwRet;
@@ -428,25 +437,30 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
 void
 SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState)
 {
+  static auto& packets =
+    xinput_packets.get ();
+
   if (dwUserIndex >= XUSER_MAX_COUNT) return;
   if (pState      == nullptr)         return;
 
   if (dwRet == ERROR_SUCCESS)
   {
-    if ( packets [dwUserIndex].sequence.last !=
-         pState->dwPacketNumber )
+    auto& journal =
+      packets [dwUserIndex];
+
+    if ( journal.sequence.last != pState->dwPacketNumber )
     {
-      packets [dwUserIndex].sequence.last =
-        pState->dwPacketNumber;
-      packets [dwUserIndex].packet_count.real++;
-      packets [dwUserIndex].sequence.current++;
+      journal.sequence.last = pState->dwPacketNumber;
+      journal.packet_count.real++;
+      journal.sequence.current++;
 
-      packets [dwUserIndex].sequence.current =
-        std::max   ( packets [dwUserIndex].sequence.current,
-          std::max ( packets [dwUserIndex].packet_count.real,
-                     packets [dwUserIndex].sequence.last ) );
+      journal.sequence.current =
+        std::max   ( journal.sequence.current,
+          std::max ( journal.packet_count.real,
+                     journal.sequence.last ) );
 
-      pState->dwPacketNumber = packets [dwUserIndex].sequence.current;
+      pState->dwPacketNumber =
+        journal.sequence.current;
     }
   }
 

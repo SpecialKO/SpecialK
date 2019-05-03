@@ -251,7 +251,6 @@ SK_TextOverlay::~SK_TextOverlay (void)
 char szOSD [32768] = { };
 
 extern NV_GET_CURRENT_SLI_STATE sli_state;
-extern BOOL nvapi_init;
 
 // Probably need to use a critical section to make this foolproof, we will
 //   cross that bridge later though. The OSD is performance critical
@@ -570,39 +569,39 @@ SK_DrawOSD (void)
       GetModuleFileName (hModGame, wszGameName, MAX_PATH);
 
       if (StrStrIW (wszGameName,      L"BatmanAK.exe"))
-        isArkhamKnight = true;
+        plugin_mgr->isArkhamKnight = true;
       else if (StrStrIW (wszGameName, L"Tales of Zestiria.exe"))
-        isTalesOfZestiria = true;
+        plugin_mgr->isTalesOfZestiria = true;
       else if (StrStrIW (wszGameName, L"Fallout4.exe"))
-        isFallout4 = true;
+        plugin_mgr->isFallout4 = true;
       else if (StrStrIW (wszGameName, L"NieRAutomata"))
-        isNieRAutomata = true;
+        plugin_mgr->isNieRAutomata = true;
       else if (StrStrIW (wszGameName, L"DarkSoulsIII.exe"))
-        isDarkSouls3 = true;
+        plugin_mgr->isDarkSouls3 = true;
     }
 
-    if (isFallout4)
+    if (plugin_mgr->isFallout4)
     {
       OSD_PRINTF "Fallout 4 \"Works\" v 0.3.5   %ws\n\n",
                  time
       OSD_END
     }
 
-    else if (isNieRAutomata)
+    else if (plugin_mgr->isNieRAutomata)
     {
       OSD_PRINTF "%ws   %ws\n\n",
                  SK_GetPluginName ().c_str (), time
       OSD_END
     }
 
-    else if (isArkhamKnight)
+    else if (plugin_mgr->isArkhamKnight)
     {
       OSD_PRINTF "Batman \"Fix\" v 0.20   %ws\n\n",
                  time
       OSD_END
     }
 
-    else if (isDarkSouls3)
+    else if (plugin_mgr->isDarkSouls3)
     {
       OSD_PRINTF "%ws   %ws\n\n",
                  SK_GetPluginName ().c_str (), time
@@ -658,7 +657,7 @@ SK_DrawOSD (void)
 
       const bool has_cpu_frametime =
         SK::Framerate::GetLimiter ()->get_limit () > 0.0 &&
-                                   (! isTalesOfZestiria) &&
+                                   (! plugin_mgr->isTalesOfZestiria) &&
                  frame_history2->calcNumSamples () >   0;
 
       if (! gsync)
@@ -757,20 +756,25 @@ SK_DrawOSD (void)
       afr_last = sli_state.previousFrameAFRIndex,
       afr_next = sli_state.nextFrameAFRIndex;
 
-  for (int i = 0; i < gpu_stats.num_gpus; i++)
+  gpu_sensors_t* gpu_stats =
+    SK_GPU_CurrentSensorData ();
+
+if (gpu_stats != nullptr)
+{
+  for (int i = 0; i < gpu_stats->num_gpus; i++)
   {
     OSD_G_PRINTF "  GPU%i   :            %#3lu%%",
-      i, gpu_stats.gpus [i].loads_percent.gpu
+      i, gpu_stats->gpus [i].loads_percent.gpu
     OSD_END
 
-    if (nvapi_init && gpu_stats.gpus [i].loads_percent.vid > 0)
+    if (nvapi_init && gpu_stats->gpus [i].loads_percent.vid > 0)
     {
       // Vector 3D (subtract 1 space)
       //OSD_G_PRINTF ",  VID%i %#3lu%% ,",
 
       // Raster 3D
       OSD_G_PRINTF ",  VID%i %#3lu%%  ,",
-        i, gpu_stats.gpus [i].loads_percent.vid
+        i, gpu_stats->gpus [i].loads_percent.vid
       OSD_END
     } else {
       // Vector 3D (subtract 1 space)
@@ -781,23 +785,23 @@ SK_DrawOSD (void)
     }
 
     OSD_G_PRINTF " %#4lu MHz",
-          gpu_stats.gpus [i].clocks_kHz.gpu / 1000UL
+          gpu_stats->gpus [i].clocks_kHz.gpu / 1000UL
     OSD_END
 
-    if (gpu_stats.gpus [i].volts_mV.supported)
+    if (gpu_stats->gpus [i].volts_mV.supported)
     {
       // Over (or under) voltage limit!
-      if (false)//gpu_stats.gpus [i].volts_mV.over)
+      if (false)//gpu_stats->gpus [i].volts_mV.over)
       {
         OSD_G_PRINTF ", %#6.1fmV (%+#6.1fmV)",
-          gpu_stats.gpus [i].volts_mV.core, gpu_stats.gpus [i].volts_mV.ov
+          gpu_stats->gpus [i].volts_mV.core, gpu_stats->gpus [i].volts_mV.ov
         OSD_END
       }
 
       else
       {
         OSD_G_PRINTF ", %#6.1fmV",
-          gpu_stats.gpus [i].volts_mV.core
+          gpu_stats->gpus [i].volts_mV.core
         OSD_END
       }
     }
@@ -809,10 +813,10 @@ SK_DrawOSD (void)
       ///////OSD_END
     }
 
-    if (gpu_stats.gpus [i].fans_rpm.supported && gpu_stats.gpus [i].fans_rpm.gpu > 0)
+    if (gpu_stats->gpus [i].fans_rpm.supported && gpu_stats->gpus [i].fans_rpm.gpu > 0)
     {
       OSD_G_PRINTF ", %#4lu RPM",
-        gpu_stats.gpus [i].fans_rpm.gpu
+        gpu_stats->gpus [i].fans_rpm.gpu
       OSD_END
     }
 
@@ -825,7 +829,7 @@ SK_DrawOSD (void)
 
     std::wstring temp =
       SK_FormatTemperature (
-        gpu_stats.gpus [i].temps_c.gpu,
+        gpu_stats->gpus [i].temps_c.gpu,
           Celsius,
             config.system.prefer_fahrenheit ? Fahrenheit :
                                               Celsius );
@@ -847,18 +851,18 @@ SK_DrawOSD (void)
 
     if (nvapi_init &&
         config.gpu.print_slowdown &&
-        gpu_stats.gpus [i].nv_perf_state != NV_GPU_PERF_DECREASE_NONE) {
+        gpu_stats->gpus [i].nv_perf_state != NV_GPU_PERF_DECREASE_NONE) {
       OSD_G_PRINTF "   SLOWDOWN:" OSD_END
 
-      if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_AC_BATT)
+      if (gpu_stats->gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_AC_BATT)
         OSD_G_PRINTF " (Battery)" OSD_END
-      if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_API_TRIGGERED)
+      if (gpu_stats->gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_API_TRIGGERED)
         OSD_G_PRINTF " (Driver)" OSD_END
-      if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_INSUFFICIENT_POWER)
+      if (gpu_stats->gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_INSUFFICIENT_POWER)
         OSD_G_PRINTF " (Power Supply)" OSD_END
-      if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_POWER_CONTROL)
+      if (gpu_stats->gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_POWER_CONTROL)
         OSD_G_PRINTF " (Power Limit)" OSD_END
-      if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_THERMAL_PROTECTION)
+      if (gpu_stats->gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_THERMAL_PROTECTION)
         OSD_G_PRINTF " (Thermal Limit)" OSD_END
     }
 
@@ -879,12 +883,12 @@ SK_DrawOSD (void)
       {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
           i,
-                              dxgi_mem_info [buffer].local    [i].CurrentUsage            >>   20ULL,
-                                               gpu_stats.gpus [i].loads_percent.fb,
-static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
-                       static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
+                               dxgi_mem_info [buffer].local    [i].CurrentUsage            >>   20ULL,
+                                               gpu_stats->gpus [i].loads_percent.fb,
+static_cast <double> ( static_cast <uint64_t> (gpu_stats->gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
+                       static_cast <uint64_t> (gpu_stats->gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
                                                                            (1024.0 * 1024.0 * 1024.0) *
-static_cast <double> (                         gpu_stats.gpus [i].loads_percent.fb      )  /   100.0
+static_cast <double> (                         gpu_stats->gpus [i].loads_percent.fb      )  /   100.0
         OSD_END
       }
 
@@ -895,19 +899,19 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
         OSD_END
       }
 
-      if (gpu_stats.gpus [i].clocks_kHz.ram >= 1000)
+      if (gpu_stats->gpus [i].clocks_kHz.ram >= 1000)
       {
         OSD_G_PRINTF ", %#4lu MHz",
-          gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
+          gpu_stats->gpus [i].clocks_kHz.ram / 1000UL
         OSD_END
       }
 
       // Add memory temperature if it exists
-      if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
+      if (i <= gpu_stats->num_gpus && gpu_stats->gpus [i].temps_c.ram != 0)
       {
         std::wstring temp =
           SK_FormatTemperature (
-            gpu_stats.gpus [i].temps_c.gpu,
+            gpu_stats->gpus [i].temps_c.gpu,
               Celsius,
                 config.system.prefer_fahrenheit ? Fahrenheit :
                                                   Celsius );
@@ -922,29 +926,29 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     for (int i = 0; i < nodes; i++)
     {
       // Figure out the generation from the transfer rate...
-      int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
+      int pcie_gen = gpu_stats->gpus [i].hwinfo.pcie_gen;
 
       if (nvapi_init)
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
           i,
       dxgi_mem_info [buffer].nonlocal [i].CurrentUsage               >>  20ULL,
-                       gpu_stats.gpus [i].loads_percent.bus,
-                       gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
- static_cast <double> (gpu_stats.gpus [i].loads_percent.bus)          /  100.0,
+                       gpu_stats->gpus [i].loads_percent.bus,
+                       gpu_stats->gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
+ static_cast <double> (gpu_stats->gpus [i].loads_percent.bus)          /  100.0,
                        pcie_gen,
-                       gpu_stats.gpus [i].hwinfo.pcie_lanes
-                       //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
+                       gpu_stats->gpus [i].hwinfo.pcie_lanes
+                       //gpu_stats->gpus [i].hwinfo.pcie_transfer_rate
         OSD_END
       }
 
-      else if (pcie_gen > 0 && gpu_stats.gpus [i].hwinfo.pcie_lanes > 0)
+      else if (pcie_gen > 0 && gpu_stats->gpus [i].hwinfo.pcie_lanes > 0)
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
           i,
      dxgi_mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
           pcie_gen,
-          gpu_stats.gpus [i].hwinfo.pcie_lanes
+          gpu_stats->gpus [i].hwinfo.pcie_lanes
         OSD_END
       }
 
@@ -966,64 +970,64 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
     //     on that in the future.
-    for (int i = 0; i < gpu_stats.num_gpus; i++)
+    for (int i = 0; i < gpu_stats->num_gpus; i++)
     {
       if (nvapi_init)
       {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
           i,
-     dxgi_mem_info [buffer].local    [i].CurrentUsage >> 20ULL,
-                      gpu_stats.gpus [i].loads_percent.fb,
-static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
-                       static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
-                                                                           (1024.0 * 1024.0 * 1024.0) *
-static_cast <double> (                         gpu_stats.gpus [i].loads_percent.fb      )  /   100.0
+     dxgi_mem_info [buffer].local     [i].CurrentUsage >> 20ULL,
+                      gpu_stats->gpus [i].loads_percent.fb,
+static_cast <double> ( static_cast <uint64_t> (gpu_stats->gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
+                       static_cast <uint64_t> (gpu_stats->gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
+                                                                            (1024.0 * 1024.0 * 1024.0) *
+static_cast <double> (                         gpu_stats->gpus [i].loads_percent.fb      )  /   100.0
         OSD_END
       }
 
       else
       {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
-          i, gpu_stats.gpus [i].memory_B.local >> 20ULL
+          i, gpu_stats->gpus [i].memory_B.local >> 20ULL
         OSD_END
       }
 
-      if (gpu_stats.gpus [i].clocks_kHz.ram >= 1000)
+      if (gpu_stats->gpus [i].clocks_kHz.ram >= 1000)
       {
         OSD_G_PRINTF ", %#4lu MHz",
-          gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
+          gpu_stats->gpus [i].clocks_kHz.ram / 1000UL
         OSD_END
       }
 
       OSD_G_PRINTF "\n" OSD_END
     }
 
-    for (int i = 0; i < gpu_stats.num_gpus; i++)
+    for (int i = 0; i < gpu_stats->num_gpus; i++)
     {
       // Figure out the generation from the transfer rate...
-      int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
+      int pcie_gen = gpu_stats->gpus [i].hwinfo.pcie_gen;
 
       if (nvapi_init)
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
           i,
-                       gpu_stats.gpus [i].memory_B.nonlocal          >> 20ULL,
-                       gpu_stats.gpus [i].loads_percent.bus,
-                       gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
- static_cast <double> (gpu_stats.gpus [i].loads_percent.bus)          / 100.0,
+                       gpu_stats->gpus [i].memory_B.nonlocal          >> 20ULL,
+                       gpu_stats->gpus [i].loads_percent.bus,
+                       gpu_stats->gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
+ static_cast <double> (gpu_stats->gpus [i].loads_percent.bus)          / 100.0,
                        pcie_gen,
-                       gpu_stats.gpus [i].hwinfo.pcie_lanes
-                       //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
+                       gpu_stats->gpus [i].hwinfo.pcie_lanes
+                       //gpu_stats->gpus [i].hwinfo.pcie_transfer_rate
         OSD_END
       }
 
-      else if (gpu_stats.gpus [i].hwinfo.pcie_lanes > 0 && pcie_gen > 0)
+      else if (gpu_stats->gpus [i].hwinfo.pcie_lanes > 0 && pcie_gen > 0)
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
           i,
-          gpu_stats.gpus [i].memory_B.nonlocal    >> 20ULL,
+          gpu_stats->gpus [i].memory_B.nonlocal    >> 20ULL,
           pcie_gen,
-          gpu_stats.gpus [i].hwinfo.pcie_lanes
+          gpu_stats->gpus [i].hwinfo.pcie_lanes
         OSD_END
       }
 
@@ -1031,16 +1035,16 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB       \n",
           i,
-          gpu_stats.gpus [i].memory_B.nonlocal    >> 20ULL
+          gpu_stats->gpus [i].memory_B.nonlocal    >> 20ULL
         OSD_END
       }
 
       // Add memory temperature if it exists
-      if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
+      if (i <= gpu_stats->num_gpus && gpu_stats->gpus [i].temps_c.ram != 0)
       {
         std::wstring temp =
           SK_FormatTemperature (
-            gpu_stats.gpus [i].temps_c.gpu,
+            gpu_stats->gpus [i].temps_c.gpu,
               Celsius,
                 config.system.prefer_fahrenheit ? Fahrenheit :
                                                   Celsius );
@@ -1050,6 +1054,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       }
     }
   }
+}
 
   //OSD_G_PRINTF "\n" OSD_END
 
@@ -1374,6 +1379,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
   // Avoid unnecessary MMIO when the user has the OSD turned off
   cleared = (! config.osd.show);
 
+  BOOL    bRet = FALSE;
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
@@ -1381,7 +1387,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     pTLS->texture_management.injection_thread;
     pTLS->texture_management.injection_thread = true;
 
-  const BOOL bRet =
+  bRet =
     SK_UpdateOSD (szOSD);
 
   pTLS->texture_management.injection_thread = inj_thr;
@@ -1402,7 +1408,7 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
     return FALSE;
 
   if (lpAppName == nullptr)
-    lpAppName = "Special K";
+      lpAppName = "Special K";
 
   SK_TextOverlay* pOverlay =
     SK_TextOverlayManager::getInstance    ()->
@@ -1441,7 +1447,7 @@ __stdcall
 SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
-    lpAppName = "Special K";
+      lpAppName = "Special K";
 
   // 0,0 means don't touch anything.
   if (x == 0 && y == 0)
@@ -1485,7 +1491,7 @@ SK_SetOSDScale ( float  fScale,
                  LPCSTR lpAppName )
 {
   if (lpAppName == nullptr)
-    lpAppName = "Special K";
+      lpAppName = "Special K";
 
   SK_TextOverlayManager* overlay_mgr =
     SK_TextOverlayManager::getInstance ();
@@ -1528,7 +1534,7 @@ __stdcall
 SK_ResizeOSD (float scale_incr, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
-    lpAppName = "Special K";
+      lpAppName = "Special K";
 
   SK_SetOSDScale (scale_incr, true, lpAppName);
 }
@@ -1554,6 +1560,7 @@ public:
    SE_Exception (void) = default;
   ~SE_Exception (void) = default;
 
+   explicit
    SE_Exception (unsigned int n) : nSE (n) {
    }
 
@@ -1580,16 +1587,16 @@ SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
     if (font_.cegui != nullptr         && pRenderer->getDisplaySize () != CEGUI::Sizef (0.0f, 0.0f))
         font_.cegui->setNativeResolution (pRenderer->getDisplaySize ());
 
-    const CEGUI::Rectf scrn (
-      CEGUI::Vector2f (0.0f, 0.0f),
-        pRenderer->getDisplaySize ()
-    );
+    const CEGUI::Rectf scrn(
+          CEGUI::Vector2f   (0.0f, 0.0f), pRenderer->getDisplaySize ()
+                           );
 
     //dll_log.Log (L"%fx%f", pRenderer->getDisplaySize ().d_width, pRenderer->getDisplaySize ().d_height);
 
+    auto orig_se =
+    SK_SEH_ApplyTranslator (trans_func);
     try
     {
-      _set_se_translator (trans_func);
       SE_Func (pRenderer, *this, scrn);
     }
 
@@ -1601,6 +1608,7 @@ SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
         SK_TextOverlayManager::getInstance ()->removeTextOverlay (getName ());
       // CEGUI has known issues that I don't want to fix by recompiling
     }
+    SK_SEH_RemoveTranslator (orig_se);
   }
 }
 
@@ -1680,12 +1688,13 @@ auto SK_CountLines =
 {
   int num_lines;
 
-  for ( num_lines = 0;
-          line [num_lines];
-            line [num_lines] == '\n' ?  num_lines++ :
-                                       *line++ );
+  for (   num_lines = 0;
+    line [num_lines];
+    line [num_lines] == '\n' ? num_lines++ :
+                                   *line++ );
 
-  return num_lines;
+  return
+    num_lines;
 };
 
 void
@@ -1704,8 +1713,9 @@ SK_TextOverlay::update (const char* szText)
     ( szText != nullptr ? strlen (szText) :
                                      0   );
 
-  if (szText != nullptr) {
-    *data_.text = '\0';
+  if (szText != nullptr)
+  {
+            *data_.text = '\0';
     strncat (data_.text, szText, std::min (len + 1, data_.text_len));
   }
 
@@ -1741,8 +1751,7 @@ SK_TextOverlay::update (const char* szText)
     SK_ReleaseAssert (pTLS != nullptr);
 
     char* text =
-      pTLS ? pTLS->osd.allocText (32768) :
-             nullptr;
+      pTLS->osd->allocText (32768);
 
     if (text == nullptr)
     {
@@ -1867,7 +1876,12 @@ SK_TextOverlay::update (const char* szText)
                       0.0f,
                         font_.scale,
                         font_.scale );
-        } catch (...) { };
+        }
+
+        catch (const CEGUI::Exception&)
+        {
+          line = nullptr;
+        };
       }
 
       baseline += spacing;

@@ -30,41 +30,42 @@
 
 struct WMI_refresh_instance_thread_t
 {
-           HANDLE          hThread                      = INVALID_HANDLE_VALUE;
-  volatile HANDLE          hShutdownSignal              = INVALID_HANDLE_VALUE;
+           HANDLE          hThread         = INVALID_HANDLE_VALUE;
+  volatile HANDLE          hShutdownSignal = INVALID_HANDLE_VALUE;
 
-  IWbemRefresher          *pRefresher                   = nullptr;
-  IWbemConfigureRefresher *pConfig                      = nullptr;
-  IWbemObjectAccess       *pAccess                      = nullptr;
-  long                     lID                          = 0;
+  IWbemRefresher          *pRefresher      = nullptr;
+  IWbemConfigureRefresher *pConfig         = nullptr;
+  IWbemObjectAccess       *pAccess         = nullptr;
+  long                     lID             = 0;
 
-  // Set to false after the first refresh iteration
-  bool                     booting                      = true;
+  // Set to false after the first
+  //  refresh iteration
+  bool                     booting         = true;
 };
 
 struct process_stats_t : WMI_refresh_instance_thread_t
 {
-  long               hVirtualBytes         = 0;
-  long               hVirtualBytesPeak     = 0;
-  long               hWorkingSet           = 0;
-  long               hWorkingSetPeak       = 0;
-  long               hPrivateBytes         = 0;
-  long               hThreadCount          = 0;
-  long               hPageFileBytes        = 0;
-  long               hPageFileBytesPeak    = 0;
+  long       hVirtualBytes        = 0L;
+  long       hVirtualBytesPeak    = 0L;
+  long       hWorkingSet          = 0L;
+  long       hWorkingSetPeak      = 0L;
+  long       hPrivateBytes        = 0L;
+  long       hThreadCount         = 0L;
+  long       hPageFileBytes       = 0L;
+  long       hPageFileBytesPeak   = 0L;
 
   struct {
-    uint64_t virtual_bytes;
-    uint64_t virtual_bytes_peak;
-    uint64_t working_set;
-    uint64_t working_set_peak;
-    uint64_t private_bytes;
-    uint64_t page_file_bytes;
-    uint64_t page_file_bytes_peak;
+    uint64_t virtual_bytes        = 0ULL;
+    uint64_t virtual_bytes_peak   = 0ULL;
+    uint64_t working_set          = 0ULL;
+    uint64_t working_set_peak     = 0ULL;
+    uint64_t private_bytes        = 0ULL;
+    uint64_t page_file_bytes      = 0ULL;
+    uint64_t page_file_bytes_peak = 0ULL;
   } memory;
 
   struct {
-    uint32_t thread_count;
+    uint32_t thread_count         = 0ui32;
   } tasks;
 };
 
@@ -73,7 +74,8 @@ WINAPI
 SK_MonitorProcess (LPVOID user);
 
 
-process_stats_t& __SK_WMI_ProcessStats (void);
+process_stats_t&
+__SK_WMI_ProcessStats (void);
 
 
 #endif /* __SK__MEMORY_MONITOR_H__ */

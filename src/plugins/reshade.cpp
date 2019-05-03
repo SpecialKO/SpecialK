@@ -27,7 +27,7 @@ __stdcall
 SK_ReShade_GetDLL (void)
 {
   static HMODULE hModReShade =
-    gsl::narrow_cast <HMODULE> (INVALID_HANDLE_VALUE);
+    gsl::narrow_cast <HMODULE> (nullptr);
 
   static bool tried_once = false;
 

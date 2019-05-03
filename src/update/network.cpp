@@ -20,16 +20,13 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/resource.h>
 
 extern void
 SK_Inject_Stop (void);
 
 extern void
 SK_Inject_Start (void);
-
-bool
-__cdecl
-SK_IsSuperSpecialK (void);
 
 static const int SK_UPDATE_TIMER = 68991;
 
@@ -724,6 +721,9 @@ Update_DlgProc (
 
   switch (uMsg)
   {
+    default:
+      return 0;
+
     case WM_INITDIALOG:
     {
       InterlockedExchange ( &__SK_UpdateStatus, 0 );
@@ -1329,11 +1329,9 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
       {
         if (get->status == sk_internet_get_t::STATUS_UPDATED)
         {
-          sk::ParameterFactory ParameterFactory;
-
           auto* backup_pref =
             dynamic_cast <sk::ParameterBool *> (
-              ParameterFactory.create_parameter <bool> (L"BackupFiles")
+              g_ParameterFactory->create_parameter <bool> (L"BackupFiles")
             );
 
           backup_pref->register_to_ini (
@@ -1343,7 +1341,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
           auto* keep_pref =
             dynamic_cast <sk::ParameterBool *> (
-              ParameterFactory.create_parameter <bool> (L"KeepDownloads")
+              g_ParameterFactory->create_parameter <bool> (L"KeepDownloads")
             );
 
           keep_pref->register_to_ini (

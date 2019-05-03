@@ -42,20 +42,20 @@ static D3D11_RSSetScissorRects_pfn            _D3D11_RSSetScissorRects_Original 
 
 struct mss_cfg_s
 {
-  sk::ParameterFactory factory;
-
   struct ui_s
   {
     sk::ParameterInt* res_x = nullptr;
     sk::ParameterInt* res_y = nullptr;
   } ui;
-} mss_config;
+};
+
+SK_LazyGlobal <mss_cfg_s> mss_config;
 
 struct {
   int x, y;
 } mss_res;
 
-std::unordered_set <ID3D11Resource *> mss_ui_render_buffers;
+SK_LazyGlobal <std::unordered_set <ID3D11Resource *>> mss_ui_render_buffers;
 
 using D3D11Dev_CreateBuffer_pfn = HRESULT (WINAPI *)(
   _In_           ID3D11Device            *This,
@@ -155,9 +155,9 @@ SK_MSS_CreateTexture2D (
 
   if (ui_tex && SUCCEEDED (hr))
   {
-    CComQIPtr <ID3D11Resource> pRes (*ppTexture2D);
+    SK_ComQIPtr <ID3D11Resource> pRes (*ppTexture2D);
 
-    mss_ui_render_buffers.insert (pRes);
+    mss_ui_render_buffers->insert (pRes);
   }
 
   return hr;
@@ -175,18 +175,18 @@ SK_MSS_RSSetScissorRects (
   {
     D3D11_RECT rects [16] = { };
 
-    CComPtr <ID3D11RenderTargetView> pRTV = nullptr;
-    CComPtr <ID3D11DepthStencilView> pDSV = nullptr;
+    SK_ComPtr <ID3D11RenderTargetView> pRTV = nullptr;
+    SK_ComPtr <ID3D11DepthStencilView> pDSV = nullptr;
 
     This->OMGetRenderTargets (1, &pRTV, &pDSV);
 
-    CComPtr <ID3D11Resource> pRes = nullptr;
+    SK_ComPtr <ID3D11Resource> pRes = nullptr;
 
     if (pRTV != nullptr)
     {
       pRTV->GetResource (&pRes);
 
-      if (mss_ui_render_buffers.count (pRes))
+      if (mss_ui_render_buffers->count (pRes))
       {
         for (UINT i = 0; i < NumRects; i++)
         {
@@ -223,18 +223,18 @@ SK_MSS_RSSetViewports (
   {
     D3D11_VIEWPORT vps [16] = { };
 
-    CComPtr <ID3D11RenderTargetView> pRTV = nullptr;
-    CComPtr <ID3D11DepthStencilView> pDSV = nullptr;
+    SK_ComPtr <ID3D11RenderTargetView> pRTV = nullptr;
+    SK_ComPtr <ID3D11DepthStencilView> pDSV = nullptr;
 
     This->OMGetRenderTargets (1, &pRTV, &pDSV);
 
-    CComPtr <ID3D11Resource> pRes = nullptr;
+    SK_ComPtr <ID3D11Resource> pRes = nullptr;
 
     if (pRTV != nullptr)
     {
       pRTV->GetResource (&pRes);
 
-      if (mss_ui_render_buffers.count (pRes))
+      if (mss_ui_render_buffers->count (pRes))
       {
         for (UINT i = 0; i < NumViewports; i++)
         {
@@ -287,8 +287,8 @@ SK_MSS_ControlPanel (void)
 
       if (changed)
       {
-        mss_config.ui.res_x->store (mss_res.x);
-        mss_config.ui.res_y->store (mss_res.y);
+        mss_config->ui.res_x->store (mss_res.x);
+        mss_config->ui.res_y->store (mss_res.y);
 
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
 
@@ -316,7 +316,7 @@ SK_MSS_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  while (! InterlockedAdd (&__MSS_init, 0)) SleepEx (16, FALSE);
+  while (! InterlockedAdd (&__MSS_init, 0)) SK_SleepEx (16, FALSE);
 
   return S_OK;
 }
@@ -350,23 +350,23 @@ SK_MSS_InitPlugin (void)
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
 
-  mss_config.ui.res_x =
+  mss_config->ui.res_x =
     dynamic_cast <sk::ParameterInt *>
-      (mss_config.factory.create_parameter <int> (L"X Resolution"));
+      (g_ParameterFactory->create_parameter <int> (L"X Resolution"));
 
-  mss_config.ui.res_y =
+  mss_config->ui.res_y =
     dynamic_cast <sk::ParameterInt *>
-      (mss_config.factory.create_parameter <int> (L"Y Resolution"));
+      (g_ParameterFactory->create_parameter <int> (L"Y Resolution"));
 
-  mss_config.ui.res_x->register_to_ini ( SK_GetDLLConfig (),
+  mss_config->ui.res_x->register_to_ini ( SK_GetDLLConfig (),
                                            L"MSS.UI",
                                              L"ResX" );
-  mss_config.ui.res_y->register_to_ini ( SK_GetDLLConfig (),
+  mss_config->ui.res_y->register_to_ini ( SK_GetDLLConfig (),
                                            L"MSS.UI",
                                              L"ResY" );
 
-  mss_config.ui.res_x->load (mss_res.x);
-  mss_config.ui.res_y->load (mss_res.y);
+  mss_config->ui.res_x->load (mss_res.x);
+  mss_config->ui.res_y->load (mss_res.y);
 
    SK_ApplyQueuedHooks ();
 

@@ -8,8 +8,8 @@ ISteamController_GetDigitalActionData_pfn ISteamController_GetDigitalActionData_
 
 STEAMINPUT_STATE steam_input;
 
-concurrency::concurrent_unordered_map <ControllerIndex_t,  STEAMINPUT_STATE*> steam_controllers;
-concurrency::concurrent_unordered_map <ControllerHandle_t, ControllerIndex_t> steam_controllers_rev;
+SK_LazyGlobal <concurrency::concurrent_unordered_map <ControllerIndex_t,  STEAMINPUT_STATE*>> steam_controllers;
+SK_LazyGlobal <concurrency::concurrent_unordered_map <ControllerHandle_t, ControllerIndex_t>> steam_controllers_rev;
 
 ISteamController*  STEAMINPUT_STATE::pipe  = nullptr;
 int                STEAMINPUT_STATE::count = 0;
@@ -32,7 +32,7 @@ STEAMINPUT_STATE::operator [] (ControllerIndex_t idx)
   }
 
 
-  if (steam_controllers.count (idx))
+  if (steam_controllers->count (idx))
     return *steam_controllers [idx];
 
 
@@ -48,26 +48,31 @@ ControllerIndex (ControllerHandle_t handle)
   if (handle == INVALID_CONTROLLER_HANDLE)
     return INVALID_CONTROLLER_INDEX;
 
-  if (steam_controllers_rev.count (handle))
-    return steam_controllers_rev [handle];
+  auto& _steam_controllers_rev =
+         steam_controllers_rev.get ();
+  auto& _steam_controllers =
+         steam_controllers.get ();
 
-  for (auto& it : steam_controllers)
+  if (_steam_controllers_rev.count (handle))
+    return _steam_controllers_rev  [handle];
+
+  for (auto& it : _steam_controllers)
   {
     if (it.second->handle == handle)
     {
-      steam_controllers_rev [handle] = it.first;
+      _steam_controllers_rev [handle] = it.first;
       return it.first;
     }
   }
 
   ControllerIndex_t new_idx =
-    static_cast <ControllerIndex_t> (steam_controllers.size ());
+    static_cast <ControllerIndex_t> (_steam_controllers.size ());
 
-  steam_controllers [new_idx] =
+  _steam_controllers [new_idx] =
     new STEAMINPUT_STATE { new XINPUT_STATE { },
                            new_idx, handle, false };
 
-  steam_controllers_rev [handle] = new_idx;
+  _steam_controllers_rev [handle] = new_idx;
 
   return new_idx;
 }
@@ -75,10 +80,10 @@ ControllerIndex (ControllerHandle_t handle)
 bool
 ControllerPresent (ControllerIndex_t index)
 {
-  if (steam_controllers.empty ())
+  if (steam_controllers->empty ())
     return false;
 
-  return (steam_controllers.count (index) && steam_input [index].connected);
+  return (steam_controllers->count (index) && steam_input [index].connected);
 }
 
 ControllerIndex_t
@@ -87,7 +92,9 @@ STEAMINPUT_STATE::getFirstActive (void)
   ControllerIndex_t first =
     INVALID_CONTROLLER_INDEX;
 
-  for (auto it : steam_controllers)
+  auto& _steam_controllers = steam_controllers.get ();
+
+  for (auto& it : _steam_controllers)
   {
     if ( it.second->connected              &&
          it.second->controller_idx < first    )
@@ -105,7 +112,9 @@ STEAMINPUT_STATE::getNextActive (void)
   ControllerIndex_t next =
     INVALID_CONTROLLER_INDEX;
 
-  for (auto it : steam_controllers)
+  auto& _steam_controllers = steam_controllers.get ();
+
+  for (auto& it : _steam_controllers)
   {
     if ( it.second->connected                       &&
          it.second->controller_idx < next           &&
@@ -126,6 +135,9 @@ SKX_Steam_PollGamepad (void)
          ULONG num_frames =
     SK_GetFramesDrawn ();
 
+  auto& _steam_controllers     = steam_controllers.get     ();
+  auto& _steam_controllers_rev = steam_controllers_rev.get ();
+
   if (steam_input.pipe != nullptr && ( last_frame != num_frames ))
   {
     ControllerHandle_t handles [STEAM_CONTROLLER_MAX_COUNT];
@@ -133,7 +145,7 @@ SKX_Steam_PollGamepad (void)
     steam_input.count =
       steam_input.pipe->GetConnectedControllers (handles);
 
-    for (ControllerIndex_t i = 0; i < steam_controllers.size (); i++)
+    for (ControllerIndex_t i = 0; i < _steam_controllers.size (); i++)
     {
       steam_input [i].connected = false;
     }
@@ -142,7 +154,7 @@ SKX_Steam_PollGamepad (void)
     for (int i = 0; i < steam_input.count; i++)
     {
       ControllerIndex_t  idx    =
-        static_cast <ControllerIndex_t> (steam_controllers.size ());
+        static_cast <ControllerIndex_t> (_steam_controllers.size ());
 
       // Sanity for some games such as Ghost of a Tale
       //
@@ -154,18 +166,18 @@ SKX_Steam_PollGamepad (void)
       ControllerHandle_t handle =
         handles [i];
 
-      if (steam_controllers_rev.count (handle))
+      if (_steam_controllers_rev.count (handle))
       {
         idx =
-          steam_controllers_rev [handle];
+          _steam_controllers_rev       [handle];
       }
 
       else
       {
-        steam_controllers_rev [handles [i]] = idx;
+        _steam_controllers_rev [handles [i]] = idx;
 
-        steam_input [idx].handle            = handles [i];
-        steam_input [idx].controller_idx    = idx;
+        steam_input [idx].handle             = handles [i];
+        steam_input [idx].controller_idx     = idx;
       }
 
       steam_input   [idx].connected             =  true;

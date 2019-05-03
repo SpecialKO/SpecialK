@@ -119,6 +119,7 @@ SK_CountIO (io_perf_t& ioc, const double update)
   }
 }
 
+#pragma pack (push,8)
 #include <ntverp.h>
 #if (VER_PRODUCTBUILD < 10011)
 typedef enum _CPU_SET_INFORMATION_TYPE {
@@ -364,6 +365,7 @@ typedef NTSTATUS (WINAPI *NtQuerySystemInformation_SK_pfn)(
   _In_      ULONG                       SystemInformationLength,
   _Out_opt_ PULONG                      ReturnLength
   );
+#pragma pack (pop)
 
 static NtQuerySystemInformation_SK_pfn
        NtQuerySystemInformation_SK = nullptr;
@@ -402,14 +404,14 @@ SK_MonitorCPU (LPVOID user_param)
 
   UNREFERENCED_PARAMETER (user_param);
 
+  SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
   cpu_perf_t& cpu    = *SK_WMI_CPUStats;
        float& update = config.cpu.interval;
 
   cpu.hShutdownSignal =
     SK_CreateEvent ( nullptr, FALSE, FALSE, L"CPUMon Shutdown Signal" );
-
-  SK_TLS *pTLS =
-        SK_TLS_Bottom ();
 
   DWORD           dwRet = STATUS_PENDING;
   SYSTEM_INFO        si = {            };
@@ -441,7 +443,7 @@ SK_MonitorCPU (LPVOID user_param)
 
     PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK pPerformance =
       (PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK)
-        pTLS->local_scratch.query [0].NtInfo.alloc
+        pTLS->local_scratch->query [0].NtInfo.alloc
         (
            (size_t)ulAllocatedPerfBytes,
                    true
@@ -480,7 +482,7 @@ SK_MonitorCPU (LPVOID user_param)
 
       PSYSTEM_CPU_SET_INFORMATION pCSI =
         (PSYSTEM_CPU_SET_INFORMATION)
-          pTLS->local_scratch.query [0].NtInfo.alloc
+          pTLS->local_scratch->query [0].NtInfo.alloc
           (
              (size_t)ulCSIAlloc,
                      true

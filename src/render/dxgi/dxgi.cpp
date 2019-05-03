@@ -38,6 +38,14 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
 
+// For querying the name of the monitor from the system registry when
+//   EDID and other more purpose-built driver functions fail to help.
+#pragma comment (lib, "SetupAPI.lib")
+
+#include <setupapi.h>
+#include <devguid.h>
+#include <regstr.h>
+
 using D3D11On12CreateDevice_pfn =
   HRESULT (WINAPI *)(              _In_ IUnknown*             pDevice,
                                         UINT                  Flags,
@@ -149,10 +157,12 @@ std::vector <sk_hook_cache_record_s *> local_dxgi_records =
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
 
-extern bool __SK_bypass;
-
 extern void SK_D3D11_EndFrame               (SK_TLS* pTLS = SK_TLS_Bottom ());
 extern void SK_DXGI_UpdateSwapChain         (IDXGISwapChain*);
+
+extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
+extern          HWND hWndUpdateDlg;
+extern volatile LONG __SK_TaskDialogActive;
 
 
 #include <CEGUI/CEGUI.h>
@@ -202,6 +212,8 @@ _SKC_MakeCEGUILib ("CEGUISTBImageCodec")
 static
 CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 #endif
+
+void __stdcall SK_D3D11_ResetTexCache (void);
 
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
 
@@ -666,11 +678,6 @@ SK_DXGI_PickHDRFormat (DXGI_FORMAT fmt_orig)
         rb.scanout.colorspace_override =
           orig_space;
       }
-
-      //DXGI_SWAP_CHAIN_DESC1 swap_desc_1 = { };
-      //pSwap3->GetDesc1 (&swap_desc_1);
-      //
-      //swap_desc_1.Format
     }
 
     else
@@ -705,10 +712,6 @@ SK_DXGI_PickHDRFormat (DXGI_FORMAT fmt_orig)
 
 void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 {
-  void
-  __stdcall
-  SK_D3D11_ResetTexCache (void);
-
   SK_D3D11_ResetTexCache (    );
 
   static auto& rb =
@@ -922,7 +925,10 @@ static volatile LONG  __dxgi_ready  = FALSE;
 
 void WaitForInitDXGI (void)
 {
-  if (SK_TLS_Bottom ()->d3d11.ctx_init_thread)
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS && pTLS->d3d11->ctx_init_thread)
     return;
 
   // This is a hybrid spin; it will spin for up to 250 iterations before sleeping
@@ -991,7 +997,7 @@ SK_DXGI_DescribeSwapEffect (DXGI_SWAP_EFFECT swap_effect)
 std::wstring
 SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags, INT* pLines)
 {
-  std::wstring out = L"";
+  std::wstring out;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_NONPREROTATED)
     out += L"Non-Pre Rotated\n", pLines ? (*pLines)++ : 0;
@@ -1078,13 +1084,13 @@ SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
 
 extern int                      gpu_prio;
 
-bool             bAlwaysAllowFullscreen = false;
-
-bool bFlipMode = false;
-bool bWait     = false;
+bool bAlwaysAllowFullscreen = false;
+bool bFlipMode              = false;
+bool bWait                  = false;
 
 // Used for integrated GPU override
 int              SK_DXGI_preferred_adapter = -1;
+
 
 void
 WINAPI
@@ -1266,6 +1272,9 @@ SK_DXGI_BeginHooking (void)
     HookDXGI (nullptr);
 #endif
   }
+
+  else
+    WaitForInitDXGI ();
 }
 
 #define WaitForInit() {      \
@@ -1294,7 +1303,7 @@ SK_DXGI_BeginHooking (void)
                                                                           \
     dll_log->Log (L"[   DXGI   ] [!] %s %s - "                            \
              L"[Calling Thread: 0x%04x]",                                 \
-      L#_Name, L#_Proto, GetCurrentThreadId ());                          \
+      L#_Name, L#_Proto, SK_Thread_GetCurrentId ());                      \
                                                                           \
     return _default_impl _Args;                                           \
 }
@@ -1321,7 +1330,7 @@ SK_DXGI_BeginHooking (void)
                                                                           \
     dll_log->Log (L"[   DXGI   ] [!] %s %s - "                            \
               L"[Calling Thread: 0x%04x]",                                \
-      L#_Name, L#_Proto, GetCurrentThreadId ());                          \
+      L#_Name, L#_Proto, SK_Thread_GetCurrentId ());                      \
                                                                           \
     _default_impl _Args;                                                  \
 }
@@ -1586,6 +1595,7 @@ SK_GetDXGIAdapterInterface (IUnknown *pAdapter)
 void
 SK_CEGUI_QueueResetD3D11 (void)
 {
+  SK_D3D11_EndFrame       ();
   if (cegD3D11 == (CEGUI::Direct3D11Renderer *)1)
     cegD3D11 = nullptr;
 
@@ -1811,13 +1821,6 @@ SK_EDID_Parse (uint8_t *edid, size_t length)
 
 //#include "../depends/include/nvapi/nvapi_lite_common.h"
 
-
-#pragma comment (lib, "SetupAPI.lib")
-
-#include <setupapi.h>
-#include <devguid.h>
-#include <regstr.h>
-
 static
 const GUID
       GUID_CLASS_MONITOR =
@@ -1901,151 +1904,152 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This)
 
       if (pOut6 != nullptr)
       {
-        DXGI_OUTPUT_DESC1 outDesc1 = { };
-        pOut6->GetDesc1 (&outDesc1);
-
-        // SDR (sRGB)
-        if (outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
+        DXGI_OUTPUT_DESC1                outDesc1 = { };
+        if (SUCCEEDED (pOut6->GetDesc1 (&outDesc1)))
         {
-          rb.setHDRCapable (false);
-        }
-
-        else if (outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020     ||
-                 outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709        ||
-                 outDesc1.ColorSpace == DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601 ||
-                 outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020)
-        {
-          rb.setHDRCapable (true);
-        }
-
-        else
-        {
-          rb.setHDRCapable (true);
-
-          SK_LOG0 ( ( L"Unexpected IDXGIOutput6 ColorSpace: %s",
-                        DXGIColorSpaceToStr (outDesc1.ColorSpace) ),
-                      L"   DXGI   ");
-        }
-
-        rb.scanout.bpc             = outDesc1.BitsPerColor;
-        rb.scanout.dxgi_colorspace = outDesc1.ColorSpace;
-
-        if (! edid_name.empty ())
-        {
-          wsprintf ( rb.display_name,
-                       LR"(%hs)",
-                         edid_name.c_str () );
-        }
-
-        if (*rb.display_name == L'\0')
-        {
-          wsprintf (rb.display_name, L"UNKNOWN");
-
-          HDEVINFO devInfo =
-            SetupDiGetClassDevsEx ( &GUID_CLASS_MONITOR,
-                                      nullptr, nullptr,
-                                        DIGCF_PRESENT,
-                                          nullptr, nullptr, nullptr );
-
-          if (devInfo != nullptr)
+          // SDR (sRGB)
+          if (outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
           {
-            for ( ULONG i = 0 ; ERROR_NO_MORE_ITEMS != GetLastError (); ++i )
-            {
-              SP_DEVINFO_DATA devInfoData = { };
-
-              devInfoData.cbSize = sizeof (devInfoData);
-
-              if ( SetupDiEnumDeviceInfo ( devInfo,
-                                             i,
-                                               &devInfoData )
-                 )
-              {
-                HKEY hDevRegKey =
-                  SetupDiOpenDevRegKey ( devInfo,
-                                        &devInfoData,
-                                           DICS_FLAG_GLOBAL, 0,
-                                             DIREG_DEV,      KEY_READ );
-
-
-                if ((! hDevRegKey) || (hDevRegKey == INVALID_HANDLE_VALUE))
-                  continue;
-
-                //std::wstring fullRegistryKey =
-                //  SK_GetKeyPathFromHKEY (hDevRegKey);
-
-                uint8_t EDID_Data [256] = { };
-                wchar_t valueName [512] = { };
-                DWORD   valueLen        =  511;
-                DWORD   edid_size       =  sizeof (EDID_Data);
-
-                for ( LONG j         = 0,
-                           retValue  = ERROR_SUCCESS;
-                           retValue != ERROR_NO_MORE_ITEMS;
-                                     ++j )
-                {
-                  *valueName = L'\0';
-
-                  DWORD dwType;
-
-                  retValue =
-                    RegEnumValue ( hDevRegKey, j, valueName,
-                                   &valueLen,  nullptr,
-                                     &dwType,  EDID_Data,
-                                       &edid_size );
-
-                  if ( retValue != ERROR_SUCCESS  ||
-                       wcscmp (valueName, L"EDID")  )
-                    continue;
-
-                  if (! wcscmp (valueName, L"EDID"))
-                  {
-                    if ( SK_EDID_Parse ( EDID_Data,
-                                           edid_size )
-                       )
-                    {
-                      break;
-                    }
-                  }
-                }
-
-                RegCloseKey (hDevRegKey);
-              }
-            }
+            rb.setHDRCapable (false);
           }
 
-          *rb.display_name = L'\0';
-
-           //@TODO - ELSE: Test support for various HDR colorspaces.
-
-          DISPLAY_DEVICEW        disp_desc = { };
-          disp_desc.cb = sizeof (disp_desc);
-
-          UINT devIdx = 0;
-
-          swscanf ( outDesc1.DeviceName,
-                      LR"(\\.\DISPLAY%ui)",
-                        &devIdx );
-
-          if (devIdx != 0)
-              devIdx --;
-
-          if (EnumDisplayDevices (nullptr, devIdx, &disp_desc, 0))
+          else if (outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020     ||
+                   outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709        ||
+                   outDesc1.ColorSpace == DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601 ||
+                   outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020)
           {
-            std::wstring wszDevName (
-              disp_desc.DeviceName
-            );
+            rb.setHDRCapable (true);
+          }
 
-            int mon_idx = 0;
+          else
+          {
+            rb.setHDRCapable (true);
 
-            if (EnumDisplayDevices (wszDevName.c_str (), mon_idx, &disp_desc, 0))
+            SK_LOG0 ( ( L"Unexpected IDXGIOutput6 ColorSpace: %s",
+                          DXGIColorSpaceToStr (outDesc1.ColorSpace) ),
+                        L"   DXGI   ");
+          }
+
+          rb.scanout.bpc             = outDesc1.BitsPerColor;
+          rb.scanout.dxgi_colorspace = outDesc1.ColorSpace;
+
+          if (! edid_name.empty ())
+          {
+            wsprintf ( rb.display_name,
+                         LR"(%hs)",
+                           edid_name.c_str () );
+          }
+
+          if (*rb.display_name == L'\0')
+          {
+            wsprintf (rb.display_name, L"UNKNOWN");
+
+            HDEVINFO devInfo =
+              SetupDiGetClassDevsEx ( &GUID_CLASS_MONITOR,
+                                        nullptr, nullptr,
+                                          DIGCF_PRESENT,
+                                            nullptr, nullptr, nullptr );
+
+            if (devInfo != nullptr)
             {
-              wsprintf ( rb.display_name, edid_name.empty () ?
-                                            LR"(%ws (%ws))" :
-                                              L"%hs",
-                           edid_name.empty () ?
-                             disp_desc.DeviceString :
-                    SK_UTF8ToWideChar (edid_name).c_str (),
-                               disp_desc.DeviceName );
+              for ( ULONG i = 0 ; ERROR_NO_MORE_ITEMS != GetLastError (); ++i )
+              {
+                SP_DEVINFO_DATA devInfoData = { };
+
+                devInfoData.cbSize = sizeof (devInfoData);
+
+                if ( SetupDiEnumDeviceInfo ( devInfo,
+                                               i,
+                                                 &devInfoData )
+                   )
+                {
+                  HKEY hDevRegKey =
+                    SetupDiOpenDevRegKey ( devInfo,
+                                          &devInfoData,
+                                             DICS_FLAG_GLOBAL, 0,
+                                               DIREG_DEV,      KEY_READ );
+
+
+                  if ((! hDevRegKey) || (hDevRegKey == INVALID_HANDLE_VALUE))
+                    continue;
+
+                  //std::wstring fullRegistryKey =
+                  //  SK_GetKeyPathFromHKEY (hDevRegKey);
+
+                  uint8_t EDID_Data [256] = { };
+                  wchar_t valueName [512] = { };
+                  DWORD   valueLen        =  511;
+                  DWORD   edid_size       =  sizeof (EDID_Data);
+
+                  for ( LONG j         = 0,
+                             retValue  = ERROR_SUCCESS;
+                             retValue != ERROR_NO_MORE_ITEMS;
+                                       ++j )
+                  {
+                    *valueName = L'\0';
+
+                    DWORD dwType;
+
+                    retValue =
+                      RegEnumValue ( hDevRegKey, j, valueName,
+                                     &valueLen,  nullptr,
+                                       &dwType,  EDID_Data,
+                                         &edid_size );
+
+                    if ( retValue != ERROR_SUCCESS  ||
+                         wcscmp (valueName, L"EDID")  )
+                      continue;
+
+                    if (! wcscmp (valueName, L"EDID"))
+                    {
+                      if ( SK_EDID_Parse ( EDID_Data,
+                                             edid_size )
+                         )
+                      {
+                        break;
+                      }
+                    }
+                  }
+
+                  RegCloseKey (hDevRegKey);
+                }
+              }
+            }
+
+            *rb.display_name = L'\0';
+
+             //@TODO - ELSE: Test support for various HDR colorspaces.
+
+            DISPLAY_DEVICEW        disp_desc = { };
+            disp_desc.cb = sizeof (disp_desc);
+
+            UINT devIdx = 0;
+
+            swscanf ( outDesc1.DeviceName,
+                        LR"(\\.\DISPLAY%ui)",
+                          &devIdx );
+
+            if (devIdx != 0)
+                devIdx --;
+
+            if (EnumDisplayDevices (nullptr, devIdx, &disp_desc, 0))
+            {
+              std::wstring wszDevName (
+                disp_desc.DeviceName
+              );
+
+              int mon_idx = 0;
+
+              if (EnumDisplayDevices (wszDevName.c_str (), mon_idx, &disp_desc, 0))
+              {
+                wsprintf ( rb.display_name, edid_name.empty () ?
+                                              LR"(%ws (%ws))" :
+                                                L"%hs",
+                             edid_name.empty () ?
+                               disp_desc.DeviceString :
+                      SK_UTF8ToWideChar (edid_name).c_str (),
+                                 disp_desc.DeviceName );
+              }
             }
           }
         }
@@ -3105,13 +3109,23 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-                             pTLS->imgui.drawing                       = FALSE;
+                             pTLS->imgui->drawing                      = FALSE;
                              pTLS->texture_management.injection_thread = FALSE;
-  SK_ScopedBool auto_bool0 (&pTLS->imgui.drawing);
+  SK_ScopedBool auto_bool0 (&pTLS->imgui->drawing);
   SK_ScopedBool auto_bool1 (&pTLS->texture_management.injection_thread);
-                             pTLS->imgui.drawing                       = TRUE;
+                             pTLS->imgui->drawing                      = TRUE;
                              pTLS->texture_management.injection_thread = TRUE;
 
+  extern std::pair <BOOL*, BOOL>
+  SK_ImGui_FlagDrawing_OnD3D11Ctx (size_t dev_idx);
+
+  auto flag_result =
+    SK_ImGui_FlagDrawing_OnD3D11Ctx (
+      SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx)
+    );
+
+  SK_ScopedBool auto_bool2 (flag_result.first);
+                           *flag_result.first = flag_result.second;
 
   if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
   {
@@ -3134,7 +3148,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   else if (cegD3D11 == nullptr)
   {
-    DXGI_SWAP_CHAIN_DESC desc;
+    DXGI_SWAP_CHAIN_DESC desc = { };
     This->GetDesc      (&desc);
 
     SK_InstallWindowHook (desc.OutputWindow);
@@ -3360,7 +3374,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       //// Uses TLS to reduce dynamic memory pressure as much as possible
       SK_D3D11_Stateblock_Lite sb_ = { };
                    auto* sb = &sb_;
-                   //pTLS->d3d11.getStateBlock ();
+                   //pTLS->d3d11->getStateBlock ();
                    //RtlZeroMemory ( sb,
                    //                  sizeof (SK_D3D11_Stateblock_Lite) );
 #else
@@ -3524,10 +3538,10 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 ///  SK_TLS* pTLS =
 ///    SK_TLS_Bottom ();
 ///
-///  SK_ScopedBool auto_bool0 (&pTLS->imgui.drawing);
-///  SK_ScopedBool auto_bool1 (&pTLS->texture_management.injection_thread);
-///                             pTLS->imgui.drawing                       = TRUE;
-///                             pTLS->texture_management.injection_thread = TRUE;
+///  SK_ScopedBool auto_bool0 (&pTLS->imgui->drawing);
+///  SK_ScopedBool auto_bool1 (&pTLS->texture_management->injection_thread);
+///                             pTLS->imgui->drawing                       = TRUE;
+///                             pTLS->texture_management->injection_thread = TRUE;
 ///
 ///
 ///  if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
@@ -3812,7 +3826,7 @@ SK_DXGI_Present ( IDXGISwapChain *This,
                   UINT            SyncInterval,
                   UINT            Flags )
 {
-  SK_ReleaseAssert (Flags <= (2 * DXGI_PRESENT_ALLOW_TEARING));
+  //SK_ReleaseAssert (Flags <= (2 * DXGI_PRESENT_ALLOW_TEARING));
 
   if (Flags > 2 * DXGI_PRESENT_ALLOW_TEARING)
       Flags = 0x0;
@@ -3830,7 +3844,7 @@ SK_DXGI_Present ( IDXGISwapChain *This,
   }
 
   auto orig_se =
-  _set_se_translator (SK_BasicStructuredExceptionTranslator);
+  SK_SEH_ApplyTranslator (SK_BasicStructuredExceptionTranslator);
   try                                {
     hr =
       Present_Original (This, SyncInterval, Flags);
@@ -3841,10 +3855,12 @@ SK_DXGI_Present ( IDXGISwapChain *This,
   //
   catch (const SK_SEH_IgnoredException&)
   {
-    SK_CEGUI_QueueResetD3D11 ();
+    SK_D3D11_EndFrame        ();
+    SK_D3D11_ResetTexCache   ();
+    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
     hr = S_OK;
   }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 
   return hr;
 }
@@ -3859,7 +3875,7 @@ SK_DXGI_Present1 ( IDXGISwapChain1         *This,
   HRESULT hr = S_OK;
 
   auto orig_se =
-  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try                                {
     hr =
       Present1_Original (This, SyncInterval, Flags, pPresentParameters);
@@ -3870,10 +3886,12 @@ SK_DXGI_Present1 ( IDXGISwapChain1         *This,
   //
   catch (const SK_SEH_IgnoredException&)
   {
-    SK_CEGUI_QueueResetD3D11 ();
+    SK_D3D11_EndFrame        ();
+    SK_D3D11_ResetTexCache   ();
+    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
     hr = S_OK;
   }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 
   return hr;
 }
@@ -4679,22 +4697,37 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
       {
         if (ReadAcquire (&__SK_NVAPI_UpdateGSync))
         {
-          UINT currentBuffer = 0;
+          std::lock_guard <SK_Thread_CriticalSection> auto_lock (*budget_mutex);
 
-          if (rb.surface.dxgi != nullptr)
+          auto orig_se =
+          SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+          try
           {
-            rb.surface.dxgi  = nullptr;
-            rb.surface.nvapi = nullptr;
+            UINT currentBuffer = 0;
+
+            if (rb.surface.dxgi != nullptr)
+            {
+              rb.surface.dxgi.Release ();
+              rb.surface.nvapi = nullptr;
+            }
+
+            if ( SUCCEEDED ( This->GetBuffer ( currentBuffer,
+                                                 IID_PPV_ARGS (&rb.surface.dxgi) ) ) )
+            {
+              NvAPI_D3D_GetObjectHandleForResource ( pDev,
+                                                       rb.surface.dxgi,
+                                                      &rb.surface.nvapi );
+
+              rb.gsync_state.update ();
+
+              InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
+            }
           }
 
-          if (SUCCEEDED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&rb.surface.dxgi))))
+          catch (const SK_SEH_IgnoredException&)
           {
-            NvAPI_D3D_GetObjectHandleForResource (pDev, rb.surface.dxgi, &rb.surface.nvapi);
-
-            rb.gsync_state.update ();
-
-            InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
           }
+          SK_SEH_RemoveTranslator (orig_se);
         }
 
         SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue);
@@ -4753,10 +4786,11 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
          > cached_descs;
 
 
-  extern bool SK_NNK2_CacheModes;
-
   static const auto game_id =
     SK_GetCurrentGameID ();
+
+#ifdef _M_AMD64
+  extern bool SK_NNK2_CacheModes;
 
   if (game_id == SK_GAME_ID::NiNoKuni2 && SK_NNK2_CacheModes)
   {
@@ -4785,6 +4819,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       return S_OK;
     }
   }
+#endif
 
 
   if (pDesc != nullptr)
@@ -5110,15 +5145,12 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
       //SK_DXGI_ValidateSwapChainResize (This, 0, pNewNewTargetParameters->Width, pNewNewTargetParameters->Height, pNewNewTargetParameters->Format);
     }
 
+
     ret =
       ResizeTarget_Original (This, pNewNewTargetParameters);
 
     if (FAILED (ret))
     {
-      void
-        __stdcall
-        SK_D3D11_ResetTexCache (void);
-
       SK_D3D11_EndFrame        ();
       SK_D3D11_ResetTexCache   ();
       SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
@@ -5333,9 +5365,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   }
 
 
-  extern void
-  SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
-
   SK_COMPAT_FixUpFullscreen_DXGI (Fullscreen);
 
 
@@ -5345,8 +5374,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
 
   // If auto-update prompt is visible, don't go fullscreen.
-  extern          HWND hWndUpdateDlg;
-  extern volatile LONG __SK_TaskDialogActive;
   if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE) ||
                                ReadAcquire (&__SK_TaskDialogActive) )
   {
@@ -5794,10 +5821,6 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
   if (ret == DXGI_ERROR_INVALID_CALL)
   {
-    void
-      __stdcall
-      SK_D3D11_ResetTexCache (void);
-
     SK_D3D11_EndFrame        ();
     SK_D3D11_ResetTexCache   ();
     SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
@@ -6023,10 +6046,6 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
     if (FAILED (ret))
     {
-      void
-        __stdcall
-        SK_D3D11_ResetTexCache (void);
-
       SK_D3D11_EndFrame        ();
       SK_D3D11_ResetTexCache   ();
       SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
@@ -6113,8 +6132,6 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
   if (pDesc != nullptr)
   {
     // If auto-update prompt is visible, don't go fullscreen.
-    extern          HWND hWndUpdateDlg;
-    extern volatile LONG __SK_TaskDialogActive;
     if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE) ||
                                  ReadAcquire (&__SK_TaskDialogActive) )
     {
@@ -6497,8 +6514,6 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
   }
 }
 
-void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
-
 void
 SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
 {
@@ -6541,8 +6556,6 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
                                    _In_  DXGI_SWAP_CHAIN_DESC  *pDesc,
                                    _In_  IDXGISwapChain       **ppSwapChain )
 {
-  extern void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
-
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -6558,10 +6571,10 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     StrStrIW (wszClass, L"Special K Dummy Window Class") ||
     StrStrIW (wszClass, L"RTSSWndClass");
 
-  if ((! dummy_window) && pDesc != nullptr && ( dwRenderThread == 0 || dwRenderThread == GetCurrentThreadId () ))
+  if ((! dummy_window) && pDesc != nullptr && ( dwRenderThread == 0 || dwRenderThread == SK_Thread_GetCurrentId () ))
   {
     if ( dwRenderThread == 0x00 ||
-         dwRenderThread == GetCurrentThreadId () )
+         dwRenderThread == SK_Thread_GetCurrentId () )
     {
       auto& windows =
         rb.windows;
@@ -6587,7 +6600,7 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     //     this assumption holds.
     if ( dwRenderThread == 0x00 )
     {
-      dwRenderThread = GetCurrentThreadId ();
+      dwRenderThread = SK_Thread_GetCurrentId ();
     }
   }
 
@@ -7138,14 +7151,6 @@ typedef enum skUndesirableVendors {
   Microsoft = 0x1414,
   Intel     = 0x8086
 } Vendors;
-
-HRESULT
-STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
-                               _Out_ void   **ppFactory);
-
-HRESULT
-STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
-                                _Out_ void   **ppFactory);
 
 void
 WINAPI
@@ -8010,8 +8015,6 @@ SK_HookDXGI (void)
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
-static std::queue <DWORD> old_threads;
-
 void
 WINAPI
 dxgi_init_callback (finish_pfn finish)
@@ -8058,8 +8061,6 @@ SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain)
   }
 }
 
-//extern SK_DXGI_HDRControl* SK_HDR_GetControl (void);
-
 HRESULT
 WINAPI
 IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
@@ -8074,61 +8075,12 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 
   rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
 
-  //////if (Type == DXGI_HDR_METADATA_TYPE_HDR10)
-  //////{
-  //////  if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
-  //////  {
-  //////    static DXGI_HDR_METADATA_HDR10 last_data = { };
-  //////
-  //////    if (pMetaData != nullptr)
-  //////      last_data = *(DXGI_HDR_METADATA_HDR10 *)pMetaData;
-  //////
-  //////    DXGI_HDR_METADATA_HDR10* pData =
-  //////      (DXGI_HDR_METADATA_HDR10 *)&last_data;
-  //////
-  //////    SK_DXGI_HDRControl* pHDRCtl =
-  //////      SK_HDR_GetControl ();
-  //////
-  //////
-  //////    if (! pHDRCtl->overrides.MaxContentLightLevel)
-  //////      pHDRCtl->meta.MaxContentLightLevel = pData->MaxContentLightLevel;
-  //////    else
-  //////      pData->MaxContentLightLevel = pHDRCtl->meta.MaxContentLightLevel;
-  //////
-  //////    if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
-  //////      pHDRCtl->meta.MaxFrameAverageLightLevel = pData->MaxFrameAverageLightLevel;
-  //////    else
-  //////      pData->MaxFrameAverageLightLevel = pHDRCtl->meta.MaxFrameAverageLightLevel;
-  //////
-  //////
-  //////    if (! pHDRCtl->overrides.MinMaster)
-  //////      pHDRCtl->meta.MinMasteringLuminance = pData->MinMasteringLuminance;
-  //////    else
-  //////      pData->MinMasteringLuminance = pHDRCtl->meta.MinMasteringLuminance;
-  //////
-  //////    if (! pHDRCtl->overrides.MaxMaster)
-  //////      pHDRCtl->meta.MaxMasteringLuminance = pData->MaxMasteringLuminance;
-  //////    else
-  //////      pData->MaxMasteringLuminance = pHDRCtl->meta.MaxMasteringLuminance;
-  //////
-  //////
-  //////    if (pMetaData == nullptr)
-  //////        pMetaData = &last_data;
-  //////  }
-  //////}
-
   HRESULT hr =
     IDXGISwapChain4_SetHDRMetaData_Original (This, Type, Size, pMetaData);
 
   //SK_HDR_GetControl ()->meta._AdjustmentCount++;
 
-  if (FAILED (hr))
-  {
-    if (config.render.dxgi.spoof_hdr)
-      return S_OK;
-  }
-
-  else if (Type == DXGI_HDR_METADATA_TYPE_HDR10)
+  if (SUCCEEDED (hr) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
   {
     if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
     {
@@ -8175,8 +8127,6 @@ DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space)
   };
 };
 
-DXGI_COLOR_SPACE_TYPE SpoofColorSpace = DXGI_COLOR_SPACE_RESERVED;
-
 HRESULT
 WINAPI
 IDXGISwapChain3_CheckColorSpaceSupport_Override ( IDXGISwapChain3       *This,
@@ -8203,14 +8153,6 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override ( IDXGISwapChain3       *This,
         ColorSpace,
           pColorSpaceSupported
     );
-
-  if (config.render.dxgi.spoof_hdr)
-  {
-    *pColorSpaceSupported =
-      DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT;
-
-    return S_OK;
-  }
 
   return hr;
 }
@@ -8354,75 +8296,13 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
     rb.display_gamut.maxLocalY = pDesc->MaxLuminance;
     rb.display_gamut.maxY      = pDesc->MaxFullFrameLuminance;
 
-    ////////SK_DXGI_HDRControl* pHDRCtl =
-    ////////  SK_HDR_GetControl ();
-    ////////
-    ////////if (config.render.dxgi.spoof_hdr)
-    ////////{
-    ////////  pDesc->BitsPerColor          = 10;
-    ////////  pDesc->RedPrimary   [0]      = 0.659680f; pDesc->RedPrimary   [1] = 0.340344f;
-    ////////  pDesc->GreenPrimary [0]      = 0.244641f; pDesc->GreenPrimary [1] = 0.670422f;
-    ////////  pDesc->BluePrimary  [0]      = 0.130383f; pDesc->BluePrimary  [1] = 0.040539f;
-    ////////  pDesc->WhitePoint   [0]      = 0.313000f; pDesc->WhitePoint   [1] = 0.329602f;
-    ////////  pDesc->ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
-    ////////  pDesc->MinLuminance          =   1.00000f;
-    ////////  pDesc->MaxLuminance          = 300.000000f;
-    ////////  pDesc->MaxFullFrameLuminance = 250.000000f;
-    ////////
-    ////////  if (SpoofColorSpace != DXGI_COLOR_SPACE_RESERVED)
-    ////////    pDesc->ColorSpace = SpoofColorSpace;
-    ////////}
-
-//    rb.setHDRCapable (false);
-
     if ( (pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
           // This is pretty much never going to happen in windowed mode
           pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709     ) )
     ///if (pDesc->ColorSpace != DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
     {
-      //SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
-      //
-      //DXGI_SWAP_CHAIN_DESC swap_desc = { };
-      //if (pSwap3 != nullptr)
-      //{
-      //  //pSwap3->GetDesc (&swap_desc);
-      //
-      //  //if (swap_desc.Windowed)
-      //  //{
-      //  //  if (swap_desc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||
-      //  //      swap_desc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL)
-      //  //  {
-      //  //    rb.setHDRCapable (true);
-      //  //  }
-      //  //}
-      //
-      //  //else
-        rb.setHDRCapable (true);
-      //}
+      rb.setHDRCapable (true);
     }
-
-    ////////pHDRCtl->devcaps.BitsPerColor = pDesc->BitsPerColor;
-    ////////pHDRCtl->devcaps.ColorSpace   = pDesc->ColorSpace;
-    ////////
-    ////////pHDRCtl->devcaps.BluePrimary  [0] = pDesc->BluePrimary  [0];
-    ////////pHDRCtl->devcaps.BluePrimary  [1] = pDesc->BluePrimary  [1];
-    ////////
-    ////////pHDRCtl->devcaps.RedPrimary   [0] = pDesc->RedPrimary   [0];
-    ////////pHDRCtl->devcaps.RedPrimary   [1] = pDesc->RedPrimary   [1];
-    ////////
-    ////////pHDRCtl->devcaps.GreenPrimary [0] = pDesc->GreenPrimary [0];
-    ////////pHDRCtl->devcaps.GreenPrimary [1] = pDesc->GreenPrimary [1];
-    ////////
-    ////////pHDRCtl->devcaps.WhitePoint   [0] = pDesc->WhitePoint   [0];
-    ////////pHDRCtl->devcaps.WhitePoint   [1] = pDesc->WhitePoint   [1];
-    ////////
-    ////////pHDRCtl->devcaps.MinLuminance = pDesc->MinLuminance;
-    ////////pHDRCtl->devcaps.MaxLuminance = pDesc->MaxLuminance;
-    ////////
-    ////////pHDRCtl->devcaps.MaxFullFrameLuminance = pDesc->MaxFullFrameLuminance;
-
-    if (config.render.dxgi.spoof_hdr)
-      return S_OK;
   }
 
   return hr;
@@ -8840,7 +8720,7 @@ HookDXGI (LPVOID user)
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  if (__SK_bypass || ReadAcquire (&__dxgi_ready) || pTLS->d3d11.ctx_init_thread)
+  if (__SK_bypass || ReadAcquire (&__dxgi_ready) || pTLS->d3d11->ctx_init_thread)
   {
     SK_Thread_CloseSelf ();
     return 0;
@@ -8851,7 +8731,7 @@ HookDXGI (LPVOID user)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked, TRUE, FALSE))
   {
-    pTLS->d3d11.ctx_init_thread = true;
+    pTLS->d3d11->ctx_init_thread = true;
 
     SK_AutoCOMInit auto_com;
 
@@ -8917,7 +8797,7 @@ HookDXGI (LPVOID user)
                         &featureLevel,
                           (ID3D11DeviceContext **)&pImmediateContext );
 
-    sk_hook_d3d11_t d3d11_hook_ctx;
+    sk_hook_d3d11_t d3d11_hook_ctx = { };
 
     d3d11_hook_ctx.ppDevice           = &pDevice;
     d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
@@ -9060,24 +8940,28 @@ struct budget_thread_params_t
            IDXGIAdapter3 *pAdapter = nullptr;
            HANDLE         handle   = INVALID_HANDLE_VALUE;
            HANDLE         event    = INVALID_HANDLE_VALUE;
+           HANDLE         manual   = INVALID_HANDLE_VALUE;
            HANDLE         shutdown = INVALID_HANDLE_VALUE;
            DWORD          tid      = 0UL;
            DWORD          cookie   = 0UL;
   volatile LONG           ready    = FALSE;
-} budget_thread;
+};
+
+SK_LazyGlobal <budget_thread_params_t> budget_thread;
 
 void
 SK_DXGI_SignalBudgetThread (void)
 {
-  if (budget_thread.event != INVALID_HANDLE_VALUE)
-    SetEvent (budget_thread.event);
+  if (budget_thread->manual != INVALID_HANDLE_VALUE)
+    SetEvent (budget_thread->manual);
 }
 
 bool
 WINAPI
 SK_DXGI_IsTrackingBudget (void)
 {
-  return budget_thread.tid != 0UL;
+  return
+    ( budget_thread->tid != 0UL );
 }
 
 
@@ -9096,51 +8980,56 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
     // We darn sure better not spawn multiple threads!
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (*budget_mutex);
 
-    if ( budget_thread.handle == INVALID_HANDLE_VALUE )
+    if ( budget_thread->handle == INVALID_HANDLE_VALUE )
     {
       // We're going to Release this interface after thread spawnning, but
       //   the running thread still needs a reference counted.
       pAdapter3->AddRef ();
 
-      ZeroMemory ( &budget_thread,
+      ZeroMemory ( budget_thread.getPtr (),
                      sizeof budget_thread_params_t );
 
       dll_log->LogEx ( true,
                          L"[ DXGI 1.4 ]   "
                          L"$ Spawning Memory Budget Change Thread..: " );
 
-      WriteRelease ( &budget_thread.ready,
+      WriteRelease ( &budget_thread->ready,
                        FALSE );
 
-      budget_thread.pAdapter = pAdapter3;
-      budget_thread.tid      = 0;
-      budget_log->silent     = true;
-      budget_thread.event    =
+      budget_thread->pAdapter = pAdapter3;
+      budget_thread->tid      = 0;
+      budget_log->silent      = true;
+      budget_thread->event    =
         SK_CreateEvent ( nullptr,
-                           TRUE,
-                             FALSE, nullptr );
+                           FALSE,
+                             TRUE, nullptr );
                                //L"DXGIMemoryBudget" );
-      budget_thread.shutdown =
+      budget_thread->manual   =
+        SK_CreateEvent ( nullptr,
+                           FALSE,
+                             TRUE, nullptr );
+                               //L"DXGIMemoryWakeUp!" );
+      budget_thread->shutdown =
         SK_CreateEvent ( nullptr,
                            TRUE,
                              FALSE, nullptr );
                                //L"DXGIMemoryBudget_Shutdown" );
 
-      budget_thread.handle =
+      budget_thread->handle =
         SK_Thread_CreateEx
           ( BudgetThread,
               nullptr,
-                (LPVOID)&budget_thread );
+                (LPVOID)budget_thread.getPtr () );
 
 
-      SK_Thread_SpinUntilFlagged (&budget_thread.ready);
+      SK_Thread_SpinUntilFlagged (&budget_thread->ready);
 
 
-      if ( budget_thread.tid != 0 )
+      if ( budget_thread->tid != 0 )
       {
         dll_log->LogEx ( false,
                            L"tid=0x%04x\n",
-                             budget_thread.tid );
+                             budget_thread->tid );
 
         dll_log->LogEx ( true,
                            L"[ DXGI 1.4 ]   "
@@ -9148,16 +9037,16 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
         HRESULT result =
           pAdapter3->RegisterVideoMemoryBudgetChangeNotificationEvent (
-                            budget_thread.event,
-                           &budget_thread.cookie
+                            budget_thread->event,
+                           &budget_thread->cookie
           );
 
         if ( SUCCEEDED ( result ) )
         {
           dll_log->LogEx ( false,
                              L"eid=0x%08" PRIxPTR L", cookie=%u\n",
-                               (uintptr_t)budget_thread.event,
-                                          budget_thread.cookie );
+                               (uintptr_t)budget_thread->event,
+                                          budget_thread->cookie );
 
           hr = S_OK;
         }
@@ -9338,7 +9227,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     static_cast <budget_thread_params_t *> (user_data);
 
   budget_log->silent = true;
-  params->tid        = GetCurrentThreadId ();
+  params->tid        = SK_Thread_GetCurrentId ();
 
   InterlockedExchangeAcquire ( &params->ready, TRUE );
 
@@ -9349,6 +9238,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
   SetThreadPriority      ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
   SetThreadPriorityBoost ( SK_GetCurrentThread (), TRUE                   );
 
+  DWORD dwWaitStatus = DWORD_MAX;
+
   while ( ReadAcquire ( &params->ready ) )
   {
     if (ReadAcquire (&__SK_DLL_Ending))
@@ -9358,18 +9249,18 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       break;
 
     HANDLE phEvents [] = {
-      params->event, params->shutdown
+      params->event, params->shutdown,
+      params->manual // Update memory totals, but not due to a budget change
     };
 
-    DWORD dwWaitStatus =
-      WaitForMultipleObjects ( 2,
+    dwWaitStatus =
+      WaitForMultipleObjects ( 3,
                                  phEvents,
                                    FALSE,
                                      INFINITE );
 
     if (! ReadAcquire ( &params->ready ) )
     {
-      ResetEvent ( params->event );
       break;
     }
 
@@ -9575,9 +9466,6 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       budget_log->LogEx ( false, L"\n" );
     }
 
-               ( params->event != nullptr ) ?
-    ResetEvent ( params->event )            : 0;
-
     dxgi_mem_info [0].buffer =
                       buffer;
   }
@@ -9634,8 +9522,8 @@ SK::DXGI::ShutdownBudgetThread ( void )
 {
   SK_AutoClose_LogEx (budget_log, budget);
 
-  if (                                     budget_thread.handle != INVALID_HANDLE_VALUE &&
-       InterlockedCompareExchangeRelease (&budget_thread.ready, 0, 1) )
+  if (                                     budget_thread->handle != INVALID_HANDLE_VALUE &&
+       InterlockedCompareExchangeRelease (&budget_thread->ready, 0, 1) )
   {
     dll_log->LogEx (
       true,
@@ -9643,16 +9531,16 @@ SK::DXGI::ShutdownBudgetThread ( void )
     );
 
     DWORD dwWaitState =
-      SignalObjectAndWait ( budget_thread.shutdown,
-                              budget_thread.handle, // Give 1 second, and
-                                1000UL,             // then we're killing
-                                  TRUE );           // the thing!
+      SignalObjectAndWait ( budget_thread->shutdown,
+                              budget_thread->handle, // Give 1 second, and
+                                1000UL,              // then we're killing
+                                  TRUE );            // the thing!
 
 
-    if (budget_thread.shutdown != INVALID_HANDLE_VALUE)
+    if (budget_thread->shutdown != INVALID_HANDLE_VALUE)
     {
-      CloseHandle (budget_thread.shutdown);
-                   budget_thread.shutdown = INVALID_HANDLE_VALUE;
+      CloseHandle (budget_thread->shutdown);
+                   budget_thread->shutdown = INVALID_HANDLE_VALUE;
     }
 
     if ( dwWaitState == WAIT_OBJECT_0 )
@@ -9663,13 +9551,13 @@ SK::DXGI::ShutdownBudgetThread ( void )
     else
     {
       dll_log->LogEx  ( false, L"timed out (killing manually)!\n" );
-      TerminateThread ( budget_thread.handle,                   0 );
+      TerminateThread ( budget_thread->handle,                  0 );
     }
 
-    if (budget_thread.handle != INVALID_HANDLE_VALUE)
+    if (budget_thread->handle != INVALID_HANDLE_VALUE)
     {
-      CloseHandle ( budget_thread.handle );
-                    budget_thread.handle = INVALID_HANDLE_VALUE;
+      CloseHandle ( budget_thread->handle );
+                    budget_thread->handle = INVALID_HANDLE_VALUE;
     }
 
     // Record the final statistics always

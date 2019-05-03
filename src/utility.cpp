@@ -89,7 +89,7 @@ SK_GetDocumentsDir (void)
 
   // Fast Path  (cached)
   //
-  static std::wstring dir (L"");
+  static std::wstring dir;
 
   if (ReadAcquire (&__init) == 2)
   {
@@ -135,7 +135,8 @@ SK_GetDocumentsDir (void)
     InterlockedIncrementRelease (&__init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&__init, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&__init, 2);
 
   return dir;
 }
@@ -183,7 +184,7 @@ SK_GetFontsDir (void)
 
   // Fast Path  (cached)
   //
-  static std::wstring dir (L"");
+  static std::wstring dir;
 
   if (ReadAcquire (&__init) == 2)
   {
@@ -397,10 +398,8 @@ SK_IsTrue (const wchar_t* string)
 
   pstr = CharNextW (pstr);
 
-  if (towlower (*pstr) != L'e')
-    return false;
-
-  return true;
+  return
+    towlower (*pstr) != L'e';
 }
 
 time_t
@@ -537,10 +536,10 @@ SK_File_ApplyAttribMask ( const wchar_t *file,
 }
 
 BOOL
-SK_File_SetHidden (const wchar_t *file, bool hide)
+SK_File_SetHidden (const wchar_t *file, bool hidden)
 {
   return
-    SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_HIDDEN, (! hide));
+    SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_HIDDEN, (! hidden));
 }
 
 BOOL
@@ -1031,10 +1030,6 @@ SK_SelfDestruct (void) noexcept
 {
   if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
   {
-    BOOL
-    __stdcall
-    SK_Detach (DLL_ROLE role);
-
     SK_Detach (SK_GetDLLRole ());
   }
 }
@@ -1083,8 +1078,8 @@ SK_SuspendAllOtherThreads (void)
         if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
                                   sizeof (tent.th32OwnerProcessID) )
         {
-          if ( tent.th32ThreadID       != GetCurrentThreadId  () &&
-               tent.th32OwnerProcessID == GetCurrentProcessId () )
+          if ( tent.th32ThreadID       != SK_Thread_GetCurrentId () &&
+               tent.th32OwnerProcessID == GetCurrentProcessId    () )
           {
             SK_AutoHandle hThread (
               OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
@@ -1135,8 +1130,8 @@ SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
                                   sizeof (tent.th32OwnerProcessID) )
         {
           if ( (! exempt_tids.count (tent.th32ThreadID)) &&
-                                     tent.th32ThreadID       != GetCurrentThreadId  () &&
-                                     tent.th32OwnerProcessID == GetCurrentProcessId () )
+                                     tent.th32ThreadID       != SK_Thread_GetCurrentId () &&
+                                     tent.th32OwnerProcessID == GetCurrentProcessId    () )
           {
             SK_AutoHandle hThread (
               OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
@@ -1196,7 +1191,7 @@ SK_TestImports (          HMODULE  hMod,
   int hits = 0;
 
   auto orig_se =
-  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try
   {
     auto                pImgBase =
@@ -1228,7 +1223,8 @@ SK_TestImports (          HMODULE  hMod,
 
       while (reinterpret_cast <uintptr_t> (pImpDesc) < end)
       {
-        _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+        orig_se =
+        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
         try
         {
           if (pImpDesc->Name == 0x00)
@@ -1260,6 +1256,7 @@ SK_TestImports (          HMODULE  hMod,
         catch (const SK_SEH_IgnoredException&)
         {
         }
+        orig_se.pfnTranslator = SK_SEH_RemoveTranslator (orig_se);
       }
     }
   }
@@ -1269,7 +1266,7 @@ SK_TestImports (          HMODULE  hMod,
     dll_log->Log ( L"[Import Tbl] Access Violation Attempting to "
                    L"Walk Import Table." );
   }
-  _set_se_translator (orig_se);
+  SK_SEH_RemoveTranslator (orig_se);
 
   if (hits == 0)
   {
@@ -1417,8 +1414,8 @@ SK_Import_VersionDLL (void)
 {
   if (hModVersion == nullptr)
   {
-    //if(!(hModVersion = GetModuleHandle           (L"Version.dll")))
-    {      hModVersion = SK_Modules->LoadLibraryLL (L"Version.dll"); }
+  //if(!(hModVersion = GetModuleHandle         (L"Version.dll")))
+    {    hModVersion = SK_Modules->LoadLibrary (L"Version.dll"); }
   }
   //Api-ms-win-core-version-l1-1-0.dll");
 
@@ -1504,6 +1501,9 @@ bool
 __stdcall
 SK_IsDLLSpecialK (const wchar_t* wszName)
 {
+  if (GetProcAddress (GetModuleHandleW (wszName), "SK_GetDLL") != nullptr)
+    return true;
+
   UINT     cbTranslatedBytes = 0,
            cbProductBytes    = 0;
 
@@ -1524,8 +1524,8 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
 
   uint8_t *cbData =
     (pTLS != nullptr) ?
-      (uint8_t *)pTLS->scratch_memory.cmd.alloc (dwSize + 1UL, true) :
-      (uint8_t *)SK_LocalAlloc (LPTR,            dwSize + 1UL);
+      (uint8_t *)pTLS->scratch_memory->cmd.alloc (dwSize + 1UL, true) :
+      (uint8_t *)SK_LocalAlloc (LPTR,             dwSize + 1UL);
 
   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
 
@@ -1557,7 +1557,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                                                                lpTranslate )
   {
     wchar_t      wszPropName [64] = { };
-    _snwprintf ( wszPropName, 64,
+    _snwprintf ( wszPropName, 63,
                    LR"(\StringFileInfo\%04x%04x\ProductName)",
                      lpTranslate   [0].wLanguage,
                        lpTranslate [0].wCodePage );
@@ -1599,8 +1599,8 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
 
   uint8_t *cbData =
     (pTLS != nullptr) ?
-      (uint8_t *)pTLS->scratch_memory.cmd.alloc (dwSize + 1UL, true) :
-      (uint8_t *)SK_LocalAlloc (LPTR,            dwSize + 1UL);
+      (uint8_t *)pTLS->scratch_memory->cmd.alloc (dwSize + 1UL, true) :
+      (uint8_t *)SK_LocalAlloc (LPTR,             dwSize + 1UL);
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -1629,7 +1629,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
   {
     wchar_t wszPropName [64] = { };
 
-    _snwprintf ( wszPropName, 64,
+    _snwprintf ( wszPropName, 63,
                   LR"(\StringFileInfo\%04x%04x\FileDescription)",
                     lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
@@ -1639,7 +1639,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
               static_cast_p2p <void> (&wszFileDescrip),
                                       &cbProductBytes );
 
-    _snwprintf ( wszPropName, 64,
+    _snwprintf ( wszPropName, 63,
                    LR"(\StringFileInfo\%04x%04x\FileVersion)",
                      lpTranslate   [0].wLanguage,
                        lpTranslate [0].wCodePage );
@@ -1656,7 +1656,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
     return L"  ";
   }
 
-  std::wstring ret = L"";
+  std::wstring ret;
 
   if (cbProductBytes)
   {
@@ -1844,7 +1844,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       bool match = false;
 
       auto orig_se =
-      _set_se_translator (SK_BasicStructuredExceptionTranslator);
+      SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
       try {
         match =
           (*scan_addr == test_val);
@@ -1853,7 +1853,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       catch (const SK_SEH_IgnoredException&) {
         //continue;
       }
-      _set_se_translator (orig_se);
+      SK_SEH_RemoveTranslator (orig_se);
 
       if (mask != nullptr)
       {
@@ -1874,18 +1874,18 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       {
         if (++idx == len)
         {
-          if ((reinterpret_cast <uintptr_t> (begin) % align) == 0)
-          {
-            return begin;
-          }
-
-          else
+          if ((reinterpret_cast <uintptr_t> (begin) % align) != 0)
           {
             begin += idx;
             begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
 
             it     = begin;
             idx    = 0;
+          }
+
+          else
+          {
+            return begin;
           }
         }
 
@@ -1958,8 +1958,10 @@ SK_InjectMemory ( LPVOID  base_addr,
                   DWORD   permissions,
                   void   *old_data )
 {
+  BOOL bRet = FALSE;
+
   auto orig_se =
-  _set_se_translator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try
   {
     DWORD dwOld =
@@ -1974,9 +1976,7 @@ SK_InjectMemory ( LPVOID  base_addr,
       VirtualProtect ( base_addr, data_size,
                        dwOld,     &dwOld );
 
-      _set_se_translator (orig_se);
-
-      return TRUE;
+      bRet = TRUE;
     }
   }
 
@@ -1990,10 +1990,9 @@ SK_InjectMemory ( LPVOID  base_addr,
     //     of the data successfully - consider an undo mechanism.
     //
   }
+  SK_SEH_RemoveTranslator (orig_se);
 
-  _set_se_translator (orig_se);
-
-  return FALSE;
+  return bRet;
 }
 
 uint64_t
@@ -2211,7 +2210,7 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
 const wchar_t*
 SK_GetBlacklistFilename (void)
 {
-  if ( host_proc->blacklist )
+  if ( host_proc->blacklist.load () )
     return host_proc->wszBlacklist;
 
   static volatile
@@ -2225,10 +2224,13 @@ SK_GetBlacklistFilename (void)
 
     SK_PathRemoveExtension (host_proc->wszBlacklist);
 
-    host_proc->blacklist = true;
+    host_proc->blacklist.store (true);
 
     InterlockedIncrementRelease  (&init);
-  } SK_Thread_SpinUntilAtomicMin (&init, 2);
+  }
+
+  else
+    SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
     host_proc->wszBlacklist;
@@ -2237,7 +2239,7 @@ SK_GetBlacklistFilename (void)
 const wchar_t*
 SK_GetHostApp (void)
 {
-  if ( host_proc->app )
+  if ( host_proc->app.load () )
     return host_proc->wszApp;
 
   static volatile
@@ -2290,12 +2292,13 @@ SK_GetHostApp (void)
                     wszProcessName, _TRUNCATE );
     }
 
-    host_proc->app = true;
+    host_proc->app.store (true);
 
     InterlockedIncrementRelease (&init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
     host_proc->wszApp;
@@ -2304,7 +2307,7 @@ SK_GetHostApp (void)
 const wchar_t*
 SK_GetFullyQualifiedApp (void)
 {
-  if ( host_proc->full_name )
+  if ( host_proc->full_name.load () )
     return host_proc->wszFullName;
 
   static volatile
@@ -2320,12 +2323,13 @@ SK_GetFullyQualifiedApp (void)
     wcsncpy_s ( host_proc->wszFullName, MAX_PATH * 2,
                   wszProcessName,       _TRUNCATE );
 
-    host_proc->full_name = true;
+    host_proc->full_name.store (true);
 
     InterlockedIncrementRelease (&init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
     host_proc->wszFullName;
@@ -2337,7 +2341,7 @@ SK_GetFullyQualifiedApp (void)
 const wchar_t*
 SK_GetHostPath (void)
 {
-  if ( host_proc->path )
+  if ( host_proc->path.load () )
     return host_proc->wszPath;
 
   static volatile
@@ -2362,12 +2366,13 @@ SK_GetHostPath (void)
       host_proc->wszPath, MAX_PATH * 2,
         wszProcessName,  _TRUNCATE  );
 
-    host_proc->path = true;
+    host_proc->path.store (true);
 
     InterlockedIncrementRelease (&init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
     host_proc->wszPath;
@@ -2377,7 +2382,7 @@ SK_GetHostPath (void)
 const wchar_t*
 SK_GetSystemDirectory (void)
 {
-  if ( host_proc->sys_dir )
+  if ( host_proc->sys_dir.load () )
     return host_proc->wszSystemDir;
 
   static volatile
@@ -2399,12 +2404,13 @@ SK_GetSystemDirectory (void)
       GetSystemDirectory      (host_proc->wszSystemDir, MAX_PATH);
 #endif
 
-    host_proc->sys_dir = true;
+    host_proc->sys_dir.store (true);
 
     InterlockedIncrementRelease (&init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
     host_proc->wszSystemDir;
@@ -2830,19 +2836,19 @@ SK_COM_CoCreateInstanceAsAdmin ( HWND     hWnd,
 template <class T>
 class SK_COM_VtblPtr {
 public:
-  SK_COM_VtblPtr (T* lp) throw ()
+  SK_COM_VtblPtr (T* lp) noexcept
   {
     p = lp;
   }
 
-  ~SK_COM_VtblPtr (void) throw ()
+  ~SK_COM_VtblPtr (void) noexcept
   {
     if ( p != nullptr ) {
          p->lpVtbl->Release (p);
          p = nullptr;   }
   }
 
-  T* operator= (_Inout_opt_ T* lp) throw ()
+  SK_COM_VtblPtr& operator= (_Inout_opt_ T* lp) noexcept
   {
     if ( p != lp &&
          p != nullptr )
@@ -2854,12 +2860,12 @@ public:
     return p;
   }
 
-  T* operator-> (void) const throw ()
+  T* operator-> (void) const noexcept
   {
     return p;
   }
 
-  operator T* (void) const throw ()
+  operator T* (void) explicit const noexcept
   {
     return p;
   }
@@ -2869,10 +2875,13 @@ public:
     return *p;
   }
 
-  T** operator& (void) throw ()
-  {
-    return &p;
-  }
+  //Severity	Code	Description	Project	File	Line	Suppression State
+  //Warning		Clang : do not overload unary operator&, it is dangerous.[google - runtime - operator]	SpecialK	C : \Users\amcol\source\repos\SpecialK\src\utility.cpp	2873
+
+  //T** operator& (void) noexcept
+  //{
+  //  return &p;
+  //}
 
   T* p;
 };
@@ -3003,6 +3012,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
   else if (StrStrA (lpszCmdLine, "Uninstall"))
   {
+    DWORD   dwTime                       = timeGetTime ();
     wchar_t wszCurrentDir [MAX_PATH * 2] = { };
     wchar_t wszUserDLL    [MAX_PATH * 2] = { };
     wchar_t wszKernelSys  [MAX_PATH * 2] = { };
@@ -3045,10 +3055,10 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
         wchar_t wszTemp [MAX_PATH * 2] = { };
 
         GetTempFileNameW        ( wszCurrentDir,  L"SKI",
-                                  timeGetTime (), wszTemp );
+                                  dwTime,         wszTemp );
         SK_File_MoveNoFail      ( wszUserDLL,     wszTemp );
         GetTempFileNameW        ( wszCurrentDir,  L"SKI",
-                                  timeGetTime()+1,wszTemp );
+                                  dwTime+1,       wszTemp );
         SK_File_MoveNoFail      ( wszKernelSys,   wszTemp );
         SK_DeleteTemporaryFiles ( wszCurrentDir           );
 
@@ -3096,10 +3106,10 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
       wchar_t wszTemp [MAX_PATH * 2] = { };
 
       GetTempFileNameW        ( wszCurrentDir,  L"SKI",
-                                timeGetTime (), wszTemp );
+                                dwTime,         wszTemp );
       SK_File_MoveNoFail      ( wszUserDLL,     wszTemp );
       GetTempFileNameW        ( wszCurrentDir,  L"SKI",
-                                timeGetTime()+1,wszTemp );
+                                dwTime+1,       wszTemp );
       SK_File_MoveNoFail      ( wszKernelSys,   wszTemp );
       SK_DeleteTemporaryFiles ( wszCurrentDir           );
 
@@ -3138,9 +3148,10 @@ SK_WinRing0_Uninstall (void)
     SK_GetModuleFullName (skModuleRegistry::Self ());
 
   wchar_t wszTemp [MAX_PATH * 2] = { };
+  DWORD   dwTime                 = timeGetTime ();
 
   GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
-                           timeGetTime                  (), wszTemp);
+                           dwTime                         , wszTemp);
   SK_File_MoveNoFail      (kernelmode_driver_path.c_str (), wszTemp);
   SK_DeleteTemporaryFiles (path_to_driver.c_str         ()         );
 
@@ -3190,11 +3201,11 @@ SK_WinRing0_Uninstall (void)
 
     RtlSecureZeroMemory     (wszTemp, MAX_PATH * 2 * 2);
     GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
-                             timeGetTime                  (), wszTemp);
+                             dwTime                         , wszTemp);
     SK_File_MoveNoFail      (kernelmode_driver_path.c_str (), wszTemp);
     RtlSecureZeroMemory     (wszTemp, MAX_PATH * 2 * 2);
     GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
-                             timeGetTime                  (), wszTemp);
+                             dwTime+1                       , wszTemp);
     SK_File_MoveNoFail      (installer_path.c_str         (), wszTemp);
     SK_DeleteTemporaryFiles (path_to_driver.c_str         ()         );
 
@@ -3352,10 +3363,14 @@ SK_FormatString (char const* const _Format, ...)
   size_t alloc_size =
     sizeof (char) * (len + 2);
 
+  SK_TLS* pTLS =
+    nullptr;
+
   char* pData =
-    ( ReadAcquire (&__SK_DLL_Attached) ?
-        (char *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (alloc_size, true) :
-        (char *)SK_LocalAlloc (                        LPTR, alloc_size      ) );
+    ( ReadAcquire (&__SK_DLL_Attached) &&
+              (pTLS = SK_TLS_Bottom ()) != nullptr )              ?
+       (char *)pTLS->scratch_memory->eula.alloc (alloc_size, true) :
+       (char *)SK_LocalAlloc (             LPTR, alloc_size      );
 
   if (! pData)
     return std::string ();
@@ -3416,9 +3431,14 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   size_t alloc_size =
     sizeof (wchar_t) * (len + 2);
 
-  wchar_t* pData = ReadAcquire (&__SK_DLL_Attached) ?
-    (wchar_t *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (alloc_size, true) :
-    (wchar_t *)SK_LocalAlloc (                        LPTR, alloc_size      );
+  SK_TLS* pTLS =
+    nullptr;
+
+  wchar_t* pData =
+    ( ReadAcquire (&__SK_DLL_Attached) &&
+              (pTLS = SK_TLS_Bottom ()) != nullptr )              ?
+    (wchar_t *)pTLS->scratch_memory->eula.alloc (alloc_size, true) :
+    (wchar_t *)SK_LocalAlloc (              LPTR, alloc_size      );
 
   if (! pData)
     return std::wstring ();

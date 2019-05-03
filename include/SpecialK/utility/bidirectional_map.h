@@ -44,8 +44,8 @@ public:
   using       k_iterator = typename std::unordered_map <_V, _K>::iterator;
   using k_const_iterator = typename std::unordered_map <_V, _K>::const_iterator;
 
-  _K dummy_key;
-  _V dummy_value;
+  _K dummy_key   = { };
+  _V dummy_value = { };
 
 public:
   SKTL_BidirectionalHashMap ( std::initializer_list

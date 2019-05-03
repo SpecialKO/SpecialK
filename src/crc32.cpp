@@ -556,7 +556,8 @@ __crc32_init (void)
     InterlockedIncrementRelease (&__crc32c_init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&__crc32c_init, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&__crc32c_init, 2);
 }
 
 extern "C"
@@ -576,7 +577,7 @@ _Notnull_ const void    *input,
       InterlockedIncrement (&__init);
     }
 
-    else if (ReadAcquire (&__init) < 2)
+    else
     {
       SK_Thread_SpinUntilAtomicMin (&__init, 2);
     }

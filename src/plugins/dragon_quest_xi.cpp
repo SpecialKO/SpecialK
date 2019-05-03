@@ -21,6 +21,8 @@
 //
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <imgui/imgui.h>
 
 extern volatile
@@ -29,7 +31,6 @@ extern volatile
 LONG SK_D3D11_CBufferTrackingReqs;
 
 extern iSK_INI*             dll_ini;
-extern sk::ParameterFactory g_ParameterFactory;
 
 
 ////struct SK_DQXI_UE4_Tweaks
@@ -101,7 +102,7 @@ extern sk::ParameterFactory g_ParameterFactory;
 ////    temporal_aa.pAASamples =
 ////      dynamic_cast <sk::ParameterInt *>
 ////      (
-////        g_ParameterFactory.create_parameter <int> (L"Temporal AA Samples")
+////        g_ParameterFactory->create_parameter <int> (L"Temporal AA Samples")
 ////      );
 ////    temporal_aa.pAASamples->register_to_ini (
 ////      pINI,
@@ -112,7 +113,7 @@ extern sk::ParameterFactory g_ParameterFactory;
 ////    temporal_aa.pAASharpness =
 ////      dynamic_cast <sk::ParameterFloat *>
 ////      (
-////        g_ParameterFactory.create_parameter <float> (L"Temporal AA Sharpness")
+////        g_ParameterFactory->create_parameter <float> (L"Temporal AA Sharpness")
 ////      );
 ////    temporal_aa.pAASharpness->register_to_ini (
 ////      pINI,
@@ -124,7 +125,7 @@ extern sk::ParameterFactory g_ParameterFactory;
 ////    textures.pMaxAniso =
 ////      dynamic_cast <sk::ParameterInt *>
 ////      (
-////        g_ParameterFactory.create_parameter <int> (L"Texture Max Aniso.")
+////        g_ParameterFactory->create_parameter <int> (L"Texture Max Aniso.")
 ////      );
 ////    textures.pMaxAniso->register_to_ini (
 ////      pINI,
@@ -136,7 +137,7 @@ extern sk::ParameterFactory g_ParameterFactory;
 ////    tonemap.pSharpen =
 ////      dynamic_cast <sk::ParameterFloat *>
 ////      (
-////        g_ParameterFactory.create_parameter <float> (L"Tonemapper.Sharpen")
+////        g_ParameterFactory->create_parameter <float> (L"Tonemapper.Sharpen")
 ////      );
 ////    tonemap.pSharpen->register_to_ini (
 ////      pINI,
@@ -181,7 +182,7 @@ sk::ParameterStringW*
 
   auto* ret =
     dynamic_cast <sk::ParameterStringW *>
-    (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
+    (g_ParameterFactory->create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
   if (ret != nullptr)
     ret->register_to_ini ( ini, sec, binding->short_name );
@@ -354,9 +355,6 @@ SK_DQXI_PlugInInit (void)
 
   pINI->write (pINI->get_filename ());
 
-  //ue4_cfg.init ();
-
-  static
   std::unordered_set <uint32_t>
     __SK_DQXI_UI_Vtx_Shaders =
     {
@@ -364,7 +362,6 @@ SK_DQXI_PlugInInit (void)
       0x6f046ebc, 0x711c9eeb
     };
 
-  static
   std::unordered_set <uint32_t>
     __SK_DQXI_UI_Pix_Shaders =
     {

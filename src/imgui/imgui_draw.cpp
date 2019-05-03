@@ -691,9 +691,9 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, const
     if (Flags & ImDrawListFlags_AntiAliasedLines)
     {
         // Anti-aliased stroke
-        const float AA_SIZE = 1.0f;
-
-        const ImVec4 col_trans (col.Value.x, col.Value.y, col.Value.z, 1.0f);
+        const float  AA_SIZE = 1.0f;
+        const ImVec4 col_trans ( col.Value.x, col.Value.y,
+                                 col.Value.z, 0.0f       );
 
         const int idx_count = thick_line ? count*18 : count*12;
         const int vtx_count = thick_line ? points_count*4 : points_count*3;
@@ -702,7 +702,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, const
 
         // Temporary buffer
         ImVec2* temp_normals =
-          (ImVec2*)GImGui->ThreadContext->imgui.allocPolylineStorage (
+          (ImVec2*)GImGui->ThreadContext->imgui->allocPolylineStorage (
             points_count * ( thick_line ? 5 : 3 ) * sizeof (ImVec2)
           );
         ImVec2* temp_points = temp_normals + points_count;
@@ -896,7 +896,7 @@ void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_coun
 
         // Compute normals
         ImVec2* temp_normals =
-          (ImVec2*)GImGui->ThreadContext->imgui.allocPolylineStorage (
+          (ImVec2*)GImGui->ThreadContext->imgui->allocPolylineStorage (
             points_count * sizeof (ImVec2)
           );
         for (int i0 = points_count-1, i1 = 0; i1 < points_count; i0 = i1++)

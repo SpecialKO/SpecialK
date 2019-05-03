@@ -106,6 +106,32 @@ struct SK_InjectionRecord_s
 SK_InjectionRecord_s*
 SK_Inject_GetRecord (int idx);
 
+// Returns false if there is nothing to wait on, or if something else is
+//   already waiting for unhook.
+bool
+SK_Inject_WaitOnUnhook (void);
+
+typedef HHOOK (NTAPI *NtUserSetWindowsHookEx_pfn)(
+          HINSTANCE hMod,
+     const wchar_t* UnsafeModuleName,
+              DWORD ThreadId,
+                int HookId,
+           HOOKPROC HookProc,
+               BOOL Ansi );
+
+typedef LRESULT (NTAPI *NtUserCallNextHookEx_pfn)(
+ _In_opt_ HHOOK  hhk,
+ _In_     int    nCode,
+ _In_     WPARAM wParam,
+ _In_     LPARAM lParam
+);
+
+typedef BOOL (WINAPI *NtUserUnhookWindowsHookEx_pfn)(
+ _In_ HHOOK hhk
+);
+
+extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
+
 
 // Part of the DLL Shared Data Segment
 //

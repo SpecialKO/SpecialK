@@ -19,9 +19,8 @@
  *
 **/
 
-#pragma once
-
 #include <SpecialK/stdafx.h>
+#include <SpecialK/resource.h>
 
 #include <imgui/imgui.h>
 
@@ -40,7 +39,7 @@ SK_GetLicenseText (SHORT id)
     DWORD   res_size    = SizeofResource ( hMod, res );
     HGLOBAL license_ref = LoadResource   ( hMod, res );
 
-    // There is no forseeable reason this would be NULL, but the Application Verifier will not shutup about it.
+    // There is no foreseeable reason this would be NULL, but the Application Verifier will not shut up about it.
     if (! license_ref) return std::string ();
 
     const char* const locked =
@@ -183,9 +182,10 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unsupported" :
                                           "Overview of Products Licensed"))
     {
-      ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
+      SK_ImGui_AutoFont fixed_font (
+        ImGui::GetIO ().Fonts->Fonts [1]
+      );
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_OVERVIEW).c_str ());
-      ImGui::PopFont  ();
     }
 
     ImGui::Separator  ();
@@ -254,9 +254,10 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
     if (config.apis.NvAPI.enable && ImGui::CollapsingHeader ("NvAPI"))
     {
-      ImGui::PushFont    (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
+      SK_ImGui_AutoFont fixed_font (
+        ImGui::GetIO ().Fonts->Fonts [1]
+      );
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_NVAPI).c_str ());
-      ImGui::PopFont     ();
     }
 
     if (config.cegui.enable && ImGui::CollapsingHeader ("PCRE"))

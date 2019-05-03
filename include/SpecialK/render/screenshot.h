@@ -54,7 +54,7 @@ extern SK_ScreenshotQueue enqueued_screenshots;
 
 void
 SK_Screenshot_ProcessQueue ( SK_ScreenshotStage stage,
-                             SK_RenderBackend&  rb = SK_GetCurrentRenderBackend () );
+                       const SK_RenderBackend&  rb = SK_GetCurrentRenderBackend () );
 
 bool
 SK_Screenshot_IsCapturingHUDless (void);

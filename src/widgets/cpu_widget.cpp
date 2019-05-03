@@ -111,8 +111,8 @@ typedef struct
 
 #include <SpecialK/resource.h>
 
-#include "../depends//include/WinRing0/OlsDef.h"
 #include "../depends//include/WinRing0/OlsApi.h"
+#include "../depends//include/WinRing0/OlsDef.h"
 
 InitializeOls_pfn       InitializeOls       = nullptr;
 DeinitializeOls_pfn     DeinitializeOls     = nullptr;
@@ -122,13 +122,13 @@ RdmsrTx_pfn             RdmsrTx             = nullptr;
 Rdmsr_pfn               Rdmsr               = nullptr;
 
 BOOL  WINAPI InitializeOls_NOP       ( void               ) {return FALSE;}
-VOID  WINAPI DeinitializeOls_NOP     ( void               ) {return;      }
-DWORD WINAPI ReadPciConfigDword_NOP  ( DWORD, BYTE        ) {return 0;    }
-VOID  WINAPI WritePciConfigDword_NOP ( DWORD, BYTE, DWORD ) {return;      }
-BOOL  WINAPI RdmsrTx_NOP             ( DWORD, PDWORD,
-                                       PDWORD,DWORD_PTR   ) {return FALSE;}
-BOOL  WINAPI Rdmsr_NOP               ( DWORD, PDWORD,
-                                       PDWORD             ) {return FALSE;}
+VOID  WINAPI DeinitializeOls_NOP     ( void               ) {}
+DWORD WINAPI ReadPciConfigDword_NOP  ( DWORD /*unused*/, BYTE         /*unused*/) {return 0;    }
+VOID  WINAPI WritePciConfigDword_NOP ( DWORD /*unused*/, BYTE /*unused*/, DWORD  /*unused*/) {}
+BOOL  WINAPI RdmsrTx_NOP             ( DWORD /*unused*/, PDWORD /*unused*/,
+                                       PDWORD /*unused*/,DWORD_PTR    /*unused*/) {return FALSE;}
+BOOL  WINAPI Rdmsr_NOP               ( DWORD /*unused*/, PDWORD /*unused*/,
+                                       PDWORD              /*unused*/) {return FALSE;}
 
 volatile LONG __SK_WR0_Init  = 0L;
 static HMODULE  hModWinRing0 = nullptr;
@@ -146,7 +146,7 @@ SK_WinRing0_Unpack (void)
   HRSRC res =
     FindResource ( hModSelf, MAKEINTRESOURCE (IDR_WINRING0_PACKAGE), L"7ZIP" );
 
-  if (res && SK_IsAdmin ())
+  if ((res != nullptr) && SK_IsAdmin ())
   {
     SK_LOG0 ( ( L"Unpacking WinRing0 Driver because user does not have it in the proper location." ),
                 L" WinRing0 " );
@@ -157,7 +157,8 @@ SK_WinRing0_Unpack (void)
     HGLOBAL packed_winring =
       LoadResource   ( hModSelf, res );
 
-    if (! packed_winring) return;
+    if (packed_winring == nullptr) { return;
+}
 
 
     const void* const locked =
@@ -176,8 +177,9 @@ SK_WinRing0_Unpack (void)
 
       wcscpy (wszDestination, path_to_driver.c_str ());
 
-      if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+      if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES) {
         SK_CreateDirectories (wszDestination);
+}
 
       wcscpy      (wszArchive, wszDestination);
       PathAppendW (wszArchive, L"WinRing0.7z");
@@ -254,22 +256,22 @@ enum SK_CPU_IntelMSR
 
 struct SK_CPU_CoreSensors
 {
-  volatile double   power_W = 0.0;
-  double   clock_MHz;
+  double   power_W       = 0.0;
+  double   clock_MHz     = 0.0;
 
-  double   temperature_C;
-  double   tjMax;
+  double   temperature_C = 0.0;
+  double   tjMax         = 0.0;
 
   struct accum_result_s {
-    double elapsed_ms;
-    double value;
+    double elapsed_ms    = 0.0;
+    double value         = 0.0;
   };
 
   struct accumulator_s {
     volatile  LONG64 update_time  =      0LL;
     volatile ULONG   tick         =      0UL;
 
-    accum_result_s  result       = { 0.0, 0.0 };
+    accum_result_s  result        = { 0.0, 0.0 };
 
     accum_result_s&
     update ( uint32_t new_val,
@@ -297,8 +299,8 @@ struct SK_CPU_CoreSensors
     }
   } accum;
 
-   int64_t sample_taken;
-  uint32_t cpu_core;
+   int64_t sample_taken = 0;
+  uint32_t cpu_core     = 0;
 };
 
 struct SK_CPU_Package
@@ -353,8 +355,7 @@ struct SK_CPU_Package
 SK_CPU_Package& __SK_CPU__ (void)
 {
   static SK_CPU_Package cpu;
-
-  return cpu;
+  return                cpu;
 }
 
 #define __SK_CPU __SK_CPU__()
@@ -391,8 +392,9 @@ SK_WR0_Init (void)
   LONG init =
     ReadAcquire (&__SK_WR0_Init);
 
-  if (init != 0)
+  if (init != 0) {
     return (init == 1);
+}
 
   bool install_fail = false;
 
@@ -429,8 +431,9 @@ SK_WR0_Init (void)
   {
     hModWinRing0 = GetModuleHandleW (path_to_driver.c_str ());
 
-    if (! hModWinRing0)
-          hModWinRing0 = LoadLibraryW (path_to_driver.c_str ());
+    if (hModWinRing0 == nullptr) {
+        hModWinRing0 = LoadLibraryW (path_to_driver.c_str ());
+}
 
     InitializeOls =
       (InitializeOls_pfn)SK_GetProcAddress       ( hModWinRing0,
@@ -465,12 +468,13 @@ SK_WR0_Init (void)
     }
     else InterlockedExchange (&__SK_WR0_Init, -1);
   }
-  else   InterlockedExchange (&__SK_WR0_Init, -1);
+  else { InterlockedExchange (&__SK_WR0_Init, -1);
+}
 
   init =
     ReadAcquire (&__SK_WR0_Init);
 
-  if (hModWinRing0 != 0 && init != 1)
+  if (hModWinRing0 != nullptr && init != 1)
   {
     if (DeinitializeOls != nullptr)
         DeinitializeOls ();
@@ -483,10 +487,11 @@ SK_WR0_Init (void)
     Rdmsr               = Rdmsr_NOP;
 
     HMODULE hModToFree   = hModWinRing0;
-            hModWinRing0 = 0;
+            hModWinRing0 = nullptr;
 
-    while (FreeLibrary (hModToFree))
+    while (FreeLibrary (hModToFree) != 0) {
       ;
+}
 
     return
       SK_WR0_Init ();
@@ -521,15 +526,18 @@ SK_CPU_GetIntelMicroarch (void)
   auto& cpu =
     __SK_CPU;
 
-  if (cpu.intel_arch != SK_CPU_IntelMicroarch::KnownIntelArchs)
+  if (cpu.intel_arch != SK_CPU_IntelMicroarch::KnownIntelArchs) {
     return cpu.intel_arch;
+}
 
 
-  if (! SK_WR0_Init ())
+  if (! SK_WR0_Init ()) {
     cpu.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
+}
 
-  if (SK_CPU_IsZen ())
+  if (SK_CPU_IsZen ()) {
     cpu.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
+}
 
 
   DWORD eax = 0,
@@ -553,40 +561,48 @@ SK_CPU_GetIntelMicroarch (void)
                 switch (cpu.core_count)
                 {
                   case 2:
-                    for ( auto& core : cpu.cores )
+                    for ( auto& core : cpu.cores ) {
                       core.tjMax = 80.0 + 10.0;
+}
                     break;
                   case 4:
-                    for ( auto& core : cpu.cores )
+                    for ( auto& core : cpu.cores ) {
                       core.tjMax = 90.0 + 10.0;
+}
                     break;
                   default:
-                    for ( auto& core : cpu.cores )
+                    for ( auto& core : cpu.cores ) {
                       core.tjMax = 85.0 + 10.0;
+}
                     break;
                 }
-                for ( auto& core : cpu.cores )
+                for ( auto& core : cpu.cores ) {
                   core.tjMax = 85.0 + 10.0;
+}
                 break;
               case 0x0B: // G0
-                for ( auto& core : cpu.cores )
+                for ( auto& core : cpu.cores ) {
                   core.tjMax = 90.0 + 10.0;
+}
                 break;
               case 0x0D: // M0
-                for ( auto& core : cpu.cores )
+                for ( auto& core : cpu.cores ) {
                   core.tjMax = 85.0 + 10.0;
+}
                 break;
               default:
-                for ( auto& core : cpu.cores )
+                for ( auto& core : cpu.cores ) {
                   core.tjMax = 85.0 + 10.0;
+}
                 break;
             }
             break;
 
           case 0x17: // Intel Core 2 (45nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Core;
-            for ( auto& core : cpu.cores )
+            for ( auto& core : cpu.cores ) {
               core.tjMax = 100.0;
+}
             break;
 
           case 0x1C: // Intel Atom (45nm)
@@ -595,18 +611,21 @@ SK_CPU_GetIntelMicroarch (void)
             switch (InstructionSet::Stepping ())
             {
               case 0x02: // C0
-                for ( auto& core : cpu.cores )
+                for ( auto& core : cpu.cores ) {
                   core.tjMax = 90.0;
+}
                 break;
 
               case 0x0A: // A0, B0
-                for ( auto& core : cpu.cores )
+                for ( auto& core : cpu.cores ) {
                   core.tjMax = 100.0;
+}
                 break;
 
               default:
-                for ( auto& core : cpu.cores )
+                for ( auto& core : cpu.cores ) {
                   core.tjMax = 90.0;
+}
                 break;
             } break;
 
@@ -618,23 +637,26 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x2E: // Intel Xeon Processor 7500 series (45nm)
           case 0x2F: // Intel Xeon Processor (32nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Nehalem;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x0A: // -----
           case 0x2A: // Intel Core i5, i7 2xxx LGA1155 (32nm)
           case 0x2D: // Next Generation Intel Xeon, i7 3xxx LGA2011 (32nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::SandyBridge;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x3A: // Intel Core i5, i7 3xxx LGA1155 (22nm)
           case 0x3E: // Intel Core i7 4xxx LGA2011 (22nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::IvyBridge;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x3C: // Intel Core i5, i7 4xxx LGA1150 (22nm)
@@ -643,8 +665,9 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x45: // Intel Core i5, i7 4xxxU (22nm)
           case 0x46:
             cpu.intel_arch = SK_CPU_IntelMicroarch::Haswell;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x3D: // Intel Core M-5xxx (14nm)
@@ -652,14 +675,16 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x4F: // Intel Xeon E5-26xx v4
           case 0x56: // Intel Xeon D-15xx
             cpu.intel_arch = SK_CPU_IntelMicroarch::Broadwell;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x36: // Intel Atom S1xxx, D2xxx, N2xxx (32nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Atom;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x37: // Intel Atom E3xxx, Z3xxx (22nm)
@@ -668,8 +693,9 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x5A:
           case 0x5D:
             cpu.intel_arch = SK_CPU_IntelMicroarch::Silvermont;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x4E:
@@ -677,33 +703,38 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x5E: // Intel Core i5, i7 6xxxx LGA1151 (14nm)
           case 0x55: // Intel Core i7, i9 7xxxx LGA2066 (14nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Skylake;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x4C:
             cpu.intel_arch = SK_CPU_IntelMicroarch::Airmont;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x8E:
           case 0x9E: // Intel Core i5, i7 7xxxx (14nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::KabyLake;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           case 0x5C: // Intel Atom processors
             cpu.intel_arch = SK_CPU_IntelMicroarch::ApolloLake;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
 
           default:
             cpu.intel_arch = SK_CPU_IntelMicroarch::UnknownIntel;
-            for ( auto& core : cpu.cores ) core.tjMax =
+            for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
+}
             break;
         }
       } break;
@@ -719,14 +750,16 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x04: // Pentium 4, Pentium D, Celeron D (90nm)
           case 0x06: // Pentium 4, Pentium D, Celeron D (65nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::NetBurst;
-            for ( auto& core : cpu.cores )
+            for ( auto& core : cpu.cores ) {
               core.tjMax = 100.0;
+}
             break;
 
           default:
             cpu.intel_arch = SK_CPU_IntelMicroarch::UnknownIntel;
-            for ( auto& core : cpu.cores )
+            for ( auto& core : cpu.cores ) {
               core.tjMax = 100.0;
+}
             break;
         }
       } break;
@@ -819,8 +852,9 @@ struct SK_CPU_ZenCoefficients
 void
 SK_CPU_MakePowerUnit_Zen (SK_CPU_ZenCoefficients* pCoeffs)
 {
-  if (! SK_WR0_Init ())
+  if (! SK_WR0_Init ()) {
     return;
+}
 
   static SK_CPU_ZenCoefficients one_size_fits_all = { };
 
@@ -877,8 +911,9 @@ SK_CPU_IsZen (bool retest/* = false*/)
   {
     is_zen = 0;
 
-    if (! SK_WR0_Init ())
+    if (! SK_WR0_Init ()) {
       return false;
+}
 
     auto& cpu =
       __SK_CPU;
@@ -888,7 +923,7 @@ SK_CPU_IsZen (bool retest/* = false*/)
     for ( auto& zen : _SK_KnownZen )
     {
       if ( strstr ( InstructionSet::Brand ().c_str (),
-                      zen.brandId )
+                      zen.brandId ) != nullptr
          )
       {
         cpu.offsets.temperature =
@@ -942,8 +977,9 @@ SK_CPU_AssertPowerUnit_Zen (int64_t core)
 {
   static bool __once = false;
 
-  if (__once)
+  if (__once) {
     return;
+}
 
   // AMD Model 17h measures this in 15.3 micro-joule increments
   //
@@ -1070,8 +1106,9 @@ SK_CPU_GetJoulesConsumed (int64_t core)
     msr0_idx = PKG_ENERGY_STATUS;
   }
 
-  else
+  else {
     return ret;
+}
 
 
   DWORD_PTR orig_mask =
@@ -1080,8 +1117,9 @@ SK_CPU_GetJoulesConsumed (int64_t core)
                       thread_mask
                              );
 
-  if (! orig_mask)
+  if (orig_mask == 0u) {
     return ret;
+}
 
 
   if ( ( msr1_idx != 0x0 && Rdmsr (msr1_idx, &eax, &edx) && eax != 0 ) ||
@@ -1124,12 +1162,12 @@ SK_CPU_GetTemperature_AMDZen (int core)
   const unsigned int indexRegister = 0x00059800;
         unsigned int sensor        = 0;
 
-
   static volatile
     LONG splock_avail = 1;
 
-  while (! InterlockedCompareExchange (&splock_avail, 0, 1))
+  while (! InterlockedCompareExchange (&splock_avail, 0, 1)) {
     ;
+}
 
   WritePciConfigDword  (PCI_CONFIG_ADDR (0, 0, 0), 0x60, indexRegister);
   sensor =
@@ -1147,7 +1185,7 @@ SK_CPU_GetTemperature_AMDZen (int core)
   //     ( So many people are glossing the hell over this )
   //
   const bool usingNeg49To206C =
-    ((sensor >> 19) & 0x1);
+    ((sensor >> 19) & 0x1) != 0u;
 
   auto invScale11BitDbl =
     [ ] (uint32_t in) -> const double
@@ -1164,14 +1202,17 @@ SK_CPU_GetTemperature_AMDZen (int core)
     );
 }
 
-struct {
-  double cumulative_MHz;
-  int    num_cores;
+struct SK_ClockTicker {
+  constexpr SK_ClockTicker (void) { };
 
-  uint64_t getAvg (void) {
-    return (num_cores > 0) ?
+  double cumulative_MHz = 0.0;
+  int    num_cores      =   0;
+
+  uint64_t getAvg (void)
+  {
+    return (num_cores > 0)  ?
       static_cast <uint64_t> ( cumulative_MHz /
-             static_cast <double> (num_cores) ) : 0;
+      static_cast < double > ( num_cores ) )  : 0;
   }
 } __AverageEffectiveClock;
 
@@ -1220,8 +1261,9 @@ SK_CPU_UpdateCoreSensors (int core_idx)
                       thread_mask
                              );
 
-  if (! orig_mask)
+  if (orig_mask == 0u) {
     return;
+}
 
   if (SK_CPU_IsZen ())
   {
@@ -1410,9 +1452,6 @@ public:
     {
       started = true;
 
-      void
-      __stdcall
-      SK_StartPerfMonThreads (void);
       SK_StartPerfMonThreads (    );
     }
 
@@ -1433,7 +1472,7 @@ public:
 
     PPROCESSOR_POWER_INFORMATION pwi =
       reinterpret_cast <PPROCESSOR_POWER_INFORMATION>   (
-        SK_TLS_Bottom ()->scratch_memory.cpu_info.alloc (
+        SK_TLS_Bottom ()->scratch_memory->cpu_info.alloc (
           sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
       )
     );
@@ -1602,7 +1641,7 @@ public:
           } static SK_WinRing0;
 
 
-          if (SK_WinRing0.hMgmtThread == 0)
+          if (SK_WinRing0.hMgmtThread == nullptr)
           {
             SK_WinRing0.hMgmtThread =
             SK_Thread_CreateEx ([](LPVOID pWinRingMgr) -> DWORD
@@ -1620,7 +1659,7 @@ public:
 
               bool early_out = false;
 
-              while ((! ReadAcquire (&__SK_DLL_Ending)) && (! early_out))
+              while ((ReadAcquire (&__SK_DLL_Ending) == 0) && (! early_out))
               {
                 DWORD dwWait =
                   WaitForMultipleObjects (3, wait_handles, FALSE, INFINITE);
@@ -1653,11 +1692,12 @@ public:
                     RdmsrTx              = RdmsrTx_NOP;
                     Rdmsr                = Rdmsr_NOP;
 
-                    if (hModWinRing0 != 0)
+                    if (hModWinRing0 != nullptr)
                     { HMODULE              hModToFree = hModWinRing0;
-                      while ( FreeLibrary (hModToFree) );
+                      while ( FreeLibrary (hModToFree) != 0 ) {;
+}
 
-                      hModWinRing0 = 0;
+                      hModWinRing0 = nullptr;
                     }
 
                     SK_WinRing0_Uninstall ();
@@ -1693,80 +1733,81 @@ public:
 
           if ( show_install_button )
           {
-          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.f, 0.f, 1.f, 1.f));
+            ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.f, 0.f, 1.f, 1.f));
 
-          if (SK_ImGui::VerticalToggleButton ("Install Driver", &never))
-            SetEvent            (SK_WinRing0.hInstallEvent);
+            if (SK_ImGui::VerticalToggleButton ("Install Driver", &never))
+              SetEvent            (SK_WinRing0.hInstallEvent);
 
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::BeginTooltip (  );
-            ImGui::Spacing      (  );
-            ImGui::Spacing      (  );
-            ImGui::TreePush     ("");
-            ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f, 0.875f, 0.95f, 1.f));
-            ImGui::Text         ("Special K Uses WinRing0 to Read CPU Model-Specific-Registers");
-            ImGui::PopStyleColor(  );
-            ImGui::TreePop      (  );
-            ImGui::Spacing      (  );
-            ImGui::Spacing      (  );
-            ImGui::Spacing      (  );
-            ImGui::Separator    (  );
-            ImGui::Spacing      (  );
-            ImGui::BulletText   ("WinRing0 is a trusted kernel-mode driver used in Open Source software");
-            ImGui::Spacing      (  );
-            ImGui::Spacing      (  );ImGui::SameLine ();
-            ImGui::Spacing      (  );ImGui::SameLine ();
-            ImGui::BeginGroup   (  );
-            ImGui::Spacing      (  );
-            ImGui::Spacing      (  );
-            ImGui::PushStyleColor(ImGuiCol_Text,(ImVec4&&)ImColor::HSV (0.57194F, 0.534f, .94f, 1.f));
-            ImGui::Text         ("Additional Sensor Data Available Using WinRing0:");
-            ImGui::Spacing      (  );
-            ImGui::TreePush     ("");
-            ImGui::BeginGroup   (  );
-            ImGui::PushStyleColor(ImGuiCol_Text,(ImVec4&&)ImColor::HSV (0.3f - (0.3f * 0.805f), 1.0f, 1.0f));
-            ImGui::BulletText   ("Temperature");
-            ImGui::PushStyleColor(ImGuiCol_Text,(ImVec4&&)ImColor::HSV (0.28F, 1.f, 1.f, 1.f));
-            ImGui::BulletText   ("Frequency");
-            ImGui::PushStyleColor(ImGuiCol_Text,(ImVec4&&)ImColor::HSV (0.13294F, 0.734f, .94f, 1.f));
-            ImGui::BulletText   ("Power");
-            ImGui::PopStyleColor( 4);
-            ImGui::EndGroup     (  );
-            ImGui::SameLine     (0.0f, 25.0f);
-            ImGui::BeginGroup   (  );
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip (  );
+              ImGui::Spacing      (  );
+              ImGui::Spacing      (  );
+              ImGui::TreePush     ("");
+              ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f, 0.875f, 0.95f, 1.f));
+              ImGui::Text         ("Special K Uses WinRing0 to Read CPU Model-Specific-Registers");
+              ImGui::PopStyleColor(  );
+              ImGui::TreePop      (  );
+              ImGui::Spacing      (  );
+              ImGui::Spacing      (  );
+              ImGui::Spacing      (  );
+              ImGui::Separator    (  );
+              ImGui::Spacing      (  );
+              ImGui::BulletText   ("WinRing0 is a trusted kernel-mode driver used in Open Source software");
+              ImGui::Spacing      (  );
+              ImGui::Spacing      (  );ImGui::SameLine ();
+              ImGui::Spacing      (  );ImGui::SameLine ();
+              ImGui::BeginGroup   (  );
+              ImGui::Spacing      (  );
+              ImGui::Spacing      (  );
+              ImGui::PushStyleColor(ImGuiCol_Text,(ImVec4&&)ImColor::HSV (0.57194F, 0.534f, .94f, 1.f));
+              ImGui::Text         ("Additional Sensor Data Available Using WinRing0:");
+              ImGui::Spacing      (  );
+              ImGui::EndGroup     (  );
+              ImGui::TreePush     ("");
+              ImGui::BeginGroup   (  );
+              ImGui::PushStyleColor(ImGuiCol_Text,(ImVec4&&)ImColor::HSV (0.3f - (0.3f * 0.805f), 1.0f, 1.0f));
+              ImGui::BulletText   ("Temperature");
+              ImGui::PushStyleColor(ImGuiCol_Text,(ImVec4&&)ImColor::HSV (0.28F, 1.f, 1.f, 1.f));
+              ImGui::BulletText   ("Frequency");
+              ImGui::PushStyleColor(ImGuiCol_Text,(ImVec4&&)ImColor::HSV (0.13294F, 0.734f, .94f, 1.f));
+              ImGui::BulletText   ("Power");
+              ImGui::PopStyleColor( 4);
+              ImGui::EndGroup     (  );
+              ImGui::SameLine     (0.0f, 25.0f);
+              ImGui::BeginGroup   (  );
 
 #define SK_INTEL_BLUE ImGui::SameLine (0.f,4.f);ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.f,0.4431f,0.7725f,1.f));ImGui::Text("Intel");ImGui::PopStyleColor();
 #define SK_AMD_RED    ImGui::SameLine (0.f,4.f);ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.6f,0.f,0.f,1.f));       ImGui::Text("AMD");  ImGui::PopStyleColor();
 #define SK_PLUS       ImGui::SameLine (0.f,4.f);ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.8f,0.8f,0.8f,1.f));     ImGui::Text(" + ");  ImGui::PopStyleColor();
 
-            ImGui::PushStyleColor(ImGuiCol_Text,ImVec4 (.765f, .765f, .765f, 1.f));
-            ImGui::Text         ("Per-Core: "); SK_INTEL_BLUE
-            ImGui::Text         ("Per-Core: "); SK_AMD_RED SK_PLUS SK_INTEL_BLUE
-            ImGui::Text         ("Per-Core: "); SK_AMD_RED
-            ImGui::EndGroup     (  );
-            ImGui::SameLine     (0.0f, 25.0f);
-            ImGui::BeginGroup   (  );
-            ImGui::Text         ("Per-Package: "); SK_AMD_RED SK_PLUS SK_INTEL_BLUE
-            ImGui::Text         ("Per-Package: "); SK_AMD_RED SK_PLUS SK_INTEL_BLUE
-            ImGui::Text         ("Per-Package: "); SK_AMD_RED SK_PLUS SK_INTEL_BLUE
-            ImGui::PopStyleColor(  );
-            ImGui::EndGroup     (  );
-            ImGui::TreePop      (  );
-            ImGui::TreePush     ("");
-            ImGui::TreePush     ("");
-            ImGui::Spacing      (  );
-            ImGui::Spacing      (  );
-            ImGui::PushStyleColor
-                                (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.52F, 0.85f, 0.93f, 1.f));
-            ImGui::Text         ("Most Intel CPUs Pentium 4 or newer and AMD Ryzen(+) are Supported");
-            ImGui::Spacing      (  );
-            ImGui::PopStyleColor(  );
-            ImGui::TreePop      (  );
-            ImGui::TreePop      (  );
-            ImGui::EndTooltip   (  );
-          }
-          ImGui::PopStyleColor  (  );
+              ImGui::PushStyleColor(ImGuiCol_Text,ImVec4 (.765f, .765f, .765f, 1.f));
+              ImGui::Text         ("Per-Core: "); SK_INTEL_BLUE
+              ImGui::Text         ("Per-Core: "); SK_AMD_RED SK_PLUS SK_INTEL_BLUE
+              ImGui::Text         ("Per-Core: "); SK_AMD_RED
+              ImGui::EndGroup     (  );
+              ImGui::SameLine     (0.0f, 25.0f);
+              ImGui::BeginGroup   (  );
+              ImGui::Text         ("Per-Package: "); SK_AMD_RED SK_PLUS SK_INTEL_BLUE
+              ImGui::Text         ("Per-Package: "); SK_AMD_RED SK_PLUS SK_INTEL_BLUE
+              ImGui::Text         ("Per-Package: "); SK_AMD_RED SK_PLUS SK_INTEL_BLUE
+              ImGui::PopStyleColor(  );
+              ImGui::EndGroup     (  );
+              ImGui::TreePop      (  );
+              ImGui::TreePush     ("");
+              ImGui::TreePush     ("");
+              ImGui::Spacing      (  );
+              ImGui::Spacing      (  );
+              ImGui::PushStyleColor
+                                  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.52F, 0.85f, 0.93f, 1.f));
+              ImGui::Text         ("Most Intel CPUs Pentium 4 or newer and AMD Ryzen(+) are Supported");
+              ImGui::Spacing      (  );
+              ImGui::PopStyleColor(  );
+              ImGui::TreePop      (  );
+              ImGui::TreePop      (  );
+              ImGui::EndTooltip   (  );
+            }
+            ImGui::PopStyleColor  (  );
           }
 
           else if ( SK_ImGui_Visible                       &&
@@ -1793,7 +1834,7 @@ public:
     };
 
     ImGui::BeginGroup ();
-    if (show_mode_buttons || show_install_button)
+    if (show_mode_buttons || show_install_button) {
     if (                                EastWest &
          static_cast <int> (DockAnchor::East) )
     {
@@ -1804,6 +1845,7 @@ public:
       ImGui::EndGroup    ();
       ImGui::SameLine    ();
     }
+}
 
     ImGui::PushItemWidth (last_longest_line);
     ImGui::BeginGroup    ();

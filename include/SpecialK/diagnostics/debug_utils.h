@@ -45,12 +45,7 @@ namespace SK
   }
 }
 
-typedef struct _UNICODE_STRING_SK {
-  USHORT Length;
-  USHORT MaximumLength;
-  PWSTR  Buffer;
-} UNICODE_STRING_SK;
-
+#pragma pack (push,8)
 typedef struct _LDR_DATA_TABLE_ENTRY__SK
 {
   LIST_ENTRY        InLoadOrderLinks;
@@ -65,17 +60,17 @@ typedef struct _LDR_DATA_TABLE_ENTRY__SK
   WORD              LoadCount;
   WORD              TlsIndex;
 
-  union
+  union _A
   {
     LIST_ENTRY   HashLinks;
-    struct
+    struct _B
     {
       PVOID      SectionPointer;
       ULONG      CheckSum;
     };
   };
 
-  union
+  union _C
   {
     ULONG        TimeDateStamp;
     PVOID        LoadedImports;
@@ -92,6 +87,7 @@ typedef struct _LDR_DATA_TABLE_ENTRY__SK
 typedef NTSTATUS (NTAPI *LdrFindEntryForAddress_pfn)
 ( HMODULE                    hMod,
   LDR_DATA_TABLE_ENTRY__SK **ppLdrDat              );
+#pragma pack (pop)
 
 
 void WINAPI SK_SymRefreshModuleList (HANDLE hProc = GetCurrentProcess ());
@@ -191,13 +187,13 @@ std::wstring& SK_Thread_GetName (HANDLE hThread);
 
 #include <cassert>
 
-#define SK_ASSERT_NOT_THREADSAFE() {                \
-  static DWORD dwLastThread = 0;                    \
-                                                    \
-  assert ( dwLastThread == 0 ||                     \
-           dwLastThread == GetCurrentThreadId () ); \
-                                                    \
-  dwLastThread = GetCurrentThreadId ();             \
+#define SK_ASSERT_NOT_THREADSAFE() {                    \
+  static DWORD dwLastThread = 0;                        \
+                                                        \
+  assert ( dwLastThread == 0 ||                         \
+           dwLastThread == SK_Thread_GetCurrentId () ); \
+                                                        \
+  dwLastThread = SK_Thread_GetCurrentId ();             \
 }
 
 #define SK_ASSERT_NOT_DLLMAIN_THREAD() assert (! SK_TLS_Bottom ()->debug.in_DllMain);
@@ -265,7 +261,7 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
                       EXCEPTION_POINTERS* pException,
                       LPVOID              lpRetAddr );
 
-class SK_SEH_IgnoredException
+class SK_SEH_IgnoredException : public std::exception
 {
 public:
   SK_SEH_IgnoredException ( unsigned int        nExceptionCode,
@@ -283,6 +279,15 @@ public:
 };
 
 
+void
+WINAPI
+SK_RaiseException
+(       DWORD      dwExceptionCode,
+        DWORD      dwExceptionFlags,
+        DWORD      nNumberOfArguments,
+  const ULONG_PTR *lpArguments );
+
+
 #define SK_BasicStructuredExceptionTranslator         \
   []( unsigned int        nExceptionCode,             \
       EXCEPTION_POINTERS* pException )->              \
@@ -294,18 +299,42 @@ public:
   }
 
 #define SK_FilteringStructuredExceptionTranslator(Filter) \
-  []( unsigned int        nExceptionCode,             \
-      EXCEPTION_POINTERS* pException )->              \
-  void {                                              \
-    throw                                             \
-      SK_SEH_IgnoredException (                       \
-        nExceptionCode, pException,                   \
-          _ReturnAddress ()   );                      \
-    if (nExceptionCode != Filter)                     \
-      RaiseException ( nExceptionCode, pException->ExceptionRecord->ExceptionFlags,         \
-                                       pException->ExceptionRecord->NumberParameters,       \
-                                       pException->ExceptionRecord->ExceptionInformation ); \
+  []( unsigned int        nExceptionCode,                 \
+      EXCEPTION_POINTERS* pException )->                  \
+  void                                                    \
+  {                                                       \
+    if (nExceptionCode == (Filter))                       \
+    {                                                     \
+      throw                                               \
+        SK_SEH_IgnoredException (                         \
+          nExceptionCode, pException,                     \
+            _ReturnAddress ()   );                        \
+    }                                                     \
   }
+
+enum SEH_LogLevel {
+  Unchanged = 0,
+  Silent    = 1,
+  Verbose0  = 2
+};
+
+struct SK_SEH_PreState {
+  _se_translator_function pfnTranslator;
+  DWORD                   dwErrorCode;
+  LPVOID                  lpCallSite;
+  FILETIME                fOrigTime;
+};
+
+SK_SEH_PreState
+SK_SEH_ApplyTranslator (_In_opt_ _se_translator_function _NewSETranslator);
+
+_se_translator_function
+SK_SEH_RemoveTranslator (SK_SEH_PreState pre_state);
+
+_se_translator_function
+SK_SEH_SetTranslator (
+  _In_opt_ _se_translator_function _NewSETranslator,
+                      SEH_LogLevel verbosity = Unchanged );
 
 
 #endif /* __SK__DEBUG_UTILS_H__ */

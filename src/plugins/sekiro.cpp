@@ -24,11 +24,70 @@
 
 #define __SK_SUBSYSTEM__ L"Sekiro Fix"
 
-#include <WinSock2.h>
-#include <ws2tcpip.h>
-#include <SpecialK/nvapi.h>
+#pragma region DEATH_TO_WINSOCK
+#undef AF_IPX
+#undef AF_MAX
+#undef SO_DONTLINGER
+#undef IN_CLASSA
 
-sk::ParameterFactory factory;
+#define WSA_WAIT_IO_COMPLETION  (WAIT_IO_COMPLETION)
+#define WSAPROTOCOL_LEN  255
+#define FD_MAX_EVENTS    10
+
+#define MAX_PROTOCOL_CHAIN 7
+
+#define BASE_PROTOCOL      1
+#define LAYERED_PROTOCOL   0
+
+typedef struct _WSAPROTOCOLCHAIN {
+    int ChainLen;                                 /* the length of the chain,     */
+                                                  /* length = 0 means layered protocol, */
+                                                  /* length = 1 means base protocol, */
+                                                  /* length > 1 means protocol chain */
+    DWORD ChainEntries[MAX_PROTOCOL_CHAIN];       /* a list of dwCatalogEntryIds */
+} WSAPROTOCOLCHAIN, FAR * LPWSAPROTOCOLCHAIN;
+
+typedef struct _WSAPROTOCOL_INFOW {
+    DWORD dwServiceFlags1;
+    DWORD dwServiceFlags2;
+    DWORD dwServiceFlags3;
+    DWORD dwServiceFlags4;
+    DWORD dwProviderFlags;
+    GUID ProviderId;
+    DWORD dwCatalogEntryId;
+    WSAPROTOCOLCHAIN ProtocolChain;
+    int iVersion;
+    int iAddressFamily;
+    int iMaxSockAddr;
+    int iMinSockAddr;
+    int iSocketType;
+    int iProtocol;
+    int iProtocolMaxOffset;
+    int iNetworkByteOrder;
+    int iSecurityScheme;
+    DWORD dwMessageSize;
+    DWORD dwProviderReserved;
+    WCHAR  szProtocol[WSAPROTOCOL_LEN+1];
+} WSAPROTOCOL_INFOW, FAR * LPWSAPROTOCOL_INFOW;
+
+typedef unsigned int             GROUP;
+
+typedef WSAPROTOCOL_INFOW WSAPROTOCOL_INFO;
+typedef LPWSAPROTOCOL_INFOW LPWSAPROTOCOL_INFO;
+
+typedef int socklen_t;
+#define WSAAPI                  FAR PASCAL
+#define WSAEVENT                HANDLE
+#define LPWSAEVENT              LPHANDLE
+#define WSAOVERLAPPED           OVERLAPPED
+typedef struct _OVERLAPPED *    LPWSAOVERLAPPED;
+
+typedef struct _WSANETWORKEVENTS {
+       long lNetworkEvents;
+       int iErrorCode[FD_MAX_EVENTS];
+} WSANETWORKEVENTS, FAR * LPWSANETWORKEVENTS;
+
+#include <SpecialK/nvapi.h>
 
 sk::ParameterBool* disable_netcode = nullptr;
 sk::ParameterBool* uncap_framerate = nullptr;
@@ -83,6 +142,7 @@ typedef int (WSAAPI *WSAEnumNetworkEvents_pfn)
 ( SOCKET             s,
   WSAEVENT           hEventObject,
   LPWSANETWORKEVENTS lpNetworkEvents );
+#pragma endregion DEATH_TO_WINSOCK // This whole thing sucks, drown it in a region!
 
 INT
 WSAAPI getnameinfo_Detour (
@@ -124,7 +184,7 @@ WSAAPI WSAWaitForMultipleEvents_Detour (
   if (! disable_network_code)
   {
     dll_log->Log ( L" >> Calling Thread for Network Activity: %s",
-                     SK_Thread_GetName (GetCurrentThreadId ()).c_str () );
+                     SK_Thread_GetName (SK_Thread_GetCurrentId ()).c_str () );
   }
 
   UNREFERENCED_PARAMETER (cEvents);
@@ -159,7 +219,7 @@ WSAAPI WSASocketW_Detour (
   if (! disable_network_code)
   {
     dll_log->Log ( L" >> Calling Thread for Network Activity: %s",
-                     SK_Thread_GetName (GetCurrentThreadId () ).c_str () );
+                     SK_Thread_GetName (SK_Thread_GetCurrentId () ).c_str () );
   }
 
   UNREFERENCED_PARAMETER (af);
@@ -217,49 +277,57 @@ constexpr
 constexpr
   uint8_t
     _RunSpeedPattern [] =
-      { 0xF3, 0x0F, 0x59, 0x05, 0x00, 0x30, 0x92, 0x02, 0x0F, 0x2F, 0xF8 };
+      //{ 0xF3, 0x0F, 0x59, 0x05, 0x00, 0x30, 0x92, 0x02, 0x0F, 0x2F, 0xF8 };
+        { 0xF3, 0x0F, 0x58, 0x00, 0x0F, 0xC6, 0x00, 0x00, 0x0F, 0x51, 0x00, 0xF3, 0x0F, 0x59, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x2F };
 
 constexpr
   uint8_t
     _RunSpeedMask [] =
-      { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+      //{ 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+        { 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF };
 
 static void* _SK_Sekiro_FrameLockAddr0_Optional = nullptr;
-static void* _SK_Sekiro_FrameLockAddr1          = nullptr;
-static void* _SK_Sekiro_RunSpeedAddr            = nullptr;
+static void* _SK_Sekiro_FrameLockAddr1          = (void *)0x141161FD0;
+static void* _SK_Sekiro_RunSpeedAddr            = nullptr;//(void *)(uintptr_t)(0x00000001407D4F3D - 1);//nullptr;
 
 bool SK_Sekiro_KillLimiter (bool set)
 {
   // Optional Extra Bit of Oomph
-  if (_SK_Sekiro_FrameLockAddr0_Optional != nullptr)
-  {
-    DWORD dwProtect;
+  //if (_SK_Sekiro_FrameLockAddr0_Optional != nullptr)
+  //{
+  //  DWORD dwProtect;
+  //
+  //  VirtualProtect (_SK_Sekiro_FrameLockAddr0_Optional, 4, PAGE_EXECUTE_READWRITE, &dwProtect);
+  //
+  //  if (set)
+  //    WriteULongRelease ((volatile DWORD *)_SK_Sekiro_FrameLockAddr0_Optional,
+  //                              *((DWORD *)"\xC3\x90\x90\x55"));
+  //  else
+  //    WriteULongRelease ((volatile DWORD *)_SK_Sekiro_FrameLockAddr0_Optional,
+  //                              *((DWORD *)"\x48\x8B\xC4\x55"));
+  //
+  //  VirtualProtect (_SK_Sekiro_FrameLockAddr0_Optional, 4, dwProtect, &dwProtect);
+  //
+  //  return set;
+  //}
 
-    VirtualProtect (_SK_Sekiro_FrameLockAddr0_Optional, 4, PAGE_EXECUTE_READWRITE, &dwProtect);
-
-    if (set)
-      WriteULongRelease ((volatile DWORD *)_SK_Sekiro_FrameLockAddr0_Optional,
-                                *((DWORD *)"\xC3\x90\x90\x55"));
-    else
-      WriteULongRelease ((volatile DWORD *)_SK_Sekiro_FrameLockAddr0_Optional,
-                                *((DWORD *)"\x48\x8B\xC4\x55"));
-
-    VirtualProtect (_SK_Sekiro_FrameLockAddr0_Optional, 4, dwProtect, &dwProtect);
-
-    return set;
-  }
-
-  return false;
+  return set;
 }
 
 bool SK_Sekiro_UnlimitFramerate (bool set, long double target)
 {
+  if (_SK_Sekiro_FrameLockAddr1 == (void *)0x141161FD0)
+  {
+    dll_log->Log (L"%f", *(float *)_SK_Sekiro_FrameLockAddr1);
+  }
+
+  __try {
   if (_SK_Sekiro_FrameLockAddr1 != nullptr)
   {
     DWORD dwProtect;
 
     VirtualProtect (_SK_Sekiro_FrameLockAddr1, 8, PAGE_EXECUTE_READWRITE, &dwProtect);
-    VirtualProtect (_SK_Sekiro_RunSpeedAddr,   1, PAGE_EXECUTE_READWRITE, &dwProtect);
+  //VirtualProtect (_SK_Sekiro_RunSpeedAddr,   1, PAGE_EXECUTE_READWRITE, &dwProtect);
 
     static uint8_t orig_bytes [4] = { };
     if (set)
@@ -282,8 +350,11 @@ bool SK_Sekiro_UnlimitFramerate (bool set, long double target)
         if (speed > 248)
             speed = 248;
 
-        WriteUCharRelease ((volatile BYTE *)_SK_Sekiro_RunSpeedAddr,
-                  gsl::narrow_cast <uint8_t> (speed));
+        if (_SK_Sekiro_RunSpeedAddr != nullptr)
+        {
+          WriteUCharRelease ((volatile BYTE *)_SK_Sekiro_RunSpeedAddr,
+                    gsl::narrow_cast <uint8_t> (speed));
+        }
       }
 
       else
@@ -291,7 +362,10 @@ bool SK_Sekiro_UnlimitFramerate (bool set, long double target)
         WriteULongRelease ((volatile DWORD *)_SK_Sekiro_FrameLockAddr1,
                                   *((DWORD *)"\x00\x00\x00\x00") );
 
-        WriteUCharRelease ((volatile BYTE *)_SK_Sekiro_RunSpeedAddr, 0xF8);
+        if (_SK_Sekiro_RunSpeedAddr != nullptr)
+        {
+          WriteUCharRelease ((volatile BYTE *)_SK_Sekiro_RunSpeedAddr, 0xF8);
+        }
       }
     }
 
@@ -299,11 +373,15 @@ bool SK_Sekiro_UnlimitFramerate (bool set, long double target)
     {
       WriteULongRelease ( (volatile DWORD *)_SK_Sekiro_FrameLockAddr1,
                                  *((DWORD *)orig_bytes) );
-      WriteUCharRelease ( (volatile  BYTE *)_SK_Sekiro_RunSpeedAddr,
-                  gsl::narrow_cast <uint8_t> (0x90) );
+
+      if (_SK_Sekiro_RunSpeedAddr != nullptr)
+      {
+        WriteUCharRelease ( (volatile  BYTE *)_SK_Sekiro_RunSpeedAddr,
+                    gsl::narrow_cast <uint8_t> (0x90) );
+      }
     }
 
-    VirtualProtect (_SK_Sekiro_RunSpeedAddr,   1, dwProtect, &dwProtect);
+  //VirtualProtect (_SK_Sekiro_RunSpeedAddr,   1, dwProtect, &dwProtect);
     VirtualProtect (_SK_Sekiro_FrameLockAddr1, 8, dwProtect, &dwProtect);
 
     return set;
@@ -311,6 +389,13 @@ bool SK_Sekiro_UnlimitFramerate (bool set, long double target)
 
   else
     return false;
+  }
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+        EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH  )
+  {
+    // Oops
+    return false;
+  }
 }
 
 
@@ -351,23 +436,26 @@ SK_Sekiro_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT
       rb.requestFullscreenMode ();
     }
 
-    _SK_Sekiro_FrameLockAddr0_Optional =
-      SK_ScanAligned (_FrameLockPattern0, 32, nullptr, 32);
+    //_SK_Sekiro_FrameLockAddr0_Optional =
+    //  SK_ScanAligned (_FrameLockPattern0, 32, nullptr, 32);
+    //
+    //_SK_Sekiro_FrameLockAddr1 =
+    //  SK_ScanAligned (_FrameLockPattern1, 8, _FrameLockMask1);
+    //
+    //_SK_Sekiro_RunSpeedAddr =
+    //  SK_Scan (_RunSpeedPattern, 21, _RunSpeedMask);
+    //
+    //if (_SK_Sekiro_RunSpeedAddr != nullptr)
+    //{
+    //  _SK_Sekiro_RunSpeedAddr =
+    //    (void *)((uintptr_t)_SK_Sekiro_RunSpeedAddr + 15);
+    //}
 
-    _SK_Sekiro_FrameLockAddr1 =
-      SK_ScanAligned (_FrameLockPattern1, 8, _FrameLockMask1);
-
-    _SK_Sekiro_RunSpeedAddr =
-      SK_Scan (_RunSpeedPattern, 11, _RunSpeedMask);
-
-    if (_SK_Sekiro_RunSpeedAddr != nullptr)
-    {
-      _SK_Sekiro_RunSpeedAddr =
-        (void *)((uintptr_t)_SK_Sekiro_RunSpeedAddr + 4);
-    }
+    dll_log->Log (L"FrameLock: %p, Framelock1: %p, RunSpeed: %p",
+      _SK_Sekiro_FrameLockAddr0_Optional, _SK_Sekiro_FrameLockAddr1, _SK_Sekiro_RunSpeedAddr);
 
     uncap_framerate = (sk::ParameterBool*)
-      factory.create_parameter <bool> (L"Remove Framerate Limit");
+      g_ParameterFactory->create_parameter <bool> (L"Remove Framerate Limit");
 
     uncap_framerate->register_to_ini (
       SK_GetDLLConfig (),
@@ -381,7 +469,7 @@ SK_Sekiro_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT
     }
 
     kill_limiter = (sk::ParameterBool*)
-    factory.create_parameter <bool> (L"Fixed-Timestep");
+    g_ParameterFactory->create_parameter <bool> (L"Fixed-Timestep");
 
     kill_limiter->register_to_ini (
       SK_GetDLLConfig (),
@@ -396,7 +484,7 @@ SK_Sekiro_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT
 
     SK_Sekiro_UnlimitFramerate (no_frame_limit, kill_limit ?
        std::max (0.0l, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0l);
-  //SK_Sekiro_KillLimiter      (kill_limit);
+    SK_Sekiro_KillLimiter      (kill_limit);
 
     DWORD dwProcId;
 
@@ -460,6 +548,19 @@ SK_Sekiro_PlugInCfg (void)
 
       bool toggle_cap =
         ImGui::Checkbox ("Uncap Framerate", &no_frame_limit);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Smoothest Gameplay Possible");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Requires Special K's framerate limit be engaged");
+        ImGui::Bullet       ();
+        ImGui::SameLine     ();
+        ImGui::TextColored  (ImColor::HSV (0.27, 1., 1.),
+                             "If you change the framerate limit, turn this off and back on.");
+        ImGui::EndTooltip   ();
+      }
 
       if (toggle_cap)
       {
@@ -542,9 +643,9 @@ SK_Sekiro_PlugInCfg (void)
                     )
                   );
 
-                  nominal_ratio.push_back (
-                    { mode.RefreshRate.Numerator,
-                      mode.RefreshRate.Denominator }
+                  nominal_ratio.emplace_back (
+                    std::make_pair (mode.RefreshRate.Numerator,
+                                    mode.RefreshRate.Denominator)
                   );
 
                   if ( config.render.framerate.refresh_rate >= (nominal_refresh.back () - 1.0f) &&
@@ -600,39 +701,26 @@ SK_Sekiro_PlugInCfg (void)
           SK_SaveConfig ();
         }
 
-        bool limit_toggle =
-          ImGui::Checkbox ("Fixed Timestep Mode", &kill_limit);
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Smoothest Gameplay Possible");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("Requires Special K's framerate limit be engaged");
-          ImGui::Bullet       ();
-          ImGui::SameLine     ();
-          ImGui::TextColored  (ImColor::HSV (0.27, 1., 1.),
-                               "If you change the framerate limit, turn this off and back on.");
-          ImGui::EndTooltip   ();
-        }
-
-        if (limit_toggle)
-        {
-        //kill_limit
-        //  = SK_Sekiro_KillLimiter (kill_limit);
-
-          kill_limiter->store (kill_limit);
-
-          SK_GetDLLConfig ()->write (
-            SK_GetDLLConfig ()->get_filename ()
-          );
-
-        //kill_limit =
-        //SK_Sekiro_KillLimiter      (kill_limit);
-          no_frame_limit =
-          SK_Sekiro_UnlimitFramerate (no_frame_limit, kill_limit ?
-             std::max (0.0l, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0l);
-        }
+        //bool limit_toggle =
+        //  ImGui::Checkbox ("Fixed Timestep Mode", &kill_limit);
+        //
+        //if (limit_toggle)
+        //{
+        //  kill_limit
+        //    = SK_Sekiro_KillLimiter (kill_limit);
+        //
+        //  kill_limiter->store (kill_limit);
+        //
+        //  SK_GetDLLConfig ()->write (
+        //    SK_GetDLLConfig ()->get_filename ()
+        //  );
+        //
+        //  kill_limit =
+        //  SK_Sekiro_KillLimiter      (kill_limit);
+        //  no_frame_limit =
+        //  SK_Sekiro_UnlimitFramerate (no_frame_limit, kill_limit ?
+        //     std::max (0.0l, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0l);
+        //}
 
         if (orig_item != current_item)
         {
@@ -669,7 +757,7 @@ SK_Sekiro_InitPlugin (void)
   //            "\xF3\x0F\x10\x08\xF3\x0F\x59\x0D\x0C\xE7\x9B\x02"         ), nullptr );
 
   disable_netcode = (sk::ParameterBool*)
-    factory.create_parameter <bool> (L"Disable Netcode");
+    g_ParameterFactory->create_parameter <bool> (L"Disable Netcode");
 
   disable_netcode->register_to_ini (
     SK_GetDLLConfig (),

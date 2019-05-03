@@ -163,4 +163,7 @@ namespace NVAPI {
 }
 }
 
+void SK_NvAPI_PreInitHDR    (void);
+bool SK_NvAPI_InitializeHDR (void);
+
 #endif /* __SK__NVAPI_H__ */

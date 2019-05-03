@@ -28,11 +28,13 @@
 #include <nvapi/NvApiDriverSettings.h>
 #include <nvapi/nvapi_lite_sli.h>
 
-typedef NvAPI_Status (__cdecl *NvAPI_Disp_GetHdrCapabilities_pfn)(NvU32, NV_HDR_CAPABILITIES*);
-typedef NvAPI_Status (__cdecl *NvAPI_Disp_HdrColorControl_pfn)   (NvU32, NV_HDR_COLOR_DATA*);
+using NvAPI_Disp_GetHdrCapabilities_pfn = NvAPI_Status (__cdecl *)(NvU32, NV_HDR_CAPABILITIES*);
+using NvAPI_Disp_HdrColorControl_pfn    = NvAPI_Status (__cdecl *)(NvU32, NV_HDR_COLOR_DATA*);
+using NvAPI_Disp_ColorControl_pfn       = NvAPI_Status (__cdecl *)(NvU32, NV_COLOR_DATA*);
 
 NvAPI_Disp_GetHdrCapabilities_pfn NvAPI_Disp_GetHdrCapabilities_Original = nullptr;
 NvAPI_Disp_HdrColorControl_pfn    NvAPI_Disp_HdrColorControl_Original    = nullptr;
+NvAPI_Disp_ColorControl_pfn       NvAPI_Disp_ColorControl_Original       = nullptr;
 
 //
 // Undocumented Functions (unless you sign an NDA)
@@ -348,6 +350,47 @@ NVAPI::GetDriverVersion (NvU32* pVer)
   return ver_wstr;
 }
 
+NvU32
+SK_NvAPI_GetDefaultDisplayId (void)
+{
+  static NvU32 default_display_id =
+    std::numeric_limits <NvU32>::max ();
+
+  if (default_display_id != std::numeric_limits <NvU32>::max ())
+    return default_display_id;
+
+  NvU32               gpuCount                        =  0 ;
+  NvPhysicalGpuHandle ahGPU [NVAPI_MAX_PHYSICAL_GPUS] = { };
+
+  if (NVAPI_OK == NvAPI_EnumPhysicalGPUs (ahGPU, &gpuCount))
+  {
+    for (NvU32 i = 0; i < gpuCount; ++i)
+    {
+      NvU32             displayIdCount      =  16;
+      NvU32             flags               =  0 ;
+      NV_GPU_DISPLAYIDS
+        displayIdArray [16]         = {                   };
+        displayIdArray [ 0].version = NV_GPU_DISPLAYIDS_VER;
+
+      // Query list of displays connected to this GPU
+      if (NVAPI_OK == NvAPI_GPU_GetConnectedDisplayIds (
+                        ahGPU [i], displayIdArray,
+                          &displayIdCount, flags))
+      {
+        if (displayIdArray [0].isActive)
+        {
+          default_display_id = displayIdArray [0].displayId;
+          break;
+        }
+      }
+
+      // Iterate over displays to test for HDR capabilities
+    }
+  }
+
+  return 0;
+}
+
 
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
@@ -369,6 +412,10 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                 pHdrCapabilities->driverExpandDefaultHdrParameters ? L"Yes" :
                                                                      L"No" ),
               __SK_SUBSYSTEM__ );
+
+
+  pHdrCapabilities->driverExpandDefaultHdrParameters = 1;
+  pHdrCapabilities->static_metadata_descriptor_id    = NV_STATIC_METADATA_TYPE_1;
 
   NvAPI_Status ret =
     NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
@@ -401,6 +448,9 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
       L"  | ST2084 Gamma... |  %s\n"
       L"  | HDR Gamma...... |  %s\n"
       L"  | SDR Gamma...... |  %s\n"
+      L"  |  ?  4:4:4 10bpc |  %s\n"
+      L"  |  ?  4:4:4 12bpc |  %s\n"
+      L"  | YUV 4:2:2 12bpc |  %s\n"
       L"  +-----------------+---------------------\n",
         pHdrCapabilities->display_data.displayPrimary_x0,   pHdrCapabilities->display_data.displayPrimary_y0,
         pHdrCapabilities->display_data.displayPrimary_x1,   pHdrCapabilities->display_data.displayPrimary_y1,
@@ -412,11 +462,23 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                pHdrCapabilities->isEdrSupported                 ? L"Yes" : L"No",
                pHdrCapabilities->isST2084EotfSupported          ? L"Yes" : L"No",
                pHdrCapabilities->isTraditionalHdrGammaSupported ? L"Yes" : L"No",
-               pHdrCapabilities->isTraditionalSdrGammaSupported ? L"Yes" : L"No" );
+               pHdrCapabilities->isTraditionalSdrGammaSupported ? L"Yes" : L"No",
+               pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x1 ? L"Yes" : L"No",
+               pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x2 ? L"Yes" : L"No",
+               pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit      ? L"Yes" : L"No");
 
 
   if (ret == NVAPI_OK)
   {
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    ///rb.scanout.nvapi_hdr.color_support_hdr.supports_YUV422_12bit =
+    ///pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit;
+    ///
+    ///rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 =
+    ///pHdrCapabilities->dv_static_metadata.supports_10b_12b_444;
+
   //pHDRCtl->devcaps.BitsPerColor          = 10;
     //pHDRCtl->devcaps.RedPrimary   [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x0) / (float)0xC350;
     //pHDRCtl->devcaps.RedPrimary   [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y0) / (float)0xC350;
@@ -466,6 +528,76 @@ SK_NvAPI_ReIssueLastHdrColorControl (void)
 }
 
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+
+NVAPI_INTERFACE NvAPI_Disp_ColorControl(NvU32 displayId, NV_COLOR_DATA *pColorData);
+
+NvAPI_Status
+__cdecl
+NvAPI_Disp_ColorControl_Override ( NvU32          displayId,
+                                   NV_COLOR_DATA *pColorData )
+{
+  SK_LOG_CALL (SK_FormatStringW (L"NvAPI_Disp_ColorControl (%lu, ...)", displayId).c_str ());
+
+  return
+    NvAPI_Disp_ColorControl_Original (displayId, pColorData);
+}
+
+NvAPI_Status
+SK_NvAPI_CheckColorSupport_SDR (
+  NvU32                displayId,
+  NV_BPC               bpcTest,
+  NV_COLOR_FORMAT      formatTest      = NV_COLOR_FORMAT_AUTO,
+  NV_DYNAMIC_RANGE     rangeTest       = NV_DYNAMIC_RANGE_AUTO,
+  NV_COLOR_COLORIMETRY colorimetryTest = NV_COLOR_COLORIMETRY_AUTO )
+{
+  if (displayId == 0)
+  {
+    displayId =
+      SK_NvAPI_GetDefaultDisplayId ();
+  }
+
+  NV_COLOR_DATA
+    colorCheck                   = { };
+    colorCheck.version           = NV_COLOR_DATA_VER;
+    colorCheck.size              = sizeof (NV_COLOR_DATA);
+    colorCheck.cmd               = NV_COLOR_CMD_IS_SUPPORTED_COLOR;
+    colorCheck.data.colorimetry  = (NvU8)colorimetryTest;
+    colorCheck.data.dynamicRange = (NvU8)rangeTest;
+    colorCheck.data.colorFormat  = (NvU8)formatTest;
+    colorCheck.data.bpc          = bpcTest;
+
+  return
+    NvAPI_Disp_ColorControl_Original ( displayId, &colorCheck );
+}
+
+NvAPI_Status
+SK_NvAPI_CheckColorSupport_HDR (
+  NvU32                displayId,
+  NV_BPC               bpcTest,
+  NV_COLOR_FORMAT      formatTest      = NV_COLOR_FORMAT_AUTO,
+  NV_DYNAMIC_RANGE     rangeTest       = NV_DYNAMIC_RANGE_AUTO,
+  NV_COLOR_COLORIMETRY colorimetryTest = NV_COLOR_COLORIMETRY_AUTO )
+{
+  if (displayId == 0)
+  {
+    displayId =
+      SK_NvAPI_GetDefaultDisplayId ();
+  }
+
+  NV_COLOR_DATA
+    colorCheck                   = { };
+    colorCheck.version           = NV_COLOR_DATA_VER;
+    colorCheck.size              = sizeof (NV_COLOR_DATA);
+    colorCheck.cmd               = NV_COLOR_CMD_IS_SUPPORTED_COLOR;
+    colorCheck.data.colorimetry  = (NvU8)colorimetryTest;
+    colorCheck.data.dynamicRange = (NvU8)rangeTest;
+    colorCheck.data.colorFormat  = (NvU8)formatTest;
+    colorCheck.data.bpc          =       bpcTest;
+
+  return
+    NvAPI_Disp_ColorControl_Original ( displayId, &colorCheck );
+}
+
 
 NvAPI_Status
 __cdecl
@@ -553,20 +685,42 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
   //SK_LOG0 ( ( L"NV_HDR_COLOR_DATA Version: %lu", pHdrColorData->version ),
   //            __SK_SUBSYSTEM__ );
-  SK_LOG0 ( ( L"<%s> HDR Mode:    %s", pHdrColorData->cmd == NV_HDR_CMD_GET    ?
+  SK_LOG0 ( ( L"<%s> HDR Mode:    %s", pHdrColorData->cmd == NV_HDR_CMD_GET    ? //-V547
                                                         L"Get"                 :
                                        pHdrColorData->cmd == NV_HDR_CMD_SET    ?
-                                                        L"Set"                 :
-                                       pHdrColorData->cmd == NV_COLOR_CMD_IS_SUPPORTED_COLOR ?
-                                                        L"Check Color Support"               :
-                                       pHdrColorData->cmd == NV_COLOR_CMD_GET_DEFAULT        ?
-                                                        L"Get Default"                       :
-                                                        L"Unknown",
+                                                        L"Set"                 : L"Unknown",
                                        HDRModeToStr (pHdrColorData->hdrMode) ),
               __SK_SUBSYSTEM__ );
 
-  //SK_DXGI_HDRControl* pHDRCtl =
-  //  SK_HDR_GetControl ();
+
+  NV_COLOR_DATA
+  colorCheck                   = { };
+  colorCheck.version           = NV_COLOR_DATA_VER;
+  colorCheck.cmd               = NV_COLOR_CMD_IS_SUPPORTED_COLOR;
+  colorCheck.data.colorimetry  = NV_COLOR_COLORIMETRY_AUTO;
+  colorCheck.data.dynamicRange = NV_DYNAMIC_RANGE_AUTO;
+  colorCheck.data.colorFormat  = NV_COLOR_FORMAT_RGB;
+  colorCheck.data.bpc          = NV_BPC_10;
+
+
+  if ( NVAPI_OK ==
+        SK_NvAPI_CheckColorSupport_HDR (displayId, NV_BPC_10, NV_COLOR_FORMAT_YUV444) )
+    rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 |=  0x1;
+  else
+    rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 &= ~0x1;
+
+  if ( NVAPI_OK ==
+        SK_NvAPI_CheckColorSupport_HDR (displayId, NV_BPC_12, NV_COLOR_FORMAT_YUV444) )
+    rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 |=   0x2;
+  else
+    rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 &=  ~0x2;
+
+  if ( NVAPI_OK ==
+         SK_NvAPI_CheckColorSupport_HDR (displayId, NV_BPC_12, NV_COLOR_FORMAT_YUV422) )
+    rb.scanout.nvapi_hdr.color_support_hdr.supports_YUV422_12bit = 1;
+  else
+    rb.scanout.nvapi_hdr.color_support_hdr.supports_YUV422_12bit = 0;
+
 
   auto _LogGameRequestedValues = [&](void) ->
   void
@@ -591,9 +745,9 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
     static SKTL_BidirectionalHashMap <std::wstring, _NV_DYNAMIC_RANGE>
       dynamic_range_map =
-        { { L"No Metadata",             NV_DYNAMIC_RANGE_VESA  },
-          { L"CEA-861.3, SMPTE ST2086", NV_DYNAMIC_RANGE_CEA   },
-          { L"[AUTO]",                  NV_DYNAMIC_RANGE_AUTO  } };
+        { { L"Full Range", NV_DYNAMIC_RANGE_VESA  },
+          { L"Limited",    NV_DYNAMIC_RANGE_CEA   },
+          { L"Don't Care", NV_DYNAMIC_RANGE_AUTO  } };
 
     SK_LOG0 ( ( L"HDR:  Max Master Luma: %7.1f, Min Master Luma: %7.5f",
       static_cast <double> (pHdrColorData->mastering_display_data.max_display_mastering_luminance),
@@ -721,6 +875,8 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
     if (NVAPI_OK == ret)
     {
+      rb.scanout.nvapi_hdr.raw.display_id = displayId;
+
       if (pHdrColorData->hdrMode != NV_HDR_MODE_OFF)
       {
         rb.setHDRCapable       (true);
@@ -749,6 +905,9 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
         rb.scanout.nvapi_hdr.active         =
        (rb.scanout.nvapi_hdr.mode != NV_HDR_MODE_OFF);
+
+        memcpy ( &rb.scanout.nvapi_hdr.raw.hdr_data,
+                   &query_data, sizeof (NV_HDR_COLOR_DATA) );
       }
 
       else
@@ -801,10 +960,147 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
              &pHdrColorData->mastering_display_data,
           sizeof (inputData->mastering_display_data) );
 
-    inputData->static_metadata_descriptor_id = pHdrColorData->static_metadata_descriptor_id;
+    inputData->static_metadata_descriptor_id =
+      pHdrColorData->static_metadata_descriptor_id;
   }
 
   return ret;
+}
+
+bool
+SK_RenderBackend_V2::scan_out_s::
+       nvapi_desc_s::setColorEncoding_HDR ( NV_COLOR_FORMAT fmt_,
+                                            NV_BPC          bpc_,
+                                            NvU32           display_id )
+{
+  if (display_id == std::numeric_limits <NvU32>::max ())
+      display_id = raw.display_id;
+
+  NV_HDR_COLOR_DATA
+    dataGetSet         = { };
+    dataGetSet.version = NV_HDR_COLOR_DATA_VER;
+    dataGetSet.cmd     = NV_HDR_CMD_GET;
+
+  if ( NVAPI_OK ==
+         NvAPI_Disp_HdrColorControl_Original ( display_id, &dataGetSet ) )
+  {
+    dataGetSet.cmd = NV_HDR_CMD_SET;
+
+    if (bpc_ != NV_BPC_DEFAULT)
+      dataGetSet.hdrBpc = bpc_;
+
+    if (fmt_ != NV_COLOR_FORMAT_DEFAULT)
+      dataGetSet.hdrColorFormat = fmt_;
+
+    dataGetSet.hdrDynamicRange = NV_DYNAMIC_RANGE_AUTO;
+    dataGetSet.hdrMode         = mode;
+
+    NV_COLOR_DATA
+      colorSet       = { };
+    colorSet.version = NV_COLOR_DATA_VER;
+    colorSet.cmd     = NV_COLOR_CMD_GET;
+    colorSet.size    = sizeof (NV_COLOR_DATA);
+
+    NvAPI_Disp_ColorControl_Original (display_id, &colorSet);
+
+    if ( NVAPI_OK ==
+           NvAPI_Disp_HdrColorControl_Original ( display_id, &dataGetSet ) )
+    {
+      colorSet.cmd                       = NV_COLOR_CMD_SET;
+      colorSet.data.colorSelectionPolicy = NV_COLOR_SELECTION_POLICY_USER;
+      colorSet.data.colorFormat          = (NvU8)dataGetSet.hdrColorFormat;
+      colorSet.data.bpc                  =       dataGetSet.hdrBpc;
+      colorSet.data.dynamicRange         = NV_DYNAMIC_RANGE_AUTO;
+      colorSet.data.colorimetry          = NV_COLOR_COLORIMETRY_AUTO;
+
+      NvAPI_Disp_ColorControl_Original (display_id, &colorSet);
+
+      SK_GetCurrentRenderBackend ().requestFullscreenMode ();
+
+      raw.hdr_data  = dataGetSet;
+      mode          = dataGetSet.hdrMode;
+      bpc           = dataGetSet.hdrBpc;
+      color_format  = dataGetSet.hdrColorFormat;
+      dynamic_range = dataGetSet.hdrDynamicRange;
+
+      NV_COLOR_DATA
+        colorCheck                   = { };
+        colorCheck.version           = NV_COLOR_DATA_VER;
+        colorCheck.cmd               = NV_COLOR_CMD_IS_SUPPORTED_COLOR;
+        colorCheck.data.colorimetry  = NV_COLOR_COLORIMETRY_AUTO;
+        colorCheck.data.dynamicRange = NV_DYNAMIC_RANGE_AUTO;
+        colorCheck.data.colorFormat  = NV_COLOR_FORMAT_RGB;
+        colorCheck.data.bpc          = NV_BPC_10;
+
+      if ( NVAPI_OK == NvAPI_Disp_ColorControl_Original (display_id, &colorCheck) )
+        color_support_hdr.supports_10b_12b_444 |=  0x1;
+      else
+        color_support_hdr.supports_10b_12b_444 &= ~0x1;
+
+      colorCheck.data.colorFormat = NV_COLOR_FORMAT_RGB;
+      colorCheck.data.bpc         = NV_BPC_12;
+
+      if ( NVAPI_OK == NvAPI_Disp_ColorControl_Original (display_id, &colorCheck) )
+        color_support_hdr.supports_10b_12b_444 |=  0x2;
+      else
+        color_support_hdr.supports_10b_12b_444 &= ~0x2;
+
+      colorCheck.data.colorFormat = NV_COLOR_FORMAT_YUV422;
+      colorCheck.data.bpc         = NV_BPC_12;
+
+      if ( NVAPI_OK == NvAPI_Disp_ColorControl_Original (display_id, &colorCheck) )
+        color_support_hdr.supports_YUV422_12bit = 1;
+      else
+        color_support_hdr.supports_YUV422_12bit = 0;
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+SK_RenderBackend_V2::scan_out_s::
+       nvapi_desc_s::setColorEncoding_SDR ( NV_COLOR_FORMAT fmt_,
+                                            NV_BPC          bpc_,
+                                            NvU32           display_id )
+{
+  if (display_id == std::numeric_limits <NvU32>::max ())
+  {
+    display_id =
+      SK_NvAPI_GetDefaultDisplayId ();
+  }
+
+  NV_COLOR_DATA
+    colorSet       = { };
+  colorSet.version = NV_COLOR_DATA_VER;
+  colorSet.cmd     = NV_COLOR_CMD_GET;
+  colorSet.size    = sizeof (NV_COLOR_DATA);
+
+  NvAPI_Disp_ColorControl_Original (display_id, &colorSet);
+
+  colorSet.cmd                       = NV_COLOR_CMD_SET;
+  colorSet.data.colorSelectionPolicy = NV_COLOR_SELECTION_POLICY_USER;
+  colorSet.data.colorFormat          = (NvU8)fmt_;
+  colorSet.data.bpc                  =       bpc_;
+  colorSet.data.dynamicRange         = NV_DYNAMIC_RANGE_AUTO;
+  colorSet.data.colorimetry          = NV_COLOR_COLORIMETRY_AUTO;
+
+  if ( NVAPI_OK ==
+         NvAPI_Disp_ColorControl_Original ( display_id, &colorSet ) )
+  {
+    SK_GetCurrentRenderBackend ().requestFullscreenMode ();
+
+    mode          = NV_HDR_MODE_OFF;
+    bpc           = colorSet.data.bpc;
+    color_format  = (NV_COLOR_FORMAT)colorSet.data.colorFormat;
+    dynamic_range = (NV_DYNAMIC_RANGE)colorSet.data.dynamicRange;
+
+    return true;
+  }
+
+  return false;
 }
 
 
@@ -812,21 +1108,29 @@ using NvAPI_QueryInterface_pfn = void* (*)(unsigned int ordinal);
       NvAPI_QueryInterface_pfn
       NvAPI_QueryInterface_Original = nullptr;
 
-#include <concurrent_unordered_set.h>
+#define threadsafe_unordered_set Concurrency::concurrent_unordered_set
 
 void*
 NvAPI_QueryInterface_Detour (unsigned int ordinal)
 {
-  static Concurrency::concurrent_unordered_set <unsigned int> logged_ordinals;
+  static
+    threadsafe_unordered_set <unsigned int>
+      logged_ordinals;
+  if (logged_ordinals.count  (ordinal) == 0)
+  {   logged_ordinals.insert (ordinal);
 
-  if (logged_ordinals.count (ordinal) == 0)
-  {
-    logged_ordinals.insert (ordinal);
+    void* pAddr =
+      NvAPI_QueryInterface_Original (ordinal);
 
-    dll_log->Log (L"NvAPI Ordinal: %lu  --  %s", ordinal, SK_SummarizeCaller ().c_str ());
+    dll_log->Log ( L"NvAPI Ordinal: %lu [%p]  --  %s", ordinal,
+                     pAddr, SK_SummarizeCaller ().c_str ()    );
+
+    return
+      pAddr;
   }
 
-  return NvAPI_QueryInterface_Original (ordinal);
+  return
+    NvAPI_QueryInterface_Original (ordinal);
 }
 
 
@@ -836,22 +1140,25 @@ BOOL bLibInit     = FALSE;
 BOOL
 NVAPI::UnloadLibrary (void)
 {
-  if (bLibInit == TRUE && bLibShutdown == FALSE) {
+  if ( bLibInit     == TRUE &&
+       bLibShutdown == FALSE  )
+  {
     // Whine very loudly if this fails, because that's not
     //   supposed to happen!
     NVAPI_VERBOSE ()
 
-      NvAPI_Status ret;
+    NvAPI_Status ret =
+      NvAPI_Unload ();//NVAPI_CALL2 (Unload (), ret);
 
-    ret = NvAPI_Unload ();//NVAPI_CALL2 (Unload (), ret);
-
-    if (ret == NVAPI_OK) {
+    if (ret == NVAPI_OK)
+    {
       bLibShutdown = TRUE;
       bLibInit     = FALSE;
     }
   }
 
-  return bLibShutdown;
+  return
+    bLibShutdown;
 }
 
 void
@@ -865,14 +1172,18 @@ SK_NvAPI_PreInitHDR (void)
 
     if (hLib)
     {
-      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
+      GetModuleHandleEx (
+        GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib
+      );
 #else
     HMODULE hLib =
       SK_Modules->LoadLibraryLL (L"nvapi.dll");
 
     if (hLib)
     {
-      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
+      GetModuleHandleEx (
+        GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib
+      );
 #endif
 
       static auto NvAPI_QueryInterface =
@@ -882,6 +1193,10 @@ SK_NvAPI_PreInitHDR (void)
 
       if (NvAPI_QueryInterface != nullptr)
       {
+        SK_CreateFuncHook ( L"NvAPI_Disp_ColorControl",
+                              NvAPI_QueryInterface (2465847309),
+                              NvAPI_Disp_ColorControl_Override,
+     static_cast_p2p <void> (&NvAPI_Disp_ColorControl_Original) );
         SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl",
                               NvAPI_QueryInterface (891134500),
                               NvAPI_Disp_HdrColorControl_Override,
@@ -894,6 +1209,7 @@ SK_NvAPI_PreInitHDR (void)
 
         MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
         MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
+        MH_QueueEnableHook (NvAPI_QueryInterface (2465847309));
       }
     }
   }
@@ -931,125 +1247,133 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
   }
   NVAPI_VERBOSE ()
 
-    if (ret != NVAPI_OK) {
-      nv_hardware = false;
-      bLibInit    = TRUE + 1; // Clearly this isn't a boolean; just for looks
-      return FALSE;
-    }
-    else {
-      // True unless we fail the stuff below...
-      nv_hardware = true;
+  if (ret != NVAPI_OK) {
+    nv_hardware = false;
+    bLibInit    = TRUE + 1; // Clearly this isn't a boolean; just for looks
+    return FALSE;
+  }
+  else {
+    // True unless we fail the stuff below...
+    nv_hardware = true;
 
-      //
-      // Time to initialize a few undocumented (if you do not sign an NDA)
-      //   parts of NvAPI, hurray!
-      //
-      static HMODULE hLib = nullptr;
+    //
+    // Time to initialize a few undocumented (if you do not sign an NDA)
+    //   parts of NvAPI, hurray!
+    //
+    static HMODULE hLib = nullptr;
 
 #ifdef _WIN64
-      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
+    GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
 #else
-      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
+    GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
 #endif
 
-    if (hLib != nullptr)
+  if (hLib != nullptr)
+  {
+    static auto NvAPI_QueryInterface =
+      reinterpret_cast <NvAPI_QueryInterface_pfn> (
+        GetProcAddress (hLib, "nvapi_QueryInterface")
+      );
+
+    NvAPI_GPU_GetRamType =
+      (NvAPI_GPU_GetRamType_pfn)NvAPI_QueryInterface            (0x57F7CAACu);
+    NvAPI_GPU_GetFBWidthAndLocation =
+      (NvAPI_GPU_GetFBWidthAndLocation_pfn)NvAPI_QueryInterface (0x11104158u);
+    NvAPI_GPU_GetPCIEInfo =
+      (NvAPI_GPU_GetPCIEInfo_pfn)NvAPI_QueryInterface           (0xE3795199u);
+    NvAPI_GetPhysicalGPUFromGPUID =
+      (NvAPI_GetPhysicalGPUFromGPUID_pfn)NvAPI_QueryInterface   (0x5380AD1Au);
+    NvAPI_GetGPUIDFromPhysicalGPU =
+      (NvAPI_GetGPUIDFromPhysicalGPU_pfn)NvAPI_QueryInterface   (0x6533EA3Eu);
+
+    if (NvAPI_GPU_GetRamType == nullptr) {
+      dll_log->LogEx (false, L"missing NvAPI_GPU_GetRamType ");
+      nv_hardware = false;
+    }
+
+    if (NvAPI_GPU_GetFBWidthAndLocation == nullptr) {
+      dll_log->LogEx (false, L"missing NvAPI_GPU_GetFBWidthAndLocation ");
+      nv_hardware = false;
+    }
+
+    if (NvAPI_GPU_GetPCIEInfo == nullptr) {
+      dll_log->LogEx (false, L"missing NvAPI_GPU_GetPCIEInfo ");
+      nv_hardware = false;
+    }
+
+    if (NvAPI_GetPhysicalGPUFromGPUID == nullptr) {
+      dll_log->LogEx (false, L"missing NvAPI_GetPhysicalGPUFromGPUID ");
+      nv_hardware = false;
+    }
+
+    if (NvAPI_GetGPUIDFromPhysicalGPU == nullptr) {
+      dll_log->LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
+      nv_hardware = false;
+    }
+
+
+    if (NvAPI_Disp_HdrColorControl_Original == nullptr)
     {
-      static auto NvAPI_QueryInterface =
-        reinterpret_cast <NvAPI_QueryInterface_pfn> (
-          GetProcAddress (hLib, "nvapi_QueryInterface")
-        );
+      SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl",
+                            NvAPI_QueryInterface (891134500),
+                            NvAPI_Disp_HdrColorControl_Override,
+   static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
 
-      NvAPI_GPU_GetRamType =
-        (NvAPI_GPU_GetRamType_pfn)NvAPI_QueryInterface            (0x57F7CAACu);
-      NvAPI_GPU_GetFBWidthAndLocation =
-        (NvAPI_GPU_GetFBWidthAndLocation_pfn)NvAPI_QueryInterface (0x11104158u);
-      NvAPI_GPU_GetPCIEInfo =
-        (NvAPI_GPU_GetPCIEInfo_pfn)NvAPI_QueryInterface           (0xE3795199u);
-      NvAPI_GetPhysicalGPUFromGPUID =
-        (NvAPI_GetPhysicalGPUFromGPUID_pfn)NvAPI_QueryInterface   (0x5380AD1Au);
-      NvAPI_GetGPUIDFromPhysicalGPU =
-        (NvAPI_GetGPUIDFromPhysicalGPU_pfn)NvAPI_QueryInterface   (0x6533EA3Eu);
+      SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities",
+                            NvAPI_QueryInterface (2230495455),
+                            NvAPI_Disp_GetHdrCapabilities_Override,
+   static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
 
-      if (NvAPI_GPU_GetRamType == nullptr) {
-        dll_log->LogEx (false, L"missing NvAPI_GPU_GetRamType ");
-        nv_hardware = false;
-      }
+      MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
+      MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
+    }
 
-      if (NvAPI_GPU_GetFBWidthAndLocation == nullptr) {
-        dll_log->LogEx (false, L"missing NvAPI_GPU_GetFBWidthAndLocation ");
-        nv_hardware = false;
-      }
-
-      if (NvAPI_GPU_GetPCIEInfo == nullptr) {
-        dll_log->LogEx (false, L"missing NvAPI_GPU_GetPCIEInfo ");
-        nv_hardware = false;
-      }
-
-      if (NvAPI_GetPhysicalGPUFromGPUID == nullptr) {
-        dll_log->LogEx (false, L"missing NvAPI_GetPhysicalGPUFromGPUID ");
-        nv_hardware = false;
-      }
-
-      if (NvAPI_GetGPUIDFromPhysicalGPU == nullptr) {
-        dll_log->LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
-        nv_hardware = false;
-      }
-
-
-      if (NvAPI_Disp_HdrColorControl_Original == nullptr)
-      {
-        SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl",
-                              NvAPI_QueryInterface (891134500),
-                              NvAPI_Disp_HdrColorControl_Override,
-     static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
-
-        SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities",
-                              NvAPI_QueryInterface (2230495455),
-                              NvAPI_Disp_GetHdrCapabilities_Override,
-     static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
-
-        MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
-        MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
-      }
-
-
-      if (nv_hardware && NvAPI_Disp_GetHdrCapabilities_Original != nullptr)
-      {
-        NV_HDR_CAPABILITIES hdr_caps         = { };
-        hdr_caps.version = NV_HDR_CAPABILITIES_VER;
-
-        NvU32 DefaultOutputId = 0;
-
-        if ( NVAPI_OK ==
-               NvAPI_GetAssociatedDisplayOutputId (NVAPI_DEFAULT_HANDLE, &DefaultOutputId) )
-        {
-          NvAPI_Disp_GetHdrCapabilities_Override ( DefaultOutputId, &hdr_caps );
-        }
-      }
-
-  //    SK_CreateDLLHook2 ( L"nvapi64.dll",
-  //                         "nvapi_QueryInterface",
-  //                          NvAPI_QueryInterface_Detour,
-  // static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
+  // SK_CreateDLLHook2 ( L"nvapi64.dll",
+  //                      "nvapi_QueryInterface",
+  //                       NvAPI_QueryInterface_Detour,
+  //static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
 
 //#ifdef SK_AGGRESSIVE_HOOKS
 //      SK_ApplyQueuedHooks ();
 //#endif
     }
 
-    else {
+    else
+  {
       dll_log->Log (L"unable to complete LoadLibrary (...) ");
       nv_hardware = false;
     }
 
-    if (nv_hardware == false) {
+    if (nv_hardware == false)
+    {
       bLibInit = FALSE;
       hLib     = nullptr;
     }
   }
 
-  return (bLibInit = TRUE);
+  return
+    ( bLibInit = TRUE );
 }
+
+
+
+bool SK_NvAPI_InitializeHDR (void)
+{
+  if (nv_hardware && NvAPI_Disp_GetHdrCapabilities_Original != nullptr)
+  {
+    NV_HDR_CAPABILITIES
+      hdr_caps       = { };
+    hdr_caps.version = NV_HDR_CAPABILITIES_VER;
+
+    NvAPI_Disp_GetHdrCapabilities_Override (
+      SK_NvAPI_GetDefaultDisplayId (), &hdr_caps
+    );
+  }
+
+  // Not yet meaningful
+  return true;
+}
+
 
 NV_GET_CURRENT_SLI_STATE
 NVAPI::GetSLIState (IUnknown* pDev)
@@ -1264,7 +1588,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
 
     // Driver's not being cooperative, we have no choice but to bail-out
     else {
-      dll_log->LogEx ( L"[  NvAPI   ] Could not find or create application profile for '%s' (%s)",
+      dll_log->LogEx ( true, L"[  NvAPI   ] Could not find or create application profile for '%s' (%s)",
                        friendly_name.c_str (), app_name.c_str () );
 
       NVAPI_CALL (DRS_DestroySession (hSession));
@@ -1349,6 +1673,8 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
       NVAPI_CALL (DRS_DestroySession (hSession));
 
       SK_ElevateToAdmin ();
+
+      LeaveCriticalSection (&cs_aa_override);
 
       // Formality, ElevateToAdmin actually kills the process...
       return FALSE;
@@ -1435,7 +1761,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
     typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
-    NvAPI_QueryInterface_pfn       NvAPI_QueryInterface       =
+    NvAPI_QueryInterface_pfn          NvAPI_QueryInterface       =
       (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
     NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
       (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
@@ -1443,10 +1769,8 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
     NvAPI_RestartDisplayDriver ();
 #endif
 
-    NVAPI_CALL (DRS_SaveSettings (hSession));
-  }
-
-  NVAPI_CALL (DRS_DestroySession (hSession));
+    NVAPI_CALL (DRS_SaveSettings   (hSession));
+  } NVAPI_CALL (DRS_DestroySession (hSession));
 
   LeaveCriticalSection (&cs_aa_override);
 
@@ -1804,7 +2128,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
 
       if (result == IDCANCEL)
       {
-        config.nvidia.sli.override = FALSE;
+        config.nvidia.sli.override = false;
         NVAPI_CALL (DRS_DestroySession (hSession));
         return FALSE;
       }

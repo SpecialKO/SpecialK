@@ -27,7 +27,7 @@
 SK_ScreenshotQueue enqueued_screenshots { 0, 0, 0 };
 
 void SK_Screenshot_ProcessQueue ( SK_ScreenshotStage stage,
-                                  SK_RenderBackend&  rb )
+                            const SK_RenderBackend&  rb )
 {
   if ( gsl::narrow_cast <int> (rb.api) &
        gsl::narrow_cast <int> (SK_RenderAPI::D3D11) )
@@ -64,12 +64,8 @@ SK_Screenshot_IsCapturingHUDless (void)
 bool
 SK_Screenshot_IsCapturing (void)
 {
-  if ( ReadAcquire (&enqueued_screenshots.stages [0]) > 0 ||
-       ReadAcquire (&enqueued_screenshots.stages [1]) > 0 ||
-       ReadAcquire (&enqueued_screenshots.stages [2]) > 0   )
-  {
-    return true;
-  }
-
-  return false;
+  return
+    ( ReadAcquire (&enqueued_screenshots.stages [0]) > 0 ||
+      ReadAcquire (&enqueued_screenshots.stages [1]) > 0 ||
+      ReadAcquire (&enqueued_screenshots.stages [2]) > 0   );
 }

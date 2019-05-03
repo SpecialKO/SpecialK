@@ -44,8 +44,8 @@ SK_GetCommandProcessor (void)
 
 
 template <>
-str_hash_compare <std::string, std::less <std::string> >::size_type
-str_hash_compare <std::string, std::less <std::string> >::hash_string (const std::string& _Keyval) const
+str_hash_compare <std::string, std::less <> >::size_type
+str_hash_compare <std::string, std::less <> >::hash_string (const std::string& _Keyval) const
 {
   const bool case_insensitive = true;
 
@@ -69,15 +69,15 @@ str_hash_compare <std::string, std::less <std::string> >::hash_string (const std
 
 
 template <>
-str_hash_compare <std::string, std::less <std::string> >::size_type
-str_hash_compare <std::string, std::less <std::string> >::operator() (const std::string& _Keyval) const
+str_hash_compare <std::string, std::less <> >::size_type
+str_hash_compare <std::string, std::less <> >::operator() (const std::string& _Keyval) const
 {
   return hash_string (_Keyval);
 }
 
 template <>
 bool
-str_hash_compare <std::string, std::less <std::string> >::operator() (const std::string& _lhs, const std::string& _rhs) const
+str_hash_compare <std::string, std::less <> >::operator() (const std::string& _lhs, const std::string& _rhs) const
 {
   return hash_string (_lhs) < hash_string (_rhs);
 }
@@ -93,9 +93,10 @@ public:
   SK_ICommandResult execute (const char* szArgs) override
   {
     /* TODO: Replace with a special tokenizer / parser... */
-    FILE* src = fopen (szArgs, "r");
+    FILE* src =
+      fopen (szArgs, "r");
 
-    if (! src)
+    if (src == nullptr)
     {
       return
         SK_ICommandResult ( "source", szArgs,
@@ -426,7 +427,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
       var->getValueString (nullptr, &len);
 
       auto* pszNew =
-        SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+        SK_TLS_Bottom ()->scratch_memory->cmd.alloc (
           static_cast <size_t> (len) + 1UL, true
         );
 
@@ -469,7 +470,7 @@ SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
   va_end               (ap);
 
   auto* szFormattedCommandLine =
-    SK_TLS_Bottom ()->scratch_memory.cmd.alloc (len + 1, true);
+    SK_TLS_Bottom ()->scratch_memory->cmd.alloc (len + 1, true);
 
   if (szFormattedCommandLine != nullptr)
   {

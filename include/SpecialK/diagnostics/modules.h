@@ -55,6 +55,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when = SK_ModuleEnum::PreLoad);
 extern "C" {
 #endif
 
+  #pragma pack (push,8)
 #ifndef _WINDEF_
 typedef void *HANDLE;
 
@@ -109,6 +110,7 @@ GetProcessMemoryInfo
   PPROCESS_MEMORY_COUNTERS ppsmemCounters,
   DWORD                      cb );
 
+#pragma pack (pop)
 #ifdef __cplusplus
 };
 #endif
@@ -275,18 +277,14 @@ class skModuleRegistry
 public:
   skModuleRegistry (void) noexcept
   {
-    try {
-      _known_module_bases.reserve (96);
-      _known_module_names.reserve (96);
-      _loaded_libraries.reserve   (96);
-    }
-    catch (...)
-    {
-    }
+    _known_module_bases.reserve (96);
+    _known_module_names.reserve (96);
+    _loaded_libraries.reserve   (96);
   }
 
-  static inline HMODULE INVALID_MODULE = nullptr;
+  static constexpr HMODULE INVALID_MODULE = nullptr;
 
+  inline
   bool
     isValid (const HMODULE hModTest) const noexcept
   {

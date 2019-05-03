@@ -93,7 +93,8 @@ STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::Release (void)
 {
   // What this thread thinks the reference count is
-  ULONG local_refs = InterlockedDecrement (&refs_);
+  ULONG local_refs =
+    InterlockedDecrement (&refs_);
 
   if (local_refs == 0)
   {
@@ -117,8 +118,10 @@ IWrapDirect3DSwapChain9::Release (void)
                                        remaining.clear ();
   }
 
+
   ULONG refs =
-    pReal->Release ();
+    ( pReal != nullptr ) ? pReal->Release ()
+                         : 0;
 
   if (local_refs == 0 && refs != 0)
   {
@@ -129,11 +132,13 @@ IWrapDirect3DSwapChain9::Release (void)
 
   if (refs == 0)
   {
+    pReal = nullptr;
+
     //if (d3d9ex_)
     //  InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChainsEx);
     //  InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChains);
 
-    delete this;
+    ////delete this;
   }
 
   return local_refs;

@@ -23,25 +23,27 @@
 // Useless warning:  'typedef ': ignored on left of '' when no variable is declared
 #pragma warning (disable: 4091)
 
+#include <Windows.h>
+#undef _WINGDI_
+#define NOGDI
 #include <comdef.h>
 #include <Unknwnbase.h>
+#include <atlcomcli.h>
 #include <gsl/gsl_util>
 
-#include <Windows.h>
 #include <unordered_map>
-#include <algorithm>
-#include <cassert>
-//#include <SpecialK/com_util.h>
-//#include <SpecialK/log.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/input/input.h>
+
+// Not so global in this case, but the concept remains the same;
+//   deferred initialization until first use of complicated objects.
+#include <SpecialK/utility/lazy_global.h>
 
 #include <vcruntime_exception.h>
 
 struct SK_MMCS_TaskEntry;
 
 #include <d3d11.h>
-#include <atlbase.h>
 
 #ifndef _D3D11_CONSTANTS
 #define	D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT	( 15 )
@@ -105,7 +107,7 @@ public:
   {
     if (data == nullptr || len < needed)
     {
-      if (data != nullptr)
+      if (data != nullptr && len > 0)
         _aligned_free (data);
 
       len  = std::max (len, needed);
@@ -359,37 +361,39 @@ class SK_D3D11_ThreadContext : public SK_TLS_DynamicContext,
                                public SK_TLS_RenderContext
 {
 public:
-  CComPtr <ID3D11DeviceContext>     pDevCtx;
+  CComPtr <ID3D11DeviceContext>      pDevCtx;
 
-  CComPtr <ID3D11RasterizerState>   pRasterStateOrig;
-  CComPtr <ID3D11RasterizerState>   pRasterStateNew;
+  CComPtr <ID3D11RasterizerState>    pRasterStateOrig;
+  CComPtr <ID3D11RasterizerState>    pRasterStateNew;
 
-  CComPtr <ID3D11DepthStencilState> pDepthStencilStateOrig;
-  CComPtr <ID3D11DepthStencilState> pDepthStencilStateNew;
-  CComPtr <ID3D11DepthStencilView>  pDSVOrig;
+  CComPtr <ID3D11DepthStencilState>  pDepthStencilStateOrig;
+  CComPtr <ID3D11DepthStencilState>  pDepthStencilStateNew;
+  CComPtr <ID3D11DepthStencilView>   pDSVOrig;
 
-  CComPtr <ID3D11RenderTargetView>  pRTVOrig;
+  CComPtr <ID3D11RenderTargetView>   pRTVOrig;
 
-  CComPtr <ID3D11BlendState>        pOrigBlendState;
-  UINT                     uiOrigBlendMask         = 0x0;
-  FLOAT                    fOrigBlendFactors [4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
+  CComPtr <ID3D11BlendState>         pOrigBlendState;
+  UINT                               uiOrigBlendMask          = 0x0;
+  FLOAT                              fOrigBlendFactors [4]    =
+                                       { 0.0f, 0.0f, 0.0f, 0.0f };
 
-  UINT                     StencilRefOrig          = 0;
-  UINT                     StencilRefNew           = 0;
+  UINT                               StencilRefOrig           = 0;
+  UINT                               StencilRefNew            = 0;
 
-  SK_D3D11_Stateblock_Lite* stateBlock             = nullptr;
-  size_t                    stateBlockSize         = 0;
+  SK_D3D11_Stateblock_Lite*          stateBlock               = nullptr;
+  size_t                             stateBlockSize           = 0;
 
   // Sampler to share between ImGui and CEGUI
-  CComPtr <ID3D11SamplerState>       uiSampler_clamp        = nullptr;
-  CComPtr <ID3D11SamplerState>       uiSampler_wrap         = nullptr;
+  CComPtr <ID3D11SamplerState>       uiSampler_clamp          = nullptr;
+  CComPtr <ID3D11SamplerState>       uiSampler_wrap           = nullptr;
 
-  CComPtr <ID3D11Buffer>             pOriginalCBuffers [6][D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT]
-                                                            = { };
-  bool                               empty_cbuffers    [6]  = { false };
+  CComPtr <ID3D11Buffer>             pOriginalCBuffers [6]
+        [D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT]
+                                                              = { };
+  bool                               empty_cbuffers    [6]    = { false };
 
   // Prevent recursion during hook installation
-  BOOL                      skip_d3d11_create_device = FALSE;
+  BOOL                               skip_d3d11_create_device = FALSE;
 
   struct {
     uint8_t* buffer  = nullptr;
@@ -472,9 +476,16 @@ class SK_Win32_ThreadContext
 public:
   int  getThreadPriority (bool nocache = false);
 
-  LONG GUI                 = -1;
-  HWND active              = (HWND)-1;
+  struct
+  {
+    FILETIME last_time     = { };
+    LPVOID   call_site     = nullptr;
+    DWORD    code          = NO_ERROR;
+  } error_state;
 
+  LONG GUI                 = -1;
+  HWND last_active         = (HWND)-1;
+  HWND active              = (HWND)-1;
 
   int  thread_prio         =  0;
 
@@ -483,13 +494,6 @@ public:
     DWORD time             = 0;
     ULONG frame            = 0;
   } last_tested_prio;
-
-  struct
-  {
-    DWORD    code          = NO_ERROR;
-    FILETIME last_time     = { };
-    LPVOID   call_site     = nullptr;
-  } error_state;
 };
 
 class SK_ImGui_ThreadContext : public SK_TLS_DynamicContext
@@ -591,7 +595,6 @@ class SK_Sched_ThreadContext : public SK_TLS_DynamicContext
 {
 public:
   DWORD         priority      = THREAD_PRIORITY_NORMAL;
-  //UINT          ideal_cpu     =             0;
   DWORD_PTR     affinity_mask = (DWORD_PTR)-1;
   bool          lock_affinity = false;
   bool          background_io = false;
@@ -635,7 +638,17 @@ public:
 class SK_TLS
 {
 public:
-  SK_TLS                    (DWORD idx) {
+  SK_TLS (DWORD idx) {
+    Init (idx);
+  }
+
+  virtual ~SK_TLS (void)
+  {
+    Cleanup ();
+  }
+
+  void Init (DWORD idx)
+  {
     context_record.dwTlsIdx = idx;
     context_record.pTLS     = this;
 
@@ -649,42 +662,42 @@ public:
       debug.handle = INVALID_HANDLE_VALUE;
     }
 
-    debug.tid               = GetCurrentThreadId ();
+    debug.tid               = SK_Thread_GetCurrentId ();
     debug.tls_idx           = idx;
   }
 
   SK_TlsRecord              context_record = { };
 
-  SK_ModuleAddrMap          known_modules  = { };
-  SK_TLS_ScratchMemory      scratch_memory = { };
-  SK_TLS_ScratchMemoryLocal local_scratch  = { }; // Takes memory from LocalAlloc
+  SK_LazyGlobal <SK_ModuleAddrMap>          known_modules;
+  SK_LazyGlobal <SK_TLS_ScratchMemory>      scratch_memory;
+  SK_LazyGlobal <SK_TLS_ScratchMemoryLocal> local_scratch; // Takes memory from LocalAlloc
 
-  SK_DDraw_ThreadContext    ddraw = { };
-  SK_D3D8_ThreadContext     d3d8  = { };
-  SK_D3D9_ThreadContext     d3d9  = { };
-  SK_D3D11_ThreadContext    d3d11 = { };
-  SK_GL_ThreadContext       gl    = { };
+  SK_LazyGlobal <SK_DDraw_ThreadContext>    ddraw;
+  SK_LazyGlobal <SK_D3D8_ThreadContext>     d3d8;
+  SK_LazyGlobal <SK_D3D9_ThreadContext>     d3d9;
+  SK_LazyGlobal <SK_D3D11_ThreadContext>    d3d11;
+  SK_LazyGlobal <SK_GL_ThreadContext>       gl;
 
   // Scratch memory pool for DXTex to reduce its tendency to fragment the
   //   the address space up while batching multiple format conversion jobs.
   SK_DXTex_ThreadContext    dxtex   = { };
 
-  SK_DInput7_ThreadContext  dinput7 = { };
-  SK_DInput8_ThreadContext  dinput8 = { };
+  SK_LazyGlobal <SK_DInput7_ThreadContext>  dinput7;
+  SK_LazyGlobal <SK_DInput8_ThreadContext>  dinput8;
 
-  SK_ImGui_ThreadContext    imgui      = { };
-  SK_Input_ThreadContext    input_core = { };
-  SK_RawInput_ThreadContext raw_input  = { };
-  SK_Win32_ThreadContext    win32      = { };
+  SK_LazyGlobal <SK_ImGui_ThreadContext>    imgui;
+  SK_LazyGlobal <SK_Input_ThreadContext>    input_core;
+  SK_LazyGlobal <SK_RawInput_ThreadContext> raw_input;
+  SK_LazyGlobal <SK_Win32_ThreadContext>    win32;
 
-  SK_OSD_ThreadContext      osd   = { };
-  SK_Steam_ThreadContext    steam = { };
+  SK_LazyGlobal <SK_OSD_ThreadContext>      osd;
+  SK_LazyGlobal <SK_Steam_ThreadContext>    steam;
 
-  SK_Sched_ThreadContext    scheduler = { };
+  SK_LazyGlobal <SK_Sched_ThreadContext>    scheduler;
 
-  SK_Memory_ThreadContext   memory = { };
-  SK_Disk_ThreadContext     disk   = { };
-  SK_Net_ThreadContext      net    = { };
+  SK_LazyGlobal <SK_Memory_ThreadContext>   memory;
+  SK_LazyGlobal <SK_Disk_ThreadContext>     disk;
+  SK_LazyGlobal <SK_Net_ThreadContext>      net;
 
   // All stack frames except for bottom
   //   have meaningless values for these,
@@ -693,17 +706,18 @@ public:
   //
   struct
   {
-    CONTEXT          last_ctx      = {   };
-    EXCEPTION_RECORD last_exc      = {   };
-    wchar_t          name    [256] = {   };
-    HANDLE           handle        = INVALID_HANDLE_VALUE;
-    DWORD            tls_idx       =     0;
-    DWORD            tid           =     0;
-    ULONG            last_frame    = gsl::narrow_cast <ULONG>(-1);
-    volatile LONG    exceptions    =     0;
-    bool             mapped        = false;
-    bool             last_chance   = false;
-    bool             in_DllMain    = false;
+    CONTEXT          last_ctx          = {   };
+    EXCEPTION_RECORD last_exc          = {   };
+    wchar_t          name    [256]     = {   };
+    HANDLE           handle            = INVALID_HANDLE_VALUE;
+    DWORD            tls_idx           =     0;
+    DWORD            tid               =     0;
+    ULONG            last_frame        = gsl::narrow_cast <ULONG>(-1);
+    volatile LONG    exceptions        =     0;
+    bool             silent_exceptions = false;
+    bool             mapped            = false;
+    bool             last_chance       = false;
+    bool             in_DllMain        = false;
   } debug;
 
   struct tex_mgmt_s
@@ -748,6 +762,8 @@ public:
   {
     *pBool_ = bOrig_;
   }
+
+  BOOL* getDestPtr (void) { return pBool_; }
 
 private:
   BOOL* pBool_;

@@ -45,8 +45,6 @@ static D3D11Dev_CreateTexture2D_pfn           _D3D11Dev_CreateTexture2D_Original
 
 struct som_cfg_s
 {
-  sk::ParameterFactory factory;
-
   struct shadows_s
   {
     sk::ParameterFloat* scale = nullptr;
@@ -55,7 +53,9 @@ struct som_cfg_s
   constexpr som_cfg_s (void)
   {
   }
-} som_config;
+};
+
+SK_LazyGlobal <som_cfg_s> som_config;
 
 static float shadow_scale = 1.0f;
 
@@ -151,7 +151,7 @@ SK_SOM_ControlPanel (void)
       if (ImGui::Checkbox ("Reduce Shadowmap Aliasing", &enhance))
       {
         changed = true;
-        som_config.shadows.scale->store (enhance ? 2.0f : 1.0f);
+        som_config->shadows.scale->store (enhance ? 2.0f : 1.0f);
 
         shadow_scale = enhance ? 2.0f : 1.0f;
       }
@@ -202,15 +202,15 @@ SK_SOM_InitPlugin (void)
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
 
-  som_config.shadows.scale =
+  som_config->shadows.scale =
       dynamic_cast <sk::ParameterFloat *>
-        (som_config.factory.create_parameter <float> (L"Shadow Rescale"));
+        (g_ParameterFactory->create_parameter <float> (L"Shadow Rescale"));
 
-  som_config.shadows.scale->register_to_ini ( SK_GetDLLConfig (),
+  som_config->shadows.scale->register_to_ini ( SK_GetDLLConfig (),
                                                 L"SecretOfMana.Shadows",
                                                   L"Scale" );
 
-  som_config.shadows.scale->load (shadow_scale);
+  som_config->shadows.scale->load (shadow_scale);
 
   SK_ApplyQueuedHooks ();
 

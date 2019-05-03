@@ -56,10 +56,7 @@ GlobalAlloc_Detour (
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      if (pTLS != nullptr)
-      {
-        InterlockedAdd64 (&pTLS->memory.global_bytes, dwBytes);
-      }
+      InterlockedAdd64 (&pTLS->memory->global_bytes, dwBytes);
     }
   }
 
@@ -96,10 +93,7 @@ LocalAlloc_Detour (
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      if (pTLS != nullptr)
-      {
-        InterlockedExchangeAdd64 (&pTLS->memory.local_bytes, uBytes);
-      }
+      InterlockedExchangeAdd64 (&pTLS->memory->local_bytes, uBytes);
     }
   }
 
@@ -125,10 +119,7 @@ RtlAllocateHeap_Detour (
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      if (pTLS != nullptr)
-      {
-        InterlockedExchangeAdd64 (&pTLS->memory.heap_bytes, dwBytes);
-      }
+      InterlockedExchangeAdd64 (&pTLS->memory->heap_bytes, dwBytes);
     }
   }
 
@@ -154,10 +145,7 @@ VirtualAlloc_Detour (
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      if (pTLS != nullptr)
-      {
-        InterlockedAdd64 (&pTLS->memory.virtual_bytes, dwSize);
-      }
+      InterlockedAdd64 (&pTLS->memory->virtual_bytes, dwSize);
     }
   }
 
@@ -240,10 +228,7 @@ VirtualFree_Detour       (
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      if (pTLS != nullptr)
-      {
-        InterlockedAdd64 (&pTLS->memory.virtual_bytes, -(LONG64) dwSize);
-      }
+      InterlockedAdd64 (&pTLS->memory->virtual_bytes, -(LONG64) dwSize);
     }
   }
 

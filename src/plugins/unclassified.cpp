@@ -27,16 +27,18 @@ SK_GalGun_PlugInCfg (void)
       const uint32_t ps_primary = 0x9b826e8a;
       const uint32_t vs_outline = 0x2e1993cf;
 
+      auto& _Shaders = SK::D3D9::Shaders.get ();
+
       if (emperor_has_no_clothes)
       {
-        SK::D3D9::Shaders.vertex.blacklist.emplace (vs_outline);
-        SK::D3D9::Shaders.pixel.blacklist.emplace  (ps_primary);
+        _Shaders.vertex.blacklist.emplace (vs_outline);
+        _Shaders.pixel.blacklist.emplace  (ps_primary);
       }
 
       else
       {
-        SK::D3D9::Shaders.vertex.blacklist.erase (vs_outline);
-        SK::D3D9::Shaders.pixel.blacklist.erase  (ps_primary);
+        _Shaders.vertex.blacklist.erase (vs_outline);
+        _Shaders.pixel.blacklist.erase  (ps_primary);
       }
     }
 
@@ -129,6 +131,7 @@ static const int priority_levels [] =
   { THREAD_PRIORITY_NORMAL,  THREAD_PRIORITY_ABOVE_NORMAL,
     THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL };
 
+#ifdef _M_AMD64
 struct SK_FFXV_Thread
 {
   ~SK_FFXV_Thread (void) {///noexcept {
@@ -148,8 +151,7 @@ SK_LazyGlobal <SK_FFXV_Thread> sk_ffxv_swapchain,
                                sk_ffxv_vsync,
                                sk_ffxv_async_run;
 
-extern iSK_INI*             dll_ini;
-extern sk::ParameterFactory g_ParameterFactory;
+extern iSK_INI* dll_ini;
 
 typedef DWORD (WINAPI *GetEnvironmentVariableA_pfn)(
   LPCSTR lpName,
@@ -190,8 +192,10 @@ GetEnvironmentVariableA_Detour ( LPCSTR lpName,
     GetEnvironmentVariableA_Original (lpName, lpBuffer, nSize);
 }
 
-static
-std::unordered_set <uint32_t>
+void
+SK_FFXV_InitPlugin (void)
+{
+  std::unordered_set <uint32_t>
   __SK_FFXV_UI_Pix_Shaders =
   {
     0x224cc7df, 0x7182460b,
@@ -199,9 +203,6 @@ std::unordered_set <uint32_t>
     0xf15a90ab
   };
 
-void
-SK_FFXV_InitPlugin (void)
-{
   for (                 auto& it : __SK_FFXV_UI_Pix_Shaders)
     SK_D3D11_DeclHUDShader   (it,        ID3D11PixelShader);
 
@@ -224,7 +225,7 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
 
   prio_cfg =
     dynamic_cast <sk::ParameterInt *> (
-      g_ParameterFactory.create_parameter <int> (L"Thread Priority")
+      g_ParameterFactory->create_parameter <int> (L"Thread Priority")
     );
 
 
@@ -433,10 +434,10 @@ SK_FFXV_PlugInCfg (void)
         ImGui::Text ("");
     }
     ImGui::EndGroup (  );
-    ImGui::SameLine (  );
-
-    extern bool fix_sleep_0;
-    ImGui::Checkbox ("Sleep (0) --> SwitchToThread ()", &fix_sleep_0);
+    //ImGui::SameLine (  );
+    //
+    //extern bool fix_sleep_0;
+    //ImGui::Checkbox ("Sleep (0) --> SwitchToThread ()", &fix_sleep_0);
 
     ImGui::TreePop  (  );
 
@@ -856,10 +857,10 @@ SK_SM_PlugInCfg (void)
 
       //ImGui::SameLine ();
 
-      static std::set <SK_ConfigSerializedKeybind *>
-        keybinds = {
-        &config.steam.screenshots.game_hud_free_keybind
-      };
+      //static std::set <SK_ConfigSerializedKeybind *>
+      //  keybinds = {
+      //    &config.steam.screenshots.game_hud_free_keybind
+      //  };
 
       ////ImGui::SameLine   ();
       ////ImGui::BeginGroup ();
@@ -946,11 +947,11 @@ SK_SM_PlugInCfg (void)
   }
 
   return true;
+
+
 }
-
-
-extern bool  __SK_MHW_KillAntiDebug;
 extern float __SK_Thread_RebalanceEveryNSeconds;
+extern bool  __SK_MHW_KillAntiDebug;
 
 sk::ParameterBool*  _SK_ACO_AlternateTaskScheduling;
 sk::ParameterFloat* _SK_ACO_AutoRebalanceInterval;
@@ -1037,3 +1038,4 @@ SK_ACO_PlugInCfg (void)
 
   return true;
 }
+#endif

@@ -27,6 +27,36 @@
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
+// Only valid for the thread driving an immediate context.
+class SK_ImGui_DrawCtx
+{
+public:
+  BOOL drawing = FALSE;
+};
+
+SK_LazyGlobal <std::array <SK_ImGui_DrawCtx, SK_D3D11_MAX_DEV_CONTEXTS + 1> > SK_ImGui_DrawState;
+
+
+//volatile LONG SK_ImGui_Drawing = 0;
+//
+//bool
+//SK_ImGui_EnterDrawCycle (SK_TLS *pTLS_to_Update = nullptr, bool global = true)
+//{
+//  if (global)
+//    InterlockedIncrement (&SK_ImGui_Drawing);
+//
+//  return true;
+//}
+//
+//bool
+//SK_ImGui_ExitDrawCycle (SK_TLS *pTLS_to_Update = nullptr, bool global = true)
+//{
+//  if (global)
+//    InterlockedIncrement (&SK_ImGui_Drawing);
+//
+//  return true;
+//}
+
 bool SK_D3D11_EnableTracking      = false;
 bool SK_D3D11_EnableMMIOTracking  = false;
 volatile LONG
@@ -35,35 +65,107 @@ volatile LONG
      SK_D3D11_CBufferTrackingReqs = 0L;
 
 bool
-SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
-                                         SK_TLS**             ppTLS )
+SK_ImGui_IsDrawing_OnD3D11Ctx (size_t dev_idx)
 {
-  UNREFERENCED_PARAMETER (pDevCtx); UNREFERENCED_PARAMETER (ppTLS);
+  if ((SSIZE_T)dev_idx == -1)
+  {   dev_idx =
+        SK_D3D11_GetDeviceContextHandle (
+          SK_GetCurrentRenderBackend ().d3d11.immediate_ctx
+        );
+  }
 
+  if ( (SSIZE_T)dev_idx < 0 ||
+                dev_idx >= SK_D3D11_MAX_DEV_CONTEXTS )
+  {
+    return false;
+  }
+
+  return
+    SK_ImGui_DrawState.get ()[dev_idx].drawing;
+}
+
+std::pair <BOOL*, BOOL>
+SK_ImGui_FlagDrawing_OnD3D11Ctx (size_t dev_idx)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  try
+  {
+    if ( dev_idx == -1 )
+    {
+         dev_idx =
+      SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
+    }
+
+    if ( (SSIZE_T)dev_idx < 0 ||
+                  dev_idx >= SK_D3D11_MAX_DEV_CONTEXTS )
+    {
+      static BOOL _FALSE;
+            _FALSE = FALSE;
+
+      return
+        std::make_pair (&_FALSE, FALSE);
+    }
+
+    BOOL* pRet =
+      &(SK_ImGui_DrawState->at (dev_idx).drawing);
+
+    return
+      std::make_pair (pRet, TRUE);
+  }
+
+  catch (const std::out_of_range&)
+  {
+    static BOOL _FALSE;
+                _FALSE = FALSE;
+
+    return
+      std::make_pair (&_FALSE, FALSE);
+  }
+}
+
+bool
+SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
+                                         UINT                 dev_idx )
+{
   if (! SK::ControlPanel::D3D11::show_shader_mod_dlg)
     return false;
 
-  SK_TLS *pTLS = nullptr;
 
-  if (ppTLS != nullptr)
+  if (dev_idx == (UINT)-1)
   {
-    if (*ppTLS != nullptr)
-    {
-      pTLS = *ppTLS;
-    }
-
-    else
-    {
-        pTLS = SK_TLS_Bottom ();
-      *ppTLS = pTLS;
-    }
+    dev_idx =
+      SK_D3D11_GetDeviceContextHandle (pDevCtx);
   }
 
-  else
-    pTLS = SK_TLS_Bottom ();
-
-  if (pTLS->imgui.drawing)
+  if ( SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx) )
+  {
     return false;
+  }
+
+
+  ///SK_TLS *pTLS = nullptr;
+  ///
+  ///if (ppTLS != nullptr)
+  ///{
+  ///  if (*ppTLS != nullptr)
+  ///  {
+  ///    pTLS = *ppTLS;
+  ///  }
+  ///
+  ///  else
+  ///  {
+  ///      pTLS = SK_TLS_Bottom ();
+  ///    *ppTLS = pTLS;
+  ///  }
+  ///}
+  ///
+  ///else
+  ///  pTLS = SK_TLS_Bottom ();
+  ///
+  ///if (pTLS->imgui->drawing)
+  ///  return false;
 
   return true;
 }
@@ -86,9 +188,10 @@ HMODULE hModReShade = (HMODULE)-2;
 
 bool
 SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
-                               SK_TLS**             ppTLS )
+                               UINT                 dev_idx )
 {
-  if (pDevCtx == nullptr) return false;
+  if (pDevCtx == nullptr)
+    return false;
 
   //if (! SK_D3D11_EnableTracking)
   //  return false;
@@ -108,28 +211,41 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
     return false;
   }
 
-  SK_TLS *pTLS = nullptr;
 
-  if (ppTLS != nullptr)
+  // -- Fast Path Cache --
+  static ID3D11DeviceContext* last_ctx   = rb.d3d11.immediate_ctx;
+  static UINT                 static_idx =
+    SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
+
+  if (last_ctx != rb.d3d11.immediate_ctx)
   {
-    if (*ppTLS != nullptr)
-    {
-      pTLS = *ppTLS;
-    }
+    last_ctx   = rb.d3d11.immediate_ctx;
+    static_idx = SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
+  }
+  // -- End Fast Path Maintenance --
 
-    else
-    {
-        pTLS = SK_TLS_Bottom ();
-      *ppTLS = pTLS;
-    }
+
+  auto& draw_base =
+    SK_ImGui_DrawState.get ();
+
+  if (rb.d3d11.immediate_ctx == pDevCtx)
+  {
+    if (draw_base [static_idx].drawing)
+      return false;
+
+    return true;
   }
 
-  if ( pTLS != nullptr &&
-       pTLS->imgui.drawing )
+  else if (dev_idx == (UINT)-1)
   {
-    //SK_ReleaseAssert (! "ShouldTrackRenderOp: ImGui Is Drawing");
+    if (draw_base [SK_D3D11_GetDeviceContextHandle (pDevCtx)].drawing)
+      return false;
+  }
 
-    return false;
+  else //(dev_idx != (UINT)-1)
+  {
+    if (draw_base [dev_idx].drawing)
+      return false;
   }
 
   return true;
@@ -179,17 +295,15 @@ SK_D3D11_KnownThreads::mark (void)
   if (use_lock)
   {
     SK_AutoCriticalSection auto_cs (&cs);
-    ids.emplace    (GetCurrentThreadId ());
-    active.emplace (GetCurrentThreadId ());
+    ids.emplace    (SK_Thread_GetCurrentId ());
+    active.emplace (SK_Thread_GetCurrentId ());
     return;
   }
 
-  ids.emplace    (GetCurrentThreadId ());
-  active.emplace (GetCurrentThreadId ());
+  ids.emplace    (SK_Thread_GetCurrentId ());
+  active.emplace (SK_Thread_GetCurrentId ());
 #endif
 }
-
-#include <array>
 
 extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
 extern SK_LazyGlobal <target_tracking_s> tracked_rtv;
@@ -227,7 +341,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
   const bool is_active =
     active.get (dev_idx);
 
-  //if ((! is_active))
+  if ((! is_active))
   {
     static auto& shaders =
       SK_D3D11_Shaders;
@@ -257,8 +371,8 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     }
   }
 
-  //else
-  //  return;
+  else
+    return;
 
 
   // Timing is very difficult on deferred contexts; will finish later (years?)
@@ -269,7 +383,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
   static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  CComQIPtr <ID3D11Device> pDev (rb.device);
+  SK_ComQIPtr <ID3D11Device> pDev (rb.device);
 
   if (! pDev)
     return;
@@ -285,8 +399,8 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     ID3D11Query                                    *pQuery = nullptr;
     if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
     {
-      CComPtr <ID3D11DeviceContext>  pImmediateContext;
-      pDev->GetImmediateContext    (&pImmediateContext);
+      SK_ComPtr <ID3D11DeviceContext>  pImmediateContext;
+      pDev->GetImmediateContext      (&pImmediateContext);
 
       InterlockedExchangePointer ((void **)&disjoint_query.async, pQuery);
       pImmediateContext->Begin                                   (pQuery);
@@ -374,7 +488,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 
 
   if (pDevCtx == nullptr)
-    pDevCtx  = rb.d3d11.immediate_ctx;
+      pDevCtx  = rb.d3d11.immediate_ctx;
 
 
   // Timing is very difficult on deferred contexts; will finish later (years?)
@@ -382,9 +496,10 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
     return;
 
 
-  CComQIPtr <ID3D11Device> dev (rb.device);
+  SK_ComQIPtr <ID3D11Device> dev (rb.device);
 
-  if (dev != nullptr && ReadAcquire (&disjoint_query.active))
+  if ( dev     != nullptr &&
+       pDevCtx != nullptr && ReadAcquire (&disjoint_query.active) )
   {
     D3D11_QUERY_DESC query_desc {
       D3D11_QUERY_TIMESTAMP, 0x00
@@ -400,7 +515,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
     );
     InterlockedExchangePointer (
       (PVOID *) (&duration.end.async),   pQuery
-    );                              pDevCtx->End (pQuery);
+    );                     pDevCtx->End (pQuery);
     }
   }
 }
@@ -416,7 +531,7 @@ d3d11_shader_tracking_s::use (IUnknown* pShader)
 bool
 SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
                          const SK_D3D11DrawType     draw_type,
-                               SK_TLS**             ppTLS )
+                               UINT                 dev_idx )
 {
   //// Engine is way too parallel with its 8 queues, don't even try to
   ////   track the deferred command stream!
@@ -452,11 +567,8 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
     process =
      ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 )
                ||
-       SK_D3D11_ShouldTrackRenderOp (pDevCtx, ppTLS);
+       SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx);
   }
-
-  if (process && (ppTLS != nullptr && (! (*ppTLS))))
-                 *ppTLS = SK_TLS_Bottom ();
 
   return
     process;

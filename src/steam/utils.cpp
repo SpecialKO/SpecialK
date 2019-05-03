@@ -4,7 +4,9 @@
 class ISteamUtils;
 class IWrapSteamUtils;
 
-concurrency::concurrent_unordered_map <ISteamUtils*, IWrapSteamUtils*>   SK_SteamWrapper_remap_utils;
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <ISteamUtils*, IWrapSteamUtils*>
+> SK_SteamWrapper_remap_utils;
 
 class IWrapSteamUtils : public ISteamUtils
 {
@@ -203,15 +205,19 @@ SteamAPI_ISteamClient_GetISteamUtils_Detour ( ISteamClient *This,
         (! lstrcmpA (pchVersion, STEAMUTILS_INTERFACE_VERSION_006)) ||
         (! lstrcmpA (pchVersion, STEAMUTILS_INTERFACE_VERSION_005)))
     {
-      if (SK_SteamWrapper_remap_utils.count (pUtils))
-         return SK_SteamWrapper_remap_utils [pUtils];
+      auto& _SK_SteamWrapper_remap_utils =
+             SK_SteamWrapper_remap_utils.get ();
+
+      if (_SK_SteamWrapper_remap_utils.count (pUtils))
+         return _SK_SteamWrapper_remap_utils [pUtils];
 
       else
       {
-        SK_SteamWrapper_remap_utils [pUtils] =
-                new IWrapSteamUtils (pUtils);
+        _SK_SteamWrapper_remap_utils [pUtils] =
+                 new IWrapSteamUtils (pUtils);
 
-        return SK_SteamWrapper_remap_utils [pUtils];
+        return
+          _SK_SteamWrapper_remap_utils [pUtils];
       }
     }
 
@@ -243,6 +249,8 @@ SK_SteamWrapper_WrappedClient_GetISteamUtils ( ISteamClient *This,
     This->GetISteamUtils ( hSteamPipe,
                              pchVersion );
 
+  auto& _SK_SteamWrapper_remap_utils = SK_SteamWrapper_remap_utils.get ();
+
   if (pUtils != nullptr)
   {
     if ((! lstrcmpA (pchVersion, STEAMUTILS_INTERFACE_VERSION_007)) ||
@@ -251,15 +259,15 @@ SK_SteamWrapper_WrappedClient_GetISteamUtils ( ISteamClient *This,
         (! lstrcmpA (pchVersion, STEAMUTILS_INTERFACE_VERSION_006)) ||
         (! lstrcmpA (pchVersion, STEAMUTILS_INTERFACE_VERSION_005)))
     {
-      if (SK_SteamWrapper_remap_utils.count (pUtils))
-         return SK_SteamWrapper_remap_utils [pUtils];
+      if (_SK_SteamWrapper_remap_utils.count (pUtils))
+         return _SK_SteamWrapper_remap_utils [pUtils];
 
       else
       {
-        SK_SteamWrapper_remap_utils [pUtils] =
-                new IWrapSteamUtils (pUtils);
+        _SK_SteamWrapper_remap_utils [pUtils] =
+                 new IWrapSteamUtils (pUtils);
 
-        return SK_SteamWrapper_remap_utils [pUtils];
+        return _SK_SteamWrapper_remap_utils [pUtils];
       }
     }
 
@@ -295,6 +303,9 @@ SteamUtils_Detour (void)
   return SteamUtils_Original ();
 #else
 
+  auto& _SK_SteamWrapper_remap_utils =
+         SK_SteamWrapper_remap_utils.get ();
+
   if (steam_ctx.UtilsVersion () >= 5 && steam_ctx.UtilsVersion () <= 9)
   {
     ISteamUtils* pUtils =
@@ -302,15 +313,15 @@ SteamUtils_Detour (void)
 
     if (pUtils != nullptr)
     {
-      if (SK_SteamWrapper_remap_utils.count (pUtils))
-         return SK_SteamWrapper_remap_utils [pUtils];
+      if (_SK_SteamWrapper_remap_utils.count (pUtils))
+         return _SK_SteamWrapper_remap_utils [pUtils];
 
       else
       {
-        SK_SteamWrapper_remap_utils [pUtils] =
-                new IWrapSteamUtils (pUtils);
+        _SK_SteamWrapper_remap_utils [pUtils] =
+                 new IWrapSteamUtils (pUtils);
 
-        return SK_SteamWrapper_remap_utils [pUtils];
+        return _SK_SteamWrapper_remap_utils [pUtils];
       }
     }
 

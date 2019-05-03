@@ -37,7 +37,10 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
 extern LONG SK_D3D11_ToggleGameHUD          (void);
 extern void SK_TriggerHudFreeScreenshot     (void) noexcept;
+
+#ifdef _M_AMD64
 extern void SK_YS0_TriggerHudFreeScreenshot (void);
+#endif
 
 
 void
@@ -135,7 +138,7 @@ SK_Widget_CalcClipRect ( SK_Widget* pWidget,
   if (pWidget == nullptr)
     return;
 
-  static ImGuiIO& io (ImGui::GetIO ());
+  ImGuiIO& io (ImGui::GetIO ());
 
   // Docking alignment visualiztion
   bool draw_horz_ruler = false;
@@ -222,7 +225,7 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
                                bool n, bool s,
                                bool e, bool w )
 {
-  static auto& io (ImGui::GetIO ());
+  auto& io (ImGui::GetIO ());
 
   // Docking alignment visualization
   bool draw_horz_ruler = false;
@@ -316,12 +319,14 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
       xy1 = ImVec2 ( io.DisplaySize.x, vert_pos.y );
     }
 
+    DWORD dwNow = timeGetTime ();
+
     const ImVec4 col =
       ImColor::HSV ( 0.133333f,
-                       std::min ( static_cast <float>(0.161616f +  (timeGetTime () % 250) / 250.0f -
-                                                           floor ( (timeGetTime () % 250) / 250.0f) ), 1.0f),
-                           std::min ( static_cast <float>(0.333 +  (timeGetTime () % 500) / 500.0f -
-                                                           floor ( (timeGetTime () % 500) / 500.0f) ), 1.0f) );
+                       std::min ( static_cast <float>(0.161616f +  (dwNow % 250) / 250.0f -
+                                                           floor ( (dwNow % 250) / 250.0f) ), 1.0f),
+                           std::min ( static_cast <float>(0.333 +  (dwNow % 500) / 500.0f -
+                                                           floor ( (dwNow % 500) / 500.0f) ), 1.0f) );
     const ImU32 col32 =
       ImColor (col);
 
@@ -351,8 +356,9 @@ SK_Widget::draw_base (void)
   const float fScale =
     ImGui::GetFont ()->Scale;
 
-                   ImGui::GetFont ()->Scale = scale;
-  ImGui::PushFont (ImGui::GetFont ());
+                ImGui::GetFont ()->Scale = scale;
+  SK_ImGui_AutoFont
+    local_font (ImGui::GetFont ());
 
   static std::unordered_set <SK_Widget *> initialized;
 
@@ -426,12 +432,6 @@ SK_Widget::draw_base (void)
        e = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::East ) ) != 0,
        w = ( static_cast <int> (docking) & static_cast <int> (DockAnchor::West ) ) != 0;
 
-
-  extern bool    SK_Tobii_WantWidgetGazing (void);
-  extern ImVec2& SK_Tobii_GetGazePosition  (void);
-  ImVec2 vTobiiPos =
-                 SK_Tobii_GetGazePosition  (    );
-
   float fAlpha =
     ImGui::GetStyle ().Alpha;
 
@@ -441,6 +441,11 @@ SK_Widget::draw_base (void)
   //   not be subject to gazing.
   if ( this != SK_ImGui_Widgets->tobii )
   {
+    extern bool    SK_Tobii_WantWidgetGazing (void);
+    extern ImVec2& SK_Tobii_GetGazePosition  (void);
+           ImVec2 vTobiiPos =
+                   SK_Tobii_GetGazePosition  (    );
+
     if (SK_Tobii_WantWidgetGazing ())
     {
       const ImVec2 vPos =
@@ -591,7 +596,6 @@ SK_Widget::draw_base (void)
   ImGui::End         ();
   ImGui::PopStyleVar (pushed_style_vars + 1);
 
-  ImGui::PopFont ();
   ImGui::GetFont ()->Scale = fScale;
 }
 
@@ -902,12 +906,14 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
     {
       if (       keybind == &config.steam.screenshots.game_hud_free_keybind )
       {
+#ifdef _M_AMD64
         if (     game_id == SK_GAME_ID::Yakuza0  )
         {
           SK_YS0_TriggerHudFreeScreenshot ();
         }
 
         else
+#endif
           SK_TriggerHudFreeScreenshot ();
       }
 

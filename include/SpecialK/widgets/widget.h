@@ -226,7 +226,7 @@ protected:
   bool        autofit       = true;
   bool        movable       = true;
   bool        resizable     = true;
-  bool        border        = false;
+  bool        border        = true;
   bool        click_through = false;
 
   ImVec2      min_size      = ImVec2 ( 375.0,  240.0);

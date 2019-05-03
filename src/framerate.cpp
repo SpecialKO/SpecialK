@@ -56,7 +56,7 @@ NtSetTimerResolution_pfn   NtSetTimerResolution   = nullptr;
 typedef NTSTATUS (WINAPI *NtDelayExecution_pfn)(
   IN  BOOLEAN        Alertable,
   IN  PLARGE_INTEGER DelayInterval
-  );
+);
 
 NtDelayExecution_pfn NtDelayExecution = nullptr;
 
@@ -109,19 +109,19 @@ auto
 void
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
 {
-  if (! SK_Win32_IsGUIThread ())
-  {
-    while (GetQueueStatus (QS_ALLEVENTS) == 0)
-    {
-      SK_Sleep (dwMilliseconds /= 2);
-
-      if (dwMilliseconds == 1)
-      {
-        SleepEx (dwMilliseconds, TRUE);
-        return;
-      }
-    }
-  }
+  ////if (! SK_Win32_IsGUIThread ())
+  ////{
+  ////  while (GetQueueStatus (QS_ALLEVENTS) == 0)
+  ////  {
+  ////    SK_Sleep (dwMilliseconds /= 2);
+  ////
+  ////    if (dwMilliseconds == 1)
+  ////    {
+  ////      SK_SleepEx (dwMilliseconds, TRUE);
+  ////      return;
+  ////    }
+  ////  }
+  ////}
 
   HWND hWndThis = GetActiveWindow ();
   bool bUnicode =
@@ -131,13 +131,12 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
   [&]
   {
     MSG msg     = {      };
-    msg.hwnd    = hWndThis;
     msg.message = WM_NULL ;
 
     // Avoid having Windows marshal Unicode messages like a dumb ass
     if (bUnicode)
     {
-      if ( PeekMessageW ( &msg, hWndThis, 0, 0,
+      if ( PeekMessageW ( &msg, 0, 0, 0,
                                             PM_REMOVE | QS_ALLINPUT)
                &&          msg.message != WM_NULL
          )
@@ -151,7 +150,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
 
     else
     {
-      if ( PeekMessageA ( &msg, hWndThis, 0, 0,
+      if ( PeekMessageA ( &msg, 0, 0, 0,
                                             PM_REMOVE | QS_ALLINPUT)
                &&          msg.message != WM_NULL
          )
@@ -166,8 +165,6 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
 
   if (dwMilliseconds == 0)
   {
-    PeekAndDispatch ();
-
     return;
   }
 
@@ -181,21 +178,34 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
   while ((liNow = SK_CurrentPerf ()).QuadPart < liEnd)
   {
     DWORD dwMaxWait =
-      narrow_cast <DWORD> ((liEnd - liNow.QuadPart) / liTicksPerMS);
+      narrow_cast <DWORD> (std::max (0LL, (liEnd - liNow.QuadPart) / liTicksPerMS));
 
-    if (dwMaxWait < INT_MAX)
+    if (dwMaxWait < INT_MAX && dwMaxWait > 1)
     {
-      if (MsgWaitForMultipleObjectsEx (0, nullptr, dwMaxWait, QS_ALLINPUT,
-                                                              MWMO_INPUTAVAILABLE) == WAIT_OBJECT_0)
+      ////dwMaxWait = std::min (150UL, dwMaxWait);
+
+      DWORD dwWait =
+        MsgWaitForMultipleObjectsEx (
+          1, &__SK_DLL_TeardownEvent, dwMaxWait,
+            QS_ALLINPUT, MWMO_ALERTABLE    |
+                         MWMO_INPUTAVAILABLE
+                                    );
+
+      if ( dwWait == WAIT_OBJECT_0 )
+        break;
+
+      else
       {
         PeekAndDispatch ();
       }
     }
+
+    else
+      break;
   }
 }
 
-bool
-fix_sleep_0 = true;
+bool fix_sleep_0 = false;
 
 
 float
@@ -234,31 +244,31 @@ WINAPI
 SK_WaitForSingleObject_Micro ( _In_  HANDLE          hHandle,
                                _In_ PLARGE_INTEGER pliMicroseconds )
 {
-  if (NtWaitForSingleObject_Original != nullptr)
-  {
-    NTSTATUS NtStatus =
-      NtWaitForSingleObject_Original (
-        hHandle,
-          FALSE,
-            pliMicroseconds
-      );
-
-    switch (NtStatus)
-    {
-      case STATUS_SUCCESS:
-        return WAIT_OBJECT_0;
-      case STATUS_TIMEOUT:
-        return WAIT_TIMEOUT;
-      case STATUS_ALERTED:
-        return WAIT_IO_COMPLETION;
-      case STATUS_USER_APC:
-        return WAIT_IO_COMPLETION;
-    }
-
-    // ???
-    return
-      WAIT_FAILED;
-  }
+  //if (NtWaitForSingleObject_Original != nullptr)
+  //{
+  //  NTSTATUS NtStatus =
+  //    NtWaitForSingleObject_Original (
+  //      hHandle,
+  //        FALSE,
+  //          pliMicroseconds
+  //    );
+  //
+  //  switch (NtStatus)
+  //  {
+  //    case STATUS_SUCCESS:
+  //      return WAIT_OBJECT_0;
+  //    case STATUS_TIMEOUT:
+  //      return WAIT_TIMEOUT;
+  //    case STATUS_ALERTED:
+  //      return WAIT_IO_COMPLETION;
+  //    case STATUS_USER_APC:
+  //      return WAIT_IO_COMPLETION;
+  //  }
+  //
+  //  // ???
+  //  return
+  //    WAIT_FAILED;
+  //}
 
   DWORD dwMilliseconds =
     ( pliMicroseconds == nullptr ?
@@ -277,23 +287,23 @@ WINAPI
 SK_WaitForSingleObject (_In_ HANDLE hHandle,
                         _In_ DWORD  dwMilliseconds )
 {
-  return
-    WaitForSingleObject (hHandle, dwMilliseconds);
-
-  //if (dwMilliseconds == INFINITE)
-  //{
-  //  return
-  //    SK_WaitForSingleObject_Micro ( hHandle, nullptr );
-  //}
-  //
-  //LARGE_INTEGER usecs;
-  //              usecs.QuadPart =
-  //                static_cast <LONGLONG> (
-  //                  dwMilliseconds
-  //                ) * 1000ULL;
-  //
   //return
-  //  SK_WaitForSingleObject_Micro ( hHandle, &usecs );
+  //  WaitForSingleObject (hHandle, dwMilliseconds);
+
+  if (dwMilliseconds == INFINITE)
+  {
+    return
+      SK_WaitForSingleObject_Micro ( hHandle, nullptr );
+  }
+
+  LARGE_INTEGER usecs;
+                usecs.QuadPart =
+                  static_cast <LONGLONG> (
+                    dwMilliseconds
+                  ) * 1000ULL;
+
+  return
+    SK_WaitForSingleObject_Micro ( hHandle, &usecs );
 }
 
 typedef enum _OBJECT_WAIT_TYPE {
@@ -321,6 +331,16 @@ NtWaitForMultipleObjects_Detour (
   IN BOOLEAN              Alertable,
   IN PLARGE_INTEGER       TimeOut OPTIONAL )
 {
+  // Unity spins a loop to signal its job semaphore
+  if (TimeOut != nullptr && TimeOut->QuadPart == 0)
+  {
+    return
+      NtWaitForMultipleObjects_Original (
+           ObjectCount, ObjectsArray,
+             WaitType, Alertable,
+               TimeOut                  );
+  }
+
   if (! ( SK_GetFramesDrawn () && SK_MMCS_GetTaskCount () > 1 ) )
   {
     return
@@ -333,11 +353,10 @@ NtWaitForMultipleObjects_Detour (
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  if ( pTLS != nullptr &&
-       pTLS->scheduler.mmcs_task > (SK_MMCS_TaskEntry *)1 )
+  if ( pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *)1 )
   {
-    //if (pTLS->scheduler.mmcs_task->hTask > 0)
-    //    pTLS->scheduler.mmcs_task->disassociateWithTask ();
+    //if (pTLS->scheduler->mmcs_task->hTask > 0)
+    //    pTLS->scheduler->mmcs_task->disassociateWithTask ();
   }
 
   DWORD dwRet =
@@ -346,18 +365,17 @@ NtWaitForMultipleObjects_Detour (
            WaitType, Alertable,
              TimeOut                  );
 
-  if ( pTLS != nullptr &&
-       pTLS->scheduler.mmcs_task > (SK_MMCS_TaskEntry *)1 )
+  if ( pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *)1 )
   {
     auto task =
-      pTLS->scheduler.mmcs_task;
+      pTLS->scheduler->mmcs_task;
 
-    //if (pTLS->scheduler.mmcs_task->hTask > 0)
+    //if (pTLS->scheduler->mmcs_task->hTask > 0)
     //  task->reassociateWithTask ();
 
     if (InterlockedCompareExchange (&task->change.pending, 0, 1))
     {
-      task->setPriority           ( task->change.priority );
+      task->setPriority            ( task->change.priority );
 
       ///if (_stricmp (task->change.task0, task->task0) ||
       ///    _stricmp (task->change.task1, task->task1))
@@ -393,6 +411,14 @@ NtWaitForSingleObject_Detour (
   IN BOOLEAN        Alertable,
   IN PLARGE_INTEGER Timeout  )
 {
+  if (Timeout != nullptr && Timeout->QuadPart == 0)
+  {
+    return
+      NtWaitForSingleObject_Original (
+        Handle, Alertable, Timeout
+      );
+  }
+
 #ifndef _UNITY_HACK
   if (! ( SK_GetFramesDrawn () && SK_MMCS_GetTaskCount () > 1 ) )
 #else
@@ -407,14 +433,14 @@ NtWaitForSingleObject_Detour (
 
 #ifdef _UNITY_HACK
   if (bAlertable)
-    InterlockedIncrement (&pTLS->scheduler.alert_waits);
+    InterlockedIncrement (&pTLS->scheduler->alert_waits);
 
   // Consider double-buffering this since the information
   //   is used almost exclusively by OHTER threads, and
   //     we have to do a synchronous copy the get at this
   //       thing without thread A murdering thread B.
   SK_Sched_ThreadContext::wait_record_s& scheduled_wait =
-    (*pTLS->scheduler.objects_waited) [hHandle];
+    (*pTLS->scheduler->objects_waited) [hHandle];
 
   scheduled_wait.calls++;
 
@@ -425,16 +451,16 @@ NtWaitForSingleObject_Detour (
     SK_QueryPerf ();
 
   bool same_as_last_time =
-    ( pTLS->scheduler.mru_wait.handle == hHandle );
+    ( pTLS->scheduler->mru_wait.handle == hHandle );
 
-      pTLS->scheduler.mru_wait.handle = hHandle;
+      pTLS->scheduler->mru_wait.handle = hHandle;
 
   auto ret =
     NtWaitForSingleObject_Original (
       Handle, Alertable, Timeout
     );
 
-  InterlockedAdd`4 ( &scheduled_wait.time_blocked,
+  InterlockedAdd ( &scheduled_wait.time_blocked,
                        static_cast <uint64_t> (
                          SK_DeltaPerfMS (liStart.QuadPart, 1)
                        )
@@ -443,8 +469,8 @@ NtWaitForSingleObject_Detour (
   // We're waiting on the same event as last time on this thread
   if ( same_as_last_time )
   {
-    pTLS->scheduler.mru_wait.last_wait = liStart;
-    pTLS->scheduler.mru_wait.sequence++;
+    pTLS->scheduler->mru_wait.last_wait = liStart;
+    pTLS->scheduler->mru_wait.sequence++;
   }
 
   // This thread found actual work and has stopped abusing the kernel
@@ -452,9 +478,9 @@ NtWaitForSingleObject_Detour (
   //     normal preemption behavior back  (briefly anyway).
   else
   {
-    pTLS->scheduler.mru_wait.start     = liStart;
-    pTLS->scheduler.mru_wait.last_wait = liStart;
-    pTLS->scheduler.mru_wait.sequence  = 0;
+    pTLS->scheduler->mru_wait.start     = liStart;
+    pTLS->scheduler->mru_wait.last_wait = liStart;
+    pTLS->scheduler->mru_wait.sequence  = 0;
   }
 
   if ( ret            == WAIT_OBJECT_0 &&   SK_POE2_FixUnityEmployment &&
@@ -466,20 +492,20 @@ NtWaitForSingleObject_Detour (
 
     if ( SK_POE2_Stage3UnityFix || hardly_working )
     {
-      if (pTLS->scheduler.mru_wait.getRate () >= 0.00666f)
+      if (pTLS->scheduler->mru_wait.getRate () >= 0.00666f)
       {
         // This turns preemption of threads in the same priority level off.
         //
         //    * Yes, TRUE means OFF.  Use this wrong and you will hurt
         //                              performance; just sayin'
         //
-        if (pTLS->scheduler.mru_wait.preemptive == -1)
+        if (pTLS->scheduler->mru_wait.preemptive == -1)
         {
           GetThreadPriorityBoost ( GetCurrentThread (),
-                                   &pTLS->scheduler.mru_wait.preemptive );
+                                   &pTLS->scheduler->mru_wait.preemptive );
         }
 
-        if (pTLS->scheduler.mru_wait.preemptive == FALSE)
+        if (pTLS->scheduler->mru_wait.preemptive == FALSE)
         {
           SetThreadPriorityBoost ( GetCurrentThread (), TRUE );
           InterlockedIncrement   (&SK_POE2_ThreadBoostsKilled);
@@ -530,13 +556,13 @@ NtWaitForSingleObject_Detour (
 
       else
       {
-        if (pTLS->scheduler.mru_wait.preemptive == -1)
+        if (pTLS->scheduler->mru_wait.preemptive == -1)
         {
           GetThreadPriorityBoost ( GetCurrentThread (),
-                                  &pTLS->scheduler.mru_wait.preemptive );
+                                  &pTLS->scheduler->mru_wait.preemptive );
         }
 
-        if (pTLS->scheduler.mru_wait.preemptive != FALSE)
+        if (pTLS->scheduler->mru_wait.preemptive != FALSE)
         {
           SetThreadPriorityBoost (GetCurrentThread (), FALSE);
           InterlockedIncrement   (&SK_POE2_ThreadBoostsKilled);
@@ -546,15 +572,15 @@ NtWaitForSingleObject_Detour (
   }
 
   // They took our jobs!
-  else if (pTLS->scheduler.mru_wait.preemptive != -1)
+  else if (pTLS->scheduler->mru_wait.preemptive != -1)
   {
     SetThreadPriorityBoost (
       GetCurrentThread (),
-        pTLS->scheduler.mru_wait.preemptive );
+        pTLS->scheduler->mru_wait.preemptive );
 
     // Status Quo restored: Jobs nobody wants are back and have
     //   zero future relevance and should be ignored if possible.
-    pTLS->scheduler.mru_wait.preemptive = -1;
+    pTLS->scheduler->mru_wait.preemptive = -1;
   }
 #endif
 
@@ -582,23 +608,24 @@ NtWaitForSingleObject_Detour (
   //if (Timeout != nullptr)
   //  Timeout = nullptr;
 
-  if (pTLS->scheduler.mmcs_task > (SK_MMCS_TaskEntry *) 1)
+  if (pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *) 1)
   {
-    //if (pTLS->scheduler.mmcs_task->hTask > 0)
-    //    pTLS->scheduler.mmcs_task->disassociateWithTask ();
+    //if (pTLS->scheduler->mmcs_task->hTask > 0)
+    //    pTLS->scheduler->mmcs_task->disassociateWithTask ();
   }
 
   auto ret =
+    Handle == nullptr ? STATUS_SUCCESS :
     NtWaitForSingleObject_Original (
       Handle, Alertable, Timeout
     );
 
-  if (pTLS->scheduler.mmcs_task > (SK_MMCS_TaskEntry *) 1)
+  if (pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *) 1)
   {
     auto task =
-      pTLS->scheduler.mmcs_task;
+      pTLS->scheduler->mmcs_task;
 
-    //if (pTLS->scheduler.mmcs_task->hTask > 0)
+    //if (pTLS->scheduler->mmcs_task->hTask > 0)
     //                         task->reassociateWithTask ();
 
     if (InterlockedCompareExchange (&task->change.pending, 0, 1))
@@ -628,6 +655,7 @@ BOOL
 WINAPI
 SwitchToThread_Detour (void)
 {
+#ifdef _M_AMD64
   static bool is_mhw =
     ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld     );
   static bool is_aco =
@@ -635,8 +663,10 @@ SwitchToThread_Detour (void)
 
   if (! (is_mhw || is_aco))
   {
+#endif
     return
       SwitchToThread_Original ();
+#ifdef _M_AMD64
   }
 
 
@@ -650,12 +680,12 @@ SwitchToThread_Detour (void)
       ReadULongAcquire (&dwAntiDebugTid);
 
     if ( dwTid == 0 ||
-         dwTid == GetCurrentThreadId () )
+         dwTid == SK_Thread_GetCurrentId () )
     {
       SK_TLS *pTLS =
         SK_TLS_Bottom ();
 
-      if ( pTLS->win32.getThreadPriority () !=
+      if ( pTLS->win32->getThreadPriority () !=
              THREAD_PRIORITY_HIGHEST )
       {
         return
@@ -665,7 +695,7 @@ SwitchToThread_Detour (void)
       else if (dwTid == 0)
       {
         dwTid =
-          GetCurrentThreadId ();
+          SK_Thread_GetCurrentId ();
 
         InterlockedExchange (&dwAntiDebugTid, dwTid);
       }
@@ -675,23 +705,23 @@ SwitchToThread_Detour (void)
         ULONG ulFrames =
           SK_GetFramesDrawn ();
 
-        if (pTLS->scheduler.last_frame   < (ulFrames - 3) ||
-            pTLS->scheduler.switch_count > 3)
+        if (pTLS->scheduler->last_frame   < (ulFrames - 3) ||
+            pTLS->scheduler->switch_count > 3)
         {
-          pTLS->scheduler.switch_count = 0;
+          pTLS->scheduler->switch_count = 0;
         }
 
-        if (WAIT_TIMEOUT != MsgWaitForMultipleObjectsEx (0, nullptr, pTLS->scheduler.switch_count++, QS_ALLEVENTS & ~QS_INPUT, 0x0))
+        if (WAIT_TIMEOUT != MsgWaitForMultipleObjectsEx (0, nullptr, pTLS->scheduler->switch_count++, QS_ALLEVENTS & ~QS_INPUT, 0x0))
         {
-          pTLS->scheduler.last_frame =
+          pTLS->scheduler->last_frame =
             ulFrames;
 
           return FALSE;
         }
 
-      //SK_Sleep (pTLS->scheduler.switch_count++);
+      //SK_Sleep (pTLS->scheduler->switch_count++);
 
-        pTLS->scheduler.last_frame =
+        pTLS->scheduler->last_frame =
           ulFrames;
 
         return
@@ -717,26 +747,20 @@ SwitchToThread_Detour (void)
     SK_TLS *pTLS =
       SK_TLS_Bottom ();
 
-    if (pTLS->scheduler.last_frame != SK_GetFramesDrawn ())
-        pTLS->scheduler.switch_count = 0;
-
-
-    extern SK_MMCS_TaskEntry*
-      SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
-                                                  const char* class0,
-                                                  const char* class1 );
+    if (pTLS->scheduler->last_frame != SK_GetFramesDrawn ())
+        pTLS->scheduler->switch_count = 0;
 
     bRet = TRUE;
 
-    if (pTLS->scheduler.mmcs_task > (SK_MMCS_TaskEntry *) 1)
+    if (pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *) 1)
     {
-      //if (pTLS->scheduler.mmcs_task->hTask > 0)
-      //    pTLS->scheduler.mmcs_task->disassociateWithTask ();
+      //if (pTLS->scheduler->mmcs_task->hTask > 0)
+      //    pTLS->scheduler->mmcs_task->disassociateWithTask ();
     }
 
-    if (pTLS->scheduler.switch_count++ < 20)
+    if (pTLS->scheduler->switch_count++ < 20)
     {
-      if (pTLS->scheduler.switch_count < 15)
+      if (pTLS->scheduler->switch_count < 15)
         SK_Sleep (0);
       else
         bRet = SwitchToThread_Original ();
@@ -744,12 +768,12 @@ SwitchToThread_Detour (void)
     else
       SK_Sleep (1);
 
-    if (pTLS->scheduler.mmcs_task > (SK_MMCS_TaskEntry *)1)
+    if (pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *)1)
     {
       auto task =
-        pTLS->scheduler.mmcs_task;
+        pTLS->scheduler->mmcs_task;
 
-      //if (pTLS->scheduler.mmcs_task->hTask > 0)
+      //if (pTLS->scheduler->mmcs_task->hTask > 0)
       //                         task->reassociateWithTask ();
 
       if (InterlockedCompareExchange (&task->change.pending, 0, 1))
@@ -765,7 +789,7 @@ SwitchToThread_Detour (void)
       }
     }
 
-    pTLS->scheduler.last_frame =
+    pTLS->scheduler->last_frame =
       SK_GetFramesDrawn ();
   }
 
@@ -777,6 +801,7 @@ SwitchToThread_Detour (void)
 
   return
     bRet;
+#endif
 }
 
 
@@ -809,7 +834,9 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 {
   if (   ReadAcquire (&__SK_DLL_Ending  ) ||
       (! ReadAcquire (&__SK_DLL_Attached) ) )
-  return 0;
+  {
+    return 0;
+  }
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -817,6 +844,12 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   static auto game_id =
     SK_GetCurrentGameID ();
 
+  if ( game_id        == SK_GAME_ID::FinalFantasyXV &&
+       dwMilliseconds == 0                          && fix_sleep_0 )
+  {
+    SwitchToThread ();
+    return 0;
+  }
 
   const bool sleepless_render = config.render.framerate.sleepless_render;
   const bool sleepless_window = config.render.framerate.sleepless_window;
@@ -831,28 +864,30 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   DWORD dwTid =
     bWantThreadClassification ?
-        GetCurrentThreadId () : 0;
+        SK_Thread_GetCurrentId () : 0;
 
-  //SK_TLS *pTLS =
-  //  nullptr;
+  SK_TLS *pTLS =
+    nullptr;
 
-  //BOOL bGUIThread    = config.render.framerate.sleepless_window ? SK_Win32_IsGUIThread (dwTid, &pTLS)        :
-  //                                                                                      false;
-  BOOL bRenderThread = sleepless_render ? ((DWORD)ReadAcquire (&rb.thread) == dwTid) :
-                                                                              false;
+  BOOL bGUIThread    = sleepless_window ?     SK_Win32_IsGUIThread (dwTid, &pTLS)         :
+                                                                                   false;
+  BOOL bRenderThread = sleepless_render ? ((DWORD)ReadULongAcquire (&rb.thread) == dwTid) :
+                                                                                   false;
 
   if (bRenderThread)
   {
+#ifdef _M_AMD64
     if (game_id == SK_GAME_ID::Tales_of_Vesperia)
     {
-      extern bool __SK_TVFix_NoRenderSleep;
+      extern bool SK_TVFix_NoRenderSleep (void);
 
-      if (__SK_TVFix_NoRenderSleep)
+      if (SK_TVFix_NoRenderSleep ())
       {
         YieldProcessor ( );
         return 0;
       }
     }
+#endif
 
     if (sleepless_render && dwMilliseconds != INFINITE)
     {
@@ -880,40 +915,41 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     SK::Framerate::events->getRenderThreadStats ().sleep  (dwMilliseconds);
   }
 
-  //if (bGUIThread)
-  //{
-  //  if (config.render.framerate.sleepless_window && dwMilliseconds != INFINITE)
-  //  {
-  //    static bool reported = false;
-  //          if (! reported)
-  //          {
-  //            dll_log.Log (L"[FrameLimit] Sleep called from GUI thread: %lu ms!", dwMilliseconds);
-  //            reported = true;
-  //          }
-  //
-  //    SK::Framerate::events->getMessagePumpStats ().wake   (dwMilliseconds);
-  //
-  //    if (bRenderThread)
-  //      SK::Framerate::events->getMessagePumpStats ().wake (dwMilliseconds);
-  //
-  //    SK_Thread_WaitWhilePumpingMessages (dwMilliseconds);
-  //
-  //    return;
-  //  }
-  //
-  //  SK::Framerate::events->getMessagePumpStats ().sleep (dwMilliseconds);
-  //}
+  if (bGUIThread)
+  {
+    if (sleepless_window && dwMilliseconds != INFINITE)
+    {
+      static bool reported = false;
+            if (! reported)
+            {
+              dll_log->Log (L"[FrameLimit] Sleep called from GUI thread: %lu ms!", dwMilliseconds);
+              reported = true;
+            }
+
+      SK::Framerate::events->getMessagePumpStats ().wake   (dwMilliseconds);
+
+      if (bRenderThread)
+        SK::Framerate::events->getMessagePumpStats ().wake (dwMilliseconds);
+
+      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds);
+
+      return 0;
+    }
+
+    SK::Framerate::events->getMessagePumpStats ().sleep (dwMilliseconds);
+  }
 
   DWORD max_delta_time =
     narrow_cast <DWORD> (config.render.framerate.max_delta_time);
 
-  extern bool __SK_TVFix_ActiveAntiStutter;
+#ifdef _M_AMD64
+  extern bool SK_TVFix_ActiveAntiStutter (void);
 
   if ( game_id == SK_GAME_ID::Tales_of_Vesperia &&
-                   __SK_TVFix_ActiveAntiStutter )
+                   SK_TVFix_ActiveAntiStutter () )
   {
     if (dwTid == 0)
-        dwTid = GetCurrentThreadId ();
+        dwTid = SK_Thread_GetCurrentId ();
 
     static DWORD   dwTidBusy = 0;
     static DWORD   dwTidWork = 0;
@@ -922,8 +958,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
     if (dwTid != 0 && ( dwTidBusy == 0 || dwTidWork == 0 ))
     {
-      SK_TLS* pTLS =
-        SK_TLS_Bottom ();
+      if (pTLS == nullptr)
+          pTLS = SK_TLS_Bottom ();
 
            if (! _wcsicmp (pTLS->debug.name, L"BusyThread")) { dwTidBusy = dwTid; pTLSBusy = pTLS; }
       else if (! _wcsicmp (pTLS->debug.name, L"WorkThread")) { dwTidWork = dwTid; pTLSWork = pTLS; }
@@ -931,18 +967,18 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
     if ( dwTidBusy == dwTid || dwTidWork == dwTid )
     {
-      SK_TLS* pTLS = ( dwTidBusy == dwTid ? pTLSBusy :
-                                            pTLSWork );
+      pTLS = ( dwTidBusy == dwTid ? pTLSBusy :
+                                    pTLSWork );
 
       ULONG ulFrames =
         SK_GetFramesDrawn ();
 
-      if (pTLS->scheduler.last_frame < ulFrames)
+      if (pTLS->scheduler->last_frame < ulFrames)
       {
-        pTLS->scheduler.switch_count = 0;
+        pTLS->scheduler->switch_count = 0;
       }
 
-      pTLS->scheduler.last_frame =
+      pTLS->scheduler->last_frame =
         ulFrames;
 
       YieldProcessor ();
@@ -954,9 +990,10 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
               dwMilliseconds == 1 )
     {
       max_delta_time = std::max (2UL, max_delta_time);
-      //dll_log.Log (L"Sleep %lu - %s - %x", dwMilliseconds, thread_name.c_str (), GetCurrentThreadId ());
+      //dll_log.Log (L"Sleep %lu - %s - %x", dwMilliseconds, thread_name.c_str (), SK_Thread_GetCurrentId ());
     }
   }
+#endif
 
   // TODO: Stop this nonsense and make an actual parameter for this...
   //         (min sleep?)
@@ -1003,43 +1040,6 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
                             long_double_cast (cur * 100)/1000000.0L;
       }
     }
-    //SK_TLS *pTLS = SK_TLS_Bottom ();
-    //pTLS->scheduler.alert_waits++;
-
-#if 0
-    if ( ! (pTLS->scheduler.alert_waits++ % 2) )
-    {
-
-      LARGE_INTEGER liDelay = { };
-                    liDelay.QuadPart =
-        (LONGLONG)(-10000.0l * (long double)dwMilliseconds);
-
-      if (pTLS->scheduler.sub_2ms_sleep == INVALID_HANDLE_VALUE)
-      {
-        // Create an unnamed waitable timer.
-        pTLS->scheduler.sub_2ms_sleep =
-          CreateWaitableTimer (NULL, FALSE, NULL);
-      }
-
-      LARGE_INTEGER uSecs;
-      uSecs.QuadPart =
-        static_cast <LONGLONG> ((long double)dwMilliseconds * 500.0l);
-
-      if (pTLS->scheduler.sub_2ms_sleep != INVALID_HANDLE_VALUE)
-      {
-        if ( SetWaitableTimer ( pTLS->scheduler.sub_2ms_sleep, &liDelay,
-                                  dwMilliseconds, NULL, NULL, 0 ) )
-        {
-        }
-
-        //SK_WaitForSingleObject (pTLS->scheduler.sub_2ms_sleep, INFINITE);
-        SK_WaitForSingleObject_Micro ( &pTLS->scheduler.sub_2ms_sleep,
-                                       &uSecs );
-      }
-
-      else
-        NtDelayExecution ((BOOLEAN)bAlertable, &liDelay);
-#endif
   }
 
   return 0;
@@ -1052,8 +1052,10 @@ Sleep_Detour (DWORD dwMilliseconds)
   SleepEx_Detour (dwMilliseconds, FALSE);
 }
 
+#ifdef _M_AMD64
 float __SK_SHENMUE_ClockFuzz = 20.0f;
 extern volatile LONG SK_BypassResult;
+#endif
 
 BOOL
 WINAPI
@@ -1085,16 +1087,17 @@ SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount)
     return QueryPerformanceCounter (lpPerformanceCount);
 }
 
-#include <unordered_set>
-
+#ifdef _M_AMD64
 extern bool SK_Shenmue_IsLimiterBypassed   (void              );
 extern bool SK_Shenmue_InitLimiterOverride (LPVOID pQPCRetAddr);
 extern bool SK_Shenmue_UseNtDllQPC;
+#endif
 
 BOOL
 WINAPI
 QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 {
+#ifdef _M_AMD64
   struct SK_ShenmueLimitBreaker
   {
     bool detected = false;
@@ -1117,10 +1120,7 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 
     if (ReadAcquire (&__SK_SHENMUE_FinishedButNotPresented))
     {
-      if (dwRenderThread == 0)
-          dwRenderThread = ReadAcquire (&SK_GetCurrentRenderBackend ().thread);
-
-      if ( GetCurrentThreadId () == dwRenderThread )
+      if ( SK_Thread_GetCurrentId () == SK_GetRenderThreadID () )
       {
         if ( SK_GetCallingDLL () == SK_Modules->HostApp () )
         {
@@ -1186,6 +1186,7 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
       }
     }
   }
+#endif
 
   return
     RtlQueryPerformanceCounter          ?
@@ -1195,7 +1196,9 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
        QueryPerformanceCounter          (lpPerformanceCount);
 }
 
-float target_fps = 0.0;
+float __target_fps    = 0.0;
+float __target_fps_bg = 0.0;
+float fHPETWeight  = 0.875f;
 
 void
 SK::Framerate::Init (void)
@@ -1237,10 +1240,15 @@ SK::Framerate::Init (void)
     pCommandProc->AddVariable ( "LimiterTolerance",
             new SK_IVarStub <float> (&config.render.framerate.limiter_tolerance));
     pCommandProc->AddVariable ( "TargetFPS",
-            new SK_IVarStub <float> (&target_fps));
+            new SK_IVarStub <float> (&__target_fps));
+    pCommandProc->AddVariable ( "BackgroundFPS",
+            new SK_IVarStub <float> (&__target_fps_bg));
 
     pCommandProc->AddVariable ( "MaxRenderAhead",
             new SK_IVarStub <int> (&config.render.framerate.max_render_ahead));
+
+    pCommandProc->AddVariable ( "FPS.HPETWeight",
+            new SK_IVarStub <float> (&fHPETWeight));
 
     RtlQueryPerformanceFrequency =
       (QueryPerformanceCounter_pfn)
@@ -1513,8 +1521,11 @@ SK::Framerate::Limiter::try_wait (void)
   if (limit_behavior != LIMIT_APPLY)
     return false;
 
-  if (target_fps <= 0.0f)
-    return false;
+  if (game_window.active || __target_fps_bg == 0.0f)
+  {
+    if (__target_fps <= 0.0f)
+      return false;
+  }
 
   LARGE_INTEGER next_;
   next_.QuadPart =
@@ -1522,10 +1533,8 @@ SK::Framerate::Limiter::try_wait (void)
 
   SK_QueryPerformanceCounter (&time);
 
-  if (time.QuadPart < next_.QuadPart)
-    return true;
-
-  return false;
+  return
+    (time.QuadPart < next_.QuadPart);
 }
 
 void
@@ -1536,15 +1545,38 @@ SK::Framerate::Limiter::wait (void)
   if (limit_behavior != LIMIT_APPLY)
     return;
 
+  if (background == game_window.active)
+  {
+    background = (! background);
+  }
+
   // Don't limit under certain circumstances or exiting / alt+tabbing takes
   //   longer than it should.
   if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
-  if (fps != target_fps)
-    init (target_fps);
+  if (! background)
+  {
+    if (fps != __target_fps)
+         init (__target_fps);
+  }
 
-  if (target_fps <= 0.0f)
+  else
+  {
+    if (__target_fps_bg > 0.0f)
+    {
+      if (fps != __target_fps_bg)
+           init (__target_fps_bg);
+    }
+
+    else
+    {
+      if (fps != __target_fps)
+           init (__target_fps);
+    }
+  }
+
+  if (__target_fps <= 0.0f)
     return;
 
   frames++;
@@ -1588,20 +1620,11 @@ SK::Framerate::Limiter::wait (void)
     }
   }
 
-  //extern SK::Framerate::Stats frame_history;
-  //extern SK::Framerate::Stats frame_history2;
-  //
-  //double mean    = frame_history.calcMean     ();
-  //double sd      = frame_history.calcSqStdDev (mean);
-  //
-  //if (sd > 5.0f)
-  //  full_restart = true;
-
   if (restart || full_restart)
   {
     if (full_restart)
     {
-      init (target_fps);
+      init (__target_fps);
       full_restart = false;
     }
 
@@ -1639,21 +1662,21 @@ SK::Framerate::Limiter::wait (void)
     LARGE_INTEGER liDelay;
                   liDelay.QuadPart =
                     static_cast <LONGLONG> (
-                      to_next_in_secs * 1000.0L * 0.75L
+                      to_next_in_secs * 1000.0L * (long double)fHPETWeight
                     );
 
     //dll_log.Log (L"Wait MS: %f", to_next_in_secs * 1000.0 );
 
     // Create an unnamed waitable timer.
     static HANDLE hLimitTimer =
-      CreateWaitableTimer (NULL, FALSE, NULL);
+      CreateWaitableTimer (nullptr, FALSE, nullptr);
 
-    if ( liDelay.QuadPart > 0)
+    if ( hLimitTimer != 0 && liDelay.QuadPart > 0)
     {
       liDelay.QuadPart = -(liDelay.QuadPart * 10000);
 
       if ( SetWaitableTimer ( hLimitTimer, &liDelay,
-                                0, NULL, NULL, 0 ) )
+                                0, nullptr, nullptr, TRUE ) )
       {
         DWORD dwWait = 1337;
 
@@ -1664,7 +1687,6 @@ SK::Framerate::Limiter::wait (void)
 
           if (to_next_in_secs <= 0.0L)
           {
-            ResetEvent (hLimitTimer);
             break;
           }
 
@@ -1673,22 +1695,22 @@ SK::Framerate::Limiter::wait (void)
             static_cast <LONGLONG> (to_next_in_secs * 1000.0L * 1000.0L);
 
           dwWait =
-            //SK_WaitForSingleObject (hLimitTimer, to_next_in_secs * 1000.0);
-            SK_WaitForSingleObject_Micro ( &hLimitTimer,
-                                             &uSecs );
-          YieldProcessor ();
+            SK_WaitForSingleObject ( hLimitTimer,
+                  static_cast <DWORD> (to_next_in_secs * 1000.0) );
+                   YieldProcessor (  );
         }
       }
     }
-    // If available (Windows 7+), wait on the swapchain
-    CComPtr <IDirect3DDevice9Ex>  d3d9ex = nullptr;
-
-    // D3D10/11/12
-    CComPtr <IDXGISwapChain> dxgi_swap   = nullptr;
-    CComPtr <IDXGIOutput>    dxgi_output = nullptr;
 
     static SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
+
+    // If available (Windows 8+), wait on the swapchain
+    SK_ComPtr <IDirect3DDevice9Ex>  d3d9ex = nullptr;
+
+    // D3D10/11/12
+    SK_ComPtr <IDXGISwapChain> dxgi_swap   = nullptr;
+    SK_ComPtr <IDXGIOutput>    dxgi_output = nullptr;
 
     if (config.render.framerate.wait_for_vblank)
     {
@@ -1733,9 +1755,15 @@ SK::Framerate::Limiter::wait (void)
 
       // Attempt to use a deeper sleep when possible instead of hammering the
       //   CPU into submission ;)
-      if (dwWaitMS > 3)
+      if (dwWaitMS > 2)
       {
-        SK_Sleep (1);// dwWaitMS);
+        YieldProcessor ();
+
+        if (! config.render.framerate.enable_mmcss)
+        {
+          if (dwWaitMS > 4)
+            SK_SleepEx (1, FALSE);
+        }
       }
 
       if ( config.render.framerate.wait_for_vblank )
@@ -1747,7 +1775,6 @@ SK::Framerate::Limiter::wait (void)
           dxgi_output->WaitForVBlank ();
       }
 
-      YieldProcessor             (     );
       SK_QueryPerformanceCounter (&time);
     }
   }
@@ -1898,11 +1925,12 @@ SK_GetPerfFreq (void)
 
     if (! InterlockedCompareExchange (&init, 1, 0))
     {
-      if (QueryPerformanceFrequency_Original != nullptr)
-          QueryPerformanceFrequency_Original (&freq);
+      if (RtlQueryPerformanceFrequency != nullptr)
+          RtlQueryPerformanceFrequency            (&freq);
+      else if (QueryPerformanceFrequency_Original != nullptr)
+               QueryPerformanceFrequency_Original (&freq);
       else
-        //RtlQueryPerformanceFrequency (&freq);
-        QueryPerformanceFrequency (&freq);
+        QueryPerformanceFrequency                 (&freq);
 
       InterlockedIncrement (&init);
 
@@ -1913,12 +1941,12 @@ SK_GetPerfFreq (void)
     {
       LARGE_INTEGER freq2 = { };
 
-      RtlQueryPerformanceFrequency (&freq2);
-      //if (QueryPerformanceFrequency_Original != nullptr)
-      //    QueryPerformanceFrequency_Original (&freq2);
-
-      //else
-      //  QueryPerformanceFrequency (&freq2);
+      if (RtlQueryPerformanceFrequency != nullptr)
+          RtlQueryPerformanceFrequency            (&freq2);
+      else if (QueryPerformanceFrequency_Original != nullptr)
+               QueryPerformanceFrequency_Original (&freq2);
+      else
+        QueryPerformanceFrequency                 (&freq2);
 
       return
         freq2;

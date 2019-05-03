@@ -1224,11 +1224,10 @@ void ResetCEGUI_GL (void)
         setlocale (LC_ALL, "C");
 
       try {
-        CEGUI::OpenGL3Renderer* cegGL_new = nullptr;
-
-        cegGL_new = reinterpret_cast <CEGUI::OpenGL3Renderer *> (
-          &CEGUI::OpenGL3Renderer::bootstrapSystem ()
-        );
+        CEGUI::OpenGL3Renderer* cegGL_new =
+          reinterpret_cast <CEGUI::OpenGL3Renderer *> (
+            &CEGUI::OpenGL3Renderer::bootstrapSystem ()
+          );
 
         cegGL = cegGL_new;
       }
@@ -1330,7 +1329,7 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
     dll_log->Log ( L"[%x (tid=%x)]  wglMakeCurrent "
                    L"(hDC=%x, hglrc=%x)",
                      WindowFromDC         (hDC),
-                       GetCurrentThreadId (   ),
+                   SK_Thread_GetCurrentId (   ),
                                            hDC, hglrc );
   }
 
@@ -1338,10 +1337,10 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
     wgl_make_current (hDC, hglrc);
 
 
-  pTLS->gl.current_hglrc = hglrc;
-  pTLS->gl.current_hdc   = hDC;
-  pTLS->gl.current_hwnd  = pTLS->gl.current_hdc != nullptr ?
-            WindowFromDC  (pTLS->gl.current_hdc)     : nullptr;
+  pTLS->gl->current_hglrc = hglrc;
+  pTLS->gl->current_hdc   = hDC;
+  pTLS->gl->current_hwnd  = pTLS->gl->current_hdc != nullptr ?
+             WindowFromDC  (pTLS->gl->current_hdc)     : nullptr;
 
   return ret;
 }
@@ -1360,9 +1359,9 @@ wglDeleteContext (HGLRC hglrc)
   {
     dll_log->Log ( L"[%x (tid=%x)]  wglDeleteContext "
                    L"(hglrc=%x)",
-                     WindowFromDC         (pTLS->gl.current_hdc),
-                       GetCurrentThreadId (   ),
-                                          hglrc );
+                     WindowFromDC             (pTLS->gl->current_hdc),
+                       SK_Thread_GetCurrentId (   ),
+                                              hglrc );
   }
 
 
@@ -1667,7 +1666,7 @@ SK_Overlay_DrawGL (void)
   static RECT rect     = { -1, -1, -1, -1 };
          RECT rect_now = {  0,  0,  0,  0 };
 
-  GetClientRect (SK_TLS_Bottom ()->gl.current_hwnd, &rect_now);
+  GetClientRect (SK_TLS_Bottom ()->gl->current_hwnd, &rect_now);
 
   static bool need_resize;
 
@@ -1762,10 +1761,13 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
+  auto& pTLS_gl =
+    pTLS->gl.get ();
+
   HGLRC& thread_hglrc =
-    pTLS->gl.current_hglrc;
+    pTLS_gl.current_hglrc;
   HDC&   thread_hdc   =
-    pTLS->gl.current_hdc;
+    pTLS_gl.current_hdc;
 
 
   bool need_init = false;
@@ -1779,7 +1781,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       wglMakeCurrent ( (thread_hdc   = SK_GL_GetCurrentDC      ()),
                        (thread_hglrc = SK_GL_GetCurrentContext ()) );
 
-      pTLS->gl.current_hwnd =
+      pTLS_gl.current_hwnd =
         WindowFromDC (thread_hdc);
 
       need_init = true;
@@ -1853,19 +1855,16 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     // Ensure the resources we created on the primary context are meaningful
     //   on this one.
-    if (! compatible_dc)
+    SK_LOG0 ( ( L"Implicitly sharing lists because Specical K resources were"
+                L" initialized using a different OpenGL context." ),
+                L" OpenGL32 " );
+
+    if (thread_hglrc == nullptr || wglShareLists (__gl_primary_context, thread_hglrc))
     {
-      SK_LOG0 ( ( L"Implicitly sharing lists because Specical K resources were"
-                  L" initialized using a different OpenGL context." ),
-                  L" OpenGL32 " );
+      compatible_dc = true;
 
-      if (thread_hglrc == nullptr || wglShareLists (__gl_primary_context, thread_hglrc))
-      {
-        compatible_dc = true;
-
-        if (thread_hglrc == nullptr)
-            thread_hglrc = __gl_primary_context;
-      }
+      if (thread_hglrc == nullptr)
+          thread_hglrc = __gl_primary_context;
     }
   }
 
@@ -1891,6 +1890,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     if (status)
       SK_EndBufferSwap (S_OK);
+    else
+      SK_EndBufferSwap (E_UNEXPECTED);
   }
 
 
@@ -1937,7 +1938,7 @@ wglSwapBuffers (HDC hDC)
   WaitForInit_GL ();
 
   if (config.system.log_level > 1)
-    dll_log->Log (L"[%x (tid=%x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC);
+    dll_log->Log (L"[%x (tid=%x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC);
 
   SK_GL_TrackHDC (hDC);
 
@@ -1964,7 +1965,7 @@ SwapBuffers (HDC hDC)
   WaitForInit_GL ();
 
   if (config.system.log_level > 1)
-    dll_log->Log (L"[%x (tid=%x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC);
+    dll_log->Log (L"[%x (tid=%x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC);
 
   SK_GL_TrackHDC (hDC);
 
@@ -2494,7 +2495,7 @@ SK_HookGL (void)
       wgl_swap_multiple_buffers =
         (wglSwapMultipleBuffers_pfn)GetProcAddress (local_gl, "wglSwapMultipleBuffers");
 
-      pTLS->gl.ctx_init_thread = true;
+      pTLS->gl->ctx_init_thread = true;
     }
 
     dll_log->Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
@@ -2542,7 +2543,7 @@ SK_HookGL (void)
       SK_GL_HOOK(wglGetCurrentContext);
     //SK_GL_HOOK(wglGetCurrentDC);
 
-      pTLS->gl.ctx_init_thread = true;
+      pTLS->gl->ctx_init_thread = true;
 
       if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
       {
@@ -2927,7 +2928,7 @@ SK_HookGL (void)
        static_cast_p2p <void> (&gdi_swap_buffers) );
 
 
-    pTLS->gl.ctx_init_thread = false;
+    pTLS->gl->ctx_init_thread = false;
 
     if (SK_GetFramesDrawn () > 1)
       SK_ApplyQueuedHooks ();
@@ -2949,9 +2950,9 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
 
   dll_log->Log ( L"[%x (tid=%x)]  wglShareLists "
                  L"(ctx0=%x, ctx1=%x)",
-                   SK_TLS_Bottom ()->gl.current_hwnd,
-                     GetCurrentThreadId (   ),
-                                         ctx0, ctx1 );
+                   SK_TLS_Bottom ()->gl->current_hwnd,
+                   SK_Thread_GetCurrentId (   ),
+                                          ctx0, ctx1 );
 
   BOOL ret =
     wgl_share_lists (ctx0, ctx1);
@@ -2987,7 +2988,7 @@ SK_GL_GetCurrentContext (void)
   SK_TLS* pTLS = SK_TLS_Bottom ();
 
   if (pTLS != nullptr)
-      pTLS->gl.current_hglrc = hglrc;
+      pTLS->gl->current_hglrc = hglrc;
 
   return hglrc;
 }
@@ -2996,8 +2997,7 @@ HDC
 WINAPI
 SK_GL_GetCurrentDC (void)
 {
-  HDC  hdc  = nullptr;
-  HWND hwnd = nullptr;
+  HDC hdc = nullptr;
 
   using wglGetCurrentDC_pfn = HDC (WINAPI *)(void);
 
@@ -3007,14 +3007,15 @@ SK_GL_GetCurrentDC (void)
   if (    __imp__wglGetCurrentDC != nullptr)
     hdc = __imp__wglGetCurrentDC ();
 
-  hwnd = WindowFromDC (hdc);
+  HWND hwnd =
+    WindowFromDC (hdc);
 
   SK_TLS* pTLS = SK_TLS_Bottom ();
 
   if (pTLS != nullptr)
   {
-    pTLS->gl.current_hwnd = hwnd;
-    pTLS->gl.current_hdc  = hdc;
+    pTLS->gl->current_hwnd = hwnd;
+    pTLS->gl->current_hdc  = hdc;
   }
 
   return hdc;

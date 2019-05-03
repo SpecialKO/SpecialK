@@ -91,8 +91,7 @@ private:
 
     char*  text      = nullptr; // UTF-8
     size_t text_len  = 0;
-
-    float  extent; // Rendered height, in pixels
+    float  extent    = 0.0f;// Rendered height, in pixels
   } data_;
 
   struct
