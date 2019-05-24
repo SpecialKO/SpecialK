@@ -238,27 +238,27 @@ struct SK_Input_Duration
 
 struct SK_Input_KeyBinding
 {
+  SK_Input_ModifierKeys modifiers  = SK_Input_ModifierKeys::None;
+  SK_Input_BindFlags    flags      = SK_Input_BindFlags::Default;
+
   struct key_s
   {
     SK_Input_Duration   duration   = {    };
     uint16_t            scancode   = 0x0000;
   } keys [1];
 
-  SK_Input_ModifierKeys modifiers  = SK_Input_ModifierKeys::None;
-  SK_Input_BindFlags    flags      = SK_Input_BindFlags::Default;
-
   uint8_t               combo_size = 1;
 };
 
 struct SK_Input_PadBinding
 {
+  SK_Input_BindFlags flags      = SK_Input_BindFlags::Default;
+
   struct button_s
   {
     SK_Input_Duration duration  = {};
     uint8_t           button    = 00;
   } buttons [1];
-
-  SK_Input_BindFlags flags      = SK_Input_BindFlags::Default;
 
   uint8_t            combo_size = 1;
 };

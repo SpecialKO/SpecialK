@@ -162,14 +162,14 @@ NVAPI::CountSLIGPUs (void)
   return nv_sli_count;
 }
 
-static DXGI_ADAPTER_DESC   _nv_sli_adapters [64];
+SK_LazyGlobal <std::array <DXGI_ADAPTER_DESC, 64>> _nv_sli_adapters;
 
 DXGI_ADAPTER_DESC*
 NVAPI::EnumSLIGPUs (void)
 {
   static int nv_sli_count = -1;
 
-  *_nv_sli_adapters [0].Description = L'\0';
+  *_nv_sli_adapters.get ()[0].Description = L'\0';
 
   DXGI_ADAPTER_DESC* adapters =
     NVAPI::EnumGPUs_DXGI ();
@@ -183,7 +183,7 @@ NVAPI::EnumSLIGPUs (void)
       while (adapters != nullptr)
       {
         if (adapters->AdapterLuid.LowPart > 1)
-          memcpy (&_nv_sli_adapters [nv_sli_count++], adapters,
+          memcpy (&_nv_sli_adapters.get ()[nv_sli_count++], adapters,
                   sizeof (DXGI_ADAPTER_DESC));
 
         ++adapters;
@@ -192,11 +192,12 @@ NVAPI::EnumSLIGPUs (void)
           break;
       }
 
-      *_nv_sli_adapters [nv_sli_count].Description = L'\0';
+      *_nv_sli_adapters.get ()[nv_sli_count].Description = L'\0';
     }
   }
 
-  return _nv_sli_adapters;
+  return
+    &_nv_sli_adapters.get ()[0];
 }
 
 /**
@@ -529,8 +530,6 @@ SK_NvAPI_ReIssueLastHdrColorControl (void)
 
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
-NVAPI_INTERFACE NvAPI_Disp_ColorControl(NvU32 displayId, NV_COLOR_DATA *pColorData);
-
 NvAPI_Status
 __cdecl
 NvAPI_Disp_ColorControl_Override ( NvU32          displayId,
@@ -612,8 +611,9 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
   SK_LOG_FIRST_CALL
 
-  static NV_HDR_COLOR_DATA_V2  expandedData;
-         NV_HDR_COLOR_DATA_V1 *inputData = (NV_HDR_COLOR_DATA_V1 *)pHdrColorData;
+    static NV_HDR_COLOR_DATA_V2  expandedData = { };
+         NV_HDR_COLOR_DATA_V1   *inputData    =
+        (NV_HDR_COLOR_DATA_V1   *)pHdrColorData;
 
   if (pHdrColorData->version == NV_HDR_COLOR_DATA_VER1)
   {
@@ -2047,7 +2047,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   {
     NVDRS_PROFILE custom_profile = { };
 
-    custom_profile.isPredefined = false;
+    custom_profile.isPredefined = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
     custom_profile.version = NVDRS_PROFILE_VER;
 

@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/DLL_VERSION.h>
 
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
@@ -35,14 +36,18 @@
 char _RTL_CONSTANT_STRING_type_check (const char    *s);
 char _RTL_CONSTANT_STRING_type_check (const wchar_t *s);
 
-template <size_t N> class _RTL_CONSTANT_STRING_remove_const_template_class;
-template <        > class _RTL_CONSTANT_STRING_remove_const_template_class <sizeof (char   )>
-{ public:                                                                  typedef  char    T; };
-template <        > class _RTL_CONSTANT_STRING_remove_const_template_class <sizeof (wchar_t)>
-{ public:                                                                  typedef  wchar_t T; };
+template <size_t N>
+  class _RTL_CONSTANT_STRING_remove_const_template_class;
+template <        >
+  class _RTL_CONSTANT_STRING_remove_const_template_class <sizeof (char   )>
+{ public:                                            typedef  char    T; };
+template <        >
+  class _RTL_CONSTANT_STRING_remove_const_template_class <sizeof (wchar_t)>
+{ public:                                            typedef  wchar_t T; };
 
-#define _RTL_CONSTANT_STRING_remove_const_macro(s) \
-    (const_cast <_RTL_CONSTANT_STRING_remove_const_template_class <sizeof ((s)[0])>::T*> (s))
+#define _RTL_CONSTANT_STRING_remove_const_macro(s)                       \
+(const_cast <_RTL_CONSTANT_STRING_remove_const_template_class <          \
+                                       sizeof ((s)[0])>::T*> (s))
 
 #define RTL_CONSTANT_STRING(s)                              \
 {                                                           \
@@ -59,9 +64,8 @@ template <        > class _RTL_CONSTANT_STRING_remove_const_template_class <size
 #define LoadLibrary int x = __stdcall;
 #define FreeLibrary int x = __stdcall;
 
-static bool _HasLocalDll = false;
-
-SK_LazyGlobal <skModuleRegistry> SK_Modules;
+SK_LazyGlobal <skModuleRegistry>
+              SK_Modules;
 
 SK_Thread_HybridSpinlock* init_mutex          = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex        = nullptr;
@@ -81,8 +85,8 @@ volatile          LONG __SK_DLL_Refs          = 0UL;
 volatile          long __SK_HookContextOwner  = FALSE;
 
 extern volatile  DWORD __SK_TLS_INDEX;
-
         volatile LONG  lLastThreadCreate      = 0;
+          static bool  _HasLocalDll           = false;
 
 
 class SK_DLL_Bootstrapper
@@ -97,23 +101,32 @@ public:
   BootstrapTerminate_pfn  shutdown;
 };
 
-const std::unordered_map <DLL_ROLE, SK_DLL_Bootstrapper>*
+auto
 SK_DLL_GetBootstraps (void)
 {
-  static
-    const std::unordered_map <DLL_ROLE, SK_DLL_Bootstrapper>
-    __SK_DLL_Bootstraps = {
-      { DLL_ROLE::DXGI,       { { L"dxgi.dll", L"d3d11.dll" }, SK::DXGI::Startup,   SK::DXGI::Shutdown   } },
-      { DLL_ROLE::D3D11_CASE, { { L"dxgi.dll", L"d3d11.dll" }, SK::DXGI::Startup,   SK::DXGI::Shutdown   } },
-      { DLL_ROLE::D3D9,       { { L"d3d9.dll"               }, SK::D3D9::Startup,   SK::D3D9::Shutdown   } },
-      { DLL_ROLE::OpenGL,     { { L"OpenGL32.dll"           }, SK::OpenGL::Startup, SK::OpenGL::Shutdown } },
-      { DLL_ROLE::DInput8,    { { L"dinput8.dll"            }, SK::DI8::Startup,    SK::DI8::Shutdown    } },
-  #ifndef _M_AMD64
-      { DLL_ROLE::D3D8,       { { L"d3d8.dll"               }, SK::D3D8::Startup,   SK::D3D8::Shutdown   } },
-      { DLL_ROLE::DDraw,      { { L"ddraw.dll"              }, SK::DDraw::Startup,  SK::DDraw::Shutdown  } },
-  #endif
-    };
+  using namespace SK;
 
+  static std::unordered_map <
+    DLL_ROLE,                SK_DLL_Bootstrapper>   __SK_DLL_Bootstraps = {
+  { DLL_ROLE::DXGI,       { { L"dxgi.dll",
+                              L"d3d11.dll"    },       DXGI::Startup,
+                                                       DXGI::Shutdown } },
+  { DLL_ROLE::D3D11_CASE, { { L"dxgi.dll",
+                              L"d3d11.dll"    },       DXGI::Startup,
+                                                       DXGI::Shutdown } },
+  { DLL_ROLE::D3D9,       { { L"d3d9.dll"     },       D3D9::Startup,
+                                                       D3D9::Shutdown } },
+  { DLL_ROLE::OpenGL,     { { L"OpenGL32.dll" },     OpenGL::Startup,
+                                                     OpenGL::Shutdown } },
+  { DLL_ROLE::DInput8,    { { L"dinput8.dll"  },        DI8::Startup,
+                                                        DI8::Shutdown } },
+  #ifndef _M_AMD64
+  { DLL_ROLE::D3D8,       { { L"d3d8.dll"     },       D3D8::Startup,
+                                                       D3D8::Shutdown } },
+  { DLL_ROLE::DDraw,      { { L"ddraw.dll"    },      DDraw::Startup,
+                                                      DDraw::Shutdown } },
+  #endif
+                                                                         };
   return
     &__SK_DLL_Bootstraps;
 }
@@ -122,37 +135,22 @@ SK_DLL_GetBootstraps (void)
 
 skWin32Module&
 skModuleRegistry::HostApp (HMODULE hModToSet)
-{
-  static skWin32Module hModApp =
-    skWin32Module::Uninitialized;
-
+{ static skWin32Module
+       hModApp   =  skWin32Module::Uninitialized;
   if ( hModApp   == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
-  {
-    hModApp =
-      hModToSet;
-  }
-
-  return
-    hModApp;
-}
+  {    hModApp    = hModToSet;                      }
+return hModApp;   }
 
 skWin32Module&
 skModuleRegistry::Self (HMODULE hModToSet)
-{
-  static skWin32Module hModSelf =
-    skWin32Module::Uninitialized;
-
+{ static skWin32Module
+       hModSelf  =  skWin32Module::Uninitialized;
   if ( hModSelf  == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
-  {
-    hModSelf =
-      hModToSet;
-  }
+  {    hModSelf   = hModToSet;                      }
+return hModSelf;  }
 
-  return
-    hModSelf;
-}
 
 HMODULE
 __stdcall
@@ -161,6 +159,7 @@ SK_GetDLL (void)
   return
     __SK_hModSelf;
 }
+
 
 //
 // Various detection methods to prevent injection into software that is
@@ -172,36 +171,17 @@ SK_GetDLL (void)
 INT
 SK_KeepAway (void)
 {
-//#define SK_NAIVE
-#ifdef SK_NAIVE
-  return FALSE;
-#endif
-
-//#define SK_PARANOID
-#ifdef SK_PARANOID
-  if (! SK_COM_TestInit ())
-    return TRUE;
-
-  BOOL  bNotAUserInteractiveApplication = FALSE;
-  DWORD dwIntegrityLevel                = std::numeric_limits <DWORD>::max ();
-
-  PSID pSid =
-    SK_Win32_GetTokenSid (TokenIntegrityLevel);
-
-  if (pSid != nullptr)
+  wchar_t            wszDllFullName [MAX_PATH + 2] = { };
+  GetModuleFileName ( skModuleRegistry::Self ( ),
+                     wszDllFullName, MAX_PATH    );
+  if (   StrStrIW (  wszDllFullName,
+             SK_RunLHIfBitness ( 64, L"SpecialK64.dll",
+                                     L"SpecialK32.dll" )
+                  ) == nullptr
+     )
   {
-    dwIntegrityLevel = *GetSidSubAuthority      (pSid,
-        (DWORD)(UCHAR)(*GetSidSubAuthorityCount (pSid) - 1));
-
-    bNotAUserInteractiveApplication =
-      ( dwIntegrityLevel < ( SECURITY_MANDATORY_MEDIUM_RID /*+ 0x10*/ ) );
-
-    SK_Win32_ReleaseTokenSid (pSid);
+    return 0;
   }
-
-  if (bNotAUserInteractiveApplication)
-    return TRUE;
-#endif
 
   static HMODULE hModNtDll =
     GetModuleHandle (L"NtDll");
@@ -219,13 +199,12 @@ SK_KeepAway (void)
 
   // Applications using these are known to suspend themselves while holding
   //   a reference to our poor old DLL; so avoid them.
-  static const UNICODE_STRING trigger_dlls [] = {
-    SK_MakeUnicode (L"Windows.Internal.Shell.Broker.dll"),
-    SK_MakeUnicode (L"Windows.UI.Immersive.dll"),
-    SK_MakeUnicode (L"ApplicationFrame.dll"),
-    SK_MakeUnicode (L"browserbroker.dll"),
+  static const UNICODE_STRING trigger_dlls [] =
+  {
+    SK_MakeUnicode (L"libcef.dll"),
     SK_MakeUnicode (L"chromehtml.dll"),
-    SK_MakeUnicode (L"libcef.dll")
+    SK_MakeUnicode (L"browserbroker.dll"),
+    SK_MakeUnicode (L"Windows.Internal.Shell.Broker.dll"),
   };
 
   auto _TestUndesirableDll = [](auto& list, INT stage) ->
@@ -245,6 +224,13 @@ SK_KeepAway (void)
 
     return 0;
   };
+
+  static const UNICODE_STRING __steam_dlls [] = {
+    SK_MakeUnicode (L"steam_api.dll"),
+    SK_MakeUnicode (L"steam_api64.dll")
+  };
+
+  if ( _TestUndesirableDll ( __steam_dlls, 1 ) ) { return 0; }
 
   return
     _TestUndesirableDll     ( trigger_dlls, 1 ) ||
@@ -268,6 +254,13 @@ DllMain ( HMODULE hModule,
 
   switch (ul_reason_for_call)
   {
+    // DLL Loaded into Process (not necessarily the first bit of code run)
+    //
+    //   The CBT hook in injection.cpp actually runs some code from the DLL
+    //     before DllMain is invoked, so care must be taken to avoid using
+    //       any part of Special K that relies on the Visual C++ Runtime in
+    //         the context of that hook.
+    //
     case DLL_PROCESS_ATTACH:
     {
       // Try, if assigned already (how?!) do not deadlock the Kernel loader
@@ -278,16 +271,14 @@ DllMain ( HMODULE hModule,
         return TRUE;
 
 
-      auto EarlyOut =
-      [&](BOOL bRet = TRUE)
-      {
-        return bRet;
-      };
+      auto EarlyOut   =
+        [&](BOOL bRet = TRUE)
+        { return bRet; };
 
 
-      // We use SKIM for injection and rundll32 for various tricks involving restarting
-      //   the currently running game; neither needs or even wants this DLL fully
-      //     initialized!
+      // We use SKIM for injection and rundll32 for various tricks
+      //   involving restarting the currently running game; neither
+      //     needs or even wants this DLL fully initialized!
       if (SK_GetHostAppUtil ()->isInjectionTool ())
       {
         // We need a TLS slot immediately
@@ -298,56 +289,66 @@ DllMain ( HMODULE hModule,
 
         SK_EstablishRootPath ();
 
-        InterlockedExchange (&__SK_DLL_Attached, 1);
+        InterlockedExchange (
+          &__SK_DLL_Attached, 1
+        );
 
         return
           EarlyOut (TRUE);
       }
 
 
-
-      //// Keep this DLL out of anything that doesn't handle User Interfaces,
-      ////   everyone will be much happier that way =P
-      if (SK_KeepAway () != 0)
-      {
-        return
-          EarlyOut (FALSE);
-      }
+      //// Keep this DLL out of anything that doesn't handle User
+      ////   Interfaces, everyone will be much happier that way =P
+      if (SK_KeepAway () != 0)                      return EarlyOut (FALSE);
 
 
-      // We reserve the right to deny attaching the DLL, this will generally
-      //   happen if a game does not opt-in to system wide injection.
-      if (! SK_EstablishDllRole (hModule))              return EarlyOut (TRUE);
+      // We reserve the right to deny attaching the DLL, this will
+      //   generally happen if a game has opted-out of global injection.
+      if (! SK_EstablishDllRole (hModule))          return EarlyOut (TRUE);
+
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
-      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (TRUE);
+      if (DLL_ROLE::INVALID == SK_GetDLLRole ())    return EarlyOut (TRUE);
+      if (! SK_Attach         (SK_GetDLLRole ()))   return EarlyOut (TRUE);
 
-      if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (TRUE);
 
-      InterlockedIncrementRelease (&__SK_DLL_Refs);
+      InterlockedIncrementRelease (
+        &__SK_DLL_Refs
+      );
 
 
       // If we got this far, it's because this is an injection target
       //
-      //   Must hold a reference to this DLL so that removing the global hook does
-      //     not crash the game.
+      //   Must hold a reference to this DLL so that removing the global
+      //     hook does not crash the game.
       SK_Inject_AcquireProcess ();
 
-      __SK_DLL_TeardownEvent =
-        CreateEvent (nullptr, TRUE, FALSE, nullptr);
 
-      return TRUE;
+      return
+        ( __SK_DLL_TeardownEvent =
+            SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr ) ) != 0;
     } break;
 
 
 
+
+    // DLL is Being Unloaded from Process
+    //
+    //   --> Once this returns, expect a follow-up DLL_THREAD_DETACH, and
+    //         make sure that any code it executes does not trip over
+    //           removed hooks.  ( Deinit is still in progress )
+    //
     case DLL_PROCESS_DETACH:
     {
-      if (__SK_DLL_TeardownEvent != 0)
-        SetEvent (__SK_DLL_TeardownEvent);
+      if (__SK_DLL_TeardownEvent != 0) SetEvent (
+          __SK_DLL_TeardownEvent                );
 
-      if (! InterlockedCompareExchangeRelease (&__SK_DLL_Ending, TRUE, FALSE))
+      if (! InterlockedCompareExchangeRelease ( &__SK_DLL_Ending,
+                                                  TRUE,
+                                                    FALSE )
+         )
       {
         // If the DLL being unloaded is the source of a global hook, then
         //   shut that down before detaching the DLL.
@@ -362,8 +363,11 @@ DllMain ( HMODULE hModule,
       {
         SK_Memory_RemoveHooks ();
 
-        if (! SK_GetHostAppUtil ()->isInjectionTool ())
+        if (! SK_GetHostAppUtil ()->
+                isInjectionTool () )
+        {
           SK_Detach (SK_GetDLLRole ());
+        }
 
         SK_TLS *pTLS     = nullptr;
         auto    tls_slot =
@@ -383,13 +387,10 @@ DllMain ( HMODULE hModule,
 
         while (! __SK_TLS_FreeList->empty ())
         {
-          SK_TLS*
-            pZombieTLS = nullptr;
-
-          if (__SK_TLS_FreeList->try_pop (pZombieTLS))
-          {
-            delete pZombieTLS;
-          }
+          SK_TLS*     pZombieTLS = nullptr;
+          if ( __SK_TLS_FreeList->try_pop (
+                      pZombieTLS          )
+             ) delete pZombieTLS;
         }
       }
 
@@ -401,25 +402,44 @@ DllMain ( HMODULE hModule,
                 );
       }
 
-      if (__SK_DLL_TeardownEvent != 0)
-        CloseHandle (__SK_DLL_TeardownEvent);
+      if (__SK_DLL_TeardownEvent > 0)
+      { CloseHandle (__SK_DLL_TeardownEvent);
+                     __SK_DLL_TeardownEvent = INVALID_HANDLE_VALUE;
+      }
 
 #ifdef DEBUG
-      else {
-      //Sanity FAILURE: Attempt to detach something that was not properly attached?!
-        dll_log->Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
+      else if (dll_log != nullptr) {
+      //Sanity FAILURE:  Attempt to detach something that was not properly
+      //                   attached?!
+        dll_log->Log (
+          L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never "
+            L"attached !! **"
+        );
       }
 #endif
     } break;
 
 
 
+
+    // New Thread
+    // ----------
+    //
+    //  Sneaky anti-debug software is known to create threads using a
+    //    special NtCreateThread flag that can bypass thread attach notify;
+    //
+    //   * Be prepared to encounter threads where the TLS initialization
+    //       that is supposed to take place here never does.
+    //
+    //  This can mean there will be threads that the thread profiler cannot
+    //    access the TLS thread context for. Once those threads run one of
+    //      Special K's hooks, TLS will finally be initialized.
+    //
     case DLL_THREAD_ATTACH:
     {
-      InterlockedIncrementAcquire (&lLastThreadCreate);
-
       if (ReadAcquire (&__SK_DLL_Attached))
       {
+        InterlockedIncrementAcquire (&lLastThreadCreate);
         InterlockedIncrementAcquire (&__SK_Threads_Attached);
 
         SK_TLS *pTLS =
@@ -434,14 +454,19 @@ DllMain ( HMODULE hModule,
     break;
 
 
+
+    // Thread Destroyed
+    //
+    //   ( Final DllMain invocation on clean unload )
+    //
     case DLL_THREAD_DETACH:
     {
-      InterlockedIncrementRelease (&lLastThreadCreate);
-
       if (ReadAcquire (&__SK_DLL_Attached))
       {
-        // Strip TLS and Mark Freeable
-        // ---------------------------
+        InterlockedIncrementRelease (&lLastThreadCreate);
+
+        // Strip TLS and Mark Free able
+        // ----------------------------
         //
         // Partially clean TLS; a small portion of debug data lingers
         //   per-thread until the DLL's complete process detach.
@@ -631,11 +656,11 @@ SK_EstablishDllRole (skWin32Module&& module)
 
 #ifndef _M_AMD64
   static bool has_dgvoodoo =
-    GetFileAttributesW (
-      SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-                          std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
-                       ).c_str ()
-    ) != INVALID_FILE_ATTRIBUTES;
+   ( GetFileAttributesW (
+       SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
+           std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" )
+                         .c_str ()
+                        ).c_str () ) != INVALID_FILE_ATTRIBUTES );
 #endif
 
   const wchar_t* wszSelfTitledDLL =
@@ -800,7 +825,8 @@ SK_EstablishDllRole (skWin32Module&& module)
       // If there is a local Special K DLL in the game's directory,
       //   load it and then bow-out -- we are done here.
       //
-      if ( (! SK_IsHostAppSKIM ()) && SK_TryLocalWrapperFirst ( local_dlls ) )
+      if ( (! SK_IsHostAppSKIM        (            ) ) &&
+              SK_TryLocalWrapperFirst ( local_dlls ) )
       {
         return
           SK_DontInject ();
@@ -836,9 +862,8 @@ SK_EstablishDllRole (skWin32Module&& module)
       static sk_import_test_s steam_tests[] =
       {
         { SK_RunLHIfBitness (64, "steam_api64.dll",
-                                  "steam_api.dll"),  false },
-
-        {                         "steamnative.dll", false }
+                                 "steam_api.dll"),  false },
+        {                        "steamnative.dll", false }
       };
 
       if (! is_steamworks_game)
@@ -846,7 +871,17 @@ SK_EstablishDllRole (skWin32Module&& module)
         SK_TestImports (GetModuleHandle (nullptr), steam_tests, 2);
 
         is_steamworks_game =
-          (steam_tests[0].used | steam_tests[1].used);
+          ( steam_tests [0].used |
+            steam_tests [1].used );
+
+        if (! is_steamworks_game)
+        {
+          if ( PathFileExistsA (steam_tests [0].szModuleName) ||
+               PathFileExistsA (steam_tests [1].szModuleName) )
+          {
+            is_steamworks_game = true;
+          }
+        }
       }
 
       // If this is a Steamworks game, then lets start doing stuff to it!
@@ -900,7 +935,10 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         if (config.apis.d3d8.hook && d3d8 && has_dgvoodoo)
         {
-          if (SK_TryLocalWrapperFirst ({ L"d3d8.dll" }))                return SK_DontInject ();
+          if (SK_TryLocalWrapperFirst ({ L"d3d8.dll" }))
+          {
+            return SK_DontInject ();
+          }
 
           config.apis.dxgi.d3d11.hook = true;
 
@@ -909,7 +947,10 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         else if (config.apis.ddraw.hook && ddraw && has_dgvoodoo)
         {
-          if (SK_TryLocalWrapperFirst ({ L"ddraw.dll" }))               return SK_DontInject ();
+          if (SK_TryLocalWrapperFirst ({ L"ddraw.dll" }))
+          {
+            return SK_DontInject ();
+          }
 
           config.apis.dxgi.d3d11.hook = true;
 
@@ -926,7 +967,10 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         else if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11))
         {
-          if (SK_TryLocalWrapperFirst ({ L"dxgi.dll", L"d3d11.dll" }))  return SK_DontInject ();
+          if (SK_TryLocalWrapperFirst ({ L"dxgi.dll", L"d3d11.dll" }))
+          {
+            return SK_DontInject ();
+          }
 
           //if (d3d11)
           //{
@@ -940,14 +984,20 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         else if (config.apis.d3d9.hook && d3d9)
         {
-          if (SK_TryLocalWrapperFirst ({ L"d3d9.dll" }))                return SK_DontInject ();
+          if (SK_TryLocalWrapperFirst ({ L"d3d9.dll" }))
+          {
+            return SK_DontInject ();
+          }
 
           SK_SetDLLRole (DLL_ROLE::D3D9);
         }
 
         else if (config.apis.OpenGL.hook && gl)
         {
-          if (SK_TryLocalWrapperFirst ({ L"OpenGL32.dll" }))            return SK_DontInject ();
+          if (SK_TryLocalWrapperFirst ({ L"OpenGL32.dll" }))
+          {
+            return SK_DontInject ();
+          }
 
           SK_SetDLLRole (DLL_ROLE::OpenGL);
         }
@@ -988,38 +1038,39 @@ SK_EstablishDllRole (skWin32Module&& module)
 #endif
         }
 
+        // Auto-Guess DXGI if all else fails...
         if (SK_GetDLLRole () == DLL_ROLE::INVALID)
-          SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
+            SK_SetDLLRole (     DLL_ROLE::DXGI   );
 
         extern SK_LazyGlobal <sk_config_t> _config;
                           auto& config_ = *_config;
+
         DBG_UNREFERENCED_LOCAL_VARIABLE (config_);
 
         // Write any default values to the config file
         SK_LoadConfig (L"SpecialK");
 
-
-        config.apis.last_known = SK_RenderAPI::Reserved;
+        config.apis.last_known =
+          SK_RenderAPI::Reserved;
       }
     }
   }
 
   return
-    (SK_GetDLLRole () != DLL_ROLE::INVALID);
+    ( SK_GetDLLRole () != DLL_ROLE::INVALID );
 }
 
 
 
 
 void
-SK_CleanupMutex (SK_Thread_HybridSpinlock** ppMutex)
+SK_CleanupMutex (SK_Thread_HybridSpinlock **ppMutex)
 {
-  if (*ppMutex != nullptr)
+  if (  ppMutex != nullptr &&
+       *ppMutex != nullptr    )
   {
-    delete
-      static_cast <SK_Thread_HybridSpinlock *> (
-        InterlockedCompareExchangePointer ((void **)ppMutex, nullptr, *ppMutex)
-      );
+    auto    to_delete = ppMutex;
+    delete *to_delete; *ppMutex = nullptr;
   }
 };
 
@@ -1035,11 +1086,16 @@ SK_Attach (DLL_ROLE role)
   auto& bootstraps =
     *SK_DLL_GetBootstraps ();
 
-  if (bootstraps.count (role))
+  if ( bootstraps.find (role) !=
+       bootstraps.cend (    )  )
   {
-    if (! InterlockedCompareExchangeAcquire (&__SK_DLL_Attached, TRUE, FALSE))
+    if (! InterlockedCompareExchangeAcquire (
+            &__SK_DLL_Attached, TRUE, FALSE )
+       )
     {
-      skModuleRegistry::HostApp (GetModuleHandle (nullptr));
+      skModuleRegistry::HostApp (
+        GetModuleHandle (nullptr)
+      );
 
       const auto& bootstrap =
                   bootstraps.at (role);
@@ -1051,13 +1107,15 @@ SK_Attach (DLL_ROLE role)
           SK_DontInject ();
       }
 
-      if (GetFileAttributesW (L"SpecialK.WaitForDebugger") != INVALID_FILE_ATTRIBUTES)
+      if ( INVALID_FILE_ATTRIBUTES !=
+             GetFileAttributesW (L"SpecialK.WaitForDebugger") )
       {
         while (! SK_IsDebuggerPresent ())
           SK_Sleep (50);
       }
 
-      try {
+      try
+      {
         if (ReadULongAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
         {
           WriteULongRelease (
@@ -1089,8 +1147,8 @@ SK_Attach (DLL_ROLE role)
         void SK_D3D11_InitMutexes (void);
              SK_D3D11_InitMutexes (    );
 
-        void SK_ImGui_Init (void);
-             SK_ImGui_Init (    );
+        extern void SK_ImGui_Init (void);
+                    SK_ImGui_Init (    );
 
         InterlockedCompareExchangeAcquire (
           &__SK_DLL_Attached,
@@ -1104,14 +1162,16 @@ SK_Attach (DLL_ROLE role)
         }
       }
 
-      catch (...) {
+      catch (...)
+      {
         dll_log->Log ( L"[ SpecialK  ] Caught an exception during DLL Attach,"
                        L" game may not be stable..." );
 
         SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
         SK_CleanupMutex (&wmi_cs);       SK_CleanupMutex (&steam_mutex);
 
-        SK_CleanupMutex (&steam_callback_cs); SK_CleanupMutex (&steam_popup_cs);
+        SK_CleanupMutex (&steam_callback_cs);
+        SK_CleanupMutex (&steam_popup_cs);
         SK_CleanupMutex (&steam_init_cs);
 
         void SK_D3D11_CleanupMutexes (void);
@@ -1131,16 +1191,6 @@ BOOL
 __stdcall
 SK_Detach (DLL_ROLE role)
 {
-  SK_CleanupMutex (&budget_mutex);      SK_CleanupMutex (&init_mutex);
-  SK_CleanupMutex (&cs_dbghelp);        SK_CleanupMutex (&wmi_cs);
-  SK_CleanupMutex (&steam_mutex);
-
-  SK_CleanupMutex (&steam_callback_cs); SK_CleanupMutex (&steam_popup_cs);
-  SK_CleanupMutex (&steam_init_cs);
-
-  void SK_D3D11_CleanupMutexes (void);
-       SK_D3D11_CleanupMutexes (    );
-
   ULONG local_refs =
     InterlockedDecrementRelease (&__SK_DLL_Refs);
 
@@ -1151,6 +1201,16 @@ SK_Detach (DLL_ROLE role)
                         TRUE        )
      )
   {
+    SK_CleanupMutex (&budget_mutex);     SK_CleanupMutex (&init_mutex);
+    SK_CleanupMutex (&cs_dbghelp);       SK_CleanupMutex (&wmi_cs);
+    SK_CleanupMutex (&steam_mutex);
+
+    SK_CleanupMutex (&steam_callback_cs);SK_CleanupMutex (&steam_popup_cs);
+    SK_CleanupMutex (&steam_init_cs);
+
+    void SK_D3D11_CleanupMutexes (void);
+         SK_D3D11_CleanupMutexes (    );
+
     SK_Inject_ReleaseProcess ();
 
     auto& bootstraps =
@@ -1169,10 +1229,6 @@ SK_Detach (DLL_ROLE role)
 
   return FALSE;
 }
-
-
-
-#include <SpecialK/DLL_VERSION.h>
 
 const wchar_t*
 __stdcall

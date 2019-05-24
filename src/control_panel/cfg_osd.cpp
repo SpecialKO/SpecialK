@@ -36,13 +36,14 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
   if (bRet)
   {
     struct toggle_state_s {
-               ULONG    frames_drawn;
-               DWORD    initial_time;
-               DWORD    time_to_wait;
-               bool     original, new_val;
-               bool    *dest;
-      volatile LONG     testing = FALSE;
-    } static osd_toggle = { };
+               ULONG    frames_drawn = 0;
+               DWORD    initial_time = 0;
+               DWORD    time_to_wait = 0;
+               bool     original     = false,
+                        new_val      = false;
+               bool    *dest         = nullptr;
+      volatile LONG     testing      = FALSE;
+    } static osd_toggle              = {   };
 
     if (! InterlockedCompareExchange (&osd_toggle.testing, TRUE, FALSE))
     {

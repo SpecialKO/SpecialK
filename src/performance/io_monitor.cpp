@@ -47,8 +47,8 @@ SK_CountIO (io_perf_t& ioc, const double update)
                     ioc.init = true;
   }
 
-  extern LARGE_INTEGER SK_QueryPerf (void);
-   LARGE_INTEGER now = SK_QueryPerf ();
+  LARGE_INTEGER now =
+    SK_QueryPerf ();
 
   ioc.dt =
     now.QuadPart - ioc.last_update.QuadPart;

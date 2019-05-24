@@ -21,25 +21,13 @@
 
 #include <SpecialK/stdafx.h>
 
-static CRITICAL_SECTION cs_process_cmd = { };
-
 SK_ICommandProcessor*
 __stdcall
 SK_GetCommandProcessor (void)
 {
-  static std::unique_ptr <SK_ICommandProcessor> command = nullptr;
-
-  if (command == nullptr)
-  {
-    command =
-      std::make_unique <SK_ICommandProcessor> ();
-
-    InitializeCriticalSectionEx (&cs_process_cmd, 104858, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
-                                                          SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
-  }
-
-  return
-    command.get ();
+  static SK_LazyGlobal <SK_ICommandProcessor>
+         command;
+  return command.getPtr ();
 }
 
 
@@ -144,12 +132,19 @@ public:
 
 private:
   SK_ICommandProcessor* processor_;
-
 };
 
 SK_ICommandProcessor::SK_ICommandProcessor (void)
 {
+  InitializeCriticalSectionEx (&cs_process_cmd, 104858, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                                        SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
+
   AddCommand ("source", new SK_SourceCmd (this));
+}
+
+SK_ICommandProcessor::~SK_ICommandProcessor (void)
+{
+  DeleteCriticalSection (&cs_process_cmd);
 }
 
 const SK_ICommand*
@@ -160,6 +155,8 @@ SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
 
   if (pCommand == nullptr)
     return nullptr;
+
+  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
 
   /* Command already exists, what should we do?! */
   if (FindCommand (szCommand) != nullptr)
@@ -173,6 +170,8 @@ SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
 bool
 SK_ICommandProcessor::RemoveCommand (const char* szCommand)
 {
+  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+
   if (FindCommand (szCommand) != nullptr)
   {
     const auto command =
@@ -186,12 +185,14 @@ SK_ICommandProcessor::RemoveCommand (const char* szCommand)
 }
 
 SK_ICommand*
-SK_ICommandProcessor::FindCommand (const char* szCommand) const
+SK_ICommandProcessor::FindCommand (const char* szCommand)
 {
+  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+
   const auto command =
     commands_.find (szCommand);
 
-  if (command != commands_.end ())
+  if (command != commands_.cend ())
     return (command)->second.get ();
 
   return nullptr;
@@ -208,6 +209,8 @@ SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariab
   if (szVariable == nullptr || strlen (szVariable) < 1)
     return nullptr;
 
+  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+
   /* Variable already exists, what should we do?! */
   if (FindVariable (szVariable) != nullptr)
     return nullptr;
@@ -222,6 +225,8 @@ SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariab
 bool
 SK_ICommandProcessor::RemoveVariable (const char* szVariable)
 {
+  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+
   if (FindVariable (szVariable) != nullptr)
   {
     const auto variable =
@@ -235,12 +240,14 @@ SK_ICommandProcessor::RemoveVariable (const char* szVariable)
 }
 
 const SK_IVariable*
-SK_ICommandProcessor::FindVariable (const char* szVariable) const
+SK_ICommandProcessor::FindVariable (const char* szVariable)
 {
+  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+
   const auto variable =
     variables_.find (szVariable);
 
-  if (variable != variables_.end ())
+  if (variable != variables_.cend ())
     return (variable)->second.get ();
 
   return nullptr;
@@ -320,24 +327,27 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           bool  bool_val;
 
           /* False */
-          if (! (_stricmp (cmd_args.c_str (), "false") && _stricmp (cmd_args.c_str (), "0") &&
-                 _stricmp (cmd_args.c_str (), "off")))
+          if (! (0 != _stricmp (cmd_args.c_str (), "false") &&
+                 0 != _stricmp (cmd_args.c_str (),     "0") &&
+                 0 != _stricmp (cmd_args.c_str (),   "off")) )
           {
             bool_val = false;
             bool_var->setValue (bool_val);
           }
 
           /* True */
-          else if (! (_stricmp (cmd_args.c_str (), "true") && _stricmp (cmd_args.c_str (), "1") &&
-                      _stricmp (cmd_args.c_str (), "on")))
+          else if (! (0 != _stricmp (cmd_args.c_str (), "true") &&
+                      0 != _stricmp (cmd_args.c_str (),    "1") &&
+                      0 != _stricmp (cmd_args.c_str (),   "on")) )
           {
             bool_val = true;
             bool_var->setValue (bool_val);
           }
 
           /* Toggle */
-          else if (! (_stricmp (cmd_args.c_str (), "toggle") && _stricmp (cmd_args.c_str (), "~") &&
-                      _stricmp (cmd_args.c_str (), "!")))
+          else if (! (0 != _stricmp (cmd_args.c_str (), "toggle") &&
+                      0 != _stricmp (cmd_args.c_str (),      "~") &&
+                      0 != _stricmp (cmd_args.c_str (),      "!")) )
           {
             bool_val = ! bool_var->getValue ();
             bool_var->setValue (bool_val);
@@ -358,12 +368,14 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
                      int int_val = 0;
 
           /* Increment */
-          if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
-                 _stricmp (cmd_args.c_str (), "next")))
+          if (! (0 != _stricmp (cmd_args.c_str (),   "++") &&
+                 0 != _stricmp (cmd_args.c_str (),  "inc") &&
+                 0 != _stricmp (cmd_args.c_str (), "next")) )
           {
             int_val = original_val + 1;
-          } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
-                        _stricmp (cmd_args.c_str (), "prev")))
+          } else if (! (0 != _stricmp (cmd_args.c_str (),   "--") &&
+                        0 != _stricmp (cmd_args.c_str (),  "dec") &&
+                        0 != _stricmp (cmd_args.c_str (), "prev")) )
           {
             int_val = original_val - 1;
           } else
@@ -381,12 +393,14 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
                    short short_val = 0;
 
           /* Increment */
-          if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
-                 _stricmp (cmd_args.c_str (), "next")))
+          if (! (0 != _stricmp (cmd_args.c_str (),   "++") &&
+                 0 != _stricmp (cmd_args.c_str (),  "inc") &&
+                 0 != _stricmp (cmd_args.c_str (), "next")) )
           {
             short_val = original_val + 1;
-          } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
-                        _stricmp (cmd_args.c_str (), "prev")))
+          } else if (! (0 != _stricmp (cmd_args.c_str (),   "--") &&
+                        0 != _stricmp (cmd_args.c_str (),  "dec") &&
+                        0 != _stricmp (cmd_args.c_str (), "prev")) )
           {
             short_val = original_val - 1;
           } else

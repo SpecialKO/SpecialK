@@ -632,8 +632,6 @@ WINAPI
 SK_DS3_SetActiveWindow (
   HWND hWnd )
 {
-  HWND hWndRet = hWnd;
-
   if (hWnd == ds3_state.Window) {
     if (ds3_cfg.window.borderless || (! ds3_state.Fullscreen)) {
       SK_DS3_FinishResize ();
@@ -641,12 +639,11 @@ SK_DS3_SetActiveWindow (
     }
   }
 
-  hWndRet =
+  HWND hWndRet =
     SetActiveWindow_Original (hWnd);
 
   //if (ds3_state.Fullscreen)
     //DXGISwap_SetFullscreenState_Original (ds3_state.SwapChain, TRUE, nullptr);
-
 
   return hWndRet;
 }

@@ -557,8 +557,6 @@ DownloadDialogCallback (
     return S_FALSE;
 
 
-  extern HWND WINAPI SK_RealizeForegroundWindow (HWND);
-
   if (uNotification == TDN_TIMER)
   {
     cursor_refs += _ShowCursor ();
@@ -1329,31 +1327,37 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
       {
         if (get->status == sk_internet_get_t::STATUS_UPDATED)
         {
-          auto* backup_pref =
+          auto *backup_pref =
             dynamic_cast <sk::ParameterBool *> (
               g_ParameterFactory->create_parameter <bool> (L"BackupFiles")
             );
 
-          backup_pref->register_to_ini (
-            &install_ini,
-              L"Update.User",
-                L"BackupFiles" );
+          if (backup_pref != nullptr)
+          {
+            backup_pref->register_to_ini (
+              &install_ini,
+                L"Update.User",
+                  L"BackupFiles" );
 
-          auto* keep_pref =
+            if (! backup_pref->load (update_dlg_backup))
+              update_dlg_backup = false;
+          }
+
+          auto *keep_pref =
             dynamic_cast <sk::ParameterBool *> (
               g_ParameterFactory->create_parameter <bool> (L"KeepDownloads")
             );
 
-          keep_pref->register_to_ini (
-            &install_ini,
-              L"Update.User",
-                L"KeepDownloads" );
+          if (keep_pref != nullptr)
+          {
+            keep_pref->register_to_ini (
+              &install_ini,
+                L"Update.User",
+                  L"KeepDownloads" );
 
-          if (! backup_pref->load (update_dlg_backup))
-            update_dlg_backup = false;
-
-          if (! keep_pref->load (update_dlg_keep))
-            update_dlg_keep = true;
+            if (! keep_pref->load (update_dlg_keep))
+              update_dlg_keep = true;
+          }
 
           wcsncpy ( update_dlg_file,  wszUpdateTempFile, MAX_PATH - 1 );
           wcsncpy ( update_dlg_build, wszCurrentBuild,   127          );
@@ -1370,7 +1374,11 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
                                                        0 )
                   ) == 0
                 )
-            MsgWaitForMultipleObjectsEx (0, nullptr, 15UL, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);
+          {
+            MsgWaitForMultipleObjectsEx ( 0, nullptr, 15UL,
+                                            QS_ALLEVENTS,
+                                              MWMO_INPUTAVAILABLE );
+          }
 
           if ( InterlockedCompareExchange ( &__SK_UpdateStatus, 0, 0 ) == 1 )
           {

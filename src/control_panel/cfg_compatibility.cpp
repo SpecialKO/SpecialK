@@ -62,14 +62,14 @@ SK::ControlPanel::Compatibility::Draw (void)
         switch (api)
         {
           case SK_RenderAPI::D3D9Ex:
-            config.apis.d3d9ex.hook     = true; //-V796
-          case SK_RenderAPI::D3D9:
+            config.apis.d3d9ex.hook     = true; // Fallthrough, D3D9Ex
+          case SK_RenderAPI::D3D9:              //      implies D3D9!
             config.apis.d3d9.hook       = true;
             break;
 
 #ifdef _M_AMD64
           case SK_RenderAPI::D3D12:
-            config.apis.dxgi.d3d12.hook = true;
+            config.apis.dxgi.d3d12.hook = true; //-V796
 #endif
           case SK_RenderAPI::D3D11:
             config.apis.dxgi.d3d11.hook = true;

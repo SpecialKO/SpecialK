@@ -36,16 +36,12 @@ SK_DXGI_IsDataSizeClassOf ( DXGI_FORMAT typeless, DXGI_FORMAT typed,
   switch (typeless)
   {
     case DXGI_FORMAT_R24G8_TYPELESS:
-      return true;
-
     case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
       return true;
 
     case DXGI_FORMAT_D24_UNORM_S8_UINT:
-      return typed == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-
-    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-      return true;
+      return ( typed == DXGI_FORMAT_D32_FLOAT_S8X24_UINT );
   }
 
   if (recursion == 0)

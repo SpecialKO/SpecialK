@@ -173,3 +173,4 @@ constexpr T at(const std::initializer_list<T> cont, const index i)
 #endif // _MSC_VER
 
 #endif // GSL_UTIL_H
+

@@ -140,9 +140,9 @@ struct SK_FFXV_Thread
   }
 
   HANDLE               hThread = 0;
-  volatile LONG        dwPrio = THREAD_PRIORITY_NORMAL;
+  volatile LONG        dwPrio  = THREAD_PRIORITY_NORMAL;
 
-  sk::ParameterInt* prio_cfg;
+  sk::ParameterInt* prio_cfg   = nullptr;
 
   void setup (HANDLE __hThread);
 };
@@ -240,7 +240,11 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
     SK_ApplyQueuedHooks ();
 #endif
 
-    prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"SwapChainPriority" );
+    if (prio_cfg != nullptr)
+    {
+      prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix",
+                                           L"SwapChainPriority" );
+    }
   }
 
   else if (this == &*sk_ffxv_vsync)
@@ -657,18 +661,13 @@ public:
 
 //protected:
   // ---------------------------------------
-
-  LPVOID  branch_addr      =        nullptr;
-  uint8_t orig_instns  [2] = { 0x7C, 0xEE };
-  bool    enabled          =           true;
-
   // The first return addr. we encounter in our
   //   QPC hook for a call originating on the render
   //     thread is within jumping distance of the
   //       evil busy-loop causing framerate problems.
   LPCVOID qpc_loop_addr    =        nullptr;
-
-
+  LPVOID  branch_addr      =        nullptr;
+  uint8_t orig_instns  [2] = { 0x7C, 0xEE };
 
   // It takes a few frames to locate the limiter's
   //   inner-loop -- but the config file's preference
@@ -677,6 +676,7 @@ public:
   //  * So ... once we find the addr. -> Install Bypass?
   //
   bool    want_bypass      = true;
+  bool    enabled          = true;
 } SK_Shenmue_Limiter;
 
 bool

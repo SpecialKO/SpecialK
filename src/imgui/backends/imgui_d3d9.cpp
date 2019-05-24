@@ -8,18 +8,23 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_d3d9.h>
+#include <SpecialK/tls.h>
+#include <SpecialK/log.h>
+#include <SpecialK/window.h>
+#include <SpecialK/config.h>
+#include <SpecialK/input/input.h>
+
 #include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <imgui/backends/imgui_d3d9.h>
+#include <imgui/imgui.h>
 
 extern void
 SK_ImGui_User_NewFrame (void);
 
+#include <windowsx.h>
+
 // DirectX
 #include <d3d9.h>
-
-#include <SpecialK/config.h>
-//#include "render.h"
 
 #include <algorithm>
 #include <atlbase.h>
@@ -94,7 +99,8 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
   // Create and grow buffers if needed
   if ((! g_pVB) || g_VertexBufferSize < draw_data->TotalVtxCount )
   {
-    if (g_pVB) {
+    if (g_pVB)
+    {
       g_pVB->Release ();
       g_pVB = nullptr;
     }
@@ -107,16 +113,18 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
                                                 D3DFVF_CUSTOMVERTEX,
                                                   D3DPOOL_DEFAULT,
                                                     &g_pVB,
-                                                      nullptr ) < 0 ) {
+                                                      nullptr ) < 0 )
+    {
       return;
     }
   }
 
   if ((! g_pIB) || g_IndexBufferSize < draw_data->TotalIdxCount)
   {
-    if (g_pIB) {
+    if (g_pIB)
+    {
       g_pIB->Release ();
-      g_pIB = NULL;
+      g_pIB = nullptr;
     }
 
     g_IndexBufferSize = draw_data->TotalIdxCount + 10000;
@@ -128,7 +136,8 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
                                                   D3DFMT_INDEX32,
                                                 D3DPOOL_DEFAULT,
                                                   &g_pIB,
-                                                    nullptr ) < 0 ) {
+                                                    nullptr ) < 0 )
+    {
       return;
     }
   }
@@ -242,8 +251,8 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
                      io.DisplaySize.x,      io.DisplaySize.y );
 
   // Setup render state: fixed-pipeline, alpha-blending, no face culling, no depth testing
-  g_pd3dDevice->SetPixelShader       (NULL);
-  g_pd3dDevice->SetVertexShader      (NULL);
+  g_pd3dDevice->SetPixelShader       (nullptr);
+  g_pd3dDevice->SetVertexShader      (nullptr);
 
   D3DCAPS9                      caps;
   g_pd3dDevice->GetDeviceCaps (&caps);
@@ -456,8 +465,6 @@ ImGui_ImplDX9_Shutdown (void)
   g_hWnd       = 0;
 }
 
-#include <SpecialK/tls.h>
-
 IMGUI_API
 bool
 ImGui_ImplDX9_CreateFontsTexture (void)
@@ -551,13 +558,13 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
   if (g_pVB)
   {
     g_pVB->Release ();
-    g_pVB = NULL;
+    g_pVB = nullptr;
   }
 
   if (g_pIB)
   {
     g_pIB->Release ();
-    g_pIB = NULL;
+    g_pIB = nullptr;
   }
 
   if ( LPDIRECT3DTEXTURE9 tex = (LPDIRECT3DTEXTURE9)io.Fonts->TexID )
@@ -566,7 +573,7 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
     io.Fonts->TexID = nullptr;
   }
 
-  g_FontTexture = NULL;
+  g_FontTexture = nullptr;
 
 
   if ( pparams != nullptr )
@@ -578,13 +585,6 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
     io.DisplaySize             = ImVec2 ( width, height );
   }
 }
-
-#include <SpecialK/window.h>
-
-#include <windowsx.h>
-#include <SpecialK/input/input.h>
-
-#include <SpecialK/log.h>
 
 void
 SK_ImGui_PollGamepad (void);

@@ -155,6 +155,13 @@ using SymUnloadModule_pfn   = BOOL (IMAGEAPI *)( _In_ HANDLE hProcess,
 using SymUnloadModule64_pfn = BOOL (IMAGEAPI *)( _In_ HANDLE  hProcess,
                                                  _In_ DWORD64 BaseOfDll );
 
+using SymGetTypeInfo_pfn =
+BOOL (IMAGEAPI *)( _In_  HANDLE                    hProcess,
+                   _In_  DWORD64                   ModBase,
+                   _In_  ULONG                     TypeId,
+                   _In_  IMAGEHLP_SYMBOL_TYPE_INFO GetType,
+                   _Out_ PVOID                     pInfo );
+
 
 using SymFromAddr_pfn   = BOOL (IMAGEAPI *)( _In_      HANDLE       hProcess,
                                              _In_      DWORD64      Address,
@@ -253,7 +260,7 @@ DebuggableLambda <typename std::remove_reference <F>::type>
 #endif
 
 std::wstring
-SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool crash_log = false);
+SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool crash_handled = false);
 
 
 void
@@ -261,7 +268,7 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
                       EXCEPTION_POINTERS* pException,
                       LPVOID              lpRetAddr );
 
-class SK_SEH_IgnoredException : public std::exception
+class SK_SEH_IgnoredException// : public std::exception
 {
 public:
   SK_SEH_IgnoredException ( unsigned int        nExceptionCode,

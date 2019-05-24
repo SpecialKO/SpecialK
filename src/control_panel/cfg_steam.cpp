@@ -1207,9 +1207,9 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
           if (dwSizeRead == 0)
             break;
 
-          concat_buffer.insert ( concat_buffer.end   (),
-                                  http_chunk.begin   (),
-                                    http_chunk.begin () + dwSizeRead );
+          concat_buffer.insert ( concat_buffer.cend   (),
+                                  http_chunk.cbegin   (),
+                                    http_chunk.cbegin () + dwSizeRead );
 
           if (dwSizeRead < dwSizeAvailable)
             break;
@@ -1220,8 +1220,8 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
         break;
     }
 
-    concat_buffer.insert (concat_buffer.end (), '\0');
-    concat_buffer.insert (concat_buffer.end (), '\0');
+    concat_buffer.insert (concat_buffer.cend (), '\0');
+    concat_buffer.insert (concat_buffer.cend (), '\0');
 
     char *szDepotName =
       StrStrIA (concat_buffer.data (),"<td>Name</td>\n<td>");
@@ -1563,7 +1563,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
               for ( auto& it2 : it.second )
               {
                 // 4/28/19 -- Replaced repeated statement w/ this reference
-                auto&& test_manifest =
+                auto& test_manifest =
                   SK_Steam_InstalledManifest [it.first].manifest;
 
                 bool selected =

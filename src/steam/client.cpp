@@ -76,8 +76,8 @@ SK_SteamWrapper_WrappedClient_GetISteamUGC ( ISteamClient *This,
 class IWrapSteamClient : public ISteamClient
 {
 public:
-  IWrapSteamClient (ISteamClient* pSteamClient) :
-                     pRealClient (pSteamClient) {
+  explicit IWrapSteamClient (ISteamClient* pSteamClient) :
+                              pRealClient (pSteamClient) {
   };
 
   virtual ~IWrapSteamClient (void) = default;

@@ -207,7 +207,7 @@ SK::ControlPanel::D3D9::Draw (void)
 
         int thread_id = 0;
 
-        for (auto&& it : stats)
+        for (auto it : stats)
         {
           ImGui::Text ("Thread #%lu  -  %6lu jobs retired, %5lu MiB loaded  -  %.6f User / %.6f Kernel / %3.1f Idle",
                        thread_id++,

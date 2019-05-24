@@ -37,21 +37,10 @@ const wchar_t* SK_IMPORT_ROLE_3RDPARTY = L"ThirdParty";
 const wchar_t* SK_IMPORT_ARCH_X64      = L"x64";
 const wchar_t* SK_IMPORT_ARCH_WIN32    = L"Win32";
 
-SK_Import_Datastore& __SK_GetImports (void)
-{
-  static SK_Import_Datastore data;
-  return data;
-}
-
-
-extern
-HMODULE
-__stdcall
-SK_GetDLL (void);
+SK_LazyGlobal <SK_Import_Datastore> imports;
 
 using SKPlugIn_Init_pfn     = BOOL (WINAPI *)(HMODULE hSpecialK);
 using SKPlugIn_Shutdown_pfn = BOOL (WINAPI *)(LPVOID  user);
-
 
 // Fix warnings in dbghelp.h
 #pragma warning (disable : 4091)
@@ -72,12 +61,15 @@ SK_Import_GetNumberOfPlugIns (void)
 
   for (int i = 0; i < SK_MAX_IMPORTS; i++)
   {
-    if (imports [i].name.empty ())
+    auto& import =
+      imports->imports[i];
+
+    if (import.name.empty ())
       continue;
 
-    if (imports [i].architecture->get_value ()._Equal (target_arch))
+    if (import.architecture->get_value ()._Equal (target_arch))
     {
-      if (imports [i].when->get_value ()._Equal (SK_IMPORT_PLUGIN))
+      if (import.when->get_value ()._Equal (SK_IMPORT_PLUGIN))
       {
         ++num;
       }
@@ -102,7 +94,7 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
   if (SK_SHIM_GetReShadeFilename != nullptr)
   {
     hModReal =
-      SK_Modules->LoadLibraryLL (SK_SHIM_GetReShadeFilename ());
+      SK_Modules->LoadLibrary (SK_SHIM_GetReShadeFilename ());
 
     if (hModReal != nullptr)
       return true;
@@ -138,14 +130,14 @@ SK_LoadImportModule = [&](import_s& import)
     wcsncpy_s   (wszProfilePlugIn, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
     PathAppendW (wszProfilePlugIn, import.filename->get_value_str ().c_str ());
 
-    import.hLibrary = SK_Modules->LoadLibraryLL (
+    import.hLibrary = SK_Modules->LoadLibrary (
       wszProfilePlugIn
     );
   }
 
   if (import.hLibrary == nullptr)
   {
-    import.hLibrary = SK_Modules->LoadLibraryLL (
+    import.hLibrary = SK_Modules->LoadLibrary (
       import.filename->get_value_str ().c_str ()
     );
   }
@@ -198,7 +190,7 @@ SK_LoadEarlyImports64 (void)
 {
   int success = 0;
 
-  for (auto& import : imports)
+  for (auto& import : imports->imports)
   {
     // Skip libraries that are already loaded
     if (import.hLibrary != nullptr)
@@ -222,7 +214,9 @@ SK_LoadEarlyImports64 (void)
           if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_X64) &&
               import.when->get_value         ()._Equal (SK_IMPORT_EARLY))
           {
-            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+            CHeapPtr <wchar_t> file (
+              _wcsdup (import.filename->get_value_str ().c_str ())
+            );
 
             SK_StripUserNameFromPathW (file);
 
@@ -280,7 +274,7 @@ SK_LoadPlugIns64 (void)
 {
   int success = 0;
 
-  for (auto& import : imports)
+  for (auto& import : imports->imports)
   {
     // Skip libraries that are already loaded
     if (import.hLibrary != nullptr)
@@ -304,7 +298,9 @@ SK_LoadPlugIns64 (void)
           if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_X64) &&
               import.when->get_value         ()._Equal (SK_IMPORT_PLUGIN))
           {
-            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+            CHeapPtr <wchar_t> file (
+              _wcsdup (import.filename->get_value_str ().c_str ())
+            );
 
             SK_StripUserNameFromPathW (file);
 
@@ -363,7 +359,7 @@ SK_LoadLateImports64 (void)
 {
   int success = 0;
 
-  for (auto& import : imports)
+  for (auto& import : imports->imports)
   {
     // Skip libraries that are already loaded
     if (import.hLibrary != nullptr)
@@ -387,7 +383,9 @@ SK_LoadLateImports64 (void)
           if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_X64) &&
               import.when->get_value         ()._Equal (SK_IMPORT_LATE))
           {
-            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+            CHeapPtr <wchar_t> file (
+              _wcsdup (import.filename->get_value_str ().c_str ())
+            );
 
             SK_StripUserNameFromPathW (file);
 
@@ -438,7 +436,7 @@ SK_LoadLazyImports64 (void)
 {
   int success = 0;
 
-  for (auto& import : imports)
+  for (auto& import : imports->imports)
   {
     // Skip libraries that are already loaded
     if (import.hLibrary != nullptr)
@@ -462,7 +460,9 @@ SK_LoadLazyImports64 (void)
           if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_X64) &&
               import.when->get_value         ()._Equal (SK_IMPORT_LAZY))
           {
-            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+            CHeapPtr <wchar_t> file (
+              _wcsdup (import.filename->get_value_str ().c_str ())
+            );
 
             SK_StripUserNameFromPathW (file);
 
@@ -556,7 +556,7 @@ SK_LoadEarlyImports32 (void)
 {
   int success = 0;
 
-  for (auto& import : imports)
+  for (auto& import : imports->imports)
   {
     // Skip libraries that are already loaded
     if (import.hLibrary != nullptr)
@@ -580,7 +580,9 @@ SK_LoadEarlyImports32 (void)
           if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_WIN32) &&
               import.when->get_value         ()._Equal (SK_IMPORT_EARLY))
           {
-            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+            CHeapPtr <wchar_t> file (
+              _wcsdup (import.filename->get_value_str ().c_str ())
+            );
 
             SK_StripUserNameFromPathW (file);
 
@@ -639,7 +641,7 @@ SK_LoadPlugIns32 (void)
 {
   int success = 0;
 
-  for (auto& import : imports)
+  for (auto& import : imports->imports)
   {
     // Skip libraries that are already loaded
     if (import.hLibrary != nullptr)
@@ -663,7 +665,9 @@ SK_LoadPlugIns32 (void)
           if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_WIN32) &&
               import.when->get_value         ()._Equal (SK_IMPORT_PLUGIN))
           {
-            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+            CHeapPtr <wchar_t> file (
+              _wcsdup (import.filename->get_value_str ().c_str ())
+            );
 
             SK_StripUserNameFromPathW (file);
 
@@ -722,7 +726,7 @@ SK_LoadLateImports32 (void)
 {
   int success = 0;
 
-  for (auto& import : imports)
+  for (auto& import : imports->imports)
   {
     // Skip libraries that are already loaded
     if (import.hLibrary != nullptr)
@@ -746,7 +750,9 @@ SK_LoadLateImports32 (void)
           if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_WIN32) &&
               import.when->get_value         ()._Equal (SK_IMPORT_LATE))
           {
-            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+            CHeapPtr <wchar_t> file (
+              _wcsdup (import.filename->get_value_str ().c_str ())
+            );
 
             SK_StripUserNameFromPathW (file);
 
@@ -797,7 +803,7 @@ SK_LoadLazyImports32 (void)
 {
   int success = 0;
 
-  for (auto& import : imports)
+  for (auto& import : imports->imports)
   {
     // Skip libraries that are already loaded
     if (import.hLibrary != nullptr)
@@ -821,7 +827,9 @@ SK_LoadLazyImports32 (void)
           if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_WIN32) &&
               import.when->get_value         ()._Equal (SK_IMPORT_LAZY))
           {
-            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+            CHeapPtr <wchar_t> file (
+              _wcsdup (import.filename->get_value_str ().c_str ())
+            );
 
             SK_StripUserNameFromPathW (file);
 
@@ -892,27 +900,34 @@ void
 SK_UnloadImports (void)
 {
   auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (
+    SK_FilteringStructuredExceptionTranslator (
+      EXCEPTION_ACCESS_VIOLATION
+    )
+  );
   try {
     // Unload in reverse order, because that's safer :)
     for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
     {
+      auto& import =
+        imports->imports [i];
+
       // We use the sign-bit for error codes, so... negative
       //   modules need to be ignored.
       //
       //  ** No module should be loaded at an address that high anyway
       //       (in 32-bit code it's kernel-reserved memory)
       //
-      if ((intptr_t)imports [i].hLibrary > 0)
+      if ((intptr_t)import.hLibrary > 0)
       {
         DWORD dwTime =
           timeGetTime ();
 
-        if (_IsRoleSame (imports [i].role->get_value_ref (), SK_IMPORT_ROLE_PLUGIN))
+        if (_IsRoleSame (import.role->get_value_ref (), SK_IMPORT_ROLE_PLUGIN))
         {
           auto SKPlugIn_Shutdown =
             reinterpret_cast <SKPlugIn_Shutdown_pfn> (
-              GetProcAddress ( imports [i].hLibrary,
+              GetProcAddress ( import.hLibrary,
                                  "SKPlugIn_Shutdown" )
             );
 
@@ -921,11 +936,11 @@ SK_UnloadImports (void)
         }
 
         ///dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
-        ///              imports [i].filename->get_value_str ().c_str () );
+        ///              import.filename->get_value_str ().c_str () );
 
         // The shim will free the plug-in for us
-        if ( (imports [i].hShim != nullptr && FreeLibrary (imports [i].hShim) ) ||
-                                              FreeLibrary (imports [i].hLibrary) )
+        if ( (import.hShim != nullptr && FreeLibrary (import.hShim) ) ||
+                                         FreeLibrary (import.hLibrary) )
         {
           dll_log->LogEx ( false,
                            L"-------------------------[ Free Lib ]                "

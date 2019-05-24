@@ -32,7 +32,7 @@ STEAMINPUT_STATE::operator [] (ControllerIndex_t idx)
   }
 
 
-  if (steam_controllers->count (idx))
+  if (steam_controllers->count (idx)) //-V574
     return *steam_controllers [idx];
 
 

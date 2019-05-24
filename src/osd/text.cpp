@@ -1040,7 +1040,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
       }
 
       // Add memory temperature if it exists
-      if (i <= gpu_stats->num_gpus && gpu_stats->gpus [i].temps_c.ram != 0)
+      if (gpu_stats->gpus [i].temps_c.ram != 0)
       {
         std::wstring temp =
           SK_FormatTemperature (
@@ -1554,7 +1554,7 @@ void trans_func (unsigned int, EXCEPTION_POINTERS*);
 void
 SE_Func         (CEGUI::Renderer*& pRenderer, SK_TextOverlay& overlay, const CEGUI::Rectf& scrn);
 
-class SE_Exception
+class SE_Exception// : public std::exception
 {
 public:
    SE_Exception (void) = default;
@@ -2005,7 +2005,7 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
       return;
   }
 
-  while (it != overlays_.end ())
+  while (it != overlays_.cend ())
   {
     if (renderer == nullptr)
     {
@@ -2041,7 +2041,7 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
     it =
       overlays_.begin ();
 
-    while (it != overlays_.end ())
+    while (it != overlays_.cend ())
     {
       if (it->second->geometry_ != nullptr)
         gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
@@ -2070,11 +2070,11 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
   if (config.osd.pos_y >= 0)
   {
     auto it =
-      overlays_.begin ();
+      overlays_.cbegin ();
 
     // Handle situations where the OSD font is not yet loaded
-    if ( it                      == overlays_.end () ||
-         it->second              == nullptr          ||
+    if ( it                      == overlays_.cend () ||
+         it->second              == nullptr           ||
          it->second->font_.cegui == nullptr )
     {
       SK_CEGUI_QueueResetD3D11 ();
@@ -2082,7 +2082,7 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
       return fabs (y - base_y);
     }
 
-    while (it != overlays_.end ())
+    while (it != overlays_.cend ())
     {
       y += it->second->draw (x, y, full);
 
@@ -2163,8 +2163,8 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
 
     SK_AutoCriticalSection auto_crit (&cs_);
 
-      auto  it =  overlays_.begin ();
-    while ( it != overlays_.end   () )
+      auto  it =  overlays_.cbegin ();
+    while ( it != overlays_.cend   () )
     {
       const auto pos_x = static_cast <float> (config.osd.pos_x);
       const auto pos_y = static_cast <float> (config.osd.pos_y);

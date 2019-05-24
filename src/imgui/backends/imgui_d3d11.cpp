@@ -7,6 +7,7 @@
 // https://github.com/ocornut/imgui
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/com_util.h>
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
@@ -1629,7 +1630,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
 using SK_ImGui_ResetCallback_pfn = void (__stdcall *)(void);
 
-SK_LazyGlobal <std::vector <IUnknown *>>                 external_resources;
+SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown>>>       external_resources;
 SK_LazyGlobal <std::set    <SK_ImGui_ResetCallback_pfn>> reset_callbacks;
 
 __declspec (dllexport)
@@ -1661,11 +1662,6 @@ SKX_ImGui_UnregisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
 void
 SK_ImGui_ResetExternal (void)
 {
-  for ( auto& it : external_resources.get () )
-  {
-    it->Release ();
-  }
-
   external_resources->clear ();
 
   for ( auto reset_fn : reset_callbacks.get () )

@@ -248,17 +248,26 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
             g_ParameterFactory->create_parameter <int64_t> (L"Reminder")
           );
 
-        remind_time->register_to_ini (
-          &install_ini,
-            L"Update.User",
-              L"Reminder"
-        );
-
-        int64_t remind = 0LL;
-
-        if (           remind_time->load (remind) &&
-             (LONGLONG)uliNow.QuadPart >= remind )
+        if (remind_time != nullptr)
         {
+          remind_time->register_to_ini (
+            &install_ini,
+              L"Update.User",
+                L"Reminder"
+          );
+
+          int64_t remind = 0LL;
+
+          if (           remind_time->load (remind) &&
+               (LONGLONG)uliNow.QuadPart >= remind )
+          {
+            need_remind = true;
+          }
+        }
+
+        else
+        {
+          SK_ReleaseAssert (remind_time != nullptr);
           need_remind = true;
         }
 
@@ -400,7 +409,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   ULONG ulTimeout = 5000UL;
   bool  bRet      = FALSE;
 
-  LARGE_INTEGER liStartTime = //-V821
+  LARGE_INTEGER liStartTime =
     SK_CurrentPerf ();
 
   InternetSetOptionW ( hInetGitHub, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
@@ -413,8 +422,6 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   DWORD dwFlags =   INTERNET_FLAG_IGNORE_CERT_DATE_INVALID | INTERNET_FLAG_IGNORE_CERT_CN_INVALID
                   | INTERNET_FLAG_NEED_FILE                | INTERNET_FLAG_PRAGMA_NOCACHE
                   | INTERNET_FLAG_RESYNCHRONIZE;
-
-  extern bool SK_IsSuperSpecialK (void);
 
   if (SK_IsSuperSpecialK () || force)
     dwFlags |= INTERNET_FLAG_RELOAD;
@@ -578,27 +585,32 @@ SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
 
   SK_FetchVersionInfo (wszProduct);
 
-  SK_VersionInfo_V1 ver_info;
+  SK_VersionInfo_V1 ver_info = { };
 
   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
        GetFileAttributes (SK_Version_GetRepoIniPath    ().c_str ()) != INVALID_FILE_ATTRIBUTES )
   {
-    iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
-    iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
+    iSK_INI install_ini  (SK_Version_GetInstallIniPath ().c_str ());
+    iSK_INI repo_ini     (SK_Version_GetRepoIniPath    ().c_str ());
 
-    ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
+    ver_info.branch =
+      install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
-    wchar_t wszBranchSection [128] = { };
+    wchar_t    wszBranchSection [128] = { };
     _swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
 
     if (repo_ini.contains_section (wszBranchSection))
     {
-      ver_info.package = repo_ini.get_section (wszBranchSection).get_value (L"InstallPackage");
+      ver_info.package =
+        repo_ini.get_section (wszBranchSection).
+                 get_value   (L"InstallPackage");
 
-      wchar_t wszPackage [128] = { };
-      swscanf (ver_info.package.c_str (), L"%127[^,],%i", wszPackage, &ver_info.build);
+      wchar_t                                             wszPackage [128] = { };
+      swscanf (ver_info.package.c_str (), L"%127[^,],%i", wszPackage,
+              &ver_info.build);
 
-      ver_info.package = wszPackage;
+      ver_info.package =
+            wszPackage;
     }
 
     return ver_info;
@@ -615,11 +627,10 @@ SK_VersionInfo
 SK_Version_GetLocalInfo_V1 (const wchar_t* wszProduct)
 {
   if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested->c_str ();
+      wszProduct = __SK_LastProductTested->c_str (); SK_FetchVersionInfo
+     (wszProduct);
 
-  SK_FetchVersionInfo (wszProduct);
-
-  SK_VersionInfo_V1 ver_info;
+  SK_VersionInfo_V1 ver_info = { };
 
   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
@@ -669,8 +680,10 @@ SK_Version_GetLastCheckTime_WStr (void)
   wchar_t wszFileTime [48] = { };
   wchar_t wszDateTime [48] = { };
 
-  GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, nullptr, wszFileTime, 47);
-  GetTimeFormat (LOCALE_USER_DEFAULT, TIME_NOSECONDS, &stModified, nullptr, wszDateTime, 47);
+  GetDateFormat ( LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT,
+                    &stModified, nullptr, wszFileTime, 47 );
+  GetTimeFormat ( LOCALE_USER_DEFAULT, TIME_NOSECONDS,
+                    &stModified, nullptr, wszDateTime, 47 );
 
   *cached_time =
     SK_FormatStringW (L"%ws %ws", wszFileTime, wszDateTime);
@@ -697,7 +710,9 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
 
   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
-    iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+    iSK_INI repo_ini (
+      SK_Version_GetRepoIniPath ().c_str ()
+    );
 
     iSK_INI::_TSectionMap& sections =
       repo_ini.get_sections ();
@@ -705,11 +720,14 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
     for ( auto& it : sections )
     {
       if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
-      {
-        wchar_t wszBranchName [128] = { };
-        swscanf (it.first.c_str (), L"Version.%127s", wszBranchName);
+      { wchar_t                       wszBranchName [128] = { };
 
-        branches.push_back (SK_WideCharToUTF8 (wszBranchName));
+        swscanf (  it.first.c_str (),
+                   L"Version.%127s",  wszBranchName);
+
+        branches.push_back (
+                   SK_WideCharToUTF8 (wszBranchName)
+        );
       }
     }
   }

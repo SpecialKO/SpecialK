@@ -37,14 +37,17 @@ SK_ReShade_GetDLL (void)
 
     for (int i = 0; i < SK_MAX_IMPORTS; i++)
     {
-      if (imports [i].hLibrary != nullptr)
+      auto& import =
+        imports->imports [i];
+
+      if (import.hLibrary != nullptr)
       {
-        if (StrStrIW (imports [i].filename->get_value_ref ().c_str (), L"ReShade"))
+        if (StrStrIW (import.filename->get_value_ref ().c_str (), L"ReShade"))
         {
           typedef HMODULE (__stdcall *SK_SHIM_GetReShade_pfn)(void);
 
           SK_SHIM_GetReShade_pfn SK_SHIM_GetReShade =
-            (SK_SHIM_GetReShade_pfn)GetProcAddress (imports [i].hLibrary, "SK_SHIM_GetReShade");
+            (SK_SHIM_GetReShade_pfn)GetProcAddress (import.hLibrary, "SK_SHIM_GetReShade");
 
           if (SK_SHIM_GetReShade != nullptr)
           {
@@ -61,7 +64,7 @@ SK_ReShade_GetDLL (void)
           }
 
           hModReShade =
-            imports [i].hLibrary;
+            import.hLibrary;
 
           break;
         }

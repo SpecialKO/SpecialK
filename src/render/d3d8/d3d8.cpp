@@ -135,10 +135,10 @@ SK_HookD3D8 (void)
       }
     }
 
-    dgvoodoo_d3d8 = new import_s ();
-    dgvoodoo_d3d8->hLibrary     = hBackend;
-    dgvoodoo_d3d8->name         = L"API Support Plug-In";
-    dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
+    imports->dgvoodoo_d3d8 = new import_s ();
+    imports->dgvoodoo_d3d8->hLibrary     = hBackend;
+    imports->dgvoodoo_d3d8->name         = L"API Support Plug-In";
+    imports->dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
 
     HookD3D8            (nullptr);
     SK_BootDXGI         (       );

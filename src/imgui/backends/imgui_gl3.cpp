@@ -174,7 +174,7 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
                                        idx_buffer_offset );
       }
 
-      idx_buffer_offset += pcmd->ElemCount;
+      idx_buffer_offset += pcmd->ElemCount; //-V769
     }
   }
 

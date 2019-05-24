@@ -38,6 +38,12 @@ struct IUnknown;
 #include <string>
 #include <typeindex>
 
+#include <unordered_set>
+#include <unordered_map>
+#include <array>
+#include <set>
+#include <map>
+
 #define D3D11_VIDEO_NO_HELPERS
 #define D3D11_NO_HELPERS
 
@@ -210,10 +216,12 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
-                                       _In_        IUnknown              *pDevice,
-                                       _In_  const DXGI_SWAP_CHAIN_DESC  *pDesc,
-                                       _Out_       IDXGISwapChain       **ppSwapChain );
+DXGIFactory_CreateSwapChain_Override (
+              IDXGIFactory          *This,
+  _In_        IUnknown              *pDevice,
+  _In_  const DXGI_SWAP_CHAIN_DESC  *pDesc,
+  _Out_       IDXGISwapChain       **ppSwapChain
+);
 
 __declspec (noinline)
 HRESULT
@@ -295,6 +303,12 @@ static const int SK_D3D11_MAX_DEV_CONTEXTS = 64;
 
 LONG
 SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);
+
+// Use this when wrapping a device context, we want the wrapper and the
+//   internal pointer to agree on context handle
+void
+SK_D3D11_CopyContextHandle ( ID3D11DeviceContext *pSrcCtx,
+                             ID3D11DeviceContext *pDstCtx );
 
 namespace SK
 {
@@ -433,14 +447,6 @@ extern void SK_D3D12_EnableHooks  (void);
 
 void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 
-
-
-#include <unordered_set>
-#include <unordered_map>
-#include <array>
-#include <set>
-#include <map>
-
 // Actually more of a cache manager at the moment...
 class SK_D3D11_TexMgr {
 public:
@@ -498,15 +504,15 @@ public:
                          _In_opt_ HMODULE               hModCaller = (HMODULE)(intptr_t)-1,
                          _In_opt_ SK_TLS               *pTLS       = SK_TLS_Bottom () );
 
-  void            updateDebugNames (void);
+  void             updateDebugNames (void);
 
   // Some texture upload paths (i.e. CopyResource or UpdateSubresoure)
   //   result in cache hits where no new object is created; call this to
   //     indicate a cache hit, but leave the reference count alone.
-  LONG            recordCacheHit ( ID3D11Texture2D      *pTex );
+  LONG             recordCacheHit ( ID3D11Texture2D      *pTex );
 
-  void           reset           (void);
-  bool           purgeTextures   (size_t size_to_free, int* pCount, size_t* pFreed);
+  void             reset           (void);
+  bool             purgeTextures   (size_t size_to_free, int* pCount, size_t* pFreed);
 
   struct tex2D_descriptor_s {
     volatile LONG         hits       = 0L;
@@ -525,13 +531,17 @@ public:
     std::wstring          file_name  = L"";  // If injected, this is the source file
   };
 
-  concurrency::concurrent_unordered_set <ID3D11Texture2D *> TexRefs_2D;
+  concurrency::concurrent_unordered_set <
+    ID3D11Texture2D *
+  >      TexRefs_2D;
 
   struct lod_hash_table_s
   {
-    lod_hash_table_s (void) noexcept {
-      InitializeCriticalSectionEx ( &mutex, 120, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
-                                                 SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
+    lod_hash_table_s (void) noexcept
+    {
+      InitializeCriticalSectionEx (
+        &mutex, 120, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                     RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO );
     }
 
     ~lod_hash_table_s (void) noexcept
@@ -540,12 +550,25 @@ public:
     }
 
     void              reserve     (size_t   resrv ) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.reserve);         entries.reserve (resrv ); };
-    bool              contains    (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.contains); return entries.count   (crc32c); };
+    bool              contains    (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.contains); return entries.find    (crc32c) !=
+                                                                                                                                                    entries.cend    (      ); };
     void              erase       (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.erase);           entries.erase   (crc32c); };
     ID3D11Texture2D*& operator [] (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.index);    return entries         [crc32c]; };
 
+    bool              contains    (ID3D11Texture2D *pTex) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.contains); return reventries.find    (pTex) !=
+                                                                                                                                                          reventries.cend    (    ); };
+    void              erase       (ID3D11Texture2D *pTex) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.erase);           reventries.erase   (pTex); };
+    uint32_t&         operator [] (ID3D11Texture2D *pTex) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.index);    return reventries         [pTex]; };
+
+    void              touch       (ID3D11Texture2D *pTex);
+
     std::unordered_map < uint32_t,
                          ID3D11Texture2D * > entries;
+    std::unordered_map < ID3D11Texture2D *,
+                         uint32_t         >  reventries;
+    concurrency::concurrent_unordered_map
+                       < ID3D11Texture2D *,
+                         ULONG            >  last_frame;
     CRITICAL_SECTION                         mutex;
 
     struct {
@@ -858,6 +881,19 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
   _In_ UINT                 AlignedByteOffsetForArgs
 );
 
+typedef void (WINAPI *D3D11_ClearState_pfn)(
+  _In_ ID3D11DeviceContext *This
+);
+typedef void (WINAPI *D3D11_ExecuteCommandList_pfn)(
+  _In_  ID3D11DeviceContext *This,
+  _In_  ID3D11CommandList   *pCommandList,
+        BOOL                 RestoreContextState
+);
+typedef HRESULT (WINAPI *D3D11_FinishCommandList_pfn)(
+      _In_  ID3D11DeviceContext *This,
+            BOOL                 RestoreDeferredContextState,
+  _Out_opt_ ID3D11CommandList  **ppCommandList
+);
 
 extern D3D11Dev_CreateBuffer_pfn                          D3D11Dev_CreateBuffer_Original;
 extern D3D11Dev_CreateTexture2D_pfn                       D3D11Dev_CreateTexture2D_Original;
@@ -905,6 +941,10 @@ extern D3D11_CSSetShader_pfn                              D3D11_CSSetShader_Orig
 extern D3D11_CopyResource_pfn                             D3D11_CopyResource_Original;
 extern D3D11_CopySubresourceRegion_pfn                    D3D11_CopySubresourceRegion_Original;
 
+extern D3D11_ClearState_pfn                               D3D11_ClearState_Original;
+extern D3D11_ExecuteCommandList_pfn                       D3D11_ExecuteCommandList_Original;
+extern D3D11_FinishCommandList_pfn                        D3D11_FinishCommandList_Original;
+
 enum class SK_D3D11_ShaderType {
   Vertex   =  1,
   Pixel    =  2,
@@ -923,7 +963,6 @@ struct SK_D3D11_ShaderDesc
   uint32_t            crc32c  = 0UL;
   IUnknown*           pShader = nullptr;
   std::string         name    = "";
-
   std::vector <BYTE>  bytecode;
 
   struct
@@ -934,8 +973,6 @@ struct SK_D3D11_ShaderDesc
   } usage;
 };
 
-#include <map>
-
 struct SK_DisjointTimerQueryD3D11
 {
   // Always issue this from the immediate context
@@ -943,19 +980,19 @@ struct SK_DisjointTimerQueryD3D11
   volatile ID3D11Query* async  = nullptr;
   volatile LONG         active = FALSE;
 
-  D3D11_QUERY_DATA_TIMESTAMP_DISJOINT last_results = { };
+  D3D11_QUERY_DATA_TIMESTAMP_DISJOINT
+                  last_results = { };
 };
 
 struct SK_TimerQueryD3D11
 {
-  volatile ID3D11Query*         async   = nullptr;
-  volatile LONG                 active  = FALSE;
+  volatile ID3D11Query*         async        = nullptr;
+  volatile LONG                 active       = FALSE;
 
   // Required per-query to support timing the execution of commands batched
   //   using deferred render contexts.
-  volatile ID3D11DeviceContext* dev_ctx = nullptr;
-
-  UINT64 last_results = { };
+  volatile ID3D11DeviceContext* dev_ctx      = nullptr;
+           UINT64               last_results = {     };
 };
 
 struct d3d11_shader_tracking_s
@@ -975,11 +1012,12 @@ struct d3d11_shader_tracking_s
 
     auto shader_class_crit_sec = [&](void) noexcept
     {
-      extern std::unique_ptr <SK_Thread_HybridSpinlock>
-                                      cs_shader_vs, cs_shader_ps,
-                                      cs_shader_gs,
-                                      cs_shader_hs, cs_shader_ds,
-                                      cs_shader_cs;
+      extern
+        std::unique_ptr <SK_Thread_HybridSpinlock>
+                        cs_shader_vs, cs_shader_ps,
+                        cs_shader_gs,
+                        cs_shader_hs, cs_shader_ds,
+                        cs_shader_cs;
 
       switch (type_)
       {
@@ -999,7 +1037,9 @@ struct d3d11_shader_tracking_s
     set_of_res.clear   ();
     set_of_views.clear ();
 
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*shader_class_crit_sec ());
+    std::lock_guard <SK_Thread_CriticalSection>
+         auto_lock (*shader_class_crit_sec ());
+
     classes.clear      ();
 
     pre_hud_rtv = nullptr;
@@ -1010,7 +1050,7 @@ struct d3d11_shader_tracking_s
       //current_textures [i] = 0x00;
   }
 
-  void use (IUnknown* pShader) ;
+  void use        ( IUnknown* pShader );
 
   // Used for timing queries and interface tracking
   void activate   ( ID3D11DeviceContext        *pDevContext,
@@ -1020,11 +1060,12 @@ struct d3d11_shader_tracking_s
   void deactivate ( ID3D11DeviceContext        *pDevContext,
                     UINT                        dev_idx = UINT_MAX );
 
-  std::atomic_uint32_t    crc32c           =  0x00;
-  std::atomic_bool        cancel_draws     = false;
-  std::atomic_bool        highlight_draws  = false;
-  std::atomic_bool        wireframe        = false;
-  std::atomic_bool        on_top           =  true;
+  std::atomic_uint32_t crc32c          =  0x00;
+  std::atomic_bool     cancel_draws    = false;
+  std::atomic_bool     highlight_draws = false;
+  std::atomic_bool     wireframe       = false;
+  std::atomic_bool     on_top          =  true;
+  std::atomic_bool     clear_output    = false;
 
   struct
   {
@@ -1042,15 +1083,19 @@ struct d3d11_shader_tracking_s
         assert (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS);
 
         if (dev_idx <= SK_D3D11_MAX_DEV_CONTEXTS)
+        {
           return contexts [dev_idx];
+        }
       }
 
-      return false;
+      return
+        false;
     }
 
     bool get (ID3D11DeviceContext* pDevCtx)
     {
-      return get (SK_D3D11_GetDeviceContextHandle (pDevCtx));
+      return
+        get (SK_D3D11_GetDeviceContextHandle (pDevCtx));
     }
 
     void set (int dev_idx, bool active)
@@ -1082,10 +1127,7 @@ struct d3d11_shader_tracking_s
     }
   } active;
 
-  std::atomic_ulong       num_draws        =     0;
-
-
-
+  std::atomic_ulong                  num_draws        =       0;
   std::atomic_bool                   pre_hud_source   =   false;
   std::atomic_long                   pre_hud_rt_slot  =      -1;
   std::atomic_long                   pre_hud_srv_slot =      -1;
@@ -1094,28 +1136,27 @@ struct d3d11_shader_tracking_s
   // The slot used has meaning, but I think we can ignore it for now...
   //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;
 
-  Concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11Resource>           > set_of_res;
-  Concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView> > set_of_views;
+  concurrency::concurrent_unordered_set <
+    SK_ComPtr <ID3D11Resource>          > set_of_res;
+  concurrency::concurrent_unordered_set <
+    SK_ComPtr <ID3D11ShaderResourceView>> set_of_views;
 
 
   struct cbuffer_override_s {
-    uint32_t      parent;
-    size_t        BufferSize; // Parent buffer's size
-    bool          Enable;
-    uint32_t      Slot;
-    uint32_t      StartAddr;
-    uint32_t      Size;
-    float         Values [16];
+    uint32_t parent;
+    size_t   BufferSize; // Parent buffer's size
+    bool     Enable;
+    uint32_t Slot;
+    uint32_t StartAddr;
+    uint32_t Size;
+    float    Values [128];
   };
 
-  std::vector <cbuffer_override_s> overrides;
+  std::vector <cbuffer_override_s>  overrides;
 
-
-  IUnknown*                         shader_obj     = nullptr;
-
+  IUnknown*                         shader_obj = nullptr;
 
   static SK_DisjointTimerQueryD3D11 disjoint_query;
-
   struct duration_s
   {
     // Timestamp at beginning
@@ -1124,7 +1165,7 @@ struct d3d11_shader_tracking_s
     // Timestamp at end
     SK_TimerQueryD3D11 end;
   };
-  std::vector <duration_s> timers;
+  std::vector <duration_s>          timers;
 
   // Cumulative runtime of all timers after the disjoint query
   //   is finished and reading these results would not stall
@@ -1136,11 +1177,10 @@ struct d3d11_shader_tracking_s
 
   void addClassInstance (ID3D11ClassInstance* pInstance)
   {
-    if (! classes.count (pInstance))
-          classes.insert (pInstance);
+    classes.insert (pInstance);
   }
 
-  std::set <SK_ComPtr <ID3D11ClassInstance> > classes;
+  std::set <SK_ComPtr <ID3D11ClassInstance>> classes;
 
 //  struct shader_constant_s
 //  {
@@ -1166,7 +1206,9 @@ struct d3d11_shader_tracking_s
 
 struct SK_D3D11_KnownShaders
 {
-  typedef std::unordered_map <uint32_t, std::unordered_set <uint32_t>> conditional_blacklist_t;
+  typedef std::unordered_map <
+    uint32_t, std::unordered_set <uint32_t>
+  > conditional_blacklist_t;
 
   template <typename _T>
   class ShaderRegistry
@@ -1174,45 +1216,65 @@ struct SK_D3D11_KnownShaders
   public:
     ShaderRegistry (void)
     {
-           if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11VertexShader)))
-        type_ = SK_D3D11_ShaderType::Vertex;
-      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11PixelShader)))
-        type_ = SK_D3D11_ShaderType::Pixel;
-      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11GeometryShader)))
-        type_ = SK_D3D11_ShaderType::Geometry;
-      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11DomainShader)))
-        type_ = SK_D3D11_ShaderType::Domain;
-      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11HullShader)))
-        type_ = SK_D3D11_ShaderType::Hull;
-      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11ComputeShader)))
-        type_ = SK_D3D11_ShaderType::Compute;
+           if (std::type_index (typeid (_T)) ==
+               std::type_index (typeid (ID3D11VertexShader)))
+                 type_ = SK_D3D11_ShaderType::Vertex;
+
+      else if (std::type_index (typeid (_T)) ==
+               std::type_index (typeid (ID3D11PixelShader)))
+                 type_ = SK_D3D11_ShaderType::Pixel;
+
+      else if (std::type_index (typeid (_T)) ==
+               std::type_index (typeid (ID3D11GeometryShader)))
+                 type_ = SK_D3D11_ShaderType::Geometry;
+
+      else if (std::type_index (typeid (_T)) ==
+               std::type_index (typeid (ID3D11DomainShader)))
+                 type_ = SK_D3D11_ShaderType::Domain;
+
+      else if (std::type_index (typeid (_T)) ==
+               std::type_index (typeid (ID3D11HullShader)))
+                 type_ = SK_D3D11_ShaderType::Hull;
+
+      else if (std::type_index (typeid (_T)) ==
+               std::type_index (typeid (ID3D11ComputeShader)))
+                 type_ = SK_D3D11_ShaderType::Compute;
 
       tracked.type_ = type_;
     }
 
-    std::unordered_map <_T*, uint32_t>                   rev;
+    std::unordered_map <_T*,      SK_D3D11_ShaderDesc*>  rev;
     std::unordered_map <uint32_t, SK_D3D11_ShaderDesc>   descs;
 
-    std::unordered_map <uint32_t, LONG>                  wireframe;
     std::unordered_map <uint32_t, LONG>                  blacklist;
-
-    std::unordered_map <uint32_t, LONG>                  on_top;
-    std::unordered_map <uint32_t, LONG>                  rewind;
-    std::unordered_map <uint32_t, LONG>                  hud;
-
     std::unordered_map <uint32_t, std::string>           names;
 
-    struct {
-      std::unordered_map <uint32_t, LONG> before;
-      std::unordered_map <uint32_t, LONG> after;
-    } trigger_reshade;
+    //struct drawable_s {
+      std::unordered_map <uint32_t, LONG>                wireframe;
+
+      std::unordered_map <uint32_t, LONG>                on_top;
+      std::unordered_map <uint32_t, LONG>                rewind;
+      std::unordered_map <uint32_t, LONG>                hud;
+
+      struct {
+        std::unordered_map <uint32_t, LONG> before;
+        std::unordered_map <uint32_t, LONG> after;
+      } trigger_reshade;
+    //} draw_base;
+
+    //struct compute_s {
+      std::unordered_map <uint32_t, LONG>                clear_uav;
+    //} compute_base;
 
     bool addTrackingRef ( std::unordered_map <uint32_t, LONG>& state,
                                               uint32_t         crc32c )
     {
-      if (state.count (crc32c))
+      auto&& state_ =
+        state.find (crc32c);
+
+      if ( state_ != state.cend () )
       {
-        state [crc32c]++;
+        state_->second++;
 
         return false;
       }
@@ -1225,13 +1287,14 @@ struct SK_D3D11_KnownShaders
     bool releaseTrackingRef (std::unordered_map <uint32_t, LONG>& state,
                                                  uint32_t         crc32c )
     {
-      if (state.count (crc32c))
-      {
-        state [crc32c]--;
+      auto&& state_ =
+        state.find (crc32c);
 
-        if (state [crc32c] <= 0)
+      if (state_ != state.cend ())
+      {
+        if (--state_->second <= 0)
         {
-          state.erase (crc32c);
+          state.erase (state_);
 
           return true;
         }
@@ -1242,25 +1305,25 @@ struct SK_D3D11_KnownShaders
       return true;
     }
 
-    conditional_blacklist_t                              blacklist_if_texture;
-    d3d11_shader_tracking_s                              tracked;
+    conditional_blacklist_t     blacklist_if_texture;
+    d3d11_shader_tracking_s     tracked;
 
     struct {
-      uint32_t                             shader    [SK_D3D11_MAX_DEV_CONTEXTS+1]      =   { }  ;
-                 ID3D11ShaderResourceView* views     [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
-                 ID3D11ShaderResourceView* tmp_views [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
+      uint32_t                  shader    [SK_D3D11_MAX_DEV_CONTEXTS+1]      =   { }  ;
+      ID3D11ShaderResourceView* views     [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
+      ID3D11ShaderResourceView* tmp_views [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
       // Avoid allocating memory on the heap/stack when we have to manipulate an array
       //   large enough to store all D3D11 Shader Resource Views.
     } current;
 
-    volatile LONG                                        changes_last_frame = 0;
-
-    SK_D3D11_ShaderType type_;
+    volatile
+    LONG                        changes_last_frame = 0;
+    SK_D3D11_ShaderType         type_;
   };
 
 
   //static std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1> reshade_triggered;
-  static bool reshade_triggered;
+  static bool                           reshade_triggered;
 
   ShaderRegistry <ID3D11PixelShader>    pixel;
   ShaderRegistry <ID3D11VertexShader>   vertex;
@@ -1339,20 +1402,27 @@ typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateFastGeometryShader_pfn)( __in  
 
 
 typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
-  _In_opt_                            IDXGIAdapter         *pAdapter,
-                                      D3D_DRIVER_TYPE       DriverType,
-                                      HMODULE               Software,
-                                      UINT                  Flags,
-  _In_opt_                      const D3D_FEATURE_LEVEL    *pFeatureLevels,
-                                      UINT                  FeatureLevels,
-                                      UINT                  SDKVersion,
-  _Out_opt_                           ID3D11Device        **ppDevice,
-  _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
-  _Out_opt_                           ID3D11DeviceContext **ppImmediateContext);
+  _In_opt_        IDXGIAdapter         *pAdapter,
+                  D3D_DRIVER_TYPE       DriverType,
+                  HMODULE               Software,
+                  UINT                  Flags,
+  _In_opt_  const D3D_FEATURE_LEVEL    *pFeatureLevels,
+                  UINT                  FeatureLevels,
+                  UINT                  SDKVersion,
+  _Out_opt_       ID3D11Device        **ppDevice,
+  _Out_opt_       D3D_FEATURE_LEVEL    *pFeatureLevel,
+  _Out_opt_       ID3D11DeviceContext **ppImmediateContext);
 
-typedef enum   D3DX11_IMAGE_FILE_FORMAT D3DX11_IMAGE_FILE_FORMAT, *LPD3DX11_IMAGE_FILE_FORMAT;
-typedef struct D3DX11_IMAGE_INFO        D3DX11_IMAGE_INFO,        *LPD3DX11_IMAGE_INFO;
-typedef struct D3DX11_IMAGE_LOAD_INFO   D3DX11_IMAGE_LOAD_INFO,   *LPD3DX11_IMAGE_LOAD_INFO;
+typedef enum D3DX11_IMAGE_FILE_FORMAT
+             D3DX11_IMAGE_FILE_FORMAT,
+          *LPD3DX11_IMAGE_FILE_FORMAT;
+
+typedef struct D3DX11_IMAGE_INFO
+               D3DX11_IMAGE_INFO,
+            *LPD3DX11_IMAGE_INFO;
+typedef struct D3DX11_IMAGE_LOAD_INFO
+               D3DX11_IMAGE_LOAD_INFO,
+            *LPD3DX11_IMAGE_LOAD_INFO;
 
 interface ID3DX11ThreadPump;
 
@@ -1411,29 +1481,36 @@ Present1Callback (IDXGISwapChain1         *This,
 
 HRESULT
 STDMETHODCALLTYPE
-DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *This,
-                                    _In_       IUnknown                        *pDevice,
-                                    _In_       HWND                             hWnd,
-                                    _In_ const DXGI_SWAP_CHAIN_DESC1           *pDesc,
-                                _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
-                                _In_opt_       IDXGIOutput                     *pRestrictToOutput,
-                                   _Out_       IDXGISwapChain1                 **ppSwapChain );
-HRESULT
-STDMETHODCALLTYPE
-DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *This,
-                                          _In_       IUnknown                  *pDevice,
-                                          _In_       IUnknown                  *pWindow,
-                                          _In_ const DXGI_SWAP_CHAIN_DESC1     *pDesc,
-                                      _In_opt_       IDXGIOutput               *pRestrictToOutput,
-                                         _Out_       IDXGISwapChain1          **ppSwapChain );
+DXGIFactory2_CreateSwapChainForHwnd_Override (
+                 IDXGIFactory2                   *This,
+      _In_       IUnknown                        *pDevice,
+      _In_       HWND                             hWnd,
+      _In_ const DXGI_SWAP_CHAIN_DESC1           *pDesc,
+  _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
+  _In_opt_       IDXGIOutput                     *pRestrictToOutput,
+     _Out_       IDXGISwapChain1                 **ppSwapChain
+);
 
 HRESULT
 STDMETHODCALLTYPE
-DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *This,
-                                       _In_           IUnknown               *pDevice,
-                                       _In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
-                                       _In_opt_       IDXGIOutput            *pRestrictToOutput,
-                                       _Outptr_       IDXGISwapChain1       **ppSwapChain );
+DXGIFactory2_CreateSwapChainForCoreWindow_Override (
+                 IDXGIFactory2             *This,
+      _In_       IUnknown                  *pDevice,
+      _In_       IUnknown                  *pWindow,
+      _In_ const DXGI_SWAP_CHAIN_DESC1     *pDesc,
+  _In_opt_       IDXGIOutput               *pRestrictToOutput,
+     _Out_       IDXGISwapChain1          **ppSwapChain
+);
+
+HRESULT
+STDMETHODCALLTYPE
+DXGIFactory2_CreateSwapChainForComposition_Override (
+                 IDXGIFactory2          *This,
+  _In_           IUnknown               *pDevice,
+  _In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
+  _In_opt_       IDXGIOutput            *pRestrictToOutput,
+  _Outptr_       IDXGISwapChain1       **ppSwapChain
+);
 
 
 
@@ -1463,18 +1540,18 @@ void            WaitForInitDXGI             (void);
 void  __stdcall SK_D3D11_PreLoadTextures    (void);
 
 void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
-bool  __stdcall SK_D3D11_TextureIsCached    (ID3D11Texture2D*     pTex);
-void  __stdcall SK_D3D11_UseTexture         (ID3D11Texture2D*     pTex);
-bool  __stdcall SK_D3D11_RemoveTexFromCache (ID3D11Texture2D*     pTex, bool blacklist = false);
-void  __stdcall SK_D3D11_PresentFirstFrame  (IDXGISwapChain*      pSwapChain);
+bool  __stdcall SK_D3D11_TextureIsCached    (ID3D11Texture2D* pTex);
+void  __stdcall SK_D3D11_UseTexture         (ID3D11Texture2D* pTex);
+bool  __stdcall SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex,
+                                             bool blacklist = false);
 
 
-void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain*      pSwapChain);
+void  __stdcall SK_D3D11_PresentFirstFrame  (IDXGISwapChain*  pSwapChain);
+void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain*  pSwapChain);
 
 
 BOOL SK_DXGI_SupportsTearing  (void);
 void SK_CEGUI_QueueResetD3D11 (void);
-
 
 
 void SK_D3D11_AssociateVShaderWithHUD (uint32_t crc32, bool set = true);
@@ -1511,6 +1588,7 @@ SK_D3D11_UnRegisterHUDShader ( uint32_t         bytecode_crc32c,
 
 DWORD
 __stdcall
+
 HookD3D11 (LPVOID user);
 
 void
@@ -1520,10 +1598,10 @@ SK_HookDXGI (void);
 int  SK_D3D11_PurgeHookAddressCache  (void);
 void SK_D3D11_UpdateHookAddressCache (void);
 
-const wchar_t* SK_D3D11_DescribeUsage     (D3D11_USAGE              usage)  ;
-const wchar_t* SK_D3D11_DescribeFilter    (D3D11_FILTER             filter) ;
+const wchar_t* SK_D3D11_DescribeUsage     (D3D11_USAGE              usage);
+const wchar_t* SK_D3D11_DescribeFilter    (D3D11_FILTER             filter);
 std::wstring   SK_D3D11_DescribeMiscFlags (D3D11_RESOURCE_MISC_FLAG flags);
-std::wstring   SK_D3D11_DescribeBindFlags (D3D11_BIND_FLAG          flags);
+std::wstring   SK_D3D11_DescribeBindFlags (/*D3D11_BIND_FLAG*/UINT  flags);
 
 
 constexpr int VERTEX_SHADER_STAGE   = 0;

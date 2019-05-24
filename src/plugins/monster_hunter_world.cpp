@@ -156,71 +156,9 @@ SK_MHW_PlugInInit (void)
   pINI->write (pINI->get_filename ());
 }
 
-
-void
-SK_MHW_ThreadStartStop (HANDLE hThread, int op = 0)
-{
-  static concurrency::concurrent_unordered_set <HANDLE>
-    stopped_threads;
-
-  if (op == 0)
-  {
-    if (! stopped_threads.count (hThread))
-    {
-      stopped_threads.insert (hThread);
-      SuspendThread          (hThread); //-V720
-    }
-  }
-
-  if (op == 1)
-  {
-    if (stopped_threads.count (hThread))
-    {
-      std::unordered_set <HANDLE> stopped_copy {
-        stopped_threads.begin (), stopped_threads.end ()
-      };
-
-      stopped_threads.clear ();
-
-      for (auto& it : stopped_threads)
-      {
-        if (it != hThread)
-          stopped_threads.insert (hThread);
-
-        else
-          ResumeThread (hThread);
-      }
-    }
-  }
-
-  if (op == 2)
-  {
-    std::unordered_set <HANDLE> stopped_copy {
-      stopped_threads.begin (), stopped_threads.end ()
-    };
-
-    stopped_threads.clear ();
-
-    for (auto& it : stopped_copy)
-    {
-      TerminateThread (it, 0x0);
-      //ResumeThread (it);
-    }
-  }
-}
-
-extern void
-SK_MHW_SuspendThread (HANDLE hThread)
-{
-  SK_MHW_ThreadStartStop (hThread, 0);
-}
-
 void
 SK_MHW_PlugIn_Shutdown (void)
 {
-  // Resume all stopped threads prior
-  //   to shutting down
-  SK_MHW_ThreadStartStop (0, 2);
 }
 
 bool

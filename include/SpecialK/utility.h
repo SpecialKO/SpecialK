@@ -511,7 +511,7 @@ private:
         *(vendor + 2) = data_ [0][2];
 
       vendor_ =
-        reinterpret_cast <char *> (vendor);
+        reinterpret_cast <char *> (vendor); //-V206
 
            if  (vendor_ == "GenuineIntel")  isIntel_ = true;
       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;

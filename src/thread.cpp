@@ -54,7 +54,8 @@ SK_Thread_HasCustomName (DWORD dwTid)
     SelfTitled =
       *_SK_SelfTitledThreads;
 
-  return (SelfTitled.count (dwTid) != 0);
+  return ( SelfTitled.find (dwTid) !=
+           SelfTitled.cend (     ) );
 }
 
 std::wstring&
@@ -65,7 +66,7 @@ SK_Thread_GetName (DWORD dwTid)
   static auto& names =
     *_SK_ThreadNames;
 
-  const auto& it  =
+  const auto it  =
     names.find (dwTid);
 
   if (it != names.cend ())
@@ -549,8 +550,8 @@ SK_MMCS_GetTasks (void)
 
   std::vector <SK_MMCS_TaskEntry *> tasks;
 
-  std::transform ( task_map.begin (),
-                   task_map.end   (),
+  std::transform ( task_map.cbegin (),
+                   task_map.cend   (),
                      std::back_inserter (tasks),
                      []( std::pair < DWORD,
                                      SK_MMCS_TaskEntry *> c) ->

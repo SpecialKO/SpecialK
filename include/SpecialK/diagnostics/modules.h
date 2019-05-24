@@ -31,6 +31,10 @@
 #include <mutex>
 #include <minwindef.h>
 
+#ifndef _INC_SHLWAPI
+#include <Shlwapi.h>
+#endif
+
 
 #define SK_GetModuleHandle SK_GetModuleHandleW
 HMODULE SK_GetModuleHandleW (PCWSTR lpModuleName);
@@ -404,8 +408,11 @@ private:
 
     //assert (bHasValidInfo); // WTF?
 
-    if (_loaded_libraries.count (hMod))
+    if ( _loaded_libraries.find (hMod) !=
+         _loaded_libraries.cend (    ) )
+    {
       return false;
+    }
 
     return
       _loaded_libraries.emplace (hMod,
@@ -479,6 +486,44 @@ public:
 
     if (hMod != INVALID_MODULE)
       _RegisterLibrary (hMod, wszLibrary);
+
+    return hMod;
+  }
+
+  HMODULE
+  LoadSystemLibrary (const wchar_t *wszLibrary)
+  {
+    if (wszLibrary == nullptr)
+      return INVALID_MODULE;
+
+    wchar_t wszFullPath [MAX_PATH * 4] = { };
+
+#ifdef _M_IX86
+    GetSystemWow64DirectoryW (wszFullPath, MAX_PATH * 3);
+#else
+    GetSystemDirectoryW      (wszFullPath, MAX_PATH * 3);
+#endif
+
+    PathAppendW (wszFullPath, wszLibrary);
+
+    HMODULE hMod =
+      _FindLibraryByName (wszFullPath);
+
+    if (hMod != INVALID_MODULE)
+      return hMod;
+
+    hMod =
+    {
+      LoadLibraryW_Original != nullptr     ?
+        LoadLibraryW_Original (wszFullPath) :
+               ::LoadLibraryW (wszFullPath)
+    };
+
+    // We're not fooling anyone, third-party software can see this!
+    ///assert (LoadLibraryW_Original != nullptr);
+
+    if (hMod != INVALID_MODULE)
+      _RegisterLibrary (hMod, wszFullPath);
 
     return hMod;
   }

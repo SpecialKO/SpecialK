@@ -82,12 +82,24 @@ struct IUnknown;
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
 
-#define SK_D3D11_IsDevCtxDeferred(ctx) (ctx)->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED
+#define SK_D3D11_IsDevCtxDeferred(ctx)                \
+                                 (ctx)->GetType () == \
+                                        D3D11_DEVICE_CONTEXT_DEFERRED
 
 extern const GUID IID_ID3D11Device2;
 extern const GUID IID_ID3D11Device3;
 extern const GUID IID_ID3D11Device4;
 extern const GUID IID_ID3D11Device5;
+
+
+// {9A222196-4D44-45C3-AAA4-2FD47915CC70}
+extern const GUID IID_IUnwrappedD3D11DeviceContext;
+
+// {BAC138B1-7D7F-4CB9-A2D3-BED2DAEFE24C}
+extern const GUID IID_IUnwrappedD3D11RenderTargetView;
+
+struct __declspec (uuid ("9A222196-4D44-45C3-AAA4-2FD47915CC70"))
+                      IUnwrappedD3D11DeviceContext;
 
 
 
@@ -139,141 +151,215 @@ extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_render_view;
 
 
 // VFTABLE Hooks
-extern D3D11Dev_CreateRasterizerState_pfn                  D3D11Dev_CreateRasterizerState_Original;
-extern D3D11Dev_CreateSamplerState_pfn                     D3D11Dev_CreateSamplerState_Original;
-extern D3D11Dev_CreateBuffer_pfn                           D3D11Dev_CreateBuffer_Original;
-extern D3D11Dev_CreateTexture2D_pfn                        D3D11Dev_CreateTexture2D_Original;
-extern D3D11Dev_CreateRenderTargetView_pfn                 D3D11Dev_CreateRenderTargetView_Original;
-extern D3D11Dev_CreateShaderResourceView_pfn               D3D11Dev_CreateShaderResourceView_Original;
-extern D3D11Dev_CreateDepthStencilView_pfn                 D3D11Dev_CreateDepthStencilView_Original;
-extern D3D11Dev_CreateUnorderedAccessView_pfn              D3D11Dev_CreateUnorderedAccessView_Original;
+extern D3D11Dev_CreateRasterizerState_pfn
+       D3D11Dev_CreateRasterizerState_Original;
+extern D3D11Dev_CreateSamplerState_pfn
+       D3D11Dev_CreateSamplerState_Original;
+extern D3D11Dev_CreateBuffer_pfn
+       D3D11Dev_CreateBuffer_Original;
+extern D3D11Dev_CreateTexture2D_pfn
+       D3D11Dev_CreateTexture2D_Original;
+extern D3D11Dev_CreateRenderTargetView_pfn
+       D3D11Dev_CreateRenderTargetView_Original;
+extern D3D11Dev_CreateShaderResourceView_pfn
+       D3D11Dev_CreateShaderResourceView_Original;
+extern D3D11Dev_CreateDepthStencilView_pfn
+       D3D11Dev_CreateDepthStencilView_Original;
+extern D3D11Dev_CreateUnorderedAccessView_pfn
+       D3D11Dev_CreateUnorderedAccessView_Original;
 
-extern D3D11Dev_CreateVertexShader_pfn                     D3D11Dev_CreateVertexShader_Original;
-extern D3D11Dev_CreatePixelShader_pfn                      D3D11Dev_CreatePixelShader_Original;
-extern D3D11Dev_CreateGeometryShader_pfn                   D3D11Dev_CreateGeometryShader_Original;
-extern D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn   D3D11Dev_CreateGeometryShaderWithStreamOutput_Original;
-extern D3D11Dev_CreateHullShader_pfn                       D3D11Dev_CreateHullShader_Original;
-extern D3D11Dev_CreateDomainShader_pfn                     D3D11Dev_CreateDomainShader_Original;
-extern D3D11Dev_CreateComputeShader_pfn                    D3D11Dev_CreateComputeShader_Original;
+extern D3D11Dev_CreateVertexShader_pfn
+       D3D11Dev_CreateVertexShader_Original;
+extern D3D11Dev_CreatePixelShader_pfn
+       D3D11Dev_CreatePixelShader_Original;
+extern D3D11Dev_CreateGeometryShader_pfn
+       D3D11Dev_CreateGeometryShader_Original;
+extern D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn
+       D3D11Dev_CreateGeometryShaderWithStreamOutput_Original;
+extern D3D11Dev_CreateHullShader_pfn
+       D3D11Dev_CreateHullShader_Original;
+extern D3D11Dev_CreateDomainShader_pfn
+       D3D11Dev_CreateDomainShader_Original;
+extern D3D11Dev_CreateComputeShader_pfn
+       D3D11Dev_CreateComputeShader_Original;
 
-extern D3D11Dev_CreateDeferredContext_pfn                  D3D11Dev_CreateDeferredContext_Original;
-extern D3D11Dev_CreateDeferredContext1_pfn                 D3D11Dev_CreateDeferredContext1_Original;
-extern D3D11Dev_CreateDeferredContext2_pfn                 D3D11Dev_CreateDeferredContext2_Original;
-extern D3D11Dev_CreateDeferredContext3_pfn                 D3D11Dev_CreateDeferredContext3_Original;
-extern D3D11Dev_GetImmediateContext_pfn                    D3D11Dev_GetImmediateContext_Original;
-extern D3D11Dev_GetImmediateContext1_pfn                   D3D11Dev_GetImmediateContext1_Original;
-extern D3D11Dev_GetImmediateContext2_pfn                   D3D11Dev_GetImmediateContext2_Original;
-extern D3D11Dev_GetImmediateContext3_pfn                   D3D11Dev_GetImmediateContext3_Original;
+extern D3D11Dev_CreateDeferredContext_pfn
+       D3D11Dev_CreateDeferredContext_Original;
+extern D3D11Dev_CreateDeferredContext1_pfn
+       D3D11Dev_CreateDeferredContext1_Original;
+extern D3D11Dev_CreateDeferredContext2_pfn
+       D3D11Dev_CreateDeferredContext2_Original;
+extern D3D11Dev_CreateDeferredContext3_pfn
+       D3D11Dev_CreateDeferredContext3_Original;
+extern D3D11Dev_GetImmediateContext_pfn
+       D3D11Dev_GetImmediateContext_Original;
+extern D3D11Dev_GetImmediateContext1_pfn
+       D3D11Dev_GetImmediateContext1_Original;
+extern D3D11Dev_GetImmediateContext2_pfn
+       D3D11Dev_GetImmediateContext2_Original;
+extern D3D11Dev_GetImmediateContext3_pfn
+       D3D11Dev_GetImmediateContext3_Original;
 
-extern D3D11_RSSetScissorRects_pfn                         D3D11_RSSetScissorRects_Original;
-extern D3D11_RSSetViewports_pfn                            D3D11_RSSetViewports_Original;
-extern D3D11_VSSetConstantBuffers_pfn                      D3D11_VSSetConstantBuffers_Original;
-extern D3D11_VSSetShaderResources_pfn                      D3D11_VSSetShaderResources_Original;
-extern D3D11_PSSetShaderResources_pfn                      D3D11_PSSetShaderResources_Original;
-extern D3D11_PSSetConstantBuffers_pfn                      D3D11_PSSetConstantBuffers_Original;
-extern D3D11_GSSetShaderResources_pfn                      D3D11_GSSetShaderResources_Original;
-extern D3D11_HSSetShaderResources_pfn                      D3D11_HSSetShaderResources_Original;
-extern D3D11_DSSetShaderResources_pfn                      D3D11_DSSetShaderResources_Original;
-extern D3D11_CSSetShaderResources_pfn                      D3D11_CSSetShaderResources_Original;
-extern D3D11_CSSetUnorderedAccessViews_pfn                 D3D11_CSSetUnorderedAccessViews_Original;
-extern D3D11_UpdateSubresource_pfn                         D3D11_UpdateSubresource_Original;
-extern D3D11_DrawIndexed_pfn                               D3D11_DrawIndexed_Original;
-extern D3D11_Draw_pfn                                      D3D11_Draw_Original;
-extern D3D11_DrawAuto_pfn                                  D3D11_DrawAuto_Original;
-extern D3D11_DrawIndexedInstanced_pfn                      D3D11_DrawIndexedInstanced_Original;
-extern D3D11_DrawIndexedInstancedIndirect_pfn              D3D11_DrawIndexedInstancedIndirect_Original;
-extern D3D11_DrawInstanced_pfn                             D3D11_DrawInstanced_Original;
-extern D3D11_DrawInstancedIndirect_pfn                     D3D11_DrawInstancedIndirect_Original;
-extern D3D11_Dispatch_pfn                                  D3D11_Dispatch_Original;
-extern D3D11_DispatchIndirect_pfn                          D3D11_DispatchIndirect_Original;
-extern D3D11_Map_pfn                                       D3D11_Map_Original;
-extern D3D11_Unmap_pfn                                     D3D11_Unmap_Original;
+extern D3D11_RSSetScissorRects_pfn
+       D3D11_RSSetScissorRects_Original;
+extern D3D11_RSSetViewports_pfn
+       D3D11_RSSetViewports_Original;
+extern D3D11_VSSetConstantBuffers_pfn
+       D3D11_VSSetConstantBuffers_Original;
+extern D3D11_VSSetShaderResources_pfn
+       D3D11_VSSetShaderResources_Original;
+extern D3D11_PSSetShaderResources_pfn
+       D3D11_PSSetShaderResources_Original;
+extern D3D11_PSSetConstantBuffers_pfn
+       D3D11_PSSetConstantBuffers_Original;
+extern D3D11_GSSetShaderResources_pfn
+       D3D11_GSSetShaderResources_Original;
+extern D3D11_HSSetShaderResources_pfn
+       D3D11_HSSetShaderResources_Original;
+extern D3D11_DSSetShaderResources_pfn
+       D3D11_DSSetShaderResources_Original;
+extern D3D11_CSSetShaderResources_pfn
+       D3D11_CSSetShaderResources_Original;
+extern D3D11_CSSetUnorderedAccessViews_pfn
+       D3D11_CSSetUnorderedAccessViews_Original;
+extern D3D11_UpdateSubresource_pfn
+       D3D11_UpdateSubresource_Original;
+extern D3D11_DrawIndexed_pfn
+       D3D11_DrawIndexed_Original;
+extern D3D11_Draw_pfn
+       D3D11_Draw_Original;
+extern D3D11_DrawAuto_pfn
+       D3D11_DrawAuto_Original;
+extern D3D11_DrawIndexedInstanced_pfn
+       D3D11_DrawIndexedInstanced_Original;
+extern D3D11_DrawIndexedInstancedIndirect_pfn
+       D3D11_DrawIndexedInstancedIndirect_Original;
+extern D3D11_DrawInstanced_pfn
+       D3D11_DrawInstanced_Original;
+extern D3D11_DrawInstancedIndirect_pfn
+       D3D11_DrawInstancedIndirect_Original;
+extern D3D11_Dispatch_pfn
+       D3D11_Dispatch_Original;
+extern D3D11_DispatchIndirect_pfn
+       D3D11_DispatchIndirect_Original;
+extern D3D11_Map_pfn
+       D3D11_Map_Original;
+extern D3D11_Unmap_pfn
+       D3D11_Unmap_Original;
 
-extern D3D11_OMSetRenderTargets_pfn                        D3D11_OMSetRenderTargets_Original;
-extern D3D11_OMSetRenderTargetsAndUnorderedAccessViews_pfn D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original;
-extern D3D11_OMGetRenderTargets_pfn                        D3D11_OMGetRenderTargets_Original;
-extern D3D11_OMGetRenderTargetsAndUnorderedAccessViews_pfn D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Original;
-extern D3D11_ClearDepthStencilView_pfn                     D3D11_ClearDepthStencilView_Original;
+extern D3D11_OMSetRenderTargets_pfn
+       D3D11_OMSetRenderTargets_Original;
+extern D3D11_OMSetRenderTargetsAndUnorderedAccessViews_pfn
+       D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original;
+extern D3D11_OMGetRenderTargets_pfn
+       D3D11_OMGetRenderTargets_Original;
+extern D3D11_OMGetRenderTargetsAndUnorderedAccessViews_pfn
+       D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Original;
+extern D3D11_ClearRenderTargetView_pfn
+       D3D11_ClearRenderTargetView_Original;
+extern D3D11_ClearDepthStencilView_pfn
+       D3D11_ClearDepthStencilView_Original;
 
-extern D3D11_PSSetSamplers_pfn                             D3D11_PSSetSamplers_Original;
+extern D3D11_PSSetSamplers_pfn
+       D3D11_PSSetSamplers_Original;
 
-extern D3D11_VSSetShader_pfn                               D3D11_VSSetShader_Original;
-extern D3D11_PSSetShader_pfn                               D3D11_PSSetShader_Original;
-extern D3D11_GSSetShader_pfn                               D3D11_GSSetShader_Original;
-extern D3D11_HSSetShader_pfn                               D3D11_HSSetShader_Original;
-extern D3D11_DSSetShader_pfn                               D3D11_DSSetShader_Original;
-extern D3D11_CSSetShader_pfn                               D3D11_CSSetShader_Original;
+extern D3D11_VSSetShader_pfn
+       D3D11_VSSetShader_Original;
+extern D3D11_PSSetShader_pfn
+       D3D11_PSSetShader_Original;
+extern D3D11_GSSetShader_pfn
+       D3D11_GSSetShader_Original;
+extern D3D11_HSSetShader_pfn
+       D3D11_HSSetShader_Original;
+extern D3D11_DSSetShader_pfn
+       D3D11_DSSetShader_Original;
+extern D3D11_CSSetShader_pfn
+       D3D11_CSSetShader_Original;
 
-extern D3D11_VSGetShader_pfn                               D3D11_VSGetShader_Original;
-extern D3D11_PSGetShader_pfn                               D3D11_PSGetShader_Original;
-extern D3D11_GSGetShader_pfn                               D3D11_GSGetShader_Original;
-extern D3D11_HSGetShader_pfn                               D3D11_HSGetShader_Original;
-extern D3D11_DSGetShader_pfn                               D3D11_DSGetShader_Original;
-extern D3D11_CSGetShader_pfn                               D3D11_CSGetShader_Original;
+extern D3D11_VSGetShader_pfn
+       D3D11_VSGetShader_Original;
+extern D3D11_PSGetShader_pfn
+       D3D11_PSGetShader_Original;
+extern D3D11_GSGetShader_pfn
+       D3D11_GSGetShader_Original;
+extern D3D11_HSGetShader_pfn
+       D3D11_HSGetShader_Original;
+extern D3D11_DSGetShader_pfn
+       D3D11_DSGetShader_Original;
+extern D3D11_CSGetShader_pfn
+       D3D11_CSGetShader_Original;
 
-extern D3D11_GetData_pfn                                   D3D11_GetData_Original;
+extern D3D11_GetData_pfn
+       D3D11_GetData_Original;
 
-extern D3D11_CopyResource_pfn                              D3D11_CopyResource_Original;
-extern D3D11_CopySubresourceRegion_pfn                     D3D11_CopySubresourceRegion_Original;
-extern D3D11_UpdateSubresource1_pfn                        D3D11_UpdateSubresource1_Original;
-
-
-
-
-using SK_ReShade_PresentCallback_pfn              = bool (__stdcall *)(void *user);
-using SK_ReShade_OnCopyResourceD3D11_pfn          = void (__stdcall *)(void *user, ID3D11Resource         *&dest,    ID3D11Resource *&source);
-using SK_ReShade_OnClearDepthStencilViewD3D11_pfn = void (__stdcall *)(void *user, ID3D11DepthStencilView *&depthstencil);
+extern D3D11_CopyResource_pfn
+       D3D11_CopyResource_Original;
+extern D3D11_CopySubresourceRegion_pfn
+       D3D11_CopySubresourceRegion_Original;
+extern D3D11_UpdateSubresource1_pfn
+       D3D11_UpdateSubresource1_Original;
 
 
+using SK_ReShade_PresentCallback_pfn              =
+     bool (__stdcall *)( void *user );
+using SK_ReShade_OnCopyResourceD3D11_pfn          =
+     void (__stdcall *)( void *user, ID3D11Resource *&dest,
+                                     ID3D11Resource *&source );
+using SK_ReShade_OnClearDepthStencilViewD3D11_pfn =
+     void (__stdcall *)( void *user, ID3D11DepthStencilView *&depthstencil);
 
-extern "C" __declspec (dllexport) extern FARPROC D3D11CreateDeviceForD3D12;
-extern "C" __declspec (dllexport) extern FARPROC CreateDirect3D11DeviceFromDXGIDevice;
-extern "C" __declspec (dllexport) extern FARPROC CreateDirect3D11SurfaceFromDXGISurface;
-extern "C" __declspec (dllexport) extern FARPROC D3D11On12CreateDevice;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTCloseAdapter;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTDestroyAllocation;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTDestroyContext;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTDestroyDevice;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTDestroySynchronizationObject;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTQueryAdapterInfo;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTSetDisplayPrivateDriverFormat;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTSignalSynchronizationObject;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTUnlock;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTWaitForSynchronizationObject;
-extern "C" __declspec (dllexport) extern FARPROC EnableFeatureLevelUpgrade;
-extern "C" __declspec (dllexport) extern FARPROC OpenAdapter10;
-extern "C" __declspec (dllexport) extern FARPROC OpenAdapter10_2;
-extern "C" __declspec (dllexport) extern FARPROC D3D11CoreCreateLayeredDevice;
-extern "C" __declspec (dllexport) extern FARPROC D3D11CoreGetLayeredDeviceSize;
-extern "C" __declspec (dllexport) extern FARPROC D3D11CoreRegisterLayers;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTCreateAllocation;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTCreateContext;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTCreateDevice;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTCreateSynchronizationObject;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTEscape;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTGetContextSchedulingPriority;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTGetDeviceState;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTGetDisplayModeList;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTGetMultisampleMethodList;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTGetRuntimeData;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTGetSharedPrimaryHandle;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTLock;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTOpenAdapterFromHdc;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTOpenResource;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTPresent;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTQueryAllocationResidency;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTQueryResourceInfo;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTRender;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTSetAllocationPriority;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTSetContextSchedulingPriority;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTSetDisplayMode;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTSetGammaRamp;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTSetVidPnSourceOwner;
-extern "C" __declspec (dllexport) extern FARPROC D3DKMTWaitForVerticalBlankEvent;
-extern "C" __declspec (dllexport) extern FARPROC D3DPerformance_BeginEvent;
-extern "C" __declspec (dllexport) extern FARPROC D3DPerformance_EndEvent;
-extern "C" __declspec (dllexport) extern FARPROC D3DPerformance_GetStatus;
-extern "C" __declspec (dllexport) extern FARPROC D3DPerformance_SetMarker;
+
+#define SK_D3D11_DeclKMT(x) extern "C" __declspec (dllexport) extern \
+                                          FARPROC (x)
+
+SK_D3D11_DeclKMT (D3D11CreateDeviceForD3D12);
+SK_D3D11_DeclKMT (CreateDirect3D11DeviceFromDXGIDevice);
+SK_D3D11_DeclKMT (CreateDirect3D11SurfaceFromDXGISurface);
+SK_D3D11_DeclKMT (D3D11On12CreateDevice);
+SK_D3D11_DeclKMT (D3DKMTCloseAdapter);
+SK_D3D11_DeclKMT (D3DKMTDestroyAllocation);
+SK_D3D11_DeclKMT (D3DKMTDestroyContext);
+SK_D3D11_DeclKMT (D3DKMTDestroyDevice);
+SK_D3D11_DeclKMT (D3DKMTDestroySynchronizationObject);
+SK_D3D11_DeclKMT (D3DKMTQueryAdapterInfo);
+SK_D3D11_DeclKMT (D3DKMTSetDisplayPrivateDriverFormat);
+SK_D3D11_DeclKMT (D3DKMTSignalSynchronizationObject);
+SK_D3D11_DeclKMT (D3DKMTUnlock);
+SK_D3D11_DeclKMT (D3DKMTWaitForSynchronizationObject);
+SK_D3D11_DeclKMT (EnableFeatureLevelUpgrade);
+SK_D3D11_DeclKMT (OpenAdapter10);
+SK_D3D11_DeclKMT (OpenAdapter10_2);
+SK_D3D11_DeclKMT (D3D11CoreCreateLayeredDevice);
+SK_D3D11_DeclKMT (D3D11CoreGetLayeredDeviceSize);
+SK_D3D11_DeclKMT (D3D11CoreRegisterLayers);
+SK_D3D11_DeclKMT (D3DKMTCreateAllocation);
+SK_D3D11_DeclKMT (D3DKMTCreateContext);
+SK_D3D11_DeclKMT (D3DKMTCreateDevice);
+SK_D3D11_DeclKMT (D3DKMTCreateSynchronizationObject);
+SK_D3D11_DeclKMT (D3DKMTEscape);
+SK_D3D11_DeclKMT (D3DKMTGetContextSchedulingPriority);
+SK_D3D11_DeclKMT (D3DKMTGetDeviceState);
+SK_D3D11_DeclKMT (D3DKMTGetDisplayModeList);
+SK_D3D11_DeclKMT (D3DKMTGetMultisampleMethodList);
+SK_D3D11_DeclKMT (D3DKMTGetRuntimeData);
+SK_D3D11_DeclKMT (D3DKMTGetSharedPrimaryHandle);
+SK_D3D11_DeclKMT (D3DKMTLock);
+SK_D3D11_DeclKMT (D3DKMTOpenAdapterFromHdc);
+SK_D3D11_DeclKMT (D3DKMTOpenResource);
+SK_D3D11_DeclKMT (D3DKMTPresent);
+SK_D3D11_DeclKMT (D3DKMTQueryAllocationResidency);
+SK_D3D11_DeclKMT (D3DKMTQueryResourceInfo);
+SK_D3D11_DeclKMT (D3DKMTRender);
+SK_D3D11_DeclKMT (D3DKMTSetAllocationPriority);
+SK_D3D11_DeclKMT (D3DKMTSetContextSchedulingPriority);
+SK_D3D11_DeclKMT (D3DKMTSetDisplayMode);
+SK_D3D11_DeclKMT (D3DKMTSetGammaRamp);
+SK_D3D11_DeclKMT (D3DKMTSetVidPnSourceOwner);
+SK_D3D11_DeclKMT (D3DKMTWaitForVerticalBlankEvent);
+SK_D3D11_DeclKMT (D3DPerformance_BeginEvent);
+SK_D3D11_DeclKMT (D3DPerformance_EndEvent);
+SK_D3D11_DeclKMT (D3DPerformance_GetStatus);
+SK_D3D11_DeclKMT (D3DPerformance_SetMarker);
 
 
 void
@@ -281,10 +367,15 @@ SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
                              ID3D11DeviceContext *pMerge );
 
 void
-SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx, UINT dev_idx = UINT_MAX);
+SK_D3D11_ResetContextState ( ID3D11DeviceContext *pDevCtx,
+                             UINT                  dev_idx = UINT_MAX );
 
 
-struct shader_stage_s {
+struct shader_stage_s
+{
+  using bind_fn =
+    void (shader_stage_s::*)(int, int, ID3D11ShaderResourceView*);
+
   void nulBind (int dev_ctx_handle, int slot, ID3D11ShaderResourceView* pView)
   {
     if (skipped_bindings [dev_ctx_handle][slot] != nullptr)
@@ -315,22 +406,47 @@ struct shader_stage_s {
     real_bindings    [dev_ctx_handle][slot] = pView;
   };
 
-  // We have to hold references to these things, because the D3D11 runtime would have.
-  std::array <std::array <ID3D11ShaderResourceView*, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT>, SK_D3D11_MAX_DEV_CONTEXTS+1> skipped_bindings = { };
-  std::array <std::array <ID3D11ShaderResourceView*, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT>, SK_D3D11_MAX_DEV_CONTEXTS+1> real_bindings    = { };
+  // We have to hold references to these things, because the D3D11
+  //   runtime would have if they were bound to the pipeline, and the
+  //     solitary pipeline reference may be keeping the resource alive!
+  std::array   <
+    std::array < ID3D11ShaderResourceView*,
+                 D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT >,
+                 SK_D3D11_MAX_DEV_CONTEXTS + 1                >
+    skipped_bindings = { };
+
+  std::array   <
+    std::array < ID3D11ShaderResourceView*,
+                 D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT >,
+                 SK_D3D11_MAX_DEV_CONTEXTS + 1                >
+    real_bindings    = { };
 };
 
 
-using SK_ReShade_OnGetDepthStencilViewD3D11_pfn   = void (__stdcall *)(void *user, ID3D11DepthStencilView *&depthstencil);
-using SK_ReShade_OnSetDepthStencilViewD3D11_pfn   = void (__stdcall *)(void *user, ID3D11DepthStencilView *&depthstencil);
-using SK_ReShade_OnDrawD3D11_pfn                  = void (__stdcall *)(void *user, ID3D11DeviceContext     *context, unsigned int   vertices);
+using SK_ReShade_OnGetDepthStencilViewD3D11_pfn =
+  void (__stdcall *)(void *user, ID3D11DepthStencilView *&depthstencil);
+using SK_ReShade_OnSetDepthStencilViewD3D11_pfn =
+  void (__stdcall *)(void *user, ID3D11DepthStencilView *&depthstencil);
+using SK_ReShade_OnDrawD3D11_pfn                =
+  void (__stdcall *)(void *user, ID3D11DeviceContext     *context,
+                                 unsigned int             vertices);
 
 struct SK_RESHADE_CALLBACK_DRAW
 {
   SK_ReShade_OnDrawD3D11_pfn fn   = nullptr;
   void*                      data = nullptr;
-  __forceinline void call (ID3D11DeviceContext *context, unsigned int vertices, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, context, vertices); }
+  __forceinline void call (
+    ID3D11DeviceContext *context,
+    unsigned int         vertices,
+    SK_TLS              *pTLS = nullptr
+  )
+  {
+    if ( data != nullptr && fn != nullptr &&
+        (pTLS == nullptr || (  ! pTLS->imgui->drawing)) )
+    {
+      fn (data, context, vertices);
+    }
+  }
 } extern SK_ReShade_DrawCallback;
 
 struct SK_RESHADE_CALLBACK_SetDSV
@@ -344,8 +460,15 @@ struct SK_RESHADE_CALLBACK_SetDSV
       return call (depthstencil);
   }
 
-  __forceinline void call (ID3D11DepthStencilView *&depthstencil, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, depthstencil); }
+  __forceinline void call (ID3D11DepthStencilView *&depthstencil,
+                           SK_TLS                 *pTLS = nullptr)
+  {
+    if ( data != nullptr && fn != nullptr &&
+        (pTLS == nullptr || (  ! pTLS->imgui->drawing)) )
+    {
+      fn (data, depthstencil);
+    }
+  }
 } extern SK_ReShade_SetDepthStencilViewCallback;
 
 struct SK_RESHADE_CALLBACK_GetDSV
@@ -359,8 +482,15 @@ struct SK_RESHADE_CALLBACK_GetDSV
       return call (depthstencil);
   }
 
-  __forceinline void call (ID3D11DepthStencilView *&depthstencil, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, depthstencil); }
+  __forceinline void call ( ID3D11DepthStencilView *&depthstencil,
+                            SK_TLS                 *pTLS = nullptr )
+  {
+    if ( data != nullptr && fn != nullptr &&
+        (pTLS == nullptr || (  ! pTLS->imgui->drawing)) )
+    {
+      fn (data, depthstencil);
+    }
+  }
 } extern SK_ReShade_GetDepthStencilViewCallback;
 
 struct SK_RESHADE_CALLBACK_ClearDSV
@@ -374,23 +504,34 @@ struct SK_RESHADE_CALLBACK_ClearDSV
       return call (depthstencil);
   }
 
-  __forceinline void call (ID3D11DepthStencilView *&depthstencil, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, depthstencil); }
+  __forceinline void call ( ID3D11DepthStencilView *&depthstencil,
+                            SK_TLS                 *pTLS = nullptr )
+  {
+    if ( data != nullptr && fn != nullptr &&
+        (pTLS == nullptr || (  ! pTLS->imgui->drawing)) )
+    {
+      fn (data, depthstencil);
+    }
+  }
 } extern SK_ReShade_ClearDepthStencilViewCallback;
 
 struct SK_RESHADE_CALLBACK_CopyResource
 {
   SK_ReShade_OnCopyResourceD3D11_pfn fn   = nullptr;
   void*                              data = nullptr;
-  __forceinline void call (ID3D11Resource *&dest, ID3D11Resource *&source, SK_TLS* pTLS = nullptr)
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr || (! pTLS->imgui->drawing))) fn (data, dest, source); }
+  __forceinline void call ( ID3D11Resource *&dest,
+                            ID3D11Resource *&source,
+                            SK_TLS          *pTLS = nullptr )
+  { if (data != nullptr && fn != nullptr && (pTLS == nullptr ||
+(! pTLS->imgui->drawing))) fn (data, dest, source); }
 } extern SK_ReShade_CopyResourceCallback;
 
 
 uint32_t
 __cdecl
-SK_D3D11_ChecksumShaderBytecode ( _In_      const void                *pShaderBytecode,
-                                  _In_            SIZE_T               BytecodeLength  );
+SK_D3D11_ChecksumShaderBytecode (
+  _In_ const void   *pShaderBytecode,
+  _In_       SIZE_T  BytecodeLength  );
 
 std::wstring
 SK_D3D11_DescribeResource (ID3D11Resource* pRes);
@@ -406,7 +547,7 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
                   BOOL                            bWrapped );
 
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateTexture2D_Impl (
   _In_              ID3D11Device            *This,
   _Inout_opt_       D3D11_TEXTURE2D_DESC    *pDesc,
@@ -418,6 +559,7 @@ D3D11Dev_CreateTexture2D_Impl (
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
 void
+STDMETHODCALLTYPE
 SK_D3D11_SetShaderResources_Impl (
    SK_D3D11_ShaderType  ShaderType,
    BOOL                 Deferred,
@@ -469,14 +611,19 @@ SK_D3D11_CopyResource_Impl (
 
 void
 STDMETHODCALLTYPE
-SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped, UINT dev_idx = UINT_MAX);
+SK_D3D11_DrawAuto_Impl (
+  _In_ ID3D11DeviceContext *pDevCtx,
+       BOOL                 bWrapped,
+       UINT                 dev_idx = UINT_MAX );
 
 void
-SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
-                    UINT                 VertexCount,
-                    UINT                 StartVertexLocation,
-                    bool                 Wrapped = false,
-                    UINT                 dev_idx = UINT_MAX );
+STDMETHODCALLTYPE
+SK_D3D11_Draw_Impl (
+  ID3D11DeviceContext* pDevCtx,
+  UINT                 VertexCount,
+  UINT                 StartVertexLocation,
+  bool                 Wrapped = false,
+  UINT                 dev_idx = UINT_MAX );
 
 void
 STDMETHODCALLTYPE
@@ -540,16 +687,36 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
          UINT                           dev_idx = UINT_MAX );
 
 
-
-bool
-SK_D3D11_DispatchHandler ( ID3D11DeviceContext* pDevCtx,
-                           UINT&                dev_idx,
-                           SK_TLS**             ppTLS = nullptr );
+void
+STDMETHODCALLTYPE
+SK_D3D11_Dispatch_Impl (
+  _In_ ID3D11DeviceContext *pDevCtx,
+  _In_ UINT                 ThreadGroupCountX,
+  _In_ UINT                 ThreadGroupCountY,
+  _In_ UINT                 ThreadGroupCountZ,
+       BOOL                 bWrapped,
+       UINT                 dev_idx );
 
 void
-SK_D3D11_PostDispatch ( ID3D11DeviceContext* pDevCtx,
-                        UINT&                dev_idx,
-                        SK_TLS*              pTLS = SK_TLS_Bottom () );
+STDMETHODCALLTYPE
+SK_D3D11_DispatchIndirect_Impl (
+  _In_ ID3D11DeviceContext *pDevCtx,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs,
+       BOOL                 bWrapped,
+       UINT                 dev_idx );
+
+bool
+SK_D3D11_DispatchHandler (
+  ID3D11DeviceContext* pDevCtx,
+  UINT&                dev_idx,
+  SK_TLS**             ppTLS = nullptr );
+
+void
+SK_D3D11_PostDispatch (
+  ID3D11DeviceContext* pDevCtx,
+  UINT&                dev_idx,
+  SK_TLS*              pTLS = SK_TLS_Bottom () );
 
 
 
@@ -562,8 +729,9 @@ D3D11Dev_CreateRasterizerState_Override (
   const D3D11_RASTERIZER_DESC   *pRasterizerDesc,
   ID3D11RasterizerState  **ppRasterizerState );
 
+__declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateSamplerState_Override
 (
   _In_            ID3D11Device        *This,
@@ -572,7 +740,7 @@ D3D11Dev_CreateSamplerState_Override
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateBuffer_Override (
   _In_           ID3D11Device            *This,
   _In_     const D3D11_BUFFER_DESC       *pDesc,
@@ -581,7 +749,7 @@ D3D11Dev_CreateBuffer_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateTexture2D_Override (
   _In_            ID3D11Device           *This,
   _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
@@ -599,7 +767,7 @@ D3D11Dev_CreateRenderTargetView_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateShaderResourceView_Override (
   _In_           ID3D11Device                     *This,
   _In_           ID3D11Resource                   *pResource,
@@ -608,7 +776,7 @@ D3D11Dev_CreateShaderResourceView_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateDepthStencilView_Override (
   _In_            ID3D11Device                  *This,
   _In_            ID3D11Resource                *pResource,
@@ -617,7 +785,7 @@ D3D11Dev_CreateDepthStencilView_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateUnorderedAccessView_Override (
   _In_            ID3D11Device                     *This,
   _In_            ID3D11Resource                   *pResource,
@@ -626,7 +794,7 @@ D3D11Dev_CreateUnorderedAccessView_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateVertexShader_Override (
   _In_            ID3D11Device        *This,
   _In_      const void                *pShaderBytecode,
@@ -636,7 +804,7 @@ D3D11Dev_CreateVertexShader_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreatePixelShader_Override (
   _In_            ID3D11Device        *This,
   _In_      const void                *pShaderBytecode,
@@ -646,7 +814,7 @@ D3D11Dev_CreatePixelShader_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateGeometryShader_Override (
   _In_            ID3D11Device          *This,
   _In_      const void                  *pShaderBytecode,
@@ -656,7 +824,7 @@ D3D11Dev_CreateGeometryShader_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
   _In_            ID3D11Device               *This,
   _In_      const void                       *pShaderBytecode,
@@ -671,7 +839,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateHullShader_Override (
   _In_            ID3D11Device        *This,
   _In_      const void                *pShaderBytecode,
@@ -681,7 +849,7 @@ D3D11Dev_CreateHullShader_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateDomainShader_Override (
   _In_            ID3D11Device        *This,
   _In_      const void                *pShaderBytecode,
@@ -691,7 +859,7 @@ D3D11Dev_CreateDomainShader_Override (
 
 __declspec (noinline)
 HRESULT
-WINAPI
+STDMETHODCALLTYPE
 D3D11Dev_CreateComputeShader_Override (
   _In_            ID3D11Device         *This,
   _In_      const void                 *pShaderBytecode,
@@ -942,9 +1110,10 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
-                                  _In_ ID3D11Buffer        *pBufferForArgs,
-                                  _In_ UINT                 AlignedByteOffsetForArgs );
+D3D11_DispatchIndirect_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs );
 
 __declspec (noinline)
 HRESULT
@@ -977,45 +1146,66 @@ D3D11_OMSetRenderTargets_Override (
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext              *This,
-                                            _In_           UINT                              NumRTVs,
-                                            _In_opt_       ID3D11RenderTargetView    *const *ppRenderTargetViews,
-                                            _In_opt_       ID3D11DepthStencilView           *pDepthStencilView,
-                                            _In_           UINT                              UAVStartSlot,
-                                            _In_           UINT                              NumUAVs,
-                                            _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
-                                            _In_opt_ const UINT                             *pUAVInitialCounts );
+D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
+                 ID3D11DeviceContext              *This,
+  _In_           UINT                              NumRTVs,
+  _In_opt_       ID3D11RenderTargetView    *const *ppRenderTargetViews,
+  _In_opt_       ID3D11DepthStencilView           *pDepthStencilView,
+  _In_           UINT                              UAVStartSlot,
+  _In_           UINT                              NumUAVs,
+  _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
+  _In_opt_ const UINT                             *pUAVInitialCounts );
 
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_OMGetRenderTargets_Override (      ID3D11DeviceContext     *This,
-                                   _In_  UINT                     NumViews,
-                                   _Out_ ID3D11RenderTargetView **ppRenderTargetViews,
-                                   _Out_ ID3D11DepthStencilView **ppDepthStencilView );
+D3D11_OMGetRenderTargets_Override (
+        ID3D11DeviceContext     *This,
+  _In_  UINT                     NumViews,
+  _Out_ ID3D11RenderTargetView **ppRenderTargetViews,
+  _Out_ ID3D11DepthStencilView **ppDepthStencilView );
 
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Override (ID3D11DeviceContext              *This,
-                                                          _In_  UINT                        NumRTVs,
-                                                          _Out_ ID3D11RenderTargetView    **ppRenderTargetViews,
-                                                          _Out_ ID3D11DepthStencilView    **ppDepthStencilView,
-                                                          _In_  UINT                        UAVStartSlot,
-                                                          _In_  UINT                        NumUAVs,
-                                                          _Out_ ID3D11UnorderedAccessView **ppUnorderedAccessViews);
+D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Override (
+        ID3D11DeviceContext        *This,
+  _In_  UINT                        NumRTVs,
+  _Out_ ID3D11RenderTargetView    **ppRenderTargetViews,
+  _Out_ ID3D11DepthStencilView    **ppDepthStencilView,
+  _In_  UINT                        UAVStartSlot,
+  _In_  UINT                        NumUAVs,
+  _Out_ ID3D11UnorderedAccessView **ppUnorderedAccessViews );
 
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_ClearDepthStencilView_Override (ID3D11DeviceContext         *This,
-                                      _In_ ID3D11DepthStencilView *pDepthStencilView,
-                                      _In_ UINT                    ClearFlags,
-                                      _In_ FLOAT                   Depth,
-                                      _In_ UINT8                   Stencil);
+D3D11_ClearDepthStencilView_Override (
+  _In_ ID3D11DeviceContext    *This,
+  _In_ ID3D11DepthStencilView *pDepthStencilView,
+  _In_ UINT                    ClearFlags,
+  _In_ FLOAT                   Depth,
+  _In_ UINT8                   Stencil);
 
+__declspec (noinline)
 void
-WINAPI
+STDMETHODCALLTYPE
+D3D11_ExecuteCommandList_Override (
+  _In_  ID3D11DeviceContext *This,
+  _In_  ID3D11CommandList   *pCommandList,
+        BOOL                 RestoreContextState );
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D11_FinishCommandList_Override (
+            ID3D11DeviceContext  *This,
+            BOOL                  RestoreDeferredContextState,
+  _Out_opt_ ID3D11CommandList   **ppCommandList );
+
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
 D3D11_PSSetSamplers_Override
 (
   _In_     ID3D11DeviceContext       *This,
@@ -1132,13 +1322,19 @@ D3D11_CSGetShader_Override (
   _Inout_opt_ UINT                 *pNumClassInstances );
 
 __declspec (noinline)
+void
+STDMETHODCALLTYPE
+D3D11_ClearState_Override (
+  _In_        ID3D11DeviceContext *This );
+
+__declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
 D3D11_GetData_Override (
   _In_  ID3D11DeviceContext *This,
   _In_  ID3D11Asynchronous  *pAsync,
   _Out_writes_bytes_opt_   ( DataSize )
-  void                *pData,
+        void                *pData,
   _In_  UINT                 DataSize,
   _In_  UINT                 GetDataFlags );
 
@@ -1146,7 +1342,7 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_CopyResource_Override (
-  ID3D11DeviceContext *This,
+       ID3D11DeviceContext *This,
   _In_ ID3D11Resource      *pDstResource,
   _In_ ID3D11Resource      *pSrcResource );
 
@@ -1179,6 +1375,48 @@ D3D11_UpdateSubresource1_Override (
 #endif
 
 
+
+using namespace std::placeholders;
+
+using D3D11DevCtx_GetConstantBuffers_pfn =
+    void (STDMETHODCALLTYPE ID3D11DeviceContext::* )
+              ( UINT, UINT, ID3D11Buffer ** );
+
+using D3D11DevCtx1_GetConstantBuffers1_pfn =
+    void (STDMETHODCALLTYPE ID3D11DeviceContext1::* )
+              ( UINT,   UINT, ID3D11Buffer **,
+                UINT *, UINT * );
+
+static constexpr
+  std::tuple < D3D11DevCtx_GetConstantBuffers_pfn,
+               D3D11DevCtx1_GetConstantBuffers1_pfn >
+  GetConstantBuffers_FnTbl [] = {
+    { &ID3D11DeviceContext ::VSGetConstantBuffers,
+      &ID3D11DeviceContext1::VSGetConstantBuffers1 },
+    { &ID3D11DeviceContext ::PSGetConstantBuffers,
+      &ID3D11DeviceContext1::PSGetConstantBuffers1 },
+    { &ID3D11DeviceContext ::GSGetConstantBuffers,
+      &ID3D11DeviceContext1::GSGetConstantBuffers1 },
+    { &ID3D11DeviceContext ::HSGetConstantBuffers,
+      &ID3D11DeviceContext1::HSGetConstantBuffers1 },
+    { &ID3D11DeviceContext ::DSGetConstantBuffers,
+      &ID3D11DeviceContext1::DSGetConstantBuffers1 }
+  };
+
+using D3D11DevCtx_SetConstantBuffers_pfn =
+    void (STDMETHODCALLTYPE ID3D11DeviceContext::* )
+              ( UINT, UINT, ID3D11Buffer *const * );
+
+static constexpr
+  D3D11DevCtx_SetConstantBuffers_pfn
+              SetConstantBuffers_FnTbl [] =
+  {
+    &ID3D11DeviceContext::VSSetConstantBuffers,
+    &ID3D11DeviceContext::PSSetConstantBuffers,
+    &ID3D11DeviceContext::GSSetConstantBuffers,
+    &ID3D11DeviceContext::HSSetConstantBuffers,
+    &ID3D11DeviceContext::DSSetConstantBuffers
+  };
 
 
 bool

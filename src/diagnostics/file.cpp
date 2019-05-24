@@ -127,8 +127,8 @@ NtReadFile_Detour (
         extern SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>> dwSteamTids;
         static SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>> dwDiskTids;
 
-        if ( (! dwDiskTids->count  (dwTid) ) &&
-             (! dwSteamTids->count (dwTid) )    )
+        if ( (dwDiskTids->find  (dwTid) == dwDiskTids->cend  () ) &&
+             (dwSteamTids->find (dwTid) == dwSteamTids->cend () )    )
         {
           auto* task =
             SK_MMCS_GetTaskForThreadIDEx ( dwTid,
@@ -340,13 +340,6 @@ SK_GetFileSD ( const wchar_t              *wszPath,
     bRetVal;
 }
 
-PSID
-SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic);
-
-PSID
-SK_Win32_ReleaseTokenSid (PSID pSid);
-
-
 bool
 SK_File_CanUserWriteToPath (const wchar_t* wszPath)
 {
@@ -362,7 +355,8 @@ SK_File_CanUserWriteToPath (const wchar_t* wszPath)
                             OWNER_SECURITY_INFORMATION |
                             GROUP_SECURITY_INFORMATION |
                             DACL_SECURITY_INFORMATION,
-                              nullptr, 0, &length ) && ERROR_INSUFFICIENT_BUFFER == GetLastError () )
+                              nullptr, 0, &length ) &&
+     ERROR_INSUFFICIENT_BUFFER == GetLastError () )
   {
     PSECURITY_DESCRIPTOR security =
       static_cast< PSECURITY_DESCRIPTOR > (new (std::nothrow) uint8_t [length]);

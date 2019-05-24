@@ -28,6 +28,12 @@ static const GUID SKID_D3D11KnownShaderCrc32c =
 // {5C5298BB-0F9D-5022-A19D-A2E69792AE14}
   { 0x5c5298bb, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x14 } };
 
+enum class SK_D3D11DispatchType
+{
+  Standard,
+  Indirect
+};
+
 enum class SK_D3D11DrawType
 {
   Auto,
@@ -403,7 +409,8 @@ public:
       crit_sec->lock ();
 
       loaded =
-        ( repository->descs.count (crc32c) != 0 );
+        ( repository->descs.find (crc32c) !=
+          repository->descs.cend (      )  );
 
       crit_sec->unlock ();
     }
@@ -427,7 +434,10 @@ SK_D3D11_CreateShader_Impl (
                   sk_shader_class       type )
 {
   if (pShaderBytecode == nullptr)
-    return DXGI_ERROR_INVALID_CALL;
+  {
+    return
+      DXGI_ERROR_INVALID_CALL;
+  }
 
   const auto InvokeCreateRoutine =
   [&]
@@ -473,7 +483,10 @@ SK_D3D11_CreateShader_Impl (
   //     it was after and we avoid an awkward mess hashing bytecode for no
   //       good reason!
   if (ppShader == nullptr)
-    return InvokeCreateRoutine ();
+  {
+    return
+      InvokeCreateRoutine ();
+  }
 
   // In debug builds, keep a tally of threads involved in shader management.
   //
@@ -504,39 +517,45 @@ SK_D3D11_CreateShader_Impl (
       default:
       case sk_shader_class::Vertex:
         *ppCritical     = cs_shader_vs.get ();
-        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders->vertex
-                          );
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->vertex);
          break;
       case sk_shader_class::Pixel:
         *ppCritical     = cs_shader_ps.get ();
-        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders->pixel
-                          );
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->pixel);
          break;
       case sk_shader_class::Geometry:
         *ppCritical     = cs_shader_gs.get ();
-        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders->geometry
-                          );
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->geometry);
          break;
       case sk_shader_class::Domain:
         *ppCritical     = cs_shader_ds.get ();
-        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders->domain
-                          );
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->domain);
          break;
       case sk_shader_class::Hull:
         *ppCritical     = cs_shader_hs.get ();
-        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders->hull
-                          );
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->hull);
          break;
       case sk_shader_class::Compute:
         *ppCritical     = cs_shader_cs.get ();
-        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders->compute
-                          );
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->compute);
          break;
     }
   };
@@ -544,16 +563,20 @@ SK_D3D11_CreateShader_Impl (
   SK_Thread_CriticalSection*                        pCritical   = nullptr;
   SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShaderRepo = nullptr;
 
-  GetResources (&pCritical, &pShaderRepo);
-
+  GetResources (
+    &pCritical, &pShaderRepo
+  );
 
   uint32_t checksum =
-    SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
+    SK_D3D11_ChecksumShaderBytecode (
+                    pShaderBytecode,
+                           BytecodeLength );
 
   // Checksum failure, just give the data to D3D11 and hope for the best
   if (checksum == 0x00)
   {
-    hr = InvokeCreateRoutine ();
+    hr =
+      InvokeCreateRoutine ();
   }
 
   else if (pCritical != nullptr)
@@ -569,7 +592,10 @@ SK_D3D11_CreateShader_Impl (
     {
       pCritical->unlock (); // Release lock during resource creation
 
-      hr = InvokeCreateRoutine ();
+      hr =
+        InvokeCreateRoutine ();
+
+      pCritical->lock ();   // Re-acquire before cache manipulation
 
       if (SUCCEEDED (hr))
       {
@@ -578,23 +604,56 @@ SK_D3D11_CreateShader_Impl (
         switch (type)
         {
           default:
-          case sk_shader_class::Vertex:   desc.type = SK_D3D11_ShaderType::Vertex;   break;
-          case sk_shader_class::Pixel:    desc.type = SK_D3D11_ShaderType::Pixel;    break;
-          case sk_shader_class::Geometry: desc.type = SK_D3D11_ShaderType::Geometry; break;
-          case sk_shader_class::Domain:   desc.type = SK_D3D11_ShaderType::Domain;   break;
-          case sk_shader_class::Hull:     desc.type = SK_D3D11_ShaderType::Hull;     break;
-          case sk_shader_class::Compute:  desc.type = SK_D3D11_ShaderType::Compute;  break;
+          case sk_shader_class::Vertex:
+            (*ppShader)->QueryInterface <
+                ID3D11VertexShader
+            > ((ID3D11VertexShader **)
+               &desc.pShader);
+                desc.type =
+           SK_D3D11_ShaderType::Vertex;  break;
+          case sk_shader_class::Pixel:
+            (*ppShader)->QueryInterface <
+                ID3D11PixelShader
+            > ((ID3D11PixelShader **)
+               &desc.pShader);
+                desc.type =
+           SK_D3D11_ShaderType::Pixel;   break;
+          case sk_shader_class::Geometry:
+            (*ppShader)->QueryInterface <
+                ID3D11GeometryShader
+            > ((ID3D11GeometryShader **)
+               &desc.pShader);
+                desc.type =
+           SK_D3D11_ShaderType::Geometry;break;
+          case sk_shader_class::Domain:
+            (*ppShader)->QueryInterface <
+                ID3D11DomainShader
+            > ((ID3D11DomainShader **)
+               &desc.pShader);
+                desc.type =
+           SK_D3D11_ShaderType::Domain;  break;
+          case sk_shader_class::Hull:
+            (*ppShader)->QueryInterface <
+                ID3D11HullShader
+            > ((ID3D11HullShader **)
+               &desc.pShader);
+                desc.type =
+           SK_D3D11_ShaderType::Hull;    break;
+          case sk_shader_class::Compute:
+            (*ppShader)->QueryInterface <
+                ID3D11ComputeShader
+            > ((ID3D11ComputeShader **)
+               &desc.pShader);
+                desc.type =
+           SK_D3D11_ShaderType::Compute; break;
         }
 
-        desc.crc32c  =  checksum;
-        desc.pShader = *ppShader;
+        desc.crc32c = checksum;
 
-        desc.bytecode.insert ( desc.bytecode.end  (),
+        desc.bytecode.insert ( desc.bytecode.cend  (),
           &((uint8_t *) pShaderBytecode) [0],
           &((uint8_t *) pShaderBytecode) [BytecodeLength]
         );
-
-        pCritical->lock (); // Re-acquire before cache manipulation
 
         // Concurrent shader creation resulted in the same shader twice,
         //   release this one and use the one currently in cache.
@@ -611,14 +670,20 @@ SK_D3D11_CreateShader_Impl (
 
         else
         {
-          ((ID3D11DeviceChild *)*ppShader)->SetPrivateData (
+             *ppShader =
+          desc.pShader;
+
+          ((ID3D11DeviceChild *)desc.pShader)->SetPrivateData (
             SKID_D3D11KnownShaderCrc32c, sizeof (uint32_t), &checksum
           );
 
-          pShaderRepo->descs.emplace (std::make_pair (checksum, desc));
+          pShaderRepo->descs.emplace (
+            std::make_pair (checksum, desc)
+          );
         }
 
-        pCachedDesc = &pShaderRepo->descs [checksum];
+        pCachedDesc
+          = &pShaderRepo->descs [checksum];
       }
     }
 
@@ -634,16 +699,18 @@ SK_D3D11_CreateShader_Impl (
       //
       //  * Consider a tagging system to prevent aliasing in the future.
       //
-      pCachedDesc = &pShaderRepo->descs [checksum];
+      pCachedDesc =
+        &pShaderRepo->descs [checksum];
 
       SK_LOG3 ( ( L"Shader Class %lu Cache Hit for Checksum %08x", type, checksum ),
                   L"DX11Shader" );
     }
 
-    if (pCachedDesc != nullptr)
-    {
-       *ppShader = (IUnknown *)pCachedDesc->pShader;
-      (*ppShader)->AddRef ();
+    if ( pCachedDesc          != nullptr &&
+         pCachedDesc->pShader != nullptr ){
+         pCachedDesc->pShader->AddRef ();
+       *ppShader =
+         pCachedDesc->pShader;
 
       // XXX: Creation does not imply usage
       //
@@ -655,7 +722,9 @@ SK_D3D11_CreateShader_Impl (
       ///           pShaderRepo->rev [*ppShader] != checksum )
       ///  pShaderRepo->rev.erase (*ppShader);
 
-      pShaderRepo->rev.emplace (std::make_pair (*ppShader, checksum));
+      pShaderRepo->rev.emplace (
+        std::make_pair (*ppShader, pCachedDesc)
+      );
     }
 
     pCritical->unlock ();
@@ -666,21 +735,42 @@ SK_D3D11_CreateShader_Impl (
 
 
 bool
-SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
-                                         UINT                 dev_idx = (UINT)-1 );
+SK_D3D11_IgnoreWrappedOrDeferred (
+  bool                 bWrapped,
+  ID3D11DeviceContext* pDevCtx
+);
 
 bool
-SK_D3D11_ShouldTrackMMIO ( ID3D11DeviceContext* pDevCtx,
-                           SK_TLS**             ppTLS = nullptr );
+SK_D3D11_ShouldTrackSetShaderResources (
+  ID3D11DeviceContext* pDevCtx,
+  UINT                 dev_idx = (UINT)-1
+);
 
 bool
-SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
-                               UINT                 dev_idx = (UINT)-1 );
+SK_D3D11_ShouldTrackMMIO (
+  ID3D11DeviceContext* pDevCtx,
+  SK_TLS**             ppTLS = nullptr
+);
 
 bool
-SK_D3D11_ShouldTrackDrawCall (       ID3D11DeviceContext* pDevCtx,
-                               const SK_D3D11DrawType     draw_type,
-                                     UINT                 dev_idx = (UINT)-1 );
+SK_D3D11_ShouldTrackRenderOp (
+  ID3D11DeviceContext* pDevCtx,
+  UINT                 dev_idx = (UINT)-1
+);
+
+bool
+SK_D3D11_ShouldTrackDrawCall (
+        ID3D11DeviceContext* pDevCtx,
+  const SK_D3D11DrawType     draw_type,
+        UINT                 dev_idx = (UINT)-1
+);
+
+bool
+SK_D3D11_ShouldTrackComputeDispatch (
+         ID3D11DeviceContext* pDevCtx,
+  const  SK_D3D11DispatchType dispatch_type,
+         UINT                 dev_idx
+);
 
 // All known targets are indexed using the calling device context,
 //   no internal locking is necessary as long as dev ctx's are one per-thread.
@@ -701,8 +791,21 @@ struct SK_D3D11_KnownTargets
     max_rt_views = std::max (max_rt_views, rt_views.size ());
     max_ds_views = std::max (max_ds_views, ds_views.size ());
 
-    rt_views.clear ();
-    ds_views.clear ();
+    auto orig_se =
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    try
+    {
+      rt_views.clear ();
+      ds_views.clear ();
+    } catch (const SK_SEH_IgnoredException&)
+    {
+      static int                                                     dead_idx = 0;
+      static std::unordered_set <SK_ComPtr <ID3D11RenderTargetView>> dead_rtvs [65536] = { };
+      static std::unordered_set <SK_ComPtr <ID3D11DepthStencilView>> dead_dsv  [65536] = { };
+      rt_views.swap (dead_rtvs [dead_idx]  );
+      ds_views.swap (dead_dsv  [dead_idx++]);
+    }
+    SK_SEH_RemoveTranslator (orig_se);
 
     rt_views.reserve (max_rt_views);
     ds_views.reserve (max_ds_views);

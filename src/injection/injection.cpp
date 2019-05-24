@@ -138,7 +138,7 @@ SK_Inject_InitShutdownEvent (void)
       sattr.lpSecurityDescriptor = nullptr;
 
     HANDLE hTeardown =
-      CreateEventW ( nullptr,
+      SK_CreateEvent ( nullptr,
         TRUE, FALSE,
           SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                  LR"(Local\SK_GlobalHookTeardown64)") );
@@ -389,6 +389,10 @@ SKX_GetCBTHook (void)
 #define HSHELL_FLASH              (HSHELL_REDRAW|HSHELL_HIGHBIT)
 #define HSHELL_RUDEAPPACTIVATED   (HSHELL_WINDOWACTIVATED|HSHELL_HIGHBIT)
 
+// Don't use a local static variable, since that drags in the MSVCRT to do
+//   the dirty work, just make this a global.
+HMODULE hModule_CBT = nullptr;
+
 LRESULT
 CALLBACK
 CBTProc ( _In_ int    nCode,
@@ -405,11 +409,9 @@ CBTProc ( _In_ int    nCode,
     return lRet;
   }
 
-  static HMODULE hModule = nullptr;
-
-  if ( hModule == nullptr &&
+  if ( hModule_CBT == nullptr &&
          GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                               (LPCWSTR)&CBTProc, &hModule )
+                               (LPCWSTR)&CBTProc, &hModule_CBT )
      )
   {
     LONG idx =
@@ -424,16 +426,29 @@ CBTProc ( _In_ int    nCode,
     }
 
     CloseHandle  (
-    CreateThread (nullptr, 16384, [](LPVOID lpUser) ->
+    CreateThread (nullptr, 0, [](LPVOID lpUser) -> //-V513
     DWORD
     {
-      HMODULE hMod = *((HMODULE *)lpUser);
+      HMODULE hMod =
+        *((HMODULE *)lpUser);
 
+      //
+      // Exception handling is not valid until after the CRT invokes
+      //   dllmain_dispatch, hopefully it has done so by the time this
+      //     thread begins execution.
+      //
+      //   * Don't move this code outside of the thread, and don't use
+      //       the Visual C++ CRT _beginthread (...) construct within this
+      //         hook.
+      //
+      //     ==> In fact, don't use any part of the C/C++ standard library
+      //           unless you are fond of impossible to debug problems !!
+      //
       __try
       {
         SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-        static const char* szDesc =
+        const char* szDesc =
           "[SK] Global Hook Pacifier";
 
         THREADNAME_INFO info = {  };
@@ -453,7 +468,7 @@ CBTProc ( _In_ int    nCode,
 
 
       HANDLE hHookTeardown =
-        CreateEventW ( nullptr,
+        SK_CreateEvent ( nullptr,
           TRUE, FALSE,
             SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                    LR"(Local\SK_GlobalHookTeardown64)") );
@@ -496,12 +511,14 @@ CBTProc ( _In_ int    nCode,
           CancelWaitableTimer (hWaitTimer);
           CloseHandle         (hWaitTimer);
         }
+
+        CloseHandle (hHookTeardown);
       }
 
       FreeLibraryAndExitThread (hMod, 0x0);
 
       return 0;
-    }, (LPVOID)&hModule, 0x0, nullptr));
+    }, (LPVOID)&hModule_CBT, 0x0, nullptr));
   }
 
   return
@@ -563,17 +580,20 @@ SKX_RemoveCBTHook (void)
   if ( hHookOrig != nullptr &&
          UnhookWindowsHookEx (hHookOrig) )
   {
-                         whitelist_count = 0;
-    RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+                   whitelist_count = 0;
+    RtlZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
 
     HANDLE hHookTeardown =
-      CreateEventW ( nullptr,
+      SK_CreateEvent ( nullptr,
         TRUE, FALSE,
           SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                  LR"(Local\SK_GlobalHookTeardown64)") );
 
     if (hHookTeardown != 0)
-      SetEvent (hHookTeardown);
+    {
+      SetEvent    (hHookTeardown);
+      CloseHandle (hHookTeardown);
+    }
 
     std::set <DWORD> running_pids;
     std::set <DWORD> suspended_pids;
@@ -620,8 +640,6 @@ SKX_RemoveCBTHook (void)
       SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
                               DeleteFileW (L"SpecialK32.pid") );
     }
-
-    CloseHandle (hHookCBT);
 
     hHookCBT  = nullptr;
     hHookOrig = nullptr;
@@ -680,7 +698,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
              DWORD
                {
                  HANDLE hHookTeardown =
-                   CreateEventW ( nullptr,
+                   SK_CreateEvent ( nullptr,
                      TRUE, FALSE,
                        SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                               LR"(Local\SK_GlobalHookTeardown64)") );
@@ -706,6 +724,11 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
                    {
                       break;
                    }
+                 }
+
+                 if (hHookTeardown > 0)
+                 {
+                   CloseHandle (hHookTeardown);
                  }
 
                  SK_Thread_CloseSelf ();
@@ -1065,7 +1088,7 @@ SK_Inject_SwitchToRenderWrapper (void)
     lstrcatW (wszOut, wszPDBFile);
 
     if (! CopyFileW (wszIn, wszOut, TRUE))
-      ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
+       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
 
     *wszIn = L'\0';
 

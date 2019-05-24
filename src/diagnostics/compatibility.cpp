@@ -47,20 +47,21 @@ TaskDialogCallback (
       SK_RealizeForegroundWindow (hWnd);
     }
 
-    SetForegroundWindow (hWnd);
-    SetWindowPos        (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-                         SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
-                         SWP_NOSIZE         | SWP_NOMOVE       |
-                         SWP_NOSENDCHANGING   );
-    SetActiveWindow     (hWnd);
+    SetForegroundWindow   (hWnd);
+    SetWindowPos          (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                           SWP_NOSIZE         | SWP_NOMOVE       |
+                           SWP_NOSENDCHANGING   );
+    SetActiveWindow       (hWnd);
 
-    SetWindowLongW      (hWnd, GWL_EXSTYLE,
-     ( (GetWindowLongW  (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
+    SetWindowLongPtrW     (hWnd, GWL_EXSTYLE,
+     ( (GetWindowLongPtrW (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
   {
-    ShellExecuteW (nullptr, L"open", reinterpret_cast <wchar_t *>(lParam), nullptr, nullptr, SW_SHOW);
+    ShellExecuteW (nullptr, L"open",
+      reinterpret_cast <wchar_t *>(lParam), nullptr, nullptr, SW_SHOW);
     return S_OK;
   }
 
@@ -70,18 +71,18 @@ TaskDialogCallback (
   {
     InterlockedExchange (&__SK_TaskDialogActive, TRUE);
 
-    SK_RealizeForegroundWindow (hWnd);
+    SK_RealizeForegroundWindow
+                          (hWnd);
+    SetForegroundWindow   (hWnd);
+    SetWindowPos          (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                           SWP_NOSIZE         | SWP_NOMOVE       |
+                           SWP_NOSENDCHANGING   );
+    SetActiveWindow       (hWnd);
+    SetFocus              (hWnd);
 
-    SetForegroundWindow (hWnd);
-    SetWindowPos        (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-                         SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
-                         SWP_NOSIZE         | SWP_NOMOVE       |
-                         SWP_NOSENDCHANGING   );
-    SetActiveWindow     (hWnd);
-    SetFocus            (hWnd);
-
-    SetWindowLongW      (hWnd, GWL_EXSTYLE,
-     ( (GetWindowLongW  (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
+    SetWindowLongPtrW     (hWnd, GWL_EXSTYLE,
+     ( (GetWindowLongPtrW (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
   }
 
   if (uNotification == TDN_CREATED)
@@ -337,6 +338,10 @@ SK_Bypass_CRT (LPVOID)
   {
     switch (static_cast <SK_RenderAPI> (config.apis.last_known))
     {
+      case SK_RenderAPI::D3D11On12:
+        wszAPI = L"d3d12";
+        SK_SetDLLRole (DLL_ROLE::D3D12);
+        break;
       case SK_RenderAPI::D3D8:
       case SK_RenderAPI::D3D8On11:
         wszAPI = L"d3d8";
@@ -456,7 +461,7 @@ SK_Bypass_CRT (LPVOID)
   if (__bypass.disable)
   task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
-  if (timer)
+  if (timer) //-V547
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
 
   int nRadioPressed = 0;

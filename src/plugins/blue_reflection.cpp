@@ -125,13 +125,16 @@ struct light_shaft_s {
   float power    [4];
   float img_size [2];
   float weights  [4][4];
-} shaft;
+};
 
-struct
+struct shaft_min_max_s
 {
   float min_intensity = 0.0f;
   float max_intensity = 30.0f;
-} shaft_prefs;
+};
+
+SK_LazyGlobal <shaft_min_max_s> shaft;
+SK_LazyGlobal <light_shaft_s>   shaft_prefs;
 
 float fSteps [3] =  { 0.0002f, 0.0004f, 0.001f };
 
@@ -242,10 +245,12 @@ SK_IT_Unmap (
            pShaft->img_size [1] <= ImGui::GetIO ().DisplaySize.y + 0.1 &&
            pShaft->img_size [1] >= ImGui::GetIO ().DisplaySize.y - 0.1 )
       {
-        if (pShaft->power [3] > shaft_prefs.max_intensity) pShaft->power [3] = shaft_prefs.max_intensity;
-        if (pShaft->power [3] < shaft_prefs.min_intensity) pShaft->power [3] = shaft_prefs.min_intensity;
+        if (pShaft->power [3] > shaft->max_intensity)
+            pShaft->power [3] = shaft->max_intensity;
+        if (pShaft->power [3] < shaft->min_intensity)
+            pShaft->power [3] = shaft->min_intensity;
 
-        shaft = *pShaft;
+        *shaft_prefs = *pShaft;
       }
 
       mapped_shafts [dev_idx].erase (pResource);
@@ -391,14 +396,14 @@ SK_IT_ControlPanel (void)
 
       ImGui::TreePush ("");
 
-      changed |= ImGui::SliderFloat ("Minimum Godray Intensity", &shaft_prefs.min_intensity, 0.0f,  shaft_prefs.max_intensity);
-      changed |= ImGui::SliderFloat ("Maximum Godray Intensity", &shaft_prefs.max_intensity, shaft_prefs.min_intensity, 30.0f);
-      changed |= ImGui::SliderFloat ("Current Godray Intensity", &shaft.power [3], shaft_prefs.min_intensity, shaft_prefs.max_intensity);
+      changed |= ImGui::SliderFloat ("Minimum Godray Intensity", &shaft->min_intensity, 0.0f,  shaft->max_intensity);
+      changed |= ImGui::SliderFloat ("Maximum Godray Intensity", &shaft->max_intensity, shaft->min_intensity, 30.0f);
+      changed |= ImGui::SliderFloat ("Current Godray Intensity", &shaft_prefs->power [3], shaft->min_intensity, shaft->max_intensity);
 
       if (changed)
       {
-        it_config->godrays.max->store (shaft_prefs.max_intensity);
-        it_config->godrays.min->store (shaft_prefs.min_intensity);
+        it_config->godrays.max->store (shaft->max_intensity);
+        it_config->godrays.min->store (shaft->min_intensity);
 
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
       }
@@ -522,8 +527,8 @@ SK_IT_InitPlugin (void)
                                               L"Indigo.Godrays",
                                                 L"MaximumIntensity" );
 
-  _it_config.godrays.min->load (shaft_prefs.min_intensity);
-  _it_config.godrays.max->load (shaft_prefs.max_intensity);
+  _it_config.godrays.min->load (shaft->min_intensity);
+  _it_config.godrays.max->load (shaft->max_intensity);
 
   _it_config.shadows.min_bias =
       dynamic_cast <sk::ParameterFloat *>

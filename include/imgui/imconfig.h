@@ -8,8 +8,9 @@
 
 //---- Define assertion handler. Defaults to calling assert().
 //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
-#define IM_ASSERT(_EXPR)  SK_ReleaseAssert(_EXPR)
+#define IM_ASSERT(_EXPR) (void)0
 
+//SK_ReleaseAssert(_EXPR)
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows.
 //#define IMGUI_API __declspec( dllexport )
 //#define IMGUI_API __declspec( dllimport )

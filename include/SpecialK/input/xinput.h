@@ -164,8 +164,11 @@ using XInputEnable_pfn = void (WINAPI *)(
 
 
 bool
+SK_XInput_Enable          ( BOOL bEnable = TRUE );
+
+bool
 WINAPI
-SK_XInput_PollController  ( INT           iJoyID, 
+SK_XInput_PollController  ( INT           iJoyID,
                             XINPUT_STATE* pState = nullptr );
 
 bool

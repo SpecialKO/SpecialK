@@ -49,15 +49,15 @@ Index of this file:
 #endif
 
 #include <imgui/imgui.h>
-#include <ctype.h>          // toupper
-#include <limits.h>         // INT_MIN, INT_MAX
-#include <math.h>           // sqrtf, powf, cosf, sinf, floorf, ceilf
-#include <stdio.h>          // vsnprintf, sscanf, printf
-#include <stdlib.h>         // NULL, malloc, free, atoi
+#include <cctype>           // toupper
+#include <climits>          // INT_MIN, INT_MAX
+#include <cmath>            // sqrtf, powf, cosf, sinf, floorf, ceilf
+#include <cstdio>           // vsnprintf, sscanf, printf
+#include <cstdlib>          // NULL, malloc, free, atoi
 #if defined(_MSC_VER) && _MSC_VER <= 1500 // MSVC 2008 or earlier
 #include <stddef.h>         // intptr_t
 #else
-#include <stdint.h>         // intptr_t
+#include <cstdint>          // intptr_t
 #endif
 
 #ifdef _MSC_VER
@@ -3921,7 +3921,7 @@ static void ShowExampleAppConstrainedResize (bool* p_open)
   struct CustomConstraints // Helper functions to demonstrate programmatic constraints
   {
     static void Square (ImGuiSizeCallbackData* data) { data->DesiredSize = ImVec2 (IM_MAX (data->DesiredSize.x, data->DesiredSize.y), IM_MAX (data->DesiredSize.x, data->DesiredSize.y)); }
-    static void Step (ImGuiSizeCallbackData* data) { float step = (float)(int)(intptr_t)data->UserData; data->DesiredSize = ImVec2 ((int)(data->DesiredSize.x / step + 0.5f) * step, (int)(data->DesiredSize.y / step + 0.5f) * step); }
+    static void Step (ImGuiSizeCallbackData* data) { float step = (float)(int)(intptr_t)data->UserData; data->DesiredSize = ImVec2 (/*(int)*/lroundf(data->DesiredSize.x / step + 0.5f) * step, /*(int)*/lroundf(data->DesiredSize.y / step + 0.5f) * step); }
   };
 
   static bool auto_resize = false;

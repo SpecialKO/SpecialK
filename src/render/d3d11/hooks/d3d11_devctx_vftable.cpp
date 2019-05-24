@@ -65,6 +65,10 @@ D3D11Dev_GetImmediateContext1_pfn                   D3D11Dev_GetImmediateContext
 D3D11Dev_GetImmediateContext2_pfn                   D3D11Dev_GetImmediateContext2_Original                   = nullptr;
 D3D11Dev_GetImmediateContext3_pfn                   D3D11Dev_GetImmediateContext3_Original                   = nullptr;
 
+D3D11_ClearState_pfn                                D3D11_ClearState_Original                                = nullptr;
+D3D11_ExecuteCommandList_pfn                        D3D11_ExecuteCommandList_Original                        = nullptr;
+D3D11_FinishCommandList_pfn                         D3D11_FinishCommandList_Original                         = nullptr;
+
 D3D11_RSSetScissorRects_pfn                         D3D11_RSSetScissorRects_Original                         = nullptr;
 D3D11_RSSetViewports_pfn                            D3D11_RSSetViewports_Original                            = nullptr;
 D3D11_VSSetConstantBuffers_pfn                      D3D11_VSSetConstantBuffers_Original                      = nullptr;
@@ -336,10 +340,25 @@ D3D11_VSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  return
-    SK_D3D11_SetShader_Impl ( This, pVertexShader,
-                                sk_shader_class::Vertex,
-                                  ppClassInstances, NumClassInstances );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    return
+      SK_D3D11_SetShader_Impl (
+        This,           pVertexShader,
+        sk_shader_class::Vertex,
+               ppClassInstances,
+              NumClassInstances );
+  }
+
+  else
+  {
+    D3D11_VSSetShader_Original
+    (   This,
+       pVertexShader,
+      ppClassInstances,
+     NumClassInstances
+    );
+  }
 }
 
 __declspec (noinline)
@@ -352,8 +371,10 @@ D3D11_VSGetShader_Override (
  _Inout_opt_ UINT                 *pNumClassInstances )
 {
   return
-    D3D11_VSGetShader_Original ( This, ppVertexShader,
-                                 ppClassInstances, pNumClassInstances );
+    D3D11_VSGetShader_Original ( This,
+      ppVertexShader, ppClassInstances,
+                    pNumClassInstances
+    );
 }
 
 __declspec (noinline)
@@ -365,10 +386,25 @@ D3D11_PSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  return
-    SK_D3D11_SetShader_Impl ( This, pPixelShader,
-                                sk_shader_class::Pixel,
-                                  ppClassInstances, NumClassInstances );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    return
+      SK_D3D11_SetShader_Impl (
+        This,           pPixelShader,
+        sk_shader_class::Pixel,
+                ppClassInstances,
+               NumClassInstances );
+  }
+
+  else
+  {
+    D3D11_PSSetShader_Original
+    (   This,
+       pPixelShader,
+      ppClassInstances,
+     NumClassInstances
+    );
+  }
 }
 
 __declspec (noinline)
@@ -380,8 +416,11 @@ D3D11_PSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
  _Inout_opt_ UINT                 *pNumClassInstances )
 {
-  return D3D11_PSGetShader_Original ( This, ppPixelShader,
-                                        ppClassInstances, pNumClassInstances );
+  return
+    D3D11_PSGetShader_Original ( This,
+      ppPixelShader, ppClassInstances,
+                   pNumClassInstances
+    );
 }
 
 __declspec (noinline)
@@ -393,10 +432,25 @@ D3D11_GSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  return
-    SK_D3D11_SetShader_Impl ( This, pGeometryShader,
-                                sk_shader_class::Geometry,
-                                  ppClassInstances, NumClassInstances );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    return
+      SK_D3D11_SetShader_Impl (
+        This,           pGeometryShader,
+        sk_shader_class::Geometry,
+                ppClassInstances,
+               NumClassInstances );
+  }
+
+  else
+  {
+    D3D11_GSSetShader_Original
+    (   This,
+       pGeometryShader,
+      ppClassInstances,
+     NumClassInstances
+    );
+  }
 }
 
 __declspec (noinline)
@@ -409,7 +463,10 @@ D3D11_GSGetShader_Override (
  _Inout_opt_ UINT                  *pNumClassInstances )
 {
   return
-    D3D11_GSGetShader_Original (This, ppGeometryShader, ppClassInstances, pNumClassInstances);
+    D3D11_GSGetShader_Original ( This,
+      ppGeometryShader, ppClassInstances,
+                      pNumClassInstances
+    );
 }
 
 __declspec (noinline)
@@ -421,10 +478,25 @@ D3D11_HSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  return
-    SK_D3D11_SetShader_Impl ( This, pHullShader,
-                                sk_shader_class::Hull,
-                                  ppClassInstances, NumClassInstances );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    return
+      SK_D3D11_SetShader_Impl (
+        This,           pHullShader,
+        sk_shader_class::Hull,
+                ppClassInstances,
+               NumClassInstances );
+  }
+
+  else
+  {
+    D3D11_HSSetShader_Original
+    (   This,
+       pHullShader,
+      ppClassInstances,
+     NumClassInstances
+    );
+  }
 }
 
 __declspec (noinline)
@@ -437,8 +509,11 @@ D3D11_HSGetShader_Override (
  _Inout_opt_ UINT                 *pNumClassInstances )
 {
   return
-    D3D11_HSGetShader_Original ( This, ppHullShader,
-                                   ppClassInstances, pNumClassInstances );
+    D3D11_HSGetShader_Original ( This,
+         ppHullShader,
+         ppClassInstances,
+       pNumClassInstances
+    );
 }
 
 __declspec (noinline)
@@ -450,10 +525,25 @@ D3D11_DSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  return
-    SK_D3D11_SetShader_Impl ( This, pDomainShader,
-                                sk_shader_class::Domain,
-                                  ppClassInstances, NumClassInstances );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    return
+      SK_D3D11_SetShader_Impl (
+        This,           pDomainShader,
+        sk_shader_class::Domain,
+                ppClassInstances,
+               NumClassInstances );
+  }
+
+  else
+  {
+    D3D11_DSSetShader_Original
+    (   This,
+       pDomainShader,
+      ppClassInstances,
+     NumClassInstances
+    );
+  }
 }
 
 __declspec (noinline)
@@ -465,8 +555,10 @@ D3D11_DSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
  _Inout_opt_ UINT                 *pNumClassInstances )
 {
-  return D3D11_DSGetShader_Original ( This, ppDomainShader,
-                                        ppClassInstances, pNumClassInstances );
+  return D3D11_DSGetShader_Original ( This,
+    ppDomainShader, ppClassInstances,
+                  pNumClassInstances
+  );
 }
 
 __declspec (noinline)
@@ -478,10 +570,25 @@ D3D11_CSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  return
-    SK_D3D11_SetShader_Impl ( This, pComputeShader,
-                                sk_shader_class::Compute,
-                                  ppClassInstances, NumClassInstances );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    return
+      SK_D3D11_SetShader_Impl (
+        This,           pComputeShader,
+        sk_shader_class::Compute,
+                ppClassInstances,
+               NumClassInstances );
+  }
+
+  else
+  {
+    D3D11_CSSetShader_Original
+    (   This,
+       pComputeShader,
+      ppClassInstances,
+     NumClassInstances
+    );
+  }
 }
 
 __declspec (noinline)
@@ -528,6 +635,115 @@ using D3D11_CSSetShader_pfn =
                      _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
                               UINT                        NumClassInstances );
 
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+D3D11_ClearState_Override (ID3D11DeviceContext* This)
+{
+  SK_LOG_FIRST_CALL
+  SK_D3D11_ResetContextState (
+    This, SK_D3D11_GetDeviceContextHandle (This)
+  );
+
+  D3D11_ClearState_Original (This);
+}
+
+__declspec (noinline)
+void STDMETHODCALLTYPE
+D3D11_ExecuteCommandList_Override (
+    _In_  ID3D11DeviceContext *This,
+    _In_  ID3D11CommandList   *pCommandList,
+          BOOL                 RestoreContextState )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_ComPtr <ID3D11DeviceContext>
+       pBuildContext (nullptr);
+  UINT  size        =        0;
+
+  // Fix for Yakuza0, why the hell is it passing nullptr?!
+  if (pCommandList == nullptr)
+  {
+    D3D11_ExecuteCommandList_Original (
+      This,
+        nullptr,
+          RestoreContextState
+    );
+
+    if (RestoreContextState == FALSE)
+    {
+      SK_D3D11_ResetContextState
+      (
+        This, SK_D3D11_GetDeviceContextHandle (This)
+      );
+    }
+
+    return;
+  }
+
+  pCommandList->GetPrivateData (
+    SKID_D3D11DeviceContextOrigin,
+       &size,   &pBuildContext.p
+  );
+
+  if (pBuildContext.p != nullptr)
+  {
+    if (! pBuildContext.IsEqualObject (This))
+    {
+      SK_D3D11_MergeCommandLists (
+        pBuildContext,
+          This
+      );
+    }
+
+    pBuildContext->SetPrivateData (
+      SKID_D3D11DeviceContextOrigin,
+          0,      nullptr
+    );
+  }
+
+  D3D11_ExecuteCommandList_Original ( This,
+    pCommandList,
+        RestoreContextState
+  );
+
+  if (RestoreContextState == FALSE)
+  {
+    if (! pBuildContext.IsEqualObject (This))
+    {
+      SK_D3D11_ResetContextState (          pBuildContext,
+          SK_D3D11_GetDeviceContextHandle ( pBuildContext )
+      );
+    }
+
+    SK_D3D11_ResetContextState (
+      This, SK_D3D11_GetDeviceContextHandle (This)
+    );
+  }
+}
+
+HRESULT
+STDMETHODCALLTYPE
+D3D11_FinishCommandList_Override (
+            ID3D11DeviceContext  *This,
+            BOOL                  RestoreDeferredContextState,
+  _Out_opt_ ID3D11CommandList   **ppCommandList )
+{
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    D3D11_FinishCommandList_Original
+        (This, RestoreDeferredContextState, ppCommandList);
+
+  if (SUCCEEDED (hr) && (ppCommandList               != nullptr &&
+                        (RestoreDeferredContextState == FALSE)))
+  {
+    (*ppCommandList)->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
+                                         sizeof (ptrdiff_t), This );
+  }
+
+  return hr;
+}
 
 __declspec (noinline)
 void
@@ -552,7 +768,11 @@ D3D11_VSSetConstantBuffers_Override (
 {
   //dll_log->Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
   return
-    D3D11_VSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
+    D3D11_VSSetConstantBuffers_Original (
+      This, StartSlot,
+                    NumBuffers,
+             ppConstantBuffers
+    );
 }
 
 __declspec (noinline)
@@ -578,13 +798,25 @@ D3D11_VSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  SK_D3D11_SetShaderResources_Impl (
-          SK_D3D11_ShaderType::Vertex,
-    SK_D3D11_IsDevCtxDeferred (This),
-                               This , nullptr,
-      StartSlot,
-        NumViews,
-          ppShaderResourceViews    );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_SetShaderResources_Impl(
+         SK_D3D11_ShaderType::Vertex,
+                               FALSE,
+                                This,
+                             nullptr,
+                           StartSlot,
+                            NumViews,
+               ppShaderResourceViews);
+  }
+
+  else
+  {
+    D3D11_VSSetShaderResources_Original ( This,
+               StartSlot, NumViews,
+             ppShaderResourceViews
+    );
+  }
 }
 
 __declspec (noinline)
@@ -596,13 +828,25 @@ D3D11_PSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  SK_D3D11_SetShaderResources_Impl (
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_SetShaderResources_Impl(
           SK_D3D11_ShaderType::Pixel,
-    SK_D3D11_IsDevCtxDeferred (This),
-                               This , nullptr,
-      StartSlot,
-        NumViews,
-          ppShaderResourceViews    );
+                               FALSE,
+                                This,
+                             nullptr,
+                           StartSlot,
+                            NumViews,
+               ppShaderResourceViews);
+  }
+
+  else
+  {
+    D3D11_PSSetShaderResources_Original ( This,
+        StartSlot, NumViews,
+      ppShaderResourceViews
+    );
+  }
 }
 
 __declspec (noinline)
@@ -614,13 +858,25 @@ D3D11_GSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  SK_D3D11_SetShaderResources_Impl (
-        SK_D3D11_ShaderType::Geometry,
-  SK_D3D11_IsDevCtxDeferred (This),
-                             This , nullptr,
-    StartSlot,
-      NumViews,
-        ppShaderResourceViews    );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_SetShaderResources_Impl(
+       SK_D3D11_ShaderType::Geometry,
+                               FALSE,
+                                This,
+                             nullptr,
+                           StartSlot,
+                            NumViews,
+               ppShaderResourceViews);
+  }
+
+  else
+  {
+    D3D11_GSSetShaderResources_Original ( This,
+               StartSlot, NumViews,
+             ppShaderResourceViews
+    );
+  }
 }
 
 __declspec (noinline)
@@ -632,13 +888,25 @@ D3D11_HSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  SK_D3D11_SetShaderResources_Impl (
-          SK_D3D11_ShaderType::Hull,
-    SK_D3D11_IsDevCtxDeferred (This),
-                               This , nullptr,
-      StartSlot,
-        NumViews,
-          ppShaderResourceViews    );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_SetShaderResources_Impl(
+           SK_D3D11_ShaderType::Hull,
+                               FALSE,
+                                This,
+                             nullptr,
+                           StartSlot,
+                            NumViews,
+               ppShaderResourceViews);
+  }
+
+  else
+  {
+    D3D11_HSSetShaderResources_Original ( This,
+               StartSlot, NumViews,
+             ppShaderResourceViews
+    );
+  }
 }
 
 __declspec (noinline)
@@ -650,13 +918,25 @@ D3D11_DSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  SK_D3D11_SetShaderResources_Impl (
-          SK_D3D11_ShaderType::Domain,
-    SK_D3D11_IsDevCtxDeferred (This),
-                               This , nullptr,
-      StartSlot,
-        NumViews,
-          ppShaderResourceViews    );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_SetShaderResources_Impl(
+         SK_D3D11_ShaderType::Domain,
+                               FALSE,
+                                This,
+                             nullptr,
+                           StartSlot,
+                            NumViews,
+               ppShaderResourceViews);
+  }
+
+  else
+  {
+    D3D11_DSSetShaderResources_Original ( This,
+               StartSlot, NumViews,
+             ppShaderResourceViews
+    );
+  }
 }
 
 __declspec (noinline)
@@ -668,13 +948,23 @@ D3D11_CSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  SK_D3D11_SetShaderResources_Impl (
-          SK_D3D11_ShaderType::Compute,
-    SK_D3D11_IsDevCtxDeferred (This),
-                               This , nullptr,
-      StartSlot,
-        NumViews,
-          ppShaderResourceViews    );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_SetShaderResources_Impl (
+            SK_D3D11_ShaderType::Compute,
+      SK_D3D11_IsDevCtxDeferred (This),
+                                 This , nullptr,
+        StartSlot,
+          NumViews,
+            ppShaderResourceViews    );
+  }
+
+  else
+  {
+    D3D11_CSSetShaderResources_Original (
+      This, StartSlot, NumViews, ppShaderResourceViews
+    );
+  }
 }
 
 __declspec (noinline)
@@ -688,7 +978,10 @@ D3D11_CSSetUnorderedAccessViews_Override (
   _In_opt_ const UINT                             *pUAVInitialCounts )
 {
   return
-    D3D11_CSSetUnorderedAccessViews_Original (This, StartSlot, NumUAVs, ppUnorderedAccessViews, pUAVInitialCounts);
+    D3D11_CSSetUnorderedAccessViews_Original ( This,
+      StartSlot,              NumUAVs,
+        ppUnorderedAccessViews, pUAVInitialCounts
+    );
 }
 
 
@@ -729,22 +1022,31 @@ D3D11_UpdateSubresource1_Override (
   if (early_out)
   {
     return
-      D3D11_UpdateSubresource1_Original ( This, pDstResource, DstSubresource,
-                                            pDstBox, pSrcData, SrcRowPitch,
-                                              SrcDepthPitch, CopyFlags );
+      D3D11_UpdateSubresource1_Original (
+        This, pDstResource, DstSubresource,
+              pDstBox,
+              pSrcData,
+               SrcRowPitch,
+               SrcDepthPitch, CopyFlags
+      );
   }
 
 
   if (SK_D3D11_IsDevCtxDeferred (This))
   {
     return
-      D3D11_UpdateSubresource1_Original ( This, pDstResource, DstSubresource,
-                                            pDstBox, pSrcData, SrcRowPitch,
-                                              SrcDepthPitch, CopyFlags );
+      D3D11_UpdateSubresource1_Original (
+        This, pDstResource, DstSubresource,
+              pDstBox,
+              pSrcData,
+               SrcRowPitch,
+               SrcDepthPitch, CopyFlags
+      );
   }
 
 
-  dll_log->Log (L"UpdateSubresource1 ({%s}", SK_D3D11_DescribeResource (pDstResource).c_str ());
+  dll_log->Log (L"UpdateSubresource1 ({%s}",
+    SK_D3D11_DescribeResource (pDstResource).c_str ());
 
 
   //dll_log->Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource1 (%ph, %lu, %ph, %ph, %lu, %lu, %x)",
@@ -889,10 +1191,27 @@ D3D11_UpdateSubresource_Override (
   _In_           UINT                 SrcRowPitch,
   _In_           UINT                 SrcDepthPitch)
 {
-  SK_D3D11_UpdateSubresource_Impl ( This,
-                                      pDstResource, DstSubresource,
-                                        pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch,
-                                          false );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_UpdateSubresource_Impl ( This,
+                                        pDstResource,
+                                         DstSubresource,
+                                        pDstBox,
+                                        pSrcData, SrcRowPitch,
+                                                  SrcDepthPitch,
+                                        false );
+  }
+
+  else
+  {
+    D3D11_UpdateSubresource_Original (
+      This,
+        pDstResource,
+         DstSubresource, pDstBox,
+                         pSrcData, SrcRowPitch,
+                                   SrcDepthPitch
+    );
+  }
 }
 
 
@@ -907,11 +1226,24 @@ D3D11_Map_Override (
      _In_ UINT                      MapFlags,
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 {
-  return
-    SK_D3D11_Map_Impl ( This,
-                          pResource, Subresource,
-                            MapType, MapFlags,
-                              pMappedResource, false );
+  if (! SK_D3D11_IsDevCtxDeferred (This))
+  {
+    return
+      SK_D3D11_Map_Impl ( This,
+                            pResource, Subresource,
+                              MapType, MapFlags,
+                                pMappedResource, false );
+  }
+
+  else
+  {
+    return
+      D3D11_Map_Original (
+        This, pResource, Subresource,
+          MapType, MapFlags,
+            pMappedResource
+      );
+  }
 }
 
 
@@ -923,7 +1255,17 @@ D3D11_Unmap_Override (
   _In_ ID3D11Resource      *pResource,
   _In_ UINT                 Subresource )
 {
-  SK_D3D11_Unmap_Impl (This, pResource, Subresource, false);
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))
+  {
+    SK_D3D11_Unmap_Impl (This, pResource, Subresource, false);
+  }
+
+  else
+  {
+    D3D11_Unmap_Original (
+      This, pResource, Subresource
+    );
+  }
 }
 
 
@@ -936,7 +1278,21 @@ D3D11_CopyResource_Override (
   _In_ ID3D11Resource      *pDstResource,
   _In_ ID3D11Resource      *pSrcResource )
 {
-  SK_D3D11_CopyResource_Impl (This, pDstResource, pSrcResource, false);
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_CopyResource_Impl ( This,
+      pDstResource,
+      pSrcResource,
+        false
+    );
+  }
+
+  else
+  {
+    D3D11_CopyResource_Original (
+      This, pDstResource, pSrcResource
+    );
+  }
 }
 
 __declspec (noinline)
@@ -959,13 +1315,8 @@ D3D11_CopySubresourceRegion_Override (
     return;
   }
 
-  if (SK_D3D11_IsDevCtxDeferred (This))
+  if (! SK_D3D11_IsDevCtxDeferred (This))
   {
-    return
-      D3D11_CopySubresourceRegion_Original (This, pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
-  }
-
-
   ///if (SK_GetCurrentGameID() == SK_GAME_ID::Ys_Eight)
   ///{
   ///  CComQIPtr <ID3D11Texture2D> pTex (pSrcResource);
@@ -1136,7 +1487,7 @@ D3D11_CopySubresourceRegion_Override (
   if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) ||
          SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
   {
-    auto&& map_ctx = (*mapped_resources)[This];
+    auto& map_ctx = (*mapped_resources)[This];
 
     if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource))
     {
@@ -1171,6 +1522,17 @@ D3D11_CopySubresourceRegion_Override (
       }
     }
   }
+  }
+
+  else
+  {
+    return
+      D3D11_CopySubresourceRegion_Original (
+        This, pDstResource, DstSubresource,
+          DstX, DstY, DstZ, pSrcResource,
+            SrcSubresource, pSrcBox
+      );
+  }
 }
 
 
@@ -1181,7 +1543,17 @@ D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
 {
   SK_LOG_FIRST_CALL
 
-  SK_D3D11_DrawAuto_Impl ( This, false );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_DrawAuto_Impl ( This, false );
+  }
+
+  else
+  {
+    D3D11_DrawAuto_Original (
+      This
+    );
+  }
 }
 
 __declspec (noinline)
@@ -1195,9 +1567,23 @@ D3D11_DrawIndexed_Override (
 {
   SK_LOG_FIRST_CALL
 
-  SK_D3D11_DrawIndexed_Impl ( This,
-                                IndexCount, StartIndexLocation,
-                                  BaseVertexLocation, false );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_DrawIndexed_Impl ( This,
+                 IndexCount,
+            StartIndexLocation,
+            BaseVertexLocation, false
+    );
+  }
+
+  else
+  {
+    D3D11_DrawIndexed_Original (
+      This,   IndexCount,
+         StartIndexLocation,
+         BaseVertexLocation
+    );
+  }
 }
 
 __declspec (noinline)
@@ -1210,7 +1596,23 @@ D3D11_Draw_Override (
 {
   SK_LOG_FIRST_CALL
 
-  SK_D3D11_Draw_Impl (This, VertexCount, StartVertexLocation, false);
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_Draw_Impl ( This,
+           VertexCount,
+      StartVertexLocation,
+        false
+    );
+  }
+
+  else
+  {
+    D3D11_Draw_Original (
+      This,
+           VertexCount,
+      StartVertexLocation
+    );
+  }
 }
 
 __declspec (noinline)
@@ -1226,10 +1628,27 @@ D3D11_DrawIndexedInstanced_Override (
 {
   SK_LOG_FIRST_CALL
 
-  SK_D3D11_DrawIndexedInstanced_Impl ( This,
-                                         IndexCountPerInstance, InstanceCount,
-                                         StartIndexLocation,    BaseVertexLocation,
-                                         StartInstanceLocation, false );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_DrawIndexedInstanced_Impl ( This,
+                 IndexCountPerInstance,
+                              InstanceCount,
+            StartIndexLocation,
+            BaseVertexLocation,
+         StartInstanceLocation, false
+    );
+  }
+
+  else
+  {
+    D3D11_DrawIndexedInstanced_Original ( This,
+              IndexCountPerInstance,
+                           InstanceCount,
+         StartIndexLocation,
+         BaseVertexLocation,
+      StartInstanceLocation
+    );
+  }
 }
 
 __declspec (noinline)
@@ -1242,7 +1661,21 @@ D3D11_DrawIndexedInstancedIndirect_Override (
 {
   SK_LOG_FIRST_CALL
 
-  SK_D3D11_DrawIndexedInstancedIndirect_Impl (This, pBufferForArgs, AlignedByteOffsetForArgs, false);
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_DrawIndexedInstancedIndirect_Impl (
+          This, pBufferForArgs,
+      AlignedByteOffsetForArgs, false
+    );
+  }
+
+  else
+  {
+    D3D11_DrawIndexedInstancedIndirect_Original (
+      This,       pBufferForArgs,
+        AlignedByteOffsetForArgs
+    );
+  }
 }
 
 __declspec (noinline)
@@ -1257,9 +1690,27 @@ D3D11_DrawInstanced_Override (
 {
   SK_LOG_FIRST_CALL
 
-  SK_D3D11_DrawInstanced_Impl ( This,
-                                  VertexCountPerInstance, InstanceCount,
-                                  StartVertexLocation, StartInstanceLocation, false );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_DrawInstanced_Impl (
+         This,
+                VertexCountPerInstance,
+              InstanceCount,
+           StartVertexLocation,
+         StartInstanceLocation, false
+    );
+  }
+
+  else
+  {
+    D3D11_DrawInstanced_Original (
+      This,
+             VertexCountPerInstance,
+           InstanceCount,
+        StartVertexLocation,
+      StartInstanceLocation
+    );
+  }
 }
 
 __declspec (noinline)
@@ -1272,7 +1723,21 @@ D3D11_DrawInstancedIndirect_Override (
 {
   SK_LOG_FIRST_CALL
 
-  SK_D3D11_DrawInstancedIndirect_Impl (This, pBufferForArgs, AlignedByteOffsetForArgs, false);
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_DrawInstancedIndirect_Impl ( This,
+                       pBufferForArgs,
+             AlignedByteOffsetForArgs, false
+    );
+  }
+
+  else
+  {
+    D3D11_DrawInstancedIndirect_Original ( This,
+                    pBufferForArgs,
+          AlignedByteOffsetForArgs
+    );
+  }
 }
 
 
@@ -1286,57 +1751,58 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_D3D11_IsDevCtxDeferred (This) || (! SK_D3D11_ShouldTrackRenderOp (This)))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
-    return
-      D3D11_Dispatch_Original ( This,
-                                  ThreadGroupCountX,
-                                    ThreadGroupCountY,
-                                      ThreadGroupCountZ );
+    const UINT dev_idx =
+      SK_D3D11_GetDeviceContextHandle (This);
+
+    SK_D3D11_Dispatch_Impl           ( This,
+      ThreadGroupCountX,
+        ThreadGroupCountY,
+          ThreadGroupCountZ, FALSE,
+                               dev_idx
+    );
   }
 
-  SK_TLS* pTLS    = nullptr;
-  UINT    dev_idx = UINT_MAX;
-
-  if (SK_D3D11_DispatchHandler (This, dev_idx, &pTLS))
-    return;
-
-  D3D11_Dispatch_Original ( This,
-                              ThreadGroupCountX,
-                                ThreadGroupCountY,
-                                  ThreadGroupCountZ );
-
-  SK_D3D11_PostDispatch (This, dev_idx, pTLS);
+  else
+  {
+    D3D11_Dispatch_Original ( This,
+      ThreadGroupCountX,
+        ThreadGroupCountY,
+          ThreadGroupCountZ
+    );
+  }
 }
 
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
-                                  _In_ ID3D11Buffer        *pBufferForArgs,
-                                  _In_ UINT                 AlignedByteOffsetForArgs )
+D3D11_DispatchIndirect_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs )
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_D3D11_IsDevCtxDeferred (This) || (! SK_D3D11_ShouldTrackRenderOp (This)))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
-    return
-      D3D11_DispatchIndirect_Original ( This,
-                                          pBufferForArgs,
-                                            AlignedByteOffsetForArgs );
+    const UINT dev_idx =
+      SK_D3D11_GetDeviceContextHandle (This);
+
+    SK_D3D11_DispatchIndirect_Impl   ( This,
+                pBufferForArgs,
+      AlignedByteOffsetForArgs, FALSE,
+                                  dev_idx
+    );
   }
 
-  SK_TLS* pTLS    = nullptr;
-  UINT    dev_idx = UINT_MAX;
-
-  if (SK_D3D11_DispatchHandler (This, dev_idx, &pTLS))
-    return;
-
-  D3D11_DispatchIndirect_Original ( This,
-                                      pBufferForArgs,
-                                        AlignedByteOffsetForArgs );
-
-  SK_D3D11_PostDispatch (This, dev_idx, pTLS);
+  else
+  {
+    D3D11_DispatchIndirect_Original ( This,
+                pBufferForArgs,
+      AlignedByteOffsetForArgs
+    );
+  }
 }
 
 __declspec (noinline)
@@ -1348,9 +1814,24 @@ _In_     UINT                           NumViews,
 _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
 _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
 {
-  SK_D3D11_OMSetRenderTargets_Impl ( This,
-                                       NumViews, ppRenderTargetViews,
-                                         pDepthStencilView, false );
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_OMSetRenderTargets_Impl ( This,
+                           NumViews,
+                ppRenderTargetViews,
+                 pDepthStencilView,
+      false
+    );
+  }
+
+  else
+  {
+    D3D11_OMSetRenderTargets_Original ( This,
+                        NumViews,
+             ppRenderTargetViews,
+              pDepthStencilView
+    );
+  }
 }
 
 __declspec (noinline)
@@ -1368,29 +1849,40 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
 {
   ID3D11DepthStencilView *pDSV = pDepthStencilView;
 
-  if (SK_D3D11_IsDevCtxDeferred (This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))
   {
-    return
+    if ( pDepthStencilView                         != nullptr &&
+         SK_ReShade_SetDepthStencilViewCallback.fn != nullptr )
+    {    SK_ReShade_SetDepthStencilViewCallback.call (pDSV);  }
+
+    UINT dev_idx =
+      SK_D3D11_GetDeviceContextHandle (This);
+
+#ifdef _M_AMD64
+    static bool yakuza = ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
+                           SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 );
+    extern bool __SK_Yakuza_TrackRTVs;
+#endif
+
+    // ImGui gets to pass-through without invoking the hook
+    if (
+#ifdef _M_AMD64
+       (yakuza && (! __SK_Yakuza_TrackRTVs)) ||
+#endif
+       (! SK_D3D11_ShouldTrackRenderOp (This, dev_idx)))
+    {
+      for (auto& i : tracked_rtv->active [dev_idx]) i.store (false);
+
+      tracked_rtv->active_count [dev_idx] = 0;
+
       D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
         This, NumRTVs, ppRenderTargetViews,
           pDSV, UAVStartSlot, NumUAVs,
             ppUnorderedAccessViews, pUAVInitialCounts
       );
-  }
 
-  UINT dev_idx =
-    SK_D3D11_GetDeviceContextHandle (This);
-
-  if ( pDepthStencilView                         != nullptr &&
-       SK_ReShade_SetDepthStencilViewCallback.fn != nullptr )
-  {    SK_ReShade_SetDepthStencilViewCallback.call (pDSV);  }
-
-  // ImGui gets to pass-through without invoking the hook
-  if (! SK_D3D11_ShouldTrackRenderOp (This, dev_idx))
-  {
-    for (auto& i : tracked_rtv->active [dev_idx]) i.store (false);
-
-    tracked_rtv->active_count [dev_idx] = 0;
+      return;
+    }
 
     D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
       This, NumRTVs, ppRenderTargetViews,
@@ -1398,62 +1890,53 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
           ppUnorderedAccessViews, pUAVInitialCounts
     );
 
-    return;
-  }
-
-  D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
-    This, NumRTVs, ppRenderTargetViews,
-      pDSV, UAVStartSlot, NumUAVs,
-        ppUnorderedAccessViews, pUAVInitialCounts
-  );
-
-  if (NumRTVs > 0)
-  {
-    if (ppRenderTargetViews)
+    if (NumRTVs > 0)
     {
-      auto&                              rt_views =
-        SK_D3D11_RenderTargets [dev_idx].rt_views;
-
-      const auto* tracked_rtv_res =
-        static_cast <ID3D11RenderTargetView *> (
-          ReadPointerAcquire ((volatile PVOID *)&tracked_rtv->resource)
-        );
-
-      for (UINT i = 0; i < NumRTVs; i++)
+      if (ppRenderTargetViews != nullptr)
       {
-        if (! rt_views.count (ppRenderTargetViews [i]))
+        auto&                              rt_views =
+          SK_D3D11_RenderTargets [dev_idx].rt_views;
+
+        const auto* tracked_rtv_res =
+          static_cast <ID3D11RenderTargetView *> (
+            ReadPointerAcquire ((volatile PVOID *)&tracked_rtv->resource)
+          );
+
+        for (UINT i = 0; i < NumRTVs; i++)
         {
-          rt_views.insert (ppRenderTargetViews [i]);
-        }
+          if (! rt_views.count (ppRenderTargetViews [i]))
+          {
+            rt_views.insert (ppRenderTargetViews [i]);
+          }
 
-        const bool active_before =
-          tracked_rtv->active_count [dev_idx] > 0 ?
-          tracked_rtv->active       [dev_idx][i].load ()
-                                           : false;
+          const bool active_before =
+            tracked_rtv->active_count [dev_idx] > 0 ?
+            tracked_rtv->active       [dev_idx][i].load ()
+                                             : false;
 
-        const bool active =
-          ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
-                       true :
-                              false;
+          const bool active =
+            ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
+                         true :
+                                false;
 
-        if (active_before != active)
-        {
-          tracked_rtv->active [dev_idx][i] = active;
+          if (active_before != active)
+          {
+            tracked_rtv->active [dev_idx][i] = active;
 
-          if      (             active                    ) tracked_rtv->active_count [dev_idx]++;
-          else if (tracked_rtv->active_count [dev_idx] > 0) tracked_rtv->active_count [dev_idx]--;
+            if      (             active                    ) tracked_rtv->active_count [dev_idx]++;
+            else if (tracked_rtv->active_count [dev_idx] > 0) tracked_rtv->active_count [dev_idx]--;
+          }
         }
       }
-    }
 
-    if (pDepthStencilView)
-    {
-      auto& ds_views =
-        SK_D3D11_RenderTargets [dev_idx].ds_views;
-
-      if (! ds_views.count (pDepthStencilView))
+      if (pDepthStencilView != nullptr)
       {
-        ds_views.insert (pDepthStencilView);
+        auto& ds_views =
+          SK_D3D11_RenderTargets [dev_idx].ds_views;
+
+        if (! ds_views.count (pDepthStencilView))
+        {     ds_views.insert (pDepthStencilView);
+        }
       }
     }
   }
@@ -1467,12 +1950,17 @@ D3D11_OMGetRenderTargets_Override (ID3D11DeviceContext     *This,
                              _Out_ ID3D11RenderTargetView **ppRenderTargetViews,
                              _Out_ ID3D11DepthStencilView **ppDepthStencilView)
 {
-  D3D11_OMGetRenderTargets_Original (This, NumViews, ppRenderTargetViews, ppDepthStencilView);
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))
+  D3D11_OMGetRenderTargets_Original (
+    This,        NumViews,
+      ppRenderTargetViews,
+      ppDepthStencilView );
 
-  if (ppDepthStencilView != nullptr && SK_ReShade_GetDepthStencilViewCallback.fn != nullptr)
-  {
-    //if (! SK_D3D11_IsDevCtxDeferred (This))
-      SK_ReShade_GetDepthStencilViewCallback.try_call (*ppDepthStencilView);
+  if (             ppDepthStencilView            != nullptr &&
+       SK_ReShade_GetDepthStencilViewCallback.fn != nullptr )
+  {    SK_ReShade_GetDepthStencilViewCallback.try_call (
+                  *ppDepthStencilView
+                                                       );
   }
 }
 
@@ -1494,7 +1982,8 @@ D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Override (
 
   if ( ppDepthStencilView                        != nullptr &&
        SK_ReShade_GetDepthStencilViewCallback.fn != nullptr)
-  {    SK_ReShade_GetDepthStencilViewCallback.try_call (*ppDepthStencilView); }
+  { if (! SK_D3D11_IsDevCtxDeferred (This))
+       SK_ReShade_GetDepthStencilViewCallback.try_call (*ppDepthStencilView); }
 }
 
 __declspec (noinline)
@@ -1507,9 +1996,14 @@ D3D11_ClearDepthStencilView_Override (ID3D11DeviceContext    *This,
                                  _In_ UINT8                   Stencil)
 {
   if (SK_ReShade_ClearDepthStencilViewCallback.fn != nullptr)
-    SK_ReShade_ClearDepthStencilViewCallback.try_call (pDepthStencilView);
+  {   SK_ReShade_ClearDepthStencilViewCallback.try_call (pDepthStencilView);
+  }
 
-  D3D11_ClearDepthStencilView_Original (This, pDepthStencilView, ClearFlags, Depth, Stencil);
+  D3D11_ClearDepthStencilView_Original (
+    This,      pDepthStencilView,
+    ClearFlags, Depth,
+                     Stencil
+  );
 }
 
 __declspec (noinline)
@@ -1520,7 +2014,60 @@ D3D11_RSSetViewports_Override (
         UINT                 NumViewports,
   const D3D11_VIEWPORT*      pViewports )
 {
-  D3D11_RSSetViewports_Original (This, NumViewports, pViewports);
+  ///if (NumViewports == 0 && pViewports != nullptr)
+  ///    NumViewports  = 1;
+  ///
+  ///if (NumViewports == 1)
+  ///{
+  ///  D3D11_VIEWPORT* pViewportsNew =
+  ///    (D3D11_VIEWPORT *)(
+  ///      SK_TLS_Bottom ()->d3d9->allocStackScratchStorage (
+  ///        sizeof (D3D11_VIEWPORT) * NumViewports         )
+  ///    );
+  ///
+  ///  SK_ComPtr <ID3D11RenderTargetView> pRTV;
+  ///  SK_ComPtr <ID3D11DepthStencilView> pDSV;
+  ///
+  ///  This->OMGetRenderTargets (
+  ///    1, &pRTV.p, &pDSV.p
+  ///  );
+  ///
+  ///  if (pRTV.p != nullptr)
+  ///  {
+  ///    SK_ComPtr <ID3D11Resource> pRTV_Resource;
+  ///           pRTV->GetResource (&pRTV_Resource);
+  ///
+  ///    D3D11_RESOURCE_DIMENSION res_dim;
+  ///    pRTV_Resource->GetType (&res_dim);
+  ///
+  ///    if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  ///    {
+  ///      SK_ComQIPtr <ID3D11Texture2D> pTex (pRTV_Resource);
+  ///
+  ///      D3D11_TEXTURE2D_DESC tex_desc = { };
+  ///      pTex->GetDesc      (&tex_desc);
+  ///
+  ///      if (tex_desc.Width  == pViewports [0].Width  * 2 &&
+  ///          tex_desc.Height == pViewports [0].Height * 2)
+  ///      {
+  ///        pViewportsNew [0] =
+  ///        pViewports    [0];
+  ///        pViewportsNew [0].Width  *= 2;
+  ///        pViewportsNew [0].Height *= 2;
+  ///
+  ///        return
+  ///          D3D11_RSSetViewports_Original ( This, NumViewports,
+  ///                                                  pViewportsNew );
+  ///      }
+  ///    }
+  ///  }
+  ///}
+  ///
+  ///else dll_log->Log (L"%lu viewports", NumViewports);
+
+  D3D11_RSSetViewports_Original (
+    This, NumViewports, pViewports
+  );
 }
 
 void
@@ -1532,97 +2079,115 @@ D3D11_PSSetSamplers_Override
   _In_     UINT                       NumSamplers,
   _In_opt_ ID3D11SamplerState *const *ppSamplers )
 {
-  if (SK_D3D11_IsDevCtxDeferred (This))
+  if (! SK_D3D11_IsDevCtxDeferred (This))
   {
-    return
-      D3D11_PSSetSamplers_Original (This, StartSlot, NumSamplers, ppSamplers);
-  }
-
 #if 0
-  if ( ppSamplers != nullptr )
-  {
-    SK_TLS *pTLS;
-    //if (SK_GetCurrentRenderBackend ().d3d11.immediate_ctx.IsEqualObject (This))
-    if (SK_GetCurrentRenderBackend ().device.p != nullptr && (pTLS = SK_TLS_Bottom ()))
+    if ( ppSamplers != nullptr )
     {
-      ID3D11SamplerState** pSamplerCopy =
-        (ID3D11SamplerState **)pTLS->scratch_memory.cmd.alloc (
-           sizeof (ID3D11SamplerState  *) * 4096
-        );
-
-      bool ys8_wrap_ui  = false,
-           ys8_clamp_ui = false;
-
-      if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
+      SK_TLS *pTLS;
+      //if (SK_GetCurrentRenderBackend ().d3d11.immediate_ctx.IsEqualObject (This))
+      if (SK_GetCurrentRenderBackend ().device.p != nullptr && (pTLS = SK_TLS_Bottom ()))
       {
-        SK_D3D11_EnableTracking = true;
+        //ID3D11SamplerState** pSamplerCopy =
+        //  (ID3D11SamplerState **)pTLS->scratch_memory.cmd.alloc (
+        //     sizeof (ID3D11SamplerState  *) * 4096
+        //  );
+        //
+        //bool ys8_wrap_ui  = false,
+        //     ys8_clamp_ui = false;
 
-        auto HashFromCtx =
-          [] ( std::array <uint32_t, SK_D3D11_MAX_DEV_CONTEXTS+1>& registry,
-               UINT                                                dev_idx ) ->
-        uint32_t
+        //if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
+        //{
+        //  SK_D3D11_EnableTracking = true;
+        //
+        //  auto HashFromCtx =
+        //    [] ( std::array <uint32_t, SK_D3D11_MAX_DEV_CONTEXTS+1>& registry,
+        //         UINT                                                dev_idx ) ->
+        //  uint32_t
+        //  {
+        //    return
+        //      registry [dev_idx];
+        //  };
+        //
+        //  UINT dev_idx = SK_D3D11_GetDeviceContextHandle (This);
+        //
+        //  uint32_t current_ps = HashFromCtx (SK_D3D11_Shaders.pixel.current.shader,  dev_idx);
+        //  uint32_t current_vs = HashFromCtx (SK_D3D11_Shaders.vertex.current.shader, dev_idx);
+        //
+        //  switch (current_ps)
+        //  {
+        //    case 0x66b35959:
+        //    case 0x9d665ae2:
+        //    case 0xb21c8ab9:
+        //    case 0x05da09bd:
+        //    {
+        //      if (current_ps == 0x66b35959 && b_66b35959)                             ys8_clamp_ui = true;
+        //      if (current_ps == 0x9d665ae2 && b_9d665ae2)                             ys8_clamp_ui = true;
+        //      if (current_ps == 0xb21c8ab9 && b_b21c8ab9)                             ys8_clamp_ui = true;
+        //      if (current_ps == 0x05da09bd && b_05da09bd && current_vs == 0x7759c300) ys8_clamp_ui = true;
+        //    }break;
+        //    case 0x6bb0972d:
+        //    {
+        //      if (current_ps == 0x6bb0972d && b_6bb0972d) ys8_wrap_ui = true;
+        //    } break;
+        //  }
+        //}
+
+        if (true)////! (pTLS->imgui.drawing || ys8_clamp_ui || ys8_wrap_ui))
         {
-          return registry [dev_idx];
-        };
-
-        UINT dev_idx = SK_D3D11_GetDeviceContextHandle (This);
-
-        uint32_t current_ps = HashFromCtx (SK_D3D11_Shaders.pixel.current.shader,  dev_idx);
-        uint32_t current_vs = HashFromCtx (SK_D3D11_Shaders.vertex.current.shader, dev_idx);
-
-        switch (current_ps)
-        {
-          case 0x66b35959:
-          case 0x9d665ae2:
-          case 0xb21c8ab9:
-          case 0x05da09bd:
+          for ( UINT i = 0 ; i < NumSamplers ; i++ )
           {
-            if (current_ps == 0x66b35959 && b_66b35959)                             ys8_clamp_ui = true;
-            if (current_ps == 0x9d665ae2 && b_9d665ae2)                             ys8_clamp_ui = true;
-            if (current_ps == 0xb21c8ab9 && b_b21c8ab9)                             ys8_clamp_ui = true;
-            if (current_ps == 0x05da09bd && b_05da09bd && current_vs == 0x7759c300) ys8_clamp_ui = true;
-          }break;
-          case 0x6bb0972d:
-          {
-            if (current_ps == 0x6bb0972d && b_6bb0972d) ys8_wrap_ui = true;
-          } break;
-        }
-      }
+            pSamplerCopy [i] = ppSamplers [i];
 
-      if (true)////! (pTLS->imgui.drawing || ys8_clamp_ui || ys8_wrap_ui))
-      {
-        for ( UINT i = 0 ; i < NumSamplers ; i++ )
-        {
-          pSamplerCopy [i] = ppSamplers [i];
+            if (ppSamplers [i] != nullptr)
+            {
+              D3D11_SAMPLER_DESC        new_desc = { };
+              ppSamplers [i]->GetDesc (&new_desc);
 
-          if (ppSamplers [i] != nullptr)
-          {
-            D3D11_SAMPLER_DESC        new_desc = { };
-            ppSamplers [i]->GetDesc (&new_desc);
-
-            ((ID3D11Device *)SK_GetCurrentRenderBackend ().device.p)->CreateSamplerState (
-                                                     &new_desc,
-                                                       &pSamplerCopy [i] );
+              ((ID3D11Device *)SK_GetCurrentRenderBackend ().device.p)->CreateSamplerState (
+                &new_desc,
+                  &pSamplerCopy [i]
+              );
+            }
           }
         }
-      }
 
-      else
-      {
-        for ( UINT i = 0 ; i < NumSamplers ; i++ )
+        else
         {
-          if (! ys8_wrap_ui)
-            pSamplerCopy [i] = pTLS->d3d11->uiSampler_clamp;
-          else
-            pSamplerCopy [i] = pTLS->d3d11->uiSampler_wrap;
+          for ( UINT i = 0 ; i < NumSamplers ; i++ )
+          {
+            if (! ys8_wrap_ui)
+              pSamplerCopy [i] = pTLS->d3d11->uiSampler_clamp;
+            else
+              pSamplerCopy [i] = pTLS->d3d11->uiSampler_wrap;
+          }
         }
-      }
 
-      return
-        D3D11_PSSetSamplers_Original (This, StartSlot, NumSamplers, pSamplerCopy);
+        return
+          D3D11_PSSetSamplers_Original (
+            This, StartSlot,
+              NumSamplers,
+                pSamplerCopy
+          );
+      }
     }
-  }
 #endif
 
-  D3D11_PSSetSamplers_Original (This, StartSlot, NumSamplers, ppSamplers);
+    D3D11_PSSetSamplers_Original (
+      This, StartSlot,
+        NumSamplers,
+         ppSamplers
+    );
+  }
+
+
+  else
+  {
+    return
+      D3D11_PSSetSamplers_Original (
+        This, StartSlot,
+          NumSamplers,
+           ppSamplers
+      );
+  }
 }

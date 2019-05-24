@@ -465,7 +465,7 @@ void ImDrawList::UpdateClipRect()
 void ImDrawList::UpdateTextureID()
 {
     // If current command is used with different settings we need to add a new command
-    const ImTextureID curr_texture_id = GetCurrentTextureId();
+    ImTextureID const curr_texture_id = GetCurrentTextureId();
     ImDrawCmd* curr_cmd = CmdBuffer.Size ? &CmdBuffer.back() : NULL;
     if (!curr_cmd || (curr_cmd->ElemCount != 0 && curr_cmd->TextureId != curr_texture_id) || curr_cmd->UserCallback != NULL)
     {
@@ -2536,7 +2536,7 @@ void ImFont::AddGlyph(ImWchar codepoint, float x0, float y0, float x1, float y1,
     glyph.AdvanceX = advance_x + ConfigData->GlyphExtraSpacing.x;  // Bake spacing into AdvanceX
 
     if (ConfigData->PixelSnapH)
-        glyph.AdvanceX = (float)(int)(glyph.AdvanceX + 0.5f);
+        glyph.AdvanceX = (float)/*(int)*/lroundf(glyph.AdvanceX + 0.5f);
 
     // Compute rough surface usage metrics (+1 to account for average padding, +0.99 to round)
     DirtyLookupTables = true;
@@ -2906,8 +2906,6 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, const ImC
                 {
                     unprintable_chars.emplace ((unsigned short)c);
 
-                    extern SK_LazyGlobal <iSK_Logger> dll_log;
-
                     // Some characters used for Steam account names are outside the 2-byte range
                     dll_log->Log ( L"[ImGui Font] Unprintable Character: '%wc' (U+%lx)",
                                      (wchar_t)c, (wchar_t)c );
@@ -3014,7 +3012,7 @@ void ImGui::RenderMouseCursor(ImDrawList* draw_list, ImVec2 pos, float scale, Im
     if (font_atlas->GetMouseCursorTexData(mouse_cursor, &offset, &size, &uv[0], &uv[2]))
     {
         pos -= offset;
-        const ImTextureID tex_id = font_atlas->TexID;
+        ImTextureID const tex_id = font_atlas->TexID;
         draw_list->PushTextureID(tex_id);
         draw_list->AddImage(tex_id, pos + ImVec2(1,0)*scale, pos + ImVec2(1,0)*scale + size*scale, uv[2], uv[3], col_shadow);
         draw_list->AddImage(tex_id, pos + ImVec2(2,0)*scale, pos + ImVec2(2,0)*scale + size*scale, uv[2], uv[3], col_shadow);

@@ -31,8 +31,7 @@ SK_D3D11_DescribeTexFailure (const D3D11_TEXTURE2D_DESC   *__restrict pDesc)
               SK_DXGI_FormatToStr        (pDesc->Format).c_str (),
               SK_D3D11_DescribeUsage     (pDesc->Usage),
                                           pDesc->CPUAccessFlags,
-              SK_D3D11_DescribeBindFlags (
-           static_cast <D3D11_BIND_FLAG> (pDesc->BindFlags)).c_str (),
+              SK_D3D11_DescribeBindFlags (pDesc->BindFlags).c_str (),
               SK_D3D11_DescribeMiscFlags (
   static_cast <D3D11_RESOURCE_MISC_FLAG> (pDesc->MiscFlags)).c_str ()),
               L"DX11TexMgr" );

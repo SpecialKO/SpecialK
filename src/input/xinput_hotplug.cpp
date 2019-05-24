@@ -471,7 +471,8 @@ SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState
 
 
 
-GUID GUID_Zero;
+static constexpr GUID GUID_Zero =
+  { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 using RegisterDeviceNotification_pfn = HDEVNOTIFY (WINAPI *)(
   _In_ HANDLE hRecipient,
@@ -573,8 +574,6 @@ RegisterDeviceNotificationA_Detour (
 void
 SK_XInput_InitHotPlugHooks (void)
 {
-  CLSIDFromString (L"{00000000-0000-0000-0000-000000000000}", &GUID_Zero);
-
 // According to the DLL Export Table, ...A and ...W are the same freaking function :)
   SK_CreateDLLHook3 (       L"user32",
                              "RegisterDeviceNotificationW",

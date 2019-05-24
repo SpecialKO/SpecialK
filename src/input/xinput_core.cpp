@@ -225,6 +225,40 @@ SK_ImGui_FilterXInput (
 
 BOOL xinput_enabled = TRUE;
 
+// Unlike our hook, this actually turns XInput off. The hook just causes
+//   us to filter data while continuing to read it.
+bool
+SK_XInput_Enable ( BOOL bEnable )
+{
+  bool before =
+   (xinput_enabled == TRUE);
+
+  auto& _xinput_ctx =
+         xinput_ctx.get ();
+
+  if (  _xinput_ctx.primary_hook                        != nullptr)
+  { if (_xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
+        _xinput_ctx.primary_hook->XInputEnable_Original (bEnable); }
+
+  static
+  SK_XInputContext::instance_s*
+    contexts [] =
+      { //&(xinput_ctx->XInput9_1_0), // Undefined
+        &(xinput_ctx->XInput1_3),
+        &(xinput_ctx->XInput1_4) };
+
+  for ( auto& context : contexts )
+  {
+    if (context->XInputEnable_Original != nullptr)
+        context->XInputEnable_Original (bEnable);
+  }
+
+  xinput_enabled =
+    bEnable;
+
+  return before;
+}
+
 void
 WINAPI
 XInputEnable1_3_Detour (
@@ -237,10 +271,13 @@ XInputEnable1_3_Detour (
   std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_hook [0]);
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != 0) ? &_xinput_ctx.XInput1_4 :
-                                        &_xinput_ctx.XInput1_3;
+    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+                                              &_xinput_ctx.XInput1_3;
 
-  xinput_enabled = enable;
+  if (! config.window.background_render)
+  //  pCtx->XInputEnable_Original (TRUE);
+  //else
+    xinput_enabled = enable;
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -276,8 +313,8 @@ XInputGetState1_3_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != 0) ? &_xinput_ctx.XInput1_4 :
-                                        &_xinput_ctx.XInput1_3;
+    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+                                              &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -327,8 +364,8 @@ XInputGetStateEx1_3_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != 0) ? &_xinput_ctx.XInput1_4 :
-                                        &_xinput_ctx.XInput1_3;
+    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+                                              &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -376,8 +413,8 @@ XInputGetCapabilities1_3_Detour (
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != 0) ? &_xinput_ctx.XInput1_4 :
-                                        &_xinput_ctx.XInput1_3;
+    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+                                              &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -420,8 +457,8 @@ XInputGetBatteryInformation1_3_Detour (
   if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != 0) ? &_xinput_ctx.XInput1_4 :
-                                        &_xinput_ctx.XInput1_3;
+    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+                                              &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -460,8 +497,8 @@ XInputSetState1_3_Detour (
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != 0) ? &_xinput_ctx.XInput1_4 :
-                                        &_xinput_ctx.XInput1_3;
+    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+                                              &_xinput_ctx.XInput1_3;
 
   if (! xinput_enabled)
   {
@@ -504,16 +541,20 @@ WINAPI
 XInputEnable1_4_Detour (
   _In_ BOOL enable)
 {
-  auto& _xinput_ctx = xinput_ctx.get ();
+  auto& _xinput_ctx =
+         xinput_ctx.get ();
 
-  HMODULE hModCaller = SK_GetCallingDLL ( );
+  HMODULE hModCaller =
+    SK_GetCallingDLL ( );
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_hook [0]);
+  std::lock_guard <SK_Thread_HybridSpinlock>
+       lock_me_up (_xinput_ctx.cs_hook [0]);
 
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_4;
 
-  xinput_enabled = enable;
+  if (! config.window.background_render)
+    xinput_enabled = enable;
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -892,7 +933,10 @@ XInputSetState9_1_0_Detour (
 
   if (! xinput_enabled)
   {
-    _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
+    _xinput_ctx.preventHapticRecursion (
+      dwUserIndex, false
+    );
+
     return ERROR_SUCCESS;
   }
 
@@ -1820,7 +1864,7 @@ SK_XInput_PollController ( INT           iJoyID,
                                               //     won't be there.
 
   if (pState != nullptr)
-    memcpy (pState, &xstate, sizeof XINPUT_STATE);
+    memcpy (pState, &xstate, sizeof XINPUT_STATE); //-V512
 
   return true;
 }
@@ -1905,13 +1949,13 @@ SK_XInput_ZeroHaptics (INT iJoyID)
       (ReadPointerAcquire ((volatile LPVOID *)&_xinput_ctx.primary_hook))
   );
 
-  if (! (xinput_enabled && pCtx != nullptr))
+  if (pCtx == nullptr)
     return;
 
   if (iJoyID >= XUSER_MAX_COUNT) return;
 
   if (pCtx->XInputEnable_Original != nullptr)
-      pCtx->XInputEnable_Original (false);
+      pCtx->XInputEnable_Original (FALSE);
 
   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
 

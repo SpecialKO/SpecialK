@@ -110,7 +110,7 @@ struct dgpu_cfg_s
             (g_ParameterFactory->create_parameter <bool> (L"Override Flares"));
 
         override->register_to_ini ( SK_GetDLLConfig (),
-                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type),
                                         L"Override" );
 
         blend_eq =
@@ -118,7 +118,7 @@ struct dgpu_cfg_s
             (g_ParameterFactory->create_parameter <int> (L"Blend Equation"));
 
         blend_eq->register_to_ini ( SK_GetDLLConfig (),
-                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type),
                                         L"BlendEq" );
 
         color_r =
@@ -126,7 +126,7 @@ struct dgpu_cfg_s
             (g_ParameterFactory->create_parameter <int> (L"Constant Red Value"));
 
         color_r->register_to_ini ( SK_GetDLLConfig (),
-                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type),
                                        L"Red" );
 
         color_g =
@@ -134,7 +134,7 @@ struct dgpu_cfg_s
             (g_ParameterFactory->create_parameter <int> (L"Constant Green Value"));
 
         color_g->register_to_ini ( SK_GetDLLConfig (),
-                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type),
                                        L"Green" );
 
         color_b =
@@ -142,7 +142,7 @@ struct dgpu_cfg_s
             (g_ParameterFactory->create_parameter <int> (L"Constant Blue Value"));
 
         color_b->register_to_ini ( SK_GetDLLConfig (),
-                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type),
                                        L"Blue" );
 
         color_a =
@@ -150,7 +150,7 @@ struct dgpu_cfg_s
             (g_ParameterFactory->create_parameter <int> (L"Constant Alpha Value"));
 
         color_a->register_to_ini ( SK_GetDLLConfig (),
-                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type),
                                        L"Alpha" );
       }
 

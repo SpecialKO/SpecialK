@@ -23,18 +23,18 @@
 #include <SpecialK/resource.h>
 
 #ifdef _M_AMD64
-#define SK_StackWalk          StackWalk64
-#define SK_SymLoadModule      SymLoadModule64
-#define SK_SymUnloadModule    SymUnloadModule64
-#define SK_SymGetModuleBase   SymGetModuleBase64
-#define SK_SymGetLineFromAddr SymGetLineFromAddr64
-#else /* _M_IX86 */
-#define SK_StackWalk          StackWalk
-#define SK_SymLoadModule      SymLoadModule
-#define SK_SymUnloadModule    SymUnloadModule
-#define SK_SymGetModuleBase   SymGetModuleBase
-#define SK_SymGetLineFromAddr SymGetLineFromAddr
+# define SK_DBGHELP_STUB(__proto) __proto##64
+#else
+# define SK_DBGHELP_STUB(__proto) __proto
 #endif
+#define SK_DBGHELP_STUB_(__proto) __proto
+
+#define SK_StackWalk          SK_DBGHELP_STUB  (StackWalk)
+#define SK_SymLoadModule      SK_DBGHELP_STUB  (SymLoadModule)
+#define SK_SymUnloadModule    SK_DBGHELP_STUB  (SymUnloadModule)
+#define SK_SymGetModuleBase   SK_DBGHELP_STUB  (SymGetModuleBase)
+#define SK_SymGetLineFromAddr SK_DBGHELP_STUB  (SymGetLineFromAddr)
+#define SK_SymGetTypeInfo     SK_DBGHELP_STUB_ (SymGetTypeInfo)
 
 extern const wchar_t*
 __stdcall
@@ -87,12 +87,19 @@ SK_LazyGlobal <sk_crash_sound_s> crash_sound;
 bool
 SK_Crash_PlaySound (void)
 {
+  if (SK_GetFramesDrawn () == 0)
+    return true;
+
   bool ret = false;
 
   // Rare WinMM (SDL/DOSBox) crashes may prevent this from working, so...
   //   don't create another top-level exception.
   auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (
+    SK_FilteringStructuredExceptionTranslator (
+      EXCEPTION_ACCESS_VIOLATION
+    )
+  );
   try {
     PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound->buf),
                   nullptr,
@@ -343,6 +350,97 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   free (szDupName);
 
   return ret;
+}
+
+
+enum BasicType  // Stolen from CVCONST.H in the DIA 2.0 SDK
+{
+    btNoType = 0,
+    btVoid = 1,
+    btChar = 2,
+    btWChar = 3,
+    btInt = 6,
+    btUInt = 7,
+    btFloat = 8,
+    btBCD = 9,
+    btBool = 10,
+    btLong = 13,
+    btULong = 14,
+    btCurrency = 25,
+    btDate = 26,
+    btVariant = 27,
+    btComplex = 28,
+    btBit = 29,
+    btBSTR = 30,
+    btHresult = 31,
+};
+
+enum SymbolType
+{
+	stParameter = 0x1,
+	stLocal = 0x2,
+	stGlobal = 0x4
+};
+
+enum SymTagEnum // Stolen from DIA SDK
+{
+   SymTagNull,
+   SymTagExe,
+   SymTagCompiland,
+   SymTagCompilandDetails,
+   SymTagCompilandEnv,
+   SymTagFunction,
+   SymTagBlock,
+   SymTagData,
+   SymTagAnnotation,
+   SymTagLabel,
+   SymTagPublicSymbol,
+   SymTagUDT,
+   SymTagEnum,
+   SymTagFunctionType,
+   SymTagPointerType,
+   SymTagArrayType,
+   SymTagBaseType,
+   SymTagTypedef,
+   SymTagBaseClass,
+   SymTagFriend,
+   SymTagFunctionArgType,
+   SymTagFuncDebugStart,
+   SymTagFuncDebugEnd,
+   SymTagUsingNamespace,
+   SymTagVTableShape,
+   SymTagVTable,
+   SymTagCustom,
+   SymTagThunk,
+   SymTagCustomType,
+   SymTagManagedType,
+   SymTagDimension
+};
+
+BasicType
+GetBasicType (DWORD typeIndex, DWORD64 modBase)
+{
+  HANDLE    hProc     = GetCurrentProcess ();
+  BasicType basicType = { };
+
+  if ( SK_SymGetTypeInfo ( hProc, modBase, typeIndex,
+                             TI_GET_BASETYPE, &basicType ) )
+  {
+    return basicType;
+  }
+
+  DWORD typeId = { };
+
+  if ( SK_SymGetTypeInfo (hProc, modBase, typeIndex, TI_GET_TYPEID, &typeId) )
+  {
+    if ( SK_SymGetTypeInfo ( hProc, modBase, typeId, TI_GET_BASETYPE,
+                               &basicType ) )
+    {
+      return basicType;
+    }
+  }
+
+  return btNoType;
 }
 
 std::wstring
@@ -669,10 +767,10 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
       line_number = 0;
     }
 
-    char     short_mod_name [64];           size_t mod_len;
-    char     symbol_name    [512];          size_t sym_len;
-    char     file_name      [MAX_PATH + 1]; size_t file_len;
-    unsigned line_number;
+    char     short_mod_name [64]           = { }; size_t mod_len  = 0;
+    char     symbol_name    [512]          = { }; size_t sym_len  = 0;
+    char     file_name      [MAX_PATH + 1] = { }; size_t file_len = 0;
+    unsigned line_number                   =  0 ;
   };
 
   std::vector <stack_entry_s> stack_entries;
@@ -1038,7 +1136,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
               SK_File_SetNormalAttribs (wszDestPath);
 
               if ( log_file != nullptr &&
-                   log_file->fLog      &&
                    log_file != crash_log.getPtr () )
               {
                 log_file->name = wszDestPath;
@@ -1052,11 +1149,17 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
                 InterlockedIncrement (&log_file->relocated);
               }
+
               if ( log_file       != nullptr &&
                   (log_file->fLog == nullptr ||
+                                     locked  ||
                    log_file       == crash_log.getPtr ()) )
               {
-                log_file->unlock ();
+                if (locked)
+                {
+                  locked = false;
+                  log_file->unlock ();
+                }
               }
             }
           }
@@ -1131,7 +1234,8 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
 {
   ULONG ret = 0;
 
-  if (! dbghelp_callers.count (hMod))
+  if ( dbghelp_callers.find (hMod) ==
+       dbghelp_callers.cend (    )  )
   {
     MODULEINFO mod_info = { };
 

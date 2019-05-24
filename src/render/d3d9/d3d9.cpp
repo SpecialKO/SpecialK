@@ -432,10 +432,10 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     if (SK_IsInjected ())
     {
-      auto it_local  = std::begin (local_d3d9_records);
-      auto it_global = std::begin (global_d3d9_records);
+      auto it_local  = std::cbegin (local_d3d9_records);
+      auto it_global = std::cbegin (global_d3d9_records);
 
-      while ( it_local != std::end (local_d3d9_records) )
+      while ( it_local != std::cend (local_d3d9_records) )
       {
         if (( *it_local )->hits &&
   StrStrIW (( *it_local )->target.module_path, LR"(d3d9.dll)") &&
@@ -1490,8 +1490,8 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
     if (rb.surface.d3d9 != nullptr)
     {
-      rb.surface.d3d9  = nullptr;
-      rb.surface.nvapi = 0;
+        rb.surface.d3d9  = nullptr;
+        rb.surface.nvapi = 0;
     }
 
     if (SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &rb.surface.d3d9)))
@@ -1524,6 +1524,13 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
            )
         {
           rb.gsync_state.update ();
+        }
+
+        // Don't leave dangling references to the surface around...
+        else
+        {
+          rb.surface.d3d9  = nullptr;
+          rb.surface.nvapi =       0;
         }
       }
     }
@@ -5515,7 +5522,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
 
   struct shader_class_imp_s
   {
-    std::vector <std::string> contents;
+    std::vector <std::string> contents   = {  };
     bool                      dirty      = true;
     uint32_t                  last_sel   =    0;
     int                            sel   =   -1;
@@ -5540,10 +5547,10 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
                                                               tracked_vs.getPtr () );
 
   std::vector <uint32_t>
-    shaders   ( shader_type == SK::D3D9::ShaderClass::Pixel ? _last_frame.pixel_shaders.begin  () :
-                                                              _last_frame.vertex_shaders.begin (),
-                shader_type == SK::D3D9::ShaderClass::Pixel ? _last_frame.pixel_shaders.end    () :
-                                                              _last_frame.vertex_shaders.end   () );
+    shaders   ( shader_type == SK::D3D9::ShaderClass::Pixel ? _last_frame.pixel_shaders.cbegin  () :
+                                                              _last_frame.vertex_shaders.cbegin (),
+                shader_type == SK::D3D9::ShaderClass::Pixel ? _last_frame.pixel_shaders.cend    () :
+                                                              _last_frame.vertex_shaders.cend   () );
 
   std::unordered_map <uint32_t, SK::D3D9::ShaderDisassembly>&
     disassembly = ( shader_type == SK::D3D9::ShaderClass::Pixel ? *ps_disassembly :
@@ -7847,7 +7854,7 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
     {
       EnterCriticalSection (&cs_vs);
 
-      if (_Shaders.vertex.rev.find (pShader) == _Shaders.vertex.rev.end ())
+      if (_Shaders.vertex.rev.find (pShader) == _Shaders.vertex.rev.cend ())
       {
         LeaveCriticalSection (&cs_vs);
 
@@ -7925,7 +7932,7 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
     {
       EnterCriticalSection (&cs_ps);
 
-      if (_Shaders.pixel.rev.find (pShader) == _Shaders.pixel.rev.end ())
+      if (_Shaders.pixel.rev.find (pShader) == _Shaders.pixel.rev.cend ())
       {
         LeaveCriticalSection (&cs_ps);
 
@@ -8128,9 +8135,9 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
     //
     // TODO: Make generic and move into class -- must pass shader type to function
     //
-    for (auto&& it : _tracked_vs.constants)
+    for (auto& it : _tracked_vs.constants)
     {
-      for (auto&& it2 : it.struct_members)
+      for (auto& it2 : it.struct_members)
       {
         if (it2.Override)
           pDevice->SetVertexShaderConstantF (it2.RegisterIndex, it2.Data, 1);

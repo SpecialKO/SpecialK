@@ -1632,11 +1632,11 @@ public:
           struct SK_WinRing0_Mgmt
           {
             HANDLE hInstallEvent =
-              CreateEvent ( nullptr, FALSE, FALSE,
-                            nullptr/*L"WinRing0_Install"*/   );
+              SK_CreateEvent ( nullptr, FALSE, FALSE,
+                               nullptr/*L"WinRing0_Install"*/   );
             HANDLE hUninstallEvent =
-              CreateEvent ( nullptr, FALSE, FALSE,
-                            nullptr/*L"WinRing0_Uninstall"*/ );
+              SK_CreateEvent ( nullptr, FALSE, FALSE,
+                               nullptr/*L"WinRing0_Uninstall"*/ );
             HANDLE hMgmtThread     = nullptr;
           } static SK_WinRing0;
 

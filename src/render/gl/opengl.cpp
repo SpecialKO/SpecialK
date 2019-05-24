@@ -1308,12 +1308,6 @@ typedef BOOL (WINAPI *wglDeleteContext_pfn)(HGLRC hglrc);
                       wgl_delete_context = nullptr;
 
 
-
-__declspec (noinline)
-BOOL
-WINAPI
-wglShareLists (HGLRC ctx0, HGLRC ctx1);
-
 __declspec (noinline)
 BOOL
 WINAPI
@@ -1371,7 +1365,7 @@ wglDeleteContext (HGLRC hglrc)
   }
 
 
-  if (! pTLS)
+  if (pTLS == nullptr)
     return wgl_delete_context (hglrc);
 
 
@@ -1380,7 +1374,8 @@ wglDeleteContext (HGLRC hglrc)
 
   bool has_children = false;
 
-  for (auto it = __gl_shared_contexts.begin(); it != __gl_shared_contexts.end();)
+  for ( auto it  = __gl_shared_contexts.begin () ;
+             it != __gl_shared_contexts.end   () ; )
   {
     if (it->first == hglrc)
     {
@@ -1389,9 +1384,7 @@ wglDeleteContext (HGLRC hglrc)
       continue;
     }
     else if (it->second == hglrc)
-    {
-      it->second = nullptr;
-    }
+    {        it->second  = nullptr; }
 
     ++it;
   }
@@ -1796,17 +1789,15 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       if (init_.count (thread_hglrc) == 0 || need_init)
       {
         // Shared context, and the primary share point is already being tracked
-        if (shared_ctx && init_.count (__gl_shared_contexts [thread_hglrc]))
-          need_init = false;
-        else
-          need_init = true;
+        need_init = !
+          (                   shared_ctx &&
+            init_.count (__gl_shared_contexts [thread_hglrc]) );
       }
 
 
       if (__gl_primary_context == nullptr)
-      {
-        __gl_primary_context = shared_ctx ? __gl_shared_contexts [thread_hglrc] :
-                                                                  thread_hglrc;
+      {   __gl_primary_context = shared_ctx   ?
+          __gl_shared_contexts [thread_hglrc] : thread_hglrc;
       }
 
 

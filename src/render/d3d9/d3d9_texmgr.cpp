@@ -85,7 +85,7 @@ SK::D3D9::TextureManager::getTextureArchives (std::vector <std::wstring>& arcs)
 size_t
 SK::D3D9::TextureManager::getInjectableTextures (SK::D3D9::TexList& texture_list) const
 {
-  for ( auto&& it : injectable_textures )
+  for ( auto& it : injectable_textures )
   {
     if (! ReadAcquire (&it.second.removed))
     {
@@ -378,7 +378,10 @@ D3D9SetTexture_Detour (
   auto& _tracked_ps = tracked_ps.get ();
 
   if (pTexture == nullptr)
-    return D3D9SetTexture_Original (This, Sampler, pTexture);
+  {
+    return
+      D3D9SetTexture_Original (This, Sampler, pTexture);
+  }
 
   //if (tzf::RenderFix::tracer.log) {
     //dll_log.Log ( L"[FrameTrace] SetTexture      - Sampler: %lu, pTexture: %ph",
@@ -415,7 +418,7 @@ D3D9SetTexture_Detour (
   if (FAILED (hr))
     return D3D9SetTexture_Original (This, Sampler, pTexture);
 
-  if ( hr == S_OK && pTexture != nullptr )
+  if ( hr == S_OK )
   {
     auto* pSKTex =
       static_cast <ISKTextureD3D9 *> (pTexture);
@@ -438,8 +441,7 @@ D3D9SetTexture_Detour (
     tex_crc32c =
       pSKTex->tex_crc32c;
 
-    pTexture =
-      pSKTex->use ();
+    pSKTex->use ();
 
     //
     // This is how blocking is implemented -- only do it when a texture that needs
@@ -487,7 +489,8 @@ D3D9SetTexture_Detour (
     D3D9Device_SetSamplerState_Original (This, Sampler, D3DSAMP_MIPMAPLODBIAS, *reinterpret_cast <DWORD *>(&fMin) );
   }
 
-  return D3D9SetTexture_Original (This, Sampler, pTexture);
+  return
+    D3D9SetTexture_Original (This, Sampler, pTexture);
 }
 
 IDirect3DSurface9* pOld     = nullptr;
@@ -906,7 +909,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
   auto inject =
     injectable_textures.find (load->checksum);
 
-  if (inject == injectable_textures.end ())
+  if (inject == injectable_textures.cend ())
   {
     tex_log->Log ( L"[Inject Tex]  >> Load Request for Checksum: %X "
                    L"has no Injection Record !!",
@@ -1141,7 +1144,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 CRITICAL_SECTION osd_cs            = { };
 DWORD            last_queue_update =   0;
 
-std::string mod_text;
+SK_LazyGlobal <std::string> mod_text;
 
 void
 SK::D3D9::TextureManager::updateQueueOSD (void)
@@ -1212,10 +1215,10 @@ SK::D3D9::TextureManager::updateQueueOSD (void)
       if (dwLastStream < dwTime - 150)
         streaming_text.clear ();
 
-      mod_text =
+      *mod_text =
         ( resampling_text + streaming_text );
 
-      if (! mod_text.empty ())
+      if (! mod_text->empty ())
         last_queue_update = dwTime;
 
       //LeaveCriticalSection (&osd_cs);
@@ -1377,7 +1380,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
         // Remove the temporary reference
         load->pDest->Release ();
 
-        //++loaded;
+        ++loaded;
       }
     }
 
@@ -1969,8 +1972,8 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
 
     auto& _remove_textures = remove_textures.get ();
 
-    auto  rem   = _remove_textures.begin ();
-    while (rem != _remove_textures.end   ())
+    auto  rem   = _remove_textures.cbegin ();
+    while (rem != _remove_textures.cend   ())
     {
       if (rem->second == false)
       {
@@ -2545,7 +2548,7 @@ SK::D3D9::TextureManager::purge (void)
   );
 
   auto free_it =
-    unreferenced_textures.begin ();
+    unreferenced_textures.cbegin ();
 
   // We need to over-free, or we will likely be purging every other texture load
   int64_t target_size =

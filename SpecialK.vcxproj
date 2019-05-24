@@ -731,7 +731,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
+      <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1445,7 +1445,7 @@ Exit 0</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-</AdditionalOptions>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-  </AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
@@ -1489,7 +1489,7 @@ Exit 0</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>

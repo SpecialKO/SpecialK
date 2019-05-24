@@ -2180,7 +2180,7 @@ SK_FAR_ControlPanel (void)
       SK_ImGui_PlugInDisclaimer     ( void );
 
       extern bool
-      SK_ImGui_PlugInSelector       ( iSK_INI* ini, std::string name, const wchar_t* path,
+      SK_ImGui_PlugInSelector       ( iSK_INI* ini, const std::string& name, const wchar_t* path,
                                       const wchar_t* import_name, bool& enable, int& order,
                                       int default_order = 1 );
 
@@ -2539,19 +2539,19 @@ struct {
     auto ResetResources =
     [&]
      {
-       std::for_each ( buffers_.begin (), buffers_.end (),
+       std::for_each ( buffers_.cbegin (), buffers_.cend (),
                             []( const std::pair < UINT,
                                                   ID3D11Buffer *>& buffer_pair )
                              { buffer_pair.second->Release (); }
                      );
 
-       std::for_each ( replacement_rtvs_.begin (), replacement_rtvs_.end (),
+       std::for_each ( replacement_rtvs_.cbegin (), replacement_rtvs_.cend (),
                             []( const std::pair < ID3D11RenderTargetView *,
                                                   ID3D11RenderTargetView *>& rtv_pair )
                              { rtv_pair.second->Release (); }
                      );
 
-       std::for_each ( replacement_srvs_.begin (), replacement_srvs_.end (),
+       std::for_each ( replacement_srvs_.cbegin (), replacement_srvs_.cend (),
                             []( const std::pair < ID3D11ShaderResourceView *,
                                                   ID3D11ShaderResourceView *>& srv_pair )
                              { srv_pair.second->Release (); }

@@ -986,6 +986,15 @@ SK_InitFinishCallback (void)
     }
 
     SK_LoadGPUVendorAPIs ();
+
+    ///if (SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2)
+    ///{
+    ///  BOOL
+    ///  SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);
+    ///  SK_Steam_PreHookCore (L"kaldaien_api64.dll");
+    ///  SK_Steam_KickStart   (L"kaldaien_api64.dll");
+    ///}
+
     SK_Thread_CloseSelf  ();
 
     return 0;
@@ -1755,12 +1764,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       game_debug->init (L"logs/game_output.log", L"w");
       game_debug->lockless = true;
 
-      if (! SK_GImDefaultContext  ())
-      {
-        extern void SK_ImGui_Init (void);
-                    SK_ImGui_Init (    );
-      }
-
 
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary     ();
@@ -1791,13 +1794,16 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         extern void SK_Memory_InitHooks (void);
                     SK_Memory_InitHooks ();
 
-        if (SK_GetModuleHandle (L"dinput8.dll"))
-          SK_Input_HookDI8  ();
+        if (SK_GetDLLRole () != DLL_ROLE::DInput8)
+        {
+          if (SK_GetModuleHandle (L"dinput8.dll"))
+            SK_Input_HookDI8  ();
 
-        if (SK_GetModuleHandle (L"dinput.dll"))
-          SK_Input_HookDI7  ();
+          if (SK_GetModuleHandle (L"dinput.dll"))
+            SK_Input_HookDI7  ();
 
-        SK_Input_Init       ();
+          SK_Input_Init       ();
+        }
 
         // Setup the compatibility backend, which monitors loaded libraries,
         //   blacklists bad DLLs and detects render APIs...
@@ -1909,7 +1915,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     //// It is not permissable to modify steam_api64.dll in this game
     //                                     (Denuvo will crash)
     //
-    if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
+    if ( SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
     {
       ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
       /////   a number of general-purpose benefits (such as battery charge monitoring).
@@ -1939,6 +1945,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
           SK_Steam_KickStart ();
       }
 
+      extern BOOL
+      SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);
       SK_Steam_PreHookCore ();
     }
   }
@@ -2001,7 +2009,7 @@ BACKEND_INIT:
 
   if (! SK_IsInjected ())
   {
-    for (auto& import : imports)
+    for (auto& import : imports->imports)
     {
       if (            import.role != nullptr &&
            backend == import.role->get_value () )
@@ -2233,7 +2241,7 @@ bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
 {
-  if (__SK_DLL_TeardownEvent != nullptr)
+  if (        __SK_DLL_TeardownEvent != nullptr)
     SetEvent (__SK_DLL_TeardownEvent);
 
   // Fast path for DLLs that were never really attached.
@@ -2445,7 +2453,7 @@ auto SK_UnpackCEGUI =
       FILE* fPackedCEGUI =
         _wfopen   (wszArchive, L"wb");
 
-      if (fPackedCEGUI)
+      if (fPackedCEGUI != nullptr)
       {
         fwrite    (locked, 1, res_size, fPackedCEGUI);
         fclose    (fPackedCEGUI);
@@ -2806,8 +2814,6 @@ SK_BeginBufferSwap (void)
   static const auto&
     game_id = SK_GetCurrentGameID ();
 
-  extern int __SK_FramerateLimitApplicationSite;
-
   if ( (int)rb.api        &
        (int)SK_RenderAPI::D3D11 )
   {
@@ -2862,6 +2868,7 @@ SK_BeginBufferSwap (void)
   switch (game_id)
   {
     case SK_GAME_ID::Yakuza0:
+    case SK_GAME_ID::YakuzaKiwami2:
     {
       extern void SK_Yakuza0_BeginFrame (void);
                   SK_Yakuza0_BeginFrame ();
@@ -3129,6 +3136,53 @@ SK_Input_PollKeyboard (void)
 
 
 
+void
+SK_BackgroundRender_EndFrame (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  static bool background_last_frame = false;
+  static bool fullscreen_last_frame = false;
+
+  if (background_last_frame != config.window.background_render)
+  { // Does not indicate the window was IN the background, but that it
+    //   was rendering in a special mode that would allow the game to
+    //     continue running while it is in the background.
+    background_last_frame =
+        config.window.background_render;
+    if (config.window.background_render)
+    {
+      HWND     hWndGame  = SK_GetGameWindow ();
+      LONG_PTR lpStyleEx =
+        SK_GetWindowLongPtrW ( hWndGame,
+                                 GWL_EXSTYLE );
+
+      LONG_PTR lpStyleExNew =
+            // Add style to ensure the game shows in the taskbar ...
+        ( ( lpStyleEx |  WS_EX_APPWINDOW  )
+                      & ~WS_EX_TOOLWINDOW );
+                     // And remove one that prevents taskbar activation...
+
+      ShowWindowAsync            ( hWndGame,
+                                     SW_SHOW );
+
+      if (lpStyleExNew != lpStyleEx)
+      {
+        SK_SetWindowLongPtrW     ( hWndGame,
+                                     GWL_EXSTYLE,
+                                       lpStyleExNew );
+      }
+
+      SK_RealizeForegroundWindow ( hWndGame );
+    }
+  }
+
+  fullscreen_last_frame =
+    rb.fullscreen_exclusive;
+}
+
+
 __declspec (noinline) // lol
 HRESULT
 __stdcall
@@ -3143,6 +3197,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     if (__SK_FramerateLimitApplicationSite == 3)
          SK::Framerate::GetLimiter ()->wait ();
   }
+
+
+  // Various required actions at the end of every frame in order to
+  //   support the background render mode in most games.
+  SK_BackgroundRender_EndFrame ();
+
+
 
   static SK_RenderAPI LastKnownAPI =
          SK_RenderAPI::Reserved;
@@ -3290,10 +3351,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
         rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
 
     if ( pSwapChain &&
-           SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
-    {
-      rb.fullscreen_exclusive =               fullscreen;
-    }
+         SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
+    { rb.fullscreen_exclusive =                        fullscreen;        }
 
     else
       rb.fullscreen_exclusive = false;
@@ -3321,6 +3380,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
 
   SK_RunOnce (SK::DXGI::StartBudgetThread_NoAdapter ());
+
+  bool
+  SK_SteamAPI_RunQueuedCallbacks (void);
+  SK_SteamAPI_RunQueuedCallbacks (    );
 
 
   SK_Input_PollKeyboard ();
@@ -3434,14 +3497,12 @@ SK_CreateEvent (
   _In_     BOOL                  bInitialState,
   _In_opt_ LPCWSTR               lpName )
 {
-  UNREFERENCED_PARAMETER (lpName);
-
   //if (SK_GetFramesDrawn ())
   //  SK_LOG_CALL ("CreateEventW");
 
   return
     CreateEventW (
-      lpEventAttributes, bManualReset, bInitialState, nullptr/*lpName*/
+      lpEventAttributes, bManualReset, bInitialState, lpName
     );
 }
 

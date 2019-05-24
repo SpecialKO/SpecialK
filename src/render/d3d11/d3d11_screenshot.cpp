@@ -267,10 +267,8 @@ struct ShaderBase
   }
 };
 
-SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComQIPtr <ID3D11Device>& pDevice)
+SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComQIPtr <ID3D11Device>& pDevice) : pDev (pDevice)
 {
-  pDev = pDevice;
-
   if (pDev.p != nullptr)
   {
     static SK_RenderBackend& rb =
@@ -819,7 +817,7 @@ SK_D3D11_Screenshot::getData ( UINT     *pWidth,
         uint8_t* pSrc = (uint8_t *)finished_copy.pData;
         uint8_t* pDst = framebuffer.PixelBuffer.m_pData;
 
-        if (pSrc != nullptr && pDst != nullptr)
+        if (pSrc != nullptr)
         {
           for ( UINT i = 0; i < framebuffer.Height; ++i )
           {
@@ -1541,7 +1539,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             SK_D3D11_Screenshot::framebuffer_s* fb_copy =
               new SK_D3D11_Screenshot::framebuffer_s ();
 
-            fb_copy->Height              = fb_orig->Height;
+            fb_copy->Height              = fb_orig->Height; //-V522
             fb_copy->Width               = fb_orig->Width;
             fb_copy->NativeFormat        = fb_orig->NativeFormat;
             fb_copy->PBufferSize         = fb_orig->PBufferSize;

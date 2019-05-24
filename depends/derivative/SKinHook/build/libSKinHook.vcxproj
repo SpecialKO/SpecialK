@@ -322,7 +322,7 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
-      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-</AdditionalOptions>
+      <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-  </AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\MinHook\$(Platform)\libMinHook64.pdb</ProgramDataBaseFileName>
       <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>

@@ -84,12 +84,15 @@ SK_Okami_LoadConfig (void)
       )
     );
 
-  sk_okami_grain->register_to_ini (
-    dll_ini,
-      L"OKAMI HD / 大神 絶景版",
-        L"EnableGrain" );
+  if (sk_okami_grain != nullptr)
+  {
+    sk_okami_grain->register_to_ini (
+      dll_ini,
+        L"OKAMI HD / 大神 絶景版",
+          L"EnableGrain" );
 
-  sk_okami_grain->load (SK_Okami_use_grain);
+    sk_okami_grain->load (SK_Okami_use_grain);
+  }
 
   if (SK_Okami_use_grain)
   {
@@ -173,7 +176,7 @@ SK_Okami_PlugInCfg (void)
     }
 
 
-    if (addrs [0].addr != nullptr && reinterpret_cast <uintptr_t> (addrs [0].addr) != 0x1)
+    if (reinterpret_cast <uintptr_t> (addrs [0].addr) != 0x1)
     {
       bool enabled =
         addrs [0].enabled;
@@ -317,10 +320,6 @@ SK_Okami_PlugInCfg (void)
 
     if (ImGui::Checkbox ("Grain", &SK_Okami_use_grain))
     {
-      void
-      WINAPI
-      SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash );
-
       void
       WINAPI
       SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash);

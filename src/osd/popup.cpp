@@ -197,12 +197,12 @@ SK_PopupManager::destroyAllPopups (void)
 
   gui_ctx_ = nullptr;
 
-  auto it = popups_.begin ();
+  auto it = popups_.cbegin ();
 
   CEGUI::WindowManager& window_mgr =
     CEGUI::WindowManager::getDllSingleton ();
 
-  while (it != popups_.end ())
+  while (it != popups_.cend ())
   {
     SK_PopupWindow* popup =
       (it)->first;

@@ -148,7 +148,7 @@ struct TexThreadStats {
       Stream,    // This load will be streamed
       Immediate, // This load must finish immediately   (pSrc is unused)
       Resample   // Change image properties             (pData is supplied)
-    } type;
+    } type = Stream;
 
     LPDIRECT3DDEVICE9   pDevice     = nullptr;
 
@@ -717,8 +717,8 @@ public:
       if (sm_tex)  sm_tex->getFinished  (sm_loads);
       if (lrg_tex) lrg_tex->getFinished (lrg_loads);
 
-      results.insert (results.begin (), lrg_loads.begin (), lrg_loads.end ());
-      results.insert (results.begin (), sm_loads.begin  (), sm_loads.end  ());
+      results.insert (results.cbegin (), lrg_loads.cbegin (), lrg_loads.cend ());
+      results.insert (results.cbegin (),  sm_loads.cbegin  (), sm_loads.cend ());
 
       return;
     }

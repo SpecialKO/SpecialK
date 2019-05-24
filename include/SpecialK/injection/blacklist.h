@@ -7,7 +7,7 @@ typedef struct _UNICODE_STRING {
   USHORT         MaximumLength;
   PWSTR          Buffer;
 } UNICODE_STRING,
-*PUNICODE_STRING;
+*PUNICODE_STRING; //-V677
 #pragma pack (pop)
 
 typedef NTSTATUS (NTAPI* LdrGetDllHandle_pfn)(
@@ -23,7 +23,7 @@ typedef NTSTATUS (__stdcall *LdrGetDllHandleByName_pfn)(
         PVOID           *DllHandle
 );
 
-static const UNICODE_STRING __graylist [] = {
+static const UNICODE_STRING __graylist[] = {
 #ifdef _M_IX86
   SK_MakeUnicode (L"steam.exe"),
   SK_MakeUnicode (L"devenv.exe"),
@@ -51,8 +51,11 @@ static const UNICODE_STRING __graylist [] = {
   SK_MakeUnicode (L"acrotray.exe"),
   SK_MakeUnicode (L"sdtray.exe"),
   SK_MakeUnicode (L"secd.exe"),
+  SK_MakeUnicode (L"CrashRpt1402.dll"),
   SK_MakeUnicode (L"crashsender1400.exe"),
+  SK_MakeUnicode (L"crashsender1402.exe"),
 #else
+  SK_MakeUnicode (L"dataexchangehost.exe"),
   SK_MakeUnicode (L"steamwebhelper.exe"),
   SK_MakeUnicode (L"microsoft.servicehub.controller.exe"),
   SK_MakeUnicode (L"googlecrashhandler64.exe"),
@@ -80,6 +83,7 @@ static const UNICODE_STRING __graylist [] = {
   SK_MakeUnicode (L"svchost.exe"),
   SK_MakeUnicode (L"sihost.exe"),
   SK_MakeUnicode (L"chrome.exe"),
+  SK_MakeUnicode (L"sqlservr.exe"),
 #endif
 
   SK_MakeUnicode (L"streaming_client.exe"),

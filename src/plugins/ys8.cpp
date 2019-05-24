@@ -449,7 +449,7 @@ _SK_RecursiveFileSizeProbe (const wchar_t *wszDir, bool top_lvl = false)
 {
   uint64_t cached_size = 0ULL;
 
-  if ( top_lvl && cached_size != 0ULL || _SK_YS8_CachedDirSizes->count (wszDir) )
+  if ( top_lvl || _SK_YS8_CachedDirSizes->count (wszDir) )
   {
     if (! cached_size) cached_size = _SK_YS8_CachedDirSizes.get()[wszDir];
 

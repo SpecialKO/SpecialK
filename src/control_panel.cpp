@@ -45,6 +45,7 @@
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
 #include <SpecialK/nvapi.h>
+#include <SpecialK/osd/text.h>
 
 LONG imgui_staged_frames   = 0;
 LONG imgui_finished_frames = 0;
@@ -523,8 +524,6 @@ SK_ImGui_ControlPanelTitle (void)
   static char szTitle [512] = { };
   const  bool steam         = (SK::SteamAPI::AppID () != 0x0);
 
-  extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
-
   {
     // TEMP HACK
     static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
@@ -607,7 +606,7 @@ SK_ImGui_AdjustCursor (void)
   if (! InterlockedCompareExchange (&lInit, 1, 0))
   {
     hAdjustEvent =
-      CreateEvent (nullptr, FALSE, FALSE, nullptr);
+      SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
     SK_Thread_Create ([](LPVOID pUser)->
     DWORD
@@ -762,9 +761,8 @@ DisplayModeMenu (bool windowed)
 
         default:
         case DISPLAY_MODE_FULLSCREEN:
-          if (can_go_full)
-            config.display.force_fullscreen = force;
-          config.display.force_windowed     = false;
+          config.display.force_fullscreen = force;
+          config.display.force_windowed   = false;
           break;
       }
     }
@@ -806,11 +804,12 @@ DisplayModeMenu (bool windowed)
 
       if (ImGui::IsItemHovered ())
       {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Override Scaling Mode");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("Set to Unspecified to CORRECTLY run Fullscreen Display Native Resolution");
-        ImGui::EndTooltip   ();
+        ImGui::BeginTooltip ( );
+        ImGui::Text         ( "Override Scaling Mode" );
+        ImGui::Separator    ( );
+        ImGui::BulletText   ( "Set to Unspecified to CORRECTLY run "
+                              "Fullscreen Display Native Resolution" );
+        ImGui::EndTooltip   ( );
       }
 
       static DXGI_SWAP_CHAIN_DESC last_swapDesc = { };
@@ -881,26 +880,44 @@ DisplayModeMenu (bool windowed)
 
         if ( rb.hdr_capable && rb.scanout.nvapi_hdr.active )
         {
-          nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_AUTO,   NV_BPC_DEFAULT));
-          nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_RGB,    NV_BPC_8));
-          nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_YUV444, NV_BPC_8));
-          nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_YUV422, NV_BPC_8));
+          nv_color_encodings.emplace_back (
+            std::make_pair (NV_COLOR_FORMAT_AUTO,   NV_BPC_DEFAULT)
+          );
+          nv_color_encodings.emplace_back (
+            std::make_pair (NV_COLOR_FORMAT_RGB,    NV_BPC_8)
+          );
+          nv_color_encodings.emplace_back (
+            std::make_pair (NV_COLOR_FORMAT_YUV444, NV_BPC_8)
+          );
+          nv_color_encodings.emplace_back (
+            std::make_pair (NV_COLOR_FORMAT_YUV422, NV_BPC_8)
+          );
 
           if (rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 & 0x1)
           {
-            nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_RGB, NV_BPC_10));
-            nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_YUV444, NV_BPC_10));
+            nv_color_encodings.emplace_back (
+              std::make_pair (NV_COLOR_FORMAT_RGB, NV_BPC_10)
+            );
+            nv_color_encodings.emplace_back (
+              std::make_pair (NV_COLOR_FORMAT_YUV444, NV_BPC_10)
+            );
           }
 
           if ( rb.scanout.nvapi_hdr.color_support_hdr.supports_YUV422_12bit )
           {
-            nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_YUV422, NV_BPC_12));
+            nv_color_encodings.emplace_back (
+              std::make_pair (NV_COLOR_FORMAT_YUV422, NV_BPC_12)
+            );
           }
 
           if (rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 & 0x2)
           {
-            nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_YUV444, NV_BPC_12));
-            nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_RGB,    NV_BPC_12));
+            nv_color_encodings.emplace_back (
+              std::make_pair (NV_COLOR_FORMAT_YUV444, NV_BPC_12)
+            );
+            nv_color_encodings.emplace_back (
+              std::make_pair (NV_COLOR_FORMAT_RGB,    NV_BPC_12)
+            );
           }
         }
 
@@ -915,20 +932,30 @@ DisplayModeMenu (bool windowed)
             std::pair <NV_COLOR_FORMAT, NV_BPC>
               combos_to_test [] =
               {
-                { NV_COLOR_FORMAT_RGB,    NV_BPC_6  }, { NV_COLOR_FORMAT_YUV420, NV_BPC_6  },
-                { NV_COLOR_FORMAT_YUV422, NV_BPC_6  }, { NV_COLOR_FORMAT_YUV444, NV_BPC_6  },
+                { NV_COLOR_FORMAT_RGB,    NV_BPC_6  },
+                { NV_COLOR_FORMAT_YUV420, NV_BPC_6  },
+                { NV_COLOR_FORMAT_YUV422, NV_BPC_6  },
+                { NV_COLOR_FORMAT_YUV444, NV_BPC_6  },
 
-                { NV_COLOR_FORMAT_RGB,    NV_BPC_8  }, { NV_COLOR_FORMAT_YUV420, NV_BPC_8  },
-                { NV_COLOR_FORMAT_YUV422, NV_BPC_8  }, { NV_COLOR_FORMAT_YUV444, NV_BPC_8  },
+                { NV_COLOR_FORMAT_RGB,    NV_BPC_8  },
+                { NV_COLOR_FORMAT_YUV420, NV_BPC_8  },
+                { NV_COLOR_FORMAT_YUV422, NV_BPC_8  },
+                { NV_COLOR_FORMAT_YUV444, NV_BPC_8  },
 
-                { NV_COLOR_FORMAT_RGB,    NV_BPC_10 }, { NV_COLOR_FORMAT_YUV420, NV_BPC_10 },
-                { NV_COLOR_FORMAT_YUV422, NV_BPC_10 }, { NV_COLOR_FORMAT_YUV444, NV_BPC_10 },
+                { NV_COLOR_FORMAT_RGB,    NV_BPC_10 },
+                { NV_COLOR_FORMAT_YUV420, NV_BPC_10 },
+                { NV_COLOR_FORMAT_YUV422, NV_BPC_10 },
+                { NV_COLOR_FORMAT_YUV444, NV_BPC_10 },
 
-                { NV_COLOR_FORMAT_RGB,    NV_BPC_12 }, { NV_COLOR_FORMAT_YUV420, NV_BPC_12 },
-                { NV_COLOR_FORMAT_YUV422, NV_BPC_12 }, { NV_COLOR_FORMAT_YUV444, NV_BPC_12 },
+                { NV_COLOR_FORMAT_RGB,    NV_BPC_12 },
+                { NV_COLOR_FORMAT_YUV420, NV_BPC_12 },
+                { NV_COLOR_FORMAT_YUV422, NV_BPC_12 },
+                { NV_COLOR_FORMAT_YUV444, NV_BPC_12 },
 
-                { NV_COLOR_FORMAT_RGB,    NV_BPC_16 }, { NV_COLOR_FORMAT_YUV420, NV_BPC_16 },
-                { NV_COLOR_FORMAT_YUV422, NV_BPC_16 }, { NV_COLOR_FORMAT_YUV444, NV_BPC_16 }
+                { NV_COLOR_FORMAT_RGB,    NV_BPC_16 },
+                { NV_COLOR_FORMAT_YUV420, NV_BPC_16 },
+                { NV_COLOR_FORMAT_YUV422, NV_BPC_16 },
+                { NV_COLOR_FORMAT_YUV444, NV_BPC_16 }
               };
 
           NvAPI_Status
@@ -966,7 +993,8 @@ DisplayModeMenu (bool windowed)
             else
             {
               std::string partial_encoding = "";
-              int         validated_encode =  2; // Requires 2 valid components or we have no mode.
+              // Requires 2 valid components or we have no mode.
+              int         validated_encode =  2;
               int         matching_encode  =  0;
 
               switch (encoding.second)
@@ -981,11 +1009,16 @@ DisplayModeMenu (bool windowed)
 
               switch (encoding.first)
               {
-                case    NV_COLOR_FORMAT_RGB:    partial_encoding += " RGB\0";         break;
-                case    NV_COLOR_FORMAT_YUV420: partial_encoding += " YCbCr 4:2:0\0"; break;
-                case    NV_COLOR_FORMAT_YUV422: partial_encoding += " YCbCr 4:2:2\0"; break;
-                case    NV_COLOR_FORMAT_YUV444: partial_encoding += " YCbCr 4:4:4\0"; break;
-                default:                        validated_encode --;                  break;
+                case    NV_COLOR_FORMAT_RGB:
+                  partial_encoding += " RGB\0";         break;
+                case    NV_COLOR_FORMAT_YUV420:
+                  partial_encoding += " YCbCr 4:2:0\0"; break;
+                case    NV_COLOR_FORMAT_YUV422:
+                  partial_encoding += " YCbCr 4:2:2\0"; break;
+                case    NV_COLOR_FORMAT_YUV444:
+                  partial_encoding += " YCbCr 4:4:4\0"; break;
+                default:
+                  validated_encode --;                  break;
               }
 
               matching_encode +=
@@ -1109,7 +1142,8 @@ DisplayModeMenu (bool windowed)
         ( current_item == -1 ? 0 : current_item );
 
       bool refresh_change =
-        ImGui::Combo ("Refresh Rate###SubMenu_RefreshRate_Combo", &rel_item, combo_str.c_str ());
+        ImGui::Combo ( "Refresh Rate###SubMenu_RefreshRate_Combo",
+                         &rel_item, combo_str.c_str () );
 
       if (refresh_change)
       {
@@ -1429,7 +1463,7 @@ SK_ImGui_ControlPanel (void)
       if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
       {
         //ImGui::TextWrapped ("%ws", SK_NvAPI_GetGPUInfoStr ().c_str ());
-        ImGui::MenuItem    ("Display G-Sync Status", "", &config.apis.NvAPI.gsync_status);
+        ImGui::MenuItem    ("Display G-Sync Status",     "", &config.apis.NvAPI.gsync_status);
       }
 
       ImGui::MenuItem  ("Display Playtime in Title",     "", &config.steam.show_playtime);
@@ -1963,11 +1997,21 @@ SK_ImGui_ControlPanel (void)
             switch (sel)
             {
               default:
-              case SixHours:    SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour); break;
-              case TwelveHours: SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour); break;
-              case OneDay:      SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour); break;
-              case OneWeek:     SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour); break;
-              case Never:       SK_Version_SetUpdateFrequency (nullptr,              0); break;
+              case SixHours:
+                SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour);
+                break;
+              case TwelveHours:
+                SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour);
+                break;
+              case OneDay:
+                SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour);
+                break;
+              case OneWeek:
+                SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour);
+                break;
+              case Never:
+                SK_Version_SetUpdateFrequency (nullptr,              0);
+                break;
             }
           }
 
@@ -2154,6 +2198,9 @@ SK_ImGui_ControlPanel (void)
                          );
        }
 
+       static auto& host_executable =
+           imports->host_executable;
+
        if (host_executable.product_desc.length () > 4)
        {
          ImGui::MenuItem   ( "Current Game",
@@ -2169,7 +2216,7 @@ SK_ImGui_ControlPanel (void)
        ImGui::TreePush ("");
        ImGui::TreePush ("");
 
-       for ( auto& import : imports )
+       for ( auto& import : imports->imports )
        {
          if (import.filename != nullptr)
          {
@@ -2198,22 +2245,22 @@ SK_ImGui_ControlPanel (void)
        }
 
 #ifndef _WIN64
-        if (dgvoodoo_d3d8 != nullptr)
+        if (imports->dgvoodoo_d3d8 != nullptr)
         {
-          ImGui::MenuItem ( SK_WideCharToUTF8 (dgvoodoo_d3d8->name).c_str         (),
-                            SK_WideCharToUTF8 (dgvoodoo_d3d8->product_desc).c_str () );
+          ImGui::MenuItem ( SK_WideCharToUTF8 (imports->dgvoodoo_d3d8->name).c_str         (),
+                            SK_WideCharToUTF8 (imports->dgvoodoo_d3d8->product_desc).c_str () );
         }
 
-        if (dgvoodoo_ddraw != nullptr)
+        if (imports->dgvoodoo_ddraw != nullptr)
         {
-          ImGui::MenuItem ( SK_WideCharToUTF8 (dgvoodoo_ddraw->name).c_str         (),
-                            SK_WideCharToUTF8 (dgvoodoo_ddraw->product_desc).c_str () );
+          ImGui::MenuItem ( SK_WideCharToUTF8 (imports->dgvoodoo_ddraw->name).c_str         (),
+                            SK_WideCharToUTF8 (imports->dgvoodoo_ddraw->product_desc).c_str () );
         }
 
-        if (dgvoodoo_d3dimm != nullptr)
+        if (imports->dgvoodoo_d3dimm != nullptr)
         {
-          ImGui::MenuItem ( SK_WideCharToUTF8 (dgvoodoo_d3dimm->name).c_str         (),
-                            SK_WideCharToUTF8 (dgvoodoo_d3dimm->product_desc).c_str () );
+          ImGui::MenuItem ( SK_WideCharToUTF8 (imports->dgvoodoo_d3dimm->name).c_str         (),
+                            SK_WideCharToUTF8 (imports->dgvoodoo_d3dimm->product_desc).c_str () );
         }
 #endif
 
@@ -2522,6 +2569,7 @@ SK_ImGui_ControlPanel (void)
         else
           strcat (szGSyncStatus, "Inactive");
       }
+
       else
       {
         strcat ( szGSyncStatus, rb.api == SK_RenderAPI::OpenGL ?
@@ -2636,6 +2684,7 @@ SK_ImGui_ControlPanel (void)
       } break;
 
       case SK_GAME_ID::Yakuza0:
+      case SK_GAME_ID::YakuzaKiwami2:
       {
         SK_Yakuza0_PlugInCfg ();
       } break;
@@ -3193,12 +3242,6 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 }
 
 
-
-#include <SpecialK/osd/text.h>
-
-
-extern SK_LazyGlobal <SK_D3D11_TexCacheResidency_s> SK_D3D11_TexCacheResidency;
-
 static bool keep_open;
 
 void
@@ -3207,7 +3250,11 @@ SK_Steam_GetUserName (char* pszName, int max_len = 512)
   if (SK_SteamAPI_Friends ())
   {
     auto orig_se =
-    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    SK_SEH_ApplyTranslator (
+      SK_FilteringStructuredExceptionTranslator (
+        EXCEPTION_ACCESS_VIOLATION
+      )
+    );
     try {
       strncpy_s (pszName, max_len, SK_SteamAPI_Friends ()->GetPersonaName (), _TRUNCATE);
     }
@@ -3524,7 +3571,7 @@ SK_ImGui_StageNextFrame (void)
       if (utf8_release_description.empty ())
       {
         utf8_release_description =
-          SK_WideCharToUTF8 (current_branch.release.description).c_str ();
+          SK_WideCharToUTF8 (current_branch.release.description);
       }
 
       if (utf8_branch_name.empty ())
@@ -4100,13 +4147,17 @@ SK_ImGui_Toggle (void)
       {
         if (config.window.fullscreen)
         {
-          const char* cmds [2] = { "Window.Fullscreen toggle", "Window.Borderless toggle" };
+          const char* cmds [2] = { "Window.Fullscreen toggle",
+                                   "Window.Borderless toggle" };
+
           SK_DeferCommands ( cmds, 2 );
         }
 
         else
         {
-          const char* cmds [2] = { "Window.Borderless toggle", "Window.Fullscreen toggle" };
+          const char* cmds [2] = { "Window.Borderless toggle",
+                                   "Window.Fullscreen toggle" };
+
           SK_DeferCommands ( cmds, 2 );
         }
       }

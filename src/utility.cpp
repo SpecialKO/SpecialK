@@ -1507,25 +1507,27 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   UINT     cbTranslatedBytes = 0,
            cbProductBytes    = 0;
 
-  DWORD    dwHandle          = 0;
-  size_t   dwSize            =
-    SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
-                                     wszName, &dwHandle );
+ /// DWORD    dwHandle          = 0;
+ /// size_t   dwSize            =
+ ///   SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
+ ///                                    wszName, &dwHandle );
+ ///
+ /// if (dwSize < 128)
+ ///   return false;
+ ///
+ /// dwSize =
+ ///(dwSize + 1) * sizeof (wchar_t);
+  //size_t dwSize = 32768;
 
-  if (dwSize < 128)
-    return false;
-
-  dwSize =
- (dwSize + 1) * sizeof (wchar_t);
-
-  SK_TLS *pTLS =
-    ReadAcquire (&__SK_DLL_Attached) ?
-      SK_TLS_Bottom () : nullptr;
-
-  uint8_t *cbData =
-    (pTLS != nullptr) ?
-      (uint8_t *)pTLS->scratch_memory->cmd.alloc (dwSize + 1UL, true) :
-      (uint8_t *)SK_LocalAlloc (LPTR,             dwSize + 1UL);
+  //SK_TLS *pTLS =
+  //  ReadAcquire (&__SK_DLL_Attached) ?
+  //    SK_TLS_Bottom () : nullptr;
+  //
+  //uint8_t *cbData =
+  //  (pTLS != nullptr) ?
+  //    (uint8_t *)pTLS->scratch_memory->cmd.alloc (65535 + 1UL, true) :
+  //    (uint8_t *)SK_LocalAlloc (LPTR,             65535 + 1UL);
+  uint8_t cbData [32768] = { };
 
   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
 
@@ -1545,7 +1547,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                                FILE_VER_GET_PREFETCHED,
                                  wszFullyQualifiedName,
                                    0x00,
-                  static_cast <DWORD> (dwSize),
+                  static_cast <DWORD> (32768),
                                        cbData );
 
   if (! bRet) return false;
@@ -1581,26 +1583,27 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
            cbProductBytes    = 0,
            cbVersionBytes    = 0;
 
-  DWORD    dwHandle          = 0;
-  size_t   dwSize            =
-    SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
-                                     wszName, &dwHandle );
+  //DWORD           dwHandle          = 0;
+  //static size_t   dwSize            = std::max ((size_t)65536,
+  //  SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
+  //                                   wszName, &dwHandle ) );
 
-  if (dwSize < 128)
-    return L"N/A";
+  ////if (dwSize < 128)
+  ////  return L"N/A";
 
-  dwSize++;
-  dwSize *=
-    sizeof (wchar_t);
+  //dwSize++;
+  //dwSize *=
+  //  sizeof (wchar_t);
 
-  SK_TLS *pTLS =
-    ReadAcquire (&__SK_DLL_Attached) ?
-      SK_TLS_Bottom () : nullptr;
-
-  uint8_t *cbData =
-    (pTLS != nullptr) ?
-      (uint8_t *)pTLS->scratch_memory->cmd.alloc (dwSize + 1UL, true) :
-      (uint8_t *)SK_LocalAlloc (LPTR,             dwSize + 1UL);
+  //SK_TLS *pTLS =
+  //  ReadAcquire (&__SK_DLL_Attached) ?
+  //    SK_TLS_Bottom () : nullptr;
+  //
+  //uint8_t *cbData =
+  //  (pTLS != nullptr) ?
+  //    (uint8_t *)pTLS->scratch_memory->cmd.alloc (dwSize + 1UL, true) :
+  //    (uint8_t *)SK_LocalAlloc (LPTR,             dwSize + 1UL);
+  uint8_t cbData [32768] = { }; size_t dwSize = 32768;
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -2135,7 +2138,16 @@ struct sk_host_process_s {
   std::atomic_bool sys_dir            = false;
 };
 
-SK_LazyGlobal <sk_host_process_s> host_proc;
+sk_host_process_s* host_proc     = nullptr;
+SK_HostAppUtil*    host_app_util = nullptr;
+
+sk_host_process_s*
+__SK_HostProc (void)
+{
+  static sk_host_process_s __host_proc = { };
+  SK_RunOnce (host_proc = &__host_proc);
+  return      host_proc;
+}
 
 bool __SK_RunDLL_Bypass = false;
 
@@ -2239,58 +2251,24 @@ SK_GetBlacklistFilename (void)
 const wchar_t*
 SK_GetHostApp (void)
 {
-  if ( host_proc->app.load () )
-    return host_proc->wszApp;
+  if (     host_proc->app.load () )
+  { return host_proc->wszApp;     }
 
   static volatile
     LONG init = FALSE;
 
   if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
-    DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 + 1 ] = { };
+    wchar_t       wszFullyQualified       [ MAX_PATH * 2 + 1 ] = { };
+    wcsncpy_s (   wszFullyQualified,        MAX_PATH * 2,
+                SK_GetFullyQualifiedApp (), _TRUNCATE );
 
-    GetModuleFileNameW ( 0, wszProcessName, dwProcessSize );
+    PathStripPathW (wszFullyQualified);
 
-    int      len    = lstrlenW (wszProcessName) - 1;
-    wchar_t* wszEnd =           wszProcessName;
+    wcsncpy_s ( host_proc->wszApp, MAX_PATH * 2,
+                wszFullyQualified, _TRUNCATE );
 
-    for (int i = 0; i < len; i++)
-      wszEnd = CharNextW (wszEnd);
-
-    wchar_t* wszSepBack = wszEnd;
-    wchar_t* wszSepFwd  = wszEnd;
-
-    while (wszSepBack > wszProcessName)
-    {
-      wszSepBack = CharPrevW (wszProcessName, wszSepBack);
-
-      if (*wszSepBack == L'\\')
-        break;
-    }
-
-    while (wszSepFwd > wszProcessName)
-    {
-      wszSepFwd = CharPrevW (wszProcessName, wszSepFwd);
-
-      if (*wszSepFwd == L'/')
-        break;
-    }
-
-    wchar_t* wszLastSep =
-      ( wszSepBack > wszSepFwd ? wszSepBack : wszSepFwd );
-
-    if ( wszLastSep != nullptr )
-    {
-      wcsncpy_s ( host_proc->wszApp,         MAX_PATH * 2,
-                    CharNextW (wszLastSep), _TRUNCATE  );
-    }
-
-    else
-    {
-      wcsncpy_s ( host_proc->wszApp, MAX_PATH * 2,
-                    wszProcessName, _TRUNCATE );
-    }
+    assert (PathFileExistsW (host_proc->wszApp));
 
     host_proc->app.store (true);
 
@@ -2318,10 +2296,14 @@ SK_GetFullyQualifiedApp (void)
     DWORD   dwProcessSize =  MAX_PATH * 2;
     wchar_t wszProcessName [ MAX_PATH * 2 + 1 ] = { };
 
-    GetModuleFileNameW ( 0, wszProcessName, dwProcessSize );
+    GetModuleFileNameW ( 0,
+                           wszProcessName,
+                            dwProcessSize );
 
     wcsncpy_s ( host_proc->wszFullName, MAX_PATH * 2,
                   wszProcessName,       _TRUNCATE );
+
+    assert (PathFileExistsW (host_proc->wszFullName));
 
     host_proc->full_name.store (true);
 
@@ -2353,18 +2335,20 @@ SK_GetHostPath (void)
     wcsncpy_s ( wszProcessName,  MAX_PATH * 2,
                   SK_GetFullyQualifiedApp (), _TRUNCATE );
 
-    wchar_t* wszSepBack = wcsrchr (wszProcessName, L'\\');
-    wchar_t* wszSepFwd  = wcsrchr (wszProcessName, L'/');
+    BOOL bSuccess =
+      PathRemoveFileSpecW (wszProcessName);
 
-    wchar_t* wszLastSep =
-      ( wszSepBack > wszSepFwd ? wszSepBack : wszSepFwd );
+#ifndef _DEBUG
+    UNREFERENCED_PARAMETER (bSuccess);
+#endif
 
-    if (wszLastSep != nullptr)
-       *wszLastSep  = L'\0';
+    assert (bSuccess != FALSE);
 
     wcsncpy_s (
       host_proc->wszPath, MAX_PATH * 2,
         wszProcessName,  _TRUNCATE  );
+
+    assert (PathFileExistsW (host_proc->wszPath));
 
     host_proc->path.store (true);
 
@@ -3977,6 +3961,9 @@ SK_DeferCommand (const char* szCommand)
 void
 SK_HostAppUtil::init (void)
 {
+  static sk_host_process_s* __DontCare =
+    __SK_HostProc ();
+
   SK_RunOnce (SKIM     = (StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr));
   SK_RunOnce (RunDll32 = (StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr));
 }
@@ -3984,8 +3971,11 @@ SK_HostAppUtil::init (void)
 SK_HostAppUtil*
 SK_GetHostAppUtil (void)
 {
-  static SK_HostAppUtil  SK_HostApp;
-  return                &SK_HostApp;
+  // Push the statically initialized value onto the global datastore in the
+  //   form of a pointer so that we have an easier time debugging this.
+  static      SK_HostAppUtil   __SK_HostApp;
+  SK_RunOnce (host_app_util = &__SK_HostApp);
+  return      host_app_util;
 }
 
 

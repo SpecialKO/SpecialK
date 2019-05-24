@@ -28,6 +28,9 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/utility/lazy_global.h>
 
+#include <SpecialK/log.h>
+#include <SpecialK/config.h>
+
 #pragma pack (push,8)
 #define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
 #define STATUS_SUCCESS                          0
@@ -138,7 +141,7 @@ typedef struct _UNICODE_STRING {
     USHORT         Length;
     USHORT         MaximumLength;
     PWSTR          Buffer;
-} UNICODE_STRING;
+} UNICODE_STRING; //-V677
 
 typedef struct _SYSTEM_THREAD {
     FILETIME     ftKernelTime;
@@ -332,23 +335,23 @@ SK_LazyGlobal <SK_NtDllContext> SK_NtDll;
 PSYSTEM_PROCESS_INFORMATION
 SK_Process_SnapshotNt (void)
 {
-  SK_NtDll->lock ();
-
-  DWORD                      dSize = 0;
-  DWORD                      dData = 0;
-  NTSTATUS                      ns = STATUS_INVALID_PARAMETER;
-  PSYSTEM_PROCESS_INFORMATION pspi = NULL;
-
   if (SK_NtDll->QuerySystemInformation == NULL)
   {
     return nullptr;
   }
 
+  SK_NtDll->lock ();
+
   RtlZeroMemory ( SK_NtDll->pSnapshot, SK_NtDll->dwHeapSize );
 
-  ns = SK_NtDll->QuerySystemInformation ( SystemProcessInformation,
-                                            SK_NtDll->pSnapshot,
-                                            SK_NtDll->dwHeapSize, &dData );
+  DWORD                      dSize = 0;
+  DWORD                      dData = 0;
+  PSYSTEM_PROCESS_INFORMATION pspi = NULL;
+
+  NTSTATUS                      ns =
+    SK_NtDll->QuerySystemInformation ( SystemProcessInformation,
+                                       SK_NtDll->pSnapshot,
+                                       SK_NtDll->dwHeapSize, &dData );
 
   // Memory was not filled.
   if (ns != STATUS_SUCCESS)
@@ -403,7 +406,17 @@ SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
   }
 
   else
+  {
     pProc = SK_NtDll->pSnapshot;
+  }
+
+  SK_ReleaseAssert (pProc != nullptr);
+
+  if (pProc == nullptr)
+  {
+    SK_NtDll->unlock ();
+    return;
+  }
 
   int i = 0;
 

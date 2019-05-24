@@ -141,7 +141,8 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
                &&          msg.message != WM_NULL
          )
       {
-        SK_LOG0 ( ( L"Dispatched Message: %x to Unicode HWND: %x while framerate limiting!", msg.message, msg.hwnd ),
+        SK_LOG0 ( ( L"Dispatched Message: %x to Unicode HWND: %x while "
+                    L"framerate limiting!", msg.message, msg.hwnd ),
                     L"Win32-Pump" );
 
         DispatchMessageW (&msg);
@@ -155,7 +156,8 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
                &&          msg.message != WM_NULL
          )
       {
-        SK_LOG0 ( ( L"Dispatched Message: %x to ANSI HWND: %x while framerate limiting!", msg.message, msg.hwnd ),
+        SK_LOG0 ( ( L"Dispatched Message: %x to ANSI HWND: %x while "
+                    L"framerate limiting!", msg.message, msg.hwnd ),
                     L"Win32-Pump" );
         DispatchMessageA (&msg);
       }
@@ -171,14 +173,16 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
 
   LARGE_INTEGER liStart      = SK_CurrentPerf ();
   long long     liTicksPerMS = SK_GetPerfFreq ().QuadPart / 1000LL;
-  long long     liEnd        = liStart.QuadPart + ( liTicksPerMS * dwMilliseconds );
+  long long     liEnd        = liStart.QuadPart +
+                             ( liTicksPerMS     * dwMilliseconds );
 
   LARGE_INTEGER liNow = liStart;
 
   while ((liNow = SK_CurrentPerf ()).QuadPart < liEnd)
   {
     DWORD dwMaxWait =
-      narrow_cast <DWORD> (std::max (0LL, (liEnd - liNow.QuadPart) / liTicksPerMS));
+      narrow_cast <DWORD> (std::max (0LL, (liEnd - liNow.QuadPart) /
+                                                   liTicksPerMS  ) );
 
     if (dwMaxWait < INT_MAX && dwMaxWait > 1)
     {
@@ -191,8 +195,14 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
                          MWMO_INPUTAVAILABLE
                                     );
 
-      if ( dwWait == WAIT_OBJECT_0 )
+      if ( dwWait == WAIT_OBJECT_0     ||
+           dwWait == WAIT_TIMEOUT      ||
+           dwWait == WAIT_IO_COMPLETION )
+      {
         break;
+      }
+
+      // (dwWait == WAIT_OBJECT_0 + 1) { Message Waiting }
 
       else
       {
@@ -711,7 +721,13 @@ SwitchToThread_Detour (void)
           pTLS->scheduler->switch_count = 0;
         }
 
-        if (WAIT_TIMEOUT != MsgWaitForMultipleObjectsEx (0, nullptr, pTLS->scheduler->switch_count++, QS_ALLEVENTS & ~QS_INPUT, 0x0))
+        if ( WAIT_TIMEOUT !=
+               MsgWaitForMultipleObjectsEx (
+                 0, nullptr,
+                    pTLS->scheduler->switch_count++,
+                      QS_ALLEVENTS & ~QS_INPUT,
+                        0x0                )
+           )
         {
           pTLS->scheduler->last_frame =
             ulFrames;
@@ -734,7 +750,10 @@ SwitchToThread_Detour (void)
   }
 
 
-  //SK_LOG0 ( ( L"Thread: %x (%s) is SwitchingThreads", SK_GetCurrentThreadId (), SK_Thread_GetName (GetCurrentThread ()).c_str () ),
+  //SK_LOG0 ( ( L"Thread: %x (%s) is SwitchingThreads",
+  //            SK_GetCurrentThreadId (), SK_Thread_GetName (
+  //              GetCurrentThread ()).c_str ()
+  //            ),
   //         L"AntiTamper");
 
 
@@ -894,7 +913,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       static bool reported = false;
             if (! reported)
             {
-              dll_log->Log (L"[FrameLimit] Sleep called from render thread: %lu ms!", dwMilliseconds);
+              dll_log->Log ( L"[FrameLimit] Sleep called from render "
+                             L"thread: %lu ms!", dwMilliseconds );
               reported = true;
             }
 
@@ -922,7 +942,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       static bool reported = false;
             if (! reported)
             {
-              dll_log->Log (L"[FrameLimit] Sleep called from GUI thread: %lu ms!", dwMilliseconds);
+              dll_log->Log ( L"[FrameLimit] Sleep called from GUI thread: "
+                             L"%lu ms!", dwMilliseconds );
               reported = true;
             }
 
@@ -990,7 +1011,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
               dwMilliseconds == 1 )
     {
       max_delta_time = std::max (2UL, max_delta_time);
-      //dll_log.Log (L"Sleep %lu - %s - %x", dwMilliseconds, thread_name.c_str (), SK_Thread_GetCurrentId ());
+      //dll_log.Log ( L"Sleep %lu - %s - %x", dwMilliseconds,
+      //               thread_name.c_str (), SK_Thread_GetCurrentId () );
     }
   }
 #endif
@@ -999,7 +1021,9 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   //         (min sleep?)
   if ( max_delta_time <= dwMilliseconds )
   {
-    //dll_log.Log (L"SleepEx (%lu, %s) -- %s", dwMilliseconds, bAlertable ? L"Alertable" : L"Non-Alertable", SK_SummarizeCaller ().c_str ());
+    //dll_log.Log (L"SleepEx (%lu, %s) -- %s", dwMilliseconds, bAlertable ?
+    //             L"Alertable" : L"Non-Alertable",
+    //             SK_SummarizeCaller ().c_str ());
     return
       SK_SleepEx (dwMilliseconds, bAlertable);
   }
@@ -1383,8 +1407,9 @@ SK_D3D9_GetTimingDevice (void)
   {
     CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
-    using Direct3DCreate9ExPROC = HRESULT (STDMETHODCALLTYPE *)(UINT           SDKVersion,
-                                                                IDirect3D9Ex** d3d9ex);
+    using Direct3DCreate9ExPROC =
+      HRESULT (STDMETHODCALLTYPE *)(UINT           SDKVersion,
+                                    IDirect3D9Ex** d3d9ex);
 
     extern Direct3DCreate9ExPROC Direct3DCreate9Ex_Import;
 
@@ -1396,8 +1421,7 @@ SK_D3D9_GetTimingDevice (void)
                                     :
                                E_NOINTERFACE;
 
-    HWND hwnd = nullptr;
-
+    HWND                hwnd = nullptr;
     IDirect3DDevice9Ex* pDev9Ex = nullptr;
 
     if (SUCCEEDED (hr))
@@ -1509,8 +1533,14 @@ SK::Framerate::Limiter::init (long double target)
   SK_QueryPerformanceCounter (&start);
 
   time.QuadPart = 0ULL;
-  last.QuadPart = static_cast <LONGLONG> (start.QuadPart - (ms / 1000.0L) * freq.QuadPart);
-  next.QuadPart = static_cast <LONGLONG> (start.QuadPart + (ms / 1000.0L) * freq.QuadPart);
+
+  last.QuadPart =
+    static_cast <LONGLONG> (
+      start.QuadPart -     (ms / 1000.0L) * freq.QuadPart);
+
+  next.QuadPart =
+    static_cast <LONGLONG> (
+      start.QuadPart +     (ms / 1000.0L) * freq.QuadPart);
 }
 
 #include <SpecialK/window.h>
@@ -1607,8 +1637,8 @@ SK::Framerate::Limiter::wait (void)
     {
       if (timeGetTime () - dwMinTimeBetweenResets > dwLastFullReset)
       {
-        SK_LOG1 ( ( L"Framerate limiter is running too far behind... (%f frames late)",
-                      missed_frames ),
+        SK_LOG1 ( ( L"Framerate limiter is running too far behind... "
+                    L"(%f frames late)", missed_frames ),
                     L"Frame Rate" );
 
         if (missing_time > 3 * config.render.framerate.limiter_tolerance)
@@ -1781,7 +1811,8 @@ SK::Framerate::Limiter::wait (void)
 
   else
   {
-    dll_log->Log (L"[FrameLimit] Framerate limiter lost time?! (non-monotonic clock)");
+    dll_log->Log ( L"[FrameLimit] Framerate limiter lost time?! "
+                   L"(non-monotonic clock)" );
     start.QuadPart += -next.QuadPart;
   }
 
@@ -1896,7 +1927,9 @@ SK::Framerate::Stats::calcMax (long double seconds)
 }
 
 int
-SK::Framerate::Stats::calcHitches (long double tolerance, long double mean, long double seconds)
+SK::Framerate::Stats::calcHitches ( long double tolerance,
+                                    long double mean,
+                                    long double seconds )
 {
   return
     calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));

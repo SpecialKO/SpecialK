@@ -55,7 +55,7 @@ typedef struct tagTHREADNAME_INFO
 
 static inline constexpr
   const HANDLE
-    SK_GetCurrentThread  (void) noexcept { return reinterpret_cast <PVOID> (-2); };
+    SK_GetCurrentThread  (void) noexcept { return reinterpret_cast <PVOID> (-2); }; //-V566
 
 static inline constexpr
   const HANDLE

@@ -95,60 +95,105 @@ CreateDXGIFactory2_pfn            CreateDXGIFactory2_Import              = nullp
 #pragma data_seg (".SK_DXGI_Hooks")
 extern "C"
 {
+#define SK_HookCacheEntryGlobalDll(x) __declspec (dllexport)\
+                                      SK_HookCacheEntryGlobal (x)
   // Global DLL's cache
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGIFactory_CreateSwapChain)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGIFactory2_CreateSwapChainForHwnd)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGIFactory2_CreateSwapChainForCoreWindow)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGIFactory2_CreateSwapChainForComposition)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_Present)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain1_Present1)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_ResizeTarget)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_ResizeBuffers)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_GetFullscreenState)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_SetFullscreenState)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (CreateDXGIFactory)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (CreateDXGIFactory1)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (CreateDXGIFactory2)
+  SK_HookCacheEntryGlobalDll (IDXGIFactory_CreateSwapChain)
+  SK_HookCacheEntryGlobalDll (IDXGIFactory2_CreateSwapChainForHwnd)
+  SK_HookCacheEntryGlobalDll (IDXGIFactory2_CreateSwapChainForCoreWindow)
+  SK_HookCacheEntryGlobalDll (IDXGIFactory2_CreateSwapChainForComposition)
+  SK_HookCacheEntryGlobalDll (IDXGISwapChain_Present)
+  SK_HookCacheEntryGlobalDll (IDXGISwapChain1_Present1)
+  SK_HookCacheEntryGlobalDll (IDXGISwapChain_ResizeTarget)
+  SK_HookCacheEntryGlobalDll (IDXGISwapChain_ResizeBuffers)
+  SK_HookCacheEntryGlobalDll (IDXGISwapChain_GetFullscreenState)
+  SK_HookCacheEntryGlobalDll (IDXGISwapChain_SetFullscreenState)
+  SK_HookCacheEntryGlobalDll (CreateDXGIFactory)
+  SK_HookCacheEntryGlobalDll (CreateDXGIFactory1)
+  SK_HookCacheEntryGlobalDll (CreateDXGIFactory2)
 };
 #pragma data_seg ()
 #pragma comment  (linker, "/SECTION:.SK_DXGI_Hooks,RWS")
 
 
 // Local DLL's cached addresses
-SK_HookCacheEntryLocal (IDXGIFactory_CreateSwapChain,                L"dxgi.dll", DXGIFactory_CreateSwapChain_Override,                &CreateSwapChain_Original)
-SK_HookCacheEntryLocal (IDXGIFactory2_CreateSwapChainForHwnd,        L"dxgi.dll", DXGIFactory2_CreateSwapChainForHwnd_Override,        &CreateSwapChainForHwnd_Original)
-SK_HookCacheEntryLocal (IDXGIFactory2_CreateSwapChainForCoreWindow,  L"dxgi.dll", DXGIFactory2_CreateSwapChainForCoreWindow_Override,  &CreateSwapChainForCoreWindow_Original)
-SK_HookCacheEntryLocal (IDXGIFactory2_CreateSwapChainForComposition, L"dxgi.dll", DXGIFactory2_CreateSwapChainForComposition_Override, &CreateSwapChainForComposition_Original)
-SK_HookCacheEntryLocal (IDXGISwapChain_Present,                      L"dxgi.dll", PresentCallback,                                     &Present_Original);
-SK_HookCacheEntryLocal (IDXGISwapChain1_Present1,                    L"dxgi.dll", Present1Callback,                                    &Present1_Original);
-SK_HookCacheEntryLocal (IDXGISwapChain_ResizeTarget,                 L"dxgi.dll", DXGISwap_ResizeTarget_Override,                      &ResizeTarget_Original)
-SK_HookCacheEntryLocal (IDXGISwapChain_ResizeBuffers,                L"dxgi.dll", DXGISwap_ResizeBuffers_Override,                     &ResizeBuffers_Original)
-SK_HookCacheEntryLocal (IDXGISwapChain_GetFullscreenState,           L"dxgi.dll", DXGISwap_GetFullscreenState_Override,                &GetFullscreenState_Original)
-SK_HookCacheEntryLocal (IDXGISwapChain_SetFullscreenState,           L"dxgi.dll", DXGISwap_SetFullscreenState_Override,                &SetFullscreenState_Original)
-SK_HookCacheEntryLocal (CreateDXGIFactory,                           L"dxgi.dll", CreateDXGIFactory,                                   &CreateDXGIFactory_Import)
-SK_HookCacheEntryLocal (CreateDXGIFactory1,                          L"dxgi.dll", CreateDXGIFactory1,                                  &CreateDXGIFactory1_Import)
-SK_HookCacheEntryLocal (CreateDXGIFactory2,                          L"dxgi.dll", CreateDXGIFactory2,                                  &CreateDXGIFactory2_Import)
+SK_HookCacheEntryLocal (IDXGIFactory_CreateSwapChain,
+  L"dxgi.dll",           DXGIFactory_CreateSwapChain_Override,
+                                    &CreateSwapChain_Original)
+SK_HookCacheEntryLocal (IDXGIFactory2_CreateSwapChainForHwnd,
+  L"dxgi.dll",           DXGIFactory2_CreateSwapChainForHwnd_Override,
+                                     &CreateSwapChainForHwnd_Original)
+SK_HookCacheEntryLocal (IDXGIFactory2_CreateSwapChainForCoreWindow,
+  L"dxgi.dll",           DXGIFactory2_CreateSwapChainForCoreWindow_Override,
+                                     &CreateSwapChainForCoreWindow_Original)
+SK_HookCacheEntryLocal (IDXGIFactory2_CreateSwapChainForComposition,
+  L"dxgi.dll",           DXGIFactory2_CreateSwapChainForComposition_Override,
+                                     &CreateSwapChainForComposition_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_Present,
+  L"dxgi.dll",                         PresentCallback,
+                                      &Present_Original);
+SK_HookCacheEntryLocal (IDXGISwapChain1_Present1,
+  L"dxgi.dll",                          Present1Callback,
+                                       &Present1_Original);
+SK_HookCacheEntryLocal (IDXGISwapChain_ResizeTarget,
+  L"dxgi.dll",           DXGISwap_ResizeTarget_Override,
+                                 &ResizeTarget_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_ResizeBuffers,
+  L"dxgi.dll",                DXGISwap_ResizeBuffers_Override,
+                                      &ResizeBuffers_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_GetFullscreenState,
+  L"dxgi.dll",                DXGISwap_GetFullscreenState_Override,
+                                      &GetFullscreenState_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_SetFullscreenState,
+  L"dxgi.dll",                DXGISwap_SetFullscreenState_Override,
+                                      &SetFullscreenState_Original)
+SK_HookCacheEntryLocal (CreateDXGIFactory,
+  L"dxgi.dll",          CreateDXGIFactory,
+                       &CreateDXGIFactory_Import)
+SK_HookCacheEntryLocal (CreateDXGIFactory1,
+  L"dxgi.dll",          CreateDXGIFactory1,
+                       &CreateDXGIFactory1_Import)
+SK_HookCacheEntryLocal (CreateDXGIFactory2,
+  L"dxgi.dll",          CreateDXGIFactory2,
+                       &CreateDXGIFactory2_Import)
 
 // Counter-intuitively, the fewer of these we cache the more compatible we get.
 static
 std::vector <sk_hook_cache_record_s *> global_dxgi_records =
-  { &GlobalHook_IDXGIFactory_CreateSwapChain,               &GlobalHook_IDXGIFactory2_CreateSwapChainForHwnd,
-    &GlobalHook_IDXGISwapChain_Present,                     &GlobalHook_IDXGISwapChain1_Present1,
-    &GlobalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,//&GlobalHook_IDXGIFactory2_CreateSwapChainForComposition,
-  //&GlobalHook_IDXGISwapChain_ResizeTarget,                &GlobalHook_IDXGISwapChain_ResizeBuffers,
-  //&GlobalHook_IDXGISwapChain_GetFullscreenState,          &GlobalHook_IDXGISwapChain_SetFullscreenState,
-  //&GlobalHook_CreateDXGIFactory,                          &GlobalHook_CreateDXGIFactory1,
+  { &GlobalHook_IDXGIFactory_CreateSwapChain,
+    &GlobalHook_IDXGIFactory2_CreateSwapChainForHwnd,
+
+    &GlobalHook_IDXGISwapChain_Present,
+    &GlobalHook_IDXGISwapChain1_Present1,
+
+    &GlobalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
+  //&GlobalHook_IDXGIFactory2_CreateSwapChainForComposition,
+
+  //&GlobalHook_IDXGISwapChain_ResizeTarget,
+  //&GlobalHook_IDXGISwapChain_ResizeBuffers,
+  //&GlobalHook_IDXGISwapChain_GetFullscreenState,
+  //&GlobalHook_IDXGISwapChain_SetFullscreenState,
+  //&GlobalHook_CreateDXGIFactory,
+  //&GlobalHook_CreateDXGIFactory1,
   //&GlobalHook_CreateDXGIFactory2
   };
 
 static
 std::vector <sk_hook_cache_record_s *> local_dxgi_records =
-  { &LocalHook_IDXGIFactory_CreateSwapChain,               &LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
-    &LocalHook_IDXGISwapChain_Present,                     &LocalHook_IDXGISwapChain1_Present1,
-    &LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,//&LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
-  //&LocalHook_IDXGISwapChain_ResizeTarget,                &LocalHook_IDXGISwapChain_ResizeBuffers,
-  //&LocalHook_IDXGISwapChain_GetFullscreenState,          &LocalHook_IDXGISwapChain_SetFullscreenState,
-  //&LocalHook_CreateDXGIFactory,                          &LocalHook_CreateDXGIFactory1,
+  { &LocalHook_IDXGIFactory_CreateSwapChain,
+    &LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
+
+    &LocalHook_IDXGISwapChain_Present,
+    &LocalHook_IDXGISwapChain1_Present1,
+
+    &LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
+  //&LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
+  //&LocalHook_IDXGISwapChain_ResizeTarget,
+  //&LocalHook_IDXGISwapChain_ResizeBuffers,
+  //&LocalHook_IDXGISwapChain_GetFullscreenState,
+  //&LocalHook_IDXGISwapChain_SetFullscreenState,
+  //&LocalHook_CreateDXGIFactory,
+  //&LocalHook_CreateDXGIFactory1,
   //&LocalHook_CreateDXGIFactory2
   };
 
@@ -157,8 +202,8 @@ std::vector <sk_hook_cache_record_s *> local_dxgi_records =
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
 
-extern void SK_D3D11_EndFrame               (SK_TLS* pTLS = SK_TLS_Bottom ());
-extern void SK_DXGI_UpdateSwapChain         (IDXGISwapChain*);
+extern void SK_D3D11_EndFrame            (SK_TLS* pTLS = SK_TLS_Bottom ());
+extern void SK_DXGI_UpdateSwapChain      (IDXGISwapChain*);
 
 extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
 extern          HWND hWndUpdateDlg;
@@ -717,14 +762,16 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-
-  assert (rb.swapchain == nullptr || This == rb.swapchain || rb.swapchain.IsEqualObject (This));
+  assert ( rb.swapchain == nullptr ||
+   This == rb.swapchain            ||
+           rb.swapchain.IsEqualObject (This) );
 
   SK_ComPtr <ID3D11Device> pDev = nullptr;
 
   if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))))
   {
-    assert (rb.device == nullptr || pDev.IsEqualObject (rb.device));
+    assert (                     rb.device == nullptr ||
+             pDev.IsEqualObject (rb.device) );
 
     rb.releaseOwnedResources (    );
     SK_DXGI_UpdateSwapChain  (This);
@@ -739,7 +786,8 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
   // D3D12
 #if 1
-  if (rb.swapchain == nullptr || rb.device == nullptr)
+  if ( rb.swapchain == nullptr ||
+       rb.device    == nullptr )
   {
 
           //D3D12_DESCRIPTOR_HEAP_DESC heap_desc = { };
@@ -1611,15 +1659,18 @@ SK_CEGUI_QueueResetD3D12 (void)
   ImGui_ImplDX12_Shutdown ();
 }
 
-typedef HRESULT (WINAPI *IDXGISwapChain3_CheckColorSpaceSupport_pfn)(IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE, UINT*);
+typedef HRESULT (WINAPI *IDXGISwapChain3_CheckColorSpaceSupport_pfn)
+                        (IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE, UINT*);
                          IDXGISwapChain3_CheckColorSpaceSupport_pfn
                          IDXGISwapChain3_CheckColorSpaceSupport_Original =nullptr;
 
-typedef HRESULT (WINAPI *IDXGISwapChain3_SetColorSpace1_pfn)        (IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE);
+typedef HRESULT (WINAPI *IDXGISwapChain3_SetColorSpace1_pfn)
+                        (IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE);
                          IDXGISwapChain3_SetColorSpace1_pfn
                          IDXGISwapChain3_SetColorSpace1_Original = nullptr;
 
-typedef HRESULT (WINAPI *IDXGISwapChain4_SetHDRMetaData_pfn)(IDXGISwapChain4*, DXGI_HDR_METADATA_TYPE, UINT, void*);
+typedef HRESULT (WINAPI *IDXGISwapChain4_SetHDRMetaData_pfn)
+                        (IDXGISwapChain4*, DXGI_HDR_METADATA_TYPE, UINT, void*);
                          IDXGISwapChain4_SetHDRMetaData_pfn
                          IDXGISwapChain4_SetHDRMetaData_Original = nullptr;
 
@@ -1657,7 +1708,7 @@ DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space);
 
 const uint8_t MONITOR_NAME                = 0xfc;
 
-std::string edid_name;
+SK_LazyGlobal <std::string> edid_name;
 
 static uint8_t
 blockType (uint8_t* block)
@@ -1787,9 +1838,9 @@ SK_EDID_Parse (uint8_t *edid, size_t length)
           vendorString [3] = 'S'; vendorString [4] = '\0';
         }
 
-        edid_name = (const char *)vendorString;
-        edid_name += " ";
-        edid_name +=
+        *edid_name = (const char *)vendorString;
+        *edid_name += " ";
+        *edid_name +=
           SK_EDID_GetMonitorNameFromBlock (block);
 
         bool one_pt_4 =
@@ -1800,12 +1851,12 @@ SK_EDID_Parse (uint8_t *edid, size_t length)
           else          SK_LOG2 (x, L" EDID 1.3 "); }
 
         EDID_LOG2 ( ( L"SK_EDID_Parse (...): [ Name: %hs ]",
-                      edid_name.c_str () ) );
+                      edid_name->c_str () ) );
 
         wsprintf ( rb.display_name,
-                      L"%hs", edid_name.c_str () );
+                      L"%hs", edid_name->c_str () );
 
-      //dll_log->Log (L"EDID Name: %hs", edid_name.c_str ());
+      //dll_log->Log (L"EDID Name: %hs", edid_name->c_str ());
 
       block += DETAILED_TIMING_DESCRIPTION_SIZE;
     } break;
@@ -1913,10 +1964,11 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This)
             rb.setHDRCapable (false);
           }
 
-          else if (outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020     ||
-                   outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709        ||
-                   outDesc1.ColorSpace == DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601 ||
-                   outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020)
+          else if (
+            outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020     ||
+            outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709        ||
+            outDesc1.ColorSpace == DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601 ||
+            outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020)
           {
             rb.setHDRCapable (true);
           }
@@ -1933,11 +1985,11 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This)
           rb.scanout.bpc             = outDesc1.BitsPerColor;
           rb.scanout.dxgi_colorspace = outDesc1.ColorSpace;
 
-          if (! edid_name.empty ())
+          if (! edid_name->empty ())
           {
             wsprintf ( rb.display_name,
                          LR"(%hs)",
-                           edid_name.c_str () );
+                           edid_name->c_str () );
           }
 
           if (*rb.display_name == L'\0')
@@ -1970,7 +2022,8 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This)
                                                DIREG_DEV,      KEY_READ );
 
 
-                  if ((! hDevRegKey) || (hDevRegKey == INVALID_HANDLE_VALUE))
+                  if ( (! hDevRegKey) ||
+                         (hDevRegKey == INVALID_HANDLE_VALUE) )
                     continue;
 
                   //std::wstring fullRegistryKey =
@@ -2042,12 +2095,12 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This)
 
               if (EnumDisplayDevices (wszDevName.c_str (), mon_idx, &disp_desc, 0))
               {
-                wsprintf ( rb.display_name, edid_name.empty () ?
+                wsprintf ( rb.display_name, edid_name->empty () ?
                                               LR"(%ws (%ws))" :
                                                 L"%hs",
-                             edid_name.empty () ?
+                             edid_name->empty () ?
                                disp_desc.DeviceString :
-                      SK_UTF8ToWideChar (edid_name).c_str (),
+                      SK_UTF8ToWideChar (*edid_name).c_str (),
                                  disp_desc.DeviceName );
               }
             }
@@ -2075,6 +2128,7 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This)
     }
   }
 }
+
 
 volatile LONG __SK_NVAPI_UpdateGSync = FALSE;
 
@@ -2129,33 +2183,10 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
     if (rb.swapchain != This)
         rb.swapchain  = This;
 
-    dll_log->Log (L"UpdateSwapChain FAIL :: No D3D11 Device [ Actually: %ph ]", rb.device.p);
+    dll_log->Log (
+      L"UpdateSwapChain FAIL :: No D3D11 Device [ Actually: %ph ]",
+        rb.device.p );
   }
-
-
-  // D3D12
-  //SK_ComPtr <ID3D12CommandQueue> pSwapQueue = nullptr;
-  //if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pSwapQueue))))
-  ////{
-  ////  SK_ComPtr <ID3D12Device> pDev12 = nullptr;
-  ////
-  ////  if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev12))) )
-  ////  {
-  ////    // These operations are not atomic / cache coherent in
-  ////    //   ReShade (bug!!), so to avoid prematurely freeing
-  ////    //     this stuff don't release and re-acquire a
-  ////    //       reference to the same object.
-  ////
-  ////    if (rb.device != pDev12.p)
-  ////        rb.device  = pDev12.p;
-  ////
-  ////    if (rb.swapchain != This)
-  ////        rb.swapchain  = This;
-  ////  }
-  ////}
-
-
-
 
   SK_ComQIPtr <IDXGISwapChain3>
       pSwap3 (This);
@@ -2244,7 +2275,6 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
     ///  rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
     ///  pDev->GetImmediateContext (&pCtx);
     ///}
-
 
     D3D_FEATURE_LEVEL ft_lvl =
       pDev->GetFeatureLevel ();
@@ -2342,7 +2372,6 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
     pCtx->PSSetConstantBuffers   (0, 1, &PSConstantBuffer);
     pCtx->VSSetConstantBuffers   (0, 1, &VSConstantBuffer);
     pCtx->PSSetSamplers          (0, 1, &PSSampler);
-  //D3D11_PSSetSamplers_Original (pCtx, 0, 1, &PSSampler);
     pCtx->IASetVertexBuffers     (0, 1, &VertexBuffer,    &VertexBufferStride,
                                                           &VertexBufferOffset);
     pCtx->OMSetRenderTargets     (1,    &RenderTargetView, DepthStencilView);
@@ -2998,7 +3027,9 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (IAVertexBufferCount)
   {
-    dc->IASetVertexBuffers   (0, IAVertexBufferCount, sb->IAVertexBuffers, sb->IAVertexBuffersStrides, sb->IAVertexBuffersOffsets);
+    dc->IASetVertexBuffers   (0, IAVertexBufferCount, sb->IAVertexBuffers,
+                                                      sb->IAVertexBuffersStrides,
+                                                      sb->IAVertexBuffersOffsets);
 
     for (UINT i = 0; i < IAVertexBufferCount; i++)
     {
@@ -3015,7 +3046,8 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   if (sb->IAInputLayout != nullptr) sb->IAInputLayout->Release ();
 
 
-  dc->OMSetBlendState        (sb->OMBlendState,        sb->OMBlendFactor, sb->OMSampleMask);
+  dc->OMSetBlendState        (sb->OMBlendState,        sb->OMBlendFactor,
+                                                       sb->OMSampleMask);
   dc->OMSetDepthStencilState (sb->OMDepthStencilState, sb->OMDepthStencilRef);
 
   if (sb->OMBlendState)        sb->OMBlendState->Release        ();
@@ -3026,7 +3058,8 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (OMRenderTargetCount)
   {
-    dc->OMSetRenderTargets   (OMRenderTargetCount, sb->OMRenderTargets, sb->OMRenderTargetStencilView);
+    dc->OMSetRenderTargets   (OMRenderTargetCount, sb->OMRenderTargets,
+                                                   sb->OMRenderTargetStencilView);
 
     for (UINT i = 0; i < OMRenderTargetCount; i++)
     {
@@ -3053,10 +3086,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
     if (SOBufferCount)
     {
-      UINT SOBuffersOffsets [4] = {   }; /* (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 0,
-                                      (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 1,
-                                      (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 2,
-                                      (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 3 };*/
+      UINT SOBuffersOffsets [4] = {   };
 
       dc->SOSetTargets (SOBufferCount, sb->SOBuffers, SOBuffersOffsets);
 
@@ -3089,6 +3119,48 @@ SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb)
   assert (sb != nullptr);
 
   delete sb;
+}
+
+void
+SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (SUCCEEDED (hr))
+  {
+    bool __WantGSyncUpdate =
+      ( (config.fps.show && config.osd.show ) || SK_ImGui_Visible )
+                         && ReadAcquire (&__SK_NVAPI_UpdateGSync);
+
+    if (__WantGSyncUpdate)
+    {
+      UINT currentBuffer = 0;
+
+      if ( SUCCEEDED ( pSwap->GetBuffer (
+                         currentBuffer,
+                           IID_PPV_ARGS (&rb.surface.dxgi.p)
+                                        )
+                     )
+         )
+      {
+        if ( NVAPI_OK ==
+               NvAPI_D3D_GetObjectHandleForResource (
+                 pDev, rb.surface.dxgi, &rb.surface.nvapi
+               )
+           )
+        {
+          rb.gsync_state.update ();
+          InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
+        }
+
+        else rb.surface.dxgi = nullptr;
+      }
+    }
+
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue);
+    SK_D3D11_TexCacheCheckpoint (                               );
+  }
 }
 
 #define _SK_D3D11_LITE_STATEBLOCKS
@@ -3200,22 +3272,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     if (FAILED (hr) || pBackBuffer == nullptr)
     {
-      ///if (rb.api != SK_RenderAPI::D3D11On12)
-      ///{
-        SK_LOG_ONCE (L"[   DXGI   ]  *** Back buffer unavailable! ***");
-        return;
-      ///}
-
-      ///else
-      ///{
-      ///  if (ImGui_DX11Startup ((IDXGISwapChain *)rb.swapchain.p))
-      ///    pBackBuffer = rb.d3d11.interop.backbuffer_tex2D;
-      ///  else
-      ///  {
-      ///    dll_log.Log (L"Skip a frame maybe?");
-      ///    return;
-      ///  }
-      ///}
+      SK_LOG_ONCE (L"[   DXGI   ]  *** Back buffer unavailable! ***");
+      return;
     }
 
     SK_ComQIPtr <ID3D11DeviceContext>  pImmediateContext  (rb.d3d11.immediate_ctx);
@@ -3382,14 +3440,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       auto* sb = &sblock;
 #endif
 
-      ///if (rb.api == SK_RenderAPI::D3D11On12)
-      ///{
-      ///                               SK_ComPtr <ID3D11Device>   pDev;
-      ///  rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
-      ///
-      ///  pDev->GetImmediateContext (&pImmediateContext.p);
-      ///}
-
 #ifdef _SK_D3D11_LITE_STATEBLOCKS
       sb->capture (pImmediateContext);
 #else
@@ -3488,23 +3538,22 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       ApplyStateblock (pImmediateContext, sb);
 #endif
 
-
       // Queue-up Post-SK OSD Screenshots
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::EndOfFrame);
-
 
       //
       // Update G-Sync; doing this here prevents trying to do this on frames where
       //   the swapchain was resized, which would deadlock the software.
       //
-      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status && ((config.fps.show && config.osd.show) || SK_ImGui_Visible))
+      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status &&
+               ((config.fps.show && config.osd.show)
+                                 || SK_ImGui_Visible))
       {
         static DWORD dwLastUpdate = 0;
                DWORD dwNow        = timeGetTime ();
 
         if (dwLastUpdate < dwNow - 2000UL)
-        {
-          dwLastUpdate = dwNow;
+        {   dwLastUpdate = dwNow;
           InterlockedExchange (&__SK_NVAPI_UpdateGSync, TRUE);
         }
       }
@@ -3875,8 +3924,13 @@ SK_DXGI_Present1 ( IDXGISwapChain1         *This,
   HRESULT hr = S_OK;
 
   auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-  try                                {
+  SK_SEH_ApplyTranslator (
+    SK_FilteringStructuredExceptionTranslator (
+      EXCEPTION_ACCESS_VIOLATION
+    )
+  );
+  try
+  {
     hr =
       Present1_Original (This, SyncInterval, Flags, pPresentParameters);
   }
@@ -4034,7 +4088,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
     //   use presentation testing... so we may need to resort to this or
     //     the game's performance derails itself.
     if ( (Flags & DXGI_PRESENT_TEST) && config.render.dxgi.present_test_skip )
-     return S_OK;
+      return S_OK;
 
     return
       Present1 ( SyncInterval,
@@ -4114,11 +4168,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
     SK_ComPtr <ID3D11Device> pDev = nullptr;
 
-    ///if (rb.api != SK_RenderAPI::D3D11On12)
-      This->GetDevice (IID_PPV_ARGS (&pDev));
-    ///else
-    ///  rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
-
+    This->GetDevice (IID_PPV_ARGS (&pDev));
 
     if (pDev && first_frame)
     {
@@ -4145,7 +4195,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
                 std::wstring (
                           it->target.module_path
                              ).data ()
-              )                                                             ),
+              ) ),
                         L"Hook Cache" );
           }
           SK_Hook_CacheTarget ( *it, wszSection );
@@ -4180,9 +4230,15 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
       }
 
       if (hooked > 0)
-        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+      {
+        SK_GetDLLConfig ()->write (
+        SK_GetDLLConfig ()->get_filename ()
+                                  );
+      }
 
-      SK_DXGI_SetupPluginOnFirstFrame (This, SyncInterval, Flags);
+      SK_DXGI_SetupPluginOnFirstFrame (
+        This, SyncInterval, Flags
+      );
 
       // TODO: Clean this code up
       SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
@@ -4193,20 +4249,18 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
            SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
-        ///if (rb.api != SK_RenderAPI::D3D11On12)
-            rb.device = pDev.p;
-
+        rb.device    = pDev.p;
         rb.swapchain = This;
 
-        //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-        //  NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
-
-
-        if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( nullptr, 0 );
-
+        if (config.render.dxgi.safe_fullscreen)
+          pFactory->MakeWindowAssociation ( nullptr, 0 );
 
         if (bAlwaysAllowFullscreen)
-          pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
+        {
+          pFactory->MakeWindowAssociation (
+            desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES
+          );
+        }
       }
 
       SK_DXGI_HookSwapChain (This);
@@ -4214,9 +4268,10 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
       first_frame = false;
     }
 
-    int interval = config.render.framerate.present_interval;
-
-    if ( config.render.framerate.flip_discard && config.render.dxgi.allow_tearing )
+    int interval =
+         config.render.framerate.present_interval;
+    if ( config.render.framerate.flip_discard &&
+         config.render.dxgi.allow_tearing )
     {
       if (desc.Windowed)
       {
@@ -4230,7 +4285,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
     // Application preference
     if (interval == -1)
-      interval = SyncInterval;
+        interval = SyncInterval;
 
     rb.present_interval = interval;
 
@@ -4303,34 +4358,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
       HRESULT ret =
         SK_EndBufferSwap (hr, pDev);
 
-      if (SUCCEEDED (ret))
-      {
-        if (((config.fps.show && config.osd.show) || SK_ImGui_Visible) && ReadAcquire (&__SK_NVAPI_UpdateGSync))
-        {
-          UINT currentBuffer = 0;
-
-          if (rb.surface.dxgi != nullptr)
-          {
-            rb.surface.dxgi  = nullptr;
-            rb.surface.nvapi = nullptr;
-          }
-
-          if (SUCCEEDED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&rb.surface.dxgi))))
-          {
-            if ( NVAPI_OK ==
-                   NvAPI_D3D_GetObjectHandleForResource (pDev, rb.surface.dxgi, &rb.surface.nvapi)
-               )
-            {
-              rb.gsync_state.update ();
-
-              InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
-            }
-          }
-        }
-
-        SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue);
-        SK_D3D11_TexCacheCheckpoint (                               );
-      }
+      SK_D3D11_PostPresent   (pDev, This, hr);
 
       return ret;
     }
@@ -4338,6 +4366,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
     // Not a D3D11 device -- weird...
     return SK_EndBufferSwap (hr);
   }
+
 
   else
   {
@@ -4419,15 +4448,23 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
 
   bool process                = false;
-  bool has_wrapped_swapchains = ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) ||
-                                ReadAcquire (&SK_DXGI_LiveWrappedSwapChains);
+  bool has_wrapped_swapchains =
+    ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) ||
+    ReadAcquire (&SK_DXGI_LiveWrappedSwapChains);
   // ^^^ It's not required that IDXGISwapChain1 or higher invokes Present1!
 
   if (config.render.osd.draw_in_vidcap && has_wrapped_swapchains)
-    process = (Source == SK_DXGI_PresentSource::Wrapper);
+  {
+    process =
+      (Source == SK_DXGI_PresentSource::Wrapper);
+  }
 
   else
-    process = (Source == SK_DXGI_PresentSource::Hook) || (! has_wrapped_swapchains);
+  {
+    process =
+      ( Source == SK_DXGI_PresentSource::Hook ||
+        (! has_wrapped_swapchains)               );
+  }
 
 
   if (process || SK_GetFramesDrawn () < 2)
@@ -4440,7 +4477,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD);
 
 
-    // Establish the API used this frame (and handle possible translation layers)
+    // Establish the API used this frame (and handle translation layers)
     //
     switch (SK_GetDLLRole ())
     {
@@ -4528,7 +4565,11 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
       }
 
       if (hooked > 0)
-        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+      {
+        SK_GetDLLConfig   ()->write (
+          SK_GetDLLConfig ()->get_filename ()
+        );
+      }
 
       SK_DXGI_SetupPluginOnFirstFrame (This, SyncInterval, Flags);
 
@@ -4541,27 +4582,30 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
            SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
-        ///if (rb.api != SK_RenderAPI::D3D11On12)
         rb.device    = pDev.p;
         rb.swapchain = This;
 
-        //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-        //  NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
-
-
-        if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( nullptr, 0 );
-
+        if (config.render.dxgi.safe_fullscreen)
+        {
+          pFactory->MakeWindowAssociation ( nullptr, 0 );
+        }
 
         if (bAlwaysAllowFullscreen)
-          pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
+        {
+          pFactory->MakeWindowAssociation (
+            desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES
+          );
+        }
       }
 
       first_frame = false;
     }
 
-    int interval = config.render.framerate.present_interval;
+    int interval =
+      config.render.framerate.present_interval;
 
-    if ( config.render.framerate.flip_discard && config.render.dxgi.allow_tearing )
+    if ( config.render.framerate.flip_discard &&
+         config.render.dxgi.allow_tearing )
     {
       if (desc.Windowed)
       {
@@ -4588,12 +4632,12 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     }
 
     // Test first, then do (if test_present is true)
-    hr = config.render.dxgi.test_present ?
-           Present (0, Flags | DXGI_PRESENT_TEST) :
-           S_OK;
+    hr = config.render.dxgi.test_present          ?
+           Present (0, Flags | DXGI_PRESENT_TEST) : S_OK;
 
     const bool can_present =
-      SUCCEEDED (hr) && hr != DXGI_STATUS_OCCLUDED;
+      ( SUCCEEDED (hr) &&
+                   hr  != DXGI_STATUS_OCCLUDED );
 
     if (! bFlipMode)
     {
@@ -4677,13 +4721,10 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
         DWORD dwDontCare = 0x0;
 
-        if (GetHandleInformation (hWait.m_h, &dwDontCare))
+        if (GetHandleInformation ( hWait, &dwDontCare ))
         {
-          SK_WaitForSingleObject (hWait.m_h, config.render.framerate.swapchain_wait);
-          ///MsgWaitForMultipleObjectsEx ( 1,
-          ///                                hWait.m_h,
-          ///                                  ,
-          ///                                    QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
+          SK_WaitForSingleObject ( hWait,
+            config.render.framerate.swapchain_wait );
         }
       }
     }
@@ -4693,46 +4734,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
       HRESULT ret =
         SK_EndBufferSwap (hr, pDev);
 
-      if (SUCCEEDED (ret))
-      {
-        if (ReadAcquire (&__SK_NVAPI_UpdateGSync))
-        {
-          std::lock_guard <SK_Thread_CriticalSection> auto_lock (*budget_mutex);
-
-          auto orig_se =
-          SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-          try
-          {
-            UINT currentBuffer = 0;
-
-            if (rb.surface.dxgi != nullptr)
-            {
-              rb.surface.dxgi.Release ();
-              rb.surface.nvapi = nullptr;
-            }
-
-            if ( SUCCEEDED ( This->GetBuffer ( currentBuffer,
-                                                 IID_PPV_ARGS (&rb.surface.dxgi) ) ) )
-            {
-              NvAPI_D3D_GetObjectHandleForResource ( pDev,
-                                                       rb.surface.dxgi,
-                                                      &rb.surface.nvapi );
-
-              rb.gsync_state.update ();
-
-              InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
-            }
-          }
-
-          catch (const SK_SEH_IgnoredException&)
-          {
-          }
-          SK_SEH_RemoveTranslator (orig_se);
-        }
-
-        SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue);
-        SK_D3D11_TexCacheCheckpoint (                               );
-      }
+      SK_D3D11_PostPresent   (pDev, This, hr);
 
       return ret;
     }
@@ -4757,8 +4759,10 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
                                     UINT            Flags )
 {
   return
-    SK_DXGI_DispatchPresent ( This, SyncInterval, Flags,
-                              SK_DXGI_Present, SK_DXGI_PresentSource::Hook );
+    SK_DXGI_DispatchPresent (
+      This, SyncInterval, Flags,
+        SK_DXGI_Present, SK_DXGI_PresentSource::Hook
+    );
 }
 
 __declspec (noinline)
@@ -4805,7 +4809,10 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       }
 
       else
-        modes = (int)std::min (cached_descs [tag].size (), (size_t)*pNumModes);
+      {
+        modes =
+          (int)std::min (cached_descs [tag].size (), (size_t)*pNumModes);
+      }
 
 
       if (pDesc)
@@ -4824,9 +4831,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
   if (pDesc != nullptr)
   {
-    DXGI_LOG_CALL_I5 ( L"       IDXGIOutput", L"GetDisplayModeList         ",
-                         L"%08" PRIxPTR L"h, %i, %02x, NumModes=%lu, %08"
-                                PRIxPTR L"h)",
+    DXGI_LOG_CALL_I5 ( L"       IDXGIOutput", L"GetDisplayModeList       ",
+                         L"  %08" PRIxPTR L"h, %i, %02x, NumModes=%lu, %08"
+                                  PRIxPTR L"h)",
                 (uintptr_t)This,
                            EnumFormat,
                                Flags,
@@ -4876,17 +4883,19 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       int last  = *pNumModes;
       int first = 0;
 
-      std::set <int> coverage_min;
-      std::set <int> coverage_max;
+      std::set <int> min_cover;
+      std::set <int> max_cover;
 
       if (! config.render.dxgi.res.min.isZero ())
       {
         // Restrict MIN (Sequential Scan: Last->First)
         for ( int i = *pNumModes - 1 ; i >= 0 ; --i )
         {
-          if (SK_DXGI_RestrictResMin (WIDTH,  first, i,  coverage_min, pDesc) ||
-              SK_DXGI_RestrictResMin (HEIGHT, first, i,  coverage_min, pDesc))
+          if (SK_DXGI_RestrictResMin (WIDTH,  first, i, min_cover, pDesc) ||
+              SK_DXGI_RestrictResMin (HEIGHT, first, i, min_cover, pDesc))
+          {
             ++removed_count;
+          }
         }
       }
 
@@ -4895,9 +4904,11 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         // Restrict MAX (Sequential Scan: First->Last)
         for ( UINT i = 0 ; i < *pNumModes ; ++i )
         {
-          if (SK_DXGI_RestrictResMax (WIDTH,  last, i, coverage_max, pDesc) ||
-              SK_DXGI_RestrictResMax (HEIGHT, last, i, coverage_max, pDesc))
+          if (SK_DXGI_RestrictResMax (WIDTH,  last, i, max_cover, pDesc) ||
+              SK_DXGI_RestrictResMax (HEIGHT, last, i, max_cover, pDesc))
+          {
             ++removed_count;
+          }
         }
       }
     }
@@ -4909,13 +4920,17 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         if ( config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_UNSPECIFIED &&
              config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_CENTERED )
         {
-          for ( INT i = gsl::narrow_cast <INT> (*pNumModes) - 1 ; i >= 0 ; --i )
+          for ( INT i  = gsl::narrow_cast <INT> (*pNumModes) - 1 ;
+                    i >= 0                                       ;
+                  --i )
           {
             if ( pDesc [i].Scaling != DXGI_MODE_SCALING_UNSPECIFIED &&
                  pDesc [i].Scaling != DXGI_MODE_SCALING_CENTERED    &&
                  pDesc [i].Scaling != config.render.dxgi.scaling_mode )
             {
-              pDesc [i] = pDesc [i + 1];
+              pDesc    [i] =
+                pDesc  [i + 1];
+
               ++removed_count;
             }
           }
@@ -4965,7 +4980,8 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
                  )
            &&
        SUCCEEDED (
-         pSwapChain->GetDevice (__uuidof (IDXGIDevice), (void**)& pSwapDevice.p)
+         pSwapChain->GetDevice (
+           __uuidof (IDXGIDevice), (void**)& pSwapDevice.p)
                  )
      )
   {
@@ -4975,20 +4991,25 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
     {
       if (config.render.framerate.rescan_.Denom != 1)
       {
-        mode_to_match.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
-        mode_to_match.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+              mode_to_match.RefreshRate.Numerator   =
+        config.render.framerate.rescan_.Numerator;
+              mode_to_match.RefreshRate.Denominator =
+        config.render.framerate.rescan_.Denom;
       }
 
       else if (config.render.framerate.refresh_rate != -1 &&
-                mode_to_match.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate)
+                mode_to_match.RefreshRate.Numerator !=
+         (UINT)config.render.framerate.refresh_rate)
       {
-        mode_to_match.RefreshRate.Numerator   = (UINT)config.render.framerate.refresh_rate;
+        mode_to_match.RefreshRate.Numerator   =
+          (UINT)config.render.framerate.refresh_rate;
         mode_to_match.RefreshRate.Denominator = 1;
       }
 
-      if ( config.render.dxgi.scaling_mode != -1 &&
-                     mode_to_match.Scaling != config.render.dxgi.scaling_mode &&
-                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_CENTERED)
+      if ( config.render.dxgi.scaling_mode != -1                         &&
+                mode_to_match.Scaling != config.render.dxgi.scaling_mode &&
+                      (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode !=
+                       DXGI_MODE_SCALING_CENTERED )
       {
         mode_to_match.Scaling =
           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
@@ -4998,7 +5019,10 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
     pModeToMatch = &mode_to_match;
 
     HRESULT hr =
-      FindClosestMatchingMode_Original (pSwapOutput.p, pModeToMatch, pClosestMatch, pConcernedDevice);
+      FindClosestMatchingMode_Original (
+        pSwapOutput.p, pModeToMatch,
+                       pClosestMatch, pConcernedDevice
+      );
 
     // Overrides forced _AFTER_ asking DXGI for a match
     if (bApplyOverrides)
@@ -5066,9 +5090,10 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
                (UINT)config.render.framerate.refresh_rate )
       )
     {
-      if ( config.render.framerate.rescan_.Denom != 1 ||
-           (config.render.framerate.refresh_rate != -1 &&
-            new_new_params.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate) )
+      if ( config.render.framerate.rescan_.Denom          !=  1 ||
+           (config.render.framerate.refresh_rate          != -1 &&
+                     new_new_params.RefreshRate.Numerator !=
+      (UINT)config.render.framerate.refresh_rate) )
       {
         DXGI_MODE_DESC modeDesc  = { };
         DXGI_MODE_DESC modeMatch = { };
@@ -5081,20 +5106,29 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
 
         if (config.render.framerate.rescan_.Denom != 1)
         {
-          modeDesc.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
-          modeDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+                     modeDesc.RefreshRate.Numerator   =
+          config.render.framerate.rescan_.Numerator;
+                     modeDesc.RefreshRate.Denominator =
+          config.render.framerate.rescan_.Denom;
         }
 
         else
         {
-          modeDesc.RefreshRate.Numerator   = (UINT)std::ceilf (config.render.framerate.refresh_rate);
+          modeDesc.RefreshRate.Numerator   =
+            (UINT)std::ceilf (config.render.framerate.refresh_rate);
           modeDesc.RefreshRate.Denominator = 1;
         }
 
-        if (SUCCEEDED (SK_DXGI_FindClosestMode (This, &modeDesc, &modeMatch, FALSE)))
+        if ( SUCCEEDED (
+               SK_DXGI_FindClosestMode ( This, &modeDesc,
+                                               &modeMatch, FALSE )
+                       )
+           )
         {
-          new_new_params.RefreshRate.Numerator   = modeMatch.RefreshRate.Numerator;
-          new_new_params.RefreshRate.Denominator = modeMatch.RefreshRate.Denominator;
+          new_new_params.RefreshRate.Numerator   =
+               modeMatch.RefreshRate.Numerator;
+          new_new_params.RefreshRate.Denominator =
+               modeMatch.RefreshRate.Denominator;
         }
       }
 
@@ -5123,18 +5157,20 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
       else if ( (! config.window.fullscreen) &&
                    config.window.borderless )
       {
-        SK_DXGI_BorderCompensation (new_new_params.Width, new_new_params.Height);
+        SK_DXGI_BorderCompensation ( new_new_params.Width,
+                                     new_new_params.Height );
       }
 
-      // Clamp the buffer dimensions if the user has a min/max resolution preference
-      const UINT max_x = config.render.dxgi.res.max.x < new_new_params.Width  ?
-                         config.render.dxgi.res.max.x : new_new_params.Width,
-                 min_x = config.render.dxgi.res.min.x > new_new_params.Width  ?
-                         config.render.dxgi.res.min.x : new_new_params.Width,
-                 max_y = config.render.dxgi.res.max.y < new_new_params.Height ?
-                         config.render.dxgi.res.max.y : new_new_params.Height,
-                 min_y = config.render.dxgi.res.min.y > new_new_params.Height ?
-                         config.render.dxgi.res.min.y : new_new_params.Height;
+      // Clamp the buffer dimensions if the user has a min/max preference
+      const UINT
+        max_x = config.render.dxgi.res.max.x < new_new_params.Width  ?
+                config.render.dxgi.res.max.x : new_new_params.Width,
+        min_x = config.render.dxgi.res.min.x > new_new_params.Width  ?
+                config.render.dxgi.res.min.x : new_new_params.Width,
+        max_y = config.render.dxgi.res.max.y < new_new_params.Height ?
+                config.render.dxgi.res.max.y : new_new_params.Height,
+        min_y = config.render.dxgi.res.min.y > new_new_params.Height ?
+                config.render.dxgi.res.min.y : new_new_params.Height;
 
       new_new_params.Width   =  std::max ( max_x , min_x );
       new_new_params.Height  =  std::max ( max_y , min_y );
@@ -5142,7 +5178,9 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
       pNewNewTargetParameters->Format =
         SK_DXGI_PickHDRFormat (pNewNewTargetParameters->Format);
 
-      //SK_DXGI_ValidateSwapChainResize (This, 0, pNewNewTargetParameters->Width, pNewNewTargetParameters->Height, pNewNewTargetParameters->Format);
+      //SK_DXGI_ValidateSwapChainResize (This, 0,
+      // pNewNewTargetParameters->Width, pNewNewTargetParameters->Height,
+      // pNewNewTargetParameters->Format);
     }
 
 
@@ -5153,7 +5191,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
     {
       SK_D3D11_EndFrame        ();
       SK_D3D11_ResetTexCache   ();
-      SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+      SK_CEGUI_QueueResetD3D11 (); // Prior to next present, reset the UI
 
       ret =
         ResizeTarget_Original (This, pNewNewTargetParameters);
@@ -5186,64 +5224,72 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
-                                              /* [annotation][in]  */
-                                  _In_  const DXGI_MODE_DESC *pModeToMatch,
-                                              /* [annotation][out] */
-                                       _Out_  DXGI_MODE_DESC *pClosestMatch,
-                                              /* [annotation][in]  */
-                                    _In_opt_  IUnknown       *pConcernedDevice )
+DXGIOutput_FindClosestMatchingMode_Override (
+                IDXGIOutput    *This,
+ _In_     const DXGI_MODE_DESC *pModeToMatch,
+ _Out_          DXGI_MODE_DESC *pClosestMatch,
+ _In_opt_       IUnknown       *pConcernedDevice )
 {
-  DXGI_LOG_CALL_I4 ( L"       IDXGIOutput", L"FindClosestMatchingMode         ",
-                       L"%p, %08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
-                                  PRIxPTR L"h",
+  DXGI_LOG_CALL_I4 (
+    L"       IDXGIOutput", L"FindClosestMatchingMode         ",
+    L"%p, %08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
+                                 PRIxPTR L"h",
       This, (uintptr_t)pModeToMatch, (uintptr_t)pClosestMatch,
-            (uintptr_t)pConcernedDevice );
+            (uintptr_t)pConcernedDevice
+  );
 
-  SK_LOG0 ( (L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%s, Scaling=%s, Scanlines=%s",
-               pModeToMatch->Width, pModeToMatch->Height,
-                 pModeToMatch->RefreshRate.Denominator != 0 ?
-                   static_cast <float> (pModeToMatch->RefreshRate.Numerator) /
-                   static_cast <float> (pModeToMatch->RefreshRate.Denominator) :
-                     std::numeric_limits <float>::quiet_NaN (),
-               SK_DXGI_FormatToStr           (pModeToMatch->Format).c_str (),
-               SK_DXGI_DescribeScalingMode   (pModeToMatch->Scaling),
-               SK_DXGI_DescribeScanlineOrder (pModeToMatch->ScanlineOrdering) ),
-             L"   DXGI   " );
+  SK_LOG0 (
+    ( L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%s, Scaling=%s, "
+                                           L"Scanlines=%s",
+        pModeToMatch->Width, pModeToMatch->Height,
+          pModeToMatch->RefreshRate.Denominator != 0 ?
+            static_cast <float> (pModeToMatch->RefreshRate.Numerator) /
+            static_cast <float> (pModeToMatch->RefreshRate.Denominator) :
+              std::numeric_limits <float>::quiet_NaN (),
+        SK_DXGI_FormatToStr           (pModeToMatch->Format).c_str (),
+        SK_DXGI_DescribeScalingMode   (pModeToMatch->Scaling),
+        SK_DXGI_DescribeScanlineOrder (pModeToMatch->ScanlineOrdering) ),
+      L"   DXGI   "
+  );
 
 
   DXGI_MODE_DESC mode_to_match = *pModeToMatch;
 
-  if ( config.render.framerate.rescan_.Denom !=  1 ||
-      (config.render.framerate.refresh_rate  != -1 &&
-        mode_to_match.RefreshRate.Numerator  != (UINT)config.render.framerate.refresh_rate) )
+  if (  config.render.framerate.rescan_.Denom !=  1 ||
+       (config.render.framerate.refresh_rate  != -1 &&
+         mode_to_match.RefreshRate.Numerator  !=
+  (UINT)config.render.framerate.refresh_rate) )
   {
-    dll_log->Log ( L"[   DXGI   ]  >> Refresh Override "
-                   L"(Requested: %f, Using: %f)",
-                     mode_to_match.RefreshRate.Denominator != 0 ?
-                       static_cast <float> (mode_to_match.RefreshRate.Numerator) /
-                       static_cast <float> (mode_to_match.RefreshRate.Denominator) :
-                         std::numeric_limits <float>::quiet_NaN (),
-                       static_cast <float> (config.render.framerate.rescan_.Numerator) /
-                       static_cast <float> (config.render.framerate.rescan_.Denom)
-                 );
+    dll_log->Log (
+      L"[   DXGI   ]  >> Refresh Override "
+      L"(Requested: %f, Using: %f)",
+        mode_to_match.RefreshRate.Denominator != 0 ?
+          static_cast <float> (mode_to_match.RefreshRate.Numerator) /
+          static_cast <float> (mode_to_match.RefreshRate.Denominator) :
+            std::numeric_limits <float>::quiet_NaN (),
+          static_cast <float> (config.render.framerate.rescan_.Numerator) /
+          static_cast <float> (config.render.framerate.rescan_.Denom) );
 
     if (config.render.framerate.rescan_.Denom != 1)
     {
-      mode_to_match.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
-      mode_to_match.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+            mode_to_match.RefreshRate.Numerator     =
+      config.render.framerate.rescan_.Numerator;
+              mode_to_match.RefreshRate.Denominator =
+        config.render.framerate.rescan_.Denom;
     }
 
     else
     {
-      mode_to_match.RefreshRate.Numerator = (UINT)config.render.framerate.refresh_rate;
+      mode_to_match.RefreshRate.Numerator =
+        (UINT)config.render.framerate.refresh_rate;
       mode_to_match.RefreshRate.Denominator = 1;
     }
   }
 
   if ( config.render.dxgi.scaling_mode != -1 &&
        mode_to_match.Scaling           != config.render.dxgi.scaling_mode &&
-                       (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_CENTERED )
+                       (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode !=
+                        DXGI_MODE_SCALING_CENTERED )
   {
     dll_log->Log ( L"[   DXGI   ]  >> Scaling Override "
                    L"(Requested: %s, Using: %s)",
@@ -5262,22 +5308,29 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
   pModeToMatch = &mode_to_match;
 
 
-  HRESULT ret;
-  DXGI_CALL (ret, FindClosestMatchingMode_Original (This, pModeToMatch, pClosestMatch, pConcernedDevice));
+  HRESULT     ret = E_UNEXPECTED;
+  DXGI_CALL ( ret, FindClosestMatchingMode_Original (
+                     This, pModeToMatch, pClosestMatch,
+                                         pConcernedDevice )
+            );
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::Sekiro)
+  {
     pClosestMatch->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+  }
 
-  SK_LOG0 ( ( L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, Scanlines=%s",
-              pClosestMatch->Width, pClosestMatch->Height,
-                pClosestMatch->RefreshRate.Denominator != 0 ?
-                  static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
-                  static_cast <float> (pClosestMatch->RefreshRate.Denominator) :
-                    std::numeric_limits <float>::quiet_NaN (),
-              SK_DXGI_FormatToStr           (pClosestMatch->Format).c_str (),
-              SK_DXGI_DescribeScalingMode   (pClosestMatch->Scaling),
-              SK_DXGI_DescribeScanlineOrder (pClosestMatch->ScanlineOrdering) ),
-            L"   DXGI   " );
+  SK_LOG0 (
+    ( L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, "
+                                           L"Scanlines=%s",
+      pClosestMatch->Width, pClosestMatch->Height,
+        pClosestMatch->RefreshRate.Denominator != 0 ?
+          static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
+          static_cast <float> (pClosestMatch->RefreshRate.Denominator) :
+            std::numeric_limits <float>::quiet_NaN (),
+      SK_DXGI_FormatToStr           (pClosestMatch->Format).c_str (),
+      SK_DXGI_DescribeScalingMode   (pClosestMatch->Scaling),
+      SK_DXGI_DescribeScanlineOrder (pClosestMatch->ScanlineOrdering) ),
+      L"   DXGI   " );
 
   return ret;
 }
@@ -5289,7 +5342,8 @@ DXGIOutput_WaitForVBlank_Override ( IDXGIOutput *This )
 {
   //DXGI_LOG_CALL_I0 (L"       IDXGIOutput", L"WaitForVBlank         ");
 
-  return WaitForVBlank_Original (This);
+  return
+    WaitForVBlank_Original (This);
 }
 
 __declspec (noinline)
@@ -5299,7 +5353,8 @@ DXGISwap_GetFullscreenState_Override ( IDXGISwapChain  *This,
                             _Out_opt_  BOOL            *pFullscreen,
                             _Out_opt_  IDXGIOutput    **ppTarget )
 {
-  return GetFullscreenState_Original (This, pFullscreen, ppTarget);
+  return
+    GetFullscreenState_Original (This, pFullscreen, ppTarget);
 }
 
 // Classifies a swapchain as dummy (used by some libraries during init) or
@@ -5315,6 +5370,7 @@ SK_DXGI_IsSwapChainReal (DXGI_SWAP_CHAIN_DESC& desc)
   //
   if (desc.BufferDesc.Height > 0 && desc.BufferDesc.Height < 32)
     return false;
+
   if (desc.BufferDesc.Width > 0  && desc.BufferDesc.Width  < 32)
     return false;
 
@@ -5386,11 +5442,13 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   {
     if (config.render.framerate.swapchain_wait != 0)
     {
-      dll_log->Log ( L"[ DXGI 1.2 ]  >> Waitable SwapChain In Use, Skipping..." );
+      dll_log->Log ( L"[ DXGI 1.2 ]  >> Waitable SwapChain In Use, "
+                     L"Skipping..." );
       return S_OK;
     }
 
-    if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
+    if ( config.render.framerate.flip_discard &&
+         dxgi_caps.swapchain.allow_tearing )
     {
       Fullscreen = FALSE;
       dll_log->Log ( L"[ DXGI 1.5 ]  >> Tearing Override:  Enable" );
@@ -5410,13 +5468,15 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                      L"(Requested: Fullscreen, Using: Windowed)" );
     }
 
-    if (request_mode_change == mode_change_request_e::Fullscreen && Fullscreen == FALSE)
+    if (request_mode_change == mode_change_request_e::Fullscreen &&
+                 Fullscreen == FALSE)
     {
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                L"User Initiated Fulllscreen Switch" );
       Fullscreen = TRUE;
     }
-    else if (request_mode_change == mode_change_request_e::Windowed && Fullscreen != FALSE)
+    else if (request_mode_change == mode_change_request_e::Windowed &&
+                      Fullscreen != FALSE)
     {
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                L"User Initiated Windowed Switch" );
@@ -5437,7 +5497,8 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
     if (bFlipMode)
     {
-      // Steam Overlay does not like this, even though for compliance sake we are supposed to do it :(
+      // Steam Overlay does not like this, even though for compliance sake
+      //   we are supposed to do it :(
       if (Fullscreen)
       {
         This->ResizeBuffers ( 0, 0, 0, DXGI_FORMAT_UNKNOWN,
@@ -5473,9 +5534,10 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
 
 HRESULT
-SK_DXGI_ValidateSwapChainResize ( IDXGISwapChain* pSwapChain, UINT BufferCount,
-                                  UINT            Width,      UINT Height,
-                                  DXGI_FORMAT     Format,     INT  Fullscreen = -1 )
+SK_DXGI_ValidateSwapChainResize (
+  IDXGISwapChain* pSwapChain, UINT BufferCount,
+  UINT            Width,      UINT Height,
+  DXGI_FORMAT     Format,     INT  Fullscreen = -1 )
 {
   static CRITICAL_SECTION cs_resize = { };
   static volatile LONG    init      = FALSE;
@@ -5488,7 +5550,10 @@ SK_DXGI_ValidateSwapChainResize ( IDXGISwapChain* pSwapChain, UINT BufferCount,
   }
 
   while (ReadAcquire (&init) != -1)
-    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);
+  {
+    MsgWaitForMultipleObjectsEx ( 0, nullptr, 2UL,
+                                    QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
+  }
 
 
   EnterCriticalSection (&cs_resize);
@@ -5498,7 +5563,6 @@ SK_DXGI_ValidateSwapChainResize ( IDXGISwapChain* pSwapChain, UINT BufferCount,
   static std::unordered_map <IDXGISwapChain *, UINT>        last_buffers;
   static std::unordered_map <IDXGISwapChain *, DXGI_FORMAT> last_format;
   static std::unordered_map <IDXGISwapChain *, BOOL>        last_fullscreen;
-
 
   DXGI_SWAP_CHAIN_DESC desc     = { };
   RECT                 rcClient = { };
@@ -5531,78 +5595,108 @@ SK_DXGI_ValidateSwapChainResize ( IDXGISwapChain* pSwapChain, UINT BufferCount,
   //
   //  Test to make sure something actually changed
   //
-  if ((! last_format.count       (pSwapChain)) || last_format  [pSwapChain] != Format)
+  if ( (! last_format.count (pSwapChain)) ||
+          last_format       [pSwapChain]  != Format )
   {
-    if (last_format.count (pSwapChain))
+    if ( last_format.find (pSwapChain) !=
+         last_format.cend (          )    )
     {
       if (Format != last_format [pSwapChain])
+      {
         skip = false;
+      }
     }
 
     else
     {
-      if  (desc.BufferDesc.Format != Format)
+      if (desc.BufferDesc.Format != Format)
+      {
         skip = false;
+      }
     }
   }
 
-  else if ((! last_width.count   (pSwapChain)) || last_width   [pSwapChain] != Width)
+  else if ((! last_width.count (pSwapChain)) ||
+              last_width       [pSwapChain]  != Width)
   {
-    if (last_width.count (pSwapChain))
+    if ( last_width.find (pSwapChain) !=
+         last_width.cend (          )    )
     {
       if (Width != last_width [pSwapChain])
+      {
         skip = false;
+      }
     }
 
     else
     {
-      if  (desc.BufferDesc.Width != Width)
+      if (desc.BufferDesc.Width != Width)
+      {
         skip = false;
+      }
     }
   }
 
-  else if ((! last_height.count  (pSwapChain)) || last_height  [pSwapChain] != Height)
+  else if ((! last_height.count (pSwapChain)) ||
+              last_height       [pSwapChain]  != Height)
   {
-    if (last_height.count (pSwapChain))
+    if ( last_height.find (pSwapChain) !=
+         last_height.cend (          )    )
     {
       if (Height != last_height [pSwapChain])
+      {
         skip = false;
+      }
     }
 
     else
     {
-      if  (desc.BufferDesc.Height != Height)
+      if (desc.BufferDesc.Height != Height)
+      {
         skip = false;
+      }
     }
   }
 
-  else if ((! last_buffers.count (pSwapChain)) || last_buffers [pSwapChain] != BufferCount)
+  else if ((! last_buffers.count (pSwapChain)) ||
+              last_buffers       [pSwapChain]  != BufferCount)
   {
-    if (last_buffers.count (pSwapChain))
+    if ( last_buffers.find (pSwapChain) !=
+         last_buffers.cend (          )    )
     {
       if (BufferCount != last_buffers [pSwapChain])
+      {
         skip = false;
+      }
     }
 
     else
     {
-      if  (desc.BufferCount != BufferCount)
+      if (desc.BufferCount != BufferCount)
+      {
         skip = false;
+      }
     }
   }
 
-  else if ((! last_fullscreen.count (pSwapChain)) || last_fullscreen [pSwapChain] != Fullscreen)
+  else if ((! last_fullscreen.count (pSwapChain)) ||
+              last_fullscreen       [pSwapChain]  != Fullscreen)
   {
-    if (last_fullscreen.count (pSwapChain))
+    if ( last_fullscreen.find (pSwapChain) !=
+         last_fullscreen.cend (          )    )
     {
       if (Fullscreen != last_fullscreen [pSwapChain])
+      {
         skip = false;
+      }
     }
 
     else
     {
       if (desc.Windowed == Fullscreen)
+      {
         skip = false;
+      }
     }
   }
 
@@ -5650,8 +5744,9 @@ SK_DXGI_FilterRedundant_ResizeBuffers ( IDXGISwapChain *This,
         return true;
       }
 
-      dll_log->Log ( L"[   DXGI   ] _ALMOST_ Redundant resize; OLD Flags: %x,"
-                                                            L" NEW Flags: %x",
+      dll_log->Log (
+        L"[   DXGI   ] _ALMOST_ Redundant resize; OLD Flags: %x,"
+                                               L" NEW Flags: %x",
                        desc.Flags,
                          SwapChainFlags );
 
@@ -5719,8 +5814,11 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
 
   // Can't do this if waitable
-  if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
+  if ( dxgi_caps.present.waitable &&
+       config.render.framerate.swapchain_wait > 0 )
+  {
     return S_OK;
+  }
 
   if (       config.render.framerate.buffer_count != -1           &&
        (UINT)config.render.framerate.buffer_count !=  BufferCount &&
@@ -5729,8 +5827,11 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
            config.render.framerate.buffer_count   >   0           &&
            config.render.framerate.buffer_count   <   16 )
   {
-    BufferCount = config.render.framerate.buffer_count;
-    dll_log->Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", BufferCount);
+    BufferCount =
+      config.render.framerate.buffer_count;
+
+    dll_log->Log ( L"[   DXGI   ]  >> Buffer Count Override: %lu buffers",
+                                      BufferCount );
   }
 
   DXGI_SWAP_CHAIN_DESC swap_desc = { };
@@ -5745,7 +5846,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                );
   }
 
-  if (config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing)
+  if ( config.render.framerate.flip_discard &&
+           dxgi_caps.swapchain.allow_tearing )
   {
     SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
     dll_log->Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
@@ -5768,11 +5870,16 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   }
 
 
-  // Clamp the buffer dimensions if the user has a min/max resolution preference
-  const UINT max_x = config.render.dxgi.res.max.x < Width  ? config.render.dxgi.res.max.x : Width,
-             min_x = config.render.dxgi.res.min.x > Width  ? config.render.dxgi.res.min.x : Width,
-             max_y = config.render.dxgi.res.max.y < Height ? config.render.dxgi.res.max.y : Height,
-             min_y = config.render.dxgi.res.min.y > Height ? config.render.dxgi.res.min.y : Height;
+  // Clamp the buffer dimensions if the user has a min/max preference
+  const UINT
+    max_x = config.render.dxgi.res.max.x < Width  ?
+            config.render.dxgi.res.max.x : Width,
+    min_x = config.render.dxgi.res.min.x > Width  ?
+            config.render.dxgi.res.min.x : Width,
+    max_y = config.render.dxgi.res.max.y < Height ?
+            config.render.dxgi.res.max.y : Height,
+    min_y = config.render.dxgi.res.min.y > Height ?
+            config.render.dxgi.res.min.y : Height;
 
   Width   =  std::max ( max_x , min_x );
   Height  =  std::max ( max_y , min_y );
@@ -5782,30 +5889,35 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
     SK_GetCurrentGameID ();
 
   if (game_id == SK_GAME_ID::DotHackGU)
+  {
     NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
+  }
 
 
-  // If forcing flip-model, then force multisampling (of the primary framebuffer) off
+  // If forcing flip-model, kill multisampling (of primary framebuffer)
   if (config.render.framerate.flip_discard)
   {
     bFlipMode =
       dxgi_caps.present.flip_sequential;
 
-    // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+    // Format overrides must be performed in some cases (sRGB / 10:10:10:2)
     switch (NewFormat)
     {
       case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
         NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
-        dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+        dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override "
+                       L"Required to Enable Flip Model" );
         break;
       case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
         NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-        dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+        dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override "
+                       L"Required to Enable Flip Model" );
         break;
       case DXGI_FORMAT_R10G10B10A2_UNORM:
       case DXGI_FORMAT_R10G10B10A2_TYPELESS:
         NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-        dll_log->Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+        dll_log->Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override "
+                       L"(to 8:8:8:8) Required to Enable Flip Model" );
         break;
     }
   }
@@ -5827,8 +5939,10 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
     rb.releaseOwnedResources ();
 
-    DXGI_CALL (ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
-                                                NewFormat, SwapChainFlags ));
+    DXGI_CALL ( ret, ResizeBuffers_Original (
+                       This, BufferCount, Width, Height,
+                               NewFormat, SwapChainFlags )
+              );
   }
 
   else
@@ -5861,8 +5975,9 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
 __forceinline
 bool
-SK_DXGI_FilterRedundant_ResizeTarget ( IDXGISwapChain *This,
-                            _In_ const DXGI_MODE_DESC *pNewTargetParameters )
+SK_DXGI_FilterRedundant_ResizeTarget (
+             IDXGISwapChain *This,
+  _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
 //#ifndef _DEBUG
 //  return false;
@@ -5871,13 +5986,20 @@ SK_DXGI_FilterRedundant_ResizeTarget ( IDXGISwapChain *This,
   DXGI_SWAP_CHAIN_DESC desc = { };
        This->GetDesc (&desc);
 
-  if ( desc.BufferDesc.Format                  == pNewTargetParameters->Format                  &&
-       desc.BufferDesc.Height                  == pNewTargetParameters->Height                  &&
-       desc.BufferDesc.Width                   == pNewTargetParameters->Width                   &&
-       desc.BufferDesc.RefreshRate.Numerator   == pNewTargetParameters->RefreshRate.Numerator   &&
-       desc.BufferDesc.RefreshRate.Denominator == pNewTargetParameters->RefreshRate.Denominator &&
-       desc.BufferDesc.Scaling                 == pNewTargetParameters->Scaling )
-       //desc.BufferDesc.ScanlineOrdering        == pNewTargetParameters->ScanlineOrdering )
+  if (       desc.BufferDesc.Format                  ==
+       pNewTargetParameters->Format                  &&
+             desc.BufferDesc.Height                  ==
+       pNewTargetParameters->Height                  &&
+             desc.BufferDesc.Width                   ==
+       pNewTargetParameters->Width                   &&
+             desc.BufferDesc.RefreshRate.Numerator   ==
+       pNewTargetParameters->RefreshRate.Numerator   &&
+             desc.BufferDesc.RefreshRate.Denominator ==
+       pNewTargetParameters->RefreshRate.Denominator &&
+             desc.BufferDesc.Scaling                 ==
+       pNewTargetParameters->Scaling )
+       //      desc.BufferDesc.ScanlineOrdering      ==
+       //pNewTargetParameters->ScanlineOrdering )
   {
     return true;
   }
@@ -5894,7 +6016,9 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   // Can't do this if waitable
   if ( dxgi_caps.present.waitable &&
        config.render.framerate.swapchain_wait > 0 )
+  {
     return S_OK;
+  }
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -5911,19 +6035,20 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
   assert (pNewTargetParameters != nullptr);
 
-  //((DXGI_MODE_DESC *)(pNewTargetParameters))->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-
-  DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
-                       L"{ (%lux%lu@%3.1f Hz),"
-                       L"fmt=%s,scaling=0x%02x,scanlines=0x%02x }",
-                          pNewTargetParameters->Width, pNewTargetParameters->Height,
-                          pNewTargetParameters->RefreshRate.Denominator != 0 ?
-           static_cast <float> (pNewTargetParameters->RefreshRate.Numerator) /
-           static_cast <float> (pNewTargetParameters->RefreshRate.Denominator) :
-                              std::numeric_limits <float>::quiet_NaN (),
-           SK_DXGI_FormatToStr (pNewTargetParameters->Format).c_str (),
-                                pNewTargetParameters->Scaling,
-                                pNewTargetParameters->ScanlineOrdering );
+  DXGI_LOG_CALL_I6 (
+    L"    IDXGISwapChain", L"ResizeTarget         ",
+      L"{ (%lux%lu@%3.1f Hz),"
+      L"fmt=%s,scaling=0x%02x,scanlines=0x%02x }",
+                     pNewTargetParameters->Width,
+                     pNewTargetParameters->Height,
+                     pNewTargetParameters->RefreshRate.Denominator != 0 ?
+      static_cast <float> (pNewTargetParameters->RefreshRate.Numerator) /
+      static_cast <float> (pNewTargetParameters->RefreshRate.Denominator) :
+                         std::numeric_limits <float>::quiet_NaN (),
+      SK_DXGI_FormatToStr (pNewTargetParameters->Format).c_str  (),
+                           pNewTargetParameters->Scaling,
+                           pNewTargetParameters->ScanlineOrdering
+  );
 
   HRESULT ret =
     E_UNEXPECTED;
@@ -5941,29 +6066,35 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     DXGI_MODE_DESC new_new_params =
       *pNewTargetParameters;
 
-    if ( config.render.framerate.rescan_.Denom != 1 ||
-        (config.render.framerate.refresh_rate  != -1 &&
-         new_new_params.RefreshRate.Numerator  != (UINT)config.render.framerate.refresh_rate) )
+    if (  config.render.framerate.rescan_.Denom != 1  ||
+        ( config.render.framerate.refresh_rate  != -1 &&
+          new_new_params.RefreshRate.Numerator  !=
+    (UINT)config.render.framerate.refresh_rate )
+       )
     {
-      dll_log->Log ( L"[   DXGI   ]  >> Refresh Override "
-                     L"(Requested: %f, Using: %f)",
-                       new_new_params.RefreshRate.Denominator != 0 ?
-                         static_cast <float> (new_new_params.RefreshRate.Numerator) /
-                         static_cast <float> (new_new_params.RefreshRate.Denominator) :
-                           std::numeric_limits <float>::quiet_NaN (),
+      dll_log->Log (
+        L"[   DXGI   ]  >> Refresh Override "
+        L"(Requested: %f, Using: %f)",
+                             new_new_params.RefreshRate.Denominator != 0 ?
+        static_cast <float> (new_new_params.RefreshRate.Numerator)  /
+        static_cast <float> (new_new_params.RefreshRate.Denominator)     :
+          std::numeric_limits <float>::quiet_NaN (),
         static_cast <float> (config.render.framerate.rescan_.Numerator) /
         static_cast <float> (config.render.framerate.rescan_.Denom)
-                   );
+      );
 
       if (config.render.framerate.rescan_.Denom != 1)
       {
-        new_new_params.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
-        new_new_params.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+             new_new_params.RefreshRate.Numerator   =
+        config.render.framerate.rescan_.Numerator;
+             new_new_params.RefreshRate.Denominator =
+        config.render.framerate.rescan_.Denom;
       }
 
       else
       {
-        new_new_params.RefreshRate.Numerator   = (UINT)std::ceilf (config.render.framerate.refresh_rate);
+        new_new_params.RefreshRate.Numerator   =
+          (UINT)std::ceilf (config.render.framerate.refresh_rate);
         new_new_params.RefreshRate.Denominator = 1;
       }
     }
@@ -5972,15 +6103,16 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
           pNewTargetParameters->ScanlineOrdering  !=
             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
     {
-      dll_log->Log ( L"[   DXGI   ]  >> Scanline Override "
-                     L"(Requested: %s, Using: %s)",
-                       SK_DXGI_DescribeScanlineOrder (
-                         pNewTargetParameters->ScanlineOrdering
-                       ),
-                         SK_DXGI_DescribeScanlineOrder (
-                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
-                         )
-                   );
+      dll_log->Log (
+        L"[   DXGI   ]  >> Scanline Override "
+        L"(Requested: %s, Using: %s)",
+          SK_DXGI_DescribeScanlineOrder (
+            pNewTargetParameters->ScanlineOrdering
+          ),
+            SK_DXGI_DescribeScanlineOrder (
+              (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+            )
+      );
 
       new_new_params.ScanlineOrdering =
         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
@@ -5990,15 +6122,16 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
           pNewTargetParameters->Scaling  !=
             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
     {
-      dll_log->Log ( L"[   DXGI   ]  >> Scaling Override "
-                     L"(Requested: %s, Using: %s)",
-                       SK_DXGI_DescribeScalingMode (
-                         pNewTargetParameters->Scaling
-                       ),
-                         SK_DXGI_DescribeScalingMode (
-                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
-                         )
-                   );
+      dll_log->Log (
+        L"[   DXGI   ]  >> Scaling Override "
+        L"(Requested: %s, Using: %s)",
+          SK_DXGI_DescribeScalingMode (
+            pNewTargetParameters->Scaling
+          ),
+            SK_DXGI_DescribeScalingMode (
+              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
+            )
+      );
 
       new_new_params.Scaling =
         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
@@ -6014,7 +6147,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     else if ( (! config.window.fullscreen) &&
                  config.window.borderless )
     {
-      SK_DXGI_BorderCompensation (new_new_params.Width, new_new_params.Height);
+      SK_DXGI_BorderCompensation ( new_new_params.Width,
+                                   new_new_params.Height );
     }
 
     DXGI_MODE_DESC* pNewNewTargetParameters =
@@ -6022,15 +6156,16 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
 
 
-    // Clamp the buffer dimensions if the user has a min/max resolution preference
-    const UINT max_x = config.render.dxgi.res.max.x < new_new_params.Width  ?
-                       config.render.dxgi.res.max.x : new_new_params.Width,
-               min_x = config.render.dxgi.res.min.x > new_new_params.Width  ?
-                       config.render.dxgi.res.min.x : new_new_params.Width,
-               max_y = config.render.dxgi.res.max.y < new_new_params.Height ?
-                       config.render.dxgi.res.max.y : new_new_params.Height,
-               min_y = config.render.dxgi.res.min.y > new_new_params.Height ?
-                       config.render.dxgi.res.min.y : new_new_params.Height;
+    // Clamp the buffer dimensions if the user has a min/max preference
+    const UINT
+      max_x = config.render.dxgi.res.max.x < new_new_params.Width  ?
+              config.render.dxgi.res.max.x : new_new_params.Width,
+      min_x = config.render.dxgi.res.min.x > new_new_params.Width  ?
+              config.render.dxgi.res.min.x : new_new_params.Width,
+      max_y = config.render.dxgi.res.max.y < new_new_params.Height ?
+              config.render.dxgi.res.max.y : new_new_params.Height,
+      min_y = config.render.dxgi.res.min.y > new_new_params.Height ?
+              config.render.dxgi.res.min.y : new_new_params.Height;
 
     new_new_params.Width   =  std::max ( max_x , min_x );
     new_new_params.Height  =  std::max ( max_y , min_y );
@@ -6039,7 +6174,9 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     pNewNewTargetParameters->Format =
       SK_DXGI_PickHDRFormat (pNewNewTargetParameters->Format);
 
-    //SK_DXGI_ValidateSwapChainResize (This, 0, pNewNewTargetParameters->Width, pNewNewTargetParameters->Height, pNewNewTargetParameters->Format);
+    //SK_DXGI_ValidateSwapChainResize (This, 0,
+    //  pNewNewTargetParameters->Width, pNewNewTargetParameters->Height,
+    //  pNewNewTargetParameters->Format);
 
     ret =
       ResizeTarget_Original (This, pNewNewTargetParameters);
@@ -6048,9 +6185,11 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     {
       SK_D3D11_EndFrame        ();
       SK_D3D11_ResetTexCache   ();
-      SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+      SK_CEGUI_QueueResetD3D11 (); // Prior to next present, reset the UI
 
-      DXGI_CALL ( ret, ResizeTarget_Original ( This, pNewNewTargetParameters ) );
+      DXGI_CALL ( ret,
+                    ResizeTarget_Original ( This, pNewNewTargetParameters )
+                );
     }
 
     else
@@ -6083,14 +6222,16 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
 __forceinline
 void
-SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *pDesc,
-                                  _Inout_opt_ DXGI_SWAP_CHAIN_DESC1           *pDesc1,
-                                  _Inout_opt_ HWND&                            hWnd,
-                                  _Inout_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc )
+SK_DXGI_CreateSwapChain_PreInit (
+  _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *pDesc,
+  _Inout_opt_ DXGI_SWAP_CHAIN_DESC1           *pDesc1,
+  _Inout_opt_ HWND&                            hWnd,
+  _Inout_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc )
 {
   WaitForInitDXGI ();
 
-  DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
+  // Stores common attributes between DESC and DESC1
+  DXGI_SWAP_CHAIN_DESC stub_desc  = {   };
   bool                 translated = false;
 
   if (pDesc1 != nullptr)
@@ -6463,6 +6604,12 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
       }
     }
 
+    ///if (SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2)
+    ///{
+    ///  if (pDesc->SwapEffect == (DXGI_SWAP_EFFECT)DXGI_SWAP_EFFECT_FLIP_DISCARD)
+    ///  {   pDesc->SwapEffect  = (DXGI_SWAP_EFFECT)DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL; }
+    ///}
+
     SK_LOG0 ( ( L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
                    (pDesc->SwapEffect >= DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) ?
                      L"Flip" : L"Traditional",
@@ -6475,11 +6622,16 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
       SK_DXGI_PickHDRFormat (pDesc->BufferDesc.Format);
 
 
-    // Clamp the buffer dimensions if the user has a min/max resolution preference
-    const UINT max_x = config.render.dxgi.res.max.x < pDesc->BufferDesc.Width  ? config.render.dxgi.res.max.x : pDesc->BufferDesc.Width,
-               min_x = config.render.dxgi.res.min.x > pDesc->BufferDesc.Width  ? config.render.dxgi.res.min.x : pDesc->BufferDesc.Width,
-               max_y = config.render.dxgi.res.max.y < pDesc->BufferDesc.Height ? config.render.dxgi.res.max.y : pDesc->BufferDesc.Height,
-               min_y = config.render.dxgi.res.min.y > pDesc->BufferDesc.Height ? config.render.dxgi.res.min.y : pDesc->BufferDesc.Height;
+    // Clamp the buffer dimensions if the user has a min/max preference
+    const UINT
+      max_x = config.render.dxgi.res.max.x < pDesc->BufferDesc.Width  ?
+              config.render.dxgi.res.max.x : pDesc->BufferDesc.Width,
+      min_x = config.render.dxgi.res.min.x > pDesc->BufferDesc.Width  ?
+              config.render.dxgi.res.min.x : pDesc->BufferDesc.Width,
+      max_y = config.render.dxgi.res.max.y < pDesc->BufferDesc.Height ?
+              config.render.dxgi.res.max.y : pDesc->BufferDesc.Height,
+      min_y = config.render.dxgi.res.min.y > pDesc->BufferDesc.Height ?
+              config.render.dxgi.res.min.y : pDesc->BufferDesc.Height;
 
     pDesc->BufferDesc.Width   =  std::max ( max_x , min_x );
     pDesc->BufferDesc.Height  =  std::max ( max_y , min_y );
@@ -6529,7 +6681,8 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
   {
     if (max_latency < 16 && max_latency > 0)
     {
-      dll_log->Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
+      dll_log->Log ( L"[   DXGI   ] Setting Swapchain Frame Latency: %lu",
+                       max_latency );
       pSwapChain2->SetMaximumFrameLatency (max_latency);
     }
   }
@@ -6544,7 +6697,8 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
                   )
        )
     {
-      dll_log->Log (L"[   DXGI   ] Setting Device    Frame Latency: %lu", max_latency);
+      dll_log->Log ( L"[   DXGI   ] Setting Device    Frame Latency: %lu",
+                       max_latency );
       pDevice1->SetMaximumFrameLatency (max_latency);
     }
   }
@@ -6552,9 +6706,10 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
 
 __forceinline
 void
-SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
-                                   _In_  DXGI_SWAP_CHAIN_DESC  *pDesc,
-                                   _In_  IDXGISwapChain       **ppSwapChain )
+SK_DXGI_CreateSwapChain_PostInit (
+  _In_  IUnknown              *pDevice,
+  _In_  DXGI_SWAP_CHAIN_DESC  *pDesc,
+  _In_  IDXGISwapChain       **ppSwapChain )
 {
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -6571,7 +6726,10 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     StrStrIW (wszClass, L"Special K Dummy Window Class") ||
     StrStrIW (wszClass, L"RTSSWndClass");
 
-  if ((! dummy_window) && pDesc != nullptr && ( dwRenderThread == 0 || dwRenderThread == SK_Thread_GetCurrentId () ))
+  if ( (! dummy_window) && pDesc != nullptr &&
+       ( dwRenderThread == 0 ||
+         dwRenderThread == SK_Thread_GetCurrentId () )
+     )
   {
     if ( dwRenderThread == 0x00 ||
          dwRenderThread == SK_Thread_GetCurrentId () )
@@ -6637,12 +6795,15 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     {
       if (bFlipMode && bWait)
       {
-        SK_AutoHandle hWait (pSwapChain2->GetFrameLatencyWaitableObject ());
+        SK_AutoHandle hWait (
+          pSwapChain2->GetFrameLatencyWaitableObject ()
+        );
 
-        MsgWaitForMultipleObjectsEx ( 1,
-                                        &hWait.m_h,
-                                          config.render.framerate.swapchain_wait,
-                                            QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
+        MsgWaitForMultipleObjectsEx (
+          1, &hWait.m_h,
+            config.render.framerate.swapchain_wait,
+              QS_ALLEVENTS, MWMO_INPUTAVAILABLE
+        );
       }
     }
   }
@@ -6660,11 +6821,12 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
 
 __forceinline
 void
-SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *pDevice,
-                                    _In_     HWND                              hwnd,
-                                    _In_     DXGI_SWAP_CHAIN_DESC1            *pDesc1,
-                                    _In_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC  *pFullscreenDesc,
-                                    _In_     IDXGISwapChain1                 **ppSwapChain1 )
+SK_DXGI_CreateSwapChain1_PostInit (
+  _In_     IUnknown                         *pDevice,
+  _In_     HWND                              hwnd,
+  _In_     DXGI_SWAP_CHAIN_DESC1            *pDesc1,
+  _In_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC  *pFullscreenDesc,
+  _In_     IDXGISwapChain1                 **ppSwapChain1 )
 {
   // According to some Unreal engine games, ppSwapChain is optional...
   //   the docs say otherwise, but we can't argue with engines now can we?
@@ -6675,7 +6837,8 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   if (! pDesc1)
     return;
 
-  // ONLY AS COMPLETE AS NEEDED, if new code is added to PostInit, this will probably need changing.
+  // ONLY AS COMPLETE AS NEEDED, if new code is added to PostInit, this
+  //   will probably need changing.
   DXGI_SWAP_CHAIN_DESC desc;
 
   desc.BufferDesc.Width   = pDesc1->Width;
@@ -6748,7 +6911,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                        )
            )
         {
-          SK_LOG0 ( ("Game's using D3D12 -- stuff's about to get weird! [7151]"), L"   DXGI   ");
+          SK_LOG0 ( ("Game's using D3D12 -- stuff's about to get weird! "
+                     L"[7151]"), L"   DXGI   ");
 
           ////rb.api =
           ////  SK_RenderAPI::D3D11On12;
@@ -6778,7 +6942,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
             //rb.device->QueryInterface <ID3D11On12Device> (&rb.d3d11.wrapper_dev);
 
             *ppDest =
-              new IWrapDXGISwapChain ((ID3D11Device *)nullptr, pSwapChain);// (ID3D11Device *) rb.device.p, pSwapChain);
+              new IWrapDXGISwapChain ((ID3D11Device *)nullptr, pSwapChain);
+            // (ID3D11Device *) rb.device.p, pSwapChain);
 
             return
               (IWrapDXGISwapChain *)*ppDest;
@@ -6890,10 +7055,11 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
-                                       _In_        IUnknown              *pDevice,
-                                       _In_  const DXGI_SWAP_CHAIN_DESC  *pDesc,
-                                       _Out_       IDXGISwapChain       **ppSwapChain )
+DXGIFactory_CreateSwapChain_Override (
+              IDXGIFactory          *This,
+  _In_        IUnknown              *pDevice,
+  _In_  const DXGI_SWAP_CHAIN_DESC  *pDesc,
+  _Out_       IDXGISwapChain       **ppSwapChain )
 {
   std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
@@ -6937,7 +7103,10 @@ DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
       *pDesc :
         DXGI_SWAP_CHAIN_DESC { };
 
-  SK_DXGI_CreateSwapChain_PreInit (&new_desc, nullptr, new_desc.OutputWindow, nullptr);
+  SK_DXGI_CreateSwapChain_PreInit (
+    &new_desc,              nullptr,
+     new_desc.OutputWindow, nullptr
+  );
 
 
   if (pDesc != nullptr) pDesc = &new_desc;
@@ -6948,13 +7117,17 @@ DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
       {
         IDXGISwapChain* pTemp = nullptr;
 
-        DXGI_CALL (ret, CreateSwapChain_Original (This, pDevice, pDesc, &pTemp));
+        DXGI_CALL ( ret,
+                      CreateSwapChain_Original ( This, pDevice,
+                                                       pDesc, &pTemp )
+                  );
 
         if ( SUCCEEDED (ret) &&
              pTemp != nullptr )
         {
           SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, &pTemp);
-          SK_DXGI_WrapSwapChain            (pDevice,             pTemp, ppSwapChain);
+          SK_DXGI_WrapSwapChain            (pDevice,             pTemp,
+                                                     ppSwapChain);
 
           return TRUE;
         }
@@ -6978,12 +7151,13 @@ DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
 
 HRESULT
 STDMETHODCALLTYPE
-DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *This,
-                                          _In_       IUnknown                  *pDevice,
-                                          _In_       IUnknown                  *pWindow,
-                                          _In_ const DXGI_SWAP_CHAIN_DESC1     *pDesc,
-                                      _In_opt_       IDXGIOutput               *pRestrictToOutput,
-                                         _Out_       IDXGISwapChain1          **ppSwapChain )
+DXGIFactory2_CreateSwapChainForCoreWindow_Override (
+                IDXGIFactory2             *This,
+     _In_       IUnknown                  *pDevice,
+     _In_       IUnknown                  *pWindow,
+     _In_ const DXGI_SWAP_CHAIN_DESC1     *pDesc,
+ _In_opt_       IDXGIOutput               *pRestrictToOutput,
+    _Out_       IDXGISwapChain1          **ppSwapChain )
 {
   std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
@@ -6993,7 +7167,13 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
                          (uintptr_t)pDevice, (uintptr_t)pDesc, (uintptr_t)ppSwapChain );
 
   if (iname == L"{Invalid-Factory-UUID}")
-    return CreateSwapChainForCoreWindow_Original (This, pDevice, pWindow, pDesc, pRestrictToOutput, ppSwapChain);
+  {
+    return
+      CreateSwapChainForCoreWindow_Original (
+        This, pDevice, pWindow,
+              pDesc,   pRestrictToOutput, ppSwapChain
+      );
+  }
 
   HRESULT ret = E_FAIL;
 
@@ -7026,8 +7206,10 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
         if ( SUCCEEDED (ret)         &&
              pTemp != nullptr )
         {
-          SK_DXGI_CreateSwapChain1_PostInit (pDevice, nullptr, &new_desc1, nullptr, &pTemp);
-          SK_DXGI_WrapSwapChain1            (pDevice,                          pTemp,   ppSwapChain);
+          SK_DXGI_CreateSwapChain1_PostInit (pDevice, nullptr, &new_desc1,
+                                                      nullptr, &pTemp);
+          SK_DXGI_WrapSwapChain1            (pDevice,           pTemp,
+                                                      ppSwapChain);
 
           return TRUE;
         }
@@ -7049,13 +7231,14 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
 
 HRESULT
 STDMETHODCALLTYPE
-DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *This,
-                                    _In_       IUnknown                        *pDevice,
-                                    _In_       HWND                             hWnd,
-                                    _In_ const DXGI_SWAP_CHAIN_DESC1           *pDesc,
-                                _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
-                                _In_opt_       IDXGIOutput                     *pRestrictToOutput,
-                                   _Out_       IDXGISwapChain1                 **ppSwapChain )
+DXGIFactory2_CreateSwapChainForHwnd_Override (
+  IDXGIFactory2                                *This,
+    _In_       IUnknown                        *pDevice,
+    _In_       HWND                             hWnd,
+    _In_ const DXGI_SWAP_CHAIN_DESC1           *pDesc,
+_In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
+_In_opt_       IDXGIOutput                     *pRestrictToOutput,
+   _Out_       IDXGISwapChain1                 **ppSwapChain )
 {
   std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
@@ -7108,11 +7291,12 @@ DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *
 
 HRESULT
 STDMETHODCALLTYPE
-DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *This,
-                                       _In_           IUnknown               *pDevice,
-                                       _In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
-                                       _In_opt_       IDXGIOutput            *pRestrictToOutput,
-                                       _Outptr_       IDXGISwapChain1       **ppSwapChain )
+DXGIFactory2_CreateSwapChainForComposition_Override (
+               IDXGIFactory2          *This,
+_In_           IUnknown               *pDevice,
+_In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
+_In_opt_       IDXGIOutput            *pRestrictToOutput,
+_Outptr_       IDXGISwapChain1       **ppSwapChain )
 {
   std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
@@ -7509,7 +7693,8 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
   {
     IDXGIAdapter1* pAdapter1 = nullptr;
 
-    if (SUCCEEDED (EnumAdapters1_Original (This, SK_DXGI_preferred_adapter, &pAdapter1))) {
+    if (SUCCEEDED (EnumAdapters1_Original (This, SK_DXGI_preferred_adapter, &pAdapter1)))
+    {
       dll_log->Log ( L"[   DXGI   ] (Reported values reflect user override: DXGI Adapter %lu -> %lu)",
                        Adapter, SK_DXGI_preferred_adapter );
       Adapter = SK_DXGI_preferred_adapter;
@@ -7675,8 +7860,11 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
   if (CreateDXGIFactory1_Import == nullptr)
   {
-    dll_log->Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory on Vista...");
-    return CreateDXGIFactory (riid, ppFactory);
+    dll_log->Log ( L"[   DXGI   ] >> Falling back to CreateDXGIFactory on "
+                   L"Vista..." );
+
+    return
+      CreateDXGIFactory (riid, ppFactory);
   }
 
   HRESULT    ret;
@@ -7707,8 +7895,11 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   // Windows 7 does not have this function -- wrap it with CreateDXGIFactory1
   if (CreateDXGIFactory2_Import == nullptr)
   {
-    dll_log->Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory1 on Vista/7...");
-    return CreateDXGIFactory1 (riid, ppFactory);
+    dll_log->Log ( L"[   DXGI   ] >> Falling back to CreateDXGIFactory1 on"
+                   L" Vista/7..." );
+
+    return
+      CreateDXGIFactory1 (riid, ppFactory);
   }
 
   HRESULT    ret;
@@ -7798,7 +7989,9 @@ CreateDXGIFactory1 ( REFIID   riid,
   // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
   if (CreateDXGIFactory1_Import == nullptr)
   {
-    dll_log->Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory on Vista...");
+    dll_log->Log ( L"[   DXGI   ]  >> Falling back to CreateDXGIFactory on"
+                   L" Vista..." );
+
     DXGI_CALL (ret, CreateDXGIFactory_Import  (     riid, ppFactory));
   }
 
@@ -7868,8 +8061,8 @@ SK_HookDXGI (void)
 
 
     HMODULE hBackend =
-      ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ? backend_dll :
-                                                               SK_Modules->LoadLibraryLL (L"dxgi.dll");
+      ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ?
+             backend_dll : SK_Modules->LoadLibraryLL (L"dxgi.dll");
 
 
     dll_log->Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
@@ -7877,12 +8070,12 @@ SK_HookDXGI (void)
 
     if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
     {
-      CreateDXGIFactory_Import =  \
-        (CreateDXGIFactory_pfn)GetProcAddress  (hBackend, "CreateDXGIFactory");
-      CreateDXGIFactory1_Import = \
-        (CreateDXGIFactory1_pfn)GetProcAddress (hBackend, "CreateDXGIFactory1");
-      CreateDXGIFactory2_Import = \
-        (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2");
+      CreateDXGIFactory_Import  =  (CreateDXGIFactory_pfn)
+        GetProcAddress  (hBackend, "CreateDXGIFactory");
+      CreateDXGIFactory1_Import =  (CreateDXGIFactory1_pfn)
+        GetProcAddress (hBackend,  "CreateDXGIFactory1");
+      CreateDXGIFactory2_Import =  (CreateDXGIFactory2_pfn)
+        GetProcAddress (hBackend,  "CreateDXGIFactory2");
 
       SK_LOG0 ( ( L"  CreateDXGIFactory:  %s",
                     SK_MakePrettyAddress (CreateDXGIFactory_Import).c_str ()  ),
@@ -7910,7 +8103,8 @@ SK_HookDXGI (void)
       LPVOID pfnCreateDXGIFactory1   = nullptr;
       LPVOID pfnCreateDXGIFactory2   = nullptr;
 
-      if ((! LocalHook_CreateDXGIFactory.active) && GetProcAddress (hBackend, "CreateDXGIFactory"))
+      if ( (! LocalHook_CreateDXGIFactory.active) && GetProcAddress (
+             hBackend, "CreateDXGIFactory" ) )
       {
         if ( MH_OK ==
                SK_CreateDLLHook2 (      L"dxgi.dll",
@@ -7926,7 +8120,8 @@ SK_HookDXGI (void)
         pfnCreateDXGIFactory = LocalHook_CreateDXGIFactory.target.addr;
       }
 
-      if ((! LocalHook_CreateDXGIFactory1.active) && GetProcAddress (hBackend, "CreateDXGIFactory1"))
+      if ( (! LocalHook_CreateDXGIFactory1.active) && GetProcAddress (
+             hBackend, "CreateDXGIFactory1" ) )
       {
         if ( MH_OK ==
                SK_CreateDLLHook2 (      L"dxgi.dll",
@@ -7942,7 +8137,8 @@ SK_HookDXGI (void)
         pfnCreateDXGIFactory1 = LocalHook_CreateDXGIFactory1.target.addr;
       }
 
-      if ((! LocalHook_CreateDXGIFactory2.active) && GetProcAddress (hBackend, "CreateDXGIFactory2"))
+      if ( (! LocalHook_CreateDXGIFactory2.active) && GetProcAddress (
+             hBackend, "CreateDXGIFactory2" ) )
       {
         if ( MH_OK ==
                SK_CreateDLLHook2 (      L"dxgi.dll",
@@ -7999,13 +8195,21 @@ SK_HookDXGI (void)
       SK_GetCommandProcessor ();
 
     pCommandProc->AddVariable ( "PresentationInterval",
-            new SK_IVarStub <int> (&config.render.framerate.present_interval));
+            new SK_IVarStub <int> (
+              &config.render.framerate.present_interval )
+                              );
     pCommandProc->AddVariable ( "PreRenderLimit",
-            new SK_IVarStub <int> (&config.render.framerate.pre_render_limit));
+            new SK_IVarStub <int> (
+              &config.render.framerate.pre_render_limit )
+                              );
     pCommandProc->AddVariable ( "BufferCount",
-            new SK_IVarStub <int> (&config.render.framerate.buffer_count));
+            new SK_IVarStub <int> (
+              &config.render.framerate.buffer_count )
+                              );
     pCommandProc->AddVariable ( "UseFlipDiscard",
-            new SK_IVarStub <bool> (&config.render.framerate.flip_discard));
+            new SK_IVarStub <bool> (
+              &config.render.framerate.flip_discard )
+                              );
 
     SK_DXGI_BeginHooking ();
 
@@ -8097,41 +8301,69 @@ DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space)
 {
   switch (space)
   {
-    case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:           return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709";
-    case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:           return L"DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709";
-    case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709:         return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709";
-    case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020";
-    case DXGI_COLOR_SPACE_RESERVED:                         return L"DXGI_COLOR_SPACE_RESERVED";
-    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601:    return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601";
-    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601:         return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709";
-    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709:         return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020:      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020";
-    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020:        return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020";
-    case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020:    return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020";
-    case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020:   return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020: return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020";
-    case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:          return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020:  return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020";
-    case DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020:    return L"DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020";
-    case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:         return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709";
-    case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020:      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020";
-    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020:   return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020";
-    case DXGI_COLOR_SPACE_CUSTOM:                           return L"DXGI_COLOR_SPACE_CUSTOM";
-                                                   default: return L"Unknown?!";
+    case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:
+      return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709";
+    case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:
+      return L"DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709:
+      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:
+      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020";
+    case DXGI_COLOR_SPACE_RESERVED:
+      return L"DXGI_COLOR_SPACE_RESERVED";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601:
+      return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601:
+      return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709:
+      return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020:
+      return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020";
+    case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:
+      return L"DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:
+      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:
+      return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020:
+      return L"DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:
+      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:
+      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020:
+      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_CUSTOM:
+      return L"DXGI_COLOR_SPACE_CUSTOM";
+    default:
+      return L"Unknown?!";
   };
 };
 
 HRESULT
 WINAPI
-IDXGISwapChain3_CheckColorSpaceSupport_Override ( IDXGISwapChain3       *This,
-                                                  DXGI_COLOR_SPACE_TYPE  ColorSpace,
-                                                  UINT                  *pColorSpaceSupported )
+IDXGISwapChain3_CheckColorSpaceSupport_Override (
+  IDXGISwapChain3       *This,
+  DXGI_COLOR_SPACE_TYPE  ColorSpace,
+  UINT                  *pColorSpaceSupported )
 {
   //SK_LOG0 ( ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%s) ",
   //              DXGIColorSpaceToStr (ColorSpace) ),
@@ -8159,8 +8391,9 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override ( IDXGISwapChain3       *This,
 
 HRESULT
 WINAPI
-IDXGISwapChain3_SetColorSpace1_Override         ( IDXGISwapChain3       *This,
-                                                  DXGI_COLOR_SPACE_TYPE  ColorSpace )
+IDXGISwapChain3_SetColorSpace1_Override (
+  IDXGISwapChain3       *This,
+  DXGI_COLOR_SPACE_TYPE  ColorSpace )
 {
   SK_LOG0 ( ( "[!] IDXGISwapChain3::SetColorSpace1 (%s)",
                 DXGIColorSpaceToStr (ColorSpace) ),
@@ -8174,7 +8407,8 @@ IDXGISwapChain3_SetColorSpace1_Override         ( IDXGISwapChain3       *This,
   {
     SK_LOG0 ((L" >> HDR: Overriding Original Color Space: '%s' with '%s'",
              DXGIColorSpaceToStr (ColorSpace),
-             DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE) rb.scanout.colorspace_override)),
+             DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)
+                                  rb.scanout.colorspace_override)),
              L"   DXGI   ");
 
     ColorSpace = (DXGI_COLOR_SPACE_TYPE)rb.scanout.colorspace_override;
@@ -8240,12 +8474,15 @@ IDXGISwapChain3_SetColorSpace1_Override         ( IDXGISwapChain3       *This,
   return hr;
 }
 
-using IDXGIOutput6_GetDesc1_pfn = HRESULT (WINAPI *)(IDXGIOutput6*, DXGI_OUTPUT_DESC1*);
+using IDXGIOutput6_GetDesc1_pfn = HRESULT (WINAPI *)
+     (IDXGIOutput6*,              DXGI_OUTPUT_DESC1*);
       IDXGIOutput6_GetDesc1_pfn
       IDXGIOutput6_GetDesc1_Original = nullptr;
 
 
-extern glm::vec3 SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::vec3 RGB );
+extern glm::vec3 SK_Color_XYZ_from_RGB (
+  const SK_ColorSpace& cs, glm::vec3 RGB
+);
 
 HRESULT
 WINAPI
@@ -8286,10 +8523,14 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    rb.display_gamut.xr = pDesc->RedPrimary   [0]; rb.display_gamut.yr = pDesc->RedPrimary   [1];
-    rb.display_gamut.xg = pDesc->GreenPrimary [0]; rb.display_gamut.yg = pDesc->GreenPrimary [1];
-    rb.display_gamut.xb = pDesc->BluePrimary  [0]; rb.display_gamut.yb = pDesc->BluePrimary  [1];
-    rb.display_gamut.Xw = pDesc->WhitePoint   [0]; rb.display_gamut.Yw = pDesc->WhitePoint   [1];
+    rb.display_gamut.xr = pDesc->RedPrimary   [0];
+    rb.display_gamut.yr = pDesc->RedPrimary   [1];
+    rb.display_gamut.xg = pDesc->GreenPrimary [0];
+    rb.display_gamut.yg = pDesc->GreenPrimary [1];
+    rb.display_gamut.xb = pDesc->BluePrimary  [0];
+    rb.display_gamut.yb = pDesc->BluePrimary  [1];
+    rb.display_gamut.Xw = pDesc->WhitePoint   [0];
+    rb.display_gamut.Yw = pDesc->WhitePoint   [1];
     rb.display_gamut.Zw = 1.0f - rb.display_gamut.Xw - rb.display_gamut.Yw;
 
     rb.display_gamut.minY      = pDesc->MinLuminance;
@@ -8359,7 +8600,6 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
-    if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
     if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
     {
       DXGI_VIRTUAL_HOOK ( &pSwapChain, 10, "IDXGISwapChain::SetFullscreenState",

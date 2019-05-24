@@ -51,10 +51,11 @@ struct mss_cfg_s
 
 SK_LazyGlobal <mss_cfg_s> mss_config;
 
-struct {
+struct mss_res_s {
   int x, y;
-} mss_res;
+};
 
+SK_LazyGlobal <mss_res_s>                             mss_res;
 SK_LazyGlobal <std::unordered_set <ID3D11Resource *>> mss_ui_render_buffers;
 
 using D3D11Dev_CreateBuffer_pfn = HRESULT (WINAPI *)(
@@ -128,8 +129,8 @@ SK_MSS_CreateTexture2D (
          ( pDesc->BindFlags & D3D11_BIND_RENDER_TARGET ) ) &&
          ( pDesc->Width    == 1920 && pDesc->Height == 1080 ) )
   {
-    if (mss_res.x == 0) mss_res.x = 1920;
-    if (mss_res.y == 0) mss_res.y = 1080;
+    if (mss_res->x == 0) mss_res->x = 1920;
+    if (mss_res->y == 0) mss_res->y = 1080;
 
     if ( (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) &&
           pDesc->Format == DXGI_FORMAT_R8G8B8A8_UNORM )
@@ -196,11 +197,11 @@ SK_MSS_RSSetScissorRects (
           float right_ndc  = 2.0f * (static_cast <FLOAT> (pRects [i].right)  / 1920.0f) - 1.0f;
           float bottom_ndc = 2.0f * (static_cast <FLOAT> (pRects [i].bottom) / 1080.0f) - 1.0f;
 
-          rects [i].left   = static_cast <UINT> ((left_ndc  * static_cast <float> (mss_res.x) + static_cast <float> (mss_res.x)) / 2.0f);
-          rects [i].right  = static_cast <UINT> ((right_ndc * static_cast <float> (mss_res.x) + static_cast <float> (mss_res.x)) / 2.0f);
+          rects [i].left   = static_cast <UINT> ((left_ndc  * static_cast <float> (mss_res->x) + static_cast <float> (mss_res->x)) / 2.0f);
+          rects [i].right  = static_cast <UINT> ((right_ndc * static_cast <float> (mss_res->x) + static_cast <float> (mss_res->x)) / 2.0f);
 
-          rects [i].top    = static_cast <UINT> ((top_ndc    * static_cast <float> (mss_res.y) + static_cast <float> (mss_res.y)) / 2.0f);
-          rects [i].bottom = static_cast <UINT> ((bottom_ndc * static_cast <float> (mss_res.y) + static_cast <float> (mss_res.y)) / 2.0f);
+          rects [i].top    = static_cast <UINT> ((top_ndc    * static_cast <float> (mss_res->y) + static_cast <float> (mss_res->y)) / 2.0f);
+          rects [i].bottom = static_cast <UINT> ((bottom_ndc * static_cast <float> (mss_res->y) + static_cast <float> (mss_res->y)) / 2.0f);
         }
 
         return _D3D11_RSSetScissorRects_Original (This, NumRects, rects);
@@ -245,8 +246,8 @@ SK_MSS_RSSetViewports (
             float left_ndc = 2.0f * (vps [i].TopLeftX / vps [i].Width)  - 1.0f;
             float top_ndc  = 2.0f * (vps [i].TopLeftY / vps [i].Height) - 1.0f;
 
-            vps [i].Width  = static_cast <FLOAT> (mss_res.x);
-            vps [i].Height = static_cast <FLOAT> (mss_res.y);
+            vps [i].Width  = static_cast <FLOAT> (mss_res->x);
+            vps [i].Height = static_cast <FLOAT> (mss_res->y);
 
             vps [i].TopLeftX = ((top_ndc  * vps [i].Height + vps [i].Height) / 2.0f);
             vps [i].TopLeftY = ((left_ndc * vps [i].Width  + vps [i].Width)  / 2.0f);
@@ -283,12 +284,12 @@ SK_MSS_ControlPanel (void)
 
       ImGui::TreePush ("");
 
-      changed |= ImGui::InputInt2 ("UI Resolution###MSS", &mss_res.x);
+      changed |= ImGui::InputInt2 ("UI Resolution###MSS", &mss_res->x);
 
       if (changed)
       {
-        mss_config->ui.res_x->store (mss_res.x);
-        mss_config->ui.res_y->store (mss_res.y);
+        mss_config->ui.res_x->store (mss_res->x);
+        mss_config->ui.res_y->store (mss_res->y);
 
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
 
@@ -350,23 +351,26 @@ SK_MSS_InitPlugin (void)
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
 
-  mss_config->ui.res_x =
+  auto& cfg =
+    mss_config.get ();
+
+  cfg.ui.res_x =
     dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory->create_parameter <int> (L"X Resolution"));
 
-  mss_config->ui.res_y =
+  cfg.ui.res_y =
     dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory->create_parameter <int> (L"Y Resolution"));
 
-  mss_config->ui.res_x->register_to_ini ( SK_GetDLLConfig (),
-                                           L"MSS.UI",
-                                             L"ResX" );
-  mss_config->ui.res_y->register_to_ini ( SK_GetDLLConfig (),
-                                           L"MSS.UI",
-                                             L"ResY" );
+  cfg.ui.res_x->register_to_ini ( SK_GetDLLConfig (),
+                                   L"MSS.UI",
+                                     L"ResX" );
+  cfg.ui.res_y->register_to_ini ( SK_GetDLLConfig (),
+                                   L"MSS.UI",
+                                     L"ResY" );
 
-  mss_config->ui.res_x->load (mss_res.x);
-  mss_config->ui.res_y->load (mss_res.y);
+  cfg.ui.res_x->load (mss_res->x);
+  cfg.ui.res_y->load (mss_res->y);
 
    SK_ApplyQueuedHooks ();
 

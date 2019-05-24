@@ -70,7 +70,7 @@ public:
           bool                 OpenClanChatWindowInSteam       ( CSteamID steamIDClanChat ) override { return pRealFriends->OpenClanChatWindowInSteam   (steamIDClanChat); }
           bool                 CloseClanChatWindowInSteam      ( CSteamID steamIDClanChat ) override { return pRealFriends->CloseClanChatWindowInSteam  (steamIDClanChat); }
 
-  virtual bool                 SetListenForFriendsMessages     ( bool     bInterceptEnabled ) override { return pRealFriends->SetListenForFriendsMessages (bInterceptEnabled); }
+          bool                 SetListenForFriendsMessages     ( bool     bInterceptEnabled ) override { return pRealFriends->SetListenForFriendsMessages (bInterceptEnabled); }
 
   virtual bool                 ReplyToFriendMessage            ( CSteamID        steamIDFriend, const char *pchMsgToSend) = 0;
           int                  GetFriendMessage                ( CSteamID        steamIDFriend,       int    iMessageID,

@@ -318,34 +318,64 @@ _CreateConfigParameter ( std::type_index type,
         {
           case _ParameterType::Bool:
           {
-            return
+            sk::ParameterBool *pBoolParam =
               dynamic_cast <sk::ParameterBool *> (
                 pParam
-              )->load (*static_cast <bool *> (pBackingStore));
+              );
+
+            if (pBoolParam != nullptr)
+            {
+              return pBoolParam->load (
+                *static_cast <bool *> (pBackingStore)
+              );
+            }
           } break;
 
           case _ParameterType::Int:
           {
-            return
+            sk::ParameterInt *pIntParam =
               dynamic_cast <sk::ParameterInt *> (
                 pParam
-              )->load (*static_cast <int *> (pBackingStore));
+              );
+
+            if (pIntParam != nullptr)
+            {
+              return pIntParam->load (
+                *static_cast <int *> (pBackingStore)
+              );
+            }
           } break;
 
           case _ParameterType::Float:
           {
-            return
+            sk::ParameterFloat *pFloatParam =
               dynamic_cast <sk::ParameterFloat *> (
                 pParam
-                )->load (*static_cast <float *> (pBackingStore));
+              );
+
+            if (pFloatParam != nullptr)
+            {
+              return
+                pFloatParam->load (
+                  *static_cast <float *> (pBackingStore)
+                );
+            }
           } break;
 
           case _ParameterType::StringW:
           {
-            return
+            sk::ParameterStringW *pStringParam =
               dynamic_cast <sk::ParameterStringW *> (
                 pParam
-                )->load (*static_cast <std::wstring *> (pBackingStore));
+              );
+
+            if (pStringParam != nullptr)
+            {
+              return
+                pStringParam->load (
+                  *static_cast <std::wstring *> (pBackingStore)
+                );
+            }
           } break;
         }
 
@@ -363,30 +393,64 @@ _CreateConfigParameter ( std::type_index type,
         {
           case _ParameterType::Bool:
           {
-            dynamic_cast <sk::ParameterBool *> (
-              pParam
-            )->store (*static_cast <bool *> (pBackingStore));
+            auto *pParamBool =
+              dynamic_cast <sk::ParameterBool *> (
+                pParam
+              );
+
+            SK_ReleaseAssert (pParamBool != nullptr);
+
+            if (pParamBool != nullptr)
+            {
+              pParamBool->store (*static_cast <bool *> (pBackingStore));
+            }
           } break;
 
           case _ParameterType::Int:
           {
-            dynamic_cast <sk::ParameterInt *> (
-              pParam
-            )->store (*static_cast <int *> (pBackingStore));
+            auto *pParamInt =
+              dynamic_cast <sk::ParameterInt *> (
+                pParam
+              );
+
+            SK_ReleaseAssert (pParamInt != nullptr);
+
+            if (pParamInt != nullptr)
+            {
+              pParamInt->store (*static_cast <int *> (pBackingStore));
+            }
           } break;
 
           case _ParameterType::Float:
           {
-            dynamic_cast <sk::ParameterFloat *> (
-              pParam
-            )->store (*static_cast <float *> (pBackingStore));
+            auto *pParamFloat =
+              dynamic_cast <sk::ParameterFloat *> (
+                pParam
+              );
+
+            SK_ReleaseAssert (pParamFloat != nullptr);
+
+            if (pParamFloat != nullptr)
+            {
+              pParamFloat->store (*static_cast <float *> (pBackingStore));
+            }
           } break;
 
           case _ParameterType::StringW:
           {
-            dynamic_cast <sk::ParameterStringW *> (
-              pParam
-            )->store (*static_cast <std::wstring*> (pBackingStore));
+            auto *pParamString =
+              dynamic_cast <sk::ParameterStringW *> (
+                pParam
+              );
+
+            SK_ReleaseAssert (pParamString != nullptr);
+
+            if (pParamString != nullptr)
+            {
+              pParamString->store (
+                *static_cast <std::wstring*> (pBackingStore)
+              );
+            }
           } break;
         }
       };

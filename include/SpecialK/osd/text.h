@@ -100,9 +100,9 @@ private:
            cegui     = nullptr;
 
     char   name [64] = { };
-    float  scale     = 1.0f;;
-    DWORD  primary_color; // For text that doesn't use its own
-    DWORD  shadow_color;
+    float  scale     = 1.0f;
+    DWORD  primary_color = 0xFFFFFFFF; // For text that doesn't use its own
+    DWORD  shadow_color  = 0x0;
   } font_;
 
 public:

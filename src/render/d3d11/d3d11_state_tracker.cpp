@@ -186,6 +186,8 @@ SK_D3D11_ShouldTrackMMIO ( ID3D11DeviceContext* pDevCtx,
 HMODULE hModReShade = (HMODULE)-2;
 
 
+extern bool SK_D3D11_DontTrackUnlessModToolsAreOpen;
+
 bool
 SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
                                UINT                 dev_idx )
@@ -193,8 +195,8 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
   if (pDevCtx == nullptr)
     return false;
 
-  //if (! SK_D3D11_EnableTracking)
-  //  return false;
+  if (SK_D3D11_DontTrackUnlessModToolsAreOpen && (! SK_D3D11_EnableTracking))
+    return false;
 
   if ((! config.render.dxgi.deferred_isolation) && SK_D3D11_IsDevCtxDeferred (pDevCtx))
     return false;
@@ -341,7 +343,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
   const bool is_active =
     active.get (dev_idx);
 
-  if ((! is_active))
+  if (! is_active)
   {
     static auto& shaders =
       SK_D3D11_Shaders;
@@ -526,6 +528,23 @@ d3d11_shader_tracking_s::use (IUnknown* pShader)
   UNREFERENCED_PARAMETER (pShader);
 
   num_draws++;
+}
+
+bool
+SK_D3D11_ShouldTrackComputeDispatch ( ID3D11DeviceContext* pDevCtx,
+                               const  SK_D3D11DispatchType dispatch_type,
+                                      UINT                 dev_idx )
+{
+  UNREFERENCED_PARAMETER (dispatch_type);
+
+  const bool
+    process =      // No separation of Draw from Dispatch for now
+      ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 )
+                ||
+        SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx);
+
+  return
+    process;
 }
 
 bool

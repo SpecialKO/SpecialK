@@ -100,16 +100,16 @@ public:
   {
     if (pKVIter != nullptr)
     {
-      *pKVIter = fwd_map.begin ();
+      *pKVIter = fwd_map.cbegin ();
 
-      return (*pKVIter != fwd_map.end ());
+      return (*pKVIter != fwd_map.cend ());
     }
 
     else if (pVKIter != nullptr)
     {
-      *pVKIter = rev_map.begin ();
+      *pVKIter = rev_map.cbegin ();
 
-      return (*pVKIter != rev_map.end ());
+      return (*pVKIter != rev_map.cend ());
     }
 
     else

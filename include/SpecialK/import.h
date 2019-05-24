@@ -62,14 +62,7 @@ struct SK_Import_Datastore {
   import_s* dgvoodoo_d3dimm         = nullptr;
 };
 
-extern SK_Import_Datastore& __SK_GetImports (void);
-
-#define host_executable __SK_GetImports ().host_executable
-#define imports         __SK_GetImports ().imports
-
-#define dgvoodoo_d3d8   __SK_GetImports ().dgvoodoo_d3d8
-#define dgvoodoo_ddraw  __SK_GetImports ().dgvoodoo_ddraw
-#define dgvoodoo_d3dimm __SK_GetImports ().dgvoodoo_d3dimm
+extern SK_LazyGlobal <SK_Import_Datastore> imports;
 
 void SK_LoadEarlyImports64 (void);
 void SK_LoadLateImports64  (void);

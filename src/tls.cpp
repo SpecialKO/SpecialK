@@ -402,7 +402,7 @@ SK_TLS_BottomEx (DWORD dwTid)
   }
   SK_SEH_RemoveTranslator (orig_se);
 
-  //SK_ReleaseAssert (tls_slot != tls_map.end ())
+  //SK_ReleaseAssert (tls_slot != tls_map.cend ())
 
   return pTLS;
 }
@@ -419,7 +419,7 @@ SK_ModuleAddrMap::contains (LPCVOID pAddr, HMODULE* phMod)
   std::unordered_map <LPCVOID, HMODULE> *pResolved_ =
     ((std::unordered_map <LPCVOID, HMODULE> *)pResolved);
 
-  const auto&& it =
+  const auto it =
     pResolved_->find (pAddr);
 
   if (it != pResolved_->cend ())
@@ -1029,12 +1029,6 @@ SK_DXTex_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 size_t
 SK_Sched_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
-  if (sub_2ms_sleep != INVALID_HANDLE_VALUE)
-  {
-    CloseHandle (sub_2ms_sleep);
-    sub_2ms_sleep = INVALID_HANDLE_VALUE;
-  }
-
   return 0;
 }
 
@@ -1058,7 +1052,7 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
   freed += scheduler     ->Cleanup (reason);
   freed += dxtex          .Cleanup (reason);
 
-  if (debug.handle != INVALID_HANDLE_VALUE)
+  if (debug.handle > 0)
   {
     CloseHandle (debug.handle);
                  debug.handle = INVALID_HANDLE_VALUE;

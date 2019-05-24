@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright 2018 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -362,7 +362,7 @@ SK_NNK2_PlugInCfg (void)
   static float* pfdTi = (float *)((uint8_t *)GetModuleHandle (nullptr) +  TIMESTEP_BASE_ADDR);
   static float* pfdTr = pfdTi + 1;
 
-  if (ImGui::CollapsingHeader (u8"Ni no Kuni� II Revenant Kingdom", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader (u8"Ni no Kuni™ II Revenant Kingdom", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
 

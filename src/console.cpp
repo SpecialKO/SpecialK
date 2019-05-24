@@ -144,7 +144,7 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   auto masked =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-  if (SK_KeyboardMacros->find (masked) != SK_KeyboardMacros->end ())
+  if (SK_KeyboardMacros->find (masked) != SK_KeyboardMacros->cend ())
   {
     auto range =
       SK_KeyboardMacros->equal_range (masked);
@@ -419,8 +419,11 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
         }
       }
     }
-    else if ((! keyDown))
-      keys_ [vkCode] = 0x00;
+
+    else
+    {
+      if (! keyDown) keys_ [vkCode] = 0x00;
+    }
   }
 
   if (visible)

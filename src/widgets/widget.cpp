@@ -26,7 +26,6 @@
 
 
 extern iSK_INI* osd_ini;
-extern iSK_INI* osd_ini;
 
 
 extern bool
@@ -907,7 +906,10 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
       if (       keybind == &config.steam.screenshots.game_hud_free_keybind )
       {
 #ifdef _M_AMD64
-        if (     game_id == SK_GAME_ID::Yakuza0  )
+        static bool __yakuza0 =
+          (game_id == SK_GAME_ID::Yakuza0);
+
+        if (__yakuza0)
         {
           SK_YS0_TriggerHudFreeScreenshot ();
         }

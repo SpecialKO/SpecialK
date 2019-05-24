@@ -773,7 +773,9 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if  (swap_desc.SampleDesc.Count > 1)
       ImGui::Text            ("%u",                                         swap_desc.SampleDesc.Count);
       if (swap_desc.Flags != 0)
+      {
         ImGui::Text          ("%ws",                                        swap_flags.c_str ());
+      }
       if (rb.isHDRCapable ())
       {
         bool _fullscreen = true;

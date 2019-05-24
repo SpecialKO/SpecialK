@@ -23,10 +23,8 @@
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
 #include <SpecialK/steam_api.h>
 
-SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComQIPtr <IDirect3DDevice9>& pDevice)
+SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComQIPtr <IDirect3DDevice9>& pDevice) : pDev (pDevice)
 {
-  pDev = pDevice;
-
   if (pDev.p != nullptr)
   {
     if ( SUCCEEDED ( SK_GetCurrentRenderBackend ().swapchain.QueryInterface (

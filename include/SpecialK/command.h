@@ -205,16 +205,16 @@ interface SK_ICommandProcessor
 {
   SK_ICommandProcessor (void);
 
-  virtual ~SK_ICommandProcessor (void) = default;
+  virtual ~SK_ICommandProcessor (void);
 
-  virtual SK_ICommand*       FindCommand   (const char* szCommand) const;
+  virtual SK_ICommand*       FindCommand   (const char* szCommand);
 
   virtual const SK_ICommand* AddCommand    ( const char*  szCommand,
                                              SK_ICommand* pCommand );
   virtual bool               RemoveCommand ( const char* szCommand );
 
 
-  virtual const SK_IVariable* FindVariable  (const char* szVariable) const;
+  virtual const SK_IVariable* FindVariable  (const char* szVariable);
 
   virtual const SK_IVariable* AddVariable    ( const char*   szVariable,
                                                SK_IVariable* pVariable  );
@@ -231,6 +231,8 @@ private:
     str_hash_compare <std::string> > commands_;
   std::unordered_map < std::string, std::unique_ptr <SK_IVariable>,
     str_hash_compare <std::string> > variables_;
+
+  CRITICAL_SECTION cs_process_cmd;
 };
 
 

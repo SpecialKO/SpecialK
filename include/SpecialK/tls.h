@@ -601,7 +601,6 @@ public:
   SK_MMCS_TaskEntry*
                 mmcs_task     = nullptr;
 
-  HANDLE        sub_2ms_sleep = INVALID_HANDLE_VALUE;
   ULONG         sleep0_count  = 0UL;
   ULONG         last_frame    = 0UL;
   ULONG         switch_count  = 0UL;
@@ -659,14 +658,15 @@ public:
                           )
        )
     {
-      debug.handle = INVALID_HANDLE_VALUE;
+      debug.handle =
+        INVALID_HANDLE_VALUE;
     }
 
-    debug.tid               = SK_Thread_GetCurrentId ();
-    debug.tls_idx           = idx;
+    debug.tid     = SK_Thread_GetCurrentId ();
+    debug.tls_idx = idx;
   }
 
-  SK_TlsRecord              context_record = { };
+  SK_TlsRecord                              context_record = { };
 
   SK_LazyGlobal <SK_ModuleAddrMap>          known_modules;
   SK_LazyGlobal <SK_TLS_ScratchMemory>      scratch_memory;

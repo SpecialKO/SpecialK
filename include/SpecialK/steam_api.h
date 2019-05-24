@@ -141,21 +141,9 @@ SK_Steam_InitCommandConsoleVariables (void);
 //
 struct SK_SteamAchievement
 {
-  // If we were to call ISteamStats::GetAchievementName (...),
-  //   this is the index we could use.
-  int         idx_;
-
   const char* name_;          // UTF-8 (I think?)
   const char* human_name_;    // UTF-8
   const char* desc_;          // UTF-8
-
-  float       global_percent_;
-
-  struct
-  {
-    int unlocked; // Number of friends who have unlocked
-    int possible; // Number of friends who may be able to unlock
-  } friends_;
 
   // Raw pixel data (RGB8) for achievement icons
   struct
@@ -163,6 +151,19 @@ struct SK_SteamAchievement
     uint8_t*  achieved;
     uint8_t*  unachieved;
   } icons_;
+
+  // If we were to call ISteamStats::GetAchievementName (...),
+  //   this is the index we could use.
+  int         idx_;
+
+  float       global_percent_;
+  __time32_t  time_;
+
+  struct
+  {
+    int unlocked; // Number of friends who have unlocked
+    int possible; // Number of friends who may be able to unlock
+  } friends_;
 
   struct
   {
@@ -177,7 +178,6 @@ struct SK_SteamAchievement
   } progress_;
 
   bool        unlocked_;
-  __time32_t  time_;
 };
 
 
@@ -588,9 +588,9 @@ class SK_Steam_KeyValues
 public:
   static
   std::vector <std::string>
-  getKeys ( std::string                input,
-            std::deque  <std::string>  sections,
-            std::vector <std::string>* values = nullptr )
+  getKeys ( const std::string&               input,
+                  std::deque  <std::string>  sections,
+                  std::vector <std::string>* values = nullptr )
   {
     std::vector <std::string> ret;
 
@@ -616,8 +616,10 @@ public:
 
         for ( auto& str : in )
         {
-          if (i++ > 0) out += "\x01";
-                       out += str;
+          if (i++ > 0)
+            out += "\x01";
+
+            out += str;
         }
       }
     } search_tree;
@@ -689,9 +691,9 @@ public:
 
   static
   std::string
-  getValue ( std::string              input,
-             std::deque <std::string> sections,
-             std::string              key )
+  getValue ( const std::string&              input,
+             const std::deque <std::string>& sections,
+                   std::string               key )
   {
     std::vector <std::string> values;
     std::vector <std::string> keys (

@@ -884,6 +884,7 @@ enum class SK_GAME_ID
   Ys_Eight,                     // ys8.exe
   PillarsOfEternity2,           // PillarsOfEternityII.exe
   Yakuza0,                      // Yakuza0.exe
+  YakuzaKiwami2,                // YakuzaKiwami2.exe
   MonsterHunterWorld,           // MonsterHunterWorld.exe
   Shenmue,                      // Shenmue.exe
   DragonQuestXI,                // DRAGON QUEST XI.exe

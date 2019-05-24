@@ -128,11 +128,11 @@ namespace D3D9 {
 
     int             instances       = 0;
 
-    uint32_t        current_tex  [256];
-    float           viewport_off [4]  = { 0.0f }; // Most vertex shaders use this and we can
-                                                  //   test the set values to determine if a draw
-                                                  //     is HUD or world-space.
-                                                  //
+    uint32_t        current_tex  [256] = {      };
+    float           viewport_off [4]   = { 0.0f }; // Most vertex shaders use this and we can
+                                                   //   test the set values to determine if a draw
+                                                   //     is HUD or world-space.
+                                                   //
     volatile ULONG  draw_count  = 0;
     volatile ULONG  next_draw   = 0;
     volatile ULONG  scene_count = 0;
@@ -204,7 +204,7 @@ namespace D3D9 {
     bool                          active       = false;
     volatile LONG                 num_draws    =     0;
     std::unordered_set <IDirect3DBaseTexture9*> used_textures;
-                        IDirect3DBaseTexture9*  current_textures [16];
+                        IDirect3DBaseTexture9*  current_textures [16] = { };
 
     //std::vector <IDirect3DBaseTexture9 *> samplers;
 

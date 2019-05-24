@@ -462,15 +462,17 @@ SK_TVFix_PlugInCfg (void)
         if (sample_idx > 0)
         {
           config.render.dxgi.msaa_samples =
-            1 << sample_idx;
+            ( 1 << sample_idx );
         }
 
         else
+        {
           config.render.dxgi.msaa_samples = -1;
+        }
       }
 
       if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("NOTE: You must set the game's gfx settings to 4x MSAA for these overrides to work.");
+          ImGui::SetTooltip ("NOTE: You must set the game's gfx settings to 4x MSAA for these overrides to work.");
 
       if (orig_samples != config.render.dxgi.msaa_samples)
       {
@@ -497,9 +499,10 @@ SK_TVFix_PlugInCfg (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
 
     ImGui::BeginGroup ();
-    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen |
+                                                    ImGuiTreeNodeFlags_AllowItemOverlap))
     {
-      ImGui::TreePush ("");
+      ImGui::TreePush ();
 
       bool enable = (! plugin_ctx.__SK_TVFix_DisableDepthOfField);
 

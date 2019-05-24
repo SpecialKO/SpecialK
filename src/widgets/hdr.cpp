@@ -110,11 +110,11 @@ float __SK_HDR_VertCoverage  = 100.0f;
 #define MAX_HDR_PRESETS 4
 
 struct SK_HDR_Preset_s {
-  const char*  preset_name;
-  int          preset_idx;
+  const char*  preset_name = "uninitialized";
+  int          preset_idx  = 0;
 
-  float        peak_white_nits;
-  float        eotf;
+  float        peak_white_nits = 0.0f;
+  float        eotf            = 0.0f;
 
   struct {
     int in  = 0,
@@ -1072,10 +1072,8 @@ SK_ImGui_DrawGamut (void)
 
     double          _area = 0.0;
 
-    color_triangle_s (const std::string& _name, SK_ColorSpace cs)
+    color_triangle_s (const std::string& _name, SK_ColorSpace cs) : name (_name)
     {
-      name = _name;
-
       r = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (1., 0., 0.));
       g = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (0., 1., 0.));
       b = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (0., 0., 1.));

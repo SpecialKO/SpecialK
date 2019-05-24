@@ -807,8 +807,8 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
           switch (connection_tries++)
           {
             case 0:
-              SK_LOG0 ( ( L"Connection to Tobii Eyetracker was Lost, re-trying..." ), //-V796
-                       L"Tobii Eyes");
+              SK_LOG0 ( ( L"Connection to Tobii Eyetracker was Lost, re-trying..." ),
+                          L"Tobii Eyes");
             default:
             {
               static int  retry_wait_period = 150;
@@ -825,7 +825,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
             case 101:
             {
               SK_LOG0 ( ( L"Shutting Down Tobii Integration Because Device Cannot be Reconnected." ),
-                       L"Tobii Eyes" );
+                          L"Tobii Eyes" );
               tobii_reconnect = 0;
             } break;
           }

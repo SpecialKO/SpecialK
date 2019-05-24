@@ -524,17 +524,23 @@ iSK_INI::parse (void)
     wchar_t* end             = nullptr;
     wchar_t* wszDataCur      = &wszData [0];
 
-    for (wchar_t* i = wszDataCur; i < wszDataEnd && i != nullptr; i = CharNextW (i))
+    for ( wchar_t* i = wszDataCur;
+                   i < wszDataEnd &&
+                   i != nullptr;     i = CharNextW (i) )
     {
-      if (*i == L'[' && (i == wszData || *CharPrevW (&wszData [0], i) == L'\n'))
+      if ( *i == L'[' &&
+           (i == wszData || *CharPrevW (&wszData [0], i) == L'\n') )
       {
-        begin = CharNextW (i);
+        begin =
+          CharNextW (i);
       }
 
-      if (*i == L']' && (i == wszSecondToLast || *CharNextW (i) == L'\n'))
-        end = i;
+      if (   *i == L']' &&
+             (i == wszSecondToLast || *CharNextW (i) == L'\n') )
+      { end = i; }
 
-      if (begin != nullptr && end != nullptr && begin < end)
+      if ( begin != nullptr  &&
+           end   != nullptr  &&  begin < end )
       {
         size_t   sec_len =        wcrlen (begin, end);
         auto*    sec_name =
@@ -800,8 +806,6 @@ iSK_INI::import (const wchar_t* import_data)
   free (wszImport);
 }
 
-std::wstring invalid = L"Invalid";
-
 std::wstring&
 __stdcall
 iSK_INISection::get_value (const wchar_t* key)
@@ -809,9 +813,12 @@ iSK_INISection::get_value (const wchar_t* key)
   auto it_key =
     keys.find (key);
 
-  if (it_key != keys.end ())
+  if (it_key != keys.cend ())
     return (*it_key).second;
 
+  static
+    std::wstring
+         invalid = L"Invalid";
   return invalid;
 }
 
@@ -832,8 +839,12 @@ bool
 __stdcall
 iSK_INISection::contains_key (const wchar_t* key)
 {
+  auto _kvp =
+    keys.find (key);
+
   return
-    ( keys.count (key) > 0 && (! keys.at (key).empty ()) );
+    (   _kvp != keys.cend  () &&
+     (! _kvp->second.empty () ));
 }
 
 void
@@ -873,15 +884,19 @@ __stdcall
 iSK_INI::contains_section (const wchar_t* section)
 {
   return
-    sections.count (section) > 0;
+    ( sections.find (section) !=
+      sections.cend (       ) );
 }
 
 iSK_INISection&
 __stdcall
 iSK_INI::get_section (const wchar_t* section)
 {
+  auto sec =
+    sections.find (section);
+
   bool try_emplace =
-    (! sections.count (section));
+    ( sec == sections.cend () );
 
   iSK_INISection& ret =
     sections [section];
@@ -919,7 +934,8 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
   va_end   (_ArgList);
 
   bool try_emplace =
-    (! sections.count (wszFormatted));
+    ( sections.find (wszFormatted) ==
+      sections.cend (            ) );
 
   iSK_INISection& ret =
     sections [wszFormatted];
@@ -964,7 +980,8 @@ iSK_INI::write (const wchar_t* fname)
     }
   }
 
-  if ((! outbuf.empty ()) && outbuf.back () == L'\n')
+  if ( (! outbuf.empty ()) &&
+          outbuf.back  ()  == L'\n' )
   {
     // Strip the unnecessary extra newline
     outbuf.resize (outbuf.size () - 1);
@@ -1004,7 +1021,8 @@ iSK_INI::write (const wchar_t* fname)
 
   if (fOut == nullptr)
   {
-    //SK_MessageBox (L"ERROR: Cannot open INI file for writing. Is it read-only?", fname, MB_OK | MB_ICONSTOP);
+    //SK_MessageBox (L"ERROR: Cannot open INI file for writing. Is it "
+    //               L"read-only?", fname, MB_OK | MB_ICONSTOP);
     return;
   }
 
@@ -1152,8 +1170,8 @@ iSK_INI::import_file (const wchar_t* fname)
   size_t len =
     wcslen (fname);
 
-  // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
-  //   actual pointer we need to free...
+  // We skip a few bytes (Unicode BOM) in certain circumstances, so this is
+  //   the actual pointer we need to free...
   CHeapPtr <wchar_t> wszImportName (
     new (std::nothrow) wchar_t [len + 2] { }
   );
@@ -1226,9 +1244,10 @@ iSK_INI::import_file (const wchar_t* fname)
     else
     {
       // Skip the silly UTF8 BOM if it is present
-      bool utf8 = (reinterpret_cast <unsigned char *> (wszImportData)) [0] == 0xEF &&
-                  (reinterpret_cast <unsigned char *> (wszImportData)) [1] == 0xBB &&
-                  (reinterpret_cast <unsigned char *> (wszImportData)) [2] == 0xBF;
+      bool utf8 =
+        (reinterpret_cast <unsigned char *> (wszImportData)) [0] == 0xEF &&
+        (reinterpret_cast <unsigned char *> (wszImportData)) [1] == 0xBB &&
+        (reinterpret_cast <unsigned char *> (wszImportData)) [2] == 0xBF;
 
       const uintptr_t offset =
         utf8 ? 3 : 0;
@@ -1267,16 +1286,14 @@ iSK_INI::import_file (const wchar_t* fname)
       {
         if (real_size > 0)
         {
-          dll_log->Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
-                         L".ini file ('%s') to UTF-16, aborting!",
+          dll_log->Log ( L"[INI Parser] Could not convert UTF-8 / ANSI "
+                         L"Encoded .ini file ('%s') to UTF-16, aborting!",
                            wszImportName.m_pData );
         }
 
-        if (        string != nullptr)
-        {
+        if (        string != nullptr) {
           delete [] string;
-                    string = nullptr;
-        }
+                    string = nullptr;  }
 
         return false;
       }

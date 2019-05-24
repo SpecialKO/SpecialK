@@ -127,7 +127,7 @@ SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  &cache,
   {
     cache.active      = TRUE;
     cache.target.addr =
-      (*(void***)*(base))[idx];
+      (*(void***)*(base))[idx]; //-V206
   }
 
   else

@@ -129,8 +129,11 @@ SK_BootD3D9 (void)
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  if (pTLS && pTLS->d3d9->ctx_init_thread)
+  if ( pTLS != nullptr &&
+       pTLS->d3d9->ctx_init_thread )
+  {
     return;
+  }
 
   ///while (backend_dll == nullptr)
   ///{
@@ -157,7 +160,8 @@ SK_BootD3D9 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
-    pTLS->d3d9->ctx_init_thread = true;
+    if (pTLS != nullptr)
+        pTLS->d3d9->ctx_init_thread = true;
 
     SK_D3D9_InitShaderModTools  ();
 
@@ -367,8 +371,11 @@ SK_BootOpenGL (void)
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  if ( pTLS &&
-       pTLS->gl->ctx_init_thread ) return;
+  if ( pTLS != nullptr &&
+       pTLS->gl->ctx_init_thread )
+  {
+    return;
+  }
 
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
@@ -394,7 +401,8 @@ SK_BootOpenGL (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
-    pTLS->gl->ctx_init_thread = true;
+    if (pTLS)
+        pTLS->gl->ctx_init_thread = true;
 
     dll_log->Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
@@ -441,67 +449,68 @@ SK_BootVulkan (void)
 void
 SK_RenderBackend_V2::gsync_s::update (void)
 {
-  if (! (config.apis.NvAPI.gsync_status && sk::NVAPI::nv_hardware))
-    return;
-
-
   static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-
-  if ( rb.device        == nullptr ||
-       rb.swapchain     == nullptr ||
-       rb.surface.nvapi == nullptr )
+  // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
+  //   we can generally assume their lifetime is only as long as the D3D resource
+  //     they identify.
+  auto _ClearTemporarySurfaces = [&]()->
+  void
   {
-    rb.surface.d3d9 = nullptr;
-    rb.surface.dxgi = nullptr;
-
-    last_checked = SK::ControlPanel::current_time;
-    active       = false;
-
-    return;
-  }
-
-
-
-  if ( last_checked < SK::ControlPanel::current_time - 500UL )
-  {
-    bool success = false;
-
-    if (NVAPI_OK    == NvAPI_D3D_IsGSyncCapable (rb.device, rb.surface.nvapi, &capable))
-    {
-      if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive  (rb.device, rb.surface.nvapi, &active))
-      {
-        last_checked = SK::ControlPanel::current_time;
-        success      = true;
-      }
-
-      else
-      {
-        // On failure, postpone the next check
-        last_checked = SK::ControlPanel::current_time + 3000UL;
-        active       = FALSE;
-      }
-    }
-
-    else
-      capable = FALSE;
-
-    if (! success)
-    {
-      // On failure, postpone the next check
-      last_checked = SK::ControlPanel::current_time + 3000UL;
-      active       = FALSE;
-    }
-
-    else
-      last_checked = SK::ControlPanel::current_time;
-
-    // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
-    //   we can generally assume their lifetime is only as long as the D3D resource
-    //     they identify.
+    rb.surface.dxgi  = nullptr;
+    rb.surface.d3d9  = nullptr;
     rb.surface.nvapi = nullptr;
+  };
+
+  if (! (config.apis.NvAPI.gsync_status &&
+                 sk::NVAPI::nv_hardware) )
+  {
+    capable = false;
+
+    return
+      _ClearTemporarySurfaces ();
   }
+
+  bool success = false;
+
+  if ( last_checked < (SK::ControlPanel::current_time - 666UL) )
+  {
+    if ( rb.device       == nullptr ||
+         rb.swapchain    == nullptr ||
+        (rb.surface.d3d9 == nullptr &&
+         rb.surface.dxgi == nullptr) )
+    {
+      active  = false;
+
+      return
+        _ClearTemporarySurfaces ();
+    }
+
+    if ( NVAPI_OK   == NvAPI_D3D_IsGSyncCapable (rb.device,
+                                                 rb.surface.nvapi, &capable))
+    {
+      if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive  (rb.device,
+                                                 rb.surface.nvapi, &active ))
+      {
+         success = true;
+      }
+    }
+
+    else capable = FALSE;
+  }
+
+  if (!  success)
+  {
+    // On failure, postpone the next check
+    last_checked = SK::ControlPanel::current_time + 3000UL;
+    active       = FALSE;
+  }
+
+  else
+    last_checked = SK::ControlPanel::current_time;
+
+  _ClearTemporarySurfaces ();
 }
 
 
@@ -893,13 +902,13 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
     if (surface.d3d9 != nullptr)
     {
-      surface.d3d9.Release ();
+      surface.d3d9  = nullptr;
       surface.nvapi = nullptr;
     }
 
     if (surface.dxgi != nullptr)
     {
-      surface.dxgi.Release ();
+      surface.dxgi  = nullptr;
       surface.nvapi = nullptr;
     }
 

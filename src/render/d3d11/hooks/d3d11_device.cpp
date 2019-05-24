@@ -129,150 +129,148 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
-  if (pDesc != nullptr && pResource != nullptr)
+  CD3D11_SHADER_RESOURCE_VIEW_DESC _desc (
+    D3D11_SRV_DIMENSION_TEXTURE2D
+  );
+
+  if ( pResource != nullptr )
   {
     D3D11_RESOURCE_DIMENSION   dim;
     pResource->GetType       (&dim);
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
+      if (pDesc != nullptr)
+        _desc = CD3D11_SHADER_RESOURCE_VIEW_DESC (*pDesc);
+      else
+        pDesc = &_desc;
+
       DXGI_FORMAT newFormat    = pDesc->Format;
       UINT        newMipLevels = pDesc->Texture2D.MipLevels;
 
-      SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
+      bool override = false;
 
-      D3D11_TEXTURE2D_DESC        tex_desc = { };
-      if (pTex) pTex->GetDesc   (&tex_desc);
-      if (pTex != nullptr)// && (!((tex_desc.BindFlags & D3D11_BIND_RENDER_TARGET)||
-                          //      (tex_desc.BindFlags & D3D11_BIND_DEPTH_STENCIL))))
+      ////if (DirectX::BitsPerPixel (pDesc->Format) != DirectX::BitsPerPixel (tex_desc.Format))
+      ////{
+      ////  override  = true;
+      ////  newFormat = tex_desc.Format;
+      ////}
+
+      if ( SK_D3D11_OverrideDepthStencil (newFormat) )
+        override = true;
+
+      if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
       {
-        bool override = false;
+        static auto& textures =
+          SK_D3D11_Textures;
 
-        if (DirectX::BitsPerPixel (pDesc->Format) != DirectX::BitsPerPixel (tex_desc.Format))
+        auto& cache_desc =
+          textures->Textures_2D [(ID3D11Texture2D *)pResource];
+
+        newFormat =
+          cache_desc.desc.Format;
+
+        newMipLevels =
+          pDesc->Texture2D.MipLevels;
+
+        if ( DirectX::MakeTypeless (pDesc->Format) !=
+             DirectX::MakeTypeless (newFormat    )  )
         {
-          override  = true;
-          newFormat = tex_desc.Format;
-        }
+          if (DirectX::IsSRGB (pDesc->Format))
+            newFormat = DirectX::MakeSRGB (newFormat);
 
-        if ( SK_D3D11_OverrideDepthStencil (newFormat) )
           override = true;
 
-        if ( SK_D3D11_TextureIsCached (pTex) )
-        {
-          static auto& textures =
-            SK_D3D11_Textures;
-
-          auto& cache_desc =
-            textures->Textures_2D [pTex];
-
-          newFormat =
-            cache_desc.desc.Format;
-
-          newMipLevels =
-            pDesc->Texture2D.MipLevels;
-
-          if ( DirectX::MakeTypeless (pDesc->Format) !=
-               DirectX::MakeTypeless (newFormat    )  )
-          {
-            if (DirectX::IsSRGB (pDesc->Format))
-              newFormat = DirectX::MakeSRGB (newFormat);
-
-            override = true;
-
-            SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
-                          cache_desc.crc32c,
-                     SK_DXGI_FormatToStr (pDesc->Format).c_str      (),
-                              SK_DXGI_FormatToStr (newFormat).c_str () ),
-                        L"DX11TexMgr" );
-          }
-
-          if (config.textures.d3d11.generate_mips && cache_desc.desc.MipLevels != pDesc->Texture2D.MipLevels)
-          {
-            override     = true;
-            newMipLevels = cache_desc.desc.MipLevels;
-
-            SK_LOG1 ( ( L"Overriding Resource View Mip Levels for Cached Texture '%08x'  { Was: %lu, Now: %lu }",
-                          cache_desc.crc32c,
-                            pDesc->Texture2D.MipLevels,
-                               newMipLevels ),
-                        L"DX11TexMgr" );
-          }
+          SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
+                        cache_desc.crc32c,
+                   SK_DXGI_FormatToStr (pDesc->Format).c_str      (),
+                            SK_DXGI_FormatToStr (newFormat).c_str () ),
+                      L"DX11TexMgr" );
         }
 
-        if (override)
+        if ( config.textures.d3d11.generate_mips &&
+             cache_desc.desc.MipLevels != pDesc->Texture2D.MipLevels )
         {
-          auto descCopy =
-            *pDesc;
+          override     = true;
+          newMipLevels = cache_desc.desc.MipLevels;
 
-          descCopy.Format                    = newFormat;
+          SK_LOG1 ( ( L"Overriding Resource View Mip Levels for Cached Texture '%08x'  { Was: %lu, Now: %lu }",
+                        cache_desc.crc32c,
+                          pDesc->Texture2D.MipLevels,
+                             newMipLevels ),
+                      L"DX11TexMgr" );
+        }
+      }
 
-          if (newMipLevels != pDesc->Texture2D.MipLevels)
-          {
-            descCopy.Texture2D.MipLevels       = gsl::narrow_cast <UINT>(-1);
-            descCopy.Texture2D.MostDetailedMip =                           0;
-          }
+      if (override)
+      {
+            _desc.Format               = newFormat;
+        if (_desc.Texture2D.MipLevels != newMipLevels)
+        {
+          _desc.Texture2D.MipLevels       = gsl::narrow_cast <UINT>(-1);
+          _desc.Texture2D.MostDetailedMip =                           0;
+        }
 
-          HRESULT hr =
-            DXGI_ERROR_INVALID_CALL;
+        HRESULT hr =
+          DXGI_ERROR_INVALID_CALL;
 
-          auto orig_se =
-          SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-          try {
-            hr =
-              D3D11Dev_CreateShaderResourceView_Original (
-                This,        pResource,
-                  &descCopy, ppSRView                    );
-          }
+        auto orig_se =
+        SK_SEH_ApplyTranslator (
+          SK_FilteringStructuredExceptionTranslator (
+            EXCEPTION_ACCESS_VIOLATION
+          )
+        );
+        try {
+          hr =
+            D3D11Dev_CreateShaderResourceView_Original (
+              This,      pResource,
+                &_desc, ppSRView                       );
+        }
 
-          //catch ( _com_error& err )
-          //{
-          //  SK_LOG0 ( ( L"!! COM Error During "
-          //              L"CreateShaderResourceView (...) - '%s'",
-          //                err.ErrorMessage ()
-          //            ),L"   DXGI   " );
-          //}
+        //catch ( _com_error& err )
+        //{
+        //  SK_LOG0 ( ( L"!! COM Error During "
+        //              L"CreateShaderResourceView (...) - '%s'",
+        //                err.ErrorMessage ()
+        //            ),L"   DXGI   " );
+        //}
 
-          catch (const SK_SEH_IgnoredException&) { };
-          {
-          }
-          SK_SEH_RemoveTranslator (orig_se);
+        catch (const SK_SEH_IgnoredException&) { };
+        SK_SEH_RemoveTranslator (orig_se);
 
-          if (SUCCEEDED (hr))
-          {
-            return hr;
-          }
+        if (SUCCEEDED (hr))
+        {
+          return hr;
         }
       }
     }
   }
 
-  HRESULT hr =
-    DXGI_ERROR_INVALID_CALL;
-
   auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (
+    SK_FilteringStructuredExceptionTranslator (
+      EXCEPTION_ACCESS_VIOLATION
+    )
+  );
   try {
-    hr =
+    HRESULT hr =
       D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
-                                                   pDesc, ppSRView );
+                                                     pDesc, ppSRView );
+
+    SK_SEH_RemoveTranslator (orig_se);
+    return  hr;
   }
-
-  //catch ( _com_error& err )
-  //{
-  //  SK_LOG0 ( ( L"!! COM Error During "
-  //              L"CreateShaderResourceView (...) - '%s'",
-  //                err.ErrorMessage ()
-  //            ),L"   DXGI   " );
-  //
-  //  SK_SEH_SetTranslator (orig_se);
-  //}
-
-  catch (const SK_SEH_IgnoredException&) { };
+  catch (const SK_SEH_IgnoredException&)
   {
+    try {
+      *ppSRView = nullptr;// pLastGood;
+    }
+    catch (const SK_SEH_IgnoredException&)
+    {
+    }
   }
   SK_SEH_RemoveTranslator (orig_se);
-
-  return hr;
+  return DXGI_ERROR_INVALID_CALL;
 }
 
 __declspec (noinline)
@@ -437,7 +435,11 @@ D3D11Dev_CreateSamplerState_Override
   }
 
 #ifdef _M_AMD64
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
+  static bool __yakuza =
+    ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
+      SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 );
+
+  if (__yakuza)
   {
     extern bool __SK_Y0_FixAniso;
     extern bool __SK_Y0_ClampLODBias;
@@ -730,7 +732,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
       desc.type   = SK_D3D11_ShaderType::Geometry;
       desc.crc32c = checksum;
 
-      desc.bytecode.insert ( desc.bytecode.end  (),
+      desc.bytecode.insert ( desc.bytecode.cend  (),
         &((uint8_t *) pShaderBytecode) [0],
         &((uint8_t *) pShaderBytecode) [BytecodeLength]
       );
@@ -738,18 +740,18 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
       geo_shaders.descs.emplace (std::make_pair (checksum, desc));
     }
 
+    SK_D3D11_ShaderDesc* pDesc =
+      &geo_shaders.descs [checksum];
+
     if ( geo_shaders.rev.count (*ppGeometryShader) &&
-               geo_shaders.rev [*ppGeometryShader] != checksum )
+               geo_shaders.rev [*ppGeometryShader]->crc32c != checksum )
          geo_shaders.rev.erase (*ppGeometryShader);
 
-    geo_shaders.rev.emplace (std::make_pair (*ppGeometryShader, checksum));
-
-    SK_D3D11_ShaderDesc& desc =
-      geo_shaders.descs [checksum];
+    geo_shaders.rev.emplace (std::make_pair (*ppGeometryShader, pDesc));
 
     cs_shader_gs->unlock ();
 
-    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
+    InterlockedExchange (&pDesc->usage.last_frame, SK_GetFramesDrawn ());
               //_time64 (&desc.usage.last_time);
   }
 

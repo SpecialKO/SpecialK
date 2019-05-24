@@ -326,7 +326,8 @@ struct
 
 } raw_overrides;
 
-GetRegisteredRawInputDevices_pfn GetRegisteredRawInputDevices_Original = nullptr;
+GetRegisteredRawInputDevices_pfn
+GetRegisteredRawInputDevices_Original = nullptr;
 
 // Returns all mice, in their override state (if applicable)
 std::vector <RAWINPUTDEVICE>
@@ -341,8 +342,12 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
     // Aw, the game doesn't have any mice -- let's fix that.
     if (raw_mice.empty ())
     {
-      raw_devices.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
-      raw_mice.push_back    (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
+      raw_devices.push_back (
+        RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
+                         HID_USAGE_GENERIC_MOUSE, 0x00, nullptr } );
+      raw_mice.push_back    (
+        RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
+                         HID_USAGE_GENERIC_MOUSE, 0x00, nullptr } );
       raw_overrides.mouse.legacy_messages = true;
     }
 
@@ -397,8 +402,12 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
     // Aw, the game doesn't have any keyboards -- let's fix that.
     if (raw_keyboards.empty ())
     {
-      raw_devices.push_back   (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
-      raw_keyboards.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
+      raw_devices.push_back   (
+        RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
+                         HID_USAGE_GENERIC_KEYBOARD, 0x00, nullptr } );
+      raw_keyboards.push_back (
+        RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
+                         HID_USAGE_GENERIC_KEYBOARD, 0x00, nullptr } );
       raw_overrides.keyboard.legacy_messages = true;
     }
 
@@ -698,8 +707,8 @@ NtUserRegisterRawInputDevices_Detour (
   if (cbSize != sizeof RAWINPUTDEVICE)
   {
     SK_LOG0 ( ( L"RegisterRawInputDevices has wrong "
-                L"structure size (%lu bytes), expected: %zu",
-                  cbSize, sizeof RAWINPUTDEVICE ),
+                L"structure size (%lu bytes), expected: %lu",
+                  cbSize, (UINT)sizeof RAWINPUTDEVICE ),
                L" RawInput " );
 
     return
@@ -727,7 +736,7 @@ NtUserRegisterRawInputDevices_Detour (
   if (pDevices != nullptr)
   {
     // We need to continue receiving window messages for the console to work
-    for (unsigned int i = 0; i < uiNumDevices; i++)
+    for ( size_t i = 0; i < uiNumDevices; ++i)
     {
       pDevices [i] = pRawInputDevices [i];
       raw_devices.push_back (pDevices [i]);
@@ -848,7 +857,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
     {
       if (pData != nullptr)
       {
-        RtlSecureZeroMemory (pData, *pcbSize);
+        RtlZeroMemory (pData, *pcbSize);
 
         const int max_items = (sizeof RAWINPUT / *pcbSize);
               int count     =                            0;
@@ -911,7 +920,8 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
     }
   }
 
-  return GetRawInputBuffer_Original (pData, pcbSize, cbSizeHeader);
+  return
+    GetRawInputBuffer_Original (pData, pcbSize, cbSizeHeader);
 }
 
 UINT
@@ -1385,7 +1395,8 @@ ImGui_ToggleCursor (void)
   else
   {
     if (SK_ImGui_Cursor.orig_img == nullptr)
-      SK_ImGui_Cursor.orig_img = GetGameCursor ();
+    {   SK_ImGui_Cursor.orig_img =
+          GetGameCursor ();      }
 
     if (SK_ImGui_WantMouseCapture ())
     {
@@ -1394,7 +1405,8 @@ ImGui_ToggleCursor (void)
       static POINT last_pos =
         SK_ImGui_Cursor.orig_pos;
 
-      if (memcmp (&last_pos, &SK_ImGui_Cursor.orig_pos, sizeof (POINT)))
+      if ( 0 !=
+            memcmp (&last_pos, &SK_ImGui_Cursor.orig_pos, sizeof (POINT)) )
       {
         POINT screen = SK_ImGui_Cursor.orig_pos;
         SK_ImGui_Cursor.LocalToScreen (&screen);
@@ -2337,7 +2349,7 @@ GetKeyboardLayout_Detour (_In_ DWORD idThread)
   HKL current_hkl =
     GetKeyboardLayout_Original (idThread);
 
-  CachedHKL.get ()[idThread] = current_hkl;
+  CachedHKL.get ()[idThread] = current_hkl; //-V108
 
   return current_hkl;
 }
@@ -2348,8 +2360,12 @@ SK_LazyGlobal <std::unordered_map <char, char>> SK_Keyboard_LH_Arrows;
 
 char SK_KeyMap_LeftHand_Arrow (char key)
 {
-  if (SK_Keyboard_LH_Arrows->count (key))
-    return SK_Keyboard_LH_Arrows.get ()[key];
+  if ( SK_Keyboard_LH_Arrows->cend (   ) !=
+       SK_Keyboard_LH_Arrows->find (key)  )
+  {
+    return
+      SK_Keyboard_LH_Arrows.get ()[key];
+  }
 
   return '\0';
 }
@@ -2385,7 +2401,7 @@ SK_Input_Init (void)
     UINT scode   =
       MapVirtualKeyEx (ch, MAPVK_VK_TO_VSC, GetKeyboardLayout (SK_Thread_GetCurrentId ()));
 
-    if (known_sig_parts.find (ch) != known_sig_parts.end ())
+    if (known_sig_parts.find (ch) != known_sig_parts.cend ())
     {
       auto range =
         known_sig_parts.equal_range (ch);

@@ -83,7 +83,7 @@ SK_ImGui_PlugInDisclaimer (void)
 }
 
 bool
-SK_ImGui_PlugInSelector (iSK_INI* ini, std::string name, const wchar_t* path, const wchar_t* import_name, bool& enable, int& order, int default_order = 1)
+SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* path, const wchar_t* import_name, bool& enable, int& order, int default_order = 1)
 {
   if (! ini)
     return false;

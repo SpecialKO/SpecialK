@@ -7942,6 +7942,10 @@ typedef void (STDMETHODCALLTYPE *D3D11_OMGetRenderTargetsAndUnorderedAccessViews
                                                                                  _In_  UINT                        NumUAVs,
                                                                                  _Out_ ID3D11UnorderedAccessView **ppUnorderedAccessViews);
 
+typedef void (STDMETHODCALLTYPE *D3D11_ClearRenderTargetView_pfn)(ID3D11DeviceContext    *This,
+                                                       _In_       ID3D11RenderTargetView *pRenderTargetView,
+                                                       _In_ const FLOAT                   ColorRGBA [4]);
+
 typedef void (STDMETHODCALLTYPE *D3D11_ClearDepthStencilView_pfn)(ID3D11DeviceContext    *This,
                                                              _In_ ID3D11DepthStencilView *pDepthStencilView,
                                                              _In_ UINT                    ClearFlags,

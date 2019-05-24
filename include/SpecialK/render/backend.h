@@ -162,8 +162,8 @@ public:
    SK_RenderBackend_V2 (void);
   ~SK_RenderBackend_V2 (void);
 
-  SK_ComPtr <IUnknown>      device               = nullptr;
-  SK_ComPtr <IUnknown>      swapchain            = nullptr;
+  SK_ComPtr <IUnknown>    device               = nullptr;
+  SK_ComPtr <IUnknown>    swapchain            = nullptr;
   // Different views of the same resource (API interop)
   struct {
     SK_ComPtr <IDirect3DSurface9>

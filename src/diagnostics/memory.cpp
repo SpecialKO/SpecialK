@@ -36,8 +36,7 @@ HeapFree_pfn        HeapFree_Original        = nullptr;
 
 // If > 0, then skip memory tracking momentarily because we are going
 //   to allocate storage for TLS
-       volatile LONG  _SK_IgnoreTLSAlloc = 0;
-extern volatile LONG __SK_DLL_Attached;
+volatile LONG  _SK_IgnoreTLSAlloc = 0;
 
 HGLOBAL
 WINAPI
@@ -50,13 +49,15 @@ GlobalAlloc_Detour (
 
   if (hgRet != nullptr)
   {
-    if (ReadAcquire (&__SK_DLL_Attached) &&
-        ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
+    if ( ReadAcquire (&__SK_DLL_Attached)  != 0 &&
+         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0    )
     {
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      InterlockedAdd64 (&pTLS->memory->global_bytes, dwBytes);
+      InterlockedAdd64 (
+        &pTLS->memory->global_bytes, dwBytes
+      );
     }
   }
 
@@ -87,13 +88,15 @@ LocalAlloc_Detour (
 
   if (hlRet != nullptr)
   {
-    if (ReadAcquire (&__SK_DLL_Attached)  &&
-        ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
+    if ( ReadAcquire (&__SK_DLL_Attached)  != 0 &&
+         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0    )
     {
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      InterlockedExchangeAdd64 (&pTLS->memory->local_bytes, uBytes);
+      InterlockedExchangeAdd64 (
+        &pTLS->memory->local_bytes, uBytes
+      );
     }
   }
 
@@ -113,13 +116,15 @@ RtlAllocateHeap_Detour (
 
   if (lpRet != nullptr)
   {
-    if ( ReadAcquire (&__SK_DLL_Attached)  &&
-         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0 )
+    if ( ReadAcquire (&__SK_DLL_Attached)  != 0 &&
+         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0    )
     {
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      InterlockedExchangeAdd64 (&pTLS->memory->heap_bytes, dwBytes);
+      InterlockedExchangeAdd64 (
+        &pTLS->memory->heap_bytes, dwBytes
+      );
     }
   }
 
@@ -139,13 +144,15 @@ VirtualAlloc_Detour (
 
   if (lpRet != nullptr)
   {
-    if (ReadAcquire (&__SK_DLL_Attached)  &&
-        ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
+    if ( ReadAcquire (&__SK_DLL_Attached)  != 0 &&
+         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0 )
     {
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      InterlockedAdd64 (&pTLS->memory->virtual_bytes, dwSize);
+      InterlockedAdd64 (
+        &pTLS->memory->virtual_bytes, dwSize
+      );
     }
   }
 
@@ -222,8 +229,8 @@ VirtualFree_Detour       (
 
   if (bRet)
   {
-    if (ReadAcquire (&__SK_DLL_Attached) &&
-        ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
+    if ( ReadAcquire (&__SK_DLL_Attached)  != 0 &&
+         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0    )
     {
       SK_TLS* pTLS =
         SK_TLS_Bottom ();

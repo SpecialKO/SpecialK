@@ -28,28 +28,28 @@ struct SK_DXGI_HDRControl
 {
   struct
   {
-    UINT                  BitsPerColor;
-    DXGI_COLOR_SPACE_TYPE ColorSpace;
+    UINT                  BitsPerColor     = 0;
+    DXGI_COLOR_SPACE_TYPE ColorSpace       = DXGI_COLOR_SPACE_RESERVED;
 
-    FLOAT                 RedPrimary   [2];
-    FLOAT                 GreenPrimary [2];
-    FLOAT                 BluePrimary  [2];
-    FLOAT                 WhitePoint   [2];
+    FLOAT                 RedPrimary   [2] = { 0.0f, 0.0f };
+    FLOAT                 GreenPrimary [2] = { 0.0f, 0.0f };
+    FLOAT                 BluePrimary  [2] = { 0.0f, 0.0f };
+    FLOAT                 WhitePoint   [2] = { 0.0f, 0.0f };
 
-    FLOAT                 MinLuminance,
-                          MaxLuminance,
-                          MaxFullFrameLuminance;
+    FLOAT                 MinLuminance          = 0.0f,
+                          MaxLuminance          = 0.0f,
+                          MaxFullFrameLuminance = 0.0f;
   } devcaps;
 
   struct
   {
-    UINT   MaxMasteringLuminance;
-    UINT   MinMasteringLuminance;
+    UINT   MaxMasteringLuminance     = 0;
+    UINT   MinMasteringLuminance     = 0;
 
-    UINT16 MaxContentLightLevel;
-    UINT16 MaxFrameAverageLightLevel;
+    UINT16 MaxContentLightLevel      = 0;
+    UINT16 MaxFrameAverageLightLevel = 0;
 
-    LONG   _AdjustmentCount = 0;
+    LONG   _AdjustmentCount          = 0;
   } meta;
 
   struct

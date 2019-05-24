@@ -520,13 +520,13 @@ public:
 private:
   DWORD last_update = 0UL;
 
-  SK_Stat_DataHistory <float,    96> core_clock_ghz;
-  SK_Stat_DataHistory <float,    96> vram_clock_ghz;
-  SK_Stat_DataHistory <float,    96> gpu_load;
-  SK_Stat_DataHistory <float,    96> gpu_temp_c;
-  SK_Stat_DataHistory <float,    96> vram_used_mib;
-  SK_Stat_DataHistory <uint64_t, 96> vram_shared;
-  SK_Stat_DataHistory <float,    96> fan_rpm;
+  SK_Stat_DataHistory <float,    96> core_clock_ghz = { };
+  SK_Stat_DataHistory <float,    96> vram_clock_ghz = { };
+  SK_Stat_DataHistory <float,    96> gpu_load       = { };
+  SK_Stat_DataHistory <float,    96> gpu_temp_c     = { };
+  SK_Stat_DataHistory <float,    96> vram_used_mib  = { };
+  SK_Stat_DataHistory <uint64_t, 96> vram_shared    = { };
+  SK_Stat_DataHistory <float,    96> fan_rpm        = { };
 
   sk_sensor_prefs_s core_clock_prefs { false, u8"GPU Core Clock (GHz)",
                                                L"CoreClock",

@@ -50,9 +50,7 @@ struct som_cfg_s
     sk::ParameterFloat* scale = nullptr;
   } shadows;
 
-  constexpr som_cfg_s (void)
-  {
-  }
+  constexpr som_cfg_s (void) = default;
 };
 
 SK_LazyGlobal <som_cfg_s> som_config;

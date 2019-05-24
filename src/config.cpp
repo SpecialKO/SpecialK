@@ -110,6 +110,7 @@ SK_GetCurrentGameID (void)
       { L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     },
       { L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           },
       { L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      },
+      { L"YakuzaKiwami2.exe",                      SK_GAME_ID::YakuzaKiwami2                },
       { L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           },
       { L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      },
       { L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      },
@@ -752,7 +753,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     if (empty)
     {
       dll_ini->import ( L"[API.Hook]\n"
-                        L"LastKnown=2\n" // OpenGL = Default
+                        L"LastKnown=65\n"
 #ifdef _M_IX86
                         L"ddraw=true\n"
                         L"d3d8=true\n"
@@ -1226,10 +1227,13 @@ auto DeclKeybind =
   iSK_INI::_TSectionMap& sections =
     dll_ini->get_sections ();
 
-  auto&& sec =
-    sections.begin ();
+  auto sec =
+    sections.cbegin ();
 
   int import = 0;
+
+  auto& host_executable =
+    imports->host_executable;
 
   host_executable.hLibrary     = GetModuleHandle     (nullptr);
   host_executable.product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (host_executable.hLibrary).c_str ());
@@ -1248,74 +1252,78 @@ auto DeclKeybind =
   }
 
 
-  while (sec != sections.end ())
+  while (sec != sections.cend ())
   {
+    auto& import_ =
+      imports->imports
+         [import];
+
     if ((*sec).first.find (L"Import.") != (*sec).first.npos)
     {
       const wchar_t* wszNext =
         wcschr ((*sec).first.c_str (), L'.');
 
-      imports [import].name =
+      import_.name =
         wszNext != nullptr    ?
           CharNextW (wszNext) : L"";
 
-      imports [import].filename =
+      import_.filename =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Import Filename")
              );
-      imports [import].filename->register_to_ini (
+      import_.filename->register_to_ini (
         dll_ini,
           (*sec).first.c_str (),
             L"Filename" );
 
-      imports [import].when =
+      import_.when =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Import Timeframe")
              );
-      imports [import].when->register_to_ini (
+      import_.when->register_to_ini (
         dll_ini,
           (*sec).first.c_str (),
             L"When" );
 
-      imports [import].role =
+      import_.role =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Import Role")
              );
-      imports [import].role->register_to_ini (
+      import_.role->register_to_ini (
         dll_ini,
           (*sec).first.c_str (),
             L"Role" );
 
-      imports [import].architecture =
+      import_.architecture =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Import Architecture")
              );
-      imports [import].architecture->register_to_ini (
+      import_.architecture->register_to_ini (
         dll_ini,
           (*sec).first.c_str (),
             L"Architecture" );
 
-      imports [import].blacklist =
+      import_.blacklist =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory->create_parameter <std::wstring> (
                 L"Blacklisted Executables")
              );
-      imports [import].blacklist->register_to_ini (
+      import_.blacklist->register_to_ini (
         dll_ini,
           (*sec).first.c_str (),
             L"Blacklist" );
 
-      ((sk::iParameter *)imports [import].filename)->load     ();
-      ((sk::iParameter *)imports [import].when)->load         ();
-      ((sk::iParameter *)imports [import].role)->load         ();
-      ((sk::iParameter *)imports [import].architecture)->load ();
-      ((sk::iParameter *)imports [import].blacklist)->load    ();
+      ((sk::iParameter *)import_.filename)->load     ();
+      ((sk::iParameter *)import_.when)->load         ();
+      ((sk::iParameter *)import_.role)->load         ();
+      ((sk::iParameter *)import_.architecture)->load ();
+      ((sk::iParameter *)import_.blacklist)->load    ();
 
-      imports [import].hLibrary = nullptr;
+      import_.hLibrary = nullptr;
 
       ++import;
 
@@ -1376,7 +1384,7 @@ auto DeclKeybind =
   sec =
     macro_sections.begin ();
 
-  while (sec != macro_sections.end ())
+  while (sec != macro_sections.cend ())
   {
     if ((*sec).first.find (L"Macro.") != (*sec).first.npos)
     {
@@ -1610,7 +1618,7 @@ auto DeclKeybind =
 
 
       case SK_GAME_ID::Sacred2:
-        config.display.force_windowed      = true; // Fullscreen is not particularly well //-V796
+        config.display.force_windowed      = true; // Fullscreen is not particularly well
                                                    //   supported in this game
       case SK_GAME_ID::Sacred:
         config.render.dxgi.safe_fullscreen = true; // dgVoodoo compat
@@ -1866,6 +1874,55 @@ auto DeclKeybind =
         config.cegui.enable                       = false; // Off by default
         config.render.framerate.disable_flip      = true;
         //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
+        break;
+
+        case SK_GAME_ID::YakuzaKiwami2:
+        config.apis.d3d9.hook                     =  false;
+        config.apis.d3d9ex.hook                   =  false;
+        config.apis.OpenGL.hook                   =  false;
+        config.apis.Vulkan.hook                   =  false;
+        config.apis.dxgi.d3d12.hook               =  false;
+        config.display.force_windowed             =   true;
+        config.input.ui.use_hw_cursor             =  false;
+        config.input.gamepad.xinput.placehold [0] =   true;
+        config.input.gamepad.xinput.placehold [1] =   true;
+        config.input.gamepad.xinput.placehold [2] =   true;
+        config.input.gamepad.xinput.placehold [3] =   true;
+        config.window.borderless                  =   true;
+        config.window.center                      =   true;
+        config.window.fullscreen                  =   true;
+        config.window.background_render           =   true;
+        config.window.always_on_top               =     -1;
+        config.threads.enable_file_io_trace       =   true;
+        config.textures.d3d11.cache               =  false;
+        config.render.dxgi.deferred_isolation     =   true;
+        config.render.dxgi.present_test_skip      =   true;
+        config.cegui.enable                       =   true;
+        config.render.framerate.disable_flip      =  false;
+        config.render.framerate.buffer_count      =      3;
+        config.render.framerate.pre_render_limit  =      4;
+        config.render.framerate.present_interval  =      1;
+        config.render.framerate.limiter_tolerance =   6.0f;
+        config.render.framerate.flip_discard      =   true;
+        config.render.framerate.swapchain_wait    =    500;
+      //config.steam.auto_inject                  =   true;
+      //config.steam.init_delay                   =   1500;
+      //config.steam.auto_pump_callbacks          =   true;
+      //config.steam.force_load_steamapi          =   true;
+      //config.steam.dll_path                     = L"kaldaien_api64.dll";
+        config.steam.reuse_overlay_pause          =  false;
+        config.steam.appid                        = 927380;
+
+        dll_ini->import (L"[Import.ReShade64_Custom]\n"
+                         L"Architecture=x64\n"
+                         L"Role=Unofficial\n"
+                         L"When=PlugIn\n"
+                         L"Filename=ReShade64.dll\n");
+
+        SK_D3D11_DeclHUDShader (0x062173ec, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x48dd4bc3, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x54c0d366, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0xb943178b, ID3D11VertexShader);
         break;
 
       case SK_GAME_ID::DragonQuestXI:
@@ -3224,8 +3281,9 @@ SK_SaveConfig ( std::wstring name,
 
       if (! config.render.framerate.rescan_ratio.empty ())
       {
-        swscanf (config.render.framerate.rescan_ratio.c_str (), L"%d/%d", &config.render.framerate.rescan_.Numerator,
-                                                                            &config.render.framerate.rescan_.Denom);
+        swscanf ( config.render.framerate.rescan_ratio.c_str (), L"%ui/%ui",
+          &config.render.framerate.rescan_.Numerator,
+          &config.render.framerate.rescan_.Denom);
       }
 
       if ( config.render.framerate.rescan_.Numerator != -1 &&
@@ -4005,10 +4063,9 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                                           L'.'
                                         };
 
-                                      if (invalid_file_char.count (tval) > 0)
-                                        return true;
-
-                                      return false;
+                                      return
+                                        ( invalid_file_char.find (tval) !=
+                                          invalid_file_char.end  (    ) );
                                     }
                                 ),
 

@@ -27,7 +27,14 @@ enum class SK_NV_Bloat {
   RxCore     = 0x1,
 };
 
+#ifndef _HRESULT_DEFINED
+#define _HRESULT_DEFINED
+#ifdef __midl
+typedef LONG HRESULT;
+#else
 typedef _Return_type_success_(return >= 0) long HRESULT;
+#endif // __midl
+#endif // !_HRESULT_DEFINED
 
 HRESULT SK_COMPAT_FixNahimicDeadlock (void);
 

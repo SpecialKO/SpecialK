@@ -100,11 +100,11 @@ IWrapDirect3DSwapChain9::Release (void)
   {
     concurrency::concurrent_vector <IWrapDirect3DSwapChain9 *> remaining;
 
-    const auto it = std::find ( pDev->additional_swapchains_.begin (),
-                                pDev->additional_swapchains_.end   (), this );
+    const auto it = std::find ( pDev->additional_swapchains_.cbegin (),
+                                pDev->additional_swapchains_.cend   (), this );
 
-      auto it2  = pDev->additional_swapchains_.begin ();
-    while (it2 != pDev->additional_swapchains_.end   ())
+      auto it2  = pDev->additional_swapchains_.cbegin ();
+    while (it2 != pDev->additional_swapchains_.cend   ())
     {
       if (it2 != it)
         remaining.push_back (*it2);

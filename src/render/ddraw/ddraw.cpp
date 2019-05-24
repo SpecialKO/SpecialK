@@ -364,10 +364,10 @@ SK_HookDDraw (void)
       }
     }
 
-    dgvoodoo_ddraw = new import_s ();
-    dgvoodoo_ddraw->hLibrary     = hBackend;
-    dgvoodoo_ddraw->name         = L"API Support Plug-In";
-    dgvoodoo_ddraw->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
+    imports->dgvoodoo_ddraw = new import_s ();
+    imports->dgvoodoo_ddraw->hLibrary     = hBackend;
+    imports->dgvoodoo_ddraw->name         = L"API Support Plug-In";
+    imports->dgvoodoo_ddraw->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
 
     // Load user-defined DLLs (Plug-In)
     SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
@@ -405,17 +405,17 @@ SK::DDraw::Startup (void)
 
   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
-  dgvoodoo_d3dimm               = new import_s ();
-  dgvoodoo_d3dimm->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
-  dgvoodoo_d3dimm->name         = L"API Support Plug-In";
-  dgvoodoo_d3dimm->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3dimm->hLibrary).c_str ());
+  imports->dgvoodoo_d3dimm               = new import_s ();
+  imports->dgvoodoo_d3dimm->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
+  imports->dgvoodoo_d3dimm->name         = L"API Support Plug-In";
+  imports->dgvoodoo_d3dimm->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (imports->dgvoodoo_d3dimm->hLibrary).c_str ());
 
   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
-  dgvoodoo_d3d8               = new import_s ();
-  dgvoodoo_d3d8->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
-  dgvoodoo_d3d8->name         = L"API Support Plug-In";
-  dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3d8->hLibrary).c_str ());
+  imports->dgvoodoo_d3d8               = new import_s ();
+  imports->dgvoodoo_d3d8->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
+  imports->dgvoodoo_d3d8->name         = L"API Support Plug-In";
+  imports->dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (imports->dgvoodoo_d3d8->hLibrary).c_str ());
 
   config.apis.d3d8.hook = false;
 
@@ -427,22 +427,22 @@ SK::DDraw::Startup (void)
 bool
 SK::DDraw::Shutdown (void)
 {
-  if (dgvoodoo_ddraw)
+  if (imports->dgvoodoo_ddraw)
   {
-    FreeLibrary (dgvoodoo_ddraw->hLibrary);
-    delete dgvoodoo_ddraw;
+    FreeLibrary (imports->dgvoodoo_ddraw->hLibrary);
+    delete imports->dgvoodoo_ddraw;
   }
 
-  if (dgvoodoo_d3d8)
+  if (imports->dgvoodoo_d3d8)
   {
-    FreeLibrary (dgvoodoo_d3d8->hLibrary);
-    delete dgvoodoo_d3d8;
+    FreeLibrary (imports->dgvoodoo_d3d8->hLibrary);
+    delete imports->dgvoodoo_d3d8;
   }
 
-  if (dgvoodoo_d3dimm)
+  if (imports->dgvoodoo_d3dimm)
   {
-    FreeLibrary (dgvoodoo_d3dimm->hLibrary);
-    delete dgvoodoo_d3dimm;
+    FreeLibrary (imports->dgvoodoo_d3dimm->hLibrary);
+    delete imports->dgvoodoo_d3dimm;
   }
 
   return SK_ShutdownCore (L"ddraw");

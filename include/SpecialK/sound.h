@@ -394,7 +394,8 @@ public:
         if (! active_sessions_.data.empty ())
         {
           active_sessions_.view =
-            std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.begin (), active_sessions_.data.end () );
+            std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
+                                                     active_sessions_.data.cend   () );
         }
         else
           active_sessions_.view.clear ();
@@ -402,7 +403,8 @@ public:
         if (! inactive_sessions_.data.empty ())
         {
           inactive_sessions_.view =
-            std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.begin (), inactive_sessions_.data.end () );
+            std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
+                                                     inactive_sessions_.data.cend   () );
         }
         else
           inactive_sessions_.view.clear ();
@@ -514,7 +516,8 @@ public:
           if (! active_sessions_.data.empty ())
           {
             active_sessions_.view =
-              std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.begin (), active_sessions_.data.end () );
+              std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
+                                                       active_sessions_.data.cend   () );
           }
           else
             active_sessions_.view.clear ();
@@ -522,7 +525,8 @@ public:
           if (! inactive_sessions_.data.empty ())
           {
             inactive_sessions_.view =
-              std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.begin (), inactive_sessions_.data.end () );
+              std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
+                                                       inactive_sessions_.data.cend   () );
           }
           else
             inactive_sessions_.view.clear ();
@@ -563,7 +567,8 @@ protected:
     if (! active_sessions_.data.empty ())
     {
       active_sessions_.view =
-        std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.begin (), active_sessions_.data.end () );
+        std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
+                                                 active_sessions_.data.cend   () );
     }
     else
       active_sessions_.view.clear ();
@@ -571,7 +576,8 @@ protected:
     if (! inactive_sessions_.data.empty ())
     {
       inactive_sessions_.view =
-        std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.begin (), inactive_sessions_.data.end () );
+        std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
+                                                 inactive_sessions_.data.cend   () );
     }
     else
       inactive_sessions_.view.clear ();
