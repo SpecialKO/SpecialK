@@ -441,30 +441,38 @@ SK::Framerate::Limiter::wait (void)
         return ldRet;
       };
 
+
   if (next.QuadPart > 0ULL)
   {
     long double
       to_next_in_secs =
         SK_RecalcTimeToNextFrame ();
 
+    // HPETWeight controls the ratio of scheduler-wait to busy-wait,
+    //   extensive testing shows 87.5% is most reasonable on the widest
+    //     selection of hardware.
     LARGE_INTEGER liDelay;
                   liDelay.QuadPart =
                     static_cast <LONGLONG> (
                       to_next_in_secs * 1000.0L * (long double)fHPETWeight
                     );
 
-    //dll_log.Log (L"Wait MS: %f", to_next_in_secs * 1000.0 );
 
     // Create an unnamed waitable timer.
     static HANDLE hLimitTimer =
       CreateWaitableTimer (nullptr, FALSE, nullptr);
 
 
+    // First use a kernel-waitable timer to scrub off most of the
+    //   wait time without completely decimating a CPU core.
     if ( hLimitTimer != 0 && liDelay.QuadPart > 0)
     {
         liDelay.QuadPart =
       -(liDelay.QuadPart * 10000);
 
+      // Light-weight and high-precision -- but it's not a good idea to
+      //   spend more than ~90% of our projected wait time in here or
+      //     we will miss deadlines frequently.
       if ( SetWaitableTimer ( hLimitTimer, &liDelay,
                                 0, nullptr, nullptr, TRUE ) )
       {
@@ -479,20 +487,27 @@ SK::Framerate::Limiter::wait (void)
             break;
           }
 
+          // Negative values are used to tell the Nt systemcall
+          //   to use relative rather than absolute time offset.
           LARGE_INTEGER uSecs;
                         uSecs.QuadPart =
             -static_cast <LONGLONG> (to_next_in_secs * 1000.0L * 10000.0L);
 
+
+          // System Call:  NtWaitForSingleObject  [Delay = 100 ns]
           dwWait =
             SK_WaitForSingleObject_Micro ( hLimitTimer,
                   &uSecs );
-                  //static_cast <DWORD> (to_next_in_secs * 1000.0) );
-                    YieldProcessor (  );
+
+
+          YieldProcessor ();
         }
       }
     }
 
 
+    // Any remaining wait-time will degenerate into a hybrid busy-wait,
+    //   this is also when VBlank synchronization is applied if user wants.
     while (time.QuadPart <= next.QuadPart)
     {
       DWORD dwWaitMS =
@@ -500,23 +515,30 @@ SK::Framerate::Limiter::wait (void)
           std::max (0.0L, SK_RecalcTimeToNextFrame () * 1000.0L - 1.0L)
         );
 
-      // Attempt to use a deeper sleep when possible instead of hammering the
-      //   CPU into submission ;)
+
+      // 2+ ms remain: we can let the kernel reschedule us and still get
+      //   control of the thread back before deadline in most cases.
       if (dwWaitMS > 2)
       {
         YieldProcessor ();
 
+        // SK's Multimedia Class Scheduling Task for this thread prevents
+        //   CPU starvation, but if the service is turned off, implement
+        //     a fail-safe for very low framerate limits.
         if (! config.render.framerate.enable_mmcss)
         {
+          // This is only practical @ 30 FPS or lower.
           if (dwWaitMS > 4)
             SK_SleepEx (1, FALSE);
         }
       }
 
+
       if ( config.render.framerate.wait_for_vblank )
       {
         SK_Framerate_WaitForVBlank ();
       }
+
 
       SK_QueryPerformanceCounter (&time);
     }
