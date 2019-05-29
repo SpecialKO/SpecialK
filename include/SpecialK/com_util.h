@@ -19,23 +19,19 @@
  *
 **/
 
-#pragma once
-
-struct IUnknown;
-//#include <Unknwnbase.h>
-
 #include <SpecialK/SpecialK.h>
-#include <SpecialK/core.h>
+
+
+SK_INCLUDE_START_CPP (COM_UTIL)
 
 #define _WIN32_DCOM
 #include <Wbemidl.h>
 #include <objbase.h>
-
 #include <cstdlib>
-
-SK_INCLUDE_START (COM_UTIL)
+#include <atlcomcli.h>
 
 #include <SpecialK/thread.h>
+
 
 bool SK_COM_TestInit (void);
 
@@ -163,8 +159,16 @@ extern "C++"
 
 
 
+template <class T>
+class _NoAddRefReleaseOnSK_ComPtr :
+    public T
+{
+    private:
+        STDMETHOD_(ULONG, AddRef)()=0;
+        STDMETHOD_(ULONG, Release)()=0;
+};
 
-  //SK_ComPtrBase provides the basis for all other smart pointers
+//SK_ComPtrBase provides the basis for all other smart pointers
 //The other smartpointers add their own constructors and operators
 template <class T>
 class SK_ComPtrBase
@@ -224,10 +228,10 @@ public:
         ATLASSERT(p==nullptr);
         return &p;
     }
-    _NoAddRefReleaseOnCComPtr<T>* operator->() const throw()
+    _NoAddRefReleaseOnSK_ComPtr<T>* operator->() const throw()
     {
         ATLASSERT(p!=nullptr);
-        return (_NoAddRefReleaseOnCComPtr<T>*)p;
+        return (_NoAddRefReleaseOnSK_ComPtr<T>*)p;
     }
     bool operator!() const throw()
     {
@@ -748,4 +752,4 @@ typedef SK_ComQIPtr<IDispatch, &__uuidof(IDispatch)> SK_ComDispatchDriver;
 }
 
 
-SK_INCLUDE_END (COM_UTIL)
+SK_INCLUDE_END_CPP (COM_UTIL)

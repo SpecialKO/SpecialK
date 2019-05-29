@@ -104,7 +104,7 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
     if (config.apis.d3d9ex.hook)
     {
       //// Immediately try to upgrade
-      CComQIPtr <IDirect3DDevice9Ex> pEx (this);
+      SK_ComQIPtr <IDirect3DDevice9Ex> pEx (this);
     }
   }
 
@@ -115,7 +115,7 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
     IDirect3DSwapChain9*     pTemp = nullptr;
     pReal->GetSwapChain (0, &pTemp);
 
-    CComQIPtr <IDirect3DSwapChain9Ex> pTempEx (pTemp);
+    SK_ComQIPtr <IDirect3DSwapChain9Ex> pTempEx (pTemp);
 
     implicit_swapchain_ =
       std::make_unique <IWrapDirect3DSwapChain9> (this, pTempEx);

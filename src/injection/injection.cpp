@@ -143,8 +143,11 @@ SK_Inject_InitShutdownEvent (void)
           SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                  LR"(Local\SK_GlobalHookTeardown64)") );
 
-    if (GetLastError () == ERROR_ALREADY_EXISTS)
+    if ( (uintptr_t)hTeardown > 0 &&
+                  GetLastError () == ERROR_ALREADY_EXISTS )
+    {
       ResetEvent (hTeardown);
+    }
 
     dwHookPID        = GetCurrentProcessId ();
   }
@@ -463,8 +466,7 @@ CBTProc ( _In_ int    nCode,
 
 
       HANDLE hHookTeardown =
-        SK_CreateEvent ( nullptr,
-          TRUE, FALSE,
+        OpenEvent ( EVENT_ALL_ACCESS, FALSE,
             SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                    LR"(Local\SK_GlobalHookTeardown64)") );
 
@@ -579,15 +581,13 @@ SKX_RemoveCBTHook (void)
     RtlZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
 
     HANDLE hHookTeardown =
-      SK_CreateEvent ( nullptr,
-        TRUE, FALSE,
+      OpenEvent ( EVENT_ALL_ACCESS, FALSE,
           SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                  LR"(Local\SK_GlobalHookTeardown64)") );
 
     if ((uintptr_t)hHookTeardown > 0)
     {
-      SetEvent    (hHookTeardown);
-      CloseHandle (hHookTeardown);
+      SetEvent (hHookTeardown);
     }
 
     std::set <DWORD> running_pids;
@@ -644,6 +644,9 @@ SKX_RemoveCBTHook (void)
       SK_Process_Suspend (pid);
     }
 
+    if ((uintptr_t)hHookTeardown > 0)
+      CloseHandle (hHookTeardown);
+
     WriteRelease (&__SK_HookContextOwner, FALSE);
   }
 
@@ -693,10 +696,14 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
              DWORD
                {
                  HANDLE hHookTeardown =
-                   SK_CreateEvent ( nullptr,
-                     TRUE, FALSE,
+                   OpenEvent ( EVENT_ALL_ACCESS, FALSE,
                        SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                               LR"(Local\SK_GlobalHookTeardown64)") );
+
+                 if ((intptr_t)hHookTeardown > 0)
+                 {
+                   ResetEvent (hHookTeardown);
+                 }
 
                  while ( ReadAcquire       (&__SK_DLL_Attached) ||
                          SK_GetHostAppUtil ()->isInjectionTool () )
@@ -723,6 +730,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
 
                  if ((intptr_t)hHookTeardown > 0)
                  {
+
                    CloseHandle (hHookTeardown);
                  }
 

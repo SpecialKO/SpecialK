@@ -25,10 +25,10 @@ IAudioMeterInformation*
 __stdcall
 SK_WASAPI_GetAudioMeterInfo (void)
 {
-  CComPtr <IMMDeviceEnumerator> pDevEnum   = nullptr;
-  CComPtr <IMMDevice>           pDevice    = nullptr;
+  SK_ComPtr <IMMDeviceEnumerator> pDevEnum   = nullptr;
+  SK_ComPtr <IMMDevice>           pDevice    = nullptr;
 
-  IAudioMeterInformation*       pMeterInfo = nullptr;
+  IAudioMeterInformation*         pMeterInfo = nullptr;
 
 
   if ( FAILED (
@@ -77,12 +77,12 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
     *count    = 0;
   }
 
-  CComPtr <IMMDevice>               pDevice;
-  CComPtr <IMMDeviceEnumerator>     pDevEnum;
-  CComPtr <IAudioSessionEnumerator> pSessionEnum;
-  CComPtr <IAudioSessionManager2>   pSessionMgr2;
-  CComPtr <IAudioSessionControl>    pSessionCtl;
-  CComPtr <IAudioSessionControl2>   pSessionCtl2;
+  SK_ComPtr <IMMDevice>               pDevice;
+  SK_ComPtr <IMMDeviceEnumerator>     pDevEnum;
+  SK_ComPtr <IAudioSessionEnumerator> pSessionEnum;
+  SK_ComPtr <IAudioSessionManager2>   pSessionMgr2;
+  SK_ComPtr <IAudioSessionControl>    pSessionCtl;
+  SK_ComPtr <IAudioSessionControl2>   pSessionCtl2;
 
   if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
     return;
@@ -161,11 +161,11 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow data_flow     = eRender,
                                    ERole     endpoint_role = eConsole,
                                    DWORD     proc_id       = GetCurrentProcessId () )
 {
-  CComPtr <IMMDevice>               pDevice;
-  CComPtr <IMMDeviceEnumerator>     pDevEnum;
-  CComPtr <IAudioSessionEnumerator> pSessionEnum;
-  CComPtr <IAudioSessionManager2>   pSessionMgr2;
-  CComPtr <IAudioSessionControl2>   pSessionCtl2;
+  SK_ComPtr <IMMDevice>               pDevice;
+  SK_ComPtr <IMMDeviceEnumerator>     pDevEnum;
+  SK_ComPtr <IAudioSessionEnumerator> pSessionEnum;
+  SK_ComPtr <IAudioSessionManager2>   pSessionMgr2;
+  SK_ComPtr <IAudioSessionControl2>   pSessionCtl2;
 
   if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
     return nullptr;
@@ -236,7 +236,7 @@ IChannelAudioVolume*
 __stdcall
 SK_WASAPI_GetChannelVolumeControl (DWORD proc_id)
 {
-  CComPtr <IAudioSessionControl> pSessionCtl =
+  SK_ComPtr <IAudioSessionControl> pSessionCtl =
     SK_WASAPI_GetAudioSessionControl (eRender, eConsole, proc_id);
 
   if (pSessionCtl != nullptr)
@@ -254,7 +254,7 @@ ISimpleAudioVolume*
 __stdcall
 SK_WASAPI_GetVolumeControl (DWORD proc_id)
 {
-  CComPtr <IAudioSessionControl> pSessionCtl =
+  SK_ComPtr <IAudioSessionControl> pSessionCtl =
     SK_WASAPI_GetAudioSessionControl (eRender, eConsole, proc_id);
 
   if (pSessionCtl != nullptr)
@@ -272,9 +272,9 @@ IAudioEndpointVolume*
 __stdcall
 SK_MMDev_GetEndpointVolumeControl (void)
 {
-           IAudioEndpointVolume *pEndVol  = nullptr;
-  CComPtr <IMMDeviceEnumerator>  pDevEnum = nullptr;
-  CComPtr <IMMDevice>            pDevice  = nullptr;
+             IAudioEndpointVolume *pEndVol  = nullptr;
+  SK_ComPtr <IMMDeviceEnumerator>  pDevEnum = nullptr;
+  SK_ComPtr <IMMDevice>            pDevice  = nullptr;
 
 
   if (SUCCEEDED (pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))
@@ -302,9 +302,9 @@ IAudioLoudness*
 __stdcall
 SK_MMDev_GetLoudness (void)
 {
-           IAudioLoudness       *pLoudness = nullptr;
-  CComPtr <IMMDeviceEnumerator>  pDevEnum  = nullptr;
-  CComPtr <IMMDevice>            pDevice   = nullptr;
+             IAudioLoudness       *pLoudness = nullptr;
+  SK_ComPtr <IMMDeviceEnumerator>  pDevEnum  = nullptr;
+  SK_ComPtr <IMMDevice>            pDevice   = nullptr;
 
 
   if (SUCCEEDED (pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))
@@ -332,9 +332,9 @@ IAudioAutoGainControl*
 __stdcall
 SK_MMDev_GetAutoGainControl (void)
 {
-           IAudioAutoGainControl *pAutoGain = nullptr;
-  CComPtr <IMMDeviceEnumerator>   pDevEnum  = nullptr;
-  CComPtr <IMMDevice>             pDevice   = nullptr;
+             IAudioAutoGainControl *pAutoGain = nullptr;
+  SK_ComPtr <IMMDeviceEnumerator>   pDevEnum  = nullptr;
+  SK_ComPtr <IMMDevice>             pDevice   = nullptr;
 
 
   if (SUCCEEDED (pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))
@@ -393,7 +393,7 @@ SK_WASAPI_GetChannelName (int channel_idx)
 
       if (DirectSoundCreate_Import != nullptr)
       {
-        CComPtr <IDirectSound> pDSound = nullptr;
+        SK_ComPtr <IDirectSound> pDSound = nullptr;
 
         HRESULT hr;
 

@@ -172,7 +172,8 @@ public:
         return *this;
     }
 
-	inline Colour& operator=(const Colour& val)
+	inline Colour& 
+    operator=(const Colour& val)
     {
         d_alpha = val.d_alpha;
         d_red   = val.d_red;

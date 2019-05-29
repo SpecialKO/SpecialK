@@ -3012,7 +3012,7 @@ SK_GL_GetD3D9ExInteropDevice (void)
 
   if (pInteropDevice == reinterpret_cast <IDirect3DDevice9Ex *> (-1))
   {
-    CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
+    SK_ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
     using Direct3DCreate9ExPROC = HRESULT (STDMETHODCALLTYPE *)(UINT           SDKVersion,
                                                                 IDirect3D9Ex** d3d9ex);

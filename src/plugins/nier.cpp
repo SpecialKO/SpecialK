@@ -1,5 +1,5 @@
 //
-// Copyright 2017-2018  Andon  "Kaldaien" Coleman,
+// Copyright 2017-2019  Andon  "Kaldaien" Coleman,
 //                      Niklas "DrDaxxy"  Kielblock,
 //                      Peter  "Durante"  Thoman
 //
@@ -31,7 +31,7 @@
 #include <SpecialK/plugin/nier.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.25"
+#define FAR_VERSION_NUM L"0.7.0.26"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -324,7 +324,7 @@ SK_FAR_CreateShaderResourceView (
     if (! __FAR_GlobalIllumCompatMode)
       return D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
 
-    CComPtr <ID3D11Buffer> pBuf;
+    SK_ComPtr <ID3D11Buffer> pBuf;
 
     if ( SUCCEEDED (
            pResource->QueryInterface <ID3D11Buffer> (&pBuf)
@@ -1020,9 +1020,9 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
        || (vp.Width == 25  && vp.Height == 14 )
        )
     {
-      CComPtr <ID3D11RenderTargetView> rtView = nullptr;
+      SK_ComPtr <ID3D11RenderTargetView> rtView = nullptr;
 
-      pDevCtx->OMGetRenderTargets (1, &rtView, nullptr);
+      pDevCtx->OMGetRenderTargets (1,   &rtView, nullptr);
 
       if (rtView)
       {
@@ -1034,13 +1034,13 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
              desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM  || // AO
              desc.Format == DXGI_FORMAT_R32_FLOAT )        // AO
         {
-          CComPtr <ID3D11Resource> rt = nullptr;
+          SK_ComPtr <ID3D11Resource> rt = nullptr;
 
           rtView->GetResource (&rt);
 
           if (rt != nullptr)
           {
-            CComPtr <ID3D11Texture2D> rttex = nullptr;
+            SK_ComPtr <ID3D11Texture2D> rttex = nullptr;
 
             rt->QueryInterface <ID3D11Texture2D> (&rttex);
 
@@ -1079,7 +1079,7 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 // but it works as long as the game only renders from 1 thread (which it does)
                 // NOTE: rather than storing them statically here (basically a global) the lifetime should probably be managed
 
-                CComPtr <ID3D11Device> dev;
+                SK_ComPtr <ID3D11Device> dev;
                 pDevCtx->GetDevice (&dev);
 
                 D3D11_BUFFER_DESC buffdesc;
@@ -2621,10 +2621,10 @@ struct {
         D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = { };
                        rtv->GetDesc (&rtv_desc);
 
-        CComPtr   <ID3D11RenderTargetView> pSrc    = rtv;
-        CComPtr   <ID3D11Resource>         pSrcRes = nullptr;
-                                 rtv->GetResource (&pSrcRes);
-        CComQIPtr <ID3D11Texture2D>        pSrcTex (pSrcRes);
+        SK_ComPtr   <ID3D11RenderTargetView> pSrc    = rtv;
+        SK_ComPtr   <ID3D11Resource>         pSrcRes = nullptr;
+                                   rtv->GetResource (&pSrcRes);
+        SK_ComQIPtr <ID3D11Texture2D>        pSrcTex (pSrcRes);
 
         ID3D11RenderTargetView* pDst = nullptr;
 
@@ -2650,10 +2650,10 @@ struct {
         D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
                          srv->GetDesc (&srv_desc);
 
-        CComPtr   <ID3D11ShaderResourceView> pSrc    = srv;
-        CComPtr   <ID3D11Resource>           pSrcRes = nullptr;
-                                 srv->GetResource (&pSrcRes);
-        CComQIPtr <ID3D11Texture2D>        pSrcTex (pSrcRes);
+        SK_ComPtr   <ID3D11ShaderResourceView> pSrc    = srv;
+        SK_ComPtr   <ID3D11Resource>           pSrcRes = nullptr;
+                                   srv->GetResource (&pSrcRes);
+        SK_ComQIPtr <ID3D11Texture2D>        pSrcTex (pSrcRes);
 
         ID3D11ShaderResourceView* pDst = nullptr;
 
@@ -2679,10 +2679,10 @@ struct {
     //    D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc = { };
     //                      uav->GetDesc (&uav_desc);
     //
-    //    CComPtr   <ID3D11UnorderedAccessView> pSrc    = uav;
-    //    CComPtr   <ID3D11Resource>            pSrcRes = nullptr;
-    //                              uav->GetResource (&pSrcRes);
-    //    CComQIPtr <ID3D11Texture2D>        pSrcTex (pSrcRes);
+    //    SK_ComPtr   <ID3D11UnorderedAccessView> pSrc    = uav;
+    //    SK_ComPtr   <ID3D11Resource>            pSrcRes = nullptr;
+    //                                uav->GetResource (&pSrcRes);
+    //    SK_ComQIPtr <ID3D11Texture2D>        pSrcTex (pSrcRes);
     //
     //    ID3D11UnorderedAccessView* pDst = nullptr;
     //
@@ -2887,7 +2887,7 @@ SK_FAR_CreateShaderResourceView (
   if ( pDesc != nullptr && pDesc->ViewDimension        == D3D_SRV_DIMENSION_BUFFEREX &&
                            pDesc->BufferEx.NumElements == 128 )
   {
-    CComQIPtr <ID3D11Buffer> pBuf (pResource);
+    SK_ComQIPtr <ID3D11Buffer> pBuf (pResource);
 
     if (pBuf != nullptr)
     {
@@ -2908,7 +2908,7 @@ SK_FAR_CreateShaderResourceView (
 
   if (pDesc == nullptr && rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
   {
-    CComQIPtr <ID3D11Texture2D> pTex (pResource);
+    SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
     D3D11_TEXTURE2D_DESC         tex_desc = { };
                  pTex->GetDesc (&tex_desc);
                                      desc.Format = tex_desc.Format;
@@ -2967,7 +2967,7 @@ SK_FAR_CreateRenderTargetView (
 
   if (pDesc == nullptr && rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
   {
-    CComQIPtr <ID3D11Texture2D> pTex (pResource);
+    SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
     D3D11_TEXTURE2D_DESC         tex_desc = { };
                  pTex->GetDesc (&tex_desc);
                                      desc.Format = tex_desc.Format;
@@ -3025,7 +3025,7 @@ SK_FAR_CreateUnorderedAccessView (
 
   if (pDesc == nullptr && rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
   {
-    CComQIPtr <ID3D11Texture2D> pTex (pResource);
+    SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
     D3D11_TEXTURE2D_DESC         tex_desc = { };
                  pTex->GetDesc (&tex_desc);
                                      desc.Format = tex_desc.Format;
@@ -3740,8 +3740,8 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
        )
     //if (SK_D3D11_Shaders.pixel.current.shader [pDevCtx] == 0xc28681e1 || SK_D3D11_Shaders.pixel.current.shader [pDevCtx] == 0x29e46098)
     {
-      CComPtr <ID3D11RenderTargetView> rtView = nullptr;
-      pDevCtx->OMGetRenderTargets (1, &rtView, nullptr);
+      SK_ComPtr <ID3D11RenderTargetView> rtView = nullptr;
+      pDevCtx->OMGetRenderTargets   (1, &rtView, nullptr);
 
       if (rtView)
       {
@@ -3752,12 +3752,12 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
              desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM  || // AO
              desc.Format == DXGI_FORMAT_R32_FLOAT )        // AO
         {
-          CComPtr <ID3D11Resource> rt = nullptr;
-          rtView->GetResource    (&rt);
+          SK_ComPtr <ID3D11Resource> rt = nullptr;
+          rtView->GetResource      (&rt);
 
           if (rt != nullptr)
           {
-            CComQIPtr <ID3D11Texture2D> rttex (rt);
+            SK_ComQIPtr <ID3D11Texture2D> rttex (rt);
 
             if (rttex != nullptr)
             {
@@ -3794,8 +3794,8 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 // but it works as long as the game only renders from 1 thread (which it does)
                 // NOTE: rather than storing them statically here (basically a global) the lifetime should probably be managed
 
-                CComPtr <ID3D11Device> dev;
-                pDevCtx->GetDevice   (&dev);
+                SK_ComPtr <ID3D11Device> dev;
+                pDevCtx->GetDevice     (&dev);
 
                 D3D11_BUFFER_DESC buffdesc;
                 buffdesc.ByteWidth           = 16;
@@ -3908,9 +3908,9 @@ SK_FAR_DrawIndexed (
   bool cull = false;
 
 
-  CComPtr <ID3D11DepthStencilState> dss_new = nullptr;
-  CComPtr <ID3D11DepthStencilState> dss     = nullptr;
-  UINT                              sref    = 0;
+  SK_ComPtr <ID3D11DepthStencilState> dss_new = nullptr;
+  SK_ComPtr <ID3D11DepthStencilState> dss     = nullptr;
+  UINT                                sref    = 0;
 
   if (IndexCount == 4 && StartIndexLocation == 0 && BaseVertexLocation == 0)
     cull = SK_FAR_PreDraw (This);
@@ -3919,7 +3919,7 @@ SK_FAR_DrawIndexed (
             SK_D3D11_Shaders.pixel.current.shader  [This] == 0x4734a7d3 &&
             SK_D3D11_Shaders.vertex.current.shader [This] == 0x30f63793 )
   {
-    CComPtr <ID3D11Device>        pDev    = nullptr;
+    SK_ComPtr <ID3D11Device>        pDev    = nullptr;
 
     This->GetDevice (&pDev);
 

@@ -459,7 +459,7 @@ public:
     ////
     ////if (sync_metadata)
     ////{
-    ////  CComQIPtr <IDXGISwapChain4> pSwapChain (rb.swapchain);
+    ////  SK_ComQIPtr <IDXGISwapChain4> pSwapChain (rb.swapchain);
     ////
     ////  if (pSwapChain != nullptr)
     ////  {

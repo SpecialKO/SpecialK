@@ -30,6 +30,7 @@ extern SK_TLS* SK_TLS_Bottom   (void);
 extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
 
 #include <Windows.h>
+
 #undef _WINGDI_
 #define NOGDI
 #include <comdef.h>
@@ -38,7 +39,9 @@ extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
 #include <gsl/gsl_util>
 
 #include <unordered_map>
+
 #include <SpecialK/thread.h>
+#include <SpecialK/com_util.h>
 #include <SpecialK/input/input.h>
 
 // Not so global in this case, but the concept remains the same;
@@ -367,18 +370,18 @@ class SK_D3D11_ThreadContext : public SK_TLS_DynamicContext,
                                public SK_TLS_RenderContext
 {
 public:
-  CComPtr <ID3D11DeviceContext>      pDevCtx;
+  SK_ComPtr <ID3D11DeviceContext>    pDevCtx;
 
-  CComPtr <ID3D11RasterizerState>    pRasterStateOrig;
-  CComPtr <ID3D11RasterizerState>    pRasterStateNew;
+  SK_ComPtr <ID3D11RasterizerState>  pRasterStateOrig;
+  SK_ComPtr <ID3D11RasterizerState>  pRasterStateNew;
 
-  CComPtr <ID3D11DepthStencilState>  pDepthStencilStateOrig;
-  CComPtr <ID3D11DepthStencilState>  pDepthStencilStateNew;
-  CComPtr <ID3D11DepthStencilView>   pDSVOrig;
+  SK_ComPtr <ID3D11DepthStencilState>pDepthStencilStateOrig;
+  SK_ComPtr <ID3D11DepthStencilState>pDepthStencilStateNew;
+  SK_ComPtr <ID3D11DepthStencilView> pDSVOrig;
 
-  CComPtr <ID3D11RenderTargetView>   pRTVOrig;
+  SK_ComPtr <ID3D11RenderTargetView> pRTVOrig;
 
-  CComPtr <ID3D11BlendState>         pOrigBlendState;
+  SK_ComPtr <ID3D11BlendState>       pOrigBlendState;
   UINT                               uiOrigBlendMask          = 0x0;
   FLOAT                              fOrigBlendFactors [4]    =
                                        { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -386,14 +389,14 @@ public:
   UINT                               StencilRefOrig           = 0;
   UINT                               StencilRefNew            = 0;
 
-  SK_D3D11_Stateblock_Lite*          stateBlock               = nullptr;
+  SK_D3D11_Stateblock_Lite* stateBlock;
   size_t                             stateBlockSize           = 0;
 
   // Sampler to share between ImGui and CEGUI
-  CComPtr <ID3D11SamplerState>       uiSampler_clamp          = nullptr;
-  CComPtr <ID3D11SamplerState>       uiSampler_wrap           = nullptr;
+  SK_ComPtr <ID3D11SamplerState>     uiSampler_clamp;
+  SK_ComPtr <ID3D11SamplerState>     uiSampler_wrap;
 
-  CComPtr <ID3D11Buffer>             pOriginalCBuffers [6]
+  SK_ComPtr <ID3D11Buffer>           pOriginalCBuffers [6]
         [D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT]
                                                               = { };
   bool                               empty_cbuffers    [6]    = { false };

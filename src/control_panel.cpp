@@ -2484,11 +2484,11 @@ SK_ImGui_ControlPanel (void)
     {
       if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
       {
-        CComQIPtr <IDirect3DDevice9> pDev9 (rb.device);
+        SK_ComQIPtr <IDirect3DDevice9> pDev9 (rb.device);
 
         if (pDev9 != nullptr)
         {
-          CComQIPtr <IDirect3DSwapChain9> pSwap9 (rb.swapchain);
+          SK_ComQIPtr <IDirect3DSwapChain9> pSwap9 (rb.swapchain);
 
           if (pSwap9 != nullptr)
           {
@@ -2499,7 +2499,7 @@ SK_ImGui_ControlPanel (void)
 
       else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
       {
-        CComQIPtr <IDXGISwapChain> pSwapDXGI (rb.swapchain);
+        SK_ComQIPtr <IDXGISwapChain> pSwapDXGI (rb.swapchain);
 
         if (pSwapDXGI != nullptr)
         {
@@ -3343,7 +3343,7 @@ SK_ImGui_StageNextFrame (void)
   // TODO: Generalize this!
   //if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
   //     SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI )
-  CComQIPtr <IDXGISwapChain> pSwapChain (
+  SK_ComQIPtr <IDXGISwapChain> pSwapChain (
     rb.swapchain
   );
   if (pSwapChain != nullptr)
@@ -3879,7 +3879,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   {
     d3d9 = true;
 
-    CComQIPtr <IDirect3DDevice9> pDev (
+    SK_ComQIPtr <IDirect3DDevice9> pDev (
       rb.device
     );
 

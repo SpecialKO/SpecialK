@@ -3266,6 +3266,7 @@ Exit 0</Command>
     <ClCompile Include="src\render\d3d9\d3d9_screenshot.cpp" />
     <ClCompile Include="src\render\dxgi\dxgi_util.cpp" />
     <ClCompile Include="src\render\screenshot.cpp" />
+    <ClCompile Include="src\scheduler.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

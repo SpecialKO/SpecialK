@@ -324,11 +324,11 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
                                  (float)Width;
 
 #if 0
-                static CComPtr <IWICImagingFactory> pFactory = nullptr;
+                static SK_ComPtr <IWICImagingFactory> pFactory = nullptr;
 
-                CComPtr <IWICBitmapEncoder>     pEncoder = nullptr;
-                CComPtr <IWICBitmapFrameEncode> pFrame   = nullptr;
-                CComPtr <IWICStream>            pStream  = nullptr;
+                SK_ComPtr <IWICBitmapEncoder>     pEncoder = nullptr;
+                SK_ComPtr <IWICBitmapFrameEncode> pFrame   = nullptr;
+                SK_ComPtr <IWICStream>            pStream  = nullptr;
 
                 if (! pFactory)
                 {

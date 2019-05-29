@@ -196,9 +196,9 @@ HookD3D12 (LPVOID user)
     dll_log->Log (L"[  D3D 12  ]   Hooking D3D12");
 
 #if 0
-    CComPtr <IDXGIFactory>  pFactory  = nullptr;
-    CComPtr <IDXGIAdapter>  pAdapter  = nullptr;
-    CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+    SK_ComPtr <IDXGIFactory>  pFactory  = nullptr;
+    SK_ComPtr <IDXGIAdapter>  pAdapter  = nullptr;
+    SK_ComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
 
     HRESULT hr =
       CreateDXGIFactory_Import ( IID_PPV_ARGS (&pFactory) );
@@ -209,7 +209,7 @@ HookD3D12 (LPVOID user)
       if (pFactory) {
         int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
 
-        CComPtr <IDXGIFactory1> pFactory1 = nullptr;
+        SK_ComPtr <IDXGIFactory1> pFactory1 = nullptr;
 
         if (iver > 0) {
           if (SUCCEEDED (CreateDXGIFactory1_Import ( IID_PPV_ARGS (&pFactory1) ))) {
@@ -219,9 +219,9 @@ HookD3D12 (LPVOID user)
       }
     }
 
-    CComPtr <ID3D11Device>        pDevice           = nullptr;
-    D3D_FEATURE_LEVEL             featureLevel;
-    CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
+    SK_ComPtr <ID3D11Device>        pDevice           = nullptr;
+    D3D_FEATURE_LEVEL               featureLevel;
+    SK_ComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 
     HRESULT hrx = E_FAIL;
     {
@@ -291,13 +291,13 @@ SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
   return;
 
 #if 0
-  CComPtr <ID3D12Device> dev = nullptr;
+  SK_ComPtr <ID3D12Device> dev = nullptr;
 
   if (SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&dev)))) {
-    static CComPtr <ID3D12CommandAllocator>    cmd_alloc = nullptr;
-    static CComPtr <ID3D12GraphicsCommandList> cmd_list  = nullptr;
-    static CComPtr <ID3D12Resource>            query_res = nullptr;
-    static CComPtr <ID3D12CommandQueue>        cmd_queue = nullptr;
+    static SK_ComPtr <ID3D12CommandAllocator>    cmd_alloc = nullptr;
+    static SK_ComPtr <ID3D12GraphicsCommandList> cmd_list  = nullptr;
+    static SK_ComPtr <ID3D12Resource>            query_res = nullptr;
+    static SK_ComPtr <ID3D12CommandQueue>        cmd_queue = nullptr;
 
     if (cmd_alloc == nullptr)
     {

@@ -1867,81 +1867,75 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
 
-  if (__SK_bypass)
-    goto BACKEND_INIT;
-
-
-  SK_File_InitHooks    ();
-  SK_Network_InitHooks ();
-
-
-
-//config.compatibility.rehook_loadlibrary = true;
-
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
-
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init     ();
-
-
-  // Steam Overlay and SteamAPI Manipulation
-  //
-  if (! config.steam.silent)
+  if (! __SK_bypass)
   {
-    config.steam.force_load_steamapi = false;
+    SK_File_InitHooks    ();
+    SK_Network_InitHooks ();
 
-    // TODO: Rename -- this initializes critical sections and performance
-    //                   counters needed by SK's SteamAPI backend.
-    //
-    SK_Steam_InitCommandConsoleVariables  ();
+    if (config.system.display_debug_out)
+      SK::Diagnostics::Debugger::SpawnConsole ();
 
-    //// It is not permissable to modify steam_api64.dll in this game
-    //                                     (Denuvo will crash)
+    if (config.system.handle_crashes)
+      SK::Diagnostics::CrashHandler::Init     ();
+
+
+    // Steam Overlay and SteamAPI Manipulation
     //
-    if ( SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
+    if (! config.steam.silent)
     {
-      ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
-      /////   a number of general-purpose benefits (such as battery charge monitoring).
-      bool kick_start = config.steam.force_load_steamapi;
+      config.steam.force_load_steamapi = false;
 
-      if ((! SK_Steam_TestImports (GetModuleHandle (nullptr))))
+      // TODO: Rename -- this initializes critical sections and performance
+      //                   counters needed by SK's SteamAPI backend.
+      //
+      SK_Steam_InitCommandConsoleVariables  ();
+
+      //// It is not permissable to modify steam_api64.dll in this game
+      //                                     (Denuvo will crash)
+      //
+      if ( SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
       {
-        // Implicitly kick-start anything in SteamApps\common that does not import
-        //   SteamAPI...
-        if ((! kick_start) && config.steam.auto_inject)
-        {
-          if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
-          {
-            extern const wchar_t*
-            SK_Steam_GetDLLPath (void);
+        ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
+        /////   a number of general-purpose benefits (such as battery charge monitoring).
+        bool kick_start = config.steam.force_load_steamapi;
 
-            // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
-            //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
-            //     the game won't be happy about that!
-            kick_start =
-              (! SK_Modules->LoadLibrary (SK_Steam_GetDLLPath ())) ||
-                    config.steam.force_load_steamapi;
+        if ((! SK_Steam_TestImports (GetModuleHandle (nullptr))))
+        {
+          // Implicitly kick-start anything in SteamApps\common that does not import
+          //   SteamAPI...
+          if ((! kick_start) && config.steam.auto_inject)
+          {
+            if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
+            {
+              extern const wchar_t*
+              SK_Steam_GetDLLPath (void);
+
+              // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
+              //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
+              //     the game won't be happy about that!
+              kick_start =
+                (! SK_Modules->LoadLibrary (SK_Steam_GetDLLPath ())) ||
+                      config.steam.force_load_steamapi;
+            }
           }
+
+          if (kick_start)
+            SK_Steam_KickStart ();
         }
 
-        if (kick_start)
-          SK_Steam_KickStart ();
+        extern BOOL
+        SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);
+        SK_Steam_PreHookCore ();
       }
-
-      extern BOOL
-      SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);
-      SK_Steam_PreHookCore ();
     }
+
+    if (SK_COMPAT_IsFrapsPresent ())
+        SK_COMPAT_UnloadFraps ();
+
+    SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
   }
 
-  if (SK_COMPAT_IsFrapsPresent ())
-      SK_COMPAT_UnloadFraps ();
 
-  SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
-
-
-BACKEND_INIT:
   dll_log->LogEx (false,
     L"----------------------------------------------------------------------"
     L"---------------------\n");
@@ -2665,9 +2659,6 @@ return;
             [](unsigned int nExceptionCode, EXCEPTION_POINTERS* pException)->
             void
             {
-            //UNREFERENCED_PARAMETER (nExceptionCode);
-              UNREFERENCED_PARAMETER (pException);
-
               if (nExceptionCode == EXCEPTION_ACCESS_VIOLATION ||
                   nExceptionCode == 0xc06d007e)
               {
@@ -3125,9 +3116,14 @@ SK_BackgroundRender_EndFrame (void)
 
   static bool background_last_frame = false;
   static bool fullscreen_last_frame = false;
+  static bool first_frame           = true;
 
-  if (background_last_frame != config.window.background_render)
-  { // Does not indicate the window was IN the background, but that it
+  if (            first_frame ||
+       (background_last_frame != config.window.background_render) )
+  {
+    first_frame = false;
+
+    // Does not indicate the window was IN the background, but that it
     //   was rendering in a special mode that would allow the game to
     //     continue running while it is in the background.
     background_last_frame =

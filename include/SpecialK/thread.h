@@ -212,8 +212,8 @@ SK_WaitForSingleObject ( _In_ HANDLE hHandle,
 //     than the complicated NTSTATUS stuff going on under the hood.
 DWORD
 WINAPI
-SK_WaitForSingleObject_Micro ( _In_ HANDLE        hHandle,
-                               _In_ LARGE_INTEGER liMicroseconds );
+SK_WaitForSingleObject_Micro ( _In_ HANDLE         hHandle,
+                               _In_ PLARGE_INTEGER liMicroseconds );
 
 
 __forceinline

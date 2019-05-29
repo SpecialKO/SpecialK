@@ -1045,7 +1045,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
 
     ///if (SK_GetCurrentGameID() == SK_GAME_ID::Ys_Eight)
     ///{
-    ///  CComQIPtr <ID3D11Texture2D> pTex (pSrcResource);
+    ///  SK_ComQIPtr <ID3D11Texture2D> pTex (pSrcResource);
     ///
     ///  if (pTex)
     ///  {

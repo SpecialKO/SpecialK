@@ -1294,7 +1294,7 @@ D3D11_CopySubresourceRegion_Override (
   {
   ///if (SK_GetCurrentGameID() == SK_GAME_ID::Ys_Eight)
   ///{
-  ///  CComQIPtr <ID3D11Texture2D> pTex (pSrcResource);
+  ///  SK_ComQIPtr <ID3D11Texture2D> pTex (pSrcResource);
   ///
   ///  if (pTex)
   ///  {

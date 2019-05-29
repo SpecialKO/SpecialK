@@ -322,7 +322,7 @@ WMI_CLEANUP:
 
 static HMODULE hModCOMBase = nullptr;
 
-extern "C"
+extern "C++"
 bool
 SK_WMI_Init (void)
 {
@@ -399,7 +399,7 @@ SK_WMI_Init (void)
   return true;
 }
 
-extern "C"
+extern "C++"
 void
 SK_WMI_Shutdown (void)
 {

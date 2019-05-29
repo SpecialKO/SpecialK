@@ -76,7 +76,7 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
   //  InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChains);
   //
   //  //// Immediately try to upgrade
-  //  CComQIPtr <IDXGISwapChain4> pSwap4 (this);
+  //  SK_ComQIPtr <IDXGISwapChain4> pSwap4 (this);
   //}
 
 

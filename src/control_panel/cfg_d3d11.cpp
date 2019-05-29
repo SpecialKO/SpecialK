@@ -698,7 +698,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         SK_GetCurrentRenderBackend ();
 
       ID3D11DeviceContext *pDevCtx = rb.d3d11.immediate_ctx;
-      //CComPtr <ID3D11DeviceContext>   pDevCtx;
+      //SK_ComPtr <ID3D11DeviceContext>   pDevCtx;
       //rb.d3d11.immediate_ctx.CopyTo (&pDevCtx.p);
 
       // This limits us to D3D11 for now, but who cares -- D3D10 sucks and D3D12 can't be drawn to yet :)
@@ -784,7 +784,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       {
         bool _fullscreen = true;
 
-        CComQIPtr <IDXGISwapChain4> pSwap3 (pSwapDXGI);
+        SK_ComQIPtr <IDXGISwapChain4> pSwap3 (pSwapDXGI);
         if (pSwap3 != nullptr)
         {
           DXGI_SWAP_CHAIN_FULLSCREEN_DESC full_desc = { };

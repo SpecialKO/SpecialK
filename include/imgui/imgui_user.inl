@@ -1048,7 +1048,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
       extern void
       SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
 
-      CComQIPtr <IDXGISwapChain> pSwap (rb.swapchain);
+      SK_ComQIPtr <IDXGISwapChain> pSwap (rb.swapchain);
 
       if (pSwap != nullptr)
       {

@@ -118,7 +118,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
         const bool drawing_self =
           (pSession->getProcessId () == GetCurrentProcessId ());
 
-        CComPtr <ISimpleAudioVolume> volume_ctl =
+        SK_ComPtr <ISimpleAudioVolume> volume_ctl =
           pSession->getSimpleAudioVolume ();
 
         BOOL mute = FALSE;
@@ -288,7 +288,7 @@ SK_ImGui_VolumeManager (void)
 
   sessions.Activate ();
 
-  CComPtr <IAudioMeterInformation> pMeterInfo =
+  SK_ComPtr <IAudioMeterInformation> pMeterInfo =
     sessions.getMeterInfo ();
 
   if (pMeterInfo == nullptr)
@@ -426,7 +426,7 @@ SK_ImGui_VolumeManager (void)
 
     if (channels != 0)
     {
-      CComPtr <IChannelAudioVolume> pChannelVolume =
+      SK_ComPtr <IChannelAudioVolume> pChannelVolume =
         audio_session->getChannelAudioVolume      ( );
 
       static float
@@ -471,7 +471,7 @@ SK_ImGui_VolumeManager (void)
         std::map <int, volume_s>
           channel_volumes;
 
-      CComPtr <ISimpleAudioVolume>  pVolume  =
+      SK_ComPtr <ISimpleAudioVolume>  pVolume  =
         audio_session->getSimpleAudioVolume ( );
 
       pVolume->GetMasterVolume (&master_vol);

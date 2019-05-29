@@ -187,7 +187,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
     if (rDim == D3D11_RESOURCE_DIMENSION_BUFFER)
     {
-      CComQIPtr <ID3D11Buffer> pBuffer (pResource);
+      SK_ComQIPtr <ID3D11Buffer> pBuffer (pResource);
 
       D3D11_BUFFER_DESC  buffer_desc;
       pBuffer->GetDesc (&buffer_desc);

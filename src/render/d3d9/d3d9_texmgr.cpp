@@ -2895,7 +2895,7 @@ SK::D3D9::TextureManager::updateOSD (void)
                 cache_total );
   osd_stats += szFormatted;
 
-  CComPtr <IDirect3DDevice9> pDevice = nullptr;
+  SK_ComPtr <IDirect3DDevice9> pDevice = nullptr;
 
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();

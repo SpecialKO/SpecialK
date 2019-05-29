@@ -257,9 +257,9 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
   D3DCAPS9                      caps;
   g_pd3dDevice->GetDeviceCaps (&caps);
 
-  CComPtr <IDirect3DSurface9> pBackBuffer = nullptr;
-  CComPtr <IDirect3DSurface9> rts [8];
-  CComPtr <IDirect3DSurface9> pDS         = nullptr;
+  SK_ComPtr <IDirect3DSurface9> pBackBuffer = nullptr;
+  SK_ComPtr <IDirect3DSurface9> rts [8];
+  SK_ComPtr <IDirect3DSurface9> pDS         = nullptr;
 
   for (UINT target = 0; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
   {
@@ -623,7 +623,7 @@ ImGui_ImplDX9_NewFrame (void)
   }
 
 
-  CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+  SK_ComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
   if (SUCCEEDED (g_pd3dDevice->GetSwapChain ( 0, &pSwapChain )))
   {

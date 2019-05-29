@@ -400,7 +400,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   }
 
 
-  CComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
+  SK_ComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
 
   D3D11_TEXTURE2D_DESC   tex2d_desc = { };
   pBackBuffer->GetDesc (&tex2d_desc);
@@ -563,7 +563,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   __SK_ImGui_D3D11_DrawDeferred = false;
   if (__SK_ImGui_D3D11_DrawDeferred)
   {
-    CComPtr <ID3D11CommandList> pCmdList = nullptr;
+    SK_ComPtr <ID3D11CommandList> pCmdList = nullptr;
 
     if ( SUCCEEDED (
            pDevCtx->FinishCommandList ( TRUE,
@@ -735,9 +735,9 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
     ID3D11ClassInstance *GiantListThatDestroysTheStack0 [253] = { };
     ID3D11ClassInstance *GiantListThatDestroysTheStack1 [253] = { };
 
-    CComPtr <ID3D11PixelShader>  pOrigPixShader;
-    CComPtr <ID3D11VertexShader> pOrigVtxShader;
-    CComPtr <ID3D11Buffer>       pOrigVtxCB;
+    SK_ComPtr <ID3D11PixelShader>  pOrigPixShader;
+    SK_ComPtr <ID3D11VertexShader> pOrigVtxShader;
+    SK_ComPtr <ID3D11Buffer>       pOrigVtxCB;
 
     pDevCtx->VSGetShader          ( &pOrigVtxShader.p,
                                      GiantListThatDestroysTheStack0,
@@ -810,9 +810,9 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
     ID3D11ClassInstance *GiantListThatDestroysTheStack0 [253] = { };
     ID3D11ClassInstance *GiantListThatDestroysTheStack1 [253] = { };
 
-    CComPtr <ID3D11PixelShader>  pOrigPixShader;
-    CComPtr <ID3D11VertexShader> pOrigVtxShader;
-    CComPtr <ID3D11Buffer>       pOrigVtxCB;
+    SK_ComPtr <ID3D11PixelShader>  pOrigPixShader;
+    SK_ComPtr <ID3D11VertexShader> pOrigVtxShader;
+    SK_ComPtr <ID3D11Buffer>       pOrigVtxCB;
 
     pDevCtx->VSGetShader          ( &pOrigVtxShader.p,
                                      GiantListThatDestroysTheStack0,
@@ -942,7 +942,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
         return output;                                            \
       }";
 
-    CComPtr <ID3D10Blob> blob_msg_vtx;
+    SK_ComPtr <ID3D10Blob> blob_msg_vtx;
 
     D3DCompile ( vertexShader,
                    sizeof (vertexShader),
@@ -1331,7 +1331,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
           ( input.col * out_col );                                            \n\
       }";
 
-    CComPtr <ID3D10Blob> blob_msg_pix;
+    SK_ComPtr <ID3D10Blob> blob_msg_pix;
 
     D3DCompile ( pixelShader,
                    sizeof (pixelShader),
@@ -1885,8 +1885,8 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
 
   assert (This == rb.swapchain);
 
-  CComPtr <ID3D11Device>        pDev    = nullptr;
-  CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+  SK_ComPtr <ID3D11Device>        pDev    = nullptr;
+  SK_ComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
 
   if (rb.d3d11.immediate_ctx != nullptr)
   {

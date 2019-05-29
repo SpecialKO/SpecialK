@@ -208,7 +208,7 @@ SK_Yakuza0_BeginFrame (void)
   {
     _SK_Y0_Cfg.__quiet_mode = true;
 
-    static CComPtr <ISimpleAudioVolume> pVolume =
+    static SK_ComPtr <ISimpleAudioVolume> pVolume =
       SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
 
     if (pVolume == nullptr)
@@ -242,7 +242,7 @@ SK_Yakuza0_BeginFrame (void)
 
   else if (_SK_Y0_Cfg.lock_volume)
   {
-    static CComPtr <ISimpleAudioVolume> pVolume =
+    static SK_ComPtr <ISimpleAudioVolume> pVolume =
       SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
 
     if (pVolume != nullptr)
@@ -991,7 +991,7 @@ SK_Yakuza0_PlugInCfg (void)
       ImGui::SameLine   ();
       ImGui::BeginGroup ();
 
-      static CComPtr <ISimpleAudioVolume> pVolume =
+      static SK_ComPtr <ISimpleAudioVolume> pVolume =
         SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
 
       bool sound_changed = false;

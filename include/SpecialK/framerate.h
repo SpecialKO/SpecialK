@@ -36,6 +36,16 @@ constexpr T narrow_cast(U&& u)
   return static_cast<T>(std::forward<U>(u));
 }
 
+static constexpr auto
+  long_double_cast =
+  [](auto val) ->
+    long double
+    {
+      return
+        static_cast <long double> (val);
+    };
+
+
 namespace SK
 {
   namespace Framerate
@@ -350,5 +360,60 @@ static auto SK_DeltaPerfMS =
    };
 
 extern int __SK_FramerateLimitApplicationSite;
+
+
+
+using NtQueryTimerResolution_pfn = NTSTATUS (NTAPI *)
+(
+  OUT PULONG              MinimumResolution,
+  OUT PULONG              MaximumResolution,
+  OUT PULONG              CurrentResolution
+);
+
+using NtSetTimerResolution_pfn = NTSTATUS (NTAPI *)
+(
+  IN  ULONG               DesiredResolution,
+  IN  BOOLEAN             SetResolution,
+  OUT PULONG              CurrentResolution
+);
+
+typedef NTSTATUS (WINAPI *NtDelayExecution_pfn)(
+  IN  BOOLEAN        Alertable,
+  IN  PLARGE_INTEGER DelayInterval
+);
+
+
+struct IDXGIOutput;
+
+using WaitForVBlank_pfn = HRESULT (STDMETHODCALLTYPE *)(
+  IDXGIOutput *This
+);
+
+typedef
+NTSTATUS (NTAPI *NtWaitForSingleObject_pfn)(
+  IN HANDLE         Handle,
+  IN BOOLEAN        Alertable,
+  IN PLARGE_INTEGER Timeout    // Microseconds
+);
+
+
+typedef enum _OBJECT_WAIT_TYPE {
+  WaitAllObject,
+  WaitAnyObject
+} OBJECT_WAIT_TYPE,
+*POBJECT_WAIT_TYPE;
+
+typedef
+NTSTATUS (NTAPI *NtWaitForMultipleObjects_pfn)(
+  IN ULONG                ObjectCount,
+  IN PHANDLE              ObjectsArray,
+  IN OBJECT_WAIT_TYPE     WaitType,
+  IN BOOLEAN              Alertable,
+  IN PLARGE_INTEGER       TimeOut OPTIONAL );
+
+
+extern void SK_Scheduler_Init     (void);
+extern void SK_Scheduler_Shutdown (void);
+
 
 #endif /* __SK__FRAMERATE_H__ */

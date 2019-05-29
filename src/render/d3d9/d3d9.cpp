@@ -284,7 +284,7 @@ SK::D3D9::VertexBufferTracker::use (void)
   SK_AutoCriticalSection auto_cs (&cs_vb);
 
   IDirect3DVertexDeclaration9* decl = nullptr;
-  CComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
+  SK_ComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
 
   if (! pDev)
   {
@@ -457,7 +457,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     SK_InstallWindowHook (pparams.hDeviceWindow);
 
-    CComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (pDev);
+    SK_ComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (pDev);
 
     if (pWrappedDevice != nullptr)
     {
@@ -1511,7 +1511,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     }
 
 
-    CComQIPtr <IDirect3DDevice9Ex> pUpgradedDev (pDev);
+    SK_ComQIPtr <IDirect3DDevice9Ex> pUpgradedDev (pDev);
 
     if (pDevEx != nullptr || pUpgradedDev != nullptr)
     {
@@ -1958,7 +1958,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   // D3D9Ex Specific Stuff
   //
 
-  CComQIPtr <IDirect3DDevice9Ex> pDevEx (pDev);
+  SK_ComQIPtr <IDirect3DDevice9Ex> pDevEx (pDev);
 
   if (pDevEx != nullptr)
   {
@@ -2011,7 +2011,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
     {
       void** vftable_ = nullptr;
 
-      CComQIPtr <IWrapDirect3DSwapChain9> pWrappedSwapChain (pSwapChain);
+      SK_ComQIPtr <IWrapDirect3DSwapChain9> pWrappedSwapChain (pSwapChain);
 
       if (pWrappedSwapChain != nullptr)
         vftable_ = (void **)&(pWrappedSwapChain->pReal);
@@ -2038,7 +2038,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
 
   if (config.apis.d3d9ex.hook)
   {
-    CComQIPtr <IDirect3DDevice9Ex> pDevEx (pDev);
+    SK_ComQIPtr <IDirect3DDevice9Ex> pDevEx (pDev);
 
     if (pDevEx != nullptr)
     {
@@ -3319,7 +3319,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   }
 
 
-  CComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (pDevice);
+  SK_ComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (pDevice);
 
   if (pWrappedDevice != nullptr)
   {
@@ -4444,7 +4444,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                                          &pModeEx );
     SK_D3D9_HookDeviceAndSwapchain ( *ppReturnedDeviceInterface );
 
-    CComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (*ppReturnedDeviceInterface);
+    SK_ComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (*ppReturnedDeviceInterface);
 
     if (pWrappedDevice != nullptr)
     {
@@ -4603,7 +4603,7 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
     SK_SetPresentParamsD3D9        (*ppReturnedDeviceInterface, pPresentationParameters);
     SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
 
-    CComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (*ppReturnedDeviceInterface);
+    SK_ComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (*ppReturnedDeviceInterface);
 
     if (pWrappedDevice != nullptr)
     {
@@ -8031,7 +8031,7 @@ SK_D3D9_EndFrame (void)
       tex_mgr.logUsedTextures ();
     }
 
-    CComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
+    SK_ComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
 
     if (pDev == nullptr || (pDev->GetAvailableTextureMem () / 1048576UL) < 64UL)
     {

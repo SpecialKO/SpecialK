@@ -1403,7 +1403,7 @@ SK_YS8_CopyResource (
 
     if (rDim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      CComQIPtr <ID3D11Texture2D>  pTex2D (pSrcResource);
+      SK_ComQIPtr <ID3D11Texture2D>  pTex2D (pSrcResource);
 
       D3D11_TEXTURE2D_DESC desc = {};
 
