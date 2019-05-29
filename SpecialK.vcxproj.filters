@@ -525,12 +525,6 @@
     <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_3.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_4.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
@@ -4316,6 +4310,13 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="SpecialK.ruleset" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />

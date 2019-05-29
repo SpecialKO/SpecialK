@@ -21,6 +21,10 @@
 
 #include <SpecialK/stdafx.h>
 
+#include <d3d11.h>
+#include <../depends/include/nvapi/nvapi_lite_d3dext.h>
+#include <SpecialK/nvapi.h>
+
 #include <SpecialK/config.h>
 #include <imgui/imgui.h>
 
@@ -28,10 +32,10 @@
 #include <SpecialK/control_panel/d3d11.h>
 #include <SpecialK/control_panel/osd.h>
 
-#include <SpecialK/nvapi.h>
-
 #include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 
 const wchar_t*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space);
@@ -216,7 +220,7 @@ extern bool SK_D3D11_ShaderModDlg (SK_TLS *pTLS = SK_TLS_Bottom ());
 using SK_ReShade_OnDrawD3D11_pfn =
 void (__stdcall *)(void*, ID3D11DeviceContext*, unsigned int);
 
-extern SK_RESHADE_CALLBACK_DRAW SK_ReShade_DrawCallback;
+//extern SK_RESHADE_CALLBACK_DRAW SK_ReShade_DrawCallback;
 
 bool
 SK::ControlPanel::D3D11::Draw (void)
@@ -707,30 +711,30 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
           static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags),
                                              &swap_flag_count);
 
-      ImGui::BeginTooltip    ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
-      ImGui::TextUnformatted ("Framebuffer and Presentation Setup");
-      ImGui::PopStyleColor   ();
-      ImGui::Separator       ();
+      ImGui::BeginTooltip      ();
+      ImGui::PushStyleColor    (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
+      ImGui::TextUnformatted   ("Framebuffer and Presentation Setup");
+      ImGui::PopStyleColor     ();
+      ImGui::Separator         ();
 
-      ImGui::BeginGroup      ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.0f));
-      ImGui::TextUnformatted ("Color:");
-    //ImGui::TextUnformatted ("Depth/Stencil:");
-      ImGui::TextUnformatted ("Resolution:");
-      ImGui::TextUnformatted ("Back Buffers:");
+      ImGui::BeginGroup        ();
+      ImGui::PushStyleColor    (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.0f));
+      ImGui::TextUnformatted   ("Color:");
+    //ImGui::TextUnformatted   ("Depth/Stencil:");
+      ImGui::TextUnformatted   ("Resolution:");
+      ImGui::TextUnformatted   ("Back Buffers:");
       if ((! swap_desc.Windowed) && swap_desc.BufferDesc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
-      ImGui::TextUnformatted ("Scaling Mode:");
+        ImGui::TextUnformatted ("Scaling Mode:");
       if ((! swap_desc.Windowed) && swap_desc.BufferDesc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
-      ImGui::TextUnformatted ("Scanlines:");
+        ImGui::TextUnformatted ("Scanlines:");
       if (! swap_desc.Windowed && swap_desc.BufferDesc.RefreshRate.Denominator != 0)
-      ImGui::TextUnformatted ("Refresh Rate:");
-      ImGui::TextUnformatted ("Swap Interval:");
-      ImGui::TextUnformatted ("Swap Effect:");
+        ImGui::TextUnformatted ("Refresh Rate:");
+      ImGui::TextUnformatted   ("Swap Interval:");
+      ImGui::TextUnformatted   ("Swap Effect:");
       if  (swap_desc.SampleDesc.Count > 1)
-      ImGui::TextUnformatted ("MSAA Samples:");
+        ImGui::TextUnformatted ("MSAA Samples:");
       if (swap_desc.Flags != 0)
-      ImGui::TextUnformatted ("Flags:");
+      ImGui::TextUnformatted   ("Flags:");
       if (swap_flag_count > 1) { for ( int i = 1; i < swap_flag_count; i++ ) ImGui::TextUnformatted ("\n"); }
       if (rb.isHDRCapable ())
       {
@@ -751,11 +755,11 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::Text            ("%ux%u",                                   swap_desc.BufferDesc.Width, swap_desc.BufferDesc.Height);
       ImGui::Text            ("%u",                                      std::max (1UL, swap_desc.Windowed ? swap_desc.BufferCount : swap_desc.BufferCount - 1UL));
       if ((! swap_desc.Windowed) && swap_desc.BufferDesc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
-      ImGui::Text            ("%ws",        SK_DXGI_DescribeScalingMode (swap_desc.BufferDesc.Scaling));
+        ImGui::Text          ("%ws",        SK_DXGI_DescribeScalingMode (swap_desc.BufferDesc.Scaling));
       if ((! swap_desc.Windowed) && swap_desc.BufferDesc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
-      ImGui::Text            ("%ws",      SK_DXGI_DescribeScanlineOrder (swap_desc.BufferDesc.ScanlineOrdering));
+        ImGui::Text          ("%ws",      SK_DXGI_DescribeScanlineOrder (swap_desc.BufferDesc.ScanlineOrdering));
       if (! swap_desc.Windowed && swap_desc.BufferDesc.RefreshRate.Denominator != 0)
-      ImGui::Text            ("%.2f Hz",                                 static_cast <float> (swap_desc.BufferDesc.RefreshRate.Numerator) /
+        ImGui::Text          ("%.2f Hz",                                 static_cast <float> (swap_desc.BufferDesc.RefreshRate.Numerator) /
                                                                          static_cast <float> (swap_desc.BufferDesc.RefreshRate.Denominator));
       if (rb.present_interval == 0)
         ImGui::Text          ("%u: VSYNC OFF",                           rb.present_interval);
@@ -771,7 +775,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         ImGui::Text          ("%u: UNKNOWN or Invalid",                  0);//pparams.PresentationInterval);
       ImGui::Text            ("%ws",            SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
       if  (swap_desc.SampleDesc.Count > 1)
-      ImGui::Text            ("%u",                                         swap_desc.SampleDesc.Count);
+        ImGui::Text          ("%u",                                         swap_desc.SampleDesc.Count);
       if (swap_desc.Flags != 0)
       {
         ImGui::Text          ("%ws",                                        swap_flags.c_str ());

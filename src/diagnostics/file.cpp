@@ -44,7 +44,7 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
     GetFileInformationByHandleEx ( hFile,
                                      FileNameInfo,
                                        pFni,
-                                         sizeof FILE_NAME_INFO +
+                                         sizeof (FILE_NAME_INFO) +
                             (_MAX_PATH * sizeof (wchar_t)) );
 
   if (success && pFni != nullptr)
@@ -52,9 +52,9 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
     wcsncpy_s (
       pwszFileName,
         std::min ( uiMaxLen,
-                   (pFni->FileNameLength /
-      (DWORD)sizeof pFni->FileName [0])  + 1
-                 ), pFni->FileName,
+                    (pFni->FileNameLength /
+      (DWORD)sizeof (pFni->FileName [0]))  + 1
+                 ),  pFni->FileName,
                       _TRUNCATE
     );
   }
@@ -277,8 +277,10 @@ SK_File_InitHooks (void)
 {
   if (! ( config.threads.enable_file_io_trace ||
           config.file_io.trace_reads          ||
-          config.file_io.trace_writes            ))
-  return;
+          config.file_io.trace_writes )          )
+  {
+    return;
+  }
 
 
   SK_CreateDLLHook2 (      L"NtDll.dll",
@@ -295,8 +297,6 @@ SK_File_InitHooks (void)
 
 
 
-#include <aclapi.h>
-#include <SpecialK/log.h>
 
 BOOL
 SK_GetFileSD ( const wchar_t              *wszPath,

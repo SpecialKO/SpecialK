@@ -35,6 +35,33 @@ extern __inline SK_TLS* SK_TLS_Bottom (void);
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
 
+enum class SK_RenderAPI
+{
+  Reserved  = 0x0001u,
+
+  // Native API Implementations
+  OpenGL    = 0x0002u,
+  Vulkan    = 0x0004u,
+  D3D9      = 0x0008u,
+  D3D9Ex    = 0x0018u,
+  D3D10     = 0x0020u, // Don't care
+  D3D11     = 0x0040u,
+  D3D12     = 0x0080u,
+
+  // These aren't native, but we need the bitmask anyway
+  D3D8      = 0x2000u,
+  DDraw     = 0x4000u,
+  Glide     = 0x8000u,
+
+  // Wrapped APIs (D3D12 Flavor)
+  D3D11On12 = 0x00C0u,
+
+  // Wrapped APIs (D3D11 Flavor)
+  D3D8On11  = 0x2040u,
+  DDrawOn11 = 0x4040u,
+  GlideOn11 = 0x8040u,
+};
+
 enum DLL_ROLE
 {
   INVALID    = 0x000,
@@ -120,7 +147,7 @@ extern "C" {
       HRESULT  __stdcall SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr,
                                              SK_TLS *pTLS = SK_TLS_Bottom () );
 
-      HMODULE  __stdcall SK_GetDLL          (void);
+      HMODULE  __stdcall SK_GetDLL          (void) noexcept;
       DLL_ROLE __stdcall SK_GetDLLRole      (void);
 
 #ifdef __cplusplus

@@ -517,6 +517,9 @@ SnapshotProcs_NtDll (void)
     g_NtDll.Module =
       LoadLibraryW (L"NtDll.dll");
 
+    if (! g_NtDll.Module)
+      return pspi;
+
     g_NtDll.QuerySystemInformation =
       (NtQuerySystemInformation_pfn)
         GetProcAddress (g_NtDll.Module, "NtQuerySystemInformation");
@@ -1099,8 +1102,8 @@ MH_Uninitialize (VOID)
         // HeapFree is actually not required, but some tools detect a false
         // memory leak without HeapFree.
 
-        HeapFree (g_hHeap,       0, g_hooks [i].pItems);
-        HeapFree (g_NtDll.hHeap, 0, g_NtDll.pSnapshot );
+        HeapFree    (g_hHeap,       0, g_hooks [i].pItems);
+        HeapFree    (g_NtDll.hHeap, 0, g_NtDll.pSnapshot );
 
         g_hooks [i].pItems   = NULL;
         g_hooks [i].capacity = 0;

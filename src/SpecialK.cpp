@@ -22,8 +22,6 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/DLL_VERSION.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 
@@ -31,6 +29,8 @@
 #include <SpecialK/render/d3d8/d3d8_backend.h>
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 #endif
+
+//#40FFFF00,#4066FF33,#4000CCFF,#409933FF,#40FF00FF,#40FF0000,#40FFAA00
 
 
 char _RTL_CONSTANT_STRING_type_check (const char    *s);
@@ -154,7 +154,7 @@ return hModSelf;  }
 
 HMODULE
 __stdcall
-SK_GetDLL (void)
+SK_GetDLL (void) noexcept
 {
   return
     __SK_hModSelf;
@@ -212,7 +212,7 @@ SK_KeepAway (void)
   {
     for ( auto& unwanted_dll : list )
     {
-      HANDLE hMod = 0;
+      HANDLE hMod = nullptr;
 
       if ( NT_SUCCESS (
              LdrGetDllHandle (nullptr, nullptr, &unwanted_dll, &hMod)
@@ -261,6 +261,7 @@ DllMain ( HMODULE hModule,
     //       any part of Special K that relies on the Visual C++ Runtime in
     //         the context of that hook.
     //
+    default:
     case DLL_PROCESS_ATTACH:
     {
       // Try, if assigned already (how?!) do not deadlock the Kernel loader
@@ -402,7 +403,7 @@ DllMain ( HMODULE hModule,
                 );
       }
 
-      if (__SK_DLL_TeardownEvent > 0)
+      if ((intptr_t)__SK_DLL_TeardownEvent > 0)
       { CloseHandle (__SK_DLL_TeardownEvent);
                      __SK_DLL_TeardownEvent = INVALID_HANDLE_VALUE;
       }
@@ -873,15 +874,6 @@ SK_EstablishDllRole (skWin32Module&& module)
         is_steamworks_game =
           ( steam_tests [0].used |
             steam_tests [1].used );
-
-        if (! is_steamworks_game)
-        {
-          if ( PathFileExistsA (steam_tests [0].szModuleName) ||
-               PathFileExistsA (steam_tests [1].szModuleName) )
-          {
-            is_steamworks_game = true;
-          }
-        }
       }
 
       // If this is a Steamworks game, then lets start doing stuff to it!
@@ -1042,8 +1034,8 @@ SK_EstablishDllRole (skWin32Module&& module)
         if (SK_GetDLLRole () == DLL_ROLE::INVALID)
             SK_SetDLLRole (     DLL_ROLE::DXGI   );
 
-        extern SK_LazyGlobal <sk_config_t> _config;
-                          auto& config_ = *_config;
+        extern sk_config_t _config;
+           auto& config_ = _config;
 
         DBG_UNREFERENCED_LOCAL_VARIABLE (config_);
 

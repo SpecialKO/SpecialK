@@ -108,7 +108,7 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
     g_VertexBufferSize =
       draw_data->TotalVtxCount + 5000;
 
-    if ( g_pd3dDevice->CreateVertexBuffer ( g_VertexBufferSize * sizeof CUSTOMVERTEX,
+    if ( g_pd3dDevice->CreateVertexBuffer ( g_VertexBufferSize * sizeof (CUSTOMVERTEX),
                                               D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
                                                 D3DFVF_CUSTOMVERTEX,
                                                   D3DPOOL_DEFAULT,

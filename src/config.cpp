@@ -21,8 +21,7 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/nvapi.h>
-#include <SpecialK/adl.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
@@ -31,7 +30,7 @@ iSK_INI*       osd_ini    = nullptr;
 iSK_INI*       steam_ini  = nullptr;
 iSK_INI*       macro_ini  = nullptr;
 
-SK_LazyGlobal <sk_config_t> _config;
+sk_config_t _config;
 
 SK_LazyGlobal <std::unordered_map <std::wstring, BYTE>> humanKeyNameToVirtKeyCode;
 SK_LazyGlobal <std::unordered_map <BYTE, std::wstring>> virtKeyCodeToHumanKeyName;
@@ -1895,6 +1894,8 @@ auto DeclKeybind =
         config.window.always_on_top               =     -1;
         config.threads.enable_file_io_trace       =   true;
         config.textures.d3d11.cache               =  false;
+        config.textures.d3d11.uncompressed_mips   =   true;
+        config.textures.d3d11.cache_gen_mips      =   true;
         config.render.dxgi.deferred_isolation     =   true;
         config.render.dxgi.present_test_skip      =   true;
         config.cegui.enable                       =   true;
@@ -3816,8 +3817,6 @@ SK_Keybind::parse (void)
 
 
 
-#include <SpecialK/utility.h>
-#include <SpecialK/diagnostics/compatibility.h>
 
 bool
 SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
@@ -4014,7 +4013,6 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
     getConfigPathForAppID ( getAppIDFromPath (wszPath) );
 }
 
-#include <unordered_set>
 
 std::wstring
 SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const

@@ -3,9 +3,6 @@
 #include <d3d9.h>
 #endif
 
-#define D3D11_VIDEO_NO_HELPERS
-#define D3D11_NO_HELPERS
-
 #if (~(defined (__d3d11_h__) ||\
        defined (__d3d11_1_h__)))
 #ifndef __dxgicommon_h__
@@ -13,8 +10,6 @@
 #include <dxgitype.h>
 #endif
 #endif
-#include <d3d11.h>
-#include <d3d11_1.h>
 #endif
 #endif // ! defined (__SK_NODX__)
 
@@ -23,7 +18,10 @@
 #include"nvapi_lite_sli.h"
 #include"nvapi_lite_surround.h"
 #include"nvapi_lite_stereo.h"
+#if defined (__d3d11_h__)
 #include"nvapi_lite_d3dext.h"
+#endif
+
  /************************************************************************************************************************************\
 |*                                                                                                                                    *|
 |*     Copyright © 2012 NVIDIA Corporation.  All rights reserved.                                                                     *|

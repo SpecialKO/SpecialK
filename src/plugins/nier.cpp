@@ -26,10 +26,7 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_d3d11.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 #include <SpecialK/plugin/nier.h>
 
@@ -213,7 +210,6 @@ SK_FAR_CheckVersion (LPVOID user)
   return 0;
 }
 
-#include <../depends/include/glm/glm.hpp>
 
 
 HRESULT
@@ -1367,8 +1363,6 @@ SK_FAR_DrawInstancedIndirect (
     SK_FAR_RestoreAspectRatio (This);
 }
 
-#include <cmath>
-#include <memory>
 
 __declspec (noinline)
 void

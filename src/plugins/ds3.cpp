@@ -53,7 +53,6 @@ __stdcall
 SK_DrawExternalOSD (std::string app_name, std::string text);
 
 
-#include <d3d11.h>
 
 typedef void (WINAPI *D3D11_RSSetViewports_pfn)(
         ID3D11DeviceContext*,
@@ -291,7 +290,6 @@ SK_DS3_GetConfig (void)
 #define sus_state SK_SUS_GetState  ( )
 
 
-#include <SpecialK/core.h>
 
 extern void
 __stdcall

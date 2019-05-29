@@ -22,7 +22,6 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
-#include <d3d11.h>
 
 
 volatile LONG SK_DXGI_LiveWrappedSwapChains  = 0;
@@ -587,7 +586,6 @@ IWrapDXGISwapChain::ResizeBuffers1 ( UINT        BufferCount,
   return hr;
 }
 
-#include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 HRESULT
 STDMETHODCALLTYPE

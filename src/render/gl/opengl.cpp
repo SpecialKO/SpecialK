@@ -24,35 +24,18 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <cstdint>
-#include <Windows.h>
-#include <wingdi.h>
 
 #undef _WINGDI_
 
-#include <SpecialK/tls.h>
 #include <SpecialK/utility/bidirectional_map.h>
-#include <SpecialK/osd/popup.h>
-
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/gl/opengl_backend.h>
-#include <SpecialK/render/backend.h>
 
 #include <SpecialK/window.h>
-
-#include <SpecialK/log.h>
 #include <SpecialK/import.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/thread.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/modules.h>
-#include <SpecialK/diagnostics/load_library.h>
-//
-//extern bool __SK_bypass;
-//
 #include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-#include <SpecialK/config.h>
 
+#include <SpecialK/osd/popup.h>
+
+#include <SpecialK/render/gl/opengl_backend.h>
 #include <imgui/backends/imgui_gl3.h>
 extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
 
@@ -64,8 +47,9 @@ extern void SK_Steam_ClearPopups (void);
 
 SK_Thread_HybridSpinlock *cs_gl_ctx = nullptr;
 HGLRC                             __gl_primary_context = nullptr;
-std::unordered_map <HGLRC, HGLRC> __gl_shared_contexts;
-std::unordered_map <HGLRC, BOOL>  init_;
+
+SK_LazyGlobal <std::unordered_map <HGLRC, HGLRC>> __gl_shared_contexts;
+SK_LazyGlobal <std::unordered_map <HGLRC, BOOL>>  init_;
 
 struct SK_GL_Context {
 };
@@ -97,7 +81,6 @@ WaitForInit_GL (void)
 }
 
 #include <SpecialK/osd/text.h>
-#include <SpecialK/osd/popup.h>
 
 
 #ifndef SK_BUILD__INSTALLER
@@ -122,7 +105,7 @@ _SKC_MakeCEGUILib ("CEGUISTBImageCodec")
 
 #pragma comment (lib, "delayimp.lib")
 
-static CEGUI::OpenGL3Renderer* cegGL       = nullptr;
+CEGUI::OpenGL3Renderer* cegGL       = nullptr;
 #endif
 
 
@@ -1225,9 +1208,7 @@ void ResetCEGUI_GL (void)
 
       try {
         CEGUI::OpenGL3Renderer* cegGL_new =
-          reinterpret_cast <CEGUI::OpenGL3Renderer *> (
-            &CEGUI::OpenGL3Renderer::bootstrapSystem ()
-          );
+          &CEGUI::OpenGL3Renderer::bootstrapSystem ();
 
         cegGL = cegGL_new;
       }
@@ -1374,8 +1355,8 @@ wglDeleteContext (HGLRC hglrc)
 
   bool has_children = false;
 
-  for ( auto it  = __gl_shared_contexts.begin () ;
-             it != __gl_shared_contexts.end   () ; )
+  for ( auto it  = __gl_shared_contexts->begin () ;
+             it != __gl_shared_contexts->end   () ; )
   {
     if (it->first == hglrc)
     {
@@ -1401,8 +1382,8 @@ wglDeleteContext (HGLRC hglrc)
       cegGL       = nullptr;
     }
 
-    init_ [__gl_primary_context] = false;
-           __gl_primary_context  = nullptr;
+    init_.get () [__gl_primary_context] = false;
+                  __gl_primary_context  = nullptr;
   }
 
 
@@ -1410,9 +1391,6 @@ wglDeleteContext (HGLRC hglrc)
 }
 
 
-#include <CEGUI/RendererModules/OpenGL/GL3Renderer.h>
-#include <cstdint>
-#include <algorithm>
 
 #if 0
 typedef uint32_t  GLenum;
@@ -1663,7 +1641,7 @@ SK_Overlay_DrawGL (void)
 
   static bool need_resize;
 
-  need_resize |= ( memcmp (&rect, &rect_now, sizeof RECT) != 0 );
+  need_resize |= ( memcmp (&rect, &rect_now, sizeof (RECT)) != 0 );
 
   if (config.cegui.enable && need_resize && cegGL != nullptr)
   {
@@ -1767,7 +1745,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   {
     std::lock_guard <SK_Thread_CriticalSection> auto_lock0 (*cs_gl_ctx);
 
-    if (init_.empty () && thread_hglrc == nullptr)
+    if (init_->empty () && thread_hglrc == nullptr)
     {
       // This is a nop, it sets the same handles it gets... but it ensures that
       //   other hook libraries are congruent
@@ -1784,20 +1762,20 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     if (thread_hglrc != nullptr)
     {
       bool shared_ctx =
-        __gl_shared_contexts.count (thread_hglrc) != 0;
+        __gl_shared_contexts->count (thread_hglrc) != 0;
 
-      if (init_.count (thread_hglrc) == 0 || need_init)
+      if (init_->count (thread_hglrc) == 0 || need_init)
       {
         // Shared context, and the primary share point is already being tracked
         need_init = !
-          (                   shared_ctx &&
-            init_.count (__gl_shared_contexts [thread_hglrc]) );
+          (                    shared_ctx &&
+            init_->count (__gl_shared_contexts.get ()[thread_hglrc]) );
       }
 
 
       if (__gl_primary_context == nullptr)
       {   __gl_primary_context = shared_ctx   ?
-          __gl_shared_contexts [thread_hglrc] : thread_hglrc;
+          __gl_shared_contexts.get ()[thread_hglrc] : thread_hglrc;
       }
 
 
@@ -1811,10 +1789,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                     glewInit ();
 #endif
 
-        init_ [thread_hglrc] = TRUE;
+        init_.get ()[thread_hglrc] = TRUE;
 
         if (shared_ctx)
-          init_ [__gl_shared_contexts [thread_hglrc]] = TRUE;
+          init_.get ()[__gl_shared_contexts.get ()[thread_hglrc]] = TRUE;
 
         ImGui_ImplGL3_Init ();
       }
@@ -1838,9 +1816,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   {
     std::lock_guard <SK_Thread_CriticalSection> auto_lock1 (*cs_gl_ctx);
 
-    if (__gl_shared_contexts.count (thread_hglrc))
+    if (__gl_shared_contexts->count (thread_hglrc))
     {
-      if (__gl_shared_contexts [thread_hglrc] == __gl_primary_context)
+      if (__gl_shared_contexts.get ()[thread_hglrc] == __gl_primary_context)
         compatible_dc = true;
     }
 
@@ -2151,16 +2129,16 @@ namespace GLPerf
     }
 
   protected:
-    GLboolean    active_;
-    GLboolean    finished_; // Has GL given us the data yet?
-    GLboolean    ready_;    // Has the old value has been retrieved yet?
+    GLboolean    active_   = GL_FALSE;
+    GLboolean    finished_ = GL_FALSE; // Has GL given us the data yet?
+    GLboolean    ready_    = GL_FALSE; // Has the old value has been retrieved yet?
 
-    GLuint64     result_;   // Cached result
+    GLuint64     result_   = 0ULL;     // Cached result
 
   private:
-    GLuint       query_;    // GL Name of Query Object
-    GLenum       target_;   // Target;
-    std::wstring name_;     // Human-readable name
+    GLuint       query_    = 0UL;     // GL Name of Query Object
+    GLenum       target_   = GL_NONE; // Target;
+    std::wstring name_     = L"";     // Human-readable name
   };
 
   bool HAS_pipeline_query;
@@ -2253,7 +2231,6 @@ GLPerf::Init (void)
   return false;
 }
 
-#include <d3d11.h> // Yeah, the GL extension is a 1:1 mirror with D3D11 :)
 
 void
 __stdcall
@@ -2957,10 +2934,10 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
 
     // If sharing with a shared context, then follow the shared context
     //   back to its parent
-    if (__gl_shared_contexts.count (ctx0))
-      __gl_shared_contexts [ctx1] = __gl_shared_contexts [ctx0];
+    if (__gl_shared_contexts->count (ctx0))
+      __gl_shared_contexts.get ()[ctx1] = __gl_shared_contexts.get ()[ctx0];
     else
-      __gl_shared_contexts [ctx1] = ctx0;
+      __gl_shared_contexts.get ()[ctx1] = ctx0;
   }
 
   return ret;

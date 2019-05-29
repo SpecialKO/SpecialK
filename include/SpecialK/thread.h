@@ -166,14 +166,14 @@ public:
   }
 
 protected:
-  _Acquires_exclusive_lock_ (*this->cs_)
+  _Acquires_exclusive_lock_ (cs_)
   bool TryEnter (void) noexcept
   {
     return
       ( acquired_ = (TryEnterCriticalSection (cs_) != FALSE) );
   }
 
-  _Acquires_exclusive_lock_ (*this->cs_)
+  _Acquires_exclusive_lock_ (cs_)
   void Enter (void) noexcept
   {
     EnterCriticalSection (cs_);
@@ -181,7 +181,7 @@ protected:
     acquired_ = true;
   }
 
-  _Releases_exclusive_lock_ (*this->cs_)
+  _Releases_exclusive_lock_ (cs_)
   void Leave (void) noexcept
   {
     if (acquired_ != false)

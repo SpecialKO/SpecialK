@@ -23,6 +23,12 @@
 // Useless warning:  'typedef ': ignored on left of '' when no variable is declared
 #pragma warning (disable: 4091)
 
+class SK_TLS;
+
+//SK_TLS* __cdecl SK_TLS_Get      (void); // Alias: SK_TLS_Top
+extern SK_TLS* SK_TLS_Bottom   (void);
+extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
+
 #include <Windows.h>
 #undef _WINGDI_
 #define NOGDI
@@ -43,7 +49,7 @@
 
 struct SK_MMCS_TaskEntry;
 
-#include <d3d11.h>
+#include <SpecialK/render/d3d11/d3d11_interfaces.h>
 
 #ifndef _D3D11_CONSTANTS
 #define	D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT	( 15 )
@@ -744,10 +750,6 @@ public:
 
   virtual size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
-
-//SK_TLS* __cdecl SK_TLS_Get      (void); // Alias: SK_TLS_Top
-extern SK_TLS* SK_TLS_Bottom   (void);
-extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
 
 class SK_ScopedBool
 {

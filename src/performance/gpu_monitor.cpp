@@ -21,7 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
 
@@ -75,7 +74,8 @@ DWORD
 __stdcall
 SK_GPUPollingThread (LPVOID user)
 {
-  static std::vector <NvU32> gpu_ids;
+  static std::vector <std::pair <NvU32, NvPhysicalGpuHandle>>
+    nv_gpus;
 
   SK_GPU_InitSensorData ();
 
@@ -171,28 +171,38 @@ SK_GPUPollingThread (LPVOID user)
           if (NvAPI_GetGPUIDFromPhysicalGPU != nullptr)
               NvAPI_GetGPUIDFromPhysicalGPU ( gpus [i], &gpu_id );
 
-          gpu_ids.push_back                 (            gpu_id );
+          NvPhysicalGpuHandle gpu = { };
+
+          if (NvAPI_GetPhysicalGPUFromGPUID != nullptr)
+              NvAPI_GetPhysicalGPUFromGPUID ( gpu_id, &gpu );
+
+          nv_gpus.emplace_back (
+            std::make_pair (gpu_id, gpu)
+          );
         }
 
-        std::sort (gpu_ids.begin (), gpu_ids.end ());
+        std::sort ( nv_gpus.begin (),
+                    nv_gpus.end (),
+          [&]( const std::pair <NvU32, NvPhysicalGpuHandle>& a,
+               const std::pair <NvU32, NvPhysicalGpuHandle>& b )
+          {
+            return ( a.first < b.first );
+          }
+        );
 
         init = true;
       }
 
       for (int i = 0; i < stats.num_gpus; i++)
       {
-        NvPhysicalGpuHandle gpu = { };
-
         // In order for DXGI Adapter info to match up... don't just assign
         //   these GPUs wily-nilly, use the high 24-bits of the GPUID as
         //     a bitmask.
         //NvAPI_GetPhysicalGPUFromGPUID (1 << (i + 8), &gpu);
         //stats.gpus [i].nv_gpuid = (1 << (i + 8));
 
-        if (NvAPI_GetPhysicalGPUFromGPUID != nullptr)
-            NvAPI_GetPhysicalGPUFromGPUID (gpu_ids [i], &gpu);
-
-        stats.gpus [i].nv_gpuid = gpu_ids [i];
+        NvPhysicalGpuHandle gpu = nv_gpus [i].second;
+        stats.gpus [i].nv_gpuid = nv_gpus [i].first;
 
         NvAPI_Status        status =
           NvAPI_GPU_GetDynamicPstatesInfoEx (gpu, &psinfoex);
@@ -551,7 +561,8 @@ SK_GPUPollingThread (LPVOID user)
         }
 
         ADLPMActivity activity       = {                  };
-                      activity.iSize = sizeof ADLPMActivity;
+
+        activity.iSize = sizeof (ADLPMActivity);
 
         ADL_Overdrive5_CurrentActivity_Get (pAdapter->iAdapterIndex, &activity);
 
@@ -570,15 +581,15 @@ SK_GPUPollingThread (LPVOID user)
         stats.gpus [i].volts_mV.over      = false;
         stats.gpus [i].volts_mV.core      = static_cast <float> (activity.iVddc); // mV?
 
-        ADLTemperature temp       = {                   };
-                       temp.iSize = sizeof ADLTemperature;
+        ADLTemperature temp       = {                     };
+                       temp.iSize = sizeof (ADLTemperature);
 
         ADL_Overdrive5_Temperature_Get (pAdapter->iAdapterIndex, 0, &temp);
 
         stats.gpus [i].temps_c.gpu = temp.iTemperature / 1000UL;
 
         ADLFanSpeedValue fanspeed            = {                           };
-                         fanspeed.iSize      = sizeof ADLFanSpeedValue;
+                         fanspeed.iSize      = sizeof (ADLFanSpeedValue);
                          fanspeed.iSpeedType = ADL_DL_FANCTRL_SPEED_TYPE_RPM;
 
         ADL_Overdrive5_FanSpeed_Get (pAdapter->iAdapterIndex, 0, &fanspeed);

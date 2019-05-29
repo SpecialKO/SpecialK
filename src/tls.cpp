@@ -381,8 +381,7 @@ SK_TLS_BottomEx (DWORD dwTid)
 
   SK_TLS* pTLS = nullptr;
 
-  // NOTE: Do not use SK_SEH_SetTranslator here because it expects TLS to be
-  //         setup for the calling thread.
+
   auto orig_se =
   SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try {
@@ -443,8 +442,6 @@ SK_ModuleAddrMap::insert (LPCVOID pAddr, HMODULE hMod)
   (*pResolved_) [pAddr] = hMod;
 }
 
-#include <SpecialK/render/d3d9/d3d9_backend.h>
-#include <SpecialK/steam_api.h>
 
 void*
 SK_ImGui_ThreadContext::allocPolylineStorage (size_t needed)
@@ -726,7 +723,6 @@ SK_Steam_ThreadContext::Cleanup (SK_TLS_CleanupReason_e reason)
   return freed;
 }
 
-#include <SpecialK/render/backend.h>
 
 int
 SK_Win32_ThreadContext::getThreadPriority (bool nocache)
@@ -1052,7 +1048,7 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
   freed += scheduler     ->Cleanup (reason);
   freed += dxtex          .Cleanup (reason);
 
-  if (debug.handle > 0)
+  if ((intptr_t)debug.handle > 0)
   {
     CloseHandle (debug.handle);
                  debug.handle = INVALID_HANDLE_VALUE;
@@ -1067,7 +1063,7 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
       ( known_modules->pResolved );
 
     freed +=
-      ( sizeof HMODULE *
+      ( sizeof (HMODULE) *
                    pResolved->size () * 2 );
 
     delete         pResolved;

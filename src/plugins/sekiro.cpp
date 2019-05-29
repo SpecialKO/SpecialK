@@ -399,7 +399,6 @@ bool SK_Sekiro_UnlimitFramerate (bool set, long double target)
 }
 
 
-#include <ImGui/ImGui.h>
 
 HRESULT
 STDMETHODCALLTYPE
@@ -747,7 +746,6 @@ SK_Sekiro_PlugInCfg (void)
   return true;
 }
 
-#include <SpecialK/utility.h>
 
 void
 SK_Sekiro_InitPlugin (void)

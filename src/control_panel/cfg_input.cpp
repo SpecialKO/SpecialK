@@ -63,7 +63,7 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
 
   POINT screen_pos = SK_ImGui_Cursor.pos;
 
-  HCURSOR hCur = GetCursor ();
+  HCURSOR hCur = SK_GetCursor ();
 
   if (hCur != nullptr)
     SK_ImGui_Cursor.orig_img = hCur;

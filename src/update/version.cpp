@@ -412,7 +412,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   LARGE_INTEGER liStartTime =
     SK_CurrentPerf ();
 
-  InternetSetOptionW ( hInetGitHub, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
+  InternetSetOptionW ( hInetGitHub, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof (ULONG) );
 
   SK_LOG0 ( (L"Fetching GitHub repository INI file from %s... ", wszRemoteRepoURL ),
              L"AutoUpdate" );
@@ -444,7 +444,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     return false;
   }
 
-  InternetSetOptionW ( hInetGitHubOpen, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
+  InternetSetOptionW ( hInetGitHubOpen, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof (ULONG) );
 
   //////////////////////////////////////////////////////////////////////////
   //

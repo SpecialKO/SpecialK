@@ -23,16 +23,10 @@
 
 #define __SK_SUBSYSTEM__ L" DInput 8 "
 
-#include <SpecialK/input/dinput8_backend.h>
-#include <SpecialK/input/xinput.h>
-#include <SpecialK/input/input.h>
-#include <guiddef.h>
-
-#include <specialk/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/d3d11/d3d11_core.h>
 
 
-extern bool nav_usable;
+
+//extern bool nav_usable;
 
 
 using finish_pfn = void (WINAPI *)(void);
@@ -655,12 +649,10 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
     else
       rpos = static_cast <float> ( pos ) - static_cast <float> ( min );
 
-    auto max_xi    = static_cast <float> (
-      std::numeric_limits <unsigned short>::max ( )
-    );
-    auto center_xi = static_cast <float> (
-      std::numeric_limits <unsigned short>::max ( ) / 2
-    );
+    auto max_xi    =
+      std::numeric_limits <unsigned short>::max ( );
+    auto center_xi =
+      std::numeric_limits <unsigned short>::max ( ) / 2;
 
     return
       static_cast <SHORT> ( max_xi * ( rpos / range ) - center_xi );
@@ -955,7 +947,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
   if (lpvData != nullptr)
   {
-    if (cbData == sizeof DIJOYSTATE2)
+    if (cbData == sizeof (DIJOYSTATE2))
     {
       SK_DI8_READ (sk_input_dev_type::Gamepad)
 
@@ -990,7 +982,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
       }
     }
 
-    else if (cbData == sizeof DIJOYSTATE)
+    else if (cbData == sizeof (DIJOYSTATE))
     {
       SK_DI8_READ (sk_input_dev_type::Gamepad)
 
@@ -1471,7 +1463,6 @@ SK_Input_HookDI8 (void)
   }
 }
 
-#include <SpecialK/input/dinput7_backend.h>
 
 void
 SK_Input_PreHookDI8 (void)

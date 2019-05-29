@@ -7911,7 +7911,9 @@ static void ImGui::NavUpdate()
             SetNavIDWithRectRel(g.NavInitResultId, g.NavLayer, g.NavInitResultRectRel);
         else
             SetNavID(g.NavInitResultId, g.NavLayer);
-        g.NavWindow->NavRectRel[g.NavLayer] = g.NavInitResultRectRel;
+
+        if (g.NavWindow != nullptr)
+          g.NavWindow->NavRectRel [g.NavLayer] = g.NavInitResultRectRel;
     }
 
     g.NavInitRequest         = false;

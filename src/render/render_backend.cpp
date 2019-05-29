@@ -29,11 +29,10 @@
 #include <SpecialK/render/d3d8/d3d8_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/ddraw/ddraw_backend.h>
+#include <SpecialK/render/d3d12/d3d12_interfaces.h>
 
-#include <d3d9.h>
 
 #include <SpecialK/nvapi.h>
-#include <SpecialK/adl.h>
 
 volatile LONG SK_RenderBackend::frames_drawn = 0;
 
@@ -449,7 +448,7 @@ SK_BootVulkan (void)
 void
 SK_RenderBackend_V2::gsync_s::update (void)
 {
-  static SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
@@ -474,41 +473,44 @@ SK_RenderBackend_V2::gsync_s::update (void)
 
   bool success = false;
 
-  if ( last_checked < (SK::ControlPanel::current_time - 666UL) )
-  {
+  DWORD dwTimeNow =
+    timeGetTime ();
+
+  if ( last_checked < (dwTimeNow - 666UL) )
+  {    last_checked =  dwTimeNow;
+
     if ( rb.device       == nullptr ||
          rb.swapchain    == nullptr ||
         (rb.surface.d3d9 == nullptr &&
          rb.surface.dxgi == nullptr) )
     {
-      active  = false;
-
       return
         _ClearTemporarySurfaces ();
     }
 
-    if ( NVAPI_OK   == NvAPI_D3D_IsGSyncCapable (rb.device,
-                                                 rb.surface.nvapi, &capable))
+    if ( NVAPI_OK == NvAPI_D3D_IsGSyncCapable (rb.device,
+                                               rb.surface.nvapi, &capable))
     {
-      if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive  (rb.device,
-                                                 rb.surface.nvapi, &active ))
-      {
-         success = true;
-      }
+      NvAPI_D3D_IsGSyncActive (rb.device, rb.surface.nvapi, &active);
+
+      success      = true;
     }
 
-    else capable = FALSE;
-  }
+    else capable   = FALSE;
 
-  if (!  success)
-  {
-    // On failure, postpone the next check
-    last_checked = SK::ControlPanel::current_time + 3000UL;
-    active       = FALSE;
-  }
+    if (!  success)
+    {
+      // On failure, postpone the next check
+      last_checked = dwTimeNow + 3000UL;
+      active       = FALSE;
+    }
 
-  else
-    last_checked = SK::ControlPanel::current_time;
+    else if (active)
+      last_checked = dwTimeNow + 150UL;
+
+    else
+      last_checked = dwTimeNow + 500UL;
+  }
 
   _ClearTemporarySurfaces ();
 }

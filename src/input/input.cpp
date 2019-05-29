@@ -23,7 +23,6 @@
 
 #define __SK_SUBSYSTEM__ L"Input Mgr."
 
-#include <SpecialK/command.h>
 
 bool
 SK_InputUtil_IsHWCursorVisible (void)
@@ -361,14 +360,14 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
         it.dwFlags   &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
         it.dwFlags   &= ~RIDEV_CAPTUREMOUSE;
         it.hwndTarget = hWnd;
-        SK_RegisterRawInputDevices ( &it, 1, sizeof RAWINPUTDEVICE );
+        SK_RegisterRawInputDevices ( &it, 1, sizeof (RAWINPUTDEVICE) );
       }
 
       else
       {
         different  |= (it.dwFlags & RIDEV_NOLEGACY) == 0;
         it.dwFlags |= RIDEV_NOLEGACY;
-        SK_RegisterRawInputDevices ( &it, 1, sizeof RAWINPUTDEVICE );
+        SK_RegisterRawInputDevices ( &it, 1, sizeof (RAWINPUTDEVICE) );
       }
 
       overrides.emplace_back (it);
@@ -472,7 +471,7 @@ SK_RawInput_EnableLegacyMouse (bool enable)
 
     SK_RegisterRawInputDevices ( device_override.data (),
              static_cast <UINT> (device_override.size ()),
-                   sizeof RAWINPUTDEVICE
+                   sizeof (RAWINPUTDEVICE)
     );
 
     return different;
@@ -492,7 +491,7 @@ SK_RawInput_RestoreLegacyMouse (void)
     SK_RegisterRawInputDevices (
       raw_devices.data (),
         static_cast <UINT> (raw_devices.size ()),
-          sizeof RAWINPUTDEVICE
+          sizeof (RAWINPUTDEVICE)
     );
   }
 }
@@ -518,7 +517,7 @@ SK_RawInput_EnableLegacyKeyboard (bool enable)
 
     SK_RegisterRawInputDevices ( device_override.data (),
              static_cast <UINT> (device_override.size ()),
-                   sizeof RAWINPUTDEVICE
+                   sizeof (RAWINPUTDEVICE)
     );
 
     return different;
@@ -536,7 +535,7 @@ SK_RawInput_RestoreLegacyKeyboard (void)
 
     SK_RegisterRawInputDevices ( raw_devices.data (),
              static_cast <UINT> (raw_devices.size ()),
-                   sizeof RAWINPUTDEVICE
+                   sizeof (RAWINPUTDEVICE)
     );
   }
 }
@@ -615,7 +614,7 @@ SK_RawInput_PopulateDeviceList (void)
   UINT ret =
     SK_GetRegisteredRawInputDevices ( pDevices,
                                         &uiNumDevices,
-                                          sizeof RAWINPUTDEVICE );
+                                          sizeof (RAWINPUTDEVICE) );
 
   assert (ret == -1);
 
@@ -631,7 +630,7 @@ SK_RawInput_PopulateDeviceList (void)
 
     SK_GetRegisteredRawInputDevices ( pDevices,
                                      &uiNumDevices,
-                                       sizeof RAWINPUTDEVICE );
+                                       sizeof (RAWINPUTDEVICE) );
 
     raw_devices.clear ();
 
@@ -656,7 +655,7 @@ NtUserGetRegisteredRawInputDevices_Detour (
 
   SK_LOG_FIRST_CALL
 
-  assert (cbSize == sizeof RAWINPUTDEVICE);
+  assert (cbSize == sizeof (RAWINPUTDEVICE));
 
   // On the first call to this function, we will need to query this stuff.
   //static bool init = false;
@@ -704,11 +703,11 @@ NtUserRegisterRawInputDevices_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (cbSize != sizeof RAWINPUTDEVICE)
+  if (cbSize != sizeof (RAWINPUTDEVICE))
   {
     SK_LOG0 ( ( L"RegisterRawInputDevices has wrong "
                 L"structure size (%lu bytes), expected: %lu",
-                  cbSize, (UINT)sizeof RAWINPUTDEVICE ),
+                  cbSize, (UINT)sizeof (RAWINPUTDEVICE) ),
                L" RawInput " );
 
     return
@@ -859,14 +858,14 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
       {
         RtlZeroMemory (pData, *pcbSize);
 
-        const int max_items = (sizeof RAWINPUT / *pcbSize);
-              int count     =                            0;
+        const int max_items = (sizeof (RAWINPUT) / *pcbSize);
+              int count     =                              0;
             auto *pTemp     =
-                                  new RAWINPUT [max_items];
-        uint8_t *pInput     =             (uint8_t *)pTemp;
-           auto *pOutput    =             (uint8_t *)pData;
-        UINT     cbSize     =                     *pcbSize;
-                  *pcbSize  =                            0;
+                                    new RAWINPUT [max_items];
+        uint8_t *pInput     =               (uint8_t *)pTemp;
+           auto *pOutput    =               (uint8_t *)pData;
+        UINT     cbSize     =                       *pcbSize;
+                  *pcbSize  =                              0;
 
         int       temp_ret  =
           GetRawInputBuffer_Original ( pTemp, &cbSize, cbSizeHeader );
@@ -953,7 +952,6 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 // ImGui Cursor Management
 //
 /////////////////////////////////////////////////
-#include <imgui/imgui.h>
 sk_imgui_cursor_s SK_ImGui_Cursor;
 
 HCURSOR GetGameCursor (void);
@@ -1123,7 +1121,7 @@ void
 ImGuiCursor_Impl (void)
 {
   CURSORINFO ci = { };
-  ci.cbSize     = sizeof CURSORINFO;
+  ci.cbSize     = sizeof (CURSORINFO);
 
   SK_GetCursorInfo (&ci);
 
@@ -1213,7 +1211,7 @@ void
 sk_imgui_cursor_s::activateWindow (bool active)
 {
   CURSORINFO ci = { };
-  ci.cbSize     = sizeof ci;
+  ci.cbSize     = sizeof (ci);
 
   SK_GetCursorInfo (&ci);
 
@@ -1510,6 +1508,16 @@ NtUserSetCursor_Detour (
 
   return
     NtUserSetCursor_Original (hCursor);
+}
+
+HCURSOR
+WINAPI
+SK_GetCursor (VOID)
+{
+  if (NtUserGetCursor_Original != nullptr)
+    return NtUserGetCursor_Original ();
+
+  return GetCursor ();
 }
 
 HCURSOR
@@ -2039,7 +2047,6 @@ NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
   return bRet;
 }
 
-#include <dbt.h>
 
 LRESULT
 WINAPI
@@ -2319,7 +2326,6 @@ void SK_Input_PreInit (void)
 
 
 
-#include <concurrent_unordered_map.h>
 
 typedef HKL (WINAPI *GetKeyboardLayout_pfn)(
   _In_ DWORD idThread

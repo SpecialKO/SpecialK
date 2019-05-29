@@ -22,7 +22,6 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
 
-#include <SpecialK/render/backend.h>
 
 #define __SK_SUBSYSTEM__ L" SteamAPI "
 
@@ -30,7 +29,6 @@
 //  by hand.
 #define STEAM_API_NODLL
 #include <SpecialK/steam_api.h>
-#include <../depends/include/steamapi/steamclientpublic.h>
 
 using            callback_set = std::multiset <class CCallbackBase*>;
 using threadsafe_callback_map = Concurrency::concurrent_unordered_map
@@ -619,8 +617,6 @@ SK_Steam_GetDLLPath (void)
 BOOL
 SK_Steam_PreHookCore (const wchar_t* wszTry)
 {
-  return FALSE;
-
   static volatile LONG init = FALSE;
 
   if (InterlockedCompareExchange (&init, TRUE, FALSE))
@@ -676,13 +672,14 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
       static_cast_p2p <void> (&SteamUGC_Original) );
   }
 
-  if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamUserStats"))
-  {
-    SK_CreateDLLHook2 (     wszSteamLib,
-                              "SteamUserStats",
-                               SteamUserStats_Detour,
-      static_cast_p2p <void> (&SteamUserStats_Original) );
-  }
+  // Disable for compat with Lego Marvel Superheroes
+  ////if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamUserStats"))
+  ////{
+  ////  SK_CreateDLLHook2 (     wszSteamLib,
+  ////                            "SteamUserStats",
+  ////                             SteamUserStats_Detour,
+  ////    static_cast_p2p <void> (&SteamUserStats_Original) );
+  ////}
 
   if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamUtils"))
   {
@@ -741,8 +738,6 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
   return FALSE;
 }
 
-#include <CEGUI/CEGUI.h>
-#include <CEGUI/System.h>
 
 extern bool
 SK_D3D11_CaptureSteamScreenshot (SK_ScreenshotStage when);
@@ -1116,7 +1111,6 @@ SK_IsSteamOverlayActive (void)
 }
 
 
-#include <SpecialK/utility.h>
 
 ISteamUserStats* SK_SteamAPI_UserStats   (void);
 void             SK_SteamAPI_ContextInit (HMODULE hSteamAPI);
@@ -1806,7 +1800,6 @@ Steam_Callback_RunStatEx (CCallbackBase *pThis, void           *pvParam,
 #define VERY_RARE   15.0f
 #define ONE_PERCENT  1.0f
 
-#include <imgui/imgui.h>
 
 std::string
 SK_Steam_RarityToColor (float percent)
@@ -2657,6 +2650,10 @@ public:
     {
       try
       {
+        auto& DisplaySize =
+          CEGUI::System::getDllSingleton ().getRenderer ()->
+                          getDisplaySize ();
+
         // If true, we need to redraw all text overlays to prevent flickering
         bool removed = false;
         bool created = false;
@@ -2672,12 +2669,9 @@ public:
         if (inset < 0.0001f)  inset = 0.0f;
 
         const float full_ht =
-          CEGUI::System::getDllSingleton ().getRenderer ()->
-                          getDisplaySize ().d_height * (1.0f - inset);
+          DisplaySize.d_height * (1.0f - inset);
 
-        const float full_wd =
-          CEGUI::System::getDllSingleton ().getRenderer ()->
-                          getDisplaySize ().d_width * (1.0f - inset);
+        const float full_wd = DisplaySize.d_width * (1.0f - inset);
 
         float x_origin, y_origin,
           x_dir,    y_dir;
@@ -2690,12 +2684,10 @@ public:
            (it->window->getPixelSize ().d_width) : 0.0f );
 
         const float title_wd =
-          CEGUI::System::getDllSingleton ().getRenderer ()->
-                          getDisplaySize ().d_width * (1.0f - 2.0f * inset);
+          DisplaySize.d_width * (1.0f - 2.0f * inset);
 
         const float title_ht =
-          CEGUI::System::getDllSingleton ().getRenderer ()->
-                          getDisplaySize ().d_height * (1.0f - 2.0f * inset);
+          DisplaySize.d_height * (1.0f - 2.0f * inset);
 
         float fract_x = 0.0f,
               fract_y = 0.0f;
@@ -3679,7 +3671,11 @@ S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
 {
   if (ReadAcquire (&__SK_DLL_Ending))
+  {
+    if (SteamAPI_RunCallbacks_Original != nullptr)
+        SteamAPI_RunCallbacks_Original ();
     return;
+  }
 
   static bool first = true;
 
@@ -3766,15 +3762,15 @@ SteamAPI_RunCallbacks_Detour (void)
   InterlockedIncrement64 (&SK_TLS_Bottom ()->steam->callback_count);
 
 
-  //if (! steam_mutex->try_lock ())
-  //{
-  //  return;
-  //}
+  if (! steam_mutex->try_lock ())
+  {
+    return;
+  }
 
 
   if (SK_Steam_ShouldThrottleCallbacks ())
   {
-    //steam_mutex->unlock ();
+    steam_mutex->unlock ();
 
     return;
   }
@@ -3835,7 +3831,7 @@ SteamAPI_RunCallbacks_Detour (void)
     }
     SK_SEH_RemoveTranslator (orig_se);
 
-    //steam_mutex->unlock ();
+    steam_mutex->unlock ();
 
     return;
   }
@@ -3901,16 +3897,14 @@ SteamAPI_RunCallbacks_Detour (void)
     SK_SEH_RemoveTranslator (orig_se);
   }
 
-  //steam_mutex->unlock ();
+  steam_mutex->unlock ();
 }
 
 
 #define STEAMAPI_CALL1(x,y,z) ((x) = SteamAPI_##y z)
 #define STEAMAPI_CALL0(y,z)   (SteamAPI_##y z)
 
-#include <Windows.h>
 
-#include <ctime>
 
 // TODO: Remove
 void
@@ -4009,8 +4003,6 @@ SteamAPI_PumpThread (LPVOID user)
 
       do
       {
-        SK::SteamAPI::Pump ();
-
         HANDLE hSignals [] = {
           hSteamPumpKill, __SK_DLL_TeardownEvent
         };
@@ -4024,6 +4016,14 @@ SteamAPI_PumpThread (LPVOID user)
         {
           break;
         }
+
+        if ( hSteamPumpKill == INVALID_HANDLE_VALUE ||
+             hSteamPumpKill == 0 )
+        {
+          break;
+        }
+
+        SK::SteamAPI::Pump ();
 
       } while (! ReadAcquire (&__SK_DLL_Ending));
     }
@@ -4096,7 +4096,7 @@ SK_Steam_KillPump (void)
     if (hSteamPumpKill != INVALID_HANDLE_VALUE)
     {
       SignalObjectAndWait (
-        hThreadToKill.m_h, hSteamPumpKill, 100UL, FALSE
+        hThreadToKill.m_h, hSteamPumpKill, 500UL, FALSE
       );   CloseHandle    (hSteamPumpKill);
                            hSteamPumpKill = INVALID_HANDLE_VALUE;
     }
@@ -4689,19 +4689,8 @@ SteamAPI_InitSafe_Detour (void)
     steam_log->Log (L"----------(InitSafe)-----------\n");
   }
 
-  bool bRet    = FALSE;
-  //auto orig_se =
-  //SK_SEH_SetTranslator (SK_BasicStructuredExceptionTranslator);
-  //try
-  //{
-    bRet =
+  bool bRet =
       SteamAPI_InitSafe_Original ();
-  //} catch (const SK_SEH_IgnoredException& e)
-  //{
-  //  steam_log->Log (L"SEH-Sez What?! : %hs", e.what ());
-  //  // ... Okay!
-  //}
-  //SK_SEH_SetTranslator (orig_se);
 
   if (bRet)
   {
@@ -4755,6 +4744,10 @@ SteamAPI_Shutdown_Detour (void)
       steam_init_cs->unlock ();
 
 
+  steam_ctx.Shutdown  ();
+  return;
+
+
   if (! ReadAcquire (&__SK_DLL_Ending))
   {
     SK_Thread_Create (
@@ -4763,9 +4756,9 @@ SteamAPI_Shutdown_Detour (void)
     {
       SetCurrentThreadDescription (L"[SK] SteamAPI Restart Thread");
 
-      for (int i = 0; i < 1500; i++)
+      for (int i = 0; i < 250; i++)
       {
-        SK_Sleep (1UL);
+        SK_Sleep (5UL);
 
         if (ReadAcquire (&__SK_DLL_Ending))
         {
@@ -5050,7 +5043,6 @@ std::wstring
 SK_RecursiveFileSearch ( const wchar_t* wszDir,
                          const wchar_t* wszFile );
 
-#include <unordered_set>
 
 enum SK_File_SearchStopCondition {
   FirstMatchFound,
@@ -5935,7 +5927,6 @@ static HANDLE hSigNewSteamFileDetails {
   INVALID_HANDLE_VALUE
 };
 
-#include <concurrent_priority_queue.h>
 
 void
 SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
@@ -6156,7 +6147,6 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
 
 
 // Fallback to Win32 API if the Steam overlay is not functioning.
-#include <SpecialK/window.h>
 
 bool
 __stdcall

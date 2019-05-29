@@ -421,6 +421,10 @@ SK_RegisterRawInputDevices ( PCRAWINPUTDEVICE pRawInputDevices,
 
 HCURSOR
 WINAPI
+SK_GetCursor (VOID);
+
+HCURSOR
+WINAPI
 SK_SetCursor (_In_opt_ HCURSOR hCursor);
 
 SHORT WINAPI SK_GetKeyState      (int   nVirtKey);

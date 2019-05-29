@@ -24,7 +24,6 @@
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
 #include <SpecialK/control_panel/d3d11.h>
-#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
 // Only valid for the thread driving an immediate context.
@@ -227,27 +226,25 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
   // -- End Fast Path Maintenance --
 
 
-  auto& draw_base =
+  static auto& draw_base =
     SK_ImGui_DrawState.get ();
 
   if (rb.d3d11.immediate_ctx == pDevCtx)
   {
-    if (draw_base [static_idx].drawing)
-      return false;
-
-    return true;
+    return
+      (! draw_base [static_idx].drawing);
   }
 
   else if (dev_idx == (UINT)-1)
   {
-    if (draw_base [SK_D3D11_GetDeviceContextHandle (pDevCtx)].drawing)
-      return false;
+    return
+      (! draw_base [SK_D3D11_GetDeviceContextHandle (pDevCtx)].drawing);
   }
 
   else //(dev_idx != (UINT)-1)
   {
-    if (draw_base [dev_idx].drawing)
-      return false;
+    return
+      (! draw_base [dev_idx].drawing);
   }
 
   return true;
@@ -256,7 +253,7 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
 
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
-SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown> > >                               SK_D3D11_TempResources;
+SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown>> >                                SK_D3D11_TempResources;
 SK_LazyGlobal <std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1> > SK_D3D11_RenderTargets;
 
 void

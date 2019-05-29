@@ -21,11 +21,8 @@
 //
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
-#include <imgui/imgui.h>
-
-#include <SpecialK/control_panel.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 extern volatile
   LONG SK_D3D11_DrawTrackingReqs;
@@ -121,7 +118,6 @@ bool __SK_Y0_SafetyLeak      =  true;
 #define SK_Y0_DOF_PS1_CRC32C 0x419dcbfc
 #define SK_Y0_DOF_VS_CRC32C  0x0f5fefc2
 
-#include <SpecialK/sound.h>
 
 void
 SK_Yakuza0_BeginFrame (void)

@@ -91,7 +91,8 @@ SK_Timestamp (wchar_t* const out)
 // Due to the way concurrent data structures grow, we can't shrink this beast
 //   and this _is_ technically a set, of sorts... but knowing if an element is
 //     present requires treating it like a map and reading a boolean.
-concurrency::concurrent_unordered_map <iSK_Logger *, bool> flush_set;
+SK_LazyGlobal <concurrency::concurrent_unordered_map <iSK_Logger *, bool>>
+                                                           flush_set;
 HANDLE                                                     hFlushReq  = nullptr;
 
 DWORD
@@ -100,6 +101,10 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
 {
   SetCurrentThreadDescription (            L"[SK] Async Log Flush Thread Pump" );
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
+
+  HANDLE wait_objects [] = {
+    hFlushReq, __SK_DLL_TeardownEvent
+  };
 
   // TODO:  Consider an interlocked singly-linked list instead
   //
@@ -110,9 +115,9 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
   //
   while (! ReadAcquire (&__SK_DLL_Ending))
   {
-    if (! flush_set.empty ())
+    if (! flush_set->empty ())
     {
-      for ( auto& it : flush_set )
+      for ( auto& it : *flush_set )
       {
         if ( it.second != false  )
         {
@@ -126,10 +131,6 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
         }
       }
     }
-
-    static HANDLE wait_objects [] = {
-      hFlushReq, __SK_DLL_TeardownEvent
-    };
 
     DWORD dwWait =
       WaitForMultipleObjects (2, wait_objects, FALSE, INFINITE);
@@ -153,12 +154,6 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
 BOOL
 SK_FlushLog (iSK_Logger* pLog)
 {
-  // Perf. counter; made obsolete by SK's built-in
-  //  thread profiler and per-thread file I/O stats.
-#ifdef _DEBUG
-  static volatile LONG   flush_reqs  (0);
-#endif
-
   static volatile HANDLE
     hFlushThread = INVALID_HANDLE_VALUE;
 
@@ -184,18 +179,16 @@ SK_FlushLog (iSK_Logger* pLog)
     );
   }
 
-  if (! ReadAcquire (&__SK_DLL_Ending))
+  if (ReadAcquire (&__SK_DLL_Ending) < 1)
   {
     while ((intptr_t)hFlushReq <= 0)
       SK_Sleep (1);
 
-    if ( (! flush_set.count ( pLog )) ||
-            flush_set       [ pLog ] == false )
-    { flush_set             [ pLog ]  = true;
-      SetEvent              ( hFlushReq );
-#ifdef _DEBUG
-      InterlockedIncrement  (&flush_reqs);
-#endif
+    if ( ( flush_set->find ( pLog )   ==
+           flush_set->cend (      ) ) ||
+           flush_set.get( )[ pLog ] == false )
+    { flush_set.get ()     [ pLog ]  = true;
+      SetEvent               ( hFlushReq );
     }
   }
 
@@ -239,10 +232,9 @@ iSK_Logger::close (void)
 
   if (fLog != nullptr)
   {
-    if ( flush_set.count (this) )
-    {
-         flush_set       [this] = false;
-    }
+    if ( flush_set->find (this) !=
+         flush_set->cend (    )    )
+    {    flush_set.get( )[this] = false; }
 
     fflush (fLog);
     fclose (fLog);
@@ -258,7 +250,7 @@ iSK_Logger::close (void)
 
     full_name  += name;
 
-    if (StrStrIW (name.c_str (), LR"(crash\)"))
+    if (StrStrIW (name.c_str (), LR"(crash\)") != nullptr)
       full_name = name;
 
     DeleteFileW  (full_name.c_str ());
@@ -296,7 +288,7 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
 
   full_name  += wszFileName;
 
-  if (StrStrIW (wszFileName, LR"(crash\)"))
+  if (StrStrIW (wszFileName, LR"(crash\)") != nullptr)
   {
     full_name = wszFileName;
   }
@@ -304,9 +296,9 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   fLog   = _wfopen (full_name.c_str (), wszMode);
   silent = false;
 
-  BOOL bRet =
+  bool bRet =
     InitializeCriticalSectionEx (&log_mutex, 400, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
-                                                  SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
+                                                  SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO) == TRUE;
    lockless = true;
 
   if ((! bRet) || (fLog == nullptr))
@@ -361,7 +353,7 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
       len, true
     );
 
-  if (! wszOut)
+  if (wszOut == nullptr)
   {
     __try {
       wszOut =
@@ -371,15 +363,15 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
           )
         );
     }
-    __except ( GetExceptionCode () == EXCEPTION_STACK_OVERFLOW  ?
-                                      EXCEPTION_EXECUTE_HANDLER :
-                                      EXCEPTION_CONTINUE_SEARCH )
+    __except ( GetExceptionCode () == STATUS_STACK_OVERFLOW ?
+                                  EXCEPTION_EXECUTE_HANDLER :
+                                  EXCEPTION_CONTINUE_SEARCH )
     {
-      wszOut = nullptr;
+      _resetstkoflw ();
     }
   }
 
-  if (! wszOut)
+  if (wszOut == nullptr)
     return;
 
 
@@ -413,7 +405,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     wchar_t const* const _Format,
                                          ... )
 {
-  if ((! initialized) || (! fLog) || silent)
+  if ((! initialized) || (fLog == nullptr) || silent)
     return;
 
 
@@ -429,6 +421,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   va_list   _ArgList;
   va_start (_ArgList, _Format);
 
+  const
   size_t len =
     (size_t)
     _vscwprintf (     _Format,
@@ -445,17 +438,25 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
       len, true
     );
 
-  if (! wszOut)
+  if (wszOut == nullptr)
   {
-    wszOut =
-      static_cast <wchar_t *> (
-        _alloca ( len *
-           sizeof (wchar_t)
-        )
-      );
+    __try {
+      wszOut =
+        static_cast <wchar_t *> (
+          _alloca ( len *
+             sizeof (wchar_t)
+          )
+        );
+    }
+    __except ( GetExceptionCode () == STATUS_STACK_OVERFLOW ?
+                                  EXCEPTION_EXECUTE_HANDLER :
+                                  EXCEPTION_CONTINUE_SEARCH )
+    {
+      _resetstkoflw ();
+    }
   }
 
-  if (! wszOut)
+  if (wszOut == nullptr)
     return;
 
 
@@ -521,7 +522,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 HRESULT
 iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj) noexcept
 {
-  if (IsEqualGUID (riid, IID_SK_Logger))
+  if (IsEqualGUID (riid, IID_SK_Logger) == 1)
   {
     AddRef ();
 

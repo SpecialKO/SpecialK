@@ -459,7 +459,7 @@ SK_Bypass_CRT (LPVOID)
   }
 
   if (__bypass.disable)
-  task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
+    task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
   if (timer) //-V547
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
@@ -865,7 +865,7 @@ SK_Bypass_CRT (LPVOID)
     }
   }
 
-  if (! temp_dll.length ())
+  if (! temp_dll.empty ())
     SK_RestartGame (nullptr);
   else
     SK_RestartGame (temp_dll.c_str ());

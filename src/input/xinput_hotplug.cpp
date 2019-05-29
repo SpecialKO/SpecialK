@@ -23,11 +23,8 @@
 
 #define __SK_SUBSYSTEM__ L"XInput_Hot"
 
-#include <SpecialK/input/input.h>
-#include <SpecialK/input/xinput.h>
 #include <SpecialK/input/xinput_hotplug.h>
 
-#include <dbt.h>
 
 struct {
   volatile DWORD RecheckInterval = 2500UL;
@@ -568,8 +565,6 @@ RegisterDeviceNotificationA_Detour (
     RegisterDeviceNotificationA_Original (hRecipient, NotificationFilter, Flags);
 }
 
-#include <SpecialK/hooks.h>
-#include <SpecialK/utility.h>
 
 void
 SK_XInput_InitHotPlugHooks (void)

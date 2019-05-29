@@ -57,11 +57,16 @@ using ExitThread_pfn = VOID (WINAPI *)(_In_ DWORD  dwExitCode);
 
 using _endthreadex_pfn = void (__cdecl *)( _In_ unsigned _ReturnCode );
       _endthreadex_pfn
-      _endthreadex_Original = nullptr;
+      _endthreadex_Original           = nullptr;
 
 using NtTerminateProcess_pfn = NTSTATUS (*)(HANDLE, NTSTATUS);
       NtTerminateProcess_pfn
       NtTerminateProcess_Original     = nullptr;
+
+using RtlExitUserThread_pfn = VOID (NTAPI *)(_In_ NTSTATUS 	Status);
+      RtlExitUserThread_pfn
+      RtlExitUserThread_Original      = nullptr;
+
 
 TerminateProcess_pfn   TerminateProcess_Original   = nullptr;
 ExitProcess_pfn        ExitProcess_Original        = nullptr;
@@ -1181,6 +1186,15 @@ RtlExitUserProcess_Detour (NTSTATUS ExitStatus)
   return 0;
 }
 
+void
+NTAPI
+RtlExitUserThread_Detour (NTSTATUS ExitStatus)
+{
+  SK_LOG_FIRST_CALL
+
+  RtlExitUserThread_Original (ExitStatus);
+}
+
 
 
 
@@ -2035,10 +2049,7 @@ void
 WINAPI
 DbgBreakPoint_Detour (void)
 {
-  if (IsDebuggerPresent_Original () || bRealDebug)
-  {
-    __debugbreak ();
-  }
+  __debugbreak ();
 }
 
 
@@ -2051,18 +2062,12 @@ VOID
 NTAPI
 DbgUiRemoteBreakin_Detour (PVOID Context)
 {
-  if (IsDebuggerPresent_Original () || bRealDebug)
-  {
-    if (Context != nullptr)
-    {
-      SetThreadContext (GetCurrentThread (), (CONTEXT*)Context);
-    }
+  UNREFERENCED_PARAMETER (Context);
 
-    else
-    {
+  //if (RtlExitUserThread_Original == nullptr)
       DbgBreakPoint_Detour ();
-    }
-  }
+
+  RtlExitUserThread_Original (STATUS_SUCCESS);
 }
 
 using RaiseException_pfn =
@@ -2322,8 +2327,8 @@ SK_Exception_HandleThreadName (
               }
 
               else
-                if ( strstr (info->szName, "TaskThread") == info->szName &&
-                    (strcmp (info->szName, "TaskThread0")))
+                if (      strstr (info->szName, "TaskThread") == info->szName &&
+                    (0 != strcmp (info->szName, "TaskThread0")))
                 {
                   SetThreadPriority (hThread, THREAD_PRIORITY_ABOVE_NORMAL);
 
@@ -2347,13 +2352,13 @@ SK_Exception_HandleThreadName (
                          FALSE,
                            dwTid );
 
-        if (hThread > 0)
+        if ((intptr_t)hThread > 0)
         {
-          extern SK_MMCS_TaskEntry*
-            SK_MMCS_GetTaskForThreadIDEx (       DWORD  dwTid,
-                                           const char  *name,
-                                           const char  *task0,
-                                           const char  *task1 );
+          //extern SK_MMCS_TaskEntry*
+          //  SK_MMCS_GetTaskForThreadIDEx (       DWORD  dwTid,
+          //                                 const char  *name,
+          //                                 const char  *task0,
+          //                                 const char  *task1 );
 
           if (StrStrA (info->szName, "RenderWorkerThread") != nullptr)
           {
@@ -2666,8 +2671,6 @@ RaiseException_Detour (
         DWORD      nNumberOfArguments,
   const ULONG_PTR *lpArguments         )
 {
-  ///auto orig_se =
-  ///SK_SEH_ApplyTranslator (SK_BasicStructuredExceptionTranslator);
   try
   {
     SK_TLS* pTlsThis =
@@ -2679,7 +2682,6 @@ RaiseException_Detour (
                                     lpArguments )
        )
     {
-      //SK_SEH_RemoveTranslator (orig_se);
       return;
     }
 
@@ -2687,6 +2689,12 @@ RaiseException_Detour (
     {
       InterlockedIncrement (&pTlsThis->debug.exceptions);
     }
+
+    SK_RaiseException (
+      dwExceptionCode,
+      dwExceptionFlags, nNumberOfArguments,
+                               lpArguments
+    );
 
     if (pTlsThis == nullptr || (! pTlsThis->debug.silent_exceptions))
     {
@@ -2740,19 +2748,12 @@ RaiseException_Detour (
   {
     return;
   }
-  //SK_SEH_RemoveTranslator (orig_se);
 
   // TODO: Add config setting for interactive debug
   if (config.system.log_level > 1 && SK_IsDebuggerPresent ())
   {
     __debugbreak ();
   }
-
-  SK_RaiseException (
-    dwExceptionCode,
-    dwExceptionFlags, nNumberOfArguments,
-                             lpArguments
-  );
 }
 
 BOOL
@@ -2859,6 +2860,11 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                               "RtlExitUserProcess",
                                RtlExitUserProcess_Detour,
       static_cast_p2p <void> (&RtlExitUserProcess_Original) );
+
+        SK_CreateDLLHook2 (      L"NtDll",
+                              "RtlExitUserThread",
+                               RtlExitUserThread_Detour,
+      static_cast_p2p <void> (&RtlExitUserThread_Original) );
 
     SK_CreateDLLHook2 (      L"kernel32",
                               "ExitProcess",
@@ -3750,7 +3756,7 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
 SK_SEH_PreState
 SK_SEH_ApplyTranslator (_In_opt_ _se_translator_function _NewSETranslator)
 {
-  SK_SEH_PreState pre_state;
+  SK_SEH_PreState pre_state = { };
 
   ////if (GetLastError () != NO_ERROR)
   ////{

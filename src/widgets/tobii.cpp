@@ -37,9 +37,10 @@
 
 extern iSK_INI*             osd_ini;
 
-auto constexpr DeclKeybind =
-[](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
-auto
+sk::ParameterStringW*
+DeclKeybind (       SK_ConfigSerializedKeybind* binding,
+                    iSK_INI*                    ini,
+              const wchar_t*                    sec )
 {
   auto* ret =
     dynamic_cast <sk::ParameterStringW *>
@@ -50,9 +51,8 @@ auto
   return ret;
 };
 
-auto constexpr
-Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
-auto
+bool
+Keybinding (SK_Keybind* binding, sk::ParameterStringW* param)
 {
   bool        ret   = false;
   std::string label =
@@ -223,11 +223,11 @@ SK_UnpackTobiiStreamEngine (void)
       {
         using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
-        extern
-        HRESULT
-        SK_Decompress7zEx ( const wchar_t*            wszArchive,
-                            const wchar_t*            wszDestination,
-                            SK_7Z_DECOMP_PROGRESS_PFN callback );
+        //extern
+        //HRESULT
+        //SK_Decompress7zEx ( const wchar_t*            wszArchive,
+        //                    const wchar_t*            wszDestination,
+        //                    SK_7Z_DECOMP_PROGRESS_PFN callback );
 
         SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
         DeleteFileW       (wszArchive);

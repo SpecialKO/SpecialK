@@ -28,6 +28,16 @@ static const GUID SKID_D3D11KnownShaderCrc32c =
 // {5C5298BB-0F9D-5022-A19D-A2E69792AE14}
   { 0x5c5298bb, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x14 } };
 
+enum class sk_shader_class {
+  Unknown  = 0x00,
+  Vertex   = 0x01,
+  Pixel    = 0x02,
+  Geometry = 0x04,
+  Hull     = 0x08,
+  Domain   = 0x10,
+  Compute  = 0x20
+};
+
 enum class SK_D3D11DispatchType
 {
   Standard,
@@ -45,19 +55,10 @@ enum class SK_D3D11DrawType
   InstancedIndirect
 };
 
-
-enum class sk_shader_class {
-  Unknown  = 0x00,
-  Vertex   = 0x01,
-  Pixel    = 0x02,
-  Geometry = 0x04,
-  Hull     = 0x08,
-  Domain   = 0x10,
-  Compute  = 0x20
-};
-
 struct SK_D3D11_ContextResources
 {
+  //std::unordered_set <ID3D11Texture2D*> used_textures;
+  //std::unordered_set <IUnknown*       > temp_resources;
   std::unordered_set <SK_ComPtr <ID3D11Texture2D> > used_textures;
   std::unordered_set <SK_ComPtr <IUnknown       > > temp_resources;
 
@@ -784,6 +785,9 @@ struct SK_D3D11_KnownTargets
 
   ~SK_D3D11_KnownTargets (void)
   {
+    clear ();
+    rt_views.clear ();
+    ds_views.clear ();
   }
 
   void clear (void)
@@ -797,6 +801,8 @@ struct SK_D3D11_KnownTargets
     {
       rt_views.clear ();
       ds_views.clear ();
+      //for ( auto pRTV : rt_views ) { if (pRTV) pRTV->Release (); pRTV = nullptr; }
+      //for ( auto pDSV : ds_views ) { if (pDSV) pDSV->Release (); pDSV = nullptr; }
     } catch (const SK_SEH_IgnoredException&)
     {
       static int                                                     dead_idx = 0;
@@ -833,7 +839,7 @@ extern volatile ULONG SK_D3D11_LiveTexturesDirty;
 
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
-extern SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown> > > SK_D3D11_TempResources;
+extern SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown>>> SK_D3D11_TempResources;
 
 
 

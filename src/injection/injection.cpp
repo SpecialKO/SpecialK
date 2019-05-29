@@ -22,11 +22,11 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/injection/injection.h>
-#include <SpecialK/diagnostics/compatibility.h>
-#include <SpecialK/render/d3d9/d3d9_backend.h>
-#include <SpecialK/render/backend.h>
 
-#include <ctime>
+#include <regex>
+#include <sddl.h>
+
+#define SK_INVALID_HANDLE nullptr
 
 NtUserSetWindowsHookEx_pfn
 NtUserSetWindowsHookEx    = nullptr;
@@ -133,7 +133,7 @@ SK_Inject_InitShutdownEvent (void)
 
     SECURITY_ATTRIBUTES
       sattr          = { };
-      sattr.nLength              = sizeof SECURITY_ATTRIBUTES;
+      sattr.nLength              = sizeof (SECURITY_ATTRIBUTES);
       sattr.bInheritHandle       = FALSE;
       sattr.lpSecurityDescriptor = nullptr;
 
@@ -232,11 +232,6 @@ SK_Inject_ReleaseProcess (void)
 }
 
 
-
-#include <AccCtrl.h>
-#include <AclAPI.h>
-#include <sddl.h>
-
 class SK_Auto_Local {
 public:
   explicit SK_Auto_Local (LPVOID* ppMem) : mem_ (ppMem)
@@ -256,7 +251,7 @@ private:
 };
 
 DWORD
-SetPermissions (std::wstring wstrFilePath)
+SetPermissions (const std::wstring& wstrFilePath)
 {
   PACL                 pOldDACL = nullptr,
                        pNewDACL = nullptr;
@@ -474,11 +469,11 @@ CBTProc ( _In_ int    nCode,
                                    LR"(Local\SK_GlobalHookTeardown64)") );
 
       DWORD  dwMilliseconds = 3333uL;
-      HANDLE hWaitTimer     =
-        CreateWaitableTimer ( NULL, FALSE, NULL );
+      HANDLE hWaitTimer =
+        CreateWaitableTimer (nullptr , FALSE, nullptr);
 
-      if ( hWaitTimer    != 0 &&
-           hHookTeardown != 0    )
+      if ( hWaitTimer    != SK_INVALID_HANDLE &&
+           hHookTeardown != SK_INVALID_HANDLE    )
       {
         LARGE_INTEGER liDelay = { };
                       liDelay.QuadPart =
@@ -561,7 +556,7 @@ SKX_InstallCBTHook (void)
                         (LPCWSTR)&CBTProc, &hModSelf );
 
   hHookCBT =
-    SetWindowsHookEx (WH_CBT, CBTProc, hModSelf, 0);
+    SetWindowsHookEx (WH_SHELL, CBTProc, hModSelf, 0);
 }
 
 
@@ -589,7 +584,7 @@ SKX_RemoveCBTHook (void)
           SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                  LR"(Local\SK_GlobalHookTeardown64)") );
 
-    if (hHookTeardown != 0)
+    if ((uintptr_t)hHookTeardown > 0)
     {
       SetEvent    (hHookTeardown);
       CloseHandle (hHookTeardown);
@@ -726,7 +721,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
                    }
                  }
 
-                 if (hHookTeardown > 0)
+                 if ((intptr_t)hHookTeardown > 0)
                  {
                    CloseHandle (hHookTeardown);
                  }
@@ -762,8 +757,8 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
 
     if (fPID != nullptr)
     {
-                      DWORD dwPID = 0;
-      fscanf (fPID, "%lu", &dwPID);
+      DWORD dwPID =
+           strtoul ("%lu", nullptr, 0);
       fclose (fPID);
 
       if ( GetCurrentProcessId () == dwPID ||
@@ -1176,7 +1171,7 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
   if (hProcSnap == INVALID_HANDLE_VALUE)
     return false;
 
-  pe32.dwSize = sizeof PROCESSENTRY32W;
+  pe32.dwSize = sizeof (PROCESSENTRY32W);
 
   if (! Process32FirstW (hProcSnap, &pe32))
   {
@@ -1365,10 +1360,6 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
 
   return i;
 }
-
-
-#include <fstream>
-#include <regex>
 
 bool
 SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)

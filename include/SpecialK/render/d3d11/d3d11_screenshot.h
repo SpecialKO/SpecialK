@@ -28,9 +28,15 @@
 #include <../depends/include/glm/detail/type_vec4.hpp>
 #include <../depends/include/glm/gtc/packing.hpp>
 
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/com_util.h>
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/screenshot.h>
+
+interface ID3D11Device;
+interface ID3D11DeviceContext;
+interface ID3D11Query;
 
 class SK_D3D11_Screenshot
 {
@@ -102,7 +108,6 @@ public:
     return
       ulCommandIssuedOnFrame;
   }
-
 
 protected:
   SK_ComPtr <ID3D11Device>        pDev                   = nullptr;

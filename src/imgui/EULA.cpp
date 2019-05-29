@@ -22,7 +22,6 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
 
-#include <imgui/imgui.h>
 
 std::string
 SK_GetLicenseText (SHORT id)
@@ -75,7 +74,6 @@ extern std::wstring
 __stdcall
 SK_GetPluginName (void);
 
-#include <imgui/imgui_internal.h>
 
 void
 __stdcall
@@ -85,7 +83,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     return;
 
 
-  extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
+  //extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
   extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
 
   ImGuiIO& io =

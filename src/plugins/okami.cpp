@@ -21,9 +21,7 @@
 //
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
-#include <imgui/imgui.h>
 
 sk::ParameterBool*   sk_okami_grain;
 
@@ -72,7 +70,6 @@ SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour (LPVOID This, unsigned int 
   return m2_WindowControl_resizeRenderBuffers_Original (This, width, height, unknown);
 }
 
-#include <SpecialK/utility.h>
 
 void
 SK_Okami_LoadConfig (void)

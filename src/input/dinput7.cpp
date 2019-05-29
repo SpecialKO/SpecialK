@@ -23,14 +23,8 @@
 
 #define __SK_SUBSYSTEM__ L" DInput 7 "
 
-#include <SpecialK/input/dinput8_backend.h>
-#include <SpecialK/input/dinput7_backend.h>
-#include <SpecialK/input/xinput.h>
-#include <SpecialK/input/input.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 
-#include <guiddef.h>
 
 
 extern bool nav_usable;
@@ -654,8 +648,8 @@ SK::DI7::Shutdown (void)
 }
 
 
-struct SK_DI7_Keyboard _dik;
-struct SK_DI7_Mouse    _dim;
+SK_LazyGlobal <SK_DI7_Keyboard> _dik;
+SK_LazyGlobal <SK_DI7_Mouse>    _dim;
 
 
 __declspec (noinline)
@@ -663,7 +657,7 @@ SK_DI7_Keyboard*
 WINAPI
 SK_Input_GetDI7Keyboard (void)
 {
-  return &_dik;
+  return _dik.getPtr ();
 }
 
 __declspec (noinline)
@@ -671,7 +665,7 @@ SK_DI7_Mouse*
 WINAPI
 SK_Input_GetDI7Mouse (void)
 {
-  return &_dim;
+  return _dim.getPtr ();
 }
 
 __declspec (noinline)
@@ -679,8 +673,8 @@ bool
 WINAPI
 SK_Input_DI7Mouse_Acquire (SK_DI7_Mouse* pMouse)
 {
-  if (pMouse == nullptr && _dim.pDev != nullptr)
-    pMouse = &_dim;
+  if (pMouse == nullptr && _dim->pDev != nullptr)
+    pMouse = _dim.getPtr ();
 
   if (pMouse != nullptr)
   {
@@ -713,8 +707,8 @@ bool
 WINAPI
 SK_Input_DI7Mouse_Release (SK_DI7_Mouse* pMouse)
 {
-  if (pMouse == nullptr && _dim.pDev != nullptr)
-    pMouse = &_dim;
+  if (pMouse == nullptr && _dim->pDev != nullptr)
+    pMouse = _dim.getPtr ();
 
   if (pMouse != nullptr)
   {
@@ -841,7 +835,7 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
 #endif
     }
 
-    else if (This == _dik.pDev || cbData == 256)
+    else if (This == _dik->pDev || cbData == 256)
     {
       SK_DI7_READ (sk_input_dev_type::Keyboard)
 
@@ -887,8 +881,8 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
 bool
 SK_DInput7_HasKeyboard (void)
 {
-  return (_dik.pDev && ( IDirectInputDevice7A_SetCooperativeLevel_Original ||
-                         IDirectInputDevice7W_SetCooperativeLevel_Original ) );
+  return (_dik->pDev && ( IDirectInputDevice7A_SetCooperativeLevel_Original ||
+                          IDirectInputDevice7W_SetCooperativeLevel_Original ) );
 }
 
 bool
@@ -906,9 +900,9 @@ SK_DInput7_BlockWindowsKey (bool block)
   if (SK_DInput7_HasKeyboard ())
   {
     if (IDirectInputDevice7W_SetCooperativeLevel_Original)
-      IDirectInputDevice7W_SetCooperativeLevel_Original (                        _dik.pDev, game_window.hWnd, dwFlags);
+      IDirectInputDevice7W_SetCooperativeLevel_Original (                        _dik->pDev, game_window.hWnd, dwFlags);
     else
-      IDirectInputDevice7A_SetCooperativeLevel_Original ((IDirectInputDevice7A *)_dik.pDev, game_window.hWnd, dwFlags);
+      IDirectInputDevice7A_SetCooperativeLevel_Original ((IDirectInputDevice7A *)_dik->pDev, game_window.hWnd, dwFlags);
   }
   else
     return false;
@@ -919,8 +913,8 @@ SK_DInput7_BlockWindowsKey (bool block)
 bool
 SK_DInput7_HasMouse (void)
 {
-  return (_dim.pDev && ( IDirectInputDevice7A_SetCooperativeLevel_Original ||
-                         IDirectInputDevice7W_SetCooperativeLevel_Original ) );
+  return (_dim->pDev && ( IDirectInputDevice7A_SetCooperativeLevel_Original ||
+                          IDirectInputDevice7W_SetCooperativeLevel_Original ) );
 }
 
 HRESULT
@@ -970,12 +964,12 @@ IDirectInputDevice7W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE7W This,
   if (SUCCEEDED (hr))
   {
     // Mouse
-    if (This == _dim.pDev)
-      _dim.coop_level = dwFlags;
+    if (This == _dim->pDev)
+      _dim->coop_level = dwFlags;
 
     // Keyboard   (why do people use DirectInput for keyboards? :-\)
-    else if (This == _dik.pDev)
-      _dik.coop_level = dwFlags;
+    else if (This == _dik->pDev)
+      _dik->coop_level = dwFlags;
 
     // Anything else is probably not important
   }
@@ -1005,12 +999,12 @@ IDirectInputDevice7A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE7A This,
   if (SUCCEEDED (hr))
   {
     // Mouse
-    if (This == (IDirectInputDevice7A *)_dim.pDev)
-      _dim.coop_level = dwFlags;
+    if (This == (IDirectInputDevice7A *)_dim->pDev)
+      _dim->coop_level = dwFlags;
 
     // Keyboard   (why do people use DirectInput for keyboards? :-\)
-    else if (This == (IDirectInputDevice7A *)_dik.pDev)
-      _dik.coop_level = dwFlags;
+    else if (This == (IDirectInputDevice7A *)_dik->pDev)
+      _dik->coop_level = dwFlags;
 
     // Anything else is probably not important
   }
@@ -1098,10 +1092,10 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
 
     if (rguid == GUID_SysMouse)
     {
-      _dim.pDev = *lplpDirectInputDevice;
+      _dim->pDev = *lplpDirectInputDevice;
     }
     else if (rguid == GUID_SysKeyboard)
-      _dik.pDev = *lplpDirectInputDevice;
+      _dik->pDev = *lplpDirectInputDevice;
 
     devices_w [guid_crc32c] = *lplpDirectInputDevice;
     devices_w [guid_crc32c]->AddRef ();
@@ -1195,10 +1189,10 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
 
     if (rguid == GUID_SysMouse)
     {
-      _dim.pDev = *(LPDIRECTINPUTDEVICE7W *)lplpDirectInputDevice;
+      _dim->pDev = *(LPDIRECTINPUTDEVICE7W *)lplpDirectInputDevice;
     }
     else if (rguid == GUID_SysKeyboard)
-      _dik.pDev = *(LPDIRECTINPUTDEVICE7W *)lplpDirectInputDevice;
+      _dik->pDev = *(LPDIRECTINPUTDEVICE7W *)lplpDirectInputDevice;
 
     devices_a [guid_crc32c] = *lplpDirectInputDevice;
     devices_a [guid_crc32c]->AddRef ();

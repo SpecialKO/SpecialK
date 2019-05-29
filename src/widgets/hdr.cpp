@@ -53,7 +53,8 @@ auto
 };
 
 auto constexpr
-Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
+Keybinding = [] ( SK_Keybind*           binding,
+                  sk::ParameterStringW* param ) ->
 auto
 {
   if (param == nullptr)
@@ -212,10 +213,10 @@ struct SK_HDR_Preset_s {
                                   );
     }
   }
-} static hdr_presets [4] = { { "HDR Preset 0", 0, 80.0_Nits, 1.0f, 0,0, L"F1" },
-                             { "HDR Preset 1", 1, 80.0_Nits, 1.0f, 0,0, L"F2" },
-                             { "HDR Preset 2", 2, 80.0_Nits, 1.0f, 0,0, L"F3" },
-                             { "HDR Preset 3", 3, 80.0_Nits, 1.0f, 0,0, L"F4" } };
+} static hdr_presets [4] = { { "HDR Preset 0", 0, 80.0_Nits, 1.0f, { 4,4 }, L"F1" },
+                             { "HDR Preset 1", 1, 80.0_Nits, 1.0f, { 4,4 }, L"F2" },
+                             { "HDR Preset 2", 2, 80.0_Nits, 1.0f, { 4,4 }, L"F3" },
+                             { "HDR Preset 3", 3, 80.0_Nits, 1.0f, { 4,4 }, L"F4" } };
 
 BOOL
 CALLBACK

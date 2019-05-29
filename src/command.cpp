@@ -379,7 +379,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           {
             int_val = original_val - 1;
           } else
-            int_val = atoi (cmd_args.c_str ());
+            int_val = strtol (cmd_args.c_str (), nullptr, 0);
 
           ((SK_IVarStub <int>*) var)->setValue (int_val);
         }
@@ -404,7 +404,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           {
             short_val = original_val - 1;
           } else
-            short_val = (short)atoi (cmd_args.c_str ());
+            short_val = (short)strtol (cmd_args.c_str (), nullptr, 0);
 
           ((SK_IVarStub <short>*) var)->setValue (short_val);
         }
@@ -415,7 +415,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
         if (command_args_len > 0)
         {
           //          float original_val = ((SK_IVarStub <float>*) var)->getValue ();
-          auto float_val = (float)atof (cmd_args.c_str ());
+          auto float_val = (float)strtof (cmd_args.c_str (), nullptr);
 
           ((SK_IVarStub <float>*) var)->setValue (float_val);
         }

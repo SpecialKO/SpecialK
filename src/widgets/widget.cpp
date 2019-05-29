@@ -22,7 +22,6 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/widgets/widget.h>
-#include <imgui/imgui.h>
 
 
 extern iSK_INI* osd_ini;
@@ -31,8 +30,6 @@ extern iSK_INI* osd_ini;
 extern bool
 SK_ImGui_IsWindowRightClicked (const ImGuiIO& io = ImGui::GetIO ());
 
-extern void __stdcall
-SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
 extern LONG SK_D3D11_ToggleGameHUD          (void);
 extern void SK_TriggerHudFreeScreenshot     (void) noexcept;
@@ -125,7 +122,6 @@ SK_Widget::run_base (void)
   run ();
 }
 
-#include <imgui/imgui_internal.h>
 
 void
 SK_Widget_CalcClipRect ( SK_Widget* pWidget,
@@ -755,7 +751,7 @@ SK_Widget::config_base (void)
       {
         param->store         (binding->human_readable);
 
-        extern iSK_INI* osd_ini;
+      //extern iSK_INI* osd_ini;
 
         osd_ini->write (osd_ini->get_filename ());
 
@@ -808,7 +804,6 @@ SK_Widget::load (iSK_INI*)
   OnConfig (ConfigEvent::LoadComplete);
 }
 
-#include <SpecialK/steam_api.h>
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
   static_cast <UINT>((vKey) | (((ctrl) != 0) <<  9) |   \

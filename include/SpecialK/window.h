@@ -391,13 +391,13 @@ struct sk_window_s {
   DefWindowProc_pfn    DefWindowProc    = nullptr;
   CallWindowProc_pfn   CallWindowProc   = nullptr;
 
-  LRESULT DefProc (
+  LRESULT WINAPI DefProc (
     _In_ UINT   Msg,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam
   ) ;
 
-  LRESULT CallProc (
+  LRESULT WINAPI CallProc (
     _In_ HWND    hWnd_,
     _In_ UINT    Msg,
     _In_ WPARAM  wParam,

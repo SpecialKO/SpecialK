@@ -21,10 +21,7 @@
 //
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_d3d11.h>
 
 #define MSS_VERSION_NUM L"0.0.1"
 #define MSS_VERSION_STR L"MARVEL SuperSampled v " MSS_VERSION_NUM

@@ -310,10 +310,8 @@ SK_Thread_InitDebugExtras (void)
   else
     SK_Thread_SpinUntilAtomicMin (&run_once, 2);
 
-  if (SK_GetThreadDescription != &GetThreadDescription_NOP)
-    return true;
-
-  return false;
+  return
+    (SK_GetThreadDescription != &GetThreadDescription_NOP);
 }
 
 // Returns TRUE if the call required a change to priority level

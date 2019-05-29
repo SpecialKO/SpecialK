@@ -22,14 +22,8 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/steam_api.h>
 
-#include <SpecialK/input/input.h>
-#include <SpecialK/input/xinput.h>
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_d3d11.h>
 
 #define SOM_VERSION_NUM L"0.0.1"
 #define SOM_VERSION_STR L"Secret of Mantrap v " SOM_VERSION_NUM

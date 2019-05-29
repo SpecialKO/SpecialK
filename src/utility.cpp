@@ -419,11 +419,9 @@ SK_File_IsDirectory (const wchar_t* wszPath)
   DWORD dwAttrib =
     GetFileAttributes (wszPath);
 
-  if ( dwAttrib != INVALID_FILE_ATTRIBUTES &&
-       dwAttrib  & FILE_ATTRIBUTE_DIRECTORY )
-    return true;
-
-  return false;
+  return
+    ( dwAttrib != INVALID_FILE_ATTRIBUTES &&
+      dwAttrib  & FILE_ATTRIBUTE_DIRECTORY );
 }
 
 void
@@ -571,7 +569,7 @@ SK_IsAdmin (void)
     TOKEN_ELEVATION Elevation = { };
 
     DWORD cbSize =
-      sizeof TOKEN_ELEVATION;
+      sizeof (TOKEN_ELEVATION);
 
     if ( GetTokenInformation ( hToken,
                                  TokenElevation,
@@ -602,7 +600,7 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
     return false;
 
   pe32.dwSize =
-    sizeof PROCESSENTRY32W;
+    sizeof (PROCESSENTRY32W);
 
   if (! Process32FirstW ( hProcSnap,
                             &pe32    )
@@ -724,7 +722,7 @@ SK_GetModuleNameFromAddr (LPCVOID addr)
   HMODULE hModOut =
     SK_GetModuleFromAddr (addr);
 
-  if (hModOut != INVALID_HANDLE_VALUE && hModOut > nullptr)
+  if (hModOut != INVALID_HANDLE_VALUE && (intptr_t)hModOut > 0)
     return SK_GetModuleName (hModOut);
 
   return
@@ -737,7 +735,7 @@ SK_GetModuleFullNameFromAddr (LPCVOID addr)
   HMODULE hModOut =
     SK_GetModuleFromAddr (addr);
 
-  if (hModOut != INVALID_HANDLE_VALUE && hModOut > nullptr)
+  if (hModOut != INVALID_HANDLE_VALUE && (intptr_t)hModOut > 0)
     return SK_GetModuleFullName (hModOut);
 
   return
@@ -873,7 +871,7 @@ SK_ValidatePointer (LPCVOID addr, bool silent)
 
   bool bFail = true;
 
-  if (VirtualQuery (addr, &minfo, sizeof minfo))
+  if (VirtualQuery (addr, &minfo, sizeof (minfo)))
   {
     bFail = false;
 
@@ -900,7 +898,7 @@ SK_IsAddressExecutable (LPCVOID addr, bool silent)
 {
   MEMORY_BASIC_INFORMATION minfo = { };
 
-  if (VirtualQuery (addr, &minfo, sizeof minfo))
+  if (VirtualQuery (addr, &minfo, sizeof (minfo)))
   {
     if (SK_ValidatePointer (addr, silent))
     {
@@ -1065,8 +1063,8 @@ SK_SuspendAllOtherThreads (void)
 
   if (hSnap != INVALID_HANDLE_VALUE)
   {
-    THREADENTRY32 tent        = {                  };
-                  tent.dwSize = sizeof THREADENTRY32;
+    THREADENTRY32 tent        = {                    };
+                  tent.dwSize = sizeof (THREADENTRY32);
 
     if (Thread32First (hSnap, &tent))
     {
@@ -1116,8 +1114,8 @@ SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
 
   if (hSnap != INVALID_HANDLE_VALUE)
   {
-    THREADENTRY32 tent        = {                  };
-                  tent.dwSize = sizeof THREADENTRY32;
+    THREADENTRY32 tent        = {                    };
+                  tent.dwSize = sizeof (THREADENTRY32);
 
     if (Thread32First (hSnap, &tent))
     {
@@ -1198,7 +1196,7 @@ SK_TestImports (          HMODULE  hMod,
       (uintptr_t)GetModuleHandle (nullptr);
 
              MEMORY_BASIC_INFORMATION minfo;
-    VirtualQuery ((LPCVOID)pImgBase, &minfo, sizeof minfo);
+    VirtualQuery ((LPCVOID)pImgBase, &minfo, sizeof (minfo));
 
     pImgBase =
       (uintptr_t)minfo.BaseAddress;
@@ -1221,10 +1219,10 @@ SK_TestImports (          HMODULE  hMod,
       auto end =
         reinterpret_cast <uintptr_t> (pImpDesc) + pImgDir->Size;
 
+      orig_se =
+        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
       while (reinterpret_cast <uintptr_t> (pImpDesc) < end)
       {
-        orig_se =
-        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
         try
         {
           if (pImpDesc->Name == 0x00)
@@ -1256,8 +1254,8 @@ SK_TestImports (          HMODULE  hMod,
         catch (const SK_SEH_IgnoredException&)
         {
         }
-        orig_se.pfnTranslator = SK_SEH_RemoveTranslator (orig_se);
       }
+      orig_se.pfnTranslator = SK_SEH_RemoveTranslator (orig_se);
     }
   }
 
@@ -1309,7 +1307,7 @@ SK_TestRenderImports ( HMODULE hMod,
                                        // 32-bit only
                                        { "glide.dll",     false } };
 
-  SK_TestImports (hMod, tests, sizeof (tests) / sizeof sk_import_test_s);
+  SK_TestImports (hMod, tests, sizeof (tests) / sizeof (sk_import_test_s));
 
   *gl     = tests [0].used;
   *vulkan = tests [1].used;
@@ -1695,7 +1693,7 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
                           SK_MemScan_Params__v0 ()       )
 {
   MEMORY_BASIC_INFORMATION minfo = { };
-  VirtualQuery (base_addr, &minfo, sizeof minfo);
+  VirtualQuery (base_addr, &minfo, sizeof (minfo));
 
   //
   // Valid Win32 software have valid NT headers even after relocation ...
@@ -1746,12 +1744,12 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
   // For practical purposes, let's just assume that all valid games have less than 256 MiB of
   //   committed executable image data.
   //
-  while (VirtualQuery (end_addr, &minfo, sizeof minfo) && end_addr < PAGE_WALK_LIMIT)
+  while (VirtualQuery (end_addr, &minfo, sizeof (minfo)) && end_addr < PAGE_WALK_LIMIT)
   {
     if (minfo.Protect & PAGE_NOACCESS || (! (minfo.Type & MEM_IMAGE)))
       break;
 
-    pages += VirtualQuery (end_addr, &minfo, sizeof minfo);
+    pages += VirtualQuery (end_addr, &minfo, sizeof (minfo));
 
     end_addr =
       static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
@@ -1795,12 +1793,12 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
     GetModuleInformation ( SK_GetCurrentProcess (),
       SK_GetDLL (),
               &mi_sk,
-       sizeof MODULEINFO )
+       sizeof (MODULEINFO) )
   );
 
   while (it < end_addr)
   {
-    VirtualQuery (it, &minfo, sizeof minfo);
+    VirtualQuery (it, &minfo, sizeof (minfo));
 
     // Bail-out once we walk into an address range that is not resident, because
     //   it does not belong to the original executable.
@@ -2296,7 +2294,7 @@ SK_GetFullyQualifiedApp (void)
     DWORD   dwProcessSize =  MAX_PATH * 2;
     wchar_t wszProcessName [ MAX_PATH * 2 + 1 ] = { };
 
-    GetModuleFileNameW ( 0,
+    GetModuleFileNameW ( nullptr,
                            wszProcessName,
                             dwProcessSize );
 
@@ -2638,9 +2636,9 @@ SK_RestartGame (const wchar_t* wszDLL)
   wchar_t wszFullname  [MAX_PATH * 2 + 1] = { };
 
   wcsncpy_s ( wszFullname, MAX_PATH,
-              wszDLL != nullptr ?
-              wszDLL :
-              SK_GetModuleFullName ( SK_GetDLL ()).c_str (),
+             ( wszDLL != nullptr && *wszDLL != L'\0' ) ?
+               wszDLL :
+              SK_GetModuleFullName ( SK_GetDLL () ).c_str (),
                           _TRUNCATE );
 
   SK_Generate8Dot3 (wszFullname);
@@ -2648,6 +2646,7 @@ SK_RestartGame (const wchar_t* wszDLL)
 
   if (SK_FileHasSpaces (wszFullname))
     GetShortPathName   (wszFullname, wszShortPath, MAX_PATH  );
+
 
   if (SK_FileHasSpaces (wszShortPath))
   {
@@ -2693,7 +2692,7 @@ SK_RestartGame (const wchar_t* wszDLL)
     STARTUPINFOW        sinfo = { };
     PROCESS_INFORMATION pinfo = { };
 
-    sinfo.cb          = sizeof STARTUPINFOW;
+    sinfo.cb          = sizeof (STARTUPINFOW);
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
@@ -2795,7 +2794,8 @@ SK_COM_CoCreateInstanceAsAdmin ( HWND     hWnd,
                        000, nullptr,
                           hWnd           };
 
-     CoInitialize ( nullptr );
+
+   CoInitializeEx ( nullptr,  COINIT_MULTITHREADED );
   StringFromGUID2 ( rclsid,
                       wszCLSID,
                         MAX_PATH + 1 );
@@ -2820,7 +2820,7 @@ SK_COM_CoCreateInstanceAsAdmin ( HWND     hWnd,
 template <class T>
 class SK_COM_VtblPtr {
 public:
-  SK_COM_VtblPtr (T* lp) noexcept
+  explicit SK_COM_VtblPtr (T* lp) noexcept
   {
     p = lp;
   }
@@ -2849,7 +2849,7 @@ public:
     return p;
   }
 
-  operator T* (void) explicit const noexcept
+  explicit operator T* (void) const noexcept
   {
     return p;
   }
@@ -2877,7 +2877,7 @@ SK_COM_UAC_AdminShellExec ( const wchar_t* wszExecutable,
 {
   SK_COM_VtblPtr
     <SK_IAdminMoniker>
-          pAdmin = nullptr;
+          pAdmin ((SK_IAdminMoniker *)nullptr);
   BOOL      bRet =   FALSE;
   HRESULT     hr =
     SK_COM_CoCreateInstanceAsAdmin ( nullptr,
@@ -2888,7 +2888,7 @@ SK_COM_UAC_AdminShellExec ( const wchar_t* wszExecutable,
   if (SUCCEEDED (hr))
   {
     hr =
-      pAdmin->lpVtbl->ShellExec ( pAdmin,
+      pAdmin->lpVtbl->ShellExec ( (SK_IAdminMoniker *)pAdmin,
                                     wszExecutable,
                                       wszParams,
                                         wszWorkingDir,
@@ -3163,7 +3163,7 @@ SK_WinRing0_Uninstall (void)
     STARTUPINFOW        sinfo = { };
     PROCESS_INFORMATION pinfo = { };
 
-    sinfo.cb          = sizeof STARTUPINFOW;
+    sinfo.cb          = sizeof (STARTUPINFOW);
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
@@ -3252,7 +3252,7 @@ SK_WinRing0_Install (void)
     STARTUPINFOW        sinfo = { };
     PROCESS_INFORMATION pinfo = { };
 
-    sinfo.cb          = sizeof STARTUPINFOW;
+    sinfo.cb          = sizeof (STARTUPINFOW);
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
@@ -3316,7 +3316,7 @@ SK_ElevateToAdmin (void)
   STARTUPINFOW        sinfo = { };
   PROCESS_INFORMATION pinfo = { };
 
-  sinfo.cb          = sizeof STARTUPINFOW;
+  sinfo.cb          = sizeof (STARTUPINFOW);
   sinfo.wShowWindow = SW_HIDE;
   sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 

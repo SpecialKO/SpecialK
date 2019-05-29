@@ -38,8 +38,9 @@ wchar_t update_dlg_build    [MAX_PATH]                 = { };
 wchar_t update_dlg_relnotes [INTERNET_MAX_PATH_LENGTH] = { };
 
 
-auto constexpr _ShowCursor = [&](void) ->
+inline
 int
+_ShowCursor (void)
 {
   int refs = 0;
 
@@ -480,7 +481,7 @@ RemindMeLater_DlgProc (
         if (! never)
         {
           auto* remind_time =
-            dynamic_cast <sk::ParameterInt64 *> (
+            static_cast <sk::ParameterInt64 *> (
               ParameterFactory.create_parameter <int64_t> (L"Reminder")
             );
 
@@ -500,7 +501,7 @@ RemindMeLater_DlgProc (
         else
         {
           auto* frequency =
-            dynamic_cast <sk::ParameterStringW *> (
+            static_cast <sk::ParameterStringW *> (
               ParameterFactory.create_parameter <std::wstring> (
                 L"Frequency"
               )
@@ -1328,7 +1329,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
         if (get->status == sk_internet_get_t::STATUS_UPDATED)
         {
           auto *backup_pref =
-            dynamic_cast <sk::ParameterBool *> (
+            static_cast <sk::ParameterBool *> (
               g_ParameterFactory->create_parameter <bool> (L"BackupFiles")
             );
 
@@ -1344,7 +1345,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
           }
 
           auto *keep_pref =
-            dynamic_cast <sk::ParameterBool *> (
+            static_cast <sk::ParameterBool *> (
               g_ParameterFactory->create_parameter <bool> (L"KeepDownloads")
             );
 

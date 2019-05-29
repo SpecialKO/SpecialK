@@ -22,25 +22,17 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
 
-#include <SpecialK/render/d3d9/d3d9_backend.h>
-#include <SpecialK/render/d3d9/d3d9_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_device.h>
-#include <SpecialK/render/d3d9/d3d9_texmgr.h>
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 MIDL_INTERFACE("D0223B96-BF7A-43fd-92BD-A43B0D82B9EB") IDirect3DDevice9;
 MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 
-#include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d9.h>
 
-#include <d3dx9core.h>
-#include <d3dx9shader.h>
 
 #include <d3d9.h>
 #include <SpecialK/nvapi.h>
-#include <SpecialK/adl.h>
 
 using namespace SK::D3D9;
 
@@ -345,24 +337,7 @@ void SK_D3D9_SetPixelShader       ( IDirect3DDevice9       *pDev,
 void SK_D3D9_SetVertexShader      ( IDirect3DDevice9       *pDev,
                                     IDirect3DVertexShader9 *pShader );
 
-#include <CEGUI/System.h>
-#include <CEGUI/DefaultResourceProvider.h>
-#include <CEGUI/ImageManager.h>
-#include <CEGUI/Image.h>
-#include <CEGUI/Font.h>
-#include <CEGUI/Scheme.h>
-#include <CEGUI/WindowManager.h>
-#include <CEGUI/falagard/WidgetLookManager.h>
-#include <CEGUI/ScriptModule.h>
-#include <CEGUI/XMLParser.h>
-#include <CEGUI/GeometryBuffer.h>
-#include <CEGUI/GUIContext.h>
-#include <CEGUI/RenderTarget.h>
-#include <CEGUI/AnimationManager.h>
-#include <CEGUI/FontManager.h>
 
-#include <SpecialK/osd/text.h>
-#include <SpecialK/osd/popup.h>
 
 
 #ifndef SK_BUILD__INSTALLER
@@ -935,8 +910,8 @@ SK_HookD3D9 (void)
   SK_Thread_SpinUntilFlagged   (&__d3d9_ready);
 }
 
-auto SK_UnpackD3DX9 =
-[](void) -> void
+void
+SK_UnpackD3DX9 (void)
 {
   HMODULE hModSelf =
     SK_GetDLL ();
@@ -983,11 +958,11 @@ auto SK_UnpackD3DX9 =
 
       using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
-      extern
-      HRESULT
-      SK_Decompress7zEx ( const wchar_t*            wszArchive,
-                          const wchar_t*            wszDestination,
-                          SK_7Z_DECOMP_PROGRESS_PFN callback );
+      ///extern
+      ///HRESULT
+      ///SK_Decompress7zEx ( const wchar_t*            wszArchive,
+      ///                    const wchar_t*            wszDestination,
+      ///                    SK_7Z_DECOMP_PROGRESS_PFN callback );
 
       SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
       DeleteFileW       (wszArchive);
@@ -1225,7 +1200,7 @@ SK_D3D9_Present (IDirect3DDevice9 *This,
                                                       pDirtyRegion );
   }
 
-  catch (...)
+  catch (const SK_SEH_IgnoredException&)
   {
     hr =
       _HandleSwapChainException (L"IDirect3DDevice9::Present");
@@ -1258,7 +1233,7 @@ SK_D3D9_PresentEx (IDirect3DDevice9Ex *This,
                                                       pDirtyRegion,
                                                         dwFlags );
   }
-  catch (...)
+  catch (const SK_SEH_IgnoredException&)
   {
     hr =
       _HandleSwapChainException (L"IDirect3DDevice9Ex::PresentEx");
@@ -1291,7 +1266,7 @@ SK_D3D9_PresentSwap (IDirect3DSwapChain9 *This,
                                                         pDirtyRegion,
                                                           dwFlags );
   }
-  catch (...)
+  catch (const SK_SEH_IgnoredException&)
   {
     hr =
       _HandleSwapChainException (L"IDirect3DSwapChain9::Present");
@@ -1491,7 +1466,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     if (rb.surface.d3d9 != nullptr)
     {
         rb.surface.d3d9  = nullptr;
-        rb.surface.nvapi = 0;
+        rb.surface.nvapi = nullptr;
     }
 
     if (SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &rb.surface.d3d9)))
@@ -5217,24 +5192,25 @@ SK_D3D9_TriggerReset (bool temporary)
 }
 
 
-extern bool
-SK_ImGui_IsItemClicked (void);
+//extern bool
+//SK_ImGui_IsItemClicked (void);
 
 void
 SK_D3D9_DrawFileList (bool& can_scroll)
 {
-  const float font_size = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
+  const float font_size =
+    ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
 
   ImGui::PushItemWidth (500.0f);
 
   struct enumerated_source_s
   {
     std::string            name       = "invalid";
-    std::vector <uint32_t> checksums;
+    std::vector <uint32_t> checksums  = { };
 
     struct {
       std::vector < std::pair < uint32_t, SK::D3D9::TexRecord > >
-                 records;
+                 records              = {  };
       uint64_t   size                 = 0ULL;
     } streaming, blocking;
 
@@ -7168,8 +7144,8 @@ SK_D3D9_TextureModDlg (void)
         last_width  = effective_width;
         last_ht     = effective_height + font_size * 4.0f + (float)shaders * font_size;
 
-        extern std::wstring
-        SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
+        //extern std::wstring
+        //SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
 
 
         ImGui::Text ( "Dimensions:   %lux%lu",

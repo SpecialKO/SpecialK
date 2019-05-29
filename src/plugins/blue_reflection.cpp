@@ -21,19 +21,13 @@
 //
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_d3d11.h>
 
 #define IT_VERSION_NUM L"0.0.5"
 #define IT_VERSION_STR L"Indigo Translation v " IT_VERSION_NUM
 
 volatile LONG __IT_init = FALSE;
-
-extern void
-__stdcall
-SK_SetPluginName (std::wstring name);
 
 static D3D11Dev_CreateBuffer_pfn              _D3D11Dev_CreateBuffer_Original              = nullptr;
 static D3D11Dev_CreateShaderResourceView_pfn  _D3D11Dev_CreateShaderResourceView_Original  = nullptr;
@@ -240,10 +234,12 @@ SK_IT_Unmap (
       //dll_log.Log ( L"Original light shaft resolution: (%.6fx%.6f)",
       //                pShaft->img_size [0], pShaft->img_size [1] );
 
-      if ( pShaft->img_size [0] >= ImGui::GetIO ().DisplaySize.x - 0.1 &&
-           pShaft->img_size [0] <= ImGui::GetIO ().DisplaySize.x + 0.1 &&
-           pShaft->img_size [1] <= ImGui::GetIO ().DisplaySize.y + 0.1 &&
-           pShaft->img_size [1] >= ImGui::GetIO ().DisplaySize.y - 0.1 )
+      auto& DisplaySize = ImGui::GetIO ().DisplaySize;
+
+      if ( pShaft->img_size [0] >= DisplaySize.x - 0.1 &&
+           pShaft->img_size [0] <= DisplaySize.x + 0.1 &&
+           pShaft->img_size [1] <= DisplaySize.y + 0.1 &&
+           pShaft->img_size [1] >= DisplaySize.y - 0.1 )
       {
         if (pShaft->power [3] > shaft->max_intensity)
             pShaft->power [3] = shaft->max_intensity;

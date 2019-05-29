@@ -10,6 +10,7 @@
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
 extern bool SK_D3D11_EnableTracking;
 
@@ -309,7 +310,7 @@ SK_FFXV_PlugInCfg (void)
     if (ignis_vision || hair_club)
       SK_D3D11_EnableTracking = true;
 
-    if (ImGui::Checkbox (u8"Ignis Vision ™", &ignis_vision))
+    if (ImGui::Checkbox (u8R"(Ignis Vision ™)", &ignis_vision))
     {
       if (ignis_vision)
       {
@@ -323,7 +324,7 @@ SK_FFXV_PlugInCfg (void)
 
     ImGui::SameLine ();
 
-    if (ImGui::Checkbox (u8"(No)Hair Club for Men™", &hair_club))
+    if (ImGui::Checkbox (u8R"((No)Hair Club for Men™)", &hair_club))
     {
       if (hair_club)
       {
@@ -808,8 +809,8 @@ SK_SM_PlugInInit (void)
   }
 }
 
-auto Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
-auto
+bool
+SKX_Keybinding (SK_Keybind* binding, sk::ParameterStringW* param)
 {
   if (param == nullptr)
     return false;

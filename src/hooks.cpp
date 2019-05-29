@@ -1188,7 +1188,7 @@ SK_CreateUser32Hook ( const char  *pszProcName,
 
   if (! tested)
   {
-    SK_TestImports (SK_GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof sk_import_test_s);
+    SK_TestImports (SK_GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof (sk_import_test_s));
     tested = true;
 
     if (! win32u_test [0].used)

@@ -27,7 +27,6 @@ struct IUnknown;
 
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
-#include <SpecialK/render/backend.h>
 
 LRESULT
 CALLBACK

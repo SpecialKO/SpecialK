@@ -268,7 +268,7 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
                       EXCEPTION_POINTERS* pException,
                       LPVOID              lpRetAddr );
 
-class SK_SEH_IgnoredException// : public std::exception
+class SK_SEH_IgnoredException : public std::exception
 {
 public:
   SK_SEH_IgnoredException ( unsigned int        nExceptionCode,
@@ -317,6 +317,27 @@ SK_RaiseException
           nExceptionCode, pException,                     \
             _ReturnAddress ()   );                        \
     }                                                     \
+  }
+
+// Various simpler macros were tried, all created internal compiler errors!!
+#define SK_MultiFilteringStructuredExceptionTranslator(_Filters) \
+  []( unsigned int        nExceptionCode,                        \
+      EXCEPTION_POINTERS* pException )->                         \
+  void                                                           \
+  {                                                              \
+    using     _List =     std::initializer_list <unsigned int>;  \
+    constexpr _List              exception_list (                \
+              _List {(_Filters)}                );               \
+    if ( std::end  (             exception_list) !=              \
+         std::find ( std::begin (exception_list),                \
+                     std::end   (exception_list),                \
+                                nExceptionCode )        )        \
+    {                                                            \
+      throw                                                      \
+        SK_SEH_IgnoredException (                                \
+          nExceptionCode, pException,                            \
+            _ReturnAddress ()   );                               \
+    }                                                            \
   }
 
 enum SEH_LogLevel {

@@ -28,8 +28,6 @@
 #include <d3d9.h>
 #endif
 
-#include <d3d11.h>
-
 SK::Framerate::Stats* frame_history  = nullptr;
 SK::Framerate::Stats* frame_history2 = nullptr;
 
@@ -93,8 +91,6 @@ HANDLE hModSteamAPI = nullptr;
 
 LARGE_INTEGER SK::Framerate::Stats::freq;
 
-#include <SpecialK/utility.h>
-#include <SpecialK/steam_api.h>
 
 
 auto
@@ -659,7 +655,6 @@ typedef BOOL (WINAPI *SwitchToThread_pfn)(void);
                       SwitchToThread_pfn
                       SwitchToThread_Original = nullptr;
 
-#include <avrt.h>
 
 BOOL
 WINAPI
@@ -1543,7 +1538,6 @@ SK::Framerate::Limiter::init (long double target)
       start.QuadPart +     (ms / 1000.0L) * freq.QuadPart);
 }
 
-#include <SpecialK/window.h>
 
 bool
 SK::Framerate::Limiter::try_wait (void)
@@ -1701,6 +1695,11 @@ SK::Framerate::Limiter::wait (void)
     static HANDLE hLimitTimer =
       CreateWaitableTimer (nullptr, FALSE, nullptr);
 
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    SK_ComQIPtr <ID3D11DeviceContext3> pDevCtx3 (rb.d3d11.immediate_ctx);
+
     if ( hLimitTimer != 0 && liDelay.QuadPart > 0)
     {
       liDelay.QuadPart = -(liDelay.QuadPart * 10000);
@@ -1708,6 +1707,12 @@ SK::Framerate::Limiter::wait (void)
       if ( SetWaitableTimer ( hLimitTimer, &liDelay,
                                 0, nullptr, nullptr, TRUE ) )
       {
+        //if (pDevCtx3)
+        //{
+        //  pDevCtx3->Flush1 (D3D11_CONTEXT_TYPE_3D,      nullptr);
+        //  pDevCtx3->Flush1 (D3D11_CONTEXT_TYPE_COMPUTE, nullptr);
+        //}
+
         DWORD dwWait = 1337;
 
         while (dwWait != WAIT_OBJECT_0)
@@ -1729,11 +1734,11 @@ SK::Framerate::Limiter::wait (void)
                   static_cast <DWORD> (to_next_in_secs * 1000.0) );
                    YieldProcessor (  );
         }
+
+        //if (pDevCtx3)
+        //    pDevCtx3->Flush1 (D3D11_CONTEXT_TYPE_COPY, nullptr);
       }
     }
-
-    static SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
 
     // If available (Windows 8+), wait on the swapchain
     SK_ComPtr <IDirect3DDevice9Ex>  d3d9ex = nullptr;

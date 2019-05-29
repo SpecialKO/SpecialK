@@ -19,6 +19,8 @@
  *
 **/
 
+#pragma once
+
 struct IUnknown;
 //#include <Unknwnbase.h>
 
@@ -170,7 +172,7 @@ class SK_ComPtrBase
 protected:
     SK_ComPtrBase() throw()
     {
-        p = NULL;
+        p = nullptr;
     }
     SK_ComPtrBase(_Inout_opt_ T* lp) throw()
     {
@@ -186,7 +188,7 @@ protected:
         return;
       }
     }
-    void Swap(SK_ComPtrBase& other)
+    void Swap(SK_ComPtrBase& other) throw ()
     {
         T* pTemp = p;
         p = other.p;
@@ -212,24 +214,24 @@ public:
     }
     T& operator*() const
     {
-        ATLENSURE(p!=NULL);
+        ATLENSURE(p!=nullptr);
         return *p;
     }
     //The assert on operator& usually indicates a bug.  If this is really
     //what is needed, however, take the address of the p member explicitly.
     T** operator&() throw()
     {
-        ATLASSERT(p==NULL);
+        ATLASSERT(p==nullptr);
         return &p;
     }
     _NoAddRefReleaseOnCComPtr<T>* operator->() const throw()
     {
-        ATLASSERT(p!=NULL);
+        ATLASSERT(p!=nullptr);
         return (_NoAddRefReleaseOnCComPtr<T>*)p;
     }
     bool operator!() const throw()
     {
-        return (p == NULL);
+        return (p == nullptr);
     }
     bool operator<(_In_opt_ T* pT) const throw()
     {
@@ -250,7 +252,7 @@ public:
         T* pTemp = p;
         if (pTemp)
         {
-            p = NULL;
+            p = nullptr;
             pTemp->Release();
         }
     }
@@ -274,13 +276,13 @@ public:
     T* Detach() throw()
     {
         T* pt = p;
-        p = NULL;
+        p = nullptr;
         return pt;
     }
     _Check_return_ HRESULT CopyTo(_COM_Outptr_result_maybenull_ T** ppT) throw()
     {
-        ATLASSERT(ppT != NULL);
-        if (ppT == NULL)
+        ATLASSERT(ppT != nullptr);
+        if (ppT == nullptr)
             return E_POINTER;
         *ppT = p;
         if (p)
@@ -300,21 +302,21 @@ public:
     }
     _Check_return_ HRESULT CoCreateInstance(
         _In_ REFCLSID rclsid,
-        _Inout_opt_ LPUNKNOWN pUnkOuter = NULL,
+        _Inout_opt_ LPUNKNOWN pUnkOuter = nullptr,
         _In_ DWORD dwClsContext = CLSCTX_ALL) throw()
     {
-        ATLASSERT(p == NULL);
+        ATLASSERT(p == nullptr);
         return ::CoCreateInstance(rclsid, pUnkOuter, dwClsContext, __uuidof(T), (void**)&p);
     }
 #ifdef _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
     _Check_return_ HRESULT CoCreateInstance(
         _In_z_ LPCOLESTR szProgID,
-        _Inout_opt_ LPUNKNOWN pUnkOuter = NULL,
+        _Inout_opt_ LPUNKNOWN pUnkOuter = nullptr,
         _In_ DWORD dwClsContext = CLSCTX_ALL) throw()
     {
         CLSID clsid;
         HRESULT hr = CLSIDFromProgID(szProgID, &clsid);
-        ATLASSERT(p == NULL);
+        ATLASSERT(p == nullptr);
         if (SUCCEEDED(hr))
             hr = ::CoCreateInstance(clsid, pUnkOuter, dwClsContext, __uuidof(T), (void**)&p);
         return hr;
@@ -323,7 +325,7 @@ public:
     template <class Q>
     _Check_return_ HRESULT QueryInterface(_Outptr_ Q** pp) const throw()
     {
-        ATLASSERT(pp != NULL);
+        ATLASSERT(pp != nullptr);
         return p->QueryInterface(__uuidof(Q), (void**)pp);
     }
     T* p;
@@ -422,7 +424,7 @@ public:
         SK_ComPtrBase<IDispatch>()
     {
         this->p = lp.p;
-        lp.p = NULL;
+        lp.p = nullptr;
     }
     IDispatch* operator=(_Inout_ SK_ComPtr<IDispatch>&& lp) throw()
     {
@@ -476,15 +478,15 @@ public:
     // Invoke a method by DISPID with no parameters
     _Check_return_ HRESULT Invoke0(
         _In_ DISPID dispid,
-        _Out_opt_ VARIANT* pvarRet = NULL) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
     {
-        DISPPARAMS dispparams = { NULL, NULL, 0, 0};
-        return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, NULL, NULL);
+        DISPPARAMS dispparams = { nullptr, nullptr, 0, 0};
+        return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, nullptr, nullptr);
     }
     // Invoke a method by name with no parameters
     _Check_return_ HRESULT Invoke0(
         _In_z_ LPCOLESTR lpszName,
-        _Out_opt_ VARIANT* pvarRet = NULL) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
     {
         HRESULT hr;
         DISPID dispid;
@@ -497,16 +499,16 @@ public:
     _Check_return_ HRESULT Invoke1(
         _In_ DISPID dispid,
         _In_ VARIANT* pvarParam1,
-        _Out_opt_ VARIANT* pvarRet = NULL) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
     {
-        DISPPARAMS dispparams = { pvarParam1, NULL, 1, 0};
-        return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, NULL, NULL);
+        DISPPARAMS dispparams = { pvarParam1, nullptr, 1, 0};
+        return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, nullptr, nullptr);
     }
     // Invoke a method by name with a single parameter
     _Check_return_ HRESULT Invoke1(
         _In_z_ LPCOLESTR lpszName,
         _In_ VARIANT* pvarParam1,
-        _Out_opt_ VARIANT* pvarRet = NULL) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
     {
         DISPID dispid;
         HRESULT hr = GetIDOfName(lpszName, &dispid);
@@ -519,13 +521,13 @@ public:
         _In_ DISPID dispid,
         _In_ VARIANT* pvarParam1,
         _In_ VARIANT* pvarParam2,
-        _Out_opt_ VARIANT* pvarRet = NULL) throw();
+        _Out_opt_ VARIANT* pvarRet = nullptr) throw();
     // Invoke a method by name with two parameters
     _Check_return_ HRESULT Invoke2(
         _In_z_ LPCOLESTR lpszName,
         _In_ VARIANT* pvarParam1,
         _In_ VARIANT* pvarParam2,
-        _Out_opt_ VARIANT* pvarRet = NULL) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
     {
         DISPID dispid;
         HRESULT hr = GetIDOfName(lpszName, &dispid);
@@ -538,17 +540,17 @@ public:
         _In_ DISPID dispid,
         _In_ VARIANT* pvarParams,
         _In_ int nParams,
-        _Out_opt_ VARIANT* pvarRet = NULL) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
     {
-        DISPPARAMS dispparams = {pvarParams, NULL, (unsigned int)nParams, 0};
-        return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, NULL, NULL);
+        DISPPARAMS dispparams = {pvarParams, nullptr, (unsigned int)nParams, 0};
+        return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, nullptr, nullptr);
     }
     // Invoke a method by name with Nparameters
     _Check_return_ HRESULT InvokeN(
         _In_z_ LPCOLESTR lpszName,
         _In_ VARIANT* pvarParams,
         _In_ int nParams,
-        _Out_opt_ VARIANT* pvarRet = NULL) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
     {
         HRESULT hr;
         DISPID dispid;
@@ -564,15 +566,15 @@ public:
         _In_ VARIANT* pVar) throw()
     {
         ATLASSERT(pDispatch);
-        ATLASSERT(pVar != NULL);
-        if (pVar == NULL)
+        ATLASSERT(pVar != nullptr);
+        if (pVar == nullptr)
             return E_POINTER;
 
-        if (pDispatch == NULL)
+        if (pDispatch == nullptr)
             return E_INVALIDARG;
 
         ATLTRACE(atlTraceCOM, 2, _T("CPropertyHelper::PutProperty\n"));
-        DISPPARAMS dispparams = {NULL, NULL, 1, 1};
+        DISPPARAMS dispparams = {nullptr, nullptr, 1, 1};
         dispparams.rgvarg = pVar;
         DISPID dispidPut = DISPID_PROPERTYPUT;
         dispparams.rgdispidNamedArgs = &dispidPut;
@@ -582,13 +584,13 @@ public:
         {
             HRESULT hr = pDispatch->Invoke(dwDispID, IID_NULL,
                 LOCALE_USER_DEFAULT, DISPATCH_PROPERTYPUTREF,
-                &dispparams, NULL, NULL, NULL);
+                &dispparams, nullptr, nullptr, nullptr);
             if (SUCCEEDED(hr))
                 return hr;
         }
         return pDispatch->Invoke(dwDispID, IID_NULL,
                 LOCALE_USER_DEFAULT, DISPATCH_PROPERTYPUT,
-                &dispparams, NULL, NULL, NULL);
+                &dispparams, nullptr, nullptr, nullptr);
     }
 
     _Check_return_ static HRESULT GetProperty(
@@ -597,18 +599,18 @@ public:
         _Out_ VARIANT* pVar) throw()
     {
         ATLASSERT(pDispatch);
-        ATLASSERT(pVar != NULL);
-        if (pVar == NULL)
+        ATLASSERT(pVar != nullptr);
+        if (pVar == nullptr)
             return E_POINTER;
 
-        if (pDispatch == NULL)
+        if (pDispatch == nullptr)
             return E_INVALIDARG;
 
         ATLTRACE(atlTraceCOM, 2, _T("CPropertyHelper::GetProperty\n"));
-        DISPPARAMS dispparamsNoArgs = {NULL, NULL, 0, 0};
+        DISPPARAMS dispparamsNoArgs = {nullptr, nullptr, 0, 0};
         return pDispatch->Invoke(dwDispID, IID_NULL,
                 LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET,
-                &dispparamsNoArgs, pVar, NULL, NULL);
+                &dispparamsNoArgs, pVar, nullptr, nullptr);
     }
 #endif // _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
 };
@@ -616,10 +618,10 @@ public:
 template <class T>
 inline bool SK_ComPtrBase<T>::IsEqualObject(_Inout_opt_ IUnknown* pOther) throw()
 {
-    if (p == NULL && pOther == NULL)
+    if (p == nullptr && pOther == nullptr)
         return true;	// They are both NULL objects
 
-    if (p == NULL || pOther == NULL)
+    if (p == nullptr || pOther == nullptr)
         return false;	// One is NULL the other is not
 
     SK_ComPtr<IUnknown> punk1;
@@ -650,7 +652,7 @@ public:
     }
     SK_ComQIPtr(_Inout_opt_ IUnknown* lp) throw()
     {
-        if (lp != NULL)
+        if (lp != nullptr)
         {
             if (FAILED(lp->QueryInterface(*piid, (void **)&this->p)))
                 this->p = NULL;

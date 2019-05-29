@@ -21,12 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <d3d9.h>
-#include <d3d11.h>
 
 #include <SpecialK/nvapi.h>
 #include <nvapi/NvApiDriverSettings.h>
-#include <nvapi/nvapi_lite_sli.h>
 
 using NvAPI_Disp_GetHdrCapabilities_pfn = NvAPI_Status (__cdecl *)(NvU32, NV_HDR_CAPABILITIES*);
 using NvAPI_Disp_HdrColorControl_pfn    = NvAPI_Status (__cdecl *)(NvU32, NV_HDR_COLOR_DATA*);
@@ -393,7 +390,6 @@ SK_NvAPI_GetDefaultDisplayId (void)
 }
 
 
-#include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 #define __SK_SUBSYSTEM__ L"  Nv API  "
 
@@ -502,24 +498,18 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
   return ret;
 }
 
-static
-std::pair < NvAPI_Status,
-            std::pair < NvU32,
-                        NV_HDR_COLOR_DATA >
-          >
-  SK_NvAPI_LastHdrColorControl (
-    std::make_pair   ( (NvAPI_Status)NVAPI_ERROR,
-      std::make_pair ( (NvU32)0, NV_HDR_COLOR_DATA { } )
-    )
-);
+SK_LazyGlobal < std::pair < NvAPI_Status,
+                std::pair < NvU32,
+                            NV_HDR_COLOR_DATA > > >
+SK_NvAPI_LastHdrColorControl;
 
 void
 SK_NvAPI_ReIssueLastHdrColorControl (void)
 {
-  if (SK_NvAPI_LastHdrColorControl.first == NVAPI_OK)
+  if (SK_NvAPI_LastHdrColorControl->first == NVAPI_OK)
   {
     auto& reissue =
-       SK_NvAPI_LastHdrColorControl.second;
+       SK_NvAPI_LastHdrColorControl->second;
     //auto off_copy         = reissue.second;
     //     off_copy.cmd     = NV_HDR_CMD_SET;
     //     off_copy.hdrMode = NV_HDR_MODE_OFF;
@@ -528,7 +518,6 @@ SK_NvAPI_ReIssueLastHdrColorControl (void)
   }
 }
 
-#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
 NvAPI_Status
 __cdecl
@@ -883,7 +872,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
         rb.driver_based_hdr   = true;
         rb.framebuffer_flags |=  SK_FRAMEBUFFER_FLAG_HDR;
 
-        SK_NvAPI_LastHdrColorControl =
+        *SK_NvAPI_LastHdrColorControl =
           std::make_pair (ret, std::make_pair (displayId, *pHdrColorData));
 
         rb.scanout.nvapi_hdr.mode = pHdrColorData->hdrMode;
@@ -2316,6 +2305,10 @@ SK_NvAPI_AddLauncherToProf (void)
 }
 
 bool         NVAPI::nv_hardware   = false;
-std::wstring NVAPI::friendly_name = L"Tales of Zestiria";
-std::wstring NVAPI::app_name      = L"Tales Of Zestiria.exe";
-std::wstring NVAPI::launcher_name = L"";
+std::wstring NVAPI::friendly_name;
+std::wstring NVAPI::app_name;
+std::wstring NVAPI::launcher_name;
+
+//std::wstring NVAPI::friendly_name; = L"Tales of Zestiria";
+//std::wstring NVAPI::app_name; = L"Tales Of Zestiria.exe";
+//std::wstring NVAPI::launcher_name; = L"";

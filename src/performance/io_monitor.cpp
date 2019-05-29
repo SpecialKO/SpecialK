@@ -120,7 +120,6 @@ SK_CountIO (io_perf_t& ioc, const double update)
 }
 
 #pragma pack (push,8)
-#include <ntverp.h>
 #if (VER_PRODUCTBUILD < 10011)
 typedef enum _CPU_SET_INFORMATION_TYPE {
   CpuSetInformation
@@ -614,7 +613,7 @@ SK_MonitorDisk (LPVOID user)
     if (! config.disk.show)
       continue;
 
-    extern LARGE_INTEGER SK_QueryPerf (void);
+  //extern LARGE_INTEGER SK_QueryPerf (void);
      LARGE_INTEGER now = SK_QueryPerf ();
 
     disk.dwNumReturned = 0;

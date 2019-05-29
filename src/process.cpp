@@ -21,8 +21,8 @@
 
 #include <windows.h>
 #include <tlhelp32.h>
-#include <limits.h>
-#include <assert.h>
+#include <climits>
+#include <cassert>
 #include <intsafe.h>
 #include <WinUser.h>
 #include <SpecialK/utility.h>
@@ -317,7 +317,7 @@ struct SK_NtDllContext
                    hHeap = nullptr;
     }
 
-    if (Module != 0)
+    if (Module != nullptr)
     {
       QuerySystemInformation = nullptr;
       SuspendProcess         = nullptr;

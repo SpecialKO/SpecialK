@@ -22,9 +22,6 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <SpecialK/plugin/plugin_mgr.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <imgui/imgui.h>
 
 extern iSK_INI* dll_ini;
 

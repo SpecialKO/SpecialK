@@ -23,8 +23,8 @@
 
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
-#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
+#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 #include <SpecialK/render/d3d11/utility/d3d11_texture.h>
 
 extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
@@ -605,47 +605,22 @@ D3D11_CSGetShader_Override (
                                    ppClassInstances, pNumClassInstances );
 }
 
-using D3D11_PSSetShader_pfn =
-  void (STDMETHODCALLTYPE *)( ID3D11DeviceContext        *This,
-                     _In_opt_ ID3D11PixelShader          *pPixelShader,
-                     _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-                              UINT                        NumClassInstances );
-
-using D3D11_GSSetShader_pfn =
-  void (STDMETHODCALLTYPE *)( ID3D11DeviceContext        *This,
-                     _In_opt_ ID3D11GeometryShader       *pGeometryShader,
-                     _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-                              UINT                        NumClassInstances );
-
-using D3D11_HSSetShader_pfn =
-  void (STDMETHODCALLTYPE *)( ID3D11DeviceContext        *This,
-                     _In_opt_ ID3D11HullShader           *pHullShader,
-                     _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-                              UINT                        NumClassInstances );
-
-using D3D11_DSSetShader_pfn =
-  void (STDMETHODCALLTYPE *)( ID3D11DeviceContext        *This,
-                     _In_opt_ ID3D11DomainShader         *pDomainShader,
-                     _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-                              UINT                        NumClassInstances );
-
-using D3D11_CSSetShader_pfn =
-  void (STDMETHODCALLTYPE *)( ID3D11DeviceContext        *This,
-                     _In_opt_ ID3D11ComputeShader        *pComputeShader,
-                     _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-                              UINT                        NumClassInstances );
-
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_ClearState_Override (ID3D11DeviceContext* This)
 {
   SK_LOG_FIRST_CALL
-  SK_D3D11_ResetContextState (
-    This, SK_D3D11_GetDeviceContextHandle (This)
-  );
 
-  D3D11_ClearState_Original (This);
+  bool SK_D3D11_QueueContextReset (ID3D11DeviceContext* pDevCtx, UINT dev_ctx);
+  bool SK_D3D11_DispatchContextResetQueue (UINT dev_ctx);
+
+  UINT ctx_handle =
+    SK_D3D11_GetDeviceContextHandle (This);
+
+  SK_D3D11_QueueContextReset   (This, ctx_handle);
+  D3D11_ClearState_Original    (This            );
+  SK_D3D11_DispatchContextResetQueue (ctx_handle);
 }
 
 __declspec (noinline)
@@ -1080,7 +1055,7 @@ D3D11_UpdateSubresource1_Override (
         crc32_tex   (&desc, &srd, &size, &top_crc32c, false);
 
       const uint32_t cache_tag    =
-        safe_crc32c (top_crc32c, (uint8_t *)(&desc), sizeof D3D11_TEXTURE2D_DESC);
+        safe_crc32c (top_crc32c, (uint8_t *)(&desc), sizeof (D3D11_TEXTURE2D_DESC));
 
       const auto start            = SK_QueryPerf ().QuadPart;
 
@@ -1498,7 +1473,7 @@ D3D11_CopySubresourceRegion_Override (
         pDstTex->GetDesc (&dst_desc);
 
       const uint32_t cache_tag =
-        safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof D3D11_TEXTURE2D_DESC);
+        safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof (D3D11_TEXTURE2D_DESC));
 
       if (checksum != 0x00 && dst_desc.Usage != D3D11_USAGE_STAGING)
       {
@@ -1915,9 +1890,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
                                              : false;
 
           const bool active =
-            ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
-                         true :
-                                false;
+            ( tracked_rtv_res == ppRenderTargetViews [i] );
 
           if (active_before != active)
           {
@@ -1940,6 +1913,15 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
       }
     }
   }
+
+  else
+  {
+    D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
+      This, NumRTVs, ppRenderTargetViews,
+        pDSV, UAVStartSlot, NumUAVs,
+          ppUnorderedAccessViews, pUAVInitialCounts
+    );
+  }
 }
 
 __declspec (noinline)
@@ -1950,18 +1932,20 @@ D3D11_OMGetRenderTargets_Override (ID3D11DeviceContext     *This,
                              _Out_ ID3D11RenderTargetView **ppRenderTargetViews,
                              _Out_ ID3D11DepthStencilView **ppDepthStencilView)
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))
   D3D11_OMGetRenderTargets_Original (
     This,        NumViews,
       ppRenderTargetViews,
       ppDepthStencilView );
 
-  if (             ppDepthStencilView            != nullptr &&
-       SK_ReShade_GetDepthStencilViewCallback.fn != nullptr )
-  {    SK_ReShade_GetDepthStencilViewCallback.try_call (
-                  *ppDepthStencilView
-                                                       );
-  }
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))
+  //{
+    if (             ppDepthStencilView            != nullptr &&
+         SK_ReShade_GetDepthStencilViewCallback.fn != nullptr )
+    {    SK_ReShade_GetDepthStencilViewCallback.try_call (
+                    *ppDepthStencilView
+                                                         );
+    }
+  //}
 }
 
 __declspec (noinline)

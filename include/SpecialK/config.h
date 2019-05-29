@@ -421,7 +421,7 @@ struct sk_config_t
       bool    highlight_debug     = true;
       bool    injection_keeps_fmt = false;
       bool    generate_mips       = false;
-      bool    cache_gen_mips      = false;// true;
+      bool    cache_gen_mips      =  true;
       bool    uncompressed_mips   = false;
     } d3d11;
     struct {
@@ -677,19 +677,19 @@ protected:
   T* pPtr = nullptr;
 
 public:
-  SK_DanglingRef (void)
+  SK_DanglingRef (void) noexcept
   {
     pPtr = nullptr;
     init = nullptr;
   }
 
-  SK_DanglingRef (T* pRef, init_fn _init)
+  SK_DanglingRef (T* pRef, init_fn _init) noexcept
   {
     pPtr =  pRef;
     init = _init;
   }
 
-  SK_DanglingRef (init_fn _init)
+  SK_DanglingRef (init_fn _init) noexcept
   {
     pPtr = nullptr;
     init = _init;
@@ -731,8 +731,8 @@ public:
   }
 };
 
-extern SK_LazyGlobal <sk_config_t> _config;
-#define config (*_config)
+extern sk_config_t _config;
+#define config _config
 
 struct SK_KeyCommand
 {

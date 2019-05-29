@@ -267,15 +267,13 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 #undef lstrcat
 #undef GetModuleHandleEx
 
-  static wchar_t wszDbgHelp [MAX_PATH * 2 + 1] = { };
+  HMODULE
+  SK_Debug_LoadHelper (void);
 
-  if (! *wszDbgHelp)
-  {
-    wcsncpy_s   (wszDbgHelp, MAX_PATH * 2, SK_GetSystemDirectory (), _TRUNCATE);
-    PathAppendW (wszDbgHelp, L"dbghelp.dll");
-  }
+  static HMODULE hModDbgHelp =
+    SK_Debug_LoadHelper ();
 
-  if ( GetModuleHandle (wszDbgHelp) &&
+  if ( hModDbgHelp &&
       ( dbghelp_callers.cend (           ) ==
         dbghelp_callers.find (hCallingMod) ) )
   {
@@ -379,7 +377,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
              SK_GetModuleName (hCallingMod).c_str (),
                           _TRUNCATE) ;
 
-  if ((! SK_LoadLibrary_SILENCE) && SK_GetModuleHandle (wszDbgHelp))
+  if ((! SK_LoadLibrary_SILENCE) && SK_Debug_LoadHelper ())
   {
     char  szSymbol [1024] = { };
     ULONG ulLen  =  1023;
@@ -910,7 +908,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
   //                     EXCEPTION_EXECUTE_HANDLER :
   //                     EXCEPTION_CONTINUE_SEARCH )
-  catch (...)
+  catch (const SK_SEH_IgnoredException&)
   {
     dll_log->Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
                    L" %s ('%ws')!",
@@ -1155,7 +1153,7 @@ void
 __stdcall
 SK_InitCompatBlacklist (void)
 {
-  memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
+  memset (&_loader_hooks, 0, sizeof (sk_loader_hooks_t));
 
   //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleHandleA",
@@ -1324,25 +1322,19 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 
   static std::unordered_set <HMODULE> logged_modules;
 
-  // Workaround silly SEH restrictions
-  auto __SEH_Compliant_EmplaceModule =
-  [&](enum_working_set_s* pWorkingSet, int idx)
-   {
-     logged_modules.emplace (pWorkingSet->modules [idx]);
-   };
-
   wchar_t wszModName [MAX_PATH + 2] = { };
 
+  auto orig_se =
+  SK_SEH_ApplyTranslator (
+    SK_MultiFilteringStructuredExceptionTranslator (
+      ( EXCEPTION_ACCESS_VIOLATION,
+        EXCEPTION_INVALID_HANDLE )
+    )
+  );
   for (int i = 0; i < pWorkingSet_->count; i++ )
   {
     *wszModName = L'\0';
 
-    auto orig_se =
-    SK_SEH_ApplyTranslator (
-      SK_FilteringStructuredExceptionTranslator (
-        EXCEPTION_ACCESS_VIOLATION
-      )
-    );
     try
     {
       // Get the full path to the module's file.
@@ -1368,6 +1360,7 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
           base_addr = reinterpret_cast <std::uintptr_t> (mi.lpBaseOfDll);
           mod_size  =                                    mi.SizeOfImage;
         }
+
         else {
           break;
         }
@@ -1383,21 +1376,19 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
         if (SK_LoadLibrary_IsPinnable (wszModName))
              SK_LoadLibrary_PinModule (wszModName);
 
-        __SEH_Compliant_EmplaceModule (pWorkingSet_, i);
+        logged_modules.emplace (
+          pWorkingSet->modules [i]
+        );
       }
     }
 
-    //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
-    //             GetExceptionCode () == EXCEPTION_INVALID_HANDLE )  ?
-    //                     EXCEPTION_EXECUTE_HANDLER :
-    //                     EXCEPTION_CONTINUE_SEARCH )
     catch (const SK_SEH_IgnoredException&)
     {
       // Sometimes a DLL will be unloaded in the middle of doing this...
       //   just ignore that.
     }
-    SK_SEH_RemoveTranslator (orig_se);
   };
+  SK_SEH_RemoveTranslator (orig_se);
 
   CloseHandle (pWorkingSet_->proc);
 
@@ -1755,7 +1746,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
     working_set->proc   = hProc;
     working_set->logger = pLogger;
-    working_set->count  = cbNeeded / sizeof HMODULE;
+    working_set->count  = cbNeeded / sizeof (HMODULE);
     working_set->when   = when;
 
     if (when == SK_ModuleEnum::PreLoad)

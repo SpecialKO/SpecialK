@@ -21,9 +21,7 @@
 //
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
-#include <imgui/imgui.h>
 
 extern volatile
   LONG SK_D3D11_DrawTrackingReqs;

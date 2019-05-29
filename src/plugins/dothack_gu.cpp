@@ -21,10 +21,8 @@
 //
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_d3d11.h>
 
 #define DGPU_VERSION_NUM L"0.2.0.2"
 #define DGPU_VERSION_STR L".hack//G.P.U. v " DGPU_VERSION_NUM
@@ -37,19 +35,6 @@ volatile LONG __DGPU_init = FALSE;
 // It's hideous, don't look!
 //
 //
-
-
-extern HMODULE
-__stdcall
-SK_ReShade_GetDLL (void);
-
-extern bool
-__stdcall
-SK_FetchVersionInfo (const wchar_t* wszProduct);
-
-extern HRESULT
-__stdcall
-SK_UpdateSoftware   (const wchar_t* wszProduct);
 
 typedef void (__stdcall *SK_ReShade_SetResolutionScale_pfn)(float fScale);
 static SK_ReShade_SetResolutionScale_pfn SK_ReShade_SetResolutionScale = nullptr;
@@ -524,7 +509,6 @@ SK_DGPU_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT F
   return S_OK;
 }
 
-#include <SpecialK/tls.h>
 
 enum SK_D3D11_DrawHandlerState
 {

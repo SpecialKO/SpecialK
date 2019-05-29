@@ -21,11 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/plugin/plugin_mgr.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/config.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/control_panel.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 SK_LazyGlobal <SK_PluginRegistry> plugin_mgr;
 

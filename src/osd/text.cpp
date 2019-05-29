@@ -250,7 +250,7 @@ SK_TextOverlay::~SK_TextOverlay (void)
 
 char szOSD [32768] = { };
 
-extern NV_GET_CURRENT_SLI_STATE sli_state;
+SK_LazyGlobal <NV_GET_CURRENT_SLI_STATE> sli_state;
 
 // Probably need to use a critical section to make this foolproof, we will
 //   cross that bridge later though. The OSD is performance critical
@@ -752,9 +752,9 @@ SK_DrawOSD (void)
   if (config.gpu.show)
     SK_PollGPU ();
 
-  int afr_idx  = sli_state.currentAFRIndex,
-      afr_last = sli_state.previousFrameAFRIndex,
-      afr_next = sli_state.nextFrameAFRIndex;
+  int afr_idx  = sli_state->currentAFRIndex,
+      afr_last = sli_state->previousFrameAFRIndex,
+      afr_next = sli_state->nextFrameAFRIndex;
 
   gpu_sensors_t* gpu_stats =
     SK_GPU_CurrentSensorData ();
@@ -2180,12 +2180,6 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
 
     return true;
   }
-
-
-
-  void
-  __stdcall
-  SK_StartPerfMonThreads (void);
 
 
   if ( var == mem_.show  ||

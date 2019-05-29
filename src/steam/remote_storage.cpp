@@ -11,8 +11,8 @@ SK_LazyGlobal <
 class IWrapSteamRemoteStorage012 : public ISteamRemoteStorage
 {
 public:
-  IWrapSteamRemoteStorage012 (ISteamRemoteStorage* pRemoteStorage) :
-                                     pRealStorage (pRemoteStorage) {
+  explicit IWrapSteamRemoteStorage012 (ISteamRemoteStorage* pRemoteStorage) :
+                                              pRealStorage (pRemoteStorage) {
   };
 
   // NOTE

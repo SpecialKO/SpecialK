@@ -894,7 +894,7 @@ SK_AppCache_Manager::getInstalledManifest (DepotId_t steam_depot)
     return 0ULL;
 
   return
-    atoll (SK_WideCharToUTF8 (sec.get_value (L"Installed")).c_str ());
+    strtoll (SK_WideCharToUTF8 (sec.get_value (L"Installed")).c_str (), nullptr, 0);
 }
 
 int
@@ -1158,7 +1158,7 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
   // Wait 2500 msecs for a dead connection, then give up
   //
   InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT,
-                         &ulTimeout,    sizeof ULONG );
+                         &ulTimeout,    sizeof (ULONG) );
 
 
   if (hInetHTTPGetReq == nullptr)
@@ -1174,7 +1174,7 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
   {
 
     DWORD dwContentLength     = 0;
-    DWORD dwContentLength_Len = sizeof DWORD;
+    DWORD dwContentLength_Len = sizeof (DWORD);
     DWORD dwSizeAvailable;
 
     HttpQueryInfo ( hInetHTTPGetReq,
@@ -1297,7 +1297,7 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
           StrStrIA (pos, "</td>");
 
         package.manifest.id =
-          atoll ( std::string (pos, closing_tag - pos).c_str () );
+          strtoll ( std::string (pos, closing_tag - pos).c_str (), nullptr, 0 );
 
         SK_Steam_DepotManifestRegistry [get->depot_id].emplace_back (
           package
@@ -1496,7 +1496,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
 
             URL_COMPONENTSW urlcomps = { };
 
-            urlcomps.dwStructSize     = sizeof URL_COMPONENTSW;
+            urlcomps.dwStructSize     = sizeof (URL_COMPONENTSW);
 
             urlcomps.lpszHostName     = get->wszHostName;
             urlcomps.dwHostNameLength = INTERNET_MAX_HOST_NAME_LENGTH;

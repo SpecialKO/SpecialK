@@ -858,7 +858,8 @@ private:
 const int PreventAlwaysOnTop = 0;
 const int        AlwaysOnTop = 1;
 
-auto constexpr ActivateWindow =[&](HWND hWnd, bool active = false)
+void
+ActivateWindow (HWND hWnd, bool active = false)
 {
   SK_ASSERT_NOT_THREADSAFE ();
 
@@ -1257,7 +1258,7 @@ SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
                             bool&     gamepad )
 {
         RAWINPUTHEADER header = { };
-        UINT           size   = sizeof RAWINPUTHEADER;
+        UINT           size   = sizeof (RAWINPUTHEADER);
   const UINT           ret    =
     SK_GetRawInputData ( (HRAWINPUT)lParam,
                            RID_HEADER,
@@ -1300,11 +1301,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
 // Fix for Trails of Cold Steel
 LRESULT
+WINAPI
 SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 sk_window_s       game_window;
-
-extern bool IMGUI_API SK_ImGui_Visible;
 
 BOOL
 CALLBACK
@@ -1361,7 +1361,7 @@ SK_EnumWindows (HWND hWnd, LPARAM lParam)
 window_t
 SK_FindRootWindow (DWORD proc_id)
 {
-  window_t win;
+  window_t win = { };
 
   win.proc_id  = proc_id;
   win.root     = nullptr;
@@ -2154,11 +2154,16 @@ SK_SetWindowLongA (
   _In_ int  nIndex,
   _In_ LONG dwNewLong )
 {
-  if (SetWindowLongA_Original != nullptr)
-    return SetWindowLongA_Original (hWnd, nIndex, dwNewLong);
-
   return
-    SetWindowLongA (hWnd, nIndex, dwNewLong);
+    static_cast <LONG> (
+      SK_SetWindowLongPtrA (hWnd, nIndex, dwNewLong)
+    );
+
+  //if (SetWindowLongA_Original != nullptr)
+  //  return SetWindowLongA_Original (hWnd, nIndex, dwNewLong);
+  //
+  //return
+  //  SetWindowLongA (hWnd, nIndex, dwNewLong);
 }
 
 DECLSPEC_NOINLINE
@@ -2188,11 +2193,15 @@ SK_SetWindowLongW (
   _In_ int  nIndex,
   _In_ LONG dwNewLong )
 {
-  if (SetWindowLongW_Original != nullptr)
-    return SetWindowLongW_Original (hWnd, nIndex, dwNewLong);
-
   return
-    SetWindowLongW (hWnd, nIndex, dwNewLong);
+    static_cast <LONG> (
+      SK_SetWindowLongPtrW (hWnd, nIndex, dwNewLong)
+    );
+  //if (SetWindowLongW_Original != nullptr)
+  //  return SetWindowLongW_Original (hWnd, nIndex, dwNewLong);
+  //
+  //return
+  //  SetWindowLongW (hWnd, nIndex, dwNewLong);
 }
 
 DECLSPEC_NOINLINE
@@ -2488,10 +2497,86 @@ SK_SetWindowLongPtrA (
   _In_ int      nIndex,
   _In_ LONG_PTR dwNewLong )
 {
-  if (SetWindowLongPtrA_Original != nullptr)
-    return SetWindowLongPtrA_Original (hWnd, nIndex, dwNewLong);
+  //if (SetWindowLongPtrA_Original != nullptr)
+  //  return SetWindowLongPtrA_Original (hWnd, nIndex, dwNewLong);
+  //
+  //return SetWindowLongPtrA (hWnd, nIndex, dwNewLong);
+        DWORD dwPid;
+  const DWORD dwThreadId     =
+    SK_Thread_GetCurrentId  ();
+  const DWORD dwOrigThreadId =
+    GetWindowThreadProcessId (hWnd, &dwPid);
 
-  return SetWindowLongPtrA (hWnd, nIndex, dwNewLong);
+  if (dwOrigThreadId == SK_GetCurrentThreadId () || nIndex != GWL_EXSTYLE)
+  {
+    if (SetWindowLongPtrA_Original != nullptr)
+      return SetWindowLongPtrA_Original (hWnd, nIndex, dwNewLong);
+    else
+      return SetWindowLongPtrA          (hWnd, nIndex, dwNewLong);
+  }
+
+  struct args_s {
+    HWND     hWnd;
+    int      nIndex;
+    LONG_PTR dwNewLong;
+  };
+
+  struct dispatch_queue_s {
+    concurrency::concurrent_queue <args_s>
+           queued;
+    HANDLE hSignal;
+  };
+
+  static SK_LazyGlobal <dispatch_queue_s> work;
+
+  SK_RunOnce ( work->hSignal =
+                 SK_CreateEvent (nullptr, FALSE, FALSE, nullptr) );
+
+  work->queued.push (
+    args_s { hWnd, nIndex, dwNewLong }
+  );
+
+  SK_RunOnce (
+    SK_Thread_Create ([](LPVOID lpUser) ->
+    DWORD
+    {
+      dispatch_queue_s *dispatch =
+        (dispatch_queue_s *)lpUser;
+
+      HANDLE hSignals [] = {
+        __SK_DLL_TeardownEvent,
+             dispatch->hSignal
+      };
+
+      DWORD dwWait = 0;
+
+      while ( (dwWait = WaitForMultipleObjects (
+                          2, hSignals, FALSE, INFINITE )
+              ) != WAIT_OBJECT_0 )
+      {
+        args_s args;
+
+        while (dispatch->queued.try_pop (args))
+        {
+          if (SetWindowLongPtrA_Original != nullptr)
+              SetWindowLongPtrA_Original (args.hWnd, args.nIndex, args.dwNewLong);
+          else
+              SetWindowLongPtrA          (args.hWnd, args.nIndex, args.dwNewLong);
+        }
+      }
+
+      CloseHandle (dispatch->hSignal);
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, (LPVOID)work.getPtr () )
+  );
+
+  SetEvent (work->hSignal);
+
+  return
+    dwNewLong;
 }
 
 DECLSPEC_NOINLINE
@@ -2520,6 +2605,20 @@ SK_SetWindowLongPtrW (
   _In_ int      nIndex,
   _In_ LONG_PTR dwNewLong )
 {
+        DWORD dwPid;
+  const DWORD dwThreadId     =
+    SK_Thread_GetCurrentId  ();
+  const DWORD dwOrigThreadId =
+    GetWindowThreadProcessId (hWnd, &dwPid);
+
+  if (dwOrigThreadId == SK_GetCurrentThreadId () || nIndex != GWL_EXSTYLE)
+  {
+    if (SetWindowLongPtrW_Original != nullptr)
+      return SetWindowLongPtrW_Original (hWnd, nIndex, dwNewLong);
+    else
+      return SetWindowLongPtrW          (hWnd, nIndex, dwNewLong);
+  }
+
   struct args_s {
     HWND     hWnd;
     int      nIndex;
@@ -4025,7 +4124,7 @@ GetForegroundWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  if ( config.window.background_render &&
+  if ( config.window.background_render ||
        config.window.treat_fg_as_active )
   {
     return game_window.hWnd;
@@ -4117,22 +4216,36 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
   HWND hWndOrig =
     GetForegroundWindow ();
 
-  SK_Thread_Create ([](LPVOID lpHwnd) ->
-  DWORD
+        DWORD dwPid;
+  const DWORD dwThreadId     =
+    SK_Thread_GetCurrentId  ();
+  const DWORD dwOrigThreadId =
+    GetWindowThreadProcessId (hWndForeground, &dwPid);
+
+  if (dwOrigThreadId != SK_GetCurrentThreadId ())
   {
-    RealizeForegroundWindow_Impl ((HWND)lpHwnd);
+    SK_Thread_Create ([](LPVOID lpHwnd) ->
+    DWORD
+    {
+      RealizeForegroundWindow_Impl ((HWND)lpHwnd);
 
-    SK_Thread_CloseSelf ();
+      SK_Thread_CloseSelf ();
 
-    return 0;
-  }, (LPVOID)hWndForeground);
+      return 0;
+    }, (LPVOID)hWndForeground);
 
-  //
-  // Rather than spawn this same thread over and over, you need to design
-  //   a window that can handle WM_USER messages and dispatch this crap.
-  //
-  //  --> Same goes for SetWindowLong, which is not thread-safe in Unity.
-  //
+    //
+    // Rather than spawn this same thread over and over, you need to design
+    //   a window that can handle WM_USER messages and dispatch this crap.
+    //
+    //  --> Same goes for SetWindowLong, which is not thread-safe in Unity.
+    //
+  }
+
+  else
+  {
+    RealizeForegroundWindow_Impl (hWndForeground);
+  }
 
   return hWndOrig;
 }
@@ -4334,6 +4447,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+  if (uMsg == WM_NULL)
+    return DefWindowProcW (hWnd, uMsg, wParam, lParam);
+
+
   // If we are forcing a shutdown, then route any messages through the
   //   default Win32 handler.
   if ( ReadAcquire (&__SK_DLL_Ending) && ( uMsg != WM_SYSCOMMAND &&
@@ -4469,10 +4586,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     else if ( uMsg   == WM_TIMER             &&
               wParam == last_mouse->timer_id &&
-             (! SK_IsSteamOverlayActive ()))  //&&
-             //game_window.active )
+              (! SK_IsSteamOverlayActive ()) &&
+             game_window.active )
     {
-      if (true)//if (IsControllerPluggedIn (config.input.gamepad_slot))
+      if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot))
         DeactivateCursor ();
 
       else
@@ -4577,7 +4694,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
       {
         return 0;
-      }
+      } break;
 
     case WM_DISPLAYCHANGE:
   //case WM_COMMAND:       // QLOC specific weirdness
@@ -4639,7 +4756,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
 
 
-      if (GetFocus ()/*SK_GetForegroundWindow () */== hWnd) ActivateWindow (hWnd, true);
+      if (GetFocus () == hWnd) ActivateWindow (hWnd, true);
     } break;
 
     // Allow the game to run in the background
@@ -5051,8 +5168,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //      >> We need to process those for ImGui <<
   //
   if (uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
-  {
-    handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+  {        handled =
+             ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
     if ((! handled) && config.input.mouse.fix_synaptics)
     {
@@ -5064,7 +5181,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       recursive_wheel    = true;
 
-      SK_SendInput (1, &input, sizeof INPUT);
+      SK_SendInput (1, &input, sizeof (INPUT));
     }
   }
 
@@ -5346,7 +5463,9 @@ SK_InstallWindowHook (HWND hWnd)
 
     if (! tested)
     {
-      SK_TestImports (SK_GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof sk_import_test_s);
+      SK_TestImports (SK_GetModuleHandle (L"user32"), win32u_test,
+                                              sizeof (win32u_test) /
+                                              sizeof (sk_import_test_s));
       tested = true;
     }
 
@@ -5494,7 +5613,7 @@ SK_InstallWindowHook (HWND hWnd)
     UINT count         = 0;
 
     const DWORD dwLast = GetLastError ();
-    SK_GetRegisteredRawInputDevices (nullptr, &count, sizeof RAWINPUTDEVICE);
+    SK_GetRegisteredRawInputDevices (nullptr, &count, sizeof (RAWINPUTDEVICE));
 
     if (count > 0)
     {
@@ -5508,7 +5627,7 @@ SK_InstallWindowHook (HWND hWnd)
 
       SK_GetRegisteredRawInputDevices ( pDevs,
                                        &count,
-                                       sizeof RAWINPUTDEVICE );
+                                       sizeof (RAWINPUTDEVICE) );
 
       for (UINT i = 0 ; i < count ; i++)
       {
@@ -6255,6 +6374,7 @@ sk_window_s::updateDims (void)
 
 
 LRESULT
+CALLBACK
 sk_window_s::DefProc (
   _In_ UINT   Msg,
   _In_ WPARAM wParam,
@@ -6266,6 +6386,7 @@ sk_window_s::DefProc (
 }
 
 LRESULT
+WINAPI
 sk_window_s::CallProc (
   _In_ HWND    hWnd_,
   _In_ UINT    Msg,
@@ -6281,6 +6402,7 @@ sk_window_s::CallProc (
 
 
 LRESULT
+WINAPI
 SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   if (pWin == nullptr)
@@ -6289,7 +6411,11 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
   LRESULT ret = 1;
 
   auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (
+    SK_FilteringStructuredExceptionTranslator (
+      EXCEPTION_ACCESS_VIOLATION
+    )
+  );
   try {
     ret =
       pWin->CallProc (hWnd_, Msg, wParam, lParam);

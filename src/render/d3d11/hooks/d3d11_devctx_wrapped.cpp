@@ -23,13 +23,9 @@
 
 #define __SK_SUBSYSTEM__ L"D3D11 Wrap"
 
-#include <SpecialK/render/d3d11/d3d11_3.h>
-#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
-#include <SpecialK/render/d3d11/d3d11_interfaces.h>
-#include <SpecialK/render/d3d11/utility/d3d11_texture.h>
+#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
-#include <ntverp.h>
 #if (VER_PRODUCTBUILD < 10011)
 const GUID IID_ID3D11DeviceContext2 =
 { 0x420d5b32, 0xb90c, 0x4da4, { 0xbe, 0xf0, 0x35, 0x9f, 0x6a, 0x24, 0xa8, 0x3a } };
@@ -1234,7 +1230,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         pDstTex->GetDesc (&dst_desc);
 
         const uint32_t cache_tag =
-          safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof D3D11_TEXTURE2D_DESC);
+          safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof (D3D11_TEXTURE2D_DESC));
 
         if (checksum != 0x00 && dst_desc.Usage != D3D11_USAGE_STAGING)
         {
@@ -2097,9 +2093,12 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   {
     SK_LOG_FIRST_CALL
 
-    SK_D3D11_ResetContextState (
-      pReal, dev_ctx_handle_
-    );pReal->ClearState   ();
+    bool SK_D3D11_QueueContextReset (ID3D11DeviceContext* pDevCtx, UINT dev_ctx);
+    bool SK_D3D11_DispatchContextResetQueue (UINT dev_ctx);
+
+    SK_D3D11_QueueContextReset  (pReal, dev_ctx_handle_);
+    pReal->ClearState           (                      );
+    SK_D3D11_DispatchContextResetQueue (dev_ctx_handle_);
   }
 
   void STDMETHODCALLTYPE Flush (void) override

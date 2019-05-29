@@ -22,18 +22,8 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/render/d3d11/d3d11_screenshot.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/d3d11/d3d11_core.h>
-#include <DirectXTex/DirectXTex.h>
-#include <SpecialK/steam_api.h>
-#include <imgui/imgui.h>
-#include <d3d11_3.h>
 
-#include <typeindex>
-#include <typeinfo>
 
-#include <concurrent_unordered_map.h>
-#include <concurrent_queue.h>
 
 extern volatile LONG  SK_D3D11_DrawTrackingReqs;
 
@@ -1251,7 +1241,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               raw_img.height = pFrameData->Height;
               raw_img.pixels = pFrameData->PixelBuffer.m_pData;
 
-              extern void SK_SteamAPI_InitManagers (void);
+            //extern void SK_SteamAPI_InitManagers (void);
                           SK_SteamAPI_InitManagers ();
 
               wchar_t       wszAbsolutePathToScreenshot [ MAX_PATH * 2 + 1 ] = { };
@@ -1263,7 +1253,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               SK_CreateDirectories (wszAbsolutePathToScreenshot);
 
               ScratchImage         un_srgb;
-              DirectX::TexMetadata meta;
+              DirectX::TexMetadata meta = { };
 
               meta.width     = raw_img.width;
               meta.height    = raw_img.height;
@@ -1585,7 +1575,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 { while (! images_to_write->try_pop (pFrameData))
                   {
                     SK_Sleep (15);
-                    continue;
                   }
 
                   if (ReadAcquire (&__SK_DLL_Ending))

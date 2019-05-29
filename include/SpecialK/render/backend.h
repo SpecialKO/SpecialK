@@ -22,53 +22,27 @@
 #ifndef __SK__RENDER_BACKEND_H__
 #define __SK__RENDER_BACKEND_H__
 
-struct IUnknown;
-#include <SpecialK/render/dxgi/dxgi_swapchain.h>
-#include <Unknwnbase.h>
 
-#include <d3d11.h>
+#include <SpecialK/com_util.h>
+#include <SpecialK/core.h>
 
 #include <Windows.h>
+
+// For NVDX_ObjectHandle to emerge as a definition, include this
+#include <d3d9.h>
+
 #include <../depends/include/nvapi/nvapi_lite_common.h>
 #include <../depends/include/nvapi/nvapi.h>
 
 #include <comdef.h>
 #include <atlbase.h>
-
 #include <cstdint>
-
-enum class SK_RenderAPI
-{
-  Reserved  = 0x0001u,
-
-  // Native API Implementations
-  OpenGL    = 0x0002u,
-  Vulkan    = 0x0004u,
-  D3D9      = 0x0008u,
-  D3D9Ex    = 0x0018u,
-  D3D10     = 0x0020u, // Don't care
-  D3D11     = 0x0040u,
-  D3D12     = 0x0080u,
-
-  // These aren't native, but we need the bitmask anyway
-  D3D8      = 0x2000u,
-  DDraw     = 0x4000u,
-  Glide     = 0x8000u,
-
-  // Wrapped APIs (D3D12 Flavor)
-  D3D11On12 = 0x00C0u,
-
-  // Wrapped APIs (D3D11 Flavor)
-  D3D8On11  = 0x2040u,
-  DDrawOn11 = 0x4040u,
-  GlideOn11 = 0x8040u,
-};
 
 class SK_RenderBackend_V1
 {
 public:
-  enum class SK_RenderAPI api       = SK_RenderAPI::Reserved;
-             wchar_t      name [16] = { };
+  enum SK_RenderAPI api       = SK_RenderAPI::Reserved;
+       wchar_t      name [16] = { };
 };
 
 enum
@@ -132,7 +106,7 @@ struct sk_hwnd_cache_s
 
 constexpr
 float
-operator"" _Nits ( long double whitepoint_scalar )
+operator"" _Nits ( long double whitepoint_scalar ) noexcept
 {
   return
     static_cast <float> ( whitepoint_scalar / 80.0f );
@@ -153,8 +127,14 @@ struct SK_ColorSpace {
 const wchar_t*
 HDRModeToStr (NV_HDR_MODE mode);
 
+
 interface IDirect3DSurface9;
 interface IDXGISurface;
+
+interface ID3D11DeviceContext;
+interface ID3D11Texture2D;
+interface ID3D11RenderTargetView;
+
 
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
@@ -344,13 +324,13 @@ public:
                ID3D11DeviceContext* immediate_ctx = nullptr;
   //SK_ComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
     SK_ComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
-    SK_ComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
+ //SK_ComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
 
-    struct {
-      UINT                               buffer_idx       = UINT_MAX;
-      SK_ComPtr <ID3D11Texture2D>        backbuffer_tex2D = nullptr;
-      SK_ComPtr <ID3D11RenderTargetView> backbuffer_rtv   = nullptr;
-    } interop;
+    //struct {
+    //  UINT                               buffer_idx       = UINT_MAX;
+    //  SK_ComPtr <ID3D11Texture2D>        backbuffer_tex2D = nullptr;
+    //  SK_ComPtr <ID3D11RenderTargetView> backbuffer_rtv   = nullptr;
+    //} interop;
 
   } d3d11;
 

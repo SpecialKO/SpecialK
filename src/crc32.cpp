@@ -21,7 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/crc32.h>
-#include <SpecialK/hash.h>
 
 extern "C"
 uint32_t
@@ -89,7 +88,6 @@ static uint32_t crc32_tab [] =
    0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
  };
 
-#include <SpecialK/utility.h>
 
 // Initialize static member data
 std::unique_ptr <InstructionSet::InstructionSet_Internal> InstructionSet::CPU_Rep;
@@ -142,7 +140,6 @@ crc32 (uint32_t crc, _Notnull_ const void *buf, size_t size)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <algorithm>
 
 #define POLY        0x82f63b78UL
 #define LONG_SHIFT  8192UL
@@ -511,8 +508,6 @@ calculate_table_hw (void)
 
 uint32_t (__cdecl *append_func)(uint32_t, const void*, size_t) = nullptr;
 
-#include <Windows.h>
-#include <SpecialK/thread.h>
 
 volatile LONG
   __crc32c_init = 0;

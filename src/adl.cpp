@@ -175,7 +175,7 @@ SK_ADL_CountActiveGPUs (void)
     if (adapter_status == ADL_TRUE) {
       memcpy ( &adl_active     [active_count++],
                  &adl_adapters [i],
-                   sizeof AdapterInfo );
+                   sizeof (AdapterInfo) );
     }
   }
 

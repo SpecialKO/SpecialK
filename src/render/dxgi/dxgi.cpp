@@ -23,28 +23,22 @@
 
 #define __SK_SUBSYSTEM__ L"   DXGI   "
 
-#include <d3d11_2.h>
-
-#include <SpecialK/render/dxgi/dxgi_hdr.h>
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/d3d11/d3d11_3.h>
-#include <SpecialK/render/d3d11/d3d11_4.h>
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
+
+#include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/backends/imgui_d3d12.h>
 
 #include <SpecialK/nvapi.h>
-#include <SpecialK/adl.h>
 
 // For querying the name of the monitor from the system registry when
 //   EDID and other more purpose-built driver functions fail to help.
 #pragma comment (lib, "SetupAPI.lib")
 
-#include <setupapi.h>
-#include <devguid.h>
-#include <regstr.h>
 
 using D3D11On12CreateDevice_pfn =
   HRESULT (WINAPI *)(              _In_ IUnknown*             pDevice,
@@ -210,25 +204,7 @@ extern          HWND hWndUpdateDlg;
 extern volatile LONG __SK_TaskDialogActive;
 
 
-#include <CEGUI/CEGUI.h>
-#include <CEGUI/System.h>
-#include <CEGUI/DefaultResourceProvider.h>
-#include <CEGUI/ImageManager.h>
-#include <CEGUI/Image.h>
-#include <CEGUI/Font.h>
-#include <CEGUI/Scheme.h>
-#include <CEGUI/WindowManager.h>
-#include <CEGUI/falagard/WidgetLookManager.h>
-#include <CEGUI/ScriptModule.h>
-#include <CEGUI/XMLParser.h>
-#include <CEGUI/GeometryBuffer.h>
-#include <CEGUI/GUIContext.h>
-#include <CEGUI/RenderTarget.h>
-#include <CEGUI/AnimationManager.h>
-#include <CEGUI/FontManager.h>
 
-#include <SpecialK/osd/text.h>
-#include <SpecialK/osd/popup.h>
 
 
 #ifndef SK_BUILD__INSTALLER
@@ -254,7 +230,6 @@ _SKC_MakeCEGUILib ("CEGUISTBImageCodec")
 #include <CEGUI/Rect.h>
 #include <CEGUI/RendererModules/Direct3D11/Renderer.h>
 
-static
 CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 #endif
 
@@ -961,8 +936,8 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
 DWORD dwRenderThread = 0x0000;
 
-extern void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
-extern void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
+//extern void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
+//extern void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
 
 ////extern void  __stdcall SK_D3D12_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
 
@@ -1147,8 +1122,8 @@ SKX_D3D11_EnableFullscreen (bool bFullscreen)
   bAlwaysAllowFullscreen = bFullscreen;
 }
 
-extern
-DWORD __stdcall HookD3D11                   (LPVOID user);
+//extern
+//DWORD __stdcall HookD3D11                   (LPVOID user);
 
 void            SK_DXGI_HookPresent         (IDXGISwapChain* pSwapChain);
 void  WINAPI    SK_DXGI_SetPreferredAdapter (int override_id);
@@ -1159,13 +1134,12 @@ enum SK_DXGI_ResType {
   HEIGHT = 1
 };
 
-auto constexpr
-SK_DXGI_RestrictResMax = []( SK_DXGI_ResType dim,
-                             auto&           last,
-                             auto            idx,
-                             auto            covered,
-             gsl::not_null <DXGI_MODE_DESC*> pDescRaw )->
-bool
+inline bool
+SK_DXGI_RestrictResMax ( SK_DXGI_ResType dim,
+                                   int&  last,
+                                   int   idx,
+                         std::set <int>& covered,
+             gsl::not_null <DXGI_MODE_DESC*> pDescRaw )
  {
   auto pDesc =
     pDescRaw.get ();
@@ -1209,13 +1183,12 @@ bool
    return false;
  };
 
-auto constexpr
-SK_DXGI_RestrictResMin = []( SK_DXGI_ResType dim,
-                             auto&           first,
-                             auto            idx,
-                             auto            covered,
-                             DXGI_MODE_DESC* pDesc )->
-bool
+inline bool
+SK_DXGI_RestrictResMin ( SK_DXGI_ResType dim,
+                                    int& first,
+                                    int  idx,
+                         std::set <int>& covered,
+                         DXGI_MODE_DESC* pDesc )
  {
    UNREFERENCED_PARAMETER (first);
 
@@ -1778,8 +1751,8 @@ SK_EDID_Parse (uint8_t *edid, size_t length)
     return false;
   }
 
-  if ( memcmp ( (const char*)edid          + EDID_HEADER,
-                (const char*)edid_v1_header, EDID_HEADER_END + 1 ) )
+  if ( 0 != memcmp ( (const char*)edid          + EDID_HEADER,
+                     (const char*)edid_v1_header, EDID_HEADER_END + 1 ) )
 
   {
     dll_log->Log (L"SK_EDID_Parse (...): Not V1 Header");
@@ -2254,7 +2227,7 @@ struct StateBlockDataStore {
   ID3D11RenderTargetView*    RenderTargetView;
 };
 
-extern D3D11_PSSetSamplers_pfn D3D11_PSSetSamplers_Original;
+//extern D3D11_PSSetSamplers_pfn D3D11_PSSetSamplers_Original;
 
 struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
 {
@@ -4494,18 +4467,18 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
     HRESULT hr = E_FAIL;
 
-    SK_ComPtr <ID3D12Device>                       pDev12 = nullptr;
+  //SK_ComPtr <ID3D12Device>                       pDev12 = nullptr;
     SK_ComPtr <ID3D11Device>                       pDev   = nullptr;
 
     This->GetDevice (IID_ID3D11Device,        (void **)&pDev.p  );
-    This->GetDevice (__uuidof (ID3D12Device), (void **)&pDev12.p);
+  //This->GetDevice (__uuidof (ID3D12Device), (void **)&pDev12.p);
 
-    if (pDev12.p != nullptr)
-        rb.api = SK_RenderAPI::D3D12;
+    //if (pDev12.p != nullptr)
+    //    rb.api = SK_RenderAPI::D3D12;
 
     SK_BeginBufferSwap ();
 
-    if ((pDev || pDev12) && first_frame)
+    if ((pDev /*|| pDev12*/) && first_frame)
     {
       int hooked = 0;
 
@@ -5311,8 +5284,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
   HRESULT     ret = E_UNEXPECTED;
   DXGI_CALL ( ret, FindClosestMatchingMode_Original (
                      This, pModeToMatch, pClosestMatch,
-                                         pConcernedDevice )
-            );
+                                         pConcernedDevice ) );
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::Sekiro)
   {
@@ -6897,63 +6869,63 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   {
     if (pDev11 == nullptr)
     {
-      SK_ComPtr <ID3D12CommandQueue>                 pQueue = nullptr;
-      pDevice->QueryInterface <ID3D12CommandQueue> (&pQueue.p);
-
-      if (pQueue != nullptr)
-      {
-        SK_ComPtr <ID3D12Device> pDev12;
-
-        if ( SUCCEEDED (
-               pQueue->GetDevice (
-                 __uuidof (ID3D12Device),
-                (void **)&pDev12 )
-                       )
-           )
-        {
-          SK_LOG0 ( ("Game's using D3D12 -- stuff's about to get weird! "
-                     L"[7151]"), L"   DXGI   ");
-
-          ////rb.api =
-          ////  SK_RenderAPI::D3D11On12;
-
-          ///      ID3D12CommandQueue* commandQueue     =         pQueue;
-          ///const ID3D12CommandQueue* commandQueues [] = { commandQueue };
-          ///
-          ///if (D3D11On12CreateDevice == nullptr)
-          ///{
-          ///  D3D11On12CreateDevice =
-          ///    (D3D11On12CreateDevice_pfn)
-          ///    SK_GetProcAddress ( L"d3d11.dll",
-          ///                         "D3D11On12CreateDevice" );
-          ///}
-          ///
-          ///HRESULT hr = D3D11On12CreateDevice == nullptr ? E_NOTIMPL :
-          ///  D3D11On12CreateDevice ( pDev12,  D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-          ///                          nullptr, 0,
-          ///                       (IUnknown **)commandQueues,
-          ///                          _countof (commandQueues), 0,
-          ///                   (ID3D11Device **)&rb.device.p,
-          ///                                    &rb.d3d11.immediate_ctx.p,
-          ///                                      nullptr );
-          ///
-          ///if (SUCCEEDED (hr))
-          {
-            //rb.device->QueryInterface <ID3D11On12Device> (&rb.d3d11.wrapper_dev);
-
-            *ppDest =
-              new IWrapDXGISwapChain ((ID3D11Device *)nullptr, pSwapChain);
-            // (ID3D11Device *) rb.device.p, pSwapChain);
-
-            return
-              (IWrapDXGISwapChain *)*ppDest;
-          }
-        }
-      }
-
-      else
-        SK_LOG0 ( ("non-D3D11/12 SwapChain created"), L"   DXGI   ");
+      ////SK_ComPtr <ID3D12CommandQueue>                 pQueue = nullptr;
+      ////pDevice->QueryInterface <ID3D12CommandQueue> (&pQueue.p);
+      ////
+      ////if (pQueue != nullptr)
+      ////{
+      ////  SK_ComPtr <ID3D12Device> pDev12;
+      ////
+      ////  if ( SUCCEEDED (
+      ////         pQueue->GetDevice (
+      ////           __uuidof (ID3D12Device),
+      ////          (void **)&pDev12 )
+      ////                 )
+      ////     )
+      ////  {
+      ////    SK_LOG0 ( ("Game's using D3D12 -- stuff's about to get weird! "
+      ////               L"[7151]"), L"   DXGI   ");
+      ////
+      ////    ////rb.api =
+      ////    ////  SK_RenderAPI::D3D11On12;
+      ////
+      ////    ///      ID3D12CommandQueue* commandQueue     =         pQueue;
+      ////    ///const ID3D12CommandQueue* commandQueues [] = { commandQueue };
+      ////    ///
+      ////    ///if (D3D11On12CreateDevice == nullptr)
+      ////    ///{
+      ////    ///  D3D11On12CreateDevice =
+      ////    ///    (D3D11On12CreateDevice_pfn)
+      ////    ///    SK_GetProcAddress ( L"d3d11.dll",
+      ////    ///                         "D3D11On12CreateDevice" );
+      ////    ///}
+      ////    ///
+      ////    ///HRESULT hr = D3D11On12CreateDevice == nullptr ? E_NOTIMPL :
+      ////    ///  D3D11On12CreateDevice ( pDev12,  D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+      ////    ///                          nullptr, 0,
+      ////    ///                       (IUnknown **)commandQueues,
+      ////    ///                          _countof (commandQueues), 0,
+      ////    ///                   (ID3D11Device **)&rb.device.p,
+      ////    ///                                    &rb.d3d11.immediate_ctx.p,
+      ////    ///                                      nullptr );
+      ////    ///
+      ////    ///if (SUCCEEDED (hr))
+      ////    {
+      ////      //rb.device->QueryInterface <ID3D11On12Device> (&rb.d3d11.wrapper_dev);
+      ////
+      ////      *ppDest =
+      ////        new IWrapDXGISwapChain ((ID3D11Device *)nullptr, pSwapChain);
+      ////      // (ID3D11Device *) rb.device.p, pSwapChain);
+      ////
+      ////      return
+      ////        (IWrapDXGISwapChain *)*ppDest;
+      ////    }
+      ////  }
+      ///}
     }
+
+    else
+      SK_LOG0 ( ("non-D3D11/12 SwapChain created"), L"   DXGI   ");
 
     *ppDest = pSwapChain;
   }
@@ -9170,7 +9142,7 @@ SK_DXGI_SetPreferredAdapter (int override_id)
   SK_DXGI_preferred_adapter = override_id;
 }
 
-extern bool SK_D3D11_need_tex_reset;
+//extern bool SK_D3D11_need_tex_reset;
 
 memory_stats_t   dxgi_mem_stats [MAX_GPU_NODES] = { };
 mem_info_t       dxgi_mem_info  [NumBuffers]    = { };

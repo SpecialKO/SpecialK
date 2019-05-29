@@ -619,8 +619,8 @@ MessageProc ( const HWND&   hWnd,
 
     if ((! active) && changed)
     {
-      SecureZeroMemory (io.MouseDown, sizeof (bool) * 5  );
-      SecureZeroMemory (io.KeysDown,  sizeof (bool) * 512);
+      RtlZeroMemory (io.MouseDown, sizeof (bool) * 5  );
+      RtlZeroMemory (io.KeysDown,  sizeof (bool) * 512);
     }
 
     window_active = active;
@@ -1263,7 +1263,7 @@ SK_ImGui_FilterXInput (
 
   if (disable)
   {
-    RtlSecureZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
+    RtlZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
     // SDL Keepalive
     pState->dwPacketNumber =
@@ -1457,8 +1457,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 
   else
   {
-    SecureZeroMemory (io.KeysDown,  sizeof (bool) * 512);
-    SecureZeroMemory (io.MouseDown, sizeof (bool) * 5);
+    RtlZeroMemory (io.KeysDown,  sizeof (bool) * 512);
+    RtlZeroMemory (io.MouseDown, sizeof (bool) * 5);
   }
 
   static XINPUT_STATE last_state = { 1, 0 };
@@ -1547,7 +1547,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
   }
 
   else
-    SecureZeroMemory (&state.Gamepad, sizeof XINPUT_GAMEPAD);
+    RtlZeroMemory (&state.Gamepad, sizeof XINPUT_GAMEPAD);
 
 
   if (SK_ImGui_Active () && config.input.gamepad.haptic_ui)

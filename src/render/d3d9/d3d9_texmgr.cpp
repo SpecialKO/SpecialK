@@ -612,9 +612,9 @@ D3D9EndScene_Detour (IDirect3DDevice9* This)
 #define __PAGE_PRIVS PAGE_EXECUTE_READWRITE
 
 #define D3D9_VIRTUAL_OVERRIDE(_Base,_Index,_Name,_Override,_Original,_Type) { \
-  void** vftable = *(void***)*_Base;                                          \
+  void** vftable = *(void***)*(_Base);                                        \
                                                                               \
-  if (vftable [_Index] != _Override) {                                        \
+  if (vftable [_Index] != (_Override)) {                                      \
     DWORD dwProtect;                                                          \
                                                                               \
     VirtualProtect (&vftable [_Index], __PTR_SIZE, __PAGE_PRIVS, &dwProtect); \
@@ -624,11 +624,11 @@ D3D9EndScene_Detour (IDirect3DDevice9* This)
                  /*SK_DescribeVirtualProtectFlags (dwProtect));             */\
                                                                               \
     if (_Original == NULL)                                                    \
-      _Original = (##_Type)vftable [_Index];                                  \
+      (_Original) = (##_Type)vftable [_Index];                                \
                                                                               \
-    /*dll_log->Log (L"  + %s: %08Xh", L#_Original, _Original);*/               \
+    /*dll_log->Log (L"  + %s: %08Xh", L#_Original, _Original);*/              \
                                                                               \
-    vftable [_Index] = _Override;                                             \
+    vftable [_Index] = (_Override);                                           \
                                                                               \
     VirtualProtect (&vftable [_Index], __PTR_SIZE, dwProtect, &dwProtect);    \
                                                                               \

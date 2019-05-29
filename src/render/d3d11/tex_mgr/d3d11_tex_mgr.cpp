@@ -25,8 +25,6 @@
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
-#include <SpecialK/render/d3d11/d3d11_screenshot.h>
-#include <SpecialK/render/d3d11/utility/d3d11_texture.h>
 #include <SpecialK/render/dxgi/dxgi_util.h>
 
 CRITICAL_SECTION tex_cs     = { };
@@ -54,6 +52,11 @@ const GUID SKID_D3D11Texture2D_DISCARD =
 // {5C5298CA-0F9C-4931-A19D-A2E69792AE02}
 { 0x5c5298ca, 0xf9c,  0x4931,
   { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x2 } };
+
+const GUID SKID_D3D11Texture2D_BaseObj =
+// {5C5298CA-0F9C-4931-A19D-A2E69792AC02}
+{ 0x5c5298ca, 0xf9c,  0x4931,
+  { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xac, 0x2 } };
 
 
 bool SK_D3D11_IsTexInjectThread (SK_TLS *pTLS)
@@ -215,11 +218,13 @@ SK_D3D11_TestRefCountHooks ( ID3D11Texture2D *pInputTex,
 __declspec (noinline)
 ULONG
 WINAPI
-IUnknown_Release (IUnknown *This)
+IUnknown_Release (IUnknown* This)
 {
+  SK_TLS* pTLS = nullptr;
+
   if (ReadAcquire (&SK_D3D11_TestingRefCounts) > 0)
   {
-    SK_TLS* pTLS =
+    pTLS =
       SK_TLS_Bottom ();
 
     // Objects destroyed during DLL detach have the potential to
@@ -254,14 +259,14 @@ IUnknown_Release (IUnknown *This)
     // Prevent negative reference counts from causing an infinite loop
     if (count <= 2)
     {
-      SK_TLS *pTLS =
-        SK_TLS_Bottom ();
+      //if (pTLS == nullptr)
+      //    pTLS = SK_TLS_Bottom ();
 
-      if (! SK_D3D11_IsTexInjectThread (pTLS))
+      //if (! SK_D3D11_IsTexInjectThread (pTLS))
       {
-        SK_ScopedBool auto_bool
-           (&pTLS->texture_management.injection_thread);
-             pTLS->texture_management.injection_thread = true;
+        //SK_ScopedBool auto_bool
+        //   (&pTLS->texture_management.injection_thread);
+        //     pTLS->texture_management.injection_thread = true;
 
         ///ID3D11DeviceChild *pDevChild = nullptr;
         ///
@@ -328,47 +333,65 @@ IUnknown_Release (IUnknown *This)
 
         if (SK_GetCallingDLL () == skModuleRegistry::HostApp ())
         {
-          SK_ComQIPtr <ID3D11Texture2D>
-              pTex (This);
-          if (pTex.p != nullptr)
+          if (count <= 1)
+            return 0;
+
+          SK_ComQIPtr <ID3D11Resource>
+              pRes (This);
+          if (pRes.p != nullptr)
           {
-            D3D11_TEXTURE2D_DESC  tex_desc = { };
-                  pTex->GetDesc (&tex_desc);
+            D3D11_RESOURCE_DIMENSION res_dim = { };
+                   pRes.p->GetType (&res_dim);
 
-            if ( (tex_desc.Usage    == D3D11_USAGE_STAGING) ||
-                 (tex_desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS) )
+            if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
             {
-              ID3D11Texture2D*
-                pOrphan = pTex.Detach ();
-                pOrphan->Release      ();
+              SK_ComQIPtr <ID3D11Texture2D> pTex (pRes.p);
 
-              return
-                IUnknown_Release_Original (This);
+              if (pTex)
+              {
+                D3D11_TEXTURE2D_DESC  tex_desc = { };
+                      pTex->GetDesc (&tex_desc);
+
+                if ( (tex_desc.Usage    != D3D11_USAGE_IMMUTABLE) ||
+                     (tex_desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS) )
+                {
+                  IUnknown_Release_Original (pRes.Detach ());
+                  IUnknown_Release_Original (pTex.Detach ());
+
+                  return
+                    IUnknown_Release_Original (This);
+                }
+
+                else
+                {
+                  return 0;
+                }
+              }
+            }
+          }
+
+          else
+          {
+            SK_ComQIPtr <ID3D11DepthStencilView>
+                pDSV (This);
+            if (pDSV.p != nullptr)
+            {
+              return 0;
             }
 
-            else
+            SK_ComQIPtr <ID3D11RenderTargetView>
+                pRTV (This);
+            if (pRTV.p != nullptr)
+            {
               return 0;
-          }
+            }
 
-          SK_ComQIPtr <ID3D11DepthStencilView>
-              pDSV (This);
-          if (pDSV.p != nullptr)
-          {
-            return 0;
-          }
-
-          SK_ComQIPtr <ID3D11DepthStencilView>
-              pRTV (This);
-          if (pRTV.p != nullptr)
-          {
-            return 0;
-          }
-
-          SK_ComQIPtr <ID3D11ShaderResourceView>
-              pSRV (This);
-          if (pSRV.p != nullptr)
-          {
-            return 0;
+            SK_ComQIPtr <ID3D11ShaderResourceView>
+                pSRV (This);
+            if (pSRV.p != nullptr)
+            {
+              return 0;
+            }
           }
         }
       }
@@ -397,32 +420,49 @@ ULONG
 WINAPI
 IUnknown_AddRef (IUnknown *This)
 {
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
+ SK_TLS* pTLS = nullptr;
 
-  if ( This == pTLS->texture_management.refcount_obj     &&
-               pTLS->texture_management.injection_thread != FALSE )
+  if (ReadAcquire (&SK_D3D11_TestingRefCounts) > 0)
   {
-    pTLS->texture_management.refcount_test++;
-  }
+    pTLS =
+      SK_TLS_Bottom ();
 
-  if (! SK_D3D11_IsTexInjectThread (pTLS))
-  {
-    // Flag this thread so we don't infinitely recurse when querying the interface
-    bool orig_inject_state =
-      pTLS->texture_management.injection_thread;
-      pTLS->texture_management.injection_thread = true;
-
-    SK_ComQIPtr <ID3D11Texture2D>
-        pTex (This);
-    if (pTex.p != nullptr)
-    {           SK_D3D11_UseTexture
-       (pTex.p);
+    if ( This == pTLS->texture_management.refcount_obj     &&
+                 pTLS->texture_management.injection_thread != FALSE )
+    {
+      pTLS->texture_management.refcount_test++;
     }
-
-    pTLS->texture_management.injection_thread =
-      orig_inject_state;
   }
+
+  ///else
+  ///{
+  ///  if (! pTLS)                       pTLS = SK_TLS_Bottom ();
+  ///  if (! SK_D3D11_IsTexInjectThread (pTLS))
+  ///  {
+  ///    // Flag this thread so we don't infinitely recurse when querying the interface
+  ///    bool orig_inject_state =
+  ///      pTLS->texture_management.injection_thread;
+  ///      pTLS->texture_management.injection_thread = true;
+  ///
+  ///    SK_ComQIPtr <ID3D11Resource> pResource (This);
+  ///
+  ///    if (pResource.p != nullptr)
+  ///    {
+  ///      D3D11_RESOURCE_DIMENSION rDim = { };
+  ///          pResource->GetType (&rDim);
+  ///
+  ///      if (rDim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  ///      {
+  ///        SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
+  ///
+  ///        if (pTex.p != nullptr)
+  ///          SK_D3D11_UseTexture (pTex.p);
+  ///      }
+  ///    }
+  ///    pTLS->texture_management.injection_thread =
+  ///                        orig_inject_state;
+  ///  }
+  ///}
 
   return
     IUnknown_AddRef_Original (This);
@@ -775,6 +815,26 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
     if (SUCCEEDED (DirectX::CaptureTexture (pDev, pDevCtx, pTex, img)))
     {
+
+      auto _IsTypeless = [&](void) ->
+      bool { return DirectX::IsTypeless (img.GetMetadata ().format); };
+
+      if (_IsTypeless ())
+      {
+        img.OverrideFormat   (
+          DirectX::MakeTypelessUNORM   (
+            img.GetMetadata ( ).format )
+                             );
+
+        if (_IsTypeless ())
+        {
+          img.OverrideFormat   (
+            DirectX::MakeTypelessFLOAT   (
+              img.GetMetadata ( ).format )
+                               );
+        }
+      }
+
       wchar_t wszPath [ MAX_PATH + 2 ] = { };
 
       wcscpy ( wszPath,
@@ -827,11 +887,11 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
 HRESULT
 __stdcall
-SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
-                                        uint32_t                 crc32c,
-                                        ID3D11Texture2D*       /*pOutTex*/,
-                                        DirectX::ScratchImage** ppOutImg,
-                                        SK_TLS*                  pTLS )
+SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
+                                  uint32_t                 crc32c,
+                                  ID3D11Texture2D*       /*pOutTex*/,
+                                  DirectX::ScratchImage** ppOutImg,
+                                  SK_TLS*                  pTLS )
 {
   auto& metadata =
     img.GetMetadata ();
@@ -883,14 +943,18 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
   HRESULT ret  = E_FAIL;
   size_t  size = 0;
 
-  if (mipmaps && compressed )
+  if (mipmaps && compressed)
   {
+    DirectX::TexMetadata meta =
+      img.GetMetadata ();
+
+    img.OverrideFormat (
+      SK_DXGI_MakeTypedFormat (meta.format)
+    );
+
           DirectX::ScratchImage decompressed;
     const DirectX::Image*       orig_img =
       img.GetImage (0, 0, 0);
-
-    DirectX::TexMetadata meta =
-      img.GetMetadata ();
 
                              meta.format    =
     SK_DXGI_MakeTypedFormat (meta.format);
@@ -907,14 +971,14 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
           decompressed.GetImage (0,0,0),
           1,
           decompressed.GetMetadata   (), DirectX::TEX_FILTER_BOX |
-                                         DirectX::TEX_FILTER_FORCE_WIC |
+                                         DirectX::TEX_FILTER_FORCE_NON_WIC |
                                          DirectX::TEX_FILTER_SEPARATE_ALPHA,
           0, *mipmaps )
        );
 
       if (SUCCEEDED (ret))
       {
-        if ((! config.textures.d3d11.uncompressed_mips))
+        if (! config.textures.d3d11.uncompressed_mips)
         {
           auto* compressed_mips =
             new DirectX::ScratchImage;
@@ -960,17 +1024,23 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
     if (mipmaps == nullptr)
         mipmaps  = new DirectX::ScratchImage;
 
+
     DirectX::TexMetadata meta =
       img.GetMetadata ();
 
-    meta.format = SK_DXGI_MakeTypedFormat (meta.format);
+    img.OverrideFormat (
+      SK_DXGI_MakeTypedFormat (meta.format)
+    );
+
+    meta.format =
+      SK_DXGI_MakeTypedFormat (meta.format);
 
     ret =
      ( DirectX::GenerateMipMaps (
          img.GetImages     (),
          img.GetImageCount (),
-         meta,      DirectX::TEX_FILTER_BOX       |
-                    DirectX::TEX_FILTER_FORCE_WIC |
+         meta,      DirectX::TEX_FILTER_BOX           |
+                    DirectX::TEX_FILTER_FORCE_NON_WIC |
                     DirectX::TEX_FILTER_SEPARATE_ALPHA,
          0, *mipmaps )
      );
@@ -1047,8 +1117,8 @@ SK_D3D11_MipmapMakeTexture2D ( ID3D11Device*        pDev,
     auto& metadata =
       img.GetMetadata ();
 
-    if ( metadata.width  <  4 ||
-         metadata.height < 4    ) return E_INVALIDARG;
+    if ( metadata.width  < 1 ||
+         metadata.height < 1    ) return E_INVALIDARG;
 
     SK_ScopedBool auto_bool  (&pTLS->texture_management.injection_thread);
     SK_ScopedBool auto_bool2 (&pTLS->imgui->drawing);
@@ -1192,6 +1262,26 @@ SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D*      pTex,
                    )
        )
     {
+      auto _IsTypeless = [&](void) ->
+      bool { return DirectX::IsTypeless (img.GetMetadata ().format); };
+
+      if (_IsTypeless ())
+      {
+
+        img.OverrideFormat   (
+          DirectX::MakeTypelessUNORM   (
+            img.GetMetadata ( ).format )
+                             );
+
+        if (_IsTypeless ())
+        {
+          img.OverrideFormat   (
+            DirectX::MakeTypelessFLOAT   (
+              img.GetMetadata ( ).format )
+                               );
+        }
+      }
+
       return
         SK_D3D11_MipmapCacheTexture2DEx (
           img, crc32c,
@@ -2459,6 +2549,11 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   desc2d.last_frame =  SK_GetFramesDrawn ();
   desc2d.file_name  =  fileName;
 
+  pTex->SetPrivateData (
+    SKID_D3D11Texture2D_BaseObj,
+      sizeof (LPVOID),
+        &texDesc.texture );
+
 
   if (desc2d.orig_desc.MipLevels >= 18)
   {
@@ -2496,7 +2591,6 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   LastModified_2D = SK_QueryPerf ().QuadPart;
 }
 
-#include <Shlwapi.h>
 
 SK_LazyGlobal <
     std::unordered_map < std::wstring, uint32_t >
@@ -2762,10 +2856,6 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
   for (auto& it : SK_D3D11_EnumeratedMipmapCache.get ())
   {
-    extern
-      void __stdcall
-        SK_D3D11_AddDumped (uint32_t top_crc32, uint32_t checksum);
-
     SK_D3D11_AddTexHash (it.first.c_str (), it.second,         0);
     SK_D3D11_AddTexHash (it.first.c_str (), it.second, it.second);
     SK_D3D11_AddDumped  (it.second,         0                   );
@@ -3055,8 +3145,8 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
   SK_ScopedBool auto_bool  (&pTLS->texture_management.injection_thread);
   SK_ScopedBool auto_bool2 (&pTLS->imgui->drawing);
 
-  ///pTLS->texture_management.injection_thread = true;
-  ////pTLS->imgui->drawing                      = true;
+  pTLS->texture_management.injection_thread = true;
+  pTLS->imgui->drawing                      = true;
   {
     SK_D3D11_TexMgr::tex2D_descriptor_s texDesc2D =
       textures->Textures_2D [pTex];
@@ -3254,6 +3344,7 @@ SK_D3D11_TexMgr::lod_hash_table_s::touch (ID3D11Texture2D *pTex)
 }
 
 
+// Can only be accessed from the thread drawing ImGui
 SK_LazyGlobal <
   std::unordered_set <ID3D11Texture2D *>
 > used_textures;

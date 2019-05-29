@@ -32,6 +32,13 @@
 template <typename T>
 class SK_LazyGlobal
 {
+  enum _AllocState {
+    Uninitialized = 0,
+    Reserved      = 1, // Heap (reserving)
+    Committed     = 2, // Heap (normal)
+    FailsafeLocal = 3  // LocalAlloc
+  };
+
 public:
   __forceinline T* getPtr (void) noexcept
   {
@@ -39,19 +46,35 @@ public:
                     "SK_LazyGlobal does not support reference types" );
 
     const ULONG lock_val =
-      InterlockedCompareExchange (&_initlock, 1, 0);
+      InterlockedCompareExchange (&_initlock, Reserved, Uninitialized);
 
-    if (lock_val == 0)
+    if (lock_val == Uninitialized)
     {
-      pDeferredObject =
-        std::make_unique <T> ();
+      pDeferredObject.reset (
+        new (std::nothrow) T
+      );
+
+      if (pDeferredObject._Myptr () == nullptr)
+      {
+        pDeferredObject.reset (
+          reinterpret_cast    <T *>
+            ( SK_LocalAlloc ( LMEM_FIXED |
+                              LMEM_ZEROINIT, sizeof (T) )
+            )
+        );
+
+        // Couldn't allocate anything, pointing to a dummy value
+        //   and hoping we can limp this thing home before something
+        //     really bad happens.
+        InterlockedExchange (&_initlock, FailsafeLocal);
+      }
 
       InterlockedIncrement (&_initlock);
     }
 
-    else if (lock_val < 2)
+    else if (lock_val < Committed)
     {
-      SK_Thread_SpinUntilAtomicMin (&_initlock, 2);
+      SK_Thread_SpinUntilAtomicMin (&_initlock, Committed);
     }
 
     return
@@ -66,28 +89,35 @@ __forceinline auto& operator [] (const int idx) noexcept { return  (*getPtr ())[
 __forceinline bool  isAllocated (void)    const noexcept
 {
   return
-    ( ReadAcquire (&_initlock) > 1 );
+    ( ReadAcquire (&_initlock) == Committed );
 }
 
   SK_LazyGlobal              (const SK_LazyGlobal&) = delete;
   SK_LazyGlobal& operator=   (const SK_LazyGlobal ) = delete;
 
-  constexpr SK_LazyGlobal (void) {
+  constexpr SK_LazyGlobal (void) noexcept {
   }
 
   ~SK_LazyGlobal (void)
   {
     if (isAllocated ())
     {
-      InterlockedExchange (&_initlock, 0);
+      InterlockedExchange (&_initlock, Uninitialized);
       pDeferredObject.reset ();
+    }
+
+    else if ( FailsafeLocal ==
+      InterlockedCompareExchange (&_initlock, Uninitialized, FailsafeLocal)
+            )
+    {
+      SK_LocalFree ((HLOCAL)pDeferredObject.release ());
     }
   }
 
 protected:
   std::unique_ptr <T>
-                pDeferredObject;
-  volatile LONG _initlock = 0;
+                pDeferredObject = nullptr;
+  volatile LONG _initlock       = Uninitialized;
 };
 #pragma warning (pop)
 

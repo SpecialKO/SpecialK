@@ -62,7 +62,7 @@ SK_Import_GetNumberOfPlugIns (void)
   for (int i = 0; i < SK_MAX_IMPORTS; i++)
   {
     auto& import =
-      imports->imports[i];
+      imports->imports [i];
 
     if (import.name.empty ())
       continue;
@@ -121,8 +121,8 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
   return false;
 }
 
-auto
-SK_LoadImportModule = [&](import_s& import)
+void
+SK_LoadImportModule (import_s& import)
 {
   if (config.system.central_repository)
   {

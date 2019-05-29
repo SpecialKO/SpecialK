@@ -21,31 +21,28 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_gl3.h>
-#include <imgui/backends/imgui_d3d9.h>
-#include <imgui/backends/imgui_d3d11.h>
-#include <imgui/backends/imgui_d3d12.h>
-
 #include <SpecialK/control_panel.h>
 
-#include <SpecialK/control_panel/osd.h>
-#include <SpecialK/control_panel/d3d9.h>
-#include <SpecialK/control_panel/d3d11.h>
-//#include <SpecialK/control_panel/d3d12.h>
-#include <SpecialK/control_panel/opengl.h>
-#include <SpecialK/control_panel/steam.h>
-#include <SpecialK/control_panel/input.h>
-#include <SpecialK/control_panel/window.h>
-#include <SpecialK/control_panel/sound.h>
-#include <SpecialK/control_panel/plugins.h>
-#include <SpecialK/control_panel/compatibility.h>
+#include <imgui/backends/imgui_d3d11.h>
+#include <imgui/backends/imgui_d3d12.h>
+#include <imgui/backends/imgui_d3d9.h>
+#include <imgui/backends/imgui_gl3.h>
 
-#include <SpecialK/render/d3d11/d3d11_core.h>
-#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
+#include <SpecialK/control_panel/compatibility.h>
+#include <SpecialK/control_panel/d3d11.h>
+#include <SpecialK/control_panel/d3d9.h>
+//#include <SpecialK/control_panel/d3d12.h>
+#include <SpecialK/control_panel/input.h>
+#include <SpecialK/control_panel/opengl.h>
+#include <SpecialK/control_panel/osd.h>
+#include <SpecialK/control_panel/plugins.h>
+#include <SpecialK/control_panel/sound.h>
+#include <SpecialK/control_panel/steam.h>
+#include <SpecialK/control_panel/window.h>
 
 #include <SpecialK/nvapi.h>
-#include <SpecialK/osd/text.h>
+
+#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
 LONG imgui_staged_frames   = 0;
 LONG imgui_finished_frames = 0;
@@ -65,7 +62,7 @@ __declspec (dllexport)
 void
 SK_ImGui_Toggle (void);
 
-extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
+//extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
 extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
 
 extern bool     __stdcall SK_FAR_IsPlugIn      (void);
@@ -124,12 +121,7 @@ struct show_eula_s {
   bool never_show_again;
 } extern eula;
 
-#include <map>
-#include <unordered_set>
-#include <unordered_map>
-#include <d3d11.h>
 
-#include <ImGui/imgui_internal.h>
 
 #pragma warning (push)
 #pragma warning (disable: 4706)
@@ -531,8 +523,8 @@ SK_ImGui_ControlPanelTitle (void)
     static std::wstring title = L"";
                         title.clear ();
 
-    extern std::wstring __stdcall SK_GetPluginName (void);
-    extern bool         __stdcall SK_HasPlugin     (void);
+  //extern std::wstring __stdcall SK_GetPluginName (void);
+  //extern bool         __stdcall SK_HasPlugin     (void);
 
     if (SK_HasPlugin () && hModTBFix == nullptr)
       title += SK_GetPluginName ();
@@ -1289,16 +1281,15 @@ DisplayModeMenu (bool windowed)
 
 
 
-#include <SpecialK/nvapi.h>
 
-extern "C"
-{
-NVAPI_INTERFACE
-NvAPI_D3D11_SetDepthBoundsTest ( IUnknown* pDeviceOrContext,
-                                 NvU32     bEnable,
-                                 float     fMinDepth,
-                                 float     fMaxDepth );
-};
+//extern "C"
+//{
+//NVAPI_INTERFACE
+//NvAPI_D3D11_SetDepthBoundsTest ( IUnknown* pDeviceOrContext,
+//                                 NvU32     bEnable,
+//                                 float     fMinDepth,
+//                                 float     fMaxDepth );
+//};
 
 extern float __target_fps;
 extern float __target_fps_bg;

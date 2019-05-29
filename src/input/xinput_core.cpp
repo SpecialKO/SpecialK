@@ -867,6 +867,23 @@ XInputGetCapabilities9_1_0_Detour (
   _In_  DWORD                dwFlags,
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
+  // Yakuza speedup (9_1_0 always returns a fixed set of caps)
+  static std::pair <DWORD, XINPUT_CAPABILITIES>
+    __cached_caps [XUSER_MAX_COUNT] = { };
+
+  if ( dwUserIndex >= 0 &&
+       dwUserIndex < XUSER_MAX_COUNT &&
+         __cached_caps [dwUserIndex].first == ERROR_SUCCESS )
+  {
+    *pCapabilities =
+      __cached_caps [dwUserIndex].second;
+
+    return
+      __cached_caps [dwUserIndex].first;
+  }
+  // --------------- End Cache Lookup ---------------
+
+
   auto& _xinput_ctx = xinput_ctx.get ();
 
   HMODULE hModCaller = SK_GetCallingDLL ();
@@ -901,6 +918,9 @@ XInputGetCapabilities9_1_0_Detour (
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
 
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+
+  __cached_caps [dwUserIndex] =
+    { dwRet, *pCapabilities };
 
   return dwRet;
 }
@@ -1575,7 +1595,6 @@ SK_XInput_RehookIfNeeded (void)
 }
 
 
-#include <SpecialK/input/steam.h>
 
 bool
 WINAPI

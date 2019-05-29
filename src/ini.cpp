@@ -21,7 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <sys/stat.h>
 
 std::wstring
 ErrorMessage (errno_t        err,
@@ -58,13 +57,13 @@ dll_log->Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LIN
 
 iSK_INI::iSK_INI (const wchar_t* filename)
 {
+  encoding_ = INI_UTF8;
+
   AddRef ();
 
   SK_ReleaseAssert (
           filename != nullptr)
   if (!   filename)   return;
-
-  encoding_ = INI_UTF8;
 
   // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
   //   actual pointer we need to free...
@@ -911,7 +910,6 @@ iSK_INI::get_section (const wchar_t* section)
   return ret;
 }
 
-#include <cstdarg>
 
 iSK_INISection&
 __stdcall
@@ -1169,6 +1167,9 @@ iSK_INI::import_file (const wchar_t* fname)
 {
   size_t len =
     wcslen (fname);
+
+  if (len == 0)
+    return false;
 
   // We skip a few bytes (Unicode BOM) in certain circumstances, so this is
   //   the actual pointer we need to free...

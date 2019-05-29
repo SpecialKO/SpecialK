@@ -985,7 +985,7 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
     ImGui::PushStyleColor (ImGuiCol_Text,   (ImVec4&&)ImColor::HSV (0.15f, 0.95f, 0.99f));
     ImGui::PushStyleColor (ImGuiCol_Border, (ImVec4&&)ImColor::HSV (0.15f, 0.95f, 0.99f));
     ImGui::Separator      (  );
-    ImGui::PopStyleColor  (02);
+    ImGui::PopStyleColor  (2);
 
     ImGui::TreePush       ("");
     ImGui::BeginGroup     (  );
@@ -1846,6 +1846,39 @@ public:
       ImGui::Checkbox   ("Hide Inactive", &hide_inactive);
       ImGui::SameLine   ();
       ImGui::Checkbox   ("Reset Stats Every 30 Seconds", &reset_stats);
+      if (ImGui::Button ("Compact Working Set Memory"))
+      {
+        //SIZE_T MaximumWorkingSet = -1,
+        //       MinimumWorkingSet = -1;
+        //
+        //HANDLE hProc   = GetCurrentProcess ();
+        //DWORD  dwFlags;
+        //
+        //PROCESS_MEMORY_COUNTERS       pmc = { };    pmc.cb
+        //                                  = sizeof (PROCESS_MEMORY_COUNTERS);
+        //GetProcessMemoryInfo (hProc, &pmc,  sizeof (pmc));
+        //
+        //GetProcessWorkingSetSizeEx (
+        //  hProc, &MinimumWorkingSet, &MaximumWorkingSet, &dwFlags
+        //);
+        //
+        //SetProcessWorkingSetSize (
+        //  hProc, MinimumWorkingSet, 9 * (pmc.PeakWorkingSetSize / 10)
+        //);
+        //
+        //SetProcessWorkingSetSize (
+        //  hProc, MinimumWorkingSet, MaximumWorkingSet
+        //);
+
+        typedef BOOL (WINAPI* K32EmptyWorkingSet_pfn)(HANDLE hProcess);
+        static                K32EmptyWorkingSet_pfn
+                              K32EmptyWorkingSet =
+                             (K32EmptyWorkingSet_pfn) SK_GetProcAddress (
+                L"kernel32", "K32EmptyWorkingSet" );
+
+        if (K32EmptyWorkingSet != nullptr)
+        {   K32EmptyWorkingSet (GetCurrentProcess ()); }
+      }
       ImGui::EndGroup   ();
       ImGui::SameLine   ();
       ImGui::BeginGroup ();

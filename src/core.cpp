@@ -22,24 +22,16 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
-#include <SpecialK/render/vk/vulkan_backend.h>
-#include <SpecialK/render/d3d11/d3d11_4.h>
-
-#include <SpecialK/update/archive.h>
-
-#include <d3d9.h>
-#include <d3d11.h>
-#include <wingdi.h>
-#include <gl/gl.h>
-
-#include <imgui/imgui.h>
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
+
+
+#include <SpecialK/commands/mem.inl>
+#include <SpecialK/commands/update.inl>
+
 
 #ifdef _WIN64
 #pragma comment (lib, R"(depends\lib\DirectXTex\x64\DirectXTex.lib)")
@@ -54,7 +46,6 @@
 volatile HANDLE hInitThread              = { INVALID_HANDLE_VALUE };
 volatile DWORD  dwInitThreadId           = 0;
 
-NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init      = FALSE;
 HMODULE                  backend_dll     = nullptr;
 
@@ -785,10 +776,6 @@ WaitForInit (void)
 }
 
 
-
-#include <SpecialK/commands/mem.inl>
-#include <SpecialK/commands/update.inl>
-
 void
 SK_UnpackD3DShaderCompiler (void)
 {
@@ -1509,7 +1496,6 @@ SK_EstablishRootPath (void)
 ////}
 
 
-#include <SpecialK/steam_api.h>
 
 uint32_t
 SK_Steam_GetAppID_NoAPI (void)
@@ -1531,7 +1517,7 @@ SK_Steam_GetAppID_NoAPI (void)
                           fclose (fAppID);
 
       dwSteamGameIdLen = (DWORD)strlen (szSteamGameId);
-      AppID            =          atoi (szSteamGameId);
+      AppID            =        strtol (szSteamGameId, nullptr, 0);
     }
   }
 
@@ -1544,7 +1530,7 @@ SK_Steam_GetAppID_NoAPI (void)
 
 
     if (dwSteamGameIdLen > 1)
-      AppID = atoi (szSteamGameId);
+      AppID = strtol (szSteamGameId, nullptr, 0);
 
 
     //if (GetFileAttributesW (L"steam_appid.txt") == INVALID_FILE_ATTRIBUTES)
@@ -1791,8 +1777,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
         WaitForInit         ();
 
-        extern void SK_Memory_InitHooks (void);
-                    SK_Memory_InitHooks ();
+        SK_Memory_InitHooks ();
 
         if (SK_GetDLLRole () != DLL_ROLE::DInput8)
         {
@@ -1804,6 +1789,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
           SK_Input_Init       ();
         }
+
+        SK_ApplyQueuedHooks  ();
 
         // Setup the compatibility backend, which monitors loaded libraries,
         //   blacklists bad DLLs and detects render APIs...
@@ -1883,9 +1870,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (__SK_bypass)
     goto BACKEND_INIT;
 
-
-  extern void SK_File_InitHooks    (void);
-  extern void SK_Network_InitHooks (void);
 
   SK_File_InitHooks    ();
   SK_Network_InitHooks ();
@@ -2409,8 +2393,8 @@ SK_ShutdownCore (const wchar_t* backend)
 
 
 
-auto SK_UnpackCEGUI =
-[](void) -> void
+void
+SK_UnpackCEGUI (void)
 {
   HMODULE hModSelf =
     SK_GetDLL ();
@@ -2690,13 +2674,10 @@ return;
                 throw (SK_SEH_IgnoredException ());
               }
 
-              else
-              {
-                RaiseException ( nExceptionCode,
-                                 pException->ExceptionRecord->ExceptionFlags,
-                                 pException->ExceptionRecord->NumberParameters,
-                                 pException->ExceptionRecord->ExceptionInformation );
-              }
+              RaiseException ( nExceptionCode,
+                               pException->ExceptionRecord->ExceptionFlags,
+                               pException->ExceptionRecord->NumberParameters,
+                               pException->ExceptionRecord->ExceptionInformation );
             }
           );
 
@@ -2801,13 +2782,13 @@ return;
 }
 
 
-concurrency::concurrent_unordered_set <DWORD> render_threads;
-
 __declspec (noinline)
 void
 __stdcall
 SK_BeginBufferSwap (void)
 {
+  static concurrency::concurrent_unordered_set <DWORD> render_threads;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -3225,7 +3206,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_ComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     SK_ComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
     SK_ComPtr <ID3D11Device>       pDev11  = nullptr;
-    SK_ComPtr <ID3D12Device>       pDev12  = nullptr;
+  //SK_ComPtr <ID3D12Device>       pDev12  = nullptr;
 
     if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
     {
@@ -3242,11 +3223,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
       wcsncpy (rb.name, L"D3D9  ", 8);
     }
 
-    else if (SUCCEEDED (device->QueryInterface <ID3D12Device> (&pDev12)))
-    {
-      rb.api  = SK_RenderAPI::D3D12;
-      wcsncpy (rb.name, L"D3D12 ", 8);
-    }
+    ///else if (SUCCEEDED (device->QueryInterface <ID3D12Device> (&pDev12)))
+    ///{
+    ///  rb.api  = SK_RenderAPI::D3D12;
+    ///  wcsncpy (rb.name, L"D3D12 ", 8);
+    ///}
 
     else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
     {
@@ -3341,25 +3322,25 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_D3D11_EndFrame (pTLS);
   }
 
-  if ( static_cast <int> (rb.api)  &
-       static_cast <int> (SK_RenderAPI::D3D12) )
-  {
-    BOOL fullscreen = FALSE;
-
-    SK_ComPtr                        <IDXGISwapChain>   pSwapChain = nullptr;
-    if (rb.swapchain)
-        rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
-
-    if ( pSwapChain &&
-         SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
-    { rb.fullscreen_exclusive =                        fullscreen;        }
-
-    else
-      rb.fullscreen_exclusive = false;
-
-    // Also clear any resources we were tracking for the shader mod subsystem
-    SK_D3D12_EndFrame (pTLS);
-  }
+  ///if ( static_cast <int> (rb.api)  &
+  ///     static_cast <int> (SK_RenderAPI::D3D12) )
+  ///{
+  ///  BOOL fullscreen = FALSE;
+  ///
+  ///  SK_ComPtr                        <IDXGISwapChain>   pSwapChain = nullptr;
+  ///  if (rb.swapchain)
+  ///      rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+  ///
+  ///  if ( pSwapChain &&
+  ///       SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
+  ///  { rb.fullscreen_exclusive =                        fullscreen;        }
+  ///
+  ///  else
+  ///    rb.fullscreen_exclusive = false;
+  ///
+  ///  // Also clear any resources we were tracking for the shader mod subsystem
+  ///  SK_D3D12_EndFrame (pTLS);
+  ///}
 
 
 #ifdef _M_AMD64
@@ -3397,7 +3378,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     //   one frame late, but this is the safest approach.
     if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
     {
-      sli_state = sk::NVAPI::GetSLIState (device);
+      extern SK_LazyGlobal <NV_GET_CURRENT_SLI_STATE> sli_state;
+
+      *sli_state =
+        sk::NVAPI::GetSLIState (device);
     }
   }
 
@@ -3512,24 +3496,3 @@ SK_LazyGlobal <iSK_Logger> budget_log;
 SK_LazyGlobal <iSK_Logger> game_debug;
 SK_LazyGlobal <iSK_Logger> tex_log;
 SK_LazyGlobal <iSK_Logger> steam_log;
-//#undef dll_log
-//#undef crash_log
-//#undef budget_log
-//#undef game_debug
-//#undef tex_log
-//#undef steam_log
-//
-//#define SK_DeclLog(__LOG_NAME__)               \
-//iSK_Logger&                                    \
-//_SK_Singleton_##__LOG_NAME__## (void) noexcept \
-//{                                              \
-//  static iSK_Logger _log;                      \
-//  return            _log;                      \
-//}
-//
-//SK_DeclLog (dll_log);
-//SK_DeclLog (crash_log);
-//SK_DeclLog (budget_log);
-//SK_DeclLog (game_debug);
-//SK_DeclLog (tex_log);
-//SK_DeclLog (steam_log);
