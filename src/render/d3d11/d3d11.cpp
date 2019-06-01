@@ -39,6 +39,56 @@
 #define SK_D3D11_WRAP_IMMEDIATE_CTX
 #define SK_D3D11_WRAP_DEFERRED_CTX
 
+
+
+// Thanks to some particularly awful JRPGs, Special K now hooks and wraps some
+//   APIs simultaneously and needs to know whether the wrapped calls will
+//     reliably pass-through the hook or if processing needs to be done
+//       separately, so that's what this tally whacker does.
+class SK_D3D11_HookTallyWhacker
+{
+public:
+  bool is_whack (void)
+  {
+    if (whack != 0)
+ return whack >  0 ? true : false;
+    if   (                  dwHookCalls < 500 ) return true;
+    else
+    {
+      if ( dwHookCalls < dwWrappedCalls - 500 ) whack =  1;
+      else                                      whack = -1;
+
+      return true;
+    }
+
+  };
+  int hooked  (int whacks = 1) { return ( dwHookCalls    += whacks ); };
+  int wrapped (int whacks = 1) { return ( dwWrappedCalls += whacks ); };
+
+// Call tallys
+protected:
+  int   whack          = 0;
+  DWORD dwHookCalls    = 0,
+        dwWrappedCalls = 0;
+}; // This looks stupid as hell, but it's much quicker than querying the
+   //   device context's private data or getting TLS on every draw call.
+
+
+#define SK_WRAP_AND_HOOK                     \
+  static SK_D3D11_HookTallyWhacker           \
+                 call_tally;                 \
+                                             \
+  if ((pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED ))\
+  {                                          \
+    call_tally.hooked  ( bWrapped ? 0 : 1 ); \
+    call_tally.wrapped ( bWrapped ? 1 : 0 ); \
+  }                                          \
+                                             \
+  const bool bMustNotIgnore =                \
+    ( call_tally.is_whack () ||              \
+              (! bWrapped) );
+
+
 // NEVER, under any circumstances, call any functions using this!
 ID3D11Device* g_pD3D11Dev = nullptr;
 
@@ -170,9 +220,9 @@ SK_D3D11_CleanupMutexes (void)
 }
 
 extern std::pair <BOOL*, BOOL>
-SK_ImGui_FlagDrawing_OnD3D11Ctx (size_t dev_idx);
+SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
 extern bool
-SK_ImGui_IsDrawing_OnD3D11Ctx   (size_t dev_idx);
+SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT dev_idx, ID3D11DeviceContext* pDevCtx);
 
 static
   SK_LazyGlobal <
@@ -258,7 +308,7 @@ SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
   _ShaderRepo pShaderRepoIn  = nullptr;
   _ShaderRepo pShaderRepoOut = nullptr;
 
-  const UINT dev_ctx_in  =
+  const UINT dev_ctx_in =
     SK_D3D11_GetDeviceContextHandle (pSurrogate),
             dev_ctx_out =
     SK_D3D11_GetDeviceContextHandle (pMerge);
@@ -280,93 +330,47 @@ SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
   ctx_in_res.used_textures.clear  ();
   ctx_in_res.temp_resources.clear ();
 
-  _GetRegistry ( &pShaderRepoIn,  sk_shader_class::Vertex   );
-  _GetRegistry ( &pShaderRepoOut, sk_shader_class::Vertex   )->current.shader [dev_ctx_out] =
-                                                pShaderRepoIn->current.shader [dev_ctx_in ];
-                                                pShaderRepoIn->current.shader [dev_ctx_in ] = 0x0;
-    memcpy     (  pShaderRepoIn->current.views      [dev_ctx_in ],
-                  pShaderRepoOut->current.views     [dev_ctx_out],
-                    128 * sizeof (ptrdiff_t) );
-pShaderRepoIn->tracked.deactivate (pSurrogate, dev_ctx_in);
-RtlZeroMemory
-(pShaderRepoIn->current.views[dev_ctx_in],
-  128 * sizeof (ptrdiff_t));
+  bool reset = true;// false;
 
-_GetRegistry (&pShaderRepoIn, sk_shader_class::Pixel);
-_GetRegistry (&pShaderRepoOut, sk_shader_class::Pixel)->current.shader[dev_ctx_out] =
-pShaderRepoIn->current.shader[dev_ctx_in];
-pShaderRepoIn->current.shader[dev_ctx_in] = 0x0;
-memcpy (pShaderRepoIn->current.views[dev_ctx_in],
-  pShaderRepoOut->current.views[dev_ctx_out],
-  128 * sizeof (ptrdiff_t));
-pShaderRepoIn->tracked.deactivate (pSurrogate, dev_ctx_in);
-RtlZeroMemory (
-  pShaderRepoIn->current.views[dev_ctx_in],
-  128 * sizeof (ptrdiff_t));
+  static const sk_shader_class classes [] = {
+    sk_shader_class::Vertex,   sk_shader_class::Pixel,
+    sk_shader_class::Geometry, sk_shader_class::Hull,
+    sk_shader_class::Domain,   sk_shader_class::Compute
+  };
 
-_GetRegistry (&pShaderRepoIn, sk_shader_class::Geometry);
-_GetRegistry (&pShaderRepoOut, sk_shader_class::Geometry)->current.shader[dev_ctx_out] =
-pShaderRepoIn->current.shader[dev_ctx_in];
-pShaderRepoIn->current.shader[dev_ctx_in] = 0x0;
-memcpy (pShaderRepoIn->current.views[dev_ctx_in],
-  pShaderRepoOut->current.views[dev_ctx_out],
-  128 * sizeof (ptrdiff_t));
-pShaderRepoIn->tracked.deactivate (pSurrogate, dev_ctx_in);
-RtlZeroMemory (
-  pShaderRepoIn->current.views[dev_ctx_in],
-  128 * sizeof (ptrdiff_t));
+  for ( auto i : classes )
+  {
 
+    _GetRegistry ( &pShaderRepoIn,  i );
+    _GetRegistry ( &pShaderRepoOut, i )->current.shader [dev_ctx_out] =
+                    pShaderRepoIn->current.shader       [dev_ctx_in ];
 
-_GetRegistry (&pShaderRepoIn, sk_shader_class::Hull);
-_GetRegistry (&pShaderRepoOut, sk_shader_class::Hull)->current.shader[dev_ctx_out] =
-pShaderRepoIn->current.shader[dev_ctx_in];
-pShaderRepoIn->current.shader[dev_ctx_in] = 0x0;
-memcpy (pShaderRepoIn->current.views[dev_ctx_in],
-  pShaderRepoOut->current.views[dev_ctx_out],
-  128 * sizeof (ptrdiff_t));
-pShaderRepoIn->tracked.deactivate (pSurrogate, dev_ctx_in);
-RtlZeroMemory (
-  pShaderRepoIn->current.views[dev_ctx_in],
-  128 * sizeof (ptrdiff_t));
+    if (reset)
+    {
+      RtlZeroMemory
+               (    pShaderRepoIn->current.views        [dev_ctx_in ],
+                      128 * sizeof (ptrdiff_t) );
+                    pShaderRepoIn->current.shader       [dev_ctx_in ] = 0x0;
+                    pShaderRepoIn->tracked.deactivate (pSurrogate, dev_ctx_in);
+    }
+  }
 
+  for ( int i = 0; i < 6; ++i )
+  {
+    memcpy ( &d3d11_shader_stages [i][dev_ctx_out].skipped_bindings [0],
+             &d3d11_shader_stages [i][ dev_ctx_in].skipped_bindings [0],
+             sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
+    RtlZeroMemory (
+             &d3d11_shader_stages [i][ dev_ctx_in].skipped_bindings [0],
+             sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
 
-_GetRegistry (&pShaderRepoIn, sk_shader_class::Domain);
-_GetRegistry (&pShaderRepoOut, sk_shader_class::Domain)->current.shader[dev_ctx_out] =
-pShaderRepoIn->current.shader[dev_ctx_in];
-pShaderRepoIn->current.shader[dev_ctx_in] = 0x0;
-memcpy (pShaderRepoIn->current.views[dev_ctx_in],
-  pShaderRepoOut->current.views[dev_ctx_out],
-  128 * sizeof (ptrdiff_t));
-pShaderRepoIn->tracked.deactivate (pSurrogate, dev_ctx_in);
-RtlZeroMemory (
-  pShaderRepoIn->current.views[dev_ctx_in],
-  128 * sizeof (ptrdiff_t));
-
-_GetRegistry (&pShaderRepoIn, sk_shader_class::Compute);
-_GetRegistry (&pShaderRepoOut, sk_shader_class::Compute)->current.shader[dev_ctx_out] =
-pShaderRepoIn->current.shader[dev_ctx_in];
-pShaderRepoIn->current.shader[dev_ctx_in] = 0x0;
-memcpy (pShaderRepoIn->current.views[dev_ctx_in],
-  pShaderRepoOut->current.views[dev_ctx_out],
-  128 * sizeof (ptrdiff_t));
-pShaderRepoIn->tracked.deactivate (pSurrogate, dev_ctx_in);
-RtlZeroMemory (pShaderRepoIn->current.views[dev_ctx_in],
-  128 * sizeof (ptrdiff_t));
-
-for (int i = 0; i < 6; ++i)
-{
-  memcpy (&d3d11_shader_stages[i][dev_ctx_out].skipped_bindings[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT],
-    &d3d11_shader_stages[i][dev_ctx_in].skipped_bindings[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT],
-    sizeof (ID3D11ShaderResourceView*) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-  RtlZeroMemory (&d3d11_shader_stages[i][dev_ctx_in].skipped_bindings[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT],
-    sizeof (ID3D11ShaderResourceView*) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-  memcpy (&d3d11_shader_stages[i][dev_ctx_out].real_bindings[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT],
-    &d3d11_shader_stages[i][dev_ctx_in].real_bindings[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT],
-    sizeof (ID3D11ShaderResourceView*) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-  RtlZeroMemory (&d3d11_shader_stages[i][dev_ctx_in].real_bindings[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT],
-    sizeof (ID3D11ShaderResourceView*) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-}
+    memcpy ( &d3d11_shader_stages [i][dev_ctx_out].real_bindings [0],
+             &d3d11_shader_stages [i][ dev_ctx_in].real_bindings [0],
+             sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
+    RtlZeroMemory (
+             &d3d11_shader_stages [i][ dev_ctx_in].real_bindings [0],
+             sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
+  }
 }
 
 void
@@ -383,14 +387,14 @@ SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx, UINT dev_ctx)
     {
       default:
       case sk_shader_class::Vertex:
-        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
-                           &shaders->vertex
-                          );
+        *ppShaderDomain = reinterpret_cast <
+          SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *>
+                      (&shaders->vertex);
          break;
       case sk_shader_class::Pixel:
         *ppShaderDomain = reinterpret_cast <
           SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
-         >                     (&shaders->pixel);
+         >            (&shaders->pixel);
          break;
       case sk_shader_class::Geometry:
         *ppShaderDomain = reinterpret_cast <
@@ -426,73 +430,55 @@ SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx, UINT dev_ctx)
       SK_D3D11_GetDeviceContextHandle (pDevCtx);
   }
 
-  _GetRegistry ( &pShaderRepo, sk_shader_class::Vertex   )->current.shader [dev_ctx] = 0x0;
-                  pShaderRepo->tracked.deactivate (pDevCtx, dev_ctx);
-    RtlZeroMemory (
-                  pShaderRepo->current.views      [dev_ctx], 128 * sizeof (ptrdiff_t) );
-  _GetRegistry ( &pShaderRepo, sk_shader_class::Pixel    )->current.shader [dev_ctx] = 0x0;
-                  pShaderRepo->tracked.deactivate (pDevCtx, dev_ctx);
-    RtlZeroMemory (
-                  pShaderRepo->current.views      [dev_ctx], 128 * sizeof (ptrdiff_t) );
-  _GetRegistry ( &pShaderRepo, sk_shader_class::Geometry )->current.shader [dev_ctx] = 0x0;
-                  pShaderRepo->tracked.deactivate (pDevCtx, dev_ctx);
-    RtlZeroMemory (
-                  pShaderRepo->current.views      [dev_ctx], 128 * sizeof (ptrdiff_t) );
-  _GetRegistry ( &pShaderRepo, sk_shader_class::Domain   )->current.shader [dev_ctx] = 0x0;
-                  pShaderRepo->tracked.deactivate (pDevCtx, dev_ctx);
-    RtlZeroMemory (
-                  pShaderRepo->current.views      [dev_ctx], 128 * sizeof (ptrdiff_t) );
-  _GetRegistry ( &pShaderRepo, sk_shader_class::Hull     )->current.shader [dev_ctx] = 0x0;
-                  pShaderRepo->tracked.deactivate (pDevCtx, dev_ctx);
-    RtlZeroMemory (
-                  pShaderRepo->current.views      [dev_ctx], 128 * sizeof (ptrdiff_t) );
-  _GetRegistry ( &pShaderRepo, sk_shader_class::Compute  )->current.shader [dev_ctx] = 0x0;
-                  pShaderRepo->tracked.deactivate (pDevCtx, dev_ctx);
-    RtlZeroMemory (
-                  pShaderRepo->current.views      [dev_ctx], 128 * sizeof (ptrdiff_t) );
+  static const sk_shader_class classes [] = {
+    sk_shader_class::Vertex,   sk_shader_class::Pixel,
+    sk_shader_class::Geometry, sk_shader_class::Hull,
+    sk_shader_class::Domain,   sk_shader_class::Compute
+  };
+
+  for ( auto i : classes )
+  {
+    _GetRegistry  ( &pShaderRepo, i )->current.shader         [dev_ctx] = 0x0;
+                     pShaderRepo->tracked.deactivate (pDevCtx, dev_ctx);
+    RtlZeroMemory
+                  (  pShaderRepo->current.views               [dev_ctx],
+                     128 * sizeof (ptrdiff_t) );
+  }
 
   for ( UINT i = 0 ; i < 6 ; ++i )
   {
     auto& stage =
       d3d11_shader_stages [i][dev_ctx];
 
+
+    UINT k = 1;
+
     // Optimization strategy based on contiguous arrays of binding slots
     //
     //  * Find the lowest NULL slot, this demarcates the size of the array.
     //
-    for ( UINT k = 1 ; k < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; k *= 2 )
+    for ( k = 1 ; k < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; k *= 2 )
     {
       // Divide the search space in 1/2, continue dividing if NULL
       if (stage.skipped_bindings [k - 1] == nullptr)
       {
-        // Until we hit the bottom, then the whole list is empty
-        if (k == 1)
-          break;
-      }
-
-      else
-      {
-        --k;
-
-        // Count upwards to find the highest non-NULL binding slot
-        while ( k < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT &&
-                stage.skipped_bindings [k++] != nullptr )
+        // Count downwards to find the highest non-NULL binding slot
+        while (                         k    >= 1  &&
+                stage.skipped_bindings [k--] != nullptr )
         {
           ;
         }
 
-        {
-          // We now know the size, let's get busy!
-          for ( UINT j = 0 ; j < k; ++j )
-          {
-            if (stage.skipped_bindings [j] != nullptr)
-            {   stage.skipped_bindings [j]->Release ();
-                stage.skipped_bindings [j] = nullptr;
-            }
-          }
+        break;
+      }
+    }
 
-          break;
-        }
+    // We now know the size, let's get busy!
+    for ( UINT j = 0 ; j <= k; ++j )
+    {
+      if (stage.skipped_bindings [j] != nullptr)
+      {   stage.skipped_bindings [j]->Release ();
+          stage.skipped_bindings [j] = nullptr;
       }
     }
 
@@ -920,8 +906,9 @@ struct resample_dispatch_s
 
         SetCurrentThreadDescription (desc.c_str ());
 
-        pTLS->texture_management.injection_thread = true;
-        ////pTLS->imgui->drawing                      = true;
+        auto decl_tex_scope (
+          SK_D3D11_DeclareTexInjectScope (pTLS)
+        );
 
         auto* task =
           SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
@@ -1058,11 +1045,11 @@ struct resample_dispatch_s
     const uint64_t start_tick = SK::ControlPanel::current_tick;//SK_QueryPerf ().QuadPart;
     const uint64_t deadline   = start_tick + MAX_UPLOAD_TIME_PER_FRAME_IN_MS * _TicksPerMsec;
 
-    SK_ScopedBool auto_bool_tex (&pTLS->texture_management.injection_thread);
     SK_ScopedBool auto_bool_mem (&pTLS->imgui->drawing);
-
-    pTLS->texture_management.injection_thread = true;
-    ////pTLS->imgui->drawing                      = true;
+                                  pTLS->imgui->drawing = true;
+    auto decl_tex_scope (
+      SK_D3D11_DeclareTexInjectScope (pTLS)
+    );
 
     bool processed = false;
 
@@ -1761,9 +1748,11 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
                           sk_shader_class             type,
                           ID3D11ClassInstance *const *ppClassInstances,
                           UINT                        NumClassInstances,
-                          bool                        Wrapped,
+                          bool                        bWrapped,
                           UINT                        dev_idx )
 {
+  SK_WRAP_AND_HOOK
+
   //SK_LOG0 ( (L"DevCtx=%p, ShaderClass=%lu, Shader=%p", pDevCtx, type, pShader ),
   //           L"D3D11 Shader" );
 
@@ -1773,16 +1762,10 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
   const auto _Finish =
   [&]
   {
-    auto flag_result =
-      SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-    SK_ScopedBool auto_bool (flag_result.first);
-                            *flag_result.first = flag_result.second;
-
     switch (type)
     {
       case sk_shader_class::Vertex:
-        return Wrapped ? pDevCtx->VSSetShader (
+        return bWrapped ? pDevCtx->VSSetShader (
                            (ID3D11VertexShader *)pShader,
                              ppClassInstances, NumClassInstances )
                        :
@@ -1791,7 +1774,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
                              ppClassInstances, NumClassInstances );
 
       case sk_shader_class::Pixel:
-        return Wrapped ? pDevCtx->PSSetShader (
+        return bWrapped ? pDevCtx->PSSetShader (
                            (ID3D11PixelShader *)pShader,
                              ppClassInstances, NumClassInstances )
                        :
@@ -1800,7 +1783,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
                              ppClassInstances, NumClassInstances );
 
       case sk_shader_class::Geometry:
-        return Wrapped ? pDevCtx->GSSetShader (
+        return bWrapped ? pDevCtx->GSSetShader (
                            (ID3D11GeometryShader *)pShader,
                              ppClassInstances, NumClassInstances )
                        :
@@ -1809,7 +1792,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
                              ppClassInstances, NumClassInstances );
 
       case sk_shader_class::Domain:
-        return Wrapped ? pDevCtx->DSSetShader (
+        return bWrapped ? pDevCtx->DSSetShader (
                            (ID3D11DomainShader *)pShader,
                              ppClassInstances, NumClassInstances )
                        :
@@ -1818,7 +1801,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
                              ppClassInstances, NumClassInstances );
 
       case sk_shader_class::Hull:
-        return Wrapped ? pDevCtx->HSSetShader (
+        return bWrapped ? pDevCtx->HSSetShader (
                            (ID3D11HullShader *)pShader,
                              ppClassInstances, NumClassInstances )
                        :
@@ -1827,7 +1810,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
                              ppClassInstances, NumClassInstances );
 
       case sk_shader_class::Compute:
-        return Wrapped ? pDevCtx->CSSetShader (
+        return bWrapped ? pDevCtx->CSSetShader (
                            (ID3D11ComputeShader *)pShader,
                              ppClassInstances, NumClassInstances )
                        :
@@ -1837,7 +1820,11 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
     }
   };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (Wrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
     return _Finish ();
 
 
@@ -1864,10 +1851,10 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
       SK_D3D11_GetDeviceContextHandle (pDevCtx);
   }
 
-  if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx))
-  {
-    return _Finish ();
-  }
+  ///if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx, pDevCtx))
+  ///{
+  ///  return _Finish ();
+  ///}
 
 
   if (! ( implicit_track                                  ||
@@ -2321,6 +2308,8 @@ SK_D3D11_SetShaderResources_Impl (
    _In_opt_             ID3D11ShaderResourceView* const *ppShaderResourceViews,
    UINT                 dev_idx )
 {
+  const bool bWrapped = Wrapper != nullptr;
+
   UNREFERENCED_PARAMETER (Deferred);
 
   static auto& shaders =
@@ -2336,9 +2325,14 @@ SK_D3D11_SetShaderResources_Impl (
           *reinterpret_cast <LPVOID **>(Wrapper) :
                    nullptr );
   ID3D11DeviceContext*
-    pContext    =
+    pDevContext =
       ( hooked != false   ?
           This : Wrapper );
+
+
+#define pDevCtx pDevContext
+  SK_WRAP_AND_HOOK
+#undef  pDevCtx
 
   // Static analysis seems to think this is possible:
   //   ( Both are FALSE or Both are TRUE ),
@@ -2419,19 +2413,17 @@ SK_D3D11_SetShaderResources_Impl (
   auto _Finish =
   [&](void) -> void
    {
-     auto flag_result =
-       SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-     SK_ScopedBool auto_bool (flag_result.first);
-                             *flag_result.first = flag_result.second;
-
     return
       _SK_D3D11_SetShaderResources_Finish (
-        pTargetFn, ppShaderResourceViews, pContext, StartSlot, NumViews
+        pTargetFn, ppShaderResourceViews, pDevContext, StartSlot, NumViews
       );
    };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (Wrapper != nullptr, pContext))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevContext) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -2440,18 +2432,18 @@ SK_D3D11_SetShaderResources_Impl (
   if (dev_idx == UINT_MAX)
   {
     dev_idx =
-      SK_D3D11_GetDeviceContextHandle (pContext);
+      SK_D3D11_GetDeviceContextHandle (pDevContext);
   }
 
-  if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx))
+  if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx, pDevContext))
   {
     return
       _Finish ();
   }
 
   //// ImGui gets to pass-through without invoking the hook
-  if ( (! SK_D3D11_ShouldTrackSetShaderResources (pContext, dev_idx)) ||
-       (! SK_D3D11_ShouldTrackRenderOp           (pContext, dev_idx)) )
+  if ( (! SK_D3D11_ShouldTrackSetShaderResources (pDevContext, dev_idx)) ||
+       (! SK_D3D11_ShouldTrackRenderOp           (pDevContext, dev_idx)) )
   {
     return
       _Finish ();
@@ -2569,18 +2561,11 @@ SK_D3D11_UpdateSubresource_Impl (
   _In_           UINT                 SrcDepthPitch,
                  BOOL                 bWrapped )
 {
+  SK_WRAP_AND_HOOK
+
   const auto _Finish = [&](void) ->
   void
   {
-    UINT _ctx_handle =
-      SK_D3D11_GetDeviceContextHandle (pDevCtx);
-
-    auto flag_result =
-      SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)_ctx_handle);
-
-    SK_ScopedBool auto_bool (flag_result.first);
-                            *flag_result.first = flag_result.second;
-
     bWrapped ?
       pDevCtx->UpdateSubresource ( pDstResource, DstSubresource,
                                      pDstBox, pSrcData, SrcRowPitch,
@@ -2591,14 +2576,9 @@ SK_D3D11_UpdateSubresource_Impl (
                                              SrcDepthPitch );
   };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
-  {
-    return
-      _Finish ();
-  }
-
   bool early_out =
-    false;
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
 
   SK_TLS *pTLS = nullptr;
 
@@ -2616,7 +2596,8 @@ SK_D3D11_UpdateSubresource_Impl (
 
 
   static const bool __sk_dqxi =
-    ( SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI );
+    true;
+    //( SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI );
 
   if ( pDstBox != nullptr && ( pDstBox->left  >= pDstBox->right  ||
                                pDstBox->top   >= pDstBox->bottom ||
@@ -2625,17 +2606,20 @@ SK_D3D11_UpdateSubresource_Impl (
     early_out = true;
   }
 
-//else
-//early_out |= (! SK_D3D11_ShouldTrackRenderOp (pDevCtx, &pTLS));
+  D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
+  pDstResource->GetType  (&rdim); //-V1004
 
-  ///if (! early_out)
-  ///{
-  ///  pTLS = SK_TLS_Bottom ();
-  ///
-  ///  if ( pTLS->imgui->drawing ||
-  ///       pTLS->texture_management.injection_thread )
-  ///    early_out = true;
-  ///}
+  if (! early_out)
+  {
+    early_out =
+    (
+      rdim !=
+         D3D11_RESOURCE_DIMENSION_TEXTURE2D ||
+      SK_D3D11_IsTexInjectThread (
+          (pTLS = SK_TLS_Bottom ())
+      )
+    );
+  }
 
   if (early_out)
   {
@@ -2643,17 +2627,9 @@ SK_D3D11_UpdateSubresource_Impl (
       _Finish ();
   }
 
-  //if (SK_GetCurrentGameID() == SK_GAME_ID::Ys_Eight)
-  //{
-  //  dll_log->Log ( L"UpdateSubresource:  { [%p] <RowPitch: %5lu> } -> { %s [%lu] }",
-  //                 pSrcData, SrcRowPitch, DescribeResource (pDstResource).c_str  (), DstSubresource );
-  //}
-
-  //dll_log->Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource (%ph, %lu, %ph, %ph, %lu, %lu)",
-  //           pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
-
-  D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
-  pDstResource->GetType  (&rdim); //-V1004
+  auto decl_tex_scope (
+    SK_D3D11_DeclareTexInjectScope (pTLS)
+  );
 
   if ( ((__sk_dqxi && rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
       SK_D3D11_IsStagingCacheable (rdim, pDstResource)) && DstSubresource == 0 )
@@ -2821,14 +2797,6 @@ const uint32_t cache_tag    =
               if (                  *wszTex  != L'\0' &&
                   GetFileAttributes (wszTex) != INVALID_FILE_ATTRIBUTES )
               {
-                pTLS = SK_TLS_Bottom ();
-
-                SK_ScopedBool auto_tex_inject (&pTLS->texture_management.injection_thread);
-                SK_ScopedBool auto_draw       (&pTLS->imgui->drawing);
-
-                pTLS->texture_management.injection_thread = true;
-                pTLS->imgui->drawing                      = true;
-
                 HRESULT hr = E_UNEXPECTED;
 
                 DirectX::TexMetadata mdata;
@@ -2866,15 +2834,15 @@ const uint32_t cache_tag    =
                         const LARGE_INTEGER load_end =
                           SK_QueryPerf ();
 
-                        bWrapped ?
-                          pDevCtx->CopyResource (pDstResource, pSurrogateTexture2D)
-                                 :
-                          D3D11_CopyResource_Original (pDevCtx, pDstResource, pSurrogateTexture2D);
-
                         pTex  =  nullptr;
                         pTex.Attach (
                           reinterpret_cast <ID3D11Texture2D *> (pDstResource)
                         );
+
+                        bWrapped ?
+                          pDevCtx->CopyResource (pDstResource, pSurrogateTexture2D)
+                                 :
+                          D3D11_CopyResource_Original (pDevCtx, pDstResource, pSurrogateTexture2D);
 
                         injected = true;
                       }
@@ -2913,7 +2881,9 @@ const uint32_t cache_tag    =
                                      L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS);
 
             if (injected)
+            {
               textures->Textures_2D [pTex].injected = true;
+            }
           }
         }
 
@@ -2926,6 +2896,7 @@ const uint32_t cache_tag    =
     _Finish ();
 }
 
+
 HRESULT
 STDMETHODCALLTYPE
 SK_D3D11_Map_Impl (
@@ -2937,6 +2908,9 @@ SK_D3D11_Map_Impl (
   _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource,
             BOOL                      bWrapped )
 {
+  SK_WRAP_AND_HOOK
+
+
   const HRESULT hr =
     bWrapped ?
       pDevCtx->Map ( pResource, Subresource,
@@ -2945,8 +2919,11 @@ SK_D3D11_Map_Impl (
       D3D11_Map_Original ( pDevCtx, pResource, Subresource,
                              MapType, MapFlags, pMappedResource );
 
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  if (early_out)
   {
     return
       hr;
@@ -3137,6 +3114,8 @@ SK_D3D11_Unmap_Impl (
   _In_ UINT                 Subresource,
        BOOL                 bWrapped )
 {
+  SK_WRAP_AND_HOOK
+
   auto _Finish = [&](void) ->
   void
   {
@@ -3147,13 +3126,17 @@ SK_D3D11_Unmap_Impl (
         D3D11_Unmap_Original (pDevCtx, pResource, Subresource);
   };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
   }
 
-    // UB: If it's happening, pretend we never saw this...
+  // UB: If it's happening, pretend we never saw this...
   if (pResource == nullptr || SK_D3D11_IsDevCtxDeferred (pDevCtx))
   {
     assert (pResource != nullptr);
@@ -3265,6 +3248,8 @@ SK_D3D11_CopyResource_Impl (
   _In_ ID3D11Resource      *pSrcResource,
        BOOL                 bWrapped )
 {
+  SK_WRAP_AND_HOOK
+
   const auto _Finish = [&](void) ->
   void
   {
@@ -3276,7 +3261,11 @@ SK_D3D11_CopyResource_Impl (
     SK_ReShade_CopyResourceCallback.call (pDstResource, pSrcResource);
   };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -3289,7 +3278,7 @@ SK_D3D11_CopyResource_Impl (
     return;
   }
 
-  if ( (! config.render.dxgi.deferred_isolation) &&
+  if ( //(! config.render.dxgi.deferred_isolation) &&
             SK_D3D11_IsDevCtxDeferred (pDevCtx) )
   {
     return
@@ -3758,7 +3747,7 @@ public:
     TriggerReShade_After = [&]()
     {
       auto flag_result =
-        SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)_ctx_handle);
+        SK_ImGui_FlagDrawing_OnD3D11Ctx (_ctx_handle);
 
       SK_ScopedBool auto_bool (flag_result.first);
                               *flag_result.first = flag_result.second;
@@ -3829,9 +3818,9 @@ public:
                   (&pTLS->imgui->drawing);
                     pTLS->imgui->drawing = true;
 
-                  SK_ScopedBool autobool2
-                  (&pTLS->texture_management.injection_thread);
-                    pTLS->texture_management.injection_thread = true;
+                  auto decl_tex_scope (
+                    SK_D3D11_DeclareTexInjectScope (pTLS)
+                  );
 
                   SK_ReShade_PresentCallback->explicit_draw.calls++;
                   SK_ReShade_PresentCallback->explicit_draw.src_ctx = _ctx;
@@ -3959,7 +3948,7 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
        rb.swapchain           == nullptr )
   {
     if ( rb.d3d11.immediate_ctx == nullptr &&
-         pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED )
+            pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED )
     {
       rb.d3d11.immediate_ctx = pDevCtx;
     }
@@ -3974,16 +3963,6 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
 
     if (! rb.device)
     {
-      dll_log->Log ( L"Immediate: %p, Device: %p, SwapChain: %p",
-                     rb.d3d11.immediate_ctx, rb.device.p, rb.swapchain.p );
-
-      SK_ReleaseAssert (! "DrawHandler: RenderBackend State");
-
-      if (*ppTLS == nullptr)
-        ( *ppTLS = SK_TLS_Bottom () );
-
-      (*ppTLS)->d3d11->pDevCtx = nullptr;
-
       return Normal;
     }
   }
@@ -3991,28 +3970,20 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
   ///if (SK_D3D11_IsDevCtxDeferred (pDevCtx))
   ///  return false;
 
-  dev_idx = ( dev_idx == -1 ? SK_D3D11_GetDeviceContextHandle (pDevCtx)
+  dev_idx = ( dev_idx == NegativeOne ? SK_D3D11_GetDeviceContextHandle (pDevCtx)
             : dev_idx );
 
   // ImGui gets to pass-through without invoking the hook
-  if (SK_ImGui_IsDrawing_OnD3D11Ctx ((size_t)dev_idx))
+  if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx, pDevCtx))
   {
     return Normal;
   }
 
-  auto flag_result =
-    SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-  SK_ScopedBool auto_bool0 (flag_result.first);
-                           *flag_result.first = flag_result.second;
-
-  ///auto HashFromCtx =
-  ///  [] ( std::array <uint32_t, SK_D3D11_MAX_DEV_CONTEXTS>& registry,
-  ///       UINT                                              dev_idx  ) ->
-  ///uint32_t
-  ///{
-  ///  return registry [dev_idx];
-  ///};
+  ////auto flag_result =
+  ////  SK_ImGui_FlagDrawing_OnD3D11Ctx (dev_idx);
+  ////
+  ////SK_ScopedBool auto_bool0 (flag_result.first);
+  ////                         *flag_result.first = flag_result.second;
 
   using _Registry =
     SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*;
@@ -4031,78 +4002,6 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
   uint32_t current_gs = geometry.current.shader [dev_idx];
   uint32_t current_hs = hull.current.shader     [dev_idx];
   uint32_t current_ds = domain.current.shader   [dev_idx];
-
-  //if (current_vs == 0x9b2090af)
-  //{
-  //  //CB0[19]
-  //  //CB1[ 3]
-  //  ID3D11Buffer* ConstantBuffers [2] = { nullptr, nullptr };
-  //  pDevCtx->VSGetConstantBuffers (0, 2, ConstantBuffers);
-  //
-  //  ID3D11Buffer* CB0 = ConstantBuffers [0];
-  //  ID3D11Buffer* CB1 = ConstantBuffers [1];
-  //
-  //  D3D11_BUFFER_DESC desc0, desc1;
-  //
-  //  CB0->GetDesc (&desc0);
-  //  CB1->GetDesc (&desc1);
-  //
-  //  size_t size0 = desc0.ByteWidth;
-  //  size_t size1 = desc1.ByteWidth;
-  //
-  //  SK_ComPtr <ID3D11Device> pDev;
-  //    pDevCtx->GetDevice (&pDev);
-  //
-  //  desc0.Usage          = D3D11_USAGE_STAGING;
-  //  desc0.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
-  //
-  //  SK_ComPtr <ID3D11Buffer> CB0_Copy;
-  //  pDev->CreateBuffer (&desc0, nullptr, &CB0_Copy);
-  //
-  //  desc1.Usage          = D3D11_USAGE_STAGING;
-  //  desc1.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
-  //
-  //  SK_ComPtr <ID3D11Buffer> CB1_Copy;
-  //  pDev->CreateBuffer (&desc1, nullptr, &CB1_Copy);
-  //
-  //  pDevCtx->CopyResource (CB0_Copy, CB0);
-  //  pDevCtx->CopyResource (CB1_Copy, CB1);
-  //
-  //
-  //  D3D11_MAPPED_SUBRESOURCE mappedCB0 = { };
-  //  D3D11_MAPPED_SUBRESOURCE mappedCB1 = { };
-  //
-  //  pDevCtx->Map   (CB0_Copy, 0, D3D11_MAP_READ, 0x0, &mappedCB0);
-  //         float *pfCB0 = (float *)mappedCB0.pData;
-  //  for (int i = 0; i < (size0 / sizeof (float)); i++)
-  //  {
-  //    dll_log->Log (L"CB0[%i]=%f", i, (*pfCB0));
-  //    pfCB0++;
-  //  }
-  //  pDevCtx->Unmap (CB0_Copy, 0);
-  //
-  //  pDevCtx->Map   (CB1_Copy, 0, D3D11_MAP_READ, 0x0, &mappedCB1);
-  //         float *pfCB1 = (float *)mappedCB1.pData;
-  //  for (int i = 0; i < (size1 / sizeof (float)); i++)
-  //  {
-  //    dll_log->Log (L"CB1[%i]=%f", i, (*pfCB1));
-  //    pfCB1++;
-  //  }
-  //  pDevCtx->Unmap (CB1_Copy, 0);
-  //
-  //  CB0->Release (); CB1->Release ();
-  //}
-
-
-  //if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
-  //{
-  //  if (SK_ReShade_PresentCallback->fn != nullptr && current_ps == 0x2e24510d)
-  //  {
-  //    SK_D3D11_Shaders->reshade_triggered [dev_idx]    = true;
-  //    SK_ReShade_PresentCallback->explicit_draw.src_ctx = nullptr;
-  //    SK_ReShade_PresentCallback->fn (&SK_ReShade_PresentCallback->explicit_draw);
-  //  }
-  //}
 
   static auto&
     _reshade_trigger_before =
@@ -4169,26 +4068,21 @@ const
 
   auto GetTracker = [&](int i)
   {
-    static const
-      std::unordered_map < sk_shader_class, _Registry >
-        tracker_map =
-          { { sk_shader_class::Vertex,   (_Registry)&vertex   },
-            { sk_shader_class::Pixel,    (_Registry)&pixel    },
-            { sk_shader_class::Geometry, (_Registry)&geometry },
-            { sk_shader_class::Hull,     (_Registry)&hull     },
-            { sk_shader_class::Domain,   (_Registry)&domain   } };
-
-    return
-      &tracker_map.at (sk_shader_class ( 0x1 << i ))->tracked;
+    switch (i)
+    {
+      default: return &((SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&vertex)->tracked;
+      case 1:  return &((SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&pixel)->tracked;
+      case 2:  return &((SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&geometry)->tracked;
+      case 3:  return &((SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&hull)->tracked;
+      case 4:  return &((SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&domain)->tracked;
+    }
   };
 
-  static d3d11_shader_tracking_s*
-    trackers [5] =
-    {
-      GetTracker (0), GetTracker (1),
-      GetTracker (2),
-      GetTracker (3), GetTracker (4)
-    };
+  d3d11_shader_tracking_s* trackers [5] = {
+    GetTracker (0), GetTracker (1),
+    GetTracker (2),
+    GetTracker (3), GetTracker (4)
+  };
 
   for ( auto* tracker : trackers )
   {
@@ -4197,7 +4091,10 @@ const
 
     if (active)
     {
-      tracker->use (nullptr);
+      if (pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED)
+        tracker->use (nullptr);
+      else
+        tracker->use_cmdlist (nullptr);
 
       if (tracker->cancel_draws)
       {
@@ -5081,15 +4978,12 @@ SK_D3D11_Dispatch_Impl (
        BOOL                 bWrapped,
        UINT                 dev_idx )
 {
+  SK_WRAP_AND_HOOK
+
+
   auto _Finish =
    [&](void) -> void
     {
-      auto flag_result =
-        SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-      SK_ScopedBool auto_bool (flag_result.first);
-                              *flag_result.first = flag_result.second;
-
       return
         bWrapped ?
           pDevCtx->Dispatch ( ThreadGroupCountX,
@@ -5102,7 +4996,11 @@ SK_D3D11_Dispatch_Impl (
                                           ThreadGroupCountZ );
     };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -5137,15 +5035,11 @@ SK_D3D11_DispatchIndirect_Impl (
        BOOL                 bWrapped,
        UINT                 dev_idx )
 {
+  SK_WRAP_AND_HOOK
+
   auto _Finish =
   [&](void) -> void
    {
-     auto flag_result =
-       SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-     SK_ScopedBool auto_bool (flag_result.first);
-                             *flag_result.first = flag_result.second;
-
      return
        bWrapped ?
          pDevCtx->DispatchIndirect (
@@ -5159,7 +5053,11 @@ SK_D3D11_DispatchIndirect_Impl (
          );
    };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -5187,15 +5085,11 @@ void
 STDMETHODCALLTYPE
 SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped, UINT dev_idx)
 {
+  SK_WRAP_AND_HOOK
+
   auto _Finish =
   [&](void) -> void
    {
-     auto flag_result =
-       SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-     SK_ScopedBool auto_bool (flag_result.first);
-                             *flag_result.first = flag_result.second;
-
      return
        bWrapped ?
          pDevCtx->DrawAuto ()
@@ -5203,7 +5097,11 @@ SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped, UINT d
        D3D11_DrawAuto_Original (pDevCtx);
    };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -5237,15 +5135,11 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
                     bool                 bWrapped,
                     UINT                 dev_idx )
 {
+  SK_WRAP_AND_HOOK
+
   auto _Finish =
   [&](void)-> void
    {
-     auto flag_result =
-       SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-     SK_ScopedBool auto_bool (flag_result.first);
-                             *flag_result.first = flag_result.second;
-
      return
        bWrapped ?
          pDevCtx->Draw ( VertexCount,
@@ -5255,6 +5149,15 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
                                VertexCount,
                                  StartVertexLocation );
    };
+
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
+  {
+    return _Finish ();
+  }
 
   //--------------------------------------------------
       //UINT dev_idx = SK_D3D11_GetDeviceContextHandle (this);
@@ -5428,15 +5331,11 @@ SK_D3D11_DrawIndexed_Impl (
        BOOL                 bWrapped,
        UINT                 dev_idx )
 {
+  SK_WRAP_AND_HOOK
+
   auto _Finish =
    [&](void) -> void
     {
-      auto flag_result =
-        SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-      SK_ScopedBool auto_bool (flag_result.first);
-                              *flag_result.first = flag_result.second;
-
       return
         bWrapped ?
           pDevCtx->DrawIndexed ( IndexCount, StartIndexLocation,
@@ -5445,6 +5344,15 @@ SK_D3D11_DrawIndexed_Impl (
           D3D11_DrawIndexed_Original ( pDevCtx,            IndexCount,
                                        StartIndexLocation, BaseVertexLocation );
     };
+
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
+  {
+    return _Finish ();
+  }
 
   //-----------------------------------------
 #ifdef _M_AMD64
@@ -5645,7 +5553,7 @@ SK_D3D11_DrawIndexed_Impl (
       SK_D3D11_GetDeviceContextHandle (pDevCtx);
   }
 
-  if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx))
+  if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx, pDevCtx))
   {
     return _Finish ();
   }
@@ -5679,15 +5587,11 @@ SK_D3D11_DrawIndexedInstanced_Impl (
        BOOL                 bWrapped,
        UINT                 dev_idx )
 {
+  SK_WRAP_AND_HOOK
+
   auto _Finish =
    [&](void) -> void
     {
-      auto flag_result =
-        SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-      SK_ScopedBool auto_bool (flag_result.first);
-                              *flag_result.first = flag_result.second;
-
       return
         bWrapped ?
           pDevCtx->DrawIndexedInstanced ( IndexCountPerInstance,
@@ -5699,7 +5603,11 @@ SK_D3D11_DrawIndexedInstanced_Impl (
                                                 BaseVertexLocation, StartInstanceLocation );
     };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -5734,15 +5642,11 @@ SK_D3D11_DrawIndexedInstancedIndirect_Impl (
        BOOL                 bWrapped,
        UINT                 dev_idx )
 {
+  SK_WRAP_AND_HOOK
+
   auto _Finish =
   [&](void) -> void
    {
-     auto flag_result =
-       SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-     SK_ScopedBool auto_bool (flag_result.first);
-                             *flag_result.first = flag_result.second;
-
      return
        bWrapped ?
          pDevCtx->DrawIndexedInstancedIndirect (pBufferForArgs, AlignedByteOffsetForArgs)
@@ -5752,7 +5656,11 @@ SK_D3D11_DrawIndexedInstancedIndirect_Impl (
                                                          AlignedByteOffsetForArgs );
    };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -5834,15 +5742,11 @@ SK_D3D11_DrawInstanced_Impl (
        BOOL                 bWrapped,
        UINT                 dev_idx )
 {
+  SK_WRAP_AND_HOOK
+
   auto _Finish =
   [&](void) -> void
    {
-     auto flag_result =
-       SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-     SK_ScopedBool auto_bool (flag_result.first);
-                             *flag_result.first = flag_result.second;
-
      return
        bWrapped ?
          pDevCtx->DrawInstanced ( VertexCountPerInstance,
@@ -5854,7 +5758,11 @@ SK_D3D11_DrawInstanced_Impl (
                                         StartInstanceLocation );
    };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -5889,15 +5797,11 @@ SK_D3D11_DrawInstancedIndirect_Impl (
        BOOL                 bWrapped,
        UINT                 dev_idx )
 {
+  SK_WRAP_AND_HOOK
+
   auto _Finish =
   [&](void) -> void
    {
-     auto flag_result =
-       SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-     SK_ScopedBool auto_bool (flag_result.first);
-                             *flag_result.first = flag_result.second;
-
      return
        bWrapped ?
          pDevCtx->DrawInstancedIndirect (pBufferForArgs, AlignedByteOffsetForArgs)
@@ -5906,7 +5810,11 @@ SK_D3D11_DrawInstancedIndirect_Impl (
                                              AlignedByteOffsetForArgs );
    };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -5935,6 +5843,143 @@ SK_D3D11_DrawInstancedIndirect_Impl (
 
 void
 STDMETHODCALLTYPE
+SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (
+  _In_                                        ID3D11DeviceContext              *pDevCtx,
+  _In_                                        UINT                              NumRTVs,
+  _In_reads_opt_ (NumRTVs)                    ID3D11RenderTargetView    *const *ppRenderTargetViews,
+  _In_opt_                                    ID3D11DepthStencilView           *pDepthStencilView,
+  _In_range_ (0, D3D11_1_UAV_SLOT_COUNT - 1)  UINT                              UAVStartSlot,
+  _In_                                        UINT                              NumUAVs,
+  _In_reads_opt_ (NumUAVs)                    ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
+  _In_reads_opt_ (NumUAVs)              const UINT                             *pUAVInitialCounts,
+                                              BOOL                              bWrapped,
+                                              UINT                              dev_idx )
+{
+  ID3D11DepthStencilView *pDSV =
+       pDepthStencilView;
+
+  SK_WRAP_AND_HOOK
+
+  auto _Finish = [&](void) ->
+  void
+  {
+    // This SEH translator hack is necessary for Yakuza's crazy engine, it
+    //   can recover from what will effectively be no render target bound,
+    //     and SK is capable of purging the memory it incorrectly deleted
+    //       from its caches after the first exception is raised.
+    auto orig_se =
+      SK_SEH_ApplyTranslator (
+        SK_FilteringStructuredExceptionTranslator (
+          EXCEPTION_ACCESS_VIOLATION
+        )
+      );
+    try
+    {
+      bWrapped ?
+        pDevCtx->OMSetRenderTargetsAndUnorderedAccessViews (
+          NumRTVs, ppRenderTargetViews, pDSV, UAVStartSlot,
+          NumUAVs, ppUnorderedAccessViews, pUAVInitialCounts )
+               :
+        D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original ( pDevCtx,
+          NumRTVs, ppRenderTargetViews, pDSV, UAVStartSlot,
+          NumUAVs, ppUnorderedAccessViews, pUAVInitialCounts );
+    }
+    catch (const SK_SEH_IgnoredException&) {};
+    SK_SEH_RemoveTranslator (orig_se);
+  };
+
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
+  {
+    return
+      _Finish ();
+  }
+
+  if ( dev_idx == UINT_MAX)
+  {    dev_idx  =
+         SK_D3D11_GetDeviceContextHandle (pDevCtx);
+  }
+
+  if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx, pDevCtx))
+  {
+    return
+      _Finish ();
+  }
+
+#ifdef _M_AMD64
+  static bool yakuza = ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
+                         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 );
+  extern bool __SK_Yakuza_TrackRTVs;
+#endif
+
+  // ImGui gets to pass-through without invoking the hook
+  if (
+#ifdef _M_AMD64
+    (yakuza && (! __SK_Yakuza_TrackRTVs)) ||
+#endif
+    (! SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx)))
+  {
+    for (auto& i : tracked_rtv->active       [dev_idx]) i.store (false);
+                   tracked_rtv->active_count [dev_idx] = 0;
+
+    return
+      _Finish ();
+  }
+
+  _Finish ();
+
+  if (NumRTVs > 0)
+  {
+    if (ppRenderTargetViews != nullptr)
+    {
+      auto&                                rt_views =
+        (*SK_D3D11_RenderTargets)[dev_idx].rt_views;
+
+      const auto* tracked_rtv_res =
+        static_cast <ID3D11RenderTargetView *> (
+          ReadPointerAcquire ((volatile PVOID *)&tracked_rtv->resource)
+          );
+
+      for (UINT i = 0; i < NumRTVs; i++)
+      {
+        if (ppRenderTargetViews [i] != nullptr)
+          rt_views.emplace (ppRenderTargetViews [i]);
+
+        const bool active_before =
+          tracked_rtv->active_count [dev_idx] > 0 ?
+          tracked_rtv->active       [dev_idx][i].load ()
+                                                  : false;
+
+        const bool active =
+          ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
+                                                    true :
+                                                    false;
+
+        if (active_before != active)
+        {
+          tracked_rtv->active [dev_idx][i] = active;
+
+          if      (             active                    ) tracked_rtv->active_count [dev_idx]++;
+          else if (tracked_rtv->active_count [dev_idx] > 0) tracked_rtv->active_count [dev_idx]--;
+        }
+      }
+    }
+
+    if (pDSV != nullptr)
+    {
+      auto& ds_views =
+        SK_D3D11_RenderTargets [dev_idx].ds_views;
+
+            ds_views.emplace (pDepthStencilView);
+    }
+  }
+}
+
+void
+STDMETHODCALLTYPE
 SK_D3D11_OMSetRenderTargets_Impl (
          ID3D11DeviceContext           *pDevCtx,
 _In_     UINT                           NumViews,
@@ -5944,17 +5989,13 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
          UINT                           dev_idx )
 {
   ID3D11DepthStencilView *pDSV =
-    pDepthStencilView;
+       pDepthStencilView;
+
+  SK_WRAP_AND_HOOK
 
   auto _Finish = [&](void) ->
   void
   {
-    auto flag_result =
-      SK_ImGui_FlagDrawing_OnD3D11Ctx ((size_t)dev_idx);
-
-    SK_ScopedBool auto_bool (flag_result.first);
-                            *flag_result.first = flag_result.second;
-
     // This SEH translator hack is necessary for Yakuza's crazy engine, it
     //   can recover from what will effectively be no render target bound,
     //     and SK is capable of purging the memory it incorrectly deleted
@@ -5978,7 +6019,11 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
     SK_SEH_RemoveTranslator (orig_se);
   };
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx))
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
   {
     return
       _Finish ();
@@ -5990,9 +6035,10 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
       SK_D3D11_GetDeviceContextHandle (pDevCtx);
   }
 
-  if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx))
+  if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx, pDevCtx))
   {
-    return _Finish ();
+    return
+      _Finish ();
   }
 
 #ifdef _M_AMD64
@@ -6019,7 +6065,6 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
       _Finish ();
  }
 
-
   _Finish ();
 
   if (NumViews > 0)
@@ -6036,17 +6081,17 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
 
       for (UINT i = 0; i < NumViews; i++)
       {
-        rt_views.emplace (ppRenderTargetViews [i]);
+        if (ppRenderTargetViews [i] != nullptr)
+          rt_views.emplace (ppRenderTargetViews [i]);
 
         const bool active_before =
           tracked_rtv->active_count [dev_idx] > 0 ?
           tracked_rtv->active       [dev_idx][i].load ()
-                                           : false;
+                                                  : false;
 
         const bool active =
           ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
-                       true :
-                              false;
+                       true : false;
 
         if (active_before != active)
         {
@@ -6283,44 +6328,6 @@ D3D11Dev_CreateTexture2D_Impl (
       SK_GetCurrentGameID ();
 
 #ifdef _M_AMD64
-#if 0
-    if (game_id == SK_GAME_ID::YakuzaKiwami2)
-    {
-      bool    new_target = false;
-      static int  target = 0;
-
-      if (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)
-      {
-        dll_log->Log (L"RenderTarget    <%lu> [%s] (%lux%lu)",
-          target, SK_DXGI_FormatToStr (pDesc->Format).c_str (),
-                         pDesc->Width, pDesc->Height);
-        new_target = true;
-      }
-      if (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL)
-      {
-        dll_log->Log (L"DepthStencil    <%lu> [%s] (%lux%lu)",
-          target, SK_DXGI_FormatToStr (pDesc->Format).c_str (),
-                         pDesc->Width, pDesc->Height);
-        new_target = true;
-      }
-      if (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)
-      {
-        dll_log->Log (L"UnorderedAccess <%lu> [%s] (%lux%lu)",
-          target, SK_DXGI_FormatToStr (pDesc->Format).c_str (),
-                         pDesc->Width, pDesc->Height);
-        new_target = true;
-      }
-
-      if (new_target)
-      {
-            ++target;
-          dll_log->Log (
-            L"Source <%s>", SK_GetCallerName (lpCallerAddr).c_str ()
-          );
-      }
-    }
-#endif
-
     if (game_id == SK_GAME_ID::Tales_of_Vesperia)
     {
       extern void SK_TVFix_CreateTexture2D (
@@ -6333,7 +6340,8 @@ D3D11Dev_CreateTexture2D_Impl (
 #endif
   }
 
-  BOOL  bIgnoreThisUpload = SK_D3D11_IsTexInjectThread (pTLS);
+  if (pTLS == nullptr) pTLS = SK_TLS_Bottom ();
+  BOOL  bIgnoreThisUpload = SK_D3D11_IsTexInjectThread (pTLS) || pTLS->imgui->drawing;
   if (! bIgnoreThisUpload) bIgnoreThisUpload = (! (SK_D3D11_cache_textures ||
                                                    SK_D3D11_dump_textures  ||
                                                    SK_D3D11_inject_textures));
@@ -6374,7 +6382,7 @@ D3D11Dev_CreateTexture2D_Impl (
 
     return
       D3D11Dev_CreateTexture2D_Original ( This,            pDesc,
-                                         pInitialData, ppTexture2D );
+                                            pInitialData, ppTexture2D );
   }
   //// -----------
 
@@ -6443,23 +6451,20 @@ D3D11Dev_CreateTexture2D_Impl (
   {
     if (pDesc->Usage != D3D11_USAGE_IMMUTABLE)
       cacheable = false;
+
+    // The number of immutable textures the engine tries to allocate at once
+    //   is responsible for hitching, default is a better memory usage for this
+    //     use-case.
+    else
+        pDesc->Usage  = D3D11_USAGE_DEFAULT;
   }
 #endif
 
-  //
-  // Filter out any noise coming from overlays / video capture software
-  //
-  ///if (SK_GetFramesDrawn () > 0)
-  ///  cacheable &= ( pDev.IsEqualObject (This) );
 
-  // XXX: Good idea in theory, but in practice these software packages wrap
-  //        the D3D11 device in incompatible ways.
-
-
-  if (cacheable)
-  {
-    //dll_log->Log (L"Misc Flags: %x, Bind: %x", pDesc->MiscFlags, pDesc->BindFlags);
-  }
+  //if (cacheable)
+  //{
+  //  //dll_log->Log (L"Misc Flags: %x, Bind: %x", pDesc->MiscFlags, pDesc->BindFlags);
+  //}
 
   bool gen_mips = false;
 
@@ -6589,11 +6594,9 @@ D3D11Dev_CreateTexture2D_Impl (
       if (                   *wszTex  != L'\0' &&
            GetFileAttributes (wszTex) != INVALID_FILE_ATTRIBUTES )
       {
-        SK_ScopedBool auto_tex_inject (&pTLS->texture_management.injection_thread);
-        SK_ScopedBool auto_draw       (&pTLS->imgui->drawing);
-
-        pTLS->texture_management.injection_thread = true;
-        pTLS->imgui->drawing                      = true;
+        auto decl_tex_scope (
+          SK_D3D11_DeclareTexInjectScope (pTLS)
+        );
 
         HRESULT hr = E_UNEXPECTED;
 
@@ -6723,13 +6726,12 @@ D3D11Dev_CreateTexture2D_Impl (
     SK_LOG4 ( ( L"Generating mipmaps for texture with crc32c: %x", top_crc32 ),
                 L" Tex Hash " );
 
-    SK_ScopedBool auto_tex_inject (&pTLS->texture_management.injection_thread);
-    SK_ScopedBool auto_draw       (&pTLS->imgui->drawing);
+    auto decl_tex_scope (
+      SK_D3D11_DeclareTexInjectScope (pTLS)
+    );
 
-    pTLS->texture_management.injection_thread = true;
-    ////pTLS->imgui->drawing                       = true;
-
-    if ((SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia))
+    //if ((SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia))
+    if (true)
     {
       SK_ComPtr <ID3D11Texture2D> pTempTex = nullptr;
 
@@ -6747,8 +6749,9 @@ D3D11Dev_CreateTexture2D_Impl (
                )
              )
           {
+            // Temporarily violate the scope of texture injection so this command
+            //   will pass through our wrapper / hook interfaces
             pTLS->texture_management.injection_thread = false;
-            ////pTLS->imgui->drawing                       = false;
 
             ret =
               D3D11Dev_CreateTexture2D_Impl (
@@ -6912,7 +6915,6 @@ D3D11Dev_CreateTexture2D_Impl (
         if (SUCCEEDED (ret))
         {
           D3D11_CopySubresourceRegion_Original (pDevCtx,
-          //pDevCtx->CopySubresourceRegion (
             pFinalTex,
               D3D11CalcSubresource (0, 0, pDesc->MipLevels),
                 0, 0, 0,
@@ -6965,8 +6967,9 @@ D3D11Dev_CreateTexture2D_Impl (
   {
     assert (ret == S_OK || ret == E_NOT_VALID_STATE);
 
-    SK_ScopedBool scoped (&pTLS->texture_management.injection_thread);
-                           pTLS->texture_management.injection_thread = true;
+    auto decl_tex_scope (
+      SK_D3D11_DeclareTexInjectScope (pTLS)
+    );
 
     ret =
       D3D11Dev_CreateTexture2D_Original (This, &orig_desc, pInitialData, ppTexture2D);
@@ -6983,8 +6986,9 @@ D3D11Dev_CreateTexture2D_Impl (
   {
     if (! SK_D3D11_IsDumped (top_crc32, checksum))
     {
-      SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
-                                pTLS->texture_management.injection_thread = true;
+      auto decl_tex_scope (
+        SK_D3D11_DeclareTexInjectScope (pTLS)
+      );
 
       SK_D3D11_MipmapCacheTexture2D ((*ppTexture2D), top_crc32, pTLS);
 
@@ -8843,9 +8847,11 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
 
       if (pTex2D != nullptr)
       {
-        if (textures->Textures_2D.count  (pTex2D) &&  textures->Textures_2D [pTex2D].crc32c != 0x0)
+        if ( textures->Textures_2D.count  (pTex2D) &&
+             textures->Textures_2D        [pTex2D].crc32c != 0x0 )
         {
-          crc32c = textures->Textures_2D [pTex2D].crc32c;
+          crc32c =
+             textures->Textures_2D        [pTex2D].crc32c;
         }
       }
     }
@@ -8897,9 +8903,11 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
 
       if (pTex2D != nullptr)
       {
-        if (textures->Textures_2D.count  (pTex2D) && textures->Textures_2D [pTex2D].crc32c != 0x0)
+        if ( textures->Textures_2D.count (pTex2D) &&
+             textures->Textures_2D       [pTex2D].crc32c != 0x0 )
         {
-          crc32c = textures->Textures_2D [pTex2D].crc32c;
+          crc32c =
+            textures->Textures_2D        [pTex2D].crc32c;
         }
       }
     }
@@ -8971,7 +8979,9 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     D3D11_TEXTURE2D_DESC desc      = { };
     D3D11_TEXTURE2D_DESC orig_desc = { };
     BOOL                 mipmapped =  -1; // We must calculate this
-    ID3D11Texture2D*     pTex      = nullptr;
+    //ID3D11Texture2D*     pTex      = nullptr;
+    SK_ComPtr <ID3D11Texture2D>
+                         pTex      = nullptr;
     size_t               size      = 0;
   };
 
@@ -8992,7 +9002,8 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   static              size_t        non_mipped           = 0ULL; // Num Non-mimpapped textures loaded
 
 
-  ImGui::Text      ("Current list represents %5.2f MiB of texture memory", (double)total_texture_memory / (double)(1024 * 1024));
+  ImGui::Text      ("Current list represents %5.2f MiB of texture memory",
+                       (double)total_texture_memory / (double)(1024 * 1024));
   ImGui::SameLine  ( );
 
   ImGui::PushItemWidth (ImGui::GetContentRegionAvailWidth () * 0.33f);
@@ -9075,13 +9086,13 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
   if (ImGui::Button (" Clear Debug "))
   {
-    sel                 = std::numeric_limits <size_t>::max ();
-    debug_tex_id        =  0;
+    sel                     = std::numeric_limits <size_t>::max ();
+    debug_tex_id            =  0;
     list_contents.clear ();
-    last_ht                  =  0;
-    last_width               =  0;
-    lod                      =  0;
-    SK_D3D11_TrackedTexture  =  nullptr;
+    last_ht                 =  0;
+    last_width              =  0;
+    lod                     =  0;
+    SK_D3D11_TrackedTexture =  nullptr;
   }
 
   if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Exits texture debug mode.");
@@ -9094,12 +9105,14 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   }
 
   ImGui::SameLine ();
-  ImGui::Checkbox ("Highlight Selected Texture in Game##D3D11_HighlightSelectedTexture", &config.textures.d3d11.highlight_debug);
+  ImGui::Checkbox ("Highlight Selected Texture in Game##D3D11_HighlightSelectedTexture",
+                                       &config.textures.d3d11.highlight_debug);
   ImGui::SameLine ();
 
   static bool hide_inactive = true;
 
-  ImGui::Checkbox  ("Hide Inactive Textures##D3D11_HideInactiveTextures",                 &hide_inactive);
+  ImGui::Checkbox  ("Hide Inactive Textures##D3D11_HideInactiveTextures",
+                                                  &hide_inactive);
   ImGui::Separator ();
   ImGui::EndChild  ();
 
@@ -9119,7 +9132,10 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
     for ( auto& it_res : it_ctx.used_textures )
     {
-      used_textures->insert (it_res);
+      if (it_res.p != nullptr)
+      {
+        used_textures->insert (it_res);
+      }
     }
 
     it_ctx.used_textures.clear ();
@@ -9128,9 +9144,10 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   }
 
 
-  if (refresh_interval > 0 || list_dirty)
+  if (   list_dirty ||    refresh_interval > 0)
   {
-    if ((LONG)SK_GetFramesDrawn () > last_frame + refresh_interval || list_dirty)
+    if ( list_dirty || ( (refresh_interval + last_frame) <
+                                      (LONG)SK_GetFramesDrawn () ) )
     {
       list_dirty           = true;
       last_frame           = SK_GetFramesDrawn ();
@@ -9257,7 +9274,9 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
     if ((! TexRefs_2D.count (SK_D3D11_TrackedTexture)) ||
            Textures_2D      [SK_D3D11_TrackedTexture].crc32c == 0x0 )
+    {
       SK_D3D11_TrackedTexture = nullptr;
+    }
   }
 
   ImGui::BeginGroup ();
@@ -9613,6 +9632,11 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
         last_width  = effective_width  + font_size * 28.0f;
 
+        // Unsigned -> Signed so we can easily spot underflows
+        LONG refs =
+          pTex.p->AddRef  () - 1;
+          pTex.p->Release ();
+
         ImGui::BeginGroup      (                  );
         ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.f));
         ImGui::TextUnformatted ( "Dimensions:   " );
@@ -9634,6 +9658,7 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
         ImGui::TextUnformatted ( "Data Size:    " );
         ImGui::TextUnformatted ( "Load Time:    " );
         ImGui::TextUnformatted ( "Cache Hits:   " );
+        ImGui::TextUnformatted ( "References:   " );
         ImGui::EndGroup        (                  );
         ImGui::SameLine        (                  );
         ImGui::BeginGroup      (                  );
@@ -9647,6 +9672,7 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
                                    load_time );
         ImGui::Text            ( "%li",
                                    ReadAcquire (&textures->Textures_2D [pTex].hits) );
+        ImGui::Text            ( "%li", refs      );
         ImGui::PopStyleColor   (                  );
         ImGui::EndGroup        (                  );
         ImGui::Separator       (                  );
@@ -9663,8 +9689,9 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
           {
             if ( ImGui::Button ("  Dump Texture to Disk  ###DumpTexture") )
             {
-              SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
-                                        pTLS->texture_management.injection_thread = true;
+              auto decl_tex_scope (
+                SK_D3D11_DeclareTexInjectScope (pTLS)
+              );
 
               SK_D3D11_DumpTexture2D (
                 pTex, entry.crc32c
@@ -9692,8 +9719,9 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
             if (ImGui::Button ("  Generate Mipmaps  ###GenerateMipmaps"))
             {
-              SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
-                                        pTLS->texture_management.injection_thread = true;
+              auto decl_tex_scope (
+                SK_D3D11_DeclareTexInjectScope (pTLS)
+              );
 
               HRESULT
               __stdcall
@@ -9755,8 +9783,8 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
                                   ImGuiWindowFlags_NoInputs         | ImGuiWindowFlags_NoScrollbar |
                                   ImGuiWindowFlags_NoNavInputs      | ImGuiWindowFlags_NoNavFocus );
 
-          SK_D3D11_TempResources->push_back
-                                   (pSRV.p);
+          SK_D3D11_TempResources->push_back (pSRV.p);
+                                             pTex.p->Release ();
           ImGui::Image            ( pSRV.p,
                                      ImVec2 (effective_width, effective_height),
                                        uv0,                       uv1,
@@ -9808,101 +9836,6 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
         ImGui::PopStyleColor   ();
       }
     }
-
-#if 0
-    if (has_alternate)
-    {
-      ImGui::SameLine ();
-
-      D3DSURFACE_DESC desc;
-
-      if (SUCCEEDED (pTex->d3d9_tex->pTexOverride->GetLevelDesc (0, &desc)))
-      {
-        ImVec4 border_color = config.textures.highlight_debug_tex ?
-                                ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
-                                  (__remap_textures) ? ImVec4 (0.3f,  1.0f,  0.3f, 1.0f) :
-                                                       ImVec4 (0.5f,  0.5f,  0.5f, 1.0f);
-
-        ImGui::PushStyleColor  (ImGuiCol_Border, border_color);
-
-        ImGui::BeginGroup ();
-        ImGui::BeginChild ( "Item Selection2",
-                            ImVec2 ( std::max (font_size * 19.0f, (float)desc.Width  + 24.0f),
-                                                                  (float)desc.Height + font_size * 10.0f),
-                              true,
-                                ImGuiWindowFlags_AlwaysAutoResize );
-
-        //if (! config.textures.highlight_debug_tex)
-        //{
-        //  if (ImGui::IsItemHovered ())
-        //    ImGui::SetTooltip ("Click me to make this texture the visible version.");
-        //
-        //  // Allow the user to toggle texture override by clicking the frame
-        //  if (ImGui::IsItemClicked ())
-        //    __remap_textures = true;
-        //}
-
-
-        last_width  = std::max (last_width, (float)desc.Width);
-        last_ht     = std::max (last_ht,    (float)desc.Height + font_size * 10.0f);
-
-
-        extern std::wstring
-        SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
-
-
-        SK_D3D11_IsInjectable ()
-        bool injected  =
-          (TBF_GetInjectableTexture (debug_tex_id) != nullptr),
-             reloading = false;
-
-        int num_lods = pTex->d3d9_tex->pTexOverride->GetLevelCount ();
-
-        ImGui::Text ( "Dimensions:   %lux%lu  (%lu %s)",
-                        desc.Width, desc.Height,
-                           num_lods, num_lods > 1 ? "LODs" : "LOD" );
-        ImGui::Text ( "Format:       %ws",
-                        SK_D3D9_FormatToStr (desc.Format).c_str () );
-        ImGui::Text ( "Data Size:    %.2f MiB",
-                        (double)pTex->d3d9_tex->override_size / (1024.0f * 1024.0f) );
-        ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), injected ? "Injected Texture" : "Resampled Texture" );
-
-        ImGui::Separator     ();
-
-
-        if (injected)
-        {
-          if ( ImGui::Button ("  Reload This Texture  ") && tbf::RenderFix::tex_mgr.reloadTexture (debug_tex_id) )
-          {
-            reloading    = true;
-
-            tbf::RenderFix::tex_mgr.updateOSD ();
-          }
-        }
-
-        else {
-          ImGui::Button ("  Resample This Texture  "); // NO-OP, but preserves alignment :P
-        }
-
-        if (! reloading)
-        {
-          ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
-          ImGui::BeginChildFrame (0, ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8), ImGuiWindowFlags_ShowBorders);
-          ImGui::Image           ( pTex->d3d9_tex->pTexOverride,
-                                     ImVec2 ((float)desc.Width, (float)desc.Height),
-                                       ImVec2  (0,0),             ImVec2  (1,1),
-                                       ImColor (255,255,255,255), ImColor (255,255,255,128)
-                                 );
-          ImGui::EndChildFrame   ();
-          ImGui::PopStyleColor   (1);
-        }
-
-        ImGui::EndChild        ();
-        ImGui::EndGroup        ();
-        ImGui::PopStyleColor   (1);
-      }
-    }
-#endif
   }
   ImGui::EndGroup      ( );
   ImGui::PopStyleColor (1);
@@ -11608,7 +11541,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
                                     SK_D3D11_ShaderDesc&       rDesc )
     {
       list->last_sel              = rDesc.crc32c;
-      tracker->clear               (   );
+    //tracker->clear               (   );
       tracker->crc32c             = rDesc.crc32c;
       tracker->runtime_ms         = 0.0;
       tracker->last_runtime_ms    = 0.0;
@@ -12007,25 +11940,30 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     static char szRuntime    [ 32] = { };
     static char szAvgRuntime [ 32] = { };
 
+    int immediate_draws = tracker->num_draws.load          ();
+    int deferred_draws  = tracker->num_deferred_draws.load ();
+    int draws =
+       immediate_draws + deferred_draws;
+
     if (shader_type != sk_shader_class::Compute)
     {
       if (tracker->cancel_draws)
-        snprintf (szDraws, 128, "%3lu Skipped Draw%sLast Frame",  tracker->num_draws.load (), tracker->num_draws != 1 ? "s " : " ");
+        snprintf (szDraws, 128, "%3lu Skipped Draw%sLast Frame",  draws, draws != 1 ? "s " : " ");
       else
-        snprintf (szDraws, 128, "%3lu Draw%sLast Frame        " , tracker->num_draws.load (), tracker->num_draws != 1 ? "s " : " ");
+        snprintf (szDraws, 128, "%3lu Draw%sLast Frame        " , draws, draws != 1 ? "s " : " ");
     }
 
     else
     {
       if (tracker->cancel_draws)
-        snprintf (szDraws, 128, "%3lu Skipped Dispatch%sLast Frame", tracker->num_draws.load (), tracker->num_draws != 1 ? "es " : " ");
+        snprintf (szDraws, 128, "%3lu Skipped Dispatch%sLast Frame", draws, draws != 1 ? "es " : " ");
       else
-        snprintf (szDraws, 128, "%3lu Dispatch%sLast Frame        ", tracker->num_draws.load (), tracker->num_draws != 1 ? "es " : " ");
+        snprintf (szDraws, 128, "%3lu Dispatch%sLast Frame        ", draws, draws != 1 ? "es " : " ");
     }
 
     snprintf (szTextures,   64, "(%#i %s)",  num_used_textures, num_used_textures != 1 ? "textures" : "texture");
     snprintf (szRuntime,    32,  "%0.4f ms", tracker->runtime_ms);
-    snprintf (szAvgRuntime, 32,  "%0.4f ms", tracker->runtime_ms / tracker->num_draws);
+    snprintf (szAvgRuntime, 32,  "%0.4f ms", tracker->runtime_ms / immediate_draws);
 
     ImGui::BeginGroup   ();
     ImGui::Separator    ();
@@ -12213,8 +12151,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     ImGui::BeginGroup   ( );
     ImGui::TextDisabled (szTextures);
-    ImGui::TextDisabled (tracker->num_draws > 0 ? szRuntime    : "N/A");
-    ImGui::TextDisabled (tracker->num_draws > 0 ? szAvgRuntime : "N/A");
+    ImGui::TextDisabled (immediate_draws > 0 ? szRuntime    : "N/A");
+    ImGui::TextDisabled (immediate_draws > 0 ? szAvgRuntime : "N/A");
     ImGui::EndGroup     ( );
     ImGui::EndGroup     ( );
 
@@ -12484,15 +12422,21 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             ImGui::SameLine   ();
 
             ImGui::BeginGroup ();
-            ImGui::Text       ("Texture: ");
-            ImGui::Text       ("Format:  ");
+            ImGui::Text       ("Texture:    ");
+            ImGui::Text       ("Format:     ");
+            ImGui::Text       ("References: ");
             ImGui::EndGroup   ();
 
             ImGui::SameLine   ();
 
+            LONG refs =
+              pTex.p->AddRef  () - 1;
+              pTex.p->Release ();
+
             ImGui::BeginGroup ();
             ImGui::Text       ("%08lx", pTex.p);
             ImGui::Text       ("%ws",   SK_DXGI_FormatToStr (fmt).c_str ());
+            ImGui::Text       ("%li",   refs);
             ImGui::EndGroup   ();
           }
         }
@@ -12621,10 +12565,12 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
   // Flag this thread so the IUnknown::AddRef (...) that comes as a result
   //   of GetResource (...) does not count as texture cache hits.
-  SK_ScopedBool auto_tex_inject (&pTLS->texture_management.injection_thread);
-  SK_ScopedBool auto_draw       (&pTLS->imgui->drawing);
-  pTLS->imgui->drawing                      = true;
-  pTLS->texture_management.injection_thread = true;
+  SK_ScopedBool auto_draw (&pTLS->imgui->drawing);
+                            pTLS->imgui->drawing = true;
+
+  auto decl_tex_scope (
+    SK_D3D11_DeclareTexInjectScope (pTLS)
+  );
 
   static const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
@@ -13199,16 +13145,19 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               EXCEPTION_ACCESS_VIOLATION
             )
           );
+          try
           {
-            try {
-              if (it == nullptr)
-                continue;
-
-              it->GetDesc (&desc);
-            }
-            catch (const SK_SEH_IgnoredException&) {
+            if (it == nullptr)
+            {
+              SK_SEH_RemoveTranslator (orig_se);
               continue;
             }
+
+            it->GetDesc (&desc);
+          }
+          catch (const SK_SEH_IgnoredException&) {
+            SK_SEH_RemoveTranslator (orig_se);
+            continue;
           }
           SK_SEH_RemoveTranslator (orig_se);
 
@@ -13653,7 +13602,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
           rt_view->GetDesc            (&rtv_desc);
 
           ULONG refs =
-            rt_view.p->AddRef  ();
+            rt_view.p->AddRef  () - 1;
             rt_view.p->Release ();
 
           if ( rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D ||
@@ -14386,98 +14335,6 @@ SK_D3D11_ResetShaders (void)
     }
   }
 }
-
-
-#if 0
-class SK_ExecuteReShadeOnReturn
-{
-public:
-   SK_ExecuteReShadeOnReturn (ID3D11DeviceContext* pCtx) : _ctx (pCtx) { };
-  ~SK_ExecuteReShadeOnReturn (void)
-  {
-    auto TriggerReShade_After = [&]
-    {
-      ////SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
-      ////SK_TLS_Bottom ()->imgui.drawing = true;
-
-      if (SK_ReShade_PresentCallback->fn && (! SK_D3D11_Shaders->reshade_triggered))
-      {
-        SK_ComPtr <ID3D11DepthStencilView>  pDSV = nullptr;
-        SK_ComPtr <ID3D11DepthStencilState> pDSS = nullptr;
-        SK_ComPtr <ID3D11RenderTargetView>  pRTV = nullptr;
-
-        _ctx->OMGetRenderTargets (1, &pRTV, &pDSV);
-
-        if (pRTV != nullptr)
-        {
-          D3D11_RENDER_TARGET_VIEW_DESC rt_desc = { };
-                        pRTV->GetDesc (&rt_desc);
-
-          if (rt_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D && rt_desc.Texture2D.MipSlice == 0)
-          {
-            SK_ComPtr <ID3D11Resource> pRes = nullptr;
-                   pRTV->GetResource (&pRes);
-
-            SK_ComQIPtr <ID3D11Texture2D> pTex (pRes);
-
-            if (pTex)
-            {
-              D3D11_TEXTURE2D_DESC tex_desc = { };
-
-              if ( ImGui::GetIO ().DisplaySize.x == tex_desc.Width &&
-                   ImGui::GetIO ().DisplaySize.y == tex_desc.Height )
-              {
-                for (int i = 0 ; i < 5; i++)
-                {
-                  SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShaderReg;
-
-                  switch (i)
-                  {
-                    default:
-                    case 0:
-                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *)&SK_D3D11_Shaders->vertex;
-                      break;
-                    case 1:
-                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *)&SK_D3D11_Shaders->pixel;
-                      break;
-                    case 2:
-                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *)&SK_D3D11_Shaders->geometry;
-                      break;
-                    case 3:
-                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *)&SK_D3D11_Shaders->hull;
-                      break;
-                    case 4:
-                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *)&SK_D3D11_Shaders->domain;
-                      break;
-                  };
-
-                  if ( pShaderReg->current.shader [_ctx] != 0x0    &&
-                    (! pShaderReg->trigger_reshade.after.empty ()) &&
-                       pShaderReg->trigger_reshade.after.count (pShaderReg->current.shader [_ctx]) )
-                  {
-                    SK_D3D11_Shaders->reshade_triggered = true;
-
-                    SK_ReShade_PresentCallback->explicit_draw.calls++;
-                    SK_ReShade_PresentCallback->fn (&SK_ReShade_PresentCallback->explicit_draw);
-                    break;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    };
-
-    TriggerReShade_After ();
-  }
-
-protected:
-  ID3D11DeviceContext* _ctx;
-};
-#endif
-
-
 
 
 __forceinline
@@ -15669,45 +15526,47 @@ D3D11Dev_CreateDeferredContext_Override (
 {
   DXGI_LOG_CALL_2 (L"ID3D11Device::CreateDeferredContext", L"ContextFlags=0x%x, **ppDeferredContext=%p", ContextFlags, ppDeferredContext );
 
-  //if (SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey)
-  //  return D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, ppDeferredContext);
+  if (SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey)
+    return D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, ppDeferredContext);
 
 #ifdef SK_D3D11_WRAP_DEFERRED_CTX
-  if (ppDeferredContext != nullptr)
+  if (config.render.dxgi.deferred_isolation)
   {
-          ID3D11DeviceContext* pTemp = nullptr;
-    const HRESULT              hr    =
-      D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, &pTemp);
-
-    if (SUCCEEDED (hr))
+    if (ppDeferredContext != nullptr)
     {
-      if ( wrapped_contexts->find (pTemp) ==
-           wrapped_contexts->cend (     )  )
+            ID3D11DeviceContext* pTemp = nullptr;
+      const HRESULT              hr    =
+        D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, &pTemp);
+
+      if (SUCCEEDED (hr))
       {
-        (*wrapped_contexts)[pTemp] =
-          std::shared_ptr <ID3D11DeviceContext4> (
-            SK_D3D11_WrapperFactory->wrapDeviceContext (pTemp)
+        if ( wrapped_contexts->find (pTemp) ==
+             wrapped_contexts->cend (     )  )
+        {
+          (*wrapped_contexts)[pTemp] =
+            std::shared_ptr <ID3D11DeviceContext4> (
+              SK_D3D11_WrapperFactory->wrapDeviceContext (pTemp)
+            );
+        }
+
+        *ppDeferredContext =
+          static_cast <ID3D11DeviceContext *> (
+            (*wrapped_contexts)[pTemp].get ()
           );
+
+        return hr;
       }
 
-      *ppDeferredContext =
-        static_cast <ID3D11DeviceContext *> (
-          (*wrapped_contexts)[pTemp].get ()
-        );
+      *ppDeferredContext = pTemp;
 
       return hr;
     }
 
-    *ppDeferredContext = pTemp;
-
-    return hr;
-  }
-
-  else
     return D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, nullptr);
-#else
-  return D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, ppDeferredContext);
+  }
 #endif
+
+  return D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, ppDeferredContext);
 }
 
 __declspec (noinline)
@@ -15750,8 +15609,8 @@ D3D11Dev_CreateDeferredContext1_Override (
     return hr;
   }
 
-  else
-    return D3D11Dev_CreateDeferredContext1_Original (This, ContextFlags, nullptr);
+
+  return D3D11Dev_CreateDeferredContext1_Original (This, ContextFlags, nullptr);
 }
 
 __declspec (noinline)
@@ -15794,8 +15653,7 @@ D3D11Dev_CreateDeferredContext2_Override (
     return hr;
   }
 
-  else
-    return D3D11Dev_CreateDeferredContext2_Original (This, ContextFlags, nullptr);
+  return D3D11Dev_CreateDeferredContext2_Original (This, ContextFlags, nullptr);
 }
 
 __declspec (noinline)
@@ -15838,8 +15696,7 @@ D3D11Dev_CreateDeferredContext3_Override (
     return hr;
   }
 
-  else
-    return D3D11Dev_CreateDeferredContext3_Original (This, ContextFlags, nullptr);
+  return D3D11Dev_CreateDeferredContext3_Original (This, ContextFlags, nullptr);
 }
 
 _declspec (noinline)
@@ -15855,15 +15712,18 @@ D3D11Dev_GetImmediateContext_Override (
   }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  if (ppImmediateContext != nullptr && wrapped_immediates->find (This) !=
-                                       wrapped_immediates->cend (    ))
+  if (config.render.dxgi.deferred_isolation)
   {
-    *ppImmediateContext =
-      (*wrapped_immediates) [This].get ();
+    if (ppImmediateContext != nullptr && wrapped_immediates->find (This) !=
+                                         wrapped_immediates->cend (    ))
+    {
+      *ppImmediateContext =
+        (*wrapped_immediates) [This].get ();
 
-    (*ppImmediateContext)->AddRef ();
+      (*ppImmediateContext)->AddRef ();
 
-    return;
+      return;
+    }
   }
 #endif
 
@@ -17165,12 +17025,12 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
 
     if (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS)
     {
-      RtlSecureZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
     }
   }
 
@@ -17359,22 +17219,18 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
                  tracker->disjoint_query.last_results.Frequency )
           );
 
-         // Filter out queries that spanned multiple frames
-         //
-         if ( tracker->runtime_ms      > 0.0 &&
-              tracker->last_runtime_ms > 0.0    )
-         {
-           if (   tracker->runtime_ms      >
-                ( tracker->last_runtime_ms * 100.0 ) ||
-                ( tracker->runtime_ms      > 12.0  ) )
-           {
-             tracker->     runtime_ms =
-             tracker->last_runtime_ms;
-           }
-         }
+
+         // Way too long to be valid, just re-use the last known good value
+         if ( tracker->runtime_ms > 12.0 )
+              tracker->runtime_ms = tracker->last_runtime_ms;
 
          tracker->last_runtime_ms =
               tracker->runtime_ms;
+       }
+
+       else
+       {
+         tracker->runtime_ms = 0.0;
        }
      };
 
@@ -17384,10 +17240,6 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
       [&](       d3d11_shader_tracking_s             *tracker,
            const std::unordered_map <uint32_t, LONG> &blacklist )
       {
-        std::vector <
-          d3d11_shader_tracking_s::duration_s
-        > rejects (tracker->timers.size ());
-
         tracker->runtime_ticks = 0ULL;
 
         for ( auto& it : tracker->timers )
@@ -17409,9 +17261,15 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
               ( time0 - time1 );
           }
 
+          // Data's no good, we need to release the queries manually or
+          //   we're going to leak!
           else
           {
-            rejects.push_back (it);
+            SK_COM_ValidateRelease ((IUnknown **)&it.end.async);
+            SK_COM_ValidateRelease ((IUnknown **)&it.end.dev_ctx);
+
+            SK_COM_ValidateRelease ((IUnknown **)&it.start.async);
+            SK_COM_ValidateRelease ((IUnknown **)&it.start.dev_ctx);
           }
         }
 
@@ -17427,13 +17285,6 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
         }
 
         tracker->timers.clear ();
-
-        //// Anything that fails goes back on the list and we will try again next frame
-        //tracker->timers.insert (
-        //  tracker->timers.end    (),
-        //          rejects.rbegin (),
-        //            rejects.rend ()
-        //);
       };
 
     AccumulateRuntimeTicks (&vertex.tracked,   vertex.blacklist);
@@ -17496,21 +17347,12 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
 
     if (it_ctx.ctx_id_ == dev_idx)
     {
-      //for ( auto& it_res : it_ctx.temp_resources )
-      //{
-      //  it_res->Release ();
-      //}
-
-      //for ( auto& it_res : it_ctx.used_textures )
-      //{
-      //  it_res->Release ();
-      //}
 
       it_ctx.temp_resources.clear ();
       it_ctx.used_textures.clear  ();
     }
 
-    SK_D3D11_RenderTargets [dev_idx].clear ();
+    SK_D3D11_RenderTargets [it_ctx.ctx_id_].clear ();
 
     InterlockedExchange (&it_ctx.writing_, 0);
   }

@@ -1020,10 +1020,14 @@ extern float SK_ImGui_PulseNav_Strength;
       std::vector <RAWINPUTDEVICE> mice      = SK_RawInput_GetMice      ();
       std::vector <RAWINPUTDEVICE> keyboards = SK_RawInput_GetKeyboards ();
 
-      std::vector <std::vector <std::string>> mouse_flags    (mice.size      ());
-      std::vector <std::vector <std::string>> mouse_descs    (mice.size      ());
-      std::vector <std::vector <std::string>> keyboard_flags (keyboards.size ());
-      std::vector <std::vector <std::string>> keyboard_descs (keyboards.size ());
+      std::vector <std::vector <std::string>> mouse_flags;
+                                              mouse_flags.reserve (mice.size ());
+      std::vector <std::vector <std::string>> mouse_descs;
+                                              mouse_descs.reserve (mice.size ());
+      std::vector <std::vector <std::string>> keyboard_flags;
+                                              keyboard_flags.reserve (keyboards.size ());
+      std::vector <std::vector <std::string>> keyboard_descs;
+                                              keyboard_descs.reserve (keyboards.size ());
 
       ImGui::Text     ("Raw Input Setup");
       ImGui::TreePush ("");

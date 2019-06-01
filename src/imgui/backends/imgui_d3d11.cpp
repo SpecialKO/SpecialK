@@ -64,7 +64,7 @@ static int                      g_VertexBufferSize      = 5000,
                                 g_IndexBufferSize       = 10000;
 
 std::pair <BOOL*, BOOL>
-SK_ImGui_FlagDrawing_OnD3D11Ctx (size_t dev_idx);
+SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
 
 static void
 ImGui_ImplDX11_CreateFontsTexture (void);
@@ -195,9 +195,14 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
+  // This thread and all commands coming from it are currently related to the
+  //   UI, we don't want to track the majority of our own state changes
+  //     (and more importantly, resources created on any D3D11 device).
   SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
                             pTLS->imgui->drawing = true;
 
+  // Flag the active device command context (not the calling thread) as currently
+  //   participating in UI rendering.
   auto flag_result =
     SK_ImGui_FlagDrawing_OnD3D11Ctx (
       SK_D3D11_GetDeviceContextHandle (pDevCtx)
@@ -592,12 +597,13 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 
   if (! pTLS) return;
 
-  SK_ScopedBool auto_bool0 (&pTLS->texture_management.injection_thread);
-  SK_ScopedBool auto_bool1 (&pTLS->imgui->drawing                     );
-
   // Do not dump ImGui font textures
-  pTLS->texture_management.injection_thread = true;
-  pTLS->imgui->drawing                      = true;
+  SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
+                            pTLS->imgui->drawing = true;
+
+  auto decl_tex_scope (
+    SK_D3D11_DeclareTexInjectScope (pTLS)
+  );
 
   // Build texture atlas
   ImGuiIO& io (
@@ -1677,10 +1683,6 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-    //SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
-
-    // Do not dump ImGui font textures
-    //pTLS->imgui->drawing = true;
 
   SK_ImGui_ResetExternal ();
 

@@ -763,6 +763,11 @@ public:
     bOrig_ = *pBool;
   }
 
+  SK_ScopedBool (SK_ScopedBool&& T) noexcept :
+    bOrig_ (std::exchange (T.bOrig_, *T.pBool_)),
+    pBool_ (                          T.pBool_)
+  { };
+
   ~SK_ScopedBool (void) noexcept
   {
     *pBool_ = bOrig_;

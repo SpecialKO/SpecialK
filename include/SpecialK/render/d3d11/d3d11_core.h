@@ -71,6 +71,7 @@ struct IUnknown;
 #include <atlbase.h>
 
 #include <SpecialK/render/d3d11/d3d11_interfaces.h>
+#include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <d3dcompiler.h>
 #include <../depends/include/DXSDK/D3DX11.h>
 #include <../depends/include/DXSDK/D3DX11tex.h>
@@ -162,9 +163,9 @@ SK_D3D11_ResetContextState ( ID3D11DeviceContext *pDevCtx,
                              UINT                  dev_idx = UINT_MAX );
 
 extern std::pair <BOOL*, BOOL>
-SK_ImGui_FlagDrawing_OnD3D11Ctx (size_t dev_idx);
+SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
 extern bool
-SK_ImGui_IsDrawing_OnD3D11Ctx   (size_t dev_idx);
+SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT dev_idx, ID3D11DeviceContext* pDevCtx);
 
 
 struct shader_stage_s
@@ -245,7 +246,7 @@ struct SK_RESHADE_CALLBACK_DRAW
     {   dev_idx =
           SK_D3D11_GetDeviceContextHandle (context); }
 
-    if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx))
+    if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx, context))
       return;
 
     if ( data != nullptr && fn != nullptr &&
@@ -258,9 +259,9 @@ struct SK_RESHADE_CALLBACK_DRAW
       (&pTLS->imgui->drawing);
         pTLS->imgui->drawing = true;
 
-      SK_ScopedBool autobool2
-      (&pTLS->texture_management.injection_thread);
-        pTLS->texture_management.injection_thread = true;
+      auto decl_tex_scope (
+        SK_D3D11_DeclareTexInjectScope (pTLS)
+      );
 
       fn (data, context, vertices);
     }
@@ -501,6 +502,20 @@ _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
 _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
          BOOL                           bWrapped,
          UINT                           dev_idx = UINT_MAX );
+
+void
+STDMETHODCALLTYPE
+SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (
+  _In_                                        ID3D11DeviceContext              *pDevCtx,
+  _In_                                        UINT                              NumRTVs,
+  _In_reads_opt_ (NumRTVs)                    ID3D11RenderTargetView    *const *ppRenderTargetViews,
+  _In_opt_                                    ID3D11DepthStencilView           *pDepthStencilView,
+  _In_range_ (0, D3D11_1_UAV_SLOT_COUNT - 1)  UINT                              UAVStartSlot,
+  _In_                                        UINT                              NumUAVs,
+  _In_reads_opt_ (NumUAVs)                    ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
+  _In_reads_opt_ (NumUAVs)              const UINT                             *pUAVInitialCounts,
+                                              BOOL                              bWrapped,
+                                              UINT                              dev_idx = UINT_MAX );
 
 
 void
@@ -1340,9 +1355,13 @@ struct d3d11_shader_tracking_s
 {
   void clear (void)
   {
-    //active    = false;
+    //for ( UINT i = 0 ; i < SK_D3D11_MAX_DEV_CONTEXTS; ++ i )
+    //{
+    //  active.set (i, false);
+    //}
 
-    num_draws = 0;
+    num_draws          = 0;
+    num_deferred_draws = 0;
 
     if ( set_of_res.empty   () &&
          set_of_views.empty () &&
@@ -1395,6 +1414,7 @@ struct d3d11_shader_tracking_s
   }
 
   void use        ( IUnknown* pShader );
+  void use_cmdlist( IUnknown* pShader ); // Deferred draw, cannot be timed
 
   // Used for timing queries and interface tracking
   void activate   ( ID3D11DeviceContext        *pDevContext,
@@ -1471,11 +1491,12 @@ struct d3d11_shader_tracking_s
     }
   } active;
 
-  std::atomic_ulong                  num_draws        =       0;
-  std::atomic_bool                   pre_hud_source   =   false;
-  std::atomic_long                   pre_hud_rt_slot  =      -1;
-  std::atomic_long                   pre_hud_srv_slot =      -1;
-  SK_ComPtr <ID3D11RenderTargetView> pre_hud_rtv      = nullptr;
+  std::atomic_ulong                  num_draws          =       0;
+  std::atomic_ulong                  num_deferred_draws =       0;
+  std::atomic_bool                   pre_hud_source     =   false;
+  std::atomic_long                   pre_hud_rt_slot    =      -1;
+  std::atomic_long                   pre_hud_srv_slot   =      -1;
+  SK_ComPtr <ID3D11RenderTargetView> pre_hud_rtv        = nullptr;
 
   // The slot used has meaning, but I think we can ignore it for now...
   //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;
@@ -1484,7 +1505,7 @@ struct d3d11_shader_tracking_s
   ///  ID3D11Resource*          > set_of_res;
   ///concurrency::concurrent_unordered_set <
   ///  ID3D11ShaderResourceView*> set_of_views;
-    concurrency::concurrent_unordered_set <
+  concurrency::concurrent_unordered_set <
     SK_ComPtr <ID3D11Resource>          > set_of_res;
   concurrency::concurrent_unordered_set <
     SK_ComPtr <ID3D11ShaderResourceView>> set_of_views;

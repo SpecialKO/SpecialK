@@ -2035,8 +2035,9 @@ public:
 #define CHECKUP_TIME 666UL
 #define MIN_FRAMES   4
 
-                        std::vector <suspend_params_s> leftovers (
-                                             suspended_threads.size () );
+                        std::vector <suspend_params_s> leftovers;
+                                                       leftovers.reserve (
+                                             suspended_threads.size ()   );
                         for ( auto& thread : suspended_threads )
                         {
                           if (thread.time_requested < (timeGetTime () - CHECKUP_TIME))

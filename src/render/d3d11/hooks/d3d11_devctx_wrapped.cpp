@@ -758,89 +758,21 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_reads_opt_ (NumUAVs)                    ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
     _In_reads_opt_ (NumUAVs)              const UINT                             *pUAVInitialCounts ) override
   {
-    ID3D11DepthStencilView *pDSV = pDepthStencilView;
-
-    UINT dev_idx =
-      SK_D3D11_GetDeviceContextHandle (pReal);
-
-    if (pDepthStencilView != nullptr)
-      SK_ReShade_SetDepthStencilViewCallback.call (pDSV);
-
-#ifdef _M_AMD64
-    static bool yakuza = ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
-                           SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 );
-    extern bool __SK_Yakuza_TrackRTVs;
+#ifndef SK_D3D11_LAZY_WRAP
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+        SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (pReal,
+                   NumRTVs,
+                    ppRenderTargetViews,
+                     pDepthStencilView,  UAVStartSlot, NumUAVs,
+                               ppUnorderedAccessViews,   pUAVInitialCounts,
+          true, dev_ctx_handle_
+        );
+    else
 #endif
-
-    // ImGui gets to pass-through without invoking the hook
-    if (
-#ifdef _M_AMD64
-      (yakuza && (! __SK_Yakuza_TrackRTVs)) ||
-#endif
-      (! SK_D3D11_ShouldTrackRenderOp (pReal, dev_ctx_handle_)))
-    {
-      for (auto& i : tracked_rtv->active [dev_idx]) i.store (false);
-
-      tracked_rtv->active_count [dev_idx] = 0;
-
       pReal->OMSetRenderTargetsAndUnorderedAccessViews (
-        NumRTVs, ppRenderTargetViews, pDSV, UAVStartSlot, NumUAVs,
-        ppUnorderedAccessViews, pUAVInitialCounts
+        NumRTVs, ppRenderTargetViews, pDepthStencilView,
+          UAVStartSlot, NumUAVs, ppUnorderedAccessViews, pUAVInitialCounts
       );
-
-      return;
-    }
-
-    pReal->OMSetRenderTargetsAndUnorderedAccessViews (
-      NumRTVs, ppRenderTargetViews, pDSV, UAVStartSlot, NumUAVs,
-      ppUnorderedAccessViews, pUAVInitialCounts
-    );
-
-    if (NumRTVs > 0)
-    {
-      if (ppRenderTargetViews != nullptr)
-      {
-        auto&                                rt_views =
-          (*SK_D3D11_RenderTargets)[dev_idx].rt_views;
-
-        const auto* tracked_rtv_res =
-          static_cast <ID3D11RenderTargetView *> (
-            ReadPointerAcquire ((volatile PVOID *)&tracked_rtv->resource)
-            );
-
-        for (UINT i = 0; i < NumRTVs; i++)
-        {
-          if (! rt_views.count (ppRenderTargetViews [i]))
-          {    rt_views.insert (ppRenderTargetViews [i]); }
-
-          const bool active_before = tracked_rtv->active_count [dev_idx] > 0 ?
-            tracked_rtv->active      [dev_idx][i].load ()
-            : false;
-
-          const bool active =
-            ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
-            true :
-            false;
-
-          if (active_before != active)
-          {
-            tracked_rtv->active [dev_idx][i] = active;
-
-            if      (             active                    ) tracked_rtv->active_count [dev_idx]++;
-            else if (tracked_rtv->active_count [dev_idx] > 0) tracked_rtv->active_count [dev_idx]--;
-          }
-        }
-      }
-
-      if (pDepthStencilView != nullptr)
-      {
-        auto& ds_views =
-          SK_D3D11_RenderTargets [dev_idx].ds_views;
-
-        if (! ds_views.count  (pDepthStencilView))
-        {     ds_views.insert (pDepthStencilView); }
-      }
-    }
   }
 
   void STDMETHODCALLTYPE OMSetBlendState (
@@ -1335,8 +1267,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_  FLOAT                   Depth,
     _In_  UINT8                   Stencil ) override
   {
-    SK_ReShade_ClearDepthStencilViewCallback.try_call (pDepthStencilView);
-
     return
       pReal->ClearDepthStencilView (
                  pDepthStencilView,
@@ -1439,13 +1369,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
 
     if (RestoreContextState == FALSE)
     {
-      if (! pBuildContext.IsEqualObject (this))
-      {
-        SK_D3D11_ResetContextState (          pBuildContext,
-            SK_D3D11_GetDeviceContextHandle ( pBuildContext )
-        );
-      }
-
       SK_D3D11_ResetContextState (
         pReal, dev_ctx_handle_
       );
@@ -1847,9 +1770,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
               ppRenderTargetViews,
               ppDepthStencilView
     );
-
-    if (ppDepthStencilView != nullptr)
-      SK_ReShade_GetDepthStencilViewCallback.try_call (*ppDepthStencilView);
   }
 
   void STDMETHODCALLTYPE OMGetRenderTargetsAndUnorderedAccessViews (
@@ -1867,9 +1787,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
              NumUAVs,
               ppUnorderedAccessViews
     );
-
-    if (ppDepthStencilView != nullptr)
-      SK_ReShade_GetDepthStencilViewCallback.try_call (*ppDepthStencilView);
   }
 
   void STDMETHODCALLTYPE OMGetBlendState (
@@ -2096,9 +2013,9 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     bool SK_D3D11_QueueContextReset (ID3D11DeviceContext* pDevCtx, UINT dev_ctx);
     bool SK_D3D11_DispatchContextResetQueue (UINT dev_ctx);
 
-    SK_D3D11_QueueContextReset  (pReal, dev_ctx_handle_);
+  //SK_D3D11_QueueContextReset  (pReal, dev_ctx_handle_);
     pReal->ClearState           (                      );
-    SK_D3D11_DispatchContextResetQueue (dev_ctx_handle_);
+  //SK_D3D11_DispatchContextResetQueue (dev_ctx_handle_);
   }
 
   void STDMETHODCALLTYPE Flush (void) override
@@ -2135,7 +2052,10 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     {
       (*ppCommandList)->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
                                            sizeof (ptrdiff_t), pReal );
+      SK_D3D11_ResetContextState (pReal, dev_ctx_handle_);
     }
+    else
+      SK_D3D11_ResetContextState (pReal, dev_ctx_handle_);
 
     return hr;
   }

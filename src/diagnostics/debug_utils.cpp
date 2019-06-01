@@ -820,25 +820,25 @@ TerminateProcess_Detour ( HANDLE hProcess,
 {
   bool passthrough = false;
 
-  // Stupid workaround for Denuvo
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_ACCESS_VIOLATION
-    )
-  );
-  try {
-    passthrough = (SK_GetCallingDLL () == SK_GetDLL ());
-  }
-  catch (const SK_SEH_IgnoredException&) { };
-  SK_SEH_RemoveTranslator (orig_se);
-
-  if (passthrough)
-  {
-    return
-      TerminateProcess_Original ( hProcess,
-                                    uExitCode );
-  }
+  //// Stupid workaround for Denuvo
+  //auto orig_se =
+  //SK_SEH_ApplyTranslator (
+  //  SK_FilteringStructuredExceptionTranslator (
+  //    EXCEPTION_ACCESS_VIOLATION
+  //  )
+  //);
+  //try {
+  //  passthrough = (SK_GetCallingDLL () == SK_GetDLL ());
+  //}
+  //catch (const SK_SEH_IgnoredException&) { };
+  //SK_SEH_RemoveTranslator (orig_se);
+  //
+  //if (passthrough)
+  //{
+  //  return
+  //    TerminateProcess_Original ( hProcess,
+  //                                  uExitCode );
+  //}
 
   const bool abnormal_dll_state =
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
@@ -859,20 +859,20 @@ TerminateProcess_Detour ( HANDLE hProcess,
     {
       if (uExitCode == 0xdeadc0de)
       {
-        SK_Thread_Create ([](LPVOID)->DWORD {
-          auto orig_se_thread =
-          SK_SEH_ApplyTranslator (SK_BasicStructuredExceptionTranslator);
-          try {
-            SK_LOG0 ( ( L" !!! Denuvo Catastrophe Avoided !!!" ),
-                        L"AntiTamper" );
-          }
-          catch (const SK_SEH_IgnoredException&) { };
-          SK_SEH_RemoveTranslator (orig_se_thread);
-
-          SK_Thread_CloseSelf ();
-
-          return 0;
-        });
+        //SK_Thread_Create ([](LPVOID)->DWORD {
+        //  auto orig_se_thread =
+        //  SK_SEH_ApplyTranslator (SK_BasicStructuredExceptionTranslator);
+        //  try {
+        //    SK_LOG0 ( ( L" !!! Denuvo Catastrophe Avoided !!!" ),
+        //                L"AntiTamper" );
+        //  }
+        //  catch (const SK_SEH_IgnoredException&) { };
+        //  SK_SEH_RemoveTranslator (orig_se_thread);
+        //
+        //  SK_Thread_CloseSelf ();
+        //
+        //  return 0;
+        //});
 
         SK_ImGui_Warning ( L"Denuvo just tried to terminate the game! "
                            L"Bad Denuvo, bad!" );
@@ -882,33 +882,33 @@ TerminateProcess_Detour ( HANDLE hProcess,
         return TRUE;
       }
 
-      SK_Thread_Create ([](LPVOID ret_addr)->DWORD
-      {
-        wchar_t wszCaller [MAX_PATH] = { };
-
-        auto orig_se_thread =
-        SK_SEH_ApplyTranslator (
-          SK_FilteringStructuredExceptionTranslator (
-            EXCEPTION_ACCESS_VIOLATION
-          )
-        );
-        try
-        {
-          if (SK_SEH_CompatibleCallerName (ret_addr, wszCaller))
-          {
-            dll_log->Log ( L" # BLOCKED TerminateProcess (...) \t -- %s",
-                           wszCaller );
-          }
-        }
-        catch (const SK_SEH_IgnoredException&) { }
-        SK_SEH_RemoveTranslator (orig_se_thread);
-
-        SK_Thread_CloseSelf ();
-
-        return 0;
-      }, (LPVOID)_ReturnAddress ());
-
-      CloseHandle (hSelf);
+      //SK_Thread_Create ([](LPVOID ret_addr)->DWORD
+      //{
+      //  wchar_t wszCaller [MAX_PATH] = { };
+      //
+      //  auto orig_se_thread =
+      //  SK_SEH_ApplyTranslator (
+      //    SK_FilteringStructuredExceptionTranslator (
+      //      EXCEPTION_ACCESS_VIOLATION
+      //    )
+      //  );
+      //  try
+      //  {
+      //    if (SK_SEH_CompatibleCallerName (ret_addr, wszCaller))
+      //    {
+      //      dll_log->Log ( L" # BLOCKED TerminateProcess (...) \t -- %s",
+      //                     wszCaller );
+      //    }
+      //  }
+      //  catch (const SK_SEH_IgnoredException&) { }
+      //  SK_SEH_RemoveTranslator (orig_se_thread);
+      //
+      //  SK_Thread_CloseSelf ();
+      //
+      //  return 0;
+      //}, (LPVOID)_ReturnAddress ());
+      //
+      //CloseHandle (hSelf);
 
       return FALSE;
     }
@@ -2851,10 +2851,10 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                RaiseException_Detour,
       static_cast_p2p <void> (&RaiseException_Original) );
 
-    ///SK_CreateDLLHook2 (      L"NtDll",
-    ///                          "RtlRaiseException",
-    ///                           RtlRaiseException_Detour,
-    ///  static_cast_p2p <void> (&RtlRaiseException_Original) );
+    SK_CreateDLLHook2 (      L"NtDll",
+                              "RtlRaiseException",
+                               RtlRaiseException_Detour,
+      static_cast_p2p <void> (&RtlRaiseException_Original) );
 
     SK_CreateDLLHook2 (      L"NtDll",
                               "RtlExitUserProcess",
@@ -2909,12 +2909,12 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                SetThreadPriority_Detour,
       static_cast_p2p <void> (&SetThreadPriority_Original) );
 
-    SK_CreateDLLHook2 (      L"NtDll.dll",
+    SK_CreateDLLHook2 (      L"NtDll",
                               "NtCreateThreadEx",
                                NtCreateThreadEx_Detour,
       static_cast_p2p <void> (&NtCreateThreadEx_Original) );
 
-    SK_CreateDLLHook2 (      L"NtDll.dll",
+    SK_CreateDLLHook2 (      L"NtDll",
                               "NtSetInformationThread",
                                NtSetInformationThread_Detour,
       static_cast_p2p <void> (&NtSetInformationThread_Original) );
@@ -2939,7 +2939,8 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                DbgUiRemoteBreakin_Detour,
       static_cast_p2p <void> (&DbgUiRemoteBreakin_Original) );
 
-    SK_ApplyQueuedHooks ();
+    SK_InitCompatBlacklist ();
+  //SK_ApplyQueuedHooks ();
 
     RtlAcquirePebLock_Detour ();
     RtlReleasePebLock_Detour ();

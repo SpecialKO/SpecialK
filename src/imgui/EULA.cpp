@@ -74,7 +74,6 @@ extern std::wstring
 __stdcall
 SK_GetPluginName (void);
 
-
 void
 __stdcall
 SK_ImGui_DrawEULA (LPVOID reserved)

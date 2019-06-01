@@ -2216,6 +2216,12 @@ SK_ImGui_User_NewFrame (void)
   if (was_idle != SK_ImGui_Cursor.idle)
     SK_ImGui_Cursor.update ();
 
-  if (eula.show)
+  //if (eula.show)
     SK_ImGui_DrawEULA (&eula);
+}
+
+bool
+SK_ImGui_IsEULAVisible (void)
+{
+  return eula.show;
 }

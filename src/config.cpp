@@ -1866,12 +1866,12 @@ auto DeclKeybind =
       case SK_GAME_ID::Yakuza0:
         ///// Engine has a problem with its texture management that
         /////   makes texture caching / modding impossible.
-        config.textures.d3d11.cache               = true;
+        config.textures.d3d11.cache               = false;
         config.textures.cache.allow_unsafe_refs   = true;
         config.render.dxgi.deferred_isolation     = false;
         config.textures.cache.residency_managemnt = false;
         config.cegui.enable                       = false; // Off by default
-        config.render.framerate.disable_flip      = true;
+        config.render.framerate.disable_flip      = false;
         //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
         break;
 
@@ -1906,11 +1906,6 @@ auto DeclKeybind =
         config.render.framerate.limiter_tolerance =   6.0f;
         config.render.framerate.flip_discard      =   true;
         config.render.framerate.swapchain_wait    =    500;
-      //config.steam.auto_inject                  =   true;
-      //config.steam.init_delay                   =   1500;
-      //config.steam.auto_pump_callbacks          =   true;
-      //config.steam.force_load_steamapi          =   true;
-      //config.steam.dll_path                     = L"kaldaien_api64.dll";
         config.steam.reuse_overlay_pause          =  false;
         config.steam.appid                        = 927380;
 
@@ -4400,7 +4395,7 @@ SK_AppCache_Manager::getLicenseRevision (void)
     std::wstring& val =
       sec.get_value (L"LastRevision");
 
-    return
+    return must_show ? 0 :
       _wtoi (val.c_str ());
   }
 

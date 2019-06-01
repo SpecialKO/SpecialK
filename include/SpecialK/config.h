@@ -206,7 +206,7 @@ struct sk_config_t
 
   struct {
     float   scale              = 1.0f;
-    bool    show_eula          = true;
+    bool    show_eula          = false; // Will be flipped on if no AppCache is present
     bool    show_input_apis    = true;
     bool    use_mac_style_menu = false;
 

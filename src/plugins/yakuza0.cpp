@@ -378,6 +378,21 @@ SK_Yakuza0_PlugInInit (void)
     SK_GetDLLConfig (), L"Yakuza0.Textures", L"ForceAnisoLevel"
   );
 
+  _SK_Y_SafetyLeak =
+    dynamic_cast <sk::ParameterBool *> (
+      g_ParameterFactory->create_parameter <bool> (L"Leak Memory For Stability")
+    );
+
+  _SK_Y_SafetyLeak->register_to_ini (
+    SK_GetDLLConfig (), L"YakuzaKiwami.Memory", L"LeakInsteadOfCrash"
+  );
+
+  _SK_Y_SafetyLeak->load (_SK_Y0_Cfg.safety_leak);
+  __SK_Y0_SafetyLeak    = _SK_Y0_Cfg.safety_leak;
+
+  config.textures.d3d11.cache = __SK_Y0_SafetyLeak;
+  __SK_Yakuza_TrackRTVs       = __SK_Y0_SafetyLeak;
+
   if (! yakuza0)
   {
     _SK_Y_NoBlur0 =
@@ -447,26 +462,16 @@ SK_Yakuza0_PlugInInit (void)
     );
 
     _SK_Y_NoDOF4->load    (_SK_Y0_Cfg.no_dof4);
-
-    _SK_Y_SafetyLeak =
-      dynamic_cast <sk::ParameterBool *> (
-        g_ParameterFactory->create_parameter <bool> (L"Leak Memory For Stability")
-      );
-
-    _SK_Y_SafetyLeak->register_to_ini (
-      SK_GetDLLConfig (), L"YakuzaKiwami.Memory", L"LeakInsteadOfCrash"
-    );
-
-    _SK_Y_SafetyLeak->load (_SK_Y0_Cfg.safety_leak);
-    __SK_Y0_SafetyLeak    = _SK_Y0_Cfg.safety_leak;
-
-    config.textures.d3d11.cache = __SK_Y0_SafetyLeak;
-    __SK_Yakuza_TrackRTVs       = __SK_Y0_SafetyLeak;
   }
 
 
   if (yakuza0)
   {
+    __SK_Y0_SafetyLeak    = false;
+
+    config.textures.d3d11.cache = __SK_Y0_SafetyLeak;
+    __SK_Yakuza_TrackRTVs       = true;//__SK_Y0_SafetyLeak;
+
     _SK_Y0_NoDOF =
       dynamic_cast <sk::ParameterBool *> (
         g_ParameterFactory->create_parameter <bool> (L"No Depth of Field")
@@ -524,10 +529,6 @@ SK_Yakuza0_PlugInInit (void)
 
   if (yakuza0)
   {
-    if ( _SK_Y0_Cfg.no_fp_blur ||
-         _SK_Y0_Cfg.no_dof     ||
-         _SK_Y0_Cfg.no_ssao       ) SK_D3D11_EnableTracking = true;
-
     if (_SK_Y0_Cfg.no_ssao)
     { SK_D3D11_Shaders->vertex.addTrackingRef (SK_D3D11_Shaders->vertex.blacklist, 0x97837269);
       SK_D3D11_Shaders->vertex.addTrackingRef (SK_D3D11_Shaders->vertex.blacklist, 0x7cc07f78);
@@ -659,6 +660,31 @@ SK_Yakuza0_PlugInCfg (void)
 
     ImGui::TreePush ();
 
+    bool leak =
+      ImGui::Checkbox ( "Enable (small) Memory Leaks to Prevent Crashing",
+                      &__SK_Y0_SafetyLeak );
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip ();
+      ImGui::Text         ("Prevent game from deleting memory that is still in use.");
+      ImGui::Separator    ();
+      ImGui::BulletText   ("Has the potential to cause a slow memory leak over time; still preferable to crashing!");
+      ImGui::BulletText   ("This setting is dangerous to change while in-game, do this from the main menu.");
+      ImGui::EndTooltip   ();
+    }
+
+    if (leak)
+    {
+      _SK_Y0_Cfg.safety_leak = __SK_Y0_SafetyLeak;
+      _SK_Y_SafetyLeak->store (_SK_Y0_Cfg.safety_leak);
+
+      __SK_Yakuza_TrackRTVs =
+        __SK_Y0_SafetyLeak;
+
+      config.textures.d3d11.cache = __SK_Y0_SafetyLeak;
+    }
+
     if (! yakuza0)
     {
       extern volatile PVOID __SK_GameBaseAddr;
@@ -686,31 +712,6 @@ SK_Yakuza0_PlugInCfg (void)
         //  if (ImGui::IsItemHovered ())
         //      ImGui::SetTooltip ("High probability of crashing the game during alt-tab, only needed for advanced render mods.");
         //}
-
-        bool leak =
-          ImGui::Checkbox ( "Enable (small) Memory Leaks to Prevent Crashing",
-                          &__SK_Y0_SafetyLeak );
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Prevent game from deleting memory that is still in use.");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("Has the potential to cause a slow memory leak over time; still preferable to crashing!");
-          ImGui::BulletText   ("This setting is dangerous to change while in-game, do this from the main menu.");
-          ImGui::EndTooltip   ();
-        }
-
-        if (leak)
-        {
-          _SK_Y0_Cfg.safety_leak = __SK_Y0_SafetyLeak;
-          _SK_Y_SafetyLeak->store (_SK_Y0_Cfg.safety_leak);
-
-          __SK_Yakuza_TrackRTVs =
-            __SK_Y0_SafetyLeak;
-
-          config.textures.d3d11.cache = __SK_Y0_SafetyLeak;
-        }
 
             ImGui::BeginGroup ();
         if (ImGui::TreeNodeEx ("Normal Depth of Field", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1240,13 +1241,6 @@ SK_Yakuza0_PlugInCfg (void)
       SK_GetDLLConfig   ( )->write (
         SK_GetDLLConfig ( )->get_filename ( )
                                    );
-
-      if (yakuza0)
-      {
-        if ( _SK_Y0_Cfg.no_fp_blur ||
-             _SK_Y0_Cfg.no_dof     ||
-             _SK_Y0_Cfg.no_ssao       ) SK_D3D11_EnableTracking = true;
-      }
     }
 
     ImGui::TreePop       ( );

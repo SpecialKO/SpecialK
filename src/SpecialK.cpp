@@ -77,6 +77,8 @@ SK_Thread_HybridSpinlock* steam_popup_cs      = nullptr;
 SK_Thread_HybridSpinlock* steam_init_cs       = nullptr;
 
                 HANDLE __SK_DLL_TeardownEvent = 0;
+
+// Various helpful quick watch variables for debugging
 volatile          long __SK_DLL_Ending        = FALSE;
 volatile          long __SK_DLL_Attached      = FALSE;
             __time64_t __SK_DLL_AttachTime    = 0ULL;

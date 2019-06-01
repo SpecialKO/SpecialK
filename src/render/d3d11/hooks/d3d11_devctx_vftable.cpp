@@ -612,15 +612,7 @@ D3D11_ClearState_Override (ID3D11DeviceContext* This)
 {
   SK_LOG_FIRST_CALL
 
-  bool SK_D3D11_QueueContextReset (ID3D11DeviceContext* pDevCtx, UINT dev_ctx);
-  bool SK_D3D11_DispatchContextResetQueue (UINT dev_ctx);
-
-  UINT ctx_handle =
-    SK_D3D11_GetDeviceContextHandle (This);
-
-  SK_D3D11_QueueContextReset   (This, ctx_handle);
-  D3D11_ClearState_Original    (This            );
-  SK_D3D11_DispatchContextResetQueue (ctx_handle);
+  D3D11_ClearState_Original (This);
 }
 
 __declspec (noinline)
@@ -656,6 +648,8 @@ D3D11_ExecuteCommandList_Override (
     return;
   }
 
+
+
   pCommandList->GetPrivateData (
     SKID_D3D11DeviceContextOrigin,
        &size,   &pBuildContext.p
@@ -684,13 +678,6 @@ D3D11_ExecuteCommandList_Override (
 
   if (RestoreContextState == FALSE)
   {
-    if (! pBuildContext.IsEqualObject (This))
-    {
-      SK_D3D11_ResetContextState (          pBuildContext,
-          SK_D3D11_GetDeviceContextHandle ( pBuildContext )
-      );
-    }
-
     SK_D3D11_ResetContextState (
       This, SK_D3D11_GetDeviceContextHandle (This)
     );
@@ -985,12 +972,9 @@ D3D11_UpdateSubresource1_Override (
   }
 
   else
-  {
-        early_out = (! SK_D3D11_ShouldTrackRenderOp (This));
+  {     early_out = (! SK_D3D11_ShouldTrackRenderOp (This));
     if (early_out)
-    {
-      early_out = (! SK_D3D11_ShouldTrackMMIO (This, &pTLS));
-    }
+    {   early_out = (! SK_D3D11_ShouldTrackMMIO     (This, &pTLS)); }
   }
 
 
@@ -1109,9 +1093,11 @@ D3D11_UpdateSubresource1_Override (
 
         else
         {
+          // Various engines use tiny 4x4, 2x2 and even 1x1 textures that we stand to gain no
+          //   benefits from caching or supporting texture injection on, so skip them.
           bool cacheable = ( desc.MiscFlags <= 4 &&
-                             desc.Width      > 0 &&
-                             desc.Height     > 0 &&
+                             desc.Width      > 4 &&
+                             desc.Height     > 4 &&
                              desc.ArraySize == 1 //||
                            //((desc.ArraySize  % 6 == 0) && (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE))
                            );
@@ -1822,104 +1808,25 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
   _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
   _In_opt_ const UINT                             *pUAVInitialCounts )
 {
-  ID3D11DepthStencilView *pDSV = pDepthStencilView;
-
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
-    if ( pDepthStencilView                         != nullptr &&
-         SK_ReShade_SetDepthStencilViewCallback.fn != nullptr )
-    {    SK_ReShade_SetDepthStencilViewCallback.call (pDSV);  }
-
-    UINT dev_idx =
-      SK_D3D11_GetDeviceContextHandle (This);
-
-#ifdef _M_AMD64
-    static bool yakuza = ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
-                           SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 );
-    extern bool __SK_Yakuza_TrackRTVs;
-#endif
-
-    // ImGui gets to pass-through without invoking the hook
-    if (
-#ifdef _M_AMD64
-       (yakuza && (! __SK_Yakuza_TrackRTVs)) ||
-#endif
-       (! SK_D3D11_ShouldTrackRenderOp (This, dev_idx)))
-    {
-      for (auto& i : tracked_rtv->active [dev_idx]) i.store (false);
-
-      tracked_rtv->active_count [dev_idx] = 0;
-
-      D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
-        This, NumRTVs, ppRenderTargetViews,
-          pDSV, UAVStartSlot, NumUAVs,
-            ppUnorderedAccessViews, pUAVInitialCounts
-      );
-
-      return;
-    }
-
-    D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
-      This, NumRTVs, ppRenderTargetViews,
-        pDSV, UAVStartSlot, NumUAVs,
-          ppUnorderedAccessViews, pUAVInitialCounts
-    );
-
-    if (NumRTVs > 0)
-    {
-      if (ppRenderTargetViews != nullptr)
-      {
-        auto&                              rt_views =
-          SK_D3D11_RenderTargets [dev_idx].rt_views;
-
-        const auto* tracked_rtv_res =
-          static_cast <ID3D11RenderTargetView *> (
-            ReadPointerAcquire ((volatile PVOID *)&tracked_rtv->resource)
-          );
-
-        for (UINT i = 0; i < NumRTVs; i++)
-        {
-          if (! rt_views.count (ppRenderTargetViews [i]))
-          {
-            rt_views.insert (ppRenderTargetViews [i]);
-          }
-
-          const bool active_before =
-            tracked_rtv->active_count [dev_idx] > 0 ?
-            tracked_rtv->active       [dev_idx][i].load ()
-                                             : false;
-
-          const bool active =
-            ( tracked_rtv_res == ppRenderTargetViews [i] );
-
-          if (active_before != active)
-          {
-            tracked_rtv->active [dev_idx][i] = active;
-
-            if      (             active                    ) tracked_rtv->active_count [dev_idx]++;
-            else if (tracked_rtv->active_count [dev_idx] > 0) tracked_rtv->active_count [dev_idx]--;
-          }
-        }
-      }
-
-      if (pDepthStencilView != nullptr)
-      {
-        auto& ds_views =
-          SK_D3D11_RenderTargets [dev_idx].ds_views;
-
-        if (! ds_views.count (pDepthStencilView))
-        {     ds_views.insert (pDepthStencilView);
-        }
-      }
-    }
+    SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl ( This,
+                                                   NumRTVs,
+                                   ppRenderTargetViews,
+                                    pDepthStencilView,
+                                              UAVStartSlot,
+                                           NumUAVs,
+                                   ppUnorderedAccessViews,
+                                             pUAVInitialCounts,
+          false
+        );
   }
 
   else
   {
-    D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
-      This, NumRTVs, ppRenderTargetViews,
-        pDSV, UAVStartSlot, NumUAVs,
-          ppUnorderedAccessViews, pUAVInitialCounts
+    D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original ( This,
+      NumRTVs, ppRenderTargetViews, pDepthStencilView,
+        UAVStartSlot, NumUAVs, ppUnorderedAccessViews, pUAVInitialCounts
     );
   }
 }
@@ -1936,16 +1843,6 @@ D3D11_OMGetRenderTargets_Override (ID3D11DeviceContext     *This,
     This,        NumViews,
       ppRenderTargetViews,
       ppDepthStencilView );
-
-  //if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))
-  //{
-    if (             ppDepthStencilView            != nullptr &&
-         SK_ReShade_GetDepthStencilViewCallback.fn != nullptr )
-    {    SK_ReShade_GetDepthStencilViewCallback.try_call (
-                    *ppDepthStencilView
-                                                         );
-    }
-  //}
 }
 
 __declspec (noinline)
@@ -1963,11 +1860,6 @@ D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Override (
   D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Original (
     This, NumRTVs, ppRenderTargetViews, ppDepthStencilView,
           UAVStartSlot, NumUAVs, ppUnorderedAccessViews    );
-
-  if ( ppDepthStencilView                        != nullptr &&
-       SK_ReShade_GetDepthStencilViewCallback.fn != nullptr)
-  { if (! SK_D3D11_IsDevCtxDeferred (This))
-       SK_ReShade_GetDepthStencilViewCallback.try_call (*ppDepthStencilView); }
 }
 
 __declspec (noinline)
@@ -1979,10 +1871,6 @@ D3D11_ClearDepthStencilView_Override (ID3D11DeviceContext    *This,
                                  _In_ FLOAT                   Depth,
                                  _In_ UINT8                   Stencil)
 {
-  if (SK_ReShade_ClearDepthStencilViewCallback.fn != nullptr)
-  {   SK_ReShade_ClearDepthStencilViewCallback.try_call (pDepthStencilView);
-  }
-
   D3D11_ClearDepthStencilView_Original (
     This,      pDepthStencilView,
     ClearFlags, Depth,

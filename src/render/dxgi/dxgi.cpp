@@ -3154,15 +3154,18 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-                             pTLS->imgui->drawing                      = FALSE;
-                             pTLS->texture_management.injection_thread = FALSE;
-  SK_ScopedBool auto_bool0 (&pTLS->imgui->drawing);
-  SK_ScopedBool auto_bool1 (&pTLS->texture_management.injection_thread);
-                             pTLS->imgui->drawing                      = TRUE;
-                             pTLS->texture_management.injection_thread = TRUE;
+#define _SetupThreadContext()                                                   \
+                             pTLS->imgui->drawing                      = FALSE; \
+                             pTLS->texture_management.injection_thread = FALSE; \
+  SK_ScopedBool auto_bool0 (&pTLS->imgui->drawing);                             \
+  SK_ScopedBool auto_bool1 (&pTLS->texture_management.injection_thread);        \
+                             pTLS->imgui->drawing                      = TRUE;  \
+                             pTLS->texture_management.injection_thread = TRUE;  \
+
+  _SetupThreadContext ();
 
   extern std::pair <BOOL*, BOOL>
-  SK_ImGui_FlagDrawing_OnD3D11Ctx (size_t dev_idx);
+  SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
 
   auto flag_result =
     SK_ImGui_FlagDrawing_OnD3D11Ctx (
@@ -4356,7 +4359,7 @@ HRESULT
                                       UINT                     Flags,
                                 const DXGI_PRESENT_PARAMETERS *pPresentParameters)
 {
-  SK_LOG_ONCE (L"Present1");
+  SK_LOG_ONCE (L"Present1"); // Almost never used by anything, so log it if it happens.
 
   return
     SK_DXGI_DispatchPresent1 ( This, SyncInterval, Flags, pPresentParameters,
@@ -4623,9 +4626,8 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
         hr = E_NOT_SET;
 
-        do {
-          hr = Present            (interval, flags);
-        } while (hr == DXGI_ERROR_WAS_STILL_DRAWING);
+
+        hr = Present         (interval, flags);
       }
 
       else
@@ -4666,9 +4668,16 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
           hr = E_NOT_SET;
 
-          do {
+          if (bWait || (flags & DXGI_PRESENT_DO_NOT_WAIT))
+          {
+            do {
+              hr = Present          (interval, flags);
+            } while (hr == DXGI_ERROR_WAS_STILL_DRAWING);
+          }
+          else
+          {
             hr = Present            (interval, flags);
-          } while (hr == DXGI_ERROR_WAS_STILL_DRAWING);
+          }
         }
       }
 
@@ -6230,11 +6239,20 @@ SK_DXGI_CreateSwapChain_PreInit (
         stub_desc.BufferDesc.RefreshRate.Numerator   = pFullscreenDesc->RefreshRate.Numerator;
         stub_desc.BufferDesc.Scaling                 = pFullscreenDesc->Scaling;
         stub_desc.BufferDesc.ScanlineOrdering        = pFullscreenDesc->ScanlineOrdering;
+
+        if (stub_desc.Windowed)
+        {
+          stub_desc.BufferDesc.RefreshRate.Denominator = 0;
+          stub_desc.BufferDesc.RefreshRate.Numerator   = 0;
+        }
       }
 
       else
       {
-        stub_desc.Windowed = TRUE;
+        stub_desc.BufferDesc.Scaling                 = DXGI_MODE_SCALING_UNSPECIFIED;
+        stub_desc.Windowed                           = TRUE;
+        stub_desc.BufferDesc.RefreshRate.Denominator = 0;
+        stub_desc.BufferDesc.RefreshRate.Numerator   = 0;
       }
 
       // Need to take this stuff and put it back in the appropriate structures before returning :)
@@ -6576,12 +6594,6 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
       }
     }
 
-    ///if (SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2)
-    ///{
-    ///  if (pDesc->SwapEffect == (DXGI_SWAP_EFFECT)DXGI_SWAP_EFFECT_FLIP_DISCARD)
-    ///  {   pDesc->SwapEffect  = (DXGI_SWAP_EFFECT)DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL; }
-    ///}
-
     SK_LOG0 ( ( L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
                    (pDesc->SwapEffect >= DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) ?
                      L"Flip" : L"Traditional",
@@ -6612,29 +6624,17 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
 
   if (translated)
   {
-    pDesc1->BufferCount                        = pDesc->BufferCount;
-    pDesc1->BufferUsage                        = pDesc->BufferUsage;
-    pDesc1->Flags                              = pDesc->Flags;
-    pDesc1->SwapEffect                         = pDesc->SwapEffect;
-    pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
-    pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
-    pDesc1->Format                             = pDesc->BufferDesc.Format;
-    pDesc1->Height                             = pDesc->BufferDesc.Height;
-    pDesc1->Width                              = pDesc->BufferDesc.Width;
-
-    hWnd                                       = pDesc->OutputWindow;
-
-    if (pFullscreenDesc != nullptr)
-    {
-      pFullscreenDesc->Windowed                = pDesc->Windowed;
-      pFullscreenDesc->RefreshRate.Denominator = pDesc->BufferDesc.RefreshRate.Denominator;
-      pFullscreenDesc->RefreshRate.Numerator   = pDesc->BufferDesc.RefreshRate.Numerator;
-      pFullscreenDesc->Scaling                 = pDesc->BufferDesc.Scaling;
-      pFullscreenDesc->ScanlineOrdering        = pDesc->BufferDesc.ScanlineOrdering;
-    }
-
-    else
-      pDesc->Windowed = TRUE;
+    pDesc1->BufferCount = pDesc->BufferCount;
+    pDesc1->BufferUsage = pDesc->BufferUsage;
+    pDesc1->Flags       = pDesc->Flags;
+    pDesc1->SwapEffect  = pDesc->SwapEffect;
+    pDesc1->Height      = pDesc->BufferDesc.Height;
+    pDesc1->Width       = pDesc->BufferDesc.Width;
+    pDesc1->Format      = pDesc->BufferDesc.Format;
+    pDesc1->SampleDesc.Count
+                        = pDesc->SampleDesc.Count;
+    pDesc1->SampleDesc.Quality
+                        = pDesc->SampleDesc.Quality;
   }
 }
 
@@ -6829,8 +6829,16 @@ SK_DXGI_CreateSwapChain1_PostInit (
   if (pFullscreenDesc)
   {
     desc.Windowed                    = pFullscreenDesc->Windowed;
-    desc.BufferDesc.RefreshRate      = pFullscreenDesc->RefreshRate;
+    desc.BufferDesc.RefreshRate.Numerator
+                                     = pFullscreenDesc->RefreshRate.Numerator;
+    desc.BufferDesc.RefreshRate.Denominator
+                                     = pFullscreenDesc->RefreshRate.Denominator;
     desc.BufferDesc.ScanlineOrdering = pFullscreenDesc->ScanlineOrdering;
+  }
+
+  else
+  {
+    desc.Windowed                    = pFullscreenDesc->Windowed;
   }
 
   SK_ComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
@@ -7239,7 +7247,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   pDesc           = &new_desc1;
   pFullscreenDesc = orig_fullscreen_desc ? &new_fullscreen_desc : nullptr;
 
-  SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, &new_fullscreen_desc);
+  SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, pFullscreenDesc);
 
 
   IDXGISwapChain1* pTemp = nullptr;
@@ -9180,6 +9188,9 @@ SK_DXGI_IsTrackingBudget (void)
 HRESULT
 SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 {
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
+    return E_ACCESSDENIED;
+
   //
   // If the adapter implements DXGI 1.4, then create a budget monitoring
   //  thread...
@@ -9688,6 +9699,9 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 HRESULT
 SK::DXGI::StartBudgetThread_NoAdapter (void)
 {
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
+    return E_ACCESSDENIED;
+
   HRESULT hr = E_NOTIMPL;
 
   SK_AutoCOMInit auto_com;

@@ -254,7 +254,7 @@ SK_IT_Unmap (
 
     else if (mapped_shadows [dev_idx].count (pResource))
     {
-      if (SK_D3D11_Shaders->pixel.current.shader [dev_idx] == 0x2117b8e3)
+      if (SK_D3D11_Shaders->pixel.1current.shader [dev_idx] == 0x2117b8e3)
       {
         auto* pShadow =
           static_cast <float *> (mapped_shadows [dev_idx][pResource].pData);

@@ -259,14 +259,26 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
+  //return S_OK;
+
   //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (pReal, BufferCount, Width, Height, NewFormat)))
   //  return S_OK;
+
+  DXGI_SWAP_CHAIN_DESC desc = { };
+  pReal->GetDesc     (&desc);
 
   const HRESULT hr =
     pReal->ResizeBuffers (BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
   if (hr == DXGI_ERROR_INVALID_CALL)
   {
+    Width       = desc.BufferDesc.Width;
+    Height      = desc.BufferDesc.Height;
+    NewFormat   = desc.BufferDesc.Format;
+    BufferCount = desc.BufferCount;
+
+    return
+      pReal->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, desc.Flags);
   }
   else if (FAILED(hr))
   {
@@ -283,6 +295,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::ResizeTarget (const DXGI_MODE_DESC *pNewTargetParameters)
 {
+  return S_OK;
+
   //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (this, 0, pNewTargetParameters->Width, pNewTargetParameters->Height, pNewTargetParameters->Format)))
   //  return S_OK;
 

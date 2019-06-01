@@ -1327,7 +1327,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   }
 
   // We will dispatch this callback to all registered interfaces ourself.
-  if (iCallback != UserStatsReceived_t::k_iCallback)
+  ////if (iCallback != UserStatsReceived_t::k_iCallback)
     SteamAPI_RegisterCallback_Original (pCallback, iCallback);
 
   if (steam_callback_cs != nullptr)
@@ -2103,26 +2103,35 @@ public:
       return;
     }
 
-    if (pParam->m_eResult == k_EResultOK)
+    ISteamUser*      user    = steam_ctx.User      ();
+    ISteamUserStats* stats   = steam_ctx.UserStats ();
+    ISteamFriends*   friends = steam_ctx.Friends   ();
+
+    if (! (user && stats && friends && pParam))
+      return;
+
+
+    //if (has_global_data)
     {
-      if (! user_stats_run_once)
+      for (auto& it : *UserStatsReceived_callbacks)
       {
-        for (auto& it : *UserStatsReceived_callbacks)
+        if (it.second)
         {
-          if (it.second)
-          {
-            ((class CCallbackBase*)it.first)->Run (pParam);
-            user_stats_run_once = true;
-          }
+          auto override_params =
+            *pParam;
+
+          override_params.m_steamIDUser =
+            user->GetSteamID ();
+          override_params.m_eResult     =
+            k_EResultOK;
+
+          ((class CCallbackBase*)it.first)->Run (&override_params);
         }
       }
+    }
 
-      ISteamUser*      user    = steam_ctx.User      ();
-      ISteamUserStats* stats   = steam_ctx.UserStats ();
-      ISteamFriends*   friends = steam_ctx.Friends   ();
-
-      if (! (user && stats && friends && pParam))
-        return;
+    if (pParam->m_eResult == k_EResultOK)
+    {
 
       if ( pParam->m_steamIDUser.GetAccountID () ==
              user->GetSteamID ().GetAccountID () )
@@ -2142,43 +2151,65 @@ public:
         //   that we can display friend achievement stats.
         if ( next_friend == 0 && app_cache_mgr->wantFriendStats () )
         {
-          friend_count =
-            friends->GetFriendCount (k_EFriendFlagImmediate);
+          static bool run_once = false;
 
-          // May be -1 in offline mode
-          if (friend_count > 0)
+
+          if (run_once)
           {
-            friend_stats.resize       (friend_count);
-            friend_sid_to_idx.reserve (friend_count);
-
-            // Enumerate all known friends immediately
-            for (int i = 0 ; i < friend_count; i++)
+            // Uninstall the game's callback while we're fetching friend stats,
+            //   some games panic when they get data from other users.
+            for ( auto it : *UserStatsReceived_callbacks )
             {
-              CSteamID sid ( friends->GetFriendByIndex ( i,
-                              k_EFriendFlagImmediate
-                                                       )
-                           );
-
-              friend_sid_to_idx [sid.ConvertToUint64 ()] = i;
-              friend_stats      [i].name       =
-                friends->GetFriendPersonaName (sid);
-              friend_stats      [i].account_id =
-                                       sid.ConvertToUint64 ();
-              friend_stats      [i].unlocked.resize (
-                achievements.list.capacity ()
-              );
+              if (it.second)
+                SteamAPI_UnregisterCallback_Original ((class CCallbackBase *)it.first);
             }
 
-            SteamAPICall_t hCall =
-              stats->RequestUserStats (
-                CSteamID (friend_stats [next_friend].account_id)
-              );
+            friend_count =
+              friends->GetFriendCount (k_EFriendFlagImmediate);
 
-            friend_query = hCall;
+            // May be -1 in offline mode
+            if (friend_count > 0)
+            {
+              friend_stats.resize       (friend_count);
+              friend_sid_to_idx.reserve (friend_count);
 
-            friend_listener.Set ( hCall,
-                                   this,
-              &SK_Steam_AchievementManager::OnRecvFriendStats );
+              // Enumerate all known friends immediately
+              for (int i = 0 ; i < friend_count; i++)
+              {
+                CSteamID sid ( friends->GetFriendByIndex ( i,
+                                k_EFriendFlagImmediate
+                                                         )
+                             );
+
+                friend_sid_to_idx [sid.ConvertToUint64 ()] = i;
+                friend_stats      [i].name       =
+                  friends->GetFriendPersonaName (sid);
+                friend_stats      [i].account_id =
+                                         sid.ConvertToUint64 ();
+                friend_stats      [i].unlocked.resize (
+                  achievements.list.capacity ()
+                );
+              }
+
+              SteamAPICall_t hCall =
+                stats->RequestUserStats (
+                  CSteamID (friend_stats [next_friend].account_id)
+                );
+
+              friend_query = hCall;
+
+              friend_listener.Set ( hCall,
+                                     this,
+                &SK_Steam_AchievementManager::OnRecvFriendStats );
+            }
+          }
+
+          else
+          {
+            run_once = true;
+
+                                           requestStats ();
+            steam_ctx.UserStats ()->RequestCurrentStats ();
           }
         }
       }
@@ -2212,22 +2243,27 @@ public:
     if (! (user && stats && friends && pParam))
       return;
 
+
+    for (auto& it : *UserStatsReceived_callbacks)
+    {
+      if (it.second)
+      {
+        auto override_params =
+          *pParam;
+
+        override_params.m_steamIDUser =
+          user->GetSteamID ();
+        override_params.m_eResult     =
+          k_EResultOK;
+
+        ((class CCallbackBase*)it.first)->Run (&override_params);
+      }
+    }
+
     // A user may return kEResultFail if they don't own this game, so
     //   do this anyway and continue enumerating remaining friends.
     if (pParam->m_eResult == k_EResultOK)
     {
-      if (! user_stats_run_once)
-      {
-        for (auto& it : *UserStatsReceived_callbacks)
-        {
-          if (it.second)
-          {
-            ((class CCallbackBase*)it.first)->Run (pParam);
-            user_stats_run_once = true;
-          }
-        }
-      }
-
       // If the stats are not for the player, they are probably for one of
       //   the player's friends.
       if ( k_EFriendRelationshipFriend ==
@@ -2388,6 +2424,22 @@ public:
     if ( ! ( friend_count > 0 &&
               next_friend < friend_count ) )
     {
+      // We're done fetching user stats, it's safe to re-enstate the game's callback now.
+      for ( auto it : *UserStatsReceived_callbacks )
+      {
+        if (it.second)
+        {
+          SteamAPI_RegisterCallback_Original (
+            (class CCallbackBase *)it.first, UserStatsReceived_t::k_iCallback
+          );
+
+          // Trigger the game's callback in case it's stupidly waiting synchronously for
+          //   this to happen (i.e. Yakuza Kiwami 2).
+          steam_ctx.UserStats ()->RequestCurrentStats ();
+        }
+      }
+
+
       friends_done =
         ReadAcquire64 (&SK_SteamAPI_CallbackRunCount);
 
@@ -3704,12 +3756,12 @@ SteamAPI_RunCallbacks_Detour (void)
     if ( dwRenderTid != 0UL&&
          dwRenderTid != dwTid )
     {
-      ///dwSteamTids->insert     (dwTid);
-      ///dwSteamSkipTids->insert (dwTid);
-      ///
-      ///SK_SteamAPI_QueueCallbacks ();
-      ///
-      ///return;
+      dwSteamTids->insert     (dwTid);
+      dwSteamSkipTids->insert (dwTid);
+
+      SK_SteamAPI_QueueCallbacks ();
+
+      return;
 
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
@@ -3759,8 +3811,6 @@ SteamAPI_RunCallbacks_Detour (void)
 
   static bool failure = false;
 
-  InterlockedIncrement64 (&SK_TLS_Bottom ()->steam->callback_count);
-
 
   if (! steam_mutex->try_lock ())
   {
@@ -3775,8 +3825,9 @@ SteamAPI_RunCallbacks_Detour (void)
     return;
   }
 
+  InterlockedIncrement64 (&SK_TLS_Bottom ()->steam->callback_count);
 
-  if ((! failure) && (( ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) == 0LL || steam_achievements == nullptr )))
+  if ( (! failure) && steam_achievements == nullptr )
   {
     // Handle situations where Steam was initialized earlier than
     //   expected...
@@ -3795,37 +3846,56 @@ SteamAPI_RunCallbacks_Detour (void)
                 )
            );
 
-    if (SK_GetFramesDrawn () > 100)
+    if (! steam_ctx.UserStats ())
     {
-      if (! steam_ctx.UserStats ())
-      {
-        if (SteamAPI_InitSafe_Original != nullptr)
-            SteamAPI_InitSafe_Detour ();
-      }
+      if (SteamAPI_InitSafe_Original != nullptr)
+          SteamAPI_InitSafe_Detour ();
     }
+  }
 
+  static bool fetch_stats = true;
+
+  if (fetch_stats)
+  {
     auto orig_se =
     SK_SEH_ApplyTranslator (
-      SK_FilteringStructuredExceptionTranslator(EXCEPTION_ACCESS_VIOLATION)
+      SK_FilteringStructuredExceptionTranslator (
+        EXCEPTION_ACCESS_VIOLATION
+      )
     );
     try
     {
-      SK_Steam_SetNotifyCorner ();
-
-      ISteamUserStats* pStats =
-        steam_ctx.UserStats ();
-
-      if (pStats && (steam_achievements != nullptr))
+      if (ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) > 24 && fetch_stats)
       {
-        pStats->RequestGlobalAchievementPercentages ();
+        SK_Steam_SetNotifyCorner ();
+
+        ISteamUserStats* pStats =
+          steam_ctx.UserStats ();
+
+        if (! pStats)
+        {
+          failure = true;
+        }
+
+        if (pStats && (steam_achievements != nullptr))
+        {
+          steam_achievements->requestStats            ();
+          pStats->RequestGlobalAchievementPercentages ();
+        }
+
+        SteamAPI_RunCallbacks_Original ();
+
+        fetch_stats = false;
       }
 
-      SteamAPI_RunCallbacks_Original ();
+      else
+        SteamAPI_RunCallbacks_Original ();
     }
 
     catch (const SK_SEH_IgnoredException&)
     {
-      failure = true;
+      fetch_stats = false;
+      failure     = true;
       steam_log->Log (L" Caught a Structured Exception while running Steam"
                       L" Callbacks!");
     }
@@ -5201,12 +5271,6 @@ SK_SteamAPI_InitManagers (void)
 
     if (stats != nullptr && ((! user_manager) || (! steam_achievements)))
     {
-      //for ( auto it : *UserStatsReceived_callbacks )
-      //{
-      //  if (it.second)
-      //    SteamAPI_UnregisterCallback_Original ((class CCallbackBase *)it.first);
-      //}
-
       has_global_data = false;
       next_friend     = 0;
 
@@ -5217,8 +5281,6 @@ SK_SteamAPI_InitManagers (void)
         steam_achievements = std::make_unique <SK_Steam_AchievementManager> (
           config.steam.achievements.sound_file.c_str     ()
         );
-
-        steam_achievements->requestStats ();
       }
 
       steam_log->LogEx (false, L"\n");

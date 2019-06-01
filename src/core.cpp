@@ -1759,15 +1759,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_HookWinAPI             ();
       SK_Thread_InitDebugExtras ();
 
-      SK::Diagnostics::Debugger::Allow        ();
-      SK::Diagnostics::CrashHandler::InitSyms ();
-
       SK_CPU_InstallHooks ();
 
       SK_NvAPI_PreInitHDR    ();
-      SK_InitCompatBlacklist ();
-      SK_ApplyQueuedHooks    ();
       SK_NvAPI_InitializeHDR ();
+      SK::Diagnostics::Debugger::Allow        ();
+      SK::Diagnostics::CrashHandler::InitSyms ();
+      SK_ApplyQueuedHooks    ();
 
       SK_Thread_Create ([](LPVOID) -> DWORD
       {

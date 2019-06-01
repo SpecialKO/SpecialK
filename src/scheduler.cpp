@@ -981,7 +981,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         ULONG min, max, cur;
         NtQueryTimerResolution (&min, &max, &cur);
         dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                            long_double_cast (cur * 100)/1000000.0F );
+                            long_double_cast (cur * 100)/1000000.0L );
         NtSetTimerResolution   (max, TRUE,  &cur);
         dll_log->Log ( L"[  Timing  ] New resolution....: %f ms",
                             long_double_cast (cur * 100)/1000000.0L );

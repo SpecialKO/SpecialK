@@ -1219,43 +1219,38 @@ SK_TestImports (          HMODULE  hMod,
       auto end =
         reinterpret_cast <uintptr_t> (pImpDesc) + pImgDir->Size;
 
-      orig_se =
-        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
       while (reinterpret_cast <uintptr_t> (pImpDesc) < end)
       {
-        try
+        if (                             pImpDesc->Name == 0x00 ||
+             (! SK_ValidatePointer (
+                  (uint8_t *)(pImgBase + pImpDesc->Name), true
+                )
+             )
+           )
         {
-          if (pImpDesc->Name == 0x00)
-          {
-            ++pImpDesc;
-            continue;
-          }
-
-          const auto* szImport =
-            reinterpret_cast <const char *> (
-              pImgBase + (pImpDesc++)->Name
-            );
-
-          //dll_log->Log (L"%hs", szImport);
-
-          for (int i = 0; i < nCount; i++)
-          {
-            if ((! pTests [i].used) && (! StrCmpIA (szImport, pTests [i].szModuleName)))
-            {
-              pTests [i].used = true;
-                       ++hits;
-            }
-          }
-
-          if (hits == nCount)
-            break;
+          ++pImpDesc;
+          continue;
         }
 
-        catch (const SK_SEH_IgnoredException&)
+        const auto* szImport =
+          reinterpret_cast <const char *> (
+            pImgBase + (pImpDesc++)->Name
+          );
+
+        //dll_log->Log (L"%hs", szImport);
+
+        for (int i = 0; i < nCount; i++)
         {
+          if ((! pTests [i].used) && (! StrCmpIA (szImport, pTests [i].szModuleName)))
+          {
+            pTests [i].used = true;
+                     ++hits;
+          }
         }
+
+        if (hits == nCount)
+          break;
       }
-      orig_se.pfnTranslator = SK_SEH_RemoveTranslator (orig_se);
     }
   }
 

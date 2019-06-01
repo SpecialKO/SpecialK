@@ -365,6 +365,12 @@ SK_ImGui_SetNextWindowPosCenter (ImGuiCond cond)
 void
 SK_ImGui_ProcessWarnings (void)
 {
+  extern bool
+  SK_ImGui_IsEULAVisible (void);
+
+  if (SK_ImGui_IsEULAVisible ())
+    return;
+
   static SK_Warning warning =
     { u8"", L"" };
 
