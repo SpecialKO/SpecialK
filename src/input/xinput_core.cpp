@@ -271,7 +271,7 @@ XInputEnable1_3_Detour (
   std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_hook [0]);
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+    //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   if (! config.window.background_render)
@@ -313,7 +313,7 @@ XInputGetState1_3_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
@@ -364,7 +364,7 @@ XInputGetStateEx1_3_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
@@ -413,7 +413,7 @@ XInputGetCapabilities1_3_Detour (
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
@@ -457,7 +457,7 @@ XInputGetBatteryInformation1_3_Detour (
   if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
@@ -497,7 +497,7 @@ XInputSetState1_3_Detour (
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   if (! xinput_enabled)
@@ -836,8 +836,8 @@ XInputGetState9_1_0_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-     _xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     _xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
+     //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
+     //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
                                             &_xinput_ctx.XInput9_1_0;
 
   DWORD dwRet =
@@ -903,8 +903,8 @@ XInputGetCapabilities9_1_0_Detour (
   if (dwUserIndex   >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-     _xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     _xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
+     //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
+     //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
                                              &_xinput_ctx.XInput9_1_0;
 
   DWORD dwRet =
@@ -947,8 +947,8 @@ XInputSetState9_1_0_Detour (
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-     _xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     _xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
+     //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
+     //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
                                              &_xinput_ctx.XInput9_1_0;
 
   if (! xinput_enabled)
@@ -2258,7 +2258,7 @@ XInputEnable1_3_Detour (
   HMODULE hModCaller = SK_GetCallingDLL ();
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   if (! config.window.background_render)
@@ -2300,7 +2300,7 @@ XInputGetState1_3_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
@@ -2351,7 +2351,7 @@ XInputGetStateEx1_3_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
@@ -2400,7 +2400,7 @@ XInputGetCapabilities1_3_Detour (
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
@@ -2444,7 +2444,7 @@ XInputGetBatteryInformation1_3_Detour (
   if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
@@ -2484,7 +2484,7 @@ XInputSetState1_3_Detour (
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-    (_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
+  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
                                               &_xinput_ctx.XInput1_3;
 
   if (! xinput_enabled)
@@ -2832,8 +2832,8 @@ XInputGetState9_1_0_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-     _xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     _xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
+     //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
+     //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
                                              &_xinput_ctx.XInput9_1_0;
 
   std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
@@ -2901,8 +2901,8 @@ XInputGetCapabilities9_1_0_Detour (
   if (dwUserIndex   >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-     _xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     _xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
+   //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
+   //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
                                              &_xinput_ctx.XInput9_1_0;
 
   std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
@@ -2947,8 +2947,8 @@ XInputSetState9_1_0_Detour (
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-     _xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     _xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
+   //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
+   //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
                                              &_xinput_ctx.XInput9_1_0;
 
   std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
