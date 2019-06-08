@@ -436,13 +436,13 @@ SK_File_MoveNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
 
   if (! MoveFileExW ( wszOld,
                         wszNew,
-                          MOVEFILE_REPLACE_EXISTING ) )
+                          MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED ) )
   {
     wchar_t wszTemp [MAX_PATH] = { };
     GetTempFileNameW (SK_SYS_GetInstallPath ().c_str (), L"SKI", timeGetTime (), wszTemp);
 
-    MoveFileExW ( wszNew, wszTemp, MOVEFILE_REPLACE_EXISTING );
-    MoveFileExW ( wszOld, wszNew,  MOVEFILE_REPLACE_EXISTING );
+    MoveFileExW ( wszNew, wszTemp, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
+    MoveFileExW ( wszOld, wszNew,  MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
   }
 
   // Preserve file times
@@ -1186,60 +1186,79 @@ SK_TestImports (          HMODULE  hMod,
   if (! pTests)
     return;
 
-  int hits = 0;
+  // This thing has been chopped to bits and pieces to try
+  //   and compensate for ScumVM's hoepelessly corrupted
+  //     Import Address Table that is a crash in the making.
 
-  auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-  try
+  int i    = 0,
+      hits = 0;
+
+  extern
+    LPVOID SK_Debug_GetImageBaseAddr (void);
+
+  PIMAGE_NT_HEADERS        pNtHdr   = nullptr;
+  PIMAGE_DATA_DIRECTORY    pImgDir  = nullptr;
+  PIMAGE_IMPORT_DESCRIPTOR pImpDesc = nullptr;
+  uintptr_t                pImgBase = (uintptr_t)
+    SK_Debug_GetImageBaseAddr ();
+
+  __try
   {
-    auto                pImgBase =
-      (uintptr_t)GetModuleHandle (nullptr);
+    pNtHdr   =
+      PIMAGE_NT_HEADERS (
+        pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew
+      );
 
-             MEMORY_BASIC_INFORMATION minfo;
-    VirtualQuery ((LPCVOID)pImgBase, &minfo, sizeof (minfo));
-
-    pImgBase =
-      (uintptr_t)minfo.BaseAddress;
-
-    auto        pNtHdr   =
-      PIMAGE_NT_HEADERS ( pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew );
-
-    PIMAGE_DATA_DIRECTORY    pImgDir  =
+    pImgDir  =
         &pNtHdr->OptionalHeader.DataDirectory [IMAGE_DIRECTORY_ENTRY_IMPORT];
 
-    auto pImpDesc =
+    pImpDesc =
       PIMAGE_IMPORT_DESCRIPTOR (
         pImgBase + pImgDir->VirtualAddress
       );
 
     //dll_log->Log (L"[Import Tbl] Size=%lu", pImgDir->Size);
+    //
 
-    if (pImgDir->Size < (1024 * 8192))
+    PIMAGE_IMPORT_DESCRIPTOR start =
+                                     reinterpret_cast <PIMAGE_IMPORT_DESCRIPTOR>
+      ( pImgBase + pImgDir->VirtualAddress ),
+                             end   = reinterpret_cast <PIMAGE_IMPORT_DESCRIPTOR> (
+                                     reinterpret_cast <uintptr_t>
+      (    start + pImgDir->Size )                                               );
+
+    for (   pImpDesc = start ;
+            pImpDesc < end   ;
+          ++pImpDesc )
     {
-      auto end =
-        reinterpret_cast <uintptr_t> (pImpDesc) + pImgDir->Size;
-
-      while (reinterpret_cast <uintptr_t> (pImpDesc) < end)
+      __try
       {
-        if (                             pImpDesc->Name == 0x00 ||
-             (! SK_ValidatePointer (
-                  (uint8_t *)(pImgBase + pImpDesc->Name), true
-                )
-             )
-           )
+        if ( pImpDesc->Characteristics == 0  )
+          break;
+
+        if ( pImpDesc->ForwarderChain !=  -1 ||
+             pImpDesc->Name           == 0x0 )
         {
-          ++pImpDesc;
           continue;
         }
+      }
 
-        const auto* szImport =
-          reinterpret_cast <const char *> (
-            pImgBase + (pImpDesc++)->Name
-          );
+      __except (EXCEPTION_EXECUTE_HANDLER)
+      {
+        continue;
+      };
 
-        //dll_log->Log (L"%hs", szImport);
 
-        for (int i = 0; i < nCount; i++)
+      const auto* szImport =
+        reinterpret_cast <const char *> (
+          pImgBase + (pImpDesc++)->Name
+        );
+
+      //dll_log->Log (L"%hs", szImport);
+
+      for (i = 0; i < nCount; i++)
+      {
+        __try
         {
           if ((! pTests [i].used) && (! StrCmpIA (szImport, pTests [i].szModuleName)))
           {
@@ -1248,29 +1267,40 @@ SK_TestImports (          HMODULE  hMod,
           }
         }
 
-        if (hits == nCount)
-          break;
+        __except (EXCEPTION_EXECUTE_HANDLER) { };
       }
+
+      if (hits == nCount)
+        break;
     }
   }
+  __except (EXCEPTION_EXECUTE_HANDLER) { };
 
-  catch (const SK_SEH_IgnoredException&)
-  {
-    dll_log->Log ( L"[Import Tbl] Access Violation Attempting to "
-                   L"Walk Import Table." );
-  }
-  SK_SEH_RemoveTranslator (orig_se);
-
+  // We found all of nothing by examining the IAT, so time to try a
+  //   different approach...
   if (hits == 0)
   {
-    // Supplement the import table test with a check for residency,
-    //   this may catch games that load graphics APIs dynamically.
-    for (int i = 0; i < nCount; i++)
+    i = 0;
+
+    __try
     {
-      if ( GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                                  pTests [i].szModuleName,
-                                    &hMod ) )
-        pTests [i].used = true;
+      // Supplement the import table test with a check for residency,
+      //   this may catch games that load graphics APIs dynamically.
+      for (i = 0; i < nCount; i++)
+      {
+        if ( GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                    pTests [i].szModuleName,
+                                      &hMod ) )
+          pTests [i].used = true;
+      }
+    }
+
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+      dll_log->Log ( L"[RenderBoot] Exception Code %x Encountered Examining "
+                     L"pre-Loaded Render Import DLL (idx = [%li / %li])",
+                     GetExceptionCode (), i, nCount );
+      return;
     }
   }
 }
