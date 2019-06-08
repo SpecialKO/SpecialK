@@ -1634,6 +1634,25 @@ static RtlInitUnicodeString_pfn
 
 static bool bRealDebug = false;
 
+LPVOID SK_Debug_GetImageBaseAddr (void)
+{
+  __try {
+    auto pPeb =
+      (SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock;
+
+    InterlockedCompareExchangePointer (
+      &__SK_GameBaseAddr, pPeb->ImageBaseAddress, nullptr
+    );
+
+    return pPeb->ImageBaseAddress;
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return nullptr;
+  }
+}
+
 // Stage a fake PEB so we do not have to deal with as many
 //   anti-debug headaches when using traditional tools that
 //     cannot erase evidence of itself :)
@@ -2053,6 +2072,53 @@ DbgBreakPoint_Detour (void)
 }
 
 
+using SetProcessValidCallTargets_pfn = BOOL (WINAPI *)(
+    _In_ HANDLE hProcess,
+    _In_ PVOID  VirtualAddress,
+    _In_ SIZE_T RegionSize,
+    _In_ ULONG  NumberOfOffsets,
+    _Inout_updates_(NumberOfOffsets) PCFG_CALL_TARGET_INFO OffsetInformation);
+      SetProcessValidCallTargets_pfn
+      SetProcessValidCallTargets_Original = nullptr;
+
+BOOL
+WINAPI
+SetProcessValidCallTargets_Detour
+( _In_ HANDLE hProcess,
+  _In_ PVOID VirtualAddress,
+  _In_ SIZE_T RegionSize,
+  _In_ ULONG NumberOfOffsets,
+  _Inout_updates_(NumberOfOffsets) PCFG_CALL_TARGET_INFO OffsetInformation )
+{
+  SK_LOG_FIRST_CALL
+
+  CFG_CALL_TARGET_INFO *fakeTargets =
+    new CFG_CALL_TARGET_INFO [NumberOfOffsets];
+
+  for ( UINT i = 0; i < NumberOfOffsets ; ++i )
+  {
+    fakeTargets [i] = OffsetInformation [i];
+
+    // If Flags is 0x0, then something is trying to dynamically rakajigor CFG
+    //   and it's been my experience that CFG has no legitimate use.
+    fakeTargets [i].Flags = CFG_CALL_TARGET_VALID;
+
+    // So ... we're making that target valid and that's that.
+  }
+
+  BOOL bRet =
+    SetProcessValidCallTargets_Original (
+      hProcess, VirtualAddress, RegionSize,
+        NumberOfOffsets, fakeTargets );
+
+  delete [] fakeTargets;
+
+  return bRet;
+}
+
+
+
+
 using DbgUiRemoteBreakin_pfn = VOID (NTAPI*)(_In_ PVOID Context);
       DbgUiRemoteBreakin_pfn
       DbgUiRemoteBreakin_Original = nullptr;
@@ -2064,8 +2130,8 @@ DbgUiRemoteBreakin_Detour (PVOID Context)
 {
   UNREFERENCED_PARAMETER (Context);
 
-  //if (RtlExitUserThread_Original == nullptr)
-      DbgBreakPoint_Detour ();
+  if (! SK_GetFramesDrawn ())
+    DbgBreakPoint_Detour  ();
 
   RtlExitUserThread_Original (STATUS_SUCCESS);
 }
@@ -2671,6 +2737,9 @@ RaiseException_Detour (
         DWORD      nNumberOfArguments,
   const ULONG_PTR *lpArguments         )
 {
+  if (dwExceptionCode == 0x1)
+    return;
+
   try
   {
     SK_TLS* pTlsThis =
@@ -2805,6 +2874,20 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                               "IsDebuggerPresent",
                                IsDebuggerPresent_Detour,
       static_cast_p2p <void> (&IsDebuggerPresent_Original) );
+
+
+    // Windows 10 Stability De-enhancer that Denuvo is likely to
+    //   try eventually...
+    if (GetProcAddress ( GetModuleHandle (L"kernelbase.dll"),
+                         "SetProcessValidCallTargets") != nullptr)
+    {
+      // Kill it proactively before it kills us
+      SK_CreateDLLHook2 (      L"kernelbase",
+                                "SetProcessValidCallTargets",
+                                 SetProcessValidCallTargets_Detour,
+        static_cast_p2p <void> (&SetProcessValidCallTargets_Original) );
+    }
+
 
     spoof_debugger = bAllow;
 
