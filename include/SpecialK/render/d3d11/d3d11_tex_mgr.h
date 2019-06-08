@@ -82,23 +82,24 @@ extern CRITICAL_SECTION inject_cs;
 extern CRITICAL_SECTION preload_cs;
 
 extern SK_LazyGlobal <std::wstring>
-                       SK_D3D11_res_root;
-extern bool            SK_D3D11_need_tex_reset;
-extern bool            SK_D3D11_try_tex_reset;
-extern int32_t         SK_D3D11_amount_to_purge;
+                     SK_D3D11_res_root;
+extern bool          SK_D3D11_need_tex_reset;
+extern bool          SK_D3D11_try_tex_reset;
+extern int32_t       SK_D3D11_amount_to_purge;
 
-extern bool            SK_D3D11_dump_textures;
-extern bool            SK_D3D11_inject_textures_ffx;
-extern bool            SK_D3D11_inject_textures;
-extern bool            SK_D3D11_cache_textures;
-extern bool            SK_D3D11_mark_textures;
+extern bool          SK_D3D11_dump_textures;
+extern bool          SK_D3D11_inject_textures_ffx;
+extern bool          SK_D3D11_inject_textures;
+extern bool          SK_D3D11_cache_textures;
+extern bool          SK_D3D11_mark_textures;
 
 extern
-  volatile LONG        SK_D3D11_TexRefCount_Failures;
+  volatile LONG      SK_D3D11_TexRefCount_Failures;
 
-extern std::wstring    SK_D3D11_TexNameFromChecksum   (uint32_t top_crc32, uint32_t checksum, uint32_t ffx_crc32 = 0x00);
-extern bool            SK_D3D11_IsTexInjectThread     (SK_TLS *pTLS = SK_TLS_Bottom ());
-extern SK_ScopedBool   SK_D3D11_DeclareTexInjectScope (SK_TLS* pTLS = SK_TLS_Bottom ());
+extern std::wstring  SK_D3D11_TexNameFromChecksum   (uint32_t top_crc32, uint32_t checksum, uint32_t ffx_crc32 = 0x00);
+extern bool          SK_D3D11_IsTexInjectThread     (SK_TLS *pTLS = SK_TLS_Bottom ());
+extern SK_ScopedBoolFwd
+                     SK_D3D11_DeclareTexInjectScope (SK_TLS* pTLS = SK_TLS_Bottom ());
 
 
 void __stdcall SK_D3D11_AddInjectable    (uint32_t top_crc32,  uint32_t checksum);

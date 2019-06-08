@@ -2167,8 +2167,8 @@ SK_ImGui_User_NewFrame (void)
   else
   {
     io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableGamepad;
-    io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
+  //io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableGamepad;
+  //io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
   }
 
   if ( io.DisplaySize.x <= 0.0f ||

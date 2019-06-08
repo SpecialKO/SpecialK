@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-16"?>
-<DevTrackerData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" SolutionTotalEditTime="PT10M10.5736714S" SolutionTotalViewTime="PT46M31.6251222S" SolutionTotalDebugTime="PT3M4.7387893S">
+<DevTrackerData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" SolutionTotalEditTime="PT10M18.796228S" SolutionTotalViewTime="PT58M41.0368702S" SolutionTotalDebugTime="PT6M55.8994452S">
   <FileVersion>
     <Major>1</Major>
     <Minor>0</Minor>
@@ -26,177 +26,45 @@
   </ProjectsCreatedDateList>
   <SessionTimeList />
   <LastSessionTimeList>
-    <DevTrackerDataItem ViewActiveTime="PT1.1653945S" EditActiveTime="PT0S">
+    <DevTrackerDataItem ViewActiveTime="PT3M28.9475849S" EditActiveTime="PT0S">
       <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
       <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\diagnostics\compatibility.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T12:03:08.5541975-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT1M53.5251334S" EditActiveTime="PT9.2335876S">
-      <ModifiedDate>2019-05-31T13:10:35.1736261-04:00</ModifiedDate>
-      <ModifiedBy>amcol</ModifiedBy>
-      <EditedCount>1</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\core.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T12:51:42.8430222-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT3M9.3813581S" EditActiveTime="PT1M53.5041187S">
-      <ModifiedDate>2019-05-31T11:55:06.1664473-04:00</ModifiedDate>
-      <ModifiedBy>amcol</ModifiedBy>
-      <EditedCount>1</EditedCount>
       <ViewedCount>1</ViewedCount>
       <Item>C:\Users\amcol\source\repos\SpecialK\src\render\d3d11\d3d11.cpp</Item>
       <ItemType>ProjectItem</ItemType>
       <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T11:51:08.8372887-04:00</CreatedDate>
+      <CreatedDate>2019-06-08T17:38:31.7184914-04:00</CreatedDate>
       <ViewedBy>amcol</ViewedBy>
     </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT0.9707449S" EditActiveTime="PT0S">
+    <DevTrackerDataItem ViewActiveTime="PT3M51.1606556S" EditActiveTime="PT0S">
       <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
       <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\render\d3d11\hooks\d3d11_devctx_vftable.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T13:16:56.1630494-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT3.7148514S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\render\d3d11\hooks\d3d11_devctx_wrapped.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T13:16:57.1342949-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT47.7151237S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\render\d3d11\hooks\d3d11_device.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T11:50:50.8184586-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT3M4.7387893S" EditActiveTime="PT9M19.6620558S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>1</EditedCount>
       <ViewedCount>1</ViewedCount>
       <Item>Debug Mode</Item>
       <ItemType>DebugModeItem</ItemType>
       <ProjectName />
-      <CreatedDate>2019-05-31T11:59:08.5534884-04:00</CreatedDate>
+      <CreatedDate>2019-06-08T17:19:14.2331371-04:00</CreatedDate>
       <ViewedBy>amcol</ViewedBy>
     </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT34M15.3505235S" EditActiveTime="PT8M7.8309448S">
-      <ModifiedDate>2019-05-31T13:44:59.9619268-04:00</ModifiedDate>
+    <DevTrackerDataItem ViewActiveTime="PT4M45.7407094S" EditActiveTime="PT8.2275769S">
+      <ModifiedDate>2019-06-08T17:27:51.4831129-04:00</ModifiedDate>
       <ModifiedBy>amcol</ModifiedBy>
       <EditedCount>1</EditedCount>
       <ViewedCount>1</ViewedCount>
       <Item>C:\Users\amcol\source\repos\SpecialK\src\diagnostics\debug_utils.cpp</Item>
       <ItemType>ProjectItem</ItemType>
       <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T11:59:37.2760337-04:00</CreatedDate>
+      <CreatedDate>2019-06-08T17:26:10.2955538-04:00</CreatedDate>
       <ViewedBy>amcol</ViewedBy>
     </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT1M50.6494272S" EditActiveTime="PT0S">
+    <DevTrackerDataItem ViewActiveTime="PT3M54.7239378S" EditActiveTime="PT0S">
       <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
       <EditedCount>0</EditedCount>
       <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\hooks.cpp</Item>
+      <Item>C:\Users\amcol\source\repos\SpecialK\src\input\xinput_hotplug.cpp</Item>
       <ItemType>ProjectItem</ItemType>
       <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T13:17:01.8644253-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT21.1332201S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\diagnostics\load_library.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T12:51:27.4652178-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT1.0142783S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\diagnostics\memory.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T13:17:00.8496466-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT17.148662S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\include\SpecialK\diagnostics\modules.h</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T13:19:36.0432647-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT50.1004527S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\scheduler.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T12:00:16.7032958-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT1M31.1819848S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\SpecialK.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T13:17:41.1280617-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT15.6880412S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Tools\MSVC\14.20.27508\crt\src\vcruntime\throw.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName />
-      <CreatedDate>2019-05-31T13:40:40.6318813-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT28.5138854S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\tls.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T13:24:59.2423308-04:00</CreatedDate>
-      <ViewedBy>amcol</ViewedBy>
-    </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT44.3765612S" EditActiveTime="PT0S">
-      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
-      <EditedCount>0</EditedCount>
-      <ViewedCount>1</ViewedCount>
-      <Item>C:\Users\amcol\source\repos\SpecialK\src\utility.cpp</Item>
-      <ItemType>ProjectItem</ItemType>
-      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
-      <CreatedDate>2019-05-31T13:17:14.580185-04:00</CreatedDate>
+      <CreatedDate>2019-06-08T17:17:07.8040433-04:00</CreatedDate>
       <ViewedBy>amcol</ViewedBy>
     </DevTrackerDataItem>
   </LastSessionTimeList>
@@ -222,11 +90,11 @@
       <CreatedDate>2019-05-31T12:51:42.8430222-04:00</CreatedDate>
       <ViewedBy>amcol</ViewedBy>
     </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT3M9.3813581S" EditActiveTime="PT1M53.5041187S">
+    <DevTrackerDataItem ViewActiveTime="PT6M38.3249403S" EditActiveTime="PT1M53.5041187S">
       <ModifiedDate>2019-05-31T11:55:06.1664473-04:00</ModifiedDate>
       <ModifiedBy>amcol</ModifiedBy>
       <EditedCount>1</EditedCount>
-      <ViewedCount>1</ViewedCount>
+      <ViewedCount>2</ViewedCount>
       <Item>C:\Users\amcol\source\repos\SpecialK\src\render\d3d11\d3d11.cpp</Item>
       <ItemType>ProjectItem</ItemType>
       <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
@@ -263,21 +131,21 @@
       <CreatedDate>2019-05-31T11:50:50.8184586-04:00</CreatedDate>
       <ViewedBy>amcol</ViewedBy>
     </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT3M4.7387893S" EditActiveTime="PT9M19.6620558S">
+    <DevTrackerDataItem ViewActiveTime="PT6M55.8994449S" EditActiveTime="PT9M19.6620558S">
       <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
       <EditedCount>1</EditedCount>
-      <ViewedCount>1</ViewedCount>
+      <ViewedCount>2</ViewedCount>
       <Item>Debug Mode</Item>
       <ItemType>DebugModeItem</ItemType>
       <ProjectName />
       <CreatedDate>2019-05-31T11:59:08.5534884-04:00</CreatedDate>
       <ViewedBy>amcol</ViewedBy>
     </DevTrackerDataItem>
-    <DevTrackerDataItem ViewActiveTime="PT34M15.3505235S" EditActiveTime="PT8M7.8309448S">
-      <ModifiedDate>2019-05-31T13:44:59.9619268-04:00</ModifiedDate>
+    <DevTrackerDataItem ViewActiveTime="PT39M1.0912329S" EditActiveTime="PT8M16.0585217S">
+      <ModifiedDate>2019-06-08T17:27:51.4831129-04:00</ModifiedDate>
       <ModifiedBy>amcol</ModifiedBy>
-      <EditedCount>1</EditedCount>
-      <ViewedCount>1</ViewedCount>
+      <EditedCount>2</EditedCount>
+      <ViewedCount>2</ViewedCount>
       <Item>C:\Users\amcol\source\repos\SpecialK\src\diagnostics\debug_utils.cpp</Item>
       <ItemType>ProjectItem</ItemType>
       <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
@@ -374,8 +242,59 @@
       <CreatedDate>2019-05-31T13:17:14.580185-04:00</CreatedDate>
       <ViewedBy>amcol</ViewedBy>
     </DevTrackerDataItem>
+    <DevTrackerDataItem ViewActiveTime="PT3M54.7239378S" EditActiveTime="PT0S">
+      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
+      <EditedCount>0</EditedCount>
+      <ViewedCount>1</ViewedCount>
+      <Item>C:\Users\amcol\source\repos\SpecialK\src\input\xinput_hotplug.cpp</Item>
+      <ItemType>ProjectItem</ItemType>
+      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
+      <CreatedDate>2019-06-08T17:17:07.8040433-04:00</CreatedDate>
+      <ViewedBy>amcol</ViewedBy>
+    </DevTrackerDataItem>
   </TotalTimeList>
   <HistoryTimeList>
+    <DevTrackerDataItem ViewActiveTime="PT3M28.9445825S" EditActiveTime="PT0S">
+      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
+      <EditedCount>0</EditedCount>
+      <ViewedCount>1</ViewedCount>
+      <Item>C:\Users\amcol\source\repos\SpecialK\src\render\d3d11\d3d11.cpp</Item>
+      <ItemType>ProjectItem</ItemType>
+      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
+      <CreatedDate>2019-06-08T17:38:31.7184914-04:00</CreatedDate>
+      <ViewedBy>amcol</ViewedBy>
+    </DevTrackerDataItem>
+    <DevTrackerDataItem ViewActiveTime="PT4M45.7407094S" EditActiveTime="PT8.2275769S">
+      <ModifiedDate>2019-06-08T17:27:51.4831129-04:00</ModifiedDate>
+      <ModifiedBy>amcol</ModifiedBy>
+      <EditedCount>1</EditedCount>
+      <ViewedCount>1</ViewedCount>
+      <Item>C:\Users\amcol\source\repos\SpecialK\src\diagnostics\debug_utils.cpp</Item>
+      <ItemType>ProjectItem</ItemType>
+      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
+      <CreatedDate>2019-06-08T17:26:10.2955538-04:00</CreatedDate>
+      <ViewedBy>amcol</ViewedBy>
+    </DevTrackerDataItem>
+    <DevTrackerDataItem ViewActiveTime="PT3M51.1606556S" EditActiveTime="PT0S">
+      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
+      <EditedCount>0</EditedCount>
+      <ViewedCount>1</ViewedCount>
+      <Item>Debug Mode</Item>
+      <ItemType>DebugModeItem</ItemType>
+      <ProjectName />
+      <CreatedDate>2019-06-08T17:19:14.2331371-04:00</CreatedDate>
+      <ViewedBy>amcol</ViewedBy>
+    </DevTrackerDataItem>
+    <DevTrackerDataItem ViewActiveTime="PT3M54.7239378S" EditActiveTime="PT0S">
+      <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
+      <EditedCount>0</EditedCount>
+      <ViewedCount>1</ViewedCount>
+      <Item>C:\Users\amcol\source\repos\SpecialK\src\input\xinput_hotplug.cpp</Item>
+      <ItemType>ProjectItem</ItemType>
+      <ProjectName>C:\Users\amcol\source\repos\SpecialK\SpecialK.vcxproj</ProjectName>
+      <CreatedDate>2019-06-08T17:17:07.8040433-04:00</CreatedDate>
+      <ViewedBy>amcol</ViewedBy>
+    </DevTrackerDataItem>
     <DevTrackerDataItem ViewActiveTime="PT15.6880412S" EditActiveTime="PT0S">
       <ModifiedDate>0001-01-01T00:00:00</ModifiedDate>
       <EditedCount>0</EditedCount>

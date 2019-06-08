@@ -903,7 +903,8 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   );
   try
   {
-    hMod = LoadLibraryExW_Original (compliant_path, hFile, dwFlags);
+    hMod =
+      LoadLibraryExW_Original (compliant_path, hFile, dwFlags);
   }
   //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
   //                     EXCEPTION_EXECUTE_HANDLER :

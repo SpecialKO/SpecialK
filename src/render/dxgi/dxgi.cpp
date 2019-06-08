@@ -3335,7 +3335,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       case DXGI_FORMAT_R16G16B16A16_FLOAT:
         rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_FLOAT;
 
-        if (rb.isHDRCapable ())
+        if (rb.isHDRCapable () && rb.scanout.dxgi_colorspace != DXGI_COLOR_SPACE_CUSTOM)
         {
           rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
         }
@@ -3399,6 +3399,18 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     else
     {
       rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_MSAA;
+    }
+
+
+    // Test for colorspaces that are NOT HDR and then unflag HDR if necessary
+    if (! rb.scanout.nvapi_hdr.active)
+    {
+      if ( (rb.fullscreen_exclusive    &&
+            rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_CUSTOM) ||
+            rb.scanout.dwm_colorspace  == DXGI_COLOR_SPACE_CUSTOM )
+      {
+        rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+      }
     }
 
 

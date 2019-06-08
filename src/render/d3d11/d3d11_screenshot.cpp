@@ -318,7 +318,11 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComQIPtr <ID3D11Device>& pDev
           framebuffer.Height       = backbuffer_desc.Height;
           framebuffer.NativeFormat = backbuffer_desc.Format;
 
-          if (rb.isHDRCapable () && backbuffer_desc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
+          bool hdr =
+            (  rb.isHDRCapable ()  &&
+              (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+
+          if (hdr && backbuffer_desc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
           {
             D3D11_TEXTURE2D_DESC tex_desc = { };
             tex_desc.Width          = framebuffer.Width;
@@ -1588,7 +1592,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                     _TRUNCATE );
 
                   bool hdr =
-                    SK_GetCurrentRenderBackend ().isHDRCapable ();
+                    ( SK_GetCurrentRenderBackend ().isHDRCapable () &&
+                     (SK_GetCurrentRenderBackend ().framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
 
                   if (hdr)
                   {

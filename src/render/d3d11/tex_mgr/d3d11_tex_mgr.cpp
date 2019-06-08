@@ -86,20 +86,20 @@ SK_D3D11_SetTexInjectThread (SK_TLS* pTLS = SK_TLS_Bottom ())
   pTLS->texture_management.injection_thread = TRUE;
 }
 
-SK_ScopedBool
+SK_ScopedBoolFwd
 SK_D3D11_DeclareTexInjectScope (SK_TLS *pTLS)
 {
   if (pTLS == nullptr)
       pTLS  = SK_TLS_Bottom ();
 
-  SK_ScopedBool ret
-    (&pTLS->texture_management.injection_thread);
+  BOOL bOrig =
+    pTLS->texture_management.injection_thread;
 
   SK_D3D11_SetTexInjectThread (pTLS);
 
-
   return
-    std::move (ret);
+    std::make_pair ( &pTLS->texture_management.injection_thread,
+                      bOrig );
 }
 
 
@@ -132,7 +132,7 @@ SK_D3D11_TestRefCountHooks ( ID3D11Texture2D *pInputTex,
   if (pTLS == nullptr)
       pTLS = SK_TLS_Bottom ();
 
-  auto decl_tex_scope (
+  SK_ScopedBool decl_tex_scope (
     SK_D3D11_DeclareTexInjectScope (pTLS)
   );
 
@@ -768,11 +768,14 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
   if ( pDev    != nullptr &&
        pDevCtx != nullptr )
   {
+    SK_ScopedBool decl_tex_scope (
+      SK_D3D11_DeclareTexInjectScope ()
+    );
+
     DirectX::ScratchImage img;
 
     if (SUCCEEDED (DirectX::CaptureTexture (pDev, pDevCtx, pTex, img)))
     {
-
       auto _IsTypeless = [&](void) ->
       bool { return DirectX::IsTypeless (img.GetMetadata ().format); };
 
@@ -855,10 +858,6 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
 
   if ( metadata.width  < 4 ||
        metadata.height < 4    ) return E_INVALIDARG;
-
-  auto decl_tex_scope (
-    SK_D3D11_DeclareTexInjectScope (pTLS)
-  );
 
   wchar_t     wszPath [ MAX_PATH + 2 ] = { };
   wcsncpy_s ( wszPath,  MAX_PATH + 1,
@@ -1077,10 +1076,6 @@ SK_D3D11_MipmapMakeTexture2D ( ID3D11Device*        pDev,
     if ( metadata.width  < 1 ||
          metadata.height < 1    ) return E_INVALIDARG;
 
-    auto decl_tex_scope (
-      SK_D3D11_DeclareTexInjectScope (pTLS)
-    );
-
     const bool compressed =
       SK_DXGI_IsFormatCompressed (metadata.format);
 
@@ -1185,6 +1180,10 @@ SK_D3D11_MipmapMakeTexture2D ( ID3D11Device*        pDev,
     {
       if (ppOutTex != nullptr)
       {
+        SK_ScopedBool decl_tex_scope (
+          SK_D3D11_DeclareTexInjectScope (pTLS)
+        );
+
         ret =
           DirectX::CreateTexture ( pDev, mipmaps->GetImages     (),
                                          mipmaps->GetImageCount (),
@@ -3103,10 +3102,6 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
   HRESULT hr =
     E_UNEXPECTED;
 
-  auto decl_tex_scope (
-    SK_D3D11_DeclareTexInjectScope (pTLS)
-  );
-
   SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
                             pTLS->imgui->drawing = true;
   {
@@ -3164,6 +3159,10 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
 
         if (SUCCEEDED (hr))
         {
+          SK_ScopedBool decl_tex_scope (
+            SK_D3D11_DeclareTexInjectScope (pTLS)
+          );
+
           if ( SUCCEEDED (
                DirectX::CreateTexture ( pDev, scratch.GetImages     (),
                                               scratch.GetImageCount (),

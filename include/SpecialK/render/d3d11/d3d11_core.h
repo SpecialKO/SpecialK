@@ -175,13 +175,9 @@ struct shader_stage_s
 
   void nulBind (int slot, ID3D11ShaderResourceView* pView)
   {
-    if (skipped_bindings [slot] != nullptr)
-    {
-      skipped_bindings [slot]->Release ();
-      skipped_bindings [slot] = nullptr;
-    }
+    IUnknown_Set ((IUnknown **)&skipped_bindings [slot],
+                  (IUnknown  *)pView);
 
-    skipped_bindings [slot] = pView;
 
     if (pView != nullptr)
     {
@@ -191,16 +187,10 @@ struct shader_stage_s
 
   void Bind (int slot, ID3D11ShaderResourceView* pView)
   {
-    if (skipped_bindings [slot] != nullptr)
-    {
-      skipped_bindings [slot]->Release ();
-      skipped_bindings [slot] = nullptr;
-    }
-
-    skipped_bindings [slot] = nullptr;
+    IUnknown_AtomicRelease ((void **)&skipped_bindings [slot]);
 
     // The D3D11 Runtime is holding a reference if this is non-null.
-    real_bindings    [slot] = pView;
+    real_bindings [slot] = pView;
   };
 
   // We have to hold references to these things, because the D3D11
@@ -259,7 +249,7 @@ struct SK_RESHADE_CALLBACK_DRAW
       (&pTLS->imgui->drawing);
         pTLS->imgui->drawing = true;
 
-      auto decl_tex_scope (
+      SK_ScopedBool decl_tex_scope (
         SK_D3D11_DeclareTexInjectScope (pTLS)
       );
 

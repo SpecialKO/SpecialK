@@ -757,16 +757,13 @@ public:
 class SK_ScopedBool
 {
 public:
-  SK_ScopedBool (BOOL *pBool) noexcept
-  {
-    pBool_ =  pBool;
-    bOrig_ = *pBool;
-  }
+  SK_ScopedBool (BOOL *pBool) noexcept : pBool_ ( pBool),
+                                         bOrig_ (*pBool) { };
 
-  SK_ScopedBool (SK_ScopedBool&& T) noexcept :
-    bOrig_ (std::exchange (T.bOrig_, *T.pBool_)),
-    pBool_ (                          T.pBool_)
-  { };
+  SK_ScopedBool (std::pair <BOOL *, BOOL> pair) noexcept : pBool_ (pair.first),
+                                                           bOrig_ (pair.second) { };
+
+  SK_ScopedBool (const SK_ScopedBool&) = delete;
 
   ~SK_ScopedBool (void) noexcept
   {
@@ -778,6 +775,19 @@ public:
 private:
   BOOL* pBool_;
   BOOL  bOrig_;
+};
+
+
+
+class SK_ScopedBoolFwd
+{
+public:
+  SK_ScopedBoolFwd (std::pair <BOOL*, BOOL> args) : args_ (args) { };
+
+
+  operator std::pair <BOOL*, BOOL> (void) { return args_; };
+
+  std::pair <BOOL *, BOOL> args_;
 };
 
 extern volatile LONG _SK_IgnoreTLSAlloc;

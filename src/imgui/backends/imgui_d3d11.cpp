@@ -601,7 +601,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
   SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
                             pTLS->imgui->drawing = true;
 
-  auto decl_tex_scope (
+  SK_ScopedBool decl_tex_scope (
     SK_D3D11_DeclareTexInjectScope (pTLS)
   );
 
