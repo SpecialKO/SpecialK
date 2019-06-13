@@ -324,7 +324,7 @@ public:
     {
       if (add_ref == false && ref_added == true)
       {
-        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (
           *SK_DLL_LoaderLockGuard ()
         );
         _loaded_libraries [hMod].Release ();
@@ -358,7 +358,7 @@ public:
     {
       if (add_ref == true)
       {
-        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (
           *SK_DLL_LoaderLockGuard ()
         );
         _loaded_libraries [hMod].AddRef ();
@@ -374,8 +374,8 @@ private:
   // Don't forget to free anything you find!
   HMODULE _FindLibraryByName (const wchar_t *wszLibrary)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
-                    *SK_DLL_LoaderLockGuard ()
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (
+                     *SK_DLL_LoaderLockGuard ()
     );
 
     if (_known_module_names.empty ())
@@ -402,7 +402,7 @@ private:
         GetCurrentProcess (), hMod, &mod_info, sizeof (MODULEINFO)
       );
 
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (
       *SK_DLL_LoaderLockGuard ()
     );
 
@@ -423,8 +423,8 @@ private:
   // Returns INVALID_MODULE if no more references exist
   HMODULE _ReleaseLibrary (skWin32Module& library)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
-                    *SK_DLL_LoaderLockGuard ()
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (
+                     *SK_DLL_LoaderLockGuard ()
     );
 
     assert (library != INVALID_MODULE);
@@ -618,7 +618,7 @@ skWin32Module::Release (void) noexcept
 
   ///if (refs_ == 0)
   ///{
-  ///  auto&&         registrar = SK_Modules;
+  ///  auto&         registrar = SK_Modules;
   ///   auto& libs  ( registrar._loaded_libraries   );
   ///   auto& names ( registrar._known_module_names );
   ///   auto& addrs ( registrar._known_module_bases );

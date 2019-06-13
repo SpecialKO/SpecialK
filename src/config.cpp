@@ -119,7 +119,9 @@ SK_GetCurrentGameID (void)
       { L"ACOrigins.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
       { L"JustCause3.exe",                         SK_GAME_ID::JustCause3                   },
       { L"ed8.exe",                                SK_GAME_ID::TrailsOfColdSteel            },
-      { L"sekiro.exe",                             SK_GAME_ID::Sekiro                       }
+      { L"sekiro.exe",                             SK_GAME_ID::Sekiro                       },
+      { L"Octopath_Traveler-Win64-Shipping.exe",   SK_GAME_ID::OctopathTraveler             },
+      { L"SonicMania.exe",                         SK_GAME_ID::SonicMania                   }
     };
 
     first_check = false;
@@ -678,7 +680,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   std::wstring undecorated_name (name);
 
-  if ( undecorated_name.find (L"default_") != undecorated_name.npos )
+  if ( undecorated_name.find (L"default_") != std::wstring::npos )
   {
       undecorated_name.erase ( undecorated_name.find (L"default_"),
                                         std::wstring (L"default_").length () );
@@ -710,7 +712,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   steam_config =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\steam.ini)";
 
-  std::wstring migrate_steam_config = L"";
+  std::wstring migrate_steam_config;
 
   /////////if (! PathFileExistsW (steam_config.c_str ()))
   /////////{
@@ -1257,7 +1259,7 @@ auto DeclKeybind =
       imports->imports
          [import];
 
-    if ((*sec).first.find (L"Import.") != (*sec).first.npos)
+    if ((*sec).first.find (L"Import.") != std::wstring::npos)
     {
       const wchar_t* wszNext =
         wcschr ((*sec).first.c_str (), L'.');
@@ -1273,7 +1275,7 @@ auto DeclKeybind =
              );
       import_.filename->register_to_ini (
         dll_ini,
-          (*sec).first.c_str (),
+          (*sec).first,
             L"Filename" );
 
       import_.when =
@@ -1283,7 +1285,7 @@ auto DeclKeybind =
              );
       import_.when->register_to_ini (
         dll_ini,
-          (*sec).first.c_str (),
+          (*sec).first,
             L"When" );
 
       import_.role =
@@ -1293,7 +1295,7 @@ auto DeclKeybind =
              );
       import_.role->register_to_ini (
         dll_ini,
-          (*sec).first.c_str (),
+          (*sec).first,
             L"Role" );
 
       import_.architecture =
@@ -1303,7 +1305,7 @@ auto DeclKeybind =
              );
       import_.architecture->register_to_ini (
         dll_ini,
-          (*sec).first.c_str (),
+          (*sec).first,
             L"Architecture" );
 
       import_.blacklist =
@@ -1313,7 +1315,7 @@ auto DeclKeybind =
              );
       import_.blacklist->register_to_ini (
         dll_ini,
-          (*sec).first.c_str (),
+          (*sec).first,
             L"Blacklist" );
 
       ((sk::iParameter *)import_.filename)->load     ();
@@ -1332,7 +1334,7 @@ auto DeclKeybind =
 
 
 
-    if ((*sec).first.find (L"Macro.") != (*sec).first.npos)
+    if ((*sec).first.find (L"Macro.") != std::wstring::npos)
     {
       for ( auto& it : (*sec).second.keys )
       {
@@ -1385,7 +1387,7 @@ auto DeclKeybind =
 
   while (sec != macro_sections.cend ())
   {
-    if ((*sec).first.find (L"Macro.") != (*sec).first.npos)
+    if ((*sec).first.find (L"Macro.") != std::wstring::npos)
     {
       for ( auto& it : (*sec).second.keys )
       {
@@ -1428,6 +1430,31 @@ auto DeclKeybind =
   // Default = Don't Care
   config.render.dxgi.exception_mode = -1;
   config.render.dxgi.scaling_mode   = -1;
+
+
+
+  apis.last_known->load ((int &)config.apis.last_known);
+
+#ifdef _M_IX86
+  apis.ddraw.hook->load (config.apis.ddraw.hook);
+  apis.d3d8.hook->load  (config.apis.d3d8.hook);
+#endif
+
+
+  apis.d3d9.hook->load   (config.apis.d3d9.hook);
+  apis.d3d9ex.hook->load (config.apis.d3d9ex.hook);
+  apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook);
+
+#ifdef _M_AMD64
+  apis.d3d12.hook->load (config.apis.dxgi.d3d12.hook);
+#endif
+
+  apis.OpenGL.hook->load (config.apis.OpenGL.hook);
+
+#ifdef _M_AMD64
+  apis.Vulkan.hook->load (config.apis.Vulkan.hook);
+#endif
+
 
   //
   // Application Compatibility Overrides
@@ -1516,6 +1543,7 @@ auto DeclKeybind =
         break;
 
 
+      case SK_GAME_ID::ResidentEvil7:
       case SK_GAME_ID::Obduction:
         config.system.trace_load_library = true;  // Need to catch SteamAPI DLL load
         config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
@@ -1533,13 +1561,6 @@ auto DeclKeybind =
         config.apis.OpenGL.hook           = false;
 
         config.textures.cache.ignore_nonmipped = true; // Invalid use of immutable textures
-        break;
-
-
-      case SK_GAME_ID::ResidentEvil7:
-        config.system.trace_load_library = true;  // Need to catch SteamAPI DLL load
-        config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
-                                                  //   (uses an incorrectly written DLL)
         break;
 
 
@@ -1842,6 +1863,7 @@ auto DeclKeybind =
         config.render.framerate.buffer_count      = 3;
         config.render.framerate.pre_render_limit  = 4;
         config.render.framerate.limiter_tolerance = 4.0f;
+
         SK_D3D11_DeclHUDShader (0x15888ef2, ID3D11VertexShader);
         SK_D3D11_DeclHUDShader (0x1893edbd, ID3D11VertexShader);
         SK_D3D11_DeclHUDShader (0x26dc61b1, ID3D11VertexShader);
@@ -1860,6 +1882,12 @@ auto DeclKeybind =
         config.apis.d3d9.hook                 = false;
         config.apis.d3d9ex.hook               = false;
         break;
+
+
+      case SK_GAME_ID::SonicMania:
+      {
+        config.apis.d3d9ex.hook = false;
+      } break;
 
 
 #ifdef _M_AMD64
@@ -2008,6 +2036,30 @@ auto DeclKeybind =
                         TRUE );
         }
       } break;
+
+      case SK_GAME_ID::OctopathTraveler:
+      {
+        config.render.framerate.limiter_tolerance = 3.75f;
+        config.render.framerate.buffer_count      =     3;
+        config.render.framerate.target_fps        =    60;
+        config.render.framerate.pre_render_limit  =     4;
+        config.render.framerate.sleepless_render  =  true;
+        config.render.framerate.sleepless_window  =  true;
+
+        config.input.cursor.manage                =  true;
+        config.input.cursor.timeout               =     0;
+        config.input.cursor.keys_activate         = false;
+
+        config.apis.d3d9.hook                     = false;
+        config.apis.d3d9ex.hook                   = false;
+        config.apis.OpenGL.hook                   = false;
+        config.apis.Vulkan.hook                   = false;
+
+        config.threads.enable_file_io_trace       =  true;
+
+        extern void SK_OPT_InitPlugin (void);
+                    SK_OPT_InitPlugin (    );
+      } break;
 #endif
     }
   }
@@ -2073,28 +2125,6 @@ auto DeclKeybind =
 
   monitoring.time.show->load (config.time.show);
   monitoring.SLI.show->load  (config.sli.show);
-
-  apis.last_known->load ((int &)config.apis.last_known);
-
-#ifdef _M_IX86
-  apis.ddraw.hook->load (config.apis.ddraw.hook);
-  apis.d3d8.hook->load  (config.apis.d3d8.hook);
-#endif
-
-
-  apis.d3d9.hook->load   (config.apis.d3d9.hook);
-  apis.d3d9ex.hook->load (config.apis.d3d9ex.hook);
-  apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook);
-
-#ifdef _M_AMD64
-  apis.d3d12.hook->load (config.apis.dxgi.d3d12.hook);
-#endif
-
-  apis.OpenGL.hook->load (config.apis.OpenGL.hook);
-
-#ifdef _M_AMD64
-  apis.Vulkan.hook->load (config.apis.Vulkan.hook);
-#endif
 
   if (nvidia.api.disable->load (config.apis.NvAPI.enable))
      config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
@@ -2874,9 +2904,10 @@ SK_ResHack_PatchGame ( uint32_t width,
   for (int i = 0 ; i < 3; i++)
   {
     pOut =
+    pOut != nullptr ?
       static_cast <uint32_t *> (
         SK_ScanAlignedEx ( pPattern, 8, nullptr, pOut, 8 )
-      );
+      )             : pOut;
 
 
     if (pOut != nullptr)
@@ -2930,9 +2961,10 @@ SK_ResHack_PatchGame3 ( uint32_t width,
   for (int i = 0 ; i < 5; i++)
   {
     pOut =
+    pOut != nullptr           ?
       static_cast <uint8_t *> (
         SK_ScanAlignedEx (orig, 20, mask, pOut, 1)
-      );
+      )                       : pOut;
 
     if (pOut != nullptr)
     {
@@ -2985,9 +3017,10 @@ SK_ResHack_PatchGame2 ( uint32_t width,
   for (int i = 0 ; i < 5; i++)
   {
     pOut =
+    pOut != nullptr            ?
       static_cast <uint32_t *> (
         SK_ScanAlignedEx (orig, 8, nullptr, pOut, 4)
-      );
+      )                        : pOut;
 
     if (pOut != nullptr)
     {
@@ -3035,13 +3068,13 @@ SK_DeleteConfig (std::wstring name)
 
   wchar_t wszFullName [ MAX_PATH + 2 ] = { };
 
-  if ( name.find (L'/' ) == name.npos &&
-       name.find (L'\\') == name.npos )
+  if ( name.find (L'/' ) == std::wstring::npos &&
+       name.find (L'\\') == std::wstring::npos )
     lstrcatW (wszFullName, SK_GetConfigPath ());
 
   lstrcatW (wszFullName,   name.c_str ());
 
-  if (name.find (L".ini") == name.npos)
+  if (name.find (L".ini") == std::wstring::npos)
     lstrcatW (wszFullName, L".ini");
 
 
@@ -3779,27 +3812,36 @@ SK_Keybind::parse (void)
 
   if (wszTok == nullptr)
   {
-    SK_KeyMap_StandardizeNames (wszKeyBind);
+    if (*wszKeyBind != L'\0')
+    {
+      SK_KeyMap_StandardizeNames (wszKeyBind);
 
-    vKey =
-      humanToVirtual [wszKeyBind];
+      if (*wszKeyBind != L'\0')
+      {
+        vKey =
+          humanToVirtual [wszKeyBind];
+      }
+    }
   }
 
-  while (wszTok)
+  while (wszTok != nullptr)
   {
     SK_KeyMap_StandardizeNames (wszTok);
 
-    BYTE vKey_ =
-      humanToVirtual [wszTok];
+    if (wszTok != nullptr && *wszTok != L'\0')
+    {
+      BYTE vKey_ =
+        humanToVirtual [wszTok];
 
-    if (vKey_ == VK_CONTROL)
-      ctrl  = true;
-    else if (vKey_ == VK_SHIFT)
-      shift = true;
-    else if (vKey_ == VK_MENU)
-      alt   = true;
-    else
-      vKey = vKey_;
+      if (vKey_ == VK_CONTROL)
+        ctrl  = true;
+      else if (vKey_ == VK_SHIFT)
+        shift = true;
+      else if (vKey_ == VK_MENU)
+        alt   = true;
+      else
+        vKey = vKey_;
+    }
 
     wszTok =
       std::wcstok (nullptr, L"+", &wszBuf);
@@ -3943,10 +3985,10 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
                                      const wchar_t* wszAppName,
                                            uint32_t uiAppID )
 {
-  if (! app_cache_db)
+  if (app_cache_db == nullptr)
     return false;
 
-  if (! StrStrIW (wszFullPath, LR"(SteamApps\common\)"))
+  if (StrStrIW (wszFullPath, LR"(SteamApps\common\)") == nullptr)
       return false;
 
   iSK_INISection& rev_map =
@@ -4163,8 +4205,8 @@ SK_AppCache_Manager::setFriendOwnership ( uint64_t                       friend_
 
     if ( 2 ==
            std::swscanf ( friend_status.c_str (),
-                            L"%li {%llu}",
-                              &ownership, &last_updated
+                            L"%li {%lli}",
+                              &ownership, (int64_t *)&last_updated
                         )
        )
     {
@@ -4220,7 +4262,7 @@ SK_AppCache_Manager::getFriendOwnership ( uint64_t friend_,
 
       if ( 2 ==
              std::swscanf ( friend_status.c_str (),
-                              L"%li {%llu}",
+                              L"%li {%lli}",
                                 &ownership,
                                   &last_updated
                           )
@@ -4267,8 +4309,8 @@ SK_AppCache_Manager::setFriendAchievPct (uint64_t friend_, float new_percent)
 
     if ( 2 ==
            std::swscanf ( friend_status.c_str (),
-                            L"%f {%llu}",
-                              &percent, &last_updated
+                            L"%f {%lli}",
+                              &percent, (int64_t *)&last_updated
                         )
        )
     {
@@ -4278,9 +4320,9 @@ SK_AppCache_Manager::setFriendAchievPct (uint64_t friend_, float new_percent)
 
         sec.add_key_value ( std::to_wstring (friend_).c_str (),
                               SK_FormatStringW (
-                                L"%f {%llu}",
+                                L"%f {%lli}",
                                   new_percent,
-                                    last_updated
+                                    (int64_t)last_updated
                               ).c_str ()
                           );
       }
@@ -4293,9 +4335,9 @@ SK_AppCache_Manager::setFriendAchievPct (uint64_t friend_, float new_percent)
 
   sec.add_key_value ( std::to_wstring (friend_).c_str (),
                         SK_FormatStringW (
-                          L"%f {%llu}",
+                          L"%f {%lli}",
                             new_percent,
-                              last_updated
+                              (int64_t)last_updated
                         ).c_str ()
                     );
 
@@ -4326,7 +4368,7 @@ SK_AppCache_Manager::getFriendAchievPct (uint64_t friend_, time_t* updated)
 
       if ( 2 ==
              std::swscanf ( friend_status.c_str (),
-                              L"%f {%llu}",
+                              L"%f {%lli}",
                                 &percent,
                                   &last_updated
                           )

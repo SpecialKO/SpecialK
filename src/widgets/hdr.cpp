@@ -531,20 +531,16 @@ public:
       if (ImGui::RadioButton ("scRGB HDR (16-bit)", &sel, 2))
       {
         __SK_HDR_16BitSwap = true;
-
-        if (__SK_HDR_16BitSwap) __SK_HDR_10BitSwap = false;
+        __SK_HDR_10BitSwap = false;
 
         _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
         _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
 
-        if (__SK_HDR_16BitSwap)
-        {
-          config.window.borderless               = true;
-          config.window.fullscreen               = true;
-          config.render.framerate.flip_discard   = true;
-          config.render.framerate.buffer_count   = 3;
-          config.render.framerate.swapchain_wait = 66;
-        }
+        config.window.borderless               = true;
+        config.window.fullscreen               = true;
+        config.render.framerate.flip_discard   = true;
+        config.render.framerate.buffer_count   = 3;
+        config.render.framerate.swapchain_wait = 66;
 
         dll_ini->write (dll_ini->get_filename ());
       }

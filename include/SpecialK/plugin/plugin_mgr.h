@@ -49,6 +49,21 @@ bool
 __stdcall
 SK_HasPlugin (void);
 
+
+using SK_EndFrame_pfn                  = void   (STDMETHODCALLTYPE *)( void        );
+using SK_BeginFrame_pfn                = void   (                  *)( void        );
+using SK_PlugIn_ControlPanelWidget_pfn = void   (__stdcall         *)( void        );
+using SK_PlugIn_KeyPress_pfn           = void   (CALLBACK          *)( BOOL Control,
+                                                                       BOOL Shift,
+                                                                       BOOL Alt,
+                                                                       BYTE vkCode );
+
+using SK_PlugIn_PresentFirstFrame_pfn = HRESULT (__stdcall         *)( IUnknown*,
+                                                                       UINT, UINT  );
+using SK_PlugIn_Init_pfn              = void    (                  *)( void        );
+using SK_PlugIn_ControlPanelCfg_pfn   = bool    (                  *)( void        );
+
+
 struct SK_PluginRegistry
 {
   //Stupid Hack, rewrite me... (IN PROGRESS - see isPlugin below)
@@ -61,12 +76,19 @@ struct SK_PluginRegistry
 
   bool isPlugin          = false;
 
+  std::vector <SK_PlugIn_Init_pfn>                     init_fns;
+  std::vector <SK_PlugIn_ControlPanelCfg_pfn>        config_fns;
+  std::vector <SK_PlugIn_PresentFirstFrame_pfn> first_frame_fns;
+  std::vector <SK_EndFrame_pfn>                   end_frame_fns;
+  std::vector <SK_BeginFrame_pfn>               begin_frame_fns;
+
   std::wstring plugin_name;
 };
 extern SK_LazyGlobal <SK_PluginRegistry> plugin_mgr;
 
 #include <Windows.h>
 #include <render/dxgi/dxgi_interfaces.h>
+
 
 // As a general rule, plug-ins are only _built-in_ to the 64-bit DLL
 #ifdef _WIN64
@@ -113,6 +135,9 @@ HRESULT __stdcall
 HRESULT __stdcall
      SK_Sekiro_PresentFirstFrame (IDXGISwapChain*, UINT, UINT);
 
+HRESULT __stdcall
+     SK_OPT_PresentFirstFrame    (IDXGISwapChain*, UINT, UINT);
+
 void SK_Yakuza0_PlugInInit (void);
 bool SK_Yakuza0_PlugInCfg  (void);
 
@@ -126,6 +151,8 @@ SK_SOM_InitPlugin (void);
 void
 SK_YS8_InitPlugin (void);
 #endif
+
+
 
 enum class SK_PlugIn_Type
 {

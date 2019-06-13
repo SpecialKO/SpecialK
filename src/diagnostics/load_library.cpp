@@ -236,7 +236,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     //SK_TEXT ("dbghelp")
   };
 
-  for ( const auto& it : pinnable_libs )
+  for ( const auto it : pinnable_libs )
   {
     if (StrStrI (pStr, it))
       return true;
@@ -1926,7 +1926,7 @@ BlacklistLibrary (const _T* lpFileName)
       init = true;
     }
 
-    for ( auto& it : nv_blacklist )
+    for ( auto it : nv_blacklist )
     {
       if (StrStrI (lpFileName, it))
       {

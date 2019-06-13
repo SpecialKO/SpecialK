@@ -557,7 +557,7 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
     if (it != __ctx_active.cend ())
       return it->second;
 
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_shader);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_shader);
 
     __ctx_reserve.insert (
       { pDevCtx, handle }
@@ -656,7 +656,7 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
     return handle;
   }
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_shader);
+  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_shader);
 
   size   = sizeof (LONG);
   handle = ReadAcquire (&SK_D3D11_NumberOfSeenContexts);
@@ -1972,7 +1972,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
       {
         //dll_log->Log (L"Shader not in cache, and no bytecode available, so ignoring!");
         //
-        //std::lock_guard <SK_Thread_CriticalSection> auto_lock (*pCritical);
+        //std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*pCritical);
         //
         //SK_D3D11_ShaderDesc pseudo_desc = { };
         //pseudo_desc.type    = SK_D3D11_ShaderType::Invalid;
@@ -2468,7 +2468,7 @@ SK_D3D11_SetShaderResources_Impl (
 
     if (active && shader_crc32c != 0 && cs_lock != nullptr)
     {
-      std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_lock);
+      std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_lock);
 
       for (UINT i = 0; i < NumViews; i++)
       {
@@ -3026,7 +3026,7 @@ SK_D3D11_Map_Impl (
           D3D11_BUFFER_DESC  buf_desc = { };
           pBuffer->GetDesc (&buf_desc);
           {
-            ///std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+            ///std::scoped_lock <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
             // Extra memory allocation pressure for no good reason -- kill it.
             //
@@ -3131,7 +3131,7 @@ SK_D3D11_Unmap_Impl (
     // More of an assertion, if this fails something's screwy!
     if (map_ctx.textures.count (pResource))
     {
-      ////std::lock_guard <SK_Thread_CriticalSection> auto_lock  (*cs_mmio);
+      ////std::scoped_lock <SK_Thread_CriticalSection> auto_lock  (*cs_mmio);
 
       uint64_t time_elapsed =
         SK_QueryPerf ().QuadPart - map_ctx.texture_times [pResource];
@@ -3634,7 +3634,7 @@ SK_ReShade_InstallCopyResourceCallback (SK_ReShade_OnCopyResourceD3D11_pfn fn, v
 class SK_D3D11_AbstractBlacklist
 {
 public:
-  operator uint32_t (void) explicit const {
+  explicit operator uint32_t (void) explicit const {
     return for_shader.crc32c;
   };
 
@@ -8589,7 +8589,7 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
         {
           ImGui::TreePush ("");
 
-          std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+          std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
 
           SK_ComPtr <ID3D11ShaderResourceView> pSRV2 = nullptr;
 
@@ -8771,7 +8771,7 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   static auto& Textures_2D =
     textures->Textures_2D;
 
-  std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+  std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
 
   ImGui::PushID ("Texture2D_D3D11");
 
@@ -10521,7 +10521,7 @@ SK_ImGui_AutoFont::Detach (void)
 void
 SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 {
-  std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_shader);
+  std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_shader);
 
   ImGuiIO& io (ImGui::GetIO ());
 
@@ -11482,7 +11482,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         {
           //if ( SK_D3D11_Shaders->vertex.descs [tracker->crc32c].bytecode.empty () )
           //{
-            std::lock_guard <SK_Thread_CriticalSection> auto_lock_vs (*cs_shader_vs);
+            std::scoped_lock <SK_Thread_CriticalSection> auto_lock_vs (*cs_shader_vs);
 
             static auto& vertex =
               SK_D3D11_Shaders->vertex;
@@ -11499,7 +11499,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         {
           //if ( SK_D3D11_Shaders->pixel.descs [tracker->crc32c].bytecode.empty () )
           //{
-            std::lock_guard <SK_Thread_CriticalSection> auto_lock_ps (*cs_shader_ps);
+            std::scoped_lock <SK_Thread_CriticalSection> auto_lock_ps (*cs_shader_ps);
 
             static auto& pixel =
               SK_D3D11_Shaders->pixel;
@@ -11516,7 +11516,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         {
           //if ( SK_D3D11_Shaders->geometry.descs [tracker->crc32c].bytecode.empty () )
           //{
-            std::lock_guard <SK_Thread_CriticalSection> auto_lock_gs (*cs_shader_gs);
+            std::scoped_lock <SK_Thread_CriticalSection> auto_lock_gs (*cs_shader_gs);
 
             static auto& geometry =
               SK_D3D11_Shaders->geometry;
@@ -11533,7 +11533,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         {
           //if ( SK_D3D11_Shaders->hull.descs [tracker->crc32c].bytecode.empty () )
           //{
-            std::lock_guard <SK_Thread_CriticalSection> auto_lock_hs (*cs_shader_hs);
+            std::scoped_lock <SK_Thread_CriticalSection> auto_lock_hs (*cs_shader_hs);
 
             static auto& hull =
               SK_D3D11_Shaders->hull;
@@ -11550,7 +11550,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         {
           //if ( SK_D3D11_Shaders->domain.descs [tracker->crc32c].bytecode.empty () )
           //{
-            std::lock_guard <SK_Thread_CriticalSection> auto_lock_ds (*cs_shader_ds);
+            std::scoped_lock <SK_Thread_CriticalSection> auto_lock_ds (*cs_shader_ds);
 
             static auto& domain =
               SK_D3D11_Shaders->domain;
@@ -11567,7 +11567,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         {
           //if ( SK_D3D11_Shaders->compute.descs [tracker->crc32c].bytecode.empty () )
           //{
-            std::lock_guard <SK_Thread_CriticalSection> auto_lock_cs (*cs_shader_cs);
+            std::scoped_lock <SK_Thread_CriticalSection> auto_lock_cs (*cs_shader_cs);
 
             static auto& compute =
               SK_D3D11_Shaders->compute;
@@ -11795,7 +11795,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         pShader->addTrackingRef (pShader->blacklist, tracker->crc32c);
         InterlockedIncrement    (&SK_D3D11_DrawTrackingReqs);
       }
-      else if (pShader->blacklist.count (tracker->crc32c))
+      else if (pShader->blacklist.count (tracker->crc32c) != 0)
       {
         do {
           InterlockedDecrement                 (&SK_D3D11_DrawTrackingReqs);
@@ -11808,9 +11808,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (shader_type != sk_shader_class::Compute)
     {
-      wireframe = pShader->wireframe.count (tracker->crc32c);
-      on_top    = pShader->on_top.count    (tracker->crc32c);
-      hud       = pShader->hud.count       (tracker->crc32c);
+      wireframe = pShader->wireframe.count (tracker->crc32c) != 0;
+      on_top    = pShader->on_top.count    (tracker->crc32c) != 0;
+      hud       = pShader->hud.count       (tracker->crc32c) != 0;
 
       const bool wire = wireframe;
 
@@ -11824,7 +11824,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           pShader->addTrackingRef (pShader->wireframe, tracker->crc32c);
           InterlockedIncrement    (&SK_D3D11_DrawTrackingReqs);
         }
-        else if (pShader->wireframe.count (tracker->crc32c))
+        else if (pShader->wireframe.count (tracker->crc32c) != 0)
         {
           do {
             InterlockedDecrement                 (&SK_D3D11_DrawTrackingReqs);
@@ -11848,7 +11848,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           InterlockedIncrement    (&SK_D3D11_DrawTrackingReqs);
         }
 
-        else if (pShader->on_top.count (tracker->crc32c))
+        else if (pShader->on_top.count (tracker->crc32c) != 0)
         {
           do {
             InterlockedDecrement                 (&SK_D3D11_DrawTrackingReqs);
@@ -11871,7 +11871,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           pShader->addTrackingRef     (pShader->hud, tracker->crc32c);
         }
 
-        else if (pShader->hud.count (tracker->crc32c))
+        else if (pShader->hud.count (tracker->crc32c) != 0)
         {
           while (! pShader->releaseTrackingRef (pShader->hud, tracker->crc32c))
             ;
@@ -11888,8 +11888,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (SK_ReShade_PresentCallback->fn != nullptr && shader_type != sk_shader_class::Compute)
     {
-      bool reshade_before = pShader->trigger_reshade.before.count (tracker->crc32c);
-      bool reshade_after  = pShader->trigger_reshade.after.count  (tracker->crc32c);
+      bool reshade_before = pShader->trigger_reshade.before.count (tracker->crc32c) != 0;
+      bool reshade_after  = pShader->trigger_reshade.after.count  (tracker->crc32c) != 0;
 
       if (ImGui::Checkbox ("Trigger ReShade On First Draw", &reshade_before))
       {
@@ -11898,7 +11898,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           pShader->addTrackingRef (pShader->trigger_reshade.before, tracker->crc32c);
           InterlockedIncrement    (&SK_D3D11_DrawTrackingReqs);
         }
-        else if (pShader->trigger_reshade.before.count (tracker->crc32c))
+        else if (pShader->trigger_reshade.before.count (tracker->crc32c) != 0)
         {
           do {
             InterlockedDecrement                 (&SK_D3D11_DrawTrackingReqs);
@@ -11913,7 +11913,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           pShader->addTrackingRef (pShader->trigger_reshade.after, tracker->crc32c);
           InterlockedIncrement    (&SK_D3D11_DrawTrackingReqs);
         }
-        else if (pShader->trigger_reshade.after.count (tracker->crc32c))
+        else if (pShader->trigger_reshade.after.count (tracker->crc32c) != 0)
         {
           do {
             InterlockedDecrement                 (&SK_D3D11_DrawTrackingReqs);
@@ -12393,13 +12393,13 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         { sk_shader_class::Compute,  ShaderColorDecl ( 5) } };
 
 
-  std::lock_guard <SK_Thread_CriticalSection> auto_lock_gp (*cs_shader);
-  std::lock_guard <SK_Thread_CriticalSection> auto_lock_vs (*cs_shader_vs);
-  std::lock_guard <SK_Thread_CriticalSection> auto_lock_ps (*cs_shader_ps);
-  std::lock_guard <SK_Thread_CriticalSection> auto_lock_gs (*cs_shader_gs);
-  std::lock_guard <SK_Thread_CriticalSection> auto_lock_ds (*cs_shader_ds);
-  std::lock_guard <SK_Thread_CriticalSection> auto_lock_hs (*cs_shader_hs);
-  std::lock_guard <SK_Thread_CriticalSection> auto_lock_cs (*cs_shader_cs);
+  std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                     SK_Thread_HybridSpinlock >
+    fort_knox ( *cs_shader,    *cs_shader_vs, *cs_shader_ps,
+                *cs_shader_gs, *cs_shader_ds, *cs_shader_hs,
+                *cs_shader_cs );
 
 
   ImGuiIO& io (ImGui::GetIO ());
@@ -12705,7 +12705,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       if (ImGui::CollapsingHeader ("Live Memory View", ImGuiTreeNodeFlags_DefaultOpen))
       {
         SK_D3D11_EnableMMIOTracking = true;
-        ////std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+        ////std::scoped_lock <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
         ImGui::BeginChild ( ImGui::GetID ("Render_MemStats_D3D11"), ImVec2 (0, 0), false,
                             ImGuiWindowFlags_NoNavInputs |
@@ -12914,7 +12914,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       {
         std::unordered_map < ID3D11RenderTargetView*, UINT > rt_indexes;
 
-        std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+        std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
 
         //SK_AutoCriticalSection auto_cs_rv (&cs_render_view, true);
 
@@ -13024,7 +13024,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
               if (pDev != nullptr)
               {
-                if (! render_lifetime.count (it))
+                if (render_lifetime.count (it) == 0)
                 {
                   render_textures.push_back (it);
                   render_lifetime.insert    ( std::make_pair (it,
@@ -13061,7 +13061,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
           for (auto& it : render_textures)
           {
-            if ( render_lifetime.count (it) &&
+            if ( render_lifetime.count (it) != 0 &&
                        render_lifetime [it].last_frame < time_to_live )
             {
               render_lifetime.erase (it);
@@ -13108,7 +13108,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               UINT   size        = 4;
               UINT   data        = 0;
 
-              if (live_textures.count (it))
+              if (live_textures.count (it) != 0)
               {
                 if ( FAILED (it->GetPrivateData ( SKID_D3D11DeviceContextHandle, &size, &data )))
                 {
@@ -13183,7 +13183,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
             );// , Silent);
             try
             {
-              if (live_textures.count (it))
+              if (live_textures.count (it) != 0)
               {
                 rtv_idx =
                   rt_indexes [it];
@@ -13218,8 +13218,8 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
             if (! named)
             {
               sprintf ( szDesc, "%07lu###rtv_%lu",
-                         (! discard_views.count (it)) ? rtv_idx :
-                           ReadAcquire (&idx_counter), rtv_idx );
+                         (discard_views.count (it) == 0) ? rtv_idx :
+                               ReadAcquire (&idx_counter), rtv_idx );
             }
 
             temp_list.emplace_back (szDesc);
@@ -14081,8 +14081,8 @@ void
 __stdcall
 SKX_ImGui_RegisterDiscardableResource (IUnknown* pRes)
 {
-  std::lock_guard <SK_Thread_CriticalSection>
-               auto_lock (*cs_render_view);
+  std::scoped_lock <SK_Thread_CriticalSection>
+                  auto_lock (*cs_render_view);
   SK_D3D11_TempResources->push_back (pRes);
 
   // This function is actually intended to be hooked, and you are expected to
@@ -16706,8 +16706,8 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
 
 #ifdef TRACK_THREADS
   {
-    std::lock_guard <SK_Thread_CriticalSection>
-                   auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_CriticalSection>
+                    auto_lock (*cs_render_view);
 
     SK_D3D11_MemoryThreads->clear_active   ();
     SK_D3D11_ShaderThreads->clear_active   ();
@@ -16723,7 +16723,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
   shaders->reshade_triggered = false;
 
   {
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
 
     RtlZeroMemory ( reshade_trigger_before->data (),
                     reshade_trigger_before->size () * sizeof (bool) );
@@ -16742,8 +16742,8 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
     const UINT dev_idx =
       SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
 
-    std::lock_guard <SK_Thread_CriticalSection>
-                   auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_CriticalSection>
+                    auto_lock (*cs_render_view);
 
     vertex.tracked.deactivate   (nullptr, dev_idx);
     pixel.tracked.deactivate    (nullptr, dev_idx);
@@ -16765,7 +16765,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
 
 
   {
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
     tracked_rtv->clear   ();
 
     ////for ( auto& it : *used_textures ) it->Release ();
@@ -17087,8 +17087,8 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
   }
 
   {
-    std::lock_guard <SK_Thread_CriticalSection>
-                 auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_CriticalSection>
+                    auto_lock (*cs_render_view);
 
     SK_D3D11_TempResources->clear ();
   }

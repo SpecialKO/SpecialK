@@ -212,7 +212,7 @@ SK_KeepAway (void)
   auto _TestUndesirableDll = [](auto& list, INT stage) ->
   INT
   {
-    for ( auto& unwanted_dll : list )
+    for ( auto unwanted_dll : list )
     {
       HANDLE hMod = nullptr;
 
@@ -526,7 +526,7 @@ SK_LoadLocalModule (const wchar_t* wszModule)
 BOOL
 SK_TryLocalWrapperFirst (const std::set <std::wstring>& dlls)
 {
-  for ( const auto& dll : dlls )
+  for ( const auto dll : dlls )
   {
     if ( SK_IsDLLSpecialK   (dll.c_str ()) &&
          SK_LoadLocalModule (dll.c_str ()) )

@@ -90,18 +90,18 @@ struct SK_XInputContext
     XInput1_4   { },
     XInput9_1_0 { };
 
-  SK_Thread_HybridSpinlock          cs_poll   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x100),
-                                                                             SK_Thread_HybridSpinlock (0x100),
-                                                                             SK_Thread_HybridSpinlock (0x100),
+  SK_Thread_HybridSpinlock          cs_poll   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x200),
+                                                                             SK_Thread_HybridSpinlock (0x200),
+                                                                             SK_Thread_HybridSpinlock (0x200),
                                                                              SK_Thread_HybridSpinlock (0x100) },
-                                    cs_haptic [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x080),
-                                                                             SK_Thread_HybridSpinlock (0x080),
-                                                                             SK_Thread_HybridSpinlock (0x080),
-                                                                             SK_Thread_HybridSpinlock (0x080) },
-                                    cs_hook   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x040),
+                                    cs_haptic [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x040),
                                                                              SK_Thread_HybridSpinlock (0x040),
                                                                              SK_Thread_HybridSpinlock (0x040),
                                                                              SK_Thread_HybridSpinlock (0x040) },
+                                    cs_hook   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x010),
+                                                                             SK_Thread_HybridSpinlock (0x010),
+                                                                             SK_Thread_HybridSpinlock (0x010),
+                                                                             SK_Thread_HybridSpinlock (0x010) },
                                     cs_caps   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x100),
                                                                              SK_Thread_HybridSpinlock (0x100),
                                                                              SK_Thread_HybridSpinlock (0x100),
@@ -152,6 +152,21 @@ struct SK_XInputContext
 
 SK_LazyGlobal <SK_XInputContext> xinput_ctx;
 
+#define SK_XINPUT_CALL(lock,idx,_invoke) [&]()->     \
+        auto                                         \
+        {                                            \
+          auto& __xinput_ctx = xinput_ctx.get ();    \
+                                                     \
+          std::scoped_lock <                         \
+            SK_Thread_HybridSpinlock,                \
+            SK_Thread_HybridSpinlock                 \
+          > lock_and_call (                          \
+            lock, __xinput_ctx.cs_hook [idx]         \
+          );                                         \
+                                                     \
+          return (_invoke);                          \
+        }()
+
 void
 SK_ApplyQueuedHooksIfInit (void)
 {
@@ -181,7 +196,7 @@ SK_XInput_GetPrimaryHookName (void)
 #define SK_XINPUT_READ(type)  SK_XInput_Backend->markRead  (type);
 #define SK_XINPUT_WRITE(type) SK_XInput_Backend->markWrite (type);
 
-static std::unordered_set <HMODULE> warned_modules;
+static SK_LazyGlobal <std::unordered_set <HMODULE>> warned_modules;
 
 void
 SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
@@ -199,9 +214,12 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
   else if (pCtx != ReadPointerAcquire ((volatile LPVOID*)&_xinput_ctx.primary_hook) &&
                    ReadPointerAcquire ((volatile LPVOID*)&_xinput_ctx.primary_hook) != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_hook [0]);
+    std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                       SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock >
+      hook_lock ( _xinput_ctx.cs_hook [0], _xinput_ctx.cs_hook [1],
+                  _xinput_ctx.cs_hook [2], _xinput_ctx.cs_hook [3] );
 
-    if (! warned_modules.count (hModCaller))
+    if (! warned_modules->count (hModCaller))
     {
       SK_LOG0 ( ( L"WARNING: Third-party module '%s' uses different XInput interface version "
                   L"(%s) than the game (%s); input reassignment software may not work correctly.",
@@ -212,7 +230,7 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
                    ))->wszModuleName ),
                   L"Input Mgr." );
 
-      warned_modules.insert (hModCaller);
+      warned_modules->insert (hModCaller);
     }
   }
 }
@@ -244,8 +262,8 @@ SK_XInput_Enable ( BOOL bEnable )
   SK_XInputContext::instance_s*
     contexts [] =
       { //&(xinput_ctx->XInput9_1_0), // Undefined
-        &(xinput_ctx->XInput1_3),
-        &(xinput_ctx->XInput1_4) };
+        &(_xinput_ctx.XInput1_3),
+        &(_xinput_ctx.XInput1_4) };
 
   for ( auto& context : contexts )
   {
@@ -268,11 +286,8 @@ XInputEnable1_3_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_hook [0]);
-
   SK_XInputContext::instance_s* pCtx =
-    //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+    &_xinput_ctx.XInput1_3;
 
   if (! config.window.background_render)
   //  pCtx->XInputEnable_Original (TRUE);
@@ -298,14 +313,12 @@ XInputGetState1_3_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -313,13 +326,15 @@ XInputGetState1_3_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+    &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetState_Original   (dwUserIndex, pState);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_poll      [dwUserIndex],
+                                                 dwUserIndex,
+                  pCtx->XInputGetState_Original (dwUserIndex, pState)
+      );
 
     SK_ImGui_FilterXInput           (dwUserIndex, pState);
   SK_XInput_PacketJournalize (dwRet, dwUserIndex, pState);
@@ -349,14 +364,12 @@ XInputGetStateEx1_3_Detour (
 
   auto& _xinput_ctx = xinput_ctx.get ();
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -364,13 +377,15 @@ XInputGetStateEx1_3_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+    &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetStateEx_Original   (dwUserIndex, pState);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_poll        [dwUserIndex],
+                                                   dwUserIndex,
+                  pCtx->XInputGetStateEx_Original (dwUserIndex, pState)
+      );
 
     SK_ImGui_FilterXInput             (dwUserIndex, (XINPUT_STATE *)pState);
     SK_XInput_PacketJournalize (dwRet, dwUserIndex, (XINPUT_STATE *)pState);
@@ -401,25 +416,25 @@ XInputGetCapabilities1_3_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+  RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+    &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_caps      [dwUserIndex],
+                                                 dwUserIndex,
+           pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities)
+      );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -445,25 +460,25 @@ XInputGetBatteryInformation1_3_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pBatteryInformation == nullptr)         return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+  RtlZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
   if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+    &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_caps         [dwUserIndex],
+                                                    dwUserIndex,
+        pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation)
+      );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -481,7 +496,8 @@ XInputSetState1_3_Detour (
   _In_    DWORD             dwUserIndex,
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
-  auto& _xinput_ctx = xinput_ctx.get ();
+  auto& _xinput_ctx =
+         xinput_ctx.get ();
 
   if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
     return ERROR_SUCCESS;
@@ -491,14 +507,11 @@ XInputSetState1_3_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_haptic [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+    &_xinput_ctx.XInput1_3;
 
   if (! xinput_enabled)
   {
@@ -506,10 +519,14 @@ XInputSetState1_3_Detour (
     return ERROR_SUCCESS;
   }
 
-  if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion (dwUserIndex, false); return pCtx->XInputSetState_Original (dwUserIndex, pVibration); }
+  if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion            (dwUserIndex, false);
+                                        return SK_XINPUT_CALL ( _xinput_ctx.cs_haptic [dwUserIndex],
+                                                                                       dwUserIndex,
+                                                        pCtx->XInputSetState_Original (dwUserIndex, pVibration));
+                                      }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        SecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
-                                      return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
+                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
@@ -518,21 +535,24 @@ XInputSetState1_3_Detour (
                config.input.gamepad.disable_rumble;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-      nop ?
-        ERROR_SUCCESS :
-        pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
+                                                             nop ?
+                                                   ERROR_SUCCESS :
+    SK_XINPUT_CALL ( _xinput_ctx.cs_haptic [dwUserIndex],
+                                            dwUserIndex,
+             pCtx->XInputSetState_Original (dwUserIndex, pVibration)
+    );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
-
-  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+    SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-  return dwRet;
+
+  return
+    dwRet;
 }
 
 
@@ -546,9 +566,6 @@ XInputEnable1_4_Detour (
 
   HMODULE hModCaller =
     SK_GetCallingDLL ( );
-
-  std::lock_guard <SK_Thread_HybridSpinlock>
-       lock_me_up (_xinput_ctx.cs_hook [0]);
 
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_4;
@@ -575,14 +592,12 @@ XInputGetState1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -593,9 +608,12 @@ XInputGetState1_4_Detour (
     &_xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetState_Original   (dwUserIndex, pState);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_poll      [dwUserIndex],
+                                                 dwUserIndex,
+                  pCtx->XInputGetState_Original (dwUserIndex, pState)
+      );
 
     SK_ImGui_FilterXInput           (dwUserIndex, pState);
   SK_XInput_PacketJournalize (dwRet, dwUserIndex, pState);
@@ -625,14 +643,12 @@ XInputGetStateEx1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -643,9 +659,12 @@ XInputGetStateEx1_4_Detour (
     &_xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetStateEx_Original        (dwUserIndex, pState);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_poll [dwUserIndex],
+                                            dwUserIndex,
+           pCtx->XInputGetStateEx_Original (dwUserIndex, pState)
+      );
 
     SK_ImGui_FilterXInput           (       dwUserIndex, (XINPUT_STATE *)pState);
     SK_XInput_PacketJournalize      (dwRet, dwUserIndex, (XINPUT_STATE *)pState);
@@ -676,14 +695,12 @@ XInputGetCapabilities1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+  RtlZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -691,9 +708,12 @@ XInputGetCapabilities1_4_Detour (
     &_xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL (   _xinput_ctx.cs_caps [dwUserIndex],
+                                              dwUserIndex,
+        pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities)
+      );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -719,14 +739,12 @@ XInputGetBatteryInformation1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pBatteryInformation == nullptr) return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+  RtlZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
@@ -734,9 +752,13 @@ XInputGetBatteryInformation1_4_Detour (
     &_xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL (         _xinput_ctx.cs_caps [dwUserIndex],
+                                                    dwUserIndex,
+        pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType,
+                                                    pBatteryInformation)
+      );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -754,7 +776,8 @@ XInputSetState1_4_Detour (
   _In_    DWORD             dwUserIndex,
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
-  auto& _xinput_ctx = xinput_ctx.get ();
+  auto& _xinput_ctx =
+         xinput_ctx.get ();
 
   if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
     return ERROR_SUCCESS;
@@ -764,13 +787,11 @@ XInputSetState1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_haptic [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-    &_xinput_ctx.XInput1_4;
+                        &_xinput_ctx.XInput1_4;
 
   if (! xinput_enabled)
   {
@@ -778,10 +799,14 @@ XInputSetState1_4_Detour (
     return ERROR_SUCCESS;
   }
 
-  if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion (dwUserIndex, false); return pCtx->XInputSetState_Original (dwUserIndex, pVibration); }
+  if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion            (dwUserIndex, false);
+                                        return SK_XINPUT_CALL ( _xinput_ctx.cs_haptic [dwUserIndex],
+                                                                                       dwUserIndex,
+                                                        pCtx->XInputSetState_Original (dwUserIndex, pVibration));
+                                      }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        SecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
-                                      return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
+                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
@@ -790,21 +815,24 @@ XInputSetState1_4_Detour (
                config.input.gamepad.disable_rumble;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-      nop ?
-        ERROR_SUCCESS :
-        pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
+                                                             nop ?
+                                                   ERROR_SUCCESS :
+    SK_XINPUT_CALL ( _xinput_ctx.cs_haptic [dwUserIndex],
+                                            dwUserIndex,
+             pCtx->XInputSetState_Original (dwUserIndex, pVibration)
+    );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
-
-  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+    SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-  return dwRet;
+
+  return
+    dwRet;
 }
 
 
@@ -821,14 +849,12 @@ XInputGetState9_1_0_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -836,14 +862,15 @@ XInputGetState9_1_0_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-     //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
-                                            &_xinput_ctx.XInput9_1_0;
+    &_xinput_ctx.XInput9_1_0;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetState_Original   (dwUserIndex, pState);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_poll [dwUserIndex],
+                                            dwUserIndex,
+             pCtx->XInputGetState_Original (dwUserIndex, pState)
+      );
 
     SK_ImGui_FilterXInput           (dwUserIndex, pState);
   SK_XInput_PacketJournalize (dwRet, dwUserIndex, pState);
@@ -875,8 +902,10 @@ XInputGetCapabilities9_1_0_Detour (
        dwUserIndex < XUSER_MAX_COUNT &&
          __cached_caps [dwUserIndex].first == ERROR_SUCCESS )
   {
-    *pCapabilities =
-      __cached_caps [dwUserIndex].second;
+    if (pCapabilities != nullptr)
+    {  *pCapabilities =
+         __cached_caps [dwUserIndex].second;
+    }
 
     return
       __cached_caps [dwUserIndex].first;
@@ -891,26 +920,25 @@ XInputGetCapabilities9_1_0_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+  RtlZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-     //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
-                                             &_xinput_ctx.XInput9_1_0;
+    &_xinput_ctx.XInput9_1_0;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL (   _xinput_ctx.cs_caps [dwUserIndex],
+                                              dwUserIndex,
+        pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities)
+      );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -931,7 +959,8 @@ XInputSetState9_1_0_Detour (
   _In_    DWORD             dwUserIndex,
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
-  auto& _xinput_ctx = xinput_ctx.get ();
+  auto& _xinput_ctx =
+         xinput_ctx.get ();
 
   if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
     return ERROR_SUCCESS;
@@ -941,29 +970,26 @@ XInputSetState9_1_0_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_haptic [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-     //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
-                                             &_xinput_ctx.XInput9_1_0;
+    &_xinput_ctx.XInput9_1_0;
 
   if (! xinput_enabled)
   {
-    _xinput_ctx.preventHapticRecursion (
-      dwUserIndex, false
-    );
-
+    _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
     return ERROR_SUCCESS;
   }
 
-  if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion (dwUserIndex, false); return pCtx->XInputSetState_Original (dwUserIndex, pVibration); }
+  if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion            (dwUserIndex, false);
+                                        return SK_XINPUT_CALL ( _xinput_ctx.cs_haptic [dwUserIndex],
+                                                                                       dwUserIndex,
+                                                        pCtx->XInputSetState_Original (dwUserIndex, pVibration));
+                                      }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        SecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
-                                      return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
+                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
@@ -972,21 +998,24 @@ XInputSetState9_1_0_Detour (
                config.input.gamepad.disable_rumble;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-      nop ?
-        ERROR_SUCCESS :
-        pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
+                                                             nop ?
+                                                   ERROR_SUCCESS :
+    SK_XINPUT_CALL ( _xinput_ctx.cs_haptic [dwUserIndex],
+                                            dwUserIndex,
+             pCtx->XInputSetState_Original (dwUserIndex, pVibration)
+    );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
-
-  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+    SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-  return dwRet;
+
+  return
+    dwRet;
 }
 
 
@@ -1176,8 +1205,8 @@ SK_Input_HookXInput1_3 (void)
 
       SK_Input_HookXInputContext (pCtx);
 
-      if (           ReadPointerAcquire ((LPVOID *)&_xinput_ctx.primary_hook) == nullptr)
-      InterlockedExchangePointer        ((LPVOID *)&_xinput_ctx.primary_hook, &_xinput_ctx.XInput1_3);
+      if (               ReadPointerAcquire ((LPVOID *)&_xinput_ctx.primary_hook) == nullptr)
+          InterlockedExchangePointer        ((LPVOID *)&_xinput_ctx.primary_hook, &_xinput_ctx.XInput1_3);
     }
 
     InterlockedIncrementRelease (&hooked);
@@ -1260,10 +1289,10 @@ SK_XInput_RehookIfNeeded (void)
     return;
 
 
-  _xinput_ctx.cs_hook [3].lock ();
-  _xinput_ctx.cs_hook [2].lock ();
-  _xinput_ctx.cs_hook [1].lock ();
-  _xinput_ctx.cs_hook [0].lock ();
+  std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock >
+      hook_lock ( _xinput_ctx.cs_hook [0], _xinput_ctx.cs_hook [1],
+                  _xinput_ctx.cs_hook [2], _xinput_ctx.cs_hook [3] );
 
 
   MH_STATUS ret =
@@ -1587,11 +1616,6 @@ SK_XInput_RehookIfNeeded (void)
 
   if (pCtx->XInputEnable_Target != nullptr)
     memcpy (pCtx->orig_inst_enable, pCtx->XInputEnable_Target,              6);
-
-  _xinput_ctx.cs_hook [0].unlock ();
-  _xinput_ctx.cs_hook [1].unlock ();
-  _xinput_ctx.cs_hook [2].unlock ();
-  _xinput_ctx.cs_hook [3].unlock ();
 }
 
 
@@ -1645,8 +1669,6 @@ SK_XInput_PulseController ( INT   iJoyID,
   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
     return false;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_haptic[iJoyID]);
-
   XINPUT_VIBRATION vibes;
 
   vibes.wLeftMotorSpeed  = (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f);
@@ -1678,8 +1700,14 @@ SK_XInput_PulseController ( INT   iJoyID,
     set_values [iJoyID] = vibes;
     set_frames [iJoyID] = SK_GetFramesDrawn ();
 
+    DWORD dwRet =
+      SK_XINPUT_CALL ( _xinput_ctx.cs_haptic    [iJoyID],
+                                                 iJoyID,
+                  pCtx->XInputSetState_Original (iJoyID, &vibes)
+      );
+
     if ( ERROR_SUCCESS ==
-           pCtx->XInputSetState_Original ( iJoyID, &vibes ) )
+           dwRet )
     {
       return true;
     }
@@ -1733,9 +1761,6 @@ SK_XInput_PollController ( INT           iJoyID,
     return false;
 
   auto& _xinput_ctx = xinput_ctx.get ();
-
-  std::lock_guard <SK_Thread_HybridSpinlock>
-    auto_lock (_xinput_ctx.cs_poll [iJoyID]);
 
   auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
@@ -1852,8 +1877,10 @@ SK_XInput_PollController ( INT           iJoyID,
   {
     if (pCtx->XInputGetStateEx_Original != nullptr)
     {
-      WriteULongRelease (&dwRet [iJoyID],
-        pCtx->XInputGetStateEx_Original (iJoyID, &xstate)
+      WriteULongRelease ( &dwRet              [iJoyID],
+        SK_XINPUT_CALL  ( _xinput_ctx.cs_poll [iJoyID],
+                                               iJoyID,
+              pCtx->XInputGetStateEx_Original (iJoyID, &xstate) )
       );
     }
 
@@ -1862,14 +1889,16 @@ SK_XInput_PollController ( INT           iJoyID,
     {
       if (pCtx->XInputGetState_Original != nullptr)
       {
-        WriteULongRelease (&dwRet [iJoyID],
-          pCtx->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate)
+        WriteULongRelease ( &dwRet              [iJoyID],
+          SK_XINPUT_CALL  ( _xinput_ctx.cs_poll [iJoyID],
+                                                 iJoyID,
+                  pCtx->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate) )
         );
       }
     }
 
-    if (ReadULongAcquire (&dwRet [iJoyID]) == ERROR_DEVICE_NOT_CONNECTED)
-      WriteULongRelease (&last_poll [iJoyID], timeGetTime ());
+    if (ReadULongAcquire (&dwRet     [iJoyID]) == ERROR_DEVICE_NOT_CONNECTED)
+       WriteULongRelease (&last_poll [iJoyID], timeGetTime ());
   }
 
   InterlockedExchange ( &_xinput_ctx.LastSlotState [iJoyID],
@@ -1898,8 +1927,10 @@ SK_Input_PreHookXInput (void)
 
   auto& _xinput_ctx = xinput_ctx.get ();
 
-  std::lock_guard <SK_Thread_HybridSpinlock>
-    auto_lock (_xinput_ctx.cs_hook [0]);
+  std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock >
+      hook_lock ( _xinput_ctx.cs_hook [0], _xinput_ctx.cs_hook [1],
+                  _xinput_ctx.cs_hook [2], _xinput_ctx.cs_hook [3] );
 
   auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
@@ -2168,7 +2199,7 @@ SK_XInput_GetPrimaryHookName (void)
 #define SK_XINPUT_READ(type)  SK_XInput_Backend->markRead  (type);
 #define SK_XINPUT_WRITE(type) SK_XInput_Backend->markWrite (type);
 
-static std::unordered_set <HMODULE> warned_modules;
+static SK_LazyGlobal <std::unordered_set <HMODULE>> warned_modules;
 
 void
 SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
@@ -2186,9 +2217,12 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
   else if (pCtx != ReadPointerAcquire ((volatile LPVOID*)&_xinput_ctx.primary_hook) &&
                    ReadPointerAcquire ((volatile LPVOID*)&_xinput_ctx.primary_hook) != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
+    std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                       SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock >
+      hook_lock ( _xinput_ctx.cs_hook [0], _xinput_ctx.cs_hook [1],
+                  _xinput_ctx.cs_hook [2], _xinput_ctx.cs_hook [3] );
 
-    if (! warned_modules.count (hModCaller))
+    if (! warned_modules->count (hModCaller))
     {
       SK_LOG0 ( ( L"WARNING: Third-party module '%s' uses different XInput interface version "
                   L"(%s) than the game (%s); input reassignment software may not work correctly.",
@@ -2199,7 +2233,7 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
                    ))->wszModuleName ),
                   L"Input Mgr." );
 
-      warned_modules.insert (hModCaller);
+      warned_modules->insert (hModCaller);
     }
   }
 }
@@ -2223,7 +2257,7 @@ SK_XInput_Enable ( BOOL bEnable )
   auto& _xinput_ctx =
          xinput_ctx.get ();
 
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
+  std::scoped_lock <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [3]);
 
   if (  _xinput_ctx.primary_hook                        != nullptr)
   { if (_xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
@@ -2285,23 +2319,19 @@ XInputGetState1_3_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+  SK_XInputContext::instance_s* pCtx = &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -2329,43 +2359,42 @@ XInputGetStateEx1_3_Detour (
   _In_  DWORD            dwUserIndex,
   _Out_ XINPUT_STATE_EX *pState )
 {
+  auto& _xinput_ctx = xinput_ctx.get ();
+
   HMODULE hModCaller = SK_GetCallingDLL ();
 
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
-
-  auto& _xinput_ctx = xinput_ctx.get ();
-
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+  SK_XInputContext::instance_s* pCtx = &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetStateEx_Original   (dwUserIndex, pState);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_poll [dwUserIndex],
+                                            dwUserIndex,
+           pCtx->XInputGetStateEx_Original (dwUserIndex, pState)
+      );
 
-    SK_ImGui_FilterXInput             (dwUserIndex, (XINPUT_STATE *)pState);
-    SK_XInput_PacketJournalize (dwRet, dwUserIndex, (XINPUT_STATE *)pState);
+    SK_ImGui_FilterXInput           (       dwUserIndex, (XINPUT_STATE *)pState);
+    SK_XInput_PacketJournalize      (dwRet, dwUserIndex, (XINPUT_STATE *)pState);
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
   dwRet =
-    SK_XInput_PlaceHoldEx      (dwRet, dwUserIndex, pState);
+    SK_XInput_PlaceHoldEx           (dwRet, dwUserIndex, pState);
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -2388,25 +2417,24 @@ XInputGetCapabilities1_3_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+  RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+  SK_XInputContext::instance_s* pCtx = &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+    SK_XINPUT_CALL (   _xinput_ctx.cs_caps [dwUserIndex],
+                                            dwUserIndex,
+      pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities)
+    );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -2432,25 +2460,24 @@ XInputGetBatteryInformation1_3_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pBatteryInformation == nullptr)         return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+  RtlZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
   if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+  SK_XInputContext::instance_s* pCtx = &_xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+    SK_XINPUT_CALL (         _xinput_ctx.cs_caps [dwUserIndex],
+                                                  dwUserIndex,
+      pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation)
+    );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -2468,7 +2495,8 @@ XInputSetState1_3_Detour (
   _In_    DWORD             dwUserIndex,
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
-  auto& _xinput_ctx = xinput_ctx.get ();
+  auto& _xinput_ctx =
+         xinput_ctx.get ();
 
   if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
     return ERROR_SUCCESS;
@@ -2478,14 +2506,11 @@ XInputSetState1_3_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_haptic [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-  //(_xinput_ctx.XInput1_4.hMod != nullptr) ? &_xinput_ctx.XInput1_4 :
-                                              &_xinput_ctx.XInput1_3;
+    &_xinput_ctx.XInput1_3;
 
   if (! xinput_enabled)
   {
@@ -2493,12 +2518,14 @@ XInputSetState1_3_Detour (
     return ERROR_SUCCESS;
   }
 
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
-
-  if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion (dwUserIndex, false); return pCtx->XInputSetState_Original (dwUserIndex, pVibration); }
+  if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion            (dwUserIndex, false);
+                                        return SK_XINPUT_CALL ( _xinput_ctx.cs_haptic [dwUserIndex],
+                                                                                       dwUserIndex,
+                                                        pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+                                      }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        SecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
-                                      return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
+                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
@@ -2507,21 +2534,24 @@ XInputSetState1_3_Detour (
                config.input.gamepad.disable_rumble;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-      nop ?
-        ERROR_SUCCESS :
-        pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
+                                                             nop ?
+                                                   ERROR_SUCCESS :
+    SK_XINPUT_CALL ( _xinput_ctx.cs_haptics [dwUserIndex],
+                                             dwUserIndex,
+             pCtx->XInputSetState_Original  (dwUserIndex, pVibration)
+    );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
-
-  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+    SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-  return dwRet;
+
+  return
+    dwRet;
 }
 
 
@@ -2561,14 +2591,12 @@ XInputGetState1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -2578,12 +2606,13 @@ XInputGetState1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_4;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
-
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetState_Original   (dwUserIndex, pState);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+    SK_XINPUT_CALL ( _xinput_ctx.cs_poll [dwUserIndex],
+                                          dwUserIndex,
+           pCtx->XInputGetState_Original (dwUserIndex, pState)
+    );
 
     SK_ImGui_FilterXInput           (dwUserIndex, pState);
   SK_XInput_PacketJournalize (dwRet, dwUserIndex, pState);
@@ -2613,29 +2642,28 @@ XInputGetStateEx1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
-
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetStateEx_Original        (dwUserIndex, pState);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+    SK_XINPUT_CALL ( _xinput_ctx.cs_poll [dwUserIndex],
+                                          dwUserIndex,
+         pCtx->XInputGetStateEx_Original (dwUserIndex, pState)
+    );
 
     SK_ImGui_FilterXInput           (       dwUserIndex, (XINPUT_STATE *)pState);
     SK_XInput_PacketJournalize      (dwRet, dwUserIndex, (XINPUT_STATE *)pState);
@@ -2666,26 +2694,25 @@ XInputGetCapabilities1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+  RtlZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_4;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
-
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+    SK_XINPUT_CALL (   _xinput_ctx.cs_caps [dwUserIndex],
+                                            dwUserIndex,
+      pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
+    );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -2711,26 +2738,25 @@ XInputGetBatteryInformation1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pBatteryInformation == nullptr) return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+  RtlZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_4;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
-
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+    SK_XINPUT_CALL (         _xinput_ctx.cs_caps [dwUserIndex],
+                                                  dwUserIndex,
+      pCtx->XInputGetBatteryInformation_Original (dwUserIndex, dwFlags, pCapabilities)
+    );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -2758,15 +2784,11 @@ XInputSetState1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_haptic [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_4;
-
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
 
   if (! xinput_enabled)
   {
@@ -2776,7 +2798,7 @@ XInputSetState1_4_Detour (
 
   if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion (dwUserIndex, false); return pCtx->XInputSetState_Original (dwUserIndex, pVibration); }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        SecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                       return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
@@ -2790,7 +2812,11 @@ XInputSetState1_4_Detour (
       ERROR_DEVICE_NOT_CONNECTED :
       nop ?
         ERROR_SUCCESS :
-        pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+          SK_XINPUT_CALL ( _xinput_ctx.cs_haptic [dwUserIndex],
+                                                  dwUserIndex,
+                  pCtx->XInputSetState_Original ( dwUserIndex, pVibration )
+          );
+
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -2817,14 +2843,12 @@ XInputGetState9_1_0_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_poll [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  SecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -2832,16 +2856,15 @@ XInputGetState9_1_0_Detour (
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-     //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-     //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
-                                             &_xinput_ctx.XInput9_1_0;
-
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
+    &_xinput_ctx.XInput9_1_0;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetState_Original   (dwUserIndex, pState);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_poll      [dwUserIndex],
+                                                 dwUserIndex,
+                  pCtx->XInputGetState_Original (dwUserIndex, pState)
+      );
 
     SK_ImGui_FilterXInput           (dwUserIndex, pState);
   SK_XInput_PacketJournalize (dwRet, dwUserIndex, pState);
@@ -2889,28 +2912,25 @@ XInputGetCapabilities9_1_0_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_caps [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  SecureZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+  RtlZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
-   //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-   //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
-                                             &_xinput_ctx.XInput9_1_0;
-
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
+    &_xinput_ctx.XInput9_1_0;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_caps      [dwUserIndex],
+                                                 dwUserIndex,
+           pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
+      );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -2941,17 +2961,11 @@ XInputSetState9_1_0_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_haptic [dwUserIndex]);
-
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
-   //_xinput_ctx.XInput1_4.hMod != nullptr ? &_xinput_ctx.XInput1_4 :
-   //_xinput_ctx.XInput1_3.hMod != nullptr ? &_xinput_ctx.XInput1_3 :
-                                             &_xinput_ctx.XInput9_1_0;
-
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook [0]);
+    &_xinput_ctx.XInput9_1_0;
 
   if (! xinput_enabled)
   {
@@ -2964,7 +2978,7 @@ XInputSetState9_1_0_Detour (
 
   if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion (dwUserIndex, false); return pCtx->XInputSetState_Original (dwUserIndex, pVibration); }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        SecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                       return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
@@ -2974,11 +2988,13 @@ XInputSetState9_1_0_Detour (
                config.input.gamepad.disable_rumble;
 
   DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ?
-      ERROR_DEVICE_NOT_CONNECTED :
-      nop ?
-        ERROR_SUCCESS :
-        pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED : nop ?
+                                      ERROR_SUCCESS
+                                    :
+      SK_XINPUT_CALL ( _xinput_ctx.cs_haptic    [dwUserIndex],
+                                                 dwUserIndex,
+                  pCtx->XInputSetState_Original (dwUserIndex, pVibration)
+      );
 
   InterlockedExchange (&_xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 
@@ -2995,8 +3011,12 @@ XInputSetState9_1_0_Detour (
 void
 SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 {
-                                                  auto& _xinput_ctx = xinput_ctx.get ();
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_hook [0]);
+                                                   auto& _xinput_ctx = xinput_ctx.get ();
+
+  std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock >
+      hook_lock ( _xinput_ctx.cs_hook [0], _xinput_ctx.cs_hook [1],
+                  _xinput_ctx.cs_hook [2], _xinput_ctx.cs_hook [3] );
 
   pCtx->XInputGetState_Target =
     SK_GetProcAddress ( pCtx->wszModuleName,
@@ -3265,7 +3285,10 @@ SK_XInput_RehookIfNeeded (void)
     return;
 
 
-  _xinput_ctx.cs_hook [0].lock ();
+  std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock >
+      hook_lock ( _xinput_ctx.cs_hook [0], _xinput_ctx.cs_hook [1],
+                  _xinput_ctx.cs_hook [2], _xinput_ctx.cs_hook [3] );
 
 
   MH_STATUS ret =
@@ -3589,8 +3612,6 @@ SK_XInput_RehookIfNeeded (void)
 
   if (pCtx->XInputEnable_Target != nullptr)
     memcpy (pCtx->orig_inst_enable, pCtx->XInputEnable_Target,              6);
-
-  _xinput_ctx.cs_hook [0].unlock ();
 }
 
 
@@ -3644,9 +3665,6 @@ SK_XInput_PulseController ( INT   iJoyID,
   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
     return false;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (_xinput_ctx.cs_haptic [iJoyID]);
-  std::lock_guard <SK_Thread_HybridSpinlock> hook_lock (_xinput_ctx.cs_hook   [0]);
-
   XINPUT_VIBRATION vibes;
 
   vibes.wLeftMotorSpeed  = (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f);
@@ -3678,8 +3696,13 @@ SK_XInput_PulseController ( INT   iJoyID,
     set_values [iJoyID] = vibes;
     set_frames [iJoyID] = SK_GetFramesDrawn ();
 
-    if ( ERROR_SUCCESS ==
-           pCtx->XInputSetState_Original ( iJoyID, &vibes ) )
+    DWORD dwRet =
+      SK_XINPUT_CALL ( _xinput_ctx.cs_haptic          [iJoyID],
+                                                       iJoyID,
+                       pCtx->XInputSetState_Original ( iJoyID, &vibes )
+      );
+
+    if ( dwRet == ERROR_SUCCESS )
     {
       return true;
     }
@@ -3733,9 +3756,6 @@ SK_XInput_PollController ( INT           iJoyID,
     return false;
 
   auto& _xinput_ctx = xinput_ctx.get ();
-
-  std::lock_guard <SK_Thread_HybridSpinlock>
-    auto_lock (_xinput_ctx.cs_poll [iJoyID]);
 
   auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
@@ -3852,8 +3872,10 @@ SK_XInput_PollController ( INT           iJoyID,
   {
     if (pCtx->XInputGetStateEx_Original != nullptr)
     {
-      WriteULongRelease (&dwRet [iJoyID],
-        pCtx->XInputGetStateEx_Original (iJoyID, &xstate)
+      WriteULongRelease (             &dwRet [iJoyID],
+        SK_XINPUT_CALL ( _xinput_ctx.cs_poll [iJoyID],
+                                              iJoyID,
+             pCtx->XInputGetStateEx_Original (iJoyID, &xstate))
       );
     }
 
@@ -3862,14 +3884,16 @@ SK_XInput_PollController ( INT           iJoyID,
     {
       if (pCtx->XInputGetState_Original != nullptr)
       {
-        WriteULongRelease (&dwRet [iJoyID],
-          pCtx->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate)
+        WriteULongRelease (             &dwRet [iJoyID],
+          SK_XINPUT_CALL ( _xinput_ctx.cs_poll [iJoyID],
+                                                iJoyID,
+                 pCtx->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate))
         );
       }
     }
 
-    if (ReadULongAcquire (&dwRet [iJoyID]) == ERROR_DEVICE_NOT_CONNECTED)
-      WriteULongRelease (&last_poll [iJoyID], timeGetTime ());
+    if (ReadULongAcquire (&dwRet     [iJoyID]) == ERROR_DEVICE_NOT_CONNECTED)
+       WriteULongRelease (&last_poll [iJoyID], timeGetTime ());
   }
 
   InterlockedExchange ( &_xinput_ctx.LastSlotState [iJoyID],
@@ -3898,8 +3922,10 @@ SK_Input_PreHookXInput (void)
 
   auto& _xinput_ctx = xinput_ctx.get ();
 
-  std::lock_guard <SK_Thread_HybridSpinlock>
-    hook_lock (_xinput_ctx.cs_hook [0]);
+  std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock >
+      hook_lock ( _xinput_ctx.cs_hook [0], _xinput_ctx.cs_hook [1],
+                  _xinput_ctx.cs_hook [2], _xinput_ctx.cs_hook [3] );
 
   auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>

@@ -46,9 +46,13 @@ extern SK_LazyGlobal <
 
 d3d11_shader_tracking_s::cbuffer_override_s* SK_MHW_CB_Override;
 
+bool SK_MHW_PlugInCfg (void);
+
 void
 SK_MHW_PlugInInit (void)
 {
+  plugin_mgr->config_fns.push_back (SK_MHW_PlugInCfg);
+
 #define SK_MHW_CPU_SECTION     L"MonsterHunterWorld.CPU"
 #define SK_MHW_CPU_SECTION_OLD L"MonsterHuntersWorld.CPU"
 

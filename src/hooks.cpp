@@ -1177,36 +1177,37 @@ SK_CreateUser32Hook ( const char  *pszProcName,
                          void     *pDetour,          void **ppOriginal,
                          void    **ppFuncAddr )
 {
-  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+  if (   ReadAcquire (&__SK_DLL_Ending  ) ||
+      (! ReadAcquire (&__SK_DLL_Attached))  )
     return MH_ERROR_DISABLED;
 
 
   // Win32u is faster on systems that dispatch system calls through it
   //
-  static sk_import_test_s win32u_test [] = { { "win32u.dll", false } };
-  static bool             tested         =                   false;
-
-  if (! tested)
-  {
-    SK_TestImports (SK_GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof (sk_import_test_s));
-    tested = true;
-
-    if (! win32u_test [0].used)
-    {
-      ///SK_LOG0 ( (L" *** WARNING: System's user32.dll does not dispatch system calls through Win32U.DLL ***"),
-      ///           L"HookEngine" );
-    }
-  }
+  //static sk_import_test_s win32u_test [] = { { "win32u.dll", false } };
+  //static bool             tested         =                   false;
+  //
+  //if (! tested)
+  //{
+  //  SK_TestImports (SK_GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof (sk_import_test_s));
+  //  tested = true;
+  //
+  //  if (! win32u_test [0].used)
+  //  {
+  //    ///SK_LOG0 ( (L" *** WARNING: System's user32.dll does not dispatch system calls through Win32U.DLL ***"),
+  //    ///           L"HookEngine" );
+  //  }
+  //}
 
   char    proc_name   [128] = { };
   wchar_t module_name [128] = L"Win32U.DLL";
 
-  ///if (win32u_test [0].used)
-  ///{
-  ///  strncpy (proc_name, pszProcName, 127);
-  ///}
-  ///
-  ///else
+  //if (win32u_test [0].used)
+  //{
+  //  strncpy (proc_name, pszProcName, 127);
+  //}
+  //
+  //else
   {
     wcscpy (module_name, L"user32");
 

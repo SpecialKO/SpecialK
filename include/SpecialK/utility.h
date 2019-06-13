@@ -237,6 +237,8 @@ SK_GetBitness (void)
 
 #define SK_RunOnce(x)    { static volatile LONG __skro_first = TRUE; \
                if (InterlockedCompareExchange (&__skro_first, FALSE, TRUE)) { (x); } }
+//#define SK_RunOnce(x)    { static std::once_flag the_wuncler;             \
+//                             std::call_once (the_wuncler, [&](){ (x); }); }
 
 #define SK_RunIf32Bit(x)         { SK_GetBitness () == 32  ? (x) :  0; }
 #define SK_RunIf64Bit(x)         { SK_GetBitness () == 64  ? (x) :  0; }
@@ -597,10 +599,10 @@ static __forceinline
 DWORD
 CountSetBits (ULONG_PTR bitMask)
 {
-  DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
-  DWORD     bitSetCount = 0;
-  ULONG_PTR bitTest     =        (ULONG_PTR)1 << LSHIFT;
-  DWORD     i;
+  const DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
+        DWORD     bitSetCount = 0;
+        ULONG_PTR bitTest     =        (ULONG_PTR)1 << LSHIFT;
+        DWORD     i;
 
   for (i = 0; i <= LSHIFT; ++i)
   {

@@ -28,14 +28,16 @@ static const GUID SKID_D3D11KnownShaderCrc32c =
 // {5C5298BB-0F9D-5022-A19D-A2E69792AE14}
   { 0x5c5298bb, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x14 } };
 
-enum class sk_shader_class {
+enum class sk_shader_class : DWORD {
   Unknown  = 0x00,
   Vertex   = 0x01,
   Pixel    = 0x02,
   Geometry = 0x04,
   Hull     = 0x08,
   Domain   = 0x10,
-  Compute  = 0x20
+  Compute  = 0x20,
+
+  _PADDING = DWORD_MAX
 };
 
 enum class SK_D3D11DispatchType
@@ -86,7 +88,7 @@ struct memory_tracking_s
 
     void clear (SK_Thread_CriticalSection* /*cs*/)
     {
-      ///std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs);
+      ///std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs);
 
       for (int i = 0; i < __types; i++)
       {
@@ -394,7 +396,7 @@ public:
         { std::type_index (typeid (ID3D11ComputeShader)),  { cs_shader_cs.get (), reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&shaders->compute)  } }
       };
 
-    const auto&& map_entry =
+    const auto& map_entry =
       _ShaderMap.find (std::type_index (typeid (_T)));
 
     if (map_entry == _ShaderMap.cend ())

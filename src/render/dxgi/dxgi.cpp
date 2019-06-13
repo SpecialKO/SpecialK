@@ -794,12 +794,11 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
     if ((uintptr_t)cegD3D11 > 1     )//&& rb.api != SK_RenderAPI::D3D11On12)
     {
-      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+      cegD3D11 = nullptr;
 
-      cegD3D11->destroySystem  ();
+      CEGUI::WindowManager::getDllSingleton    ().cleanDeadPool ();
+      CEGUI::Direct3D11Renderer::destroySystem ();
     }
-
-    cegD3D11 = nullptr;
 
     // XXX: TODO (Full shutdown isn't necessary, just invalidate)
     ImGui_DX11Shutdown ();
@@ -4000,32 +3999,8 @@ SK_DXGI_SetupPluginOnFirstFrame ( IDXGISwapChain *This,
 
   switch (game_id)
   {
-    case SK_GAME_ID::Fallout4:
-      SK_FO4_PresentFirstFrame (This, SyncInterval, Flags);
-      break;
-
     case SK_GAME_ID::DarkSouls3:
       SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
-      break;
-
-    case SK_GAME_ID::NieRAutomata:
-      SK_FAR_PresentFirstFrame (This, SyncInterval, Flags);
-      break;
-
-    case SK_GAME_ID::BlueReflection:
-      SK_IT_PresentFirstFrame (This, SyncInterval, Flags);
-      break;
-
-    case SK_GAME_ID::DotHackGU:
-      SK_DGPU_PresentFirstFrame (This, SyncInterval, Flags);
-      break;
-
-    case SK_GAME_ID::Tales_of_Vesperia:
-      SK_TVFIX_PresentFirstFrame (This, SyncInterval, Flags);
-      break;
-
-    case SK_GAME_ID::Sekiro:
-      SK_Sekiro_PresentFirstFrame (This, SyncInterval, Flags);
       break;
 
     case SK_GAME_ID::WorldOfFinalFantasy:
@@ -4036,6 +4011,13 @@ SK_DXGI_SetupPluginOnFirstFrame ( IDXGISwapChain *This,
     } break;
   }
 #endif
+
+  for ( auto first_frame_fn : plugin_mgr->first_frame_fns )
+  {
+    first_frame_fn (
+      This, SyncInterval, Flags
+    );
+  }
 }
 
 
@@ -6369,7 +6351,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
     }
 
 
-    if (config.render.dxgi.msaa_samples != -1 && config.render.dxgi.msaa_samples > 0)
+    if (config.render.dxgi.msaa_samples > 0)
     {
       pDesc->SampleDesc.Count = config.render.dxgi.msaa_samples;
     }
@@ -9213,7 +9195,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)) && pAdapter3 != nullptr)
   {
     // We darn sure better not spawn multiple threads!
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*budget_mutex);
+    std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*budget_mutex);
 
     if ( budget_thread->handle == INVALID_HANDLE_VALUE )
     {

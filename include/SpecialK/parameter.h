@@ -257,7 +257,7 @@ public:
   {
     UNREFERENCED_PARAMETER (name);
 
-    std::lock_guard <std::mutex> _scope_lock (lock);
+    std::scoped_lock <std::mutex> _scope_lock (lock);
 
     std::type_index typ_idx =
       std::type_index (typeid (T));

@@ -2536,7 +2536,7 @@ void ImFont::AddGlyph(ImWchar codepoint, float x0, float y0, float x1, float y1,
     glyph.AdvanceX = advance_x + ConfigData->GlyphExtraSpacing.x;  // Bake spacing into AdvanceX
 
     if (ConfigData->PixelSnapH)
-        glyph.AdvanceX = (float)/*(int)*/lroundf(glyph.AdvanceX + 0.5f);
+        glyph.AdvanceX = (float)(int)(glyph.AdvanceX + 0.5f);
 
     // Compute rough surface usage metrics (+1 to account for average padding, +0.99 to round)
     DirtyLookupTables = true;

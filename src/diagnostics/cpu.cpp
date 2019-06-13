@@ -272,7 +272,7 @@ SK_CPU_CountLogicalCores (void)
     auto& pairs =
       SK_CPU_GetLogicalCorePairs ();
 
-    for ( auto& it : pairs )
+    for ( auto it : pairs )
     {
       int cores_in_set =
         CountSetBits (it);

@@ -39,9 +39,6 @@ volatile LONG __DGPU_init = FALSE;
 typedef void (__stdcall *SK_ReShade_SetResolutionScale_pfn)(float fScale);
 static SK_ReShade_SetResolutionScale_pfn SK_ReShade_SetResolutionScale = nullptr;
 
-using SK_PlugIn_ControlPanelWidget_pfn = void (__stdcall         *)(void);
-static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
-
 struct SK_DGPU_ScreenFlare_Inst {
   struct
   {
@@ -244,9 +241,8 @@ SK_DGPU_CheckVersion (LPVOID user)
   return 0;
 }
 
-void
-__stdcall
-SK_DGPU_ControlPanel (void)
+bool
+SK_DGPU_PlugInCfg (void)
 {
   if (ImGui::CollapsingHeader (".hack//G.U.", ImGuiTreeNodeFlags_DefaultOpen))
   {
@@ -469,11 +465,13 @@ SK_DGPU_ControlPanel (void)
     ImGui::PopStyleColor (3);
     ImGui::TreePop       ( );
   }
+
+  return true;
 }
 
 HRESULT
 STDMETHODCALLTYPE
-SK_DGPU_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
+SK_DGPU_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 {
   UNREFERENCED_PARAMETER (pSwapChain);
   UNREFERENCED_PARAMETER (SyncInterval);
@@ -555,6 +553,9 @@ SK_DGPU_InitPlugin (void)
 {
   SK_SetPluginName (DGPU_VERSION_STR);
 
+  plugin_mgr->config_fns.push_back      (SK_DGPU_PlugInCfg);
+  plugin_mgr->first_frame_fns.push_back (SK_DGPU_PresentFirstFrame);
+
   dgpu_config->antialiasing.scale =
       dynamic_cast <sk::ParameterFloat *>
         (g_ParameterFactory->create_parameter <float> (L"Anti-Aliasing Scale"));
@@ -593,12 +594,6 @@ SK_DGPU_InitPlugin (void)
   dgpu_config->flares.global.load ();
   dgpu_config->flares.local.load  ();
 
-
-  SK_CreateFuncHook (       L"SK_PlugIn_ControlPanelWidget",
-                              SK_PlugIn_ControlPanelWidget,
-                                SK_DGPU_ControlPanel,
-     static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
-  MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
   SK_CreateFuncHook (        L"SK_D3D11_DrawHandler",
                                SK_D3D11_DrawHandler,

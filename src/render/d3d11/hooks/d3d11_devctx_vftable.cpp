@@ -1410,7 +1410,7 @@ D3D11_CopySubresourceRegion_Override (
           D3D11_BUFFER_DESC  buf_desc = { };
           pBuffer->GetDesc (&buf_desc);
           {
-            ////std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+            ////std::scoped_lock <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
             if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
               mem_map_stats->last_frame.buffer_types [0]++;

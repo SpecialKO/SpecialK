@@ -263,14 +263,16 @@ SK_Framerate_WaitForVBlank (void)
 void
 SK::Framerate::Limiter::init (long double target)
 {
-  QueryPerformanceFrequency (&freq);
+  LARGE_INTEGER _freq;
+
+  QueryPerformanceFrequency (&_freq);
 
   ms  = 1000.0L / long_double_cast (target);
   fps =           long_double_cast (target);
 
   ticks_per_frame =
     static_cast <ULONGLONG> (
-      ( ms / 1000.0L ) * long_double_cast ( freq.QuadPart )
+      ( ms / 1000.0L ) * long_double_cast ( _freq.QuadPart )
     );
 
   frames = 0;
@@ -283,17 +285,23 @@ SK::Framerate::Limiter::init (long double target)
 
 
 
-  SK_QueryPerformanceCounter (&start);
+  LARGE_INTEGER _start;
+  SK_QueryPerformanceCounter (&_start);
 
-  time.QuadPart = 0ULL;
-
-  last.QuadPart =
+  WriteRelease64 (&start, _start.QuadPart);
+  WriteRelease64 (&freq,   _freq.QuadPart);
+  WriteRelease64 (&time,              0LL);
+  WriteRelease64 (&last,
     static_cast <LONGLONG> (
-      start.QuadPart -     (ms / 1000.0L) * freq.QuadPart);
+      ReadAcquire64 (&start) - (ms / 1000.0L) * ReadAcquire64 (&freq)
+    )
+  );
 
-  next.QuadPart =
+  WriteRelease64 (&next,
     static_cast <LONGLONG> (
-      start.QuadPart +     (ms / 1000.0L) * freq.QuadPart);
+      ReadAcquire64 (&start) + (ms / 1000.0L) * ReadAcquire64 (&freq)
+    )
+  );
 }
 
 
@@ -310,13 +318,17 @@ SK::Framerate::Limiter::try_wait (void)
   }
 
   LARGE_INTEGER next_;
-  next_.QuadPart =
-    start.QuadPart + frames * ticks_per_frame;
+  LARGE_INTEGER time_;
 
-  SK_QueryPerformanceCounter (&time);
+  next_.QuadPart =
+    ReadAcquire64 (&start) + ReadAcquire (&frames) * ticks_per_frame;
+
+  SK_QueryPerformanceCounter (&time_);
+
+  WriteRelease64 (&time, time_.QuadPart);
 
   return
-    (time.QuadPart < next_.QuadPart);
+    ( ReadAcquire64 (&time) < ReadAcquire64 (&next) );
 }
 
 
@@ -369,19 +381,23 @@ SK::Framerate::Limiter::wait (void)
 
   frames++;
 
-  SK_QueryPerformanceCounter (&time);
+  LARGE_INTEGER _time;
+  SK_QueryPerformanceCounter (&_time);
+
+  WriteRelease64 (&time, _time.QuadPart);
 
   // Actual frametime before we forced a delay
   effective_ms =
-    1000.0L * ( long_double_cast (time.QuadPart - last.QuadPart) /
-                long_double_cast (freq.QuadPart)                 );
+    1000.0L * ( long_double_cast (ReadAcquire64 (&time) - ReadAcquire64 (&last)) /
+                long_double_cast (ReadAcquire64 (&freq))                       );
 
-  next.QuadPart =
-    start.QuadPart + frames * ticks_per_frame;
+  WriteRelease64 (&next,
+    ReadAcquire64 (&start) + ReadAcquire (&frames) * ticks_per_frame
+  );
 
   long double missed_frames,
               missing_time =
-    long_double_cast ( time.QuadPart - next.QuadPart ) /
+    long_double_cast ( ReadAcquire64 (&time) - ReadAcquire64 (&next) ) /
     long_double_cast ( ticks_per_frame ),
               edge_distance =
       modfl ( missing_time, &missed_frames );
@@ -418,9 +434,9 @@ SK::Framerate::Limiter::wait (void)
 
     restart        = false;
     frames         = 0;
-    start.QuadPart = SK_QueryPerf ().QuadPart - ticks_per_frame;
-     time.QuadPart = start.QuadPart           + ticks_per_frame;
-     next.QuadPart =  time.QuadPart;
+    WriteRelease64 (&start, SK_QueryPerf ().QuadPart - ticks_per_frame);
+    WriteRelease64 (&time,  ReadAcquire64 (&start)   + ticks_per_frame);
+    WriteRelease64 (&next,  ReadAcquire64 (&time));
   }
 
 
@@ -431,9 +447,9 @@ SK::Framerate::Limiter::wait (void)
       long double
       {
         long double ldRet =
-          ( long_double_cast ( next.QuadPart -
+          ( long_double_cast ( ReadAcquire64 (&next) -
                                SK_QueryPerf ().QuadPart ) /
-            long_double_cast ( freq.QuadPart            ) );
+            long_double_cast ( ReadAcquire64 (&freq)    ) );
 
         if (ldRet < 0.0L)
           ldRet = 0.0L;
@@ -442,7 +458,7 @@ SK::Framerate::Limiter::wait (void)
       };
 
 
-  if (next.QuadPart > 0ULL)
+  if (ReadAcquire64 (&next) > 0LL)
   {
     long double
       to_next_in_secs =
@@ -508,7 +524,7 @@ SK::Framerate::Limiter::wait (void)
 
     // Any remaining wait-time will degenerate into a hybrid busy-wait,
     //   this is also when VBlank synchronization is applied if user wants.
-    while (time.QuadPart <= next.QuadPart)
+    while (ReadAcquire64 (&time) <= ReadAcquire64 (&next))
     {
       DWORD dwWaitMS =
         static_cast <DWORD> (
@@ -540,7 +556,8 @@ SK::Framerate::Limiter::wait (void)
       }
 
 
-      SK_QueryPerformanceCounter (&time);
+      SK_QueryPerformanceCounter (&_time);
+      WriteRelease64 (&time, _time.QuadPart);
     }
   }
 
@@ -548,10 +565,11 @@ SK::Framerate::Limiter::wait (void)
   {
     dll_log->Log ( L"[FrameLimit] Framerate limiter lost time?! "
                    L"(non-monotonic clock)" );
-    start.QuadPart += -next.QuadPart;
+    InterlockedAdd64 (&start, -ReadAcquire64 (&next));
+    //start.QuadPart += -next.QuadPart;
   }
 
-  last.QuadPart = time.QuadPart;
+  WriteRelease64 (&last, ReadAcquire64 (&time));
 }
 
 

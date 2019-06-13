@@ -224,7 +224,7 @@ volatile LONG __SK_Steam_Downloading = 0;
 
 
 auto constexpr _ConstructPath =
-[&](auto&& path_base, const wchar_t* path_end)
+[&](auto& path_base, const wchar_t* path_end)
 {
   std::array <wchar_t, MAX_PATH * 2 + 1>
     path { };
@@ -3006,7 +3006,7 @@ public:
       {
         //steam_log->Log (L"  >> %hs", stats->GetAchievementName (i));
 
-        auto&& achievement =
+        auto& achievement =
           achievements.list [i];
 
         if (achievement == nullptr)
@@ -3707,12 +3707,19 @@ SK_SteamAPI_QueueCallbacks ()
 bool
 SK_SteamAPI_RunQueuedCallbacks (void)
 {
-  if (ReadAcquire (&__SK_Steam_QueuedCallbacks) > 0)
+  __try
   {
-    InterlockedDecrement (&__SK_Steam_QueuedCallbacks);
+    if (ReadAcquire (&__SK_Steam_QueuedCallbacks) > 0)
+    {
+      InterlockedDecrement (&__SK_Steam_QueuedCallbacks);
 
-    SteamAPI_RunCallbacks_Detour ();
-    return true;
+      SteamAPI_RunCallbacks_Detour ();
+      return true;
+    }
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+    return false;
   }
 
   return false;
@@ -4082,13 +4089,11 @@ SteamAPI_PumpThread (LPVOID user)
 
         if ( dwWait ==  WAIT_OBJECT_0
                 ||
-             dwWait == (WAIT_OBJECT_0 + 1) )
-        {
-          break;
-        }
-
-        if ( hSteamPumpKill == INVALID_HANDLE_VALUE ||
-             hSteamPumpKill == 0 )
+             dwWait == (WAIT_OBJECT_0 + 1)
+                ||
+          ( hSteamPumpKill == INVALID_HANDLE_VALUE ||
+            hSteamPumpKill == 0 )
+           )
         {
           break;
         }

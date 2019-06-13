@@ -59,10 +59,13 @@ NvAPI_GPU_GetMemoryInfo_Detour ( NvPhysicalGpuHandle            hPhysicalGpu,
 
 LPVOID NVAPI_GPU_GETMEMORYINFO_PROC;
 
+HRESULT STDMETHODCALLTYPE SK_FO4_PresentFirstFrame ( IUnknown *, UINT, UINT );
+
 void
 SK_FO4_InitPlugin (void)
 {
-  if (fo4_prefs == nullptr) {
+  if (fo4_prefs == nullptr)
+  {
     std::wstring fo4_prefs_file =
       SK_GetDocumentsDir () +
       std::wstring (L"\\My Games\\Fallout4\\Fallout4Prefs.ini");
@@ -79,6 +82,8 @@ SK_FO4_InitPlugin (void)
     //(NvAPI_QueryInterface_t)GetProcAddress (nvapi64_dll, "nvapi_QueryInterface");
 
     //(NvAPI_GPU_GetMemoryInfo_t)NvAPI_QueryInterface (__NvAPI_GPU_GetMemoryInfo);
+
+  SK_RunOnce (plugin_mgr->first_frame_fns.push_back (SK_FO4_PresentFirstFrame));
 
 #if 0
   SK_CreateFuncHook ( L"NvAPI_GPU_GetMemoryInfo", NvAPI_GPU_GetMemoryInfo,
@@ -344,10 +349,11 @@ SK_FO4_DetourWindowProc ( _In_  HWND   hWnd,
 
 HRESULT
 STDMETHODCALLTYPE
-SK_FO4_PresentFirstFrame ( IDXGISwapChain *This,
-                           UINT            SyncInterval,
-                           UINT            Flags )
+SK_FO4_PresentFirstFrame ( IUnknown *pSwapChain,
+                           UINT      SyncInterval,
+                           UINT      Flags )
 {
+  IDXGISwapChain *This = (IDXGISwapChain *)pSwapChain;
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 

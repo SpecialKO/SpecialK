@@ -304,7 +304,8 @@ public:
 class SK_TLS_RenderContext
 {
 public:
-  BOOL ctx_init_thread = FALSE;
+  BOOL ctx_init_thread    = FALSE;
+  BOOL ctx_init_thread_ex = FALSE;
 };
 
 class SK_D3D9_ThreadContext : public SK_TLS_DynamicContext,
@@ -492,9 +493,9 @@ public:
     DWORD    code          = NO_ERROR;
   } error_state;
 
-  LONG GUI                 = -1;
   HWND last_active         = (HWND)-1;
   HWND active              = (HWND)-1;
+  LONG GUI                 = -1;
 
   int  thread_prio         =  0;
 

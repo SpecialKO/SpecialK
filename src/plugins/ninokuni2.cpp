@@ -249,10 +249,14 @@ mem_addr_s instn__limit_branch    = { };
 
 #define TIMESTEP_BASE_ADDR 0x11F1470
 
+bool SK_NNK2_PlugInCfg (void);
+
 void
 SK_NNK2_InitPlugin (void)
 {
   SK_SetPluginName (NNS_VERSION_STR);
+
+  plugin_mgr->config_fns.push_back (SK_NNK2_PlugInCfg);
 
   SK_NNK2_CheckVersion (nullptr);
 

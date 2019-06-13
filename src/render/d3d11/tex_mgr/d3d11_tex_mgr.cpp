@@ -2618,7 +2618,8 @@ SK_D3D11_PopulateResourceList (bool refresh)
     LARGE_INTEGER   liCompressed   = {   };
     LARGE_INTEGER   liUncompressed = {   };
 
-    dll_log->LogEx ( true, L"[DX11TexMgr] Enumerating dumped...    " );
+    dll_log->LogEx ( true, L"[DX11TexMgr] Enumerating dumped <%s>...    ",
+      SK_ConcealUserDir (std::wstring (wszTexDumpDir).data ()) );
 
     lstrcatW (wszTexDumpDir, LR"(\*)");
 
@@ -2745,7 +2746,8 @@ SK_D3D11_PopulateResourceList (bool refresh)
   if ( GetFileAttributesW (wszTexInjectDir) !=
          INVALID_FILE_ATTRIBUTES )
   {
-    dll_log->LogEx ( true, L"[DX11TexMgr] Enumerating injectable..." );
+    dll_log->LogEx ( true, L"[DX11TexMgr] Enumerating injectable <%s>...",
+      SK_ConcealUserDir (std::wstring (wszTexInjectDir).data ()) );
 
     unsigned int    files  =   0;
     LARGE_INTEGER   liSize = {   };
@@ -2775,7 +2777,8 @@ SK_D3D11_PopulateResourceList (bool refresh)
     int             files  =   0;
     LARGE_INTEGER   liSize = {   };
 
-    dll_log->LogEx ( true, L"[DX11TexMgr] Enumerating FFX inject..." );
+    dll_log->LogEx ( true, L"[DX11TexMgr] Enumerating FFX inject... <%s>",
+     SK_ConcealUserDir (std::wstring (wszTexInjectDir_FFX).data ()) );
 
     lstrcatW (wszTexInjectDir_FFX, LR"(\*)");
 
@@ -3105,7 +3108,7 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
   SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
                             pTLS->imgui->drawing = true;
   {
-    SK_D3D11_TexMgr::tex2D_descriptor_s texDesc2D =
+    SK_D3D11_TexMgr::tex2D_descriptor_s& texDesc2D =
       textures->Textures_2D [pTex];
 
     std::wstring fname =
@@ -3295,7 +3298,7 @@ SK_D3D11_TexMgr::lod_hash_table_s::touch (ID3D11Texture2D *pTex)
   if (*pLastFrame != this_frame)
   {   *pLastFrame  = this_frame;
 
-    auto&& tex_desc (
+    auto& tex_desc (
       SK_D3D11_Textures->Textures_2D [pTex]
     );
 

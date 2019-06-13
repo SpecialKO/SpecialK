@@ -2627,7 +2627,10 @@ void ImGui::RenderNavHighlight (const ImRect& bb, ImGuiID id, ImGuiNavHighlightF
         bool fully_visible = window->ClipRect.Contains(display_rect);
         if (!fully_visible)
             window->DrawList->PushClipRect(display_rect.Min, display_rect.Max);
-        window->DrawList->AddRect(display_rect.Min + ImVec2(THICKNESS*0.5f,THICKNESS*0.5f), display_rect.Max - ImVec2(THICKNESS*0.5f,THICKNESS*0.5f), GetStyleColorVec4(ImGuiCol_NavHighlight), rounding, ImDrawCornerFlags_All, THICKNESS);
+
+        ImVec2 border (THICKNESS * 0.5f, THICKNESS * 0.5f);
+
+        window->DrawList->AddRect(display_rect.Min + border, display_rect.Max - border, GetStyleColorVec4(ImGuiCol_NavHighlight), rounding, ImDrawCornerFlags_All, THICKNESS);
         if (!fully_visible)
             window->DrawList->PopClipRect();
     }

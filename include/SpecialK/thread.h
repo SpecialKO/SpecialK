@@ -83,7 +83,7 @@ protected:
 };
 
 
-class SK_Thread_CriticalSection
+class SK_Thread_CriticalSection //: public std::mutex
 {
 public:
   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS ) noexcept

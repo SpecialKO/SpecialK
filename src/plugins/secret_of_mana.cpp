@@ -69,14 +69,6 @@ D3D11Dev_CreateTexture2D_Override (
   _Out_opt_       ID3D11Texture2D        **ppTexture2D );
 
 
-
-using SK_PlugIn_ControlPanelWidget_pfn = void (__stdcall         *)(void);
-using SK_EndFrame_pfn                  = void (STDMETHODCALLTYPE *)(void);
-using SK_PluginKeyPress_pfn            = void (CALLBACK          *)( BOOL Control,
-                                                                     BOOL Shift,
-                                                                     BOOL Alt,
-                                                                     BYTE vkCode );
-
 void __stdcall SK_SOM_ControlPanel (void);
 
 static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;

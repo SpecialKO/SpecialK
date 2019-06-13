@@ -2049,6 +2049,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 #ifdef _M_AMD64
     switch (SK_GetCurrentGameID ())
     {
+      case SK_GAME_ID::StarOcean4:
+        extern bool                       SK_SO4_PlugInCfg (void);
+        plugin_mgr->config_fns.push_back (SK_SO4_PlugInCfg);
+        break;
+
       case SK_GAME_ID::AssassinsCreed_Odyssey:
         extern void
         SK_ACO_PlugInInit (void);
@@ -2076,6 +2081,21 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         extern void
         SK_FFXV_InitPlugin (void);
         SK_FFXV_InitPlugin (    );
+        break;
+
+      case SK_GAME_ID::PillarsOfEternity2:
+        extern bool                       SK_POE2_PlugInCfg (void);
+        plugin_mgr->config_fns.push_back (SK_POE2_PlugInCfg);
+        break;
+
+      case SK_GAME_ID::LifeIsStrange_BeforeTheStorm:
+        extern bool                       SK_LSBTS_PlugInCfg (void);
+        plugin_mgr->config_fns.push_back (SK_LSBTS_PlugInCfg);
+        break;
+
+      case SK_GAME_ID::Okami:
+        extern bool                       SK_Okami_PlugInCfg (void);
+        plugin_mgr->config_fns.push_back (SK_Okami_PlugInCfg);
         break;
     }
 #endif
@@ -2139,7 +2159,7 @@ SK_LazyGlobal <SK_DummyWindows> dummy_windows;
 HWND
 SK_Win32_CreateDummyWindow (void)
 {
-  std::lock_guard <std::mutex> auto_lock (dummy_windows->lock);
+  std::scoped_lock <std::mutex> auto_lock (dummy_windows->lock);
 
   static WNDCLASSW wc          = {
     CS_OWNDC,
@@ -2190,7 +2210,7 @@ SK_Win32_CreateDummyWindow (void)
 void
 SK_Win32_CleanupDummyWindow (HWND hwnd)
 {
-  std::lock_guard <std::mutex>
+  std::scoped_lock <std::mutex>
     auto_lock (dummy_windows->lock);
 
   std::set <HWND> cleaned_windows;
@@ -2834,23 +2854,10 @@ SK_BeginBufferSwap (void)
   }
 
 
-#ifdef _M_AMD64
-  switch (game_id)
+  for ( auto begin_frame_fn : plugin_mgr->begin_frame_fns )
   {
-    case SK_GAME_ID::Yakuza0:
-    case SK_GAME_ID::YakuzaKiwami2:
-    {
-      extern void SK_Yakuza0_BeginFrame (void);
-                  SK_Yakuza0_BeginFrame ();
-    } break;
-
-    case SK_GAME_ID::Tales_of_Vesperia:
-    {
-      extern void SK_TVFix_BeginFrame (void);
-                  SK_TVFix_BeginFrame ();
-    } break;
+    begin_frame_fn ();
   }
-#endif
 
 
   const ImGuiIO& io =

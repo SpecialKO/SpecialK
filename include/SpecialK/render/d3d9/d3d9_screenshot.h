@@ -55,7 +55,7 @@ public:
   SK_D3D9_Screenshot &operator= (const SK_D3D9_Screenshot&) = delete;
 
 
-  explicit SK_D3D9_Screenshot (const SK_ComQIPtr <IDirect3DDevice9>& pDevice);
+  explicit SK_D3D9_Screenshot (const SK_ComQIPtr <IDirect3DDevice9> pDevice);
 
     ~SK_D3D9_Screenshot (void) { dispose (); }
 

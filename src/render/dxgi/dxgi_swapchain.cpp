@@ -95,7 +95,7 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
       if ( FAILED (
              pReal->QueryInterface ( riid,
                            (void **)&pPromoted )
-                  )
+                  ) || pPromoted == nullptr
          )
       {
         return E_NOINTERFACE;
@@ -103,7 +103,7 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
 
       ver_ =
         SK_COM_PromoteInterface (&pReal, pPromoted) ?
-           required_ver : ver_;
+                                       required_ver : ver_;
     }
 
     InterlockedExchange (
@@ -203,7 +203,7 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
 {
-  if (ppDevice == nullptr)
+  if (ppDevice == nullptr || *ppDevice == nullptr)
   {
     return
       DXGI_ERROR_DEVICE_RESET;
@@ -278,7 +278,7 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     BufferCount = desc.BufferCount;
 
     return
-      pReal->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, desc.Flags);
+      pReal->ResizeBuffers (BufferCount, Width, Height, DXGI_FORMAT_UNKNOWN, desc.Flags);
   }
   else if (FAILED(hr))
   {

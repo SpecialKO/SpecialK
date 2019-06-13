@@ -1039,19 +1039,19 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::Separator  (           );
 
         int idx = 0;
-        for (          auto& mouse : mice )                {
+        for (          auto mouse  : mice )                {
           _EnumDeviceFlags ( mouse, mouse_flags [  idx],
                                     mouse_descs [idx++] ); }
 
         ImGui::BeginGroup   ();
-        for (  auto& flag_array   : mouse_flags )
-        { for (auto& flag         : flag_array  )
+        for (  auto flag_array    : mouse_flags )
+        { for (auto flag          : flag_array  )
           { ImGui::TextUnformatted (flag.c_str ());
         } } ImGui::EndGroup ();
         ImGui::SameLine     ();
         ImGui::BeginGroup   ();
-        for (  auto& desc_array   : mouse_descs )
-        { for (auto& desc         : desc_array  )
+        for (  auto desc_array    : mouse_descs )
+        { for (auto desc          : desc_array  )
           { ImGui::TextUnformatted (desc.c_str ());
         } } ImGui::EndGroup ();
         ImGui::EndGroup     (                    );
@@ -1065,19 +1065,19 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::Separator    (                    );
 
         int idx = 0;
-        for (          auto& keyboard : keyboards )               {
+        for (          auto  keyboard : keyboards )               {
           _EnumDeviceFlags ( keyboard,  keyboard_flags [  idx],
                                         keyboard_descs [idx++] ); }
 
         ImGui::BeginGroup     ();
-        for (  auto& flag_array : keyboard_flags )
-        { for (auto& flag       : flag_array     )
+        for (  auto flag_array  :   keyboard_flags )
+        { for (auto flag        :   flag_array     )
           { ImGui::TextUnformatted (flag.c_str ());
         } } ImGui::EndGroup   ();
         ImGui::SameLine       ();
         ImGui::BeginGroup     ();
-        for (  auto& desc_array : keyboard_descs )
-        { for (auto& desc       : desc_array     )
+        for (  auto desc_array  : keyboard_descs )
+        { for (auto desc        : desc_array     )
           { ImGui::TextUnformatted (desc.c_str ());
         } } ImGui::EndGroup   ();
       }

@@ -29,6 +29,7 @@ struct IUnknown;
 #include <set>
 #include <unordered_set>
 #include <concurrent_unordered_map.h>
+#include <intsafe.h>
 
 #include <SpecialK/render/backend.h>
 
@@ -780,7 +781,8 @@ struct SK_AppCache_Manager
 { enum Ownership
   { Unknown    = -1,
     DoesNotOwn =  0,
-    OwnsGame   =  1 };
+    OwnsGame   =  1,
+    _Alignment_=  DWORD_MAX };
 
   bool          saveAppCache       (bool           close = false);
   bool          loadAppCacheForExe (const wchar_t* wszExe);
@@ -893,6 +895,8 @@ enum class SK_GAME_ID
   CallOfCthulhu,                // CallOfCthulhu.exe
   TrailsOfColdSteel,            // ed8.exe
   Sekiro,                       // sekiro.exe
+  OctopathTraveler,             // Octopath_Traveler-Win64-Shipping.exe
+  SonicMania,                   // SonicMania.exe
   UNKNOWN_GAME               = 0xffff
 };
 

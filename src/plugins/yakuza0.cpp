@@ -37,6 +37,9 @@ extern iSK_INI* dll_ini;
 volatile LONG __SK_Y0_InitiateHudFreeShot = 0;
 volatile LONG __SK_Y0_QueuedShots         = 0;
 
+bool
+SK_Yakuza0_PlugInCfg (void);
+
 typedef void (__stdcall *SK_ReShade_SetResolutionScale_pfn)(float fScale);
                   static SK_ReShade_SetResolutionScale_pfn
                          SK_ReShade_SetResolutionScale = nullptr;
@@ -139,7 +142,7 @@ SK_Yakuza0_BeginFrame (void)
       // Will be set to false if an access violation occurs
       static bool         has_scale = true;
       static float* fp_render_scale =
-        (float *)((uintptr_t)pBaseAddr + 0x3F10BC0);
+        (float *)((uintptr_t)pBaseAddr + 0x3F13AB0);//0x3F10BC0);
 
 
       if (has_scale)
@@ -179,7 +182,9 @@ SK_Yakuza0_BeginFrame (void)
 
     if (InterlockedCompareExchange (&__SK_Y0_InitiateHudFreeShot, -1, 1) == 1)
     {
-      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, SK_Y0_HUD_PS_CRC32C);
+      SK_D3D11_Shaders->pixel.addTrackingRef (
+        SK_D3D11_Shaders->pixel.blacklist, SK_Y0_HUD_PS_CRC32C
+      );
 
       SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::BeforeOSD);
     }
@@ -311,6 +316,8 @@ SK_LazyGlobal <SK_Yakuza_SaveFace> kiwami2_face;
 void
 SK_Yakuza0_PlugInInit (void)
 {
+  plugin_mgr->config_fns.push_back (SK_Yakuza0_PlugInCfg);
+  plugin_mgr->begin_frame_fns.push_back (SK_Yakuza0_BeginFrame);
   static bool yakuza0 =
     SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0;
 
@@ -837,7 +844,8 @@ SK_Yakuza0_PlugInCfg (void)
         if (non_std)
         {
           static float* fp_render_scale =
-            (float *)((uintptr_t)pBaseAddr + 0x3F10BC0);
+            (float *)((uintptr_t)pBaseAddr + 0x3F13AB0);
+                                          // 0x3F10BC0 Beta 1.1
                                           // 0x3F142C4 Launch
 
           float fScale =
@@ -1122,7 +1130,7 @@ SK_Yakuza0_PlugInCfg (void)
         };
 
         ImGui::BeginGroup ();
-        for ( auto& keybind : keybinds )
+        for ( auto keybind : keybinds )
         {
           ImGui::Text          ( "%s:  ",
                                 keybind->bind_name );
@@ -1130,7 +1138,7 @@ SK_Yakuza0_PlugInCfg (void)
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
-        for ( auto& keybind : keybinds )
+        for ( auto keybind : keybinds )
         {
           Keybinding ( keybind, keybind->param );
         }

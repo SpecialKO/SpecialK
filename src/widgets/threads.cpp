@@ -581,27 +581,30 @@ ProcessInformation ( PDWORD                       pdData,
         if (pQuery->NtInfo.len < dSize)
         {
           ns = STATUS_NO_MEMORY;
-          break;
-        }
-
-        dSize =
-          pQuery->NtInfo.len;
-
-        pspi =
-          pQuery->NtInfo.data;
-
-        if (pspi != nullptr)
-        {
-          ns =
-            NtQuerySystemInformation ( SystemProcessInformation,
-                                         (PSYSTEM_PROCESS_INFORMATION)pspi,
-                                           (DWORD)dSize,
-                                             &dData );
         }
 
         else
         {
-          ns = STATUS_NO_MEMORY;
+
+          dSize =
+            pQuery->NtInfo.len;
+
+          pspi =
+            pQuery->NtInfo.data;
+
+          if (pspi != nullptr)
+          {
+            ns =
+              NtQuerySystemInformation ( SystemProcessInformation,
+                                           (PSYSTEM_PROCESS_INFORMATION)pspi,
+                                             (DWORD)dSize,
+                                               &dData );
+          }
+
+          else
+          {
+            ns = STATUS_NO_MEMORY;
+          }
         }
 
         if (ns != STATUS_SUCCESS)

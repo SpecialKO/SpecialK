@@ -159,7 +159,7 @@ SK_Okami_PlugInCfg (void)
     {
       int idx = 0;
 
-      for ( auto& entry : addrs )
+      for ( auto entry : addrs )
       {
         entry.addr =
           SK_ScanAlignedEx2 (entry.orig_bytes, entry.size, nullptr, nullptr, 1, reinterpret_cast <uint8_t *> (GetModuleHandle (L"main.dll")));
@@ -185,7 +185,7 @@ SK_Okami_PlugInCfg (void)
 
         int idx = 0;
 
-        for ( auto& entry : addrs )
+        for ( auto entry : addrs )
         {
           if ( entry.addr != nullptr)
           {

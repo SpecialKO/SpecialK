@@ -110,10 +110,6 @@ using SK_PluginKeyPress_pfn            = void (CALLBACK          *)( BOOL Contro
                                                                      BOOL Alt,
                                                                      BYTE vkCode );
 
-void __stdcall SK_IT_ControlPanel (void);
-
-static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
-
 struct light_shaft_s {
   float pos      [4];
   float power    [4];
@@ -372,9 +368,8 @@ SK_IT_CreateTexture2D (
 }
 
 
-void
-__stdcall
-SK_IT_ControlPanel (void)
+bool
+SK_IT_PlugInCfg (void)
 {
   dump_bias = false;
 
@@ -453,13 +448,15 @@ SK_IT_ControlPanel (void)
     ImGui::PopStyleColor (3);
     ImGui::TreePop ();
   }
+
+  return true;
 }
 
 
 
 HRESULT
 STDMETHODCALLTYPE
-SK_IT_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
+SK_IT_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 {
   UNREFERENCED_PARAMETER (pSwapChain);
   UNREFERENCED_PARAMETER (SyncInterval);
@@ -474,6 +471,9 @@ void
 SK_IT_InitPlugin (void)
 {
   SK_SetPluginName (IT_VERSION_STR);
+
+  plugin_mgr->first_frame_fns.push_back (SK_IT_PresentFirstFrame);
+  plugin_mgr->config_fns.push_back      (SK_IT_PlugInCfg);
 
   //SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
   //                             D3D11Dev_CreateBuffer_Override,
@@ -498,12 +498,6 @@ SK_IT_InitPlugin (void)
                                SK_IT_Unmap,
      static_cast_p2p <void> (&_D3D11_Unmap_Original) );
   MH_QueueEnableHook (         D3D11_Unmap_Override  );
-
-  SK_CreateFuncHook (       L"SK_PlugIn_ControlPanelWidget",
-                              SK_PlugIn_ControlPanelWidget,
-                                  SK_IT_ControlPanel,
-     static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
-  MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
 
   auto& _it_config = it_config.get ();
@@ -545,7 +539,7 @@ SK_IT_InitPlugin (void)
   //
   //MH_QueueEnableHook (SK_ImGui_DrawEULA_PlugIn);
 
-   SK_ApplyQueuedHooks ();
+  SK_ApplyQueuedHooks ();
 
   InterlockedExchange (&__IT_init, 1);
 };

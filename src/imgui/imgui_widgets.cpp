@@ -867,7 +867,7 @@ void ImGui::Scrollbar (ImGuiAxis axis)
     // Apply scroll
     // It is ok to modify Scroll here because we are being called in Begin() after the calculation of SizeContents and before setting up our starting position
     const float scroll_v_norm = ImSaturate ((clicked_v_norm - *click_delta_to_grab_center_v - grab_h_norm * 0.5f) / (1.0f - grab_h_norm));
-    scroll_v = (float)/*(int)*/lroundf(0.5f + scroll_v_norm * scroll_max);//(win_size_contents_v - win_size_v));
+    scroll_v = (float)(int)(0.5f + scroll_v_norm * scroll_max);//(win_size_contents_v - win_size_v));
     if (horizontal)
       window->Scroll.x = scroll_v;
     else
@@ -4618,13 +4618,13 @@ bool ImGui::ColorPicker4 (const char* label, float col[4], ImGuiColorEditFlags f
     draw_list->AddRectFilledMultiColor (picker_pos, picker_pos + ImVec2 (sv_picker_size, sv_picker_size), IM_COL32_WHITE, hue_color32, hue_color32, IM_COL32_WHITE);
     draw_list->AddRectFilledMultiColor (picker_pos, picker_pos + ImVec2 (sv_picker_size, sv_picker_size), IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, IM_COL32_BLACK, IM_COL32_BLACK);
     RenderFrameBorder (picker_pos, picker_pos + ImVec2 (sv_picker_size, sv_picker_size), 0.0f);
-    sv_cursor_pos.x = ImClamp ((float)/*(int)*/lroundf(picker_pos.x + ImSaturate (S) * sv_picker_size + 0.5f), picker_pos.x + 2, picker_pos.x + sv_picker_size - 2); // Sneakily prevent the circle to stick out too much
-    sv_cursor_pos.y = ImClamp ((float)/*(int)*/lroundf(picker_pos.y + ImSaturate (1 - V) * sv_picker_size + 0.5f), picker_pos.y + 2, picker_pos.y + sv_picker_size - 2);
+    sv_cursor_pos.x = ImClamp ((float)(int)(picker_pos.x + ImSaturate (S) * sv_picker_size + 0.5f), picker_pos.x + 2, picker_pos.x + sv_picker_size - 2); // Sneakily prevent the circle to stick out too much
+    sv_cursor_pos.y = ImClamp ((float)(int)(picker_pos.y + ImSaturate (1 - V) * sv_picker_size + 0.5f), picker_pos.y + 2, picker_pos.y + sv_picker_size - 2);
 
     // Render Hue Bar
     for (int i = 0; i < 6; ++i)
       draw_list->AddRectFilledMultiColor (ImVec2 (bar0_pos_x, picker_pos.y + i * (sv_picker_size / 6)), ImVec2 (bar0_pos_x + bars_width, picker_pos.y + (i + 1) * (sv_picker_size / 6)), hue_colors[i], hue_colors[i], hue_colors[i + 1], hue_colors[i + 1]);
-    float bar0_line_y = (float)/*(int)*/lroundf(picker_pos.y + H * sv_picker_size + 0.5f);
+    float bar0_line_y = (float)(int)(picker_pos.y + H * sv_picker_size + 0.5f);
     RenderFrameBorder (ImVec2 (bar0_pos_x, picker_pos.y), ImVec2 (bar0_pos_x + bars_width, picker_pos.y + sv_picker_size), 0.0f);
     RenderArrowsForVerticalBar (draw_list, ImVec2 (bar0_pos_x - 1, bar0_line_y), ImVec2 (bars_triangles_half_sz + 1, bars_triangles_half_sz), bars_width + 2.0f);
   }
@@ -4642,7 +4642,7 @@ bool ImGui::ColorPicker4 (const char* label, float col[4], ImGuiColorEditFlags f
     ImRect bar1_bb (bar1_pos_x, picker_pos.y, bar1_pos_x + bars_width, picker_pos.y + sv_picker_size);
     RenderColorRectWithAlphaCheckerboard (bar1_bb.Min, bar1_bb.Max, IM_COL32 (0, 0, 0, 0), bar1_bb.GetWidth () / 2.0f, ImVec2 (0.0f, 0.0f));
     draw_list->AddRectFilledMultiColor (bar1_bb.Min, bar1_bb.Max, col32_no_alpha, col32_no_alpha, col32_no_alpha & ~IM_COL32_A_MASK, col32_no_alpha & ~IM_COL32_A_MASK);
-    float bar1_line_y = (float)/*(int)*/lroundf(picker_pos.y + (1.0f - alpha) * sv_picker_size + 0.5f);
+    float bar1_line_y = (float)(int)(picker_pos.y + (1.0f - alpha) * sv_picker_size + 0.5f);
     RenderFrameBorder (bar1_bb.Min, bar1_bb.Max, 0.0f);
     RenderArrowsForVerticalBar (draw_list, ImVec2 (bar1_pos_x - 1, bar1_line_y), ImVec2 (bars_triangles_half_sz + 1, bars_triangles_half_sz), bars_width + 2.0f);
   }
@@ -5743,8 +5743,8 @@ ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
 
     for (int n = 0; n < res_w; n++)
     {
-      const float  t1 = t0 + t_step;
-      const int    v1_idx = lroundf (t0 * item_count + 0.5f);//(int)(t0 * item_count + 0.5f);
+      const float  t1     =       t0 + t_step;
+      const int    v1_idx = (int)(t0 * item_count + 0.5f);
 
       IM_ASSERT (v1_idx >= 0 && v1_idx < values_count);
 

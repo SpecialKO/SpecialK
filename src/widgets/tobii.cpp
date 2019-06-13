@@ -46,7 +46,10 @@ DeclKeybind (       SK_ConfigSerializedKeybind* binding,
     dynamic_cast <sk::ParameterStringW *>
     (g_ParameterFactory->create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
-  ret->register_to_ini ( ini, sec, binding->short_name );
+  if (ret != nullptr)
+  {
+    ret->register_to_ini ( ini, sec, binding->short_name );
+  }
 
   return ret;
 };

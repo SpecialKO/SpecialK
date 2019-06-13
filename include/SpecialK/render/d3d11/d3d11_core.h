@@ -1390,7 +1390,7 @@ struct d3d11_shader_tracking_s
     set_of_res.clear   ();
     set_of_views.clear ();
 
-    std::lock_guard <SK_Thread_CriticalSection>
+    std::scoped_lock <SK_Thread_HybridSpinlock>
          auto_lock (*shader_class_crit_sec ());
 
     classes.clear      ();
@@ -1628,7 +1628,7 @@ struct SK_D3D11_KnownShaders
     bool addTrackingRef ( std::unordered_map <uint32_t, LONG>& state,
                                               uint32_t         crc32c )
     {
-      auto&& state_ =
+      auto state_ =
         state.find (crc32c);
 
       if ( state_ != state.cend () )
@@ -1646,7 +1646,7 @@ struct SK_D3D11_KnownShaders
     bool releaseTrackingRef (std::unordered_map <uint32_t, LONG>& state,
                                                  uint32_t         crc32c )
     {
-      auto&& state_ =
+      auto state_ =
         state.find (crc32c);
 
       if (state_ != state.cend ())

@@ -634,8 +634,6 @@ SK_YS8_ControlPanel (void)
 
         if (*wszPath == L'\0')
         {
-          extern SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
-
           wcscpy ( wszPath,
                      SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str () );
 
@@ -1007,8 +1005,8 @@ const
         _SK_YS8_CachedDirSizes.get ()[probe_dir] =
           static_cast <uint64_t> (
             std::max ( 0LL,
-              (int64_t)( _SK_YS8_CachedDirSizes.get ()[probe_dir.c_str ()] -
-                           SK_DeleteTemporaryFiles ( probe_dir.c_str (), L"*.*" ) )
+              (int64_t)( _SK_YS8_CachedDirSizes.get ()[probe_dir] -
+                             SK_DeleteTemporaryFiles ( probe_dir.c_str (), L"*.*" ) )
             )
           );
 
@@ -1506,8 +1504,6 @@ SK_YS8_CreateSamplerState (
   _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
   _Out_opt_       ID3D11SamplerState **ppSamplerState )
 {
-  extern D3D11Dev_CreateSamplerState_pfn D3D11Dev_CreateSamplerState_Original;
-
   D3D11_SAMPLER_DESC new_desc (*pSamplerDesc);
 
   //dll_log.Log ( L"CreateSamplerState - Filter: %x, MaxAniso: %lu, MipLODBias: %f, MinLOD: %f, MaxLOD: %f, Comparison: %x, U:%x,V:%x,W:%x - %ws",

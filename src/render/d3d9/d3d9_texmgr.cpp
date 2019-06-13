@@ -1497,10 +1497,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
       );
   }
 
-  if (resample_blacklist_init == false)
-  {
-    resample_blacklist_init = true;
-  }
+  resample_blacklist_init = true;
 
   // Performance statistics for caching system
   LARGE_INTEGER start, end;
@@ -1517,7 +1514,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   else
     checksum = safe_crc32c (0, pSrcData, SrcDataSize);
 
-  if (true/*config.textures.d3d11.cache*/ && checksum != 0x00)
+  if (config.textures.d3d11.cache && checksum != 0x00)
   {
     Texture* pTex =
       tex_mgr.getTexture (checksum);
@@ -1897,7 +1894,8 @@ SK::D3D9::TextureManager::deleteDumpedTexture (D3DFORMAT fmt, uint32_t checksum)
 bool
 SK::D3D9::TextureManager::isTextureDumped (uint32_t checksum)
 {
-  return dumped_textures [checksum] != false;
+  return
+    ( dumped_textures [checksum] != false );
 }
 
 HRESULT

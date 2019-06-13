@@ -400,7 +400,7 @@ CBTProc ( _In_ int    nCode,
   if (nCode < 0)
   {
     LRESULT lRet =
-      CallNextHookEx (hHookCBT, nCode, wParam, lParam);
+      CallNextHookEx (0, nCode, wParam, lParam);
 
     // ...
 
@@ -520,7 +520,7 @@ CBTProc ( _In_ int    nCode,
 
   return
     CallNextHookEx (
-      hHookCBT,
+      0,
         nCode, wParam, lParam
     );
 }

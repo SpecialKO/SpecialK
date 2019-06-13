@@ -45,7 +45,7 @@ extern volatile LONG __SK_Init;
 void
 SK_SymSetOpts (void)
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
   SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
@@ -906,7 +906,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
                                  nullptr, nullptr );
   } while (ret != FALSE);
 
-  for (auto& stack_entry : stack_entries)
+  for (auto stack_entry : stack_entries)
   {
     if (stack_entry.line_number == 0)
     {
@@ -1305,7 +1305,7 @@ void
 WINAPI
 SK_SymRefreshModuleList ( HANDLE hProc )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   SymRefreshModuleList (hProc);
 }
@@ -1380,7 +1380,7 @@ CrashHandler::InitSyms (void)
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SymCleanup (SK_GetCurrentProcess ());
 

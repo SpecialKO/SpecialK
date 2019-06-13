@@ -399,10 +399,12 @@ bool SK_Sekiro_UnlimitFramerate (bool set, long double target)
 }
 
 
+bool
+SK_Sekiro_PlugInCfg (void);
 
 HRESULT
 STDMETHODCALLTYPE
-SK_Sekiro_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
+SK_Sekiro_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 {
   UNREFERENCED_PARAMETER (Flags);
   UNREFERENCED_PARAMETER (SyncInterval);
@@ -614,7 +616,7 @@ SK_Sekiro_PlugInCfg (void)
               combo_str += "Don't Care";
               combo_str += '\0';
 
-              for ( auto& mode : modes )
+              for ( auto mode : modes )
               {
                 if (/*mode.Format == swapDesc.BufferDesc.Format &&*/
                       mode.Width  == swapDesc.BufferDesc.Width  &&
@@ -750,6 +752,9 @@ SK_Sekiro_PlugInCfg (void)
 void
 SK_Sekiro_InitPlugin (void)
 {
+  plugin_mgr->config_fns.push_back      (SK_Sekiro_PlugInCfg);
+  plugin_mgr->first_frame_fns.push_back (SK_Sekiro_PresentFirstFrame);
+
   //void* pFOVBase =
   //  SK_Scan ( "\xF3\x0F\x10\x08\xF3\x0F\x59\x0D\x0C\xE7\x9B\x02", strlen (
   //            "\xF3\x0F\x10\x08\xF3\x0F\x59\x0D\x0C\xE7\x9B\x02"         ), nullptr );

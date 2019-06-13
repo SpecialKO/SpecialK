@@ -90,12 +90,15 @@ namespace SK
 
       ULONGLONG     ticks_per_frame = 0ULL;
 
-      LARGE_INTEGER time   = { },
+      volatile
+        LONG64      time   = { },
                     start  = { },
                     next   = { },
                     last   = { },
                     freq   = { };
-      uint32_t      frames = 0;
+
+      volatile
+          LONG      frames = 0;
 
 #define LIMIT_APPLY     0
 #define LIMIT_UNDEFLOW  (limit_behavvior < 0)
@@ -177,12 +180,12 @@ namespace SK
 
         int samples_used = 0;
 
-        for ( const auto& i : data )
+        for ( const auto datum : data )
         {
-          if (i.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart >= start.QuadPart)
           {
             ++samples_used;
-            mean += i.val;
+            mean += datum.val;
           }
         }
 
@@ -197,12 +200,12 @@ namespace SK
 
         int samples_used = 0;
 
-        for ( const auto& i : data )
+        for ( const auto datum : data )
         {
-          if (i.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart >= start.QuadPart)
           {
-            sd += (i.val - mean) *
-                  (i.val - mean);
+            sd += (datum.val - mean) *
+                  (datum.val - mean);
             samples_used++;
           }
         }
@@ -216,12 +219,12 @@ namespace SK
       {
         long double min = INFINITY;
 
-        for ( const auto& i : data )
+        for ( const auto datum : data )
         {
-          if (i.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (i.val < min)
-              min = i.val;
+            if (datum.val < min)
+              min = datum.val;
           }
         }
 
@@ -234,12 +237,12 @@ namespace SK
       {
         long double max = -INFINITY;
 
-        for ( const auto& i : data )
+        for ( const auto datum : data )
         {
-          if (i.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (i.val > max)
-              max = i.val;
+            if (datum.val > max)
+              max = datum.val;
           }
         }
 
@@ -272,11 +275,11 @@ namespace SK
     #else
         bool last_late = false;
 
-        for ( const auto& i : data )
+        for ( const auto datum : data )
         {
-          if (i.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (i.val > tolerance * mean)
+            if (datum.val > tolerance * mean)
             {
               if (! last_late)
                 hitches++;
@@ -300,9 +303,9 @@ namespace SK
       {
         int samples_used = 0;
 
-        for ( const auto& i : data )
+        for ( const auto datum : data )
         {
-          if (i.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart >= start.QuadPart)
           {
             samples_used++;
           }

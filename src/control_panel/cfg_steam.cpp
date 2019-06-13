@@ -531,7 +531,7 @@ SK::ControlPanel::Steam::Draw (void)
                                        0.1f * font.size_multiline ),
                                 true,
                                   ImGuiWindowFlags_AlwaysAutoResize );
-        for ( auto& it : files )
+        for ( auto it : files )
         {
           ImGui::PushID   (it.filename.c_str ());
 
@@ -600,7 +600,7 @@ SK::ControlPanel::Steam::Draw (void)
           size_t idx = 0;
 
           ImGui::BeginGroup ();
-          for ( auto it : denuvo_files.get () )
+          for ( const auto& it : denuvo_files.get () )
           {
             const size_t found =
               it.path.find_last_of (L'\\');
@@ -633,7 +633,7 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::SameLine          ();
 
           ImGui::BeginGroup        ();
-          for ( auto it : denuvo_files.get () )
+          for ( const auto& it : denuvo_files.get () )
           {
             const size_t found =
               it.path.find_last_of (L'\\');
@@ -910,7 +910,7 @@ SK_AppCache_Manager::loadDepotCache (DepotId_t steam_depot)
   auto& sections =
     app_cache_db->get_sections ();
 
-  for ( auto& sec : sections )
+  for ( const auto& sec : sections )
   {
     if (StrStrIW (sec.first.c_str (), L"Depot."))
     {
@@ -926,13 +926,13 @@ SK_AppCache_Manager::loadDepotCache (DepotId_t steam_depot)
         continue;
       }
 
-      for ( auto& key : sec.second.keys )
+      for ( const auto& key : sec.second.keys )
       {
         if ( key.first._Equal (L"Installed") )
         {
           SK_Steam_InstalledManifest [depot_id].depot.id    = depot_id;
           SK_Steam_InstalledManifest [depot_id].manifest.id =
-            atoll (SK_WideCharToUTF8 (key.second).c_str ());
+            wcstoll (key.second.c_str (), nullptr, 10);
         }
 
         else if ( key.first._Equal (L"Name") )
@@ -947,7 +947,7 @@ SK_AppCache_Manager::loadDepotCache (DepotId_t steam_depot)
         else
         {
           unsigned long long manifest_id =
-            atoll (SK_WideCharToUTF8 (key.first).c_str ());
+            wcstoll (key.first.c_str (), nullptr, 10);
 
           SK_Steam_DepotManifest depot_record;
 
@@ -972,7 +972,7 @@ SK_AppCache_Manager::loadDepotCache (DepotId_t steam_depot)
 int
 SK_AppCache_Manager::storeDepotCache (DepotId_t steam_depot)
 {
-  for ( auto& depot : SK_Steam_DepotManifestRegistry.get () )
+  for ( const auto& depot : SK_Steam_DepotManifestRegistry.get () )
   {
     if ( steam_depot != 0 &&
          steam_depot != depot.first )
@@ -983,7 +983,7 @@ SK_AppCache_Manager::storeDepotCache (DepotId_t steam_depot)
     auto& sec =
       app_cache_db->get_section_f (L"Depot.%lu", depot.first);
 
-    for ( auto& cache_entry : depot.second )
+    for ( const auto& cache_entry : depot.second )
     {
       if (! cache_entry.depot.name.empty ())
       {
@@ -1478,7 +1478,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
       auto InitializeSteamDepots = [&](void) ->
       void
       {
-        for ( auto& cache_record : SK_Steam_DepotManifestRegistry.get () )
+        for ( auto cache_record : SK_Steam_DepotManifestRegistry.get () )
           cache_record.second.clear ();
 
         SK_Steam_DepotManifestRegistry->clear ();
@@ -1489,7 +1489,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
           std::vector <SK_Steam_Depot> depots =
             SK_UseManifestToGetDepots (SK::SteamAPI::AppID ());
 
-          for ( auto& it : depots )
+          for ( const auto& it : depots )
           {
             auto* get =
               new sk_depot_get_t { };
@@ -1556,11 +1556,11 @@ SK::ControlPanel::Steam::DrawMenu (void)
       {
         if (! SK_Steam_DepotManifestRegistry->empty ())
         {
-          for ( auto& it : SK_Steam_DepotManifestRegistry.get () )
+          for ( const auto& it : SK_Steam_DepotManifestRegistry.get () )
           {
             if (ImGui::BeginMenu (it.second.front ().depot.name.c_str ()))
             {
-              for ( auto& it2 : it.second )
+              for ( const auto& it2 : it.second )
               {
                 // 4/28/19 -- Replaced repeated statement w/ this reference
                 auto& test_manifest =

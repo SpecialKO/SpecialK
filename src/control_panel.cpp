@@ -2635,94 +2635,18 @@ SK_ImGui_ControlPanel (void)
     SK_PlugIn_ControlPanelWidget ();
 
 
-#ifdef _WIN64
     switch (SK_GetCurrentGameID ())
     {
-      case SK_GAME_ID::Okami:
-      {
-        extern bool SK_Okami_PlugInCfg (void);
-                    SK_Okami_PlugInCfg ();
-      } break;
-
       case SK_GAME_ID::GalGun_Double_Peace:
       {
         extern bool SK_GalGun_PlugInCfg (void);
                     SK_GalGun_PlugInCfg ();
       } break;
-
-      case SK_GAME_ID::StarOcean4:
-      {
-        extern bool SK_SO4_PlugInCfg (void);
-                    SK_SO4_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::LifeIsStrange_BeforeTheStorm:
-      {
-        extern bool SK_LSBTS_PlugInCfg (void);
-                    SK_LSBTS_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::FinalFantasyXV:
-      {
-        extern bool SK_FFXV_PlugInCfg (void);
-                    SK_FFXV_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::NiNoKuni2:
-      {
-        extern bool SK_NNK2_PlugInCfg (void);
-                    SK_NNK2_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::PillarsOfEternity2:
-      {
-        extern bool SK_POE2_PlugInCfg (void);
-                    SK_POE2_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::Yakuza0:
-      case SK_GAME_ID::YakuzaKiwami2:
-      {
-        SK_Yakuza0_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::MonsterHunterWorld:
-      {
-        extern bool SK_MHW_PlugInCfg (void);
-                    SK_MHW_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::DragonQuestXI:
-      {
-        extern bool SK_DQXI_PlugInCfg (void);
-                    SK_DQXI_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::Shenmue:
-      {
-        extern bool SK_SM_PlugInCfg (void);
-                    SK_SM_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::AssassinsCreed_Odyssey:
-      {
-        extern bool SK_ACO_PlugInCfg (void);
-                    SK_ACO_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::Tales_of_Vesperia:
-      {
-        extern bool SK_TVFix_PlugInCfg (void);
-                    SK_TVFix_PlugInCfg ();
-      } break;
-
-      case SK_GAME_ID::Sekiro:
-      {
-        extern bool SK_Sekiro_PlugInCfg (void);
-                    SK_Sekiro_PlugInCfg ();
-      }
     };
-#endif
+
+
+  for ( auto plugin_cfg : plugin_mgr->config_fns )
+  {          plugin_cfg ();                      }
 
 
   static bool has_own_limiter    = (hModTBFix);
@@ -3346,9 +3270,7 @@ SK_ImGui_StageNextFrame (void)
     ImGui::GetIO ()
   );
 
-  // TODO: Generalize this!
-  //if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
-  //     SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI )
+
   SK_ComQIPtr <IDXGISwapChain> pSwapChain (
     rb.swapchain
   );

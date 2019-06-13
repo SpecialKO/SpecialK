@@ -674,7 +674,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <BrowseInformation>false</BrowseInformation>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -726,7 +726,7 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -1429,7 +1429,7 @@ Exit 0</Command>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>MaxSpeed</Optimization>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -1484,7 +1484,7 @@ Exit 0</Command>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -3214,6 +3214,9 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TVFix|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\plugins\octopath_traveler.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\plugins\secret_of_mana.cpp" />
     <ClCompile Include="src\plugins\sekiro.cpp">

@@ -638,7 +638,7 @@ public:
       quotes = 0;
     };
 
-    for (auto& c : input)
+    for (auto c : input)
     {
       if (c == '"')
         ++quotes;
@@ -701,7 +701,7 @@ public:
     );
 
     int idx = 0;
-    for ( auto& it : keys )
+    for ( auto it : keys )
     {
       if (it._Equal (key))
         return values [idx];

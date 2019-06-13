@@ -1203,7 +1203,7 @@ SK_CPU_GetTemperature_AMDZen (int core)
 }
 
 struct SK_ClockTicker {
-  constexpr SK_ClockTicker (void) { };
+  constexpr SK_ClockTicker (void) = default;
 
   double cumulative_MHz = 0.0;
   int    num_cores      =   0;
@@ -1214,7 +1214,9 @@ struct SK_ClockTicker {
       static_cast <uint64_t> ( cumulative_MHz /
       static_cast < double > ( num_cores ) )  : 0;
   }
-} __AverageEffectiveClock;
+};
+
+SK_LazyGlobal <SK_ClockTicker> __AverageEffectiveClock;
 
 #define UPDATE_INTERVAL_MS (1000.0 * config.cpu.interval * 2.0)
 
@@ -1525,7 +1527,7 @@ public:
           static_cast <float> (pwi [i].CurrentMhz);
       }
 
-      if (__AverageEffectiveClock.getAvg () == 0)
+      if (__AverageEffectiveClock->getAvg () == 0)
       {
         cpu_clocks.addValue ( avg_clock /
                                 static_cast <float> (sinfo.dwNumberOfProcessors) );
@@ -1534,11 +1536,11 @@ public:
       else
       {
         cpu_clocks.addValue (
-          __AverageEffectiveClock.getAvg () / 1000000.0f
+          __AverageEffectiveClock->getAvg () / 1000000.0f
         );
 
-        __AverageEffectiveClock.num_cores      = 0;
-        __AverageEffectiveClock.cumulative_MHz = 0;
+        __AverageEffectiveClock->num_cores      = 0;
+        __AverageEffectiveClock->cumulative_MHz = 0;
       }
 
       const bool changed =
@@ -2100,8 +2102,8 @@ public:
 
             else
             {
-              __AverageEffectiveClock.cumulative_MHz += core_sensors.clock_MHz;
-              __AverageEffectiveClock.num_cores++;
+              __AverageEffectiveClock->cumulative_MHz += core_sensors.clock_MHz;
+              __AverageEffectiveClock->num_cores++;
 
               if (parked_since == 0 || show_parked)
                 ImGui::Text       ("%4.2f GHz", core_sensors.clock_MHz / 1e+9f);

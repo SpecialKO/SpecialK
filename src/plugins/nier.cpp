@@ -27,7 +27,7 @@
 #include <SpecialK/stdafx.h>
 
 
-
+#include <SpecialK/plugin/plugin_mgr.h>
 #include <SpecialK/plugin/nier.h>
 
 
@@ -192,9 +192,8 @@ struct {
   bool fix_motion_blur = true;
 } far_ao;
 
-void __stdcall SK_FAR_ControlPanel (void);
-
-static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
+bool                      SK_FAR_PlugInCfg         (void);
+HRESULT STDMETHODCALLTYPE SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
 
 // Was threaded originally, but it is important to block until
 //   the update check completes.
@@ -781,7 +780,7 @@ SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 
 HRESULT
 STDMETHODCALLTYPE
-SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
+SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 {
   UNREFERENCED_PARAMETER (pSwapChain);
   UNREFERENCED_PARAMETER (SyncInterval);
@@ -1405,6 +1404,9 @@ SK_FAR_InitPlugin (void)
 {
   SK_SetPluginName (FAR_VERSION_STR);
 
+  plugin_mgr->first_frame_fns.push_back (SK_FAR_PresentFirstFrame);
+  plugin_mgr->config_fns.push_back      (SK_FAR_PlugInCfg);
+
   SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
                                D3D11Dev_CreateBuffer_Override,
                                  SK_FAR_CreateBuffer,
@@ -1434,12 +1436,6 @@ SK_FAR_InitPlugin (void)
                               SK_FAR_DrawIndexed,
      static_cast_p2p <void> (&_D3D11_DrawIndexed_Original) );
   MH_QueueEnableHook (         D3D11_DrawIndexed_Override  );
-
-  SK_CreateFuncHook (       L"SK_PlugIn_ControlPanelWidget",
-                              SK_PlugIn_ControlPanelWidget,
-                                 SK_FAR_ControlPanel,
-     static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
-  MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
   LPVOID dontcare = nullptr;
 
@@ -1808,9 +1804,9 @@ SK_FAR_ShutdownPlugin (const wchar_t* backend)
   return true;
 }
 
-void
+bool
 __stdcall
-SK_FAR_ControlPanel (void)
+SK_FAR_PlugInCfg (void)
 {
   // Push this to FAR.ini so that mod updates don't repeatedly present the user with a license agreement.
   if ((! config.imgui.show_eula) && (! far_accepted_license->get_value ()))
@@ -2221,6 +2217,8 @@ SK_FAR_ControlPanel (void)
     far_prefs->write (far_prefs_file);
 
   ImGui::PopID ();
+
+  return true;
 }
 
 bool
@@ -2579,7 +2577,7 @@ struct {
     double resFactor = resW / 1600.0; // the factor required to scale to the largest part of the pyramid
 
 
-    for (auto& tex : textures_)
+    for (auto tex : textures_)
     {
       D3D11_TEXTURE2D_DESC desc = { };
             tex->GetDesc (&desc);
@@ -2616,7 +2614,7 @@ struct {
 
     if (replacement_textures_.size () == textures_.size ())
     {
-      for (auto& rtv : rtvs_)
+      for (auto rtv : rtvs_)
       {
         D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = { };
                        rtv->GetDesc (&rtv_desc);
@@ -2645,7 +2643,7 @@ struct {
 
     if (replacement_rtvs_.size () == rtvs_.size ())
     {
-      for (auto& srv : srvs_)
+      for (auto srv : srvs_)
       {
         D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
                          srv->GetDesc (&srv_desc);
@@ -2720,10 +2718,6 @@ struct {
   bool disable         = false;
   bool fix_motion_blur = true;
 } far_ao;
-
-void __stdcall SK_FAR_ControlPanel (void);
-
-static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
 
 // Was threaded originally, but it is important to block until
 //   the update check completes.
@@ -4396,12 +4390,6 @@ SK_FAR_InitPlugin (void)
   //   static_cast_p2p <void> (&_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original) );
   //MH_QueueEnableHook (         D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override  );
 
-  SK_CreateFuncHook (       L"SK_PlugIn_ControlPanelWidget",
-                              SK_PlugIn_ControlPanelWidget,
-                                 SK_FAR_ControlPanel,
-     static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
-  MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
-
   LPVOID dontcare = nullptr;
 
   SK_CreateFuncHook ( L"SK_ImGUI_DrawEULA_PlugIn",
@@ -4736,9 +4724,8 @@ SK_FAR_ShutdownPlugin (const wchar_t* backend)
   return true;
 }
 
-void
-__stdcall
-SK_FAR_ControlPanel (void)
+bool
+SK_FAR_PlugInCfg (void)
 {
   // Push this to FAR.ini so that mod updates don't repeatedly present the user with a license agreement.
   if ((! config.imgui.show_eula) && (! far_accepted_license->get_value ()))
@@ -5110,6 +5097,8 @@ SK_FAR_ControlPanel (void)
 
   if (changed)
     far_prefs->write (far_prefs_file);
+
+  return true;
 }
 
 bool

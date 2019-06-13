@@ -33,6 +33,10 @@
 extern iSK_INI* dll_ini;
 extern bool     __SK_HDR_16BitSwap;
 
+bool                      SK_TVFix_PlugInCfg         (void);
+HRESULT STDMETHODCALLTYPE SK_TVFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
+void                      SK_TVFix_BeginFrame        (void);
+
 struct tv_mem_addr_s
 {
   const char*    pattern        = nullptr;
@@ -285,7 +289,7 @@ SK_TVFix_CheckVersion (LPVOID user)
 
 HRESULT
 STDMETHODCALLTYPE
-SK_TVFIX_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
+SK_TVFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 {
   UNREFERENCED_PARAMETER (pSwapChain);
   UNREFERENCED_PARAMETER (SyncInterval);
@@ -330,6 +334,10 @@ SK_TVFix_InitPlugin (void)
          tvfix_ctx.get ();
 
   SK_SetPluginName (TVFIX_VERSION_STR);
+
+  plugin_mgr->config_fns.push_back      (SK_TVFix_PlugInCfg);
+  plugin_mgr->first_frame_fns.push_back (SK_TVFix_PresentFirstFrame);
+  plugin_mgr->begin_frame_fns.push_back (SK_TVFix_BeginFrame);
 
   SK_CreateFuncHook (      L"SteamAPI_RunCallbacks_Detour",
                              SteamAPI_RunCallbacks_Detour,

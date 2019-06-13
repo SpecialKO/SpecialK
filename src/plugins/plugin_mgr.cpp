@@ -196,7 +196,7 @@ SK_GetPlugInDirectory ( SK_PlugIn_Type type )
 
     int  dram_idx = 0;
 
-    for ( auto& controller : ram_controllers )
+    for ( auto controller : ram_controllers )
     {
       bool dram_changed = false;
 
@@ -204,7 +204,7 @@ SK_GetPlugInDirectory ( SK_PlugIn_Type type )
 
       int led_idx = 0;
 
-      for ( auto& light : controller.lights )
+      for ( auto light : controller.lights )
       {
         ImGui::PushID (led_idx++);
 
@@ -238,7 +238,7 @@ SK_GetPlugInDirectory ( SK_PlugIn_Type type )
         AURAColor_t *colors =
           new AURAColor_t [controller.lights.size ()];
 
-        for ( auto& light : controller.lights )
+        for ( auto light : controller.lights )
         {
           colors [idx  ][0] = light.color [0];
           colors [idx  ][1] = light.color [1];

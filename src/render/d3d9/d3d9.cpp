@@ -186,7 +186,27 @@ WaitForInit_D3D9 (void)
   }
 
   if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
+  {   SK_TLS_Bottom ()->d3d9->ctx_init_thread = FALSE;
     return;
+  }
+
+  if (! ReadAcquire (&__d3d9_ready))
+    SK_Thread_SpinUntilFlagged (&__d3d9_ready);
+}
+
+void
+WINAPI
+WaitForInit_D3D9Ex (void)
+{
+  if (Direct3DCreate9_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootD3D9 ());
+  }
+
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
+  {   SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex = FALSE;
+    return;
+  }
 
   if (! ReadAcquire (&__d3d9_ready))
     SK_Thread_SpinUntilFlagged (&__d3d9_ready);
@@ -2234,7 +2254,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
     return D3DERR_INVALIDCALL;
 
 
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
   {
     return D3D9ExDevice_ResetEx_Original ( This,
                                              pPresentationParameters,
@@ -3313,7 +3333,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
   {
     return pparams;
   }
@@ -3675,12 +3695,17 @@ SK_D3D9_HookDeviceAndSwapchain (
     pDevice->AddRef ();
   }
 
-  else
+  else if (pDevice != nullptr)
   {
     IWrapDirect3DDevice9 *pWrapper = (IWrapDirect3DDevice9 *)pDevice;
                            pDevice = pWrapper->pReal;
 
-    pDevice->AddRef (), pWrapper->Release ();
+    pWrapper->AddRef ();
+  }
+
+  else
+  {
+    return 0;
   }
 
 
@@ -4346,7 +4371,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                               D3DDISPLAYMODEEX       *pFullscreenDisplayMode,
                               IDirect3DDevice9Ex    **ppReturnedDeviceInterface )
 {
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
   {
     return
       D3D9Ex_CreateDeviceEx_Original ( This,
@@ -4485,7 +4510,8 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
 
 
   if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
-  {
+  {   SK_TLS_Bottom ()->d3d9->ctx_init_thread = FALSE;
+
     return
       D3D9_CreateDevice_Original ( This,
                                      Adapter,
@@ -4636,8 +4662,9 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
                               D3DPRESENT_PARAMETERS* pPresentationParameters,
                               IDirect3DDevice9**     ppReturnedDeviceInterface )
 {
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread || pPresentationParameters == nullptr)
-  {
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex || pPresentationParameters == nullptr)
+  {   SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex = FALSE;
+
     return
       D3D9Ex_CreateDeviceEx_Original ( (IDirect3D9Ex *)This,
                                          Adapter,
@@ -4810,9 +4837,21 @@ __declspec (noinline)
 STDMETHODCALLTYPE
 Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
 {
-  WaitForInit_D3D9    ();
+  HMODULE hModOverlay =
+    SK_RunLHIfBitness ( 64, GetModuleHandleW (L"gameoverlayrenderer64.dll"),
+                            GetModuleHandleW (L"gameoverlayrenderer.dll") );
 
-  if (! SK_TLS_Bottom ()->d3d9->ctx_init_thread)
+  if (SK_GetCallingDLL () == hModOverlay)
+  {
+    return
+      (Direct3DCreate9Ex_Import != nullptr)         ?
+       Direct3DCreate9Ex_Import (SDKVersion, ppD3D) :
+       E_NOTIMPL;
+  }
+
+  WaitForInit_D3D9Ex  ();
+
+  if (! SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
     WaitForInit       ();
 
 
@@ -4981,13 +5020,12 @@ HookD3D9 (LPVOID user)
 
     SK_AutoCOMInit auto_com;
     {
-      pTLS->d3d9->ctx_init_thread  = true;
+      pTLS->d3d9->ctx_init_thread      = TRUE;
 
-      HWND                   hwnd  = nullptr;
-      SK_ComPtr <IDirect3D9> pD3D9 =
+      HWND                     hwnd    = nullptr;
+      SK_ComPtr <IDirect3D9>   pD3D9   =
          Direct3DCreate9_Import (D3D_SDK_VERSION);
-
-      pTLS->d3d9->ctx_init_thread = false;
+      SK_ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
       if (pD3D9 != nullptr)
       {
@@ -5008,7 +5046,7 @@ HookD3D9 (LPVOID user)
 
         dll_log->Log (L"[   D3D9   ]  Hooking D3D9...");
 
-        pTLS->d3d9->ctx_init_thread = true;
+        pTLS->d3d9->ctx_init_thread = TRUE;
 
         HRESULT hr =
           pD3D9->CreateDevice (
@@ -5018,8 +5056,6 @@ HookD3D9 (LPVOID user)
                         D3DCREATE_HARDWARE_VERTEXPROCESSING,
                           &pparams,
                             &pD3D9Dev.p );
-
-        pTLS->d3d9->ctx_init_thread = false;
 
         if (SUCCEEDED (hr))
         {
@@ -5061,16 +5097,13 @@ HookD3D9 (LPVOID user)
 
         SK_Win32_CleanupDummyWindow (hwnd);
 
-        SK_ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
-
-        pTLS->d3d9->ctx_init_thread = true;
+        pTLS->d3d9->ctx_init_thread    = FALSE;
+        pTLS->d3d9->ctx_init_thread_ex = TRUE;
 
         hr = (config.apis.d3d9ex.hook) ?
           Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex.p)
                            :
                       E_NOINTERFACE;
-
-        pTLS->d3d9->ctx_init_thread = false;
 
         hwnd = nullptr;
 
@@ -5090,9 +5123,9 @@ HookD3D9 (LPVOID user)
           pparams.BackBufferHeight      = 2;
           pparams.BackBufferWidth       = 2;
 
-          SK_ComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
-
-          pTLS->d3d9->ctx_init_thread = true;
+          SK_ComPtr <IDirect3DDevice9Ex>
+               pD3D9DevEx                = nullptr;
+          pTLS->d3d9->ctx_init_thread_ex = TRUE;
 
           hr = pD3D9Ex->CreateDeviceEx (
                 D3DADAPTER_DEFAULT,
@@ -5102,8 +5135,6 @@ HookD3D9 (LPVOID user)
                         &pparams,
                           nullptr,
                             &pD3D9DevEx.p );
-
-          pTLS->d3d9->ctx_init_thread = false;
 
           if ( SUCCEEDED (hr) )
           {
@@ -5157,6 +5188,9 @@ HookD3D9 (LPVOID user)
         WriteRelease (&__d3d9_ready, TRUE);
       }
     }
+
+    pTLS->d3d9->ctx_init_thread    = FALSE;
+    pTLS->d3d9->ctx_init_thread_ex = FALSE;
 
     InterlockedIncrementRelease (&__hooked);
   }

@@ -2004,6 +2004,7 @@ NtUserGetKeyState_Detour (_In_ int nVirtKey)
     return 0;
   }
 
+  //return SK_GetAsyncKeyState (nVirtKey);
   return SK_GetKeyState (nVirtKey);
 }
 

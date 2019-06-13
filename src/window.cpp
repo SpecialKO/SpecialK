@@ -934,11 +934,11 @@ ActivateWindow (HWND hWnd, bool active = false)
 
     if ((! rb.fullscreen_exclusive) && config.window.background_render)
     {
-      if (! game_window.cursor_visible)
-      {
-        while (ShowCursor (FALSE) >= 0)
-          ;
-      }
+      ///if (! game_window.cursor_visible)
+      ///{
+      ///  while (ShowCursor (FALSE) >= 0)
+      ///    ;
+      ///}
 
       if (! wm_dispatch->moving_windows.count (game_window.hWnd))
         SK_ClipCursor (&game_window.cursor_clip);
@@ -949,11 +949,11 @@ ActivateWindow (HWND hWnd, bool active = false)
   {
     if ((! rb.fullscreen_exclusive) && config.window.background_render)
     {
-      game_window.cursor_visible =
-        ShowCursor (TRUE) >= 1;
-
-      while (ShowCursor (TRUE) < 0)
-        ;
+      ///game_window.cursor_visible =
+      ///  ShowCursor (TRUE) >= 1;
+      ///
+      ///while (ShowCursor (TRUE) < 0)
+      ///  ;
 
       SK_ClipCursor (nullptr);
     }
@@ -3704,9 +3704,7 @@ PeekMessageA_Detour (
                                           wRemoveMsg )
      )
   {
-    if ( (wRemoveMsg & PM_REMOVE)   ==  1 &&
-         ( hWnd        != SK_HWND_DESKTOP ||
-           lpMsg->hwnd != SK_HWND_DESKTOP ) )
+    if ( (wRemoveMsg & PM_REMOVE) == 1 )
     {
       SK_EarlyDispatchMessage (lpMsg, true, true);
     }
@@ -3774,9 +3772,7 @@ PeekMessageW_Detour (
                                           wRemoveMsg )
      )
   {
-    if ( (wRemoveMsg & PM_REMOVE)    == 1 &&
-         ( hWnd        != SK_HWND_DESKTOP ||
-           lpMsg->hwnd != SK_HWND_DESKTOP ) )
+    if ( (wRemoveMsg & PM_REMOVE) == 1 )
     {
       SK_EarlyDispatchMessage (lpMsg, true, true);
     }
@@ -5339,13 +5335,6 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop)
    ( game_window.unicode ? &GetWindowLongW  :
                            &GetWindowLongA  );
 
-  if (! ( GetWindowLongFn &&
-          SetWindowLongFn  ) )
-  {
-    SK_ReleaseAssert (! "Unexpected lack of Get/SetWindowLong!");
-    return;
-  }
-
   HWND      hWndOrder = nullptr;
   DWORD_PTR dwStyleEx =
     GetWindowLongFn (game_window.hWnd, GWL_EXSTYLE);
@@ -6436,12 +6425,6 @@ SK_Win32_IsGUIThread ( DWORD    dwTid,
   static Concurrency::concurrent_unordered_map
     < DWORD, BOOL > known_tids_;
 
-  if (known_tids_.count (dwTid))
-  {
-    return
-      known_tids_ [dwTid];
-  }
-
 
   SK_TLS *pTLS =
     nullptr;
@@ -6470,6 +6453,12 @@ SK_Win32_IsGUIThread ( DWORD    dwTid,
 
     return
       pTLS->win32->GUI;
+  }
+
+  if (known_tids_.find (dwTid) != known_tids_.cend ())
+  {
+    return
+      known_tids_ [dwTid];
   }
 
   return

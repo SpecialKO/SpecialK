@@ -104,14 +104,17 @@ SK_Debug_LoadHelper (void)
                              SK_RunLHIfBitness (64, L"dbghelp_sk64.dll",
                                                     L"dbghelp_sk32.dll") );
 
-    if (! PathFileExistsW (wszIsolatedDbgHelp))
+    if (PathFileExistsW (wszIsolatedDbgHelp) == FALSE)
     {
       SK_CreateDirectories (wszIsolatedDbgHelp);
       CopyFileW            (wszSystemDbgHelp, wszIsolatedDbgHelp, TRUE);
     }
 
+    auto* mods =
+       SK_Modules.getPtr ();
+
     hModDbgHelp =
-      SK_Modules->LoadLibrary (wszIsolatedDbgHelp);
+      mods->LoadLibrary (wszIsolatedDbgHelp);
 
     InterlockedIncrementRelease (&__init);
   }
@@ -121,7 +124,8 @@ SK_Debug_LoadHelper (void)
 
   SK_ReleaseAssert (hModDbgHelp != nullptr)
 
-  return hModDbgHelp;
+  return
+    hModDbgHelp;
 }
 
 
@@ -276,6 +280,27 @@ SetLastError_Detour (
   }
 }
 
+
+BOOL
+__stdcall
+SK_Util_PinModule (HMODULE hModToPin)
+{ static
+  concurrency::concurrent_unordered_set
+                   < HMODULE > __pinned;
+
+  if (__pinned.find (hModToPin) != __pinned.cend ())
+    return TRUE;
+
+  HMODULE hModDontCare;
+
+  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_PIN |
+                      GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                        (LPCWSTR)hModToPin,
+                          &hModDontCare );
+
+  return TRUE;
+}
+
 FARPROC
 WINAPI
 GetProcAddress_Detour     (
@@ -306,7 +331,8 @@ GetProcAddress_Detour     (
   if (hModCaller == SK_GetDLL ())
   {
     SetLastError (NO_ERROR);
-    return GetProcAddress_Original (hModule, lpProcName);
+    return
+      GetProcAddress_Original (hModule, lpProcName);
   }
 
   auto _EstablishKnownDLL =
@@ -322,65 +348,40 @@ GetProcAddress_Detour     (
   };
 
   static HMODULE       hModSteamOverlay = nullptr;
-  _EstablishKnownDLL (&hModSteamOverlay,
-     SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
-                             L"GameOverlayRenderer.dll" ) );
-
   static HMODULE       hModSteamClient  = nullptr;
-  _EstablishKnownDLL (&hModSteamClient,
-     SK_RunLHIfBitness ( 64, L"steamclient64.dll",
-                             L"steamclient.dll" ) );
+  static HMODULE       hModSteamAPI     = nullptr;
 
-  if ( hModCaller == hModSteamOverlay ||
-       hModCaller == hModSteamClient )
+  hModSteamOverlay =
+     SK_GetModuleHandle (
+       SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
+                               L"GameOverlayRenderer.dll" )
+                        );
+
+
+  hModSteamClient =
+     SK_GetModuleHandle (
+       SK_RunLHIfBitness ( 64, L"steamclient64.dll",
+                               L"steamclient.dll" )
+                        );
+  hModSteamAPI =
+    SK_GetModuleHandle (
+      SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                              L"steam_api.dll" )
+                       );
+
+  char proc_name [128] = { 0 };
+
+  if ((uintptr_t)lpProcName > 65536)
   {
-    return
-      GetProcAddress_Original (hModule, lpProcName);
+    strcpy (proc_name, lpProcName);
   }
 
-
-  //static Concurrency::concurrent_unordered_map <HMODULE, std::unordered_map <std::string, FARPROC>> procs    (4);
-  //static Concurrency::concurrent_unordered_map <HMODULE, std::unordered_map <uint16_t,    FARPROC>> ordinals (4);
-  //
-  //if (((uint16_t)(uintptr_t)lpProcName & 0xFFFF) > 65536)
-  //{
-  //  if (procs.count (hModule))
-  //  {
-  //    if (     procs [hModule].count (lpProcName))
-  //      return procs [hModule]       [lpProcName];
-  //  }
-  //
-  //  FARPROC proc =
-  //    GetProcAddress_Original (hModule, lpProcName);
-  //
-  //  if (proc != nullptr)
-  //  {
-  //    procs [hModule][lpProcName] = proc;
-  //  }
-  //
-  //  return proc;
-  //}
-  //
-  //
-  //else if ((uint16_t)((uintptr_t)lpProcName & 0xFFFF) <= 65535)
-  //{
-  //  if (ordinals.count (hModule))
-  //  {
-  //    if (     ordinals [hModule].count ((uint16_t)((uintptr_t)lpProcName & 0xFFFF)))
-  //      return ordinals [hModule]       [(uint16_t)((uintptr_t)lpProcName & 0xFFFF)];
-  //  }
-  //
-  //  FARPROC proc =
-  //    GetProcAddress_Original (hModule, lpProcName);
-  //
-  //  if (proc != nullptr)
-  //  {
-  //    ordinals [hModule][(uint16_t)((uintptr_t)lpProcName & 0xFFFF)] = proc;
-  //  }
-  //
-  //  return proc;
-  //}
-
+  else
+  {
+    strcpy (proc_name,
+      SK_FormatString ("Ordinal_%lu", (uint32_t)((uintptr_t)lpProcName & 0xFFFFUL)).c_str ()
+    );
+  }
 
   // Ignore ordinals for these bypasses
   if ((uintptr_t)lpProcName > 65535UL)
@@ -396,9 +397,9 @@ GetProcAddress_Detour     (
           reinterpret_cast <FARPROC> (CreateDXGIFactory2);
 
         const bool factory1 =
-          (! lstrcmpiA (lpProcName, "CreateDXGIFactory1"));
+          (! lstrcmpA (lpProcName, "CreateDXGIFactory1"));
         const bool factory2 = (! factory1) &&
-          (! lstrcmpiA (lpProcName, "CreateDXGIFactory2"));
+          (! lstrcmpA (lpProcName, "CreateDXGIFactory2"));
 
         if ( factory1 ||
              factory2    )
@@ -452,13 +453,13 @@ GetProcAddress_Detour     (
 
     if (*lpProcName == 'P' && StrStrA (lpProcName, "PeekM") == lpProcName)
     {
-      if (! lstrcmpiA (lpProcName, "PeekMessageA"))
+      if (! lstrcmpA (lpProcName, "PeekMessageA"))
       {
         return
           (FARPROC)PeekMessageA_Detour;
       }
 
-      else if (! lstrcmpiA (lpProcName, "PeekMessageW"))
+      else if (! lstrcmpA (lpProcName, "PeekMessageW"))
       {
         return
           (FARPROC) PeekMessageW_Detour;
@@ -467,20 +468,20 @@ GetProcAddress_Detour     (
 
     else if (*lpProcName == 'G' && StrStrA (lpProcName, "GetM") == lpProcName)
     {
-      if (! lstrcmpiA (lpProcName, "GetMessageA"))
+      if (! lstrcmpA (lpProcName, "GetMessageA"))
       {
         return
           (FARPROC) GetMessageA_Detour;
       }
 
-      else if (! lstrcmpiA (lpProcName, "GetMessageW"))
+      else if (! lstrcmpA (lpProcName, "GetMessageW"))
       {
         return
           (FARPROC) GetMessageW_Detour;
       }
     }
 
-    else if (*lpProcName == 'N' && (! lstrcmpiA (lpProcName, "NoHotPatch")))
+    else if (*lpProcName == 'N' && (! lstrcmpA (lpProcName, "NoHotPatch")))
     {
       static     DWORD NoHotPatch = 0x1;
       return (FARPROC)&NoHotPatch;
@@ -552,12 +553,67 @@ GetProcAddress_Detour     (
     }
   }
 
-  if (config.system.log_level == 0)
+  using farptr = FARPROC;
+
+  static
+    concurrency::concurrent_unordered_map
+      < HMODULE,       std::unordered_map
+      < std::string,           farptr > >
+       __proc_addrs;
+
+  std::string
+   str_lpProcName (((uintptr_t)lpProcName > 65536) ?
+                               lpProcName : "Ordinal");
+
+  bool is_new = true;
+
+  if ((LPCSTR)(intptr_t)lpProcName < (LPCSTR)65536)
   {
-    SetLastError (dwLastErr);
-    return
-      GetProcAddress_Original (hModule, lpProcName);
+    str_lpProcName =
+      SK_FormatString ("Ordinal_%lu", (intptr_t)lpProcName);
   }
+
+  auto&    proc_list =
+         __proc_addrs [hModule];
+  auto& farproc =
+           proc_list  [str_lpProcName];
+
+  if (farproc == nullptr && hModule != nullptr)
+  {
+    farproc =
+      GetProcAddress_Original (
+        hModule,
+        lpProcName
+      );
+
+    if (farproc != nullptr && proc_list.size () == 1)
+    {
+      SK_Util_PinModule (hModule);
+      //SK_LoadLibrary_PinModule <wchar_t> (SK_GetModuleName (hModule))
+    }
+  }
+
+  else is_new = false;
+
+  if (farproc != nullptr)
+  {
+    SetLastError (NO_ERROR);
+  }
+
+  else
+  {
+    if (hModule != nullptr)
+      SetLastError (ERROR_PROC_NOT_FOUND);
+    else
+      SetLastError (ERROR_MOD_NOT_FOUND);
+  }
+
+  //if (config.system.log_level == 0)
+  //{
+  //  SetLastError (dwLastErr);
+  //  return
+  //    GetProcAddress_Original (hModule, lpProcName);
+  //}
 
 
   static DWORD dwOptimus        = 0x1;
@@ -580,7 +636,7 @@ GetProcAddress_Detour     (
     //
     if (config.system.log_level > 0 && dll_log->lines > 15)
     {
-      if (hModCaller != SK_GetDLL ())
+      if (hModCaller != SK_GetDLL () && is_new)
       {
         SK_LOG3 ( ( LR"(GetProcAddress ([%ws], {Ordinal: %lu})  -  %ws)",
                         SK_GetModuleFullName (hModule).c_str (),
@@ -592,8 +648,7 @@ GetProcAddress_Detour     (
 
     SetLastError (dwLastErr);
 
-    return
-      GetProcAddress_Original (hModule, lpProcName);
+    return farproc;
   }
 
 
@@ -605,59 +660,65 @@ GetProcAddress_Detour     (
     "NvOptimusEnablement", "AmdPowerXpressRequestHighPerformance"
   };
 
-  if ( handled_strings.find (lpProcName) !=
-       handled_strings.cend (          )  )
+  if ((uintptr_t)lpProcName > 65536)
   {
-    if (! strcmp (lpProcName, "NvOptimusEnablement"))
+    if ( handled_strings.find (lpProcName) !=
+         handled_strings.cend (          )  )
     {
-      dll_log->Log (L"Optimus Enablement");
-      return (FARPROC)&dwOptimus;
+      if (! strcmp (lpProcName, "NvOptimusEnablement"))
+      {
+        dll_log->Log (L"Optimus Enablement");
+        return (FARPROC)&dwOptimus;
+      }
+
+      else if (! strcmp (lpProcName, "AmdPowerXpressRequestHighPerformance"))
+        return (FARPROC)&dwAMDPowerXPress;
     }
 
-    else if (! strcmp (lpProcName, "AmdPowerXpressRequestHighPerformance"))
-      return (FARPROC)&dwAMDPowerXPress;
-  }
+
+    ///if (config.system.trace_load_library && StrStrA (lpProcName, "LoadLibrary"))
+    ///{
+    ///  // Make other DLLs install their hooks _after_ SK.
+    ///  if (! strcmp (lpProcName, "LoadLibraryExW"))
+    ///  {
+    ///    extern HMODULE
+    ///    WINAPI
+    ///    LoadLibraryExW_Detour (
+    ///      _In_       LPCWSTR lpFileName,
+    ///      _Reserved_ HANDLE  hFile,
+    ///      _In_       DWORD   dwFlags );
+    ///    return (FARPROC)LoadLibraryExW_Detour;
+    ///  }
+    ///
+    ///  if (! strcmp (lpProcName, "LoadLibraryW"))
+    ///    return (FARPROC)*LoadLibraryW_Original;
+    ///
+    ///  if (! strcmp (lpProcName, "LoadLibraryExA"))
+    ///    return (FARPROC)*LoadLibraryExA_Original;
+    ///
+    ///  if (! strcmp (lpProcName, "LoadLibraryA"))
+    ///    return (FARPROC)*LoadLibraryA_Original;
+    ///}
 
 
-  ///if (config.system.trace_load_library && StrStrA (lpProcName, "LoadLibrary"))
-  ///{
-  ///  // Make other DLLs install their hooks _after_ SK.
-  ///  if (! strcmp (lpProcName, "LoadLibraryExW"))
-  ///  {
-  ///    extern HMODULE
-  ///    WINAPI
-  ///    LoadLibraryExW_Detour (
-  ///      _In_       LPCWSTR lpFileName,
-  ///      _Reserved_ HANDLE  hFile,
-  ///      _In_       DWORD   dwFlags );
-  ///    return (FARPROC)LoadLibraryExW_Detour;
-  ///  }
-  ///
-  ///  if (! strcmp (lpProcName, "LoadLibraryW"))
-  ///    return (FARPROC)*LoadLibraryW_Original;
-  ///
-  ///  if (! strcmp (lpProcName, "LoadLibraryExA"))
-  ///    return (FARPROC)*LoadLibraryExA_Original;
-  ///
-  ///  if (! strcmp (lpProcName, "LoadLibraryA"))
-  ///    return (FARPROC)*LoadLibraryA_Original;
-  ///}
-
-
-  if (config.system.log_level > 0)// && dll_log.lines > 15)
-  {
-    if ( hModCaller != SK_GetDLL ()  &&
-         hModCaller != hModSteamOverlay )
+    if (config.system.log_level > 0 && (uintptr_t)lpProcName > 65536)// && dll_log.lines > 15)
     {
-      SK_LOG3 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %ws)",
-                      SK_GetModuleFullName (hModule).c_str (),
-                                            lpProcName,
-                        SK_SummarizeCaller (       ).c_str () ),
-                   L"DLL_Loader" );
+      if ( hModCaller != SK_GetDLL ()  &&
+           hModCaller != hModSteamOverlay )
+      {
+        SK_LOG3 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %ws)",
+                        SK_GetModuleFullName (hModule).c_str (),
+                                              lpProcName,
+                          SK_SummarizeCaller (       ).c_str () ),
+                     L"DLL_Loader" );
+      }
     }
   }
 
   SetLastError (dwLastErr);
+
+  if ((uintptr_t)farproc > 65536)
+    return farproc;
 
   return
     GetProcAddress_Original (hModule, lpProcName);
@@ -818,7 +879,7 @@ WINAPI
 TerminateProcess_Detour ( HANDLE hProcess,
                           UINT   uExitCode )
 {
-  bool passthrough = false;
+  //bool passthrough = false;
 
   //// Stupid workaround for Denuvo
   //auto orig_se =
@@ -929,6 +990,14 @@ TerminateThread_Detour ( HANDLE  hThread,
 
   if (! abnormal_dll_state)
   {
+    // Stupid anti-tamper, just ignore it, it'll all be over quickly
+    if ( SK_GetCurrentGameID () == SK_GAME_ID::OctopathTraveler &&
+                     dwExitCode == 0x0 )
+    {
+      return
+        TerminateThread_Original (hThread, dwExitCode);
+    }
+
     //UNREFERENCED_PARAMETER (uExitCode);
     if (dwExitCode == 0xdeadc0de)
     {
@@ -982,6 +1051,32 @@ TerminateThread_Detour ( HANDLE  hThread,
       return 0;
     }, (LPVOID)_ReturnAddress ());
   }
+
+    //  SK_Thread_Create ([](LPVOID ret_addr)->DWORD
+    //{
+    //  //wchar_t wszCaller [MAX_PATH] = { };
+    //
+    //  auto orig_se =
+    //  SK_SEH_ApplyTranslator (
+    //    SK_FilteringStructuredExceptionTranslator (
+    //      EXCEPTION_ACCESS_VIOLATION
+    //    )
+    //  );
+    //  try
+    //  {
+    //    //if (SK_SEH_CompatibleCallerName ((LPCVOID)ret_addr, wszCaller))
+    //    //{
+    //      dll_log->Log (L" - BLOCKED TerminateThread (%x) - ",
+    //                    (DWORD)ret_addr);
+    //    //}
+    //  }
+    //  catch (const SK_SEH_IgnoredException&) { };
+    //  SK_SEH_RemoveTranslator (orig_se);
+    //
+    //  SK_Thread_CloseSelf ();
+    //
+    //  return 0;
+    //}, (LPVOID)dwExitCode/*_ReturnAddress ()*/);
 
   return
     TerminateThread_Original (hThread, dwExitCode);
@@ -1214,13 +1309,13 @@ GetCommandLineW_Detour (void)
   lstrcatW (wszFakeOut, SK_GetFullyQualifiedApp ());
   lstrcatW (wszFakeOut, L"\"");
 
-  if (! lstrcmpiW ( SK_GetHostApp (), L"RED-Win64-Shipping.exe" ))
+  if (! lstrcmpW ( SK_GetHostApp (), L"RED-Win64-Shipping.exe" ))
   {
     lstrcatW (wszFakeOut, L" -eac-nop-loaded");
     return    wszFakeOut;
   }
 
-  if (! lstrcmpiW ( SK_GetHostApp (), L"DBFighterZ.exe" ))
+  if (! lstrcmpW ( SK_GetHostApp (), L"DBFighterZ.exe" ))
   {
     lstrcatW (wszFakeOut, L" -eac-nop-loaded");
     return    wszFakeOut;
@@ -1653,6 +1748,12 @@ LPVOID SK_Debug_GetImageBaseAddr (void)
   }
 }
 
+void
+SK_Debug_FlagAsDebugging (void)
+{
+  SK_RunOnce (bRealDebug = TRUE);
+}
+
 // Stage a fake PEB so we do not have to deal with as many
 //   anti-debug headaches when using traditional tools that
 //     cannot erase evidence of itself :)
@@ -1669,8 +1770,8 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
 
     if (pPeb->BeingDebugged)
     {
-      SK_RunOnce (bRealDebug = TRUE);
-         pPeb->BeingDebugged = FALSE;
+      SK_Debug_FlagAsDebugging ();
+      pPeb->BeingDebugged = FALSE;
     }
 
     pPeb->NtGlobalFlag &= ~0x70;
@@ -2662,49 +2763,73 @@ extern "C" RtlRaiseException_pfn
 
 
 // Detoured to catch non-std OutputDebugString implementations
+[[noreturn]]
 VOID
 WINAPI
 RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
 {
-  switch (ExceptionRecord->ExceptionCode)
+  __try
   {
-    case DBG_PRINTEXCEPTION_C:
-    case DBG_PRINTEXCEPTION_WIDE_C:
+    switch (ExceptionRecord->ExceptionCode)
     {
-      wchar_t   wszModule [MAX_PATH + 1] = { };
-      wcsncpy ( wszModule, SK_GetModuleFullNameFromAddr (
-                             _ReturnAddress ()
-                           ).c_str (), MAX_PATH - 1 );
-
-      // Non-std. is anything not coming from kernelbase or kernel32 ;)
-      if (! StrStrIW (wszModule, L"kernel"))
+      case DBG_PRINTEXCEPTION_C:
+      case DBG_PRINTEXCEPTION_WIDE_C:
       {
-        SK_ReleaseAssert (ExceptionRecord->NumberParameters == 2)
+        wchar_t wszModule [MAX_PATH + 1] = { };
 
-        // ANSI (almost always)
-        if (ExceptionRecord->ExceptionCode == DBG_PRINTEXCEPTION_C)
+        GetModuleFileName ( SK_GetModuleFromAddr (_ReturnAddress ()),
+                              wszModule,
+                                MAX_PATH );
+
+        // Non-std. is anything not coming from kernelbase or kernel32 ;)
+        if (! StrStrIW (wszModule, L"kernel"))
         {
-          game_debug->LogEx ( true, L"%-72ws:  %.*hs",
-            wszModule, ExceptionRecord->ExceptionInformation [0],
-                       ExceptionRecord->ExceptionInformation [1] );
-        }
+          //SK_ReleaseAssert (ExceptionRecord->NumberParameters == 2)
 
-        // UTF-16 (rarely ever seen)
-        else
-        {
-          game_debug->LogEx ( true, L"%-72ws:  %.*ws",
-            wszModule, ExceptionRecord->ExceptionInformation [0],
-                       ExceptionRecord->ExceptionInformation [1] );
+          // ANSI (almost always)
+          if (ExceptionRecord->ExceptionCode == DBG_PRINTEXCEPTION_C)
+          {
+            game_debug->LogEx ( true, L"%-72ws:  %.*hs",
+              wszModule, ExceptionRecord->ExceptionInformation [0],
+                         ExceptionRecord->ExceptionInformation [1] );
+          }
 
-          //if (((wchar_t *)ExceptionRecord->ExceptionInformation [1]))
-          //               (ExceptionRecord->ExceptionInformation [0]) != L'\n')
-            //game_debug.LogEx (false, L"\n");
+          // UTF-16 (rarely ever seen)
+          else
+          {
+            game_debug->LogEx ( true, L"%-72ws:  %.*ws",
+              wszModule, ExceptionRecord->ExceptionInformation [0],
+                         ExceptionRecord->ExceptionInformation [1] );
+
+            //if (((wchar_t *)ExceptionRecord->ExceptionInformation [1]))
+            //               (ExceptionRecord->ExceptionInformation [0]) != L'\n')
+              //game_debug.LogEx (false, L"\n");
+          }
         }
-      }
-    } break;
+      } break;
+    }
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+
   }
 
-  RtlRaiseException_Original (ExceptionRecord);
+  __try
+  {
+    __try
+    {
+      RtlRaiseException_Original (ExceptionRecord);
+    }
+
+    __finally
+    {
+      SK::Diagnostics::CrashHandler::Reinstall ();
+      RtlRaiseException_Original (ExceptionRecord);
+    }
+  }
+
+  __except (EXCEPTION_CONTINUE_SEARCH)
+  { };
 }
 
 
@@ -3141,7 +3266,7 @@ StackWalk64(
 {
   if (StackWalk64_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_RunOnce (SK_SymSetOpts ());
 
@@ -3176,7 +3301,7 @@ StackWalk (
 {
   if (StackWalk_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_RunOnce (SK_SymSetOpts ());
 
@@ -3204,7 +3329,7 @@ SymSetOptions (
 {
   if (SymSetOptions_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymSetOptions_Imp (SymOptions);
@@ -3225,7 +3350,7 @@ SymGetTypeInfo (
 {
   if (SymGetTypeInfo_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymGetTypeInfo_Imp (hProcess, ModBase, TypeId, GetType, pInfo);
@@ -3245,7 +3370,7 @@ SymGetModuleBase64 (
   if (SymGetModuleBase64_Imp != nullptr)
   {
     // The DLL already has a critical section guarding this
-    ///std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    ///std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_RunOnce (SK_SymSetOpts ());
 
@@ -3266,7 +3391,7 @@ SymGetModuleBase (
   if (SymGetModuleBase_Imp != nullptr)
   {
     // The DLL already has a critical section guarding this
-    ///std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    ///std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_RunOnce (SK_SymSetOpts ());
 
@@ -3289,7 +3414,7 @@ SymGetLineFromAddr64 (
 {
   if (SymGetLineFromAddr64_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_RunOnce (SK_SymSetOpts ());
 
@@ -3312,7 +3437,7 @@ SymGetLineFromAddr (
 {
   if (SymGetLineFromAddr_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_RunOnce (SK_SymSetOpts ());
 
@@ -3335,7 +3460,7 @@ SymInitialize (
 {
   if (SymInitialize_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_RunOnce (SK_SymSetOpts ());
 
@@ -3356,7 +3481,7 @@ SymUnloadModule (
 {
   if (SymUnloadModule_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_RunOnce (SK_SymSetOpts ());
 
@@ -3376,7 +3501,7 @@ SymUnloadModule64 (
 {
   if (SymUnloadModule64_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_RunOnce (SK_SymSetOpts ());
 
@@ -3440,7 +3565,7 @@ SymFromAddr (
     if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                               && (! ReadAcquire (&__SK_DLL_Ending))))
     {
-      std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
       SK_RunOnce (SK_SymSetOpts ());
 
@@ -3462,7 +3587,7 @@ SymCleanup (
 {
   if (SymCleanup_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymCleanup_Imp ( hProcess );
@@ -3503,7 +3628,7 @@ SymLoadModule (
       {
         SK_RunOnce (SK_SymSetOpts ());
 
-        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
@@ -3556,7 +3681,7 @@ SymLoadModule64 (
       {
         SK_RunOnce (SK_SymSetOpts ());
 
-        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
@@ -3593,7 +3718,7 @@ SymSetSearchPathW (
 {
   if (SymSetSearchPathW_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymSetSearchPathW_Imp (hProcess, SearchPath);
@@ -3613,7 +3738,7 @@ SymGetSearchPathW (
 {
   if (SymGetSearchPathW_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymGetSearchPathW_Imp (hProcess, SearchPath, SearchPathLength);

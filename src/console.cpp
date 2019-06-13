@@ -144,15 +144,21 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   auto masked =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-  if (SK_KeyboardMacros->find (masked) != SK_KeyboardMacros->cend ())
+  auto* kb_macros =
+    SK_KeyboardMacros.getPtr ();
+
+  if (kb_macros->find (masked) != kb_macros->cend ())
   {
     auto range =
-      SK_KeyboardMacros->equal_range (masked);
+      kb_macros->equal_range (masked);
+
+    auto* cp =
+      SK_GetCommandProcessor ();
 
     for_each ( range.first, range.second,
-      [] (std::unordered_multimap <uint32_t, SK_KeyCommand>::value_type& cmd_pair)
+      [&] (std::unordered_multimap <uint32_t, SK_KeyCommand>::value_type& cmd_pair)
       {
-        SK_GetCommandProcessor ()->ProcessCommandLine (
+        cp->ProcessCommandLine (
           SK_WideCharToUTF8 (cmd_pair.second.command).c_str ()
         );
       }
@@ -197,13 +203,13 @@ extern SHORT SK_ImGui_ToggleKeys [4];
 bool
 SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
 {
-  bool&  visible = SK_Console::getInstance ()->visible;
-  BYTE*  keys_   = SK_Console::getInstance ()->keys_;
+  static bool& visible = SK_Console::getInstance ()->visible;
+  static BYTE* keys_   = SK_Console::getInstance ()->keys_;
 
   bool new_press =
    keys_ [vkCode] != 0x81;
 
-  keys_ [vkCode] = 0x81;
+   keys_ [vkCode]  = 0x81;
 
   if (new_press)
   {
@@ -371,58 +377,58 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       }
     }
 
-    else if (keyDown)
-    {
-      // First trigger an event if this is a make/break
-      if (SK_ImGui_ProcessKeyPress (vkCode))
-        return 0;
-
-      // If not, use the key press for text input
-      //
-
-      // Don't print the tab character, it's pretty useless.
-      if ( visible && vkCode != VK_TAB )
-      {
-        keys_ [VK_CAPITAL] = SK_GetKeyState (VK_CAPITAL) & 0xFFUL;
-
-        unsigned char key_str [2];
-                      key_str [1] = '\0';
-
-        SK_TLS* pTLS =
-          SK_TLS_Bottom ();
-
-        static HKL
-          keyboard_layout =
-            SK_Input_GetKeyboardLayout ();
-
-        if (pTLS != nullptr)
-        {
-          auto& language =
-            pTLS->input_core->input_language;
-
-          language.update ();
-
-          keyboard_layout =
-            language.keybd_layout;
-        }
-
-        if (1 == ToAsciiEx ( vkCode,
-                              scanCode,
-                              keys_,
-   reinterpret_cast <LPWORD> (key_str),
-                              0x04,
-                              keyboard_layout ) &&
-             isprint ( *key_str ) )
-        {
-          strncat (text, reinterpret_cast <char *> (key_str), 1);
-          command_issued = false;
-        }
-      }
-    }
-
     else
     {
       if (! keyDown) keys_ [vkCode] = 0x00;
+
+      if (keyDown)
+      {
+        // First trigger an event if this is a make/break
+        if (SK_ImGui_ProcessKeyPress (vkCode))
+          return 0;
+
+        // If not, use the key press for text input
+        //
+
+        // Don't print the tab character, it's pretty useless.
+        if ( visible && vkCode != VK_TAB )
+        {
+          keys_ [VK_CAPITAL] = SK_GetKeyState (VK_CAPITAL) & 0xFFUL;
+
+          unsigned char key_str [2];
+                        key_str [1] = '\0';
+
+          SK_TLS* pTLS =
+            SK_TLS_Bottom ();
+
+          static HKL
+            keyboard_layout =
+              SK_Input_GetKeyboardLayout ();
+
+          if (pTLS != nullptr)
+          {
+            auto& language =
+              pTLS->input_core->input_language;
+
+            language.update ();
+
+            keyboard_layout =
+              language.keybd_layout;
+          }
+
+          if (1 == ToAsciiEx ( vkCode,
+                                scanCode,
+                                keys_,
+   reinterpret_cast <LPWORD> (key_str),
+                                0x04,
+                                keyboard_layout ) &&
+               isprint ( *key_str ) )
+          {
+            strncat (text, reinterpret_cast <char *> (key_str), 1);
+            command_issued = false;
+          }
+        }
+      }
     }
   }
 

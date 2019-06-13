@@ -14,6 +14,13 @@
 
 extern bool SK_D3D11_EnableTracking;
 
+bool SK_FFXV_PlugInCfg  (void);
+bool SK_POE2_PlugInCfg  (void);
+bool SK_SM_PlugInCfg    (void);
+bool SK_ACO_PlugInCfg   (void);
+bool SK_SO4_PlugInCfg   (void);
+bool SK_LSBTS_PlugInCfg (void);
+
 bool
 SK_GalGun_PlugInCfg (void)
 {
@@ -196,6 +203,8 @@ GetEnvironmentVariableA_Detour ( LPCSTR lpName,
 void
 SK_FFXV_InitPlugin (void)
 {
+  plugin_mgr->config_fns.push_back (SK_FFXV_PlugInCfg);
+
   std::unordered_set <uint32_t>
   __SK_FFXV_UI_Pix_Shaders =
   {
@@ -204,7 +213,7 @@ SK_FFXV_InitPlugin (void)
     0xf15a90ab
   };
 
-  for (                 auto& it : __SK_FFXV_UI_Pix_Shaders)
+  for (                 auto  it : __SK_FFXV_UI_Pix_Shaders)
     SK_D3D11_DeclHUDShader   (it,        ID3D11PixelShader);
 
   SK_CreateDLLHook2 (      L"kernel32",
@@ -485,6 +494,7 @@ volatile LONG SK_POE2_ThreadBoostsKilled = 0;
          bool SK_POE2_Stage2UnityFix     = false;
          bool SK_POE2_Stage3UnityFix     = false;
 
+
 bool
 SK_POE2_PlugInCfg (void)
 {
@@ -700,6 +710,8 @@ SK_IVariable *pVarBypassLimiter;
 void
 SK_SM_PlugInInit (void)
 {
+  plugin_mgr->config_fns.push_back (SK_SM_PlugInCfg);
+
   auto cp =
     SK_GetCommandProcessor ();
 
@@ -960,6 +972,8 @@ sk::ParameterFloat* _SK_ACO_AutoRebalanceInterval;
 void
 SK_ACO_PlugInInit (void)
 {
+  plugin_mgr->config_fns.push_back (SK_ACO_PlugInCfg);
+
   __SK_MHW_KillAntiDebug = false;
 
   _SK_ACO_AlternateTaskScheduling =

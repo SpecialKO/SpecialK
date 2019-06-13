@@ -517,14 +517,14 @@ SK::ControlPanel::D3D11::Draw (void)
             ImGui::SameLine   (                                 );
             ImGui::BeginGroup (                                 );
             int lod = 0;
-            for ( auto& it : SK_D3D11_Textures.HashMap_2D )
+            for ( auto it : SK_D3D11_Textures.HashMap_2D )
             {
               ImGui::BulletText ("LOD %02lu Load Factor: ", lod++);
             }
             ImGui::EndGroup   (                                 );
             ImGui::SameLine   (                                 );
             ImGui::BeginGroup (                                 );
-            for ( auto& it : SK_D3D11_Textures.HashMap_2D )
+            for ( auto it : SK_D3D11_Textures.HashMap_2D )
             {
               ImGui::Text     (" %.2f", it.entries.load_factor());
             }
@@ -734,7 +734,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if  (swap_desc.SampleDesc.Count > 1)
         ImGui::TextUnformatted ("MSAA Samples:");
       if (swap_desc.Flags != 0)
-      ImGui::TextUnformatted   ("Flags:");
+        ImGui::TextUnformatted ("Flags:");
       if (swap_flag_count > 1) { for ( int i = 1; i < swap_flag_count; i++ ) ImGui::TextUnformatted ("\n"); }
       if (rb.isHDRCapable ())
       {
@@ -819,8 +819,6 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
     }
   }
 }
-
-extern SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
 
 void
 SK::ControlPanel::D3D11::TextureMenu (void)

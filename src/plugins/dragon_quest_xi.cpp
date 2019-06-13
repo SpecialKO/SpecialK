@@ -155,6 +155,9 @@ extern iSK_INI*             dll_ini;
 ////  }
 ////} static ue4_cfg;
 
+bool
+SK_DQXI_PlugInCfg (void);
+
 
 bool
 __SK_DQXI_MakeAsyncObjectsGreatAgain = true;
@@ -314,6 +317,9 @@ SK_DQXI_WindowMessageFilter (LPMSG lpMsg, bool bReserved0, bool bReserved1)
 void
 SK_DQXI_PlugInInit (void)
 {
+  plugin_mgr->config_fns.push_back (SK_DQXI_PlugInCfg);
+
+
     SK_CreateFuncHook (      L"SK_ImGui_HandlesMessage",
                                SK_ImGui_HandlesMessage,
                                  SK_DQXI_WindowMessageFilter,
@@ -368,10 +374,10 @@ SK_DQXI_PlugInInit (void)
     };
 
 
-  for (               auto& it : __SK_DQXI_UI_Vtx_Shaders)
+  for (               auto  it : __SK_DQXI_UI_Vtx_Shaders)
   SK_D3D11_DeclHUDShader   (it,        ID3D11VertexShader);
 
-  for (               auto& it : __SK_DQXI_UI_Pix_Shaders)
+  for (               auto  it : __SK_DQXI_UI_Pix_Shaders)
   SK_D3D11_DeclHUDShader   (it,         ID3D11PixelShader);
 }
 
@@ -568,7 +574,7 @@ SK_DQXI_PlugInCfg (void)
 
       ImGui::SameLine   ();
       ImGui::BeginGroup ();
-      for ( auto& keybind : keybinds )
+      for ( auto keybind : keybinds )
       {
         ImGui::Text          ( "%s:  ",
                               keybind->bind_name );
@@ -576,7 +582,7 @@ SK_DQXI_PlugInCfg (void)
       ImGui::EndGroup   ();
       ImGui::SameLine   ();
       ImGui::BeginGroup ();
-      for ( auto& keybind : keybinds )
+      for ( auto keybind : keybinds )
       {
         Keybinding ( keybind, keybind->param );
       }
