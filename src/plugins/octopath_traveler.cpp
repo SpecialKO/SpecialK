@@ -24,7 +24,7 @@
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
-#define OPT_VERSION_NUM L"0.1.2"
+#define OPT_VERSION_NUM L"0.1.4"
 #define OPT_VERSION_STR L"Octopus Trapper v " OPT_VERSION_NUM
 
 volatile LONG __OPT_init = FALSE;
@@ -43,13 +43,13 @@ struct opt_cfg_s
   } ini_params;
 
   struct {
-    bool dof;
-    bool bloom;
-    bool godrays;
+    bool dof     = false;
+    bool bloom   = false;
+    bool godrays = false;
   } postprocess;
 
   struct {
-    int64_t framerate_bug_addr;
+    int64_t framerate_bug_addr = 0;
   };
 
   constexpr opt_cfg_s (void) = default;
@@ -277,14 +277,16 @@ SK_OPT_FixUpLimiter (void)
 
   if (! valid)
   {
-    addr_FramerateJitterBranch =
-      reinterpret_cast <uintptr_t>       (
-        SK_ScanAlignedEx               (
-          "\xF3\x0F\x10\x00\x41\x0F\x2F\xC0\x77\x03\x0F\x28\xC6",
-          13,                   nullptr,
-          SK_Debug_GetImageBaseAddr ( ),
-                                     1 )
-                                         );
+    __try {
+      addr_FramerateJitterBranch =
+        reinterpret_cast <uintptr_t>       (
+          SK_ScanAlignedEx               (
+            "\xF3\x0F\x10\x00\x41\x0F\x2F\xC0\x77\x03\x0F\x28\xC6",
+            13,                   nullptr,
+            SK_Debug_GetImageBaseAddr ( ),
+                                       1 )
+                                           );
+    } __except (EXCEPTION_EXECUTE_HANDLER) { return; };
   }
 
   LPVOID ja_instn =
@@ -323,7 +325,24 @@ SK_OPT_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
   while (! InterlockedAdd (&__OPT_init, 0)) SK_Sleep (16);
 
-  SK_OPT_FixUpLimiter ();
+  // Creates frametime inconsistency since there are two threads
+  //   that the game is known to present the swapchain from.
+  config.render.framerate.sleepless_render = false;
+
+  SK_Thread_Create ([](LPVOID) ->
+    DWORD
+    {
+      do {
+        SK_SleepEx (15, FALSE);
+      } while (SK_GetFramesDrawn () < 240);
+
+      SK_OPT_FixUpLimiter ();
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }
+  );
 
   return S_OK;
 }

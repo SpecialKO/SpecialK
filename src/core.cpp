@@ -63,6 +63,7 @@ extern ChangeDisplaySettingsA_pfn
        ChangeDisplaySettingsA_Original;
 
 
+
 struct init_params_s {
   std::wstring  backend    = L"INVALID";
   void*         callback   =    nullptr;
@@ -233,15 +234,6 @@ SK_StartPerfMonThreads (void)
                          L"CPU Monitor",      SK_MonitorCPU      );
   }
 
-  //
-  // Spawn Process Monitor Thread
-  //
-  if (config.mem.show)
-  {
-    SpawnMonitorThread ( &SK_WMI_ProcessStats->hThread,
-                         L"Process Monitor",  SK_MonitorProcess  );
-  }
-
   if (config.disk.show)
   {
     SpawnMonitorThread ( &SK_WMI_DiskStats->hThread,
@@ -259,6 +251,9 @@ SK_StartPerfMonThreads (void)
 void
 SK_LoadGPUVendorAPIs (void)
 {
+  dll_log->LogEx (false, L"================================================"
+                         L"===========================================\n" );
+
   dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI)...");
 
   nvapi_init =
@@ -324,9 +319,48 @@ SK_LoadGPUVendorAPIs (void)
       }
     }
 
+           uint32_t SK_Steam_GetAppID_NoAPI (void);
+    extern BOOL     SK_NvAPI_EnableAnsel    (DLL_ROLE role);
+    extern BOOL     SK_NvAPI_DisableAnsel   (DLL_ROLE role);
+
+    extern
+      void __stdcall
+        SK_NvAPI_SetAppFriendlyName (const wchar_t* wszFriendlyName);
+    extern
+      void __stdcall
+        SK_NvAPI_SetAppName         (const wchar_t* wszAppName);
+
+    SK_NvAPI_SetAppName         (       SK_GetFullyQualifiedApp () );
+    SK_NvAPI_SetAppFriendlyName (
+      app_cache_mgr->getAppNameFromID ( SK_Steam_GetAppID_NoAPI () ).c_str ()
+                                );
+
+    if (! config.nvidia.bugs.snuffed_ansel)
+    {
+      if (SK_NvAPI_DisableAnsel (SK_GetDLLRole ()))
+      {
+        restart = true;
+
+        SK_MessageBox (
+          L"To Avoid Potential Compatibility Issues, Special K has Disabled Ansel for this Game.\r\n\r\n"
+          L"You may re-enable Ansel for this Game using the Help Menu in Special K's Control Panel.",
+            L"Special K Compatibility Layer:  [ Ansel Disabled ]",
+              MB_ICONWARNING | MB_OK
+        );
+      }
+
+
+
+      config.nvidia.bugs.snuffed_ansel = true;
+
+      SK_GetDLLConfig ()->write (
+        SK_GetDLLConfig ()->get_filename ()
+      );
+    }
+
     if (restart)
     {
-      dll_log->Log (L"[  NvAPI   ] >> Restarting to apply NVIDIA driver settings <<");
+      dll_log->Log (L"[  Nv API  ] >> Restarting to apply NVIDIA driver settings <<");
 
       ShellExecute ( GetDesktopWindow (),
                        L"OPEN",
@@ -934,6 +968,28 @@ SK_InitFinishCallback (void)
   if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
     SK::DXGI::StartBudgetThread_NoAdapter ();
 
+  static const GUID  nil_guid = {     };
+               GUID* pGUID    = nullptr;
+
+  // Make note of the system's original power scheme
+  if ( ERROR_SUCCESS ==
+         PowerGetActiveScheme ( nullptr,
+                                  &pGUID )
+     )
+  {
+    config.cpu.power_scheme_guid_orig = *pGUID;
+
+    SK_LocalFree ((HLOCAL)pGUID);
+  }
+
+  // Apply a powerscheme override if one is set
+  if (! IsEqualGUID (config.cpu.power_scheme_guid, nil_guid))
+  {
+    PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid);
+  }
+
+  SK_LoadGPUVendorAPIs ();
+
   dll_log->LogEx (false, L"------------------------------------------------"
                          L"-------------------------------------------\n" );
   dll_log->Log   (       L"[ SpecialK ] === Initialization Finished! ===   "
@@ -942,50 +998,6 @@ SK_InitFinishCallback (void)
                  );
   dll_log->LogEx (false, L"------------------------------------------------"
                          L"-------------------------------------------\n" );
-
-  // NvAPI takes an excessively long time to startup and we don't need it
-  //   immediately...
-  SK_Thread_Create ([](LPVOID) -> DWORD
-  {
-    SetCurrentThreadDescription (    L"[SK] GPU Vendor Extension Bootstrapper"   );
-    SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
-    SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                   );
-
-
-    static const GUID  nil_guid = {     };
-                 GUID* pGUID    = nullptr;
-
-    // Make note of the system's original power scheme
-    if ( ERROR_SUCCESS ==
-           PowerGetActiveScheme ( nullptr,
-                                    &pGUID )
-       )
-    {
-      config.cpu.power_scheme_guid_orig = *pGUID;
-
-      SK_LocalFree ((HLOCAL)pGUID);
-    }
-
-    // Apply a powerscheme override if one is set
-    if (! IsEqualGUID (config.cpu.power_scheme_guid, nil_guid))
-    {
-      PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid);
-    }
-
-    SK_LoadGPUVendorAPIs ();
-
-    ///if (SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2)
-    ///{
-    ///  BOOL
-    ///  SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);
-    ///  SK_Steam_PreHookCore (L"kaldaien_api64.dll");
-    ///  SK_Steam_KickStart   (L"kaldaien_api64.dll");
-    ///}
-
-    SK_Thread_CloseSelf  ();
-
-    return 0;
-  });
 
   init_mutex->unlock ();
 }
@@ -1309,24 +1321,31 @@ SK_GetDebugSymbolPath (void)
     std::wstring symbol_file =
       SK_GetModuleFullName (SK_Modules->Self ());
 
-    wchar_t wszSelfName [MAX_PATH * 3 + 1] = { };
+    wchar_t wszSelfName    [MAX_PATH * 3 + 1] = { };
+    wchar_t wszGenericName [MAX_PATH * 3 + 1] = { };
     wcsncpy_s ( wszSelfName,           MAX_PATH * 3,
                  symbol_file.c_str (), _TRUNCATE );
+
 
     PathRemoveExtensionW (wszSelfName);
     lstrcatW             (wszSelfName, L".pdb");
 
+    wcsncpy_s ( wszGenericName, MAX_PATH * 3,
+                 wszSelfName,   _TRUNCATE );
+
+    PathRemoveFileSpecW ( wszGenericName );
+    PathAppendW         ( wszGenericName,
+      SK_RunLHIfBitness ( 64, L"SpecialK64.pdb",
+                              L"SpecialK32.pdb" ) );
+
     bool generic_symbols =
       ( INVALID_FILE_ATTRIBUTES !=
-          GetFileAttributesW ( SK_RunLHIfBitness ( 64, L"SpecialK64.pdb",
-                                                       L"SpecialK32.pdb" ) )
+          GetFileAttributesW ( wszGenericName )
       );
 
     if (generic_symbols)
     {
-      symbol_file =
-        SK_RunLHIfBitness ( 64, L"SpecialK64.pdb",
-                                L"SpecialK32.pdb" );
+      symbol_file = wszGenericName;
     }
 
     else
@@ -1631,10 +1650,10 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  //if ( IsProcessDPIAware () )
-  //{
-  //  SK_DisableDPIScaling ();
-  //}
+  if ( IsProcessDPIAware () )
+  {
+    SK_DisableDPIScaling ();
+  }
 
   __SK_BootedCore = backend;
 
@@ -2330,13 +2349,10 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log->LogEx (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
   };
 
-  auto& process_stats  = *SK_WMI_ProcessStats;
   auto& cpu_stats      = *SK_WMI_CPUStats;
   auto& disk_stats     = *SK_WMI_DiskStats;
   auto& pagefile_stats = *SK_WMI_PagefileStats;
 
-  ShutdownWMIThread (process_stats.hShutdownSignal,
-                     process_stats.hThread,           L"Process Monitor" );
   ShutdownWMIThread (cpu_stats .hShutdownSignal,
                      cpu_stats.hThread,               L"CPU Monitor"     );
   ShutdownWMIThread (disk_stats.hShutdownSignal,

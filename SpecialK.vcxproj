@@ -674,7 +674,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <BrowseInformation>false</BrowseInformation>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -730,8 +730,8 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -749,6 +749,7 @@
       <InputResourceManifests>
       </InputResourceManifests>
       <VerboseOutput>false</VerboseOutput>
+      <UpdateFileHashes>true</UpdateFileHashes>
     </Manifest>
     <ManifestResourceCompile>
       <ResourceOutputFileName>resource\SpecialK.manifest</ResourceOutputFileName>
@@ -1429,7 +1430,7 @@ Exit 0</Command>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>MaxSpeed</Optimization>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -1488,8 +1489,8 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1511,6 +1512,7 @@ Exit 0</Command>
       <InputResourceManifests>
       </InputResourceManifests>
       <VerboseOutput>false</VerboseOutput>
+      <UpdateFileHashes>true</UpdateFileHashes>
     </Manifest>
     <ManifestResourceCompile>
       <ResourceOutputFileName>resource\SpecialK.manifest</ResourceOutputFileName>

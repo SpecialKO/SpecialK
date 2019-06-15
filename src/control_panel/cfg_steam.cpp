@@ -260,8 +260,7 @@ SK::ControlPanel::Steam::Draw (void)
         }
       }
 
-      ISteamUtils* utils =
-        SK_SteamAPI_Utils ();
+      auto *utils = steam_ctx.Utils ();//SK_SteamAPI_Utils ();
 
       if (utils != nullptr && utils->IsOverlayEnabled () && ImGui::CollapsingHeader ("Overlay Notifications"))
       {
@@ -286,12 +285,14 @@ SK::ControlPanel::Steam::Draw (void)
 
 
 
+
+      auto* pRemote =
+        steam_ctx.RemoteStorage ();// SK_SteamAPI_RemoteStorage ();
+
       bool app_has_cloud_storage =
-        ( SK_SteamAPI_RemoteStorage () != nullptr ?
-          ReadAcquire64 (&SK_SteamAPI_CallbackRunCount)             &&
-          SK_SteamAPI_RemoteStorage ()->IsCloudEnabledForAccount () &&
-          SK_SteamAPI_RemoteStorage ()->IsCloudEnabledForApp     () :
-            false );
+        ( pRemote != nullptr ? ReadAcquire64 (&SK_SteamAPI_CallbackRunCount)    &&
+          pRemote->IsCloudEnabledForAccount () && pRemote->IsCloudEnabledForApp ()
+                             : false );
 
       struct sk_steam_cloud_entry_s {
         std::string filename;
@@ -310,9 +311,6 @@ SK::ControlPanel::Steam::Draw (void)
 
       else if (app_has_cloud_storage && files.empty ( ))
       {
-        ISteamRemoteStorage* pRemote =
-          SK_SteamAPI_RemoteStorage ();
-
         const int32_t num_files =
           pRemote->GetFileCount ();
 
@@ -336,6 +334,7 @@ SK::ControlPanel::Steam::Draw (void)
       }
 
 
+#ifdef _ENABLE_OBSOLETE_REDISTRIBUTABLE_CLEANUP
       static uint64_t redist_size  = UINT64_MAX;
       static int      redist_count = -1;
 
@@ -381,6 +380,7 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::TreePop  ();
         }
       }
+#endif
 
       if (ImGui::CollapsingHeader ("Screenshots"))
       {

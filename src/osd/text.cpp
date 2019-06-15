@@ -37,12 +37,33 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
 
+
+typedef struct _PROCESS_MEMORY_COUNTERS_EX {
+  DWORD  cb;
+  DWORD  PageFaultCount;
+  SIZE_T PeakWorkingSetSize;
+  SIZE_T WorkingSetSize;
+  SIZE_T QuotaPeakPagedPoolUsage;
+  SIZE_T QuotaPagedPoolUsage;
+  SIZE_T QuotaPeakNonPagedPoolUsage;
+  SIZE_T QuotaNonPagedPoolUsage;
+  SIZE_T PagefileUsage;
+  SIZE_T PeakPagefileUsage;
+  SIZE_T PrivateUsage;
+} PROCESS_MEMORY_COUNTERS_EX;
+
+
+
 SK_TextOverlayManager*
 SK_TextOverlayManager::getInstance (void)
 {
+  SK_RunOnce (
+    pSelf =
+      std::make_unique <SK_TextOverlayManager> ()
+  );
+
   return
-    ( pSelf == nullptr ? ( (pSelf = std::make_unique <SK_TextOverlayManager> ()).get () ) :
-                                                                           pSelf.get () );
+    pSelf.get ();
 }
 
 std::unique_ptr <SK_TextOverlayManager> SK_TextOverlayManager::pSelf = nullptr;
@@ -365,6 +386,74 @@ SK_File_SizeToString (uint64_t size, SK_UNITS unit)
     default:
       _swprintf (str, L"%#3llu Bytes", size);
       break;
+  }
+
+  return str;
+}
+
+std::string
+SK_File_SizeToStringA (uint64_t size, SK_UNITS unit)
+{
+  char str [64] = { };
+
+  if (unit == Auto)
+  {
+    if      (size > (1ULL << 32ULL)) unit = GiB;
+    else if (size > (1ULL << 22ULL)) unit = MiB;
+    else if (size > (1ULL << 12ULL)) unit = KiB;
+    else                             unit = B;
+  }
+
+  switch (unit)
+  {
+    case GiB:
+      sprintf (str, "%#5llu GiB", size >> 30);
+      break;
+    case MiB:
+      sprintf (str, "%#5llu MiB", size >> 20);
+      break;
+    case KiB:
+      sprintf (str, "%#5llu KiB", size >> 10);
+      break;
+    case B:
+    default:
+      sprintf (str, "%#3llu Bytes", size);
+      break;
+  }
+
+  return str;
+}
+
+std::string
+SK_File_SizeToStringAF (uint64_t size, int width, int precision, SK_UNITS unit)
+{
+  char str [64] = { };
+
+  if (unit == Auto)
+  {
+    if      (size > (1ULL << 32ULL)) unit = GiB;
+    else if (size > (1ULL << 22ULL)) unit = MiB;
+    else if (size > (1ULL << 12ULL)) unit = KiB;
+    else                             unit = B;
+  }
+
+  switch (unit)
+  {
+  case GiB:
+    sprintf (str, "%#*.*f GiB", width, precision,
+            (float)size / (1024.0f * 1024.0f * 1024.0f));
+    break;
+  case MiB:
+    sprintf (str, "%#*.*f MiB", width, precision,
+            (float)size / (1024.0f * 1024.0f));
+    break;
+  case KiB:
+    sprintf (str, "%#*.*f KiB", width, precision, (float)size / 1024.0f);
+    break;
+  case B:
+  default:
+    sprintf (str, "%#*llu Bytes", width-1-precision, size);
+    break;
   }
 
   return str;
@@ -1221,25 +1310,28 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
   }
 
   OSD_M_PRINTF "\n" OSD_END
-
-  static auto& process_stats = *SK_WMI_ProcessStats;
-
-  if (process_stats.booting)
   {
-    OSD_M_PRINTF "  Starting Memory Monitor...\n" OSD_END
-  }
+    PROCESS_MEMORY_COUNTERS_EX pmcx = { };
 
-  else
-  {
-    auto& memory =
-      process_stats.memory;
+    pmcx.cb = sizeof (pmcx);
+
+
+    GetProcessMemoryInfo (
+      SK_GetCurrentProcess (),
+                 (PPROCESS_MEMORY_COUNTERS)
+             &pmcx,
+      sizeof (pmcx)
+    );
+
 
     std::wstring working_set =
-      SK_File_SizeToString (memory.working_set,   MiB);
+      SK_File_SizeToString (pmcx.WorkingSetSize, MiB);
     std::wstring commit =
-      SK_File_SizeToString (memory.private_bytes, MiB);
+      SK_File_SizeToString (pmcx.PrivateUsage,   MiB);
     std::wstring virtual_size =
-      SK_File_SizeToString (memory.virtual_bytes, MiB);
+      SK_File_SizeToString (pmcx.PrivateUsage           +
+                            pmcx.QuotaNonPagedPoolUsage +
+                            pmcx.QuotaPagedPoolUsage, MiB);
 
     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
       working_set.c_str  (),
@@ -1248,11 +1340,13 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
     OSD_END
 
     std::wstring working_set_peak =
-      SK_File_SizeToString (memory.working_set_peak,     MiB);
+      SK_File_SizeToString (pmcx.PeakWorkingSetSize,      MiB);
     std::wstring commit_peak =
-      SK_File_SizeToString (memory.page_file_bytes_peak, MiB);
+      SK_File_SizeToString (pmcx.PeakPagefileUsage,       MiB);
     std::wstring virtual_peak =
-      SK_File_SizeToString (memory.virtual_bytes_peak,   MiB);
+      SK_File_SizeToString (pmcx.PeakPagefileUsage          +
+                            pmcx.QuotaPeakNonPagedPoolUsage +
+                            pmcx.QuotaPeakPagedPoolUsage, MiB);
 
     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
       working_set_peak.c_str (),

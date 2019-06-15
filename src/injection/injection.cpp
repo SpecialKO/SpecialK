@@ -558,7 +558,7 @@ SKX_InstallCBTHook (void)
                         (LPCWSTR)&CBTProc, &hModSelf );
 
   hHookCBT =
-    SetWindowsHookEx (WH_SHELL, CBTProc, hModSelf, 0);
+    SetWindowsHookEx (WH_CBT, CBTProc, hModSelf, 0);
 }
 
 

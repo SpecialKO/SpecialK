@@ -67,10 +67,10 @@ public:
   virtual void         set_value_str (const std::wstring&  str) = 0;
 
   // Read value from INI
-  bool load (void);
+  virtual bool load (void);
 
   // Store value in INI
-  bool store (void);
+  virtual bool store (void);
 
   void register_to_ini (            iSK_INI* file,
                          const std::wstring& section,

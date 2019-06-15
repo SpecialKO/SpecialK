@@ -475,6 +475,7 @@ struct sk_config_t
     struct {
     //bool    fix_10bit_gsync   = false;
       bool    kill_hdr          = false;
+      bool    snuffed_ansel     = false;
     } bugs;
   } nvidia;
 
@@ -601,35 +602,39 @@ struct sk_config_t
   } window;
 
   struct {
-    bool    rehook_loadlibrary   = false;
-    bool    disable_nv_bloat     = false;
-    bool   init_while_suspended  = true;
+    bool     rehook_loadlibrary    = false;
+    bool     disable_nv_bloat      = false;
+    bool     init_while_suspended  =  true;
   } compatibility;
 
   struct {
     struct {
-      bool   hook              = true;
+      bool   hook = true;
     } glide;
 
 #ifdef _M_IX86
     struct {
-      bool   hook              = true;
-    } d3d8, ddraw;
+      bool   hook = true;
+    } d3d8,
+      ddraw;
 #endif
 
     struct {
-      bool   hook              = true;
-    } d3d9, d3d9ex;
+      bool   hook = true;
+    } d3d9,
+      d3d9ex;
 
     struct {
       struct {
-        bool hook              = true;
-      } d3d12, d3d11;
+        bool hook = true;
+      } d3d12,
+        d3d11;
     } dxgi;
 
     struct {
-      bool   hook              = true;
-    } Vulkan, OpenGL;
+      bool   hook = true;
+    } Vulkan,
+      OpenGL;
 
     struct {
       bool         enable       = true;
@@ -732,8 +737,8 @@ public:
   }
 };
 
-extern sk_config_t _config;
-#define config _config
+extern __forceinline sk_config_t& _config (void);
+#define config _config()
 
 struct SK_KeyCommand
 {
@@ -924,7 +929,9 @@ extern __declspec (dllexport) void
 __stdcall
 SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
-extern SK_LazyGlobal <std::unordered_map <std::wstring, BYTE>> humanKeyNameToVirtKeyCode;
-extern SK_LazyGlobal <std::unordered_map <BYTE, std::wstring>> virtKeyCodeToHumanKeyName;
+using wstring_hash = size_t;
+
+extern SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>> humanKeyNameToVirtKeyCode;
+extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>> virtKeyCodeToHumanKeyName;
 
 #endif /* __SK__CONFIG_H__ */

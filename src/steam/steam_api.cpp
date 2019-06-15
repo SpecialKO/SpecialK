@@ -224,7 +224,7 @@ volatile LONG __SK_Steam_Downloading = 0;
 
 
 auto constexpr _ConstructPath =
-[&](auto& path_base, const wchar_t* path_end)
+[&](auto&& path_base, const wchar_t* path_end)
 {
   std::array <wchar_t, MAX_PATH * 2 + 1>
     path { };
@@ -4471,6 +4471,7 @@ SK_UseManifestToGetDepotManifest (AppId_t appid, DepotId_t depot)
 uint64_t
 SK_Steam_ScrubRedistributables (int& total_files, bool erase)
 {
+#ifdef _ENABLE_OBSOLETE_REDISTRIBUTABLE_CLEANUP
   static volatile LONGLONG size    = 0LL;
   static volatile HANDLE   hThread =
     INVALID_HANDLE_VALUE;
@@ -4567,6 +4568,12 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
   }
 
   return ReadAcquire64 (&size);
+#else
+  UNREFERENCED_PARAMETER (total_files);
+  UNREFERENCED_PARAMETER (erase);
+
+  return 0;
+#endif
 }
 
 std::string

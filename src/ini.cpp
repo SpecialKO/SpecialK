@@ -817,7 +817,7 @@ iSK_INISection::get_value (const wchar_t* key)
 
   static
     std::wstring
-         invalid = L"Invalid";
+         invalid = L"";//L"Invalid";
   return invalid;
 }
 

@@ -30,10 +30,8 @@ iSK_INI*       osd_ini    = nullptr;
 iSK_INI*       steam_ini  = nullptr;
 iSK_INI*       macro_ini  = nullptr;
 
-sk_config_t _config;
-
-SK_LazyGlobal <std::unordered_map <std::wstring, BYTE>> humanKeyNameToVirtKeyCode;
-SK_LazyGlobal <std::unordered_map <BYTE, std::wstring>> virtKeyCodeToHumanKeyName;
+SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>> humanKeyNameToVirtKeyCode;
+SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>> virtKeyCodeToHumanKeyName;
 
 extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_DepotList> >           SK_Steam_DepotManifestRegistry;
 extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
@@ -52,83 +50,86 @@ SK_GetCurrentGameID (void)
   static bool first_check = true;
   if         (first_check)
   {
-    static std::unordered_map <std::wstring,       SK_GAME_ID> _games =                     {
-      { L"Tyranny.exe",                            SK_GAME_ID::Tyranny                      },
-      { L"TidesOfNumenera.exe",                    SK_GAME_ID::TidesOfNumenera              },
-      { L"MassEffectAndromeda.exe",                SK_GAME_ID::MassEffect_Andromeda         },
-      { L"MadMax.exe",                             SK_GAME_ID::MadMax                       },
-      { L"Dreamfall Chapters.exe",                 SK_GAME_ID::Dreamfall_Chapters           },
-      { L"TheWitness.exe",                         SK_GAME_ID::TheWitness                   },
-      { L"Obduction-Win64-Shipping.exe",           SK_GAME_ID::Obduction                    },
-      { L"witcher3.exe",                           SK_GAME_ID::TheWitcher3                  },
-      { L"re7.exe",                                SK_GAME_ID::ResidentEvil7                },
-      { L"DDDA.exe",                               SK_GAME_ID::DragonsDogma                 },
-      { L"eqgame.exe",                             SK_GAME_ID::EverQuest                    },
-      { L"GE2RB.exe",                              SK_GAME_ID::GodEater2RageBurst           },
-      { L"ge3.exe",                                SK_GAME_ID::GodEater3                    },
-      { L"WatchDogs2.exe",                         SK_GAME_ID::WatchDogs2                   },
-      { L"NieRAutomata.exe",                       SK_GAME_ID::NieRAutomata                 },
-      { L"Warframe.x64.exe",                       SK_GAME_ID::Warframe_x64                 },
-      { L"LEGOLCUR_DX11.exe",                      SK_GAME_ID::LEGOCityUndercover           },
-      { L"Sacred.exe",                             SK_GAME_ID::Sacred                       },
-      { L"sacred2.exe",                            SK_GAME_ID::Sacred2                      },
-      { L"FF9.exe",                                SK_GAME_ID::FinalFantasy9                },
-      { L"FinchGame.exe",                          SK_GAME_ID::EdithFinch                   },
-      { L"FFX.exe",                                SK_GAME_ID::FinalFantasyX_X2             },
-      { L"FFX-2.exe",                              SK_GAME_ID::FinalFantasyX_X2             },
-      { L"FFX&X-2_Will.exe",                       SK_GAME_ID::FinalFantasyX_X2             },
-      { L"DP.exe",                                 SK_GAME_ID::DeadlyPremonition            },
-      { L"GG2Game.exe",                            SK_GAME_ID::GalGun_Double_Peace          },
-      { L"AkibaUU.exe",                            SK_GAME_ID::AKIBAs_Trip                  },
-      { L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     },
-      { L"TOS.exe",                                SK_GAME_ID::Tales_of_Symphonia           },
-      { L"Tales of Zestiria.exe",                  SK_GAME_ID::Tales_of_Zestiria            },
-      { L"TOV_DE.exe",                             SK_GAME_ID::Tales_of_Vesperia            },
-      { L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm },
-      { L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          },
-      { L"Hob.exe",                                SK_GAME_ID::Hob                          },
-      { L"DukeForever.exe",                        SK_GAME_ID::DukeNukemForever             },
-      { L"BLUE_REFLECTION.exe",                    SK_GAME_ID::BlueReflection               },
-      { L"Zero Escape.exe",                        SK_GAME_ID::ZeroEscape                   },
-      { L"hackGU.exe",                             SK_GAME_ID::DotHackGU                    },
-      { L"WOFF.exe",                               SK_GAME_ID::WorldOfFinalFantasy          },
-      { L"StarOceanTheLastHope.exe",               SK_GAME_ID::StarOcean4                   },
-      { L"LEGOMARVEL2_DX11.exe",                   SK_GAME_ID::LEGOMarvelSuperheroes2       },
-      { L"okami.exe",                              SK_GAME_ID::Okami                        },
-      { L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          },
-      { L"mafia3.exe",                             SK_GAME_ID::Mafia3                       },
-      { L"Owlboy.exe",                             SK_GAME_ID::Owlboy                       },
-      { L"DarkSoulsIII.exe",                       SK_GAME_ID::DarkSouls3                   },
-      { L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     },
-      { L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    },
-      { L"Secret_of_Mana.exe",                     SK_GAME_ID::SecretOfMana                 },
-      { L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           },
-      { L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    },
-      { L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      },
-      { L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                },
-      { L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     },
-      { L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           },
-      { L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      },
-      { L"YakuzaKiwami2.exe",                      SK_GAME_ID::YakuzaKiwami2                },
-      { L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           },
-      { L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      },
-      { L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      },
-      { L"SteamLauncher.exe",                      SK_GAME_ID::Shenmue                      }, // Bad idea
-      { L"DRAGON QUEST XI.exe",                    SK_GAME_ID::DragonQuestXI                },
-      { L"ACOdyssey.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
-      { L"ACOrigins.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
-      { L"JustCause3.exe",                         SK_GAME_ID::JustCause3                   },
-      { L"ed8.exe",                                SK_GAME_ID::TrailsOfColdSteel            },
-      { L"sekiro.exe",                             SK_GAME_ID::Sekiro                       },
-      { L"Octopath_Traveler-Win64-Shipping.exe",   SK_GAME_ID::OctopathTraveler             },
-      { L"SonicMania.exe",                         SK_GAME_ID::SonicMania                   }
+    auto constexpr hash_lower = [&](const wchar_t* const wstr) -> size_t
+          { return hash_string                          (wstr, true); };
+
+    static std::unordered_map <size_t,                          SK_GAME_ID> _games =                     {
+      { hash_lower (L"Tyranny.exe"),                            SK_GAME_ID::Tyranny                      },
+      { hash_lower (L"TidesOfNumenera.exe"),                    SK_GAME_ID::TidesOfNumenera              },
+      { hash_lower (L"MassEffectAndromeda.exe"),                SK_GAME_ID::MassEffect_Andromeda         },
+      { hash_lower (L"MadMax.exe"),                             SK_GAME_ID::MadMax                       },
+      { hash_lower (L"Dreamfall Chapters.exe"),                 SK_GAME_ID::Dreamfall_Chapters           },
+      { hash_lower (L"TheWitness.exe"),                         SK_GAME_ID::TheWitness                   },
+      { hash_lower (L"Obduction-Win64-Shipping.exe"),           SK_GAME_ID::Obduction                    },
+      { hash_lower (L"witcher3.exe"),                           SK_GAME_ID::TheWitcher3                  },
+      { hash_lower (L"re7.exe"),                                SK_GAME_ID::ResidentEvil7                },
+      { hash_lower (L"DDDA.exe"),                               SK_GAME_ID::DragonsDogma                 },
+      { hash_lower (L"eqgame.exe"),                             SK_GAME_ID::EverQuest                    },
+      { hash_lower (L"GE2RB.exe"),                              SK_GAME_ID::GodEater2RageBurst           },
+      { hash_lower (L"ge3.exe"),                                SK_GAME_ID::GodEater3                    },
+      { hash_lower (L"WatchDogs2.exe"),                         SK_GAME_ID::WatchDogs2                   },
+      { hash_lower (L"NieRAutomata.exe"),                       SK_GAME_ID::NieRAutomata                 },
+      { hash_lower (L"Warframe.x64.exe"),                       SK_GAME_ID::Warframe_x64                 },
+      { hash_lower (L"LEGOLCUR_DX11.exe"),                      SK_GAME_ID::LEGOCityUndercover           },
+      { hash_lower (L"Sacred.exe"),                             SK_GAME_ID::Sacred                       },
+      { hash_lower (L"sacred2.exe"),                            SK_GAME_ID::Sacred2                      },
+      { hash_lower (L"FF9.exe"),                                SK_GAME_ID::FinalFantasy9                },
+      { hash_lower (L"FinchGame.exe"),                          SK_GAME_ID::EdithFinch                   },
+      { hash_lower (L"FFX.exe"),                                SK_GAME_ID::FinalFantasyX_X2             },
+      { hash_lower (L"FFX-2.exe"),                              SK_GAME_ID::FinalFantasyX_X2             },
+      { hash_lower (L"FFX&X-2_Will.exe"),                       SK_GAME_ID::FinalFantasyX_X2             },
+      { hash_lower (L"DP.exe"),                                 SK_GAME_ID::DeadlyPremonition            },
+      { hash_lower (L"GG2Game.exe"),                            SK_GAME_ID::GalGun_Double_Peace          },
+      { hash_lower (L"AkibaUU.exe"),                            SK_GAME_ID::AKIBAs_Trip                  },
+      { hash_lower (L"Ys7.exe"),                                SK_GAME_ID::YS_Seven                     },
+      { hash_lower (L"TOS.exe"),                                SK_GAME_ID::Tales_of_Symphonia           },
+      { hash_lower (L"Tales of Zestiria.exe"),                  SK_GAME_ID::Tales_of_Zestiria            },
+      { hash_lower (L"TOV_DE.exe"),                             SK_GAME_ID::Tales_of_Vesperia            },
+      { hash_lower (L"Life is Strange - Before the Storm.exe"), SK_GAME_ID::LifeIsStrange_BeforeTheStorm },
+      { hash_lower (L"EoCApp.exe"),                             SK_GAME_ID::DivinityOriginalSin          },
+      { hash_lower (L"Hob.exe"),                                SK_GAME_ID::Hob                          },
+      { hash_lower (L"DukeForever.exe"),                        SK_GAME_ID::DukeNukemForever             },
+      { hash_lower (L"BLUE_REFLECTION.exe"),                    SK_GAME_ID::BlueReflection               },
+      { hash_lower (L"Zero Escape.exe"),                        SK_GAME_ID::ZeroEscape                   },
+      { hash_lower (L"hackGU.exe"),                             SK_GAME_ID::DotHackGU                    },
+      { hash_lower (L"WOFF.exe"),                               SK_GAME_ID::WorldOfFinalFantasy          },
+      { hash_lower (L"StarOceanTheLastHope.exe"),               SK_GAME_ID::StarOcean4                   },
+      { hash_lower (L"LEGOMARVEL2_DX11.exe"),                   SK_GAME_ID::LEGOMarvelSuperheroes2       },
+      { hash_lower (L"okami.exe"),                              SK_GAME_ID::Okami                        },
+      { hash_lower (L"DuckTales.exe"),                          SK_GAME_ID::DuckTalesRemastered          },
+      { hash_lower (L"mafia3.exe"),                             SK_GAME_ID::Mafia3                       },
+      { hash_lower (L"Owlboy.exe"),                             SK_GAME_ID::Owlboy                       },
+      { hash_lower (L"DarkSoulsIII.exe"),                       SK_GAME_ID::DarkSouls3                   },
+      { hash_lower (L"Fallout4.exe"),                           SK_GAME_ID::Fallout4                     },
+      { hash_lower (L"dis1_st.exe"),                            SK_GAME_ID::DisgaeaPC                    },
+      { hash_lower (L"Secret_of_Mana.exe"),                     SK_GAME_ID::SecretOfMana                 },
+      { hash_lower (L"DBFighterZ.exe"),                         SK_GAME_ID::DragonBallFighterZ           },
+      { hash_lower (L"Nino2.exe"),                              SK_GAME_ID::NiNoKuni2                    },
+      { hash_lower (L"FarCry5.exe"),                            SK_GAME_ID::FarCry5                      },
+      { hash_lower (L"Chrono Trigger.exe"),                     SK_GAME_ID::ChronoTrigger                },
+      { hash_lower (L"ys8.exe"),                                SK_GAME_ID::Ys_Eight                     },
+      { hash_lower (L"PillarsOfEternityII.exe"),                SK_GAME_ID::PillarsOfEternity2           },
+      { hash_lower (L"Yakuza0.exe"),                            SK_GAME_ID::Yakuza0                      },
+      { hash_lower (L"YakuzaKiwami2.exe"),                      SK_GAME_ID::YakuzaKiwami2                },
+      { hash_lower (L"MonsterHunterWorld.exe"),                 SK_GAME_ID::MonsterHunterWorld           },
+      { hash_lower (L"Shenmue.exe"),                            SK_GAME_ID::Shenmue                      },
+      { hash_lower (L"Shenmue2.exe"),                           SK_GAME_ID::Shenmue                      },
+      { hash_lower (L"SteamLauncher.exe"),                      SK_GAME_ID::Shenmue                      }, // Bad idea
+      { hash_lower (L"DRAGON QUEST XI.exe"),                    SK_GAME_ID::DragonQuestXI                },
+      { hash_lower (L"ACOdyssey.exe"),                          SK_GAME_ID::AssassinsCreed_Odyssey       },
+      { hash_lower (L"ACOrigins.exe"),                          SK_GAME_ID::AssassinsCreed_Odyssey       },
+      { hash_lower (L"JustCause3.exe"),                         SK_GAME_ID::JustCause3                   },
+      { hash_lower (L"ed8.exe"),                                SK_GAME_ID::TrailsOfColdSteel            },
+      { hash_lower (L"sekiro.exe"),                             SK_GAME_ID::Sekiro                       },
+      { hash_lower (L"Octopath_Traveler-Win64-Shipping.exe"),   SK_GAME_ID::OctopathTraveler             },
+      { hash_lower (L"SonicMania.exe"),                         SK_GAME_ID::SonicMania                   }
     };
 
     first_check = false;
 
 #ifdef _M_AMD64
     // For games that can't be matched using a single executable filename
-    if (! _games.count (SK_GetHostApp ()))
+    if (! _games.count (hash_lower (SK_GetHostApp ())))
     {
       if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) )
       {
@@ -141,10 +142,14 @@ SK_GetCurrentGameID (void)
 
     else
 #endif
-      current_game = _games [SK_GetHostApp ()];
+    {
+      current_game =
+        _games [hash_lower (SK_GetHostApp ())];
+    }
   }
 
-  return current_game;
+  return
+    current_game;
 }
 
 
@@ -360,6 +365,7 @@ struct {
   struct
   {
   //sk::ParameterBool*    fix_10bit_gsync;
+    sk::ParameterBool*    snuffed_ansel;
   } bugs;
 } nvidia;
 
@@ -751,25 +757,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini->get_sections ().empty ();
 
 
-    if (empty)
-    {
-      dll_ini->import ( L"[API.Hook]\n"
-                        L"LastKnown=65\n"
-#ifdef _M_IX86
-                        L"ddraw=true\n"
-                        L"d3d8=true\n"
-#endif
-                        L"d3d9=true\n"
-                        L"d3d9ex=true\n"
-                        L"d3d11=true\n"
-#ifdef _M_AMD64
-                        L"d3d12=true\n"
-                        L"Vulkan=true\n"
-#endif
-                        L"OpenGL=true\n\n" );
-    }
-
-
     SK_CreateDirectories (osd_config.c_str ());
 
 
@@ -1088,6 +1075,8 @@ auto DeclKeybind =
 
     ConfigEntry (nvidia.api.disable,                     L"Disable NvAPI",                                             dll_ini,         L"NVIDIA.API",            L"Disable"),
     ConfigEntry (nvidia.api.disable_hdr,                 L"Prevent Game from Using NvAPI HDR Features",                dll_ini,         L"NVIDIA.API",            L"DisableHDR"),
+    ConfigEntry (nvidia.bugs.snuffed_ansel,              L"By default, Special K disables Ansel at first launch, but"
+                                                         L" users have an option under 'Help|..' to turn it back on.", dll_ini,         L"NVIDIA.Bugs",           L"AnselSleepsWithFishes"),
     ConfigEntry (nvidia.sli.compatibility,               L"SLI Compatibility Bits",                                    dll_ini,         L"NVIDIA.SLI",            L"CompatibilityBits"),
     ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
     ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
@@ -1430,30 +1419,6 @@ auto DeclKeybind =
   // Default = Don't Care
   config.render.dxgi.exception_mode = -1;
   config.render.dxgi.scaling_mode   = -1;
-
-
-
-  apis.last_known->load ((int &)config.apis.last_known);
-
-#ifdef _M_IX86
-  apis.ddraw.hook->load (config.apis.ddraw.hook);
-  apis.d3d8.hook->load  (config.apis.d3d8.hook);
-#endif
-
-
-  apis.d3d9.hook->load   (config.apis.d3d9.hook);
-  apis.d3d9ex.hook->load (config.apis.d3d9ex.hook);
-  apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook);
-
-#ifdef _M_AMD64
-  apis.d3d12.hook->load (config.apis.dxgi.d3d12.hook);
-#endif
-
-  apis.OpenGL.hook->load (config.apis.OpenGL.hook);
-
-#ifdef _M_AMD64
-  apis.Vulkan.hook->load (config.apis.Vulkan.hook);
-#endif
 
 
   //
@@ -2039,13 +2004,42 @@ auto DeclKeybind =
 
       case SK_GAME_ID::OctopathTraveler:
       {
-        config.render.framerate.limiter_tolerance = 3.75f;
+        // It's a Denuvo game, so it may take a while to start...
+        //   but the game DOES run its own callbacks so don't worry.
+        config.steam.auto_pump_callbacks         = false;
+        config.window.borderless                 =  true;
+        config.window.fullscreen                 =  true;
+        config.window.offset.x.absolute          =    -1;
+        config.window.offset.y.absolute          =    -1;
+        config.window.center                     = false;
+
+        HMONITOR hMonitor =
+          MonitorFromWindow ( HWND_DESKTOP,
+                                MONITOR_DEFAULTTOPRIMARY );
+
+        MONITORINFO mi   = {         };
+        mi.cbSize        = sizeof (mi);
+        GetMonitorInfo (hMonitor, &mi);
+
+        config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
+        config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+        config.render.dxgi.res.min.x = config.window.res.override.x;
+        config.render.dxgi.res.min.y = config.window.res.override.y;
+
+        config.render.dxgi.res.max.x = config.window.res.override.x;
+        config.render.dxgi.res.max.y = config.window.res.override.y;
+
+        config.render.framerate.limiter_tolerance =  5.0f;
         config.render.framerate.buffer_count      =     3;
         config.render.framerate.target_fps        =    60;
         config.render.framerate.pre_render_limit  =     4;
         config.render.framerate.sleepless_render  =  true;
         config.render.framerate.sleepless_window  =  true;
 
+        config.window.treat_fg_as_active          =  true;
+        config.window.background_render           =  true;
+        config.input.ui.use_hw_cursor             = false;
         config.input.cursor.manage                =  true;
         config.input.cursor.timeout               =     0;
         config.input.cursor.keys_activate         = false;
@@ -2072,6 +2066,37 @@ auto DeclKeybind =
   //
   compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
+
+
+
+  if (! apis.last_known->load ((int &)config.apis.last_known))
+    config.apis.last_known = SK_RenderAPI::Reserved;
+
+#ifdef _M_IX86
+  apis.ddraw.hook->load  (config.apis.ddraw.hook);
+  apis.d3d8.hook->load   (config.apis.d3d8.hook);
+#endif
+
+  if (! apis.d3d9.hook->load   (config.apis.d3d9.hook))
+    config.apis.d3d9.hook       = true;
+
+  if (! apis.d3d9ex.hook->load (config.apis.d3d9ex.hook))
+    config.apis.d3d9ex.hook     = true;
+
+  if (! apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook))
+    config.apis.dxgi.d3d11.hook = true;
+
+#ifdef _M_AMD64
+  apis.d3d12.hook->load  (config.apis.dxgi.d3d12.hook);
+#endif
+
+  if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
+    config.apis.OpenGL.hook     = true;
+
+#ifdef _M_AMD64
+  apis.Vulkan.hook->load (config.apis.Vulkan.hook);
+#endif
+
 
   osd.version_banner.duration->load      (config.version_banner.duration);
   osd.state.remember->load               (config.osd.remember_state);
@@ -2129,7 +2154,8 @@ auto DeclKeybind =
   if (nvidia.api.disable->load (config.apis.NvAPI.enable))
      config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
 
-  nvidia.api.disable_hdr->load (config.apis.NvAPI.disable_hdr);
+  nvidia.api.disable_hdr->load    (config.apis.NvAPI.disable_hdr);
+  nvidia.bugs.snuffed_ansel->load (config.nvidia.bugs.snuffed_ansel);
 
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
@@ -3170,6 +3196,7 @@ SK_SaveConfig ( std::wstring name,
 #endif
 
   nvidia.api.disable_hdr->store               (config.apis.NvAPI.disable_hdr);
+  nvidia.bugs.snuffed_ansel->store            (config.nvidia.bugs.snuffed_ansel);
 
   input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);
   input.keyboard.disabled_to_game->store      (config.input.keyboard.disabled_to_game);
@@ -3652,10 +3679,10 @@ SK_Keybind::update (void)
 {
   human_readable.clear ();
 
-  const std::wstring& key_name =
+  wchar_t* key_name =
     (*virtKeyCodeToHumanKeyName)[(BYTE)(vKey & 0xFF)];
 
-  if (! key_name.length ())
+  if (*key_name == L'\0')
     return;
 
   std::queue <std::wstring> words;
@@ -3694,13 +3721,34 @@ SK_Keybind::parse (void)
   static auto& humanToVirtual = humanKeyNameToVirtKeyCode.get ();
   static auto& virtualToHuman = virtKeyCodeToHumanKeyName.get ();
 
+  auto _PushVirtualToHuman =
+  [&] (BYTE vKey, const wchar_t* wszHumanName) ->
+  void
+  {
+    auto& pair_builder =
+      virtualToHuman [vKey];
+
+    wcsncpy_s ( pair_builder, 64,
+                wszHumanName, _TRUNCATE );
+  };
+
+  auto _PushHumanToVirtual =
+  [&] (const wchar_t* wszHumanName, BYTE vKey) ->
+  void
+  {
+    humanToVirtual.emplace (
+      hash_string (wszHumanName),
+        vKey
+    );
+  };
+
   if (! init)
   {
     init = true;
 
     for (int i = 0; i < 0xFF; i++)
     {
-      wchar_t name [32] = { };
+      wchar_t name [64] = { };
 
       switch (i)
       {
@@ -3767,34 +3815,35 @@ SK_Keybind::parse (void)
            i != VK_LCONTROL && i != VK_RCONTROL &&
            i != VK_LMENU    && i != VK_RMENU )
       {
-        humanToVirtual.emplace (name, gsl::narrow_cast <BYTE> (i));
-        virtualToHuman.emplace (      gsl::narrow_cast <BYTE> (i), name);
+        _PushHumanToVirtual (name, gsl::narrow_cast <BYTE> (i));
+        _PushVirtualToHuman (      gsl::narrow_cast <BYTE> (i), name);
       }
     }
 
-    humanToVirtual.emplace (L"Plus",        gsl::narrow_cast <BYTE> (VK_OEM_PLUS));
-    humanToVirtual.emplace (L"Minus",       gsl::narrow_cast <BYTE> (VK_OEM_MINUS));
-    humanToVirtual.emplace (L"Ctrl",        gsl::narrow_cast <BYTE> (VK_CONTROL));
-    humanToVirtual.emplace (L"Alt",         gsl::narrow_cast <BYTE> (VK_MENU));
-    humanToVirtual.emplace (L"Shift",       gsl::narrow_cast <BYTE> (VK_SHIFT));
-    humanToVirtual.emplace (L"Left Shift",  gsl::narrow_cast <BYTE> (VK_LSHIFT));
-    humanToVirtual.emplace (L"Right Shift", gsl::narrow_cast <BYTE> (VK_RSHIFT));
-    humanToVirtual.emplace (L"Left Alt",    gsl::narrow_cast <BYTE> (VK_LMENU));
-    humanToVirtual.emplace (L"Right Alt",   gsl::narrow_cast <BYTE> (VK_RMENU));
-    humanToVirtual.emplace (L"Left Ctrl",   gsl::narrow_cast <BYTE> (VK_LCONTROL));
-    humanToVirtual.emplace (L"Right Ctrl",  gsl::narrow_cast <BYTE> (VK_RCONTROL));
+    _PushHumanToVirtual (L"Plus",        gsl::narrow_cast <BYTE> (VK_OEM_PLUS));
+    _PushHumanToVirtual (L"Minus",       gsl::narrow_cast <BYTE> (VK_OEM_MINUS));
+    _PushHumanToVirtual (L"Ctrl",        gsl::narrow_cast <BYTE> (VK_CONTROL));
+    _PushHumanToVirtual (L"Alt",         gsl::narrow_cast <BYTE> (VK_MENU));
+    _PushHumanToVirtual (L"Shift",       gsl::narrow_cast <BYTE> (VK_SHIFT));
+    _PushHumanToVirtual (L"Left Shift",  gsl::narrow_cast <BYTE> (VK_LSHIFT));
+    _PushHumanToVirtual (L"Right Shift", gsl::narrow_cast <BYTE> (VK_RSHIFT));
+    _PushHumanToVirtual (L"Left Alt",    gsl::narrow_cast <BYTE> (VK_LMENU));
+    _PushHumanToVirtual (L"Right Alt",   gsl::narrow_cast <BYTE> (VK_RMENU));
+    _PushHumanToVirtual (L"Left Ctrl",   gsl::narrow_cast <BYTE> (VK_LCONTROL));
+    _PushHumanToVirtual (L"Right Ctrl",  gsl::narrow_cast <BYTE> (VK_RCONTROL));
 
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_CONTROL),   L"Ctrl");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_MENU),      L"Alt");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_SHIFT),     L"Shift");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_OEM_PLUS),  L"Plus");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_OEM_MINUS), L"Minus");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_LSHIFT),    L"Left Shift");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_RSHIFT),    L"Right Shift");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_LMENU),     L"Left Alt");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_RMENU),     L"Right Alt");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_LCONTROL),  L"Left Ctrl");
-    virtualToHuman.emplace (gsl::narrow_cast <BYTE> (VK_RCONTROL),  L"Right Ctrl");
+
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_CONTROL),   L"Ctrl");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_MENU),      L"Alt");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_SHIFT),     L"Shift");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_OEM_PLUS),  L"Plus");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_OEM_MINUS), L"Minus");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_LSHIFT),    L"Left Shift");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_RSHIFT),    L"Right Shift");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_LMENU),     L"Left Alt");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_RMENU),     L"Right Alt");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_LCONTROL),  L"Left Ctrl");
+    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_RCONTROL),  L"Right Ctrl");
 
     init = true;
   }
@@ -3819,7 +3868,7 @@ SK_Keybind::parse (void)
       if (*wszKeyBind != L'\0')
       {
         vKey =
-          humanToVirtual [wszKeyBind];
+          humanToVirtual [hash_string (wszKeyBind)];
       }
     }
   }
@@ -3831,7 +3880,7 @@ SK_Keybind::parse (void)
     if (wszTok != nullptr && *wszTok != L'\0')
     {
       BYTE vKey_ =
-        humanToVirtual [wszTok];
+        humanToVirtual [hash_string (wszTok)];
 
       if (vKey_ == VK_CONTROL)
         ctrl  = true;
@@ -4485,5 +4534,15 @@ SK_Render_GetAPIHookMask (void)
   if (config.apis.dxgi.d3d12.hook) mask |= static_cast <int> (SK_RenderAPI::D3D12);
 #endif
 
-  return static_cast <SK_RenderAPI> (mask);
+  return
+    static_cast <SK_RenderAPI> (mask);
+}
+
+
+
+__forceinline
+sk_config_t& _config (void)
+{
+  static sk_config_t cfg;
+  return             cfg;
 }

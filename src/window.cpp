@@ -934,11 +934,11 @@ ActivateWindow (HWND hWnd, bool active = false)
 
     if ((! rb.fullscreen_exclusive) && config.window.background_render)
     {
-      ///if (! game_window.cursor_visible)
-      ///{
-      ///  while (ShowCursor (FALSE) >= 0)
-      ///    ;
-      ///}
+      if (! game_window.cursor_visible)
+      {
+        //while (ShowCursor (FALSE) >= 0)
+        //  ;
+      }
 
       if (! wm_dispatch->moving_windows.count (game_window.hWnd))
         SK_ClipCursor (&game_window.cursor_clip);
@@ -949,11 +949,12 @@ ActivateWindow (HWND hWnd, bool active = false)
   {
     if ((! rb.fullscreen_exclusive) && config.window.background_render)
     {
-      ///game_window.cursor_visible =
-      ///  ShowCursor (TRUE) >= 1;
-      ///
-      ///while (ShowCursor (TRUE) < 0)
-      ///  ;
+      game_window.cursor_visible =
+        ShowCursor (TRUE) >= 1;
+        ShowCursor (FALSE);
+
+      //while (ShowCursor (TRUE) < 0)
+      //  ;
 
       SK_ClipCursor (nullptr);
     }
@@ -4040,22 +4041,36 @@ typedef HWND (WINAPI *SetActiveWindow_pfn)(HWND);
 
 HWND
 WINAPI
+SK_GetActiveWindow (SK_TLS *pTLS)
+{
+  if (pTLS == nullptr)
+      pTLS  = SK_TLS_Bottom ();
+
+  if (pTLS->win32->active == 0)
+  {
+    pTLS->win32->active =
+      GetActiveWindow_Original ();
+  }
+
+  return
+    pTLS->win32->active;
+}
+
+HWND
+WINAPI
 GetActiveWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
   SK_TLS *pTLS =
-    SK_TLS_Bottom ();
+        SK_TLS_Bottom ();
 
-  //if (pTLS->win32->active == (HWND)-1 ||
-  //    pTLS->win32->active == (HWND) 0)
-  //{
-    pTLS->win32->active =
-      GetActiveWindow_Original ();
-  //}
+  // Take this opportunity to update any stale data
+  //   since we're making a round-trip anyway.
+  pTLS->win32->active = 0;
 
   return
-    pTLS->win32->active;
+    SK_GetActiveWindow (pTLS);
 }
 
 HWND
@@ -4120,10 +4135,14 @@ GetForegroundWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  if ( config.window.background_render ||
-       config.window.treat_fg_as_active )
+
+  if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
   {
-    return game_window.hWnd;
+    if ( config.window.background_render ||
+         config.window.treat_fg_as_active )
+    {
+      return game_window.hWnd;
+    }
   }
 
   return
@@ -4692,26 +4711,27 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         return 0;
       } break;
 
-    case WM_DISPLAYCHANGE:
+  //case WM_DISPLAYCHANGE:
   //case WM_COMMAND:       // QLOC specific weirdness
-      if ((! rb.fullscreen_exclusive) && config.window.background_render)
-      {
-        return
-          game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-      } break;
+      //if ((! rb.fullscreen_exclusive) && config.window.background_render)
+      //{
+      //  return
+      //    game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      //} break;
 
     case WM_SETFOCUS:
       ActivateWindow (hWnd, true);
-      if ((! rb.fullscreen_exclusive) && config.window.background_render)
-      {
-        // Blocking this message helps with many games that mute audio in the background
-        return
-          game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-      }
+      //if ((! rb.fullscreen_exclusive) && config.window.background_render)
+      //{
+      //  // Blocking this message helps with many games that mute audio in the background
+      //  return
+      //    game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      //}
       break;
 
     case WM_KILLFOCUS:
       ActivateWindow (hWnd, false);
+      rb.fullscreen_exclusive = false;
       if ((! rb.fullscreen_exclusive) && config.window.background_render)
       {
         // Blocking this message helps with many games that mute audio in the background
@@ -4747,8 +4767,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                    L"Window Mgr" );
           return MA_ACTIVATE;
         }
-
-        rb.fullscreen_exclusive = false;
       }
 
 
@@ -4797,8 +4815,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
               return
                 game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
             }
-
-            rb.fullscreen_exclusive = false;
           }
         }
 
@@ -4826,8 +4842,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             return
               game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
           }
-
-          rb.fullscreen_exclusive = false;
         }
       }
 
@@ -4875,17 +4889,18 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           }
         }
 
+
+        if ( SK_GetForegroundWindow () == game_window.hWnd ||
+                GetFocus            () == game_window.hWnd )
+                          ActivateWindow (game_window.hWnd, true);
+
         if ((! rb.fullscreen_exclusive) && config.window.background_render)
         {
           return 1;
         }
 
-        if (! activate)
-          rb.fullscreen_exclusive = false;
-
-        if ( SK_GetForegroundWindow () == game_window.hWnd ||
-                GetFocus            () == game_window.hWnd )
-                          ActivateWindow (game_window.hWnd, true);
+        //if (! activate)
+        //  rb.fullscreen_exclusive = false;
       }
     } break;
 
@@ -5696,13 +5711,12 @@ bool
 __stdcall
 SK_IsGameWindowActive (void)
 {
-  DWORD dwProcId;
-
-  if (GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwProcId))
-  {
-    if (dwProcId == GetCurrentProcessId ())
-      return true;
-  }
+                                                       DWORD dwProcId;
+  if (GetWindowThreadProcessId (SK_GetForegroundWindow (),  &dwProcId)) {
+                              if ( GetCurrentProcessId () == dwProcId)
+                              {
+                                return true;
+                              }                                         }
 
   return
     game_window.active;
@@ -6422,47 +6436,26 @@ BOOL
 SK_Win32_IsGUIThread ( DWORD    dwTid,
                        SK_TLS **ppTLS )
 {
-  static Concurrency::concurrent_unordered_map
-    < DWORD, BOOL > known_tids_;
+  UNREFERENCED_PARAMETER (ppTLS);
 
+  static volatile LONG64 last_result = 0x0;
+                  LONG64 test_result =
+                    ReadAcquire64 (&last_result);
 
-  SK_TLS *pTLS =
-    nullptr;
-
-  if (ppTLS != nullptr)
+  if ((DWORD)(test_result & 0x00000000FFFFFFFFULL) == dwTid)
   {
-    if (*ppTLS != nullptr)
-          pTLS  = *ppTLS;
-    else
-    {
-      *ppTLS =
-        ( pTLS = SK_TLS_Bottom () );
-    }
+    return (test_result >> 32) > 0 ? TRUE : FALSE;
   }
 
-  if (pTLS != nullptr)
-  {
-    if (pTLS->win32->GUI == -1)
-    {
-      pTLS->win32->GUI =
-        IsGUIThread (FALSE);
-    }
-
-    known_tids_ [dwTid] =
-      pTLS->win32->GUI;
-
-    return
-      pTLS->win32->GUI;
-  }
-
-  if (known_tids_.find (dwTid) != known_tids_.cend ())
-  {
-    return
-      known_tids_ [dwTid];
-  }
-
-  return
+  BOOL bGUI =
     IsGUIThread (FALSE);
+
+  test_result = (bGUI ? (1ull << 32) : 0)
+    | (LONG64)(dwTid & 0xFFFFFFFFUL);
+
+  InterlockedExchange64 (&last_result, test_result);
+
+  return bGUI;
 }
 
 
@@ -6473,20 +6466,16 @@ HRESULT
 WINAPI
 SK_DWM_EnableMMCSS (BOOL enable)
 {
-  HRESULT hr = E_NOTIMPL;
-
   typedef HRESULT (WINAPI *DwmEnableMMCSS_pfn)(BOOL);
-  static DwmEnableMMCSS_pfn DwmEnableMMCSS =
-    reinterpret_cast <DwmEnableMMCSS_pfn> (
-      GetProcAddress (LoadLibraryW (L"dwmapi.dll"), "DwmEnableMMCSS")
-    );
+  static                   DwmEnableMMCSS_pfn
+                           DwmEnableMMCSS =
+         reinterpret_cast <DwmEnableMMCSS_pfn> (
+     SK_GetProcAddress ( L"dwmapi.dll",
+                          "DwmEnableMMCSS" )   );
 
-  if (DwmEnableMMCSS != nullptr)
-  {
-    hr = DwmEnableMMCSS (enable);
-  }
-
-  return hr;
+  return
+    ( DwmEnableMMCSS != nullptr ) ?
+      DwmEnableMMCSS (  enable  ) : E_NOTIMPL;
 }
 
 

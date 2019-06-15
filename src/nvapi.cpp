@@ -1934,6 +1934,298 @@ sk::NVAPI::SetFramerateLimit (uint32_t limit)
 #define SLI_COMPAT_BITS_DXGI_ID 0x00A06946
 #define SLI_COMPAT_BITS_DX9_ID  0x1095DEF8
 
+INT
+SK_NvAPI_GetAnselEnablement (DLL_ROLE role)
+{
+  if (role == OpenGL || role == Vulkan)
+    return -1;
+
+  if (! nv_hardware)
+    return -2;
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+
+  NvU32 ansel_allow_enum       = ANSEL_ALLOW_ID;
+  NvU32 ansel_enable_enum      = ANSEL_ENABLE_ID;
+  NvU32 ansel_whitelisted_enum = ANSEL_WHITELISTED_ID;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // If no executable exists anywhere by this name, create a profile for it
+  //   and then add the executable to it.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVDRS_PROFILE custom_profile = {   };
+
+    custom_profile.isPredefined  = FALSE;
+    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
+    custom_profile.version = NVDRS_PROFILE_VER;
+
+    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
+    //   raise a fuss if it happens.
+    NVAPI_SILENT ()
+    {
+      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+    }
+    NVAPI_VERBOSE ()
+
+    // Add the application name to the profile, if a profile already exists
+    if (ret == NVAPI_PROFILE_NAME_IN_USE)
+    {
+      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
+                                              (NvU16 *)friendly_name.c_str (),
+                                                &hProfile),
+                      ret );
+    }
+
+    if (ret == NVAPI_OK)
+    {
+      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+
+      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
+      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
+
+      app.version      = NVDRS_APPLICATION_VER;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
+
+      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
+      NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
+    }
+  }
+
+  NVDRS_SETTING ansel_allow_val               = {               };
+                ansel_allow_val.version       = NVDRS_SETTING_VER;
+
+  NVDRS_SETTING ansel_enable_val              = {               };
+                ansel_enable_val.version      = NVDRS_SETTING_VER;
+
+  NVDRS_SETTING ansel_whitelisted_val         = {               };
+                ansel_whitelisted_val.version = NVDRS_SETTING_VER;
+
+  // These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT  ();
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, ansel_allow_enum,       &ansel_allow_val));
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, ansel_enable_enum,      &ansel_enable_val));
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, ansel_whitelisted_enum, &ansel_whitelisted_val));
+  NVAPI_VERBOSE ();
+
+  INT iRet =
+   ( ansel_allow_val.u32CurrentValue       == ANSEL_ALLOW_ALLOWED    &&
+     ansel_enable_val.u32CurrentValue      == ANSEL_ENABLE_ON        &&
+     ansel_whitelisted_val.u32CurrentValue == ANSEL_WHITELISTED_ALLOWED )
+                                            ? 1
+                                            : 0;
+
+  NVAPI_CALL (DRS_DestroySession (hSession));
+
+  return iRet;
+}
+
+BOOL
+SK_NvAPI_SetAnselEnablement (DLL_ROLE role, bool enabled)
+{
+  if (role == OpenGL || role == Vulkan)
+    return FALSE;
+
+  if (! nv_hardware)
+    return FALSE;
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+
+  NvU32 ansel_allow_enum       = ANSEL_ALLOW_ID;
+  NvU32 ansel_enable_enum      = ANSEL_ENABLE_ID;
+  NvU32 ansel_whitelisted_enum = ANSEL_WHITELISTED_ID;
+
+  NvU32 ansel_allow_to_set =
+    enabled ? ANSEL_ALLOW_ALLOWED
+            : ANSEL_ALLOW_DISALLOWED;
+
+  NvU32 ansel_enable_to_set =
+    enabled ? ANSEL_ENABLE_ON
+            : ANSEL_ENABLE_OFF;
+
+  NvU32 ansel_whitelisted_to_set =
+    enabled ? ANSEL_WHITELISTED_ALLOWED
+            : ANSEL_WHITELISTED_DISALLOWED;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // If no executable exists anywhere by this name, create a profile for it
+  //   and then add the executable to it.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVDRS_PROFILE custom_profile = {   };
+
+    custom_profile.isPredefined  = FALSE;
+    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
+    custom_profile.version = NVDRS_PROFILE_VER;
+
+    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
+    //   raise a fuss if it happens.
+    NVAPI_SILENT ()
+    {
+      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+    }
+    NVAPI_VERBOSE ()
+
+    // Add the application name to the profile, if a profile already exists
+    if (ret == NVAPI_PROFILE_NAME_IN_USE)
+    {
+      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
+                                              (NvU16 *)friendly_name.c_str (),
+                                                &hProfile),
+                      ret );
+    }
+
+    if (ret == NVAPI_OK)
+    {
+      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+
+      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
+      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
+
+      app.version      = NVDRS_APPLICATION_VER;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
+
+      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
+      NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
+    }
+  }
+
+  NVDRS_SETTING ansel_allow_val               = {               };
+                ansel_allow_val.version       = NVDRS_SETTING_VER;
+
+  NVDRS_SETTING ansel_enable_val              = {               };
+                ansel_enable_val.version      = NVDRS_SETTING_VER;
+
+  NVDRS_SETTING ansel_whitelisted_val         = {               };
+                ansel_whitelisted_val.version = NVDRS_SETTING_VER;
+
+  // These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT ();
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, ansel_allow_enum,       &ansel_allow_val));
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, ansel_enable_enum,      &ansel_enable_val));
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, ansel_whitelisted_enum, &ansel_whitelisted_val));
+  NVAPI_VERBOSE ();
+
+
+  BOOL already_set = TRUE;
+
+  // Do this first so we don't touch other settings if this fails
+  if (ansel_allow_val.u32CurrentValue != ansel_allow_to_set)
+  {
+    ansel_allow_val         = {               };
+    ansel_allow_val.version = NVDRS_SETTING_VER;
+
+    ret = NVAPI_ERROR;
+
+    // This requires admin privs, and we will handle that gracefully...
+    NVAPI_SILENT    ();
+    NVAPI_SET_DWORD (ansel_allow_val, ansel_allow_enum, ansel_allow_to_set);
+    NVAPI_CALL2     (DRS_SetSetting (hSession, hProfile, &ansel_allow_val), ret);
+    NVAPI_VERBOSE   ();
+
+    already_set = FALSE;
+  }
+
+  if (ansel_enable_val.u32CurrentValue != ansel_enable_to_set)
+  {
+    ansel_enable_val         = {               };
+    ansel_enable_val.version = NVDRS_SETTING_VER;
+
+    NVAPI_SET_DWORD (ansel_enable_val, ansel_enable_enum, ansel_enable_to_set);
+    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &ansel_enable_val));
+
+    already_set = FALSE;
+  }
+
+  bool not_whitelisted = false;
+
+  if (ansel_whitelisted_val.u32CurrentValue != ansel_whitelisted_to_set)
+  {
+    ansel_whitelisted_val         = {               };
+    ansel_whitelisted_val.version = NVDRS_SETTING_VER;
+
+    NVAPI_SET_DWORD (ansel_whitelisted_val, ansel_whitelisted_enum, ansel_whitelisted_to_set);
+    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &ansel_whitelisted_val));
+
+    already_set = FALSE;
+  }
+
+  else
+    not_whitelisted = true;
+
+  if (! already_set)
+  {
+    NVAPI_CALL (DRS_SaveSettings   (hSession));
+  } NVAPI_CALL (DRS_DestroySession (hSession));
+
+
+  // We turned off the remaining Ansel profile flags, but it was already not whitelisted.
+  if ((! enabled) && not_whitelisted)
+    return false;
+
+
+  return
+    (! already_set);
+}
+
+BOOL
+SK_NvAPI_EnableAnsel (DLL_ROLE role)
+{
+  return
+    SK_NvAPI_SetAnselEnablement (role, true);
+}
+
+BOOL
+SK_NvAPI_DisableAnsel (DLL_ROLE role)
+{
+  return
+    SK_NvAPI_SetAnselEnablement (role, false);
+}
+
 BOOL
 sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
                                 const wchar_t* wszModeName,

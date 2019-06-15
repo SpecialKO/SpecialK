@@ -2069,7 +2069,56 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::MenuItem ("About this Software...", "", &selected))
           eula.show = true;
 
-        ImGui::Separator (  );
+        ImGui::Separator ();
+
+        if (SK_SteamAPI_AppID () != 0x0)
+        {
+          if (ImGui::MenuItem ( "Check PCGamingWiki for Self-Help", "Third-Party Site", &selected ))
+          {
+            SK_SteamOverlay_GoToURL (
+              SK_FormatString (
+                "http://pcgamingwiki.com/api/appid.php?appid=%lu",
+                                           SK_SteamAPI_AppID ()
+              ).c_str (), true
+            );
+          }
+        }
+
+        if (sk::NVAPI::nv_hardware)
+        {
+          extern INT  SK_NvAPI_GetAnselEnablement (DLL_ROLE role);
+          extern BOOL SK_NvAPI_EnableAnsel        (DLL_ROLE role);
+          extern BOOL SK_NvAPI_DisableAnsel       (DLL_ROLE role);
+
+          static INT enablement =
+            SK_NvAPI_GetAnselEnablement (SK_GetDLLRole ());
+
+          if (enablement >= 0)
+          {
+            switch (enablement)
+            {
+              default:
+              case 0:
+                if (ImGui::MenuItem ("Enable Ansel for this Game", "", nullptr))
+                {
+                  SK_NvAPI_EnableAnsel (SK_GetDLLRole ());
+                  enablement =
+                    SK_NvAPI_GetAnselEnablement (SK_GetDLLRole ());
+                } break;
+
+              case 1:
+                if (ImGui::MenuItem ("Disable Ansel for this Game", "", nullptr))
+                {
+                  SK_NvAPI_DisableAnsel (SK_GetDLLRole ());
+                  enablement =
+                    SK_NvAPI_GetAnselEnablement (SK_GetDLLRole ());
+                } break;
+            }
+
+            ImGui::Separator ();
+          }
+        }
+
         ImGui::TreePush  ("");
 
         if (SK_IsInjected ())
@@ -2093,15 +2142,22 @@ SK_ImGui_ControlPanel (void)
             );
             //ImGui::BulletText   ("%lu injections since restart", count);
 
-            std::vector <SK_InjectionRecord_s*> records (
-              ReadAcquire (&SK_InjectionRecord_s::count)
-            );
+            boost::container::static_vector <
+              SK_InjectionRecord_s*, MAX_INJECTED_PROC_HISTORY
+            > records;
 
             ImGui::BeginGroup ();
             for ( unsigned int i = 0 ; i < records.capacity () ; i++ )
             {
-              records [i] = SK_Inject_GetRecord (i);
-              ImGui::BulletText ("");
+              SK_InjectionRecord_s *pRecord =
+                SK_Inject_GetRecord (i);
+
+              if (pRecord->process.id != 0)
+              {
+                records.push_back (pRecord);
+
+                ImGui::BulletText ("");
+              }
             }
             ImGui::EndGroup   ();
             ImGui::SameLine   ();
@@ -3537,9 +3593,9 @@ SK_ImGui_StageNextFrame (void)
     ImGui::TextUnformatted ("Press");                   ImGui::SameLine ();
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
                                R"('%ws + %ws + %ws')",
-                                    virtualToHuman [VK_CONTROL].c_str (),
-                                    virtualToHuman [VK_SHIFT].c_str   (),
-                                    virtualToHuman [VK_BACK].c_str    () );
+                                    virtualToHuman [VK_CONTROL],
+                                    virtualToHuman [VK_SHIFT],
+                                    virtualToHuman [VK_BACK] );
                                                         ImGui::SameLine ();
     ImGui::TextUnformatted (", ");                      ImGui::SameLine ();
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
