@@ -24,6 +24,7 @@
 #ifndef __SK__LAZY_GLOBAL_H__
 #define __SK__LAZY_GLOBAL_H__
 
+#include <mutex>
 #include <memory>
 #include <SpecialK/thread.h>
 
@@ -50,6 +51,16 @@ public:
 
     if (lock_val == Uninitialized)
     {
+      std::lock_guard <SK_Thread_HybridSpinlock>
+        double_check (*_sk_lazy_alloc_mtx);
+
+      // Double lock-check
+      auto* pConcurrentInit =
+        pDeferredObject.get ();
+
+      if (pConcurrentInit != nullptr)
+        return pConcurrentInit;
+
       pDeferredObject.reset (
         new (std::nothrow) T
       );
@@ -69,7 +80,13 @@ public:
         InterlockedExchange (&_initlock, FailsafeLocal);
       }
 
+      pConcurrentInit =
+        pDeferredObject.get ();
+
       InterlockedIncrement (&_initlock);
+
+      return
+        pConcurrentInit;
     }
 
     else if (lock_val < Committed)
@@ -100,12 +117,17 @@ __forceinline bool  isAllocated (void)    const noexcept
 
   ~SK_LazyGlobal (void)
   {
+    std::lock_guard <SK_Thread_HybridSpinlock>
+      double_check (*_sk_lazy_alloc_mtx);
+
+    // Allocated off heap w/ C++ new
     if (isAllocated ())
     {
       InterlockedExchange (&_initlock, Uninitialized);
       pDeferredObject.reset ();
     }
 
+    // Used SK's LocalAlloc wrapper, don't let unique_ptr delete!
     else if ( FailsafeLocal ==
       InterlockedCompareExchange (&_initlock, Uninitialized, FailsafeLocal)
             )
@@ -115,10 +137,13 @@ __forceinline bool  isAllocated (void)    const noexcept
   }
 
 protected:
-  std::unique_ptr <T>
+           std::unique_ptr <T>
                 pDeferredObject = nullptr;
   volatile LONG _initlock       = Uninitialized;
 };
+
+extern SK_Thread_HybridSpinlock* _sk_lazy_alloc_mtx;
+
 #pragma warning (pop)
 
 #endif /* __SK__LAZY_GLOBAL_H__*/

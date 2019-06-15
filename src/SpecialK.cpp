@@ -67,6 +67,8 @@ template <        >
 SK_LazyGlobal <skModuleRegistry>
               SK_Modules;
 
+SK_Thread_HybridSpinlock* _sk_lazy_alloc_mtx  = nullptr;
+
 SK_Thread_HybridSpinlock* init_mutex          = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex        = nullptr;
 SK_Thread_HybridSpinlock* wmi_cs              = nullptr;
@@ -97,7 +99,7 @@ class SK_DLL_Bootstrapper
   using BootstrapTerminate_pfn  = bool (*)(void);
 
 public:
-  std::set <std::wstring> wrapper_dlls;
+  std::set <std::wstring_view> wrapper_dlls;
 
   BootstrapEntryPoint_pfn start;
   BootstrapTerminate_pfn  shutdown;
@@ -266,6 +268,9 @@ DllMain ( HMODULE hModule,
     default:
     case DLL_PROCESS_ATTACH:
     {
+      if (_sk_lazy_alloc_mtx == nullptr)
+          _sk_lazy_alloc_mtx = new SK_Thread_HybridSpinlock (384);
+
       // Try, if assigned already (how?!) do not deadlock the Kernel loader
       if ( __SK_hModSelf       != hModule )
         skModuleRegistry::Self   (hModule);
@@ -524,12 +529,12 @@ SK_LoadLocalModule (const wchar_t* wszModule)
 // If this is the global injector and there is a wrapper version
 //   of Special K in the DLL search path, then bail-out!
 BOOL
-SK_TryLocalWrapperFirst (const std::set <std::wstring>& dlls)
+SK_TryLocalWrapperFirst (const std::set <std::wstring_view>& dlls)
 {
   for ( const auto dll : dlls )
   {
-    if ( SK_IsDLLSpecialK   (dll.c_str ()) &&
-         SK_LoadLocalModule (dll.c_str ()) )
+    if ( SK_IsDLLSpecialK   (dll.data ()) &&
+         SK_LoadLocalModule (dll.data ()) )
     {
       return TRUE;
     }
@@ -568,7 +573,7 @@ _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
 
   static
   role_from_api_tbl
-    role_reversal =
+    role_reversal  =
     {
       { SK_RenderAPI::D3D9,
           { DLL_ROLE::D3D9,           config.apis.d3d9.hook } },
@@ -578,7 +583,7 @@ _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
       { SK_RenderAPI::D3D10,
           { DLL_ROLE::DXGI, FALSE /* Stupid API--begone! */ } },
       { SK_RenderAPI::D3D11,
-          { DLL_ROLE::DXGI,         config.apis.d3d9ex.hook } },
+          { DLL_ROLE::DXGI,     config.apis.dxgi.d3d11.hook } },
       { SK_RenderAPI::D3D12,
           { DLL_ROLE::DXGI,                            TRUE } },
 
@@ -819,7 +824,7 @@ SK_EstablishDllRole (skWin32Module&& module)
     if (! explicit_inject)
     {
       // This order is not arbitrary, but not worth explaining
-      const std::set <std::wstring> local_dlls =
+      const std::set <std::wstring_view> local_dlls =
         { L"dxgi.dll",   L"d3d9.dll",
           L"d3d11.dll",  L"OpenGL32.dll",
           L"ddraw.dll",  L"d3d8.dll",
@@ -912,20 +917,20 @@ SK_EstablishDllRole (skWin32Module&& module)
                 &d3d8, &ddraw, &glide
         );
 
-        gl     |= (SK_GetModuleHandle (L"OpenGL32.dll") != nullptr);
-        d3d9   |= (SK_GetModuleHandle (L"d3d9.dll")     != nullptr);
+        gl     |= (SK_GetModuleHandle (L"OpenGL32.dll")  != nullptr);
+        d3d9   |= (SK_GetModuleHandle (L"d3d9.dll")      != nullptr);
 
         // Not specific enough; some engines will pull in DXGI even if they
         //   do not use D3D10/11/12/D2D/DWrite
         //
-        dxgi   |= (SK_GetModuleHandle (L"dxgi.dll")     != nullptr);
+        dxgi   |= (SK_GetModuleHandle (L"dxgi.dll")      != nullptr);
 
         d3d11  |= (SK_GetModuleHandle (L"d3d11.dll")     != nullptr);
         d3d11  |= (SK_GetModuleHandle (L"d3dx11_43.dll") != nullptr);
 
 #ifndef _M_AMD64
-        d3d8   |= (SK_GetModuleHandle (L"d3d8.dll")     != nullptr);
-        ddraw  |= (SK_GetModuleHandle (L"ddraw.dll")    != nullptr);
+        d3d8   |= (SK_GetModuleHandle (L"d3d8.dll")      != nullptr);
+        ddraw  |= (SK_GetModuleHandle (L"ddraw.dll")     != nullptr);
 
         if (config.apis.d3d8.hook && d3d8 && has_dgvoodoo)
         {
@@ -1034,12 +1039,10 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         // Auto-Guess DXGI if all else fails...
         if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+        {
+            config.apis.dxgi.d3d11.hook = true;
             SK_SetDLLRole (     DLL_ROLE::DXGI   );
-
-        extern sk_config_t _config;
-           auto& config_ = _config;
-
-        DBG_UNREFERENCED_LOCAL_VARIABLE (config_);
+        }
 
         // Write any default values to the config file
         SK_LoadConfig (L"SpecialK");
@@ -1156,10 +1159,10 @@ SK_Attach (DLL_ROLE role)
         }
       }
 
-      catch (...)
+      catch (const std::exception& e)
       {
-        dll_log->Log ( L"[ SpecialK  ] Caught an exception during DLL Attach,"
-                       L" game may not be stable..." );
+        dll_log->Log ( L"[ SpecialK ] Caught an exception (%hs) during DLL Attach,"
+                       L" game may not be stable...", e.what () );
 
         SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
         SK_CleanupMutex (&wmi_cs);       SK_CleanupMutex (&steam_mutex);
@@ -1195,15 +1198,17 @@ SK_Detach (DLL_ROLE role)
                         TRUE        )
      )
   {
+#ifdef _SK_NO_ATOMIC_SHARED_PTR
     SK_CleanupMutex (&budget_mutex);     SK_CleanupMutex (&init_mutex);
     SK_CleanupMutex (&cs_dbghelp);       SK_CleanupMutex (&wmi_cs);
     SK_CleanupMutex (&steam_mutex);
 
     SK_CleanupMutex (&steam_callback_cs);SK_CleanupMutex (&steam_popup_cs);
-    SK_CleanupMutex (&steam_init_cs);
+    SK_CleanupMutex (&steam_init_cs);    SK_CleanupMutex (&_sk_lazy_alloc_mtx);
 
     void SK_D3D11_CleanupMutexes (void);
          SK_D3D11_CleanupMutexes (    );
+#endif
 
     SK_Inject_ReleaseProcess ();
 
