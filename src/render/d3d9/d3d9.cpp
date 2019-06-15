@@ -148,7 +148,7 @@ SK_HookCacheEntryLocal (D3D9PresentEx,                 L"d3d9.dll", D3D9ExDevice
 SK_HookCacheEntryLocal (D3D9ResetEx,                   L"d3d9.dll", D3D9ResetEx,                            &SK_D3D9_Trampoline (D3D9ExDevice, ResetEx))
 
 static
-std::vector <sk_hook_cache_record_s *> global_d3d9_records =
+sk_hook_cache_array global_d3d9_records =
   { &GlobalHook_D3D9BeginScene,           &GlobalHook_D3D9EndScene,
     //&GlobalHook_D3D9Reset,                &GlobalHook_D3D9ResetEx,
 
@@ -162,7 +162,7 @@ std::vector <sk_hook_cache_record_s *> global_d3d9_records =
     &GlobalHook_D3D9CreateDevice,         &GlobalHook_D3D9CreateDeviceEx  };
 
 static
-std::vector <sk_hook_cache_record_s *> local_d3d9_records =
+sk_hook_cache_array local_d3d9_records =
   {  &LocalHook_D3D9BeginScene,           &LocalHook_D3D9EndScene,
      //&LocalHook_D3D9Reset,                &LocalHook_D3D9ResetEx,
 

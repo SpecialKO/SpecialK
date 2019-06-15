@@ -40,7 +40,7 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
     riid == IID_IWrapDirect3DDevice9Ex  ||
     riid == IID_IWrapDirect3DDevice9    ||
     riid == __uuidof (this)             ||
-    riid == __uuidof (IUnknown)         ||
+    //riid == __uuidof (IUnknown)         || // Ignore IUnknown, it's often queried to test object equality between different interfaces
     riid == __uuidof (IDirect3DDevice9) ||
     riid == __uuidof (IDirect3DDevice9Ex) )
   {

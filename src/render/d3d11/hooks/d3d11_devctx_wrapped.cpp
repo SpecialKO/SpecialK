@@ -61,8 +61,10 @@ class SK_IWrapD3D11DeviceContext : public ID3D11DeviceContext4
 public:
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext* dev_ctx) : pReal (dev_ctx)
   {
-    InterlockedExchange (&refs_, dev_ctx->AddRef  ());
-                                 dev_ctx->Release ();
+    InterlockedExchange (
+      &refs_, pReal->AddRef  () - 1
+    );        pReal->Release ();
+    AddRef ();
 
     ver_ = 0;
 
@@ -90,7 +92,8 @@ public:
 
     if (ver_ != 0)
     {
-      pReal->Release ();
+      Release ();
+
       pReal = (ID3D11DeviceContext *)pPromotion;
 
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext to ID3D11DeviceContext%li", ver_),
@@ -108,8 +111,10 @@ public:
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext1* dev_ctx) : pReal (dev_ctx)
   {
-    InterlockedExchange (&refs_, dev_ctx->AddRef  ());
-    dev_ctx->Release ();
+    InterlockedExchange (
+      &refs_, pReal->AddRef  () - 1
+    );        pReal->Release ();
+    AddRef ();
 
     ver_ = 1;
 
@@ -136,8 +141,12 @@ public:
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext2* dev_ctx) : pReal (dev_ctx)
   {
-    InterlockedExchange (&refs_, dev_ctx->AddRef  ());
-                                 dev_ctx->Release ();
+    InterlockedExchange (
+      &refs_, pReal->AddRef  () - 1
+    );        pReal->Release ();
+    AddRef ();
+
+
     ver_ = 2;
 
     IUnknown *pPromotion = nullptr;
@@ -162,8 +171,11 @@ public:
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext3* dev_ctx) : pReal (dev_ctx)
   {
-    InterlockedExchange (&refs_, dev_ctx->AddRef  ());
-                                 dev_ctx->Release ();
+    InterlockedExchange (
+      &refs_, pReal->AddRef  () - 1
+    );        pReal->Release ();
+    AddRef ();
+
     ver_ = 3;
 
     IUnknown *pPromotion = nullptr;
@@ -187,8 +199,11 @@ public:
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext4* dev_ctx) : pReal (dev_ctx)
   {
-    InterlockedExchange (&refs_, dev_ctx->AddRef  ());
-    dev_ctx->Release ();
+    InterlockedExchange (
+      &refs_, pReal->AddRef  () - 1
+    );        pReal->Release ();
+    AddRef ();
+
     ver_ = 4;
 
     dev_ctx_handle_ =
@@ -223,7 +238,7 @@ public:
 
     if (
       //riid == __uuidof (this)                 ||
-      riid == __uuidof (IUnknown)             ||
+      //riid == __uuidof (IUnknown)             ||  Ignore IUnknown, it's often queried to test object equality between different interfaces
       riid == __uuidof (ID3D11DeviceChild)    ||
       riid == __uuidof (ID3D11DeviceContext)  ||
       riid == __uuidof (ID3D11DeviceContext1) ||
@@ -253,7 +268,7 @@ public:
         if ( FAILED (
                pReal->QueryInterface ( riid,
                                          (void **)&pPromoted )
-                    )
+                    ) || pPromoted == nullptr
            )
         {
           return E_NOINTERFACE;
@@ -261,13 +276,10 @@ public:
 
         ver_ =
           SK_COM_PromoteInterface (&pReal, pPromoted) ?
-          required_ver : ver_;
+                                         required_ver : ver_;
       }
 
-      InterlockedExchange (
-        &refs_, pReal->AddRef  () - 1
-      );        pReal->Release ();
-                        AddRef ();
+      AddRef ();
 
       *ppvObj = this;
 
@@ -280,16 +292,16 @@ public:
 
   ULONG STDMETHODCALLTYPE AddRef  (void) override
   {
-    InterlockedIncrement (&refs_);
+    pReal->AddRef ();
 
     return
-      pReal->AddRef ();
+      (ULONG)InterlockedIncrement (&refs_);
   }
   ULONG STDMETHODCALLTYPE Release (void) override
   {
     ULONG xrefs =
       InterlockedDecrement (&refs_),
-      refs = pReal->Release ();
+           refs = pReal->Release ();
 
     if (ReadAcquire (&refs_) == 0 && refs != 0)
     {
@@ -305,7 +317,7 @@ public:
       if (ReadAcquire (&refs_) == 0)
       {
         // Let it leak, in practice that's way safer.
-        //delete this;
+        delete this;
       }
     }
 

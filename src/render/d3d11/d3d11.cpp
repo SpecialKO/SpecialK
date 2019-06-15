@@ -31,6 +31,8 @@
 
 #include <SpecialK/control_panel/d3d11.h>
 
+#include <execution>
+
 
 
 
@@ -141,13 +143,11 @@ SK_HookCacheEntryLocal ( D3D11CreateDeviceAndSwapChain, L"d3d11.dll",
                          D3D11CreateDeviceAndSwapChain_Detour,
                         &D3D11CreateDeviceAndSwapChain_Import )
 
-static
-std::vector <sk_hook_cache_record_s *> global_d3d11_records =
+static sk_hook_cache_array global_d3d11_records =
   { &GlobalHook_D3D11CreateDevice,
     &GlobalHook_D3D11CreateDeviceAndSwapChain };
 
-static
-std::vector <sk_hook_cache_record_s *> local_d3d11_records =
+static sk_hook_cache_array local_d3d11_records =
   { &LocalHook_D3D11CreateDevice,
     &LocalHook_D3D11CreateDeviceAndSwapChain };
 
@@ -3963,7 +3963,6 @@ const
  auto
   TriggerReShade_Before = [&]
   {
-    //if (! (pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED && (! config.render.dxgi.deferred_isolation)) && SK_ReShade_PresentCallback->fn && (! shaders->reshade_triggered [dev_idx]))
 
     if (              nullptr != SK_ReShade_PresentCallback->fn &&
          (pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED) &&
@@ -3971,6 +3970,19 @@ const
     {
       if (_reshade_trigger_before [dev_idx])
       {
+
+        auto flag_result =
+          SK_ImGui_FlagDrawing_OnD3D11Ctx (dev_idx);
+
+          SK_ScopedBool auto_bool (flag_result.first);
+                                  *flag_result.first = flag_result.second;
+
+          if (ppTLS != nullptr && *ppTLS == nullptr)
+             *ppTLS  = SK_TLS_Bottom ();
+
+          SK_ScopedBool auto_bool1 (&(*ppTLS)->imgui->drawing);
+                                     (*ppTLS)->imgui->drawing = true;
+
          SK_ScopedBool decl_tex_scope (
            SK_D3D11_DeclareTexInjectScope ()
          );
@@ -9068,8 +9080,9 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
         }
       }
 
-      std::sort ( temp_list.begin (),
-                  temp_list.end   (),
+      std::sort ( std::execution::par,
+                     temp_list.begin (),
+                     temp_list.end   (),
         []( list_entry_s& a,
             list_entry_s& b ) noexcept
         {
@@ -9199,8 +9212,8 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
       ImGui::BeginTooltip ();
       ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "");
       ImGui::Separator    ();
-      ImGui::BulletText   ("Press %ws to select the previous texture from this list", virtKeyCodeToHumanKeyName [VK_OEM_4].c_str ());
-      ImGui::BulletText   ("Press %ws to select the next texture from this list",     virtKeyCodeToHumanKeyName [VK_OEM_6].c_str ());
+      ImGui::BulletText   ("Press %ws to select the previous texture from this list", virtKeyCodeToHumanKeyName [VK_OEM_4]);
+      ImGui::BulletText   ("Press %ws to select the next texture from this list",     virtKeyCodeToHumanKeyName [VK_OEM_6]);
       ImGui::EndTooltip   ();
     }
 
@@ -11257,8 +11270,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       ImGui::BeginTooltip ();
       ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can cancel all render passes using the selected %s shader to disable an effect", szShaderWord);
       ImGui::Separator    ();
-      ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the previous shader", virtKeyCodeToHumanKeyName [VK_OEM_4].c_str ());
-      ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the next shader",     virtKeyCodeToHumanKeyName [VK_OEM_6].c_str ());
+      ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the previous shader", virtKeyCodeToHumanKeyName [VK_OEM_4]);
+      ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the next shader",     virtKeyCodeToHumanKeyName [VK_OEM_6]);
       ImGui::EndTooltip   ();
     }
 
@@ -13129,8 +13142,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
           // The underlying list is unsorted for speed, but that's not at all
           //   intuitive to humans, so sort the thing when we have the RT view open.
-          std::sort ( rt2.begin (),
-                      rt2.end   (),
+          std::sort ( std::execution::par,
+                          rt2.begin (),
+                          rt2.end   (),
             []( std::pair <ID3D11RenderTargetView*, UINT> a,
                 std::pair <ID3D11RenderTargetView*, UINT> b )
             {
@@ -13250,8 +13264,8 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               ImGui::BeginTooltip ();
               ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
               ImGui::Separator    ();
-              ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the previous output", virtKeyCodeToHumanKeyName [VK_OEM_4].c_str ());
-              ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the next output",     virtKeyCodeToHumanKeyName [VK_OEM_6].c_str ());
+              ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the previous output", virtKeyCodeToHumanKeyName [VK_OEM_4]);
+              ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the next output",     virtKeyCodeToHumanKeyName [VK_OEM_6]);
               ImGui::EndTooltip   ();
             }
 
@@ -14918,6 +14932,15 @@ SK_DXTex_CreateTexture ( _In_reads_(nimages) const DirectX::Image*       srcImag
 }
 
 
+UINT
+SK_D3D11_MakeDebugFlags (UINT uiOrigFlags)
+{
+  //UINT Flags =  (D3D11_CREATE_DEVICE_DEBUG | uiOrigFlags);
+	//     Flags &= ~D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY;
+
+  return uiOrigFlags;// Flags;
+}
+
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -14934,6 +14957,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
+  Flags =
+    SK_D3D11_MakeDebugFlags (Flags);
+
   WaitForInitD3D11 ();
 
   static SK_RenderBackend_V2& rb =
@@ -15212,6 +15238,9 @@ D3D11CreateDevice_Detour (
   _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
 {
+  Flags =
+    SK_D3D11_MakeDebugFlags (Flags);
+
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 

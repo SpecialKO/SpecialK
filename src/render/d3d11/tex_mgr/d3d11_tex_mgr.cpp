@@ -27,6 +27,8 @@
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/dxgi/dxgi_util.h>
 
+#include <execution>
+
 CRITICAL_SECTION tex_cs     = { };
 CRITICAL_SECTION hash_cs    = { };
 CRITICAL_SECTION dump_cs    = { };
@@ -853,6 +855,8 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
                                   DirectX::ScratchImage** ppOutImg,
                                   SK_TLS*                  pTLS )
 {
+  UNREFERENCED_PARAMETER (pTLS);
+
   auto& metadata =
     img.GetMetadata ();
 
@@ -1936,8 +1940,9 @@ SK_D3D11_TexMgr::reset (void)
 
     if (potential > 0)
     {
-      std::sort ( textures.begin (),
-                    textures.end (),
+      std::sort ( std::execution::par,
+                    textures.begin (),
+                    textures.end   (),
          [&]( const SK_D3D11_TexMgr::tex2D_descriptor_s* const a,
               const SK_D3D11_TexMgr::tex2D_descriptor_s* const b )
         {

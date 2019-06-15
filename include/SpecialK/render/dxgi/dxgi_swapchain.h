@@ -30,6 +30,11 @@ extern volatile LONG SK_DXGI_LiveWrappedSwapChain1s;
 interface ID3D11Device;
 interface ID3D12Device;
 #include <atlbase.h>
+
+#ifndef __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"IDXGI Wrap"
+#endif
+
 struct IWrapDXGISwapChain : IDXGISwapChain4
 {
   IWrapDXGISwapChain ( ID3D11Device   *pDevice,
@@ -40,12 +45,45 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
   {
     if (! pSwapChain)
       return;
-                                  pSwapChain->AddRef  ();
-    InterlockedExchange  (&refs_, pSwapChain->Release ());
+
+    InterlockedExchange (
+      &refs_, pReal->AddRef  () - 1
+    );        pReal->Release ();
+    AddRef ();
+
     InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChains);
 
-    //// Immediately try to upgrade
-    SK_ComQIPtr <IDXGISwapChain4> pSwap4 (this);
+    IUnknown *pPromotion = nullptr;
+
+    if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
+    {
+      ver_ = 4;
+    }
+
+    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
+    {
+      ver_ = 3;
+    }
+
+    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
+    {
+      ver_ = 2;
+    }
+
+    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain1, (void **)&pPromotion)))
+    {
+      ver_ = 1;
+    }
+
+    if (ver_ != 0)
+    {
+      Release ();
+
+      pReal = (IDXGISwapChain *)pPromotion;
+
+      SK_LOG0 ( ( L"Promoted IDXGISwapChain to IDXGISwapChain%li", ver_),
+                  __SK_SUBSYSTEM__ );
+    }
   }
 
   IWrapDXGISwapChain ( ID3D11Device    *pDevice,
@@ -57,12 +95,39 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     if (! pSwapChain)
       return;
 
-                                  pSwapChain->AddRef  ();
-    InterlockedExchange  (&refs_, pSwapChain->Release ());
+    InterlockedExchange (
+      &refs_, pReal->AddRef  () - 1
+    );        pReal->Release ();
+    AddRef ();
+
     InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
 
-    //// Immediately try to upgrade
-    SK_ComQIPtr <IDXGISwapChain4> pSwap4 (this);
+    IUnknown *pPromotion = nullptr;
+
+    if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
+    {
+      ver_ = 4;
+    }
+
+    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
+    {
+      ver_ = 3;
+    }
+
+    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
+    {
+      ver_ = 2;
+    }
+
+    if (ver_ != 1)
+    {
+      Release ();
+
+      pReal = (IDXGISwapChain *)pPromotion;
+
+      SK_LOG0 ( ( L"Promoted IDXGISwapChain1 to IDXGISwapChain%li", ver_),
+                  __SK_SUBSYSTEM__ );
+    }
   }
 
   //IWrapDXGISwapChain ( ID3D12Device   *pDevice12,

@@ -64,7 +64,7 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
 
   else if (
   //riid == __uuidof (this)                 ||
-    riid == __uuidof (IUnknown)             ||
+  //riid == __uuidof (IUnknown)             || Ignore IUnknown, it's often queried to test object equality between different interfaces
     riid == __uuidof (IDXGIObject)          ||
     riid == __uuidof (IDXGIDeviceSubObject) ||
     riid == __uuidof (IDXGISwapChain)       ||
@@ -106,10 +106,7 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
                                        required_ver : ver_;
     }
 
-    InterlockedExchange (
-      &refs_, pReal->AddRef  () - 1);
-              pReal->Release ();
-                      AddRef ();
+    AddRef ();
 
     *ppvObj = this;
 
@@ -124,10 +121,10 @@ ULONG
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::AddRef (void)
 {
-  InterlockedIncrement (&refs_);
+  pReal->AddRef ();
 
   return
-    pReal->AddRef ();
+    (ULONG)InterlockedIncrement (&refs_);
 }
 
 ULONG
@@ -136,7 +133,7 @@ IWrapDXGISwapChain::Release (void)
 {
   ULONG xrefs =
     InterlockedDecrement (&refs_),
-         refs = (ULONG)-1;
+         refs = pReal->Release ();
 
   if (xrefs > 0)
   {
@@ -161,6 +158,7 @@ IWrapDXGISwapChain::Release (void)
       else
         InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
 
+      // Let it leak, in practice that's way safer.
       delete this;
     }
   }

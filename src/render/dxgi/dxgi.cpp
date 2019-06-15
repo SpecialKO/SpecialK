@@ -153,7 +153,7 @@ SK_HookCacheEntryLocal (CreateDXGIFactory2,
 
 // Counter-intuitively, the fewer of these we cache the more compatible we get.
 static
-std::vector <sk_hook_cache_record_s *> global_dxgi_records =
+sk_hook_cache_array global_dxgi_records =
   { &GlobalHook_IDXGIFactory_CreateSwapChain,
     &GlobalHook_IDXGIFactory2_CreateSwapChainForHwnd,
 
@@ -173,7 +173,7 @@ std::vector <sk_hook_cache_record_s *> global_dxgi_records =
   };
 
 static
-std::vector <sk_hook_cache_record_s *> local_dxgi_records =
+sk_hook_cache_array local_dxgi_records =
   { &LocalHook_IDXGIFactory_CreateSwapChain,
     &LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
 
@@ -5761,6 +5761,10 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
     }
   }
 
+
+  NewFormat =
+    SK_DXGI_PickHDRFormat (NewFormat);
+
   //if (SK_DXGI_FilterRedundant_ResizeBuffers ( This, BufferCount, Width,
   //                                              Height, NewFormat,
   //                                                SwapChainFlags )
@@ -5894,13 +5898,11 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
         dll_log->Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override "
                        L"(to 8:8:8:8) Required to Enable Flip Model" );
         break;
+
     }
+
   }
-
   //DXGI_FORMAT oldFormat = NewFormat;
-
-  NewFormat =
-    SK_DXGI_PickHDRFormat (NewFormat);
 
   HRESULT     ret =
     ResizeBuffers_Original ( This, BufferCount, Width, Height,
@@ -5918,6 +5920,12 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                        This, BufferCount, Width, Height,
                                NewFormat, SwapChainFlags )
               );
+
+    //if (SK_GetCurrentGameID () == SK_GAME_ID::OctopathTraveler)
+    //{
+      if (FAILED (ret))
+        return S_OK;
+    //}
   }
 
   else

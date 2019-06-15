@@ -40,7 +40,7 @@ IWrapDirect3DSwapChain9::QueryInterface (REFIID riid, void **ppvObj)
   else if (
     riid == IID_IWrapDirect3DSwapChain9    ||
     riid == IID_IWrapDirect3DSwapChain9Ex  ||
-    riid == __uuidof (IUnknown)            ||
+    //riid == __uuidof (IUnknown)            || Ignore IUnknown, it's often queried to test object equality between different interfaces
     riid == __uuidof (IDirect3DSwapChain9) ||
     riid == __uuidof (IDirect3DSwapChain9Ex))
   {
