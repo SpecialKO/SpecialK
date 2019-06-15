@@ -1109,6 +1109,10 @@ public:
 
             do
             {
+              ULONG ulFrameStart  = SK_GetFramesDrawn ();
+              while (ulFrameStart > SK_GetFramesDrawn () - 2)
+                SK_SleepEx (15, FALSE);
+
               dwWaitState =
                  WaitForMultipleObjects (2, hSignals, FALSE, INFINITE);
 
@@ -1595,10 +1599,10 @@ public:
           ImGui::SameLine     ();
 
           ImGui::BeginGroup   ();
-          if (ReadAcquire64 (&pTLS->memory->local_bytes))   ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory->local_bytes),   2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory->global_bytes))  ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory->global_bytes),  2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory->heap_bytes))    ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory->heap_bytes),    2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory->virtual_bytes)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory->virtual_bytes), 2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->local_bytes))   ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->local_bytes),   2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->global_bytes))  ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->global_bytes),  2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->heap_bytes))    ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->heap_bytes),    2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->virtual_bytes)) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->virtual_bytes), 2, 3).c_str ());
           ImGui::EndGroup     ();
 
           ImGui::SameLine     ();
@@ -1624,8 +1628,8 @@ public:
           ImGui::SameLine   ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->disk->bytes_read))    ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->disk->bytes_read),    2, 3).c_str  ());
-          if (ReadAcquire64 (&pTLS->disk->bytes_written)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->disk->bytes_written), 2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->disk->bytes_read))    ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->disk->bytes_read),    2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->disk->bytes_written)) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->disk->bytes_written), 2, 3).c_str  ());
           ImGui::EndGroup   ();
         }
 
@@ -1642,8 +1646,8 @@ public:
           ImGui::SameLine   ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->net->bytes_sent))     ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net->bytes_sent),     2, 3).c_str  ());
-          if (ReadAcquire64 (&pTLS->net->bytes_received)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net->bytes_received), 2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->net->bytes_sent))     ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->net->bytes_sent),     2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->net->bytes_received)) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->net->bytes_received), 2, 3).c_str  ());
           ImGui::EndGroup   ();
         }
 

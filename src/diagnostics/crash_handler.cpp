@@ -63,11 +63,13 @@ bool SK_Debug_IsCrashing (void)
 {
   bool ret = true;
 
-  auto orig_se =
-  SK_SEH_ApplyTranslator (SK_BasicStructuredExceptionTranslator);
-  try                                    { ret = ReadAcquire (&__SK_Crashed) != 0; }
-  catch (const SK_SEH_IgnoredException&) { }
-  SK_SEH_RemoveTranslator (orig_se);
+  __try {
+    ret =
+      ReadAcquire (&__SK_Crashed) != 0;
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+  }
 
   return ret;
 }
@@ -94,13 +96,7 @@ SK_Crash_PlaySound (void)
 
   // Rare WinMM (SDL/DOSBox) crashes may prevent this from working, so...
   //   don't create another top-level exception.
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_ACCESS_VIOLATION
-    )
-  );
-  try {
+  __try {
     PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound->buf),
                   nullptr,
                     SND_SYNC |
@@ -109,10 +105,9 @@ SK_Crash_PlaySound (void)
     ret = true;
   }
 
-  catch (const SK_SEH_IgnoredException&)
+  __except (EXCEPTION_EXECUTE_HANDLER)
   {
   }
-  SK_SEH_RemoveTranslator (orig_se);
 
   return ret;
 }

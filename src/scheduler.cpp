@@ -49,8 +49,10 @@ QueryPerformanceCounter_pfn QueryPerformanceFrequency_Original = nullptr;
 QueryPerformanceCounter_pfn RtlQueryPerformanceFrequency       = nullptr;
 
 
+extern HWND WINAPI SK_GetActiveWindow (SK_TLS *pTLS);
+
 void
-SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
+SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, SK_TLS *pTLS)
 {
   ////if (! SK_Win32_IsGUIThread ())
   ////{
@@ -66,7 +68,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
   ////  }
   ////}
 
-  HWND hWndThis = GetActiveWindow ();
+  HWND hWndThis = SK_GetActiveWindow (pTLS);
   bool bUnicode =
     IsWindowUnicode (hWndThis);
 
@@ -877,7 +879,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       if (bRenderThread)
         SK::Framerate::events->getMessagePumpStats ().wake (dwMilliseconds);
 
-      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds);
+      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, pTLS);
 
       return 0;
     }

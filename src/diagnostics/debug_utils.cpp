@@ -25,6 +25,9 @@
 
 #include <winternl.h>
 
+#pragma warning (push)
+#pragma warning (disable : 4714)
+
 
 extern SK_LazyGlobal <
   concurrency::concurrent_unordered_map <DWORD, std::wstring>
@@ -578,22 +581,23 @@ GetProcAddress_Detour     (
   auto& farproc =
            proc_list  [str_lpProcName];
 
-  if (farproc == nullptr && hModule != nullptr)
+  bool reobtanium =
+   ( farproc == nullptr &&
+     hModule != nullptr  ) ||
+   (! ( SK_GetModuleFromAddr   (farproc) == hModule ||
+        SK_IsAddressExecutable (farproc, true)         )
+   );
+
+  if (reobtanium)
   {
     farproc =
       GetProcAddress_Original (
-        hModule,
-        lpProcName
+        hModule, lpProcName
       );
-
-    if (farproc != nullptr && proc_list.size () == 1)
-    {
-      SK_Util_PinModule (hModule);
-      //SK_LoadLibrary_PinModule <wchar_t> (SK_GetModuleName (hModule))
-    }
   }
 
-  else is_new = false;
+  else
+    is_new = false;
 
   if (farproc != nullptr)
   {
@@ -1760,6 +1764,8 @@ SK_Debug_FlagAsDebugging (void)
 void
 SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
 {
+  auto& _cfg = config;
+
   __try {
     InterlockedCompareExchangePointer (
       &__SK_GameBaseAddr, pPeb->ImageBaseAddress, nullptr
@@ -1808,10 +1814,10 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
     }
 #endif /* SK_ANTIDEBUG_PARANOIA_STAGE3 */
 
-    if (config.render.framerate.override_num_cpus != -1)
+    if (_cfg.render.framerate.override_num_cpus != -1)
     {
       pPeb->NumberOfProcessors =
-        config.render.framerate.override_num_cpus;
+        _cfg.render.framerate.override_num_cpus;
     }
   }
   __except (EXCEPTION_CONTINUE_EXECUTION) { };
@@ -2777,7 +2783,7 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
       {
         wchar_t wszModule [MAX_PATH + 1] = { };
 
-        GetModuleFileName ( SK_GetModuleFromAddr (_ReturnAddress ()),
+        GetModuleFileName ( SK_GetModuleFromAddr (ExceptionRecord->ExceptionAddress),
                               wszModule,
                                 MAX_PATH );
 
@@ -2814,6 +2820,12 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
 
   }
 
+  // TODO: Add config setting for interactive debug
+  if (config.system.log_level > 1 && SK_IsDebuggerPresent ())
+  {
+    __debugbreak ();
+  }
+
   __try
   {
     __try
@@ -2824,7 +2836,6 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
     __finally
     {
       SK::Diagnostics::CrashHandler::Reinstall ();
-      RtlRaiseException_Original (ExceptionRecord);
     }
   }
 
@@ -2853,7 +2864,9 @@ SK_RaiseException
                      nNumberOfArguments, lpArguments );
 }
 
-// Detoured so we can get thread names
+
+//// Detoured so we can get thread names
+[[noreturn]]
 void
 WINAPI
 RaiseException_Detour (
@@ -2862,21 +2875,84 @@ RaiseException_Detour (
         DWORD      nNumberOfArguments,
   const ULONG_PTR *lpArguments         )
 {
-  if (dwExceptionCode == 0x1)
-    return;
+  bool skip = false;
 
-  try
+  __try
+  {
+    switch (dwExceptionCode)
+    {
+      case DBG_PRINTEXCEPTION_C:
+      case DBG_PRINTEXCEPTION_WIDE_C:
+        wchar_t wszModule [MAX_PATH + 1] = { };
+      {
+
+        GetModuleFileName ( SK_GetModuleFromAddr (_ReturnAddress ()),
+                              wszModule,
+                                MAX_PATH );
+
+        // Non-std. is anything not coming from kernelbase or kernel32 ;)
+        if (! StrStrIW (wszModule, L"kernel"))
+        {
+          //SK_ReleaseAssert (ExceptionRecord->NumberParameters == 2)
+
+          // ANSI (almost always)
+          if (dwExceptionCode == DBG_PRINTEXCEPTION_C)
+          {
+            game_debug->LogEx ( true, L"%-72ws:  %.*hs",
+              wszModule, lpArguments [0],
+                         lpArguments [1] );
+          }
+
+          // UTF-16 (rarely ever seen)
+          else
+          {
+            game_debug->LogEx ( true, L"%-72ws:  %.*ws",
+              wszModule, lpArguments [0],
+                         lpArguments [1] );
+
+            //if (((wchar_t *)ExceptionRecord->ExceptionInformation [1]))
+            //               (ExceptionRecord->ExceptionInformation [0]) != L'\n')
+              //game_debug.LogEx (false, L"\n");
+          }
+        }
+
+        skip = true;
+      } break;
+    }
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+
+  }
+
+
+
+  if (dwExceptionCode == 0x1)
+  {
+    skip = true;
+  }
+
+  else
   {
     SK_TLS* pTlsThis =
       SK_TLS_Bottom ();
 
+
     if ( SK_Exception_HandleThreadName (
-           dwExceptionCode,
-           dwExceptionFlags, nNumberOfArguments,
-                                    lpArguments )
+           dwExceptionCode, dwExceptionFlags,
+           nNumberOfArguments,
+             lpArguments )
        )
     {
-      return;
+      __try
+      {
+        RaiseException_Original (dwExceptionCode, dwExceptionFlags, nNumberOfArguments, lpArguments);
+      }
+
+      __except (EXCEPTION_CONTINUE_SEARCH)
+      { };
+
+      skip = true;
     }
 
     if (pTlsThis != nullptr)
@@ -2884,69 +2960,75 @@ RaiseException_Detour (
       InterlockedIncrement (&pTlsThis->debug.exceptions);
     }
 
-    SK_RaiseException (
-      dwExceptionCode,
-      dwExceptionFlags, nNumberOfArguments,
-                               lpArguments
-    );
 
-    if (pTlsThis == nullptr || (! pTlsThis->debug.silent_exceptions))
+    if (! skip)
     {
-      const auto SK_ExceptionFlagsToStr = [](DWORD dwFlags) ->
-      const char*
+      if (pTlsThis == nullptr || (! pTlsThis->debug.silent_exceptions))
       {
-        if (dwFlags & EXCEPTION_NONCONTINUABLE)
-          return "Non-Continuable";
-        if (dwFlags & EXCEPTION_UNWINDING)
-          return "Unwind In Progress";
-        if (dwFlags & EXCEPTION_EXIT_UNWIND)
-          return "Exit Unwind In Progress";
-        if (dwFlags & EXCEPTION_STACK_INVALID)
-          return "Misaligned or Overflowed Stack";
-        if (dwFlags & EXCEPTION_NESTED_CALL)
-          return "Nested Exception Handler";
-        if (dwFlags & EXCEPTION_TARGET_UNWIND)
-          return "Target Unwind In Progress";
-        if (dwFlags & EXCEPTION_COLLIDED_UNWIND)
-          return "Collided Exception Handler";
-        return "Unknown";
-      };
+        const auto SK_ExceptionFlagsToStr = [](DWORD dwFlags) ->
+        const char*
+        {
+          if (dwFlags & EXCEPTION_NONCONTINUABLE)
+            return "Non-Continuable";
+          if (dwFlags & EXCEPTION_UNWINDING)
+            return "Unwind In Progress";
+          if (dwFlags & EXCEPTION_EXIT_UNWIND)
+            return "Exit Unwind In Progress";
+          if (dwFlags & EXCEPTION_STACK_INVALID)
+            return "Misaligned or Overflowed Stack";
+          if (dwFlags & EXCEPTION_NESTED_CALL)
+            return "Nested Exception Handler";
+          if (dwFlags & EXCEPTION_TARGET_UNWIND)
+            return "Target Unwind In Progress";
+          if (dwFlags & EXCEPTION_COLLIDED_UNWIND)
+            return "Collided Exception Handler";
+          return "Unknown";
+        };
 
-      wchar_t wszCallerName [MAX_PATH * 2 + 1] = { };
+        wchar_t wszCallerName [MAX_PATH * 2 + 1] = { };
 
-      SK_SEH_CompatibleCallerName (
-        _ReturnAddress (), wszCallerName
-      );
+        SK_SEH_CompatibleCallerName (
+          _ReturnAddress (), wszCallerName
+        );
 
-      SK_LOG0 ( ( L"Exception Code: %x  - Flags: (%hs) -  Arg Count: %u   "
-                  L"[ Calling Module:  %s ]", dwExceptionCode,
-                      SK_ExceptionFlagsToStr (dwExceptionFlags),
-                        nNumberOfArguments,      wszCallerName),
-                  L"SEH-Except"
-      );
+        SK_LOG0 ( ( L"Exception Code: %x  - Flags: (%hs) -  Arg Count: %u   "
+                    L"[ Calling Module:  %s ]", dwExceptionCode,
+                        SK_ExceptionFlagsToStr (dwExceptionFlags),
+                          nNumberOfArguments,      wszCallerName),
+                    L"SEH-Except"
+        );
 
-      char szSymbol [512] = { };
+        char szSymbol [512] = { };
 
-      SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (),
-        (uintptr_t)_ReturnAddress (),
-                                      szSymbol, 511 );
 
-      SK_LOG0 ( ( L"  >> Best-Guess For Source of Exception:  %hs",
-                  szSymbol ),
-                  L"SEH-Except"
-      );
+        SK_GetSymbolNameFromModuleAddr (
+                             SK_GetCallingDLL (),
+                    (uintptr_t)_ReturnAddress (),
+                                        szSymbol, 511 );
+
+        SK_LOG0 ( ( L"  >> Best-Guess For Source of Exception:  %hs",
+                    szSymbol ),
+                    L"SEH-Except"
+        );
+      }
     }
   }
 
-  catch (const SK_SEH_IgnoredException&)
+  if (! skip)
   {
-    return;
-  }
+    // TODO: Add config setting for interactive debug
+    if (config.system.log_level > 1 && SK_IsDebuggerPresent ())
+    {
+      __debugbreak ();
+    }
 
-  // TODO: Add config setting for interactive debug
-  if (config.system.log_level > 1 && SK_IsDebuggerPresent ())
-  {
-    __debugbreak ();
+
+    SK::Diagnostics::CrashHandler::Reinstall ();
+
+    RaiseException_Original (
+      dwExceptionCode,    dwExceptionFlags,
+      nNumberOfArguments, lpArguments
+    );
   }
 }
 
@@ -4033,3 +4115,5 @@ SK_SEH_SetTranslatorEX ( _In_opt_ _se_translator_function _NewSETranslator,
 
   return ret;
 }
+
+#pragma warning (pop)

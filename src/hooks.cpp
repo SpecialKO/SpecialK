@@ -22,6 +22,8 @@
 #include <SpecialK/stdafx.h>
 #include <winternl.h>
 
+#include <boost/container/static_vector.hpp>
+
 HMODULE
 SK_GetModuleHandleW (PCWSTR lpModuleName)
 {
@@ -321,10 +323,10 @@ SKX_IsHotPatchableAddr (LPVOID addr)
 
 
 sk_hook_cache_enablement_s
-SK_Hook_PreCacheModule ( const wchar_t                                *wszModuleName,
-                               std::vector <sk_hook_cache_record_s *> &local_cache,
-                               std::vector <sk_hook_cache_record_s *> &global_cache,
-                               iSK_INI                                *ini )
+SK_Hook_PreCacheModule ( const wchar_t             *wszModuleName,
+                               sk_hook_cache_array &local_cache,
+                               sk_hook_cache_array &global_cache,
+                               iSK_INI             *ini )
 {
   if (ini == nullptr)
     return {};

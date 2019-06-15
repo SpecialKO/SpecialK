@@ -373,7 +373,7 @@ _On_failure_ (_Ret_maybenull_)
 SK_TLS*
 SK_TLS_BottomEx (DWORD dwTid)
 {
-  auto& tls_map =
+  static auto& tls_map =
     SK_TLS_Map ();
 
   auto tls_slot =

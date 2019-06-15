@@ -29,7 +29,7 @@ struct IUnknown;
 #include <WinDef.h>
 #include <MinHook/MinHook.h>
 
-#include <vector>
+#include <boost/container/static_vector.hpp>
 
 #include <SpecialK/config.h>
 #include <SpecialK/log.h>
@@ -187,12 +187,13 @@ sk_hook_cache_enablement_s
 SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
                                iSK_INI *ini = SK_GetDLLConfig () );
 
+using sk_hook_cache_array = boost::container::static_vector <sk_hook_cache_record_s *, 32>;
+
 sk_hook_cache_enablement_s
-SK_Hook_PreCacheModule (
-  const wchar_t                                *wszModuleName,
-        std::vector <sk_hook_cache_record_s *> &local_cache,
-        std::vector <sk_hook_cache_record_s *> &global_cache,
-        iSK_INI                                *ini = SK_GetDLLConfig () );
+SK_Hook_PreCacheModule ( const wchar_t             *wszModuleName,
+                               sk_hook_cache_array &local_cache,
+                               sk_hook_cache_array &global_cache,
+                               iSK_INI             *ini = SK_GetDLLConfig () );
 
 
 
