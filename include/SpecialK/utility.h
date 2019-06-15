@@ -142,7 +142,10 @@ BOOL           SK_File_SetHidden            (const wchar_t* file,      bool     
 BOOL           SK_File_SetTemporary         (const wchar_t* file,      bool           temp);
 uint64_t       SK_File_GetSize              (const wchar_t* wszFile);
 std::wstring   SK_File_SizeToString         (uint64_t       size,      SK_UNITS       unit = Auto);
+std::string    SK_File_SizeToStringA        (uint64_t       size,      SK_UNITS       unit = Auto);
 std::wstring   SK_File_SizeToStringF        (uint64_t       size,      int            width,
+                                             int            precision, SK_UNITS       unit = Auto);
+std::string    SK_File_SizeToStringAF       (uint64_t       size,      int            width,
                                              int            precision, SK_UNITS       unit = Auto);
 bool           SK_File_IsDirectory          (const wchar_t* wszPath);
 bool           SK_File_CanUserWriteToPath   (const wchar_t* wszPath);
@@ -387,6 +390,53 @@ SK_InjectMemory ( LPVOID  base_addr,
 
 bool
 SK_IsProcessRunning (const wchar_t* wszProcName);
+
+
+
+
+
+constexpr size_t
+hash_string (const wchar_t* const wstr, bool lowercase = false)
+{
+  auto __h =
+    size_t { 0 };
+
+  for ( auto ptr = wstr ; *ptr != L'\0' ; ++ptr )
+  {
+    __h =
+      ( lowercase    ?
+     towlower (*ptr) :
+               *ptr  )       +
+   (__h << 06) + (__h << 16) -
+    __h;
+  }
+
+  return
+    __h;
+}
+
+constexpr size_t
+hash_string_utf8 (const char* const ustr, bool lowercase = false)
+{
+  auto __h =
+    size_t { 0 };
+
+  for ( auto ptr = ustr ; *ptr != '\0' ; ++ptr )
+  {
+
+    __h =
+      ( lowercase    ?
+      tolower (*ptr) :
+               *ptr  )       +
+   (__h << 06) + (__h << 16) -
+    __h;
+  }
+
+  return
+    __h;
+}
+
+
 
 class InstructionSet
 {

@@ -1175,6 +1175,42 @@ SK_ResumeThreads (std::queue <DWORD> threads)
   }
 }
 
+class SK_PreHashed_String
+{
+public:
+  template <size_t N>
+  constexpr SK_PreHashed_String (const wchar_t (&wstr)[N]) :
+                  hash_       { hash_function ( &wstr [0] ) },
+                  size_       { N   -  1  },
+                  wstrptr_    { &wstr [0] }
+  { }
+
+  auto operator== (const SK_PreHashed_String& s) const
+  {
+    return (
+      ( size_ == s.size_ ) &&
+        std::equal (c_str (),
+                    c_str () + size_,
+                  s.c_str () )
+    );
+  }
+  auto operator!= (const SK_PreHashed_String& s) const
+  {
+    return
+      ! (*this == s);
+  }
+  constexpr auto size     (void) const { return size_;    }
+  constexpr auto get_hash (void) const { return hash_;    }
+  constexpr auto c_str    (void) const ->
+      const wchar_t*                   { return wstrptr_; }
+
+private:
+        size_t   hash_    {         };
+        size_t   size_    {         };
+  const wchar_t* wstrptr_ { nullptr };
+};
+
+
 void
 __stdcall
 SK_TestImports (          HMODULE  hMod,
@@ -1201,6 +1237,18 @@ SK_TestImports (          HMODULE  hMod,
   PIMAGE_IMPORT_DESCRIPTOR pImpDesc = nullptr;
   uintptr_t                pImgBase = (uintptr_t)
     SK_Debug_GetImageBaseAddr ();
+
+  const int      MAX_IMPORTS  =  16;
+  size_t hashes [MAX_IMPORTS] = { };
+
+  int  idx     = 0;
+  auto to_hash = pTests;
+
+  while (idx < nCount)
+  {
+    hashes [idx++] =
+      hash_string_utf8 ((to_hash++)->szModuleName, true);
+  }
 
   __try
   {
@@ -1256,11 +1304,15 @@ SK_TestImports (          HMODULE  hMod,
 
       //dll_log->Log (L"%hs", szImport);
 
+      size_t hashed_str =
+        hash_string_utf8 (szImport, true);
+
+
       for (i = 0; i < nCount; i++)
       {
         __try
         {
-          if ((! pTests [i].used) && (! StrCmpIA (szImport, pTests [i].szModuleName)))
+          if ((! pTests [i].used) && hashes [i] == hashed_str)
           {
             pTests [i].used = true;
                      ++hits;
