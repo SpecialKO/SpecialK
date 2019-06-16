@@ -2376,7 +2376,7 @@ public:
 
         ownership =
           app_cache_mgr->getFriendOwnership (
-            friend_stats [++next_friend].account_id,
+            friend_stats [next_friend++].account_id,
               &last_updated
           );
 
