@@ -2068,30 +2068,29 @@ auto DeclKeybind =
   compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
 
 
-
   if (! apis.last_known->load ((int &)config.apis.last_known))
     config.apis.last_known = SK_RenderAPI::Reserved;
+
 
 #ifdef _M_IX86
   apis.ddraw.hook->load  (config.apis.ddraw.hook);
   apis.d3d8.hook->load   (config.apis.d3d8.hook);
 #endif
 
-  if (! apis.d3d9.hook->load   (config.apis.d3d9.hook))
-    config.apis.d3d9.hook       = true;
+  apis.d3d9.hook->load   (config.apis.d3d9.hook);
+  apis.d3d9ex.hook->load (config.apis.d3d9ex.hook);
 
-  if (! apis.d3d9ex.hook->load (config.apis.d3d9ex.hook))
-    config.apis.d3d9ex.hook     = true;
+  // D3D9Ex cannot exist without D3D9...
+  if (config.apis.d3d9ex.hook)
+      config.apis.d3d9.hook = true;
 
-  if (! apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook))
-    config.apis.dxgi.d3d11.hook = true;
+  apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook);
 
 #ifdef _M_AMD64
   apis.d3d12.hook->load  (config.apis.dxgi.d3d12.hook);
 #endif
 
-  if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
-    config.apis.OpenGL.hook     = true;
+  apis.OpenGL.hook->load (config.apis.OpenGL.hook);
 
 #ifdef _M_AMD64
   apis.Vulkan.hook->load (config.apis.Vulkan.hook);
@@ -2144,8 +2143,6 @@ auto DeclKeybind =
                          monitoring.disk.interval->load  (config.disk.interval);
                          monitoring.disk.type->load      (config.disk.type);
 
-  //if (monitoring.pagefile.show->load () && config.osd.remember_state)
-    //config.pagefile.show = monitoring.pagefile.show->get_value ();
   monitoring.pagefile.interval->load (config.pagefile.interval);
 
   monitoring.time.show->load (config.time.show);
@@ -2183,8 +2180,8 @@ auto DeclKeybind =
 
 
   //// Range-restrict this to prevent the user from destroying performance
-  //if (config.render.framerate.limiter_tolerance < 0.925f)
-  //  config.render.framerate.limiter_tolerance = 0.925f;
+  if (config.render.framerate.limiter_tolerance < 1.25f)
+      config.render.framerate.limiter_tolerance = 1.25f;
 
 
   render.osd.draw_in_vidcap->load           (config.render.osd. draw_in_vidcap);
@@ -2280,26 +2277,33 @@ auto DeclKeybind =
   }
 
   //
-  // MUST establish sanity  If both limits exist, then ( max.x >= min.x  &&  max.y >= min.y )
+  // MUST establish sanity
+  //
+  //  * If both limits exist, then ( max.x >= min.x  &&  max.y >= min.y )
   //
   bool sane = true;
 
-  if (config.render.dxgi.res.max.x != 0 && config.render.dxgi.res.min.x > config.render.dxgi.res.max.x)
-    sane = false;
-  if (config.render.dxgi.res.min.x != 0 && config.render.dxgi.res.max.x < config.render.dxgi.res.min.x)
-    sane = false;
+  if ( config.render.dxgi.res.max.x != 0 &&
+       config.render.dxgi.res.min.x >
+       config.render.dxgi.res.max.x ) sane = false;
+  if ( config.render.dxgi.res.min.x != 0 &&
+       config.render.dxgi.res.max.x <
+       config.render.dxgi.res.min.x ) sane = false;
 
-  if (config.render.dxgi.res.max.y != 0 && config.render.dxgi.res.min.y > config.render.dxgi.res.max.y)
-    sane = false;
-  if (config.render.dxgi.res.min.y != 0 && config.render.dxgi.res.max.y < config.render.dxgi.res.min.y)
-    sane = false;
+  if ( config.render.dxgi.res.max.y != 0 &&
+       config.render.dxgi.res.min.y >
+       config.render.dxgi.res.max.y ) sane = false;
+  if ( config.render.dxgi.res.min.y != 0 &&
+       config.render.dxgi.res.max.y <
+       config.render.dxgi.res.min.y ) sane = false;
 
   // Discard the lower-bound and hope for the best
   if (! sane) { config.render.dxgi.res.min.x = 0;
                 config.render.dxgi.res.min.y = 0;
 
-                // Correct handling involves actually querying supported resolutions from the display
-                //   device, but that's not practical at the time the config file is parsed.
+    // Correct handling involves actually querying supported resolutions
+    //   from the display device, but that's not practical at the time
+    //     the config file is parsed.
   };
 
 
@@ -2386,27 +2390,28 @@ auto DeclKeybind =
       config.render.dxgi.exception_mode = -1;
   }
 
-  render.dxgi.test_present->load       (config.render.dxgi.test_present);
-  render.dxgi.swapchain_wait->load     (config.render.framerate.swapchain_wait);
+  render.dxgi.test_present->load        (config.render.dxgi.test_present);
+  render.dxgi.swapchain_wait->load      (config.render.framerate.swapchain_wait);
 
-  render.dxgi.safe_fullscreen->load    (config.render.dxgi.safe_fullscreen);
+  render.dxgi.safe_fullscreen->load     (config.render.dxgi.safe_fullscreen);
 
-  render.dxgi.enhanced_depth->load     (config.render.dxgi.enhanced_depth);
-  render.dxgi.deferred_isolation->load (config.render.dxgi.deferred_isolation);
-  render.dxgi.skip_present_test->load  (config.render.dxgi.present_test_skip);
-  render.dxgi.msaa_samples->load       (config.render.dxgi.msaa_samples);
+  render.dxgi.enhanced_depth->load      (config.render.dxgi.enhanced_depth);
+  render.dxgi.deferred_isolation->load  (config.render.dxgi.deferred_isolation);
+  render.dxgi.skip_present_test->load   (config.render.dxgi.present_test_skip);
+  render.dxgi.msaa_samples->load        (config.render.dxgi.msaa_samples);
 
 
-  texture.d3d11.cache->load        (config.textures.d3d11.cache);
-  texture.d3d11.precise_hash->load (config.textures.d3d11.precise_hash);
-  texture.d3d11.inject->load       (config.textures.d3d11.inject);
-        texture.res_root->load     (config.textures.d3d11.res_root);
+  texture.d3d11.cache->load             (config.textures.d3d11.cache);
+  texture.d3d11.precise_hash->load      (config.textures.d3d11.precise_hash);
+  texture.d3d11.inject->load            (config.textures.d3d11.inject);
+        texture.res_root->load          (config.textures.d3d11.res_root);
 
-  texture.d3d11.injection_keeps_format->load (config.textures.d3d11.injection_keeps_fmt);
-                  texture.dump_on_load->load (config.textures.d3d11.dump);
-                  texture.dump_on_load->load (config.textures.dump_on_load);
+  texture.d3d11.injection_keeps_format->
+                                   load (config.textures.d3d11.injection_keeps_fmt);
+             texture.dump_on_load->load (config.textures.d3d11.dump);
+             texture.dump_on_load->load (config.textures.dump_on_load);
 
-  texture.d3d11.gen_mips->load     (config.textures.d3d11.generate_mips);
+  texture.d3d11.gen_mips->load          (config.textures.d3d11.generate_mips);
 
   texture.cache.max_entries->load       (config.textures.cache.max_entries);
   texture.cache.min_entries->load       (config.textures.cache.min_entries);
@@ -2424,13 +2429,13 @@ auto DeclKeybind =
   if (config.render.dxgi.adapter_override != -1)
     SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
 
-  input.keyboard.catch_alt_f4->load      (config.input.keyboard.catch_alt_f4);
-  input.keyboard.disabled_to_game->load  (config.input.keyboard.disabled_to_game);
+  input.keyboard.catch_alt_f4->load     (config.input.keyboard.catch_alt_f4);
+  input.keyboard.disabled_to_game->load (config.input.keyboard.disabled_to_game);
 
-  input.mouse.disabled_to_game->load     (config.input.mouse.disabled_to_game);
+  input.mouse.disabled_to_game->load    (config.input.mouse.disabled_to_game);
 
-  input.cursor.manage->load              (config.input.cursor.manage);
-  input.cursor.keys_activate->load       (config.input.cursor.keys_activate);
+  input.cursor.manage->load             (config.input.cursor.manage);
+  input.cursor.keys_activate->load      (config.input.cursor.keys_activate);
 
                             float fTimeout;
   if (input.cursor.timeout->load (fTimeout))
@@ -2481,8 +2486,10 @@ auto DeclKeybind =
 
     if (wszTok == nullptr)
     {
-      config.input.gamepad.xinput.assignment [0] = 0; config.input.gamepad.xinput.assignment [1] = 1;
-      config.input.gamepad.xinput.assignment [2] = 2; config.input.gamepad.xinput.assignment [3] = 3;
+      config.input.gamepad.xinput.assignment [0] = 0;
+      config.input.gamepad.xinput.assignment [1] = 1;
+      config.input.gamepad.xinput.assignment [2] = 2;
+      config.input.gamepad.xinput.assignment [3] = 3;
     }
 
     int idx = 0;
@@ -2506,11 +2513,11 @@ auto DeclKeybind =
   threads.enable_mem_alloc_trace->load (config.threads.enable_mem_alloc_trace);
   threads.enable_file_io_trace->load   (config.threads.enable_file_io_trace);
 
-  window.borderless->load        (config.window.borderless);
+  window.borderless->load              (config.window.borderless);
 
-  window.center->load            (config.window.center);
-  window.background_render->load (config.window.background_render);
-  window.background_mute->load   (config.window.background_mute);
+  window.center->load                  (config.window.center);
+  window.background_render->load       (config.window.background_render);
+  window.background_mute->load         (config.window.background_mute);
 
   std::wstring offset;
 
@@ -2687,22 +2694,22 @@ auto DeclKeybind =
   }
 
 
-  steam.log.silent->load          (config.steam.silent);
-  steam.drm.spoof_BLoggedOn->load (config.steam.spoof_BLoggedOn);
+  steam.log.silent->load                      (config.steam.silent);
+  steam.drm.spoof_BLoggedOn->load             (config.steam.spoof_BLoggedOn);
 
   // We may already know the AppID before loading the game's config.
   if (config.steam.appid == 0)
-    steam.system.appid->load               (config.steam.appid);
+    steam.system.appid->load                  (config.steam.appid);
 
-  steam.system.init_delay->load            (config.steam.init_delay);
-  steam.system.auto_pump->load             (config.steam.auto_pump_callbacks);
-  steam.system.block_stat_callback->load   (config.steam.block_stat_callback);
-  steam.system.filter_stat_callbacks->load (config.steam.filter_stat_callback);
-  steam.system.load_early->load            (config.steam.preload_client);
-  steam.system.early_overlay->load         (config.steam.preload_overlay);
-  steam.system.force_load->load            (config.steam.force_load_steamapi);
-  steam.system.auto_inject->load           (config.steam.auto_inject);
-  steam.system.reuse_overlay_pause->load   (config.steam.reuse_overlay_pause);
+  steam.system.init_delay->load               (config.steam.init_delay);
+  steam.system.auto_pump->load                (config.steam.auto_pump_callbacks);
+  steam.system.block_stat_callback->load      (config.steam.block_stat_callback);
+  steam.system.filter_stat_callbacks->load    (config.steam.filter_stat_callback);
+  steam.system.load_early->load               (config.steam.preload_client);
+  steam.system.early_overlay->load            (config.steam.preload_overlay);
+  steam.system.force_load->load               (config.steam.force_load_steamapi);
+  steam.system.auto_inject->load              (config.steam.auto_inject);
+  steam.system.reuse_overlay_pause->load      (config.steam.reuse_overlay_pause);
 
   int                                 throttle = -1;
   if (steam.callbacks.throttle->load (throttle))
@@ -2730,7 +2737,7 @@ auto DeclKeybind =
                                                     L"steam_api.dll" );
   }
 
-  steam.system.dll_path->load              (config.steam.dll_path);
+  steam.system.dll_path->load                 (config.steam.dll_path);
 
 
   bool global_override = false;
@@ -2801,20 +2808,20 @@ auto DeclKeybind =
 
 
 
-  config.imgui.font.default_font.file  = "arial.ttf";
-  config.imgui.font.default_font.size  = 18.0f;
+  config.imgui.font.default_font.file = "arial.ttf";
+  config.imgui.font.default_font.size = 18.0f;
 
-  config.imgui.font.japanese.file = "msgothic.ttc";
-  config.imgui.font.japanese.size = 18.0f;
+  config.imgui.font.japanese.file     = "msgothic.ttc";
+  config.imgui.font.japanese.size     = 18.0f;
 
-  config.imgui.font.cyrillic.file = "arial.ttf";
-  config.imgui.font.cyrillic.size = 18.0f;
+  config.imgui.font.cyrillic.file     = "arial.ttf";
+  config.imgui.font.cyrillic.size     = 18.0f;
 
-  config.imgui.font.korean.file   = "malgun.ttf";
-  config.imgui.font.korean.size   = 18.0f;
+  config.imgui.font.korean.file       = "malgun.ttf";
+  config.imgui.font.korean.size       = 18.0f;
 
-  config.imgui.font.chinese.file  = "msyh.ttc";
-  config.imgui.font.chinese.size  = 18.0f;
+  config.imgui.font.chinese.file      = "msyh.ttc";
+  config.imgui.font.chinese.size      = 18.0f;
 
 
 
@@ -2836,10 +2843,8 @@ auto DeclKeybind =
           {
             void
             SK_ResHack_PatchGame (uint32_t w, uint32_t h);
-
             SK_ResHack_PatchGame (1920, 1080);
-
-            SK_Thread_CloseSelf ();
+            SK_Thread_CloseSelf  ();
 
             return 0;
           });
@@ -2852,11 +2857,9 @@ auto DeclKeybind =
           DWORD
           {
             void
-              SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
-
+            SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
             SK_ResHack_PatchGame2 (1920, 1080);
-
-            SK_Thread_CloseSelf ();
+            SK_Thread_CloseSelf   ();
 
             return 0;
           });
@@ -2881,10 +2884,8 @@ auto DeclKeybind =
           {
             void
             SK_ResHack_PatchGame (uint32_t w, uint32_t h);
-
             SK_ResHack_PatchGame (1920, 1080);
-
-            SK_Thread_CloseSelf ();
+            SK_Thread_CloseSelf  ();
 
             return 0;
           });
@@ -3038,7 +3039,6 @@ SK_ResHack_PatchGame2 ( uint32_t width,
   *(orig + 1) = height;
 
   uint32_t *pOut = nullptr;
-    //reinterpret_cast  <uint32_t *> (SK_GetModuleHandle (nullptr));
 
   for (int i = 0 ; i < 5; i++)
   {
@@ -3267,10 +3267,8 @@ SK_SaveConfig ( std::wstring name,
     _swprintf (wszPercent, L"%08.6f", 100.0 * config.window.offset.x.percent);
 
     SK_RemoveTrailingDecimalZeros (wszPercent);
-
-    lstrcatW (wszPercent, L"%");
-
-    window.offset.x->store (wszPercent);
+    lstrcatW                      (wszPercent, L"%");
+    window.offset.x->store        (wszPercent);
   }
 
   if (config.window.offset.y.absolute != 0)
@@ -3288,18 +3286,17 @@ SK_SaveConfig ( std::wstring name,
 
     SK_RemoveTrailingDecimalZeros (wszPercent);
     lstrcatW                      (wszPercent, L"%");
-
-    window.offset.y->store (wszPercent);
+    window.offset.y->store        (wszPercent);
   }
 
-  window.confine_cursor->store            (config.window.confine_cursor);
-  window.unconfine_cursor->store          (config.window.unconfine_cursor);
-  window.persistent_drag->store           (config.window.persistent_drag);
-  window.fullscreen->store                (config.window.fullscreen);
-  window.fix_mouse_coords->store          (config.window.res.override.fix_mouse);
-  window.always_on_top->store             (config.window.always_on_top);
-  window.disable_screensaver->store       (config.window.disable_screensaver);
-  window.dont_hook_wndproc->store         (config.window.dont_hook_wndproc);
+  window.confine_cursor->store                (config.window.confine_cursor);
+  window.unconfine_cursor->store              (config.window.unconfine_cursor);
+  window.persistent_drag->store               (config.window.persistent_drag);
+  window.fullscreen->store                    (config.window.fullscreen);
+  window.fix_mouse_coords->store              (config.window.res.override.fix_mouse);
+  window.always_on_top->store                 (config.window.always_on_top);
+  window.disable_screensaver->store           (config.window.disable_screensaver);
+  window.dont_hook_wndproc->store             (config.window.dont_hook_wndproc);
 
   wchar_t wszFormattedRes [64] = { };
 
@@ -3354,13 +3351,13 @@ SK_SaveConfig ( std::wstring name,
     }
 
     if (render.framerate.refresh_rate != nullptr)
-      render.framerate.refresh_rate->store    (config.render.framerate.refresh_rate);
+      render.framerate.refresh_rate->store        (config.render.framerate.refresh_rate);
 
     // SLI only works in Direct3D
-    nvidia.sli.compatibility->store           (config.nvidia.sli.compatibility);
-    nvidia.sli.mode->store                    (config.nvidia.sli.mode);
-    nvidia.sli.num_gpus->store                (config.nvidia.sli.num_gpus);
-    nvidia.sli.override->store                (config.nvidia.sli.override);
+    nvidia.sli.compatibility->store               (config.nvidia.sli.compatibility);
+    nvidia.sli.mode->store                        (config.nvidia.sli.mode);
+    nvidia.sli.num_gpus->store                    (config.nvidia.sli.num_gpus);
+    nvidia.sli.override->store                    (config.nvidia.sli.override);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
@@ -3451,29 +3448,29 @@ SK_SaveConfig ( std::wstring name,
           break;
       }
 
-      render.dxgi.debug_layer->store        (config.render.dxgi.debug_layer);
-      render.dxgi.safe_fullscreen->store    (config.render.dxgi.safe_fullscreen);
-      render.dxgi.enhanced_depth->store     (config.render.dxgi.enhanced_depth);
-      render.dxgi.deferred_isolation->store (config.render.dxgi.deferred_isolation);
-      render.dxgi.skip_present_test->store  (config.render.dxgi.present_test_skip);
-      render.dxgi.msaa_samples->store       (config.render.dxgi.msaa_samples);
+      render.dxgi.debug_layer->store          (config.render.dxgi.debug_layer);
+      render.dxgi.safe_fullscreen->store      (config.render.dxgi.safe_fullscreen);
+      render.dxgi.enhanced_depth->store       (config.render.dxgi.enhanced_depth);
+      render.dxgi.deferred_isolation->store   (config.render.dxgi.deferred_isolation);
+      render.dxgi.skip_present_test->store    (config.render.dxgi.present_test_skip);
+      render.dxgi.msaa_samples->store         (config.render.dxgi.msaa_samples);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||
                              ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) )
     {
-      render.d3d9.force_d3d9ex->store        (config.render.d3d9.force_d3d9ex);
-      render.d3d9.enable_texture_mods->store (config.textures.d3d9_mod);
+      render.d3d9.force_d3d9ex->store         (config.render.d3d9.force_d3d9ex);
+      render.d3d9.enable_texture_mods->store  (config.textures.d3d9_mod);
     }
   }
 
-  render.osd.draw_in_vidcap->store             (config.render.osd.draw_in_vidcap);
+  render.osd.draw_in_vidcap->store            (config.render.osd.draw_in_vidcap);
 
-  config.render.osd.hdr_luminance =  SK_GetCurrentRenderBackend ().ui_luminance;
-  render.osd.hdr_luminance->store              (config.render.osd.hdr_luminance);
+  config.render.osd.hdr_luminance = SK_GetCurrentRenderBackend ().ui_luminance;
+  render.osd.hdr_luminance->store             (config.render.osd.hdr_luminance);
 
-  texture.res_root->store                      (config.textures.d3d11.res_root);
-  texture.dump_on_load->store                  (config.textures.dump_on_load);
+  texture.res_root->store                     (config.textures.d3d11.res_root);
+  texture.dump_on_load->store                 (config.textures.dump_on_load);
 
 
   // Keep this setting hidden (not to be sneaky; but to prevent overwhelming users with
@@ -3492,7 +3489,7 @@ SK_SaveConfig ( std::wstring name,
   else
   {
     if (config.file_io.trace_reads)
-      reverse_engineering.file.trace_reads->store (config.file_io.trace_reads);
+      reverse_engineering.file.trace_reads->store  (config.file_io.trace_reads);
     if (config.file_io.trace_writes)
       reverse_engineering.file.trace_writes->store (config.file_io.trace_writes);
   }
@@ -3521,7 +3518,9 @@ SK_SaveConfig ( std::wstring name,
   steam.achievements.popup.inset->store        (config.steam.achievements.popup.inset);
 
   if (! config.steam.achievements.popup.show)
+  {
     config.steam.achievements.popup.duration = 0;
+  }
 
   steam.achievements.popup.duration->store     (config.steam.achievements.popup.duration);
   steam.achievements.popup.animate->store      (config.steam.achievements.popup.animate);
@@ -3536,67 +3535,67 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
-  steam.system.appid->store                 (config.steam.appid);
-  steam.system.init_delay->store            (config.steam.init_delay);
-  steam.system.auto_pump->store             (config.steam.auto_pump_callbacks);
-  steam.system.block_stat_callback->store   (config.steam.block_stat_callback);
-  steam.system.filter_stat_callbacks->store (config.steam.filter_stat_callback);
-  steam.system.load_early->store            (config.steam.preload_client);
-  steam.system.early_overlay->store         (config.steam.preload_overlay);
-  steam.system.force_load->store            (config.steam.force_load_steamapi);
-  steam.system.auto_inject->store           (config.steam.auto_inject);
-  steam.system.notify_corner->store         (
-    SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
+  steam.system.appid->store                    (config.steam.appid);
+  steam.system.init_delay->store               (config.steam.init_delay);
+  steam.system.auto_pump->store                (config.steam.auto_pump_callbacks);
+  steam.system.block_stat_callback->store      (config.steam.block_stat_callback);
+  steam.system.filter_stat_callbacks->store    (config.steam.filter_stat_callback);
+  steam.system.load_early->store               (config.steam.preload_client);
+  steam.system.early_overlay->store            (config.steam.preload_overlay);
+  steam.system.force_load->store               (config.steam.force_load_steamapi);
+  steam.system.auto_inject->store              (config.steam.auto_inject);
+  steam.system.notify_corner->store            (
+                    SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );
-  steam.system.reuse_overlay_pause->store   (config.steam.reuse_overlay_pause);
-  steam.system.dll_path->store              (config.steam.dll_path);
+  steam.system.reuse_overlay_pause->store      (config.steam.reuse_overlay_pause);
+  steam.system.dll_path->store                 (config.steam.dll_path);
 
-  steam.callbacks.throttle->store           (ReadAcquire (&SK_SteamAPI_CallbackRateLimit));
+  steam.callbacks.throttle->store              (ReadAcquire (&SK_SteamAPI_CallbackRateLimit));
 
-  steam.social.online_status->store         (config.steam.online_status);
+  steam.social.online_status->store            (config.steam.online_status);
 
-  steam.log.silent->store                   (config.steam.silent);
-  steam.drm.spoof_BLoggedOn->store          (config.steam.spoof_BLoggedOn);
+  steam.log.silent->store                      (config.steam.silent);
+  steam.drm.spoof_BLoggedOn->store             (config.steam.spoof_BLoggedOn);
 
-  steam.overlay.hdr_luminance->store        (config.steam.overlay_hdr_luminance);
+  steam.overlay.hdr_luminance->store           (config.steam.overlay_hdr_luminance);
 
-  steam.screenshots.smart_capture->store    (config.steam.screenshots.enable_hook);
+  steam.screenshots.smart_capture->store       (config.steam.screenshots.enable_hook);
   steam.screenshots.include_osd_default->
-                                   store    (config.steam.screenshots.show_osd_by_default);
-  steam.screenshots.keep_png_copy->store    (config.steam.screenshots.png_compress);
+                                   store       (config.steam.screenshots.show_osd_by_default);
+  steam.screenshots.keep_png_copy->store       (config.steam.screenshots.png_compress);
 
-  uplay.overlay.hdr_luminance->store        (config.uplay.overlay_luminance);
+  uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
 
-  silent->store                             (config.system.silent);
-  log_level->store                          (config.system.log_level);
-  prefer_fahrenheit->store                  (config.system.prefer_fahrenheit);
+  silent->store                                (config.system.silent);
+  log_level->store                             (config.system.log_level);
+  prefer_fahrenheit->store                     (config.system.prefer_fahrenheit);
 
 
-  nvidia.api.disable->store                 (! config.apis.NvAPI.enable);
-  amd.adl.disable->store                    (! config.apis.ADL.enable);
+  nvidia.api.disable->store                    (! config.apis.NvAPI.enable);
+  amd.adl.disable->store                       (! config.apis.ADL.enable);
 
-  ignore_rtss_delay->store                  (config.system.ignore_rtss_delay);
+  ignore_rtss_delay->store                     (config.system.ignore_rtss_delay);
 
 
   // Don't store this setting at shutdown  (it may have been turned off automatically)
   if (__SK_DLL_Ending == false)
   {
-    handle_crashes->store                (config.system.handle_crashes);
+    handle_crashes->store                      (config.system.handle_crashes);
   }
 
-  game_output->store                     (config.system.game_output);
+  game_output->store                           (config.system.game_output);
 
   // Only add this to the INI file if it differs from default
   if (config.system.display_debug_out != debug_output->get_value ())
   {
-    debug_output->store                  (config.system.display_debug_out);
+    debug_output->store                        (config.system.display_debug_out);
   }
 
-  enable_cegui->store                    (config.cegui.enable);
-  safe_cegui->store                      (config.cegui.safe_init);
-  trace_libraries->store                 (config.system.trace_load_library);
-  strict_compliance->store               (config.system.strict_compliance);
-  version->store                         (SK_GetVersionStrW ());
+  enable_cegui->store                          (config.cegui.enable);
+  safe_cegui->store                            (config.cegui.safe_init);
+  trace_libraries->store                       (config.system.trace_load_library);
+  strict_compliance->store                     (config.system.strict_compliance);
+  version->store                               (SK_GetVersionStrW ());
 
   if (dll_ini != nullptr && (! (nvapi_init && sk::NVAPI::nv_hardware) || (! sk::NVAPI::CountSLIGPUs ())))
     dll_ini->remove_section (L"NVIDIA.SLI");
@@ -3848,8 +3847,7 @@ SK_Keybind::parse (void)
     init = true;
   }
 
-  wchar_t wszKeyBind [128] = { };
-
+  wchar_t   wszKeyBind [128] = { };
   lstrcatW (wszKeyBind, human_readable.c_str ());
 
   wchar_t* wszBuf = nullptr;
@@ -4156,6 +4154,8 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                      name.end ()
                );
 
+    // Strip trailing spaces from name, these are usually the result of
+    //   deleting one of the non-useable characters above.
     for (auto it = name.rbegin (); it != name.rend (); ++it)
     {
       if (*it == L' ') *it = L'\0';
@@ -4307,7 +4307,7 @@ SK_AppCache_Manager::getFriendOwnership ( uint64_t friend_,
     if (sec.contains_key (std::to_wstring (friend_).c_str ()))
     {
       std::wstring friend_status =
-        sec.get_value (std::to_wstring (friend_).c_str ());
+        sec.get_value    (std::to_wstring (friend_).c_str ());
 
       if ( 2 ==
              std::swscanf ( friend_status.c_str (),
@@ -4354,7 +4354,7 @@ SK_AppCache_Manager::setFriendAchievPct (uint64_t friend_, float new_percent)
   if (sec.contains_key (std::to_wstring (friend_).c_str ()))
   {
     std::wstring friend_status =
-      sec.get_value (std::to_wstring (friend_).c_str ());
+      sec.get_value    (std::to_wstring (friend_).c_str ());
 
     if ( 2 ==
            std::swscanf ( friend_status.c_str (),
@@ -4413,7 +4413,7 @@ SK_AppCache_Manager::getFriendAchievPct (uint64_t friend_, time_t* updated)
     if (sec.contains_key (std::to_wstring (friend_).c_str ()))
     {
       std::wstring friend_status =
-        sec.get_value (std::to_wstring (friend_).c_str ());
+        sec.get_value    (std::to_wstring (friend_).c_str ());
 
       if ( 2 ==
              std::swscanf ( friend_status.c_str (),
@@ -4454,7 +4454,7 @@ SK_AppCache_Manager::wantFriendStats (void)
   if (sec.contains_key (L"FetchFromServer"))
   {
     std::wstring& val =
-      sec.get_value (L"FetchFromServer");
+      sec.get_value    (L"FetchFromServer");
 
     if (val._Equal (L"UseGlobalPreference"))
       return global_pref;
@@ -4463,7 +4463,8 @@ SK_AppCache_Manager::wantFriendStats (void)
       SK_IsTrue (val.c_str ());
   }
 
-  sec.add_key_value (L"FetchFromServer", L"UseGlobalPreference");
+  sec.add_key_value ( L"FetchFromServer",
+                        L"UseGlobalPreference" );
 
   return
     global_pref;
@@ -4484,7 +4485,7 @@ SK_AppCache_Manager::getLicenseRevision (void)
   if (sec.contains_key (L"LastRevision"))
   {
     std::wstring& val =
-      sec.get_value (L"LastRevision");
+      sec.get_value    (L"LastRevision");
 
     return must_show ? 0 :
       _wtoi (val.c_str ());
