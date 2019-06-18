@@ -43,17 +43,17 @@
 #pragma comment (lib, R"(depends\lib\lzma\Win32\libzma.lib)")
 #endif
 
-volatile HANDLE hInitThread              = { INVALID_HANDLE_VALUE };
-volatile DWORD  dwInitThreadId           = 0;
+volatile HANDLE   hInitThread     = { INVALID_HANDLE_VALUE };
+volatile DWORD    dwInitThreadId  = 0;
 
-BOOL                     nvapi_init      = FALSE;
-HMODULE                  backend_dll     = nullptr;
+         BOOL     nvapi_init      = FALSE;
+         HMODULE  backend_dll     = nullptr;
 
-volatile LONG            __SK_Init       = FALSE;
-         bool            __SK_bypass     = false;
-   const wchar_t*        __SK_BootedCore = L"";
+volatile LONG     __SK_Init       = FALSE;
+         bool     __SK_bypass     = false;
+   const wchar_t* __SK_BootedCore = L"";
 
- extern float            __target_fps;
+ extern float     __target_fps;
 
 
 using  ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
@@ -817,11 +817,16 @@ SK_UnpackD3DShaderCompiler (void)
     SK_GetDLL ();
 
   HRSRC res =
-    FindResource ( hModSelf, MAKEINTRESOURCE (IDR_D3DCOMPILER_PACKAGE), L"7ZIP" );
+    FindResource (
+      hModSelf,
+        MAKEINTRESOURCE (IDR_D3DCOMPILER_PACKAGE),
+          L"7ZIP"
+    );
 
   if (res)
   {
-    SK_LOG0 ( ( L"Unpacking D3DCompiler_47.dll because user does not have June 2010 DirectX Redistributables installed." ),
+    SK_LOG0 ( ( L"Unpacking D3DCompiler_47.dll because user does not have "
+                L"June 2010 DirectX Redistributables installed." ),
                 L"D3DCompile" );
 
     DWORD   res_size     =
@@ -1059,7 +1064,7 @@ enum SK_File_SearchStopCondition {
 std::unordered_set <std::wstring>
 SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
                            const wchar_t* wszSearchExt,
-       std::unordered_set <std::wstring>& cwsFileNames,
+ std::unordered_set <std::wstring_view>& cwsFileNames,
        std::vector        <
          std::pair          < std::wstring, bool >
                           >&&             preferred_dirs = { },
@@ -1245,8 +1250,8 @@ SK_RecursiveFileSearch ( const wchar_t* wszDir,
   PathRemoveExtensionW (filename.data ());
   PathFindFileNameW    (filename.data ());
 
-  std::unordered_set <std::wstring> file_pattern = {
-    std::wstring (filename.data ())
+  std::unordered_set <std::wstring_view> file_pattern = {
+    filename.data ()
   };
 
   const std::unordered_set <std::wstring> matches =
@@ -1407,7 +1412,8 @@ SK_GetDebugSymbolPath (void)
       stripped =
         SK_ConcealUserDir ((wchar_t *)stripped.c_str ());
 
-      crash_log->Log (L"Special K Debug Symbols Loaded From.: %ws", stripped.c_str ());
+      crash_log->Log ( L"Special K Debug Symbols Loaded From.: %ws",
+                         stripped.c_str () );
     }
 
     else
@@ -1417,7 +1423,8 @@ SK_GetDebugSymbolPath (void)
       stripped =
         SK_ConcealUserDir ((wchar_t *)stripped.c_str ());
 
-      crash_log->Log ( L"Unable to load Special K Debug Symbols ('%ws'), crash log will not be accurate.",
+      crash_log->Log ( L"Unable to load Special K Debug Symbols ('%ws'), "
+                       L"crash log will not be accurate.",
                                  stripped.c_str () );
     }
 
@@ -1498,23 +1505,11 @@ SK_EstablishRootPath (void)
 
   // Not using the ShellW API because at this (init) stage,
   //   we can only reliably use Kernel32 functions.
-  lstrcatW (SKX_GetRootPath (), L"\\");
-  lstrcatW (wszConfigPath,      L"\\");
+  lstrcatW (SKX_GetRootPath (), LR"(\)");
+  lstrcatW (wszConfigPath,      LR"(\)");
 
   SK_SetConfigPath (wszConfigPath);
 }
-
-////void
-////__stdcall
-////SK_ReenterCore  (void) // During startup, we have the option of bypassing init and resuming later
-////{
-////  auto* params =
-////    static_cast <init_params_s *> (&reentrant_core);
-////
-////  SK_StartupCore (params->backend.c_str (), params->callback);
-////}
-
-
 
 uint32_t
 SK_Steam_GetAppID_NoAPI (void)
@@ -1550,20 +1545,6 @@ SK_Steam_GetAppID_NoAPI (void)
 
     if (dwSteamGameIdLen > 1)
       AppID = strtol (szSteamGameId, nullptr, 0);
-
-
-    //if (GetFileAttributesW (L"steam_appid.txt") == INVALID_FILE_ATTRIBUTES)
-    //{
-    //  FILE* fAppID =
-    //    fopen ("steam_appid.txt", "w+");
-    //
-    //  if (fAppID != nullptr)
-    //  {
-    //    fputs   (szSteamGameId,   fAppID);
-    //    fflush                   (fAppID);
-    //                     fclose  (fAppID);
-    //  }
-    //}
   }
 
   if (AppID != 0)
@@ -1650,10 +1631,7 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  if ( IsProcessDPIAware () )
-  {
-    SK_DisableDPIScaling ();
-  }
+  SK_DisableDPIScaling ();
 
   __SK_BootedCore = backend;
 
@@ -1699,11 +1677,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
 
     if ( GetFileAttributes ( ( std::wstring (SK_GetConfigPath ()) +
-                               std::wstring (L"Game\\") ).c_str ()
+                               std::wstring (LR"(Game\)") ).c_str ()
                            ) == INVALID_FILE_ATTRIBUTES )
     {
       std::wstring link (SK_GetConfigPath ());
-                   link += L"Game\\";
+                   link += LR"(Game\)";
 
       CreateSymbolicLink (
         link.c_str         (),
@@ -1778,13 +1756,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_HookWinAPI             ();
       SK_Thread_InitDebugExtras ();
 
-      SK_CPU_InstallHooks ();
+      SK_CPU_InstallHooks       ();
 
-      SK_NvAPI_PreInitHDR    ();
-      SK_NvAPI_InitializeHDR ();
+      SK_NvAPI_PreInitHDR       ();
+      SK_NvAPI_InitializeHDR    ();
       SK::Diagnostics::Debugger::Allow        ();
       SK::Diagnostics::CrashHandler::InitSyms ();
-      SK_ApplyQueuedHooks    ();
+      SK_ApplyQueuedHooks       ();
 
       SK_Thread_Create ([](LPVOID) -> DWORD
       {
@@ -1792,9 +1770,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST );
         SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                    );
 
-        WaitForInit         ();
+        WaitForInit           ();
 
-        SK_Memory_InitHooks ();
+        SK_Memory_InitHooks   ();
 
         if (SK_GetDLLRole () != DLL_ROLE::DInput8)
         {
@@ -1807,14 +1785,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
           SK_Input_Init       ();
         }
 
-        SK_ApplyQueuedHooks  ();
+        SK_ApplyQueuedHooks   ();
 
         // Setup the compatibility backend, which monitors loaded libraries,
         //   blacklists bad DLLs and detects render APIs...
-        SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
-        SK_ApplyQueuedHooks  ();
+        SK_EnumLoadedModules  (SK_ModuleEnum::PostLoad);
+        SK_ApplyQueuedHooks   ();
 
-        SK_Thread_CloseSelf ();
+        SK_Thread_CloseSelf   ();
 
         return 0;
       });
@@ -1967,12 +1945,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   // TEMP HACK: dgVoodoo2
   //
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
-    wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
-                std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+    wsprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
+                std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
 
   else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
-    wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll",
-                std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+    wsprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\ddraw.dll)",
+                std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
 #endif
 
 
@@ -1988,7 +1966,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   dll_log->Log (L" Working Directory:          %s", SK_ConcealUserDir (std::wstring (wszWorkDir).data    ()));
   dll_log->Log (L" System Directory:           %s", SK_ConcealUserDir (std::wstring (wszBackendDLL).data ()));
 
-  lstrcatW (wszBackendDLL, L"\\");
+  lstrcatW (wszBackendDLL, LR"(\)");
   lstrcatW (wszBackendDLL, backend);
   lstrcatW (wszBackendDLL, L".dll");
 
@@ -2842,11 +2820,11 @@ SK_BeginBufferSwap (void)
       static bool   first = true;
       auto*  task = first ?
         SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
-                                         "[SK] Primary Render Thread",
+                                         "[GAME] Primary Render Thread",
                                            "Games", "DisplayPostProcessing" )
                          :
         SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
-                                         "[SK] Ancillary Render Thread",
+                                         "[GAME] Ancillary Render Thread",
                                            "Games", "DisplayPostProcessing" );
 
       if ( task != nullptr )
@@ -2898,18 +2876,22 @@ SK_BeginBufferSwap (void)
       if ( SUCCEEDED ( GetCurrentThreadDescription (&wszDescription)) &&
                                             wcslen ( wszDescription))
       {
-        SK_RunOnce (
-          SetCurrentThreadDescription ( SK_FormatStringW (L"[SK] Primary Render < %s >",
-                                                          wszDescription).c_str ()
-                                      )
-        );
-        SK_LocalFree (wszDescription);
+        if (wcscmp (wszDescription, L"[GAME] Primary Render Thread") != 0)
+        {
+          SK_RunOnce (
+            SetCurrentThreadDescription (
+              SK_FormatStringW ( L"[GAME] Primary Render < %s >",
+                wszDescription ).c_str ()
+                                        )
+          );
+          SK_LocalFree (wszDescription);
+        }
       }
 
       else
       {
         SK_RunOnce (
-          SetCurrentThreadDescription (L"[SK] Primary Render Thread")
+          SetCurrentThreadDescription (L"[GAME] Primary Render Thread")
         );
       }
 
@@ -2918,8 +2900,9 @@ SK_BeginBufferSwap (void)
                 SK_HDR_GetWidget ()->run (    );
 
 
-      // Maybe make this into an option, but for now just get this the hell out of there
-      //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
+      // Maybe make this into an option, but for now just get this the hell out
+      //   of there almost no software should be shipping with FP exceptions,
+      //     it causes compatibility problems.
       _controlfp (MCW_EM, MCW_EM);
 
 

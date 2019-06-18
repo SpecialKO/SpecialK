@@ -1517,7 +1517,7 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::MenuItem ( "Browse Special K Logs", "" ))
         {
           std::wstring log_dir =
-            std::wstring (SK_GetConfigPath ()) + std::wstring (LR"(\logs)");
+            std::wstring (SK_GetConfigPath ()) + LR"(\logs)";
 
           ShellExecuteW ( GetActiveWindow (), L"explore", log_dir.c_str (),
                             nullptr, nullptr, SW_NORMAL );
@@ -1564,7 +1564,7 @@ SK_ImGui_ControlPanel (void)
         if (bIsReShadeCustom && ImGui::MenuItem ( "Browse ReShade Assets", "", nullptr ))
         {
           std::wstring reshade_dir =
-            std::wstring (SK_GetConfigPath ()) + std::wstring (LR"(\ReShade)");
+            std::wstring (SK_GetConfigPath ()) + LR"(\ReShade)";
 
           static bool dir_exists =
             PathIsDirectory ( std::wstring (

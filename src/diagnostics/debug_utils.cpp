@@ -1826,22 +1826,28 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
 void NTAPI
 RtlAcquirePebLock_Detour (void)
 {
-  RtlAcquirePebLock_Original ();
+  if (RtlAcquirePebLock_Original != nullptr)
+  {
+    RtlAcquirePebLock_Original ();
 
-  SK_AntiAntiDebug_CleanupPEB (
-    (SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock
-  );
+    SK_AntiAntiDebug_CleanupPEB (
+      (SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock
+    );
+  }
 }
 
 void NTAPI
 RtlReleasePebLock_Detour (void)
 {
-  // And now, another magic trick... debugger's gone again!
-  SK_AntiAntiDebug_CleanupPEB (
-    (SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock
-  );
+  if (RtlReleasePebLock_Original != nullptr)
+  {
+    // And now, another magic trick... debugger's gone again!
+    SK_AntiAntiDebug_CleanupPEB (
+      (SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock
+    );
 
-  RtlReleasePebLock_Original ();
+    RtlReleasePebLock_Original ();
+  }
 }
 
 NTSTATUS
@@ -3230,7 +3236,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
       static_cast_p2p <void> (&DbgUiRemoteBreakin_Original) );
 
     SK_InitCompatBlacklist ();
-  //SK_ApplyQueuedHooks ();
 
     RtlAcquirePebLock_Detour ();
     RtlReleasePebLock_Detour ();

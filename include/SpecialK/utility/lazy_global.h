@@ -51,16 +51,6 @@ public:
 
     if (lock_val == Uninitialized)
     {
-      std::lock_guard <SK_Thread_HybridSpinlock>
-        double_check (*_sk_lazy_alloc_mtx);
-
-      // Double lock-check
-      auto* pConcurrentInit =
-        pDeferredObject.get ();
-
-      if (pConcurrentInit != nullptr)
-        return pConcurrentInit;
-
       pDeferredObject.reset (
         new (std::nothrow) T
       );
@@ -80,13 +70,7 @@ public:
         InterlockedExchange (&_initlock, FailsafeLocal);
       }
 
-      pConcurrentInit =
-        pDeferredObject.get ();
-
       InterlockedIncrement (&_initlock);
-
-      return
-        pConcurrentInit;
     }
 
     else if (lock_val < Committed)
@@ -117,9 +101,6 @@ __forceinline bool  isAllocated (void)    const noexcept
 
   ~SK_LazyGlobal (void)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock>
-      double_check (*_sk_lazy_alloc_mtx);
-
     // Allocated off heap w/ C++ new
     if (isAllocated ())
     {
@@ -141,8 +122,6 @@ protected:
                 pDeferredObject = nullptr;
   volatile LONG _initlock       = Uninitialized;
 };
-
-extern SK_Thread_HybridSpinlock* _sk_lazy_alloc_mtx;
 
 #pragma warning (pop)
 

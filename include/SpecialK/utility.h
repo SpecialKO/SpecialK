@@ -398,15 +398,27 @@ SK_IsProcessRunning (const wchar_t* wszProcName);
 constexpr size_t
 hash_string (const wchar_t* const wstr, bool lowercase = false)
 {
+  // Obviously this is completely blind to locale, but it does what
+  //   is required while keeping the entire lambda constexpr-valid.
+  constexpr auto constexpr_towlower = [&](const wchar_t val) ->
+  wchar_t
+  {
+    return
+      ( ( val >= L'A'  &&
+          val <= L'Z' ) ? val + 32 :
+                          val );
+
+  };
+
   auto __h =
     size_t { 0 };
 
   for ( auto ptr = wstr ; *ptr != L'\0' ; ++ptr )
   {
     __h =
-      ( lowercase    ?
-     towlower (*ptr) :
-               *ptr  )       +
+      ( lowercase ? constexpr_towlower (*ptr) :
+                                        *ptr  )
+               +
    (__h << 06) + (__h << 16) -
     __h;
   }
@@ -418,6 +430,17 @@ hash_string (const wchar_t* const wstr, bool lowercase = false)
 constexpr size_t
 hash_string_utf8 (const char* const ustr, bool lowercase = false)
 {
+  // Obviously this is completely blind to locale, but it does what
+  //   is required while keeping the entire lambda constexpr-valid.
+  constexpr auto constexpr_tolower = [&](const char val) ->
+  char
+  {
+    return
+      ( ( val >= 'A'  &&
+          val <= 'Z' ) ? val + 32 :
+                         val );
+  };
+
   auto __h =
     size_t { 0 };
 
@@ -425,9 +448,9 @@ hash_string_utf8 (const char* const ustr, bool lowercase = false)
   {
 
     __h =
-      ( lowercase    ?
-      tolower (*ptr) :
-               *ptr  )       +
+      ( lowercase ? constexpr_tolower (*ptr) :
+                                       *ptr  )
+               +
    (__h << 06) + (__h << 16) -
     __h;
   }

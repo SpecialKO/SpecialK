@@ -854,3 +854,43 @@ System.Runtime.InteropServices.COMException (0x80004005): Unspecified error (Exc
    at Microsoft.VisualStudio.Shell.ThreadHelper.Invoke[TResult](Func`1 method)
    at Microsoft.VisualStudio.Platform.WindowManagement.DTE.WindowBase.get_ProjectItem()
    at DevTracker.DevTrackerToolWinControl.WindowsEvents_WindowActivated(Window gotFocus, Window lostFocus) in C:\Users\KurtG\Documents\Visual Studio 2017\Projects\DevTracker\DevTracker\DevTrackerToolWinDteEvents.cs:line 697
+
+6/16/2019 8:02:13 PM :
+System.Runtime.InteropServices.COMException (0x80004005): Unspecified error (Exception from HRESULT: 0x80004005 (E_FAIL))
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(Int32 hr, Int32[] expectedHRFailure)
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.Window.get_ProjectItem()
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.WindowBase.<get_ProjectItem>b__55_0()
+   at Microsoft.VisualStudio.Shell.ThreadHelper.Invoke[TResult](Func`1 method)
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.WindowBase.get_ProjectItem()
+   at DevTracker.DevTrackerToolWinControl.WindowsEvents_WindowActivated(Window gotFocus, Window lostFocus) in C:\Users\KurtG\Documents\Visual Studio 2017\Projects\DevTracker\DevTracker\DevTrackerToolWinDteEvents.cs:line 697
+
+6/16/2019 8:02:27 PM :
+System.Runtime.InteropServices.COMException (0x80004005): Error HRESULT E_FAIL has been returned from a call to a COM component.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(Int32 hr, Int32[] expectedHRFailure)
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.Window.get_ProjectItem()
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.WindowBase.<get_ProjectItem>b__55_0()
+   at Microsoft.VisualStudio.Shell.ThreadHelper.Invoke[TResult](Func`1 method)
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.WindowBase.get_ProjectItem()
+   at DevTracker.DevTrackerToolWinControl.WindowsEvents_WindowActivated(Window gotFocus, Window lostFocus) in C:\Users\KurtG\Documents\Visual Studio 2017\Projects\DevTracker\DevTracker\DevTrackerToolWinDteEvents.cs:line 697
+
+6/16/2019 8:02:33 PM :
+System.Runtime.InteropServices.COMException (0x80004005): Error HRESULT E_FAIL has been returned from a call to a COM component.
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(Int32 hr, Int32[] expectedHRFailure)
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.Window.get_ProjectItem()
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.WindowBase.<get_ProjectItem>b__55_0()
+   at Microsoft.VisualStudio.Shell.ThreadHelper.Invoke[TResult](Func`1 method)
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.WindowBase.get_ProjectItem()
+   at DevTracker.DevTrackerToolWinControl.WindowsEvents_WindowActivated(Window gotFocus, Window lostFocus) in C:\Users\KurtG\Documents\Visual Studio 2017\Projects\DevTracker\DevTracker\DevTrackerToolWinDteEvents.cs:line 697
+
+6/16/2019 8:03:13 PM :
+System.Runtime.InteropServices.COMException (0x80004005): Unspecified error (Exception from HRESULT: 0x80004005 (E_FAIL))
+   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(Int32 hr, Int32[] expectedHRFailure)
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.Window.get_ProjectItem()
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.WindowBase.<get_ProjectItem>b__55_0()
+   at Microsoft.VisualStudio.Shell.ThreadHelper.Invoke[TResult](Func`1 method)
+   at Microsoft.VisualStudio.Platform.WindowManagement.DTE.WindowBase.get_ProjectItem()
+   at DevTracker.DevTrackerToolWinControl.WindowsEvents_WindowActivated(Window gotFocus, Window lostFocus) in C:\Users\KurtG\Documents\Visual Studio 2017\Projects\DevTracker\DevTracker\DevTrackerToolWinDteEvents.cs:line 697

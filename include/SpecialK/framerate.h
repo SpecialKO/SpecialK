@@ -335,12 +335,14 @@ extern SleepEx_pfn
 extern LARGE_INTEGER SK_GetPerfFreq (void);
 extern LARGE_INTEGER SK_QueryPerf   (void);
 
-static auto SK_CurrentPerf =
- []{
-     LARGE_INTEGER                time;
-     SK_QueryPerformanceCounter (&time);
-     return                       time;
-   };
+__forceinline
+LARGE_INTEGER
+SK_CurrentPerf (void)
+ {
+   LARGE_INTEGER                time;
+   SK_QueryPerformanceCounter (&time);
+   return                       time;
+ };
 
 static auto SK_DeltaPerf =
  [](auto delta, auto freq)->

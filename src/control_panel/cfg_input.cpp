@@ -47,6 +47,10 @@ void SK_ImGui_UpdateCursor (void)
   SK_SetCursorPos (orig_pos.x, orig_pos.y);
 }
 
+extern bool SK_Window_IsCursorActive   (void);
+extern bool SK_Window_ActivateCursor   (bool changed      = false);
+extern bool SK_Window_DeactivateCursor (bool ignore_imgui = false);
+
 extern ImVec2& __SK_ImGui_LastWindowCenter (void);
 #define SK_ImGui_LastWindowCenter  __SK_ImGui_LastWindowCenter()
 
@@ -296,47 +300,52 @@ SK::ControlPanel::Input::Draw (void)
       }
 
       ImGui::EndGroup   ();
-      ImGui::SameLine   ();
 
-      float seconds =
-        (float)config.input.cursor.timeout  / 1000.0f;
-
-      const float val =
-        config.input.cursor.manage ? 1.0f : 0.0f;
-
-      ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 ( 0.3f,  0.3f,  0.3f,  val));
-      ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 ( 0.6f,  0.6f,  0.6f,  val));
-      ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
-      ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
-
-      if ( ImGui::SliderFloat ( "Seconds Before Hiding",
-                                  &seconds, 0.0f, 30.0f ) )
+      if (config.input.cursor.manage)
       {
-        config.input.cursor.timeout = static_cast <LONG> (( seconds * 1000.0f ));
-      }
+        ImGui::SameLine   ();
 
-      ImGui::PopStyleColor (4);
+        float seconds =
+          (float)config.input.cursor.timeout  / 1000.0f;
 
-      if (! cursor_vis)
-      {
-        if (ImGui::Button (" Force Mouse Cursor Visible ")) {
-          while (ShowCursor (TRUE) < 0)
-            ;
+        const float val =
+          config.input.cursor.manage ? 1.0f : 0.0f;
 
-          cursor_vis = true;
-        }
-      }
+        ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 ( 0.3f,  0.3f,  0.3f,  val));
+        ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 ( 0.6f,  0.6f,  0.6f,  val));
+        ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
+        ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
 
-      else
-      {
-        if (ImGui::Button (" Force Mouse Cursor Hidden "))
+        if ( ImGui::SliderFloat ( "Seconds Before Hiding",
+                                    &seconds, 0.0f, 30.0f ) )
         {
-          while (ShowCursor (FALSE) >= -1)
-            ;
+          config.input.cursor.timeout =
+            static_cast <LONG> (( seconds * 1000.0f ));
+        }
 
-          cursor_vis = false;
+        ImGui::PopStyleColor (4);
+      }
+
+#if 0
+      if (! config.input.cursor.manage)
+      {
+        if (! SK_Window_IsCursorActive ())
+        {
+          if (ImGui::Button (" Force Mouse Cursor Visible "))
+          {
+            SK_Window_ActivateCursor (true);
+          }
+        }
+
+        else
+        {
+          if (ImGui::Button (" Force Mouse Cursor Hidden "))
+          {
+            SK_Window_DeactivateCursor (true);
+          }
         }
       }
+#endif
 
       ImGui::TreePop ();
     }

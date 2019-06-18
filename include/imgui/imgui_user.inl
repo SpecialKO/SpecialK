@@ -333,7 +333,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         return filter;
       };
 
-
   filter =
     FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
 
@@ -1007,19 +1006,22 @@ MessageProc ( const HWND&   hWnd,
         }
       }
 
-      if (game_window.DefWindowProc != nullptr)
+      if (bRet)
       {
-        game_window.DefWindowProc (
-          hWnd, msg,
-                wParam, lParam
-        );
-      }
+        if (game_window.DefWindowProc != nullptr)
+        {
+          game_window.DefWindowProc (
+            hWnd, msg,
+                  wParam, lParam
+          );
+        }
 
-      else
-      {
-        IsWindowUnicode  (hWnd) ?
-          DefWindowProcW (hWnd, msg, wParam, lParam) :
-          DefWindowProcA (hWnd, msg, wParam, lParam);
+        else
+        {
+          IsWindowUnicode  (hWnd) ?
+            DefWindowProcW (hWnd, msg, wParam, lParam) :
+            DefWindowProcA (hWnd, msg, wParam, lParam);
+        }
       }
 
       return bRet;
@@ -1362,18 +1364,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 
   extern bool __stdcall SK_IsGameWindowActive (void);
 
-  if (SK_ImGui_WantMouseCapture ())
-    SK_ImGui_Cursor.update ();
+//if (SK_ImGui_WantMouseCapture ())
+      SK_ImGui_Cursor.update ();
 
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
   if ( SK_IsGameWindowActive () )
   {
-    //static LONG  last_key_msg_cnt = 0;
-    //
-    //LONG msg_cnt =
-    //  ReadAcquire (&__SK_KeyMessageCount);
-
     io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON) ) != 0;
     io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON) ) != 0;
     io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON) ) != 0;
@@ -1387,59 +1384,9 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     bool Shift =
       (SK_GetAsyncKeyState (VK_SHIFT)   ) != 0;
 
-    //io.KeysDown [VK_MENU]    = Alt;
-    //io.KeysDown [VK_CONTROL] = Ctrl;
-    //io.KeysDown [VK_SHIFT]   = Shift;
-
     io.KeyAlt   = Alt;
     io.KeyShift = Shift;
     io.KeyCtrl  = Ctrl;
-
-    ////if (last_key_msg_cnt != msg_cnt)
-    //{
-      //BYTE key_state [256] = { };
-      //
-      //SK_GetKeyboardState (key_state);
-      //
-      //io.MouseDown [0] = (key_state [VK_LBUTTON]  & 0x80) != 0; //(SK_GetAsyncKeyState (VK_LBUTTON) & 0x8000) != 0;
-      //io.MouseDown [1] = (key_state [VK_RBUTTON]  & 0x80) != 0; //(SK_GetAsyncKeyState (VK_RBUTTON)  & 0x8000) != 0;
-      //io.MouseDown [2] = (key_state [VK_MBUTTON]  & 0x80) != 0; //(SK_GetAsyncKeyState (VK_MBUTTON)  & 0x8000) != 0;
-      //io.MouseDown [3] = (key_state [VK_XBUTTON1] & 0x80) != 0; //(SK_GetAsyncKeyState (VK_XBUTTON1) & 0x8000) != 0;
-      //io.MouseDown [4] = (key_state [VK_XBUTTON2] & 0x80) != 0; //(SK_GetAsyncKeyState (VK_XBUTTON2) & 0x8000) != 0;
-      //
-      //
-      ////last_key_msg_cnt =
-      ////  msg_cnt;
-      //
-      //// This stupid hack prevents the Steam overlay from making the software
-      ////   think tab is stuck down.
-      //io.KeysDown [0x08]  = (key_state [0x08] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x08 ) & 0x8000) != 0;
-      //io.KeysDown [0x09]  = (key_state [0x09] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x09 ) & 0x8000) != 0;
-      //io.KeysDown [0x0C]  = (key_state [0x0C] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x0C ) & 0x8000) != 0;
-      //io.KeysDown [0x0D]  = (key_state [0x0D] & 0x80) != 0;//(SK_GetAsyncKeyState ( 0x0D ) & 0x8000) != 0;
-      //for (int i = 0x10; i < 0x16; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0x17; i < 0x1A; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0x1B; i < 0x3A; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0x41; i < 0x5E; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0x5F; i < 0x88; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0x90; i < 0x97; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0xA0; i < 0xB8; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0xBA; i < 0xC1; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0xDB; i < 0xE0; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0xE1; i < 0xE8; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-      //for (int i = 0xE9; i < 0xFF; i++)
-      //  io.KeysDown [i]  = (key_state [i] & 0x80) != 0;//(SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    //}
 
     ///if ( io.MouseDown [0] ||
     ///     io.MouseDown [1]  ) SK_ImGui_Cursor.update ();
@@ -2167,8 +2114,8 @@ SK_ImGui_User_NewFrame (void)
   else
   {
     io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableKeyboard;
-  //io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableGamepad;
-  //io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
+    io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableGamepad;
+    io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
   }
 
   if ( io.DisplaySize.x <= 0.0f ||

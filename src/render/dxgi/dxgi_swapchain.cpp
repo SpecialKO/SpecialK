@@ -64,7 +64,7 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
 
   else if (
   //riid == __uuidof (this)                 ||
-  //riid == __uuidof (IUnknown)             || Ignore IUnknown, it's often queried to test object equality between different interfaces
+    riid == __uuidof (IUnknown)             ||
     riid == __uuidof (IDXGIObject)          ||
     riid == __uuidof (IDXGIDeviceSubObject) ||
     riid == __uuidof (IDXGISwapChain)       ||
@@ -149,7 +149,7 @@ IWrapDXGISwapChain::Release (void)
 
   if (refs == 0)
   {
-    assert (ReadAcquire (&refs_) == 0);
+    SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
 
     if (ReadAcquire (&refs_) == 0)
     {
@@ -158,7 +158,6 @@ IWrapDXGISwapChain::Release (void)
       else
         InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
 
-      // Let it leak, in practice that's way safer.
       delete this;
     }
   }
@@ -293,8 +292,6 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::ResizeTarget (const DXGI_MODE_DESC *pNewTargetParameters)
 {
-  return S_OK;
-
   //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (this, 0, pNewTargetParameters->Width, pNewTargetParameters->Height, pNewTargetParameters->Format)))
   //  return S_OK;
 
@@ -587,13 +584,13 @@ IWrapDXGISwapChain::ResizeBuffers1 ( UINT        BufferCount,
                          SwapChainFlags, pCreationNodeMask,
                            ppPresentQueue );
 
-  if (hr == DXGI_ERROR_INVALID_CALL)
-  {
-  }
-  else if (FAILED (hr))
-  {
-    return hr;
-  }
+  //if (hr == DXGI_ERROR_INVALID_CALL)
+  //{
+  //}
+  //else if (FAILED (hr))
+  //{
+  //  return hr;
+  //}
 
   return hr;
 }

@@ -2506,8 +2506,8 @@ auto DeclKeybind =
     free (wszAssign);
   }
 
-  input.gamepad.xinput.ui_slot->load ((int &)config.input.gamepad.xinput.ui_slot);
-  input.gamepad.steam.ui_slot->load  ((int &)config.input.gamepad.steam.ui_slot);
+  input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
+  input.gamepad.steam.ui_slot->load    ((int &)config.input.gamepad.steam.ui_slot);
 
 
   threads.enable_mem_alloc_trace->load (config.threads.enable_mem_alloc_trace);

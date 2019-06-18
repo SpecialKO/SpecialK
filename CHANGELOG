@@ -1,3 +1,49 @@
+0.10.2:
+
+ + Ansel is automatically disabled in games that are whitelisted (many of them should not be).
+
+     Although I cannot reproduce any compatibility issues whatsoever with Ansel, this was the
+       most economical approach to solving rampant reports of Ansel crashing games.
+
+    -- If, like me, Ansel doesn't cause any compatibility problems on your system, you may
+         re-enable it from the Help menu.
+
+ + Memory performance data acquisition no longer uses WMI
+
+ + Added a Compact Working Set button to the thread widget, to reduce memory overhead;
+
+     >> The ideal use-case would be prior to switching applications to Chrome or other memory
+          intensive applications.
+      > I may add an option to automatically do this on alt-tab in future versions
+
+ + Added in-game link to PCGamingWiki for any Steam game (see Help menu)
+ + Added resolution scaling preferences in terms of screen % to custom ReShade
+ + Added an optional background framerate limit that applies when running in the background
+
+ + Changed name of [SK] Primary Render Thread to [GAME] ... to clear up misconceptions that it
+     is a thread created, owned or managed by Special K.
+
+ + Fixed incorrect HDR detection in some Unreal Engine 4 games
+ + Fixed buffer overrun when fetching > 384 friend achievements
+ + Fixed mouse cursor auto-hide feature not actually auto-hiding in most games
+ + Fixed achievements not unlocking in A Plage Tale: Innocence and possibly other games
+ + Fixed issue preventing EULA from showing on screen if an assertion popup was triggered first
+ + Fixed unresponsive text input in Special K's console when (to-game) input blocking is enabled
+ + Fixed incorrect API auto-detect in many games if run for the first time with no config file in v 0.10.1
+ + Fixed some games treating disabled keyboard input as though buttons were being held down constantly
+
+   >> This problem only affects whether a game draws KB&M or Gamepad icons, actual gameplay is unaffected.
+
+    > For future developer reference, if a game calls GetKeyState (...) and you wish to block it,
+        the proper way to do this is to cast KF_UP to SHORT and then return it.
+
+ + Refactored a ton of code to modern C++17, from what had been mostly C++ Duct Tape compliant code.
+
+   >> This is an ongoing process, but the codebase needs all the new lanaguage features that
+        I havee been neglecting or it is going to collapse under its own unmanageable weight
+          at some point.
+
+
 0.9.24.x:
 
  + Changed MHW plug-in to write-out all config values on first load
@@ -34,7 +80,7 @@
 0.9.23:
 
    ( D3D11 ReShade and various mod features for D3D11 games may not work
-       correctly starting with 0.9.23, I will work to get that resolved as 
+       correctly starting with 0.9.23, I will work to get that resolved as
          quickly as I can )
 
  + Added CPU clock rate to CPU performance widget; will add core parking and
@@ -88,7 +134,7 @@
   @ Current support is limited to D3D11 with no on-screen MSAA, sRGB or HDR framebuffers
     ---------------
 
- 
+
 0.9.20:
 
  (.2): Fixed WMI Memory Perfmon not using the correct PID
@@ -157,7 +203,7 @@
     unbalanced; fullscreen mode transition in this and other games is safer now.
  + Fixed Steam achievement server->client callbacks in Star Ocean 4 and The Witcher 3
  + Turned D3D11 deferred isolation off by default since most games do not need it
- 
+
  + Added real-time stack traces for all running threads to the thread debugger
  + Rewrote debug symbol loading code for better multi-threaded performance
  + Changed Thread-Local Storage to Fiber-Local Storage for UWP compliance
@@ -167,7 +213,7 @@
 
  + Fixed NvAPI issues in some third-party (vidcap) software that could break
      hardware monitoring (fan RPM in particular).
- 
+
  =====
   *** Fixed CBT Hook Teardown Broadcast -- it was not running in the 64-bit
         builds and caused many WER faults when upgrading Special K. ***
@@ -227,7 +273,7 @@
    >> In theory I could now start using D3DCompiler_47.dll, but I'll stick
         with _43 until I need the more advanced features for shader modding.
 
-  
+
 0.9.13:
 
  (.3): Added disk read/write info to thread tfooltip
@@ -351,7 +397,7 @@
 ===========================================================================
  IMPORTANT NOTES REGARDING Final Fantasy XV:
  -------------------------------------------
- 
+
   If you opt to use texture caching, set the limit to your entire VRAM
     capacity, otherwise it will fight with the game's internal cache and
       cause stuttering.
@@ -819,7 +865,7 @@
 
   >> Delete any existing config profile (dxgi.ini/SpecialK.ini) to take advantage of
 
- + Fixed HWND ping-pong issue in World of Final Fantasy 
+ + Fixed HWND ping-pong issue in World of Final Fantasy
  + Added XInput haptic recursion protection (safeguard against Steam overlay)
  + Added automatic mipmap generation option in D3D11
  + Corrected cached VRAM total calculation when injecting textures in D3D11
@@ -1113,7 +1159,7 @@
       and select a widget by pressing the shoulder buttons.
   > Moving a widget can be done by holding Square / X and moving the left analog stick
   > Double-tapping the Cross (PlayStation) or A (Xbox) buttons will open widget config
- 
+
  + Removed Alt+F4 input hack for Trails of Cold Steel; it is obsolete
 
 
@@ -1190,7 +1236,7 @@
  + Added mouse warp deadzone configuration to the control panel for games with obnoxious
      mouselook.
  + Fixed occasional Wbem Locator issues caused by the Steam Overlay
-   >> The reason that CPU stats, etc. can take several seconds to load is because the Steam 
+   >> The reason that CPU stats, etc. can take several seconds to load is because the Steam
         overlay holds a thread sync lock on the service needed for those stats. The reason
           those stats sometimes crash games is ... because the Steam overlay holds a lock.
    >> Tsk, tsk, Steam - other people need those services too, damit :)
@@ -1303,7 +1349,7 @@
 
 
 0.8.18:
- 
+
  + Added version info to wrapper DLL installations; updating is not supported
  + Installing a wrapper DLL through the compat menu now copies the config from the
      global profile.

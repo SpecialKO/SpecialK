@@ -248,10 +248,11 @@ iSK_Logger::close (void)
       SK_GetConfigPath ()
     );
 
-    full_name  += name;
-
     if (StrStrIW (name.c_str (), LR"(crash\)") != nullptr)
       full_name = name;
+
+    else
+      full_name += name;
 
     DeleteFileW  (full_name.c_str ());
   }
@@ -286,12 +287,13 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
     std::wstring (full_name + LR"(logs\)").c_str ()
   );
 
-  full_name  += wszFileName;
-
   if (StrStrIW (wszFileName, LR"(crash\)") != nullptr)
   {
     full_name = wszFileName;
   }
+
+  else
+    full_name += wszFileName;
 
   fLog   = _wfopen (full_name.c_str (), wszMode);
   silent = false;

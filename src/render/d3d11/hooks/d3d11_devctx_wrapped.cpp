@@ -238,7 +238,7 @@ public:
 
     if (
       //riid == __uuidof (this)                 ||
-      //riid == __uuidof (IUnknown)             ||  Ignore IUnknown, it's often queried to test object equality between different interfaces
+      riid == __uuidof (IUnknown)             ||
       riid == __uuidof (ID3D11DeviceChild)    ||
       riid == __uuidof (ID3D11DeviceContext)  ||
       riid == __uuidof (ID3D11DeviceContext1) ||
@@ -312,11 +312,10 @@ public:
 
     if (refs == 0)
     {
-      assert (ReadAcquire (&refs_) == 0);
+      SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
 
       if (ReadAcquire (&refs_) == 0)
       {
-        // Let it leak, in practice that's way safer.
         delete this;
       }
     }

@@ -134,12 +134,6 @@ SK_BootD3D9 (void)
     return;
   }
 
-  ///while (backend_dll == nullptr)
-  ///{
-  ///  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", SK_Thread_GetCurrentId ());
-  ///  SK_Sleep    (100UL);
-  ///}
-
   SK_D3D9_QuickHook ();
 
   // Establish the minimal set of APIs necessary to work as d3d9.dll
@@ -208,13 +202,6 @@ SK_BootD3D8 (void)
   //   not normal :)
   if (SK_GetFramesDrawn () > 0)
     return;
-
-
-  while (backend_dll == nullptr)
-  {
-    dll_log->Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", SK_Thread_GetCurrentId ());
-    SK_Sleep (100UL);
-  }
 
   // Establish the minimal set of APIs necessary to work as d3d8.dll
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
@@ -302,12 +289,6 @@ SK_BootDDraw (void)
 void
 SK_BootDXGI (void)
 {
-  //SK_TLS *pTLS =
-  //  SK_TLS_Bottom ();
-  //
-  //if (pTLS->d3d11->ctx_init_thread)
-  //  return;
-
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
   if (SK_GetFramesDrawn () > 0)
@@ -315,12 +296,6 @@ SK_BootDXGI (void)
 
 
   SK_DXGI_QuickHook ();
-
-  ////while (backend_dll == nullptr)
-  ////{
-  ////  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", SK_Thread_GetCurrentId ());
-  ////  SK_Sleep    (100UL);
-  ////}
 
   // Establish the minimal set of APIs necessary to work as dxgi.dll
   if (SK_GetDLLRole () == DLL_ROLE::DXGI)
@@ -375,18 +350,6 @@ SK_BootOpenGL (void)
   {
     return;
   }
-
-  // "Normal" games don't change render APIs mid-game; Talos does, but it's
-  //   not normal :)
-  //if (SK_GetFramesDrawn () > 0)
-  //  return;
-
-
-  //while (backend_dll == nullptr)
-  //{
-  //  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", SK_Thread_GetCurrentId ());
-  //  SK_Sleep    (100UL);
-  //}
 
   // Establish the minimal set of APIs necessary to work as OpenGL32.dll
   if (SK_GetDLLRole () == DLL_ROLE::OpenGL)

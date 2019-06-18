@@ -5134,13 +5134,13 @@ enum SK_File_SearchStopCondition {
 
 std::unordered_set <std::wstring>
 SK_RecursiveFileSearchEx (
-     const wchar_t                      *wszDir,
-     const wchar_t                      *wszExtension,
-     std::unordered_set <std::wstring>& cwsFileNames,
+     const wchar_t                           *wszDir,
+     const wchar_t                           *wszExtension,
+     std::unordered_set <std::wstring_view>& cwsFileNames,
      std::vector        <
      std::pair          < std::wstring, bool >
-     >&&                                preferred_dirs = { },
-     SK_File_SearchStopCondition        stop_condition = FirstMatchFound );
+     >&&                                     preferred_dirs = { },
+     SK_File_SearchStopCondition             stop_condition = FirstMatchFound );
 
 int
 SK_HookSteamAPI (void)
@@ -5206,8 +5206,8 @@ SK_HookSteamAPI (void)
                         static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
                         static_cast_p2p <void> (&SteamAPI_Shutdown) );                   ++hooks;
 
-    std::unordered_set <std::wstring> matches;
-    std::unordered_set <std::wstring> pattern = {
+    std::unordered_set <std::wstring>      matches;
+    std::unordered_set <std::wstring_view> pattern = {
 #ifdef _M_AMD64
       L"steam_api64",
 #else /* _M_IX86 */

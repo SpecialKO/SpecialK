@@ -1582,7 +1582,7 @@ NtUserGetCursorInfo_Detour (PCURSORINFO pci)
 {
   SK_LOG_FIRST_CALL
 
-  if (config.input.mouse.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  if ( SK_ImGui_WantMouseCapture () )
   {
     return FALSE;
   }
@@ -1670,7 +1670,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 {
   SK_LOG_FIRST_CALL
 
-  if (config.input.mouse.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  if ( SK_ImGui_WantMouseCapture () )
   {
     return FALSE;
   }
@@ -1691,7 +1691,9 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     //   (even if ImGui doesn't want mouse capture)
     if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+    {
       implicit_capture = true;
+    }
 
     if (SK_ImGui_WantMouseCapture () || implicit_capture)
     {
@@ -1733,7 +1735,8 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
 
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4 && GetActiveWindow () == SK_GetGameWindow () && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4 &&
+          GetActiveWindow () == SK_GetGameWindow () )
   {
     const auto& io =
       ImGui::GetIO ();
@@ -1784,7 +1787,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
   SK_LOG_FIRST_CALL
 
-  if (config.input.mouse.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  if ( SK_ImGui_WantMouseCapture () )
   {
     return FALSE;
   }
@@ -1908,20 +1911,29 @@ SK_GetAsyncKeyState (int vKey)
     GetAsyncKeyState (vKey);
 }
 
-SHORT
+// Shared by GetAsyncKeyState and GetKeyState, just pass the corret
+//   function pointer and this code only has to be written once.
+USHORT
 WINAPI
-NtUserGetAsyncKeyState_Detour (_In_ int vKey)
+SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
 {
-  SK_LOG_FIRST_CALL
-
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-#define SK_ConsumeVKey(vKey) { SK_GetAsyncKeyState(vKey); return 0; }
+  auto SK_ConsumeVKey = [&](int vKey) ->
+  USHORT
+  {
+    pfnGetFunc (vKey);
+
+    return
+      KF_UP;
+  };
 
   // Block keyboard input to the game while the console is active
   if (SK_Console::getInstance ()->isVisible ())
+  {
     SK_ConsumeVKey (vKey);
+  }
 
   bool fullscreen =
     ( SK_GetFramesDrawn () && rb.fullscreen_exclusive );
@@ -1929,28 +1941,44 @@ NtUserGetAsyncKeyState_Detour (_In_ int vKey)
   // Block keyboard input to the game while it's in the background
   if ((! fullscreen) &&
       config.window.background_render && (! game_window.active))
-    SK_ConsumeVKey (vKey);
-
-  if (vKey & 0xF8) // Valid Keys:  8 - 255
   {
-    if (SK_ImGui_WantKeyboardCapture ())
-      SK_ConsumeVKey (vKey);
+    SK_ConsumeVKey (vKey);
   }
 
+  // Valid Keys:  8 - 255
+  if ((vKey & 0xF8) != 0)
+  {
+    if (SK_ImGui_WantKeyboardCapture ())
+    {
+      SK_ConsumeVKey (vKey);
+    }
+  }
+
+  // 0-8 = Mouse + Unused Buttons
   else if (vKey < 8)
   {
     // Some games use this API for mouse buttons, for reasons that are beyond me...
     if (SK_ImGui_WantMouseCapture ())
+    {
       SK_ConsumeVKey (vKey);
-  }
-
-  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
-  {
-    return 0;
+    }
   }
 
   return
-    SK_GetAsyncKeyState (vKey);
+    pfnGetFunc (vKey);
+}
+
+SHORT
+WINAPI
+NtUserGetAsyncKeyState_Detour (_In_ int vKey)
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    SK_GetSharedKeyState_Impl (
+      vKey,
+        GetAsyncKeyState_Original
+    );
 }
 
 SHORT
@@ -1965,47 +1993,15 @@ SK_GetKeyState (_In_ int nVirtKey)
 
 SHORT
 WINAPI
-NtUserGetKeyState_Detour (_In_ int nVirtKey)
+NtUserGetKeyState_Detour (_In_ int vKey)
 {
   SK_LOG_FIRST_CALL
 
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-#define SK_ConsumeVirtKey(nVirtKey) { SK_GetKeyState (nVirtKey); return 0; }
-
-  // Block keyboard input to the game while the console is active
-  if (SK_Console::getInstance ()->isVisible ())
-    SK_ConsumeVirtKey (nVirtKey);
-
-  bool fullscreen =
-    ( SK_GetFramesDrawn () && rb.fullscreen_exclusive );
-
-  // Block keyboard input to the game while it's in the background
-  if ((! fullscreen) &&
-      config.window.background_render && (! game_window.active))
-    SK_ConsumeVirtKey (nVirtKey);
-
-  if (nVirtKey & 0xF8) // Valid Keys:  8 - 255
-  {
-    if (SK_ImGui_WantKeyboardCapture ())
-      SK_ConsumeVirtKey (nVirtKey);
-  }
-
-  else if (nVirtKey < 8)
-  {
-    // Some games use this API for mouse buttons, for reasons that are beyond me...
-    if (SK_ImGui_WantMouseCapture ())
-      SK_ConsumeVirtKey (nVirtKey);
-  }
-
-  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
-  {
-    return 0;
-  }
-
-  //return SK_GetAsyncKeyState (nVirtKey);
-  return SK_GetKeyState (nVirtKey);
+  return
+    SK_GetSharedKeyState_Impl (
+      vKey,
+        GetKeyState_Original
+    );
 }
 
 //typedef BOOL (WINAPI *SetKeyboardState_pfn)(PBYTE lpKeyState); // TODO
@@ -2032,17 +2028,28 @@ NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
 
   if (bRet)
   {
-    if (SK_ImGui_WantKeyboardCapture ())
-      RtlZeroMemory (&lpKeyState [7], 247);
+    bool capture_mouse    = SK_ImGui_WantMouseCapture    ();
+    bool capture_keyboard = SK_ImGui_WantKeyboardCapture ();
 
-    // Some games use this API for mouse buttons, for reasons that are beyond me...
-    if (SK_ImGui_WantMouseCapture ())
-      RtlZeroMemory (lpKeyState, 7);
-  }
+    // All-at-once
+    if (capture_mouse && capture_keyboard)
+    {
+      RtlZeroMemory (lpKeyState, 255);
+    }
 
-  if (config.input.keyboard.disabled_to_game && SK_GetCallingDLL () == GetModuleHandle (nullptr))
-  {
-    return FALSE;
+    else
+    {
+      if (capture_keyboard)
+      {
+        RtlZeroMemory (&lpKeyState [7], 247);
+      }
+
+      // Some games use this API for mouse buttons, for reasons that are beyond me...
+      if (capture_mouse)
+      {
+        RtlZeroMemory (lpKeyState, 7);
+      }
+    }
   }
 
   return bRet;
@@ -2056,6 +2063,193 @@ ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 extern BOOL
 SK_IsChild (HWND hWndParent, HWND hWnd);
 
+  struct SK_MouseTimer {
+    POINTS pos      = {     }; // POINT (Short) - Not POINT plural ;)
+    DWORD  sampled  =     0UL;
+    bool   cursor   =    true;
+
+    int    init     =   FALSE;
+    UINT   timer_id = 0x68993;
+  } static last_mouse;
+
+  //extern bool IsControllerPluggedIn (INT iJoyID);
+
+bool
+SK_Window_IsCursorActive (void)
+{
+  return last_mouse.cursor;
+}
+
+bool
+SK_Window_ActivateCursor (bool changed = false)
+{
+  const bool was_active = last_mouse.cursor;
+
+  if (! was_active)
+  {
+    if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+    {
+      while (ShowCursor (TRUE) < 0) ;
+      last_mouse.cursor = true;
+    }
+  }
+
+  if (changed && (! SK_IsSteamOverlayActive ()))
+    last_mouse.sampled = SK::ControlPanel::current_time;
+
+  return (last_mouse.cursor != was_active);
+};
+
+bool
+SK_Window_DeactivateCursor (bool ignore_imgui = false)
+{
+  if (! ignore_imgui)
+  {
+    if ( SK_ImGui_WantMouseCaptureEx (0xFFFFFFFF & ~REASON_DISABLED) ||
+         (! last_mouse.cursor) )
+    {
+      last_mouse.sampled = SK::ControlPanel::current_time;
+
+      return false;
+    }
+  }
+
+  bool was_active = last_mouse.cursor;
+
+  if (ignore_imgui || last_mouse.sampled < SK::ControlPanel::current_time - config.input.cursor.timeout)
+  {
+    if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+    {
+      while (ShowCursor (FALSE) >= -1) ;
+      last_mouse.cursor = false;
+
+      last_mouse.sampled = SK::ControlPanel::current_time;
+    }
+  }
+
+  return (last_mouse.cursor != was_active);
+};
+
+bool
+SK_Input_DetermineMouseIdleState (MSG* lpMsg)
+{
+  if (! last_mouse.init)
+  {
+    if (config.input.cursor.timeout != 0)
+    {
+      SetTimer ( lpMsg->hwnd,
+                   gsl::narrow_cast <UINT_PTR> (        last_mouse.timer_id),
+                   gsl::narrow_cast <UINT>     (config.input.cursor.timeout) / 2,
+                     nullptr );
+    }
+    else
+    {
+      SetTimer ( lpMsg->hwnd,
+                 static_cast <UINT_PTR> (last_mouse.timer_id),
+                 250UL/*USER_TIMER_MINIMUM*/,
+                 nullptr );
+    }
+
+    last_mouse.init = TRUE;
+  }
+
+  bool activation_event =
+    (lpMsg->message == WM_MOUSEMOVE) && (! SK_IsSteamOverlayActive ());
+
+  // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
+  if (activation_event)
+  {
+    const short threshold = 3;
+
+    // Filter out small movements
+    if ( abs (last_mouse.pos.x - GET_X_LPARAM (lpMsg->lParam)) < threshold &&
+         abs (last_mouse.pos.y - GET_Y_LPARAM (lpMsg->lParam)) < threshold )
+      activation_event = false;
+
+    last_mouse.pos =
+      MAKEPOINTS (lpMsg->lParam);
+  }
+
+  if (config.input.cursor.keys_activate)
+    activation_event |= ( lpMsg->message >= WM_KEYFIRST &&
+                          lpMsg->message <= WM_KEYLAST );
+
+  bool bCapturingMouse =
+    SK_ImGui_WantMouseCaptureEx (0xFFFFFFFF & ~REASON_DISABLED);
+
+  // If timeout is 0, just hide the thing indefinitely
+  if (activation_event)
+  {
+    if ( config.input.cursor.timeout != 0 ||
+         bCapturingMouse )
+    {
+      SK_Window_ActivateCursor (true);
+    }
+  }
+
+  else if ( lpMsg->message == WM_TIMER             &&
+            lpMsg->wParam  == last_mouse.timer_id &&
+            (! SK_IsSteamOverlayActive ()) &&
+            game_window.active )
+  {
+    if (! bCapturingMouse)
+    {
+      SK_Window_DeactivateCursor ();
+
+      return true;
+    }
+
+    else
+    {
+      SK_Window_ActivateCursor ();
+    }
+  }
+
+  return false;
+}
+
+UINT
+SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
+                            bool&     mouse,
+                            bool&     keyboard,
+                            bool&     gamepad )
+{
+        RAWINPUTHEADER header = { };
+        UINT           size   = sizeof (RAWINPUTHEADER);
+  const UINT           ret    =
+    SK_GetRawInputData ( (HRAWINPUT)lParam,
+                           RID_HEADER,
+                             &header, &size,
+                               sizeof (RAWINPUTHEADER) );
+
+  if (ret == size)
+  {
+    switch (header.dwType)
+    {
+      case RIM_TYPEMOUSE:
+        mouse = true;
+        break;
+
+      case RIM_TYPEKEYBOARD:
+        // TODO: Post-process this; the RawInput API also duplicates the legacy mouse buttons as keys.
+        //
+        //         We need to treat events reflecting those keys as MOUSE events.
+        keyboard = true;
+        break;
+
+      default:
+        gamepad = true;
+        break;
+    }
+
+    return
+      header.dwSize;
+  }
+
+  return 0;
+}
+
+
 bool
 SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 {
@@ -2063,6 +2257,21 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
   //
   ///assert ( lpMsg->hwnd == 0 ||
   ///         lpMsg->hwnd == game_window.hWnd );
+
+
+  #if 0
+  if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
+  {
+    POINT pt;
+
+    pt.x = GET_X_LPARAM (lParam);
+    pt.y = GET_Y_LPARAM (lParam);
+
+    SK_CalcCursorPos (&pt);
+
+    lParam = MAKELPARAM ((SHORT)pt.x, (SHORT)pt.y);
+  }
+#endif
 
   bool handled = false;
 
@@ -2073,17 +2282,28 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
     return handled;
   }
 
-  ////SK_LOG1 ( ( L"Handle Message? %04x, HWND=%04x", lpMsg->message, lpMsg->hwnd ),
-  ////            L"ImGuiTrace" );
-  ////
-  ////if (           game_window.hWnd != nullptr     &&
-  ////               game_window.hWnd != lpMsg->hwnd &&
-  ////    false            ==
-  ////   SK_IsChild (game_window.hWnd,   lpMsg->hwnd)
-  ////   )
-  ////{
-  ////  return false;
-  ////}
+  if (config.input.cursor.manage)
+  {
+    // The handler may filter a specific timer message.
+    if (SK_Input_DetermineMouseIdleState (lpMsg))
+      handled = true;
+  }
+
+  if (lpMsg->message == WM_MOUSEMOVE)
+  {
+    if (! game_window.active)
+    {
+      POINT pt;
+      pt.x = GET_X_LPARAM (lpMsg->lParam);
+      pt.y = GET_Y_LPARAM (lpMsg->lParam);
+
+      ClientToScreen (lpMsg->hwnd, &pt);
+
+      game_window.cursor_pos = pt;
+    }
+  }
+
+
 
   switch (lpMsg->message)
   {
@@ -2097,14 +2317,43 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
     // Fix for Melody's Escape, which attempts to remove these messages!
     case WM_KEYDOWN:
-    case WM_KEYUP:
     case WM_SYSKEYDOWN:
+    {
+      if ( ( SK_Console::getInstance    ()->KeyDown (
+                lpMsg->wParam & 0xFF,
+                lpMsg->lParam                       )
+             && lpMsg->message != WM_SYSKEYDOWN ) ||
+                  SK_ImGui_WantKeyboardCapture ()
+         )
+      {
+        if (ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
+                                   lpMsg->wParam, lpMsg->lParam ) )
+        {
+          game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
+                                      lpMsg->wParam, lpMsg->lParam );
+          handled = true;
+        }
+      }
+    } break;
+
+    case WM_KEYUP:
     case WM_SYSKEYUP:
     {
-      handled  =
-        ( ImGui_WndProcHandler  ( lpMsg->hwnd,   lpMsg->message,
-                                  lpMsg->wParam, lpMsg->lParam ) != 0 )
-          && SK_ImGui_WantKeyboardCapture ();
+      if ( ( SK_Console::getInstance    ()->KeyUp (
+                lpMsg->wParam & 0xFF,
+                lpMsg->lParam                       )
+             && lpMsg->message != WM_SYSKEYUP ) ||
+                SK_ImGui_WantKeyboardCapture ()
+         )
+      {
+        if (ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
+                                   lpMsg->wParam, lpMsg->lParam ) )
+        {
+          game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
+                                      lpMsg->wParam, lpMsg->lParam );
+          handled = true;
+        }
+      }
     } break;
 
     case WM_SETCURSOR:
@@ -2119,11 +2368,61 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       }
     } break;
 
+
+    case WM_INPUT:
+    {
+      bool mouse    = false,
+           keyboard = false,
+           gamepad  = false;
+
+      auto& hWnd   = lpMsg->hwnd;
+      auto& uMsg   = lpMsg->message;
+      auto& wParam = lpMsg->wParam;
+      auto& lParam = lpMsg->lParam;
+
+      if ( RIM_INPUTSINK ==
+             GET_RAWINPUT_CODE_WPARAM (lpMsg->wParam) )
+      {
+        handled = true;
+        game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      }
+
+      else
+      {
+        SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
+
+        if (mouse && SK_ImGui_WantMouseCapture ())
+        {
+          handled = true;
+        }
+
+        if (keyboard && SK_ImGui_WantKeyboardCapture ())
+        {
+          handled = true;
+        }
+
+        if (gamepad && SK_ImGui_WantGamepadCapture ())
+        {
+          handled = true;
+        }
+
+        if (handled)
+        {
+          handled =
+            ( 0 !=
+                ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
+                                       lpMsg->wParam, lpMsg->lParam  ) );
+        }
+      }
+    } break;
+
+
     // TODO: Does this message have an HWND always?
     case WM_DEVICECHANGE:
     {
       handled =
-        ( 0 != ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) );
+        ( 0 != ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
+                                      lpMsg->wParam, lpMsg->lParam ) );
     } break;
 
 
@@ -2150,25 +2449,6 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         ( 0 != ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
                                       lpMsg->wParam, lpMsg->lParam ) )
           && SK_ImGui_WantMouseCapture ();
-    } break;
-
-    case WM_INPUT:
-    {
-      if ( RIM_INPUTSINK ==
-             GET_RAWINPUT_CODE_WPARAM (lpMsg->wParam) )
-      {
-        handled = true;
-
-        DefWindowProcW ( lpMsg->hwnd,   lpMsg->message,
-                         lpMsg->wParam, lpMsg->lParam );
-      }
-
-      else
-      {
-        handled =
-           ( 0 != ImGui_WndProcHandler ( lpMsg->hwnd,   lpMsg->message,
-                                         lpMsg->wParam, lpMsg->lParam  ) );
-      }
     } break;
 
     default:
@@ -2328,11 +2608,9 @@ void SK_Input_PreInit (void)
 
 
 
-typedef HKL (WINAPI *GetKeyboardLayout_pfn)(
-  _In_ DWORD idThread
-);
-
-GetKeyboardLayout_pfn GetKeyboardLayout_Original = nullptr;
+typedef HKL (WINAPI *GetKeyboardLayout_pfn)(_In_ DWORD idThread);
+                     GetKeyboardLayout_pfn
+                     GetKeyboardLayout_Original = nullptr;
 
 SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, HKL>> CachedHKL;
 

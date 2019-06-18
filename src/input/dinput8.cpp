@@ -962,8 +962,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         static_cast <DIJOYSTATE2 *> (lpvData);
 
       bool disabled_to_game =
-        ( config.input.gamepad.disabled_to_game ||
-          SK_ImGui_WantGamepadCapture ()           );
+        SK_ImGui_WantGamepadCapture ();
 
       if (SUCCEEDED (hr))
       {
@@ -994,8 +993,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         static_cast <DIJOYSTATE *> (lpvData);
 
       bool disabled_to_game =
-        ( config.input.gamepad.disabled_to_game ||
-          SK_ImGui_WantGamepadCapture ()           );
+        SK_ImGui_WantGamepadCapture ();
 
       if (SUCCEEDED (hr))
       {
@@ -1019,8 +1017,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
       SK_DI8_READ (sk_input_dev_type::Keyboard)
 
       bool disabled_to_game =
-        ( config.input.keyboard.disabled_to_game ||
-          SK_ImGui_WantKeyboardCapture ()           );
+        SK_ImGui_WantKeyboardCapture ();
 
       if (SUCCEEDED (hr))
         memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
@@ -1040,8 +1037,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
                                        //InterlockedExchange (&SK_Input_GetDI8Mouse ()->delta_z, 0);
 
       bool disabled_to_game =
-        ( config.input.mouse.disabled_to_game ||
-          SK_ImGui_WantMouseCapture ()           );
+        SK_ImGui_WantMouseCapture ();
 
       if (SUCCEEDED (hr))
         memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);

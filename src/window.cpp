@@ -48,17 +48,17 @@
 #endif
 
 
-// Avoid static storage in the callback function
-struct SK_MouseTimer {
-  POINTS pos      = {     }; // POINT (Short) - Not POINT plural ;)
-  DWORD  sampled  =     0UL;
-  bool   cursor   =    true;
-
-  int    init     =   FALSE;
-  UINT   timer_id = 0x68993;
-};
-
-SK_LazyGlobal <SK_MouseTimer> last_mouse;
+//// Avoid static storage in the callback function
+//struct SK_MouseTimer {
+//  POINTS pos      = {     }; // POINT (Short) - Not POINT plural ;)
+//  DWORD  sampled  =     0UL;
+//  bool   cursor   =    true;
+//
+//  int    init     =   FALSE;
+//  UINT   timer_id = 0x68993;
+//};
+//
+//SK_LazyGlobal <SK_MouseTimer> last_mouse;
 
 
 BOOL
@@ -1252,46 +1252,7 @@ ActivateWindow (HWND hWnd, bool active = false)
 //  return false;
 //}
 
-UINT
-SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
-                            bool&     mouse,
-                            bool&     keyboard,
-                            bool&     gamepad )
-{
-        RAWINPUTHEADER header = { };
-        UINT           size   = sizeof (RAWINPUTHEADER);
-  const UINT           ret    =
-    SK_GetRawInputData ( (HRAWINPUT)lParam,
-                           RID_HEADER,
-                             &header, &size,
-                               sizeof (RAWINPUTHEADER) );
 
-  if (ret == size)
-  {
-    switch (header.dwType)
-    {
-      case RIM_TYPEMOUSE:
-        mouse = true;
-        break;
-
-      case RIM_TYPEKEYBOARD:
-        // TODO: Post-process this; the RawInput API also duplicates the legacy mouse buttons as keys.
-        //
-        //         We need to treat events reflecting those keys as MOUSE events.
-        keyboard = true;
-        break;
-
-      default:
-        gamepad = true;
-        break;
-    }
-
-    return
-      header.dwSize;
-  }
-
-  return 0;
-}
 
 LRESULT
 CALLBACK
@@ -4493,124 +4454,17 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     SK_Console::getInstance ()->isVisible ();
 
 
-#if 0
-  if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
-  {
-    POINT pt;
-
-    pt.x = GET_X_LPARAM (lParam);
-    pt.y = GET_Y_LPARAM (lParam);
-
-    SK_CalcCursorPos (&pt);
-
-    lParam = MAKELPARAM ((SHORT)pt.x, (SHORT)pt.y);
-  }
-#endif
-
-
-  if (config.input.cursor.manage)
-  {
-    //extern bool IsControllerPluggedIn (INT iJoyID);
-
-    const auto ActivateCursor = [](bool changed = false)->
-      bool
-    {
-      const bool was_active = last_mouse->cursor;
-
-      if (last_mouse->cursor == false)
-      {
-        if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-        {
-          while (ShowCursor (TRUE) < 0) ;
-          last_mouse->cursor = true;
-        }
-      }
-
-      if (changed && (! SK_IsSteamOverlayActive ()))
-        last_mouse->sampled = SK::ControlPanel::current_time;
-
-      return (last_mouse->cursor != was_active);
-    };
-
-    const auto DeactivateCursor =
-      []{
-      if (! last_mouse->cursor)
-        return false;
-
-      bool was_active = last_mouse->cursor;
-
-      if (last_mouse->sampled <= SK::ControlPanel::current_time - config.input.cursor.timeout)
-      {
-        if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-        {
-          while (ShowCursor (FALSE) >= -1) ;
-          last_mouse->cursor = false;
-
-          last_mouse->sampled = SK::ControlPanel::current_time;
-        }
-      }
-
-      return (last_mouse->cursor != was_active);
-    };
-
-    if (! last_mouse->init)
-    {
-      if (config.input.cursor.timeout != 0)
-      {
-        SetTimer ( hWnd,
-                     gsl::narrow_cast <UINT_PTR> (        last_mouse->timer_id),
-                     gsl::narrow_cast <UINT>     (config.input.cursor.timeout) / 2,
-                       nullptr );
-      }
-      else
-      {
-        SetTimer ( hWnd,
-                   static_cast <UINT_PTR> (last_mouse->timer_id),
-                   250UL/*USER_TIMER_MINIMUM*/,
-                   nullptr );
-      }
-
-      last_mouse->init = TRUE;
-    }
-
-    bool activation_event =
-      (uMsg == WM_MOUSEMOVE) && (! SK_IsSteamOverlayActive ());
-
-    // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
-    if (activation_event)
-    {
-      const short threshold = 2;
-
-      // Filter out small movements
-      if ( abs (last_mouse->pos.x - GET_X_LPARAM (lParam)) < threshold &&
-           abs (last_mouse->pos.y - GET_Y_LPARAM (lParam)) < threshold )
-        activation_event = false;
-
-      last_mouse->pos =
-        MAKEPOINTS (lParam);
-    }
-
-    if (config.input.cursor.keys_activate)
-      activation_event |= ( uMsg == WM_CHAR       ||
-                            uMsg == WM_SYSKEYDOWN ||
-                            uMsg == WM_SYSKEYUP );
-
-    // If timeout is 0, just hide the thing indefinitely
-    if (activation_event && config.input.cursor.timeout != 0)
-      ActivateCursor (true);
-
-    else if ( uMsg   == WM_TIMER             &&
-              wParam == last_mouse->timer_id &&
-              (! SK_IsSteamOverlayActive ()) &&
-             game_window.active )
-    {
-      if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot))
-        DeactivateCursor ();
-
-      else
-        ActivateCursor ();
-    }
-  }
+  //extern bool
+  //SK_Input_DetermineMouseIdleState (MSG* lpMsg);
+  //
+  //MSG msg;
+  //msg.hwnd = hWnd;
+  //msg.lParam = lParam;
+  //msg.wParam = wParam;
+  //msg.message = uMsg;
+  //
+  //if (SK_Input_DetermineMouseIdleState (&msg))
+  //  return 0;
 
 
   static auto& rb =
@@ -4710,14 +4564,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         return 0;
       } break;
-
-  //case WM_DISPLAYCHANGE:
-  //case WM_COMMAND:       // QLOC specific weirdness
-      //if ((! rb.fullscreen_exclusive) && config.window.background_render)
-      //{
-      //  return
-      //    game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-      //} break;
 
     case WM_SETFOCUS:
       ActivateWindow (hWnd, true);
@@ -5085,6 +4931,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_SIZING:
     case WM_MOVING:
+    {
       if (config.window.unconfine_cursor)
         SK_ClipCursor (nullptr);
 
@@ -5093,64 +4940,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
         return 1;
-      }
-      break;
-
-
-    case WM_KEYDOWN:
-    case WM_SYSKEYDOWN:
-      if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
-      {
-        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
-        {
-          game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-          return 0;
-        }
-      }
-      break;
-
-    case WM_KEYUP:
-    case WM_SYSKEYUP:
-      if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
-      {
-        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
-        {
-          game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-          return 0;
-        }
-      }
-      break;
-
-    case WM_MOUSEMOVE:
-      if (! game_window.active)
-      {
-        POINT pt;
-        pt.x = GET_X_LPARAM (lParam);
-        pt.y = GET_Y_LPARAM (lParam);
-
-        ClientToScreen (hWnd, &pt);
-
-        game_window.cursor_pos = pt;
-      }
-
-      else
-      {
-        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
-        {
-          if (SK_ImGui_WantMouseCapture ())
-            return 0;
-        }
-      }
-      break;
-
-    case WM_SETCURSOR:
-    {
-      if (SK_ImGui_WantMouseCapture ())
-      {
-        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
-        {
-          return 1;
-        }
       }
     } break;
   }
@@ -5224,35 +5013,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
     return 0;
   }
-
-  if (uMsg == WM_INPUT)
-  {
-    bool mouse    = false,
-         keyboard = false,
-         gamepad  = false;
-
-    SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
-
-    if (mouse && SK_ImGui_WantMouseCapture ())
-    {
-      game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-      return 0;
-    }
-
-    if (keyboard && SK_ImGui_WantKeyboardCapture ())
-    {
-      game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-      return 0;
-    }
-
-    if (gamepad && SK_ImGui_WantGamepadCapture ())
-    {
-      game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-      return 0;
-    }
-  }
-
-
 
   //
   // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed

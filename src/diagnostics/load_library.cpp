@@ -1093,8 +1093,12 @@ SK_ReHookLoadLibrary (void)
   ////
   ////MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
 
-  SK_ApplyQueuedHooks ();
-  SK_UnlockDllLoader  ();
+  extern volatile LONG __SK_Init;
+
+  if (ReadAcquire (&__SK_Init) > 0)
+  {
+    SK_ApplyQueuedHooks ();
+  } SK_UnlockDllLoader  ();
 
   return (calls > 1);
 }

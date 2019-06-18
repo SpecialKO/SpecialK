@@ -817,7 +817,7 @@ iSK_INISection::get_value (const wchar_t* key)
 
   static
     std::wstring
-         invalid = L"";//L"Invalid";
+         invalid = L"Invalid";
   return invalid;
 }
 
@@ -863,9 +863,9 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 
   else
   {
-    std::wstring val_wstr (value);
+    std::wstring_view val_wstr (value);
 
-    if (! add.first->second._Equal (val_wstr))
+    if (! add.first->second._Equal (val_wstr.data ()))
     {
       if (parent != nullptr)
       {
@@ -1073,7 +1073,7 @@ bool
 __stdcall
 iSK_INI::remove_section (const wchar_t* wszSection)
 {
-  std::wstring section_w (wszSection);
+  std::wstring_view section_w (wszSection);
 
   auto it =
     std::find ( ordered_sections.begin (),
@@ -1083,7 +1083,7 @@ iSK_INI::remove_section (const wchar_t* wszSection)
   if (it != ordered_sections.end ())
   {
     ordered_sections.erase (it);
-    sections.erase         (section_w);
+    sections.erase         (section_w.data ());
 
     return true;
   }
@@ -1095,7 +1095,7 @@ bool
 __stdcall
 iSK_INISection::remove_key (const wchar_t* wszKey)
 {
-  std::wstring key_w (wszKey);
+  std::wstring_view key_w (wszKey);
 
   auto it =
     std::find ( ordered_keys.begin (),
@@ -1105,7 +1105,7 @@ iSK_INISection::remove_key (const wchar_t* wszKey)
   if (it != ordered_keys.end ())
   {
     ordered_keys.erase (it);
-    keys.erase         (key_w);
+    keys.erase         (key_w.data ());
 
     if (parent != nullptr)
         parent->crc32_ = 0x0;

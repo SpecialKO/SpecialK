@@ -67,8 +67,6 @@ template <        >
 SK_LazyGlobal <skModuleRegistry>
               SK_Modules;
 
-SK_Thread_HybridSpinlock* _sk_lazy_alloc_mtx  = nullptr;
-
 SK_Thread_HybridSpinlock* init_mutex          = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex        = nullptr;
 SK_Thread_HybridSpinlock* wmi_cs              = nullptr;
@@ -268,9 +266,6 @@ DllMain ( HMODULE hModule,
     default:
     case DLL_PROCESS_ATTACH:
     {
-      if (_sk_lazy_alloc_mtx == nullptr)
-          _sk_lazy_alloc_mtx = new SK_Thread_HybridSpinlock (384);
-
       // Try, if assigned already (how?!) do not deadlock the Kernel loader
       if ( __SK_hModSelf       != hModule )
         skModuleRegistry::Self   (hModule);
@@ -1204,7 +1199,7 @@ SK_Detach (DLL_ROLE role)
     SK_CleanupMutex (&steam_mutex);
 
     SK_CleanupMutex (&steam_callback_cs);SK_CleanupMutex (&steam_popup_cs);
-    SK_CleanupMutex (&steam_init_cs);    SK_CleanupMutex (&_sk_lazy_alloc_mtx);
+    SK_CleanupMutex (&steam_init_cs);
 
     void SK_D3D11_CleanupMutexes (void);
          SK_D3D11_CleanupMutexes (    );
