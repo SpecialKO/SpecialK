@@ -312,7 +312,8 @@ struct SK_D3D11_KnownThreads
 {
   SK_D3D11_KnownThreads (void) noexcept ///
   {
-    InitializeCriticalSectionEx (&cs, 0x400, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN | SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
+    _lock =
+      std::make_unique <SK_Thread_HybridSpinlock> (0x400);
 
     //ids.reserve    (16);
     //active.reserve (16);
@@ -325,7 +326,9 @@ struct SK_D3D11_KnownThreads
   {
     if (use_lock)
     {
-      SK_AutoCriticalSection auto_cs (&cs);
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+            scope_lock (*_lock);
+
       active.clear ();
       return;
     }
@@ -337,7 +340,9 @@ struct SK_D3D11_KnownThreads
   {
     if (use_lock)
     {
-      SK_AutoCriticalSection auto_cs (&cs);
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+            scope_lock (*_lock);
+
       return active.size ();
     }
 
@@ -348,7 +353,9 @@ struct SK_D3D11_KnownThreads
   {
     if (use_lock)
     {
-      SK_AutoCriticalSection auto_cs (&cs);
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+            scope_lock (*_lock);
+
       return static_cast <float> (active.size ())/
              static_cast <float> (ids.size    ());
     }
@@ -360,10 +367,10 @@ struct SK_D3D11_KnownThreads
   static void mark (void) ;
 
 private:
-  std::unordered_set <DWORD> ids;
-  std::unordered_set <DWORD> active;
-  CRITICAL_SECTION           cs;
-  bool             use_lock = true;
+  std::unordered_set <DWORD>                     ids;
+  std::unordered_set <DWORD>                     active;
+  std::unique_ptr    <SK_Thread_HybridSpinlock> _lock;
+  bool                                       use_lock = true;
 };
 
 extern SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_MemoryThreads;

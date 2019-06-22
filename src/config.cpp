@@ -30,6 +30,8 @@ iSK_INI*       osd_ini    = nullptr;
 iSK_INI*       steam_ini  = nullptr;
 iSK_INI*       macro_ini  = nullptr;
 
+SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
+
 SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>> humanKeyNameToVirtKeyCode;
 SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>> virtKeyCodeToHumanKeyName;
 
@@ -177,7 +179,8 @@ auto LoadKeybind =
         return ret;
       }
 
-      return (sk::ParameterStringW *)nullptr;
+      return
+        (sk::ParameterStringW *)nullptr;
     };
 
 
@@ -580,16 +583,11 @@ SK_LoadConfig (const std::wstring& name) {
     SK_LoadConfigEx (name);
 }
 
-extern volatile LONG SK_SteamAPI_CallbackRateLimit;
-
-
-SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
-
 
 __declspec (noinline)
 const wchar_t*
 __stdcall
-SK_GetConfigPathEx (bool reset = false)
+SK_GetConfigPathEx (bool reset)
 {
   if ((! SK_IsInjected ()) && (! config.system.central_repository))
     return SK_GetNaiveConfigPath ();
@@ -631,7 +629,8 @@ const wchar_t*
 __stdcall
 SK_GetConfigPath (void)
 {
-  return SK_GetConfigPathEx ();
+  return
+    SK_GetConfigPathEx ();
 }
 
 
@@ -643,7 +642,7 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
                         const wchar_t *wszSection,
                         const wchar_t *wszKey )
 {
-  assert (std::is_polymorphic <_Tp> ());
+  static_assert (std::is_polymorphic <_Tp> ());
 
   auto ret =
     dynamic_cast <_Tp *> (
@@ -1412,10 +1411,6 @@ auto DeclKeybind =
                                             //      Razer *, RTSS (Sometimes)
                                             //
 
-  extern bool SK_DXGI_FullStateCache;
-              SK_DXGI_FullStateCache = config.render.dxgi.full_state_cache;
-
-
   // Default = Don't Care
   config.render.dxgi.exception_mode = -1;
   config.render.dxgi.scaling_mode   = -1;
@@ -1629,9 +1624,6 @@ auto DeclKeybind =
         // Don't auto-pump callbacks
         //  Excessively lenghty startup is followed by actual SteamAPI init eventually...
         config.steam.auto_pump_callbacks = false;
-
-        //config.render.dxgi.full_state_cache    = true;
-        //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
         break;
 
 #ifdef _M_IX86
@@ -1865,7 +1857,6 @@ auto DeclKeybind =
         config.textures.cache.residency_managemnt = false;
         config.cegui.enable                       = false; // Off by default
         config.render.framerate.disable_flip      = false;
-        //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
         break;
 
         case SK_GAME_ID::YakuzaKiwami2:
@@ -1960,9 +1951,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Tales_of_Vesperia:
       {
-        //extern bool __SK_Steam_IgnoreOverlayActivation;
-        //            __SK_Steam_IgnoreOverlayActivation = true;
-
         config.render.framerate.limiter_tolerance
                                                 = 4.25f;
         config.window.treat_fg_as_active        = true;
@@ -2423,8 +2411,6 @@ auto DeclKeybind =
   texture.cache.allow_staging->load     (config.textures.cache.allow_staging);
   texture.cache.allow_unsafe_refs->load (config.textures.cache.allow_unsafe_refs);
   texture.cache.manage_residency->load  (config.textures.cache.residency_managemnt);
-
-  extern void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
 
   if (config.render.dxgi.adapter_override != -1)
     SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
@@ -4539,11 +4525,4 @@ SK_Render_GetAPIHookMask (void)
     static_cast <SK_RenderAPI> (mask);
 }
 
-
-
-__forceinline
-sk_config_t& _config (void)
-{
-  static sk_config_t cfg;
-  return             cfg;
-}
+sk_config_t config;

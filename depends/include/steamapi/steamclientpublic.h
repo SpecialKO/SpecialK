@@ -12,11 +12,11 @@
 //lint -save -e1931 -e1927 -e1924 -e613 -e726
 
 // This header file defines the interface between the calling application and the code that
-// knows how to communicate with the connection manager (CM) from the Steam service 
+// knows how to communicate with the connection manager (CM) from the Steam service
 
 // This header file is intended to be portable; ideally this 1 header file plus a lib or dll
 // is all you need to integrate the client library into some other tree.  So please avoid
-// including or requiring other header files if possible.  This header should only describe the 
+// including or requiring other header files if possible.  This header should only describe the
 // interface layer, no need to include anything about the implementation.
 
 #include "steamtypes.h"
@@ -26,7 +26,7 @@
 enum EResult
 {
 	k_EResultOK	= 1,							// success
-	k_EResultFail = 2,							// generic failure 
+	k_EResultFail = 2,							// generic failure
 	k_EResultNoConnection = 3,					// no/failed network connection
 //	k_EResultNoConnectionRetry = 4,				// OBSOLETE - removed
 	k_EResultInvalidPassword = 5,				// password/ticket is invalid
@@ -91,8 +91,8 @@ enum EResult
 	k_EResultCannotUseOldPassword = 64,			// The requested new password is not legal
 	k_EResultInvalidLoginAuthCode = 65,			// account login denied due to auth code invalid
 	k_EResultAccountLogonDeniedNoMail = 66,		// account login denied due to 2nd factor auth failure - and no mail has been sent
-	k_EResultHardwareNotCapableOfIPT = 67,		// 
-	k_EResultIPTInitError = 68,					// 
+	k_EResultHardwareNotCapableOfIPT = 67,		//
+	k_EResultIPTInitError = 68,					//
 	k_EResultParentalControlRestricted = 69,	// operation failed due to parental control restrictions for current user
 	k_EResultFacebookQueryError = 70,			// Facebook query returned an error
 	k_EResultExpiredLoginAuthCode = 71,			// account login denied due to auth code expired
@@ -206,7 +206,7 @@ enum EUserHasLicenseForAppResult
 // Steam account types
 enum EAccountType
 {
-	k_EAccountTypeInvalid = 0,			
+	k_EAccountTypeInvalid = 0,
 	k_EAccountTypeIndividual = 1,		// single user account
 	k_EAccountTypeMultiseat = 2,		// multiseat (e.g. cybercafe) account
 	k_EAccountTypeGameServer = 3,		// game server account
@@ -225,7 +225,7 @@ enum EAccountType
 
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose:
 //-----------------------------------------------------------------------------
 enum EAppReleaseState
 {
@@ -238,7 +238,7 @@ enum EAppReleaseState
 
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose:
 //-----------------------------------------------------------------------------
 enum EAppOwnershipFlags
 {
@@ -281,7 +281,7 @@ enum EAppType
 	k_EAppType_Video				= 0x800,	// A video component of either a Film or TVSeries (may be the feature, an episode, preview, making-of, etc)
 	k_EAppType_Plugin				= 0x1000,	// Plug-in types for other Apps
 	k_EAppType_Music				= 0x2000,	// Music files
-		
+
 	k_EAppType_Shortcut				= 0x40000000,	// just a shortcut, client side only
 	k_EAppType_DepotOnly			= 0x80000000,	// placeholder since depots and apps share the same namespace
 };
@@ -312,7 +312,7 @@ enum ESteamUserStatType
 //-----------------------------------------------------------------------------
 enum EChatEntryType
 {
-	k_EChatEntryTypeInvalid = 0, 
+	k_EChatEntryTypeInvalid = 0,
 	k_EChatEntryTypeChatMsg = 1,		// Normal text message from another user
 	k_EChatEntryTypeTyping = 2,			// Another user is typing (not used in multi-user chat)
 	k_EChatEntryTypeInviteGame = 3,		// Invite from other user into that users current game
@@ -359,7 +359,7 @@ typedef bool (*PFNLegacyKeyInstalled)();
 const unsigned int k_unSteamAccountIDMask = 0xFFFFFFFF;
 const unsigned int k_unSteamAccountInstanceMask = 0x000FFFFF;
 // we allow 3 simultaneous user account instances right now, 1= desktop, 2 = console, 4 = web, 0 = all
-const unsigned int k_unSteamUserDesktopInstance	= 1;	 
+const unsigned int k_unSteamUserDesktopInstance	= 1;
 const unsigned int k_unSteamUserConsoleInstance	= 2;
 const unsigned int k_unSteamUserWebInstance		= 4;
 
@@ -389,7 +389,7 @@ enum EMarketingMessageFlags
 	k_EMarketingMessageFlagsPlatformLinux = 1 << 3,
 
 	//aggregate flags
-	k_EMarketingMessageFlagsPlatformRestrictions = 
+	k_EMarketingMessageFlagsPlatformRestrictions =
 		k_EMarketingMessageFlagsPlatformWindows |
         k_EMarketingMessageFlagsPlatformMac |
         k_EMarketingMessageFlagsPlatformLinux,
@@ -424,13 +424,13 @@ enum EBroadcastUploadResult
 	k_EBroadcastUploadResultMissingKeyFrames = 7,	// broadcast sending not enough key frames
 	k_EBroadcastUploadResultNoConnection = 8,	// broadcast client failed to connect to relay
 	k_EBroadcastUploadResultRelayFailed = 9,	// relay dropped the upload
-	k_EBroadcastUploadResultSettingsChanged = 10,	// the client changed broadcast settings 
+	k_EBroadcastUploadResultSettingsChanged = 10,	// the client changed broadcast settings
 	k_EBroadcastUploadResultMissingAudio = 11,	// client failed to send audio data
 	k_EBroadcastUploadResultTooFarBehind = 12,	// clients was too slow uploading
 };
 
 
-#pragma pack( push, 1 )		
+#pragma pack( push, 1 )
 
 #define CSTEAMID_DEFINED
 
@@ -466,7 +466,7 @@ public:
 	//-----------------------------------------------------------------------------
 	// Purpose: Constructor
 	// Input  : unAccountID -	32-bit account ID
-	//			unAccountInstance - instance 
+	//			unAccountInstance - instance
 	//			eUniverse -		Universe this account belongs to
 	//			eAccountType -	Type of account
 	//-----------------------------------------------------------------------------
@@ -485,7 +485,7 @@ public:
 	// Note:	Will not accept a uint32 or int32 as input, as that is a probable mistake.
 	//			See the stubbed out overloads in the private: section for more info.
 	//-----------------------------------------------------------------------------
-	CSteamID( uint64 ulSteamID )
+	CSteamID( uint64 ulSteamID ) noexcept
 	{
 		SetFromUint64( ulSteamID );
 	}
@@ -571,7 +571,7 @@ public:
 	}
 
 
-#if defined( INCLUDED_STEAM2_USERID_STRUCTS ) 
+#if defined( INCLUDED_STEAM2_USERID_STRUCTS )
 	//-----------------------------------------------------------------------------
 	// Purpose: Initializes a steam ID from a Steam2 ID structure
 	// Input:	pTSteamGlobalUserID -	Steam2 ID to convert
@@ -579,7 +579,7 @@ public:
 	//-----------------------------------------------------------------------------
 	void SetFromSteam2( TSteamGlobalUserID *pTSteamGlobalUserID, EUniverse eUniverse )
 	{
-		m_steamid.m_comp.m_unAccountID = pTSteamGlobalUserID->m_SteamLocalUserID.Split.Low32bits * 2 + 
+		m_steamid.m_comp.m_unAccountID = pTSteamGlobalUserID->m_SteamLocalUserID.Split.Low32bits * 2 +
 			pTSteamGlobalUserID->m_SteamLocalUserID.Split.High32bits;
 		m_steamid.m_comp.m_EUniverse = eUniverse;		// set the universe
 		m_steamid.m_comp.m_EAccountType = k_EAccountTypeIndividual; // Steam 2 accounts always map to account type of individual
@@ -775,7 +775,7 @@ public:
 	bool SetFromStringStrict( const char *pchSteamID, EUniverse eDefaultUniverse );
 	bool SetFromSteam2String( const char *pchSteam2ID, EUniverse eUniverse );
 
-	inline bool operator==( const CSteamID &val ) const { return m_steamid.m_unAll64Bits == val.m_steamid.m_unAll64Bits; } 
+	inline bool operator==( const CSteamID &val ) const { return m_steamid.m_unAll64Bits == val.m_steamid.m_unAll64Bits; }
 	inline bool operator!=( const CSteamID &val ) const { return !operator==( val ); }
 	inline bool operator<( const CSteamID &val ) const { return m_steamid.m_unAll64Bits < val.m_steamid.m_unAll64Bits; }
 	inline bool operator>( const CSteamID &val ) const { return m_steamid.m_unAll64Bits > val.m_steamid.m_unAll64Bits; }
@@ -817,7 +817,7 @@ inline bool CSteamID::IsValid() const
 {
 	if ( m_steamid.m_comp.m_EAccountType <= k_EAccountTypeInvalid || m_steamid.m_comp.m_EAccountType >= k_EAccountTypeMax )
 		return false;
-	
+
 	if ( m_steamid.m_comp.m_EUniverse <= k_EUniverseInvalid || m_steamid.m_comp.m_EUniverse >= k_EUniverseMax )
 		return false;
 
@@ -938,7 +938,7 @@ public:
 		CRC32_ProcessBuffer( &crc32, rgchModDir, V_strlen( rgchModDir ) );
 		CRC32_Final( &crc32 );
 
-		// set the high-bit on the mod-id 
+		// set the high-bit on the mod-id
 		// reduces crc32 to 31bits, but lets us use the modID as a guaranteed unique
 		// replacement for appID's
 		m_gameID.m_nModID = crc32 | (0x80000000);
@@ -956,7 +956,7 @@ public:
 		CRC32_ProcessBuffer( &crc32, pchAppName, V_strlen( pchAppName ) );
 		CRC32_Final( &crc32 );
 
-		// set the high-bit on the mod-id 
+		// set the high-bit on the mod-id
 		// reduces crc32 to 31bits, but lets us use the modID as a guaranteed unique
 		// replacement for appID's
 		m_gameID.m_nModID = crc32 | (0x80000000);
@@ -976,10 +976,10 @@ public:
 		CRC32_ProcessBuffer( &crc32, pchFileId, V_strlen( pchFileId ) );
 		CRC32_Final( &crc32 );
 
-		// set the high-bit on the mod-id 
+		// set the high-bit on the mod-id
 		// reduces crc32 to 31bits, but lets us use the modID as a guaranteed unique
 		// replacement for appID's
-		m_gameID.m_nModID = crc32 | (0x80000000);		
+		m_gameID.m_nModID = crc32 | (0x80000000);
 	}
 
 #endif /* VSTFILEID_H */
@@ -1021,7 +1021,7 @@ public:
 	{
 		return ( m_gameID.m_nType == k_EGameIDTypeApp );
 	}
-		
+
 	uint32 ModID() const
 	{
 		return m_gameID.m_nModID;
@@ -1073,7 +1073,7 @@ public:
 
 	}
 
-	void Reset() 
+	void Reset()
 	{
 		m_ulGameID = 0;
 	}
@@ -1133,6 +1133,6 @@ typedef void (*PFNPreMinidumpCallback)(void *context);
 // Purpose: Used by ICrashHandler interfaces to reference particular installed crash handlers
 //-----------------------------------------------------------------------------
 typedef void *BREAKPAD_HANDLE;
-#define BREAKPAD_INVALID_HANDLE (BREAKPAD_HANDLE)0 
+#define BREAKPAD_INVALID_HANDLE (BREAKPAD_HANDLE)0
 
 #endif // STEAMCLIENTPUBLIC_H

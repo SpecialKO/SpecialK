@@ -333,8 +333,6 @@ SK_Okami_PlugInCfg (void)
         SK_D3D11_AddTexHash    (L"no_grain.dds", 0xced133fb, 0x00);
       }
 
-      extern int
-      SK_D3D11_ReloadAllTextures (void);
       SK_D3D11_ReloadAllTextures ();
 
       SK_Okami_SaveConfig ();

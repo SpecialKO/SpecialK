@@ -272,12 +272,15 @@ SetLastError_Detour (
         SK_TLS* pTLS =
           SK_TLS_Bottom ();
 
-        auto& err_state =
-          pTLS->win32->error_state;
+        if (pTLS != nullptr)
+        {
+          auto& err_state =
+            pTLS->win32->error_state;
 
-        err_state.call_site    = _ReturnAddress ();
-        err_state.code         = dwErrCode;
-        GetSystemTimeAsFileTime (&err_state.last_time);
+          err_state.call_site    = _ReturnAddress ();
+          err_state.code         = dwErrCode;
+          GetSystemTimeAsFileTime (&err_state.last_time);
+        }
       }
     }
   }
@@ -1096,6 +1099,10 @@ void
 WINAPI
 SK_ExitProcess (UINT uExitCode) noexcept
 {
+  // Dear compiler, leave this function alone!
+  volatile int            dummy = { };
+  UNREFERENCED_PARAMETER (dummy);
+
   auto jmpExitProcess =
     SK_Hook_GetTrampoline (ExitProcess);
 
@@ -1108,6 +1115,10 @@ void
 WINAPI
 SK_ExitThread (DWORD dwExitCode) noexcept
 {
+  // Dear compiler, leave this function alone!
+  volatile int            dummy = { };
+  UNREFERENCED_PARAMETER (dummy);
+
   auto jmpExitThread =
     SK_Hook_GetTrampoline (ExitThread);
 
@@ -1120,6 +1131,10 @@ WINAPI
 SK_TerminateThread ( HANDLE    hThread,
                      DWORD     dwExitCode ) noexcept
 {
+  // Dear compiler, leave this function alone!
+  volatile int            dummy = { };
+  UNREFERENCED_PARAMETER (dummy);
+
   auto jmpTerminateThread =
     SK_Hook_GetTrampoline (TerminateThread);
 
@@ -1137,6 +1152,10 @@ WINAPI
 SK_TerminateProcess ( HANDLE    hProcess,
                       UINT      uExitCode ) noexcept
 {
+  // Dear compiler, leave this function alone!
+  volatile int            dummy = { };
+  UNREFERENCED_PARAMETER (dummy);
+
   auto jmpTerminateProcess =
     SK_Hook_GetTrampoline (TerminateProcess);
 
@@ -3104,33 +3123,36 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
 
     spoof_debugger = bAllow;
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "TerminateProcess",
-                               TerminateProcess_Detour,
-      static_cast_p2p <void> (&TerminateProcess_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "TerminateThread",
-                               TerminateThread_Detour,
-      static_cast_p2p <void> (&TerminateThread_Original) );
-
-    //SK_CreateDLLHook2 (       L"NtDll",
-    //                           "RtlExitUserThread",
-    //                            ExitThread_Detour,
-    //   static_cast_p2p <void> (&ExitThread_Original) );
-
-    SK_CreateDLLHook2 (      L"NtDll",
-                              "NtTerminateProcess",
-                               NtTerminateProcess_Detour,
-      static_cast_p2p <void> (&NtTerminateProcess_Original) );
-
-    if (SK_GetProcAddress (L"winmmbase", "joyGetDevCapsW"))
+    if (config.compatibility.rehook_loadlibrary)
     {
-      SK_CreateDLLHook2 (      L"winmmbase",
-                                "joyGetDevCapsW",
-                                 joyGetDevCapsW_Detour,
-        static_cast_p2p <void> (&joyGetDevCapsW_Original) );
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "TerminateProcess",
+                                 TerminateProcess_Detour,
+        static_cast_p2p <void> (&TerminateProcess_Original) );
+
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "TerminateThread",
+                                 TerminateThread_Detour,
+        static_cast_p2p <void> (&TerminateThread_Original) );
+
+      //SK_CreateDLLHook2 (       L"NtDll",
+      //                           "RtlExitUserThread",
+      //                            ExitThread_Detour,
+      //   static_cast_p2p <void> (&ExitThread_Original) );
+
+      SK_CreateDLLHook2 (      L"NtDll",
+                                "NtTerminateProcess",
+                                 NtTerminateProcess_Detour,
+        static_cast_p2p <void> (&NtTerminateProcess_Original) );
     }
+
+    //if (SK_GetProcAddress (L"winmmbase", "joyGetDevCapsW"))
+    //{
+    //  SK_CreateDLLHook2 (      L"winmmbase",
+    //                            "joyGetDevCapsW",
+    //                             joyGetDevCapsW_Detour,
+    //    static_cast_p2p <void> (&joyGetDevCapsW_Original) );
+    //}
 
     SK_CreateDLLHook2 (      L"kernel32",
                               "OutputDebugStringA",
@@ -3147,25 +3169,28 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                RaiseException_Detour,
       static_cast_p2p <void> (&RaiseException_Original) );
 
-    SK_CreateDLLHook2 (      L"NtDll",
-                              "RtlRaiseException",
-                               RtlRaiseException_Detour,
-      static_cast_p2p <void> (&RtlRaiseException_Original) );
+    //SK_CreateDLLHook2 (      L"NtDll",
+    //                          "RtlRaiseException",
+    //                           RtlRaiseException_Detour,
+    //  static_cast_p2p <void> (&RtlRaiseException_Original) );
 
-    SK_CreateDLLHook2 (      L"NtDll",
-                              "RtlExitUserProcess",
-                               RtlExitUserProcess_Detour,
-      static_cast_p2p <void> (&RtlExitUserProcess_Original) );
+    if (config.compatibility.rehook_loadlibrary)
+    {
+      SK_CreateDLLHook2 (      L"NtDll",
+                                "RtlExitUserProcess",
+                                 RtlExitUserProcess_Detour,
+        static_cast_p2p <void> (&RtlExitUserProcess_Original) );
 
-        SK_CreateDLLHook2 (      L"NtDll",
-                              "RtlExitUserThread",
-                               RtlExitUserThread_Detour,
-      static_cast_p2p <void> (&RtlExitUserThread_Original) );
+          SK_CreateDLLHook2 (      L"NtDll",
+                                "RtlExitUserThread",
+                                 RtlExitUserThread_Detour,
+        static_cast_p2p <void> (&RtlExitUserThread_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "ExitProcess",
-                               ExitProcess_Detour,
-      static_cast_p2p <void> (&ExitProcess_Original) );
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "ExitProcess",
+                                 ExitProcess_Detour,
+        static_cast_p2p <void> (&ExitProcess_Original) );
+    }
 
     SK_CreateDLLHook2 (      L"kernel32",
                               "DebugBreak",

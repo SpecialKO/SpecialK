@@ -1,3 +1,7 @@
+0.10.2.1:
+
+ + Fixed shell32.dll hook issue in Steam client that prevented games from restarting
+
 0.10.2:
 
  + Ansel is automatically disabled in games that are whitelisted (many of them should not be).
@@ -26,7 +30,7 @@
  + Fixed incorrect HDR detection in some Unreal Engine 4 games
  + Fixed buffer overrun when fetching > 384 friend achievements
  + Fixed mouse cursor auto-hide feature not actually auto-hiding in most games
- + Fixed achievements not unlocking in A Plage Tale: Innocence and possibly other games
+ + Fixed achievements not unlocking in A Plague Tale: Innocence and possibly other games
  + Fixed issue preventing EULA from showing on screen if an assertion popup was triggered first
  + Fixed unresponsive text input in Special K's console when (to-game) input blocking is enabled
  + Fixed incorrect API auto-detect in many games if run for the first time with no config file in v 0.10.1
@@ -39,8 +43,8 @@
 
  + Refactored a ton of code to modern C++17, from what had been mostly C++ Duct Tape compliant code.
 
-   >> This is an ongoing process, but the codebase needs all the new lanaguage features that
-        I havee been neglecting or it is going to collapse under its own unmanageable weight
+   >> This is an ongoing process, but the codebase needs all the new language features that
+        I have been neglecting or it is going to collapse under its own unmanageable weight
           at some point.
 
 

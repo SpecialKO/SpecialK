@@ -120,7 +120,7 @@ public:
 class SK_TextOverlayManager : public SK_IVariableListener
 {
 private: // Singleton
-  static                  CRITICAL_SECTION       cs_;
+  static std::unique_ptr <SK_Thread_HybridSpinlock> lock_;
 
 public:
   static std::unique_ptr <SK_TextOverlayManager> pSelf;

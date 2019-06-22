@@ -578,7 +578,7 @@ SKX_RemoveCBTHook (void)
          UnhookWindowsHookEx (hHookOrig) )
   {
                    whitelist_count = 0;
-    RtlZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+    RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
 
     HANDLE hHookTeardown =
       OpenEvent ( EVENT_ALL_ACCESS, FALSE,

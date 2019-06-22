@@ -265,9 +265,9 @@ D3D9CreateOffscreenPlainSurface_Override (
 
 
 
-CRITICAL_SECTION cs_vs = { };
-CRITICAL_SECTION cs_ps = { };
-CRITICAL_SECTION cs_vb = { };
+std::unique_ptr <SK_Thread_HybridSpinlock> lock_vs = nullptr;
+std::unique_ptr <SK_Thread_HybridSpinlock> lock_ps = nullptr;
+std::unique_ptr <SK_Thread_HybridSpinlock> lock_vb = nullptr;
 
 SK_LazyGlobal <KnownObjects>        SK::D3D9::known_objs;
 SK_LazyGlobal <KnownShaders>        SK::D3D9::Shaders;
@@ -301,7 +301,8 @@ SK::D3D9::VertexBufferTracker::clear (void)
 void
 SK::D3D9::VertexBufferTracker::use (void)
 {
-  SK_AutoCriticalSection auto_cs (&cs_vb);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_vb);
 
   IDirect3DVertexDeclaration9* decl = nullptr;
   SK_ComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
@@ -2673,7 +2674,8 @@ D3D9VertexBuffer_Lock_Override ( IDirect3DVertexBuffer9 *This,
 
   if (ffxiii)
   {
-    SK_AutoCriticalSection auto_cs (&cs_vb);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_vb);
 
     if (ffxiii_dynamic->count (This))
     {
@@ -2735,7 +2737,8 @@ D3D9CreateVertexBuffer_Override
 
   if (SUCCEEDED (hr) && ffxiii)
   {
-    SK_AutoCriticalSection auto_cs (&cs_vb);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_vb);
 
     if (Length >= 10240)
     {
@@ -2768,7 +2771,8 @@ D3D9CreateVertexBuffer_Override
   {
     auto& _known_objs = known_objs.get ();
 
-    SK_AutoCriticalSection auto_cs (&cs_vb);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_vb);
 
     if (Usage & D3DUSAGE_DYNAMIC)
       _known_objs.dynamic_vbs.emplace (*ppVertexBuffer);
@@ -2804,7 +2808,8 @@ D3D9SetStreamSource_Override
 
     if (SUCCEEDED (hr))
     {
-      SK_AutoCriticalSection auto_cs (&cs_vb);
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+            scope_lock (*lock_vb);
 
       if (_known_objs.dynamic_vbs.count (pStreamData))
         _last_frame.vertex_buffers.dynamic.emplace (pStreamData);
@@ -2846,7 +2851,8 @@ D3D9SetStreamSourceFreq_Override
   UINT              StreamNumber,
   UINT              FrequencyParameter )
 {
-  SK_AutoCriticalSection auto_cs (&cs_vb);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_vb);
 
   if (StreamNumber == 0 && FrequencyParameter & D3DSTREAMSOURCE_INDEXEDDATA)
   {
@@ -7230,13 +7236,17 @@ SK_D3D9_TextureModDlg (void)
 
     if (ImGui::CollapsingHeader ("Pixel Shaders"))
     {
-      SK_AutoCriticalSection auto_cs (&cs_ps);
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+            scope_lock (*lock_ps);
+
       SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass::Pixel, can_scroll);
     }
 
     if (ImGui::CollapsingHeader ("Vertex Shaders"))
     {
-      SK_AutoCriticalSection auto_cs (&cs_vs);
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+            scope_lock (*lock_vs);
+
       SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass::Vertex, can_scroll);
     }
 
@@ -7249,7 +7259,9 @@ SK_D3D9_TextureModDlg (void)
 
     if (ImGui::CollapsingHeader ("Stream 0"))
     {
-      SK_AutoCriticalSection auto_cs (&cs_vb);
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+            scope_lock (*lock_vb);
+
       SK_LiveVertexStreamView (can_scroll);
     }
 
@@ -7279,9 +7291,9 @@ SK_D3D9_TextureModDlg (void)
 
   ImGui::End          ();
 
-  SK_AutoCriticalSection auto_cs0 (&cs_vs);
-  SK_AutoCriticalSection auto_cs1 (&cs_ps);
-  SK_AutoCriticalSection auto_cs2 (&cs_vb);
+  std::scoped_lock <SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                                              SK_Thread_HybridSpinlock>
+        scope_lock (*lock_vs, *lock_ps, *lock_vb);
 
   _tracked_ps.clear (); _tracked_vs.clear (); _last_frame.clear ();
   _tracked_rt.clear (); _tracked_vb.clear (); _known_objs.clear ();
@@ -7862,11 +7874,11 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
   {
     if (pShader != nullptr)
     {
-      EnterCriticalSection (&cs_vs);
+      lock_vs->lock ();
 
       if (_Shaders.vertex.rev.find (pShader) == _Shaders.vertex.rev.cend ())
       {
-        LeaveCriticalSection (&cs_vs);
+        lock_vs->unlock ();
 
         UINT len = 0;
 
@@ -7884,24 +7896,24 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
 
           SK_D3D9_DumpShader (L"vs", checksum, pbFunc);
 
-          EnterCriticalSection (&cs_vs);
+          lock_vs->lock ();
 
           _Shaders.vertex.rev [pShader] = checksum;
 
-          LeaveCriticalSection (&cs_vs);
+          lock_vs->unlock ();
         }
       }
 
       else
-        LeaveCriticalSection (&cs_vs);
+        lock_vs->unlock ();
     }
 
     else
       _Shaders.vertex.current.crc32c = 0;
   }
 
-
-  SK_AutoCriticalSection csVS (&cs_vs);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_vs);
 
   const uint32_t vs_checksum =
     _Shaders.vertex.rev [pShader];
@@ -7940,11 +7952,11 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
   {
     if (pShader != nullptr)
     {
-      EnterCriticalSection (&cs_ps);
+      lock_ps->lock ();
 
       if (_Shaders.pixel.rev.find (pShader) == _Shaders.pixel.rev.cend ())
       {
-        LeaveCriticalSection (&cs_ps);
+        lock_ps->unlock ();
 
         UINT len = 0;
 
@@ -7962,16 +7974,16 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
 
           SK_D3D9_DumpShader (L"ps", checksum, pbFunc);
 
-          EnterCriticalSection (&cs_ps);
+          lock_ps->lock ();
 
           _Shaders.pixel.rev  [pShader] = checksum;
 
-          LeaveCriticalSection (&cs_ps);
+          lock_ps->unlock ();
         }
       }
 
       else
-        LeaveCriticalSection (&cs_ps);
+        lock_ps->unlock ();
     }
 
     else
@@ -7979,7 +7991,8 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
   }
 
 
-  SK_AutoCriticalSection csPS (&cs_ps);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_ps);
 
   const uint32_t ps_checksum =
     _Shaders.pixel.rev [pShader];
@@ -8034,7 +8047,8 @@ SK_D3D9_EndFrame (void)
   _Shaders.pixel.clear_state  ();
 
   {
-    SK_AutoCriticalSection csVS (&cs_vs);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_vs);
     last_frame->clear ();
 
 //    for (auto& it : tracked_vs.used_textures) it->Release ();
@@ -8045,7 +8059,8 @@ SK_D3D9_EndFrame (void)
   }
 
   {
-    SK_AutoCriticalSection csVS (&cs_ps);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_ps);
 
 //    for (auto& it : tracked_ps.used_textures) it->Release ();
 
@@ -8106,7 +8121,8 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   bool skip = false;
 
   {
-    SK_AutoCriticalSection auto_cs (&cs_vs);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_vs);
 
     if (_Shaders.vertex.blacklist.count (vs_checksum))
       skip      = true;
@@ -8116,7 +8132,8 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   }
 
   {
-    SK_AutoCriticalSection auto_cs (&cs_ps);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_ps);
 
     if (_Shaders.pixel.blacklist.count (ps_checksum))
       skip      = true;
@@ -8160,7 +8177,8 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
   if (tracking_ps)
   {
-    SK_AutoCriticalSection auto_cs (&cs_ps);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_ps);
 
     InterlockedIncrementAcquire (&_tracked_ps.num_draws);
 
@@ -8253,9 +8271,9 @@ SK_D3D9_InitShaderModTools (void)
   _Shaders.vertex.rev.reserve                  (8192);
   _Shaders.pixel.rev.reserve                   (8192);
 
-  InitializeCriticalSectionAndSpinCount (&cs_vs, 1024 * 2048 * 2);
-  InitializeCriticalSectionAndSpinCount (&cs_ps, 1024 * 2048 * 4);
-  InitializeCriticalSectionAndSpinCount (&cs_vb, 1024 * 32);
+  lock_vs = std::make_unique <SK_Thread_HybridSpinlock> (1024);
+  lock_ps = std::make_unique <SK_Thread_HybridSpinlock> (512);
+  lock_vb = std::make_unique <SK_Thread_HybridSpinlock> (64);
 }
 
 
@@ -8324,8 +8342,8 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
 {
   if (shader_obj != pShader)
   {
-    SK_AutoCriticalSection auto_crit0 (&cs_vs);
-    SK_AutoCriticalSection auto_crit1 (&cs_ps);
+    std::scoped_lock <SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock>
+          scope_lock (*lock_vs, *lock_ps);
 
     constants.clear ();
 

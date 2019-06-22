@@ -25,7 +25,6 @@
 #include <Windows.h>
 #include <utility>
 #include <cstdint>
-#include <SpecialK/performance/memory_monitor.h>
 
 struct thread_events
 {
@@ -35,8 +34,8 @@ struct thread_events
     HANDLE stop;
     HANDLE poll;
     HANDLE shutdown;
-  } gpu, cpu,     IO,
-    disk, memory, pagefile;
+  } gpu,  IO,
+    disk, pagefile;
 };
 
 extern SK_LazyGlobal <thread_events> perfmon;
@@ -97,12 +96,12 @@ typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK {
 struct cpu_perf_t : WMI_refresh_thread_t
 {
   struct cpu_stat_s {
-    volatile LONG          percent_load                 = 0;
-    volatile LONG          percent_idle                 = 0;
-    volatile LONG          percent_kernel               = 0;
-    volatile LONG          percent_user                 = 0;
-    volatile LONG          percent_interrupt            = 0;
-    volatile LONG          joules_consumed              = 0;
+    volatile LONG percent_load      = 0;
+    volatile LONG percent_idle      = 0;
+    volatile LONG percent_kernel    = 0;
+    volatile LONG percent_user      = 0;
+    volatile LONG percent_interrupt = 0;
+    volatile LONG joules_consumed   = 0;
 
     SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK
       last_perf_count    = { },
@@ -305,7 +304,6 @@ DWORD WINAPI SK_MonitorCPU      (LPVOID user);
 DWORD WINAPI SK_MonitorDisk     (LPVOID user);
 DWORD WINAPI SK_MonitorPagefile (LPVOID user);
 
-extern SK_LazyGlobal <process_stats_t> SK_WMI_ProcessStats;
 extern SK_LazyGlobal <cpu_perf_t>      SK_WMI_CPUStats;
 extern SK_LazyGlobal <disk_perf_t>     SK_WMI_DiskStats;
 extern SK_LazyGlobal <pagefile_perf_t> SK_WMI_PagefileStats;

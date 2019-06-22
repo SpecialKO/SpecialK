@@ -207,7 +207,6 @@
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
-///#include <imgui/backends/imgui_d3d11.h>
 
 #include <mmsystem.h>
 #include <Mmdeviceapi.h>
@@ -313,7 +312,6 @@
 
 #include <SpecialK/performance/io_monitor.h>
 #include <SpecialK/performance/gpu_monitor.h>
-#include <SpecialK/performance/memory_monitor.h>
 
 #include <dxgi1_3.h>
 #include <d3d11_2.h>

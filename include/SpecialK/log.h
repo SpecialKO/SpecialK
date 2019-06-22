@@ -177,7 +177,8 @@ SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
 
 #define SK_LOG(expr,level,source)       \
   if (config.system.log_level >= level) \
-    dll_log->Log (L"[" source L"] " SK_VARIADIC (expr))
+    dll_log->Log (L"[" source L"] "     \
+          SK_VARIADIC (expr))
 
 #define SK_LOG0(expr,src) SK_LOG(expr,0,src)
 #define SK_LOG1(expr,src) SK_LOG(expr,1,src)

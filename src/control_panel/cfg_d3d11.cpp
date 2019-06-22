@@ -353,9 +353,12 @@ SK::ControlPanel::D3D11::Draw (void)
 
       if (ImGui::InputInt ("BackBuffer Count",       &config.render.framerate.buffer_count))
       {
+        static auto& io =
+          ImGui::GetIO ();
+
         // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
-        PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)ImGui::GetIO ().DisplaySize.x,
-                                                                                (LONG)ImGui::GetIO ().DisplaySize.y ) );
+        PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)io.DisplaySize.x,
+                                                                                (LONG)io.DisplaySize.y ) );
       }
 
       // Clamp to [-1,oo)

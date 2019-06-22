@@ -131,11 +131,11 @@ SK_Tobii_Callback_GazePoint ( tobii_gaze_point_t const* gaze_point,
   static auto gaze_cursor =
     tobii_cursor.get ();
 
-  if (gaze_point->validity == TOBII_VALIDITY_VALID)
-  {
-    auto& io =
+  static const auto& io =
       ImGui::GetIO ();
 
+  if (gaze_point->validity == TOBII_VALIDITY_VALID)
+  {
     gaze_cursor.pos.x = io.DisplaySize.x * gaze_point->position_xy [0];
     gaze_cursor.pos.y = io.DisplaySize.y * gaze_point->position_xy [1];
   }

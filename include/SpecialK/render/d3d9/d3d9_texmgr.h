@@ -36,45 +36,50 @@ class SK_ThreadSafe_HashSet
 {
 public:
   SK_ThreadSafe_HashSet (void) {
-    InitializeCriticalSectionAndSpinCount (&cs_, 0x10000);
+    lock_ =
+      std::make_unique <SK_Thread_HybridSpinlock> (0x100);
   }
 
-  ~SK_ThreadSafe_HashSet (void) {
-    DeleteCriticalSection (&cs_);
-  }
+  ~SK_ThreadSafe_HashSet (void) = default;
 
   void emplace (_T item)
   {
-    SK_AutoCriticalSection auto_crit (&cs_);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_);
 
     container_.emplace (item);
   }
 
   void erase (_T item)
   {
-    SK_AutoCriticalSection auto_crit (&cs_);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_);
 
     container_.erase (item);
   }
 
   bool contains (_T item)
   {
-    SK_AutoCriticalSection auto_crit (&cs_);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_);
 
-    return container_.count (item) != 0;
+    return
+      container_.count (item) != 0;
   }
 
   bool empty (void)
   {
-    SK_AutoCriticalSection auto_crit (&cs_);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_);
 
-    return container_.empty ();
+    return
+      container_.empty ();
   }
 
 protected:
 private:
-  std::unordered_set <_T> container_;
-  CRITICAL_SECTION        cs_;
+  std::unordered_set <_T>                        container_;
+  std::unique_ptr    <SK_Thread_HybridSpinlock> lock_;
 };
 
 typedef struct _D3DXIMAGE_INFO       D3DXIMAGE_INFO;

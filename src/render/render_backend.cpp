@@ -33,6 +33,7 @@
 
 
 #include <SpecialK/nvapi.h>
+#include <SpecialK/resource.h> // Unpack shader compiler
 
 volatile LONG SK_RenderBackend::frames_drawn = 0;
 
@@ -85,28 +86,31 @@ SK_GetCurrentRenderBackend (void)
 void
 __stdcall
 SK_InitRenderBackends (void)
-{
-  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D9Ex",
-                                           new SK_IVarStub <bool> (&config.apis.d3d9ex.hook ) );
-  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D9",
-                                           new SK_IVarStub <bool> (&config.apis.d3d9.hook ) );
+{ static
+  auto *pCommandProcessor =
+   SK_GetCommandProcessor ();
 
-  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D11",
-                                           new SK_IVarStub <bool> (&config.apis.dxgi.d3d11.hook ) );
+  pCommandProcessor->AddVariable ( "RenderHooks.D3D9Ex",
+                                     new SK_IVarStub <bool> (&config.apis.d3d9ex.hook ) );
+  pCommandProcessor->AddVariable ( "RenderHooks.D3D9",
+                                     new SK_IVarStub <bool> (&config.apis.d3d9.hook ) );
+
+  pCommandProcessor->AddVariable ( "RenderHooks.D3D11",
+                                     new SK_IVarStub <bool> (&config.apis.dxgi.d3d11.hook ) );
 #ifdef _M_AMD64
-  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D12",
-                                           new SK_IVarStub <bool> (&config.apis.dxgi.d3d12.hook ) );
-  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.Vulkan",
-                                           new SK_IVarStub <bool> (&config.apis.Vulkan.hook ) );
+  pCommandProcessor->AddVariable ( "RenderHooks.D3D12",
+                                     new SK_IVarStub <bool> (&config.apis.dxgi.d3d12.hook ) );
+  pCommandProcessor->AddVariable ( "RenderHooks.Vulkan",
+                                     new SK_IVarStub <bool> (&config.apis.Vulkan.hook ) );
 #else /* _M_IX86 */
-  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D8",
-                                           new SK_IVarStub <bool> (&config.apis.d3d8.hook ) );
-  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.DDraw",
-                                           new SK_IVarStub <bool> (&config.apis.ddraw.hook ) );
+  pCommandProcessor->AddVariable ( "RenderHooks.D3D8",
+                                     new SK_IVarStub <bool> (&config.apis.d3d8.hook ) );
+  pCommandProcessor->AddVariable ( "RenderHooks.DDraw",
+                                     new SK_IVarStub <bool> (&config.apis.ddraw.hook ) );
 #endif
 
-  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.OpenGL",
-                                           new SK_IVarStub <bool> (&config.apis.OpenGL.hook ) );
+  pCommandProcessor->AddVariable ( "RenderHooks.OpenGL",
+                                     new SK_IVarStub <bool> (&config.apis.OpenGL.hook ) );
 }
 
 
@@ -482,10 +486,11 @@ SK_RenderBackend_V2::gsync_s::update (void)
 bool
 SK_RenderBackendUtil_IsFullscreen (void)
 {
-  static const SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
+  if ( (static_cast <int> (rb.api) &
+        static_cast <int> (SK_RenderAPI::D3D11)) != 0 )
   {
     SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
     BOOL                        fullscreen = rb.fullscreen_exclusive;
@@ -493,13 +498,16 @@ SK_RenderBackendUtil_IsFullscreen (void)
     if (pSwapChain != nullptr)
     {
       if (SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
-        return fullscreen;
+      {
+        rb.fullscreen_exclusive = fullscreen;
+      }
 
-      return true;//rb.fullscreen_exclusive;
+      return rb.fullscreen_exclusive;
     }
   }
 
-  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
+  if ( (static_cast <int> (rb.api) &
+        static_cast <int> (SK_RenderAPI::D3D9)) != 0 )
   {
     SK_ComQIPtr <IDirect3DSwapChain9> pSwapChain (rb.swapchain);
 
@@ -508,7 +516,10 @@ SK_RenderBackendUtil_IsFullscreen (void)
       D3DPRESENT_PARAMETERS pparams = { };
 
       if (SUCCEEDED (pSwapChain->GetPresentParameters (&pparams)))
-        return (! pparams.Windowed);
+      {
+        rb.fullscreen_exclusive =
+          (! pparams.Windowed);
+      }
 
       return rb.fullscreen_exclusive;
     }
@@ -816,10 +827,15 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
   SK_LOG1 ( ( L"Releasing Owned Resources" ),
             __SK_SUBSYSTEM__ );
 
-  SK_AutoCriticalSection auto_cs (&cs_res);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+         auto_lock (res_lock);
 
   auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  SK_SEH_ApplyTranslator (
+    SK_FilteringStructuredExceptionTranslator (
+      EXCEPTION_ACCESS_VIOLATION
+    )
+  );
   try
   {
     //if (device != nullptr && swapchain != nullptr && d3d11.immediate_ctx != nullptr)
@@ -835,14 +851,14 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
       //d3d11.interop.backbuffer_rtv   = nullptr;
       //d3d11.interop.backbuffer_tex2D = nullptr;
 
-      if (d3d11.immediate_ctx != nullptr)
-      {
-        //if (swapchain != nullptr) swapchain = nullptr;
-        //if (device    != nullptr) device    = nullptr;
-
-        d3d11.immediate_ctx->PSSetShaderResources (0, 0, nullptr);
-        d3d11.immediate_ctx->VSSetShaderResources (0, 0, nullptr);
-      }
+      //if (d3d11.immediate_ctx != nullptr)
+      //{
+      //  //if (swapchain != nullptr) swapchain = nullptr;
+      //  //if (device    != nullptr) device    = nullptr;
+      //
+      //  d3d11.immediate_ctx->VSSetShaderResources (0, 0, nullptr);
+      //  d3d11.immediate_ctx->PSSetShaderResources (0, 0, nullptr);
+      //}
 
       //if (d3d11.deferred_ctx != nullptr)
       //    d3d11.deferred_ctx.Release ();
@@ -887,14 +903,11 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
 SK_RenderBackend_V2::SK_RenderBackend_V2 (void)
 {
-  InitializeCriticalSectionEx ( &cs_res, 64*64, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
-                                                SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
 }
 
 SK_RenderBackend_V2::~SK_RenderBackend_V2 (void)
 {
   releaseOwnedResources ();
-  DeleteCriticalSection (&cs_res);
 }
 
 
@@ -1110,3 +1123,283 @@ HDRModeToStr (NV_HDR_MODE mode)
     default:                           return L"Invalid";
   };
 };
+
+
+using D3DStripShader_pfn =
+HRESULT (WINAPI *)
+(   LPCVOID   pShaderBytecode,
+    SIZE_T    BytecodeLength,
+    UINT      uStripFlags,
+  ID3DBlob  **ppStrippedBlob );
+
+D3DStripShader_pfn
+D3DStripShader_40_Original;
+D3DStripShader_pfn
+D3DStripShader_41_Original;
+D3DStripShader_pfn
+D3DStripShader_42_Original;
+D3DStripShader_pfn
+D3DStripShader_43_Original;
+D3DStripShader_pfn
+D3DStripShader_47_Original;
+
+#undef  __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"Shadr Comp"
+
+HRESULT
+WINAPI
+D3DStripShader_40_Detour      (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob   )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
+}
+
+HRESULT
+WINAPI
+D3DStripShader_41_Detour      (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob   )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
+}
+
+HRESULT
+WINAPI
+D3DStripShader_42_Detour      (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob   )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
+}
+
+HRESULT
+WINAPI
+D3DStripShader_43_Detour      (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob   )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
+}
+
+HRESULT
+WINAPI
+D3DStripShader_47_Detour     (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob  )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
+}
+
+
+void
+SK_D3D_UnpackShaderCompiler (void)
+{
+  HMODULE hModSelf =
+    SK_GetDLL ();
+
+  HRSRC res =
+    FindResource (
+      hModSelf,
+        MAKEINTRESOURCE (IDR_D3DCOMPILER_PACKAGE),
+          L"7ZIP"
+    );
+
+  if (res)
+  {
+    SK_LOG0 ( ( L"Unpacking D3DCompiler_47.dll because user does not have "
+                L"June 2010 DirectX Redistributables installed." ),
+                L"D3DCompile" );
+
+    DWORD   res_size     =
+      SizeofResource ( hModSelf, res );
+
+    HGLOBAL packed_compiler =
+      LoadResource   ( hModSelf, res );
+
+    if (! packed_compiler) return;
+
+
+    const void* const locked =
+      (void *)LockResource (packed_compiler);
+
+
+    if (locked != nullptr)
+    {
+      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+
+      wcscpy (wszDestination, SK_GetHostPath ());
+
+      if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+        SK_CreateDirectories (wszDestination);
+
+      wcscpy      (wszArchive, wszDestination);
+      PathAppendW (wszArchive, L"D3DCompiler_47.7z");
+
+      ///SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive,wszDestination ),
+      ///            L"D3DCompile" );
+
+      FILE* fPackedCompiler =
+        _wfopen   (wszArchive, L"wb");
+
+      if (fPackedCompiler != nullptr)
+      {
+        fwrite (locked, 1, res_size, fPackedCompiler);
+        fclose (fPackedCompiler);
+      }
+
+      if (GetFileAttributes (wszArchive) != INVALID_FILE_ATTRIBUTES)
+      {
+        SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+        DeleteFileW       (wszArchive);
+      }
+    }
+
+    UnlockResource (packed_compiler);
+  }
+};
+
+void
+SK_D3D_SetupShaderCompiler (void)
+{
+  bool local_install = false;
+  if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_43.dll", &local_install))
+  {
+    SK_ImGui_Warning (L"Your system is missing the June 2010 DirectX Runtime.\t\t\n"
+                      L"\n"
+                      L"\t\t\t\t* Please install it as soon as possible.");
+  }
+
+  local_install = false;
+  if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_47.dll", &local_install))
+  {
+    if (! local_install)
+    {
+      SK_D3D_UnpackShaderCompiler ();
+    }
+  }
+
+  struct SK_D3D_AntiStrip {
+    const wchar_t*    wszDll;
+    const    char*    szSymbol;
+           LPVOID    pfnHookFunc;
+              void** ppfnTrampoline;
+  } static strippers [] =
+  { { L"D3DCOMPILER_47.dll",
+       "D3DStripShader",   D3DStripShader_47_Detour,
+  static_cast_p2p <void> (&D3DStripShader_47_Original) },
+    { L"D3DCOMPILER_43.dll",
+       "D3DStripShader",   D3DStripShader_43_Detour,
+  static_cast_p2p <void> (&D3DStripShader_43_Original) },
+    { L"D3DCOMPILER_42.dll",
+       "D3DStripShader",   D3DStripShader_42_Detour,
+  static_cast_p2p <void> (&D3DStripShader_42_Original) },
+    { L"D3DCOMPILER_41.dll",
+       "D3DStripShader",   D3DStripShader_41_Detour,
+  static_cast_p2p <void> (&D3DStripShader_41_Original) },
+    { L"D3DCOMPILER_40.dll",
+       "D3DStripShader",   D3DStripShader_40_Detour,
+  static_cast_p2p <void> (&D3DStripShader_40_Original) } };
+
+  if (SUCCEEDED (__HrLoadAllImportsForDll ("D3DCOMPILER_47.dll")))
+  {
+    for ( auto& stripper : strippers )
+    {
+      if (SK_GetModuleHandleW (stripper.wszDll) != nullptr)
+      {
+        SK_CreateDLLHook2 ( stripper.wszDll,
+                            stripper.szSymbol,
+                            stripper.pfnHookFunc,
+                            stripper.ppfnTrampoline );
+      }
+    }
+  }
+}
+
+void
+SK_Display_DisableDPIScaling (void)
+{
+  DWORD   dwProcessSize = MAX_PATH;
+  wchar_t wszProcessName [MAX_PATH + 2] = { };
+
+  HANDLE hProc =
+   SK_GetCurrentProcess ();
+
+  QueryFullProcessImageName (
+    hProc, 0,
+      wszProcessName, &dwProcessSize
+  );
+
+  const wchar_t* wszKey        =
+    LR"(Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers)";
+  DWORD          dwDisposition = 0x00;
+  HKEY           hKey          = nullptr;
+
+  const LSTATUS status =
+    RegCreateKeyExW ( HKEY_CURRENT_USER,
+                        wszKey,      0,
+                          nullptr, 0x0,
+                          KEY_READ | KEY_WRITE,
+                             nullptr,
+                               &hKey,
+                                 &dwDisposition );
+
+  if ( status == ERROR_SUCCESS &&
+       hKey   != nullptr          )
+  {
+    RegSetValueExW (
+      hKey, wszProcessName,
+        0, REG_SZ,
+          (BYTE *)L"~ HIGHDPIAWARE",
+             16 * sizeof (wchar_t) );
+
+    RegFlushKey (hKey);
+    RegCloseKey (hKey);
+  }
+}

@@ -1,6 +1,6 @@
 //-------------------------------------------------------------------------------------
 // DirectXTexMipMaps.cpp
-//  
+//
 // DirectX Texture Library - Mip-map generation
 //
 // THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
@@ -14,6 +14,8 @@
 //-------------------------------------------------------------------------------------
 
 #include "directxtexp.h"
+
+#define __SK__FRAMERATE_H__
 #include "../../../include/SpecialK/tls.h"
 
 #include "filters.h"

@@ -219,8 +219,11 @@ SK_D3D11_KnownThreads::clear_all (void)
 {
   if (use_lock)
   {
-    SK_AutoCriticalSection auto_cs (&cs);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*_lock);
+
     ids.clear ();
+
     return;
   }
 
@@ -232,7 +235,9 @@ SK_D3D11_KnownThreads::count_all (void)
 {
   if (use_lock)
   {
-    SK_AutoCriticalSection auto_cs (&cs);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*_lock);
+
     return ids.size ();
   }
 
@@ -251,9 +256,12 @@ SK_D3D11_KnownThreads::mark (void)
 
   if (use_lock)
   {
-    SK_AutoCriticalSection auto_cs (&cs);
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+            scope_lock (*_lock);
+
     ids.emplace    (SK_Thread_GetCurrentId ());
     active.emplace (SK_Thread_GetCurrentId ());
+
     return;
   }
 

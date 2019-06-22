@@ -32,8 +32,8 @@ SK_Console::SK_Console (void)
   command_issued = false;
   result_str.clear ();
 
-  SecureZeroMemory (text, 4096);
-  SecureZeroMemory (keys_, 256);
+  RtlSecureZeroMemory (text, 4096);
+  RtlSecureZeroMemory (keys_, 256);
 }
 
 SK_Console*
@@ -95,7 +95,7 @@ SK_Console::Draw (void)
 void
 SK_Console::Start (void)
 {
-  SecureZeroMemory (text, 4096);
+  RtlSecureZeroMemory (text, 4096);
 
   text [0] = '>';
 }
@@ -123,7 +123,6 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
   if (! SK_GetFramesDrawn ())
     return;
-
 
 
   UNREFERENCED_PARAMETER (Control);

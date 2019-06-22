@@ -53,7 +53,6 @@ extern SK_Thread_HybridSpinlock* steam_init_cs;
 
 // To spoof Overlay Activation (pause the game)
 
-int  SK_HookSteamAPI                   (void);
 void SK_Steam_UpdateGlobalAchievements (void);
 
 
@@ -1043,7 +1042,7 @@ public:
 
     if (wasActive != active_)
     {
-      ImGuiIO& io =
+      static auto& io =
         ImGui::GetIO ();
 
       static bool capture_keys  = io.WantCaptureKeyboard;
@@ -1587,7 +1586,7 @@ SK_Steam_SetNotifyCorner (void)
 void
 SK_SteamAPIContext::Shutdown (void)
 {
-  if (InterlockedDecrement (&__SK_Steam_init) == 1)
+  //if (InterlockedDecrement (&__SK_Steam_init) == 0)
   {
     if (client_)
     {
@@ -3713,7 +3712,10 @@ SK_SteamAPI_RunQueuedCallbacks (void)
     {
       InterlockedDecrement (&__SK_Steam_QueuedCallbacks);
 
-      SteamAPI_RunCallbacks_Detour ();
+      if (SteamAPI_Shutdown_Original != nullptr)
+      {
+        SteamAPI_RunCallbacks_Detour ();
+      }
       return true;
     }
   }
@@ -3763,12 +3765,15 @@ SteamAPI_RunCallbacks_Detour (void)
     if ( dwRenderTid != 0UL&&
          dwRenderTid != dwTid )
     {
+//#define SK_SINGLE_THREADED_STEAMAPI
+#ifdef SK_SINGLE_THREADED_STEAMAPI
       dwSteamTids->insert     (dwTid);
       dwSteamSkipTids->insert (dwTid);
 
       SK_SteamAPI_QueueCallbacks ();
 
       return;
+#endif
 
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
@@ -3782,7 +3787,7 @@ SteamAPI_RunCallbacks_Detour (void)
         {
           auto* task =
             SK_MMCS_GetTaskForThreadIDEx (dwTid,
-              "[SK] Primary SteamAPI Thread",
+              "[GAME] Primary SteamAPI Thread",
                 "Games", "Capture" );
 
           task->queuePriority (AVRT_PRIORITY_HIGH);
@@ -3794,7 +3799,7 @@ SteamAPI_RunCallbacks_Detour (void)
         {
           auto* task =
             SK_MMCS_GetTaskForThreadIDEx (dwTid,
-              "[SK] Secondary SteamAPI Thread",
+              "[GAME] Secondary SteamAPI Thread",
                 "Games", "Capture" );
 
           task->queuePriority (AVRT_PRIORITY_NORMAL);
@@ -3809,12 +3814,14 @@ SteamAPI_RunCallbacks_Detour (void)
     }
   }
 
+#ifdef SK_SINGLE_THREADED_STEAMAPI
   if ( dwSteamSkipTids->find (SK_Thread_GetCurrentId ()) !=
        dwSteamSkipTids->cend () )
   {
     SK_SteamAPI_QueueCallbacks ();
     return;
   }
+#endif
 
   static bool failure = false;
 
@@ -3832,7 +3839,11 @@ SteamAPI_RunCallbacks_Detour (void)
     return;
   }
 
-  InterlockedIncrement64 (&SK_TLS_Bottom ()->steam->callback_count);
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS != nullptr)
+    InterlockedIncrement64 (&pTLS->steam->callback_count);
 
   if ( (! failure) && steam_achievements == nullptr )
   {
@@ -4006,7 +4017,7 @@ extern void SK_MHW_PlugIn_Shutdown (void);
 
 void SK::SteamAPI::Pump (void)
 {
-  if (steam_ctx.UserStats ())
+    if (steam_ctx.UserStats ())
   {
     if (SteamAPI_RunCallbacks_Original != nullptr)
         SteamAPI_RunCallbacks_Detour ();
@@ -4820,13 +4831,43 @@ SteamAPI_Shutdown_Detour (void)
   if (steam_init_cs != nullptr)
       steam_init_cs->lock   ();
 
+  InterlockedExchange (
+    &__SK_Steam_QueuedCallbacks,
+      0
+  );
+
   SK_Steam_KillPump         ();
 
+  SK_GetDLLConfig   ()->write (
+    SK_GetDLLConfig ()->get_filename ()
+                              );
+
+  SK_Sleep           (3UL);
+  steam_ctx.Shutdown (   );
+  SK_Sleep           (2UL);
   if (steam_init_cs != nullptr)
       steam_init_cs->unlock ();
+  SK_Sleep           (1UL);
 
+  SK_Thread_Create ([](LPVOID) -> DWORD
+  {
+    ULONG ulFramesStart =
+      SK_GetFramesDrawn ();
 
-  steam_ctx.Shutdown  ();
+    SK_Sleep (75UL);
+
+    if (SK_GetFramesDrawn () == ulFramesStart)
+    {
+      SK_SelfDestruct    (   );
+      SK_Sleep           (25U);
+      ExitProcess        (0x0);
+    }
+
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  });
+
   return;
 
 
@@ -4836,7 +4877,10 @@ SteamAPI_Shutdown_Detour (void)
       [](LPVOID) ->
       DWORD
     {
-      SetCurrentThreadDescription (L"[SK] SteamAPI Restart Thread");
+      SetCurrentThreadDescription (
+        L"[SK] SteamAPI Restart Thread"
+      );
+
 
       for (int i = 0; i < 250; i++)
       {
@@ -4845,7 +4889,7 @@ SteamAPI_Shutdown_Detour (void)
         if (ReadAcquire (&__SK_DLL_Ending))
         {
           steam_ctx.Shutdown  ();
-
+          SK_SelfDestruct     ();
           SK_Thread_CloseSelf ();
 
           return 0;
@@ -4928,7 +4972,6 @@ SteamAPI_Init_Detour (void)
                     SK_GetCallerName ().c_str () );
     steam_log->Log (L"-------------------------------\n");
   }
-
   bool bTempAppIDFile = false;
 
   bRet = SK_SAFE_SteamAPI_Init ();
@@ -4959,8 +5002,9 @@ SteamAPI_Init_Detour (void)
 
     if (dwSteamGameIdLen < 3)
     {
-      SetEnvironmentVariableA ( "SteamGameId",
-                                  std::to_string (config.steam.appid).c_str ()
+      SetEnvironmentVariableA (
+        "SteamGameId",
+          std::to_string (config.steam.appid).c_str ()
       );
     }
 
@@ -5276,7 +5320,7 @@ SK_SteamAPI_InitManagers (void)
   if (! InterlockedCompareExchange (&SK_SteamAPI_ManagersInitialized, 1, 0))
   {
     if (steam_ctx.Screenshots () && (! screenshot_manager))
-      screenshot_manager = new SK_Steam_ScreenshotManager ();
+     screenshot_manager = new SK_Steam_ScreenshotManager ();
 
     ISteamUserStats* stats =
       steam_ctx.UserStats ();
@@ -5477,7 +5521,7 @@ SK_SteamAPI_GetSharedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
     unlocked_achvs = SK_SteamAPI_GetUnlockedAchievements ();
 
   if (pStats != nullptr)
-    SecureZeroMemory (pStats, SK_SteamAPI_GetNumPossibleAchievements ());
+    RtlSecureZeroMemory (pStats, SK_SteamAPI_GetNumPossibleAchievements ());
 
   for ( auto& it : unlocked_achvs )
   {
@@ -7414,6 +7458,76 @@ SK::SteamAPI::GetDataDir (void)
 
   return
     std::string ();
+}
+
+uint32_t
+SK_Steam_GetAppID_NoAPI (void)
+{
+  if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") == nullptr)
+    return 0;
+
+  static constexpr int MAX_APPID_LEN = 32;
+
+  DWORD    dwSteamGameIdLen                  =  0 ;
+  uint32_t AppID                             =  0 ;
+  char     szSteamGameId [MAX_APPID_LEN + 1] = { };
+
+  // First, look for steam_appid.txt
+  if (GetFileAttributesW (L"steam_appid.txt") != INVALID_FILE_ATTRIBUTES)
+  { FILE* fAppID = fopen ( "steam_appid.txt", "r" );
+    if (  fAppID != nullptr  )
+    {
+      fgets (szSteamGameId, MAX_APPID_LEN, fAppID);
+                                   fclose (fAppID);
+
+      dwSteamGameIdLen = (DWORD)strlen (szSteamGameId);
+      AppID            =        strtol (szSteamGameId, nullptr, 0);
+    }
+  }
+
+  // If no steam_appid.txt file exists, the Steam client exports the
+  //   running game's AppID as an environment variable when launched.
+  if (AppID == 0)
+  {
+    dwSteamGameIdLen =
+      GetEnvironmentVariableA ( "SteamGameId",
+                                  szSteamGameId,
+                                    MAX_APPID_LEN );
+
+
+    if (dwSteamGameIdLen > 1)
+      AppID = strtol (szSteamGameId, nullptr, 0);
+  }
+
+  // If we have an AppID, stash it in the config file for future use
+  if (AppID != 0)
+    config.steam.appid = AppID;
+
+  if (dwSteamGameIdLen > 1 && config.steam.appid != 0)
+  {
+    SK_GetConfigPathEx (true);
+
+    app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ());
+    app_cache_mgr->addAppToCache
+    (
+      SK_GetFullyQualifiedApp (),
+                SK_GetHostApp (),
+            SK_UTF8ToWideChar (
+             SK_UseManifestToGetAppName   (AppID)
+                               ).c_str (), AppID
+    );
+
+    app_cache_mgr->saveAppCache       (true);
+    app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ());
+
+    // Trigger profile migration if necessary
+    app_cache_mgr->getConfigPathForAppID (AppID);
+
+    return
+      config.steam.appid;
+  }
+
+  return 0;
 }
 
 uint64_t    SK::SteamAPI::steam_size                                    = 0ULL;

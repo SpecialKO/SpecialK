@@ -132,7 +132,7 @@ NtReadFile_Detour (
         {
           auto* task =
             SK_MMCS_GetTaskForThreadIDEx ( dwTid,
-              "[SK] File I/O Centric Thread",
+              "[GAME] File I/O Centric Thread",
                 "Distribution", "Playback" );
 
           // The first thread seen gets less special treatment

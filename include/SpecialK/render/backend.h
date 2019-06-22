@@ -352,8 +352,8 @@ public:
   //   This is the thread that handles SwapChain Presentation;
   //     nothing else can safely be inferred about this thread.
   //
-  volatile DWORD          thread       =  0;
-  CRITICAL_SECTION        cs_res       = { };
+  volatile DWORD           thread       =  0;
+  SK_Thread_HybridSpinlock res_lock;
 
 
   bool canEnterFullscreen    (void);
@@ -638,5 +638,8 @@ typedef struct
     } data;
   } SK_MONITOR_CAPABILITIES;
 
+
+void SK_D3D_SetupShaderCompiler   (void);
+void SK_Display_DisableDPIScaling (void);
 
 #endif /* __SK__RENDER_BACKEND__H__ */

@@ -241,7 +241,7 @@ public:
     {
         return p < pT;
     }
-    bool operator!=(_In_opt_ T* pT) const
+    bool operator!=(_In_opt_ T* pT) const throw()
     {
         return !operator==(pT);
     }

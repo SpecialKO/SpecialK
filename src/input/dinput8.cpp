@@ -972,7 +972,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
       if (disabled_to_game || FAILED (hr))
       {
-        RtlZeroMemory (out, cbData);
+        RtlSecureZeroMemory (out, cbData);
 
         out->rgdwPOV [0] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
@@ -1003,7 +1003,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
       if (disabled_to_game || FAILED (hr))
       {
-        RtlZeroMemory (out, cbData);
+        RtlSecureZeroMemory (out, cbData);
 
         out->rgdwPOV [0] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
@@ -1023,7 +1023,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
 
       if (disabled_to_game || (! game_window.active) || FAILED (hr))
-        RtlZeroMemory (lpvData, cbData);
+        RtlSecureZeroMemory (lpvData, cbData);
     }
 
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
@@ -1043,7 +1043,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);
 
       if (disabled_to_game || (! game_window.active) || FAILED (hr))
-        RtlZeroMemory (lpvData, cbData);
+        RtlSecureZeroMemory (lpvData, cbData);
     }
   }
 

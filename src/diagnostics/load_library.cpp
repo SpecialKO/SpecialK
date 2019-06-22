@@ -684,7 +684,13 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     );
     try
     {
-      hMod = LoadLibraryW_Original (compliant_path);
+      // Avoid loader deadlock in Steam overlay by pre-loading this
+      //   DLL behind the overlay's back.
+      if (StrStrIW (compliant_path, L"rxcore"))
+        LoadLibraryW_Original (L"xinput1_4.dll");
+
+      hMod =
+        LoadLibraryW_Original (compliant_path);
     }
     catch (const SK_SEH_IgnoredException&)
     {
@@ -712,7 +718,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     return hMod;
   }
 
-  SetLastError (ERROR_FILE_NOT_FOUND);
+  SetLastError (ERROR_MOD_NOT_FOUND);
 
   return nullptr;
 }

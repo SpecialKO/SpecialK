@@ -398,6 +398,9 @@ SK_IsProcessRunning (const wchar_t* wszProcName);
 constexpr size_t
 hash_string (const wchar_t* const wstr, bool lowercase = false)
 {
+  if (wstr == nullptr)
+    return 0;
+
   // Obviously this is completely blind to locale, but it does what
   //   is required while keeping the entire lambda constexpr-valid.
   constexpr auto constexpr_towlower = [&](const wchar_t val) ->
@@ -430,6 +433,9 @@ hash_string (const wchar_t* const wstr, bool lowercase = false)
 constexpr size_t
 hash_string_utf8 (const char* const ustr, bool lowercase = false)
 {
+  if (ustr == nullptr)
+    return 0;
+
   // Obviously this is completely blind to locale, but it does what
   //   is required while keeping the entire lambda constexpr-valid.
   constexpr auto constexpr_tolower = [&](const char val) ->
@@ -446,7 +452,6 @@ hash_string_utf8 (const char* const ustr, bool lowercase = false)
 
   for ( auto ptr = ustr ; *ptr != '\0' ; ++ptr )
   {
-
     __h =
       ( lowercase ? constexpr_tolower (*ptr) :
                                        *ptr  )
@@ -668,9 +673,8 @@ private:
   };
 };
 
-static __forceinline
+auto constexpr CountSetBits = [](ULONG_PTR bitMask) ->
 DWORD
-CountSetBits (ULONG_PTR bitMask)
 {
   const DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
         DWORD     bitSetCount = 0;

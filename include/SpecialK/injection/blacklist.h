@@ -86,6 +86,7 @@ static const UNICODE_STRING __graylist[] = {
   SK_MakeUnicode (L"sqlservr.exe"),
 #endif
 
+  SK_MakeUnicode (L"aurasupportservice.exe"),
   SK_MakeUnicode (L"streaming_client.exe"),
   SK_MakeUnicode (L"html5app_steam.exe"),
   SK_MakeUnicode (L"wow_helper.exe"),

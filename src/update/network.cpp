@@ -1145,7 +1145,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
   task_config.cbSize             = sizeof ( task_config );
   task_config.hInstance          = GetModuleHandleW (nullptr);
-  task_config.hwndParent         =                          nullptr;
+  task_config.hwndParent         =                   nullptr;
 
 
   if (! SK_IsHostAppSKIM ())
@@ -1284,8 +1284,8 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
     URL_COMPONENTSW    urlcomps;
 
-    SecureZeroMemory (get,       sizeof *get);
-    SecureZeroMemory (&urlcomps, sizeof URL_COMPONENTSW);
+    RtlSecureZeroMemory (get,       sizeof *get);
+    RtlSecureZeroMemory (&urlcomps, sizeof URL_COMPONENTSW);
 
     urlcomps.dwStructSize     = sizeof URL_COMPONENTSW;
 
@@ -1304,12 +1304,10 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
     {
       task_config.lpCallbackData = (LONG_PTR)get;
 
-      wchar_t   wszUpdateFile [MAX_PATH] = { };
+      wchar_t    wszUpdateFile     [MAX_PATH] = { };
+      wchar_t    wszUpdateTempFile [MAX_PATH] = { };
 
-      wcscpy (wszUpdateFile, SK_SYS_GetVersionPath ().c_str ());
-
-      wchar_t wszUpdateTempFile [MAX_PATH];
-
+      wcscpy   ( wszUpdateFile, SK_SYS_GetVersionPath ().c_str ());
       swprintf ( wszUpdateTempFile,
                    L"%s%s.7z",
                      SK_SYS_GetVersionPath ().c_str (),

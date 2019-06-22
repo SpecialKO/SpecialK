@@ -136,15 +136,14 @@ private:
 
 SK_ICommandProcessor::SK_ICommandProcessor (void)
 {
-  InitializeCriticalSectionEx (&cs_process_cmd, 104858, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
-                                                        SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
+  process_cmd_lock =
+    std::make_unique <SK_Thread_HybridSpinlock> (1024);
 
   AddCommand ("source", new SK_SourceCmd (this));
 }
 
 SK_ICommandProcessor::~SK_ICommandProcessor (void)
 {
-  DeleteCriticalSection (&cs_process_cmd);
 }
 
 const SK_ICommand*
@@ -156,7 +155,8 @@ SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
   if (pCommand == nullptr)
     return nullptr;
 
-  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*process_cmd_lock);
 
   /* Command already exists, what should we do?! */
   if (FindCommand (szCommand) != nullptr)
@@ -170,7 +170,8 @@ SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
 bool
 SK_ICommandProcessor::RemoveCommand (const char* szCommand)
 {
-  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+      scope_lock (*process_cmd_lock);
 
   if (FindCommand (szCommand) != nullptr)
   {
@@ -187,7 +188,8 @@ SK_ICommandProcessor::RemoveCommand (const char* szCommand)
 SK_ICommand*
 SK_ICommandProcessor::FindCommand (const char* szCommand)
 {
-  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*process_cmd_lock);
 
   const auto command =
     commands_.find (szCommand);
@@ -209,7 +211,8 @@ SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariab
   if (szVariable == nullptr || strlen (szVariable) < 1)
     return nullptr;
 
-  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*process_cmd_lock);
 
   /* Variable already exists, what should we do?! */
   if (FindVariable (szVariable) != nullptr)
@@ -225,7 +228,8 @@ SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariab
 bool
 SK_ICommandProcessor::RemoveVariable (const char* szVariable)
 {
-  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*process_cmd_lock);
 
   if (FindVariable (szVariable) != nullptr)
   {
@@ -242,7 +246,8 @@ SK_ICommandProcessor::RemoveVariable (const char* szVariable)
 const SK_IVariable*
 SK_ICommandProcessor::FindVariable (const char* szVariable)
 {
-  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*process_cmd_lock);
 
   const auto variable =
     variables_.find (szVariable);
@@ -256,12 +261,13 @@ SK_ICommandProcessor::FindVariable (const char* szVariable)
 SK_ICommandResult
 SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 {
-  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*process_cmd_lock);
 
   if (szCommandLine != nullptr && strlen (szCommandLine))
   {
-    char*  command_word     = _strdup (szCommandLine);
-    if ((! command_word)) return
+    char* command_word  = _strdup     (szCommandLine);
+    if (  command_word == nullptr) return
                     SK_ICommandResult (szCommandLine);
     size_t command_word_len =  strlen (command_word);
 
@@ -272,8 +278,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
     for (size_t i = 0; i < command_word_len; i++)
     {
       if (command_word [i] == ' ')
-      {
-        command_word [i] = '\0';
+      {   command_word [i] = '\0';
 
         if (i < (command_word_len - 1))
         {
@@ -453,7 +458,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
         SK_ICommandResult (
           cmd_word.c_str (),
           cmd_args.c_str (),
-            pszNew, true,
+            pszNew, 1,
                var, nullptr
         );
     }

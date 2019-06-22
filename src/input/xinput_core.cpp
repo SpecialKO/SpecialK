@@ -318,7 +318,7 @@ XInputGetState1_3_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -369,7 +369,7 @@ XInputGetStateEx1_3_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -421,7 +421,7 @@ XInputGetCapabilities1_3_Detour (
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+  RtlSecureZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -465,7 +465,7 @@ XInputGetBatteryInformation1_3_Detour (
 
   if (pBatteryInformation == nullptr)         return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+  RtlSecureZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
   if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -525,7 +525,7 @@ XInputSetState1_3_Detour (
                                                         pCtx->XInputSetState_Original (dwUserIndex, pVibration));
                                       }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        RtlSecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                         return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
@@ -597,7 +597,7 @@ XInputGetState1_4_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -648,7 +648,7 @@ XInputGetStateEx1_4_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -700,7 +700,7 @@ XInputGetCapabilities1_4_Detour (
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+  RtlSecureZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -744,7 +744,7 @@ XInputGetBatteryInformation1_4_Detour (
 
   if (pBatteryInformation == nullptr) return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+  RtlSecureZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
@@ -805,7 +805,7 @@ XInputSetState1_4_Detour (
                                                         pCtx->XInputSetState_Original (dwUserIndex, pVibration));
                                       }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        RtlSecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                         return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
@@ -854,7 +854,7 @@ XInputGetState9_1_0_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -925,7 +925,7 @@ XInputGetCapabilities9_1_0_Detour (
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+  RtlSecureZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
@@ -988,7 +988,7 @@ XInputSetState9_1_0_Detour (
                                                         pCtx->XInputSetState_Original (dwUserIndex, pVibration));
                                       }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        RtlSecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                         return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
@@ -1128,6 +1128,9 @@ SK_Input_HookXInput1_4 (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
+  if (pTLS == nullptr)
+    return;
+
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&_xinput_ctx.primary_hook) == nullptr)
@@ -1180,6 +1183,9 @@ SK_Input_HookXInput1_3 (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
+  if (pTLS == nullptr)
+    return;
+
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&_xinput_ctx.primary_hook) == nullptr)
@@ -1231,6 +1237,9 @@ SK_Input_HookXInput9_1_0 (void)
 
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
+
+  if (pTLS == nullptr)
+    return;
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
@@ -2324,7 +2333,7 @@ XInputGetState1_3_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -2371,7 +2380,7 @@ XInputGetStateEx1_3_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -2422,7 +2431,7 @@ XInputGetCapabilities1_3_Detour (
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+  RtlSecureZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -2465,7 +2474,7 @@ XInputGetBatteryInformation1_3_Detour (
 
   if (pBatteryInformation == nullptr)         return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+  RtlSecureZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
   if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -2524,7 +2533,7 @@ XInputSetState1_3_Detour (
                                                         pCtx->XInputSetState_Original (dwUserIndex, pVibration);
                                       }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        RtlSecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                         return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
@@ -2596,7 +2605,7 @@ XInputGetState1_4_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -2647,7 +2656,7 @@ XInputGetStateEx1_4_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -2699,7 +2708,7 @@ XInputGetCapabilities1_4_Detour (
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+  RtlSecureZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -2743,7 +2752,7 @@ XInputGetBatteryInformation1_4_Detour (
 
   if (pBatteryInformation == nullptr) return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+  RtlSecureZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
@@ -2798,7 +2807,7 @@ XInputSetState1_4_Detour (
 
   if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion (dwUserIndex, false); return pCtx->XInputSetState_Original (dwUserIndex, pVibration); }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        RtlSecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                       return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
@@ -2848,7 +2857,7 @@ XInputGetState9_1_0_Detour (
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
@@ -2917,7 +2926,7 @@ XInputGetCapabilities9_1_0_Detour (
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  RtlZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+  RtlSecureZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
   if (dwUserIndex   >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
@@ -2978,7 +2987,7 @@ XInputSetState9_1_0_Detour (
 
   if (pVibration  == nullptr)         { _xinput_ctx.preventHapticRecursion (dwUserIndex, false); return pCtx->XInputSetState_Original (dwUserIndex, pVibration); }
   if (dwUserIndex >= XUSER_MAX_COUNT) { _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        RtlSecureZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                       return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
@@ -3124,6 +3133,9 @@ SK_Input_HookXInput1_4 (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
+  if (pTLS == nullptr)
+    return;
+
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&_xinput_ctx.primary_hook) == nullptr)
@@ -3176,6 +3188,9 @@ SK_Input_HookXInput1_3 (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
+  if (pTLS == nullptr)
+    return;
+
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&_xinput_ctx.primary_hook) == nullptr)
@@ -3227,6 +3242,9 @@ SK_Input_HookXInput9_1_0 (void)
 
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
+
+  if (pTLS == nullptr)
+    return;
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {

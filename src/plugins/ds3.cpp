@@ -648,7 +648,7 @@ SK_DS3_SetActiveWindow (
 
 
 
-extern void SK_DisableDPIScaling (void);
+extern void SK_Display_DisableDPIScaling (void);
 
 void
 SK_DS3_InitPlugin (void)
@@ -658,7 +658,7 @@ SK_DS3_InitPlugin (void)
 
   if (ds3_prefs == nullptr)
   {
-    SK_DisableDPIScaling ();
+    SK_Display_DisableDPIScaling ();
 
     // Make the graphics config file read-only while running
     DWORD    dwConfigAttribs;

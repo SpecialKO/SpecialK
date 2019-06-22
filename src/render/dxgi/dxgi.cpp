@@ -2422,7 +2422,7 @@ SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext*       pImmediateContext,
       *pSB = new SK_D3D11_Stateblock_Lite ();
     }
 
-    RtlZeroMemory ( *pSB,
+    RtlSecureZeroMemory ( *pSB,
                       sizeof (SK_D3D11_Stateblock_Lite) );
 
     (*pSB)->capture (pImmediateContext);
@@ -2445,7 +2445,7 @@ SK_D3D11_CreateAndCaptureStateBlock (ID3D11DeviceContext* pImmediateContext)
     //SK_TLS_Bottom ()->d3d11.getStateBlock ();
   SK_D3D11_Stateblock_Lite* sb = new SK_D3D11_Stateblock_Lite ();
 
-  RtlZeroMemory ( sb,
+  RtlSecureZeroMemory ( sb,
                   sizeof (SK_D3D11_Stateblock_Lite) );
 
   sb->capture (pImmediateContext);
@@ -2555,7 +2555,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   const D3D_FEATURE_LEVEL ft_lvl = pDev->GetFeatureLevel ();
 
-  RtlZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
+  RtlSecureZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
 
   sb->OMBlendFactor [0] = 0.0f;
   sb->OMBlendFactor [1] = 0.0f;
@@ -3420,7 +3420,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       SK_D3D11_Stateblock_Lite sb_ = { };
                    auto* sb = &sb_;
                    //pTLS->d3d11->getStateBlock ();
-                   //RtlZeroMemory ( sb,
+                   //RtlSecureZeroMemory ( sb,
                    //                  sizeof (SK_D3D11_Stateblock_Lite) );
 #else
       D3DX11_STATE_BLOCK sblock = { };
@@ -3719,7 +3719,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 ///    ///  ///auto* sb =
 ///    ///  ///  pTLS->d3d12.getStateBlock ();
 ///    ///  ///
-///    ///  ///RtlZeroMemory ( sb,
+///    ///  ///RtlSecureZeroMemory ( sb,
 ///    ///  ///                  sizeof (SK_D3D11_Stateblock_Lite) );
 ///    ///
 ///    /////sb->capture (pImmediateContext);
@@ -8942,7 +8942,8 @@ HookDXGI (LPVOID user)
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  if (__SK_bypass || ReadAcquire (&__dxgi_ready) || pTLS->d3d11->ctx_init_thread)
+  if ( __SK_bypass     || ReadAcquire (&__dxgi_ready) ||
+       pTLS == nullptr || pTLS->d3d11->ctx_init_thread )
   {
     SK_Thread_CloseSelf ();
     return 0;
@@ -9211,7 +9212,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
       //   the running thread still needs a reference counted.
       pAdapter3->AddRef ();
 
-      ZeroMemory ( budget_thread.getPtr (),
+      SecureZeroMemory ( budget_thread.getPtr (),
                      sizeof budget_thread_params_t );
 
       dll_log->LogEx ( true,

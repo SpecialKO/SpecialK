@@ -403,25 +403,38 @@ SK::DDraw::Startup (void)
 {
   wchar_t wszImmediateMode [MAX_PATH * 2 + 1] = { };
 
-  wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+  wsprintf ( wszImmediateMode, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
+               std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str () );
+
 
   imports->dgvoodoo_d3dimm               = new import_s ();
-  imports->dgvoodoo_d3dimm->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
-  imports->dgvoodoo_d3dimm->name         = L"API Support Plug-In";
-  imports->dgvoodoo_d3dimm->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (imports->dgvoodoo_d3dimm->hLibrary).c_str ());
+  auto*    dgvoodoo_d3dimm               = imports->dgvoodoo_d3dimm;
+           dgvoodoo_d3dimm->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
+           dgvoodoo_d3dimm->name         = L"API Support Plug-In";
+           dgvoodoo_d3dimm->product_desc =
+             SK_GetDLLVersionStr ( SK_GetModuleFullName (
+                                     dgvoodoo_d3dimm->hLibrary
+                                   ).c_str ()
+                                 );
 
-  wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+  wsprintf ( wszImmediateMode, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
+                std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str () );
+
 
   imports->dgvoodoo_d3d8               = new import_s ();
-  imports->dgvoodoo_d3d8->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
-  imports->dgvoodoo_d3d8->name         = L"API Support Plug-In";
-  imports->dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (imports->dgvoodoo_d3d8->hLibrary).c_str ());
+  auto*    dgvoodoo_d3d8               = imports->dgvoodoo_d3d8;
+           dgvoodoo_d3d8->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
+           dgvoodoo_d3d8->name         = L"API Support Plug-In";
+           dgvoodoo_d3d8->product_desc =
+             SK_GetDLLVersionStr ( SK_GetModuleFullName (
+                                     dgvoodoo_d3d8->hLibrary
+                                   ).c_str ()
+                                 );
 
   config.apis.d3d8.hook = false;
 
-  const bool ret = SK_StartupCore (L"ddraw", ddraw_init_callback);
-
-  return ret;
+  return
+    SK_StartupCore (L"ddraw", ddraw_init_callback);
 }
 
 bool

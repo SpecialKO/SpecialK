@@ -222,11 +222,6 @@ SK_DGPU_UpdateFlareBuffers (void)
 
 
 
-
-extern void
-__stdcall
-SK_SetPluginName (std::wstring name);
-
 unsigned int
 __stdcall
 SK_DGPU_CheckVersion (LPVOID user)

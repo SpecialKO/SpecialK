@@ -573,4 +573,7 @@ HWND
 WINAPI
 SK_SetActiveWindow (HWND hWnd);
 
+extern void SK_Window_RepositionIfNeeded (void);
+void SKX_Window_EstablishRoot     (void);
+
 #endif /* __SK__WINDOW_H__ */

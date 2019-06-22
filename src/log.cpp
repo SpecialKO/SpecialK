@@ -85,7 +85,8 @@ SK_Timestamp (wchar_t* const out)
   lstrcatW (out, time);
   lstrcatW (out, L".");
 
-  return stLogTime.wMilliseconds;
+  return
+    stLogTime.wMilliseconds;
 }
 
 // Due to the way concurrent data structures grow, we can't shrink this beast
@@ -350,27 +351,27 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  wchar_t* wszOut =
-    pTLS->scratch_memory->log.formatted_output.alloc (
-      len, true
-    );
+  wchar_t* wszOut = nullptr;
 
-  if (wszOut == nullptr)
+
+  __try
   {
-    __try {
-      wszOut =
-        static_cast <wchar_t *> (
-          _alloca ( len *
-             sizeof (wchar_t)
-          )
-        );
-    }
-    __except ( GetExceptionCode () == STATUS_STACK_OVERFLOW ?
-                                  EXCEPTION_EXECUTE_HANDLER :
-                                  EXCEPTION_CONTINUE_SEARCH )
-    {
-      _resetstkoflw ();
-    }
+    wszOut =
+      pTLS ? pTLS->scratch_memory->log.formatted_output.alloc (
+             len, true
+         )
+           :
+      static_cast <wchar_t *> (
+        _alloca ( len *
+           sizeof (wchar_t)
+        )
+      );
+  }
+  __except ( GetExceptionCode () == STATUS_STACK_OVERFLOW ?
+                                EXCEPTION_EXECUTE_HANDLER :
+                                EXCEPTION_CONTINUE_SEARCH )
+  {
+    _resetstkoflw ();
   }
 
   if (wszOut == nullptr)
@@ -435,27 +436,26 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  wchar_t* wszOut =
-    pTLS->scratch_memory->log.formatted_output.alloc (
-      len, true
-    );
+  wchar_t* wszOut = nullptr;
 
-  if (wszOut == nullptr)
+  __try
   {
-    __try {
-      wszOut =
-        static_cast <wchar_t *> (
-          _alloca ( len *
-             sizeof (wchar_t)
-          )
-        );
-    }
-    __except ( GetExceptionCode () == STATUS_STACK_OVERFLOW ?
-                                  EXCEPTION_EXECUTE_HANDLER :
-                                  EXCEPTION_CONTINUE_SEARCH )
-    {
-      _resetstkoflw ();
-    }
+    wszOut =
+      pTLS ? pTLS->scratch_memory->log.formatted_output.alloc (
+             len, true
+         )
+           :
+      static_cast <wchar_t *> (
+        _alloca ( len *
+           sizeof (wchar_t)
+        )
+      );
+  }
+  __except ( GetExceptionCode () == STATUS_STACK_OVERFLOW ?
+                                EXCEPTION_EXECUTE_HANDLER :
+                                EXCEPTION_CONTINUE_SEARCH )
+  {
+    _resetstkoflw ();
   }
 
   if (wszOut == nullptr)
@@ -598,9 +598,9 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
     swprintf_s ( wszSummary, 255,
                    L"[ %-25s <%30hs>, tid=0x%04x ]",
 
-           caller.c_str (),
+           caller.c_str               (),
              szSymbol,
-               SK_Thread_GetCurrentId             ()
+               SK_Thread_GetCurrentId ()
     );
   }
 

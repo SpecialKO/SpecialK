@@ -232,7 +232,7 @@ private:
   std::unordered_map < std::string, std::unique_ptr <SK_IVariable>,
     str_hash_compare <std::string> > variables_;
 
-  CRITICAL_SECTION cs_process_cmd;
+  std::unique_ptr <SK_Thread_HybridSpinlock> process_cmd_lock = nullptr;
 };
 
 

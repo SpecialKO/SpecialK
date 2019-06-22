@@ -82,7 +82,7 @@ SK_Get7ZFileContents (                 const wchar_t* wszArchive,
       if (SzArEx_IsDir (&arc, i))
         continue;
 
-      RtlZeroMemory (wszEntry, (MAX_PATH * 2 + 1) * sizeof (wchar_t));
+      RtlSecureZeroMemory (wszEntry, (MAX_PATH * 2 + 1) * sizeof (wchar_t));
       SzArEx_GetFileNameUtf16 (&arc, i, (UInt16 *)wszEntry);
 
       uint64_t fileSize  = SzArEx_GetFileSize (&arc, i);
@@ -129,12 +129,11 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   {
     if (wcsstr (it.name.c_str (), L"default_"))
     {
-      cfg_files.push_back (it);
+      cfg_files.emplace_back (it);
     }
-
     else
     {
-      reg_files.push_back (it);
+      reg_files.emplace_back (it);
     }
   }
 
@@ -184,6 +183,14 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   int            i = 0;
   for ( auto& file : reg_files )
   {
+    // Sanity Check
+    if ( file.name.empty () ||
+         file.filesize == 0  )
+    {
+      ++i;
+      continue;
+    }
+
     Byte*    out           = nullptr;
     size_t   out_len       = 0;
     size_t   offset        = 0;

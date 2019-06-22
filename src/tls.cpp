@@ -776,7 +776,7 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
     if (stack_scratch.storage != nullptr)
     {
         stack_scratch.size = (uint32_t)size;
-      RtlZeroMemory (
+      RtlSecureZeroMemory (
         stack_scratch.storage, size);
     }
   }
@@ -792,7 +792,7 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
       if (stack_scratch.storage != nullptr)
       {
                        stack_scratch.size = (uint32_t)size;
-        RtlZeroMemory (stack_scratch.storage,         size);
+        RtlSecureZeroMemory (stack_scratch.storage,         size);
       } else SK_ReleaseAssert (false)
     }
   }

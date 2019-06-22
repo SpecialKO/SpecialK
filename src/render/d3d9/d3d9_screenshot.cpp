@@ -205,7 +205,7 @@ static SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D9_Screenshot*>> scree
 bool
 SK_D3D9_CaptureSteamScreenshot  ( SK_ScreenshotStage when )
 {
-  if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
+  if ( ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) != 0 )
   {
     int stage = 0;
 
@@ -262,7 +262,7 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
       HANDLE hSignalScreenshot = INVALID_HANDLE_VALUE;
 
     if ( INVALID_HANDLE_VALUE ==
-           InterlockedCompareExchangePointer (&hSignalScreenshot, 0, INVALID_HANDLE_VALUE) )
+           InterlockedCompareExchangePointer (&hSignalScreenshot, nullptr, INVALID_HANDLE_VALUE) )
     {
       InterlockedExchangePointer ( (void **)&hSignalScreenshot,
                                      SK_CreateEvent ( nullptr,
@@ -285,7 +285,7 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
         static concurrency::concurrent_queue <SK_D3D9_Screenshot*> rejected_screenshots;
 
 
-        while (! ReadAcquire (&__SK_DLL_Ending))
+        while (ReadAcquire (&__SK_DLL_Ending) == 0)
         {
           MsgWaitForMultipleObjectsEx ( 1, &hSignal, INFINITE, 0x0, 0x0 );
 

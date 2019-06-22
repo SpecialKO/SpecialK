@@ -264,7 +264,8 @@ public:
   {
     SK_ImGui_Widgets->hdr_control = this;
 
-    setAutoFit (true).setDockingPoint (DockAnchor::NorthEast).setClickThrough (false);
+    setAutoFit (true).setDockingPoint (DockAnchor::NorthEast).setClickThrough (false).
+                      setBorder (true);
   };
 
   void run (void) override

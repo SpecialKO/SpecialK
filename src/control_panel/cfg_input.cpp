@@ -57,7 +57,8 @@ extern ImVec2& __SK_ImGui_LastWindowCenter (void);
 void
 SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
 {
-  ImGuiIO& io (ImGui::GetIO ());
+  static auto& io =
+    ImGui::GetIO ();
 
   SK_ImGui_Cursor.pos.x = static_cast <LONG> (center.x);
   SK_ImGui_Cursor.pos.y = static_cast <LONG> (center.y);
@@ -65,9 +66,8 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
   io.MousePos.x = center.x;
   io.MousePos.y = center.y;
 
-  POINT screen_pos = SK_ImGui_Cursor.pos;
-
-  HCURSOR hCur = SK_GetCursor ();
+  POINT   screen_pos = SK_ImGui_Cursor.pos;
+  HCURSOR hCur       = SK_GetCursor ();
 
   if (hCur != nullptr)
     SK_ImGui_Cursor.orig_img = hCur;
@@ -84,13 +84,17 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
 void
 SK_ImGui_CenterCursorOnWindow (void)
 {
-  return SK_ImGui_CenterCursorAtPos ();
+  return
+    SK_ImGui_CenterCursorAtPos ();
 }
 
 
 bool
 SK::ControlPanel::Input::Draw (void)
 {
+  static auto& io =
+    ImGui::GetIO ();
+
   const bool input_mgmt_open =
     ImGui::CollapsingHeader ("Input Management");
 
@@ -584,9 +588,12 @@ extern float SK_ImGui_PulseNav_Strength;
 
         std::stringstream buttons;
 
+        const unsigned int max_buttons =
+          std::min (16U, joy_caps.wMaxButtons);
+
         for ( unsigned int i = 0,
                            j = 0                                    ;
-                           i < std::min (16U, joy_caps.wMaxButtons) ;
+                           i < max_buttons ;
                          ++i )
         {
           if (joy_ex.dwButtons & (1 << i))
@@ -660,8 +667,11 @@ extern float SK_ImGui_PulseNav_Strength;
                                            static_cast <float> (joy_caps.wVmax),
                                            static_cast <float> (joy_ex.dwVpos) } };
 
-          for ( UINT axis = 0                                ;
-                     axis < std::min (6U, joy_caps.wMaxAxes) ;
+          const UINT max_axes =
+            std::min (6U, joy_caps.wMaxAxes);
+
+          for ( UINT axis = 0         ;
+                     axis <  max_axes ;
                    ++axis )
           {
             auto  const range  = static_cast <float>  (axes [axis].max - axes [axis].min);
@@ -717,11 +727,11 @@ extern float SK_ImGui_PulseNav_Strength;
       static bool  deadzone_hovered = false;
              float float_thresh     = std::max (1.0f, std::min (100.0f, config.input.mouse.antiwarp_deadzone));
 
-      ImVec2 deadzone_pos    = ImGui::GetIO ().DisplaySize;
+      ImVec2 deadzone_pos    = io.DisplaySize;
              deadzone_pos.x /= 2.0f;
              deadzone_pos.y /= 2.0f;
-      const ImVec2 deadzone_size ( ImGui::GetIO ().DisplaySize.x * float_thresh / 200.0f,
-                                   ImGui::GetIO ().DisplaySize.y * float_thresh / 200.0f );
+      const ImVec2 deadzone_size ( io.DisplaySize.x * float_thresh / 200.0f,
+                                   io.DisplaySize.y * float_thresh / 200.0f );
 
       const ImVec2 xy0 ( deadzone_pos.x - deadzone_size.x,
                          deadzone_pos.y - deadzone_size.y );
@@ -1113,7 +1123,8 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
   if (! keybind)
     return;
 
-  ImGuiIO& io (ImGui::GetIO ());
+  static auto& io =
+    ImGui::GetIO ();
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
 
@@ -1170,10 +1181,11 @@ INT
 __stdcall
 SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 {
-  if (!combo)
+  if (! combo)
     return 0;
 
-  ImGuiIO& io (ImGui::GetIO ());
+  static auto& io =
+    ImGui::GetIO ();
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
 

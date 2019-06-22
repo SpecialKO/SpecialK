@@ -183,7 +183,7 @@ CrashHandler::Reinstall (void)
   static volatile LPVOID   pOldHook   = nullptr;
   if ((uintptr_t)InterlockedCompareExchangePointer (&pOldHook, (PVOID)1, nullptr) > (uintptr_t)1)
   {
-    if (MH_OK == SK_RemoveHook (pOldHook))
+    if (MH_OK == SK_RemoveHook (ReadPointerAcquire (&pOldHook)))
     {
       InterlockedExchangePointer ((LPVOID *)&pOldHook, nullptr);
     }
@@ -441,6 +441,9 @@ GetBasicType (DWORD typeIndex, DWORD64 modBase)
 std::wstring
 SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool crash_handled)
 {
+  if (ExceptionInfo == nullptr)
+    return L"(nullptr)";
+
   std::wstring
     log_entry;
     log_entry.reserve (16384);

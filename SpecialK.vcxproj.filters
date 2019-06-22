@@ -417,9 +417,6 @@
     <ClInclude Include="include\SpecialK\performance\gpu_monitor.h">
       <Filter>Header Files\Stats</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\performance\memory_monitor.h">
-      <Filter>Header Files\Stats</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\performance\io_monitor.h">
       <Filter>Header Files\Stats</Filter>
     </ClInclude>
@@ -3084,6 +3081,9 @@
     <ClInclude Include="depends\include\glm\simd\vector_relational.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\compatibility\game_traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -4323,6 +4323,11 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="SpecialK.ruleset" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />

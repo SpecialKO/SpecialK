@@ -14,6 +14,8 @@
 //-------------------------------------------------------------------------------------
 
 #include "directxtexp.h"
+
+#define __SK__FRAMERATE_H__
 #include "../../../include/SpecialK/tls.h"
 
 namespace DirectX

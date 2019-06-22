@@ -120,7 +120,8 @@ public:
   SK_Thread_HybridSpinlock (int spin_count = 3000) noexcept :
                                                               SK_Thread_CriticalSection (new (std::nothrow) CRITICAL_SECTION)
   {
-    InitializeCriticalSectionEx (cs_, spin_count, SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
+    InitializeCriticalSectionEx (cs_, spin_count, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                                  SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
   }
 
   ~SK_Thread_HybridSpinlock (void) noexcept///
@@ -129,73 +130,6 @@ public:
     delete cs_;
   }
 };
-
-class SK_AutoCriticalSection {
-public:
-  _Acquires_exclusive_lock_ (*this->cs_)
-  SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
-                           bool              try_only = false ) noexcept
-  {
-    acquired_ = false;
-    cs_       = pCS;
-
-    if (try_only)
-      TryEnter ();
-    else {
-      Enter ();
-    }
-  }
-
-  _Releases_exclusive_lock_ (*this->cs_)
-  ~SK_AutoCriticalSection (void) noexcept ///
-  {
-    Leave ();
-  }
-
-  bool try_result (void) noexcept
-  {
-    return acquired_;
-  }
-
-  _Acquires_exclusive_lock_ (*this->cs_)
-  void enter (void) noexcept
-  {
-    EnterCriticalSection (cs_);
-
-    acquired_ = true;
-  }
-
-protected:
-  _Acquires_exclusive_lock_ (cs_)
-  bool TryEnter (void) noexcept
-  {
-    return
-      ( acquired_ = (TryEnterCriticalSection (cs_) != FALSE) );
-  }
-
-  _Acquires_exclusive_lock_ (cs_)
-  void Enter (void) noexcept
-  {
-    EnterCriticalSection (cs_);
-
-    acquired_ = true;
-  }
-
-  _Releases_exclusive_lock_ (cs_)
-  void Leave (void) noexcept
-  {
-    if (acquired_ != false)
-      LeaveCriticalSection (cs_);
-
-    acquired_ = false;
-  }
-
-private:
-  bool              acquired_;
-  CRITICAL_SECTION* cs_;
-};
-
-
 
 
 DWORD

@@ -351,12 +351,13 @@ SK_ImGui_Warning (const wchar_t* wszMessage)
 void
 SK_ImGui_SetNextWindowPosCenter (ImGuiCond cond)
 {
-  ImGuiIO& io =
+  static const auto& io =
     ImGui::GetIO ();
 
   static const ImVec2 vCenterPivot   (0.5f, 0.5f);
          const ImVec2 vDisplayCenter (
-    io.DisplaySize.x / 2.0f, io.DisplaySize.y / 2.0f
+    io.DisplaySize.x / 2.0f,
+    io.DisplaySize.y / 2.0f
   );
 
   ImGui::SetNextWindowPos (vDisplayCenter, cond, vCenterPivot);
@@ -383,7 +384,7 @@ SK_ImGui_ProcessWarnings (void)
   if (warning.message.empty ())
     return;
 
-  ImGuiIO& io =
+  static const auto& io =
     ImGui::GetIO ();
 
   // Stupid hack to show ImGui windows without the control panel open
@@ -434,7 +435,8 @@ bool SK_ImGui_WantExit = false;
 void
 SK_ImGui_ConfirmExit (void)
 {
-  auto& io = ImGui::GetIO ();
+  static const auto& io =
+    ImGui::GetIO ();
 
   SK_ImGui_WantExit = true;
 
@@ -455,7 +457,8 @@ SK_ImGui_IsItemClicked (void)
 
   if (ImGui::IsItemHovered ())
   {
-    static auto& io = ImGui::GetIO ();
+    static auto& io =
+      ImGui::GetIO ();
 
     if (io.NavInputsDownDuration [ImGuiNavInput_Activate] == 0.0f)
     {
@@ -474,11 +477,11 @@ SK_ImGui_IsItemRightClicked (void)
 
   if (ImGui::IsItemHovered ())
   {
-    static auto& io = ImGui::GetIO ();
+    static auto& io =
+      ImGui::GetIO ();
 
     if (io.NavInputsDownDuration [ImGuiNavInput_Activate] > 0.4f)
-    {
-      io.NavInputsDownDuration [ImGuiNavInput_Activate] = 0.0f;
+    {   io.NavInputsDownDuration [ImGuiNavInput_Activate] = 0.0f;
       return true;
     }
   }
@@ -654,7 +657,7 @@ public:
   }
 };
 
-SK_LazyGlobal <SK_ImGui_FrameHistory> SK_ImGui_Frames;
+extern SK_LazyGlobal <SK_ImGui_FrameHistory> SK_ImGui_Frames;
 
 
 #pragma optimize( "", off )
@@ -1300,121 +1303,7 @@ DisplayModeMenu (bool windowed)
 extern float __target_fps;
 extern float __target_fps_bg;
 
-void
-SK_ImGui_DrawGraph_FramePacing (void)
-{
-  static const auto& io =
-    ImGui::GetIO ();
-
-  const  float font_size           =
-    ( ImGui::GetFont  ()->FontSize * io.FontGlobalScale );
-
-  const  float font_size_multiline =
-    ( ImGui::GetStyle ().ItemSpacing.y      +
-      ImGui::GetStyle ().ItemInnerSpacing.y + font_size );
-
-
-  float sum = 0.0f;
-
-  float min = FLT_MAX;
-  float max = 0.0f;
-
-  for ( const auto& val : SK_ImGui_Frames->getValues () )
-  {
-    sum += val;
-
-    if (val > max)
-      max = val;
-
-    if (val < min)
-      min = val;
-  }
-
-  static       char szAvg [512] = { };
-  static const bool ffx = SK_GetModuleHandle (L"UnX.dll") != nullptr;
-
-  float& target =
-    ( game_window.active || __target_fps_bg == 0.0f ) ?
-            __target_fps  : __target_fps_bg;
-
-  float target_frametime = ( target == 0.0f ) ?
-                              ( 1000.0f / (ffx ? 30.0f : 60.0f) ) :
-                                ( 1000.0f / fabs (target) );
-
-  float frames = std::min ( (float)SK_ImGui_Frames->getUpdates  (),
-                            (float)SK_ImGui_Frames->getCapacity () );
-
-
-  if (ffx)
-  {
-    // Normal Gameplay: 30 FPS
-    if (sum / frames > 30.0)
-      target_frametime = 33.333333f;
-
-    // Menus: 60 FPS
-    else
-      target_frametime = 16.666667f;
-  }
-
-
-  snprintf
-        ( szAvg,
-            511,
-              u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-              u8"    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
-              u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
-                sum / frames,
-                  target_frametime,
-                    min, max, (double)max - (double)min,
-                      1000.0f / (sum / frames),
-                        ((double)max-(double)min)/(1000.0f/(sum/frames)) );
-
-  ImGui::PushStyleColor ( ImGuiCol_PlotLines,
-                            (ImVec4&&)ImColor::HSV ( 0.31f - 0.31f *
-                     std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
-                                             0.86f,
-                                               0.95f ) );
-
-  const ImVec2 border_dims (
-    std::max (500.0f, ImGui::GetContentRegionAvailWidth ()),
-      font_size * 7.0f
-  );
-
-  ImGui::PlotLines ( SK_ImGui_Visible ? "###ControlPanel_FramePacing" :
-                                        "###Floating_FramePacing",
-                       SK_ImGui_Frames->getValues     ().data (),
-      static_cast <int> (frames),
-                           SK_ImGui_Frames->getOffset (),
-                             szAvg,
-                               -.1f,
-                                 2.0f * target_frametime + 0.1f,
-                                   border_dims );
-
-  //SK_RenderBackend& rb =
-  //  SK_GetCurrentRenderBackend ();
-  //
-  //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-  //{
-  //  if (rb.gsync_state.capable)
-  //  {
-  //    ImGui::SameLine ();
-  //    ImGui::TextColored (ImColor::HSV (0.226537f, 1.0f, 0.36f), "G-Sync: ");
-  //    ImGui::SameLine ();
-  //
-  //    if (rb.gsync_state.active)
-  //    {
-  //      ImGui::TextColored (ImColor::HSV (0.226537f, 1.0f, 0.45f), "Active");
-  //    }
-  //
-  //    else
-  //    {
-  //      ImGui::TextColored (ImColor::HSV (0.226537f, 0.75f, 0.27f), "Inactive");
-  //    }
-  //  }
-  //}
-
-  ImGui::PopStyleColor ();
-}
+extern void SK_ImGui_DrawGraph_FramePacing (void);
 
 __declspec (dllexport)
 bool
@@ -1423,7 +1312,8 @@ SK_ImGui_ControlPanel (void)
   if (! imgui_staged_frames)
     return false;
 
-  ImGuiIO& io (ImGui::GetIO ());
+  static auto& io =
+    ImGui::GetIO ();
 
   if (ImGui::GetFont () == nullptr)
   {
@@ -2138,7 +2028,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::Separator    ( );
 
             SK_ImGui_AutoFont fixed_font (
-              ImGui::GetIO ().Fonts->Fonts [SK_IMGUI_FIXED_FONT]
+              io.Fonts->Fonts [SK_IMGUI_FIXED_FONT]
             );
             //ImGui::BulletText   ("%lu injections since restart", count);
 
@@ -3266,7 +3156,8 @@ SK_ImGui_StageNextFrame (void)
   {
     last_frame  = SK_GetFramesDrawn ();
 
-    ImGuiIO& io = ImGui::GetIO ();
+    static auto& io =
+      ImGui::GetIO ();
 
     font.size           = ImGui::GetFont () ?
                             ImGui::GetFont ()->FontSize * io.FontGlobalScale :
@@ -3322,9 +3213,8 @@ SK_ImGui_StageNextFrame (void)
     return;
   }
 
-  ImGuiIO& io (
-    ImGui::GetIO ()
-  );
+  static auto& io =
+    ImGui::GetIO ();
 
 
   SK_ComQIPtr <IDXGISwapChain> pSwapChain (
@@ -3420,7 +3310,7 @@ SK_ImGui_StageNextFrame (void)
   for (auto& widget : widgets)
   {
     if (widget->isActive ())
-      widget->run_base ();
+        widget->run_base ();
 
     else if (widget == SK_ImGui_Widgets->hdr_control ||
              widget == SK_ImGui_Widgets->thread_profiler)
@@ -3440,16 +3330,14 @@ SK_ImGui_StageNextFrame (void)
     }
   }
 
-
-
   static DWORD dwStartTime = current_time;
   if ((current_time < dwStartTime + 1000 * config.version_banner.duration) || eula.show)
   {
     ImGui::PushStyleColor    (ImGuiCol_Text,     ImVec4 (1.f,   1.f,   1.f,   1.f));
     ImGui::PushStyleColor    (ImGuiCol_WindowBg, ImVec4 (.333f, .333f, .333f, 0.828282f));
     ImGui::SetNextWindowPos  (ImVec2 (10, 10));
-    ImGui::SetNextWindowSize (ImVec2 ( ImGui::GetIO ().DisplayFramebufferScale.x - 20.0f,
-                                       ImGui::GetFrameHeightWithSpacing ()   * 4.5f  ), ImGuiCond_Always );
+    ImGui::SetNextWindowSize (ImVec2 ( io.DisplayFramebufferScale.x        - 20.0f,
+                                       ImGui::GetFrameHeightWithSpacing () * 4.5f  ), ImGuiCond_Always );
     ImGui::Begin             ( "Splash Screen##SpecialK",
                                  nullptr,
                                    ImGuiWindowFlags_NoTitleBar      |
@@ -3933,9 +3821,8 @@ SK_ImGui_Toggle (void)
   // XXX: HACK for Monster Hunter: World
   game_window.active = true;
 
-  static ImGuiIO& io (
-    ImGui::GetIO ()
-  );
+  static auto& io =
+    ImGui::GetIO ();
 
   static ULONG last_frame = 0;
 

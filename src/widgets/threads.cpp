@@ -1164,7 +1164,8 @@ public:
   {
     SK_ImGui_Widgets->thread_profiler = this;
 
-    setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
+    setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (false).
+                      setBorder       (true);;
   };
 
   void run (void) override

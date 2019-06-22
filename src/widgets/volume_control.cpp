@@ -34,7 +34,7 @@ public:
     SK_ImGui_Widgets->volume_control = this;
 
     setResizable    (                false).setAutoFit      (true).setMovable (false).
-    setDockingPoint (DockAnchor::SouthWest).setClickThrough (false);
+    setDockingPoint (DockAnchor::SouthWest).setClickThrough (false).setBorder (true);
   };
 
   void run (void) override

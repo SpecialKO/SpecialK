@@ -1,6 +1,6 @@
 //-------------------------------------------------------------------------------------
 // DirectXTexMisc.cpp
-//  
+//
 // DirectX Texture Library - Misc image operations
 //
 // THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
@@ -14,6 +14,8 @@
 //-------------------------------------------------------------------------------------
 
 #include "directxtexp.h"
+
+#define __SK__FRAMERATE_H__
 #include "../../../include/SpecialK/tls.h"
 
 using namespace DirectX;
@@ -260,7 +262,7 @@ namespace
 //=====================================================================================
 // Entry points
 //=====================================================================================
-        
+
 //-------------------------------------------------------------------------------------
 // Copies a rectangle from one image into another
 //-------------------------------------------------------------------------------------
@@ -373,7 +375,7 @@ HRESULT DirectX::CopyRectangle(
     return S_OK;
 }
 
-    
+
 //-------------------------------------------------------------------------------------
 // Computes the Mean-Squared-Error (MSE) between two images
 //-------------------------------------------------------------------------------------
@@ -625,7 +627,7 @@ HRESULT DirectX::TransformImage(
         result.Release();
         return hr;
     }
-    
+
     return S_OK;
 }
 

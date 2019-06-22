@@ -728,10 +728,10 @@
       <Profile>true</Profile>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <OptimizeReferences>true</OptimizeReferences>
+      <OptimizeReferences>false</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>true</DataExecutionPrevention>
-      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1487,10 +1487,10 @@ Exit 0</Command>
       <Profile>true</Profile>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <OptimizeReferences>true</OptimizeReferences>
+      <OptimizeReferences>false</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>true</DataExecutionPrevention>
-      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -3049,6 +3049,7 @@ Exit 0</Command>
     <ClInclude Include="depends\include\WinRing0\vxd\OpenLS.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d12.h" />
     <ClInclude Include="include\SpecialK\ansel.h" />
+    <ClInclude Include="include\SpecialK\compatibility\game_traits.h" />
     <ClInclude Include="include\SpecialK\com_util.h" />
     <ClInclude Include="include\SpecialK\control_panel.h" />
     <ClInclude Include="include\SpecialK\control_panel\compatibility.h" />
@@ -3116,7 +3117,6 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\input\xinput_hotplug.h" />
     <ClInclude Include="include\SpecialK\performance\io_monitor.h" />
     <ClInclude Include="include\SpecialK\log.h" />
-    <ClInclude Include="include\SpecialK\performance\memory_monitor.h" />
     <ClInclude Include="include\SpecialK\nvapi.h" />
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_util.h" />
     <ClInclude Include="include\SpecialK\render\gl\opengl_backend.h" />

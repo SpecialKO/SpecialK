@@ -77,19 +77,24 @@ public:
 
   __inline
   DXGI_FORMAT
-  getInternalFormat (void) { return framebuffer.NativeFormat; }
+  getInternalFormat (void)
+  {
+    return
+      framebuffer.NativeFormat;
+  }
 
   struct framebuffer_s
   {
-    UINT               Width        = 0,
-                       Height       = 0;
-    DXGI_FORMAT        NativeFormat = DXGI_FORMAT_UNKNOWN;
+    UINT               Width               = 0,
+                       Height              = 0;
+    DXGI_FORMAT        NativeFormat        = DXGI_FORMAT_UNKNOWN;
 
     LONG               PBufferSize         = 0L;
     size_t             PackedDstPitch      = 0L,
                        PackedDstSlicePitch = 0L;
 
-    CHeapPtr <uint8_t> PixelBuffer = { };
+    std::unique_ptr
+      <uint8_t []>     PixelBuffer         = nullptr;
   };
 
   __inline
@@ -97,8 +102,8 @@ public:
   getFinishedData (void)
   {
     return
-      ( framebuffer.PixelBuffer.m_pData != nullptr ) ?
-       &framebuffer :                      nullptr;
+      ( framebuffer.PixelBuffer.get () != nullptr ) ?
+       &framebuffer :                     nullptr;
   }
 
   __inline

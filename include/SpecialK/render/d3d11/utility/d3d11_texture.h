@@ -56,9 +56,8 @@ crc32_ffx (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
 
 size_t __stdcall SK_D3D11_ComputeTextureSize (const D3D11_TEXTURE2D_DESC* pDesc);
 
-static
-inline UINT
-CalcMipmapLODs (UINT width, UINT height)
+constexpr auto CalcMipmapLODs = [](UINT width, UINT height) ->
+UINT
 {
   UINT lods = 1U;
 

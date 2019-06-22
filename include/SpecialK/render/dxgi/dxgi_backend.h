@@ -386,4 +386,6 @@ void WINAPI SK_HookDXGI       (void);
 
 void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 
+void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
+
 #endif /* __SK__DXGI_BACKEND_H__ */

@@ -29,12 +29,12 @@
 
 #include <execution>
 
-CRITICAL_SECTION tex_cs     = { };
-CRITICAL_SECTION hash_cs    = { };
-CRITICAL_SECTION dump_cs    = { };
-CRITICAL_SECTION cache_cs   = { };
-CRITICAL_SECTION inject_cs  = { };
-CRITICAL_SECTION preload_cs = { };
+std::unique_ptr <SK_Thread_HybridSpinlock> tex_cs     = nullptr;
+std::unique_ptr <SK_Thread_HybridSpinlock> hash_cs    = nullptr;
+std::unique_ptr <SK_Thread_HybridSpinlock> dump_cs    = nullptr;
+std::unique_ptr <SK_Thread_HybridSpinlock> cache_cs   = nullptr;
+std::unique_ptr <SK_Thread_HybridSpinlock> inject_cs  = nullptr;
+std::unique_ptr <SK_Thread_HybridSpinlock> preload_cs = nullptr;
 
 cache_params_s cache_opts   = { };
 
@@ -443,7 +443,7 @@ SK_D3D11_AddInjectable (uint32_t top_crc32, uint32_t checksum)
     safe_crc32c (top_crc32, (uint8_t *)& checksum, 4) );
 
 
-  SK_AutoCriticalSection critical (&inject_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*inject_cs);
 
   if (tag != 0x00)
   { textures->injected_collisions.insert (tag);
@@ -465,7 +465,7 @@ SK_D3D11_RemoveInjectable (uint32_t top_crc32, uint32_t checksum)
     safe_crc32c (top_crc32, (uint8_t *)& checksum, 4) );
 
 
-  SK_AutoCriticalSection critical (&inject_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*inject_cs);
 
   if (tag != 0x00)
   {
@@ -497,7 +497,7 @@ SK_D3D11_IsTexHashed (uint32_t top_crc32, uint32_t hash)
     safe_crc32c (top_crc32, (const uint8_t *)&hash, 4);
 
 
-  SK_AutoCriticalSection critical (&hash_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*hash_cs);
 
   return (
     ( tex_hashes.find (tag)       != tex_hashes.cend () ) ||
@@ -524,7 +524,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
         safe_crc32c (top_crc32, (const uint8_t *)&hash, 4);
 
       {
-        SK_AutoCriticalSection critical (&hash_cs);
+        std::scoped_lock <SK_Thread_HybridSpinlock> critical (*hash_cs);
         textures->tex_hashes_ex.emplace (tag, name);
       }
 
@@ -536,7 +536,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
   if (! SK_D3D11_IsTexHashed (top_crc32, 0x00))
   {
     {
-      SK_AutoCriticalSection critical (&hash_cs);
+      std::scoped_lock <SK_Thread_HybridSpinlock> critical (*hash_cs);
       textures->tex_hashes.emplace (top_crc32, name);
     }
 
@@ -547,7 +547,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
 
     else
     {
-      SK_AutoCriticalSection critical (&inject_cs);
+      std::scoped_lock <SK_Thread_HybridSpinlock> critical (*inject_cs);
       textures->injectable_ffx.emplace (top_crc32);
     }
   }
@@ -571,7 +571,7 @@ SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash)
     safe_crc32c (top_crc32, (const uint8_t *)&hash, 4) );
 
 
-  SK_AutoCriticalSection critical (&hash_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*hash_cs);
 
   if (     tag  != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash))
   {
@@ -608,7 +608,7 @@ SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
   std::wstring ret = L"";
 
 
-  SK_AutoCriticalSection critical (&hash_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*hash_cs);
 
   if (     tag  != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash))
   {
@@ -642,7 +642,7 @@ SK_D3D11_IsDumped (uint32_t top_crc32, uint32_t checksum)
     safe_crc32c (top_crc32, (uint8_t *)&checksum, 4);
 
 
-  SK_AutoCriticalSection critical (&dump_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*dump_cs);
 
   if ( config.textures.d3d11.precise_hash &&
          dumped_collisions.cend (   ) !=
@@ -673,7 +673,7 @@ SK_D3D11_AddDumped (uint32_t top_crc32, uint32_t checksum)
     safe_crc32c (top_crc32, (uint8_t *)&checksum, 4);
 
 
-  SK_AutoCriticalSection critical (&dump_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*dump_cs);
 
   if (! config.textures.d3d11.precise_hash)
   {
@@ -698,7 +698,7 @@ SK_D3D11_RemoveDumped (uint32_t top_crc32, uint32_t checksum)
     safe_crc32c (top_crc32, (uint8_t *)&checksum, 4);
 
 
-  SK_AutoCriticalSection critical (&dump_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*dump_cs);
 
   if (! config.textures.d3d11.precise_hash)
   {
@@ -723,7 +723,7 @@ SK_D3D11_IsInjectable (uint32_t top_crc32, uint32_t checksum)
     safe_crc32c (top_crc32, (uint8_t *)&checksum, 4);
 
 
-  SK_AutoCriticalSection critical (&inject_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*inject_cs);
 
   if (checksum != 0x00)
   {
@@ -750,7 +750,7 @@ SK_D3D11_IsInjectable_FFX (uint32_t top_crc32)
   }
 
 
-  SK_AutoCriticalSection critical (&inject_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*inject_cs);
 
   return
     ( injectable_ffx.cend (         ) !=
@@ -1913,7 +1913,7 @@ SK_D3D11_TexMgr::reset (void)
 
   int potential = 0;
   {
-    SK_AutoCriticalSection critical (&cache_cs);
+    std::scoped_lock <SK_Thread_HybridSpinlock> critical (*cache_cs);
     {
       textures.reserve  (Textures_2D.size ());
 
@@ -1963,7 +1963,7 @@ SK_D3D11_TexMgr::reset (void)
   const uint32_t max_count =
    cache_opts.max_evict;
 
-  SK_AutoCriticalSection critical (&cache_cs);
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*cache_cs);
 
   for ( const auto& desc : textures )
   {
@@ -2328,7 +2328,7 @@ SK_D3D11_TexMgr::updateDebugNames (void)
 {
   for (auto it : HashMap_2D)
   {
-    SK_AutoCriticalSection critical1 (&it.mutex);
+    std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*(it.mutex));
 
     for (auto it2 : it.entries)
     {
@@ -2578,8 +2578,12 @@ SK_D3D11_PopulateResourceList (bool refresh)
   if (((! refresh) && init) || SK_D3D11_res_root->empty ())
     return;
 
-  SK_AutoCriticalSection critical0 (&tex_cs);
-  SK_AutoCriticalSection critical1 (&inject_cs);
+  std::scoped_lock < SK_Thread_HybridSpinlock,
+                     SK_Thread_HybridSpinlock >
+       double_lock (
+         *tex_cs,
+         *inject_cs
+       );
 
   static auto& textures =
     SK_D3D11_Textures;

@@ -737,8 +737,7 @@ public:
   }
 };
 
-extern __forceinline sk_config_t& _config (void);
-#define config _config()
+extern sk_config_t config;
 
 struct SK_KeyCommand
 {
@@ -912,6 +911,10 @@ SK_GetCurrentGameID (void);
 const wchar_t*
 __stdcall
 SK_GetConfigPath (void);
+
+const wchar_t*
+__stdcall
+SK_GetConfigPathEx (bool reset = false);
 
 const wchar_t*
 __stdcall

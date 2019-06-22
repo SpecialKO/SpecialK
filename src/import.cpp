@@ -87,9 +87,11 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
   //   tends to have undefined results due to loader locking.
   //
   using SK_SHIM_GetReShadeFilename_pfn = const wchar_t* (__stdcall *)(void);
-
-  auto SK_SHIM_GetReShadeFilename =
-    (SK_SHIM_GetReShadeFilename_pfn)GetProcAddress (hModShim, "SK_SHIM_GetReShadeFilename");
+  auto  SK_SHIM_GetReShadeFilename =
+       (SK_SHIM_GetReShadeFilename_pfn)GetProcAddress (
+       hModShim,
+       "SK_SHIM_GetReShadeFilename"
+    );
 
   if (SK_SHIM_GetReShadeFilename != nullptr)
   {
@@ -102,9 +104,11 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
 
 
   using SK_SHIM_GetReShade_pfn = HMODULE (__stdcall *)(void);
-
-  auto SK_SHIM_GetReShade =
-    (SK_SHIM_GetReShade_pfn)GetProcAddress (hModShim, "SK_SHIM_GetReShade");
+  auto  SK_SHIM_GetReShade =
+       (SK_SHIM_GetReShade_pfn)GetProcAddress (
+       hModShim,
+       "SK_SHIM_GetReShade"
+    );
 
   if (SK_SHIM_GetReShade != nullptr)
   {

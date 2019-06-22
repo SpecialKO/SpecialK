@@ -500,7 +500,7 @@ iSK_INI::parse (void)
       const wchar_t* wszNext =
         CharNextW (wszDataNext);
 
-      RtlZeroMemory ( wszDataEnd,
+      RtlSecureZeroMemory ( wszDataEnd,
                         reinterpret_cast <uintptr_t> (wszNext) -
                         reinterpret_cast <uintptr_t> (wszDataEnd) );
 
@@ -646,6 +646,9 @@ iSK_INI::import (const wchar_t* import_data)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
+  if (pTLS == nullptr)
+    return;
+
   wchar_t* wszImport =
     _wcsdup (import_data);
 
@@ -695,7 +698,7 @@ iSK_INI::import (const wchar_t* import_data)
       const wchar_t* wszNext =
         CharNextW (wszImportNext);
 
-      RtlZeroMemory ( wszImportEnd,
+      RtlSecureZeroMemory ( wszImportEnd,
                         reinterpret_cast <uintptr_t> (wszNext) -
                         reinterpret_cast <uintptr_t> (wszImportEnd) );
 

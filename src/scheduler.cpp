@@ -54,20 +54,6 @@ extern HWND WINAPI SK_GetActiveWindow (SK_TLS *pTLS);
 void
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, SK_TLS *pTLS)
 {
-  ////if (! SK_Win32_IsGUIThread ())
-  ////{
-  ////  while (GetQueueStatus (QS_ALLEVENTS) == 0)
-  ////  {
-  ////    SK_Sleep (dwMilliseconds /= 2);
-  ////
-  ////    if (dwMilliseconds == 1)
-  ////    {
-  ////      SK_SleepEx (dwMilliseconds, TRUE);
-  ////      return;
-  ////    }
-  ////  }
-  ////}
-
   HWND hWndThis = SK_GetActiveWindow (pTLS);
   bool bUnicode =
     IsWindowUnicode (hWndThis);

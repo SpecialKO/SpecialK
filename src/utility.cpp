@@ -2753,6 +2753,8 @@ SK_RestartGame (const wchar_t* wszDLL)
       GetShortPathName   (wszFullname, wszShortPath,        MAX_PATH );
     }
 
+    InterlockedExchange (&__SK_DLL_Ending, 1);
+
     if (SK_FileHasSpaces (wszShortPath))
       ExitProcess (0x00);
   }
@@ -2780,6 +2782,8 @@ SK_RestartGame (const wchar_t* wszDLL)
     CloseHandle (pinfo.hThread);
     CloseHandle (pinfo.hProcess);
   }
+
+  InterlockedExchange (&__SK_DLL_Ending, 1);
 
   SK_TerminateProcess (0x00);
 }

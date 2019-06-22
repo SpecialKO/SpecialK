@@ -227,12 +227,12 @@ SK_KeepAway (void)
     return 0;
   };
 
-  static const UNICODE_STRING __steam_dlls [] = {
-    SK_MakeUnicode (L"steam_api.dll"),
-    SK_MakeUnicode (L"steam_api64.dll")
-  };
-
-  if ( _TestUndesirableDll ( __steam_dlls, 1 ) ) { return 0; }
+  //static const UNICODE_STRING __steam_dlls [] = {
+  //  SK_MakeUnicode (L"steam_api.dll"),
+  //  SK_MakeUnicode (L"steam_api64.dll")
+  //};
+  //
+  //if ( _TestUndesirableDll ( __steam_dlls, 1 ) ) { return 0; }
 
   return
     _TestUndesirableDll     ( trigger_dlls, 1 ) ||
@@ -1066,10 +1066,6 @@ SK_CleanupMutex (SK_Thread_HybridSpinlock **ppMutex)
   }
 };
 
-extern "C" {
-  void __cdecl
-  __crc32_init (void);
-}
 
 BOOL
 __stdcall

@@ -99,7 +99,7 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
 bool
 SK::ControlPanel::OSD::Draw (void)
 {
-  const ImGuiIO& io =
+  static const ImGuiIO& io =
     ImGui::GetIO ();
 
   if (ImGui::CollapsingHeader ("On Screen Display (OSD)"))

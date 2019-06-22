@@ -1406,7 +1406,8 @@ public:
   {
     SK_ImGui_Widgets->cpu_monitor = this;
 
-    setAutoFit (true).setDockingPoint (DockAnchor::East).setClickThrough (true);
+    setAutoFit (true).setDockingPoint (DockAnchor::East).setClickThrough (false),
+                      setBorder       (true);
 
     active_scheme.notify   = INVALID_HANDLE_VALUE;
 

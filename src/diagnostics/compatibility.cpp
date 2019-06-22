@@ -826,6 +826,7 @@ SK_Bypass_CRT (LPVOID)
     else if (nButtonPressed != BUTTON_OK)
     {
       SK_SaveConfig (wszConfigName);
+      delete dll_ini;
     }
 
     if ( nButtonPressed         == BUTTON_INSTALL &&

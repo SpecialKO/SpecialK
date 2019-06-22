@@ -342,7 +342,7 @@ SK_Process_SnapshotNt (void)
 
   SK_NtDll->lock ();
 
-  RtlZeroMemory ( SK_NtDll->pSnapshot, SK_NtDll->dwHeapSize );
+  RtlSecureZeroMemory ( SK_NtDll->pSnapshot, SK_NtDll->dwHeapSize );
 
   DWORD                      dSize = 0;
   DWORD                      dData = 0;
@@ -532,7 +532,7 @@ SK_Process_Suspend (DWORD dwPid)
                     FALSE, dwPid )
   );
 
-  if (hProcess.m_h > 0)
+  if ((intptr_t)hProcess.m_h > 0)
   {
     return
       NT_SUCCESS (
@@ -554,7 +554,7 @@ SK_Process_Resume (DWORD dwPid)
                     FALSE, dwPid )
   );
 
-  if (hProcess.m_h > 0)
+  if ((intptr_t)hProcess.m_h > 0)
   {
     return
       NT_SUCCESS (

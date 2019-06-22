@@ -517,7 +517,7 @@ int
 SK_Steam_PopupOriginWStrToEnum (const wchar_t* str);
 
 BOOL
-SK_Steam_PreHookCore (void);
+SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);
 
 BOOL
 SK_Steam_KickStart   (const wchar_t* szLibPath = nullptr);
@@ -560,6 +560,9 @@ SK_Steam_ConnectUserIfNeeded (CSteamID user);
 
 std::wstring
 SK_Steam_GetApplicationManifestPath (AppId_t appid = 0);
+
+uint32_t
+SK_Steam_GetAppID_NoAPI (void);
 
 std::string
 SK_UseManifestToGetAppName (AppId_t appid = 0);
@@ -722,6 +725,9 @@ SK_SteamAPI_AddScreenshotToLibraryEx ( const char *pchFilename,
                                              int   nWidth,
                                              int   nHeight,
                                              bool  Wait = false );
+
+
+extern volatile LONG SK_SteamAPI_CallbackRateLimit;
 
 
 

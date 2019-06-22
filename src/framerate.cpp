@@ -33,23 +33,32 @@ SK_QueryPerf ()
 }
 
 
-LARGE_INTEGER                SK::Framerate::Stats::freq = {};
-SK::Framerate::EventCounter* SK::Framerate::events = nullptr;
+LARGE_INTEGER                  SK::Framerate::Stats::freq             = {};
+SK::Framerate::EventCounter*   SK::Framerate::events                  = nullptr;
+SK::Framerate::DeepFrameState* SK::Framerate::frame_history_snapshots = nullptr;
 
-SK::Framerate::Stats*            frame_history     = nullptr;
-SK::Framerate::Stats*            frame_history2    = nullptr;
+SK::Framerate::Stats*          frame_history                          = nullptr;
+SK::Framerate::Stats*          frame_history2                         = nullptr;
 
 
 float __target_fps    = 0.0;
 float __target_fps_bg = 0.0;
-float fHPETWeight  = 0.875f;
+float fHPETWeight     = 0.875f;
 
 void
 SK::Framerate::Init (void)
 {
-  static SK::Framerate::Stats        _frame_history;
-  static SK::Framerate::Stats        _frame_history2;
-  static SK::Framerate::EventCounter _events;
+  static SK::Framerate::Stats          _frame_history;
+  static SK::Framerate::Stats          _frame_history2;
+
+  static SK::Framerate::DeepFrameState _frame_history_snapshots;
+  static SK::Framerate::Stats          _snapshot_mean;
+  static SK::Framerate::Stats          _snapshot_max;
+  static SK::Framerate::Stats          _snapshot_min;
+  static SK::Framerate::Stats          _snapshot_percentile0;
+  static SK::Framerate::Stats          _snapshot_percentile1;
+
+  static SK::Framerate::EventCounter   _events;
 
   static bool basic_init = false;
 
@@ -57,8 +66,16 @@ SK::Framerate::Init (void)
   {
     basic_init = true;
 
-    frame_history         = &_frame_history;
-    frame_history2        = &_frame_history2;
+    frame_history          = &_frame_history;
+    frame_history2         = &_frame_history2;
+
+    frame_history_snapshots              = &_frame_history_snapshots;
+    frame_history_snapshots->mean        = &_snapshot_mean;
+    frame_history_snapshots->max         = &_snapshot_max;
+    frame_history_snapshots->min         = &_snapshot_min;
+    frame_history_snapshots->percentile0 = &_snapshot_percentile0;
+    frame_history_snapshots->percentile1 = &_snapshot_percentile1;
+
     SK::Framerate::events = &_events;
 
     SK_ICommandProcessor* pCommandProc =
@@ -633,19 +650,62 @@ SK::Framerate::Tick (long double& dt, LARGE_INTEGER& now)
     long_double_cast (SK::Framerate::Stats::freq.QuadPart);
 
 
-  // What the bloody hell?! How do we ever get a dt value near 0?
-  if (dt > 0.000001L)
-    frame_history->addSample (1000.0L * dt, now);
-  else // Less than single-precision FP epsilon, toss this frame out
-    frame_history->addSample (INFINITY, now);
+  // Statistics can be done across multiple frames, so let's
+  //   do that and avoid adding extra work to the game.
+  static int amortized_stats = 0;
 
 
+  // Prevent inserting infinity into the dataset
+  if ( dt >= std::numeric_limits <long double>::epsilon () )
+  {
+    if (frame_history->addSample (1000.0L * dt, now))
+    {
+      amortized_stats = 5;
+    }
+    frame_history2->addSample (
+      SK::Framerate::GetLimiter ()->effective_frametime (),
+        now
+    );
+  }
 
-  frame_history2->addSample (
-    SK::Framerate::GetLimiter ()->effective_frametime (),
-      now
-  );
+  if (amortized_stats > 0)
+  {
+    static constexpr LARGE_INTEGER all_samples = { 0ULL };
 
+    switch (amortized_stats--)
+    {
+      case 5:
+        frame_history_snapshots->percentile0->addSample (
+          frame_history->calcPercentile (
+            SK_Framerate_GetPercentileByIdx (0),
+              all_samples
+          ), now
+        ); break;
+
+      case 4:
+        frame_history_snapshots->percentile1->addSample (
+          frame_history->calcPercentile (
+            SK_Framerate_GetPercentileByIdx (1),
+              all_samples
+          ), now
+        ); break;
+
+      case 3:
+        frame_history_snapshots->mean->addSample (
+          frame_history->calcMean (all_samples), now
+        ); break;
+
+      case 2:
+        frame_history_snapshots->max->addSample (
+          frame_history->calcMax (all_samples), now
+        ); break;
+
+      case 1:
+        frame_history_snapshots->min->addSample (
+          frame_history->calcMin (all_samples), now
+        ); break;
+    }
+  }
 
   last_frame = now;
 };
@@ -679,6 +739,20 @@ SK::Framerate::Stats::calcMax (long double seconds)
     calcMax (SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
+long double
+SK::Framerate::Stats::calcOnePercentLow (long double seconds)
+{
+  return
+    calcOnePercentLow (SK_DeltaPerf (seconds, freq.QuadPart));
+}
+
+long double
+SK::Framerate::Stats::calcPointOnePercentLow (long double seconds)
+{
+  return
+    calcPointOnePercentLow (SK_DeltaPerf (seconds, freq.QuadPart));
+}
+
 int
 SK::Framerate::Stats::calcHitches ( long double tolerance,
                                     long double mean,
@@ -694,3 +768,33 @@ SK::Framerate::Stats::calcNumSamples (long double seconds)
   return
     calcNumSamples (SK_DeltaPerf (seconds, freq.QuadPart));
 }
+
+void
+SK::Framerate::DeepFrameState::reset (void)
+{
+  auto _clear =
+    [&](SK::Framerate::Stats* pStats, auto idx) ->
+    void
+    {
+      pStats->data [idx].when = LARGE_INTEGER { 0LL };
+      pStats->data [idx].val  = 0.0L;
+    };
+
+  for ( auto i = 0 ; i < MAX_SAMPLES ; ++i )
+  {
+    _clear (mean,       i);
+    _clear (min,        i);
+    _clear (max,        i);
+    _clear (percentile0, i);
+    _clear (percentile1, i);
+  }
+
+  mean->samples        = 0;
+  min->samples         = 0;
+  max->samples         = 0;
+  percentile0->samples = 0;
+  percentile1->samples = 0;
+}
+
+std::pair <ULONG, std::vector <long double>>
+ SK::Framerate::_sorted_frame_history;

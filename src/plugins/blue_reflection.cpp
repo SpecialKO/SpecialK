@@ -66,42 +66,6 @@ using D3D11Dev_CreateTexture2D_pfn = HRESULT (WINAPI *)(
   _Out_opt_       ID3D11Texture2D        **ppTexture2D
 );
 
-extern HRESULT
-STDMETHODCALLTYPE
-D3D11_Map_Override (
-   _In_ ID3D11DeviceContext      *This,
-   _In_ ID3D11Resource           *pResource,
-   _In_ UINT                      Subresource,
-   _In_ D3D11_MAP                 MapType,
-   _In_ UINT                      MapFlags,
-_Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource );
-
-extern void
-STDMETHODCALLTYPE
-D3D11_Unmap_Override (
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Resource      *pResource,
-  _In_ UINT                 Subresource );
-
-extern
-HRESULT
-WINAPI
-D3D11Dev_CreateBuffer_Override (
-  _In_           ID3D11Device            *This,
-  _In_     const D3D11_BUFFER_DESC       *pDesc,
-  _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_      ID3D11Buffer           **ppBuffer );
-
-extern
-HRESULT
-WINAPI
-D3D11Dev_CreateTexture2D_Override (
-  _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D        **ppTexture2D );
-
-
 
 using SK_PlugIn_ControlPanelWidget_pfn = void (__stdcall         *)(void);
 using SK_EndFrame_pfn                  = void (STDMETHODCALLTYPE *)(void);

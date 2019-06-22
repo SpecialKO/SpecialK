@@ -347,7 +347,7 @@ SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
 
     if (reset)
     {
-      RtlZeroMemory
+      RtlSecureZeroMemory
                (    pShaderRepoIn->current.views        [dev_ctx_in ],
                       128 * sizeof (ptrdiff_t) );
                     pShaderRepoIn->current.shader       [dev_ctx_in ] = 0x0;
@@ -360,14 +360,14 @@ SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
     memcpy ( &d3d11_shader_stages [i][dev_ctx_out].skipped_bindings [0],
              &d3d11_shader_stages [i][ dev_ctx_in].skipped_bindings [0],
              sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
-    RtlZeroMemory (
+    RtlSecureZeroMemory (
              &d3d11_shader_stages [i][ dev_ctx_in].skipped_bindings [0],
              sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
 
     memcpy ( &d3d11_shader_stages [i][dev_ctx_out].real_bindings [0],
              &d3d11_shader_stages [i][ dev_ctx_in].real_bindings [0],
              sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
-    RtlZeroMemory (
+    RtlSecureZeroMemory (
              &d3d11_shader_stages [i][ dev_ctx_in].real_bindings [0],
              sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
   }
@@ -440,7 +440,7 @@ SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx, UINT dev_ctx)
   {
     _GetRegistry  ( &pShaderRepo, i )->current.shader         [dev_ctx] = 0x0;
                      pShaderRepo->tracked.deactivate (pDevCtx, dev_ctx);
-    RtlZeroMemory
+    RtlSecureZeroMemory
                   (  pShaderRepo->current.views               [dev_ctx],
                      128 * sizeof (ptrdiff_t) );
   }
@@ -482,7 +482,7 @@ SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx, UINT dev_ctx)
       }
     }
 
-    RtlZeroMemory (
+    RtlSecureZeroMemory (
       &stage.real_bindings [0],
         D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * sizeof (ptrdiff_t)
     );
@@ -656,7 +656,8 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
     return handle;
   }
 
-  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_shader);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+         auto_lock (*cs_shader);
 
   size   = sizeof (LONG);
   handle = ReadAcquire (&SK_D3D11_NumberOfSeenContexts);
@@ -705,18 +706,18 @@ SK_D3D11_ChecksumShaderBytecode ( _In_ const void   *pShaderBytecode,
   uint32_t ret = 0x0;
 
   auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_ACCESS_VIOLATION
-    )
-  );
+    SK_SEH_ApplyTranslator (
+      SK_FilteringStructuredExceptionTranslator (
+        EXCEPTION_ACCESS_VIOLATION
+      )
+    );
   try
   {
     ret =
-      safe_crc32c (
+      crc32c (
         0x00, static_cast <const uint8_t *> (pShaderBytecode),
                                                     BytecodeLength
-                  );
+             );
   }
 
   catch (const SK_SEH_IgnoredException&)
@@ -1160,7 +1161,8 @@ struct resample_dispatch_s
   };
 
 
-  struct stats_s {
+  struct stats_s
+  {
     ~stats_s (void) ///
     {
       if (hResampleWork != INVALID_HANDLE_VALUE)
@@ -2023,15 +2025,13 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
       if (! pShaderRepo->trigger_reshade.before.empty ())
       {
         reshade_trigger_before [dev_idx] =
-          pShaderRepo->trigger_reshade.before.count (checksum) ?
-            true : false;
+          pShaderRepo->trigger_reshade.before.count (checksum) > 0;
       }
 
       if (! pShaderRepo->trigger_reshade.after.empty ())
       {
         reshade_trigger_after [dev_idx] =
-          pShaderRepo->trigger_reshade.after.count (checksum) ?
-            true : false;
+          pShaderRepo->trigger_reshade.after.count (checksum) > 0;
       }
     }
 
@@ -2758,7 +2758,7 @@ const uint32_t cache_tag    =
               {
                 HRESULT hr = E_UNEXPECTED;
 
-                DirectX::TexMetadata mdata;
+                DirectX::TexMetadata mdata = { };
 
                 if (SUCCEEDED ((hr = DirectX::GetMetadataFromDDSFile (wszTex, 0, mdata))))
                 {
@@ -6474,7 +6474,8 @@ D3D11Dev_CreateTexture2D_Impl (
               size =
                 SK_D3D11_ComputeTextureSize (pDesc);
 
-              SK_AutoCriticalSection critical (&cache_cs);
+              std::scoped_lock <SK_Thread_HybridSpinlock>
+                    scope_lock (*cache_cs);
 
               textures->refTexture2D (
                 *ppTexture2D,
@@ -6613,7 +6614,7 @@ D3D11Dev_CreateTexture2D_Impl (
       if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
         pDesc->Usage    = D3D11_USAGE_DEFAULT;
 
-      DirectX::TexMetadata mdata;
+      DirectX::TexMetadata mdata = { };
 
       mdata.width      = pDesc->Width;
       mdata.height     = pDesc->Height;
@@ -6824,7 +6825,8 @@ D3D11Dev_CreateTexture2D_Impl (
 
   if ( SUCCEEDED (ret) && cacheable )
   {
-    SK_AutoCriticalSection critical (&cache_cs);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*cache_cs);
 
     auto& blacklist =
       textures->Blacklist_2D [orig_desc.MipLevels];
@@ -7206,6 +7208,9 @@ auto SK_UnpackD3DX11 =
 void
 SK_D3D11_InitTextures (void)
 {
+  static auto *pCommandProcessor =
+    SK_GetCommandProcessor ();
+
 //extern          SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
   static volatile LONG                         SK_D3D11_tex_init = FALSE;
 
@@ -7216,7 +7221,8 @@ SK_D3D11_InitTextures (void)
 
   if (! InterlockedCompareExchangeAcquire (&SK_D3D11_tex_init, TRUE, FALSE))
   {
-    pTLS->d3d11->ctx_init_thread = true;
+    if (pTLS != nullptr)
+        pTLS->d3d11->ctx_init_thread = true;
 
     static bool bFFX =
       (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyX_X2);
@@ -7224,16 +7230,12 @@ SK_D3D11_InitTextures (void)
     if (bFFX)
       SK_D3D11_inject_textures_ffx = true;
 
-    auto flags =
-      RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
-      SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO;
-
-    InitializeCriticalSectionEx (&preload_cs, 0x01, flags);
-    InitializeCriticalSectionEx (&dump_cs,    0x02, flags);
-    InitializeCriticalSectionEx (&inject_cs,  0x10, flags);
-    InitializeCriticalSectionEx (&hash_cs,    0x40, flags);
-    InitializeCriticalSectionEx (&cache_cs,   0x80, flags);
-    InitializeCriticalSectionEx (&tex_cs,     0xFF, flags);
+    preload_cs = std::make_unique <SK_Thread_HybridSpinlock> (0x01);
+    dump_cs    = std::make_unique <SK_Thread_HybridSpinlock> (0x02);
+    inject_cs  = std::make_unique <SK_Thread_HybridSpinlock> (0x10);
+    hash_cs    = std::make_unique <SK_Thread_HybridSpinlock> (0x40);
+    cache_cs   = std::make_unique <SK_Thread_HybridSpinlock> (0x80);
+    tex_cs     = std::make_unique <SK_Thread_HybridSpinlock> (0xFF);
 
     cache_opts.max_entries       = config.textures.cache.max_entries;
     cache_opts.min_entries       = config.textures.cache.min_entries;
@@ -7255,21 +7257,21 @@ SK_D3D11_InitTextures (void)
       SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root.c_str ());
     }
 
-    SK_GetCommandProcessor ()->AddVariable ("TexCache.Enable",
+    pCommandProcessor->AddVariable ("TexCache.Enable",
          new SK_IVarStub <bool> ((bool *)&config.textures.d3d11.cache));
-    SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxEntries",
-         new SK_IVarStub <int> ((int *)&cache_opts.max_entries));
-    SK_GetCommandProcessor ()->AddVariable ("TexC ache.MinEntries",
-         new SK_IVarStub <int> ((int *)&cache_opts.min_entries));
-    SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxSize",
-         new SK_IVarStub <int> ((int *)&cache_opts.max_size));
-    SK_GetCommandProcessor ()->AddVariable ("TexCache.MinSize",
-         new SK_IVarStub <int> ((int *)&cache_opts.min_size));
-    SK_GetCommandProcessor ()->AddVariable ("TexCache.MinEvict",
-         new SK_IVarStub <int> ((int *)&cache_opts.min_evict));
-    SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxEvict",
-         new SK_IVarStub <int> ((int *)&cache_opts.max_evict));
-    SK_GetCommandProcessor ()->AddVariable ("TexCache.IgnoreNonMipped",
+    pCommandProcessor->AddVariable ("TexCache.MaxEntries",
+         new SK_IVarStub <int>  ((int *)&cache_opts.max_entries));
+    pCommandProcessor->AddVariable ("TexC ache.MinEntries",
+         new SK_IVarStub <int>  ((int *)&cache_opts.min_entries));
+    pCommandProcessor->AddVariable ("TexCache.MaxSize",
+         new SK_IVarStub <int>  ((int *)&cache_opts.max_size));
+    pCommandProcessor->AddVariable ("TexCache.MinSize",
+         new SK_IVarStub <int>  ((int *)&cache_opts.min_size));
+    pCommandProcessor->AddVariable ("TexCache.MinEvict",
+         new SK_IVarStub <int>  ((int *)&cache_opts.min_evict));
+    pCommandProcessor->AddVariable ("TexCache.MaxEvict",
+         new SK_IVarStub <int>  ((int *)&cache_opts.max_evict));
+    pCommandProcessor->AddVariable ("TexCache.IgnoreNonMipped",
          new SK_IVarStub <bool> ((bool *)&cache_opts.ignore_non_mipped));
 
     if ((! SK_D3D11_inject_textures_ffx) && config.textures.d3d11.inject)
@@ -7278,16 +7280,15 @@ SK_D3D11_InitTextures (void)
 
 #ifndef _SK_WITHOUT_D3DX11
     if (hModD3DX11_43 == nullptr)
-    {
-      hModD3DX11_43 =
-        SK_Modules->LoadLibrary (L"d3dx11_43.dll");
+    {   hModD3DX11_43 = SK_Modules->LoadLibrary (
+          L"d3dx11_43.dll"                      );
 
       if (hModD3DX11_43 == nullptr)
       {
         SK_UnpackD3DX11 ();
 
-        hModD3DX11_43 =
-          SK_Modules->LoadLibrary (L"d3dx11_43.dll");
+        hModD3DX11_43 = SK_Modules->LoadLibrary (
+          L"d3dx11_43.dll"                      );
 
         if (hModD3DX11_43 == nullptr)
             hModD3DX11_43 = (HMODULE)1;
@@ -7297,24 +7298,21 @@ SK_D3D11_InitTextures (void)
     if ((uintptr_t)hModD3DX11_43 > 1)
     {
       if (D3DX11CreateTextureFromFileW == nullptr)
-      {
-        D3DX11CreateTextureFromFileW =
-          (D3DX11CreateTextureFromFileW_pfn)
-            GetProcAddress (hModD3DX11_43, "D3DX11CreateTextureFromFileW");
+      {   D3DX11CreateTextureFromFileW =
+         (D3DX11CreateTextureFromFileW_pfn)GetProcAddress ( hModD3DX11_43,
+         "D3DX11CreateTextureFromFileW"                   );
       }
 
       if (D3DX11GetImageInfoFromFileW == nullptr)
-      {
-        D3DX11GetImageInfoFromFileW =
-          (D3DX11GetImageInfoFromFileW_pfn)
-            GetProcAddress (hModD3DX11_43, "D3DX11GetImageInfoFromFileW");
+      {   D3DX11GetImageInfoFromFileW =
+         (D3DX11GetImageInfoFromFileW_pfn)GetProcAddress ( hModD3DX11_43,
+         "D3DX11GetImageInfoFromFileW"                   );
       }
 
       if (D3DX11CreateTextureFromMemory == nullptr)
-      {
-        D3DX11CreateTextureFromMemory =
-          (D3DX11CreateTextureFromMemory_pfn)
-            GetProcAddress (hModD3DX11_43, "D3DX11CreateTextureFromMemory");
+      {   D3DX11CreateTextureFromMemory =
+        (D3DX11CreateTextureFromMemory_pfn)GetProcAddress ( hModD3DX11_43,
+        "D3DX11CreateTextureFromMemory"                   );
       }
     }
 #endif
@@ -7334,7 +7332,7 @@ SK_D3D11_InitTextures (void)
     InterlockedIncrementRelease (&SK_D3D11_tex_init);
   }
 
-  else if (! pTLS->d3d11->ctx_init_thread)
+  else if (pTLS != nullptr && (! pTLS->d3d11->ctx_init_thread))
     SK_Thread_SpinUntilAtomicMin (&SK_D3D11_tex_init, 2);
 }
 
@@ -8769,7 +8767,8 @@ static size_t tex_dbg_idx  = 0;
 void
 SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 {
-  ImGuiIO& io (ImGui::GetIO ());
+  static auto& io =
+    ImGui::GetIO ();
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -8995,7 +8994,7 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
       // Relatively immutable textures
       for (auto& it : textures->HashMap_2D)
       {
-        SK_AutoCriticalSection critical1 (&it.mutex);
+        std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*(it.mutex));
 
         for (auto& it2 : it.entries)
         {
@@ -10536,7 +10535,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 {
   std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_shader);
 
-  ImGuiIO& io (ImGui::GetIO ());
+  static auto& io =
+    ImGui::GetIO ();
 
   static auto& shaders =
     SK_D3D11_Shaders;
@@ -12380,6 +12380,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
   if (pTLS == nullptr)
       pTLS  = SK_TLS_Bottom ();
 
+  static auto& io =
+    ImGui::GetIO ();
+
   // Flag this thread so the IUnknown::AddRef (...) that comes as a result
   //   of GetResource (...) does not count as texture cache hits.
   SK_ScopedBool auto_draw (&pTLS->imgui->drawing);
@@ -12415,16 +12418,14 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                 *cs_shader_cs );
 
 
-  ImGuiIO& io (ImGui::GetIO ());
-
-  const float font_size           = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
+  const float font_size           = (ImGui::GetFont ()->FontSize * io.FontGlobalScale);
   const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y +
                                                 ImGui::GetStyle ().ItemInnerSpacing.y;
 
   bool show_dlg = true;
 
-  ImGui::SetNextWindowSize ( ImVec2 ( io.DisplaySize.x * 0.66f, io.DisplaySize.y * 0.42f ), ImGuiCond_Appearing);
-
+  ImGui::SetNextWindowSize ( ImVec2 ( io.DisplaySize.x * 0.66f,
+                                      io.DisplaySize.y * 0.42f ), ImGuiCond_Appearing);
   ImGui::SetNextWindowSizeConstraints ( /*ImVec2 (768.0f, 384.0f),*/
                                         ImVec2 ( io.DisplaySize.x * 0.16f, io.DisplaySize.y * 0.16f ),
                                         ImVec2 ( io.DisplaySize.x * 0.96f, io.DisplaySize.y * 0.96f ) );
@@ -12538,7 +12539,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
         ImGui::TreePush    ("");
         SK_ImGui_AutoFont fixed_font (
-           ImGui::GetIO    ().Fonts->Fonts [SK_IMGUI_FIXED_FONT]
+           io.Fonts->Fonts [SK_IMGUI_FIXED_FONT]
         );
         ImGui::TextColored (ImColor (238, 250, 5), "%ws", SK::DXGI::getPipelineStatsDesc ().c_str ());
         fixed_font.Detach  ();
@@ -13420,8 +13421,8 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
         if (ImGui::IsItemHovered (ImGuiHoveredFlags_RectOnly))
         {
-          if (ImGui::IsItemHovered ()) hovered = true; else hovered = false;
-          if (ImGui::IsItemFocused ()) focused = true; else focused = false;
+          hovered = ImGui::IsItemHovered ();
+          focused = ImGui::IsItemFocused ();
         }
 
         else
@@ -16699,8 +16700,9 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
   //
   SK_ReleaseAssert (cs_render_view != nullptr)
 
-  if (! cs_render_view) {    // Skip this frame, we'll get it
-    SK_D3D11_InitMutexes (); //   on the next go-around.
+  if (! cs_render_view)      // Skip this frame, we'll get it
+  {                          //   on the next go-around.
+    SK_D3D11_InitMutexes ();
     SK_LOG0 ( ( L"Critical Sections were not setup prior to drawing!"),
                 L"[  D3D 11  ]" );
     return;
@@ -16735,8 +16737,8 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
 
 #ifdef TRACK_THREADS
   {
-    std::scoped_lock <SK_Thread_CriticalSection>
-                    auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
 
     SK_D3D11_MemoryThreads->clear_active   ();
     SK_D3D11_ShaderThreads->clear_active   ();
@@ -16752,12 +16754,13 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
   shaders->reshade_triggered = false;
 
   {
-    std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
 
-    RtlZeroMemory ( reshade_trigger_before->data (),
-                    reshade_trigger_before->size () * sizeof (bool) );
-    RtlZeroMemory ( reshade_trigger_after->data  (),
-                    reshade_trigger_after->size  () * sizeof (bool) );
+    RtlSecureZeroMemory ( reshade_trigger_before->data (),
+                          reshade_trigger_before->size () * sizeof (bool) );
+    RtlSecureZeroMemory ( reshade_trigger_after->data  (),
+                          reshade_trigger_after->size  () * sizeof (bool) );
   }
 
   static auto& vertex   = shaders->vertex;
@@ -16771,8 +16774,8 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
     const UINT dev_idx =
       SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
 
-    std::scoped_lock <SK_Thread_CriticalSection>
-                    auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
 
     vertex.tracked.deactivate   (nullptr, dev_idx);
     pixel.tracked.deactivate    (nullptr, dev_idx);
@@ -16783,24 +16786,24 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
 
     if (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS)
     {
-      RtlZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
     }
   }
 
 
   {
-    std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
     tracked_rtv->clear   ();
 
     ////for ( auto& it : *used_textures ) it->Release ();
 
     used_textures->clear ();
-
     mem_map_stats->clear ();
   }
 
@@ -17116,8 +17119,8 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
   }
 
   {
-    std::scoped_lock <SK_Thread_CriticalSection>
-                    auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
 
     SK_D3D11_TempResources->clear ();
   }

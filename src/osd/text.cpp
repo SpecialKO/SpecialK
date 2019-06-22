@@ -66,13 +66,13 @@ SK_TextOverlayManager::getInstance (void)
     pSelf.get ();
 }
 
-std::unique_ptr <SK_TextOverlayManager> SK_TextOverlayManager::pSelf = nullptr;
-CRITICAL_SECTION       SK_TextOverlayManager::cs_   = {     };
+std::unique_ptr <SK_TextOverlayManager>    SK_TextOverlayManager::pSelf = nullptr;
+std::unique_ptr <SK_Thread_HybridSpinlock> SK_TextOverlayManager::lock_ = nullptr;
 
 SK_TextOverlayManager::SK_TextOverlayManager (void)
 {
-  InitializeCriticalSectionEx (&cs_, 104858, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
-                                             SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
+  lock_ =
+    std::make_unique <SK_Thread_HybridSpinlock> (104858);
 
   gui_ctx_         = nullptr;
   need_full_reset_ = false;
@@ -141,7 +141,8 @@ SK_TextOverlayManager::createTextOverlay (const char *szAppName)
   std::string app_name (szAppName);
 
   {
-    SK_AutoCriticalSection auto_crit (&cs_);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_);
 
     if (overlays_.count (app_name))
     {
@@ -152,6 +153,9 @@ SK_TextOverlayManager::createTextOverlay (const char *szAppName)
     }
   }
 
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_);
+
 
   auto* overlay =
     new SK_TextOverlay (szAppName);
@@ -161,8 +165,6 @@ SK_TextOverlayManager::createTextOverlay (const char *szAppName)
   overlay->setScale ( config.osd.scale );
 
 
-  SK_AutoCriticalSection auto_crit2 (&cs_);
-
   overlays_ [app_name] = overlay;
 
   return overlay;
@@ -171,9 +173,10 @@ SK_TextOverlayManager::createTextOverlay (const char *szAppName)
 bool
 SK_TextOverlayManager::removeTextOverlay (const char* szAppName)
 {
-  std::string app_name (szAppName);
+  const std::string app_name (szAppName);
 
-  SK_AutoCriticalSection auto_crit (&cs_);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_);
 
   if (overlays_.count (app_name))
   {
@@ -188,9 +191,10 @@ SK_TextOverlayManager::removeTextOverlay (const char* szAppName)
 SK_TextOverlay*
 SK_TextOverlayManager::getTextOverlay (const char* szAppName)
 {
-  std::string app_name (szAppName);
+  const std::string app_name (szAppName);
 
-  SK_AutoCriticalSection auto_crit (&cs_);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_);
 
   if (overlays_.count (app_name))
   {
@@ -2088,7 +2092,8 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
       &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
   }
 
-  SK_AutoCriticalSection auto_crit (&cs_);
+std::scoped_lock <SK_Thread_HybridSpinlock>
+      scope_lock (*lock_);
 
   auto it =
     overlays_.begin ();
@@ -2156,7 +2161,8 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
 float
 SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 {
-  SK_AutoCriticalSection auto_crit (&cs_);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_);
 
   const float base_y = y;
 
@@ -2218,7 +2224,8 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 void
 SK_TextOverlayManager::destroyAllOverlays (void)
 {
-  SK_AutoCriticalSection auto_crit (&cs_);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_);
 
   auto it =
     overlays_.begin ();
@@ -2255,7 +2262,8 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
     }
 
 
-    SK_AutoCriticalSection auto_crit (&cs_);
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+          scope_lock (*lock_);
 
       auto  it =  overlays_.cbegin ();
     while ( it != overlays_.cend   () )

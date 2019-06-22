@@ -44,8 +44,8 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_D3D11_Screenshot& rkMove)
   framebuffer.Height       = rkMove.framebuffer.Height;
   framebuffer.NativeFormat = rkMove.framebuffer.NativeFormat;
 
-  framebuffer.PixelBuffer.Attach (
-    rkMove.framebuffer.PixelBuffer.m_pData
+  framebuffer.PixelBuffer.reset (
+    rkMove.framebuffer.PixelBuffer.get () // XXX: Shouldn't this be release?
   );
 }
 
@@ -259,6 +259,9 @@ struct ShaderBase
 
 SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComQIPtr <ID3D11Device>& pDevice) : pDev (pDevice)
 {
+  static auto& io =
+    ImGui::GetIO ();
+
   if (pDev.p != nullptr)
   {
     static SK_RenderBackend& rb =
@@ -563,8 +566,8 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComQIPtr <ID3D11Device>& pDev
 
                   D3D11_VIEWPORT vp = { };
 
-                  vp.Height   = ImGui::GetIO ().DisplaySize.y;
-                  vp.Width    = ImGui::GetIO ().DisplaySize.x;
+                  vp.Height   = io.DisplaySize.y;
+                  vp.Width    = io.DisplaySize.x;
                   vp.MinDepth = 0.0f;
                   vp.MaxDepth = 1.0f;
                   vp.TopLeftX = vp.TopLeftY = 0.0f;
@@ -685,8 +688,8 @@ SK_D3D11_Screenshot::dispose (void)
     bool recycled = false;
 
     // Recycle up to 128 MiB of data
-    if ( framebuffer.PixelBuffer.m_pData != nullptr &&
-         _recycled_size                  < ( 128UL * 1024UL * 1024UL ) )
+    if ( framebuffer.PixelBuffer.get () != nullptr &&
+         _recycled_size                 < ( 128UL * 1024UL * 1024UL ) )
     {
       InterlockedIncrement (&recycled_records);
       InterlockedAdd       (&recycled_size, framebuffer.PBufferSize);
@@ -698,7 +701,7 @@ SK_D3D11_Screenshot::dispose (void)
 
         recycled_buffers->push (
           std::make_pair ( framebuffer.PBufferSize,
-                           framebuffer.PixelBuffer.Detach () )
+                           framebuffer.PixelBuffer.release () )
         );
       }
 
@@ -712,7 +715,7 @@ SK_D3D11_Screenshot::dispose (void)
     if (! recycled)
     {
       framebuffer.PBufferSize = 0;
-      framebuffer.PixelBuffer.Free ();
+      framebuffer.PixelBuffer.reset (nullptr);
     }
   }
 };
@@ -772,7 +775,7 @@ SK_D3D11_Screenshot::getData ( UINT     *pWidth,
         //                 ReadAcquire64 (&recycled_size), ReadAcquire (&recycled_records)
         //             );
 
-        framebuffer.PixelBuffer.Attach (
+        framebuffer.PixelBuffer.reset (
           reuse.second
         );
         framebuffer.PBufferSize = reuse.first;
@@ -795,21 +798,26 @@ SK_D3D11_Screenshot::getData ( UINT     *pWidth,
           free (reuse.second);
         }
 
-        if (framebuffer.PixelBuffer.AllocateBytes (static_cast <size_t> (neededSize)))
-            framebuffer.PBufferSize              = neededSize;
+        framebuffer.PixelBuffer =
+          std::make_unique <uint8_t []> (
+                static_cast <size_t> (neededSize)
+          );
+
+        if (framebuffer.PixelBuffer != nullptr)
+            framebuffer.PBufferSize = neededSize;
       }
 
 
-      SK_ReleaseAssert (framebuffer.PixelBuffer.m_pData != nullptr)
+      SK_ReleaseAssert (framebuffer.PixelBuffer.get () != nullptr)
 
 
-      if ( framebuffer.PixelBuffer.m_pData != nullptr )
+      if ( framebuffer.PixelBuffer.get () != nullptr )
       {
         *pWidth  = framebuffer.Width;
         *pHeight = framebuffer.Height;
 
         uint8_t* pSrc = (uint8_t *)finished_copy.pData;
-        uint8_t* pDst = framebuffer.PixelBuffer.m_pData;
+        uint8_t* pDst = framebuffer.PixelBuffer.get ();
 
         if (pSrc != nullptr)
         {
@@ -829,7 +837,7 @@ SK_D3D11_Screenshot::getData ( UINT     *pWidth,
 
       pImmediateCtx->Unmap (pStagingBackbufferCopy, Subresource);
 
-      *ppData = framebuffer.PixelBuffer.m_pData;
+      *ppData = framebuffer.PixelBuffer.get ();
 
       return true;
     }
@@ -880,11 +888,9 @@ static volatile LONG
 bool
 SK_D3D11_ShouldSkipHUD (void)
 {
-  if ( SK_Screenshot_IsCapturingHUDless () ||
-       ReadAcquire     (&__SK_HUD_YesOrNo) <= 0 )
-    return true;
-
-  return false;
+  return
+    ( SK_Screenshot_IsCapturingHUDless () ||
+       ReadAcquire    (&__SK_HUD_YesOrNo) <= 0 );
 }
 
 LONG
@@ -1243,7 +1249,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               raw_img.format = pop_off->getInternalFormat ();
               raw_img.width  = pFrameData->Width;
               raw_img.height = pFrameData->Height;
-              raw_img.pixels = pFrameData->PixelBuffer.m_pData;
+              raw_img.pixels = pFrameData->PixelBuffer.get ();
 
             //extern void SK_SteamAPI_InitManagers (void);
                           SK_SteamAPI_InitManagers ();
@@ -1540,9 +1546,12 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             fb_copy->PackedDstPitch      = fb_orig->PackedDstPitch;
             fb_copy->PackedDstSlicePitch = fb_orig->PackedDstSlicePitch;
 
-            fb_copy->PixelBuffer.Attach (
-               fb_orig->PixelBuffer.Detach ()
-            );
+            fb_copy->PixelBuffer =
+              std::move (fb_orig->PixelBuffer);
+
+            //fb_copy->PixelBuffer.reset (
+            //   fb_orig->PixelBuffer.release ()
+            //);
 
             static concurrency::concurrent_queue <SK_D3D11_Screenshot::framebuffer_s *>
               raw_images_;
@@ -1620,7 +1629,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
 #if 1
                     uint8_t* pDst =
-                      pFrameData->PixelBuffer.m_pData;
+                      pFrameData->PixelBuffer.get ();
 
                     for (UINT i = 0; i < pFrameData->Height; ++i)
                     {
@@ -1675,7 +1684,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     raw_img.format = pFrameData->NativeFormat;
                     raw_img.width  = pFrameData->Width;
                     raw_img.height = pFrameData->Height;
-                    raw_img.pixels = pFrameData->PixelBuffer.m_pData;
+                    raw_img.pixels = pFrameData->PixelBuffer.get ();
 
                     SK_CreateDirectories (wszAbsolutePathToLossless);
 

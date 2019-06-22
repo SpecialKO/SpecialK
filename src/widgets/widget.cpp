@@ -133,7 +133,8 @@ SK_Widget_CalcClipRect ( SK_Widget* pWidget,
   if (pWidget == nullptr)
     return;
 
-  ImGuiIO& io (ImGui::GetIO ());
+  static auto& io =
+    ImGui::GetIO ();
 
   // Docking alignment visualiztion
   bool draw_horz_ruler = false;
@@ -220,7 +221,8 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
                                bool n, bool s,
                                bool e, bool w )
 {
-  auto& io (ImGui::GetIO ());
+  static auto& io =
+    ImGui::GetIO ();
 
   // Docking alignment visualization
   bool draw_horz_ruler = false;
@@ -339,6 +341,9 @@ SK_Widget::draw_base (void)
 {
   if (SK_ImGui_Widgets->hide_all)
     return;
+
+  static auto& io =
+    ImGui::GetIO ();
 
   //extern volatile LONG __SK_ScreenShot_CapturingHUDless;
   //if (ReadAcquire (&__SK_ScreenShot_CapturingHUDless))
@@ -573,11 +578,9 @@ SK_Widget::draw_base (void)
       {
         if (! ImGui::IsMouseHoveringRect (min, max)/* && ImGui::IsWindowFocused ()*/)
         {
-          ImGui::GetIO ().WantSetMousePos = true;
-
-          ImGui::GetIO ().MousePos =
-            ImVec2 ( ( pos.x + size.x ) / 2.0f,
-                     ( pos.y + size.y ) / 2.0f );
+          io.WantSetMousePos = true;
+          io.MousePos        = ImVec2 ( ( pos.x + size.x ) / 2.0f,
+                                        ( pos.y + size.y ) / 2.0f );
         }
       }
     }

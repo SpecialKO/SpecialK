@@ -23,6 +23,9 @@
 #define __SK__FRAMERATE_H__
 
 struct IUnknown;
+
+#include <boost/sort/pdqsort/pdqsort.hpp>
+
 #include <Unknwnbase.h>
 #include <Windows.h>
 
@@ -44,6 +47,60 @@ static constexpr auto
       return
         static_cast <long double> (val);
     };
+
+static constexpr auto
+  _isreal =
+  [](long double float_val) ->
+    bool
+    {
+      return
+        (! (isinf (float_val) || isnan (float_val)));
+    };
+
+extern float SK_Framerate_GetPercentileByIdx (int idx);
+
+using QueryPerformanceCounter_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount);
+
+BOOL
+WINAPI
+SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount);
+
+extern LARGE_INTEGER SK_GetPerfFreq (void);
+extern LARGE_INTEGER SK_QueryPerf   (void);
+
+__forceinline
+LARGE_INTEGER
+SK_CurrentPerf (void)
+ {
+   LARGE_INTEGER                time;
+   SK_QueryPerformanceCounter (&time);
+   return                       time;
+ };
+
+static auto SK_DeltaPerf =
+ [](auto delta, auto freq)->
+  LARGE_INTEGER
+   {
+     LARGE_INTEGER time = SK_CurrentPerf ();
+
+     time.QuadPart -= gsl::narrow_cast <LONGLONG> (delta * freq);
+
+     return time;
+   };
+
+static auto SK_DeltaPerfMS =
+ [](auto delta, auto freq)->
+  double
+   {
+     return
+       1000.0 * (double)(SK_DeltaPerf (delta, freq).QuadPart) /
+                (double)SK_GetPerfFreq           ().QuadPart;
+   };
+
+
+extern __forceinline
+ULONG  __stdcall
+SK_GetFramesDrawn (void);
 
 
 namespace SK
@@ -149,6 +206,26 @@ namespace SK
     static inline EventCounter* GetEvents  (void) noexcept { return events; }
                   Limiter*      GetLimiter (void);
 
+
+    #define MAX_SAMPLES 1000
+
+    class Stats;
+
+    struct DeepFrameState {
+      SK::Framerate::Stats* mean;
+      SK::Framerate::Stats* min;
+      SK::Framerate::Stats* max;
+      SK::Framerate::Stats* percentile0;
+      SK::Framerate::Stats* percentile1;
+
+      void reset (void);
+    } extern *frame_history_snapshots;
+
+    std::pair <
+      ULONG,  // Frame this container pertains to
+      std::vector <long double> // Sorted data
+              > extern _sorted_frame_history;
+
     class Stats {
     public:
       static LARGE_INTEGER freq;
@@ -156,23 +233,73 @@ namespace SK
       Stats (void) noexcept {
         QueryPerformanceFrequency (&freq);
       }
-
-    #define MAX_SAMPLES 120
       struct sample_t {
         long double   val  = 0.0;
         LARGE_INTEGER when = { 0ULL };
       } data [MAX_SAMPLES];
-      int    samples       = 0;
 
-      void addSample (long double sample, LARGE_INTEGER time) noexcept
+      int64_t samples      = 0;
+
+      bool addSample (long double sample, LARGE_INTEGER time) noexcept
       {
         data [samples % MAX_SAMPLES].val  = sample;
         data [samples % MAX_SAMPLES].when = time;
 
-        samples++;
+
+        return
+          ( ( samples++ % MAX_SAMPLES ) == 0 &&
+              samples - 1               != 0 );
       }
 
-      long double calcMean (long double seconds = 1.0L);
+      long double calcDataTimespan (void)
+      {
+        uint64_t samples_present =
+          samples < MAX_SAMPLES ?
+                        samples : MAX_SAMPLES;
+
+        LARGE_INTEGER min_time;
+                      min_time.QuadPart = std::numeric_limits <LONGLONG>::max ();
+        LARGE_INTEGER max_time = {                   0ULL };
+
+        for ( auto sample_idx = 0               ;
+                   sample_idx < samples_present ;
+                 ++sample_idx )
+        {
+          LARGE_INTEGER sampled_time =
+            data [sample_idx].when;
+
+          if ( sampled_time.QuadPart >
+                   max_time.QuadPart && sampled_time.QuadPart < 0xFFFFFFFFFFFFFFFF )
+          {
+                max_time.QuadPart =
+            sampled_time.QuadPart;
+          }
+
+          if ( sampled_time.QuadPart <
+                   min_time.QuadPart && sampled_time.QuadPart > 0 )
+          {
+                min_time.QuadPart =
+            sampled_time.QuadPart;
+          }
+        }
+
+        return
+          long_double_cast (max_time.QuadPart - min_time.QuadPart) /
+          long_double_cast ( SK::Framerate::Stats::freq.QuadPart );
+      }
+
+            int calcNumSamples   (long double seconds = 1.0L);
+    long double calcMean         (long double seconds = 1.0L);
+    long double calcSqStdDev     (long double mean,
+                                  long double seconds = 1.0L);
+    long double calcMin          (long double seconds = 1.0L);
+    long double calcMax          (long double seconds = 1.0L);
+            int calcHitches      (long double tolerance,
+                                  long double mean,
+                                  long double seconds = 1.0L);
+
+    long double calcOnePercentLow      (long double seconds = 1.0L);
+    long double calcPointOnePercentLow (long double seconds = 1.0L);
 
       long double calcMean (LARGE_INTEGER start) noexcept
       {
@@ -182,38 +309,140 @@ namespace SK
 
         for ( const auto datum : data )
         {
-          if (datum.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart > start.QuadPart)
           {
-            ++samples_used;
-            mean += datum.val;
+            if (_isreal (datum.val) && datum.val > 0.0L)
+            {
+              ++samples_used;
+              mean += datum.val;
+            }
           }
         }
 
-        return mean / static_cast <long double> (samples_used);
+        return
+          ( mean / static_cast <long double> (samples_used) );
       }
 
-      long double calcSqStdDev (long double mean, long double seconds = 1.0L);
+      std::vector <long double>& sortAndCacheFrametimeHistory (void)
+      {
+#pragma warning (push)
+#pragma warning (disable: 4244)
+        if (_sorted_frame_history.first != SK_GetFramesDrawn ())
+        {
+          _sorted_frame_history.second.clear ();
+
+          for ( const auto datum : data )
+          {
+            if (datum.when.QuadPart > 0)
+            {
+              if (_isreal (datum.val) && datum.val > 0.01L)
+              {
+                _sorted_frame_history.second.push_back (datum.val);
+              }
+            }
+          }
+
+          boost::sort::pdqsort (
+            _sorted_frame_history.second.begin (),
+            _sorted_frame_history.second.end   (), std::greater <> ()
+          );
+
+          _sorted_frame_history.first =
+            SK_GetFramesDrawn ();
+        }
+#pragma warning (pop)
+
+        return
+          _sorted_frame_history.second;
+      }
+
+      long double calcPercentile (float percent, LARGE_INTEGER start) noexcept
+      {
+        UNREFERENCED_PARAMETER (start);
+
+        std::vector <long double>&
+               sampled_lows = sortAndCacheFrametimeHistory ();
+        size_t samples_used = sampled_lows.size            ();
+
+        size_t end_sample_idx =
+          std::max ( (size_t)0, std::min
+              ( samples_used,
+                  (size_t)std::round ((float)samples_used * (percent / 100.0f))
+              )
+          );
+
+        const long double
+            avg_ms =
+              std::accumulate ( sampled_lows.begin (),
+                                sampled_lows.begin ()  + end_sample_idx,
+                                  0.0L ) / (long double)(end_sample_idx);
+
+        return
+          avg_ms;
+      }
+
+      long double calcOnePercentLow (LARGE_INTEGER start) noexcept
+      {
+        UNREFERENCED_PARAMETER (start);
+
+        std::vector <long double>&
+               sampled_lows = sortAndCacheFrametimeHistory ();
+        size_t samples_used = sampled_lows.size            ();
+
+        size_t end_sample_idx =
+          (size_t)std::round ((float)samples_used / 100.0f);
+
+        const long double
+            one_percent_avg_ms =
+              std::accumulate ( sampled_lows.begin (),
+                                sampled_lows.begin ()  + end_sample_idx,
+                                  0.0L ) / (long double)(end_sample_idx);
+
+        return
+          one_percent_avg_ms;
+      }
+
+      long double calcPointOnePercentLow (LARGE_INTEGER start) noexcept
+      {
+        UNREFERENCED_PARAMETER (start);
+
+        std::vector <long double>&
+               sampled_lows = sortAndCacheFrametimeHistory ();
+        size_t samples_used = sampled_lows.size            ();
+
+        size_t end_sample_idx =
+          (size_t)std::round ((float)samples_used / 1000.0f);
+
+        const long double
+            point_one_percent_avg_ms =
+              std::accumulate ( sampled_lows.begin (),
+                                sampled_lows.begin ()  + end_sample_idx,
+                                  0.0L ) / (long double)(end_sample_idx);
+
+        return
+          point_one_percent_avg_ms;
+      }
 
       long double calcSqStdDev (long double mean, LARGE_INTEGER start) noexcept
       {
-        long double sd = 0.0;
-
+        long double sd2  = 0.0L;
         int samples_used = 0;
 
         for ( const auto datum : data )
         {
-          if (datum.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart > start.QuadPart)
           {
-            sd += (datum.val - mean) *
-                  (datum.val - mean);
-            samples_used++;
+            if (_isreal (datum.val) && datum.val > 0.0L)
+            {
+              sd2 += (datum.val - mean) *
+                     (datum.val - mean);
+              samples_used++;
+            }
           }
         }
 
-        return sd / static_cast <long double> (samples_used);
+        return sd2 / static_cast <long double> (samples_used);
       }
-
-      long double calcMin (long double seconds = 1.0L);
 
       long double calcMin (LARGE_INTEGER start) noexcept
       {
@@ -221,17 +450,18 @@ namespace SK
 
         for ( const auto datum : data )
         {
-          if (datum.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart > start.QuadPart)
           {
-            if (datum.val < min)
-              min = datum.val;
+            if (_isreal (datum.val) && datum.val > 0.0L)
+            {
+              if (datum.val < min)
+                min = datum.val;
+            }
           }
         }
 
         return min;
       }
-
-      long double calcMax (long double seconds = 1.0L);
 
       long double calcMax (LARGE_INTEGER start) noexcept
       {
@@ -239,40 +469,22 @@ namespace SK
 
         for ( const auto datum : data )
         {
-          if (datum.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart > start.QuadPart)
           {
-            if (datum.val > max)
-              max = datum.val;
+            if (_isreal (datum.val) && datum.val > 0.0L)
+            {
+              if (datum.val > max)
+                max = datum.val;
+            }
           }
         }
 
         return max;
       }
 
-      int calcHitches (long double tolerance, long double mean, long double seconds = 1.0);
-
       int calcHitches (long double tolerance, long double mean, LARGE_INTEGER start) noexcept
       {
-        int hitches = 0;
-
-    #if 0
-        for (int i = 1; i < MAX_SAMPLES; i++) {
-          if (data [i    ].when.QuadPart >= start.QuadPart &&
-              data [i - 1].when.QuadPart >= start.QuadPart) {
-            if ((data [i].val + data [i - 1].val) / 2.0 > (tolerance * data [i - 1].val) ||
-                (data [i].val + data [i - 1].val) / 2.0 > (tolerance * data [i].val))
-              hitches++;
-          }
-        }
-
-        // Handle wrap-around on the final sample
-        if (data [0              ].when.QuadPart >= start.QuadPart &&
-            data [MAX_SAMPLES - 1].when.QuadPart >= start.QuadPart &&
-            data [0].when.QuadPart > data [MAX_SAMPLES -1].when.QuadPart) {
-          if ((data [MAX_SAMPLES - 1].val - data [0].val) > (tolerance * data [MAX_SAMPLES - 1].val))
-            hitches++;
-        }
-    #else
+        int  hitches   = 0;
         bool last_late = false;
 
         for ( const auto datum : data )
@@ -292,12 +504,9 @@ namespace SK
             }
           }
         }
-    #endif
 
         return hitches;
       }
-
-      int calcNumSamples (long double seconds = 1.0);
 
       int calcNumSamples (LARGE_INTEGER start) noexcept
       {
@@ -305,9 +514,12 @@ namespace SK
 
         for ( const auto datum : data )
         {
-          if (datum.when.QuadPart >= start.QuadPart)
+          if (datum.when.QuadPart > start.QuadPart)
           {
-            samples_used++;
+            if (_isreal (datum.val) && datum.val > 0.0L)
+            {
+              samples_used++;
+            }
           }
         }
 
@@ -317,12 +529,6 @@ namespace SK
   };
 };
 
-using QueryPerformanceCounter_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount);
-
-BOOL
-WINAPI
-SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount);
-
 using  Sleep_pfn = void (WINAPI *)(DWORD dwMilliseconds);
 extern Sleep_pfn
        Sleep_Original;
@@ -331,38 +537,6 @@ using  SleepEx_pfn = DWORD (WINAPI *)(DWORD dwMilliseconds,
                                       BOOL  bAlertable);
 extern SleepEx_pfn
        SleepEx_Original;
-
-extern LARGE_INTEGER SK_GetPerfFreq (void);
-extern LARGE_INTEGER SK_QueryPerf   (void);
-
-__forceinline
-LARGE_INTEGER
-SK_CurrentPerf (void)
- {
-   LARGE_INTEGER                time;
-   SK_QueryPerformanceCounter (&time);
-   return                       time;
- };
-
-static auto SK_DeltaPerf =
- [](auto delta, auto freq)->
-  LARGE_INTEGER
-   {
-     LARGE_INTEGER time = SK_CurrentPerf ();
-
-     time.QuadPart -= gsl::narrow_cast <LONGLONG> (delta * freq);
-
-     return time;
-   };
-
-static auto SK_DeltaPerfMS =
- [](auto delta, auto freq)->
-  double
-   {
-     return
-       1000.0 * (double)(SK_DeltaPerf (delta, freq).QuadPart) /
-                (double)SK_GetPerfFreq           ().QuadPart;
-   };
 
 extern int __SK_FramerateLimitApplicationSite;
 

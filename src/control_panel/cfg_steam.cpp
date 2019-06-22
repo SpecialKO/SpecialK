@@ -914,7 +914,7 @@ SK_AppCache_Manager::loadDepotCache (DepotId_t steam_depot)
   {
     if (StrStrIW (sec.first.c_str (), L"Depot."))
     {
-      std::string   depot_name = "";
+      std::string   depot_name;
       unsigned long depot_id   = 0;
 
       if (! std::swscanf (sec.first.c_str (), L"Depot.%lu", &depot_id))

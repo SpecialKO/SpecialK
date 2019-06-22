@@ -1870,7 +1870,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
   BOOL already_set = TRUE;
 
   if (fps_limiter.u32CurrentValue != limit_mask) {
-    ZeroMemory (&fps_limiter, sizeof NVDRS_SETTING);
+    SecureZeroMemory (&fps_limiter, sizeof NVDRS_SETTING);
     fps_limiter.version = NVDRS_SETTING_VER;
 
     already_set = FALSE;
@@ -1881,7 +1881,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
 
   // If this == -1, then don't make any changes...
   if (target_prerender != -1 && prerendered_frames.u32CurrentValue != target_prerender) {
-    ZeroMemory (&prerendered_frames, sizeof NVDRS_SETTING);
+    SecureZeroMemory (&prerendered_frames, sizeof NVDRS_SETTING);
     prerendered_frames.version = NVDRS_SETTING_VER;
 
     already_set = FALSE;
