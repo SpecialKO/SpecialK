@@ -52,7 +52,7 @@ struct opt_cfg_s
     int64_t framerate_bug_addr = 0;
   };
 
-  constexpr opt_cfg_s (void) = default;
+  opt_cfg_s (void) = default;
 };
 
 SK_LazyGlobal <opt_cfg_s> opt_config;

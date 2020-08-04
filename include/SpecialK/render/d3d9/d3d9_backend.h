@@ -186,14 +186,15 @@ namespace D3D9 {
 
   struct ShaderTracker
   {
-    void clear (void)
+    void clear (void) noexcept
     {
       active    = false;
       InterlockedExchange (&num_draws, 0);
       used_textures.clear ();
 
-      for (auto& current_texture : current_textures)
-        current_texture = 0x00;
+    //for (auto&  current_texture : current_textures)
+      for (auto&& current_texture : current_textures)
+        current_texture = nullptr;
     }
 
     void use (IUnknown* pShader);

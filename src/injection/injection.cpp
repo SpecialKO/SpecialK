@@ -88,6 +88,8 @@ extern "C"
 
   __declspec (dllexport)          wchar_t whitelist_patterns [16 * MAX_PATH] = { 0 };
   __declspec (dllexport)          int     whitelist_count                    =   0;
+  __declspec (dllexport)          wchar_t blacklist_patterns [16 * MAX_PATH] = { 0 };
+  __declspec (dllexport)          int     blacklist_count                    =   0;
   __declspec (dllexport) volatile LONG    injected_procs                     =   0;
 
   static constexpr LONG MAX_HOOKED_PROCS = 4096;
@@ -110,7 +112,8 @@ extern volatile LONG  __SK_HookContextOwner;
 SK_InjectionRecord_s*
 SK_Inject_GetRecord (int idx)
 {
-  wcsncpy (__SK_InjectionHistory [idx].process.name,   &__SK_InjectionHistory_name    [idx * MAX_PATH], MAX_PATH - 1);
+  wcsncpy_s
+          (__SK_InjectionHistory [idx].process.name,   MAX_PATH-1, &__SK_InjectionHistory_name    [idx * MAX_PATH], _TRUNCATE);
            __SK_InjectionHistory [idx].process.id      = __SK_InjectionHistory_ids    [idx];
            __SK_InjectionHistory [idx].process.inject  = __SK_InjectionHistory_inject [idx];
            __SK_InjectionHistory [idx].process.eject   = __SK_InjectionHistory_eject  [idx];
@@ -156,13 +159,13 @@ SK_Inject_InitShutdownEvent (void)
 
 bool
 __stdcall
-SK_IsInjected (bool set)
+SK_IsInjected (bool set) noexcept
 {
 // Indicates that the DLL is injected purely as a hooker, rather than
 //   as a wrapper DLL.
   static std::atomic_bool __injected = false;
 
-  if (__injected == true)
+  if (__injected)
     return true;
 
   if (set)
@@ -240,7 +243,7 @@ public:
   explicit SK_Auto_Local (LPVOID* ppMem) : mem_ (ppMem)
   { };
 
-  ~SK_Auto_Local (void)
+  ~SK_Auto_Local (void) noexcept
   {
     if (mem_ != nullptr && (*mem_) != nullptr)
     {
@@ -345,12 +348,14 @@ SK_Inject_AcquireProcess (void)
                 __SK_InjectionHistory_ids    [local_record] = GetCurrentProcessId ();
       _time64 (&__SK_InjectionHistory_inject [local_record]);
 
-      wchar_t  wszName [MAX_PATH] = { 0 };
-      wcsncpy (wszName, SK_GetModuleFullName (GetModuleHandle (nullptr)).c_str (),
-                        MAX_PATH - 1);
+      wchar_t    wszName [MAX_PATH + 2] = { };
+      wcsncpy_s (wszName, MAX_PATH,
+                 SK_GetModuleFullName (SK_GetModuleHandle (nullptr)).c_str (),
+                          _TRUNCATE);
 
       PathStripPath (wszName);
-      wcsncpy (&__SK_InjectionHistory_name [local_record * MAX_PATH], wszName, MAX_PATH - 1);
+      wcsncpy_s (&__SK_InjectionHistory_name [local_record * MAX_PATH], MAX_PATH,
+                     wszName,                                          _TRUNCATE);
 
       // Hold a reference so that removing the CBT hook doesn't crash the software
       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
@@ -375,8 +380,8 @@ SK_Inject_IsInvadingProcess (DWORD dwThreadId)
   return false;
 }
 
-const HHOOK
-SKX_GetCBTHook (void)
+HHOOK
+SKX_GetCBTHook (void) noexcept
 {
   return hHookCBT;
 }
@@ -400,7 +405,7 @@ CBTProc ( _In_ int    nCode,
   if (nCode < 0)
   {
     LRESULT lRet =
-      CallNextHookEx (0, nCode, wParam, lParam);
+      CallNextHookEx (nullptr, nCode, wParam, lParam);
 
     // ...
 
@@ -423,7 +428,7 @@ CBTProc ( _In_ int    nCode,
       );
     }
 
-    CloseHandle  (
+    HANDLE hThread =
     CreateThread (nullptr, 0, [](LPVOID lpUser) -> //-V513
     DWORD
     {
@@ -462,7 +467,7 @@ CBTProc ( _In_ int    nCode,
                            0x0, argc,
                              (const ULONG_PTR *)&info );
       }
-      __except (EXCEPTION_CONTINUE_EXECUTION) { };
+      __except (EXCEPTION_EXECUTE_HANDLER) { };
 
 
       HANDLE hHookTeardown =
@@ -470,7 +475,9 @@ CBTProc ( _In_ int    nCode,
             SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                    LR"(Local\SK_GlobalHookTeardown64)") );
 
-      DWORD  dwMilliseconds = 3333uL;
+      // Every 20 seconds anything we're injected into has to wake up and
+      //   give us a chance to unload.
+      DWORD  dwMilliseconds = 20000uL;
       HANDLE hWaitTimer =
         CreateWaitableTimer (nullptr , FALSE, nullptr);
 
@@ -494,15 +501,15 @@ CBTProc ( _In_ int    nCode,
           while (dwWaitStatus != WAIT_FAILED)
           {
             dwWaitStatus =
-              MsgWaitForMultipleObjectsEx ( 2, events, dwMilliseconds,
-                                            QS_SENDMESSAGE, 0x0 );
+              WaitForMultipleObjectsEx ( 2, events,        FALSE,
+                                           dwMilliseconds, FALSE );
 
-            // The other event is to wake stupid suspended UWP processes
-            //   up so they can release this DLL.
-            if ( dwWaitStatus == (WAIT_OBJECT_0 + 1) )
-            {
-              break;
-            }
+            if (dwWaitStatus == WAIT_OBJECT_0)
+              continue;
+
+            // Any other wait state is unexpected and the safest behavior
+            //   is to let this thread run to completion and unload the DLL.
+            break;
           }
 
           CancelWaitableTimer (hWaitTimer);
@@ -515,12 +522,15 @@ CBTProc ( _In_ int    nCode,
       FreeLibraryAndExitThread (hMod, 0x0);
 
       return 0;
-    }, (LPVOID)&hModule_CBT, 0x0, nullptr));
+    }, (LPVOID)&hModule_CBT, 0x0, nullptr);
+
+    if (hThread != SK_INVALID_HANDLE)
+      CloseHandle (hThread);
   }
 
   return
     CallNextHookEx (
-      0,
+      nullptr,
         nCode, wParam, lParam
     );
 }
@@ -551,7 +561,11 @@ SKX_InstallCBTHook (void)
   SK_Inject_InitShutdownEvent ();
 
   if (SK_GetHostAppUtil ()->isInjectionTool ())
+  {
+    void SK_Inject_InitWhiteAndBlacklists (void);
+         SK_Inject_InitWhiteAndBlacklists ();
     InterlockedIncrementRelease (&injected_procs);
+  }
 
   HMODULE hModSelf;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -577,11 +591,13 @@ SKX_RemoveCBTHook (void)
   if ( hHookOrig != nullptr &&
          UnhookWindowsHookEx (hHookOrig) )
   {
-                   whitelist_count = 0;
+                         whitelist_count = 0;
     RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+                         blacklist_count = 0;
+    RtlSecureZeroMemory (blacklist_patterns, sizeof (blacklist_patterns));
 
     HANDLE hHookTeardown =
-      OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+      OpenEvent ( (DWORD)EVENT_ALL_ACCESS, FALSE,
           SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                  LR"(Local\SK_GlobalHookTeardown64)") );
 
@@ -655,7 +671,7 @@ SKX_RemoveCBTHook (void)
 
 bool
 __stdcall
-SKX_IsHookingCBT (void)
+SKX_IsHookingCBT (void) noexcept
 {
   return
     SKX_GetCBTHook () != nullptr;
@@ -759,7 +775,6 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
     const char* szPIDFile =
       SK_RunLHIfBitness ( 32, "SpecialK32.pid",
                               "SpecialK64.pid" );
-
     FILE* fPID =
       fopen (szPIDFile, "r");
 
@@ -787,10 +802,10 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
 void
 SK_Inject_EnableCentralizedConfig (void)
 {
-  wchar_t wszOut [MAX_PATH * 2] = { };
-
-  lstrcatW (wszOut, SK_GetHostPath ());
-  lstrcatW (wszOut, LR"(\SpecialK.central)");
+  wchar_t           wszOut [MAX_PATH + 2] = { };
+  SK_PathCombineW ( wszOut,
+                      SK_GetHostPath (),
+                        L"SpecialK.central" );
 
   FILE* fOut =
     _wfopen (wszOut, L"w");
@@ -848,10 +863,10 @@ SK_Inject_EnableCentralizedConfig (void)
 bool
 SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 {
-  wchar_t   wszIn  [MAX_PATH * 2] = { };
+  wchar_t   wszIn  [MAX_PATH + 2] = { };
   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
-  wchar_t   wszOut [MAX_PATH * 2] = { };
+  wchar_t   wszOut [MAX_PATH + 2] = { };
   lstrcatW (wszOut, SK_GetHostPath ());
 
   switch (role)
@@ -930,7 +945,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
   //}
 
 
-  if (CopyFile (wszIn, wszOut, TRUE))
+  if (CopyFile (wszIn, wszOut, TRUE) != FALSE)
   {
     SK_Inject_EnableCentralizedConfig ();
 
@@ -944,7 +959,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
     SK_RunLHIfBitness (64, PathAppendW (wszOut, L"SpecialK64.pdb"),
                            PathAppendW (wszOut, L"SpecialK32.pdb") );
 
-    if (! CopyFileW (wszIn, wszOut, TRUE))
+    if (CopyFileW (wszIn, wszOut, TRUE) == FALSE)
       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
 
     *wszIn = L'\0';
@@ -961,7 +976,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 
     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
          ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-           CreateDirectoryW (ver_dir.c_str (), nullptr) ) )
+           CreateDirectoryW (ver_dir.c_str (), nullptr) != FALSE ) )
     {
       *wszOut = L'\0';
 
@@ -995,8 +1010,8 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 bool
 SK_Inject_SwitchToRenderWrapper (void)
 {
-  wchar_t   wszIn  [MAX_PATH * 2] = { };
-  wchar_t   wszOut [MAX_PATH * 2] = { };
+  wchar_t   wszIn  [MAX_PATH + 2] = { };
+  wchar_t   wszOut [MAX_PATH + 2] = { };
 
   lstrcatW (wszIn,  SK_GetModuleFullName (SK_GetDLL ()).c_str ());
   lstrcatW (wszOut, SK_GetHostPath       (                     ));
@@ -1107,7 +1122,7 @@ SK_Inject_SwitchToRenderWrapper (void)
 
     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
          ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-           CreateDirectoryW (ver_dir.c_str (), nullptr) ) )
+           CreateDirectoryW (ver_dir.c_str (), nullptr) != FALSE ) )
     {
       *wszOut = L'\0';
 
@@ -1144,13 +1159,12 @@ SK_Inject_SwitchToGlobalInjector (void)
   config.system.central_repository = true;
   SK_EstablishRootPath ();
 
-  wchar_t wszOut  [MAX_PATH * 2] = { };
-  wchar_t wszTemp [MAX_PATH * 2] = { };
+  wchar_t wszOut  [MAX_PATH + 2] = { };
+  wchar_t wszTemp [MAX_PATH + 2] = { };
 
-  lstrcatW (wszOut, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+  lstrcatW         (wszOut, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
-
-  MoveFileW (wszOut, wszTemp);
+  MoveFileW        (wszOut,                                    wszTemp);
 
   SK_SaveConfig (L"SpecialK");
 
@@ -1181,14 +1195,14 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 
   pe32.dwSize = sizeof (PROCESSENTRY32W);
 
-  if (! Process32FirstW (hProcSnap, &pe32))
+  if (Process32FirstW (hProcSnap, &pe32) != TRUE)
   {
     return false;
   }
 
   do
   {
-    if (StrStrIW (wszProcName, pe32.szExeFile))
+    if (StrStrIW (wszProcName, pe32.szExeFile) != nullptr)
     {
       window_t win =
         SK_FindRootWindow (pe32.th32ProcessID);
@@ -1206,11 +1220,11 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 void
 SK_Inject_Stop (void)
 {
-  wchar_t wszCurrentDir [MAX_PATH * 2] = { };
+  wchar_t wszCurrentDir [MAX_PATH + 2] = { };
   wchar_t wszWOW64      [MAX_PATH + 2] = { };
   wchar_t wszSys32      [MAX_PATH + 2] = { };
 
-  GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
+  GetCurrentDirectoryW  (MAX_PATH, wszCurrentDir);
   SetCurrentDirectoryW  (SK_SYS_GetInstallPath ().c_str ());
   GetSystemDirectoryW   (wszSys32, MAX_PATH);
 
@@ -1222,15 +1236,15 @@ SK_Inject_Stop (void)
   //if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
   if (true)
   {
-    PathAppendW   ( wszWOW64, L"rundll32.exe");
-    ShellExecuteA ( nullptr,
-                      "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
-                      "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    PathAppendW      ( wszWOW64, L"rundll32.exe");
+    SK_ShellExecuteA ( nullptr,
+                         "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
+                         "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
 
-    PathAppendW   ( wszSys32, L"rundll32.exe");
-    ShellExecuteA ( nullptr,
-                      "open", SK_WideCharToUTF8 (wszSys32).c_str (),
-                      "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    PathAppendW      ( wszSys32, L"rundll32.exe");
+    SK_ShellExecuteA ( nullptr,
+                         "open", SK_WideCharToUTF8 (wszSys32).c_str (),
+                         "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
   }
 
   else
@@ -1248,7 +1262,7 @@ SK_Inject_Stop (void)
     // Worst-case, we do this manually and confuse Steam
     else
     {
-      ShellExecuteA        ( nullptr,
+      SK_ShellExecuteA     ( nullptr,
                                "open", "SKIM64.exe",
                                "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (),
                                  SW_FORCEMINIMIZE );
@@ -1256,15 +1270,15 @@ SK_Inject_Stop (void)
       SK_ExitRemoteProcess ( L"SKIM64.exe", 0x00);
     }
 
-    PathAppendW   ( wszWOW64, L"rundll32.exe");
-    ShellExecuteA ( nullptr,
-                      "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
-                      "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    PathAppendW      ( wszWOW64, L"rundll32.exe");
+    SK_ShellExecuteA ( nullptr,
+                         "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
+                         "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
 
-    PathAppendW   ( wszSys32, L"rundll32.exe");
-    ShellExecuteA ( nullptr,
-                      "open", SK_WideCharToUTF8 (wszSys32).c_str (),
-                      "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    PathAppendW      ( wszSys32, L"rundll32.exe");
+    SK_ShellExecuteA ( nullptr,
+                         "open", SK_WideCharToUTF8 (wszSys32).c_str (),
+                         "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
   }
 
   SetCurrentDirectoryW (wszCurrentDir);
@@ -1273,11 +1287,11 @@ SK_Inject_Stop (void)
 void
 SK_Inject_Start (void)
 {
-  wchar_t wszCurrentDir [MAX_PATH * 2] = { };
+  wchar_t wszCurrentDir [MAX_PATH + 2] = { };
   wchar_t wszWOW64      [MAX_PATH + 2] = { };
   wchar_t wszSys32      [MAX_PATH + 2] = { };
 
-  GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
+  GetCurrentDirectoryW  (MAX_PATH, wszCurrentDir);
   SetCurrentDirectoryW  (SK_SYS_GetInstallPath ().c_str ());
   GetSystemDirectoryW   (wszSys32, MAX_PATH);
 
@@ -1292,15 +1306,15 @@ SK_Inject_Start (void)
                                 "Remove", -128 );
     }
 
-    PathAppendW   ( wszSys32, L"rundll32.exe");
-    ShellExecuteA ( nullptr,
-                      "open", SK_WideCharToUTF8 (wszSys32).c_str (),
-                      "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE );
+    PathAppendW      ( wszSys32, L"rundll32.exe");
+    SK_ShellExecuteA ( nullptr,
+                         "open", SK_WideCharToUTF8 (wszSys32).c_str (),
+                         "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE );
 
-    PathAppendW   ( wszWOW64, L"rundll32.exe");
-    ShellExecuteA ( nullptr,
-                      "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
-                      "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE );
+    PathAppendW      ( wszWOW64, L"rundll32.exe");
+    SK_ShellExecuteA ( nullptr,
+                         "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
+                         "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE );
   }
 
   else
@@ -1325,10 +1339,10 @@ SK_Inject_Start (void)
     // Worst-case, we do this manually and confuse Steam
     else
     {
-      ShellExecuteA ( nullptr,
-                        "open", "SKIM64.exe", "+Inject",
-                        SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (),
-                          SW_FORCEMINIMIZE );
+      SK_ShellExecuteA ( nullptr,
+                           "open", "SKIM64.exe", "+Inject",
+                           SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (),
+                             SW_FORCEMINIMIZE );
     }
   }
 
@@ -1369,48 +1383,104 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
   return i;
 }
 
-bool
-SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
+void
+SK_Inject_ParseWhiteAndBlacklists (std::wstring base_path)
 {
-  if (whitelist_count == 0)
+  struct list_builder_s {
+    struct dll_shared_seg_s {
+      int&       count;
+      wchar_t*   patterns;
+    } dll_global;
+    std::wstring file_name;
+  }
+
+  lists [] =
+  { { whitelist_count, whitelist_patterns,
+         base_path + L"whitelist.ini" },
+    { blacklist_count, blacklist_patterns,
+         base_path + L"blacklist.ini" } };
+
+  for ( auto& list : lists )
   {
-    std::wifstream whitelist_file (
-      std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\whitelist.ini)")
+    list.dll_global.count = -1;
+
+    std::wifstream list_file (
+      list.file_name
     );
 
-    if (whitelist_file.is_open ())
+    if (list_file.is_open ())
     {
+      // Don't update the shared DLL data segment until we finish parsing
+      int          count = 0;
       std::wstring line;
 
-      while (whitelist_file.good ())
+      while (list_file.good ())
       {
-        std::getline (whitelist_file, line);
+        std::getline (list_file, line);
 
         // Skip blank lines, since they would match everything....
         for (const auto& it : line)
         {
-          if (iswalpha (it))
+          if (iswalpha (it) != 0)
           {
-            wcsncpy ( (wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++],
-                        line.c_str (),
-                          MAX_PATH - 1 );
+            wcsncpy_s ( (wchar_t *)&list.dll_global.patterns [MAX_PATH * count++],
+                                                              MAX_PATH,
+                        line.c_str (),                       _TRUNCATE );
             break;
           }
         }
       }
 
-      if (whitelist_count == 0)
-        whitelist_count = -1;
+      // Now update the shared data seg.
+      list.dll_global.count = count;
+    }
+  }
+};
+
+void
+SK_Inject_InitWhiteAndBlacklists (void)
+{
+  SK_Thread_CreateEx ([](LPVOID)->DWORD
+  {
+    SK_AutoCOMInit _require_COM;
+
+    static
+      std::wstring global_cfg_dir =
+        std::wstring (
+          SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\)"
+        );
+
+    SK_Inject_ParseWhiteAndBlacklists (global_cfg_dir);
+
+    HANDLE hChangeNotification =
+      FindFirstChangeNotificationW (
+        global_cfg_dir.c_str (), FALSE,
+          FILE_NOTIFY_CHANGE_FILE_NAME  |
+          FILE_NOTIFY_CHANGE_SIZE       |
+          FILE_NOTIFY_CHANGE_LAST_WRITE
+      );
+
+    while ( FindNextChangeNotification (
+                   hChangeNotification ) != FALSE )
+    {
+      if ( WAIT_OBJECT_0 ==
+             WaitForSingleObject (hChangeNotification, INFINITE) )
+      {
+        SK_Inject_ParseWhiteAndBlacklists (global_cfg_dir);
+      }
     }
 
-    else
-      whitelist_count = -1;
-  }
+    SK_Thread_CloseSelf ();
 
+    return 0;
+  }, L"[SK_INJECT] White/Blacklist Sentinel");
+}
 
+bool
+SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
+{
   if ( whitelist_count <= 0 )
     return false;
-
 
   for ( int i = 0; i < whitelist_count; i++ )
   {
@@ -1433,60 +1503,49 @@ SK_Inject_TestWhitelists (const wchar_t* wszExecutable)
 {
   // Sort of a temporary hack for important games that I support that are
   //   sold on alternative stores to Steam.
-  if (StrStrIW (wszExecutable, L"ffxv"))
+  if (StrStrIW (wszExecutable, L"ffxv") != nullptr)
     return true;
 
-
-  return SK_Inject_TestUserWhitelist (wszExecutable);
+  return
+    SK_Inject_TestUserWhitelist (wszExecutable);
 }
 
+bool
+SK_Inject_TestUserBlacklist (const wchar_t* wszExecutable)
+{
+  if ( blacklist_count <= 0 )
+    return false;
 
-//bool
-//SK_Inject_TestUserBlacklist (const wchar_t* wszExecutable)
-//{
-//  if (blacklist.count == 0)
-//  {
-//    std::wifstream blacklist_file (std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\blacklist.ini"));
-//
-//    if (blacklist_file.is_open ())
-//    {
-//      std::wstring line;
-//
-//      while (blacklist_file.good ())
-//      {
-//        std::getline (blacklist_file, line);
-//
-//        // Skip blank lines, since they would match everything....
-//        for (const auto& it : line)
-//        {
-//          if (iswalpha (it))
-//          {
-//            wcsncpy (blacklist.patterns [blacklist.count++], line.c_str (), MAX_PATH);
-//            break;
-//          }
-//        }
-//      }
-//    }
-//
-//    else
-//      blacklist.count = -1;
-//  }
-//
-//  for ( int i = 0; i < blacklist.count; i++ )
-//  {
-//    std::wregex regexp (blacklist.patterns [i], std::regex_constants::icase);
-//
-//    if (std::regex_search (wszExecutable, regexp))
-//    {
-//      return true;
-//    }
-//  }
-//
-//  return false;
-//}
+
+  for ( int i = 0; i < blacklist_count; i++ )
+  {
+    std::wregex regexp (
+      &blacklist_patterns [MAX_PATH * i],
+        std::regex_constants::icase
+    );
+
+    if (std::regex_search (wszExecutable, regexp))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 bool
-SK_Inject_IsAdminSupported (void)
+SK_Inject_TestBlacklists (const wchar_t* wszExecutable)
 {
-  return bAdmin;
+  if (StrStrNIW (wszExecutable, L"launcher", MAX_PATH) != nullptr)
+    return true;
+
+  return
+    SK_Inject_TestUserBlacklist (wszExecutable);
+}
+
+bool
+SK_Inject_IsAdminSupported (void) noexcept
+{
+  return
+    ( bAdmin != FALSE );
 }

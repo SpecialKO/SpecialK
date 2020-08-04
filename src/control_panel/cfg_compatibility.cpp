@@ -21,10 +21,12 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <imgui/imgui.h>
 
-#include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/compatibility.h>
+
+extern HWND WINAPI    SK_GetForegroundWindow (void);
+extern HWND WINAPI    SK_GetFocus            (void);
+extern bool __stdcall SK_IsGameWindowActive  (void);
 
 using namespace SK::ControlPanel;
 
@@ -96,6 +98,8 @@ SK::ControlPanel::Compatibility::Draw (void)
             config.apis.Vulkan.hook     = true;
             break;
 #endif
+          default:
+            break;
         }
       };
 
@@ -106,6 +110,9 @@ SK::ControlPanel::Compatibility::Draw (void)
                                bool  enabled = true,
            Tooltip_pfn tooltip_disabled      = nullptr )
       {
+        if (! pVar)
+          return;
+
         if (enabled)
         {
           ImGui::Checkbox (szName, pVar);
@@ -114,10 +121,10 @@ SK::ControlPanel::Compatibility::Draw (void)
         else
         {
           ImGui::TreePush     ("");
-          ImGui::TextDisabled (szName);
+          ImGui::TextDisabled ("%s", szName);
 
           if (tooltip_disabled != nullptr)
-            tooltip_disabled ();
+              tooltip_disabled ();
 
           ImGui::TreePop      (  );
 
@@ -126,9 +133,9 @@ SK::ControlPanel::Compatibility::Draw (void)
       };
 
 #ifdef _M_AMD64
-      const int num_lines = 4; // Basic set of APIs
+      constexpr int num_lines = 4; // Basic set of APIs
 #else
-      const int num_lines = 5; // + DirectDraw / Direct3D 8
+      constexpr int num_lines = 5; // + DirectDraw / Direct3D 8
 #endif
 
       ImGui::PushStyleVar                                                                          (ImGuiStyleVar_ChildRounding, 10.0f);
@@ -346,9 +353,9 @@ SK::ControlPanel::Compatibility::Draw (void)
 
       auto DescribeRect = [](LPRECT rect, const char* szType, const char* szName)
       {
-        ImGui::Text (szType);
+        ImGui::TextUnformatted (szType);
         ImGui::NextColumn ();
-        ImGui::Text (szName);
+        ImGui::TextUnformatted (szName);
         ImGui::NextColumn ();
         ImGui::Text ( "| (%4li,%4li) / %4lix%li |  ",
                           rect->left, rect->top,
@@ -389,12 +396,12 @@ SK::ControlPanel::Compatibility::Draw (void)
         break;
 
      case 1:
-        ImGui::Text      ( "App_Active   : %s", game_window.active ? "Yes" : "No" );
-        ImGui::Text      ( "Active HWND  : %x", GetActiveWindow     () );
-        ImGui::Text      ( "Foreground   : %x", GetForegroundWindow () );
-        ImGui::Text      ( "Input Focus  : %x", GetFocus            () );
+        ImGui::Text      ( "App_Active   : %s", SK_IsGameWindowActive  () ? "Yes" : "No" );
+        ImGui::Text      ( "Active HWND  : %p", GetActiveWindow        () );
+        ImGui::Text      ( "Foreground   : %p", SK_GetForegroundWindow () );
+        ImGui::Text      ( "Input Focus  : %p", SK_GetFocus            () );
         ImGui::Separator (    );
-        ImGui::Text      ( "HWND         : Focus: %06x, Device: %06x",
+        ImGui::Text      ( "HWND         : Focus: %6p, Device: %6p",
                                            rb.windows.focus.hwnd, rb.windows.device.hwnd );
         ImGui::Text      ( "Window Class : %32ws :: %32ws", rb.windows.focus.class_name,
                                                             rb.windows.device.class_name );
@@ -409,10 +416,10 @@ SK::ControlPanel::Compatibility::Draw (void)
                                                             rb.windows.device.last_changed );
         ImGui::Text      ( "Unicode      : %8s, %8s",       rb.windows.focus.unicode  ? "Yes" : "No",
                                                             rb.windows.device.unicode ? "Yes" : "No" );
-        ImGui::Text      ( "Top          : %08x, %08x",
+        ImGui::Text      ( "Top          : %8p, %8p",
                              GetTopWindow (rb.windows.focus.hwnd),
                              GetTopWindow (rb.windows.device.hwnd)     );
-        ImGui::Text      ( "Parent       : %08x, %08x",
+        ImGui::Text      ( "Parent       : %8p, %8p",
                                           (rb.windows.focus.parent),
                                           (rb.windows.device.parent)   );
         break;
@@ -422,7 +429,7 @@ SK::ControlPanel::Compatibility::Draw (void)
       ImGui::Separator   ( );
 
       ImGui::Text        ( "ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }",
-                             SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x,
+              (unsigned long)SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x,
                                                       SK_ImGui_Cursor.pos.y,
                                SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y );
       ImGui::SameLine    ( );

@@ -631,8 +631,8 @@ SK_Yakuza0_PlugInInit (void)
   if (SK_ReShade_SetResolutionScale == nullptr)
   {
     SK_ReShade_SetResolutionScale =
-      (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
-        GetModuleHandle (L"ReShade64.dll"),
+      (SK_ReShade_SetResolutionScale_pfn)SK_GetProcAddress (
+        SK_GetModuleHandle (L"ReShade64.dll"),
           "SK_ReShade_SetResolutionScale"
       );
   }
@@ -1178,8 +1178,8 @@ SK_Yakuza0_PlugInCfg (void)
 
           if (ImGui::Button ("Browse"))
           {
-            ShellExecuteW (
-              GetActiveWindow (),
+            SK_ShellExecuteW (
+              nullptr,
                 L"explore",
                   screenshot_manager->getExternalScreenshotPath (),
                   nullptr, nullptr,

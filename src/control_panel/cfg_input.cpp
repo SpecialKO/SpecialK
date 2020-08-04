@@ -20,9 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <imgui/imgui.h>
 
-#include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/input.h>
 
 bool cursor_vis = false;
@@ -401,7 +399,7 @@ SK::ControlPanel::Input::Draw (void)
       connected [3] = SK_XInput_PollController (3);
 
       const int num_steam_controllers =
-        steam_input.count;
+        0;/// steam_input.count;
 
       if ( num_steam_controllers == 0 && ( connected [0] || connected [1] ||
                                            connected [2] || connected [3] ) )
@@ -433,6 +431,7 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input.");
       }
 
+#ifdef SK_STEAM_CONTROLLER_SUPPORT
       if (num_steam_controllers > 0)
       {
         ImGui::Text ("UI Controlled By:  "); ImGui::SameLine ();
@@ -466,6 +465,7 @@ SK::ControlPanel::Input::Draw (void)
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input.");
       }
+#endif
 
       ImGui::Text ("XInput Placeholders");
 
@@ -497,9 +497,9 @@ SK::ControlPanel::Input::Draw (void)
            ImGui::Separator   ( );
            ImGui::Columns     (2, nullptr, 0);
            ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
-           ImGui::Text        ("%+07lu", journal.packet_count.virt);        ImGui::NextColumn ();
+           ImGui::Text        ("%+07li", journal.packet_count.virt);        ImGui::NextColumn ();
            ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
-           ImGui::Text        ("%+07lu", journal.packet_count.real);
+           ImGui::Text        ("%+07li", journal.packet_count.real);
            ImGui::Columns     (1);
           ImGui::EndTooltip   ( );
         }
@@ -534,8 +534,7 @@ extern float SK_ImGui_PulseNav_Strength;
 #endif
 
       static LARGE_INTEGER
-        liLastPoll [2] = { 0LL,
-                           0LL };
+        liLastPoll [2] = { { }, { } };
       static UINT
         uiLastErr  [2] = { JOYERR_NOERROR,
                            JOYERR_NOERROR };
@@ -563,12 +562,12 @@ extern float SK_ImGui_PulseNav_Strength;
         JOYINFOEX joy_ex   { };
         JOYCAPSW  joy_caps { };
 
-        joy_ex.dwSize  = sizeof JOYINFOEX;
+        joy_ex.dwSize  = sizeof (JOYINFOEX);
         joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
                          JOY_RETURNCENTERED | JOY_USEDEADZONE;
 
         uiLastErr        [idx] =
-          joyGetDevCapsW (idx, &joy_caps, sizeof JOYCAPSW);
+          joyGetDevCapsW (idx, &joy_caps, sizeof (JOYCAPSW));
               liLastPoll [idx] = SK_QueryPerf ();
         if (   uiLastErr [idx] != JOYERR_NOERROR || joy_caps.wCaps == 0)
         {

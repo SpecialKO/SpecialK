@@ -24,6 +24,10 @@
 
 SK_INCLUDE_START_CPP (COM_UTIL)
 
+///#ifndef __SK_SUBSYSTEM__
+///#define __SK_SUBSYSTEM__ L" COM Util "
+///#endif
+
 #define _WIN32_DCOM
 #include <Wbemidl.h>
 #include <objbase.h>
@@ -38,7 +42,7 @@ bool SK_COM_TestInit (void);
 class SK_AutoCOMInit
 {
 public:
-  SK_AutoCOMInit (DWORD dwCoInit = COINIT_MULTITHREADED) :
+  SK_AutoCOMInit (DWORD dwCoInit = COINIT_MULTITHREADED) noexcept :
            init_flags_ (dwCoInit)
   {
     if (_assert_not_dllmain ())
@@ -53,7 +57,7 @@ public:
     }
   }
 
-  ~SK_AutoCOMInit (void)
+  ~SK_AutoCOMInit (void) noexcept
   {
     if (success_)
       CoUninitialize ();
@@ -63,7 +67,7 @@ public:
   DWORD getInitFlags (void) noexcept { return init_flags_; }
 
 protected:
-  static bool _assert_not_dllmain (void);
+  static bool _assert_not_dllmain (void) noexcept;
 
 private:
   DWORD init_flags_ = COINIT_MULTITHREADED;
@@ -81,13 +85,15 @@ namespace COM {
       IWbemLocator*    pWbemLocator    = nullptr;
       BSTR             bstrNameSpace   = nullptr;
 
-      HANDLE           hServerThread = INVALID_HANDLE_VALUE;
+      HANDLE           hServerThread   = INVALID_HANDLE_VALUE;
       HANDLE           hShutdownServer = nullptr;
 
-      void Lock         (void);
-      void Unlock       (void);
+      void Lock         (void) noexcept;
+      void Unlock       (void) noexcept;
     } wmi;
-  } extern base;
+  };
+
+  extern Base base;
 };
 
 
@@ -118,11 +124,30 @@ void SK_WMI_Shutdown (void);
 
 static __inline
 void
-SK_WMI_WaitForInit (void)
+SK_WMI_WaitForInit (void) noexcept
 {
   SK_Thread_SpinUntilFlagged (&COM::base.wmi.init);
 };
 
+
+inline void _SK_ComQIPtrAssign2 (
+    _Inout_opt_ gsl::not_null <IUnknown**> pp,
+    _In_opt_                   IUnknown*   lp,
+    _In_                       REFIID      riid ) noexcept
+{
+    IUnknown* pTemp = *pp; // takes ownership
+
+    __try {
+      if (lp == nullptr || FAILED (lp->QueryInterface (riid, (void **)pp.get ())))
+          *pp = nullptr;
+    } __except (EXCEPTION_EXECUTE_HANDLER) { /*__debugbreak ();*/ };//SK_LOG_FIRST_CALL };
+
+    __try {
+      if (pTemp)
+          pTemp->Release ();
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) { /*__debugbreak ();*/ };//SK_LOG_FIRST_CALL };
+}
 
 
 extern "C++"
@@ -158,7 +183,7 @@ extern "C++"
   }
 
 
-
+# if 0
 template <class T>
 class _NoAddRefReleaseOnSK_ComPtr :
     public T
@@ -174,11 +199,11 @@ template <class T>
 class SK_ComPtrBase
 {
 protected:
-    SK_ComPtrBase() throw()
+    SK_ComPtrBase() noexcept
     {
         p = nullptr;
     }
-    SK_ComPtrBase(_Inout_opt_ T* lp) throw()
+    SK_ComPtrBase(_Inout_opt_ T* lp) noexcept
     {
       __try
       {
@@ -192,7 +217,7 @@ protected:
         return;
       }
     }
-    void Swap(SK_ComPtrBase& other) throw ()
+    void Swap(SK_ComPtrBase& other) noexcept
     {
         T* pTemp = p;
         p = other.p;
@@ -200,7 +225,7 @@ protected:
     }
 public:
     typedef T _PtrClass;
-    ~SK_ComPtrBase() throw()
+    ~SK_ComPtrBase() noexcept
     {
       __try {
         if (p)
@@ -212,46 +237,46 @@ public:
         return;
       }
     }
-    operator T*() const throw()
+    operator T*() const noexcept
     {
         return p;
     }
-    T& operator*() const
+    T& operator*() const noexcept
     {
         ATLENSURE(p!=nullptr);
         return *p;
     }
     //The assert on operator& usually indicates a bug.  If this is really
     //what is needed, however, take the address of the p member explicitly.
-    T** operator&() throw()
+    T** operator&() noexcept
     {
         ATLASSERT(p==nullptr);
         return &p;
     }
-    _NoAddRefReleaseOnSK_ComPtr<T>* operator->() const throw()
+    _NoAddRefReleaseOnSK_ComPtr<T>* operator->() const noexcept
     {
         ATLASSERT(p!=nullptr);
         return (_NoAddRefReleaseOnSK_ComPtr<T>*)p;
     }
-    bool operator!() const throw()
+    bool operator!() const noexcept
     {
         return (p == nullptr);
     }
-    bool operator<(_In_opt_ T* pT) const throw()
+    bool operator<(_In_opt_ T* pT) const noexcept
     {
         return p < pT;
     }
-    bool operator!=(_In_opt_ T* pT) const throw()
+    bool operator!=(_In_opt_ T* pT) const noexcept
     {
         return !operator==(pT);
     }
-    bool operator==(_In_opt_ T* pT) const throw()
+    bool operator==(_In_opt_ T* pT) const noexcept
     {
         return p == pT;
     }
 
     // Release the interface and set to NULL
-    void Release() throw()
+    void Release() noexcept
     {
         T* pTemp = p;
         if (pTemp)
@@ -261,10 +286,10 @@ public:
         }
     }
     // Compare two objects for equivalence
-    inline bool IsEqualObject(_Inout_opt_ IUnknown* pOther) throw();
+    inline bool IsEqualObject(_Inout_opt_ IUnknown* pOther) noexcept;
 
     // Attach to an existing interface (does not AddRef)
-    void Attach(_In_opt_ T* p2) throw()
+    void Attach(_In_opt_ T* p2) noexcept
     {
         if (p)
         {
@@ -277,13 +302,13 @@ public:
         p = p2;
     }
     // Detach the interface (does not Release)
-    T* Detach() throw()
+    T* Detach() noexcept
     {
         T* pt = p;
         p = nullptr;
         return pt;
     }
-    _Check_return_ HRESULT CopyTo(_COM_Outptr_result_maybenull_ T** ppT) throw()
+    _Check_return_ HRESULT CopyTo(_COM_Outptr_result_maybenull_ T** ppT) noexcept
     {
         ATLASSERT(ppT != nullptr);
         if (ppT == nullptr)
@@ -293,21 +318,21 @@ public:
             p->AddRef();
         return S_OK;
     }
-    _Check_return_ HRESULT SetSite(_Inout_opt_ IUnknown* punkParent) throw()
+    _Check_return_ HRESULT SetSite(_Inout_opt_ IUnknown* punkParent) noexcept
     {
         return AtlSetChildSite(p, punkParent);
     }
     _Check_return_ HRESULT Advise(
         _Inout_ IUnknown* pUnk,
         _In_ const IID& iid,
-        _Out_ LPDWORD pdw) throw()
+        _Out_ LPDWORD pdw) noexcept
     {
         return AtlAdvise(p, pUnk, iid, pdw);
     }
     _Check_return_ HRESULT CoCreateInstance(
         _In_ REFCLSID rclsid,
         _Inout_opt_ LPUNKNOWN pUnkOuter = nullptr,
-        _In_ DWORD dwClsContext = CLSCTX_ALL) throw()
+        _In_ DWORD dwClsContext = CLSCTX_ALL) noexcept
     {
         ATLASSERT(p == nullptr);
         return ::CoCreateInstance(rclsid, pUnkOuter, dwClsContext, __uuidof(T), (void**)&p);
@@ -316,7 +341,7 @@ public:
     _Check_return_ HRESULT CoCreateInstance(
         _In_z_ LPCOLESTR szProgID,
         _Inout_opt_ LPUNKNOWN pUnkOuter = nullptr,
-        _In_ DWORD dwClsContext = CLSCTX_ALL) throw()
+        _In_ DWORD dwClsContext = CLSCTX_ALL) noexcept
     {
         CLSID clsid;
         HRESULT hr = CLSIDFromProgID(szProgID, &clsid);
@@ -327,7 +352,7 @@ public:
     }
 #endif // _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
     template <class Q>
-    _Check_return_ HRESULT QueryInterface(_Outptr_ Q** pp) const throw()
+    _Check_return_ HRESULT QueryInterface(_Outptr_ Q** pp) const noexcept
     {
         ATLASSERT(pp != nullptr);
         return p->QueryInterface(__uuidof(Q), (void**)pp);
@@ -340,18 +365,22 @@ class SK_ComPtr :
     public SK_ComPtrBase<T>
 {
 public:
-    SK_ComPtr() throw()
+    SK_ComPtr (void) noexcept
     {
     }
-    SK_ComPtr(_Inout_opt_ T* lp) throw() :
+    SK_ComPtr(_Inout_opt_ T* lp) noexcept :
         SK_ComPtrBase<T>(lp)
     {
     }
-    SK_ComPtr(_Inout_ const SK_ComPtr<T>& lp) throw() :
+    SK_ComPtr(_Inout_ const SK_ComPtr<T>& lp) noexcept :
         SK_ComPtrBase<T>(lp.p)
     {
     }
-    T* operator=(_Inout_opt_ T* lp) throw()
+    virtual ~SK_ComPtr(void) noexcept
+    {
+    }
+    virtual
+    T* operator=(_Inout_opt_ T* lp) noexcept
     {
         if(*this!=lp)
         {
@@ -360,15 +389,16 @@ public:
         return *this;
     }
     template <typename Q>
-    T* operator=(_Inout_ const SK_ComPtr<Q>& lp) throw()
+    T* operator=(_Inout_ const SK_ComPtr<Q>& lp) noexcept
     {
         if( !this->IsEqualObject(lp) )
         {
-            AtlComQIPtrAssign2((IUnknown**)&this->p, lp, __uuidof(T));
+          _SK_ComQIPtrAssign2((IUnknown**)&this->p, lp, __uuidof(T));
         }
         return *this;
     }
-    T* operator=(_Inout_ const SK_ComPtr<T>& lp) throw()
+    virtual
+    T* operator=(_Inout_ const SK_ComPtr<T>& lp) noexcept
     {
         if(*this!=lp)
         {
@@ -376,12 +406,13 @@ public:
         }
         return *this;
     }
-    SK_ComPtr(_Inout_ SK_ComPtr<T>&& lp) throw() :
+    SK_ComPtr(_Inout_ SK_ComPtr<T>&& lp) noexcept :
         SK_ComPtrBase<T>()
     {
         lp.Swap(*this);
     }
-    T* operator=(_Inout_ SK_ComPtr<T>&& lp) throw()
+    virtual
+    T* operator=(_Inout_ SK_ComPtr<T>&& lp) noexcept
     {
         if (*this != lp)
         {
@@ -397,18 +428,21 @@ class SK_ComPtr<IDispatch> :
     public SK_ComPtrBase<IDispatch>
 {
 public:
-    SK_ComPtr() throw()
+    SK_ComPtr (void) noexcept
     {
     }
-    SK_ComPtr(_Inout_opt_ IDispatch* lp) throw() :
+    SK_ComPtr (_Inout_opt_ IDispatch* lp) noexcept :
         SK_ComPtrBase<IDispatch>(lp)
     {
     }
-    SK_ComPtr(_Inout_ const SK_ComPtr<IDispatch>& lp) throw() :
+    SK_ComPtr (_Inout_ const SK_ComPtr<IDispatch>& lp) noexcept :
         SK_ComPtrBase<IDispatch>(lp.p)
     {
     }
-    IDispatch* operator=(_Inout_opt_ IDispatch* lp) throw()
+    virtual ~SK_ComPtr (void) noexcept
+    {
+    }
+    virtual IDispatch* operator=(_Inout_opt_ IDispatch* lp) noexcept
     {
         if(*this!=lp)
         {
@@ -416,7 +450,7 @@ public:
         }
         return *this;
     }
-    IDispatch* operator=(_Inout_ const SK_ComPtr<IDispatch>& lp) throw()
+    virtual IDispatch* operator=(_Inout_ const SK_ComPtr<IDispatch>& lp) noexcept
     {
         if(*this!=lp)
         {
@@ -424,13 +458,13 @@ public:
         }
         return *this;
     }
-    SK_ComPtr(_Inout_ SK_ComPtr<IDispatch>&& lp) throw() :
+    SK_ComPtr(_Inout_ SK_ComPtr<IDispatch>&& lp) noexcept :
         SK_ComPtrBase<IDispatch>()
     {
         this->p = lp.p;
         lp.p = nullptr;
     }
-    IDispatch* operator=(_Inout_ SK_ComPtr<IDispatch>&& lp) throw()
+    virtual IDispatch* operator=(_Inout_ SK_ComPtr<IDispatch>&& lp) noexcept
     {
         SK_ComPtr(static_cast<SK_ComPtr&&>(lp)).Swap(*this);
         return *this;
@@ -439,7 +473,7 @@ public:
 #ifdef _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
     _Check_return_ HRESULT GetPropertyByName(
         _In_z_ LPCOLESTR lpsz,
-        _Out_ VARIANT* pVar) throw()
+        _Out_ VARIANT* pVar) noexcept
     {
         ATLASSERT(this->p);
         ATLASSERT(pVar);
@@ -451,13 +485,13 @@ public:
     }
     _Check_return_ HRESULT GetProperty(
         _In_ DISPID dwDispID,
-        _Out_ VARIANT* pVar) throw()
+        _Out_ VARIANT* pVar) noexcept
     {
         return GetProperty(this->p, dwDispID, pVar);
     }
     _Check_return_ HRESULT PutPropertyByName(
         _In_z_ LPCOLESTR lpsz,
-        _In_ VARIANT* pVar) throw()
+        _In_ VARIANT* pVar) noexcept
     {
         ATLASSERT(this->p);
         ATLASSERT(pVar);
@@ -469,20 +503,20 @@ public:
     }
     _Check_return_ HRESULT PutProperty(
         _In_ DISPID dwDispID,
-        _In_ VARIANT* pVar) throw()
+        _In_ VARIANT* pVar) noexcept
     {
         return PutProperty(this->p, dwDispID, pVar);
     }
     _Check_return_ HRESULT GetIDOfName(
         _In_z_ LPCOLESTR lpsz,
-        _Out_ DISPID* pdispid) throw()
+        _Out_ DISPID* pdispid) noexcept
     {
         return this->p->GetIDsOfNames(IID_NULL, const_cast<LPOLESTR*>(&lpsz), 1, LOCALE_USER_DEFAULT, pdispid);
     }
     // Invoke a method by DISPID with no parameters
     _Check_return_ HRESULT Invoke0(
         _In_ DISPID dispid,
-        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) noexcept
     {
         DISPPARAMS dispparams = { nullptr, nullptr, 0, 0};
         return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, nullptr, nullptr);
@@ -490,7 +524,7 @@ public:
     // Invoke a method by name with no parameters
     _Check_return_ HRESULT Invoke0(
         _In_z_ LPCOLESTR lpszName,
-        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) noexcept
     {
         HRESULT hr;
         DISPID dispid;
@@ -503,7 +537,7 @@ public:
     _Check_return_ HRESULT Invoke1(
         _In_ DISPID dispid,
         _In_ VARIANT* pvarParam1,
-        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) noexcept
     {
         DISPPARAMS dispparams = { pvarParam1, nullptr, 1, 0};
         return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, nullptr, nullptr);
@@ -512,7 +546,7 @@ public:
     _Check_return_ HRESULT Invoke1(
         _In_z_ LPCOLESTR lpszName,
         _In_ VARIANT* pvarParam1,
-        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) noexcept
     {
         DISPID dispid;
         HRESULT hr = GetIDOfName(lpszName, &dispid);
@@ -525,13 +559,13 @@ public:
         _In_ DISPID dispid,
         _In_ VARIANT* pvarParam1,
         _In_ VARIANT* pvarParam2,
-        _Out_opt_ VARIANT* pvarRet = nullptr) throw();
+        _Out_opt_ VARIANT* pvarRet = nullptr) noexcept;
     // Invoke a method by name with two parameters
     _Check_return_ HRESULT Invoke2(
         _In_z_ LPCOLESTR lpszName,
         _In_ VARIANT* pvarParam1,
         _In_ VARIANT* pvarParam2,
-        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) noexcept
     {
         DISPID dispid;
         HRESULT hr = GetIDOfName(lpszName, &dispid);
@@ -544,7 +578,7 @@ public:
         _In_ DISPID dispid,
         _In_ VARIANT* pvarParams,
         _In_ int nParams,
-        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) noexcept
     {
         DISPPARAMS dispparams = {pvarParams, nullptr, (unsigned int)nParams, 0};
         return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, nullptr, nullptr);
@@ -554,7 +588,7 @@ public:
         _In_z_ LPCOLESTR lpszName,
         _In_ VARIANT* pvarParams,
         _In_ int nParams,
-        _Out_opt_ VARIANT* pvarRet = nullptr) throw()
+        _Out_opt_ VARIANT* pvarRet = nullptr) noexcept
     {
         HRESULT hr;
         DISPID dispid;
@@ -567,7 +601,7 @@ public:
     _Check_return_ static HRESULT PutProperty(
         _In_ IDispatch* pDispatch,
         _In_ DISPID dwDispID,
-        _In_ VARIANT* pVar) throw()
+        _In_ VARIANT* pVar) noexcept
     {
         ATLASSERT(pDispatch);
         ATLASSERT(pVar != nullptr);
@@ -600,7 +634,7 @@ public:
     _Check_return_ static HRESULT GetProperty(
         _In_ IDispatch* pDispatch,
         _In_ DISPID dwDispID,
-        _Out_ VARIANT* pVar) throw()
+        _Out_ VARIANT* pVar) noexcept
     {
         ATLASSERT(pDispatch);
         ATLASSERT(pVar != nullptr);
@@ -620,7 +654,7 @@ public:
 };
 
 template <class T>
-inline bool SK_ComPtrBase<T>::IsEqualObject(_Inout_opt_ IUnknown* pOther) throw()
+inline bool SK_ComPtrBase<T>::IsEqualObject(_Inout_opt_ IUnknown* pOther) noexcept
 {
     if (p == nullptr && pOther == nullptr)
         return true;	// They are both NULL objects
@@ -640,34 +674,36 @@ class SK_ComQIPtr :
     public SK_ComPtr<T>
 {
 public:
-    SK_ComQIPtr() throw()
+    SK_ComQIPtr (void) noexcept
     {
     }
-    SK_ComQIPtr(decltype(__nullptr)) throw()
+    SK_ComQIPtr (decltype(__nullptr)) noexcept
     {
     }
-    SK_ComQIPtr(_Inout_opt_ T* lp) throw() :
+    SK_ComQIPtr(_Inout_opt_ T* lp) noexcept :
         SK_ComPtr<T>(lp)
     {
     }
-    SK_ComQIPtr(_Inout_ const SK_ComQIPtr<T,piid>& lp) throw() :
+    SK_ComQIPtr(_Inout_ const SK_ComQIPtr<T,piid>& lp) noexcept :
         SK_ComPtr<T>(lp.p)
     {
     }
-    SK_ComQIPtr(_Inout_opt_ IUnknown* lp) throw()
+    SK_ComQIPtr(_Inout_opt_ IUnknown* lp) noexcept
     {
         if (lp != nullptr)
         {
             if (FAILED(lp->QueryInterface(*piid, (void **)&this->p)))
-                this->p = NULL;
+                this->p = nullptr;
         }
     }
-    T* operator=(decltype(__nullptr)) throw()
+    virtual
+    T* operator=(decltype(__nullptr)) noexcept
     {
         SK_ComQIPtr(nullptr).Swap(*this);
         return nullptr;
     }
-    T* operator=(_Inout_opt_ T* lp) throw()
+    virtual
+    T* operator=(_Inout_opt_ T* lp) noexcept
     {
         if(*this!=lp)
         {
@@ -675,7 +711,8 @@ public:
         }
         return *this;
     }
-    T* operator=(_Inout_ const SK_ComQIPtr<T,piid>& lp) throw()
+    virtual
+    T* operator=(_Inout_ const SK_ComQIPtr<T,piid>& lp) noexcept
     {
         if(*this!=lp)
         {
@@ -683,11 +720,12 @@ public:
         }
         return *this;
     }
-    T* operator=(_Inout_opt_ IUnknown* lp) throw()
+    virtual
+    T* operator=(_Inout_opt_ IUnknown* lp) noexcept
     {
         if(*this!=lp)
         {
-            AtlComQIPtrAssign2((IUnknown**)&this->p, lp, *piid);
+            _SK_ComQIPtrAssign2((IUnknown**)&this->p, lp, *piid);
         }
         return *this;
     }
@@ -699,33 +737,33 @@ class SK_ComQIPtr<IUnknown, &IID_IUnknown> :
     public SK_ComPtr<IUnknown>
 {
 public:
-    SK_ComQIPtr() throw()
+    SK_ComQIPtr() noexcept
     {
     }
-    SK_ComQIPtr(_Inout_opt_ IUnknown* lp) throw()
+    SK_ComQIPtr(_Inout_opt_ IUnknown* lp) noexcept
     {
         //Actually do a QI to get identity
-        if (lp != NULL)
+        if (lp != nullptr)
         {
             if (FAILED(lp->QueryInterface(__uuidof(IUnknown), (void **)&this->p)))
-                this->p = NULL;
+                this->p = nullptr;
         }
     }
-    SK_ComQIPtr(_Inout_ const SK_ComQIPtr<IUnknown,&IID_IUnknown>& lp) throw() :
+    SK_ComQIPtr(_Inout_ const SK_ComQIPtr<IUnknown,&IID_IUnknown>& lp) noexcept :
         SK_ComPtr<IUnknown>(lp.p)
     {
     }
-    IUnknown* operator=(_Inout_opt_ IUnknown* lp) throw()
+    virtual IUnknown* operator=(_Inout_opt_ IUnknown* lp) noexcept override
     {
         if(*this!=lp)
         {
             //Actually do a QI to get identity
-            AtlComQIPtrAssign2((IUnknown**)&this->p, lp, __uuidof(IUnknown));
+            _SK_ComQIPtrAssign2((IUnknown**)&this->p, lp, __uuidof(IUnknown));
         }
         return *this;
     }
 
-    IUnknown* operator=(_Inout_ const SK_ComQIPtr<IUnknown,&IID_IUnknown>& lp) throw()
+    virtual IUnknown* operator=(_Inout_ const SK_ComQIPtr<IUnknown,&IID_IUnknown>& lp) noexcept
     {
         if(*this!=lp)
         {
@@ -736,6 +774,690 @@ public:
 };
 
 typedef SK_ComQIPtr<IDispatch, &__uuidof(IDispatch)> SK_ComDispatchDriver;
+#else
+template <class T>
+class _NoAddRefReleaseOnSK_ComPtr : public T
+{
+  private:
+    STDMETHOD_(ULONG, AddRef) (void) = 0;
+    STDMETHOD_(ULONG, Release)(void) = 0;
+};
+
+#ifdef _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
+
+_Check_return_ inline HRESULT AtlSetChildSite (
+          _Inout_     IUnknown *punkChild,
+          _Inout_opt_ IUnknown *punkParent    )
+{
+  if (punkChild == nullptr)
+    return E_POINTER;
+
+  HRESULT          hr;
+  IObjectWithSite* pChildSite = NULL;
+
+  hr =
+    punkChild->QueryInterface (__uuidof (IObjectWithSite), (void **)&pChildSite);
+
+  if (SUCCEEDED(hr) && pChildSite != NULL)
+  {
+    hr = pChildSite->SetSite (punkParent);
+         pChildSite->Release ();
+  }
+  return hr;
+}
+
+#endif // _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
+
+//SK_ComPtrBase provides the basis for all other smart pointers
+//The other smartpointers add their own constructors and operators
+template <class T>
+class SK_ComPtrBase
+{
+protected:
+  SK_ComPtrBase (void) noexcept
+  {
+    p = nullptr;
+  }
+  SK_ComPtrBase (_Inout_opt_ T* lp) noexcept
+  {
+    p = lp;
+
+    if (p != nullptr)
+    {
+      __try {
+        p->AddRef ();
+      } __except (EXCEPTION_EXECUTE_HANDLER) { /*__debugbreak ();*/ /*SK_LOG_FIRST_CALL*/ };
+    }
+  }
+  void Swap (SK_ComPtrBase& other) noexcept
+  {
+    T* pTemp =       p;
+           p = other.p;
+     other.p = pTemp;
+  }
+
+public:
+  typedef T _PtrClass;
+
+  ~SK_ComPtrBase (void) noexcept
+  {
+    __try {
+      if (p)
+          p->Release();
+    } __except (EXCEPTION_EXECUTE_HANDLER) { /*__debugbreak ();*/ /*SK_LOG_FIRST_CALL*/ }
+  }
+  operator T* (void) const noexcept
+  {
+    return p;
+  }
+  T& operator* (void) const noexcept
+  {
+    ATLENSURE(p!=nullptr);
+    return *p;
+  }
+  //The assert on operator& usually indicates a bug.  If this is really
+  //what is needed, however, take the address of the p member explicitly.
+  T** operator& (void) noexcept
+  {
+    ATLASSERT(p==NULL);
+    return &p;
+  }
+  _NoAddRefReleaseOnSK_ComPtr<T>* operator->(void) const noexcept
+  {
+    ATLASSERT(p!=NULL);
+    return (_NoAddRefReleaseOnSK_ComPtr<T>*)p;
+  }
+  bool operator! (void) const noexcept
+  {
+    return (p == NULL);
+  }
+  bool operator< (_In_opt_ T* pT) const noexcept
+  {
+    return p < pT;
+  }
+  bool operator!= (_In_opt_ T* pT) const noexcept
+  {
+    return !operator==(pT);
+  }
+  bool operator== (_In_opt_ T* pT) const noexcept
+  {
+    return p == pT;
+  }
+
+  // Release the interface and set to NULL
+  void Release (void) noexcept
+  {
+    T*  pTemp = p;
+    if (pTemp != nullptr)
+    {
+      p = NULL;
+
+      __try {
+        pTemp->Release();
+      }
+      __except (EXCEPTION_EXECUTE_HANDLER) { /*__debugbreak ();*/ /*SK_LOG_FIRST_CALL*/ }
+    }
+  }
+  // Compare two objects for equivalence
+  inline bool IsEqualObject (_Inout_opt_ IUnknown* pOther) noexcept;
+
+  // Attach to an existing interface (does not AddRef)
+  void Attach (_In_opt_ T* p2) noexcept
+  {
+    if (p)
+    {
+        ULONG ref = 0;
+
+        __try {
+          ref = p->Release ();
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER) { /*__debugbreak ();*/ /*SK_LOG_FIRST_CALL*/ };
+
+        (ref);
+        // Attaching to the same object only works if duplicate references are being coalesced.  Otherwise
+        // re-attaching will cause the pointer to be released and may cause a crash on a subsequent dereference.
+        ATLASSERT(ref != 0 || p2 != p);
+    }
+    p = p2;
+  }
+  // Detach the interface (does not Release)
+  T* Detach (void) noexcept
+  {
+    T* pt = p;
+        p = nullptr;
+    return pt;
+  }
+  _Check_return_ HRESULT CopyTo (_COM_Outptr_result_maybenull_ T** ppT) noexcept
+  {
+    ATLASSERT(ppT != nullptr);
+    if (ppT == nullptr)
+        return E_POINTER;
+
+    *ppT = p;
+
+    if (p)
+    {
+      __try {
+        p->AddRef ();
+      }
+      __except (EXCEPTION_EXECUTE_HANDLER) { /*__debugbreak ();*/ /*SK_LOG_FIRST_CALL*/ };
+    }
+    return S_OK;
+  }
+  _Check_return_ HRESULT SetSite (_Inout_opt_ IUnknown* punkParent) noexcept
+  {
+    return
+      AtlSetChildSite (p, punkParent);
+  }
+  _Check_return_ HRESULT Advise (
+   _Inout_       IUnknown *pUnk,
+   _In_    const IID      &iid,
+   _Out_         LPDWORD   pdw  ) noexcept
+  {
+    return
+      AtlAdvise (p, pUnk, iid, pdw);
+  }
+  _Check_return_ HRESULT CoCreateInstance            (
+     _In_        REFCLSID  rclsid,
+     _Inout_opt_ LPUNKNOWN pUnkOuter    = nullptr,
+     _In_        DWORD     dwClsContext = CLSCTX_ALL ) noexcept
+  {
+    ATLASSERT(p == nullptr);
+
+    return
+      ::CoCreateInstance (rclsid, pUnkOuter, dwClsContext, __uuidof(T), (void**)&p);
+  }
+#ifdef _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
+  _Check_return_  HRESULT CoCreateInstance            (
+      _In_z_      LPCOLESTR szProgID,
+      _Inout_opt_ LPUNKNOWN pUnkOuter    = nullptr,
+      _In_        DWORD     dwClsContext = CLSCTX_ALL ) noexcept
+  {
+    CLSID   clsid;
+    HRESULT hr =
+      CLSIDFromProgID (szProgID, &clsid);
+
+    ATLASSERT(p == nullptr);
+
+    if (SUCCEEDED (hr))
+      hr = ::CoCreateInstance (clsid, pUnkOuter, dwClsContext, __uuidof(T), (void**)&p);
+
+    return hr;
+  }
+#endif // _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
+  template <class Q>
+  _Check_return_ HRESULT QueryInterface (_Outptr_ Q** pp) const noexcept
+  {
+    ATLASSERT(pp != NULL);
+
+    HRESULT hr = E_POINTER;
+
+    try {
+      hr =
+        p->QueryInterface (__uuidof(Q), (void**)pp);
+    } catch (...) { /*__debugbreak ();*/ /*SK_LOG_FIRST_CALL*/ };
+
+    return hr;
+  }
+  T* p;
+};
+
+template <class T>
+class SK_ComPtr : public
+      SK_ComPtrBase <T>
+{
+public:
+  SK_ComPtr (void) noexcept
+  {
+  }
+  SK_ComPtr (_Inout_opt_ T* lp) noexcept :
+          SK_ComPtrBase <T>(lp)
+  {
+  }
+  SK_ComPtr (_Inout_ const SK_ComPtr     <T>& lp) noexcept :
+                           SK_ComPtrBase <T> (lp.p)
+  {
+  }
+  T* operator= (_Inout_opt_ T* lp) noexcept
+  {
+    if (*this != lp)
+    {
+      SK_ComPtr (lp).Swap (*this);
+    }
+
+    return *this;
+  }
+  template <typename Q>
+  T* operator= (_Inout_ const SK_ComPtr <Q>& lp) noexcept
+  {
+    if (! this->IsEqualObject (lp))
+    {
+      _SK_ComQIPtrAssign2 ((IUnknown **)&this->p, lp, __uuidof (T));
+    }
+    return *this;
+  }
+  T* operator= (_Inout_ const SK_ComPtr <T>& lp) noexcept
+  {
+    if (*this != lp)
+    {
+      SK_ComPtr (lp).Swap (*this);
+    }
+
+    return *this;
+  }
+  SK_ComPtr (_Inout_ SK_ComPtr    <T>&& lp) noexcept :
+                     SK_ComPtrBase<T> ()
+  {
+    lp.Swap (*this);
+  }
+  T* operator= (_Inout_ SK_ComPtr <T>&& lp) noexcept
+  {
+    if (*this != lp)
+    {
+      SK_ComPtr (
+        static_cast <SK_ComPtr &&> (lp)
+      ).Swap (*this);
+    }
+
+    return *this;
+  }
+};
+
+//specialization for IDispatch
+template <>
+class SK_ComPtr <IDispatch> : public
+  SK_ComPtrBase <IDispatch>
+{
+public:
+  SK_ComPtr (void) noexcept
+  {
+  }
+  SK_ComPtr (_Inout_opt_ IDispatch* lp) noexcept :
+          SK_ComPtrBase <IDispatch>(lp)
+  {
+  }
+  SK_ComPtr (_Inout_ const SK_ComPtr <IDispatch>& lp) noexcept :
+      SK_ComPtrBase <IDispatch> (lp.p)
+  {
+  }
+  IDispatch* operator= (_Inout_opt_ IDispatch* lp) noexcept
+  {
+    if (*this != lp)
+    {
+      SK_ComPtr (lp).Swap (*this);
+    }
+
+    return *this;
+  }
+  IDispatch* operator= (_Inout_ const SK_ComPtr <IDispatch>& lp) noexcept
+  {
+    if (*this != lp)
+    {
+      SK_ComPtr (lp).Swap (*this);
+    }
+
+    return *this;
+  }
+  SK_ComPtr (_Inout_ SK_ComPtr <IDispatch>&& lp) noexcept :
+                 SK_ComPtrBase <IDispatch>()
+  {
+    this->p = lp.p;
+              lp.p = nullptr;
+  }
+  IDispatch* operator= (_Inout_ SK_ComPtr <IDispatch>&& lp) noexcept
+  {
+    SK_ComPtr (
+      static_cast <SK_ComPtr &&>(lp)
+              ).Swap (*this);
+
+    return *this;
+  }
+// IDispatch specific stuff
+#ifdef _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
+  _Check_return_ HRESULT GetPropertyByName(
+      _In_z_ LPCOLESTR lpsz,
+      _Out_ VARIANT* pVar) noexcept
+  {
+    ATLASSERT(this->p);
+    ATLASSERT(pVar);
+
+    DISPID dwDispID;
+    HRESULT hr =
+      GetIDOfName (lpsz, &dwDispID);
+
+    if (SUCCEEDED (hr))
+      hr = GetProperty (dwDispID, pVar);
+
+    return hr;
+  }
+  _Check_return_ HRESULT GetProperty (
+           _In_  DISPID   dwDispID,
+           _Out_ VARIANT *pVar       ) noexcept
+  {
+    return
+      GetProperty (this->p, dwDispID, pVar);
+  }
+  _Check_return_ HRESULT PutPropertyByName (
+          _In_z_ LPCOLESTR lpsz,
+          _In_   VARIANT   *pVar           ) noexcept
+  {
+    ATLASSERT(this->p);
+    ATLASSERT(pVar);
+
+    DISPID  dwDispID;
+    HRESULT hr =
+      GetIDOfName (lpsz, &dwDispID);
+
+    if (SUCCEEDED (hr))
+      hr = PutProperty (dwDispID, pVar);
+
+    return hr;
+  }
+  _Check_return_ HRESULT PutProperty (
+            _In_ DISPID   dwDispID,
+            _In_ VARIANT *pVar       ) noexcept
+  {
+    return
+      PutProperty (this->p, dwDispID, pVar);
+  }
+  _Check_return_ HRESULT GetIDOfName (
+          _In_z_ LPCOLESTR lpsz,
+          _Out_  DISPID    *pdispid  ) noexcept
+  {
+    return
+      this->p->GetIDsOfNames ( IID_NULL, const_cast <LPOLESTR *>(&lpsz),
+                                 1, LOCALE_USER_DEFAULT, pdispid );
+  }
+  // Invoke a method by DISPID with no parameters
+  _Check_return_ HRESULT Invoke0            (
+       _In_      DISPID    dispid,
+       _Out_opt_ VARIANT *pvarRet = nullptr ) noexcept
+  {
+    DISPPARAMS dispparams =
+      { nullptr, nullptr, 0, 0};
+
+    return
+      this->p->Invoke ( dispid, IID_NULL, LOCALE_USER_DEFAULT,
+                          DISPATCH_METHOD, &dispparams, pvarRet,
+                            NULL, NULL );
+  }
+  // Invoke a method by name with no parameters
+  _Check_return_ HRESULT Invoke0              (
+       _In_z_    LPCOLESTR lpszName,
+       _Out_opt_ VARIANT   *pvarRet = nullptr ) noexcept
+  {
+    HRESULT hr;
+    DISPID dispid;
+
+    hr =
+      GetIDOfName (lpszName, &dispid);
+
+    if (SUCCEEDED (hr))
+      hr = Invoke0 (dispid, pvarRet);
+
+    return hr;
+  }
+  // Invoke a method by DISPID with a single parameter
+  _Check_return_ HRESULT Invoke1            (
+       _In_      DISPID    dispid,
+       _In_      VARIANT *pvarParam1,
+       _Out_opt_ VARIANT *pvarRet = nullptr ) noexcept
+  {
+    DISPPARAMS dispparams =
+      { pvarParam1, nullptr, 1, 0};
+
+    return
+      this->p->Invoke ( dispid, IID_NULL, LOCALE_USER_DEFAULT,
+                          DISPATCH_METHOD, &dispparams, pvarRet,
+                            NULL, NULL );
+  }
+  // Invoke a method by name with a single parameter
+  _Check_return_ HRESULT Invoke1              (
+       _In_z_    LPCOLESTR lpszName,
+       _In_      VARIANT   *pvarParam1,
+       _Out_opt_ VARIANT   *pvarRet = nullptr ) noexcept
+  {
+    DISPID  dispid;
+    HRESULT hr =
+      GetIDOfName (lpszName, &dispid);
+
+    if (SUCCEEDED (hr))
+        hr = Invoke1 (dispid, pvarParam1, pvarRet);
+
+    return hr;
+  }
+  // Invoke a method by DISPID with two parameters
+  _Check_return_ HRESULT Invoke2            (
+       _In_      DISPID   dispid,
+       _In_      VARIANT *pvarParam1,
+       _In_      VARIANT *pvarParam2,
+       _Out_opt_ VARIANT *pvarRet = nullptr ) noexcept;
+  // Invoke a method by name with two parameters
+  _Check_return_ HRESULT Invoke2              (
+       _In_z_    LPCOLESTR lpszName,
+       _In_      VARIANT   *pvarParam1,
+       _In_      VARIANT   *pvarParam2,
+       _Out_opt_ VARIANT   *pvarRet = nullptr ) noexcept
+  {
+    DISPID  dispid;
+    HRESULT hr =
+      GetIDOfName (lpszName, &dispid);
+
+    if (SUCCEEDED (hr))
+        hr = Invoke2 (dispid, pvarParam1, pvarParam2, pvarRet);
+
+    return hr;
+  }
+  // Invoke a method by DISPID with N parameters
+  _Check_return_ HRESULT InvokeN(
+      _In_ DISPID dispid,
+      _In_ VARIANT* pvarParams,
+      _In_ int nParams,
+      _Out_opt_ VARIANT* pvarRet = NULL) noexcept
+  {
+      DISPPARAMS dispparams = {pvarParams, NULL, (unsigned int)nParams, 0};
+      return this->p->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dispparams, pvarRet, NULL, NULL);
+  }
+  // Invoke a method by name with Nparameters
+  _Check_return_ HRESULT InvokeN(
+      _In_z_ LPCOLESTR lpszName,
+      _In_ VARIANT* pvarParams,
+      _In_ int nParams,
+      _Out_opt_ VARIANT* pvarRet = NULL) noexcept
+  {
+      HRESULT hr;
+      DISPID dispid;
+      hr = GetIDOfName(lpszName, &dispid);
+      if (SUCCEEDED(hr))
+          hr = InvokeN(dispid, pvarParams, nParams, pvarRet);
+      return hr;
+  }
+
+  _Check_return_ static HRESULT PutProperty(
+      _In_ IDispatch* pDispatch,
+      _In_ DISPID dwDispID,
+      _In_ VARIANT* pVar) noexcept
+  {
+      ATLASSERT(pDispatch);
+      ATLASSERT(pVar != NULL);
+      if (pVar == NULL)
+          return E_POINTER;
+
+      if (pDispatch == NULL)
+          return E_INVALIDARG;
+
+      ATLTRACE(atlTraceCOM, 2, _T("CPropertyHelper::PutProperty\n"));
+      DISPPARAMS dispparams = {NULL, NULL, 1, 1};
+      dispparams.rgvarg = pVar;
+      DISPID dispidPut = DISPID_PROPERTYPUT;
+      dispparams.rgdispidNamedArgs = &dispidPut;
+
+      if (pVar->vt == VT_UNKNOWN || pVar->vt == VT_DISPATCH ||
+          (pVar->vt & VT_ARRAY) || (pVar->vt & VT_BYREF))
+      {
+          HRESULT hr = pDispatch->Invoke(dwDispID, IID_NULL,
+              LOCALE_USER_DEFAULT, DISPATCH_PROPERTYPUTREF,
+              &dispparams, NULL, NULL, NULL);
+          if (SUCCEEDED(hr))
+              return hr;
+      }
+      return pDispatch->Invoke(dwDispID, IID_NULL,
+              LOCALE_USER_DEFAULT, DISPATCH_PROPERTYPUT,
+              &dispparams, NULL, NULL, NULL);
+  }
+
+  _Check_return_ static HRESULT GetProperty(
+      _In_ IDispatch* pDispatch,
+      _In_ DISPID dwDispID,
+      _Out_ VARIANT* pVar) noexcept
+  {
+      ATLASSERT(pDispatch);
+      ATLASSERT(pVar != NULL);
+      if (pVar == NULL)
+          return E_POINTER;
+
+      if (pDispatch == NULL)
+          return E_INVALIDARG;
+
+      ATLTRACE(atlTraceCOM, 2, _T("CPropertyHelper::GetProperty\n"));
+      DISPPARAMS dispparamsNoArgs = {NULL, NULL, 0, 0};
+      return pDispatch->Invoke(dwDispID, IID_NULL,
+              LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET,
+              &dispparamsNoArgs, pVar, NULL, NULL);
+  }
+#endif // _ATL_USE_WINAPI_FAMILY_DESKTOP_APP
+};
+
+template <class T>
+inline bool SK_ComPtrBase<T>::IsEqualObject (_Inout_opt_ IUnknown* pOther) noexcept
+{
+  if (p == nullptr && pOther == nullptr)
+    return true; // They are both NULL objects
+
+  if (p == nullptr || pOther == nullptr)
+    return false; // One is NULL the other is not
+
+  SK_ComPtr <IUnknown> punk1;
+  SK_ComPtr <IUnknown> punk2;
+
+  try {
+    p->QueryInterface      (__uuidof(IUnknown), (void**)&punk1);
+    pOther->QueryInterface (__uuidof(IUnknown), (void**)&punk2);
+  } catch (...) { /*__debugbreak ();*/ /*SK_LOG_FIRST_CALL*/ };
+
+  return punk1 == punk2;
+}
+
+template <class T, const IID* piid = &__uuidof(T)>
+class SK_ComQIPtr : public
+      SK_ComPtr <T>
+{
+public:
+    SK_ComQIPtr (void) noexcept
+    {
+    }
+    SK_ComQIPtr (decltype(__nullptr)) noexcept
+    {
+    }
+    SK_ComQIPtr (_Inout_opt_ T* lp) noexcept :
+                  SK_ComPtr <T>(lp)
+    {
+    }
+    SK_ComQIPtr (_Inout_ const SK_ComQIPtr <T,piid>& lp) noexcept :
+                               SK_ComPtr   <T>      (lp.p)
+    {
+    }
+    SK_ComQIPtr (_Inout_opt_ IUnknown* lp) noexcept
+    {
+      if (lp != nullptr)
+      {
+        try {
+          if (FAILED (lp->QueryInterface (*piid, (void **)&this->p)))
+            this->p = nullptr;
+        } catch (...) { this->p = nullptr; };
+      }
+    }
+    T* operator= (decltype (__nullptr)) noexcept
+    {
+      SK_ComQIPtr (nullptr).Swap (*this);
+      return nullptr;
+    }
+    T* operator= (_Inout_opt_ T* lp) noexcept
+    {
+      if (*this != lp)
+      {
+        SK_ComQIPtr (lp).Swap (*this);
+      }
+      return *this;
+    }
+    T* operator= (_Inout_ const SK_ComQIPtr <T,piid>& lp) noexcept
+    {
+      if (*this != lp)
+      {
+        SK_ComQIPtr (lp).Swap (*this);
+      }
+      return *this;
+    }
+    T* operator= (_Inout_opt_ IUnknown* lp) noexcept
+    {
+      if (*this != lp)
+      {
+        _SK_ComQIPtrAssign2 ((IUnknown **)&this->p, lp, *piid);
+      }
+      return *this;
+    }
+};
+
+//Specialization to make it work
+template<>
+class SK_ComQIPtr <IUnknown, &IID_IUnknown> : public
+      SK_ComPtr   <IUnknown>
+{
+public:
+    SK_ComQIPtr (void) noexcept
+    {
+    }
+    SK_ComQIPtr (_Inout_opt_ IUnknown* lp) noexcept
+    {
+      //Actually do a QI to get identity
+      if (lp != NULL)
+      {
+        try {
+          if (FAILED (lp->QueryInterface (__uuidof (IUnknown), (void **)&this->p)))
+              this->p = NULL;
+        } catch (...) { /*__debugbreak ();*/ /*SK_LOG_FIRST_CALL*/ };
+      }
+    }
+    SK_ComQIPtr (_Inout_ const SK_ComQIPtr <IUnknown,&IID_IUnknown>& lp) noexcept :
+                               SK_ComPtr   <IUnknown>               (lp.p)
+    {
+    }
+
+    IUnknown* operator= (_Inout_opt_ IUnknown* lp) noexcept
+    {
+      if (*this != lp)
+      {
+          //Actually do a QI to get identity
+          _SK_ComQIPtrAssign2 ((IUnknown **)&this->p, lp, __uuidof (IUnknown));
+      }
+
+      return *this;
+    }
+
+    IUnknown* operator= (_Inout_ const SK_ComQIPtr <IUnknown,&IID_IUnknown>& lp) noexcept
+    {
+      if (*this != lp)
+      {
+        SK_ComQIPtr (lp).Swap (*this);
+      }
+
+      return *this;
+    }
+};
+
+typedef SK_ComQIPtr<IDispatch, &__uuidof(IDispatch)> CComDispatchDriver;
+
+#endif
 
   namespace std
   {
@@ -751,5 +1473,5 @@ typedef SK_ComQIPtr<IDispatch, &__uuidof(IDispatch)> SK_ComDispatchDriver;
   }
 }
 
-
+//#endif /* __SK_COM_UTIL_H__ */
 SK_INCLUDE_END_CPP (COM_UTIL)

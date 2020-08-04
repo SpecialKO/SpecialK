@@ -21,6 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"ThreadUtil"
 
 extern volatile LONG __SK_Init;
@@ -83,7 +86,6 @@ SK_Thread_GetName (HANDLE hThread)
     SK_Thread_GetName (GetThreadId (hThread));
 }
 
-extern "C" {
 SetThreadDescription_pfn SK_SetThreadDescription = &SetThreadDescription_NOP;
 GetThreadDescription_pfn SK_GetThreadDescription = &GetThreadDescription_NOP;
 
@@ -98,24 +100,71 @@ __make_self_titled (DWORD dwTid)
   SelfTitled.insert (dwTid);
 }
 
-using      RtlRaiseException_pfn = void (WINAPI *)(_In_ PEXCEPTION_RECORD ExceptionRecord);
-extern "C" RtlRaiseException_pfn
-           RtlRaiseException_Original = nullptr;
+using RtlRaiseException_pfn = void (WINAPI *)(_In_ PEXCEPTION_RECORD ExceptionRecord);
+      RtlRaiseException_pfn
+      RtlRaiseException_Original = nullptr;
+
+bool
+SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
+{
+  bool bRet = false;
+
+  if (SK_SetThreadDescription != nullptr)
+  {
+    DWORD dwTid =
+      ( pTni->dwThreadID == -1 ) ?
+        SK_GetCurrentThreadId () :
+             pTni->dwThreadID;
+
+    SK_AutoHandle hRealHandle (INVALID_HANDLE_VALUE);
+    SK_AutoHandle hThread (
+               OpenThread ( THREAD_SET_LIMITED_INFORMATION,
+                              FALSE,
+                                dwTid ) );
+
+    if ( DuplicateHandle ( SK_GetCurrentProcess (),
+                           hThread.m_h,
+                           SK_GetCurrentProcess (),
+                             &hRealHandle.m_h,
+                               THREAD_ALL_ACCESS,
+                                 FALSE,
+                                    0 ) )
+    {
+      std::wstring wideDesc =
+        SK_UTF8ToWideChar (pTni->szName);
+
+      bRet =
+        SUCCEEDED (
+          SK_SetThreadDescription ( hRealHandle,
+              wideDesc.c_str ()   )
+                  );
+    }
+  }
+
+  return bRet;
+}
 
 void
-SK_Thread_RaiseNameException (THREADNAME_INFO* pTni){__try
+SK_Thread_RaiseNameException (THREADNAME_INFO* pTni)
 {
-  constexpr int   SK_EXCEPTION_CONTINUABLE
-                       = 0x0;
+  //if (SK_IsDebuggerPresent ())
+  if (true)
+  {
+    __try
+    {
       const DWORD argc = sizeof (*pTni) /
                            sizeof (ULONG_PTR);
 
-  RaiseException ( MAGIC_THREAD_EXCEPTION,
-                     SK_EXCEPTION_CONTINUABLE,
-                       argc,
-      (const ULONG_PTR *)pTni );
+      SK_RaiseException ( MAGIC_THREAD_EXCEPTION,
+                            SK_EXCEPTION_CONTINUABLE,
+                              argc,
+          (const ULONG_PTR *)pTni );
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) { }
+  }
+
+  SK_Thread_SetWin10NameFromException (pTni);
 }
-__except (EXCEPTION_CONTINUE_EXECUTION){}}
 
 
 HRESULT
@@ -128,10 +177,12 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
   if (SK_GetHostAppUtil ()->isInjectionTool ())
     return S_OK;
 
-  //if (! ReadAcquire (&__SK_DLL_Attached))
-  //{
-  //  return E_NOT_VALID_STATE;
-  //}
+#ifdef _DEBUG
+  if (! ReadAcquire (&__SK_DLL_Attached))
+  {
+    return E_NOT_VALID_STATE;
+  }
+#endif
 
   size_t len;
 
@@ -157,7 +208,7 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
     if (pTLS != nullptr)
     {
-      // Push this to the TLS datastore so we can get thread names even
+      // Push this to the TLS data-store so we can get thread names even
       //   when no debugger is attached.
       wcsncpy_s (
         pTLS->debug.name,
@@ -166,7 +217,6 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
               _TRUNCATE
       );
     }
-
 
     char      szDesc [256] = { };
     wcstombs (szDesc, lpThreadDescription, 255);
@@ -229,7 +279,7 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
       (wchar_t *)SK_LocalAlloc (LPTR, sizeof (wchar_t) * 1024);
 
     wcsncpy_s (
-      *threadDescription, 1024,
+      *threadDescription, 1023,
         pTLS->debug.name, _TRUNCATE
     );
 
@@ -276,7 +326,6 @@ InitializeCriticalSection_Detour (
   InitializeCriticalSectionEx (lpCriticalSection, 0, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN);
 }
 
-
 bool
 SK_Thread_InitDebugExtras (void)
 {
@@ -291,12 +340,12 @@ SK_Thread_InitDebugExtras (void)
     //
     SK_SetThreadDescription =
       (SetThreadDescription_pfn)
-        GetProcAddress ( SK_Modules->getLibrary (L"kernel32", true, true),
-                                                 "SetThreadDescription" );
+        SK_GetProcAddress ( SK_Modules->getLibrary (L"kernel32", true, true),
+                                                    "SetThreadDescription" );
     SK_GetThreadDescription =
       (GetThreadDescription_pfn)
-      GetProcAddress ( SK_Modules->getLibrary (L"kernel32", true, true),
-                                               "GetThreadDescription" );
+        SK_GetProcAddress ( SK_Modules->getLibrary (L"kernel32", true, true),
+                                                    "GetThreadDescription" );
 
     if (SK_SetThreadDescription == nullptr)
       SK_SetThreadDescription = &SetThreadDescription_NOP;
@@ -336,9 +385,6 @@ SK_Thread_GetCurrentPriority (void)
   return
     GetThreadPriority (SK_GetCurrentThread ());
 }
-
-} /* extern "C" */
-
 
 extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original = nullptr;
 
@@ -528,23 +574,35 @@ SK_Thread_CloseSelf (void)
   return true;
 }
 
-SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry*>> SK_MMCS_TaskMap;
+
+using _SK_MMCS_TaskMap =
+        concurrency::concurrent_unordered_map <
+          DWORD, SK_MMCS_TaskEntry*
+        >;
+
+_SK_MMCS_TaskMap&
+SK_MMCS_GetTaskMap (void)
+{
+  static _SK_MMCS_TaskMap
+                  task_map;
+  return          task_map;
+}
 
 size_t
 SK_MMCS_GetTaskCount (void)
 {
-  static auto& task_map =
-    *SK_MMCS_TaskMap;
+  static auto& map =
+    SK_MMCS_GetTaskMap ();
 
   return
-    task_map.size ();
+    map.size ();
 }
 
 std::vector <SK_MMCS_TaskEntry *>
 SK_MMCS_GetTasks (void)
 {
   static auto& task_map =
-    *SK_MMCS_TaskMap;
+    SK_MMCS_GetTaskMap ();
 
   std::vector <SK_MMCS_TaskEntry *> tasks;
 
@@ -567,7 +625,7 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
                                             const char* task2 )
 {
   static auto& task_map =
-    *SK_MMCS_TaskMap;
+    SK_MMCS_GetTaskMap ();
 
   SK_MMCS_TaskEntry* task_me =
     nullptr;
@@ -625,7 +683,7 @@ SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name)
 DWORD
 SK_GetRenderThreadID (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   return

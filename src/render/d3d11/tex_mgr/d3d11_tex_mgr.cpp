@@ -21,6 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"D3D11TxMgr"
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
@@ -222,10 +225,10 @@ SK_D3D11_TestRefCountHooks ( ID3D11Texture2D *pInputTex,
 
   if ( initial != initial_after_release + 1 )
   {
-    SK_LOG1 ( (L"Expected %lu after QueryInterface (...); got %lu.",
+    SK_LOG1 ( (L"Expected %li after QueryInterface (...); got %li.",
              initial + 1, initial_plus_one ),
              L"DX11TexMgr" );
-    SK_LOG1 ( (L"Expected %lu after Release (); got %lu.",
+    SK_LOG1 ( (L"Expected %li after Release (); got %li.",
              initial, initial_again ),
              L"DX11TexMgr" );
 
@@ -480,10 +483,10 @@ WINAPI
 SK_D3D11_IsTexHashed (uint32_t top_crc32, uint32_t hash)
 {
   static auto& textures =
-    SK_D3D11_Textures;
+    SK_D3D11_Textures.get ();
 
-  static auto& tex_hashes    = textures->tex_hashes;
-  static auto& tex_hashes_ex = textures->tex_hashes_ex;
+  static auto& tex_hashes    = textures.tex_hashes;
+  static auto& tex_hashes_ex = textures.tex_hashes_ex;
 
   if ( tex_hashes_ex.empty () &&
        tex_hashes.empty    () )
@@ -493,7 +496,7 @@ SK_D3D11_IsTexHashed (uint32_t top_crc32, uint32_t hash)
 
   // Tag the hash, this is a collision avoidance / mitigation strategy
   //   but means every lookup / delete involves a simple 4-byte CRC32
-  uint32_t tag =
+  const uint32_t tag =
     safe_crc32c (top_crc32, (const uint8_t *)&hash, 4);
 
 
@@ -513,19 +516,18 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
   SK_D3D11_InitTextures ();
 
   static auto& textures =
-    SK_D3D11_Textures;
-
+    SK_D3D11_Textures.get ();
 
   if (hash != 0x00)
   {
     if (! SK_D3D11_IsTexHashed (top_crc32, hash))
     {
-      uint32_t tag =
+      const uint32_t tag =
         safe_crc32c (top_crc32, (const uint8_t *)&hash, 4);
 
       {
         std::scoped_lock <SK_Thread_HybridSpinlock> critical (*hash_cs);
-        textures->tex_hashes_ex.emplace (tag, name);
+        textures.tex_hashes_ex.emplace (tag, name);
       }
 
       SK_D3D11_AddInjectable (top_crc32, hash);
@@ -537,7 +539,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
   {
     {
       std::scoped_lock <SK_Thread_HybridSpinlock> critical (*hash_cs);
-      textures->tex_hashes.emplace (top_crc32, name);
+      textures.tex_hashes.emplace (top_crc32, name);
     }
 
     if (! SK_D3D11_inject_textures_ffx)
@@ -548,7 +550,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
     else
     {
       std::scoped_lock <SK_Thread_HybridSpinlock> critical (*inject_cs);
-      textures->injectable_ffx.emplace (top_crc32);
+      textures.injectable_ffx.emplace (top_crc32);
     }
   }
 }
@@ -558,14 +560,15 @@ WINAPI
 SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash)
 {
   static auto& textures =
-    SK_D3D11_Textures;
+    SK_D3D11_Textures.get ();
 
-  if ( textures->tex_hashes_ex.empty () &&
-       textures->tex_hashes.empty    () )
+  if ( textures.tex_hashes_ex.empty () &&
+       textures.tex_hashes.empty    () )
   {
     return;
   }
 
+  const
   uint32_t tag = ( hash != 0x0 ?
            0x0 :
     safe_crc32c (top_crc32, (const uint8_t *)&hash, 4) );
@@ -575,14 +578,14 @@ SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash)
 
   if (     tag  != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash))
   {
-    textures->tex_hashes_ex.erase (tag);
+    textures.tex_hashes_ex.erase (tag);
 
     SK_D3D11_RemoveInjectable (top_crc32, hash);
   }
 
   else if (hash == 0x00 && SK_D3D11_IsTexHashed (top_crc32, 0x00))
   {
-    textures->tex_hashes.erase (top_crc32);
+    textures.tex_hashes.erase (top_crc32);
 
     SK_D3D11_RemoveInjectable (top_crc32, 0x00);
   }
@@ -593,10 +596,10 @@ __stdcall
 SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
 {
   static auto& textures =
-    SK_D3D11_Textures;
+    SK_D3D11_Textures.get ();
 
-  if ( textures->tex_hashes_ex.empty () &&
-       textures->tex_hashes.empty    () )
+  if ( textures.tex_hashes_ex.empty () &&
+       textures.tex_hashes.empty    () )
   {
     return L"";
   }
@@ -613,13 +616,13 @@ SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
   if (     tag  != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash))
   {
     ret =
-      textures->tex_hashes_ex [tag];
+      textures.tex_hashes_ex [tag];
   }
 
   else if (hash == 0x00 && SK_D3D11_IsTexHashed (top_crc32, 0x00))
   {
     ret =
-      textures->tex_hashes [top_crc32];
+      textures.tex_hashes [top_crc32];
   }
 
   return ret;
@@ -630,15 +633,15 @@ bool
 __stdcall
 SK_D3D11_IsDumped (uint32_t top_crc32, uint32_t checksum)
 {
-  static auto& dumped_textures   = SK_D3D11_Textures->dumped_textures;
-  static auto& dumped_collisions = SK_D3D11_Textures->dumped_collisions;
+  static auto& dumped_textures   = SK_D3D11_Textures.get ().dumped_textures;
+  static auto& dumped_collisions = SK_D3D11_Textures.get ().dumped_collisions;
 
   if (dumped_textures.empty ())
   {
     return false;
   }
 
-  uint32_t tag =
+  const uint32_t tag =
     safe_crc32c (top_crc32, (uint8_t *)&checksum, 4);
 
 
@@ -666,10 +669,10 @@ void
 __stdcall
 SK_D3D11_AddDumped (uint32_t top_crc32, uint32_t checksum)
 {
-  static auto& dumped_textures   = SK_D3D11_Textures->dumped_textures;
-  static auto& dumped_collisions = SK_D3D11_Textures->dumped_collisions;
+  static auto& dumped_textures   = SK_D3D11_Textures.get ().dumped_textures;
+  static auto& dumped_collisions = SK_D3D11_Textures.get ().dumped_collisions;
 
-  uint32_t tag =
+  const uint32_t tag =
     safe_crc32c (top_crc32, (uint8_t *)&checksum, 4);
 
 
@@ -686,15 +689,15 @@ void
 __stdcall
 SK_D3D11_RemoveDumped (uint32_t top_crc32, uint32_t checksum)
 {
-  static auto& dumped_textures   = SK_D3D11_Textures->dumped_textures;
-  static auto& dumped_collisions = SK_D3D11_Textures->dumped_collisions;
+  static auto& dumped_textures   = SK_D3D11_Textures.get ().dumped_textures;
+  static auto& dumped_collisions = SK_D3D11_Textures.get ().dumped_collisions;
 
   if (dumped_textures.empty ())
   {
     return;
   }
 
-  uint32_t tag =
+  const uint32_t tag =
     safe_crc32c (top_crc32, (uint8_t *)&checksum, 4);
 
 
@@ -711,15 +714,15 @@ bool
 __stdcall
 SK_D3D11_IsInjectable (uint32_t top_crc32, uint32_t checksum)
 {
-  static auto& injectable_textures = SK_D3D11_Textures->injectable_textures;
-  static auto& injected_collisions = SK_D3D11_Textures->injected_collisions;
+  static auto& injectable_textures = SK_D3D11_Textures.get ().injectable_textures;
+  static auto& injected_collisions = SK_D3D11_Textures.get ().injected_collisions;
 
   if (injectable_textures.empty ())
   {
     return false;
   }
 
-  uint32_t tag =
+  const uint32_t tag =
     safe_crc32c (top_crc32, (uint8_t *)&checksum, 4);
 
 
@@ -742,13 +745,12 @@ __stdcall
 SK_D3D11_IsInjectable_FFX (uint32_t top_crc32)
 {
   static auto& injectable_ffx =
-    SK_D3D11_Textures->injectable_ffx;
+    SK_D3D11_Textures.get ().injectable_ffx;
 
   if (injectable_ffx.empty ())
   {
     return false;
   }
-
 
   std::scoped_lock <SK_Thread_HybridSpinlock> critical (*inject_cs);
 
@@ -776,7 +778,8 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
     DirectX::ScratchImage img;
 
-    if (SUCCEEDED (DirectX::CaptureTexture (pDev, pDevCtx, pTex, img)))
+    if (SUCCEEDED (DirectX::CaptureTexture (pDev,
+                                            pDevCtx, pTex, img)))
     {
       auto _IsTypeless = [&](void) ->
       bool { return DirectX::IsTypeless (img.GetMetadata ().format); };
@@ -797,10 +800,10 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
         }
       }
 
-      wchar_t wszPath [ MAX_PATH + 2 ] = { };
-
-      wcscpy ( wszPath,
-                 SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str () );
+      wchar_t     wszPath [ MAX_PATH + 2 ] = { };
+      wcsncpy_s ( wszPath,  MAX_PATH,
+                  SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str (),
+                           _TRUNCATE );
 
       lstrcatW (wszPath, L"/dump/textures/");
       lstrcatW (wszPath, SK_GetHostApp ());
@@ -864,7 +867,7 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
        metadata.height < 4    ) return E_INVALIDARG;
 
   wchar_t     wszPath [ MAX_PATH + 2 ] = { };
-  wcsncpy_s ( wszPath,  MAX_PATH + 1,
+  wcsncpy_s ( wszPath,  MAX_PATH,
               SK_EvalEnvironmentVars (
                 SK_D3D11_res_root->c_str     ()
                                      ).c_str (), _TRUNCATE );
@@ -974,6 +977,9 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
             delete mipmaps;
                    mipmaps = compressed_mips;
           }
+
+          else
+            delete compressed_mips;
         }
       }
     }
@@ -1154,6 +1160,9 @@ SK_D3D11_MipmapMakeTexture2D ( ID3D11Device*        pDev,
               delete mipmaps;
                      mipmaps = compressed_mips;
             }
+
+            else
+              delete compressed_mips;
           }
         }
       }
@@ -1210,9 +1219,6 @@ SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D*      pTex,
                                      ID3D11DeviceContext*  pDevCtx,
                                      ID3D11Device*         pDev )
 {
-  static const auto& rb =
-    SK_GetCurrentRenderBackend ();
-
   if ( pDev    != nullptr &&
        pDevCtx != nullptr &&
        pTex    != nullptr )
@@ -1596,11 +1602,11 @@ SK_D3D11_TexCacheCheckpoint (void)
   static auto& Textures_2D = textures->Textures_2D;
 
   SK_ComQIPtr <ID3D11Device> pDevice  (rb.device);
-  SK_ComQIPtr <IDXGIDevice>  pDXGIDev (pDevice.p);
+  SK_ComQIPtr <IDXGIDevice>  pDXGIDev (pDevice);
 
   if ( config.textures.cache.residency_managemnt &&
-       pDevice                                   &&
-       pDXGIDev )
+       pDevice  != nullptr                       &&
+       pDXGIDev != nullptr )
   {
     const
     auto   MAX_TEXTURES_PER_PASS  = 32UL;
@@ -2602,7 +2608,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
   init = true;
 
-  wchar_t wszTexDumpDir_RAW [ MAX_PATH     ] = { };
+  wchar_t wszTexDumpDir_RAW [ MAX_PATH + 2 ] = { };
   wchar_t wszTexDumpDir     [ MAX_PATH + 2 ] = { };
 
   lstrcatW (wszTexDumpDir_RAW, SK_D3D11_res_root->c_str ());
@@ -2769,7 +2775,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
                        files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
   }
 
-  wchar_t wszTexInjectDir_FFX_RAW [ MAX_PATH     ] = { };
+  wchar_t wszTexInjectDir_FFX_RAW [ MAX_PATH + 2 ] = { };
   wchar_t wszTexInjectDir_FFX     [ MAX_PATH + 2 ] = { };
 
   lstrcatW (wszTexInjectDir_FFX_RAW, SK_D3D11_res_root->c_str ());
@@ -2842,9 +2848,11 @@ SK_D3D11_SetResourceRoot (const wchar_t* root)
   // Non-absolute path (e.g. NOT C:\...\...")
   if (wcschr (root, L':') == nullptr)
   {
-         wchar_t wszPath [MAX_PATH * 2 + 1] = { };
-    wcsncpy_s   (wszPath, MAX_PATH * 2,
-                   SK_IsInjected () ? SK_GetConfigPath () :
+         wchar_t wszPath [MAX_PATH + 2] = { };
+    wcsncpy_s   (wszPath, MAX_PATH,
+                  ( SK_IsInjected () ||
+                    config.system.central_repository )
+                                    ? SK_GetConfigPath () :
                                       SK_GetRootPath   (),  _TRUNCATE);
 
     PathAppendW               (wszPath, root);
@@ -2901,10 +2909,10 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
 {
   WIN32_FIND_DATA fd            = {   };
   HANDLE          hFind         = INVALID_HANDLE_VALUE;
-  wchar_t         wszPath        [MAX_PATH * 2] = { };
-  wchar_t         wszFullPattern [MAX_PATH * 2] = { };
+  wchar_t         wszPath        [MAX_PATH + 2] = { };
+  wchar_t         wszFullPattern [MAX_PATH + 2] = { };
 
-  PathCombineW (wszFullPattern, directory.c_str (), L"*");
+  SK_PathCombineW (wszFullPattern, directory.c_str (), L"*");
 
   hFind =
     FindFirstFileW (wszFullPattern, &fd);
@@ -2913,12 +2921,12 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
   {
     do
     {
-      if (          (fd.dwFileAttributes       & FILE_ATTRIBUTE_DIRECTORY) &&
-          (_wcsicmp (fd.cFileName, L"." )      != 0) &&
-          (_wcsicmp (fd.cFileName, L"..")      != 0) &&
-          (_wcsicmp (fd.cFileName, L"UnX_Old") != 0)   )
+      if (           (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
+          (_wcsnicmp (fd.cFileName, L"."      , MAX_PATH) != 0)       &&
+          (_wcsnicmp (fd.cFileName, L".."     , MAX_PATH) != 0)       &&
+          (_wcsnicmp (fd.cFileName, L"UnX_Old", MAX_PATH) != 0)   )
       {
-        PathCombineW                    (wszPath, directory.c_str (), fd.cFileName);
+        SK_PathCombineW                 (wszPath, directory.c_str (), fd.cFileName);
         SK_D3D11_RecursiveEnumAndAddTex (wszPath, files, liSize, wszPattern);
       }
     } while (FindNextFile (hFind, &fd));
@@ -2926,7 +2934,7 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
     FindClose (hFind);
   }
 
-  PathCombineW (wszFullPattern, directory.c_str (), wszPattern);
+  SK_PathCombineW (wszFullPattern, directory.c_str (), wszPattern);
 
   hFind =
     FindFirstFileW (wszFullPattern, &fd);
@@ -2940,7 +2948,7 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
     {
       if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
       {
-        if (0 == _wcsicmp (PathFindExtensionW (fd.cFileName), L".dds"))
+        if (0 == _wcsnicmp (PathFindExtensionW (fd.cFileName), L".dds", MAX_PATH))
         {
 
         //bool     preloaded = preload;
@@ -2979,7 +2987,7 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
 
           liSize.QuadPart += fsize.QuadPart;
 
-          PathCombineW            (wszPath, directory.c_str (),
+          SK_PathCombineW         (wszPath, directory.c_str (),
                                                 wszFileName );
           if (! StrStrIW (         wszPath, L"MipmapCache") )
           {
@@ -3024,12 +3032,12 @@ SK_D3D11_TexNameFromChecksum ( uint32_t top_crc32,
     return L"";
   }
 
-  wchar_t wszTex [MAX_PATH * 2 + 1] = { };
+  wchar_t wszTex [MAX_PATH + 2] = { };
 
   static std::wstring res_root (SK_D3D11_res_root.get ());
   static std::wstring eval     (SK_EvalEnvironmentVars (res_root.c_str ()));
 
-  wcsncpy_s ( wszTex,          MAX_PATH * 2,
+  wcsncpy_s ( wszTex,          MAX_PATH,
                 eval.c_str (), _TRUNCATE );
 
   std::wstring hash_name;
@@ -3140,31 +3148,10 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
         )            )
          )
       {
-        D3DX11_IMAGE_INFO      img_info  = { };
-        D3DX11_IMAGE_LOAD_INFO load_info = { };
-
-        load_info.BindFlags      = texDesc2D.desc.BindFlags;
-        load_info.CpuAccessFlags = texDesc2D.desc.CPUAccessFlags;
-        load_info.Depth          = texDesc2D.desc.ArraySize;
-        load_info.Filter         = D3DX11_DEFAULT;
-        load_info.FirstMipLevel  = 0;
-
-        if (config.textures.d3d11.injection_keeps_fmt)
-          load_info.Format       = texDesc2D.desc.Format;
-        else
-          load_info.Format       = mdata.format;
-
-        load_info.Height         = texDesc2D.desc.Height;
-        load_info.MipFilter      = D3DX11_DEFAULT;
-        load_info.MipLevels      = texDesc2D.desc.MipLevels;
-        load_info.MiscFlags      = texDesc2D.desc.MiscFlags;
-        load_info.Usage          = D3D11_USAGE_DEFAULT;
-        load_info.Width          = texDesc2D.desc.Width;
-
         DirectX::ScratchImage scratch;
 
-        SK_ComPtr   <ID3D11Texture2D> pInjTex = nullptr;
-        SK_ComQIPtr <ID3D11Device>    pDev (rb.device);
+        SK_ComPtr   <ID3D11Resource> pInjTex = nullptr;
+        SK_ComQIPtr <ID3D11Device>   pDev (rb.device);
 
         hr =
           DirectX::LoadFromDDSFile (fname.c_str (), 0x0, &mdata, scratch);
@@ -3176,18 +3163,22 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
           );
 
           if ( SUCCEEDED (
-               DirectX::CreateTexture ( pDev, scratch.GetImages     (),
+               DirectX::CreateTexture ( pDev,
+                                              scratch.GetImages     (),
                                               scratch.GetImageCount (),
                                                 mdata,
-                                     (ID3D11Resource **)&pInjTex.p )
+                                             &pInjTex.p )
                          )
              )
           {
-            SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (
-              rb.d3d11.immediate_ctx
-            );
+            SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
-            pDevCtx->CopyResource (pTex, pInjTex);
+            if (pDevCtx != nullptr)
+            {   pDevCtx->CopyResource (
+                   pTex,
+                  pInjTex.p
+                );
+            }
 
             const LARGE_INTEGER load_end =
               SK_QueryPerf ();
@@ -3248,7 +3239,7 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
   {
     SK_ComQIPtr <ID3D11Texture2D> pTex (pRes);
 
-    if (pTex.p != nullptr)
+    if (pTex != nullptr)
     {
       D3D11_TEXTURE2D_DESC tex_desc = { };
            pTex->GetDesc (&tex_desc);
@@ -3285,21 +3276,21 @@ SK_D3D11_TexMgr::lod_hash_table_s::touch (ID3D11Texture2D *pTex)
   static volatile
     ID3D11Texture2D *last_tex   = nullptr;
   static volatile
-    ULONG            last_cache = 0;
-    ULONG            this_frame = SK_GetFramesDrawn ();
+    ULONG64          last_cache = 0;
+    ULONG64          this_frame = SK_GetFramesDrawn ();
 
   // Fast-path for situations where references are rapidly accumulating for
   //   the same texture.
   if ( ( (void *)pTex       ==
            ReadPointerAcquire ((void **)&last_tex) )
             && ( this_frame ==
-             ReadULongAcquire          (&last_cache) ) )
+             ReadULong64Acquire        (&last_cache) ) )
   {
     return;
   }
 
   InterlockedExchangePointer ((void **)&last_tex,(void *)pTex);
-  WriteULongRelease          (         &last_cache, this_frame);
+  WriteULong64Release        (         &last_cache, this_frame);
 
   auto *pLastFrame =
         &last_frame [pTex];

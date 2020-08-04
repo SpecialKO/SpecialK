@@ -227,7 +227,7 @@ VirtualFree_Detour       (
   const BOOL bRet =
     VirtualFree_Original (lpAddress, dwSize, dwFreeType);
 
-  if (bRet)
+  if (bRet != FALSE)
   {
     if ( ReadAcquire (&__SK_DLL_Attached)  != 0 &&
          ReadAcquire (&_SK_IgnoreTLSAlloc) == 0    )

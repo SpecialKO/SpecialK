@@ -21,9 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <imgui/imgui.h>
 
-#include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/sound.h>
 
 class SK_MMDev_AudioEndpointVolumeCallback;
@@ -212,20 +210,20 @@ class SK_MMDev_AudioEndpointVolumeCallback :
   volatile LONG _cRef = 0;
 
 public:
-  SK_MMDev_AudioEndpointVolumeCallback (void)
+  SK_MMDev_AudioEndpointVolumeCallback (void) noexcept
   {
     InterlockedExchange (&_cRef, 1);
   }
 
   virtual ~SK_MMDev_AudioEndpointVolumeCallback (void) = default;
 
-  ULONG STDMETHODCALLTYPE AddRef (void) override
+  ULONG STDMETHODCALLTYPE AddRef (void) noexcept override
   {
     return
       InterlockedIncrement (&_cRef);
   }
 
-  ULONG STDMETHODCALLTYPE Release (void) override
+  ULONG STDMETHODCALLTYPE Release (void) noexcept override
   {
     const ULONG ulRef =
       InterlockedDecrement (&_cRef);
@@ -239,8 +237,11 @@ public:
   }
 
   HRESULT STDMETHODCALLTYPE QueryInterface (REFIID   riid,
-    VOID** ppvInterface) override
+                                              VOID** ppvInterface) override
   {
+    if (ppvInterface == nullptr)
+      return E_POINTER;
+
     if (IID_IUnknown == riid)
     {
       AddRef ();

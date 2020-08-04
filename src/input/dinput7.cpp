@@ -21,6 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L" DInput 7 "
 
 
@@ -376,7 +379,7 @@ SK_BootDI7 (void)
                 dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
     SK_TestRenderImports (
-      GetModuleHandle (nullptr),
+      SK_GetModuleHandle (nullptr),
         &gl, &vulkan,
           &d3d9, &dxgi, &d3d11,
             &d3d8, &ddraw, &glide
@@ -1235,9 +1238,9 @@ SK_Input_HookDI7 (void)
 
       //HMODULE hBackend =
       //  (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
-      //                                  GetModuleHandle (L"dinput8.dll");
+      //                                  SK_GetModuleHandle (L"dinput8.dll");
 
-      if (GetProcAddress (SK_GetModuleHandle (L"dinput.dll"), "DirectInputCreateEx"))
+      if (SK_GetProcAddress (SK_GetModuleHandle (L"dinput.dll"), "DirectInputCreateEx"))
       {
         SK_CreateDLLHook2 (      L"dinput.dll",
                                   "DirectInputCreateEx",
@@ -1279,17 +1282,17 @@ SK_Input_PreHookDI7 (void)
     static sk_import_test_s tests [] = { { "dinput.dll",  false },
                                          { "dinput8.dll", false } };
 
-    SK_TestImports (GetModuleHandle (nullptr), tests, 2);
+    SK_TestImports (SK_GetModuleHandle (nullptr), tests, 2);
 
     if (tests [1].used || SK_GetModuleHandle (L"dinput8.dll"))
-    {            SK_Modules->LoadLibraryLL (L"dinput8.dll");
+    {              SK_Modules->LoadLibraryLL (L"dinput8.dll");
 
       if (SK_GetDLLRole () != DLL_ROLE::DInput8)
         SK_Input_PreHookDI8 ();
     }
 
     if (tests [0].used || SK_GetModuleHandle (L"dinput.dll"))
-   {             SK_Modules->LoadLibraryLL (L"dinput.dll");
+   {               SK_Modules->LoadLibraryLL (L"dinput.dll");
 
       //if (SK_GetDLLRole () != DLL_ROLE::DInput7)
         SK_Input_HookDI7 ();

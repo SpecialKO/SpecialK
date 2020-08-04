@@ -384,3 +384,11 @@ paket-files/
 *.asm
 /resource/WinRing0x64.dll
 /resource/WinRing0.dll
+/codealike.json
+/.vs/SpecialK/v16
+/build/Release/Win32/SpecialK.tlog
+/build/Release/Win32/SpecialK32.ClangTidy
+/.vs/SpecialK/v16/ipch
+/build/Release/Win32
+/.vs/SpecialK/v16/ipch/AutoPCH/10eaad2a1e957ecf/APPS_LIST.ipch
+/.vs/SpecialK/v16/ipch/AutoPCH

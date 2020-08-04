@@ -69,16 +69,18 @@ SK_ImGui_LoadFonts (void)
     ImFontConfig font_cfg = { };
     font_cfg.MergeMode    = true;
 
-    auto LoadFont = [](const std::string& filename, float point_size, const ImWchar* glyph_range, ImFontConfig* cfg = nullptr)
+    auto LoadFont = [](const std::string& filename, float point_size,
+                       const ImWchar* glyph_range,  ImFontConfig* cfg = nullptr)
     {
-      char szFullPath [ MAX_PATH * 2 + 1 ] = { };
+      char szFullPath [ MAX_PATH + 2 ] = { };
 
-      if (GetFileAttributesA (filename.c_str ()) != INVALID_FILE_ATTRIBUTES)
-         strncpy (szFullPath, filename.c_str (), MAX_PATH * 2);
+      if (GetFileAttributesA (            filename.c_str ()) != INVALID_FILE_ATTRIBUTES)
+         strncpy_s (szFullPath, MAX_PATH, filename.c_str (),
+                               _TRUNCATE);
 
       else
       {
-        snprintf (szFullPath, MAX_PATH * 2 - 1, R"(%ws\%s)", SK_GetFontsDir ().c_str (), filename.c_str ());
+        snprintf (szFullPath, MAX_PATH, R"(%ws\%s)", SK_GetFontsDir ().c_str (), filename.c_str ());
 
 
         if (GetFileAttributesA (szFullPath) == INVALID_FILE_ATTRIBUTES)
@@ -166,7 +168,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   auto pRawCtx =
     pTLS->raw_input.getPtr ();
 
-  bool focus             = true;// game_window.active;
+  extern bool __stdcall    SK_IsGameWindowActive (void);
+  bool focus             = SK_IsGameWindowActive (    );
   bool already_processed =
     ( pRawCtx->last_input == hRawInput &&
                 uiCommand == RID_INPUT );
@@ -175,23 +178,31 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     ( (! self) && uiCommand == RID_INPUT ) ?
                      hRawInput : pRawCtx->last_input );
 
+  // Input event happened while the window had focus if true, otherwise another
+  //   window is currently capturing input and the most appropriate response is
+  //     usually to ignore the event.
+  bool foreground =
+    GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
-  if (self && (! already_processed))
-    SK_RawInput_EnableLegacyMouse  (true);
-  else
-    SK_RawInput_RestoreLegacyMouse ();
-
-  //SK_RawInput_EnableLegacyMouse  (true);
-  //
-  //// Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
-  ////
-  if (self && (! already_processed))
+  if (foreground)
   {
-    if (SK_ImGui_WantTextCapture ())
-        SK_RawInput_EnableLegacyKeyboard (true);
+    if (self && (! already_processed))
+      SK_RawInput_EnableLegacyMouse  (true);
+    else
+      SK_RawInput_RestoreLegacyMouse ();
+
+    //SK_RawInput_EnableLegacyMouse  (true);
+    //
+    //// Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
+    ////
+    if (self && (! already_processed))
+    {
+      if (SK_ImGui_WantTextCapture ())
+          SK_RawInput_EnableLegacyKeyboard (true);
+    }
+    else
+      SK_RawInput_RestoreLegacyKeyboard ();
   }
-  else
-    SK_RawInput_RestoreLegacyKeyboard ();
 
 
   int size =
@@ -200,12 +211,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   bool filter   = false;
   bool mouse    = false;
   bool keyboard = false;
-
-  // Input event happened while the window had focus if true, otherwise another
-  //   window is currently capturing input and the most appropriate response is
-  //     usually to ignore the event.
-  bool foreground =
-    GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
   auto FilterRawInput =
     [&](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
@@ -223,7 +228,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             }
 
             // Block mouse input to the game while it's in the background
-            if (config.window.background_render && (! game_window.active))
+            if (config.window.background_render && (! focus))
               filter = true;
 
             mouse = true;
@@ -281,7 +286,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
 
             // Block keyboard input to the game while it's in the background
-            if (config.window.background_render && (! focus/*game_window.active*/))
+            if (config.window.background_render && (! focus))
               filter = true;
 
 
@@ -304,14 +309,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             if (!(((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
             {
               pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-                    io.KeysDown [VKey & 0xFF] = true;
+                    io.KeysDown [VKey & 0xFF] = game_window.active;
             }
 
             switch (((RAWINPUT *) pData)->data.keyboard.Message)
             {
               case WM_KEYDOWN:
               case WM_SYSKEYDOWN:
-                      io.KeysDown [VKey & 0xFF] = true;
+                      io.KeysDown [VKey & 0xFF] = game_window.active;
                 pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
                 break;
 
@@ -352,7 +357,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     {
       case RIM_TYPEMOUSE:
       {
-        //if (self)
+        if (foreground)
         {
           if (SK_ImGui_IsMouseRelevant () && config.input.mouse.add_relative_motion)
           {
@@ -371,7 +376,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
           }
 
-          if (foreground && self)
+          if (self)
           {
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
               io.MouseDown [0] = true;
@@ -411,14 +416,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               if (! (((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
               {
                 pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-                      io.KeysDown [VKey & 0xFF] = true;
+                      io.KeysDown [VKey & 0xFF] = game_window.active;
               }
 
               switch (((RAWINPUT *) pData)->data.keyboard.Message)
               {
                 case WM_KEYDOWN:
                 case WM_SYSKEYDOWN:
-                  io.KeysDown [VKey & 0xFF] = true;
+                  io.KeysDown [VKey & 0xFF] = game_window.active;
                   break;
 
                 case WM_KEYUP:
@@ -639,7 +644,7 @@ MessageProc ( const HWND&   hWnd,
   {
     case WM_HOTKEY:
     {
-      if (hWnd == game_window.hWnd)
+      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
       {
         if (SK_ImGui_WantGamepadCapture ())
         {
@@ -652,7 +657,7 @@ MessageProc ( const HWND&   hWnd,
     //          a standard window message format for sanity's sake during filter evaluation.
     case WM_APPCOMMAND:
     {
-      if (hWnd == game_window.hWnd)
+      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
       {
         switch (GET_DEVICE_LPARAM (lParam))
         {
@@ -695,6 +700,9 @@ MessageProc ( const HWND&   hWnd,
     case WM_MOUSEACTIVATE:
     {
       ActivateWindow (((HWND)wParam == hWnd));
+
+      if ((! window_active) && config.window.background_render)
+        return true;
     } break;
 
 
@@ -702,7 +710,7 @@ MessageProc ( const HWND&   hWnd,
     case WM_ACTIVATE:
     case WM_NCACTIVATE:
     {
-      if (hWnd == game_window.hWnd)
+      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
       {
         if ( msg == WM_NCACTIVATE ||
              msg == WM_ACTIVATEAPP )
@@ -729,6 +737,9 @@ MessageProc ( const HWND&   hWnd,
           }
         }
       }
+
+      if ((! window_active) && config.window.background_render)
+        return true;
     } break;
 
 
@@ -769,14 +780,14 @@ MessageProc ( const HWND&   hWnd,
     case WM_RBUTTONUP:
     case WM_MBUTTONUP:
     case WM_XBUTTONUP:
-      if (hWnd == game_window.hWnd)
+      if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
       {
         return true;
       } break;
 
 
     case WM_MOUSEWHEEL:
-      if (hWnd == game_window.hWnd)
+      if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
       {
         io.MouseWheel +=
           static_cast <float> (GET_WHEEL_DELTA_WPARAM (wParam)) /
@@ -803,7 +814,7 @@ MessageProc ( const HWND&   hWnd,
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
     {
-      if (hWnd == game_window.hWnd)
+      if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
       {
         InterlockedIncrement (&__SK_KeyMessageCount);
 
@@ -980,7 +991,7 @@ MessageProc ( const HWND&   hWnd,
 
     case WM_CHAR:
     {
-      if (hWnd == game_window.hWnd)
+      if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
       {
         InterlockedIncrement (&__SK_KeyMessageCount);
 
@@ -1111,7 +1122,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
   if (msg == WM_SETCURSOR)
   {
-    if (hWnd == game_window.hWnd)
+    if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
     {
       SK_ImGui_Cursor.update ();
 
@@ -1127,20 +1138,22 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
   extern bool
   SK_ImGui_WantExit;
 
-  if (msg == WM_SYSCOMMAND && hWnd == game_window.hWnd)
+  if (msg == WM_SYSCOMMAND)
   {
     //dll_log.Log (L"WM_SYSCOMMAND (wParam=%x, lParam=%x) [HWND=%x] :: Game Window = %x", (wParam & 0xFFF0), lParam, hWnd, game_window.hWnd);
 
     switch (LOWORD (wParam & 0xFFF0))
     {
+      case SC_ICON: // Minimize
+      case SC_ZOOM: // Maximize
+        return 1;
+
       case SC_RESTORE:
       case SC_SIZE:
       case SC_PREVWINDOW:
       case SC_NEXTWINDOW:
       case SC_MOVE:
       case SC_MOUSEMENU:
-      case SC_MINIMIZE:
-      case SC_MAXIMIZE:
       case SC_DEFAULT:
       case SC_CONTEXTHELP:
       {
@@ -1275,7 +1288,9 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
     if ( uMsg == WM_KEYDOWN ||
          uMsg == WM_SYSKEYDOWN )
     {
-      io.KeysDown [wParam & 0xFF] = true;
+      // Only handle key-down if the game window is active,
+      //   otherwise treat it as key release.
+      io.KeysDown [wParam & 0xFF] = game_window.active;
     }
 
     else if ( uMsg == WM_KEYUP ||
@@ -1316,7 +1331,7 @@ SK_ImGui_FilterXInput (
 
   if (disable)
   {
-    RtlSecureZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
+    RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
     // SDL Keepalive
     pState->dwPacketNumber =
@@ -1366,9 +1381,6 @@ WINAPI
 SK_ImGui_ToggleEx ( bool& toggle_ui,
                     bool& toggle_nav )
 {
-  // XXX: HACK for Monster Hunter: World
-  game_window.active = true;
-
   if (toggle_ui)
     SK_ImGui_Toggle ();
 
@@ -1441,9 +1453,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     io.KeyShift = Shift;
     io.KeyCtrl  = Ctrl;
 
-    ///if ( io.MouseDown [0] ||
-    ///     io.MouseDown [1]  ) SK_ImGui_Cursor.update ();
-
     if (config.input.keyboard.catch_alt_f4)
     {
       if ( io.KeyAlt                     &&
@@ -1465,8 +1474,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 
   static XINPUT_STATE last_state = { 1, 0 };
 
-  bool api_bridge =
-    config.input.gamepad.native_ps4 || ( ControllerPresent (config.input.gamepad.steam.ui_slot) );
+  const bool api_bridge =
+    config.input.gamepad.native_ps4;
+
+#ifdef SK_STEAM_CONTROLLER_SUPPORT
+  api_bridge |= ( ControllerPresent (config.input.gamepad.steam.ui_slot) );
+#endif
 
   if (api_bridge)
   {
@@ -1475,12 +1488,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     JOYINFOEX joy_ex   { };
     JOYCAPSW  joy_caps { };
 
-    joy_ex.dwSize  = sizeof JOYINFOEX;
+    joy_ex.dwSize  = sizeof (JOYINFOEX);
     joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
                      JOY_RETURNCENTERED | JOY_USEDEADZONE;
 
     joyGetPosEx    (JOYSTICKID1, &joy_ex);
-    joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof JOYCAPSW);
+    joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
 
     SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
   }
@@ -1491,11 +1504,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
   state = di8_to_xi;
 #endif
 
+#ifdef SK_STEAM_CONTROLLER_SUPPORT
   if (ControllerPresent (config.input.gamepad.steam.ui_slot))
   {
     state =
       *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
   }
+#endif
 
   bool bRet = false;
 
@@ -1549,7 +1564,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
   }
 
   else
-    RtlSecureZeroMemory (&state.Gamepad, sizeof XINPUT_GAMEPAD);
+    RtlSecureZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
 
 
   if (SK_ImGui_Active () && config.input.gamepad.haptic_ui)
@@ -1582,6 +1597,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
                                           haptic_events.PulseButton.duration;
     }
 
+#ifdef SK_STEAM_CONTROLLER_SUPPORT
     if (! ControllerPresent (config.input.gamepad.steam.ui_slot))
     {
       SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
@@ -1594,6 +1610,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     }
 
     else
+#endif
     {
       SK_XInput_PulseController ( config.input.gamepad.steam.ui_slot,
                                     haptic_events.PulseTitle.run  () +
@@ -1917,7 +1934,7 @@ SK_ImGui_PollGamepad (void)
     io.MouseDown [4] = false;
 
 
-  static DWORD last_toggle = 0UL;
+  static ULONG64 last_toggle = 0ULL;
 
   if ( ( io.NavInputs             [ImGuiNavInput_TweakSlow] != 0.0f &&
          io.NavInputs             [ImGuiNavInput_TweakFast] != 0.0f )   &&

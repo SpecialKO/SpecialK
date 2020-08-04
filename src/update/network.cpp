@@ -22,6 +22,12 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
 
+extern HRESULT WINAPI
+SK_TaskDialogIndirect ( _In_      const TASKDIALOGCONFIG* pTaskConfig,
+                        _Out_opt_       int*              pnButton,
+                        _Out_opt_       int*              pnRadioButton,
+                        _Out_opt_       BOOL*             pfVerificationFlagChecked );
+
 extern void
 SK_Inject_Stop (void);
 
@@ -33,8 +39,8 @@ static const int SK_UPDATE_TIMER = 68991;
 bool    update_dlg_backup = false;
 bool    update_dlg_keep   = false;
 
-wchar_t update_dlg_file     [MAX_PATH]                 = { };
-wchar_t update_dlg_build    [MAX_PATH]                 = { };
+wchar_t update_dlg_file     [MAX_PATH + 2]             = { };
+wchar_t update_dlg_build    [MAX_PATH + 2]             = { };
 wchar_t update_dlg_relnotes [INTERNET_MAX_PATH_LENGTH] = { };
 
 
@@ -307,7 +313,8 @@ struct sk_pcm_sound_s {
   uint8_t* buf = nullptr;
 };
 
-SK_LazyGlobal <sk_pcm_sound_s> annoy_sound;
+SK_LazyGlobal <sk_pcm_sound_s>       annoy_sound;
+SK_LazyGlobal <sk::ParameterFactory> g_UpdateParameterFactory;
 
 INT_PTR
 CALLBACK
@@ -476,13 +483,11 @@ RemindMeLater_DlgProc (
         if (empty)
           user_prefs.set_name (L"Update.User");
 
-        sk::ParameterFactory ParameterFactory;
-
         if (! never)
         {
           auto* remind_time =
             static_cast <sk::ParameterInt64 *> (
-              ParameterFactory.create_parameter <int64_t> (L"Reminder")
+              g_UpdateParameterFactory->create_parameter <int64_t> (L"Reminder")
             );
 
           if (remind_time != nullptr)
@@ -502,7 +507,7 @@ RemindMeLater_DlgProc (
         {
           auto* frequency =
             static_cast <sk::ParameterStringW *> (
-              ParameterFactory.create_parameter <std::wstring> (
+              g_UpdateParameterFactory->create_parameter <std::wstring> (
                 L"Frequency"
               )
             );
@@ -590,7 +595,7 @@ DownloadDialogCallback (
 
   else if (uNotification == TDN_HYPERLINK_CLICKED)
   {
-    ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOWMAXIMIZED);
+    SK_ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOWMAXIMIZED);
 
     return S_OK;
   }
@@ -761,8 +766,9 @@ Update_DlgProc (
 
       for ( auto& it : files )
       {
-        wchar_t wszFinalPath [MAX_PATH] = { };
-        wcscpy (wszFinalPath, SK_SYS_GetInstallPath ().c_str ());
+        wchar_t    wszFinalPath [MAX_PATH + 2] = { };
+        wcsncpy_s (wszFinalPath, MAX_PATH, SK_SYS_GetInstallPath ().c_str (),
+                               _TRUNCATE);
 
         lstrcatW (wszFinalPath, it.name.c_str ());
 
@@ -819,11 +825,11 @@ Update_DlgProc (
     {
       if (LOWORD (wParam) == IDC_MANUAL_CMD)
       {
-        ShellExecuteW ( nullptr,
-                          L"OPEN",
-                            (wchar_t *)update_dlg_file,
-                              nullptr, nullptr,
-                                SW_SHOWMAXIMIZED );
+        SK_ShellExecuteW ( nullptr,
+                             L"OPEN",
+                               (wchar_t *)update_dlg_file,
+                                 nullptr, nullptr,
+                                   SW_SHOWMAXIMIZED );
 
         InterlockedExchange ( &__SK_UpdateStatus, 1 );
         PostMessage         ( hWndUpdateDlg, WM_CLOSE, 0x0, 0x0 );
@@ -857,7 +863,7 @@ Update_DlgProc (
           task_cfg.cbSize = sizeof TASKDIALOGCONFIG;
 
           task_cfg.hwndParent         = hWndUpdateDlg;
-          task_cfg.hInstance          = GetModuleHandleW (nullptr);
+          task_cfg.hInstance          = SK_GetModuleHandleW (nullptr);
 
           task_cfg.pszMainIcon        = TD_INFORMATION_ICON;
           task_cfg.dwFlags            = TDF_ENABLE_HYPERLINKS | TDF_USE_COMMAND_LINKS;
@@ -916,21 +922,21 @@ Update_DlgProc (
                 } break;
 
                 case TDN_HYPERLINK_CLICKED:
-                  ShellExecuteW ( nullptr,
-                                    L"OPEN",
-                                      (wchar_t *)lParam,
-                                        nullptr, nullptr,
-                                          SW_SHOWMAXIMIZED );
+                  SK_ShellExecuteW ( nullptr,
+                                       L"OPEN",
+                                         (wchar_t *)lParam,
+                                           nullptr, nullptr,
+                                             SW_SHOWMAXIMIZED );
                   break;
 
                 case TDN_BUTTON_CLICKED:
                   if (wParam == 0)
                   {
-                    ShellExecuteW ( nullptr,
-                                      L"OPEN",
-                                        (wchar_t *)update_dlg_relnotes,
-                                          nullptr, nullptr,
-                                            SW_SHOWMAXIMIZED );
+                    SK_ShellExecuteW ( nullptr,
+                                         L"OPEN",
+                                           (wchar_t *)update_dlg_relnotes,
+                                             nullptr, nullptr,
+                                               SW_SHOWMAXIMIZED );
                   }
                   break;
               }
@@ -972,7 +978,7 @@ Update_DlgProc (
 
           task_cfg.pszContent = wszBackupMessage;
 
-          TaskDialogIndirect ( &task_cfg, nullptr, nullptr, nullptr );
+          SK_TaskDialogIndirect ( &task_cfg, nullptr, nullptr, nullptr );
 
           update_dlg_keep =
             Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_KEEP_DOWNLOADS)) != 0;
@@ -1065,16 +1071,6 @@ UpdateDlg_Thread (LPVOID user)
 {
   SetCurrentThreadDescription (L"[SK] Auto-Update Dialog Message Pump");
 
-
-  // Common Control Sex
-  INITCOMMONCONTROLSEX ccsex = {
-    sizeof INITCOMMONCONTROLSEX,
-    0x7ff
-  };
-
-  InitCommonControlsEx (&ccsex);
-
-
   bool started = false;
 
   game_window.active = true;
@@ -1144,8 +1140,8 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
   TASKDIALOGCONFIG  task_config  = { };
 
   task_config.cbSize             = sizeof ( task_config );
-  task_config.hInstance          = GetModuleHandleW (nullptr);
-  task_config.hwndParent         =                   nullptr;
+  task_config.hInstance          = SK_GetModuleHandleW (nullptr);
+  task_config.hwndParent         =                      nullptr;
 
 
   if (! SK_IsHostAppSKIM ())
@@ -1270,8 +1266,8 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
                 build.latest.package,
                   &build.latest.in_branch );
 
-  wcscpy ( update_dlg_relnotes,
-            latest_ver.get_value (L"ReleaseNotes").c_str () );
+  wcscpy_s ( update_dlg_relnotes, INTERNET_MAX_PATH_LENGTH,
+             latest_ver.get_value (L"ReleaseNotes").c_str () );
 
   if (build.latest.in_branch > build.installed || force)
   {
@@ -1304,16 +1300,18 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
     {
       task_config.lpCallbackData = (LONG_PTR)get;
 
-      wchar_t    wszUpdateFile     [MAX_PATH] = { };
-      wchar_t    wszUpdateTempFile [MAX_PATH] = { };
+      wchar_t    wszUpdateFile     [MAX_PATH + 2] = { };
+      wchar_t    wszUpdateTempFile [MAX_PATH + 2] = { };
 
-      wcscpy   ( wszUpdateFile, SK_SYS_GetVersionPath ().c_str ());
-      swprintf ( wszUpdateTempFile,
-                   L"%s%s.7z",
-                     SK_SYS_GetVersionPath ().c_str (),
-                       build.latest.package );
+      wcsncpy_s ( wszUpdateFile, MAX_PATH, SK_SYS_GetVersionPath ().c_str (),
+                                _TRUNCATE );
+      swprintf  ( wszUpdateTempFile,
+                    L"%s%s.7z",
+                      SK_SYS_GetVersionPath ().c_str (),
+                        build.latest.package );
 
-      wcsncpy (get->wszLocalPath, wszUpdateTempFile, MAX_PATH - 1);
+      wcsncpy_s ( get->wszLocalPath,  MAX_PATH,
+                  wszUpdateTempFile, _TRUNCATE );
 
       task_config.pszExpandedInformation  = wszFullDetails;
 
@@ -1322,13 +1320,13 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
       int nButton = 0;
 
-      if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr)))
+      if (SUCCEEDED (SK_TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr)))
       {
         if (get->status == sk_internet_get_t::STATUS_UPDATED)
         {
           auto *backup_pref =
             static_cast <sk::ParameterBool *> (
-              g_ParameterFactory->create_parameter <bool> (L"BackupFiles")
+              g_UpdateParameterFactory->create_parameter <bool> (L"BackupFiles")
             );
 
           if (backup_pref != nullptr)
@@ -1344,7 +1342,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
           auto *keep_pref =
             static_cast <sk::ParameterBool *> (
-              g_ParameterFactory->create_parameter <bool> (L"KeepDownloads")
+              g_UpdateParameterFactory->create_parameter <bool> (L"KeepDownloads")
             );
 
           if (keep_pref != nullptr)
@@ -1358,8 +1356,8 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
               update_dlg_keep = true;
           }
 
-          wcsncpy ( update_dlg_file,  wszUpdateTempFile, MAX_PATH - 1 );
-          wcsncpy ( update_dlg_build, wszCurrentBuild,   127          );
+          wcsncpy_s ( update_dlg_file,  MAX_PATH, wszUpdateTempFile, _TRUNCATE );
+          wcsncpy_s ( update_dlg_build, 127,      wszCurrentBuild,   _TRUNCATE );
 
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 

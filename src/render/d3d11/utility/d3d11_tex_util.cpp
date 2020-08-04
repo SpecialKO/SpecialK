@@ -21,6 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
@@ -30,16 +33,18 @@
 uint32_t
 safe_crc32c_ex (uint32_t seed, const void* pData, size_t size, bool* failed)
 {
-  *failed = false;
+  if (failed != nullptr)
+     *failed = false;
 
-  // Current limit == 48 GiB
-  if (size > (1024ULL * 1024ULL * 1024ULL * 48) || pData == nullptr)
+  // Current limit == 2 GiB
+  if (size > (1024ULL * 1024ULL * 1024ULL * 2) || pData == nullptr)
   {
     SK_LOG0 ( ( L"Hash Fail: Data is too large (%zu) or invalid pointer (%p).",
                   size, pData ),
                 L"DX11TexMgr");
 
-    *failed = true;
+    if (failed != nullptr)
+       *failed = true;
 
     return seed;
   }
@@ -56,7 +61,8 @@ safe_crc32c_ex (uint32_t seed, const void* pData, size_t size, bool* failed)
 
   catch (const SK_SEH_IgnoredException&)
   {
-    *failed = true;
+    if (failed != nullptr)
+       *failed = true;
   }
   SK_SEH_RemoveTranslator (orig_se);
 
@@ -312,6 +318,9 @@ crc32_ffx (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
              _Out_opt_       size_t                 *__restrict pSize )
 {
   uint32_t checksum = 0;
+
+  if (pInitialData == nullptr)
+    return checksum;
 
   const bool compressed =
     SK_DXGI_IsFormatCompressed (pDesc->Format);

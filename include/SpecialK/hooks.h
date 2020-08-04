@@ -84,7 +84,7 @@ struct sk_hook_cache_record_s
         SK_HookCacheEntry(GlobalHook_##entry)
 
 #define SK_HookCacheEntryLocal(entry,dll,new_target,bounce_pad)\
-  sk_hook_cache_record_s LocalHook_##entry ## =                \
+  sk_hook_cache_record_s LocalHook_##entry =                   \
   { {#entry, (dll), GlobalHook_##entry##.target.addr,          \
                     GlobalHook_##entry##.target.offset,        \
                     GlobalHook_##entry##.target.image_size},   \

@@ -41,14 +41,36 @@ interface ID3D11Query;
 class SK_D3D11_Screenshot
 {
 public:
-  explicit SK_D3D11_Screenshot (const SK_D3D11_Screenshot&         rkMove);
-  explicit SK_D3D11_Screenshot (const SK_ComQIPtr <ID3D11Device>& pDevice);
+  struct MemoryTotals {
+    std::atomic_size_t capture_bytes = 0;
+    std::atomic_size_t encode_bytes  = 0;
+    std::atomic_size_t write_bytes   = 0;
+  } static pooled,
+           completed;
+
+  static constexpr
+    MemoryTotals maximum =
+    {
+#ifdef _M_AMD64
+      1024 * 1024 * 1024,
+       512 * 1024 * 1024,
+       256 * 1024 * 1024
+#else
+      256 * 1024 * 1024,
+      128 * 1024 * 1024,
+       64 * 1024 * 1024
+#endif
+    };
+
+  explicit SK_D3D11_Screenshot (          SK_D3D11_Screenshot&& moveFrom) noexcept { *this = std::move (moveFrom); }
+  explicit SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice);
 
           ~SK_D3D11_Screenshot (void) {
             dispose ();
           }
 
-  __inline bool isValid (void) { return pPixelBufferFence != nullptr; }
+  __inline bool isValid (void) noexcept { return pImmediateCtx     != nullptr &&
+                                                 pPixelBufferFence != nullptr; }
   __inline bool isReady (void)
   {
     if (                                      (! isValid ()) ||
@@ -57,27 +79,27 @@ public:
       return false;
     }
 
-    if (pPixelBufferFence != nullptr)
-    {
-      return (
-        S_FALSE != pImmediateCtx->GetData (
-                     pPixelBufferFence, nullptr,
-                     0,               0x0 )
-      );
-    }
-
-    return false;
+    return (
+      S_FALSE != pImmediateCtx->GetData     (
+              pPixelBufferFence, nullptr,
+                                     0, 0x0 )
+           );
   }
 
-  void dispose (void);
+  SK_D3D11_Screenshot& __cdecl operator= (      SK_D3D11_Screenshot&& moveFrom) noexcept;
+
+  SK_D3D11_Screenshot                    (const SK_D3D11_Screenshot&          ) = delete;
+  SK_D3D11_Screenshot&          operator=(const SK_D3D11_Screenshot&          ) = delete;
+
+  void dispose (void) noexcept;
   bool getData ( UINT     *pWidth,
                  UINT     *pHeight,
                  uint8_t **ppData,
-                 bool      Wait = false );
+                 bool      Wait = false ) noexcept;
 
   __inline
   DXGI_FORMAT
-  getInternalFormat (void)
+  getInternalFormat (void) noexcept
   {
     return
       framebuffer.NativeFormat;
@@ -85,11 +107,27 @@ public:
 
   struct framebuffer_s
   {
+    // One-time alloc, prevents allocating and freeing memory on the thread
+    //   that memory-maps the GPU for perfect wait-free capture.
+    struct PinnedBuffer {
+      std::atomic_size_t           size    = 0L;
+      std::unique_ptr <uint8_t []> bytes   = nullptr;
+    } static root_;
+
+    ~framebuffer_s (void)
+    {
+      if (PixelBuffer == root_.bytes)
+        PixelBuffer.release ();
+
+      PixelBuffer.reset ();
+    }
+
     UINT               Width               = 0,
                        Height              = 0;
     DXGI_FORMAT        NativeFormat        = DXGI_FORMAT_UNKNOWN;
+    DXGI_ALPHA_MODE    AlphaMode           = DXGI_ALPHA_MODE_IGNORE;
 
-    LONG               PBufferSize         = 0L;
+    size_t             PBufferSize         = 0L;
     size_t             PackedDstPitch      = 0L,
                        PackedDstSlicePitch = 0L;
 
@@ -99,7 +137,7 @@ public:
 
   __inline
   framebuffer_s*
-  getFinishedData (void)
+  getFinishedData (void) noexcept
   {
     return
       ( framebuffer.PixelBuffer.get () != nullptr ) ?
@@ -107,8 +145,8 @@ public:
   }
 
   __inline
-    ULONG
-  getStartFrame (void) const
+    ULONG64
+  getStartFrame (void) const noexcept
   {
     return
       ulCommandIssuedOnFrame;
@@ -123,15 +161,9 @@ protected:
   SK_ComPtr <ID3D11Texture2D>     pStagingBackbufferCopy = nullptr;
 
   SK_ComPtr <ID3D11Query>         pPixelBufferFence      = nullptr;
-  ULONG                           ulCommandIssuedOnFrame = 0;
-  BOOL                            bRecycled              = FALSE;
+  ULONG64                         ulCommandIssuedOnFrame = 0;
 
   framebuffer_s                   framebuffer            = {     };
-
-  static SK_LazyGlobal <concurrency::concurrent_queue <std::pair <LONG, uint8_t*>>>
-                                                       recycled_buffers;
-  static volatile LONG                                 recycled_records;
-  static volatile LONG                                 recycled_size;
 };
 
 void SK_D3D11_WaitOnAllScreenshots   (void);

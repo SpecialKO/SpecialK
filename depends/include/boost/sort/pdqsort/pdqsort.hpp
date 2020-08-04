@@ -53,7 +53,7 @@ namespace pdqsort_detail {
 
     // Returns floor(log2(n)), assumes n > 0.
     template<class T>
-    inline int log2(T n) {
+    inline int log2(T n) noexcept {
         int log = 0;
         while (n >>= 1) ++log;
         return log;
@@ -148,7 +148,7 @@ namespace pdqsort_detail {
     }
 
     template<class T>
-    inline T* align_cacheline(T* p) {
+    inline T* align_cacheline(T* p) noexcept {
 #if defined(UINTPTR_MAX) && __cplusplus >= 201103L
         std::uintptr_t ip = reinterpret_cast<std::uintptr_t>(p);
 #else

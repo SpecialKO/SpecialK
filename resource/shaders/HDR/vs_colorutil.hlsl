@@ -26,7 +26,7 @@ PS_INPUT main ( VS_INPUT input )
     output.col = float4 (Luminance.rgb,1);
     output.pos =
       float4 ( ( output.uv.x - 0.5f ) * 2,
-              -( output.uv.y   - 0.5f ) * 2,
+              -( output.uv.y - 0.5f ) * 2,
                                0.0f,
                                1.0f );
 

@@ -310,7 +310,7 @@ struct target_tracking_s
 
 struct SK_D3D11_KnownThreads
 {
-  SK_D3D11_KnownThreads (void) noexcept ///
+  SK_D3D11_KnownThreads (void) noexcept (false)///
   {
     _lock =
       std::make_unique <SK_Thread_HybridSpinlock> (0x400);
@@ -517,8 +517,11 @@ SK_D3D11_CreateShader_Impl (
 
   const auto GetResources =
   [&]( SK_Thread_CriticalSection**                        ppCritical,
-       SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>** ppShaderDomain )
+       SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>** ppShaderDomain ) noexcept
   {
+    if (! ppShaderDomain)
+      return;
+
     static auto& shaders =
       SK_D3D11_Shaders;
 
@@ -786,50 +789,49 @@ SK_D3D11_ShouldTrackComputeDispatch (
 //   no internal locking is necessary as long as dev ctx's are one per-thread.
 struct SK_D3D11_KnownTargets
 {
+//#define _PERSIST_DS_VIEWS
   SK_D3D11_KnownTargets (void)
   {
-    //rt_views.resize (128);
-    //ds_views.resize ( 64);
+    rt_views.reserve (128);
+#ifdef _PERSIST_DS_VIEWS
+    ds_views.reserve ( 64);
+#endif
   }
 
   ~SK_D3D11_KnownTargets (void)
   {
     clear ();
-    rt_views.clear ();
-    ds_views.clear ();
   }
 
   void clear (void)
   {
-    max_rt_views = std::max (max_rt_views, rt_views.size ());
-    max_ds_views = std::max (max_ds_views, ds_views.size ());
+    max_rt_views = std::max (max_rt_views, rt_views.size () * 2);
 
-    auto orig_se =
-    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-    try
-    {
-      rt_views.clear ();
-      ds_views.clear ();
-      //for ( auto pRTV : rt_views ) { if (pRTV) pRTV->Release (); pRTV = nullptr; }
-      //for ( auto pDSV : ds_views ) { if (pDSV) pDSV->Release (); pDSV = nullptr; }
-    } catch (const SK_SEH_IgnoredException&)
-    {
-      static int                                                     dead_idx = 0;
-      static std::unordered_set <SK_ComPtr <ID3D11RenderTargetView>> dead_rtvs [65536] = { };
-      static std::unordered_set <SK_ComPtr <ID3D11DepthStencilView>> dead_dsv  [65536] = { };
-      rt_views.swap (dead_rtvs [dead_idx]  );
-      ds_views.swap (dead_dsv  [dead_idx++]);
-    }
-    SK_SEH_RemoveTranslator (orig_se);
+#ifdef _PERSIST_DS_VIEWS
+    max_ds_views = std::max (max_ds_views, ds_views.size () * 2);
+#endif
+
+    rt_views.clear ();
+#ifdef _PERSIST_DS_VIEWS
+    ds_views.clear ();
+#endif
 
     rt_views.reserve (max_rt_views);
+#ifdef _PERSIST_DS_VIEWS
     ds_views.reserve (max_ds_views);
+#endif
   }
 
-  std::unordered_set <SK_ComPtr <ID3D11RenderTargetView>> rt_views;
-  std::unordered_set <SK_ComPtr <ID3D11DepthStencilView>> ds_views;
-                                               size_t max_rt_views = 0;
-                                               size_t max_ds_views = 0;
+  std::unordered_set <ID3D11RenderTargetView *> rt_views;
+#ifdef _PERSIST_DS_VIEWS
+  std::unordered_set <ID3D11DepthStencilView *> ds_views;
+#endif
+                                     size_t max_rt_views = 0;
+#ifdef _PERSIST_DS_VIEWS
+                                     size_t max_ds_views = 0;
+#endif
+
+  static bool _mod_tool_wants;
 };
 
 extern SK_LazyGlobal <std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>> SK_D3D11_RenderTargets;
@@ -848,7 +850,7 @@ extern volatile ULONG SK_D3D11_LiveTexturesDirty;
 
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
-extern SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown>>> SK_D3D11_TempResources;
+extern SK_LazyGlobal <std::vector <SK_ComPtr <ID3D11View>>> SK_D3D11_TempResources;
 
 
 

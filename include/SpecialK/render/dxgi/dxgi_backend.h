@@ -22,7 +22,6 @@
 #ifndef __SK__DXGI_BACKEND_H__
 #define __SK__DXGI_BACKEND_H__
 
-struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <SpecialK/tls.h>
@@ -286,7 +285,7 @@ struct mem_info_t {
   int                          nodes                    = 0;//MAX_GPU_NODES;
 } extern dxgi_mem_info [NumBuffers];
 
-static const int SK_D3D11_MAX_DEV_CONTEXTS = 64;
+static const int SK_D3D11_MAX_DEV_CONTEXTS = 32;
 
 LONG
 SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);
@@ -296,6 +295,22 @@ SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);
 void
 SK_D3D11_CopyContextHandle ( ID3D11DeviceContext *pSrcCtx,
                              ID3D11DeviceContext *pDstCtx );
+
+__forceinline
+void
+SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
+                        const std::string&       kName )
+{
+  return;
+
+  if (pDevChild != nullptr && kName.size () > 0)
+  {
+    pDevChild->SetPrivateData ( WKPDID_D3DDebugObjectName,
+                                  gsl::narrow_cast <UINT> ( kName.size () ),
+                                                            kName.data ()
+                              );
+  }
+}
 
 namespace SK
 {
@@ -334,16 +349,16 @@ extern CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
 
 std::wstring
 __stdcall
-SK_DXGI_FormatToStr (DXGI_FORMAT fmt);
+SK_DXGI_FormatToStr (DXGI_FORMAT fmt) noexcept;
 
 const wchar_t*
-SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode);
+SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode) noexcept;
 
 const wchar_t*
-SK_DXGI_DescribeScanlineOrder (DXGI_MODE_SCANLINE_ORDER order);
+SK_DXGI_DescribeScanlineOrder (DXGI_MODE_SCANLINE_ORDER order) noexcept;
 
 const wchar_t*
-SK_DXGI_DescribeSwapEffect (DXGI_SWAP_EFFECT swap_effect);
+SK_DXGI_DescribeSwapEffect (DXGI_SWAP_EFFECT swap_effect) noexcept;
 
 std::wstring
 SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags);
@@ -386,6 +401,6 @@ void WINAPI SK_HookDXGI       (void);
 
 void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 
-void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
+void WINAPI SK_DXGI_SetPreferredAdapter (int override_id) noexcept;
 
 #endif /* __SK__DXGI_BACKEND_H__ */

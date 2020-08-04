@@ -310,8 +310,8 @@ SK::Vulkan::Shutdown (void)
 {
   if (hModVk != nullptr)
   {
-    FreeLibrary (hModVk);
-    hModVk = nullptr;
+    SK_FreeLibrary (hModVk);
+                    hModVk = nullptr;
   }
 
   return SK_ShutdownCore (L"Vulkan");

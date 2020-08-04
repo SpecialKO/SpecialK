@@ -333,7 +333,7 @@ SK_NNK2_InitPlugin (void)
       instn__limit_branch.disable    ();
 
       float* pfBase =
-        reinterpret_cast <float *>(((uintptr_t)GetModuleHandle (nullptr) + TIMESTEP_BASE_ADDR));
+        reinterpret_cast <float *>(((uintptr_t)SK_GetModuleHandle (nullptr) + TIMESTEP_BASE_ADDR));
 
       static float* pfdTi = pfBase;
       static float* pfdTr = pfBase+1;
@@ -360,7 +360,7 @@ SK_NNK2_InitPlugin (void)
 bool
 SK_NNK2_PlugInCfg (void)
 {
-  static float* pfdTi = (float *)((uint8_t *)GetModuleHandle (nullptr) +  TIMESTEP_BASE_ADDR);
+  static float* pfdTi = (float *)((uint8_t *)SK_GetModuleHandle (nullptr) +  TIMESTEP_BASE_ADDR);
   static float* pfdTr = pfdTi + 1;
 
   if (ImGui::CollapsingHeader (u8"Ni no Kuni™ II Revenant Kingdom", ImGuiTreeNodeFlags_DefaultOpen))

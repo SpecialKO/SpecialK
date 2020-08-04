@@ -22,6 +22,8 @@
 #ifndef __SK__RENDER_BACKEND_H__
 #define __SK__RENDER_BACKEND_H__
 
+#include <Unknwnbase.h>
+
 
 #include <SpecialK/com_util.h>
 #include <SpecialK/core.h>
@@ -37,6 +39,9 @@
 #include <comdef.h>
 #include <atlbase.h>
 #include <cstdint>
+
+#include <SpecialK\render\d3d12\d3d12_interfaces.h>
+
 
 class SK_RenderBackend_V1
 {
@@ -59,15 +64,17 @@ enum reset_stage_e
   Initiate = 0x0u, // Fake device loss
   Respond  = 0x1u, // Fake device not reset
   Clear    = 0x2u  // Return status to normal
-} extern trigger_reset;
+};
 
 enum mode_change_request_e
 {
   Windowed   =    0U, // Switch from Fullscreen to Windowed
   Fullscreen =    1U, // Switch from Windowed to Fullscreen
   None       = 0xFFU
-} extern request_mode_change;
+};
 
+extern reset_stage_e         trigger_reset;
+extern mode_change_request_e request_mode_change;
 
 struct sk_hwnd_cache_s
 {
@@ -96,7 +103,7 @@ struct sk_hwnd_cache_s
 
   bool    unicode          = false;
 
-  ULONG   last_changed     = 0UL;
+  ULONG64 last_changed     = 0UL;
 
 
   sk_hwnd_cache_s (HWND wnd);
@@ -128,22 +135,14 @@ const wchar_t*
 HDRModeToStr (NV_HDR_MODE mode);
 
 
-interface IDirect3DSurface9;
-interface IDXGISurface;
-
-interface ID3D11DeviceContext;
-interface ID3D11Texture2D;
-interface ID3D11RenderTargetView;
-
-
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
 public:
    SK_RenderBackend_V2 (void);
   ~SK_RenderBackend_V2 (void);
 
-  SK_ComPtr <IUnknown>    device               = nullptr;
-  SK_ComPtr <IUnknown>    swapchain            = nullptr;
+  SK_ComPtr <IUnknown>   device               = nullptr;
+  SK_ComPtr <IUnknown>   swapchain            = nullptr;
   // Different views of the same resource (API interop)
   struct {
     SK_ComPtr <IDirect3DSurface9>
@@ -152,6 +151,11 @@ public:
                           dxgi                 = nullptr;
     NVDX_ObjectHandle     nvapi                = nullptr;
   } surface;
+  struct {
+    struct {
+      SK_ComPtr <ID3D12Device> dev             = nullptr;
+    } d3d12;
+  } interop;
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
   int                     present_interval     = 0; // Present interval on last call to present
@@ -197,7 +201,8 @@ public:
       NV_DYNAMIC_RANGE    dynamic_range        = NV_DYNAMIC_RANGE_AUTO;
       NV_BPC              bpc                  = NV_BPC_DEFAULT;
 
-      bool                isHDR10 (void) const { return ( mode == NV_HDR_MODE_UHDA ||
+      bool                isHDR10 (void) const noexcept
+                                               { return ( mode == NV_HDR_MODE_UHDA ||
                                                           mode == NV_HDR_MODE_UHDA_PASSTHROUGH ); }
 
       bool setColorEncoding_HDR ( NV_COLOR_FORMAT fmt,
@@ -273,8 +278,8 @@ public:
 
   wchar_t                 display_name [128]   = { };
 
-  __inline void setHDRCapable (bool set) { hdr_capable = set; }
-  __inline bool isHDRCapable  (void)
+  __inline void setHDRCapable (bool set) noexcept { hdr_capable = set; }
+  __inline bool isHDRCapable  (void)     noexcept
   {
     if (framebuffer_flags& SK_FRAMEBUFFER_FLAG_HDR)
       hdr_capable = true;
@@ -296,7 +301,7 @@ public:
       begin_texmgmt, end_texmgmt;
   } present_staging;
 
-  static volatile LONG    frames_drawn;
+  static volatile LONG64  frames_drawn;
 
   struct window_registry_s
   {
@@ -324,14 +329,13 @@ public:
                ID3D11DeviceContext* immediate_ctx = nullptr;
   //SK_ComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
     SK_ComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
- //SK_ComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
+    SK_ComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
 
-    //struct {
-    //  UINT                               buffer_idx       = UINT_MAX;
-    //  SK_ComPtr <ID3D11Texture2D>        backbuffer_tex2D = nullptr;
-    //  SK_ComPtr <ID3D11RenderTargetView> backbuffer_rtv   = nullptr;
-    //} interop;
-
+    struct {
+      UINT                               buffer_idx       = UINT_MAX;
+      SK_ComPtr <ID3D11Texture2D>        backbuffer_tex2D = nullptr;
+      SK_ComPtr <ID3D11RenderTargetView> backbuffer_rtv   = nullptr;
+    } interop;
   } d3d11;
 
 
@@ -393,6 +397,8 @@ void SK_BootDXGI   (void);
 void SK_BootOpenGL (void);
 void SK_BootVulkan (void);
 
+BOOL SK_DXGI_SupportsTearing (void);
+
 
 _Return_type_success_ (nullptr)
 IUnknown*
@@ -403,12 +409,12 @@ SK_Render_GetAPIName (SK_RenderAPI api);
 
 
 __forceinline
-ULONG
+ULONG64
 __stdcall
 SK_GetFramesDrawn (void)
 {
   return
-    ULONG { gsl::narrow_cast <ULONG> (ReadAcquire (&SK_RenderBackend::frames_drawn)) };
+    ULONG { gsl::narrow_cast <ULONG> (ReadAcquire64 (&SK_RenderBackend::frames_drawn)) };
 }
 
 typedef enum

@@ -20,7 +20,6 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/widgets/widget.h>
 
 extern iSK_INI* osd_ini;
 
@@ -112,7 +111,6 @@ typedef struct
 #include <SpecialK/resource.h>
 
 #include "../depends//include/WinRing0/OlsApi.h"
-#include "../depends//include/WinRing0/OlsDef.h"
 
 InitializeOls_pfn       InitializeOls       = nullptr;
 DeinitializeOls_pfn     DeinitializeOls     = nullptr;
@@ -120,6 +118,7 @@ ReadPciConfigDword_pfn  ReadPciConfigDword  = nullptr;
 WritePciConfigDword_pfn WritePciConfigDword = nullptr;
 RdmsrTx_pfn             RdmsrTx             = nullptr;
 Rdmsr_pfn               Rdmsr               = nullptr;
+Rdpmc_pfn               Rdpmc               = nullptr;
 
 BOOL  WINAPI InitializeOls_NOP       ( void               ) {return FALSE;}
 VOID  WINAPI DeinitializeOls_NOP     ( void               ) {}
@@ -129,6 +128,7 @@ BOOL  WINAPI RdmsrTx_NOP             ( DWORD /*unused*/, PDWORD /*unused*/,
                                        PDWORD /*unused*/,DWORD_PTR    /*unused*/) {return FALSE;}
 BOOL  WINAPI Rdmsr_NOP               ( DWORD /*unused*/, PDWORD /*unused*/,
                                        PDWORD              /*unused*/) {return FALSE;}
+BOOL  WINAPI Rdpmc_NOP               ( DWORD /*unused*/, PDWORD /*unused*/, PDWORD /*unused*/ ) { return FALSE; }
 
 volatile LONG __SK_WR0_Init  = 0L;
 static HMODULE  hModWinRing0 = nullptr;
@@ -167,21 +167,22 @@ SK_WinRing0_Unpack (void)
 
     if (locked != nullptr)
     {
-      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
-      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszArchive     [MAX_PATH + 2] = { };
+      wchar_t      wszDestination [MAX_PATH + 2] = { };
 
       static std::wstring path_to_driver =
         SK_FormatStringW ( LR"(%ws\Drivers\WinRing0\)",
             std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
                          );
 
-      wcscpy (wszDestination, path_to_driver.c_str ());
+      wcsncpy_s ( wszDestination,          MAX_PATH,
+                  path_to_driver.c_str (), _TRUNCATE );
 
       if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES) {
         SK_CreateDirectories (wszDestination);
 }
 
-      wcscpy      (wszArchive, wszDestination);
+      wcsncpy_s   (wszArchive, MAX_PATH, wszDestination, _TRUNCATE);
       PathAppendW (wszArchive, L"WinRing0.7z");
 
       FILE* fPackedDriver =
@@ -231,6 +232,7 @@ enum SK_CPU_IntelMicroarch
   Airmont,
   KabyLake,
   ApolloLake,
+  IceLake,
 
   KnownIntelArchs,
 
@@ -269,27 +271,30 @@ struct SK_CPU_CoreSensors
 
   struct accumulator_s {
     volatile  LONG64 update_time  =      0LL;
-    volatile ULONG   tick         =      0UL;
+    volatile ULONG64 tick         =      0ULL;
 
     accum_result_s  result        = { 0.0, 0.0 };
 
-    accum_result_s&
-    update ( uint32_t new_val,
+    accum_result_s
+    update ( uint64_t new_val,
              double   coeff )
     {
-      if (new_val != ReadULongAcquire (&tick))
+      ULONG64 _tick =
+        ReadULong64Acquire (&tick);
+
+      //if (new_val != _tick)
       {
         double elapsed_ms =
           SK_DeltaPerfMS (ReadAcquire64 (&update_time), 1);
 
         uint64_t delta =
-          new_val - tick;
+          new_val - _tick;
 
         result.value      = static_cast <double> (delta) * coeff;
         result.elapsed_ms =                           elapsed_ms;
 
-        WriteULongRelease (&tick,                         new_val);
-        WriteRelease64    (&update_time, SK_QueryPerf ().QuadPart);
+        WriteULong64Release (&tick,                         new_val);
+        WriteRelease64      (&update_time, SK_QueryPerf ().QuadPart);
 
       //dll_log->Log (L"elapsed_ms=%f, value=%f, core=%p", result.elapsed_ms, result.value, this);
       }
@@ -297,7 +302,7 @@ struct SK_CPU_CoreSensors
       return
         result;
     }
-  } accum;
+  } accum, accum2;
 
    int64_t sample_taken = 0;
   uint32_t cpu_core     = 0;
@@ -394,7 +399,12 @@ SK_WR0_Init (void)
 
   if (init != 0) {
     return (init == 1);
-}
+  }
+
+  // Was it really worth whatever performance this gained?
+  //  -- Debugging this missing call was not easy!
+  InstructionSet::deferredInit (); // If it happens again -> IMMEDIATE INIT !!!
+
 
   bool install_fail = false;
 
@@ -429,11 +439,12 @@ SK_WR0_Init (void)
 
   if (has_WinRing0)
   {
-    hModWinRing0 = GetModuleHandleW (path_to_driver.c_str ());
+    hModWinRing0 =
+      SK_GetModuleHandleW (path_to_driver.c_str ());
 
     if (hModWinRing0 == nullptr) {
-        hModWinRing0 = LoadLibraryW (path_to_driver.c_str ());
-}
+        hModWinRing0 = SK_LoadLibraryW (path_to_driver.c_str ());
+    }
 
     InitializeOls =
       (InitializeOls_pfn)SK_GetProcAddress       ( hModWinRing0,
@@ -459,6 +470,10 @@ SK_WR0_Init (void)
       (Rdmsr_pfn)SK_GetProcAddress ( hModWinRing0,
                                        "Rdmsr" );
 
+    Rdpmc =
+      (Rdpmc_pfn)SK_GetProcAddress ( hModWinRing0,
+                                       "Rdpmc" );
+
     if ( InitializeOls != nullptr &&
          InitializeOls () )
     {
@@ -468,8 +483,7 @@ SK_WR0_Init (void)
     }
     else InterlockedExchange (&__SK_WR0_Init, -1);
   }
-  else { InterlockedExchange (&__SK_WR0_Init, -1);
-}
+  else { InterlockedExchange (&__SK_WR0_Init, -1); }
 
   init =
     ReadAcquire (&__SK_WR0_Init);
@@ -485,13 +499,14 @@ SK_WR0_Init (void)
     WritePciConfigDword = WritePciConfigDword_NOP;
     RdmsrTx             = RdmsrTx_NOP;
     Rdmsr               = Rdmsr_NOP;
+    Rdpmc               = Rdpmc_NOP;
 
     HMODULE hModToFree   = hModWinRing0;
             hModWinRing0 = nullptr;
 
-    while (FreeLibrary (hModToFree) != 0) {
+    while (SK_FreeLibrary (hModToFree) != 0) {
       ;
-}
+    }
 
     return
       SK_WR0_Init ();
@@ -699,7 +714,7 @@ SK_CPU_GetIntelMicroarch (void)
             break;
 
           case 0x4E:
-          case 0x0E: // Intel Core i7     6xxxx BGA1440 (14nm)
+        //case 0x0E: // Intel Core i7     6xxxx BGA1440 (14nm)
           case 0x5E: // Intel Core i5, i7 6xxxx LGA1151 (14nm)
           case 0x55: // Intel Core i7, i9 7xxxx LGA2066 (14nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Skylake;
@@ -722,6 +737,16 @@ SK_CPU_GetIntelMicroarch (void)
               SK_CPU_GetIntelTjMax (core.cpu_core);
 }
             break;
+
+          case 0x0E:
+          case 0x7E: // Intel Core i5, i7 10xxxx (14nm)
+            cpu.intel_arch = SK_CPU_IntelMicroarch::IceLake;
+            for (auto& core : cpu.cores) {
+              core.tjMax =
+                SK_CPU_GetIntelTjMax (core.cpu_core);
+            }
+            break;
+
 
           case 0x5C: // Intel Atom processors
             cpu.intel_arch = SK_CPU_IntelMicroarch::ApolloLake;
@@ -795,6 +820,7 @@ SK_CPU_GetIntelMicroarch (void)
       case SK_CPU_IntelMicroarch::Airmont:
       case SK_CPU_IntelMicroarch::KabyLake:
       case SK_CPU_IntelMicroarch::ApolloLake:
+      case SK_CPU_IntelMicroarch::IceLake:
       {
         if (Rdmsr (PLATFORM_INFO, &eax, &edx))
         {
@@ -814,6 +840,7 @@ SK_CPU_GetIntelMicroarch (void)
       {
         case SK_CPU_IntelMicroarch::Silvermont:
         case SK_CPU_IntelMicroarch::Airmont:
+        case SK_CPU_IntelMicroarch::IceLake:
           cpu.coefficients.energy =
             1.0e-6 * static_cast <double> (1ULL << gsl::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
           break;
@@ -913,7 +940,7 @@ SK_CPU_IsZen (bool retest/* = false*/)
 
     if (! SK_WR0_Init ()) {
       return false;
-}
+    }
 
     auto& cpu =
       __SK_CPU;
@@ -922,21 +949,34 @@ SK_CPU_IsZen (bool retest/* = false*/)
 
     for ( auto& zen : _SK_KnownZen )
     {
-      if ( strstr ( InstructionSet::Brand ().c_str (),
-                      zen.brandId ) != nullptr
+      if ( InstructionSet::Brand ().find (zen.brandId) !=
+              std::string::npos
          )
       {
         cpu.offsets.temperature =
           _SK_KnownZen [i].tempOffset;
-
-        SK_CPU_ZenCoefficients     coeffs = { };
-        SK_CPU_MakePowerUnit_Zen (&coeffs);
 
         is_zen = 1;
         break;
       }
 
       i++;
+    }
+
+    // May still be a Ryzen chip, just with unknown offsets
+    if (! is_zen)
+    {
+      if ( InstructionSet::Model  () == 0x01 &&
+           InstructionSet::Family () == 0x0f )
+      {
+        is_zen = 1;
+      }
+    }
+
+    if (is_zen)
+    {
+      SK_CPU_ZenCoefficients     coeffs = { };
+      SK_CPU_MakePowerUnit_Zen (&coeffs);
     }
   }
 
@@ -1291,6 +1331,19 @@ SK_CPU_UpdateCoreSensors (int core_idx)
 
   else if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::NotIntel)
   {
+    DWORD                      _eax,  _edx;
+    if (Rdpmc ((1 << 30) + 1, &_eax, &_edx))
+    {
+      uint64_t pmc = (  static_cast <uint64_t> (_eax) |
+                       (static_cast <uint64_t> (_edx) << 32ULL) ) & 0x000000ffffffffffULL;
+
+      auto accum_result =
+        core.accum2.update (pmc, 1.0);
+
+      core.clock_MHz =
+        (accum_result.value / (1000.0 * 1000.0)) / (accum_result.elapsed_ms / 1000.0);
+    }
+
     if ( Rdmsr (SK_CPU_IntelMSR::IA32_THERM_STATUS, &eax, &edx) &&
            (eax & 0x80000000) != 0 )
     {
@@ -1344,16 +1397,16 @@ class SKWG_CPU_Monitor : public SK_Widget
 public:
   struct power_scheme_s {
     GUID uid;
-    char utf8_name [128];
-    char utf8_desc [384];
+    char utf8_name [512];
+    char utf8_desc [512];
   };
 
   void
   resolveNameAndDescForPowerScheme (power_scheme_s& scheme)
   {
     DWORD   dwRet         = ERROR_NOT_READY;
-    DWORD   dwLen         = 127;
-    wchar_t wszName [128] = { };
+    DWORD   dwLen         = 511;
+    wchar_t wszName [512] = { };
 
     dwRet =
       PowerReadFriendlyName ( nullptr,
@@ -1364,14 +1417,14 @@ public:
 
     if (dwRet == ERROR_MORE_DATA)
     {
-      strncpy (scheme.utf8_name, "Too Long <Fix Me>", 127);
+      strncpy (scheme.utf8_name, "Too Long <Fix Me>", 511);
     }
 
     else if (dwRet == ERROR_SUCCESS)
     {
       wchar_t
-      wszDesc [384] = { };
-      dwLen =  383;
+      wszDesc [512] = { };
+      dwLen =  511;
       dwRet =
         PowerReadDescription ( nullptr,
                                  &scheme.uid,
@@ -1381,7 +1434,7 @@ public:
 
       if (dwRet == ERROR_MORE_DATA)
       {
-        strncpy (scheme.utf8_desc, "Description Long <Fix Me>", 383);
+        strncpy (scheme.utf8_desc, "Description Long <Fix Me>", 511);
       }
 
       else if (dwRet == ERROR_SUCCESS)
@@ -1389,14 +1442,14 @@ public:
         strncpy (
           scheme.utf8_desc,
             SK_WideCharToUTF8 (wszDesc).c_str (),
-              383
+              511
         );
       }
 
       strncpy (
         scheme.utf8_name,
           SK_WideCharToUTF8 (wszName).c_str (),
-            127
+            511
       );
     }
   }
@@ -1411,8 +1464,8 @@ public:
 
     active_scheme.notify   = INVALID_HANDLE_VALUE;
 
-    memset (active_scheme.utf8_name, 0, 128);
-    memset (active_scheme.utf8_desc, 0, 384);
+    memset (active_scheme.utf8_name, 0, 512);
+    memset (active_scheme.utf8_desc, 0, 512);
 
     InterlockedExchange (&active_scheme.dirty, 0);
 
@@ -1694,11 +1747,11 @@ public:
                     WritePciConfigDword  = WritePciConfigDword_NOP;
                     RdmsrTx              = RdmsrTx_NOP;
                     Rdmsr                = Rdmsr_NOP;
+                    Rdpmc                = Rdpmc_NOP;
 
                     if (hModWinRing0 != nullptr)
-                    { HMODULE              hModToFree = hModWinRing0;
-                      while ( FreeLibrary (hModToFree) != 0 ) {;
-}
+                    { HMODULE                 hModToFree = hModWinRing0;
+                      while ( SK_FreeLibrary (hModToFree) != 0 ) {;}
 
                       hModWinRing0 = nullptr;
                     }
@@ -2060,6 +2113,8 @@ public:
 
                     config.cpu.power_scheme_guid =  it.uid;
 
+                    signalDeviceChange ();
+
                     end_dialog = true;
                   }
 
@@ -2151,7 +2206,7 @@ public:
 
             ImGui::PopStyleColor (2);
 
-            if (core_sensors.power_W > 0.2 && (parked_since == 0 || show_parked))
+            if ( core_sensors.power_W > 0.005 && (parked_since == 0 || show_parked) )
             {
               ImGui::SameLine        (      );
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));

@@ -8,26 +8,15 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <SpecialK/tls.h>
-#include <SpecialK/log.h>
-#include <SpecialK/window.h>
-#include <SpecialK/config.h>
-#include <SpecialK/input/input.h>
 
-#include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <imgui/backends/imgui_d3d9.h>
-#include <imgui/imgui.h>
 
 extern void
 SK_ImGui_User_NewFrame (void);
 
-#include <windowsx.h>
 
 // DirectX
-#include <d3d9.h>
 
-#include <algorithm>
-#include <atlbase.h>
 
 // Data
 static HWND                    g_hWnd             = 0;
@@ -86,7 +75,8 @@ void
 ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
 {
   // Avoid rendering when minimized
-  ImGuiIO& io (ImGui::GetIO ());
+  auto& io =
+    ImGui::GetIO ();
 
   if ( io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f )
   {
@@ -233,7 +223,7 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
   g_pIB->Unlock ();
 
   g_pd3dDevice->SetStreamSource (0, g_pVB, 0, sizeof CUSTOMVERTEX);
-  g_pd3dDevice->SetIndices      (g_pIB);
+  g_pd3dDevice->SetIndices      (   g_pIB);
   g_pd3dDevice->SetFVF          (D3DFVF_CUSTOMVERTEX);
 
   // Setup viewport
@@ -251,30 +241,37 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
                      io.DisplaySize.x,      io.DisplaySize.y );
 
   // Setup render state: fixed-pipeline, alpha-blending, no face culling, no depth testing
-  g_pd3dDevice->SetPixelShader       (nullptr);
-  g_pd3dDevice->SetVertexShader      (nullptr);
+  g_pd3dDevice->SetPixelShader  (nullptr);
+  g_pd3dDevice->SetVertexShader (nullptr);
 
-  D3DCAPS9                      caps;
+  D3DCAPS9                      caps = { };
   g_pd3dDevice->GetDeviceCaps (&caps);
 
-  SK_ComPtr <IDirect3DSurface9> pBackBuffer = nullptr;
+  SK_ComPtr <IDirect3DSurface9> pBackBuffer;
   SK_ComPtr <IDirect3DSurface9> rts [8];
-  SK_ComPtr <IDirect3DSurface9> pDS         = nullptr;
+  SK_ComPtr <IDirect3DSurface9> pDS;
 
-  for (UINT target = 0; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
-  {
-    g_pd3dDevice->GetRenderTarget (target, &rts [target].p);
-  }
+  for ( UINT target = 0                                       ;
+             target < std::min (8UL, caps.NumSimultaneousRTs) ;
+             target++ )
+    g_pd3dDevice->GetRenderTarget (
+             target,
+       &rts [target].p
+    );
 
   g_pd3dDevice->GetDepthStencilSurface (&pDS);
 
   if (SUCCEEDED (g_pd3dDevice->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer.p)))
   {
     g_pd3dDevice->SetRenderTarget        (0, pBackBuffer);
-    g_pd3dDevice->SetDepthStencilSurface (nullptr);
+    g_pd3dDevice->SetDepthStencilSurface (       nullptr);
 
-    for (UINT target = 1; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
-      g_pd3dDevice->SetRenderTarget (target, nullptr);
+    for ( UINT target = 1                                       ;
+               target < std::min (8UL, caps.NumSimultaneousRTs) ;
+               target++ )
+      g_pd3dDevice->SetRenderTarget (
+               target, nullptr
+      );
   }
 
   g_pd3dDevice->SetRenderState       (D3DRS_CULLMODE,          D3DCULL_NONE);
@@ -304,6 +301,10 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAARG2,   D3DTA_DIFFUSE);
   g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MINFILTER,  D3DTEXF_LINEAR);
   g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MAGFILTER,  D3DTEXF_LINEAR);
+  g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MIPFILTER,  D3DTEXF_LINEAR);
+  g_pd3dDevice->SetSamplerState        (0, D3DSAMP_ADDRESSU,   D3DTADDRESS_WRAP);
+  g_pd3dDevice->SetSamplerState        (0, D3DSAMP_ADDRESSV,   D3DTADDRESS_WRAP);
+  g_pd3dDevice->SetSamplerState        (0, D3DSAMP_ADDRESSW,   D3DTADDRESS_WRAP);
 
   for (UINT i = 1; i < caps.MaxTextureBlendStages; i++) {
     g_pd3dDevice->SetTextureStageState (i, D3DTSS_COLOROP,     D3DTOP_DISABLE);
@@ -313,9 +314,9 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
   // Setup orthographic projection matrix
   // Being agnostic of whether <d3dx9.h> or <DirectXMath.h> can be used, we aren't relying on D3DXMatrixIdentity()/D3DXMatrixOrthoOffCenterLH() or DirectX::XMMatrixIdentity()/DirectX::XMMatrixOrthographicOffCenterLH()
   {
-    const float L = 0.5f,
+    const float L =                    0.5f,
                 R = io.DisplaySize.x + 0.5f,
-                T = 0.5f,
+                T =                    0.5f,
                 B = io.DisplaySize.y + 0.5f;
 
     D3DMATRIX mat_identity =
@@ -381,8 +382,13 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
     vtx_offset += cmd_list->VtxBuffer.Size;
   }
 
-  for (UINT target = 0; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
-    g_pd3dDevice->SetRenderTarget (target, rts [target]);
+  for ( UINT target = 0                                       ;
+             target < std::min (8UL, caps.NumSimultaneousRTs) ;
+             target++ )
+    g_pd3dDevice->SetRenderTarget (
+             target,
+        rts [target].p
+    );
 
   g_pd3dDevice->SetDepthStencilSurface (pDS);
 
@@ -403,14 +409,20 @@ ImGui_ImplDX9_Init ( void*                  hwnd,
   g_hWnd       = static_cast <HWND> (hwnd);
   g_pd3dDevice = device;
 
-  if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
-    return false;
+  static bool first = true;
 
-  if (! SK_QueryPerformanceCounter (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
-    return false;
+  if (first)
+  {
+    g_TicksPerSecond  =
+      SK_GetPerfFreq ( ).QuadPart;
+    g_Time            =
+      SK_QueryPerf   ( ).QuadPart;
 
-  ImGuiIO& io (ImGui::GetIO ());
+    first = false;
+  }
 
+  ImGuiIO& io =
+    ImGui::GetIO ();
 
   // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
   io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
@@ -436,7 +448,6 @@ ImGui_ImplDX9_Init ( void*                  hwnd,
 
   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
   io.ImeWindowHandle = g_hWnd;
-
 
   float width  = 0.0f,
         height = 0.0f;
@@ -469,17 +480,18 @@ IMGUI_API
 bool
 ImGui_ImplDX9_CreateFontsTexture (void)
 {
-  SK_TLS* pTLS = SK_TLS_Bottom ();
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
   pTLS->texture_management.injection_thread = TRUE;
 
   // Build texture atlas
-  ImGuiIO& io (ImGui::GetIO ());
+  auto& io =
+    ImGui::GetIO ();
 
   extern void
   SK_ImGui_LoadFonts (void);
-
-  SK_ImGui_LoadFonts ();
+  SK_ImGui_LoadFonts (    );
 
   unsigned char* pixels;
   int            width,
@@ -515,9 +527,10 @@ ImGui_ImplDX9_CreateFontsTexture (void)
 
   for (int y = 0; y < height; y++)
   {
-      memcpy ( (unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y,
-                 pixels + (width * bytes_per_pixel) * y,
-                   (width * bytes_per_pixel) );
+      memcpy ( (unsigned char *)tex_locked_rect.pBits +
+                                tex_locked_rect.Pitch * y,
+                 pixels + (width * bytes_per_pixel)   * y,
+                          (width * bytes_per_pixel) );
   }
 
   g_FontTexture->UnlockRect (0);
@@ -548,12 +561,13 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
 {
   extern void
   SK_ImGui_ResetExternal (void);
-  SK_ImGui_ResetExternal ();
+  SK_ImGui_ResetExternal (    );
 
   if (! g_pd3dDevice)
     return;
 
-  ImGuiIO& io (ImGui::GetIO ());
+  auto& io =
+    ImGui::GetIO ();
 
   if (g_pVB)
   {
@@ -592,18 +606,21 @@ SK_ImGui_PollGamepad (void);
 void
 ImGui_ImplDX9_NewFrame (void)
 {
-  ImGuiIO& io (ImGui::GetIO ());
+  auto& io =
+    ImGui::GetIO ();
+
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
 
   if (! g_FontTexture)
     ImGui_ImplDX9_CreateDeviceObjects ();
 
   static HMODULE hModTBFix =
-    GetModuleHandle (L"tbfix.dll");
-
+    SK_GetModuleHandle (L"tbfix.dll");
 
   // Setup display size (every frame to accommodate for window resizing)
-  RECT rect = { };
-  GetClientRect (SK_GetCurrentRenderBackend ().windows.device, &rect);
+  RECT                               rect = { };
+  GetClientRect (rb.windows.device, &rect);
 
   if ( (rect.right  - rect.left) > 0 &&
        (rect.bottom - rect.top)  > 0    )
@@ -618,20 +635,19 @@ ImGui_ImplDX9_NewFrame (void)
 
   if (! g_pd3dDevice)
   {
-     dll_log->Log (L"No device!");
+    dll_log->Log (L"No device!");
     return;
   }
 
 
-  SK_ComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
-
-  if (SUCCEEDED (g_pd3dDevice->GetSwapChain ( 0, &pSwapChain )))
+  SK_ComPtr <IDirect3DSwapChain9>                 pSwapChain;
+  if (SUCCEEDED (g_pd3dDevice->GetSwapChain ( 0, &pSwapChain.p )))
   {
-    D3DPRESENT_PARAMETERS pp = { };
-
+    D3DPRESENT_PARAMETERS                             pp = { };
     if (SUCCEEDED (pSwapChain->GetPresentParameters (&pp)))
     {
-      if (pp.BackBufferWidth != 0 && pp.BackBufferHeight != 0)
+      if ( pp.BackBufferWidth  != 0 &&
+           pp.BackBufferHeight != 0    )
       {
         io.DisplaySize.x = static_cast <float> (pp.BackBufferWidth);
         io.DisplaySize.y = static_cast <float> (pp.BackBufferHeight);
@@ -667,9 +683,13 @@ ImGui_ImplDX9_NewFrame (void)
     reinterpret_cast <LARGE_INTEGER *> (&current_time)
   );
 
-  io.DeltaTime = static_cast <float> (current_time - g_Time) /
-                 static_cast <float> (g_TicksPerSecond);
-  g_Time       =                      current_time;
+  io.DeltaTime =
+    std::min ( 1.0f,
+    std::max ( 0.0f, static_cast <float> (
+                    (static_cast <long double> (                       current_time) -
+                     static_cast <long double> (std::exchange (g_Time, current_time))) /
+                     static_cast <long double> (               g_TicksPerSecond      ) ) )
+    );
 
   // Read keyboard modifiers inputs
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;

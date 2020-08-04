@@ -21,12 +21,15 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L" DInput 8 "
 
 
 
 
-//extern bool nav_usable;
+extern bool __stdcall SK_IsGameWindowActive (void);
 
 
 using finish_pfn = void (WINAPI *)(void);
@@ -214,7 +217,7 @@ SK_BootDI8 (void)
       else if (hBackend != nullptr)
       {
         const bool bProxy =
-          ( GetModuleHandle (L"dinput8.dll") != hBackend );
+          ( SK_GetModuleHandle (L"dinput8.dll") != hBackend );
 
 
         if ( MH_OK ==
@@ -228,7 +231,7 @@ SK_BootDI8 (void)
           {
             DirectInput8Create_Import =
               reinterpret_cast <DirectInput8Create_pfn> (
-                GetProcAddress (hBackend, "DirectInput8Create")
+                SK_GetProcAddress (hBackend, "DirectInput8Create")
               );
           }
 
@@ -248,7 +251,7 @@ SK_BootDI8 (void)
                 dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
     SK_TestRenderImports (
-      GetModuleHandle (nullptr),
+      SK_GetModuleHandle (nullptr),
         &gl, &vulkan,
           &d3d9, &dxgi, &d3d11,
             &d3d8, &ddraw, &glide
@@ -947,6 +950,51 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
   if (lpvData != nullptr)
   {
+    auto
+    _NeutralizeJoystickAxes = [&](LONG* pAxisData)
+    {
+      static DIPROPRANGE
+        axes [] = {
+        { sizeof (DIPROPRANGE),
+          sizeof (DIPROPHEADER), DIJOFS_X,
+                                 DIPH_BYOFFSET,
+          0, MAXLONG                         },
+        { sizeof (DIPROPRANGE),
+          sizeof (DIPROPHEADER), DIJOFS_Y,
+                                 DIPH_BYOFFSET,
+          0, MAXLONG                         },
+        { sizeof (DIPROPRANGE),
+          sizeof (DIPROPHEADER), DIJOFS_Z,
+                                 DIPH_BYOFFSET,
+          0, MAXLONG                         },
+        { sizeof (DIPROPRANGE),
+          sizeof (DIPROPHEADER), DIJOFS_RX,
+                                 DIPH_BYOFFSET,
+          0, MAXLONG                         },
+        { sizeof (DIPROPRANGE),
+          sizeof (DIPROPHEADER), DIJOFS_RY,
+                                 DIPH_BYOFFSET,
+          0, MAXLONG                         },
+        { sizeof (DIPROPRANGE),
+          sizeof (DIPROPHEADER), DIJOFS_RZ,
+                                 DIPH_BYOFFSET,
+          0, MAXLONG                         },
+      };
+
+      for ( auto& axis : axes )
+      {
+        if (SUCCEEDED (This->GetProperty (DIPROP_RANGE, &axis.diph)))
+        {
+          *pAxisData++ =
+            ( axis.lMax - axis.lMin ) / 2;
+        }
+
+        else
+          *pAxisData++ =
+            ( MAXLONG / 2 );
+      }
+    };
+
     if (cbData == sizeof (DIJOYSTATE2))
     {
       SK_DI8_READ (sk_input_dev_type::Gamepad)
@@ -956,7 +1004,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
       //
       //  *** This is beyond stupid and you need to remove it :)
       //
-      static DIJOYSTATE2 last_state;
+      static DIJOYSTATE2 last_state = { };
 
       auto* out =
         static_cast <DIJOYSTATE2 *> (lpvData);
@@ -972,12 +1020,20 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
       if (disabled_to_game || FAILED (hr))
       {
-        RtlSecureZeroMemory (out, cbData);
+        // Not even going to bother neutralizing sliders and
+        //   that fun stuff... we're reusing the last state!
+        memcpy (out, &last_state, cbData);
 
-        out->rgdwPOV [0] = std::numeric_limits <DWORD>::max ();
-        out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
-        out->rgdwPOV [2] = std::numeric_limits <DWORD>::max ();
-        out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
+        std::fill ( std::begin (out->rgbButtons),
+                    std::end   (out->rgbButtons), 0ui8 );
+
+        _NeutralizeJoystickAxes (&out->lX);
+
+        // -1 = D-Pad Neutral, technically just LOWORD (-1)...
+        //                       but -1L works in compliant code
+        std::fill ( std::begin (out->rgdwPOV),
+                    std::end   (out->rgdwPOV),
+                      std::numeric_limits <DWORD>::max () );
       }
     }
 
@@ -987,7 +1043,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
       //dll_log.Log (L"Joy");
 
-      static DIJOYSTATE last_state;
+      static DIJOYSTATE last_state = { };
 
       auto* out =
         static_cast <DIJOYSTATE *> (lpvData);
@@ -1003,12 +1059,20 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
       if (disabled_to_game || FAILED (hr))
       {
-        RtlSecureZeroMemory (out, cbData);
+        // Not even going to bother neutralizing sliders and
+        //   that fun stuff... we're reusing the last state!
+        memcpy (out, &last_state, cbData);
 
-        out->rgdwPOV [0] = std::numeric_limits <DWORD>::max ();
-        out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
-        out->rgdwPOV [2] = std::numeric_limits <DWORD>::max ();
-        out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
+        std::fill ( std::begin (out->rgbButtons),
+                    std::end   (out->rgbButtons), 0ui8 );
+
+        _NeutralizeJoystickAxes (&out->lX);
+
+        // -1 = D-Pad Neutral, technically just LOWORD (-1)...
+        //                       but -1L works in compliant code
+        std::fill ( std::begin (out->rgdwPOV),
+                    std::end   (out->rgdwPOV),
+                      std::numeric_limits <DWORD>::max () );
       }
     }
 
@@ -1022,7 +1086,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
       if (SUCCEEDED (hr))
         memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
 
-      if (disabled_to_game || (! game_window.active) || FAILED (hr))
+      if (disabled_to_game || (! SK_IsGameWindowActive ()) || FAILED (hr))
         RtlSecureZeroMemory (lpvData, cbData);
     }
 
@@ -1042,7 +1106,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
       if (SUCCEEDED (hr))
         memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);
 
-      if (disabled_to_game || (! game_window.active) || FAILED (hr))
+      if (disabled_to_game || (! SK_IsGameWindowActive ()) || FAILED (hr))
         RtlSecureZeroMemory (lpvData, cbData);
     }
   }
@@ -1125,8 +1189,24 @@ IDirectInputDevice8W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8W This,
                                                   HWND                  hwnd,
                                                   DWORD                 dwFlags )
 {
+  SK_LOG_FIRST_CALL
+
   if (config.input.keyboard.block_windows_key)
     dwFlags |= DISCL_NOWINKEY;
+  //else if (config.input.keyboard.unblock_windows_key)
+  //  dwFlags &= ~DISCL_NOWINKEY;
+
+  bool bMouse    = ( This == _dim.pDev );
+  bool bKeyboard = ( This == _dik.pDev );
+
+  if (! (bMouse || bKeyboard))
+  {
+    if (config.window.background_render)
+    {
+      dwFlags &= ~DISCL_FOREGROUND;
+      dwFlags |=  DISCL_BACKGROUND;
+    }
+  }
 
   HRESULT hr =
     IDirectInputDevice8W_SetCooperativeLevel_Original (This, hwnd, dwFlags);
@@ -1134,19 +1214,21 @@ IDirectInputDevice8W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8W This,
   if (SUCCEEDED (hr))
   {
     // Mouse
-    if (This == _dim.pDev)
+    if (bMouse)
       _dim.coop_level = dwFlags;
 
     // Keyboard   (why do people use DirectInput for keyboards? :-\)
-    else if (This == _dik.pDev)
+    else if (bKeyboard)
       _dik.coop_level = dwFlags;
 
     // Anything else is probably not important
   }
 
+  // SK's UI needs to be able to read this
   if (SK_ImGui_WantMouseCapture ())
   {
     dwFlags &= ~DISCL_EXCLUSIVE;
+    dwFlags |=  DISCL_NONEXCLUSIVE;
 
     IDirectInputDevice8W_SetCooperativeLevel_Original (This, hwnd, dwFlags);
   }
@@ -1160,8 +1242,24 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
                                                   HWND                  hwnd,
                                                   DWORD                 dwFlags )
 {
+  SK_LOG_FIRST_CALL
+
   if (config.input.keyboard.block_windows_key)
     dwFlags |= DISCL_NOWINKEY;
+  //else if (config.input.keyboard.unblock_windows_key)
+  //  dwFlags &= ~DISCL_NOWINKEY;
+
+  bool bMouse    = ( This == (IDirectInputDevice8A *)_dim.pDev );
+  bool bKeyboard = ( This == (IDirectInputDevice8A *)_dik.pDev );
+
+  if (! (bMouse || bKeyboard))
+  {
+    if (config.window.background_render)
+    {
+      dwFlags &= ~DISCL_FOREGROUND;
+      dwFlags |=  DISCL_BACKGROUND;
+    }
+  }
 
   HRESULT hr =
     IDirectInputDevice8A_SetCooperativeLevel_Original (This, hwnd, dwFlags);
@@ -1169,19 +1267,22 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
   if (SUCCEEDED (hr))
   {
     // Mouse
-    if (This == (IDirectInputDevice8A *)_dim.pDev)
+    if (bMouse)
       _dim.coop_level = dwFlags;
 
     // Keyboard   (why do people use DirectInput for keyboards? :-\)
-    else if (This == (IDirectInputDevice8A *)_dik.pDev)
+    else if (bKeyboard)
       _dik.coop_level = dwFlags;
 
     // Anything else is probably not important
   }
 
+    // SK's UI needs to be able to read this
+
   if (SK_ImGui_WantMouseCapture ())
   {
     dwFlags &= ~DISCL_EXCLUSIVE;
+    dwFlags |=  DISCL_NONEXCLUSIVE;
 
     IDirectInputDevice8A_SetCooperativeLevel_Original (This, hwnd, dwFlags);
   }
@@ -1419,7 +1520,7 @@ SK_Input_HookDI8 (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (GetModuleHandle (L"dinput8.dll"))
+  if (SK_GetModuleHandle (L"dinput8.dll"))
   {
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {
@@ -1434,9 +1535,9 @@ SK_Input_HookDI8 (void)
 
       //HMODULE hBackend =
       //  (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
-      //                                  GetModuleHandle (L"dinput8.dll");
+      //                                  SK_GetModuleHandle (L"dinput8.dll");
 
-      if (GetProcAddress (GetModuleHandle (L"dinput8.dll"), "DirectInput8Create"))
+      if (SK_GetProcAddress (SK_GetModuleHandle (L"dinput8.dll"), "DirectInput8Create"))
       {
         SK_CreateDLLHook2 (      L"dinput8.dll",
                                   "DirectInput8Create",
@@ -1444,7 +1545,7 @@ SK_Input_HookDI8 (void)
           static_cast_p2p <void> (&DirectInput8Create_Import) );
       }
 
-      if (GetModuleHandle (L"dinput.dll"))
+      if (SK_GetModuleHandle (L"dinput.dll"))
       {
         extern void
         SK_Input_HookDI7 (void);
@@ -1487,9 +1588,9 @@ SK_Input_PreHookDI8 (void)
       static sk_import_test_s tests [] = { { "dinput.dll",  false },
                                            { "dinput8.dll", false } };
 
-      SK_TestImports (GetModuleHandle (nullptr), tests, 2);
+      SK_TestImports (SK_GetModuleHandle (nullptr), tests, 2);
 
-      if (tests [1].used || GetModuleHandle (L"dinput8.dll"))
+      if (tests [1].used || SK_GetModuleHandle (L"dinput8.dll"))
       {
         if (SK_GetDLLRole () != DLL_ROLE::DInput8)
          SK_Input_HookDI8 ();
@@ -1501,7 +1602,7 @@ SK_Input_PreHookDI8 (void)
                                        nullptr );
       }
 
-      if (tests [0].used || GetModuleHandle (L"dinput.dll"))
+      if (tests [0].used || SK_GetModuleHandle (L"dinput.dll"))
       {
         SK_Modules->LoadLibraryLL (L"dinput.dll");
                            SK_Input_PreHookDI7 ();

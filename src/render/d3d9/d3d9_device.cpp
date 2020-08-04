@@ -20,6 +20,11 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/utility.h>
+
+#ifndef __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"D3D9Device"
+#endif
 
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_device.h>
@@ -39,12 +44,11 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
   else if (
     riid == IID_IWrapDirect3DDevice9Ex  ||
     riid == IID_IWrapDirect3DDevice9    ||
-    riid == __uuidof (this)             ||
-    //riid == __uuidof (IUnknown)         || // Ignore IUnknown, it's often queried to test object equality between different interfaces
+    riid == __uuidof (IUnknown)         ||
     riid == __uuidof (IDirect3DDevice9) ||
     riid == __uuidof (IDirect3DDevice9Ex) )
   {
-    #pragma region Update to IDirect3DDevice9Ex interface
+#pragma region Update to IDirect3DDevice9Ex interface
     if ((! d3d9ex_) && riid == __uuidof (IDirect3DDevice9Ex))
     {
       IDirect3DDevice9Ex *deviceex = nullptr;
@@ -67,8 +71,6 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
       return E_NOINTERFACE;
     }
 
-                                 pReal->AddRef  ();
-    InterlockedExchange (&refs_, pReal->Release ());
     AddRef ();
 
     *ppvObj = this;
@@ -76,58 +78,79 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
     return S_OK;
   }
 
-  return pReal->QueryInterface (riid, ppvObj);
+  HRESULT hr =
+    pReal->QueryInterface (riid, ppvObj);
+
+  if (SUCCEEDED (hr))
+    InterlockedIncrement (&refs_);
+
+  if ( riid != IID_IUnknown &&
+       riid != IID_ID3DUserDefinedAnnotation )
+  {
+    static bool once = false;
+
+    if (! once)
+    {
+      once = true;
+
+      wchar_t                wszGUID [41] = { };
+      StringFromGUID2 (riid, wszGUID, 40);
+
+      SK_LOG0 ( ( L"QueryInterface on wrapped D3D9 Device Context for Mystery UUID: %s",
+                      wszGUID ), L"   D3D9   " );
+    }
+  }
+
+  return
+    hr;
 }
+
 ULONG
 STDMETHODCALLTYPE
 IWrapDirect3DDevice9::AddRef (void)
 {
   InterlockedIncrement (&refs_);
 
-  return pReal->AddRef ();
+  return
+    pReal->AddRef ();
 }
 
 ULONG
 STDMETHODCALLTYPE
 IWrapDirect3DDevice9::Release (void)
 {
-  // What this thread thinks the reference count is
-  ULONG local_refs = InterlockedDecrement (&refs_);
+  if (pReal == nullptr) // <-- Hack for "Indivisible"
+    return 0;
 
-  if (local_refs == 0)
+  ULONG xrefs =
+    InterlockedDecrement (&refs_),
+         refs = pReal->Release ();
+
+  if (refs == 0 && xrefs != 0)
   {
-    assert (implicit_swapchain_ != nullptr);
-
-    implicit_swapchain_->Release ();
-  }
-
-  ULONG refs =
-    pReal->Release ();
-
-  if (local_refs == 0 && refs != 0)
-  {
-    SK_LOG0 ( (L"Reference count for 'IDirect3DDevice9' object %08" PRIxPTR
-               L"h is inconsistent: %lu, but expected 0.",
-                (uintptr_t)this, refs ),
-               L"   D3D9   " );
-
-    refs = 0;
+    // Assertion always fails, we just want to be vocal about
+    //   any code that causes this.
+    SK_ReleaseAssert (xrefs == 0);
   }
 
   if (refs == 0)
   {
-    assert (ReadAcquire (&refs_) == 0);
+    SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
 
-    if (d3d9ex_)
-      InterlockedDecrement (&SK_D3D9_LiveWrappedDevicesEx);
-    else
-      InterlockedDecrement (&SK_D3D9_LiveWrappedDevices);
+    InterlockedDecrement ( d3d9ex_  ?
+      &SK_D3D9_LiveWrappedDevicesEx :
+      &SK_D3D9_LiveWrappedDevices );
+
+    implicit_swapchain_ = nullptr;
+
+    pReal = nullptr;
 
     delete this;
   }
 
-  return local_refs;
+  return refs;
 }
+
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::TestCooperativeLevel()
 {
   return pReal->TestCooperativeLevel();
@@ -180,6 +203,8 @@ BOOL STDMETHODCALLTYPE IWrapDirect3DDevice9::ShowCursor(BOOL bShow)
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS *pPresentationParameters, IDirect3DSwapChain9 **ppSwapChain)
 {
+  SK_LOG_FIRST_CALL
+
   IDirect3DSwapChain9* pTemp = nullptr;
 
   HRESULT hr = pReal->CreateAdditionalSwapChain (pPresentationParameters, &pTemp);
@@ -199,15 +224,15 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetSwapChain(UINT iSwapChain, ID
   {
     if (iSwapChain < GetNumberOfSwapChains ())
     {
-                                                           additional_swapchains_ [iSwapChain - 1]->AddRef ();
+                                                          additional_swapchains_ [iSwapChain - 1]->AddRef ();
       *ppSwapChain = static_cast <IDirect3DSwapChain9 *> (additional_swapchains_ [iSwapChain - 1]);
       return D3D_OK;
     }
     else
       return D3DERR_INVALIDCALL;
   }
-                                                      implicit_swapchain_->AddRef ();
-  *ppSwapChain = static_cast <IDirect3DSwapChain9 *> (implicit_swapchain_.get ());
+                                                      implicit_swapchain_.p->AddRef ();
+  *ppSwapChain = static_cast <IDirect3DSwapChain9 *> (implicit_swapchain_.p);
   return D3D_OK;
 }
 UINT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetNumberOfSwapChains (void)
@@ -216,8 +241,10 @@ UINT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetNumberOfSwapChains (void)
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
+  //additional_swapchains_.clear ();
+
   HRESULT hr =
-    static_cast <IDirect3DDevice9 *>(pReal)->Reset(pPresentationParameters);
+    static_cast <IDirect3DDevice9 *>(pReal)->Reset (pPresentationParameters);
 
   return hr;
 }
@@ -226,7 +253,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Present(const RECT *pSourceRect,
 {
   sk_d3d9_swap_dispatch_s dispatch =
   {
-    pReal,               implicit_swapchain_.get (),
+    pReal,               implicit_swapchain_,
     pSourceRect,         pDestRect,
     hDestWindowOverride, pDirtyRegion,
     0x00,
@@ -695,7 +722,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::PresentEx(const RECT *pSourceRec
 
   sk_d3d9_swap_dispatch_s dispatch =
   {
-    pReal,               implicit_swapchain_.get (),
+    pReal,               implicit_swapchain_,
     pSourceRect,         pDestRect,
     hDestWindowOverride, pDirtyRegion,
     dwFlags,
@@ -801,5 +828,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDisplayModeEx(UINT iSwapChain
   }
 
 
-  return static_cast <IDirect3DSwapChain9Ex *>(implicit_swapchain_.get ())->GetDisplayModeEx (pMode, pRotation);
+  return
+    implicit_swapchain_->GetDisplayModeEx (
+                         pMode, pRotation );
 }

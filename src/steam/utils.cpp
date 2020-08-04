@@ -103,7 +103,7 @@ public:
 
 
   void                 SetWarningMessageHook          ( SteamAPIWarningMessageHook_t
-                                                                 pFunction )                    override
+                                                                 pFunction )            override
    { return pRealUtils->SetWarningMessageHook (pFunction);                                              }
 
 

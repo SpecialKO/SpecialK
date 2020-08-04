@@ -33,25 +33,39 @@ std::string
 SK_WideCharToUTF8 (const std::wstring& in)
 {
   size_t len =
-    WideCharToMultiByte ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0, nullptr, FALSE );
+    WideCharToMultiByte ( CP_UTF8, 0x00, in.c_str (), -1,
+                           nullptr, 0, nullptr, FALSE );
 
-  std::string out (len * 2 + 2, '\0');
+  std::string out (
+    len * 2 + 2,
+      '\0'
+  );
 
-  WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), gsl::narrow_cast <int> (in.length ()), out.data (), gsl::narrow_cast <DWORD> (len), nullptr, FALSE );
+  WideCharToMultiByte   ( CP_UTF8, 0x00,          in.c_str  (),
+                          gsl::narrow_cast <int> (in.length ()),
+                                                 out.data   (),
+                          gsl::narrow_cast <DWORD>       (len),
+                            nullptr,                   FALSE );
 
-  // Pretty sure this is pointless and already implied, but it makes me laugh
   return out;
 }
 
 std::wstring
 SK_UTF8ToWideChar (const std::string& in)
 {
-  size_t len = MultiByteToWideChar ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0 );
+  size_t len =
+    MultiByteToWideChar ( CP_UTF8, 0x00, in.c_str (), -1,
+                           nullptr, 0 );
 
-  std::wstring out
-    (len * 2 + 2, L'\0');
+  std::wstring out (
+    len * 2 + 2,
+      L'\0'
+  );
 
-  MultiByteToWideChar           ( CP_UTF8, 0x00, in.c_str (), gsl::narrow_cast <int> (in.length ()), out.data (), gsl::narrow_cast <DWORD> (len) );
+  MultiByteToWideChar   ( CP_UTF8, 0x00,          in.c_str  (),
+                          gsl::narrow_cast <int> (in.length ()),
+                                                 out.data   (),
+                          gsl::narrow_cast <DWORD>       (len) );
 
   return out;
 }
@@ -82,6 +96,82 @@ SK_COM_TestInit (void)
 
   return false;
 }
+
+HRESULT
+SK_Shell32_GetKnownFolderPath ( _In_ REFKNOWNFOLDERID rfid,
+                                     std::wstring&     dir,
+                            volatile LONG*             _RunOnce )
+{
+  // Use the current directory if COM or permissions are mucking things up
+  auto _FailFastAndDie =
+  [&] (void)->HRESULT
+  {
+    wchar_t wszCurrentDir[MAX_PATH + 2] = { };
+    GetCurrentDirectoryW (MAX_PATH, wszCurrentDir);
+
+    dir = wszCurrentDir;
+
+    InterlockedIncrementRelease (_RunOnce);
+
+    return E_ACCESSDENIED;
+  };
+
+  auto _TrySHGetKnownFolderPath =
+    [&](HANDLE hToken, wchar_t** ppStr)->HRESULT
+  {
+    HRESULT try_result =
+      SHGetKnownFolderPath (rfid, 0, hToken, ppStr);
+
+    if (SUCCEEDED (try_result))
+    {
+      dir = *ppStr;
+
+      CoTaskMemFree (*ppStr);
+
+      InterlockedIncrementRelease (_RunOnce);
+    }
+
+    return try_result;
+  };
+
+
+  HRESULT hr =
+    S_OK;
+
+  if (! InterlockedCompareExchangeAcquire (_RunOnce, 1, 0))
+  {
+    SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
+    wchar_t*      str    = nullptr;
+
+    if (! OpenProcessToken (
+            SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
+                                     TOKEN_READ, &hToken.m_h )
+       )
+    {
+      return
+        _FailFastAndDie ();
+    }
+
+    hr =
+      _TrySHGetKnownFolderPath (hToken.m_h, &str);
+
+    // Second chance
+    if (FAILED (hr))
+    {
+      SK_AutoCOMInit _com_base;
+
+      hr =
+        _TrySHGetKnownFolderPath (hToken.m_h, &str);
+    }
+
+    //We're @#$%'d
+    if (FAILED (hr))
+      return _FailFastAndDie ();
+  }
+
+  return hr;
+}
+
 std::wstring&
 SK_GetDocumentsDir (void)
 {
@@ -97,46 +187,17 @@ SK_GetDocumentsDir (void)
       return dir;
   }
 
-  if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
+  HRESULT hr =
+    SK_Shell32_GetKnownFolderPath (FOLDERID_Documents, dir, &__init);
+
+  if (FAILED (hr))
   {
-    SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
-    wchar_t*      str    = nullptr;
-
-    if (! OpenProcessToken (
-            SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
-                                     TOKEN_READ, &hToken.m_h )
-       )
-    {
-      dir = L"(null)";
-
-      InterlockedIncrement (&__init);
-      return dir;
-    }
-
-    SK_AutoCOMInit need_com;
-
-    HRESULT hr =
-      SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
-
-    dir =
-      ( SUCCEEDED (hr) ? str : L"UNKNOWN" );
-    if (SUCCEEDED (hr))
-    {
-      InterlockedIncrementRelease (&__init);
-
-      CoTaskMemFree (str);
-      return dir;
-    }
-
     SK_LOG0 ( ( L"ERROR: Could not get User's Documents Directory!  [HRESULT=%x]",
                   hr ),
                 L" SpecialK " );
-
-    InterlockedIncrementRelease (&__init);
   }
 
-  else
-    SK_Thread_SpinUntilAtomicMin (&__init, 2);
+  SK_Thread_SpinUntilAtomicMin (&__init, 2);
 
   return dir;
 }
@@ -144,35 +205,29 @@ SK_GetDocumentsDir (void)
 std::wstring&
 SK_GetRoamingDir (void)
 {
+  static volatile LONG __init = 0;
+
   // Fast Path  (cached)
   //
-  static std::wstring dir (L"");
+  static std::wstring dir;
 
-  if (! dir.empty ())
-    return dir;
-
-  SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
-  wchar_t*      str    = nullptr;
-
-  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
-                                                   TOKEN_READ, &hToken.m_h))
+  if (ReadAcquire (&__init) == 2)
   {
-    dir = L"(null)";
-    return dir;
+    if (! dir.empty ())
+      return dir;
   }
-
-  SK_AutoCOMInit need_com;
 
   HRESULT hr =
-    SHGetKnownFolderPath (FOLDERID_RoamingAppData, 0, hToken, &str);
+    SK_Shell32_GetKnownFolderPath (FOLDERID_RoamingAppData, dir, &__init);
 
-  dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
-
-  if (SUCCEEDED (hr))
+  if (FAILED (hr))
   {
-    CoTaskMemFree (str);
-    return dir;
+    SK_LOG0 ( ( L"ERROR: Could not get User's Roaming Directory!  [HRESULT=%x]",
+                  hr ),
+                L" SpecialK " );
   }
+
+  SK_Thread_SpinUntilAtomicMin (&__init, 2);
 
   return dir;
 }
@@ -192,37 +247,17 @@ SK_GetFontsDir (void)
       return dir;
   }
 
-  if (! InterlockedCompareExchange (&__init, 1, 0))
+  HRESULT hr =
+    SK_Shell32_GetKnownFolderPath (FOLDERID_Fonts, dir, &__init);
+
+  if (FAILED (hr))
   {
-    SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
-    wchar_t*      str    = nullptr;
-
-    if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
-                                                     TOKEN_READ, &hToken.m_h ) )
-    {
-      dir = L"(null)";
-
-      InterlockedIncrement (&__init);
-
-      return dir;
-    }
-
-    SK_AutoCOMInit need_com;
-
-    HRESULT hr =
-      SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
-
-    dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
-
-    if (SUCCEEDED (hr))
-    {
-      CoTaskMemFree (str);
-
-      InterlockedIncrement (&__init);
-
-      return dir;
-    }
+    SK_LOG0 ( ( L"ERROR: Could not get Font Directory!  [HRESULT=%x]",
+                  hr ),
+                L" SpecialK " );
   }
+
+  SK_Thread_SpinUntilAtomicMin (&__init, 2);
 
   return dir;
 }
@@ -280,9 +315,9 @@ bool
 __stdcall
 SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
 {
-    wchar_t   wszDirPath [MAX_PATH * 2 + 1] = { };
-  wcsncpy_s ( wszDirPath, MAX_PATH * 2,
-                wszPath,   _TRUNCATE );
+    wchar_t   wszDirPath [MAX_PATH + 2] = { };
+  wcsncpy_s ( wszDirPath, MAX_PATH,
+                wszPath, _TRUNCATE );
 
   wchar_t* wszTest =         wszDirPath;
   size_t   len     = wcslen (wszDirPath);
@@ -311,8 +346,8 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
     return true;
 
 
-  wchar_t     wszSubDir [MAX_PATH * 2 + 1] = { };
-  wcsncpy_s ( wszSubDir, MAX_PATH * 2,
+  wchar_t     wszSubDir [MAX_PATH + 2] = { };
+  wcsncpy_s ( wszSubDir, MAX_PATH,
                 wszDirPath, _TRUNCATE );
 
   wchar_t* iter;
@@ -361,11 +396,11 @@ SK_EvalEnvironmentVars (const wchar_t* wszEvaluateMe)
   if (! wszEvaluateMe)
     return std::wstring ();
 
-  wchar_t wszEvaluated [MAX_PATH * 2 + 1] = { };
+  wchar_t wszEvaluated [MAX_PATH * 4 + 2] = { };
 
   ExpandEnvironmentStringsW ( wszEvaluateMe,
                                 wszEvaluated,
-                                  MAX_PATH * 2 );
+                                  MAX_PATH * 4 );
 
   return
     wszEvaluated;
@@ -438,7 +473,7 @@ SK_File_MoveNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
                         wszNew,
                           MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED ) )
   {
-    wchar_t wszTemp [MAX_PATH] = { };
+    wchar_t wszTemp [MAX_PATH + 2] = { };
     GetTempFileNameW (SK_SYS_GetInstallPath ().c_str (), L"SKI", timeGetTime (), wszTemp);
 
     MoveFileExW ( wszNew, wszTemp, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
@@ -634,16 +669,28 @@ FARPROC
 WINAPI
 SK_GetProcAddress (HMODULE hMod, const char* szFunc) noexcept
 {
+  FARPROC proc = nullptr;
+
   if (hMod != nullptr)
   {
+    SetLastError (NO_ERROR);
+
     if (GetProcAddress_Original != nullptr)
     {
-      return
+      proc =
         GetProcAddress_Original (hMod, szFunc);
+
+      if (GetLastError () == NO_ERROR)
+        return proc;
+
+      return nullptr;
     }
 
-    return
+    proc =
       GetProcAddress (hMod, szFunc);
+
+    if (GetLastError () == NO_ERROR)
+      return proc;
   }
 
   return nullptr;
@@ -668,7 +715,7 @@ SK_GetProcAddress (const wchar_t* wszModule, const char* szFunc)
 std::wstring
 SK_GetModuleFullName (HMODULE hDll)
 {
-  wchar_t wszDllFullName [MAX_PATH * 2 + 1] = { };
+  wchar_t wszDllFullName [MAX_PATH + 2] = { };
 
   GetModuleFileName ( hDll,
                         wszDllFullName,
@@ -680,7 +727,7 @@ SK_GetModuleFullName (HMODULE hDll)
 std::wstring
 SK_GetModuleName (HMODULE hDll)
 {
-  wchar_t wszDllFullName [MAX_PATH * 2 + 1] = { };
+  wchar_t wszDllFullName [MAX_PATH + 2] = { };
 
   GetModuleFileName ( hDll,
                         wszDllFullName,
@@ -971,33 +1018,6 @@ FindProcessByName (const wchar_t* wszName)
   return pe32;
 }
 
-std::wstring
-SK_GetRTSSInstallDir (void)
-{
-  //PROCESSENTRY32 pe32 =
-  //  FindProcessByName (L"RTSS.exe");
-  //
-  wchar_t wszPath [MAX_PATH] = { };
-  //
-  //if (wcsstr (pe32.szExeFile, L"RTSS.exe"))
-  //{
-  //  CHandle hProcess (
-  //    OpenProcess (PROCESS_QUERY_LIMITED_INFORMATION , FALSE, pe32.th32ProcessID)
-  //  );
-  //
-  //  DWORD len = MAX_PATH;
-  //  QueryFullProcessImageName (hProcess, 0, wszPath, &len);
-  //
-  //  wchar_t* wszRTSS =
-  //    wcsstr (wszPath, L"RTSS.exe");
-  //
-  //  if (wszRTSS != nullptr)
-  //    *wszRTSS = L'\0';
-  //}
-
-  return wszPath;
-}
-
 iSK_INI*
 SK_GetDLLConfig (void)
 {
@@ -1017,10 +1037,6 @@ extern BOOL APIENTRY DllMain (HMODULE hModule,
                               DWORD   ul_reason_for_call,
                               LPVOID  /* lpReserved */);
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
-#include <SpecialK/render/d3d9/d3d9_backend.h>
-#include <SpecialK/render/gl/opengl_backend.h>
-#include <SpecialK/input/dinput8_backend.h>
 
 void
 __stdcall
@@ -1211,6 +1227,43 @@ private:
 };
 
 
+extern
+LPVOID SK_Debug_GetImageBaseAddr (void);
+
+bool
+SK_PE32_IsLargeAddressAware (void)
+{
+#ifdef _M_AMD64
+  return true;
+#else
+  PIMAGE_NT_HEADERS pNtHdr   = nullptr;
+  uintptr_t         pImgBase = (uintptr_t)
+    SK_Debug_GetImageBaseAddr ();
+
+  __try
+  {
+    pNtHdr   =
+      PIMAGE_NT_HEADERS (
+        pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew
+      );
+
+    assert (pNtHdr->FileHeader.Machine == IMAGE_FILE_MACHINE_I386);
+
+    return
+      ( pNtHdr->FileHeader.Characteristics &
+          IMAGE_FILE_LARGE_ADDRESS_AWARE ) ==
+          IMAGE_FILE_LARGE_ADDRESS_AWARE;
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    // If the host has tampered with its header, we will assume
+    //   it is unsafe to use addresses > 2 GiB.
+    return false;
+  }
+#endif
+}
+
 void
 __stdcall
 SK_TestImports (          HMODULE  hMod,
@@ -1228,9 +1281,6 @@ SK_TestImports (          HMODULE  hMod,
 
   int i    = 0,
       hits = 0;
-
-  extern
-    LPVOID SK_Debug_GetImageBaseAddr (void);
 
   PIMAGE_NT_HEADERS        pNtHdr   = nullptr;
   PIMAGE_DATA_DIRECTORY    pImgDir  = nullptr;
@@ -1256,6 +1306,8 @@ SK_TestImports (          HMODULE  hMod,
       PIMAGE_NT_HEADERS (
         pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew
       );
+
+
 
     pImgDir  =
         &pNtHdr->OptionalHeader.DataDirectory [IMAGE_DIRECTORY_ENTRY_IMPORT];
@@ -1284,7 +1336,7 @@ SK_TestImports (          HMODULE  hMod,
         if ( pImpDesc->Characteristics == 0  )
           break;
 
-        if ( pImpDesc->ForwarderChain !=  -1 ||
+        if ( pImpDesc->ForwarderChain != DWORD_MAX ||
              pImpDesc->Name           == 0x0 )
         {
           continue;
@@ -1489,8 +1541,9 @@ SK_Import_VersionDLL (void)
 {
   if (hModVersion == nullptr)
   {
-  //if(!(hModVersion = GetModuleHandle         (L"Version.dll")))
-    {    hModVersion = SK_Modules->LoadLibrary (L"Version.dll"); }
+  //if(!(hModVersion = SK_GetModuleHandle      (L"Version.dll")))
+         hModVersion = SK_LoadLibraryW (L"Version.dll");
+         // Do not use skModuleRegistry
   }
   //Api-ms-win-core-version-l1-1-0.dll");
 
@@ -1516,7 +1569,7 @@ SK_VerQueryValueW (
 
   static auto imp_VerQueryValueW =
     (VerQueryValueW_pfn)
-       GetProcAddress (hModVersion, "VerQueryValueW");
+       SK_GetProcAddress (hModVersion, "VerQueryValueW");
 
   return
     imp_VerQueryValueW ( pBlock, lpSubBlock, lplpBuffer, puLen );
@@ -1542,7 +1595,7 @@ SK_GetFileVersionInfoExW (_In_                      DWORD   dwFlags,
 
   static auto imp_GetFileVersionInfoExW =
     (GetFileVersionInfoExW_pfn)
-       GetProcAddress (hModVersion, "GetFileVersionInfoExW");
+       SK_GetProcAddress (hModVersion, "GetFileVersionInfoExW");
 
   return
     imp_GetFileVersionInfoExW ( dwFlags, lpwstrFilename,
@@ -1565,7 +1618,7 @@ SK_GetFileVersionInfoSizeExW ( _In_  DWORD   dwFlags,
 
   static auto imp_GetFileVersionInfoSizeExW =
     (GetFileVersionInfoSizeExW_pfn)
-       GetProcAddress (hModVersion, "GetFileVersionInfoSizeExW");
+       SK_GetProcAddress (hModVersion, "GetFileVersionInfoSizeExW");
 
   return
     imp_GetFileVersionInfoSizeExW ( dwFlags, lpwstrFilename,
@@ -1576,33 +1629,20 @@ bool
 __stdcall
 SK_IsDLLSpecialK (const wchar_t* wszName)
 {
-  if (GetProcAddress (GetModuleHandleW (wszName), "SK_GetDLL") != nullptr)
+  if (! wszName)
+    return false;
+
+  if ((! SK_GetModuleHandleW (wszName)) && PathFileExistsW (wszName))
+             SK_LoadLibraryW (wszName);
+
+  if (SK_GetProcAddress (SK_GetModuleHandleW (wszName), "SK_GetDLL") != nullptr)
     return true;
 
-  UINT     cbTranslatedBytes = 0,
-           cbProductBytes    = 0;
+  UINT cbTranslatedBytes = 0,
+       cbProductBytes    = 0;
 
- /// DWORD    dwHandle          = 0;
- /// size_t   dwSize            =
- ///   SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
- ///                                    wszName, &dwHandle );
- ///
- /// if (dwSize < 128)
- ///   return false;
- ///
- /// dwSize =
- ///(dwSize + 1) * sizeof (wchar_t);
-  //size_t dwSize = 32768;
-
-  //SK_TLS *pTLS =
-  //  ReadAcquire (&__SK_DLL_Attached) ?
-  //    SK_TLS_Bottom () : nullptr;
-  //
-  //uint8_t *cbData =
-  //  (pTLS != nullptr) ?
-  //    (uint8_t *)pTLS->scratch_memory->cmd.alloc (65535 + 1UL, true) :
-  //    (uint8_t *)SK_LocalAlloc (LPTR,             65535 + 1UL);
-  uint8_t cbData [32768] = { };
+  size_t dwSize = 16384;
+  uint8_t cbData [16384] = { };
 
   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
 
@@ -1611,7 +1651,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
     WORD wCodePage;
   } *lpTranslate = nullptr;
 
-  wchar_t wszFullyQualifiedName [MAX_PATH * 2 + 1] = { };
+  wchar_t wszFullyQualifiedName [MAX_PATH + 2] = { };
 
   lstrcatW (wszFullyQualifiedName, SK_GetHostPath ());
   lstrcatW (wszFullyQualifiedName, L"\\");
@@ -1622,7 +1662,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                                FILE_VER_GET_PREFETCHED,
                                  wszFullyQualifiedName,
                                    0x00,
-                  static_cast <DWORD> (32768),
+                  static_cast <DWORD> (dwSize),
                                        cbData );
 
   if (! bRet) return false;
@@ -1633,8 +1673,8 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                                        &cbTranslatedBytes ) && cbTranslatedBytes &&
                                                                lpTranslate )
   {
-    wchar_t      wszPropName [64] = { };
-    _snwprintf ( wszPropName, 63,
+    wchar_t        wszPropName [64] = { };
+    _snwprintf_s ( wszPropName, 63,
                    LR"(\StringFileInfo\%04x%04x\ProductName)",
                      lpTranslate   [0].wLanguage,
                        lpTranslate [0].wCodePage );
@@ -1658,27 +1698,8 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
            cbProductBytes    = 0,
            cbVersionBytes    = 0;
 
-  //DWORD           dwHandle          = 0;
-  //static size_t   dwSize            = std::max ((size_t)65536,
-  //  SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
-  //                                   wszName, &dwHandle ) );
-
-  ////if (dwSize < 128)
-  ////  return L"N/A";
-
-  //dwSize++;
-  //dwSize *=
-  //  sizeof (wchar_t);
-
-  //SK_TLS *pTLS =
-  //  ReadAcquire (&__SK_DLL_Attached) ?
-  //    SK_TLS_Bottom () : nullptr;
-  //
-  //uint8_t *cbData =
-  //  (pTLS != nullptr) ?
-  //    (uint8_t *)pTLS->scratch_memory->cmd.alloc (dwSize + 1UL, true) :
-  //    (uint8_t *)SK_LocalAlloc (LPTR,             dwSize + 1UL);
-  uint8_t cbData [32768] = { }; size_t dwSize = 32768;
+  uint8_t cbData [16384] = { };
+  size_t dwSize = 16384;
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -1705,22 +1726,21 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
                                          &cbTranslatedBytes ) && cbTranslatedBytes &&
                                                                  lpTranslate )
   {
-    wchar_t wszPropName [64] = { };
-
-    _snwprintf ( wszPropName, 63,
-                  LR"(\StringFileInfo\%04x%04x\FileDescription)",
-                    lpTranslate   [0].wLanguage,
-                      lpTranslate [0].wCodePage );
+    wchar_t        wszPropName [64] = { };
+    _snwprintf_s ( wszPropName, 63,
+                    LR"(\StringFileInfo\%04x%04x\FileDescription)",
+                      lpTranslate   [0].wLanguage,
+                        lpTranslate [0].wCodePage );
 
     SK_VerQueryValueW ( cbData,
                           wszPropName,
               static_cast_p2p <void> (&wszFileDescrip),
                                       &cbProductBytes );
 
-    _snwprintf ( wszPropName, 63,
-                   LR"(\StringFileInfo\%04x%04x\FileVersion)",
-                     lpTranslate   [0].wLanguage,
-                       lpTranslate [0].wCodePage );
+    _snwprintf_s ( wszPropName, 63,
+                    LR"(\StringFileInfo\%04x%04x\FileVersion)",
+                      lpTranslate   [0].wLanguage,
+                        lpTranslate [0].wCodePage );
 
     SK_VerQueryValueW ( cbData,
                           wszPropName,
@@ -1769,39 +1789,14 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
                           SK_MemScan_Params__v0 params =
                           SK_MemScan_Params__v0 ()       )
 {
-  MEMORY_BASIC_INFORMATION minfo = { };
+  MEMORY_BASIC_INFORMATION  minfo = { };
   VirtualQuery (base_addr, &minfo, sizeof (minfo));
 
-  //
-  // Valid Win32 software have valid NT headers even after relocation ...
-  //
-  //   VMProtect is not valid software and should think about what it has done!
-  //
-#ifdef VMPROTECT_ANTI_FUDGE
-  IMAGE_DOS_HEADER* pDOS =
-    (IMAGE_DOS_HEADER *)minfo.AllocationBase;
-  IMAGE_NT_HEADERS* pNT  =
-    (IMAGE_NT_HEADERS *)((uintptr_t)(pDOS + pDOS->e_lfanew));
-
-  uint8_t* end_addr = base_addr + pNT->OptionalHeader.SizeOfImage;
-#else
            base_addr = static_cast <uint8_t *> (
-                                      (void *)GetModuleHandle (nullptr)
+                                      (void *)SK_GetModuleHandle (nullptr)
                                                );
   uint8_t* end_addr  = static_cast <uint8_t *> (    minfo.BaseAddress    ) +
                                                     minfo.RegionSize;
-
-  ///if (base_addr != (uint8_t *)0x400000)
-  ///{
-  ///  static bool warned = false;
-  ///  if (! warned)
-  ///  {
-  ///    dll_log->Log ( L"[ Sig Scan ] Expected module base addr. 40000h, but got: %ph",
-  ///                     base_addr );
-  ///    warned = true;
-  ///  }
-  ///}
-
   size_t pages = 0;
 
 #ifndef _WIN64
@@ -1854,7 +1849,6 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
                   pages,
                     base_addr,
                       end_addr );
-#endif
 #endif
 
   __SK_base_img_addr = base_addr;
@@ -2002,7 +1996,7 @@ __stdcall
 SKX_ScanAlignedExec (const void* pattern, size_t len, const void* mask, void* after, int align)
 {
   auto* base_addr =
-    reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
+    reinterpret_cast <uint8_t *> (SK_GetModuleHandle (nullptr));
 
   SK_MemScan_Params__v0 params;
                         params.privileges.execute =
@@ -2016,7 +2010,7 @@ __stdcall
 SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after, int align)
 {
   auto* base_addr =
-    reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
+    reinterpret_cast <uint8_t *> (SK_GetModuleHandle (nullptr));
 
   return SKX_ScanAlignedEx (pattern, len, mask, after, align, base_addr);
 }
@@ -2200,11 +2194,11 @@ SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufLen)
 
 
 struct sk_host_process_s {
-  wchar_t wszApp       [MAX_PATH * 2 + 1] = { };
-  wchar_t wszPath      [MAX_PATH * 2 + 1] = { };
-  wchar_t wszFullName  [MAX_PATH * 2 + 1] = { };
-  wchar_t wszBlacklist [MAX_PATH * 2 + 1] = { };
-  wchar_t wszSystemDir [MAX_PATH * 2 + 1] = { };
+  wchar_t wszApp       [MAX_PATH + 2] = { };
+  wchar_t wszPath      [MAX_PATH + 2] = { };
+  wchar_t wszFullName  [MAX_PATH + 2] = { };
+  wchar_t wszBlacklist [MAX_PATH + 2] = { };
+  wchar_t wszSystemDir [MAX_PATH + 2] = { };
 
   std::atomic_bool app                = false;
   std::atomic_bool path               = false;
@@ -2213,16 +2207,8 @@ struct sk_host_process_s {
   std::atomic_bool sys_dir            = false;
 };
 
-sk_host_process_s* host_proc     = nullptr;
-SK_HostAppUtil*    host_app_util = nullptr;
-
-sk_host_process_s*
-__SK_HostProc (void)
-{
-  static sk_host_process_s __host_proc = { };
-  SK_RunOnce (host_proc = &__host_proc);
-  return      host_proc;
-}
+SK_LazyGlobal <sk_host_process_s> host_proc;
+SK_LazyGlobal <SK_HostAppUtil>    host_app_util;
 
 bool __SK_RunDLL_Bypass = false;
 
@@ -2231,7 +2217,8 @@ __cdecl
 SK_IsHostAppSKIM (void)
 {
   return ( (! __SK_RunDLL_Bypass) &&
-      StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr );
+      ( StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr ||
+        StrStrIW (SK_GetHostApp (), L"SKIF") != nullptr ) );
 }
 
 bool
@@ -2253,7 +2240,7 @@ SK_IsRunDLLInvocation (void)
     //    rundll32 and then launched a Win32 application with it.
     //
     // If the command line does not reference our DLL
-    if (! StrStrW (PathGetArgsW (GetCommandLineW ()), L"RunDLL_"))
+    if (! StrStrIW (PathGetArgsW (GetCommandLineW ()), L"RunDLL_"))
       rundll_invoked = false;
   }
 
@@ -2334,13 +2321,13 @@ SK_GetHostApp (void)
 
   if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
-    wchar_t       wszFullyQualified       [ MAX_PATH * 2 + 1 ] = { };
-    wcsncpy_s (   wszFullyQualified,        MAX_PATH * 2,
+    wchar_t       wszFullyQualified       [ MAX_PATH + 2 ] = { };
+    wcsncpy_s (   wszFullyQualified,        MAX_PATH,
                 SK_GetFullyQualifiedApp (), _TRUNCATE );
 
     PathStripPathW (wszFullyQualified);
 
-    wcsncpy_s ( host_proc->wszApp, MAX_PATH * 2,
+    wcsncpy_s ( host_proc->wszApp, MAX_PATH,
                 wszFullyQualified, _TRUNCATE );
 
     assert (PathFileExistsW (host_proc->wszApp));
@@ -2368,14 +2355,14 @@ SK_GetFullyQualifiedApp (void)
 
   if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
-    DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 + 1 ] = { };
+    DWORD   dwProcessSize =  MAX_PATH;
+    wchar_t wszProcessName [ MAX_PATH + 2 ] = { };
 
     GetModuleFileNameW ( nullptr,
                            wszProcessName,
                             dwProcessSize );
 
-    wcsncpy_s ( host_proc->wszFullName, MAX_PATH * 2,
+    wcsncpy_s ( host_proc->wszFullName, MAX_PATH,
                   wszProcessName,       _TRUNCATE );
 
     assert (PathFileExistsW (host_proc->wszFullName));
@@ -2406,8 +2393,8 @@ SK_GetHostPath (void)
 
   if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
-    wchar_t     wszProcessName [ MAX_PATH * 2 + 1 ] = { };
-    wcsncpy_s ( wszProcessName,  MAX_PATH * 2,
+    wchar_t     wszProcessName [ MAX_PATH + 2 ] = { };
+    wcsncpy_s ( wszProcessName,  MAX_PATH,
                   SK_GetFullyQualifiedApp (), _TRUNCATE );
 
     BOOL bSuccess =
@@ -2420,7 +2407,7 @@ SK_GetHostPath (void)
     assert (bSuccess != FALSE);
 
     wcsncpy_s (
-      host_proc->wszPath, MAX_PATH * 2,
+      host_proc->wszPath, MAX_PATH,
         wszProcessName,  _TRUNCATE  );
 
     assert (PathFileExistsW (host_proc->wszPath));
@@ -2475,8 +2462,20 @@ SK_GetSystemDirectory (void)
     host_proc->wszSystemDir;
 }
 
+LPWSTR
+SK_PathCombineW ( _Out_writes_ (MAX_PATH) LPWSTR pszDest,
+                                _In_opt_ LPCWSTR pszDir,
+                                _In_opt_ LPCWSTR pszFile )
+{
+  void SK_StripLeadingSlashesW (wchar_t *wszInOut);
 
+  wchar_t                  wszFile [MAX_PATH + 2] = { };
+  wcsncpy_s               (wszFile, MAX_PATH, pszFile, _TRUNCATE);
+  SK_StripLeadingSlashesW (wszFile);
 
+  return
+    PathCombineW          (pszDest, pszDir, wszFile);
+}
 
 uint64_t
 SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
@@ -2486,11 +2485,8 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
   size_t          files  =   0UL;
   LARGE_INTEGER   liSize = { 0ULL };
 
-  wchar_t wszFindPattern [MAX_PATH * 2 + 1] = { };
-
-  lstrcatW (wszFindPattern, wszPath);
-  lstrcatW (wszFindPattern, L"\\");
-  lstrcatW (wszFindPattern, wszPattern);
+  wchar_t          wszFindPattern [MAX_PATH + 2] = { };
+  SK_PathCombineW (wszFindPattern, wszPath, wszPattern);
 
   hFind = FindFirstFileW (wszFindPattern, &fd);
 
@@ -2499,7 +2495,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
     dll_log->LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ",
                              SK_ConcealUserDir (std::wstring (wszPath).data ()) );
 
-    wchar_t wszFullPath [MAX_PATH * 2 + 1] = { };
+    wchar_t wszFullPath [MAX_PATH + 2] = { };
 
     do
     {
@@ -2507,9 +2503,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
       {
         *wszFullPath = L'\0';
 
-        lstrcatW (wszFullPath, wszPath);
-        lstrcatW (wszFullPath, L"\\");
-        lstrcatW (wszFullPath, fd.cFileName);
+        SK_PathCombineW (wszFullPath, wszPath, fd.cFileName);
 
         if (DeleteFileW (wszFullPath))
         {
@@ -2539,7 +2533,7 @@ SK_FileHasSpaces (const wchar_t* wszLongFileName)
 BOOL
 SK_FileHas8Dot3Name (const wchar_t* wszLongFileName)
 {
-  wchar_t wszShortPath [MAX_PATH * 2 + 1] = { };
+  wchar_t wszShortPath [MAX_PATH + 2] = { };
 
   if ((! GetShortPathName   (wszLongFileName, wszShortPath, 1)) ||
          GetFileAttributesW (wszShortPath) == INVALID_FILE_ATTRIBUTES   ||
@@ -2604,8 +2598,11 @@ HRESULT ModifyPrivilege(
 bool
 SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 {
-  CHeapPtr <wchar_t> wszFileName  (_wcsdup (wszLongFileName));
-  CHeapPtr <wchar_t> wszFileName1 (_wcsdup (wszLongFileName));
+  wchar_t wszFileName  [MAX_PATH] = { };
+  wchar_t wszFileName1 [MAX_PATH] = { };
+
+  PathCombineW (wszFileName, wszLongFileName,  nullptr);
+  PathCombineW (wszFileName1, wszLongFileName, nullptr);
 
   wchar_t  wsz8     [11] = { }; // One non-nul for overflow
   wchar_t  wszDot3  [ 4] = { };
@@ -2665,7 +2662,7 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
     PathRemoveBackslash (wszFileName);
     PathRemoveBlanks    (wszFileName);
 
-    wcsncpy (wsz8, wszFileName, 10);
+    wcsncpy_s (wsz8, 11, wszFileName, _TRUNCATE);
 
     wchar_t idx = 0;
 
@@ -2697,8 +2694,9 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
       return false;
     }
 
-    PathRemoveFileSpec  (wszFileName1);
-    wcscpy (wszFileName, wszFileName1);
+    PathRemoveFileSpec (wszFileName1);
+    wcsncpy_s          (wszFileName,   MAX_PATH,
+                        wszFileName1, _TRUNCATE);
   }
 
   return true;
@@ -2709,8 +2707,8 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 void
 SK_RestartGame (const wchar_t* wszDLL)
 {
-  wchar_t wszShortPath [MAX_PATH * 2 + 1] = { };
-  wchar_t wszFullname  [MAX_PATH * 2 + 1] = { };
+  wchar_t wszShortPath [MAX_PATH + 2] = { };
+  wchar_t wszFullname  [MAX_PATH + 2] = { };
 
   wcsncpy_s ( wszFullname, MAX_PATH,
              ( wszDLL != nullptr && *wszDLL != L'\0' ) ?
@@ -2749,8 +2747,8 @@ SK_RestartGame (const wchar_t* wszDLL)
       global_dll.append (L"32.dll");
 #endif
 
-                wcsncpy ( wszFullname, global_dll.c_str (), MAX_PATH );
-      GetShortPathName   (wszFullname, wszShortPath,        MAX_PATH );
+                wcsncpy_s ( wszFullname, MAX_PATH, global_dll.c_str (), _TRUNCATE );
+      GetShortPathName    ( wszFullname, wszShortPath,                   MAX_PATH );
     }
 
     InterlockedExchange (&__SK_DLL_Ending, 1);
@@ -2763,7 +2761,7 @@ SK_RestartGame (const wchar_t* wszDLL)
   {
     wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
 
-    _swprintf ( wszRunDLLCmd,
+    swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
                  L"RunDll32.exe %s,RunDLL_RestartGame %s",
                    wszShortPath,
                      SK_GetFullyQualifiedApp () );
@@ -2993,45 +2991,48 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
   UNREFERENCED_PARAMETER (hwnd);
   UNREFERENCED_PARAMETER (nCmdShow);
 
+  SK_AutoCOMInit auto_com (
+    COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE
+  );
+
   if (StrStrA (lpszCmdLine, "Install"))
   {
-    RunDLL_WinRing0 (hwnd, hInst, "Uninstall", nCmdShow);
-
-    wchar_t wszCurrentDir [MAX_PATH * 2] = { };
-    wchar_t wszCommand    [MAX_PATH * 2] = { };
-    wchar_t wszHostDLL    [MAX_PATH * 2] = { };
-    wchar_t wszUserDLL    [MAX_PATH * 2] = { };
-    wchar_t wszKernelSys  [MAX_PATH * 2] = { };
+    wchar_t wszCommand    [MAX_PATH * 4] = { };
+    //-----------------------------------------
+    wchar_t wszCurrentDir [MAX_PATH + 2] = { };
+    wchar_t wszHostDLL    [MAX_PATH + 2] = { };
+    wchar_t wszUserDLL    [MAX_PATH + 2] = { };
+    wchar_t wszKernelSys  [MAX_PATH + 2] = { };
     wchar_t wszShortDLL   [MAX_PATH + 2] = { };
     wchar_t wszRunDLL32   [MAX_PATH + 2] = { };
 
     GetSystemDirectoryW  (wszRunDLL32, MAX_PATH);
-    GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
+    GetCurrentDirectoryW (MAX_PATH, wszCurrentDir);
+    SK_PathCombineW   ( wszUserDLL, wszCurrentDir,
+       SK_RunLHIfBitness ( 64, L"WinRing0x64.dll",
+                               L"WinRing0.dll" )
+                 );
 
-    PathAppendW (wszUserDLL, wszCurrentDir);
-    PathAppendW (wszUserDLL, SK_RunLHIfBitness ( 64, L"WinRing0x64.dll",
-                                                     L"WinRing0.dll" ) );
+    SK_PathCombineW ( wszKernelSys, wszCurrentDir,
+                                 L"WinRing0x64.sys" ); // 64-bit Drivers Only
 
-    PathAppendW (wszKernelSys, wszCurrentDir);
-    PathAppendW (wszKernelSys, SK_RunLHIfBitness ( 64, L"WinRing0x64.sys",
-                                                       L"WinRing0.sys" ) );
+    if (! ( PathFileExistsW (wszUserDLL) &&
+            PathFileExistsW (wszKernelSys) ) )
+    {
+      SK_WinRing0_Unpack ();
+    }
 
     if (SK_IsAdmin ())
     {
-      if (! ( PathFileExistsW (wszUserDLL) &&
-              PathFileExistsW (wszKernelSys) ) )
-      {
-        SK_WinRing0_Unpack ();
-      }
-
       SK_WR0_Init ();
 
       return;
     }
 
-    PathAppendW       (wszHostDLL, wszCurrentDir);
-    PathAppendW       (wszHostDLL, SK_RunLHIfBitness (64, L"Installer64.dll",
-                                                          L"Installer32.dll"));
+    SK_PathCombineW ( wszHostDLL, wszCurrentDir,
+        SK_RunLHIfBitness (64, L"Installer64.dll",
+                               L"Installer32.dll")
+                 );
     GetShortPathNameW (wszHostDLL, wszShortDLL, MAX_PATH);
 
     lstrcatW    (wszCommand,                  wszShortDLL);
@@ -3047,17 +3048,16 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
       int tries = 0;
 
       do {
-        SK_Sleep (4UL);
-                 ++tries;
+        SK_Sleep (25UL);
       } while ( GetFileAttributes (wszHostDLL) != INVALID_FILE_ATTRIBUTES &&
-                                         tries < 16 );
+                                         tries++ < 32 );
     }
 
     // Fallback to "runas" if the COM interface above does not function
     //   as designed.
     else
     { SHELLEXECUTEINFO
-      sexec_info              = { };
+      sexec_info;
       sexec_info.cbSize       = sizeof (SHELLEXECUTEINFO);
       sexec_info.fMask        = SEE_MASK_NOCLOSEPROCESS;
       sexec_info.hwnd         = nullptr;
@@ -3078,24 +3078,24 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
   else if (StrStrA (lpszCmdLine, "Uninstall"))
   {
     DWORD   dwTime                       = timeGetTime ();
-    wchar_t wszCurrentDir [MAX_PATH * 2] = { };
-    wchar_t wszUserDLL    [MAX_PATH * 2] = { };
-    wchar_t wszKernelSys  [MAX_PATH * 2] = { };
+    wchar_t wszCurrentDir [MAX_PATH + 2] = { };
+    wchar_t wszUserDLL    [MAX_PATH + 2] = { };
+    wchar_t wszKernelSys  [MAX_PATH + 2] = { };
     wchar_t wszServiceCtl [MAX_PATH + 2] = { };
 
     GetSystemDirectoryW  (wszServiceCtl, MAX_PATH);
-    GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
+    GetCurrentDirectoryW (MAX_PATH, wszCurrentDir);
 
-    PathAppendW (wszUserDLL, wszCurrentDir);
-    PathAppendW (wszUserDLL, SK_RunLHIfBitness ( 64, L"WinRing0x64.dll",
-                                                     L"WinRing0.dll" ));
+    SK_PathCombineW ( wszUserDLL, wszCurrentDir,
+       SK_RunLHIfBitness ( 64, L"WinRing0x64.dll",
+                               L"WinRing0.dll" )
+                 );
 
-    PathAppendW (wszKernelSys, wszCurrentDir);
-    PathAppendW (wszKernelSys, SK_RunLHIfBitness ( 64, L"WinRing0x64.sys",
-                                                       L"WinRing0.sys" ));
+    SK_PathCombineW ( wszKernelSys, wszCurrentDir,
+                               L"WinRing0x64.sys" ); // 64-bit Drivers Only
 
-    const wchar_t *wszCommand0 = L"stop WinRing0_1_2_0";
-    const wchar_t *wszCommand1 = L"delete WinRing0_1_2_0";
+    auto wszCommand0 = L"stop WinRing0_1_2_0";
+    auto wszCommand1 = L"delete WinRing0_1_2_0";
 
     PathAppendW (wszServiceCtl, L"sc.exe");
 
@@ -3105,7 +3105,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
                wszCurrentDir )
        )
     {
-      SK_Sleep (8UL);
+      SK_Sleep (100UL);
 
       if ( SK_COM_UAC_AdminShellExec (
              wszServiceCtl,
@@ -3113,11 +3113,9 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
                  wszCurrentDir )
          )
       {
-        SK_Sleep (8UL);
-
         SK_WR0_Deinit ();
 
-        wchar_t wszTemp [MAX_PATH * 2] = { };
+        wchar_t wszTemp [MAX_PATH + 2] = { };
 
         GetTempFileNameW        ( wszCurrentDir,  L"SKI",
                                   dwTime,         wszTemp );
@@ -3134,7 +3132,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
     // Fallback to "runas" if the COM interface above does not function
     //   as designed.
     { SHELLEXECUTEINFO
-      sexec_info              = { };
+      sexec_info;
       sexec_info.cbSize       = sizeof (SHELLEXECUTEINFO);
       sexec_info.fMask        = SEE_MASK_NOCLOSEPROCESS;
       sexec_info.hwnd         = nullptr;
@@ -3152,7 +3150,6 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
       // ------------------
 
-      sexec_info              = { };
       sexec_info.cbSize       = sizeof (SHELLEXECUTEINFO);
       sexec_info.fMask        = SEE_MASK_NOCLOSEPROCESS;
       sexec_info.hwnd         = nullptr;
@@ -3168,7 +3165,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
       WaitForSingleObject (sexec_info.hProcess, INFINITE);
       CloseHandle         (sexec_info.hProcess);
 
-      wchar_t wszTemp [MAX_PATH * 2] = { };
+      wchar_t wszTemp [MAX_PATH + 2] = { };
 
       GetTempFileNameW        ( wszCurrentDir,  L"SKI",
                                 dwTime,         wszTemp );
@@ -3191,9 +3188,7 @@ SK_WinRing0_Uninstall (void)
                        SK_GetDocumentsDir ().c_str () );
 
   static std::wstring kernelmode_driver_path =
-    path_to_driver + std::wstring (
-                       SK_RunLHIfBitness (64, L"WinRing0x64.sys",
-                                              L"WinRing0.sys") );
+    path_to_driver + std::wstring (L"WinRing0x64.sys"); // 64-bit Drivers Only
 
   static std::wstring installer_path =
     path_to_driver + std::wstring (
@@ -3212,7 +3207,7 @@ SK_WinRing0_Uninstall (void)
   std::wstring src_dll =
     SK_GetModuleFullName (skModuleRegistry::Self ());
 
-  wchar_t wszTemp [MAX_PATH * 2] = { };
+  wchar_t wszTemp [MAX_PATH + 2] = { };
   DWORD   dwTime                 = timeGetTime ();
 
   GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
@@ -3225,11 +3220,12 @@ SK_WinRing0_Uninstall (void)
 
   if (CopyFileW (src_dll.c_str (), installer_path.c_str (), FALSE))
   {
-    wchar_t wszRunDLLCmd [MAX_PATH * 4    ] = { };
-    wchar_t wszShortPath [MAX_PATH * 2 + 1] = { };
-    wchar_t wszFullname  [MAX_PATH * 2 + 1] = { };
+    wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
+    wchar_t wszShortPath [MAX_PATH + 2] = { };
+    wchar_t wszFullname  [MAX_PATH + 2] = { };
 
-    wcsncpy (wszFullname, installer_path.c_str (), MAX_PATH );
+    wcsncpy_s (wszFullname, MAX_PATH, installer_path.c_str (),
+                           _TRUNCATE );
 
     SK_Generate8Dot3     (wszFullname);
     wcscpy (wszShortPath, wszFullname);
@@ -3237,7 +3233,7 @@ SK_WinRing0_Uninstall (void)
     if (SK_FileHasSpaces (wszFullname))
       GetShortPathName   (wszFullname, wszShortPath, MAX_PATH );
 
-    _swprintf ( wszRunDLLCmd,
+    swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
                  L"RunDll32.exe %ws,RunDLL_WinRing0 Uninstall",
                    wszShortPath );
 
@@ -3264,11 +3260,11 @@ SK_WinRing0_Uninstall (void)
     CloseHandle (pinfo.hThread);
     CloseHandle (pinfo.hProcess);
 
-    RtlSecureZeroMemory     (wszTemp, MAX_PATH * 2 * 2);
+    RtlSecureZeroMemory     (wszTemp, sizeof (wchar_t) * (MAX_PATH + 2));
     GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
                              dwTime                         , wszTemp);
     SK_File_MoveNoFail      (kernelmode_driver_path.c_str (), wszTemp);
-    RtlSecureZeroMemory     (wszTemp, MAX_PATH * 2 * 2);
+    RtlSecureZeroMemory     (wszTemp, sizeof(wchar_t) * (MAX_PATH + 2));
     GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
                              dwTime+1                       , wszTemp);
     SK_File_MoveNoFail      (installer_path.c_str         (), wszTemp);
@@ -3282,10 +3278,10 @@ SK_WinRing0_Uninstall (void)
 void
 SK_WinRing0_Install (void)
 {
+  SK_WinRing0_Unpack ();
+
   if (SK_IsAdmin ())
   {
-    SK_WinRing0_Unpack ();
-
     if (SK_WR0_Init ())
       return;
   }
@@ -3302,7 +3298,7 @@ SK_WinRing0_Install (void)
   if (GetFileAttributesW (installer_path.c_str ()) == INVALID_FILE_ATTRIBUTES)
     SK_CreateDirectories (installer_path.c_str ());
 
-  std::wstring src_dll =
+  const std::wstring src_dll =
     SK_GetModuleFullName (skModuleRegistry::Self ());
 
   if (PathFileExistsW (installer_path.c_str ()))
@@ -3314,19 +3310,20 @@ SK_WinRing0_Install (void)
     GetSystemDirectoryW  (wszRunDLL32, MAX_PATH);
     PathAppendW          (wszRunDLL32, L"RunDLL32.exe");
 
-    wchar_t wszRunDLLCmd [MAX_PATH * 4    ] = { };
-    wchar_t wszShortPath [MAX_PATH * 2 + 1] = { };
-    wchar_t wszFullname  [MAX_PATH * 2 + 1] = { };
+    wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
+    wchar_t wszShortPath [MAX_PATH + 2] = { };
+    wchar_t wszFullname  [MAX_PATH + 2] = { };
 
-    wcsncpy (wszFullname, installer_path.c_str (), MAX_PATH );
+    wcsncpy_s        (wszFullname,  MAX_PATH,
+                                  installer_path.c_str (), _TRUNCATE);
 
-    SK_Generate8Dot3     (wszFullname);
-    wcscpy (wszShortPath, wszFullname);
+    SK_Generate8Dot3 (                        wszFullname);
+    wcsncpy_s        (wszShortPath, MAX_PATH, wszFullname, _TRUNCATE);
 
     if (SK_FileHasSpaces (wszFullname))
       GetShortPathName   (wszFullname, wszShortPath, MAX_PATH );
 
-    _swprintf ( wszRunDLLCmd,
+    swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
                  L"%s %s,RunDLL_WinRing0 Install",
                    wszRunDLL32, wszShortPath );
 
@@ -3353,7 +3350,7 @@ SK_WinRing0_Install (void)
     CloseHandle (pinfo.hThread);
     CloseHandle (pinfo.hProcess);
 
-    wchar_t wszTemp [MAX_PATH * 2] = { };
+    wchar_t wszTemp [MAX_PATH + 2] = { };
 
     GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
                              timeGetTime          (), wszTemp);
@@ -3365,14 +3362,14 @@ SK_WinRing0_Install (void)
 void
 SK_ElevateToAdmin (void)
 {
-  wchar_t wszRunDLLCmd [MAX_PATH * 4    ] = { };
-  wchar_t wszShortPath [MAX_PATH * 2 + 1] = { };
-  wchar_t wszFullname  [MAX_PATH * 2 + 1] = { };
+  wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
+  wchar_t wszShortPath [MAX_PATH + 2] = { };
+  wchar_t wszFullname  [MAX_PATH + 2] = { };
 
-  wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH );
+  wcsncpy_s (wszFullname, MAX_PATH, SK_GetModuleFullName (SK_GetDLL ()).c_str (), _TRUNCATE );
 
-  SK_Generate8Dot3     (wszFullname);
-  wcscpy (wszShortPath, wszFullname);
+  SK_Generate8Dot3                 (wszFullname);
+  wcscpy_s (wszShortPath, MAX_PATH, wszFullname);
 
   if (SK_FileHasSpaces (wszFullname))
     GetShortPathName   (wszFullname, wszShortPath, MAX_PATH );
@@ -3389,7 +3386,7 @@ SK_ElevateToAdmin (void)
     ExitProcess   (0x00);
   }
 
-  _swprintf ( wszRunDLLCmd,
+  swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
                L"RunDll32.exe %s,RunDLL_ElevateMe %s",
                  wszShortPath,
                    SK_GetFullyQualifiedApp () );
@@ -3547,39 +3544,52 @@ SK_FormatStringW (std::wstring& out, wchar_t const* const _Format, ...)
     len;
 }
 
-//void
-//SK_StripTrailingSlashesW_ (wchar_t* wszInOut)
-//{
-//  struct test_slashes
-//  {
-//    bool operator () (wchar_t a, wchar_t b) const
-//    {
-//      auto IsSlash = [](wchar_t a) -> bool {
-//        return (a == L'\\' || a == L'/');
-//      };
-//
-//      return IsSlash (a) && IsSlash (b);
-//    }
-//  };
-//
-//  std::wstring wstr (
-//    wszInOut
-//  );
-//
-//  if (wstr.empty ())
-//    return;
-//
-//  wstr.erase ( std::unique ( wstr.begin (),
-//              wstr.end   (), test_slashes () ),
-//              wstr.end () );
-//
-//  if (wstr.empty ())
-//    *wszInOut = L'\0';
-//  else
-//    wcsncpy_s ( wszInOut, wstr.length () + 1,
-//                wstr.c_str  (), _TRUNCATE  );
-//}
+void
+SK_StripLeadingSlashesW (wchar_t *wszInOut)
+{
+  auto IsSlash = [](wchar_t a) -> bool {
+    return (a == L'\\' || a == L'/');
+  };
 
+  size_t      len = wcslen (wszInOut);
+  size_t  new_len = len;
+
+  wchar_t* wszStart = wszInOut;
+
+  while (          *wszStart  != L'\0' &&
+        *CharNextW (wszStart) != L'\0' )
+  {
+    if (IsSlash (*wszStart))
+    {
+      wszStart =
+        CharNextW (wszStart);
+
+      --new_len;
+    }
+
+    else
+      break;
+  }
+
+  if (len != new_len)
+  {
+    wchar_t *wszOut = wszInOut;
+    wchar_t *wszIn  = wszStart;
+
+    for ( size_t i = 0 ; i < new_len ; ++i )
+    {
+      *wszOut =           *wszIn;
+
+      if (*wszOut == L'\0')
+        break;
+
+       wszIn  = CharNextW (wszIn);
+       wszOut = CharNextW (wszOut);
+    }
+  }
+
+  // Else:
+}
 //
 // In-place version of the old code that had to
 //   make a copy of the string and then copy-back
@@ -3753,20 +3763,16 @@ SK_GetUserNameExW (
 
 // Doesn't need to be this complicated; it's a string function, might as well optimize it.
 
-static char     szUserName        [MAX_PATH * 2 + 1] = { };
-static char     szUserNameDisplay [MAX_PATH * 2 + 1] = { };
-static char     szUserProfile     [MAX_PATH * 2 + 1] = { }; // Most likely to match
-static wchar_t wszUserName        [MAX_PATH * 2 + 1] = { };
-static wchar_t wszUserNameDisplay [MAX_PATH * 2 + 1] = { };
-static wchar_t wszUserProfile     [MAX_PATH * 2 + 1] = { }; // Most likely to match
+static char     szUserName        [MAX_PATH + 2] = { };
+static char     szUserNameDisplay [MAX_PATH + 2] = { };
+static char     szUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
+static wchar_t wszUserName        [MAX_PATH + 2] = { };
+static wchar_t wszUserNameDisplay [MAX_PATH + 2] = { };
+static wchar_t wszUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
 
 char*
 SK_StripUserNameFromPathA (char* szInOut)
 {
-  //static volatile LONG               calls  =  0;
-  //if (InterlockedCompareExchange   (&calls, 1, 0))
-  //    SK_Thread_SpinUntilAtomicMin (&calls, 2);
-
   if (*szUserProfile == '\0')
   {
                                         uint32_t len = MAX_PATH;
@@ -3775,7 +3781,7 @@ SK_StripUserNameFromPathA (char* szInOut)
     else
       PathStripPathW (wszUserProfile);
 
-    strncpy_s ( szUserProfile, MAX_PATH + 2,
+    strncpy_s ( szUserProfile, MAX_PATH,
                   SK_WideCharToUTF8 (wszUserProfile).c_str (), _TRUNCATE );
   }
 
@@ -3798,8 +3804,6 @@ SK_StripUserNameFromPathA (char* szInOut)
     if (dwLen == 0)
       *szUserNameDisplay = '?'; // Invalid filesystem char
   }
-
-//InterlockedIncrement (&calls);
 
   char* pszUserNameSubstr =
     StrStrIA (szInOut, szUserProfile);
@@ -3864,10 +3868,6 @@ SK_StripUserNameFromPathA (char* szInOut)
 wchar_t*
 SK_StripUserNameFromPathW (wchar_t* wszInOut)
 {
-//  static volatile LONG               calls  =  0;
-//  if (InterlockedCompareExchange   (&calls, 1, 0))
-//      SK_Thread_SpinUntilAtomicMin (&calls, 2);
-
   if (*wszUserProfile == L'\0')
   {
                                         uint32_t len = MAX_PATH;
@@ -3897,9 +3897,13 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
       *wszUserNameDisplay = L'?'; // Invalid filesystem char
   }
 
-
-//InterlockedIncrement (&calls);
-  //dll_log->Log (L"Profile: %ws, User: %ws, Display: %ws", wszUserProfile, wszUserName, wszUserNameDisplay);
+  if (config.system.log_level > 4)
+  {
+    SK_RunOnce (
+      dll_log->Log ( L"Profile: %ws, User: %ws, Display: %ws",
+                       wszUserProfile, wszUserName, wszUserNameDisplay )
+    );
+  }
 
 
   wchar_t* pwszUserNameSubstr =
@@ -3970,7 +3974,7 @@ SK_DeferCommands (const char** szCommands, int count)
 
   static          concurrency::concurrent_queue <std::string> cmds;
   static          HANDLE                                      hNewCmds =
-    SK_CreateEvent (nullptr, FALSE, FALSE, L"DeferredCmdEvent");
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
   static volatile HANDLE                                      hCommandThread = nullptr;
 
   for (int i = 0; i < count; i++)
@@ -4003,7 +4007,7 @@ SK_DeferCommands (const char** szCommands, int count)
 
           if (dwWait == WAIT_OBJECT_0)
           {
-            std::string cmd = "";
+            std::string cmd;
 
             while (cmds.try_pop (cmd))
             {
@@ -4042,9 +4046,7 @@ SK_DeferCommand (const char* szCommand)
 void
 SK_HostAppUtil::init (void)
 {
-  static sk_host_process_s* __DontCare =
-    __SK_HostProc ();
-
+  SK_RunOnce (SKIF     = (StrStrIW ( SK_GetHostApp (), L"SKIF"     ) != nullptr));
   SK_RunOnce (SKIM     = (StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr));
   SK_RunOnce (RunDll32 = (StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr));
 }
@@ -4054,9 +4056,7 @@ SK_GetHostAppUtil (void)
 {
   // Push the statically initialized value onto the global datastore in the
   //   form of a pointer so that we have an easier time debugging this.
-  static      SK_HostAppUtil   __SK_HostApp;
-  SK_RunOnce (host_app_util = &__SK_HostApp);
-  return      host_app_util;
+  return host_app_util.getPtr ();
 }
 
 
@@ -4362,8 +4362,8 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
 {
   UINT moved = 0;
 
-  wchar_t       wszPath [MAX_PATH * 2 + 1] = { };
-  PathCombineW (wszPath, wszOrigDir, L"*");
+  wchar_t          wszPath [MAX_PATH + 2] = { };
+  SK_PathCombineW (wszPath, wszOrigDir, L"*");
 
   WIN32_FIND_DATA fd          = {   };
   HANDLE          hFind       =
@@ -4381,13 +4381,13 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
 
     if (! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
     {
-      wchar_t       wszOld [MAX_PATH * 2 + 1];
-                   *wszOld = L'\0';
-      PathCombineW (wszOld, wszOrigDir, fd.cFileName);
+      wchar_t          wszOld [MAX_PATH + 2];
+                      *wszOld = L'\0';
+      SK_PathCombineW (wszOld, wszOrigDir, fd.cFileName);
 
-      wchar_t       wszNew [MAX_PATH * 2 + 1];
-                   *wszNew = L'\0';
-      PathCombineW (wszNew, wszDestDir, fd.cFileName);
+      wchar_t          wszNew [MAX_PATH + 2];
+                      *wszNew = L'\0';
+      SK_PathCombineW (wszNew, wszDestDir, fd.cFileName);
 
 
       bool move = true;
@@ -4476,13 +4476,13 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
 
     if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     {
-      wchar_t            wszDescend0 [MAX_PATH * 2 + 1] = { };
-      PathCombineW      (wszDescend0, wszOrigDir, fd.cFileName);
-      PathAddBackslashW (wszDescend0);
+      wchar_t               wszDescend0 [MAX_PATH + 2] = { };
+      SK_PathCombineW      (wszDescend0, wszOrigDir, fd.cFileName);
+         PathAddBackslashW (wszDescend0);
 
-      wchar_t            wszDescend1 [MAX_PATH * 2 + 1] = { };
-      PathCombineW      (wszDescend1, wszDestDir, fd.cFileName);
-      PathAddBackslashW (wszDescend1);
+      wchar_t               wszDescend1 [MAX_PATH + 2] = { };
+      SK_PathCombineW      (wszDescend1, wszDestDir, fd.cFileName);
+         PathAddBackslashW (wszDescend1);
 
       SK_CreateDirectories (wszDescend1);
 
@@ -4554,4 +4554,139 @@ SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic)
   }
 
   return pRet;
+}
+
+
+HINSTANCE
+WINAPI
+SK_ShellExecuteW ( _In_opt_ HWND    hwnd,
+                   _In_opt_ LPCWSTR lpOperation,
+                   _In_     LPCWSTR lpFile,
+                   _In_opt_ LPCWSTR lpParameters,
+                   _In_opt_ LPCWSTR lpDirectory,
+                   _In_     INT     nShowCmd )
+{
+  struct exec_args_s {
+    HWND    hWnd;
+    LPCWSTR lpOperation;
+    LPCWSTR lpFile;
+    LPCWSTR lpParameters;
+    LPCWSTR lpDirectory;
+    INT     nShowCmd;
+
+    HANDLE    hThread;
+    HINSTANCE hInstance;
+    DWORD     tid;
+  } args = { hwnd, lpOperation,  lpFile,
+                   lpParameters, lpDirectory,
+                   nShowCmd,
+
+             nullptr, nullptr, 0x0 };
+
+  args.hThread =
+  CreateThread ( nullptr, 0,
+  [](LPVOID lpUser)->DWORD
+  {
+    auto *pArgs =
+      (exec_args_s *)lpUser;
+
+    SK_AutoCOMInit _auto_com (
+      COINIT_APARTMENTTHREADED |
+      COINIT_DISABLE_OLE1DDE
+    );
+
+    pArgs->hInstance =
+      ShellExecuteW (
+        pArgs->hWnd,
+          pArgs->lpOperation,  pArgs->lpFile,
+          pArgs->lpParameters, pArgs->lpDirectory,
+            pArgs->nShowCmd
+      );
+
+    return 0;
+  }, (LPVOID)&args, 0x0,
+             &args.tid );
+
+  if (args.hThread != 0)
+  {
+    WaitForSingleObject (args.hThread, INFINITE);
+    CloseHandle         (args.hThread);
+  }
+
+  return
+    args.hInstance;
+}
+
+HINSTANCE
+WINAPI
+SK_ShellExecuteA ( _In_opt_ HWND   hwnd,
+                   _In_opt_ LPCSTR lpOperation,
+                   _In_     LPCSTR lpFile,
+                   _In_opt_ LPCSTR lpParameters,
+                   _In_opt_ LPCSTR lpDirectory,
+                   _In_     INT    nShowCmd )
+{
+  struct exec_args_s {
+    HWND   hWnd;
+    LPCSTR lpOperation;
+    LPCSTR lpFile;
+    LPCSTR lpParameters;
+    LPCSTR lpDirectory;
+    INT    nShowCmd;
+
+    HANDLE    hThread;
+    HINSTANCE hInstance;
+    DWORD     tid;
+  } args = { hwnd, lpOperation,  lpFile,
+                   lpParameters, lpDirectory,
+                   nShowCmd,
+
+             nullptr, nullptr, 0x0 };
+
+  args.hThread =
+  CreateThread ( nullptr, 0,
+  [](LPVOID lpUser)->DWORD
+  {
+    auto *pArgs =
+      (exec_args_s *)lpUser;
+
+    SK_AutoCOMInit _auto_com (
+      COINIT_APARTMENTTHREADED |
+      COINIT_DISABLE_OLE1DDE
+    );
+
+    pArgs->hInstance =
+      ShellExecuteA (
+        pArgs->hWnd,
+          pArgs->lpOperation,  pArgs->lpFile,
+          pArgs->lpParameters, pArgs->lpDirectory,
+            pArgs->nShowCmd
+      );
+
+    return 0;
+  }, (LPVOID)&args, 0x0,
+             &args.tid );
+
+  if (args.hThread != 0)
+  {
+    WaitForSingleObject (args.hThread, INFINITE);
+    CloseHandle         (args.hThread);
+  }
+
+  return
+    args.hInstance;
+}
+
+
+template < class T,
+           class ...    Args > std::unique_ptr <T>
+SK_make_unique_nothrow (Args && ... args) noexcept
+(                                         noexcept
+(  T ( std::forward   < Args >     (args)   ... ))
+)
+{
+  return
+       std::unique_ptr <T> (
+  new (std::nothrow)    T  (std::forward
+                      < Args >     (args)   ...));
 }

@@ -51,14 +51,14 @@ interface SK_ICommandResult
     status_ = status;
   }
 
-  const char*          getWord     (void) const  { return word_.c_str   (); }
-  const char*          getArgs     (void) const  { return args_.c_str   (); }
-  const char*          getResult   (void) const  { return result_.c_str (); }
+  const char*          getWord     (void) const noexcept { return word_.c_str   (); }
+  const char*          getArgs     (void) const noexcept { return args_.c_str   (); }
+  const char*          getResult   (void) const noexcept { return result_.c_str (); }
 
-  const SK_IVariable*  getVariable (void) const  { return var_;    }
-  const SK_ICommand*   getCommand  (void) const  { return cmd_;    }
+  const SK_IVariable*  getVariable (void) const noexcept { return var_;    }
+  const SK_ICommand*   getCommand  (void) const noexcept { return cmd_;    }
 
-  int                  getStatus   (void) const  { return status_; }
+  int                  getStatus   (void) const noexcept { return status_; }
 
 protected:
 
@@ -88,6 +88,8 @@ interface SK_ICommand
 interface SK_IVariable
 {
   friend interface SK_IVariableListener;
+
+  virtual ~SK_IVariable (void) noexcept { };
 
   enum VariableType {
     Float,
@@ -136,9 +138,13 @@ interface SK_IVarStub : public SK_IVariable
     return type_;
   }
 
+  virtual ~SK_IVarStub (void)
+  {
+  }
+
   void          getValueString  ( _Out_opt_ char*     szOut,
                                   _Inout_   uint32_t* dwLen ) const override {
-    if (szOut != nullptr)
+    if (szOut != nullptr      &&     *dwLen >= 7)
       strncpy_s (szOut, 7, "(null)", *dwLen);
 
     *dwLen = std::min (*dwLen, (uint32_t)strlen ("(null)"));

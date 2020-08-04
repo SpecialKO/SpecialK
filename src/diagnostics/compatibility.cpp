@@ -20,11 +20,17 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <WinUser.h>
 
 volatile LONG __SK_TaskDialogActive = FALSE;
 
 HWND WINAPI SK_GetForegroundWindow (void);
+HWND WINAPI SK_GetFocus            (void);
+
+HRESULT WINAPI
+SK_TaskDialogIndirect ( _In_      const TASKDIALOGCONFIG* pTaskConfig,
+                        _Out_opt_       int*              pnButton,
+                        _Out_opt_       int*              pnRadioButton,
+                        _Out_opt_       BOOL*             pfVerificationFlagChecked );
 
 HRESULT
 CALLBACK
@@ -42,7 +48,7 @@ TaskDialogCallback (
   if (uNotification == TDN_TIMER)
   {
     if (SK_GetForegroundWindow () != hWnd &&
-           GetFocus            () != hWnd)
+        SK_GetFocus            () != hWnd)
     {
       SK_RealizeForegroundWindow (hWnd);
     }
@@ -60,7 +66,7 @@ TaskDialogCallback (
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
   {
-    ShellExecuteW (nullptr, L"open",
+    SK_ShellExecuteW (nullptr, L"open",
       reinterpret_cast <wchar_t *>(lParam), nullptr, nullptr, SW_SHOW);
     return S_OK;
   }
@@ -120,7 +126,7 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
                          SK_GetVersionStrW () );
 
   int              nButtonPressed = 0;
-  TASKDIALOGCONFIG task_config    = {0};
+  TASKDIALOGCONFIG task_config    = { };
 
   task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = __SK_hModHost;
@@ -152,10 +158,10 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
 
   HRESULT hr =
-    TaskDialogIndirect ( &task_config,
-                          &nButtonPressed,
-                            nullptr,
-                              verify );
+    SK_TaskDialogIndirect ( &task_config,
+                             &nButtonPressed,
+                               nullptr,
+                                 verify );
 
   return hr;
 }
@@ -224,10 +230,10 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
 
   HRESULT hr =
-    TaskDialogIndirect ( &task_config,
-                          &nButtonPressed,
-                            nullptr,
-                              verify );
+    SK_TaskDialogIndirect ( &task_config,
+                             &nButtonPressed,
+                               nullptr,
+                                 verify );
 
   return hr;
 }
@@ -265,7 +271,7 @@ SK_Bypass_CRT (LPVOID)
   bool timer = true;
 
   int              nButtonPressed = 0;
-  TASKDIALOGCONFIG task_config    = {0};
+  TASKDIALOGCONFIG task_config    = { };
 
   enum {
     BUTTON_INSTALL         = 0,
@@ -468,10 +474,10 @@ SK_Bypass_CRT (LPVOID)
 
 
   HRESULT hr =
-    TaskDialogIndirect ( &task_config,
-                          &nButtonPressed,
-                            &nRadioPressed,
-                              SK_IsInjected () ? &disable : nullptr );
+    SK_TaskDialogIndirect ( &task_config,
+                             &nButtonPressed,
+                               &nRadioPressed,
+                                 SK_IsInjected () ? &disable : nullptr );
 
 
   extern iSK_INI* dll_ini;
@@ -841,7 +847,7 @@ SK_Bypass_CRT (LPVOID)
                           "Possible API Detection Problems",
                             MB_ICONINFORMATION | MB_OK
                     );
-      ShellExecuteW ( SK_HWND_DESKTOP, L"explore", SK_GetHostPath (), nullptr, nullptr, SW_SHOWNORMAL );
+      SK_ShellExecuteW ( SK_HWND_DESKTOP, L"explore", SK_GetHostPath (), nullptr, nullptr, SW_SHOWNORMAL );
     }
 
     if (disable)
@@ -924,12 +930,12 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
                           MB_OK        | MB_SETFOREGROUND |
                           MB_APPLMODAL | MB_ICONASTERISK );
 
-      ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF_config.exe", nullptr, nullptr, SW_NORMAL);
+      SK_ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF_config.exe", nullptr, nullptr, SW_NORMAL);
 
       while (SK_IsProcessRunning (L"WOFF_config.exe"))
         SK_Sleep (250UL);
 
-      ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF.exe",        nullptr, nullptr, SW_NORMAL);
+      SK_ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF.exe",        nullptr, nullptr, SW_NORMAL);
       ExitProcess   (0x00);
     }
   }
@@ -937,7 +943,6 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 
 
 
-#include <SpecialK/sound.h>
 
 //
 // MSI Nahimic sometimes @#$%s the bed if MMDevAPI.dll is not loaded
@@ -973,7 +978,7 @@ SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally)
 
   else if (locally != nullptr) *locally = false;
 
-  wchar_t wszSystemDir [MAX_PATH * 2] = { };
+  wchar_t wszSystemDir [MAX_PATH + 2] = { };
 
 #ifdef _M_AMD64
   GetSystemDirectoryW (wszSystemDir, MAX_PATH);
@@ -998,14 +1003,14 @@ SK_COMPAT_UnloadFraps (void)
 #ifdef _M_AMD64
   if (SK_GetModuleHandle (L"fraps64.dll"))
   {
-    UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps64.dll", "FrapsProcCBT"));
-    FreeLibrary (               SK_GetModuleHandle (L"fraps64.dll"));
+       UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps64.dll", "FrapsProcCBT"));
+    SK_FreeLibrary (               SK_GetModuleHandle (L"fraps64.dll"));
   }
 #else /* _M_IX86 */
   if (SK_GetModuleHandle (L"fraps.dll"))
   {
-    UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps.dll", "FrapsProcCBT"));
-    FreeLibrary (               SK_GetModuleHandle (L"fraps.dll"));
+       UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps.dll", "FrapsProcCBT"));
+    SK_FreeLibrary (               SK_GetModuleHandle (L"fraps.dll"));
   }
 #endif
 }

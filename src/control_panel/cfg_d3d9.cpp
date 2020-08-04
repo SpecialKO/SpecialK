@@ -20,13 +20,10 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <imgui/imgui.h>
 
-#include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/d3d9.h>
 #include <SpecialK/control_panel/osd.h>
 
-#include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_texmgr.h>
 
@@ -113,7 +110,7 @@ SK::ControlPanel::D3D9::Draw (void)
 
     //ImGui::PushFont  (ImGui::GetIO ().Fonts->Fonts [1]);
       ImGui::Columns   ( 3 );
-        ImGui::Text    ( "%#6zu MiB Total",
+        ImGui::Text    ( "%6zi MiB Total",
                                                        tex_mgr.cacheSizeTotal () >> 20ULL ); ImGui::NextColumn ();
 
         static DWORD  dwLastVRAMUpdate   = 0UL;
@@ -125,7 +122,7 @@ SK::ControlPanel::D3D9::Draw (void)
 
           if (pDev != nullptr)
           {
-            d3d9_tex_mem_avail =
+             d3d9_tex_mem_avail =
               static_cast <size_t> (
                 pDev->GetAvailableTextureMem () / 1048576ui32
               );
@@ -135,8 +132,8 @@ SK::ControlPanel::D3D9::Draw (void)
 
         ImGui::TextColored
                        (ImVec4 (0.3f, 1.0f, 0.3f, 1.0f),
-                         "%#5lu     Hits",             tex_mgr.getHitCount    ()          ); ImGui::NextColumn ();
-        ImGui::Text       ( "Budget: %#7zu MiB  ",     d3d9_tex_mem_avail );
+                         "%5li     Hits",              tex_mgr.getHitCount    ()          ); ImGui::NextColumn ();
+        ImGui::Text       ( "Budget: %7zi MiB  ",     d3d9_tex_mem_avail );
       ImGui::Columns   ( 1 );
 
       ImGui::Separator (   );
@@ -150,7 +147,7 @@ SK::ControlPanel::D3D9::Draw (void)
       bool selected = (! __remap_textures);
 
       ImGui::Columns   ( 3 );
-        ImGui::Selectable  ( SK_FormatString ( "%#6zu MiB Base###D3D9_BaseTextures",
+        ImGui::Selectable  ( SK_FormatString ( "%6zi MiB Base###D3D9_BaseTextures",
                                                  tex_mgr.cacheSizeBasic () >> 20ULL ).c_str (),
                                &selected ); ImGui::NextColumn ();
 
@@ -163,7 +160,7 @@ SK::ControlPanel::D3D9::Draw (void)
 
         ImGui::TextColored
                        (ImVec4 (1.0f, 0.3f, 0.3f, 1.0f),
-                         "%#5lu   Misses",             tex_mgr.getMissCount   ()          );  ImGui::NextColumn ();
+                         "%5li   Misses",              tex_mgr.getMissCount   ()          );  ImGui::NextColumn ();
         ImGui::Text    ( "Time:    %#7.03lf  s  ",     tex_mgr.getTimeSaved   () / 1000.0f);
       ImGui::Columns   ( 1 );
 
@@ -175,7 +172,7 @@ SK::ControlPanel::D3D9::Draw (void)
       ImGui::PushStyleColor (ImGuiCol_Text, color);
 
       ImGui::Columns   ( 3 );
-        ImGui::Selectable  ( SK_FormatString ( "%#6zu MiB Injected###D3D9_InjectedTextures",
+        ImGui::Selectable  ( SK_FormatString ( "%6zi MiB Injected###D3D9_InjectedTextures",
                                                            tex_mgr.cacheSizeInjected () >> 20ULL ).c_str (),
                                          &selected ); ImGui::NextColumn ();
 
@@ -190,7 +187,13 @@ SK::ControlPanel::D3D9::Draw (void)
                                                             (float)tex_mgr.getMissCount (), 0.4f ), 0.98f, 1.0f),
                          "%.2f  Hit/Miss",                 (double)tex_mgr.getHitCount  () /
                                                            (double)tex_mgr.getMissCount ()          ); ImGui::NextColumn ();
-        ImGui::Text    ( "Driver: %#7zu MiB  ",                    tex_mgr.getByteSaved () >> 20ULL );
+
+#ifdef _M_AMD64
+                               ImGui::Text ("Driver: %7lli MiB  ", tex_mgr.getByteSaved () >> 20ULL);
+#else /* _M_IX86 */
+                               ImGui::Text ("Driver: %7i MiB  ",   tex_mgr.getByteSaved () >> 20ULL);
+
+#endif
 
       ImGui::PopStyleColor
                        (   );

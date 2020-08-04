@@ -992,12 +992,12 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
   //
   else
   {
-    wchar_t       arc_name [MAX_PATH] = { };
+    wchar_t       arc_name [MAX_PATH + 2] = { };
 
-    CFileInStream arc_stream          = { };
-    CLookToRead   look_stream         = { };
-    ISzAlloc      thread_alloc        = { };
-    ISzAlloc      thread_tmp_alloc    = { };
+    CFileInStream arc_stream              = { };
+    CLookToRead   look_stream             = { };
+    ISzAlloc      thread_alloc            = { };
+    ISzAlloc      thread_tmp_alloc        = { };
 
     FileInStream_CreateVTable (&arc_stream);
     LookToRead_CreateVTable   (&look_stream, False);
@@ -1422,8 +1422,8 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
 uint32_t
 safe_crc32c (uint32_t seed, const void* pData, size_t size)
 {
-  // Current limit == 48 GiB
-  if (size > (1024ULL * 1024ULL * 1024ULL * 48) || pData == nullptr)
+  // Current limit == 2 GiB
+  if (size > (1024ULL * 1024ULL * 1024ULL * 2) || pData == nullptr)
     return seed;
 
   uint32_t ret = 0x0;
@@ -1599,7 +1599,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
     tex_log->LogEx ( true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
                        checksum );
 
-    wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
+    wchar_t wszInjectFileName [MAX_PATH + 2] = { };
 
     TexRecord& record =
       tex_mgr.getInjectableTexture (checksum);
@@ -2029,9 +2029,10 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
       _remove_textures.insert (std::make_pair (it, true));
   }
 
-    auto tex = textures.find (checksum);
+    const auto tex =
+      textures.find (checksum);
 
-    if (tex != textures.end ())
+    if (tex != textures.cend ())
     {
       return tex->second;
     }
@@ -2042,6 +2043,8 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
 void
 SK::D3D9::TextureManager::removeTexture (ISKTextureD3D9* pTexD3D9)
 {
+  assert (pTexD3D9 != nullptr);
+
   remove_textures->insert (std::make_pair (pTexD3D9, true));
 
   updateOSD ();
@@ -2050,6 +2053,8 @@ SK::D3D9::TextureManager::removeTexture (ISKTextureD3D9* pTexD3D9)
 void
 SK::D3D9::TextureManager::addTexture (uint32_t checksum, Texture* pTex, size_t size)
 {
+  assert (pTex != nullptr);
+
   pTex->size = size;
 
   {
@@ -2080,6 +2085,8 @@ SK::D3D9::TextureManager::refTexture (Texture* pTex)
 void
 SK::D3D9::TextureManager::refTextureEx (Texture* pTex, bool add_to_ref_count)
 {
+  assert (pTex != nullptr);
+
   if (add_to_ref_count)
   {
     pTex->d3d9_tex->AddRef ();
@@ -2134,11 +2141,11 @@ D3D9SetRenderTarget_Detour (
     if (D3DXSaveSurfaceToFileW == nullptr) {
       D3DXSaveSurfaceToFileW =
         (D3DXSaveSurfaceToFile_pfn)
-          GetProcAddress ( tsf::RenderFix::d3dx9_43_dll,
+       SK_GetProcAddress ( tsf::RenderFix::d3dx9_43_dll,
                              "D3DXSaveSurfaceToFileW" );
     }
 
-    wchar_t wszDumpName [MAX_PATH];
+    wchar_t wszDumpName [MAX_PATH + 2] = { };
 
     if (pRenderTarget != pOld) {
       if (pOld != nullptr) {
@@ -2294,8 +2301,8 @@ SK::D3D9::TextureManager::Init (void)
 
   ///resample_pool       = new TextureThreadPool ();
 
-  stream_pool.lrg_tex = new TextureThreadPool ();
-  stream_pool.sm_tex  = new TextureThreadPool ();
+  stream_pool.lrg_tex = std::make_unique <TextureThreadPool> ();
+  stream_pool.sm_tex  = std::make_unique <TextureThreadPool> ();
 
   SK_ICommandProcessor& command =
     *SK_GetCommandProcessor ();
@@ -3238,7 +3245,7 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
     {
       bool started = false;
 
-      for ( auto it : pPool->workers_ )
+      for ( auto& it : pPool->workers_ )
       {
         if (! it->isBusy ())
         {
@@ -3274,7 +3281,7 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
                 MAX_TIME_BETWEEN_TRIMS ) ==
                                WAIT_TIMEOUT )
     {
-      for ( auto it : pPool->workers_ )
+      for ( auto& it : pPool->workers_ )
       {
         if (! it->isBusy ())
         {
@@ -3500,7 +3507,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
             thread_tmp_alloc.Alloc = SzAllocTemp;
             thread_tmp_alloc.Free  = SzFreeTemp;
 
-            wchar_t wszQualifiedArchiveName [MAX_PATH] = { };
+            wchar_t wszQualifiedArchiveName [MAX_PATH + 2] = { };
 
             _swprintf ( wszQualifiedArchiveName,
                           L"%s\\inject\\%s",
@@ -3523,7 +3530,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
             {
               uint32_t i;
 
-              wchar_t wszEntry [MAX_PATH];
+              wchar_t wszEntry [MAX_PATH + 2] = { };
 
               for (i = 0; i < arc.NumFiles; i++)
               {
@@ -3654,7 +3661,7 @@ SK::D3D9::TextureManager::TextureManager::reloadTexture (uint32_t checksum)
 
   TexLoadRequest* load_op = nullptr;
 
-  wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
+  wchar_t wszInjectFileName [MAX_PATH + 2] = { };
 
   bool remap_stream =
     injector.isStreaming (checksum);

@@ -21,6 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"D3D11 Util"
 
 #include <SpecialK/render/d3d11/d3d11_core.h>

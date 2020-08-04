@@ -24,18 +24,13 @@
 #define OSD_IMP
 #include <SpecialK/osd/text.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 
-#include <CEGUI/CEGUI.h>
-#include <CEGUI/Rect.h>
-#include <CEGUI/Renderer.h>
 
 #include <GL/glew.h>
 
 #include <SpecialK/nvapi.h>
-#include <SpecialK/adl.h>
 
 
 typedef struct _PROCESS_MEMORY_COUNTERS_EX {
@@ -602,8 +597,8 @@ SK_InstallOSD (void)
 }
 
 
-extern SK::Framerate::Stats* frame_history;
-extern SK::Framerate::Stats* frame_history2;
+extern SK_LazyGlobal <SK::Framerate::Stats> frame_history;
+extern SK_LazyGlobal <SK::Framerate::Stats> frame_history2;
 
 BOOL
 __stdcall
@@ -655,7 +650,7 @@ SK_DrawOSD (void)
                               127 );
 
     static HMODULE hModGame = SK_Modules->HostApp ();
-    static wchar_t wszGameName [MAX_PATH + 1] = { };
+    static wchar_t wszGameName [MAX_PATH + 2] = { };
 
     if (wszGameName [0] == L'\0')
     {

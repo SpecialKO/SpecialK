@@ -68,7 +68,7 @@ public:
 
   void reset       (void); // Call when window activation changes
 
-  bool isVisible (void) { return visible; }
+  bool isVisible (void) noexcept { return visible; }
 };
 
 void SK_DrawConsole (void);

@@ -20,9 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/widgets/widget.h>
 
-#include <SpecialK/plugin/plugin_mgr.h>
 
 #include <tobii/tobii.h>
 #include <tobii/tobii_streams.h>
@@ -198,16 +196,16 @@ SK_UnpackTobiiStreamEngine (void)
 
     if (locked != nullptr)
     {
-      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
-      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszArchive     [MAX_PATH + 2] = { };
+      wchar_t      wszDestination [MAX_PATH + 2] = { };
 
-      wcscpy      (wszDestination, SK_GetDocumentsDir ().c_str ());
+      wcscpy_s    (wszDestination, MAX_PATH, SK_GetDocumentsDir ().c_str ());
       PathAppendW (wszDestination, LR"(My Mods\SpecialK\PlugIns\ThirdParty\StreamEngine\)");
 
       if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
         SK_CreateDirectories (wszDestination);
 
-      wcscpy      (wszArchive, wszDestination);
+      wcscpy_s    (wszArchive, MAX_PATH, wszDestination);
       PathAppendW (wszArchive, L"tobii_stream_engine_sk.7z");
 
       ///SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive,wszDestination ),
@@ -695,9 +693,9 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
 #define LIBRARY_NAME L"tobii_stream_engine_sk32.dll"
 #endif
 
-  wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+  wchar_t      wszDestination [MAX_PATH + 2] = { };
 
-  wcscpy      (wszDestination, SK_GetDocumentsDir ().c_str ());
+  wcscpy_s    (wszDestination, MAX_PATH, SK_GetDocumentsDir ().c_str ());
   PathAppendW (wszDestination, LR"(My Mods\SpecialK\PlugIns\ThirdParty\StreamEngine)");
   PathAppendW (wszDestination, LIBRARY_NAME);
 
@@ -726,7 +724,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
 
     if (error != TOBII_ERROR_NO_ERROR)
     {
-      FreeLibrary (hModTobii);
+      SK_FreeLibrary (hModTobii);
       return;
     }
 
@@ -740,7 +738,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
   if (error != TOBII_ERROR_NO_ERROR || *url == '\0')
   {
     tobii_api_destroy (api);
-    FreeLibrary       (hModTobii);
+    SK_FreeLibrary    (hModTobii);
 
     api       = nullptr;
     hModTobii = nullptr;
@@ -756,7 +754,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
   if (error != TOBII_ERROR_NO_ERROR)
   {
     tobii_api_destroy (api);
-    FreeLibrary       (hModTobii);
+    SK_FreeLibrary    (hModTobii);
 
     api       = nullptr;
     hModTobii = nullptr;
@@ -775,7 +773,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
   {
     tobii_device_destroy (device);
     tobii_api_destroy    (api);
-    FreeLibrary          (hModTobii);
+    SK_FreeLibrary       (hModTobii);
 
     device    = nullptr;
     api       = nullptr;
@@ -874,7 +872,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
 
     SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR);
 
-    FreeLibrary ((HMODULE)module);
+    SK_FreeLibrary ((HMODULE)module);
 
     __tobii_widget__->api    = nullptr;
     __tobii_widget__->device = nullptr;

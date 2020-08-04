@@ -106,25 +106,53 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
                                        required_ver : ver_;
     }
 
-    AddRef ();
+    else
+    {
+      AddRef ();
+    }
+
+    InterlockedIncrement (&refs_);
 
     *ppvObj = this;
 
     return S_OK;
   }
 
-  return
+  HRESULT hr =
     pReal->QueryInterface (riid, ppvObj);
+
+  if ( riid != IID_IUnknown &&
+       riid != IID_ID3DUserDefinedAnnotation )
+  {
+    static
+      std::unordered_set <std::wstring> reported_guids;
+
+    wchar_t                wszGUID [41] = { };
+    StringFromGUID2 (riid, wszGUID, 40);
+
+    bool once =
+      reported_guids.count (wszGUID) > 0;
+
+    if (! once)
+    {
+      reported_guids.emplace (wszGUID);
+
+      SK_LOG0 ( ( L"QueryInterface on wrapped DXGI SwapChain for Mystery UUID: %s",
+                      wszGUID ), L"   DXGI   " );
+    }
+  }
+
+  return hr;
 }
 
 ULONG
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::AddRef (void)
 {
-  pReal->AddRef ();
+  InterlockedIncrement (&refs_);
 
   return
-    (ULONG)InterlockedIncrement (&refs_);
+    pReal->AddRef ();
 }
 
 ULONG
@@ -135,16 +163,11 @@ IWrapDXGISwapChain::Release (void)
     InterlockedDecrement (&refs_),
          refs = pReal->Release ();
 
-  if (xrefs > 0)
+  if (refs == 0 && xrefs != 0)
   {
-    refs = pReal->Release ();
-  }
-
-  if (ReadAcquire (&refs_) == 0 && refs != 0)
-  {
-    assert (false);
-
-    //refs = 0;
+    // Assertion always fails, we just want to be vocal about
+    //   any code that causes this.
+    SK_ReleaseAssert (xrefs == 0);
   }
 
   if (refs == 0)
@@ -157,12 +180,10 @@ IWrapDXGISwapChain::Release (void)
         InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChain1s);
       else
         InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
-
-      delete this;
     }
   }
 
-  return xrefs;
+  return refs;
 }
 
 HRESULT
@@ -193,21 +214,23 @@ STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetParent (REFIID riid, void **ppParent)
 {
   return
-    pReal->GetParent(riid, ppParent);
+    pReal->GetParent (riid, ppParent);
 }
 
 HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
 {
-  if (ppDevice == nullptr || *ppDevice == nullptr)
+  if (  ppDevice == nullptr ||
+       *ppDevice == nullptr )
   {
     return
       DXGI_ERROR_DEVICE_RESET;
   }
 
   return
-    ((ID3D11Device *)pDev)->QueryInterface (riid, ppDevice);
+    ((IUnknown *)pDev)->QueryInterface (riid, ppDevice);
+    //((ID3D11Device *)pDev)->QueryInterface (riid, ppDevice);
 }
 
 HRESULT
@@ -256,11 +279,6 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
-  //return S_OK;
-
-  //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (pReal, BufferCount, Width, Height, NewFormat)))
-  //  return S_OK;
-
   DXGI_SWAP_CHAIN_DESC desc = { };
   pReal->GetDesc     (&desc);
 
@@ -277,13 +295,6 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     return
       pReal->ResizeBuffers (BufferCount, Width, Height, DXGI_FORMAT_UNKNOWN, desc.Flags);
   }
-  else if (FAILED(hr))
-  {
-    return hr;
-  }
-
-  //DXGI_SWAP_CHAIN_DESC desc = { };
-  //pReal->GetDesc     (&desc);
 
   return hr;
 }
@@ -292,11 +303,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::ResizeTarget (const DXGI_MODE_DESC *pNewTargetParameters)
 {
-  //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (this, 0, pNewTargetParameters->Width, pNewTargetParameters->Height, pNewTargetParameters->Format)))
-  //  return S_OK;
-
   return
-    pReal->ResizeTarget(pNewTargetParameters);
+    pReal->ResizeTarget (pNewTargetParameters);
 }
 
 HRESULT

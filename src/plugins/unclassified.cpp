@@ -3,13 +3,9 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <imgui/imgui.h>
 
-#include <SpecialK/control_panel.h>
-#include <SpecialK/plugin/plugin_mgr.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
 extern bool SK_D3D11_EnableTracking;
@@ -178,7 +174,7 @@ GetEnvironmentVariableA_Detour ( LPCSTR lpName,
 {
   if (_stricmp (lpName, "USERPROFILE") == 0)
   {
-    char     szDocs [MAX_PATH + 1] = { };
+    char     szDocs [MAX_PATH + 2] = { };
     strcpy ( szDocs,
                SK_WideCharToUTF8 (SK_GetDocumentsDir ()).c_str () );
 

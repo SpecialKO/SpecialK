@@ -20,9 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/widgets/widget.h>
 
-#include <SpecialK/render/backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
 extern iSK_INI* osd_ini;

@@ -128,27 +128,27 @@ SK_GetPlugInDirectory ( SK_PlugIn_Type type )
     static std::vector <AURALightController_s> mouse_controllers;
 
       static EnumerateDramFunc SK_AURA_EnumerateDram =
-        (EnumerateDramFunc)GetProcAddress (
+        (EnumerateDramFunc)SK_GetProcAddress (
            hModAuraSDK,
         "EnumerateDram"
       );
       static SetDramModeFunc SK_AURA_SetDramModeFunc =
-        (SetDramModeFunc)GetProcAddress (
+        (SetDramModeFunc)SK_GetProcAddress (
            hModAuraSDK,
         "SetDramMode"
       );
       static GetDramLedCountFunc SK_AURA_GetDramLedCount =
-        (GetDramLedCountFunc)GetProcAddress (
+        (GetDramLedCountFunc)SK_GetProcAddress (
            hModAuraSDK,
         "GetDramLedCount"
       );
       static GetDramColorFunc SK_AURA_GetDramColor =
-        (GetDramColorFunc)GetProcAddress (
+        (GetDramColorFunc)SK_GetProcAddress (
            hModAuraSDK,
         "GetDramColor"
       );
       static GetDramColorFunc SK_AURA_SetDramColor =
-        (SetDramColorFunc)GetProcAddress (
+        (SetDramColorFunc)SK_GetProcAddress (
            hModAuraSDK,
         "SetDramColor"
       );

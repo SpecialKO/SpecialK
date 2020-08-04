@@ -21,7 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <CEGUI/CEGUI.h>
 
 SK_PopupWindow::SK_PopupWindow (const char* szLayout)
 {
@@ -121,7 +120,6 @@ SK_PopupManager::isPopup (SK_PopupWindow* popup)
   return false;
 }
 
-#include <SpecialK/osd/text.h>
 
 SK_PopupWindow*
 SK_PopupManager::createPopup (const char* szLayout)
@@ -217,7 +215,6 @@ SK_PopupManager::destroyAllPopups (void)
   popups_.clear     ();
 }
 
-#include <SpecialK/log.h>
 
 bool
 SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)

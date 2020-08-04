@@ -21,7 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <SpecialK/framerate.h>
 
 
 #define ALLOW_UNDOCUMENTED
@@ -607,8 +606,7 @@ SwitchToThread_Detour (void)
       SK_TLS *pTLS =
         SK_TLS_Bottom ();
 
-      if ( pTLS->win32->getThreadPriority () !=
-             THREAD_PRIORITY_HIGHEST )
+      if ( GetActiveWindow () == 0 )
       {
         return
           SwitchToThread_Original ();
@@ -624,7 +622,7 @@ SwitchToThread_Detour (void)
 
       if (pTLS->debug.tid == dwTid)
       {
-        ULONG ulFrames =
+        ULONG64 ulFrames =
           SK_GetFramesDrawn ();
 
         if (pTLS->scheduler->last_frame   < (ulFrames - 3) ||
@@ -740,7 +738,7 @@ volatile LONG __sleep_init = 0;
 
 DWORD
 WINAPI
-SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
+SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) noexcept
 {
   if (! ReadAcquire (&__sleep_init))
     return SleepEx (dwMilliseconds, bAlertable);
@@ -753,7 +751,7 @@ SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
 
 void
 WINAPI
-SK_Sleep (DWORD dwMilliseconds)
+SK_Sleep (DWORD dwMilliseconds) noexcept
 {
   SK_SleepEx (dwMilliseconds, FALSE);
 }
@@ -905,8 +903,9 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       pTLS = ( dwTidBusy == dwTid ? pTLSBusy :
                                     pTLSWork );
 
-      ULONG ulFrames =
+      ULONG64 ulFrames =
         SK_GetFramesDrawn ();
+
 
       if (pTLS->scheduler->last_frame < ulFrames)
       {
@@ -951,16 +950,16 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     if (! InterlockedCompareExchange (&__init, 1, 0))
     {
       NtDll =
-        LoadLibrary (L"ntdll.dll");
+        SK_LoadLibraryW (L"NtDll.dll");
 
       NtQueryTimerResolution =
         reinterpret_cast <NtQueryTimerResolution_pfn> (
-          GetProcAddress (NtDll, "NtQueryTimerResolution")
+          SK_GetProcAddress (NtDll, "NtQueryTimerResolution")
         );
 
       NtSetTimerResolution =
         reinterpret_cast <NtSetTimerResolution_pfn> (
-          GetProcAddress (NtDll, "NtSetTimerResolution")
+          SK_GetProcAddress (NtDll, "NtSetTimerResolution")
         );
 
       if (NtQueryTimerResolution != nullptr &&
@@ -1185,7 +1184,42 @@ SK_GetPerfFreq (void)
 
 
 
+NtSetTimerResolution_pfn NtSetTimerResolution_Original = nullptr;
 
+
+NTSTATUS
+NTAPI
+NtSetTimerResolution_Detour
+(
+  IN  ULONG               DesiredResolution,
+  IN  BOOLEAN             SetResolution,
+  OUT PULONG              CurrentResolution
+)
+{
+  NTSTATUS ret = 0;
+
+  NtQueryTimerResolution =
+  reinterpret_cast <NtQueryTimerResolution_pfn> (
+    SK_GetProcAddress (NtDll, "NtQueryTimerResolution")
+  );
+
+  if (NtQueryTimerResolution != nullptr)
+  {
+    ULONG min, max, cur;
+    NtQueryTimerResolution (&min, &max, &cur);
+    dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
+                     static_cast <float> (cur * 100)/1000000.0f );
+
+    if (! SetResolution)
+      ret = NtSetTimerResolution_Original (DesiredResolution, SetResolution, CurrentResolution);
+   else
+      ret = NtSetTimerResolution_Original (max, TRUE, CurrentResolution);
+  }
+
+  SK_LOG0 ((L"NtSetTimerResolution (%f ms : %s) issued by %s", (float)(DesiredResolution * 100) / 1000000.0, SetResolution ? L"Set" : L"Get", SK_GetCallerName ().c_str ()), L"WIN-SCHED");
+
+  return ret;
+}
 
 void SK_Scheduler_Init (void)
 {
@@ -1250,32 +1284,43 @@ void SK_Scheduler_Init (void)
                              NtWaitForMultipleObjects_Detour,
     static_cast_p2p <void> (&NtWaitForMultipleObjects_Original) );
 
-  //SK_ApplyQueuedHooks ();
+  SK_CreateDLLHook2 (      L"NtDll",
+                            "NtSetTimerResolution",
+                             NtSetTimerResolution_Detour,
+    static_cast_p2p <void> (&NtSetTimerResolution_Original) );
+
   InterlockedExchange (&__sleep_init, 1);
 
 #ifdef NO_HOOK_QPC
   QueryPerformanceCounter_Original =
     reinterpret_cast <QueryPerformanceCounter_pfn> (
-      GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
+      SK_GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
                          "QueryPerformanceCounter" )
     );
 #endif
 
-  if (! config.render.framerate.enable_mmcss)
+  //if (! config.render.framerate.enable_mmcss)
   {
     if (NtDll == nullptr)
     {
       NtDll =
-        LoadLibrary (L"ntdll.dll");
+        SK_LoadLibraryW (L"NtDll.dll");
+    }
 
-      NtQueryTimerResolution =
-        reinterpret_cast <NtQueryTimerResolution_pfn> (
-          GetProcAddress (NtDll, "NtQueryTimerResolution")
+    if (NtDll != nullptr)
+    {
+      SK_RunOnce (
+        NtQueryTimerResolution =
+          reinterpret_cast <NtQueryTimerResolution_pfn> (
+            SK_GetProcAddress (NtDll, "NtQueryTimerResolution")
+          )
         );
 
-      NtSetTimerResolution =
-        reinterpret_cast <NtSetTimerResolution_pfn> (
-          GetProcAddress (NtDll, "NtSetTimerResolution")
+      SK_RunOnce (
+        NtSetTimerResolution =
+          reinterpret_cast <NtSetTimerResolution_pfn> (
+            SK_GetProcAddress (NtDll, "NtSetTimerResolution")
+          )
         );
 
       if (NtQueryTimerResolution != nullptr &&
@@ -1296,9 +1341,9 @@ void SK_Scheduler_Init (void)
 void
 SK_Scheduler_Shutdown (void)
 {
-  if (NtDll != nullptr)
-    FreeLibrary (NtDll);
+  //if (NtDll != nullptr)
+  //  SK_FreeLibrary (NtDll);
 
-  SK_DisableHook (pfnSleep);
+  //SK_DisableHook (pfnSleep);
   //SK_DisableHook (pfnQueryPerformanceCounter);
 }

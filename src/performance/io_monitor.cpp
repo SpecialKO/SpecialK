@@ -42,7 +42,7 @@ SK_CountIO (io_perf_t& ioc, const double update)
 
   if (ioc.init == false)
   {
-    RtlSecureZeroMemory (&ioc, sizeof io_perf_t);
+    RtlSecureZeroMemory (&ioc, sizeof (io_perf_t));
                     ioc.init = true;
   }
 
@@ -409,7 +409,7 @@ SK_MonitorCPU (LPVOID user_param)
        float& update = config.cpu.interval;
 
   cpu.hShutdownSignal =
-    SK_CreateEvent ( nullptr, FALSE, FALSE, L"CPUMon Shutdown Signal" );
+    SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
 
   DWORD           dwRet = STATUS_PENDING;
   SYSTEM_INFO        si = {            };
@@ -429,8 +429,8 @@ SK_MonitorCPU (LPVOID user_param)
           dwRet != (WAIT_OBJECT_0 + 1) )
   {
     dwRet =
-      WaitForMultipleObjects (2, wait_objs, FALSE,
-                              DWORD (update * 1000.0f) );
+      WaitForMultipleObjects ( 2, wait_objs, FALSE,
+                                 DWORD (update * 1000.0f) );
 
     // Only poll the kernel while the data view is visible
     if (! (config.cpu.show || SK_ImGui_Widgets->cpu_monitor->isActive ()))
@@ -599,7 +599,7 @@ SK_MonitorDisk (LPVOID user)
   disk.dwNumObjects  = 0;
 
   disk.hShutdownSignal =
-    SK_CreateEvent (nullptr, FALSE, FALSE, L"DiskMon Shutdown Signal");
+    SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
 
   COM::base.wmi.Unlock ();
 
@@ -1020,7 +1020,8 @@ SK_MonitorPagefile (LPVOID user)
   pagefile.pConfig->Release ();
   pagefile.pConfig = nullptr;
 
-  pagefile.hShutdownSignal = SK_CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Monitor Shutdown Signal");
+  pagefile.hShutdownSignal =
+    SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
 
   COM::base.wmi.Unlock ();
 

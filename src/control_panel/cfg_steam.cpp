@@ -21,9 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <imgui/imgui.h>
 
-#include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/steam.h>
 
 extern volatile LONG SK_SteamAPI_CallbackRateLimit;
@@ -45,6 +43,125 @@ struct denuvo_file_s
 };
 
 extern SK_LazyGlobal <std::vector <denuvo_file_s>> denuvo_files;
+
+#if 0
+class SK_Steam_CloudManager
+{
+public:
+   SK_Steam_CloudManager (void)
+   {
+     pCloudControl = nullptr;
+   };
+
+  ~SK_Steam_CloudManager (void)
+  {
+    if (query.IsActive ())
+    {
+      query.Cancel ();
+    }
+
+    //pCloudControl->ReleaseQueryUGCRequest (query_handle);
+
+    pCloudControl = nullptr;
+  }
+
+  SteamAPICall_t
+  initialQuery (void)
+  {
+    if (! pCloudControl)
+      pCloudControl = steam_ctx.UGC ();
+
+    if (! (pCloudControl && (! query.IsActive ())))
+      return k_uAPICallInvalid;
+
+    static bool run_once = false;
+
+    if (run_once) return 0;
+
+    run_once = true;
+
+    ISteamUtils* pUtils =
+      steam_ctx.Utils ();
+
+    if (! pUtils)
+      return k_uAPICallInvalid;
+
+    const AppId_t app_id =
+      pUtils->GetAppID ();
+
+    UGCQueryHandle_t query_handle =
+      pCloudControl->CreateQueryAllUGCRequest (
+        k_EUGCQuery_RankedByPublicationDate,
+        /*k_EUGCMatchingUGCType_All=*/(EUGCMatchingUGCType)~0,
+        app_id, app_id,
+        1
+      );
+
+    if (query_handle != k_UGCQueryHandleInvalid)
+    {
+      const SteamAPICall_t api_call =
+        pCloudControl->SendQueryUGCRequest (query_handle);
+
+      if (api_call != k_uAPICallInvalid)
+      {
+        query.Set (api_call, this, &SK_Steam_CloudManager::OnQueryCompleted);
+      }
+
+      else
+      {
+        pCloudControl->ReleaseQueryUGCRequest (query_handle);
+      }
+    }
+  }
+
+  void
+  finishQuery (UGCQueryHandle_t query_handle)
+  {
+    if (! pCloudControl)
+      return;
+
+    int idx = 0;
+
+    SteamUGCDetails_t details = { };
+
+    while (pCloudControl->GetQueryUGCResult (query_handle, idx++, &details))
+    {
+      steam_log->Log ( L"SteamUGC [%lu] :: AppID = %lu, Name = %hs", idx - 1,
+                         details.m_nCreatorAppID, details.m_pchFileName );
+    }
+  }
+
+  void
+  OnQueryCompleted (SteamUGCQueryCompleted_t* pCompleted, bool bIOFail)
+  {
+    if (bIOFail) return;
+
+    if (pCompleted->m_unNumResultsReturned > 0)
+    {
+      UGCQueryHandle_t query_handle =
+        pCompleted->m_handle;
+
+      finishQuery (query_handle);
+    }
+
+    pCloudControl->ReleaseQueryUGCRequest (pCompleted->m_handle);
+  };
+
+protected:
+private:
+  ISteamUGC* pCloudControl;
+
+  CCallResult <SK_Steam_CloudManager, SteamUGCQueryCompleted_t> query;
+};
+
+void
+SK_Steam_CloudQuery (void)
+{
+  static SK_Steam_CloudManager cloud_mgr;
+
+  cloud_mgr.initialQuery ();
+}
+#endif
 
 bool
 SK::ControlPanel::Steam::Draw (void)
@@ -100,19 +217,19 @@ SK::ControlPanel::Steam::Draw (void)
 
           for (int i = 0; i < (int)((float)friends * SK_SteamAPI_FriendStatPercentage ()); i++)
           {
-            size_t      len     = 0;
-            const char* szName  = SK_SteamAPI_GetFriendName (i, &len);
+            size_t            len   = 0;
+            const std::string name  = SK_SteamAPI_GetFriendName (i, &len);
 
             const float percent =
               SK_SteamAPI_GetUnlockedPercentForFriend (i);
 
             if (percent > 0.0f)
             {
-              ImGui::ProgressBar    ( percent, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
-              ImGui::SameLine       ( );
-              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (.81f, 0.81f, 0.81f, 1.f));
-              ImGui::Text           (szName);
-              ImGui::PopStyleColor  (1);
+              ImGui::ProgressBar     ( percent, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
+              ImGui::SameLine        ( );
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.81f, 0.81f, 0.81f, 1.f));
+              ImGui::TextUnformatted (name.c_str ());
+              ImGui::PopStyleColor   (1);
 
               ++num_records;
 
@@ -424,7 +541,7 @@ SK::ControlPanel::Steam::Draw (void)
 
           ImGui::BeginGroup (  );
           ImGui::TreePush   ("");
-          ImGui::Text ( "%lu files using %ws",
+          ImGui::Text ( "%ui files using %ws",
                           repo.files,
                             SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
                       );
@@ -439,7 +556,7 @@ SK::ControlPanel::Steam::Draw (void)
 
           if (ImGui::Button ("Browse"))
           {
-            ShellExecuteW ( GetActiveWindow (),
+            SK_ShellExecuteW ( nullptr,
               L"explore",
                 screenshot_manager->getExternalScreenshotPath (),
                   nullptr, nullptr,
@@ -606,7 +723,7 @@ SK::ControlPanel::Steam::Draw (void)
               it.path.find_last_of (L'\\');
 
             ImGui::BeginGroup      ();
-            ImGui::Text            ( "Key %lu:",
+            ImGui::Text            ( "Key %zi:",
                                            idx++ );
             ImGui::TextUnformatted ( "First Activated:" );
             ImGui::EndGroup        ();
@@ -679,7 +796,7 @@ SK::ControlPanel::Steam::Draw (void)
       if (ImGui::CollapsingHeader ("Compatibility"))
       {
         ImGui::TreePush ("");
-        ImGui::Checkbox (" Bypass Online DRM Checks  ",          &config.steam.spoof_BLoggedOn);
+        ImGui::Checkbox (" Bypass Online \"DRM\" Checks  ",      &config.steam.spoof_BLoggedOn);
 
         if (ImGui::IsItemHovered ())
         {
@@ -852,7 +969,7 @@ static_cast <uint32_t> (
                     SK_SteamAPI_GetFriendName (
 static_cast <uint32_t> (
                       ratio * static_cast <float>    (friends))
-                    )
+                    ).c_str ()
                );
 
       ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
@@ -869,7 +986,6 @@ static_cast <uint32_t> (
   return false;
 }
 
-#include <SpecialK/update/network.h>
 
 SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t,           SK_DepotList> > SK_Steam_DepotManifestRegistry;
 SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
@@ -1207,9 +1323,9 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
           if (dwSizeRead == 0)
             break;
 
-          concat_buffer.insert ( concat_buffer.cend   (),
-                                  http_chunk.cbegin   (),
-                                    http_chunk.cbegin () + dwSizeRead );
+          concat_buffer.insert ( concat_buffer.cend (),
+                                  http_chunk.cbegin (),
+                                  http_chunk.cbegin () + dwSizeRead );
 
           if (dwSizeRead < dwSizeAvailable)
             break;
@@ -1317,8 +1433,12 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
 void
 SK_ShellExecute (const wchar_t* verb, const wchar_t* file)
 {
+  SK_AutoCOMInit auto_com (
+    COINIT_MULTITHREADED//COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE
+  );
+
   SHELLEXECUTEINFO
-  sei        = { 0 };
+  sei        = { };
   sei.cbSize = sizeof (sei);
   sei.nShow  = SW_SHOWMAXIMIZED;
 
@@ -1466,9 +1586,9 @@ SK::ControlPanel::Steam::DrawMenu (void)
 
         if (ImGui::MenuItem ("Edit Steam Application Manifest"))
         {
-          ShellExecuteW ( HWND_DESKTOP,   L"OPEN",
-                          L"notepad.exe", SK_Steam_GetApplicationManifestPath ().c_str (),
-                          nullptr,        SW_SHOWMAXIMIZED );
+          SK_ShellExecuteW ( HWND_DESKTOP,   L"OPEN",
+                             L"notepad.exe", SK_Steam_GetApplicationManifestPath ().c_str (),
+                             nullptr,        SW_SHOWMAXIMIZED );
 
           SK_ImGui_Warning (L"Remember to close notepad, Steam will count the game as running until you do.");
         }
@@ -1560,12 +1680,12 @@ SK::ControlPanel::Steam::DrawMenu (void)
           {
             if (ImGui::BeginMenu (it.second.front ().depot.name.c_str ()))
             {
+              // 2/18/20 -- Replaced repeated statement w/ this reference
+              auto& test_manifest =
+                SK_Steam_InstalledManifest [it.first].manifest;
+
               for ( const auto& it2 : it.second )
               {
-                // 4/28/19 -- Replaced repeated statement w/ this reference
-                auto& test_manifest =
-                  SK_Steam_InstalledManifest [it.first].manifest;
-
                 bool selected =
                   ( test_manifest.id == it2.manifest.id );
 
@@ -1635,6 +1755,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
                                                  SK::SteamAPI::AppID (),
                                                    ReadAcquire (&__SK_Steam_Downloading) );
 
+                          // TODO: Add Directory Watch
                           int tries = 0;
                           do {
                             SK_Sleep (100UL);

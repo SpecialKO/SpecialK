@@ -477,7 +477,6 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
   }
 }
 
-#include <cstdarg>
 
 SK_ICommandResult
 SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)

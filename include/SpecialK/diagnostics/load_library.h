@@ -62,6 +62,18 @@ extern LoadLibraryExW_pfn      LoadLibraryExW_Original;
 
 extern LoadPackagedLibrary_pfn LoadPackagedLibrary_Original;
 
+BOOL __stdcall SK_FreeLibrary (HMODULE hMod);
+HMODULE WINAPI SK_LoadLibraryA (LPCSTR  lpFileName);
+HMODULE WINAPI SK_LoadLibraryW (LPCWSTR lpFileName);
+HMODULE WINAPI SK_LoadLibraryExA (
+  _In_       LPCSTR  lpFileName,
+  _Reserved_ HANDLE  hFile,
+  _In_       DWORD   dwFlags );
+HMODULE WINAPI SK_LoadLibraryExW (
+  _In_       LPCWSTR lpFileName,
+  _Reserved_ HANDLE  hFile,
+  _In_       DWORD   dwFlags );
+
 template <typename _T>
 BOOL
 __stdcall

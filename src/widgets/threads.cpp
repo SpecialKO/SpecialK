@@ -20,7 +20,6 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <bcrypt.h>
 
 extern SK_LazyGlobal <
   concurrency::concurrent_unordered_map <DWORD, std::wstring>
@@ -550,12 +549,12 @@ ProcessInformation ( PDWORD                       pdData,
 
   if (NtQuerySystemInformation == nullptr)
   {
-    if (! SK_GetModuleHandleW  (L"NtDll"))
-       SK_Modules->LoadLibrary (L"NtDll");
+    if (! SK_GetModuleHandleW  (L"NtDll.dll"))
+       SK_Modules->LoadLibrary (L"NtDll.dll");
 
     NtQuerySystemInformation =
       (NtQuerySystemInformation_pfn)
-        SK_GetProcAddress (L"NtDll",
+        SK_GetProcAddress (L"NtDll.dll",
                             "NtQuerySystemInformation");
   }
 
@@ -567,8 +566,8 @@ ProcessInformation ( PDWORD                       pdData,
       DWORD                        dData = 0;
       NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
 
-      if (pQuery->NtInfo.len  < 16384)
-          pQuery->NtInfo.alloc (16384, true);
+      if (pQuery->NtInfo.len  < 131072)
+          pQuery->NtInfo.alloc (131072, true);
 
       void* pspi = nullptr;
 
@@ -752,11 +751,11 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
           0x00UL;
 
 #ifdef _M_AMD64
-        IMAGEHLP_LINE64 ihl              = {                    };
-                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
+        IMAGEHLP_LINE64 ihl              = {                      };
+                        ihl.SizeOfStruct = sizeof (IMAGEHLP_LINE64);
 #else /* _M_IX86 */
-        IMAGEHLP_LINE   ihl              = {                  };
-                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+        IMAGEHLP_LINE   ihl              = {                    };
+                        ihl.SizeOfStruct = sizeof (IMAGEHLP_LINE);
 #endif
         const bool bFileAndLine =
           ( SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl ) != FALSE );
@@ -918,8 +917,8 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
 
         SYMBOL_INFO_PACKAGE sip = { };
 
-        sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-        sip.si.MaxNameLen   = sizeof sip.name;
+        sip.si.SizeOfStruct = sizeof (SYMBOL_INFO);
+        sip.si.MaxNameLen   = sizeof (sip.name);
 
         DWORD64 Displacement = 0;
 
@@ -931,11 +930,11 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
           DWORD Disp = 0x00UL;
 
 #ifdef _M_AMD64
-          IMAGEHLP_LINE64 ihl = {                    };
-          ihl.SizeOfStruct    = sizeof IMAGEHLP_LINE64;
+          IMAGEHLP_LINE64 ihl = {                      };
+          ihl.SizeOfStruct    = sizeof (IMAGEHLP_LINE64);
 #else /* _M_IX86 */
-          IMAGEHLP_LINE ihl = {                  };
-          ihl.SizeOfStruct  = sizeof IMAGEHLP_LINE;
+          IMAGEHLP_LINE ihl = {                    };
+          ihl.SizeOfStruct  = sizeof (IMAGEHLP_LINE);
 #endif
           const BOOL bFileAndLine =
             SK_SymGetLineFromAddr (hProc, ip, &Disp, &ihl);
@@ -1006,7 +1005,7 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
       if (! _stricmp (it.c_str (), self_ansi.c_str ()))
       {
         if (new_ctx) special_lines.emplace (idx);
-        color = ImColor::HSV (0.244444, 0.85f, 1.0f);
+        color = ImColor::HSV (0.244444f, 0.85f, 1.0f);
       }
 
       else if (! _stricmp (it.c_str (), host_ansi.c_str ()))
@@ -1109,9 +1108,9 @@ public:
 
             do
             {
-              ULONG ulFrameStart  = SK_GetFramesDrawn ();
-              while (ulFrameStart > SK_GetFramesDrawn () - 2)
-                SK_SleepEx (15, FALSE);
+              ULONG64 ullFrameStart = SK_GetFramesDrawn ();
+              while ( ullFrameStart > SK_GetFramesDrawn () - 2 )
+                SK_SleepEx (20, FALSE);
 
               dwWaitState =
                  WaitForMultipleObjects (2, hSignals, FALSE, INFINITE);
@@ -1319,7 +1318,7 @@ public:
               if (pnum != ideal && ( (dwMask >> pnum)  & 0x1)
                                 && ( (dwMask >> ideal) & 0x1))
               {
-                if ( SetThreadIdealProcessor ( it->hThread, ideal ) != -1 )
+                if ( SetThreadIdealProcessor ( it->hThread, ideal ) != DWORD_MAX )
                   pnum = ideal;
               }
 
@@ -1683,7 +1682,7 @@ public:
           ImGui::SameLine        ();
 
           ImGui::BeginGroup      ();
-          ImGui::Text            ("\t%i", exceptions);
+          ImGui::Text            ("\t%li", exceptions);
           ImGui::EndGroup        ();
         }
 
@@ -1701,7 +1700,7 @@ public:
           _com_error err (error_state.code & 0xFFFF);
 
           ImGui::BeginGroup ();
-          ImGui::Text       ("\t0x%04x (%ws)", (error_state.code & 0xFFFF), err.ErrorMessage ());
+          ImGui::Text       ("\t0x%04lx (%ws)", (error_state.code & 0xFFFF), err.ErrorMessage ());
           ImGui::EndGroup   ();
 
           ImGui::BeginGroup ();
@@ -1954,10 +1953,10 @@ public:
             {
               struct suspend_params_s
               {
-                HANDLE hThread;
-                DWORD  dwTid;
-                ULONG  frame_requested;
-                ULONG  time_requested;
+                HANDLE  hThread;
+                DWORD   dwTid;
+                ULONG64 frame_requested;
+                ULONG   time_requested;
               };
 
               static concurrency::concurrent_queue <suspend_params_s>
@@ -2387,9 +2386,9 @@ public:
       }
 
       if (it.second->self_titled)
-        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.572222, 0.63f, 0.95f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.572222f, 0.63f, 0.95f));
       else
-        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.472222, 0.23f, 0.91f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.472222f, 0.23f, 0.91f));
 
       if (it.second->name.length () > 1)
         ImGui::Text ("%ws", it.second->name.c_str ());
@@ -2399,8 +2398,8 @@ public:
         DWORD_PTR pdwStartAddress;
 
         static NtQueryInformationThread_pfn NtQueryInformationThread =
-          (NtQueryInformationThread_pfn)GetProcAddress ( SK_GetModuleHandle (L"NtDll.dll"),
-                                                                              "NtQueryInformationThread" );
+          (NtQueryInformationThread_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"NtDll.dll"),
+                                                                                 "NtQueryInformationThread" );
 
         HANDLE hThread = it.second->hThread;
 
@@ -2476,7 +2475,7 @@ public:
       {
         ImGui::TextColored ( ImColor::HSV ( (float)( i       + 1 ) /
                                             (float)( uMaxCPU + 1 ), 0.5f, 1.0f ),
-                               "CPU %lu", i );
+                               "CPU %u", i );
       }
 
       else
@@ -2636,10 +2635,10 @@ public:
       if (! IsThreadNonIdle (*it.second)) continue;
 
       if (it.second->runtimes.percent_kernel == p_kmax)
-        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.0944444, 0.79f, 1.0f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.0944444f, 0.79f, 1.0f));
 
       if (it.second->runtimes.percent_kernel >= 0.001)
-        ImGui::Text ("%6.2f%% Kernel", it.second->runtimes.percent_kernel);
+        ImGui::Text ("%6.2Lf%% Kernel", it.second->runtimes.percent_kernel);
       else
         ImGui::TextUnformatted ("-");
 
@@ -2657,10 +2656,10 @@ public:
       if (! IsThreadNonIdle (*it.second)) continue;
 
       if (it.second->runtimes.percent_user == p_umax)
-        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.0944444, 0.79f, 1.0f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.0944444f, 0.79f, 1.0f));
 
       if (it.second->runtimes.percent_user >= 0.001)
-        ImGui::Text ("%6.2f%% User", it.second->runtimes.percent_user);
+        ImGui::Text ("%6.2Lf%% User", it.second->runtimes.percent_user);
       else
         ImGui::TextUnformatted ("-");
 

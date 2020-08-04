@@ -216,8 +216,11 @@ SK_DGPU_UpdateFlareBuffers (void)
 
   SK_ComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
 
-  pDev->CreateBuffer (&FlareDesc, &FlareData_G, &SK_DGPU_ScreenFlare_Global.buffer);
-  pDev->CreateBuffer (&FlareDesc, &FlareData_L, &SK_DGPU_ScreenFlare_Local.buffer);
+  if (pDev != nullptr)
+  {
+    pDev->CreateBuffer (&FlareDesc, &FlareData_G, &SK_DGPU_ScreenFlare_Global.buffer);
+    pDev->CreateBuffer (&FlareDesc, &FlareData_L, &SK_DGPU_ScreenFlare_Local.buffer);
+  }
 }
 
 
@@ -477,8 +480,8 @@ SK_DGPU_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
     if (SK_ReShade_SetResolutionScale == nullptr)
     {
       SK_ReShade_SetResolutionScale =
-        (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
-          GetModuleHandle (L"dxgi.dll"),
+        (SK_ReShade_SetResolutionScale_pfn)SK_GetProcAddress (
+          SK_GetModuleHandle (L"dxgi.dll"),
             "SK_ReShade_SetResolutionScale"
         );
     }
@@ -486,8 +489,8 @@ SK_DGPU_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
     if (SK_ReShade_SetResolutionScale == nullptr)
     {
       SK_ReShade_SetResolutionScale =
-        (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
-          GetModuleHandle (L"d3d11.dll"),
+        (SK_ReShade_SetResolutionScale_pfn)SK_GetProcAddress (
+          SK_GetModuleHandle (L"d3d11.dll"),
             "SK_ReShade_SetResolutionScale"
         );
     }
@@ -597,8 +600,8 @@ SK_DGPU_InitPlugin (void)
   MH_QueueEnableHook (        SK_D3D11_DrawHandler           );
 
   SK_ReShade_SetResolutionScale =
-    (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
-      GetModuleHandle (L"dxgi.dll"),
+    (SK_ReShade_SetResolutionScale_pfn)SK_GetProcAddress (
+      SK_GetModuleHandle (L"dxgi.dll"),
         "SK_ReShade_SetResolutionScale"
   );
 

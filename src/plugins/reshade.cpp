@@ -47,7 +47,7 @@ SK_ReShade_GetDLL (void)
           typedef HMODULE (__stdcall *SK_SHIM_GetReShade_pfn)(void);
 
           SK_SHIM_GetReShade_pfn SK_SHIM_GetReShade =
-            (SK_SHIM_GetReShade_pfn)GetProcAddress (import.hLibrary, "SK_SHIM_GetReShade");
+            (SK_SHIM_GetReShade_pfn)SK_GetProcAddress (import.hLibrary, "SK_SHIM_GetReShade");
 
           if (SK_SHIM_GetReShade != nullptr)
           {

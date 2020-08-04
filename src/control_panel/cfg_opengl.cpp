@@ -20,13 +20,10 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <imgui/imgui.h>
 
-#include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/opengl.h>
 #include <SpecialK/control_panel/osd.h>
 
-#include <SpecialK/render/gl/opengl_backend.h>
 
 using namespace SK::ControlPanel;
 

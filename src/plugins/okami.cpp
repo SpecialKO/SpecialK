@@ -162,7 +162,7 @@ SK_Okami_PlugInCfg (void)
       for ( auto entry : addrs )
       {
         entry.addr =
-          SK_ScanAlignedEx2 (entry.orig_bytes, entry.size, nullptr, nullptr, 1, reinterpret_cast <uint8_t *> (GetModuleHandle (L"main.dll")));
+          SK_ScanAlignedEx2 (entry.orig_bytes, entry.size, nullptr, nullptr, 1, reinterpret_cast <uint8_t *> (SK_GetModuleHandle (L"main.dll")));
         dll_log->Log (L"[Okami60FPS] Patch Address #%lu: %ph", idx++, entry.addr);
       }
 
@@ -207,10 +207,10 @@ SK_Okami_PlugInCfg (void)
           idx++;
         }
 
-        static DWORD*   dwTick0     = (DWORD *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC3C);
-        static float*   fTickScale  = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC38);
-        static float*   fTickScale0 = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6ACC0);
-        static uint8_t* bTick1      = (uint8_t *)(((uint8_t *)GetModuleHandle (L"main.dll")) + 0xB6AC45);
+        static DWORD*   dwTick0     = (DWORD *)(((uint8_t *)SK_GetModuleHandle (L"main.dll"))   + 0xB6AC3C);
+        static float*   fTickScale  = (float *)(((uint8_t *)SK_GetModuleHandle (L"main.dll"))   + 0xB6AC38);
+        static float*   fTickScale0 = (float *)(((uint8_t *)SK_GetModuleHandle (L"main.dll"))   + 0xB6ACC0);
+        static uint8_t* bTick1      = (uint8_t *)(((uint8_t *)SK_GetModuleHandle (L"main.dll")) + 0xB6AC45);
 
         DWORD dwOrig = 0x0;
         //VirtualProtect ( dwTick0, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
@@ -239,8 +239,8 @@ SK_Okami_PlugInCfg (void)
       {
         DWORD dwOrig = 0x0;
 
-        static float*   fTickScale  = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC38);
-        static float*   fTickScale0 = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6ACC0);
+        static float*   fTickScale  = (float *)(((uint8_t *)SK_GetModuleHandle (L"main.dll"))   + 0xB6AC38);
+        static float*   fTickScale0 = (float *)(((uint8_t *)SK_GetModuleHandle (L"main.dll"))   + 0xB6ACC0);
 
         ImGui::BeginGroup ();
         VirtualProtect ( fTickScale, 4, PAGE_EXECUTE_READWRITE, &dwOrig );

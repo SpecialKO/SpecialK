@@ -69,16 +69,17 @@ SK_Denuvo_UsedByGame (bool retest)
   int             files  =   0;
   LARGE_INTEGER   liSize = {   };
 
-  wchar_t wszInstallPath [MAX_PATH] = { };
-  wchar_t wszSearchPath  [MAX_PATH] = { };
+  wchar_t wszInstallPath [MAX_PATH + 2] = { };
+  wchar_t wszSearchPath  [MAX_PATH + 2] = { };
 
-  wsprintf ( wszInstallPath, LR"(%ws\userdata\%u\%u\)",
+  swprintf_s ( wszInstallPath, MAX_PATH,
+                 LR"(%ws\userdata\%u\%u\)",
                                path.c_str (),
                                  usr_id.GetAccountID (),
                                    app_id );
 
-  wsprintf ( wszSearchPath,  L"%ws*",
-                               wszInstallPath );
+  swprintf_s ( wszSearchPath,  MAX_PATH,
+                 L"%ws*", wszInstallPath );
 
   hFind =
     FindFirstFileW (wszSearchPath, &fd);

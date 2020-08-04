@@ -22,7 +22,6 @@
 #ifndef __SK__CORE_H__
 #define __SK__CORE_H__
 
-struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <SpecialK/SpecialK.h>
@@ -137,8 +136,6 @@ void __stdcall SK_InitCore     (const wchar_t* backend, void* callback);
 bool __stdcall SK_StartupCore  (const wchar_t* backend, void* callback);
 bool __stdcall SK_ShutdownCore (const wchar_t* backend);
 
-struct IUnknown;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -147,12 +144,13 @@ extern "C" {
       HRESULT  __stdcall SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr,
                                              SK_TLS *pTLS = SK_TLS_Bottom () );
 
-      HMODULE  __stdcall SK_GetDLL          (void) noexcept;
-      DLL_ROLE __stdcall SK_GetDLLRole      (void);
-
+      HMODULE      __stdcall SK_GetDLL          (void) noexcept;
+      DLL_ROLE     __stdcall SK_GetDLLRole      (void);
 #ifdef __cplusplus
 };
 #endif
+      std::wstring __stdcall SK_GetDLLName      (void) noexcept;
+
 
 void           __stdcall SK_SetConfigPath (const wchar_t* path);
 const wchar_t* __stdcall SK_GetConfigPath (void);
@@ -160,7 +158,7 @@ const wchar_t* __stdcall SK_GetConfigPath (void);
 const wchar_t* __stdcall SK_GetBackend        (void);
 void           __cdecl   SK_SetDLLRole        (DLL_ROLE role);
 bool           __cdecl   SK_IsHostAppSKIM     (void);
-bool           __stdcall SK_IsInjected        (bool set = false);
+bool           __stdcall SK_IsInjected        (bool set = false) noexcept;
 bool           __stdcall SK_HasGlobalInjector (void);
 
 extern SK_LazyGlobal <iSK_Logger> dll_log;
@@ -181,6 +179,7 @@ void __stdcall SK_StartPerfMonThreads (void);
 
 extern volatile LONG __SK_DLL_Ending;
 extern volatile LONG __SK_DLL_Attached;
+extern volatile LONG __SK_DLL_Refs;
 
 HANDLE
 WINAPI

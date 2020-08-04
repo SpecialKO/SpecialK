@@ -20,9 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <imgui/imgui.h>
 
-#include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/osd.h>
 
 using namespace SK::ControlPanel;
@@ -36,7 +34,7 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
   if (bRet)
   {
     struct toggle_state_s {
-               ULONG    frames_drawn = 0;
+               ULONG64  frames_drawn = 0;
                DWORD    initial_time = 0;
                DWORD    time_to_wait = 0;
                bool     original     = false,
@@ -246,9 +244,9 @@ SK::ControlPanel::OSD::Draw (void)
 
       SK_OSD_GetDefaultColor (default_r, default_g, default_b);
 
-      if (config.osd.red   == MAXDWORD) color [0] = default_r;
-      if (config.osd.green == MAXDWORD) color [1] = default_g;
-      if (config.osd.blue  == MAXDWORD) color [2] = default_b;
+      if (config.osd.red   == (int)MAXDWORD) color [0] = default_r;
+      if (config.osd.green == (int)MAXDWORD) color [1] = default_g;
+      if (config.osd.blue  == (int)MAXDWORD) color [2] = default_b;
 
       if (ImGui::ColorEdit3 ("OSD Color", color))
       {
@@ -261,11 +259,11 @@ SK::ControlPanel::OSD::Draw (void)
         config.osd.blue  = static_cast <int>(color [2] * 255);
 
         if ( color [0] >= default_r - 0.001f &&
-             color [0] <= default_r + 0.001f    ) config.osd.red   = MAXDWORD;
+             color [0] <= default_r + 0.001f    ) config.osd.red   = (int)MAXDWORD;
         if ( color [1] >= default_g - 0.001f &&
-             color [1] <= default_g + 0.001f    ) config.osd.green = MAXDWORD;
+             color [1] <= default_g + 0.001f    ) config.osd.green = (int)MAXDWORD;
         if ( color [2] >= default_b - 0.001f &&
-             color [2] <= default_b + 0.001f    ) config.osd.blue  = MAXDWORD;
+             color [2] <= default_b + 0.001f    ) config.osd.blue  = (int)MAXDWORD;
       }
 
       if (ImGui::SliderFloat ("OSD Scale", &config.osd.scale, 0.5f, 10.0f))
@@ -464,9 +462,9 @@ SK_NvAPI_GetGPUInfoStr (void)
     typedef NvAPI_Status (__cdecl *NvAPI_GetHybridMode_pfn)             (NvPhysicalGpuHandle handle, NvU32*            mode);
 
 #ifdef _WIN64
-    HMODULE hLib = LoadLibrary (L"nvapi64.dll");
+    HMODULE hLib = SK_LoadLibrary (L"nvapi64.dll");
 #else
-    HMODULE hLib = LoadLibrary (L"nvapi.dll");
+    HMODULE hLib = SK_LoadLibrary (L"nvapi.dll");
 #endif
     static NvAPI_QueryInterface_pfn            NvAPI_QueryInterface            = (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
 

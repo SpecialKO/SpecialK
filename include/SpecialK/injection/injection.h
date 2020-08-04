@@ -22,7 +22,6 @@
 #ifndef __SK__INJECTION_H__
 #define __SK__INJECTION_H__
 
-struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <SpecialK/window.h>
@@ -34,7 +33,7 @@ CBTProc (int nCode, WPARAM wParam, LPARAM lParam);
 
 void __stdcall SKX_InstallCBTHook (void);
 void __stdcall SKX_RemoveCBTHook  (void);
-bool __stdcall SKX_IsHookingCBT   (void);
+bool __stdcall SKX_IsHookingCBT   (void) noexcept;
 
 size_t __stdcall SKX_GetInjectedPIDs (DWORD* pdwList, size_t capacity);
 
@@ -52,11 +51,14 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role);
 
 // Are we capable of injecting into admin-elevated applications?
 bool
-SK_Inject_IsAdminSupported (void);
+SK_Inject_IsAdminSupported (void) noexcept;
 
 
 bool
 SK_Inject_TestWhitelists (const wchar_t* wszExecutable);
+
+bool
+SK_Inject_TestBlacklists (const wchar_t* wszExecutable);
 
 
 // Internal use only
@@ -76,11 +78,11 @@ extern "C"
 struct SK_InjectionRecord_s
 {
   struct {
-    wchar_t    name [MAX_PATH] =  { 0 };
-    DWORD      id              =    0;
-    __time64_t inject          = 0ULL;
-    __time64_t eject           = 0ULL;
-    bool       crashed         = false;
+    wchar_t    name [MAX_PATH + 2] =  { 0 };
+    DWORD      id                  =    0;
+    __time64_t inject              = 0ULL;
+    __time64_t eject               = 0ULL;
+    bool       crashed             = false;
   } process;
 
   struct {

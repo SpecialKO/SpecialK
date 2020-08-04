@@ -26,17 +26,16 @@
 #ifndef __SK__SPECIALK_H__
 #define __SK__SPECIALK_H__
 
-struct IUnknown;
 #include <Unknwnbase.h>
 
 #ifndef SK_STATIC_LIB
 # ifdef SK_BUILD_DLL
-#  define SK_PUBLIC_API _declspec (dllexport) __stdcall 
+#  define SK_PUBLIC_API _declspec (dllexport) __stdcall
 # else
-#  define SK_PUBLIC_API _declspec (dllimport) __stdcall 
+#  define SK_PUBLIC_API _declspec (dllimport) __stdcall
 # endif
 #else
-# define  SK_PUBLIC_API __stdcall 
+# define  SK_PUBLIC_API __stdcall
 #endif
 
 #ifdef __cplusplus
@@ -62,7 +61,7 @@ struct IUnknown;
 #endif
 
 #define SK_GetVersionStr SK_GetVersionStrW
-const wchar_t* __stdcall SK_GetVersionStrW (void);
-const char*    __stdcall SK_GetVersionStrA (void);
+const wchar_t* __stdcall SK_GetVersionStrW (void) noexcept;
+const char*    __stdcall SK_GetVersionStrA (void) noexcept;
 
 #endif /* __SK__SPECIALK_H__ */

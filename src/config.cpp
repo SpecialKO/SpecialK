@@ -112,6 +112,7 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"ys8.exe"),                                SK_GAME_ID::Ys_Eight                     },
       { hash_lower (L"PillarsOfEternityII.exe"),                SK_GAME_ID::PillarsOfEternity2           },
       { hash_lower (L"Yakuza0.exe"),                            SK_GAME_ID::Yakuza0                      },
+      { hash_lower (L"YakuzaKiwami.exe"),                       SK_GAME_ID::YakuzaKiwami                 },
       { hash_lower (L"YakuzaKiwami2.exe"),                      SK_GAME_ID::YakuzaKiwami2                },
       { hash_lower (L"MonsterHunterWorld.exe"),                 SK_GAME_ID::MonsterHunterWorld           },
       { hash_lower (L"Shenmue.exe"),                            SK_GAME_ID::Shenmue                      },
@@ -124,7 +125,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"ed8.exe"),                                SK_GAME_ID::TrailsOfColdSteel            },
       { hash_lower (L"sekiro.exe"),                             SK_GAME_ID::Sekiro                       },
       { hash_lower (L"Octopath_Traveler-Win64-Shipping.exe"),   SK_GAME_ID::OctopathTraveler             },
-      { hash_lower (L"SonicMania.exe"),                         SK_GAME_ID::SonicMania                   }
+      { hash_lower (L"SonicMania.exe"),                         SK_GAME_ID::SonicMania                   },
+      { hash_lower (L"P4G.exe"),                                SK_GAME_ID::Persona4                     }
     };
 
     first_check = false;
@@ -353,6 +355,12 @@ struct {
 } uplay;
 
 struct {
+  sk::ParameterBool*      per_monitor_aware;
+  sk::ParameterBool*      per_monitor_all_threads;
+  sk::ParameterBool*      disable;
+} dpi;
+
+struct {
   struct {
     sk::ParameterBool*    override;
     sk::ParameterStringW* compatibility;
@@ -396,6 +404,7 @@ struct {
   struct {
     sk::ParameterFloat*   target_fps;
     sk::ParameterFloat*   target_fps_bg;
+    sk::ParameterFloat*   busy_wait_ratio;
     sk::ParameterFloat*   limiter_tolerance;
     sk::ParameterInt*     prerender_limit;
     sk::ParameterInt*     present_interval;
@@ -411,6 +420,7 @@ struct {
     sk::ParameterBool*    sleepless_render;
     sk::ParameterBool*    enable_mmcss;
     sk::ParameterInt*     override_cpu_count;
+    sk::ParameterBool*    adaptive_tearing;
 
     struct
     {
@@ -604,11 +614,11 @@ SK_GetConfigPathEx (bool reset)
     SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   static wchar_t
-    cached_path [MAX_PATH * 2 + 1] = { };
+    cached_path [MAX_PATH + 2] = { };
 
   if (reset || InterlockedCompareExchange (&init, 3, 2) == 2)
   {
-    wcscpy ( cached_path,
+    wcscpy_s ( cached_path, MAX_PATH,
                app_cache_mgr->getConfigPathFromAppPath (
                  SK_GetFullyQualifiedApp ()
                ).c_str ()
@@ -618,7 +628,7 @@ SK_GetConfigPathEx (bool reset)
   }
 
   else
-    SK_Thread_SpinUntilAtomicMin (&init, 4);
+    SK_Thread_SpinUntilAtomicMin (&init, 3);
 
   return
     cached_path;
@@ -675,6 +685,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   // Load INI File
   std::wstring full_name;
   std::wstring custom_name; // User may have custom prefs
+  std::wstring master_name;
 
   std::wstring osd_config, steam_config, macro_config;
 
@@ -695,7 +706,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     SK_FormatStringW ( L"%scustom_%s.ini",
                        SK_GetConfigPath (), undecorated_name.c_str () );
 
-
   if (create)
     SK_CreateDirectories ( full_name.c_str () );
 
@@ -710,6 +720,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
     last_try = std::move (name);
   }
 
+
+  master_name        =
+    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\master_)" + undecorated_name + L".ini";
 
   osd_config         =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\osd.ini)";
@@ -991,6 +1004,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.target_fps,            L"Framerate Target (negative signed values are non-limiting)",dll_ini,         L"Render.FrameRate",      L"TargetFPS"),
     ConfigEntry (render.framerate.target_fps_bg,         L"Framerate Target (window in background;  0.0 = same as fg)",dll_ini,         L"Render.FrameRate",      L"BackgroundFPS"),
     ConfigEntry (render.framerate.limiter_tolerance,     L"Limiter Tolerance",                                         dll_ini,         L"Render.FrameRate",      L"LimiterTolerance"),
+    ConfigEntry (render.framerate.busy_wait_ratio,       L"Ratio of time spent Busy-Waiting to Event-Waiting",         dll_ini,         L"Render.FrameRate",      L"MaxBusyWaitPercent"),
     ConfigEntry (render.framerate.wait_for_vblank,       L"Limiter Will Wait for VBLANK",                              dll_ini,         L"Render.FrameRate",      L"WaitForVBLANK"),
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
@@ -1005,6 +1019,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
 
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
+    ConfigEntry (render.framerate.adaptive_tearing,      L"Occasionally allow tearing if limiter is falling behind.",  dll_ini,         L"Render.DXGI",           L"AdaptiveTearing"),
 
     // OpenGL
     //////////////////////////////////////////////////////////////////////////
@@ -1088,6 +1103,9 @@ auto DeclKeybind =
     ConfigEntry (imgui.antialias_lines,                  L"Reduce Aliasing on (but dim) Line Edges",                   dll_ini,         L"ImGui.Render",          L"AntialiasLines"),
     ConfigEntry (imgui.antialias_contours,               L"Reduce Aliasing on (but widen) Window Borders",             dll_ini,         L"ImGui.Render",          L"AntialiasContours"),
 
+    ConfigEntry (dpi.disable,                            L"Disable DPI Scaling",                                       dll_ini,         L"DPI.Scaling",           L"Disable"),
+    ConfigEntry (dpi.per_monitor_aware,                  L"Windows 8.1+ Monitor DPI Awareness (needed for UE4)",       dll_ini,         L"DPI.Scaling",           L"PerMonitorAware"),
+    ConfigEntry (dpi.per_monitor_all_threads,            L"Further fixes required for UE4",                            dll_ini,         L"DPI.Scaling",           L"MonitorAwareOnAllThreads"),
 
     ConfigEntry (reverse_engineering.file.trace_reads,   L"Log file read activity to logs/file_read.log",              dll_ini,         L"FileIO.Trace",          L"LogReads"),
     ConfigEntry (reverse_engineering.file.ignore_reads,  L"Don't log activity for files in this list",                 dll_ini,         L"FileIO.Trace",          L"IgnoreReads"),
@@ -1234,6 +1252,10 @@ auto DeclKeybind =
   SK_KeyboardMacros->clear   ();
 
 
+  if (GetFileAttributesW (master_name.c_str ()) != INVALID_FILE_ATTRIBUTES)
+  {
+    dll_ini->import_file (master_name.c_str ());
+  }
 
   if (GetFileAttributesW (custom_name.c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
@@ -1846,6 +1868,17 @@ auto DeclKeybind =
         config.apis.d3d9ex.hook = false;
       } break;
 
+      case SK_GAME_ID::Persona4:
+      {
+        config.window.treat_fg_as_active          = true;
+        config.dpi.per_monitor.aware              = true;
+        config.textures.cache.ignore_nonmipped    = true;
+        config.compatibility.impersonate_debugger = true;
+        config.apis.d3d9.hook                     = false;
+        config.apis.d3d9ex.hook                   = false;
+        config.apis.OpenGL.hook                   = false;
+      } break;
+
 
 #ifdef _M_AMD64
       case SK_GAME_ID::Yakuza0:
@@ -1859,6 +1892,7 @@ auto DeclKeybind =
         config.render.framerate.disable_flip      = false;
         break;
 
+        case SK_GAME_ID::YakuzaKiwami:
         case SK_GAME_ID::YakuzaKiwami2:
         config.apis.d3d9.hook                     =  false;
         config.apis.d3d9ex.hook                   =  false;
@@ -1884,14 +1918,13 @@ auto DeclKeybind =
         config.render.dxgi.present_test_skip      =   true;
         config.cegui.enable                       =   true;
         config.render.framerate.disable_flip      =  false;
-        config.render.framerate.buffer_count      =      3;
-        config.render.framerate.pre_render_limit  =      4;
+        config.render.framerate.buffer_count      =      5;
+        config.render.framerate.pre_render_limit  =      6;
         config.render.framerate.present_interval  =      1;
-        config.render.framerate.limiter_tolerance =   6.0f;
+        config.render.framerate.limiter_tolerance =   2.0f;
         config.render.framerate.flip_discard      =   true;
         config.render.framerate.swapchain_wait    =    500;
         config.steam.reuse_overlay_pause          =  false;
-        config.steam.appid                        = 927380;
 
         dll_ini->import (L"[Import.ReShade64_Custom]\n"
                          L"Architecture=x64\n"
@@ -1963,31 +1996,23 @@ auto DeclKeybind =
 
       case SK_GAME_ID::MonsterHunterWorld:
       {
-        // This game has multiple windows, we can't hook the wndproc
-        config.window.dont_hook_wndproc  = true;
-      //config.system.display_debug_out  = true;
-        config.steam.force_load_steamapi = true;
-        config.steam.auto_inject         = true;
-        config.steam.auto_pump_callbacks = true;
-        config.steam.dll_path = L"kaldaien_api64.dll";
-        config.render.framerate.limiter_tolerance
-                                         = 1.5f;
+        config.window.dont_hook_wndproc = true;
+      //config.system.display_debug_out = true;
+        config.steam.silent             = true;
+        ///config.steam.force_load_steamapi = true;
+        ///config.steam.auto_inject         = true;
+        ///config.steam.auto_pump_callbacks = true;
+        ///config.steam.dll_path = L"kaldaien_api64.dll";
 
-        // Prevent hitching
-        config.input.gamepad.xinput.placehold [0] = true;
-        config.input.gamepad.xinput.placehold [1] = true;
-        config.input.gamepad.xinput.placehold [2] = true;
-        config.input.gamepad.xinput.placehold [3] = true;
-
-        extern BOOL __SK_DisableQuickHook;
-                    __SK_DisableQuickHook = TRUE;
-
-        if (GetFileAttributes (L"kaldaien_api64.dll") == INVALID_FILE_ATTRIBUTES)
-        {
-          CopyFileW ( L"steam_api64.dll",
-                      L"kaldaien_api64.dll",
-                        TRUE );
-        }
+        ///extern BOOL __SK_DisableQuickHook;
+        ///            __SK_DisableQuickHook = TRUE;
+        ///
+        ///if (GetFileAttributes (L"kaldaien_api64.dll") == INVALID_FILE_ATTRIBUTES)
+        ///{
+        ///  CopyFileW ( L"steam_api64.dll",
+        ///              L"kaldaien_api64.dll",
+        ///                TRUE );
+        ///}
       } break;
 
       case SK_GAME_ID::OctopathTraveler:
@@ -2065,20 +2090,25 @@ auto DeclKeybind =
   apis.d3d8.hook->load   (config.apis.d3d8.hook);
 #endif
 
-  apis.d3d9.hook->load   (config.apis.d3d9.hook);
-  apis.d3d9ex.hook->load (config.apis.d3d9ex.hook);
+  if (! apis.d3d9.hook->load (config.apis.d3d9.hook))
+    config.apis.d3d9.hook = true;
+
+  if (! apis.d3d9ex.hook->load (config.apis.d3d9ex.hook))
+    config.apis.d3d9ex.hook = true;
 
   // D3D9Ex cannot exist without D3D9...
   if (config.apis.d3d9ex.hook)
       config.apis.d3d9.hook = true;
 
-  apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook);
+  if (! apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook))
+    config.apis.dxgi.d3d11.hook = true;
 
 #ifdef _M_AMD64
   apis.d3d12.hook->load  (config.apis.dxgi.d3d12.hook);
 #endif
 
-  apis.OpenGL.hook->load (config.apis.OpenGL.hook);
+  if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
+    config.apis.OpenGL.hook = true;
 
 #ifdef _M_AMD64
   apis.Vulkan.hook->load (config.apis.Vulkan.hook);
@@ -2185,6 +2215,7 @@ auto DeclKeybind =
   nvidia.sli.num_gpus->load                 (config.nvidia.sli.num_gpus);
   nvidia.sli.override->load                 (config.nvidia.sli.override);
 
+  render.framerate.busy_wait_ratio->load    (config.render.framerate.busy_wait_ratio);
   render.framerate.wait_for_vblank->load    (config.render.framerate.wait_for_vblank);
   render.framerate.buffer_count->load       (config.render.framerate.buffer_count);
   render.framerate.prerender_limit->load    (config.render.framerate.pre_render_limit);
@@ -2205,8 +2236,8 @@ auto DeclKeybind =
                                                                           &config.render.framerate.rescan_.Denom);
     }
 
-    if ( config.render.framerate.rescan_.Numerator != -1 &&
-         config.render.framerate.rescan_.Denom     !=  0 )
+    if ( config.render.framerate.rescan_.Numerator != static_cast <UINT> (-1) &&
+         config.render.framerate.rescan_.Denom     !=                      0 )
     {
       config.render.framerate.refresh_rate =
         gsl::narrow_cast <float> (
@@ -2223,7 +2254,11 @@ auto DeclKeybind =
 
   // DXGI
   //
-  render.framerate.max_delta_time->load (config.render.framerate.max_delta_time);
+  render.framerate.adaptive_tearing->load (config.render.framerate.adaptive);
+  render.framerate.max_delta_time->load   (config.render.framerate.max_delta_time);
+
+  // TEMP HACK, always disable Adaptive V-Sync
+  config.render.framerate.adaptive = false;
 
   if (render.framerate.flip_discard->load (config.render.framerate.flip_discard) && config.render.framerate.flip_discard)
   {
@@ -2629,6 +2664,10 @@ auto DeclKeybind =
     CLSIDFromString  (tmp.c_str (), &config.cpu.power_scheme_guid);
   }
 
+  dpi.disable->load                 (config.dpi.disable_scaling);
+  dpi.per_monitor_aware->load       (config.dpi.per_monitor.aware);
+  dpi.per_monitor_all_threads->load (config.dpi.per_monitor.aware_on_all_threads);
+
   steam.achievements.play_sound->load         (config.steam.achievements.play_sound);
   steam.achievements.sound_file->load         (config.steam.achievements.sound_file);
   steam.achievements.take_screenshot->load    (config.steam.achievements.take_screenshot);
@@ -2686,6 +2725,13 @@ auto DeclKeybind =
   // We may already know the AppID before loading the game's config.
   if (config.steam.appid == 0)
     steam.system.appid->load                  (config.steam.appid);
+
+  if (config.steam.appid != 0)
+  {
+    SetEnvironmentVariableA ( "SteamGameId",
+             SK_FormatString ("%lu", config.steam.appid).c_str ()
+                            );
+  }
 
   steam.system.init_delay->load               (config.steam.init_delay);
   steam.system.auto_pump->load                (config.steam.auto_pump_callbacks);
@@ -2779,6 +2825,16 @@ auto DeclKeybind =
   SK_RunOnce (config.cegui.orig_enable = config.cegui.enable);
 
 
+
+
+  ///// Disable Smart Screenshot capture if address space is constrained
+  ///if (! SK_PE32_IsLargeAddressAware ())
+  ///{
+  ///  if (config.steam.screenshots.enable_hook)
+  ///  {   config.steam.screenshots.enable_hook = false;
+  ///    SK_ImGui_Warning ( L"Executable is not Large Address Aware, disabling Smart Screenshots." );
+  ///  }
+  ///}
 
 
   void
@@ -3217,7 +3273,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.ui_slot->store         (config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.ui_slot->store          (config.input.gamepad.steam.ui_slot);
 
-  std::wstring xinput_assign = L"";
+  std::wstring xinput_assign;
 
   for (int i = 0; i < 4; i++)
   {
@@ -3305,6 +3361,7 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.control.
                    render_ahead->store        (config.render.framerate.max_render_ahead);
   render.framerate.override_cpu_count->store  (config.render.framerate.override_num_cpus);
+  render.framerate.busy_wait_ratio->store     (config.render.framerate.busy_wait_ratio);
 
   if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::DInput8) ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )
@@ -3325,8 +3382,8 @@ SK_SaveConfig ( std::wstring name,
           &config.render.framerate.rescan_.Denom);
       }
 
-      if ( config.render.framerate.rescan_.Numerator != -1 &&
-           config.render.framerate.rescan_.Denom     !=  0 )
+      if ( config.render.framerate.rescan_.Numerator != static_cast <UINT> (-1) &&
+           config.render.framerate.rescan_.Denom     !=                      0 )
       {
         config.render.framerate.refresh_rate =
           gsl::narrow_cast <float> (
@@ -3353,6 +3410,7 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
+      render.framerate.adaptive_tearing->store    (config.render.framerate.adaptive);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
       texture.d3d11.precise_hash->store           (config.textures.d3d11.precise_hash);
@@ -3492,6 +3550,10 @@ SK_SaveConfig ( std::wstring name,
   else
     dll_ini->get_section (L"CPU.Power").remove_key (L"PowerSchemeGUID");
 
+
+  dpi.disable->store                           (config.dpi.disable_scaling);
+  dpi.per_monitor_aware->store                 (config.dpi.per_monitor.aware);
+  dpi.per_monitor_all_threads->store           (config.dpi.per_monitor.aware_on_all_threads);
 
 
   steam.achievements.sound_file->store         (config.steam.achievements.sound_file);
@@ -3633,10 +3695,19 @@ SK_SaveConfig ( std::wstring name,
   }
 }
 
-#define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
-  (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
-                  (((shift)!= 0) << 10) |   \
-                  (((alt)  != 0) << 11))
+constexpr UINT
+SK_MakeKeyMask ( const SHORT vKey,
+                 const bool  ctrl,
+                 const bool  shift,
+                 const bool  alt )
+{
+  return
+    static_cast <UINT> (
+      ( vKey | ( (ctrl != 0) <<  9 ) |
+               ( (shift!= 0) << 10 ) |
+               ( (alt  != 0) << 11 ) )
+    );
+}
 
 void
 SK_KeyMap_StandardizeNames (wchar_t* wszNameToFormalize)
@@ -3891,36 +3962,42 @@ SK_Keybind::parse (void)
 bool
 SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 {
+  ///SK_LOG0 ( ( L" [!] SK_AppCache_Manager::loadAppCacheForExe (%ws)", wszExe ),
+  ///            L" AppCache " );
+
   //
   // "AppCaches" are basically fast-path lookups for a game's user-friendly
   //   name that avoid using SteamAPI, the Steam Client or exhaustive app-
   //     manifest file searches for games we have seen before.
   //
-  wchar_t* wszPath =
+  const wchar_t* wszPath =
     StrStrIW ( wszExe, LR"(SteamApps\common\)" );
 
   if (wszPath != nullptr)
   {
-    CHeapPtr <wchar_t> wszRelPath (
-      _wcsdup ( CharNextW (
-                  StrStrIW (
-                    CharNextW (
-                      StrStrIW ( wszPath, LR"(\)" )
-                              ),
-                    LR"(\)"
-                  )
-                )
-              )
+    std::wstring wszRelPath
+    (
+      CharNextW (
+       StrStrIW (
+         CharNextW (
+          StrStrIW ( wszPath, LR"(\)" )
+                   ),         LR"(\)"
+       )
+      )
+    ); wszRelPath += L'\0';
+
+    PathRemoveFileSpecW (
+      wszRelPath.data ()
     );
 
-    PathRemoveFileSpecW ((wchar_t *)wszRelPath);
+    //SK_LOG0 ( ( L" Relative Path: %ws ", wszRelPath.data () ),
+    //            L" AppCache " );
 
-    wchar_t wszAppCache [MAX_PATH * 2 + 1] = { };
-
-    wcsncpy_s (wszAppCache, MAX_PATH * 2,
+    wchar_t    wszAppCache [MAX_PATH + 2] = { };
+    wcsncpy_s (wszAppCache, MAX_PATH,
       SK_FormatStringW ( LR"(%s\My Mods\SpecialK\Profiles\AppCache\%s\SpecialK.AppCache)",
                            SK_GetDocumentsDir ().c_str (),
-                             (wchar_t *)wszRelPath
+                             wszRelPath.data ()
                        ).c_str (), MAX_PATH);
 
     // It may be necessary to write the INI immediately after creating it,
@@ -3967,8 +4044,7 @@ SK_AppCache_Manager::getAppIDFromPath (const wchar_t* wszPath) const
         StrStrIW (
           CharNextW (
             StrStrIW ( wszSteamApps, LR"(\)" )
-                    ),
-          LR"(\)"
+                    ),               LR"(\)"
         )
       )
     };
@@ -4032,7 +4108,9 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
     app_cache_db->get_section (L"AppID_Cache.Names");
 
 
-  CHeapPtr <wchar_t> wszRelativeCopy (_wcsdup (wszFullPath));
+  std::wstring wszRelativeCopy (
+    std::wstring (wszFullPath) + L'\0'
+                               );
 
   wchar_t* wszRelPath =
   {
@@ -4040,17 +4118,17 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
       StrStrIW (
         CharNextW (
           StrStrIW (
-            StrStrIW ( wszRelativeCopy, LR"(SteamApps\common\)" ),
-          LR"(\)"  )
-                  ),
-          LR"(\)"
+            StrStrIW ( wszRelativeCopy.data (),
+                                         LR"(SteamApps\common\)" ),
+                                         LR"(\)"  )
+                  ),                     LR"(\)"
                )
               )
   };
 
 
-  wchar_t    wszAppID [0x21] = { };
-  _swprintf (wszAppID, L"%u", uiAppID);
+  wchar_t    wszAppID [32] = { };
+  _swprintf (wszAppID, L"%0i", uiAppID);
 
   if (fwd_map.contains_key (wszRelPath))
     fwd_map.get_value      (wszRelPath) = wszAppID;
@@ -4121,6 +4199,7 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                                           L'\\', L'/', L':',
                                           L'*',  L'?', L'\"',
                                           L'<',  L'>', L'|',
+                                        //L'&',
 
                                           //
                                           // Obviously a period is not an invalid character,

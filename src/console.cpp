@@ -199,9 +199,13 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 
 extern SHORT SK_ImGui_ToggleKeys [4];
 
+extern HWND WINAPI SK_GetFocus (void);
 bool
 SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
 {
+  if (SK_GetFocus () != game_window.hWnd || game_window.hWnd == 0)
+    return true;
+
   static bool& visible = SK_Console::getInstance ()->visible;
   static BYTE* keys_   = SK_Console::getInstance ()->keys_;
 

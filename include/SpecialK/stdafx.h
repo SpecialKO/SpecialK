@@ -82,9 +82,8 @@
 #include <corecrt_share.h>
 
 #include <xatomic.h>
-#include <xatomic0.h>
 #include <atomic>
-#include <thr/xtimec.h>
+//#include <thr/xtimec.h>
 
 #include <gsl/gsl>
 #include <gsl/span>
@@ -254,13 +253,9 @@
 #pragma comment (lib,    "secur32.lib")
 #pragma comment (lib,    "wininet.lib")
 #pragma comment (lib,    "Shlwapi.lib")
-#pragma comment (lib,    "comctl32.lib")
 #pragma comment (lib,    "delayimp.lib")
 #pragma comment (lib,    "wbemuuid.lib")
 #pragma comment (lib,    "PowrProf.lib")
-#pragma comment (linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' "  \
-                         "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
-                         " language='*'\"")
 
 #include <SpecialK/update/version.h>
 #include <SpecialK/update/archive.h>
@@ -315,16 +310,6 @@
 
 #include <dxgi1_3.h>
 #include <d3d11_2.h>
-
-#include <d3dx11.h>
-#include <d3dx11core.h>
-#include <d3dx11tex.h>
-#include <d3dx11async.h>
-
-#include <d3dx10.h>
-#include <d3dx10core.h>
-#include <d3dx10tex.h>
-#include <d3dx10async.h>
 
 #include <d3dx9.h>
 #include <d3dx9core.h>

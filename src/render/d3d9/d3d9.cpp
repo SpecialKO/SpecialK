@@ -301,11 +301,18 @@ SK::D3D9::VertexBufferTracker::clear (void)
 void
 SK::D3D9::VertexBufferTracker::use (void)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (! rb.device)
+    return;
+
   std::scoped_lock <SK_Thread_HybridSpinlock>
         scope_lock (*lock_vb);
 
   IDirect3DVertexDeclaration9* decl = nullptr;
-  SK_ComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
+
+  SK_ComQIPtr <IDirect3DDevice9> pDev (rb.device);
 
   if (! pDev)
   {
@@ -485,7 +492,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 #ifdef _DEBUG
       dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
 #endif
-      ResetCEGUI_D3D9 ((pWrappedDevice));
+      ResetCEGUI_D3D9 (pWrappedDevice);
     }
 
     else
@@ -494,7 +501,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
   else if (pDev != nullptr)
   {
-    SK_ComPtr <IDirect3DStateBlock9>       pStateBlock = nullptr;
+    SK_ComPtr <IDirect3DStateBlock9>     pStateBlock = nullptr;
     pDev->CreateStateBlock (D3DSBT_ALL, &pStateBlock.p);
 
     if (! pStateBlock)
@@ -833,7 +840,7 @@ SK_HookD3D9 (void)
       if (! LocalHook_Direct3DCreate9.active)
       {
         Direct3DCreate9_Import =  \
-          (Direct3DCreate9_pfn)GetProcAddress (hBackend, "Direct3DCreate9");
+          (Direct3DCreate9_pfn)SK_GetProcAddress (hBackend, "Direct3DCreate9");
 
         LocalHook_Direct3DCreate9.target.addr = Direct3DCreate9_Import;
         LocalHook_Direct3DCreate9.active      = true;
@@ -849,7 +856,7 @@ SK_HookD3D9 (void)
         if (!LocalHook_Direct3DCreate9Ex.active)
         {
           Direct3DCreate9Ex_Import =  \
-            (Direct3DCreate9Ex_pfn)GetProcAddress (hBackend, "Direct3DCreate9Ex");
+            (Direct3DCreate9Ex_pfn)SK_GetProcAddress (hBackend, "Direct3DCreate9Ex");
 
           SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s",
                         SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
@@ -867,7 +874,7 @@ SK_HookD3D9 (void)
       LPVOID pfnDirect3DCreate9   = nullptr;
       LPVOID pfnDirect3DCreate9Ex = nullptr;
 
-      if ( (! LocalHook_Direct3DCreate9.active) && GetProcAddress (hBackend, "Direct3DCreate9") &&
+      if ( (! LocalHook_Direct3DCreate9.active) && SK_GetProcAddress (hBackend, "Direct3DCreate9") &&
              MH_OK ==
              SK_CreateDLLHook2 ( L"d3d9.dll",
                                   "Direct3DCreate9",
@@ -883,7 +890,7 @@ SK_HookD3D9 (void)
         pfnDirect3DCreate9 = LocalHook_Direct3DCreate9.target.addr;
       }
 
-      if ( (! LocalHook_Direct3DCreate9Ex.active) && GetProcAddress (hBackend, "Direct3DCreate9Ex") &&
+      if ( (! LocalHook_Direct3DCreate9Ex.active) && SK_GetProcAddress (hBackend, "Direct3DCreate9Ex") &&
              config.apis.d3d9ex.hook &&
              MH_OK ==
                SK_CreateDLLHook2 ( L"d3d9.dll",
@@ -960,8 +967,8 @@ SK_UnpackD3DX9 (void)
 
     if (locked != nullptr)
     {
-      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
-      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszArchive     [MAX_PATH + 2] = { };
+      wchar_t      wszDestination [MAX_PATH + 2] = { };
 
       wcscpy (wszDestination, SK_GetHostPath ());
 
@@ -1533,6 +1540,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
 
     SK_ComQIPtr <IDirect3DDevice9Ex> pUpgradedDev (pDev);
+  //pDev->QueryInterface (IID_IDirect3DDevice9Ex, &pUpgradedDev);
 
     if (pDevEx != nullptr || pUpgradedDev != nullptr)
     {
@@ -1686,7 +1694,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
     if (_default_impl == nullptr) {                                       \
       static const char* szName = #_Name;                                 \
       _default_impl = (passthrough_pfn)                                   \
-        GetProcAddress (backend_dll, szName);                             \
+        SK_GetProcAddress (backend_dll, szName);                          \
                                                                           \
       if (_default_impl == nullptr) {                                     \
         dll_log->Log (                                                    \
@@ -1714,7 +1722,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
     if (_default_impl == nullptr) {                                       \
       static const char* szName = #_Name;                                 \
       _default_impl = (passthrough_pfn)                                   \
-        GetProcAddress (backend_dll, szName);                             \
+        SK_GetProcAddress (backend_dll, szName);                          \
                                                                           \
       if (_default_impl == nullptr) {                                     \
         dll_log->Log (                                                    \
@@ -1742,7 +1750,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
     if (_default_impl == nullptr) {                                       \
       static const char* szName = #_Name;                                 \
       _default_impl = (passthrough_pfn)                                   \
-        GetProcAddress (backend_dll, szName);                             \
+        SK_GetProcAddress (backend_dll, szName);                          \
                                                                           \
       if (_default_impl == nullptr) {                                     \
         dll_log->Log (                                                    \
@@ -1770,7 +1778,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
     if (_default_impl == nullptr) {                                       \
       static const char* szName = #_Name;                                 \
       _default_impl = (passthrough_pfn)                                   \
-        GetProcAddress (backend_dll, szName);                             \
+        SK_GetProcAddress (backend_dll, szName);                          \
                                                                           \
       if (_default_impl == nullptr) {                                     \
         dll_log->Log (                                                    \
@@ -1856,7 +1864,7 @@ D3D9CreateAdditionalSwapChain_Override ( IDirect3DDevice9       *This,
                                          IDirect3DSwapChain9   **ppSwapChain )
 {
   dll_log->Log (L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h,"
-                                   L" %08" PRIxPTR L"h) - "
+                                    L" %08" PRIxPTR L"h) - "
     L"%s",
     L"IDirect3DDevice9::CreateAdditionalSwapChain", This,
       (uintptr_t)pPresentationParameters, (uintptr_t)ppSwapChain,
@@ -1980,6 +1988,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   //
 
   SK_ComQIPtr <IDirect3DDevice9Ex> pDevEx (pDev);
+//pDev->QueryInterface (IID_IDirect3DDevice9Ex, &pDevEx.p);
 
   if (pDevEx != nullptr)
   {
@@ -2026,14 +2035,13 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
 
   if (! LocalHook_D3D9PresentSwap.active)
   {
-    SK_ComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
-
+    SK_ComPtr        <IDirect3DSwapChain9> pSwapChain = nullptr;
     if (SUCCEEDED (pDev->GetSwapChain (0, &pSwapChain.p)))
     {
       void** vftable_ = nullptr;
 
-      SK_ComQIPtr <IWrapDirect3DSwapChain9> pWrappedSwapChain (pSwapChain);
-
+      SK_ComQIPtr <IWrapDirect3DSwapChain9>
+          pWrappedSwapChain (pSwapChain);
       if (pWrappedSwapChain != nullptr)
         vftable_ = (void **)&(pWrappedSwapChain->pReal);
       else
@@ -2097,7 +2105,7 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
   UNREFERENCED_PARAMETER (This);
   UNREFERENCED_PARAMETER (pFullscreenDisplayMode);
 
-  if ( SK_GetCurrentRenderBackend ().device == nullptr ||
+  if ( SK_GetCurrentRenderBackend ().device        == nullptr ||
        SK_GetCurrentRenderBackend ().device.IsEqualObject (This) )
   {
     SK_GetCurrentRenderBackend ().releaseOwnedResources ();
@@ -2156,7 +2164,7 @@ D3D9Reset_Post ( IDirect3DDevice9      *This,
 {
   UNREFERENCED_PARAMETER (pFullscreenDisplayMode);
 
-  if ( SK_GetCurrentRenderBackend ().device == nullptr ||
+  if ( SK_GetCurrentRenderBackend ().device        == nullptr ||
        SK_GetCurrentRenderBackend ().device.IsEqualObject (This) )
   {
     if (ImGui_ImplDX9_Init ( (void *)pPresentationParameters->hDeviceWindow,
@@ -2197,6 +2205,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
     return D3D9Device_Reset_Original ( This,
                                          pPresentationParameters );
   }
+
 
 
   dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
@@ -2649,8 +2658,8 @@ D3D9CreateTexture_Override ( IDirect3DDevice9   *This,
 }
 
 
-SK_LazyGlobal <std::unordered_set <IDirect3DVertexBuffer9 *>>        ffxiii_dynamic;
-SK_LazyGlobal <std::unordered_map <IDirect3DVertexBuffer9 *, ULONG>> ffxiii_dynamic_updates;
+SK_LazyGlobal <std::unordered_set <IDirect3DVertexBuffer9 *>>          ffxiii_dynamic;
+SK_LazyGlobal <std::unordered_map <IDirect3DVertexBuffer9 *, ULONG64>> ffxiii_dynamic_updates;
 
 using D3D9VertexBuffer_Lock_pfn = HRESULT (STDMETHODCALLTYPE *)( IDirect3DVertexBuffer9 *This,
                                                                  UINT                    OffsetToLock,
@@ -2682,8 +2691,8 @@ D3D9VertexBuffer_Lock_Override ( IDirect3DVertexBuffer9 *This,
       auto& _ffxiii_dynamic_updates =
         ffxiii_dynamic_updates.get ();
 
-      ULONG current_frame = SK_GetFramesDrawn ();
-      DWORD dwFlags       = D3DLOCK_NOOVERWRITE;
+      ULONG64 current_frame = SK_GetFramesDrawn ();
+      DWORD   dwFlags       = D3DLOCK_NOOVERWRITE;
 
       if (_ffxiii_dynamic_updates [This] != current_frame)
       {
@@ -3138,7 +3147,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
             if (record.method == TexLoadMethod::DontCare)
                 record.method =  TexLoadMethod::Streaming;
 
-            wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
+            wchar_t wszInjectFileName [MAX_PATH + 2] = { };
 
             // If -1, load from disk...
             if (record.archive == -1)
@@ -3339,7 +3348,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
+  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex || (! pDevice))
   {
     return pparams;
   }
@@ -3357,7 +3366,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
          rb.api == SK_RenderAPI::D3D9Ex ||
          rb.api == SK_RenderAPI::Reserved )
     {
-      rb.device = (pWrappedDevice)->pReal;
+      rb.device = pWrappedDevice;
     }
   }
 
@@ -4216,10 +4225,10 @@ SK_D3D9_HookDeviceAndSwapchain (
     num_hooked += SK_D3D9_HookReset   (pDevice);
     num_hooked += SK_D3D9_HookPresent (pDevice);
 
-#ifdef SK_AGGRESSIVE_HOOKS
+//#ifdef SK_AGGRESSIVE_HOOKS
     if (num_hooked > 0)
-      SK_ApplyQueuedHooks ();
-#endif
+      SK_RunOnce (SK_ApplyQueuedHooks ());
+//#endif
 
     pDevice->Release ();
 
@@ -4298,11 +4307,15 @@ SK_D3D9_IsDummyD3D9Device (D3DPRESENT_PARAMETERS *pPresentationParameters)
 }
 
 
+///#define WRAP_D3D9_DEVICE
+///#define WRAP_D3D9EX_DEVICE
+
 IWrapDirect3DDevice9*
 SK_D3D9_WrapDevice ( IUnknown               *pDevice,
                      D3DPRESENT_PARAMETERS  *pPresentationParameters,
                      IDirect3DDevice9      **ppDest )
 {
+#ifdef WRAP_D3D9_DEVICE
   if (pPresentationParameters != nullptr)
   {
     if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
@@ -4327,6 +4340,10 @@ SK_D3D9_WrapDevice ( IUnknown               *pDevice,
     *ppDest=
        (IDirect3DDevice9 *)new IWrapDirect3DDevice9 ((IDirect3DDevice9 *)pDevice);
   }
+#else
+  UNREFERENCED_PARAMETER (pPresentationParameters);
+  *ppDest = (IDirect3DDevice9*)pDevice;
+#endif
 
   return (IWrapDirect3DDevice9 *)*ppDest;
 }
@@ -4336,6 +4353,7 @@ SK_D3D9Ex_WrapDevice ( IUnknown               *pDevice,
                        D3DPRESENT_PARAMETERS  *pPresentationParameters,
                        IDirect3DDevice9Ex    **ppDest )
 {
+#ifdef WRAP_D3D9EX_DEVICE
   if (pPresentationParameters != nullptr)
   {
     if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
@@ -4360,6 +4378,10 @@ SK_D3D9Ex_WrapDevice ( IUnknown               *pDevice,
     *ppDest=
        (IDirect3DDevice9Ex *)new IWrapDirect3DDevice9 ((IDirect3DDevice9Ex *)pDevice);
   }
+#else
+  UNREFERENCED_PARAMETER (pPresentationParameters);
+  *ppDest = (IDirect3DDevice9Ex *)pDevice;
+#endif
 
   return (IWrapDirect3DDevice9Ex *)*ppDest;
 }
@@ -4476,11 +4498,12 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
     SK_D3D9_HookDeviceAndSwapchain ( *ppReturnedDeviceInterface );
 
     SK_ComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (*ppReturnedDeviceInterface);
+  //(*ppReturnedDeviceInterface)->QueryInterface (IID_IWrapDirect3DDevice9, &pWrappedDevice);
 
     if (pWrappedDevice != nullptr)
     {
       dll_log->Log (L"Using (D3D9Ex) wrapper for ResetCEGUI_D3D9!");
-      ResetCEGUI_D3D9 ((pWrappedDevice));
+      ResetCEGUI_D3D9 (pWrappedDevice);
     }
 
     else
@@ -4635,14 +4658,14 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
     SK_SetPresentParamsD3D9        (*ppReturnedDeviceInterface, pPresentationParameters);
     SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
 
-    SK_ComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (*ppReturnedDeviceInterface);
-
+    SK_ComQIPtr <IWrapDirect3DDevice9>
+        pWrappedDevice (*ppReturnedDeviceInterface);
     if (pWrappedDevice != nullptr)
     {
 #ifdef _DEBUG
       dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
 #endif
-      ResetCEGUI_D3D9 ((pWrappedDevice));
+      ResetCEGUI_D3D9 (pWrappedDevice);
     }
 
     else
@@ -4668,8 +4691,11 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
                               D3DPRESENT_PARAMETERS* pPresentationParameters,
                               IDirect3DDevice9**     ppReturnedDeviceInterface )
 {
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex || pPresentationParameters == nullptr)
-  {   SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex = FALSE;
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS->d3d9->ctx_init_thread_ex || pPresentationParameters == nullptr)
+  {   pTLS->d3d9->ctx_init_thread_ex = FALSE;
 
     return
       D3D9Ex_CreateDeviceEx_Original ( (IDirect3D9Ex *)This,
@@ -4843,18 +4869,6 @@ __declspec (noinline)
 STDMETHODCALLTYPE
 Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
 {
-  HMODULE hModOverlay =
-    SK_RunLHIfBitness ( 64, GetModuleHandleW (L"gameoverlayrenderer64.dll"),
-                            GetModuleHandleW (L"gameoverlayrenderer.dll") );
-
-  if (SK_GetCallingDLL () == hModOverlay)
-  {
-    return
-      (Direct3DCreate9Ex_Import != nullptr)         ?
-       Direct3DCreate9Ex_Import (SDKVersion, ppD3D) :
-       E_NOTIMPL;
-  }
-
   WaitForInit_D3D9Ex  ();
 
   if (! SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
@@ -5026,12 +5040,13 @@ HookD3D9 (LPVOID user)
 
     SK_AutoCOMInit auto_com;
     {
-      pTLS->d3d9->ctx_init_thread      = TRUE;
+      pTLS->d3d9->ctx_init_thread   = TRUE;
 
-      HWND                     hwnd    = nullptr;
-      SK_ComPtr <IDirect3D9>   pD3D9   =
+      HWND                   hwnd   = nullptr;
+      SK_ComPtr <IDirect3D9> pD3D9  =
          Direct3DCreate9_Import (D3D_SDK_VERSION);
-      SK_ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
+      SK_ComPtr <IDirect3D9Ex>
+                            pD3D9Ex = nullptr;
 
       if (pD3D9 != nullptr)
       {
@@ -5269,7 +5284,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
       {
         enumerated_source_s source = { };
 
-        char szFileName [MAX_PATH] = { '\0' };
+        char szFileName [MAX_PATH + 2] = { };
 
         if (archive_no != std::numeric_limits <unsigned int>::max ()) {
           sprintf (szFileName, "%ws", archives [archive_no].c_str ());
@@ -7793,7 +7808,7 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
   /////    CreateDirectoryW (L"TBFix_Res\\dump\\shaders", nullptr);
   /////  }
   /////
-  /////  wchar_t wszDumpName [MAX_PATH] = { L'\0' };
+  /////  wchar_t wszDumpName [MAX_PATH + 2] = { };
   /////
   /////  swprintf_s ( wszDumpName,
   /////                 MAX_PATH,
@@ -8034,6 +8049,9 @@ SK_D3D9_EndScene (void)
 void
 SK_D3D9_EndFrame (void)
 {
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   auto& _Shaders    = Shaders.get    ();
   auto& _draw_state = draw_state.get ();
 
@@ -8080,7 +8098,7 @@ SK_D3D9_EndFrame (void)
       tex_mgr.logUsedTextures ();
     }
 
-    SK_ComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
+    SK_ComQIPtr <IDirect3DDevice9> pDev (rb.device);
 
     if (pDev == nullptr || (pDev->GetAvailableTextureMem () / 1048576UL) < 64UL)
     {
@@ -8096,12 +8114,15 @@ __declspec (noinline)
 bool
 SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* PrimitiveCount*/, UINT /*StartVertex*/, bool& wireframe)
 {
-  if (SK_GetCurrentRenderBackend ().device == nullptr)
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.device == nullptr)
     return false;
 
-  SK_ComPtr <IDirect3DDevice9> pDevice = nullptr;
+  SK_ComQIPtr <IDirect3DDevice9> pDevice (rb.device);
 
-  if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface <IDirect3DDevice9> (&pDevice.p)))
+  if (pDevice.p == nullptr)
     return false;
 
   auto& _Shaders    = Shaders.get    ();
@@ -8422,9 +8443,9 @@ SK_D3D9_QuickHook (void)
     if ( ( state.hooks_loaded.from_shared_dll +
            state.hooks_loaded.from_game_ini     ) > 0 )
     {
-#ifdef SK_AGGRESSIVE_HOOKS
+//#ifdef SK_AGGRESSIVE_HOOKS
       SK_ApplyQueuedHooks ();
-#endif
+//#endif
     }
 
     else

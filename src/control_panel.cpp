@@ -44,9 +44,13 @@
 
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
+extern bool __stdcall SK_IsGameWindowActive (void);
+
 LONG imgui_staged_frames   = 0;
 LONG imgui_finished_frames = 0;
 BOOL imgui_staged          = FALSE;
+
+extern float g_fDPIScale;
 
 using namespace SK::ControlPanel;
 
@@ -84,7 +88,7 @@ LoadFileInResource ( int          name,
                      const char** data )
 {
   HMODULE handle =
-    GetModuleHandle (nullptr);
+    SK_GetModuleHandle (nullptr);
 
   HRSRC rc =
    FindResource ( handle,
@@ -108,6 +112,44 @@ LoadFileInResource ( int          name,
     }
   }
 }
+
+static UINT  _uiDPI     =     96;
+static float _fDPIScale = 100.0f;
+
+static auto SK_DPI_Update = [](void) ->
+void
+{
+  using  GetDpiForSystem_pfn = UINT (WINAPI *)(void);
+  static GetDpiForSystem_pfn
+         GetDpiForSystem = (GetDpiForSystem_pfn)
+    SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
+                                    "GetDpiForSystem" );
+
+  using  GetDpiForWindow_pfn = UINT (WINAPI *)(HWND);
+  static GetDpiForWindow_pfn
+         GetDpiForWindow = (GetDpiForWindow_pfn)
+    SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
+                                    "GetDpiForWindow" );
+
+  if (GetDpiForSystem != nullptr)
+  {
+    extern float
+      g_fDPIScale;
+
+    UINT dpi = ( GetDpiForWindow != nullptr &&
+                        IsWindow (game_window.hWnd) ) ?
+                 GetDpiForWindow (game_window.hWnd)   :
+                 GetDpiForSystem (                );
+
+    if (dpi != 0)
+    {
+      _uiDPI     = dpi;
+      _fDPIScale =
+        ( (float)dpi /
+          (float)USER_DEFAULT_SCREEN_DPI ) * 100.0f;
+    }
+  }
+};
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
        bool IMGUI_API SK_ImGui_Visible;
@@ -1300,8 +1342,9 @@ DisplayModeMenu (bool windowed)
 //                                 float     fMaxDepth );
 //};
 
-extern float __target_fps;
-extern float __target_fps_bg;
+extern          float __target_fps;
+extern          float __target_fps_bg;
+extern volatile  LONG __SK_FramesToTear;
 
 extern void SK_ImGui_DrawGraph_FramePacing (void);
 
@@ -1375,7 +1418,7 @@ SK_ImGui_ControlPanel (void)
 
         if (ImGui::MenuItem ( "Browse Game Directory", "" ))
         {
-          ShellExecuteW (GetActiveWindow (), L"explore", SK_GetHostPath (), nullptr, nullptr, SW_NORMAL);
+          SK_ShellExecuteW ( nullptr, L"explore", SK_GetHostPath (), nullptr, nullptr, SW_NORMAL);
         }
 
 #if 0
@@ -1385,16 +1428,16 @@ SK_ImGui_ControlPanel (void)
           {
             if (ImGui::MenuItem ("Cloud Data", ""))
             {
-              ShellExecuteA ( GetActiveWindow (), "explore",
-                                SK::SteamAPI::GetDataDir ().c_str (),
-                                  nullptr, nullptr, SW_NORMAL );
+              SK_ShellExecuteA ( nullptr, "explore",
+                                   SK::SteamAPI::GetDataDir ().c_str (),
+                                     nullptr, nullptr, SW_NORMAL );
             }
 
             if (ImGui::MenuItem ("Cloud Config", ""))
             {
-              ShellExecuteA ( GetActiveWindow (), "explore",
-                                SK::SteamAPI::GetConfigDir ().c_str (),
-                                  nullptr, nullptr, SW_NORMAL );
+              SK_ShellExecuteA ( nullptr, "explore",
+                                   SK::SteamAPI::GetConfigDir ().c_str (),
+                                     nullptr, nullptr, SW_NORMAL );
             }
 
             ImGui::EndMenu ();
@@ -1409,8 +1452,8 @@ SK_ImGui_ControlPanel (void)
           std::wstring log_dir =
             std::wstring (SK_GetConfigPath ()) + LR"(\logs)";
 
-          ShellExecuteW ( GetActiveWindow (), L"explore", log_dir.c_str (),
-                            nullptr, nullptr, SW_NORMAL );
+          SK_ShellExecuteW ( nullptr, L"explore", log_dir.c_str (),
+                               nullptr, nullptr, SW_NORMAL );
         }
 
 
@@ -1438,8 +1481,9 @@ SK_ImGui_ControlPanel (void)
           {
             if (ImGui::MenuItem ("Initialize Texture Mods", "", nullptr))
             {
-              wchar_t      wszPath [MAX_PATH * 2] = { };
-              wcscpy      (wszPath, SK_D3D11_res_root->c_str ());
+              wchar_t      wszPath [MAX_PATH + 2] = { };
+              wcsncpy_s   (wszPath, MAX_PATH,
+                 SK_D3D11_res_root->c_str (), _TRUNCATE);
               PathAppendW (wszPath, LR"(inject\textures\)");
 
               SK_CreateDirectories (wszPath);
@@ -1476,9 +1520,9 @@ SK_ImGui_ControlPanel (void)
             dir_exists = true;
           }
 
-          ShellExecuteW ( GetActiveWindow (), L"explore",
-                            reshade_dir.c_str (), nullptr, nullptr,
-                              SW_NORMAL );
+          SK_ShellExecuteW ( nullptr, L"explore",
+                               reshade_dir.c_str (), nullptr, nullptr,
+                                 SW_NORMAL );
         }
 
         static bool wrappable = true;
@@ -1569,8 +1613,8 @@ SK_ImGui_ControlPanel (void)
 #define STEAM_OVERLAY_VS_CRC32C 0xf48cf597
 #define UPLAY_OVERLAY_PS_CRC32C 0x35ae281c
 
-        static bool steam_overlay = false;
-        static long first_try     = SK_GetFramesDrawn ();
+        static bool    steam_overlay = false;
+        static ULONG64 first_try     = SK_GetFramesDrawn ();
 
         if ((! steam_overlay) && ((SK_GetFramesDrawn () - first_try) < 240))
         {      steam_overlay =
@@ -1650,7 +1694,7 @@ SK_ImGui_ControlPanel (void)
 
           if (ImGui::Button ("Browse"))
           {
-            ShellExecuteW ( GetActiveWindow (),
+            SK_ShellExecuteW ( nullptr,
               L"explore",
                 screenshot_manager->getExternalScreenshotPath (),
                   nullptr, nullptr,
@@ -1690,238 +1734,238 @@ SK_ImGui_ControlPanel (void)
 
 
 
-      auto PopulateBranches = [](auto branches) ->
-        std::map <std::string, SK_BranchInfo>
-        {
-          std::map <std::string, SK_BranchInfo> details;
+      ////auto PopulateBranches = [](auto branches) ->
+      ////  std::map <std::string, SK_BranchInfo>
+      ////  {
+      ////    std::map <std::string, SK_BranchInfo> details;
+      ////
+      ////    for ( auto& it : branches )
+      ////    {
+      ////      details.emplace ( it,
+      ////        SK_Version_GetLatestBranchInfo (nullptr, it.c_str ())
+      ////      );
+      ////    }
+      ////
+      ////    return details;
+      ////  };
+      ////
+      ////static std::vector <std::string>                branches       =
+      ////  SK_Version_GetAvailableBranches (nullptr);
+      ////static std::map    <std::string, SK_BranchInfo> branch_details =
+      ////                 PopulateBranches (branches);
+      ////
+      ////static SK_VersionInfo vinfo =
+      ////  SK_Version_GetLocalInfo (nullptr);
+      ////
+      ////static char current_ver        [128] = { };
+      ////static char current_branch_str [ 64] = { };
+      ////
+      ////snprintf ( current_ver,        127, "%ws (%li)",
+      ////             vinfo.package.c_str (), vinfo.build );
+      ////snprintf ( current_branch_str,  63, "%ws",
+      ////             vinfo.branch.c_str  () );
+      ////
+      ////static SK_VersionInfo vinfo_latest =
+      ////  SK_Version_GetLatestInfo (nullptr);
+      ////
+      ////static SK_BranchInfo_V1 current_branch =
+      ////  SK_Version_GetLatestBranchInfo (
+      ////    nullptr, SK_WideCharToUTF8 (vinfo.branch).c_str ()
+      ////  );
 
-          for ( auto& it : branches )
-          {
-            details.emplace ( it,
-              SK_Version_GetLatestBranchInfo (nullptr, it.c_str ())
-            );
-          }
+      ////bool updatable =
+      ////  ( SK_GetPluginName ().find (L"Special K") == std::wstring::npos ||
+      ////    SK_IsInjected    () );
 
-          return details;
-        };
-
-      static std::vector <std::string>                branches       =
-        SK_Version_GetAvailableBranches (nullptr);
-      static std::map    <std::string, SK_BranchInfo> branch_details =
-                       PopulateBranches (branches);
-
-      static SK_VersionInfo vinfo =
-        SK_Version_GetLocalInfo (nullptr);
-
-      static char current_ver        [128] = { };
-      static char current_branch_str [ 64] = { };
-
-      snprintf ( current_ver,        127, "%ws (%li)",
-                   vinfo.package.c_str (), vinfo.build );
-      snprintf ( current_branch_str,  63, "%ws",
-                   vinfo.branch.c_str  () );
-
-      static SK_VersionInfo vinfo_latest =
-        SK_Version_GetLatestInfo (nullptr);
-
-      static SK_BranchInfo_V1 current_branch =
-        SK_Version_GetLatestBranchInfo (
-          nullptr, SK_WideCharToUTF8 (vinfo.branch).c_str ()
-        );
-
-      bool updatable =
-        ( SK_GetPluginName ().find (L"Special K") == std::wstring::npos ||
-          SK_IsInjected    () );
-
-      if (ImGui::BeginMenu ("Update"))
-      {
-        bool selected = false;
-
-        ImGui::MenuItem  ( "Current Version###Menu_CurrentVersion",
-                             current_ver, &selected, false );
-
-        if (updatable && branches.size () > 1)
-        {
-          static
-            char    szCurrentBranchMenu [128] = { };
-          sprintf ( szCurrentBranchMenu, "Current Branch:  (%s)"
-                                         "###SelectBranchMenu",
-                      current_branch_str );
-
-          if (ImGui::BeginMenu (szCurrentBranchMenu))
-          {
-            for ( auto& it : branches )
-            {
-              selected = ( SK_UTF8ToWideChar (it)._Equal (
-                             current_branch.release.vinfo.branch )
-                         );
-
-              static std::string branch_desc;
-                                 branch_desc =
-                SK_WideCharToUTF8 (branch_details [it].general.description);
-
-              if ( ImGui::MenuItem ( it.c_str (), branch_desc.c_str (),
-                                                              &selected ) )
-              {
-                SK_Version_SwitchBranches (nullptr, it.c_str ());
-
-                // Re-fetch the version info and then go to town updating stuff ;)
-                SK_FetchVersionInfo1 (nullptr, true);
-
-                branches       = SK_Version_GetAvailableBranches (nullptr);
-                vinfo          = SK_Version_GetLocalInfo         (nullptr);
-                vinfo_latest   = SK_Version_GetLatestInfo        (nullptr);
-                current_branch = SK_Version_GetLatestBranchInfo  (nullptr,
-                         SK_WideCharToUTF8 (vinfo_latest.branch).c_str ());
-                branch_details = PopulateBranches (branches);
-
-                // !!! Handle the case where the number of branches changes after we fetch the repo
-                break;
-              }
-
-              else if (ImGui::IsItemHovered ())
-              {
-                static std::wstring title;
-                                    title =
-                branch_details [it].release.title;
-
-                ImGui::BeginTooltip ();
-                ImGui::Text         ("%ws", title.c_str ());
-                //ImGui::Separator    ();
-                //ImGui::BulletText   ("Build: %li", branch_details [it].release.vinfo.build);
-                ImGui::EndTooltip   ();
-              }
-            }
-
-            ImGui::Separator ();
-
-            ImGui::TreePush       ("");
-            ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.125f, 0.9f, 0.75f));
-            ImGui::Text           ("Most of my projects have branches that pre-date this menu...");
-            ImGui::BulletText     ("Changing branches here may be a one-way trip :)");
-            ImGui::PopStyleColor  ();
-            ImGui::TreePop        ();
-
-            ImGui::EndMenu ();
-          }
-        }
-
-        else
-        {
-
-        }
-
-        ImGui::MenuItem  ( "Current Branch###Menu_CurrentBranch",
-                             current_branch_str, &selected, false );
-
-        ImGui::Separator ();
-
-        if (vinfo.build < vinfo_latest.build)
-        {
-          if (ImGui::MenuItem  ("Update Now"))
-            SK_UpdateSoftware (nullptr);
-
-          ImGui::Separator ();
-        }
-
-        static std::string utf8_time_checked;
-                           utf8_time_checked =
-          SK_WideCharToUTF8 (SK_Version_GetLastCheckTime_WStr ());
-
-        snprintf        ( current_ver, 127, "%ws (%li)",
-                            vinfo_latest.package.c_str (),
-                            vinfo_latest.build );
-        ImGui::MenuItem ( "Latest Version###Menu_LatestVersion",
-                            current_ver, &selected, false );
-        ImGui::MenuItem ( "Last Checked###Menu_LastUpdateCheck",
-                          utf8_time_checked.c_str (), &selected, false );
-
-        enum {
-          SixHours    = 0,
-          TwelveHours = 1,
-          OneDay      = 2,
-          OneWeek     = 3,
-          Never       = 4
-        };
-
-        const ULONGLONG _Hour = 36000000000ULL;
-
-        auto GetFrequencyPreset = [&] (void) -> int {
-          uint64_t freq = SK_Version_GetUpdateFrequency (nullptr);
-
-          if (freq == 0 || freq == MAXULONGLONG)
-            return Never;
-
-          if (freq <= (6 * _Hour))
-            return SixHours;
-
-          if (freq <= (12 * _Hour))
-            return TwelveHours;
-
-          if (freq <= (24 * _Hour))
-            return OneDay;
-
-          if (freq <= (24 * 7 * _Hour))
-            return OneWeek;
-
-          return Never;
-        };
-
-        static int sel = GetFrequencyPreset ();
-
-        if (updatable)
-        {
-          ImGui::Text     ("Check for Updates");
-          ImGui::TreePush ("");
-
-          if ( ImGui::Combo ( "###UpdateCheckFreq", &sel,
-                                "Once every 6 hours\0"
-                                "Once every 12 hours\0"
-                                "Once per-day\0"
-                                "Once per-week\0"
-                                "Never (disable)\0\0" ) )
-          {
-            switch (sel)
-            {
-              default:
-              case SixHours:
-                SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour);
-                break;
-              case TwelveHours:
-                SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour);
-                break;
-              case OneDay:
-                SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour);
-                break;
-              case OneWeek:
-                SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour);
-                break;
-              case Never:
-                SK_Version_SetUpdateFrequency (nullptr,              0);
-                break;
-            }
-          }
-
-          ImGui::TreePop ( );
-
-          if (vinfo.build >= vinfo_latest.build)
-          {
-            if (ImGui::MenuItem  (" >> Check Now"))
-            {
-              SK_FetchVersionInfo1 (nullptr, true);
-              branches       = SK_Version_GetAvailableBranches (nullptr);
-              vinfo          = SK_Version_GetLocalInfo         (nullptr);
-              vinfo_latest   = SK_Version_GetLatestInfo        (nullptr);
-              branch_details = PopulateBranches                (branches);
-
-              if (vinfo.build < vinfo_latest.build)
-                SK_Version_ForceUpdateNextLaunch (nullptr);
-            }
-          }
-        }
-
-        ImGui::EndMenu ();
-      }
+      ////if (ImGui::BeginMenu ("Update"))
+      ////{
+      ////  bool selected = false;
+      ////
+      ////  ImGui::MenuItem  ( "Current Version###Menu_CurrentVersion",
+      ////                       current_ver, &selected, false );
+      ////
+      ////  if (updatable && branches.size () > 1)
+      ////  {
+      ////    static
+      ////      char    szCurrentBranchMenu [128] = { };
+      ////    sprintf ( szCurrentBranchMenu, "Current Branch:  (%s)"
+      ////                                   "###SelectBranchMenu",
+      ////                current_branch_str );
+      ////
+      ////    if (ImGui::BeginMenu (szCurrentBranchMenu))
+      ////    {
+      ////      for ( auto& it : branches )
+      ////      {
+      ////        selected = ( SK_UTF8ToWideChar (it)._Equal (
+      ////                       current_branch.release.vinfo.branch )
+      ////                   );
+      ////
+      ////        static std::string branch_desc;
+      ////                           branch_desc =
+      ////          SK_WideCharToUTF8 (branch_details [it].general.description);
+      ////
+      ////        if ( ImGui::MenuItem ( it.c_str (), branch_desc.c_str (),
+      ////                                                        &selected ) )
+      ////        {
+      ////          SK_Version_SwitchBranches (nullptr, it.c_str ());
+      ////
+      ////          // Re-fetch the version info and then go to town updating stuff ;)
+      ////          SK_FetchVersionInfo1 (nullptr, true);
+      ////
+      ////          branches       = SK_Version_GetAvailableBranches (nullptr);
+      ////          vinfo          = SK_Version_GetLocalInfo         (nullptr);
+      ////          vinfo_latest   = SK_Version_GetLatestInfo        (nullptr);
+      ////          current_branch = SK_Version_GetLatestBranchInfo  (nullptr,
+      ////                   SK_WideCharToUTF8 (vinfo_latest.branch).c_str ());
+      ////          branch_details = PopulateBranches (branches);
+      ////
+      ////          // !!! Handle the case where the number of branches changes after we fetch the repo
+      ////          break;
+      ////        }
+      ////
+      ////        else if (ImGui::IsItemHovered ())
+      ////        {
+      ////          static std::wstring title;
+      ////                              title =
+      ////          branch_details [it].release.title;
+      ////
+      ////          ImGui::BeginTooltip ();
+      ////          ImGui::Text         ("%ws", title.c_str ());
+      ////          //ImGui::Separator    ();
+      ////          //ImGui::BulletText   ("Build: %li", branch_details [it].release.vinfo.build);
+      ////          ImGui::EndTooltip   ();
+      ////        }
+      ////      }
+      ////
+      ////      ImGui::Separator ();
+      ////
+      ////      ImGui::TreePush       ("");
+      ////      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.125f, 0.9f, 0.75f));
+      ////      ImGui::Text           ("Most of my projects have branches that pre-date this menu...");
+      ////      ImGui::BulletText     ("Changing branches here may be a one-way trip :)");
+      ////      ImGui::PopStyleColor  ();
+      ////      ImGui::TreePop        ();
+      ////
+      ////      ImGui::EndMenu ();
+      ////    }
+      ////  }
+      ////
+      ////  else
+      ////  {
+      ////
+      ////  }
+      ////
+      ////  ImGui::MenuItem  ( "Current Branch###Menu_CurrentBranch",
+      ////                       current_branch_str, &selected, false );
+      ////
+      ////  ImGui::Separator ();
+      ////
+      ////  if (vinfo.build < vinfo_latest.build)
+      ////  {
+      ////    if (ImGui::MenuItem  ("Update Now"))
+      ////      SK_UpdateSoftware (nullptr);
+      ////
+      ////    ImGui::Separator ();
+      ////  }
+      ////
+      ////  static std::string utf8_time_checked;
+      ////                     utf8_time_checked =
+      ////    SK_WideCharToUTF8 (SK_Version_GetLastCheckTime_WStr ());
+      ////
+      ////  snprintf        ( current_ver, 127, "%ws (%li)",
+      ////                      vinfo_latest.package.c_str (),
+      ////                      vinfo_latest.build );
+      ////  ImGui::MenuItem ( "Latest Version###Menu_LatestVersion",
+      ////                      current_ver, &selected, false );
+      ////  ImGui::MenuItem ( "Last Checked###Menu_LastUpdateCheck",
+      ////                    utf8_time_checked.c_str (), &selected, false );
+      ////
+      ////  enum {
+      ////    SixHours    = 0,
+      ////    TwelveHours = 1,
+      ////    OneDay      = 2,
+      ////    OneWeek     = 3,
+      ////    Never       = 4
+      ////  };
+      ////
+      ////  const ULONGLONG _Hour = 36000000000ULL;
+      ////
+      ////  auto GetFrequencyPreset = [&] (void) -> int {
+      ////    uint64_t freq = SK_Version_GetUpdateFrequency (nullptr);
+      ////
+      ////    if (freq == 0 || freq == MAXULONGLONG)
+      ////      return Never;
+      ////
+      ////    if (freq <= (6 * _Hour))
+      ////      return SixHours;
+      ////
+      ////    if (freq <= (12 * _Hour))
+      ////      return TwelveHours;
+      ////
+      ////    if (freq <= (24 * _Hour))
+      ////      return OneDay;
+      ////
+      ////    if (freq <= (24 * 7 * _Hour))
+      ////      return OneWeek;
+      ////
+      ////    return Never;
+      ////  };
+      ////
+      ////  static int sel = GetFrequencyPreset ();
+      ////
+      ////  if (updatable)
+      ////  {
+      ////    ImGui::Text     ("Check for Updates");
+      ////    ImGui::TreePush ("");
+      ////
+      ////    if ( ImGui::Combo ( "###UpdateCheckFreq", &sel,
+      ////                          "Once every 6 hours\0"
+      ////                          "Once every 12 hours\0"
+      ////                          "Once per-day\0"
+      ////                          "Once per-week\0"
+      ////                          "Never (disable)\0\0" ) )
+      ////    {
+      ////      switch (sel)
+      ////      {
+      ////        default:
+      ////        case SixHours:
+      ////          SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour);
+      ////          break;
+      ////        case TwelveHours:
+      ////          SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour);
+      ////          break;
+      ////        case OneDay:
+      ////          SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour);
+      ////          break;
+      ////        case OneWeek:
+      ////          SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour);
+      ////          break;
+      ////        case Never:
+      ////          SK_Version_SetUpdateFrequency (nullptr,              0);
+      ////          break;
+      ////      }
+      ////    }
+      ////
+      ////    ImGui::TreePop ( );
+      ////
+      ////    if (vinfo.build >= vinfo_latest.build)
+      ////    {
+      ////      if (ImGui::MenuItem  (" >> Check Now"))
+      ////      {
+      ////        SK_FetchVersionInfo1 (nullptr, true);
+      ////        branches       = SK_Version_GetAvailableBranches (nullptr);
+      ////        vinfo          = SK_Version_GetLocalInfo         (nullptr);
+      ////        vinfo_latest   = SK_Version_GetLatestInfo        (nullptr);
+      ////        branch_details = PopulateBranches                (branches);
+      ////
+      ////        if (vinfo.build < vinfo_latest.build)
+      ////          SK_Version_ForceUpdateNextLaunch (nullptr);
+      ////      }
+      ////    }
+      ////  }
+      ////
+      ////  ImGui::EndMenu ();
+      ////}
 
 
 
@@ -1944,17 +1988,17 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Separator ();
 
-        if ( ImGui::MenuItem ( "View Release Notes",
-                                 SK_WideCharToUTF8 (current_branch.release.title).c_str (),
-                                   &selected
-                             )
-           )
-        {
-          SK_SteamOverlay_GoToURL (
-            SK_WideCharToUTF8 (current_branch.release.notes).c_str (),
-              true
-          );
-        }
+        /////if ( ImGui::MenuItem ( "View Release Notes",
+        /////                         SK_WideCharToUTF8 (current_branch.release.title).c_str (),
+        /////                           &selected
+        /////                     )
+        /////   )
+        /////{
+        /////  SK_SteamOverlay_GoToURL (
+        /////    SK_WideCharToUTF8 (current_branch.release.notes).c_str (),
+        /////      true
+        /////  );
+        /////}
 
         if (ImGui::MenuItem ("About this Software...", "", &selected))
           eula.show = true;
@@ -1963,7 +2007,7 @@ SK_ImGui_ControlPanel (void)
 
         if (SK_SteamAPI_AppID () != 0x0)
         {
-          if (ImGui::MenuItem ( "Check PCGamingWiki for Self-Help", "Third-Party Site", &selected ))
+          if (ImGui::MenuItem ( "Check PCGamingWiki for this Game", "Third-Party Site", &selected ))
           {
             SK_SteamOverlay_GoToURL (
               SK_FormatString (
@@ -2054,7 +2098,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::BeginGroup ();
             for ( const auto& it : records )
             {
-              ImGui::Text ( " pid %04u: ", it->process.id );
+              ImGui::Text ( " pid %04lu: ", it->process.id );
             }
             ImGui::EndGroup   ();
             ImGui::SameLine   ();
@@ -2396,19 +2440,35 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
+    SK_DPI_Update ();
+
+    if (sRGB)
+      strcat (szResolution, "    (sRGB)");
+
     snprintf ( szResolution, 63, "   %lix%li",
-                                   client.right - client.left,
-                                     client.bottom - client.top );
+                                   (int)((float)(client.right - client.left)   * g_fDPIScale),
+                                     (int)((float)(client.bottom - client.top) * g_fDPIScale) );
+
+    if (_fDPIScale > 100.1f)
+    {
+      static char
+                szScale [32] = { };
+      snprintf (szScale, 31, "    %.0f%%", _fDPIScale);
+      strcat (szResolution, szScale);
+    }
 
     if (windowed)
     {
       if (ImGui::MenuItem (" Window Resolution     ", szResolution))
       {
-        config.window.res.override.x = client.right  - client.left;
-        config.window.res.override.y = client.bottom - client.top;
+        config.window.res.override.x = (int)((float)(client.right  - client.left) * g_fDPIScale);
+        config.window.res.override.y = (int)((float)(client.bottom - client.top)  * g_fDPIScale);
 
         override = true;
       }
+
+      if (_fDPIScale > 100.1f && ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("DPI Awareness:  %u DPI", _uiDPI);
     }
 
     else
@@ -2425,8 +2485,8 @@ SK_ImGui_ControlPanel (void)
 
       if (ImGui::MenuItem (" Fullscreen Resolution", szResolution))
       {
-        config.window.res.override.x = client.right  - client.left;
-        config.window.res.override.y = client.bottom - client.top;
+        config.window.res.override.x = (int)((float)(client.right  - client.left) * g_fDPIScale);
+        config.window.res.override.y = (int)((float)(client.bottom - client.top)  * g_fDPIScale);
 
         override = true;
       }
@@ -2434,7 +2494,8 @@ SK_ImGui_ControlPanel (void)
 
     if (ImGui::IsItemHovered ())
     {
-      if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
+      if ( static_cast <int> (rb.api) &
+           static_cast <int> (SK_RenderAPI::D3D9) )
       {
         SK_ComQIPtr <IDirect3DDevice9> pDev9 (rb.device);
 
@@ -2449,7 +2510,8 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
+      else if ( static_cast <int> (rb.api) &
+                static_cast <int> (SK_RenderAPI::D3D11) )
       {
         SK_ComQIPtr <IDXGISwapChain> pSwapDXGI (rb.swapchain);
 
@@ -2461,9 +2523,9 @@ SK_ImGui_ControlPanel (void)
     }
 
     int device_x =
-      rb.windows.device.getDevCaps ().res.x;
+      (int)((float)rb.windows.device.getDevCaps ().res.x * g_fDPIScale);
     int device_y =
-      rb.windows.device.getDevCaps ().res.y;
+      (int)((float)rb.windows.device.getDevCaps ().res.y * g_fDPIScale);
 
     if ( client.right - client.left   != device_x || client.bottom - client.top   != device_y ||
          io.DisplayFramebufferScale.x != device_x || io.DisplayFramebufferScale.y != device_y )
@@ -2543,11 +2605,6 @@ SK_ImGui_ControlPanel (void)
     {
       ImGui::TreePush    ("");
 
-      extern bool __SK_ImGui_D3D11_DrawDeferred;
-
-      ImGui::Checkbox ( "Use D3D11 Deferred ImGui CmdList Execution",
-                          &__SK_ImGui_D3D11_DrawDeferred );
-
       if ( ImGui::SliderFloat ( "###IMGUI_SCALE", &config.imgui.scale,
                                   1.0f, 3.0f, "UI Scaling Factor %.2f" ) )
       {
@@ -2568,7 +2625,7 @@ SK_ImGui_ControlPanel (void)
       ImGui::Checkbox        ("Disable Transparency", &config.imgui.render.disable_alpha);
 
       if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Resolves flickering in some DirectDraw and Direct3D 8 / 9 games");
+        ImGui::SetTooltip ("Resolves UI flicker in frame-doubled games");
 
       ImGui::TextUnformatted ("Anti-Aliasing:  ");                                          ImGui::SameLine ();
       ImGui::Checkbox        ("Lines",             &config.imgui.render.antialias_lines);   ImGui::SameLine ();
@@ -2742,7 +2799,7 @@ SK_ImGui_ControlPanel (void)
 
         _LimitSlider ( __target_fps, "###FPS_TargetOrLimit",
                                             "TargetFPS",
-                             (game_window.active || (! bg_limit)) );
+                        (SK_IsGameWindowActive () || (! bg_limit)) );
 
         if (limit)
         {
@@ -2750,7 +2807,7 @@ SK_ImGui_ControlPanel (void)
           {
             _LimitSlider (
               __target_fps_bg, "###Background_FPS",
-                                  "BackgroundFPS", (! game_window.active)
+                                  "BackgroundFPS", (! SK_IsGameWindowActive ())
             );
           }
         }
@@ -2856,6 +2913,7 @@ SK_ImGui_ControlPanel (void)
             //  ImGui::Text           ("  Lower = Stricter, but setting");
             //  ImGui::SameLine       ();
 
+#if 0
             ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 1.0f, 24.0f);
 
             if (ImGui::IsItemHovered ())
@@ -2877,21 +2935,71 @@ SK_ImGui_ControlPanel (void)
               ImGui::BulletText     ("Adjust this if your set limit is fighting with VSYNC (frequent frametime graph oscillations).");
               ImGui::EndTooltip     ( );
             }
+#else
+            float fPercent  = 1.0f -
+              config.render.framerate.busy_wait_ratio;
+                  fPercent *= 100.0f;
 
-            SK_ComQIPtr <ID3D11Device> pDev     (rb.device);
-            SK_ComQIPtr <IDXGIDevice>  pDXGIDev (pDev);
-
-            if (pDXGIDev != nullptr)
+            if ( ImGui::SliderFloat ( "Timing Accuracy",
+                                        &fPercent,
+                                          5.0f, 100.0f, "Maximum CPU: %0.3f%%" )
+               )
             {
-              static INT nPrio  = -8;
-              if        (nPrio == -8) pDXGIDev->GetGPUThreadPriority (&nPrio);
+              config.render.framerate.busy_wait_ratio =
+                1.0f - (fPercent / 100.0f);
+            }
 
-              if (ImGui::SliderInt ("GPU Priority", &nPrio, -7, 7))
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ( );
+              ImGui::Text         ("Reserve CPU for Timing Accuracy");
+              ImGui::Separator    ( );
+              ImGui::BulletText   ("The default value is usually adequate");
+              ImGui::BulletText   ("In the worst stuttering games, give 100%% a try");
+              ImGui::EndTooltip   ( );
+            }
+#endif
+
+            //SK_ComQIPtr <ID3D11Device> pDev     (rb.device);
+            //SK_ComQIPtr <IDXGIDevice>  pDXGIDev (pDev);
+            //
+            //if (pDXGIDev != nullptr)
+            //{
+            //  static INT nPrio  = -8;
+            //  if        (nPrio == -8) pDXGIDev->GetGPUThreadPriority (&nPrio);
+            //
+            //  if (ImGui::SliderInt ("GPU Priority", &nPrio, -7, 7))
+            //  {
+            //    if (SUCCEEDED (pDXGIDev->SetGPUThreadPriority ( nPrio)))
+            //                   pDXGIDev->GetGPUThreadPriority (&nPrio);
+            //  }
+            //}
+#if 0
+            extern int __SK_FramerateLimitApplicationSite;
+            ImGui::SliderInt ("Limit Enforcement Site", &__SK_FramerateLimitApplicationSite, 0, 4);
+
+            if (SK_DXGI_SupportsTearing ())
+            {
+              if (ImGui::Checkbox ("Microstutter Mitigation", &config.render.framerate.adaptive))
               {
-                if (SUCCEEDED (pDXGIDev->SetGPUThreadPriority ( nPrio)))
-                               pDXGIDev->GetGPUThreadPriority (&nPrio);
+                if (config.render.framerate.adaptive)
+                  InterlockedExchange (&__SK_FramesToTear, 3);
+                else
+                  InterlockedExchange (&__SK_FramesToTear, 0);
+              }
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::BeginTooltip ();
+                ImGui::Text         ("Custom Form of Adaptive V-Sync for D3D11 Games");
+                ImGui::Separator    ();
+                ImGui::BulletText   ("Allows tearing up to 4 times per-second to stabilize framerate limiter");
+                ImGui::BulletText   ("Requires Flip Model (Borderless Fullscreen) and a configured framerate limit");
+                ImGui::BulletText   ("Almost never creates visible tearing");
+                ImGui::EndTooltip   ();
               }
             }
+#endif
           }
           ImGui::EndGroup  ();
           ImGui::Separator ();
@@ -2909,6 +3017,9 @@ SK_ImGui_ControlPanel (void)
               ( spoof ? si.dwNumberOfProcessors : -1 );
           }
 
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Useful in Unity games -- set lower than actual to fix negative performance scaling.");
+
           if (spoof)
           {
             ImGui::SameLine    (                            );
@@ -2925,21 +3036,29 @@ SK_ImGui_ControlPanel (void)
     ImGui::PopItemWidth ();
   }
 
-  SK::ControlPanel::render_api = rb.api;
+  using namespace SK::ControlPanel;
 
-  SK::ControlPanel::D3D9::Draw   ();
-  SK::ControlPanel::D3D11::Draw  ();
-  SK::ControlPanel::OpenGL::Draw ();
+  render_api = rb.api;
 
-  SK::ControlPanel::Compatibility::Draw ();
+  // These stubs only draw if the operating environment
+  //   includes their respective APIs.
+  //
+  // * Don't bother conditionally calling these.
+  //
+           D3D9::Draw ();
+          D3D11::Draw ();
+         OpenGL::Draw ();
 
-  SK::ControlPanel::Input::Draw  ();
-  SK::ControlPanel::Window::Draw ();
-  SK::ControlPanel::Sound::Draw  ();
+  Compatibility::Draw ();
 
-  SK::ControlPanel::OSD::Draw     ();
+          Input::Draw ();
+         Window::Draw ();
+          Sound::Draw ();
 
-  bool open_widgets = ImGui::CollapsingHeader ("Widgets");
+            OSD::Draw ();
+
+  const bool open_widgets =
+    ImGui::CollapsingHeader ("Widgets");
 
   if (ImGui::IsItemHovered ( ))
   {
@@ -3006,11 +3125,6 @@ SK_ImGui_ControlPanel (void)
                                           setActive  (pipeline);
       }
 
-      ////SK_DXGI_HDRControl* pHDRCtl =
-      ////  SK_HDR_GetControl ();
-      ////
-      ////if (pHDRCtl->meta._AdjustmentCount > 0)
-      ////{
       if (rb.isHDRCapable ())
       {
         ImGui::SameLine ();
@@ -3144,8 +3258,8 @@ SK_ImGui_StageNextFrame (void)
 
   // Excessively long frames from things like toggling the Steam overlay
   //   must be ignored.
-  static ULONG last_frame         = 0;
-  bool         skip_frame_history = false;
+  static ULONG64 last_frame         = 0;
+  bool           skip_frame_history = false;
 
   if (last_frame < SK_GetFramesDrawn () - 1)
   {
@@ -3216,10 +3330,8 @@ SK_ImGui_StageNextFrame (void)
   static auto& io =
     ImGui::GetIO ();
 
+  SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
 
-  SK_ComQIPtr <IDXGISwapChain> pSwapChain (
-    rb.swapchain
-  );
   if (pSwapChain != nullptr)
   {
     DXGI_SWAP_CHAIN_DESC  desc = {};
@@ -3450,16 +3562,16 @@ SK_ImGui_StageNextFrame (void)
       }
 
       ImGui::Text          ("You are currently using"); ImGui::SameLine ();
-      ImGui::TextColored   (ImColor::HSV (.15, 0.9, 1.), "%s",
+      ImGui::TextColored   (ImColor::HSV (.15f,.9f,1.f), "%s",
                             utf8_release_title.c_str());ImGui::SameLine ();
       ImGui::Text          ("from the");                ImGui::SameLine ();
-      ImGui::TextColored   (ImColor::HSV (.4, 0.9, 1.), "%s",
+      ImGui::TextColored   (ImColor::HSV (.4f,.9f,1.f), "%s",
                             utf8_branch_name.c_str ()); ImGui::SameLine ();
       ImGui::Text          ("development branch.");
       ImGui::Spacing       ();
       ImGui::Spacing       ();
       ImGui::TreePush      ("");
-      ImGui::TextColored   (ImColor::HSV (.08, .85, 1.0), "%s",
+      ImGui::TextColored   (ImColor::HSV (.08f,.85f,1.f), "%s",
                             utf8_time_checked.c_str ());ImGui::SameLine ();
       ImGui::TextColored   (ImColor (1.f, 1.f, 1.f, 1.f), u8"  ※  ");
                                                         ImGui::SameLine ();
@@ -3634,7 +3746,7 @@ SK_ImGui_StageNextFrame (void)
         "\n         You will lose any unsaved game progress.      \n\n";
 
       ImGui::FocusWindow (ImGui::GetCurrentWindow ());
-      ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), szDisclaimer);
+      ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
       ImGui::Separator   ();
 
       ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),     szConfirm);
@@ -3730,18 +3842,11 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     SK_ImGui_StageNextFrame ();
   }
 
-  bool d3d9  = false;
-  bool d3d11 = false;
-  bool d3d12 = false;
-  bool gl    = false;
-
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.api == SK_RenderAPI::OpenGL)
   {
-    gl = true;
-
     ImGui::Render ();
     ImGui_ImplGL3_RenderDrawData (ImGui::GetDrawData ());
   }
@@ -3749,13 +3854,9 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if ( ( static_cast <int> (rb.api) &
               static_cast <int> (SK_RenderAPI::D3D9) ) != 0 )
   {
-    d3d9 = true;
+    SK_ComQIPtr <IDirect3DDevice9> pDev (rb.device);
 
-    SK_ComQIPtr <IDirect3DDevice9> pDev (
-      rb.device
-    );
-
-    if ( SUCCEEDED (
+    if ( pDev != nullptr && SUCCEEDED (
            pDev->BeginScene ()
          )
        )
@@ -3769,8 +3870,6 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if ( ( static_cast <int> (rb.api) &
               static_cast <int> (SK_RenderAPI::D3D11) ) != 0 )
   {
-    d3d11 = true;
-
     ImGui::Render ();
     ImGui_ImplDX11_RenderDrawData (ImGui::GetDrawData ());
   }
@@ -3778,8 +3877,6 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if ( ( static_cast <int> (rb.api) &
               static_cast <int> (SK_RenderAPI::D3D12) ) != 0 )
   {
-    d3d12 = true;
-
     ImGui::Render ();
   }
 
@@ -3818,13 +3915,15 @@ __declspec (dllexport)
 void
 SK_ImGui_Toggle (void)
 {
+#ifdef _COMPAT_HACKS
   // XXX: HACK for Monster Hunter: World
   game_window.active = true;
+#endif
 
   static auto& io =
     ImGui::GetIO ();
 
-  static ULONG last_frame = 0;
+  static ULONG64 last_frame = 0;
 
   if (last_frame != SK_GetFramesDrawn ())
   {
@@ -3844,6 +3943,7 @@ SK_ImGui_Toggle (void)
 
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9) )  d3d9  = true;
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))  d3d11 = true;
+  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))  d3d12 = true;
   if (                   rb.api ==                    SK_RenderAPI::OpenGL)  gl    = true;
 
   auto EnableEULAIfPirate = [&](void) ->
@@ -3966,67 +4066,3 @@ SK_ImGui_Toggle (void)
       SK_ImGui_OpenCloseCallback->fn (SK_ImGui_OpenCloseCallback->data);
   }
 }
-
-
-
-#if 0
-    modes = "Bordered\0Borderless\0Borderless Fullscreen\0\0";
-
-    if (ImGui::Combo ("Window Style###SubMenu_WindowBorder_Combo", &mode, modes) && mode != orig_mode)
-    {
-      switch (mode)
-      {
-        case 0:
-          config.window.borderless = false;
-          config.window.fullscreen = false;
-          break;
-
-        case 2:
-          config.window.borderless = true;
-          config.window.fullscreen = true;
-          break;
-
-        case 1:
-          config.window.borderless = true;
-          config.window.fullscreen = false;
-          break;
-      }
-
-      SK_ImGui_AdjustCursor ();
-
-      bool toggle_border     = (config.window.borderless != window_is_borderless);
-      bool toggle_fullscreen = (config.window.fullscreen != SK_Window_IsFullscreen (game_window.hWnd));
-
-      extern void
-      SK_DeferCommands (const char** szCommands, int count);
-
-      if (toggle_border)     config.window.borderless = window_is_borderless;
-      if (toggle_fullscreen) config.window.fullscreen = SK_Window_IsFullscreen (game_window.hWnd);
-
-      SK_ImGui_AdjustCursor ();
-
-      if (toggle_border && toggle_fullscreen)
-      {
-        if (config.window.fullscreen)
-        {
-          const char* cmds [2] = { "Window.Fullscreen toggle",
-                                   "Window.Borderless toggle" };
-
-          SK_DeferCommands ( cmds, 2 );
-        }
-
-        else
-        {
-          const char* cmds [2] = { "Window.Borderless toggle",
-                                   "Window.Fullscreen toggle" };
-
-          SK_DeferCommands ( cmds, 2 );
-        }
-      }
-
-      else
-      {
-        if (toggle_border)     { SK_DeferCommand ("Window.Borderless toggle"); }
-        if (toggle_fullscreen) { SK_DeferCommand ("Window.Fullscreen toggle"); }
-      }
-#endif

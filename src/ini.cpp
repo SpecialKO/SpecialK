@@ -915,7 +915,7 @@ iSK_INI::get_section (const wchar_t* section)
 
 
 iSK_INISection&
-__stdcall
+__cdecl
 iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
                          wchar_t const* const    _Format,
                                                  ... )
@@ -1364,8 +1364,11 @@ iSK_INI*
 __stdcall
 SK_CreateINI (const wchar_t* const wszName)
 {
-  auto* pINI =
+  auto  *pINI =
     new (std::nothrow) iSK_INI (wszName);
+
+  assert
+        (pINI != nullptr);
 
   return pINI;
 }

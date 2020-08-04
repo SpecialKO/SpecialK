@@ -165,7 +165,7 @@ struct TexThreadStats {
     uint32_t            size        = 0UL;
 
     // Stream / Immediate
-    wchar_t             wszFilename [MAX_PATH] = { };
+    wchar_t             wszFilename [MAX_PATH + 2] = { };
 
     LPDIRECT3DTEXTURE9  pDest = nullptr;
     LPDIRECT3DTEXTURE9  pSrc  = nullptr;
@@ -282,7 +282,7 @@ struct TexThreadStats {
     int                        loadQueuedTextures   (void);
 
 
-    BOOL                       isTexturePowerOfTwo (UINT sampler)
+    BOOL                       isTexturePowerOfTwo (UINT sampler) const
     {
       return sampler_flags [sampler < 255 ? sampler : 255].power_of_two;
     }
@@ -428,12 +428,12 @@ public:
       SetEvent (control_.shutdown);
     }
 
-    size_t bytesLoaded (void)  {
-      return gsl::narrow_cast <size_t> (InterlockedExchangeAdd64 (&bytes_loaded_, 0ULL));
+    size_t bytesLoaded (void) const noexcept {
+      return gsl::narrow_cast <size_t> (ReadAcquire64 (&bytes_loaded_));
     }
 
-    int    jobsRetired  (void)  {
-      return InterlockedExchangeAdd (&jobs_retired_, 0L);
+    int    jobsRetired  (void) const noexcept {
+      return ReadAcquire (&jobs_retired_);
     }
 
     FILETIME idleTime   (void)
@@ -453,7 +453,7 @@ public:
       //  ULARGE_INTEGER { runtime_.kernel.dwLowDateTime, runtime_.kernel.dwHighDateTime }.QuadPart +
       //  ULARGE_INTEGER { runtime_.user.dwLowDateTime,   runtime_.user.dwHighDateTime   }.QuadPart;
 
-      const volatile LONG64 idle = 0LL;
+      volatile LONG64 idle = 0LL;
 
       //InterlockedAdd64 (&idle, elapsed);
       //InterlockedAdd64 (&idle, -busy);
@@ -461,8 +461,8 @@ public:
       return FILETIME { (DWORD) idle        & 0xFFFFFFFF,
                         (DWORD)(idle >> 31) & 0xFFFFFFFF };
     }
-    FILETIME userTime   (void)  { return runtime_.user;   };
-    FILETIME kernelTime (void)  { return runtime_.kernel; };
+    [[nodiscard]] FILETIME userTime   (void) const noexcept { return runtime_.user;   };
+    [[nodiscard]] FILETIME kernelTime (void) const noexcept { return runtime_.kernel; };
 
   protected:
     static volatile LONG  num_threads_init;
@@ -515,24 +515,20 @@ public:
       events_.shutdown =
         SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
-      InitializeCriticalSectionAndSpinCount (&cs_jobs,     100UL);
-      InitializeCriticalSectionAndSpinCount (&cs_results, 1000UL);
+      constexpr int MAX_THREADS = 5;///*config.textures.worker_threads*/ 4 / 2;
 
-      const int MAX_THREADS = 5;///*config.textures.worker_threads*/ 4 / 2;
-
-      if (! init_worker_sync)
+      if (! init_worker_sync_)
       {
         // We will add a sync. barrier that waits for all of the threads in this pool, plus all of the threads
         //   in the other pool to initialize. This design is flawed, but safe.
-        init_worker_sync = true;
+        init_worker_sync_ = true;
       }
 
       for (int i = 0; i < MAX_THREADS; i++)
       {
-        auto* pWorker =
-          new TextureWorkerThread (this);
-
-        workers_.emplace_back (pWorker);
+        workers_.emplace_back (
+          std::make_unique <TextureWorkerThread> (this)
+        );
       }
 
       // This will be deferred until it is first needed...
@@ -548,9 +544,6 @@ public:
         WaitForSingleObject (spool_thread_, INFINITE);
         CloseHandle         (spool_thread_);
       }
-
-      DeleteCriticalSection (&cs_results);
-      DeleteCriticalSection (&cs_jobs);
 
       CloseHandle (events_.results_waiting);
       CloseHandle (events_.jobs_added);
@@ -568,28 +561,29 @@ public:
       if (dwResults != WAIT_OBJECT_0 && (! ReadAcquire (&jobs_done_)))
         return;
 
-      EnterCriticalSection (&cs_results);
-      {
-        while (! results_.empty ())
-        {
-          SK::D3D9::TexLoadRef ref (nullptr);
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+                 _lock (cs_results_);
 
-          while (! results_.try_pop (ref)) ;
-          results.emplace_back (ref);
-          InterlockedDecrement (&jobs_done_);
-        }
+      while (! results_.empty ())
+      {
+        SK::D3D9::TexLoadRef ref (nullptr);
+
+        while (! results_.try_pop (ref)) ;
+
+        results.emplace_back (ref);
+        InterlockedDecrement (&jobs_done_);
       }
 
       ResetEvent (events_.results_waiting);
-      LeaveCriticalSection (&cs_results);
     }
 
-    bool   working     (void) noexcept { return ReadAcquire (&jobs_done_) > 0; }
-    void   shutdown    (void) noexcept { SetEvent (events_.shutdown);  }
+    bool   working     (void) const noexcept { return ReadAcquire (&jobs_done_) > 0; }
+    void   shutdown    (void) const noexcept { SetEvent (events_.shutdown);  }
 
-    size_t queueLength (void)
+    size_t queueLength (void) const noexcept
     {
-      return ReadAcquire (&jobs_waiting_);
+      return
+        ReadAcquire (&jobs_waiting_);
     }
 
 
@@ -598,9 +592,9 @@ public:
     {
       std::vector <SK::D3D9::TexThreadStats> stats;
 
-      for ( auto it : workers_ )
+      for ( auto& it : workers_ )
       {
-        SK::D3D9::TexThreadStats stat;
+        SK::D3D9::TexThreadStats stat = { };
 
         stat.bytes_loaded   = it->bytesLoaded ();
         stat.jobs_retired   = it->jobsRetired ();
@@ -649,16 +643,18 @@ public:
 
     void            postFinished (TexLoadRequest* finished)
     {
-      EnterCriticalSection (&cs_results);
-      {
-        // Remove the temporary reference we added earlier
-        finished->pDest->Release ();
+      std::scoped_lock <SK_Thread_HybridSpinlock>
+                 _lock (cs_results_);
 
-        results_.push        (finished);
-        SetEvent             (events_.results_waiting);
-        InterlockedIncrement (&jobs_done_);
-      }
-      LeaveCriticalSection (&cs_results);
+      assert (finished        != nullptr);
+      assert (finished->pDest != nullptr);
+
+      // Remove the temporary reference we added earlier
+      finished->pDest->Release ();
+
+      results_.push        (finished);
+      SetEvent             (events_.results_waiting);
+      InterlockedIncrement (&jobs_done_);
     }
 
   private:
@@ -668,7 +664,11 @@ public:
     concurrent_queue <TexLoadRef>       jobs_;
     concurrent_queue <TexLoadRef>       results_;
 
-    std::vector <TextureWorkerThread *> workers_;
+    std::vector <
+      std::unique_ptr <
+        TextureWorkerThread
+      >
+    >                                   workers_;
 
     struct {
       HANDLE jobs_added;
@@ -676,12 +676,14 @@ public:
       HANDLE shutdown;
     } events_;
 
-    CRITICAL_SECTION cs_jobs;
-    CRITICAL_SECTION cs_results;
+    //SK_Thread_HybridSpinlock cs_jobs_    =
+    //  SK_Thread_HybridSpinlock ( 100UL);
+    SK_Thread_HybridSpinlock cs_results_ =
+      SK_Thread_HybridSpinlock (1000UL);
 
     HANDLE spool_thread_;
 
-    bool init_worker_sync = false;
+    bool init_worker_sync_ = false;
   };//extern *resample_pool;
 
   //
@@ -693,7 +695,7 @@ public:
   //
   struct StreamSplitter
   {
-    bool working (void)
+    bool working (void) const noexcept
     {
       if (lrg_tex && lrg_tex->working ())
         return true;
@@ -704,7 +706,7 @@ public:
       return false;
     }
 
-    size_t queueLength (void)
+    size_t queueLength (void) const noexcept
     {
       size_t len = 0;
 
@@ -714,7 +716,7 @@ public:
       return len;
     }
 
-    void getFinished (std::vector <TexLoadRequest *>& results)
+    void getFinished (std::vector <TexLoadRequest *>& results) const
     {
       std::vector <TexLoadRequest *> lrg_loads;
       std::vector <TexLoadRequest *> sm_loads;
@@ -728,8 +730,11 @@ public:
       return;
     }
 
-    void postJob (TexLoadRequest* job)
+    void postJob (TexLoadRequest* job) const
     {
+      assert ( lrg_tex != nullptr &&
+                sm_tex != nullptr );
+
       // A "Large" load is one >= 128 KiB
       if (job->SrcDataSize > (128 * 1024))
         lrg_tex->postJob (job);
@@ -737,8 +742,8 @@ public:
         sm_tex->postJob (job);
     }
 
-    TextureThreadPool* lrg_tex = nullptr;
-    TextureThreadPool* sm_tex  = nullptr;
+    std::unique_ptr <TextureThreadPool> lrg_tex;
+    std::unique_ptr <TextureThreadPool> sm_tex;
   };
 }
 }

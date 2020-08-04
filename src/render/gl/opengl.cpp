@@ -25,7 +25,7 @@
 
 #include <cstdint>
 
-#undef _WINGDI_
+#define _GDI32_
 
 #include <SpecialK/utility/bidirectional_map.h>
 
@@ -124,7 +124,7 @@ using finish_pfn = void (WINAPI *)(void);
 HMODULE
 SK_LoadRealGL (void)
 {
-  wchar_t    wszBackendDLL [MAX_PATH * 2 + 1] = { };
+  wchar_t    wszBackendDLL [MAX_PATH + 2] = { };
   wcsncpy_s (wszBackendDLL, MAX_PATH, SK_GetSystemDirectory (), _TRUNCATE);
   lstrcatW  (wszBackendDLL, L"\\");
 
@@ -135,7 +135,7 @@ SK_LoadRealGL (void)
     local_gl = SK_Modules->LoadLibrary (wszBackendDLL);
   else {
     HMODULE hMod;
-    GetModuleHandleEx (0x00, wszBackendDLL, &hMod);
+    GetModuleHandleExW (0x00, wszBackendDLL, &hMod);
   }
 
   return local_gl;
@@ -144,7 +144,7 @@ SK_LoadRealGL (void)
 void
 SK_FreeRealGL (void)
 {
-  FreeLibrary_Original (local_gl);
+  SK_FreeLibrary (local_gl);
 }
 
 
@@ -184,7 +184,7 @@ extern "C"
     if (imp_##_Name == nullptr) {                                        \
                                                                          \
       static const char* szName = #_Name;                                \
-      imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (local_gl, szName);\
+      imp_##_Name=(imp_##_Name##_pfn)SK_GetProcAddress(local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
         dll_log->Log (                                                   \
@@ -206,7 +206,7 @@ extern "C"
     if (imp_##_Name == nullptr) {                                        \
                                                                          \
       static const char* szName = #_Name;                                \
-      imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (local_gl, szName);\
+      imp_##_Name=(imp_##_Name##_pfn)SK_GetProcAddress(local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
         dll_log->Log (                                                   \
@@ -1180,13 +1180,12 @@ void ResetCEGUI_GL (void)
   if (! config.cegui.enable)
     return;
 
-
   assert (imp_wglGetCurrentContext != nullptr);
 
   if ( cegGL == nullptr && SK_GetFramesDrawn       ()  > 10 &&
                            SK_GL_GetCurrentContext () != nullptr  )
   {
-    if (GetModuleHandle (L"CEGUIOpenGLRenderer-0.dll"))
+    if (SK_GetModuleHandle (L"CEGUIOpenGLRenderer-0.dll"))
     {
       glPushAttrib (GL_ALL_ATTRIB_BITS);
 
@@ -1663,7 +1662,7 @@ SK_Overlay_DrawGL (void)
   static GLuint ceGL_VAO = 0;
             if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
 
-  SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (last_srgb_framebuffer)
@@ -1848,8 +1847,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       ResetCEGUI_GL ();
     }
 
-    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
-    SK_BeginBufferSwap ();
+    SK_GetCurrentRenderBackend ().api =
+      SK_RenderAPI::OpenGL;
+
+    SK_BeginBufferSwap      ();
 
     SK_GL_UpdateRenderStats ();
     SK_Overlay_DrawGL       ();
@@ -1876,20 +1877,25 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 }
 
 
+extern HWND WINAPI SK_GetFocus (void);
+
 void
 SK_GL_TrackHDC (HDC hDC)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   HWND hWnd_DC =
     WindowFromDC (hDC);
 
-  if (SK_GetCurrentRenderBackend ().windows.device != hWnd_DC && SK_Win32_IsGUIThread ())
+  if (rb.windows.device != hWnd_DC && SK_Win32_IsGUIThread ())
   {
-    if (IsWindowVisible (hWnd_DC) && GetFocus () == hWnd_DC)
+    if (IsWindowVisible (hWnd_DC) && SK_GetFocus () == hWnd_DC)
     {
       SK_InstallWindowHook (GetActiveWindow ());
 
       if (game_window.WndProc_Original != nullptr)
-        SK_GetCurrentRenderBackend ().windows.setDevice (hWnd_DC);
+        rb.windows.setDevice (hWnd_DC);
     }
   }
 }
@@ -2445,23 +2451,23 @@ SK_HookGL (void)
 
     cs_gl_ctx = new SK_Thread_HybridSpinlock (64);
 
-    if ( StrStrIW ( static_cast <const std::wstring &> (
-                      skModuleRegistry::Self ()
-                    ).c_str (), wszBackendDLL ) )
+    if ( StrStrIW ( SK_GetDLLName ().c_str (),
+                      wszBackendDLL )
+       )
     {
       SK_Modules->LoadLibrary (L"gdi32.dll");
       SK_LoadRealGL ();
 
       wgl_swap_buffers =
-        (wglSwapBuffers_pfn)GetProcAddress         (local_gl, "wglSwapBuffers");
+        (wglSwapBuffers_pfn)SK_GetProcAddress         (local_gl, "wglSwapBuffers");
       wgl_make_current =
-        (wglMakeCurrent_pfn)GetProcAddress         (local_gl, "wglMakeCurrent");
+        (wglMakeCurrent_pfn)SK_GetProcAddress         (local_gl, "wglMakeCurrent");
       wgl_share_lists =
-        (wglShareLists_pfn)GetProcAddress          (local_gl, "wglShareLists");
+        (wglShareLists_pfn)SK_GetProcAddress          (local_gl, "wglShareLists");
       wgl_delete_context =
-        (wglDeleteContext_pfn)GetProcAddress       (local_gl, "wglDeleteContext");
+        (wglDeleteContext_pfn)SK_GetProcAddress       (local_gl, "wglDeleteContext");
       wgl_swap_multiple_buffers =
-        (wglSwapMultipleBuffers_pfn)GetProcAddress (local_gl, "wglSwapMultipleBuffers");
+        (wglSwapMultipleBuffers_pfn)SK_GetProcAddress (local_gl, "wglSwapMultipleBuffers");
 
       pTLS->gl->ctx_init_thread = true;
     }
@@ -2469,9 +2475,9 @@ SK_HookGL (void)
     dll_log->Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
     dll_log->Log (L"[ OpenGL32 ] ================================");
 
-    if ( StrStrIW ( static_cast <const std::wstring &> (
-                      skModuleRegistry::Self ()
-                    ).c_str (), wszBackendDLL ) )
+    if ( StrStrIW ( SK_GetDLLName ().c_str (),
+                      wszBackendDLL )
+       )
     {
       // Load user-defined DLLs (Plug-In)
       SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
@@ -2970,7 +2976,7 @@ SK_GL_GetCurrentDC (void)
   using wglGetCurrentDC_pfn = HDC (WINAPI *)(void);
 
   static auto __imp__wglGetCurrentDC =
-    (wglGetCurrentDC_pfn)GetProcAddress (local_gl, "wglGetCurrentDC");
+    (wglGetCurrentDC_pfn)SK_GetProcAddress (local_gl, "wglGetCurrentDC");
 
   if (    __imp__wglGetCurrentDC != nullptr)
     hdc = __imp__wglGetCurrentDC ();
@@ -3012,7 +3018,7 @@ SK_GL_GetD3D9ExInteropDevice (void)
 
   if (pInteropDevice == reinterpret_cast <IDirect3DDevice9Ex *> (-1))
   {
-    SK_ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
+    ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
     using Direct3DCreate9ExPROC = HRESULT (STDMETHODCALLTYPE *)(UINT           SDKVersion,
                                                                 IDirect3D9Ex** d3d9ex);

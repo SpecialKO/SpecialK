@@ -241,7 +241,7 @@ static
 VOID
 MicroSleep (VOID)
 {
-  static LARGE_INTEGER            liDelay = { -100LL };
+  static LARGE_INTEGER            liDelay = { .QuadPart = -25LL };
   g_NtDll.DelayExecution (FALSE, &liDelay);
 }
 
@@ -326,7 +326,7 @@ AddHookEntryEx (UINT idx)
     PHOOK_ENTRY p = (PHOOK_ENTRY)HeapReAlloc (
         g_hHeap, 0,
           g_hooks [idx].pItems,
-         (g_hooks [idx].capacity * 2) * sizeof (HOOK_ENTRY)
+         ((SIZE_T)g_hooks [idx].capacity * 2) * sizeof (HOOK_ENTRY)
     );
 
     if (p == NULL)
@@ -515,7 +515,7 @@ SnapshotProcs_NtDll (void)
   if (g_NtDll.QuerySystemInformation == NULL)
   {
     g_NtDll.Module =
-      LoadLibraryW (L"NtDll.dll");
+      GetModuleHandleW (L"NtDll.dll");
 
     if (! g_NtDll.Module)
       return pspi;
@@ -526,7 +526,7 @@ SnapshotProcs_NtDll (void)
   }
 
 
-  RtlZeroMemory ( g_NtDll.pSnapshot, g_NtDll.dwHeapSize );
+  RtlSecureZeroMemory ( g_NtDll.pSnapshot, g_NtDll.dwHeapSize );
 
   ns = g_NtDll.QuerySystemInformation ( SystemProcessInformation,
                                           g_NtDll.pSnapshot,
@@ -622,7 +622,7 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
             (PTHREAD_ENTRY)HeapReAlloc (
               g_hHeap, 0,
                 pThreads->pItems,
-               (pThreads->capacity << 1) * sizeof (THREAD_ENTRY)
+      (SIZE_T)(((UINT)pThreads->capacity << 1) & (0xFFFFFFFFUL)) * sizeof (THREAD_ENTRY)
             );
 
         if (p == NULL)
@@ -940,8 +940,12 @@ EnableHookLLEx (UINT pos, UINT8 enable, UINT idx)
     {
       PJMP_REL_SHORT pShortJmp = (PJMP_REL_SHORT)pHook->pTarget;
       pShortJmp->opcode        = 0xEB;
-      pShortJmp->operand       = (UINT8)(0 - (sizeof (JMP_REL_SHORT) +
-                                              sizeof (JMP_REL)));
+      // Decided to have some fun getting rid of compiler warnings
+      //   the stupidest way imaginable
+      pShortJmp->operand       = (UINT8)                         (
+                                  (INT8)              0x0        -
+                                  (INT8)( sizeof (JMP_REL_SHORT) +
+                                          sizeof (JMP_REL)     ) );
     }
   }
 
@@ -1039,7 +1043,7 @@ MH_Initialize (VOID)
   if (g_NtDll.DelayExecution == NULL)
   {
     g_NtDll.Module =
-      LoadLibraryW (L"NtDll.dll");
+      GetModuleHandleW (L"NtDll.dll");
 
     g_NtDll.DelayExecution =
       (NtDelayExecution_pfn)
@@ -1054,15 +1058,15 @@ MH_Initialize (VOID)
                                       sizeof (FROZEN_THREADS) * INITIAL_THREAD_CAPACITY   + 1 +
                                       16384 * 16, 0 );
 
-    g_NtDll.hHeap = HeapCreate ( 0x0, 1048576, 0 );
+    g_NtDll.hHeap = HeapCreate ( 0x0, 2097152, 0 );
 
     if (g_hHeap != NULL && g_NtDll.hHeap != NULL)
     {
       // Initialize the internal function buffer.
       InitializeBuffer ();
 
-      g_NtDll.pSnapshot  = HeapAlloc ( g_NtDll.hHeap, 0x0, 262144 );
-      g_NtDll.dwHeapSize = g_NtDll.pSnapshot != NULL ? 262144 : 0;
+      g_NtDll.pSnapshot  = HeapAlloc ( g_NtDll.hHeap, 0x0, 2097152);
+      g_NtDll.dwHeapSize = g_NtDll.pSnapshot != NULL ? 2097152 : 0;
     }
 
     else

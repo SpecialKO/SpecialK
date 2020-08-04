@@ -11,25 +11,44 @@ typedef struct _UNICODE_STRING {
 #pragma pack (pop)
 
 typedef NTSTATUS (NTAPI* LdrGetDllHandle_pfn)(
-  _In_        PWORD           pwPath,
-  _In_        PVOID           Unused,
+  _In_opt_    PWORD           pwPath,
+  _In_opt_    PVOID           Unused,
   _In_  const UNICODE_STRING *ModuleFileName,
   _Out_       PHANDLE         pHModule
 );
 
-typedef NTSTATUS (__stdcall *LdrGetDllHandleByName_pfn)(
+typedef NTSTATUS (NTAPI *LdrGetDllHandleByName_pfn)(
   const PUNICODE_STRING  BaseDllName,
   const PUNICODE_STRING  FullDllName,
         PVOID           *DllHandle
 );
 
-static const UNICODE_STRING __graylist[] = {
+// Bluelist = Bounce the DLL out ASAP, do not attempt to defer unload
+static constexpr UNICODE_STRING __bluelist [] = {
+  SK_MakeUnicode (L"node.exe"), // Node.Js
+  SK_MakeUnicode (L"setup.exe"),
+  SK_MakeUnicode (L"libcef.dll"),
+  SK_MakeUnicode (L"oalinst.exe"),
+  SK_MakeUnicode (L"dxsetup.exe"),
+  SK_MakeUnicode (L"uninstall.exe"),
+  SK_MakeUnicode (L"dotnetfx35.exe"),
+  SK_MakeUnicode (L"perfwatson2.exe"),
+  SK_MakeUnicode (L"dotnetfx35client.exe"),
+  SK_MakeUnicode (L"easyanticheat_setup.exe"),
+  SK_MakeUnicode (L"dotnetfx40_full_x86_x64.exe"),
+  SK_MakeUnicode (L"dotnetfx40_client_x86_x64.exe"),
+  SK_MakeUnicode (L"ndp451-kb2872776-x86-x64-allos-enu.exe"),
+
+};
+
+static constexpr UNICODE_STRING __graylist [] = {
 #ifdef _M_IX86
   SK_MakeUnicode (L"steam.exe"),
   SK_MakeUnicode (L"devenv.exe"),
   SK_MakeUnicode (L"rzsynapse.exe"),
   SK_MakeUnicode (L"msiafterburner.exe"),
   SK_MakeUnicode (L"gameoverlayui.exe"),
+  SK_MakeUnicode (L"jusched.exe"),
 
   SK_MakeUnicode (L"onedrive.exe"),
   SK_MakeUnicode (L"scriptedsandbox.exe"),
@@ -46,7 +65,6 @@ static const UNICODE_STRING __graylist[] = {
   SK_MakeUnicode (L"applefirefoxhost.exe"),
   SK_MakeUnicode (L"applephotostreams.exe"),
   SK_MakeUnicode (L"samsungmagician.exe"),
-  SK_MakeUnicode (L"perfwatson2.exe"),
   SK_MakeUnicode (L"lightshot.exe"),
   SK_MakeUnicode (L"acrotray.exe"),
   SK_MakeUnicode (L"sdtray.exe"),
@@ -54,6 +72,7 @@ static const UNICODE_STRING __graylist[] = {
   SK_MakeUnicode (L"CrashRpt1402.dll"),
   SK_MakeUnicode (L"crashsender1400.exe"),
   SK_MakeUnicode (L"crashsender1402.exe"),
+  SK_MakeUnicode (L"wallpaper32.exe"),
 #else
   SK_MakeUnicode (L"dataexchangehost.exe"),
   SK_MakeUnicode (L"steamwebhelper.exe"),
@@ -74,14 +93,11 @@ static const UNICODE_STRING __graylist[] = {
   SK_MakeUnicode (L"runtimebroker.exe"),
   SK_MakeUnicode (L"ituneshelper.exe"),
   SK_MakeUnicode (L"skypebridge.exe"),
+  SK_MakeUnicode (L"wallpaper64.exe"),
   SK_MakeUnicode (L"taskhostw.exe"),
   SK_MakeUnicode (L"launchtm.exe"), // Task Manager
   SK_MakeUnicode (L"explorer.exe"),
   SK_MakeUnicode (L"wmiprvse.exe"),
-  SK_MakeUnicode (L"conhost.exe"),
-  SK_MakeUnicode (L"dllhost.exe"),
-  SK_MakeUnicode (L"svchost.exe"),
-  SK_MakeUnicode (L"sihost.exe"),
   SK_MakeUnicode (L"chrome.exe"),
   SK_MakeUnicode (L"sqlservr.exe"),
 #endif
@@ -103,18 +119,7 @@ static const UNICODE_STRING __graylist[] = {
   SK_MakeUnicode (L"msmpeng.exe"),
 };
 
-static const UNICODE_STRING __blacklist [] = {
-  SK_MakeUnicode (L"setup.exe"),
-  SK_MakeUnicode (L"oalinst.exe"),
-  SK_MakeUnicode (L"dxsetup.exe"),
-  SK_MakeUnicode (L"uninstall.exe"),
-  SK_MakeUnicode (L"dotnetfx35.exe"),
-  SK_MakeUnicode (L"dotnetfx35client.exe"),
-  SK_MakeUnicode (L"easyanticheat_setup.exe"),
-  SK_MakeUnicode (L"dotnetfx40_full_x86_x64.exe"),
-  SK_MakeUnicode (L"dotnetfx40_client_x86_x64.exe"),
-  SK_MakeUnicode (L"ndp451-kb2872776-x86-x64-allos-enu.exe"),
-
+static constexpr UNICODE_STRING __blacklist [] = {
 #ifdef _M_AMD64
   SK_MakeUnicode (L"vhui64.exe"),
   SK_MakeUnicode (L"x64launcher.exe"),
@@ -123,6 +128,11 @@ static const UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"vc_redist.x64.exe"),
   SK_MakeUnicode (L"vc2010redist_x64.exe"),
   SK_MakeUnicode (L"ubisoftgamelauncher64.exe"),
+  SK_MakeUnicode (L"sen3launcher.exe"),
+
+  SK_MakeUnicode (L"gamebarftserver.exe"),
+  SK_MakeUnicode (L"gamebarft.exe"),
+  SK_MakeUnicode (L"gamebar.exe"),
 #else
   SK_MakeUnicode (L"vacodeinspectionsserver.exe"),
 
@@ -141,6 +151,11 @@ static const UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"s2gs.exe"),      // Sacred 2 game server
 #endif
 
+  SK_MakeUnicode (L"conhost.exe"),
+  SK_MakeUnicode (L"dllhost.exe"),
+  SK_MakeUnicode (L"svchost.exe"),
+  SK_MakeUnicode (L"sihost.exe"),
+
   SK_MakeUnicode (L"launcher.exe"),
   SK_MakeUnicode (L"launchpad.exe"),
   SK_MakeUnicode (L"fallout4launcher.exe"),
@@ -153,11 +168,12 @@ static const UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"gamelaunchercefchildprocess.exe"),
   SK_MakeUnicode (L"dplauncher.exe"),
   SK_MakeUnicode (L"cnnlauncher.exe"),
+  SK_MakeUnicode (L"gtavlauncher.exe"),
   SK_MakeUnicode (L"a17config.exe"),
   SK_MakeUnicode (L"a18config.exe"), // Atelier Firis
   SK_MakeUnicode (L"zeroescape-launcher.exe"),
-  SK_MakeUnicode (L"gtavlauncher.exe"),
   SK_MakeUnicode (L"gtavlanguageselect.exe"),
+  SK_MakeUnicode (L"controllercompanion.exe"),
   SK_MakeUnicode (L"nioh_launcher.exe"),
   SK_MakeUnicode (L"rottlauncher.exe"),
   SK_MakeUnicode (L"configtool.exe"),
@@ -166,6 +182,7 @@ static const UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"activationui.exe"),
   SK_MakeUnicode (L"zossteamstarter.exe"),
   SK_MakeUnicode (L"eac.exe"),
+  SK_MakeUnicode (L"EALink.exe"),
 
   SK_MakeUnicode (L"clupdater.exe"),
   SK_MakeUnicode (L"activate.exe"),
@@ -175,10 +192,3 @@ static const UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"olrstatecheck.exe"),
   SK_MakeUnicode (L"olrsubmission.exe"),
 };
-
-//// DLL must go in, but not be initialized...
-//const
-//std::unordered_set <std::wstring> __blacklist_stage2 = {
-//  // Shenmue
-//  L"SteamLauncher.exe"
-//};

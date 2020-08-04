@@ -934,8 +934,8 @@ ImGui_ImplVulkan_InvalidateDeviceObjects (void)
   SK_ImGui_ResetExternal ();
 }
 
-#define SK_IMPORT_VK_FUNC(name) {                                                \
-  name = (PFN_##name) GetProcAddress (GetModuleHandle (L"vulkan-1.dll"), #name); \
+#define SK_IMPORT_VK_FUNC(name) {                                                      \
+  name = (PFN_##name) SK_GetProcAddress (SK_GetModuleHandle (L"vulkan-1.dll"), #name); \
 }
 
 bool

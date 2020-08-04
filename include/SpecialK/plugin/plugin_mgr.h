@@ -141,6 +141,9 @@ HRESULT __stdcall
 void SK_Yakuza0_PlugInInit (void);
 bool SK_Yakuza0_PlugInCfg  (void);
 
+void
+SK_YS8_InitPlugin (void);
+
 #else
 HRESULT __stdcall
      SK_SOM_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
@@ -149,7 +152,11 @@ void
 SK_SOM_InitPlugin (void);
 
 void
-SK_YS8_InitPlugin (void);
+SK_Persona4_DrawHandler ( ID3D11DeviceContext* pDevCtx,
+                          uint32_t             current_vs,
+                          uint32_t             current_ps );
+void
+SK_Persona4_EndFrame    ( SK_TLS* pTLS );
 #endif
 
 

@@ -114,7 +114,10 @@ unsigned int hde32_disasm(const void *code, hde32s *hs)
         if (!hs->opcode2 && opcode >= 0xd9 && opcode <= 0xdf) {
             uint8_t t = opcode - 0xd9;
             if (m_mod == 3) {
-                ht = hde32_table + DELTA_FPU_MODRM + t*8;
+                // warning C26451 : Arithmetic overflow : Using operator '*' on a 4 byte value and then
+                //                  casting the result to a 8 byte value. Cast the value to the wider
+                //                  type before calling operator '*' to avoid overflow (io.2).
+                ht = hde32_table + DELTA_FPU_MODRM + (int)t*8;
                 t = ht[m_reg] << m_rm;
             } else {
                 ht = hde32_table + DELTA_FPU_REG;

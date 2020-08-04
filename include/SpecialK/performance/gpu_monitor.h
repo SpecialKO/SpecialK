@@ -101,7 +101,7 @@ struct gpu_sensors_t
       uint32_t pcie_gen           = 0UL;
       uint32_t pcie_transfer_rate = 0UL;
 
-      double pcie_bandwidth_mb (void)
+      double pcie_bandwidth_mb (void) noexcept
       {
         if (pcie_gen == 2 || pcie_gen == 1 || pcie_gen == 0)
         {

@@ -166,7 +166,7 @@ public:
   const SK_Keybind&  getToggleKey    (void) const noexcept { return    toggle_key;     }
   const SK_Keybind&  getFocusKey     (void) const noexcept { return    focus_key;      }
 
-  virtual ~SK_Widget (void) { };
+  virtual ~SK_Widget (void) noexcept { };
 
 
 protected:

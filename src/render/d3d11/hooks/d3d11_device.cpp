@@ -21,15 +21,32 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
+//using D3D11On12CreateDevice_pfn =
+//  HRESULT (WINAPI *)(              _In_ IUnknown*             pDevice,
+//                                        UINT                  Flags,
+//  _In_reads_opt_( FeatureLevels ) CONST D3D_FEATURE_LEVEL*    pFeatureLevels,
+//                                        UINT                  FeatureLevels,
+//            _In_reads_opt_( NumQueues ) IUnknown* CONST*      ppCommandQueues,
+//                                        UINT                  NumQueues,
+//                                        UINT                  NodeMask,
+//                       _COM_Outptr_opt_ ID3D11Device**        ppDevice,
+//                       _COM_Outptr_opt_ ID3D11DeviceContext** ppImmediateContext,
+//                       _Out_opt_        D3D_FEATURE_LEVEL*    pChosenFeatureLevel );
+
+
 extern "C" __declspec (dllexport) FARPROC D3D11CreateDeviceForD3D12              = nullptr;
 extern "C" __declspec (dllexport) FARPROC CreateDirect3D11DeviceFromDXGIDevice   = nullptr;
 extern "C" __declspec (dllexport) FARPROC CreateDirect3D11SurfaceFromDXGISurface = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3D11On12CreateDevice                  = nullptr;
+extern "C" __declspec (dllexport) D3D11On12CreateDevice_pfn
+                                          D3D11On12CreateDevice                  = nullptr;
 extern "C" __declspec (dllexport) FARPROC D3DKMTCloseAdapter                     = nullptr;
 extern "C" __declspec (dllexport) FARPROC D3DKMTDestroyAllocation                = nullptr;
 extern "C" __declspec (dllexport) FARPROC D3DKMTDestroyContext                   = nullptr;
@@ -129,118 +146,127 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
-  CD3D11_SHADER_RESOURCE_VIEW_DESC _desc (
-    D3D11_SRV_DIMENSION_TEXTURE2D
-  );
+  //CD3D11_SHADER_RESOURCE_VIEW_DESC _desc (
+  //  D3D11_SRV_DIMENSION_TEXTURE2D
+  //);
 
-  if ( pResource != nullptr )
+  if ( pDesc != nullptr && pResource != nullptr )
   {
     D3D11_RESOURCE_DIMENSION   dim;
     pResource->GetType       (&dim);
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      if (pDesc != nullptr)
-        _desc = CD3D11_SHADER_RESOURCE_VIEW_DESC (*pDesc);
-      else
-        pDesc = &_desc;
-
       DXGI_FORMAT newFormat    = pDesc->Format;
       UINT        newMipLevels = pDesc->Texture2D.MipLevels;
 
-      bool override = false;
+      SK_ComQIPtr <ID3D11Texture2D>
+          pTex2D (pResource);
+      D3D11_TEXTURE2D_DESC  tex_desc = { };
+      if (pTex2D != nullptr)
+          pTex2D->GetDesc (&tex_desc);
 
-      ////if (DirectX::BitsPerPixel (pDesc->Format) != DirectX::BitsPerPixel (tex_desc.Format))
-      ////{
-      ////  override  = true;
-      ////  newFormat = tex_desc.Format;
-      ////}
-
-      if ( SK_D3D11_OverrideDepthStencil (newFormat) )
-        override = true;
-
-      if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
+      if (pTex2D != nullptr)
       {
-        static auto& textures =
-          SK_D3D11_Textures;
+        bool override = false;
 
-        auto& cache_desc =
-          textures->Textures_2D [(ID3D11Texture2D *)pResource];
-
-        newFormat =
-          cache_desc.desc.Format;
-
-        newMipLevels =
-          pDesc->Texture2D.MipLevels;
-
-        if ( DirectX::MakeTypeless (pDesc->Format) !=
-             DirectX::MakeTypeless (newFormat    )  )
+        if ( DirectX::BitsPerPixel (pDesc->Format) !=
+             DirectX::BitsPerPixel (tex_desc.Format) )
         {
-          if (DirectX::IsSRGB (pDesc->Format))
-            newFormat = DirectX::MakeSRGB (newFormat);
+          override  = true;
+          newFormat = tex_desc.Format;
+        }
 
+        if ( SK_D3D11_OverrideDepthStencil (newFormat) )
           override = true;
 
-          SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
-                        cache_desc.crc32c,
-                   SK_DXGI_FormatToStr (pDesc->Format).c_str      (),
-                            SK_DXGI_FormatToStr (newFormat).c_str () ),
-                      L"DX11TexMgr" );
-        }
-
-        if ( config.textures.d3d11.generate_mips &&
-             cache_desc.desc.MipLevels != pDesc->Texture2D.MipLevels )
+        if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
         {
-          override     = true;
-          newMipLevels = cache_desc.desc.MipLevels;
+          static auto& textures =
+            SK_D3D11_Textures;
 
-          SK_LOG1 ( ( L"Overriding Resource View Mip Levels for Cached Texture '%08x'  { Was: %lu, Now: %lu }",
-                        cache_desc.crc32c,
-                          pDesc->Texture2D.MipLevels,
-                             newMipLevels ),
-                      L"DX11TexMgr" );
+          auto& cache_desc =
+            textures->Textures_2D [(ID3D11Texture2D *)pResource];
+
+          newFormat =
+            cache_desc.desc.Format;
+
+          newMipLevels =
+            pDesc->Texture2D.MipLevels;
+
+          if ( DirectX::MakeTypeless (pDesc->Format) !=
+               DirectX::MakeTypeless (newFormat    )  )
+          {
+            if (DirectX::IsSRGB (pDesc->Format))
+              newFormat = DirectX::MakeSRGB (newFormat);
+
+            override = true;
+
+            SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
+                          cache_desc.crc32c,
+                     SK_DXGI_FormatToStr (pDesc->Format).c_str      (),
+                              SK_DXGI_FormatToStr (newFormat).c_str () ),
+                        L"DX11TexMgr" );
+          }
+
+          if ( config.textures.d3d11.generate_mips &&
+               cache_desc.desc.MipLevels != pDesc->Texture2D.MipLevels )
+          {
+            override     = true;
+            newMipLevels = cache_desc.desc.MipLevels;
+
+            SK_LOG1 ( ( L"Overriding Resource View Mip Levels for Cached Texture '%08x'  { Was: %lu, Now: %lu }",
+                          cache_desc.crc32c,
+                            pDesc->Texture2D.MipLevels,
+                               newMipLevels ),
+                        L"DX11TexMgr" );
+          }
         }
-      }
 
-      if (override)
-      {
-            _desc.Format               = newFormat;
-        if (_desc.Texture2D.MipLevels != newMipLevels)
+        if (override)
         {
-          _desc.Texture2D.MipLevels       = gsl::narrow_cast <UINT>(-1);
-          _desc.Texture2D.MostDetailedMip =                           0;
-        }
+          auto descCopy =
+            *pDesc;
 
-        HRESULT hr =
-          DXGI_ERROR_INVALID_CALL;
+          descCopy.Format = newFormat;
 
-        auto orig_se =
-        SK_SEH_ApplyTranslator (
-          SK_FilteringStructuredExceptionTranslator (
-            EXCEPTION_ACCESS_VIOLATION
-          )
-        );
-        try {
-          hr =
-            D3D11Dev_CreateShaderResourceView_Original (
-              This,      pResource,
-                &_desc, ppSRView                       );
-        }
+          if (newMipLevels != pDesc->Texture2D.MipLevels)
+          {
+            descCopy.Texture2D.MipLevels = gsl::narrow_cast <UINT>( -1 );
+            descCopy.Texture2D.MostDetailedMip = 0;
+          }
 
-        //catch ( _com_error& err )
-        //{
-        //  SK_LOG0 ( ( L"!! COM Error During "
-        //              L"CreateShaderResourceView (...) - '%s'",
-        //                err.ErrorMessage ()
-        //            ),L"   DXGI   " );
-        //}
+          HRESULT hr =
+            DXGI_ERROR_INVALID_CALL;
 
-        catch (const SK_SEH_IgnoredException&) { };
-        SK_SEH_RemoveTranslator (orig_se);
+          auto orig_se =
+          SK_SEH_ApplyTranslator (
+            SK_FilteringStructuredExceptionTranslator (
+              EXCEPTION_ACCESS_VIOLATION
+            )
+          );
+          try {
+            hr =
+              D3D11Dev_CreateShaderResourceView_Original (
+                This,        pResource,
+                  &descCopy, ppSRView                       );
+          }
 
-        if (SUCCEEDED (hr))
-        {
-          return hr;
+          //catch ( _com_error& err )
+          //{
+          //  SK_LOG0 ( ( L"!! COM Error During "
+          //              L"CreateShaderResourceView (...) - '%s'",
+          //                err.ErrorMessage ()
+          //            ),L"   DXGI   " );
+          //}
+
+          catch (const SK_SEH_IgnoredException&) { };
+          SK_SEH_RemoveTranslator (orig_se);
+
+          if (SUCCEEDED (hr))
+          {
+            return hr;
+          }
         }
       }
     }
@@ -304,8 +330,15 @@ D3D11Dev_CreateDepthStencilView_Override (
         auto descCopy =
           *pDesc;
 
-        if ( SK_D3D11_OverrideDepthStencil (newFormat) )
+        if ( SK_D3D11_OverrideDepthStencil (newFormat) || DirectX::BitsPerPixel (newFormat) !=
+                                                          DirectX::BitsPerPixel (tex_desc.Format)  )
         {
+          if ( DirectX::BitsPerPixel (newFormat) !=
+               DirectX::BitsPerPixel (tex_desc.Format) )
+          {
+            newFormat = tex_desc.Format;
+          }
+
           descCopy.Format = newFormat;
 
           hr =
@@ -357,6 +390,13 @@ D3D11Dev_CreateUnorderedAccessView_Override (
 
         if ( SK_D3D11_OverrideDepthStencil (newFormat) )
           override = true;
+
+        if ( DirectX::BitsPerPixel (pDesc->Format) !=
+             DirectX::BitsPerPixel (tex_desc.Format) )
+        {
+          override  = true;
+          newFormat = tex_desc.Format;
+        }
 
         if (override)
         {
@@ -704,6 +744,9 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
   _In_opt_        ID3D11ClassLinkage         *pClassLinkage,
   _Out_opt_       ID3D11GeometryShader      **ppGeometryShader )
 {
+  if (! pShaderBytecode)
+    return E_POINTER;
+
   const HRESULT hr =
     D3D11Dev_CreateGeometryShaderWithStreamOutput_Original ( This, pShaderBytecode,
                                                                BytecodeLength,
@@ -751,7 +794,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
 
     cs_shader_gs->unlock ();
 
-    InterlockedExchange (&pDesc->usage.last_frame, SK_GetFramesDrawn ());
+    InterlockedExchange64 ((volatile LONG64 *)&pDesc->usage.last_frame, SK_GetFramesDrawn ());
               //_time64 (&desc.usage.last_time);
   }
 
@@ -768,6 +811,9 @@ D3D11Dev_CreateHullShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11HullShader   **ppHullShader )
 {
+  if (! pShaderBytecode)
+    return E_POINTER;
+
   return
     SK_D3D11_CreateShader_Impl ( This,
                                    pShaderBytecode, BytecodeLength,
@@ -786,6 +832,9 @@ D3D11Dev_CreateDomainShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11DomainShader **ppDomainShader )
 {
+  if (! pShaderBytecode)
+    return E_POINTER;
+
   return
     SK_D3D11_CreateShader_Impl ( This,
                                    pShaderBytecode, BytecodeLength,
@@ -804,6 +853,9 @@ D3D11Dev_CreateComputeShader_Override (
   _In_opt_        ID3D11ClassLinkage   *pClassLinkage,
   _Out_opt_       ID3D11ComputeShader **ppComputeShader )
 {
+  if (! pShaderBytecode)
+    return E_POINTER;
+
   return
     SK_D3D11_CreateShader_Impl ( This,
                                    pShaderBytecode, BytecodeLength,

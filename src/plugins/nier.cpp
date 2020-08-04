@@ -73,28 +73,29 @@ struct far_game_state_s
 } static game_state;
 
 
-sk::ParameterFactory  far_factory;
-iSK_INI*              far_prefs                 = nullptr;
-wchar_t               far_prefs_file [MAX_PATH] = { L'\0' };
-sk::ParameterInt*     far_gi_workgroups         = nullptr;
-sk::ParameterFloat*   far_gi_min_light_extent   = nullptr;
-sk::ParameterInt*     far_bloom_width           = nullptr;
-sk::ParameterBool*    far_bloom_disable         = nullptr;
-sk::ParameterBool*    far_fix_motion_blur       = nullptr;
-sk::ParameterInt*     far_bloom_skip            = nullptr;
-sk::ParameterInt*     far_ao_width              = nullptr;
-sk::ParameterInt*     far_ao_height             = nullptr;
-sk::ParameterBool*    far_ao_disable            = nullptr;
-sk::ParameterBool*    far_limiter_busy          = nullptr;
-sk::ParameterBool*    far_uncap_fps             = nullptr;
-sk::ParameterBool*    far_slow_state_cache      = nullptr;
-sk::ParameterBool*    far_rtss_warned           = nullptr;
-sk::ParameterBool*    far_osd_disclaimer        = nullptr;
-sk::ParameterBool*    far_accepted_license      = nullptr;
-sk::ParameterStringW* far_hudless_binding       = nullptr;
-sk::ParameterStringW* far_center_lock           = nullptr;
-sk::ParameterStringW* far_focus_lock            = nullptr;
-sk::ParameterStringW* far_free_look             = nullptr;
+SK_LazyGlobal <sk::ParameterFactory>
+                      far_factory;
+iSK_INI*              far_prefs                     = nullptr;
+wchar_t               far_prefs_file [MAX_PATH + 2] = {     };
+sk::ParameterInt*     far_gi_workgroups             = nullptr;
+sk::ParameterFloat*   far_gi_min_light_extent       = nullptr;
+sk::ParameterInt*     far_bloom_width               = nullptr;
+sk::ParameterBool*    far_bloom_disable             = nullptr;
+sk::ParameterBool*    far_fix_motion_blur           = nullptr;
+sk::ParameterInt*     far_bloom_skip                = nullptr;
+sk::ParameterInt*     far_ao_width                  = nullptr;
+sk::ParameterInt*     far_ao_height                 = nullptr;
+sk::ParameterBool*    far_ao_disable                = nullptr;
+sk::ParameterBool*    far_limiter_busy              = nullptr;
+sk::ParameterBool*    far_uncap_fps                 = nullptr;
+sk::ParameterBool*    far_slow_state_cache          = nullptr;
+sk::ParameterBool*    far_rtss_warned               = nullptr;
+sk::ParameterBool*    far_osd_disclaimer            = nullptr;
+sk::ParameterBool*    far_accepted_license          = nullptr;
+sk::ParameterStringW* far_hudless_binding           = nullptr;
+sk::ParameterStringW* far_center_lock               = nullptr;
+sk::ParameterStringW* far_focus_lock                = nullptr;
+sk::ParameterStringW* far_free_look                 = nullptr;
 
 
 static D3D11Dev_CreateBuffer_pfn              _D3D11Dev_CreateBuffer_Original              = nullptr;
@@ -810,7 +811,7 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
       static_cast_p2p <void> (&SK_PluginKeyPress_Original) );
     SK_EnableHook        (     SK_PluginKeyPress           );
 
-    if (GetModuleHandle (L"RTSSHooks64.dll"))
+    if (SK_GetModuleHandle (L"RTSSHooks64.dll"))
     {
       bool warned = far_rtss_warned->get_value ();
 
@@ -836,6 +837,9 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
   return S_OK;
 }
+
+
+extern bool __SK_HDR_16BitSwap;
 
 // Overview (Durante):
 //
@@ -881,38 +885,42 @@ SK_FAR_CreateTexture2D (
     // Note: we do not manipulate the 50x28 buffer
     //    -- it's read by a compute shader and the whole screen white level can be off if it is the wrong size
     case DXGI_FORMAT_R11G11B10_FLOAT:
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
     {
-      if (
-              (pDesc->Width == 800 && pDesc->Height == 450)
-           || (pDesc->Width == 400 && pDesc->Height == 225)
-           || (pDesc->Width == 200 && pDesc->Height == 112)
-           || (pDesc->Width == 100 && pDesc->Height == 56)
-           /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/
-         )
+      if (__SK_HDR_16BitSwap || pDesc->Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
       {
-        static int num_r11g11b10_textures = 0;
-
-        num_r11g11b10_textures++;
-
-        if (num_r11g11b10_textures > far_bloom.skip)
+        if (
+                (pDesc->Width == 800 && pDesc->Height == 450)
+             || (pDesc->Width == 400 && pDesc->Height == 225)
+             || (pDesc->Width == 200 && pDesc->Height == 112)
+             || (pDesc->Width == 100 && pDesc->Height == 56)
+             /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/
+           )
         {
-          bloom = true;
+          static int num_r11g11b10_textures = 0;
 
-          SK_LOG2 ( ( L"Bloom Tex (%lux%lu : %lu)",
-                        pDesc->Width, pDesc->Height, pDesc->MipLevels ),
-                      L"FAR PlugIn" );
+          num_r11g11b10_textures++;
 
-          if (far_bloom.width != -1)
+          if (num_r11g11b10_textures > far_bloom.skip)
           {
-            // Scale the upper parts of the pyramid fully
-            // and lower levels progressively less
-            double pyramidLevelFactor  = (static_cast <double> (pDesc->Width) - 50.0) / 750.0;
-            double scalingFactor       = 1.0 + (resFactor - 1.0) * pyramidLevelFactor;
+            bloom = true;
 
-            copy.Width  = static_cast <UINT> (copy.Width  * scalingFactor);
-            copy.Height = static_cast <UINT> (copy.Height * scalingFactor);
+            SK_LOG2 ( ( L"Bloom Tex (%lux%lu : %lu)",
+                          pDesc->Width, pDesc->Height, pDesc->MipLevels ),
+                        L"FAR PlugIn" );
 
-            pDesc       = &copy;
+            if (far_bloom.width != -1)
+            {
+              // Scale the upper parts of the pyramid fully
+              // and lower levels progressively less
+              double pyramidLevelFactor  = (static_cast <double> (pDesc->Width) - 50.0) / 750.0;
+              double scalingFactor       = 1.0 + (resFactor - 1.0) * pyramidLevelFactor;
+
+              copy.Width  = static_cast <UINT> (copy.Width  * scalingFactor);
+              copy.Height = static_cast <UINT> (copy.Height * scalingFactor);
+
+              pDesc       = &copy;
+            }
           }
         }
       }
@@ -1029,9 +1037,11 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
 
         rtView->GetDesc (&desc);
 
-        if ( desc.Format == DXGI_FORMAT_R11G11B10_FLOAT || // Bloom
-             desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM  || // AO
-             desc.Format == DXGI_FORMAT_R32_FLOAT )        // AO
+        if ( desc.Format == DXGI_FORMAT_R11G11B10_FLOAT    || // Bloom
+            (desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT && __SK_HDR_16BitSwap)
+                                                           ||
+             desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM     || // AO
+             desc.Format == DXGI_FORMAT_R32_FLOAT )           // AO
         {
           SK_ComPtr <ID3D11Resource> rt = nullptr;
 
@@ -1493,7 +1503,7 @@ SK_FAR_InitPlugin (void)
 
     far_gi_workgroups =
         dynamic_cast <sk::ParameterInt *>
-          (far_factory.create_parameter <int> (L"Global Illumination Compute Shader Workgroups"));
+          (far_factory->create_parameter <int> (L"Global Illumination Compute Shader Workgroups"));
 
     far_gi_workgroups->register_to_ini ( far_prefs,
                                       L"FAR.Lighting",
@@ -1506,7 +1516,7 @@ SK_FAR_InitPlugin (void)
 
     far_gi_min_light_extent =
         dynamic_cast <sk::ParameterFloat *>
-          (far_factory.create_parameter <float> (L"Global Illumination Minimum Unclipped Light Volume"));
+          (far_factory->create_parameter <float> (L"Global Illumination Minimum Unclipped Light Volume"));
 
     far_gi_min_light_extent->register_to_ini ( far_prefs,
                                       L"FAR.Lighting",
@@ -1520,7 +1530,7 @@ SK_FAR_InitPlugin (void)
 
     far_limiter_busy =
         dynamic_cast <sk::ParameterBool *>
-          (far_factory.create_parameter <bool> (L"Favor Busy-Wait For Better Timing"));
+          (far_factory->create_parameter <bool> (L"Favor Busy-Wait For Better Timing"));
 
     far_limiter_busy->register_to_ini ( far_prefs,
                                       L"FAR.FrameRate",
@@ -1535,7 +1545,7 @@ SK_FAR_InitPlugin (void)
 
     far_uncap_fps =
         dynamic_cast <sk::ParameterBool *>
-          (far_factory.create_parameter <bool> (L"Bypass game's framerate ceiling"));
+          (far_factory->create_parameter <bool> (L"Bypass game's framerate ceiling"));
 
     far_uncap_fps->register_to_ini ( far_prefs,
                                        L"FAR.FrameRate",
@@ -1555,7 +1565,7 @@ SK_FAR_InitPlugin (void)
 
     far_rtss_warned =
         dynamic_cast <sk::ParameterBool *>
-          (far_factory.create_parameter <bool> (L"RTSS Warning Issued"));
+          (far_factory->create_parameter <bool> (L"RTSS Warning Issued"));
 
     far_rtss_warned->register_to_ini ( far_prefs,
                                          L"FAR.Compatibility",
@@ -1589,7 +1599,7 @@ SK_FAR_InitPlugin (void)
 
     far_osd_disclaimer =
         dynamic_cast <sk::ParameterBool *>
-          (far_factory.create_parameter <bool> (L"OSD Disclaimer Dismissed"));
+          (far_factory->create_parameter <bool> (L"OSD Disclaimer Dismissed"));
 
     far_osd_disclaimer->register_to_ini ( far_prefs,
                                             L"FAR.OSD",
@@ -1603,7 +1613,7 @@ SK_FAR_InitPlugin (void)
 
     far_accepted_license =
         dynamic_cast <sk::ParameterBool *>
-          (far_factory.create_parameter <bool> (L"Has accepted the license terms"));
+          (far_factory->create_parameter <bool> (L"Has accepted the license terms"));
 
     far_accepted_license->register_to_ini ( far_prefs,
                                               L"FAR.System",
@@ -1620,7 +1630,7 @@ SK_FAR_InitPlugin (void)
 
     far_bloom_width =
       dynamic_cast <sk::ParameterInt *>
-        (far_factory.create_parameter <int> (L"Width of Bloom Post-Process"));
+        (far_factory->create_parameter <int> (L"Width of Bloom Post-Process"));
 
     far_bloom_width->register_to_ini ( far_prefs,
                                          L"FAR.Lighting",
@@ -1642,7 +1652,7 @@ SK_FAR_InitPlugin (void)
 
     far_bloom_disable =
       dynamic_cast <sk::ParameterBool *>
-        (far_factory.create_parameter <bool> (L"Disable Bloom"));
+        (far_factory->create_parameter <bool> (L"Disable Bloom"));
 
     far_bloom_disable->register_to_ini ( far_prefs,
                                            L"FAR.Lighting",
@@ -1658,7 +1668,7 @@ SK_FAR_InitPlugin (void)
 
     far_bloom_skip =
       dynamic_cast <sk::ParameterInt *>
-        (far_factory.create_parameter <int> (L"Test Texture Skip Factor"));
+        (far_factory->create_parameter <int> (L"Test Texture Skip Factor"));
 
     far_bloom_skip->register_to_ini ( far_prefs,
                                         L"FAR.Temporary",
@@ -1674,7 +1684,7 @@ SK_FAR_InitPlugin (void)
 
     far_fix_motion_blur =
       dynamic_cast <sk::ParameterBool *>
-        (far_factory.create_parameter <bool> (L"Test Fix for Motion Blur"));
+        (far_factory->create_parameter <bool> (L"Test Fix for Motion Blur"));
 
     far_fix_motion_blur->register_to_ini ( far_prefs,
                                              L"FAR.Temporary",
@@ -1690,7 +1700,7 @@ SK_FAR_InitPlugin (void)
 
     far_ao_disable =
       dynamic_cast <sk::ParameterBool *>
-        (far_factory.create_parameter <bool> (L"Disable AO"));
+        (far_factory->create_parameter <bool> (L"Disable AO"));
 
     far_ao_disable->register_to_ini ( far_prefs,
                                         L"FAR.Lighting",
@@ -1706,7 +1716,7 @@ SK_FAR_InitPlugin (void)
 
     far_ao_width =
       dynamic_cast <sk::ParameterInt *>
-        (far_factory.create_parameter <int> (L"Width of AO Post-Process"));
+        (far_factory->create_parameter <int> (L"Width of AO Post-Process"));
 
     far_ao_width->register_to_ini ( far_prefs,
                                          L"FAR.Lighting",
@@ -1727,7 +1737,7 @@ SK_FAR_InitPlugin (void)
 
     far_ao_height =
       dynamic_cast <sk::ParameterInt *>
-        (far_factory.create_parameter <int> (L"Height of AO Post-Process"));
+        (far_factory->create_parameter <int> (L"Height of AO Post-Process"));
 
     far_ao_height->register_to_ini ( far_prefs,
                                        L"FAR.Lighting",
@@ -1754,7 +1764,7 @@ SK_FAR_InitPlugin (void)
         {
           auto* ret =
            dynamic_cast <sk::ParameterStringW *>
-            (far_factory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
+            (far_factory->create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
           ret->register_to_ini ( far_prefs, L"FAR.Keybinds", ini_name );
 
@@ -2174,10 +2184,10 @@ SK_FAR_PlugInCfg (void)
                                       const wchar_t* import_name, bool& enable, int& order,
                                       int default_order = 1 );
 
-      static wchar_t wszReShadePath [MAX_PATH * 2] = { 0 };
+      static wchar_t wszReShadePath [MAX_PATH + 2] = { };
 
       if (*wszReShadePath == 0)
-        PathCombineW (wszReShadePath, SK_GetHostPath (), L"ReShade64.dll");
+        SK_PathCombineW (wszReShadePath, SK_GetHostPath (), L"ReShade64.dll");
 
       ImGui::TreePush      ("");
       static int  load_order     = 0;
@@ -3512,7 +3522,7 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
     SK_EnableHook        (     SK_PluginKeyPress           );
   }
 
-  if (GetModuleHandle (L"RTSSHooks64.dll"))
+  if (SK_GetModuleHandle (L"RTSSHooks64.dll"))
   {
     bool warned = far_rtss_warned->get_value ();
 

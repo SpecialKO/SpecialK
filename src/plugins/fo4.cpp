@@ -74,12 +74,12 @@ SK_FO4_InitPlugin (void)
       SK_CreateINI ((wchar_t *)fo4_prefs_file.c_str ());
   }
 
-  //nvapi64_dll = LoadLibrary (L"nvapi64.dll");
+  //nvapi64_dll = SK_LoadLibrary (L"nvapi64.dll");
 
   //typedef void* (*NvAPI_QueryInterface_t)(unsigned int ordinal);
 
   //static NvAPI_QueryInterface_t NvAPI_QueryInterface =
-    //(NvAPI_QueryInterface_t)GetProcAddress (nvapi64_dll, "nvapi_QueryInterface");
+    //(NvAPI_QueryInterface_t)SK_GetProcAddress (nvapi64_dll, "nvapi_QueryInterface");
 
     //(NvAPI_GPU_GetMemoryInfo_t)NvAPI_QueryInterface (__NvAPI_GPU_GetMemoryInfo);
 

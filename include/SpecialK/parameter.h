@@ -61,6 +61,8 @@ public:
     //type_      = std::type_index (typeid (iParameter));
   }
 
+  virtual ~iParameter (void) noexcept { }
+
   virtual std::wstring get_value_str (void)                     = 0;
   virtual void         set_value_str (const wchar_t *str)       = 0;
 //virtual void         set_value_str (      std::wstring&  str) = 0;

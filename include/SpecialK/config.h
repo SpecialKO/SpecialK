@@ -21,7 +21,6 @@
 #ifndef __SK__CONFIG_H__
 #define __SK__CONFIG_H__
 
-struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <Windows.h>
@@ -59,10 +58,12 @@ namespace sk
 // Adds a parameter to store and retrieve the keybind in an INI / XML file
 struct SK_ConfigSerializedKeybind : public SK_Keybind
 {
-  SK_ConfigSerializedKeybind (SK_Keybind&& bind, const wchar_t* cfg_name) :
-    SK_Keybind (bind)
+  SK_ConfigSerializedKeybind ( SK_Keybind&& bind,
+                             const wchar_t* cfg_name) :
+                               SK_Keybind  (bind)
   {
-    wcscpy (short_name, cfg_name);
+    wcsncpy_s ( short_name, 32,
+                  cfg_name, _TRUNCATE );
   }
 
   wchar_t               short_name [32] = L"Uninitialized";
@@ -72,25 +73,25 @@ struct SK_ConfigSerializedKeybind : public SK_Keybind
 
 struct sk_config_t
 {
-  struct {
+  struct whats_new_s {
     float  duration       = 20.0f;
   } version_banner;
 
-  struct {
+  struct time_osd_s {
     LONG   format         = LOCALE_USER_DEFAULT;
 
-    struct {
+    struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'T', 0 };
     } keys;
 
     bool   show           = true;
   } time;
 
-  struct {
+  struct mem_osd_s {
     float  reserve        = 0.0f;// Unused / Unlimited
     float  interval       = 0.25f;
 
-    struct {
+    struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'M', 0 };
     } keys;
 
@@ -98,10 +99,10 @@ struct sk_config_t
   } mem;
 
 
-  struct {
+  struct io_osd_s {
     float  interval       = 0.25f; // 250 msecs (4 Hz)
 
-    struct {
+    struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'I', 0 };
     } keys;
 
@@ -109,16 +110,16 @@ struct sk_config_t
   } io;
 
 
-  struct {
+  struct sli_s {
     bool   show           = false;
 
-    struct {
+    struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'S', 0 };
     } keys;
   } sli;
 
 
-  struct {
+  struct basic_osd_s {
     int    red            = MAXDWORD32;
     int    green          = MAXDWORD32;
     int    blue           = MAXDWORD32;
@@ -126,7 +127,7 @@ struct sk_config_t
     int    pos_x          =  0;
     int    pos_y          =  0;
 
-    struct {
+    struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'O',          0 };
       BYTE shrink [4]     = { VK_CONTROL, VK_SHIFT, VK_OEM_MINUS, 0 };
       BYTE expand [4]     = { VK_CONTROL, VK_SHIFT, VK_OEM_PLUS,  0 };
@@ -137,7 +138,7 @@ struct sk_config_t
   } osd;
 
 
-  struct {
+  struct cpu_osd_s {
     GUID      power_scheme_guid      = { };
     GUID      power_scheme_guid_orig = { };
 
@@ -146,73 +147,73 @@ struct sk_config_t
     bool   simple         = true;
     bool   show           = false;
 
-    struct {
+    struct keybinds_s {
       BYTE toggle  [4]    = { VK_CONTROL, VK_SHIFT, 'C', 0 };
     } keys;
   } cpu;
 
 
-  struct {
+  struct fps_osd_s {
     bool   show           = true;
     bool   advanced       = false;
     bool   frametime      = true;
 
-    struct {
+    struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'F', 0 };
     } keys;
     //float fps_interval  = 1.0f;
   } fps;
 
 
-  struct {
+  struct gpu_osd_s {
     bool   show           = true;
     bool   print_slowdown = false;
     float  interval       = 0.333333f;
 
-    struct {
+    struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'G', 0 };
     } keys;
   } gpu;
 
 
-  struct {
+  struct disk_osd_s {
     bool   show            = false;
 
     float  interval        = 0.333333f;
     int    type            = 0; // Physical = 0,
                                 // Logical  = 1
 
-    struct {
+    struct keybinds_s {
       BYTE toggle [4]      = { VK_CONTROL, VK_MENU, VK_SHIFT, 'D' };
     } keys;
   } disk;
 
 
-  struct {
+  struct pagefile_osd_s {
     bool   show            = false;
     float  interval        = 2.5f;
 
-    struct {
+    struct keybinds_s {
       BYTE toggle [4]      = { VK_CONTROL, VK_MENU, VK_SHIFT, 'P' };
     } keys;
   } pagefile;
 
 
-  struct {
+  struct cegui_s {
     ULONG   frames_drawn       = 0;     //   Count the number of frames drawn using it
     bool    enable             = true;
     bool    orig_enable        = false; // Since CEGUI is a frequent source of crashes.
     bool    safe_init          = true;
   } cegui;
 
-  struct {
+  struct imgui_s {
     float   scale              = 1.0f;
     bool    show_eula          = false; // Will be flipped on if no AppCache is present
     bool    show_input_apis    = true;
     bool    use_mac_style_menu = false;
 
-    struct {
-      struct {
+    struct font_s {
+      struct font_params_s {
         std::string file   = "";
         float       size   = 7.0f;
       } chinese,  cyrillic, default_font,
@@ -220,7 +221,7 @@ struct sk_config_t
     } font;
 
     // Per-game (mostly compatibility) settings
-    struct
+    struct render_s
     {
       bool  disable_alpha      = false;
       bool  antialias_lines    = true;
@@ -229,7 +230,7 @@ struct sk_config_t
   } imgui;
 
 
-  struct {
+  struct steam_s {
     struct callback_cache_s {
       HMODULE
         module               = nullptr;
@@ -238,11 +239,11 @@ struct sk_config_t
       void* resolved         = nullptr;
     } cached_overlay_callback;
 
-    struct {
+    struct achievements_s {
       std::wstring
         sound_file          = L"";
 
-      struct {
+      struct popup_s {
         float inset               = 0.005f;
         int   origin              = 0;
         int   duration            = 5000UL;
@@ -257,7 +258,7 @@ struct sk_config_t
       bool    pull_global_stats   = true;
     } achievements;
 
-    struct {
+    struct cloud_s {
       std::set <std::string> blacklist;
     } cloud;
 
@@ -322,15 +323,16 @@ struct sk_config_t
     } screenshots;
   } steam;
 
-  struct {
+  struct uplay_s {
     float overlay_luminance     = 4.375f; // 350 nits
   } uplay;
 
 
-  struct {
-    struct {
+  struct render_s {
+    struct framerate_s {
       float   target_fps        =  0.0f;
       float   target_fps_bg     =  0.0f;
+      float   busy_wait_ratio   =  0.825f;
       float   limiter_tolerance =  2.0f;
       int     max_render_ahead  =  0;
       int     override_num_cpus = -1;
@@ -341,7 +343,7 @@ struct sk_config_t
       int     swapchain_wait    =  0;
       float   refresh_rate      = -1.0f;
  std::wstring rescan_ratio     =L"-1/1";
-      struct {
+      struct rescan_s {
         UINT Denom              =  1;
         UINT Numerator          =
                             UINT (-1);
@@ -354,20 +356,21 @@ struct sk_config_t
       bool    sleepless_render  = false;
       bool    sleepless_window  = false;
       bool    enable_mmcss      = true;
+      bool    adaptive          = true;
     } framerate;
-    struct {
+    struct d3d9_s {
       bool    force_d3d9ex      = false;
       bool    force_impure      = false;
     } d3d9;
-    struct {
+    struct dxgi_s {
       int     adapter_override  = -1;
-      struct {
-        struct {
+      struct resolution_s {
+        struct minimum_s {
           unsigned int x        =  0;
           unsigned int y        =  0;
           bool isZero (void) noexcept { return x == 0 && y == 0; };
         } min;
-        struct {
+        struct maximum_s {
           unsigned int x        =  0;
           unsigned int y        =  0;
           bool isZero (void) noexcept { return x == 0 && y == 0; };
@@ -389,9 +392,9 @@ struct sk_config_t
       bool    present_test_skip  = false;
     } dxgi;
 
-    struct {
-      ULONG _last_vidcap_frame   = 0;
-      ULONG _last_normal_frame   = 0;
+    struct osd_s {
+      ULONG64 _last_vidcap_frame = 0;
+      ULONG64 _last_normal_frame = 0;
       float   hdr_luminance      = 4.375f; // 350 nits
       // Required by default for compatibility with Mirillis Action!
       bool    draw_in_vidcap     = true;
@@ -399,20 +402,20 @@ struct sk_config_t
 
     // OSD Render Stats (D3D11 Only Right Now)
     bool      show               = false;
-    struct {
+    struct keybinds_s {
       BYTE    toggle [4]         = { VK_CONTROL, VK_SHIFT, 'R', 0 };
     } keys;
   } render;
 
-  struct {
+  struct display_s {
     int       monitor_idx         =    -1; // TODO
     float     refresh_rate        =  0.0f; // TODO
     bool      force_fullscreen    = false;
     bool      force_windowed      = false;
   } display;
 
-  struct {
-    struct {
+  struct textures_s {
+    struct d3d11_s {
       std::wstring
         res_root                  = L"SK_Res";
       bool    precise_hash        = false;
@@ -425,7 +428,7 @@ struct sk_config_t
       bool    cache_gen_mips      =  true;
       bool    uncompressed_mips   = false;
     } d3d11;
-    struct {
+    struct cache_s {
       int     min_evict           = 64;
       int     max_evict           = 1024;
       int     min_entries         = 512;
@@ -450,7 +453,7 @@ struct sk_config_t
     bool dump_on_load             = false;
   } textures;
 
-  struct {
+  struct file_trace_s {
     bool trace_reads              = false;
     bool trace_writes             = false;
 
@@ -462,8 +465,8 @@ struct sk_config_t
 
   } file_io;
 
-  struct {
-    struct {
+  struct nvidia_s {
+    struct sli_s {
       std::wstring
               compatibility     = L"0x00000000";
       std::wstring
@@ -472,21 +475,21 @@ struct sk_config_t
               num_gpus          = L"Auto";
       bool    override          = false;
     } sli;
-    struct {
+    struct bugs_s {
     //bool    fix_10bit_gsync   = false;
       bool    kill_hdr          = false;
       bool    snuffed_ansel     = false;
     } bugs;
   } nvidia;
 
-  struct {
-    struct {
+  struct input_s {
+    struct cursor_s {
       int     timeout           = 1500UL;
       bool    manage            = false;
       bool    keys_activate     = true;
     } cursor;
 
-    struct {
+    struct ui_s {
       union {
         bool  capture           = false;
         bool  capture_mouse;
@@ -498,7 +501,7 @@ struct sk_config_t
       bool    use_raw_input     =  true;
     } ui;
 
-    struct {
+    struct gamepad_s {
       int     predefined_layout = 1;    //0 = PS4, 1 = Steam, 2 = Xbox
       bool    disabled_to_game  = false;
       bool    disable_ps4_hid   = false;
@@ -511,27 +514,27 @@ struct sk_config_t
       bool    hook_xinput       = true; // Kind of important ;)
       bool    native_ps4        = false;
 
-      struct {
+      struct xinput_s {
         unsigned
         int   ui_slot           =    0;
         bool  placehold  [4]    = { false };
         int   assignment [4]    = { 0, 1, 2, 3 };
       } xinput;
 
-      struct
+      struct steam_s
       {
         unsigned
         int   ui_slot           =    0;
       } steam;
     } gamepad;
 
-    struct {
+    struct keyboard_s {
       bool    block_windows_key = false;
       bool    catch_alt_f4      = true;
       bool    disabled_to_game  = false;
     } keyboard;
 
-    struct {
+    struct mouse_s {
       //
       // Uses APIs such as DirectInput or RawInput that only send relative motion events
       //   to derive the virtual position of the cursor, since the game hijacks the
@@ -555,23 +558,23 @@ struct sk_config_t
     } mouse;
   } input;
 
-  struct {
+  struct threads_s {
     bool    enable_mem_alloc_trace = false;
     bool    enable_file_io_trace   = false;
   } threads;
 
-  struct {
-    struct {
+  struct injection_s {
+    struct global_cache_s {
       bool  use_static_addresses = false;
     } global;
   } injection;
 
-  struct {
+  struct window_s {
     bool    borderless          = false;
     bool    border_override     = false;
     bool    center              = false;
-    struct {
-      struct {
+    struct offset_s {
+      struct coordinate_s {
       int   absolute            = 0;
       float percent             = 0.0f;
       } x, y;
@@ -591,8 +594,8 @@ struct sk_config_t
     bool    disable_screensaver = false;
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
     bool    dont_hook_wndproc   = false;
-    struct {
-      struct {
+    struct resolution_s {
+      struct dim_override_s {
         unsigned int x          = 0;
         unsigned int y          = 0;
         bool         fix_mouse  = false;
@@ -601,42 +604,51 @@ struct sk_config_t
     } res;
   } window;
 
-  struct {
+  struct dpi_s {
+    struct awareness_s{
+      bool   aware                = false;
+      bool   aware_on_all_threads = false;
+    } per_monitor;
+    bool     disable_scaling      = false;
+  } dpi;
+
+  struct compatibility_s {
     bool     rehook_loadlibrary    = false;
     bool     disable_nv_bloat      = false;
     bool     init_while_suspended  =  true;
+    bool     impersonate_debugger  = false; // Can disable games' crash handlers
   } compatibility;
 
-  struct {
-    struct {
+  struct apis_s {
+    struct glide_s {
       bool   hook = true;
     } glide;
 
 #ifdef _M_IX86
-    struct {
+    struct legacy_dx_s {
       bool   hook = true;
     } d3d8,
       ddraw;
 #endif
 
-    struct {
+    struct d3d9_s {
       bool   hook = true;
     } d3d9,
       d3d9ex;
 
-    struct {
-      struct {
+    struct dxgi_s {
+      struct d3d11or12_s{
         bool hook = true;
       } d3d12,
         d3d11;
     } dxgi;
 
-    struct {
+    struct khronos_s {
       bool   hook = true;
     } Vulkan,
       OpenGL;
 
-    struct {
+    struct NvAPI_s {
       bool         enable       = true;
       bool         gsync_status = true;
       bool         disable_hdr  = false;
@@ -644,14 +656,14 @@ struct sk_config_t
       std::wstring col_fmt_enum = L"NV_COLOR_FORMAT_AUTO";
     } NvAPI;
 
-    struct {
+    struct ADL_s {
       bool   enable            = true;
     } ADL;
 
     SK_RenderAPI last_known    = SK_RenderAPI::Reserved;
   } apis;
 
-  struct {
+  struct system_s {
     std::wstring
             version             = SK_GetVersionStrW ();
     int     log_level           = 0;
@@ -768,14 +780,14 @@ typedef uint64_t ManifestId_t;
 
 struct SK_Steam_DepotManifest {
   struct {
-    std::string  name;
-    DepotId_t    id;
+    std::string  name = "";
+    DepotId_t    id   =  0;
   } depot;
 
   struct
   {
-    std::string  date;
-    ManifestId_t id;
+    std::string  date = "";
+    ManifestId_t id   =  0;
   } manifest;
 };
 
@@ -890,6 +902,7 @@ enum class SK_GAME_ID
   Ys_Eight,                     // ys8.exe
   PillarsOfEternity2,           // PillarsOfEternityII.exe
   Yakuza0,                      // Yakuza0.exe
+  YakuzaKiwami,                 // YakuzaKiwami.exe
   YakuzaKiwami2,                // YakuzaKiwami2.exe
   MonsterHunterWorld,           // MonsterHunterWorld.exe
   Shenmue,                      // Shenmue.exe
@@ -901,6 +914,8 @@ enum class SK_GAME_ID
   Sekiro,                       // sekiro.exe
   OctopathTraveler,             // Octopath_Traveler-Win64-Shipping.exe
   SonicMania,                   // SonicMania.exe
+  Persona4,                     // P4G.exe
+
   UNKNOWN_GAME               = 0xffff
 };
 
@@ -925,7 +940,7 @@ SK_GetFullyQualifiedApp (void);
 
 const wchar_t*
 __stdcall
-SK_GetVersionStr (void);
+SK_GetVersionStr (void) noexcept;
 
 
 extern __declspec (dllexport) void

@@ -106,7 +106,9 @@ struct sk_loader_hooks_t {
   LPVOID GetModuleFileNameW_target  = nullptr;
 
   LPVOID FreeLibrary_target         = nullptr;
-} _loader_hooks;
+};
+
+SK_LazyGlobal <sk_loader_hooks_t> _loader_hooks;
 
 
 FreeLibrary_pfn    FreeLibrary_Original    = nullptr;
@@ -206,13 +208,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 
   static std::vector <const _T*> pinnable_libs =
   {
-  /*SK_TEXT ("OpenCL"),*/  SK_TEXT ("CEGUI"),
-  //SK_TEXT ("perfos"),    SK_TEXT ("avrt"),
-  //
-  //SK_TEXT ("MMDevApi"),
-  //SK_TEXT ("AUDIOSES"),  SK_TEXT ("HID"),
-  //
-  //SK_TEXT ("d3dx"),      SK_TEXT ("dsound"),
+    SK_TEXT ("CEGUI"),
 
     // Fix for premature DLL unload issue discussed here:
     //
@@ -221,19 +217,11 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     SK_TEXT ("XAudio2_7"),
 
     SK_TEXT ("nvapi"),
-  //SK_TEXT ("steam_api"),
-  //SK_TEXT ("steamclient"),
-
-    //SK_TEXT ("vstdlib_s"),
-    //SK_TEXT ("tier0_s"),
 
     //// Some software repeatedly loads and unloads this, which can
     ////   cause TLS-related problems if left unchecked... just leave
     ////     the damn thing loaded permanently!
     SK_TEXT ("d3dcompiler_"),
-
-    //SK_TEXT ("imagehlp"), SK_TEXT ("version.dll"),
-    //SK_TEXT ("dbghelp")
   };
 
   for ( const auto it : pinnable_libs )
@@ -297,15 +285,13 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       GetCurrentProcess (), hCallingMod, &mod_info, sizeof (mod_info)
     );
 
-    CHeapPtr <char> szDupName (
-      _strdup (
+    std::string szDupName (
         SK_WideCharToUTF8 (
           SK_GetModuleFullName (hCallingMod)
-        ).c_str ()
-      )
-    );
+        ) + '\0'          );
 
-    char* pszShortName = szDupName.m_pData;
+    char* pszShortName =
+             szDupName.data ();
 
     PathStripPathA (pszShortName);
 
@@ -342,8 +328,8 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
         (LoadLibrary_pfn)
                 LPCVOID ( typeid (     _T) ==
                           typeid (wchar_t) ?
-        (LoadLibrary_pfn)      &LoadLibraryW        :
-        (LoadLibrary_pfn)      &LoadLibraryA        );
+        (LoadLibrary_pfn)      &SK_LoadLibraryW     :
+        (LoadLibrary_pfn)      &SK_LoadLibraryA     );
 
   static strncpy_pfn            strncpy_ =
         (strncpy_pfn)
@@ -372,8 +358,8 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     return;
   }
 
-  wchar_t     wszModName [MAX_PATH * 2 + 1] = { };
-  wcsncpy_s ( wszModName, MAX_PATH * 2,
+  wchar_t     wszModName [MAX_PATH + 2] = { };
+  wcsncpy_s ( wszModName, MAX_PATH,
              SK_GetModuleName (hCallingMod).c_str (),
                           _TRUNCATE) ;
 
@@ -391,7 +377,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
     if (typeid (_T) == typeid (char))
     {
-      char szFileName [MAX_PATH * 2 + 1] = { };
+      char szFileName [MAX_PATH + 2] = { };
 
       strncpy_s ( szFileName, MAX_PATH,
                     reinterpret_cast <const char *> (lpFileName),
@@ -403,14 +389,14 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
                                     L"{ '%21hs' }",
                        wszModName,
                          szFileName,
-                           lpFunction,
+        reinterpret_cast <const char*> (lpFunction),
                              szSymbol );
     }
 
     else
     {
-      wchar_t     wszFileName [MAX_PATH * 2 + 1] = { };
-      wcsncpy_s ( wszFileName, MAX_PATH * 2,
+      wchar_t     wszFileName [MAX_PATH + 2] = { };
+      wcsncpy_s ( wszFileName, MAX_PATH,
                   reinterpret_cast <const wchar_t *> (lpFileName),
                               _TRUNCATE );
 
@@ -535,14 +521,63 @@ SK_FreeLibrary (HMODULE hLibModule)
   return bRet;
 }
 
+HMODULE
+WINAPI
+SK_LoadLibraryA (LPCSTR lpModName)
+{
+  if (LoadLibraryA_Original != nullptr)
+    return LoadLibraryA_Original (lpModName);
+
+  return LoadLibraryA (lpModName);
+}
+
+HMODULE
+WINAPI
+SK_LoadLibraryW (LPCWSTR lpModName)
+{
+  if (LoadLibraryW_Original != nullptr)
+    return LoadLibraryW_Original (lpModName);
+
+  return LoadLibraryW (lpModName);
+}
+
+HMODULE
+WINAPI
+SK_LoadLibraryExA (
+  _In_       LPCSTR  lpFileName,
+  _Reserved_ HANDLE  hFile,
+  _In_       DWORD   dwFlags
+)
+{
+  if (LoadLibraryExA_Original != nullptr)
+    return LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
+
+  return LoadLibraryExA (lpFileName, hFile, dwFlags);
+}
+
+HMODULE
+WINAPI
+SK_LoadLibraryExW (
+  _In_       LPCWSTR lpFileName,
+  _Reserved_ HANDLE  hFile,
+  _In_       DWORD   dwFlags
+)
+{
+  if (LoadLibraryExW_Original != nullptr)
+    return LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
+
+  return LoadLibraryExW (lpFileName, hFile, dwFlags);
+}
+
+
 BOOL
 WINAPI
 FreeLibrary_Detour (HMODULE hLibModule)
 {
 #ifdef _M_AMD64
-  if ( SK_GetCallingDLL () == GetModuleHandle (L"gameoverlayrenderer64.dll") )
+  if ( SK_GetCallingDLL () == SK_GetModuleHandle (L"gameoverlayrenderer64.dll") )
 #else /* _M_IX86 */
-  if ( SK_GetCallingDLL () == GetModuleHandle (L"gameoverlayrenderer.dll") )
+  if ( SK_GetCallingDLL () == SK_GetModuleHandle (L"gameoverlayrenderer.dll") )
 #endif
   {
     // Steam unsafely loads DLLs that are holding onto
@@ -557,7 +592,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
   if (ReadAcquire (&__SK_DLL_Ending) != FALSE)
   {
     return
-      FreeLibrary_Original (hLibModule);
+      SK_FreeLibrary (hLibModule);
   }
 
   if (hLibModule == SK_GetDLL ())
@@ -574,7 +609,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
   if ( (! (SK_LoadLibrary_SILENCE)) ||
            SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos )
   {
-    if ( SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos ||
+    if (   SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos ||
         (bRet && SK_GetModuleHandle (name.c_str ()) == nullptr ) )
     {
       if (config.system.log_level > 2)
@@ -609,6 +644,7 @@ SKX_SummarizeCaller ( LPVOID  lpRet,
   wcsncpy_s ( wszSummary,                          128,
               SK_SummarizeCaller (lpRet).c_str (), _TRUNCATE );
 }
+
 
 HMODULE
 WINAPI
@@ -647,7 +683,8 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
                          (wchar_t *)lpFileName;
   }
 
-  if (*compliant_path != L'\0')
+  if (              compliant_path != nullptr &&
+                   *compliant_path != L'\0' )
   {
     auto orig_se =
     SK_SEH_ApplyTranslator (
@@ -687,10 +724,10 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       // Avoid loader deadlock in Steam overlay by pre-loading this
       //   DLL behind the overlay's back.
       if (StrStrIW (compliant_path, L"rxcore"))
-        LoadLibraryW_Original (L"xinput1_4.dll");
+        SK_LoadLibraryW (L"xinput1_4.dll");
 
       hMod =
-        LoadLibraryW_Original (compliant_path);
+        SK_LoadLibraryW (compliant_path);
     }
     catch (const SK_SEH_IgnoredException&)
     {
@@ -727,10 +764,17 @@ HMODULE
 WINAPI
 LoadLibraryA_Detour (LPCSTR lpFileName)
 {
+  std::wstring wFileName;
+
+  // Stupidity for idTechLauncher
+  if (lpFileName != nullptr)
+    wFileName = SK_UTF8ToWideChar (lpFileName) + std::wstring (L"\0");
+
   return
     LoadLibrary_Marshal (
        _ReturnAddress (),
-         SK_UTF8ToWideChar (lpFileName).c_str (),
+         lpFileName != nullptr ?
+          wFileName.data ()    : nullptr,
            L"LoadLibraryA"
     );
 }
@@ -751,6 +795,10 @@ HMODULE
 WINAPI
 LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 {
+#if 1
+  return
+    LoadPackagedLibrary_Original (lpLibFileName, Reserved);
+#else
   LPVOID lpRet = _ReturnAddress ();
 
   if (lpLibFileName == nullptr)
@@ -824,6 +872,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 
   SK_UnlockDllLoader ();
   return hMod;
+#endif
 }
 
 HMODULE
@@ -864,7 +913,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   if ((dwFlags & LOAD_LIBRARY_AS_DATAFILE) && (! BlacklistLibrary (compliant_path)))
   {
     HMODULE hModRet =
-      LoadLibraryExW_Original (compliant_path, hFile, dwFlags);
+      SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
 
     SK_UnlockDllLoader ();
     return hModRet;
@@ -910,7 +959,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   try
   {
     hMod =
-      LoadLibraryExW_Original (compliant_path, hFile, dwFlags);
+      SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
   }
   //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
   //                     EXCEPTION_EXECUTE_HANDLER :
@@ -943,10 +992,15 @@ LoadLibraryExA_Detour (
   _Reserved_ HANDLE hFile,
   _In_       DWORD  dwFlags )
 {
+  std::wstring wszFileName;
+
+  if (lpFileName != nullptr)
+    wszFileName = SK_UTF8ToWideChar (lpFileName) + std::wstring (L"\0");
+
   return
     LoadLibraryEx_Marshal (
       _ReturnAddress (),
-        SK_UTF8ToWideChar (lpFileName).c_str (),
+        wszFileName.data (),
           hFile,
             dwFlags,
               L"LoadLibraryExA"
@@ -995,94 +1049,94 @@ SK_ReHookLoadLibrary (void)
   if (! config.system.trace_load_library)
     return false;
 
-  if (_loader_hooks.unhooked)
+  if (_loader_hooks->unhooked)
     return false;
 
   SK_LockDllLoader ();
 
-  if (_loader_hooks.LoadLibraryA_target != nullptr)
+  if (_loader_hooks->LoadLibraryA_target != nullptr)
   {
-    SK_RemoveHook (_loader_hooks.LoadLibraryA_target);
-    _loader_hooks.LoadLibraryA_target = nullptr;
+    SK_RemoveHook (_loader_hooks->LoadLibraryA_target);
+    _loader_hooks->LoadLibraryA_target = nullptr;
   }
 
   SK_CreateDLLHook2 (      L"kernel32",
                             "LoadLibraryA",
                              LoadLibraryA_Detour,
     static_cast_p2p <void> (&LoadLibraryA_Original),
-                           &_loader_hooks.LoadLibraryA_target );
+                           &_loader_hooks->LoadLibraryA_target );
 
-  MH_QueueEnableHook (_loader_hooks.LoadLibraryA_target);
+  MH_QueueEnableHook (_loader_hooks->LoadLibraryA_target);
 
 
-  if (_loader_hooks.LoadLibraryW_target != nullptr)
+  if (_loader_hooks->LoadLibraryW_target != nullptr)
   {
-    SK_RemoveHook (_loader_hooks.LoadLibraryW_target);
-    _loader_hooks.LoadLibraryW_target = nullptr;
+    SK_RemoveHook (_loader_hooks->LoadLibraryW_target);
+    _loader_hooks->LoadLibraryW_target = nullptr;
   }
 
   SK_CreateDLLHook2 (      L"kernel32",
                             "LoadLibraryW",
                              LoadLibraryW_Detour,
     static_cast_p2p <void> (&LoadLibraryW_Original),
-                           &_loader_hooks.LoadLibraryW_target );
+                           &_loader_hooks->LoadLibraryW_target );
 
-  MH_QueueEnableHook (_loader_hooks.LoadLibraryW_target);
+  MH_QueueEnableHook (_loader_hooks->LoadLibraryW_target);
 
 
-  if (GetProcAddress (SK_GetModuleHandle (L"kernel32"),
-                                          "LoadPackagedLibrary") != nullptr)
+  if (SK_GetProcAddress (SK_GetModuleHandle (L"kernel32"),
+                                              "LoadPackagedLibrary") != nullptr)
   {
-    if (_loader_hooks.LoadPackagedLibrary_target != nullptr)
+    if (_loader_hooks->LoadPackagedLibrary_target != nullptr)
     {
-      SK_RemoveHook (_loader_hooks.LoadPackagedLibrary_target);
-      _loader_hooks.LoadPackagedLibrary_target = nullptr;
+      SK_RemoveHook (_loader_hooks->LoadPackagedLibrary_target);
+      _loader_hooks->LoadPackagedLibrary_target = nullptr;
     }
 
     SK_CreateDLLHook2 (      L"kernel32",
                               "LoadPackagedLibrary",
                                LoadPackagedLibrary_Detour,
       static_cast_p2p <void> (&LoadPackagedLibrary_Original),
-                             &_loader_hooks.LoadPackagedLibrary_target );
+                             &_loader_hooks->LoadPackagedLibrary_target );
 
-    MH_QueueEnableHook (_loader_hooks.LoadPackagedLibrary_target);
+    MH_QueueEnableHook (_loader_hooks->LoadPackagedLibrary_target);
   }
 
 
-  if (_loader_hooks.LoadLibraryExA_target != nullptr)
+  if (_loader_hooks->LoadLibraryExA_target != nullptr)
   {
-    SK_RemoveHook (_loader_hooks.LoadLibraryExA_target);
-    _loader_hooks.LoadLibraryExA_target = nullptr;
+    SK_RemoveHook (_loader_hooks->LoadLibraryExA_target);
+    _loader_hooks->LoadLibraryExA_target = nullptr;
   }
 
   SK_CreateDLLHook2 (      L"kernel32",
                             "LoadLibraryExA",
                              LoadLibraryExA_Detour,
     static_cast_p2p <void> (&LoadLibraryExA_Original),
-                           &_loader_hooks.LoadLibraryExA_target );
+                           &_loader_hooks->LoadLibraryExA_target );
 
-  MH_QueueEnableHook (_loader_hooks.LoadLibraryExA_target);
+  MH_QueueEnableHook (_loader_hooks->LoadLibraryExA_target);
 
 
-  if (_loader_hooks.LoadLibraryExW_target != nullptr)
+  if (_loader_hooks->LoadLibraryExW_target != nullptr)
   {
-    SK_RemoveHook (_loader_hooks.LoadLibraryExW_target);
-    _loader_hooks.LoadLibraryExW_target = nullptr;
+    SK_RemoveHook (_loader_hooks->LoadLibraryExW_target);
+    _loader_hooks->LoadLibraryExW_target = nullptr;
   }
 
   SK_CreateDLLHook2 (      L"kernel32",
                             "LoadLibraryExW",
                              LoadLibraryExW_Detour,
     static_cast_p2p <void> (&LoadLibraryExW_Original),
-                           &_loader_hooks.LoadLibraryExW_target );
+                           &_loader_hooks->LoadLibraryExW_target );
 
-  MH_QueueEnableHook (_loader_hooks.LoadLibraryExW_target);
+  MH_QueueEnableHook (_loader_hooks->LoadLibraryExW_target);
 
 
-  if (_loader_hooks.FreeLibrary_target != nullptr)
+  if (_loader_hooks->FreeLibrary_target != nullptr)
   {
-    SK_RemoveHook (_loader_hooks.FreeLibrary_target);
-    _loader_hooks.FreeLibrary_target = nullptr;
+    SK_RemoveHook (_loader_hooks->FreeLibrary_target);
+    _loader_hooks->FreeLibrary_target = nullptr;
   }
 
   static int calls = 0;
@@ -1115,42 +1169,42 @@ SK_UnhookLoadLibrary (void)
 {
   SK_LockDllLoader ();
 
-  _loader_hooks.unhooked = true;
+  _loader_hooks->unhooked = true;
 
-  if (_loader_hooks.LoadLibraryA_target != nullptr)
-    MH_QueueDisableHook (_loader_hooks.LoadLibraryA_target);
-  if (_loader_hooks.LoadLibraryW_target != nullptr)
-    MH_QueueDisableHook(_loader_hooks.LoadLibraryW_target);
-  if (_loader_hooks.LoadPackagedLibrary_target != nullptr)
-    MH_QueueDisableHook(_loader_hooks.LoadPackagedLibrary_target);
-  if (_loader_hooks.LoadLibraryExA_target != nullptr)
-    MH_QueueDisableHook (_loader_hooks.LoadLibraryExA_target);
-  if (_loader_hooks.LoadLibraryExW_target != nullptr)
-    MH_QueueDisableHook (_loader_hooks.LoadLibraryExW_target);
-  if (_loader_hooks.FreeLibrary_target != nullptr)
-    MH_QueueDisableHook (_loader_hooks.FreeLibrary_target);
+  if (_loader_hooks->LoadLibraryA_target != nullptr)
+    MH_QueueDisableHook (_loader_hooks->LoadLibraryA_target);
+  if (_loader_hooks->LoadLibraryW_target != nullptr)
+    MH_QueueDisableHook(_loader_hooks->LoadLibraryW_target);
+  if (_loader_hooks->LoadPackagedLibrary_target != nullptr)
+    MH_QueueDisableHook(_loader_hooks->LoadPackagedLibrary_target);
+  if (_loader_hooks->LoadLibraryExA_target != nullptr)
+    MH_QueueDisableHook (_loader_hooks->LoadLibraryExA_target);
+  if (_loader_hooks->LoadLibraryExW_target != nullptr)
+    MH_QueueDisableHook (_loader_hooks->LoadLibraryExW_target);
+  if (_loader_hooks->FreeLibrary_target != nullptr)
+    MH_QueueDisableHook (_loader_hooks->FreeLibrary_target);
 
   SK_ApplyQueuedHooks ();
 
-  if (_loader_hooks.LoadLibraryA_target != nullptr)
-    MH_RemoveHook (_loader_hooks.LoadLibraryA_target);
-  if (_loader_hooks.LoadLibraryW_target != nullptr)
-    MH_RemoveHook (_loader_hooks.LoadLibraryW_target);
-  if (_loader_hooks.LoadPackagedLibrary_target != nullptr)
-    MH_RemoveHook (_loader_hooks.LoadPackagedLibrary_target);
-  if (_loader_hooks.LoadLibraryExA_target != nullptr)
-    MH_RemoveHook (_loader_hooks.LoadLibraryExA_target);
-  if (_loader_hooks.LoadLibraryExW_target != nullptr)
-    MH_RemoveHook (_loader_hooks.LoadLibraryExW_target);
-  if (_loader_hooks.FreeLibrary_target != nullptr)
-    MH_RemoveHook (_loader_hooks.FreeLibrary_target);
+  if (_loader_hooks->LoadLibraryA_target != nullptr)
+    MH_RemoveHook (_loader_hooks->LoadLibraryA_target);
+  if (_loader_hooks->LoadLibraryW_target != nullptr)
+    MH_RemoveHook (_loader_hooks->LoadLibraryW_target);
+  if (_loader_hooks->LoadPackagedLibrary_target != nullptr)
+    MH_RemoveHook (_loader_hooks->LoadPackagedLibrary_target);
+  if (_loader_hooks->LoadLibraryExA_target != nullptr)
+    MH_RemoveHook (_loader_hooks->LoadLibraryExA_target);
+  if (_loader_hooks->LoadLibraryExW_target != nullptr)
+    MH_RemoveHook (_loader_hooks->LoadLibraryExW_target);
+  if (_loader_hooks->FreeLibrary_target != nullptr)
+    MH_RemoveHook (_loader_hooks->FreeLibrary_target);
 
-  _loader_hooks.LoadLibraryW_target        = nullptr;
-  _loader_hooks.LoadLibraryA_target        = nullptr;
-  _loader_hooks.LoadPackagedLibrary_target = nullptr;
-  _loader_hooks.LoadLibraryExW_target      = nullptr;
-  _loader_hooks.LoadLibraryExA_target      = nullptr;
-  _loader_hooks.FreeLibrary_target         = nullptr;
+  _loader_hooks->LoadLibraryW_target        = nullptr;
+  _loader_hooks->LoadLibraryA_target        = nullptr;
+  _loader_hooks->LoadPackagedLibrary_target = nullptr;
+  _loader_hooks->LoadLibraryExW_target      = nullptr;
+  _loader_hooks->LoadLibraryExA_target      = nullptr;
+  _loader_hooks->FreeLibrary_target         = nullptr;
 
   // Re-establish the non-hooked functions
   SK_PreInitLoadLibrary ();
@@ -1164,7 +1218,7 @@ void
 __stdcall
 SK_InitCompatBlacklist (void)
 {
-  memset (&_loader_hooks, 0, sizeof (sk_loader_hooks_t));
+//memset (&_loader_hooks, 0, sizeof (sk_loader_hooks_t));
 
   //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleHandleA",
@@ -1270,13 +1324,13 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
   else
 #endif
   {
-    wchar_t     wszModNameCopy [MAX_PATH + 1] = { };
+    wchar_t     wszModNameCopy [MAX_PATH + 2] = { };
     wcsncpy_s ( wszModNameCopy, MAX_PATH,
                 wszModName,     _TRUNCATE );
 
-    pLogger->Log ( L"[ Module ]  ( %ph + %08i )                        "
-                   L"                                                  "
-                   L"  %s",
+    pLogger->Log ( L"[ Module ]  ( %ph + %08i )               "
+                   L"                                         "
+                   L" %s",
                                              base_addr,
                  gsl::narrow_cast <int32_t> (mod_size),
                           SK_ConcealUserDir (wszModNameCopy) );
@@ -1387,9 +1441,13 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
         if (SK_LoadLibrary_IsPinnable (wszModName))
              SK_LoadLibrary_PinModule (wszModName);
 
-        logged_modules.emplace (
-          pWorkingSet->modules [i]
-        );
+        //if ( pWorkingSet             != nullptr &&
+        //     pWorkingSet->modules [i] > (HMODULE)0 )
+        //{
+          logged_modules.emplace (
+            pWorkingSet_->modules [i]//pWorkingSet->modules [i]
+          );
+        //}
       }
     }
 
@@ -1655,11 +1713,12 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
 #pragma pack (pop)
 
   static HMODULE hModNtDLL =
-    SK_GetModuleHandleW (L"NtDll.dll");//SK_Modules.LoadLibraryLL (L"ntdll.dll");
+    //SK_GetModuleHandleW (L"NtDll.dll");//
+    SK_LoadLibraryW (L"NtDll.dll");
 
   static auto RtlGetUnloadEventTraceEx =
     reinterpret_cast <RtlGetUnloadEventTraceEx_pfn> (
-      GetProcAddress (hModNtDLL, "RtlGetUnloadEventTraceEx")
+      SK_GetProcAddress (hModNtDLL, "RtlGetUnloadEventTraceEx")
     );
 
   if (RtlGetUnloadEventTraceEx == nullptr)
@@ -1719,7 +1778,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
     }
   }
 
-  FreeLibrary (hModNtDLL);
+  SK_FreeLibrary (hModNtDLL);
 }
 
 void
@@ -1873,11 +1932,12 @@ SK_PreInitLoadLibrary (void)
   void SK_SymSetOpts (void);
        SK_SymSetOpts (    );
 
-  FreeLibrary_Original         = &FreeLibrary;
-  LoadLibraryA_Original        = &LoadLibraryA;
-  LoadLibraryW_Original        = &LoadLibraryW;
-  LoadLibraryExA_Original      = &LoadLibraryExA;
-  LoadLibraryExW_Original      = &LoadLibraryExW;
+  ///FreeLibrary_Original    = nullptr;
+  ///LoadLibraryA_Original   = nullptr;
+  ///LoadLibraryW_Original   = nullptr;
+  ///LoadLibraryExA_Original = nullptr;
+  ///LoadLibraryExW_Original = nullptr;
+
   LoadPackagedLibrary_Original = nullptr; // Windows 8 feature
 }
 
@@ -1915,8 +1975,8 @@ BlacklistLibrary (const _T* lpFileName)
     (LoadLibrary_pfn)
                 LPCVOID ( std::type_index (typeid (     _T)) ==
                           std::type_index (typeid (wchar_t)) ?
-                      (LoadLibrary_pfn) &LoadLibraryW_Detour :
-                      (LoadLibrary_pfn) &LoadLibraryA_Detour );
+                      (LoadLibrary_pfn) &SK_LoadLibraryW :
+                      (LoadLibrary_pfn) &SK_LoadLibraryA );
 
   if (config.compatibility.disable_nv_bloat)
   {
@@ -1947,7 +2007,7 @@ BlacklistLibrary (const _T* lpFileName)
                  it, &hModNV   )
            )
         {
-          FreeLibrary_Original (hModNV);
+          SK_FreeLibrary (hModNV);
         }
 
         return TRUE;

@@ -27,6 +27,7 @@
 #include <mutex>
 #include <memory>
 #include <SpecialK/thread.h>
+#include <SpecialK/diagnostics/memory.h>
 
 #pragma warning (push)
 #pragma warning (disable: 4244)
@@ -46,16 +47,15 @@ public:
     static_assert ( std::is_reference_v <T> != true,
                     "SK_LazyGlobal does not support reference types" );
 
-    const ULONG lock_val =
+    const volatile ULONG lock_val =
       InterlockedCompareExchange (&_initlock, Reserved, Uninitialized);
 
     if (lock_val == Uninitialized)
     {
-      pDeferredObject.reset (
-        new (std::nothrow) T
-      );
+      pDeferredObject =
+        std::make_unique <T> ();
 
-      if (pDeferredObject._Myptr () == nullptr)
+      if (pDeferredObject.get () == nullptr)
       {
         pDeferredObject.reset (
           reinterpret_cast    <T *>
@@ -70,7 +70,8 @@ public:
         InterlockedExchange (&_initlock, FailsafeLocal);
       }
 
-      InterlockedIncrement (&_initlock);
+      else
+        InterlockedIncrement (&_initlock);
     }
 
     else if (lock_val < Committed)
@@ -82,24 +83,26 @@ public:
       pDeferredObject.get ();
   }
 
-__forceinline    T& get         (void)          noexcept { return   *getPtr ();       }
-__forceinline    T* operator->  (void)          noexcept { return    getPtr ();       }
-__forceinline    T& operator*   (void)          noexcept { return   *getPtr ();       }
-__forceinline       operator T& (void)          noexcept { return    get    ();       }
-__forceinline auto& operator [] (const int idx) noexcept { return  (*getPtr ())[idx]; }
+__forceinline    T& get         (void)          noexcept         { return   *getPtr ();       }
+__forceinline    T* operator->  (void)          noexcept         { return    getPtr ();       }
+__forceinline    T& operator*   (void)          noexcept         { return   *getPtr ();       }
+__forceinline       operator T& (void)          noexcept         { return    get    ();       }
+__forceinline auto& operator [] (const int idx) noexcept (false) { return  (*getPtr ())[idx]; }
 __forceinline bool  isAllocated (void)    const noexcept
 {
   return
     ( ReadAcquire (&_initlock) == Committed );
 }
 
-  SK_LazyGlobal              (const SK_LazyGlobal&) = delete;
-  SK_LazyGlobal& operator=   (const SK_LazyGlobal ) = delete;
+  SK_LazyGlobal              (const SK_LazyGlobal& ) = delete;
+  SK_LazyGlobal& operator=   (const SK_LazyGlobal& ) = delete;
+  SK_LazyGlobal              (      SK_LazyGlobal&&) = delete;
+  SK_LazyGlobal& operator=   (      SK_LazyGlobal&&) = delete;
 
   constexpr SK_LazyGlobal (void) noexcept {
   }
 
-  ~SK_LazyGlobal (void)
+  ~SK_LazyGlobal (void) noexcept
   {
     // Allocated off heap w/ C++ new
     if (isAllocated ())
@@ -113,7 +116,10 @@ __forceinline bool  isAllocated (void)    const noexcept
       InterlockedCompareExchange (&_initlock, Uninitialized, FailsafeLocal)
             )
     {
-      SK_LocalFree ((HLOCAL)pDeferredObject.release ());
+      SK_LocalFree (
+        static_cast <HLOCAL>         (
+          pDeferredObject.release () )
+                   );
     }
   }
 

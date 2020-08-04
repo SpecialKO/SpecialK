@@ -78,7 +78,7 @@ SK_MHW_PlugInInit (void)
  * 4: Offset,  5: Value List Size (in bytes),
  * 6: Value List
  */
-    { 0x08cc13a6, 52,
+    { 0xe074cd1a/*0x08cc13a6*/, 52,
       false,      3,
       0,          4,
       { 0.0f }
@@ -140,13 +140,17 @@ SK_MHW_PlugInInit (void)
   }
 #endif
 
-#define SK_MHW_HUD_VS0_CRC32C  0x13ef8cc6 // General 2D HUD (after HDR was officially added)
-#define SK_MHW_HUD_VS1_CRC32C  0x6f046ebc // General 2D HUD
-#define SK_MHW_HUD_VS2_CRC32C  0x711c9eeb // The HUD cursor particles
+//#define SK_MHW_HUD_VS0_CRC32C  0x13ef8cc6 // General 2D HUD (after HDR was officially added)
+//#define SK_MHW_HUD_VS1_CRC32C  0x6f046ebc // General 2D HUD
+//#define SK_MHW_HUD_VS2_CRC32C  0x711c9eeb // The HUD cursor particles
 
-  SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS0_CRC32C, ID3D11VertexShader);
-  SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS1_CRC32C, ID3D11VertexShader);
-  SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS2_CRC32C, ID3D11VertexShader);
+#define SK_MHW_HUD_VS3_CRC32C  0x194a7e74 // General 2D HUD (Iceborn)
+#define SK_MHW_HUD_VS4_CRC32C  0xefe65675 // The HUD cursor particles (Iceborn)
+  //SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS0_CRC32C, ID3D11VertexShader);
+  //SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS1_CRC32C, ID3D11VertexShader);
+  //SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS2_CRC32C, ID3D11VertexShader);
+  SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS3_CRC32C, ID3D11VertexShader);
+  SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS4_CRC32C, ID3D11VertexShader);
 
 
   iSK_INI* pINI =
@@ -217,7 +221,7 @@ SK_MHW_PlugInCfg (void)
       if (changed)
       {
         __SK_MHW_JobParityPhysical = (rule == 1);
-        _SK_MHW_JobParityPhysical->store (__SK_MHW_JobParityPhysical);
+         _SK_MHW_JobParityPhysical->store (__SK_MHW_JobParityPhysical);
         pINI->write (pINI->get_filename ());
       }
     }
@@ -233,14 +237,14 @@ SK_MHW_PlugInCfg (void)
     if (ImGui::IsItemHovered ())
       ImGui::SetTooltip ("Without this option, the game spawns 32 job threads and nobody can get that many running efficiently.");
 
-    if (ImGui::Checkbox ("Anti-Debug Workaround", &__SK_MHW_KillAntiDebug))
+    if (ImGui::Checkbox ("Anti-Tamper Killswitch", &__SK_MHW_KillAntiDebug))
     {
       _SK_MHW_KillAntiDebug->store (__SK_MHW_KillAntiDebug);
       pINI->write (pINI->get_filename ());
     }
 
     if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Eliminate the kernel bottleneck Capcom added to prevent debugging.");
+      ImGui::SetTooltip ("@Capcom: This is getting really annoying, just stop with this nonsense.");
 
     if (ImGui::CollapsingHeader ("HDR Fix", ImGuiTreeNodeFlags_DefaultOpen))
     {

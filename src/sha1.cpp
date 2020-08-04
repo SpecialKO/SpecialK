@@ -40,7 +40,6 @@ A million repetitions of "a"
 #define SHA1HANDSOFF
 
 #include <SpecialK/sha1.h>
-#include <SpecialK/utility.h>
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
@@ -328,7 +327,6 @@ SHA1 (
   SHA1Final ((unsigned char *)hash_out, &ctx);
 }
 
-#include <atlbase.h>
 
 bool
 SHA1_File (

@@ -24,6 +24,15 @@
 
 #include <boost/container/static_vector.hpp>
 
+extern NTSTATUS WINAPI
+SK_Module_LockLoader ( ULONG *pCookie,
+                       ULONG   Flags = 0x0,
+                       ULONG *pState = nullptr );
+
+extern NTSTATUS WINAPI
+SK_Module_UnlockLoader ( ULONG Flags,
+                         ULONG Cookie );
+
 HMODULE
 SK_GetModuleHandleW (PCWSTR lpModuleName)
 {
@@ -42,30 +51,37 @@ SK_GetModuleHandleW (PCWSTR lpModuleName)
 
   static RtlInitUnicodeString_pfn
     RtlInitUnicodeString =
-    (RtlInitUnicodeString_pfn) GetProcAddress (
-                                 LoadLibraryW ( L"NtDll.dll" ),
-                                                  "RtlInitUnicodeString" );
+    (RtlInitUnicodeString_pfn) SK_GetProcAddress (
+                                 SK_LoadLibraryW ( L"NtDll.dll" ),
+                                                    "RtlInitUnicodeString" );
 
   static LdrGetDllHandle_pfn
          LdrGetDllHandle =
-        (LdrGetDllHandle_pfn) GetProcAddress (
-                                LoadLibraryW ( L"NtDll.dll" ),
-                                                "LdrGetDllHandle" );
+        (LdrGetDllHandle_pfn) SK_GetProcAddress (
+                                SK_LoadLibraryW ( L"NtDll.dll" ),
+                                                   "LdrGetDllHandle" );
 
   UNICODE_STRING         ucsModuleName          = { };
   RtlInitUnicodeString (&ucsModuleName, lpModuleName);
 
-  LdrGetDllHandle (
-    0, 0,
-      &ucsModuleName,
-        &hMod
-  );
+  HMODULE hModRet = 0;
+  {
+    if ( NT_SUCCESS ( LdrGetDllHandle (
+                        0, 0,
+                          &ucsModuleName,
+                            &hMod )
+                    )
+       )
+    {
+      if (hMod != nullptr)
+        hModRet = hMod;
+    }
+  }
 
-  if (hMod != nullptr)
-    return hMod;
+  if (hModRet == nullptr)
+      hModRet = GetModuleHandleW (lpModuleName);
 
-  return
-    GetModuleHandleW (lpModuleName);
+  return hModRet;
 }
 
 
@@ -113,7 +129,8 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
   {
     if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
     {
-      wcscpy (module_path, wszPath);
+       wcscpy_s (module_path, MAX_PATH, wszPath);
+      _wcslwr_s (module_path, MAX_PATH);
 
       addr =
         (LPVOID)((uintptr_t)hModLib + offset);
@@ -204,9 +221,10 @@ SK_Hook_ResolveTarget ( sk_hook_cache_record_s &cache )
       (uint64_t)cache.target.addr -
       (uint64_t)hModBase;
 
-    wcsncpy ( cache.target.module_path,
+    wcsncpy_s ( cache.target.module_path, MAX_PATH,
                 SK_GetModuleFullNameFromAddr (cache.target.addr).c_str (),
-                  MAX_PATH );
+                  _TRUNCATE );
+    _wcslwr_s ( cache.target.module_path, MAX_PATH );
 
     MODULEINFO mod_info = { };
 
@@ -790,13 +808,13 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     wchar_t wszModName [MAX_PATH + 2] = { };
 
     if (ordinal > 65535)
-      strncpy_s (  szProcName, 128,
+      strncpy_s (  szProcName, 127,
                   pszProcName, _TRUNCATE );
     else
       snprintf  ( szProcName, 127, "Ordinal%u",
                     gsl::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
 
-    wcsncpy_s         ( wszModName, MAX_PATH + 2,
+    wcsncpy_s         ( wszModName,  MAX_PATH,
                         pwszModule, _TRUNCATE );
     SK_ConcealUserDir ( wszModName );
 
@@ -973,13 +991,13 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     wchar_t wszModName [MAX_PATH + 2] = { };
 
     if (ordinal > 65535)
-      strncpy_s (  szProcName, 128,
+      strncpy_s (  szProcName, 127,
                   pszProcName, _TRUNCATE );
     else
       snprintf  ( szProcName, 127, "Ordinal%u",
                     gsl::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
 
-    wcsncpy_s         ( wszModName, MAX_PATH + 2,
+    wcsncpy_s         ( wszModName, MAX_PATH,
                         pwszModule, _TRUNCATE );
     SK_ConcealUserDir ( wszModName );
 
@@ -1111,13 +1129,13 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     wchar_t wszModName [MAX_PATH + 2] = { };
 
     if (ordinal > 65535)
-      strncpy_s (  szProcName, 128,
+      strncpy_s (  szProcName, 127,
                   pszProcName, _TRUNCATE );
     else
       snprintf  ( szProcName, 127, "Ordinal%u",
                     gsl::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
 
-    wcsncpy_s         ( wszModName, MAX_PATH + 2,
+    wcsncpy_s         ( wszModName, MAX_PATH,
                         pwszModule, _TRUNCATE );
     SK_ConcealUserDir ( wszModName );
 
@@ -1214,9 +1232,9 @@ SK_CreateUser32Hook ( const char  *pszProcName,
     wcscpy (module_name, L"user32");
 
     if (StrStrIA (pszProcName, "NtUser"))
-      strncpy_s (proc_name, 128, pszProcName + 6, _TRUNCATE);
+      strncpy_s (proc_name, 127, pszProcName + 6, _TRUNCATE);
     else
-      strncpy_s (proc_name, 128, pszProcName,     _TRUNCATE);
+      strncpy_s (proc_name, 127, pszProcName,     _TRUNCATE);
   }
 
   return

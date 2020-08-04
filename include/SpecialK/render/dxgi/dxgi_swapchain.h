@@ -81,7 +81,7 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
 
       pReal = (IDXGISwapChain *)pPromotion;
 
-      SK_LOG0 ( ( L"Promoted IDXGISwapChain to IDXGISwapChain%li", ver_),
+      SK_LOG0 ( ( L"Promoted IDXGISwapChain to IDXGISwapChain%lu", ver_),
                   __SK_SUBSYSTEM__ );
     }
   }
@@ -125,23 +125,58 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
 
       pReal = (IDXGISwapChain *)pPromotion;
 
-      SK_LOG0 ( ( L"Promoted IDXGISwapChain1 to IDXGISwapChain%li", ver_),
+      SK_LOG0 ( ( L"Promoted IDXGISwapChain1 to IDXGISwapChain%lu", ver_),
                   __SK_SUBSYSTEM__ );
     }
   }
 
-  //IWrapDXGISwapChain ( ID3D12Device   *pDevice12,
-  //                     IDXGISwapChain *pSwapChain ) :
+  //IWrapDXGISwapChain ( ID3D12Device    *pDevice12,
+  //                     IDXGISwapChain1 *pSwapChain ) :
   //  pReal  (pSwapChain),
   //  pDev12 ( pDevice12),
   //  ver_   (    0     )
   //{
-  //                                pSwapChain->AddRef  (),
-  //  InterlockedExchange  (&refs_, pSwapChain->Release ());
-  //  InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChains);
+  //  if (! pSwapChain)
+  //    return;
   //
-  //  //// Immediately try to upgrade
-  //  SK_ComQIPtr <IDXGISwapChain4> pSwap4 (this);
+  //  InterlockedExchange (
+  //    &refs_, pReal->AddRef  () - 1
+  //  );        pReal->Release ();
+  //  AddRef ();
+  //
+  //  InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
+  //
+  //  IUnknown *pPromotion = nullptr;
+  //
+  //  if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
+  //  {
+  //    ver_ = 4;
+  //  }
+  //
+  //  else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
+  //  {
+  //    ver_ = 3;
+  //  }
+  //
+  //  else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
+  //  {
+  //    ver_ = 2;
+  //  }
+  //
+  //  else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain1, (void **)&pPromotion)))
+  //  {
+  //    ver_ = 1;
+  //  }
+  //
+  //  if (ver_ != 0)
+  //  {
+  //    Release ();
+  //
+  //    pReal = (IDXGISwapChain1 *)pPromotion;
+  //
+  //    SK_LOG0 ( ( L"Promoted IDXGISwapChain1 to IDXGISwapChain%li", ver_),
+  //                __SK_SUBSYSTEM__ );
+  //  }
   //}
 
 
@@ -226,7 +261,6 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
   volatile LONG   refs_ = 1;
   IDXGISwapChain *pReal;
   ID3D11Device   *pDev;
-//ID3D12Device   *pDev12;
   unsigned int    ver_;
 };
 

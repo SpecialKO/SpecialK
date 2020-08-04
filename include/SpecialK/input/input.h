@@ -24,7 +24,6 @@
 
 #include <SpecialK/utility/lazy_global.h>
 
-struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <Windows.h>
@@ -91,7 +90,9 @@ struct sk_imgui_cursor_s
       bool ui_open = true;
     } no_warp;
   } prefs;
-} extern SK_ImGui_Cursor;
+};
+
+extern sk_imgui_cursor_s SK_ImGui_Cursor;
 
 
 enum class sk_input_dev_type {
@@ -104,7 +105,7 @@ enum class sk_input_dev_type {
 
 struct sk_input_api_context_s
 {
-  constexpr sk_input_api_context_s (void) { };
+  constexpr sk_input_api_context_s (void) noexcept { };
 
   volatile LONG reads  [4] = { },
                 writes [4] = { };
@@ -287,7 +288,7 @@ struct SK_ImGui_InputLanguage_s
 
 __forceinline
 HKL
-SK_Input_GetKeyboardLayout (void)
+SK_Input_GetKeyboardLayout (void) noexcept
 {
   return
     SK_ImGui_InputLanguage_s::keybd_layout;

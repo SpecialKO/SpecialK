@@ -391,6 +391,9 @@ SK_NvAPI_GetDefaultDisplayId (void)
 
 
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"  Nv API  "
 
 NvAPI_Status
@@ -449,20 +452,20 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
       L"  |  ?  4:4:4 12bpc |  %s\n"
       L"  | YUV 4:2:2 12bpc |  %s\n"
       L"  +-----------------+---------------------\n",
-        pHdrCapabilities->display_data.displayPrimary_x0,   pHdrCapabilities->display_data.displayPrimary_y0,
-        pHdrCapabilities->display_data.displayPrimary_x1,   pHdrCapabilities->display_data.displayPrimary_y1,
-        pHdrCapabilities->display_data.displayPrimary_x2,   pHdrCapabilities->display_data.displayPrimary_y2,
-        pHdrCapabilities->display_data.displayWhitePoint_x, pHdrCapabilities->display_data.displayWhitePoint_y,
+        (float)pHdrCapabilities->display_data.displayPrimary_x0,   (float)pHdrCapabilities->display_data.displayPrimary_y0,
+        (float)pHdrCapabilities->display_data.displayPrimary_x1,   (float)pHdrCapabilities->display_data.displayPrimary_y1,
+        (float)pHdrCapabilities->display_data.displayPrimary_x2,   (float)pHdrCapabilities->display_data.displayPrimary_y2,
+        (float)pHdrCapabilities->display_data.displayWhitePoint_x, (float)pHdrCapabilities->display_data.displayWhitePoint_y,
         (float)pHdrCapabilities->display_data.desired_content_min_luminance,
         (float)pHdrCapabilities->display_data.desired_content_max_luminance,
         (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
-               pHdrCapabilities->isEdrSupported                 ? L"Yes" : L"No",
-               pHdrCapabilities->isST2084EotfSupported          ? L"Yes" : L"No",
-               pHdrCapabilities->isTraditionalHdrGammaSupported ? L"Yes" : L"No",
-               pHdrCapabilities->isTraditionalSdrGammaSupported ? L"Yes" : L"No",
-               pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x1 ? L"Yes" : L"No",
-               pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x2 ? L"Yes" : L"No",
-               pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit      ? L"Yes" : L"No");
+               pHdrCapabilities->isEdrSupported                                 ? L"Yes" : L"No",
+               pHdrCapabilities->isST2084EotfSupported                          ? L"Yes" : L"No",
+               pHdrCapabilities->isTraditionalHdrGammaSupported                 ? L"Yes" : L"No",
+               pHdrCapabilities->isTraditionalSdrGammaSupported                 ? L"Yes" : L"No",
+              (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x1) ? L"Yes" : L"No",
+              (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x2) ? L"Yes" : L"No",
+               pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit       ? L"Yes" : L"No");
 
 
   if (ret == NVAPI_OK)
@@ -1177,7 +1180,7 @@ SK_NvAPI_PreInitHDR (void)
 
       static auto NvAPI_QueryInterface =
         reinterpret_cast <NvAPI_QueryInterface_pfn> (
-          GetProcAddress (hLib, "nvapi_QueryInterface")
+          SK_GetProcAddress (hLib, "nvapi_QueryInterface")
         );
 
       if (NvAPI_QueryInterface != nullptr)
@@ -1261,7 +1264,7 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
   {
     static auto NvAPI_QueryInterface =
       reinterpret_cast <NvAPI_QueryInterface_pfn> (
-        GetProcAddress (hLib, "nvapi_QueryInterface")
+        SK_GetProcAddress (hLib, "nvapi_QueryInterface")
       );
 
     NvAPI_GPU_GetRamType =
@@ -1562,7 +1565,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlSecureZeroMemory (app_ptr.get (), sizeof (NVDRS_APPLICATION));
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -1751,7 +1754,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
     typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
     NvAPI_QueryInterface_pfn          NvAPI_QueryInterface       =
-      (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
+      (NvAPI_QueryInterface_pfn)SK_GetProcAddress (hLib, "nvapi_QueryInterface");
     NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
       (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
 
@@ -1905,7 +1908,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
     typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
     NvAPI_QueryInterface_pfn       NvAPI_QueryInterface       =
-      (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
+      (NvAPI_QueryInterface_pfn)SK_GetProcAddress (hLib, "nvapi_QueryInterface");
     NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
       (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
 
@@ -2577,15 +2580,15 @@ SK_NvAPI_AddLauncherToProf (void)
 #if 0
   if (! already_set) {
 #ifdef WIN32
-    HMODULE hLib = LoadLibraryW_Original (L"nvapi.dll");
+    HMODULE hLib = SK_LoadLibraryW (L"nvapi.dll");
 #else
-    HMODULE hLib = LoadLibraryW_Original (L"nvapi64.dll");
+    HMODULE hLib = SK_LoadLibraryW (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
     typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
     NvAPI_QueryInterface_pfn       NvAPI_QueryInterface       =
-      (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
+      (NvAPI_QueryInterface_pfn)SK_GetProcAddress (hLib, "nvapi_QueryInterface");
     NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
       (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
 

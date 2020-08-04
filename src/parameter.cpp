@@ -602,7 +602,7 @@ sk::ParameterVec2f::store (ImVec2 val)
 void
 sk::ParameterVec2f::store_str (const wchar_t *str)
 {
-  store_str      (str);
+//store_str      (str);
   set_value_str  (str);
   iParameter::store ();
 }

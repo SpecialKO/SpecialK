@@ -53,13 +53,27 @@ typedef struct tagTHREADNAME_INFO
 #define RTL_CRITICAL_SECTION_FLAG_RESERVED              (RTL_CRITICAL_SECTION_ALL_FLAG_BITS & (~(RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO | RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN | RTL_CRITICAL_SECTION_FLAG_STATIC_INIT | RTL_CRITICAL_SECTION_FLAG_RESOURCE_TYPE | RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO)))
 
 
-static inline constexpr
-  const HANDLE
-    SK_GetCurrentThread  (void) noexcept { return reinterpret_cast <PVOID> (-2); }; //-V566
+static inline
+const HANDLE
+  SK_GetCurrentThread (void) noexcept
+  {
+    static const HANDLE _caller (
+      reinterpret_cast <HANDLE> (-2)
+    );
 
-static inline constexpr
-  const HANDLE
-    SK_GetCurrentProcess (void) noexcept { return reinterpret_cast <PVOID> (-1); };
+    return _caller;
+  };
+
+static inline
+const HANDLE
+  SK_GetCurrentProcess (void) noexcept
+  {
+    static const HANDLE _host (
+      reinterpret_cast <HANDLE> (-1)
+    );
+
+    return _host;
+  };
 
 
 
@@ -72,7 +86,7 @@ public:
                 SetThreadPriority (hThread, prio);
   }
 
- ~SK_Thread_ScopedPriority (void) noexcept ///
+ ~SK_Thread_ScopedPriority (void) noexcept
   {
     SetThreadPriority (hThread, orig_prio);
   }
@@ -104,10 +118,11 @@ public:
     LeaveCriticalSection (cs_);
   }
 
-  _Acquires_exclusive_lock_ (*this->cs_)
+  _Releases_nonreentrant_lock_ (*this->cs_)
   bool try_lock (void) noexcept
   {
-    return TryEnterCriticalSection (cs_);
+    return
+      TryEnterCriticalSection (cs_);
   }
 
 protected:
@@ -117,24 +132,26 @@ protected:
 class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
 {
 public:
-  SK_Thread_HybridSpinlock (int spin_count = 3000) noexcept :
-                                                              SK_Thread_CriticalSection (new (std::nothrow) CRITICAL_SECTION)
+  SK_Thread_HybridSpinlock (int spin_count = 3000) noexcept : SK_Thread_CriticalSection (&impl_cs_)
   {
     InitializeCriticalSectionEx (cs_, spin_count, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
-                                                  SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
+                                                   SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
   }
 
-  ~SK_Thread_HybridSpinlock (void) noexcept///
+  ~SK_Thread_HybridSpinlock (void) noexcept
   {
     DeleteCriticalSection (cs_);
-    delete cs_;
+                           cs_ = nullptr;
   }
+
+private:
+  CRITICAL_SECTION impl_cs_;
 };
 
 
 DWORD
 WINAPI
-SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable);
+SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) throw ();
 
 DWORD
 WINAPI
@@ -153,7 +170,7 @@ SK_WaitForSingleObject_Micro ( _In_ HANDLE         hHandle,
 __forceinline
 static void
 SK_Thread_SpinUntilFlagged ( _In_ _Interlocked_operand_ LONG volatile const *pFlag,
-                                                        LONG                 _SpinMax = 75L )
+                                                        LONG                 _SpinMax = 75L ) noexcept
 {
   while (! ReadAcquire (pFlag))
   {
@@ -172,7 +189,7 @@ __forceinline
 static void
 SK_Thread_SpinUntilAtomicMin ( _In_ _Interlocked_operand_ LONG volatile const *pVar,
                                                           LONG                 count,
-                                                          LONG                 _SpinMax = 75L )
+                                                          LONG                 _SpinMax = 75L ) noexcept
 {
   while (ReadAcquire (pVar) < count)
   {
@@ -428,11 +445,14 @@ typedef struct _NT_TIB_SK {
  struct _NT_TIB* Self;
 } NT_TIB_SK, *PNT_TIB_SK;
 
+#ifndef SK_UNICODE_STR
+#define SK_UNICODE_STR
 typedef struct _UNICODE_STRING_SK {
   USHORT           Length;
   USHORT           MaximumLength;
   PWSTR            Buffer;
 } UNICODE_STRING_SK;
+#endif
 
 typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
 
@@ -527,6 +547,9 @@ SK_Thread_GetCurrentId (void)
       ) & 0x00000000FFFFFFFFULL
     );
 }
+
+void SK_Thread_RaiseNameException (THREADNAME_INFO* pTni);
+
 
 
 #endif /* __SK__THREAD_H__ */

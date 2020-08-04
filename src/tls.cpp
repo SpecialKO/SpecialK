@@ -139,7 +139,7 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
   //   container. This is a lock-contended data store, so it is important
   //     to try and migrate the data into TLS as quickly as possible.
   //
-  static auto& emergency_room =
+  auto& emergency_room =
     __SK_EmergencyTLS.get ();
 
 
@@ -184,7 +184,7 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
         }
 
         else {
-          emergency_room [GetCurrentThreadId ()] = pTLS;
+          emergency_room [SK_Thread_GetCurrentId ()] = pTLS;
           // We can't store the TLS index, but it's in a place where it can
           //   be looked up as needed.
           success = true;
@@ -226,14 +226,18 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
   return nullptr;
 }
 
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord*>
+> __tls_map;
+
 Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>&
 SK_TLS_Map (void)
 {
-  static concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>
-    __tls_map (64);
+  static auto& tls_map =
+    __tls_map.get ();
 
   return
-    __tls_map;
+    tls_map;
 }
 
 SK_TlsRecord*
@@ -268,18 +272,21 @@ SK_CleanupTLS (void)
   if (pTLS->debug.mapped)
   {   pTLS->debug.mapped = false; }
 
+    if (pTLS->debug.handle != INVALID_HANDLE_VALUE)
+    {
+      DWORD                                          dwFlags = 0x0;
+      if (GetHandleInformation (pTLS->debug.handle, &dwFlags))
+      {            CloseHandle (pTLS->debug.handle); }
+
+      pTLS->debug.handle = INVALID_HANDLE_VALUE;
+    }
+
 #ifdef _DEBUG
   size_t freed =
 #endif
   pTLS->Cleanup (
     SK_TLS_CleanupReason_e::Unload
   );
-
-  if (pTLS->debug.handle != INVALID_HANDLE_VALUE)
-  {
-    CloseHandle (pTLS->debug.handle);
-                 pTLS->debug.handle = INVALID_HANDLE_VALUE;
-  }
 
 #ifdef _DEBUG
   SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
@@ -306,7 +313,7 @@ void
 SK_TLS_LogLeak ( const wchar_t* wszFunc,
                  const wchar_t* wszFile,
                            int line,
-                        size_t size )
+                        size_t size ) noexcept
 {
   SK_LOG0 ( ( L"TLS Memory Leak - [%s] < %s:%lu > - (%lu Bytes)",
                                wszFunc, wszFile,
@@ -315,9 +322,16 @@ SK_TLS_LogLeak ( const wchar_t* wszFunc,
 }
 
 
+
+extern DWORD SK_TLS_Acquire (void);
+
 SK_TLS*
 SK_TLS_Bottom (void)
 {
+  // For unusual cases where SK_TLS_Bottom is called
+  //   before DllMain (...) returns.
+  SK_RunOnce (SK_TLS_Acquire ());
+
   // This doesn't work for WOW64 executables, so
   //   basically any 32-bit program on a modern
   //     OS has to take the slow path.
@@ -791,7 +805,7 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
 
       if (stack_scratch.storage != nullptr)
       {
-                       stack_scratch.size = (uint32_t)size;
+                             stack_scratch.size = (uint32_t)size;
         RtlSecureZeroMemory (stack_scratch.storage,         size);
       } else SK_ReleaseAssert (false)
     }

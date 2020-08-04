@@ -34,6 +34,9 @@ typedef BOOL (WINAPI *GetLogicalProcessorInformation_pfn)(PSYSTEM_LOGICAL_PROCES
 const std::vector <uintptr_t>&
 SK_CPU_GetLogicalCorePairs (void);
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ "  CPUMgr  "
 
 BOOL
@@ -85,7 +88,9 @@ GetLogicalProcessorInformation_Detour (
           break;
       }
 
-      dwOffset += sizeof SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+      dwOffset +=
+        sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
+
       lpi++;
     }
   }
@@ -159,7 +164,7 @@ SK_CPU_CountPhysicalCores (void)
     {
       try {
         pLogProcInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
-          new uint8_t [dwNeededBytes] { };
+          new uint8_t [dwNeededBytes];
       }
 
       catch (const std::bad_alloc&)
@@ -189,12 +194,13 @@ SK_CPU_CountPhysicalCores (void)
                 break;
             }
 
-            dwOffset += sizeof SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+            dwOffset +=
+              sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
             lpi++;
           }
         }
 
-        delete [] pLogProcInfo;
+        delete [] (uint8_t *)pLogProcInfo;
       }
     }
   }
@@ -247,7 +253,8 @@ SK_CPU_GetLogicalCorePairs (void)
               break;
           }
 
-          dwOffset += sizeof SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+          dwOffset +=
+            sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
           lpi++;
         }
       }

@@ -22,13 +22,9 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
-#include <SpecialK/control_panel.h>
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_d3d11.h>
 
 #define YS8_VERSION_NUM L"0.8.0"
 #define YS8_VERSION_STR L"Ys8 Fixin' Stuff v " YS8_VERSION_NUM
@@ -100,7 +96,6 @@ struct ys8_cfg_s
 
 SK_LazyGlobal <ys8_cfg_s> ys8_config;
 
-#include <concurrent_vector.h>
 extern SK_LazyGlobal <
   concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s>
 > __SK_D3D11_PixelShader_CBuffer_Overrides;
@@ -251,7 +246,7 @@ SK_YS8_RecursiveFileExport (
     return false;
   };
 
-  wchar_t   wszPath [MAX_PATH * 2] = { };
+  wchar_t   wszPath [MAX_PATH + 2] = { };
   swprintf (wszPath, LR"(%s\%s\*)", wszRoot, wszSubDir);
 
   WIN32_FIND_DATA fd          = {   };
@@ -315,7 +310,7 @@ SK_YS8_RecursiveFileExport (
 
     else if ( _wcsicmp (fd.cFileName, L"SK_Export") != 0 )
     {
-      wchar_t   wszDescend [MAX_PATH * 2] = { };
+      wchar_t   wszDescend [MAX_PATH + 2] = { };
       swprintf (wszDescend, LR"(%s\%s)", wszSubDir, fd.cFileName);
 
       SK_YS8_RecursiveFileExport (wszRoot, wszDescend, patterns);
@@ -346,7 +341,7 @@ const
     return false;
   };
 
-  wchar_t   wszPath [MAX_PATH * 2] = { };
+  wchar_t   wszPath [MAX_PATH + 2] = { };
   swprintf (wszPath, LR"(%s\%s\*)", wszRoot, wszSubDir);
 
   WIN32_FIND_DATA fd          = {   };
@@ -425,7 +420,7 @@ const
 
     else if ( _wcsicmp (fd.cFileName, L"SK_Export") != 0 )
     {
-      wchar_t   wszDescend [MAX_PATH * 2] = { };
+      wchar_t   wszDescend [MAX_PATH + 2] = { };
       swprintf (wszDescend, LR"(%s\%s)", wszSubDir, fd.cFileName);
 
       const auto recursive_work =
@@ -460,7 +455,7 @@ _SK_RecursiveFileSizeProbe (const wchar_t *wszDir, bool top_lvl = false)
 
   uint64_t size = 0;
 
-  wchar_t   wszPath [MAX_PATH * 2] = { };
+  wchar_t   wszPath [MAX_PATH + 2] = { };
   swprintf (wszPath, LR"(%s\*)", wszDir);
 
   WIN32_FIND_DATA fd          = {   };
@@ -486,7 +481,7 @@ _SK_RecursiveFileSizeProbe (const wchar_t *wszDir, bool top_lvl = false)
 
     else
     {
-      wchar_t   wszDescend [MAX_PATH * 2] = { };
+      wchar_t   wszDescend [MAX_PATH + 2] = { };
       swprintf (wszDescend, LR"(%s\%s)", wszDir, fd.cFileName);
 
       size += _SK_RecursiveFileSizeProbe (wszDescend);
@@ -966,7 +961,7 @@ SK_YS8_ControlPanel (void)
     }
 
     static DWORD   dwLen                     =   0;
-    static wchar_t wszWorkDir [MAX_PATH * 2] = { };
+    static wchar_t wszWorkDir [MAX_PATH + 2] = { };
 
     if (dwLen == 0)
     {
@@ -1015,7 +1010,7 @@ const
 
       if (activate_menu)
       {
-        ShellExecuteW ( GetActiveWindow (),
+        SK_ShellExecuteW ( nullptr,
           L"explore",
             probe_dir.c_str (),
               nullptr, nullptr,

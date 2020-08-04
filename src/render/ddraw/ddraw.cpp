@@ -249,20 +249,20 @@ SK_HookDDraw (void)
     {
       (DirectDrawEnumerateA_Import) =  \
         reinterpret_cast <DirectDrawEnumerate_pfn> (
-          GetProcAddress (hBackend, "DirectDrawEnumerateA")
+       SK_GetProcAddress (hBackend, "DirectDrawEnumerateA")
         );
       (DirectDrawEnumerateW_Import) =  \
         reinterpret_cast <DirectDrawEnumerate_pfn> (
-          GetProcAddress (hBackend, "DirectDrawEnumerateW")
+       SK_GetProcAddress (hBackend, "DirectDrawEnumerateW")
         );
 
       (DirectDrawEnumerateExA_Import) =  \
         reinterpret_cast <DirectDrawEnumerateEx_pfn> (
-          GetProcAddress (hBackend, "DirectDrawEnumerateExA")
+       SK_GetProcAddress (hBackend, "DirectDrawEnumerateExA")
         );
       (DirectDrawEnumerateExW_Import) =  \
         reinterpret_cast <DirectDrawEnumerateEx_pfn> (
-          GetProcAddress (hBackend, "DirectDrawEnumerateExW")
+       SK_GetProcAddress (hBackend, "DirectDrawEnumerateExW")
         );
     };
 
@@ -274,14 +274,14 @@ SK_HookDDraw (void)
       dll_log->Log (L"[   DDraw  ]   DirectDrawCreate:   %08" PRIxPTR L"h",
         (uintptr_t)(DirectDrawCreate_Import =
           reinterpret_cast <DirectDrawCreate_pfn> (
-            GetProcAddress (hBackend, "DirectDrawCreate")
+         SK_GetProcAddress (hBackend, "DirectDrawCreate")
           )
         )
       );
       dll_log->Log (L"[   DDraw  ]   DirectDrawCreateEx: %08" PRIxPTR L"h",
         (uintptr_t)(DirectDrawCreateEx_Import =
           reinterpret_cast <DirectDrawCreateEx_pfn> (
-            GetProcAddress (hBackend, "DirectDrawCreateEx")
+         SK_GetProcAddress (hBackend, "DirectDrawCreateEx")
           )
         )
       );
@@ -345,11 +345,11 @@ SK_HookDDraw (void)
         {
           DirectDrawCreate_Import   =
             reinterpret_cast <DirectDrawCreate_pfn> (
-              GetProcAddress (hBackend, "DirectDrawCreate")
+           SK_GetProcAddress (hBackend, "DirectDrawCreate")
             );
           DirectDrawCreateEx_Import =
             reinterpret_cast <DirectDrawCreateEx_pfn> (
-              GetProcAddress (hBackend, "DirectDrawCreateEx")
+           SK_GetProcAddress (hBackend, "DirectDrawCreateEx")
             );
 
           LoadSupplementalImports ();
@@ -401,7 +401,7 @@ ddraw_init_callback (finish_pfn finish)
 bool
 SK::DDraw::Startup (void)
 {
-  wchar_t wszImmediateMode [MAX_PATH * 2 + 1] = { };
+  wchar_t wszImmediateMode [MAX_PATH + 2] = { };
 
   wsprintf ( wszImmediateMode, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
                std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str () );
@@ -409,7 +409,7 @@ SK::DDraw::Startup (void)
 
   imports->dgvoodoo_d3dimm               = new import_s ();
   auto*    dgvoodoo_d3dimm               = imports->dgvoodoo_d3dimm;
-           dgvoodoo_d3dimm->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
+           dgvoodoo_d3dimm->hLibrary     = SK_Modules->LoadLibrary (wszImmediateMode);
            dgvoodoo_d3dimm->name         = L"API Support Plug-In";
            dgvoodoo_d3dimm->product_desc =
              SK_GetDLLVersionStr ( SK_GetModuleFullName (
@@ -423,7 +423,7 @@ SK::DDraw::Startup (void)
 
   imports->dgvoodoo_d3d8               = new import_s ();
   auto*    dgvoodoo_d3d8               = imports->dgvoodoo_d3d8;
-           dgvoodoo_d3d8->hLibrary     = SK_Modules->LoadLibraryW (wszImmediateMode);
+           dgvoodoo_d3d8->hLibrary     = SK_Modules->LoadLibrary (wszImmediateMode);
            dgvoodoo_d3d8->name         = L"API Support Plug-In";
            dgvoodoo_d3d8->product_desc =
              SK_GetDLLVersionStr ( SK_GetModuleFullName (
@@ -442,19 +442,19 @@ SK::DDraw::Shutdown (void)
 {
   if (imports->dgvoodoo_ddraw)
   {
-    FreeLibrary (imports->dgvoodoo_ddraw->hLibrary);
+    SK_FreeLibrary (imports->dgvoodoo_ddraw->hLibrary);
     delete imports->dgvoodoo_ddraw;
   }
 
   if (imports->dgvoodoo_d3d8)
   {
-    FreeLibrary (imports->dgvoodoo_d3d8->hLibrary);
+    SK_FreeLibrary (imports->dgvoodoo_d3d8->hLibrary);
     delete imports->dgvoodoo_d3d8;
   }
 
   if (imports->dgvoodoo_d3dimm)
   {
-    FreeLibrary (imports->dgvoodoo_d3dimm->hLibrary);
+    SK_FreeLibrary (imports->dgvoodoo_d3dimm->hLibrary);
     delete imports->dgvoodoo_d3dimm;
   }
 

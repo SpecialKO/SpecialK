@@ -21,6 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"XInput_Hot"
 
 #include <SpecialK/input/xinput_hotplug.h>
@@ -156,7 +159,7 @@ SK_XInput_NotifyDeviceArrival (void)
         };
 
         WNDCLASSEXW wnd_class   = { };
-        wnd_class.hInstance     = GetModuleHandle (nullptr);
+        wnd_class.hInstance     = SK_GetModuleHandle (nullptr);
         wnd_class.lpszClassName = L"SK_HID_Listener";
         wnd_class.lpfnWndProc   = SK_HID_DeviceNotifyProc;
         wnd_class.cbSize        = sizeof (WNDCLASSEXW);

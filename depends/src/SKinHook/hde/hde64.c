@@ -68,7 +68,9 @@ unsigned int hde64_disasm(const void *code, hde64s *hs)
 
     if ((c & 0xf0) == 0x40) {
         hs->flags |= F_PREFIX_REX;
-        if ((hs->rex_w = (c & 0xf) >> 3) && (*p & 0xf8) == 0xb8)
+        // Got tired of compiler warnings, so this is ouside the conditional now.
+        hs->rex_w = (c & 0xf) >> 3;
+        if (hs->rex_w && (*p & 0xf8) == 0xb8)
             op64++;
         hs->rex_r = (c & 7) >> 2;
         hs->rex_x = (c & 3) >> 1;
@@ -128,7 +130,10 @@ unsigned int hde64_disasm(const void *code, hde64s *hs)
         if (!hs->opcode2 && opcode >= 0xd9 && opcode <= 0xdf) {
             uint8_t t = opcode - 0xd9;
             if (m_mod == 3) {
-                ht = hde64_table + DELTA_FPU_MODRM + t*8;
+                // warning C26451 : Arithmetic overflow : Using operator '*' on a 4 byte value
+                //                  and then casting the result to a 8 byte value.Cast the value
+                //                  to the wider type before calling operator '*' to avoid overflow (io.2).
+                ht = hde64_table + DELTA_FPU_MODRM + (int)t*8;
                 t = ht[m_reg] << m_rm;
             } else {
                 ht = hde64_table + DELTA_FPU_REG;

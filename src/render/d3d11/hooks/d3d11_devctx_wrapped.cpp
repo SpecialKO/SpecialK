@@ -21,6 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"D3D11 Wrap"
 
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
@@ -42,6 +45,10 @@ const GUID IID_ID3D11Fence   =
 const GUID IID_IUnwrappedD3D11DeviceContext =
 { 0xe8a22a3f, 0x1405, 0x424c, { 0xae, 0x99, 0xd, 0x3e, 0x9d, 0x54, 0x7c, 0x32 } };
 
+// {F674A27D-A14E-48BA-9E1E-A72D20C018B4}
+static const GUID IID_IUnwrappedD3D11Multithread =
+{ 0xf674a27d, 0xa14e, 0x48ba, { 0x9e, 0x1e, 0xa7, 0x2d, 0x20, 0xc0, 0x18, 0xb4 } };
+
 
 
 extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
@@ -55,6 +62,179 @@ extern SK_LazyGlobal <std::unordered_map <ID3D11DeviceContext *, mapped_resource
 
 //#define SK_D3D11_LAZY_WRAP
 
+DEFINE_GUID ( IID_ID3D10Multithread,
+  0x9B7E4E00, 0x342C, 0x4106, 0xA1,
+  0x9F, 0x4F, 0x27,   0x04,   0xF6,
+  0x89, 0xF0 );
+DEFINE_GUID ( IID_ID3D11Multithread,
+  0x9B7E4E00, 0x342C, 0x4106, 0xA1,
+  0x9F, 0x4F, 0x27,   0x04,   0xF6,
+  0x89, 0xF0 );
+
+// ^^^ They are the same COM object (!!)
+
+class SK_IWrapD3D11Multithread : public ID3D11Multithread
+{
+public:
+  explicit SK_IWrapD3D11Multithread ( SK_IWrapD3D11DeviceContext* parent_ )
+  {
+    pWrapperParent = (ID3D11DeviceContext *)parent_;
+
+    if (parent_ != nullptr)
+    {
+      if (
+        SUCCEEDED (
+          pWrapperParent->QueryInterface
+            (IID_IUnwrappedD3D11DeviceContext,
+              (void **)&pRealParent.p)
+                  )
+         )
+      {
+        if (
+          SUCCEEDED (
+            pRealParent->QueryInterface
+              <ID3D11Multithread>
+                (&pReal.p)
+                    )
+           )
+        {
+          refs_ = 1;
+        }
+      }
+    }
+  };
+
+  HRESULT
+    STDMETHODCALLTYPE QueryInterface ( REFIID   riid,
+                          _COM_Outptr_ void   **ppvObj ) override
+  {
+    HRESULT hr = E_POINTER;
+
+    if (ppvObj == nullptr)
+    {
+      return hr;
+    }
+
+    if ( IsEqualGUID (riid, IID_IUnwrappedD3D11Multithread) != 0 )
+    {
+      //assert (ppvObject != nullptr);
+      *ppvObj = pReal;
+
+      pReal.p->AddRef ();
+
+      hr = S_OK;
+
+      return hr;
+    }
+
+    if ( riid == __uuidof (IUnknown)   ||
+         riid == __uuidof (ID3D11Multithread) )
+    {
+      AddRef ();
+
+      *ppvObj   = this;
+             hr = S_OK;
+      return hr;
+    }
+
+    hr =
+      pReal->QueryInterface (riid, ppvObj);
+
+    ///if (SUCCEEDED (hr))
+    ///  InterlockedIncrement (&refs_);
+
+    if ( riid != IID_ID3DUserDefinedAnnotation )
+    {
+      static
+        std::unordered_set <std::wstring> reported_guids;
+
+      wchar_t                wszGUID [41] = { };
+      StringFromGUID2 (riid, wszGUID, 40);
+
+      bool once =
+        reported_guids.count (wszGUID) > 0;
+
+      if (! once)
+      {
+        reported_guids.emplace (wszGUID);
+
+        SK_LOG0 ( ( L"QueryInterface on wrapped D3D11Multithread thingy for Mystery UUID: %s",
+                        wszGUID ), L"  D3D 11  " );
+      }
+    }
+
+    return
+      hr;
+  }
+
+  ULONG STDMETHODCALLTYPE AddRef  (void) override
+  {
+    InterlockedIncrement (&refs_);
+
+    return
+      pReal.p->AddRef ();
+  }
+  ULONG STDMETHODCALLTYPE Release (void) override
+  {
+    ULONG xrefs =
+      InterlockedDecrement (&refs_),
+           refs = pReal.p->Release ();
+
+    if (refs == 0 && xrefs != 0)
+    {
+      // Assertion always fails, we just want to be vocal about
+      //   any code that causes this.
+      SK_ReleaseAssert (xrefs == 0);
+    }
+
+    if (refs == 0)
+    {
+      SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
+    }
+
+    if (xrefs == 0 && refs == 0 && refs_ == 0)
+    {
+      //delete this;
+      return    0;
+    }
+
+    else
+      SK_LOG0 ( ( L"ID3D11Multithread::Release (...) -> xrefs=%lu, "
+                                                       L"refs=%lu, refs_=%lu",
+                  xrefs, refs, refs_ ), __SK_SUBSYSTEM__
+              );
+
+    return refs;
+  }
+
+  void STDMETHODCALLTYPE Enter (void) override
+  {
+    pReal->Enter ();
+  }
+  void STDMETHODCALLTYPE Leave (void) override
+  {
+    pReal->Leave ();
+  }
+  BOOL STDMETHODCALLTYPE SetMultithreadProtected
+  ( /* [annotation] */
+    _In_            BOOL bMTProtect ) override
+  {
+    return
+      pReal->SetMultithreadProtected (bMTProtect);
+  }
+  BOOL STDMETHODCALLTYPE GetMultithreadProtected (void) override
+  {
+    return
+      pReal->GetMultithreadProtected ();
+  }
+
+private:
+  volatile
+    LONG                            refs_          =       1;
+    SK_ComPtr <ID3D11DeviceContext> pWrapperParent = nullptr;
+    SK_ComPtr <ID3D11DeviceContext> pRealParent    = nullptr;
+    SK_ComPtr <ID3D11Multithread>   pReal          = nullptr;
+};
 
 class SK_IWrapD3D11DeviceContext : public ID3D11DeviceContext4
 {
@@ -107,6 +287,9 @@ public:
 
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
+
+    pMultiThread =
+      SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext1* dev_ctx) : pReal (dev_ctx)
@@ -137,6 +320,9 @@ public:
 
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
+
+    pMultiThread =
+      SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext2* dev_ctx) : pReal (dev_ctx)
@@ -167,6 +353,9 @@ public:
 
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
+
+    pMultiThread =
+      SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext3* dev_ctx) : pReal (dev_ctx)
@@ -195,6 +384,9 @@ public:
 
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
+
+    pMultiThread =
+      SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext4* dev_ctx) : pReal (dev_ctx)
@@ -213,17 +405,21 @@ public:
 
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
+
+    pMultiThread =
+      SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   virtual ~SK_IWrapD3D11DeviceContext (void) = default;
 
-  HRESULT STDMETHODCALLTYPE QueryInterface ( REFIID riid,
-                                            _COM_Outptr_ void
-                                            __RPC_FAR *__RPC_FAR *ppvObj ) override
+  HRESULT STDMETHODCALLTYPE QueryInterface ( REFIID   riid,
+                                _COM_Outptr_ void   **ppvObj ) override
   {
+    HRESULT hr = E_POINTER;
+
     if (ppvObj == nullptr)
     {
-      return E_POINTER;
+      return hr;
     }
 
     if ( IsEqualGUID (riid, IID_IUnwrappedD3D11DeviceContext) != 0 )
@@ -233,7 +429,9 @@ public:
 
       pReal->AddRef ();
 
-      return S_OK;
+      hr = S_OK;
+
+      return hr;
     }
 
     if (
@@ -271,7 +469,9 @@ public:
                     ) || pPromoted == nullptr
            )
         {
-          return E_NOINTERFACE;
+          *ppvObj   = nullptr;
+                 hr = E_NOINTERFACE;
+          return hr;
         }
 
         ver_ =
@@ -279,23 +479,89 @@ public:
                                          required_ver : ver_;
       }
 
-      AddRef ();
+      else
+      {
+        AddRef ();
+      }
 
-      *ppvObj = this;
+      InterlockedIncrement (&refs_);
 
+      *ppvObj   = this;
+             hr = S_OK;
+      return hr;
+    }
+
+    else if (riid == IID_ID3D11Multithread)
+    {
+      hr =
+        ( pMultiThread.p != nullptr ) ?
+                                 S_OK : E_NOINTERFACE;
+
+      if (hr == E_NOINTERFACE)
+      {
+        hr =
+          pReal->QueryInterface (riid, (void**)&pMultiThread.p);
+      }
+
+      else
+      {
+        hr = S_OK;
+
+        pMultiThread.p->AddRef ();
+      }
+
+      if (SUCCEEDED (hr))
+      {
+        *ppvObj = pMultiThread;
+
+        return hr;
+      }
+    }
+
+    else if (riid == IID_ID3D11Device)
+    {
+      SK_LOG_FIRST_CALL
+
+      GetDevice ((ID3D11Device **)ppvObj);
       return S_OK;
     }
 
-    return
+    hr =
       pReal->QueryInterface (riid, ppvObj);
+
+    //if (SUCCEEDED (hr))
+    //  InterlockedIncrement (&refs_);
+
+    if ( riid != IID_ID3DUserDefinedAnnotation )
+    {
+      static
+        std::unordered_set <std::wstring> reported_guids;
+
+      wchar_t                wszGUID [41] = { };
+      StringFromGUID2 (riid, wszGUID, 40);
+
+      bool once =
+        reported_guids.count (wszGUID) > 0;
+
+      if (! once)
+      {
+        reported_guids.emplace (wszGUID);
+
+        SK_LOG0 ( ( L"QueryInterface on wrapped D3D11 Device Context for Mystery UUID: %s",
+                        wszGUID ), L"  D3D 11  " );
+      }
+    }
+
+    return
+      hr;
   }
 
   ULONG STDMETHODCALLTYPE AddRef  (void) override
   {
-    pReal->AddRef ();
+    InterlockedIncrement (&refs_);
 
     return
-      (ULONG)InterlockedIncrement (&refs_);
+      pReal->AddRef ();
   }
   ULONG STDMETHODCALLTYPE Release (void) override
   {
@@ -303,24 +569,25 @@ public:
       InterlockedDecrement (&refs_),
            refs = pReal->Release ();
 
-    if (ReadAcquire (&refs_) == 0 && refs != 0)
+    if (refs == 0 && xrefs != 0)
     {
-      assert (false);
-
-      //refs = 0;
+      // Assertion always fails, we just want to be vocal about
+      //   any code that causes this.
+      SK_ReleaseAssert (xrefs == 0);
     }
 
     if (refs == 0)
     {
       SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
 
-      if (ReadAcquire (&refs_) == 0)
-      {
-        delete this;
+      if (pMultiThread.p != nullptr)
+      {   pMultiThread    = nullptr;
       }
+
+      delete this;
     }
 
-    return xrefs;
+    return refs;
   }
 
   void STDMETHODCALLTYPE GetDevice (
@@ -1074,12 +1341,12 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         //  }
         //}
 
-        if (DstSubresource == 0 && SK_D3D11_TextureIsCached (pDstTex))
-        {
-          SK_LOG0 ( (L"Cached texture was modified (CopySubresourceRegion)... removing from cache! - <%s>",
-                   SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-          SK_D3D11_RemoveTexFromCache (pDstTex, true);
-        }
+        //if (DstSubresource == 0 && SK_D3D11_TextureIsCached (pDstTex))
+        //{
+        //  SK_LOG0 ( (L"Cached texture was modified (CopySubresourceRegion)... removing from cache! - <%s>",
+        //           SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
+        //  SK_D3D11_RemoveTexFromCache (pDstTex, true);
+        //}
       }
     }
 
@@ -1116,9 +1383,9 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         {
           mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_BUFFER]++;
 
-          ID3D11Buffer* pBuffer = nullptr;
+          SK_ComQIPtr <ID3D11Buffer> pBuffer (pSrcResource);
 
-          if (SUCCEEDED (pSrcResource->QueryInterface <ID3D11Buffer> (&pBuffer)))
+          if (pBuffer.p != nullptr)
           {
             D3D11_BUFFER_DESC  buf_desc = { };
             pBuffer->GetDesc (&buf_desc);
@@ -1139,8 +1406,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
             }
 
             mem_map_stats->last_frame.bytes_copied += buf_desc.ByteWidth;
-
-            pBuffer->Release ();
           }
         } break;
         case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
@@ -1159,41 +1424,41 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
                                    pSrcResource, SrcSubresource, pSrcBox );
 
-    if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) ||
-           SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
-    {
-      auto& map_ctx = (*mapped_resources)[pReal];
-
-      if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource))
-      {
-        const uint32_t top_crc32 = map_ctx.dynamic_texturesx [pSrcResource];
-        const uint32_t checksum  = map_ctx.dynamic_textures  [pSrcResource];
-
-        D3D11_TEXTURE2D_DESC dst_desc = { };
-        pDstTex->GetDesc (&dst_desc);
-
-        const uint32_t cache_tag =
-          safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof (D3D11_TEXTURE2D_DESC));
-
-        if (checksum != 0x00 && dst_desc.Usage != D3D11_USAGE_STAGING)
-        {
-          textures->refTexture2D ( pDstTex,
-                                   &dst_desc,
-                                   cache_tag,
-                                   map_ctx.dynamic_sizes2 [checksum],
-                                   map_ctx.dynamic_times2 [checksum],
-                                   top_crc32,
-                                   L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
-                                   pTLS );
-
-          map_ctx.dynamic_textures.erase  (pSrcResource);
-          map_ctx.dynamic_texturesx.erase (pSrcResource);
-
-          map_ctx.dynamic_sizes2.erase    (checksum);
-          map_ctx.dynamic_times2.erase    (checksum);
-        }
-      }
-    }
+    //if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) ||
+    //       SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
+    //{
+    //  auto& map_ctx = (*mapped_resources)[pReal];
+    //
+    //  if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource))
+    //  {
+    //    const uint32_t top_crc32 = map_ctx.dynamic_texturesx [pSrcResource];
+    //    const uint32_t checksum  = map_ctx.dynamic_textures  [pSrcResource];
+    //
+    //    D3D11_TEXTURE2D_DESC dst_desc = { };
+    //    pDstTex->GetDesc (&dst_desc);
+    //
+    //    const uint32_t cache_tag =
+    //      safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof (D3D11_TEXTURE2D_DESC));
+    //
+    //    if (checksum != 0x00 && dst_desc.Usage != D3D11_USAGE_STAGING)
+    //    {
+    //      textures->refTexture2D ( pDstTex,
+    //                               &dst_desc,
+    //                               cache_tag,
+    //                               map_ctx.dynamic_sizes2 [checksum],
+    //                               map_ctx.dynamic_times2 [checksum],
+    //                               top_crc32,
+    //                               L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
+    //                               pTLS );
+    //
+    //      map_ctx.dynamic_textures.erase  (pSrcResource);
+    //      map_ctx.dynamic_texturesx.erase (pSrcResource);
+    //
+    //      map_ctx.dynamic_sizes2.erase    (checksum);
+    //      map_ctx.dynamic_times2.erase    (checksum);
+    //    }
+    //  }
+    //}
   }
 
   void STDMETHODCALLTYPE CopyResource (
@@ -2024,9 +2289,9 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     bool SK_D3D11_QueueContextReset (ID3D11DeviceContext* pDevCtx, UINT dev_ctx);
     bool SK_D3D11_DispatchContextResetQueue (UINT dev_ctx);
 
-  //SK_D3D11_QueueContextReset  (pReal, dev_ctx_handle_);
+    SK_D3D11_QueueContextReset  (pReal, dev_ctx_handle_);
     pReal->ClearState           (                      );
-  //SK_D3D11_DispatchContextResetQueue (dev_ctx_handle_);
+    SK_D3D11_DispatchContextResetQueue (dev_ctx_handle_);
   }
 
   void STDMETHODCALLTYPE Flush (void) override
@@ -2460,13 +2725,15 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
 
 protected:
 private:
-  volatile LONG        refs_           = 1;
-  unsigned int         ver_            = 0;
-  bool                 deferred_       = false;
-  UINT                 dev_ctx_handle_ = UINT_MAX;
-  ID3D11DeviceContext* pReal           = nullptr;
+  volatile LONG         refs_           = 1;
+  unsigned int          ver_            = 0;
+  bool                  deferred_       = false;
+  UINT                  dev_ctx_handle_ = UINT_MAX;
+  ID3D11DeviceContext*  pReal           = nullptr;
+  SK_ComPtr
+    <SK_IWrapD3D11Multithread>
+                        pMultiThread    = nullptr;
 };
-
 
 ID3D11DeviceContext4*
 SK_D3D11_Wrapper_Factory::wrapDeviceContext (ID3D11DeviceContext* dev_ctx)
@@ -2474,5 +2741,14 @@ SK_D3D11_Wrapper_Factory::wrapDeviceContext (ID3D11DeviceContext* dev_ctx)
   return
     new SK_IWrapD3D11DeviceContext (dev_ctx);
 }
+
+SK_IWrapD3D11Multithread*
+SK_D3D11_Wrapper_Factory::wrapMultithread (SK_IWrapD3D11DeviceContext* wrapped_ctx)
+{
+  return
+    new SK_IWrapD3D11Multithread (wrapped_ctx);
+}
+
+
 
 SK_LazyGlobal <SK_D3D11_Wrapper_Factory> SK_D3D11_WrapperFactory;

@@ -24,7 +24,6 @@
 #ifndef __SK__UTILITY_H__
 #define __SK__UTILITY_H__
 
-struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <intrin.h>
@@ -114,6 +113,7 @@ LPVOID         SK_Win32_GetTokenInfo        (_TOKEN_INFORMATION_CLASS tic);
 LPVOID         SK_Win32_ReleaseTokenInfo    (LPVOID                   lpTokenBuf);
 
 time_t         SK_Win32_FILETIME_to_time_t  (FILETIME const& ft);
+FILETIME       SK_Win32_time_t_to_FILETIME  (time_t          epoch);
 
 std::string    SK_WideCharToUTF8            (const std::wstring& in);
 std::wstring   SK_UTF8ToWideChar            (const std::string&  in);
@@ -131,6 +131,8 @@ void           SK_StripTrailingSlashesW     (wchar_t *wszInOut);
 void           SK_StripTrailingSlashesA     (char    *szInOut);
 void           SK_FixSlashesW               (wchar_t *wszInOut);
 void           SK_FixSlashesA               (char    *szInOut);
+void           SK_StripLeadingSlashesW      (wchar_t *wszInOut);
+void           SK_StripLeadingSlashesA      (char    *szInOut);
 
 void           SK_File_SetNormalAttribs     (const wchar_t* file);
 void           SK_File_MoveNoFail           (const wchar_t* wszOld,    const wchar_t* wszNew);
@@ -215,6 +217,8 @@ public:
     // Signed handles are often special cases
     //   such as -2 = Current Thread, -1 = Current Process
   }
+
+  const HANDLE& get (void) const noexcept { return m_h; };
 };
 
 
@@ -238,8 +242,10 @@ SK_GetBitness (void)
   return 32;
 }
 
-#define SK_RunOnce(x)    { static volatile LONG __skro_first = TRUE; \
-               if (InterlockedCompareExchange (&__skro_first, FALSE, TRUE)) { (x); } }
+// Avoid the C++ stdlib and use CPU interlocked instructions instead, so this
+//   is safe to use even by parts of the DLL that run before the CRT initializes
+#define SK_RunOnce(x)    { static volatile LONG __once = TRUE; \
+               if (InterlockedCompareExchange (&__once, FALSE, TRUE)) { (x); } }
 //#define SK_RunOnce(x)    { static std::once_flag the_wuncler;             \
 //                             std::call_once (the_wuncler, [&](){ (x); }); }
 
@@ -248,10 +254,10 @@ SK_GetBitness (void)
 #define SK_RunLHIfBitness(b,l,r)   SK_GetBitness () == (b) ? (l) : (r)
 
 
-#define SK_LOG_FIRST_CALL { bool called = false;                                      \
-                     SK_RunOnce (called = true);                                      \
-                             if (called) {                                            \
-        SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__),      __SK_SUBSYSTEM__); \
+#define SK_LOG_FIRST_CALL { bool called = false;                                       \
+                     SK_RunOnce (called = true);                                       \
+                             if (called) {                                             \
+        SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__),       __SK_SUBSYSTEM__); \
         SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); } }
 
 
@@ -259,30 +265,34 @@ void SK_ImGui_Warning          (const wchar_t* wszMessage);
 void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                 const wchar_t* wszTitle);
 
-#define SK_ReleaseAssertEx(_expr,_msg,_file,_line) {                   \
-  if (! (_expr))                                                       \
-  {                                                                    \
-    SK_LOG0 ( (  L"Critical Assertion Failure: '%ws' (%ws:%u)",        \
-                   (_msg), (_file), (_line)                            \
-              ), L" SpecialK ");                                       \
-                                                                       \
-    if (config.system.log_level > 1)                                   \
-    {                                                                  \
-      if (SK_IsDebuggerPresent ())                                     \
-             __debugbreak      ();                                     \
-    }                                                                  \
-                                                                       \
-    else                                                               \
-    { SK_RunOnce (                                                     \
-         SK_ImGui_WarningWithTitle (                                   \
-                  SK_FormatStringW ( L"Critical Assertion Failure: "   \
-                                     L"'%ws'",   (_msg) ).c_str (),    \
-                  SK_FormatStringW ( L"(%ws:%u)",                      \
-                                       (_file), (_line) ).c_str () )   \
-                 );                }                               }   }
+#define SK_ReleaseAssertEx(_expr,_msg,_file,_line,_func) {                \
+  if (! (_expr))                                                          \
+  {                                                                       \
+    SK_LOG0 ( (  L"Critical Assertion Failure: '%ws' (%ws:%u) -- %hs",    \
+                   (_msg), (_file), (_line), (_func)                      \
+              ), L" SpecialK ");                                          \
+                                                                          \
+    if (config.system.log_level > 1)                                      \
+    {                                                                     \
+      if (SK_IsDebuggerPresent ())                                        \
+             __debugbreak      ();                                        \
+    }                                                                     \
+                                                                          \
+    else                                                                  \
+    { SK_RunOnce (                                                        \
+         SK_ImGui_WarningWithTitle (                                      \
+                  SK_FormatStringW ( L"Critical Assertion Failure: "      \
+                                     L"'%ws'\r\n\r\n\tFunction: %hs"      \
+                                               L"\r\n\tSource: (%ws:%u)", \
+                                       (_msg),  (_func),                  \
+                                       (_file), (_line)                   \
+                                   ).c_str (),                            \
+                                 L"First-Chance Assertion Failure" )      \
+                 );                }                               }      }
 
-#define SK_ReleaseAssert(expr) { SK_ReleaseAssertEx ( (expr),L#expr,   \
-                                                    __FILEW__,__LINE__ ) }
+#define SK_ReleaseAssert(expr) { SK_ReleaseAssertEx ( (expr),L#expr,    \
+                                                    __FILEW__,__LINE__, \
+                                                    __FUNCSIG__ ) }
 
 
 std::queue <DWORD>
@@ -305,12 +315,13 @@ public:
   {
     init ();
 
-    return SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
+    return SKIF || SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
   }
 
 
 protected:
   bool        SKIM     = false;
+  bool        SKIF     = false;
   bool        RunDll32 = false;
 };
 
@@ -392,7 +403,25 @@ bool
 SK_IsProcessRunning (const wchar_t* wszProcName);
 
 
+// Call this instead of ShellExecuteW in order to handle COM init. so that all
+// verbs (lpOperation) work.
+HINSTANCE
+WINAPI
+SK_ShellExecuteW ( _In_opt_ HWND    hwnd,
+                   _In_opt_ LPCWSTR lpOperation,
+                   _In_     LPCWSTR lpFile,
+                   _In_opt_ LPCWSTR lpParameters,
+                   _In_opt_ LPCWSTR lpDirectory,
+                   _In_     INT     nShowCmd );
 
+HINSTANCE
+WINAPI
+SK_ShellExecuteA ( _In_opt_ HWND   hwnd,
+                   _In_opt_ LPCSTR lpOperation,
+                   _In_     LPCSTR lpFile,
+                   _In_opt_ LPCSTR lpParameters,
+                   _In_opt_ LPCSTR lpDirectory,
+                   _In_     INT    nShowCmd );
 
 
 constexpr size_t
@@ -560,13 +589,13 @@ private:
   {
   public:
     InstructionSet_Internal (void) : nIds_     { 0     }, nExIds_   { 0     },
+                                     vendor_   ( ""    ), brand_    ( ""    ),
+                                     family_   { 0     }, model_    { 0     },
+                                     stepping_ { 0     },
                                      isIntel_  { false }, isAMD_    { false },
                                      f_1_ECX_  { 0     }, f_1_EDX_  { 0     },
                                      f_7_EBX_  { 0     }, f_7_ECX_  { 0     },
-                                     f_81_ECX_ { 0     }, f_81_EDX_ { 0     },
-                                     family_   { 0     }, model_    { 0     },
-                                     stepping_ { 0     },
-                                     data_     {       }, extdata_  {       }
+                                     f_81_ECX_ { 0     }, f_81_EDX_ { 0     }
     {
       //int cpuInfo[4] = {-1};
       std::array <int, 4> cpui;
@@ -586,9 +615,13 @@ private:
       // Capture vendor string
       //
       int vendor  [8] = { };
+
+      if (nIds_ >= 0)
+      {
         * vendor      = data_ [0][1];
         *(vendor + 1) = data_ [0][3];
         *(vendor + 2) = data_ [0][2];
+      }
 
       vendor_ =
         reinterpret_cast <char *> (vendor); //-V206
@@ -596,9 +629,12 @@ private:
            if  (vendor_ == "GenuineIntel")  isIntel_ = true;
       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;
 
-      stepping_ =  data_ [1][0]       & 0xF;
-      model_    = (data_ [1][0] >> 4) & 0xF;
-      family_   = (data_ [1][0] >> 8) & 0xF;
+      if (nIds_ >= 1)
+      {
+        stepping_ =  data_ [1][0]       & 0xF;
+        model_    = (data_ [1][0] >> 4) & 0xF;
+        family_   = (data_ [1][0] >> 8) & 0xF;
+      }
 
       // Load Bitset with Flags for Function 0x00000001
       //
@@ -641,9 +677,9 @@ private:
       {
         char    brand [0x40] =
         {                    };
-        memcpy (brand,      extdata_ [2].data (), sizeof cpui);
-        memcpy (brand + 16, extdata_ [3].data (), sizeof cpui);
-        memcpy (brand + 32, extdata_ [4].data (), sizeof cpui);
+        memcpy (brand,      extdata_ [2].data (), sizeof (cpui));
+        memcpy (brand + 16, extdata_ [3].data (), sizeof (cpui));
+        memcpy (brand + 32, extdata_ [4].data (), sizeof (cpui));
 
         brand_ = brand;
       }
@@ -653,9 +689,9 @@ private:
                              int       nExIds_;
                       std::string      vendor_;
                       std::string      brand_;
-                             int       family_;
-                             int       model_;
-                             int       stepping_;
+                     unsigned int      family_;
+                     unsigned int      model_;
+                     unsigned int      stepping_;
                              bool      isIntel_;
                              bool      isAMD_;
                       std::bitset <32> f_1_ECX_;
@@ -673,10 +709,11 @@ private:
   };
 };
 
-auto constexpr CountSetBits = [](ULONG_PTR bitMask) ->
+auto constexpr CountSetBits = [](ULONG_PTR bitMask) noexcept ->
 DWORD
 {
-  const DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
+  constexpr
+        DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
         DWORD     bitSetCount = 0;
         ULONG_PTR bitTest     =        (ULONG_PTR)1 << LSHIFT;
         DWORD     i;
@@ -691,6 +728,23 @@ DWORD
     bitSetCount;
 };
 
-extern void WINAPI    SK_Sleep       (DWORD dwMilliseconds);
+// The underlying function (PathCombineW) has unexpected behavior if pszFile
+//   begins with a slash, so it is best to call this wrapper and we will take
+//     care of the leading slash.
+LPWSTR SK_PathCombineW ( _Out_writes_ (MAX_PATH) LPWSTR pszDest,
+                                       _In_opt_ LPCWSTR pszDir,
+                                       _In_opt_ LPCWSTR pszFile );
+
+
+extern
+void WINAPI
+SK_Sleep (DWORD dwMilliseconds) noexcept;
+
+template < class T,
+           class ...    Args > std::unique_ptr <T>
+SK_make_unique_nothrow (Args && ... args) noexcept
+(                                         noexcept
+(  T ( std::forward   < Args >     (args)   ... ))
+);
 
 #endif /* __SK__UTILITY_H__ */

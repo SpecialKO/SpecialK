@@ -114,7 +114,7 @@ public:
   IWrapSteamController (ISteamController* pController) : pRealController (pController) {
   };
 
-  virtual ~IWrapSteamController (void) { };
+  virtual ~IWrapSteamController (void) noexcept { };
 
   bool Init (void) override
   {

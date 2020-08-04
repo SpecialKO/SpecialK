@@ -14,9 +14,17 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
+#include <shaders/imgui_d3d11_vs.h>
+#include <shaders/imgui_d3d11_ps.h>
+
+#include <shaders/steam_d3d11_vs.h>
+#include <shaders/steam_d3d11_ps.h>
+
+#include <shaders/uplay_d3d11_vs.h>
+#include <shaders/uplay_d3d11_ps.h>
+
 // DirectX
 #include <d3d11.h>
-#include <d3dcompiler.h>
 
 bool __SK_ImGui_D3D11_DrawDeferred = false;
 bool running_on_12                 = false;
@@ -33,35 +41,325 @@ static bool                     g_HasGamepad            = false;
 static bool                     g_WantUpdateHasGamepad  = true;
 
 static HWND                     g_hWnd                  = nullptr;
-static ID3D11Buffer*            g_pVB                   = nullptr;
-static ID3D11Buffer*            g_pIB                   = nullptr;
-static ID3D10Blob *             g_pVertexShaderBlob     = nullptr;
-static ID3D10Blob *             g_pVertexShaderBlob2    = nullptr;
-static ID3D10Blob *             g_pVertexShaderBlob3    = nullptr;
-static ID3D11VertexShader*      g_pVertexShader         = nullptr;
-static ID3D11VertexShader*      g_pVertexShaderSteamHDR = nullptr;
-static ID3D11VertexShader*      g_pVertexShaderuPlayHDR = nullptr;
-static ID3D11PixelShader*       g_pPixelShaderuPlayHDR  = nullptr;
-static ID3D11PixelShader*       g_pPixelShaderSteamHDR  = nullptr;
-static ID3D11InputLayout*       g_pInputLayout          = nullptr;
-static ID3D11Buffer*            g_pVertexConstantBuffer = nullptr;
-static ID3D11Buffer*            g_pPixelConstantBuffer  = nullptr;
-static ID3D10Blob *             g_pPixelShaderBlob      = nullptr;
-static ID3D10Blob *             g_pPixelShaderBlob2     = nullptr;
-static ID3D10Blob *             g_pPixelShaderBlob3     = nullptr;
-static ID3D11PixelShader*       g_pPixelShader          = nullptr;
-static ID3D11SamplerState*      g_pFontSampler_clamp    = nullptr;
-static ID3D11SamplerState*      g_pFontSampler_wrap     = nullptr;
-static ID3D11ShaderResourceView*g_pFontTextureView      = nullptr;
-static ID3D11RasterizerState*   g_pRasterizerState      = nullptr;
-static ID3D11BlendState*        g_pBlendState           = nullptr;
-static ID3D11DepthStencilState* g_pDepthStencilState    = nullptr;
 
+
+
+#define D3D11_SHADER_MAX_INSTANCES_PER_CLASS 256
+#define D3D11_MAX_SCISSOR_AND_VIEWPORT_ARRAYS \
+  D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE
+
+#include <array>
+
+template <typename _Tp, size_t n> using CComPtrArray = std::array <CComPtr <_Tp>, n>;
+
+template <typename _Type>
+struct D3D11ShaderState
+{
+  CComPtr <_Type>                     Shader;
+  CComPtrArray <
+    ID3D11Buffer,             D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT
+  >                                   Constants;
+  CComPtrArray <
+    ID3D11ShaderResourceView, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT
+  >                                   Resources;
+  CComPtrArray <
+    ID3D11SamplerState,       D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT
+  >                                   Samplers;
+  struct {
+    UINT                              Count;
+    CComPtrArray <
+      ID3D11ClassInstance,    D3D11_SHADER_MAX_INSTANCES_PER_CLASS
+    >                                 Array;
+  } Instances;
+};
+
+using _VS = D3D11ShaderState <ID3D11VertexShader>;
+using _PS = D3D11ShaderState <ID3D11PixelShader>;
+using _GS = D3D11ShaderState <ID3D11GeometryShader>;
+using _DS = D3D11ShaderState <ID3D11DomainShader>;
+using _HS = D3D11ShaderState <ID3D11HullShader>;
+using _CS = D3D11ShaderState <ID3D11ComputeShader>;
+
+// Backup DX state that will be modified to restore it afterwards (unfortunately this is very ugly looking and verbose. Close your eyes!)
+struct SK_IMGUI_D3D11StateBlock {
+  struct {
+    UINT                              RectCount;
+    D3D11_RECT                        Rects [D3D11_MAX_SCISSOR_AND_VIEWPORT_ARRAYS];
+  } Scissor;
+
+  struct {
+    UINT                              ArrayCount;
+    D3D11_VIEWPORT                    Array [D3D11_MAX_SCISSOR_AND_VIEWPORT_ARRAYS];
+  } Viewport;
+
+  struct {
+    CComPtr <ID3D11RasterizerState>   State;
+  } Rasterizer;
+
+  struct {
+    CComPtr <ID3D11BlendState>        State;
+    FLOAT                             Factor [4];
+    UINT                              SampleMask;
+  } Blend;
+
+  struct {
+    UINT                              StencilRef;
+    CComPtr <ID3D11DepthStencilState> State;
+  } DepthStencil;
+
+  struct {
+    _VS                               Vertex;
+    _PS                               Pixel;
+    _GS                               Geometry;
+    _DS                               Domain;
+    _HS                               Hull;
+    _CS                               Compute;
+  } Shaders;
+
+  struct {
+    struct {
+      CComPtr <ID3D11Buffer>          Pointer;
+      DXGI_FORMAT                     Format;
+      UINT                            Offset;
+    } Index;
+
+    struct {
+      CComPtrArray <ID3D11Buffer,               D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT>
+                                      Pointers;
+      UINT                            Strides  [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+      UINT                            Offsets  [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+    } Vertex;
+  } Buffers;
+
+  struct {
+    CComPtrArray <
+      ID3D11RenderTargetView, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT
+    >                                 RenderTargetViews;
+    CComPtr <
+      ID3D11DepthStencilView
+    >                                 DepthStencilView;
+  } RenderTargets;
+
+  D3D11_PRIMITIVE_TOPOLOGY            PrimitiveTopology;
+  CComPtr <ID3D11InputLayout>         InputLayout;
+
+  enum _StateMask : DWORD {
+    VertexStage         = 0x0001,
+    PixelStage          = 0x0002,
+    GeometryStage       = 0x0004,
+    HullStage           = 0x0008,
+    DomainStage         = 0x0010,
+    ComputeStage        = 0x0020,
+    RasterizerState     = 0x0040,
+    BlendState          = 0x0080,
+    OutputMergeState    = 0x0100,
+    DepthStencilState   = 0x0200,
+    InputAssemblerState = 0x0400,
+    ViewportState       = 0x0800,
+    ScissorState        = 0x1000,
+    RenderTargetState   = 0x2000,
+    _StateMask_All      = 0xffffffff
+  };
+
+#define        STAGE_INPUT_RESOURCE_SLOT_COUNT \
+  D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT
+#define        STAGE_CONSTANT_BUFFER_API_SLOT_COUNT \
+  D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT
+#define        STAGE_SAMPLER_SLOT_COUNT \
+  D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT
+
+#define _Stage(StageName) Shaders.##StageName
+#define Stage_Get(_Tp)    pDevCtx->##_Tp##Get
+#define Stage_Set(_Tp)    pDevCtx->##_Tp##Set
+
+  void Capture ( ID3D11DeviceContext* pDevCtx,
+                 DWORD                iStateMask = _StateMask_All )
+  {
+    if (iStateMask & ScissorState)
+       pDevCtx->RSGetScissorRects      ( &Scissor.RectCount,
+                                          Scissor.Rects    );
+    if (iStateMask & ViewportState)
+       pDevCtx->RSGetViewports         ( &Viewport.ArrayCount,
+                                          Viewport.Array   );
+    if (iStateMask & RasterizerState)
+      pDevCtx->RSGetState              ( &Rasterizer.State );
+
+    if (iStateMask & BlendState)
+       pDevCtx->OMGetBlendState        ( &Blend.State,
+                                          Blend.Factor,
+                                         &Blend.SampleMask );
+
+    if (iStateMask & DepthStencilState)
+       pDevCtx->OMGetDepthStencilState ( &DepthStencil.State,
+                                         &DepthStencil.StencilRef );
+
+    if (iStateMask & RenderTargetState)
+    {
+      pDevCtx->OMGetRenderTargets ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
+                                    &RenderTargets.RenderTargetViews [0].p,
+                                    &RenderTargets.DepthStencilView.p );
+    }
+
+#define _BackupStage(_Tp,StageName)                                               \
+  if (iStateMask & StageName##Stage) {                                            \
+    Stage_Get(_Tp)ShaderResources   ( 0, STAGE_INPUT_RESOURCE_SLOT_COUNT,         \
+                                       &_Stage(StageName).Resources       [0].p );\
+    Stage_Get(_Tp)ConstantBuffers   ( 0, STAGE_CONSTANT_BUFFER_API_SLOT_COUNT,    \
+                                       &_Stage(StageName).Constants       [0].p );\
+    Stage_Get(_Tp)Samplers          ( 0, STAGE_SAMPLER_SLOT_COUNT,                \
+                                       &_Stage(StageName).Samplers        [0].p );\
+    Stage_Get(_Tp)Shader            (  &_Stage(StageName).Shader,                 \
+                                       &_Stage(StageName).Instances.Array [0].p,  \
+                                       &_Stage(StageName).Instances.Count       );\
+  }
+
+    _BackupStage ( VS, Vertex   );
+    _BackupStage ( PS, Pixel    );
+    _BackupStage ( GS, Geometry );
+    _BackupStage ( DS, Domain   );
+    _BackupStage ( HS, Hull     );
+    _BackupStage ( CS, Compute  );
+
+    if (iStateMask & InputAssemblerState)
+    {
+      pDevCtx->IAGetPrimitiveTopology ( &PrimitiveTopology );
+      pDevCtx->IAGetIndexBuffer       ( &Buffers.Index.Pointer,
+                                        &Buffers.Index.Format,
+                                        &Buffers.Index.Offset );
+      pDevCtx->IAGetVertexBuffers     ( 0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT,
+                                         &Buffers.Vertex.Pointers [0].p,
+                                          Buffers.Vertex.Strides,
+                                          Buffers.Vertex.Offsets );
+      pDevCtx->IAGetInputLayout       ( &InputLayout );
+    }
+  }
+
+  void Apply ( ID3D11DeviceContext* pDevCtx,
+               DWORD                iStateMask = _StateMask_All )
+  {
+    if (iStateMask & InputAssemblerState)
+    {
+        pDevCtx->IASetPrimitiveTopology ( PrimitiveTopology );
+        pDevCtx->IASetIndexBuffer       ( Buffers.Index.Pointer,
+                                          Buffers.Index.Format,
+                                          Buffers.Index.Offset );
+                                          Buffers.Index.Pointer = nullptr;
+        pDevCtx->IASetVertexBuffers     ( 0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT,
+                                         &Buffers.Vertex.Pointers [0].p,
+                                          Buffers.Vertex.Strides,
+                                          Buffers.Vertex.Offsets );
+                              std::fill ( Buffers.Vertex.Pointers.begin (),
+                                          Buffers.Vertex.Pointers.end   (),
+                                            nullptr );
+
+        pDevCtx->IASetInputLayout       ( InputLayout );
+                                          InputLayout = nullptr;
+    }
+
+  #define _RestoreStage(_Tp,StageName)                                              \
+    if (iStateMask & StageName##Stage) {                                            \
+      Stage_Set(_Tp)Shader           ( _Stage(StageName).Shader,                    \
+                                      &_Stage(StageName).Instances.Array  [0].p,    \
+                                       _Stage(StageName).Instances.Count );         \
+                           std::fill ( _Stage(StageName).Instances.Array.begin ( ), \
+                                       _Stage(StageName).Instances.Array.end   ( ), \
+                                        nullptr );                                  \
+      Stage_Set(_Tp)Samplers         ( 0, STAGE_SAMPLER_SLOT_COUNT,                 \
+                                        &_Stage(StageName).Samplers        [0].p ); \
+                             std::fill ( _Stage(StageName).Samplers.begin  ( ),     \
+                                         _Stage(StageName).Samplers.end    ( ),     \
+                                           nullptr );                               \
+      Stage_Set(_Tp)ConstantBuffers  ( 0, STAGE_CONSTANT_BUFFER_API_SLOT_COUNT,     \
+                                        &_Stage(StageName).Constants       [0].p ); \
+                             std::fill ( _Stage(StageName).Constants.begin ( ),     \
+                                         _Stage(StageName).Constants.end   ( ),     \
+                                           nullptr );                               \
+      Stage_Set(_Tp)ShaderResources  ( 0, STAGE_INPUT_RESOURCE_SLOT_COUNT,          \
+                                        &_Stage(StageName).Resources       [0].p ); \
+                             std::fill ( _Stage(StageName).Resources.begin ( ),     \
+                                         _Stage(StageName).Resources.end   ( ),     \
+                                           nullptr );                               \
+    }
+
+    _RestoreStage ( CS, Compute  );
+    _RestoreStage ( HS, Hull     );
+    _RestoreStage ( DS, Domain   );
+    _RestoreStage ( GS, Geometry );
+    _RestoreStage ( PS, Pixel    );
+    _RestoreStage ( VS, Vertex   );
+
+    if (iStateMask & RenderTargetState)
+    {
+      pDevCtx->OMSetRenderTargets ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
+                                    &RenderTargets.RenderTargetViews [0].p,
+                                     RenderTargets.DepthStencilView.p );
+
+      std::fill ( RenderTargets.RenderTargetViews.begin (),
+                  RenderTargets.RenderTargetViews.end   (),
+                    nullptr );
+    }
+
+    if (iStateMask & DepthStencilState)
+    {  pDevCtx->OMSetDepthStencilState ( DepthStencil.State,
+                                         DepthStencil.StencilRef );
+                                         DepthStencil.State = nullptr;
+    }
+
+    if (iStateMask & BlendState)
+    {  pDevCtx->OMSetBlendState        ( Blend.State,
+                                         Blend.Factor,
+                                         Blend.SampleMask);
+                                         Blend.State        = nullptr;
+    }
+
+    if (iStateMask & RasterizerState)
+    {
+      pDevCtx->RSSetState              ( Rasterizer.State );
+                                         Rasterizer.State   = nullptr;
+    }
+
+    if (iStateMask & ViewportState)
+       pDevCtx->RSSetViewports         ( Viewport.ArrayCount, Viewport.Array );
+
+    if (iStateMask & ScissorState)
+       pDevCtx->RSSetScissorRects      ( Scissor.RectCount,   Scissor.Rects  );
+    }
+};
+
+
+static constexpr           UINT _MAX_BACKBUFFERS        = 1;//5;
+
+struct SK_ImGui_D3D11_BackbufferResourceIsolation {
+  ID3D11VertexShader*       pVertexShader         = nullptr;
+  ID3D11VertexShader*       pVertexShaderSteamHDR = nullptr;
+  ID3D11VertexShader*       pVertexShaderuPlayHDR = nullptr;
+  ID3D11PixelShader*        pPixelShaderuPlayHDR  = nullptr;
+  ID3D11PixelShader*        pPixelShaderSteamHDR  = nullptr;
+  ID3D11InputLayout*        pInputLayout          = nullptr;
+  ID3D11Buffer*             pVertexConstantBuffer = nullptr;
+  ID3D11Buffer*             pPixelConstantBuffer  = nullptr;
+  ID3D11PixelShader*        pPixelShader          = nullptr;
+  ID3D11SamplerState*       pFontSampler_clamp    = nullptr;
+  ID3D11SamplerState*       pFontSampler_wrap     = nullptr;
+  ID3D11ShaderResourceView* pFontTextureView      = nullptr;
+  ID3D11RasterizerState*    pRasterizerState      = nullptr;
+  ID3D11BlendState*         pBlendState           = nullptr;
+  ID3D11DepthStencilState*  pDepthStencilState    = nullptr;
+
+  SK_ComPtr
+    < ID3D11Texture2D >     pBackBuffer           = nullptr;
+
+  ID3D11Buffer*             pVB                   = nullptr;
+  ID3D11Buffer*             pIB                   = nullptr;
+
+  int                       VertexBufferSize      = 5000,
+                            IndexBufferSize       = 10000;
+} _Frame [_MAX_BACKBUFFERS];
+
+static UINT                     g_frameIndex            = 0;//UINT_MAX;
+static UINT                     g_numFramesInSwapChain  = 0;
 static UINT                     g_frameBufferWidth      = 0UL;
 static UINT                     g_frameBufferHeight     = 0UL;
-
-static int                      g_VertexBufferSize      = 5000,
-                                g_IndexBufferSize       = 10000;
 
 std::pair <BOOL*, BOOL>
 SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
@@ -157,7 +455,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-
   if (! rb.swapchain)
     return;
 
@@ -170,27 +467,38 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   //if (! rb.d3d11.deferred_ctx)
   //  return;
 
-  if (! g_pVertexConstantBuffer)
-    return;
-
-  if (! g_pPixelConstantBuffer)
-    return;
-
-  SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
-  SK_ComQIPtr <IDXGISwapChain3>     pSwap3     (pSwapChain);
-  SK_ComQIPtr <ID3D11Device>        pDevice    (rb.device);
+  SK_ComQIPtr <ID3D11Device>        pDevice    (      rb.device       );
   SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+  SK_ComQIPtr <IDXGISwapChain>      pSwapChain (   rb.swapchain       );
+  SK_ComQIPtr <IDXGISwapChain3>     pSwap3     (   rb.swapchain       );
 
-  SK_ComPtr   <ID3D11Texture2D>     pBackBuffer = nullptr;
+  UINT currentBuffer =
+   (g_frameIndex % g_numFramesInSwapChain);
 
-                    UINT currentBuffer = 0;
-//if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
+  auto&& _P =
+    _Frame [currentBuffer];
 
-
-  pSwapChain->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer));
-
-  if (! pBackBuffer)
+  if (! _P.pVertexConstantBuffer)
     return;
+
+  if (! _P.pPixelConstantBuffer)
+    return;
+
+  if (pSwap3 != nullptr)
+  {
+            currentBuffer =
+    std::min ( g_numFramesInSwapChain,
+                 pSwap3->GetCurrentBackBufferIndex () );
+  }
+
+  SK_ComPtr <ID3D11Texture2D> pBackBuffer = nullptr;
+
+  if ( FAILED (
+         pSwapChain->GetBuffer (/*pSwap3 != nullptr ?
+                                  pSwap3->GetCurrentBackBufferIndex ()
+                                                   :*/ currentBuffer, IID_PPV_ARGS (&pBackBuffer.p) )
+              )
+     ) return;
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -211,7 +519,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   SK_ScopedBool auto_bool0 (flag_result.first);
                            *flag_result.first = flag_result.second;
 
-
   D3D11_TEXTURE2D_DESC   backbuffer_desc = { };
   pBackBuffer->GetDesc (&backbuffer_desc);
 
@@ -222,42 +529,46 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   io.DisplayFramebufferScale.y = static_cast <float> (backbuffer_desc.Height);
 
   // Create and grow vertex/index buffers if needed
-  if ((! g_pVB) || g_VertexBufferSize < draw_data->TotalVtxCount)
+  if ((! _P.pVB             ) ||
+         _P.VertexBufferSize < draw_data->TotalVtxCount)
   {
-    SK_COM_ValidateRelease ((IUnknown **)&g_pVB);
+    SK_COM_ValidateRelease ((IUnknown **)&_P.pVB);
 
-    g_VertexBufferSize  =
+    _P.VertexBufferSize =
       draw_data->TotalVtxCount + 5000;
 
     D3D11_BUFFER_DESC desc
                         = { };
 
     desc.Usage          = D3D11_USAGE_DYNAMIC;
-    desc.ByteWidth      = g_VertexBufferSize * sizeof (ImDrawVert);
+    desc.ByteWidth      = _P.VertexBufferSize * sizeof (ImDrawVert);
     desc.BindFlags      = D3D11_BIND_VERTEX_BUFFER;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     desc.MiscFlags      = 0;
 
-    if (pDevice->CreateBuffer (&desc, nullptr, &g_pVB) < 0 || (! g_pVB))
+    if (pDevice->CreateBuffer (&desc, nullptr, &_P.pVB) < 0 ||
+                                             (! _P.pVB))
       return;
   }
 
-  if ((! g_pIB) || g_IndexBufferSize < draw_data->TotalIdxCount)
+  if ((! _P.pIB            ) ||
+         _P.IndexBufferSize < draw_data->TotalIdxCount)
   {
-    SK_COM_ValidateRelease ((IUnknown **)&g_pIB);
+    SK_COM_ValidateRelease ((IUnknown **)&_P.pIB);
 
-    g_IndexBufferSize   =
+    _P.IndexBufferSize =
       draw_data->TotalIdxCount + 10000;
 
     D3D11_BUFFER_DESC desc
                         = { };
 
     desc.Usage          = D3D11_USAGE_DYNAMIC;
-    desc.ByteWidth      = g_IndexBufferSize * sizeof (ImDrawIdx);
+    desc.ByteWidth      = _P.IndexBufferSize * sizeof (ImDrawIdx);
     desc.BindFlags      = D3D11_BIND_INDEX_BUFFER;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-    if (pDevice->CreateBuffer (&desc, nullptr, &g_pIB) < 0 || (! g_pIB))
+    if (pDevice->CreateBuffer (&desc, nullptr, &_P.pIB) < 0 ||
+                                             (! _P.pIB))
       return;
   }
 
@@ -265,14 +576,14 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   D3D11_MAPPED_SUBRESOURCE vtx_resource = { },
                            idx_resource = { };
 
-  if (pDevCtx->Map (g_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vtx_resource) != S_OK)
+  if (pDevCtx->Map (_P.pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vtx_resource) != S_OK)
     return;
 
-  if (pDevCtx->Map (g_pIB, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
+  if (pDevCtx->Map (_P.pIB, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
   {
     // If for some reason the first one succeeded, but this one failed.... unmap the first one
     //   then abandon all hope.
-    pDevCtx->Unmap (g_pVB, 0);
+    pDevCtx->Unmap (_P.pVB, 0);
     return;
   }
 
@@ -319,8 +630,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     idx_dst += cmd_list->IdxBuffer.Size;
   }
 
-  pDevCtx->Unmap (g_pIB, 0);
-  pDevCtx->Unmap (g_pVB, 0);
+  pDevCtx->Unmap (_P.pIB, 0);
+  pDevCtx->Unmap (_P.pVB, 0);
 
   // Setup orthographic projection matrix into our constant buffer
   {
@@ -339,10 +650,10 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
     D3D11_MAPPED_SUBRESOURCE mapped_resource;
 
-    if (! g_pVertexConstantBuffer)
+    if (! _P.pVertexConstantBuffer)
       return ImGui_ImplDX11_InvalidateDeviceObjects ();
 
-    if (pDevCtx->Map (g_pVertexConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
+    if (pDevCtx->Map (_P.pVertexConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
       return;
 
     auto* constant_buffer =
@@ -393,15 +704,15 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
                                                   //                1.0f));
     }
 
-    pDevCtx->Unmap (g_pVertexConstantBuffer, 0);
+    pDevCtx->Unmap (_P.pVertexConstantBuffer, 0);
 
-    if (pDevCtx->Map (g_pPixelConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
+    if (pDevCtx->Map (_P.pPixelConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
       return;
 
     ((float *)mapped_resource.pData)[2] = hdr_display ? (float)backbuffer_desc.Width  : 0.0f;
     ((float *)mapped_resource.pData)[3] = hdr_display ? (float)backbuffer_desc.Height : 0.0f;
 
-    pDevCtx->Unmap (g_pPixelConstantBuffer, 0);
+    pDevCtx->Unmap (_P.pPixelConstantBuffer, 0);
   }
 
 
@@ -422,7 +733,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       rtdesc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView.p );
     } break;
 
     case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
@@ -434,7 +745,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       rtdesc.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;
       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView.p );
     } break;
 
     case DXGI_FORMAT_R16G16B16A16_FLOAT:
@@ -445,7 +756,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       rtdesc.Format        = DXGI_FORMAT_R16G16B16A16_FLOAT;
       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView.p );
     } break;
 
     case DXGI_FORMAT_R10G10B10A2_UNORM:
@@ -456,19 +767,31 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       rtdesc.Format        = DXGI_FORMAT_R10G10B10A2_UNORM;
       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView.p );
     } break;
 
     default:
-     pDevice->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+     pDevice->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView.p );
   }
 
   if (! pRenderTargetView)
     return;
 
+  SK_IMGUI_D3D11StateBlock
+    sb             = { };
+    sb.Capture (pDevCtx);
 
+  // pcmd->TextureId may not point to a valid object anymore, so we do this...
+  auto orig_se =
+    SK_SEH_ApplyTranslator(
+      SK_FilteringStructuredExceptionTranslator(
+        EXCEPTION_ACCESS_VIOLATION
+      )
+    );
+  try
+  {
   pDevCtx->OMSetRenderTargets ( 1,
-                                  &pRenderTargetView.p,
+                                 &pRenderTargetView,
                                     nullptr );
 
   // Setup viewport
@@ -486,9 +809,9 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   unsigned int stride = sizeof (ImDrawVert);
   unsigned int offset = 0;
 
-  pDevCtx->IASetInputLayout       (g_pInputLayout);
-  pDevCtx->IASetVertexBuffers     (0, 1, &g_pVB, &stride, &offset);
-  pDevCtx->IASetIndexBuffer       ( g_pIB, sizeof (ImDrawIdx) == 2 ?
+  pDevCtx->IASetInputLayout       (_P.pInputLayout);
+  pDevCtx->IASetVertexBuffers     (0, 1, &_P.pVB, &stride, &offset);
+  pDevCtx->IASetIndexBuffer       (_P.pIB, sizeof (ImDrawIdx) == 2 ?
                                              DXGI_FORMAT_R16_UINT  :
                                              DXGI_FORMAT_R32_UINT,
                                                0 );
@@ -498,21 +821,21 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   pDevCtx->HSSetShader            (nullptr, nullptr, 0);
   pDevCtx->DSSetShader            (nullptr, nullptr, 0);
 
-  pDevCtx->VSSetShader            (g_pVertexShader, nullptr, 0);
-  pDevCtx->VSSetConstantBuffers   (0, 1, &g_pVertexConstantBuffer);
+  pDevCtx->VSSetShader            (_P.pVertexShader, nullptr, 0);
+  pDevCtx->VSSetConstantBuffers   (0, 1, &_P.pVertexConstantBuffer);
 
 
-  pDevCtx->PSSetShader            (g_pPixelShader, nullptr, 0);
-  pDevCtx->PSSetSamplers          (0, 1, &g_pFontSampler_clamp);
-  pDevCtx->PSSetConstantBuffers   (0, 1, &g_pPixelConstantBuffer);
+  pDevCtx->PSSetShader            (_P.pPixelShader, nullptr, 0);
+  pDevCtx->PSSetSamplers          (0, 1, &_P.pFontSampler_clamp);
+  pDevCtx->PSSetConstantBuffers   (0, 1, &_P.pPixelConstantBuffer);
 
   // Setup render state
   const float blend_factor [4] = { 0.f, 0.f,
                                    0.f, 1.f };
 
-  pDevCtx->OMSetBlendState        (g_pBlendState, blend_factor, 0xffffffff);
-  pDevCtx->OMSetDepthStencilState (g_pDepthStencilState,        0);
-  pDevCtx->RSSetState             (g_pRasterizerState);
+  pDevCtx->OMSetBlendState        (_P.pBlendState, blend_factor, 0xffffffff);
+  pDevCtx->OMSetDepthStencilState (_P.pDepthStencilState,        0);
+  pDevCtx->RSSetState             (_P.pRasterizerState);
 
   // Render command lists
   int vtx_offset = 0;
@@ -529,7 +852,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
         &cmd_list->CmdBuffer [cmd_i];
 
       if (pcmd->UserCallback)
-        pcmd->UserCallback (cmd_list, pcmd);
+          pcmd->UserCallback (cmd_list, pcmd);
 
       else
       {
@@ -551,28 +874,39 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
         pDevCtx->PSSetShaderResources (0, 2, views);
         pDevCtx->RSSetScissorRects    (1, &r);
 
-        pDevCtx->DrawIndexed (pcmd->ElemCount, idx_offset, vtx_offset);
+        pDevCtx->DrawIndexed          (pcmd->ElemCount, idx_offset, vtx_offset);
       }
+
+      pDevCtx->PSSetShaderResources   (0, 0, nullptr);
 
       idx_offset += pcmd->ElemCount;
     }
 
-    // Last-ditch effort to get the HDR post-process done before the UI.
-    void SK_HDR_SnapshotSwapchain (void);
-         SK_HDR_SnapshotSwapchain (    );
-
     vtx_offset += cmd_list->VtxBuffer.Size;
   }
+
+  // Last-ditch effort to get the HDR post-process done before the UI.
+  void SK_HDR_SnapshotSwapchain (void);
+       SK_HDR_SnapshotSwapchain (    );
+
+  pDevCtx->OMSetRenderTargets ( 0,
+                          nullptr, nullptr );
+  }
+  catch (const SK_SEH_IgnoredException&)
+  {
+    sb.Apply (pDevCtx);
+  }
+  SK_SEH_RemoveTranslator (orig_se);
 
 #if 0
   __SK_ImGui_D3D11_DrawDeferred = false;
   if (__SK_ImGui_D3D11_DrawDeferred)
   {
-    SK_ComPtr <ID3D11CommandList> pCmdList = nullptr;
+    ComPtr <ID3D11CommandList> pCmdList = nullptr;
 
     if ( SUCCEEDED (
            pDevCtx->FinishCommandList ( TRUE,
-                                          &pCmdList.p )
+                                          &pCmdList.Get () )
                    )
        )
     {
@@ -592,11 +926,21 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 static void
 ImGui_ImplDX11_CreateFontsTexture (void)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_ComQIPtr <ID3D11Device> pDev (rb.device);
+
+  if (! pDev.p) // Try again later
+    return;
+
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
   if (! pTLS) return;
 
+  auto _BuildForSlot = [&](UINT slot) -> void
+  {
   // Do not dump ImGui font textures
   SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
                             pTLS->imgui->drawing = true;
@@ -624,10 +968,8 @@ ImGui_ImplDX11_CreateFontsTexture (void)
                                    &width, &height );
   }
 
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  SK_ComQIPtr <ID3D11Device> pDev (rb.device);
+  auto&& _P =
+    _Frame [slot];
 
   // Upload texture to graphics system
   {
@@ -655,8 +997,10 @@ ImGui_ImplDX11_CreateFontsTexture (void)
     if ( SUCCEEDED (
            pDev->CreateTexture2D ( &desc,
                                      &subResource,
-                                       &pFontTexture ) ) )
+                                       &pFontTexture.p ) ) )
     {
+      SK_D3D11_SetDebugName (pFontTexture, "ImGui Font Texture");
+
       // Create texture view
       D3D11_SHADER_RESOURCE_VIEW_DESC
         srvDesc = { };
@@ -668,19 +1012,21 @@ ImGui_ImplDX11_CreateFontsTexture (void)
       if ( SUCCEEDED (
              pDev->CreateShaderResourceView ( pFontTexture,
                                                 &srvDesc,
-                                                  &g_pFontTextureView ) ) )
+                                                  &_P.pFontTextureView ) ) )
       {
+        SK_D3D11_SetDebugName (_P.pFontTextureView, "ImGui Font SRV");
+
         // Store our identifier
         io.Fonts->TexID =
-          g_pFontTextureView;
+          _P.pFontTextureView;
 
-      // Create texture sampler
+        // Create texture sampler
         D3D11_SAMPLER_DESC
           sampler_desc                    = { };
-          sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_POINT;
-          sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_CLAMP;
-          sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_CLAMP;
-          sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_CLAMP;
+          sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+          sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_WRAP;
+          sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_WRAP;
+          sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_WRAP;
           sampler_desc.MipLODBias         = 0.f;
           sampler_desc.ComparisonFunc     = D3D11_COMPARISON_ALWAYS;
           sampler_desc.MinLOD             = 0.f;
@@ -688,8 +1034,8 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 
         if ( SUCCEEDED (
                pDev->CreateSamplerState ( &sampler_desc,
-                                            &g_pFontSampler_clamp ) ) )
-        { pTLS->d3d11->uiSampler_clamp =     g_pFontSampler_clamp;
+                                            &_P.pFontSampler_clamp ) ) )
+        { pTLS->d3d11->uiSampler_clamp =     _P.pFontSampler_clamp;
 
           sampler_desc = { };
 
@@ -706,11 +1052,17 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 
           if ( SUCCEEDED (
                  pDev->CreateSamplerState ( &sampler_desc,
-                                              &g_pFontSampler_wrap ) ) )
-          { pTLS->d3d11->uiSampler_wrap =      g_pFontSampler_wrap; }
+                                              &_P.pFontSampler_wrap ) ) )
+          { pTLS->d3d11->uiSampler_wrap =      _P.pFontSampler_wrap; }
         }
       }
     }
+  }
+  };
+
+  for ( auto i = 0 ; i < _MAX_BACKBUFFERS ; ++i )
+  {
+    _BuildForSlot (i);
   }
 }
 
@@ -721,9 +1073,12 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
                            _In_ INT                   BaseVertexLocation,
                            _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed )
 {
-  if ( g_pVertexShaderSteamHDR != nullptr &&
-       g_pVertexConstantBuffer != nullptr &&
-       g_pPixelShaderSteamHDR  != nullptr    )
+  auto&& _P =
+    _Frame [g_frameIndex % g_numFramesInSwapChain];
+
+  if ( _P.pVertexShaderSteamHDR != nullptr &&
+       _P.pVertexConstantBuffer != nullptr &&
+       _P.pPixelShaderSteamHDR  != nullptr    )
   {
     auto flag_result =
       SK_ImGui_FlagDrawing_OnD3D11Ctx (
@@ -752,15 +1107,15 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
                                    GiantListThatDestroysTheStack1,
                                    &NumStackDestroyingInstances_ProbablyZero1 );
 
-    pDevCtx->VSGetConstantBuffers ( 0, 1, &pOrigVtxCB.p );
-    pDevCtx->VSSetShader          ( g_pVertexShaderuPlayHDR,
+    pDevCtx->VSGetConstantBuffers ( 0, 1, &pOrigVtxCB );
+    pDevCtx->VSSetShader          ( _P.pVertexShaderuPlayHDR,
                                       nullptr, 0 );
-    pDevCtx->PSSetShader          ( g_pPixelShaderuPlayHDR,
+    pDevCtx->PSSetShader          ( _P.pPixelShaderuPlayHDR,
                                       nullptr, 0 );
     pDevCtx->VSSetConstantBuffers ( 0, 1,
-                                    &g_pVertexConstantBuffer );
+                                    &_P.pVertexConstantBuffer );
     pfnD3D11DrawIndexed ( pDevCtx, IndexCount, StartIndexLocation, BaseVertexLocation );
-    pDevCtx->VSSetConstantBuffers (0, 1, &pOrigVtxCB.p);
+    pDevCtx->VSSetConstantBuffers (0, 1, &pOrigVtxCB);
 
     pDevCtx->PSSetShader ( pOrigPixShader,
                            GiantListThatDestroysTheStack1,
@@ -796,6 +1151,9 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
                           _In_ UINT                 StartVertexLocation,
                           _In_ D3D11_Draw_pfn       pfnD3D11Draw )
 {
+  auto&& _P =
+    _Frame [g_frameIndex % g_numFramesInSwapChain];
+
   auto flag_result =
     SK_ImGui_FlagDrawing_OnD3D11Ctx (
       SK_D3D11_GetDeviceContextHandle (pDevCtx)
@@ -804,9 +1162,9 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
   SK_ScopedBool auto_bool0 (flag_result.first);
                            *flag_result.first = flag_result.second;
 
-  if ( g_pVertexShaderSteamHDR != nullptr &&
-       g_pVertexConstantBuffer != nullptr &&
-       g_pPixelShaderSteamHDR  != nullptr    )
+  if ( _P.pVertexShaderSteamHDR != nullptr &&
+       _P.pVertexConstantBuffer != nullptr &&
+       _P.pPixelShaderSteamHDR  != nullptr    )
   {
     // Seriously, D3D, WTF? Let me first query the number of these and then decide
     //   whether I want to dedicate TLS or heap memory to this task.
@@ -827,15 +1185,15 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
                                    GiantListThatDestroysTheStack1,
                                    &NumStackDestroyingInstances_ProbablyZero1 );
 
-    pDevCtx->VSGetConstantBuffers ( 0, 1, &pOrigVtxCB.p );
-    pDevCtx->VSSetShader          ( g_pVertexShaderSteamHDR,
+    pDevCtx->VSGetConstantBuffers ( 0, 1, &pOrigVtxCB );
+    pDevCtx->VSSetShader          ( _P.pVertexShaderSteamHDR,
                                       nullptr, 0 );
-    pDevCtx->PSSetShader          ( g_pPixelShaderSteamHDR,
+    pDevCtx->PSSetShader          ( _P.pPixelShaderSteamHDR,
                                       nullptr, 0 );
     pDevCtx->VSSetConstantBuffers ( 0, 1,
-                                    &g_pVertexConstantBuffer );
+                                    &_P.pVertexConstantBuffer );
     pfnD3D11Draw ( pDevCtx, VertexCount, StartVertexLocation );
-    pDevCtx->VSSetConstantBuffers (0, 1, &pOrigVtxCB.p);
+    pDevCtx->VSSetConstantBuffers (0, 1, &pOrigVtxCB);
 
     pDevCtx->PSSetShader ( pOrigPixShader,
                            GiantListThatDestroysTheStack1,
@@ -856,6 +1214,22 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
       if (GiantListThatDestroysTheStack1 [j] != nullptr)
           GiantListThatDestroysTheStack1 [j]->Release ();
     }
+    //SK_IMGUI_D3D11StateBlock
+    //  sb;
+    //  sb.Capture (pDevCtx, SK_IMGUI_D3D11StateBlock::VertexStage |
+    //                       SK_IMGUI_D3D11StateBlock::PixelStage);
+    //
+    //pDevCtx->VSSetShader          ( _P.pVertexShaderSteamHDR,
+    //                                  nullptr, 0 );
+    //pDevCtx->PSSetShader          ( _P.pPixelShaderSteamHDR,
+    //                                  nullptr, 0 );
+    //pDevCtx->VSSetConstantBuffers ( 0, 1,
+    //                                &_P.pVertexConstantBuffer );
+    //
+    //pfnD3D11Draw ( pDevCtx, VertexCount, StartVertexLocation );
+    //
+    //sb.Apply (pDevCtx, SK_IMGUI_D3D11StateBlock::VertexStage |
+    //                   SK_IMGUI_D3D11StateBlock::PixelStage);
 
     return
       S_OK;
@@ -866,8 +1240,11 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
 }
 
 bool
-ImGui_ImplDX11_CreateDeviceObjects (void)
+ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer (UINT idx)
 {
+  auto&& _P =
+    _Frame [idx];
+
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
@@ -877,8 +1254,6 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
   // Do not dump ImGui font textures
   pTLS->imgui->drawing = true;
-
-  ImGui_ImplDX11_InvalidateDeviceObjects ();
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -905,673 +1280,116 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   ///  pDev->GetImmediateContext (&rb.d3d11.immediate_ctx.p);
   ///}
 
-  // Create the vertex shader
+  auto flag_result =
+    SK_ImGui_FlagDrawing_OnD3D11Ctx (
+      SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx)
+    );
+
+  SK_ScopedBool auto_bool0 (flag_result.first);
+                           *flag_result.first = flag_result.second;
+
+  if (! pDev)
+    return false;
+
+  if ( pDev->CreateVertexShader ( (DWORD *)(imgui_d3d11_vs_bytecode),
+                                    sizeof (imgui_d3d11_vs_bytecode) /
+                                    sizeof (imgui_d3d11_vs_bytecode [0]),
+                                      nullptr,
+                                        &_P.pVertexShader ) != S_OK )
+    return false;
+
+  SK_D3D11_SetDebugName (_P.pVertexShader, "ImGui Vertex Shader");
+
+  if ( pDev->CreateVertexShader ( (DWORD *)(steam_d3d11_vs_bytecode),
+                                    sizeof (steam_d3d11_vs_bytecode) /
+                                    sizeof (steam_d3d11_vs_bytecode [0]),
+                                      nullptr,
+                                        &_P.pVertexShaderSteamHDR ) != S_OK )
+    return false;
+
+  SK_D3D11_SetDebugName (_P.pVertexShaderSteamHDR, "Steam Overlay HDR Vertex Shader");
+
+  if ( pDev->CreateVertexShader ( (DWORD *)(uplay_d3d11_vs_bytecode),
+                                    sizeof (uplay_d3d11_vs_bytecode) /
+                                    sizeof (uplay_d3d11_vs_bytecode [0]),
+                                      nullptr,
+                                        &_P.pVertexShaderuPlayHDR ) != S_OK )
+    return false;
+
+  SK_D3D11_SetDebugName (_P.pVertexShaderuPlayHDR, "uPlay Overlay HDR Vertex Shader");
+
+  // Create the input layout
+  D3D11_INPUT_ELEMENT_DESC local_layout [] = {
+    { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (size_t)(&((ImDrawVert *)nullptr)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (size_t)(&((ImDrawVert *)nullptr)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+  };
+
+  if ( pDev->CreateInputLayout ( local_layout, 3,
+                                  (DWORD *)(imgui_d3d11_vs_bytecode),
+                                    sizeof (imgui_d3d11_vs_bytecode) /
+                                    sizeof (imgui_d3d11_vs_bytecode [0]),
+                                      &_P.pInputLayout ) != S_OK )
   {
-    static const char vertexShader [] =
-     "#pragma warning ( disable : 3571 )\n                        \
-      cbuffer vertexBuffer : register (b0)                        \
-      {                                                           \
-        float4x4 ProjectionMatrix;                                \
-        float4   Luminance;                                       \
-        float4   SteamLuminance;                                  \
-      };                                                          \
-                                                                  \
-      struct VS_INPUT                                             \
-      {                                                           \
-        float2 pos : POSITION;                                    \
-        float4 col : COLOR0;                                      \
-        float2 uv  : TEXCOORD0;                                   \
-      };                                                          \
-                                                                  \
-      struct PS_INPUT                                             \
-      {                                                           \
-        float4 pos : SV_POSITION;                                 \
-        float4 col : COLOR0;                                      \
-        float2 uv  : TEXCOORD0;                                   \
-        float2 uv2 : TEXCOORD1;                                   \
-        float2 uv3 : TEXCOORD2;                                   \
-      };                                                          \
-                                                                  \
-      PS_INPUT main (VS_INPUT input)                              \
-      {                                                           \
-        PS_INPUT output;                                          \
-                                                                  \
-        output.pos  = mul ( ProjectionMatrix,                     \
-                              float4 (input.pos.xy, 0.f, 1.f) );  \
-                                                                  \
-        output.uv  = saturate (input.uv);                         \
-                                                                  \
-        output.col = input.col;                                   \
-        output.uv2 = float2 (0.f, 0.f);                           \
-        output.uv3 = Luminance.xy;                                \
-                                                                  \
-        return output;                                            \
-      }";
-
-    SK_ComPtr <ID3D10Blob> blob_msg_vtx;
-
-    D3DCompile ( vertexShader,
-                   sizeof (vertexShader),
-                     nullptr, nullptr, nullptr,
-                       "main", "vs_4_0",
-                         0, 0,
-                           &g_pVertexShaderBlob,
-                             &blob_msg_vtx );
-
-    if (blob_msg_vtx != nullptr && blob_msg_vtx->GetBufferSize ())
-    {
-      std::string err;
-
-      err.reserve (blob_msg_vtx->GetBufferSize ());
-      err = (
-           (char *)blob_msg_vtx->GetBufferPointer ());
-
-      if (! err.empty ())
-      {
-        dll_log->LogEx (true, L"ImGui D3D11 Vertex Shader: %hs", err.c_str ());
-      }
-    }
-
-    // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in
-    //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-    if (g_pVertexShaderBlob == nullptr)
-      return false;
-
-    if ( pDev->CreateVertexShader ( static_cast <DWORD *> (g_pVertexShaderBlob->GetBufferPointer ()),
-                                      g_pVertexShaderBlob->GetBufferSize (),
-                                        nullptr,
-                                          &g_pVertexShader ) != S_OK )
-      return false;
-
-
-    static const char vertexShaderSteamHDR [] =
-   "#pragma warning ( disable : 3571 )\n                    \
-    cbuffer vertexBuffer : register (b0)                    \
-    {                                                       \
-      float4x4 ProjectionMatrix;                            \
-      float4   Luminance;                                   \
-      float4   SteamLuminance;                              \
-    };                                                      \
-                                                            \
-    struct VS_INPUT                                         \
-    {                                                       \
-      float4 pos : POSITION;                                \
-      float4 col : COLOR;                                   \
-      float2 uv  : TEXCOORD;                                \
-    };                                                      \
-                                                            \
-    struct PS_INPUT                                         \
-    {                                                       \
-      float4 pos : SV_POSITION;                             \
-      float4 col : COLOR;                                   \
-      float2 uv  : TEXCOORD0;                               \
-      float2 uv2 : TEXCOORD1;                               \
-    };                                                      \
-                                                            \
-    PS_INPUT main (VS_INPUT input)                          \
-    {                                                       \
-      PS_INPUT output;                                      \
-                                                            \
-      output.pos = input.pos;                               \
-      output.col = input.col;                               \
-      output.uv  = input.uv;                                \
-      output.uv2 = SteamLuminance.xy;                       \
-                                                            \
-      return output;                                        \
-    }";
-
-   static const char vertexShaderuPlayHDR [] =
-   "#pragma warning ( disable : 3571 )\n                    \
-    cbuffer vertexBuffer : register (b0)                    \
-    {                                                       \
-      float4x4 ProjectionMatrix;                            \
-      float4   Luminance;                                   \
-      float4   uPlayLuminance;                              \
-    };                                                      \
-                                                            \
-    struct VS_INPUT                                         \
-    {                                                       \
-      float4 pos : POSITION;                                \
-      float2 uv  : TEXCOORD;                                \
-    };                                                      \
-                                                            \
-    struct PS_INPUT                                         \
-    {                                                       \
-      float4 pos : SV_POSITION;                             \
-      float2 uv  : TEXCOORD0;                               \
-      float2 uv2 : TEXCOORD1;                               \
-    };                                                      \
-                                                            \
-    PS_INPUT main (VS_INPUT input)                          \
-    {                                                       \
-      PS_INPUT output;                                      \
-                                                            \
-      output.pos = input.pos;                               \
-      output.uv  = input.uv;                                \
-      output.uv2 = uPlayLuminance.zw;                       \
-                                                            \
-      return output;                                        \
-    }";
-
-    D3DCompile ( vertexShaderSteamHDR,
-                   sizeof (vertexShaderSteamHDR),
-                     nullptr, nullptr, nullptr,
-                       "main", "vs_4_0",
-                         0, 0,
-                           &g_pVertexShaderBlob2,
-                             &blob_msg_vtx );
-
-    if (blob_msg_vtx != nullptr && blob_msg_vtx->GetBufferSize ())
-    {
-      std::string err;
-
-      err.reserve (blob_msg_vtx->GetBufferSize ());
-      err = (
-           (char *)blob_msg_vtx->GetBufferPointer ());
-
-      if (! err.empty ())
-      {
-        dll_log->LogEx (true, L"Steam HDR D3D11 Vertex Shader: %hs", err.c_str ());
-      }
-    }
-
-    // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in
-    //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-    if (g_pVertexShaderBlob2 == nullptr)
-      return false;
-
-    if ( pDev->CreateVertexShader ( static_cast <DWORD *> (g_pVertexShaderBlob2->GetBufferPointer ()),
-                                      g_pVertexShaderBlob2->GetBufferSize (),
-                                        nullptr,
-                                          &g_pVertexShaderSteamHDR ) != S_OK )
-      return false;
-
-    D3DCompile ( vertexShaderuPlayHDR,
-                   sizeof (vertexShaderuPlayHDR),
-                     nullptr, nullptr, nullptr,
-                       "main", "vs_4_0",
-                         0, 0,
-                           &g_pVertexShaderBlob3,
-                             &blob_msg_vtx );
-
-    if (blob_msg_vtx != nullptr && blob_msg_vtx->GetBufferSize ())
-    {
-      std::string err;
-
-      err.reserve (blob_msg_vtx->GetBufferSize ());
-      err = (
-           (char *)blob_msg_vtx->GetBufferPointer ());
-
-      if (! err.empty ())
-      {
-        dll_log->LogEx (true, L"uPlay HDR D3D11 Vertex Shader: %hs", err.c_str ());
-      }
-    }
-
-    if (g_pVertexShaderBlob3 == nullptr)
-      return false;
-
-    if ( pDev->CreateVertexShader ( static_cast <DWORD *> (g_pVertexShaderBlob3->GetBufferPointer ()),
-                                      g_pVertexShaderBlob3->GetBufferSize (),
-                                        nullptr,
-                                          &g_pVertexShaderuPlayHDR ) != S_OK )
-      return false;
-
-
-    // Create the input layout
-    D3D11_INPUT_ELEMENT_DESC local_layout [] = {
-      { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (size_t)(&((ImDrawVert *)nullptr)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (size_t)(&((ImDrawVert *)nullptr)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-      { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-
-    if ( (! g_pVertexShaderBlob) ||
-          pDev->CreateInputLayout ( local_layout, 3,
-                                    g_pVertexShaderBlob->GetBufferPointer (),
-                                      g_pVertexShaderBlob->GetBufferSize  (),
-                                        &g_pInputLayout ) != S_OK )
-    {
-      return false;
-    }
-
-    // Create the constant buffers
-    {
-      D3D11_BUFFER_DESC desc = { };
-
-      desc.ByteWidth         = sizeof (VERTEX_CONSTANT_BUFFER);
-      desc.Usage             = D3D11_USAGE_DYNAMIC;
-      desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
-      desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
-      desc.MiscFlags         = 0;
-
-      pDev->CreateBuffer (&desc, nullptr, &g_pVertexConstantBuffer);
-
-      desc.ByteWidth         = sizeof (float) * 4;
-      desc.Usage             = D3D11_USAGE_DYNAMIC;
-      desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
-      desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
-      desc.MiscFlags         = 0;
-
-      pDev->CreateBuffer (&desc, nullptr, &g_pPixelConstantBuffer);
-    }
+    return false;
   }
 
-  // Create the pixel shader
+  // Create the constant buffers
   {
-    static const char pixelShader[] =
-      "#pragma warning ( disable : 3571 )\n                                      \
-      struct PS_INPUT                                                         \n\
-      {                                                                       \n\
-        float4 pos : SV_POSITION;                                             \n\
-        float4 col : COLOR0;                                                  \n\
-        float2 uv  : TEXCOORD0;                                               \n\
-        float2 uv2 : TEXCOORD1;                                               \n\
-        float2 uv3 : TEXCOORD2;                                               \n\
-      };                                                                      \n\
-                                                                              \n\
-      cbuffer viewportDims : register (b0)                                    \n\
-      {                                                                       \n\
-        float4 viewport;                                                      \n\
-      };                                                                      \n\
-                                                                              \n\
-      sampler   sampler0    : register (s0);                                  \n\
-                                                                              \n\
-      Texture2D texture0    : register (t0);                                  \n\
-      Texture2D hdrUnderlay : register (t1);                                  \n\
-      Texture2D hdrHUD      : register (t2);                                  \n\
-                                                                              \n\
-      float3 RemoveSRGBCurve (float3 x)                                       \n\
-      {                                                                       \n\
-        /* Approximately pow(x, 2.2)*/                                        \n\
-        return x < 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);       \n\
-      }                                                                       \n\
-                                                                              \n\
-      float3 ApplyREC709Curve (float3 x)                                      \n\
-      {                                                                       \n\
-        return x < 0.0181 ? 4.5 * x : 1.0993 * pow(x, 0.45) - 0.0993;         \n\
-      }                                                                       \n\
-      float Luma (float3 color)                                               \n\
-      {                                                                       \n\
-        return                                                                \n\
-          dot (color, float3 (0.299f, 0.587f, 0.114f));                       \n\
-      }                                                                       \n\
-                                                                              \n\
-      float3 ApplyREC2084Curve (float3 L, float maxLuminance)                 \n\
-      {                                                                       \n\
-        float m1 = 2610.0 / 4096.0 / 4;                                       \n\
-        float m2 = 2523.0 / 4096.0 * 128;                                     \n\
-        float c1 = 3424.0 / 4096.0;                                           \n\
-        float c2 = 2413.0 / 4096.0 * 32;                                      \n\
-        float c3 = 2392.0 / 4096.0 * 32;                                      \n\
-                                                                              \n\
-        float maxLuminanceScale = maxLuminance / 10000.0f;                    \n\
-        L *= maxLuminanceScale;                                               \n\
-                                                                              \n\
-        float3 Lp = pow (L, m1);                                              \n\
-                                                                              \n\
-        return pow ((c1 + c2 * Lp) / (1 + c3 * Lp), m2);                      \n\
-      }                                                                       \n\
-      float3 RemoveREC2084Curve (float3 N)                                    \n\
-      {                                                                       \n\
-        float  m1 = 2610.0 / 4096.0 / 4;                                      \n\
-        float  m2 = 2523.0 / 4096.0 * 128;                                    \n\
-        float  c1 = 3424.0 / 4096.0;                                          \n\
-        float  c2 = 2413.0 / 4096.0 * 32;                                     \n\
-        float  c3 = 2392.0 / 4096.0 * 32;                                     \n\
-        float3 Np = pow (N, 1 / m2);                                          \n\
-                                                                              \n\
-        return                                                                \n\
-          pow (max (Np - c1, 0) / (c2 - c3 * Np), 1 / m1);                    \n\
-      }                                                                       \n\
-      float3 REC709toREC2020 (float3 RGB709)                                  \n\
-      {                                                                       \n\
-        static const float3x3 ConvMat =                                       \n\
-        {                                                                     \n\
-          0.627402, 0.329292, 0.043306,                                       \n\
-          0.069095, 0.919544, 0.011360,                                       \n\
-          0.016394, 0.088028, 0.895578                                        \n\
-        };                                                                    \n\
-        return mul (ConvMat, RGB709);                                         \n\
-      }                                                                       \n\
-                                                                              \n\
-      float3 REC2020toREC709 (float3 RGB2020)                                 \n\
-      {                                                                       \n\
-        static const float3x3 ConvMat =                                       \n\
-        {                                                                     \n\
-           1.660496, -0.587656, -0.072840,                                    \n\
-          -0.124546,  1.132895,  0.008348,                                    \n\
-          -0.018154, -0.100597,  1.118751                                     \n\
-        };                                                                    \n\
-        return mul (ConvMat, RGB2020);                                        \n\
-      }                                                                       \n\
-                                                                              \n\
-      float4 main (PS_INPUT input) : SV_Target                                \n\
-      {                                                                       \n\
-        float4 out_col =                                                      \n\
-          texture0.Sample (sampler0, input.uv);                               \n\
-                                                                              \n\
-        bool hdr10 = ( input.uv3.x < 0.0 );                                   \n\
-                                                                              \n\
-        if (viewport.z > 0.f)                                                 \n\
-        {                                                                     \n\
-          float4 under_color;                                                 \n\
-                                                                              \n\
-          float blend_alpha =                                                 \n\
-            saturate (input.col.a * out_col.a);                               \n\
-                                                                              \n\
-          if (abs (blend_alpha) < 0.001f) blend_alpha = 0.0f;                 \n\
-          if (abs (blend_alpha) > 0.999f) blend_alpha = 1.0f;                 \n\
-                                                                              \n\
-          float4 hud = float4 (0.0f, 0.0f, 0.0f, 0.0f);                       \n\
-                                                                              \n\
-          if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)                       \n\
-          {                                                                   \n\
-            hud = hdrHUD.Sample (sampler0, input.uv);                         \n\
-            hud.rbg     = RemoveSRGBCurve (hud.rgb);                          \n\
-            hud.rgb    *= ( input.uv3.xxx );                                  \n\
-            out_col.rgb = RemoveSRGBCurve (out_col.rgb);                      \n\
-            out_col =                                                         \n\
-              pow (abs (out_col), float4 (input.uv2.yyy, 1.0f)) *             \n\
-                input.uv2.xxxx;                                               \n\
-            out_col.a   = 1.0f;                                               \n\
-            blend_alpha = 1.0f;                                               \n\
-            under_color = float4 (0.0f, 0.0f, 0.0f, 0.0f);                    \n\
-          }                                                                   \n\
-                                                                              \n\
-          else                                                                \n\
-          {                                                                   \n\
-            under_color =                                                     \n\
-              float4 ( hdrUnderlay.Sample ( sampler0, input.pos.xy /          \n\
-                                                      viewport.zw ).rgb, 1.0);\n\
-            out_col =                                                         \n\
-              pow (abs (input.col * out_col), float4 (input.uv3.yyy, 1.0f));  \n\
-                                                                              \n\
-            if (hdr10)                                                        \n\
-            {                                                                 \n\
-              under_color.rgb =                                               \n\
-                REC2020toREC709 (                                             \n\
-                  ( RemoveREC2084Curve (12.5f * under_color.rgb) )            \n\
-                );                                                            \n\
-                                                                              \n\
-              blend_alpha =                                                   \n\
-                Luma (                                                        \n\
-                  ApplyREC2084Curve (                                         \n\
-                    float3 ( blend_alpha, blend_alpha, blend_alpha ),         \n\
-                                                      -input.uv3.x )          \n\
-                );                                                            \n\
-            }                                                                 \n\
-                                                                              \n\
-            if (! hdr10)                                                      \n\
-            {                                                                 \n\
-              blend_alpha =                                                   \n\
-                Luma (                                                        \n\
-                  ApplyREC709Curve (                                          \n\
-                    float3 ( blend_alpha, blend_alpha, blend_alpha )          \n\
-                                   )                                          \n\
-                );                                                            \n\
-              under_color.rgb =                                               \n\
-                  RemoveSRGBCurve (under_color.rgb);                          \n\
-              under_color.rgb /= (1.0f + under_color.rgb);                    \n\
-              out_col.rgb *= input.uv3.x;                                     \n\
-            }                                                                 \n\
-                                                                              \n\
-            out_col.rgb *= blend_alpha;                                       \n\
-          }                                                                   \n\
-                                                                              \n\
-          float4 final =                                                      \n\
-            float4 (                         out_col.rgb +                    \n\
-                  (1.0f - blend_alpha) * under_color.rgb,                     \n\
-                saturate (blend_alpha));                                      \n\
-                                                                              \n\
-          if (hdr10)                                                          \n\
-          {                                                                   \n\
-            final.rgb =                                                       \n\
-              ApplyREC2084Curve ( REC709toREC2020 (final.rgb),                \n\
-                                    -input.uv3.x );                           \n\
-          }                                                                   \n\
-                                                                              \n\
-          return final;                                                       \n\
-        }                                                                     \n\
-                                                                              \n\
-        return                                                                \n\
-          ( input.col * out_col );                                            \n\
-      }";
+    D3D11_BUFFER_DESC desc = { };
 
-    SK_ComPtr <ID3D10Blob> blob_msg_pix;
+    desc.ByteWidth         = sizeof (VERTEX_CONSTANT_BUFFER);
+    desc.Usage             = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
+    desc.MiscFlags         = 0;
 
-    D3DCompile ( pixelShader,
-                   sizeof (pixelShader),
-                     nullptr, nullptr, nullptr,
-                       "main", "ps_4_0",
-                         0, 0,
-                           &g_pPixelShaderBlob,
-                             &blob_msg_pix );
+    pDev->CreateBuffer (&desc, nullptr, &_P.pVertexConstantBuffer);
 
-    if (blob_msg_pix != nullptr && blob_msg_pix->GetBufferSize ())
-    {
-      std::string err;
+    desc.ByteWidth         = sizeof (float) * 4;
+    desc.Usage             = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
+    desc.MiscFlags         = 0;
 
-      err.reserve (blob_msg_pix->GetBufferSize    ());
-      err = (
-           (char *)blob_msg_pix->GetBufferPointer ()
-      );
+    pDev->CreateBuffer (&desc, nullptr, &_P.pPixelConstantBuffer);
 
-      if (! err.empty ())
-      {
-        dll_log->LogEx (true, L"ImGui D3D11 Pixel Shader:  %hs", err.c_str ());
-      }
-    }
-
-    // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in
-    //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-    if (g_pPixelShaderBlob == nullptr)
-      return false;
-
-    if ( pDev->CreatePixelShader ( static_cast <DWORD *> (g_pPixelShaderBlob->GetBufferPointer ()),
-                                     g_pPixelShaderBlob->GetBufferSize (),
-                                       nullptr,
-                                         &g_pPixelShader ) != S_OK )
-    {
-      return false;
-    }
-
-
-
-    ///////
-    static const char pixelShaderSteamHDR[] =
-   "#pragma warning ( disable : 3571 )\n                         \
-    struct PS_INPUT                                              \n\
-    {                                                            \n\
-      float4 pos : SV_POSITION;                                  \n\
-      float4 col : COLOR;                                        \n\
-      float2 uv  : TEXCOORD0;                                    \n\
-      float2 uv2 : TEXCOORD1;                                    \n\
-    };                                                           \n\
-                                                                 \n\
-    sampler   PS_QUAD_Sampler   : register (s0);                 \n\
-    Texture2D PS_QUAD_Texture2D : register (t0);                 \n\
-                                                                 \n\
-    float3 RemoveSRGBCurve(float3 x)                             \n\
-    {                                                            \n\
-      /* Approximately pow(x, 2.2)*/                             \n\
-      return x < 0.04045 ? x / 12.92 :                           \n\
-                      pow((x + 0.055) / 1.055, 2.4);             \n\
-    }                                                            \n\
-                                                                 \n\
-    float3 ApplyREC2084Curve (float3 L, float maxLuminance)      \n\
-    {                                                            \n\
-      float m1 = 2610.0 / 4096.0 / 4;                            \n\
-      float m2 = 2523.0 / 4096.0 * 128;                          \n\
-      float c1 = 3424.0 / 4096.0;                                \n\
-      float c2 = 2413.0 / 4096.0 * 32;                           \n\
-      float c3 = 2392.0 / 4096.0 * 32;                           \n\
-                                                                 \n\
-      float maxLuminanceScale = maxLuminance / 10000.0f;         \n\
-      L *= maxLuminanceScale;                                    \n\
-                                                                 \n\
-      float3 Lp = pow (L, m1);                                   \n\
-                                                                 \n\
-      return pow ((c1 + c2 * Lp) / (1 + c3 * Lp), m2);           \n\
-    }                                                            \n\
-                                                                 \n\
-    float3 REC709toREC2020 (float3 RGB709)                       \n\
-    {                                                            \n\
-      static const float3x3 ConvMat =                            \n\
-      {                                                          \n\
-        0.627402, 0.329292, 0.043306,                            \n\
-        0.069095, 0.919544, 0.011360,                            \n\
-        0.016394, 0.088028, 0.895578                             \n\
-      };                                                         \n\
-      return mul (ConvMat, RGB709);                              \n\
-    }                                                            \n\
-                                                                 \n\
-    float4 main (PS_INPUT input) : SV_Target                     \n\
-    {                                                            \n\
-      float4 gamma_exp  = float4 (input.uv2.yyy, 1.f);           \n\
-      float4 linear_mul = float4 (input.uv2.xxx, 1.f);           \n\
-                                                                 \n\
-      float4 out_col =                                           \n\
-        PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);    \n\
-                                                                 \n\
-      out_col =                                                  \n\
-        float4 (RemoveSRGBCurve (input.col.rgb * out_col.rgb),   \n\
-                                 input.col.a   * out_col.a);     \n\
-                                                                 \n\
-      // Negative = HDR10                                        \n\
-      if (linear_mul.x < 0.0)                                    \n\
-      {                                                          \n\
-        out_col.rgb =                                            \n\
-          ApplyREC2084Curve ( REC709toREC2020 (out_col.rgb),     \n\
-                                -linear_mul.x );                 \n\
-                                                                 \n\
-      }                                                          \n\
-                                                                 \n\
-      // Positive = scRGB                                        \n\
-      else                                                       \n\
-        out_col *= linear_mul;                                   \n\
-                                                                 \n\
-      return                                                     \n\
-        float4 (out_col.rgb, saturate (out_col.a));              \n\
-    }";
-
-#if 0
-    "
-    float4 main (PS_INPUT input) : SV_Target                     \
-    {                                                            \
-      float4 gamma_exp  = float4 (input.uv2.yyy, 1.f);           \
-      float4 linear_mul = float4 (input.uv2.xxx, 1.f);           \
-                                                                 \
-      float4 out_col =                                           \
-        PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);    \
-                                                                 \
-      out_col =                                                  \
-        float4 (RemoveSRGBCurve (input.col.rgb * out_col.rgb),   \
-                                 input.col.a   * out_col.a)  *   \
-                                                     linear_mul; \
-                                                                 \
-      return                                                     \
-        float4 (out_col.rgb, saturate (out_col.a));              \
-      "
-#endif
-
-
-   static const char pixelShaderuPlayHDR [] =
-   "#pragma warning ( disable : 3571 )\n                         \
-    struct PS_INPUT                                              \
-    {                                                            \
-      float4 pos : SV_POSITION;                                  \
-      float2 uv  : TEXCOORD0;                                    \
-      float2 uv2 : TEXCOORD1;                                    \
-    };                                                           \
-                                                                 \
-    sampler   PS_QUAD_Sampler   : register (s0);                 \
-    Texture2D PS_QUAD_Texture2D : register (t0);                 \
-                                                                 \
-    float3 RemoveSRGBCurve(float3 x)                             \
-    {                                                            \
-      /* Approximately pow(x, 2.2)*/                             \
-      return x < 0.04045 ? x / 12.92 :                           \
-                      pow((x + 0.055) / 1.055, 2.4);             \
-    }                                                            \
-                                                                 \
-    float4 main (PS_INPUT input) : SV_Target                     \
-    {                                                            \
-      float4 gamma_exp  = float4 (input.uv2.yyy, 1.f);           \
-      float4 linear_mul = float4 (input.uv2.xxx, 1.f);           \
-                                                                 \
-      float4 out_col =                                           \
-        PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);    \
-                                                                 \
-      out_col =                                                  \
-        float4 (RemoveSRGBCurve (out_col.rgb),out_col.a)  *      \
-                                                     linear_mul; \
-                                                                 \
-      return                                                     \
-        float4 (out_col.rgb, saturate (out_col.a));              \
-    }";
-
-    D3DCompile ( pixelShaderSteamHDR,
-                   sizeof (pixelShaderSteamHDR),
-                     nullptr, nullptr, nullptr,
-                       "main", "ps_4_0",
-                         0, 0,
-                           &g_pPixelShaderBlob2,
-                             &blob_msg_pix );
-
-    if (blob_msg_pix != nullptr && blob_msg_pix->GetBufferSize ())
-    {
-      std::string err;
-
-      err.reserve (blob_msg_pix->GetBufferSize ());
-      err = (
-           (char *)blob_msg_pix->GetBufferPointer ());
-
-      if (! err.empty ())
-      {
-        dll_log->LogEx (true, L"Steam HDR D3D11 Pixel Shader: %hs", err.c_str ());
-      }
-    }
-
-    if (g_pPixelShaderBlob2 == nullptr)
-      return false;
-
-    if ( pDev->CreatePixelShader ( static_cast <DWORD *> (g_pPixelShaderBlob2->GetBufferPointer ()),
-                                     g_pPixelShaderBlob2->GetBufferSize (),
-                                       nullptr,
-                                         &g_pPixelShaderSteamHDR ) != S_OK )
-      return false;
-
-    D3DCompile ( pixelShaderuPlayHDR,
-                   sizeof (pixelShaderuPlayHDR),
-                     nullptr, nullptr, nullptr,
-                       "main", "ps_4_0",
-                         0, 0,
-                           &g_pPixelShaderBlob3,
-                             &blob_msg_pix );
-
-    if (blob_msg_pix != nullptr && blob_msg_pix->GetBufferSize ())
-    {
-      std::string err;
-
-      err.reserve (blob_msg_pix->GetBufferSize ());
-      err = (
-           (char *)blob_msg_pix->GetBufferPointer ());
-
-      if (! err.empty ())
-      {
-        dll_log->LogEx (true, L"uPlay HDR D3D11 Pixel Shader: %hs", err.c_str ());
-      }
-    }
-
-    if (g_pPixelShaderBlob3 == nullptr)
-      return false;
-
-    if ( pDev->CreatePixelShader ( static_cast <DWORD *> (g_pPixelShaderBlob3->GetBufferPointer ()),
-                                     g_pPixelShaderBlob3->GetBufferSize (),
-                                       nullptr,
-                                         &g_pPixelShaderuPlayHDR ) != S_OK )
-      return false;
+    SK_D3D11_SetDebugName (_P.pVertexConstantBuffer, "ImGui Vertex Constant Buffer");
+    SK_D3D11_SetDebugName (_P.pPixelConstantBuffer,  "ImGui Pixel Constant Buffer");
   }
+
+  if ( pDev->CreatePixelShader ( (DWORD *) (imgui_d3d11_ps_bytecode),
+                                    sizeof (imgui_d3d11_ps_bytecode) /
+                                    sizeof (imgui_d3d11_ps_bytecode [0]),
+                                      nullptr,
+                                        &_P.pPixelShader ) != S_OK )
+  {
+    return false;
+  }
+
+  SK_D3D11_SetDebugName (_P.pPixelShader, "ImGui Pixel Shader");
+
+  if ( pDev->CreatePixelShader ( (DWORD *) (steam_d3d11_ps_bytecode),
+                                    sizeof (steam_d3d11_ps_bytecode) /
+                                    sizeof (steam_d3d11_ps_bytecode [0]),
+                                     nullptr,
+                                       &_P.pPixelShaderSteamHDR ) != S_OK )
+  {
+    return false;
+  }
+
+  SK_D3D11_SetDebugName (_P.pPixelShaderSteamHDR, "Steam Overlay HDR Pixel Shader");
+
+  if ( pDev->CreatePixelShader ( (DWORD *) (uplay_d3d11_ps_bytecode),
+                                    sizeof (uplay_d3d11_ps_bytecode) /
+                                    sizeof (uplay_d3d11_ps_bytecode [0]),
+                                      nullptr,
+                                        &_P.pPixelShaderuPlayHDR ) != S_OK )
+  {
+    return false;
+  }
+
+  SK_D3D11_SetDebugName (_P.pPixelShaderuPlayHDR, "uPlay Overlay HDR Pixel Shader");
 
   // Create the blending setup
   {
@@ -1587,7 +1405,8 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
     desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-    pDev->CreateBlendState (&desc, &g_pBlendState);
+    pDev->CreateBlendState (&desc, &_P.pBlendState);
+    SK_D3D11_SetDebugName  (_P.pBlendState, "ImGui Blend State");
 
     //desc.RenderTarget [0].BlendEnable           = true;
     //desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
@@ -1608,7 +1427,8 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     desc.ScissorEnable   = true;
     desc.DepthClipEnable = true;
 
-    pDev->CreateRasterizerState (&desc, &g_pRasterizerState);
+    pDev->CreateRasterizerState (&desc, &_P.pRasterizerState);
+    SK_D3D11_SetDebugName (_P.pRasterizerState, "ImGui Rasterizer State");
   }
 
   // Create depth-stencil State
@@ -1625,10 +1445,44 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     desc.FrontFace.StencilFunc    = D3D11_COMPARISON_ALWAYS;
     desc.BackFace                 = desc.FrontFace;
 
-    pDev->CreateDepthStencilState (&desc, &g_pDepthStencilState);
+    pDev->CreateDepthStencilState (&desc, &_P.pDepthStencilState);
+    SK_D3D11_SetDebugName (_P.pDepthStencilState, "ImGui Depth/Stencil State");
   }
 
+  return true;
+}
+
+bool
+ImGui_ImplDX11_CreateDeviceObjects (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  ImGui_ImplDX11_InvalidateDeviceObjects ();
+
+  SK_ComQIPtr <IDXGISwapChain>
+        pSwap   (rb.swapchain);
+  if (! pSwap)
+    return false;
+
+  DXGI_SWAP_CHAIN_DESC
+                   swapDesc = { };
+  pSwap->GetDesc (&swapDesc);
+
+  g_numFramesInSwapChain =
+    std::min (swapDesc.BufferCount, _MAX_BACKBUFFERS);
+
   ImGui_ImplDX11_CreateFontsTexture ();
+
+  for ( UINT i = 0 ; i < std::min (_MAX_BACKBUFFERS, swapDesc.BufferCount) ; ++i )
+  {
+    if (! ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer (i))
+    {
+      ImGui_ImplDX11_InvalidateDeviceObjects ();
+
+      return false;
+    }
+  }
 
   return true;
 }
@@ -1683,33 +1537,39 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-
   SK_ImGui_ResetExternal ();
 
-  if (g_pFontSampler_clamp)    { g_pFontSampler_clamp->Release (); g_pFontSampler_clamp = nullptr; }
-  if (g_pFontSampler_wrap)     { g_pFontSampler_wrap->Release  (); g_pFontSampler_wrap  = nullptr; }
-  if (g_pFontTextureView)      { g_pFontTextureView->Release   (); g_pFontTextureView   = nullptr;  ImGui::GetIO ().Fonts->TexID = nullptr; }
-  if (g_pIB)                   { g_pIB->Release                ();              g_pIB   = nullptr; }
-  if (g_pVB)                   { g_pVB->Release                ();              g_pVB   = nullptr; }
+  auto _CleanupBackbuffer = [&](UINT index) -> void
+  {
+    auto&& _P = _Frame [index];
 
-  if (g_pBlendState)           { g_pBlendState->Release           ();           g_pBlendState = nullptr; }
-  if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = nullptr; }
-  if (g_pRasterizerState)      { g_pRasterizerState->Release      ();      g_pRasterizerState = nullptr; }
-  if (g_pPixelShader)          { g_pPixelShader->Release          ();          g_pPixelShader = nullptr; }
-  if (g_pPixelShaderuPlayHDR)  { g_pPixelShaderuPlayHDR->Release  (); g_pPixelShaderuPlayHDR  = nullptr; }
-  if (g_pPixelShaderSteamHDR)  { g_pPixelShaderSteamHDR->Release  (); g_pPixelShaderSteamHDR  = nullptr; }
-  if (g_pPixelShaderBlob)      { g_pPixelShaderBlob->Release      ();      g_pPixelShaderBlob = nullptr; }
-  if (g_pPixelShaderBlob2)     { g_pPixelShaderBlob2->Release     ();     g_pPixelShaderBlob2 = nullptr; }
-  if (g_pPixelShaderBlob3)     { g_pPixelShaderBlob3->Release     ();     g_pPixelShaderBlob3 = nullptr; }
-  if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release (); g_pVertexConstantBuffer = nullptr; }
-  if (g_pPixelConstantBuffer)  { g_pPixelConstantBuffer->Release  (); g_pPixelConstantBuffer  = nullptr; }
-  if (g_pInputLayout)          { g_pInputLayout->Release          ();          g_pInputLayout = nullptr; }
-  if (g_pVertexShader)         { g_pVertexShader->Release         ();         g_pVertexShader = nullptr; }
-  if (g_pVertexShaderSteamHDR) { g_pVertexShaderSteamHDR->Release (); g_pVertexShaderSteamHDR = nullptr; }
-  if (g_pVertexShaderuPlayHDR) { g_pVertexShaderuPlayHDR->Release (); g_pVertexShaderuPlayHDR = nullptr; }
-  if (g_pVertexShaderBlob)     { g_pVertexShaderBlob->Release     ();     g_pVertexShaderBlob = nullptr; }
-  if (g_pVertexShaderBlob2)    { g_pVertexShaderBlob2->Release    ();    g_pVertexShaderBlob2 = nullptr; }
-  if (g_pVertexShaderBlob3)    { g_pVertexShaderBlob3->Release    ();    g_pVertexShaderBlob3 = nullptr; }
+    _P.VertexBufferSize = 5000;
+    _P.IndexBufferSize  = 10000;
+
+    if (_P.pFontSampler_clamp)    { _P.pFontSampler_clamp->Release    (); _P.pFontSampler_clamp = nullptr; }
+    if (_P.pFontSampler_wrap)     { _P.pFontSampler_wrap->Release     (); _P.pFontSampler_wrap  = nullptr; }
+    if (_P.pFontTextureView)      { _P.pFontTextureView->Release      (); _P.pFontTextureView   = nullptr;  ImGui::GetIO ().Fonts->TexID = nullptr; }
+    if (_P.pIB)                   { _P.pIB->Release                   ();              _P.pIB   = nullptr; }
+    if (_P.pVB)                   { _P.pVB->Release                   ();              _P.pVB   = nullptr; }
+
+    if (_P.pBlendState)           { _P.pBlendState->Release           ();           _P.pBlendState = nullptr; }
+    if (_P.pDepthStencilState)    { _P.pDepthStencilState->Release    ();    _P.pDepthStencilState = nullptr; }
+    if (_P.pRasterizerState)      { _P.pRasterizerState->Release      ();      _P.pRasterizerState = nullptr; }
+    if (_P.pPixelShader)          { _P.pPixelShader->Release          ();          _P.pPixelShader = nullptr; }
+    if (_P.pPixelShaderuPlayHDR)  { _P.pPixelShaderuPlayHDR->Release  (); _P.pPixelShaderuPlayHDR  = nullptr; }
+    if (_P.pPixelShaderSteamHDR)  { _P.pPixelShaderSteamHDR->Release  (); _P.pPixelShaderSteamHDR  = nullptr; }
+    if (_P.pVertexConstantBuffer) { _P.pVertexConstantBuffer->Release (); _P.pVertexConstantBuffer = nullptr; }
+    if (_P.pPixelConstantBuffer)  { _P.pPixelConstantBuffer->Release  (); _P.pPixelConstantBuffer  = nullptr; }
+    if (_P.pInputLayout)          { _P.pInputLayout->Release          ();          _P.pInputLayout = nullptr; }
+    if (_P.pVertexShader)         { _P.pVertexShader->Release         ();         _P.pVertexShader = nullptr; }
+    if (_P.pVertexShaderSteamHDR) { _P.pVertexShaderSteamHDR->Release (); _P.pVertexShaderSteamHDR = nullptr; }
+    if (_P.pVertexShaderuPlayHDR) { _P.pVertexShaderuPlayHDR->Release (); _P.pVertexShaderuPlayHDR = nullptr; }
+
+    _P.pBackBuffer = nullptr;
+  };
+
+  for ( UINT i = 0 ; i < _MAX_BACKBUFFERS ; ++i )
+    _CleanupBackbuffer (i);
 
   pTLS->d3d11->uiSampler_clamp = nullptr;
   pTLS->d3d11->uiSampler_wrap  = nullptr;
@@ -1738,10 +1598,13 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
   DXGI_SWAP_CHAIN_DESC  swap_desc  = { };
   pSwapChain->GetDesc (&swap_desc);
 
-  g_frameBufferWidth  = swap_desc.BufferDesc.Width;
-  g_frameBufferHeight = swap_desc.BufferDesc.Height;
-  g_hWnd              = swap_desc.OutputWindow;
-  io.ImeWindowHandle  = g_hWnd;
+  g_numFramesInSwapChain =
+    std::min (swap_desc.BufferCount, _MAX_BACKBUFFERS);
+//g_numFramesInSwapChain = swap_desc.BufferCount;
+  g_frameBufferWidth     = swap_desc.BufferDesc.Width;
+  g_frameBufferHeight    = swap_desc.BufferDesc.Height;
+  g_hWnd                 = swap_desc.OutputWindow;
+  io.ImeWindowHandle     = g_hWnd;
 
   io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
   io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
@@ -1787,15 +1650,34 @@ SK_ImGui_PollGamepad (void);
 void
 ImGui_ImplDX11_NewFrame (void)
 {
+  // Setup time step
+  INT64 current_time;
+
+  SK_QueryPerformanceCounter (
+    reinterpret_cast <LARGE_INTEGER *> (&current_time)
+  );
+
+  auto& io =
+    ImGui::GetIO ();
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.device)
     return;
 
-  ImGuiIO& io (ImGui::GetIO ());
+  auto flag_result =
+    SK_ImGui_FlagDrawing_OnD3D11Ctx (
+      SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx)
+    );
 
-  if (! g_pFontSampler_clamp)
+  SK_ScopedBool auto_bool0 (flag_result.first);
+                           *flag_result.first = flag_result.second;
+
+  auto&& _Pool =
+    _Frame [/*++*/g_frameIndex % g_numFramesInSwapChain];
+
+  if (! _Pool.pFontSampler_clamp)
     ImGui_ImplDX11_CreateDeviceObjects ();
 
   if (io.Fonts->Fonts.empty ())
@@ -1806,21 +1688,18 @@ ImGui_ImplDX11_NewFrame (void)
       return;
   }
 
+  io.DeltaTime =
+    std::min ( 1.0f,
+    std::max ( 0.0f, static_cast <float> (
+                    (static_cast <long double> (                       current_time) -
+                     static_cast <long double> (std::exchange (g_Time, current_time))) /
+                     static_cast <long double> (               g_TicksPerSecond      ) ) )
+    );
+
   // Setup display size (every frame to accommodate for window resizing)
   //io.DisplaySize =
     //ImVec2 ( g_frameBufferWidth,
                //g_frameBufferHeight );
-
-  // Setup time step
-  INT64 current_time;
-
-  SK_QueryPerformanceCounter (
-    reinterpret_cast <LARGE_INTEGER *> (&current_time)
-  );
-
-  io.DeltaTime = static_cast <float> (current_time - g_Time) /
-                 static_cast <float> (g_TicksPerSecond);
-  g_Time       =                      current_time;
 
   // Read keyboard modifiers inputs
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
@@ -1892,6 +1771,10 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
 
   if (rb.d3d11.immediate_ctx != nullptr)
   {
+    HRESULT hr0 = rb.device->QueryInterface <ID3D11Device> (&pDev.p);
+    HRESULT hr1 = rb.d3d11.immediate_ctx->QueryInterface
+          <ID3D11DeviceContext>(&pDevCtx.p);
+
     auto flag_result =
       SK_ImGui_FlagDrawing_OnD3D11Ctx (
         SK_D3D11_GetDeviceContextHandle (pDevCtx)
@@ -1899,9 +1782,6 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
 
     SK_ScopedBool auto_bool0 (flag_result.first);
                              *flag_result.first = flag_result.second;
-
-    HRESULT hr0 = rb.device->QueryInterface              <ID3D11Device>        (&pDev.p);
-    HRESULT hr1 = rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx.p);
 
     if (SUCCEEDED (hr0) && SUCCEEDED (hr1))
     {

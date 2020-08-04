@@ -1,11 +1,10 @@
 #include <SpecialK/stdafx.h>
 
-#include <SpecialK/steam_api.h>
 #include <SpecialK/input/steam.h>
-#include <SpecialK/input/input.h>
 
 SK_LazyGlobal <sk_input_api_context_s> SK_Steam_Backend;
 
+#ifdef SK_STEAM_CONTROLLER_SUPPORT
 SK_LazyGlobal <
   concurrency::concurrent_unordered_map <ISteamController*, IWrapSteamController*>
 >  SK_SteamWrapper_remap_controller;
@@ -143,3 +142,4 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
 
   return pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion);
 }
+#endif

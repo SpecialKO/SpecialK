@@ -199,7 +199,7 @@ escape_keybind_getter (void)
     keybind = {
       SK_Keybind {
         "Remap Escape Key", L"Backspace",
-          false, false, false, VK_BACK
+         { FALSE, FALSE, FALSE }, VK_BACK
       }, L"RemapEscape"
     };
 
@@ -607,7 +607,7 @@ SK_DQXI_PlugInCfg (void)
 
         ImGui::BeginGroup (  );
         ImGui::TreePush   ("");
-        ImGui::Text ( "%lu files using %ws",
+        ImGui::Text ( "%ui files using %ws",
                      repo.files,
                      SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
         );
@@ -622,11 +622,11 @@ SK_DQXI_PlugInCfg (void)
 
         if (ImGui::Button ("Browse"))
         {
-          ShellExecuteW ( GetActiveWindow (),
-                           L"explore",
-                             screenshot_manager->getExternalScreenshotPath (),
-                               nullptr, nullptr,
-                                 SW_NORMAL
+          SK_ShellExecuteW ( nullptr,
+                              L"explore",
+                                screenshot_manager->getExternalScreenshotPath (),
+                                  nullptr, nullptr,
+                                    SW_NORMAL
           );
         }
 

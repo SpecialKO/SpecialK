@@ -22,6 +22,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"Sekiro Fix"
 
 #pragma region DEATH_TO_WINSOCK
@@ -418,7 +421,7 @@ SK_Sekiro_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags
   SK_Thread_CreateEx ([] (LPVOID) ->
   DWORD
   {
-    ULONG ulFrame = SK_GetFramesDrawn ();
+    ULONG64 ulFrame = SK_GetFramesDrawn ();
 
     auto& rb =
       SK_GetCurrentRenderBackend ();
@@ -507,7 +510,7 @@ SK_Sekiro_PlugInCfg (void)
   ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
   ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
-  if (ImGui::CollapsingHeader (u8"Sekiro™: Shadows Die Twice", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader (u8R"(Sekiro™: Shadows Die Twice)", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
 
@@ -593,10 +596,8 @@ SK_Sekiro_PlugInCfg (void)
 
         if (num_modes == 0)
         {
-          SK_ComPtr <IDXGIOutput> pContainer;
-
-          IDXGISwapChain* pSwapChain =
-            reinterpret_cast <IDXGISwapChain*> (rb.swapchain.p);
+          SK_ComPtr   <IDXGIOutput>    pContainer;
+          SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
 
           if (SUCCEEDED (pSwapChain->GetContainingOutput (&pContainer)))
           {

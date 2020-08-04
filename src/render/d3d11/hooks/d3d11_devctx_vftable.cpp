@@ -1048,9 +1048,9 @@ D3D11_UpdateSubresource1_Override (
 
       if (pCachedTex != nullptr)
       {
-        SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
+        SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex.p);
 
-        D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
+        D3D11_CopyResource_Original (This, pDstResource, pCachedResource.p);
 
         SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
                       desc.Width, desc.Height, top_crc32c ),
@@ -1187,7 +1187,7 @@ D3D11_Map_Override (
      _In_ UINT                      MapFlags,
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 {
-  if (! SK_D3D11_IsDevCtxDeferred (This))
+  if (! (SK_D3D11_IsDevCtxDeferred (This)))
   {
     return
       SK_D3D11_Map_Impl ( This,
@@ -1216,7 +1216,7 @@ D3D11_Unmap_Override (
   _In_ ID3D11Resource      *pResource,
   _In_ UINT                 Subresource )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))
+  if (! (SK_D3D11_IgnoreWrappedOrDeferred (false, This)))
   {
     SK_D3D11_Unmap_Impl (This, pResource, Subresource, false);
   }
@@ -1276,7 +1276,7 @@ D3D11_CopySubresourceRegion_Override (
     return;
   }
 
-  if (! SK_D3D11_IsDevCtxDeferred (This))
+  if (! (SK_D3D11_IsDevCtxDeferred (This)))
   {
   ///if (SK_GetCurrentGameID() == SK_GAME_ID::Ys_Eight)
   ///{
@@ -1951,7 +1951,7 @@ D3D11_PSSetSamplers_Override
   _In_     UINT                       NumSamplers,
   _In_opt_ ID3D11SamplerState *const *ppSamplers )
 {
-  if (! SK_D3D11_IsDevCtxDeferred (This))
+  if (! (SK_D3D11_IsDevCtxDeferred (This)))
   {
 #if 0
     if ( ppSamplers != nullptr )

@@ -23,19 +23,19 @@
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
 #include <SpecialK/steam_api.h>
 
-SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComQIPtr <IDirect3DDevice9> pDevice) : pDev (pDevice)
+SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDevice) : pDev (pDevice)
 {
-  if (pDev.p != nullptr)
+  if (pDev != nullptr)
   {
-    if ( SUCCEEDED ( SK_GetCurrentRenderBackend ().swapchain.QueryInterface (
-                       &pSwapChain                                          )
-                   )
-       )
+    if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
+        SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDirect3DSwapChain9> (&pSwapChain);
+
+    if (pSwapChain != nullptr)
     {
       ulCommandIssuedOnFrame = SK_GetFramesDrawn ();
 
       if ( SUCCEEDED ( pSwapChain->GetBackBuffer ( 0, D3DBACKBUFFER_TYPE_MONO,
-                                                     &pBackbufferSurface
+                                                     &pBackbufferSurface.p
                                                  )
                      )
          )
@@ -58,13 +58,13 @@ SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComQIPtr <IDirect3DDevice9> pDe
         //static D3DXLoadSurfaceFromSurface_pfn
         //  D3DXLoadSurfaceFromSurface =
         //    (D3DXLoadSurfaceFromSurface_pfn)
-        //      GetProcAddress ( d3dx9_43_dll, "D3DXLoadSurfaceFromSurface" );
+        //   SK_GetProcAddress ( d3dx9_43_dll, "D3DXLoadSurfaceFromSurface" );
 
         if (SUCCEEDED ( pDev->CreateRenderTarget ( desc.Width, desc.Height,
                                                      desc.Format, desc.MultiSampleType,
                                                                   desc.MultiSampleQuality,
                                                        TRUE,
-                                                         &pSurfScreenshot, nullptr
+                                                         &pSurfScreenshot.p, nullptr
                                                )
                       )
            )
@@ -137,18 +137,21 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
           uint8_t* pSrc =  (uint8_t *)finished_copy.pBits;
           uint8_t* pDst = framebuffer.PixelBuffer.m_pData;
 
-          for ( UINT i = 0; i < framebuffer.Height; ++i )
+          if (pSrc != nullptr && pDst != nullptr)
           {
-            memcpy ( pDst, pSrc, finished_copy.Pitch );
-
-            // Eliminate pre-multiplied alpha problems (the stupid way)
-            for ( UINT j = 3 ; j < PackedDstPitch ; j += 4 )
+            for ( UINT i = 0; i < framebuffer.Height; ++i )
             {
-              pDst [j] = 255UL;
-            }
+              memcpy ( pDst, pSrc, finished_copy.Pitch );
 
-            pSrc += finished_copy.Pitch;
-            pDst +=         PackedDstPitch;
+              // Eliminate pre-multiplied alpha problems (the stupid way)
+              for ( UINT j = 3 ; j < PackedDstPitch ; j += 4 )
+              {
+                pDst [j] = 255UL;
+              }
+
+              pSrc += finished_copy.Pitch;
+              pDst +=         PackedDstPitch;
+            }
           }
 
           *pPitch = PackedDstPitch;
@@ -247,9 +250,14 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
   {
     if (InterlockedDecrement (&enqueued_screenshots.stages [stage]) >= 0)
     {
-      screenshot_queue->push (
-        new SK_D3D9_Screenshot (SK_GetCurrentRenderBackend ().device.p)
-      );
+      SK_ComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
+
+      if (pDev != nullptr)
+      {
+        screenshot_queue->push (
+          new SK_D3D9_Screenshot (pDev)
+        );
+      }
     }
 
     else InterlockedIncrement (&enqueued_screenshots.stages [stage]);
@@ -303,8 +311,8 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
                 //HRESULT hr = E_UNEXPECTED;
 
 
-                wchar_t      wszAbsolutePathToScreenshot [ MAX_PATH * 2 + 1 ] = { };
-                wcsncpy_s   (wszAbsolutePathToScreenshot, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
+                wchar_t      wszAbsolutePathToScreenshot [ MAX_PATH + 2 ] = { };
+                wcsncpy_s   (wszAbsolutePathToScreenshot,  MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
                 //PathAppendW (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.png");
                 PathAppendW (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
 
@@ -316,8 +324,8 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
                 //               )
                 //   )
                 //{
-                  wchar_t      wszAbsolutePathToThumbnail [ MAX_PATH * 2 + 1 ] = { };
-                  wcsncpy_s   (wszAbsolutePathToThumbnail, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
+                  wchar_t      wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
+                  wcsncpy_s   (wszAbsolutePathToThumbnail,  MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
                   PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
 
                   float aspect = (float)Height /
@@ -431,6 +439,6 @@ SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
     }
 
     else
-      SetEvent (hSignalScreenshot);
+      SetEvent (ReadPointerAcquire (&hSignalScreenshot));
   }
 }

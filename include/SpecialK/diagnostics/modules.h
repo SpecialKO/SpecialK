@@ -35,9 +35,16 @@
 #include <Shlwapi.h>
 #endif
 
+#ifdef LoadLibrary
+#undef LoadLibrary
+#endif
 
 #define SK_GetModuleHandle SK_GetModuleHandleW
 HMODULE SK_GetModuleHandleW (PCWSTR lpModuleName);
+
+// Additional Validation if Debugger is Attached
+BOOL WINAPI SK_IsDebuggerPresent (void);
+
 
 
 enum class SK_ModuleEnum {
@@ -122,7 +129,7 @@ GetProcessMemoryInfo
 
 __inline
 SK_Thread_HybridSpinlock*
-SK_DLL_LoaderLockGuard (void)
+SK_DLL_LoaderLockGuard (void) noexcept
 {
   static SK_Thread_HybridSpinlock  static_loader (15);
   static SK_Thread_HybridSpinlock* loader_lock;
@@ -159,23 +166,29 @@ public:
    {
      base_ = info.lpBaseOfDll;
      size_ = info.SizeOfImage;
-     wcsncpy_s (name_, MAX_PATH * 2, name, _TRUNCATE);
+     wcsncpy_s (name_, MAX_PATH, name, _TRUNCATE);
 
      AddRef ();
    };
 
    skWin32Module ( HMODULE hModWin32 ) noexcept : hMod_ (hModWin32), refs_ (1)
    {
-     DWORD dwNameLen=0;    BOOL       bHasValidInfo              = FALSE;
-                           MODULEINFO mod_info                   = {   };
-                           wchar_t    wszName [MAX_PATH * 2 + 1] = {   };
+     extern volatile LONG __SK_DLL_Attached;
+
+     bool validate = (ReadAcquire (&__SK_DLL_Attached)) &&
+       SK_IsDebuggerPresent ();
+
+     DWORD dwNameLen=0;    BOOL       bHasValidInfo          = FALSE;
+                           MODULEINFO mod_info               = {   };
+                           wchar_t    wszName [MAX_PATH + 2] = {   };
      dwNameLen     =
-       GetModuleFileNameW (hModWin32, wszName, MAX_PATH * 2);
+       GetModuleFileNameW (hModWin32, wszName, MAX_PATH);
 
      bHasValidInfo =
+         validate  ? // Validation is expensive, and only for debugging
        GetModuleInformation (
          GetCurrentProcess (), hModWin32, &mod_info, sizeof (mod_info)
-       );
+       )           : TRUE;
 
      assert (dwNameLen > 0 && dwNameLen <= MAX_PATH);
      assert (bHasValidInfo != FALSE);
@@ -264,9 +277,9 @@ protected:
            LPVOID       base_  { Unaddressable };
            size_t       size_  { Unallocated   };
   volatile LONG         refs_  { Unreferenced  };
-           wchar_t      name_ [MAX_PATH * 2 + 1] = { };
+           wchar_t      name_ [MAX_PATH + 2] = { };
   std::shared_ptr <std::wstring>
-                        cache_name_              = nullptr;
+                        cache_name_          = nullptr;
 };
 
 
@@ -279,7 +292,7 @@ protected:
 class skModuleRegistry
 {
 public:
-  skModuleRegistry (void) noexcept
+  skModuleRegistry (void) noexcept (false)
   {
     _known_module_bases.reserve (96);
     _known_module_names.reserve (96);
@@ -292,7 +305,7 @@ public:
   bool
     isValid (const HMODULE hModTest) const noexcept
   {
-    return ( hModTest > (HMODULE)0 //&&
+    return ( hModTest > (HMODULE)nullptr //&&
                        );// hModTest != INVALID_MODULE );
   }
 
@@ -431,7 +444,7 @@ private:
 
     if (library.Release () == 0)
     {
-      if (::FreeLibrary (library))
+      if (SK_FreeLibrary (library))
         return INVALID_MODULE;
     }
 
@@ -445,8 +458,8 @@ private:
 public:
 
   // Special References that are valid for SK's entire lifetime
-  static skWin32Module& HostApp (HMODULE hModToSet = skWin32Module::Uninitialized);
-  static skWin32Module& Self    (HMODULE hModToSet = skWin32Module::Uninitialized);
+  static skWin32Module& HostApp (HMODULE hModToSet = skWin32Module::Uninitialized) noexcept;
+  static skWin32Module& Self    (HMODULE hModToSet = skWin32Module::Uninitialized) noexcept;
 
 
 public:
@@ -475,11 +488,7 @@ public:
       return hMod;
 
     hMod =
-    {
-      LoadLibraryW_Original != nullptr     ?
-        LoadLibraryW_Original (wszLibrary) :
-               ::LoadLibraryW (wszLibrary)
-    };
+      SK_LoadLibraryW (wszLibrary);
 
     // We're not fooling anyone, third-party software can see this!
     ///assert (LoadLibraryW_Original != nullptr);
@@ -513,11 +522,7 @@ public:
       return hMod;
 
     hMod =
-    {
-      LoadLibraryW_Original != nullptr     ?
-        LoadLibraryW_Original (wszFullPath) :
-               ::LoadLibraryW (wszFullPath)
-    };
+      LoadLibraryW (wszFullPath);
 
     // We're not fooling anyone, third-party software can see this!
     ///assert (LoadLibraryW_Original != nullptr);
@@ -540,7 +545,8 @@ public:
     if (hMod != INVALID_MODULE)
       return hMod;
 
-    hMod = ::LoadLibraryW (wszLibrary);
+    hMod =
+      LoadLibraryW (wszLibrary);
 
     if (hMod != INVALID_MODULE)
       _RegisterLibrary (hMod, wszLibrary);

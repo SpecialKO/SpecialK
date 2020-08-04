@@ -22,7 +22,6 @@
 #ifndef __SK__DEBUG_UTILS_H__
 #define __SK__DEBUG_UTILS_H__
 
-struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <Windows.h>
@@ -46,6 +45,15 @@ namespace SK
 }
 
 #pragma pack (push,8)
+#ifndef SK_UNICODE_STR
+#define SK_UNICODE_STR
+typedef struct _UNICODE_STRING_SK {
+  USHORT           Length;
+  USHORT           MaximumLength;
+  PWSTR            Buffer;
+} UNICODE_STRING_SK;
+#endif
+
 typedef struct _LDR_DATA_TABLE_ENTRY__SK
 {
   LIST_ENTRY        InLoadOrderLinks;
@@ -82,13 +90,33 @@ typedef struct _LDR_DATA_TABLE_ENTRY__SK
   LIST_ENTRY     ForwarderLinks;
   LIST_ENTRY     ServiceTagLinks;
   LIST_ENTRY     StaticLinks;
-} LDR_DATA_TABLE_ENTRY__SK, *PLDR_DATA_TABLE_ENTRY__SK;
+} LDR_DATA_TABLE_ENTRY__SK,
+*PLDR_DATA_TABLE_ENTRY__SK;
 
 typedef NTSTATUS (NTAPI *LdrFindEntryForAddress_pfn)
 ( HMODULE                    hMod,
   LDR_DATA_TABLE_ENTRY__SK **ppLdrDat              );
 #pragma pack (pop)
 
+// Returns true if the host executable is Large Address Aware
+// ----------------------------------------------------------
+//
+//  If PE is 32-bit (I386) and LAA is not flagged, then user-mode
+//    code will generate an exception if it attempts to access
+//      memory addresses with the high-order bit set.
+//
+//  This is intended primarily to prevent code that treats pointers as
+//    signed integers from adding two pointers and going the wrong
+//      direction.
+//
+//  User-mode devs. are potentially stupid and must be allowed to
+//    remain stupid until they learn about special linker switches ;)
+//
+//
+//    * In other words, will addresses > 2 GiB crash?
+//
+//
+bool SK_PE32_IsLargeAddressAware (void);
 
 void WINAPI SK_SymRefreshModuleList (HANDLE hProc = GetCurrentProcess ());
 BOOL WINAPI SK_IsDebuggerPresent    (void);
@@ -285,6 +313,7 @@ public:
   }
 };
 
+static constexpr int SK_EXCEPTION_CONTINUABLE = 0x0;
 
 void
 WINAPI
@@ -326,7 +355,7 @@ SK_RaiseException
   void                                                           \
   {                                                              \
     using     _List =     std::initializer_list <unsigned int>;  \
-    constexpr _List              exception_list (                \
+              _List              exception_list (                \
               _List {(_Filters)}                );               \
     if ( std::end  (             exception_list) !=              \
          std::find ( std::begin (exception_list),                \

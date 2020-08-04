@@ -304,7 +304,7 @@ extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
 #include <SpecialK/input/input.h>
 
 struct sk_window_s {
-  constexpr sk_window_s (void) { };
+       sk_window_s (void) noexcept { };
 
   bool       unicode          = false;
 
@@ -376,7 +376,7 @@ struct sk_window_s {
   //  (TODO: Should probably be a reference count to return to)
   bool      cursor_visible   = true;
 
-  void    getRenderDims (long& x, long& y) {
+  void    getRenderDims (long& x, long& y) noexcept {
     x = (actual.client.right  - actual.client.left);
     y = (actual.client.bottom - actual.client.top);
   }
@@ -384,12 +384,12 @@ struct sk_window_s {
   bool    needsCoordTransform (void);
   void    updateDims          (void);
 
-  SetWindowLongPtr_pfn SetWindowLongPtr = nullptr;
-  GetWindowLongPtr_pfn GetWindowLongPtr = nullptr;
-  SetClassLongPtr_pfn  SetClassLongPtr  = nullptr;
-  GetClassLongPtr_pfn  GetClassLongPtr  = nullptr;
-  DefWindowProc_pfn    DefWindowProc    = nullptr;
-  CallWindowProc_pfn   CallWindowProc   = nullptr;
+  SetWindowLongPtr_pfn SetWindowLongPtr = SetWindowLongPtrW;
+  GetWindowLongPtr_pfn GetWindowLongPtr = GetWindowLongPtrW;
+  SetClassLongPtr_pfn  SetClassLongPtr  = SetClassLongPtrW;
+  GetClassLongPtr_pfn  GetClassLongPtr  = GetClassLongPtrW;
+  DefWindowProc_pfn    DefWindowProc    = DefWindowProcW;
+  CallWindowProc_pfn   CallWindowProc   = CallWindowProcW;
 
   LRESULT WINAPI DefProc (
     _In_ UINT   Msg,

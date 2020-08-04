@@ -88,7 +88,7 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
   //
   using SK_SHIM_GetReShadeFilename_pfn = const wchar_t* (__stdcall *)(void);
   auto  SK_SHIM_GetReShadeFilename =
-       (SK_SHIM_GetReShadeFilename_pfn)GetProcAddress (
+       (SK_SHIM_GetReShadeFilename_pfn)SK_GetProcAddress (
        hModShim,
        "SK_SHIM_GetReShadeFilename"
     );
@@ -105,7 +105,7 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
 
   using SK_SHIM_GetReShade_pfn = HMODULE (__stdcall *)(void);
   auto  SK_SHIM_GetReShade =
-       (SK_SHIM_GetReShade_pfn)GetProcAddress (
+       (SK_SHIM_GetReShade_pfn)SK_GetProcAddress (
        hModShim,
        "SK_SHIM_GetReShade"
     );
@@ -130,7 +130,7 @@ SK_LoadImportModule (import_s& import)
 {
   if (config.system.central_repository)
   {
-    wchar_t      wszProfilePlugIn [MAX_PATH * 2 + 1] = { };
+    wchar_t      wszProfilePlugIn [MAX_PATH + 2] = { };
     wcsncpy_s   (wszProfilePlugIn, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
     PathAppendW (wszProfilePlugIn, import.filename->get_value_str ().c_str ());
 
@@ -155,7 +155,7 @@ SK_InitPlugIn64 (HMODULE hLibrary)
 
   auto SKPlugIn_Init =
     reinterpret_cast <SKPlugIn_Init_pfn> (
-      GetProcAddress (
+      SK_GetProcAddress (
         hLibrary,
           "SKPlugIn_Init"
       )
@@ -173,7 +173,7 @@ SK_InitPlugIn64 (HMODULE hLibrary)
     {
       dll_log->Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
-      FreeLibrary_Original (hLibrary);
+      SK_FreeLibrary (hLibrary);
       hLibrary = nullptr;
     }
   }
@@ -182,7 +182,7 @@ SK_InitPlugIn64 (HMODULE hLibrary)
   {
     dll_log->Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
-    FreeLibrary_Original (hLibrary);
+    SK_FreeLibrary (hLibrary);
     hLibrary = nullptr;
   }
 
@@ -521,7 +521,7 @@ SK_InitPlugIn32 (HMODULE hLibrary)
 
   auto SKPlugIn_Init =
     reinterpret_cast <SKPlugIn_Init_pfn> (
-      GetProcAddress (
+      SK_GetProcAddress (
         hLibrary,
           "SKPlugIn_Init"
       )
@@ -539,7 +539,7 @@ SK_InitPlugIn32 (HMODULE hLibrary)
     {
       dll_log->Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
-      FreeLibrary_Original (hLibrary);
+      SK_FreeLibrary (hLibrary);
       hLibrary = nullptr;
     }
   }
@@ -548,7 +548,7 @@ SK_InitPlugIn32 (HMODULE hLibrary)
   {
     dll_log->Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
-    FreeLibrary_Original (hLibrary);
+    SK_FreeLibrary (hLibrary);
     hLibrary = nullptr;
   }
 
@@ -931,7 +931,7 @@ SK_UnloadImports (void)
         {
           auto SKPlugIn_Shutdown =
             reinterpret_cast <SKPlugIn_Shutdown_pfn> (
-              GetProcAddress ( import.hLibrary,
+              SK_GetProcAddress ( import.hLibrary,
                                  "SKPlugIn_Shutdown" )
             );
 
@@ -943,8 +943,8 @@ SK_UnloadImports (void)
         ///              import.filename->get_value_str ().c_str () );
 
         // The shim will free the plug-in for us
-        if ( (import.hShim != nullptr && FreeLibrary (import.hShim) ) ||
-                                         FreeLibrary (import.hLibrary) )
+        if ( (import.hShim != nullptr && SK_FreeLibrary (import.hShim) ) ||
+                                         SK_FreeLibrary (import.hLibrary) )
         {
           dll_log->LogEx ( false,
                            L"-------------------------[ Free Lib ]                "

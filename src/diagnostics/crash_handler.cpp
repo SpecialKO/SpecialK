@@ -43,15 +43,26 @@ SK_GetDebugSymbolPath (void);
 extern volatile LONG __SK_Init;
 
 void
+SK_SymSetOpts_Once (void)
+{
+  if (cs_dbghelp != nullptr)
+  {
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
+    SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
+                        SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
+                        SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
+                        SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS);
+  }
+}
+void
 SK_SymSetOpts (void)
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
-  SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
-                      SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
-                      SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
-                      SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS);
+  if (cs_dbghelp != nullptr)
+  {
+    SK_RunOnce (SK_SymSetOpts_Once ());
+  }
 }
 
 
@@ -298,7 +309,9 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   MODULEINFO mod_info = { };
 
   GetModuleInformation (
-    GetCurrentProcess (), hMod, &mod_info, sizeof (mod_info)
+    hProc,  hMod,
+            &mod_info,
+     sizeof (mod_info)
   );
 
 #ifdef _M_AMD64
@@ -472,8 +485,8 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
 #endif
     SK_SymGetModuleBase ( hProc, ip );
 
-  char       szDupName [MAX_PATH * 2 + 1] = { };
-  strncpy_s (szDupName, MAX_PATH * 2, szModName, _TRUNCATE);
+  char       szDupName [MAX_PATH + 2] = { };
+  strncpy_s (szDupName, MAX_PATH, szModName, _TRUNCATE);
   char* pszShortName =
              szDupName;
 
@@ -767,7 +780,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
 
     char     short_mod_name [64]           = { }; size_t mod_len  = 0;
     char     symbol_name    [512]          = { }; size_t sym_len  = 0;
-    char     file_name      [MAX_PATH + 1] = { }; size_t file_len = 0;
+    char     file_name      [MAX_PATH + 2] = { }; size_t file_len = 0;
     unsigned line_number                   =  0 ;
   };
 
@@ -798,7 +811,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
-    strncpy_s     (szDupName, MAX_PATH * 2, szModName, _TRUNCATE);
+    strncpy_s     (szDupName, MAX_PATH, szModName, _TRUNCATE);
     pszShortName = szDupName;
 
     PathStripPathA (pszShortName);
@@ -997,7 +1010,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     WIN32_FIND_DATA fd     = {                  };
     HANDLE          hFind  = INVALID_HANDLE_VALUE;
 
-    wchar_t   wszFindPattern [MAX_PATH * 2] = { };
+    wchar_t   wszFindPattern [MAX_PATH + 2] = { };
     lstrcatW (wszFindPattern, SK_GetConfigPath ());
     lstrcatW (wszFindPattern,    LR"(logs\*.log)");
 
@@ -1006,8 +1019,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     if (hFind != INVALID_HANDLE_VALUE)
     {
-      wchar_t wszBaseDir [MAX_PATH * 2] = { };
-      wchar_t wszOutDir  [MAX_PATH * 2] = { };
+      wchar_t wszBaseDir [MAX_PATH + 2] = { };
+      wchar_t wszOutDir  [MAX_PATH + 2] = { };
       wchar_t wszTime    [MAX_PATH + 2] = { };
 
       lstrcatW (wszBaseDir, SK_GetConfigPath ( ));
@@ -1028,8 +1041,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       wcsftime (wszTime, MAX_PATH, wszTimestamp, &now_tm);
       lstrcatW (wszOutDir, wszTime);
 
-      wchar_t wszOrigPath [MAX_PATH * 2 + 1] = { };
-      wchar_t wszDestPath [MAX_PATH * 2 + 1] = { };
+      wchar_t wszOrigPath [MAX_PATH + 2] = { };
+      wchar_t wszDestPath [MAX_PATH + 2] = { };
 
       size_t files = 0UL;
 

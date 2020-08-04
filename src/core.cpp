@@ -23,7 +23,6 @@
 #include <SpecialK/resource.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
-#include <SpecialK/render/gl/opengl_backend.h>
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
@@ -109,7 +108,7 @@ const wchar_t*
 __stdcall
 SK_SetBackend (const wchar_t* wszBackend)
 {
-  wcsncpy_s ( SKX_GetBackend (), 128,
+  wcsncpy_s ( SKX_GetBackend (), 127,
                 wszBackend,      _TRUNCATE );
 
   return
@@ -119,7 +118,7 @@ SK_SetBackend (const wchar_t* wszBackend)
 wchar_t*
 SKX_GetRootPath (void)
 {
-  static wchar_t SK_RootPath [MAX_PATH * 2 + 1] = { };
+  static wchar_t SK_RootPath [MAX_PATH + 2] = { };
   return         SK_RootPath;
 }
 
@@ -135,7 +134,7 @@ SK_GetRootPath (void)
 wchar_t*
 SKX_GetNaiveConfigPath (void)
 {
-  static wchar_t SK_ConfigPath [MAX_PATH * 2 + 1] = { };
+  static wchar_t SK_ConfigPath [MAX_PATH + 2] = { };
   return         SK_ConfigPath;
 }
 
@@ -333,12 +332,12 @@ SK_LoadGPUVendorAPIs (void)
     {
       dll_log->Log (L"[  Nv API  ] >> Restarting to apply NVIDIA driver settings <<");
 
-      ShellExecute ( GetDesktopWindow (),
-                       L"OPEN",
-                         SK_GetHostApp (),
-                           nullptr,
-                             nullptr,
-                               SW_SHOWDEFAULT );
+      SK_ShellExecuteW ( GetDesktopWindow (),
+                          L"OPEN",
+                            SK_GetHostApp (),
+                              nullptr,
+                                nullptr,
+                                  SW_SHOWDEFAULT );
       exit (0);
     }
   }
@@ -477,9 +476,9 @@ SK_InitCore (std::wstring, void* callback)
 
           if (locked != nullptr)
           {
-            wchar_t      wszBackup      [MAX_PATH * 2 + 1] = { };
-            wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
-            wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+            wchar_t      wszBackup      [MAX_PATH + 2] = { };
+            wchar_t      wszArchive     [MAX_PATH + 2] = { };
+            wchar_t      wszDestination [MAX_PATH + 2] = { };
 
             wcscpy (wszDestination, SK_GetHostPath ());
 
@@ -492,7 +491,7 @@ SK_InitCore (std::wstring, void* callback)
 
             if (GetFileAttributesW (wszBackup) == INVALID_FILE_ATTRIBUTES)
             {
-              wchar_t      wszBackupSrc [MAX_PATH * 2 + 1] = { };
+              wchar_t      wszBackupSrc [MAX_PATH + 2] = { };
               wcscpy      (wszBackupSrc, wszDestination);
               PathAppendW (wszBackupSrc, L"EasyAntiCheat_x64.dll");
               CopyFileW   (wszBackupSrc, wszBackup, TRUE);
@@ -523,26 +522,25 @@ SK_InitCore (std::wstring, void* callback)
 
       _UnpackEasyAntiCheatBypass ();
     } break;
+    case SK_GAME_ID::Ys_Eight:
+      SK_YS8_InitPlugin ();
+      break;
 #else
     case SK_GAME_ID::SecretOfMana:
       SK_SOM_InitPlugin ();
       break;
 
-    case SK_GAME_ID::Ys_Eight:
-      SK_YS8_InitPlugin ();
-      break;
-
     case SK_GAME_ID::DragonBallFighterZ:
-      wchar_t      wszPath       [MAX_PATH * 2] = { };
-      wchar_t      wszWorkingDir [MAX_PATH * 2] = { };
+      wchar_t      wszPath       [MAX_PATH + 2] = { };
+      wchar_t      wszWorkingDir [MAX_PATH + 2] = { };
       wcscpy      (wszWorkingDir, SK_GetHostPath  ());
       PathAppendW (wszWorkingDir, LR"(RED\Binaries\Win64\)");
 
       wcscpy      (wszPath,       wszWorkingDir);
       PathAppendW (wszPath,       L"RED-Win64-Shipping.exe");
 
-      ShellExecuteW (nullptr, L"open", wszPath, L"-eac-nop-loaded", wszWorkingDir, SW_SHOWNORMAL);
-      ExitProcess   (0);
+      SK_ShellExecuteW (nullptr, L"open", wszPath, L"-eac-nop-loaded", wszWorkingDir, SW_SHOWNORMAL);
+      ExitProcess      (0);
       break;
 #endif
   }
@@ -552,19 +550,20 @@ SK_InitCore (std::wstring, void* callback)
   callback_fn (SK_InitFinishCallback);
 }
 
+// This God awful code is lockless and safe to call from anywhere, but please do not.
 void
 WaitForInit (void)
 {
-  const auto _SpinMax = 32;
+  constexpr auto _SpinMax = 32;
 
   LONG init =
     ReadAcquire (&__SK_Init);
 
-  if (init > 0 || init < 0)
+  if (init != 0)
     return;
 
   const DWORD dwThreadId =
-    SK_Thread_GetCurrentId ();
+    GetCurrentThreadId ();
 
   while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
   {
@@ -581,29 +580,33 @@ WaitForInit (void)
     for (int i = 0; i < _SpinMax && (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE); i++)
       ;
 
-    if ( ReadPointerAcquire (&hInitThread) == INVALID_HANDLE_VALUE )
+    HANDLE hWait =
+      ReadPointerAcquire (&hInitThread);
+
+    if ( hWait == INVALID_HANDLE_VALUE )
       break;
 
+    HANDLE hWaitArray [] = {
+           hWait
+    };
+
     const DWORD dwWaitStatus =
-      MsgWaitForMultipleObjectsEx (1, const_cast <HANDLE *>(&hInitThread), 16UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+      MsgWaitForMultipleObjectsEx (1, hWaitArray, 16UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
 
     if ( dwWaitStatus == WAIT_OBJECT_0 ||
          dwWaitStatus == WAIT_ABANDONED ) break;
   }
 
 
+  // Run-once init, but it is anyone's guess which thread will get here first.
   if (! InterlockedCompareExchangeAcquire (&__SK_Init, TRUE, FALSE))
   {
-    if ( ReadULongAcquire   (&dwInitThreadId) != dwThreadId &&
-         ReadPointerAcquire (&hInitThread)    != INVALID_HANDLE_VALUE )
-    {
-      SK_D3D_SetupShaderCompiler ();
+    SK_D3D_SetupShaderCompiler ();
 
-      WriteULongRelease   (                       &dwInitThreadId,
-                              0                    );
-      WritePointerRelease ( const_cast <void **> (&hInitThread),
-                              INVALID_HANDLE_VALUE );
-    }
+    WritePointerRelease ( const_cast <void **> (&hInitThread),
+                            INVALID_HANDLE_VALUE );
+    WriteULongRelease   (                       &dwInitThreadId,
+                            0                    );
 
     // Load user-defined DLLs (Lazy)
     SK_RunLHIfBitness ( 64, SK_LoadLazyImports64 (),
@@ -850,7 +853,7 @@ SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
     }
   }
 
-  wchar_t   wszPath [MAX_PATH * 2 + 1] = { };
+  wchar_t   wszPath [MAX_PATH + 2] = { };
   swprintf (wszPath, LR"(%s\*)", wszDir);
 
   WIN32_FIND_DATA fd          = {   };
@@ -881,9 +884,9 @@ SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
       dirs_to_traverse.emplace_back (fd.cFileName);
     }
 
-    wchar_t wszFoundFile      [MAX_PATH] = { };
-    wchar_t wszFoundFileLower [MAX_PATH] = { };
-    wchar_t wszFoundExtension [   16   ] = { };
+    wchar_t wszFoundFile      [MAX_PATH + 2] = { };
+    wchar_t wszFoundFileLower [MAX_PATH + 2] = { };
+    wchar_t wszFoundExtension [     16     ] = { };
 
     if ( _wsplitpath_s (
            fd.cFileName, nullptr, 0,
@@ -947,7 +950,7 @@ SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
 
   for ( auto& dir : dirs_to_traverse )
   {
-    wchar_t   wszDescend [MAX_PATH * 2 + 1] = { };
+    wchar_t   wszDescend [MAX_PATH + 2] = { };
     swprintf (wszDescend, LR"(%s\%s)", wszDir, dir.c_str () );
 
     const std::unordered_set <std::wstring>&& recursive_finds =
@@ -1022,8 +1025,8 @@ SK_HasGlobalInjector (void)
 
   if (last_test == 0)
   {
-    wchar_t     wszBasePath [MAX_PATH * 2 + 1] = { };
-    wcsncpy_s ( wszBasePath, MAX_PATH * 2,
+    wchar_t     wszBasePath [MAX_PATH + 2] = { };
+    wcsncpy_s ( wszBasePath, MAX_PATH,
                   std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\)" ).c_str (),
                     _TRUNCATE );
 
@@ -1063,16 +1066,16 @@ SK_GetDebugSymbolPath (void)
     std::wstring symbol_file =
       SK_GetModuleFullName (SK_Modules->Self ());
 
-    wchar_t wszSelfName    [MAX_PATH * 3 + 1] = { };
-    wchar_t wszGenericName [MAX_PATH * 3 + 1] = { };
-    wcsncpy_s ( wszSelfName,           MAX_PATH * 3,
+    wchar_t wszSelfName    [MAX_PATH + 2] = { };
+    wchar_t wszGenericName [MAX_PATH + 2] = { };
+    wcsncpy_s ( wszSelfName,           MAX_PATH,
                  symbol_file.c_str (), _TRUNCATE );
 
 
     PathRemoveExtensionW (wszSelfName);
     lstrcatW             (wszSelfName, L".pdb");
 
-              wcsncpy_s ( wszGenericName, MAX_PATH * 3,
+              wcsncpy_s ( wszGenericName, MAX_PATH,
                           wszSelfName,    _TRUNCATE );
 
     PathRemoveFileSpecW ( wszGenericName );
@@ -1180,7 +1183,7 @@ void
 __stdcall
 SK_EstablishRootPath (void)
 {
-  wchar_t wszConfigPath [MAX_PATH * 2 + 1] = { };
+  wchar_t wszConfigPath [MAX_PATH + 2] = { };
   GetCurrentDirectory   (MAX_PATH, wszConfigPath);
   lstrcatW (wszConfigPath, LR"(\)");
 
@@ -1191,8 +1194,8 @@ SK_EstablishRootPath (void)
     config.system.central_repository = true;
   }
 
-  SecureZeroMemory (
-    wszConfigPath, sizeof (wchar_t) * (MAX_PATH * 2 + 1)
+  RtlSecureZeroMemory (
+    wszConfigPath, sizeof (wchar_t) * (MAX_PATH + 2)
   );
 
   // Store config profiles in a centralized location rather than
@@ -1213,7 +1216,7 @@ SK_EstablishRootPath (void)
       GetCurrentDirectory (MAX_PATH, SKX_GetRootPath ());
     }
 
-    wcsncpy_s ( wszConfigPath,      MAX_PATH * 2,
+    wcsncpy_s ( wszConfigPath,      MAX_PATH,
                 SKX_GetRootPath (), _TRUNCATE  );
     lstrcatW  ( wszConfigPath, LR"(\Profiles\)");
     lstrcatW  ( wszConfigPath, SK_GetHostApp  ());
@@ -1248,14 +1251,13 @@ SK_EstablishRootPath (void)
   SK_SetConfigPath (wszConfigPath);
 }
 
-extern void SK_CPU_InstallHooks (void);
+extern void SK_CPU_InstallHooks               (void);
+extern void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
 
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  //SK_Display_DisableDPIScaling ();
-
   __SK_BootedCore = backend;
 
   // Before loading any config files, test the game's environment variables
@@ -1268,12 +1270,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   //
   //   Stupid hack, if the application is running with a different working-directory than
   //     the executable -- compensate!
-  wchar_t    wszCentralPathVFile [MAX_PATH * 2 + 1] = { };
-  _swprintf (wszCentralPathVFile, LR"(%ws\SpecialK.central)", SK_GetHostPath ());
+  wchar_t          wszCentralPathVFile [MAX_PATH + 2] = { };
+  SK_PathCombineW (wszCentralPathVFile, SK_GetHostPath (), L"SpecialK.central");
 
-  if ( SK_IsInjected () ||
-        ( INVALID_FILE_ATTRIBUTES !=
-            GetFileAttributes (wszCentralPathVFile) ) )
+  if ( SK_IsInjected   () ||
+       PathFileExistsW (wszCentralPathVFile) )
   {
     config.system.central_repository = true;
   }
@@ -1315,14 +1316,16 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   else
   {
     blacklist =
-      SK_IsInjected () &&
-      (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
+      SK_IsInjected    () &&
+       PathFileExistsW (SK_GetBlacklistFilename ());
 
     if (! blacklist)
     {
-       wchar_t   log_fname [MAX_PATH * 2 + 1] = { };
-      _swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ?
-                                                 L"SpecialK" : backend);
+      wchar_t                log_fname [MAX_PATH + 2] = { };
+      SK_PathCombineW      ( log_fname, L"logs",
+                                SK_IsInjected () ?
+                                        L"SpecialK" : backend);
+      PathAddExtensionW ( log_fname,    L".log" );
 
       dll_log->init (log_fname, L"wS+,ccs=UTF-8");
       dll_log->Log  ( L"%s.log created\t\t(Special K  %s,  %hs)",
@@ -1337,7 +1340,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       game_debug->init (L"logs/game_output.log", L"w");
       game_debug->lockless = true;
 
-
       SK_Thread_Create ([](LPVOID) -> DWORD
       {
         SetCurrentThreadDescription (                         L"[SK] Init Cleanup"    );
@@ -1346,7 +1348,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
         WaitForInit           ();
 
-        // Setup the compatibility backend, which monitors loaded libraries,
+        // Setup the compatibility back end, which monitors loaded libraries,
         //   blacklists bad DLLs and detects render APIs...
         SK_EnumLoadedModules  (SK_ModuleEnum::PostLoad);
         SK_Memory_InitHooks   ();
@@ -1371,8 +1373,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
       // Setup unhooked function pointers
-      SK_PreInitLoadLibrary     ();
       SK_MinHook_Init           ();
+      SK_PreInitLoadLibrary     ();
 
       SK::Diagnostics::Debugger::Allow        ();
       SK::Diagnostics::CrashHandler::InitSyms ();
@@ -1380,18 +1382,38 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       //// Do this from the startup thread [these functions queue, but don't apply]
       SK_Input_PreInit          (); // Hook only symbols in user32 and kernel32
       SK_HookWinAPI             ();
-      SK_ApplyQueuedHooks       ();
-
-      SK_Thread_InitDebugExtras ();
       SK_CPU_InstallHooks       ();
+
+      const wchar_t* wszVaporApi =
+        SK_RunLHIfBitness ( 64, L"vapor_api64.dll",
+                                L"vapor_api32.dll" );
+
+      if (PathFileExistsW (wszVaporApi))
+      {
+        int app_id = 1157970;
+
+        using vaporSetAppID_pfn =
+          void (__cdecl*)(UINT32 appid);
+
+        HMODULE hModVaporAPI =
+          SK_LoadLibraryW (wszVaporApi);
+
+        vaporSetAppID_pfn
+        vaporSetAppID = (vaporSetAppID_pfn)
+          SK_GetProcAddress (hModVaporAPI,
+                        "vaporSetAppID" );
+
+        if (vaporSetAppID != nullptr)
+            vaporSetAppID (app_id);
+      }
 
       SK_NvAPI_PreInitHDR       ();
       SK_NvAPI_InitializeHDR    ();
-      SK_ApplyQueuedHooks       ();
+          //SK_ApplyQueuedHooks ();
 
-      // For the global injector, when not started by SKIM, check its version
-      if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-        SK_Thread_Create ( CheckVersionThread );
+      ////// For the global injector, when not started by SKIM, check its version
+      ////if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+      ////  SK_Thread_Create ( CheckVersionThread );
     }
   }
 
@@ -1461,6 +1483,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! __SK_bypass)
   {
+    if (config.dpi.disable_scaling)   SK_Display_DisableDPIScaling      (     );
+    if (config.dpi.per_monitor.aware) SK_Display_SetMonitorDPIAwareness (false);
+
     SK_File_InitHooks    ();
     SK_Network_InitHooks ();
 
@@ -1470,7 +1495,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     if (config.system.handle_crashes)
       SK::Diagnostics::CrashHandler::Init     ();
 
-
     // Steam Overlay and SteamAPI Manipulation
     //
     if (! config.steam.silent)
@@ -1478,51 +1502,46 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       config.steam.force_load_steamapi = false;
 
       // TODO: Rename -- this initializes critical sections and performance
-      //                   counters needed by SK's SteamAPI backend.
+      //                   counters needed by SK's SteamAPI back end.
       //
       SK_Steam_InitCommandConsoleVariables  ();
 
-      //// It is not permissable to modify steam_api64.dll in this game
-      //                                     (Denuvo will crash)
-      //
-      if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
+      extern const wchar_t*
+        SK_Steam_GetDLLPath (void);
+
+      ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
+      /////   a number of general-purpose benefits (such as battery charge monitoring).
+      bool kick_start = config.steam.force_load_steamapi;
+
+      if (kick_start || (! SK_Steam_TestImports (SK_GetModuleHandle (nullptr))))
       {
-        ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
-        /////   a number of general-purpose benefits (such as battery charge monitoring).
-        bool kick_start = config.steam.force_load_steamapi;
-
-        if ((! SK_Steam_TestImports (GetModuleHandle (nullptr))))
+        // Implicitly kick-start anything in SteamApps\common that does not import
+        //   SteamAPI...
+        if ((! kick_start) && config.steam.auto_inject)
         {
-          // Implicitly kick-start anything in SteamApps\common that does not import
-          //   SteamAPI...
-          if ((! kick_start) && config.steam.auto_inject)
+          if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
           {
-            if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
-            {
-              extern const wchar_t*
-              SK_Steam_GetDLLPath (void);
-
-              // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
-              //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
-              //     the game won't be happy about that!
-              kick_start =
-                (! SK_Modules->LoadLibrary (SK_Steam_GetDLLPath ())) ||
-                      config.steam.force_load_steamapi;
-            }
+            // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
+            //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
+            //     the game won't be happy about that!
+            kick_start =
+              (! SK_Modules->LoadLibrary (SK_Steam_GetDLLPath ())) ||
+                    config.steam.force_load_steamapi;
           }
-
-          if (kick_start)
-            SK_Steam_KickStart ();
         }
 
-        SK_Steam_PreHookCore ();
+        if (kick_start)
+          SK_Steam_KickStart (SK_Steam_GetDLLPath ());
       }
+
+      SK_Steam_PreHookCore ();
     }
 
     if (SK_COMPAT_IsFrapsPresent ())
         SK_COMPAT_UnloadFraps ();
 
     SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
+    SK_ApplyQueuedHooks  ();
   }
 
 
@@ -1531,9 +1550,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     L"---------------------\n");
 
   // If the module name is this, then we need to load the system-wide DLL...
-  wchar_t   wszProxyName [MAX_PATH];
-  wsprintf (wszProxyName, L"%s.dll", backend);
-
+  wchar_t     wszProxyName [MAX_PATH + 2] = { };
+  wcsncpy_s ( wszProxyName, MAX_PATH,
+              backend,     _TRUNCATE );
+  PathAddExtensionW (
+              wszProxyName, L".dll"  );
 
 #ifndef _WIN64
   //
@@ -1553,29 +1574,29 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 #endif
 
 
-  wchar_t wszBackendDLL [MAX_PATH * 2 + 1] = { };
-  wchar_t wszWorkDir    [MAX_PATH * 2 + 1] = { };
+  wchar_t wszBackendDLL  [MAX_PATH + 2] = { }, wszBackendPriv [MAX_PATH + 2] = { };
+  wchar_t wszWorkDir     [MAX_PATH + 2] = { }, wszWorkDirPriv [MAX_PATH + 2] = { };
 
   wcsncpy_s ( wszBackendDLL,             MAX_PATH,
               SK_GetSystemDirectory (), _TRUNCATE );
+  wcsncpy_s ( wszBackendPriv,            MAX_PATH,
+              wszBackendDLL,            _TRUNCATE );
 
-  GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
-               SK_ConcealUserDir (wszWorkDir);
+  GetCurrentDirectoryW (                 MAX_PATH,
+              wszWorkDir                          );
+  wcsncpy_s ( wszWorkDirPriv,            MAX_PATH,
+              wszWorkDir,               _TRUNCATE );
 
-  dll_log->Log (L" Working Directory:          %s", SK_ConcealUserDir (std::wstring (wszWorkDir).data    ()));
-  dll_log->Log (L" System Directory:           %s", SK_ConcealUserDir (std::wstring (wszBackendDLL).data ()));
+  dll_log->Log (L" Working Directory:          %s", SK_ConcealUserDir (wszWorkDirPriv));
+  dll_log->Log (L" System Directory:           %s", SK_ConcealUserDir (wszBackendPriv));
 
-  lstrcatW (wszBackendDLL, LR"(\)");
-  lstrcatW (wszBackendDLL, backend);
-  lstrcatW (wszBackendDLL, L".dll");
+  PathAppendW       ( wszBackendDLL, backend );
+  PathAddExtensionW ( wszBackendDLL, L".dll" );
 
-  const wchar_t* dll_name =
-    wszBackendDLL;
+  wchar_t* dll_name = wszBackendDLL;
 
-  if (! SK_Path_wcsicmp (wszProxyName, wszModuleName))
-    dll_name = wszBackendDLL;
-  else
-    dll_name = wszProxyName;
+  if (SK_Path_wcsicmp (wszProxyName, wszModuleName))
+           dll_name =  wszProxyName;
 
   bool load_proxy = false;
 
@@ -1587,7 +1608,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
            backend == import.role->get_value () )
       {
         dll_log->LogEx (true, L" Loading proxy %s.dll:    ", backend);
-        dll_name   = _wcsdup (import.filename->get_value ().c_str ());
+        wcsncpy_s ( dll_name,                                MAX_PATH,
+                    import.filename->get_value ().c_str (), _TRUNCATE );
+
         load_proxy = true;
         break;
       }
@@ -1600,21 +1623,16 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   // Pre-Load the original DLL into memory
   if (dll_name != wszBackendDLL)
   {
-                  SK_Modules->LoadLibraryLL (wszBackendDLL);
-    backend_dll = SK_Modules->LoadLibraryLL (dll_name);
+    SK_Modules->LoadLibraryLL (wszBackendDLL);
   }
 
-  else
-    backend_dll = SK_Modules->LoadLibraryLL (dll_name);
+  backend_dll =
+    SK_Modules->LoadLibraryLL (dll_name);
 
   if (backend_dll != nullptr)
-    dll_log->LogEx (false, L" (%s)\n",         SK_ConcealUserDir (std::wstring (dll_name).data ()));
+    dll_log->LogEx (false, L" (%s)\n",         SK_ConcealUserDir (dll_name));
   else
-    dll_log->LogEx (false, L" FAILED (%s)!\n", SK_ConcealUserDir (std::wstring (dll_name).data ()));
-
-  // Free the temporary string storage
-  if (load_proxy)
-    free ((void *)dll_name);
+    dll_log->LogEx (false, L" FAILED (%s)!\n", SK_ConcealUserDir (dll_name));
 
   dll_log->LogEx (false,
     L"----------------------------------------------------------------------"
@@ -1699,7 +1717,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
          dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
     SK_TestRenderImports (
-      GetModuleHandle (nullptr),
+      SK_GetModuleHandle (nullptr),
         &gl, &vulkan,
           &d3d9, &dxgi, &d3d11,
             &d3d8, &ddraw, &glide );
@@ -1712,8 +1730,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     gl    |= SK_GetModuleHandle (L"gdi32full.dll")!= nullptr;
 
     if ( ( dxgi || d3d11 ||
-           d3d8 || ddraw ) && config.apis.dxgi.d3d11.hook
-                         /*|| config.apis.dxgi.d3d12.hook*/ )
+           d3d8 || ddraw ) && ( config.apis.dxgi.d3d11.hook
+                             || config.apis.dxgi.d3d12.hook ) )
     {
       SK_DXGI_QuickHook ();
     }
@@ -1728,6 +1746,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_Steam_LoadOverlayEarly ();
     }
 
+    // End of initialization on entry-point thread,
+    //   apply hooks before handing off async. init.
     SK_ApplyQueuedHooks ();
 
     InterlockedExchangePointer (
@@ -1915,14 +1935,29 @@ SK_ShutdownCore (const wchar_t* backend)
     DWORD dwTime_WMIShutdown =
             timeGetTime ();
 
-    // Signal the thread to shutdown
-    if (SignalObjectAndWait (hSignal, hThread, 66UL, TRUE) != WAIT_OBJECT_0) // Give 66 milliseconds, and
-    {                                                                        // then we're killing
-      TerminateThread (hThread, 0x00);                                       // the thing!
+    if (hThread != INVALID_HANDLE_VALUE)
+    {
+      // Signal the thread to shutdown
+      if ( hSignal == INVALID_HANDLE_VALUE ||
+            SignalObjectAndWait (hSignal, hThread, 66UL, TRUE)
+                        != WAIT_OBJECT_0 ) // Give 66 milliseconds, and
+      {                                    // then we're killing
+        TerminateThread (hThread, 0x00);   // the thing!
+                         hThread = INVALID_HANDLE_VALUE;
+      }
+
+      if (hThread != INVALID_HANDLE_VALUE)
+      {
+        CloseHandle (hThread);
+                     hThread = INVALID_HANDLE_VALUE;
+      }
     }
 
-    CloseHandle (hThread);
-                 hThread  = INVALID_HANDLE_VALUE;
+    if (hSignal != INVALID_HANDLE_VALUE)
+    {
+      CloseHandle (hSignal);
+                   hSignal = INVALID_HANDLE_VALUE;
+    }
 
     dll_log->LogEx ( false, L"done! (%4u ms)\n",
                        timeGetTime () - dwTime_WMIShutdown );
@@ -1963,8 +1998,6 @@ SK_ShutdownCore (const wchar_t* backend)
 
   if (! SK_Debug_IsCrashing ())
   {
-    SK_GetCurrentRenderBackend ().releaseOwnedResources ();
-
     SK_UnloadImports        ();
     SK::Framerate::Shutdown ();
 
@@ -2033,16 +2066,16 @@ SK_UnpackCEGUI (void)
       SK_LOG0 ( ( L"Unpacking CEGUI for first-time execution" ),
                   L"CEGUI-Inst" );
 
-      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
-      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszArchive     [MAX_PATH + 2] = { };
+      wchar_t      wszDestination [MAX_PATH + 2] = { };
 
-      _snwprintf ( wszDestination, MAX_PATH, LR"(%s\My Mods\SpecialK\)",
+      _snwprintf_s ( wszDestination, MAX_PATH, LR"(%s\My Mods\SpecialK\)",
                      SK_GetDocumentsDir ().c_str () );
 
       if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
         SK_CreateDirectories (wszDestination);
 
-      wcscpy      (wszArchive, wszDestination);
+      wcscpy_s    (wszArchive, MAX_PATH, wszDestination);
       PathAppendW (wszArchive, L"CEGUI.7z");
 
       FILE* fPackedCEGUI =
@@ -2073,6 +2106,9 @@ SetupCEGUI (SK_RenderAPI& LastKnownAPI)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  if (rb.api == SK_RenderAPI::D3D12)
+    return;
+
 #ifdef _DEBUG
 return;
 #endif
@@ -2094,7 +2130,7 @@ return;
       }
     }
 
-    InterlockedIncrement (&SK_RenderBackend::frames_drawn);
+    InterlockedIncrement64 (&SK_RenderBackend::frames_drawn);
 
     // Brutally stupid hack for brutally stupid OS (Windows 7)
     //
@@ -2103,7 +2139,7 @@ return;
     //   3. Restore Working Dir
     //   4. Resume all Threads  + Unlock DLL Loader
     //
-    //     >> Not necessary if the kernel supports altered DLL serarch
+    //     >> Not necessary if the kernel supports altered DLL search
     //          paths <<
     //
 
@@ -2112,8 +2148,8 @@ return;
     // Disable until we validate CEGUI's state
     config.cegui.enable = false;
 
-    wchar_t wszCEGUIModPath [MAX_PATH]        = { };
-    wchar_t wszCEGUITestDLL [MAX_PATH]        = { };
+    wchar_t wszCEGUIModPath [ MAX_PATH +  2 ] = { };
+    wchar_t wszCEGUITestDLL [ MAX_PATH +  2 ] = { };
     wchar_t wszEnvPath      [ MAX_PATH + 64 ] = { };
 
     const wchar_t* wszArch = SK_RunLHIfBitness ( 64, L"x64",
@@ -2143,7 +2179,7 @@ return;
     lstrcatW  (wszCEGUITestDLL, wszCEGUIModPath);
     lstrcatW  (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
 
-    wchar_t wszWorkingDir [MAX_PATH * 2 + 1] = { };
+    wchar_t wszWorkingDir [MAX_PATH + 2] = { };
 
     if (! config.cegui.safe_init)
     {
@@ -2162,17 +2198,17 @@ return;
 
     static auto k32_AddDllDirectory =
       (AddDllDirectory_pfn)
-        GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
+        SK_GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
                                                  "AddDllDirectory" );
 
     static auto k32_RemoveDllDirectory =
       (RemoveDllDirectory_pfn)
-        GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
+        SK_GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
                                                  "RemoveDllDirectory" );
 
     static auto k32_SetDefaultDllDirectories =
       (SetDefaultDllDirectories_pfn)
-        GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
+        SK_GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
                                                  "SetDefaultDllDirectories" );
 
     const int thread_locale =
@@ -2182,8 +2218,10 @@ return;
     char* szLocale =
       setlocale (LC_ALL, nullptr);
 
-    CHeapPtr <char> locale_orig ( szLocale == nullptr ? szLocale :
-                                               _strdup (szLocale) );
+    auto locale_orig =
+                      ( szLocale == nullptr ) ?
+                            std::string ("C") : std::string (szLocale);
+
     if     (szLocale != nullptr) setlocale (LC_ALL, "C");
 
     if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
@@ -2233,10 +2271,14 @@ return;
                 throw (SK_SEH_IgnoredException ());
               }
 
-              RaiseException ( nExceptionCode,
-                               pException->ExceptionRecord->ExceptionFlags,
-                               pException->ExceptionRecord->NumberParameters,
-                               pException->ExceptionRecord->ExceptionInformation );
+              if ( pException                  != nullptr &&
+                   pException->ExceptionRecord != nullptr )
+              {
+                RaiseException ( nExceptionCode,
+                                 pException->ExceptionRecord->ExceptionFlags,
+                                 pException->ExceptionRecord->NumberParameters,
+                                 pException->ExceptionRecord->ExceptionInformation );
+              }
             }
           );
 
@@ -2249,7 +2291,7 @@ return;
           catch (const SK_SEH_IgnoredException&)
           {
             // The magic number 0xc06d007e will come about if the DLL we're trying
-            //   to delayload has some sort of unsatisfied dependency
+            //   to delay load has some sort of unsatisfied dependency
             ret = false;
           }
           SK_SEH_RemoveTranslator (orig_se);
@@ -2321,13 +2363,13 @@ return;
       }
     }
 
-    if (locale_orig != nullptr)
-      setlocale (LC_ALL, locale_orig);
+    if (! locale_orig.empty ())
+      setlocale (LC_ALL, locale_orig.c_str ());
     _configthreadlocale (thread_locale);
 
 
     // If we got this far and CEGUI's not enabled, it's because something went horribly wrong.
-    if (! (config.cegui.enable && GetModuleHandle (L"CEGUIBase-0")))
+    if (! (config.cegui.enable && SK_GetModuleHandle (L"CEGUIBase-0")))
       InterlockedExchange (&CEGUI_Init, FALSE);
 
     if (! config.cegui.safe_init)
@@ -2357,14 +2399,50 @@ SK_BeginBufferSwap (void)
   static SK_RenderAPI LastKnownAPI =
     SK_RenderAPI::Reserved;
 
-  if ( (int)rb.api        &
-       (int)SK_RenderAPI::D3D11 )
+  //if ( (int)rb.api        &
+  //     (int)SK_RenderAPI::D3D11 )
   {
     SK_D3D11_BeginFrame ();
 
     if (__SK_FramerateLimitApplicationSite == 0)
       SK::Framerate::GetLimiter ()->wait ();
   }
+
+
+  auto SK_DPI_UpdateWindowScale = [&](void) ->
+  void
+  {
+    using  GetDpiForSystem_pfn = UINT (WINAPI *)(void);
+    static GetDpiForSystem_pfn
+           GetDpiForSystem = (GetDpiForSystem_pfn)
+      SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
+                                      "GetDpiForSystem" );
+
+    using  GetDpiForWindow_pfn = UINT (WINAPI *)(HWND);
+    static GetDpiForWindow_pfn
+           GetDpiForWindow = (GetDpiForWindow_pfn)
+      SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
+                                      "GetDpiForWindow" );
+
+    //if (GetDpiForWindow != nullptr)
+    //{
+    //  extern float
+    //    g_fDPIScale;
+    //
+    //  UINT dpi =
+    //    GetDpiForWindow (game_window.hWnd);
+    //
+    //  if (dpi != 0)
+    //  {
+    //    g_fDPIScale =
+    //      (float)USER_DEFAULT_SCREEN_DPI /
+    //      (float)dpi;
+    //  }
+    //}
+  };
+
+  SK_DPI_UpdateWindowScale ();
+
 
   rb.present_staging.begin_overlays.time.QuadPart =
     SK_QueryPerf ().QuadPart;
@@ -2420,7 +2498,7 @@ SK_BeginBufferSwap (void)
     SK_ImGui_LoadFonts ();
   }
 
-  const ULONG frames_drawn =
+  const ULONG64 frames_drawn =
     SK_GetFramesDrawn ();
 
   switch (frames_drawn)
@@ -2453,10 +2531,11 @@ SK_BeginBufferSwap (void)
         );
       }
 
-
-      extern SK_Widget* SK_HDR_GetWidget (void);
-                SK_HDR_GetWidget ()->run (    );
-
+      if (rb.api == SK_RenderAPI::D3D11)
+      {
+        extern SK_Widget* SK_HDR_GetWidget (void);
+                  SK_HDR_GetWidget ()->run (    );
+      }
 
       // Maybe make this into an option, but for now just get this the hell out
       //   of there almost no software should be shipping with FP exceptions,
@@ -2472,7 +2551,7 @@ SK_BeginBufferSwap (void)
       {
         // Steam Init: Better late than never
 
-        SK_Steam_TestImports (GetModuleHandle (nullptr));
+        SK_Steam_TestImports (SK_GetModuleHandle (nullptr));
       }
 
       if (config.system.handle_crashes)
@@ -2519,13 +2598,13 @@ SK_BeginBufferSwap (void)
   rb.present_staging.begin_cegui.time =
     SK_QueryPerf ();
 
-  if (rb.api != SK_RenderAPI::D3D12)
+  //if (rb.api != SK_RenderAPI::D3D12)
   {
-    if (config.cegui.enable)
+    if (config.cegui.enable || rb.api == SK_RenderAPI::D3D12)
     {
       SetupCEGUI (LastKnownAPI);
 
-      if (config.cegui.frames_drawn > 0)
+      if (config.cegui.frames_drawn > 0 || rb.api == SK_RenderAPI::D3D12)
       {
         if (! SK::SteamAPI::GetOverlayState (true))
         {
@@ -2540,7 +2619,8 @@ SK_BeginBufferSwap (void)
     SK_QueryPerf ();
 
 
-  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+  static HMODULE hModTBFix =
+    SK_GetModuleHandle (L"tbfix.dll");
 
   if (hModTBFix)
   {
@@ -2556,12 +2636,12 @@ SK_BeginBufferSwap (void)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
-  if ( (int)rb.api        &
-       (int)SK_RenderAPI::D3D11 )
-  {
+  //if ( (int)rb.api        &
+  //     (int)SK_RenderAPI::D3D11 )
+  //{
     if (__SK_FramerateLimitApplicationSite == 1)
             SK::Framerate::GetLimiter ()->wait ();
-  }
+  //}
 
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
   {
@@ -2580,6 +2660,7 @@ SK_BeginBufferSwap (void)
     SK::Framerate::GetLimiter ()->wait ();
 }
 
+extern bool __stdcall SK_IsGameWindowActive (void);
 
 // Todo, move out of here
 void
@@ -2592,7 +2673,7 @@ SK_Input_PollKeyboard (void)
   //
   bool skip = true;
 
-  if ( game_window.active )
+  if ( SK_IsGameWindowActive () )
     skip = false;
 
   if (skip)
@@ -2749,12 +2830,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( (int)rb.api        &
-       (int)SK_RenderAPI::D3D11 )
-  {
+  //if ( (int)rb.api        &
+  //     (int)SK_RenderAPI::D3D11 )
+  //{
     if (__SK_FramerateLimitApplicationSite == 3)
          SK::Framerate::GetLimiter ()->wait ();
-  }
+  //}
 
 
   // Various required actions at the end of every frame in order to
@@ -2772,7 +2853,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   assert ( ReadULongAcquire (&rb.thread) == (LONG)SK_Thread_GetCurrentId () ||
            LastKnownAPI                  ==       SK_RenderAPI::Reserved );
 
-  if (device != nullptr && LastKnownAPI != rb.api)
+  if ((device != nullptr || rb.api == SK_RenderAPI::D3D12) && LastKnownAPI != rb.api)
   {
     WriteULongRelease (&rb.thread, SK_Thread_GetCurrentId ());
 
@@ -2783,106 +2864,117 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_ComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     SK_ComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
     SK_ComPtr <ID3D11Device>       pDev11  = nullptr;
-  //SK_ComPtr <ID3D12Device>       pDev12  = nullptr;
 
-    if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
+    if (device != nullptr)
     {
-      reinterpret_cast <int &> (rb.api) =
-        ( static_cast <int> (SK_RenderAPI::D3D9  ) |
-          static_cast <int> (SK_RenderAPI::D3D9Ex)  );
-
-      wcsncpy (rb.name, L"D3D9Ex", 8);
-    }
-
-    else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
-    {
-               rb.api  = SK_RenderAPI::D3D9;
-      wcsncpy (rb.name, L"D3D9  ", 8);
-    }
-
-    ///else if (SUCCEEDED (device->QueryInterface <ID3D12Device> (&pDev12)))
-    ///{
-    ///  rb.api  = SK_RenderAPI::D3D12;
-    ///  wcsncpy (rb.name, L"D3D12 ", 8);
-    ///}
-
-    else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
-    {
-      // Establish the API used this frame (and handle possible translation layers)
-      //
-      switch (SK_GetDLLRole ())
+      if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
       {
-        case DLL_ROLE::D3D8:
-          rb.api = SK_RenderAPI::D3D8On11;
-          break;
-        case DLL_ROLE::DDraw:
-          rb.api = SK_RenderAPI::DDrawOn11;
-          break;
-        default:
-          rb.api = SK_RenderAPI::D3D11;
-          break;
+        reinterpret_cast <int &> (rb.api) =
+          ( static_cast <int> (SK_RenderAPI::D3D9  ) |
+            static_cast <int> (SK_RenderAPI::D3D9Ex)  );
+
+        wcsncpy (rb.name, L"D3D9Ex", 8);
       }
 
-      SK_ComPtr <IUnknown> pTest = nullptr;
-
-      if (       SUCCEEDED (device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
-        wcsncpy (rb.name, L"D3D11.4", 8); // Creators Update
-      } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
-        wcsncpy (rb.name, L"D3D11.4", 8);
-      } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
-        wcsncpy (rb.name, L"D3D11.3", 8);
-      } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
-        wcsncpy (rb.name, L"D3D11.2", 8);
-      } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
-        wcsncpy (rb.name, L"D3D11.1", 8);
-      } else {
-        wcsncpy (rb.name, L"D3D11 ", 8);
+      else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
+      {
+                 rb.api  = SK_RenderAPI::D3D9;
+        wcsncpy (rb.name, L"D3D9  ", 8);
       }
 
-      if (     SK_GetDLLRole () == DLL_ROLE::D3D8)  {
-        wcscpy (rb.name, L"D3D8");
-      }
-      else if (SK_GetDLLRole () == DLL_ROLE::DDraw) {
-        wcscpy (rb.name, L"DDraw");
-      }
-    }
+      ///else if (SUCCEEDED (device->QueryInterface <ID3D12Device> (&pDev12)))
+      ///{
+      ///  rb.api  = SK_RenderAPI::D3D12;
+      ///  wcsncpy (rb.name, L"D3D12 ", 8);
+      ///}
 
-    else
-    {
-               rb.api  = SK_RenderAPI::Reserved;
-      wcsncpy (rb.name, L"UNKNOWN", 8);
+      else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
+      {
+        // Establish the API used this frame (and handle possible translation layers)
+        //
+        switch (SK_GetDLLRole ())
+        {
+          case DLL_ROLE::D3D8:
+            rb.api = SK_RenderAPI::D3D8On11;
+            break;
+          case DLL_ROLE::DDraw:
+            rb.api = SK_RenderAPI::DDrawOn11;
+            break;
+          default:
+            rb.api = SK_RenderAPI::D3D11;
+            break;
+        }
+
+        SK_ComPtr <IUnknown> pTest = nullptr;
+
+        if (       SUCCEEDED (device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
+          wcsncpy (rb.name, L"D3D11.4", 8); // Creators Update
+        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
+          wcsncpy (rb.name, L"D3D11.4", 8);
+        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
+          wcsncpy (rb.name, L"D3D11.3", 8);
+        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
+          wcsncpy (rb.name, L"D3D11.2", 8);
+        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
+          wcsncpy (rb.name, L"D3D11.1", 8);
+        } else {
+          wcsncpy (rb.name, L"D3D11 ", 8);
+        }
+
+        if (     SK_GetDLLRole () == DLL_ROLE::D3D8)  {
+          wcscpy (rb.name, L"D3D8");
+        }
+        else if (SK_GetDLLRole () == DLL_ROLE::DDraw) {
+          wcscpy (rb.name, L"DDraw");
+        }
+      }
+
+      else
+      {
+        rb.api = SK_RenderAPI::Reserved;
+        wcsncpy (rb.name, L"UNKNOWN", 8);
+      }
     }
   }
 
   else if (LastKnownAPI != rb.api)
   {
-    if (config.apis.OpenGL.hook && SK_GL_GetCurrentContext () != nullptr)
+    if (config.apis.OpenGL.hook)// && SK_GL_GetCurrentContext () != nullptr)
     {
-               rb.api  = SK_RenderAPI::OpenGL;
+      rb.api = SK_RenderAPI::OpenGL;
       wcsncpy (rb.name, L"OpenGL", 8);
     }
   }
 
-
-  // Determine Fullscreen Exclusive state in D3D11
+  // Determine Fullscreen Exclusive state in D3D9 / DXGI
   //
+
+  BOOL fullscreen = FALSE;
+
+  SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+
+  if (     pSwapChain == nullptr ||
+   FAILED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
+  {
+    // Not DXGI, so try D3D9
+    SK_ComQIPtr <IDirect3DSwapChain9>
+                         pSwapChain9 (rb.swapchain);
+
+    if (pSwapChain9 != nullptr)
+    {
+      D3DPRESENT_PARAMETERS                              pparams = { };
+      if (SUCCEEDED (pSwapChain9->GetPresentParameters (&pparams)))
+      {
+        fullscreen = (! pparams.Windowed);
+      }
+    }
+  }
+
+  rb.fullscreen_exclusive = fullscreen;
+
   if ( static_cast <int> (rb.api)  &
        static_cast <int> (SK_RenderAPI::D3D11) )
   {
-    BOOL fullscreen = FALSE;
-
-    SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-
-    if ( pSwapChain != nullptr &&
-  SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
-    {
-      rb.fullscreen_exclusive =               fullscreen;
-    }
-
-    else
-      rb.fullscreen_exclusive = false;
-
-
     extern volatile
            LONG
     __SK_D3D11_InitiateHudFreeShot;
@@ -2946,7 +3038,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   SK_Input_PollKeyboard ();
 
-  InterlockedIncrementAcquire (&SK_RenderBackend::frames_drawn);
+  InterlockedIncrementAcquire64 (&SK_RenderBackend::frames_drawn);
 
 
   if (config.sli.show && device != nullptr)
@@ -2981,8 +3073,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   SK_StartPerfMonThreads ();
 
-  static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
-  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+  static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");
+  static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
 
 
   long double          dt      =    0.0l;
@@ -3037,8 +3129,8 @@ RunDLL_ElevateMe ( HWND  hwnd,        HINSTANCE hInst,
   hwnd     = HWND_DESKTOP;
   nCmdShow = SW_SHOWNORMAL;
 
-  ShellExecuteA ( hwnd, "runas", lpszCmdLine,
-                    nullptr, nullptr, nCmdShow );
+  SK_ShellExecuteA ( hwnd, "runas", lpszCmdLine,
+                       nullptr, nullptr, nCmdShow );
 }
 
 void
@@ -3051,8 +3143,8 @@ RunDLL_RestartGame ( HWND  hwnd,        HINSTANCE hInst,
   hwnd     = HWND_DESKTOP;
   nCmdShow = SW_SHOWNORMAL;
 
-  ShellExecuteA ( hwnd, "open", lpszCmdLine,
-                    nullptr, nullptr, nCmdShow );
+  SK_ShellExecuteA ( hwnd, "open", lpszCmdLine,
+                       nullptr, nullptr, nCmdShow );
 }
 
 
@@ -3066,9 +3158,6 @@ SK_CreateEvent (
   _In_     BOOL                  bInitialState,
   _In_opt_ LPCWSTR               lpName )
 {
-  //if (SK_GetFramesDrawn ())
-  //  SK_LOG_CALL ("CreateEventW");
-
   return
     CreateEventW (
       lpEventAttributes, bManualReset, bInitialState, lpName

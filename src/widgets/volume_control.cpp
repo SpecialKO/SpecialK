@@ -20,7 +20,6 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/widgets/widget.h>
 
 extern iSK_INI* osd_ini;
 

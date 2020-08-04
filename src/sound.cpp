@@ -381,13 +381,13 @@ SK_WASAPI_GetChannelName (int channel_idx)
     );
 
     HMODULE hModDSound =
-      LoadLibraryW (L"dsound.dll");
+      SK_LoadLibraryW (L"dsound.dll");
 
     if (hModDSound != nullptr)
     {
       auto DirectSoundCreate_Import =
         reinterpret_cast <DirectSoundCreate_pfn> (
-          GetProcAddress ( hModDSound,
+       SK_GetProcAddress ( hModDSound,
                              "DirectSoundCreate" )
         );
 
@@ -419,7 +419,7 @@ SK_WASAPI_GetChannelName (int channel_idx)
                       L"  DSound  " );
       }
 
-      FreeLibrary (hModDSound);
+      SK_FreeLibrary (hModDSound);
     }
 
     switch (DSSPEAKER_CONFIG (dwConfig))

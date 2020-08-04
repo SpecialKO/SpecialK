@@ -22,7 +22,6 @@
 #ifndef __SK__RESHADE_H__
 #define __SK__RESHADE_H__
 
-struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <Windows.h>

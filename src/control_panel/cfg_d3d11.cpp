@@ -21,24 +21,17 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <d3d11.h>
-#include <../depends/include/nvapi/nvapi_lite_d3dext.h>
 #include <SpecialK/nvapi.h>
 
-#include <SpecialK/config.h>
-#include <imgui/imgui.h>
 
-#include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/d3d11.h>
 #include <SpecialK/control_panel/osd.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
-#include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 
 const wchar_t*
-DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space);
+DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
 
 extern bool SK_D3D11_EnableTracking;
@@ -108,34 +101,34 @@ SK_ImGui_DrawTexCache_Chart (void)
 
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.5f, 0.5f, 0.5f, 0.666f));
     ImGui::Columns   ( 3 );
-      ImGui::Text    ( "%#7zu      MiB",
+      ImGui::Text    ( "%7zu      MiB",
                                                      SK_D3D11_Textures->AggregateSize_2D >> 20ui64 );    ImGui::NextColumn ();
        ImGui::TextColored
                      (ImVec4 (0.3f, 1.0f, 0.3f, 1.0f),
-                       "%#5lu      Hits",            SK_D3D11_Textures->RedundantLoads_2D.load () );     ImGui::NextColumn ();
+                       "%5u      Hits",              SK_D3D11_Textures->RedundantLoads_2D.load () );     ImGui::NextColumn ();
        if (SK_D3D11_Textures->Budget != 0)
-         ImGui::Text ( "Budget:  %#7zu MiB  ",       SK_D3D11_Textures->Budget / 1048576ui64 );
+         ImGui::Text ( "Budget:  %7zu MiB  ",        SK_D3D11_Textures->Budget / 1048576ui64 );
     ImGui::Columns   ( 1 );
 
     ImGui::Separator (   );
 
     ImGui::Columns   ( 3 );
-      ImGui::Text    ( "%#7zu Textures",             SK_D3D11_Textures->Entries_2D.load () );            ImGui::NextColumn ();
+      ImGui::Text    ( "%7u Textures",               SK_D3D11_Textures->Entries_2D.load () );            ImGui::NextColumn ();
       ImGui::TextColored
                      ( ImVec4 (1.0f, 0.3f, 0.3f, 1.60f),
-                       "%#5lu   Misses",           SK_D3D11_Textures->CacheMisses_2D.load () );          ImGui::NextColumn ();
+                       "%5u   Misses",             SK_D3D11_Textures->CacheMisses_2D.load () );          ImGui::NextColumn ();
      ImGui::Text   ( "Time:        %#7.01lf ms  ", SK_D3D11_Textures->RedundantTime_2D       );
     ImGui::Columns   ( 1 );
 
     ImGui::Separator (   );
 
     ImGui::Columns   ( 3 );
-      ImGui::Text    ( "%#6lu   Evictions",            SK_D3D11_Textures->Evicted_2D.load ()   );        ImGui::NextColumn ();
+      ImGui::Text    ( "%6u   Evictions",              SK_D3D11_Textures->Evicted_2D.load ()   );        ImGui::NextColumn ();
       ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)SK_D3D11_Textures->RedundantLoads_2D /
                                                           (float)SK_D3D11_Textures->CacheMisses_2D, 0.4f ), 0.95f, 0.8f),
                        " %.2f  Hit/Miss",                (double)SK_D3D11_Textures->RedundantLoads_2D /
                                                          (double)SK_D3D11_Textures->CacheMisses_2D  );   ImGui::NextColumn ();
-      ImGui::Text    ( "Driver I/O: %#7llu MiB  ",     SK_D3D11_Textures->RedundantData_2D >> 20ui64 );
+      ImGui::Text    ( "Driver I/O: %7llu MiB  ",      SK_D3D11_Textures->RedundantData_2D >> 20ui64 );
 
     ImGui::Columns   ( 1 );
 
@@ -148,12 +141,17 @@ SK_ImGui_DrawTexCache_Chart (void)
 
     ImGui::TreePush  ( "" );
 
-    if (ImGui::SliderFloat ( "Maximum Cache Size", &size, 256.f, 8192.f, "%.0f MiB"))
+    if (ImGui::SliderFloat ( "Maximum Cache Size", &size,
+                               256.f, 8192.f, "%.0f MiB" ))
     {
       config.textures.cache.max_size =
         gsl::narrow_cast <int> (size);
 
-      SK_GetCommandProcessor ()->ProcessCommandFormatted ("TexCache.MaxSize %d ", config.textures.cache.max_size);
+      auto cp =
+        SK_GetCommandProcessor ();
+
+      cp->ProcessCommandFormatted ( "TexCache.MaxSize %d ",
+                        config.textures.cache.max_size );
     }
 
     ImGui::TreePop       ();
@@ -170,11 +168,13 @@ SK_ImGui_DrawTexCache_Chart (void)
 
       if (config.textures.cache.residency_managemnt)
       {
-        auto& residency_count =
-          SK_D3D11_TexCacheResidency->count;
-        auto& residency_size  =
-          SK_D3D11_TexCacheResidency->size;
+        static SK_D3D11_TexCacheResidency_s* tex_res =
+          SK_D3D11_TexCacheResidency.getPtr ();
 
+        auto& residency_count =
+          tex_res->count;
+        auto& residency_size  =
+          tex_res->size;
 
         const int fully_resident = ReadAcquire (&residency_count.InVRAM);
         const int shared_memory  = ReadAcquire (&residency_count.Shared);
@@ -186,13 +186,13 @@ SK_ImGui_DrawTexCache_Chart (void)
 
         ImGui::BeginGroup ();
         if (fully_resident != 0)
-          ImGui::TextColored (ImColor (0.3f, 0.78f, 0.3f),   "%lu Textures in VRAM\t",          fully_resident);
+          ImGui::TextColored (ImColor (0.3f, 0.78f, 0.3f),   "%d Textures in VRAM\t",          fully_resident);
 
         if (shared_memory != 0)
-          ImGui::TextColored (ImColor (0.78f, 0.78f, 0.55f), "%lu Textures in Shared Memory\t", shared_memory);
+          ImGui::TextColored (ImColor (0.78f, 0.78f, 0.55f), "%d Textures in Shared Memory\t", shared_memory);
 
         if (on_disk != 0)
-          ImGui::TextColored (ImColor (0.78f, 0.3f, 0.3f),   "%lu Textures Paged to Disk\t",    on_disk);
+          ImGui::TextColored (ImColor (0.78f, 0.3f, 0.3f),   "%d Textures Paged to Disk\t",    on_disk);
         ImGui::EndGroup ();
 
         ImGui::SameLine ();
@@ -212,8 +212,6 @@ SK_ImGui_DrawTexCache_Chart (void)
   }
 }
 
-#include <SpecialK/tls.h>
-#include <SpecialK/render/d3d11/d3d11_core.h>
 
 extern bool SK_D3D11_ShaderModDlg (SK_TLS *pTLS = SK_TLS_Bottom ());
 
@@ -379,7 +377,7 @@ SK::ControlPanel::D3D11::Draw (void)
         {
           void
           SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain );
-          SK_DXGI_UpdateLatencies (pSwapChain);
+          SK_DXGI_UpdateLatencies (                 pSwapChain );
         }
       }
 
@@ -756,7 +754,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.BufferDesc.Format).c_str ());
     //ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (dsv_desc.Format).c_str             ());
       ImGui::Text            ("%ux%u",                                   swap_desc.BufferDesc.Width, swap_desc.BufferDesc.Height);
-      ImGui::Text            ("%u",                                      std::max (1UL, swap_desc.Windowed ? swap_desc.BufferCount : swap_desc.BufferCount - 1UL));
+      ImGui::Text            ("%lu",                                     std::max (1UL, swap_desc.Windowed ? swap_desc.BufferCount : swap_desc.BufferCount - 1UL));
       if ((! swap_desc.Windowed) && swap_desc.BufferDesc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
         ImGui::Text          ("%ws",        SK_DXGI_DescribeScalingMode (swap_desc.BufferDesc.Scaling));
       if ((! swap_desc.Windowed) && swap_desc.BufferDesc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
@@ -788,6 +786,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         bool _fullscreen = true;
 
         SK_ComQIPtr <IDXGISwapChain4> pSwap3 (pSwapDXGI);
+
         if (pSwap3 != nullptr)
         {
           DXGI_SWAP_CHAIN_FULLSCREEN_DESC full_desc = { };
@@ -806,7 +805,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
             ImGui::Text ("%ws",                DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dxgi_colorspace));
           else
             ImGui::Text ("%ws (DWM Assigned)", DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dwm_colorspace));
-          ImGui::Text   ("%lu", rb.scanout.bpc);
+          ImGui::Text   ("%d", rb.scanout.bpc);
         }
 
         else
@@ -828,14 +827,14 @@ SK::ControlPanel::D3D11::TextureMenu (void)
 {
   if (ImGui::BeginMenu ("Browse Texture Assets"))
   {
-    wchar_t wszPath [MAX_PATH * 2] = { };
+    wchar_t wszPath [MAX_PATH + 2] = { };
 
     if (ImGui::MenuItem ("Injectable Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures->injectable_texture_bytes).c_str ()).c_str (), nullptr))
     {
       wcscpy      (wszPath, SK_D3D11_res_root->c_str ());
       PathAppendW (wszPath, LR"(inject\textures)");
 
-      ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
+      SK_ShellExecuteW (nullptr, L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
     }
 
     if ((! SK_D3D11_Textures->dumped_textures.empty ()) &&
@@ -845,7 +844,7 @@ SK::ControlPanel::D3D11::TextureMenu (void)
       PathAppendW (wszPath, LR"(dump\textures)");
       PathAppendW (wszPath, SK_GetHostApp ());
 
-      ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
+      SK_ShellExecuteW (nullptr, L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
     }
 
     ImGui::EndMenu ();

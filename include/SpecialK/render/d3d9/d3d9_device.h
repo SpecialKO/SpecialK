@@ -90,22 +90,18 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
 {
   explicit IWrapDirect3DDevice9 (IDirect3DDevice9 *orig) :
     pReal   (orig),
-    d3d9ex_ (false) {
-
+    d3d9ex_ (false)
+	{
     IDirect3DSwapChain9*     pTemp = nullptr;
     pReal->GetSwapChain (0, &pTemp);
 
-    implicit_swapchain_ =
-      std::make_unique <IWrapDirect3DSwapChain9> (this, pTemp);
+    implicit_swapchain_.p =
+      new IWrapDirect3DSwapChain9 (this, pTemp);
 
-                                  orig->AddRef  ();
-    InterlockedExchange  (&refs_, orig->Release ());
-
-    if (config.apis.d3d9ex.hook)
-    {
-      //// Immediately try to upgrade
-      SK_ComQIPtr <IDirect3DDevice9Ex> pEx (this);
-    }
+		InterlockedExchange (
+			&refs_, pReal->AddRef  () - 1
+		);        pReal->Release ();
+		AddRef ();
   }
 
   explicit IWrapDirect3DDevice9 (IDirect3DDevice9Ex *orig) :
@@ -117,11 +113,13 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
 
     SK_ComQIPtr <IDirect3DSwapChain9Ex> pTempEx (pTemp);
 
-    implicit_swapchain_ =
-      std::make_unique <IWrapDirect3DSwapChain9> (this, pTempEx);
+    implicit_swapchain_.p =
+      new IWrapDirect3DSwapChain9 (this, pTempEx);
 
-                                  orig->AddRef  ();
-    InterlockedExchange  (&refs_, orig->Release ());
+		InterlockedExchange (
+			&refs_, pReal->AddRef  () - 1
+		);        pReal->Release ();
+		AddRef ();
   }
 
   IWrapDirect3DDevice9            (const IWrapDirect3DDevice9 &) = delete;
@@ -271,10 +269,10 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
 	#pragma endregion
 
   volatile LONG     refs_   = 1;
-  IDirect3DDevice9 *pReal;
+  IDirect3DDevice9 *pReal   = nullptr;
   bool              d3d9ex_ = false;
 
-  std::unique_ptr <IWrapDirect3DSwapChain9>
+  SK_ComPtr <IWrapDirect3DSwapChain9>
                    implicit_swapchain_   = nullptr;
   concurrency::concurrent_vector <IWrapDirect3DSwapChain9 *>
                    additional_swapchains_;

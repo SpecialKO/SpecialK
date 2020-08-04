@@ -60,74 +60,79 @@ public:
      parent_ (pParent),
        refs_ (1)
   {
-    pSession->RegisterAudioSessionNotification (this);
-
-    char szTitle [512]  =
-    {                   };
-
-    const DWORD proc_id =
-      getProcessId ();
-
-    window_t win =
-      SK_FindRootWindow (proc_id);
-
-    if (win.root != nullptr)
+    if (pSession != nullptr)
     {
-      wchar_t wszTitle [512] = { };
+      pSession->RegisterAudioSessionNotification (this);
 
-      // This is all happening from the application's message pump in most games,
-      //   so this specialized function avoids deadlocking the pump.
-      InternalGetWindowText (win.root, wszTitle, 511);
-      WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, FALSE);
+      char szTitle [512]  =
+      {                   };
 
-      //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
-                  //L"  WASAPI  " );
-    }
+      const DWORD proc_id =
+        getProcessId ();
+
+      window_t win =
+        SK_FindRootWindow (proc_id);
+
+      if (win.root != nullptr)
+      {
+        wchar_t wszTitle [512] = { };
+
+        BOOL bUsedDefaultChar = FALSE;
+
+        // This is all happening from the application's message pump in most games,
+        //   so this specialized function avoids deadlocking the pump.
+        InternalGetWindowText (win.root, wszTitle, 511);
+        WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, &bUsedDefaultChar);
+
+        //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
+                    //L"  WASAPI  " );
+      }
 
 // Use the ANSI versions
 #undef PROCESSENTRY32
 #undef Process32First
 #undef Process32Next
 
-    // Use the exeuctable name if there is no window name
-    if (! strlen (szTitle))
-    {
-      HANDLE hSnap =
-        CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
-
-      if (hSnap)
+      // Use the exeuctable name if there is no window name
+      if (! strlen (szTitle))
       {
-        PROCESSENTRY32 pent;
-        pent.dwSize = sizeof (PROCESSENTRY32);
+        HANDLE hSnap =
+          CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
 
-        if (Process32First (hSnap, &pent))
+        if (hSnap)
         {
-          do
+          PROCESSENTRY32 pent;
+          pent.dwSize = sizeof (PROCESSENTRY32);
+
+          if (Process32First (hSnap, &pent))
           {
-            if (pent.th32ProcessID == proc_id)
+            do
             {
-              *szTitle = '\0';
-              strncat (szTitle, pent.szExeFile, 511);
-              break;
-            }
+              if (pent.th32ProcessID == proc_id)
+              {
+                *szTitle = '\0';
+                strncat (szTitle, pent.szExeFile, 511);
+                break;
+              }
 
-          } while (Process32Next (hSnap, &pent));
+            } while (Process32Next (hSnap, &pent));
+          }
+
+          CloseHandle (hSnap);
         }
-
-        CloseHandle (hSnap);
       }
+
+      app_name_ = szTitle;
+
+      if (proc_id == GetCurrentProcessId ())
+      {
+        if (SK::SteamAPI::AppName ().length ())
+          app_name_ = SK::SteamAPI::AppName ();
+      }
+
+      //SK_LOG4 ( ( L"   Name: %s", wszTitle ),
+                  //L"  WASAPI  " );
     }
-
-    app_name_ = szTitle;
-
-    if (proc_id == GetCurrentProcessId ())
-    {
-      if (SK::SteamAPI::AppName ().length ())
-        app_name_ = SK::SteamAPI::AppName ();
-    }
-
-    //SK_LOG4 ( ( L"   Name: %s", wszTitle ),
-                //L"  WASAPI  " );
   }
 
   ISimpleAudioVolume* getSimpleAudioVolume (void)
@@ -164,7 +169,7 @@ public:
     return dwProcId;
   }
 
-  const char* getName (void)  { return app_name_.c_str (); };
+  const char* getName (void) noexcept { return app_name_.c_str (); };
 
   // IUnknown
   HRESULT
@@ -195,13 +200,13 @@ public:
     return S_OK;
   }
 
-  ULONG STDMETHODCALLTYPE AddRef (void) override
+  ULONG STDMETHODCALLTYPE AddRef (void) noexcept override
   {
     return
       InterlockedIncrement (&refs_);
   }
 
-  ULONG STDMETHODCALLTYPE Release (void) override
+  ULONG STDMETHODCALLTYPE Release (void) noexcept override
   {
     const ULONG ulRef =
       InterlockedDecrement (&refs_);
@@ -272,7 +277,7 @@ public:
   OnSessionDisconnected (AudioSessionDisconnectReason DisconnectReason)  override;
 
   virtual
- ~SK_WASAPI_AudioSession (void)
+ ~SK_WASAPI_AudioSession (void) noexcept (false)
   {
     if (control_ != nullptr)
       control_->UnregisterAudioSessionNotification (this);
@@ -296,13 +301,13 @@ public:
   };
 
   virtual
-  ~SK_WASAPI_SessionManager (void) ///
+  ~SK_WASAPI_SessionManager (void) noexcept (false)
   {
     if (session_mgr_ != nullptr)
       session_mgr_->UnregisterSessionNotification (this);
   }
 
-  void Deactivate (void)
+  void Deactivate (void) noexcept
   {
     meter_info_   = nullptr;
     endpoint_vol_ = nullptr;

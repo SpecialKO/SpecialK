@@ -57,7 +57,7 @@ interface iSK_Logger : public IUnknown
   {
   friend interface iSK_Logger;
   public:
-    ~AutoClose (void)
+    ~AutoClose (void) noexcept (false)
     {
       if (log_ != nullptr)
       {
@@ -71,7 +71,7 @@ interface iSK_Logger : public IUnknown
 
   protected:
     AutoClose (iSK_Logger* log)                  noexcept : log_ (log)           { }
-    AutoClose (SK_LazyGlobal <iSK_Logger>&& log)          : log_ (log.getPtr ()) { }
+  //AutoClose (SK_LazyGlobal <iSK_Logger>&& log) noexcept : log_ (log.getPtr ()) { }
 
   private:
     iSK_Logger *log_;
@@ -82,11 +82,11 @@ interface iSK_Logger : public IUnknown
   }
 
   iSK_Logger (void) noexcept {
-    AddRef ();
+    iSK_Logger::AddRef ();
   }
 
   virtual ~iSK_Logger (void) noexcept {
-    Release ();
+    iSK_Logger::Release ();
   }
 
   /*** IUnknown methods ***/

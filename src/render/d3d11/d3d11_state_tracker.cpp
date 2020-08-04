@@ -21,6 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
 #include <SpecialK/control_panel/d3d11.h>
@@ -122,6 +125,9 @@ bool
 SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
                                          UINT                 dev_idx )
 {
+  if (! pDevCtx)
+    return false;
+
   if (! SK::ControlPanel::D3D11::show_shader_mod_dlg)
     return false;
 
@@ -171,6 +177,9 @@ bool
 SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
                                UINT                 dev_idx )
 {
+  if (! pDevCtx)
+    return false;
+
   static const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -182,9 +191,6 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
 
     return false;
   }
-
-  if (pDevCtx == nullptr)
-    return false;
 
   if (SK_D3D11_DontTrackUnlessModToolsAreOpen && (! SK_D3D11_EnableTracking))
     return false;
@@ -211,7 +217,7 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
 
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
-SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown>> >                                SK_D3D11_TempResources;
+SK_LazyGlobal <std::vector <SK_ComPtr <ID3D11View>> >                              SK_D3D11_TempResources;
 SK_LazyGlobal <std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1> > SK_D3D11_RenderTargets;
 
 void
@@ -364,8 +370,8 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     ID3D11Query                                    *pQuery = nullptr;
     if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
     {
-      SK_ComPtr <ID3D11DeviceContext>  pImmediateContext;
-      pDev->GetImmediateContext      (&pImmediateContext);
+      SK_ComPtr <ID3D11DeviceContext> pImmediateContext;
+      pDev->GetImmediateContext     (&pImmediateContext.p);
 
       InterlockedExchangePointer ((void **)&disjoint_query.async, pQuery);
       pImmediateContext->Begin                                   (pQuery);
@@ -459,7 +465,6 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
   // Timing is very difficult on deferred contexts; will finish later (years?)
   if ( pDevCtx != nullptr && SK_D3D11_IsDevCtxDeferred (pDevCtx) )
     return;
-
 
   SK_ComQIPtr <ID3D11Device> dev (rb.device);
 
@@ -575,30 +580,24 @@ SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_ShaderThreads;
 
 bool SKX_D3D11_IsVtxShaderLoaded (uint32_t crc32c)
 {
-  auto crit_sec =
-    cs_shader_vs.get ();
-
-  crit_sec->lock ();
+  std::scoped_lock <SK_Thread_HybridSpinlock> _lock (
+    *cs_shader_vs.get ()
+  );
 
   bool bRet =
     SK_D3D11_Shaders->vertex.descs.count (crc32c) != 0;
-
-  crit_sec->unlock ();
 
   return bRet;
 }
 
 bool SKX_D3D11_IsPixShaderLoaded (uint32_t crc32c)
 {
-  auto crit_sec =
-    cs_shader_ps.get ();
-
-  crit_sec->lock ();
+  std::scoped_lock <SK_Thread_HybridSpinlock> _lock(
+    *cs_shader_ps.get()
+  );
 
   bool bRet =
     SK_D3D11_Shaders->pixel.descs.count (crc32c) != 0;
-
-  crit_sec->unlock ();
 
   return bRet;
 }

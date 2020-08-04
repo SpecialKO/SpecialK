@@ -1,1 +1,0 @@
-#include <SpecialK/stdafx.h>

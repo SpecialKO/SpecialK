@@ -46,8 +46,8 @@ struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
 {
   IWrapDirect3DSwapChain9 ( IWrapDirect3DDevice9 *dev,
                             IDirect3DSwapChain9  *orig )  : pReal   (orig),
-                                                                    d3d9ex_ (false),
-                                                                    pDev    (dev)
+                                                            d3d9ex_ (false),
+                                                            pDev    (dev)
   {
                                   orig->AddRef  (),
     InterlockedExchange  (&refs_, orig->Release ());
@@ -57,8 +57,8 @@ struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
 
   IWrapDirect3DSwapChain9 ( IWrapDirect3DDevice9  *dev,
                             IDirect3DSwapChain9Ex *orig )  : pReal   (orig),
-                                                                     d3d9ex_ (true),
-                                                                     pDev    (dev)
+                                                             d3d9ex_ (true),
+                                                             pDev    (dev)
   {
                                   orig->AddRef  (),
     InterlockedExchange  (&refs_, orig->Release ());

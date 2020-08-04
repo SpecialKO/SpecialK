@@ -40,7 +40,7 @@ IWrapDirect3DSwapChain9::QueryInterface (REFIID riid, void **ppvObj)
   else if (
     riid == IID_IWrapDirect3DSwapChain9    ||
     riid == IID_IWrapDirect3DSwapChain9Ex  ||
-    //riid == __uuidof (IUnknown)            || Ignore IUnknown, it's often queried to test object equality between different interfaces
+    riid == __uuidof (IUnknown)            ||
     riid == __uuidof (IDirect3DSwapChain9) ||
     riid == __uuidof (IDirect3DSwapChain9Ex))
   {
@@ -134,11 +134,11 @@ IWrapDirect3DSwapChain9::Release (void)
   {
     pReal = nullptr;
 
-    //if (d3d9ex_)
-    //  InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChainsEx);
-    //  InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChains);
+    if (d3d9ex_)
+      InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChainsEx);
+      InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChains);
 
-    ////delete this;
+    delete this;
   }
 
   return local_refs;

@@ -20,11 +20,13 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/widgets/widget.h>
 
 extern iSK_INI* osd_ini;
 
 extern void SK_ImGui_DrawGraph_FramePacing (void);
+
+extern bool __stdcall SK_IsGameWindowActive (void);
+
 
 namespace
 SK_ImGui
@@ -32,9 +34,10 @@ SK_ImGui
   bool BatteryMeter (void);
 };
 
-static bool has_battery = false;
+static bool has_battery   = false;
+static bool debug_limiter = false;
 
-struct
+struct SK_ImGui_FramePercentiles
 {
   bool  display             =  true;
   bool  display_above       =  true;
@@ -124,7 +127,7 @@ struct
     SK_RunOnce (cp->AddVariable ("FramePacing.PercentilesAboveGraph", SK_CreateVar (SK_IVariable::Boolean, &display_above)));
     SK_RunOnce (cp->AddVariable ("FramePacing.ShortTermPercentiles",  SK_CreateVar (SK_IVariable::Boolean, &display_most_recent)));
     SK_RunOnce (cp->AddVariable ("FramePacing.Percentile[0].Cutoff",  SK_CreateVar (SK_IVariable::Float,   &percentile0.cutoff)));
-    SK_RunOnce (cp->AddVariable ("FramePacing.Percentile[1].Cutoff",  SK_CreateVar (SK_IVariable::Boolean, &percentile1.cutoff)));
+    SK_RunOnce (cp->AddVariable ("FramePacing.Percentile[1].Cutoff",  SK_CreateVar (SK_IVariable::Float,   &percentile1.cutoff)));
   }
 
   void store_percentile_cfg (void)
@@ -138,10 +141,10 @@ struct
 
   struct sample_subset_s
   {
-    float cutoff             =  0.0f;
-    bool  has_data           = false;
-    float computed_fps       =  0.0f;
-    ULONG last_calculated    =   0UL;
+    float   cutoff          =  0.0f;
+    bool    has_data        = false;
+    float   computed_fps    =  0.0f;
+    ULONG64 last_calculated =   0UL;
 
     void computeFPS (long double dt)
     {
@@ -160,16 +163,17 @@ struct
 
     store_percentile_cfg ();
   }
-} SK_FramePercentiles;
+};
 
+SK_LazyGlobal <SK_ImGui_FramePercentiles> SK_FramePercentiles;
 
 float SK_Framerate_GetPercentileByIdx (int idx)
 {
   if (idx == 0)
-    return SK_FramePercentiles.percentile0.cutoff;
+    return SK_FramePercentiles->percentile0.cutoff;
 
   if (idx == 1)
-    return SK_FramePercentiles.percentile1.cutoff;
+    return SK_FramePercentiles->percentile1.cutoff;
 
   return 0.0f;
 }
@@ -222,8 +226,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
   static const bool ffx = SK_GetModuleHandle (L"UnX.dll") != nullptr;
 
   float& target =
-    ( game_window.active || __target_fps_bg == 0.0f ) ?
-            __target_fps  : __target_fps_bg;
+    ( SK_IsGameWindowActive () || __target_fps_bg == 0.0f ) ?
+                  __target_fps  : __target_fps_bg;
 
   float target_frametime = ( target == 0.0f ) ?
                            ( 1000.0f   / (ffx ? 30.0f : 60.0f) ) :
@@ -247,7 +251,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   extern void SK_ImGui_DrawFramePercentiles (void);
 
-  if (SK_FramePercentiles.display_above)
+  if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
 
   snprintf
@@ -288,9 +292,9 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   // Only toggle when clicking the graph and percentiles are off,
   //   to turn them back off, click the progress bars.
-  if ((! SK_FramePercentiles.display) && ImGui::IsItemClicked ())
+  if ((! SK_FramePercentiles->display) && ImGui::IsItemClicked ())
   {
-    SK_FramePercentiles.toggleDisplay ();
+    SK_FramePercentiles->toggleDisplay ();
   }
 
 
@@ -319,28 +323,30 @@ SK_ImGui_DrawGraph_FramePacing (void)
   //}
 
 
-  if (! SK_FramePercentiles.display_above)
+  if (! SK_FramePercentiles->display_above)
         SK_ImGui_DrawFramePercentiles ();
 }
 
 void
 SK_ImGui_DrawFramePercentiles (void)
 {
-  if (! SK_FramePercentiles.display)
+  if (! SK_FramePercentiles->display)
     return;
 
   static auto& snapshots =
     SK::Framerate::frame_history_snapshots;
 
-  auto& percentile0 = SK_FramePercentiles.percentile0;
-  auto& percentile1 = SK_FramePercentiles.percentile1;
-  auto&        mean = SK_FramePercentiles.mean;
+  auto& percentile0 = SK_FramePercentiles->percentile0;
+  auto& percentile1 = SK_FramePercentiles->percentile1;
+  auto&        mean = SK_FramePercentiles->mean;
 
   bool& show_immediate =
-    SK_FramePercentiles.display_most_recent;
+    SK_FramePercentiles->display_most_recent;
 
-  static constexpr LARGE_INTEGER         all_samples = { 0ULL };
-  extern           SK::Framerate::Stats *frame_history;
+  static constexpr LARGE_INTEGER   all_samples = { 0ULL };
+  extern           SK_LazyGlobal <
+                     SK::Framerate::Stats
+                                 > frame_history;
 
   long double data_timespan = ( show_immediate ?
             frame_history->calcDataTimespan () :
@@ -351,9 +357,9 @@ SK_ImGui_DrawFramePercentiles (void)
   ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (unsigned int)ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
   ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (unsigned int)ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
 
-  if ( SK_FramePercentiles.percentile0.last_calculated !=
-       SK_GetFramesDrawn ()
-     )
+  ////if ( SK_FramePercentiles->percentile0.last_calculated !=
+  ////     SK_GetFramesDrawn ()
+  ////   )
   {
    //const long double   SAMPLE_SECONDS = 5.0L;
 
@@ -375,11 +381,11 @@ SK_ImGui_DrawFramePercentiles (void)
   float p1_ratio =
         percentile1.computed_fps / mean.computed_fps;
 
-  if ( percentile0.computed_fps > std::numeric_limits <float>::epsilon () ||
+  if ( std::isnormal (percentile0.computed_fps) ||
         (! show_immediate)
      )
   {
-    if (! (percentile0.computed_fps > std::numeric_limits <float>::epsilon ()))
+    if (! std::isnormal (percentile0.computed_fps))
     {
       mean.computeFPS (
         frame_history->calcMean (all_samples)
@@ -463,7 +469,7 @@ SK_ImGui_DrawFramePercentiles (void)
       if (! io.KeyCtrl)
       {
         show_immediate = (! show_immediate);
-        SK_FramePercentiles.store_percentile_cfg ();
+        SK_FramePercentiles->store_percentile_cfg ();
       }
 
       else snapshots->reset ();
@@ -479,7 +485,7 @@ SK_ImGui_DrawFramePercentiles (void)
                           percentile0.computed_fps ).c_str ()
     );
 
-    if ( percentile1.computed_fps > std::numeric_limits <float>::epsilon () &&
+    if ( std::isnormal (percentile1.computed_fps) &&
                                             data_timespan > 0 )
     {
       percentile1.has_data = true;
@@ -503,9 +509,9 @@ SK_ImGui_DrawFramePercentiles (void)
 
     ImGui::EndGroup        ( );
 
-    if ((SK_FramePercentiles.display) && ImGui::IsItemClicked ())
+    if ((SK_FramePercentiles->display) && ImGui::IsItemClicked ())
     {
-      SK_FramePercentiles.toggleDisplay ();
+      SK_FramePercentiles->toggleDisplay ();
     }
   }
 
@@ -517,6 +523,8 @@ SK_ImGui_DrawFramePercentiles (void)
   ImGui::PopStyleColor     (4);
 }
 
+float fExtraData = 0.0f;
+
 class SKWG_FramePacing : public SK_Widget
 {
 public:
@@ -527,14 +535,14 @@ public:
     setResizable    (                false).setAutoFit      (true).setMovable (false).
     setDockingPoint (DockAnchor::SouthEast).setClickThrough (true).setVisible (false);
 
-    SK_FramePercentiles.load_percentile_cfg ();
+    SK_FramePercentiles->load_percentile_cfg ();
   };
 
   void load (iSK_INI* cfg) noexcept override
   {
     SK_Widget::load (cfg);
 
-    SK_FramePercentiles.load_percentile_cfg ();
+    SK_FramePercentiles->load_percentile_cfg ();
   }
 
   void save (iSK_INI* cfg) noexcept override
@@ -544,7 +552,7 @@ public:
 
     SK_Widget::save (cfg);
 
-    SK_FramePercentiles.store_percentile_cfg ();
+    SK_FramePercentiles->store_percentile_cfg ();
 
     cfg->write (
       cfg->get_filename ()
@@ -563,7 +571,7 @@ public:
       //auto *display_framerate_percentiles_above =
       //  SK_CreateVar (
       //    SK_IVariable::Boolean,
-      //      &SK_FramePercentiles.display_above,
+      //      &SK_FramePercentiles->display_above,
       //        nullptr );
       //
       //SK_RunOnce (
@@ -577,7 +585,7 @@ public:
       auto *display_framerate_percentiles =
         SK_CreateVar (
           SK_IVariable::Boolean,
-            &SK_FramePercentiles.display,
+            &SK_FramePercentiles->display,
               nullptr );
 
       SK_RunOnce (
@@ -595,11 +603,11 @@ public:
 
     float extra_line_space = 0.0f;
 
-    auto& percentile0 = SK_FramePercentiles.percentile0;
-    auto& percentile1 = SK_FramePercentiles.percentile1;
+    auto& percentile0 = SK_FramePercentiles->percentile0;
+    auto& percentile1 = SK_FramePercentiles->percentile1;
 
     if (has_battery)            extra_line_space += 1.16f;
-    if (SK_FramePercentiles.display)
+    if (SK_FramePercentiles->display)
     {
       if (percentile0.has_data) extra_line_space += 1.16f;
       if (percentile1.has_data) extra_line_space += 1.16f;
@@ -609,6 +617,7 @@ public:
     if (state__ != 0) extra_line_space += (1.16f * 5.5f);
 
     ImVec2   new_size (font_size * 35, font_size_multiline * (5.44f + extra_line_space));
+             new_size.y += fExtraData;
     setSize (new_size);
 
     if (isVisible ())// && state__ == 0)
@@ -637,10 +646,57 @@ public:
       move = false;
     }
 
+    ImGui::BeginGroup ();
     SK_ImGui_DrawGraph_FramePacing ();
 
     has_battery =
       SK_ImGui::BatteryMeter ();
+    ImGui::EndGroup   ();
+
+    if (debug_limiter)
+    {
+      ImGui::BeginGroup ();
+      SK::Framerate::Limiter::snapshot_s snapshot =
+        SK::Framerate::GetLimiter ()->getSnapshot ();
+
+      ImGui::BeginGroup ();
+      ImGui::Text ("MS:");
+      ImGui::Text ("FPS:");
+      ImGui::Text ("EffectiveMS:");
+      ImGui::Text ("Clock Ticks per-Frame:");
+      ImGui::Separator ();
+      ImGui::Text ("Limiter Time=");
+      ImGui::Text ("Limiter Start=");
+      ImGui::Text ("Limiter Next=");
+      ImGui::Text ("Limiter Last=");
+      ImGui::Text ("Limiter Freq=");
+      ImGui::Separator ();
+      ImGui::Text ("Limited Frames:");
+      ImGui::Separator  ();
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+      ImGui::Text ("%f ms",  snapshot.ms);
+      ImGui::Text ("%f fps", snapshot.fps);
+      ImGui::Text ("%f ms",  snapshot.effective_ms);
+      ImGui::Text ("%llu",   snapshot.ticks_per_frame);
+      ImGui::Separator ();
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.time));
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.start));
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.next));
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.last));
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.freq));
+      ImGui::Separator ();
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.frames));
+      ImGui::EndGroup  ();
+
+      if (ImGui::Button ("Reset"))        *snapshot.pRestart     = true;
+      ImGui::SameLine ();
+      if (ImGui::Button ("Full Restart")) *snapshot.pFullRestart = true;
+      ImGui::EndGroup ();
+      fExtraData = ImGui::GetItemRectSize ().y;
+    } else
+      fExtraData = 0.0f;
   }
 
 
@@ -654,26 +710,26 @@ public:
     ImGui::Separator ();
 
     bool changed = false;
-    bool display = SK_FramePercentiles.display;
+    bool display = SK_FramePercentiles->display;
 
     changed |= ImGui::Checkbox  ("Show Percentile Analysis", &display);
 
     if (changed)
     {
-      SK_FramePercentiles.toggleDisplay ();
+      SK_FramePercentiles->toggleDisplay ();
     }
 
-    if (SK_FramePercentiles.display)
+    if (SK_FramePercentiles->display)
     {
-      changed |= ImGui::Checkbox ("Draw Percentiles Above Graph",         &SK_FramePercentiles.display_above);
-      changed |= ImGui::Checkbox ("Use Short-Term (~15-30 seconds) Data", &SK_FramePercentiles.display_most_recent);
+      changed |= ImGui::Checkbox ("Draw Percentiles Above Graph",         &SK_FramePercentiles->display_above);
+      changed |= ImGui::Checkbox ("Use Short-Term (~15-30 seconds) Data", &SK_FramePercentiles->display_most_recent);
 
       ImGui::Separator ();
       ImGui::TreePush  ();
 
       if ( ImGui::SliderFloat (
              "Percentile Class 0 Cutoff",
-               &SK_FramePercentiles.percentile0.cutoff,
+               &SK_FramePercentiles->percentile0.cutoff,
                  0.1f, 99.99f, "%3.1f%%" )
          )
       {
@@ -682,7 +738,7 @@ public:
 
       if ( ImGui::SliderFloat (
              "Percentile Class 1 Cutoff",
-               &SK_FramePercentiles.percentile1.cutoff,
+               &SK_FramePercentiles->percentile1.cutoff,
                  0.1f, 99.99f, "%3.1f%%" )
          )
       {
@@ -693,7 +749,9 @@ public:
     }
 
     if (changed)
-      SK_FramePercentiles.store_percentile_cfg ();
+      SK_FramePercentiles->store_percentile_cfg ();
+
+    ImGui::Checkbox ("Framerate Limiter Debug", &debug_limiter);
   }
 
   void OnConfig (ConfigEvent event) noexcept override

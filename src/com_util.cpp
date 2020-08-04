@@ -20,18 +20,22 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/com_util.h>
 
-COM::Base COM::base = { };
+namespace COM
+{
+  Base base = { };
+};
 
 void
-COM::Base::WMI::Lock (void)
+COM::Base::WMI::Lock (void) noexcept
 {
   if (wmi_cs != nullptr)
       wmi_cs->lock ();
 }
 
 void
-COM::Base::WMI::Unlock (void)
+COM::Base::WMI::Unlock (void) noexcept
 {
   if (wmi_cs != nullptr)
       wmi_cs->unlock ();
@@ -337,9 +341,9 @@ SK_WMI_Init (void)
 
 #if 0
   CoCreateInstance_Original =
-    (CoCreateInstance_pfn)GetProcAddress   (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
+    (CoCreateInstance_pfn)SK_GetProcAddress   (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
   CoCreateInstanceEx_Original =
-    (CoCreateInstanceEx_pfn)GetProcAddress (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstanceEx");
+    (CoCreateInstanceEx_pfn)SK_GetProcAddress (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstanceEx");
 #else
   SK_CreateDLLHook2 (      wszCOMBase,
                             "CoCreateInstance",
@@ -366,7 +370,7 @@ SK_WMI_Init (void)
                                                                               == INVALID_HANDLE_VALUE )
   {
     COM::base.wmi.hShutdownServer =
-      SK_CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
+      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
 
     InterlockedExchangePointer (&COM::base.wmi.hServerThread,
       (HANDLE)
@@ -430,20 +434,20 @@ SK_WMI_Shutdown (void)
 
     if (hModCOMBase != nullptr)
     {
-      FreeLibrary (hModCOMBase);
-                   hModCOMBase = nullptr;
+      SK_FreeLibrary (hModCOMBase);
+                      hModCOMBase = nullptr;
     }
   }
 }
 
 bool
-SK_AutoCOMInit::_assert_not_dllmain (void)
+SK_AutoCOMInit::_assert_not_dllmain (void) noexcept
 {
   SK_ASSERT_NOT_DLLMAIN_THREAD ();
 
   if (ReadAcquire (&__SK_DLL_Attached))
   {
-    SK_TLS *pTLS =
+    const SK_TLS *pTLS =
       SK_TLS_Bottom ();
 
     if (pTLS)

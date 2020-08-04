@@ -262,7 +262,7 @@ BOOL CreateTrampolineFunction(PTRAMPOLINE ct)
             return FALSE;
 
         // Trampoline function is too large.
-        if ((newPos + copySize) > TRAMPOLINE_MAX_SIZE)
+        if (((SIZE_T)newPos + copySize) > TRAMPOLINE_MAX_SIZE)
             return FALSE;
 
         // Trampoline function has too many instructions.

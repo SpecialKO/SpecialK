@@ -72,7 +72,7 @@ public:
 void SK_TLS_LogLeak ( const wchar_t* wszFunc,
                       const wchar_t* wszFile,
                             int      line,
-                            size_t   size );
+                            size_t   size ) noexcept;
 
 enum SK_TLS_STACK_MASK
 {
@@ -257,7 +257,7 @@ public:
   size_t virtual Cleanup                (SK_TLS_CleanupReason_e reason = Unload);
 
                   SK_TLS_DynamicContext (void) noexcept { };
-         virtual ~SK_TLS_DynamicContext (void) { };
+         virtual ~SK_TLS_DynamicContext (void) noexcept { };
 };
 
 class SK_TLS_ScratchMemory : public SK_TLS_DynamicContext
@@ -390,7 +390,7 @@ public:
   UINT                               StencilRefOrig           = 0;
   UINT                               StencilRefNew            = 0;
 
-  SK_D3D11_Stateblock_Lite* stateBlock;
+  SK_D3D11_Stateblock_Lite*          stateBlock;
   size_t                             stateBlockSize           = 0;
 
   // Sampler to share between ImGui and CEGUI
@@ -448,9 +448,15 @@ private:
   DWORD last_realloc = 0,
         last_trim    = 0;
 
+#ifdef _WIN64
   // Once every (idle) thirty-seconds, compact DXTex's scratch space
-  static const DWORD  _TimeBetweenTrims =  30000UL;
-  static const SIZE_T _SlackSpace       = (8192UL << 10UL); // 8 MiB per-thread
+  static const DWORD  _TimeBetweenTrims =           30000UL;
+  static const SIZE_T _SlackSpace       = ( 16384UL << 10UL ); // 16 MiB per-thread
+#else
+  static const DWORD  _TimeBetweenTrims =           10000UL;
+  static const SIZE_T _SlackSpace       = ( 4096UL << 10UL ); //  4 MiB per-thread
+
+#endif
 };
 
 
@@ -501,8 +507,8 @@ public:
 
   struct
   {
-    DWORD time             = 0;
-    ULONG frame            = 0;
+    DWORD   time           = 0;
+    ULONG64 frame          = 0;
   } last_tested_prio;
 };
 
@@ -612,7 +618,7 @@ public:
                 mmcs_task     = nullptr;
 
   ULONG         sleep0_count  = 0UL;
-  ULONG         last_frame    = 0UL;
+  ULONG64       last_frame    = 0ULL;
   ULONG         switch_count  = 0UL;
 
   volatile
@@ -651,7 +657,7 @@ public:
     Init (idx);
   }
 
-  virtual ~SK_TLS (void)
+  virtual ~SK_TLS (void) noexcept (false)
   {
     Cleanup ();
   }
@@ -724,6 +730,7 @@ public:
     DWORD            tid               =     0;
     ULONG            last_frame        = gsl::narrow_cast <ULONG>(-1);
     volatile LONG    exceptions        =     0;
+    bool             hidden            = false;
     bool             silent_exceptions = false;
     bool             mapped            = false;
     bool             last_chance       = false;
@@ -759,7 +766,8 @@ class SK_ScopedBool
 {
 public:
   SK_ScopedBool (BOOL *pBool) noexcept : pBool_ ( pBool),
-                                         bOrig_ (*pBool) { };
+                                         bOrig_ ( pBool != nullptr ?
+                                                            *pBool : false ) { };
 
   SK_ScopedBool (std::pair <BOOL *, BOOL> pair) noexcept : pBool_ (pair.first),
                                                            bOrig_ (pair.second) { };
@@ -768,14 +776,15 @@ public:
 
   ~SK_ScopedBool (void) noexcept
   {
-    *pBool_ = bOrig_;
+    if (pBool_ != nullptr)
+       *pBool_ = bOrig_;
   }
 
-  BOOL* getDestPtr (void) { return pBool_; }
+  BOOL* getDestPtr (void) noexcept { return pBool_; }
 
 private:
-  BOOL* pBool_;
-  BOOL  bOrig_;
+  BOOL* pBool_ = nullptr;
+  BOOL  bOrig_ = false;
 };
 
 
@@ -783,10 +792,10 @@ private:
 class SK_ScopedBoolFwd
 {
 public:
-  SK_ScopedBoolFwd (std::pair <BOOL*, BOOL> args) : args_ (args) { };
+  SK_ScopedBoolFwd (std::pair <BOOL*, BOOL> args) noexcept : args_ (args) { };
 
 
-  operator std::pair <BOOL*, BOOL> (void) { return args_; };
+  operator std::pair <BOOL*, BOOL> (void) noexcept { return args_; };
 
   std::pair <BOOL *, BOOL> args_;
 };

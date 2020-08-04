@@ -160,7 +160,7 @@ SK_D3D12_Shutdown (void)
   if (! InterlockedCompareExchange (&SK_D3D12_initialized, FALSE, TRUE))
     return;
 
-  FreeLibrary_Original (SK::DXGI::hModD3D12);
+  SK_FreeLibrary (SK::DXGI::hModD3D12);
 }
 
 void

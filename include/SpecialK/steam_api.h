@@ -104,7 +104,7 @@ namespace SK
       virtual bool        BConnected    (void)             = 0;
       virtual CSteamID    GetSteamID    (void)             = 0;
 
-      // The vftable is quite a bit largest than this, but it's all supposedly
+      // The vftable is quite a bit larger than this, but it's all supposedly
       //   obsolete and of no interest. This is the minimal ABI for our purposes.
     };
 
@@ -204,7 +204,7 @@ public:
   };
 
 
-  SK_Steam_ScreenshotManager (void) :
+  SK_Steam_ScreenshotManager (void) noexcept :
        request ( this, &SK_Steam_ScreenshotManager::OnScreenshotRequest ),
        ready   ( this, &SK_Steam_ScreenshotManager::OnScreenshotReady )
   {
@@ -230,7 +230,7 @@ public:
   void init (void);
 
   const wchar_t*
-  getExternalScreenshotPath (void);
+  getExternalScreenshotPath (void) const;
 
   screenshot_repository_s&
   getExternalScreenshotRepository (bool refresh = false);
@@ -266,7 +266,8 @@ size_t SK_SteamAPI_GetSharedAchievementsForFriend   (uint32_t friend_idx, BOOL* 
      float  __stdcall SK_SteamAPI_FriendStatPercentage (void);
 
        int  __stdcall SK_SteamAPI_GetNumFriends        (void);
-const char* __stdcall SK_SteamAPI_GetFriendName        (uint32_t friend_idx, size_t* pLen = nullptr);
+const std::string& // Do not DLL export this, pass a buffer for storage if export is needed
+            __stdcall SK_SteamAPI_GetFriendName        (uint32_t friend_idx, size_t* pLen = nullptr);
 
 
 bool __stdcall        SK_SteamAPI_TakeScreenshot                (void);
@@ -403,7 +404,7 @@ class SK_SteamAPIContext : public SK_IVariableListener
 using ISteamUser004_Light = SK::SteamAPI::ISteamUser004_Light;
 
 public:
-  virtual ~SK_SteamAPIContext (void) { };
+  virtual ~SK_SteamAPIContext (void) noexcept { };
 
   bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
 
@@ -452,6 +453,10 @@ public:
   void* ClientEngine  (void);
   void* ClientFriends (void);
   void* ClientUser    (void);
+  void* ClientUtils   (void);
+
+  AppId_t    ReassignAppIDForPipe (HSteamPipe hPipe, AppId_t nAppID, bool bTrackProcess);
+  HSteamPipe GetGamePipe          (void) noexcept { return hSteamPipe; }
 
   // We create extra pipes any time SteamAPI stuff is invoked from a different
   //   thread, but we need to shut these down prior to application exit.
@@ -477,6 +482,7 @@ private:
   ISteamRemoteStorage* remote_storage_ = nullptr;
   ISteamUGC*           ugc_            = nullptr;
 
+  int                  client_ver_         = 0;
   int                  ugc_ver_            = 0;
   int                  user_ver_           = 0;
   int                  utils_ver_          = 0;
@@ -484,7 +490,7 @@ private:
 };
 
 extern SK_LazyGlobal <SK_SteamAPIContext> pSteamCtx;
-#define steam_ctx (*pSteamCtx)
+#define steam_ctx pSteamCtx.get ()
 
 #include <SpecialK/log.h>
 
@@ -601,7 +607,7 @@ public:
       return ret;
 
     struct {
-      std::stack <std::string> path;
+      std::deque <std::string> path;
 
       struct {
         std::string actual;
@@ -612,8 +618,8 @@ public:
       {
         int i = 0;
 
-        auto& in  = (sections == nullptr) ? path._Get_container () : *sections;
-        auto& out = (sections == nullptr) ? heap.actual            : heap.test;
+        auto& in  = (sections == nullptr) ? path        : *sections;
+        auto& out = (sections == nullptr) ? heap.actual : heap.test;
 
         out = "";
 
@@ -634,7 +640,7 @@ public:
     int         quotes = 0;
 
     const auto clear =
-   [&](void)
+   [&](void) noexcept
     {
       name.clear  ();
       value.clear ();
@@ -675,15 +681,15 @@ public:
 
       if (c == '{')
       {
-        search_tree.path.push (name);
-        search_tree.heapify   (    );
+        search_tree.path.push_back (name);
+        search_tree.heapify        (    );
 
         clear ();
       }
 
       else if (c == '}')
       {
-        search_tree.path.pop ();
+        search_tree.path.pop_back ();
 
         clear ();
       }

@@ -139,7 +139,7 @@ public:
 
 
   virtual
-    ~SK_TextOverlayManager (void) { };
+    ~SK_TextOverlayManager (void) noexcept { };
 
 //protected:
   SK_TextOverlayManager (void);

@@ -26,19 +26,19 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
                             wchar_t *pwszFileName,
                       const DWORD    uiMaxLen )
 {
-  if (uiMaxLen == 0)
+  if (uiMaxLen == 0 || pwszFileName == nullptr)
     return FALSE;
 
   *pwszFileName = L'\0';
 
-  FILE_NAME_INFO* ptrcFni =
+  auto ptrcFni =
     reinterpret_cast <FILE_NAME_INFO *>
     ( SK_TLS_Bottom ()->scratch_memory->cmd.alloc   (
         sizeof (FILE_NAME_INFO)        *
        (sizeof (FILE_NAME_INFO) + _MAX_PATH), true )
     );
 
-  FILE_NAME_INFO *pFni = ptrcFni;
+  auto *pFni = ptrcFni;
 
   const BOOL success =
     GetFileInformationByHandleEx ( hFile,
@@ -102,7 +102,7 @@ NtReadFile_Detour (
     SK_TLS *pTLS =
       SK_TLS_Bottom ();
 
-    if (! pTLS)
+    if (pTLS == nullptr)
       return ntStatus;
 
     UINT64 read_total =
@@ -118,8 +118,8 @@ NtReadFile_Detour (
       static auto& rb =
         SK_GetCurrentRenderBackend ();
 
-      const DWORD dwRenderTid =
-        (DWORD)ReadULongAcquire (&rb.thread);
+      const auto dwRenderTid =
+        ReadULongAcquire (&rb.thread);
 
       if ( dwRenderTid != 0UL&&
            dwRenderTid != dwTid )
@@ -158,7 +158,7 @@ NtReadFile_Detour (
 
       if (pTLS->disk->last_file_read != FileHandle)
       {   pTLS->disk->last_file_read  = FileHandle;
-        wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
+        wchar_t                                wszFileName [MAX_PATH + 2] = { };
         SK_File_GetNameFromHandle (FileHandle, wszFileName, MAX_PATH);
 
         if (config.file_io.ignore_reads.entire_thread.count (wszFileName))
@@ -223,7 +223,7 @@ NtWriteFile_Detour (
     SK_TLS *pTLS =
       SK_TLS_Bottom ();
 
-    if (! pTLS) return ntStatus;
+    if (pTLS == nullptr) return ntStatus;
 
     InterlockedAdd64 (&pTLS->disk->bytes_written, Length);
 
@@ -234,10 +234,10 @@ NtWriteFile_Detour (
 
       if (pTLS->disk->last_file_written != FileHandle)
       {   pTLS->disk->last_file_written  = FileHandle;
-        wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
+        wchar_t                                wszFileName [MAX_PATH + 2] = { };
         SK_File_GetNameFromHandle (FileHandle, wszFileName, MAX_PATH);
 
-        if (StrStrIW (wszFileName, L"file_writes.log"))
+        if (StrStrIW (wszFileName, L"file_writes.log") != nullptr)
           return ntStatus;
 
         if (config.file_io.ignore_writes.entire_thread.count (wszFileName))
@@ -374,8 +374,11 @@ SK_File_CanUserWriteToPath (const wchar_t* wszPath)
 
         if ( DuplicateToken ( hToken, SecurityImpersonation, &hImpersonatedToken.m_h ) )
         {
-          GENERIC_MAPPING mapping          = { 0xFFFFFFFF };
-          PRIVILEGE_SET   privileges       = {         0  };
+          GENERIC_MAPPING mapping          = { 0xFFFFFFFF,
+                                               0xFFFFFFFF,
+                                               0xFFFFFFFF,
+                                               0xFFFFFFFF };
+          PRIVILEGE_SET   privileges       = {            };
           DWORD           grantedAccess    = 0,
                           privilegesLength = sizeof privileges;
           BOOL            result           = FALSE;

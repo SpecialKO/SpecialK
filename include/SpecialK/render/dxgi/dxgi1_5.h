@@ -121,6 +121,7 @@ extern "C"{
   /* interface IDXGISwapChain3 */
   /* [unique][local][uuid][object] */ 
 
+  CheckColorSpaceSupport ()
   typedef enum DXGI_COLOR_SPACE_TYPE { 
     DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709            = 0,
     DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709            = 1,

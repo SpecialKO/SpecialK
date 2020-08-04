@@ -180,31 +180,31 @@ SK_DS3_EndFrame (void);
 
 
 
-iSK_INI*              ds3_prefs                 =  nullptr;
-wchar_t               ds3_prefs_file [MAX_PATH] = { L'\0' };
+iSK_INI*              ds3_prefs                     =  nullptr;
+wchar_t               ds3_prefs_file [MAX_PATH + 2] = {      };
 
-sk::ParameterInt*     ds3_hud_res_x             =  nullptr;
-sk::ParameterInt*     ds3_hud_res_y             =  nullptr;
-sk::ParameterInt*     ds3_hud_offset_x          =  nullptr;
-sk::ParameterInt*     ds3_hud_offset_y          =  nullptr;
-sk::ParameterBool*    ds3_hud_stretch           =  nullptr;
+sk::ParameterInt*     ds3_hud_res_x                 =  nullptr;
+sk::ParameterInt*     ds3_hud_res_y                 =  nullptr;
+sk::ParameterInt*     ds3_hud_offset_x              =  nullptr;
+sk::ParameterInt*     ds3_hud_offset_y              =  nullptr;
+sk::ParameterBool*    ds3_hud_stretch               =  nullptr;
 
-sk::ParameterInt*     ds3_default_res_x         =  nullptr;
-sk::ParameterInt*     ds3_default_res_y         =  nullptr;
-sk::ParameterInt*     ds3_sacrificial_x         =  nullptr;
-sk::ParameterInt*     ds3_sacrificial_y         =  nullptr;
+sk::ParameterInt*     ds3_default_res_x             =  nullptr;
+sk::ParameterInt*     ds3_default_res_y             =  nullptr;
+sk::ParameterInt*     ds3_sacrificial_x             =  nullptr;
+sk::ParameterInt*     ds3_sacrificial_y             =  nullptr;
 
-sk::ParameterBool*    ds3_fullscreen            =  nullptr;
-sk::ParameterBool*    ds3_borderless            =  nullptr;
-sk::ParameterBool*    ds3_center                =  nullptr;
+sk::ParameterBool*    ds3_fullscreen                =  nullptr;
+sk::ParameterBool*    ds3_borderless                =  nullptr;
+sk::ParameterBool*    ds3_center                    =  nullptr;
 
-sk::ParameterBool*    ds3_start_fullscreen      =  nullptr;
+sk::ParameterBool*    ds3_start_fullscreen          =  nullptr;
 
-sk::ParameterBool*    ds3_flip_mode             =  nullptr;
+sk::ParameterBool*    ds3_flip_mode                 =  nullptr;
 
-sk::ParameterBool*    ds3_osd_disclaimer        =  nullptr;
+sk::ParameterBool*    ds3_osd_disclaimer            =  nullptr;
 
-sk::ParameterInt64*   ds3_last_addr             =  nullptr;
+sk::ParameterInt64*   ds3_last_addr                 =  nullptr;
 
 struct ds3_state_s {
   IDXGISwapChain* SwapChain  = nullptr;
@@ -331,7 +331,7 @@ static
 void*
 SK_DS3_Scan (uint8_t* pattern, size_t len, uint8_t* mask)
 {
-  uint8_t* base_addr = (uint8_t *)GetModuleHandle (nullptr);
+  uint8_t* base_addr = (uint8_t *)SK_GetModuleHandle (nullptr);
 
   MEMORY_BASIC_INFORMATION mem_info;
   VirtualQuery (base_addr, &mem_info, sizeof mem_info);
@@ -663,7 +663,7 @@ SK_DS3_InitPlugin (void)
     // Make the graphics config file read-only while running
     DWORD    dwConfigAttribs;
     uint32_t dwLen                = MAX_PATH;
-    wchar_t  wszGraphicsConfigPath [MAX_PATH + 1];
+    wchar_t  wszGraphicsConfigPath [MAX_PATH + 2] = { };
 
     SK_GetUserProfileDir (wszGraphicsConfigPath, &dwLen);
 
@@ -1434,7 +1434,7 @@ SK_DS3_ShutdownPlugin (const wchar_t* backend)
   // Allow the graphics config file to be written again at shutdown...
   DWORD    dwConfigAttribs;
   uint32_t dwLen =                MAX_PATH;
-  wchar_t  wszGraphicsConfigPath [MAX_PATH + 1];
+  wchar_t  wszGraphicsConfigPath [MAX_PATH + 2] = { };
 
   SK_GetUserProfileDir (wszGraphicsConfigPath, &dwLen);
 

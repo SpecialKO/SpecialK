@@ -75,14 +75,14 @@ SK_Get7ZFileContents (                 const wchar_t* wszArchive,
                          &thread_alloc,
                            &thread_tmp_alloc ) == SZ_OK )
   {
-    wchar_t  wszEntry [MAX_PATH * 2 + 1] = { };
+    wchar_t  wszEntry [MAX_PATH + 2] = { };
 
     for (uint32_t i = 0; i < arc.NumFiles; i++)
     {
       if (SzArEx_IsDir (&arc, i))
         continue;
 
-      RtlSecureZeroMemory (wszEntry, (MAX_PATH * 2 + 1) * sizeof (wchar_t));
+      RtlSecureZeroMemory (wszEntry, (MAX_PATH + 2) * sizeof (wchar_t));
       SzArEx_GetFileNameUtf16 (&arc, i, (UInt16 *)wszEntry);
 
       uint64_t fileSize  = SzArEx_GetFileSize (&arc, i);
@@ -214,16 +214,16 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    wchar_t wszDestPath     [MAX_PATH * 2 + 1] = { };
-    wchar_t wszMovePath     [MAX_PATH * 2 + 1] = { };
+    wchar_t wszDestPath     [MAX_PATH + 2] = { };
+    wchar_t wszMovePath     [MAX_PATH + 2] = { };
 
-    wcsncpy_s ( wszDestPath, MAX_PATH * 2,
+    wcsncpy_s ( wszDestPath, MAX_PATH,
                   SK_SYS_GetInstallPath ().c_str (), _TRUNCATE );
     lstrcatW  ( wszDestPath,     file.name.c_str () );
 
     if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES)
     {
-      wcsncpy_s ( wszMovePath, MAX_PATH * 2,
+      wcsncpy_s ( wszMovePath, MAX_PATH,
                     SK_SYS_GetVersionPath ().c_str (), _TRUNCATE );
 
       if ( wszOldVersion != nullptr &&
@@ -533,8 +533,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    wchar_t       wszDestPath     [MAX_PATH * 2 + 1] = { };
-    wcsncpy_s   ( wszDestPath,     MAX_PATH * 2,
+    wchar_t       wszDestPath     [MAX_PATH + 2] = { };
+    wcsncpy_s   ( wszDestPath,     MAX_PATH,
                   wszDestination, _TRUNCATE) ;
 
     PathAppendW          (wszDestPath, file.name.c_str ());

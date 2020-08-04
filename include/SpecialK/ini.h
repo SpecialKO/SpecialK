@@ -21,9 +21,6 @@
 #ifndef __SK__INI_H__
 #define __SK__INI_H__
 
-struct IUnknown;
-#include <Unknwnbase.h>
-
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -34,9 +31,11 @@ struct IUnknown;
 static const GUID IID_SK_INISection =
 { 0xb526d074, 0x2f4d, 0x4bae, { 0xb6, 0xec, 0x11, 0xcb, 0x37, 0x79, 0xb1, 0x99 } };
 
+interface iSK_INI;
+
 interface iSK_INISection : public IUnknown
 {
-  friend interface iSK_INI;
+//friend interface iSK_INI;
 
 public:
   iSK_INISection (void) = default;
@@ -59,7 +58,7 @@ public:
                                                   parent (_parent) {
   }
 
-  virtual ~iSK_INISection (void) { };
+  virtual ~iSK_INISection (void) noexcept { };
 
   /*** IUnknown methods ***/
   STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);

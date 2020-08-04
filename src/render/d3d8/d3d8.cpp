@@ -88,7 +88,7 @@ SK_HookD3D8 (void)
   {
     HMODULE hBackend =
       (SK_GetDLLRole () & DLL_ROLE::D3D8) ? backend_dll :
-                                      GetModuleHandle (L"d3d8.dll");
+                                      SK_GetModuleHandle (L"d3d8.dll");
 
     dll_log->Log (L"[   D3D8   ] Importing Direct3DCreate8.......");
     dll_log->Log (L"[   D3D8   ] ================================");
@@ -96,7 +96,7 @@ SK_HookD3D8 (void)
     if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d8.dll"))
     {
       Direct3DCreate8_Import =  \
-        (Direct3DCreate8PROC)GetProcAddress  (hBackend, "Direct3DCreate8");
+        (Direct3DCreate8PROC)SK_GetProcAddress  (hBackend, "Direct3DCreate8");
 
       SK_LOG0 ( ( L"  Direct3DCreate8:   %s",
                     SK_MakePrettyAddress (Direct3DCreate8_Import).c_str ()  ),
@@ -108,7 +108,7 @@ SK_HookD3D8 (void)
       LPVOID pfnDirect3DCreate8 = nullptr;
 
       const bool bProxy =
-        ( GetModuleHandle (L"d3d8.dll") != hBackend );
+        ( SK_GetModuleHandle (L"d3d8.dll") != hBackend );
 
 
       if ( MH_OK ==
@@ -125,7 +125,7 @@ SK_HookD3D8 (void)
         {
           (Direct3DCreate8_Import) =  \
             reinterpret_cast <Direct3DCreate8PROC> (
-              GetProcAddress (hBackend, "Direct3DCreate8")
+              SK_GetProcAddress (hBackend, "Direct3DCreate8")
             );
         }
 

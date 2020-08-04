@@ -20,11 +20,8 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/widgets/widget.h>
 
-#include <SpecialK/render/dxgi/dxgi_backend.h>
 
-#include <SpecialK/plugin/plugin_mgr.h>
 
 #define SK_HDR_SECTION     L"SpecialK.HDR"
 #define SK_MISC_SECTION    L"SpecialK.Misc"
@@ -92,20 +89,27 @@ void SK_ImGui_DrawGamut (void);
 
 sk::ParameterBool* _SK_HDR_10BitSwapChain;
 sk::ParameterBool* _SK_HDR_16BitSwapChain;
+sk::ParameterBool* _SK_HDR_Promote10BitRGBATo16BitFP;
+sk::ParameterBool* _SK_HDR_Promote11BitRGBTo16BitFP;
+sk::ParameterBool* _SK_HDR_Promote8BitRGBxTo16BitFP;
 sk::ParameterInt*  _SK_HDR_ActivePreset;
 sk::ParameterBool* _SK_HDR_FullRange;
 
-bool __SK_HDR_10BitSwap = false;
-bool __SK_HDR_16BitSwap = false;
+bool  __SK_HDR_10BitSwap        = false;
+bool  __SK_HDR_16BitSwap        = false;
 
-float __SK_HDR_Luma      = 80.0_Nits;//300.0_Nits;
-float __SK_HDR_Exp       = 1.0f;
-int   __SK_HDR_Preset    = 0;
-bool  __SK_HDR_FullRange = false;
+bool  __SK_HDR_Promote8BitTo16  = false;
+bool  __SK_HDR_Promote10BitTo16 = true;
+bool  __SK_HDR_Promote11BitTo16 = true;
 
-float __SK_HDR_UI_Luma       =   1.0f;
-float __SK_HDR_HorizCoverage = 100.0f;
-float __SK_HDR_VertCoverage  = 100.0f;
+float __SK_HDR_Luma             = 80.0_Nits;
+float __SK_HDR_Exp              = 1.0f;
+int   __SK_HDR_Preset           = 0;
+bool  __SK_HDR_FullRange        = false;
+
+float __SK_HDR_UI_Luma          = 1.0f;
+float __SK_HDR_HorizCoverage    = 100.0f;
+float __SK_HDR_VertCoverage     = 100.0f;
 
 
 #define MAX_HDR_PRESETS 4
@@ -213,10 +217,10 @@ struct SK_HDR_Preset_s {
                                   );
     }
   }
-} static hdr_presets [4] = { { "HDR Preset 0", 0, 80.0_Nits, 1.0f, { 4,4 }, L"F1" },
-                             { "HDR Preset 1", 1, 80.0_Nits, 1.0f, { 4,4 }, L"F2" },
-                             { "HDR Preset 2", 2, 80.0_Nits, 1.0f, { 4,4 }, L"F3" },
-                             { "HDR Preset 3", 3, 80.0_Nits, 1.0f, { 4,4 }, L"F4" } };
+} static hdr_presets [4] = { { "HDR Preset 0", 0, 80.0_Nits, 1.0f, { 1,0 }, L"F1" },
+                             { "HDR Preset 1", 1, 80.0_Nits, 1.0f, { 1,0 }, L"F2" },
+                             { "HDR Preset 2", 2, 80.0_Nits, 1.0f, { 1,0 }, L"F3" },
+                             { "HDR Preset 3", 3, 80.0_Nits, 1.0f, { 1,0 }, L"F4" } };
 
 BOOL
 CALLBACK
@@ -290,9 +294,7 @@ public:
           DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
       }
 
-      SK_ComQIPtr <IDXGISwapChain3> pSwap3 (
-        rb.swapchain.p
-      );
+      SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
 
       if (pSwap3 != nullptr)
       {
@@ -317,6 +319,21 @@ public:
       _CreateConfigParameterBool ( SK_HDR_SECTION,
                                   L"Use16BitSwapChain",  __SK_HDR_16BitSwap,
                                   L"16-bit SwapChain" );
+
+
+    _SK_HDR_Promote8BitRGBxTo16BitFP =
+      _CreateConfigParameterBool ( SK_HDR_SECTION,
+                                   L"Promote8BitRTsTo16",  __SK_HDR_Promote8BitTo16,
+                                   L"8-Bit Precision Increase" );
+
+    _SK_HDR_Promote10BitRGBATo16BitFP =
+      _CreateConfigParameterBool ( SK_HDR_SECTION,
+                                   L"Promote10BitRTsTo16",  __SK_HDR_Promote10BitTo16,
+                                   L"10-Bit Precision Increase" );
+    _SK_HDR_Promote11BitRGBTo16BitFP =
+      _CreateConfigParameterBool ( SK_HDR_SECTION,
+                                   L"Promote11BitRTsTo16",  __SK_HDR_Promote11BitTo16,
+                                   L"11-Bit Precision Increase" );
 
     _SK_HDR_FullRange =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
@@ -397,94 +414,17 @@ public:
     static auto& io (ImGui::GetIO ());
 
     ImVec2 v2Min (
-      io.DisplaySize.x / 6.0f, io.DisplaySize.y / 4.0f
+      io.DisplaySize.x / 6.0f,
+      io.DisplaySize.y / 4.0f
     );
 
     ImVec2 v2Max (
-      io.DisplaySize.x / 4.0f, io.DisplaySize.y / 3.0f
+      io.DisplaySize.x / 4.0f,
+      io.DisplaySize.y / 3.0f
     );
 
     setMinSize (v2Min);
     setMaxSize (v2Max);
-
-    ////SK_DXGI_HDRControl* pHDRCtl =
-    ////  SK_HDR_GetControl ();
-    ////
-    ////bool sync_metadata = false;
-    ////
-    ////ImGui::Checkbox ("###HDR_Override_MinMasterLevel", &pHDRCtl->overrides.MinMaster); ImGui::SameLine ();
-    ////float fMinMaster = (float)pHDRCtl->meta.MinMasteringLuminance / 10000.0f;
-    ////if (ImGui::SliderFloat ("Minimum Luminance", &fMinMaster, pHDRCtl->devcaps.MinLuminance, pHDRCtl->devcaps.MaxLuminance))
-    ////{
-    ////  if (pHDRCtl->overrides.MinMaster)
-    ////  {
-    ////    sync_metadata = true;
-    ////    pHDRCtl->meta.MinMasteringLuminance = (UINT)(fMinMaster * 10000);
-    ////  }
-    ////}
-    ////
-    ////ImGui::Checkbox ("###HDR_Override_MaxMasterLevel", &pHDRCtl->overrides.MaxMaster); ImGui::SameLine ();
-    ////float fMaxMaster = (float)pHDRCtl->meta.MaxMasteringLuminance / 10000.0f;
-    ////if (ImGui::SliderFloat ("Maximum Luminance", &fMaxMaster, pHDRCtl->devcaps.MinLuminance, pHDRCtl->devcaps.MaxLuminance))
-    ////{
-    ////  if (pHDRCtl->overrides.MaxMaster)
-    ////  {
-    ////    sync_metadata = true;
-    ////    pHDRCtl->meta.MaxMasteringLuminance = (UINT)(fMaxMaster * 10000);
-    ////  }
-    ////}
-    ////
-    ////ImGui::Separator ();
-    ////
-    ////ImGui::Checkbox ("###HDR_Override_MaxContentLevel", &pHDRCtl->overrides.MaxContentLightLevel); ImGui::SameLine ();
-    ////float fBrightest = (float)pHDRCtl->meta.MaxContentLightLevel;
-    ////if (ImGui::SliderFloat ("Max. Content Light Level (nits)",       &fBrightest,          pHDRCtl->devcaps.MinLuminance, pHDRCtl->devcaps.MaxLuminance))
-    ////{
-    ////  if (pHDRCtl->overrides.MaxContentLightLevel)
-    ////  {
-    ////    sync_metadata = true;
-    ////    pHDRCtl->meta.MaxContentLightLevel = (UINT16)fBrightest;
-    ////  }
-    ////}
-    ////
-    ////ImGui::Checkbox ("###HDR_Override_MaxFrameAverageLightLevel", &pHDRCtl->overrides.MaxFrameAverageLightLevel); ImGui::SameLine ();
-    ////float fBrightestLastFrame = (float)pHDRCtl->meta.MaxFrameAverageLightLevel;
-    ////if (ImGui::SliderFloat ("Max. Frame Average Light Level (nits)", &fBrightestLastFrame, pHDRCtl->devcaps.MinLuminance, pHDRCtl->devcaps.MaxLuminance))
-    ////{
-    ////  if (pHDRCtl->overrides.MaxFrameAverageLightLevel)
-    ////  {
-    ////    sync_metadata = true;
-    ////    pHDRCtl->meta.MaxFrameAverageLightLevel = (UINT16)fBrightestLastFrame;
-    ////  }
-    ////}
-    ////
-    ////if (sync_metadata)
-    ////{
-    ////  SK_ComQIPtr <IDXGISwapChain4> pSwapChain (rb.swapchain);
-    ////
-    ////  if (pSwapChain != nullptr)
-    ////  {
-    ////    pSwapChain->SetHDRMetaData (
-    ////         DXGI_HDR_METADATA_TYPE_HDR10,
-    ////      sizeof (DXGI_HDR_METADATA_HDR10),
-    ////           nullptr
-    ////    );
-    ////  }
-    ////}
-    ////
-    ////ImGui::TreePush   ("");
-    ////ImGui::BulletText ("Game has adjusted HDR Metadata %lu times...", pHDRCtl->meta._AdjustmentCount);
-    ////ImGui::TreePop    (  );
-
-    ////bool bRetro =
-    ////  true && ImGui::CollapsingHeader ("HDR Retrofit", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlapMode);
-
-    ///if ( rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) &&
-    ///     ImGui::CollapsingHeader ("HDR Overlays",  ImGuiTreeNodeFlags_DefaultOpen))
-    ///{
-    ///  ImGui::TreePush ("");
-    ///  ImGui::TreePop  ();
-    ///}
 
     static bool TenBitSwap_Original     = __SK_HDR_10BitSwap;
     static bool SixteenBitSwap_Original = __SK_HDR_16BitSwap;
@@ -504,18 +444,30 @@ public:
         __SK_HDR_16BitSwap = false;
         __SK_HDR_10BitSwap = false;
 
-        SK_RunOnce (_SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap));
-        SK_RunOnce (_SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap));
+        __SK_HDR_Promote10BitTo16 = true;
+        __SK_HDR_Promote11BitTo16 = true;
+        __SK_HDR_Promote8BitTo16  = false;
+
+        SK_RunOnce (_SK_HDR_16BitSwapChain->store            (__SK_HDR_16BitSwap));
+        SK_RunOnce (_SK_HDR_10BitSwapChain->store            (__SK_HDR_10BitSwap));
+        SK_RunOnce (_SK_HDR_Promote8BitRGBxTo16BitFP->store  (__SK_HDR_Promote8BitTo16));
+        SK_RunOnce (_SK_HDR_Promote10BitRGBATo16BitFP->store (__SK_HDR_Promote10BitTo16));
+        SK_RunOnce (_SK_HDR_Promote11BitRGBTo16BitFP->store  (__SK_HDR_Promote11BitTo16));
 
         SK_RunOnce (dll_ini->write (dll_ini->get_filename ()));
       }
-
-      //DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709
     }
 
-    else if ( rb.isHDRCapable () && ImGui::CollapsingHeader ("HDR Adjust", ImGuiTreeNodeFlags_DefaultOpen) )
+    else if ( rb.isHDRCapable () &&
+                ImGui::CollapsingHeader (
+                  "HDR Calibration###SK_HDR_CfgHeader",
+                                     ImGuiTreeNodeFlags_DefaultOpen |
+                                     ImGuiTreeNodeFlags_Leaf        |
+                                     ImGuiTreeNodeFlags_Bullet
+                                        )
+            )
     {
-      if (ImGui::RadioButton ("None", &sel, 0))
+      if (ImGui::RadioButton ("None###SK_HDR_NONE", &sel, 0))
       {
         __SK_HDR_10BitSwap = false;
         __SK_HDR_16BitSwap = false;
@@ -529,7 +481,7 @@ public:
 
       ImGui::SameLine ();
 
-      if (ImGui::RadioButton ("scRGB HDR (16-bit)", &sel, 2))
+      if (ImGui::RadioButton ("scRGB HDR (16-bit)###SK_HDR_scRGB", &sel, 2))
       {
         __SK_HDR_16BitSwap = true;
         __SK_HDR_10BitSwap = false;
@@ -537,27 +489,31 @@ public:
         _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
         _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
 
-        config.window.borderless               = true;
-        config.window.fullscreen               = true;
-        config.render.framerate.flip_discard   = true;
-        config.render.framerate.buffer_count   = 3;
-        config.render.framerate.swapchain_wait = 66;
+        config.window.borderless                    = true;
+        config.window.center                        = true;
+      //config.window.fullscreen                    = false;
+        config.window.res.override.x                = static_cast <unsigned int> (io.DisplaySize.x);
+        config.window.res.override.y                = static_cast <unsigned int> (io.DisplaySize.y);
 
-        dll_ini->write (dll_ini->get_filename ());
+        config.dpi.per_monitor.aware                = true;
+      //config.dpi.per_monitor.aware_on_all_threads = false;
+      //config.dpi.disable_scaling                  = false;
+
+        config.render.framerate.flip_discard        = true;
+        config.render.framerate.buffer_count        =
+          std::max ( 4,
+             config.render.framerate.buffer_count );
+        config.render.framerate.pre_render_limit    =
+             config.render.framerate.buffer_count + 1;
+        config.render.framerate.swapchain_wait      =
+          std::min ( 1000, std::max ( 100,
+            config.render.framerate.swapchain_wait ) );
+
+        dll_ini->write (
+          dll_ini->get_filename ()
+        );
       }
     }
-
-    ////if (bRetro)
-    ////{
-    ////  ImGui::Separator (  );
-    ////  ImGui::TreePush  ("");
-    ////
-    ////  ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
-    ////  ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
-    ////  ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
-    ////  ImGui::PopStyleColor (3);
-    ////  ImGui::TreePop       ( );
-    ////}
 
     if (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR))
     {
@@ -571,22 +527,6 @@ public:
           ImGui::EndTooltip ();
         }
       }
-
-      //ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.23f, 0.86f, 1.f));
-      //ImGui::Text ("NOTE: ");
-      //ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f, 0.28f, 0.94f)); ImGui::SameLine ();
-      //ImGui::Text ("This is pure magic"); if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Essence of Pirate reasoning is required; harvesting takes time and quite possibly your sanity.");
-      //ImGui::PopStyleColor  (2);
-
-      ////if (ImGui::IsItemHovered ())
-      ////{
-      ////  ImGui::BeginTooltip ();
-      ////  ImGui::Text         (" Future Work");
-      ////  ImGui::Separator    ();
-      ////  ImGui::BulletText   ("Automagic Dark and Light Adaptation are VERY Important and VERY Absent :P");
-      ////  ImGui::BulletText   ("Separable HUD luminance (especially weapon cross-hairs) also must be implemented");
-      ////  ImGui::EndTooltip   ();
-      ////}
     }
 
     if ( ( TenBitSwap_Original     != __SK_HDR_10BitSwap ||
@@ -602,7 +542,7 @@ public:
     {
       SK_ComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);
 
-      if (pSwap4.p != nullptr)
+      if (pSwap4 != nullptr)
       {
         DXGI_OUTPUT_DESC1     out_desc = { };
         DXGI_SWAP_CHAIN_DESC swap_desc = { };
@@ -610,16 +550,17 @@ public:
 
         if (out_desc.BitsPerColor == 0)
         {
-          SK_ComPtr <IDXGIOutput>
-            pOutput = nullptr;
+          SK_ComPtr <IDXGIOutput> pOutput;
 
-          if ( SUCCEEDED (
-                pSwap4->GetContainingOutput (&pOutput.p)
+          if ( SUCCEEDED ( pSwap4->GetContainingOutput (
+                              &pOutput                 )
                          )
              )
           {
             SK_ComQIPtr <IDXGIOutput6> pOutput6 (pOutput);
-                                       pOutput6->GetDesc1 (&out_desc);
+
+            if ( pOutput6 != nullptr )
+                 pOutput6->GetDesc1 (&out_desc);
           }
 
           else
@@ -667,7 +608,7 @@ public:
                rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )
           {
             hdr_gamut_support = true;
-            ImGui::RadioButton ("Rec 709",  &cspace, 0); ImGui::SameLine ();
+            ImGui::RadioButton ("Rec 709###SK_HDR_Rec709_PQ",   &cspace, 0); ImGui::SameLine ();
           }
           //else if (cspace == 0) cspace = 1;
 
@@ -675,14 +616,14 @@ public:
                rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )
           {
             hdr_gamut_support = true;
-            ImGui::RadioButton ("Rec 2020", &cspace, 1); ImGui::SameLine ();
+            ImGui::RadioButton ("Rec 2020###SK_HDR_Rec2020_PQ", &cspace, 1); ImGui::SameLine ();
           }
           //else if (cspace == 1) cspace = 0;
 
           if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM ||
                rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )
           {
-            ImGui::RadioButton ("Native",   &cspace, 2); ImGui::SameLine ();
+            ImGui::RadioButton ("Native###SK_HDR_NativeGamut",  &cspace, 2); ImGui::SameLine ();
           }
 
           if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM ||
@@ -712,7 +653,7 @@ public:
                                          out_desc.MinLuminance,
                                          2000.0f,       600.0f };
 
-              ImGui::InputFloat4 ("Luminance Coefficients", fLuma);// , 1);
+              ImGui::InputFloat4 ("Luminance Coefficients###SK_HDR_MetaCoeffs", fLuma);// , 1);
 
               HDR10MetaData.MaxMasteringLuminance     = static_cast <UINT>   (fLuma [0] * 10000.0f);
               HDR10MetaData.MinMasteringLuminance     = static_cast <UINT>   (fLuma [1] * 10000.0f);
@@ -723,7 +664,7 @@ public:
           ImGui::Separator ();
 
           ImGui::BeginGroup ();
-          if (ImGui::Checkbox ("Enable FULL HDR Luminance", &__SK_HDR_FullRange))
+          if (ImGui::Checkbox ("Enable FULL HDR Luminance###SK_HDR_ShowFullRange", &__SK_HDR_FullRange))
           {
             _SK_HDR_FullRange->store (__SK_HDR_FullRange);
           }
@@ -731,39 +672,14 @@ public:
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("Brighter values are possible with this on, but may clip white/black detail");
 
-          ////ImGui::SameLine ();
-          ////
-          ////static bool open = false;
-          ////
-          ////open ^= ImGui::Button ("Edit Shaders");
-          ////
-          ////ImGui::Begin ( "Shader Editor",
-          ////                 &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders );
-          ////
-          ////if (open)
-          ////{
-          ////  static char szBuf [16384 * 4] = { };
-          ////
-          ////  ImGui::InputTextMultiline  ("Shader Editor", szBuf, 16384 * 4 - 2);
-          ////  ImGui::Button              ("Save");
-          ////  ImGui::SameLine            ();
-          ////  ImGui::Button              ("Reload");
-          ////}
-          ////
-          ////ImGui::End ();
-
-          ////ImGui::SameLine ();
-          ////
-          ////ImGui::SliderFloat ("###DQXI_UI_LUMINANCE", &__SK_DQXI_UI_Luma, -50.0f, 50.0f, "UI Luminance: %.3f");
-
           auto& pINI = dll_ini;
 
           float nits =
             __SK_HDR_Luma / 1.0_Nits;
 
-          if (ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &nits, 80.0f, __SK_HDR_FullRange ?
-                                                                          rb.display_gamut.maxLocalY :
-                                                                          rb.display_gamut.maxY,
+          if (ImGui::SliderFloat ( "###SK_HDR_LUMINANCE",  &nits, 80.0f,
+                                     __SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY :
+                                                            rb.display_gamut.maxY,
               u8"Peak White Luminance: %.1f cd/m²" ))
           {
             __SK_HDR_Luma = nits * 1.0_Nits;
@@ -780,7 +696,8 @@ public:
 
           //ImGui::SameLine ();
 
-          if (ImGui::SliderFloat ("###SK_HDR_GAMMA", &__SK_HDR_Exp, 1.0f, 2.4f, "SDR -> HDR Gamma: %.3f"))
+          if (ImGui::SliderFloat ("###SK_HDR_GAMMA", &__SK_HDR_Exp,
+                            1.0f, 2.4f, "SDR -> HDR Gamma: %.3f"))
           {
             auto& preset =
               hdr_presets [__SK_HDR_Preset];
@@ -799,7 +716,15 @@ public:
             bool selected =
               (__SK_HDR_Preset == i);
 
-            if (ImGui::Selectable ( hdr_presets [i].preset_name, &selected, ImGuiSelectableFlags_SpanAllColumns ))
+            char              select_idx  [ 4 ] =  "\0";
+            char              hashed_name [128] = { };
+            strncpy_s (       hashed_name, 128,
+              hdr_presets [i].preset_name, _TRUNCATE);
+
+            StrCatBuffA (hashed_name, "###SK_HDR_PresetSel_",      128);
+            StrCatBuffA (hashed_name, std::to_string (i).c_str (), 128);
+
+            if (ImGui::Selectable (hashed_name, &selected, ImGuiSelectableFlags_SpanAllColumns ))
             {
               hdr_presets [i].activate ();
             }
@@ -838,106 +763,142 @@ public:
             Keybinding ( &it.preset_activate,
                         (&it.preset_activate)->param );
           }
-          ImGui::EndGroup   ();
-          ////ImGui::Separator  ();
-          ////
-          ////static bool success = true;
-          ////if (ImGui::Button ("Recompile HDR Shaders"))
-          ////{
-          ////  extern bool SK_HDR_RecompileShaders (void);
-          ////  success =   SK_HDR_RecompileShaders (    );
-          ////}
-          ////
-          ////if (! success) { ImGui::SameLine (); ImGui::TextUnformatted ("You dun screwed up!"); }
-
+          ImGui::EndGroup  ();
           ImGui::Separator ();
 
-          extern int   __SK_HDR_visualization;
-          extern float __SK_HDR_user_sdr_Y;
-
-          ImGui::BeginGroup  ();
-          ImGui::BeginGroup  ();
-
-          auto& preset =
-            hdr_presets [__SK_HDR_Preset];
-
-          if ( ImGui::Combo ( "Source ColorSpace##SK_HDR_GAMUT_IN",
-                                             &preset.colorspace.in,
-                __SK_HDR_ColorSpaceComboStr)                        )
-          {
-            if (__SK_HDR_ColorSpaceMap.count (preset.colorspace.in))
-            {
-              __SK_HDR_input_gamut     =   preset.colorspace.in;
-              preset.cfg_in_cspace->store (preset.colorspace.in);
-
-              pINI->write (pINI->get_filename ());
-            }
-
-            else
-            {
-              preset.colorspace.in = __SK_HDR_input_gamut;
-            }
-          }
-
-          if ( ImGui::Combo ( "Output ColorSpace##SK_HDR_GAMUT_OUT",
-                                             &preset.colorspace.out,
-                __SK_HDR_ColorSpaceComboStr )                       )
-          {
-            if (__SK_HDR_ColorSpaceMap.count (preset.colorspace.out))
-            {
-              __SK_HDR_output_gamut     =   preset.colorspace.out;
-              preset.cfg_out_cspace->store (preset.colorspace.out);
-
-              pINI->write (pINI->get_filename ());
-            }
-
-            else
-            {
-              preset.colorspace.out = __SK_HDR_output_gamut;
-            }
-          }
-          ImGui::EndGroup    ();
-          //ImGui::SameLine    ();
-          ImGui::BeginGroup  ();
-          ImGui::SliderFloat ("Horz. (%) HDR Processing", &__SK_HDR_HorizCoverage, 0.0f, 100.f);
-          ImGui::SliderFloat ("Vert. (%) HDR Processing", &__SK_HDR_VertCoverage,  0.0f, 100.f);
-          ImGui::EndGroup    ();
-
-          ImGui::BeginGroup  ();
-          ImGui::SliderFloat ("Non-Std. SDR Peak White", &__SK_HDR_user_sdr_Y, 80.0f, 400.0f, u8"%.3f cd/m²");
+          bool cfg_quality =
+            ImGui::CollapsingHeader ( "Performance / Quality",
+                                        ImGuiTreeNodeFlags_DefaultOpen );
 
           if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ( "Remastering may improve HDR highlights, but "
+                                "requires more VRAM and GPU horsepower." );
+
+          if (cfg_quality)
           {
-            ImGui::BeginTooltip    (  );
-            ImGui::TextUnformatted (u8"Technically 80.0 cd/m² is the Standard Peak White Luminance for sRGB");
-            ImGui::Separator       (  );
-            ImGui::BulletText      ("It is doubtful you are accustomed to an image that dim, so...");
-            ImGui::BulletText      ("Supply your own expected luminance (i.e. a familiar display's rated peak brightness)");
-            ImGui::Separator       (  );
-            ImGui::TreePush        ("");
-            ImGui::TextColored     (ImVec4 (1.f, 1.f, 1.f, 1.f),
-                                    "This will assist during visualization and split-screen HDR/SDR comparisons");
-            ImGui::TreePop         (  );
-            ImGui::EndTooltip      (  );
+            static bool changed_once = false;
+                   bool changed      = false;
+
+            changed |= ImGui::Checkbox ("Remaster  8-bit Render Passes", &__SK_HDR_Promote8BitTo16);
+
+            if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Significantly increases VRAM demand and may break FMV playback.");
+
+                       ImGui::SameLine ();
+            changed |= ImGui::Checkbox ("Remaster 10-bit Render Passes", &__SK_HDR_Promote10BitTo16);
+                       ImGui::SameLine ();
+            changed |= ImGui::Checkbox ("Remaster 11-bit Render Passes", &__SK_HDR_Promote11BitTo16);
+
+            changed_once |= changed;
+
+            if (changed_once)
+            {
+              ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+              ImGui::BulletText     ("Game Restart Required");
+              ImGui::PopStyleColor  ();
+            }
+
+            if (changed)
+            {
+              _SK_HDR_Promote8BitRGBxTo16BitFP->store  (__SK_HDR_Promote8BitTo16);
+              _SK_HDR_Promote10BitRGBATo16BitFP->store (__SK_HDR_Promote10BitTo16);
+              _SK_HDR_Promote11BitRGBTo16BitFP->store  (__SK_HDR_Promote11BitTo16);
+
+              dll_ini->write (dll_ini->get_filename ());
+            }
           }
-          //ImGui::SameLine    ();
 
-          ImGui::Combo       ("HDR Visualization##SK_HDR_VIZ",  &__SK_HDR_visualization, "None\0SDR=Monochrome//HDR=FalseColors\0\0");
-          ImGui::EndGroup    ();
-          ImGui::EndGroup    ();
+          if (
+            ImGui::CollapsingHeader ( "Advanced###HDR_Widget_Advaced",
+                                        ImGuiTreeNodeFlags_DefaultOpen )
+          )
+          {
+            extern int   __SK_HDR_visualization;
+            extern float __SK_HDR_user_sdr_Y;
 
-          ImGui::SameLine    ();
+            ImGui::BeginGroup  ();
+            ImGui::BeginGroup  ();
 
-          ImGui::BeginGroup  ();
-          SK_ImGui_DrawGamut ();
-          ImGui::EndGroup    ();
+            auto& preset =
+              hdr_presets [__SK_HDR_Preset];
 
+            if ( ImGui::Combo ( "Source ColorSpace##SK_HDR_GAMUT_IN",
+                                               &preset.colorspace.in,
+                  __SK_HDR_ColorSpaceComboStr)                        )
+            {
+              if (__SK_HDR_ColorSpaceMap.count (preset.colorspace.in))
+              {
+                __SK_HDR_input_gamut     =   preset.colorspace.in;
+                preset.cfg_in_cspace->store (preset.colorspace.in);
+
+                pINI->write (pINI->get_filename ());
+              }
+
+              else
+              {
+                preset.colorspace.in = __SK_HDR_input_gamut;
+              }
+            }
+
+            if ( ImGui::Combo ( "Output ColorSpace##SK_HDR_GAMUT_OUT",
+                                               &preset.colorspace.out,
+                  __SK_HDR_ColorSpaceComboStr )                       )
+            {
+              if (__SK_HDR_ColorSpaceMap.count (preset.colorspace.out))
+              {
+                __SK_HDR_output_gamut     =   preset.colorspace.out;
+                preset.cfg_out_cspace->store (preset.colorspace.out);
+
+                pINI->write (pINI->get_filename ());
+              }
+
+              else
+              {
+                preset.colorspace.out = __SK_HDR_output_gamut;
+              }
+            }
+            ImGui::EndGroup    ();
+            //ImGui::SameLine    ();
+            ImGui::BeginGroup  ();
+            ImGui::SliderFloat ("Horz. (%) HDR Processing", &__SK_HDR_HorizCoverage, 0.0f, 100.f);
+            ImGui::SliderFloat ("Vert. (%) HDR Processing", &__SK_HDR_VertCoverage,  0.0f, 100.f);
+            ImGui::EndGroup    ();
+
+            ImGui::BeginGroup  ();
+            ImGui::SliderFloat ("Non-Std. SDR Peak White", &__SK_HDR_user_sdr_Y, 80.0f, 400.0f, u8"%.3f cd/m²");
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip    (  );
+              ImGui::TextUnformatted (u8"Technically 80.0 cd/m² is the Standard Peak White Luminance for sRGB");
+              ImGui::Separator       (  );
+              ImGui::BulletText      ("It is doubtful you are accustomed to an image that dim, so...");
+              ImGui::BulletText      ("Supply your own expected luminance (i.e. a familiar display's rated peak brightness)");
+              ImGui::Separator       (  );
+              ImGui::TreePush        ("");
+              ImGui::TextColored     (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                                      "This will assist during visualization and split-screen HDR/SDR comparisons");
+              ImGui::TreePop         (  );
+              ImGui::EndTooltip      (  );
+            }
+            //ImGui::SameLine    ();
+
+            ImGui::Combo       ("HDR Visualization##SK_HDR_VIZ",  &__SK_HDR_visualization, "None\0SDR=Monochrome//HDR=FalseColors\0\0");
+            ImGui::EndGroup    ();
+            ImGui::EndGroup    ();
+
+            ImGui::SameLine    ();
+
+            ImGui::BeginGroup  ();
+            SK_ImGui_DrawGamut ();
+            ImGui::EndGroup    ();
+          }
 
           if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM ||
                rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )
           {
-            ImGui::BulletText ("HDR May Not be Working Correctly Until you Engage Fullscreen Exclusive Mode...");
+            ImGui::BulletText ("HDR May Not be Working Correctly Until you Restart...");
 
+#if 0
             ImGui::Separator ();
             if (ImGui::Button ("Inject HDR10 Metadata"))
             {
@@ -963,6 +924,7 @@ public:
               pSwap4->SetHDRMetaData (DXGI_HDR_METADATA_TYPE_HDR10, sizeof (HDR10MetaData), &HDR10MetaData);
               pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
             }
+#endif
           }
 
           /////else
@@ -971,7 +933,6 @@ public:
           /////  ImGui::BulletText     ("A waitable swapchain is required for HDR10 (D3D11 Settings/SwapChain | {Flip Model + Waitable}");
           /////  ImGui::PopStyleColor  ();
           /////}
-
           ImGui::TreePop ();
         }
       }
@@ -1004,8 +965,6 @@ void SK_Widget_InitHDR (void)
 
 
 
-#include <SpecialK/../../depends/include/glm/glm.hpp>
-#include <SpecialK/render/backend.h>
 
 glm::highp_vec3
 SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::highp_vec3 RGB )
@@ -1068,14 +1027,22 @@ SK_ImGui_DrawGamut (void)
                     b, w;
     bool            show;
 
-    double          _area = 0.0;
+    double          _area    = 0.0;
+
+    struct {
+      std::string text;
+      float       text_len; // ImGui horizontal size
+      float       fIdx;
+    } summary;
 
     color_triangle_s (const std::string& _name, SK_ColorSpace cs) : name (_name)
     {
       r = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (1., 0., 0.));
       g = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (0., 1., 0.));
       b = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (0., 0., 1.));
-      w = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (1., 1., 1.));
+      w =                       {cs.Xw,
+                                 cs.Yw,
+                                 cs.Zw};
 
       double r_x = sqrt (r.x * r.x);  double r_y = sqrt (r.y * r.y);
       double g_x = sqrt (g.x * g.x);  double g_y = sqrt (g.y * g.y);
@@ -1101,44 +1068,56 @@ SK_ImGui_DrawGamut (void)
     }
   };
 
-#define D65 0.3127, 0.329
-
-  static
-    color_triangle_s
-      color_spaces [] =
-      {
-        color_triangle_s ( "DCI-P3",        SK_ColorSpace { 0.68, 0.32,  0.265, 0.69,  0.15, 0.06,
-                                                              D65, 1.0 - 0.3127 - 0.329 } ),
-
-        color_triangle_s ( "ITU-R BT.709",  SK_ColorSpace { 0.64, 0.33,  0.3, 0.6,  0.15, 0.06,
-                                                              D65, 1.0 } ),
-
-        color_triangle_s ( "ITU-R BT.2020", SK_ColorSpace { 0.708, 0.292,  0.17, 0.797,  0.131, 0.046,
-                                                              D65, 1.0 - 0.3127 - 0.329 } ),
-
-        color_triangle_s ( "Adobe RGB",     SK_ColorSpace { 0.64, 0.33,  0.21, 0.71,  0.15, 0.06,
-                                                              D65, 1.0 - 0.3127 - 0.329 } ),
-
-        color_triangle_s { "NTSC",          SK_ColorSpace { 0.67, 0.33,  0.21, 0.71,  0.14, 0.08,
-                                                              0.31, 0.316, 1.0 - 0.31 - 0.316 } }
-      };
+#define D65 0.3127f, 0.329f
 
   static const
     glm::vec3 r (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (1.f, 0.f, 0.f))),
               g (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 1.f, 0.f))),
-              b (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 0.f, 1.f)));
+              b (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 0.f, 1.f))),
+              w (                       rb.display_gamut.Xw,
+                                        rb.display_gamut.Yw,
+                                        rb.display_gamut.Zw );
 
   static const color_triangle_s
     _NativeGamut ( "NativeGamut", rb.display_gamut );
 
+  static
+    std::vector <color_triangle_s>
+      color_spaces =
+      {
+        color_triangle_s ( "DCI-P3",        SK_ColorSpace { 0.68f, 0.32f,  0.2650f,  0.690f,   0.150f, 0.060f,
+                                                              D65, 1.00f - 0.3127f - 0.329f,
+                                                            0.00f, 0.00f,  0.0000f } ),
+
+        color_triangle_s ( "ITU-R BT.709",  SK_ColorSpace { 0.64f, 0.33f, 0.3f, 0.6f,          0.150f, 0.060f,
+                                                              D65, 1.00f,
+                                                            0.00f, 0.00f, 0.0f } ),
+
+        color_triangle_s ( "ITU-R BT.2020", SK_ColorSpace { 0.708f, 0.292f,  0.1700f,  0.797f, 0.131f, 0.046f,
+                                                              D65,  1.000f - 0.3127f - 0.329f,
+                                                              0.0f, 0.000f,  0.0000f } ),
+
+        color_triangle_s ( "Adobe RGB",     SK_ColorSpace { 0.64f, 0.33f,  0.2100f,  0.710f,   0.150f, 0.060f,
+                                                              D65, 1.00f - 0.3127f - 0.329f,
+                                                            0.00f, 0.00f,  0.0000f } ),
+
+        color_triangle_s { "NTSC",          SK_ColorSpace { 0.67f, 0.330f, 0.21f,  0.71f,      0.140f, 0.080f,
+                                                            0.31f, 0.316f, 1.00f - 0.31f - 0.316f,
+                                                            0.00f, 0.000f, 0.00f } }
+      };
+
   auto current_time =
     SK::ControlPanel::current_time;
 
-  ImGui::Spacing    (); ImGui::SameLine ();
-  ImGui::Spacing    (); ImGui::SameLine ();
-  ImGui::Spacing    (); ImGui::SameLine ();
+  auto style =
+    ImGui::GetStyle ();
 
-  ImGui::BeginGroup ();
+  float x_pos       = ImGui::GetCursorPosX     () + style.ItemSpacing.x  * 2.0f,
+        line_ht     = ImGui::GetTextLineHeight (),
+        checkbox_ht =                     line_ht + style.FramePadding.y * 2.0f;
+
+  ImGui::SetCursorPosX   (x_pos);
+  ImGui::BeginGroup      ();
 
   const ImColor self_outline_v4 =
     ImColor::HSV ( std::min (1.0f, 0.85f + (sin ((float)(current_time % 400) / 400.0f))),
@@ -1148,69 +1127,187 @@ SK_ImGui_DrawGamut (void)
   const ImU32 self_outline =
     self_outline_v4;
 
-  ImGui::TextColored (self_outline_v4, "%ws", rb.display_name);
-  ImGui::Separator   ();
+  ImGui::TextColored     (self_outline_v4, "%ws", rb.display_name);
+  ImGui::Separator       ();
 
-  float idx = 0.0f;
-  ImGui::BeginGroup ();
+  static float max_len    = 0.0f,
+               num_spaces = static_cast <float> (color_spaces.size ());
+
+  // Compute area and store text
+  SK_RunOnce ( std::for_each ( color_spaces.begin (),
+                               color_spaces.end   (),
+                [](color_triangle_s& space)
+                {
+                  static int idx = 0;
+
+                  space.summary.fIdx     = static_cast <float> (idx++);
+                  space.summary.text_len =
+                    ImGui::CalcTextSize (
+                ( space.summary.text     =
+                    SK_FormatString ("%5.2f%%", _NativeGamut.coverage (space))
+                ).c_str ()
+                    ).x;
+
+                  max_len =   std::max (
+                                   max_len,
+                    space.summary.text_len
+                  );
+                }
+               )
+  );
+
+  ImGui::BeginGroup      ();
   for ( auto& space : color_spaces )
   {
-    ImGui::Text ("%5.2f%%", _NativeGamut.coverage (space));
+    float y_pos         = ImGui::GetCursorPosY (),
+          text_offset   = max_len - space.summary.text_len,
+          fIdx          =           space.summary.fIdx / num_spaces;
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImColor::HSV (fIdx, 0.85f, 0.98f));
+    ImGui::PushID        (static_cast <int> (space.summary.fIdx));
+
+    ImGui::SetCursorPosX (x_pos  + style.ItemSpacing.x   + text_offset);
+    ImGui::SetCursorPosY (y_pos  + style.FramePadding.y  + 0.5f *
+                   ((checkbox_ht - style.FramePadding.y) - line_ht));
+
+    ImGui::TextColored   ( ImColor::HSV (fIdx, 0.35f, 0.98f),
+                             "%s", space.summary.text.c_str () );
+
+    ImGui::SameLine      ();
+    ImGui::SetCursorPosY (y_pos);
+
+    ImGui::Checkbox      (space.name.c_str (), &space.show);
+
+    ImGui::PopID         ();
+    ImGui::PopStyleColor ();
   }
-  ImGui::EndGroup   ();
-  ImGui::SameLine   ();
-  ImGui::BeginGroup ();
-  for ( auto& space : color_spaces )
+  ImGui::EndGroup        ();
+  ImGui::SameLine        ();
+
+  auto _DrawCharts = [&](ImVec2 pos         = ImGui::GetCursorScreenPos    (),
+                         ImVec2 size        = ImGui::GetContentRegionAvail (),
+                         int    draw_labels = -1)
   {
-    ImGui::PushID         ((int)idx);
-    ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV ( idx / 5.0f, 0.85f, 0.98f ));
-    ImGui::Checkbox       (space.name.c_str (), &space.show);
-    ImGui::PopStyleColor  ();
-    ImGui::PopID          ();
+    ImGui::BeginGroup    ();
 
-    idx += 1.0f;
-  }
-  ImGui::EndGroup ();
+    float  X0     =  pos.x;
+    float  Y0     =  pos.y;
+    float  width  = size.x;
+    float  height = size.y;
 
-  ImGui::SameLine ();
+    static constexpr float _LabelFontSize = 30.0f;
 
-  ImVec2 pos =
-    ImGui::GetCursorScreenPos ();
-  ImVec2 size =
-    ImGui::GetContentRegionAvail ();
+    ImVec2 label_line2 ( ImGui::GetStyle ().ItemSpacing.x * 4.0f,
+      ImGui::GetFont ()->CalcTextSizeA (_LabelFontSize, 1.0f, 1.0f, "T").y );
 
-  float X0     = pos.x;
-  float Y0     = pos.y;
-  float width  = size.x;
-  float height = size.y;
+    draw_list->PushClipRect ( ImVec2 (X0,         Y0),
+                              ImVec2 (X0 + width, Y0 + height) );
 
-  draw_list->PushClipRect ( ImVec2 (X0,         Y0),
-                            ImVec2 (X0 + width, Y0 + height) );
-
-  draw_list->AddTriangleFilled ( ImVec2 (X0 + r.x * width, Y0 + (height - r.y * height)),
-                                 ImVec2 (X0 + g.x * width, Y0 + (height - g.y * height)),
-                                 ImVec2 (X0 + b.x * width, Y0 + (height - b.y * height)), col32 );
-  idx = 0.0f;
-
-  for ( auto& space : color_spaces )
-  {
-    if (space.show)
+    // Compute primary color points in CIE xy space
+    auto _MakeTriangleVerts = [&] (const glm::vec3& r,
+                                   const glm::vec3& g,
+                                   const glm::vec3& b,
+                                   const glm::vec3& w) ->
+    std::array <ImVec2, 4>
     {
-      const ImU32 outline_color =
-        ImColor::HSV ( idx / 5.0f, 0.85f, 0.98f );
+      return {
+        ImVec2 (X0 + r.x * width, Y0 + (height - r.y * height)),
+        ImVec2 (X0 + g.x * width, Y0 + (height - g.y * height)),
+        ImVec2 (X0 + b.x * width, Y0 + (height - b.y * height)),
+        ImVec2 (X0 + w.x * width, Y0 + (height - w.y * height))
+      };
+    };
 
-      draw_list->AddTriangle ( ImVec2 (X0 + (float)space.r.x * width, Y0 + (height - (float)space.r.y * height)),
-                               ImVec2 (X0 + (float)space.g.x * width, Y0 + (height - (float)space.g.y * height)),
-                               ImVec2 (X0 + (float)space.b.x * width, Y0 + (height - (float)space.b.y * height)), outline_color, 1.05f );
+    auto display_pts =
+      _MakeTriangleVerts (r, g, b, w);
+
+    draw_list->AddTriangleFilled ( display_pts [0], display_pts [1], display_pts [2],
+                                     col32 );
+
+    for ( auto& space : color_spaces )
+    {
+      if (space.show)
+      {
+        const float     fIdx =
+          space.summary.fIdx / num_spaces;
+
+        const ImU32 outline_color =
+          ImColor::HSV ( fIdx, 0.85f, 0.98f );
+
+        auto space_pts =
+          _MakeTriangleVerts (space.r, space.g, space.b, space.w);
+
+        draw_list->AddTriangle     ( space_pts [0], space_pts [1], space_pts [2],
+                                       outline_color, 4.0f );
+        draw_list->AddCircleFilled ( space_pts [3],   4.0f,
+                                       outline_color       );
+
+        if ( draw_labels != -1 )
+        {
+          struct {
+            int           anchor_pt = 1;
+            unsigned long last_time = 0;
+
+            int getIdx (void)
+            {
+              static constexpr unsigned long
+                _RelocationInterval = std::numeric_limits <unsigned long>::max ();
+                                    //1500ul;
+
+              if ( SK::ControlPanel::current_time - last_time >
+                     _RelocationInterval )
+              {
+                last_time = SK::ControlPanel::current_time,
+                anchor_pt =
+                  (++anchor_pt > 2) ? 0 : anchor_pt;
+              }
+
+              return anchor_pt;
+            }
+          } static label_locator;
+
+          auto label_idx =
+            label_locator.getIdx ();
+
+          draw_list->AddText ( ImGui::GetFont (), _LabelFontSize,
+                                 space_pts [label_idx], outline_color,
+                                   space.name.c_str () );
+          draw_list->AddText ( ImGui::GetFont (), _LabelFontSize * 0.85f,
+                                 { space_pts [label_idx].x + label_line2.x,
+                                   space_pts [label_idx].y + label_line2.y },
+                                                ImColor::HSV ( fIdx, 0.35f, 0.98f ),
+              SK_FormatString ( "Relative Coverage: %s", space.summary.text.c_str () ).c_str () );
+        }
+      }
     }
 
-    idx += 1.0f;
+    draw_list->AddTriangle     ( display_pts [0], display_pts [1], display_pts [2],
+                                   self_outline,  6.0f );
+    draw_list->AddCircleFilled ( display_pts [3], 6.0f,
+                                   self_outline        );
+
+    if (draw_labels != -1)
+    {
+      static std::string _CombinedName =
+        SK_FormatString ( "%ws  (%s)",
+                            rb.display_name,
+                          _NativeGamut.name.c_str ()  );
+      draw_list->AddText ( ImGui::GetFont (), _LabelFontSize * 1.15f,
+                             display_pts [0], self_outline,
+                               _CombinedName.c_str () );
+    }
+
+    draw_list->PopClipRect
+                         ();
+    ImGui::EndGroup      ();
+  };
+
+  _DrawCharts ();
+
+  ImGui::EndGroup        ();
+
+  if (ImGui::IsItemHovered ())
+  {
+    _DrawCharts (ImVec2 (0.0f, 0.0f), ImGui::GetIO ().DisplaySize, 0);
   }
-
-  draw_list->AddTriangle ( ImVec2 (X0 + (float)r.x * width, Y0 + (height - (float)r.y * height)),
-                           ImVec2 (X0 + (float)g.x * width, Y0 + (height - (float)g.y * height)),
-                           ImVec2 (X0 + (float)b.x * width, Y0 + (height - (float)b.y * height)), self_outline, 2.1f );
-
-  draw_list->PopClipRect ();
-         ImGui::EndGroup ();
 }

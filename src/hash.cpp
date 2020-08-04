@@ -22,8 +22,6 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/hash.h>
-#include <SpecialK/utility.h>
-#include <SpecialK/crc32.h>
 
 uint32_t
 __stdcall

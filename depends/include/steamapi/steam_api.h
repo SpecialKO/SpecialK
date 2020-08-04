@@ -1,6 +1,6 @@
 //====== Copyright 1996-2008, Valve Corporation, All rights reserved. =======
 //
-// Purpose: 
+// Purpose:
 //
 //=============================================================================
 
@@ -39,23 +39,23 @@
 // Steam API export macro
 #if (defined( _WIN32 ) || defined( _WIN64 )) && !defined( _X360 )
   #if defined( STEAM_API_EXPORTS )
-  #define S_API extern "C" __declspec( dllexport ) 
+  #define S_API extern "C" __declspec( dllexport )
   #elif defined( STEAM_API_NODLL )
   #define S_API extern "C"
   #else
-  #define S_API extern "C" __declspec( dllimport ) 
+  #define S_API extern "C" __declspec( dllimport )
   #endif // STEAM_API_EXPORTS
 #elif defined( GNUC )
   #if defined( STEAM_API_EXPORTS )
-  #define S_API extern "C" __attribute__ ((visibility("default"))) 
+  #define S_API extern "C" __attribute__ ((visibility("default")))
   #else
-  #define S_API extern "C" 
+  #define S_API extern "C"
   #endif // STEAM_API_EXPORTS
 #else // !WIN32
   #if defined( STEAM_API_EXPORTS )
-  #define S_API extern "C"  
+  #define S_API extern "C"
   #else
-  #define S_API extern "C" 
+  #define S_API extern "C"
   #endif // STEAM_API_EXPORTS
 #endif
 
@@ -69,10 +69,10 @@
 // S_API void SteamAPI_Init(); (see below)
 //S_API void S_CALLTYPE SteamAPI_Shutdown();
 
-// checks if a local Steam client is running 
+// checks if a local Steam client is running
 ////////////////S_API bool S_CALLTYPE SteamAPI_IsSteamRunning();
 
-// Detects if your executable was launched through the Steam client, and restarts your game through 
+// Detects if your executable was launched through the Steam client, and restarts your game through
 // the client if necessary. The Steam client will be started if it is not running.
 //
 // Returns: true if your executable was NOT launched through the Steam client. This function will
@@ -97,10 +97,10 @@ S_API void S_CALLTYPE SteamAPI_SetMiniDumpComment( const char *pchMsg );
 // VERSION_SAFE_STEAM_API_INTERFACES is usually not necessary, but it provides safety against releasing
 // new steam_api.dll's without recompiling/rereleasing modules that use it.
 //
-// If you use VERSION_SAFE_STEAM_API_INTERFACES, then you should call SteamAPI_InitSafe(). Also, to get the 
+// If you use VERSION_SAFE_STEAM_API_INTERFACES, then you should call SteamAPI_InitSafe(). Also, to get the
 // Steam interfaces, you must create and Init() a CSteamAPIContext (below) and use the interfaces in there.
 //
-// If you don't use VERSION_SAFE_STEAM_API_INTERFACES, then you can use SteamAPI_Init() and the SteamXXXX() 
+// If you don't use VERSION_SAFE_STEAM_API_INTERFACES, then you can use SteamAPI_Init() and the SteamXXXX()
 // functions below to get at the Steam interfaces.
 //
 #ifdef VERSION_SAFE_STEAM_API_INTERFACES
@@ -141,7 +141,7 @@ S_API ISteamPS3OverlayRender *S_CALLTYPE SteamPS3OverlayRender();
 //----------------------------------------------------------------------------------------------------------------------------------------------------------//
 //  steam callback helper functions
 //
-//  The following classes/macros are used to be able to easily multiplex callbacks 
+//  The following classes/macros are used to be able to easily multiplex callbacks
 //  from the Steam API into various objects in the app in a thread-safe manner
 //
 //  These functors are triggered via the SteamAPI_RunCallbacks() function, mapping the callback
@@ -161,7 +161,7 @@ S_API void S_CALLTYPE SteamAPI_UnregisterCallResult( class CCallbackBase *pCallb
 #endif
 
 //-----------------------------------------------------------------------------
-// Purpose: base for callbacks, 
+// Purpose: base for callbacks,
 //      used only by CCallback, shouldn't be used directly
 //-----------------------------------------------------------------------------
 class CCallbackBase
@@ -245,7 +245,7 @@ public:
 
       m_hAPICall = k_uAPICallInvalid;
     }
-    
+
   }
 
   virtual ~CCallResult() noexcept
@@ -261,14 +261,14 @@ private:
   void Run( void *pvParam ) noexcept override
   {
     m_hAPICall = k_uAPICallInvalid; // caller unregisters for us
-    (m_pObj->*m_Func)( (P *)pvParam, false );    
+    (m_pObj->*m_Func)( (P *)pvParam, false );
   }
   void Run( void *pvParam, bool bIOFailure, SteamAPICall_t hSteamAPICall ) noexcept override
   {
     if ( hSteamAPICall == m_hAPICall )
     {
       m_hAPICall = k_uAPICallInvalid; // caller unregisters for us
-      (m_pObj->*m_Func)( (P *)pvParam, bIOFailure );      
+      (m_pObj->*m_Func)( (P *)pvParam, bIOFailure );
     }
   }
   int GetCallbackSizeBytes() noexcept override
@@ -305,7 +305,7 @@ public:
   // ::Register() for your object
   // Or, just call the regular constructor with (NULL, NULL)
   // CCallback() {}
-  
+
   // constructor for initializing this object in owner's constructor
   CCallback( T *pObj, func_t func ) noexcept : m_pObj( pObj ), m_Func( func )
   {
@@ -421,7 +421,7 @@ S_API HSteamUser GetHSteamUser();
 
 #ifdef VERSION_SAFE_STEAM_API_INTERFACES
 //----------------------------------------------------------------------------------------------------------------------------------------------------------//
-// VERSION_SAFE_STEAM_API_INTERFACES uses CSteamAPIContext to provide interfaces to each module in a way that 
+// VERSION_SAFE_STEAM_API_INTERFACES uses CSteamAPIContext to provide interfaces to each module in a way that
 // lets them each specify the interface versions they are compiled with.
 //
 // It's important that these stay inlined in the header so the calling module specifies the interface versions
@@ -552,7 +552,7 @@ inline bool CSteamAPIContext::Init()
   m_pSteamUserStats = SteamClient()->GetISteamUserStats( hSteamUser, hSteamPipe, STEAMUSERSTATS_INTERFACE_VERSION );
   if ( !m_pSteamUserStats )
     return false;
-  
+
   m_pSteamApps = SteamClient()->GetISteamApps( hSteamUser, hSteamPipe, STEAMAPPS_INTERFACE_VERSION );
   if ( !m_pSteamApps )
     return false;

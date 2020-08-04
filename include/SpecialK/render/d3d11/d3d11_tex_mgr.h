@@ -59,7 +59,7 @@ struct SK_D3D11_TEXTURE2D_DESC
   D3D11_CPU_ACCESS_FLAG CPUAccessFlags;
   UINT                  MiscFlags;
 
-  explicit SK_D3D11_TEXTURE2D_DESC (D3D11_TEXTURE2D_DESC& descFrom)
+  explicit SK_D3D11_TEXTURE2D_DESC (D3D11_TEXTURE2D_DESC& descFrom) noexcept
   {
     Width          = descFrom.Width;
     Height         = descFrom.Height;
@@ -218,7 +218,7 @@ public:
     uint32_t              crc32c     = 0x00;
         bool              injected   = false;
         bool              discard    = false;
-    uint32_t              last_frame = 0UL;
+    uint64_t              last_frame = 0ULL;
     uint64_t              last_used  = 0ULL;
     std::string           debug_name =  "";
     std::wstring          file_name  = L"";  // If injected, this is the source file
@@ -230,7 +230,7 @@ public:
 
   struct lod_hash_table_s
   {
-    lod_hash_table_s (void) noexcept
+    lod_hash_table_s (void) noexcept (false)
     {
       mutex =
         std::make_shared <SK_Thread_HybridSpinlock> (120);
@@ -259,7 +259,7 @@ public:
                          uint32_t         >  reventries;
     concurrency::concurrent_unordered_map
                        < ID3D11Texture2D *,
-                         ULONG            >  last_frame;
+                         ULONG64          >  last_frame;
     std::shared_ptr
                  <SK_Thread_HybridSpinlock>  mutex;
 

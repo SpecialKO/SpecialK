@@ -326,16 +326,20 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
 
 
   wchar_t wszFormattedTime [48] = { };
+  size_t     formattedLen       =  0L;
 
   if (_Timestamp)
   {
     wchar_t                    wszLogTime [48] = { };
     UINT    ms = SK_Timestamp (wszLogTime);
 
-    _swprintf ( wszFormattedTime,
-                  L"%s%03u: ",
-                    wszLogTime,
-                      ms );
+    formattedLen =
+      std::clamp (
+        swprintf_s ( wszFormattedTime, 31,
+                       L"%s%03u: ",
+                         wszLogTime,
+                           ms ),
+                  0, 31 );
   }
 
 
@@ -344,7 +348,7 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   size_t len =
     (size_t)
     _vscwprintf (      _Format,
-            _ArgList) + 1 + 48 + 2; // 48 extra for timestamp
+            _ArgList) + 1 + 48 + 2; // 32 extra for timestamp
   va_end   (_ArgList);
 
 
@@ -378,13 +382,13 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
     return;
 
 
-
   wchar_t *wszAfterStamp =
-    ( _Timestamp ? ( wszOut + wcslen (wszFormattedTime) ) :
+    ( _Timestamp ? ( wszOut + formattedLen ) :
                      wszOut );
   if (_Timestamp)
   {
-    wcscpy (wszOut, wszFormattedTime);
+    wcsncpy_s ( wszOut,             formattedLen + 1,
+                  wszFormattedTime, _TRUNCATE   );
   }
 
   va_start   (_ArgList,      _Format);
@@ -416,10 +420,14 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   wchar_t                    wszLogTime [48] = { };
   UINT    ms = SK_Timestamp (wszLogTime);
 
-  _swprintf ( wszFormattedTime,
-                L"%s%03u: ",
-                  wszLogTime,
-                    ms );
+  size_t formattedLen =
+    std::clamp (
+      swprintf_s ( wszFormattedTime, 31,
+                     L"%s%03u: ",
+                       wszLogTime,
+                         ms ),
+                0, 31
+    );
 
   va_list   _ArgList;
   va_start (_ArgList, _Format);
@@ -463,15 +471,17 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
 
   wchar_t *wszAfterStamp =
-    wszOut + wcslen (wszFormattedTime);
-    wcscpy  (wszOut, wszFormattedTime);
+    wszOut + formattedLen;
+
+  wcsncpy_s ( wszOut,             formattedLen + 1,
+                wszFormattedTime, _TRUNCATE   );
 
   va_start (_ArgList,        _Format);
   _vswprintf (wszAfterStamp, _Format,
             _ArgList);
   va_end   (_ArgList);
 
-  lstrcatW (wszAfterStamp, L"\n");
+  StrCatW  (wszAfterStamp, L"\n");
 
   lock   ();
   //if (! lockless)
@@ -485,8 +495,8 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   SK_FlushLog (this);
 }
 
-void
 [[deprecated]]
+void
 iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     char const* const _Format,
                                       ... )

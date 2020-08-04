@@ -44,7 +44,7 @@ struct sk_internet_get_t {
 
   wchar_t wszHostName  [INTERNET_MAX_HOST_NAME_LENGTH] = { };
   wchar_t wszHostPath  [INTERNET_MAX_PATH_LENGTH]      = { };
-  wchar_t wszLocalPath [MAX_PATH]                      = { };
+  wchar_t wszLocalPath [MAX_PATH + 2]                  = { };
   HWND    hTaskDlg                                     = HWND_DESKTOP;
   int     status                                       = STATUS_INVALID;
 };

@@ -199,10 +199,10 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ADL).c_str ());
     }
 
-    if (config.cegui.enable && ImGui::CollapsingHeader ("CEGUI (D3D9/11/GL)"))
-    {
-      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_CEGUI).c_str ());
-    }
+    //if (config.cegui.enable && ImGui::CollapsingHeader ("CEGUI (D3D9/11/GL)"))
+    //{
+    //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_CEGUI).c_str ());
+    //}
 
     if ( ((int)SK_GetCurrentRenderBackend ().api &  (int)SK_RenderAPI::D3D11 ||
                SK_GetCurrentRenderBackend ().api ==      SK_RenderAPI::D3D12 ) &&
@@ -212,22 +212,22 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_DXTEX).c_str ());
     }
 
-    if (config.cegui.enable && ImGui::CollapsingHeader ("FreeType 2"))
+    if (ImGui::CollapsingHeader ("FreeType 2"))
     {
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_FREETYPE2).c_str ());
     }
 
 
-    if ( config.cegui.enable &&  SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL &&
-           ImGui::CollapsingHeader ("GLEW (OpenGL)")
-       )
-    {
-      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLEW).c_str ());
-    }
+    //if ( config.cegui.enable &&  SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL &&
+    //       ImGui::CollapsingHeader ("GLEW (OpenGL)")
+    //   )
+    //{
+    //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLEW).c_str ());
+    //}
 
     //IDR_LICENSE_GLFW_2_2    TEXTFILE  "licenses/GLFW_2_2.txt"
 
-    if (config.cegui.enable && ImGui::CollapsingHeader ("GLM v 0.9.4.5"))
+    if (ImGui::CollapsingHeader ("GLM v 0.9.4.5"))
     {
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLM_0_9_4_5).c_str ());
     }
@@ -257,18 +257,18 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_NVAPI).c_str ());
     }
 
-    if (config.cegui.enable && ImGui::CollapsingHeader ("PCRE"))
-    {
-      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE).c_str ());
-      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE_CPP).c_str ());
-    }
+    //if (config.cegui.enable && ImGui::CollapsingHeader ("PCRE"))
+    //{
+    //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE).c_str ());
+    //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE_CPP).c_str ());
+    //}
 
     if (ImGui::CollapsingHeader ("Special K"))
     {
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_SPECIALK).c_str ());
     }
 
-    if (config.cegui.enable && ImGui::CollapsingHeader ("STB"))
+    if (ImGui::CollapsingHeader ("STB"))
     {
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_STB).c_str ());
     }
@@ -281,10 +281,10 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_VULKAN).c_str ());
     }
 
-    if (config.cegui.enable && ImGui::CollapsingHeader ("ZLIB"))
-    {
-      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ZLIB).c_str ());
-    }
+    //if (config.cegui.enable && ImGui::CollapsingHeader ("ZLIB"))
+    //{
+    //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ZLIB).c_str ());
+    //}
 
     ImGui::EndChild (); // EULA_Inset
     ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, ImGui::GetFrameHeightWithSpacing () * 1.1616f), false, ImGuiWindowFlags_NavFlattened);

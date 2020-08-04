@@ -74,31 +74,32 @@
 
 #define __ID3D11CryptoSession_INTERFACE_DEFINED__
 
-#ifdef __clang__
-interface ID3D11CryptoSession;
-
-typedef struct D3D11_VIDEO_DECODER_DESC
-{
-  GUID Guid;
-  UINT SampleWidth;
-  UINT SampleHeight;
-  DXGI_FORMAT OutputFormat;
-} D3D11_VIDEO_DECODER_DESC;
-
-typedef enum D3D11_VIDEO_DECODER_BUFFER_TYPE
-{
-  D3D11_VIDEO_DECODER_BUFFER_PICTURE_PARAMETERS          = 0,
-  D3D11_VIDEO_DECODER_BUFFER_MACROBLOCK_CONTROL          = 1,
-  D3D11_VIDEO_DECODER_BUFFER_RESIDUAL_DIFFERENCE         = 2,
-  D3D11_VIDEO_DECODER_BUFFER_DEBLOCKING_CONTROL          = 3,
-  D3D11_VIDEO_DECODER_BUFFER_INVERSE_QUANTIZATION_MATRIX = 4,
-  D3D11_VIDEO_DECODER_BUFFER_SLICE_CONTROL               = 5,
-  D3D11_VIDEO_DECODER_BUFFER_BITSTREAM                   = 6,
-  D3D11_VIDEO_DECODER_BUFFER_MOTION_VECTOR               = 7,
-  D3D11_VIDEO_DECODER_BUFFER_FILM_GRAIN                  = 8
-} D3D11_VIDEO_DECODER_BUFFER_TYPE;
-#endif
-
+//#ifndef __d3d11_h__
+//#ifdef __clang__
+//interface ID3D11CryptoSession;
+//
+//typedef struct D3D11_VIDEO_DECODER_DESC
+//{
+//  GUID Guid;
+//  UINT SampleWidth;
+//  UINT SampleHeight;
+//  DXGI_FORMAT OutputFormat;
+//} D3D11_VIDEO_DECODER_DESC;
+//
+//typedef enum D3D11_VIDEO_DECODER_BUFFER_TYPE
+//{
+//  D3D11_VIDEO_DECODER_BUFFER_PICTURE_PARAMETERS          = 0,
+//  D3D11_VIDEO_DECODER_BUFFER_MACROBLOCK_CONTROL          = 1,
+//  D3D11_VIDEO_DECODER_BUFFER_RESIDUAL_DIFFERENCE         = 2,
+//  D3D11_VIDEO_DECODER_BUFFER_DEBLOCKING_CONTROL          = 3,
+//  D3D11_VIDEO_DECODER_BUFFER_INVERSE_QUANTIZATION_MATRIX = 4,
+//  D3D11_VIDEO_DECODER_BUFFER_SLICE_CONTROL               = 5,
+//  D3D11_VIDEO_DECODER_BUFFER_BITSTREAM                   = 6,
+//  D3D11_VIDEO_DECODER_BUFFER_MOTION_VECTOR               = 7,
+//  D3D11_VIDEO_DECODER_BUFFER_FILM_GRAIN                  = 8
+//} D3D11_VIDEO_DECODER_BUFFER_TYPE;
+//#endif
+//#endif
 
 #include "d3dcommon.h"
 #include <dxgitype.h>
@@ -112,8 +113,8 @@ typedef enum D3D11_VIDEO_DECODER_BUFFER_TYPE
 #include <d3d11_3.h>
 #include <d3d11_4.h>
 
-#include <../depends/include/DXSDK/D3DX11.h>
-#include <../depends/include/DXSDK/D3DX11tex.h>
+//#include <../depends/include/DXSDK/D3DX11.h>
+//#include <../depends/include/DXSDK/D3DX11tex.h>
 
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
@@ -202,9 +203,9 @@ typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateComputeShader_pfn)(ID3D11Devi
                                                       _In_opt_        ID3D11ClassLinkage   *pClassLinkage,
                                                       _Out_opt_       ID3D11ComputeShader **ppComputeShader);
 
-struct ID3D11DeviceContext;
-struct ID3D11ClassInstance;
-struct ID3D11Asynchronous;
+//struct ID3D11DeviceContext;
+//struct ID3D11ClassInstance;
+//struct ID3D11Asynchronous;
 
 using D3D11_PSSetShader_pfn =
   void (STDMETHODCALLTYPE *)( ID3D11DeviceContext        *This,
@@ -316,9 +317,9 @@ typedef void (STDMETHODCALLTYPE *D3D11_DispatchIndirect_pfn)(ID3D11DeviceContext
 
 typedef void (STDMETHODCALLTYPE *D3D11_DrawAuto_pfn)(ID3D11DeviceContext *This);
 
-struct ID3D11RenderTargetView;
-struct ID3D11DepthStencilView;
-struct ID3D11UnorderedAccessView;
+//struct ID3D11RenderTargetView;
+//struct ID3D11DepthStencilView;
+//struct ID3D11UnorderedAccessView;
 
 typedef void (STDMETHODCALLTYPE *D3D11_OMSetRenderTargets_pfn)(ID3D11DeviceContext           *This,
                                                       _In_     UINT                           NumViews,

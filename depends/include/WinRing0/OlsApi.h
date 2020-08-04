@@ -168,12 +168,20 @@ WINAPI WrmsrPx(
 //-----------------------------------------------------------------------------
 // Rdpmc
 //-----------------------------------------------------------------------------
-BOOL // TRUE: success, FALSE: failure
-WINAPI Rdpmc(
+//BOOL // TRUE: success, FALSE: failure
+//WINAPI Rdpmc(
+//	DWORD index,					// PMC index
+//	PDWORD eax,						// bit  0-31
+//	PDWORD edx						// bit 32-63
+//);
+
+typedef BOOL (WINAPI* Rdpmc_pfn)(
 	DWORD index,					// PMC index
 	PDWORD eax,						// bit  0-31
 	PDWORD edx						// bit 32-63
 );
+
+extern Rdpmc_pfn Rdpmc;
 
 //-----------------------------------------------------------------------------
 // RdmsrTx

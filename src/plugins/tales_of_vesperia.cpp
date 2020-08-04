@@ -62,7 +62,7 @@ struct tv_mem_addr_s
       if (expected_addr != nullptr)
       {
         void* expected =
-          (void *)((uintptr_t)GetModuleHandle (nullptr) + (uintptr_t)expected_addr);
+          (void *)((uintptr_t)SK_GetModuleHandle (nullptr) + (uintptr_t)expected_addr);
 
         auto orig_se =
         SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
@@ -82,7 +82,7 @@ struct tv_mem_addr_s
         if (scanned_addr == nullptr)
         {
           scanned_addr =
-            SK_ScanAlignedEx (pattern, pattern_len, pattern_mask, (void *)((uintptr_t)GetModuleHandle (nullptr) + (uintptr_t)expected_addr));
+            SK_ScanAlignedEx (pattern, pattern_len, pattern_mask, (void *)((uintptr_t)SK_GetModuleHandle (nullptr) + (uintptr_t)expected_addr));
         }
       }
 
@@ -773,7 +773,7 @@ SK_TVFix_BeginFrame (void)
   if (rb.device != nullptr && InterlockedCompareExchange (&__init, 1, 0))
   {
     SK_ComQIPtr <ID3D11Device> pDev     (rb.device);
-    SK_ComQIPtr  <IDXGIDevice> pDXGIDev (pDev);
+    SK_ComQIPtr  <IDXGIDevice> pDXGIDev (rb.device);
 
     if (pDXGIDev != nullptr)
     {   pDXGIDev->SetGPUThreadPriority (5); }
@@ -898,22 +898,6 @@ SK_TVFix_CreateTexture2D (
   ///    pDesc->Height = __SK_TVFix_LastKnown_YRes;
   ///  }
   ///}
-
-  if (__SK_HDR_16BitSwap)
-  {
-    if ( ( pDesc->BindFlags & D3D11_BIND_RENDER_TARGET  ) &&
-         ( pDesc->Format   == DXGI_FORMAT_B8G8R8A8_UNORM) )
-    {
-      if ( (UINT)plugin_ctx.__SK_TVFix_LastKnown_XRes == pDesc->Width &&
-           (UINT)plugin_ctx.__SK_TVFix_LastKnown_YRes == pDesc->Height )
-      {
-        pDesc->Format = DXGI_FORMAT_R16G16B16A16_UNORM;
-      }
-
-      else
-        pDesc->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    }
-  }
 
   if (pDesc->SampleDesc.Count > 1)
   {

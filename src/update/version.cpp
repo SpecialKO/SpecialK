@@ -149,7 +149,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   uliNow.HighPart = ftNow.dwHighDateTime;
 
 
-  wchar_t wszInstallFile [MAX_PATH] = { };
+  wchar_t wszInstallFile [MAX_PATH + 2] = { };
 
   //Profiles/
   //PlugIns/
@@ -391,18 +391,18 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     return false;
   }
 
-  wchar_t wszRemoteRepoURL [MAX_PATH] = { };
+  wchar_t wszRemoteRepoURL [INTERNET_MAX_PATH_LENGTH + 2] = { };
 
   if (! lstrcmpW (wszProduct, L"SpecialK"))
-    swprintf ( wszRemoteRepoURL,
+    swprintf_s ( wszRemoteRepoURL, INTERNET_MAX_PATH_LENGTH,
                  L"/Kaldaien/%s/0.10.x/version.ini",
                    wszProduct );
   else if (wcschr (wszProduct, L'/'))
-    swprintf ( wszRemoteRepoURL,
+    swprintf_s ( wszRemoteRepoURL, INTERNET_MAX_PATH_LENGTH,
                  L"/Kaldaien/%s/version.ini",
                    wszProduct );
   else
-    swprintf ( wszRemoteRepoURL,
+    swprintf_s ( wszRemoteRepoURL, INTERNET_MAX_PATH_LENGTH,
                  L"/Kaldaien/%s/master/version.ini",
                    wcslen (wszProduct) ? wszProduct : L"SpecialK" );
 
@@ -467,7 +467,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                                           0x00, NULL )
       )
     {
-      DWORD dwAttribs = GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ());
+      DWORD dwAttribs =
+        GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ());
 
       if (dwAttribs == INVALID_FILE_ATTRIBUTES)
           dwAttribs = FILE_ATTRIBUTE_NORMAL;
@@ -696,7 +697,6 @@ SK_Version_GetLastCheckTime_WStr (void)
 }
 
 
-#include <Shlwapi.h>
 
 std::vector <std::string>
 SK_Version_GetAvailableBranches (const wchar_t* wszProduct)

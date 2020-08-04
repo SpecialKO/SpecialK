@@ -21,6 +21,9 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
 #define __SK_SUBSYSTEM__ L"RenderBase"
 
 #include <SpecialK/render/dxgi/dxgi_backend.h>
@@ -35,7 +38,7 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/resource.h> // Unpack shader compiler
 
-volatile LONG SK_RenderBackend::frames_drawn = 0;
+volatile LONG64 SK_RenderBackend::frames_drawn = 0;
 
 
 class SK_AutoDC
@@ -75,12 +78,16 @@ SK_Display_GetDefaultRefreshRate (void)
 }
 
 
+SK_LazyGlobal <SK_RenderBackend> __SK_RBkEnd;
+
 SK_RenderBackend&
 __stdcall
 SK_GetCurrentRenderBackend (void)
 {
-  static SK_RenderBackend __SK_RBkEnd;
-  return                  __SK_RBkEnd;
+  static auto& rb =
+    __SK_RBkEnd.get ();
+
+  return rb;
 }
 
 void
@@ -303,17 +310,21 @@ SK_BootDXGI (void)
 
   // Establish the minimal set of APIs necessary to work as dxgi.dll
   if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-    config.apis.dxgi.d3d11.hook = true;
+  {
+    if (! config.apis.dxgi.d3d12.hook)
+          config.apis.dxgi.d3d11.hook = true;
+  }
 
 #ifdef _M_AMD64
   //
   // TEMP HACK: D3D11 must be enabled to hook D3D12...
   //
-  if (config.apis.dxgi.d3d12.hook && (! config.apis.dxgi.d3d11.hook))
-    config.apis.dxgi.d3d11.hook = true;
+  ///if (config.apis.dxgi.d3d12.hook && (! config.apis.dxgi.d3d11.hook))
+  ///  config.apis.dxgi.d3d11.hook = true;
 #endif
 
-  if (! config.apis.dxgi.d3d11.hook)
+  if (! ( config.apis.dxgi.d3d11.hook ||
+          config.apis.dxgi.d3d12.hook ))
     return;
 
   static volatile LONG __booted = FALSE;
@@ -455,10 +466,10 @@ SK_RenderBackend_V2::gsync_s::update (void)
         _ClearTemporarySurfaces ();
     }
 
-    if ( NVAPI_OK == NvAPI_D3D_IsGSyncCapable (rb.device,
-                                               rb.surface.nvapi, &capable))
+    if ( NVAPI_OK == NvAPI_D3D_IsGSyncCapable ( rb.device,
+                                                rb.surface.nvapi, &capable))
     {
-      NvAPI_D3D_IsGSyncActive (rb.device, rb.surface.nvapi, &active);
+      NvAPI_D3D_IsGSyncActive ( rb.device,      rb.surface.nvapi, &active);
 
       success      = true;
     }
@@ -493,14 +504,18 @@ SK_RenderBackendUtil_IsFullscreen (void)
         static_cast <int> (SK_RenderAPI::D3D11)) != 0 )
   {
     SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-    BOOL                        fullscreen = rb.fullscreen_exclusive;
+
+    BOOL fullscreen =
+      rb.fullscreen_exclusive;
 
     if (pSwapChain != nullptr)
     {
-      if (SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
-      {
-        rb.fullscreen_exclusive = fullscreen;
-      }
+      if ( SUCCEEDED (
+        pSwapChain->GetFullscreenState (
+          &fullscreen, nullptr         )
+                     )
+         )   rb.fullscreen_exclusive =
+                fullscreen;
 
       return rb.fullscreen_exclusive;
     }
@@ -560,14 +575,14 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
 
       if (pSwapChain != nullptr)
       {
-        DXGI_MODE_DESC idealModeDesc   = { };
-        DXGI_MODE_DESC actualModeDesc  = { };
-        DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+        DXGI_MODE_DESC  idealModeDesc = { };
+        DXGI_MODE_DESC actualModeDesc = { };
+        DXGI_SWAP_CHAIN_DESC swapDesc = { };
 
         pSwapChain->GetDesc (&swapDesc);
 
-        SK_ComPtr <IDXGIOutput>           pOutput;
-        pSwapChain->GetContainingOutput (&pOutput.p);
+        SK_ComPtr          <IDXGIOutput>  pOutput;
+        pSwapChain->GetContainingOutput (&pOutput);
 
         if (config.render.framerate.refresh_rate != -1)
         {
@@ -594,11 +609,11 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
         idealModeDesc.RefreshRate = swapDesc.BufferDesc.RefreshRate;
         idealModeDesc.Scaling     = DXGI_MODE_SCALING_UNSPECIFIED;
 
-        SK_ComPtr <IDXGIDevice> pSwapDevice;
+        SK_ComPtr <IDXGIDevice> pSwapDevice = nullptr;
 
         if ( SUCCEEDED (
                pSwapChain->GetDevice ( __uuidof (IDXGIDevice),
-                                       (void **)&pSwapDevice.p )
+                                       (void **)&pSwapDevice )
                        )
            )
         {
@@ -606,10 +621,9 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
                (
                  SK_DXGI_FindClosestMode
                  (
-                   pSwapChain,
-                     &idealModeDesc,
-                       &actualModeDesc,
-                         pSwapDevice.p, TRUE
+                   pSwapChain, &idealModeDesc,
+                              &actualModeDesc,
+                   pSwapDevice, TRUE
                  )
                )
              )
@@ -629,13 +643,16 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
                        )
            )
         {
-          SK_DXGI_ResizeTarget (pSwapChain, &actualModeDesc, TRUE);
+          SK_DXGI_ResizeTarget (
+            pSwapChain, &actualModeDesc, TRUE
+          );
         }
       }
     }
   }
 
-  if ((! fullscreen_exclusive) && (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)))
+  if ( (! fullscreen_exclusive) && ( static_cast <int> (api) &
+                                     static_cast <int> (SK_RenderAPI::D3D11) ) )
   {
     DXGI_SWAP_CHAIN_DESC swap_desc = { };
 
@@ -643,14 +660,13 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
 
     if (pSwapChain != nullptr)
     {
-      if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
+      if ( SUCCEEDED (pSwapChain->GetDesc  (&swap_desc))   &&
+           SUCCEEDED (SK_DXGI_ResizeTarget (pSwapChain,
+                                            &swap_desc.BufferDesc, TRUE)) )
       {
-        if (SUCCEEDED (SK_DXGI_ResizeTarget (pSwapChain, &swap_desc.BufferDesc, TRUE)))
-        {
-          PostMessage ( swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED,
-                          MAKELPARAM ( swap_desc.BufferDesc.Width,
-                                       swap_desc.BufferDesc.Height ) );
-        }
+        PostMessage ( swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED,
+         MAKELPARAM ( swap_desc.BufferDesc.Width,
+                      swap_desc.BufferDesc.Height ) );
       }
     }
   }
@@ -670,18 +686,22 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
 
   if (fullscreen_exclusive)
   {
-    if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D9))
+    if ( static_cast <int> (api) &
+         static_cast <int> (SK_RenderAPI::D3D9) )
     {
       SK_D3D9_TriggerReset (true);
     }
 
-    else if ((static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)) && swapchain != nullptr)
+    else if ( ( static_cast <int> (api) &
+                static_cast <int> (SK_RenderAPI::D3D11) ) &&
+                swapchain != nullptr )
     {
       SK_ComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
 
-      if (pSwapChain != nullptr)
-      {
-        pSwapChain->SetFullscreenState (FALSE, nullptr);
+      if (pSwapChain != nullptr) {
+          pSwapChain->SetFullscreenState (
+            FALSE, nullptr
+          );
       }
     }
   }
@@ -691,7 +711,8 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
 float
 SK_RenderBackend_V2::getActiveRefreshRate (void)
 {
-  if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D9))
+  if ( static_cast <int> (api) &
+       static_cast <int> (SK_RenderAPI::D3D9) )
   {
     SK_ComQIPtr <IDirect3DDevice9> pDev9 (device);
 
@@ -715,17 +736,18 @@ SK_RenderBackend_V2::getActiveRefreshRate (void)
     }
   }
 
-  else if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11))
+  else if ( static_cast <int> (api) &
+            static_cast <int> (SK_RenderAPI::D3D11) )
   {
     constexpr
-      UINT MAX_CACHE_TTL = 500; // 500 Frames
+      UINT64 MAX_CACHE_TTL = 500; // 500 Frames
 
     static
-      UINT uiCachedFrame =
+      UINT64 uiCachedFrame =
         SK_GetFramesDrawn ();
 
-    static float  fLastCache      = 0.0f;
-    static UINT  uiLastCacheFrame = uiCachedFrame - MAX_CACHE_TTL;
+    static float   fLastCache      = 0.0f;
+    static UINT64 uiLastCacheFrame = uiCachedFrame - MAX_CACHE_TTL;
 
     if ( refresh_refresh ||
          uiLastCacheFrame < (SK_GetFramesDrawn () - MAX_CACHE_TTL) )
@@ -739,9 +761,9 @@ SK_RenderBackend_V2::getActiveRefreshRate (void)
         DXGI_SWAP_CHAIN_DESC  swapDesc       = { };
         pSwapDXGI->GetDesc  (&swapDesc);
 
-        SK_ComPtr <IDXGIDevice>          pSwapDevice;
-        SK_ComPtr <IDXGIOutput>          pSwapOutput;
-        pSwapDXGI->GetContainingOutput (&pSwapOutput.p);
+        SK_ComPtr <IDXGIDevice>          pSwapDevice = nullptr;
+        SK_ComPtr <IDXGIOutput>          pSwapOutput = nullptr;
+        pSwapDXGI->GetContainingOutput (&pSwapOutput);
 
         if ( SUCCEEDED (
                pSwapDXGI->GetDevice (__uuidof (IDXGIDevice), (void **)&pSwapDevice.p)
@@ -758,8 +780,8 @@ SK_RenderBackend_V2::getActiveRefreshRate (void)
 
           if ( SUCCEEDED (
                  SK_DXGI_FindClosestMode (
-                   pSwapDXGI, &idealModeDesc, &activeModeDesc, pSwapDevice.p
-                                         )
+                   pSwapDXGI, &idealModeDesc, &activeModeDesc,
+                   pSwapDevice    )
                          )
              )
           {
@@ -876,8 +898,14 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
       if (api != SK_RenderAPI::D3D11On12)
       {
-        swapchain.Release ();
-        device.Release    ();
+        // Flushing at shutdown may cause deadlocks
+#ifdef _USE_FLUSH
+        if (d3d11.immediate_ctx != nullptr)
+            d3d11.immediate_ctx->Flush ();
+#endif
+        swapchain = nullptr;// .Reset();
+        if (interop.d3d12.dev == nullptr)
+        device    = nullptr;//.Reset    ();
       }
     }
 
@@ -923,7 +951,8 @@ IUnknown*
 __stdcall
 SK_Render_GetDevice (void)
 {
-  return SK_GetCurrentRenderBackend ().device.p;
+  return
+    SK_GetCurrentRenderBackend ().device;
 }
 
 // Does NOT implicitly AddRef, do NOT hold a reference to this!
@@ -932,7 +961,8 @@ IUnknown*
 __stdcall
 SK_Render_GetSwapChain (void)
 {
-  return SK_GetCurrentRenderBackend ().swapchain.p;
+  return
+    SK_GetCurrentRenderBackend ().swapchain;
 }
 
 
@@ -955,10 +985,12 @@ SK_RenderBackend_V2::window_registry_s::getFocus (void)
 }
 
 
+extern HWND WINAPI SK_GetFocus (void);
+
 void
 SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 {
-  if (focus.hwnd == nullptr || ( GetFocus () == hWnd && hWnd != nullptr && GetActiveWindow () == hWnd ) )
+  if (focus.hwnd == nullptr || ( SK_GetFocus () == hWnd && hWnd != nullptr && GetActiveWindow () == hWnd ) )
   {
     focus              = hWnd;
     game_window.hWnd   = hWnd;
@@ -970,7 +1002,7 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
   else
   {
     SK_LOG1 (( __FUNCTIONW__ L" (%X) --- FAIL [%s %s]", hWnd,
-                GetFocus        () != hWnd ?
+             SK_GetFocus        () != hWnd ?
                   L"GetFocus () != this,"  : L"",
                 GetActiveWindow () != hWnd     ?
                  L"GetActiveWindow () != this" : L""  ),
@@ -1100,7 +1132,7 @@ sk_hwnd_cache_s::sk_hwnd_cache_s (HWND wnd)
   }
 }
 
-ULONG
+ULONG64
 __stdcall
 SK_GetFramesDrawn_NonInline (void)
 {
@@ -1118,7 +1150,7 @@ HDRModeToStr (NV_HDR_MODE mode)
     case NV_HDR_MODE_EDR:              return L"Extended Dynamic Range";
     case NV_HDR_MODE_SDR:              return L"Standard Dynamic Range";
     case NV_HDR_MODE_DOLBY_VISION:     return L"Dolby Vision";
-    case NV_HDR_MODE_UHDA_PASSTHROUGH: return L"HDR10 Passthrough";
+    case NV_HDR_MODE_UHDA_PASSTHROUGH: return L"HDR10 Pass through";
     case NV_HDR_MODE_UHDA_NB:          return L"Notebook HDR";
     default:                           return L"Invalid";
   };
@@ -1253,7 +1285,7 @@ SK_D3D_UnpackShaderCompiler (void)
   if (res)
   {
     SK_LOG0 ( ( L"Unpacking D3DCompiler_47.dll because user does not have "
-                L"June 2010 DirectX Redistributables installed." ),
+                L"June 2010 DirectX Redistributables `ed." ),
                 L"D3DCompile" );
 
     DWORD   res_size     =
@@ -1271,10 +1303,11 @@ SK_D3D_UnpackShaderCompiler (void)
 
     if (locked != nullptr)
     {
-      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
-      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszArchive     [MAX_PATH + 2] = { };
+      wchar_t      wszDestination [MAX_PATH + 2] = { };
 
-      wcscpy (wszDestination, SK_GetHostPath ());
+      wcsncpy_s ( wszDestination,    MAX_PATH,
+                  SK_GetHostPath (), _TRUNCATE );
 
       if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
         SK_CreateDirectories (wszDestination);
@@ -1362,44 +1395,331 @@ SK_D3D_SetupShaderCompiler (void)
   }
 }
 
+#ifndef DPI_ENUMS_DECLARED
+typedef
+  enum { PROCESS_DPI_UNAWARE           = 0,
+         PROCESS_SYSTEM_DPI_AWARE      = 1,
+         PROCESS_PER_MONITOR_DPI_AWARE = 2
+       } PROCESS_DPI_AWARENESS;
+
+typedef
+  enum { MDT_EFFECTIVE_DPI = 0,
+         MDT_ANGULAR_DPI   = 1,
+         MDT_RAW_DPI       = 2,
+         MDT_DEFAULT       = MDT_EFFECTIVE_DPI
+       } MONITOR_DPI_TYPE;
+#endif
+
+#ifndef _DPI_AWARENESS_CONTEXTS_
+DECLARE_HANDLE (DPI_AWARENESS_CONTEXT);
+#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE    (DPI_AWARENESS_CONTEXT)-3
+#endif
+#ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 (DPI_AWARENESS_CONTEXT)-4
+#endif
+
+// Shcore.lib+dll, Windows 8.1
+typedef HRESULT               (WINAPI* SetProcessDpiAwareness_pfn)      (PROCESS_DPI_AWARENESS);
+typedef HRESULT               (WINAPI* GetProcessDpiAwareness_pfn)      (HANDLE, PROCESS_DPI_AWARENESS*);
+// Shcore.lib+dll, Windows 8.1
+typedef HRESULT               (WINAPI* GetDpiForMonitor_pfn)            (HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*);
+// User32.lib + dll, Windows 10 v1607 (Creators Update)
+typedef DPI_AWARENESS_CONTEXT (WINAPI* SetThreadDpiAwarenessContext_pfn)(DPI_AWARENESS_CONTEXT);
+
+static thread_local std::stack <DPI_AWARENESS_CONTEXT> dpi_ctx_stack;
+
+using GetThreadDpiAwarenessContext_pfn  =
+                         DPI_AWARENESS_CONTEXT (WINAPI *)(void);
+
+using GetAwarenessFromDpiAwarenessContext_pfn =
+                         DPI_AWARENESS (WINAPI *)(DPI_AWARENESS_CONTEXT);
+
+DPI_AWARENESS_CONTEXT
+WINAPI
+SK_Display_GetThreadDpiAwarenessContext (void)
+{
+  assert (SK_IsWindows10OrGreater ());
+
+  static HINSTANCE     user32_dll =
+    SK_LoadLibraryW (L"user32.dll");
+
+  static GetThreadDpiAwarenessContext_pfn
+         GetThreadDpiAwarenessContextFn = nullptr;
+
+  if (GetThreadDpiAwarenessContextFn == nullptr)
+  {   GetThreadDpiAwarenessContextFn =
+     (GetThreadDpiAwarenessContext_pfn)
+      SK_GetProcAddress ( user32_dll,
+      "GetThreadDpiAwarenessContext" );
+  }
+
+  if (GetThreadDpiAwarenessContextFn != nullptr)
+    return GetThreadDpiAwarenessContextFn ();
+
+  return nullptr;
+}
+
+DPI_AWARENESS
+WINAPI
+SK_Display_GetThreadDpiAwareness (void)
+{
+  DPI_AWARENESS_CONTEXT dpi_ctx =
+    SK_Display_GetThreadDpiAwarenessContext ();
+
+  if (dpi_ctx != nullptr)
+  {
+    assert (SK_IsWindows10OrGreater ());
+
+    static HINSTANCE     user32_dll =
+      SK_LoadLibraryW (L"user32.dll");
+
+    static GetAwarenessFromDpiAwarenessContext_pfn
+           GetAwarenessFromDpiAwarenessContextFn = nullptr;
+
+    if (GetAwarenessFromDpiAwarenessContextFn == nullptr)
+    {   GetAwarenessFromDpiAwarenessContextFn =
+       (GetAwarenessFromDpiAwarenessContext_pfn)
+        SK_GetProcAddress ( user32_dll,
+        "GetAwarenessFromDpiAwarenessContext" );
+    }
+
+    if (GetAwarenessFromDpiAwarenessContextFn != nullptr)
+      return GetAwarenessFromDpiAwarenessContextFn (dpi_ctx);
+  }
+
+  return DPI_AWARENESS_INVALID;
+}
+
+DPI_AWARENESS_CONTEXT
+WINAPI
+SK_Display_SetThreadDpiAwarenessContext (DPI_AWARENESS_CONTEXT dpi_ctx)
+{
+  assert (SK_IsWindows10OrGreater ());
+
+  static HINSTANCE     user32_dll =
+    SK_LoadLibraryW (L"user32.dll");
+
+  static SetThreadDpiAwarenessContext_pfn
+         SetThreadDpiAwarenessContextFn = nullptr;
+
+  if (SetThreadDpiAwarenessContextFn == nullptr)
+  {   SetThreadDpiAwarenessContextFn =
+     (SetThreadDpiAwarenessContext_pfn)
+      SK_GetProcAddress ( user32_dll,
+      "SetThreadDpiAwarenessContext" );
+  }
+
+  if (SetThreadDpiAwarenessContextFn != nullptr)
+    return SetThreadDpiAwarenessContextFn (dpi_ctx);
+
+  return nullptr;
+}
+
+static SetProcessDpiAwareness_pfn       SetProcessDpiAwarenessFn       = nullptr;
+
+extern BOOL SK_IsWindows8Point1OrGreater (void);
+extern BOOL SK_IsWindows10OrGreater      (void);
+
+
+BOOL
+SK_Display_IsProcessDPIAware (void)
+{
+  if (SK_IsWindows10OrGreater ())
+  {
+    auto awareness =
+      SK_Display_GetThreadDpiAwareness ();
+
+    return
+      ( awareness != DPI_AWARENESS_INVALID &&
+        awareness != DPI_AWARENESS_UNAWARE );
+  }
+
+  if (SK_IsWindows8Point1OrGreater ())
+  {
+    static HINSTANCE     shcore_dll =
+      SK_LoadLibraryW (L"shcore.dll");
+
+    static GetProcessDpiAwareness_pfn
+           GetProcessDpiAwarenessFn = nullptr;
+
+    if (GetProcessDpiAwarenessFn == nullptr)
+    {
+      GetProcessDpiAwarenessFn =
+        (GetProcessDpiAwareness_pfn)
+      SK_GetProcAddress (shcore_dll,
+          "GetProcessDpiAwareness");
+    }
+
+    if (GetProcessDpiAwarenessFn != nullptr)
+    {
+      PROCESS_DPI_AWARENESS awareness =
+        PROCESS_DPI_UNAWARE;
+
+      HRESULT hr =
+        GetProcessDpiAwarenessFn (
+          SK_GetCurrentProcess (),
+            &awareness );
+
+      if (SUCCEEDED (hr))
+        return awareness;
+    }
+  }
+
+  return
+    IsProcessDPIAware ();
+}
+
+BOOL
+SK_Display_IsThreadDPIAware (void)
+{
+  if (SK_IsWindows10OrGreater ())
+  {
+    auto awareness =
+      SK_Display_GetThreadDpiAwareness ();
+
+    return
+      ( awareness != DPI_AWARENESS_INVALID &&
+        awareness != DPI_AWARENESS_UNAWARE );
+  }
+
+  return
+    SK_Display_IsProcessDPIAware ();
+}
+
+void
+SK_Display_PushDPIScaling (void)
+{
+  DPI_AWARENESS_CONTEXT dpi_ctx =
+    SK_Display_GetThreadDpiAwarenessContext ();
+
+  if (dpi_ctx == nullptr)
+    return;
+
+  dpi_ctx_stack.push (dpi_ctx);
+}
+
+void
+SK_Display_PopDPIScaling (void)
+{
+  if (! dpi_ctx_stack.empty ())
+  {
+    SK_Display_SetThreadDpiAwarenessContext (
+      dpi_ctx_stack.top ()
+    );
+
+    dpi_ctx_stack.pop ();
+  }
+}
+
+void
+SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10)
+{
+  if (SK_IsWindows10OrGreater ())
+  {
+    SK_Display_SetThreadDpiAwarenessContext (
+      DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+    );
+
+    return;
+  }
+
+  if (bOnlyIfWin10)
+    return;
+
+  if (SK_IsWindows8Point1OrGreater ())
+  {
+    static HINSTANCE     shcore_dll =
+      SK_LoadLibraryW (L"shcore.dll");
+
+    if (SetProcessDpiAwarenessFn == nullptr)
+    {
+      SetProcessDpiAwarenessFn =
+        (SetProcessDpiAwareness_pfn)
+      SK_GetProcAddress (shcore_dll,
+          "SetProcessDpiAwareness");
+    }
+
+    if (SetProcessDpiAwarenessFn != nullptr)
+    {
+      SetProcessDpiAwarenessFn (
+        PROCESS_PER_MONITOR_DPI_AWARE
+      );
+
+      return;
+    }
+  }
+
+  SetProcessDPIAware ();
+}
+
 void
 SK_Display_DisableDPIScaling (void)
 {
-  DWORD   dwProcessSize = MAX_PATH;
-  wchar_t wszProcessName [MAX_PATH + 2] = { };
+  //DWORD   dwProcessSize = MAX_PATH;
+  //wchar_t wszProcessName [MAX_PATH + 2] = { };
+  //
+  //HANDLE hProc =
+  // SK_GetCurrentProcess ();
+  //
+  //QueryFullProcessImageName (
+  //  hProc, 0,
+  //    wszProcessName, &dwProcessSize
+  //);
+  //
+  //const wchar_t* wszKey        =
+  //  LR"(Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers)";
+  //DWORD          dwDisposition = 0x00;
+  //HKEY           hKey          = nullptr;
+  //
+  //const LSTATUS status =
+  //  RegCreateKeyExW ( HKEY_CURRENT_USER,
+  //                      wszKey,      0,
+  //                        nullptr, 0x0,
+  //                        KEY_READ | KEY_WRITE,
+  //                           nullptr,
+  //                             &hKey,
+  //                               &dwDisposition );
+  //
+  //if ( status == ERROR_SUCCESS &&
+  //     hKey   != nullptr          )
+  //{
+  //  RegSetValueExW (
+  //    hKey, wszProcessName,
+  //      0, REG_SZ,
+  //        (BYTE *)L"~ DPIUNAWARE",
+  //           16 * sizeof (wchar_t) );
+  //
+  //  RegFlushKey (hKey);
+  //  RegCloseKey (hKey);
+  //}
 
-  HANDLE hProc =
-   SK_GetCurrentProcess ();
-
-  QueryFullProcessImageName (
-    hProc, 0,
-      wszProcessName, &dwProcessSize
-  );
-
-  const wchar_t* wszKey        =
-    LR"(Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers)";
-  DWORD          dwDisposition = 0x00;
-  HKEY           hKey          = nullptr;
-
-  const LSTATUS status =
-    RegCreateKeyExW ( HKEY_CURRENT_USER,
-                        wszKey,      0,
-                          nullptr, 0x0,
-                          KEY_READ | KEY_WRITE,
-                             nullptr,
-                               &hKey,
-                                 &dwDisposition );
-
-  if ( status == ERROR_SUCCESS &&
-       hKey   != nullptr          )
+  if (SK_IsWindows10OrGreater ())
   {
-    RegSetValueExW (
-      hKey, wszProcessName,
-        0, REG_SZ,
-          (BYTE *)L"~ HIGHDPIAWARE",
-             16 * sizeof (wchar_t) );
+    SK_Display_SetThreadDpiAwarenessContext (
+      DPI_AWARENESS_CONTEXT_UNAWARE
+    );
 
-    RegFlushKey (hKey);
-    RegCloseKey (hKey);
+    return;
+  }
+
+  if (SK_IsWindows8Point1OrGreater ())
+  {
+    static HINSTANCE     shcore_dll =
+      SK_LoadLibraryW (L"shcore.dll");
+
+    if (SetProcessDpiAwarenessFn == nullptr)
+    {
+      SetProcessDpiAwarenessFn =
+        (SetProcessDpiAwareness_pfn)
+      SK_GetProcAddress (shcore_dll,
+          "SetProcessDpiAwareness");
+    }
+
+    if (SetProcessDpiAwarenessFn != nullptr)
+    {
+      SetProcessDpiAwarenessFn (
+        PROCESS_DPI_UNAWARE
+      );
+    }
   }
 }

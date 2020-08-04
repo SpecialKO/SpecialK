@@ -1025,7 +1025,7 @@ HRESULT DirectX::LoadFromWICMemory(
         return hr;
 
     // Get metadata
-    TexMetadata mdata;
+    TexMetadata        mdata       = { 0 };
     WICPixelFormatGUID convertGUID = { 0 };
     hr = DecodeMetadata(flags, iswic2, decoder.Get(), frame.Get(), mdata, &convertGUID, getMQR);
     if (FAILED(hr))
@@ -1086,7 +1086,7 @@ HRESULT DirectX::LoadFromWICFile(
         return hr;
 
     // Get metadata
-    TexMetadata mdata;
+    TexMetadata        mdata       = { 0 };
     WICPixelFormatGUID convertGUID = { 0 };
     hr = DecodeMetadata(flags, iswic2, decoder.Get(), frame.Get(), mdata, &convertGUID, getMQR);
     if (FAILED(hr))

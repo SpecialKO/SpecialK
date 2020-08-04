@@ -44,7 +44,8 @@ void
 ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
 {
   // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
-  ImGuiIO& io (ImGui::GetIO ());
+  auto& io =
+    ImGui::GetIO ();
 
   int fb_width  = static_cast <int> (io.DisplaySize.x);// * io.DisplayFramebufferScale.x);
   int fb_height = static_cast <int> (io.DisplaySize.y);// * io.DisplayFramebufferScale.y);
@@ -221,12 +222,12 @@ bool
 ImGui_ImplGL3_CreateFontsTexture (void)
 {
   // Build texture atlas
-  ImGuiIO& io (ImGui::GetIO ());
+  auto& io =
+    ImGui::GetIO ();
 
   extern void
   SK_ImGui_LoadFonts (void);
-
-  SK_ImGui_LoadFonts ();
+  SK_ImGui_LoadFonts (    );
 
   unsigned char* pixels = nullptr;
   int            width  = 0,
@@ -237,18 +238,33 @@ ImGui_ImplGL3_CreateFontsTexture (void)
   //
   //  If your ImTextureId represent a higher-level concept than just a GL texture id,
   //    consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
-  io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
+  io.Fonts->GetTexDataAsRGBA32 (
+    &pixels, &width,
+             &height
+  );
 
   // Upload texture to graphics system
   GLint last_texture;
 
-  glGetIntegerv   ( GL_TEXTURE_BINDING_2D, &last_texture               );
-  glGenTextures   ( 1,                     &g_FontTexture              );
-  glBindTexture   ( GL_TEXTURE_2D,          g_FontTexture              );
-  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR    );
-  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR    );
-  glTexImage2D    ( GL_TEXTURE_2D, 0, GL_RGBA, width, height,    0,
-                                     GL_RGBA, GL_UNSIGNED_BYTE, pixels );
+  glGetIntegerv   ( GL_TEXTURE_BINDING_2D,               &last_texture  );
+  glGenTextures   ( 1,                                   &g_FontTexture );
+  glBindTexture   ( GL_TEXTURE_2D,                        g_FontTexture );
+  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                                               GL_LINEAR                );
+                                               //GL_LINEAR_MIPMAP_NEAREST );
+  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                                               GL_LINEAR                );
+  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,  GL_CLAMP_TO_EDGE );
+  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,  GL_CLAMP_TO_EDGE );
+  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R,  GL_CLAMP_TO_EDGE );
+
+//glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD,                0 );
+//glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD,               16 );
+//glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,             16 );
+//glTexParameteri ( GL_TEXTURE_2D, GL_GENERATE_MIPMAP,          GL_TRUE );
+  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,     GL_NONE );
+  glTexImage2D    ( GL_TEXTURE_2D, 0, GL_RGBA, width, height,         0,
+                                      GL_RGBA, GL_UNSIGNED_BYTE, pixels );
 
   // Store our identifier
   io.Fonts->TexID =
@@ -273,30 +289,38 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
   glGetIntegerv (GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
 
   const GLchar *vertex_shader =
-      "#version 330\n"
-      "uniform mat4 ProjMtx;\n"
-      "in vec2 Position;\n"
-      "in vec2 UV;\n"
-      "in vec4 Color;\n"
-      "out vec2 Frag_UV;\n"
-      "out vec4 Frag_Color;\n"
-      "void main()\n"
-      "{\n"
-      " Frag_UV = UV;\n"
-      " Frag_Color = Color;\n"
-      " gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-      "}\n";
+      "#version 330              \n"
+      "                          \n"
+      "uniform mat4 ProjMtx;     \n"
+      "     in vec2 Position;    \n"
+      "     in vec2 UV;          \n"
+      "     in vec4 Color;       \n"
+      "    out vec2 Frag_UV;     \n"
+      "    out vec4 Frag_Color;  \n"
+      "                          \n"
+      "void main (void)          \n"
+      "{                         \n"
+      "  Frag_UV     = UV;       \n"
+      "  Frag_Color  = Color;    \n"
+      "  gl_Position = ProjMtx * \n"
+      "    vec4 ( Position.xy,   \n"
+      "                   0, 1 );\n"
+      "}                         \n";
 
   const GLchar* fragment_shader =
-      "#version 330\n"
-      "uniform sampler2D Texture;\n"
-      "in vec2 Frag_UV;\n"
-      "in vec4 Frag_Color;\n"
-      "out vec4 Out_Color;\n"
-      "void main()\n"
-      "{\n"
-      " Out_Color = Frag_Color * texture( Texture, Frag_UV.st);\n"
-      "}\n";
+      "#version 330                 \n"
+      "                             \n"
+      "uniform sampler2D Texture;   \n"
+      "     in vec2      Frag_UV;   \n"
+      "     in vec4      Frag_Color;\n"
+      "    out vec4       Out_Color;\n"
+      "                             \n"
+      "void main (void)             \n"
+      "{                            \n"
+      "  Out_Color = Frag_Color *   \n"
+      "    texture ( Texture,       \n"
+      "              Frag_UV.st );  \n"
+      "}                            \n";
 
   g_ShaderHandle = glCreateProgram (                  );
   g_VertHandle   = glCreateShader  ( GL_VERTEX_SHADER );
@@ -304,11 +328,11 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
 
   glShaderSource  (g_VertHandle, 1, &vertex_shader,   0);
   glShaderSource  (g_FragHandle, 1, &fragment_shader, 0);
-  glCompileShader (g_VertHandle);
-  glCompileShader (g_FragHandle);
-  glAttachShader  (g_ShaderHandle, g_VertHandle);
-  glAttachShader  (g_ShaderHandle, g_FragHandle);
-  glLinkProgram   (g_ShaderHandle);
+  glCompileShader (g_VertHandle                        );
+  glCompileShader (g_FragHandle                        );
+  glAttachShader  (g_ShaderHandle, g_VertHandle        );
+  glAttachShader  (g_ShaderHandle, g_FragHandle        );
+  glLinkProgram   (g_ShaderHandle                      );
 
   g_AttribLocationTex      = glGetUniformLocation (g_ShaderHandle, "Texture" );
   g_AttribLocationProjMtx  = glGetUniformLocation (g_ShaderHandle, "ProjMtx" );
@@ -316,16 +340,16 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
   g_AttribLocationUV       = glGetAttribLocation  (g_ShaderHandle, "UV"      );
   g_AttribLocationColor    = glGetAttribLocation  (g_ShaderHandle, "Color"   );
 
-  glGenBuffers (1, &g_VboHandle);
-  glGenBuffers (1, &g_ElementsHandle);
+  glGenBuffers      (1,              &g_VboHandle);
+  glGenBuffers      (1,         &g_ElementsHandle);
 
   glGenVertexArrays (1,              &g_VaoHandle);
   glBindVertexArray (                 g_VaoHandle);
   glBindBuffer      (GL_ARRAY_BUFFER, g_VboHandle);
 
   glEnableVertexAttribArray (g_AttribLocationPosition);
-  glEnableVertexAttribArray (g_AttribLocationUV);
-  glEnableVertexAttribArray (g_AttribLocationColor);
+  glEnableVertexAttribArray (g_AttribLocationUV      );
+  glEnableVertexAttribArray (g_AttribLocationColor   );
 
 #define OFFSETOF(TYPE, ELEMENT) ( reinterpret_cast <size_t> (     \
                                     &(reinterpret_cast <TYPE *> ( \
@@ -354,9 +378,9 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
   ImGui_ImplGL3_CreateFontsTexture ();
 
   // Restore modified GL state
-  glBindTexture     (GL_TEXTURE_2D,   last_texture);
+  glBindTexture     (GL_TEXTURE_2D,   last_texture     );
   glBindBuffer      (GL_ARRAY_BUFFER, last_array_buffer);
-  glBindVertexArray (last_vertex_array);
+  glBindVertexArray (                 last_vertex_array);
 
   return true;
 }
@@ -366,7 +390,7 @@ ImGui_ImplGL3_InvalidateDeviceObjects (void)
 {
   extern void
   SK_ImGui_ResetExternal (void);
-  SK_ImGui_ResetExternal ();
+  SK_ImGui_ResetExternal (    );
 
   if (g_VaoHandle)      glDeleteVertexArrays (1, &g_VaoHandle);
   if (g_VboHandle)      glDeleteBuffers      (1, &g_VboHandle);
@@ -390,11 +414,14 @@ ImGui_ImplGL3_InvalidateDeviceObjects (void)
 
   if (g_FontTexture)
   {
-    ImGuiIO& io (ImGui::GetIO ());
+    auto& io =
+      ImGui::GetIO ();
 
-    glDeleteTextures (1, &g_FontTexture);
+    glDeleteTextures (
+      1, &g_FontTexture
+    );    g_FontTexture = 0;
+
     io.Fonts->TexID = nullptr;
-    g_FontTexture   =       0;
   }
 }
 
@@ -403,19 +430,18 @@ ImGui_ImplGL3_Init (void)
 {
   static bool first = true;
 
-  if (first) {
-    if (! QueryPerformanceFrequency  (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
-      return false;
-
-    if (! SK_QueryPerformanceCounter (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
-      return false;
+  if (first)
+  {
+    g_TicksPerSecond  =
+      SK_GetPerfFreq ( ).QuadPart;
+    g_Time            =
+      SK_QueryPerf   ( ).QuadPart;
 
     first = false;
   }
 
-  //g_Window = window;
-
-  ImGuiIO& io (ImGui::GetIO ());
+  auto& io =
+    ImGui::GetIO ();
 
   // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
   io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
@@ -439,6 +465,7 @@ ImGui_ImplGL3_Init (void)
   io.KeyMap [ImGuiKey_Y]          = 'Y';
   io.KeyMap [ImGuiKey_Z]          = 'Z';
 
+  io.ImeWindowHandle    = game_window.hWnd;
   //io.SetClipboardTextFn = ImGui_ImplGL3_SetClipboardText;
   //io.GetClipboardTextFn = ImGui_ImplGL3_GetClipboardText;
   io.ClipboardUserData  = game_window.hWnd;
@@ -462,13 +489,14 @@ ImGui_ImplGL3_NewFrame (void)
   if (! g_FontTexture)
     ImGui_ImplGlfwGL3_CreateDeviceObjects ();
 
-  ImGuiIO& io (ImGui::GetIO ());
+  auto& io =
+    ImGui::GetIO ();
 
+  ////game_window.hWnd =
+  ////  WindowFromDC ( SK_GL_GetCurrentDC () );
 
-  ////game_window.hWnd = WindowFromDC (SK_GL_GetCurrentDC ());
-
-  RECT client;
-  GetClientRect (game_window.hWnd /*WindowFromDC (SK_GL_GetCurrentDC ())*/, &client);
+  RECT                              client = { };
+  GetClientRect (game_window.hWnd, &client);
 
   // Setup display size (every frame to accommodate for window resizing)
   int w = client.right  - client.left,
@@ -483,7 +511,8 @@ ImGui_ImplGL3_NewFrame (void)
   // Stupid hack for engines that switch between shared contexts for alternate
   //   frames ---- for now, assume the framebuffer dimensions are the same.
   //
-  static float last_fb_x = 1920.0f, last_fb_y = 1080;
+  static float last_fb_x = 1920.0f,
+               last_fb_y = 1080.0f;
 
   if (io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f)
   {
@@ -507,9 +536,13 @@ ImGui_ImplGL3_NewFrame (void)
     reinterpret_cast <LARGE_INTEGER *> (&current_time)
   );
 
-  io.DeltaTime = static_cast <float> (current_time - g_Time) /
-                 static_cast <float> (g_TicksPerSecond);
-  g_Time       =                      current_time;
+  io.DeltaTime =
+    std::min ( 1.0f,
+    std::max ( 0.0f, static_cast <float> (
+                    (static_cast <long double> (                       current_time) -
+                     static_cast <long double> (std::exchange (g_Time, current_time))) /
+                     static_cast <long double> (               g_TicksPerSecond      ) ) )
+    );
 
   // Read keyboard modifiers inputS
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
