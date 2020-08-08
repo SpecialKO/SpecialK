@@ -392,3 +392,11 @@ paket-files/
 /build/Release/Win32
 /.vs/SpecialK/v16/ipch/AutoPCH/10eaad2a1e957ecf/APPS_LIST.ipch
 /.vs/SpecialK/v16/ipch/AutoPCH
+/include/shaders/vs_colorutil.h
+/include/shaders/uplay_d3d11_vs.h
+/include/shaders/uplay_d3d11_ps.h
+/include/shaders/uber_hdr_shader_ps.h
+/include/shaders/steam_d3d11_vs.h
+/include/shaders/steam_d3d11_ps.h
+/include/shaders/imgui_d3d11_vs.h
+/include/shaders/imgui_d3d11_ps.h

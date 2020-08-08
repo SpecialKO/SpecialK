@@ -6487,13 +6487,6 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         }
       }
 
-
-      if (game_id == SK_GAME_ID::DotHackGU)
-        pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-      //if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
-      //  pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-
-
       if (       config.render.framerate.buffer_count != -1                  &&
            (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
            pDesc->BufferCount                         !=  0                  &&
@@ -6999,24 +6992,24 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     rb.api       = SK_RenderAPI::D3D11;
     rb.swapchain = pSwapChain;
 
-    SK_ComPtr <ID3D12Device>           pD3D12Dev;
-    pCmdQueue->GetDevice
-          (IID_ID3D12Device, (void **)&pD3D12Dev.p);
-
-    if ( SUCCEEDED (
-           D3D11On12CreateDevice ( pD3D12Dev.p, D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-                                                         nullptr, 0,
-                                    (IUnknown **)&pCmdQueue.p, 1, 0,
-                                (ID3D11Device **)&rb.device.p,
-                                                 &rb.d3d11.immediate_ctx, nullptr )
-                   )
-       )
-    {
-      rb.interop.d3d12.dev =
-        pD3D12Dev;
-
-      SK_LOG0 ( ( L"Sex on a stick!" ), L"  D3D 12  " );
-    }
+    ////SK_ComPtr <ID3D12Device>           pD3D12Dev;
+    ////pCmdQueue->GetDevice
+    ////      (IID_ID3D12Device, (void **)&pD3D12Dev.p);
+    ////
+    ////if ( SUCCEEDED (
+    ////       D3D11On12CreateDevice ( pD3D12Dev.p, D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+    ////                                                     nullptr, 0,
+    ////                                (IUnknown **)&pCmdQueue.p, 1, 0,
+    ////                            (ID3D11Device **)&rb.device.p,
+    ////                                             &rb.d3d11.immediate_ctx, nullptr )
+    ////               )
+    ////   )
+    ////{
+    ////  rb.interop.d3d12.dev =
+    ////    pD3D12Dev;
+    ////
+    //////SK_LOG0 ( ( L"D3D11On12 Interop" ), L"  D3D 12  " );
+    ////}
 
     *ppDest =
       new IWrapDXGISwapChain ((ID3D11Device*)pDevice, pSwapChain);
