@@ -33,8 +33,9 @@ Special K's DLLs are capable of injecting their code in one of two ways:
 	>This is the preferred technique, and the DLL is capable of bootstrapping the hook without any outside assistance via **`RunDLL_InjectionManager (...)`** (**rundll32.exe** will host the DLL as a normal Win32 UI process).
 	
 <br>
+
 There are many more possible ways to inject the DLLs, the two outlined above are useable without any additional tools.
 
 Special K will happily inject into a game that is already running if you want to build your own tool using something like **`CreateRemoteThread (...)`**, but keep in mind that late injection will prevent some of Special K's features (particularly those related to D3D overrides and shader/texture mods) from working.
 
-> CBT Hooks were chosen due to hookchain order. Since most graphics APIs on Windows need a window before they can do non-trivial initialization, a CBT hooks gets us into the application ***before*** D3D9/11/12 swapchain creation.
+> CBT Hooks were chosen due to hookchain order. Since most graphics APIs on Windows need a window before they can do non-trivial initialization, a CBT hook reliably gets us into the application ***before*** D3D9/11/12 swapchain creation.

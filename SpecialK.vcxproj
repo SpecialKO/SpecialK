@@ -544,6 +544,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Text Include="CHANGELOG.txt" />
     <Text Include="depends\include\glm\CMakeLists.txt" />
     <Text Include="LICENSE.txt" />
     <Text Include="resource\licenses\7zip.txt" />
@@ -1710,7 +1711,6 @@
     <ClCompile Include="win32_isolation.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CHANGELOG" />
     <None Include="depends\include\DirectXTex\DirectXTex.inl" />
     <None Include="depends\include\DXSDK\D3DX10math.inl" />
     <None Include="depends\include\DXSDK\d3dx9math.inl" />

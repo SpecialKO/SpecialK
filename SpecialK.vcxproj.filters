@@ -3553,7 +3553,6 @@
     <None Include="injector64.dll">
       <Filter>Update Server</Filter>
     </None>
-    <None Include="CHANGELOG" />
     <None Include="README.md" />
     <None Include="include\imgui\imgui_user.inl">
       <Filter>Header Files\External Libraries\ImGui</Filter>
@@ -4493,6 +4492,7 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
@@ -4571,6 +4571,7 @@
     <Text Include="LICENSE.txt">
       <Filter>Tobii</Filter>
     </Text>
+    <Text Include="CHANGELOG.txt" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="depends\lib\CEGUI\Win32\CEGUIBase-0.lib">

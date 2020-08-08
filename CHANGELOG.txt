@@ -1,4 +1,106 @@
-﻿0.11.0.28
+﻿
+0.11.0.45:
+
+ + Fixed Windows key blocking behavior in games that use RawInput to poll the keyboard
+ + Fixed keyboard disconnect behavior in Resident Evil 3
+ + Added tooltip explaining the purpose of CPU core count spoofing to Framerate Limiter > Advanced
+
+
+0.11.0.43:
+
+ + Improved performance of D3D11 Render Mod Toolkit in games with many RenderTargetViews
+ + Reduced state tracking overhead for "DisableIfTexture=..." D3D11 shader mods significantly
+ 
+ + Temporarily disabled support for modding D3D11 textures that use Staging uploads
+ 
+   >> Engines that use Staging data uploads most often == Unreal + Unity.
+   
+ + Gamepad Input Blocking properly queries and fills-in neutral/deadzone values for analog axes
+ 
+   >> Prevents issues in DirectInput games where a game's menu constantly scrolls while SK's
+        control panel is using the gamepad
+
+ + Found and killed Persona 4's crash handler so that Special K's can do something useful instead.
+ 
+ + Added Denuvo anti-debug workarounds for a number of NtDll and Kernel32 thread / handle APIs
+ 
+   >> Much less of a hassle debugging broken Denuvo games during startup :)
+
+
+0.11.0.42:
+
+ + Fixed false-positive shader resources showing up in D3D11 Render Mod Toolkit for many 32-bit games
+ + Added memory limit checks prior to taking enhanced screenshots in 32-bit D3D11 software
+ + Added Large Address Aware patch detection for Persona 4
+
+ HDR stuff
+ 
+ > HDR Widget now defaults to a swapchain with at least 4 backbuffers and 5 device latency for better
+     frame pacing.
+ > HDR Widget no longer overwrites existing swapchain tweaks, provided they satisfy 1)
+
+ Project-wide Odds and Ends
+ 
+ > In order to reach a larger audience, Special K and all associated tools and DLLs will no longer be
+     compiled targeting AVX CPU instructions. I still do not intend to support Windows 7, but will
+       attempt to support users with pre-AVX CPUs.
+
+
+0.11.0.36:
+
+   -----------------------------------------------------------------------------------------
+ + Class Leading D3D11 FPS Limiter Pulls Ahead
+
+   Implemented flip model glitch recovery to eliminate microstutter in even the most stubborn
+     engines (i.e. Tales of Vesperia). Many scenarios that used to require the framerate limiter
+       be turned off and then back on to get a flat framepacing graph have been completely eliminated.
+
+    * You should always turn Special K's framerate limiter on in D3D11 games for lowest input latency
+      and smoothest frame pacing.
+
+    * To get the most out of SK's framerate limiter, you need to use flip model.
+         Refer to the following recommendations for best framerate limiter performance.
+
+    Recommended SwapChain Settings
+    ---------------------------------------
+    [✔️] Use Flip Model Presentation
+      Presentation Interval.: 1 (refresh)
+      Backbuffer Count......: 4 (buffers)
+      Max. Device Latency...: 5 (frames)
+    [✔️] Waitable SwapChain
+      Maximum Wait Period...: 200 (ms)
+
+    (*) Run all games in borderless window mode, Fullscreen is actually a performance bottleneck
+          versus Flip Model w/ SK's limiter.
+
+   -----------------------------------------------------------------------------------------
+
+   In related news, Special K's limiter compared to the competition. Those results pre-date the advances
+     made in 0.11.0.36, but show that Special K's framerate limiter was already leaps and bounds ahead of
+       the alternatives.
+     
+   >> https://steamcommunity.com/linkfilter/?url=https://www.reddit.com/r/allbenchmarks/comments/gohkn9/specialks_frame_rate_limiter_review_dx11_based/
+
+
+0.11.0.30:
+
+ + Fixed HBAO over-darkening many games
+ 
+ + Fixed games not exiting during SteamAPI shutdown
+ + Fixed memory leaks in some Unreal Engine 4 games
+ + Added support for Flip Model to NieR: Automata
+ + Added support for HDR to NieR: Automata
+ 
+ + Added HDR widget options to control precision of non-HDR render passes
+ 
+     >> 10- and 11-bit passes are expanded to 16-bit by default
+     >> Enabling may reduce banding artifacts or produce more dynamic highlights
+
+ > These changes require running SKIF (Special K Injection Frontend) once to update Special K; if you have
+     Global Injection to start with Windows it will continue to use the old version until you launch SKIF.
+
+
+0.11.0.28:
 
    -----------------------------------------------------------------------------------------
  + HDR retrofit should now work with ALL D3D11 games that support Flip Model (NieR does not)
@@ -58,9 +160,16 @@ Recommended SwapChain Settings for HDR:
   [??] Waitable SwapChain
        Maximum Wait Period...: 200?(ms)
 
+
+0.11.0.3:
+
+ + Fix issues in games that use PhysX (i.e. FFXV, Arkham Knight)
+
+
 0.10.2.1:
 
  + Fixed shell32.dll hook issue in Steam client that prevented games from restarting
+
 
 0.10.2:
 
