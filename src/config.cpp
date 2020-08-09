@@ -126,7 +126,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"sekiro.exe"),                             SK_GAME_ID::Sekiro                       },
       { hash_lower (L"Octopath_Traveler-Win64-Shipping.exe"),   SK_GAME_ID::OctopathTraveler             },
       { hash_lower (L"SonicMania.exe"),                         SK_GAME_ID::SonicMania                   },
-      { hash_lower (L"P4G.exe"),                                SK_GAME_ID::Persona4                     }
+      { hash_lower (L"P4G.exe"),                                SK_GAME_ID::Persona4                     },
+      { hash_lower (L"HorizonZeroDawn.exe"),                    SK_GAME_ID::HorizonZeroDawn              }
     };
 
     first_check = false;
@@ -1881,6 +1882,13 @@ auto DeclKeybind =
 
 
 #ifdef _M_AMD64
+      case SK_GAME_ID::HorizonZeroDawn:
+        // Game uses UI mouse cursor position for mouselook,
+        //   it needs to be clipped because developers don't
+        //     know about relative input (e.g. RawInput).
+        config.input.mouse.ignore_small_clips     = false;
+        break;
+
       case SK_GAME_ID::Yakuza0:
         ///// Engine has a problem with its texture management that
         /////   makes texture caching / modding impossible.

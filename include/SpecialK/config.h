@@ -918,6 +918,7 @@ enum class SK_GAME_ID
   OctopathTraveler,             // Octopath_Traveler-Win64-Shipping.exe
   SonicMania,                   // SonicMania.exe
   Persona4,                     // P4G.exe
+  HorizonZeroDawn,              // HorizonZeroDawn.exe
 
   UNKNOWN_GAME               = 0xffff
 };
