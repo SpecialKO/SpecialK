@@ -79,7 +79,7 @@
      made in 0.11.0.36, but show that Special K's framerate limiter was already leaps and bounds ahead of
        the alternatives.
      
-   >> https://steamcommunity.com/linkfilter/?url=https://www.reddit.com/r/allbenchmarks/comments/gohkn9/specialks_frame_rate_limiter_review_dx11_based/
+   >> https://www.reddit.com/r/allbenchmarks/comments/gohkn9/specialks_frame_rate_limiter_review_dx11_based/
 
 
 0.11.0.30:
