@@ -555,6 +555,9 @@ struct sk_config_t
       // If absolute cursor position is stuck (i.e. Dreamfall Chapters) use this
       bool    add_relative_motion = true;
       bool    disabled_to_game    = false;
+      bool    ignore_small_clips  = true; // Ignore mouse clipping rects < 75% the
+                                          //   dimensions of the client window, so
+                                          //     that UI input works.
     } mouse;
   } input;
 

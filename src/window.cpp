@@ -1171,10 +1171,12 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 bool
 SK_ExpandSmallClipCursor (RECT *lpRect)
 {
+  if (! config.input.mouse.ignore_small_clips)
+    return false;
+
   // Don't do this until we've initialized the window
   if (game_window.WndProc_Original == nullptr)
     return false;
-
 
   RECT client, window;
 
