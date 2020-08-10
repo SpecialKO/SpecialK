@@ -2602,14 +2602,16 @@ SK_BeginBufferSwap (void)
   {
     if (config.cegui.enable || rb.api == SK_RenderAPI::D3D12)
     {
-      SetupCEGUI (LastKnownAPI);
+      if (rb.api != SK_RenderAPI::D3D12)
+        SetupCEGUI (LastKnownAPI);
 
       if (config.cegui.frames_drawn > 0 || rb.api == SK_RenderAPI::D3D12)
       {
         if (! SK::SteamAPI::GetOverlayState (true))
         {
-          SK_DrawOSD     ();
-          SK_DrawConsole ();
+          if (rb.api != SK_RenderAPI::D3D12)
+            SK_DrawOSD     ();
+          SK_DrawConsole   ();
         }
       }
     }

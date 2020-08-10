@@ -4678,7 +4678,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
     // Application preference
     if (interval == -1)
-      interval = SyncInterval;
+        interval = SyncInterval;
 
     rb.present_interval = interval;
 

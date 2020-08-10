@@ -1539,12 +1539,6 @@ GetWindowRect_Detour (
   _In_   HWND  hWnd,
   _Out_ LPRECT lpRect )
 {
-  //if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
-  //{
-  //  if (hWnd == 0)
-  //      hWnd  = GetDesktopWindow ();
-  //}
-
   SK_LOG_FIRST_CALL
 
     if ( config.window.borderless &&
@@ -1646,12 +1640,6 @@ AdjustWindowRect_Detour (
                   SK_SummarizeCaller ().c_str () ),
               L"Window Mgr" );
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
-    return TRUE;
-
-  if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
-    return TRUE;
-
   // Override if forcing Fullscreen Borderless
   //
   if (config.window.fullscreen && config.window.borderless && (! bMenu))
@@ -1711,12 +1699,6 @@ AdjustWindowRectEx_Detour (
            dwExStyle,
            SK_SummarizeCaller ().c_str () ),
            L"Window Mgr" );
-
-  if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
-    return TRUE;
-
-  if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
-    return TRUE;
 
   // Override if forcing Fullscreen Borderless
   //
