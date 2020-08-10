@@ -1887,6 +1887,8 @@ auto DeclKeybind =
         //   it needs to be clipped because developers don't
         //     know about relative input (e.g. RawInput).
         config.input.mouse.ignore_small_clips     = false;
+        config.compatibility.impersonate_debugger = true;
+        config.window.treat_fg_as_active          = true;
         break;
 
       case SK_GAME_ID::Yakuza0:
