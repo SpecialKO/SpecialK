@@ -5692,6 +5692,8 @@ typedef HRESULT (WINAPI* PFN_GetDpiForMonitor)(HMONITOR, MONITOR_DPI_TYPE, UINT*
 BOOL
 SK_IsWindows8Point1OrGreater (void)
 {
+  SK_RunOnce (SetLastError (NO_ERROR));
+
   static BOOL
     bResult =
       GetProcAddress (
@@ -5706,13 +5708,15 @@ SK_IsWindows8Point1OrGreater (void)
 BOOL
 SK_IsWindows10OrGreater (void)
 {
+  SK_RunOnce (SetLastError (NO_ERROR));
+
   static BOOL
-  bResult =
-    GetProcAddress (
-      GetModuleHandleW (L"kernel32.dll"),
-                         "SetThreadDescription"
-                   ) != nullptr &&
-    GetLastError  () == NO_ERROR;
+    bResult =
+      GetProcAddress (
+        GetModuleHandleW (L"kernel32.dll"),
+                           "SetThreadDescription"
+                     ) != nullptr &&
+      GetLastError  () == NO_ERROR;
 
   return bResult;
 }
