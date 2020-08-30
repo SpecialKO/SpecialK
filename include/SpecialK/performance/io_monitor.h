@@ -41,20 +41,20 @@ struct thread_events
 extern SK_LazyGlobal <thread_events> perfmon;
 
 struct io_perf_t {
-  bool           init         = false;
+  bool           init          = false;
 
-  ULARGE_INTEGER last_update  = { 0, 0 };
-  IO_COUNTERS    accum        = {      };
-  ULONGLONG      dt           =     0ULL;
-  IO_COUNTERS    last_counter = {      };
+  ULARGE_INTEGER last_update   = { 0, 0 };
+  IO_COUNTERS    accum         = {      };
+  ULONGLONG      dt            =     0ULL;
+  IO_COUNTERS    last_counter  = {      };
 
-  long double    read_mb_sec   = 0.0L;
-  long double    write_mb_sec  = 0.0L;
-  long double    other_mb_sec  = 0.0L;
+  double         read_mb_sec   = 0.0;
+  double         write_mb_sec  = 0.0;
+  double         other_mb_sec  = 0.0;
 
-  long double    read_iop_sec  = 0.0L;
-  long double    write_iop_sec = 0.0L;
-  long double    other_iop_sec = 0.0L;
+  double         read_iop_sec  = 0.0;
+  double         write_iop_sec = 0.0;
+  double         other_iop_sec = 0.0;
 };
 
 void SK_CountIO (io_perf_t& ioc, const double update = 0.25 / 1.0e-7);

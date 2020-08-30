@@ -50,8 +50,8 @@ auto
 };
 
 auto constexpr
-Keybinding = [] ( SK_Keybind*           binding,
-                  sk::ParameterStringW* param ) ->
+_HDRKeybinding = [] ( SK_Keybind*           binding,
+                      sk::ParameterStringW* param ) ->
 auto
 {
   if (param == nullptr)
@@ -680,7 +680,7 @@ public:
           if (ImGui::SliderFloat ( "###SK_HDR_LUMINANCE",  &nits, 80.0f,
                                      __SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY :
                                                             rb.display_gamut.maxY,
-              u8"Peak White Luminance: %.1f cd/m²" ))
+              (const char *)u8"Peak White Luminance: %.1f cd/m²" ))
           {
             __SK_HDR_Luma = nits * 1.0_Nits;
 
@@ -736,7 +736,7 @@ public:
           ImGui::BeginGroup ();
           for ( auto& it : hdr_presets )
           {
-            ImGui::Text ( u8"Peak White: %5.1f cd/m²",
+            ImGui::Text ( (const char *)u8"Peak White: %5.1f cd/m²",
                           it.peak_white_nits / 1.0_Nits );
           }
           ImGui::EndGroup   ();
@@ -746,7 +746,7 @@ public:
           ImGui::BeginGroup ();
           for ( auto& it : hdr_presets )
           {
-            ImGui::Text ( u8"Power-Law ɣ: %3.1f",
+            ImGui::Text ( (const char *)u8"Power-Law ɣ: %3.1f",
                             it.eotf );
           }
           ImGui::EndGroup   ();
@@ -760,8 +760,8 @@ public:
 
           for ( auto& it : hdr_presets )
           {
-            Keybinding ( &it.preset_activate,
-                        (&it.preset_activate)->param );
+            _HDRKeybinding ( &it.preset_activate,
+                            (&it.preset_activate)->param );
           }
           ImGui::EndGroup  ();
           ImGui::Separator ();
@@ -864,12 +864,12 @@ public:
             ImGui::EndGroup    ();
 
             ImGui::BeginGroup  ();
-            ImGui::SliderFloat ("Non-Std. SDR Peak White", &__SK_HDR_user_sdr_Y, 80.0f, 400.0f, u8"%.3f cd/m²");
+            ImGui::SliderFloat ("Non-Std. SDR Peak White", &__SK_HDR_user_sdr_Y, 80.0f, 400.0f, (const char *)u8"%.3f cd/m²");
 
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    (  );
-              ImGui::TextUnformatted (u8"Technically 80.0 cd/m² is the Standard Peak White Luminance for sRGB");
+              ImGui::TextUnformatted ((const char *)u8"Technically 80.0 cd/m² is the Standard Peak White Luminance for sRGB");
               ImGui::Separator       (  );
               ImGui::BulletText      ("It is doubtful you are accustomed to an image that dim, so...");
               ImGui::BulletText      ("Supply your own expected luminance (i.e. a familiar display's rated peak brightness)");

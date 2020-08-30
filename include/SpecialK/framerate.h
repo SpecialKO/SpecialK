@@ -39,17 +39,8 @@ constexpr T narrow_cast(U&& u)
 }
 
 static constexpr auto
-  long_double_cast =
-  [](auto val) ->
-    long double
-    {
-      return
-        static_cast <long double> (val);
-    };
-
-static constexpr auto
   _isreal =
-  [](long double float_val) ->
+  [](double float_val) ->
     bool
     {
       //return
@@ -116,23 +107,23 @@ namespace SK
     void Init     (void);
     void Shutdown (void);
 
-    void Tick     (long double& dt, LARGE_INTEGER& now);
+    void Tick     (double& dt, LARGE_INTEGER& now);
 
     class Limiter {
     public:
-      Limiter (long double target = 60.0l);
+      Limiter (double target = 60.0);
 
       ~Limiter (void) = default;
 
-      void            init            (long double target);
+      void            init            (double target);
       void            wait            (void);
       bool        try_wait            (void); // No actual wait, just return
                                               //  whether a wait would have occurred.
 
-      void        set_limit           (long double target);
-      long double get_limit           (void) noexcept { return fps; };
+      void        set_limit           (double target);
+      double      get_limit           (void) noexcept { return fps; };
 
-      long double effective_frametime (void);
+      double      effective_frametime (void);
 
       int32_t     suspend             (void) noexcept { return ++limit_behavior; }
       int32_t     resume              (void) noexcept { return --limit_behavior; }
@@ -147,9 +138,9 @@ namespace SK
         bool        *pFullRestart;
         bool        *pBackground;
 
-        long double  ms;
-        long double  fps;
-        long double  effective_ms;
+        double       ms;
+        double       fps;
+        double       effective_ms;
 
         uint64_t     ticks_per_frame;
 
@@ -186,14 +177,54 @@ namespace SK
         return rate_shot;
       }
 
+      // Record keeping data pertaining to all frames SK has seen
+      //   for the entire application runtime, irrespective of user-
+      //     defined preferences for limiting / skipping.
+      struct frame_journal_s
+      {
+        struct dataspread_s
+        {
+          struct
+          {
+            LONG64 frame_idx = -1;
+            LONG64 clock_val =  0;
+
+            void initFrame (LONG64 lvi) { frame_idx =
+             ( frame_idx == -1 ) ? lvi  : frame_idx;};
+            void initClock (LONG64 lvc) { clock_val =
+             ( clock_val ==  0 ) ? lvc  : clock_val;};
+          } first, last;
+
+          LONG64
+            count (void) const
+            { return
+               last.frame_idx -
+              first.frame_idx;
+            }
+          LONG64
+            duration (void) const
+            { return
+                 last.clock_val -
+                first.clock_val;
+            }
+        } frames_measured;
+
+        struct {
+          dataspread_s span = { { -1, 0 },
+                                { -1, 0 } };
+        } limiter_resets;
+
+      //LONG64 time_waited = 0; // TODO
+      } static frames_of_fame;
+
     private:
       bool          restart      = false;
       bool          full_restart = false;
       bool          background   = false;
 
-      long double   ms           = 0.0L,
-                    fps          = 0.0L,
-                    effective_ms = 0.0L;
+      double        ms           = 0.0,
+                    fps          = 0.0,
+                    effective_ms = 0.0;
 
       ULONGLONG     ticks_per_frame = 0ULL;
 
@@ -204,6 +235,8 @@ namespace SK
                     last   = { },
                     freq   = { };
 
+      static
+          LONG64    first_frame;
       volatile
           LONG64    frames = 0;
 
@@ -286,8 +319,12 @@ namespace SK
       Stats (void) noexcept {
         QueryPerformanceFrequency (&freq);
       }
+
+      std::vector <double>&
+        sortAndCacheFrametimeHistory (void);
+
       struct sample_t {
-        long double   val  = 0.0;
+        double        val  =   0.0   ;
         LARGE_INTEGER when = { 0ULL };
       } data [MAX_SAMPLES];
 
@@ -307,13 +344,13 @@ namespace SK
         volatile LONG work_idx       = 0;
         volatile LONG _init          = 0;
 
-        std::pair <ULONG, std::vector <long double>>
+        std::pair <ULONG, std::vector <double> >
                       sorted_frame_history [2];
       } worker;
 
-      int64_t samples      = 0;
+      int64_t samples = 0;
 
-      bool addSample (long double sample, LARGE_INTEGER time) noexcept
+      bool addSample (double sample, LARGE_INTEGER time) noexcept
       {
         data [samples % MAX_SAMPLES].val  = sample;
         data [samples % MAX_SAMPLES].when = time;
@@ -322,7 +359,7 @@ namespace SK
           ( ( ++samples % MAX_SAMPLES ) == 0 );
       }
 
-      long double calcDataTimespan (void)
+      double calcDataTimespan (void)
       {
         uint64_t samples_present =
           samples < MAX_SAMPLES ?
@@ -355,34 +392,33 @@ namespace SK
         }
 
         return
-          long_double_cast (max_time.QuadPart - min_time.QuadPart) /
-          long_double_cast ( SK::Framerate::Stats::freq.QuadPart );
+          static_cast <double> (max_time.QuadPart - min_time.QuadPart) /
+          static_cast <double> ( SK::Framerate::Stats::freq.QuadPart );
       }
 
-            int calcNumSamples   (long double seconds = 1.0L);
-    long double calcMean         (long double seconds = 1.0L);
-    long double calcSqStdDev     (long double mean,
-                                  long double seconds = 1.0L);
-    long double calcMin          (long double seconds = 1.0L);
-    long double calcMax          (long double seconds = 1.0L);
-            int calcHitches      (long double tolerance,
-                                  long double mean,
-                                  long double seconds = 1.0L);
+         int calcNumSamples         (double seconds  = 1.0);
+      double calcMean               (double seconds  = 1.0);
+      double calcSqStdDev           (double mean,
+                                     double seconds  = 1.0);
+      double calcMin                (double seconds  = 1.0);
+      double calcMax                (double seconds  = 1.0);
+         int calcHitches            (double tolerance,
+                                     double mean,
+                                     double seconds  = 1.0);
 
-    long double calcOnePercentLow      (long double seconds = 1.0L);
-    long double calcPointOnePercentLow (long double seconds = 1.0L);
+      double calcOnePercentLow      (double seconds  = 1.0);
+      double calcPointOnePercentLow (double seconds  = 1.0);
 
-      long double calcMean (LARGE_INTEGER start) noexcept
+      double calcMean               (LARGE_INTEGER start) noexcept
       {
-        long double mean = 0.0L;
-
-        int samples_used = 0;
+        double mean         = 0.0;
+        int    samples_used =  0 ;
 
         for ( const auto datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (_isreal (datum.val) && datum.val > 0.0L)
+            if (_isreal (datum.val) && datum.val > 0.0)
             {
               ++samples_used;
               mean += datum.val;
@@ -391,16 +427,14 @@ namespace SK
         }
 
         return
-          ( mean / static_cast <long double> (samples_used) );
+          ( mean / static_cast <double> (samples_used) );
       }
 
-      std::vector <long double>& sortAndCacheFrametimeHistory (void);
-
-      long double calcPercentile (float percent, LARGE_INTEGER start) //noexcept
+      double calcPercentile (float percent, LARGE_INTEGER start) //noexcept
       {
         UNREFERENCED_PARAMETER (start);
 
-        std::vector <long double>&
+        std::vector <double>&
                sampled_lows = sortAndCacheFrametimeHistory ();
         size_t samples_used = sampled_lows.size            ();
 
@@ -411,68 +445,68 @@ namespace SK
               )
           );
 
-        const long double
+        const double
             avg_ms =
               std::accumulate ( sampled_lows.begin (),
                                                   sampled_lows.begin ()  + end_sample_idx,
-                                  0.0L ) / (long double)(end_sample_idx);
+                                   0.0 ) / (double)(end_sample_idx);
 
         return
           avg_ms;
       }
 
-      long double calcOnePercentLow (LARGE_INTEGER start) //noexcept
+      double calcOnePercentLow (LARGE_INTEGER start) //noexcept
       {
         UNREFERENCED_PARAMETER (start);
 
-        std::vector <long double>&
+        std::vector <double>&
                sampled_lows = sortAndCacheFrametimeHistory ();
         size_t samples_used = sampled_lows.size            ();
 
         size_t end_sample_idx =
           (size_t)std::round ((float)samples_used / 100.0f);
 
-        const long double
+        const double
             one_percent_avg_ms =
               std::accumulate ( sampled_lows.begin (),
                                 sampled_lows.begin ()  + end_sample_idx,
-                                  0.0L ) / (long double)(end_sample_idx);
+                                        0.0 ) / (double)(end_sample_idx);
 
         return
           one_percent_avg_ms;
       }
 
-      long double calcPointOnePercentLow (LARGE_INTEGER start) //noexcept
+      double calcPointOnePercentLow (LARGE_INTEGER start) //noexcept
       {
         UNREFERENCED_PARAMETER (start);
 
-        std::vector <long double>&
+        std::vector <double>&
                sampled_lows = sortAndCacheFrametimeHistory ();
         size_t samples_used = sampled_lows.size            ();
 
         size_t end_sample_idx =
           (size_t)std::round ((float)samples_used / 1000.0f);
 
-        const long double
+        const double
             point_one_percent_avg_ms =
               std::accumulate ( sampled_lows.begin (),
                                 sampled_lows.begin ()  + end_sample_idx,
-                                  0.0L ) / (long double)(end_sample_idx);
+                                        0.0 ) / (double)(end_sample_idx);
 
         return
           point_one_percent_avg_ms;
       }
 
-      long double calcSqStdDev (long double mean, LARGE_INTEGER start) noexcept
+      double calcSqStdDev (double mean, LARGE_INTEGER start) noexcept
       {
-        long double sd2  = 0.0L;
-        int samples_used = 0;
+        double sd2          = 0.0;
+        int    samples_used = 0;
 
         for ( const auto datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (_isreal (datum.val) && datum.val > 0.0L)
+            if (_isreal (datum.val) && datum.val > 0.0)
             {
               sd2 += (datum.val - mean) *
                      (datum.val - mean);
@@ -481,18 +515,18 @@ namespace SK
           }
         }
 
-        return sd2 / static_cast <long double> (samples_used);
+        return sd2 / static_cast <double> (samples_used);
       }
 
-      long double calcMin (LARGE_INTEGER start) noexcept
+      double calcMin (LARGE_INTEGER start) noexcept
       {
-        long double min = INFINITY;
+        double min = INFINITY;
 
         for ( const auto datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (_isreal (datum.val) && datum.val > 0.0L)
+            if (_isreal (datum.val) && datum.val > 0.0)
             {
               if (datum.val < min)
                 min = datum.val;
@@ -503,15 +537,15 @@ namespace SK
         return min;
       }
 
-      long double calcMax (LARGE_INTEGER start) noexcept
+      double calcMax (LARGE_INTEGER start) noexcept
       {
-        long double max = -INFINITY;
+        double max = -INFINITY;
 
         for ( const auto datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (_isreal (datum.val) && datum.val > 0.0L)
+            if (_isreal (datum.val) && datum.val > 0.0)
             {
               if (datum.val > max)
                 max = datum.val;
@@ -522,7 +556,7 @@ namespace SK
         return max;
       }
 
-      int calcHitches (long double tolerance, long double mean, LARGE_INTEGER start) noexcept
+      int calcHitches (double tolerance, double mean, LARGE_INTEGER start) noexcept
       {
         int  hitches   = 0;
         bool last_late = false;
@@ -556,7 +590,7 @@ namespace SK
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            //if (_isreal (datum.val) && datum.val > 0.0L)
+            //if (_isreal (datum.val) && datum.val > 0.0)
             //{
               samples_used++;
             //}

@@ -1950,8 +1950,8 @@ public:
           snprintf
                 ( szAvg,
                     511,
-                      u8"CPU%lu:\n\n"
-                      u8"          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
+                      "CPU%lu:\n\n"
+                      "          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
                         i-1,
                           cpu_records [i].getMin (), cpu_records [i].getMax (),
                           cpu_records [i].getAvg () );
@@ -1962,8 +1962,8 @@ public:
           snprintf
                 ( szAvg,
                     511,
-                      u8"%s\t\t\n\n"
-                      u8"          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
+                      "%s\t\t\n\n"
+                      "          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
                         InstructionSet::Brand ().c_str (),
                         cpu_records [i].getMin (), cpu_records [i].getMax (),
                         cpu_records [i].getAvg () );
@@ -2021,7 +2021,7 @@ public:
             {
               ImGui::SameLine        ();
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
-              ImGui::TextUnformatted (u8"ー");
+              ImGui::TextUnformatted ((const char *)u8"ー");
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.3f - (0.3f * std::min (1.0f, ((static_cast <float> (dTemp) / 2.0f) / 100.0f))), 1.f, 1.f, 1.f));
               ImGui::SameLine        ();
               ImGui::TextUnformatted (temp.c_str ());
@@ -2035,7 +2035,7 @@ public:
             {
               ImGui::SameLine        ();
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
-              ImGui::TextUnformatted (u8"ー");
+              ImGui::TextUnformatted ((const char *)u8"ー");
               ImGui::SameLine        ();
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.13294F, 0.734f, .94f, 1.f));
               ImGui::Text            ("%05.2f W", __SK_CPU.pkg_sensor.power_W );
@@ -2048,7 +2048,7 @@ public:
 
               ImGui::SameLine        ( ); ImGui::Spacing (); ImGui::SameLine ();
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.3f - (0.3f * (cpu_records [0].getAvg () / 100.0f)), 0.80f, 0.95f, 1.f));
-              ImGui::TextUnformatted (u8"〇");
+              ImGui::TextUnformatted ((const char *)u8"〇");
               ImGui::SameLine        ( ); ImGui::Spacing (); ImGui::SameLine ();
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.14583f, 0.98f, .97f, 1.f));
 
@@ -2182,14 +2182,14 @@ public:
 
               //else
               //{
-              //  core_temp.assign (u8"………");
+              //  core_temp.assign ((const char *)u8"………");
               //}
 
               if (parked_since == 0 || show_parked)
               {
                 ImGui::SameLine        ();
                 ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
-                ImGui::TextUnformatted (u8"ー");
+                ImGui::TextUnformatted ((const char *)u8"ー");
                 if (SK_CPU_IsZen ())
                   ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (
                     static_cast <float> (0.3 - (0.3 * std::min (1.0, ((core_sensors.temperature_C / 2.0) / 100.0)))),
@@ -2210,7 +2210,7 @@ public:
             {
               ImGui::SameLine        (      );
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
-              ImGui::TextUnformatted (u8"ー");
+              ImGui::TextUnformatted ((const char *)u8"ー");
               ImGui::SameLine        (      );
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.13294F, 0.734f, .94f, 1.f));
               ImGui::Text            ("%05.2f W", core_sensors.power_W );
@@ -2225,7 +2225,7 @@ public:
                 ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.3f - (0.3f * (cpu_records [j].getAvg () / 100.0f)), 0.80f, 0.95f, 1.f));
               else
                 ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.57194F,                                             0.5f,  0.5f, 1.f));
-              ImGui::TextUnformatted (u8"〇");
+              ImGui::TextUnformatted ((const char *)u8"〇");
               ImGui::SameLine        ( ); ImGui::Spacing ( ); ImGui::SameLine ();
               ImGui::Text            ("%02.0f%%", cpu_records [j].getAvg ());
               ImGui::PopStyleColor   ( );
@@ -2234,7 +2234,7 @@ public:
               {
                 ImGui::SameLine        (      );
                 ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
-                ImGui::TextUnformatted (u8"ー");
+                ImGui::TextUnformatted ((const char *)u8"ー");
                 ImGui::SameLine        (      );
                 ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.57194F, 0.534f, .94f, 1.f));
                 ImGui::Text            ( "Parked %5.1f Secs",

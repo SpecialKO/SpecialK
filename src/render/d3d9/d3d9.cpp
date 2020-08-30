@@ -397,8 +397,8 @@ CEGUI::Direct3D9Renderer* cegD3D9 = nullptr;
 
 IDirect3DStateBlock9*     cegD3D9_SB = nullptr;
 
-static volatile LONG __gui_reset          = TRUE;
-static volatile LONG __cegui_frames_drawn = 0L;
+static volatile ULONG __gui_reset_d3d9     = TRUE;
+static volatile ULONG __cegui_frames_drawn =   0L;
 
 void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
 
@@ -461,7 +461,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
   InterlockedIncrementAcquire (&__cegui_frames_drawn);
 
-  if (InterlockedCompareExchangeRelease (&__gui_reset, FALSE, TRUE))
+  if (InterlockedCompareExchangeRelease (&__gui_reset_d3d9, FALSE, TRUE))
   {
     if ((uintptr_t)cegD3D9 > 1)
     {
@@ -692,7 +692,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 void
 SK_CEGUI_QueueResetD3D9 (void)
 {
-  InterlockedExchangeAcquire (&__gui_reset, TRUE);
+  InterlockedExchangeAcquire (&__gui_reset_d3d9, TRUE);
 }
 
 

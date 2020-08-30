@@ -529,16 +529,15 @@ SK::DI8::Shutdown (void)
 }
 
 
-SK_DI8_Keyboard _dik;
-SK_DI8_Mouse    _dim;
-
+SK_LazyGlobal <SK_DI8_Keyboard> _dik8;
+SK_LazyGlobal <SK_DI8_Mouse>    _dim8;
 
 __declspec (noinline)
 SK_DI8_Keyboard*
 WINAPI
 SK_Input_GetDI8Keyboard (void)
 {
-  return &_dik;
+  return _dik8.getPtr ();
 }
 
 __declspec (noinline)
@@ -546,7 +545,7 @@ SK_DI8_Mouse*
 WINAPI
 SK_Input_GetDI8Mouse (void)
 {
-  return &_dim;
+  return _dim8.getPtr ();
 }
 
 __declspec (noinline)
@@ -554,8 +553,8 @@ bool
 WINAPI
 SK_Input_DI8Mouse_Acquire (SK_DI8_Mouse* pMouse)
 {
-  if (pMouse == nullptr && _dim.pDev != nullptr)
-    pMouse = &_dim;
+  if (pMouse == nullptr && _dim8->pDev != nullptr)
+    pMouse = _dim8.getPtr ();
 
   if (pMouse != nullptr)
   {
@@ -590,8 +589,8 @@ bool
 WINAPI
 SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse)
 {
-  if (pMouse == nullptr && _dim.pDev != nullptr)
-    pMouse = &_dim;
+  if (pMouse == nullptr && _dim8->pDev != nullptr)
+    pMouse = _dim8.getPtr ();
 
   if (pMouse != nullptr)
   {
@@ -1076,7 +1075,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
       }
     }
 
-    else if (This == _dik.pDev || cbData == 256)
+    else if (This == _dik8->pDev || cbData == 256)
     {
       SK_DI8_READ (sk_input_dev_type::Keyboard)
 
@@ -1117,8 +1116,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 bool
 SK_DInput8_HasKeyboard (void)
 {
-  return (_dik.pDev && ( IDirectInputDevice8A_SetCooperativeLevel_Original ||
-                         IDirectInputDevice8W_SetCooperativeLevel_Original ) );
+  return (_dik8->pDev && ( IDirectInputDevice8A_SetCooperativeLevel_Original ||
+                           IDirectInputDevice8W_SetCooperativeLevel_Original ) );
 }
 
 bool
@@ -1136,9 +1135,9 @@ SK_DInput8_BlockWindowsKey (bool block)
   if (SK_DInput8_HasKeyboard ())
   {
     if (IDirectInputDevice8W_SetCooperativeLevel_Original)
-      IDirectInputDevice8W_SetCooperativeLevel_Original (                        _dik.pDev, game_window.hWnd, dwFlags);
+      IDirectInputDevice8W_SetCooperativeLevel_Original (                        _dik8->pDev, game_window.hWnd, dwFlags);
     else if (IDirectInputDevice8A_SetCooperativeLevel_Original)
-      IDirectInputDevice8A_SetCooperativeLevel_Original ((IDirectInputDevice8A *)_dik.pDev, game_window.hWnd, dwFlags);
+      IDirectInputDevice8A_SetCooperativeLevel_Original ((IDirectInputDevice8A *)_dik8->pDev, game_window.hWnd, dwFlags);
     else
       return false;
   }
@@ -1151,8 +1150,8 @@ SK_DInput8_BlockWindowsKey (bool block)
 bool
 SK_DInput8_HasMouse (void)
 {
-  return (_dim.pDev && ( IDirectInputDevice8A_SetCooperativeLevel_Original ||
-                         IDirectInputDevice8W_SetCooperativeLevel_Original ) );
+  return (_dim8->pDev && ( IDirectInputDevice8A_SetCooperativeLevel_Original ||
+                           IDirectInputDevice8W_SetCooperativeLevel_Original ) );
 }
 
 HRESULT
@@ -1196,8 +1195,8 @@ IDirectInputDevice8W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8W This,
   //else if (config.input.keyboard.unblock_windows_key)
   //  dwFlags &= ~DISCL_NOWINKEY;
 
-  bool bMouse    = ( This == _dim.pDev );
-  bool bKeyboard = ( This == _dik.pDev );
+  bool bMouse    = ( This == _dim8->pDev );
+  bool bKeyboard = ( This == _dik8->pDev );
 
   if (! (bMouse || bKeyboard))
   {
@@ -1215,11 +1214,11 @@ IDirectInputDevice8W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8W This,
   {
     // Mouse
     if (bMouse)
-      _dim.coop_level = dwFlags;
+      _dim8->coop_level = dwFlags;
 
     // Keyboard   (why do people use DirectInput for keyboards? :-\)
     else if (bKeyboard)
-      _dik.coop_level = dwFlags;
+      _dik8->coop_level = dwFlags;
 
     // Anything else is probably not important
   }
@@ -1249,8 +1248,8 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
   //else if (config.input.keyboard.unblock_windows_key)
   //  dwFlags &= ~DISCL_NOWINKEY;
 
-  bool bMouse    = ( This == (IDirectInputDevice8A *)_dim.pDev );
-  bool bKeyboard = ( This == (IDirectInputDevice8A *)_dik.pDev );
+  bool bMouse    = ( This == (IDirectInputDevice8A *)_dim8->pDev );
+  bool bKeyboard = ( This == (IDirectInputDevice8A *)_dik8->pDev );
 
   if (! (bMouse || bKeyboard))
   {
@@ -1268,11 +1267,11 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
   {
     // Mouse
     if (bMouse)
-      _dim.coop_level = dwFlags;
+      _dim8->coop_level = dwFlags;
 
     // Keyboard   (why do people use DirectInput for keyboards? :-\)
     else if (bKeyboard)
-      _dik.coop_level = dwFlags;
+      _dik8->coop_level = dwFlags;
 
     // Anything else is probably not important
   }
@@ -1294,10 +1293,10 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
 
 static SK_LazyGlobal <
   concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8W>
-> devices_w;
+> devices8_w;
 static SK_LazyGlobal <
   concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8A>
-> devices_a;
+> devices8_a;
 
 HRESULT
 WINAPI
@@ -1313,7 +1312,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  auto& _devices_w = devices_w.get ();
+  auto& _devices_w = devices8_w.get ();
 
   if (_devices_w.count (guid_crc32c))
   {
@@ -1378,13 +1377,13 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
 
     if (rguid == GUID_SysMouse)
     {
-      _dim.pDev = *lplpDirectInputDevice;
+      _dim8->pDev = *lplpDirectInputDevice;
     }
     else if (rguid == GUID_SysKeyboard)
-      _dik.pDev = *lplpDirectInputDevice;
+      _dik8->pDev = *lplpDirectInputDevice;
 
-    devices_w [guid_crc32c] = *lplpDirectInputDevice;
-    devices_w [guid_crc32c]->AddRef ();
+    devices8_w [guid_crc32c] = *lplpDirectInputDevice;
+    devices8_w [guid_crc32c]->AddRef ();
 
     if (hook_count > 0)
       SK_ApplyQueuedHooks ();
@@ -1419,7 +1418,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  auto& _devices_a = devices_a.get ();
+  auto& _devices_a = devices8_a.get ();
 
   if (_devices_a.count (guid_crc32c))
   {
@@ -1483,13 +1482,13 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
 
     if (rguid == GUID_SysMouse)
     {
-      _dim.pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
+      _dim8->pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
     }
     else if (rguid == GUID_SysKeyboard)
-      _dik.pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
+      _dik8->pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
 
-    devices_a [guid_crc32c] = *lplpDirectInputDevice;
-    devices_a [guid_crc32c]->AddRef ();
+    devices8_a [guid_crc32c] = *lplpDirectInputDevice;
+    devices8_a [guid_crc32c]->AddRef ();
 
     if (hook_count > 0)
       SK_ApplyQueuedHooks ();

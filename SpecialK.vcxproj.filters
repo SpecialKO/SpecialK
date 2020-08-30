@@ -280,9 +280,6 @@
     <Filter Include="Header Files\Other Stuff">
       <UniqueIdentifier>{4113857f-eff4-4144-9fa3-a91a5e16d0be}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Widgets">
-      <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Input\WinMM">
       <UniqueIdentifier>{1a89460b-1056-41e2-8e1b-7ec8c75ae883}</UniqueIdentifier>
     </Filter>
@@ -294,6 +291,9 @@
     </Filter>
     <Filter Include="DLL Export Definitions">
       <UniqueIdentifier>{5b9c5ae0-a6ca-41ed-bf90-f9485960db1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Steam\Wrapper\Widgets">
+      <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -3407,9 +3407,6 @@
     <ClCompile Include="src\imgui\imgui.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\input.cpp">
-      <Filter>Source Files\Backends\Input</Filter>
-    </ClCompile>
     <ClCompile Include="src\plugins\yakuza0.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
@@ -3441,34 +3438,34 @@
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\d3d11_pipeline_widget.cpp">
-      <Filter>Source Files\Widgets</Filter>
+      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\denuvo.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\frame_pacing.cpp">
-      <Filter>Source Files\Widgets</Filter>
+      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\gpu_widget.cpp">
-      <Filter>Source Files\Widgets</Filter>
+      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\hdr.cpp">
-      <Filter>Source Files\Widgets</Filter>
+      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\threads.cpp">
-      <Filter>Source Files\Widgets</Filter>
+      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\volume_control.cpp">
-      <Filter>Source Files\Widgets</Filter>
+      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\widget.cpp">
-      <Filter>Source Files\Widgets</Filter>
+      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\tobii.cpp">
-      <Filter>Source Files\Widgets</Filter>
+      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\cpu_widget.cpp">
-      <Filter>Source Files\Widgets</Filter>
+      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\sekiro.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -3541,6 +3538,9 @@
     </ClCompile>
     <ClCompile Include="src\imgui\imgui_demo.cpp">
       <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\input.cpp">
+      <Filter>Source Files\Backends\Input\XInput</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4466,6 +4466,11 @@
     <None Include="packages.config">
       <Filter>Tobii</Filter>
     </None>
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />

@@ -307,8 +307,8 @@ public:
       snprintf
         ( szAvg,
             511,
-              u8"GPU%lu Load %%:\n\n\n"
-              u8"          min: %3.0f%%, max: %3.0f%%, avg: %4.1f%%\n",
+              "GPU%lu Load %%:\n\n\n"
+              "          min: %3.0f%%, max: %3.0f%%, avg: %4.1f%%\n",
                 0,
                   gpu_load.getMin (), gpu_load.getMax (),
                     gpu_load.getAvg () );
@@ -335,8 +335,8 @@ public:
       snprintf
         ( szAvg,
             511,
-              u8"GPU%lu Temp (°C):\n\n\n"
-              u8"          min: %3.0f°, max: %3.0f°, avg: %4.1f°\n",
+              (const char *)u8"GPU%lu Temp (°C):\n\n\n"
+                            u8"          min: %3.0f°, max: %3.0f°, avg: %4.1f°\n",
                 0,
                   gpu_temp_c.getMin   (), gpu_temp_c.getMax (),
                     gpu_temp_c.getAvg () );
@@ -367,8 +367,8 @@ public:
       snprintf
         ( szAvg,
             511,
-              u8"GPU%lu Fan Speed (RPM):\n\n\n"
-              u8"          min: %3.0f, max: %3.0f, avg: %4.1f\n",
+              "GPU%lu Fan Speed (RPM):\n\n\n"
+              "          min: %3.0f, max: %3.0f, avg: %4.1f\n",
                 0,
                   fan_rpm.getMin   (), fan_rpm.getMax (),
                     fan_rpm.getAvg () );
@@ -400,8 +400,8 @@ public:
       snprintf
         ( szAvg,
             511,
-              u8"GPU%lu Core Clock (GHz):\n\n\n"
-              u8"          min: %4.2f, max: %4.2f, avg: %5.3f\n",
+              "GPU%lu Core Clock (GHz):\n\n\n"
+              "          min: %4.2f, max: %4.2f, avg: %5.3f\n",
                 0,
                   core_clock_ghz.getMin   (), core_clock_ghz.getMax (),
                     core_clock_ghz.getAvg () );
@@ -435,8 +435,8 @@ public:
       snprintf
         ( szAvg,
             511,
-              u8"GPU%lu VRAM Clock (GHz):\n\n\n"
-              u8"          min: %4.2f, max: %4.2f, avg: %5.3f\n",
+              "GPU%lu VRAM Clock (GHz):\n\n\n"
+              "          min: %4.2f, max: %4.2f, avg: %5.3f\n",
                 0,
                   vram_clock_ghz.getMin   (), vram_clock_ghz.getMax (),
                     vram_clock_ghz.getAvg () );
@@ -475,8 +475,8 @@ public:
       snprintf
         ( szAvg,
             511,
-              u8"GPU%lu VRAM Usage (MiB):\n\n\n"
-              u8"          min: %6.1f, max: %6.1f, avg: %6.1f\n",
+              "GPU%lu VRAM Usage (MiB):\n\n\n"
+              "          min: %6.1f, max: %6.1f, avg: %6.1f\n",
                 0,
                   vram_used_mib.getMin   (), max_use,
                     vram_used_mib.getAvg () );
@@ -528,22 +528,22 @@ private:
   SK_Stat_DataHistory <uint64_t, 96> vram_shared    = { };
   SK_Stat_DataHistory <float,    96> fan_rpm        = { };
 
-  sk_sensor_prefs_s core_clock_prefs { false, u8"GPU Core Clock (GHz)",
+  sk_sensor_prefs_s core_clock_prefs { false, "GPU Core Clock (GHz)",
                                                L"CoreClock",
                                        &core_clock_ghz, -1.0f, -1.0f };
-  sk_sensor_prefs_s vram_clock_prefs { false, u8"GPU VRAM Clock (GHz)",
+  sk_sensor_prefs_s vram_clock_prefs { false, "GPU VRAM Clock (GHz)",
                                                 L"VRAMClock",
                                        &vram_clock_ghz, -1.0f, -1.0f };
-  sk_sensor_prefs_s gpu_load_prefs   { true, u8"GPU Load (%)",
+  sk_sensor_prefs_s gpu_load_prefs   { true, "GPU Load (%)",
                                               L"Load",
                                        &gpu_load,       0.0f, 100.0f };
-  sk_sensor_prefs_s gpu_temp_prefs   { true, u8"GPU Temperature (°C)",
+  sk_sensor_prefs_s gpu_temp_prefs   { true, (const char *)u8"GPU Temperature (°C)",
                                               L"Temperature",
                                        &gpu_temp_c,    40.0f, 94.0f  };
-  sk_sensor_prefs_s gpu_fan_prefs    { true, u8"GPU Fan Speed (RPM)",
+  sk_sensor_prefs_s gpu_fan_prefs    { true, "GPU Fan Speed (RPM)",
                                               L"FanSpeed",
                                        &fan_rpm,        0.0f, 0.0f   };
-  sk_sensor_prefs_s vram_used_prefs  { true, u8"GPU VRAM in Use (MiB)",
+  sk_sensor_prefs_s vram_used_prefs  { true, "GPU VRAM in Use (MiB)",
                                               L"VRAMInUse",
                                        &vram_used_mib, -1.0f, -1.0f  };
 

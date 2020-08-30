@@ -538,10 +538,10 @@ ImGui_ImplGL3_NewFrame (void)
 
   io.DeltaTime =
     std::min ( 1.0f,
-    std::max ( 0.0f, static_cast <float> (
-                    (static_cast <long double> (                       current_time) -
-                     static_cast <long double> (std::exchange (g_Time, current_time))) /
-                     static_cast <long double> (               g_TicksPerSecond      ) ) )
+    std::max ( 0.0f, static_cast <float>  (
+                    (static_cast <double> (                       current_time) -
+                     static_cast <double> (std::exchange (g_Time, current_time))) /
+                     static_cast <double> (               g_TicksPerSecond      ) ) )
     );
 
   // Read keyboard modifiers inputS

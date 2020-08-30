@@ -131,7 +131,7 @@ SK_Okami_PlugInCfg (void)
   static auto cp =
     SK_GetCommandProcessor ();
 
-  if (ImGui::CollapsingHeader (u8"OKAMI HD / 大神 絶景版", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader ((const char *)u8"OKAMI HD / 大神 絶景版", ImGuiTreeNodeFlags_DefaultOpen))
   {
     struct patch_addr_s {
       void*       addr        = nullptr;

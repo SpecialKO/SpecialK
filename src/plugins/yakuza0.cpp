@@ -23,6 +23,7 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
+typedef long LONG;
 
 extern volatile
   LONG SK_D3D11_DrawTrackingReqs;
@@ -659,7 +660,7 @@ SK_Yakuza0_PlugInCfg (void)
       bool save_face =
         kiwami2_face->face_saved;
 
-      if (ImGui::Checkbox (u8"Yakuza Face Saver™", &save_face))
+      if (ImGui::Checkbox ((const char *)u8"Yakuza Face Saver™", &save_face))
       {
         kiwami2_face->set (save_face);
       }

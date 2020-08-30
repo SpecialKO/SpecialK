@@ -33,6 +33,9 @@ SK_QueryPerf ()
 }
 
 
+SK::Framerate::Limiter::frame_journal_s
+SK::Framerate::Limiter::frames_of_fame;
+
 LARGE_INTEGER                                 SK::Framerate::Stats::freq = {};
 SK_LazyGlobal <SK::Framerate::EventCounter>   SK::Framerate::events;
 SK_LazyGlobal <SK::Framerate::DeepFrameState> SK::Framerate::frame_history_snapshots;
@@ -96,7 +99,7 @@ SK::Framerate::Shutdown (void)
 }
 
 
-SK::Framerate::Limiter::Limiter (long double target)
+SK::Framerate::Limiter::Limiter (double target)
 {
   effective_ms = 0.0;
 
@@ -287,20 +290,20 @@ extern bool __stdcall SK_IsGameWindowActive (void);
 
 
 void
-SK::Framerate::Limiter::init (long double target)
+SK::Framerate::Limiter::init (double target)
 {
-  LARGE_INTEGER               _freq;
-  QueryPerformanceFrequency (&_freq);
+  auto _freqQuadPart = SK_GetPerfFreq ( ).QuadPart;
 
-  ms  = 1000.0L / long_double_cast (target);
-  fps =           long_double_cast (target);
+  ms  = 1000.0 / static_cast <double> (target);
+  fps =          static_cast <double> (target);
 
-  ticks_per_frame =
-    static_cast <ULONGLONG> (
-      ( ms / 1000.0L ) * long_double_cast ( _freq.QuadPart )
-    );
+  ticks_per_frame = static_cast <ULONGLONG>       (
+          ( ms / 1000.00 ) * static_cast <double> (_freqQuadPart)
+                                                  );
 
-  frames = 0ULL;
+  WriteRelease64 (
+    &frames, 0ULL
+  );
 
 
   //
@@ -308,24 +311,25 @@ SK::Framerate::Limiter::init (long double target)
   //
   SK_Framerate_WaitForVBlank ();
 
+  auto _framesDrawn  = SK_GetFramesDrawn (       );
+  auto _frames       = ReadAcquire64     (&frames);
+  auto _perfQuadPart = SK_QueryPerf   ( ).QuadPart;
 
-  LARGE_INTEGER                _start;
-  SK_QueryPerformanceCounter (&_start);
+  frames_of_fame.frames_measured.first.initClock  (_perfQuadPart);
+  frames_of_fame.frames_measured.last.clock_val  = _perfQuadPart;
+  frames_of_fame.frames_measured.first.initFrame  (_framesDrawn);
+  frames_of_fame.frames_measured.last.frame_idx += _frames;
 
-  WriteRelease64 (&start, _start.QuadPart);
-  WriteRelease64 (&freq,   _freq.QuadPart);
-  WriteRelease64 (&time,              0LL);
-  WriteRelease64 (&last,
-    static_cast <LONGLONG> (
-      ReadAcquire64 (&start) - ticks_per_frame * ReadAcquire64 (&freq)
-    )
-  );
 
-  WriteRelease64 (&next,
-    static_cast <LONGLONG> (
-      ReadAcquire64 (&start) + ticks_per_frame * ReadAcquire64 (&freq)
-    )
-  );
+  WriteRelease64 ( &start, _perfQuadPart );
+  WriteRelease64 ( &freq,  _freqQuadPart );
+  WriteRelease64 ( &time,            0LL );
+  WriteRelease64 ( &last,
+                           _perfQuadPart -
+         ticks_per_frame * _freqQuadPart );
+  WriteRelease64 ( &next,
+         ticks_per_frame * _freqQuadPart
+                         + _perfQuadPart );
 }
 
 
@@ -342,17 +346,11 @@ SK::Framerate::Limiter::try_wait (void)
   }
 
   LARGE_INTEGER next_;
-  LARGE_INTEGER time_;
-
   next_.QuadPart =
-    ReadAcquire64 (&start) + ReadAcquire64 (&frames) * ticks_per_frame;
-
-  SK_QueryPerformanceCounter (&time_);
-
-  WriteRelease64 (&time, time_.QuadPart);
-
+    ReadAcquire64 (&frames) * ticks_per_frame +
+    ReadAcquire64 (&start );
   return
-    ( ReadAcquire64 (&time) < ReadAcquire64 (&next) );
+    ( SK_QueryPerf ().QuadPart < next_.QuadPart );
 }
 
 
@@ -401,6 +399,11 @@ SK::Framerate::Limiter::wait (void)
 
   InterlockedIncrement64 (&frames);
 
+
+  auto _time =
+    SK_QueryPerf ().QuadPart;
+
+
   if (restart || full_restart)
   {
     if (full_restart)
@@ -412,40 +415,37 @@ SK::Framerate::Limiter::wait (void)
     restart        = false;
     WriteRelease64 (&frames, 0);
 
-    auto _start =
-      SK_QueryPerf ().QuadPart - ticks_per_frame;
+    auto _start =  _time  - ticks_per_frame;
+    auto _next  =  _start + ticks_per_frame;
 
     WriteRelease64 (&start, _start);
-    WriteRelease64 (&time,  _start + ticks_per_frame);
-    WriteRelease64 (&next,  _start + ticks_per_frame);
+    WriteRelease64 (&time,  _next );
+    WriteRelease64 (&next,  _next );
+  } else {
+    WriteRelease64 (&time,  _time);
   }
 
-  else
-  {
-    WriteRelease64 (&time, SK_QueryPerf ().QuadPart);
-  }
-
-  LONG64 time_  = ReadAcquire64 (&time),
-         start_ = ReadAcquire64 (&start),
-         freq_  = ReadAcquire64 (&freq),
-         last_  = ReadAcquire64 (&last),
-         next_  =
-    start_ + ReadAcquire64 (&frames) * ticks_per_frame;
+  LONG64 time_  = ReadAcquire64 ( &time   ),
+         start_ = ReadAcquire64 ( &start  ),
+         freq_  = ReadAcquire64 ( &freq   ),
+         last_  = ReadAcquire64 ( &last   ),
+         next_  = ReadAcquire64 ( &frames ) * ticks_per_frame
+                                            + start_;
 
 
   // Actual frametime before we forced a delay
   effective_ms =
-    1000.0L * ( long_double_cast (time_ - last_) /
-                long_double_cast (freq_)         );
+    1000.0 * ( static_cast <double> (time_ - last_) /
+               static_cast <double> (freq_)         );
 
   WriteRelease64 (&next, next_);
 
-  long double missed_frames,
-              missing_time =
-    long_double_cast ( time_ - next_ ) /
-    long_double_cast ( ticks_per_frame ),
-              edge_distance =
-      modfl ( missing_time, &missed_frames );
+  double missed_frames,
+         missing_time =
+    static_cast <double> ( time_ - next_ ) /
+    static_cast <double> ( ticks_per_frame ),
+         edge_distance =
+  modf ( missing_time, &missed_frames );
 
   static     DWORD dwLastFullReset        = timeGetTime ();
    constexpr DWORD dwMinTimeBetweenResets = 333L;
@@ -471,25 +471,21 @@ SK::Framerate::Limiter::wait (void)
   }
 
   auto
-    SK_RecalcTimeToNextFrame =
-    [&](void)->
-      long double
-      {
-        long double ldRet =
-          ( long_double_cast ( next_ - SK_QueryPerf ().QuadPart ) /
-            long_double_cast ( freq_ )
-           );
-
-        if (ldRet < 0.0L)
-            ldRet = 0.0L;
-
-        return ldRet;
-      };
+  SK_RecalcTimeToNextFrame =
+  [&](void)->
+    double
+    {
+      return
+        std::max (
+          ( static_cast <double> ( next_ - SK_QueryPerf ().QuadPart ) /
+            static_cast <double> ( freq_ ) ),
+            0.0  );
+    };
 
 
   if (next_ > 0LL)
   {
-    long double
+    double
       to_next_in_secs =
         SK_RecalcTimeToNextFrame ();
 
@@ -499,8 +495,8 @@ SK::Framerate::Limiter::wait (void)
     LARGE_INTEGER liDelay;
                   liDelay.QuadPart =
                     static_cast <LONGLONG> (
-                      to_next_in_secs * 1000.0L *
-                      (long double)config.render.framerate.busy_wait_ratio
+                      to_next_in_secs * 1000.0 *
+                      (double)config.render.framerate.busy_wait_ratio
                     );
 
 
@@ -511,10 +507,10 @@ SK::Framerate::Limiter::wait (void)
 
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely decimating a CPU core.
-    if ( hLimitTimer != 0 && liDelay.QuadPart > 0)
+    if ( hLimitTimer != 0 && liDelay.QuadPart > 0LL)
     {
         liDelay.QuadPart =
-      -(liDelay.QuadPart * 10000);
+      -(liDelay.QuadPart * 10000LL);
 
       // Light-weight and high-precision -- but it's not a good idea to
       //   spend more than ~90% of our projected wait time in here or
@@ -528,16 +524,19 @@ SK::Framerate::Limiter::wait (void)
           to_next_in_secs =
             SK_RecalcTimeToNextFrame ();
 
-          if (to_next_in_secs <= 0.0L)
+          if (to_next_in_secs <= 0.0)
           {
             break;
           }
+
+          static constexpr
+            double duS = (1000.0 * 10000.0);
 
           // Negative values are used to tell the Nt systemcall
           //   to use relative rather than absolute time offset.
           LARGE_INTEGER uSecs;
                         uSecs.QuadPart =
-            -static_cast <LONGLONG> (to_next_in_secs * 1000.0L * 10000.0L);
+            -static_cast <LONGLONG> (duS * to_next_in_secs);
 
 
           // System Call:  NtWaitForSingleObject  [Delay = 100 ns]
@@ -562,7 +561,7 @@ SK::Framerate::Limiter::wait (void)
 
       DWORD dwWaitMS =
         static_cast <DWORD> (
-          std::max (0.0L, SK_RecalcTimeToNextFrame () * 1000.0L - 1.0L)
+          std::max (0.0, SK_RecalcTimeToNextFrame () * 1000.0 - 1.0)
         );
 
       // 2+ ms remain: we can let the kernel reschedule us and still get
@@ -604,12 +603,12 @@ SK::Framerate::Limiter::wait (void)
 
 
 void
-SK::Framerate::Limiter::set_limit (long double target)
+SK::Framerate::Limiter::set_limit (double target)
 {
   init (target);
 }
 
-long double
+double
 SK::Framerate::Limiter::effective_frametime (void)
 {
   return effective_ms;
@@ -638,7 +637,7 @@ SK::Framerate::GetLimiter (void)
 }
 
 void
-SK::Framerate::Tick (long double& dt, LARGE_INTEGER& now)
+SK::Framerate::Tick (double& dt, LARGE_INTEGER& now)
 {
   if (! ( frame_history.isAllocated  () &&
           frame_history2.isAllocated () ) )
@@ -647,12 +646,12 @@ SK::Framerate::Tick (long double& dt, LARGE_INTEGER& now)
     Init ();
   }
 
-  static LARGE_INTEGER last_frame = { };
+  static LARGE_INTEGER _last_frame = { };
 
   now = SK_CurrentPerf ();
   dt  =
-    long_double_cast (now.QuadPart -  last_frame.QuadPart) /
-    long_double_cast (SK::Framerate::Stats::freq.QuadPart);
+    static_cast <double> (now.QuadPart - _last_frame.QuadPart) /
+    static_cast <double> (SK::Framerate::Stats::freq.QuadPart);
 
   // Statistics can be done across multiple frames, so let's
   //   do that and avoid adding extra work to the game.
@@ -662,7 +661,7 @@ SK::Framerate::Tick (long double& dt, LARGE_INTEGER& now)
   // Prevent inserting infinity into the dataset
   if ( std::isnormal (dt) )
   {
-    if (frame_history->addSample (1000.0L * dt, now))
+    if (frame_history->addSample (1000.0 * dt, now))
     {
       amortized_stats = 0;
     }
@@ -702,7 +701,7 @@ SK::Framerate::Tick (long double& dt, LARGE_INTEGER& now)
     auto* container =
       pContainers [stat_idx];
 
-    long double sample = 0.0L;
+    double sample = 0.0;
 
     switch (static_cast <StatType> (stat_idx))
     {
@@ -726,7 +725,7 @@ SK::Framerate::Tick (long double& dt, LARGE_INTEGER& now)
       case StatType::Max:
       {
         using CalcSample_pfn =
-          long double ( SK::Framerate::Stats::* )
+          double ( SK::Framerate::Stats::* )
                     ( LARGE_INTEGER ) noexcept;
 
         static constexpr
@@ -758,63 +757,63 @@ SK::Framerate::Tick (long double& dt, LARGE_INTEGER& now)
     }
   }
 
-  last_frame = now;
+  _last_frame = now;
 };
 
 
-long double
-SK::Framerate::Stats::calcMean (long double seconds)
+double
+SK::Framerate::Stats::calcMean (double seconds)
 {
   return
     calcMean (SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
-long double
-SK::Framerate::Stats::calcSqStdDev (long double mean, long double seconds)
+double
+SK::Framerate::Stats::calcSqStdDev (double mean, double seconds)
 {
   return
     calcSqStdDev (mean, SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
-long double
-SK::Framerate::Stats::calcMin (long double seconds)
+double
+SK::Framerate::Stats::calcMin (double seconds)
 {
   return
     calcMin (SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
-long double
-SK::Framerate::Stats::calcMax (long double seconds)
+double
+SK::Framerate::Stats::calcMax (double seconds)
 {
   return
     calcMax (SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
-long double
-SK::Framerate::Stats::calcOnePercentLow (long double seconds)
+double
+SK::Framerate::Stats::calcOnePercentLow (double seconds)
 {
   return
     calcOnePercentLow (SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
-long double
-SK::Framerate::Stats::calcPointOnePercentLow (long double seconds)
+double
+SK::Framerate::Stats::calcPointOnePercentLow (double seconds)
 {
   return
     calcPointOnePercentLow (SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
 int
-SK::Framerate::Stats::calcHitches ( long double tolerance,
-                                    long double mean,
-                                    long double seconds )
+SK::Framerate::Stats::calcHitches ( double tolerance,
+                                    double mean,
+                                    double seconds )
 {
   return
     calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
 }
 
 int
-SK::Framerate::Stats::calcNumSamples (long double seconds)
+SK::Framerate::Stats::calcNumSamples (double seconds)
 {
   return
     calcNumSamples (SK_DeltaPerf (seconds, freq.QuadPart));
@@ -828,7 +827,7 @@ SK::Framerate::DeepFrameState::reset (void)
     void
     {
       pStats->data [idx].when = LARGE_INTEGER { 0LL };
-      pStats->data [idx].val  = 0.0L;
+      pStats->data [idx].val  = 0.0;
     };
 
   for ( auto i = 0 ; i < MAX_SAMPLES ; ++i )
@@ -848,7 +847,7 @@ SK::Framerate::DeepFrameState::reset (void)
 }
 
 
-std::vector <long double>&
+std::vector <double>&
 SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
 {
 #pragma warning (push)

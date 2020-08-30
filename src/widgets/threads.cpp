@@ -2538,7 +2538,7 @@ public:
           if (! it.second->exited)
             prio_txt = SK_FormatString ("%d", dwPrio);
           else
-            prio_txt = u8"ⁿ/ₐ";
+            prio_txt = (const char *)u8"ⁿ/ₐ";
           break;
       }
 

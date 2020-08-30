@@ -2008,10 +2008,10 @@ public:
             }
           }
 
-          if ( pParam->m_eResult                        == k_EResultOK ||
-               pParam->m_steamIDUser.ConvertToUint64 () == user_id )
+          if (pParam->m_eResult                        == k_EResultOK ||
+              pParam->m_steamIDUser.ConvertToUint64 () == user_id)
           {
-            ((class CCallbackBase*)it.first)->Run (&override_params);
+            TryCallback ((class CCallbackBase*)it.first, &override_params);
           }
         }
       }
@@ -2102,6 +2102,15 @@ public:
     }
   }
 
+  void TryCallback (CCallbackBase* pCallback, UserStatsReceived_t* pParam)
+  {
+    __try {
+      pCallback->Run (pParam);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+    }
+  }
+
   STEAM_CALLRESULT ( SK_Steam_AchievementManager,
                      OnRecvFriendStats,
                      UserStatsReceived_t,
@@ -2145,13 +2154,6 @@ public:
           if (                          user_id !=
                override_params.m_steamIDUser.ConvertToUint64 () )
           {
-            override_params.m_steamIDUser.SetFromUint64 (user_id);
-            override_params.m_eResult    =
-              k_EResultOK;
-          }
-
-          else
-          {
             steam_log->Log (
               L"Got UserStatsReceived Failure for Friend, m_eResult=%x",
                 pParam->m_eResult
@@ -2159,10 +2161,12 @@ public:
           }
         }
 
-        if ( pParam->m_eResult                        == k_EResultOK ||
-             pParam->m_steamIDUser.ConvertToUint64 () == user_id )
+        if (pParam->m_eResult == k_EResultOK ||
+            pParam->m_steamIDUser.ConvertToUint64 () == user_id)
         {
-          ((class CCallbackBase*)it.first)->Run (&override_params);
+          // Control freaks the @#$% out if achievement status isn't
+          //   successful at all times.
+          TryCallback (((class CCallbackBase*)it.first), pParam);
         }
       }
     }
@@ -3486,13 +3490,40 @@ SK_Steam_UpdateGlobalAchievements (void)
     SK_Steam_LogAllAchievements ();
 }
 
+
+void TryRunCallbacksSEH (void)
+{
+  __try {
+    if (SteamAPI_RunCallbacks_Original != nullptr)
+        SteamAPI_RunCallbacks_Original ();
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+  }
+}
+
+void TryRunCallbacks (void)
+{
+  auto orig_se =
+  SK_SEH_ApplyTranslator (
+    SK_BasicStructuredExceptionTranslator
+  );
+  try {
+    TryRunCallbacksSEH ();
+  }
+  catch (const SK_SEH_IgnoredException&)
+  {
+  }
+  SK_SEH_RemoveTranslator (orig_se);
+}
+
+
 void
 SK_Steam_ClearPopups (void)
 {
   if (steam_achievements != nullptr)
   {
     steam_achievements->clearPopups ();
-    SteamAPI_RunCallbacks_Original  ();
+                    TryRunCallbacks ();
   }
 }
 
@@ -3630,7 +3661,7 @@ SteamAPI_RunCallbacks_Detour (void)
   if (ReadAcquire (&__SK_DLL_Ending))
   {
     if (SteamAPI_RunCallbacks_Original != nullptr)
-        SteamAPI_RunCallbacks_Original ();
+        TryRunCallbacks ();
     return;
   }
 
@@ -3704,13 +3735,13 @@ SteamAPI_RunCallbacks_Detour (void)
           pStats->RequestGlobalAchievementPercentages ();
         }
 
-        SteamAPI_RunCallbacks_Original ();
+        TryRunCallbacks ();
 
         fetch_stats = false;
       }
 
       else
-        SteamAPI_RunCallbacks_Original ();
+        TryRunCallbacks ();
     }
 
     catch (const SK_SEH_IgnoredException&)
@@ -3765,25 +3796,8 @@ SteamAPI_RunCallbacks_Detour (void)
     }
     SK_SEH_RemoveTranslator (orig_se);
 
-    orig_se =
-    SK_SEH_ApplyTranslator (
-      SK_FilteringStructuredExceptionTranslator(EXCEPTION_ACCESS_VIOLATION)
-    );
-    try
-    {
-      SteamAPI_RunCallbacks_Original ();
-    }
 
-    catch (const SK_SEH_IgnoredException&)
-    {
-      if (! failure)
-      {
-        steam_log->Log ( L" Caught a Structured Exception while running "
-                         L"Steam Callbacks!" );
-        failure = true;
-      }
-    }
-    SK_SEH_RemoveTranslator (orig_se);
+    TryRunCallbacks ();
   }
 }
 
@@ -3860,7 +3874,7 @@ SteamAPI_PumpThread (LPVOID user)
     //   If after 30 seconds the game has not called SteamAPI_RunCallbacks
     //     frequently enough, switch the thread to auto-pump mode.
 
-    const UINT TEST_PERIOD = 30;
+    const UINT TEST_PERIOD = 180;
 
     LONGLONG callback_count0 = SK_SteamAPI_CallbackRunCount;
 
@@ -7075,7 +7089,7 @@ SK::SteamAPI::SetPersonaState (EPersonaState state)
   if (client_friends)
   {
     client_friends->SetPersonaState (state);
-    SteamAPI_RunCallbacks_Original  (     );
+                         TryRunCallbacks ();
   }
 }
 
@@ -7137,7 +7151,7 @@ SK_Steam_LogOn (CSteamID user)
       user_ex->LogOn (user);
 
       if (SteamAPI_RunCallbacks_Original != nullptr)
-          SteamAPI_RunCallbacks_Original ();
+                TryRunCallbacks ();
   }
 
   return

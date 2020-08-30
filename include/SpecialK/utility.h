@@ -246,8 +246,8 @@ SK_GetBitness (void)
 //   is safe to use even by parts of the DLL that run before the CRT initializes
 #define SK_RunOnce(x)    { static volatile LONG __once = TRUE; \
                if (InterlockedCompareExchange (&__once, FALSE, TRUE)) { (x); } }
-//#define SK_RunOnce(x)    { static std::once_flag the_wuncler;             \
-//                             std::call_once (the_wuncler, [&](){ (x); }); }
+#define SK_RunOnceStdCpp(x) { static std::once_flag the_wuncler;             \
+                                std::call_once (the_wuncler, [&](){ (x); }); }
 
 #define SK_RunIf32Bit(x)         { SK_GetBitness () == 32  ? (x) :  0; }
 #define SK_RunIf64Bit(x)         { SK_GetBitness () == 64  ? (x) :  0; }

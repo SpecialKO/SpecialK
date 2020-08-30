@@ -156,7 +156,7 @@
       <OpenMPSupport>false</OpenMPSupport>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <EnableModules>false</EnableModules>
-      <AdditionalOptions>/Ob3 /Zo /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-  </AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /Gm- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <SmallerTypeCheck>false</SmallerTypeCheck>
@@ -230,7 +230,7 @@
       <Optimization>MaxSpeed</Optimization>
       <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;NOMINMAX;_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>/Ob3 /Zo /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-  </AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /Gm- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -351,13 +351,13 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <StringPooling>true</StringPooling>
-      <OmitFramePointers>false</OmitFramePointers>
+      <OmitFramePointers>true</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnableModules>false</EnableModules>
-      <AdditionalOptions>/Ob3 /Zo /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /Gm- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OpenMPSupport>false</OpenMPSupport>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
@@ -365,13 +365,12 @@
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
-      <SupportJustMyCode>true</SupportJustMyCode>
+      <SupportJustMyCode>false</SupportJustMyCode>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <ConformanceMode>false</ConformanceMode>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
     </ClCompile>
     <Link>
@@ -395,7 +394,6 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -443,7 +441,6 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>MaxSpeed</Optimization>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -453,19 +450,19 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <BrowseInformation>false</BrowseInformation>
       <AssemblerOutput>NoListing</AssemblerOutput>
-      <OmitFramePointers>false</OmitFramePointers>
-      <MinimalRebuild>false</MinimalRebuild>
+      <OmitFramePointers>true</OmitFramePointers>
+      <MinimalRebuild>true</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <AdditionalOptions>/Ob3 /Zo /Gw /Gm- /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-   %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /Gm- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <OpenMPSupport>false</OpenMPSupport>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <EnablePREfast>false</EnablePREfast>
@@ -476,8 +473,6 @@
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -502,7 +497,6 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -541,6 +535,9 @@
     </ProjectReference>
     <FxCompile>
       <ShaderModel>5.1</ShaderModel>
+      <EnableDebuggingInformation>true</EnableDebuggingInformation>
+      <AllResourcesBound>true</AllResourcesBound>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

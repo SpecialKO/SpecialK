@@ -133,6 +133,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"gamebarftserver.exe"),
   SK_MakeUnicode (L"gamebarft.exe"),
   SK_MakeUnicode (L"gamebar.exe"),
+  SK_MakeUnicode (L"control.exe"),
 #else
   SK_MakeUnicode (L"vacodeinspectionsserver.exe"),
 

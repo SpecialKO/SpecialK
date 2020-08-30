@@ -530,18 +530,18 @@ SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
   {
     //converted = in_temp * 2 + 30;
     converted = (in_temp * (9.0/5.0)) + 32.0;
-    sprintf (szOut, u8"%#5.1f°F", converted);
+    sprintf (szOut, (const char *)u8"%#5.1f°F", converted);
   }
 
   else if (in_unit == Fahrenheit && out_unit == Celsius)
   {
     converted = (in_temp - 32.0) * (5.0/9.0);
-    sprintf (szOut, u8"%#4.1f°C", converted);
+    sprintf (szOut, (const char *)u8"%#4.1f°C", converted);
   }
 
   else
   {
-    sprintf (szOut, u8"%#4.1f°C", in_temp);
+    sprintf (szOut, (const char *)u8"%#4.1f°C", in_temp);
   }
 
   return szOut;
@@ -713,22 +713,22 @@ SK_DrawOSD (void)
 
   if (config.fps.show)
   {
-    const long double mean    = frame_history->calcMean     ();
-    const long double sd      = frame_history->calcSqStdDev (mean);
-    const long double min     = frame_history->calcMin      ();
-    const long double max     = frame_history->calcMax      ();
-    const int         hitches = frame_history->calcHitches  (1.2L, mean);
+    const double mean    = frame_history->calcMean     ();
+    const double sd      = frame_history->calcSqStdDev (mean);
+    const double min     = frame_history->calcMin      ();
+    const double max     = frame_history->calcMax      ();
+    const int    hitches = frame_history->calcHitches  (1.2, mean);
 
-    const long double effective_mean = frame_history2->calcMean  ();
+    const double effective_mean = frame_history2->calcMean  ();
 
-    static double fps           = 0.0L;
+    static double fps           = 0.0;
     static DWORD  last_fps_time = timeGetTime ();
 
     const DWORD dwTime = timeGetTime ();
 
     if (dwTime - last_fps_time > 666)
     {
-      fps           = gsl::narrow_cast <double>(1000.0L / mean);
+      fps           = gsl::narrow_cast <double>(1000.0 / mean);
       last_fps_time = dwTime;
     }
 

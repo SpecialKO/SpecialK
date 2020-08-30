@@ -315,7 +315,7 @@ SK_FFXV_PlugInCfg (void)
     if (ignis_vision || hair_club)
       SK_D3D11_EnableTracking = true;
 
-    if (ImGui::Checkbox (u8R"(Ignis Vision ™)", &ignis_vision))
+    if (ImGui::Checkbox ((const char *)u8R"(Ignis Vision ™)", &ignis_vision))
     {
       if (ignis_vision)
       {
@@ -329,7 +329,7 @@ SK_FFXV_PlugInCfg (void)
 
     ImGui::SameLine ();
 
-    if (ImGui::Checkbox (u8R"((No)Hair Club for Men™)", &hair_club))
+    if (ImGui::Checkbox ((const char *)u8R"((No)Hair Club for Men™)", &hair_club))
     {
       if (hair_club)
       {
@@ -390,7 +390,7 @@ SK_FFXV_PlugInCfg (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ( );
-          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.075, 0.8, 0.9));
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.075f, 0.8f, 0.9f));
           ImGui::Text         ( "The graphics engine has bass-acwkwards scheduling priorities." );
           ImGui::PopStyleColor ();
           ImGui::Separator    ( );
@@ -405,7 +405,7 @@ SK_FFXV_PlugInCfg (void)
           ImGui::BulletText  ("--- Rendering is completely different ---");
           ImGui::TreePush    ("");
           ImGui::BulletText  ("The engine starves threads with more important work to do because it assigned them the wrong priority too.");
-          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.25, 0.8, 0.9));
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.25f, 0.8f, 0.9f));
           ImGui::BulletText  ("LOWER the priority of all render-related threads for best results.");
           ImGui::PopStyleColor ();
           ImGui::TreePop     (  );

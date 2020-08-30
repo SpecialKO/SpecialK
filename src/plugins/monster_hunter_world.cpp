@@ -40,9 +40,8 @@ bool              __SK_MHW_KillAntiDebug      = true;
 
 sk::ParameterInt*   _SK_MHW_AlternateTonemap;
 
-extern SK_LazyGlobal <
-  concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s>
-> __SK_D3D11_PixelShader_CBuffer_Overrides;
+extern SK_LazyGlobal <concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s>> __SK_D3D11_VertexShader_CBuffer_Overrides;
+extern SK_LazyGlobal <concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s>> __SK_D3D11_PixelShader_CBuffer_Overrides;
 
 d3d11_shader_tracking_s::cbuffer_override_s* SK_MHW_CB_Override;
 
@@ -258,7 +257,7 @@ SK_MHW_PlugInCfg (void)
         bool hdr_open =
           SK_ImGui_Widgets->hdr_control->isVisible ();
 
-        if ( ImGui::Button ( u8"HDR Signal Control Panel" ) )
+        if ( ImGui::Button ( "HDR Signal Control Panel" ) )
         {
           SK_ImGui_Widgets->hdr_control->setVisible (! hdr_open);
 

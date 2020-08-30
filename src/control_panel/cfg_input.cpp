@@ -633,9 +633,9 @@ extern float SK_ImGui_PulseNav_Strength;
             static_cast <float> (joy_ex.dwPOV) / 100.0f;
 
           if (joy_ex.dwPOV != JOY_POVCENTERED)
-            ImGui::Text (u8" D-Pad:  %4.1f°", angle);
+            ImGui::Text ((const char *)u8" D-Pad:  %4.1f°", angle);
           else
-            ImGui::Text (  " D-Pad:  Centered");
+            ImGui::Text (                " D-Pad:  Centered");
 
           struct axis_s {
             const char* label;

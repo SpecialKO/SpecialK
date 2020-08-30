@@ -918,9 +918,12 @@ SK_BypassInject (void)
 void
 SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   if (Fullscreen)
   {
-    if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
+    if (/*rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM || */SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
     {
       ShowCursor  (TRUE);
       ShowWindow  ( SK_GetForegroundWindow (), SW_HIDE );
@@ -930,12 +933,16 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
                           MB_OK        | MB_SETFOREGROUND |
                           MB_APPLMODAL | MB_ICONASTERISK );
 
-      SK_ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF_config.exe", nullptr, nullptr, SW_NORMAL);
+      if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
+      {
+        SK_ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF_config.exe", nullptr, nullptr, SW_NORMAL);
 
-      while (SK_IsProcessRunning (L"WOFF_config.exe"))
-        SK_Sleep (250UL);
+        while (SK_IsProcessRunning (L"WOFF_config.exe"))
+          SK_Sleep (250UL);
 
-      SK_ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF.exe",        nullptr, nullptr, SW_NORMAL);
+        SK_ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF.exe",        nullptr, nullptr, SW_NORMAL);
+      }
+
       ExitProcess   (0x00);
     }
   }

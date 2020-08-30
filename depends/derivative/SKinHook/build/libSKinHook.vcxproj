@@ -120,7 +120,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>__midl</UndefinePreprocessorDefinitions>
-      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR- /cgthreads8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -173,7 +173,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>__midl</UndefinePreprocessorDefinitions>
-      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR- /cgthreads8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -220,7 +220,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <OmitFramePointers>false</OmitFramePointers>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-</AdditionalOptions>
+      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
       <ProgramDataBaseFileName>
       </ProgramDataBaseFileName>
       <SupportJustMyCode>false</SupportJustMyCode>
@@ -230,7 +230,6 @@
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
     </ClCompile>
     <Lib />
     <ProjectReference />
@@ -262,19 +261,17 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8  /Zc:implicitNoexcept- /Zc:strictStrings-  </AdditionalOptions>
+      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
       <ProgramDataBaseFileName>
       </ProgramDataBaseFileName>
       <SupportJustMyCode>false</SupportJustMyCode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CompileAs>Default</CompileAs>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
     </ClCompile>
     <Lib />
     <Lib />

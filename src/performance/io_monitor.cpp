@@ -74,27 +74,27 @@ SK_CountIO (io_perf_t& ioc, const double update)
     const auto dWC = (current_io.WriteOperationCount - ioc.last_counter.WriteOperationCount);
     const auto dOC = (current_io.OtherOperationCount - ioc.last_counter.OtherOperationCount);
 
-    long double& read_mb_sec   = ioc.read_mb_sec;
-    long double& write_mb_sec  = ioc.write_mb_sec;
-    long double& other_mb_sec  = ioc.other_mb_sec;
+    double& read_mb_sec   = ioc.read_mb_sec;
+    double& write_mb_sec  = ioc.write_mb_sec;
+    double& other_mb_sec  = ioc.other_mb_sec;
 
-    long double& read_iop_sec  = ioc.read_iop_sec;
-    long double& write_iop_sec = ioc.write_iop_sec;
-    long double& other_iop_sec = ioc.other_iop_sec;
+    double& read_iop_sec  = ioc.read_iop_sec;
+    double& write_iop_sec = ioc.write_iop_sec;
+    double& other_iop_sec = ioc.other_iop_sec;
 
-    const long double inst_read_mb_sec  =
-      ((static_cast <long double> (dRB) / 1048576.0L) / (1.0e-7L * static_cast <long double> (ioc.dt)));
-    const long double inst_write_mb_sec  =
-      ((static_cast <long double> (dWB) / 1048576.0L) / (1.0e-7L * static_cast <long double> (ioc.dt)));
-    const long double inst_other_mb_sec  =
-      ((static_cast <long double> (dOB) / 1048576.0L) / (1.0e-7L * static_cast <long double> (ioc.dt)));
+    const double inst_read_mb_sec  =
+      ((static_cast <double> (dRB) / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)));
+    const double inst_write_mb_sec  =
+      ((static_cast <double> (dWB) / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)));
+    const double inst_other_mb_sec  =
+      ((static_cast <double> (dOB) / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)));
 
-    const long double inst_read_ops_sec  =
-      (static_cast <long double> (dRC) / (1.0e-7L * static_cast <long double> (ioc.dt)));
-    const long double inst_write_ops_sec  =
-      (static_cast <long double> (dWC) / (1.0e-7L * static_cast <long double> (ioc.dt)));
-    const long double inst_other_ops_sec  =
-      (static_cast <long double> (dOC) / (1.0e-7L * static_cast <long double> (ioc.dt)));
+    const double inst_read_ops_sec  =
+      (static_cast <double> (dRC) / (1.0e-7 * static_cast <double> (ioc.dt)));
+    const double inst_write_ops_sec  =
+      (static_cast <double> (dWC) / (1.0e-7 * static_cast <double> (ioc.dt)));
+    const double inst_other_ops_sec  =
+      (static_cast <double> (dOC) / (1.0e-7 * static_cast <double> (ioc.dt)));
 
     read_rate.addSample  (inst_read_mb_sec,   now);
     write_rate.addSample (inst_write_mb_sec,  now);
@@ -104,13 +104,13 @@ SK_CountIO (io_perf_t& ioc, const double update)
     write_ops.addSample  (inst_write_ops_sec, now);
     other_ops.addSample  (inst_other_ops_sec, now);
 
-    read_mb_sec  = read_rate.calcMean  (2.0L);
-    write_mb_sec = write_rate.calcMean (2.0L);
-    other_mb_sec = other_rate.calcMean (2.0L);
+    read_mb_sec  = read_rate.calcMean  (2.0);
+    write_mb_sec = write_rate.calcMean (2.0);
+    other_mb_sec = other_rate.calcMean (2.0);
 
-    read_iop_sec  = read_ops.calcMean  (2.0L);
-    write_iop_sec = write_ops.calcMean (2.0L);
-    other_iop_sec = other_ops.calcMean (2.0L);
+    read_iop_sec  = read_ops.calcMean  (2.0);
+    write_iop_sec = write_ops.calcMean (2.0);
+    other_iop_sec = other_ops.calcMean (2.0);
 
     ioc.last_update.QuadPart = now.QuadPart;
 
@@ -873,13 +873,13 @@ SK_MonitorDisk (LPVOID user)
       disk.disks [i].percent_read   = (disk.disks [i].percent_read   + percent_read)   / 2;
       disk.disks [i].percent_write  = (disk.disks [i].percent_write  + percent_write)  / 2;
 
-      write_rate    [i].addSample (static_cast <long double> (bytes_write_sec), now );
-      read_rate     [i].addSample (static_cast <long double> (bytes_read_sec),   now );
-      combined_rate [i].addSample (static_cast <long double> (bytes_sec),        now );
+      write_rate    [i].addSample (static_cast <double> (bytes_write_sec), now );
+      read_rate     [i].addSample (static_cast <double> (bytes_read_sec),  now );
+      combined_rate [i].addSample (static_cast <double> (bytes_sec),       now );
 
-      long double combined_mean = combined_rate [i].calcMean (2.0L);
-      long double write_mean    = write_rate    [i].calcMean (2.0L);
-      long double read_mean     = read_rate     [i].calcMean (2.0L);
+      double combined_mean = combined_rate [i].calcMean (2.0L);
+      double write_mean    = write_rate    [i].calcMean (2.0L);
+      double read_mean     = read_rate     [i].calcMean (2.0L);
 
       disk.disks [i].bytes_sec       = isnan (combined_mean) ? 0ULL : static_cast <uint64_t> (combined_mean);
       disk.disks [i].write_bytes_sec = isnan (write_mean)    ? 0ULL : static_cast <uint64_t> (write_mean);

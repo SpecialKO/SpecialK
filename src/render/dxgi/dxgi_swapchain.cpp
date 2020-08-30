@@ -250,6 +250,20 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
     pReal->GetBuffer (Buffer, riid, ppSurface);
 }
 
+UINT
+SK_DXGI_FixUpLatencyWaitFlag (IDXGISwapChain *pSwapChain, UINT Flags)
+{
+  DXGI_SWAP_CHAIN_DESC  desc = { };
+  pSwapChain->GetDesc (&desc);
+
+  if ( desc.Flags &   DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT )
+            Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+  else      Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+
+  return Flags;
+}
+
+
 HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
@@ -279,14 +293,43 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
-  DXGI_SWAP_CHAIN_DESC desc = { };
-  pReal->GetDesc     (&desc);
+  SwapChainFlags =
+    SK_DXGI_FixUpLatencyWaitFlag (pReal, SwapChainFlags);
 
-  const HRESULT hr =
+  HRESULT hr =
     pReal->ResizeBuffers (BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
-  if (hr == DXGI_ERROR_INVALID_CALL)
+  if (SUCCEEDED (hr))
   {
+    SK_ComQIPtr <IDXGISwapChain2>
+        pSwapChain2 (pReal);
+    if (pSwapChain2 != nullptr)
+    {
+      pSwapChain2->SetMaximumFrameLatency (
+        std::max (1, config.render.framerate.pre_render_limit)
+      );
+
+      CHandle hWait (
+        pSwapChain2->GetFrameLatencyWaitableObject ()
+      );
+
+      DWORD dwDontCare = 0x0;
+
+      if (GetHandleInformation ( hWait.m_h, &dwDontCare ))
+      {
+        SK_WaitForSingleObject ( hWait,
+          config.render.framerate.swapchain_wait );
+      }
+      else
+        hWait.m_h = 0;
+    }
+  }
+
+  else if (hr == DXGI_ERROR_INVALID_CALL)
+  {
+    DXGI_SWAP_CHAIN_DESC desc = { };
+    pReal->GetDesc     (&desc);
+
     Width       = desc.BufferDesc.Width;
     Height      = desc.BufferDesc.Height;
     NewFormat   = desc.BufferDesc.Format;

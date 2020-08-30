@@ -257,9 +257,9 @@ SK_ImGui_DrawGraph_FramePacing (void)
   snprintf
         ( szAvg,
             511,
-              u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-              u8"    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
-              u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
+              "Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
+              "    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
+              "Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
                 sum / frames,
                   target_frametime,
                     min, max, (double)max - (double)min,
@@ -655,9 +655,13 @@ public:
 
     if (debug_limiter)
     {
+      auto pLimiter =
+        SK::Framerate::GetLimiter ();
+
       ImGui::BeginGroup ();
+
       SK::Framerate::Limiter::snapshot_s snapshot =
-        SK::Framerate::GetLimiter ()->getSnapshot ();
+                            pLimiter->getSnapshot ();
 
       ImGui::BeginGroup ();
       ImGui::Text ("MS:");
@@ -688,6 +692,13 @@ public:
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.freq));
       ImGui::Separator ();
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.frames));
+      ImGui::SameLine  ();
+      ImGui::ProgressBar (
+        static_cast <float> (
+          static_cast <double> (pLimiter->frames_of_fame.frames_measured.count ()) /
+          static_cast <double> (ReadAcquire64 (&snapshot.frames))
+        )
+      );
       ImGui::EndGroup  ();
 
       if (ImGui::Button ("Reset"))        *snapshot.pRestart     = true;

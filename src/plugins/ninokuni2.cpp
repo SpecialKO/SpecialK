@@ -363,7 +363,7 @@ SK_NNK2_PlugInCfg (void)
   static float* pfdTi = (float *)((uint8_t *)SK_GetModuleHandle (nullptr) +  TIMESTEP_BASE_ADDR);
   static float* pfdTr = pfdTi + 1;
 
-  if (ImGui::CollapsingHeader (u8"Ni no Kuni™ II Revenant Kingdom", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader ("Ni no Kuni™ II Revenant Kingdom", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
 

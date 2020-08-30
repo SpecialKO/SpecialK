@@ -487,7 +487,7 @@ SK_Sekiro_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags
     }
 
     SK_Sekiro_UnlimitFramerate (no_frame_limit, kill_limit ?
-       std::max (0.0l, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0l);
+       std::max (0.0, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0);
     SK_Sekiro_KillLimiter      (kill_limit);
 
     DWORD dwProcId;
@@ -510,7 +510,7 @@ SK_Sekiro_PlugInCfg (void)
   ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
   ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
-  if (ImGui::CollapsingHeader (u8R"(Sekiro™: Shadows Die Twice)", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader ((const char *)u8R"(Sekiro™: Shadows Die Twice)", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
 
@@ -561,7 +561,7 @@ SK_Sekiro_PlugInCfg (void)
         ImGui::BulletText   ("Requires Special K's framerate limit be engaged");
         ImGui::Bullet       ();
         ImGui::SameLine     ();
-        ImGui::TextColored  (ImColor::HSV (0.27, 1., 1.),
+        ImGui::TextColored  (ImColor::HSV (0.27f, 1.f, 1.f),
                              "If you change the framerate limit, turn this off and back on.");
         ImGui::EndTooltip   ();
       }
@@ -570,7 +570,7 @@ SK_Sekiro_PlugInCfg (void)
       {
         no_frame_limit
           = SK_Sekiro_UnlimitFramerate (no_frame_limit, kill_limit ?
-                                std::max (0.0l, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0l);
+                                std::max (0.0, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0);
 
         uncap_framerate->store (no_frame_limit);
 
@@ -721,7 +721,7 @@ SK_Sekiro_PlugInCfg (void)
         //  SK_Sekiro_KillLimiter      (kill_limit);
         //  no_frame_limit =
         //  SK_Sekiro_UnlimitFramerate (no_frame_limit, kill_limit ?
-        //     std::max (0.0l, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0l);
+        //     std::max (0.0, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0);
         //}
 
         if (orig_item != current_item)

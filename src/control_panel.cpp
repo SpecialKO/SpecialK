@@ -415,7 +415,7 @@ SK_ImGui_ProcessWarnings (void)
     return;
 
   static SK_Warning warning =
-    { u8"", L"" };
+    { "", L"" };
 
   if (! SK_ImGui_Warnings->empty ())
   {
@@ -1602,7 +1602,7 @@ SK_ImGui_ControlPanel (void)
         if ( ImGui::SliderFloat ( "Special K Luminance###IMGUI_LUMINANCE",
                                    &imgui_nits,
                                     80.0f, rb.display_gamut.maxLocalY,
-                                      u8"%.1f cd/m²" ) )
+                                      (const char *)u8"%.1f cd/m²" ) )
         {
           rb.ui_luminance =
                imgui_nits * 1.0_Nits;
@@ -1631,7 +1631,7 @@ SK_ImGui_ControlPanel (void)
           if ( ImGui::SliderFloat ( "Steam Overlay Luminance###STEAM_LUMINANCE",
                                      &steam_nits,
                                       80.0f, rb.display_gamut.maxY,
-                                        u8"%.1f cd/m²" ) )
+                                        (const char *)u8"%.1f cd/m²" ) )
           {
             config.steam.overlay_hdr_luminance =
                                     steam_nits * 1.0_Nits;
@@ -1657,7 +1657,7 @@ SK_ImGui_ControlPanel (void)
           if ( ImGui::SliderFloat ( "uPlay Overlay Luminance###UPLAY_LUMINANCE",
                                      &uplay_nits,
                                       80.0f, rb.display_gamut.maxY,
-                                        u8"%.1f cd/m²" ) )
+                                        (const char *)u8"%.1f cd/m²" ) )
           {
             config.uplay.overlay_luminance =
                                     uplay_nits * 1.0_Nits;
@@ -2382,7 +2382,7 @@ SK_ImGui_ControlPanel (void)
     else if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) != 0x0 &&
                api_mask != static_cast <int> (SK_RenderAPI::D3D11) )
     {
-      lstrcatA (szAPIName, u8"→11" );
+      lstrcatA (szAPIName, (const char *)u8"→11" );
     }
 
     lstrcatA ( szAPIName, SK_GetBitness () == 32 ? "           [ 32-bit ]" :
@@ -3573,7 +3573,7 @@ SK_ImGui_StageNextFrame (void)
       ImGui::TreePush      ("");
       ImGui::TextColored   (ImColor::HSV (.08f,.85f,1.f), "%s",
                             utf8_time_checked.c_str ());ImGui::SameLine ();
-      ImGui::TextColored   (ImColor (1.f, 1.f, 1.f, 1.f), u8"  ※  ");
+      ImGui::TextColored   (ImColor (1.f, 1.f, 1.f, 1.f), (const char *)u8"  ※  ");
                                                         ImGui::SameLine ();
       ImGui::TextColored   (version_color,               "%s",
                             utf8_release_description.c_str ());

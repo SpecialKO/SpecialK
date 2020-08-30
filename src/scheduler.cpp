@@ -51,7 +51,7 @@ QueryPerformanceCounter_pfn RtlQueryPerformanceFrequency       = nullptr;
 extern HWND WINAPI SK_GetActiveWindow (SK_TLS *pTLS);
 
 void
-SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, SK_TLS *pTLS)
+SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS *pTLS)
 {
   HWND hWndThis = SK_GetActiveWindow (pTLS);
   bool bUnicode =
@@ -66,29 +66,30 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, SK_TLS *pTLS)
     // Avoid having Windows marshal Unicode messages like a dumb ass
     if (bUnicode)
     {
-      if ( PeekMessageW ( &msg, 0, 0, 0,
-                                            PM_REMOVE | QS_ALLINPUT)
-               &&          msg.message != WM_NULL
+      if (PeekMessageW (&msg, nullptr, 0U, 0U, PM_REMOVE)
+              &&         msg.message != WM_NULL
          )
       {
         SK_LOG0 ( ( L"Dispatched Message: %x to Unicode HWND: %x while "
                     L"framerate limiting!", msg.message, msg.hwnd ),
                     L"Win32-Pump" );
 
+        TranslateMessage (&msg);
         DispatchMessageW (&msg);
       }
     }
 
     else
     {
-      if ( PeekMessageA ( &msg, 0, 0, 0,
-                                            PM_REMOVE | QS_ALLINPUT)
-               &&          msg.message != WM_NULL
+      if (PeekMessageA (&msg, nullptr, 0U, 0U, PM_REMOVE)
+              &&         msg.message != WM_NULL
          )
       {
         SK_LOG0 ( ( L"Dispatched Message: %x to ANSI HWND: %x while "
                     L"framerate limiting!", msg.message, msg.hwnd ),
                     L"Win32-Pump" );
+
+        TranslateMessage (&msg);
         DispatchMessageA (&msg);
       }
     }
@@ -97,47 +98,62 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, SK_TLS *pTLS)
 
   if (dwMilliseconds == 0)
   {
-    return;
-  }
+    PeekAndDispatch ();
 
+    if (SwitchToThread ())
+      return;
+
+    YieldProcessor ();
+  }
 
   LARGE_INTEGER liStart      = SK_CurrentPerf ();
   long long     liTicksPerMS = SK_GetPerfFreq ().QuadPart / 1000LL;
   long long     liEnd        = liStart.QuadPart +
                              ( liTicksPerMS     * dwMilliseconds );
 
-  LARGE_INTEGER liNow = liStart;
+  LARGE_INTEGER
+           liNow = liStart;
 
-  while ((liNow = SK_CurrentPerf ()).QuadPart < liEnd)
+  while ( (liNow = SK_CurrentPerf ()).QuadPart <
+                                           liEnd )
   {
     DWORD dwMaxWait =
       narrow_cast <DWORD> (std::max (0LL, (liEnd - liNow.QuadPart) /
                                                    liTicksPerMS  ) );
 
-    if (dwMaxWait < INT_MAX && dwMaxWait > 1)
+    if (dwMaxWait < INT_MAX)
     {
-      dwMaxWait = std::min (150UL, dwMaxWait);
+      dwMaxWait =
+        std::min (1UL, dwMaxWait);
 
       DWORD dwWait =
         MsgWaitForMultipleObjectsEx (
-          1, &__SK_DLL_TeardownEvent, dwMaxWait,
-            QS_ALLINPUT, MWMO_ALERTABLE    |
-                         MWMO_INPUTAVAILABLE
-                                    );
+          1, &__SK_DLL_TeardownEvent,
+            dwMaxWait,
+               QS_ALLINPUT
+             | QS_ALLPOSTMESSAGE,
+                 bAlertable ? MWMO_ALERTABLE
+                            : 0x0
+        );
 
-      if ( dwWait == WAIT_OBJECT_0     ||
-           dwWait == WAIT_TIMEOUT      ||
-           dwWait == WAIT_IO_COMPLETION )
+      if ( dwWait == WAIT_OBJECT_0 ||
+           dwWait == WAIT_TIMEOUT )
       {
         break;
       }
 
-      // (dwWait == WAIT_OBJECT_0 + 1) { Message Waiting }
+      else if (bAlertable && dwWait == WAIT_IO_COMPLETION)
+      {
+        break;
+      }
 
-      else
+      else if (dwWait == WAIT_OBJECT_0 + 1)
       {
         PeekAndDispatch ();
       }
+
+      else
+        SK_ReleaseAssert (! L"Unexpected Wait State in call to MsgWaitForMultipleObjectsEx (...)");
     }
 
     else
@@ -160,7 +176,7 @@ SK_Sched_ThreadContext::most_recent_wait_s::getRate (void)
       );
 
     return
-      static_cast <float> ( ms / long_double_cast (sequence) );
+      static_cast <float> ( ms / static_cast <double> (sequence) );
   }
 
   // Sequence just started
@@ -806,6 +822,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   if (bRenderThread)
   {
+#pragma region Tales of Vesperia Render NoSleep
 #ifdef _M_AMD64
     if (game_id == SK_GAME_ID::Tales_of_Vesperia)
     {
@@ -818,6 +835,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       }
     }
 #endif
+#pragma endregion
 
     if (sleepless_render && dwMilliseconds != INFINITE)
     {
@@ -863,7 +881,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       if (bRenderThread)
         SK::Framerate::events->getMessagePumpStats ().wake (dwMilliseconds);
 
-      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, pTLS);
+      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, bAlertable, pTLS);
 
       return 0;
     }
@@ -874,7 +892,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   DWORD max_delta_time =
     narrow_cast <DWORD> (config.render.framerate.max_delta_time);
 
-
+#pragma region Tales of Vesperia Anti-Stutter Code
 #ifdef _M_AMD64
   extern bool SK_TVFix_ActiveAntiStutter (void);
 
@@ -929,6 +947,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     }
   }
 #endif
+#pragma endregion
 
   // TODO: Stop this nonsense and make an actual parameter for this...
   //         (min sleep?)
@@ -939,44 +958,6 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     //             SK_SummarizeCaller ().c_str ());
     return
       SK_SleepEx (dwMilliseconds, bAlertable);
-  }
-
-  else
-  {
-    static volatile LONG __init = 0;
-
-    long double dMinRes = 0.498800;
-
-    if (! InterlockedCompareExchange (&__init, 1, 0))
-    {
-      NtDll =
-        SK_LoadLibraryW (L"NtDll.dll");
-
-      NtQueryTimerResolution =
-        reinterpret_cast <NtQueryTimerResolution_pfn> (
-          SK_GetProcAddress (NtDll, "NtQueryTimerResolution")
-        );
-
-      NtSetTimerResolution =
-        reinterpret_cast <NtSetTimerResolution_pfn> (
-          SK_GetProcAddress (NtDll, "NtSetTimerResolution")
-        );
-
-      if (NtQueryTimerResolution != nullptr &&
-          NtSetTimerResolution   != nullptr)
-      {
-        ULONG min, max, cur;
-        NtQueryTimerResolution (&min, &max, &cur);
-        dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                            long_double_cast (cur * 100)/1000000.0L );
-        NtSetTimerResolution   (max, TRUE,  &cur);
-        dll_log->Log ( L"[  Timing  ] New resolution....: %f ms",
-                            long_double_cast (cur * 100)/1000000.0L );
-
-        dMinRes =
-                            long_double_cast (cur * 100)/1000000.0L;
-      }
-    }
   }
 
   return 0;
@@ -1034,6 +1015,7 @@ BOOL
 WINAPI
 QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 {
+#pragma region Shenmue Clock Fuzzing
 #ifdef _M_AMD64
   struct SK_ShenmueLimitBreaker
   {
@@ -1110,9 +1092,9 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 
           lpPerformanceCount->QuadPart +=
             static_cast <LONGLONG> (
-                                     ( long_double_cast (lpPerformanceCount->QuadPart) -
-                                       long_double_cast (last_poll.QuadPart)           *
-                                       long_double_cast (__SK_SHENMUE_ClockFuzz)       )
+                                     ( static_cast <double> (lpPerformanceCount->QuadPart) -
+                                       static_cast <double> (last_poll.QuadPart)           *
+                                       static_cast <double> (__SK_SHENMUE_ClockFuzz)       )
                                    );
 
           last_poll.QuadPart =
@@ -1124,6 +1106,7 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
     }
   }
 #endif
+#pragma endregion
 
   return
     RtlQueryPerformanceCounter          ?

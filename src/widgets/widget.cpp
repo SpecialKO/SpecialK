@@ -730,7 +730,8 @@ SK_Widget::config_base (void)
 
   ImGui::Separator ();
 
-  auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
+  auto Keybinding =
+    [](SK_Keybind* binding, sk::ParameterStringW* param) ->
     auto
     {
       if (param == nullptr || binding == nullptr)
@@ -753,8 +754,6 @@ SK_Widget::config_base (void)
       if (original_binding != binding->human_readable)
       {
         param->store         (binding->human_readable);
-
-      //extern iSK_INI* osd_ini;
 
         osd_ini->write (osd_ini->get_filename ());
 

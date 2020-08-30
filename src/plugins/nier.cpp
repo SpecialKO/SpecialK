@@ -40,7 +40,7 @@
 volatile LONG   __FAR_init        = FALSE;
          float  __FAR_MINIMUM_EXT = 0.0f;
          bool   __FAR_Freelook    = false;
-    long double __FAR_TargetFPS   = 59.94L;
+         double __FAR_TargetFPS   = 59.94;
 
 
 #define WORKING_FPS_UNCAP
@@ -1826,11 +1826,11 @@ SK_FAR_PlugInCfg (void)
   }
 
 
-  ImGui::PushID (u8"NieR:Automata™_CPL");
+  ImGui::PushID ((const char *)u8"NieR:Automata™_CPL");
 
   bool changed = false;
 
-  if (ImGui::CollapsingHeader (u8"NieR:Automata™", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader ((const char *)u8"NieR:Automata™", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));

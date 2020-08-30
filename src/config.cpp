@@ -3361,6 +3361,7 @@ SK_SaveConfig ( std::wstring name,
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
 
+//if (close_config)
   render.framerate.target_fps->store          (__target_fps);
   render.framerate.target_fps_bg->store       (__target_fps_bg);
   render.framerate.limiter_tolerance->store   (config.render.framerate.limiter_tolerance);

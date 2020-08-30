@@ -419,7 +419,7 @@ SK_DQXI_PlugInCfg (void)
   ////  SK_GetDLLConfig ();
 
   if ( ImGui::CollapsingHeader (
-         u8R"(DRAGON QUEST® XI: Echoes of an Elusive Age™)",
+         (const char *)u8R"(DRAGON QUEST® XI: Echoes of an Elusive Age™)",
            ImGuiTreeNodeFlags_DefaultOpen
                                )
      )
@@ -427,8 +427,8 @@ SK_DQXI_PlugInCfg (void)
     bool hdr_open =
       SK_ImGui_Widgets->hdr_control->isVisible ();
 
-    if ( ImGui::Button ( hdr_open ? u8"Close the stupid HDR Widget!" :
-                                    u8"Open the astonishing HDR Widget!" ) )
+    if ( ImGui::Button ( hdr_open ? "Close the stupid HDR Widget!" :
+                                    "Open the astonishing HDR Widget!" ) )
     {
       SK_ImGui_Widgets->hdr_control->setVisible (! hdr_open);
 
@@ -462,7 +462,7 @@ SK_DQXI_PlugInCfg (void)
 
     ////if ( ue4_cfg.pINI != nullptr &&
     ////       ImGui::CollapsingHeader (
-    ////         u8"Unreal® Engine 4:  Advanced Engine Tuning",
+    ////         (const char *)u8"Unreal® Engine 4:  Advanced Engine Tuning",
     ////           ImGuiTreeNodeFlags_DefaultOpen
     ////                               )
     ////   )

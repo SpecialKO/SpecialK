@@ -3079,7 +3079,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
 
 
-  long double          dt      =    0.0l;
+  double               dt      =    0.0;
   LARGE_INTEGER            now = { 0, 0 };
   SK::Framerate::Tick (dt, now);
 

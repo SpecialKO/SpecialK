@@ -320,7 +320,7 @@ SK_ImGui_VolumeManager (void)
   ImGui::BeginGroup ();
   {
     ImGui::PushItemWidth (-1);
-    if (ImGui::Button (u8"  <<  "))
+    if (ImGui::Button ("  <<  "))
     {
       ISteamMusic* pMusic =
         SK_SteamAPI_Music ();
@@ -336,7 +336,7 @@ SK_ImGui_VolumeManager (void)
 
     ImGui::SameLine ();
 
-    if (ImGui::Button (u8"  Play / Pause  "))
+    if (ImGui::Button ("  Play / Pause  "))
     {
       ISteamMusic* pMusic =
         SK_SteamAPI_Music ();
@@ -354,7 +354,7 @@ SK_ImGui_VolumeManager (void)
 
     ImGui::SameLine ();
 
-    if (ImGui::Button (u8"  >>  "))
+    if (ImGui::Button ("  >>  "))
     {
       ISteamMusic* pMusic =
         SK_SteamAPI_Music ();

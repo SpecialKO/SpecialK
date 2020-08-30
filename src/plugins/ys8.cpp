@@ -1147,7 +1147,8 @@ const
         ImGui::BeginTooltip ( );
         ImGui::Text         ("Some of these headers are actually loaded by the game at runtime.");
         ImGui::Separator    ();
-        ImGui::BulletText   (u8"If you can read 日本語, the C code is (mostly) Shift-JIS encoded, with a few UTF-8");
+        ImGui::BulletText   ((const char *)
+                             u8"If you can read 日本語, the C code is (mostly) Shift-JIS encoded, with a few UTF-8");
         ImGui::BulletText   (  "If ancient Chinese squiggles confuse you, the C headers are still useful for CheatEngine");
         ImGui::EndTooltip   ();
       }
