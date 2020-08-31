@@ -63,7 +63,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
   SK_ReleaseAssert (
           filename != nullptr)
-  if (!   filename)   return;
+  if (    filename == nullptr) return;
 
   // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
   //   actual pointer we need to free...
@@ -72,10 +72,10 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   wszName =
     _wcsdup (filename);
 
-  if (! wszName)
+  if (wszName == nullptr)
     return;
 
-  if (wcsstr (filename, L"Version"))
+  if (wcsstr (filename, L"Version") != nullptr)
     SK_CreateDirectories (filename);
 
   SK_StripTrailingSlashesW (wszName);
@@ -97,7 +97,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
     SK_ReleaseAssert (wszData != nullptr)
 
-    if (! wszData)
+    if (wszData == nullptr)
     {
       fclose (fINI);
       return;
@@ -162,7 +162,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
       SK_ReleaseAssert (string != nullptr)
 
-      if (string)
+      if (string != nullptr)
       {
         memcpy (string, start_addr, real_size);
       }
@@ -171,7 +171,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
                 wszData = nullptr;
                 data    = nullptr;
 
-      if (! string)
+      if (string == nullptr)
       {
         return;
       }
@@ -182,7 +182,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
                                              real_size, nullptr, 0 )
                  );
 
-      if (! converted_size)
+      if (0 == converted_size)
       {
         dll_log->Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
                        L".ini file ('%s') to UTF-16, aborting!",
@@ -255,12 +255,12 @@ auto wcrlen =
       size_t  _len    = 0;
       const
       wchar_t*  _it   = _start;
-      while   ( _it   > nullptr &&
+      while   ( _it   >    0 &&
                 _it   < _end )
       {         _it   =
      CharNextW (_it);
             ++_len;
-           if ( _it != nullptr &&
+           if ( _it != 0 &&
                *_it == L'\0' ) break;
       }return _len;
     };
@@ -283,7 +283,7 @@ Process_Section ( iSK_INISection  &kSection,
 
   // TODO: Re-write to fallback to heap allocated memory
   //         if TLS is not working.
-  if (! pTLS)
+  if (pTLS == nullptr)
   {
     static iSK_INISection fake;
     return fake;
@@ -364,7 +364,7 @@ Import_Section ( iSK_INISection  &section,
 
   // TODO: Re-write to fallback to heap allocated memory
   //         if TLS is not working.
-  if (! pTLS)
+  if (pTLS == nullptr)
   {
     return false;
   }
@@ -450,7 +450,7 @@ iSK_INI::parse (void)
 
   // TODO: Re-write to fallback to heap allocated memory
   //         if TLS is not working.
-  if (! pTLS)
+  if (pTLS == nullptr)
     return;
 
   if (wszData != nullptr)
@@ -597,7 +597,7 @@ iSK_INI::parse (void)
 
   if (crc32_ == 0x0)
   {
-    std::wstring outbuf = L"";
+    std::wstring outbuf;
                  outbuf.reserve (16384);
 
     for ( auto& it : ordered_sections )
@@ -954,7 +954,7 @@ void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
-  std::wstring outbuf = L"";
+  std::wstring outbuf;
                outbuf.reserve (16384);
 
   for ( auto& it : ordered_sections )
@@ -1046,7 +1046,7 @@ HRESULT
 __stdcall
 iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
-  if (IsEqualGUID (riid, IID_SK_INI))
+  if (IsEqualGUID (riid, IID_SK_INI) != 0)
   {
     AddRef ();
 
@@ -1124,7 +1124,7 @@ HRESULT
 __stdcall
 iSK_INISection::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
-  if (IsEqualGUID (riid, IID_SK_INISection))
+  if (IsEqualGUID (riid, IID_SK_INISection) != 0)
   {
     AddRef ();
 
@@ -1286,7 +1286,7 @@ iSK_INI::import_file (const wchar_t* fname)
         MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
                               nullptr, 0 );
 
-      if (! converted_size)
+      if (0 == converted_size)
       {
         if (real_size > 0)
         {

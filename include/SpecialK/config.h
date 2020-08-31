@@ -333,8 +333,6 @@ struct sk_config_t
       float   target_fps        =  0.0f;
       float   target_fps_bg     =  0.0f;
       float   busy_wait_ratio   =  0.825f;
-      float   limiter_tolerance =  2.0f;
-      int     max_render_ahead  =  0;
       int     override_num_cpus = -1;
       int     pre_render_limit  = -1;
       int     present_interval  = -1;
@@ -356,7 +354,6 @@ struct sk_config_t
       bool    sleepless_render  = false;
       bool    sleepless_window  = false;
       bool    enable_mmcss      = true;
-      bool    adaptive          = true;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex      = false;

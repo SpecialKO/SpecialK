@@ -1842,7 +1842,7 @@ auto DeclKeybind =
         config.input.gamepad.xinput.placehold [3] = true;
         config.render.framerate.buffer_count      = 3;
         config.render.framerate.pre_render_limit  = 4;
-        config.render.framerate.limiter_tolerance = 4.0f;
+      //config.render.framerate.limiter_tolerance = 4.0f;
 
         SK_D3D11_DeclHUDShader (0x15888ef2, ID3D11VertexShader);
         SK_D3D11_DeclHUDShader (0x1893edbd, ID3D11VertexShader);
@@ -1931,7 +1931,7 @@ auto DeclKeybind =
         config.render.framerate.buffer_count      =      5;
         config.render.framerate.pre_render_limit  =      6;
         config.render.framerate.present_interval  =      1;
-        config.render.framerate.limiter_tolerance =   2.0f;
+      //config.render.framerate.limiter_tolerance =   2.0f;
         config.render.framerate.flip_discard      =   true;
         config.render.framerate.swapchain_wait    =    500;
         config.steam.reuse_overlay_pause          =  false;
@@ -1994,8 +1994,8 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Tales_of_Vesperia:
       {
-        config.render.framerate.limiter_tolerance
-                                                = 4.25f;
+        //config.render.framerate.limiter_tolerance
+        //                                        = 4.25f;
         config.window.treat_fg_as_active        = true;
         config.input.ui.use_hw_cursor           = false;
         SK_ImGui_Cursor.prefs.no_warp.ui_open   = false;
@@ -2053,7 +2053,7 @@ auto DeclKeybind =
         config.render.dxgi.res.max.x = config.window.res.override.x;
         config.render.dxgi.res.max.y = config.window.res.override.y;
 
-        config.render.framerate.limiter_tolerance =  5.0f;
+      //config.render.framerate.limiter_tolerance =  5.0f;
         config.render.framerate.buffer_count      =     3;
         config.render.framerate.target_fps        =    60;
         config.render.framerate.pre_render_limit  =     4;
@@ -2191,25 +2191,25 @@ auto DeclKeybind =
 
   render.framerate.target_fps->load         (config.render.framerate.target_fps);
   render.framerate.target_fps_bg->load      (config.render.framerate.target_fps_bg);
-  render.framerate.limiter_tolerance->load  (config.render.framerate.limiter_tolerance);
+//render.framerate.limiter_tolerance->load  (config.render.framerate.limiter_tolerance);
   render.framerate.sleepless_render->load   (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->load   (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->load       (config.render.framerate.enable_mmcss);
 
-  if (config.render.framerate.limiter_tolerance < 1.0f)
-      config.render.framerate.limiter_tolerance = 2.75f;
+//  if (config.render.framerate.limiter_tolerance < 1.0f)
+//      config.render.framerate.limiter_tolerance = 2.75f;
 
   __target_fps    = config.render.framerate.target_fps;
   __target_fps_bg = config.render.framerate.target_fps_bg;
 
-  render.framerate.control.
-                  render_ahead->load        (config.render.framerate.max_render_ahead);
+//  render.framerate.control.
+//                  render_ahead->load        (config.render.framerate.max_render_ahead);
   render.framerate.override_cpu_count->load (config.render.framerate.override_num_cpus);
 
 
-  //// Range-restrict this to prevent the user from destroying performance
-  if (config.render.framerate.limiter_tolerance < 1.25f)
-      config.render.framerate.limiter_tolerance = 1.25f;
+/////// Range-restrict this to prevent the user from destroying performance
+///if (config.render.framerate.limiter_tolerance < 1.25f)
+///    config.render.framerate.limiter_tolerance = 1.25f;
 
 
   render.osd.draw_in_vidcap->load           (config.render.osd. draw_in_vidcap);
@@ -2264,11 +2264,11 @@ auto DeclKeybind =
 
   // DXGI
   //
-  render.framerate.adaptive_tearing->load (config.render.framerate.adaptive);
+//render.framerate.adaptive_tearing->load (config.render.framerate.adaptive);
   render.framerate.max_delta_time->load   (config.render.framerate.max_delta_time);
 
   // TEMP HACK, always disable Adaptive V-Sync
-  config.render.framerate.adaptive = false;
+//config.render.framerate.adaptive = false;
 
   if (render.framerate.flip_discard->load (config.render.framerate.flip_discard) && config.render.framerate.flip_discard)
   {
@@ -3364,13 +3364,10 @@ SK_SaveConfig ( std::wstring name,
 //if (close_config)
   render.framerate.target_fps->store          (__target_fps);
   render.framerate.target_fps_bg->store       (__target_fps_bg);
-  render.framerate.limiter_tolerance->store   (config.render.framerate.limiter_tolerance);
   render.framerate.sleepless_render->store    (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->store    (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->store        (config.render.framerate.enable_mmcss);
 
-  render.framerate.control.
-                   render_ahead->store        (config.render.framerate.max_render_ahead);
   render.framerate.override_cpu_count->store  (config.render.framerate.override_num_cpus);
   render.framerate.busy_wait_ratio->store     (config.render.framerate.busy_wait_ratio);
 
@@ -3421,7 +3418,7 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
-      render.framerate.adaptive_tearing->store    (config.render.framerate.adaptive);
+    //render.framerate.adaptive_tearing->store    (config.render.framerate.adaptive);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
       texture.d3d11.precise_hash->store           (config.textures.d3d11.precise_hash);
