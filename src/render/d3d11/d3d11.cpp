@@ -2597,7 +2597,7 @@ SK_D3D11_UpdateSubresource_Impl (
     ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
     (! bMustNotIgnore) );
 
-  ///////SK_TLS *pTLS = nullptr;
+  SK_TLS *pTLS = nullptr;
 
   // UB: If it's happening, pretend we never saw this...
   if (pDstResource == nullptr || pSrcData == nullptr)
@@ -2612,31 +2612,31 @@ SK_D3D11_UpdateSubresource_Impl (
   }
 
 
-  //////////static const bool __sk_dqxi =
-  //////////  //true;
-  //////////  ( SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI );
-  //////////
-  //////////if ( pDstBox != nullptr && ( pDstBox->left  >= pDstBox->right  ||
-  //////////                             pDstBox->top   >= pDstBox->bottom ||
-  //////////                             pDstBox->front >= pDstBox->back )    )
-  //////////{
-  //////////  early_out = true;
-  //////////}
-  //////////
-  //////////D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
-  //////////pDstResource->GetType  (&rdim); //-V1004
-  //////////
-  //////////if (! early_out)
-  //////////{
-  //////////  early_out =
-  //////////  (
-  //////////    rdim !=
-  //////////       D3D11_RESOURCE_DIMENSION_TEXTURE2D ||
-  //////////    SK_D3D11_IsTexInjectThread (
-  //////////        (pTLS = SK_TLS_Bottom ())
-  //////////    )
-  //////////  );
-  //////////}
+  static const bool __sk_dqxi =
+    true;
+    //( SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI );
+
+  if ( pDstBox != nullptr && ( pDstBox->left  >= pDstBox->right  ||
+                               pDstBox->top   >= pDstBox->bottom ||
+                               pDstBox->front >= pDstBox->back )    )
+  {
+    early_out = true;
+  }
+
+  D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
+  pDstResource->GetType  (&rdim); //-V1004
+
+  if (! early_out)
+  {
+    early_out =
+    (
+      rdim !=
+         D3D11_RESOURCE_DIMENSION_TEXTURE2D ||
+      SK_D3D11_IsTexInjectThread (
+          (pTLS = SK_TLS_Bottom ())
+      )
+    );
+  }
 
   if (early_out)
   {
@@ -2644,273 +2644,273 @@ SK_D3D11_UpdateSubresource_Impl (
       _Finish ();
   }
 
-////////  if ( ((__sk_dqxi && rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
-////////      SK_D3D11_IsStagingCacheable (rdim, pDstResource)) && DstSubresource == 0 )
-////////  {
-////////    static auto& textures =
-////////      SK_D3D11_Textures;
-////////
-////////    SK_ComQIPtr <ID3D11Texture2D> pTex (pDstResource);
-////////
-////////    if (pTex != nullptr)
-////////    {
-////////      D3D11_TEXTURE2D_DESC desc = { };
-////////           pTex->GetDesc (&desc);
-////////
-////////      /// DQ XI Temp Hack
-////////      /// ---------------
-////////      if (__sk_dqxi)
-////////      {
-////////        const bool skip =
-////////          ( desc.Usage == D3D11_USAGE_STAGING ||
-////////            desc.Usage == D3D11_USAGE_DYNAMIC ||
-////////            (! DirectX::IsCompressed (desc.Format)) );
-////////
-////////        if (skip)
-////////        {
-////////          return
-////////            _Finish ();
-////////        }
-////////      }
-////////
-////////
-////////      D3D11_SUBRESOURCE_DATA srd = { };
-////////
-////////      srd.pSysMem           = pSrcData;
-////////      srd.SysMemPitch       = SrcRowPitch;
-////////      srd.SysMemSlicePitch  = 0;
-////////
-////////      size_t   size         = 0;
-////////      uint32_t top_crc32c   = 0x0;
-////////
-////////      uint32_t checksum     =
-////////        crc32_tex   (&desc, &srd, &size, &top_crc32c, false);
-////////
-////////      auto _StripTransientProperties =
-////////        [](D3D11_TEXTURE2D_DESC& desc) ->
-////////           D3D11_TEXTURE2D_DESC
-////////        {
-////////          D3D11_TEXTURE2D_DESC
-////////            stripped_desc = desc;
-////////
-////////          stripped_desc.Format             = DirectX::MakeTypeless (desc.Format);
-////////          stripped_desc.BindFlags          =              D3D11_BIND_SHADER_RESOURCE;
-////////          stripped_desc.Usage              = (D3D11_USAGE)D3D11_USAGE_DEFAULT;
-////////          stripped_desc.CPUAccessFlags     =   0;
-////////          stripped_desc.MiscFlags          = 0x0;
-////////          stripped_desc.SampleDesc.Count   =   1;
-////////          stripped_desc.SampleDesc.Quality =   0;
-////////          stripped_desc.ArraySize          =   1;
-////////          stripped_desc.MipLevels          =   0;
-////////
-////////          return stripped_desc;
-////////        };
-////////
-////////      const auto transient_desc =
-////////        _StripTransientProperties (desc);
-////////
-////////const uint32_t cache_tag    =
-////////        safe_crc32c (top_crc32c, (uint8_t *)(&transient_desc), sizeof (D3D11_TEXTURE2D_DESC));
-////////
-////////      SK_ScopedBool decl_tex_scope (
-////////        SK_D3D11_DeclareTexInjectScope (pTLS)
-////////      );
-////////
-////////      const auto start      = SK_QueryPerf ().QuadPart;
-////////
-////////      SK_ComPtr <ID3D11Texture2D> pCachedTex;
-////////      pCachedTex.Attach (
-////////        textures->getTexture2D (cache_tag, &desc)
-////////      );
-////////
-////////      if (pCachedTex != nullptr)
-////////      {
-////////        if (pCachedTex != pTex)
-////////        {
-////////          SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
-////////
-////////          bWrapped ?
-////////            pDevCtx->CopyResource (pDstResource,                pCachedResource)
-////////                   :
-////////            D3D11_CopyResource_Original (pDevCtx, pDstResource, pCachedResource);
-////////
-////////          SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
-////////                        desc.Width, desc.Height, top_crc32c ),
-////////                      L"DX11TexMgr" );
-////////        }
-////////
-////////        else
-////////        {
-////////          SK_LOG0 ( ( L"Texture Cache Redundancy: (%lux%lu) -- %x",
-////////                          desc.Width, desc.Height, top_crc32c ),
-////////                        L"DX11TexMgr" );
-////////        }
-////////
-////////        textures->recordCacheHit (pCachedTex);
-////////
-////////        return;
-////////      }
-////////
-////////      else
-////////      {
-////////        ///if (SK_D3D11_TextureIsCached (pTex))
-////////        ///{
-////////        ///  SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
-////////        ///                 SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-////////        ///  SK_D3D11_RemoveTexFromCache (pTex, true);
-////////        ///}
-////////
-////////        _Finish ();
-////////
-////////        const auto end     = SK_QueryPerf ().QuadPart;
-////////              auto elapsed = end - start;
-////////
-////////        if (desc.Usage == D3D11_USAGE_STAGING)
-////////        {
-////////          auto& map_ctx = (*mapped_resources)[pDevCtx];
-////////
-////////          map_ctx.dynamic_textures  [pDstResource] = checksum;
-////////          map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
-////////
-////////          SK_LOG1 ( ( L"New Staged Texture: (%lux%lu) -- %x",
-////////                        desc.Width, desc.Height, top_crc32c ),
-////////                      L"DX11TexMgr" );
-////////
-////////          map_ctx.dynamic_times2    [checksum]  = elapsed;
-////////          map_ctx.dynamic_sizes2    [checksum]  = size;
-////////
-////////          return;
-////////        }
-////////
-////////        else if (desc.Usage == D3D11_USAGE_DEFAULT)
-////////        {
-////////        //-------------------
-////////
-////////          bool cacheable = ( desc.MiscFlags <= 4 &&
-////////                             desc.Width      > 0 &&
-////////                             desc.Height     > 0 &&
-////////                             desc.ArraySize == 1 //||
-////////                           //((desc.ArraySize  % 6 == 0) && (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE))
-////////                           );
-////////
-////////          const bool compressed =
-////////            DirectX::IsCompressed (desc.Format);
-////////
-////////          // If this isn't an injectable texture, then filter out non-mipmapped
-////////          //   textures.
-////////          if (/*(! injectable) && */cache_opts.ignore_non_mipped)
-////////            cacheable &= (desc.MipLevels > 1 || compressed);
-////////
-////////          if (cacheable)
-////////          {
-////////            bool injected = false;
-////////
-////////            // -----------------------------
-////////            if (SK_D3D11_res_root->length ())
-////////            {
-////////              wchar_t     wszTex [MAX_PATH + 2] = { };
-////////              wcsncpy_s ( wszTex, MAX_PATH,
-////////                          SK_D3D11_TexNameFromChecksum (top_crc32c, checksum, 0x0).c_str (),
-////////                          _TRUNCATE );
-////////
-////////              if (                  *wszTex  != L'\0' &&
-////////                  GetFileAttributes (wszTex) != INVALID_FILE_ATTRIBUTES )
-////////              {
-////////                HRESULT hr = E_UNEXPECTED;
-////////
-////////                DirectX::TexMetadata mdata = { };
-////////
-////////                if (SUCCEEDED ((hr = DirectX::GetMetadataFromDDSFile (wszTex, 0, mdata))))
-////////                {
-////////                  if ( ( DirectX::MakeTypeless      (mdata.format) != DirectX::MakeTypeless      (desc.Format) &&
-////////                         DirectX::MakeTypelessUNORM (mdata.format) != DirectX::MakeTypelessUNORM (desc.Format) &&
-////////                         DirectX::MakeTypelessFLOAT (mdata.format) != DirectX::MakeTypelessFLOAT (desc.Format) &&
-////////                         DirectX::MakeSRGB          (mdata.format) != DirectX::MakeSRGB          (desc.Format) )
-////////                      || mdata.width  != desc.Width
-////////                      || mdata.height != desc.Height )
-////////                  {
-////////                    SK_LOG0 ( ( L"Texture injection for texture '%x' failed due to format / size mismatch.",
-////////                                  top_crc32c ), L"DX11TexMgr" );
-////////                  }
-////////
-////////                  else
-////////                  {
-////////                    DirectX::ScratchImage img;
-////////
-////////                    if (SUCCEEDED ((hr = DirectX::LoadFromDDSFile (wszTex, 0, &mdata, img))))
-////////                    {
-////////                      SK_ComPtr <ID3D11Texture2D>
-////////                                               pSurrogateTexture2D = nullptr;
-////////                      SK_ComPtr <ID3D11Device> pDev                = nullptr;
-////////
-////////                          pDevCtx->GetDevice (&pDev);
-////////
-////////                      if (SUCCEEDED ((hr = DirectX::CreateTexture (pDev,
-////////                                             img.GetImages     (),
-////////                                             img.GetImageCount (), mdata,
-////////                                             reinterpret_cast <ID3D11Resource **> (&pSurrogateTexture2D.p))))
-////////                         )
-////////                      {
-////////                        const LARGE_INTEGER load_end =
-////////                          SK_QueryPerf ();
-////////
-////////                        pTex  =  nullptr;
-////////                        pTex.Attach (
-////////                          reinterpret_cast <ID3D11Texture2D *> (pDstResource)
-////////                        );
-////////
-////////                        bWrapped ?
-////////                          pDevCtx->CopyResource                (pDstResource, pSurrogateTexture2D)
-////////                                 :
-////////                          D3D11_CopyResource_Original (pDevCtx, pDstResource, pSurrogateTexture2D);
-////////
-////////                        injected = true;
-////////                      }
-////////
-////////                      else
-////////                      {
-////////                        SK_LOG0 ( (L"*** Texture '%s' failed DirectX::CreateTexture (...) -- (HRESULT=%s), skipping!",
-////////                                     SK_ConcealUserDir (wszTex), _com_error (hr).ErrorMessage () ),
-////////                                   L"DX11TexMgr" );
-////////                      }
-////////                    }
-////////                    else
-////////                    {
-////////                      SK_LOG0 ( (L"*** Texture '%s' failed DirectX::LoadFromDDSFile (...) -- (HRESULT=%s), skipping!",
-////////                                   SK_ConcealUserDir (wszTex), _com_error (hr).ErrorMessage () ),
-////////                                  L"DX11TexMgr" );
-////////                    }
-////////                  }
-////////                }
-////////
-////////                else
-////////                {
-////////                  SK_LOG0 ( (L"*** Texture '%s' failed DirectX::GetMetadataFromDDSFile (...) -- (HRESULT=%s), skipping!",
-////////                               SK_ConcealUserDir (wszTex), _com_error (hr).ErrorMessage () ),
-////////                             L"DX11TexMgr" );
-////////                }
-////////              }
-////////            }
-////////
-////////            SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
-////////                          desc.Width, desc.Height, top_crc32c ),
-////////                        L"DX11TexMgr" );
-////////
-////////            textures->CacheMisses_2D++;
-////////            textures->refTexture2D (pTex, &desc, cache_tag, size, elapsed, top_crc32c,
-////////                                     L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS);
-////////
-////////            if (injected)
-////////            {
-////////              textures->Textures_2D [pTex].injected = true;
-////////            }
-////////          }
-////////        }
-////////
-////////        return;
-////////      }
-////////    }
-////////  }
+  if ( ((__sk_dqxi && rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
+      SK_D3D11_IsStagingCacheable (rdim, pDstResource)) && DstSubresource == 0 )
+  {
+    static auto& textures =
+      SK_D3D11_Textures;
+
+    SK_ComQIPtr <ID3D11Texture2D> pTex (pDstResource);
+
+    if (pTex != nullptr)
+    {
+      D3D11_TEXTURE2D_DESC desc = { };
+           pTex->GetDesc (&desc);
+
+      /// DQ XI Temp Hack
+      /// ---------------
+      if (__sk_dqxi)
+      {
+        const bool skip =
+          ( desc.Usage == D3D11_USAGE_STAGING ||
+            desc.Usage == D3D11_USAGE_DYNAMIC ||
+            (! DirectX::IsCompressed (desc.Format)) );
+
+        if (skip)
+        {
+          return
+            _Finish ();
+        }
+      }
+
+
+      D3D11_SUBRESOURCE_DATA srd = { };
+
+      srd.pSysMem           = pSrcData;
+      srd.SysMemPitch       = SrcRowPitch;
+      srd.SysMemSlicePitch  = 0;
+
+      size_t   size         = 0;
+      uint32_t top_crc32c   = 0x0;
+
+      uint32_t checksum     =
+        crc32_tex   (&desc, &srd, &size, &top_crc32c, false);
+
+      auto _StripTransientProperties =
+        [](D3D11_TEXTURE2D_DESC& desc) ->
+           D3D11_TEXTURE2D_DESC
+        {
+          D3D11_TEXTURE2D_DESC
+            stripped_desc = desc;
+
+          stripped_desc.Format             = DirectX::MakeTypeless (desc.Format);
+          stripped_desc.BindFlags          =              D3D11_BIND_SHADER_RESOURCE;
+          stripped_desc.Usage              = (D3D11_USAGE)D3D11_USAGE_DEFAULT;
+          stripped_desc.CPUAccessFlags     =   0;
+          stripped_desc.MiscFlags          = 0x0;
+          stripped_desc.SampleDesc.Count   =   1;
+          stripped_desc.SampleDesc.Quality =   0;
+          stripped_desc.ArraySize          =   1;
+          stripped_desc.MipLevels          =   0;
+
+          return stripped_desc;
+        };
+
+      const auto transient_desc =
+        _StripTransientProperties (desc);
+
+const uint32_t cache_tag    =
+        safe_crc32c (top_crc32c, (uint8_t *)(&transient_desc), sizeof (D3D11_TEXTURE2D_DESC));
+
+      SK_ScopedBool decl_tex_scope (
+        SK_D3D11_DeclareTexInjectScope (pTLS)
+      );
+
+      const auto start      = SK_QueryPerf ().QuadPart;
+
+      SK_ComPtr <ID3D11Texture2D> pCachedTex;
+      pCachedTex.Attach (
+        textures->getTexture2D (cache_tag, &desc)
+      );
+
+      if (pCachedTex != nullptr)
+      {
+        if (pCachedTex != pTex)
+        {
+          SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
+
+          bWrapped ?
+            pDevCtx->CopyResource (pDstResource,                pCachedResource)
+                   :
+            D3D11_CopyResource_Original (pDevCtx, pDstResource, pCachedResource);
+
+          SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
+                        desc.Width, desc.Height, top_crc32c ),
+                      L"DX11TexMgr" );
+        }
+
+        else
+        {
+          SK_LOG0 ( ( L"Texture Cache Redundancy: (%lux%lu) -- %x",
+                          desc.Width, desc.Height, top_crc32c ),
+                        L"DX11TexMgr" );
+        }
+
+        textures->recordCacheHit (pCachedTex);
+
+        return;
+      }
+
+      else
+      {
+        if (SK_D3D11_TextureIsCached (pTex))
+        {
+          SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
+                         SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
+          SK_D3D11_RemoveTexFromCache (pTex, true);
+        }
+
+        _Finish ();
+
+        const auto end     = SK_QueryPerf ().QuadPart;
+              auto elapsed = end - start;
+
+        if (desc.Usage == D3D11_USAGE_STAGING)
+        {
+          auto& map_ctx = (*mapped_resources)[pDevCtx];
+
+          map_ctx.dynamic_textures  [pDstResource] = checksum;
+          map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
+
+          SK_LOG1 ( ( L"New Staged Texture: (%lux%lu) -- %x",
+                        desc.Width, desc.Height, top_crc32c ),
+                      L"DX11TexMgr" );
+
+          map_ctx.dynamic_times2    [checksum]  = elapsed;
+          map_ctx.dynamic_sizes2    [checksum]  = size;
+
+          return;
+        }
+
+        else if (desc.Usage == D3D11_USAGE_DEFAULT)
+        {
+        //-------------------
+
+          bool cacheable = ( desc.MiscFlags <= 4 &&
+                             desc.Width      > 0 &&
+                             desc.Height     > 0 &&
+                             desc.ArraySize == 1 //||
+                           //((desc.ArraySize  % 6 == 0) && (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE))
+                           );
+
+          const bool compressed =
+            DirectX::IsCompressed (desc.Format);
+
+          // If this isn't an injectable texture, then filter out non-mipmapped
+          //   textures.
+          if (/*(! injectable) && */cache_opts.ignore_non_mipped)
+            cacheable &= (desc.MipLevels > 1 || compressed);
+
+          if (cacheable)
+          {
+            bool injected = false;
+
+            // -----------------------------
+            if (SK_D3D11_res_root->length ())
+            {
+              wchar_t     wszTex [MAX_PATH + 2] = { };
+              wcsncpy_s ( wszTex, MAX_PATH,
+                          SK_D3D11_TexNameFromChecksum (top_crc32c, checksum, 0x0).c_str (),
+                          _TRUNCATE );
+
+              if (                  *wszTex  != L'\0' &&
+                  GetFileAttributes (wszTex) != INVALID_FILE_ATTRIBUTES )
+              {
+                HRESULT hr = E_UNEXPECTED;
+
+                DirectX::TexMetadata mdata = { };
+
+                if (SUCCEEDED ((hr = DirectX::GetMetadataFromDDSFile (wszTex, 0, mdata))))
+                {
+                  if ( ( DirectX::MakeTypeless      (mdata.format) != DirectX::MakeTypeless      (desc.Format) &&
+                         DirectX::MakeTypelessUNORM (mdata.format) != DirectX::MakeTypelessUNORM (desc.Format) &&
+                         DirectX::MakeTypelessFLOAT (mdata.format) != DirectX::MakeTypelessFLOAT (desc.Format) &&
+                         DirectX::MakeSRGB          (mdata.format) != DirectX::MakeSRGB          (desc.Format) )
+                      || mdata.width  != desc.Width
+                      || mdata.height != desc.Height )
+                  {
+                    SK_LOG0 ( ( L"Texture injection for texture '%x' failed due to format / size mismatch.",
+                                  top_crc32c ), L"DX11TexMgr" );
+                  }
+
+                  else
+                  {
+                    DirectX::ScratchImage img;
+
+                    if (SUCCEEDED ((hr = DirectX::LoadFromDDSFile (wszTex, 0, &mdata, img))))
+                    {
+                      SK_ComPtr <ID3D11Texture2D>
+                                               pSurrogateTexture2D = nullptr;
+                      SK_ComPtr <ID3D11Device> pDev                = nullptr;
+
+                          pDevCtx->GetDevice (&pDev);
+
+                      if (SUCCEEDED ((hr = DirectX::CreateTexture (pDev,
+                                             img.GetImages     (),
+                                             img.GetImageCount (), mdata,
+                                             reinterpret_cast <ID3D11Resource **> (&pSurrogateTexture2D.p))))
+                         )
+                      {
+                        const LARGE_INTEGER load_end =
+                          SK_QueryPerf ();
+
+                        pTex  =  nullptr;
+                        pTex.Attach (
+                          reinterpret_cast <ID3D11Texture2D *> (pDstResource)
+                        );
+
+                        bWrapped ?
+                          pDevCtx->CopyResource                (pDstResource, pSurrogateTexture2D)
+                                 :
+                          D3D11_CopyResource_Original (pDevCtx, pDstResource, pSurrogateTexture2D);
+
+                        injected = true;
+                      }
+
+                      else
+                      {
+                        SK_LOG0 ( (L"*** Texture '%s' failed DirectX::CreateTexture (...) -- (HRESULT=%s), skipping!",
+                                     SK_ConcealUserDir (wszTex), _com_error (hr).ErrorMessage () ),
+                                   L"DX11TexMgr" );
+                      }
+                    }
+                    else
+                    {
+                      SK_LOG0 ( (L"*** Texture '%s' failed DirectX::LoadFromDDSFile (...) -- (HRESULT=%s), skipping!",
+                                   SK_ConcealUserDir (wszTex), _com_error (hr).ErrorMessage () ),
+                                  L"DX11TexMgr" );
+                    }
+                  }
+                }
+
+                else
+                {
+                  SK_LOG0 ( (L"*** Texture '%s' failed DirectX::GetMetadataFromDDSFile (...) -- (HRESULT=%s), skipping!",
+                               SK_ConcealUserDir (wszTex), _com_error (hr).ErrorMessage () ),
+                             L"DX11TexMgr" );
+                }
+              }
+            }
+
+            SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
+                          desc.Width, desc.Height, top_crc32c ),
+                        L"DX11TexMgr" );
+
+            textures->CacheMisses_2D++;
+            textures->refTexture2D (pTex, &desc, cache_tag, size, elapsed, top_crc32c,
+                                     L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS);
+
+            if (injected)
+            {
+              textures->Textures_2D [pTex].injected = true;
+            }
+          }
+        }
+
+        return;
+      }
+    }
+  }
 
   return
     _Finish ();

@@ -1301,8 +1301,8 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
 
     if (pDstTex != nullptr)
     {
-      if (! SK_D3D11_IsTexInjectThread (pTLS))
-      {
+      //if (! SK_D3D11_IsTexInjectThread (pTLS))
+      //{
         //if (SK_GetCurrentGameID () == SK_GAME_ID::PillarsOfEternity2)
         //{
         //  extern          bool SK_POE2_NopSubresourceCopy;
@@ -1347,22 +1347,25 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         //           SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
         //  SK_D3D11_RemoveTexFromCache (pDstTex, true);
         //}
-      }
+      //}
     }
 
 
     // ImGui gets to pass-through without invoking the hook
-    if (! SK_D3D11_ShouldTrackRenderOp (pReal, dev_ctx_handle_))
+    if (! config.textures.cache.allow_staging)
     {
-      return
-        pReal->CopySubresourceRegion (
-                  pDstResource,
-                   DstSubresource,
-                   DstX, DstY, DstZ,
-                  pSrcResource,
-                   SrcSubresource,
-                  pSrcBox
-        );
+      if (! SK_D3D11_ShouldTrackRenderOp (pReal, dev_ctx_handle_))
+      {
+        return
+          pReal->CopySubresourceRegion (
+                    pDstResource,
+                     DstSubresource,
+                     DstX, DstY, DstZ,
+                    pSrcResource,
+                     SrcSubresource,
+                    pSrcBox
+          );
+      }
     }
 
 
@@ -1424,41 +1427,46 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
                                    pSrcResource, SrcSubresource, pSrcBox );
 
-    //if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) ||
-    //       SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
-    //{
-    //  auto& map_ctx = (*mapped_resources)[pReal];
-    //
-    //  if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource))
-    //  {
-    //    const uint32_t top_crc32 = map_ctx.dynamic_texturesx [pSrcResource];
-    //    const uint32_t checksum  = map_ctx.dynamic_textures  [pSrcResource];
-    //
-    //    D3D11_TEXTURE2D_DESC dst_desc = { };
-    //    pDstTex->GetDesc (&dst_desc);
-    //
-    //    const uint32_t cache_tag =
-    //      safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof (D3D11_TEXTURE2D_DESC));
-    //
-    //    if (checksum != 0x00 && dst_desc.Usage != D3D11_USAGE_STAGING)
-    //    {
-    //      textures->refTexture2D ( pDstTex,
-    //                               &dst_desc,
-    //                               cache_tag,
-    //                               map_ctx.dynamic_sizes2 [checksum],
-    //                               map_ctx.dynamic_times2 [checksum],
-    //                               top_crc32,
-    //                               L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
-    //                               pTLS );
-    //
-    //      map_ctx.dynamic_textures.erase  (pSrcResource);
-    //      map_ctx.dynamic_texturesx.erase (pSrcResource);
-    //
-    //      map_ctx.dynamic_sizes2.erase    (checksum);
-    //      map_ctx.dynamic_times2.erase    (checksum);
-    //    }
-    //  }
-    //}
+#pragma region CacheStagingMappedResources
+    if (! config.textures.cache.allow_staging)
+    {
+      if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) ||
+             SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
+      {
+        auto& map_ctx = (*mapped_resources)[pReal];
+
+        if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource))
+        {
+          const uint32_t top_crc32 = map_ctx.dynamic_texturesx [pSrcResource];
+          const uint32_t checksum  = map_ctx.dynamic_textures  [pSrcResource];
+
+          D3D11_TEXTURE2D_DESC dst_desc = { };
+          pDstTex->GetDesc (&dst_desc);
+
+          const uint32_t cache_tag =
+            safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof (D3D11_TEXTURE2D_DESC));
+
+          if (checksum != 0x00 && dst_desc.Usage != D3D11_USAGE_STAGING)
+          {
+            textures->refTexture2D ( pDstTex,
+                                     &dst_desc,
+                                     cache_tag,
+                                     map_ctx.dynamic_sizes2 [checksum],
+                                     map_ctx.dynamic_times2 [checksum],
+                                     top_crc32,
+                                     L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
+                                     pTLS );
+
+            map_ctx.dynamic_textures.erase  (pSrcResource);
+            map_ctx.dynamic_texturesx.erase (pSrcResource);
+
+            map_ctx.dynamic_sizes2.erase    (checksum);
+            map_ctx.dynamic_times2.erase    (checksum);
+          }
+        }
+      }
+    }
+#pragma endregion CacheStagingMappedResources
   }
 
   void STDMETHODCALLTYPE CopyResource (

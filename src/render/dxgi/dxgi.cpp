@@ -231,6 +231,8 @@ void __stdcall SK_D3D11_ResetTexCache (void);
 
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
 
+extern bool __SK_HDR_16BitSwap;
+
 void
 ImGui_DX11Shutdown ( void )
 {
@@ -4363,28 +4365,28 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
       }
     }
 
-    if (bWait)
-    {
-      SK_ComQIPtr <IDXGISwapChain2>
-          pSwapChain2 (This);
-      if (pSwapChain2 != nullptr)
-      {
-        SK_AutoHandle hWait (
-          pSwapChain2->GetFrameLatencyWaitableObject ()
-        );
-
-        MsgWaitForMultipleObjectsEx ( 1,
-                                        &hWait.m_h,
-                                          config.render.framerate.swapchain_wait,
-                                            QS_ALLINPUT, MWMO_INPUTAVAILABLE );
-      }
-    }
-
     if ( pDev != nullptr || rb.api == SK_RenderAPI::D3D12 )
     {
       HRESULT ret =
         SK_EndBufferSwap (hr, pDev);
       SK_D3D11_PostPresent   (pDev, This, hr);
+
+      if (bWait)
+      {
+        SK_ComQIPtr <IDXGISwapChain2>
+            pSwapChain2 (This);
+        if (pSwapChain2 != nullptr)
+        {
+          SK_AutoHandle hWait (
+            pSwapChain2->GetFrameLatencyWaitableObject ()
+          );
+
+          MsgWaitForMultipleObjectsEx ( 1,
+                                          &hWait.m_h,
+                                            config.render.framerate.swapchain_wait,
+                                              QS_ALLINPUT, MWMO_INPUTAVAILABLE );
+        }
+      }
 
       return ret;
     }
@@ -4709,44 +4711,66 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     //else
     //  SK_UI_DrawD3D12    (This);
 
-    if (bWait)
-    {
-      SK_ComQIPtr <IDXGISwapChain2>
-          pSwapChain2 (This);
-      if (pSwapChain2 != nullptr)
-      {
-        pSwapChain2->SetMaximumFrameLatency (
-          std::max (1, config.render.framerate.pre_render_limit)
-        );
-
-        // Don't bother closing this handle, it would cause problems
-        //   with DXVK.
-        CHandle hWait (
-          pSwapChain2->GetFrameLatencyWaitableObject ()
-        );
-
-        DWORD dwDontCare = 0x0;
-
-        if (GetHandleInformation ( hWait.m_h, &dwDontCare ))
-        {
-          SK_WaitForSingleObject ( hWait,
-            config.render.framerate.swapchain_wait );
-        }
-        else
-          hWait.m_h = 0;
-      }
-    }
+    if (bWait) flags |= DXGI_PRESENT_DO_NOT_WAIT;
 
     hr =
       Present (interval, flags);
 
     if ( pDev != nullptr || rb.api == SK_RenderAPI::D3D12 )
     {
-      HRESULT ret =
-        SK_EndBufferSwap (hr, pDev);
+      bool bGoAgain =
+        (hr == DXGI_ERROR_WAS_STILL_DRAWING);
 
-      if (rb.api != SK_RenderAPI::D3D12)
-        SK_D3D11_PostPresent (pDev, This, hr);
+      HRESULT ret;
+
+      auto _EndSwap = [&](void)
+      {
+        ret =
+          SK_EndBufferSwap (hr, pDev);
+
+        if (SUCCEEDED (hr) && rb.api != SK_RenderAPI::D3D12)
+          SK_D3D11_PostPresent (pDev, This, hr);
+      };
+
+      if (! bGoAgain)
+        _EndSwap ();
+
+      if (bWait)
+      {
+        SK_ComQIPtr <IDXGISwapChain2>
+            pSwapChain2 (This);
+        if (pSwapChain2 != nullptr)
+        {
+          pSwapChain2->SetMaximumFrameLatency (
+            std::max (1, config.render.framerate.pre_render_limit)
+          );
+
+          // Don't bother closing this handle, it would cause problems
+          //   with DXVK.
+          CHandle hWait (
+            pSwapChain2->GetFrameLatencyWaitableObject ()
+          );
+
+          DWORD dwDontCare = 0x0;
+
+          if (GetHandleInformation ( hWait.m_h, &dwDontCare ))
+          {
+            SK_WaitForSingleObject ( hWait,
+              config.render.framerate.swapchain_wait );
+          }
+          else
+            hWait.m_h = 0;
+        }
+      }
+
+      if (bGoAgain)
+      {
+        flags &= ~DXGI_PRESENT_DO_NOT_WAIT;
+
+        Present (interval, flags);
+
+        _EndSwap ();
+      }
 
       return ret;
     }
@@ -5473,7 +5497,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                      L"(Requested: Windowed, Using: Fullscreen)" );
     }
-    else if (config.display.force_windowed && Fullscreen != FALSE)
+    else if ((__SK_HDR_16BitSwap || config.display.force_windowed || config.render.framerate.flip_discard) && Fullscreen != FALSE)
     {
       Fullscreen = FALSE;
       pTarget    = nullptr;
@@ -5481,7 +5505,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                      L"(Requested: Fullscreen, Using: Windowed)" );
     }
 
-    if (request_mode_change == mode_change_request_e::Fullscreen &&
+    else if (request_mode_change == mode_change_request_e::Fullscreen &&
                  Fullscreen == FALSE)
     {
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
@@ -5505,44 +5529,60 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
   This->GetFullscreenState (&bFullscreenOrig, &pOutputTmp.p);
 
-  if (bFullscreenOrig == Fullscreen)
-    ret = S_OK;
-  else
-    DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
+  if (pOutputTmp.p != nullptr)
+      pOutputTmp    = nullptr;
 
-  SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+  //if (bFullscreenOrig == Fullscreen)
+  //  ret = S_OK;
+  //else
+  {
+    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+
+    DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
+  }
 
   //
   // Necessary provisions for Fullscreen Flip Mode
   //
-  //if (SUCCEEDED (ret))
+  if (bFullscreenOrig != Fullscreen && SUCCEEDED (ret))
   {
     DXGI_SWAP_CHAIN_DESC           desc = { };
     if (SUCCEEDED (This->GetDesc (&desc)))
     {
+      auto _FillInWindowResolution = [&](void)->void
+      {
+        if (desc.BufferDesc.Width != 0)
+        {
+          SK_SetWindowResX (desc.BufferDesc.Width);
+          SK_SetWindowResY (desc.BufferDesc.Height);
+        }
+
+        else
+        {
+          RECT                                  client = { };
+          GetClientRect    (desc.OutputWindow, &client);
+
+          SK_SetWindowResX (client.right  - client.left);
+          SK_SetWindowResY (client.bottom - client.top);
+        }
+      };
+
       UINT _Flags     =
         SK_DXGI_FixUpLatencyWaitFlag (This, desc.Flags);
 
       if (SK_DXGI_IsFlipModelSwapChain (desc))
       {
-        This->ResizeBuffers ( desc.BufferCount, desc.BufferDesc.Width,
-                                                desc.BufferDesc.Height,
-                              desc.BufferDesc.Format, _Flags );
-      }
-
-      if (desc.BufferDesc.Width != 0)
-      {
-        SK_SetWindowResX (desc.BufferDesc.Width);
-        SK_SetWindowResY (desc.BufferDesc.Height);
+        if (SUCCEEDED (This->ResizeBuffers ( 0, 0, 0,
+                                             desc.BufferDesc.Format, _Flags ) )
+           )
+        {
+          _FillInWindowResolution ();
+        }
       }
 
       else
       {
-        RECT                                  client = { };
-        GetClientRect    (desc.OutputWindow, &client);
-
-        SK_SetWindowResX (client.right  - client.left);
-        SK_SetWindowResY (client.bottom - client.top);
+        _FillInWindowResolution ();
       }
     }
 
@@ -6332,7 +6372,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         pDesc->Windowed = FALSE;
       }
 
-      else if (config.display.force_windowed)
+      else if (__SK_HDR_16BitSwap || config.display.force_windowed || config.render.framerate.flip_discard)
       {
         dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                        L"(Requested: Fullscreen, Using: Windowed)" );
@@ -6393,11 +6433,6 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
               //pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
               //dll_log->Log ( L"[ DXGI 1.2 ]  >> BGRA (R8G8B8A8) Override Required to Enable Flip Model" );
               break;
-            //case DXGI_FORMAT_R10G10B10A2_UNORM:
-            //case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-            //  pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
-            //  dll_log->Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
-            //  break;
           }
         }
       }
