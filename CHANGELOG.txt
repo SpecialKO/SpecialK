@@ -1,4 +1,35 @@
-﻿
+﻿0.11.0.46:
+
+ + Fixed unsafe exception handling in Remedy's (Control) SteamAPI code to prevent crashing
+ + Re-enabled Staging D3D11 Texture Mods
+ + Added Effective FPS to Framerate Limiter Debug in the Framepacing widget
+
+    >> Right-click the widget while the Control Panel is open to access its config menu,
+         the debug view is a check-box in the bottom-left corner; setting is not saved.
+
+ + Slightly tweaked framerate limiter's clock skew recovery for less apparent clock resets
+   ( Less "wonkiness" when you are running _massively_ below your TargetFPS )
+
+ + Added forced Windowed Mode when engaging HDR
+ + Disabled 11:11:10-bit FP HDR remastering by default
+     >> This leaves only 10-bit render passes promoted to full FP16 by default
+ + HDR widget now defaults to CIE XYZ for In/Out Colorspaces
+ + HDR widget displays new text explaining DCI-P3 and Rec2020 Colorspaces are for debugging only
+
+
+  RE: Display Gamut Color Primaries Reported by DXGI in Win 10 2004
+
+   It apears that Microsoft has changed the DXGI runtime to report a monitor's SDR EDID values
+   unless software has changed the output colorspace. This differs from all other versions of
+   Windows, in that they reported native color gamut even in SDR.
+
+   This is both good and bad; it should have coincided an easier method to detect if a display is
+   HDR even if the desktop is running in SDR and/or an API call to temporarily change the DWM
+   colorspace.
+
+     >> 1 Step Forward, 2 Steps Back ?
+
+
 0.11.0.45:
 
  + Fixed Windows key blocking behavior in games that use RawInput to poll the keyboard
@@ -10,20 +41,20 @@
 
  + Improved performance of D3D11 Render Mod Toolkit in games with many RenderTargetViews
  + Reduced state tracking overhead for "DisableIfTexture=..." D3D11 shader mods significantly
- 
+
  + Temporarily disabled support for modding D3D11 textures that use Staging uploads
- 
+
    >> Engines that use Staging data uploads most often == Unreal + Unity.
-   
+
  + Gamepad Input Blocking properly queries and fills-in neutral/deadzone values for analog axes
- 
+
    >> Prevents issues in DirectInput games where a game's menu constantly scrolls while SK's
         control panel is using the gamepad
 
  + Found and killed Persona 4's crash handler so that Special K's can do something useful instead.
- 
+
  + Added Denuvo anti-debug workarounds for a number of NtDll and Kernel32 thread / handle APIs
- 
+
    >> Much less of a hassle debugging broken Denuvo games during startup :)
 
 
@@ -34,13 +65,13 @@
  + Added Large Address Aware patch detection for Persona 4
 
  HDR stuff
- 
+
  > HDR Widget now defaults to a swapchain with at least 4 backbuffers and 5 device latency for better
      frame pacing.
  > HDR Widget no longer overwrites existing swapchain tweaks, provided they satisfy 1)
 
  Project-wide Odds and Ends
- 
+
  > In order to reach a larger audience, Special K and all associated tools and DLLs will no longer be
      compiled targeting AVX CPU instructions. I still do not intend to support Windows 7, but will
        attempt to support users with pre-AVX CPUs.
@@ -78,21 +109,21 @@
    In related news, Special K's limiter compared to the competition. Those results pre-date the advances
      made in 0.11.0.36, but show that Special K's framerate limiter was already leaps and bounds ahead of
        the alternatives.
-     
+
    >> https://www.reddit.com/r/allbenchmarks/comments/gohkn9/specialks_frame_rate_limiter_review_dx11_based/
 
 
 0.11.0.30:
 
  + Fixed HBAO over-darkening many games
- 
+
  + Fixed games not exiting during SteamAPI shutdown
  + Fixed memory leaks in some Unreal Engine 4 games
  + Added support for Flip Model to NieR: Automata
  + Added support for HDR to NieR: Automata
- 
+
  + Added HDR widget options to control precision of non-HDR render passes
- 
+
      >> 10- and 11-bit passes are expanded to 16-bit by default
      >> Enabling may reduce banding artifacts or produce more dynamic highlights
 
