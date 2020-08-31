@@ -100,7 +100,7 @@ bool  __SK_HDR_16BitSwap        = false;
 
 bool  __SK_HDR_Promote8BitTo16  = false;
 bool  __SK_HDR_Promote10BitTo16 = true;
-bool  __SK_HDR_Promote11BitTo16 = true;
+bool  __SK_HDR_Promote11BitTo16 = false;
 
 float __SK_HDR_Luma             = 80.0_Nits;
 float __SK_HDR_Exp              = 1.0f;
@@ -217,10 +217,10 @@ struct SK_HDR_Preset_s {
                                   );
     }
   }
-} static hdr_presets [4] = { { "HDR Preset 0", 0, 80.0_Nits, 1.0f, { 1,0 }, L"F1" },
-                             { "HDR Preset 1", 1, 80.0_Nits, 1.0f, { 1,0 }, L"F2" },
-                             { "HDR Preset 2", 2, 80.0_Nits, 1.0f, { 1,0 }, L"F3" },
-                             { "HDR Preset 3", 3, 80.0_Nits, 1.0f, { 1,0 }, L"F4" } };
+} static hdr_presets [4] = { { "HDR Preset 0", 0, 80.0_Nits, 1.0f, { 4,4 }, L"F1" },
+                             { "HDR Preset 1", 1, 80.0_Nits, 1.0f, { 4,4 }, L"F2" },
+                             { "HDR Preset 2", 2, 80.0_Nits, 1.0f, { 4,4 }, L"F3" },
+                             { "HDR Preset 3", 3, 80.0_Nits, 1.0f, { 4,4 }, L"F4" } };
 
 BOOL
 CALLBACK
@@ -399,13 +399,14 @@ public:
     static SKTL_BidirectionalHashMap <int, std::wstring>
       __SK_HDR_ColorSpaceMap =
       {
-        { 0, L"Unaltered" }, { 1, L"Rec709"  },
-        { 2, L"DCI-P3"    }, { 3, L"Rec2020" },
-        { 4, L"CIE_XYZ"   }
+        { 0, L"Unaltered"         }, { 1, L"Rec709"            },
+        { 2, L"DCI-P3  [ Debug ]" }, { 3, L"Rec2020 [ Debug ]" },
+        { 4, L"CIE_XYZ"           }
       };
 
     static const char* __SK_HDR_ColorSpaceComboStr =
-      "Unaltered\0Rec. 709\0DCI-P3\0Rec. 2020\0CIE XYZ\0\0";
+      "Unaltered\0Rec. 709\0DCI-P3 (Debug ONLY)\0Rec. 2020 (Debug ONLY)\0CIE XYZ\0\0";
+      //"Unaltered\0Rec. 709\0DCI-P3\0Rec. 2020\0CIE XYZ\0\0";
 
 
     if (! rb.isHDRCapable ())
@@ -491,22 +492,23 @@ public:
 
         config.window.borderless                    = true;
         config.window.center                        = true;
-      //config.window.fullscreen                    = false;
+        config.window.fullscreen                    = true;
         config.window.res.override.x                = static_cast <unsigned int> (io.DisplaySize.x);
         config.window.res.override.y                = static_cast <unsigned int> (io.DisplaySize.y);
 
+      //config.display.force_windowed               = true;
         config.dpi.per_monitor.aware                = true;
       //config.dpi.per_monitor.aware_on_all_threads = false;
       //config.dpi.disable_scaling                  = false;
 
         config.render.framerate.flip_discard        = true;
         config.render.framerate.buffer_count        =
-          std::max ( 4,
+          std::max ( 5,
              config.render.framerate.buffer_count );
         config.render.framerate.pre_render_limit    =
              config.render.framerate.buffer_count + 1;
         config.render.framerate.swapchain_wait      =
-          std::min ( 1000, std::max ( 100,
+          std::min ( 1000, std::max ( 40,
             config.render.framerate.swapchain_wait ) );
 
         dll_ini->write (
