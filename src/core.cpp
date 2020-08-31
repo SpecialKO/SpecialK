@@ -2404,9 +2404,10 @@ SK_BeginBufferSwap (void)
   {
     SK_D3D11_BeginFrame ();
 
-    if (__SK_FramerateLimitApplicationSite == 0)
-      SK::Framerate::GetLimiter ()->wait ();
   }
+
+  if (__SK_FramerateLimitApplicationSite == 0)
+    SK::Framerate::GetLimiter ()->wait ();
 
 
   auto SK_DPI_UpdateWindowScale = [&](void) ->
@@ -2638,12 +2639,8 @@ SK_BeginBufferSwap (void)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
-  //if ( (int)rb.api        &
-  //     (int)SK_RenderAPI::D3D11 )
-  //{
-    if (__SK_FramerateLimitApplicationSite == 1)
-            SK::Framerate::GetLimiter ()->wait ();
-  //}
+  if (__SK_FramerateLimitApplicationSite == 1)
+       SK::Framerate::GetLimiter ()->wait ();
 
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
   {
@@ -2659,7 +2656,13 @@ SK_BeginBufferSwap (void)
     SK_QueryPerf ();
 
   if (__SK_FramerateLimitApplicationSite == 4)
+  {
     SK::Framerate::GetLimiter ()->wait ();
+
+    double               dt      =    0.0;
+    LARGE_INTEGER            now = { 0, 0 };
+    SK::Framerate::Tick (dt, now);
+  }
 }
 
 extern bool __stdcall SK_IsGameWindowActive (void);
@@ -2832,12 +2835,9 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  //if ( (int)rb.api        &
-  //     (int)SK_RenderAPI::D3D11 )
-  //{
-    if (__SK_FramerateLimitApplicationSite == 3)
-         SK::Framerate::GetLimiter ()->wait ();
-  //}
+
+  if (__SK_FramerateLimitApplicationSite == 3)
+       SK::Framerate::GetLimiter ()->wait ();
 
 
   // Various required actions at the end of every frame in order to
@@ -3078,18 +3078,19 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");
   static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
 
-
-  double               dt      =    0.0;
-  LARGE_INTEGER            now = { 0, 0 };
-  SK::Framerate::Tick (dt, now);
-
   //
   // TZFix has its own limiter
   //
   if (! (hModTZFix || hModTBFix))
   {
     if (__SK_FramerateLimitApplicationSite == 2)
+    {
       SK::Framerate::GetLimiter ()->wait ();
+
+      double               dt      =    0.0;
+      LARGE_INTEGER            now = { 0, 0 };
+      SK::Framerate::Tick (dt, now);
+    }
   }
 
   return hr;

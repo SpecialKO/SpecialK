@@ -663,6 +663,29 @@ public:
       SK::Framerate::Limiter::snapshot_s snapshot =
                             pLimiter->getSnapshot ();
 
+      struct {
+        DWORD dwLastSnap = 0;
+        float fLastMS    = 0.0f;
+        float fLastFPS   = 0.0f;
+
+        void update (SK::Framerate::Limiter::snapshot_s& snapshot)
+        {
+          static constexpr DWORD UPDATE_INTERVAL = 225UL;
+
+          DWORD dwNow =
+            SK::ControlPanel::current_time;
+
+          if (dwLastSnap < dwNow - UPDATE_INTERVAL)
+          {
+            fLastMS    =           snapshot.effective_ms;
+            fLastFPS   = 1000.0f / snapshot.effective_ms;
+            dwLastSnap = dwNow;
+          }
+        }
+      } static effective_snapshot;
+
+      effective_snapshot.update (snapshot);
+
       ImGui::BeginGroup ();
       ImGui::Text ("MS:");
       ImGui::Text ("FPS:");
@@ -682,7 +705,9 @@ public:
       ImGui::BeginGroup ();
       ImGui::Text ("%f ms",  snapshot.ms);
       ImGui::Text ("%f fps", snapshot.fps);
-      ImGui::Text ("%f ms",  snapshot.effective_ms);
+      ImGui::Text ("%f ms        (%#06.1f fps)",
+                   effective_snapshot.fLastMS,
+                   effective_snapshot.fLastFPS);
       ImGui::Text ("%llu",   snapshot.ticks_per_frame);
       ImGui::Separator ();
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.time));
@@ -692,13 +717,13 @@ public:
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.freq));
       ImGui::Separator ();
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.frames));
-      ImGui::SameLine  ();
-      ImGui::ProgressBar (
-        static_cast <float> (
-          static_cast <double> (pLimiter->frames_of_fame.frames_measured.count ()) /
-          static_cast <double> (ReadAcquire64 (&snapshot.frames))
-        )
-      );
+      //ImGui::SameLine  ();
+      //ImGui::ProgressBar (
+      //  static_cast <float> (
+      //    static_cast <double> (pLimiter->frames_of_fame.frames_measured.count ()) /
+      //    static_cast <double> (ReadAcquire64 (&snapshot.frames))
+      //  )
+      //);
       ImGui::EndGroup  ();
 
       if (ImGui::Button ("Reset"))        *snapshot.pRestart     = true;

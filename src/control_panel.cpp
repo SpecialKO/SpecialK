@@ -75,6 +75,13 @@ extern void     __stdcall SK_FAR_ControlPanel  (void);
        bool               SK_DXGI_FullStateCache = false;
 
 
+enum class SK_LimitApplicationSite {
+  BeforeBufferSwap,
+  DuringBufferSwap,
+  AfterBufferSwap,
+  EndOfFrame
+};
+
 int __SK_FramerateLimitApplicationSite = 4;
 
 

@@ -70,15 +70,11 @@ SK::Framerate::Init (void)
     pCommandProc->AddVariable ( "WaitForVBLANK",
             new SK_IVarStub <bool> (&config.render.framerate.wait_for_vblank));
 
-    pCommandProc->AddVariable ( "LimiterTolerance",
-            new SK_IVarStub <float> (&config.render.framerate.limiter_tolerance));
+
     pCommandProc->AddVariable ( "TargetFPS",
             new SK_IVarStub <float> (&__target_fps));
     pCommandProc->AddVariable ( "BackgroundFPS",
             new SK_IVarStub <float> (&__target_fps_bg));
-
-    pCommandProc->AddVariable ( "MaxRenderAhead",
-            new SK_IVarStub <int> (&config.render.framerate.max_render_ahead));
 
     pCommandProc->AddVariable ( "BusyWaitRatio",
             new SK_IVarStub <float> (&config.render.framerate.busy_wait_ratio));
@@ -292,18 +288,19 @@ extern bool __stdcall SK_IsGameWindowActive (void);
 void
 SK::Framerate::Limiter::init (double target)
 {
-  auto _freqQuadPart = SK_GetPerfFreq ( ).QuadPart;
-
   ms  = 1000.0 / static_cast <double> (target);
   fps =          static_cast <double> (target);
-
-  ticks_per_frame = static_cast <ULONGLONG>       (
-          ( ms / 1000.00 ) * static_cast <double> (_freqQuadPart)
-                                                  );
 
   WriteRelease64 (
     &frames, 0ULL
   );
+
+  auto _freqQuadPart =
+    SK_GetPerfFreq ().QuadPart;
+
+  ticks_per_frame = static_cast <ULONGLONG>       (
+          ( ms / 1000.00 ) * static_cast <double> (_freqQuadPart)
+                                                  );
 
 
   //
@@ -311,9 +308,9 @@ SK::Framerate::Limiter::init (double target)
   //
   SK_Framerate_WaitForVBlank ();
 
-  auto _framesDrawn  = SK_GetFramesDrawn (       );
-  auto _frames       = ReadAcquire64     (&frames);
   auto _perfQuadPart = SK_QueryPerf   ( ).QuadPart;
+  auto _frames       = ReadAcquire64     (&frames);
+  auto _framesDrawn  = SK_GetFramesDrawn (       );
 
   frames_of_fame.frames_measured.first.initClock  (_perfQuadPart);
   frames_of_fame.frames_measured.last.clock_val  = _perfQuadPart;
@@ -336,19 +333,22 @@ SK::Framerate::Limiter::init (double target)
 bool
 SK::Framerate::Limiter::try_wait (void)
 {
-  if (limit_behavior != LIMIT_APPLY)
+  if (limit_behavior != LIMIT_APPLY) {
     return false;
+  }
 
   if (SK_IsGameWindowActive () || __target_fps_bg == 0.0f)
   {
-    if (__target_fps <= 0.0f)
+    if (__target_fps <= 0.0f) {
       return false;
+    }
   }
 
   LARGE_INTEGER next_;
   next_.QuadPart =
     ReadAcquire64 (&frames) * ticks_per_frame +
     ReadAcquire64 (&start );
+
   return
     ( SK_QueryPerf ().QuadPart < next_.QuadPart );
 }
@@ -359,8 +359,9 @@ SK::Framerate::Limiter::wait (void)
 {
   //SK_Win32_AssistStalledMessagePump (100);
 
-  if (limit_behavior != LIMIT_APPLY)
+  if (limit_behavior != LIMIT_APPLY) {
     return;
+  }
 
   if (background == SK_IsGameWindowActive ())
   {
@@ -369,32 +370,36 @@ SK::Framerate::Limiter::wait (void)
 
   // Don't limit under certain circumstances or exiting / alt+tabbing takes
   //   longer than it should.
-  if (ReadAcquire (&__SK_DLL_Ending))
+  if (ReadAcquire (&__SK_DLL_Ending) != 0)
     return;
 
   if (! background)
   {
-    if (fps != __target_fps)
+    if (fps != __target_fps) {
          init (__target_fps);
+    }
   }
 
   else
   {
     if (__target_fps_bg > 0.0f)
     {
-      if (fps != __target_fps_bg)
+      if (fps != __target_fps_bg) {
            init (__target_fps_bg);
+      }
     }
 
     else
     {
-      if (fps != __target_fps)
+      if (fps != __target_fps) {
            init (__target_fps);
+      }
     }
   }
 
-  if (__target_fps <= 0.0f)
+  if (__target_fps <= 0.0f) {
     return;
+  }
 
 
   InterlockedIncrement64 (&frames);
@@ -448,11 +453,15 @@ SK::Framerate::Limiter::wait (void)
   modf ( missing_time, &missed_frames );
 
   static     DWORD dwLastFullReset        = timeGetTime ();
-   constexpr DWORD dwMinTimeBetweenResets = 333L;
+   constexpr DWORD dwMinTimeBetweenResets = 750L;
 
-  if (missing_time > config.render.framerate.limiter_tolerance)
+   static constexpr double dMissingTimeBoundary =  4.0;
+   static constexpr double dEdgeToleranceLow    = 0.1;
+   static constexpr double dEdgeToleranceHigh   = 0.2;
+
+  if (missing_time > dMissingTimeBoundary)
   {
-    if (edge_distance > 0.333L && edge_distance < 0.666L)
+    if (edge_distance > dEdgeToleranceLow && edge_distance < dEdgeToleranceHigh)
     {
       DWORD dwNow = timeGetTime ();
       if (  dwNow - dwMinTimeBetweenResets > dwLastFullReset)
@@ -461,7 +470,7 @@ SK::Framerate::Limiter::wait (void)
                     L"(%f frames late)", missed_frames ),
                     L"Frame Rate" );
 
-        if (missing_time > 2.5f * config.render.framerate.limiter_tolerance)
+        if (missing_time > dMissingTimeBoundary * 2.0f)
           full_restart = true;
 
         restart         = true;
@@ -556,9 +565,6 @@ SK::Framerate::Limiter::wait (void)
     //   this is also when VBlank synchronization is applied if user wants.
     do
     {
-      time_ =
-        SK_QueryPerf ().QuadPart;
-
       DWORD dwWaitMS =
         static_cast <DWORD> (
           std::max (0.0, SK_RecalcTimeToNextFrame () * 1000.0 - 1.0)
@@ -585,6 +591,9 @@ SK::Framerate::Limiter::wait (void)
       {
         SK_Framerate_WaitForVBlank ();
       }
+
+      time_ =
+        SK_QueryPerf ().QuadPart;
     } while (time_ <= next_);
   }
 
@@ -683,7 +692,8 @@ SK::Framerate::Tick (double& dt, LARGE_INTEGER& now)
 
   if (amortized_stats < _NUM_STATS)
   {
-    static constexpr LARGE_INTEGER all_samples = { 0ULL };
+    static constexpr LARGE_INTEGER
+      all_samples = { 0UL, 0UL };
 
     SK::Framerate::Stats*
       pContainers [] =
@@ -826,7 +836,7 @@ SK::Framerate::DeepFrameState::reset (void)
     [&](SK::Framerate::Stats* pStats, auto idx) ->
     void
     {
-      pStats->data [idx].when = LARGE_INTEGER { 0LL };
+      pStats->data [idx].when = LARGE_INTEGER { 0LL, 0L };
       pStats->data [idx].val  = 0.0;
     };
 
@@ -891,7 +901,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
       }
 
       return 0;
-    }, L"[SK] Framepacing Statistics", &worker);
+    }, L"[SK] Framepacing Statistics", (LPVOID)&worker);
   }
 
   auto& kReadBuffer =
