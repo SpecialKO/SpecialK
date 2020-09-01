@@ -257,86 +257,7 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
   //assert (pSwapChain == rb.swapchain ||
   //                      rb.swapchain.IsEqualObject (pSwapChain));
 
-  ///if (rb.api == SK_RenderAPI::D3D11On12)
-  ///{
-  ///  SK_ComQIPtr <IDXGISwapChain3> pSwap3 (pSwapChain);
-  ///
-  ///                    UINT currentBuffer = 0;
-  ///  if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
-  ///
-  ///  rb.d3d11.interop.buffer_idx =
-  ///    currentBuffer;
-  ///
-  ///  D3D11_RESOURCE_FLAGS d3d11_flags           = { };
-  ///                       d3d11_flags.BindFlags = D3D11_BIND_RENDER_TARGET;
-  ///
-  ///  SK_ComPtr <ID3D12Resource> pBackBuffer_D3D12;
-  ///
-  ///  pSwapChain->GetBuffer ( currentBuffer,
-  ///                            __uuidof (ID3D12Resource),
-  ///                              (void **)&pBackBuffer_D3D12 );
-  ///
-  ///  HRESULT hrWrapAndSlap = rb.d3d11.wrapper_dev->
-  ///    CreateWrappedResource
-  ///    (
-  ///      pBackBuffer_D3D12.p,
-  ///
-  ///      &d3d11_flags,
-  ///
-  ///      D3D12_RESOURCE_STATE_RENDER_TARGET,
-  ///      D3D12_RESOURCE_STATE_RENDER_TARGET,
-  ///
-  ///      __uuidof (ID3D11Texture2D),
-  ///      (void **)&rb.d3d11.interop.backbuffer_tex2D
-  ///    );
-  ///
-  ///  if (FAILED (hrWrapAndSlap))
-  ///  {
-  ///    dll_log.Log (L"FAILED To Wrap And Slap the Backbuffer!");
-  ///  }
-  ///
-  ///  D3D11_TEXTURE2D_DESC          texDesc = { };
-  ///  D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = { };
-  ///
-  ///  rb.d3d11.interop.backbuffer_tex2D->GetDesc (&texDesc);
-  ///
-  ///  rtvDesc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
-  ///  rtvDesc.Format             = texDesc.Format;
-  ///  rtvDesc.Texture2D.MipSlice = 0;
-  ///
-  ///  SK_ComQIPtr <ID3D11Device> pDev (rb.device);
-  ///
-  ///  if (pDev == nullptr)
-  ///    rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
-  ///
-  ///  if (pDev == nullptr)
-  ///    return false;
-  ///
-  ///  pDev->CreateRenderTargetView (
-  ///               rb.d3d11.interop.backbuffer_tex2D,
-  ///    &rtvDesc, &rb.d3d11.interop.backbuffer_rtv
-  ///  );
-  ///
-  ///  DXGI_SWAP_CHAIN_DESC swap_desc = { };
-  ///
-  ///  if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
-  ///  {
-  ///    if (swap_desc.OutputWindow != nullptr)
-  ///    {
-  ///      if (rb.windows.focus.hwnd != swap_desc.OutputWindow)
-  ///        rb.windows.setFocus (swap_desc.OutputWindow);
-  ///
-  ///      if (rb.windows.device.hwnd == nullptr)
-  ///        rb.windows.setDevice (swap_desc.OutputWindow);
-  ///    }
-  ///  }
-  ///
-  ///  return
-  ///    ImGui_ImplDX11_Init (pSwapChain, pD3D11Dev, pImmediateContext);
-  ///}
-  ///else
-  if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev.p))) /*||
-       rb.interop.d3d12.dev != nullptr*/ )
+  if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev.p))) )
   {
     assert (pD3D11Dev == rb.device ||
                          rb.device == nullptr );
@@ -746,8 +667,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
   SK_ComPtr <ID3D11Device> pDev;
 
-  if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev.p))) /*||
-                   rb.interop.d3d12.dev != nullptr*/ )
+  if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev.p))) )
   {
     assert ( rb.device == nullptr ||
              pDev      == rb.device );
@@ -814,7 +734,6 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     // For CEGUI to work correctly, it is necessary to set the viewport dimensions
     //   to the back buffer size prior to bootstrap.
     SK_ComPtr <ID3D11Texture2D> pBackBuffer   = nullptr;
-    SK_ComPtr <ID3D12Resource>  pBackBuffer12 = nullptr;
 
     D3D11_VIEWPORT vp_orig = { };
     UINT           num_vp  =  1;
@@ -827,21 +746,13 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
                       UINT currentBuffer = 0;
     if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
 
-    if ( SUCCEEDED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer.p))) ||
-         SUCCEEDED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer12.p))) )
+    if ( SUCCEEDED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer.p))) )
     {
       D3D11_VIEWPORT                    vp = { };
       D3D11_TEXTURE2D_DESC backbuffer_desc = { };
-      D3D12_RESOURCE_DESC  d3d12_bb_desc   = { };
 
       if (pBackBuffer)
           pBackBuffer->GetDesc (&backbuffer_desc);
-      else if (pBackBuffer12)
-      {                                       d3d12_bb_desc =
-               pBackBuffer12->GetDesc ();
-               backbuffer_desc.Width  = (UINT)d3d12_bb_desc.Width;
-               backbuffer_desc.Height = (UINT)d3d12_bb_desc.Height;
-      }
 
       vp.Width    = static_cast <float> (backbuffer_desc.Width);
       vp.Height   = static_cast <float> (backbuffer_desc.Height);
@@ -940,8 +851,6 @@ DWORD dwRenderThread = 0x0000;
 
 //extern void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
 //extern void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
-
-////extern void  __stdcall SK_D3D12_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
 
 extern BOOL __stdcall SK_NvAPI_SetFramerateLimit   (uint32_t        limit);
 extern void __stdcall SK_NvAPI_SetAppFriendlyName  (const wchar_t*  wszFriendlyName);
@@ -1634,15 +1543,6 @@ SK_CEGUI_QueueResetD3D11 (void)
   InterlockedExchange (&__gui_reset_dxgi, TRUE);
 }
 
-void
-SK_CEGUI_QueueResetD3D12 (void)
-{
-  InterlockedExchange (&__gui_reset_dxgi, TRUE);
-
-  SK_D3D11_EndFrame       ();
-  ImGui_ImplDX12_Shutdown ();
-}
-
 typedef HRESULT (WINAPI *IDXGISwapChain3_CheckColorSpaceSupport_pfn)
                         (IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE, UINT*);
                          IDXGISwapChain3_CheckColorSpaceSupport_pfn
@@ -2128,8 +2028,7 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
   SK_ComQIPtr <IDXGISwapChain> pRealSwap (This);
   SK_ComPtr   <ID3D11Device>   pDev;
 
-  if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev.p))) /*||
-                    rb.interop.d3d12.dev != nullptr*/ )
+  if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev.p))) )
   {
     // These operations are not atomic / cache coherent in
     //   ReShade (bug!!), so to avoid prematurely freeing
@@ -3260,7 +3159,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     HRESULT hr;
 
     SK_ComPtr <ID3D11Texture2D>        pBackBuffer       = nullptr;
-    SK_ComPtr <ID3D12Resource>         pBackBuffer12     = nullptr;
     SK_ComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
     SK_ComPtr <ID3D11BlendState>       pBlendState       = nullptr;
 
@@ -3279,23 +3177,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     D3D11_TEXTURE2D_DESC          tex2d_desc = { };
     D3D11_RENDER_TARGET_VIEW_DESC rtdesc     = { };
 
-    if (FAILED (hr) || pBackBuffer == nullptr)
-    {
-      if (FAILED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer12.p))))
-      {
-        SK_LOG_ONCE (L"[   DXGI   ]  *** Back buffer unavailable! ***");
-        return;
-      }
-
-      else
-      {
-        tex2d_desc.Width  = (UINT)pBackBuffer12->GetDesc ().Width;
-        tex2d_desc.Height = (UINT)pBackBuffer12->GetDesc ().Height;
-        tex2d_desc.Format =       pBackBuffer12->GetDesc ().Format;
-      }
-    }
-
-    else
+    if (SUCCEEDED (hr))
     {
       pBackBuffer->GetDesc (&tex2d_desc);
     }
@@ -3551,267 +3433,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     }
   }
 }
-
-
-
-///void
-///SK_UI_DrawD3D12 (IDXGISwapChain* This)
-///{
-///  return;
-///
-///  dll_log.Log (L"DX12Startup");
-///
-///  if (ReadAcquire (&__SK_DLL_Ending) != 0)
-///    return;
-///
-///  static auto& rb =
-///    SK_GetCurrentRenderBackend ();
-///
-///  SK_ComPtr <ID3D12Device> pDev = nullptr;
-///
-///  InterlockedIncrement (&__osd_frames_drawn);
-///
-///  SK_TLS* pTLS =
-///    SK_TLS_Bottom ();
-///
-///  SK_ScopedBool auto_bool0 (&pTLS->imgui->drawing);
-///  SK_ScopedBool auto_bool1 (&pTLS->texture_management->injection_thread);
-///                             pTLS->imgui->drawing                       = TRUE;
-///                             pTLS->texture_management->injection_thread = TRUE;
-///
-///
-///  if (InterlockedCompareExchange (&__gui_reset_dxgi, FALSE, TRUE))
-///  {
-///    rb.releaseOwnedResources ();
-///
-///    DXGI_SWAP_CHAIN_DESC desc;
-///    This->GetDesc      (&desc);
-///
-///    SK_InstallWindowHook (desc.OutputWindow);
-///
-///    ResetUI_D3D12        (This);
-///  }
-///
-///
-///  else if ( rb.device != nullptr &&
-/// SUCCEEDED (rb.device->QueryInterface <ID3D12Device> (&pDev)) )
-///  {
-///    assert (rb.device.IsEqualObject (pDev));
-///
-///    // If the swapchain or device changed, bail-out and wait until the next frame for
-///    //   things to normalize.
-///    if ((! rb.device.IsEqualObject (pDev)) || rb.swapchain == nullptr)
-///    {
-///      SK_LOG0 ( ( L" D3D12 Device or Primary SwapChain Changed => "
-///                  L"Releasing resources..." ),
-///                  L"   DXGI   " );
-///
-///
-///      ResetUI_D3D12           (This);
-///      SK_DXGI_UpdateSwapChain (This);
-///
-///      return;
-///    }
-///
-///    //HRESULT hr;
-///
-///    ///SK_ComPtr <ID3D12Device>           pDevice           = nullptr;
-///    ///
-///    ///hr =
-///    ///  This->GetBuffer ( 0,
-///    ///                      IID_PPV_ARGS (&pBackBuffer)
-///    ///                  );
-///    ///
-///    ///if (FAILED (hr))
-///    ///{
-///    ///  SK_LOG_ONCE (L"[   DXGI   ]  *** Back buffer unavailable! ***");
-///    ///  return;
-///    ///}
-///    ///
-///    /////SK_ComQIPtr <ID3D12DeviceContext>  pImmediateContext  (rb.d3d11.immediate_ctx);
-///    /////SK_ComQIPtr <ID3D12DeviceContext1> pImmediateContext1 (pImmediateContext);
-///    ///
-///    ///D3D12_TEXTURE2D_DESC          tex2d_desc = { };
-///    ///D3D12_RENDER_TARGET_VIEW_DESC rtdesc     = { };
-///    ///
-///    ///pBackBuffer->GetDesc (&tex2d_desc);
-///    ///
-///    ///rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_FLOAT);
-///    ///rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_RGB10A2);
-///    ///rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_SRGB);
-///    ///rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_HDR);
-///    ///
-///    ///// sRGB Correction for UIs
-///    ///switch (tex2d_desc.Format)
-///    ///{
-///    ///  case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-///    ///  case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-///    ///  {
-///    ///    rtdesc.Format        = tex2d_desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ?
-///    ///                                                  DXGI_FORMAT_R8G8B8A8_UNORM :
-///    ///                                                  DXGI_FORMAT_B8G8R8A8_UNORM;
-///    ///
-///    ///    rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-///    ///
-///    ///    if ( FAILED ( pDev->CreateRenderTargetView    (
-///    ///                    pBackBuffer,
-///    ///                      &rtdesc, &pRenderTargetView )
-///    ///                )
-///    ///       )
-///    ///    {
-///    ///      hr =
-///    ///        pDev->CreateRenderTargetView    (
-///    ///          pBackBuffer,
-///    ///            nullptr, &pRenderTargetView );
-///    ///    }
-///    ///
-///    ///    else { hr = S_OK; }
-///    ///
-///    ///    rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
-///    ///  } break;
-///    ///
-///    ///  case DXGI_FORMAT_R16G16B16A16_FLOAT:
-///    ///    rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_FLOAT;
-///    ///
-///    ///    if (rb.isHDRCapable ())
-///    ///    {
-///    ///      rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
-///    ///    }
-///    ///
-///    ///    hr =
-///    ///      pDev->CreateRenderTargetView (
-///    ///        pBackBuffer, nullptr, &pRenderTargetView
-///    ///      );
-///    ///    break;
-///    ///
-///    ///  case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-///    ///  case DXGI_FORMAT_R10G10B10A2_UNORM:
-///    ///    rb.framebuffer_flags |=  SK_FRAMEBUFFER_FLAG_RGB10A2;
-///    ///    // Deliberately fall-through to default
-///    ///
-///    ///  default:
-///    ///  {
-///    ///    hr =
-///    ///      pDev->CreateRenderTargetView (
-///    ///        pBackBuffer, nullptr, &pRenderTargetView
-///    ///      );
-///    ///  } break;
-///    ///}
-///    ///
-///    ///DXGI_SWAP_CHAIN_DESC swapDesc = { };
-///    ///     This->GetDesc (&swapDesc);
-///    ///
-///    ///if ( tex2d_desc.SampleDesc.Count > 1 ||
-///    ///       swapDesc.SampleDesc.Count > 1 )
-///    ///{
-///    ///  rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_MSAA;
-///    ///}
-///    ///
-///    ///else
-///    ///{
-///    ///  rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_MSAA;
-///    ///}
-///    ///
-///    ///
-///    ///if (SUCCEEDED (hr))
-///    ///{
-///    ///  ///// Uses TLS to reduce dynamic memory pressure as much as possible
-///    ///  ///auto* sb =
-///    ///  ///  pTLS->d3d12.getStateBlock ();
-///    ///  ///
-///    ///  ///RtlSecureZeroMemory ( sb,
-///    ///  ///                  sizeof (SK_D3D11_Stateblock_Lite) );
-///    ///
-///    /////sb->capture (pImmediateContext);
-///    ///
-///    ///  ////pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView.p, nullptr);
-///    ///  ////
-///    ///  ////D3D11_VIEWPORT       vp              = { };
-///    ///  ////D3D11_BLEND_DESC     blend           = { };
-///    ///  ////D3D11_TEXTURE2D_DESC backbuffer_desc = { };
-///    ///  ////
-///    ///  ////pBackBuffer->GetDesc (&backbuffer_desc);
-///    ///  ////
-///    ///  ////blend.RenderTarget [0].BlendEnable           = TRUE;
-///    ///  ////blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
-///    ///  ////blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
-///    ///  ////blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
-///    ///  ////blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-///    ///  ////blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
-///    ///  ////blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-///    ///  ////blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-///    ///  ////
-///    ///  ////if (SUCCEEDED (pDev->CreateBlendState (&blend, &pBlendState)))
-///    ///  ////   pImmediateContext->OMSetBlendState (         pBlendState, nullptr, 0xffffffff);
-///    ///  ////
-///    ///  ////vp.Width    = static_cast <float> (backbuffer_desc.Width);
-///    ///  ////vp.Height   = static_cast <float> (backbuffer_desc.Height);
-///    ///  ////vp.MinDepth = 0.0f;
-///    ///  ////vp.MaxDepth = 1.0f;
-///    ///  ////vp.TopLeftX = 0.0f;
-///    ///  ////vp.TopLeftY = 0.0f;
-///    ///
-///    /// //pImmediateContext->RSSetViewports (1, &vp);
-///    ///  {
-///    ///    bool hudless  =
-///    ///      SK_Screenshot_IsCapturingHUDless (),
-///    ///
-///    ///         hdr_mode =
-///    ///          ( rb.isHDRCapable () &&
-///    ///           (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
-///    ///
-///    ///    if (! SK_Screenshot_IsCapturingHUDless ())
-///    ///    {
-///    ///    }
-///    ///
-///    ///    if (hdr_mode)
-///    ///    {
-///    ///      if (! hudless)
-///    ///      {
-///    ///        ////// Last-ditch effort to get the HDR post-process done before the UI.
-///    ///        ////void SK_HDR_SnapshotSwapchain (void);
-///    ///        ////     SK_HDR_SnapshotSwapchain (    );
-///    ///      }
-///    ///    }
-///
-///        // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
-///        if (ImGui_DX12Startup             ( This                         ))
-///        {
-///          extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
-///                       SK_ImGui_DrawFrame (       0x00,          nullptr );
-///        }
-///
-///        ///if (! (hdr_mode && hudless))
-///        ///{
-///        ///  //DrawSteamPopups ();
-///        ///}
-///      //}
-///
-///    //sb->apply (pImmediateContext);
-///
-///
-///      // Queue-up Post-SK OSD Screenshots
-///    //SK_D3D12_ProcessScreenshotQueue (2);
-///
-///
-///      //
-///      // Update G-Sync; doing this here prevents trying to do this on frames where
-///      //   the swapchain was resized, which would deadlock the software.
-///      //
-///      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status && (config.fps.show || SK_ImGui_Visible))
-///      {
-///        static DWORD dwLastUpdate = 0;
-///               DWORD dwNow        = timeGetTime ();
-///
-///        if (dwLastUpdate < dwNow - 2000UL)
-///        {
-///          dwLastUpdate = dwNow;
-///          InterlockedExchange (&__SK_NVAPI_UpdateGSync, TRUE);
-///        }
-///      }
-///    }
-///}
-
 
 void
 SK_DXGI_BorderCompensation (UINT& x, UINT& y)
@@ -4111,8 +3732,6 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
   {
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
-////SK_D3D12_UpdateRenderStats (This);
-
 
     // Queue-up Pre-SK OSD Screenshots
     SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD);
@@ -4334,10 +3953,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
     if (can_present)
     {
-      //if (rb.api != SK_RenderAPI::D3D11On12)
-        SK_CEGUI_DrawD3D11 (This);
-      //else
-      //  SK_UI_DrawD3D12    (This);
+      SK_CEGUI_DrawD3D11 (This);
 
       hr =
         Present1 (interval, flags, pPresentParameters);
@@ -4498,7 +4114,6 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   {
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
-////SK_D3D12_UpdateRenderStats (This);
 
     // Queue-up Pre-SK OSD Screenshots
     SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD);
@@ -4706,10 +4321,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
       }
     }
 
-    //if (rb.api != SK_RenderAPI::D3D12)
-      SK_CEGUI_DrawD3D11 (This);
-    //else
-    //  SK_UI_DrawD3D12    (This);
+    SK_CEGUI_DrawD3D11 (This);
 
     if (bWait) flags |= DXGI_PRESENT_DO_NOT_WAIT;
 
@@ -8185,9 +7797,6 @@ SK_HookDXGI (void)
       SK_D3D11_InitTextures ();
       SK_D3D11_Init         ();
     }
-
-    ////if (SK_GetModuleHandle (L"d3d12.dll"))
-    ////  SK_D3D12_Init       ();
 
     SK_ICommandProcessor* pCommandProc =
       SK_GetCommandProcessor ();
