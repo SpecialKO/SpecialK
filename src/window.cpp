@@ -5952,11 +5952,14 @@ HRESULT
 WINAPI
 SK_DWM_EnableMMCSS (BOOL enable)
 {
+  static HMODULE hModDwmApi =
+    SK_LoadLibraryW (L"dwmapi.dll");
+
   typedef HRESULT (WINAPI *DwmEnableMMCSS_pfn)(BOOL);
   static                   DwmEnableMMCSS_pfn
                            DwmEnableMMCSS =
          reinterpret_cast <DwmEnableMMCSS_pfn> (
-     SK_GetProcAddress ( L"dwmapi.dll",
+     SK_GetProcAddress ( hModDwmApi,
                           "DwmEnableMMCSS" )   );
 
   return

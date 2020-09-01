@@ -646,7 +646,7 @@ SKX_RemoveCBTHook (void)
                              WM_NULL, 0, 0,
                                SMTO_ABORTIFHUNG |
                                SMTO_NOTIMEOUTIFNOTHUNG,
-                                 666UL, &dwpResult );
+                                 1UL, &dwpResult );
 
       SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
                               DeleteFileW (L"SpecialK32.pid") );

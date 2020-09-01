@@ -256,10 +256,10 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   snprintf
         ( szAvg,
-            511,
-              "Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-              "    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
-              "Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
+            511, (const char *)
+            u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
+            u8"    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
+            u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
                 sum / frames,
                   target_frametime,
                     min, max, (double)max - (double)min,
@@ -401,9 +401,12 @@ SK_ImGui_DrawFramePercentiles (void)
         frame_history->calcDataTimespan ();
     }
 
-    percentile0.has_data  = true;
+    percentile0.has_data = true;
 
-    const float luminance = 0.5f;
+    static constexpr float  luminance  =   0.5f;
+    static constexpr ImVec4 white_color (  1.0f,   1.0f,   1.0f, 1.0f);
+    static constexpr ImVec4 label_color (0.595f, 0.595f, 0.595f, 1.0f);
+    static constexpr ImVec4 click_color (0.685f, 0.685f, 0.685f, 1.0f);
 
     ImGui::BeginGroup ();
 
@@ -411,18 +414,18 @@ SK_ImGui_DrawFramePercentiles (void)
     {
     //ImGui::Text ("Sample Size");
 
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
-           if (data_timespan > 60.0 * 60.0) ImGui::Text ("%7.3f", data_timespan / (60.0 * 60.0));
-      else if (data_timespan > 60.0)        ImGui::Text ("%6.2f", data_timespan / 60.0);
-      else                                  ImGui::Text ("%5.1f", data_timespan);
+      ImGui::PushStyleColor  (ImGuiCol_Text, white_color);
+           if (data_timespan > 60.0 * 60.0)  ImGui::Text ("%7.3f", data_timespan / (60.0 * 60.0));
+      else if (data_timespan > 60.0)         ImGui::Text ("%6.2f", data_timespan / (60.0       ));
+      else                                   ImGui::Text ("%5.1f", data_timespan);
 
       ImGui::SameLine ();
 
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.595f, 0.595f, 0.595f, 1.0f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, label_color);
 
-           if (data_timespan > 60.0 * 60.0) ImGui::Text ("Hours");
-      else if (data_timespan > 60.0)        ImGui::Text ("Minutes");
-      else                                  ImGui::Text ("Seconds");
+           if (data_timespan > 60.0 * 60.0)  ImGui::Text ("Hours");
+      else if (data_timespan > 60.0)         ImGui::Text ("Minutes");
+      else                                   ImGui::Text ("Seconds");
 
       ImGui::PopStyleColor (2);
     }
@@ -431,9 +434,9 @@ SK_ImGui_DrawFramePercentiles (void)
     {
       ImGui::Spacing          ();
       ImGui::Spacing          ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.595f, 0.595f, 0.595f, 1.0f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, label_color);
       ImGui::TextUnformatted ("AvgFPS: "); ImGui::SameLine ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, white_color);
       ImGui::Text            ("%4.1f", mean.computed_fps);
       ImGui::PopStyleColor   (2);
     }
@@ -444,7 +447,7 @@ SK_ImGui_DrawFramePercentiles (void)
     {
       ImGui::BeginTooltip    ( );
       ImGui::BeginGroup      ( );
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.0f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, click_color);
       ImGui::BulletText      ("Left-Click");
       ImGui::BulletText      ("Ctrl+Click");
       ImGui::PopStyleColor   ( );
@@ -453,7 +456,7 @@ SK_ImGui_DrawFramePercentiles (void)
       ImGui::SameLine        ( ); ImGui::Spacing ();
       ImGui::SameLine        ( );
       ImGui::BeginGroup      ( );
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, white_color);
       ImGui::TextUnformatted ("Change Datasets (Long / Short)");
       ImGui::TextUnformatted ("Reset Long-term Statistics");
       ImGui::PopStyleColor   ( );
@@ -475,52 +478,66 @@ SK_ImGui_DrawFramePercentiles (void)
       else snapshots->reset ();
     }
 
-    ImGui::SameLine   ();
-    ImGui::BeginGroup ();
-    ImGui::PushStyleColor
-                      ( ImGuiCol_PlotHistogram,  (unsigned int)ImColor::HSV (p0_ratio * 0.278f, 0.88f, luminance));
-    ImGui::ProgressBar( p0_ratio, ImVec2 (-1.0f, 0.0f),
-      SK_FormatString ( "%3.1f%% Low FPS: %5.2f",
-                          percentile0.cutoff,
-                          percentile0.computed_fps ).c_str ()
-    );
+    unsigned int     p0_color  (
+      ImColor::HSV ( p0_ratio * 0.278f,
+              0.88f, luminance )
+                   ),p1_color  (
+      ImColor::HSV ( p1_ratio * 0.278f,
+              0.88f, luminance )
+                   );
 
-    if ( std::isnormal (percentile1.computed_fps) &&
-                                            data_timespan > 0 )
-    {
-      percentile1.has_data = true;
+    ImGui::SameLine       ( );
+    ImGui::BeginGroup     ( );
+    ImGui::PushStyleColor ( ImGuiCol_PlotHistogram,
+                            p0_color                 );
+    ImGui::ProgressBar    ( p0_ratio, ImVec2 ( -1.0f,
+                                                0.0f ),
+                            SK_FormatString (
+                              "%3.1f%% Low FPS: %5.2f",
+                                percentile0.cutoff,
+                                percentile0.computed_fps
+                                            ).c_str ()
+                          );
+    if ( data_timespan > 0                     &&
+         std::isnormal ( percentile1.computed_fps )
+       )
+    { percentile1.has_data = true;
 
-      ImGui::PushStyleColor ( ImGuiCol_PlotHistogram,  (unsigned int)ImColor::HSV (p1_ratio * 0.278f, 0.88f, luminance));
-      ImGui::ProgressBar    ( p1_ratio,
-                                 ImVec2 (-1.0f, 0.0f), SK_FormatString
-                             ( "%3.1f%% Low FPS: %5.2f",
-                                 percentile1.cutoff,
-                                 percentile1.computed_fps
-                             ).c_str ()
-      );
-      ImGui::PopStyleColor (2);
+      ImGui::PushStyleColor ( ImGuiCol_PlotHistogram,
+                              p1_color                 );
+      ImGui::ProgressBar    ( p1_ratio, ImVec2 ( -1.0f,
+                                                  0.0f ),
+                              SK_FormatString (
+                                "%3.1f%% Low FPS: %5.2f",
+                                  percentile1.cutoff,
+                                  percentile1.computed_fps
+                                              ).c_str ()
+                              );
+      ImGui::PopStyleColor  (2);
     }
 
     else
     {
       percentile1.has_data = false;
-      ImGui::PopStyleColor (1);
+      ImGui::PopStyleColor  (1);
     }
 
-    ImGui::EndGroup        ( );
+    ImGui::EndGroup         ( );
 
-    if ((SK_FramePercentiles->display) && ImGui::IsItemClicked ())
+    if (SK_FramePercentiles->display)
     {
-      SK_FramePercentiles->toggleDisplay ();
+      if (ImGui::IsItemClicked ())
+        SK_FramePercentiles->toggleDisplay ();
     }
   }
 
   else
-  { percentile0.has_data = false;
+  {
+    percentile0.has_data = false;
     percentile1.has_data = false;
   }
 
-  ImGui::PopStyleColor     (4);
+  ImGui::PopStyleColor      (4);
 }
 
 float fExtraData = 0.0f;
@@ -664,7 +681,7 @@ public:
                             pLimiter->getSnapshot ();
 
       struct {
-        DWORD  dwLastSnap = 0;
+        DWORD  dwLastSnap =   0;
         double dLastMS    = 0.0;
         double dLastFPS   = 0.0;
 
@@ -748,8 +765,7 @@ public:
     bool changed = false;
     bool display = SK_FramePercentiles->display;
 
-    changed |= ImGui::Checkbox  ("Show Percentile Analysis", &display);
-
+        changed |= ImGui::Checkbox  ("Show Percentile Analysis", &display);
     if (changed)
     {
       SK_FramePercentiles->toggleDisplay ();

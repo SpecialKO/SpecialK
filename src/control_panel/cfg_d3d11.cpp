@@ -381,7 +381,7 @@ SK::ControlPanel::D3D11::Draw (void)
         }
       }
 
-      if ((! config.render.framerate.flip_discard) || config.render.framerate.swapchain_wait == 0)
+      ///if ((! config.render.framerate.flip_discard) || config.render.framerate.swapchain_wait == 0)
       {
         ImGui::Checkbox ("Wait for VBLANK", &config.render.framerate.wait_for_vblank);
       }

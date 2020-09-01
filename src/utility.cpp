@@ -295,14 +295,30 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
 bool
 SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 {
-  SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
+  using GetUserProfileDirectoryW_pfn =
+    BOOL (WINAPI *)(HANDLE, LPWSTR, LPDWORD);
+
+  static auto      hModUserEnv =
+    SK_LoadLibraryW (L"USERENV.DLL");
+
+  static auto _GetUserProfileDirectoryW =
+              (GetUserProfileDirectoryW_pfn)
+            SK_GetProcAddress ( hModUserEnv,
+              "GetUserProfileDirectoryW" );
+
+  if (! _GetUserProfileDirectoryW)
+    return false;
+
+  SK_AutoHandle hToken (
+    INVALID_HANDLE_VALUE
+  );
 
   if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
 
-  if (! GetUserProfileDirectoryW ( hToken, buf,
-                                     reinterpret_cast <DWORD *> (pdwLen)
-                                 )
+  if (! _GetUserProfileDirectoryW ( hToken, buf,
+                                      reinterpret_cast <DWORD *> (pdwLen)
+                                  )
      )
   {
     return false;
@@ -3745,8 +3761,19 @@ SK_GetUserNameExA (
   _Out_writes_to_opt_(*nSize,*nSize) LPSTR                 lpNameBuffer,
   _Inout_                            PULONG                nSize )
 {
+  using GetUserNameExA =
+    BOOLEAN (WINAPI *)(EXTENDED_NAME_FORMAT, LPSTR, PULONG);
+
+  static auto      hModSecur32 =
+    SK_LoadLibraryW (L"Secur32.dll");
+
+  static auto
+    _GetUserNameExA =
+    (GetUserNameExA)SK_GetProcAddress ( hModSecur32,
+    "GetUserNameExA");
+
   return
-    GetUserNameExA (NameFormat, lpNameBuffer, nSize);
+    _GetUserNameExA (NameFormat, lpNameBuffer, nSize);
 }
 
 _Success_(return != 0)
@@ -3757,8 +3784,19 @@ SK_GetUserNameExW (
     _Out_writes_to_opt_(*nSize,*nSize) LPWSTR               lpNameBuffer,
     _Inout_                            PULONG               nSize )
 {
+  using GetUserNameExW =
+    BOOLEAN (WINAPI *)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG);
+
+  static auto      hModSecur32 =
+    SK_LoadLibraryW (L"Secur32.dll");
+
+  static auto
+    _GetUserNameExW =
+    (GetUserNameExW)SK_GetProcAddress ( hModSecur32,
+    "GetUserNameExW");
+
   return
-    GetUserNameExW (NameFormat, lpNameBuffer, nSize);
+    _GetUserNameExW (NameFormat, lpNameBuffer, nSize);
 }
 
 // Doesn't need to be this complicated; it's a string function, might as well optimize it.

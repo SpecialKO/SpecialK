@@ -575,11 +575,84 @@ SK_Thread_CloseSelf (void)
 }
 
 
+HMODULE
+SK_AVRT_LoadLibrary (void)
+{
+  static HMODULE hModAVRT =
+    SK_LoadLibraryW (L"AVRT.dll");
+
+  return hModAVRT;
+}
+
+_Success_(return != NULL)
+HANDLE
+WINAPI
+SK_AvSetMmMaxThreadCharacteristicsA (
+  _In_    LPCSTR  FirstTask,
+  _In_    LPCSTR  SecondTask,
+  _Inout_ LPDWORD TaskIndex )
+{
+  using AvSetMmMaxThreadCharacteristicsA_pfn =
+    HANDLE (WINAPI *)(LPCSTR, LPCSTR, LPDWORD);
+
+  static auto
+    _AvSetMmMaxThreadCharacteristicsA =
+    (AvSetMmMaxThreadCharacteristicsA_pfn)SK_GetProcAddress (
+  SK_AVRT_LoadLibrary (),
+    "AvSetMmMaxThreadCharacteristicsA" );
+
+  return
+    _AvSetMmMaxThreadCharacteristicsA (
+      FirstTask, SecondTask, TaskIndex
+    );
+}
+
+_Success_(return != FALSE)
+BOOL
+WINAPI
+SK_AvSetMmThreadPriority (
+  _In_ HANDLE        AvrtHandle,
+  _In_ AVRT_PRIORITY Priority )
+{
+  using AvSetMmThreadPriority_pfn =
+    BOOL (WINAPI *)(HANDLE, AVRT_PRIORITY);
+
+  static auto
+    _AvSetMmThreadPriority =
+    (AvSetMmThreadPriority_pfn)SK_GetProcAddress (
+  SK_AVRT_LoadLibrary (),
+    "AvSetMmThreadPriority" );
+
+  return
+    _AvSetMmThreadPriority (AvrtHandle, Priority);
+}
+
+_Success_(return != FALSE)
+BOOL
+WINAPI
+SK_AvRevertMmThreadCharacteristics (
+  _In_ HANDLE AvrtHandle )
+{
+  using AvRevertMmThreadCharacteristics_pfn =
+    BOOL (WINAPI *)(HANDLE);
+
+  static auto
+    _AvRevertMmThreadCharacteristics =
+    (AvRevertMmThreadCharacteristics_pfn)SK_GetProcAddress (
+  SK_AVRT_LoadLibrary (),
+    "AvRevertMmThreadCharacteristics" );
+
+  return
+    _AvRevertMmThreadCharacteristics (AvrtHandle);
+}
+
+
 using _SK_MMCS_TaskMap =
         concurrency::concurrent_unordered_map <
           DWORD, SK_MMCS_TaskEntry*
         >;
 
+__declspec (noinline)
 _SK_MMCS_TaskMap&
 SK_MMCS_GetTaskMap (void)
 {
@@ -648,8 +721,8 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
                 task2,          _TRUNCATE );
 
     new_entry->hTask =
-      AvSetMmMaxThreadCharacteristicsA ( task1, task2,
-                                           &new_entry->dwTaskIdx );
+      SK_AvSetMmMaxThreadCharacteristicsA ( task1, task2,
+                                              &new_entry->dwTaskIdx );
 
     SK_TLS* pTLS =
       SK_TLS_Bottom ();

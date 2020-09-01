@@ -2613,7 +2613,7 @@ SK_D3D11_UpdateSubresource_Impl (
 
 
   static const bool __sk_dqxi =
-    true;
+    false;
     //( SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI );
 
   if ( pDstBox != nullptr && ( pDstBox->left  >= pDstBox->right  ||
@@ -6262,61 +6262,64 @@ D3D11Dev_CreateTexture2D_Impl (
         size_t bpc =
           DirectX::BitsPerColor (pDesc->Format);
 
-        // 11-bit FP (or 10-bit fixed?) -> 16-bit FP
-        if ( (__SK_HDR_Promote11BitTo16 && bpc == 11) ||
-             (__SK_HDR_Promote10BitTo16 && bpc == 10) )
+        if (pDesc->SampleDesc.Count == 1)
         {
-          if (config.system.log_level > 4)
+          // 11-bit FP (or 10-bit fixed?) -> 16-bit FP
+          if ( (__SK_HDR_Promote11BitTo16 && bpc == 11) ||
+               (__SK_HDR_Promote10BitTo16 && bpc == 10) )
           {
-            dll_log->Log ( L"HDR Override [ Orig Fmt: %s, New Fmt: %s ]",
-              SK_DXGI_FormatToStr (pDesc->Format).                 c_str (),
-              SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).c_str () );
+            if (config.system.log_level > 4)
+            {
+              dll_log->Log ( L"HDR Override [ Orig Fmt: %s, New Fmt: %s ]",
+                SK_DXGI_FormatToStr (pDesc->Format).                 c_str (),
+                SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).c_str () );
+            }
+
+            pDesc->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
           }
 
-          pDesc->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-        }
-
-        else if (__SK_HDR_Promote8BitTo16)
-        {
-          size_t bpp =
-            DirectX::BitsPerPixel (pDesc->Format);
-
-          auto _typeless =
-            DirectX::MakeTypeless (pDesc->Format);
-
-          // The HDR formats are RGB(A), they do not play nicely with BGR{A|x}
-          bool rgba =
-            ( _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS );
-
-          // 8-bit RGB(x) -> 16-bit FP
-          if ( bpc == 8  && rgba &&
-               bpp == 32 )
+          else if (__SK_HDR_Promote8BitTo16)
           {
-            static auto& rb =
-              SK_GetCurrentRenderBackend ();
+            size_t bpp =
+              DirectX::BitsPerPixel (pDesc->Format);
 
-            SK_ComQIPtr <IDXGISwapChain> pSwap (
-              rb.swapchain
-            );
+            auto _typeless =
+              DirectX::MakeTypeless (pDesc->Format);
 
-            DXGI_SWAP_CHAIN_DESC swap_desc = { };
-            if (pSwap != nullptr)
-                pSwap->GetDesc (&swap_desc);
+            // The HDR formats are RGB(A), they do not play nicely with BGR{A|x}
+            bool rgba =
+              ( _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS );
 
-            // NieR: Automata is tricky, do not change the format of the bloom
-            //   reduction series of targets.
-            if (SK_GetCurrentGameID () != SK_GAME_ID::NieRAutomata ||
-              ( pDesc->Width  == config.window.res.override.x &&
-                pDesc->Height == config.window.res.override.y ))
+            // 8-bit RGB(x) -> 16-bit FP
+            if ( bpc == 8  && rgba &&
+                 bpp == 32 )
             {
-              if (config.system.log_level > 4)
-              {
-                dll_log->Log ( L"HDR Override [ Orig Fmt: %s, New Fmt: %s ]",
-                  SK_DXGI_FormatToStr (pDesc->Format).                 c_str (),
-                  SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).c_str () );
-              }
+              static auto& rb =
+                SK_GetCurrentRenderBackend ();
 
-              pDesc->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+              SK_ComQIPtr <IDXGISwapChain> pSwap (
+                rb.swapchain
+              );
+
+              DXGI_SWAP_CHAIN_DESC swap_desc = { };
+              if (pSwap != nullptr)
+                  pSwap->GetDesc (&swap_desc);
+
+              // NieR: Automata is tricky, do not change the format of the bloom
+              //   reduction series of targets.
+              if (SK_GetCurrentGameID () != SK_GAME_ID::NieRAutomata ||
+                ( pDesc->Width  == config.window.res.override.x &&
+                  pDesc->Height == config.window.res.override.y ))
+              {
+                if (config.system.log_level > 4)
+                {
+                  dll_log->Log ( L"HDR Override [ Orig Fmt: %s, New Fmt: %s ]",
+                    SK_DXGI_FormatToStr (pDesc->Format).                 c_str (),
+                    SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).c_str () );
+                }
+
+                pDesc->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+              }
             }
           }
         }

@@ -100,7 +100,7 @@ bool  __SK_HDR_16BitSwap        = false;
 
 bool  __SK_HDR_Promote8BitTo16  = false;
 bool  __SK_HDR_Promote10BitTo16 = true;
-bool  __SK_HDR_Promote11BitTo16 = false;
+bool  __SK_HDR_Promote11BitTo16 = true;
 
 float __SK_HDR_Luma             = 80.0_Nits;
 float __SK_HDR_Exp              = 1.0f;

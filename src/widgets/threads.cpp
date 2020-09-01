@@ -1198,15 +1198,10 @@ public:
         std::make_unique <SK_Thread_DataCollector> ()
     );
 
-
-    const DWORD dwNow =
-      timeGetTime ();
-
-
     static float last_rebalance = 0.0f;
 
     if ( __SK_Thread_RebalanceEveryNSeconds > 0.0f &&
-        ( (float)dwNow / 1000.0f ) >
+        ( (float)timeGetTime () / 1000.0f ) >
        (last_rebalance + __SK_Thread_RebalanceEveryNSeconds) )
     {
       SK_Thread_RebalanceThreads ();
@@ -1226,7 +1221,7 @@ public:
     if (rebalance && rebalance_list.empty ())
     {
       last_rebalance =
-        static_cast <float> (dwNow) / 1000.0f;
+        static_cast <float> (timeGetTime ()) / 1000.0f;
 
       for ( auto& it : *SKWG_Ordered_Threads )
       {
@@ -1376,6 +1371,8 @@ public:
               const DWORD _UPDATE_INTERVAL2_MS = 3333; // Refresh at least once every 3.3 seconds
     static          DWORD dwLastTime           =    0;
 
+    const DWORD dwNow =
+      timeGetTime ();
     const LONG  last  =
       ReadAcquire (&lLastThreadCreate);
     // If true, no new threads have been created since we
@@ -1563,7 +1560,7 @@ public:
     if (ImGui::GetFont () == nullptr) return;
 
     DWORD dwNow =
-      SK_GetCurrentMS ();
+      timeGetTime ();
 
            bool drew_tooltip   = false;
     static bool show_callstack = false;

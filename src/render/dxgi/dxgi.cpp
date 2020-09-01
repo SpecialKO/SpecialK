@@ -5091,7 +5091,9 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     pTarget    = nullptr;
   }
 
-
+  BOOL                       bFullscreen;
+  SK_ComPtr <IDXGIOutput>                  pOutput;
+  This->GetFullscreenState (&bFullscreen, &pOutput.p);
 
   if (! no_override)
   {
@@ -5105,9 +5107,11 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
     if (config.display.force_fullscreen && Fullscreen == FALSE)
     {
-      Fullscreen = TRUE;
+
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                      L"(Requested: Windowed, Using: Fullscreen)" );
+      Fullscreen = TRUE;
+      pTarget    = pOutput.p;
     }
     else if ((__SK_HDR_16BitSwap || config.display.force_windowed || config.render.framerate.flip_discard) && Fullscreen != FALSE)
     {
@@ -5123,6 +5127,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                L"User Initiated Fulllscreen Switch" );
       Fullscreen = TRUE;
+      pTarget    = pOutput.p;
     }
     else if (request_mode_change == mode_change_request_e::Windowed &&
                       Fullscreen != FALSE)
@@ -5136,27 +5141,22 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
   HRESULT    ret;
 
-  BOOL                    bFullscreenOrig;
-  SK_ComPtr <IDXGIOutput> pOutputTmp;
-
-  This->GetFullscreenState (&bFullscreenOrig, &pOutputTmp.p);
-
-  if (pOutputTmp.p != nullptr)
-      pOutputTmp    = nullptr;
-
-  //if (bFullscreenOrig == Fullscreen)
-  //  ret = S_OK;
-  //else
+  if (bFullscreen == Fullscreen)
+    ret = S_OK;
+  else
   {
     SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
 
     DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
+
+    if (pOutput.p != nullptr)
+        pOutput    = nullptr;
   }
 
   //
   // Necessary provisions for Fullscreen Flip Mode
   //
-  if (bFullscreenOrig != Fullscreen && SUCCEEDED (ret))
+  if (bFullscreen != Fullscreen && SUCCEEDED (ret))
   {
     DXGI_SWAP_CHAIN_DESC           desc = { };
     if (SUCCEEDED (This->GetDesc (&desc)))
@@ -6186,7 +6186,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         //   because AMD drivers tend not to work correctly if a game ever
         //     tries to use more than 3 buffers in BitBlit mode.
         if (config.render.framerate.buffer_count > 3)
-          config.render.framerate.buffer_count = 3;
+            config.render.framerate.buffer_count = 3;
       }
 
       if (config.render.framerate.buffer_count > 0)
@@ -6206,9 +6206,23 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
                 L" DXGI 1.2 " );
 
 
-    pDesc->BufferDesc.Format =
-      SK_DXGI_PickHDRFormat (pDesc->BufferDesc.Format);
+    // HDR override requires Flip Model
+    //
+    //  --> Flip Model requires no MSAA
+    //
+    if (SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
+    {
+      pDesc->BufferDesc.Format =
+        SK_DXGI_PickHDRFormat (pDesc->BufferDesc.Format);
 
+      if (pDesc->SampleDesc.Count != 1)
+      {
+        SK_LOG0 ( ( L"  >> Disabling SwapChain-based MSAA for Flip Model compliance."),
+                    L" DXGI 1.2 " );
+
+        pDesc->SampleDesc.Count = 1;
+      }
+    }
 
     // Clamp the buffer dimensions if the user has a min/max preference
     const UINT
@@ -8840,8 +8854,8 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
   if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
     return E_ACCESSDENIED;
 
-  if (config.apis.dxgi.d3d12.hook)
-    return E_ACCESSDENIED;
+  ////////if (config.apis.dxgi.d3d12.hook)
+  ////////  return E_ACCESSDENIED;
 
   //
   // If the adapter implements DXGI 1.4, then create a budget monitoring

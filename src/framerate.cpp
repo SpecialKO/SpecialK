@@ -453,11 +453,11 @@ SK::Framerate::Limiter::wait (void)
   modf ( missing_time, &missed_frames );
 
   static     DWORD dwLastFullReset        = timeGetTime ();
-   constexpr DWORD dwMinTimeBetweenResets = 750L;
+   constexpr DWORD dwMinTimeBetweenResets = 1000L;
 
-   static constexpr double dMissingTimeBoundary =  4.0;
-   static constexpr double dEdgeToleranceLow    = 0.1;
-   static constexpr double dEdgeToleranceHigh   = 0.2;
+   static constexpr double dMissingTimeBoundary =   4.0;
+   static constexpr double dEdgeToleranceLow    = 0.025;
+   static constexpr double dEdgeToleranceHigh   = 0.15;
 
   if (missing_time > dMissingTimeBoundary)
   {
@@ -470,7 +470,7 @@ SK::Framerate::Limiter::wait (void)
                     L"(%f frames late)", missed_frames ),
                     L"Frame Rate" );
 
-        if (missing_time > dMissingTimeBoundary * 2.0f)
+        if (missing_time > dMissingTimeBoundary * 3.0f)
           full_restart = true;
 
         restart         = true;

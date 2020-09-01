@@ -249,6 +249,31 @@ extern "C" bool SK_Thread_InitDebugExtras (void);
 
 extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original;
 
+HMODULE SK_AVRT_LoadLibrary (void);
+
+_Success_(return != NULL)
+HANDLE
+WINAPI
+SK_AvSetMmMaxThreadCharacteristicsA (
+  _In_    LPCSTR  FirstTask,
+  _In_    LPCSTR  SecondTask,
+  _Inout_ LPDWORD TaskIndex
+);
+
+_Success_(return != FALSE)
+BOOL
+WINAPI
+SK_AvSetMmThreadPriority (
+  _In_ HANDLE        AvrtHandle,
+  _In_ AVRT_PRIORITY Priority
+);
+
+_Success_(return != FALSE)
+BOOL
+WINAPI
+SK_AvRevertMmThreadCharacteristics (
+  _In_ HANDLE AvrtHandle
+);
 
 extern DWORD SK_GetRenderThreadID (void);
 
@@ -287,7 +312,7 @@ struct SK_MMCS_TaskEntry {
 
   BOOL          setPriority (AVRT_PRIORITY prio)
   {
-    if (AvSetMmThreadPriority (hTask, prio))
+    if (SK_AvSetMmThreadPriority (hTask, prio))
     {
       priority = prio;
       return TRUE;
@@ -300,7 +325,7 @@ struct SK_MMCS_TaskEntry {
                                         const char* second_task )
   {
     hTask =
-      AvSetMmMaxThreadCharacteristicsA (first_task, second_task, &dwTaskIdx);
+      SK_AvSetMmMaxThreadCharacteristicsA (first_task, second_task, &dwTaskIdx);
 
     if (hTask != nullptr)
     {
@@ -317,17 +342,17 @@ struct SK_MMCS_TaskEntry {
   BOOL disassociateWithTask (void)
   {
     return
-      AvRevertMmThreadCharacteristics (hTask);
+      SK_AvRevertMmThreadCharacteristics (hTask);
   }
 
   HANDLE reassociateWithTask (void)
   {
     hTask =
-      AvSetMmMaxThreadCharacteristicsA (task0, task1, &dwTaskIdx);
+      SK_AvSetMmMaxThreadCharacteristicsA (task0, task1, &dwTaskIdx);
 
     if (hTask != nullptr)
     {
-      AvSetMmThreadPriority (hTask, priority);
+      SK_AvSetMmThreadPriority (hTask, priority);
     }
 
     return hTask;

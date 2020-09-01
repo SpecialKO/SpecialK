@@ -180,7 +180,7 @@ typedef unsigned long long  ImU64;  // 64-bit unsigned integer (post C++11)
 // 2D vector (often used to store positions, sizes, etc.)
 struct ImVec2
 {
-    float     x, y;
+    float       x,  y;
     ImVec2()  { x = y = 0.0f; }
     ImVec2(float _x, float _y) noexcept { x = _x; y = _y; }
     float  operator[] (size_t idx) const { IM_ASSERT(idx <= 1); return (&x)[idx]; }    // We very rarely use this [] operator, the assert overhead is fine.
@@ -194,11 +194,17 @@ struct ImVec2
 // 4D vector (often used to store floating-point colors)
 struct ImVec4
 {
-    float     x, y, z, w;
-    ImVec4()  { x = y = z = w = 0.0f; }
-    ImVec4(float _x, float _y, float _z, float _w) { x = _x; y = _y; z = _z; w = _w; }
+  float             x,  y,  z,  w;
+  ImVec4 ( void ) { x = y = z = w = 0.0f; }
+
+  constexpr
+  ImVec4 ( const float _x, const float _y,
+           const float _z, const float _w ) :
+                    x (_x),         y (_y),
+                    z (_z),         w (_w) { };
+
 #ifdef IM_VEC4_CLASS_EXTRA
-    IM_VEC4_CLASS_EXTRA     // Define additional constructors and implicit cast operators in imconfig.h to convert back and forth between your math types and ImVec4.
+  IM_VEC4_CLASS_EXTRA     // Define additional constructors and implicit cast operators in imconfig.h to convert back and forth between your math types and ImVec4.
 #endif
 };
 

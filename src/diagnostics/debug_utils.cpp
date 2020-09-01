@@ -3036,8 +3036,8 @@ SK_Exception_HandleThreadName (
 
             else if (task_me != nullptr)
             {
-              AvSetMmThreadPriority ( task_me->hTask,
-                                        AVRT_PRIORITY_HIGH );
+              SK_AvSetMmThreadPriority ( task_me->hTask,
+                                           AVRT_PRIORITY_HIGH );
             }
           }
 
@@ -3056,8 +3056,8 @@ SK_Exception_HandleThreadName (
 
             else if (task_me != nullptr)
             {
-              AvSetMmThreadPriority ( task_me->hTask,
-                                        AVRT_PRIORITY_NORMAL );
+              SK_AvSetMmThreadPriority ( task_me->hTask,
+                                           AVRT_PRIORITY_NORMAL );
             }
           }
 
@@ -3076,8 +3076,8 @@ SK_Exception_HandleThreadName (
 
             else if (task_me != nullptr)
             {
-              AvSetMmThreadPriority ( task_me->hTask,
-                                        AVRT_PRIORITY_HIGH );
+              SK_AvSetMmThreadPriority ( task_me->hTask,
+                                           AVRT_PRIORITY_HIGH );
             }
           }
 
@@ -3140,8 +3140,8 @@ SK_Exception_HandleThreadName (
 
               if (task_me != nullptr)
               {
-                AvSetMmThreadPriority ( task_me->hTask,
-                                          AVRT_PRIORITY_NORMAL );
+                SK_AvSetMmThreadPriority ( task_me->hTask,
+                                             AVRT_PRIORITY_NORMAL );
               }
             }
           }

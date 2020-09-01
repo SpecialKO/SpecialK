@@ -1,4 +1,19 @@
-﻿0.11.0.46:
+﻿0.11.0.47:
+
+ + Fixed Missing +/- N.M Frames stat in the Framepacing Widget
+ + Fixed DXGI Budget Tracking Thread (VRAM stats) if [API.Hook] d3d12=true
+ + Fixed Ys8 when HDR is enabled and game attempts to go Fullscreen Exclusive
+
+ + Add a new "Widget Flash" keybind that briefly shows and then hides a widget
+
+     >> All widgets have a binding for this feature and a configurable duration.
+
+ + Do not HDR remaster MSAA RenderTargets
+
+     >> MSAA Resolve is complicated if the source format has been changed by SK,
+          it is not impossible, but more work than I have time for right now.
+
+0.11.0.46:
 
  + Fixed unsafe exception handling in Remedy's (Control) SteamAPI code to prevent crashing
  + Re-enabled Staging D3D11 Texture Mods

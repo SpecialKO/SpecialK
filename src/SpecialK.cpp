@@ -167,34 +167,43 @@ SK_GetDLLName (void) noexcept
 INT
 SK_KeepAway (void)
 {
-  wchar_t            wszDllFullName [MAX_PATH + 2] = { };
+  wchar_t             wszDllFullName [MAX_PATH + 2] = { };
   GetModuleFileName ( skModuleRegistry::Self (),
-                     wszDllFullName, MAX_PATH    );
-  if (   StrStrIW (  wszDllFullName,
-             SK_RunLHIfBitness ( 64, L"SpecialK64.dll",
-                                     L"SpecialK32.dll" )
-                  ) == nullptr
+                      wszDllFullName, MAX_PATH    );
+  if ( StrStrIW (     wszDllFullName,
+           SK_RunLHIfBitness ( 64, L"SpecialK64.dll",
+                                   L"SpecialK32.dll" )
+                ) == nullptr
      )
   {
     return 0;
   }
 
-  static HMODULE hModNtDll =
-    SK_GetModuleHandle (L"NtDll");
+  HMODULE hModApp =
+        GetModuleHandle (nullptr);
 
-  // If this DLL is not present, there's no way in hell we're interested
-  //   in hooking this software.
-  if (! hModNtDll) return 1;
+  wchar_t                         wszSystemDir   [MAX_PATH + 2] = { };
+  wchar_t                         wszWindowsDir  [MAX_PATH + 2] = { };
+  GetSystemWindowsDirectoryW     (wszWindowsDir,  MAX_PATH);
+  SK_RunLHIfBitness              (
+    32, GetSystemWow64DirectoryW (wszSystemDir,   MAX_PATH),
+        GetSystemDirectoryW      (wszSystemDir,   MAX_PATH)
+  );
+
+  wchar_t              wszAppFullName [MAX_PATH + 2] = { };
+  GetModuleFileName ( hModApp,
+                       wszAppFullName, MAX_PATH       );
+  if ( StrStrIW (      wszAppFullName, L"rundll32"    )            ) return 0;
+  if ( StrStrIW (      wszAppFullName, L"explorer.exe")            ) return 0;
 
   // If user-interactive, check against an internal blacklist
   #include <SpecialK/injection/blacklist.h>
 
-  static auto LdrGetDllHandle =
-             (LdrGetDllHandle_pfn)
-    SK_GetProcAddress ( hModNtDll,
-             "LdrGetDllHandle" );
+  auto LdrGetDllHandle =
+      (LdrGetDllHandle_pfn)SK_GetProcAddress ( L"NtDll",
+      "LdrGetDllHandle"                      );
 
-  auto _TestUndesirableDll = [](auto& list, INT stage) ->
+  auto _TestUndesirableDll = [&](auto& list, INT stage) ->
   INT
   {
     for ( auto& unwanted_dll : list )
@@ -222,6 +231,13 @@ SK_KeepAway (void)
   if (ret == 0)
       ret =
     _TestUndesirableDll ( __blacklist, 2 );
+
+  // Pin these DLLs (leak a reference) into anything we visit,
+  //   because we might be coming back (frequently!).
+  SK_LoadLibraryW (L"vcruntime140_1.dll");
+  SK_LoadLibraryW (L"vcruntime140.dll");
+  SK_LoadLibraryW (L"concrt140.dll");
+  SK_LoadLibraryW (L"msvcp140.dll");
 
   return ret;
 }

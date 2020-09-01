@@ -2659,7 +2659,7 @@ SK_BeginBufferSwap (void)
   {
     SK::Framerate::GetLimiter ()->wait ();
 
-    double               dt      =    0.0;
+    double               dt      =   0.0;
     LARGE_INTEGER            now = { 0, 0 };
     SK::Framerate::Tick (dt, now);
   }
@@ -3086,11 +3086,14 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     if (__SK_FramerateLimitApplicationSite == 2)
     {
       SK::Framerate::GetLimiter ()->wait ();
-
-      double               dt      =    0.0;
-      LARGE_INTEGER            now = { 0, 0 };
-      SK::Framerate::Tick (dt, now);
     }
+  }
+
+  if (__SK_FramerateLimitApplicationSite != 4)
+  {
+    double               dt      =   0.0;
+    LARGE_INTEGER            now = { 0, 0 };
+    SK::Framerate::Tick (dt, now);
   }
 
   return hr;
