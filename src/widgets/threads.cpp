@@ -1199,11 +1199,15 @@ public:
     );
 
 
+    const DWORD dwNow =
+      timeGetTime ();
+
+
     static float last_rebalance = 0.0f;
 
     if ( __SK_Thread_RebalanceEveryNSeconds > 0.0f &&
-        ( (float)timeGetTime () / 1000.0f ) >
-                (last_rebalance + __SK_Thread_RebalanceEveryNSeconds) )
+        ( (float)dwNow / 1000.0f ) >
+       (last_rebalance + __SK_Thread_RebalanceEveryNSeconds) )
     {
       SK_Thread_RebalanceThreads ();
     }
@@ -1222,8 +1226,7 @@ public:
     if (rebalance && rebalance_list.empty ())
     {
       last_rebalance =
-        static_cast <float> (timeGetTime ()) /
-                               1000.0f;
+        static_cast <float> (dwNow) / 1000.0f;
 
       for ( auto& it : *SKWG_Ordered_Threads )
       {
@@ -1375,8 +1378,6 @@ public:
 
     const LONG  last  =
       ReadAcquire (&lLastThreadCreate);
-    const DWORD dwNow = timeGetTime ();
-
     // If true, no new threads have been created since we
     //   last enumerated our list.
     if (last == lLastThreadRefresh)
@@ -1561,7 +1562,8 @@ public:
   {
     if (ImGui::GetFont () == nullptr) return;
 
-    DWORD dwNow = timeGetTime ();
+    DWORD dwNow =
+      SK_GetCurrentMS ();
 
            bool drew_tooltip   = false;
     static bool show_callstack = false;
@@ -1963,7 +1965,7 @@ public:
                 to_suspend;
 
               to_suspend.push (
-                { nullptr, dwSelectedTid, SK_GetFramesDrawn (), timeGetTime () }
+                { nullptr, dwSelectedTid, SK_GetFramesDrawn (), SK_GetCurrentMS () }
               );
 
               static HANDLE hThreadRecovery = INVALID_HANDLE_VALUE;
@@ -2027,7 +2029,7 @@ public:
                           if (SuspendThread (hThread__) != -1)
                           {
                             suspend_me.time_requested  =
-                              timeGetTime       ();
+                              SK_GetCurrentMS   ();
                             suspend_me.frame_requested =
                               SK_GetFramesDrawn ();
                             suspend_me.hThread         =
@@ -2047,7 +2049,7 @@ public:
                                              suspended_threads.size ()   );
                         for ( auto& thread : suspended_threads )
                         {
-                          if (thread.time_requested < (timeGetTime () - CHECKUP_TIME))
+                          if (thread.time_requested < (SK_GetCurrentMS () - CHECKUP_TIME))
                           {
                             SK_AutoHandle hThread
                                   (thread.hThread);

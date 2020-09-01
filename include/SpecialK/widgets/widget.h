@@ -72,7 +72,7 @@ struct SK_ImGui_WidgetRegistry
 
 extern SK_LazyGlobal <SK_ImGui_WidgetRegistry> SK_ImGui_Widgets;
 
-
+extern           DWORD SK_GetCurrentMS (void);
 
 class SK_Widget
 {
@@ -118,53 +118,53 @@ public:
   };
 
 
-  SK_Widget& setName         (const char* szName)                 { name          = szName;        return *this; }
-  SK_Widget& setScale        (float       fScale)        noexcept { scale         = fScale;        return *this; }
+  SK_Widget& setName          (const char* szName)                 { name           = szName;         return *this; }
+  SK_Widget& setScale         (float       fScale)        noexcept { scale          = fScale;         return *this; }
 //---------------------
-  SK_Widget& setVisible      (bool        bVisible)      noexcept { visible       = bVisible;
-                                                                    if (visible) setActive (visible);
-
-                                                                  //if (param_visible != nullptr)
-                                                                  //{
-                                                                  //  param_visible->store (visible);
-                                                                  //}
-                                                                                         return *this; }
-  SK_Widget& setActive       (bool        bActive)       noexcept { active        = bActive;       return *this; }
+  SK_Widget& setVisible       (bool        bVisible)      noexcept { visible        = bVisible;
+                                                                 if (visible)
+                                                          setActive (visible);                        return *this; }
+  SK_Widget& flashVisible     (void)                      noexcept { last_flash     =
+                                               static_cast <float> ( SK_GetCurrentMS () ) / 1000.0f;  return *this; }
+  SK_Widget& setActive        (bool        bActive)       noexcept { active         = bActive;        return *this; }
 //--------------------
-  SK_Widget& setMovable      (bool        bMovable)      noexcept { movable       = bMovable;      return *this; }
-  SK_Widget& setResizable    (bool        bResizable)    noexcept { resizable     = bResizable;    return *this; }
-  SK_Widget& setAutoFit      (bool        bAutofit)      noexcept { autofit       = bAutofit;      return *this; }
-  SK_Widget& setBorder       (bool        bBorder)       noexcept { border        = bBorder;       return *this; }
-  SK_Widget& setClickThrough (bool        bClickthrough) noexcept { click_through = bClickthrough; return *this; }
-  SK_Widget& setMinSize      (ImVec2&     iv2MinSize)    noexcept { min_size      = iv2MinSize;    return *this; }
-  SK_Widget& setMaxSize      (ImVec2&     iv2MaxSize)    noexcept { max_size      = iv2MaxSize;    return *this; }
-  SK_Widget& setSize         (ImVec2&     iv2Size)       noexcept { size          = iv2Size;       return *this; }
-  SK_Widget& setPos          (ImVec2&     iv2Pos)        noexcept { pos           = iv2Pos;
-
-                                                           //if (param_pos) param_pos->store (pos);
-
-                                                                                                    return *this; }
-  SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   noexcept { docking       = dock_anchor;    return *this; }
+  SK_Widget& setMovable       (bool        bMovable)      noexcept { movable        = bMovable;       return *this; }
+  SK_Widget& setResizable     (bool        bResizable)    noexcept { resizable      = bResizable;     return *this; }
+  SK_Widget& setAutoFit       (bool        bAutofit)      noexcept { autofit        = bAutofit;       return *this; }
+  SK_Widget& setBorder        (bool        bBorder)       noexcept { border         = bBorder;        return *this; }
+  SK_Widget& setClickThrough  (bool        bClickthrough) noexcept { click_through  = bClickthrough;  return *this; }
+  SK_Widget& setFlashDuration (float       fSeconds)      noexcept { flash_duration = fSeconds;       return *this; }
+  SK_Widget& setMinSize       (ImVec2&     iv2MinSize)    noexcept { min_size       = iv2MinSize;     return *this; }
+  SK_Widget& setMaxSize       (ImVec2&     iv2MaxSize)    noexcept { max_size       = iv2MaxSize;     return *this; }
+  SK_Widget& setSize          (ImVec2&     iv2Size)       noexcept { size           = iv2Size;        return *this; }
+  SK_Widget& setPos           (ImVec2&     iv2Pos)        noexcept { pos            = iv2Pos;         return *this; }
+  SK_Widget& setDockingPoint  (DockAnchor  dock_anchor)   noexcept { docking        = dock_anchor;    return *this; }
 
 
-  const std::string& getName         (void) const noexcept { return    name;           }
-        float        getScale        (void) const noexcept { return    scale;          }
-        bool         isVisible       (void) const noexcept { return    visible &&
-                                                       (! SK_ImGui_Widgets->hide_all); }
-        bool         isActive        (void) const noexcept { return    active;         }
-        bool         isMovable       (void) const noexcept { return    movable;        }
-        bool         isResizable     (void) const noexcept { return    resizable;      }
-        bool         isAutoFitted    (void) const noexcept { return    autofit;        }
-        bool         isClickable     (void) const noexcept { return (! click_through); }
-        bool         hasBorder       (void) const noexcept { return    border;         }
-  const ImVec2&      getMinSize      (void) const noexcept { return    min_size;       }
-  const ImVec2&      getMaxSize      (void) const noexcept { return    max_size;       }
-  const ImVec2&      getSize         (void) const noexcept { return    size;           }
-  const ImVec2&      getPos          (void) const noexcept { return    pos;            }
-  const DockAnchor&  getDockingPoint (void) const noexcept { return    docking;        }
+  const std::string& getName          (void) const noexcept { return    name;                   }
+        float        getScale         (void) const noexcept { return    scale;                  }
+        bool         isVisible        (void) const noexcept { return  ( visible || isFlashed () )
+                                                         && (! SK_ImGui_Widgets->hide_all);     }
+        bool         isFlashed        (void) const noexcept { return    last_flash >
+                                            static_cast <float> (SK_GetCurrentMS ()) / 1000.0f -
+                                                                                flash_duration; }
+        bool         isActive         (void) const noexcept { return    active || isFlashed (); }
+        bool         isMovable        (void) const noexcept { return    movable;                }
+        bool         isResizable      (void) const noexcept { return    resizable;              }
+        bool         isAutoFitted     (void) const noexcept { return    autofit;                }
+        bool         isClickable      (void) const noexcept { return (! click_through);         }
+        bool         hasBorder        (void) const noexcept { return    border;                 }
 
-  const SK_Keybind&  getToggleKey    (void) const noexcept { return    toggle_key;     }
-  const SK_Keybind&  getFocusKey     (void) const noexcept { return    focus_key;      }
+        float        getFlashDuration (void) const noexcept { return    flash_duration;         }
+  const ImVec2&      getMinSize       (void) const noexcept { return    min_size;               }
+  const ImVec2&      getMaxSize       (void) const noexcept { return    max_size;               }
+  const ImVec2&      getSize          (void) const noexcept { return    size;                   }
+  const ImVec2&      getPos           (void) const noexcept { return    pos;                    }
+  const DockAnchor&  getDockingPoint  (void) const noexcept { return    docking;                }
+
+  const SK_Keybind&  getToggleKey     (void) const noexcept { return    toggle_key;             }
+  const SK_Keybind&  getFocusKey      (void) const noexcept { return    focus_key;              }
+  const SK_Keybind&  getFlashKey      (void) const noexcept { return    flash_key;              }
 
   virtual ~SK_Widget (void) noexcept { };
 
@@ -194,47 +194,53 @@ protected:
     "Widget Focus Keybind", L"",
      false, false, false, 0, 0
   };
+  SK_Keybind flash_key = {
+    "Widget Flash Keybind", L"",
+     false, false, false, 0, 0
+  };
 
-  sk::ParameterStringW* toggle_key_val      = nullptr;
-  sk::ParameterStringW* focus_key_val       = nullptr;
+  sk::ParameterStringW* toggle_key_val       = nullptr;
+  sk::ParameterStringW* focus_key_val        = nullptr;
+  sk::ParameterStringW* flash_key_val        = nullptr;
 
-  sk::ParameterBool*    param_visible       = nullptr;
-  sk::ParameterBool*    param_movable       = nullptr;
-  sk::ParameterBool*    param_autofit       = nullptr;
-  sk::ParameterBool*    param_resizable     = nullptr;
-  sk::ParameterBool*    param_border        = nullptr;
-  sk::ParameterBool*    param_clickthrough  = nullptr;
-  sk::ParameterVec2f*   param_minsize       = nullptr;
-  sk::ParameterVec2f*   param_maxsize       = nullptr;
-  sk::ParameterVec2f*   param_size          = nullptr;
-  sk::ParameterVec2f*   param_pos           = nullptr;
-  sk::ParameterInt*     param_docking       = nullptr;
-  sk::ParameterFloat*   param_scale         = nullptr;
-
+  sk::ParameterBool*    param_visible        = nullptr;
+  sk::ParameterBool*    param_movable        = nullptr;
+  sk::ParameterBool*    param_autofit        = nullptr;
+  sk::ParameterBool*    param_resizable      = nullptr;
+  sk::ParameterBool*    param_border         = nullptr;
+  sk::ParameterBool*    param_clickthrough   = nullptr;
+  sk::ParameterVec2f*   param_minsize        = nullptr;
+  sk::ParameterVec2f*   param_maxsize        = nullptr;
+  sk::ParameterVec2f*   param_size           = nullptr;
+  sk::ParameterVec2f*   param_pos            = nullptr;
+  sk::ParameterInt*     param_docking        = nullptr;
+  sk::ParameterFloat*   param_scale          = nullptr;
+  sk::ParameterFloat*   param_flash_duration = nullptr;
   // TODO: Add memory allocator and timing so that performance and resource
   //         consumption for individual widgets can be tracked.
 
 
 //private:
-  std::string name          = "###UninitializedWidget";
+  std::string name           = "###UninitializedWidget";
 
-  float       scale         = 1.0f;
+  float       scale          = 1.0f;
 
-  bool        visible       = false;
-  bool        active        = false;
-  bool        locked        = false;
-  bool        autofit       = true;
-  bool        movable       = true;
-  bool        resizable     = true;
-  bool        border        = true;
-  bool        click_through = false;
+  bool        visible        = false;
+  bool        active         = false;
+  bool        locked         = false;
+  bool        autofit        = true;
+  bool        movable        = true;
+  bool        resizable      = true;
+  bool        border         = true;
+  bool        click_through  = false;
+  float       flash_duration = 1.5f;
 
-  ImVec2      min_size      = ImVec2 ( 375.0,  240.0);
-  ImVec2      max_size      = ImVec2 (1024.0, 1024.0);
-  ImVec2      size          = ImVec2 ( 375.0,  240.0); // Values (-1,1) are scaled to resolution
-  ImVec2      pos           = ImVec2 (   0.0,    0.0); // Values (-∞,1] and [1,∞) are absolute
+  ImVec2      min_size       = ImVec2 ( 375.0,  240.0);
+  ImVec2      max_size       = ImVec2 (1024.0, 1024.0);
+  ImVec2      size           = ImVec2 ( 375.0,  240.0); // Values (-1,1) are scaled to resolution
+  ImVec2      pos            = ImVec2 (   0.0,    0.0); // Values (-∞,1] and [1,∞) are absolute
 
-  DockAnchor docking        = DockAnchor::None;
+  DockAnchor docking         = DockAnchor::None;
 
   // Custom params
   std::map <std::string, sk::iParameter *> parameters;
@@ -244,9 +250,10 @@ protected:
   int version__;
 
 private:
-  bool           run_once__ = false;
-  ImGuiWindow*   pWindow__  = nullptr;
-  bool           moved      = false;
+  float          last_flash  = 0.0f; // Temporarily show a widget if "flashed"
+  bool           run_once__  = false;
+  ImGuiWindow*   pWindow__   = nullptr;
+  bool           moved       = false;
 };
 
 
@@ -365,6 +372,34 @@ LoadWidgetVec2 ( ImVec2  *piv2Val,
     }
 
     *piv2Val = ret->get_value ();
+  }
+
+  return ret;
+}
+
+static
+__inline
+sk::ParameterFloat*
+LoadWidgetFloat ( float  *pfVal,
+                 iSK_INI *ini_file,
+          const wchar_t*  wszDesc,
+      const std::wstring& sec_name,
+      const std::wstring& key_name )
+{
+  sk::ParameterFloat* ret =
+   dynamic_cast <sk::ParameterFloat *>
+    (SK_Widget_ParameterFactory->create_parameter <float> (wszDesc));
+
+  if (ret != nullptr)
+  {
+    ret->register_to_ini ( ini_file, sec_name, key_name );
+
+    if (! ret->load (*pfVal))
+    {
+      ret->store    (*pfVal);
+    }
+
+    *pfVal = ret->get_value ();
   }
 
   return ret;

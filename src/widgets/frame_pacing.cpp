@@ -664,9 +664,9 @@ public:
                             pLimiter->getSnapshot ();
 
       struct {
-        DWORD dwLastSnap = 0;
-        float fLastMS    = 0.0f;
-        float fLastFPS   = 0.0f;
+        DWORD  dwLastSnap = 0;
+        double dLastMS    = 0.0;
+        double dLastFPS   = 0.0;
 
         void update (SK::Framerate::Limiter::snapshot_s& snapshot)
         {
@@ -677,8 +677,8 @@ public:
 
           if (dwLastSnap < dwNow - UPDATE_INTERVAL)
           {
-            fLastMS    =           snapshot.effective_ms;
-            fLastFPS   = 1000.0f / snapshot.effective_ms;
+            dLastMS    =          snapshot.effective_ms;
+            dLastFPS   = 1000.0 / snapshot.effective_ms;
             dwLastSnap = dwNow;
           }
         }
@@ -706,8 +706,8 @@ public:
       ImGui::Text ("%f ms",  snapshot.ms);
       ImGui::Text ("%f fps", snapshot.fps);
       ImGui::Text ("%f ms        (%#06.1f fps)",
-                   effective_snapshot.fLastMS,
-                   effective_snapshot.fLastFPS);
+                   effective_snapshot.dLastMS,
+                   effective_snapshot.dLastFPS);
       ImGui::Text ("%llu",   snapshot.ticks_per_frame);
       ImGui::Separator ();
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.time));

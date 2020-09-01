@@ -55,10 +55,21 @@ extern float g_fDPIScale;
 using namespace SK::ControlPanel;
 
 SK_RenderAPI                 SK::ControlPanel::render_api;
-unsigned long                SK::ControlPanel::current_time;
+unsigned long                SK::ControlPanel::current_time = 0;
 uint64_t                     SK::ControlPanel::current_tick;// Perf Counter
 SK::ControlPanel::font_cfg_s SK::ControlPanel::font;
 
+DWORD
+SK_GetCurrentMS (void)
+{
+  // Handle possible scenario where SK uses this before
+  // the control panel is initialized / rendered
+  if (SK::ControlPanel::current_time == 0)
+      SK::ControlPanel::current_time = timeGetTime ();
+
+  return
+    SK::ControlPanel::current_time;
+}
 
 bool __imgui_alpha = true;
 

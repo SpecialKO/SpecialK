@@ -52,6 +52,12 @@ SK_Widget::run_base (void)
                               SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                                 L"ToggleKey" );
 
+    flash_key_val =
+      LoadWidgetKeybind ( &flash_key, osd_ini,
+                            L"",
+                              SK_FormatStringW (L"Widget.%hs", name.c_str ()),
+                                L"FlashKey" );
+
     param_visible =
       LoadWidgetBool ( &visible, osd_ini,
                          L"",
@@ -93,6 +99,13 @@ SK_Widget::run_base (void)
                             L"",
                               SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                                 L"DockingPoint" );
+
+    param_flash_duration =
+      LoadWidgetFloat ( &flash_duration, osd_ini,
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs",    name.c_str ()),
+                             L"FlashDuration" );
+
 
     param_minsize =
       LoadWidgetVec2 ( &min_size, osd_ini,
@@ -316,7 +329,7 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
       xy1 = ImVec2 ( io.DisplaySize.x, vert_pos.y );
     }
 
-    DWORD dwNow = timeGetTime ();
+    DWORD dwNow = SK_GetCurrentMS ();
 
     const ImVec4 col =
       ImColor::HSV ( 0.133333f,
@@ -606,17 +619,18 @@ SK_Widget::save (iSK_INI* /*ini*/)
 
   if (run_once__)
   {
-    param_visible->store      (     visible      );
-    param_movable->store      (     movable      );
-    param_border->store       (     border       );
-    param_clickthrough->store (     click_through);
-    param_autofit->store      (     autofit      );
-    param_resizable->store    (     resizable    );
-    param_docking->store      ((int)docking      );
-    param_minsize->store      (     min_size     );
-    param_maxsize->store      (     max_size     );
-    param_size->store         (     size         );
-    param_pos->store          (     pos          );
+    param_visible->store        (     visible       );
+    param_movable->store        (     movable       );
+    param_border->store         (     border        );
+    param_clickthrough->store   (     click_through );
+    param_autofit->store        (     autofit       );
+    param_resizable->store      (     resizable     );
+    param_docking->store        ((int)docking       );
+    param_minsize->store        (     min_size      );
+    param_maxsize->store        (     max_size      );
+    param_size->store           (     size          );
+    param_flash_duration->store (     flash_duration);
+    param_pos->store            (     pos           );
   }
 
   OnConfig (ConfigEvent::SaveComplete);
@@ -769,6 +783,8 @@ SK_Widget::config_base (void)
 
   if (toggle_key_val != nullptr)
     ImGui::Text     ("Widget Toggle");
+  if (flash_key_val != nullptr)
+    ImGui::Text     ("Widget Flash");
   if (focus_key_val != nullptr)
     ImGui::Text     ("Widget Focus");
 
@@ -778,12 +794,18 @@ SK_Widget::config_base (void)
 
   if (toggle_key_val != nullptr)
     Keybinding      (&toggle_key, toggle_key_val);
+  if (flash_key_val != nullptr)
+    Keybinding      (&flash_key,  flash_key_val);
   if (focus_key_val != nullptr)
     Keybinding      (&focus_key,  focus_key_val);
+
 
   ImGui::EndGroup   (  );
   ImGui::TreePop    (  );
   ImGui::Separator  (  );
+  ImGui::SliderFloat("Flash Time", &flash_duration,
+                                             0.10f, 15.0f,
+                                        "%.3f (Seconds)");
   ImGui::SliderFloat("Widget Scale", &scale, 0.25f, 2.0f);
   ImGui::Separator  (  );
 
@@ -852,6 +874,13 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
       if (uiMaskedKeyCode == widget->getToggleKey ().masked_code)
       {
         widget->setVisible (! widget->isVisible ());
+
+        dispatched = TRUE;
+      }
+
+      else if (uiMaskedKeyCode == widget->getFlashKey ().masked_code)
+      {
+        widget->flashVisible ();
 
         dispatched = TRUE;
       }
