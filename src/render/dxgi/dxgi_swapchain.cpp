@@ -301,28 +301,28 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
 
   if (SUCCEEDED (hr))
   {
-    SK_ComQIPtr <IDXGISwapChain2>
-        pSwapChain2 (pReal);
-    if (pSwapChain2 != nullptr)
-    {
-      pSwapChain2->SetMaximumFrameLatency (
-        std::max (1, config.render.framerate.pre_render_limit)
-      );
-
-      CHandle hWait (
-        pSwapChain2->GetFrameLatencyWaitableObject ()
-      );
-
-      DWORD dwDontCare = 0x0;
-
-      if (GetHandleInformation ( hWait.m_h, &dwDontCare ))
-      {
-        SK_WaitForSingleObject ( hWait,
-          config.render.framerate.swapchain_wait );
-      }
-      else
-        hWait.m_h = 0;
-    }
+    ////SK_ComQIPtr <IDXGISwapChain2>
+    ////    pSwapChain2 (pReal);
+    ////if (pSwapChain2 != nullptr)
+    ////{
+    ////  pSwapChain2->SetMaximumFrameLatency (
+    ////    std::max (1, config.render.framerate.pre_render_limit)
+    ////  );
+    ////
+    ////  CHandle hWait (
+    ////    pSwapChain2->GetFrameLatencyWaitableObject ()
+    ////  );
+    ////
+    ////  DWORD dwDontCare = 0x0;
+    ////
+    ////  if (GetHandleInformation ( hWait.m_h, &dwDontCare ))
+    ////  {
+    ////    SK_WaitForSingleObject ( hWait,
+    ////      config.render.framerate.swapchain_wait );
+    ////  }
+    ////  else
+    ////    hWait.m_h = 0;
+    ////}
   }
 
   else if (hr == DXGI_ERROR_INVALID_CALL)

@@ -644,9 +644,8 @@ SKX_RemoveCBTHook (void)
 
       SendMessageTimeout ( HWND_BROADCAST,
                              WM_NULL, 0, 0,
-                               SMTO_ABORTIFHUNG |
-                               SMTO_NOTIMEOUTIFNOTHUNG,
-                                 1UL, &dwpResult );
+                               SMTO_ABORTIFHUNG,
+                                 100UL, &dwpResult );
 
       SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
                               DeleteFileW (L"SpecialK32.pid") );

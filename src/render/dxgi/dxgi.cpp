@@ -1018,7 +1018,6 @@ SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
 
 
 #define __NIER_HACK
-//#define __CROSSCODE_HACK
 
 UINT
 SK_DXGI_FixUpLatencyWaitFlag (IDXGISwapChain *pSwapChain, UINT Flags);
@@ -3597,6 +3596,12 @@ SK_DXGI_TestPresentFlags (DWORD Flags) noexcept
     return false;
   }
 
+  // Commands will not execute, this call may block until VBLANK
+  //   but that's all. There's not much SK is interested in, so
+  //     we're gonna ignore unsequenced swaps.
+  if (Flags & DXGI_PRESENT_DO_NOT_SEQUENCE)
+    return false;
+
   return true;
 }
 
@@ -3898,48 +3903,48 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
       UINT                          ulLastPresent;
       pSwap1->GetLastPresentCount (&ulLastPresent);
 
-      ////// Depth changed
-      ////if (queue_depth != desc.BufferCount + 1)
-      ////{
-      ////  queue_depth = desc.BufferCount + 1;
-      ////  frame_ids.resize (queue_depth);
-      ////
-      ////  bGlitch = true;
-      ////}
-      ////
-      ////else
-      ////{
-      ////  if (frame_ids [ulLastPresent % queue_depth] != frame_stats.PresentRefreshCount)
-      ////  {
-      ////    //dll_log->Log (L"Glitch, Expected: %lu, Got: %lu for frame %lu [queue_depth=%lu]",
-      ////    //              frame_ids [ulLastPresent % queue_depth], frame_stats.PresentRefreshCount/*ulLastPresent*/, ulLastPresent, queue_depth );
-      ////    bGlitch = true;
-      ////  }
-      ////}
+      // Depth changed
+      if (queue_depth != desc.BufferCount + 1)
+      {
+        queue_depth = desc.BufferCount + 1;
+        frame_ids.resize (queue_depth);
+
+        bGlitch = true;
+      }
+
+      else
+      {
+        if (frame_ids [ulLastPresent % queue_depth] != frame_stats.PresentRefreshCount)
+        {
+          //dll_log->Log (L"Glitch, Expected: %lu, Got: %lu for frame %lu [queue_depth=%lu]",
+          //              frame_ids [ulLastPresent % queue_depth], frame_stats.PresentRefreshCount/*ulLastPresent*/, ulLastPresent, queue_depth );
+          bGlitch = true;
+        }
+      }
 
       if (bGlitch || bLimited)
       {
-        if (config.render.framerate.present_interval)
+        if (bGlitch)
           flags |= DXGI_PRESENT_RESTART;
       }
 
-      ////UINT idx =
-      ////  ((ulLastPresent + 1) % queue_depth);
-      ////
-      ////if (bGlitch)
-      ////{
-      ////  frame_ids.clear ();
-      ////
-      ////  int sync_id =
-      ////    frame_stats.SyncRefreshCount + 1;
-      ////
-      ////  for ( UINT i = idx ; i < queue_depth; ++i )
-      ////    frame_ids [i] = sync_id++;
-      ////  for ( UINT j = 0   ; j < idx        ; ++j )
-      ////    frame_ids [j] = sync_id++;
-      ////}
-      ////else
-      ////  frame_ids [idx] = frame_stats.SyncRefreshCount + 1;
+      UINT idx =
+        ((ulLastPresent + 1) % queue_depth);
+
+      if (bGlitch)
+      {
+        frame_ids.clear ();
+
+        int sync_id =
+          frame_stats.SyncRefreshCount + 1;
+
+        for ( UINT i = idx ; i < queue_depth; ++i )
+          frame_ids [i] = sync_id++;
+        for ( UINT j = 0   ; j < idx        ; ++j )
+          frame_ids [j] = sync_id++;
+      }
+      else
+        frame_ids [idx] = frame_stats.SyncRefreshCount + 1;
     }
 
     // Test first, then do (if test_present is true)
@@ -3987,21 +3992,14 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
         SK_EndBufferSwap (hr, pDev);
       SK_D3D11_PostPresent   (pDev, This, hr);
 
-      if (bWait)
-      {
-        SK_ComQIPtr <IDXGISwapChain2>
-            pSwapChain2 (This);
-        if (pSwapChain2 != nullptr)
-        {
-          SK_AutoHandle hWait (
-            pSwapChain2->GetFrameLatencyWaitableObject ()
-          );
 
-          MsgWaitForMultipleObjectsEx ( 1,
-                                          &hWait.m_h,
-                                            config.render.framerate.swapchain_wait,
-                                              QS_ALLINPUT, MWMO_INPUTAVAILABLE );
-        }
+      HANDLE hWaitHandle =
+        rb.getSwapWaitHandle ();
+      if (   hWaitHandle > 0)
+      {
+        WaitForSingleObjectEx ( hWaitHandle,
+                                     1000UL,
+                                    TRUE );
       }
 
       return ret;
@@ -4197,14 +4195,13 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
         if (SK_IsInjected ())
         {
-          auto it_local  = std::begin (local_dxgi_records);
-          auto it_global = std::begin (global_dxgi_records);
-
-          while ( it_local != std::end (local_dxgi_records) )
+          auto    it_global  = std::begin (global_dxgi_records);
+          auto     it_local  = std::begin ( local_dxgi_records);
+          while (  it_local != std::end   ( local_dxgi_records))
           {
-            if (( *it_local )->hits &&
-    StrStrIW (( *it_local )->target.module_path, LR"(\sys)") &&
-              ( *it_local )->active)
+            if (( *it_local )->hits                            &&
+      StrStrIW (( *it_local )->target.module_path, LR"(\sys)") &&
+                ( *it_local )->active)
             {
               SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                    **it_global );
@@ -4217,7 +4214,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
               ( *it_global )->active      = false;
             }
 
-            it_global++, it_local++;
+            ++it_global, ++it_local;
           }
         }
 
@@ -4303,36 +4300,81 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
     int flags    = Flags;
 
+    if ( SK_DXGI_IsFlipModelSwapChain (desc) && SK::Framerate::GetLimiter ()->get_limit () > 0.0L )
+    {
+      SK_ComQIPtr <IDXGISwapChain1> pSwap1 (This);
+
+      static DXGI_FRAME_STATISTICS sequence_start = { };
+      static auto                  queue_depth    = desc.BufferCount + 1;
+      static std::vector <UINT>    frame_ids (queue_depth);
+
+      SK_RunOnce (pSwap1->GetFrameStatistics (&sequence_start));
+
+      bool bGlitch  = false;
+
+      DXGI_FRAME_STATISTICS        frame_stats = { };
+      pSwap1->GetFrameStatistics (&frame_stats);
+
+      UINT                          ulLastPresent;
+      pSwap1->GetLastPresentCount (&ulLastPresent);
+
+      // Depth changed
+      if (queue_depth != desc.BufferCount + 1)
+      {
+        queue_depth = desc.BufferCount + 1;
+        frame_ids.resize (queue_depth);
+
+        bGlitch = true;
+      }
+
+      else
+      {
+        if (frame_ids [ulLastPresent % queue_depth] != frame_stats.PresentRefreshCount)
+        {
+          //dll_log->Log (L"Glitch, Expected: %lu, Got: %lu for frame %lu [queue_depth=%lu]",
+          //              frame_ids [ulLastPresent % queue_depth], frame_stats.PresentRefreshCount/*ulLastPresent*/, ulLastPresent, queue_depth );
+          bGlitch = true;
+        }
+      }
+
+      if (bGlitch)
+      {
+        flags |= DXGI_PRESENT_RESTART;
+      }
+
+      UINT idx =
+        ((ulLastPresent + 1) % queue_depth);
+
+      if (bGlitch)
+      {
+        frame_ids.clear ();
+
+        int sync_id =
+          frame_stats.SyncRefreshCount + 1;
+
+        for ( UINT i = idx ; i < queue_depth; ++i )
+          frame_ids [i] = sync_id++;
+        for ( UINT j = 0   ; j < idx        ; ++j )
+          frame_ids [j] = sync_id++;
+      }
+      else
+        frame_ids [idx] = frame_stats.SyncRefreshCount + 1;
+    }
+
+
     // Application preference
     if (interval == -1)
         interval = SyncInterval;
 
     rb.present_interval = interval;
 
-    if ( SK_DXGI_IsFlipModelSwapChain (desc) && SK::Framerate::GetLimiter ()->get_limit () > 0.0L )
-    {
-      bool bLimited =
-        SK::Framerate::GetLimiter ()->get_limit () > 0.0;
-
-      if (bLimited)
-      {
-        if (config.render.framerate.present_interval)
-          flags |= DXGI_PRESENT_RESTART;
-      }
-    }
-
     SK_CEGUI_DrawD3D11 (This);
-
-    if (bWait) flags |= DXGI_PRESENT_DO_NOT_WAIT;
 
     hr =
       Present (interval, flags);
 
     if ( pDev != nullptr || rb.api == SK_RenderAPI::D3D12 )
     {
-      bool bGoAgain =
-        (hr == DXGI_ERROR_WAS_STILL_DRAWING);
-
       HRESULT ret;
 
       auto _EndSwap = [&](void)
@@ -4344,44 +4386,19 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
           SK_D3D11_PostPresent (pDev, This, hr);
       };
 
-      if (! bGoAgain)
-        _EndSwap ();
+      _EndSwap ();
 
-      if (bWait)
+      HANDLE hWaitHandle =
+        rb.getSwapWaitHandle ();
+
+      if (hWaitHandle > 0)
       {
-        SK_ComQIPtr <IDXGISwapChain2>
-            pSwapChain2 (This);
-        if (pSwapChain2 != nullptr)
+        if (SK_WaitForSingleObject (hWaitHandle, 0) == WAIT_TIMEOUT)
         {
-          pSwapChain2->SetMaximumFrameLatency (
-            std::max (1, config.render.framerate.pre_render_limit)
-          );
-
-          // Don't bother closing this handle, it would cause problems
-          //   with DXVK.
-          CHandle hWait (
-            pSwapChain2->GetFrameLatencyWaitableObject ()
-          );
-
-          DWORD dwDontCare = 0x0;
-
-          if (GetHandleInformation ( hWait.m_h, &dwDontCare ))
-          {
-            SK_WaitForSingleObject ( hWait,
-              config.render.framerate.swapchain_wait );
-          }
-          else
-            hWait.m_h = 0;
+          Present ( 0, DXGI_PRESENT_RESTART         |
+                       DXGI_PRESENT_DO_NOT_SEQUENCE |
+                       DXGI_PRESENT_DO_NOT_WAIT );
         }
-      }
-
-      if (bGoAgain)
-      {
-        flags &= ~DXGI_PRESENT_DO_NOT_WAIT;
-
-        Present (interval, flags);
-
-        _EndSwap ();
       }
 
       return ret;
@@ -5358,13 +5375,6 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
     }
   }
 
-  // Can't do this if waitable
-  //if ( dxgi_caps.present.waitable &&
-  //     config.render.framerate.swapchain_wait > 0 )
-  //{
-  //  return S_OK;
-  //}
-
   SwapChainFlags =
     SK_DXGI_FixUpLatencyWaitFlag (This, SwapChainFlags);
 
@@ -5485,13 +5495,6 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
         dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override "
                        L"Required to Enable Flip Model" );
         break;
-      //case DXGI_FORMAT_R10G10B10A2_UNORM:
-      //case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-      //  NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-      //  dll_log->Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override "
-      //                 L"(to 8:8:8:8) Required to Enable Flip Model" );
-      //  break;
-
     }
 
   }
@@ -5587,13 +5590,6 @@ STDMETHODCALLTYPE
 DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
-  // Can't do this if waitable
-  //if ( dxgi_caps.present.waitable &&
-  //     config.render.framerate.swapchain_wait > 0 )
-  //{
-  //  return S_OK;
-  //}
-
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -6191,11 +6187,6 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
 
       if (config.render.framerate.buffer_count > 0)
         pDesc->BufferCount = config.render.framerate.buffer_count;
-
-      if (bFlipMode && bWait)
-      {
-        pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-      }
     }
 
     SK_LOG0 ( ( L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
@@ -6371,11 +6362,6 @@ SK_DXGI_CreateSwapChain_PostInit (
     SK_SetWindowResY (client.bottom - client.top);
   }
 
-
-  //if (bFlipMode || bWait)
-    //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
-    //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
-
   if (  ppSwapChain != nullptr &&
        *ppSwapChain != nullptr )
   {
@@ -6387,15 +6373,15 @@ SK_DXGI_CreateSwapChain_PostInit (
     {
       if (bFlipMode && bWait)
       {
-        SK_AutoHandle hWait (
-          pSwapChain2->GetFrameLatencyWaitableObject ()
-        );
+        HANDLE hWaitHandle =
+          rb.getSwapWaitHandle ();
 
-        MsgWaitForMultipleObjectsEx (
-          1, &hWait.m_h,
-            config.render.framerate.swapchain_wait,
-              QS_ALLINPUT, MWMO_INPUTAVAILABLE
-        );
+        if (hWaitHandle > 0)
+        {
+          WaitForSingleObjectEx ( hWaitHandle,
+              INFINITE, TRUE
+          );
+        }
       }
     }
   }
@@ -6915,50 +6901,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     SK_LOG0 ( ( L" <*> Native D3D12 SwapChain Captured" ), L"Direct3D12" );
   }
 
-#ifdef  __CROSSCODE_HACK
-  static SK_ComPtr <IDXGISwapChain1> pSwapToRecycle_Win  = nullptr;
-  static SK_ComPtr <IDXGISwapChain1> pSwapToRecycle_Full = nullptr;
-  static HWND                        hWndLast_Win        = nullptr;
-  static HWND                        hWndLast_Full       = nullptr;
-
-  SK_ComPtr <IDXGISwapChain1>& pSwapToRecycle =
-       pFullscreenDesc != nullptr &&
-    (! pFullscreenDesc->Windowed) ? pSwapToRecycle_Full :
-                                    pSwapToRecycle_Win;
-
-  HWND& hWndLast =
-     pFullscreenDesc != nullptr &&
-  (! pFullscreenDesc->Windowed) ? hWndLast_Full :
-                                  hWndLast_Win;
-
-  if (pSwapToRecycle != nullptr && hWndLast != nullptr)
-  {
-    DXGI_SWAP_CHAIN_DESC1      recycle_desc = { };
-    pSwapToRecycle->GetDesc1 (&recycle_desc);
-
-    if (hWndLast == hWnd)
-    {
-      if (ppSwapChain != nullptr)
-      {
-        // Add Ref because game expects to create a new object and we are
-        //   returning an existing ref-counted object in its place.
-
-        pSwapToRecycle.p->AddRef ();
-        *ppSwapChain = pSwapToRecycle.p;
-      }
-
-      return S_OK;
-    }
-
-    SK_ComPtr <IDXGISwapChain1> pSwapToKill =
-                                pSwapToRecycle;
-    hWndLast       = nullptr;
-    pSwapToRecycle = nullptr;
-    pSwapToKill.p->Release ();
-  }
-#endif
-
-
   DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
                                                        pRestrictToOutput, &pTemp ) );
 
@@ -6967,37 +6909,11 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, &new_desc1, &new_fullscreen_desc, &pTemp);
       SK_DXGI_WrapSwapChain1          (pDevice,                                          pTemp, ppSwapChain);
 
-
-#ifdef  __CROSSCODE_HACK
-    if (  pSwapToRecycle == nullptr &&
-         ppSwapChain     != nullptr )
-    {
-      hWndLast       =  hWnd;
-      pSwapToRecycle = *ppSwapChain;
-
-      // We are going to reuse this, it needs a long and prosperous life.
-      pSwapToRecycle.p->AddRef ();
-    }
-#endif
-
-
     return ret;
   }
 
   DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, orig_desc1/*pDesc*/, orig_fullscreen_desc/*pFullscreenDesc*/,
                                                        pRestrictToOutput, ppSwapChain ) );
-
-#ifdef  __CROSSCODE_HACK
-    if (  pSwapToRecycle == nullptr &&
-         ppSwapChain     != nullptr )
-    {
-      hWndLast       =  hWnd;
-      pSwapToRecycle = *ppSwapChain;
-
-      // We are going to reuse this, it needs a long and prosperous life.
-      pSwapToRecycle.p->AddRef ();
-    }
-#endif
 
   return ret;
 }
@@ -8311,7 +8227,6 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
     }
 
     SK_ComQIPtr <IDXGISwapChain4> pSwapChain4 (pSwapChain);
-  //pSwapChain->QueryInterface <IDXGISwapChain4> (&pSwapChain4);
 
     if ( pSwapChain4                         != nullptr &&
      IDXGISwapChain4_SetHDRMetaData_Original == nullptr )

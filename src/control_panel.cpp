@@ -2993,31 +2993,9 @@ SK_ImGui_ControlPanel (void)
             //                   pDXGIDev->GetGPUThreadPriority (&nPrio);
             //  }
             //}
-#if 0
+#if 1
             extern int __SK_FramerateLimitApplicationSite;
             ImGui::SliderInt ("Limit Enforcement Site", &__SK_FramerateLimitApplicationSite, 0, 4);
-
-            if (SK_DXGI_SupportsTearing ())
-            {
-              if (ImGui::Checkbox ("Microstutter Mitigation", &config.render.framerate.adaptive))
-              {
-                if (config.render.framerate.adaptive)
-                  InterlockedExchange (&__SK_FramesToTear, 3);
-                else
-                  InterlockedExchange (&__SK_FramesToTear, 0);
-              }
-
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::BeginTooltip ();
-                ImGui::Text         ("Custom Form of Adaptive V-Sync for D3D11 Games");
-                ImGui::Separator    ();
-                ImGui::BulletText   ("Allows tearing up to 4 times per-second to stabilize framerate limiter");
-                ImGui::BulletText   ("Requires Flip Model (Borderless Fullscreen) and a configured framerate limit");
-                ImGui::BulletText   ("Almost never creates visible tearing");
-                ImGui::EndTooltip   ();
-              }
-            }
 #endif
           }
           ImGui::EndGroup  ();

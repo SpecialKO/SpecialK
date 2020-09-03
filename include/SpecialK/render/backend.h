@@ -143,6 +143,8 @@ public:
 
   SK_ComPtr <IUnknown>   device               = nullptr;
   SK_ComPtr <IUnknown>   swapchain            = nullptr;
+  SK_AutoHandle          swapchain_waithandle = 0;
+
   // Different views of the same resource (API interop)
   struct {
     SK_ComPtr <IDirect3DSurface9>
@@ -367,7 +369,7 @@ public:
 
   float getActiveRefreshRate (void);
 
-
+  HANDLE getSwapWaitHandle   (void);
   void releaseOwnedResources (void);
 };
 #pragma pack(pop)

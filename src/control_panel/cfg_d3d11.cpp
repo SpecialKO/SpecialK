@@ -30,6 +30,8 @@
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
+extern float __target_fps;
+
 const wchar_t*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
@@ -321,6 +323,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
       ImGui::TreePush ("");
 
+      ImGui::BeginGroup ();
       ImGui::Checkbox ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
       ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
 
@@ -328,20 +331,10 @@ SK::ControlPanel::D3D11::Draw (void)
       {
         ImGui::BeginTooltip ();
 
-        if (! config.render.framerate.flip_discard)
-        {
-          ImGui::Text       ("In Regular Presentation, this Controls V-Sync");
-          ImGui::Separator  (                                               );
-          ImGui::BulletText ("-1=Game Controlled,  0=Force Off,  1=Force On");
-        }
-
-        else
-        {
-          ImGui::Text       ("In Flip Model, this Controls Frame Queuing Rather than V-Sync)");
-          ImGui::Separator  (                                                                );
-          ImGui::BulletText ("Values > 1 will disable G-Sync but will produce the most "
-                             "consistent frame rates possible."                              );
-        }
+        ImGui::Text       ("This Controls V-Sync");
+        ImGui::Separator  (                                               );
+        ImGui::BulletText ("-1=Game Controlled,  0=Force Off,  1=Force On");
+        ImGui::BulletText (">1=Fractional Refresh Rates");
 
         ImGui::EndTooltip ();
       }
@@ -349,7 +342,7 @@ SK::ControlPanel::D3D11::Draw (void)
       config.render.framerate.present_interval =
         std::max (-1, std::min (4, config.render.framerate.present_interval));
 
-      if (ImGui::InputInt ("BackBuffer Count",       &config.render.framerate.buffer_count))
+      if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
       {
         static auto& io =
           ImGui::GetIO ();
@@ -361,12 +354,12 @@ SK::ControlPanel::D3D11::Draw (void)
 
       // Clamp to [-1,oo)
       if (config.render.framerate.buffer_count < -1)
-        config.render.framerate.buffer_count = -1;
+          config.render.framerate.buffer_count = -1;
 
       if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
       {
         if (config.render.framerate.pre_render_limit < -1)
-          config.render.framerate.pre_render_limit = -1;
+            config.render.framerate.pre_render_limit = -1;
 
         else if (config.render.framerate.pre_render_limit > config.render.framerate.buffer_count + 1)
           config.render.framerate.pre_render_limit = config.render.framerate.buffer_count + 1;
@@ -381,10 +374,9 @@ SK::ControlPanel::D3D11::Draw (void)
         }
       }
 
-      ///if ((! config.render.framerate.flip_discard) || config.render.framerate.swapchain_wait == 0)
-      {
-        ImGui::Checkbox ("Wait for VBLANK", &config.render.framerate.wait_for_vblank);
-      }
+      ImGui::Checkbox ("Wait for VBLANK", &config.render.framerate.wait_for_vblank);
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Input Latency Reduction; requires VERY stable framerate.");
 
       if (config.render.framerate.flip_discard)
       {
@@ -397,11 +389,7 @@ SK::ControlPanel::D3D11::Draw (void)
         }
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Reduces input latency, BUT makes it impossible to change resolution.");
-
-        if (waitable) {
-          ImGui::SliderInt ("Maximum Wait Period", &config.render.framerate.swapchain_wait, 1, 500);
-        }
+          ImGui::SetTooltip ("Reduces input latency when Special K's Framerate Limiter is in use.");
 
         if (SK_DXGI_SupportsTearing ())
         {
@@ -414,7 +402,7 @@ SK::ControlPanel::D3D11::Draw (void)
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::Text         ("Enables tearing in windowed mode (Windows 10+); not particularly useful.");
+            ImGui::Text         ("Enables tearing (PresentInterval=0) in windowed mode (Windows 10+)");
             ImGui::EndTooltip   ();
           }
         }
@@ -431,7 +419,89 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::BulletText     ("Game Restart Required");
         ImGui::PopStyleColor  ();
       }
+      ImGui::EndGroup (  );
 
+      if (config.render.framerate.flip_discard)
+      {
+        if (SK_DXGI_SupportsTearing ())
+        {
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          ImGui::NewLine    ();
+
+          bool bULLMPreReq = true; // No special pre-reqs anymore
+          if ( bULLMPreReq )
+          {
+            bool bULLM =
+              config.render.framerate.wait_for_vblank          &&
+            ( config.render.framerate.present_interval == 0 ||
+              config.render.framerate.present_interval == 1  ) &&
+                                          __target_fps != 0.0f;
+
+            if (bULLM && __target_fps < 0.0f) {
+                         __target_fps =
+                        -__target_fps;
+            }
+
+            if ( ImGui::Checkbox (
+                   "Ultra-Low Latency###SK_ULL_LIMITER",
+                                         &bULLM
+                                 )
+               )
+            {
+              if (bULLM)
+              {
+                config.render.framerate.wait_for_vblank = true;
+
+                if (config.render.framerate.present_interval != 1 &&
+                    config.render.framerate.present_interval != 0 )
+                    config.render.framerate.present_interval =  1;
+              }
+
+              else
+              {
+                config.render.framerate.wait_for_vblank  = false;
+                config.render.framerate.present_interval =     1;
+              }
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ();
+              ImGui::Text         ("May Dramatically Improve Input Latency");
+              ImGui::Separator    ();
+              ImGui::BulletText   ("ALWAYS set Framerate Limit to a Factor "
+                                   "of your Refresh Rate in this mode (!!) ");
+              ImGui::BulletText   ("This mode may cause stuttering, use it "
+                                   "only if you are easily sustaining your "
+                                   "refresh rate.");
+              ImGui::BulletText   ("For even lower Input Latency (traded "
+                                   "for loss of Peak FPS), decrease the \""
+                                   "Max Device Latency\" setting to 2.");
+              ImGui::EndTooltip   ();
+            }
+            if (bULLM)
+            {
+              bool bVSYNC =
+                config.render.framerate.present_interval > 0;
+
+              ImGui::NewLine    (); ImGui::SameLine ();
+              ImGui::Spacing    (); ImGui::SameLine (); if (
+              ImGui::Checkbox   ("Enable VSYNC###VSYNC", &bVSYNC)
+              ) { if (bVSYNC) config.render.framerate.present_interval = 1;
+                  else        config.render.framerate.present_interval = 0;
+              }
+
+              ImGui::NewLine    (); ImGui::SameLine ();
+              ImGui::Spacing    (); ImGui::SameLine (); if (
+              ImGui::InputFloat ("###Target", &__target_fps,    0.0f, 0.0f, "%.3f FPS")
+              ) { if (__target_fps <  12.0f)   __target_fps =  12.0f;
+                  if (__target_fps > 480.0f)   __target_fps = 480.0f; }
+            }
+          }
+          ImGui::EndGroup   ();
+        }
+      }
       ImGui::TreePop  (  );
     }
 

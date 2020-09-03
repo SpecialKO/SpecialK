@@ -497,7 +497,7 @@ public:
         config.window.res.override.y                = static_cast <unsigned int> (io.DisplaySize.y);
 
       //config.display.force_windowed               = true;
-        config.dpi.per_monitor.aware                = true;
+      //config.dpi.per_monitor.aware                = true;
       //config.dpi.per_monitor.aware_on_all_threads = false;
       //config.dpi.disable_scaling                  = false;
 

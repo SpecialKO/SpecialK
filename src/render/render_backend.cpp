@@ -843,6 +843,26 @@ SK_COM_ValidateRelease (IUnknown** ppObj)
   return *ppObj;
 }
 
+HANDLE
+SK_RenderBackend_V2::getSwapWaitHandle (void)
+{
+  if ( swapchain_waithandle.m_h == 0    &&
+       swapchain.p              != nullptr )
+  {
+    SK_ComQIPtr <IDXGISwapChain2>
+        pSwap2       (swapchain.p);
+    if (pSwap2.p != nullptr)
+    {
+      swapchain_waithandle.Attach (
+        pSwap2.p->GetFrameLatencyWaitableObject ()
+      );
+    }
+  }
+
+  return
+    swapchain_waithandle.m_h;
+}
+
 void
 SK_RenderBackend_V2::releaseOwnedResources (void)
 {
@@ -895,6 +915,8 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
       ////  g_pd3dSrvDescHeap->Release ();
       ////  g_pd3dSrvDescHeap = nullptr;
       ////}
+
+      swapchain_waithandle.Close ();
 
       if (api != SK_RenderAPI::D3D11On12)
       {

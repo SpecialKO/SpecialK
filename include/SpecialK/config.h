@@ -241,21 +241,21 @@ struct sk_config_t
 
     struct achievements_s {
       std::wstring
-        sound_file          = L"";
+              sound_file            = L"";
 
       struct popup_s {
-        float inset               = 0.005f;
-        int   origin              = 0;
-        int   duration            = 5000UL;
-        bool  show                = true;
-        bool  show_title          = true;
-        bool  animate             = true;
+        float inset                 = 0.005f;
+        int   origin                = 0;
+        int   duration              = 5000UL;
+        bool  show                  =  true;
+        bool  show_title            =  true;
+        bool  animate               =  true;
       } popup;
 
-      bool    take_screenshot     = false;
-      bool    play_sound          = true;
-      bool    pull_friend_stats   = true;
-      bool    pull_global_stats   = true;
+      bool    take_screenshot       = false;
+      bool    play_sound            =  true;
+      bool    pull_friend_stats     =  true;
+      bool    pull_global_stats     =  true;
     } achievements;
 
     struct cloud_s {
@@ -263,39 +263,39 @@ struct sk_config_t
     } cloud;
 
     std::wstring
-            dll_path              = L"";
+              dll_path              = L"";
 
-    int     appid                 = 0;
-    int     notify_corner         = 4;   // 0=Top-Left,
-                                         // 1=Top-Right,
-                                         // 2=Bottom-Left,
-                                         // 3=Bottom-Right,
-                                         // 4=Don't Care
-    int     online_status         = -1;  // Force a certain online status at all times
-    int     init_delay            = 0UL; // Disable to prevent crashing in many games
-    int     callback_throttle     = -1;
+    int       appid                 = 0;
+    int       notify_corner         = 4;   // 0=Top-Left,
+                                           // 1=Top-Right,
+                                           // 2=Bottom-Left,
+                                           // 3=Bottom-Right,
+                                           // 4=Don't Care
+    int       online_status         = -1;  // Force a certain online status at all times
+    int       init_delay            = 0UL; // Disable to prevent crashing in many games
+    int       callback_throttle     = -1;
 
-    float   overlay_hdr_luminance = 4.375f; // 350 nits
-                                            //   that do not use it
+    float     overlay_hdr_luminance = 4.375f; // 350 nits
+                                              //   that do not use it
 
-    bool      silent               = false;
-    bool      preload_client       = false;
-    bool      preload_overlay      = false; // For input processing, this is important
-    bool      show_playtime        = true;  // In the control panel title
-    bool      force_load_steamapi  = false; // Load steam_api{64}.dll even in games
-    bool      auto_pump_callbacks  = true;
-    bool      block_stat_callback  = false;
-    bool      filter_stat_callback = false;
-    bool      spoof_BLoggedOn      = false;
-    bool      overlay_hides_sk_osd = true;
-    bool      reuse_overlay_pause  = true;  // Use Steam's overlay pause mode for our own
-                                          //   control panel
-    bool      auto_inject          = true;  // Control implicit steam_api.dll bootstrapping
+    bool      silent                = false;
+    bool      preload_client        = false;
+    bool      preload_overlay       = false;  // For input processing, this is important
+    bool      show_playtime         =  true;  // In the control panel title
+    bool      force_load_steamapi   = false;  // Load steam_api{64}.dll even in games
+    bool      auto_pump_callbacks   =  true;
+    bool      block_stat_callback   = false;
+    bool      filter_stat_callback  = false;
+    bool      spoof_BLoggedOn       = false;
+    bool      overlay_hides_sk_osd  =  true;
+    bool      reuse_overlay_pause   =  true;  // Use Steam's overlay pause mode for our own
+                                              //   control panel
+    bool      auto_inject           =  true;  // Control implicit steam_api.dll bootstrapping
 
     struct screenshot_handler_s {
-      bool    enable_hook          = true;
-      bool    png_compress         = true;
-      bool    show_osd_by_default  = true;
+      bool    enable_hook           =  true;
+      bool    png_compress          =  true;
+      bool    show_osd_by_default   =  true;
 
       SK_ConfigSerializedKeybind
               game_hud_free_keybind = {
@@ -351,8 +351,8 @@ struct sk_config_t
       bool    flip_discard      = false;
       bool    disable_flip      = false;
       bool    wait_for_vblank   = false;
-      bool    sleepless_render  = false;
-      bool    sleepless_window  = false;
+      bool    sleepless_render  = true;
+      bool    sleepless_window  = true;
       bool    enable_mmcss      = true;
     } framerate;
     struct d3d9_s {
@@ -382,7 +382,7 @@ struct sk_config_t
       bool    test_present       = false;
       bool    full_state_cache   = false;
       bool    debug_layer        = false;
-      bool    allow_tearing      = false;
+      bool    allow_tearing      =  true;
       bool    safe_fullscreen    = false;
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;

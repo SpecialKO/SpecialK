@@ -200,6 +200,18 @@ SK_Framerate_WaitForVBlank (void)
     if (            dxgi_swap != nullptr &&
          SUCCEEDED (dxgi_swap->GetContainingOutput (&dxgi_output)) )
     {
+      //static const
+      //  DXGI_PRESENT_PARAMETERS
+      //    pparams { 0      , nullptr,
+      //              nullptr, nullptr };
+      //
+      //SK_ComQIPtr      <IDXGISwapChain1>
+      //     dxgi_swap1 ( dxgi_swap );
+      //if ( dxgi_swap1.p != nullptr)
+      //     dxgi_swap1->Present1 ( 0, DXGI_PRESENT_RESTART, &pparams);
+      //dxgi_swap ->Present ( 0, DXGI_PRESENT_DO_NOT_SEQUENCE |
+      //                         DXGI_PRESENT_DO_NOT_WAIT    );
+
       UINT                          chain_latency = 3;
       UINT                          dev_latency   = 3;
       SK_ComQIPtr <IDXGISwapChain2> dxgi_swap2 (dxgi_swap);
@@ -453,11 +465,11 @@ SK::Framerate::Limiter::wait (void)
   modf ( missing_time, &missed_frames );
 
   static     DWORD dwLastFullReset        = timeGetTime ();
-   constexpr DWORD dwMinTimeBetweenResets = 1000L;
+   constexpr DWORD dwMinTimeBetweenResets = 750L;
 
-   static constexpr double dMissingTimeBoundary =   4.0;
-   static constexpr double dEdgeToleranceLow    = 0.025;
-   static constexpr double dEdgeToleranceHigh   = 0.15;
+   static constexpr double dMissingTimeBoundary =  4.0;
+   static constexpr double dEdgeToleranceLow    = 0.08;
+   static constexpr double dEdgeToleranceHigh   = 0.16;
 
   if (missing_time > dMissingTimeBoundary)
   {
@@ -470,7 +482,7 @@ SK::Framerate::Limiter::wait (void)
                     L"(%f frames late)", missed_frames ),
                     L"Frame Rate" );
 
-        if (missing_time > dMissingTimeBoundary * 3.0f)
+        if (missing_time > 3.0f * dMissingTimeBoundary)
           full_restart = true;
 
         restart         = true;
