@@ -859,6 +859,12 @@ SK_RenderBackend_V2::getSwapWaitHandle (void)
     }
   }
 
+  if ( swapchain_waithandle.m_h != 0 &&
+       swapchain.p              == nullptr )
+  {
+    swapchain_waithandle.Close ();
+  }
+
   return
     swapchain_waithandle.m_h;
 }

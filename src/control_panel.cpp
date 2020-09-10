@@ -86,15 +86,8 @@ extern void     __stdcall SK_FAR_ControlPanel  (void);
        bool               SK_DXGI_FullStateCache = false;
 
 
-enum class SK_LimitApplicationSite {
-  BeforeBufferSwap,
-  DuringBufferSwap,
-  AfterBufferSwap,
-  EndOfFrame
-};
-
-int __SK_FramerateLimitApplicationSite = 4;
-
+extern int  __SK_FramerateLimitApplicationSite;
+extern bool __SK_DropLateFrames;
 
 std::wstring
 SK_NvAPI_GetGPUInfoStr (void);
@@ -2994,8 +2987,37 @@ SK_ImGui_ControlPanel (void)
             //  }
             //}
 #if 1
-            extern int __SK_FramerateLimitApplicationSite;
-            ImGui::SliderInt ("Limit Enforcement Site", &__SK_FramerateLimitApplicationSite, 0, 4);
+            static bool bLowLatency =
+              ( config.render.framerate.enforcement_policy == 2);
+
+            if (ImGui::Checkbox ("Low Latency Mode", &bLowLatency))
+            {
+              if (bLowLatency) config.render.framerate.enforcement_policy = 2;
+              else             config.render.framerate.enforcement_policy = 4;
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ();
+              ImGui::Text         ("Reduces Input Latency");
+              ImGui::Separator    ();
+              ImGui::BulletText   ("Introduces a bit of frametime instability");
+              ImGui::BulletText   (" ... go by feel rather than graph \"flatness\" ;)");
+              ImGui::BulletText   ("Default is OFF, but you are encouraged to try ON");
+              ImGui::EndTooltip   ();
+            }
+
+            //ImGui::SliderInt ("Limit Enforcement Site", &__SK_FramerateLimitApplicationSite, 0, 4);
+
+            if (rb.api == SK_RenderAPI::D3D11) {
+              ImGui::SameLine ();
+              ImGui::Checkbox ("Drop Late Frames", &config.render.framerate.drop_late_flips);
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::SetTooltip ("Always Present Newest Frame (DXGI Flip Model)");
+              }
+            }
 #endif
           }
           ImGui::EndGroup  ();

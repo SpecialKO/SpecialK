@@ -2406,9 +2406,11 @@ SK_BeginBufferSwap (void)
 
   }
 
-  if (__SK_FramerateLimitApplicationSite == 0)
+  if (config.render.framerate.enforcement_policy == 0)
+  {
     SK::Framerate::GetLimiter ()->wait ();
-
+    SK::Framerate::Tick                ();
+  }
 
   auto SK_DPI_UpdateWindowScale = [&](void) ->
   void
@@ -2639,8 +2641,11 @@ SK_BeginBufferSwap (void)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
-  if (__SK_FramerateLimitApplicationSite == 1)
-       SK::Framerate::GetLimiter ()->wait ();
+  if (config.render.framerate.enforcement_policy == 1)
+  {
+    SK::Framerate::GetLimiter ()->wait ();
+    SK::Framerate::Tick                ();
+  }
 
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
   {
@@ -2655,13 +2660,10 @@ SK_BeginBufferSwap (void)
   rb.present_staging.submit.time =
     SK_QueryPerf ();
 
-  if (__SK_FramerateLimitApplicationSite == 4)
+  if (config.render.framerate.enforcement_policy == 4)
   {
     SK::Framerate::GetLimiter ()->wait ();
-
-    double               dt      =   0.0;
-    LARGE_INTEGER            now = { 0, 0 };
-    SK::Framerate::Tick (dt, now);
+    SK::Framerate::Tick                ();
   }
 }
 
@@ -2836,9 +2838,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_GetCurrentRenderBackend ();
 
 
-  if (__SK_FramerateLimitApplicationSite == 3)
-       SK::Framerate::GetLimiter ()->wait ();
-
+  if (config.render.framerate.enforcement_policy == 3)
+  {
+    SK::Framerate::GetLimiter ()->wait ();
+    SK::Framerate::Tick                ();
+  }
 
   // Various required actions at the end of every frame in order to
   //   support the background render mode in most games.
@@ -3083,17 +3087,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   //
   if (! (hModTZFix || hModTBFix))
   {
-    if (__SK_FramerateLimitApplicationSite == 2)
+    if (config.render.framerate.enforcement_policy == 2)
     {
       SK::Framerate::GetLimiter ()->wait ();
+      SK::Framerate::Tick                ();
     }
-  }
-
-  if (__SK_FramerateLimitApplicationSite != 4)
-  {
-    double               dt      =   0.0;
-    LARGE_INTEGER            now = { 0, 0 };
-    SK::Framerate::Tick (dt, now);
   }
 
   return hr;

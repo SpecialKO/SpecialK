@@ -1,6 +1,10 @@
 ﻿0.11.0.48:
 
- + 
+ + Added "Drop Late Frames" (DXGI Flip Model) to allow rendering at rates > Refresh
+    ( Without Triple-Buffering's normal Latency ); Default = ON
+ + Added "Limiter Enforcement Policy" to allow users to pick between smooth / low latency
+ + Removed references to "Adaptive Tearing," because the feature was removed a long time ago.
+
  + Added a new "Ultra Low Latency" mode to D3D11 SwapChain settings if you turn
      on Flip Model and engage Special K's Framerate limiter.
 

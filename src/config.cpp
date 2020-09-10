@@ -421,7 +421,8 @@ struct {
     sk::ParameterBool*    sleepless_render;
     sk::ParameterBool*    enable_mmcss;
     sk::ParameterInt*     override_cpu_count;
-    sk::ParameterBool*    adaptive_tearing;
+    sk::ParameterInt*     enforcement_policy;
+    sk::ParameterBool*    drop_late_frames;
 
     struct
     {
@@ -1015,12 +1016,14 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.enable_mmcss,          L"Enable Multimedia Class Scheduling for FPS Limiter Sleep",  dll_ini,         L"Render.FrameRate",      L"EnableMMCSS"),
     ConfigEntry (render.framerate.refresh_rate,          L"Fullscreen Refresh Rate",                                   dll_ini,         L"Render.FrameRate",      L"RefreshRate"),
     ConfigEntry (render.framerate.rescan_ratio,          L"Fullscreen Rational Scan Rate (precise refresh rate)",      dll_ini,         L"Render.FrameRate",      L"RescanRatio"),
+    ConfigEntry (render.framerate.enforcement_policy,    L"Place Framerate Limiter Wait Before/After Present, etc.",   dll_ini,         L"Render.FrameRate",      L"LimitEnforcementPolicy"),
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
 
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
-    ConfigEntry (render.framerate.adaptive_tearing,      L"Occasionally allow tearing if limiter is falling behind.",  dll_ini,         L"Render.DXGI",           L"AdaptiveTearing"),
+    ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
+                                                         L"refresh rate with VSYNC enabled (similar to NV Fast Sync).", dll_ini,        L"Render.DXGI",           L"DropLateFrames"),
 
     // OpenGL
     //////////////////////////////////////////////////////////////////////////
@@ -2257,6 +2260,8 @@ auto DeclKeybind =
     }
   }
 
+  render.framerate.enforcement_policy->load (config.render.framerate.enforcement_policy);
+
   render.d3d9.force_d3d9ex->load        (config.render.d3d9.force_d3d9ex);
   render.d3d9.impure->load              (config.render.d3d9.force_impure);
   render.d3d9.enable_texture_mods->load (config.textures.d3d9_mod);
@@ -2264,11 +2269,8 @@ auto DeclKeybind =
 
   // DXGI
   //
-//render.framerate.adaptive_tearing->load (config.render.framerate.adaptive);
   render.framerate.max_delta_time->load   (config.render.framerate.max_delta_time);
 
-  // TEMP HACK, always disable Adaptive V-Sync
-//config.render.framerate.adaptive = false;
 
   if (render.framerate.flip_discard->load (config.render.framerate.flip_discard) && config.render.framerate.flip_discard)
   {
@@ -2279,6 +2281,8 @@ auto DeclKeybind =
       //if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
     }
   }
+
+  render.framerate.drop_late_frames->load (config.render.framerate.drop_late_flips);
 
   if (render.framerate.disable_flip_model->load (config.render.framerate.disable_flip))
   {
@@ -3404,6 +3408,8 @@ SK_SaveConfig ( std::wstring name,
     if (render.framerate.refresh_rate != nullptr)
       render.framerate.refresh_rate->store        (config.render.framerate.refresh_rate);
 
+    render.framerate.enforcement_policy->store    (config.render.framerate.enforcement_policy);
+
     // SLI only works in Direct3D
     nvidia.sli.compatibility->store               (config.nvidia.sli.compatibility);
     nvidia.sli.mode->store                        (config.nvidia.sli.mode);
@@ -3418,7 +3424,7 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
-    //render.framerate.adaptive_tearing->store    (config.render.framerate.adaptive);
+      render.framerate.drop_late_frames->store    (config.render.framerate.drop_late_flips);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
       texture.d3d11.precise_hash->store           (config.textures.d3d11.precise_hash);

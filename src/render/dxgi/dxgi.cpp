@@ -4302,63 +4302,63 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
     if ( SK_DXGI_IsFlipModelSwapChain (desc) && SK::Framerate::GetLimiter ()->get_limit () > 0.0L )
     {
-      SK_ComQIPtr <IDXGISwapChain1> pSwap1 (This);
+      //SK_ComQIPtr <IDXGISwapChain1> pSwap1 (This);
+      //
+      //static DXGI_FRAME_STATISTICS sequence_start = { };
+      //static auto                  queue_depth    = desc.BufferCount + 1;
+      //static std::vector <UINT>    frame_ids (queue_depth);
+      //
+      //SK_RunOnce (pSwap1->GetFrameStatistics (&sequence_start));
+      //
+      //bool bGlitch  = false;
+      //
+      //DXGI_FRAME_STATISTICS        frame_stats = { };
+      //pSwap1->GetFrameStatistics (&frame_stats);
+      //
+      //UINT                          ulLastPresent;
+      //pSwap1->GetLastPresentCount (&ulLastPresent);
+      //
+      //// Depth changed
+      //if (queue_depth != desc.BufferCount + 1)
+      //{
+      //  queue_depth = desc.BufferCount + 1;
+      //  frame_ids.resize (queue_depth);
+      //
+      //  bGlitch = true;
+      //}
+      //
+      //else
+      //{
+      //  if (frame_ids [ulLastPresent % queue_depth] != frame_stats.PresentRefreshCount)
+      //  {
+      //    //dll_log->Log (L"Glitch, Expected: %lu, Got: %lu for frame %lu [queue_depth=%lu]",
+      //    //              frame_ids [ulLastPresent % queue_depth], frame_stats.PresentRefreshCount/*ulLastPresent*/, ulLastPresent, queue_depth );
+      //    bGlitch = true;
+      //  }
+      //}
 
-      static DXGI_FRAME_STATISTICS sequence_start = { };
-      static auto                  queue_depth    = desc.BufferCount + 1;
-      static std::vector <UINT>    frame_ids (queue_depth);
-
-      SK_RunOnce (pSwap1->GetFrameStatistics (&sequence_start));
-
-      bool bGlitch  = false;
-
-      DXGI_FRAME_STATISTICS        frame_stats = { };
-      pSwap1->GetFrameStatistics (&frame_stats);
-
-      UINT                          ulLastPresent;
-      pSwap1->GetLastPresentCount (&ulLastPresent);
-
-      // Depth changed
-      if (queue_depth != desc.BufferCount + 1)
-      {
-        queue_depth = desc.BufferCount + 1;
-        frame_ids.resize (queue_depth);
-
-        bGlitch = true;
-      }
-
-      else
-      {
-        if (frame_ids [ulLastPresent % queue_depth] != frame_stats.PresentRefreshCount)
-        {
-          //dll_log->Log (L"Glitch, Expected: %lu, Got: %lu for frame %lu [queue_depth=%lu]",
-          //              frame_ids [ulLastPresent % queue_depth], frame_stats.PresentRefreshCount/*ulLastPresent*/, ulLastPresent, queue_depth );
-          bGlitch = true;
-        }
-      }
-
-      if (bGlitch)
+      if (/*bGlitch || */config.render.framerate.drop_late_flips)
       {
         flags |= DXGI_PRESENT_RESTART;
       }
 
-      UINT idx =
-        ((ulLastPresent + 1) % queue_depth);
-
-      if (bGlitch)
-      {
-        frame_ids.clear ();
-
-        int sync_id =
-          frame_stats.SyncRefreshCount + 1;
-
-        for ( UINT i = idx ; i < queue_depth; ++i )
-          frame_ids [i] = sync_id++;
-        for ( UINT j = 0   ; j < idx        ; ++j )
-          frame_ids [j] = sync_id++;
-      }
-      else
-        frame_ids [idx] = frame_stats.SyncRefreshCount + 1;
+      //UINT idx =
+      //  ((ulLastPresent + 1) % queue_depth);
+      //
+      //if (bGlitch)
+      //{
+      //  frame_ids.clear ();
+      //
+      //  int sync_id =
+      //    frame_stats.SyncRefreshCount + 1;
+      //
+      //  for ( UINT i = idx ; i < queue_depth; ++i )
+      //    frame_ids [i] = sync_id++;
+      //  for ( UINT j = 0   ; j < idx        ; ++j )
+      //    frame_ids [j] = sync_id++;
+      //}
+      //else
+      //  frame_ids [idx] = frame_stats.SyncRefreshCount + 1;
     }
 
 

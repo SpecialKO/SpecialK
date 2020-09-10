@@ -330,46 +330,48 @@ struct sk_config_t
 
   struct render_s {
     struct framerate_s {
-      float   target_fps        =  0.0f;
-      float   target_fps_bg     =  0.0f;
-      float   busy_wait_ratio   =  0.825f;
-      int     override_num_cpus = -1;
-      int     pre_render_limit  = -1;
-      int     present_interval  = -1;
-      int     buffer_count      = -1;
-      int     max_delta_time    =  0; // Bad old setting; needs to be phased
-      int     swapchain_wait    =  0;
-      float   refresh_rate      = -1.0f;
- std::wstring rescan_ratio     =L"-1/1";
+      float   target_fps         =  0.0f;
+      float   target_fps_bg      =  0.0f;
+      float   busy_wait_ratio    =  0.825f;
+      int     override_num_cpus  = -1;
+      int     pre_render_limit   = -1;
+      int     present_interval   = -1;
+      int     buffer_count       = -1;
+      int     max_delta_time     =  0; // Bad old setting; needs to be phased
+      int     swapchain_wait     =  0;
+      float   refresh_rate       = -1.0f;
+ std::wstring rescan_ratio      =L"-1/1";
       struct rescan_s {
-        UINT Denom              =  1;
-        UINT Numerator          =
+        UINT Denom               =  1;
+        UINT Numerator           =
                             UINT (-1);
       } rescan_;
-      int     refresh_denom     =  1;
-      int     pin_render_thread = -1;
-      bool    flip_discard      = false;
-      bool    disable_flip      = false;
-      bool    wait_for_vblank   = false;
-      bool    sleepless_render  = true;
-      bool    sleepless_window  = true;
-      bool    enable_mmcss      = true;
+      int     refresh_denom      =  1;
+      int     pin_render_thread  = -1;
+      bool    flip_discard       = false;
+      bool    disable_flip       = false;
+      bool    drop_late_flips    = true;
+      bool    wait_for_vblank    = false;
+      bool    sleepless_render   = true;
+      bool    sleepless_window   = true;
+      bool    enable_mmcss       = true;
+      int     enforcement_policy = 4; // Refer to framerate.cpp
     } framerate;
     struct d3d9_s {
-      bool    force_d3d9ex      = false;
-      bool    force_impure      = false;
+      bool    force_d3d9ex       = false;
+      bool    force_impure       = false;
     } d3d9;
     struct dxgi_s {
-      int     adapter_override  = -1;
+      int     adapter_override   = -1;
       struct resolution_s {
         struct minimum_s {
-          unsigned int x        =  0;
-          unsigned int y        =  0;
+          unsigned int x         =  0;
+          unsigned int y         =  0;
           bool isZero (void) noexcept { return x == 0 && y == 0; };
         } min;
         struct maximum_s {
-          unsigned int x        =  0;
-          unsigned int y        =  0;
+          unsigned int x         =  0;
+          unsigned int y         =  0;
           bool isZero (void) noexcept { return x == 0 && y == 0; };
         } max;
       } res;
