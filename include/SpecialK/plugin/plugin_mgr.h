@@ -50,18 +50,19 @@ __stdcall
 SK_HasPlugin (void);
 
 
-using SK_EndFrame_pfn                  = void   (STDMETHODCALLTYPE *)( void        );
-using SK_BeginFrame_pfn                = void   (                  *)( void        );
-using SK_PlugIn_ControlPanelWidget_pfn = void   (__stdcall         *)( void        );
-using SK_PlugIn_KeyPress_pfn           = void   (CALLBACK          *)( BOOL Control,
-                                                                       BOOL Shift,
-                                                                       BOOL Alt,
-                                                                       BYTE vkCode );
+using SK_EndFrame_pfn                  = void   (__stdcall *)( void        );
+using SK_BeginFrame_pfn                = void   (__stdcall *)( void        );
+using SK_ReleaseGfx_pfn                = void   (__stdcall *)( void        );
+using SK_PlugIn_ControlPanelWidget_pfn = void   (__stdcall *)( void        );
+using SK_PlugIn_KeyPress_pfn           = void   (__stdcall *)( BOOL Control,
+                                                               BOOL Shift,
+                                                               BOOL Alt,
+                                                               BYTE vkCode );
 
-using SK_PlugIn_PresentFirstFrame_pfn = HRESULT (__stdcall         *)( IUnknown*,
-                                                                       UINT, UINT  );
-using SK_PlugIn_Init_pfn              = void    (                  *)( void        );
-using SK_PlugIn_ControlPanelCfg_pfn   = bool    (                  *)( void        );
+using SK_PlugIn_PresentFirstFrame_pfn = HRESULT (__stdcall *)( IUnknown*,
+                                                               UINT, UINT  );
+using SK_PlugIn_Init_pfn              = void    (          *)( void        );
+using SK_PlugIn_ControlPanelCfg_pfn   = bool    (          *)( void        );
 
 
 struct SK_PluginRegistry
@@ -81,6 +82,7 @@ struct SK_PluginRegistry
   std::vector <SK_PlugIn_PresentFirstFrame_pfn> first_frame_fns;
   std::vector <SK_EndFrame_pfn>                   end_frame_fns;
   std::vector <SK_BeginFrame_pfn>               begin_frame_fns;
+  std::vector <SK_ReleaseGfx_pfn>               release_gfx_fns;
 
   std::wstring plugin_name;
 };
@@ -141,8 +143,8 @@ HRESULT __stdcall
 void SK_Yakuza0_PlugInInit (void);
 bool SK_Yakuza0_PlugInCfg  (void);
 
-void
-SK_YS8_InitPlugin (void);
+void SK_Perona4_InitPlugin (void);
+void SK_YS8_InitPlugin     (void);
 
 #else
 HRESULT __stdcall
@@ -157,6 +159,9 @@ SK_Persona4_DrawHandler ( ID3D11DeviceContext* pDevCtx,
                           uint32_t             current_ps );
 void
 SK_Persona4_EndFrame    ( SK_TLS* pTLS );
+
+void
+SK_Persona4_InitPlugin  ( void );
 #endif
 
 

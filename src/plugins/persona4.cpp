@@ -171,16 +171,9 @@ SK_Persona4_PlugInCfg (void)
   return true;
 }
 
-void
-SK_Persona4_EndFrame (SK_TLS* pTLS)
+void __stdcall
+SK_Persona4_EndFrame (void)
 {
-  SK_RunOnce (SK_Persona4.ini_params.init ());
-  SK_RunOnce (
-    plugin_mgr->config_fns.push_back (SK_Persona4_PlugInCfg)
-  );
-
-  UNREFERENCED_PARAMETER (pTLS);
-
   if (SK_Persona4_pBlurRTV != nullptr)
   {
     if (SK_Persona4_DisableBlur)
@@ -193,4 +186,16 @@ SK_Persona4_EndFrame (SK_TLS* pTLS)
     SK_Persona4_pDevCtx  = nullptr;
     SK_Persona4_pBlurRTV = nullptr;
   }
+}
+
+void
+SK_Persona4_InitPlugin (void)
+{
+  SK_RunOnce (SK_Persona4.ini_params.init ());
+  SK_RunOnce (
+    plugin_mgr->config_fns.push_back (SK_Persona4_PlugInCfg)
+  );
+  SK_RunOnce (
+    plugin_mgr->end_frame_fns.push_back (SK_Persona4_EndFrame)
+  );
 }
