@@ -324,6 +324,11 @@ public:
     HWND getDevice (void);
   } windows;
 
+  // Pass Reserved to detect the API, pass an actual API
+  //   to indicate a frame was drawn using this API
+  void updateActiveAPI ( SK_RenderAPI _api =
+                         SK_RenderAPI::Reserved );
+
   // TODO: Proper abstraction
   struct d3d11_s
   {
@@ -647,7 +652,8 @@ typedef struct
   } SK_MONITOR_CAPABILITIES;
 
 
-void SK_D3D_SetupShaderCompiler   (void);
-void SK_Display_DisableDPIScaling (void);
+bool SK_RenderBackendUtil_IsFullscreen (void);
+void SK_D3D_SetupShaderCompiler        (void);
+void SK_Display_DisableDPIScaling      (void);
 
 #endif /* __SK__RENDER_BACKEND__H__ */

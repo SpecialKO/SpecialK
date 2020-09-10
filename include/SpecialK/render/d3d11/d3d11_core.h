@@ -91,6 +91,53 @@ enum class SK_D3D11_ShaderType {
                                  (ctx)->GetType () == \
                                         D3D11_DEVICE_CONTEXT_DEFERRED
 
+// Thanks to some particularly awful JRPGs, Special K now hooks and wraps some
+//   APIs simultaneously and needs to know whether the wrapped calls will
+//     reliably pass-through the hook or if processing needs to be done
+//       separately, so that's what this tally whacker does.
+class SK_D3D11_HookTallyWhacker
+{
+public:
+  bool is_whack (void)
+  {
+    if (whack != 0)
+ return whack >  0 ? true : false;
+    if   (                  dwHookCalls < 500 ) return true;
+    else
+    {
+      if ( dwHookCalls < dwWrappedCalls - 500 ) whack =  1;
+      else                                      whack = -1;
+
+      return true;
+    }
+
+  };
+  int hooked  (int whacks = 1) { return ( dwHookCalls    += whacks ); };
+  int wrapped (int whacks = 1) { return ( dwWrappedCalls += whacks ); };
+
+// Call tallys
+protected:
+  int   whack          = 0;
+  DWORD dwHookCalls    = 0,
+        dwWrappedCalls = 0;
+}; // This looks stupid as hell, but it's much quicker than querying the
+   //   device context's private data or getting TLS on every draw call.
+
+
+#define SK_WRAP_AND_HOOK                     \
+  static SK_D3D11_HookTallyWhacker           \
+                 call_tally;                 \
+                                             \
+  if ((pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED ))\
+  {                                          \
+    call_tally.hooked  ( bWrapped ? 0 : 1 ); \
+    call_tally.wrapped ( bWrapped ? 1 : 0 ); \
+  }                                          \
+                                             \
+  const bool bMustNotIgnore =                \
+    ( call_tally.is_whack () ||              \
+              (! bWrapped) );
+
 extern const GUID IID_ID3D11Device2;
 extern const GUID IID_ID3D11Device3;
 extern const GUID IID_ID3D11Device4;

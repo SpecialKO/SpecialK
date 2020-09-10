@@ -325,6 +325,19 @@ SK::ControlPanel::D3D11::Draw (void)
 
       ImGui::BeginGroup ();
       ImGui::Checkbox ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("High-Performance Windowed Rendering");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Makes Windowed Mode Perform ~Same as Fullscreen Exclusive");
+        ImGui::BulletText   ("Can be used in Fullscreen Exclusive");
+        ImGui::Spacing      (); ImGui::SameLine ();
+        ImGui::Spacing      (); ImGui::SameLine ();
+        ImGui::Spacing      (); ImGui::SameLine ();
+        ImGui::Text         (" -> HDR Mode: a Resolution Override may be needed");
+        ImGui::EndTooltip   ();
+      }
       ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
 
       if (ImGui::IsItemHovered ())
@@ -389,7 +402,18 @@ SK::ControlPanel::D3D11::Draw (void)
         }
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Reduces input latency when Special K's Framerate Limiter is in use.");
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Reduces Input Latency When SK's Framerate Limiter is Engaged");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("May cause compat. issues with ... nearly all 3rd-party software");
+          ImGui::Spacing      (); ImGui::SameLine ();
+          ImGui::Spacing      (); ImGui::SameLine ();
+          ImGui::Spacing      (); ImGui::SameLine ();
+          ImGui::Text         (" -> DXVK does not implement this correctly");
+          ImGui::BulletText   ("Fullscreen Exclusive May Stop Working In Some Games");
+          ImGui::EndTooltip   ();
+        }
 
         if (SK_DXGI_SupportsTearing ())
         {
@@ -429,39 +453,39 @@ SK::ControlPanel::D3D11::Draw (void)
           ImGui::BeginGroup ();
           ImGui::NewLine    ();
 
-          bool bULLMPreReq = true; // No special pre-reqs anymore
-          if ( bULLMPreReq )
+          bool bLLMPreReq = true; // No special pre-reqs anymore
+          if ( bLLMPreReq )
           {
-            bool bULLM =
-              config.render.framerate.wait_for_vblank          &&
+            bool bLLM =
+              config.render.framerate.pre_render_limit <= 2 &&
             ( config.render.framerate.present_interval == 0 ||
               config.render.framerate.present_interval == 1  ) &&
                                           __target_fps != 0.0f;
 
-            if (bULLM && __target_fps < 0.0f) {
+            if (bLLM && __target_fps < 0.0f) {
                          __target_fps =
                         -__target_fps;
             }
 
             if ( ImGui::Checkbox (
-                   "Ultra-Low Latency###SK_ULL_LIMITER",
-                                         &bULLM
+                   "Low Latency###SK_LL_LIMITER",
+                                         &bLLM
                                  )
                )
             {
-              if (bULLM)
+              if (bLLM)
               {
-                config.render.framerate.wait_for_vblank = true;
-
                 if (config.render.framerate.present_interval != 1 &&
                     config.render.framerate.present_interval != 0 )
                     config.render.framerate.present_interval =  1;
+                config.render.framerate.pre_render_limit     =  2;
               }
 
               else
               {
-                config.render.framerate.wait_for_vblank  = false;
-                config.render.framerate.present_interval =     1;
+                config.render.framerate.pre_render_limit =
+                config.render.framerate.buffer_count      + 1;
+                config.render.framerate.present_interval =  1;
               }
             }
 
@@ -472,31 +496,40 @@ SK::ControlPanel::D3D11::Draw (void)
               ImGui::Separator    ();
               ImGui::BulletText   ("ALWAYS set Framerate Limit to a Factor "
                                    "of your Refresh Rate in this mode (!!) ");
-              ImGui::BulletText   ("This mode may cause stuttering, use it "
-                                   "only if you are easily sustaining your "
-                                   "refresh rate.");
-              ImGui::BulletText   ("For even lower Input Latency (traded "
-                                   "for loss of Peak FPS), decrease the \""
-                                   "Max Device Latency\" setting to 2.");
               ImGui::EndTooltip   ();
             }
-            if (bULLM)
-            {
-              bool bVSYNC =
-                config.render.framerate.present_interval > 0;
 
-              ImGui::NewLine    (); ImGui::SameLine ();
-              ImGui::Spacing    (); ImGui::SameLine (); if (
-              ImGui::Checkbox   ("Enable VSYNC###VSYNC", &bVSYNC)
-              ) { if (bVSYNC) config.render.framerate.present_interval = 1;
-                  else        config.render.framerate.present_interval = 0;
+            if (bLLM)
+            {
+              bool bULMM =
+                ( config.render.framerate.pre_render_limit == 1 );
+
+              if (ImGui::Checkbox ("Ultra Low-Latency (AKA Stutter at Your Own Risk!)###SK_ULL_LIMITER", &bULMM))
+              {
+                if (bULMM)
+                  config.render.framerate.pre_render_limit = 1;
+                else
+                  config.render.framerate.pre_render_limit = 2;
               }
 
-              ImGui::NewLine    (); ImGui::SameLine ();
-              ImGui::Spacing    (); ImGui::SameLine (); if (
-              ImGui::InputFloat ("###Target", &__target_fps,    0.0f, 0.0f, "%.3f FPS")
-              ) { if (__target_fps <  12.0f)   __target_fps =  12.0f;
-                  if (__target_fps > 480.0f)   __target_fps = 480.0f; }
+              if (ImGui::IsItemHovered ())
+                  ImGui::SetTooltip   ("This mode may cause stutter, use only if consistently hitting your refresh rate.");
+
+              //bool bVSYNC =
+              //  config.render.framerate.present_interval > 0;
+              //
+              //ImGui::NewLine    (); ImGui::SameLine ();
+              //ImGui::Spacing    (); ImGui::SameLine (); if (
+              //ImGui::Checkbox   ("Enable VSYNC###VSYNC", &bVSYNC)
+              //) { if (bVSYNC) config.render.framerate.present_interval = 1;
+              //    else        config.render.framerate.present_interval = 0;
+              //}
+              //
+              //ImGui::NewLine    (); ImGui::SameLine ();
+              //ImGui::Spacing    (); ImGui::SameLine (); if (
+              //ImGui::InputFloat ("###Target", &__target_fps,    0.0f, 0.0f, "%.3f FPS")
+              //) { if (__target_fps <  12.0f)   __target_fps =  12.0f;
+              //    if (__target_fps > 480.0f)   __target_fps = 480.0f; }
             }
           }
           ImGui::EndGroup   ();
@@ -824,7 +857,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.BufferDesc.Format).c_str ());
     //ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (dsv_desc.Format).c_str             ());
       ImGui::Text            ("%ux%u",                                   swap_desc.BufferDesc.Width, swap_desc.BufferDesc.Height);
-      ImGui::Text            ("%lu",                                     std::max (1UL, swap_desc.Windowed ? swap_desc.BufferCount : swap_desc.BufferCount - 1UL));
+      ImGui::Text            ("%lu",                                     std::max (1U, swap_desc.BufferCount));
       if ((! swap_desc.Windowed) && swap_desc.BufferDesc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
         ImGui::Text          ("%ws",        SK_DXGI_DescribeScalingMode (swap_desc.BufferDesc.Scaling));
       if ((! swap_desc.Windowed) && swap_desc.BufferDesc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)

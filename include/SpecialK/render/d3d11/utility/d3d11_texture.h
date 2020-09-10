@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <SpecialK/render/d3d11/d3d11_core.h>
+
 static void
 SK_D3D11_DescribeTexFailure (const D3D11_TEXTURE2D_DESC   *__restrict pDesc)
 {
@@ -46,7 +48,7 @@ crc32_tex (_In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
            _In_      const D3D11_SUBRESOURCE_DATA *__restrict pInitialData,
            _Out_opt_       size_t                 *__restrict pSize,
            _Out_opt_       uint32_t               *__restrict pLOD0_CRC32,
-           _In_opt_        bool                               bAllLODs /*= true */);
+           _In_opt_        bool                               bAllLODs = true );
 
 uint32_t
 __cdecl

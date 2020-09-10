@@ -22,23 +22,12 @@
 #pragma once
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/render/d3d11/d3d11_shader.h>
 
 // For really wacky engines that wrap shader interfaces w/o correct layering
 static const GUID SKID_D3D11KnownShaderCrc32c =
 // {5C5298BB-0F9D-5022-A19D-A2E69792AE14}
   { 0x5c5298bb, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x14 } };
-
-enum class sk_shader_class : DWORD {
-  Unknown  = 0x00,
-  Vertex   = 0x01,
-  Pixel    = 0x02,
-  Geometry = 0x04,
-  Hull     = 0x08,
-  Domain   = 0x10,
-  Compute  = 0x20,
-
-  _PADDING = DWORD_MAX
-};
 
 enum class SK_D3D11DispatchType
 {
@@ -837,6 +826,8 @@ struct SK_D3D11_KnownTargets
 extern SK_LazyGlobal <std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>> SK_D3D11_RenderTargets;
 
 extern ID3D11Texture2D* SK_D3D11_TrackedTexture;
+extern SK_LazyGlobal <
+  target_tracking_s  >  tracked_rtv;
 extern DWORD            tracked_tex_blink_duration;
 extern DWORD            tracked_shader_blink_duration;
 
@@ -847,11 +838,25 @@ extern volatile LONG  SK_D3D11_DrawTrackingReqs;
 extern volatile LONG  SK_D3D11_CBufferTrackingReqs;
 extern volatile ULONG SK_D3D11_LiveTexturesDirty;
 
+extern bool           SK_D3D11_DontTrackUnlessModToolsAreOpen;
+
 
 // Only accessed by the swapchain thread and only to clear any outstanding
 //   references prior to a buffer resize
 extern SK_LazyGlobal <std::vector <SK_ComPtr <ID3D11View>>> SK_D3D11_TempResources;
 
+extern SK_LazyGlobal <
+      std::array < shader_stage_s,
+                   SK_D3D11_MAX_DEV_CONTEXTS + 1 >
+                 >    d3d11_shader_stages [6];
+
+extern SK_LazyGlobal <
+      std::array < SK_D3D11_ContextResources,
+                   SK_D3D11_MAX_DEV_CONTEXTS + 1 >
+                 > SK_D3D11_PerCtxResources;
+
+extern SK_LazyGlobal <std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1>> reshade_trigger_before;
+extern SK_LazyGlobal <std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1>> reshade_trigger_after;
 
 
 void

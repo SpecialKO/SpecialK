@@ -56,6 +56,12 @@ SK_DXGI_IsDataSizeClassOf ( DXGI_FORMAT typeless, DXGI_FORMAT typed,
 DXGI_FORMAT
 SK_DXGI_MakeTypedFormat (DXGI_FORMAT typeless)
 {
+#if 1
+  return
+    DirectX::MakeTypelessUNORM   (
+      DirectX::MakeTypelessFLOAT (typeless)
+                                 );
+#else
   switch (typeless)
   {
     // Non-renderable formats
@@ -117,12 +123,17 @@ SK_DXGI_MakeTypedFormat (DXGI_FORMAT typeless)
     default:
       return typeless;
   };
+#endif
 }
 
 DXGI_FORMAT
-SK_DXGI_MakeTypelessFormat (DXGI_FORMAT typeless)
+SK_DXGI_MakeTypelessFormat (DXGI_FORMAT typed)
 {
-  switch (typeless)
+#if 1
+  return
+    DirectX::MakeTypeless (typed);
+#else
+    switch (typed)
   {
     case DXGI_FORMAT_BC1_UNORM:
     case DXGI_FORMAT_BC1_UNORM_SRGB:
@@ -220,8 +231,9 @@ SK_DXGI_MakeTypelessFormat (DXGI_FORMAT typeless)
       return DXGI_FORMAT_R32G32B32A32_TYPELESS;
 
     default:
-      return typeless;
+      return typed;
   };
+#endif
 }
 
 BOOL

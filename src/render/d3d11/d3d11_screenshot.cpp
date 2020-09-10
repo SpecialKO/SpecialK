@@ -933,6 +933,19 @@ SK_D3D11_ToggleGameHUD (void)
   }
 }
 
+void
+SK_Screenshot_D3D11_RestoreHUD (void)
+{
+  if ( -1 ==
+         InterlockedCompareExchange (
+           &__SK_D3D11_InitiateHudFreeShot, 0, -1
+         )
+     )
+  {
+    SK_D3D11_ShowGameHUD ();
+  }
+}
+
 bool
 SK_D3D11_RegisterHUDShader (        uint32_t  bytecode_crc32c,
                              std::type_index _T,

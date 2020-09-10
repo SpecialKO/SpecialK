@@ -797,8 +797,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   // Setup viewport
   D3D11_VIEWPORT vp = { };
 
-  vp.Height   = ImGui::GetIO ().DisplaySize.y;
-  vp.Width    = ImGui::GetIO ().DisplaySize.x;
+  vp.Height   = io.DisplaySize.y;
+  vp.Width    = io.DisplaySize.x;
   vp.MinDepth = 0.0f;
   vp.MaxDepth = 1.0f;
   vp.TopLeftX = vp.TopLeftY = 0.0f;

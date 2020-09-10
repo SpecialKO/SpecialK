@@ -26,6 +26,7 @@
 #endif
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
+#include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 

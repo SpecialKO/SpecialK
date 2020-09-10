@@ -170,3 +170,4 @@ void SK_D3D11_WaitOnAllScreenshots   (void);
 void SK_D3D11_ProcessScreenshotQueue (SK_ScreenshotStage stage = SK_ScreenshotStage::EndOfFrame);
 bool SK_Screenshot_D3D11_BeginFrame  (void);
 void SK_Screenshot_D3D11_EndFrame    (void);
+void SK_Screenshot_D3D11_RestoreHUD  (void);
