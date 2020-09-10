@@ -107,7 +107,7 @@ namespace SK
     void Init     (void);
     void Shutdown (void);
 
-    void Tick     (double& dt, LARGE_INTEGER& now);
+    void Tick     (double dt = 0.0, LARGE_INTEGER now = { 0, 0 });
 
     class Limiter {
     public:

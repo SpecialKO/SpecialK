@@ -47,6 +47,14 @@ SK_LazyGlobal <SK::Framerate::Stats>          frame_history2;
 float __target_fps    = 0.0;
 float __target_fps_bg = 0.0;
 
+enum class SK_LimitApplicationSite {
+  BeforeBufferSwap,
+  DuringBufferSwap,
+  AfterBufferSwap,
+  DontCare,
+  EndOfFrame // = 4 (Default)
+};
+
 void
 SK::Framerate::Init (void)
 {
@@ -66,6 +74,9 @@ SK::Framerate::Init (void)
       config.render.framerate.max_delta_time = 0;
 
 
+
+    pCommandProc->AddVariable ( "LimitSite",
+            new SK_IVarStub <int> (&config.render.framerate.enforcement_policy));
 
     pCommandProc->AddVariable ( "WaitForVBLANK",
             new SK_IVarStub <bool> (&config.render.framerate.wait_for_vblank));
@@ -185,6 +196,9 @@ SK_Framerate_WaitForVBlank (void)
     SK_GetCurrentRenderBackend ();
 
 
+  SK_Thread_ScopedPriority
+     thread_prio_boost (THREAD_PRIORITY_TIME_CRITICAL);
+
   // If available (Windows 8+), wait on the swapchain
   SK_ComQIPtr <IDirect3DDevice9Ex> d3d9ex (rb.device);
 
@@ -236,6 +250,7 @@ SK_Framerate_WaitForVBlank (void)
       if (   WaitForVBlank_Original != nullptr)
              WaitForVBlank_Original (dxgi_output);
       else                           dxgi_output->WaitForVBlank ();
+
 
       if (dxgi_dev1 != nullptr)
       {   dxgi_dev1->SetMaximumFrameLatency (
@@ -460,35 +475,25 @@ SK::Framerate::Limiter::wait (void)
   double missed_frames,
          missing_time =
     static_cast <double> ( time_ - next_ ) /
-    static_cast <double> ( ticks_per_frame ),
-         edge_distance =
-  modf ( missing_time, &missed_frames );
+    static_cast <double> ( ticks_per_frame );
 
-  static     DWORD dwLastFullReset        = timeGetTime ();
-   constexpr DWORD dwMinTimeBetweenResets = 750L;
+  double edge_distance =
+    modf ( missing_time, &missed_frames );
 
-   static constexpr double dMissingTimeBoundary =  4.0;
-   static constexpr double dEdgeToleranceLow    = 0.08;
-   static constexpr double dEdgeToleranceHigh   = 0.16;
+   static constexpr double dMissingTimeBoundary = 1.0;//1.33;
+   static constexpr double dEdgeToleranceLow    = 0.01;//0.05;
+   static constexpr double dEdgeToleranceHigh   = 0.99;//0.95;
 
-  if (missing_time > dMissingTimeBoundary)
+  if ( missed_frames >= dMissingTimeBoundary
+    && edge_distance >= dEdgeToleranceLow
+    && edge_distance <= dEdgeToleranceHigh )
   {
-    if (edge_distance > dEdgeToleranceLow && edge_distance < dEdgeToleranceHigh)
-    {
-      DWORD dwNow = timeGetTime ();
-      if (  dwNow - dwMinTimeBetweenResets > dwLastFullReset)
-      {
-        SK_LOG1 ( ( L"Framerate limiter is running too far behind... "
-                    L"(%f frames late)", missed_frames ),
-                    L"Frame Rate" );
+    InterlockedAdd64 ( &frames,
+         (LONG64)missed_frames );
 
-        if (missing_time > 3.0f * dMissingTimeBoundary)
-          full_restart = true;
-
-        restart         = true;
-        dwLastFullReset = dwNow;
-      }
-    }
+    next_  =
+      ReadAcquire64 ( &frames ) * ticks_per_frame
+                                + start_;
   }
 
   auto
@@ -522,9 +527,9 @@ SK::Framerate::Limiter::wait (void)
 
 
     // Create an unnamed waitable timer.
-    static HANDLE hLimitTimer =
-      CreateWaitableTimer (nullptr, FALSE, nullptr);
-
+    static CHandle hLimitTimer (
+      CreateWaitableTimer (nullptr, FALSE, nullptr)
+    );
 
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely decimating a CPU core.
@@ -658,7 +663,7 @@ SK::Framerate::GetLimiter (void)
 }
 
 void
-SK::Framerate::Tick (double& dt, LARGE_INTEGER& now)
+SK::Framerate::Tick (double dt, LARGE_INTEGER now)
 {
   if (! ( frame_history.isAllocated  () &&
           frame_history2.isAllocated () ) )
