@@ -480,13 +480,13 @@ SK::Framerate::Limiter::wait (void)
   double edge_distance =
     modf ( missing_time, &missed_frames );
 
-   static constexpr double dMissingTimeBoundary = 1.0;//1.33;
-   static constexpr double dEdgeToleranceLow    = 0.01;//0.05;
-   static constexpr double dEdgeToleranceHigh   = 0.99;//0.95;
+   static constexpr double dMissingTimeBoundary =    1.0;
+   static constexpr double dEdgeToleranceLow    = 0.0005;
+   static constexpr double dEdgeToleranceHigh   = 0.9995;
 
-  if ( missed_frames >= dMissingTimeBoundary
-    && edge_distance >= dEdgeToleranceLow
-    && edge_distance <= dEdgeToleranceHigh )
+  if ( missed_frames >= dMissingTimeBoundary &&
+       edge_distance >= dEdgeToleranceLow    &&
+       edge_distance <= dEdgeToleranceHigh )
   {
     InterlockedAdd64 ( &frames,
          (LONG64)missed_frames );
@@ -663,8 +663,11 @@ SK::Framerate::GetLimiter (void)
 }
 
 void
-SK::Framerate::Tick (double dt, LARGE_INTEGER now)
+SK::Framerate::Tick (bool wait, double dt, LARGE_INTEGER now)
 {
+  if (wait)
+    SK::Framerate::GetLimiter ()->wait ();
+
   if (! ( frame_history.isAllocated  () &&
           frame_history2.isAllocated () ) )
   {
