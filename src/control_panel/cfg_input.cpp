@@ -1165,7 +1165,7 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 
     keybind->update ();
 
-    ImGui::TextColored (ImVec4 (0.8f, 0.8f, 0.8f,1.f),
+    ImGui::TextColored (ImVec4 (0.6f, 0.6f, 0.6f,1.f),
                         "Press ESC To Clear Keybind");
     ImGui::Separator   (                            );
 

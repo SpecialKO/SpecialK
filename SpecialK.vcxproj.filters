@@ -3153,6 +3153,9 @@
     <ClInclude Include="include\imgui\backends\imgui_gl3.h">
       <Filter>Header Files\External Libraries\ImGui\Backends</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_shader.h">
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3527,9 +3530,6 @@
     <ClCompile Include="src\steam\utils.cpp">
       <Filter>Source Files\Steam\Wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="win32_isolation.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
     <ClCompile Include="src\plugins\persona4.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
@@ -3541,6 +3541,18 @@
     </ClCompile>
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input\XInput</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\utility\pipeline_stats.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32_isolation.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11_shader.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\utility\d3d11_map.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4466,6 +4478,8 @@
     <None Include="packages.config">
       <Filter>Tobii</Filter>
     </None>
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />

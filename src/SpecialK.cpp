@@ -234,10 +234,22 @@ SK_KeepAway (void)
 
   // Pin these DLLs (leak a reference) into anything we visit,
   //   because we might be coming back (frequently!).
-  SK_LoadLibraryW (L"vcruntime140_1.dll");
-  SK_LoadLibraryW (L"vcruntime140.dll");
-  SK_LoadLibraryW (L"concrt140.dll");
-  SK_LoadLibraryW (L"msvcp140.dll");
+  SK_LoadLibraryW (L"VCRUNTIME140_1.dll");
+  SK_LoadLibraryW (L"VCRUNTIME140.dll"  );
+  SK_LoadLibraryW (L"CONCRT140.dll"     );
+  SK_LoadLibraryW (L"MSVCP140.dll"      );
+  SK_LoadLibraryW (L"WININET.dll"       );
+  SK_LoadLibraryW (L"WINMM.dll"         );
+  SK_LoadLibraryW (L"COMCTL32.dll"      );
+  SK_LoadLibraryW (L"SHELL32.dll"       );
+  SK_LoadLibraryW (L"SHLWAPI.dll"       );
+  SK_LoadLibraryW (L"POWRPROF.dll"      );
+  SK_LoadLibraryW (L"ADVAPI32.dll"      );
+
+  SK_LoadLibraryW (L"api-ms-win-crt-heap-l1-1-0.dll"   );
+  SK_LoadLibraryW (L"api-ms-win-crt-string-l1-1-0.dll" );
+  SK_LoadLibraryW (L"api-ms-win-crt-runtime-l1-1-0.dll");
+  SK_LoadLibraryW (L"api-ms-win-crt-stdio-l1-1-0.dll"  );
 
   return ret;
 }

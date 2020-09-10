@@ -1443,6 +1443,7 @@
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_core.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_screenshot.h" />
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_shader.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_tex_mgr.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_state_tracker.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\utility\d3d11_texture.h" />
@@ -1567,6 +1568,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_screenshot.cpp" />
+    <ClCompile Include="src\render\d3d11\d3d11_shader.cpp" />
     <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_vftable.cpp" />
     <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_wrapped.cpp" />
     <ClCompile Include="src\render\d3d11\hooks\d3d11_device.cpp" />
@@ -1574,6 +1576,8 @@
     <ClCompile Include="src\render\d3d11\d3d11_state_tracker.cpp" />
     <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp" />
     <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp" />
+    <ClCompile Include="src\render\d3d11\utility\d3d11_map.cpp" />
+    <ClCompile Include="src\render\d3d11\utility\pipeline_stats.cpp" />
     <ClCompile Include="src\render\d3d9\d3d9_screenshot.cpp" />
     <ClCompile Include="src\render\dxgi\dxgi_util.cpp" />
     <ClCompile Include="src\render\screenshot.cpp" />
@@ -1698,8 +1702,8 @@
     <ClCompile Include="src\widgets\tobii.cpp" />
     <ClCompile Include="src\widgets\volume_control.cpp" />
     <ClCompile Include="src\widgets\widget.cpp" />
+    <ClCompile Include="src\win32_isolation.cpp" />
     <ClCompile Include="src\window.cpp" />
-    <ClCompile Include="win32_isolation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="depends\include\DirectXTex\DirectXTex.inl" />
