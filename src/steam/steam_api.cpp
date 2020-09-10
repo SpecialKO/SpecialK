@@ -3618,42 +3618,6 @@ SK_Steam_ShouldThrottleCallbacks (void)
   return false;
 }
 
-
-SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>> dwSteamTids;
-SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>> dwSteamSkipTids;
-
-static volatile LONG __SK_Steam_QueuedCallbacks = 0;
-
-void
-SK_SteamAPI_QueueCallbacks ()
-{
-  InterlockedIncrement (&__SK_Steam_QueuedCallbacks);
-}
-
-bool
-SK_SteamAPI_RunQueuedCallbacks (void)
-{
-  __try
-  {
-    if (ReadAcquire (&__SK_Steam_QueuedCallbacks) > 0)
-    {
-      InterlockedDecrement (&__SK_Steam_QueuedCallbacks);
-
-      if (SteamAPI_Shutdown_Original != nullptr)
-      {
-        SteamAPI_RunCallbacks_Detour ();
-      }
-      return true;
-    }
-  }
-
-  __except (EXCEPTION_EXECUTE_HANDLER) {
-    return false;
-  }
-
-  return false;
-}
-
 void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
@@ -4562,11 +4526,6 @@ SteamAPI_Shutdown_Detour (void)
 
   if (steam_init_cs != nullptr)
       steam_init_cs->lock   ();
-
-  InterlockedExchange (
-    &__SK_Steam_QueuedCallbacks,
-      0
-  );
 
   SK_Steam_KillPump ();
 

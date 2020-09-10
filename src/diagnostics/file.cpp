@@ -124,11 +124,10 @@ NtReadFile_Detour (
       if ( dwRenderTid != 0UL&&
            dwRenderTid != dwTid )
       {
-        extern SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>> dwSteamTids;
         static SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>> dwDiskTids;
 
-        if ( (dwDiskTids->find  (dwTid) == dwDiskTids->cend  () ) &&
-             (dwSteamTids->find (dwTid) == dwSteamTids->cend () )    )
+        if ( (dwDiskTids->find (dwTid) ==
+              dwDiskTids->cend (     )  ) )
         {
           auto* task =
             SK_MMCS_GetTaskForThreadIDEx ( dwTid,
