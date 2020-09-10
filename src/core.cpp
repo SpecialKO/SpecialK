@@ -1654,9 +1654,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! __SK_bypass)
   {
-#ifdef _M_AMD64
     switch (SK_GetCurrentGameID ())
     {
+#ifdef _M_AMD64
       case SK_GAME_ID::StarOcean4:
         extern bool                       SK_SO4_PlugInCfg (void);
         plugin_mgr->config_fns.push_back (SK_SO4_PlugInCfg);
@@ -1705,8 +1705,18 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         extern bool                       SK_Okami_PlugInCfg (void);
         plugin_mgr->config_fns.push_back (SK_Okami_PlugInCfg);
         break;
-    }
+
+      case SK_GAME_ID::Yakuza0:
+      case SK_GAME_ID::YakuzaKiwami:
+      case SK_GAME_ID::YakuzaKiwami2:
+        SK_Yakuza0_PlugInInit ();
+        break;
+#else
+      case SK_GAME_ID::Persona4:
+        SK_Persona4_InitPlugin ();
+        break;
 #endif
+    }
 
     extern void SK_Widget_InitHDR (void);
     SK_RunOnce (SK_Widget_InitHDR ());
@@ -2382,128 +2392,11 @@ return;
   }
 }
 
-
-__declspec (noinline)
 void
-__stdcall
-SK_BeginBufferSwap (void)
+SK_FrameCallback ( SK_RenderBackend& rb,
+                   ULONG64           frames_drawn =
+                                       SK_GetFramesDrawn () )
 {
-  static concurrency::concurrent_unordered_set <DWORD> render_threads;
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  static const auto&
-    game_id = SK_GetCurrentGameID ();
-
-  static SK_RenderAPI LastKnownAPI =
-    SK_RenderAPI::Reserved;
-
-  //if ( (int)rb.api        &
-  //     (int)SK_RenderAPI::D3D11 )
-  {
-    SK_D3D11_BeginFrame ();
-
-  }
-
-  if (config.render.framerate.enforcement_policy == 0)
-  {
-    SK::Framerate::GetLimiter ()->wait ();
-    SK::Framerate::Tick                ();
-  }
-
-  auto SK_DPI_UpdateWindowScale = [&](void) ->
-  void
-  {
-    using  GetDpiForSystem_pfn = UINT (WINAPI *)(void);
-    static GetDpiForSystem_pfn
-           GetDpiForSystem = (GetDpiForSystem_pfn)
-      SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
-                                      "GetDpiForSystem" );
-
-    using  GetDpiForWindow_pfn = UINT (WINAPI *)(HWND);
-    static GetDpiForWindow_pfn
-           GetDpiForWindow = (GetDpiForWindow_pfn)
-      SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
-                                      "GetDpiForWindow" );
-
-    //if (GetDpiForWindow != nullptr)
-    //{
-    //  extern float
-    //    g_fDPIScale;
-    //
-    //  UINT dpi =
-    //    GetDpiForWindow (game_window.hWnd);
-    //
-    //  if (dpi != 0)
-    //  {
-    //    g_fDPIScale =
-    //      (float)USER_DEFAULT_SCREEN_DPI /
-    //      (float)dpi;
-    //  }
-    //}
-  };
-
-  SK_DPI_UpdateWindowScale ();
-
-
-  rb.present_staging.begin_overlays.time.QuadPart =
-    SK_QueryPerf ().QuadPart;
-
-  if (config.render.framerate.enable_mmcss)
-  {
-    if ( ! render_threads.count (SK_Thread_GetCurrentId ()) )
-    {
-      static bool   first = true;
-      auto*  task = first ?
-        SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
-                                         "[GAME] Primary Render Thread",
-                                           "Games", "DisplayPostProcessing" )
-                          :
-        SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
-                                         "[GAME] Ancillary Render Thread",
-                                           "Games", "DisplayPostProcessing" );
-
-      if ( task != nullptr )
-      {
-        if (game_id != SK_GAME_ID::AssassinsCreed_Odyssey)
-        {
-          if (first)
-            task->queuePriority (AVRT_PRIORITY_CRITICAL);
-          else
-            task->queuePriority (AVRT_PRIORITY_HIGH);
-        }
-
-        else
-          task->queuePriority (AVRT_PRIORITY_LOW);
-
-        render_threads.insert (SK_Thread_GetCurrentId ());
-
-        first = false;
-      }
-    }
-  }
-
-
-  // Invoke any plug-in's frame begin callback
-  for ( auto begin_frame_fn : plugin_mgr->begin_frame_fns )
-  {
-    begin_frame_fn ();
-  }
-
-
-
-  static const auto& io =
-    ImGui::GetIO ();
-
-  if (io.Fonts == nullptr)
-  {
-    SK_ImGui_LoadFonts ();
-  }
-
-  const ULONG64 frames_drawn =
-    SK_GetFramesDrawn ();
-
   switch (frames_drawn)
   {
     // First frame
@@ -2515,7 +2408,7 @@ SK_BeginBufferSwap (void)
       if ( SUCCEEDED ( GetCurrentThreadDescription (&wszDescription)) &&
                                             wcslen ( wszDescription))
       {
-        if (wcscmp (wszDescription, L"[GAME] Primary Render Thread") != 0)
+        if (StrStrIW (wszDescription, L"[GAME] Primary Render Thread") == nullptr)
         {
           SK_RunOnce (
             SetCurrentThreadDescription (
@@ -2596,7 +2489,96 @@ SK_BeginBufferSwap (void)
       }
     } break;
   }
+}
 
+void
+SK_MMCS_BeginBufferSwap (void)
+{
+  static concurrency::concurrent_unordered_set <DWORD> render_threads;
+
+  static const auto&
+    game_id = SK_GetCurrentGameID ();
+
+  if ( ! render_threads.count (SK_Thread_GetCurrentId ()) )
+  {
+    static bool   first = true;
+    auto*  task = first ?
+      SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
+                                       "[GAME] Primary Render Thread",
+                                         "Games", "DisplayPostProcessing" )
+                        :
+      SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
+                                       "[GAME] Ancillary Render Thread",
+                                         "Games", "DisplayPostProcessing" );
+
+    if ( task != nullptr )
+    {
+      if (game_id != SK_GAME_ID::AssassinsCreed_Odyssey)
+      {
+        if (first)
+          task->queuePriority (AVRT_PRIORITY_CRITICAL);
+        else
+          task->queuePriority (AVRT_PRIORITY_HIGH);
+      }
+
+      else
+        task->queuePriority (AVRT_PRIORITY_LOW);
+
+      render_threads.insert (SK_Thread_GetCurrentId ());
+
+      first = false;
+    }
+  }
+}
+__declspec (noinline)
+void
+__stdcall
+SK_BeginBufferSwap (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  static SK_RenderAPI LastKnownAPI =
+    SK_RenderAPI::Reserved;
+
+  if ( (int)rb.api        &
+       (int)SK_RenderAPI::D3D11 )
+  {
+    SK_D3D11_BeginFrame ();
+
+  }
+
+  if (config.render.framerate.enforcement_policy == 0)
+  {
+    SK::Framerate::Tick ();
+  }
+
+  rb.present_staging.begin_overlays.time.QuadPart =
+    SK_QueryPerf ().QuadPart;
+
+
+  if (config.render.framerate.enable_mmcss)
+  {
+    SK_MMCS_BeginBufferSwap ();
+  }
+
+  // Invoke any plug-in's frame begin callback
+  for ( auto begin_frame_fn : plugin_mgr->begin_frame_fns )
+  {
+    begin_frame_fn ();
+  }
+
+  static const auto& io =
+    ImGui::GetIO ();
+
+  if (io.Fonts == nullptr)
+  {
+    SK_ImGui_LoadFonts ();
+  }
+
+  // Handle init. actions that depend on the number of frames
+  //   drawn...
+  SK_FrameCallback (rb);
 
   rb.present_staging.begin_cegui.time =
     SK_QueryPerf ();
@@ -2623,28 +2605,9 @@ SK_BeginBufferSwap (void)
   rb.present_staging.end_cegui.time =
     SK_QueryPerf ();
 
-
-  static HMODULE hModTBFix =
-    SK_GetModuleHandle (L"tbfix.dll");
-
-  if (hModTBFix)
-  {
-    if (SK_Steam_PiratesAhoy () != 0x00)
-    {
-      const char* szFirst = "First-frame Done";
-             __target_fps =
-        static_cast <float> (
-          *reinterpret_cast <const uint8_t *> (szFirst + 5)
-        );
-    }
-
-    SK::Framerate::GetLimiter ()->wait ();
-  }
-
   if (config.render.framerate.enforcement_policy == 1)
   {
-    SK::Framerate::GetLimiter ()->wait ();
-    SK::Framerate::Tick                ();
+    SK::Framerate::Tick ();
   }
 
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
@@ -2652,18 +2615,15 @@ SK_BeginBufferSwap (void)
     SK_ImGui_Toggle ();
   }
 
-
   LastKnownAPI =
     rb.api;
-
 
   rb.present_staging.submit.time =
     SK_QueryPerf ();
 
   if (config.render.framerate.enforcement_policy == 4)
   {
-    SK::Framerate::GetLimiter ()->wait ();
-    SK::Framerate::Tick                ();
+    SK::Framerate::Tick ();
   }
 }
 
@@ -2828,225 +2788,9 @@ SK_BackgroundRender_EndFrame (void)
     rb.fullscreen_exclusive;
 }
 
-
-__declspec (noinline) // lol
-HRESULT
-__stdcall
-SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
+void
+SK_SLI_UpdateStatus (IUnknown *device)
 {
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-
-  if (config.render.framerate.enforcement_policy == 3)
-  {
-    SK::Framerate::GetLimiter ()->wait ();
-    SK::Framerate::Tick                ();
-  }
-
-  // Various required actions at the end of every frame in order to
-  //   support the background render mode in most games.
-  SK_BackgroundRender_EndFrame ();
-
-
-
-  static SK_RenderAPI LastKnownAPI =
-         SK_RenderAPI::Reserved;
-
-  static const auto&
-    game_id = SK_GetCurrentGameID ();
-
-  assert ( ReadULongAcquire (&rb.thread) == (LONG)SK_Thread_GetCurrentId () ||
-           LastKnownAPI                  ==       SK_RenderAPI::Reserved );
-
-  if ((device != nullptr || rb.api == SK_RenderAPI::D3D12) && LastKnownAPI != rb.api)
-  {
-    WriteULongRelease (&rb.thread, SK_Thread_GetCurrentId ());
-
-    SK_LOG0 ( ( L"SwapChain Presentation Thread has Priority=%i",
-                GetThreadPriority (SK_GetCurrentThread ()) ),
-                L"RenderBack" );
-
-    SK_ComPtr <IDirect3DDevice9>   pDev9   = nullptr;
-    SK_ComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
-    SK_ComPtr <ID3D11Device>       pDev11  = nullptr;
-
-    if (device != nullptr)
-    {
-      if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
-      {
-        reinterpret_cast <int &> (rb.api) =
-          ( static_cast <int> (SK_RenderAPI::D3D9  ) |
-            static_cast <int> (SK_RenderAPI::D3D9Ex)  );
-
-        wcsncpy (rb.name, L"D3D9Ex", 8);
-      }
-
-      else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
-      {
-                 rb.api  = SK_RenderAPI::D3D9;
-        wcsncpy (rb.name, L"D3D9  ", 8);
-      }
-
-      ///else if (SUCCEEDED (device->QueryInterface <ID3D12Device> (&pDev12)))
-      ///{
-      ///  rb.api  = SK_RenderAPI::D3D12;
-      ///  wcsncpy (rb.name, L"D3D12 ", 8);
-      ///}
-
-      else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
-      {
-        // Establish the API used this frame (and handle possible translation layers)
-        //
-        switch (SK_GetDLLRole ())
-        {
-          case DLL_ROLE::D3D8:
-            rb.api = SK_RenderAPI::D3D8On11;
-            break;
-          case DLL_ROLE::DDraw:
-            rb.api = SK_RenderAPI::DDrawOn11;
-            break;
-          default:
-            rb.api = SK_RenderAPI::D3D11;
-            break;
-        }
-
-        SK_ComPtr <IUnknown> pTest = nullptr;
-
-        if (       SUCCEEDED (device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
-          wcsncpy (rb.name, L"D3D11.4", 8); // Creators Update
-        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
-          wcsncpy (rb.name, L"D3D11.4", 8);
-        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
-          wcsncpy (rb.name, L"D3D11.3", 8);
-        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
-          wcsncpy (rb.name, L"D3D11.2", 8);
-        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
-          wcsncpy (rb.name, L"D3D11.1", 8);
-        } else {
-          wcsncpy (rb.name, L"D3D11 ", 8);
-        }
-
-        if (     SK_GetDLLRole () == DLL_ROLE::D3D8)  {
-          wcscpy (rb.name, L"D3D8");
-        }
-        else if (SK_GetDLLRole () == DLL_ROLE::DDraw) {
-          wcscpy (rb.name, L"DDraw");
-        }
-      }
-
-      else
-      {
-        rb.api = SK_RenderAPI::Reserved;
-        wcsncpy (rb.name, L"UNKNOWN", 8);
-      }
-    }
-  }
-
-  else if (LastKnownAPI != rb.api)
-  {
-    if (config.apis.OpenGL.hook)// && SK_GL_GetCurrentContext () != nullptr)
-    {
-      rb.api = SK_RenderAPI::OpenGL;
-      wcsncpy (rb.name, L"OpenGL", 8);
-    }
-  }
-
-  // Determine Fullscreen Exclusive state in D3D9 / DXGI
-  //
-
-  BOOL fullscreen = FALSE;
-
-  SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-
-  if (     pSwapChain == nullptr ||
-   FAILED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
-  {
-    // Not DXGI, so try D3D9
-    SK_ComQIPtr <IDirect3DSwapChain9>
-                         pSwapChain9 (rb.swapchain);
-
-    if (pSwapChain9 != nullptr)
-    {
-      D3DPRESENT_PARAMETERS                              pparams = { };
-      if (SUCCEEDED (pSwapChain9->GetPresentParameters (&pparams)))
-      {
-        fullscreen = (! pparams.Windowed);
-      }
-    }
-  }
-
-  rb.fullscreen_exclusive = fullscreen;
-
-  if ( static_cast <int> (rb.api)  &
-       static_cast <int> (SK_RenderAPI::D3D11) )
-  {
-    extern volatile
-           LONG
-    __SK_D3D11_InitiateHudFreeShot;
-
-    extern LONG
-    SK_D3D11_ShowGameHUD (void);
-
-    if (InterlockedCompareExchange (&__SK_D3D11_InitiateHudFreeShot, 0, -1) == -1)
-    {
-      SK_D3D11_ShowGameHUD ();
-    }
-
-    // Also clear any resources we were tracking for the shader mod subsystem
-    SK_D3D11_EndFrame (pTLS);
-  }
-
-  ///if ( static_cast <int> (rb.api)  &
-  ///     static_cast <int> (SK_RenderAPI::D3D12) )
-  ///{
-  ///  BOOL fullscreen = FALSE;
-  ///
-  ///  SK_ComPtr                        <IDXGISwapChain>   pSwapChain = nullptr;
-  ///  if (rb.swapchain)
-  ///      rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
-  ///
-  ///  if ( pSwapChain &&
-  ///       SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
-  ///  { rb.fullscreen_exclusive =                        fullscreen;        }
-  ///
-  ///  else
-  ///    rb.fullscreen_exclusive = false;
-  ///
-  ///  // Also clear any resources we were tracking for the shader mod subsystem
-  ///  SK_D3D12_EndFrame (pTLS);
-  ///}
-
-
-#ifdef _M_AMD64
-  switch (game_id)
-  {
-    case SK_GAME_ID::Shenmue:
-      extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
-      WriteRelease        (&__SK_SHENMUE_FinishedButNotPresented, 0L);
-      break;
-    default:
-      break;
-  }
-#endif
-
-
-  LastKnownAPI = config.apis.last_known =
-    rb.api;
-
-
-  SK_RunOnce (SK::DXGI::StartBudgetThread_NoAdapter ());
-
-  bool
-  SK_SteamAPI_RunQueuedCallbacks (void);
-  SK_SteamAPI_RunQueuedCallbacks (    );
-
-
-  SK_Input_PollKeyboard ();
-
-  InterlockedIncrementAcquire64 (&SK_RenderBackend::frames_drawn);
-
-
   if (config.sli.show && device != nullptr)
   {
     // Get SLI status for the frame we just displayed... this will show up
@@ -3059,39 +2803,84 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
         sk::NVAPI::GetSLIState (device);
     }
   }
+}
+
+__declspec (noinline) // lol
+HRESULT
+__stdcall
+SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (config.render.framerate.enforcement_policy == 3)
+  {
+    SK::Framerate::Tick ();
+  }
+
+  // Various required actions at the end of every frame in order to
+  //   support the background render mode in most games.
+  SK_BackgroundRender_EndFrame ();
+
+  rb.updateActiveAPI ();
+
+  // Determine Fullscreen Exclusive state in D3D9 / DXGI
+  //
+  SK_RenderBackendUtil_IsFullscreen ();
+
+  if ( static_cast <int> (rb.api)  &
+       static_cast <int> (SK_RenderAPI::D3D11) )
+  {
+    // Clear any resources we were tracking for the shader mod subsystem
+    SK_D3D11_EndFrame (pTLS);
+  }
+
+  // TODO: Add a per-frame callback for plug-ins, because this is stupid
+  //
+#ifdef _M_AMD64
+  static const auto
+          game_id = SK_GetCurrentGameID ();
+  switch (game_id)
+  {
+    case SK_GAME_ID::Shenmue:
+      extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
+      WriteRelease        (&__SK_SHENMUE_FinishedButNotPresented, 0L);
+      break;
+    case SK_GAME_ID::FinalFantasyXV:
+      void SK_FFXV_SetupThreadPriorities (void);
+           SK_FFXV_SetupThreadPriorities ();
+      break;
+    default:
+      break;
+  }
+#endif
+
+  rb.updateActiveAPI (
+    config.apis.last_known =
+        rb.api
+  );
+
+  SK_RunOnce (
+    SK::DXGI::StartBudgetThread_NoAdapter ()
+  );
+
+  SK_SLI_UpdateStatus   (device);
+  SK_Input_PollKeyboard (      );
+
+  InterlockedIncrementAcquire64 (
+    &SK_RenderBackend::frames_drawn
+  );
 
   if (config.cegui.enable && ReadAcquire (&CEGUI_Init))
   {
     config.cegui.frames_drawn++;
   }
 
-
-#ifdef _M_AMD64
-  static const bool bFFXV =
-    (game_id == SK_GAME_ID::FinalFantasyXV);
-
-  if (bFFXV)
-  {
-    void SK_FFXV_SetupThreadPriorities (void);
-         SK_FFXV_SetupThreadPriorities ();
-  }
-#endif
-
   SK_StartPerfMonThreads ();
 
-  static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");
-  static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
-
-  //
-  // TZFix has its own limiter
-  //
-  if (! (hModTZFix || hModTBFix))
+  if (config.render.framerate.enforcement_policy == 2)
   {
-    if (config.render.framerate.enforcement_policy == 2)
-    {
-      SK::Framerate::GetLimiter ()->wait ();
-      SK::Framerate::Tick                ();
-    }
+    SK::Framerate::Tick ();
   }
 
   return hr;
