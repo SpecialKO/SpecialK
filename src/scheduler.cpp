@@ -53,7 +53,14 @@ extern HWND WINAPI SK_GetActiveWindow (SK_TLS *pTLS);
 void
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS *pTLS)
 {
-  HWND hWndThis = SK_GetActiveWindow (pTLS);
+  HWND hWndThis  = SK_GetActiveWindow (pTLS);
+  if ( hWndThis !=   SK_GetGameWindow ()   )
+  {
+    SK_SleepEx (dwMilliseconds, bAlertable);
+
+    return;
+  }
+
   bool bUnicode =
     IsWindowUnicode (hWndThis);
 
@@ -66,8 +73,10 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     // Avoid having Windows marshal Unicode messages like a dumb ass
     if (bUnicode)
     {
-      if (PeekMessageW (&msg, nullptr, 0U, 0U, PM_REMOVE)
+      if (PeekMessageW (&msg, SK_GetGameWindow (), 0U, 0U, PM_REMOVE)
               &&         msg.message != WM_NULL
+              &&       ( msg.hwnd    == 0 ||
+                         msg.hwnd    == SK_GetGameWindow () )
          )
       {
         SK_LOG0 ( ( L"Dispatched Message: %x to Unicode HWND: %x while "
@@ -81,8 +90,10 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
 
     else
     {
-      if (PeekMessageA (&msg, nullptr, 0U, 0U, PM_REMOVE)
+      if (PeekMessageA (&msg, SK_GetGameWindow (), 0U, 0U, PM_REMOVE)
               &&         msg.message != WM_NULL
+              &&       ( msg.hwnd    == 0 ||
+                         msg.hwnd    == SK_GetGameWindow () )
          )
       {
         SK_LOG0 ( ( L"Dispatched Message: %x to ANSI HWND: %x while "
