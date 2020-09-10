@@ -1148,19 +1148,28 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
         break;
     }
 
+    bool bEscape =
+      io.KeysDownDuration [VK_ESCAPE] == 0.0f;
+
     if (i != 256)
     {
-      keybind->vKey = (SHORT)i;
       ImGui::CloseCurrentPopup ();
+
+      keybind->vKey = bEscape ? 0 :
+           static_cast <SHORT> (i);
     }
 
-    keybind->ctrl  = io.KeyCtrl;
-    keybind->shift = io.KeyShift;
-    keybind->alt   = io.KeyAlt;
+    keybind->ctrl  = bEscape ? false : io.KeyCtrl;
+    keybind->shift = bEscape ? false : io.KeyShift;
+    keybind->alt   = bEscape ? false : io.KeyAlt;
 
     keybind->update ();
 
-    ImGui::Text ("Binding:  %ws", keybind->human_readable.c_str ());
+    ImGui::TextColored (ImVec4 (0.8f, 0.8f, 0.8f,1.f),
+                        "Press ESC To Clear Keybind");
+    ImGui::Separator   (                            );
+
+    ImGui::Text        ("Binding:  %ws", keybind->human_readable.c_str ());
 
     ImGui::EndPopup ();
   }
