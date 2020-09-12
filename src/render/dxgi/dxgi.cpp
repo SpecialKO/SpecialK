@@ -3659,78 +3659,47 @@ SK_DXGI_SetupPluginOnFirstFrame ( IDXGISwapChain *This,
 
 
 HRESULT
-STDMETHODCALLTYPE
-SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
-                          UINT                    SyncInterval,
-                          UINT                    Flags,
-           const DXGI_PRESENT_PARAMETERS         *pPresentParameters,
-                          Present1SwapChain1_pfn  DXGISwapChain1_Present1,
-                          SK_DXGI_PresentSource   Source)
-{
-  auto Present1 = [&](UINT                    SyncInterval,
+SK_DXGI_PresentBase ( IDXGISwapChain         *This,
+                      UINT                    SyncInterval,
                       UINT                    Flags,
-       const DXGI_PRESENT_PARAMETERS         *pPresentParameters) ->
+                     SK_DXGI_PresentSource    Source,
+                     PresentSwapChain_pfn     DXGISwapChain_Present,
+                     Present1SwapChain1_pfn   DXGISwapChain1_Present1 = nullptr,
+       const DXGI_PRESENT_PARAMETERS         *pPresentParameters      = nullptr
+)
+{
+  auto _Present = [&](UINT _SyncInterval,
+                      UINT _Flags) ->
   HRESULT
   {
     if (Source == SK_DXGI_PresentSource::Hook)
     {
-      return DXGISwapChain1_Present1 ( This,
-                                         SyncInterval,
-                                           Flags,
-                                             pPresentParameters );
-    }
+      if (DXGISwapChain1_Present1 != nullptr)
+      {
+        return DXGISwapChain1_Present1 ( (IDXGISwapChain1 *)This,
+                                           _SyncInterval,
+                                             _Flags,
+                                               pPresentParameters );
+      }
 
-    return
-      This->Present1 (SyncInterval, Flags, pPresentParameters);
-  };
-
-
-  HRESULT hr =
-    Present1 (SyncInterval, Flags, pPresentParameters);
-
-  return hr;
-}
-
-HRESULT
-  STDMETHODCALLTYPE Present1Callback (IDXGISwapChain1         *This,
-                                      UINT                     SyncInterval,
-                                      UINT                     Flags,
-                                const DXGI_PRESENT_PARAMETERS *pPresentParameters)
-{
-  SK_LOG_ONCE (L"Present1"); // Almost never used by anything, so log it if it happens.
-
-  return
-    SK_DXGI_DispatchPresent1 ( This, SyncInterval, Flags, pPresentParameters,
-                               SK_DXGI_Present1, SK_DXGI_PresentSource::Hook );
-}
-
-HRESULT
-STDMETHODCALLTYPE
-SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
-                         UINT                   SyncInterval,
-                         UINT                   Flags,
-                         PresentSwapChain_pfn   DXGISwapChain_Present,
-                         SK_DXGI_PresentSource  Source)
-{
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  auto Present = [&](UINT                    SyncInterval,
-                     UINT                    Flags) ->
-  HRESULT
-  {
-    if (Source == SK_DXGI_PresentSource::Hook)
-    {
       return
         DXGISwapChain_Present ( This,
-                                  SyncInterval,
-                                    Flags );
+                                  _SyncInterval,
+                                    _Flags );
+    }
+
+    if (DXGISwapChain1_Present1 != nullptr)
+    {
+      return
+        ((IDXGISwapChain1 *)This)->Present1 (_SyncInterval, _Flags, pPresentParameters);
     }
 
     return
-      This->Present (SyncInterval, Flags);
+        This->Present (_SyncInterval, _Flags);
   };
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
 
   //
   // Early-out for games that use testing to minimize blocking
@@ -3746,7 +3715,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
      return S_OK;
 
    return
-     Present (SyncInterval, Flags);
+     _Present ( SyncInterval, Flags );
   }
 
   DXGI_SWAP_CHAIN_DESC desc = { };
@@ -3757,7 +3726,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     SK_D3D11_EndFrame ();
 
     return
-      Present (SyncInterval, Flags);
+      _Present ( SyncInterval, Flags );
   }
 
   bool process                = false;
@@ -3990,7 +3959,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     SK_CEGUI_DrawD3D11 (This);
 
     hr =
-      Present (interval, flags);
+      _Present ( interval, flags );
 
     if ( pDev != nullptr || rb.api == SK_RenderAPI::D3D12 )
     {
@@ -4014,9 +3983,9 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
       {
         if (SK_WaitForSingleObject (hWaitHandle, 0) == WAIT_TIMEOUT)
         {
-          Present ( 0, DXGI_PRESENT_RESTART         |
-                       DXGI_PRESENT_DO_NOT_SEQUENCE |
-                       DXGI_PRESENT_DO_NOT_WAIT );
+          _Present ( 0, DXGI_PRESENT_RESTART         |
+                        DXGI_PRESENT_DO_NOT_SEQUENCE |
+                        DXGI_PRESENT_DO_NOT_WAIT );
         }
       }
 
@@ -4028,11 +3997,52 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   }
 
   HRESULT hr =
-    Present (SyncInterval, Flags);
+    _Present (SyncInterval, Flags);
 
   config.render.osd._last_vidcap_frame = SK_GetFramesDrawn ();
 
   return hr;
+}
+
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
+                          UINT                    SyncInterval,
+                          UINT                    Flags,
+           const DXGI_PRESENT_PARAMETERS         *pPresentParameters,
+                          Present1SwapChain1_pfn  DXGISwapChain1_Present1,
+                          SK_DXGI_PresentSource   Source)
+{
+  return
+    SK_DXGI_PresentBase ( This, SyncInterval, Flags, Source,
+                            nullptr, DXGISwapChain1_Present1,
+                                                   pPresentParameters );
+}
+
+HRESULT
+  STDMETHODCALLTYPE Present1Callback (IDXGISwapChain1         *This,
+                                      UINT                     SyncInterval,
+                                      UINT                     Flags,
+                                const DXGI_PRESENT_PARAMETERS *pPresentParameters)
+{
+  // Almost never used by anything, so log it if it happens.
+  SK_LOG_ONCE (L"Present1 ({Hooked SwapChain})");
+
+  return
+    SK_DXGI_DispatchPresent1 ( This, SyncInterval, Flags, pPresentParameters,
+                               SK_DXGI_Present1, SK_DXGI_PresentSource::Hook );
+}
+
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
+                         UINT                   SyncInterval,
+                         UINT                   Flags,
+                         PresentSwapChain_pfn   DXGISwapChain_Present,
+                         SK_DXGI_PresentSource  Source)
+{
+  return
+    SK_DXGI_PresentBase (This, SyncInterval, Flags, Source, DXGISwapChain_Present);
 }
 
 

@@ -23,6 +23,9 @@
 
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
+#define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
+                       { dll_log->Log ((x)); logged = true; } }
+
 
 volatile LONG SK_DXGI_LiveWrappedSwapChains  = 0;
 volatile LONG SK_DXGI_LiveWrappedSwapChain1s = 0;
@@ -382,6 +385,9 @@ IWrapDXGISwapChain::Present1 ( UINT                     SyncInterval,
                          const DXGI_PRESENT_PARAMETERS *pPresentParameters )
 {
   assert (ver_ >= 1);
+
+  // Almost never used by anything, so log it if it happens.
+  SK_LOG_ONCE (L"Present1 ({Wrapped SwapChain})");
 
   return
     SK_DXGI_DispatchPresent1 ( (IDXGISwapChain1 *)pReal, SyncInterval, PresentFlags, pPresentParameters,
