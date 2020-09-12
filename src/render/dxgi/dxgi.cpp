@@ -1983,7 +1983,7 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This)
                                                 L"%hs",
                              edid_name->empty () ?
                                disp_desc.DeviceString :
-                      SK_UTF8ToWideChar (*edid_name).c_str (),
+                    (WCHAR *)edid_name->c_str (),
                                  disp_desc.DeviceName );
               }
             }
@@ -3974,63 +3974,10 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
     if ( SK_DXGI_IsFlipModelSwapChain (desc) && SK::Framerate::GetLimiter ()->get_limit () > 0.0L )
     {
-      //SK_ComQIPtr <IDXGISwapChain1> pSwap1 (This);
-      //
-      //static DXGI_FRAME_STATISTICS sequence_start = { };
-      //static auto                  queue_depth    = desc.BufferCount + 1;
-      //static std::vector <UINT>    frame_ids (queue_depth);
-      //
-      //SK_RunOnce (pSwap1->GetFrameStatistics (&sequence_start));
-      //
-      //bool bGlitch  = false;
-      //
-      //DXGI_FRAME_STATISTICS        frame_stats = { };
-      //pSwap1->GetFrameStatistics (&frame_stats);
-      //
-      //UINT                          ulLastPresent;
-      //pSwap1->GetLastPresentCount (&ulLastPresent);
-      //
-      //// Depth changed
-      //if (queue_depth != desc.BufferCount + 1)
-      //{
-      //  queue_depth = desc.BufferCount + 1;
-      //  frame_ids.resize (queue_depth);
-      //
-      //  bGlitch = true;
-      //}
-      //
-      //else
-      //{
-      //  if (frame_ids [ulLastPresent % queue_depth] != frame_stats.PresentRefreshCount)
-      //  {
-      //    //dll_log->Log (L"Glitch, Expected: %lu, Got: %lu for frame %lu [queue_depth=%lu]",
-      //    //              frame_ids [ulLastPresent % queue_depth], frame_stats.PresentRefreshCount/*ulLastPresent*/, ulLastPresent, queue_depth );
-      //    bGlitch = true;
-      //  }
-      //}
-
-      if (/*bGlitch || */config.render.framerate.drop_late_flips)
+      if (config.render.framerate.drop_late_flips)
       {
         flags |= DXGI_PRESENT_RESTART;
       }
-
-      //UINT idx =
-      //  ((ulLastPresent + 1) % queue_depth);
-      //
-      //if (bGlitch)
-      //{
-      //  frame_ids.clear ();
-      //
-      //  int sync_id =
-      //    frame_stats.SyncRefreshCount + 1;
-      //
-      //  for ( UINT i = idx ; i < queue_depth; ++i )
-      //    frame_ids [i] = sync_id++;
-      //  for ( UINT j = 0   ; j < idx        ; ++j )
-      //    frame_ids [j] = sync_id++;
-      //}
-      //else
-      //  frame_ids [idx] = frame_stats.SyncRefreshCount + 1;
     }
 
 
@@ -4381,15 +4328,6 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
                   _In_ DXGI_MODE_DESC *pNewTargetParameters,
                        BOOL            bApplyOverrides )
 {
-  ///if (bApplyOverrides)
-  ///{
-  ///  // Can't do this if waitable
-  ///  if ( dxgi_caps.present.waitable &&
-  ///       config.render.framerate.swapchain_wait > 0 )
-  ///  {
-  ///    return S_OK;
-  ///  }
-  ///}
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -4650,11 +4588,6 @@ DXGIOutput_FindClosestMatchingMode_Override (
                      This, pModeToMatch, pClosestMatch,
                                          pConcernedDevice ) );
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Sekiro)
-  {
-    pClosestMatch->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-  }
-
   SK_LOG0 (
     ( L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, "
                                            L"Scanlines=%s",
@@ -4785,7 +4718,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     pTarget    = nullptr;
   }
 
-  BOOL                       bFullscreen, bNoOutput = (pTarget == nullptr);
+  BOOL                       bFullscreen;
   SK_ComPtr <IDXGIOutput>                   pOutput;
   This->GetFullscreenState (&bFullscreen,  &pOutput.p);
 
@@ -4796,7 +4729,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                      L"(Requested: Windowed, Using: Fullscreen)" );
       Fullscreen = TRUE;
-      if (bNoOutput)
         pTarget  = pOutput.p;
     }
 
@@ -4807,14 +4739,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       pTarget    = nullptr;
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                      L"(Requested: Fullscreen, Using: Windowed)" );
-
-      ///if (config.render.framerate.swapchain_wait > 0)
-      ///{
-      ///  dll_log->Log ( L"[   DXGI   ]  ## Waitable SwapChains Cannot Go Fullscreen...");
-      ///  rb.fullscreen_exclusive = False;
-      ///  _UpdateColorSpace (This);
-      ///  return S_OK;
-      ///}
     }
 
     else if (request_mode_change == mode_change_request_e::Fullscreen &&
@@ -4823,7 +4747,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                L"User Initiated Fulllscreen Switch" );
       Fullscreen = TRUE;
-      if (bNoOutput)
         pTarget  = pOutput.p;
     }
     else if (request_mode_change == mode_change_request_e::Windowed &&
@@ -4837,31 +4760,15 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   }
 
   HRESULT    ret;
+  DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
 
-  if (bFullscreen == Fullscreen && pOutput.IsEqualObject (pTarget))
-    ret = S_OK;
-  else
-  {
-    if (! bNoOutput) // Dump our output reference before going fullscreen
-            pOutput = nullptr;
-
-    DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
-  }
+  pOutput.Release ();
 
   //
   // Necessary provisions for Fullscreen Flip Mode
   //
-  if (bFullscreen != Fullscreen && SUCCEEDED (ret) && ret != DXGI_STATUS_MODE_CHANGE_IN_PROGRESS)
+  if ( SUCCEEDED (ret) )
   {
-    // Drain the pipeline
-    This->Present ( 0, DXGI_PRESENT_RESTART |
-                       DXGI_PRESENT_DO_NOT_SEQUENCE |
-                       DXGI_PRESENT_DO_NOT_WAIT );
-
-    // Let go of the wait handle so we can resize
-    rb.releaseOwnedResources ();
-    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
-
     DXGI_SWAP_CHAIN_DESC           desc = { };
     if (SUCCEEDED (This->GetDesc (&desc)))
     {
@@ -4873,14 +4780,18 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
         desc.BufferDesc.Format =
           SK_DXGI_PickHDRFormat (desc.BufferDesc.Format);
 
-        if (FAILED (This->ResizeBuffers ( desc.BufferCount,
-                                            desc.BufferDesc.Width,
-                                            desc.BufferDesc.Height,
-                                              desc.BufferDesc.Format, _Flags ) )
-           )
+        if (FAILED (This->Present ( 0, DXGI_PRESENT_TEST )))
         {
-          Fullscreen = ~Fullscreen;
-          SetFullscreenState_Original (This, Fullscreen, nullptr);
+          SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+
+          if (FAILED (This->ResizeBuffers ( desc.BufferCount,
+                                              desc.BufferDesc.Width,
+                                              desc.BufferDesc.Height,
+                                                desc.BufferDesc.Format, _Flags ) )
+             )
+          {
+            ret = DXGI_STATUS_MODE_CHANGE_IN_PROGRESS;
+          }
         }
       }
     }
@@ -4888,10 +4799,10 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     if (SUCCEEDED (ret) && ret != DXGI_STATUS_MODE_CHANGE_IN_PROGRESS)
     {
       rb.fullscreen_exclusive = Fullscreen;
+
+      _UpdateColorSpace (This);
     }
   }
-
-  _UpdateColorSpace (This);
 
   return ret;
 }
@@ -5165,21 +5076,21 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   }
   //DXGI_FORMAT oldFormat = NewFormat;
 
+  SK_D3D11_EndFrame        ();
+  SK_D3D11_ResetTexCache   ();
+  SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+
   HRESULT     ret =
     ResizeBuffers_Original ( This, BufferCount, Width, Height,
                                NewFormat, SwapChainFlags );
 
   if (ret == DXGI_ERROR_INVALID_CALL)
   {
-    SK_D3D11_EndFrame        ();
-    SK_D3D11_ResetTexCache   ();
-    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
-
     rb.releaseOwnedResources ();
 
     DXGI_CALL ( ret, ResizeBuffers_Original (
-                       This, BufferCount, Width, Height,
-                               NewFormat, SwapChainFlags )
+                       This, 0, 0, 0,
+                               DXGI_FORMAT_UNKNOWN, SwapChainFlags )
               );
   }
 
@@ -5193,48 +5104,6 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   {
     if (Width != 0 && Height != 0)
     {
-      SK_SetWindowResX (Width);
-      SK_SetWindowResY (Height);
-    }
-
-    else
-    {
-      extern void SK_Display_PushDPIScaling         (void);
-      extern void SK_Display_PopDPIScaling          (void);
-      extern void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
-
-      SK_Display_PushDPIScaling         (    );
-      SK_Display_SetMonitorDPIAwareness (true);
-      {
-        UINT xdpi = 96,
-             ydpi = 96;
-
-        HMONITOR monitor =
-          ::MonitorFromWindow (
-            (HWND)game_window.hWnd, MONITOR_DEFAULTTONEAREST
-          );
-
-        static HINSTANCE     shcore_dll =
-          SK_LoadLibraryW (L"shcore.dll"); // Reference counted per-process
-        static PFN_GetDpiForMonitor GetDpiForMonitorFn =
-              (PFN_GetDpiForMonitor)SK_GetProcAddress (shcore_dll,
-                  "GetDpiForMonitor");
-
-        if (GetDpiForMonitorFn != nullptr)
-        {
-          GetDpiForMonitorFn ( (HMONITOR)monitor,
-                  MDT_RAW_DPI, &xdpi,
-                               &ydpi );
-        }
-
-        RECT                               rect = { };
-        GetClientRect ( game_window.hWnd, &rect );
-
-        Width  = MulDiv (rect.right  - rect.left, USER_DEFAULT_SCREEN_DPI, xdpi);
-        Height = MulDiv (rect.bottom - rect.top,  USER_DEFAULT_SCREEN_DPI, ydpi);
-      }
-      SK_Display_PopDPIScaling         (    );
-
       SK_SetWindowResX (Width);
       SK_SetWindowResY (Height);
     }
@@ -5403,71 +5272,30 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   pNewNewTargetParameters->Format =
     SK_DXGI_PickHDRFormat (pNewNewTargetParameters->Format);
 
+  SK_D3D11_EndFrame        ();
+  SK_D3D11_ResetTexCache   ();
+  SK_CEGUI_QueueResetD3D11 (); // Prior to next present, reset the UI
+
   ret =
     ResizeTarget_Original (This, pNewNewTargetParameters);
 
   if (FAILED (ret))
   {
-    SK_D3D11_EndFrame        ();
-    SK_D3D11_ResetTexCache   ();
-    SK_CEGUI_QueueResetD3D11 (); // Prior to next present, reset the UI
-
     DXGI_CALL ( ret,
                   ResizeTarget_Original ( This, pNewNewTargetParameters )
               );
   }
 
   else
+  {
     DXGI_CALL ( ret, ret );
-
+  }
 
   if (SUCCEEDED (ret))
   {
     if ( pNewNewTargetParameters->Width  != 0 &&
          pNewNewTargetParameters->Height != 0 )
     {
-      SK_SetWindowResX (pNewNewTargetParameters->Width);
-      SK_SetWindowResY (pNewNewTargetParameters->Height);
-    }
-
-    else
-    {
-      extern void SK_Display_PushDPIScaling         (void);
-      extern void SK_Display_PopDPIScaling          (void);
-      extern void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
-
-      SK_Display_PushDPIScaling         (    );
-      SK_Display_SetMonitorDPIAwareness (true);
-      {
-        UINT xdpi = 96,
-             ydpi = 96;
-
-        HMONITOR monitor =
-          ::MonitorFromWindow (
-            (HWND)game_window.hWnd, MONITOR_DEFAULTTONEAREST
-          );
-
-        static HINSTANCE     shcore_dll =
-          SK_LoadLibraryW (L"shcore.dll"); // Reference counted per-process
-        static PFN_GetDpiForMonitor GetDpiForMonitorFn =
-              (PFN_GetDpiForMonitor)SK_GetProcAddress (shcore_dll,
-                  "GetDpiForMonitor");
-
-        if (GetDpiForMonitorFn != nullptr)
-        {
-          GetDpiForMonitorFn ( (HMONITOR)monitor,
-                  MDT_RAW_DPI, &xdpi,
-                               &ydpi );
-        }
-
-        RECT                               rect = { };
-        GetClientRect ( game_window.hWnd, &rect );
-
-        pNewNewTargetParameters->Width  = MulDiv (rect.right  - rect.left, USER_DEFAULT_SCREEN_DPI, xdpi);
-        pNewNewTargetParameters->Height = MulDiv (rect.bottom - rect.top,  USER_DEFAULT_SCREEN_DPI, ydpi);
-      }
-      SK_Display_PopDPIScaling         (    );
-
       SK_SetWindowResX (pNewNewTargetParameters->Width);
       SK_SetWindowResY (pNewNewTargetParameters->Height);
     }
@@ -5663,6 +5491,9 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
       if (config.render.dxgi.safe_fullscreen)
         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
+      if (SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
+        bFlipMode = true;
+
       if (request_mode_change == mode_change_request_e::Fullscreen)
       {
         dll_log->Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
@@ -5687,59 +5518,35 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
 
       static const auto
         game_id = SK_GetCurrentGameID ();
-#ifdef _WIN64
-      if (! bFlipMode)
+
+      // If forcing flip-model, then force multisampling (of the primary framebuffer) off
+      if (config.render.framerate.flip_discard)
       {
         bFlipMode =
-          ( dxgi_caps.present.flip_sequential &&
-            ( game_id == SK_GAME_ID::Fallout4 ||
-              SK_DS3_UseFlipMode  ()        ) );
+          dxgi_caps.present.flip_sequential;
 
-        // For the one in a million games that actually use this (:-\)
-        if ( SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect) )
+        pDesc->SampleDesc.Count   = 1;
+        pDesc->SampleDesc.Quality = 0;
+
+        // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+        switch (pDesc->BufferDesc.Format)
         {
-          bFlipMode = true;
-        }
-      }
-
-      if (game_id == SK_GAME_ID::Fallout4)
-      {
-        if (bFlipMode)
-            bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
-      }
-
-      else
-#endif
-      {
-        // If forcing flip-model, then force multisampling (of the primary framebuffer) off
-        if (config.render.framerate.flip_discard)
-        {
-          bFlipMode =
-            dxgi_caps.present.flip_sequential;
-
-          pDesc->SampleDesc.Count   = 1;
-          pDesc->SampleDesc.Quality = 0;
-
-          // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
-          switch (pDesc->BufferDesc.Format)
-          {
-            case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-              dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
-            case DXGI_FORMAT_B8G8R8A8_UNORM:
-            case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-              pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-              break;
-            case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-              pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-              dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
-            case DXGI_FORMAT_R8G8B8A8_UNORM:
-            case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-              pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-              break;
-              //pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-              //dll_log->Log ( L"[ DXGI 1.2 ]  >> BGRA (R8G8B8A8) Override Required to Enable Flip Model" );
-              break;
-          }
+          case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+            dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+          case DXGI_FORMAT_B8G8R8A8_UNORM:
+          case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+            pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+            break;
+          case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+            pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+          case DXGI_FORMAT_R8G8B8A8_UNORM:
+          case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+            pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            break;
+            //pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            //dll_log->Log ( L"[ DXGI 1.2 ]  >> BGRA (R8G8B8A8) Override Required to Enable Flip Model" );
+            break;
         }
       }
 
@@ -5758,9 +5565,6 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
                                       bFlipMode ) &&
               dxgi_caps.swapchain.allow_tearing )
       {
-        /////if (config.render.framerate.flip_discard)
-        /////  pDesc->Windowed = TRUE;
-
         if (pDesc->Windowed)
         {
           pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
@@ -5840,17 +5644,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
       bWait =
         bFlipMode && dxgi_caps.present.waitable;
 
-      // We cannot change the swapchain parameters if this is used...
       bWait =
         bWait && ( config.render.framerate.swapchain_wait > 0 );
-
-#ifdef _WIN64
-      if (game_id == SK_GAME_ID::DarkSouls3)
-      {
-        if (SK_DS3_IsBorderless ())
-          pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-      }
-#endif
 
       // User is forcing flip mode
       //
