@@ -1191,48 +1191,16 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_range_     (0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE) UINT          NumViewports,
     _In_reads_opt_ (NumViewports)                                          const D3D11_VIEWPORT *pViewports ) override
   {
-    ///static const bool bVesperia =
-    ///  (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia);
-    ///
-    ///if (bVesperia)
-    ///{
-    ///  bool
-    ///  STDMETHODCALLTYPE
-    ///  SK_TVFix_D3D11_RSSetViewports_Callback (
-    ///          ID3D11DeviceContext *This,
-    ///          UINT                 NumViewports,
-    ///    const D3D11_VIEWPORT      *pViewports );
-    ///
-    ///  if (SK_TVFix_D3D11_RSSetViewports_Callback (pReal, NumViewports, pViewports))
-    ///    return;
-    ///}
-
-      pReal->RSSetViewports (
-               NumViewports,
-                 pViewports
-      );
+    pReal->RSSetViewports (
+             NumViewports,
+               pViewports
+    );
   }
 
   void STDMETHODCALLTYPE RSSetScissorRects (
     _In_range_     (0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE) UINT      NumRects,
     _In_reads_opt_ (NumRects)                                              const D3D11_RECT *pRects ) override
   {
-    ///static const bool bVesperia =
-    ///  (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia);
-    ///
-    ///if (bVesperia)
-    ///{
-    ///  bool
-    ///  STDMETHODCALLTYPE
-    ///  SK_TVFix_D3D11_RSSetScissorRects_Callback (
-    ///          ID3D11DeviceContext *This,
-    ///          UINT                 NumRects,
-    ///    const D3D11_RECT          *pRects );
-    ///
-    ///  if (SK_TVFix_D3D11_RSSetScissorRects_Callback (pReal, NumRects, pRects))
-    ///    return;
-    ///}
-
     pReal->RSSetScissorRects (NumRects, pRects);
   }
 
@@ -1252,45 +1220,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
       return;
     }
 
-
-    ///if (SK_GetCurrentGameID() == SK_GAME_ID::Ys_Eight)
-    ///{
-    ///  SK_ComQIPtr <ID3D11Texture2D> pTex (pSrcResource);
-    ///
-    ///  if (pTex)
-    ///  {
-    ///    D3D11_BOX box = { };
-    ///
-    ///    if (pSrcBox != nullptr)
-    ///        box = *pSrcBox;
-    ///
-    ///    else
-    ///    {
-    ///      D3D11_TEXTURE2D_DESC tex_desc = {};
-    ///           pTex->GetDesc (&tex_desc);
-    ///
-    ///      box.left  = 0; box.right  = tex_desc.Width;
-    ///      box.top   = 0; box.bottom = tex_desc.Height;
-    ///      box.front = 0; box.back   = 1;
-    ///    }
-    ///
-    ///    dll_log.Log ( L"CopySubresourceRegion:  { %s <%lu> [ %lu/%lu, %lu/%lu, %lu/%lu ] } -> { %s <%lu> (%lu,%lu,%lu) }",
-    ///                    DescribeResource (pSrcResource).c_str (), SrcSubresource, box.left,box.right, box.top,box.bottom, box.front,box.back,
-    ///                    DescribeResource (pDstResource).c_str (), DstSubresource, DstX, DstY, DstZ );
-    ///  }
-    ///}
-
-
-    ///if ( (! config.render.dxgi.deferred_isolation)    &&
-    ///          pReal->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED )
-    ///{
-    ///  return
-    ///    pReal->CopySubresourceRegion ( pDstResource, DstSubresource,
-    ///                                     DstX, DstY, DstZ,
-    ///                                       pSrcResource, SrcSubresource,
-    ///                                         pSrcBox );
-    ///}
-
     SK_TLS* pTLS =
       SK_TLS_Bottom ();
 
@@ -1298,58 +1227,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
       SK_D3D11_Textures;
 
     SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
-
-    if (pDstTex != nullptr)
-    {
-      //if (! SK_D3D11_IsTexInjectThread (pTLS))
-      //{
-        //if (SK_GetCurrentGameID () == SK_GAME_ID::PillarsOfEternity2)
-        //{
-        //  extern          bool SK_POE2_NopSubresourceCopy;
-        //  extern volatile LONG SK_POE2_SkippedCopies;
-        //
-        //  if (SK_POE2_NopSubresourceCopy)
-        //  {
-        //    D3D11_TEXTURE2D_DESC desc_out = { };
-        //      pDstTex->GetDesc (&desc_out);
-        //
-        //    if (pSrcBox != nullptr)
-        //    {
-        //      dll_log.Log (L"Copy (%lu-%lu,%lu-%lu : %lu,%lu,%lu : %s : {%p,%p})",
-        //        pSrcBox->left, pSrcBox->right, pSrcBox->top, pSrcBox->bottom,
-        //          DstX, DstY, DstZ,
-        //            SK_D3D11_DescribeUsage (desc_out.Usage),
-        //              pSrcResource, pDstResource );
-        //    }
-        //
-        //    else
-        //    {
-        //      dll_log.Log (L"Copy (%lu,%lu,%lu : %s)",
-        //                   DstX, DstY, DstZ,
-        //                   SK_D3D11_DescribeUsage (desc_out.Usage) );
-        //    }
-        //
-        //    if (pSrcBox == nullptr || ( pSrcBox->right != 3840 || pSrcBox->bottom != 2160 ))
-        //    {
-        //      if (desc_out.Usage == D3D11_USAGE_STAGING || pSrcBox == nullptr)
-        //      {
-        //        InterlockedIncrement (&SK_POE2_SkippedCopies);
-        //
-        //        return;
-        //      }
-        //    }
-        //  }
-        //}
-
-        //if (DstSubresource == 0 && SK_D3D11_TextureIsCached (pDstTex))
-        //{
-        //  SK_LOG0 ( (L"Cached texture was modified (CopySubresourceRegion)... removing from cache! - <%s>",
-        //           SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-        //  SK_D3D11_RemoveTexFromCache (pDstTex, true);
-        //}
-      //}
-    }
-
 
     // ImGui gets to pass-through without invoking the hook
     if (! config.textures.cache.allow_staging)
