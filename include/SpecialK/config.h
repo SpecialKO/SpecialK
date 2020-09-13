@@ -352,8 +352,8 @@ struct sk_config_t
       bool    disable_flip       = false;
       bool    drop_late_flips    = true;
       bool    wait_for_vblank    = false;
-      bool    sleepless_render   = true;
-      bool    sleepless_window   = true;
+      bool    sleepless_render   = false;
+      bool    sleepless_window   = false;
       bool    enable_mmcss       = true;
       int     enforcement_policy = 4; // Refer to framerate.cpp
     } framerate;
