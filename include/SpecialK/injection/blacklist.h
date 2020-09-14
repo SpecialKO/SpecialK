@@ -156,6 +156,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"dllhost.exe"),
   SK_MakeUnicode (L"svchost.exe"),
   SK_MakeUnicode (L"sihost.exe"),
+  SK_MakeUnicode (L"postcrashdump.exe"),
 
   SK_MakeUnicode (L"launcher.exe"),
   SK_MakeUnicode (L"launchpad.exe"),

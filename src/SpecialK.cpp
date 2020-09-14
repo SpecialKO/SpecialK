@@ -194,7 +194,6 @@ SK_KeepAway (void)
   GetModuleFileName ( hModApp,
                        wszAppFullName, MAX_PATH       );
   if ( StrStrIW (      wszAppFullName, L"rundll32"    )            ) return 0;
-  if ( StrStrIW (      wszAppFullName, L"explorer.exe")            ) return 0;
 
   // If user-interactive, check against an internal blacklist
   #include <SpecialK/injection/blacklist.h>
@@ -231,25 +230,6 @@ SK_KeepAway (void)
   if (ret == 0)
       ret =
     _TestUndesirableDll ( __blacklist, 2 );
-
-  // Pin these DLLs (leak a reference) into anything we visit,
-  //   because we might be coming back (frequently!).
-  SK_LoadLibraryW (L"VCRUNTIME140_1.dll");
-  SK_LoadLibraryW (L"VCRUNTIME140.dll"  );
-  SK_LoadLibraryW (L"CONCRT140.dll"     );
-  SK_LoadLibraryW (L"MSVCP140.dll"      );
-  SK_LoadLibraryW (L"WININET.dll"       );
-  SK_LoadLibraryW (L"WINMM.dll"         );
-  SK_LoadLibraryW (L"COMCTL32.dll"      );
-  SK_LoadLibraryW (L"SHELL32.dll"       );
-  SK_LoadLibraryW (L"SHLWAPI.dll"       );
-  SK_LoadLibraryW (L"POWRPROF.dll"      );
-  SK_LoadLibraryW (L"ADVAPI32.dll"      );
-
-  SK_LoadLibraryW (L"api-ms-win-crt-heap-l1-1-0.dll"   );
-  SK_LoadLibraryW (L"api-ms-win-crt-string-l1-1-0.dll" );
-  SK_LoadLibraryW (L"api-ms-win-crt-runtime-l1-1-0.dll");
-  SK_LoadLibraryW (L"api-ms-win-crt-stdio-l1-1-0.dll"  );
 
   return ret;
 }
@@ -363,7 +343,7 @@ DllMain ( HMODULE hModule,
       INT dll_isolation_lvl =
         SK_KeepAway ();
 
-      if      (dll_isolation_lvl >= 2) return EarlyOut (FALSE);
+      if      (dll_isolation_lvl >= 2) return EarlyOut (TRUE);
       else if (dll_isolation_lvl >  0) return EarlyOut (TRUE);
 
       // We reserve the right to deny attaching the DLL, this will

@@ -215,7 +215,6 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <OpenMPSupport>false</OpenMPSupport>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Ob3</AdditionalOptions>
@@ -261,7 +260,6 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <Optimization>MaxSpeed</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <OpenMPSupport>false</OpenMPSupport>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>

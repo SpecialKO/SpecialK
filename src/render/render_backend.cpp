@@ -913,6 +913,10 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     }
 
     d3d11.immediate_ctx = nullptr;
+
+    void
+    SK_HDR_ReleaseResources (void);
+    SK_HDR_ReleaseResources ();
   }
 
   catch (const SK_SEH_IgnoredException &)

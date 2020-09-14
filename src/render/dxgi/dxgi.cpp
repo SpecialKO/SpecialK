@@ -1019,9 +1019,7 @@ SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
 
 #define __NIER_HACK
 
-UINT
-SK_DXGI_FixUpLatencyWaitFlag (IDXGISwapChain *pSwapChain, UINT Flags);
-
+UINT SK_DXGI_FixUpLatencyWaitFlag (IDXGISwapChain* pSwapChain, UINT Flags, BOOL bCreation = FALSE);
 
 extern int                      gpu_prio;
 
@@ -4466,7 +4464,6 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
         SK_DXGI_PickHDRFormat (pNewNewTargetParameters->Format);
     }
 
-
     ret =
       ResizeTarget_Original (This, pNewNewTargetParameters);
 
@@ -4475,12 +4472,9 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
       SK_D3D11_EndFrame        ();
       SK_D3D11_ResetTexCache   ();
       SK_CEGUI_QueueResetD3D11 (); // Prior to next present, reset the UI
-
-      ret =
-        ResizeTarget_Original (This, pNewNewTargetParameters);
     }
 
-    if (SUCCEEDED (ret))
+    else
     {
       rb.swapchain = This;
 
@@ -4728,10 +4722,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     pTarget    = nullptr;
   }
 
-  BOOL                       bFullscreen;
-  SK_ComPtr <IDXGIOutput>                   pOutput;
-  This->GetFullscreenState (&bFullscreen,  &pOutput.p);
-
   if (! no_override)
   {
     if (config.display.force_fullscreen && Fullscreen == FALSE)
@@ -4739,7 +4729,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                      L"(Requested: Windowed, Using: Fullscreen)" );
       Fullscreen = TRUE;
-        pTarget  = pOutput.p;
     }
 
     // Waitable SwapChains Cannot Go Fullscreen
@@ -4757,7 +4746,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                L"User Initiated Fulllscreen Switch" );
       Fullscreen = TRUE;
-        pTarget  = pOutput.p;
     }
     else if (request_mode_change == mode_change_request_e::Windowed &&
                       Fullscreen != FALSE)
@@ -4771,8 +4759,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
   HRESULT    ret;
   DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
-
-  pOutput.Release ();
 
   //
   // Necessary provisions for Fullscreen Flip Mode
@@ -4806,11 +4792,13 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       }
     }
 
-    if (SUCCEEDED (ret) && ret != DXGI_STATUS_MODE_CHANGE_IN_PROGRESS)
+    if ( SUCCEEDED (ret) &&
+                    ret  != DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
     {
       rb.fullscreen_exclusive = Fullscreen;
 
-      _UpdateColorSpace (This);
+      if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
+        _UpdateColorSpace (This);
     }
   }
 
@@ -4970,19 +4958,15 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
     }
   }
 
-  SwapChainFlags =
-    SK_DXGI_FixUpLatencyWaitFlag (This, SwapChainFlags);
-
-  NewFormat =
-    SK_DXGI_PickHDRFormat (NewFormat);
-
-
   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
     L"%lu,%lu,%lu,%s,0x%08X",
     BufferCount, Width, Height,
     SK_DXGI_FormatToStr (NewFormat).c_str (), SwapChainFlags );
 
-
+  SwapChainFlags =
+    SK_DXGI_FixUpLatencyWaitFlag (This, SwapChainFlags);
+  NewFormat      =
+    SK_DXGI_PickHDRFormat (NewFormat);
 
   if (       config.render.framerate.buffer_count != -1           &&
        (UINT)config.render.framerate.buffer_count !=  BufferCount &&
@@ -5009,33 +4993,22 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
       SwapChainFlags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
     }
 
-    BufferCount =
-      std::max (2ui32, BufferCount);
-  }
+    else
+    {
+      SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+      dll_log->Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+    }
 
-  if ( ( config.render.framerate.flip_discard ||
-           SK_DXGI_IsFlipModelSwapEffect (
-                    swap_desc.SwapEffect ) )  &&
-           dxgi_caps.swapchain.allow_tearing
-     )
-  {
-    SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-    dll_log->Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+    BufferCount =
+      std::min (16ui32,
+       std::max (2ui32, BufferCount)
+               );
   }
 
   if (! config.window.res.override.isZero ())
   {
     Width  = config.window.res.override.x;
     Height = config.window.res.override.y;
-  }
-
-  // TODO: Something if Fullscreen
-  else if (config.window.borderless && (! config.window.fullscreen))
-  {
-    SK_DXGI_BorderCompensation (
-      Width,
-      Height
-    );
   }
 
   // Clamp the buffer dimensions if the user has a min/max preference
@@ -5052,23 +5025,13 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   Width   =  std::max ( max_x , min_x );
   Height  =  std::max ( max_y , min_y );
 
-
-  static const auto game_id =
-    SK_GetCurrentGameID ();
-
-  if (game_id == SK_GAME_ID::DotHackGU)
-  {
-    NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
-  }
-
-
   // If forcing flip-model, kill multisampling (of primary framebuffer)
   if (config.render.framerate.flip_discard)
   {
     bFlipMode =
       dxgi_caps.present.flip_sequential;
 
-    // Format overrides must be performed in some cases (sRGB / 10:10:10:2)
+    // Format overrides must be performed in some cases (sRGB)
     switch (NewFormat)
     {
       case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
@@ -5082,9 +5045,7 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
                        L"Required to Enable Flip Model" );
         break;
     }
-
   }
-  //DXGI_FORMAT oldFormat = NewFormat;
 
   SK_D3D11_EndFrame        ();
   SK_D3D11_ResetTexCache   ();
@@ -5094,21 +5055,7 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
     ResizeBuffers_Original ( This, BufferCount, Width, Height,
                                NewFormat, SwapChainFlags );
 
-  if (ret == DXGI_ERROR_INVALID_CALL)
-  {
-    rb.releaseOwnedResources ();
-
-    DXGI_CALL ( ret, ResizeBuffers_Original (
-                       This, 0, 0, 0,
-                               DXGI_FORMAT_UNKNOWN, SwapChainFlags )
-              );
-  }
-
-  else
-  {
-    DXGI_CALL (ret, ret);
-  }
-
+  DXGI_CALL (ret, ret);
 
   if (SUCCEEDED (ret))
   {
@@ -5253,12 +5200,6 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     new_new_params.Height = config.window.res.override.y;
   }
 
-  else if ( (! config.window.fullscreen) &&
-               config.window.borderless )
-  {
-    SK_DXGI_BorderCompensation ( new_new_params.Width,
-                                 new_new_params.Height );
-  }
 
   DXGI_MODE_DESC* pNewNewTargetParameters =
     &new_new_params;
@@ -5289,17 +5230,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   ret =
     ResizeTarget_Original (This, pNewNewTargetParameters);
 
-  if (FAILED (ret))
-  {
-    DXGI_CALL ( ret,
-                  ResizeTarget_Original ( This, pNewNewTargetParameters )
-              );
-  }
-
-  else
-  {
-    DXGI_CALL ( ret, ret );
-  }
+  DXGI_CALL ( ret, ret );
 
   if (SUCCEEDED (ret))
   {
@@ -5526,9 +5457,6 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         pDesc->Windowed = TRUE;
       }
 
-      static const auto
-        game_id = SK_GetCurrentGameID ();
-
       // If forcing flip-model, then force multisampling (of the primary framebuffer) off
       if (config.render.framerate.flip_discard)
       {
@@ -5538,7 +5466,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         pDesc->SampleDesc.Count   = 1;
         pDesc->SampleDesc.Quality = 0;
 
-        // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+        // Format overrides must be performed in certain cases (sRGB)
         switch (pDesc->BufferDesc.Format)
         {
           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
@@ -5553,11 +5481,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
           case DXGI_FORMAT_R8G8B8A8_UNORM:
           case DXGI_FORMAT_R8G8B8A8_TYPELESS:
             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            break;
-            //pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            //dll_log->Log ( L"[ DXGI 1.2 ]  >> BGRA (R8G8B8A8) Override Required to Enable Flip Model" );
-            break;
-        }
+            break;        }
       }
 
       if (       config.render.framerate.buffer_count != -1                  &&
@@ -5580,6 +5504,9 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
           pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
           dll_log->Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
         }
+
+        else
+          pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
       }
 
       if ( config.render.dxgi.scaling_mode != -1 &&
@@ -5673,8 +5600,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
             std::max (2, std::min (16, config.render.framerate.buffer_count));
         }
 
-        if (config.render.framerate.flip_discard &&
-            dxgi_caps.present.flip_discard)
+        if ( config.render.framerate.flip_discard &&
+                   dxgi_caps.present.flip_discard )
           pDesc->SwapEffect  = (DXGI_SWAP_EFFECT)DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
         else // On Windows 8.1 and older, sequential must substitute for discard
@@ -5763,19 +5690,20 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
   const uint32_t max_latency =
     config.render.framerate.pre_render_limit;
 
-  SK_ComQIPtr <IDXGISwapChain2> pSwapChain2 (pSwapChain);
-
+  SK_ComQIPtr <IDXGISwapChain2>
+      pSwapChain2 (pSwapChain);
   if (pSwapChain2 != nullptr)
   {
     if (max_latency < 16 && max_latency > 0)
     {
       dll_log->Log ( L"[   DXGI   ] Setting Swapchain Frame Latency: %lu",
-                       max_latency );
+                                           max_latency);
       pSwapChain2->SetMaximumFrameLatency (max_latency);
     }
   }
 
-  if (max_latency < 16 && max_latency > 0)
+  if ( max_latency < 16 &&
+       max_latency >  0 )
   {
     SK_ComPtr <IDXGIDevice1> pDevice1;
 
@@ -5786,7 +5714,7 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
        )
     {
       dll_log->Log ( L"[   DXGI   ] Setting Device    Frame Latency: %lu",
-                       max_latency );
+                                        max_latency);
       pDevice1->SetMaximumFrameLatency (max_latency);
     }
   }
@@ -5854,8 +5782,11 @@ SK_DXGI_CreateSwapChain_PostInit (
   SK_D3D11_ResetTexCache   ();
   SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
 
-  if (pDesc != nullptr && pDesc->BufferDesc.Width != 0)
+  if ( pDesc != nullptr        &&
+       pDesc->BufferDesc.Width != 0 )
   {
+    SK_ReleaseAssert (pDesc->BufferDesc.Height != 0);
+
     SK_SetWindowResX (pDesc->BufferDesc.Width);
     SK_SetWindowResY (pDesc->BufferDesc.Height);
   }
@@ -5864,7 +5795,10 @@ SK_DXGI_CreateSwapChain_PostInit (
   {
     RECT client = { };
 
+    // TODO (XXX): This may be DPI scaled -- write a function to get the client rect in pixel coords (!!)
+    //
     GetClientRect    (game_window.hWnd, &client);
+
     SK_SetWindowResX (client.right  - client.left);
     SK_SetWindowResY (client.bottom - client.top);
   }
@@ -5872,21 +5806,23 @@ SK_DXGI_CreateSwapChain_PostInit (
   if (  ppSwapChain != nullptr &&
        *ppSwapChain != nullptr )
   {
-    SK_ComQIPtr <IDXGISwapChain2> pSwapChain2 (*ppSwapChain);
-
-    SK_DXGI_UpdateLatencies (pSwapChain2);
-
-    if (pSwapChain2 != nullptr)
+    SK_ComQIPtr <IDXGISwapChain2>
+                     pSwapChain2 (*ppSwapChain);
+    SK_DXGI_UpdateLatencies (
+                     pSwapChain2
+    );
+    if ( nullptr !=  pSwapChain2.p )
     {
+      // Immediately following creation, wait on the SwapChain to get the semaphore initialized.
       if (bFlipMode && bWait)
       {
         HANDLE hWaitHandle =
           rb.getSwapWaitHandle ();
-
-        if (hWaitHandle > 0)
+        if (   hWaitHandle > 0 )
         {
-          WaitForSingleObjectEx ( hWaitHandle,
-              INFINITE, TRUE
+          WaitForSingleObjectEx (
+               hWaitHandle, INFINITE,
+                 TRUE
           );
         }
       }
@@ -7414,9 +7350,9 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   DXGI_COLOR_SPACE_TYPE  ColorSpace,
   UINT                  *pColorSpaceSupported )
 {
-  //SK_LOG0 ( ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%s) ",
-  //              DXGIColorSpaceToStr (ColorSpace) ),
-  //            L"   DXGI   " );
+  SK_LOG0 ( ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%s) ",
+                DXGIColorSpaceToStr (ColorSpace) ),
+              L"   DXGI   " );
 
   //if ( (INT)ColorSpace < DXGI_COLOR_SPACE_CUSTOM ||
   //          ColorSpace > DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020 )
@@ -7468,55 +7404,56 @@ IDXGISwapChain3_SetColorSpace1_Override (
       This, ColorSpace
     );
 
-  SK_ComPtr <IDXGIOutput>     pOutput;
-  This->GetContainingOutput (&pOutput);
-
-  SK_ComQIPtr <IDXGIOutput6> pOutput6 (pOutput);
-
-  if (pOutput6 != nullptr)
+  SK_ComPtr <IDXGIOutput>                    pOutput;
+  if (SUCCEEDED (This->GetContainingOutput (&pOutput.p)))
   {
-    DXGI_OUTPUT_DESC1    out_desc1 = { };
-    pOutput6->GetDesc1 (&out_desc1);
-
-    ////dll_log->Log ( L"HR=%x, Containing Output \"%s\" is %s to the Desktop",
-    ////             hr, rb.display_name,
-    ////             out_desc1.AttachedToDesktop ? L"attached" :
-    ////             L"not attached" );
-
-    rb.scanout.dwm_colorspace =
-      out_desc1.ColorSpace;
+    SK_ComQIPtr <IDXGIOutput6>
+        pOutput6 (   pOutput);
+    if (pOutput6 != nullptr)
+    {
+      DXGI_OUTPUT_DESC1                   out_desc1 = { };
+      if (SUCCEEDED (pOutput6->GetDesc1 (&out_desc1)))
+      {
+        rb.scanout.dwm_colorspace =
+          out_desc1.ColorSpace;
+      }
+    }
   }
 
   if (SUCCEEDED (hr))
   {
-    DXGI_SWAP_CHAIN_FULLSCREEN_DESC full_desc = { };
-          This->GetFullscreenDesc (&full_desc);
-
-    if (full_desc.Windowed)
+    DXGI_SWAP_CHAIN_FULLSCREEN_DESC          full_desc = { };
+    if (SUCCEEDED (This->GetFullscreenDesc (&full_desc)))
     {
-      rb.scanout.dxgi_colorspace =
-        rb.scanout.dwm_colorspace;
-    }
+      if (full_desc.Windowed)
+      {
+        rb.scanout.dxgi_colorspace =
+          rb.scanout.dwm_colorspace;
+      }
 
-    else
-      rb.scanout.dxgi_colorspace = ColorSpace;
+      else
+        rb.scanout.dxgi_colorspace = ColorSpace;
+    }
   }
 
   else
   {
+    SK_ComQIPtr <IDXGIOutput6>
+        pOutput6 (   pOutput);
     if (pOutput6 != nullptr)
     {
-      DXGI_OUTPUT_DESC1    out_desc1 = { };
-      pOutput6->GetDesc1 (&out_desc1);
+      DXGI_OUTPUT_DESC1                   out_desc1 = { };
+      if (SUCCEEDED (pOutput6->GetDesc1 (&out_desc1)))
+      {
+        dll_log->Log ( L"HR=%x, Containing Output \"%s\" is %s to the Desktop"
+                       L"\t\t[ColorSpace May be Wrong]",
+                         hr, rb.display_name,
+                         out_desc1.AttachedToDesktop ? L"attached" :
+                                                       L"not attached" );
 
-      dll_log->Log ( L"HR=%x, Containing Output \"%s\" is %s to the Desktop"
-                     L"\t\t[ColorSpace May be Wrong]",
-                       hr, rb.display_name,
-                       out_desc1.AttachedToDesktop ? L"attached" :
-                                                     L"not attached" );
-
-      rb.scanout.dxgi_colorspace =
-        out_desc1.ColorSpace;
+        rb.scanout.dxgi_colorspace =
+          out_desc1.ColorSpace;
+      }
     }
   }
 

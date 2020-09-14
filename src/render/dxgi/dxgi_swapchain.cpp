@@ -254,12 +254,17 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 }
 
 UINT
-SK_DXGI_FixUpLatencyWaitFlag (IDXGISwapChain *pSwapChain, UINT Flags)
+SK_DXGI_FixUpLatencyWaitFlag ( IDXGISwapChain *pSwapChain,
+                               UINT             Flags,
+                               BOOL            bCreation = FALSE )
 {
+  // This flag can only be assigned at the time of swapchain creation,
+  //   if it's not present in the swapchain's description, its too late.
+
   DXGI_SWAP_CHAIN_DESC  desc = { };
   pSwapChain->GetDesc (&desc);
 
-  if ( (desc.Flags &  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) || config.render.framerate.swapchain_wait > 0 )
+  if ( (desc.Flags &  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) || (bCreation && config.render.framerate.swapchain_wait > 0) )
             Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
   else      Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 

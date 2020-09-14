@@ -1,4 +1,41 @@
-﻿0.11.0.48:
+﻿0.11.0.49:
+
+ -------------------------------------------------------------------------------
+   ( Flip Model + Fullscreen Exclusive is now supported for all D3D11 games! )
+
+  This means that HDR can now be used in Fullscreen Display Modes, with Refresh Rate
+    overrides and (on NV hardware) your choice of signal encoding (e.g. YCbCr 4:4:4).
+
+    Refer to the Display menu for more details
+    ==========================================
+
+      >> NOTE: Not all of the Signal Encodings listed will work for your current
+         Refresh Rate (NvAPI -SUCKS- at enumerating Signal + Refresh Support)
+
+  + A ton of tooltips have been added to the D3D11 SwapChain and Framerate Limiter
+      sections, mostly amounting to "Reduces Input Latency."
+
+    * Tooltips will be immproved later, for now pay attention to "Low Latency Mode"
+        and "Drop Late Frames" in the Framerate Limiter config section.
+ --------------------------------
+ -----------------------------------------------
+
+ - Sleepless Window / Render Thread were accidentally enabled by default in 0.11.0.48.
+
+ + Removed Fallout 4 and Dark Souls 3 Flip Model plug-in options, these games will
+     use the standard SK flip model settings now instead of requiring special config.
+
+ + Unified IDXGISwapChain::Present (...) and IDXGISwapChain1::Present1 (...)
+     code for better compatibility with Chromium-based games (i.e. CrossCode) and
+       video players (i.e. VLC).
+
+     >> Steam Overlay does not hook/wrap IDXGISwapChain1::Present1 and cannot count
+          frames or even figure out when to draw in software that calls Present1 (...).
+
+      @  (!!)  VALVE might want to do something about this at some point :P
+
+
+0.11.0.48:
 
  + Added "Drop Late Frames" (DXGI Flip Model) to allow rendering at rates > Refresh
     ( Without Triple-Buffering's normal Latency ); Default = ON
@@ -47,20 +84,6 @@
      >> This leaves only 10-bit render passes promoted to full FP16 by default
  + HDR widget now defaults to CIE XYZ for In/Out Colorspaces
  + HDR widget displays new text explaining DCI-P3 and Rec2020 Colorspaces are for debugging only
-
-
-  RE: Display Gamut Color Primaries Reported by DXGI in Win 10 2004
-
-   It apears that Microsoft has changed the DXGI runtime to report a monitor's SDR EDID values
-   unless software has changed the output colorspace. This differs from all other versions of
-   Windows, in that they reported native color gamut even in SDR.
-
-   This is both good and bad; it should have coincided an easier method to detect if a display is
-   HDR even if the desktop is running in SDR and/or an API call to temporarily change the DWM
-   colorspace.
-
-     >> 1 Step Forward, 2 Steps Back ?
-
 
 0.11.0.45:
 

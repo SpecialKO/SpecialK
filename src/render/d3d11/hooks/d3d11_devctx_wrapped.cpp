@@ -288,7 +288,7 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
-    pMultiThread =
+    pMultiThread.p =
       SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
@@ -354,7 +354,7 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
-    pMultiThread =
+    pMultiThread.p =
       SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
@@ -385,7 +385,7 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
-    pMultiThread =
+    pMultiThread.p =
       SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
@@ -406,7 +406,7 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
-    pMultiThread =
+    pMultiThread.p =
       SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
@@ -580,11 +580,10 @@ public:
     {
       SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
 
-      if (pMultiThread.p != nullptr)
-      {   pMultiThread    = nullptr;
-      }
+      pMultiThread = nullptr;
 
-      delete this;
+      //delete this;
+      return 0;
     }
 
     return refs;
