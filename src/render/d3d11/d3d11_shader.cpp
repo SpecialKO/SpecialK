@@ -3213,8 +3213,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         }
       }
 
-      size_t len =
-        strlen ((const char *)pDisasm->GetBufferPointer ());
+      size_t len = SUCCEEDED (hr) ?
+        strlen ((const char *)pDisasm->GetBufferPointer ())
+                                  : 0;
 
       if (SUCCEEDED (hr) && len)
       {
