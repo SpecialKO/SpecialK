@@ -490,11 +490,11 @@ public:
         _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
         _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
 
-        config.window.borderless                    = true;
-        config.window.center                        = true;
-        config.window.fullscreen                    = true;
-        config.window.res.override.x                = static_cast <unsigned int> (io.DisplaySize.x);
-        config.window.res.override.y                = static_cast <unsigned int> (io.DisplaySize.y);
+      //config.window.borderless                    = true;
+      //config.window.center                        = true;
+      //config.window.fullscreen                    = true;
+      //config.window.res.override.x                = static_cast <unsigned int> (io.DisplaySize.x);
+      //config.window.res.override.y                = static_cast <unsigned int> (io.DisplaySize.y);
 
       //config.display.force_windowed               = true;
       //config.dpi.per_monitor.aware                = true;
@@ -507,9 +507,9 @@ public:
              config.render.framerate.buffer_count );
         config.render.framerate.pre_render_limit    =
              config.render.framerate.buffer_count + 1;
-        config.render.framerate.swapchain_wait      =
-          std::min ( 1000, std::max ( 40,
-            config.render.framerate.swapchain_wait ) );
+        //config.render.framerate.swapchain_wait      =
+        //  std::min ( 1000, std::max ( 40,
+        //    config.render.framerate.swapchain_wait ) );
 
         dll_ini->write (
           dll_ini->get_filename ()
