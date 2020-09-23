@@ -294,11 +294,6 @@ SK::ControlPanel::D3D11::Draw (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
     ImGui::TreePush       ("");
 
-    ////ImGui::Checkbox ("Overlay Compatibility Mode", &SK_DXGI_SlowStateCache);
-
-    ////if (ImGui::IsItemHovered ())
-      ////ImGui::SetTooltip ("Increased compatibility with video capture software")
-
     const bool swapchain =
       ImGui::CollapsingHeader ("SwapChain Management");
 
@@ -331,11 +326,6 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::Text         ("High-Performance Windowed Rendering");
         ImGui::Separator    ();
         ImGui::BulletText   ("Makes Windowed Mode Perform ~Same as Fullscreen Exclusive");
-        ImGui::BulletText   ("Can be used in Fullscreen Exclusive");
-        ImGui::Spacing      (); ImGui::SameLine ();
-        ImGui::Spacing      (); ImGui::SameLine ();
-        ImGui::Spacing      (); ImGui::SameLine ();
-        ImGui::Text         (" -> HDR Mode: a Resolution Override may be needed");
         ImGui::EndTooltip   ();
       }
       ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
@@ -404,14 +394,14 @@ SK::ControlPanel::D3D11::Draw (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ();
-          ImGui::Text         ("Reduces Input Latency When SK's Framerate Limiter is Engaged");
+          ImGui::Text         ("Reduces Windowed Input Latency When SK's Framerate Limiter is Engaged");
           ImGui::Separator    ();
           ImGui::BulletText   ("May cause compat. issues with ... nearly all 3rd-party software");
           ImGui::Spacing      (); ImGui::SameLine ();
           ImGui::Spacing      (); ImGui::SameLine ();
           ImGui::Spacing      (); ImGui::SameLine ();
           ImGui::Text         (" -> DXVK does not implement this correctly");
-          ImGui::BulletText   ("Fullscreen Exclusive May Stop Working In Some Games");
+          ImGui::BulletText   ("Fullscreen Exclusive Will Not Work While Enabled");
           ImGui::EndTooltip   ();
         }
 
@@ -492,7 +482,7 @@ SK::ControlPanel::D3D11::Draw (void)
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip ();
-              ImGui::Text         ("May Dramatically Improve Input Latency");
+              ImGui::Text         ("May Improve Input Latency");
               ImGui::Separator    ();
               ImGui::BulletText   ("ALWAYS set Framerate Limit to a Factor "
                                    "of your Refresh Rate in this mode (!!) ");
@@ -504,32 +494,13 @@ SK::ControlPanel::D3D11::Draw (void)
               bool bULMM =
                 ( config.render.framerate.pre_render_limit == 1 );
 
-              if (ImGui::Checkbox ("Ultra Low-Latency (AKA Stutter at Your Own Risk!)###SK_ULL_LIMITER", &bULMM))
+              if (ImGui::Checkbox ("Minimum Latency###SK_ULL_LIMITER", &bULMM))
               {
                 if (bULMM)
                   config.render.framerate.pre_render_limit = 1;
                 else
                   config.render.framerate.pre_render_limit = 2;
               }
-
-              if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip   ("This mode may cause stutter, use only if consistently hitting your refresh rate.");
-
-              //bool bVSYNC =
-              //  config.render.framerate.present_interval > 0;
-              //
-              //ImGui::NewLine    (); ImGui::SameLine ();
-              //ImGui::Spacing    (); ImGui::SameLine (); if (
-              //ImGui::Checkbox   ("Enable VSYNC###VSYNC", &bVSYNC)
-              //) { if (bVSYNC) config.render.framerate.present_interval = 1;
-              //    else        config.render.framerate.present_interval = 0;
-              //}
-              //
-              //ImGui::NewLine    (); ImGui::SameLine ();
-              //ImGui::Spacing    (); ImGui::SameLine (); if (
-              //ImGui::InputFloat ("###Target", &__target_fps,    0.0f, 0.0f, "%.3f FPS")
-              //) { if (__target_fps <  12.0f)   __target_fps =  12.0f;
-              //    if (__target_fps > 480.0f)   __target_fps = 480.0f; }
             }
           }
           ImGui::EndGroup   ();
@@ -794,9 +765,14 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 {
   if (pSwapDXGI != nullptr)
   {
-    DXGI_SWAP_CHAIN_DESC swap_desc = { };
+    SK_ComQIPtr <IDXGISwapChain1> pSwap1 (pSwapDXGI);
 
-    if (SUCCEEDED (pSwapDXGI->GetDesc (&swap_desc)))
+    DXGI_SWAP_CHAIN_DESC1                 swap_desc = { };
+    DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreen_desc = { };
+
+    if (           pSwap1.p != nullptr                     &&
+        SUCCEEDED (pSwap1->GetDesc1          (&swap_desc)) &&
+        SUCCEEDED (pSwap1->GetFullscreenDesc (&fullscreen_desc)))
     {
       static SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
@@ -827,11 +803,11 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
     //ImGui::TextUnformatted   ("Depth/Stencil:");
       ImGui::TextUnformatted   ("Resolution:");
       ImGui::TextUnformatted   ("Back Buffers:");
-      if ((! swap_desc.Windowed) && swap_desc.BufferDesc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
+      if ((! fullscreen_desc.Windowed) && fullscreen_desc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
         ImGui::TextUnformatted ("Scaling Mode:");
-      if ((! swap_desc.Windowed) && swap_desc.BufferDesc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
+      if ((! fullscreen_desc.Windowed) && fullscreen_desc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
         ImGui::TextUnformatted ("Scanlines:");
-      if (! swap_desc.Windowed && swap_desc.BufferDesc.RefreshRate.Denominator != 0)
+      if ((! fullscreen_desc.Windowed) && fullscreen_desc.RefreshRate.Denominator != 0)
         ImGui::TextUnformatted ("Refresh Rate:");
       ImGui::TextUnformatted   ("Swap Interval:");
       ImGui::TextUnformatted   ("Swap Effect:");
@@ -854,17 +830,17 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
       ImGui::BeginGroup      ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
-      ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.BufferDesc.Format).c_str ());
+      ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.Format).c_str ());
     //ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (dsv_desc.Format).c_str             ());
-      ImGui::Text            ("%ux%u",                                   swap_desc.BufferDesc.Width, swap_desc.BufferDesc.Height);
+      ImGui::Text            ("%ux%u",                                   swap_desc.Width, swap_desc.Height);
       ImGui::Text            ("%lu",                                     std::max (1U, swap_desc.BufferCount));
-      if ((! swap_desc.Windowed) && swap_desc.BufferDesc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
-        ImGui::Text          ("%ws",        SK_DXGI_DescribeScalingMode (swap_desc.BufferDesc.Scaling));
-      if ((! swap_desc.Windowed) && swap_desc.BufferDesc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
-        ImGui::Text          ("%ws",      SK_DXGI_DescribeScanlineOrder (swap_desc.BufferDesc.ScanlineOrdering));
-      if (! swap_desc.Windowed && swap_desc.BufferDesc.RefreshRate.Denominator != 0)
-        ImGui::Text          ("%.2f Hz",                                 static_cast <float> (swap_desc.BufferDesc.RefreshRate.Numerator) /
-                                                                         static_cast <float> (swap_desc.BufferDesc.RefreshRate.Denominator));
+      if ((! fullscreen_desc.Windowed) && fullscreen_desc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
+        ImGui::Text          ("%ws",        SK_DXGI_DescribeScalingMode (fullscreen_desc.Scaling));
+      if ((! fullscreen_desc.Windowed) && fullscreen_desc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
+        ImGui::Text          ("%ws",      SK_DXGI_DescribeScanlineOrder (fullscreen_desc.ScanlineOrdering));
+      if ((! fullscreen_desc.Windowed) && fullscreen_desc.RefreshRate.Denominator != 0)
+        ImGui::Text          ("%.2f Hz",                                 static_cast <float> (fullscreen_desc.RefreshRate.Numerator) /
+                                                                         static_cast <float> (fullscreen_desc.RefreshRate.Denominator));
       if (rb.present_interval == 0)
         ImGui::Text          ("%u: VSYNC OFF",                           rb.present_interval);
       else if (rb.present_interval == 1)

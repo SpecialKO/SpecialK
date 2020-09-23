@@ -101,6 +101,9 @@ float4 main (PS_INPUT input) : SV_Target
     if (abs (blend_alpha) < 0.001f) blend_alpha = 0.0f;
     if (abs (blend_alpha) > 0.999f) blend_alpha = 1.0f;
 
+    float alpha =
+      blend_alpha;
+
     float4 hud = float4 (0.0f, 0.0f, 0.0f, 0.0f);
 
     if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)
@@ -133,25 +136,27 @@ float4 main (PS_INPUT input) : SV_Target
           );
 
         blend_alpha =
-          Luma (
-            ApplyREC2084Curve (
-              float3 ( blend_alpha, blend_alpha, blend_alpha ),
-                                                -input.uv3.x )
+          saturate (
+            Luma   (
+              ApplyREC2084Curve (
+                float3 ( blend_alpha, blend_alpha, blend_alpha ),
+                                                  -input.uv3.x )
+            )
           );
       }
 
       if (! hdr10)
       {
         blend_alpha =
-          Luma (
-            ApplyREC709Curve (
-              float3 ( blend_alpha, blend_alpha, blend_alpha )
-                             )
+          saturate (
+            Luma   (
+              ApplyREC709Curve (
+                    float3 ( blend_alpha, blend_alpha, blend_alpha )
+                               )
+            )
           );
-        under_color.rgb =
-            RemoveSRGBCurve (under_color.rgb);
-        under_color.rgb /= (1.0f + under_color.rgb);
-        out_col.rgb *= input.uv3.x;
+
+        under_color.rgb = 0.0f;
       }
 
       out_col.rgb *= blend_alpha;
@@ -168,6 +173,9 @@ float4 main (PS_INPUT input) : SV_Target
         ApplyREC2084Curve ( REC709toREC2020 (final.rgb),
                               -input.uv3.x );
     }
+
+    else
+      final.rgb *= input.uv3.xxx;
 
     return final;
   }

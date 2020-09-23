@@ -2010,22 +2010,7 @@ auto DeclKeybind =
       case SK_GAME_ID::MonsterHunterWorld:
       {
         config.window.dont_hook_wndproc = true;
-      //config.system.display_debug_out = true;
         config.steam.silent             = true;
-        ///config.steam.force_load_steamapi = true;
-        ///config.steam.auto_inject         = true;
-        ///config.steam.auto_pump_callbacks = true;
-        ///config.steam.dll_path = L"kaldaien_api64.dll";
-
-        ///extern BOOL __SK_DisableQuickHook;
-        ///            __SK_DisableQuickHook = TRUE;
-        ///
-        ///if (GetFileAttributes (L"kaldaien_api64.dll") == INVALID_FILE_ATTRIBUTES)
-        ///{
-        ///  CopyFileW ( L"steam_api64.dll",
-        ///              L"kaldaien_api64.dll",
-        ///                TRUE );
-        ///}
       } break;
 
       case SK_GAME_ID::OctopathTraveler:
@@ -2245,18 +2230,16 @@ auto DeclKeybind =
 
     if (! config.render.framerate.rescan_ratio.empty ())
     {
-      swscanf (config.render.framerate.rescan_ratio.c_str (), L"%ul/%ul", &config.render.framerate.rescan_.Numerator,
-                                                                          &config.render.framerate.rescan_.Denom);
+      swscanf (config.render.framerate.rescan_ratio.c_str (), L"%i/%i", &config.render.framerate.rescan_.Numerator,
+                                                                        &config.render.framerate.rescan_.Denom);
     }
 
     if ( config.render.framerate.rescan_.Numerator != static_cast <UINT> (-1) &&
          config.render.framerate.rescan_.Denom     !=                      0 )
     {
       config.render.framerate.refresh_rate =
-        gsl::narrow_cast <float> (
-          gsl::narrow_cast <long double> (config.render.framerate.rescan_.Numerator) /
-          gsl::narrow_cast <long double> (config.render.framerate.rescan_.Denom)
-        );
+        gsl::narrow_cast <float> (config.render.framerate.rescan_.Numerator) /
+        gsl::narrow_cast <float> (config.render.framerate.rescan_.Denom);
     }
   }
 
@@ -3389,7 +3372,7 @@ SK_SaveConfig ( std::wstring name,
 
       if (! config.render.framerate.rescan_ratio.empty ())
       {
-        swscanf ( config.render.framerate.rescan_ratio.c_str (), L"%ui/%ui",
+        swscanf ( config.render.framerate.rescan_ratio.c_str (), L"%i/%i",
           &config.render.framerate.rescan_.Numerator,
           &config.render.framerate.rescan_.Denom);
       }
@@ -3398,10 +3381,8 @@ SK_SaveConfig ( std::wstring name,
            config.render.framerate.rescan_.Denom     !=                      0 )
       {
         config.render.framerate.refresh_rate =
-          gsl::narrow_cast <float> (
-            gsl::narrow_cast <long double> (config.render.framerate.rescan_.Numerator) /
-            gsl::narrow_cast <long double> (config.render.framerate.rescan_.Denom)
-          );
+            gsl::narrow_cast <float> (config.render.framerate.rescan_.Numerator) /
+            gsl::narrow_cast <float> (config.render.framerate.rescan_.Denom);
       }
     }
 
