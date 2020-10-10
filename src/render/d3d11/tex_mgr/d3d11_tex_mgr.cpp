@@ -819,14 +819,14 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
       if (compressed)
       {
-        _swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
-                      wszPath, crc32c );
+        swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
+                     wszPath, crc32c );
       }
 
       else
       {
-        _swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
-                      wszPath, crc32c );
+        swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
+                     wszPath, crc32c );
       }
 
       SK_CreateDirectories (wszPath);
@@ -877,9 +877,9 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
   lstrcatW             (wszPath, L"/");
   SK_CreateDirectories (wszPath);
 
-  wchar_t     wszOutName [MAX_PATH + 2] = { };
-  _swprintf ( wszOutName, LR"(%s\%08X.dds)",
-                        wszPath, crc32c );
+  wchar_t    wszOutName [MAX_PATH + 2] = { };
+  swprintf ( wszOutName, LR"(%s\%08X.dds)",
+                       wszPath, crc32c );
 
   const bool compressed =
     SK_DXGI_IsFormatCompressed (
@@ -1277,9 +1277,9 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
   lstrcatW (wszPath, SK_GetHostApp ());
   lstrcatW (wszPath, L"/");
 
-  wchar_t     wszOutName [MAX_PATH + 2] = { };
-  _swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
-                wszPath, crc32c );
+  wchar_t    wszOutName [MAX_PATH + 2] = { };
+  swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
+               wszPath, crc32c );
 
   uint64_t size =
     SK_File_GetSize (wszOutName);
@@ -1292,9 +1292,9 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
     return TRUE;
   }
 
-             *wszOutName = L'\0';
-  _swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
-                wszPath, crc32c );
+            *wszOutName = L'\0';
+  swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
+               wszPath, crc32c );
 
   size =
     SK_File_GetSize (wszOutName);
@@ -1448,17 +1448,17 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   lstrcatW (wszOutPath, SK_GetHostApp ());
 
   if (compressed && config.textures.d3d11.precise_hash) {
-    _swprintf ( wszOutName, LR"(%s\Compressed_%08X_%08X.dds)",
-                  wszOutPath, top_crc32, checksum );
+    swprintf ( wszOutName, LR"(%s\Compressed_%08X_%08X.dds)",
+                 wszOutPath, top_crc32, checksum );
   } else if (compressed) {
-    _swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
-                  wszOutPath, top_crc32 );
+    swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
+                 wszOutPath, top_crc32 );
   } else if (config.textures.d3d11.precise_hash) {
-    _swprintf ( wszOutName, LR"(%s\Uncompressed_%08X_%08X.dds)",
-                  wszOutPath, top_crc32, checksum );
+    swprintf ( wszOutName, LR"(%s\Uncompressed_%08X_%08X.dds)",
+                 wszOutPath, top_crc32, checksum );
   } else {
-    _swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
-                  wszOutPath, top_crc32 );
+    swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
+                 wszOutPath, top_crc32 );
   }
 
   if ((! error) && wcslen (wszOutName))
@@ -1473,7 +1473,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
 #if 0
       wchar_t wszMetaFilename [ MAX_PATH + 2 ] = { };
 
-      _swprintf (wszMetaFilename, L"%s.txt", wszOutName);
+      swprintf (wszMetaFilename, L"%s.txt", wszOutName);
 
       FILE* fMetaData = _wfopen (wszMetaFilename, L"w+");
 
@@ -3069,20 +3069,20 @@ SK_D3D11_TexNameFromChecksum ( uint32_t top_crc32,
     if ( /*config.textures.d3d11.precise_hash &&*/
          SK_D3D11_IsInjectable (top_crc32, checksum) )
     {
-      _swprintf ( wszTex,
-                    LR"(%s\inject\textures\%08X_%08X.dds)",
-                      wszTex,
-                        top_crc32, checksum );
+      swprintf ( wszTex,
+                   LR"(%s\inject\textures\%08X_%08X.dds)",
+                     wszTex,
+                       top_crc32, checksum );
     }
 
     else if ( SK_D3D11_IsInjectable (top_crc32, 0x00) )
     {
       SK_LOG4 ( ( L"Caching texture with crc32c: %08X", top_crc32 ),
                   L" Tex Hash " );
-      _swprintf ( wszTex,
-                    LR"(%s\inject\textures\%08X.dds)",
-                      wszTex,
-                        top_crc32 );
+      swprintf ( wszTex,
+                   LR"(%s\inject\textures\%08X.dds)",
+                     wszTex,
+                       top_crc32 );
     }
 
     else if ( ffx &&
@@ -3090,10 +3090,10 @@ SK_D3D11_TexNameFromChecksum ( uint32_t top_crc32,
     {
       SK_LOG4 ( ( L"Caching texture with crc32: %08X", ffx_crc32 ),
                   L" Tex Hash " );
-      _swprintf ( wszTex,
-                    LR"(%s\inject\textures\Unx_Old\%08X.dds)",
-                      wszTex,
-                        ffx_crc32 );
+      swprintf ( wszTex,
+                   LR"(%s\inject\textures\Unx_Old\%08X.dds)",
+                     wszTex,
+                       ffx_crc32 );
     }
 
     else *wszTex = L'\0';

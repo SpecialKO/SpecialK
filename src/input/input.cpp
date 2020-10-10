@@ -1024,15 +1024,9 @@ sk_imgui_cursor_s::update (void)
   static const auto& io =
     ImGui::GetIO ();
 
-  HCURSOR hCur =
-    GetGameCursor ();
-
-  if (hCur != nullptr)
-    SK_ImGui_Cursor.orig_img = hCur;
-
   if (SK_ImGui_IsMouseRelevant ())
   {
-    if (io.WantCaptureMouse || SK_ImGui_Cursor.orig_img == nullptr)
+    if (io.WantCaptureMouse)
       SK_ImGui_Cursor.showSystemCursor (false);
     else
       SK_ImGui_Cursor.showSystemCursor (true);
@@ -1240,23 +1234,11 @@ sk_imgui_cursor_s::showSystemCursor (bool system)
   CURSORINFO cursor_info        = { };
              cursor_info.cbSize = sizeof (CURSORINFO);
 
-  if (SK_ImGui_Cursor.orig_img == wait_cursor)
-      SK_ImGui_Cursor.orig_img = arrow_cursor;
-
   if (system)
   {
     //if (refs_added == 0) { ShowCursor (TRUE); ++refs_added; }
 
     SK_GetCursorInfo (&cursor_info);
-
-    if (cursor_info.hCursor != SK_ImGui_Cursor.orig_img)
-    { SK_SetCursor            (SK_ImGui_Cursor.orig_img);
-
-                         // The previous call to GetCursorInfo is known to
-                         //   zero-out the size field for some reason...
-                         cursor_info.cbSize = sizeof (CURSORINFO);
-      SK_GetCursorInfo (&cursor_info);
-    }
 
     if ((! SK_ImGui_IsMouseRelevant ()) || (cursor_info.flags & CURSOR_SHOWING))
       io.MouseDrawCursor = false;
@@ -1287,11 +1269,6 @@ sk_imgui_cursor_s::activateWindow (bool active)
       if (SK_ImGui_WantMouseCapture ())
       {
         SK_SetCursor (ImGui_DesiredCursor ());
-      }
-
-      else if (SK_ImGui_Cursor.orig_img)
-      {
-        SK_SetCursor (SK_ImGui_Cursor.orig_img);
       }
     }
   }
@@ -1426,8 +1403,7 @@ HCURSOR GetGameCursor (void)
   static HCURSOR sys_wait       = LoadCursor (nullptr, IDC_WAIT);
 
   static HCURSOR hCurLast       = nullptr;
-  /// FIXME
-         HCURSOR hCur           = SK_ImGui_Cursor.orig_img;//GetCursor ();
+         HCURSOR hCur           = SK_GetCursor ();
 
   if ( hCur != sk_imgui_horz && hCur != sk_imgui_arrow && hCur != sk_imgui_ibeam &&
        hCur != sys_arrow     && hCur != sys_wait )
@@ -1438,6 +1414,73 @@ HCURSOR GetGameCursor (void)
   return hCurLast;
 }
 
+HWND SK_Win32_CreateDummyWindow  (void);
+void SK_Win32_CleanupDummyWindow (HWND hwnd);
+
+struct capture_ctx_s {
+  HWND    hDummy  =  0;
+  HWND    hWnd    =  0;
+  RECT    rClip   = { };
+  HCURSOR hCursor =  0;
+
+  void capture (void)
+  {
+    hCursor = GetCursor (  );
+
+    HWND hWndOrig =
+      GetCapture ();
+
+    if (hWndOrig != 0)
+    {
+      if (          hDummy == 0)
+      {             hDummy = SK_Win32_CreateDummyWindow ();
+        ShowWindow (hDummy,  SW_SHOW);
+        ShowWindow (hDummy,  SW_MAXIMIZE);
+      }
+
+      HWND hWndCaptureGame =
+        SK_GetGameWindow ();
+
+      // Undo any existing capture
+      hWnd =
+        SetCapture (hDummy);
+
+      // We're going to use the game window
+      //   as the capture / rect.
+      if (hWndCaptureGame != 0)
+      {
+        RECT rcClient = { };
+
+        GetWindowRect (hWndCaptureGame, &rcClient);
+        { ClipCursor  (                 &rcClient);
+        }
+      }
+    }
+  }
+
+  void release (void)
+  {
+    if (hWnd != 0)
+    {
+      SetCapture (hWnd);
+                  hWnd = 0;
+    }
+    else
+      ReleaseCapture ();
+
+    if (hDummy != 0)
+    {
+      SK_Win32_CleanupDummyWindow (hDummy);
+                                   hDummy = 0;
+    }
+
+    if (         hCursor != 0)
+    { SetCursor (hCursor);
+                 hCursor  = 0;
+    }
+  }
+} static _capture_ctx;
+
 void
 ImGui_ToggleCursor (void)
 {
@@ -1446,10 +1489,7 @@ ImGui_ToggleCursor (void)
 
   if (! SK_ImGui_Cursor.visible)
   {
-    if (SK_ImGui_Cursor.orig_img == nullptr)
-        SK_ImGui_Cursor.orig_img = GetGameCursor ();
-
-    //GetClipCursor         (&SK_ImGui_Cursor.clip_rect);
+  ///////_capture_ctx.capture ();
 
     SK_ImGui_CenterCursorOnWindow ();
 
@@ -1462,14 +1502,8 @@ ImGui_ToggleCursor (void)
 
   else
   {
-    if (SK_ImGui_Cursor.orig_img == nullptr)
-    {   SK_ImGui_Cursor.orig_img =
-          GetGameCursor ();      }
-
     if (SK_ImGui_WantMouseCapture ())
     {
-      //ClipCursor_Original   (&SK_ImGui_Cursor.clip_rect);
-
       static POINT      last_pos =
         SK_ImGui_Cursor.orig_pos;
 
@@ -1485,9 +1519,12 @@ ImGui_ToggleCursor (void)
     }
 
     io.WantCaptureMouse = false;
+
+    ///////_capture_ctx.release ();
   }
 
   SK_ImGui_Cursor.visible = (! SK_ImGui_Cursor.visible);
+
   SK_ImGui_Cursor.update ();
 }
 
@@ -1564,17 +1601,12 @@ NtUserSetCursor_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  SK_ImGui_Cursor.orig_img = hCursor;
+  SK_ImGui_Cursor.img = hCursor;
 
   if (SK_ImGui_WantMouseCapture ())
   {
-    SK_ImGui_Cursor.img =
-      ImGui_DesiredCursor ();
-
-    NtUserSetCursor_Original (SK_ImGui_Cursor.img);
-
     return
-      SK_ImGui_Cursor.img;
+      NtUserSetCursor_Original (ImGui_DesiredCursor ());
   }
 
   return
@@ -1653,13 +1685,8 @@ NtUserGetCursorInfo_Detour (PCURSORINFO pci)
 {
   SK_LOG_FIRST_CALL
 
-  if ( SK_ImGui_WantMouseCapture () )
-  {
-    return FALSE;
-  }
-
-  POINT   pt        = pci->ptScreenPos;
-  BOOL    ret       = SK_GetCursorInfo (pci);
+  POINT pt  = pci->ptScreenPos;
+  BOOL  ret = SK_GetCursorInfo (pci);
 
   struct state_backup
   {
@@ -1672,9 +1699,6 @@ NtUserGetCursorInfo_Detour (PCURSORINFO pci)
   } actual (pci);
 
   pci->ptScreenPos = pt;
-  pci->hCursor     =
-    SK_ImGui_Cursor.orig_img;
-
 
   if (SK_ImGui_IsMouseRelevant ())
     pci->hCursor = ImGui_DesiredCursor ();
@@ -1715,8 +1739,9 @@ NtUserGetCursorInfo_Detour (PCURSORINFO pci)
     return TRUE;
   }
 
-
-  pci->hCursor     = SK_ImGui_IsMouseRelevant () ? ImGui_DesiredCursor () :
+  pci->hCursor     =
+             SK_ImGui_IsMouseRelevant () ?
+                ImGui_DesiredCursor   () :
                      actual.hCursor;
   pci->ptScreenPos = actual.ptScreenPos;
 
@@ -1900,13 +1925,6 @@ NtUserSendInput_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  // TODO: Process this the right way...
-
-  if (SK_ImGui_Active ())
-  {
-    return 0;
-  }
-
   return
     SK_SendInput (nInputs, pInputs, cbSize);
 }
@@ -1923,13 +1941,6 @@ keybd_event_Detour (
 )
 {
   SK_LOG_FIRST_CALL
-
-// TODO: Process this the right way...
-
-  if (SK_ImGui_Active ())
-  {
-    return;
-  }
 
   keybd_event_Original (bVk, bScan, dwFlags, dwExtraInfo);
 }
@@ -2465,10 +2476,9 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
           }
 
           if (handled)
-          {
-            handled =
-              (0 !=
-               ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message,
+          {   handled =
+              (    0 !=
+               ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
                                      lpMsg->wParam, lpMsg->lParam));
           }
         }
@@ -2494,7 +2504,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       case WM_MOUSEHWHEEL:
       {
         handled =
-          (0 != ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message,
+          (0 != ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
                                       lpMsg->wParam, lpMsg->lParam))
           && SK_ImGui_WantMouseCapture ();
       } break;
@@ -2806,23 +2816,27 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&GetCursorPos_Original) );
 
 
-  if (bHasWin32u)
-  {
-    SK_CreateDLLHook2 (      L"win32u",
-                              "NtUserGetCursorInfo",
-                               NtUserGetCursorInfo_Detour,
-      static_cast_p2p <void> (&NtUserGetCursorInfo_Original) );
-  }
-
-  SK_CreateDLLHook2 (      L"user32",
-                            "GetCursorInfo",
-                             GetCursorInfo_Detour,
-    static_cast_p2p <void> (&GetCursorInfo_Original) );
+  ////if (bHasWin32u)
+  ////{
+  ////  SK_CreateDLLHook2 (      L"win32u",
+  ////                            "NtUserGetCursorInfo",
+  ////                             NtUserGetCursorInfo_Detour,
+  ////    static_cast_p2p <void> (&NtUserGetCursorInfo_Original) );
+  ////}
+  ////
+  ////else
+  ////{
+    SK_CreateDLLHook2 (      L"user32",
+                              "GetCursorInfo",
+                               GetCursorInfo_Detour,
+      static_cast_p2p <void> (&GetCursorInfo_Original) );
+  ////}
 
   SK_CreateDLLHook2 (       L"user32",
                              "GetMouseMovePointsEx",
                               GetMouseMovePointsEx_Detour,
      static_cast_p2p <void> (&GetMouseMovePointsEx_Original) );
+
 
 
   SK_CreateDLLHook2 (       L"user32",
@@ -2831,11 +2845,12 @@ void SK_Input_PreInit (void)
                               NtUserSetCursor_Detour,
      static_cast_p2p <void> (&NtUserSetCursor_Original) );
 
-  SK_CreateDLLHook2 (       L"user32",
-                                   "GetCursor",
+  //SK_CreateDLLHook2 (       L"user32",
+  //                                 "GetCursor",
 //SK_CreateUser32Hook (      "NtUserGetCursor",
-                              NtUserGetCursor_Detour,
-     static_cast_p2p <void> (&NtUserGetCursor_Original) );
+  //                           NtUserGetCursor_Detour,
+  //  static_cast_p2p <void> (&NtUserGetCursor_Original) );
+
 
 
   SK_CreateDLLHook2 (       L"user32",

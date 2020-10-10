@@ -64,11 +64,7 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
   io.MousePos.x = center.x;
   io.MousePos.y = center.y;
 
-  POINT   screen_pos = SK_ImGui_Cursor.pos;
-  HCURSOR hCur       = SK_GetCursor ();
-
-  if (hCur != nullptr)
-    SK_ImGui_Cursor.orig_img = hCur;
+  POINT screen_pos = SK_ImGui_Cursor.pos;
 
   SK_ImGui_Cursor.LocalToScreen (&screen_pos);
   SK_SetCursorPos               ( screen_pos.x,

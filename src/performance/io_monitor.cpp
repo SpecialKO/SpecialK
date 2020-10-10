@@ -864,9 +864,9 @@ SK_MonitorDisk (LPVOID user)
 
       disk.disks [i].name [15] = '\0';
 
-      static SK::Framerate::Stats write_rate    [16];
-      static SK::Framerate::Stats read_rate     [16];
-      static SK::Framerate::Stats combined_rate [16];
+      static SK::Framerate::Stats write_rate    [128];
+      static SK::Framerate::Stats read_rate     [128];
+      static SK::Framerate::Stats combined_rate [128];
 
       disk.disks [i].percent_idle   = (disk.disks [i].percent_idle   + percent_idle)   / 2;
       disk.disks [i].percent_load   = (disk.disks [i].percent_load   + percent_load)   / 2;

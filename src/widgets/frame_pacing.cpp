@@ -254,28 +254,130 @@ SK_ImGui_DrawGraph_FramePacing (void)
   if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
 
-  snprintf
-        ( szAvg,
-            511, (const char *)
-            u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-            u8"    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
-            u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
-                sum / frames,
-                  target_frametime,
-                    min, max, (double)max - (double)min,
-                      1000.0f / (sum / frames),
-                        ((double)max-(double)min)/(1000.0f/(sum/frames)) );
+  SK_ComQIPtr <IDXGISwapChain1> pSwap1 (
+    SK_GetCurrentRenderBackend ().swapchain.p
+  );
+
+  static UINT                  uiLastPresent = 0;
+  static DXGI_FRAME_STATISTICS frameStats0   = { };
+  static DXGI_FRAME_STATISTICS frameStats1   = { };
+  static UINT                  uiLatency     = 0;
+  static float                  fLatency     = 0.0f;
+
+  static float   fLatencyHistory [120] =  { };
+  static UINT    uiLatencyIdx          =    0;
+
+  static BOOL bNew = TRUE;
+
+  if (pSwap1.p != nullptr)
+  {
+    if (bNew)
+    {
+      if (SUCCEEDED (pSwap1->GetFrameStatistics (&frameStats0)))
+      {
+        bNew = FALSE;
+        pSwap1->GetLastPresentCount (&uiLastPresent);
+        frameStats0.SyncGPUTime = SK_QueryPerf ();
+      }
+    }
+  }
+
+  if (pSwap1.p != nullptr && SUCCEEDED (pSwap1->GetFrameStatistics (&frameStats1)))
+  {
+    if (! bNew)
+    {
+      if (frameStats1.PresentCount == uiLastPresent)//SyncRefreshCount == frameStats1.PresentRefreshCount)
+      {
+        LARGE_INTEGER time =
+          frameStats1.SyncQPCTime;
+
+        time.QuadPart -=
+          gsl::narrow_cast <LONGLONG> (
+            frameStats0.SyncQPCTime.QuadPart
+          );
+
+        time.QuadPart =
+          std::min (
+            time.QuadPart,
+              gsl::narrow_cast <LONGLONG> (
+                SK_QueryPerf ().QuadPart - frameStats0.SyncQPCTime.QuadPart
+              )
+            );
+        fLatency = 1000.0f * (float)time.QuadPart / (float)SK_GetPerfFreq ().QuadPart;
+      }
+    }
+
+    fLatencyHistory [SK_GetFramesDrawn () % 120] = fLatency;
+
+    if (frameStats1.PresentCount > uiLastPresent)
+      bNew = TRUE;
+
+    uiLatency =
+      ( uiLastPresent - frameStats0.PresentCount );
+
+    snprintf
+      ( szAvg,
+          511, (const char *)
+          u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
+          u8"         Render latency:           %i Frames (~%4.1f ms)\n\n\n\n"
+          u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
+              sum / frames,
+                target_frametime,
+                    uiLatency,
+                      fLatency,
+            (double)max - (double)min,
+                    1000.0f / (sum / frames),
+                      ((double)max-(double)min)/(1000.0f/(sum/frames)) );
+  }
+
+  else
+  {
+    snprintf
+      ( szAvg,
+          511, (const char *)
+          u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
+          u8"    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
+          u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
+              sum / frames,
+                target_frametime,
+                  min, max,
+            (double)max - (double)min,
+                    1000.0f / (sum / frames),
+                      ((double)max-(double)min)/(1000.0f/(sum/frames)) );
+  }
 
   ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                             (ImVec4&&)ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
-                                             0.86f,
-                                               0.95f ) );
+                                             0.96f,
+                                               1.f ) );
 
   const ImVec2 border_dims (
     std::max (500.0f, ImGui::GetContentRegionAvailWidth ()),
       font_size * 7.0f
   );
+
+  float fX = ImGui::GetCursorPosX ();
+
+  float fMax = 99.0f;
+
+  for ( UINT i = 0 ; i < IM_ARRAYSIZE (fLatencyHistory) ; ++i )
+    fMax = std::max (fMax, fLatencyHistory [i]);
+
+  ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImVec4 (.66f, .66f, .66f, .75f));
+  ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
+                                            "###Floating_LatencyHistogram",
+                           fLatencyHistory,
+                             IM_ARRAYSIZE (fLatencyHistory),
+                               SK_GetFramesDrawn () % 120,
+                                 "",
+                                   0,
+                                     fMax,
+                                      border_dims );
+  ImGui::PopStyleColor  ();
+
+  ImGui::SameLine ();
+  ImGui::SetCursorPosX (fX);
 
   ImGui::PlotLines ( SK_ImGui_Visible ? "###ControlPanel_FramePacing" :
                                         "###Floating_FramePacing",
@@ -333,8 +435,13 @@ SK_ImGui_DrawFramePercentiles (void)
   if (! SK_FramePercentiles->display)
     return;
 
-  static auto& snapshots =
-    SK::Framerate::frame_history_snapshots;
+  auto pLimiter =
+    SK::Framerate::GetLimiter (
+      SK_GetCurrentRenderBackend ().swapchain.p
+    );
+
+  auto& snapshots =
+    pLimiter->frame_history_snapshots;
 
   auto& percentile0 = SK_FramePercentiles->percentile0;
   auto& percentile1 = SK_FramePercentiles->percentile1;
@@ -343,14 +450,14 @@ SK_ImGui_DrawFramePercentiles (void)
   bool& show_immediate =
     SK_FramePercentiles->display_most_recent;
 
-  static constexpr LARGE_INTEGER   all_samples = { 0ULL };
-  extern           SK_LazyGlobal <
-                     SK::Framerate::Stats
-                                 > frame_history;
+  static constexpr LARGE_INTEGER all_samples = { 0ULL };
+
+  auto frame_history =
+    pLimiter->frame_history.getPtr ();
 
   long double data_timespan = ( show_immediate ?
             frame_history->calcDataTimespan () :
-          snapshots->mean->calcDataTimespan () );
+           snapshots.mean->calcDataTimespan () );
 
   ImGui::PushStyleColor (ImGuiCol_Text,           (unsigned int)ImColor (255, 255, 255));
   ImGui::PushStyleColor (ImGuiCol_FrameBg,        (unsigned int)ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
@@ -365,15 +472,15 @@ SK_ImGui_DrawFramePercentiles (void)
 
     percentile0.computeFPS (                             show_immediate ?
       frame_history->calcPercentile   (percentile0.cutoff, all_samples) :
-      snapshots->percentile0->calcMean                   (all_samples) );
+        snapshots.percentile0->calcMean                   (all_samples) );
 
     percentile1.computeFPS (                             show_immediate ?
       frame_history->calcPercentile   (percentile1.cutoff, all_samples) :
-      snapshots->percentile1->calcMean                   (all_samples) );
+        snapshots.percentile1->calcMean                   (all_samples) );
 
     mean.computeFPS ( show_immediate          ?
         frame_history->calcMean (all_samples) :
-      snapshots->mean->calcMean (all_samples) );
+       snapshots.mean->calcMean (all_samples) );
   }
 
   float p0_ratio =
@@ -475,7 +582,7 @@ SK_ImGui_DrawFramePercentiles (void)
         SK_FramePercentiles->store_percentile_cfg ();
       }
 
-      else snapshots->reset ();
+      else snapshots.reset ();
     }
 
     unsigned int     p0_color  (
@@ -664,6 +771,7 @@ public:
     }
 
     ImGui::BeginGroup ();
+
     SK_ImGui_DrawGraph_FramePacing ();
 
     has_battery =
@@ -672,10 +780,12 @@ public:
 
     if (debug_limiter)
     {
-      auto pLimiter =
-        SK::Framerate::GetLimiter ();
-
       ImGui::BeginGroup ();
+
+      auto* pLimiter =
+        SK::Framerate::GetLimiter (
+          SK_GetCurrentRenderBackend ().swapchain.p
+        );
 
       SK::Framerate::Limiter::snapshot_s snapshot =
                             pLimiter->getSnapshot ();
@@ -747,6 +857,37 @@ public:
       ImGui::SameLine ();
       if (ImGui::Button ("Full Restart")) *snapshot.pFullRestart = true;
       ImGui::EndGroup ();
+
+      SK_ComQIPtr <IDXGISwapChain1> pSwap1 (
+          SK_GetCurrentRenderBackend ().swapchain.p
+        );
+
+      static UINT                  uiLastPresent = 0;
+      static DXGI_FRAME_STATISTICS frameStats    = { };
+
+      if (SK::Framerate::GetLimiter (pSwap1.p)->get_limit () > 0.0f)
+      {
+        if ( SUCCEEDED (
+               pSwap1->GetLastPresentCount (&uiLastPresent)
+                       )
+           )
+        {
+          if (SUCCEEDED (pSwap1->GetFrameStatistics (&frameStats)))
+          {
+          }
+        }
+      }
+
+      UINT uiLatency = ( uiLastPresent - frameStats.PresentCount );
+
+      ImGui::Text ( "Present Latency: %i Frames", uiLatency );
+
+      ImGui::Separator ();
+
+      ImGui::Text ( "LastPresent: %i, PresentCount: %i", uiLastPresent, frameStats.PresentCount     );
+      ImGui::Text ( "PresentRefreshCount: %i, SyncRefreshCount: %i",    frameStats.PresentRefreshCount,
+                                                                        frameStats.SyncRefreshCount );
+
       fExtraData = ImGui::GetItemRectSize ().y;
     } else
       fExtraData = 0.0f;
@@ -757,8 +898,10 @@ public:
   {
     SK_Widget::config_base ();
 
-    static auto& snapshots =
-      SK::Framerate::frame_history_snapshots;
+    auto& snapshots =
+      SK::Framerate::GetLimiter (
+        SK_GetCurrentRenderBackend ().swapchain.p
+      )->frame_history_snapshots;
 
     ImGui::Separator ();
 
@@ -785,7 +928,7 @@ public:
                  0.1f, 99.99f, "%3.1f%%" )
          )
       {
-        snapshots->reset (); changed = true;
+        snapshots.reset (); changed = true;
       }
 
       if ( ImGui::SliderFloat (
@@ -794,7 +937,7 @@ public:
                  0.1f, 99.99f, "%3.1f%%" )
          )
       {
-        snapshots->reset (); changed = true;
+        snapshots.reset (); changed = true;
       }
 
       ImGui::TreePop ();

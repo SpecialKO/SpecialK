@@ -1612,18 +1612,18 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
     {
       if (record.method == TexLoadMethod::Streaming)
       {
-        _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
-                      SK_D3D11_res_root->c_str (),
-                        checksum,
-                          L".dds" );
+        swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
+                     SK_D3D11_res_root->c_str (),
+                       checksum,
+                         L".dds" );
       }
 
       else if (record.method == TexLoadMethod::Blocking)
       {
-        _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
-                      SK_D3D11_res_root->c_str (),
-                        checksum,
-                          L".dds" );
+        swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
+                     SK_D3D11_res_root->c_str (),
+                       checksum,
+                         L".dds" );
       }
     }
 
@@ -1869,15 +1869,15 @@ SK::D3D9::TextureManager::deleteDumpedTexture (D3DFORMAT fmt, uint32_t checksum)
     wchar_t wszPath     [MAX_PATH + 2] = { };
     wchar_t wszFileName [MAX_PATH + 2] = { };
 
-    _swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
-                  SK_D3D11_res_root->c_str (),
-                    SK_GetHostApp (),
-                      SK_D3D9_FormatToStr (fmt, false).c_str () );
+    swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
+                 SK_D3D11_res_root->c_str (),
+                   SK_GetHostApp (),
+                     SK_D3D9_FormatToStr (fmt, false).c_str () );
 
-    _swprintf ( wszFileName, L"%s\\%08x%s",
-                  wszPath,
-                    checksum,
-                      L".dds" );
+    swprintf ( wszFileName, L"%s\\%08x%s",
+                 wszPath,
+                   checksum,
+                     L".dds" );
 
   if (GetFileAttributesW (wszFileName) != INVALID_FILE_ATTRIBUTES)
   {
@@ -1914,15 +1914,15 @@ SK::D3D9::TextureManager::dumpTexture (D3DFORMAT fmt, uint32_t checksum, IDirect
     wchar_t wszPath     [MAX_PATH + 2] = { };
     wchar_t wszFileName [MAX_PATH + 2] = { };
 
-    _swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
-                  SK_D3D11_res_root->c_str (),
-                    SK_GetHostApp (),
-                      SK_D3D9_FormatToStr (fmt_real, false).c_str () );
+    swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
+                 SK_D3D11_res_root->c_str (),
+                   SK_GetHostApp (),
+                     SK_D3D9_FormatToStr (fmt_real, false).c_str () );
 
-    _swprintf ( wszFileName, L"%s\\%08x%s",
-                  wszPath,
-                    checksum,
-                      L".dds" );
+    swprintf ( wszFileName, L"%s\\%08x%s",
+                 wszPath,
+                   checksum,
+                     L".dds" );
 
     if (GetFileAttributesW (wszFileName) != FILE_ATTRIBUTE_DIRECTORY)
       SK_CreateDirectories (wszFileName);
@@ -2220,10 +2220,10 @@ SK::D3D9::TextureManager::Init (void)
 
   refreshDataSources ();
 
-  wchar_t     wszDumpBase [MAX_PATH + 2] = { };
-  _swprintf ( wszDumpBase,
-                L"%s\\dump\\textures\\%s\\",
-                  SK_D3D11_res_root->c_str (), SK_GetHostApp () );
+  wchar_t    wszDumpBase [MAX_PATH + 2] = { };
+  swprintf ( wszDumpBase,
+               L"%s\\dump\\textures\\%s\\",
+                 SK_D3D11_res_root->c_str (), SK_GetHostApp () );
 
   if ( GetFileAttributesW (wszDumpBase) != INVALID_FILE_ATTRIBUTES )
   {
@@ -2247,10 +2247,10 @@ SK::D3D9::TextureManager::Init (void)
       {
         if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
         {
-          wchar_t     wszSubDir [MAX_PATH + 2] = { };
-          _swprintf ( wszSubDir,
-                        L"%s\\%s\\*",
-                          wszDumpBase, fd.cFileName );
+          wchar_t    wszSubDir [MAX_PATH + 2] = { };
+          swprintf ( wszSubDir,
+                       L"%s\\%s\\*",
+                         wszDumpBase, fd.cFileName );
 
           hSubFind =
             FindFirstFileW (wszSubDir, &fd_sub);
@@ -3509,10 +3509,10 @@ SK::D3D9::TextureManager::refreshDataSources (void)
 
             wchar_t wszQualifiedArchiveName [MAX_PATH + 2] = { };
 
-            _swprintf ( wszQualifiedArchiveName,
-                          L"%s\\inject\\%s",
-                            SK_D3D11_res_root->c_str (),
-                              fd.cFileName );
+            swprintf ( wszQualifiedArchiveName,
+                         L"%s\\inject\\%s",
+                           SK_D3D11_res_root->c_str (),
+                             fd.cFileName );
 
             if (InFile_OpenW (&arc_stream.file, wszQualifiedArchiveName))
             {
@@ -3671,18 +3671,18 @@ SK::D3D9::TextureManager::TextureManager::reloadTexture (uint32_t checksum)
   {
     if (record.method == Streaming)
     {
-      _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
-                    SK_D3D11_res_root->c_str (),
-                      checksum,
-                        L".dds" );
+      swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
+                   SK_D3D11_res_root->c_str (),
+                     checksum,
+                       L".dds" );
     }
 
     else if (record.method == Blocking)
     {
-      _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
-                    SK_D3D11_res_root->c_str (),
-                      checksum,
-                        L".dds" );
+      swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
+                   SK_D3D11_res_root->c_str (),
+                     checksum,
+                       L".dds" );
     }
   }
 

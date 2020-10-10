@@ -1082,8 +1082,8 @@ SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
     ver_info.branch =
       install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
-    wchar_t    wszBranchSection [128] = { };
-    _swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
+    wchar_t   wszBranchSection [128] = { };
+    swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
 
     if (repo_ini.contains_section (wszBranchSection))
     {
@@ -1292,9 +1292,9 @@ SK_Version_SetUpdateFrequency (const wchar_t* wszProduct, uint64_t freq)
     wchar_t wszFormatted [128] = { };
 
     if (freq > 0 && freq < MAXULONGLONG)
-      _swprintf (wszFormatted, L"%lluh", freq / 36000000000ULL);
+      swprintf (wszFormatted, L"%lluh", freq / 36000000000ULL);
     else
-      _swprintf (wszFormatted, L"never");
+      swprintf (wszFormatted, L"never");
 
     if (! user_prefs.contains_key (L"Frequency"))
       user_prefs.add_key_value (L"Frequency", wszFormatted);
@@ -1381,8 +1381,8 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
   {
     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
 
-    wchar_t wszFormatted [256] = { };
-    _swprintf (wszFormatted, L"Version.%hs", szBranch);
+    wchar_t   wszFormatted [256] = { };
+    swprintf (wszFormatted, L"Version.%hs", szBranch);
 
     if (repo_ini.contains_section (wszFormatted))
     {

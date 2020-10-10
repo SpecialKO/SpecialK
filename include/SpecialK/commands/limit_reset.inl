@@ -42,7 +42,7 @@ SK_ICommandResult
 skLimitResetCmd::execute (const char* szArgs)
 {
   SK::Framerate::Limiter *pLimiter =
-    SK::Framerate::GetLimiter ();
+    SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain.p);
 
   if (pLimiter != nullptr)
       pLimiter->reset (true);

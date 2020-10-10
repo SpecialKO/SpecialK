@@ -212,10 +212,10 @@ SK_FFXV_InitPlugin (void)
   for (                 auto  it : __SK_FFXV_UI_Pix_Shaders)
     SK_D3D11_DeclHUDShader   (it,        ID3D11PixelShader);
 
-  SK_CreateDLLHook2 (      L"kernel32",
-                            "GetEnvironmentVariableA",
-                             GetEnvironmentVariableA_Detour,
-    static_cast_p2p <void> (&GetEnvironmentVariableA_Original) );
+  //SK_CreateDLLHook2 (      L"kernel32",
+  //                          "GetEnvironmentVariableA",
+  //                           GetEnvironmentVariableA_Detour,
+  //  static_cast_p2p <void> (&GetEnvironmentVariableA_Original) );
 }
 
 void

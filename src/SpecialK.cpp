@@ -343,7 +343,7 @@ DllMain ( HMODULE hModule,
       INT dll_isolation_lvl =
         SK_KeepAway ();
 
-      if      (dll_isolation_lvl >= 2) return EarlyOut (TRUE);
+      if      (dll_isolation_lvl >= 3) return EarlyOut (FALSE);
       else if (dll_isolation_lvl >  0) return EarlyOut (TRUE);
 
       // We reserve the right to deny attaching the DLL, this will
@@ -353,7 +353,7 @@ DllMain ( HMODULE hModule,
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       if (DLL_ROLE::INVALID == SK_GetDLLRole ())    return EarlyOut (TRUE);
-      if (! SK_Attach         (SK_GetDLLRole ()))   return EarlyOut (TRUE);
+      if (! SK_Attach         (SK_GetDLLRole ()))   return EarlyOut (FALSE);
 
       __SK_DLL_TeardownEvent =
         SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
@@ -1133,7 +1133,7 @@ BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
-  auto& bootstraps =
+  static const auto& bootstraps =
     *SK_DLL_GetBootstraps ();
 
   auto _CleanupMutexes =
@@ -1151,90 +1151,94 @@ SK_Attach (DLL_ROLE role)
              SK_D3D11_CleanupMutexes (    );
       };
 
+  const SK_DLL_Bootstrapper *pBootStrapper = nullptr;
+
   if ( bootstraps.find (role) !=
        bootstraps.cend (    )  )
   {
-    if (! InterlockedCompareExchangeAcquire (
-            &__SK_DLL_Attached, TRUE, FALSE )
-       )
+    pBootStrapper = &bootstraps.at (role);
+  }
+
+  if (! InterlockedCompareExchangeAcquire (
+          &__SK_DLL_Attached, TRUE, FALSE )
+     )
+  {
+    auto _InitMutexes =
+      [&](void)->
+          void
+          {
+            cs_dbghelp =
+              new SK_Thread_HybridSpinlock (16384);
+            budget_mutex =
+              new SK_Thread_HybridSpinlock (  100);
+            init_mutex   =
+              new SK_Thread_HybridSpinlock ( 2150);
+            wmi_cs       =
+              new SK_Thread_HybridSpinlock (  128);
+
+            steam_callback_cs =
+              new SK_Thread_HybridSpinlock (256UL);
+            steam_popup_cs    =
+              new SK_Thread_HybridSpinlock (512UL);
+            steam_init_cs     =
+              new SK_Thread_HybridSpinlock (128UL);
+          };
+
+    _InitMutexes ();
+
+    skModuleRegistry::HostApp (
+      GetModuleHandle (nullptr)
+    );
+
+    if (pBootStrapper != nullptr)
     {
-      auto _InitMutexes =
-        [&](void)->
-            void
-            {
-              cs_dbghelp =
-                new SK_Thread_HybridSpinlock (16384);
-              budget_mutex =
-                new SK_Thread_HybridSpinlock (  100);
-              init_mutex   =
-                new SK_Thread_HybridSpinlock ( 2150);
-              wmi_cs       =
-                new SK_Thread_HybridSpinlock (  128);
-
-              steam_callback_cs =
-                new SK_Thread_HybridSpinlock (256UL);
-              steam_popup_cs    =
-                new SK_Thread_HybridSpinlock (512UL);
-              steam_init_cs     =
-                new SK_Thread_HybridSpinlock (128UL);
-            };
-
-      _InitMutexes ();
-
-      skModuleRegistry::HostApp (
-        GetModuleHandle (nullptr)
-      );
-
-      const auto& bootstrap =
-                  bootstraps.at (role);
-
       if ( SK_IsInjected           () &&
-           SK_TryLocalWrapperFirst (bootstrap.wrapper_dlls))
+           SK_TryLocalWrapperFirst (pBootStrapper->wrapper_dlls))
       {
         _CleanupMutexes ();
 
         return
           SK_DontInject ();
       }
+    }
 
-      if ( INVALID_FILE_ATTRIBUTES !=
-             GetFileAttributesW (L"SpecialK.WaitForDebugger") )
+    if ( INVALID_FILE_ATTRIBUTES !=
+           GetFileAttributesW (L"SpecialK.WaitForDebugger") )
+    {
+      while (! SK_IsDebuggerPresent ())
+        SK_Sleep (50);
+    }
+
+    try
+    {
+      SK_TLS_Acquire ();
+
+      _time64 (&__SK_DLL_AttachTime);
+
+      void SK_D3D11_InitMutexes (void);
+           SK_D3D11_InitMutexes (    );
+
+      extern void SK_ImGui_Init (void);
+                  SK_ImGui_Init (    );
+
+      SK::Diagnostics::Debugger::Allow (true);
+
+      InterlockedCompareExchangeAcquire (
+        &__SK_DLL_Attached,
+          pBootStrapper != nullptr ?
+          pBootStrapper->start ()  : TRUE, FALSE
+      );
+
+      if (SK_DLL_IsAttached ())
       {
-        while (! SK_IsDebuggerPresent ())
-          SK_Sleep (50);
+        return TRUE;
       }
+    }
 
-      try
-      {
-        SK_TLS_Acquire ();
-
-        _time64 (&__SK_DLL_AttachTime);
-
-        void SK_D3D11_InitMutexes (void);
-             SK_D3D11_InitMutexes (    );
-
-        extern void SK_ImGui_Init (void);
-                    SK_ImGui_Init (    );
-
-        SK::Diagnostics::Debugger::Allow (true);
-
-        InterlockedCompareExchangeAcquire (
-          &__SK_DLL_Attached,
-            bootstrap.start (),
-              TRUE
-        );
-
-        if (SK_DLL_IsAttached ())
-        {
-          return TRUE;
-        }
-      }
-
-      catch (const std::exception& e)
-      {
-        dll_log->Log ( L"[ SpecialK ] Caught an exception (%hs) during DLL Attach,"
-                       L" game may not be stable...", e.what () );
-      }
+    catch (const std::exception& e)
+    {
+      dll_log->Log ( L"[ SpecialK ] Caught an exception (%hs) during DLL Attach,"
+                     L" game may not be stable...", e.what () );
     }
   }
 
@@ -1277,16 +1281,20 @@ SK_Detach (DLL_ROLE role)
     auto& bootstraps =
       *SK_DLL_GetBootstraps ();
 
-    if ( bootstraps.count (role) &&
-         bootstraps.at    (role).shutdown () )
+    if (! bootstraps.count (role))
+    {
+    }
+
+    else if (bootstraps.at (role).shutdown ())
     {
       return TRUE;
     }
   }
 
-  //else {
-  //  dll_log->Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
-  //}
+  else {
+  //dll_log->Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
+    return TRUE;
+  }
 
   return FALSE;
 }

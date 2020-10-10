@@ -79,7 +79,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
                          msg.hwnd    == SK_GetGameWindow () )
          )
       {
-        SK_LOG0 ( ( L"Dispatched Message: %x to Unicode HWND: %x while "
+        SK_LOG1 ( ( L"Dispatched Message: %x to Unicode HWND: %x while "
                     L"framerate limiting!", msg.message, msg.hwnd ),
                     L"Win32-Pump" );
 
@@ -96,7 +96,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
                          msg.hwnd    == SK_GetGameWindow () )
          )
       {
-        SK_LOG0 ( ( L"Dispatched Message: %x to ANSI HWND: %x while "
+        SK_LOG1 ( ( L"Dispatched Message: %x to ANSI HWND: %x while "
                     L"framerate limiting!", msg.message, msg.hwnd ),
                     L"Win32-Pump" );
 

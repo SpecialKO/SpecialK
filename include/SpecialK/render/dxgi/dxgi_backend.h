@@ -83,8 +83,8 @@
     wchar_t*  wszPostFormatted = pwszBuffer.get () + 1024;                   \
     if (pwszBuffer != nullptr)                                               \
     {                                                                        \
-      _swprintf ( wszPreFormatted,  L"%s::%s (", _Interface, _Name );        \
-      _swprintf (wszPostFormatted, _Format
+      swprintf ( wszPreFormatted,  L"%s::%s (", _Interface, _Name );         \
+      swprintf (wszPostFormatted, _Format
 
   // Global DXGI call
 #define DXGI_LOG_CALL(_Name,_Format)                                         \
@@ -95,13 +95,13 @@
     wchar_t*  wszPostFormatted = pwszBuffer.get () + 1024;                   \
     if (pwszBuffer != nullptr)                                               \
     {                                                                        \
-      _swprintf (wszPreFormatted,  L"%s (", _Name);                          \
-      _swprintf (wszPostFormatted, _Format
+      swprintf (wszPreFormatted,  L"%s (", _Name);                           \
+      swprintf (wszPostFormatted, _Format
 
 #define DXGI_LOG_CALL_END                                                    \
       wchar_t* wszFullyFormatted = wszPostFormatted + 1024;                  \
-      _swprintf   ( wszFullyFormatted, L"%s%s)",                             \
-                      wszPreFormatted, wszPostFormatted );                   \
+      swprintf   ( wszFullyFormatted, L"%s%s)",                              \
+                     wszPreFormatted, wszPostFormatted );                    \
       dll_log->Log ( L"[   DXGI   ] [!] %-102s -- %s", wszFullyFormatted,    \
                       SK_SummarizeCaller ().c_str () );                      \
     }                                                                        \
@@ -285,7 +285,9 @@ struct mem_info_t {
   int                          nodes                    = 0;//MAX_GPU_NODES;
 } extern dxgi_mem_info [NumBuffers];
 
-static const int SK_D3D11_MAX_DEV_CONTEXTS = 32;
+// Increased to 64 for Crysis... they're really going out of their way to make
+// sure stuff _can't_ run Crysis.
+static const int SK_D3D11_MAX_DEV_CONTEXTS = 64;
 
 LONG
 SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);

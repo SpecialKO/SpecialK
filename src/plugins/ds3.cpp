@@ -1048,9 +1048,9 @@ SK_DS3_SetFullscreenState (
     if ((! ds3_state.Fullscreen) && ds3_cfg.window.borderless && sus_state.MaxWindow)
       ChangeDisplaySettingsW_Original (0, CDS_RESET);
 
-    int num_monitors = GetSystemMetrics (SM_CMONITORS);
-    int virtual_x    = GetSystemMetrics (SM_CXVIRTUALSCREEN);
-    int virtual_y    = GetSystemMetrics (SM_CYVIRTUALSCREEN);
+    int num_monitors = SK_GetSystemMetrics (SM_CMONITORS);
+    int virtual_x    = SK_GetSystemMetrics (SM_CXVIRTUALSCREEN);
+    int virtual_y    = SK_GetSystemMetrics (SM_CYVIRTUALSCREEN);
 
     dll_log->Log ( L"[ Monitors ]  + Display Topology: %lu Monitors - "
                                        L"(Virtual Res: %lux%lu)",

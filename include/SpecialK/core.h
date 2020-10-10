@@ -140,9 +140,10 @@ bool __stdcall SK_ShutdownCore (const wchar_t* backend);
 extern "C" {
 #endif
 
-      void     __stdcall SK_BeginBufferSwap (void);
-      HRESULT  __stdcall SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr,
-                                             SK_TLS *pTLS = SK_TLS_Bottom () );
+      void     __stdcall SK_BeginBufferSwap   (void);
+      void     __stdcall SK_BeginBufferSwapEx (BOOL bWaitOnFail);
+      HRESULT  __stdcall SK_EndBufferSwap     (HRESULT hr, IUnknown* device = nullptr,
+                                               SK_TLS *pTLS = SK_TLS_Bottom () );
 
       HMODULE      __stdcall SK_GetDLL          (void) noexcept;
       DLL_ROLE     __stdcall SK_GetDLLRole      (void);

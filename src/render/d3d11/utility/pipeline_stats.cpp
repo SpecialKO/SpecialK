@@ -120,17 +120,17 @@ SK_CountToString (uint64_t count)
   switch (unit)
   {
     case 1000000000UL:
-      _swprintf (str, L"%6.2f Billion ", (float)count / (float)unit);
+      swprintf (str, L"%6.2f Billion ", (float)count / (float)unit);
       break;
     case 1000000UL:
-      _swprintf (str, L"%6.2f Million ", (float)count / (float)unit);
+      swprintf (str, L"%6.2f Million ", (float)count / (float)unit);
       break;
     case 1000UL:
-      _swprintf (str, L"%6.2f Thousand", (float)count / (float)unit);
+      swprintf (str, L"%6.2f Thousand", (float)count / (float)unit);
       break;
     case 1UL:
     default:
-      _swprintf (str, L"%15llu", count);
+      swprintf (str, L"%15llu", count);
       break;
   }
 
@@ -153,17 +153,17 @@ SK_D3D11_GetVertexPipelineDesc (wchar_t* wszDesc)
 
   if (stats.VSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                 L"  VERTEX : %s   (%s Verts ==> %s Triangles)",
-                   SK_CountToString (stats.VSInvocations).c_str (),
-                     SK_CountToString (stats.IAVertices).c_str (),
-                       SK_CountToString (stats.IAPrimitives).c_str () );
+    swprintf ( wszDesc,
+                L"  VERTEX : %s   (%s Verts ==> %s Triangles)",
+                  SK_CountToString (stats.VSInvocations).c_str (),
+                    SK_CountToString (stats.IAVertices).c_str (),
+                      SK_CountToString (stats.IAPrimitives).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                 L"  VERTEX : <Unused>" );
+    swprintf ( wszDesc,
+                L"  VERTEX : <Unused>" );
   }
 }
 
@@ -175,18 +175,18 @@ SK_D3D11_GetGeometryPipelineDesc (wchar_t* wszDesc)
 
   if (stats.GSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                 L"%s  GEOM   : %s   (%s Prims)",
-                   wszDesc,
-                     SK_CountToString (stats.GSInvocations).c_str (),
-                       SK_CountToString (stats.GSPrimitives).c_str () );
+    swprintf ( wszDesc,
+                L"%s  GEOM   : %s   (%s Prims)",
+                  wszDesc,
+                    SK_CountToString (stats.GSInvocations).c_str (),
+                      SK_CountToString (stats.GSPrimitives).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                 L"%s  GEOM   : <Unused>",
-                   wszDesc );
+    swprintf ( wszDesc,
+                L"%s  GEOM   : <Unused>",
+                  wszDesc );
   }
 }
 
@@ -198,18 +198,18 @@ SK_D3D11_GetTessellationPipelineDesc (wchar_t* wszDesc)
 
   if (stats.HSInvocations > 0 || stats.DSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                 L"%s  TESS   : %s Hull ==> %s Domain",
-                   wszDesc,
-                     SK_CountToString (stats.HSInvocations).c_str (),
-                       SK_CountToString (stats.DSInvocations).c_str () ) ;
+    swprintf ( wszDesc,
+                L"%s  TESS   : %s Hull ==> %s Domain",
+                  wszDesc,
+                    SK_CountToString (stats.HSInvocations).c_str (),
+                      SK_CountToString (stats.DSInvocations).c_str () ) ;
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                 L"%s  TESS   : <Unused>",
-                   wszDesc );
+    swprintf ( wszDesc,
+                L"%s  TESS   : <Unused>",
+                  wszDesc );
   }
 }
 
@@ -221,19 +221,19 @@ SK_D3D11_GetRasterPipelineDesc (wchar_t* wszDesc)
 
   if (stats.CInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                 L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )",
-                   wszDesc, 100.0 *
-                       ( static_cast <double> (stats.CPrimitives) /
-                         static_cast <double> (stats.CInvocations) ),
-                     SK_CountToString (stats.CInvocations).c_str () );
+    swprintf ( wszDesc,
+                L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )",
+                  wszDesc, 100.0 *
+                      ( static_cast <double> (stats.CPrimitives) /
+                        static_cast <double> (stats.CInvocations) ),
+                    SK_CountToString (stats.CInvocations).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                 L"%s  RASTER : <Unused>",
-                   wszDesc );
+    swprintf ( wszDesc,
+                L"%s  RASTER : <Unused>",
+                  wszDesc );
   }
 }
 
@@ -245,18 +245,18 @@ SK_D3D11_GetPixelPipelineDesc (wchar_t* wszDesc)
 
   if (stats.PSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                 L"%s  PIXEL  : %s   (%s Triangles OUT)",
-                   wszDesc,
-                     SK_CountToString (stats.PSInvocations).c_str (),
-                       SK_CountToString (stats.CPrimitives).c_str () );
+    swprintf ( wszDesc,
+                L"%s  PIXEL  : %s   (%s Triangles OUT)",
+                  wszDesc,
+                    SK_CountToString (stats.PSInvocations).c_str (),
+                      SK_CountToString (stats.CPrimitives).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                 L"%s  PIXEL  : <Unused>",
-                   wszDesc );
+    swprintf ( wszDesc,
+                L"%s  PIXEL  : <Unused>",
+                  wszDesc );
   }
 }
 
@@ -268,16 +268,16 @@ SK_D3D11_GetComputePipelineDesc (wchar_t* wszDesc)
 
   if (stats.CSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                 L"%s  COMPUTE: %s",
-                   wszDesc, SK_CountToString (stats.CSInvocations).c_str () );
+    swprintf ( wszDesc,
+                L"%s  COMPUTE: %s",
+                  wszDesc, SK_CountToString (stats.CSInvocations).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                 L"%s  COMPUTE: <Unused>",
-                   wszDesc );
+    swprintf ( wszDesc,
+                L"%s  COMPUTE: <Unused>",
+                  wszDesc );
   }
 }
 

@@ -711,6 +711,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (create)
     SK_CreateDirectories ( full_name.c_str () );
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+
   static LONG         init     = FALSE;
   static bool         empty    = true;
   static std::wstring last_try = name;
@@ -2201,9 +2205,9 @@ auto DeclKeybind =
 
 
   render.osd.draw_in_vidcap->load           (config.render.osd. draw_in_vidcap);
-  render.osd.hdr_luminance->load            (config.render.osd.hdr_luminance);
 
-  SK_GetCurrentRenderBackend ().ui_luminance = config.render.osd.hdr_luminance;
+  if (render.osd.hdr_luminance->load        (config.render.osd.hdr_luminance))
+    rb.ui_luminance =                        config.render.osd.hdr_luminance;
 
   // D3D9/11
   //
@@ -3165,6 +3169,9 @@ SK_SaveConfig ( std::wstring name,
        osd_ini         == nullptr    )
     return;
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
 
@@ -3294,16 +3301,16 @@ SK_SaveConfig ( std::wstring name,
   window.background_mute->store              (config.window.background_mute);
   if (config.window.offset.x.absolute != 0)
   {
-    wchar_t    wszAbsolute [16] = { };
-    _swprintf (wszAbsolute, L"%li", config.window.offset.x.absolute);
+    wchar_t   wszAbsolute [16] = { };
+    swprintf (wszAbsolute, L"%li", config.window.offset.x.absolute);
 
     window.offset.x->store (wszAbsolute);
   }
 
   else
   {
-       wchar_t wszPercent [16] = { };
-    _swprintf (wszPercent, L"%08.6f", 100.0 * config.window.offset.x.percent);
+      wchar_t wszPercent [16] = { };
+    swprintf (wszPercent, L"%08.6f", 100.0 * config.window.offset.x.percent);
 
     SK_RemoveTrailingDecimalZeros (wszPercent);
     lstrcatW                      (wszPercent, L"%");
@@ -3312,16 +3319,16 @@ SK_SaveConfig ( std::wstring name,
 
   if (config.window.offset.y.absolute != 0)
   {
-    wchar_t    wszAbsolute [16] = { };
-    _swprintf (wszAbsolute, L"%li", config.window.offset.y.absolute);
+    wchar_t   wszAbsolute [16] = { };
+    swprintf (wszAbsolute, L"%li", config.window.offset.y.absolute);
 
     window.offset.y->store (wszAbsolute);
   }
 
   else
   {
-       wchar_t wszPercent [16] = { };
-    _swprintf (wszPercent, L"%08.6f", 100.0 * config.window.offset.y.percent);
+      wchar_t wszPercent [16] = { };
+    swprintf (wszPercent, L"%08.6f", 100.0 * config.window.offset.y.percent);
 
     SK_RemoveTrailingDecimalZeros (wszPercent);
     lstrcatW                      (wszPercent, L"%");
@@ -3503,10 +3510,13 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
-  render.osd.draw_in_vidcap->store            (config.render.osd.draw_in_vidcap);
+  if (SK_GetFramesDrawn ())
+  {
+    render.osd.draw_in_vidcap->store            (config.render.osd.draw_in_vidcap);
 
-  config.render.osd.hdr_luminance = SK_GetCurrentRenderBackend ().ui_luminance;
-  render.osd.hdr_luminance->store             (config.render.osd.hdr_luminance);
+    config.render.osd.hdr_luminance = rb.ui_luminance;
+    render.osd.hdr_luminance->store  (rb.ui_luminance);
+  }
 
   texture.res_root->store                     (config.textures.d3d11.res_root);
   texture.dump_on_load->store                 (config.textures.dump_on_load);
@@ -3652,8 +3662,12 @@ SK_SaveConfig ( std::wstring name,
   lstrcatW (wszFullName,             L".ini");
 
 
-  if (dll_ini != nullptr)
-      dll_ini->write ( wszFullName );
+  if (SK_GetFramesDrawn ())
+  {
+    if (dll_ini != nullptr)
+        dll_ini->write ( wszFullName );
+  }
+
 
   SK_ImGui_Widgets->SaveConfig ();
 
@@ -4122,8 +4136,8 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
   };
 
 
-  wchar_t    wszAppID [32] = { };
-  _swprintf (wszAppID, L"%0i", uiAppID);
+  wchar_t   wszAppID [32] = { };
+  swprintf (wszAppID, L"%0i", uiAppID);
 
   if (fwd_map.contains_key (wszRelPath))
     fwd_map.get_value      (wszRelPath) = wszAppID;

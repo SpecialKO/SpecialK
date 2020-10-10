@@ -2312,17 +2312,17 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.VSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                  L"  VERTEX : %s   (%s Verts ==> %s Triangles)\n",
-                    SK_CountToString (stats.VSInvocations).c_str (),
-                      SK_CountToString (stats.IAVertices).c_str (),
-                        SK_CountToString (stats.IAPrimitives).c_str () );
+    swprintf ( wszDesc,
+                 L"  VERTEX : %s   (%s Verts ==> %s Triangles)\n",
+                   SK_CountToString (stats.VSInvocations).c_str (),
+                     SK_CountToString (stats.IAVertices).c_str (),
+                       SK_CountToString (stats.IAPrimitives).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                  L"  VERTEX : <Unused>\n" );
+    swprintf ( wszDesc,
+                 L"  VERTEX : <Unused>\n" );
   }
 
   //
@@ -2330,18 +2330,18 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.GSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                  L"%s  GEOM   : %s   (%s Prims)\n",
-                    wszDesc,
-                      SK_CountToString (stats.GSInvocations).c_str (),
-                        SK_CountToString (stats.GSPrimitives).c_str () );
+    swprintf ( wszDesc,
+                 L"%s  GEOM   : %s   (%s Prims)\n",
+                   wszDesc,
+                     SK_CountToString (stats.GSInvocations).c_str (),
+                       SK_CountToString (stats.GSPrimitives).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                  L"%s  GEOM   : <Unused>\n",
-                    wszDesc );
+    swprintf ( wszDesc,
+                 L"%s  GEOM   : <Unused>\n",
+                   wszDesc );
   }
 
   //
@@ -2349,18 +2349,18 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.HSInvocations > 0 || stats.DSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                  L"%s  TESS   : %s Hull ==> %s Domain\n",
-                    wszDesc,
-                      SK_CountToString (stats.HSInvocations).c_str (),
-                        SK_CountToString (stats.DSInvocations).c_str () ) ;
+    swprintf ( wszDesc,
+                 L"%s  TESS   : %s Hull ==> %s Domain\n",
+                   wszDesc,
+                     SK_CountToString (stats.HSInvocations).c_str (),
+                       SK_CountToString (stats.DSInvocations).c_str () ) ;
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                  L"%s  TESS   : <Unused>\n",
-                    wszDesc );
+    swprintf ( wszDesc,
+                 L"%s  TESS   : <Unused>\n",
+                   wszDesc );
   }
 
   //
@@ -2368,19 +2368,19 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.CInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                  L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
-                    wszDesc, 100.0f *
-                        ( static_cast <long double> (stats.CPrimitives) /
-                          static_cast <long double> (stats.CInvocations) ),
-                      SK_CountToString (stats.CInvocations).c_str () );
+    swprintf ( wszDesc,
+                 L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
+                   wszDesc, 100.0f *
+                       ( static_cast <long double> (stats.CPrimitives) /
+                         static_cast <long double> (stats.CInvocations) ),
+                     SK_CountToString (stats.CInvocations).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                  L"%s  RASTER : <Unused>\n",
-                    wszDesc );
+    swprintf ( wszDesc,
+                 L"%s  RASTER : <Unused>\n",
+                   wszDesc );
   }
 
   //
@@ -2388,18 +2388,18 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.PSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                  L"%s  PIXEL  : %s   (%s Triangles OUT)\n",
-                    wszDesc,
-                      SK_CountToString (stats.PSInvocations).c_str (),
-                        SK_CountToString (stats.CPrimitives).c_str () );
+    swprintf ( wszDesc,
+                 L"%s  PIXEL  : %s   (%s Triangles OUT)\n",
+                   wszDesc,
+                     SK_CountToString (stats.PSInvocations).c_str (),
+                       SK_CountToString (stats.CPrimitives).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                  L"%s  PIXEL  : <Unused>\n",
-                    wszDesc );
+    swprintf ( wszDesc,
+                 L"%s  PIXEL  : <Unused>\n",
+                   wszDesc );
   }
 
   //
@@ -2407,16 +2407,16 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.CSInvocations > 0)
   {
-    _swprintf ( wszDesc,
-                  L"%s  COMPUTE: %s\n",
-                    wszDesc, SK_CountToString (stats.CSInvocations).c_str () );
+    swprintf ( wszDesc,
+                 L"%s  COMPUTE: %s\n",
+                   wszDesc, SK_CountToString (stats.CSInvocations).c_str () );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                  L"%s  COMPUTE: <Unused>\n",
-                    wszDesc );
+    swprintf ( wszDesc,
+                 L"%s  COMPUTE: <Unused>\n",
+                   wszDesc );
   }
 
   return wszDesc;

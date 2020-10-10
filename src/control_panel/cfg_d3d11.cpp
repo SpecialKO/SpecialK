@@ -312,6 +312,16 @@ SK::ControlPanel::D3D11::Draw (void)
 
     if (swapchain)
     {
+      auto _ResetLimiter = [&](void) -> void
+      {
+        static auto& rb = SK_GetCurrentRenderBackend ();
+
+        auto *pLimiter =
+          SK::Framerate::GetLimiter (rb.swapchain.p);
+
+        pLimiter->reset (true);
+      };
+
       static bool flip         = config.render.framerate.flip_discard;
       static bool waitable     = config.render.framerate.swapchain_wait > 0;
       static int  buffer_count = config.render.framerate.buffer_count;
@@ -353,6 +363,8 @@ SK::ControlPanel::D3D11::Draw (void)
         // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
         PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)io.DisplaySize.x,
                                                                                 (LONG)io.DisplaySize.y ) );
+
+        _ResetLimiter ();
       }
 
       // Clamp to [-1,oo)
@@ -374,10 +386,14 @@ SK::ControlPanel::D3D11::Draw (void)
           void
           SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain );
           SK_DXGI_UpdateLatencies (                 pSwapChain );
+
+          _ResetLimiter ();
         }
       }
 
-      ImGui::Checkbox ("Wait for VBLANK", &config.render.framerate.wait_for_vblank);
+      if (ImGui::Checkbox ("Wait for VBLANK", &config.render.framerate.wait_for_vblank))
+        _ResetLimiter ();
+
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Input Latency Reduction; requires VERY stable framerate.");
 
@@ -389,6 +405,8 @@ SK::ControlPanel::D3D11::Draw (void)
         {
           if (! waitable_) config.render.framerate.swapchain_wait = 0;
           else             config.render.framerate.swapchain_wait = 15;
+
+          _ResetLimiter ();
         }
 
         if (ImGui::IsItemHovered ())
@@ -411,6 +429,8 @@ SK::ControlPanel::D3D11::Draw (void)
           if (ImGui::Checkbox ("Enable DWM Tearing", &tearing_pref))
           {
             config.render.dxgi.allow_tearing = tearing_pref;
+
+            _ResetLimiter ();
           }
 
           if (ImGui::IsItemHovered ())
@@ -433,9 +453,9 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::BulletText     ("Game Restart Required");
         ImGui::PopStyleColor  ();
       }
-      ImGui::EndGroup (  );
+      ImGui::EndGroup       (  );
 
-      if (config.render.framerate.flip_discard)
+      if (config.render.framerate.flip_discard && config.render.framerate.buffer_count >= 2)
       {
         if (SK_DXGI_SupportsTearing ())
         {
@@ -447,7 +467,7 @@ SK::ControlPanel::D3D11::Draw (void)
           if ( bLLMPreReq )
           {
             bool bLLM =
-              config.render.framerate.pre_render_limit <= 2 &&
+              config.render.framerate.pre_render_limit <= config.render.framerate.buffer_count-1 &&
             ( config.render.framerate.present_interval == 0 ||
               config.render.framerate.present_interval == 1  ) &&
                                           __target_fps != 0.0f;
@@ -468,15 +488,17 @@ SK::ControlPanel::D3D11::Draw (void)
                 if (config.render.framerate.present_interval != 1 &&
                     config.render.framerate.present_interval != 0 )
                     config.render.framerate.present_interval =  1;
-                config.render.framerate.pre_render_limit     =  2;
+                config.render.framerate.pre_render_limit     =  config.render.framerate.buffer_count-1;
               }
 
               else
               {
                 config.render.framerate.pre_render_limit =
-                config.render.framerate.buffer_count      + 1;
+                config.render.framerate.buffer_count;
                 config.render.framerate.present_interval =  1;
               }
+
+              _ResetLimiter ();
             }
 
             if (ImGui::IsItemHovered ())
@@ -492,18 +514,20 @@ SK::ControlPanel::D3D11::Draw (void)
             if (bLLM)
             {
               bool bULMM =
-                ( config.render.framerate.pre_render_limit == 1 );
+                ( config.render.framerate.pre_render_limit <= config.render.framerate.buffer_count-2 );
 
               if (ImGui::Checkbox ("Minimum Latency###SK_ULL_LIMITER", &bULMM))
               {
                 if (bULMM)
-                  config.render.framerate.pre_render_limit = 1;
+                  config.render.framerate.pre_render_limit = config.render.framerate.buffer_count-2;
                 else
-                  config.render.framerate.pre_render_limit = 2;
+                  config.render.framerate.pre_render_limit = config.render.framerate.buffer_count-1;
+
+                _ResetLimiter ();
               }
             }
           }
-          ImGui::EndGroup   ();
+          ImGui::EndGroup ();
         }
       }
       ImGui::TreePop  (  );

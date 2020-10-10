@@ -147,6 +147,80 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
+  bool           sRGBUnKill = false;
+  extern bool __SK_DXGI_SRGB_KILL;
+  if (        __SK_DXGI_SRGB_KILL && pResource != nullptr)
+  {
+    D3D11_RESOURCE_DIMENSION   dim;
+    pResource->GetType       (&dim);
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      D3D11_SHADER_RESOURCE_VIEW_DESC desc = { };
+
+      if (pDesc != nullptr)
+        desc = *pDesc;
+
+      if (desc.Format == DXGI_FORMAT_UNKNOWN)
+      {
+        SK_ComQIPtr <ID3D11Texture2D>
+            pTex2D (pResource);
+        D3D11_TEXTURE2D_DESC  tex_desc = { };
+        if (pTex2D != nullptr)
+            pTex2D->GetDesc (&tex_desc);
+
+        if (pTex2D != nullptr)
+        {
+          UINT fmt_support = 0;
+
+          if ( SUCCEEDED (
+            This->CheckFormatSupport (tex_desc.Format, &fmt_support)
+             )           )
+          {
+            if ( (fmt_support & D3D11_FORMAT_SUPPORT_DISPLAY ) ||
+                 (fmt_support & D3D11_FORMAT_SUPPORT_BACK_BUFFER_CAST) )
+            {
+              auto& rb =
+                SK_GetCurrentRenderBackend ();
+
+              SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+
+              if (pSwapChain.p != nullptr)
+              {
+                DXGI_SWAP_CHAIN_DESC  swap_desc = { };
+                pSwapChain->GetDesc (&swap_desc);
+
+                for ( UINT i = 0 ; i < swap_desc.BufferCount ; ++i )
+                {
+                  SK_ComPtr <ID3D11Texture2D> pSwapBuffer_n;
+
+                  if (SUCCEEDED (pSwapChain->GetBuffer (i, __uuidof (ID3D11Texture2D), (void **)&pSwapBuffer_n.p)))
+                  {
+                    if (pSwapBuffer_n.IsEqualObject (pTex2D))
+                    {
+                      sRGBUnKill = true;
+
+                      desc.Format = DirectX::MakeSRGB (tex_desc.Format);
+                    //dll_log->Log (L"sRGB(Un)Kill (SRV)");
+
+                      return
+                        D3D11Dev_CreateShaderResourceView_Original (
+                          This,    pResource,
+                            &desc, ppSRView                       );
+
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
   //CD3D11_SHADER_RESOURCE_VIEW_DESC _desc (
   //  D3D11_SRV_DIMENSION_TEXTURE2D
   //);

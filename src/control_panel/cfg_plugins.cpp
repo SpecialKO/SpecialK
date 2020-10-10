@@ -47,7 +47,7 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
   {
     wchar_t wszImportRecord [4096] = { };
 
-    _swprintf ( wszImportRecord, L"[%s]\n"
+    swprintf ( wszImportRecord, L"[%s]\n"
 #ifdef _WIN64
                                  L"Architecture=x64\n"
 #else

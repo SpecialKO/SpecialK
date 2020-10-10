@@ -1,4 +1,22 @@
-﻿0.11.0.49:
+﻿0.11.0.50:
+
+ + HDR Preset Default Keybinds changed to Shift+F1, Shift+F2, Shift+F3, Shift+F4
+ + HDR Preset Keybindings are configurable in-game by clicking on the binding text
+
+ --
+
+ + Unreal Engine needs to STFU when Present (...) returns DXGI_ERROR_INVALID_CALL,
+     it is -not- a crash and is completely recoverable by calling ResizeBuffers ().
+
+    >> SK will now lie to Unreal Engine and replace DXGI_ERROR_INVALID_CALL with
+         DXGI_STATUS_MODE_CHANGE_IN_PROGRESS to prevent it from self-destructing
+           after Alt-Tab when Fullscreen Flip is enabled.
+
+  + Disabled %USERPROFILE% environment variable expansion in FFXV because it does
+      not properly handle paths containing multi-byte characters.
+
+
+0.11.0.49:
 
  -------------------------------------------------------------------------------
    ( Flip Model + Fullscreen Exclusive is now supported for all D3D11 games! )
@@ -15,15 +33,16 @@
   + A ton of tooltips have been added to the D3D11 SwapChain and Framerate Limiter
       sections, mostly amounting to "Reduces Input Latency."
 
-    * Tooltips will be immproved later, for now pay attention to "Low Latency Mode"
+    * Tooltips will be improved later, for now pay attention to "Low Latency Mode"
         and "Drop Late Frames" in the Framerate Limiter config section.
- --------------------------------
- -----------------------------------------------
+ -------------------------------------------------------------------------------
 
  - Sleepless Window / Render Thread were accidentally enabled by default in 0.11.0.48.
 
  + Removed Fallout 4 and Dark Souls 3 Flip Model plug-in options, these games will
      use the standard SK flip model settings now instead of requiring special config.
+
+ + Increased number of partitions addressable in Disk Monitoring OSD from 16 to 128.
 
  + Unified IDXGISwapChain::Present (...) and IDXGISwapChain1::Present1 (...)
      code for better compatibility with Chromium-based games (i.e. CrossCode) and
@@ -213,7 +232,7 @@
           reading PCI/ACPI and Model-Specific CPU Registers for more advanced hardware
             reporting.
 
-	   (Currently:  Thermals, Energy and Precise Clock Rate in CPUs, with no plans
+     (Currently:  Thermals, Energy and Precise Clock Rate in CPUs, with no plans
                           for any additional custom driver code any time soon).
 
        * I take code running in kernel-mode _very_ seriously, and WinRing0's nothing to worry

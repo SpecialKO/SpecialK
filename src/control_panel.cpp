@@ -2751,6 +2751,14 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
+        auto _ResetLimiter = [&](void) -> void
+        {
+          auto *pLimiter =
+            SK::Framerate::GetLimiter (rb.swapchain.p);
+
+          pLimiter->reset (true);
+        };
+
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
@@ -2994,6 +3002,8 @@ SK_ImGui_ControlPanel (void)
             {
               if (bLowLatency) config.render.framerate.enforcement_policy = 2;
               else             config.render.framerate.enforcement_policy = 4;
+
+              _ResetLimiter ();
             }
 
             if (ImGui::IsItemHovered ())
@@ -3011,7 +3021,9 @@ SK_ImGui_ControlPanel (void)
 
             if (rb.api == SK_RenderAPI::D3D11) {
               ImGui::SameLine ();
-              ImGui::Checkbox ("Drop Late Frames", &config.render.framerate.drop_late_flips);
+
+              if (ImGui::Checkbox ("Drop Late Frames", &config.render.framerate.drop_late_flips))
+                _ResetLimiter ();
 
               if (ImGui::IsItemHovered ())
               {
@@ -3810,11 +3822,6 @@ SK_ImGui_StageNextFrame (void)
     SK_ImGui_Cursor.pos.y = static_cast <LONG> (io.MousePos.y);
 
     POINT screen_pos = SK_ImGui_Cursor.pos;
-
-    HCURSOR hCur = GetCursor ();
-
-    if (hCur != nullptr)
-      SK_ImGui_Cursor.orig_img = hCur;
 
     SK_ImGui_Cursor.LocalToScreen (&screen_pos);
     SK_SetCursorPos ( screen_pos.x,

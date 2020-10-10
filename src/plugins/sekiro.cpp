@@ -487,7 +487,7 @@ SK_Sekiro_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags
     }
 
     SK_Sekiro_UnlimitFramerate (no_frame_limit, kill_limit ?
-       std::max (0.0, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0);
+       std::max (0.0, SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain.p)->get_limit ()) : 0.0);
     SK_Sekiro_KillLimiter      (kill_limit);
 
     DWORD dwProcId;
@@ -570,7 +570,7 @@ SK_Sekiro_PlugInCfg (void)
       {
         no_frame_limit
           = SK_Sekiro_UnlimitFramerate (no_frame_limit, kill_limit ?
-                                std::max (0.0, SK::Framerate::GetLimiter ()->get_limit ()) : 0.0);
+                                std::max (0.0, SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain.p)->get_limit ()) : 0.0);
 
         uncap_framerate->store (no_frame_limit);
 

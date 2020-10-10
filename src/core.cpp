@@ -1207,8 +1207,8 @@ SK_EstablishRootPath (void)
   {
     if (! SK_IsSuperSpecialK ())
     {
-      _swprintf ( SKX_GetRootPath (), LR"(%s\My Mods\SpecialK)",
-                  SK_GetDocumentsDir ().c_str () );
+      swprintf ( SKX_GetRootPath (), LR"(%s\My Mods\SpecialK)",
+                 SK_GetDocumentsDir ().c_str () );
     }
 
     else
@@ -2165,17 +2165,17 @@ return;
     const wchar_t* wszArch = SK_RunLHIfBitness ( 64, L"x64",
                                                      L"Win32" );
 
-    _swprintf (wszCEGUIModPath, LR"(%sCEGUI\bin\%s)", SK_GetRootPath (), wszArch);
+    swprintf (wszCEGUIModPath, LR"(%sCEGUI\bin\%s)", SK_GetRootPath (), wszArch);
 
     if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
     {
-      _swprintf ( wszCEGUIModPath, LR"(%s\My Mods\SpecialK\CEGUI\bin\%s)",
-                    SK_GetDocumentsDir ().c_str (), wszArch );
+      swprintf ( wszCEGUIModPath, LR"(%s\My Mods\SpecialK\CEGUI\bin\%s)",
+                   SK_GetDocumentsDir ().c_str (), wszArch );
 
-      _swprintf (wszEnvPath, LR"(CEGUI_PARENT_DIR=%s\My Mods\SpecialK\)", SK_GetDocumentsDir ().c_str ());
+      swprintf (wszEnvPath, LR"(CEGUI_PARENT_DIR=%s\My Mods\SpecialK\)", SK_GetDocumentsDir ().c_str ());
     }
     else
-      _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
+      swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
 
     if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
     {
@@ -2245,7 +2245,7 @@ return;
 
       wchar_t wszEnvVar [ MAX_PATH + 32 ] = { };
 
-      _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
+       swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
       _wputenv  (wszEnvVar);
 
       // This tests for the existence of the DLL before attempting to load it...
@@ -2453,8 +2453,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       if (config.system.handle_crashes)
         SK::Diagnostics::CrashHandler::Reinstall ();
 
-                           __target_fps = config.render.framerate.target_fps;
-      SK::Framerate::GetLimiter ()->init (config.render.framerate.target_fps);
+      __target_fps = config.render.framerate.target_fps;
     } break;
 
 
@@ -2533,7 +2532,7 @@ SK_MMCS_BeginBufferSwap (void)
 __declspec (noinline)
 void
 __stdcall
-SK_BeginBufferSwap (void)
+SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 {
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -2550,7 +2549,7 @@ SK_BeginBufferSwap (void)
 
   if (config.render.framerate.enforcement_policy == 0)
   {
-    SK::Framerate::Tick ();
+    SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
   }
 
   rb.present_staging.begin_overlays.time.QuadPart =
@@ -2585,9 +2584,9 @@ SK_BeginBufferSwap (void)
 
   //if (rb.api != SK_RenderAPI::D3D12)
   {
-    if (config.cegui.enable || rb.api == SK_RenderAPI::D3D12)
+    //if (config.cegui.enable || rb.api == SK_RenderAPI::D3D12)
     {
-      if (rb.api != SK_RenderAPI::D3D12)
+      if (config.cegui.enable && rb.api != SK_RenderAPI::D3D12)
         SetupCEGUI (LastKnownAPI);
 
       if (config.cegui.frames_drawn > 0 || rb.api == SK_RenderAPI::D3D12)
@@ -2607,7 +2606,7 @@ SK_BeginBufferSwap (void)
 
   if (config.render.framerate.enforcement_policy == 1)
   {
-    SK::Framerate::Tick ();
+    SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
   }
 
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
@@ -2623,8 +2622,17 @@ SK_BeginBufferSwap (void)
 
   if (config.render.framerate.enforcement_policy == 4)
   {
-    SK::Framerate::Tick ();
+    SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
   }
+}
+
+__declspec (noinline)
+void
+__stdcall
+SK_BeginBufferSwap (void)
+{
+  return
+    SK_BeginBufferSwapEx (TRUE);
 }
 
 extern bool __stdcall SK_IsGameWindowActive (void);
@@ -2813,9 +2821,21 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  auto _FrameTick = [&](void) -> void
+  {
+    bool bWait =
+      SUCCEEDED (hr);
+
+    // Only implement waiting on successful Presents,
+    //   unsuccessful Presents must return immediately
+    SK::Framerate::Tick ( bWait, 0.0,
+                        { 0,0 }, rb.swapchain.p );
+    // Tock
+  };
+
   if (config.render.framerate.enforcement_policy == 3)
   {
-    SK::Framerate::Tick ();
+    _FrameTick ();
   }
 
   // Various required actions at the end of every frame in order to
@@ -2880,7 +2900,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   if (config.render.framerate.enforcement_policy == 2)
   {
-    SK::Framerate::Tick ();
+    _FrameTick ();
   }
 
   return hr;

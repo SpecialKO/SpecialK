@@ -2260,10 +2260,13 @@ SK_FAR_IsPlugIn (void)
 void
 far_game_state_s::uncapFPS (void)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   DWORD old_protect_mask;
 
   SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
-  SK::Framerate::GetLimiter ()->set_limit (__FAR_TargetFPS);
+  SK::Framerate::GetLimiter (rb.swapchain.p)->set_limit (__FAR_TargetFPS);
 
   mbegin (pspinlock, 2)
   memset (pspinlock, 0x90, 2);
@@ -2284,6 +2287,12 @@ far_game_state_s::uncapFPS (void)
 void
 far_game_state_s::capFPS (void)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  auto* pLimiter =
+    SK::Framerate::GetLimiter (rb.swapchain.p);
+
   DWORD  old_protect_mask;
 
   if (! far_limiter_busy->get_value ())
@@ -2293,8 +2302,8 @@ far_game_state_s::capFPS (void)
     //
     //   Avoid using Special K's command processor because that
     //     would store this value persistently.
-    __FAR_TargetFPS = SK::Framerate::GetLimiter ()->get_limit ();
-                      SK::Framerate::GetLimiter ()->set_limit (59.94);
+    __FAR_TargetFPS = pLimiter->get_limit ();
+                      pLimiter->set_limit (59.94);
   }
 
   mbegin (pspinlock, 2)

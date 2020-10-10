@@ -1058,7 +1058,7 @@ SK::D3D9::Shutdown (void)
           L"D3D9.Hooks" );
     }
 
-    SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+  /////SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
   }
 
 
@@ -3154,18 +3154,18 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
             {
               if (record.method == TexLoadMethod::Streaming)
               {
-                _swprintf ( wszInjectFileName, LR"(%s\inject\textures\streaming\%08x%s)",
-                              SK_D3D11_res_root->c_str (),
-                                pDst->tex_crc32c,
-                                  L".dds" );
+                swprintf ( wszInjectFileName, LR"(%s\inject\textures\streaming\%08x%s)",
+                             SK_D3D11_res_root->c_str (),
+                               pDst->tex_crc32c,
+                                 L".dds" );
               }
 
               else if (record.method == TexLoadMethod::Blocking)
               {
-                _swprintf ( wszInjectFileName, LR"(%s\inject\textures\blocking\%08x%s)",
-                              SK_D3D11_res_root->c_str (),
-                                pDst->tex_crc32c,
-                                  L".dds");
+                swprintf ( wszInjectFileName, LR"(%s\inject\textures\blocking\%08x%s)",
+                             SK_D3D11_res_root->c_str (),
+                               pDst->tex_crc32c,
+                                 L".dds");
               }
             }
 
@@ -4961,15 +4961,15 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   if (stats.VertexProcessingTimePercent > 0.0f)
   {
-    _swprintf ( wszDesc,
-                  L"  VERTEX : %5.2f%%\n",
-                    stats.VertexProcessingTimePercent );
+    swprintf ( wszDesc,
+                 L"  VERTEX : %5.2f%%\n",
+                   stats.VertexProcessingTimePercent );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                  L"  VERTEX : <Unused>\n" );
+    swprintf ( wszDesc,
+                 L"  VERTEX : <Unused>\n" );
   }
 
   //
@@ -4977,17 +4977,17 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   if (stats.PixelProcessingTimePercent > 0.0f)
   {
-    _swprintf ( wszDesc,
-                  L"%s  PIXEL  : %5.2f%%\n",
-                    wszDesc,
-                      stats.PixelProcessingTimePercent );
+    swprintf ( wszDesc,
+                 L"%s  PIXEL  : %5.2f%%\n",
+                   wszDesc,
+                     stats.PixelProcessingTimePercent );
   }
 
   else
   {
-    _swprintf ( wszDesc,
-                  L"%s  PIXEL  : <Unused>\n",
-                    wszDesc );
+    swprintf ( wszDesc,
+                 L"%s  PIXEL  : <Unused>\n",
+                   wszDesc );
   }
 
   //
@@ -4995,9 +4995,9 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   if (stats.OtherGPUProcessingTimePercent > 0.0f)
   {
-    _swprintf ( wszDesc,
-                  L"%s  OTHER  : %5.2f%%\n",
-                    wszDesc, stats.OtherGPUProcessingTimePercent);
+    swprintf ( wszDesc,
+                 L"%s  OTHER  : %5.2f%%\n",
+                   wszDesc, stats.OtherGPUProcessingTimePercent);
   }
 
   //
@@ -5005,10 +5005,10 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   if (stats.GPUIdleTimePercent > 0.0f)
   {
-    _swprintf ( wszDesc,
-                  L"%s  IDLE   : %5.2f%%\n",
-                    wszDesc,
-                      stats.GPUIdleTimePercent );
+    swprintf ( wszDesc,
+                 L"%s  IDLE   : %5.2f%%\n",
+                   wszDesc,
+                     stats.GPUIdleTimePercent );
   }
 
   return wszDesc;

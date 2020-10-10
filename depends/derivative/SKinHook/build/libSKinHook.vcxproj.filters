@@ -42,9 +42,6 @@
     <ClInclude Include="..\..\..\include\MinHook\MinHook.h" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{9d24b740-be2e-4cfd-b9a4-340a50946ee9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{76381bc7-2863-4cc5-aede-926ec2c506e4}</UniqueIdentifier>
     </Filter>
@@ -56,6 +53,9 @@
     </Filter>
     <Filter Include="HDE\Header Files">
       <UniqueIdentifier>{49f306ae-dbcd-4506-a96a-f3e9154daf1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{9d24b740-be2e-4cfd-b9a4-340a50946ee9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

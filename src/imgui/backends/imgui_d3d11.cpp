@@ -327,7 +327,7 @@ struct SK_IMGUI_D3D11StateBlock {
 };
 
 
-static constexpr           UINT _MAX_BACKBUFFERS        = 1;//5;
+static constexpr           UINT _MAX_BACKBUFFERS        = 1;
 
 struct SK_ImGui_D3D11_BackbufferResourceIsolation {
   ID3D11VertexShader*       pVertexShader         = nullptr;
@@ -357,7 +357,7 @@ struct SK_ImGui_D3D11_BackbufferResourceIsolation {
 } _Frame [_MAX_BACKBUFFERS];
 
 static UINT                     g_frameIndex            = 0;//UINT_MAX;
-static UINT                     g_numFramesInSwapChain  = 0;
+static UINT                     g_numFramesInSwapChain  = 1;
 static UINT                     g_frameBufferWidth      = 0UL;
 static UINT                     g_frameBufferHeight     = 0UL;
 
@@ -484,19 +484,10 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   if (! _P.pPixelConstantBuffer)
     return;
 
-  if (pSwap3 != nullptr)
-  {
-            currentBuffer =
-    std::min ( g_numFramesInSwapChain,
-                 pSwap3->GetCurrentBackBufferIndex () );
-  }
-
   SK_ComPtr <ID3D11Texture2D> pBackBuffer = nullptr;
 
   if ( FAILED (
-         pSwapChain->GetBuffer (/*pSwap3 != nullptr ?
-                                  pSwap3->GetCurrentBackBufferIndex ()
-                                                   :*/ currentBuffer, IID_PPV_ARGS (&pBackBuffer.p) )
+         pSwapChain->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer.p) )
               )
      ) return;
 
@@ -661,8 +652,15 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
     memcpy         (&constant_buffer->mvp, mvp, sizeof (mvp));
 
-    bool hdr_display =
+    static bool hdr_display = false;
+
+    hdr_display =
+          hdr_display ||
       (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
+
+    SK_ReleaseAssert (hdr_display ==
+                      (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR))
+    );
 
     if (! hdr_display)
     {
@@ -1470,11 +1468,11 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   pSwap->GetDesc (&swapDesc);
 
   g_numFramesInSwapChain =
-    std::min (swapDesc.BufferCount, _MAX_BACKBUFFERS);
+    _MAX_BACKBUFFERS;
 
   ImGui_ImplDX11_CreateFontsTexture ();
 
-  for ( UINT i = 0 ; i < std::min (_MAX_BACKBUFFERS, swapDesc.BufferCount) ; ++i )
+  for ( UINT i = 0 ; i < g_numFramesInSwapChain ; ++i )
   {
     if (! ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer (i))
     {
@@ -1595,11 +1593,11 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  DXGI_SWAP_CHAIN_DESC  swap_desc  = { };
-  pSwapChain->GetDesc (&swap_desc);
+  DXGI_SWAP_CHAIN_DESC      swap_desc = { };
+  if (pSwapChain != nullptr)
+  {   pSwapChain->GetDesc (&swap_desc); }
 
-  g_numFramesInSwapChain =
-    std::min (swap_desc.BufferCount, _MAX_BACKBUFFERS);
+  g_numFramesInSwapChain =  _MAX_BACKBUFFERS;
 //g_numFramesInSwapChain = swap_desc.BufferCount;
   g_frameBufferWidth     = swap_desc.BufferDesc.Width;
   g_frameBufferHeight    = swap_desc.BufferDesc.Height;
@@ -1675,7 +1673,7 @@ ImGui_ImplDX11_NewFrame (void)
                            *flag_result.first = flag_result.second;
 
   auto&& _Pool =
-    _Frame [/*++*/g_frameIndex % g_numFramesInSwapChain];
+    _Frame [g_frameIndex % g_numFramesInSwapChain];
 
   if (! _Pool.pFontSampler_clamp)
     ImGui_ImplDX11_CreateDeviceObjects ();

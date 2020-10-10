@@ -38,7 +38,11 @@ static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"dotnetfx40_full_x86_x64.exe"),
   SK_MakeUnicode (L"dotnetfx40_client_x86_x64.exe"),
   SK_MakeUnicode (L"ndp451-kb2872776-x86-x64-allos-enu.exe"),
-
+  SK_MakeUnicode (L"applicationframehost.exe"),
+  SK_MakeUnicode (L"gamebarftserver.exe"),
+  SK_MakeUnicode (L"gamebarft.exe"),
+  SK_MakeUnicode (L"gamebar.exe"),
+  SK_MakeUnicode (L"svchost.exe"),
 };
 
 static constexpr UNICODE_STRING __graylist [] = {
@@ -78,7 +82,6 @@ static constexpr UNICODE_STRING __graylist [] = {
   SK_MakeUnicode (L"steamwebhelper.exe"),
   SK_MakeUnicode (L"microsoft.servicehub.controller.exe"),
   SK_MakeUnicode (L"googlecrashhandler64.exe"),
-  SK_MakeUnicode (L"applicationframehost.exe"),
   SK_MakeUnicode (L"nvtelemetrycontainer.exe"),
   SK_MakeUnicode (L"nvdisplay.container.exe"),
   SK_MakeUnicode (L"shellexperiencehost.exe"),
@@ -130,9 +133,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"ubisoftgamelauncher64.exe"),
   SK_MakeUnicode (L"sen3launcher.exe"),
 
-  SK_MakeUnicode (L"gamebarftserver.exe"),
-  SK_MakeUnicode (L"gamebarft.exe"),
-  SK_MakeUnicode (L"gamebar.exe"),
   SK_MakeUnicode (L"control.exe"),
 #else
   SK_MakeUnicode (L"vacodeinspectionsserver.exe"),
@@ -154,7 +154,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
 
   SK_MakeUnicode (L"conhost.exe"),
   SK_MakeUnicode (L"dllhost.exe"),
-  SK_MakeUnicode (L"svchost.exe"),
   SK_MakeUnicode (L"sihost.exe"),
   SK_MakeUnicode (L"postcrashdump.exe"),
 

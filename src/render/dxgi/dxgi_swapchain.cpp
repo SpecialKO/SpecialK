@@ -162,31 +162,57 @@ ULONG
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::Release (void)
 {
+  HWND hWnd = 0;
+
   ULONG xrefs =
-    InterlockedDecrement (&refs_),
-         refs = pReal->Release ();
+    InterlockedDecrement (&refs_);
+       //refs = pReal->Release ();
 
-  if (refs == 0 && xrefs != 0)
+  ///if (refs == 1 && xrefs != 0)
+  ///{
+  ///  // Assertion always fails, we just want to be vocal about
+  ///  //   any code that causes this.
+  ///  SK_ReleaseAssert (xrefs == 0);
+  ///}
+
+  if (xrefs == 0)
   {
-    // Assertion always fails, we just want to be vocal about
-    //   any code that causes this.
-    SK_ReleaseAssert (xrefs == 0);
-  }
+    SK_ComQIPtr <IDXGISwapChain1> pReal1 (pReal);
 
-  if (refs == 0)
-  {
-    SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
+    if (pReal1.p != nullptr)
+        pReal1->GetHwnd (&hWnd);
 
-    if (ReadAcquire (&refs_) == 0)
+    SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+
+    // We're going to make this available for recycling
+    if (hWnd != 0)
     {
-      if (ver_ > 0)
-        InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChain1s);
-      else
-        InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
+      UINT
+      SK_DXGI_ReleaseSwapChainOnHWnd (
+        IDXGISwapChain1* pChain,
+        HWND             hWnd,
+        IUnknown*        pDevice
+      );
+
+      SK_DXGI_ReleaseSwapChainOnHWnd (this, hWnd, pDev);
+    }
+
+    if (xrefs == 0)
+    {
+      SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
+
+      if (ReadAcquire (&refs_) == 0)
+      {
+        ///if (ver_ > 0)
+        ///  InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChain1s);
+        ///else
+        ///  InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
+      }
     }
   }
 
-  return refs;
+  return
+    pReal->Release ();
 }
 
 HRESULT
@@ -224,16 +250,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
 {
-  if (  ppDevice == nullptr ||
-       *ppDevice == nullptr )
-  {
-    return
-      DXGI_ERROR_DEVICE_RESET;
-  }
-
   return
     ((IUnknown *)pDev)->QueryInterface (riid, ppDevice);
-    //((ID3D11Device *)pDev)->QueryInterface (riid, ppDevice);
 }
 
 HRESULT
@@ -301,13 +319,8 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
-  SwapChainFlags =
-    SK_DXGI_FixUpLatencyWaitFlag (pReal, SwapChainFlags);
-
-  HRESULT hr =
+  return
     pReal->ResizeBuffers (BufferCount, Width, Height, NewFormat, SwapChainFlags);
-
-  return hr;
 }
 
 HRESULT
@@ -561,31 +574,20 @@ IWrapDXGISwapChain::SetColorSpace1 (DXGI_COLOR_SPACE_TYPE ColorSpace)
 {
   assert (ver_ >= 3);
 
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
+  HRESULT
+  STDMETHODCALLTYPE
+  SK_DXGISwap3_SetColorSpace1_Impl (
+    IDXGISwapChain3       *pSwapChain3,
+    DXGI_COLOR_SPACE_TYPE  ColorSpace,
+    BOOL                   bWrapped = FALSE
+  );
 
-  if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
-  {
-    ColorSpace = rb.scanout.colorspace_override;
-  }
-
-  HRESULT hr =
-    static_cast <IDXGISwapChain3 *>(pReal)->SetColorSpace1 (ColorSpace);
-
-  if (SUCCEEDED (hr))
-  {
-    BOOL bFullscreen = FALSE;
-    if (SUCCEEDED (pReal->GetFullscreenState (&bFullscreen, nullptr)))
-    {
-      if (bFullscreen)
-        rb.scanout.dxgi_colorspace = ColorSpace;
-      else
-        rb.scanout.dwm_colorspace  = ColorSpace;
-    }
-  }
-
-  return hr;
+  return
+    SK_DXGISwap3_SetColorSpace1_Impl (
+      static_cast <IDXGISwapChain3 *>(pReal),
+                    ColorSpace, TRUE );
 }
+
 HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::ResizeBuffers1 ( UINT        BufferCount,
@@ -597,22 +599,11 @@ IWrapDXGISwapChain::ResizeBuffers1 ( UINT        BufferCount,
 
   SK_LOG0 ( (L"ResizeBuffers1 (...)" ), L"   DXGI   ");
 
-  //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (pReal, BufferCount, Width, Height, Format)))
-  //  return S_OK;
-
   const HRESULT hr =
     static_cast <IDXGISwapChain3 *>(pReal)->
       ResizeBuffers1 ( BufferCount, Width, Height, Format,
                          SwapChainFlags, pCreationNodeMask,
                            ppPresentQueue );
-
-  //if (hr == DXGI_ERROR_INVALID_CALL)
-  //{
-  //}
-  //else if (FAILED (hr))
-  //{
-  //  return hr;
-  //}
 
   return hr;
 }

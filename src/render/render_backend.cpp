@@ -890,10 +890,14 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
     if (api != SK_RenderAPI::D3D11On12)
     {
+///#define _USE_FLUSH
+
       // Flushing at shutdown may cause deadlocks
 #ifdef _USE_FLUSH
-      if (d3d11.immediate_ctx != nullptr)
-          d3d11.immediate_ctx->Flush ();
+      if (d3d11.immediate_ctx != nullptr) {
+          d3d11.immediate_ctx->Flush      ();
+          d3d11.immediate_ctx->ClearState ();
+      }
 #endif
       swapchain = nullptr;// .Reset();
       if (interop.d3d12.dev == nullptr)

@@ -292,7 +292,7 @@
     <Filter Include="DLL Export Definitions">
       <UniqueIdentifier>{5b9c5ae0-a6ca-41ed-bf90-f9485960db1e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Steam\Wrapper\Widgets">
+    <Filter Include="Source Files\ImGui\Widgets">
       <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -3441,34 +3441,34 @@
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\d3d11_pipeline_widget.cpp">
-      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
+      <Filter>Source Files\ImGui\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\denuvo.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\frame_pacing.cpp">
-      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
+      <Filter>Source Files\ImGui\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\gpu_widget.cpp">
-      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
+      <Filter>Source Files\ImGui\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\hdr.cpp">
-      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
+      <Filter>Source Files\ImGui\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\threads.cpp">
-      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
+      <Filter>Source Files\ImGui\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\volume_control.cpp">
-      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
+      <Filter>Source Files\ImGui\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\widget.cpp">
-      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
+      <Filter>Source Files\ImGui\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\tobii.cpp">
-      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
+      <Filter>Source Files\ImGui\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\cpu_widget.cpp">
-      <Filter>Source Files\Steam\Wrapper\Widgets</Filter>
+      <Filter>Source Files\ImGui\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\sekiro.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -3539,9 +3539,6 @@
     <ClCompile Include="src\imgui\imgui_demo.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\input.cpp">
-      <Filter>Source Files\Backends\Input\XInput</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\d3d11\utility\pipeline_stats.cpp">
       <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
     </ClCompile>
@@ -3553,6 +3550,9 @@
     </ClCompile>
     <ClCompile Include="src\render\d3d11\utility\d3d11_map.cpp">
       <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\input.cpp">
+      <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4478,6 +4478,8 @@
     <None Include="packages.config">
       <Filter>Tobii</Filter>
     </None>
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />

@@ -554,10 +554,7 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
 {
   if (pDevCtx == nullptr) return SK_D3D11_MAX_DEV_CONTEXTS;
 
-  // Polymorphic weirdness - thank you IUnknown promoting to anything it wants
-  ////SK_ComQIPtr <ID3D11DeviceContext> pTestCtx (pDevCtx);
-
-  const int RESOLVE_MAX = 32;
+  const LONG RESOLVE_MAX = 64;
 
   static std::pair <ID3D11DeviceContext*, LONG>
     last_resolve [RESOLVE_MAX];
@@ -565,11 +562,10 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
          resolve_idx = 0;
 
   const auto early_out =
-    &last_resolve [ReadAcquire (&resolve_idx)];
+    &last_resolve [std::min (RESOLVE_MAX, ReadAcquire (&resolve_idx))];
 
   if (early_out->first == pDevCtx)
     return early_out->second;
-
 
   auto _CacheResolution =
     [&](LONG idx, ID3D11DeviceContext* pCtx, LONG handle) ->
@@ -579,7 +575,7 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
           std::swap ( last_resolve   [idx],
                       new_pair );
 
-      InterlockedExchange (&resolve_idx, idx);
+      InterlockedExchange (&resolve_idx, std::min (RESOLVE_MAX, idx));
     };
 
 
@@ -591,7 +587,7 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
     ReadAcquire (&resolve_idx) + 1;
 
   if (idx >= RESOLVE_MAX)
-    idx = 0;
+      idx  = 0;
 
 
   if ( SUCCEEDED (
@@ -1364,6 +1360,7 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
       // For HDR Retrofit, engine may be really stubbornly
       //   insisting this is some other format.
       if ( pDesc->Format  != texDesc.Format &&
+           pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
            DirectX::BitsPerColor (texDesc.Format) !=
            DirectX::BitsPerColor ( pDesc->Format) )
       {
@@ -1423,7 +1420,7 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
 
 
   // Unity throws around NULL for pResource
-  if (pDesc != nullptr && pResource != nullptr)
+  if (pResource != nullptr)
   {
     D3D11_RENDER_TARGET_VIEW_DESC desc = { };
     D3D11_RESOURCE_DIMENSION      dim  = { };
@@ -1432,10 +1429,11 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      desc = *pDesc;
+      if (pDesc != nullptr)
+        desc = *pDesc;
 
       DXGI_FORMAT newFormat =
-        pDesc->Format;
+        desc.Format;
 
       SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
 
@@ -1459,23 +1457,61 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
           }
         }
 
-        else if (game_id == SK_GAME_ID::DotHackGU)
+               bool           sRGBUnKill = false;
+        extern bool __SK_DXGI_SRGB_KILL;
+        if (        __SK_DXGI_SRGB_KILL)
         {
-          if ( pDesc->Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
-               pDesc->Format == DXGI_FORMAT_B8G8R8A8_TYPELESS )
+          if (desc.Format == DXGI_FORMAT_UNKNOWN)
           {
-            newFormat   = ( pDesc->Format == DXGI_FORMAT_B8G8R8A8_UNORM ) ?
-                                             DXGI_FORMAT_R8G8B8A8_UNORM   :
-                                             DXGI_FORMAT_R8G8B8A8_TYPELESS;
-            desc.Format = newFormat;
+            UINT fmt_support = 0;
+
+            if ( SUCCEEDED (
+              pDev->CheckFormatSupport (tex_desc.Format, &fmt_support)
+               )           )
+            {
+              if ( (fmt_support & D3D11_FORMAT_SUPPORT_DISPLAY ) ||
+                   (fmt_support & D3D11_FORMAT_SUPPORT_BACK_BUFFER_CAST) )
+              {
+                auto& rb =
+                  SK_GetCurrentRenderBackend ();
+
+                SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+
+                if (pSwapChain.p != nullptr)
+                {
+                  DXGI_SWAP_CHAIN_DESC  swap_desc = { };
+                  pSwapChain->GetDesc (&swap_desc);
+
+                  for ( UINT i = 0 ; i < swap_desc.BufferCount ; ++i )
+                  {
+                    SK_ComPtr <ID3D11Texture2D> pSwapBuffer_n;
+
+                    if (SUCCEEDED (pSwapChain->GetBuffer (i, __uuidof (ID3D11Texture2D), (void **)&pSwapBuffer_n.p)))
+                    {
+                      if (pSwapBuffer_n.IsEqualObject (pTex))
+                      {
+                        sRGBUnKill = true;
+
+                        desc.Format = DirectX::MakeSRGB (tex_desc.Format);
+                      //dll_log->Log (L"sRGB(Un)Kill");
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
 
-        const HRESULT hr =
-          _Finish (&desc);
+        if (pDesc != nullptr || sRGBUnKill)
+        {
+          const HRESULT hr =
+            _Finish (&desc);
 
-        if (SUCCEEDED (hr))
-          return hr;
+          if (SUCCEEDED (hr))
+            return hr;
+        }
       }
     }
   }
@@ -8781,6 +8817,69 @@ SK_D3D11_MakeDebugFlags (UINT uiOrigFlags)
   return uiOrigFlags;// Flags;
 }
 
+//static concurrency::concurrent_unordered_map <HWND, std::pair <ID3D11Device*, IDXGISwapChain*>> _discarded;
+static concurrency::concurrent_unordered_map <HWND, std::pair <ID3D11Device*, IDXGISwapChain*>> _recyclables;
+
+std::pair <ID3D11Device*, IDXGISwapChain*>
+SK_D3D11_GetCachedDeviceAndSwapChainForHwnd (HWND hWnd)
+{
+  std::pair <ID3D11Device*, IDXGISwapChain*> pDevChain =
+    std::make_pair <ID3D11Device *, IDXGISwapChain *> (
+      nullptr, nullptr
+    );
+
+  if ( _recyclables.count (hWnd) != 0 )
+  {
+    pDevChain =
+      _recyclables.at (hWnd);
+  }
+
+  return pDevChain;
+}
+
+std::pair <ID3D11Device*, IDXGISwapChain*>
+SK_D3D11_MakeCachedDeviceAndSwapChainForHwnd (IDXGISwapChain* pSwapChain, HWND hWnd, ID3D11Device* pDevice)
+{
+  std::pair <ID3D11Device*, IDXGISwapChain*> pDevChain =
+    std::make_pair (
+      pDevice, pSwapChain
+    );
+
+    _recyclables [hWnd] =
+      pDevChain;
+
+  return
+    _recyclables [hWnd];
+}
+
+UINT
+SK_D3D11_ReleaseDeviceOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pDevice)
+{
+#ifdef _DEBUG
+  auto* pValidate =
+    _recyclables [hWnd];
+
+  assert (pValidate == pChain);
+#endif
+
+  DBG_UNREFERENCED_PARAMETER (pChain);
+
+  UINT ret =
+    std::numeric_limits <UINT>::max ();
+
+  if (_recyclables.count (hWnd) != 0)
+    ret = 0;
+
+  _recyclables [hWnd] =
+    std::make_pair <ID3D11Device*, IDXGISwapChain*> (
+      nullptr, nullptr
+    );
+
+//_discarded [hWnd][pDevice] = pChain;
+
+  return ret;
+}
+
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -8858,10 +8957,10 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   {
     wchar_t wszMSAA [128] = { };
 
-    _swprintf ( wszMSAA, swap_chain_desc->SampleDesc.Count > 1 ?
-                           L"%u Samples" :
-                           L"Not Used (or Offscreen)",
-                  swap_chain_desc->SampleDesc.Count );
+    swprintf ( wszMSAA, swap_chain_desc->SampleDesc.Count > 1 ?
+                          L"%u Samples" :
+                          L"Not Used (or Offscreen)",
+                 swap_chain_desc->SampleDesc.Count );
 
     dll_log->LogEx ( true,
       L"[Swap Chain]\n"
@@ -8946,6 +9045,26 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     }
   }
 
+  auto pDevCache =
+    SK_D3D11_GetCachedDeviceAndSwapChainForHwnd (swap_chain_desc->OutputWindow);
+
+  if (pDevCache.first != nullptr)
+  {
+    if (ppDevice != nullptr) {
+       *ppDevice = pDevCache.first;
+      (*ppDevice)->AddRef ();
+    }
+
+    if (ppSwapChain != nullptr) {
+      *ppSwapChain = pDevCache.second;
+     (*ppSwapChain)->AddRef ();
+    }
+
+    dll_log->Log (L" ### Returned Cached D3D11 Device");
+
+    return S_OK;
+  }
+
 
   HRESULT res = E_UNEXPECTED;
 
@@ -8981,17 +9100,13 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         nullptr != StrStrIW (wszClass,L"RTSSWndClass")
        );
 
-      extern void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
-                  SK_DXGI_HookSwapChain (*ppSwapChain);
+      /////extern void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
+      /////            SK_DXGI_HookSwapChain (*ppSwapChain);
 
       if (! dummy_window)
       {
         auto& windows =
           rb.windows;
-
-        windows.setDevice (swap_chain_desc->OutputWindow);
-
-        SK_InstallWindowHook (swap_chain_desc->OutputWindow);
 
         if ( ReadULongAcquire (&rb.thread) == 0x00 ||
              ReadULongAcquire (&rb.thread) == SK_Thread_GetCurrentId () )
@@ -9000,6 +9115,12 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                swap_chain_desc->OutputWindow != nullptr    &&
                swap_chain_desc->OutputWindow != windows.device )
             SK_LOG0 ( (L"Game created a new window?!"), __SK_SUBSYSTEM__ );
+        }
+
+        else
+        {
+          windows.setDevice    (swap_chain_desc->OutputWindow);
+          SK_InstallWindowHook (swap_chain_desc->OutputWindow);
         }
       }
     }
@@ -9041,6 +9162,14 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     }
 
     SK_D3D11_SetDevice ( &ret_device, ret_level );
+
+    if (swap_chain_desc != nullptr && swap_chain_desc->OutputWindow != 0) {
+      SK_D3D11_MakeCachedDeviceAndSwapChainForHwnd ( ppSwapChain != nullptr ?
+                                                               *ppSwapChain : nullptr,
+                                                       swap_chain_desc->OutputWindow,
+                                                              ret_device );
+                                                              ret_device->AddRef ();
+    }
   }
 
   if (ppDevice != nullptr)
@@ -9048,7 +9177,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   if (pFeatureLevel != nullptr)
     *pFeatureLevel   = ret_level;
-
 
   if (ppDevice != nullptr && SUCCEEDED (res))
   {
@@ -9935,9 +10063,9 @@ SK_HDR_SnapshotSwapchain (void)
     pDevCtx->PSSetConstantBuffers (0,            1, &hdr_base->colorSpaceCBuffer);
 
     if ( swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
-         ( rb.scanout.dwm_colorspace  ==
-           rb.scanout.dxgi_colorspace ||
-           rb.scanout.dxgi_colorspace != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ) )
+         ( rb.scanout.dxgi_colorspace     != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 &&
+           rb.scanout.dwm_colorspace      != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 &&
+           rb.scanout.colorspace_override != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ) )
     {
     }
 

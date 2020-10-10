@@ -956,7 +956,7 @@ ActivateWindow ( HWND hWnd,
     SK_ClipCursor (nullptr);
   }
 
-  if (state_changed && (hWnd == game_window.hWnd/* || IsChild (hWnd, game_window.hWnd)*/))
+  if (state_changed && (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd)))
     SK_ImGui_Cursor.activateWindow (active);
 
   wm_dispatch->active_windows [hWnd] = active;
@@ -2716,8 +2716,9 @@ SK_Window_RepositionIfNeeded (void)
   if (! (config.window.borderless || config.window.center))
     return;
 
-  static HANDLE hRepoSignal =
-    SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+  static CHandle hRepoSignal (
+    SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
+  );
 
   SK_RunOnce (
     SK_Thread_CreateEx (
@@ -3073,11 +3074,11 @@ SK_AdjustWindow (void)
     // Summarize the border
     if (SK_WindowManager::StyleHasBorder (game_window.actual.style))
     {
-      _swprintf ( wszBorderDesc,
-                 L"(Frame = %lipx x %lipx, Title = %lipx)",
-                 2 * SK_GetSystemMetrics (SM_CXDLGFRAME),
-                 2 * SK_GetSystemMetrics (SM_CYDLGFRAME),
-                     SK_GetSystemMetrics (SM_CYCAPTION) );
+      swprintf ( wszBorderDesc,
+                L"(Frame = %lipx x %lipx, Title = %lipx)",
+                2 * SK_GetSystemMetrics (SM_CXDLGFRAME),
+                2 * SK_GetSystemMetrics (SM_CYDLGFRAME),
+                    SK_GetSystemMetrics (SM_CYCAPTION) );
     }
 
     SK_LOG1 ( ( L"WINDOW => {Left: %li, Top: %li} - (WxH: %lix%li) - { Border: %s }",
@@ -4162,15 +4163,20 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     } break;
 
 
+    case WM_MOUSEMOVE:
+      // Save original cursor position
+      SK_GetCursorPos               (&SK_ImGui_Cursor.pos);
+      SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
+      break;
 
     case WM_SETCURSOR:
     {
       if (LOWORD (lParam) == HTCLIENT)
       {
-        SK_ImGui_Cursor.update ();
-
         if (SK_ImGui_WantMouseCapture ())
         {
+          SK_ImGui_Cursor.update ();
+
           return 0;
         }
       }
@@ -4188,6 +4194,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
 
     case WM_SETFOCUS:
+      if (! IsWindow (game_window.hWnd))
+        game_window.hWnd = hWnd;
+
       ActivateWindow (hWnd, true);
 
       // GeForce Experience Overlay is known to paradoxically set
@@ -4202,6 +4211,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       break;
 
     case WM_KILLFOCUS:
+      if (! IsWindow (game_window.hWnd))
+        game_window.hWnd = hWnd;
+
       SK_ReleaseAssert (hWnd   == game_window.hWnd ||
                         wParam != (WPARAM)nullptr );
 
@@ -4210,9 +4222,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (         0 != (HWND)wParam)
         ActivateWindow ((HWND)wParam, true);
 
-      if ( hWnd   == game_window.hWnd ||
-           wParam != 0 )
-      {
+     //if ( hWnd   == game_window.hWnd ||
+     //     wParam != 0 )
+     //{
         rb.fullscreen_exclusive = false;
 
         if (config.window.background_render)
@@ -4223,7 +4235,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             game_window.DefWindowProc ( hWnd, uMsg,
                                           wParam, lParam );
         }
-      }
+    //}
       break;
 
     // Ignore (and physically remove) this event from the message queue if background_render = true

@@ -39,15 +39,15 @@ using finish_pfn = void (WINAPI *)(void);
 #define SK_DI8_WRITE(type) SK_DI8_Backend->markWrite (type);
 
 
-#define DINPUT8_CALL(_Ret, _Call) {                                     \
-  dll_log->LogEx (true, L"[   Input  ]  Calling original function: ");  \
-  (_Ret) = (_Call);                                                     \
-  _com_error err ((_Ret));                                              \
-  if ((_Ret) != S_OK)                                                   \
-    dll_log->LogEx (false, L"(ret=0x%04x - %s)\n", err.WCode (),        \
-                                                  err.ErrorMessage ()); \
-  else                                                                  \
-    dll_log->LogEx (false, L"(ret=S_OK)\n");                            \
+#define DINPUT8_CALL(_Ret, _Call) {                                      \
+  dll_log->LogEx (true, L"[   Input  ]  Calling original function: ");   \
+  (_Ret) = (_Call);                                                      \
+  _com_error err ((_Ret));                                               \
+  if ((_Ret) != S_OK)                                                    \
+    dll_log->LogEx (false, L"(ret=0x%04x - %s)\n", err.WCode        (),  \
+                                                   err.ErrorMessage ()); \
+  else                                                                   \
+    dll_log->LogEx (false, L"(ret=S_OK)\n");                             \
 }
 
 ///////////////////////////////////////////////////////////////////////////////

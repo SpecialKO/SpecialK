@@ -373,17 +373,17 @@ SK_File_SizeToString (uint64_t size, SK_UNITS unit)
   switch (unit)
   {
     case GiB:
-      _swprintf (str, L"%#5llu GiB", size >> 30);
+      swprintf (str, L"%#5llu GiB", size >> 30);
       break;
     case MiB:
-      _swprintf (str, L"%#5llu MiB", size >> 20);
+      swprintf (str, L"%#5llu MiB", size >> 20);
       break;
     case KiB:
-      _swprintf (str, L"%#5llu KiB", size >> 10);
+      swprintf (str, L"%#5llu KiB", size >> 10);
       break;
     case B:
     default:
-      _swprintf (str, L"%#3llu Bytes", size);
+      swprintf (str, L"%#3llu Bytes", size);
       break;
   }
 
@@ -474,19 +474,19 @@ SK_File_SizeToStringF (uint64_t size, int width, int precision, SK_UNITS unit)
   switch (unit)
   {
   case GiB:
-    _swprintf (str, L"%#*.*f GiB", width, precision,
-              (float)size / (1024.0f * 1024.0f * 1024.0f));
+    swprintf (str, L"%#*.*f GiB", width, precision,
+             (float)size / (1024.0f * 1024.0f * 1024.0f));
     break;
   case MiB:
-    _swprintf (str, L"%#*.*f MiB", width, precision,
-              (float)size / (1024.0f * 1024.0f));
+    swprintf (str, L"%#*.*f MiB", width, precision,
+             (float)size / (1024.0f * 1024.0f));
     break;
   case KiB:
-    _swprintf (str, L"%#*.*f KiB", width, precision, (float)size / 1024.0f);
+    swprintf (str, L"%#*.*f KiB", width, precision, (float)size / 1024.0f);
     break;
   case B:
   default:
-    _swprintf (str, L"%#*llu Bytes", width-1-precision, size);
+    swprintf (str, L"%#*llu Bytes", width-1-precision, size);
     break;
   }
 
@@ -503,18 +503,18 @@ SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
   {
     //converted = in_temp * 2 + 30;
     converted = (int32_t)((float)(in_temp) * 9.0f/5.0f + 32.0f);
-    _swprintf (wszOut, L"%#3li°F", converted);
+    swprintf (wszOut, L"%#3li°F", converted);
   }
 
   else if (in_unit == Fahrenheit && out_unit == Celsius)
   {
     converted = (int32_t)(((float)in_temp - 32.0f) * (5.0f/9.0f));
-    _swprintf (wszOut, L"%#2li°C", converted);
+    swprintf (wszOut, L"%#2li°C", converted);
   }
 
   else
   {
-    _swprintf (wszOut, L"%#2li°C", in_temp);
+    swprintf (wszOut, L"%#2li°C", in_temp);
   }
 
   return wszOut;
@@ -597,9 +597,6 @@ SK_InstallOSD (void)
 }
 
 
-extern SK_LazyGlobal <SK::Framerate::Stats> frame_history;
-extern SK_LazyGlobal <SK::Framerate::Stats> frame_history2;
-
 BOOL
 __stdcall
 SK_DrawOSD (void)
@@ -620,8 +617,8 @@ SK_DrawOSD (void)
   }
 #endif
 
-  if ((! config.osd.show) && cleared)
-    return TRUE;
+  ////if ((! config.osd.show) && cleared)
+  ////  return TRUE;
 
   if (! ReadAcquire (&osd_init))
     return FALSE;
@@ -713,18 +710,26 @@ SK_DrawOSD (void)
 
   if (config.fps.show)
   {
-    const double mean    = frame_history->calcMean     ();
-    const double sd      = frame_history->calcSqStdDev (mean);
-    const double min     = frame_history->calcMin      ();
-    const double max     = frame_history->calcMax      ();
-    const int    hitches = frame_history->calcHitches  (1.2, mean);
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
 
-    const double effective_mean = frame_history2->calcMean  ();
+    auto *pLimiter =
+      SK::Framerate::GetLimiter (
+        rb.swapchain.p
+      );
+
+    const double mean    = pLimiter->frame_history->calcMean     ();
+    const double sd      = pLimiter->frame_history->calcSqStdDev (mean);
+    const double min     = pLimiter->frame_history->calcMin      ();
+    const double max     = pLimiter->frame_history->calcMax      ();
+    const int    hitches = pLimiter->frame_history->calcHitches  (1.2, mean);
+
+    const double effective_mean = pLimiter->frame_history2->calcMean  ();
 
     static double fps           = 0.0;
     static DWORD  last_fps_time = timeGetTime ();
 
-    const DWORD dwTime = timeGetTime ();
+    const  DWORD         dwTime = timeGetTime ();
 
     if (dwTime - last_fps_time > 666)
     {
@@ -732,11 +737,10 @@ SK_DrawOSD (void)
       last_fps_time = dwTime;
     }
 
-
     const bool gsync =
-     ( sk::NVAPI::nv_hardware     && config.apis.NvAPI.gsync_status &&
-       SK_GetCurrentRenderBackend ().gsync_state.capable            &&
-       SK_GetCurrentRenderBackend ().gsync_state.active                );
+     ( sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status &&
+       rb.gsync_state.capable &&
+       rb.gsync_state.active  );
 
 
     if (mean != INFINITY)
@@ -744,9 +748,9 @@ SK_DrawOSD (void)
       const char* format = "";
 
       const bool has_cpu_frametime =
-        SK::Framerate::GetLimiter ()->get_limit () > 0.0 &&
-                                   (! plugin_mgr->isTalesOfZestiria) &&
-                 frame_history2->calcNumSamples () >   0;
+             pLimiter->get_limit () > 0.0 &&
+        (! plugin_mgr->isTalesOfZestiria) &&
+             pLimiter->frame_history2->calcNumSamples () > 0;
 
       if (! gsync)
       {
@@ -777,7 +781,7 @@ SK_DrawOSD (void)
       if (has_cpu_frametime)
       {
         OSD_PRINTF format,
-          SK_GetCurrentRenderBackend ().name,
+          rb.name,
             // Cast to FP to avoid integer division by zero.
             fps,
               mean,
@@ -793,7 +797,7 @@ SK_DrawOSD (void)
       else
       {
         OSD_PRINTF format,
-          SK_GetCurrentRenderBackend ().name,
+          rb.name,
             // Cast to FP to avoid integer division by zero.
             fps,
               mean,
@@ -827,7 +831,7 @@ SK_DrawOSD (void)
       }
 
       OSD_PRINTF format,
-        SK_GetCurrentRenderBackend ().name,
+        rb.name,
           // Cast to FP to avoid integer division by zero.
           1000.0f * 0.0f / 1.0f, 0.0f
       OSD_END
@@ -837,7 +841,7 @@ SK_DrawOSD (void)
   }
 
   // Poll GPU stats...
-  if (config.gpu.show)
+  if (config.gpu.show || config.mem.show)
     SK_PollGPU ();
 
   int afr_idx  = sli_state->currentAFRIndex,
