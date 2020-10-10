@@ -33,7 +33,7 @@ extern int   __SK_HDR_input_gamut;
 extern int   __SK_HDR_output_gamut;
 
 
-auto constexpr
+auto
 DeclKeybind = [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
 auto
 {
@@ -49,7 +49,7 @@ auto
   return ret;
 };
 
-auto constexpr
+auto
 _HDRKeybinding = [] ( SK_Keybind*           binding,
                       sk::ParameterStringW* param ) ->
 auto
@@ -217,10 +217,10 @@ struct SK_HDR_Preset_s {
                                   );
     }
   }
-} static hdr_presets [4] = { { "HDR Preset 0", 0, 80.0_Nits, 1.0f, { 4,4 }, L"F1" },
-                             { "HDR Preset 1", 1, 80.0_Nits, 1.0f, { 4,4 }, L"F2" },
-                             { "HDR Preset 2", 2, 80.0_Nits, 1.0f, { 4,4 }, L"F3" },
-                             { "HDR Preset 3", 3, 80.0_Nits, 1.0f, { 4,4 }, L"F4" } };
+} static hdr_presets [4] = { { "HDR Preset 0", 0, 250.0_Nits, 1.1879f, { 4,0 }, L"F1" },
+                             { "HDR Preset 1", 1, 250.0_Nits, 0.8418f, { 4,0 }, L"F2" },
+                             { "HDR Preset 2", 2, 80.0_Nits,  1.0f,    { 1,4 }, L"F3" },
+                             { "HDR Preset 3", 3, 750.0_Nits, 2.18f,   { 0,0 }, L"F4" } };
 
 BOOL
 CALLBACK
@@ -253,13 +253,6 @@ SK_HDR_KeyPress ( BOOL Control,
 }
 
 extern iSK_INI* osd_ini;
-
-////SK_DXGI_HDRControl*
-////SK_HDR_GetControl (void)
-////{
-////  static SK_DXGI_HDRControl hdr_ctl = { };
-////  return                   &hdr_ctl;
-////}
 
 class SKWG_HDR_Control : public SK_Widget
 {
@@ -345,8 +338,8 @@ public:
                                  L"Preset",               __SK_HDR_Preset,
                                  L"Light Adaptation Preset" );
 
-    if (! config.render.framerate.flip_discard)
-      __SK_HDR_16BitSwap = false;
+  ///  if (! config.render.framerate.flip_discard)
+  ///    __SK_HDR_16BitSwap = false;
 
     if ( __SK_HDR_Preset < 0 ||
          __SK_HDR_Preset >= MAX_HDR_PRESETS )
@@ -363,7 +356,7 @@ public:
       }
     }
 
-    else if (config.render.framerate.flip_discard && _SK_HDR_16BitSwapChain->load (__SK_HDR_16BitSwap))
+    else if (_SK_HDR_16BitSwapChain->load (__SK_HDR_16BitSwap))
     {
       if (__SK_HDR_16BitSwap)
       {
@@ -372,12 +365,6 @@ public:
         rb.scanout.colorspace_override =
           DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
       }
-    }
-
-    else
-    {
-      __SK_HDR_16BitSwap = false;
-       _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
     }
 
     if (__SK_HDR_16BitSwap ||
@@ -490,26 +477,10 @@ public:
         _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
         _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
 
-      //config.window.borderless                    = true;
-      //config.window.center                        = true;
-      //config.window.fullscreen                    = true;
-      //config.window.res.override.x                = static_cast <unsigned int> (io.DisplaySize.x);
-      //config.window.res.override.y                = static_cast <unsigned int> (io.DisplaySize.y);
-
-      //config.display.force_windowed               = true;
-      //config.dpi.per_monitor.aware                = true;
-      //config.dpi.per_monitor.aware_on_all_threads = false;
-      //config.dpi.disable_scaling                  = false;
-
         config.render.framerate.flip_discard        = true;
         config.render.framerate.buffer_count        =
-          std::max ( 5,
-             config.render.framerate.buffer_count );
-        config.render.framerate.pre_render_limit    =
-             config.render.framerate.buffer_count + 1;
-        //config.render.framerate.swapchain_wait      =
-        //  std::min ( 1000, std::max ( 40,
-        //    config.render.framerate.swapchain_wait ) );
+          std::max ( 2,
+            config.render.framerate.buffer_count );
 
         dll_ini->write (
           dll_ini->get_filename ()
@@ -715,8 +686,8 @@ public:
           ImGui::BeginGroup ();
           for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
           {
-            bool selected =
-              (__SK_HDR_Preset == i);
+            int selected =
+              (__SK_HDR_Preset == i) ? 1 : 0;
 
             char              select_idx  [ 4 ] =  "\0";
             char              hashed_name [128] = { };
@@ -726,7 +697,9 @@ public:
             StrCatBuffA (hashed_name, "###SK_HDR_PresetSel_",      128);
             StrCatBuffA (hashed_name, std::to_string (i).c_str (), 128);
 
-            if (ImGui::Selectable (hashed_name, &selected, ImGuiSelectableFlags_SpanAllColumns ))
+            ImGui::SetNextTreeNodeOpen (false, ImGuiCond_Always);
+
+            if (ImGui::TreeNodeEx (hashed_name, ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_AllowItemOverlap | selected))
             {
               hdr_presets [i].activate ();
             }
@@ -754,12 +727,8 @@ public:
           ImGui::EndGroup   ();
           ImGui::SameLine   (); ImGui::Spacing ();
           ImGui::SameLine   (); ImGui::Spacing ();
-          ImGui::SameLine   (); ImGui::Spacing ();
-          ImGui::SameLine   (); ImGui::Spacing ();
-          ImGui::SameLine   (); ImGui::Spacing ();
           ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine ();
           ImGui::BeginGroup ();
-
           for ( auto& it : hdr_presets )
           {
             _HDRKeybinding ( &it.preset_activate,
@@ -895,10 +864,11 @@ public:
             ImGui::EndGroup    ();
           }
 
-          if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM ||
-               rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+          if ( (! rb.fullscreen_exclusive) && (
+                 swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM ||
+                 rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 ) )
           {
-            ImGui::BulletText ("HDR May Not be Working Correctly Until you Restart...");
+            ImGui::BulletText ("HDR May Not be Working Correctly Until you Restart the Game...");
 
 #if 0
             ImGui::Separator ();
