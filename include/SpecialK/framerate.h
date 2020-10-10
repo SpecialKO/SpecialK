@@ -32,6 +32,8 @@
 #include <cmath>
 #include <forward_list>
 
+#include <SpecialK/utility.h>
+
 template <class T, class U>
 constexpr T narrow_cast(U&& u)
 {
@@ -107,15 +109,41 @@ namespace SK
     void Init     (void);
     void Shutdown (void);
 
-    void Tick        ( bool           wait    =  true,
-                       double         dt      =   0.0,
-                       LARGE_INTEGER  now     = { 0,0 } );
+    void Tick        ( bool           wait       =  true,
+                       double         dt         =   0.0,
+                       LARGE_INTEGER  now        = { 0,0 },
+                       IUnknown*      pSwapChain = nullptr );
+
+    #define MAX_SAMPLES 1000
+
+    class Stats;
+
+    struct DeepFrameState
+    {
+      using
+        SK_LazyStats =
+          SK_LazyGlobal <
+            SK::Framerate::Stats
+          >;
+
+      SK_LazyStats mean;
+      SK_LazyStats min;
+      SK_LazyStats max;
+      SK_LazyStats percentile0;
+      SK_LazyStats percentile1;
+
+      void reset (void);
+    };
 
     class Limiter {
     public:
       Limiter (double target = 60.0);
 
-      ~Limiter (void) = default;
+      ~Limiter (void)
+      {
+        if (           timer_wait != 0 )
+          CloseHandle (timer_wait);
+      }//= default;
 
       void            init            (double target);
       void            wait            (void);
@@ -134,6 +162,12 @@ namespace SK
         if (full) full_restart = true;
         else           restart = true;
       }
+
+      struct present_stats_s {
+      //DXGI_FRAME_STATISTICS sequence_start = { };
+        UINT                  queue_depth    =  0;
+        std::vector <UINT>    frame_ids;
+      };
 
       struct snapshot_s {
         bool        *pRestart;
@@ -217,7 +251,16 @@ namespace SK
         } limiter_resets;
 
       //LONG64 time_waited = 0; // TODO
-      } static frames_of_fame;
+      } frames_of_fame;
+
+      struct amortized_stats_s {
+        int            phase      =  0;
+        LARGE_INTEGER _last_frame = { };
+      } amortization;
+
+      SK_LazyGlobal <Stats> frame_history;
+      SK_LazyGlobal <Stats> frame_history2;
+            DeepFrameState  frame_history_snapshots;
 
     private:
       bool          restart      = false;
@@ -236,11 +279,8 @@ namespace SK
                     next   = { },
                     last   = { },
                     freq   = { };
-
-      static
-          LONG64    first_frame;
       volatile
-          LONG64    frames = 0;
+        LONG64      frames = 0;
 
 #define LIMIT_APPLY     0
 #define LIMIT_UNDERFLOW (limit_behavvior < 0)
@@ -248,8 +288,11 @@ namespace SK
 
       // 0 = Limiter runs, < 0 = Reference Counting Bug (dumbass)
       //                   > 0 = Temporarily Ignore Limits
-       int32_t      limit_behavior =
-                    LIMIT_APPLY;
+      int32_t        limit_behavior =
+                     LIMIT_APPLY;
+
+      HANDLE         timer_wait   = 0;
+      bool           lazy_init    = false;
     };
 
     using EventCounter = class EventCounter_V1;
@@ -287,32 +330,14 @@ namespace SK
                  micro_sleep,  macro_sleep;
     };
 
-    #define MAX_SAMPLES 1000
-
-    class Stats;
-
-    struct DeepFrameState
-    {
-      using
-        SK_LazyStats =
-          SK_LazyGlobal <
-            SK::Framerate::Stats
-          >;
-
-      SK_LazyStats mean;
-      SK_LazyStats min;
-      SK_LazyStats max;
-      SK_LazyStats percentile0;
-      SK_LazyStats percentile1;
-
-      void reset (void);
-    };
-
-    extern SK_LazyGlobal <EventCounter>   events;
-    extern SK_LazyGlobal <DeepFrameState> frame_history_snapshots;
+    extern SK_LazyGlobal <EventCounter> events;
 
     static inline EventCounter* GetEvents  (void) noexcept { return events.getPtr (); }
-                  Limiter*      GetLimiter (void);
+
+    // The identifying SwapChain is an opaque handle, we have no reason to hold a reference to this
+    //   and you can cast any value you want to this pointer (e.g. an OpenGL HGLRC). Prototype uses
+    //     IUnknown because it's straightforward in DXGI / D3D9 to use these as handles :)
+                  Limiter*      GetLimiter (IUnknown *pSwapChain = nullptr);
 
     class Stats {
     public:

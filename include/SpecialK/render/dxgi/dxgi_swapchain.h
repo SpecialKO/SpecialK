@@ -46,9 +46,6 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     if (! pSwapChain)
       return;
 
-    InterlockedExchange (
-      &refs_, pReal->AddRef  () - 1
-    );        pReal->Release ();
     AddRef ();
 
     InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChains);
@@ -95,9 +92,6 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     if (! pSwapChain)
       return;
 
-    InterlockedExchange (
-      &refs_, pReal->AddRef  () - 1
-    );        pReal->Release ();
     AddRef ();
 
     InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
@@ -258,9 +252,9 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
   virtual HRESULT STDMETHODCALLTYPE SetHDRMetaData (DXGI_HDR_METADATA_TYPE Type, UINT Size, void *pMetaData) override; // 40
   #pragma endregion
 
-  volatile LONG   refs_ = 1;
+  volatile LONG   refs_ = 0;
   IDXGISwapChain *pReal;
-  ID3D11Device   *pDev;
+  IUnknown       *pDev;
   unsigned int    ver_;
 };
 

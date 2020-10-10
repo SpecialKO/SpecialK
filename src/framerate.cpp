@@ -25,6 +25,8 @@
 #include <SpecialK/commands/limit_reset.inl>
 
 
+#include <SpecialK/log.h>
+
 LARGE_INTEGER
 SK_QueryPerf ()
 {
@@ -33,15 +35,8 @@ SK_QueryPerf ()
 }
 
 
-SK::Framerate::Limiter::frame_journal_s
-SK::Framerate::Limiter::frames_of_fame;
-
-LARGE_INTEGER                                 SK::Framerate::Stats::freq = {};
-SK_LazyGlobal <SK::Framerate::EventCounter>   SK::Framerate::events;
-SK_LazyGlobal <SK::Framerate::DeepFrameState> SK::Framerate::frame_history_snapshots;
-
-SK_LazyGlobal <SK::Framerate::Stats>          frame_history;
-SK_LazyGlobal <SK::Framerate::Stats>          frame_history2;
+LARGE_INTEGER                               SK::Framerate::Stats::freq = {};
+SK_LazyGlobal <SK::Framerate::EventCounter> SK::Framerate::events;
 
 
 float __target_fps    = 0.0;
@@ -64,15 +59,6 @@ SK::Framerate::Init (void)
   {
     SK_ICommandProcessor* pCommandProc =
       SK_GetCommandProcessor ();
-
-
-    // TEMP HACK BECAUSE THIS ISN'T STORED in D3D9.INI
-    if (SK_GetModuleHandle (L"AgDrag.dll"))
-      config.render.framerate.max_delta_time = 5;
-
-    if (SK_GetModuleHandle (L"tsfix.dll"))
-      config.render.framerate.max_delta_time = 0;
-
 
 
     pCommandProc->AddVariable ( "LimitSite",
@@ -214,35 +200,6 @@ SK_Framerate_WaitForVBlank (void)
     if (            dxgi_swap != nullptr &&
          SUCCEEDED (dxgi_swap->GetContainingOutput (&dxgi_output)) )
     {
-      //static const
-      //  DXGI_PRESENT_PARAMETERS
-      //    pparams { 0      , nullptr,
-      //              nullptr, nullptr };
-      //
-      //SK_ComQIPtr      <IDXGISwapChain1>
-      //     dxgi_swap1 ( dxgi_swap );
-      //if ( dxgi_swap1.p != nullptr)
-      //     dxgi_swap1->Present1 ( 0, DXGI_PRESENT_RESTART, &pparams);
-      //dxgi_swap ->Present ( 0, DXGI_PRESENT_DO_NOT_SEQUENCE |
-      //                         DXGI_PRESENT_DO_NOT_WAIT    );
-
-      UINT                          chain_latency = 3;
-      UINT                          dev_latency   = 3;
-      SK_ComQIPtr <IDXGISwapChain2> dxgi_swap2 (dxgi_swap);
-      SK_ComPtr   <IDXGIDevice1>    dxgi_dev1;
-
-      dxgi_swap->GetDevice (IID_PPV_ARGS (&dxgi_dev1.p));
-
-      if (dxgi_dev1 != nullptr)
-      {   dxgi_dev1->GetMaximumFrameLatency (&dev_latency);
-          dxgi_dev1->SetMaximumFrameLatency (1);
-      }
-
-      if (dxgi_swap2 != nullptr)
-      {   dxgi_swap2->GetMaximumFrameLatency (&chain_latency);
-          dxgi_swap2->SetMaximumFrameLatency (1);
-      }
-
       // Dispatch through the trampoline, rather than hook
       //
       extern WaitForVBlank_pfn
@@ -250,23 +207,6 @@ SK_Framerate_WaitForVBlank (void)
       if (   WaitForVBlank_Original != nullptr)
              WaitForVBlank_Original (dxgi_output);
       else                           dxgi_output->WaitForVBlank ();
-
-
-      if (dxgi_dev1 != nullptr)
-      {   dxgi_dev1->SetMaximumFrameLatency (
-            config.render.framerate.pre_render_limit == -1 ?
-                                               dev_latency :
-                    config.render.framerate.pre_render_limit
-                                            );
-      }
-
-      if (dxgi_swap2 != nullptr)
-      {   dxgi_swap2->SetMaximumFrameLatency (
-            config.render.framerate.pre_render_limit == -1 ?
-                                             chain_latency :
-                    config.render.framerate.pre_render_limit
-                                             );
-      }
 
       return true;
     }
@@ -333,7 +273,20 @@ SK::Framerate::Limiter::init (double target)
   //
   // Align the start to VBlank for minimum input latency
   //
-  SK_Framerate_WaitForVBlank ();
+  if ( ms >    0.0f &&
+       ms <= 200.0f )
+  {
+    // ^^^ Anything lower than a 5 FPS limit is probably user error.
+
+    DWORD dwNextTick =
+      timeGetTime () + static_cast <DWORD> (ms);
+
+    do
+    {
+      SK_Framerate_WaitForVBlank ();
+    } while (timeGetTime () <= dwNextTick);
+  }
+
 
   auto _perfQuadPart = SK_QueryPerf   ( ).QuadPart;
   auto _frames       = ReadAcquire64     (&frames);
@@ -384,8 +337,6 @@ SK::Framerate::Limiter::try_wait (void)
 void
 SK::Framerate::Limiter::wait (void)
 {
-  //SK_Win32_AssistStalledMessagePump (100);
-
   if (limit_behavior != LIMIT_APPLY) {
     return;
   }
@@ -436,6 +387,8 @@ SK::Framerate::Limiter::wait (void)
     SK_QueryPerf ().QuadPart;
 
 
+  bool normal = true;
+
   if (restart || full_restart)
   {
     if (full_restart)
@@ -453,6 +406,8 @@ SK::Framerate::Limiter::wait (void)
     WriteRelease64 (&start, _start);
     WriteRelease64 (&time,  _next );
     WriteRelease64 (&next,  _next );
+
+    normal = false;
   } else {
     WriteRelease64 (&time,  _time);
   }
@@ -472,28 +427,35 @@ SK::Framerate::Limiter::wait (void)
 
   WriteRelease64 (&next, next_);
 
-  double missed_frames,
-         missing_time =
-    static_cast <double> ( time_ - next_ ) /
-    static_cast <double> ( ticks_per_frame );
-
-  double edge_distance =
-    modf ( missing_time, &missed_frames );
-
-   static constexpr double dMissingTimeBoundary =    1.0;
-   static constexpr double dEdgeToleranceLow    = 0.0005;
-   static constexpr double dEdgeToleranceHigh   = 0.9995;
-
-  if ( missed_frames >= dMissingTimeBoundary &&
-       edge_distance >= dEdgeToleranceLow    &&
-       edge_distance <= dEdgeToleranceHigh )
+  if (normal)
   {
-    InterlockedAdd64 ( &frames,
-         (LONG64)missed_frames );
+    double missed_frames,
+           missing_time =
+      static_cast <double> ( time_ - next_ ) /
+      static_cast <double> ( ticks_per_frame );
 
-    next_  =
-      ReadAcquire64 ( &frames ) * ticks_per_frame
-                                + start_;
+    double edge_distance =
+      modf ( missing_time, &missed_frames );
+
+     static constexpr double dMissingTimeBoundary = 1.0;
+     static constexpr double dEdgeToleranceLow    = 0.005;
+     static constexpr double dEdgeToleranceHigh   = 0.995;
+
+     static volatile double dClockDrift = 0.0;
+
+     dClockDrift += edge_distance;
+
+    if ( missed_frames >= dMissingTimeBoundary &&
+         edge_distance >= dEdgeToleranceLow    &&
+         edge_distance <= dEdgeToleranceHigh )
+    {
+      InterlockedAdd64 ( &frames,
+           (LONG64)missed_frames );
+
+      next_  =
+        ReadAcquire64 ( &frames ) * ticks_per_frame
+                                  + start_;
+    }
   }
 
   auto
@@ -511,6 +473,17 @@ SK::Framerate::Limiter::wait (void)
 
   if (next_ > 0LL)
   {
+    // Flush the queue before waiting, otherwise we could be asking the
+    //   driver to evaluate commands after it should have presented a
+    //     finished frame.
+    SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (
+      SK_GetCurrentRenderBackend ().d3d11.immediate_ctx
+    );
+
+    if (pDevCtx != nullptr)
+        pDevCtx->Flush ();
+
+
     double
       to_next_in_secs =
         SK_RecalcTimeToNextFrame ();
@@ -527,13 +500,15 @@ SK::Framerate::Limiter::wait (void)
 
 
     // Create an unnamed waitable timer.
-    static CHandle hLimitTimer (
-      CreateWaitableTimer (nullptr, FALSE, nullptr)
-    );
+    if (timer_wait == 0)
+    {
+      timer_wait =
+        CreateWaitableTimer (nullptr, FALSE, nullptr);
+    }
 
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely decimating a CPU core.
-    if ( hLimitTimer != 0 && liDelay.QuadPart > 0LL)
+    if ( timer_wait != 0 && liDelay.QuadPart > 0LL)
     {
         liDelay.QuadPart =
       -(liDelay.QuadPart * 10000LL);
@@ -541,7 +516,7 @@ SK::Framerate::Limiter::wait (void)
       // Light-weight and high-precision -- but it's not a good idea to
       //   spend more than ~90% of our projected wait time in here or
       //     we will miss deadlines frequently.
-      if ( SetWaitableTimer ( hLimitTimer, &liDelay,
+      if ( SetWaitableTimer ( timer_wait, &liDelay,
                                 0, nullptr, nullptr, TRUE ) )
       {
         DWORD  dwWait  = WAIT_FAILED;
@@ -567,7 +542,7 @@ SK::Framerate::Limiter::wait (void)
 
           // System Call:  NtWaitForSingleObject  [Delay = 100 ns]
           dwWait =
-            SK_WaitForSingleObject_Micro ( hLimitTimer,
+            SK_WaitForSingleObject_Micro ( timer_wait,
                                              &uSecs );
 
           if (dwWait != WAIT_OBJECT_0)
@@ -624,7 +599,11 @@ SK::Framerate::Limiter::wait (void)
   WriteRelease64 (&time, time_);
   WriteRelease64 (&last, time_);
 
-  SK_RunOnce (init (fps));
+  if (! lazy_init)
+  {
+    lazy_init = true;
+         init (fps);
+  }
 }
 
 
@@ -642,60 +621,68 @@ SK::Framerate::Limiter::effective_frametime (void)
 
 
 SK::Framerate::Limiter*
-SK::Framerate::GetLimiter (void)
+SK::Framerate::GetLimiter (IUnknown *pSwapChain)
 {
-  static std::once_flag the_wuncler;
-  static          std::unique_ptr <Limiter> limiter = nullptr;
+  static concurrency::concurrent_unordered_map < IUnknown *,
+      std::unique_ptr <SK::Framerate::Limiter> > limiters_;
 
-  std::call_once (the_wuncler, [&](void)
-  {
+  SK_RunOnce (
     SK_GetCommandProcessor ()->AddCommand (
-      "SK::Framerate::ResetLimit", new skLimitResetCmd ());
+      "SK::Framerate::ResetLimit", new skLimitResetCmd ()
+    )
+  );
 
-    limiter =
-      std::make_unique <Limiter> (config.render.framerate.target_fps);
+  if (! limiters_.count (pSwapChain))
+  {
+    limiters_ [pSwapChain] =
+      std::make_unique <SK::Framerate::Limiter> (
+        config.render.framerate.target_fps
+      );
 
-    SK_ReleaseAssert (limiter != nullptr)
-  });
+    SK_LOG0 ( ( L" Framerate Limiter Created to Track SwapChain (%ph)", pSwapChain ),
+                L"FrameLimit" );
+  }
 
   return
-    limiter.get ();
+    limiters_.at (pSwapChain).get ();
 }
 
 void
-SK::Framerate::Tick (bool wait, double dt, LARGE_INTEGER now)
+SK::Framerate::Tick ( bool          wait,
+                      double        dt,
+                      LARGE_INTEGER now,
+                      IUnknown*     swapchain )
 {
-  if (wait)
-    SK::Framerate::GetLimiter ()->wait ();
+  auto* pLimiter =
+    SK::Framerate::GetLimiter (swapchain);
 
-  if (! ( frame_history.isAllocated  () &&
-          frame_history2.isAllocated () ) )
+  if (wait)
+    pLimiter->wait ();
+
+  if (! ( pLimiter->frame_history.isAllocated  () &&
+          pLimiter->frame_history2.isAllocated () ) )
   {
     // Late initialization
     Init ();
   }
 
-  static LARGE_INTEGER _last_frame = { };
 
   now = SK_CurrentPerf ();
   dt  =
-    static_cast <double> (now.QuadPart - _last_frame.QuadPart) /
+    static_cast <double> (now.QuadPart -
+                  pLimiter->amortization._last_frame.QuadPart) /
     static_cast <double> (SK::Framerate::Stats::freq.QuadPart);
-
-  // Statistics can be done across multiple frames, so let's
-  //   do that and avoid adding extra work to the game.
-  static int amortized_stats = 0;
 
 
   // Prevent inserting infinity into the dataset
   if ( std::isnormal (dt) )
   {
-    if (frame_history->addSample (1000.0 * dt, now))
+    if (pLimiter->frame_history->addSample (1000.0 * dt, now))
     {
-      amortized_stats = 0;
+      pLimiter->amortization.phase = 0;
     }
-    frame_history2->addSample (
-      SK::Framerate::GetLimiter ()->effective_frametime (),
+    pLimiter->frame_history2->addSample (
+      pLimiter->effective_frametime (),
         now
     );
   }
@@ -710,7 +697,7 @@ SK::Framerate::Tick (bool wait, double dt, LARGE_INTEGER now)
     PercentileClass1 = 4,
   };
 
-  if (amortized_stats < _NUM_STATS)
+  if (pLimiter->amortization.phase < _NUM_STATS)
   {
     static constexpr LARGE_INTEGER
       all_samples = { 0UL, 0UL };
@@ -718,15 +705,15 @@ SK::Framerate::Tick (bool wait, double dt, LARGE_INTEGER now)
     SK::Framerate::Stats*
       pContainers [] =
       {
-        frame_history_snapshots->mean.getPtr        (),
-        frame_history_snapshots->min.getPtr         (),
-        frame_history_snapshots->max.getPtr         (),
-        frame_history_snapshots->percentile0.getPtr (),
-        frame_history_snapshots->percentile1.getPtr ()
+        pLimiter->frame_history_snapshots.mean.getPtr        (),
+        pLimiter->frame_history_snapshots.min.getPtr         (),
+        pLimiter->frame_history_snapshots.max.getPtr         (),
+        pLimiter->frame_history_snapshots.percentile0.getPtr (),
+        pLimiter->frame_history_snapshots.percentile1.getPtr ()
       };
 
     auto stat_idx =
-      amortized_stats++;
+      pLimiter->amortization.phase++;
 
     auto* container =
       pContainers [stat_idx];
@@ -744,7 +731,7 @@ SK::Framerate::Tick (bool wait, double dt, LARGE_INTEGER now)
                                                     1 : 0;
 
         sample =
-          frame_history->calcPercentile (
+          pLimiter->frame_history->calcPercentile (
             SK_Framerate_GetPercentileByIdx (idx),
               all_samples
           );
@@ -770,7 +757,7 @@ SK::Framerate::Tick (bool wait, double dt, LARGE_INTEGER now)
         auto calcSample =
           std::bind (
             FrameHistoryCalcSample_FnTbl [stat_idx],
-              frame_history.getPtr (),
+              pLimiter->frame_history.getPtr (),
                 std::placeholders::_1
           );
 
@@ -787,7 +774,7 @@ SK::Framerate::Tick (bool wait, double dt, LARGE_INTEGER now)
     }
   }
 
-  _last_frame = now;
+  pLimiter->amortization._last_frame = now;
 };
 
 
