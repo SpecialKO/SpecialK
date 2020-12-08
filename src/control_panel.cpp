@@ -3997,13 +3997,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if ( ( static_cast <int> (rb.api) &
               static_cast <int> (SK_RenderAPI::D3D12) ) != 0 )
   {
-    if (_d3d12_rbk->_cmd_list.p != nullptr)
-    {
-      ImGui::Render ();
-      _d3d12_rbk->RenderImGuiDrawData (ImGui::GetDrawData ());
-    }
-
-    else if (_d3d12_rbk2->frames_.size () > 0)
+    if (_d3d12_rbk2->frames_.size () > 0)
     {
       int swapIdx = 0;
 
