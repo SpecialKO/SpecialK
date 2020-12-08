@@ -320,7 +320,7 @@ SK_GetFileSD ( const wchar_t              *wszPath,
                          nullptr )
   );
 
-  if (hFile == INVALID_HANDLE_VALUE) { bRetVal = FALSE; }
+  if ((intptr_t)hFile.m_h <= 0) { bRetVal = FALSE; }
 
   else
   {

@@ -160,9 +160,6 @@
     <Filter Include="Source Files\Backends\Input">
       <UniqueIdentifier>{254711e3-28ff-4fbd-8175-fa18b5b6a352}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Input\XInput">
-      <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Input\HID">
       <UniqueIdentifier>{9e3f4015-6b36-4bfd-b248-98f9ecc51663}</UniqueIdentifier>
     </Filter>
@@ -294,6 +291,21 @@
     </Filter>
     <Filter Include="Source Files\ImGui\Widgets">
       <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\Shaders">
+      <UniqueIdentifier>{acbb52fe-3c5a-4cb0-9116-449ea5e2bc52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\Steam\XInput">
+      <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\DXGI\D3D12">
+      <UniqueIdentifier>{265671c5-9f3c-406c-943f-ce5e7971715e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\D3D11">
+      <UniqueIdentifier>{49beef88-4a22-4df2-b26b-81176366e626}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\DXGI\D3D12">
+      <UniqueIdentifier>{3e923e07-48d4-4ac9-bf42-013e95361c6d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -450,9 +462,6 @@
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_backend.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_interfaces.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_backend.h">
       <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
@@ -464,9 +473,6 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d8\d3d8_backend.h">
       <Filter>Header Files\Backends\Render\D3D8</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_interfaces.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\ddraw\ddraw_backend.h">
       <Filter>Header Files\Backends\Render\DDraw</Filter>
@@ -578,15 +584,6 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_swapchain.h">
       <Filter>Header Files\Backends\Render\D3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\dxgi\dxgi1_5.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_swapchain.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
@@ -3051,21 +3048,6 @@
     <ClInclude Include="depends\include\DXSDK\D3D11.h">
       <Filter>Header Files\External Libraries\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_core.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_screenshot.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_state_tracker.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_tex_mgr.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d11\utility\d3d11_texture.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_screenshot.h">
       <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
@@ -3153,8 +3135,68 @@
     <ClInclude Include="include\imgui\backends\imgui_gl3.h">
       <Filter>Header Files\External Libraries\ImGui\Backends</Filter>
     </ClInclude>
+    <ClInclude Include="include\shaders\imgui_d3d11_ps.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shaders\imgui_d3d11_vs.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shaders\sRGB_codec_ps.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shaders\steam_d3d11_ps.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shaders\steam_d3d11_vs.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shaders\uber_hdr_shader_ps.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shaders\uplay_d3d11_ps.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shaders\uplay_d3d11_vs.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shaders\vs_colorutil.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
+      <Filter>Header Files\Backends\Render\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_core.h">
+      <Filter>Header Files\Backends\Render\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h">
+      <Filter>Header Files\Backends\Render\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_screenshot.h">
+      <Filter>Header Files\Backends\Render\D3D11</Filter>
+    </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_shader.h">
+      <Filter>Header Files\Backends\Render\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_state_tracker.h">
+      <Filter>Header Files\Backends\Render\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_tex_mgr.h">
+      <Filter>Header Files\Backends\Render\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\utility\d3d11_texture.h">
+      <Filter>Header Files\Backends\Render\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dxgi\_dxgi1_5.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_interfaces.h">
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_interfaces.h">
+      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_screenshot.h">
+      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -3225,10 +3267,10 @@
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\input\xinput_hotplug.cpp">
-      <Filter>Source Files\Backends\Input\XInput</Filter>
+      <Filter>Source Files\Backends\Input\Steam\XInput</Filter>
     </ClCompile>
     <ClCompile Include="src\input\xinput_core.cpp">
-      <Filter>Source Files\Backends\Input\XInput</Filter>
+      <Filter>Source Files\Backends\Input\Steam\XInput</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\plugin_mgr.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -3271,9 +3313,6 @@
     </ClCompile>
     <ClCompile Include="src\render\ddraw\ddraw.cpp">
       <Filter>Source Files\Backends\Render\DDraw</Filter>
-    </ClCompile>
-    <ClCompile Include="src\render\d3d12\d3d12.cpp">
-      <Filter>Source Files\Backends\Render\DXGI</Filter>
     </ClCompile>
     <ClCompile Include="src\injection\injection.cpp">
       <Filter>Source Files\Backends\Injection</Filter>
@@ -3380,9 +3419,6 @@
     <ClCompile Include="src\imgui\backends\imgui_d3d9.cpp">
       <Filter>Source Files\ImGui\Backends</Filter>
     </ClCompile>
-    <ClCompile Include="src\imgui\backends\imgui_d3d11.cpp">
-      <Filter>Source Files\ImGui\Backends</Filter>
-    </ClCompile>
     <ClCompile Include="src\imgui\backends\imgui_gl3.cpp">
       <Filter>Source Files\ImGui\Backends</Filter>
     </ClCompile>
@@ -3415,9 +3451,6 @@
     </ClCompile>
     <ClCompile Include="src\window.cpp">
       <Filter>Source Files\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\imgui\backends\imgui_d3d12.cpp">
-      <Filter>Source Files\ImGui\Backends</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\dragon_quest_xi.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -3553,6 +3586,21 @@
     </ClCompile>
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\ac_valhalla.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_d3d12.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_d3d11.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12_screenshot.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4517,6 +4565,16 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
@@ -4725,6 +4783,12 @@
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\uber_hdr_shader_ps.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\cs_luminance_analysis.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\sRGB_codec_ps.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -360,10 +360,11 @@ public:
               SK_GetWindowRect (game_window.hWnd, &last_known_window);
             }
 
-            const unsigned int orig_x = config.window.res.override.x,
-                               orig_y = config.window.res.override.y;
+            const unsigned int orig_x = config.window.res.override.x;
+            const unsigned int orig_y = config.window.res.override.y;
 
-            static unsigned int persist_x = orig_x, persist_y = orig_y;
+            static unsigned int persist_x = orig_x;
+            static unsigned int persist_y = orig_y;
 
             // Restore Window Dimensions
             if (! config.window.fullscreen)
@@ -582,7 +583,7 @@ public:
     SK_ICommandProcessor* cmd =
       SK_GetCommandProcessor ();
 
-    if (! cmd)
+    if (cmd == nullptr)
     {
       SK_ReleaseAssert (! "Could not create or get the Special K Command Processor!");
       return;
@@ -731,7 +732,7 @@ public:
       pWindowManager.get ();
   }
 
-  void muteGame (bool bMute)
+  static void muteGame (bool bMute)
   {
     SK_SetGameMute (bMute);
   }
@@ -2315,7 +2316,7 @@ SK_SetWindowLongPtrW (
     SK_Thread_Create ([](LPVOID lpUser) ->
     DWORD
     {
-      dispatch_queue_s *dispatch =
+      auto* dispatch =
         (dispatch_queue_s *)lpUser;
 
       HANDLE hSignals [] = {
@@ -3305,11 +3306,14 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
       case WM_SYSKEYDOWN:
       case WM_IME_KEYDOWN:
 
-        // This shouldn't happen considering this function is supposed
-        //   to generate this message, but better to be on the safe side.
+      // This shouldn't happen considering this function is supposed
+      //   to generate this message, but better to be on the safe side.
       case WM_CHAR:
       case WM_MENUCHAR:
       {
+        if (lpMsg->message == WM_MENUCHAR)
+          return MAKEWPARAM (0, MNC_CLOSE);
+
         return TRUE;
       } break;
     }
@@ -3377,8 +3381,7 @@ PeekMessageA_Detour (
   if ( PeekFunc == nullptr )
   {
     // A nasty kludge to fix the Steam overlay
-    static NtUserPeekMessage_pfn
-           early_PeekMessageA =
+    static auto         early_PeekMessageA =
       reinterpret_cast <NtUserPeekMessage_pfn> (
              SK_GetProcAddress      (
                SK_GetModuleHandle (   L"user32"  ),
@@ -3416,7 +3419,9 @@ PeekMessageA_Detour (
               lpMsg->message == WM_INPUT &&
               lpMsg->wParam  == RIM_INPUTSINK )
     {
-      bool keyboard, mouse, gamepad;
+      bool keyboard;
+      bool mouse;
+      bool gamepad;
 
       SK_Input_ClassifyRawInput (
         reinterpret_cast <HRAWINPUT> (lpMsg->lParam),
@@ -3460,8 +3465,7 @@ PeekMessageW_Detour (
   if ( PeekFunc == nullptr )
   {
     // A nasty kludge to fix the Steam overlay
-    static NtUserPeekMessage_pfn
-           early_PeekMessageW =
+    static auto         early_PeekMessageW =
       reinterpret_cast <NtUserPeekMessage_pfn> (
              SK_GetProcAddress      (
                SK_GetModuleHandle (   L"user32"  ),
@@ -3503,7 +3507,9 @@ PeekMessageW_Detour (
               lpMsg->message == WM_INPUT &&
               lpMsg->wParam  == RIM_INPUTSINK )
     {
-      bool keyboard, mouse, gamepad;
+      bool keyboard;
+      bool mouse;
+      bool gamepad;
 
       SK_Input_ClassifyRawInput (
         reinterpret_cast <HRAWINPUT> (lpMsg->lParam),
@@ -3543,8 +3549,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if ( GetFunc == nullptr )
   {
     // A nasty kludge to fix the Steam overlay
-    static NtUserGetMessage_pfn
-           early_GetMessageA =
+    static auto         early_GetMessageA =
       reinterpret_cast <NtUserGetMessage_pfn> (
              SK_GetProcAddress      (
                SK_GetModuleHandle (   L"user32"  ),
@@ -3622,8 +3627,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if ( GetFunc == nullptr )
   {
     // A nasty kludge to fix the Steam overlay
-    static NtUserGetMessage_pfn
-           early_GetMessageW =
+    static auto         early_GetMessageW =
       reinterpret_cast <NtUserGetMessage_pfn> (
              SK_GetProcAddress      (
                SK_GetModuleHandle (   L"user32"  ),
@@ -3635,7 +3639,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
     GetFunc =
       early_GetMessageW;
 
-    if (GetFunc)
+    if (GetFunc != nullptr)
     {
       return
         GetFunc ( lpMsg,
@@ -3733,10 +3737,27 @@ GetFocus_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  // Overriding this is not a great idea,
-  //   it will enable input to slip through during Alt-Tab.
+  ///// Overriding this is not a great idea,
+  /////   it will enable input to slip through during Alt-Tab.
   ///if (config.window.background_render)
-  ///  return game_window.hWnd;
+  ///{
+  ///  // Keep a cache of non-NULL focus HWNDs for this thread
+  ///  concurrency::concurrent_unordered_map <DWORD, HWND>
+  ///    focus_windows;
+  ///
+  ///  HWND hWndFocus =
+  ///    SK_GetFocus ( );
+  ///  DWORD dwTid    =
+  ///    SK_GetCurrentThreadId ();
+  ///
+  ///  if ( hWndFocus != nullptr )
+  ///           focus_windows       [dwTid] = hWndFocus;
+  ///  else if (focus_windows.count (dwTid) &&
+  ///           focus_windows       [dwTid] == SK_GetGameWindow ())
+  ///    return focus_windows       [dwTid];
+  ///  else
+  ///    return SK_GetGameWindow ();
+  ///}
 
   return
     SK_GetFocus ();
@@ -3784,10 +3805,30 @@ GetActiveWindow_Detour (void)
 
   if (pTLS != nullptr)
   {
-  //   since we're making a round-trip anyway.
     // Take this opportunity to update any stale data
+    //   since we're making a round-trip anyway.
     pTLS->win32->active = nullptr;
   }
+
+  ///if (config.window.background_render)
+  ///{
+  ///  // Keep a cache of non-NULL active HWNDs for this thread
+  ///  concurrency::concurrent_unordered_map <DWORD, HWND>
+  ///    active_windows;
+  ///
+  ///  HWND hWndActive =
+  ///    SK_GetActiveWindow (pTLS);
+  ///  DWORD dwTid     =
+  ///    pTLS->debug.tid;
+  ///
+  ///  if ( hWndActive != nullptr )
+  ///           active_windows       [dwTid] = hWndActive;
+  ///  else if (active_windows.count (dwTid) &&
+  ///           active_windows       [dwTid] == SK_GetGameWindow ())
+  ///    return active_windows       [dwTid];
+  ///  else
+  ///    return SK_GetGameWindow ();
+  ///}
 
   return
     SK_GetActiveWindow (pTLS);
@@ -4038,9 +4079,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   // If we are forcing a shutdown, then route any messages through the
   //   default Win32 handler.
-  if ( ReadAcquire (&__SK_DLL_Ending) && ( uMsg != WM_SYSCOMMAND &&
-                                           uMsg != WM_CLOSE      &&
-                                           uMsg != WM_QUIT )        )
+  if ( ReadAcquire (&__SK_DLL_Ending) != FALSE && ( uMsg != WM_SYSCOMMAND &&
+                                                    uMsg != WM_CLOSE      &&
+                                                    uMsg != WM_QUIT )        )
   {
     if (IsWindow (game_window.hWnd))
     {
@@ -4072,63 +4113,89 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   {
     first_run = false;
 
-    //HWND hWndForeground =
-    //  GetForegroundWindow ();
-    //
-    //if (hWndForeground == game_window.hWnd ||  (hWndForeground, game_window.hWnd))
-    //{
-      if (SK_GetFocus () == game_window.hWnd || SK_GetForegroundWindow () == game_window.hWnd)
-        ActivateWindow  (game_window.hWnd, true);
+    if (SK_GetFocus () == game_window.hWnd || SK_GetForegroundWindow () == game_window.hWnd)
+      ActivateWindow  (game_window.hWnd, true);
 
-      // Start unmuted (in case the game crashed in the background)
-      if (config.window.background_mute)
-        SK_SetGameMute (false);
+    // Start unmuted (in case the game crashed in the background)
+    if (config.window.background_mute != false)
+      SK_SetGameMute (false);
 
+    rb.windows.setFocus (hWnd);
 
-      //if (game_window.hWnd != nullptr && game_window.hWnd != hWndRender && hWnd != game_window.hWnd)
-      //{
-      //  if (hWndRender != nullptr)
-      //  {
-      //    dll_log->Log ( L"[Window Mgr] New HWND detected in the window proc. used"
-      //                   L" for rendering... (Old=%p, New=%p)",
-      //                     game_window.hWnd, hWnd );
-      //  }
-      //}
+    DWORD dwFocus;
+    DWORD dwForeground;
 
-      rb.windows.setFocus (hWnd);
+    HWND  hWndFocus      = SK_GetFocus            ();
+    HWND  hWndForeground = SK_GetForegroundWindow ();
 
-      DWORD dwFocus,
-            dwForeground;
+    if (! ( game_window.hWnd == hWndFocus   ||
+            game_window.hWnd == hWndForeground ) )
+    {
+      GetWindowThreadProcessId (hWndFocus,      &dwFocus);
+      GetWindowThreadProcessId (hWndForeground, &dwForeground);
 
-      HWND  hWndFocus      = SK_GetFocus            ();
-      HWND  hWndForeground = SK_GetForegroundWindow ();
-
-      if (! ( game_window.hWnd == hWndFocus   ||
-              game_window.hWnd == hWndForeground ) )
-      {
-        GetWindowThreadProcessId (hWndFocus,      &dwFocus);
-        GetWindowThreadProcessId (hWndForeground, &dwForeground);
-
-        game_window.active       = ( dwFocus      == GetCurrentProcessId () ||
-                                     dwForeground == GetCurrentProcessId () );
-      }
-      else
-        game_window.active = true;
-
-      game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-      game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-      game_window.unicode      =          SK_Window_IsUnicode (game_window.hWnd)   != FALSE;
-
-      SK_GetWindowRect (game_window.hWnd, &game_window.game.window  );
-      SK_GetClientRect (game_window.hWnd, &game_window.game.client  );
-      SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
-      SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
-
-      SK_InitWindow (hWnd, false);
+      game_window.active       = ( dwFocus      == GetCurrentProcessId () ||
+                                   dwForeground == GetCurrentProcessId () );
     }
+    else
+      game_window.active = true;
+
+    game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+    game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+    game_window.unicode      =          SK_Window_IsUnicode (game_window.hWnd)   != FALSE;
+
+    SK_GetWindowRect (game_window.hWnd, &game_window.game.window  );
+    SK_GetClientRect (game_window.hWnd, &game_window.game.client  );
+    SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+    SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
+
+    SK_InitWindow (hWnd, false);
+  }
 
 
   extern bool SK_ImGui_WantExit;
+
+  // HDR caps, Refresh Rate and Display Mode may have changed,
+  //   let's try to be smart about this (for a change)...
+  if ( uMsg == WM_DISPLAYCHANGE ||
+       uMsg == WM_SETFOCUS
+     )
+  {
+    // Doubtful, but maybe someday (... please?!)
+#ifdef MICROSOFT_FIXED_THE_DXGI_RUNTIME_AND_IT_NO_LONGER_CACHES_HDR_CAPS_IMMUTABLY
+    bool bHDRCapable =
+      rb.isHDRCapable ();
+
+    if (rb.checkHDRState () != bHDRCapable)
+    {
+      SK_LOG0 ( ( L"Display HDR Capabilities Changed..." ),
+                  L"WindowsHDR" );
+    }
+#endif
+
+    if (! game_window.active)
+    {
+      // Using a static kinda prevents us from supporting multiple windows,
+      //   but it's good enough for now.
+      static ULONG64 ulLastReset = 0;
+
+      if (ulLastReset < SK_GetFramesDrawn () - 2)
+      {
+        auto *pLimiter =             rb.swapchain.p != nullptr
+        ? SK::Framerate::GetLimiter (rb.swapchain.p) : nullptr;
+
+        if (pLimiter != nullptr)
+        {
+          // Since this may have been the result of an output device change,
+          //   it is best to take this opportunity to re-sync the limiter's
+          //     clock versus VBLANK and flush the render queue.
+          pLimiter->reset (true);
+
+          ulLastReset = SK_GetFramesDrawn ();
+        }
+      }
+    }
+  }
 
 
   switch (uMsg)
@@ -4139,7 +4206,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
       {
         if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
-             SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 )
+             SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
+             SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon )
         {
           SK_SelfDestruct     (   );
           SK_TerminateProcess (0x0);
@@ -4183,9 +4251,24 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     } break;
 
     case WM_SYSCOMMAND:
+      ///if ((! rb.fullscreen_exclusive) && config.window.background_render)
+      ///{
+      ///  switch (wParam)
+      ///  {
+      ///    case SC_NEXTWINDOW:
+      ///    case SC_PREVWINDOW:
+      ///    case SC_TASKLIST:
+      ///      // Blocking this message helps with many games that
+      ///      //   mute audio in the background
+      ///      return
+      ///        game_window.DefWindowProc ( hWnd, uMsg,
+      ///                                      wParam, lParam );
+      ///  }
+      ///}
+
       if (hWnd == game_window.hWnd)
       {
-        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
+        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
         {
           return 0;
         }
@@ -4194,7 +4277,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
 
     case WM_SETFOCUS:
-      if (! IsWindow (game_window.hWnd))
+      if ((! IsWindow (game_window.hWnd)) && IsWindow (hWnd))
         game_window.hWnd = hWnd;
 
       ActivateWindow (hWnd, true);
@@ -4211,7 +4294,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       break;
 
     case WM_KILLFOCUS:
-      if (! IsWindow (game_window.hWnd))
+      if ((! IsWindow (game_window.hWnd)) && IsWindow (hWnd))
         game_window.hWnd = hWnd;
 
       SK_ReleaseAssert (hWnd   == game_window.hWnd ||
@@ -4219,15 +4302,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       ActivateWindow   (hWnd, false);
 
-      if (         0 != (HWND)wParam)
+      if (   nullptr != (HWND)wParam)
         ActivateWindow ((HWND)wParam, true);
 
-     //if ( hWnd   == game_window.hWnd ||
-     //     wParam != 0 )
-     //{
+      if ( hWnd   == game_window.hWnd ||
+           wParam != 0 )
+      {
         rb.fullscreen_exclusive = false;
 
-        if (config.window.background_render)
+        if ((! rb.fullscreen_exclusive) && config.window.background_render)
         {
           // Blocking this message helps with many games that
           //   mute audio in the background
@@ -4235,7 +4318,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             game_window.DefWindowProc ( hWnd, uMsg,
                                           wParam, lParam );
         }
-    //}
+      }
       break;
 
     // Ignore (and physically remove) this event from the message queue if background_render = true
@@ -4276,41 +4359,61 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           if (wParam != FALSE)
           {
-            if (last_active == false)
+            if (! last_active)
               SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
                           L"Window Mgr" );
+
+            SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
           }
 
           else
           {
-            if (last_active == true)
+            if (last_active)
               SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
                           L"Window Mgr" );
 
-            // We must fully consume one of these messages or audio will stop playing
-            //   when the game loses focus, so do not simply pass this through to the
-            //     default window procedure.
             if ( (! rb.fullscreen_exclusive) &&
                     config.window.background_render
                 )
             {
+              game_window.DefWindowProc ( hWnd, uMsg,
+                                            wParam, lParam );
+
               SK_COMPAT_SafeCallProc (&game_window,
                 hWnd, uMsg, TRUE, lParam
               );
+
+              SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
+
+              return 0;
             }
           }
         }
 
-        else if (wParam == FALSE)
+        else
         {
-          if ( (! rb.fullscreen_exclusive) &&
-                  config.window.background_render
-              )
+          ActivateWindow (hWnd, wParam);
+
+          if (wParam == FALSE)
           {
-            SK_COMPAT_SafeCallProc (&game_window,
-              hWnd, uMsg, TRUE, 0
-            );
+            if ( (! rb.fullscreen_exclusive) &&
+                    config.window.background_render
+                )
+            {
+              game_window.DefWindowProc ( hWnd, uMsg,
+                                            wParam, lParam );
+              SK_COMPAT_SafeCallProc (&game_window,
+                hWnd, uMsg, TRUE, 0
+              );
+
+              SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
+
+              return 0;
+            }
           }
+
+          else
+            SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
         }
       }
 
@@ -4325,14 +4428,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           case WA_CLICKACTIVE:
           default: // Unknown
           {
-            activate = reinterpret_cast <HWND> (lParam) != game_window.hWnd;
+            activate = (                lParam  == 0                 ) ||
+             ( reinterpret_cast <HWND> (lParam) != game_window.hWnd  );
             source   = LOWORD (wParam) == 1 ? L"(WM_ACTIVATE [ WA_ACTIVE ])" :
-              L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
+                                              L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
           } break;
 
           case WA_INACTIVE:
           {
-            activate = ( lParam                  == 0                ) ||
+            activate =
               ( reinterpret_cast <HWND> (lParam) == game_window.hWnd );
             source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
           } break;
@@ -4342,6 +4446,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           if (! activate)
           {
+            ActivateWindow (hWnd, activate);
+
             SK_LOG2 ( ( L"Application Deactivated %s", source ),
                         L"Window Mgr" );
           }
@@ -4351,6 +4457,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           if (activate)
           {
+            ActivateWindow (hWnd, activate);
+
             SK_LOG2 ( ( L"Application Activated %s", source ),
                         L"Window Mgr" );
           }
@@ -4358,12 +4466,18 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         if ((! rb.fullscreen_exclusive) && config.window.background_render)
         {
-          game_window.DefWindowProc (
-            hWnd, uMsg,
-              wParam, lParam
-          );
+          if (! activate)
+          {
+            game_window.DefWindowProc ( hWnd, uMsg,
+                                        wParam, lParam );
 
-          return 1;
+            SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
+
+            return 1;
+          }
+
+          else
+            SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
         }
       }
     } break;
@@ -4383,6 +4497,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         if ( config.window.background_render &&
              (! rb.fullscreen_exclusive)        )
         {
+          // What purpose does this serve?
+          //
+          game_window.DefWindowProc ( hWnd, uMsg,
+                                        wParam, lParam );
           return 0;
         }
       }
@@ -4441,22 +4559,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
 
 
-  //MSG
-  //msg         = { };
-  //msg.lParam  = lParam;
-  //msg.wParam  = wParam;
-  //msg.message = uMsg;
-  //msg.hwnd    = hWnd;
-  //
-  //extern bool
-  //SK_ImGui_HandlesMessage (MSG* lpMsg, bool /*remove*/, bool /*peek*/);
-  //
-  //SK_ImGui_HandlesMessage (&msg, true, true);
-  //                         uMsg = msg.message;
-
-
-
-
   //
   // Squelch input messages that managed to get into the loop without triggering
   //   filtering logic in the GetMessage (...), PeekMessage (...) and
@@ -4485,7 +4587,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //
   // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
   //
-  if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam))
+  if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam) != 0)
   {
     // Block keyboard input to the game while the console is visible
     if (console_visible)
@@ -4521,11 +4623,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   // Post-Process the game's result to fix any non-compliant behaviors
   //
 
-
   if (hWnd == game_window.hWnd)
   {
     // Fix for Skyrim SE beeping when Alt is pressed.
-    if (uMsg == WM_MENUCHAR && (! HIWORD (lRet)))
+    if (uMsg == WM_MENUCHAR && (HIWORD (lRet) == MNC_IGNORE))
       return MAKEWPARAM (0, MNC_CLOSE);
   }
 
@@ -4965,10 +5066,10 @@ SK_InstallWindowHook (HWND hWnd)
   RealGetWindowClassW (hWnd, wszClass, _MaxClassLen - 1);
 
   const bool dummy_window =
-    StrStrIW (wszClass, L"Special K Dummy Window Class") ||
-    StrStrIW (wszClass, L"RTSSWndClass");
+    nullptr != StrStrIW (wszClass, L"Special K Dummy Window Class") ||
+    nullptr != StrStrIW (wszClass, L"RTSSWndClass");
 
-  if (dummy_window)
+  if (dummy_window != false)
     return;
 
   if (SK_IsAddressExecutable (game_window.WndProc_Original, true))
@@ -5134,7 +5235,7 @@ SK_InstallWindowHook (HWND hWnd)
     GetClassLongPtrW  ( hWnd, GCLP_WNDPROC ) : (WNDPROC)
     GetClassLongPtrA  ( hWnd, GCLP_WNDPROC );
 
-  WNDPROC wnd_proc =
+  auto wnd_proc =
     (WNDPROC)(game_window.GetWindowLongPtr (hWnd, GWLP_WNDPROC));
 
 
@@ -5195,7 +5296,7 @@ SK_InstallWindowHook (HWND hWnd)
     ///  SK_RegisterRawInputDevices (&rid, 1, sizeof RAWINPUTDEVICE);
     ///}
 
-    SetLastError (dwLast);
+    SK_SetLastError (dwLast);
 
     static SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
@@ -5286,10 +5387,12 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   bool    ignore_proc = false;
 
   // OpenGL games almost always have a window proc. located in OpenGL32.dll; we don't want that.
-  if      (SK_GetModuleFromAddr (class_proc) == SK_GetModuleHandle (nullptr)) target_proc = class_proc;
-  else if (SK_GetModuleFromAddr (wnd_proc)   == SK_GetModuleHandle (nullptr)) target_proc = wnd_proc;
-  else if (SK_GetModuleFromAddr (class_proc) != INVALID_HANDLE_VALUE)         target_proc = class_proc;
-  else                                                                        ignore_proc = true;// target_proc = wnd_proc;
+  if      (SK_GetModuleFromAddr   (class_proc) == SK_GetModuleHandle (nullptr)) target_proc = class_proc;
+  else if (SK_GetModuleFromAddr   (wnd_proc)   == SK_GetModuleHandle (nullptr)) target_proc = wnd_proc;
+  else if (SK_GetModuleFromAddr   (class_proc) != INVALID_HANDLE_VALUE)         target_proc = class_proc;
+  //else if (SK_IsAddressExecutable (class_proc,true))                            target_proc = class_proc;
+  //else if (SK_IsAddressExecutable (wnd_proc,  true))                            target_proc = wnd_proc;
+  else                                                                          ignore_proc = true;// target_proc = wnd_proc;
 
 
   // In case we cannot hook the target, try the other...
@@ -5968,8 +6071,7 @@ SK_DWM_EnableMMCSS (BOOL enable)
     SK_LoadLibraryW (L"dwmapi.dll");
 
   typedef HRESULT (WINAPI *DwmEnableMMCSS_pfn)(BOOL);
-  static                   DwmEnableMMCSS_pfn
-                           DwmEnableMMCSS =
+  static auto              DwmEnableMMCSS =
          reinterpret_cast <DwmEnableMMCSS_pfn> (
      SK_GetProcAddress ( hModDwmApi,
                           "DwmEnableMMCSS" )   );
@@ -5979,6 +6081,21 @@ SK_DWM_EnableMMCSS (BOOL enable)
       DwmEnableMMCSS (  enable  ) : E_NOTIMPL;
 }
 
+void
+WINAPI
+SK_DWM_Flush (void)
+{
+  static HMODULE hModDwmApi =
+    SK_LoadLibraryW (L"dwmapi.dll");
+
+  typedef HRESULT (WINAPI *DwmFlush_pfn)(void);
+  static auto              DwmFlush =
+         reinterpret_cast <DwmFlush_pfn> (
+   SK_GetProcAddress ( hModDwmApi,
+                          "DwmFlush" )   );
+
+  DwmFlush ();
+}
 
 
 

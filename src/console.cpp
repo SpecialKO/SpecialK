@@ -203,7 +203,7 @@ extern HWND WINAPI SK_GetFocus (void);
 bool
 SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
 {
-  if (SK_GetFocus () != game_window.hWnd || game_window.hWnd == 0)
+  if (! game_window.active)
     return true;
 
   static bool& visible = SK_Console::getInstance ()->visible;

@@ -35,6 +35,10 @@ interface ID3D12Device;
 #define __SK_SUBSYSTEM__ L"IDXGI Wrap"
 #endif
 
+const GUID IID_IUnwrappedDXGISwapChain =
+{ 0xe8a33b4a, 0x1405, 0x424c, { 0xae, 0x88, 0xd, 0x3e, 0x9d, 0x46, 0xc9, 0x14 } };
+
+
 struct IWrapDXGISwapChain : IDXGISwapChain4
 {
   IWrapDXGISwapChain ( ID3D11Device   *pDevice,

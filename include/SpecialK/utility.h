@@ -351,6 +351,7 @@ SK_TestRenderImports ( HMODULE hMod,
                        bool*   d3d9,
                        bool*   dxgi,
                        bool*   d3d11,
+                       bool*   d3d12,
                        bool*   d3d8,
                        bool*   ddraw,
                        bool*   glide );
@@ -401,6 +402,13 @@ SK_InjectMemory ( LPVOID  base_addr,
 
 bool
 SK_IsProcessRunning (const wchar_t* wszProcName);
+
+BOOL
+WINAPI
+SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
+                             LPCSTR  lpProcName,
+                            FARPROC  lpProcAddr,
+          PLDR_DATA_TABLE_ENTRY__SK *ppldrEntry = nullptr );
 
 
 // Call this instead of ShellExecuteW in order to handle COM init. so that all

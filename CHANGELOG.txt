@@ -1,4 +1,91 @@
-﻿0.11.0.50:
+﻿+ Added preliminary D3D12 Support
+
+ >> Has compatibility issues with some non-native D3D12 overlays
+      (i.e. RTSS and Steam), but works correctly with native D3D12
+        overlays (i.e. Discord)
+
++ Added HDR minimum luminance (black level) to tonemap for scRGB
++ Added workaround for Ogre games that load CEGUI before Special K does
++ Fixed Racing Wheel Input not responding when SK hooks DirectInput 8
++ Added sRGB Bypass Mode for SDR games that need sRGB removed for Flip Model
+
+ >> Games that used to be too dark can now use Flip Model
+
++ Changed HDR Display Name Query to use NvAPI on compatible systems to
+    correctly map DXGI Display Handles to EDID Display Names
++ Added HDR Widget option to control "Implicit sRGB" gamma processing,
+    this is needed for many Unity engine games that would otherwise be
+      too dark to do any kind of processing on.
+
++ Fixed Mute in Background Mode when combined with "Continue Rendering."
++ Fixed Background Rendering Mode in many games
++ Added VRAM Usage to HDR Remastering Checkbox Tooltips
++ Added the same Yakuza reference counting fixes needed to keep 0, Kiwami 1 and
+    Kiwami 2 from crashing to Like a Dragon -- somebody fix the damn engine (!!)
+
++ Added button to Reset HDR Presets to HDR widget
+
+ >> Later versions will add buttons to import and export presets from previously
+      configured games
+
++ Fixed widget slider / dropdown behavior so that it blocks mouse input to game
++ Added DXGIGetDebugInterface1 (...) to SpecialK{64|32}.dll for games that need it
+
++ Corrected near-black noise when processing sRGB LDR images for HDR tonemapping
+ --------------------
+ * Care must be taken when using sRGB gamma if the input image may have negative
+     color values, because sRGB gamma's x*x*x property preserves negative values.
+ --------------------
++ Added support for HDR10 image processing so that SK's HDR widget can control
+    games with official HDR support now (usually does a better job :P)
+
+  >> When running a game with official HDR support, most are HDR10 and you
+       will need to run SK's HDR widget in HDR10 Passthrough or Filmic mode,
+
+       Expect to target ~10,000 nits because games that use HDR10 don't
+         actually bother to encode luminance levels into the signal.
+
++ Boosted black level when using ACEScg tonemap mode for more shadow detail
+
++ Fixed issues preventing Ys8 from starting (again...)
++ Fixed a bunch of anti-debug problems in various Ubisoft games
+
++ Added more details to latency monitoring in framepacing widget
+
++ Framerate Limiter now defaults to Screen Refresh if no limit is set,
+    for the framepacing widget's scale
+
++ Added Gamut Overshoot Visualization
++ Added HDR Overbright Bit Visualization
+
++ Added support for loading 'default_{SpecialK|<api_name>}.ini' from
+    Documents\My Mods\SpecialK\Profiles\<game_name> and
+    Documents\My Mods\SpecialK\Global\
+
+   >> These will be loaded the first time you launch a game, or after
+        resetting the game's config. Global is loaded first, then profile.
+
++ Fixed uninitialized D3D11 State Block pointer in Thread Local Storage
++ Fixed D3D11 RenderTargetView HDR Format override for 2D Array Textures
++ Fixed GetProcAddress (...) caching that causes input-related issues in
+    games that use the wrong XInput DLL for they system they are running
+
+
+0.11.0.51:
+
+ + Fixed Tales of Vesperia Bug Regression in 0.11.0.48+
+ + Removed DXVK compat. hacks for DXGI SwapChain overrides
+
+  >> The only known remaining oddity when you combine SK w/ DXVK is that SK's
+       framerate limiter must be configured with busy-wait behavior
+         ('Timing Accuracy' Slider: 100% CPU) or it cannot throttle Vk acquire.
+
+ + Help menu no longer links to Steam; it now points to discourse.differentk.fyi
+ + Removed accidental inclusion of dgVoodoo2 in SpecialK.7z; if you want/need it,
+     consult Google ('shitgoogle' or whatever Dege is referring to it as now, lol)
+
+
+0.11.0.50:
 
  + HDR Preset Default Keybinds changed to Shift+F1, Shift+F2, Shift+F3, Shift+F4
  + HDR Preset Keybindings are configurable in-game by clicking on the binding text

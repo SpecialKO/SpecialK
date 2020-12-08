@@ -247,13 +247,13 @@ SK_BootDI8 (void)
     // This whole thing is as smart as a sack of wet mice in DirectInput mode...
     //   let's get to the real work and start booting graphics APIs!
     //
-    static bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
+    static bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false, d3d12 = false,
                 dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
     SK_TestRenderImports (
       SK_GetModuleHandle (nullptr),
         &gl, &vulkan,
-          &d3d9, &dxgi, &d3d11,
+          &d3d9, &dxgi, &d3d11, &d3d12,
             &d3d8, &ddraw, &glide
     );
 
@@ -293,7 +293,12 @@ UNREFERENCED_PARAMETER (user);
     if (d3d11 || SK_GetModuleHandle (L"d3d11.dll"))
       SK_BootDXGI ();
 
-    // Alternate form (or D3D12, but we don't care about that right now)
+    // D3D12
+    //
+    if (d3d12 || SK_GetModuleHandle (L"d3d12.dll"))
+      SK_BootDXGI ();
+
+    // Alternate form (or D3D10, but we don't care about that right now)
     else if (dxgi || SK_GetModuleHandle (L"dxgi.dll"))
       SK_BootDXGI ();
 
@@ -484,11 +489,6 @@ __stdcall
 SK_HookDI8 (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
-
-  //if (! config.apis.di8.hook)
-  //{
-  //  return 0;
-  //}
 
   SK_AutoCOMInit auto_com;
   {
@@ -1305,6 +1305,14 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                      LPDIRECTINPUTDEVICE8W *lplpDirectInputDevice,
                                      LPUNKNOWN              pUnkOuter )
 {
+  // Any device not in this giant mess is one Special K doesn't understand and
+  //   should not be hooking...
+  bool hookable =
+    ( rguid == GUID_SysMouse      || rguid == GUID_SysKeyboard    ||
+      rguid == GUID_SysMouseEm    || rguid == GUID_SysMouseEm2    ||
+      rguid == GUID_SysKeyboardEm || rguid == GUID_SysKeyboardEm2 ||
+      rguid == GUID_Joystick );
+
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
@@ -1314,7 +1322,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
 
   auto& _devices_w = devices8_w.get ();
 
-  if (_devices_w.count (guid_crc32c))
+  if (hookable && _devices_w.count (guid_crc32c))
   {
     *lplpDirectInputDevice = _devices_w [guid_crc32c];
                              _devices_w [guid_crc32c]->AddRef ();
@@ -1353,40 +1361,43 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
     void** vftable =
       *reinterpret_cast <void ***> (*lplpDirectInputDevice);
 
-    if (IDirectInputDevice8W_GetDeviceState_Original == nullptr)
+    if (hookable)
     {
-      SK_CreateFuncHook (      L"IDirectInputDevice8W::GetDeviceState",
-                                 vftable [9],
-                                 IDirectInputDevice8W_GetDeviceState_Detour,
-        static_cast_p2p <void> (&IDirectInputDevice8W_GetDeviceState_Original) );
+      if (IDirectInputDevice8W_GetDeviceState_Original == nullptr)
+      {
+        SK_CreateFuncHook (      L"IDirectInputDevice8W::GetDeviceState",
+                                   vftable [9],
+                                   IDirectInputDevice8W_GetDeviceState_Detour,
+          static_cast_p2p <void> (&IDirectInputDevice8W_GetDeviceState_Original) );
 
-      if (MH_OK == MH_QueueEnableHook (vftable [9]))
-        ++hook_count;
+        if (MH_OK == MH_QueueEnableHook (vftable [9]))
+          ++hook_count;
+      }
+
+      if (! IDirectInputDevice8W_SetCooperativeLevel_Original)
+      {
+        SK_CreateFuncHook (      L"IDirectInputDevice8W::SetCooperativeLevel",
+                                   vftable [13],
+                                   IDirectInputDevice8W_SetCooperativeLevel_Detour,
+          static_cast_p2p <void> (&IDirectInputDevice8W_SetCooperativeLevel_Original) );
+
+        if (MH_OK == MH_QueueEnableHook (vftable [13]))
+          ++hook_count;
+      }
+
+      if (rguid == GUID_SysMouse)
+      {
+        _dim8->pDev = *lplpDirectInputDevice;
+      }
+      else if (rguid == GUID_SysKeyboard)
+        _dik8->pDev = *lplpDirectInputDevice;
+
+      devices8_w [guid_crc32c] = *lplpDirectInputDevice;
+      devices8_w [guid_crc32c]->AddRef ();
+
+      if (hook_count > 0)
+        SK_ApplyQueuedHooks ();
     }
-
-    if (! IDirectInputDevice8W_SetCooperativeLevel_Original)
-    {
-      SK_CreateFuncHook (      L"IDirectInputDevice8W::SetCooperativeLevel",
-                                 vftable [13],
-                                 IDirectInputDevice8W_SetCooperativeLevel_Detour,
-        static_cast_p2p <void> (&IDirectInputDevice8W_SetCooperativeLevel_Original) );
-
-      if (MH_OK == MH_QueueEnableHook (vftable [13]))
-        ++hook_count;
-    }
-
-    if (rguid == GUID_SysMouse)
-    {
-      _dim8->pDev = *lplpDirectInputDevice;
-    }
-    else if (rguid == GUID_SysKeyboard)
-      _dik8->pDev = *lplpDirectInputDevice;
-
-    devices8_w [guid_crc32c] = *lplpDirectInputDevice;
-    devices8_w [guid_crc32c]->AddRef ();
-
-    if (hook_count > 0)
-      SK_ApplyQueuedHooks ();
   }
 
 #if 0
@@ -1411,6 +1422,14 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                      LPDIRECTINPUTDEVICE8A *lplpDirectInputDevice,
                                      LPUNKNOWN              pUnkOuter )
 {
+  // Any device not in this giant mess is one Special K doesn't understand and
+  //   should not be hooking...
+  bool hookable =
+    ( rguid == GUID_SysMouse      || rguid == GUID_SysKeyboard    ||
+      rguid == GUID_SysMouseEm    || rguid == GUID_SysMouseEm2    ||
+      rguid == GUID_SysKeyboardEm || rguid == GUID_SysKeyboardEm2 ||
+      rguid == GUID_Joystick );
+
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
@@ -1420,7 +1439,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
 
   auto& _devices_a = devices8_a.get ();
 
-  if (_devices_a.count (guid_crc32c))
+  if (hookable && _devices_a.count (guid_crc32c))
   {
     *lplpDirectInputDevice = _devices_a [guid_crc32c];
                              _devices_a [guid_crc32c]->AddRef ();
@@ -1458,40 +1477,43 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
     void** vftable =
       *reinterpret_cast <void ***> (*lplpDirectInputDevice);
 
-    if (IDirectInputDevice8A_GetDeviceState_Original == nullptr)
+    if (hookable)
     {
-      SK_CreateFuncHook (      L"IDirectInputDevice8A::GetDeviceState",
-                                 vftable [9],
-                                 IDirectInputDevice8A_GetDeviceState_Detour,
-        static_cast_p2p <void> (&IDirectInputDevice8A_GetDeviceState_Original) );
+      if (IDirectInputDevice8A_GetDeviceState_Original == nullptr)
+      {
+        SK_CreateFuncHook (      L"IDirectInputDevice8A::GetDeviceState",
+                                   vftable [9],
+                                   IDirectInputDevice8A_GetDeviceState_Detour,
+          static_cast_p2p <void> (&IDirectInputDevice8A_GetDeviceState_Original) );
 
-      if (MH_OK == MH_QueueEnableHook (vftable [9]))
-        ++hook_count;
+        if (MH_OK == MH_QueueEnableHook (vftable [9]))
+          ++hook_count;
+      }
+
+      if (! IDirectInputDevice8A_SetCooperativeLevel_Original)
+      {
+        SK_CreateFuncHook (      L"IDirectInputDevice8A::SetCooperativeLevel",
+                                   vftable [13],
+                                   IDirectInputDevice8A_SetCooperativeLevel_Detour,
+          static_cast_p2p <void> (&IDirectInputDevice8A_SetCooperativeLevel_Original) );
+
+        if (MH_OK == MH_QueueEnableHook (vftable [13]))
+          ++hook_count;
+      }
+
+      if (rguid == GUID_SysMouse)
+      {
+        _dim8->pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
+      }
+      else if (rguid == GUID_SysKeyboard)
+        _dik8->pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
+
+      devices8_a [guid_crc32c] = *lplpDirectInputDevice;
+      devices8_a [guid_crc32c]->AddRef ();
+
+      if (hook_count > 0)
+        SK_ApplyQueuedHooks ();
     }
-
-    if (! IDirectInputDevice8A_SetCooperativeLevel_Original)
-    {
-      SK_CreateFuncHook (      L"IDirectInputDevice8A::SetCooperativeLevel",
-                                 vftable [13],
-                                 IDirectInputDevice8A_SetCooperativeLevel_Detour,
-        static_cast_p2p <void> (&IDirectInputDevice8A_SetCooperativeLevel_Original) );
-
-      if (MH_OK == MH_QueueEnableHook (vftable [13]))
-        ++hook_count;
-    }
-
-    if (rguid == GUID_SysMouse)
-    {
-      _dim8->pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
-    }
-    else if (rguid == GUID_SysKeyboard)
-      _dik8->pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
-
-    devices8_a [guid_crc32c] = *lplpDirectInputDevice;
-    devices8_a [guid_crc32c]->AddRef ();
-
-    if (hook_count > 0)
-      SK_ApplyQueuedHooks ();
   }
 
 #if 0

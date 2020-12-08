@@ -74,8 +74,18 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
     riid == __uuidof (IDXGISwapChain1)      ||
     riid == __uuidof (IDXGISwapChain2)      ||
     riid == __uuidof (IDXGISwapChain3)      ||
-    riid == __uuidof (IDXGISwapChain4) )
+    riid == __uuidof (IDXGISwapChain4)      ||
+    riid == IID_IUnwrappedDXGISwapChain )
   {
+    if (riid == IID_IUnwrappedDXGISwapChain)
+    {
+      pReal->AddRef ();
+
+      (*ppvObj) = pReal;
+
+      return S_OK;
+    }
+
     auto _GetVersion = [](REFIID riid) ->
     UINT
     {
@@ -302,6 +312,19 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFullscreenState (BOOL *pFullscreen, IDXGIOutput **ppTarget)
 {
+  DXGI_SWAP_CHAIN_DESC swapDesc = { };
+  pReal->GetDesc     (&swapDesc);
+
+  if (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+  {
+    if (ppTarget != nullptr)
+        *ppTarget = nullptr;
+
+    *pFullscreen = FALSE;
+
+    return S_OK;
+  }
+
   return
     pReal->GetFullscreenState (pFullscreen, ppTarget);
 }
@@ -310,7 +333,15 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetDesc (DXGI_SWAP_CHAIN_DESC *pDesc)
 {
-  return pReal->GetDesc (pDesc);
+  HRESULT hr =
+    pReal->GetDesc (pDesc);
+
+  extern bool __SK_HDR_16BitSwap;
+
+  if (SUCCEEDED (hr) && __SK_HDR_16BitSwap && pDesc->BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+    pDesc->BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+
+  return hr;
 }
 
 HRESULT
@@ -360,6 +391,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetDesc1 (DXGI_SWAP_CHAIN_DESC1 *pDesc)
 {
+  SK_LOG_ONCE (L"IWrapDXGISwapChain::GetDesc1 (...)");
+
   assert (ver_ >= 1);
 
   return

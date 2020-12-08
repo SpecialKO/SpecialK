@@ -155,6 +155,9 @@ namespace SK
 
       double      effective_frametime (void);
 
+      void        set_undershoot      (float percent) { undershoot_percent = percent; };
+      float       get_undershoot      (void) {   return undershoot_percent;           };
+
       int32_t     suspend             (void) noexcept { return ++limit_behavior; }
       int32_t     resume              (void) noexcept { return --limit_behavior; }
 
@@ -262,6 +265,9 @@ namespace SK
       SK_LazyGlobal <Stats> frame_history2;
             DeepFrameState  frame_history_snapshots;
 
+      static
+      float         undershoot_percent;
+
     private:
       bool          restart      = false;
       bool          full_restart = false;
@@ -271,7 +277,12 @@ namespace SK
                     fps          = 0.0,
                     effective_ms = 0.0;
 
-      ULONGLONG     ticks_per_frame = 0ULL;
+      ULONGLONG     ticks_per_frame     = 0ULL;
+      ULONGLONG     ticks_to_undershoot = 0ULL;
+
+      // Don't align timing perfectly on a VBlank interval, because DWM composition is
+      //   asynchronous to our present queue and we want to arrive with work to submit
+      //     before VBlank begins, not _after_.
 
       volatile
         LONG64      time   = { },
@@ -281,6 +292,8 @@ namespace SK
                     freq   = { };
       volatile
         LONG64      frames = 0;
+      volatile
+        LONG64      last_frame = 0; // Never apply a limit twice in one frame
 
 #define LIMIT_APPLY     0
 #define LIMIT_UNDERFLOW (limit_behavvior < 0)
@@ -337,8 +350,9 @@ namespace SK
     // The identifying SwapChain is an opaque handle, we have no reason to hold a reference to this
     //   and you can cast any value you want to this pointer (e.g. an OpenGL HGLRC). Prototype uses
     //     IUnknown because it's straightforward in DXGI / D3D9 to use these as handles :)
-                  Limiter*      GetLimiter (IUnknown *pSwapChain = nullptr);
-
+                  bool          HasLimiter (IUnknown *pSwapChain          = nullptr);
+                  Limiter*      GetLimiter (IUnknown *pSwapChain          = nullptr,
+                                            bool      bCreateIfNoneExists = true   );
     class Stats {
     public:
       static LARGE_INTEGER freq;
@@ -694,6 +708,13 @@ NTSTATUS (NTAPI *NtWaitForMultipleObjects_pfn)(
 
 extern void SK_Scheduler_Init     (void);
 extern void SK_Scheduler_Shutdown (void);
+
+
+#include <dwmapi.h>
+
+extern HRESULT WINAPI
+SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo);
+
 
 
 #endif /* __SK__FRAMERATE_H__ */

@@ -41,27 +41,6 @@ interface ID3D11Query;
 class SK_D3D11_Screenshot
 {
 public:
-  struct MemoryTotals {
-    std::atomic_size_t capture_bytes = 0;
-    std::atomic_size_t encode_bytes  = 0;
-    std::atomic_size_t write_bytes   = 0;
-  } static pooled,
-           completed;
-
-  static constexpr
-    MemoryTotals maximum =
-    {
-#ifdef _M_AMD64
-      1024 * 1024 * 1024,
-       512 * 1024 * 1024,
-       256 * 1024 * 1024
-#else
-      256 * 1024 * 1024,
-      128 * 1024 * 1024,
-       64 * 1024 * 1024
-#endif
-    };
-
   explicit SK_D3D11_Screenshot (          SK_D3D11_Screenshot&& moveFrom) noexcept { *this = std::move (moveFrom); }
   explicit SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice);
 

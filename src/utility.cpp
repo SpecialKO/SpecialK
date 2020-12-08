@@ -647,7 +647,7 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
                                  0 )
   );
 
-  if (hProcSnap == INVALID_HANDLE_VALUE)
+  if ((intptr_t)hProcSnap.m_h <= 0)
     return false;
 
   pe32.dwSize =
@@ -689,7 +689,7 @@ SK_GetProcAddress (HMODULE hMod, const char* szFunc) noexcept
 
   if (hMod != nullptr)
   {
-    SetLastError (NO_ERROR);
+    SK_SetLastError (NO_ERROR);
 
     if (GetProcAddress_Original != nullptr)
     {
@@ -1015,7 +1015,7 @@ FindProcessByName (const wchar_t* wszName)
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0)
   );
 
-  if (hProcessSnap == INVALID_HANDLE_VALUE)
+  if ((intptr_t)hProcessSnap.m_h <= 0)// == INVALID_HANDLE_VALUE)
     return pe32;
 
   pe32.dwSize = sizeof (PROCESSENTRY32W);
@@ -1093,7 +1093,7 @@ SK_SuspendAllOtherThreads (void)
     CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
   );
 
-  if (hSnap != INVALID_HANDLE_VALUE)
+  if ((intptr_t)hSnap.m_h > 0)// != INVALID_HANDLE_VALUE)
   {
     THREADENTRY32 tent        = {                    };
                   tent.dwSize = sizeof (THREADENTRY32);
@@ -1115,7 +1115,7 @@ SK_SuspendAllOtherThreads (void)
               OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
             );
 
-            if (hThread != nullptr)
+            if ((intptr_t)hThread.m_h > 0)
             {
               threads.push  (tent.th32ThreadID);
 
@@ -1144,7 +1144,7 @@ SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
     CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
   );
 
-  if (hSnap != INVALID_HANDLE_VALUE)
+  if ((intptr_t)hSnap.m_h > 0)//!= INVALID_HANDLE_VALUE)
   {
     THREADENTRY32 tent        = {                    };
                   tent.dwSize = sizeof (THREADENTRY32);
@@ -1167,7 +1167,7 @@ SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
               OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
             );
 
-            if (hThread != nullptr)
+            if ((intptr_t)hThread.m_h > 0)
             {
               threads.push  (tent.th32ThreadID);
 
@@ -1198,7 +1198,7 @@ SK_ResumeThreads (std::queue <DWORD> threads)
       OpenThread (THREAD_SUSPEND_RESUME, FALSE, tid)
     );
 
-    if (hThread != nullptr)
+    if ((intptr_t)hThread.m_h > 0)
     {
       ResumeThread (hThread);
     }
@@ -1323,8 +1323,6 @@ SK_TestImports (          HMODULE  hMod,
         pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew
       );
 
-
-
     pImgDir  =
         &pNtHdr->OptionalHeader.DataDirectory [IMAGE_DIRECTORY_ENTRY_IMPORT];
 
@@ -1436,6 +1434,7 @@ SK_TestRenderImports ( HMODULE hMod,
                        bool*   d3d9,
                        bool*   dxgi,
                        bool*   d3d11,
+                       bool*   d3d12,
                        bool*   d3d8,
                        bool*   ddraw,
                        bool*   glide )
@@ -1445,6 +1444,7 @@ SK_TestRenderImports ( HMODULE hMod,
                                        { "d3d9.dll",      false },
                                        //{ "dxgi.dll",     false },
                                        { "d3d11.dll",     false },
+                                       { "d3d12.dll",     false },
                                        { "d3d8.dll",      false },
                                        { "ddraw.dll",     false },
                                        { "d3dx11_43.dll", false },
@@ -1460,11 +1460,13 @@ SK_TestRenderImports ( HMODULE hMod,
   *dxgi   = false;
 //*dxgi   = tests [3].used;
   *d3d11  = tests [3].used;
-  *d3d8   = tests [4].used;
-  *ddraw  = tests [5].used;
-  *d3d11 |= tests [6].used;
-  *dxgi  |= tests [6].used;
-  *glide  = tests [7].used;
+  *d3d12  = tests [4].used;
+  *dxgi  |= tests [4].used;
+  *d3d8   = tests [5].used;
+  *ddraw  = tests [6].used;
+  *d3d11 |= tests [7].used;
+  *dxgi  |= tests [7].used;
+  *glide  = tests [8].used;
 }
 
 int
@@ -2639,7 +2641,7 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
                               FILE_FLAG_BACKUP_SEMANTICS,
                                 nullptr ) );
 
-    if (hFile == INVALID_HANDLE_VALUE)
+    if ((intptr_t)hFile.m_h <= 0)
     {
       return false;
     }

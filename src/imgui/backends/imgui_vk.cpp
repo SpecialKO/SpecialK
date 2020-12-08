@@ -264,7 +264,7 @@ ImGui_ImplVulkan_RenderDrawLists (ImDrawData* draw_data)
     g_VertexBufferSize [g_FrameIndex] = vertex_buffer_size;
   }
 
-  // Create the Index Buffer:
+  // Create the Index Buffer: 
   VkDeviceSize index_size = draw_data->TotalIdxCount * sizeof (ImDrawIdx);
 
   if (! g_IndexBuffer [g_FrameIndex] || g_IndexBufferSize [g_FrameIndex] < index_size)

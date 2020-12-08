@@ -147,80 +147,6 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
-  bool           sRGBUnKill = false;
-  extern bool __SK_DXGI_SRGB_KILL;
-  if (        __SK_DXGI_SRGB_KILL && pResource != nullptr)
-  {
-    D3D11_RESOURCE_DIMENSION   dim;
-    pResource->GetType       (&dim);
-
-    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
-    {
-      D3D11_SHADER_RESOURCE_VIEW_DESC desc = { };
-
-      if (pDesc != nullptr)
-        desc = *pDesc;
-
-      if (desc.Format == DXGI_FORMAT_UNKNOWN)
-      {
-        SK_ComQIPtr <ID3D11Texture2D>
-            pTex2D (pResource);
-        D3D11_TEXTURE2D_DESC  tex_desc = { };
-        if (pTex2D != nullptr)
-            pTex2D->GetDesc (&tex_desc);
-
-        if (pTex2D != nullptr)
-        {
-          UINT fmt_support = 0;
-
-          if ( SUCCEEDED (
-            This->CheckFormatSupport (tex_desc.Format, &fmt_support)
-             )           )
-          {
-            if ( (fmt_support & D3D11_FORMAT_SUPPORT_DISPLAY ) ||
-                 (fmt_support & D3D11_FORMAT_SUPPORT_BACK_BUFFER_CAST) )
-            {
-              auto& rb =
-                SK_GetCurrentRenderBackend ();
-
-              SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-
-              if (pSwapChain.p != nullptr)
-              {
-                DXGI_SWAP_CHAIN_DESC  swap_desc = { };
-                pSwapChain->GetDesc (&swap_desc);
-
-                for ( UINT i = 0 ; i < swap_desc.BufferCount ; ++i )
-                {
-                  SK_ComPtr <ID3D11Texture2D> pSwapBuffer_n;
-
-                  if (SUCCEEDED (pSwapChain->GetBuffer (i, __uuidof (ID3D11Texture2D), (void **)&pSwapBuffer_n.p)))
-                  {
-                    if (pSwapBuffer_n.IsEqualObject (pTex2D))
-                    {
-                      sRGBUnKill = true;
-
-                      desc.Format = DirectX::MakeSRGB (tex_desc.Format);
-                    //dll_log->Log (L"sRGB(Un)Kill (SRV)");
-
-                      return
-                        D3D11Dev_CreateShaderResourceView_Original (
-                          This,    pResource,
-                            &desc, ppSRView                       );
-
-                      break;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-
   //CD3D11_SHADER_RESOURCE_VIEW_DESC _desc (
   //  D3D11_SRV_DIMENSION_TEXTURE2D
   //);
@@ -245,7 +171,8 @@ D3D11Dev_CreateShaderResourceView_Override (
       {
         bool override = false;
 
-        if ( DirectX::BitsPerPixel (pDesc->Format) !=
+        if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+             DirectX::BitsPerPixel (pDesc->Format) !=
              DirectX::BitsPerPixel (tex_desc.Format) )
         {
           override  = true;
@@ -269,7 +196,8 @@ D3D11Dev_CreateShaderResourceView_Override (
           newMipLevels =
             pDesc->Texture2D.MipLevels;
 
-          if ( DirectX::MakeTypeless (pDesc->Format) !=
+          if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+               DirectX::MakeTypeless (pDesc->Format) !=
                DirectX::MakeTypeless (newFormat    )  )
           {
             if (DirectX::IsSRGB (pDesc->Format))
@@ -408,7 +336,8 @@ D3D11Dev_CreateDepthStencilView_Override (
         if ( SK_D3D11_OverrideDepthStencil (newFormat) || DirectX::BitsPerPixel (newFormat) !=
                                                           DirectX::BitsPerPixel (tex_desc.Format)  )
         {
-          if ( DirectX::BitsPerPixel (newFormat) !=
+          if (                        newFormat  != DXGI_FORMAT_UNKNOWN &&
+               DirectX::BitsPerPixel (newFormat) !=
                DirectX::BitsPerPixel (tex_desc.Format) )
           {
             newFormat = tex_desc.Format;
@@ -453,7 +382,7 @@ D3D11Dev_CreateUnorderedAccessView_Override (
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      DXGI_FORMAT                   newFormat (pDesc->Format);
+      DXGI_FORMAT newFormat    = pDesc->Format;
       SK_ComQIPtr <ID3D11Texture2D> pTex      (pResource);
 
       if (pTex != nullptr)
@@ -466,7 +395,38 @@ D3D11Dev_CreateUnorderedAccessView_Override (
         if ( SK_D3D11_OverrideDepthStencil (newFormat) )
           override = true;
 
-        if ( DirectX::BitsPerPixel (pDesc->Format) !=
+        if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
+        {
+          static auto& textures =
+            SK_D3D11_Textures;
+
+          auto& cache_desc =
+            textures->Textures_2D [(ID3D11Texture2D *)pResource];
+
+          newFormat =
+            cache_desc.desc.Format;
+
+          if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+               DirectX::MakeTypeless (pDesc->Format) !=
+               DirectX::MakeTypeless (newFormat    )  )
+          {
+            if (DirectX::IsSRGB (pDesc->Format))
+              newFormat = DirectX::MakeSRGB (newFormat);
+
+            override = true;
+
+            SK_ReleaseAssert (override == false && L"UAV Format Override Needed");
+
+            SK_LOG1 ( ( L"Overriding Unordered Access View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
+                          cache_desc.crc32c,
+                     SK_DXGI_FormatToStr (pDesc->Format).c_str      (),
+                              SK_DXGI_FormatToStr (newFormat).c_str () ),
+                        L"DX11TexMgr" );
+          }
+        }
+
+        if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+             DirectX::BitsPerPixel (pDesc->Format) !=
              DirectX::BitsPerPixel (tex_desc.Format) )
         {
           override  = true;
@@ -552,7 +512,8 @@ D3D11Dev_CreateSamplerState_Override
 #ifdef _M_AMD64
   static bool __yakuza =
     ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
-      SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 );
+      SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
+      SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon );
 
   if (__yakuza)
   {
@@ -623,7 +584,7 @@ D3D11Dev_CreateSamplerState_Override
   }
 
   static bool bYs8 =
-    (SK_GetCurrentGameID () != SK_GAME_ID::Ys_Eight);
+    (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight);
 
   if (bYs8)
   {

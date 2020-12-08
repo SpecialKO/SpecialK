@@ -749,10 +749,12 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
   error =
     tobii_device_create (api, url, &device);
 
-  SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR)
-
   if (error != TOBII_ERROR_NO_ERROR)
   {
+    SK_LOG0 ( ( L"tobii_device_create ({ %hs }) failed with error=%x",
+                   url, error ),
+                L"Tobii Eyes" );
+
     tobii_api_destroy (api);
     SK_FreeLibrary    (hModTobii);
 

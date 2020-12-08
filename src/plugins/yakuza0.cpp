@@ -45,6 +45,46 @@ typedef void (__stdcall *SK_ReShade_SetResolutionScale_pfn)(float fScale);
                   static SK_ReShade_SetResolutionScale_pfn
                          SK_ReShade_SetResolutionScale = nullptr;
 
+
+typedef HRESULT (STDMETHODCALLTYPE *DXGISwap_ResizeBuffers_pfn)(
+       IDXGISwapChain* This,
+  _In_ UINT            BufferCount,
+  _In_ UINT            Width,
+  _In_ UINT            Height,
+  _In_ DXGI_FORMAT     NewFormat,
+  _In_ UINT            SwapChainFlags
+);
+
+static DXGISwap_ResizeBuffers_pfn
+       DXGISwap_ResizeBuffers_NeverCallThis = nullptr;
+
+static HRESULT
+STDMETHODCALLTYPE
+SK_Yakuza_ResizeBuffers_NOP (IDXGISwapChain* This,
+                            _In_ UINT            BufferCount,
+                            _In_ UINT            Width,
+                            _In_ UINT            Height,
+                            _In_ DXGI_FORMAT     NewFormat,
+                            _In_ UINT            SwapChainFlags)
+{
+  UNREFERENCED_PARAMETER (This);
+  UNREFERENCED_PARAMETER (BufferCount);
+  UNREFERENCED_PARAMETER (Width);
+  UNREFERENCED_PARAMETER (Height);
+  UNREFERENCED_PARAMETER (NewFormat);
+  UNREFERENCED_PARAMETER (SwapChainFlags);
+
+  // Game will panic and try to release references to resources that it never
+  //   acquired, so tell it to STFU and revoke its ability to resize buffers.
+  return S_OK;
+
+  //return
+  //  DXGISwap_ResizeBuffers_NeverCallThis (
+  //    This, BufferCount, Width, Height, NewFormat, SwapChainFlags
+  //  );
+}
+
+
 void
 SK_YS0_TriggerHudFreeScreenshot (void) noexcept
 {
@@ -317,10 +357,12 @@ SK_LazyGlobal <SK_Yakuza_SaveFace> kiwami2_face;
 void
 SK_Yakuza0_PlugInInit (void)
 {
-  plugin_mgr->config_fns.push_back (SK_Yakuza0_PlugInCfg);
+  plugin_mgr->config_fns.push_back      (SK_Yakuza0_PlugInCfg);
   plugin_mgr->begin_frame_fns.push_back (SK_Yakuza0_BeginFrame);
   static bool yakuza0 =
     SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0;
+  static bool yakuza_dragon =
+    SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon;
 
   extern std::wstring&
     SK_GetRoamingDir (void);
@@ -401,7 +443,16 @@ SK_Yakuza0_PlugInInit (void)
   config.textures.d3d11.cache = __SK_Y0_SafetyLeak;
   __SK_Yakuza_TrackRTVs       = __SK_Y0_SafetyLeak;
 
-  if (! yakuza0)
+  if (__SK_Y0_SafetyLeak)
+  {
+    SK_CreateFuncHook ( L"DXGISwap_ResizeBuffers_Override",
+                          DXGISwap_ResizeBuffers_Override,
+                         SK_Yakuza_ResizeBuffers_NOP,
+ static_cast_p2p <void> (&DXGISwap_ResizeBuffers_NeverCallThis) );
+    SK_EnableHook     (   DXGISwap_ResizeBuffers_Override );
+  }
+
+  if (! (yakuza0 || yakuza_dragon))
   {
     _SK_Y_NoBlur0 =
       dynamic_cast <sk::ParameterBool *> (
@@ -558,7 +609,7 @@ SK_Yakuza0_PlugInInit (void)
       SK_D3D11_Shaders->pixel.addTrackingRef  (SK_D3D11_Shaders->pixel.blacklist,  0x1c599fa7); }
   }
 
-  else
+  else if (! yakuza_dragon)
   {
    /*
     * 0: Hash,    1: CBuffer Size
@@ -645,15 +696,19 @@ SK_Yakuza0_PlugInCfg (void)
   static bool yakuza0 =
     SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0;
 
-  if ( (yakuza0 && ImGui::CollapsingHeader ("Yakuza 0",        ImGuiTreeNodeFlags_DefaultOpen)) ||
-                   ImGui::CollapsingHeader ("Yakuza Kiwami 2", ImGuiTreeNodeFlags_DefaultOpen |
-                                                               ImGuiTreeNodeFlags_AllowItemOverlap) )
+  static bool yakuza_dragon =
+    SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon;
+
+  if ( (yakuza0       && ImGui::CollapsingHeader ("Yakuza 0",              ImGuiTreeNodeFlags_DefaultOpen)) ||
+       (yakuza_dragon && ImGui::CollapsingHeader ("Yakuza: Like a Dragon", ImGuiTreeNodeFlags_DefaultOpen)) ||
+                         ImGui::CollapsingHeader ("Yakuza Kiwami 2",       ImGuiTreeNodeFlags_DefaultOpen |
+                                                                           ImGuiTreeNodeFlags_AllowItemOverlap) )
   {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
 
-    if (! yakuza0)
+    if (! (yakuza0 || yakuza_dragon))
     {
       ImGui::SameLine ();
 
@@ -693,7 +748,7 @@ SK_Yakuza0_PlugInCfg (void)
       config.textures.d3d11.cache = __SK_Y0_SafetyLeak;
     }
 
-    if (! yakuza0)
+    if (! (yakuza0 || yakuza_dragon))
     {
       extern volatile PVOID __SK_GameBaseAddr;
       static         LPVOID         pBaseAddr =
@@ -1060,7 +1115,8 @@ SK_Yakuza0_PlugInCfg (void)
       ImGui::EndGroup   ();
     }
 
-    if (ImGui::CollapsingHeader ("Texture Management"))
+    if ((! yakuza_dragon) &&
+        ImGui::CollapsingHeader ("Texture Management"))
     {
       static bool tex_changed = false;
 

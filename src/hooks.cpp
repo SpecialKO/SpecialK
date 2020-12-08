@@ -26,8 +26,8 @@
 
 extern NTSTATUS WINAPI
 SK_Module_LockLoader ( ULONG *pCookie,
-                       ULONG   Flags = 0x0,
-                       ULONG *pState = nullptr );
+                       ULONG   Flags,
+                       ULONG *pState );
 
 extern NTSTATUS WINAPI
 SK_Module_UnlockLoader ( ULONG Flags,
@@ -885,13 +885,6 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
 
   return status;
 }
-
-BOOL
-WINAPI
-SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
-                             LPCSTR  lpProcName,
-                            FARPROC  lpProcAddr,
-          PLDR_DATA_TABLE_ENTRY__SK *ppldrEntry = nullptr );
 
 MH_STATUS
 __stdcall

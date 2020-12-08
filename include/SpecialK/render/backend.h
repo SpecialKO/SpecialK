@@ -127,7 +127,7 @@ struct SK_ColorSpace {
         xb, yb,
         Xw, Yw, Zw;
 
-  float minY, maxLocalY, maxY;
+  float minY, maxLocalY, maxAverageY, maxY;
 };
 
 
@@ -153,16 +153,12 @@ public:
                           dxgi                 = nullptr;
     NVDX_ObjectHandle     nvapi                = nullptr;
   } surface;
-  struct {
-    struct {
-      SK_ComPtr <ID3D12Device> dev             = nullptr;
-    } d3d12;
-  } interop;
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
   int                     present_interval     = 0; // Present interval on last call to present
   float                   ui_luminance         = 325.0_Nits;
   bool                    ui_srgb              = true;
+  bool                    srgb_stripped        = false; // sRGB may be stripped from swapchains for advanced features to work
   bool                    hdr_capable          = false;
   bool                    driver_based_hdr     = false;
   SK_ColorSpace           display_gamut        = { 0.0f }; // EDID
@@ -280,6 +276,7 @@ public:
 
   wchar_t                 display_name [128]   = { };
 
+           bool checkHDRState (void); ///< Call in response to WM_DISPLAYCHANGE
   __inline void setHDRCapable (bool set) noexcept { hdr_capable = set; }
   __inline bool isHDRCapable  (void)     noexcept
   {
@@ -332,17 +329,8 @@ public:
   // TODO: Proper abstraction
   struct d3d11_s
   {
-    //MIDL_INTERFACE ("c0bfa96c-e089-44fb-8eaf-26f8796190da")
                ID3D11DeviceContext* immediate_ctx = nullptr;
-  //SK_ComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
     SK_ComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
-    SK_ComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
-
-    struct {
-      UINT                               buffer_idx       = UINT_MAX;
-      SK_ComPtr <ID3D11Texture2D>        backbuffer_tex2D = nullptr;
-      SK_ComPtr <ID3D11RenderTargetView> backbuffer_rtv   = nullptr;
-    } interop;
   } d3d11;
 
 

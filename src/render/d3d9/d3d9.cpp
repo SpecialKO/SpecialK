@@ -1020,6 +1020,24 @@ d3d9_init_callback (finish_pfn finish)
 
   __HrLoadAllImportsForDll ("d3dx9_43.dll");
 
+  auto *pCommandProc =
+    SK_GetCommandProcessor ();
+
+  pCommandProc->AddVariable ( "PresentationInterval",
+          new SK_IVarStub <int> (
+            &config.render.framerate.present_interval )
+                            );
+
+  pCommandProc->AddVariable ( "PreRenderLimit",
+          new SK_IVarStub <int> (
+            &config.render.framerate.pre_render_limit )
+                            );
+
+  pCommandProc->AddVariable ( "BufferCount",
+          new SK_IVarStub <int> (
+            &config.render.framerate.buffer_count )
+                            );
+
   finish ();
 }
 
@@ -1121,7 +1139,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
       Refresh = 0;
   }
 
-  if (config.render.framerate.refresh_rate != -1)
+  if (config.render.framerate.refresh_rate > 0.0f)
   {
     if ( pPresentationParameters           != nullptr &&
          pPresentationParameters->Windowed == FALSE)

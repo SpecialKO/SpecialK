@@ -32,6 +32,9 @@
 
 extern float __target_fps;
 
+extern float fSwapWaitFract;
+extern float fSwapWaitRatio;
+
 const wchar_t*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
@@ -231,63 +234,72 @@ SK::ControlPanel::D3D11::Draw (void)
   if (show_shader_mod_dlg)
     show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
 
+  bool d3d11 =
+    static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D11);
+  bool d3d12 =
+    static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D12);
 
-  if ( static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D11) &&
-       ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
+  if (                                 (d3d11 &&
+       ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen)) ||
+                                       (d3d12 &&
+       ImGui::CollapsingHeader ("Direct3D 12 Settings", ImGuiTreeNodeFlags_DefaultOpen)) )
   {
-    ImGui::SameLine ();
-    ImGui::TextUnformatted ("     State Tracking:  ");
-
-    ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.173f, 0.428f, 0.96f));
-    ImGui::SameLine ();
-
-    if (SK_D3D11_EnableTracking)
-      ImGui::TextUnformatted ("( ALL State/Ops --> [Mod Tools Window Active] )");
-
-    else
+    if (d3d11)
     {
-      char* szThreadLocalStr =
-                      pTLS->scratch_memory->cmd.alloc (
-                        256,   true                  );
+      ImGui::SameLine ();
+      ImGui::TextUnformatted ("     State Tracking:  ");
 
-      bool tracking = false;
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.173f, 0.428f, 0.96f));
+      ImGui::SameLine ();
 
-      if ( ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
-            SK_ReShade_DrawCallback.fn != nullptr  )        )
+      if (SK_D3D11_EnableTracking)
+        ImGui::TextUnformatted ("( ALL State/Ops --> [Mod Tools Window Active] )");
+
+      else
       {
-        tracking = true;
+        char* szThreadLocalStr =
+                        pTLS->scratch_memory->cmd.alloc (
+                          256,   true                  );
 
-        if (ReadAcquire (&SK_D3D11_DrawTrackingReqs) == 0)
-          lstrcatA (szThreadLocalStr,   "  Draw Calls  ( ReShade Trigger ) ");
+        bool tracking = false;
 
-        else
+        if ( ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
+              SK_ReShade_DrawCallback.fn != nullptr  )        )
         {
-          if (SK_ReShade_DrawCallback.fn != nullptr)
-            lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic & ReShade Trigger ) ");
+          tracking = true;
+
+          if (ReadAcquire (&SK_D3D11_DrawTrackingReqs) == 0)
+            lstrcatA (szThreadLocalStr,   "  Draw Calls  ( ReShade Trigger ) ");
+
           else
-            lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic ) ");
+          {
+            if (SK_ReShade_DrawCallback.fn != nullptr)
+              lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic & ReShade Trigger ) ");
+            else
+              lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic ) ");
+          }
         }
-      }
 
-      if (ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0)
-      {
-        tracking = true;
-        lstrcatA (szThreadLocalStr, "  Constant Buffers ");
-      }
+        if (ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0)
+        {
+          tracking = true;
+          lstrcatA (szThreadLocalStr, "  Constant Buffers ");
+        }
 
-      if (SK_D3D11_EnableMMIOTracking)
-      {
-        tracking = true;
-        lstrcatA (szThreadLocalStr, "  Memory-Mapped I/O ");
-      }
+        if (SK_D3D11_EnableMMIOTracking)
+        {
+          tracking = true;
+          lstrcatA (szThreadLocalStr, "  Memory-Mapped I/O ");
+        }
 
-      if (SK_ReShade_DrawCallback.fn != nullptr)
-      {
-      }
+        if (SK_ReShade_DrawCallback.fn != nullptr)
+        {
+        }
 
-      ImGui::TextUnformatted (tracking ? szThreadLocalStr : " ");
+        ImGui::TextUnformatted (tracking ? szThreadLocalStr : " ");
+      }
+      ImGui::PopStyleColor ();
     }
-    ImGui::PopStyleColor ();
 
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
@@ -301,12 +313,7 @@ SK::ControlPanel::D3D11::Draw (void)
     {
       ImGui::BeginTooltip   ();
       ImGui::TextColored    ( ImColor (235, 235, 235),
-                              "Highly Advanced Render Tweaks" );
-      ImGui::Separator      ();
-      ImGui::BulletText     ("Altering these settings may require manual INI edits to recover from");
-      ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.85f, 0.1f, 0.9f));
-      ImGui::BulletText     ("For best results, consult your nearest Kaldaien ;)");
-      ImGui::PopStyleColor  ();
+                              "Latency and Framepacing Tweaks" );
       ImGui::EndTooltip     ();
     }
 
@@ -314,12 +321,14 @@ SK::ControlPanel::D3D11::Draw (void)
     {
       auto _ResetLimiter = [&](void) -> void
       {
-        static auto& rb = SK_GetCurrentRenderBackend ();
+        static auto& rb =
+          SK_GetCurrentRenderBackend ();
 
         auto *pLimiter =
-          SK::Framerate::GetLimiter (rb.swapchain.p);
+          SK::Framerate::GetLimiter (rb.swapchain.p, false);
 
-        pLimiter->reset (true);
+        if (pLimiter != nullptr)
+            pLimiter->reset (true);
       };
 
       static bool flip         = config.render.framerate.flip_discard;
@@ -409,18 +418,26 @@ SK::ControlPanel::D3D11::Draw (void)
           _ResetLimiter ();
         }
 
+        static bool magic_stuff  = false;
+                    magic_stuff |= ImGui::IsItemClicked (1);
+
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ();
-          ImGui::Text         ("Reduces Windowed Input Latency When SK's Framerate Limiter is Engaged");
+          ImGui::Text         ("Reduces Windowed Input Latency in SK's Framerate Limiter");
           ImGui::Separator    ();
-          ImGui::BulletText   ("May cause compat. issues with ... nearly all 3rd-party software");
-          ImGui::Spacing      (); ImGui::SameLine ();
-          ImGui::Spacing      (); ImGui::SameLine ();
-          ImGui::Spacing      (); ImGui::SameLine ();
-          ImGui::Text         (" -> DXVK does not implement this correctly");
           ImGui::BulletText   ("Fullscreen Exclusive Will Not Work While Enabled");
+          ImGui::BulletText   ("Fullscreen Exclusive is Obsolete, seriously...");
           ImGui::EndTooltip   ();
+        }
+
+        if (waitable_ && magic_stuff)
+        {
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          ImGui::InputFloat ("SwapWaitFract", &fSwapWaitFract);
+          ImGui::InputFloat ("SwapWaitRatio", &fSwapWaitRatio);
+          ImGui::EndGroup   ();
         }
 
         if (SK_DXGI_SupportsTearing ())
@@ -436,7 +453,7 @@ SK::ControlPanel::D3D11::Draw (void)
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::Text         ("Enables tearing (PresentInterval=0) in windowed mode (Windows 10+)");
+            ImGui::Text         ("Enables Tearing (PresentInterval=0) in Windowed Mode (Windows 10+)");
             ImGui::EndTooltip   ();
           }
         }
@@ -454,86 +471,10 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::PopStyleColor  ();
       }
       ImGui::EndGroup       (  );
-
-      if (config.render.framerate.flip_discard && config.render.framerate.buffer_count >= 2)
-      {
-        if (SK_DXGI_SupportsTearing ())
-        {
-          ImGui::SameLine   ();
-          ImGui::BeginGroup ();
-          ImGui::NewLine    ();
-
-          bool bLLMPreReq = true; // No special pre-reqs anymore
-          if ( bLLMPreReq )
-          {
-            bool bLLM =
-              config.render.framerate.pre_render_limit <= config.render.framerate.buffer_count-1 &&
-            ( config.render.framerate.present_interval == 0 ||
-              config.render.framerate.present_interval == 1  ) &&
-                                          __target_fps != 0.0f;
-
-            if (bLLM && __target_fps < 0.0f) {
-                         __target_fps =
-                        -__target_fps;
-            }
-
-            if ( ImGui::Checkbox (
-                   "Low Latency###SK_LL_LIMITER",
-                                         &bLLM
-                                 )
-               )
-            {
-              if (bLLM)
-              {
-                if (config.render.framerate.present_interval != 1 &&
-                    config.render.framerate.present_interval != 0 )
-                    config.render.framerate.present_interval =  1;
-                config.render.framerate.pre_render_limit     =  config.render.framerate.buffer_count-1;
-              }
-
-              else
-              {
-                config.render.framerate.pre_render_limit =
-                config.render.framerate.buffer_count;
-                config.render.framerate.present_interval =  1;
-              }
-
-              _ResetLimiter ();
-            }
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip ();
-              ImGui::Text         ("May Improve Input Latency");
-              ImGui::Separator    ();
-              ImGui::BulletText   ("ALWAYS set Framerate Limit to a Factor "
-                                   "of your Refresh Rate in this mode (!!) ");
-              ImGui::EndTooltip   ();
-            }
-
-            if (bLLM)
-            {
-              bool bULMM =
-                ( config.render.framerate.pre_render_limit <= config.render.framerate.buffer_count-2 );
-
-              if (ImGui::Checkbox ("Minimum Latency###SK_ULL_LIMITER", &bULMM))
-              {
-                if (bULMM)
-                  config.render.framerate.pre_render_limit = config.render.framerate.buffer_count-2;
-                else
-                  config.render.framerate.pre_render_limit = config.render.framerate.buffer_count-1;
-
-                _ResetLimiter ();
-              }
-            }
-          }
-          ImGui::EndGroup ();
-        }
-      }
       ImGui::TreePop  (  );
     }
 
-    if (ImGui::CollapsingHeader ("Texture Management"))
+    if (d3d11 && ImGui::CollapsingHeader ("Texture Management"))
     {
       ImGui::TreePush ("");
       ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache);
@@ -706,44 +647,47 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::TreePop   ();
      }
 
-    if (ImGui::Button (" Render Mod Tools "))
+    if (d3d11)
     {
-      show_shader_mod_dlg = ( ! show_shader_mod_dlg );
-    }
+      if (ImGui::Button (" Render Mod Tools "))
+      {
+        show_shader_mod_dlg = (!show_shader_mod_dlg);
+      }
 
-    ImGui::SameLine ();
+      ImGui::SameLine ();
 
-    ImGui::Checkbox ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
+      ImGui::Checkbox ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
 
-    if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
 
-    ImGui::SameLine ();
+      ImGui::SameLine ();
 
-    if (ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable))
-    {
-      SK_CEGUI_QueueResetD3D11 ();
-    }
+      if (ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable))
+      {
+        SK_CEGUI_QueueResetD3D11 ();
+      }
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::BeginTooltip    ();
-      ImGui::TextUnformatted ("Disabling may resolve graphics issues, but will disable achievement pop-ups and OSD text.");
-      ImGui::EndTooltip      ();
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::TextUnformatted ("Disabling may resolve graphics issues, but will disable achievement pop-ups and OSD text.");
+        ImGui::EndTooltip ();
+      }
     }
 
     // This only works when we have wrapped SwapChains
     if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains) ||
          ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) )
     {
-      ImGui::SameLine              ();
+      if (d3d11) ImGui::SameLine   ();
       OSD::DrawVideoCaptureOptions ();
     }
 
-    ImGui::SameLine ();
+    if (d3d11) ImGui::SameLine ();
 
     const bool advanced =
-      ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");
+      d3d11 && ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");
 
     if (advanced)
     {
@@ -801,14 +745,6 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       static SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      ID3D11DeviceContext *pDevCtx = rb.d3d11.immediate_ctx;
-      //SK_ComPtr <ID3D11DeviceContext>   pDevCtx;
-      //rb.d3d11.immediate_ctx.CopyTo (&pDevCtx.p);
-
-      // This limits us to D3D11 for now, but who cares -- D3D10 sucks and D3D12 can't be drawn to yet :)
-      if (! pDevCtx)
-        return;
-
       INT          swap_flag_count = 0;
       std::wstring swap_flags      =
         SK_DXGI_DescribeSwapChainFlags (
@@ -855,7 +791,6 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::BeginGroup      ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
       ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.Format).c_str ());
-    //ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (dsv_desc.Format).c_str             ());
       ImGui::Text            ("%ux%u",                                   swap_desc.Width, swap_desc.Height);
       ImGui::Text            ("%lu",                                     std::max (1U, swap_desc.BufferCount));
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
@@ -876,7 +811,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       else if (rb.present_interval == 4)
         ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  rb.present_interval);
       else
-        ImGui::Text          ("%u: UNKNOWN or Invalid",                  0);//pparams.PresentationInterval);
+        ImGui::Text          ("%u: UNKNOWN or Invalid",                  0);
       ImGui::Text            ("%ws",            SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
       if  (swap_desc.SampleDesc.Count > 1)
         ImGui::Text          ("%u",                                         swap_desc.SampleDesc.Count);

@@ -147,8 +147,7 @@ SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
 void
 SK_Thread_RaiseNameException (THREADNAME_INFO* pTni)
 {
-  //if (SK_IsDebuggerPresent ())
-  if (true)
+  if (SK_IsDebuggerPresent ())
   {
     __try
     {

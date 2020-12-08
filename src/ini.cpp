@@ -954,6 +954,10 @@ void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
+  // Do NOT overwrite default files
+  if (StrStrIW (fname, LR"(\default_)"))
+    return;
+
   std::wstring outbuf;
                outbuf.reserve (16384);
 

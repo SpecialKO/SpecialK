@@ -22,7 +22,7 @@
 #ifndef __SK__DXGI_HDR_H__
 #define __SK__DXGI_HDR_H__
 
-#include <SpecialK/render/dxgi/dxgi_interfaces.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 struct SK_DXGI_HDRControl
 {
@@ -60,6 +60,57 @@ struct SK_DXGI_HDRControl
     bool MaxFrameAverageLightLevel = false;
   } overrides;
 };
+
+
+#pragma warning (push)
+#pragma warning (disable: 4324)
+#pragma pack    (push)
+#pragma pack    (16)
+// Why the hell did I used to think cbuffers were 4-byte
+// aligned? They're 16-byte aligned (!!)
+  struct HDR_COLORSPACE_PARAMS
+  {
+    uint32_t visualFunc       [3]  = { 0, 0, 0 };
+
+    float    hdrSaturation         = 1.0f;
+    float    hdrLuminance_MaxAvg   = 300.0_Nits;
+    float    hdrLuminance_MaxLocal = 750.0_Nits;
+    float    hdrLuminance_Min      =   0.0_Nits; // lol
+    float    hdrPaperWhite         = 250.0_Nits;
+    float    currentTime           =       0.0f;
+    float    sdrLuminance_NonStd   = 100.0_Nits;
+    BOOL     sdrIsImplicitlysRGB   =       TRUE;
+    uint32_t uiToneMapper          =          0;
+  };
+
+  //const int x = sizeof (HDR_COLORSPACE_PARAMS);
+
+  struct HDR_LUMINANCE
+  {
+    // scRGB allows values > 1.0, sRGB (SDR) simply clamps them
+    float luminance_scale [4]; // For HDR displays,    1.0 = 80 Nits
+                               // For SDR displays, >= 1.0 = 80 Nits
+
+    // (x,y): Main Scene  <Linear Scale, Gamma Exponent>
+    //  z   : HUD          Linear Scale {Gamma is Implicitly 1/2.2}
+    //  w   : Always 1.0
+  };
+#pragma pack    (pop)
+#pragma warning (pop)
+
+
+struct SK_HDR_RenderTargetManager
+{
+           bool   PromoteTo16Bit  = false;
+  volatile LONG64 BytesAllocated  =   0LL;
+  volatile ULONG  TargetsUpgraded =   0UL;
+  volatile ULONG  CandidatesSeen  =   0UL;
+};
+
+extern SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_8bpc;
+extern SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_10bpc;
+extern SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_11bpc;
+
 
 SK_DXGI_HDRControl*
 SK_HDR_GetControl (void);

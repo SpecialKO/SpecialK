@@ -240,6 +240,18 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
 __declspec (noinline)
 HRESULT
+STDMETHODCALLTYPE
+DXGISwap3_ResizeBuffers1_Override (        IDXGISwapChain3 *This,
+                                _In_       UINT             BufferCount,
+                                _In_       UINT             Width,
+                                _In_       UINT             Height,
+                                _In_       DXGI_FORMAT      NewFormat,
+                                _In_       UINT             SwapChainFlags,
+                                _In_ const UINT            *pCreationNodeMask,
+                                _In_       IUnknown* const *ppPresentQueue);
+
+__declspec (noinline)
+HRESULT
 STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
                                     UINT            SyncInterval,
                                     UINT            Flags );
@@ -287,7 +299,7 @@ struct mem_info_t {
 
 // Increased to 64 for Crysis... they're really going out of their way to make
 // sure stuff _can't_ run Crysis.
-static const int SK_D3D11_MAX_DEV_CONTEXTS = 64;
+static const int SK_D3D11_MAX_DEV_CONTEXTS = 128;
 
 LONG
 SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);
@@ -335,8 +347,53 @@ namespace SK
     DWORD
     WINAPI
     BudgetThread (LPVOID user_data);
+
+    template <typename _ShaderType>
+    struct ShaderBase
+    {
+      _ShaderType *shader           = nullptr;
+
+      bool loadPreBuiltShader ( ID3D11Device* pDev, const BYTE pByteCode [] )
+      {
+        HRESULT hrCompile =
+          E_NOTIMPL;
+
+        if ( std::type_index ( typeid (    _ShaderType   ) ) ==
+             std::type_index ( typeid (ID3D11VertexShader) ) )
+        {
+          hrCompile =
+            pDev->CreateVertexShader (
+                      pByteCode,
+              sizeof (pByteCode), nullptr,
+              reinterpret_cast <ID3D11VertexShader **>(&shader)
+            );
+        }
+
+        else if ( std::type_index ( typeid (   _ShaderType   ) ) ==
+                  std::type_index ( typeid (ID3D11PixelShader) ) )
+        {
+          hrCompile =
+            pDev->CreatePixelShader (
+                      pByteCode,
+              sizeof (pByteCode), nullptr,
+              reinterpret_cast <ID3D11PixelShader **>(&shader)
+            );
+        }
+
+        return
+          SUCCEEDED (hrCompile);
+      }
+
+      void releaseResources (void)
+      {
+        if (shader           != nullptr) {           shader->Release (); shader           = nullptr; }
+      }
+    };
   }
 }
+
+bool SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB);
+
 
 typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory2_pfn) \
   (UINT Flags, REFIID riid,  void** ppFactory);
@@ -404,5 +461,176 @@ void WINAPI SK_HookDXGI       (void);
 void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 
 void WINAPI SK_DXGI_SetPreferredAdapter (int override_id) noexcept;
+
+
+#include <d3d12.h>
+
+struct SK_D3D12_RenderCtx {
+  SK_ComPtr <ID3D12Device>                pDevice           = nullptr;
+  SK_ComPtr <ID3D12CommandQueue>          pCommandQueue     = nullptr;
+  SK_ComPtr <IDXGISwapChain3>             pSwapChain        = nullptr;
+
+  SK_ComPtr <ID3D12PipelineState>         pHDRPipeline      = nullptr;
+  SK_ComPtr <ID3D12RootSignature>         pHDRSignature     = nullptr;
+
+  struct {
+    SK_ComPtr <ID3D12DescriptorHeap>      pBackBuffers      = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pImGui            = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pHDR              = nullptr;
+  } descriptorHeaps;
+
+	struct FrameCtx {
+    SK_D3D12_RenderCtx*                   pRoot             = nullptr;
+
+    struct FenceCtx : SK_ComPtr <ID3D12Fence> {
+      HANDLE                              event             =       0;
+      volatile UINT64                     value             =       0;
+    } fence;
+
+    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList          = nullptr;
+		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator     = nullptr;
+    bool                                  bCmdListRecording =   false;
+
+		SK_ComPtr <ID3D12Resource>            pRenderOutput     = nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput;
+    UINT                                  iBufferIdx        =UINT_MAX;
+
+    struct {
+      SK_ComPtr <ID3D12Resource>          pSwapChainCopy    = nullptr;
+      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU;
+      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU;
+    } hdr;
+
+    bool wait_for_gpu   (void);
+    bool begin_cmd_list (const SK_ComPtr <ID3D12PipelineState> &state = nullptr);
+	  void exec_cmd_list  (void);
+
+              ~FrameCtx (void);
+	};
+
+  std::vector <FrameCtx>                frames_;
+
+  void present (IDXGISwapChain3*    pSwapChain);
+  void release (void);
+  bool init    (IDXGISwapChain3*    pSwapChain,
+                ID3D12CommandQueue* pCommandQueue);
+
+  static void
+    transition_state (
+		  const SK_ComPtr <ID3D12GraphicsCommandList>& list,
+		  const SK_ComPtr <ID3D12Resource>&            res,
+		                         D3D12_RESOURCE_STATES from,
+                             D3D12_RESOURCE_STATES to,
+		                                          UINT subresource =
+                             D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
+    )
+	  {
+	  	D3D12_RESOURCE_BARRIER
+        transition = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION };
+	  	  transition.Transition.pResource   = res.p;
+	  	  transition.Transition.Subresource = subresource;
+	  	  transition.Transition.StateBefore = from;
+	  	  transition.Transition.StateAfter  = to;
+
+	  	list->ResourceBarrier
+      ( 1,    &transition );
+	  }
+
+};
+
+extern SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk2;
+
+struct SK_ImGui_ResourcesD3D12
+{
+  SK_ComPtr <ID3D12DescriptorHeap> heap;
+
+  SK_ComPtr <ID3D12PipelineState> pipeline;
+  SK_ComPtr <ID3D12RootSignature> signature;
+
+	SK_ComPtr <ID3D12Resource> indices  [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
+  int                    num_indices  [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
+  SK_ComPtr <ID3D12Resource> vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
+	int                    num_vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
+};
+
+struct ImDrawData;
+
+struct SK_D3D12_Backend
+{
+  static void
+    transitionState (
+		  const SK_ComPtr <ID3D12GraphicsCommandList>& list,
+		  const SK_ComPtr <ID3D12Resource>&            res,
+		                         D3D12_RESOURCE_STATES from,
+                             D3D12_RESOURCE_STATES to,
+		                                          UINT subresource =
+                             D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
+    )
+	  {
+	  	D3D12_RESOURCE_BARRIER
+        transition = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION };
+	  	  transition.Transition.pResource   = res.p;
+	  	  transition.Transition.Subresource = subresource;
+	  	  transition.Transition.StateBefore = from;
+	  	  transition.Transition.StateAfter  = to;
+
+	  	list->ResourceBarrier
+      ( 1,    &transition );
+	  }
+
+  bool InitImGuiResources  (void);
+  void RenderImGuiDrawData (ImDrawData *data);
+
+  bool Init    (const DXGI_SWAP_CHAIN_DESC& swapDesc);
+  void Reset   (void);
+
+  void startPresent (void);
+  void endPresent   (void);
+
+  bool BeginCommandList    (const SK_ComPtr <ID3D12PipelineState> &state = nullptr) const;
+	void ExecuteCommandList  (void)                                                   const;
+	bool WaitForCommandQueue (void)                                                   const;
+
+  ID3D12RootSignature*
+    CreateRootSignature (const D3D12_ROOT_SIGNATURE_DESC& desc) const;
+
+
+        SK_ComPtr <ID3D12Device>       _device;
+        SK_ComPtr <ID3D12CommandQueue> _commandqueue;
+        SK_ComPtr <IDXGISwapChain3>    _swapchain;
+	      UINT                           _swap_index  = 0;
+
+  UINT _srv_handle_size     = 0;
+	UINT _rtv_handle_size     = 0;
+	UINT _dsv_handle_size     = 0;
+	UINT _sampler_handle_size = 0;
+
+  std::vector <
+    SK_ComPtr <ID3D12Fence>
+  >                            _fence;
+	mutable std::vector <UINT64> _fence_value;
+	HANDLE                       _fence_event = nullptr;
+
+	std::vector <
+    SK_ComPtr <ID3D12CommandAllocator>
+  >                                     _cmd_alloc;
+  SK_ComPtr <ID3D12GraphicsCommandList> _cmd_list;
+  mutable bool                          _cmd_list_is_recording = false;
+
+	std::vector <
+    SK_ComPtr <ID3D12Resource>
+  >                                _backbuffers;
+  DXGI_FORMAT                      _backbuffer_format = DXGI_FORMAT_UNKNOWN;
+	SK_ComPtr <ID3D12Resource>       _backbuffer_texture;
+	SK_ComPtr <ID3D12DescriptorHeap> _backbuffer_rtvs;
+	SK_ComPtr <ID3D12DescriptorHeap> _depthstencil_dsvs;
+
+  UINT   _width           = 0;
+  UINT   _height          = 0;
+  size_t _color_bit_depth = 0;
+  LONG64 _framecount      = 0LL;
+};
+
+extern SK_LazyGlobal <SK_D3D12_Backend> _d3d12_rbk;
 
 #endif /* __SK__DXGI_BACKEND_H__ */

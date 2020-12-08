@@ -735,7 +735,7 @@ SK_D3D11_Screenshot::dispose (void) noexcept
 
   framebuffer.PixelBuffer.reset (nullptr);
 
-  pooled.capture_bytes -=
+  SK_ScreenshotQueue::pooled.capture_bytes -=
     std::exchange (
       framebuffer.PBufferSize, 0
     );
@@ -747,6 +747,9 @@ SK_D3D11_Screenshot::getData ( UINT     *pWidth,
                                uint8_t **ppData,
                                bool      Wait ) noexcept
 {
+  auto& pooled =
+    SK_ScreenshotQueue::pooled;
+
   auto ReadBack = [&](void) -> bool
   {
     const size_t BitsPerPel =
@@ -1041,6 +1044,7 @@ SK_TriggerHudFreeScreenshot (void) noexcept
 {
   InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
   InterlockedIncrement (&__SK_D3D11_QueuedShots);
+//InterlockedIncrement (&__SK_D3D12_QueuedShots);
 }
 
 bool
@@ -1090,9 +1094,6 @@ SK_D3D11_CaptureSteamScreenshot  ( SK_ScreenshotStage when =
   return false;
 }
 
-
-SK_D3D11_Screenshot::MemoryTotals SK_D3D11_Screenshot::pooled;
-SK_D3D11_Screenshot::MemoryTotals SK_D3D11_Screenshot::completed;
 
 void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
@@ -1147,8 +1148,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
           if (pDev != nullptr)
           {
-            if ( SK_D3D11_Screenshot::pooled.capture_bytes <
-                 SK_D3D11_Screenshot::maximum.capture_bytes )
+            if ( SK_ScreenshotQueue::pooled.capture_bytes <
+                 SK_ScreenshotQueue::maximum.capture_bytes )
             {
               screenshot_queue->push (
                 new SK_D3D11_Screenshot (
@@ -1172,65 +1173,40 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
   }
 
 
-  static
-    volatile HANDLE
-      hSignalScreenshot = INVALID_HANDLE_VALUE;
+  static volatile LONG _lockVal = 0;
 
-  static
-    volatile HANDLE
-      hSignalAbortStart = INVALID_HANDLE_VALUE;
+  struct signals_s {
+    HANDLE capture    = INVALID_HANDLE_VALUE;
+    HANDLE hq_encode  = INVALID_HANDLE_VALUE;
 
-  static
-    volatile HANDLE
-    hSignalAbortDone   = INVALID_HANDLE_VALUE;
+    struct {
+      HANDLE initiate = INVALID_HANDLE_VALUE;
+      HANDLE finished = INVALID_HANDLE_VALUE;
+    } abort;
+  } static signal = { };
 
-  static
-    volatile HANDLE
-    hSignalLosslessGo  = INVALID_HANDLE_VALUE;
-
-  static     HANDLE
-    hWriteThread       = INVALID_HANDLE_VALUE;
+  static HANDLE
+    hWriteThread      = INVALID_HANDLE_VALUE;
 
 
-  if ( INVALID_HANDLE_VALUE ==
-         InterlockedCompareExchangePointer ( &hSignalScreenshot,
-                                               0,
-                                                 INVALID_HANDLE_VALUE ) )
+  if ( 0                    == InterlockedCompareExchange (&_lockVal, 1, 0) &&
+       INVALID_HANDLE_VALUE == signal.capture )
   {
-    InterlockedExchangePointer ( (void **)&hSignalScreenshot,
-                                   SK_CreateEvent ( nullptr, FALSE, TRUE, nullptr) );
-
-    InterlockedExchangePointer ( (void **)&hSignalAbortStart,
-                                   SK_CreateEvent (nullptr, TRUE,  FALSE, nullptr) );
-
-    InterlockedExchangePointer ( (void **)&hSignalAbortDone,
-                                   SK_CreateEvent (nullptr, FALSE, FALSE, nullptr) );
-
-    InterlockedExchangePointer ( (void **)&hSignalLosslessGo,
-                                   SK_CreateEvent (nullptr, FALSE, FALSE, nullptr) );
+    signal.capture        = SK_CreateEvent ( nullptr, FALSE, TRUE,  nullptr );
+    signal.abort.initiate = SK_CreateEvent ( nullptr, TRUE,  FALSE, nullptr );
+    signal.abort.finished = SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
+    signal.hq_encode      = SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
 
     hWriteThread =
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
       SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
 
-      HANDLE hSignal0 =
-        ReadPointerAcquire (&hSignalScreenshot);
-
-      HANDLE hSignal1 =
-        ReadPointerAcquire (&hSignalAbortStart);
-
-      HANDLE hSignal2 =
-        ReadPointerAcquire (&hSignalAbortDone);
-
-      HANDLE hSignal3 =
-        ReadPointerAcquire (&hSignalLosslessGo);
-
       do
       {
         HANDLE signals [] = {
-          hSignal0, // Screenshots are waiting for write
-          hSignal1  // Screenshot full-abort requested (i.e. for SwapChain Resize)
+          signal.capture,       // Screenshots are waiting for write
+          signal.abort.initiate // Screenshot full-abort requested (i.e. for SwapChain Resize)
         };
 
         DWORD dwWait =
@@ -1336,22 +1312,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 { 0.f,          0.f,         0.f,        1.f }
               };
 
-              static const XMMATRIX c_from709to2020 =
-              {
-                { 0.6274040f, 0.0690970f, 0.0163916f, 0.f },
-                { 0.3292820f, 0.9195400f, 0.0880132f, 0.f },
-                { 0.0433136f, 0.0113612f, 0.8955950f, 0.f },
-                { 0.f,        0.f,        0.f,        1.f }
-              };
-
-              static const XMMATRIX c_fromP3to2020 =
-              {
-                { 0.753845f, 0.0457456f, -0.00121055f, 0.f },
-                { 0.198593f, 0.941777f,   0.0176041f,  0.f },
-                { 0.047562f, 0.0124772f,  0.983607f,   0.f },
-                { 0.f,       0.f,         0.f,         1.f }
-              };
-
               auto RemoveGamma_sRGB = [](XMVECTOR value) ->
               void
               {
@@ -1406,7 +1366,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 std::swap (un_scrgb, un_srgb);
               }
-#if 1
+
               XMVECTOR maxLum = XMVectorZero ();
 
               hr =              un_srgb.GetImages     () ?
@@ -1420,7 +1380,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   for (size_t j = 0; j < width; ++j)
                   {
                     static const XMVECTORF32 s_luminance =
-                      { 0.3f, 0.59f, 0.11f, 0.f };
+                    //{ 0.3f, 0.59f, 0.11f, 0.f };
+                    { 0.2125862307855955516f,
+                      0.7151703037034108499f,
+                      0.07220049864333622685f };
 
                     XMVECTOR v = *pixels++;
                              v = XMVector3Dot (v, s_luminance);
@@ -1466,7 +1429,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       outPixels [j]   =   value;
                     }
                   }, un_scrgb)                             : E_POINTER;
-#endif
 
               std::swap (un_srgb, un_scrgb);
 
@@ -1549,8 +1511,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
           purge_and_run = false;
 
-          ResetEvent (hSignal1); // Abort no longer needed
-          SetEvent   (hSignal2); // Abort is complete
+          ResetEvent (signal.abort.initiate); // Abort no longer needed
+          SetEvent   (signal.abort.finished); // Abort is complete
         }
 
         if (config.steam.screenshots.png_compress)
@@ -1621,7 +1583,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   nullptr;
 
                 SK_WaitForSingleObject  (
-                  ReadPointerAcquire (&hSignalLosslessGo),
+                  ReadPointerAcquire (&signal.hq_encode),
                     INFINITE
                 );
 
@@ -1771,21 +1733,26 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
           if (enqueued_lossless > 0)
           {   enqueued_lossless = 0;
-            SetEvent (hSignal3);
+            SetEvent (signal.hq_encode);
           }
         }
       } while (! ReadAcquire (&__SK_DLL_Ending));
 
       SK_Thread_CloseSelf ();
 
-      CloseHandle (hSignal0);
-      CloseHandle (hSignal1);
-      CloseHandle (hSignal2);
-      CloseHandle (hSignal3);
+      CloseHandle (signal.capture);
+      CloseHandle (signal.abort.initiate);
+      CloseHandle (signal.abort.finished);
+      CloseHandle (signal.hq_encode);
 
       return 0;
     }, L"[SK] D3D11 Screenshot Capture" );
+
+    InterlockedIncrement (&_lockVal);
   }
+
+  else
+    SK_Thread_SpinUntilAtomicMin (&_lockVal,  2);
 
 
   if (stage != 3)
@@ -1855,9 +1822,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
       {
         if ( purge && (! screenshot_write_queue->empty ()) )
         {
-          SetThreadPriority   ( hWriteThread,                           THREAD_PRIORITY_TIME_CRITICAL );
-          SignalObjectAndWait ( ReadPointerAcquire (&hSignalAbortStart),
-                                ReadPointerAcquire (&hSignalAbortDone), INFINITE,              FALSE  );
+          SetThreadPriority   ( hWriteThread,          THREAD_PRIORITY_TIME_CRITICAL );
+          SignalObjectAndWait ( signal.abort.initiate,
+                                signal.abort.finished, INFINITE,              FALSE  );
         }
 
         wait  = false;
@@ -1870,7 +1837,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     purge );
 
   if (new_jobs)
-    SetEvent (ReadPointerAcquire (&hSignalScreenshot));
+    SetEvent (signal.capture);
 }
 
 void

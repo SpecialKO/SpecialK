@@ -131,6 +131,10 @@ SK_InitRenderBackends (void)
 void
 SK_BootD3D9 (void)
 {
+  // Need to check for recursion thanks to Ansel
+  static DWORD dwInitTid = GetCurrentThreadId ();
+
+
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
   if (SK_GetFramesDrawn () > 0)
@@ -196,7 +200,8 @@ SK_BootD3D9 (void)
     InterlockedIncrementRelease (&__booted);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&__booted, 2);
+  if (dwInitTid != GetCurrentThreadId ())
+    SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 
 
@@ -300,10 +305,22 @@ SK_BootDDraw (void)
 void
 SK_BootDXGI (void)
 {
+  // Need to check for recursion thanks to Ansel
+  static DWORD dwInitTid = GetCurrentThreadId ();
+
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
   if (SK_GetFramesDrawn () > 0)
     return;
+
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if ( pTLS != nullptr &&
+       pTLS->d3d11->ctx_init_thread )
+  {
+    return;
+  }
 
 
   SK_DXGI_QuickHook ();
@@ -331,6 +348,9 @@ SK_BootDXGI (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
+    if (pTLS)
+        pTLS->d3d11->ctx_init_thread = true;
+
     dll_log->Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
     if (SK_GetDLLRole () & DLL_ROLE::DXGI)
@@ -345,7 +365,8 @@ SK_BootDXGI (void)
     InterlockedIncrementRelease (&__booted);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&__booted, 2);
+  if (dwInitTid != GetCurrentThreadId ())
+    SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 
 
@@ -843,27 +864,43 @@ SK_COM_ValidateRelease (IUnknown** ppObj)
 HANDLE
 SK_RenderBackend_V2::getSwapWaitHandle (void)
 {
-  if ( swapchain_waithandle.m_h == 0    &&
-       swapchain.p              != nullptr )
+  SK_ComQIPtr <IDXGISwapChain2>
+      pSwap2       (swapchain.p);
+  if (pSwap2.p != nullptr)
   {
-    SK_ComQIPtr <IDXGISwapChain2>
-        pSwap2       (swapchain.p);
-    if (pSwap2.p != nullptr)
+    if (config.render.framerate.pre_render_limit > 0)
     {
-      swapchain_waithandle.Attach (
-        pSwap2.p->GetFrameLatencyWaitableObject ()
-      );
+      HANDLE hWait =
+        pSwap2.p->GetFrameLatencyWaitableObject ();
+
+      if ((intptr_t)hWait > 0)
+      {
+        if (
+          FAILED ( pSwap2.p->SetMaximumFrameLatency (
+                     config.render.framerate.pre_render_limit
+                    )
+                 )
+           )
+        {
+          SK_LOG0 ( ( L"Failed to SetMaximumFrameLatency: %i",
+                        config.render.framerate.pre_render_limit ),
+                      L"   DXGI   " );
+
+          config.render.framerate.pre_render_limit = -1;
+
+          CloseHandle (hWait);
+
+          return 0;
+        }
+
+        return hWait;
+      }
     }
   }
 
-  if ( swapchain_waithandle.m_h != 0 &&
-       swapchain.p              == nullptr )
-  {
-    swapchain_waithandle.Close ();
-  }
-
-  return
-    swapchain_waithandle.m_h;
+  return 0;// INVALID_HANDLE_VALUE;
+  // ^^^ So many places check for > 0 but do not cast to signed,
+  //       thus do not return INVALID_HANDLE_VALUE; return 0.
 }
 
 void
@@ -888,21 +925,17 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
     swapchain_waithandle.Close ();
 
-    if (api != SK_RenderAPI::D3D11On12)
-    {
 ///#define _USE_FLUSH
 
-      // Flushing at shutdown may cause deadlocks
+    // Flushing at shutdown may cause deadlocks
 #ifdef _USE_FLUSH
-      if (d3d11.immediate_ctx != nullptr) {
-          d3d11.immediate_ctx->Flush      ();
-          d3d11.immediate_ctx->ClearState ();
-      }
-#endif
-      swapchain = nullptr;// .Reset();
-      if (interop.d3d12.dev == nullptr)
-      device    = nullptr;//.Reset    ();
+    if (d3d11.immediate_ctx != nullptr) {
+        d3d11.immediate_ctx->Flush      ();
+        d3d11.immediate_ctx->ClearState ();
     }
+#endif
+    swapchain = nullptr;// .Reset();
+    device    = nullptr;//.Reset    ();
 
     if (surface.d3d9 != nullptr)
     {
@@ -921,6 +954,10 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     void
     SK_HDR_ReleaseResources (void);
     SK_HDR_ReleaseResources ();
+
+    void
+    SK_DXGI_ReleaseSRGBLinearizer (void);
+    SK_DXGI_ReleaseSRGBLinearizer ();
   }
 
   catch (const SK_SEH_IgnoredException &)
@@ -1098,7 +1135,7 @@ SK_Render_GetAPIName (SK_RenderAPI api)
   static const
     std::unordered_map <SK_RenderAPI, const wchar_t *>
       api_map {
-        { SK_RenderAPI::D3D11,  L"D3D11" },
+        { SK_RenderAPI::D3D11,  L"D3D11" }, { SK_RenderAPI::D3D12,    L"D3D12"  },
         { SK_RenderAPI::D3D9,   L"D3D9"  }, { SK_RenderAPI::D3D9Ex,   L"D3D9Ex" },
         { SK_RenderAPI::OpenGL, L"OpenGL"}, { SK_RenderAPI::D3D8,     L"D3D8"   },
         { SK_RenderAPI::DDraw,  L"DDraw" }, { SK_RenderAPI::Reserved, L"N/A"    }
@@ -1837,4 +1874,24 @@ SK_Display_DisableDPIScaling (void)
       );
     }
   }
+}
+
+bool
+SK_RenderBackend_V2::checkHDRState (void)
+{
+  if (swapchain.p == nullptr)
+    return false;
+
+  SK_ComQIPtr <IDXGISwapChain3> pSwap3 (swapchain.p);
+
+  if (pSwap3.p != nullptr)
+  { extern void
+    SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This);
+    SK_DXGI_UpdateColorSpace (pSwap3.p);
+
+    return
+      isHDRCapable ();
+  }
+
+  return false;
 }

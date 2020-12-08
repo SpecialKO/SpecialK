@@ -582,13 +582,13 @@ SK_ImGui_ControlPanelTitle (void)
     // TEMP HACK
     static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
 
-    static std::wstring title = L"";
+    static std::wstring title;
                         title.clear ();
 
   //extern std::wstring __stdcall SK_GetPluginName (void);
   //extern bool         __stdcall SK_HasPlugin     (void);
 
-    if (SK_HasPlugin () && hModTBFix == nullptr)
+    if (SK_HasPlugin () && hModTBFix == (HMODULE)nullptr)
       title += SK_GetPluginName ();
     else
     {
@@ -654,7 +654,7 @@ SK_ImGui_ControlPanelTitle (void)
 void
 SK_ImGui_AdjustCursor (void)
 {
-  static          HANDLE hAdjustEvent = 0;
+  static          HANDLE hAdjustEvent = nullptr;
   static volatile LONG   lInit        = 0;
 
   if (! InterlockedCompareExchange (&lInit, 1, 0))
@@ -672,7 +672,7 @@ SK_ImGui_AdjustCursor (void)
 
       HANDLE hEvent = (HANDLE)pUser;
 
-      while (! ReadAcquire (&__SK_DLL_Ending))
+      while (0 == ReadAcquire (&__SK_DLL_Ending))
       {
         if ( WaitForSingleObject ((HANDLE)pUser, INFINITE) == WAIT_OBJECT_0 )
         {
@@ -693,7 +693,7 @@ SK_ImGui_AdjustCursor (void)
   else
     SK_Thread_SpinUntilAtomicMin (&lInit, 2);
 
-  if ((uintptr_t)hAdjustEvent > 0)
+  if ((uintptr_t)hAdjustEvent > (uintptr_t)nullptr)
        SetEvent (hAdjustEvent);
 }
 
@@ -756,6 +756,26 @@ DisplayModeMenu (bool windowed)
     // ATTN Unity:  Use asynchronous window messages!
     can_go_full = !( rb.windows.unity && (
                              (int)rb.api & (int)SK_RenderAPI::D3D11) );
+  }
+
+
+  if ( static_cast <int> (rb.api) &
+       static_cast <int> (SK_RenderAPI::D3D11) )
+  {
+    if (rb.srgb_stripped)
+    {
+      int srgb_mode      = std::max (0, config.render.dxgi.srgb_behavior + 1);
+      int srgb_orig_mode =              config.render.dxgi.srgb_behavior + 1;
+
+      if (ImGui::Combo ( "sRGB Bypass###SubMenu_DisplaySRGB_Combo", &srgb_mode,
+                         "Passthrough\0Strip\0Apply\0\0",            3)    &&
+                                                        srgb_mode != srgb_orig_mode)
+      {
+        config.render.dxgi.srgb_behavior = srgb_mode - 1;
+
+        SK_SaveConfig ();
+      }
+    }
   }
 
 
@@ -824,7 +844,9 @@ DisplayModeMenu (bool windowed)
 
 
   if ( static_cast <int> (rb.api) &
-       static_cast <int> (SK_RenderAPI::D3D11) )
+       static_cast <int> (SK_RenderAPI::D3D11) ||
+       static_cast <int> (rb.api) &
+       static_cast <int> (SK_RenderAPI::D3D12) )
   {
     if (mode == DISPLAY_MODE_FULLSCREEN)
     {
@@ -866,7 +888,8 @@ DisplayModeMenu (bool windowed)
         ImGui::EndTooltip   ( );
       }
 
-      static DXGI_SWAP_CHAIN_DESC last_swapDesc = { };
+      static DXGI_SWAP_CHAIN_DESC
+                    last_swapDesc = { };
 
       static auto& io =
         ImGui::GetIO ();
@@ -880,7 +903,7 @@ DisplayModeMenu (bool windowed)
             gsl::narrow_cast <long double> (fractional.second);
         };
 
-      static std::string           combo_str    = "";
+      static std::string           combo_str;
       static UINT                  num_modes    =  0;
       static int                   current_item = -1;
       static std::vector
@@ -893,22 +916,25 @@ DisplayModeMenu (bool windowed)
         <    std::pair < NV_COLOR_FORMAT,
                          NV_BPC         >
         >                          nv_color_encodings;
-      static std::string           nv_color_combo = "";
+      static std::string           nv_color_combo;
       static int                   nv_color_idx   =  0;
 
-      SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+      SK_ComQIPtr <IDXGISwapChain>  pSwapChain  (rb.swapchain);
+      SK_ComQIPtr <IDXGISwapChain3> pSwapChain3 (rb.swapchain);
 
-      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-      pSwapChain->GetDesc (&swapDesc);
+      DXGI_SWAP_CHAIN_DESC    swapDesc  = { };
+      pSwapChain->GetDesc   (&swapDesc);
+      DXGI_SWAP_CHAIN_DESC1   swapDesc1 = { };
+      pSwapChain3->GetDesc1 (&swapDesc1);
 
       static int orig_item =
         current_item;
 
       // Re-build the set of options if resolution changes,
       //   or if the swapchain buffer format does
-      if ( ! ( last_swapDesc.BufferDesc.Width                 == swapDesc.BufferDesc.Width  &&
-               last_swapDesc.BufferDesc.Height                == swapDesc.BufferDesc.Height &&
-               last_swapDesc.BufferDesc.Format                == swapDesc.BufferDesc.Format &&
+      if ( ! ( last_swapDesc.BufferDesc.Width                 == swapDesc1.Width  &&
+               last_swapDesc.BufferDesc.Height                == swapDesc1.Height &&
+               last_swapDesc.BufferDesc.Format                == swapDesc1.Format &&
                last_swapDesc.BufferDesc.RefreshRate.Numerator == swapDesc.BufferDesc.RefreshRate.Numerator )
          )
       {
@@ -917,7 +943,7 @@ DisplayModeMenu (bool windowed)
         last_swapDesc.BufferDesc.Height =
              swapDesc.BufferDesc.Height;
         last_swapDesc.BufferDesc.Format =
-             swapDesc.BufferDesc.Format;
+                       swapDesc1.Format;
         last_swapDesc.BufferDesc.RefreshRate.Numerator =
              swapDesc.BufferDesc.RefreshRate.Numerator;
         last_swapDesc.BufferDesc.RefreshRate.Denominator =
@@ -1046,7 +1072,7 @@ DisplayModeMenu (bool windowed)
 
             else
             {
-              std::string partial_encoding = "";
+              std::string partial_encoding;
               // Requires 2 valid components or we have no mode.
               int         validated_encode =  2;
               int         matching_encode  =  0;
@@ -1107,12 +1133,12 @@ DisplayModeMenu (bool windowed)
 
         if (SUCCEEDED (pSwapChain->GetContainingOutput (&pContainer)))
         {
-          pContainer->GetDisplayModeList ( swapDesc.BufferDesc.Format, 0x0,
+          pContainer->GetDisplayModeList ( swapDesc1.Format, 0x0,
                                            &num_modes, nullptr );
 
           dxgi_modes.resize (num_modes);
 
-          if ( SUCCEEDED ( pContainer->GetDisplayModeList ( swapDesc.BufferDesc.Format, 0x0,
+          if ( SUCCEEDED ( pContainer->GetDisplayModeList ( swapDesc1.Format, 0x0,
                                                             &num_modes, dxgi_modes.data () ) ) )
           {
             int idx = 1;
@@ -1122,9 +1148,9 @@ DisplayModeMenu (bool windowed)
 
             for ( auto& dxgi_mode : dxgi_modes )
             {
-              if ( dxgi_mode.Format == swapDesc.BufferDesc.Format &&
-                   dxgi_mode.Width  == swapDesc.BufferDesc.Width  &&
-                   dxgi_mode.Height == swapDesc.BufferDesc.Height )
+              if ( dxgi_mode.Format == swapDesc1.Format &&
+                   dxgi_mode.Width  == swapDesc1.Width  &&
+                   dxgi_mode.Height == swapDesc1.Height )
               {
                 ///dll_log->Log ( L" ( %lux%lu -<+| %ws |+>- ) @ %f Hz",
                 ///                             mode.Width,
@@ -1402,10 +1428,14 @@ SK_ImGui_ControlPanel (void)
       ImGui::MenuItem ("Display Active Input APIs",       "", &config.imgui.show_input_apis);
 
 
-      if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
+      // TEMP HACK: NvAPI does not support G-Sync Status in D3D12
+      if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
       {
-        //ImGui::TextWrapped ("%ws", SK_NvAPI_GetGPUInfoStr ().c_str ());
-        ImGui::MenuItem    ("Display G-Sync Status",     "", &config.apis.NvAPI.gsync_status);
+        if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
+        {
+          //ImGui::TextWrapped ("%ws", SK_NvAPI_GetGPUInfoStr ().c_str ());
+          ImGui::MenuItem    ("Display G-Sync Status",     "", &config.apis.NvAPI.gsync_status);
+        }
       }
 
       ImGui::MenuItem  ("Display Playtime in Title",     "", &config.steam.show_playtime);
@@ -1642,7 +1672,7 @@ SK_ImGui_ControlPanel (void)
 
           if ( ImGui::SliderFloat ( "Steam Overlay Luminance###STEAM_LUMINANCE",
                                      &steam_nits,
-                                      80.0f, rb.display_gamut.maxY,
+                                      80.0f, rb.display_gamut.maxAverageY,
                                         (const char *)u8"%.1f cd/m²" ) )
           {
             config.steam.overlay_hdr_luminance =
@@ -1668,7 +1698,7 @@ SK_ImGui_ControlPanel (void)
 
           if ( ImGui::SliderFloat ( "uPlay Overlay Luminance###UPLAY_LUMINANCE",
                                      &uplay_nits,
-                                      80.0f, rb.display_gamut.maxY,
+                                      80.0f, rb.display_gamut.maxAverageY,
                                         (const char *)u8"%.1f cd/m²" ) )
           {
             config.uplay.overlay_luminance =
@@ -1785,6 +1815,7 @@ SK_ImGui_ControlPanel (void)
           nullptr, SK_WideCharToUTF8 (vinfo.branch).c_str ()
         );
 
+#if 0
       bool updatable =
         ( SK_GetPluginName ().find (L"Special K") == std::wstring::npos ||
           SK_IsInjected    () );
@@ -1979,10 +2010,8 @@ SK_ImGui_ControlPanel (void)
         ImGui::EndMenu ();
       }
 
-
-
       SK::ControlPanel::Steam::DrawMenu ();
-
+#endif
 
 
       if (ImGui::BeginMenu ("Help"))
@@ -1993,8 +2022,8 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::TreePush ("");
         {
-          if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Steam Group", &selected, true))
-            SK_SteamOverlay_GoToURL ("http://steamcommunity.com/groups/SpecialK_Mods", true);
+          if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Discourse Forums", &selected, true))
+            SK_SteamOverlay_GoToURL ("https://discourse.differentk.fyi/", true);
         }
         ImGui::TreePop ();
 
@@ -2038,6 +2067,29 @@ SK_ImGui_ControlPanel (void)
 
           static INT enablement =
             SK_NvAPI_GetAnselEnablement (SK_GetDLLRole ());
+
+#ifndef _WIN64
+          static HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi.dll");
+#else
+          static HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi64.dll");
+#endif
+#define __NvAPI_RestartDisplayDriver                      0xB4B26B65
+          typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
+          typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
+          static NvAPI_QueryInterface_pfn          NvAPI_QueryInterface       =
+            (NvAPI_QueryInterface_pfn)SK_GetProcAddress (hLib, "nvapi_QueryInterface");
+          static NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver = NvAPI_QueryInterface == nullptr ?
+                                                                                                     nullptr :
+            (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
+
+          if (NvAPI_RestartDisplayDriver != nullptr)
+          {
+            if (ImGui::MenuItem ("Restart NVIDIA Display Driver", "No Reboot Required", nullptr))
+              NvAPI_RestartDisplayDriver ();
+
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("NVIDIA display buggers can be restarted on-the-fly; may take a few seconds.");
+          }
 
           if (enablement >= 0)
           {
@@ -2522,8 +2574,10 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      else if ( static_cast <int> (rb.api) &
-                static_cast <int> (SK_RenderAPI::D3D11) )
+      else if ( (static_cast <int> (rb.api) &
+                 static_cast <int> (SK_RenderAPI::D3D11)) ||
+                (static_cast <int> (rb.api) &
+                 static_cast <int> (SK_RenderAPI::D3D12)) )
       {
         SK_ComQIPtr <IDXGISwapChain> pSwapDXGI (rb.swapchain);
 
@@ -2572,34 +2626,38 @@ SK_ImGui_ControlPanel (void)
     }
 
 
-    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+    // TEMP HACK: NvAPI does not support G-Sync Status in D3D12
+    if (rb.api != SK_RenderAPI::D3D12)
     {
-      char szGSyncStatus [128] = { };
-
-      if (rb.gsync_state.capable)
+      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
       {
-        strcat (szGSyncStatus, "    Supported + ");
-        if (rb.gsync_state.active)
+        char szGSyncStatus [128] = { };
+
+        if (rb.gsync_state.capable)
         {
-          strcat (szGSyncStatus, "Active");
+          strcat (szGSyncStatus, "    Supported + ");
+          if (rb.gsync_state.active)
+          {
+            strcat (szGSyncStatus, "Active");
+          }
+          else
+            strcat (szGSyncStatus, "Inactive");
         }
+
         else
-          strcat (szGSyncStatus, "Inactive");
-      }
+        {
+          strcat ( szGSyncStatus, rb.api == SK_RenderAPI::OpenGL ?
+                                    " Unknown in GL" : "   Unsupported" );
+        }
 
-      else
-      {
-        strcat ( szGSyncStatus, rb.api == SK_RenderAPI::OpenGL ?
-                                  " Unknown in GL" : "   Unsupported" );
-      }
+        ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus, nullptr, false);
 
-      ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus, nullptr, false);
-
-      if (rb.api == SK_RenderAPI::OpenGL && ImGui::IsItemHovered ())
-      {
-        ImGui::SetTooltip (
-          "The NVIDIA driver API does not report this status in OpenGL."
-        );
+        if (rb.api == SK_RenderAPI::OpenGL && ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip (
+            "The N  IA driver API does not report this status in OpenGL."
+          );
+        }
       }
     }
 
@@ -2693,7 +2751,22 @@ SK_ImGui_ControlPanel (void)
               __target_fps = -__target_fps;
 
           if (__target_fps == 0.0f)
+          {
+            DWM_TIMING_INFO dwmTiming        = {                      };
+                            dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
+
+            if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
+            {
+              __target_fps =
+                        static_cast <float> (
+                1.0 / ( static_cast <double> (dwmTiming.qpcRefreshPeriod) /
+                        static_cast <double> (SK_GetPerfFreq ().QuadPart) )
+                                            );
+            }
+
+            else
               __target_fps = 60.0f;
+          }
         }
 
         bool bg_limit =
@@ -2704,9 +2777,22 @@ SK_ImGui_ControlPanel (void)
         {
           if (ImGui::IsItemHovered ())
           {
-            ImGui::SetTooltip (
+            ImGui::BeginTooltip ();
+            ImGui::TextUnformatted (
               "Graph color represents frame time variance, not proximity"
-              " to your target FPS." );
+              " to your target FPS."
+            );
+
+            if ( ( rb.api == SK_RenderAPI::D3D11 ||
+                   rb.api == SK_RenderAPI::D3D12 ) && (! (config.render.framerate.flip_discard &&
+                                                          config.render.framerate.swapchain_wait > 0)))
+            {
+              ImGui::Separator       ();
+              ImGui::TextUnformatted ("Did you know ... to get the most out of SK's Framerate Limiter:");
+              ImGui::BulletText      ("Enable Flip Model + Waitable SwapChain in D3D11/12 / SwapChain Settings");
+            }
+
+            ImGui::EndTooltip ();
           }
 
           if (advanced)
@@ -2754,9 +2840,10 @@ SK_ImGui_ControlPanel (void)
         auto _ResetLimiter = [&](void) -> void
         {
           auto *pLimiter =
-            SK::Framerate::GetLimiter (rb.swapchain.p);
+            SK::Framerate::GetLimiter (rb.swapchain.p, false);
 
-          pLimiter->reset (true);
+          if (pLimiter != nullptr)
+              pLimiter->reset (true);
         };
 
         ImGui::EndGroup   ();
@@ -2783,7 +2870,7 @@ SK_ImGui_ControlPanel (void)
                                                            target < 0 ?
                                              "%6.3f fps  (Graphing Only)"
                                                                   :
-                                             "60.000 fps (No Preference)" )
+                                             "VSYNC Rate (No Preference)" )
              )
           {
             static auto cp =
@@ -2846,7 +2933,7 @@ SK_ImGui_ControlPanel (void)
           if ( ImGui::Checkbox ( "Use Multimedia Class Scheduling",
                                    &config.render.framerate.enable_mmcss ) )
           {
-            SK_DWM_EnableMMCSS (config.render.framerate.enable_mmcss);
+            SK_DWM_EnableMMCSS ((BOOL)config.render.framerate.enable_mmcss);
           }
 
           if (ImGui::IsItemHovered ())
@@ -2976,6 +3063,8 @@ SK_ImGui_ControlPanel (void)
               ImGui::Separator    ( );
               ImGui::BulletText   ("The default value is usually adequate");
               ImGui::BulletText   ("In the worst stuttering games, give 100%% a try");
+              if (config.render.framerate.swapchain_wait)
+                ImGui::BulletText ("99%% is the limit when using Waitable SwapChains");
               ImGui::EndTooltip   ( );
             }
 #endif
@@ -3019,7 +3108,9 @@ SK_ImGui_ControlPanel (void)
 
             //ImGui::SliderInt ("Limit Enforcement Site", &__SK_FramerateLimitApplicationSite, 0, 4);
 
-            if (rb.api == SK_RenderAPI::D3D11) {
+            if ( rb.api == SK_RenderAPI::D3D11 ||
+                 rb.api == SK_RenderAPI::D3D12 )
+            {
               ImGui::SameLine ();
 
               if (ImGui::Checkbox ("Drop Late Frames", &config.render.framerate.drop_late_flips))
@@ -3155,15 +3246,15 @@ SK_ImGui_ControlPanel (void)
         SK_ImGui_Widgets->d3d11_pipeline->setVisible (pipeline).
                                           setActive  (pipeline);
       }
+    }
 
-      if (rb.isHDRCapable ())
+    if (rb.isHDRCapable ())
+    {
+      ImGui::SameLine ();
+      if (ImGui::Checkbox ("HDR Display", &hdr))
       {
-        ImGui::SameLine ();
-        if (ImGui::Checkbox ("HDR Display", &hdr))
-        {
-          SK_ImGui_Widgets->hdr_control->setVisible (hdr).
-                                         setActive  (hdr);
-        }
+        SK_ImGui_Widgets->hdr_control->setVisible (hdr).
+                                       setActive  (hdr);
       }
     }
 
@@ -3259,7 +3350,7 @@ static bool keep_open;
 void
 SK_Steam_GetUserName (char* pszName, int max_len = 512)
 {
-  if (SK_SteamAPI_Friends ())
+  if (SK_SteamAPI_Friends () != nullptr)
   {
     auto orig_se =
     SK_SEH_ApplyTranslator (
@@ -3304,9 +3395,9 @@ SK_ImGui_StageNextFrame (void)
     static auto& io =
       ImGui::GetIO ();
 
-    font.size           = ImGui::GetFont () ?
-                            ImGui::GetFont ()->FontSize * io.FontGlobalScale :
-                             1.0f;
+    font.size           = ImGui::GetFont () != nullptr                     ?
+                          ImGui::GetFont ()->FontSize * io.FontGlobalScale :
+                                                                          1.0f;
 
     font.size_multiline = SK::ControlPanel::font.size      +
                           ImGui::GetStyle ().ItemSpacing.y +
@@ -3837,9 +3928,12 @@ SK_ImGui_StageNextFrame (void)
 }
 
 
-extern IMGUI_API void ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data);
-extern IMGUI_API void ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data);
-extern IMGUI_API void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data);
+extern IMGUI_API void ImGui_ImplGL3_RenderDrawData  (ImDrawData* draw_data);
+extern IMGUI_API void ImGui_ImplDX9_RenderDrawData  (ImDrawData* draw_data);
+extern IMGUI_API void ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data);
+extern/*IMGUI_API*/
+                 void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, ID3D12GraphicsCommandList* ctx);
+
 //#ifdef _WIN64
 //extern         void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data);
 //#endif
@@ -3903,7 +3997,26 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if ( ( static_cast <int> (rb.api) &
               static_cast <int> (SK_RenderAPI::D3D12) ) != 0 )
   {
-    ImGui::Render ();
+    if (_d3d12_rbk->_cmd_list.p != nullptr)
+    {
+      ImGui::Render ();
+      _d3d12_rbk->RenderImGuiDrawData (ImGui::GetDrawData ());
+    }
+
+    else if (_d3d12_rbk2->frames_.size () > 0)
+    {
+      int swapIdx = 0;
+
+      if (_d3d12_rbk2->pSwapChain != nullptr)
+          swapIdx = _d3d12_rbk2->pSwapChain->GetCurrentBackBufferIndex ();
+
+      SK_ReleaseAssert (swapIdx < _d3d12_rbk2->frames_.size ());
+
+      void ImGui_ImplDX12_RenderDrawData (ImDrawData*, SK_D3D12_RenderCtx::FrameCtx*);
+
+      ImGui::Render ();
+      ImGui_ImplDX12_RenderDrawData (ImGui::GetDrawData (), &_d3d12_rbk2->frames_ [swapIdx]);
+    }
   }
 
   else
@@ -3915,19 +4028,6 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   if (! keep_open)
     SK_ImGui_Toggle ();
 
-
-  POINT             orig_pos;
-  SK_GetCursorPos (&orig_pos);
-
-//SK_ImGui_Cursor.update ();
-
-  //// The only reason this might be used is to reset the window's
-  ////   class cursor. SK_ImGui_Cursor.update (...) doesn't reposition
-  ////                   the cursor.
-#define FIXME
-#ifndef FIXME
-  SK_SetCursorPos (orig_pos.x, orig_pos.y);
-#endif
 
   imgui_finished_frames++;
 
@@ -3941,11 +4041,6 @@ __declspec (dllexport)
 void
 SK_ImGui_Toggle (void)
 {
-#ifdef _COMPAT_HACKS
-  // XXX: HACK for Monster Hunter: World
-  game_window.active = true;
-#endif
-
   static auto& io =
     ImGui::GetIO ();
 

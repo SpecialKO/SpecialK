@@ -1457,10 +1457,32 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   {
     dll_log->LogEx (false, L"failed!\n");
 
-    std::wstring default_name (L"default_");
-                 default_name += config_name;
+    std::wstring default_global_name (
+      ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\default_)" )
+                              + config_name
+    );
 
-    std::wstring default_ini (default_name + L".ini");
+    std::wstring default_name (
+      SK_FormatStringW ( L"%s%s%s",
+                           SK_GetConfigPath (),
+                             L"default_",
+                               config_name )
+    );
+
+    std::wstring default_global_ini (default_global_name + L".ini");
+    std::wstring default_ini        (default_name        + L".ini");
+
+    if (GetFileAttributesW (default_global_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
+    {
+      dll_log->LogEx ( true,
+                       L"Loading global default preferences from %s.ini... ",
+                         default_global_name.c_str () );
+
+      if (! SK_LoadConfig (default_global_name))
+        dll_log->LogEx (false, L"failed!\n");
+      else
+        dll_log->LogEx (false, L"done!\n");
+    }
 
     if (GetFileAttributesW (default_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
     {
@@ -1476,7 +1498,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     // If no INI file exists, write one immediately.
     dll_log->LogEx (true,  L"  >> Writing base INI file, because none existed... ");
-    SK_SaveConfig (config_name);
+
+    // Fake a frame so that the config file writes
+    WriteRelease64 (&SK_RenderBackend::frames_drawn, 1);
+    SK_SaveConfig  (config_name);
+    SK_LoadConfig  (config_name);
+    WriteRelease64 (&SK_RenderBackend::frames_drawn, 0);
+
     dll_log->LogEx (false, L"done!\n");
   }
 
@@ -1709,6 +1737,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       case SK_GAME_ID::Yakuza0:
       case SK_GAME_ID::YakuzaKiwami:
       case SK_GAME_ID::YakuzaKiwami2:
+      case SK_GAME_ID::YakuzaLikeADragon:
         SK_Yakuza0_PlugInInit ();
         break;
 #else
@@ -1723,23 +1752,24 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     SK_ImGui_Widgets->hdr_control->run ();
 
-    bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
+    bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false, d3d12 = false,
          dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
     SK_TestRenderImports (
       SK_GetModuleHandle (nullptr),
         &gl, &vulkan,
-          &d3d9, &dxgi, &d3d11,
+          &d3d9, &dxgi, &d3d11, &d3d12,
             &d3d8, &ddraw, &glide );
 
     dxgi  |= SK_GetModuleHandle (L"dxgi.dll")     != nullptr;
     d3d11 |= SK_GetModuleHandle (L"d3d11.dll")    != nullptr;
+    d3d12 |= SK_GetModuleHandle (L"d3d12.dll")    != nullptr;
     d3d9  |= SK_GetModuleHandle (L"d3d9.dll")     != nullptr;
     gl    |= SK_GetModuleHandle (L"OpenGL32.dll") != nullptr;
     gl    |= SK_GetModuleHandle (L"gdi32.dll")    != nullptr;
     gl    |= SK_GetModuleHandle (L"gdi32full.dll")!= nullptr;
 
-    if ( ( dxgi || d3d11 ||
+    if ( ( dxgi || d3d11 || d3d12 ||
            d3d8 || ddraw ) && ( config.apis.dxgi.d3d11.hook
                              || config.apis.dxgi.d3d12.hook ) )
     {
@@ -2127,6 +2157,16 @@ return;
         rb.api == LastKnownAPI            &&
        ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ) )
   {
+    if ( SK_GetModuleHandle (L"CEGUIBase-0")         != nullptr &&
+         SK_GetModuleHandle (L"CEGUIOgreRenderer-0") != nullptr )
+    {
+      config.cegui.enable = false;
+      SK_ImGui_Warning    (L"CEGUI has been disabled due to game engine already using it!");
+      InterlockedExchange (&CEGUI_Init, TRUE);
+
+      return;
+    }
+
     bool local = false;
     if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_43.dll", &local))
     {
@@ -2256,8 +2296,7 @@ return;
             return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
 
           k32_SetDefaultDllDirectories (
-            LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-            LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
+            LOAD_LIBRARY_SEARCH_SYSTEM32 | LOAD_LIBRARY_SEARCH_USER_DIRS
           );
 
           DLL_DIRECTORY_COOKIE cookie = nullptr;
@@ -2305,6 +2344,10 @@ return;
             ret = false;
           }
           SK_SEH_RemoveTranslator (orig_se);
+
+          k32_SetDefaultDllDirectories (
+            LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+          );
 
           k32_RemoveDllDirectory (cookie);
 
@@ -2356,16 +2399,16 @@ return;
             L"File permissions are preventing CEGUI from functioning;"
             L" it has been disabled.";
 
-          SK_ImGui_Warning (
-            SK_FormatStringW ( L"%s\n\n"
-                               L"\t\t\t\t>> To fix this, run the game %s "
-                                                         L"administrator.",
-                               wszDisableMsg,
-                                 SK_IsInjected              () &&
-                              (! SK_Inject_IsAdminSupported ()) ?
-                                   L"and SKIM64 as" :
-                                              L"as" ).c_str ()
-          );
+          ///SK_ImGui_Warning (
+          ///  SK_FormatStringW ( L"%s\n\n"
+          ///                     L"\t\t\t\t>> To fix this, run the game %s "
+          ///                                               L"administrator.",
+          ///                     wszDisableMsg,
+          ///                       SK_IsInjected              () &&
+          ///                    (! SK_Inject_IsAdminSupported ()) ?
+          ///                         L"and SKIM64 as" :
+          ///                                    L"as" ).c_str ()
+          ///);
 
           SK_LOG0 ( (L"%ws", wszDisableMsg),
                      L"  CEGUI   " );
@@ -2544,7 +2587,6 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
        (int)SK_RenderAPI::D3D11 )
   {
     SK_D3D11_BeginFrame ();
-
   }
 
   if (config.render.framerate.enforcement_policy == 0)
@@ -2582,22 +2624,17 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   rb.present_staging.begin_cegui.time =
     SK_QueryPerf ();
 
-  //if (rb.api != SK_RenderAPI::D3D12)
-  {
-    //if (config.cegui.enable || rb.api == SK_RenderAPI::D3D12)
-    {
-      if (config.cegui.enable && rb.api != SK_RenderAPI::D3D12)
-        SetupCEGUI (LastKnownAPI);
 
-      if (config.cegui.frames_drawn > 0 || rb.api == SK_RenderAPI::D3D12)
-      {
-        if (! SK::SteamAPI::GetOverlayState (true))
-        {
-          if (rb.api != SK_RenderAPI::D3D12)
-            SK_DrawOSD     ();
-          SK_DrawConsole   ();
-        }
-      }
+  if (config.cegui.enable && rb.api != SK_RenderAPI::D3D12)
+    SetupCEGUI (LastKnownAPI);
+
+  if (config.cegui.frames_drawn > 0 || rb.api == SK_RenderAPI::D3D12)
+  {
+    if (! SK::SteamAPI::GetOverlayState (true))
+    {
+      if (rb.api != SK_RenderAPI::D3D12)
+        SK_DrawOSD     ();
+      SK_DrawConsole   ();
     }
   }
 

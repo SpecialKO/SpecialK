@@ -1467,6 +1467,7 @@ SK_ShellExecute (const wchar_t* verb, const wchar_t* file)
 bool
 SK::ControlPanel::Steam::DrawMenu (void)
 {
+#if 0
   if (SK::SteamAPI::AppID () != 0)
   {
     if (ImGui::BeginMenu ("Steam"))
@@ -1793,6 +1794,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
       return  true;
     }
   }
+#endif
 
   return false;
 }

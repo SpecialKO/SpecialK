@@ -389,6 +389,10 @@ struct sk_config_t
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
       bool    present_test_skip  = false;
+      int     srgb_behavior      =    -2; // -2 = sRGB Not Encountered Yet
+                                          // -1 = Passthrough,
+                                          //  0 = Strip,
+                                          //  1 = Apply
     } dxgi;
 
     struct osd_s {
@@ -906,6 +910,7 @@ enum class SK_GAME_ID
   Yakuza0,                      // Yakuza0.exe
   YakuzaKiwami,                 // YakuzaKiwami.exe
   YakuzaKiwami2,                // YakuzaKiwami2.exe
+  YakuzaLikeADragon,            // YakuzaLikeADragon.exe
   MonsterHunterWorld,           // MonsterHunterWorld.exe
   Shenmue,                      // Shenmue.exe
   DragonQuestXI,                // DRAGON QUEST XI.exe
@@ -918,7 +923,8 @@ enum class SK_GAME_ID
   SonicMania,                   // SonicMania.exe
   Persona4,                     // P4G.exe
   HorizonZeroDawn,              // HorizonZeroDawn.exe
-
+  BaldursGate3,                 // bg3.exe
+  AssassinsCreed_Valhalla,      // ACValhalla.exe / ACValhalla_Plus.exe
   UNKNOWN_GAME               = 0xffff
 };
 

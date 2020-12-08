@@ -92,6 +92,16 @@ typedef HRESULT (STDMETHODCALLTYPE *ResizeBuffers_pfn)(
                             /* [in] */ DXGI_FORMAT     NewFormat,
                             /* [in] */ UINT            SwapChainFlags);
 
+typedef HRESULT (STDMETHODCALLTYPE *ResizeBuffers1_pfn)(
+                                             IDXGISwapChain3 *This,
+                            /* [in] */       UINT             BufferCount,
+                            /* [in] */       UINT             Width,
+                            /* [in] */       UINT             Height,
+                            /* [in] */       DXGI_FORMAT      NewFormat,
+                            /* [in] */       UINT             SwapChainFlags,
+                            /* [in] */ const UINT            *pCreationNodeMask,
+                            /* [in] */       IUnknown* const *ppPresentQueue);
+
 typedef HRESULT (STDMETHODCALLTYPE *ResizeTarget_pfn)(
                                   _In_ IDXGISwapChain  *This,
                             _In_ const DXGI_MODE_DESC  *pNewTargetParameters );
@@ -810,32 +820,6 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_6_0000_0002_v0_0_s_ifspec;
 }
 #endif
 
-
-struct sk_hook_d3d11_t {
- ID3D11Device**        ppDevice;
- ID3D11DeviceContext** ppImmediateContext;
-};
-
-struct SK_D3D11_TexCacheResidency_s
-{
-  struct
-  {
-    volatile LONG InVRAM   = 0;
-    volatile LONG Shared   = 0;
-    volatile LONG PagedOut = 0;
-  } count;
-
-  struct
-  {
-    volatile LONG64 InVRAM   = 0;
-    volatile LONG64 Shared   = 0;
-    volatile LONG64 PagedOut = 0;
-  } size;
-};
-
-extern SK_LazyGlobal <SK_D3D11_TexCacheResidency_s> SK_D3D11_TexCacheResidency;
-
-
 HRESULT
 STDMETHODCALLTYPE
 Present1Callback (IDXGISwapChain1         *This,
@@ -875,6 +859,7 @@ DXGIFactory2_CreateSwapChainForComposition_Override (
   _In_opt_       IDXGIOutput            *pRestrictToOutput,
   _Outptr_       IDXGISwapChain1       **ppSwapChain
 );
+
 
 
 #endif /* __SK__DXGI_INTERFACES_H__ */

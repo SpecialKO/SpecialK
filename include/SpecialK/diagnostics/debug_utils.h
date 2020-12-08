@@ -394,4 +394,8 @@ SK_SEH_SetTranslator (
                       SEH_LogLevel verbosity = Unchanged );
 
 
+void WINAPI
+SK_SetLastError (DWORD dwErrCode);
+
+
 #endif /* __SK__DEBUG_UTILS_H__ */

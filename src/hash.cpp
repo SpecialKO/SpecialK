@@ -58,7 +58,7 @@ SK_File_GetHash_32 (       sk_hash_algo                 algorithm,
         nullptr)
       );
 
-      if (hFile == INVALID_HANDLE_VALUE)
+      if ((intptr_t)hFile.m_h <= 0)// == INVALID_HANDLE_VALUE)
         return _hash32;
 
       // Read up to 16 MiB at a time.

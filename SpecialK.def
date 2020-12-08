@@ -93,33 +93,36 @@ EXPORTS
 
 EXPORTS
   D3D11CreateDevice              = D3D11CreateDevice_Detour             PRIVATE
+  D3D11CoreCreateDevice          = D3D11CoreCreateDevice_Detour         PRIVATE
   D3D11CreateDeviceAndSwapChain  = D3D11CreateDeviceAndSwapChain_Detour PRIVATE
 
 
 ;LIBRARY "dxgi"
 
 EXPORTS
-  CreateDXGIFactory              = CreateDXGIFactory
-  CreateDXGIFactory1             = CreateDXGIFactory1
-  CreateDXGIFactory2             = CreateDXGIFactory2
-  DXGID3D10CreateDevice          = DXGID3D10CreateDevice           PRIVATE
-  DXGID3D10CreateLayeredDevice   = DXGID3D10CreateLayeredDevice    PRIVATE
-  DXGID3D10GetLayeredDeviceSize  = DXGID3D10GetLayeredDeviceSize   PRIVATE
-  DXGID3D10RegisterLayers        = DXGID3D10RegisterLayers         PRIVATE
-  DXGIDumpJournal                = DXGIDumpJournal                 PRIVATE
-  DXGIReportAdapterConfiguration = DXGIReportAdapterConfiguration  PRIVATE
+  CreateDXGIFactory                = CreateDXGIFactory
+  CreateDXGIFactory1               = CreateDXGIFactory1
+  CreateDXGIFactory2               = CreateDXGIFactory2
+  DXGIDeclareAdapterRemovalSupport = DXGIDeclareAdapterRemovalSupport
+  DXGIGetDebugInterface1           = DXGIGetDebugInterface1
+  DXGID3D10CreateDevice            = DXGID3D10CreateDevice           PRIVATE
+  DXGID3D10CreateLayeredDevice     = DXGID3D10CreateLayeredDevice    PRIVATE
+  DXGID3D10GetLayeredDeviceSize    = DXGID3D10GetLayeredDeviceSize   PRIVATE
+  DXGID3D10RegisterLayers          = DXGID3D10RegisterLayers         PRIVATE
+  DXGIDumpJournal                  = DXGIDumpJournal                 PRIVATE
+  DXGIReportAdapterConfiguration   = DXGIReportAdapterConfiguration  PRIVATE
 
-  SK_D3D11_SetResourceRoot       = SK_D3D11_SetResourceRoot
-  SK_D3D11_EnableTexDump         = SK_D3D11_EnableTexDump
-  SK_D3D11_EnableTexInject       = SK_D3D11_EnableTexInject
-  SK_D3D11_EnableTexInject_FFX   = SK_D3D11_EnableTexInject_FFX    PRIVATE
-  SK_D3D11_EnableTexCache        = SK_D3D11_EnableTexCache
-  SK_D3D11_AddTexHash            = SK_D3D11_AddTexHash
-  SK_D3D11_RemoveTexHash         = SK_D3D11_RemoveTexHash
-  SK_D3D11_PopulateResourceList  = SK_D3D11_PopulateResourceList
-  SK_DXGI_SetPreferredAdapter    = SK_DXGI_SetPreferredAdapter
-  SKX_D3D11_MarkTextures         = SKX_D3D11_MarkTextures          PRIVATE
-  SKX_D3D11_EnableFullscreen     = SKX_D3D11_EnableFullscreen      PRIVATE
+  SK_D3D11_SetResourceRoot         = SK_D3D11_SetResourceRoot
+  SK_D3D11_EnableTexDump           = SK_D3D11_EnableTexDump
+  SK_D3D11_EnableTexInject         = SK_D3D11_EnableTexInject
+  SK_D3D11_EnableTexInject_FFX     = SK_D3D11_EnableTexInject_FFX    PRIVATE
+  SK_D3D11_EnableTexCache          = SK_D3D11_EnableTexCache
+  SK_D3D11_AddTexHash              = SK_D3D11_AddTexHash
+  SK_D3D11_RemoveTexHash           = SK_D3D11_RemoveTexHash
+  SK_D3D11_PopulateResourceList    = SK_D3D11_PopulateResourceList
+  SK_DXGI_SetPreferredAdapter      = SK_DXGI_SetPreferredAdapter
+  SKX_D3D11_MarkTextures           = SKX_D3D11_MarkTextures          PRIVATE
+  SKX_D3D11_EnableFullscreen       = SKX_D3D11_EnableFullscreen      PRIVATE
 
   DXGIFactory_CreateSwapChain_Override = DXGIFactory_CreateSwapChain_Override  PRIVATE
   DXGISwap_ResizeTarget_Override       = DXGISwap_ResizeTarget_Override        PRIVATE

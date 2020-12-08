@@ -121,11 +121,10 @@ SK_DLL_GetBootstraps (void)
     &__SK_DLL_Bootstraps;
 }
 
-
-
 skWin32Module&
 skModuleRegistry::HostApp (HMODULE hModToSet) noexcept
-{ static skWin32Module
+{
+  static skWin32Module
        hModApp    = skWin32Module::Uninitialized;
   if ( hModApp   == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
@@ -134,7 +133,8 @@ return hModApp;   }
 
 skWin32Module&
 skModuleRegistry::Self (HMODULE hModToSet) noexcept
-{ static skWin32Module
+{
+  static skWin32Module
        hModSelf   = skWin32Module::Uninitialized;
   if ( hModSelf  == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
@@ -179,7 +179,7 @@ SK_KeepAway (void)
     return 0;
   }
 
-  HMODULE hModApp =
+    HMODULE hModApp =
         GetModuleHandle (nullptr);
 
   wchar_t                         wszSystemDir   [MAX_PATH + 2] = { };
@@ -384,8 +384,8 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_DETACH:
     {
-      if (__SK_DLL_TeardownEvent > nullptr) SetEvent (
-          __SK_DLL_TeardownEvent                     );
+      if ((intptr_t)__SK_DLL_TeardownEvent > (intptr_t)nullptr) SetEvent (
+                    __SK_DLL_TeardownEvent                               );
 
       if (! InterlockedCompareExchangeRelease ( &__SK_DLL_Ending,
                                                   TRUE,
@@ -444,7 +444,7 @@ DllMain ( HMODULE hModule,
         SK_TLS_Release ();
       }
 
-      if (           __SK_DLL_TeardownEvent > nullptr)
+      if ((uintptr_t)__SK_DLL_TeardownEvent > (uintptr_t)nullptr)
       { CloseHandle (__SK_DLL_TeardownEvent);
                      __SK_DLL_TeardownEvent = INVALID_HANDLE_VALUE;
       }
@@ -574,7 +574,7 @@ SK_TryLocalWrapperFirst (const std::vector <const wchar_t *>& dlls)
   for ( const auto dll : dlls )
   {
     if ( SK_IsDLLSpecialK   (dll) &&
-         SK_LoadLocalModule (dll) )
+         SK_LoadLocalModule (dll) != nullptr )
     {
       return TRUE;
     }
@@ -715,7 +715,7 @@ SK_EstablishDllRole (skWin32Module&& module)
       wszShort = wszSelfTitledDLL;
 
 
-  if (! SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
+  if (0 == SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
   {
     SK_SetDLLRole (DLL_ROLE::DInput8);
 
@@ -763,7 +763,7 @@ SK_EstablishDllRole (skWin32Module&& module)
   //
   // This is an injected DLL, not a wrapper DLL...
   //
-  else if (SK_Path_wcsstr (wszShort, L"SpecialK"))
+  else if (SK_Path_wcsstr (wszShort, L"SpecialK") != nullptr)
   {
              // SET the injected state
              SK_IsInjected (true);
@@ -913,7 +913,7 @@ SK_EstablishDllRole (skWin32Module&& module)
       //      steam_api{64}.dll files distributed with Special K.
       //
       bool is_steamworks_game =
-           SK_Path_wcsstr (wszProcessName, L"SteamApps");
+           SK_Path_wcsstr (wszProcessName, L"SteamApps") != nullptr;
 
       // Most frequently imported DLLs for games that use SteamAPI
       //
@@ -962,13 +962,14 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         ///// That did not work; examine the game's Import Address Table
         /////
-        bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
-             dxgi = false, d3d8   = false, ddraw = false, glide = false;
+        bool gl    = false, vulkan = false, d3d9  = false, d3d11 = false,
+             dxgi  = false, d3d8   = false, ddraw = false, d3d12 = false,
+             glide = false;
 
         SK_TestRenderImports (
           __SK_hModHost,
             &gl, &vulkan,
-              &d3d9, &dxgi, &d3d11,
+              &d3d9, &dxgi, &d3d11, &d3d12,
                 &d3d8, &ddraw, &glide
         );
 
@@ -982,6 +983,8 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         d3d11  |= (SK_GetModuleHandle (L"d3d11.dll")     != nullptr);
         d3d11  |= (SK_GetModuleHandle (L"d3dx11_43.dll") != nullptr);
+
+        d3d12  |= (SK_GetModuleHandle (L"d3d12.dll")     != nullptr);
 
 #ifndef _M_AMD64
         d3d8   |= (SK_GetModuleHandle (L"d3d8.dll")      != nullptr);
@@ -1019,7 +1022,9 @@ SK_EstablishDllRole (skWin32Module&& module)
             SK_DontInject ();
         }
 
-        else if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11))
+        else if ( ( config.apis.dxgi.d3d11.hook ||
+                    config.apis.dxgi.d3d12.hook    )
+                                                && (dxgi || d3d11 || d3d12))
         {
           if (SK_TryLocalWrapperFirst ({ L"dxgi.dll", L"d3d11.dll" }))
           {
@@ -1072,18 +1077,18 @@ SK_EstablishDllRole (skWin32Module&& module)
         {
           if (config.apis.dxgi.d3d11.hook)
             SK_SetDLLRole (DLL_ROLE::DXGI);
-//#ifdef _M_AMD64
-//          if (config.apis.dxgi.d3d12.hook)
-//            SK_SetDLLRole (DLL_ROLE::DXGI);
-//#endif
+#ifdef _M_AMD64
+          if (config.apis.dxgi.d3d12.hook)
+            SK_SetDLLRole (DLL_ROLE::DXGI);
+#endif
           else if (config.apis.OpenGL.hook)
             SK_SetDLLRole (DLL_ROLE::OpenGL);
 #ifdef _M_AMD64
           else if (config.apis.Vulkan.hook)
             SK_SetDLLRole (DLL_ROLE::Vulkan);
+#else
           else if (config.apis.d3d9.hook  || config.apis.d3d9ex.hook)
             SK_SetDLLRole (DLL_ROLE::D3D9);
-#else
           else if (config.apis.d3d8.hook && has_dgvoodoo)
             SK_SetDLLRole (DLL_ROLE::D3D8);
           else if (config.apis.ddraw.hook && has_dgvoodoo)

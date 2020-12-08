@@ -375,13 +375,13 @@ SK_BootDI7 (void)
     // This whole thing is as smart as a sack of wet mice in DirectInput mode...
     //   let's get to the real work and start booting graphics APIs!
     //
-    static bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
+    static bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false, d3d12 = false,
                 dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
     SK_TestRenderImports (
       SK_GetModuleHandle (nullptr),
         &gl, &vulkan,
-          &d3d9, &dxgi, &d3d11,
+          &d3d9, &dxgi, &d3d11, &d3d12,
             &d3d8, &ddraw, &glide
     );
 
@@ -420,7 +420,13 @@ UNREFERENCED_PARAMETER (user);
     if (d3d11 || SK_GetModuleHandle (L"d3d11.dll"))
       SK_BootDXGI ();
 
-    // Alternate form (or D3D12, but we don't care about that right now)
+
+    // D3D12
+    //
+    if (d3d12 || SK_GetModuleHandle (L"d3d12.dll"))
+      SK_BootDXGI ();
+
+    // Alternate form (or D3D10, but we don't care about that right now)
     else if (dxgi || SK_GetModuleHandle (L"dxgi.dll"))
       SK_BootDXGI ();
 
@@ -606,11 +612,6 @@ __stdcall
 SK_HookDI7 (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
-
-  //if (! config.apis.di7.hook)
-  //{
-  //  return 0;
-  //}
 
   SK_AutoCOMInit auto_com;
   {

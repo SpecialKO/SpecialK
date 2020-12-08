@@ -638,7 +638,7 @@ SK_RawInput_PopulateDeviceList (void)
 
   assert (ret == -1);
 
-  SetLastError (dwLastError);
+  SK_SetLastError (dwLastError);
 
   if (uiNumDevices != 0 && ret == -1)
   {
@@ -694,7 +694,7 @@ NtUserGetRegisteredRawInputDevices_Detour (
   if (*puiNumDevices < gsl::narrow_cast <UINT> (raw_devices.size ()))
   {   *puiNumDevices = gsl::narrow_cast <UINT> (raw_devices.size ());
 
-    SetLastError (ERROR_INSUFFICIENT_BUFFER);
+    SK_SetLastError (ERROR_INSUFFICIENT_BUFFER);
 
     return std::numeric_limits <UINT>::max ();
   }
@@ -1014,7 +1014,13 @@ SK_ImGui_IsMouseRelevant (void)
   //   but we also have floating widgets that may capture mouse
   //     input.
   return config.input.mouse.disabled_to_game || SK_ImGui_Active () ||
-         ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow);
+         ImGui::IsWindowHovered (
+                    ImGuiHoveredFlags_AnyWindow                    |
+                    ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+                    ImGuiHoveredFlags_AllowWhenBlockedByPopup
+                                )                                  ||
+         ImGui::IsAnyItemActive  () || ImGui::IsAnyItemFocused ()  ||
+         ImGui::IsAnyItemHovered ();
       // ^^^ These are our floating widgets
 }
 
@@ -2344,8 +2350,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
   bool handled = false;
 
-  if ((! lpMsg) || (        game_window.hWnd != lpMsg->hwnd
-                || IsChild (game_window.hWnd,   lpMsg->hwnd)))
+  if ((! lpMsg) || IsChild (game_window.hWnd, lpMsg->hwnd))
   {
     return handled;
   }
@@ -2357,15 +2362,18 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       handled = true;
   }
 
-  if (SK_IsGameWindowActive ())
+  //if (SK_IsGameWindowActive ())
   {
     switch (lpMsg->message)
     {
       case WM_CHAR:
       case WM_MENUCHAR:
       {
-        return
-          SK_ImGui_WantTextCapture ();
+        if (game_window.active && game_window.hWnd == lpMsg->hwnd)
+        {
+          return
+            SK_ImGui_WantTextCapture ();
+        }
       } break;
 
 
@@ -2381,16 +2389,17 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       case WM_SYSKEYDOWN:
       {
         if ((SK_Console::getInstance ()->KeyDown (
-          lpMsg->wParam & 0xFF,
-          lpMsg->lParam)
-          && lpMsg->message != WM_SYSKEYDOWN) ||
-          SK_ImGui_WantKeyboardCapture ()
+                 lpMsg->wParam & 0xFF,
+                 lpMsg->lParam
+            ) && lpMsg->message != WM_SYSKEYDOWN)
+              ||
+            SK_ImGui_WantKeyboardCapture ()
           )
         {
-          if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message,
+          if (ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
                                     lpMsg->wParam, lpMsg->lParam))
           {
-            game_window.DefWindowProc (lpMsg->hwnd, lpMsg->message,
+            game_window.DefWindowProc (lpMsg->hwnd,   lpMsg->message,
                                        lpMsg->wParam, lpMsg->lParam);
             handled = true;
           }
@@ -2401,13 +2410,14 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       case WM_SYSKEYUP:
       {
         if ((SK_Console::getInstance ()->KeyUp (
-          lpMsg->wParam & 0xFF,
-          lpMsg->lParam)
-          && lpMsg->message != WM_SYSKEYUP) ||
-          SK_ImGui_WantKeyboardCapture ()
+                 lpMsg->wParam & 0xFF,
+                 lpMsg->lParam
+            ) && lpMsg->message != WM_SYSKEYUP)
+              ||
+            SK_ImGui_WantKeyboardCapture ()
           )
         {
-          if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message,
+          if (ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
                                     lpMsg->wParam, lpMsg->lParam))
           {
             //game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
@@ -2419,7 +2429,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
       case WM_SETCURSOR:
       {
-        if (SK_IsGameWindowActive ())
+        //if (SK_IsGameWindowActive ())
         {
           if (LOWORD (lpMsg->lParam) == HTCLIENT)
           {
@@ -2442,10 +2452,10 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       {
         bool mouse = false,
           keyboard = false,
-          gamepad = false;
+           gamepad = false;
 
-        auto& hWnd = lpMsg->hwnd;
-        auto& uMsg = lpMsg->message;
+        auto& hWnd   = lpMsg->hwnd;
+        auto& uMsg   = lpMsg->message;
         auto& wParam = lpMsg->wParam;
         auto& lParam = lpMsg->lParam;
 
@@ -2523,10 +2533,10 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
           const int height =
             game_window.game.window.bottom - game_window.game.window.top;
 
-          game_window.game.window.left = wnd_pos->x;
-          game_window.game.window.top = wnd_pos->y;
+          game_window.game.window.left   = wnd_pos->x;
+          game_window.game.window.top    = wnd_pos->y;
 
-          game_window.game.window.right = wnd_pos->x + width;
+          game_window.game.window.right  = wnd_pos->x + width;
           game_window.game.window.bottom = wnd_pos->y + height;
         }
 
@@ -2574,9 +2584,9 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
           //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
           if (config.window.offset.x.absolute ||
               config.window.offset.y.absolute ||
-              (config.window.offset.x.percent > 0.000001f ||
+              (config.window.offset.x.percent >  0.000001f  ||
                config.window.offset.x.percent < -0.000001f) ||
-              (config.window.offset.y.percent > 0.000001f ||
+              (config.window.offset.y.percent >  0.000001f  ||
                config.window.offset.y.percent < -0.000001f)
               )
           {
@@ -2593,7 +2603,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
             SK_GetClientRect (game_window.hWnd, &client);
 
-            config.window.res.override.x = client.right - client.left;
+            config.window.res.override.x = client.right  - client.left;
             config.window.res.override.y = client.bottom - client.top;
           }
 
@@ -2653,9 +2663,8 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         // Filter this message
         if (config.window.borderless && config.window.fullscreen)
         {
-          game_window.DefWindowProc (lpMsg->hwnd,
-                                     lpMsg->message, lpMsg->wParam,
-                                     lpMsg->lParam);
+          game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
+                                      lpMsg->wParam, lpMsg->lParam );
 
           return
             (handled = true);
@@ -2672,9 +2681,8 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         // Filter this message
         if (config.window.borderless && config.window.fullscreen)
         {
-          game_window.DefWindowProc (lpMsg->hwnd,
-                                     lpMsg->message, lpMsg->wParam,
-                                     lpMsg->lParam);
+          game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
+                                      lpMsg->wParam, lpMsg->lParam );
 
           return
             (handled = true);
@@ -2759,8 +2767,8 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {
-  bool bHasWin32u =
-      ( SK_GetProcAddress (L"win32u", "NtUserGetCursorInfo") != nullptr );
+  //bool bHasWin32u =
+  //    ( SK_GetProcAddress (L"win32u", "NtUserGetCursorInfo") != nullptr );
 
   //if (SK_GetProcAddress (L"Win32U", "NtUserGetRawInputData") != nullptr)
   //{

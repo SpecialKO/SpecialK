@@ -23,12 +23,23 @@
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
 #include <SpecialK/render/d3d11/d3d11_screenshot.h>
+#include <SpecialK/render/d3d12/d3d12_screenshot.h>
+
+
+SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::pooled;
+SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::completed;
 
 SK_ScreenshotQueue enqueued_screenshots { 0, 0, 0 };
 
 void SK_Screenshot_ProcessQueue ( SK_ScreenshotStage stage,
                             const SK_RenderBackend&  rb )
 {
+  if ( gsl::narrow_cast <int> (rb.api) &
+       gsl::narrow_cast <int> (SK_RenderAPI::D3D12) )
+  {
+    SK_D3D12_ProcessScreenshotQueue (stage);
+  }
+
   if ( gsl::narrow_cast <int> (rb.api) &
        gsl::narrow_cast <int> (SK_RenderAPI::D3D11) )
   {

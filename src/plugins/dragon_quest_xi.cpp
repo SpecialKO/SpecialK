@@ -168,7 +168,7 @@ bool __SK_DQXI_IgnoreExit = true;
 sk::ParameterBool* _SK_DQXI_AliasArrowsAndWASD;
 bool __SK_DQXI_AliasArrowsAndWASD = true;
 
-extern concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
+extern SK_LazyGlobal <concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s>> __SK_D3D11_PixelShader_CBuffer_Overrides;
 d3d11_shader_tracking_s::cbuffer_override_s* SK_DQXI_CB_Override;
 
 #define SK_DQXI_HDR_SECTION     L"DragonQuestXI.HDR"

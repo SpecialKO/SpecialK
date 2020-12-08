@@ -100,7 +100,7 @@ class SK_TLS;
 // Low-level construct, encapsulates a TLS slot's kernel index
 //   and a pointer to any allocated storage.
 struct SK_TlsRecord {
-  DWORD   dwTlsIdx;
+  DWORD   dwTlsIdx = std::numeric_limits <DWORD>::max ();
   SK_TLS *pTLS;
 };
 
@@ -390,7 +390,7 @@ public:
   UINT                               StencilRefOrig           = 0;
   UINT                               StencilRefNew            = 0;
 
-  SK_D3D11_Stateblock_Lite*          stateBlock;
+  SK_D3D11_Stateblock_Lite*          stateBlock               = nullptr;
   size_t                             stateBlockSize           = 0;
 
   // Sampler to share between ImGui and CEGUI

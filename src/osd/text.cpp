@@ -551,11 +551,11 @@ SK_LazyGlobal <std::string> external_osd_name;
 
 BOOL
 __stdcall
-SK_DrawExternalOSD (std::string app_name, std::string text)
+SK_DrawExternalOSD (std::string osd_app_name, std::string text)
 {
-  external_osd_name.get () = app_name;
+  external_osd_name.get () = osd_app_name;
 
-  SK_UpdateOSD (text.c_str (), nullptr, app_name.c_str ());
+  SK_UpdateOSD (text.c_str (), nullptr, osd_app_name.c_str ());
 
   return TRUE;
 }
@@ -708,15 +708,19 @@ SK_DrawOSD (void)
     }
   }
 
-  if (config.fps.show)
-  {
-    static auto& rb =
-      SK_GetCurrentRenderBackend ();
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
 
-    auto *pLimiter =
-      SK::Framerate::GetLimiter (
-        rb.swapchain.p
-      );
+  // Delay this a few frames so we do not create multiple framerate limiters
+  //
+  //  * Each SwapChain gets one, and some games have temporary init-only SwapChains...
+  //
+  auto *pLimiter = config.fps.show ?
+    SK::Framerate::GetLimiter (
+      rb.swapchain.p, false   )    : nullptr;
+
+  if (pLimiter != nullptr)
+  {
 
     const double mean    = pLimiter->frame_history->calcMean     ();
     const double sd      = pLimiter->frame_history->calcSqStdDev (mean);

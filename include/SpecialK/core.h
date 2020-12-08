@@ -53,7 +53,7 @@ enum class SK_RenderAPI
   Glide     = 0x8000u,
 
   // Wrapped APIs (D3D12 Flavor)
-  D3D11On12 = 0x00C0u,
+//D3D11On12 = 0x00C0u,
 
   // Wrapped APIs (D3D11 Flavor)
   D3D8On11  = 0x2040u,

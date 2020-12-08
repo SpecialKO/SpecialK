@@ -117,16 +117,15 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
     }
   };
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   bool early_out =
     ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ) || rb.api == SK_RenderAPI::D3D12; // Ignore D3D11On12 overlays
 
   if (early_out)
     return _Finish ();
-
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   bool implicit_track = false;
 
@@ -363,6 +362,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
 
   return
     _Finish ();
+
 }
 
 #if 0
@@ -1440,16 +1440,44 @@ EnumConstantBuffer ( ID3D11ShaderReflectionConstantBuffer* pConstantBuffer,
               cbuffer.structs.emplace_back (this_struct);
             }
 
-            else
+            else if (var.type_desc.Class < D3D_SVC_OBJECT)
             {
-              if (var.var_desc.DefaultValue != nullptr)
-              {
-                memcpy ( (void *)var.default_value,
-                                 var.var_desc.DefaultValue,
-                         std::min (128 * sizeof (float), (size_t)var.var_desc.Size) );
-              }
+              ////auto orig_se =
+              ////  SK_SEH_ApplyTranslator (
+              ////    SK_FilteringStructuredExceptionTranslator (
+              ////      EXCEPTION_ACCESS_VIOLATION
+              ////    )
+              ////  );
+              ////
+              ////// Disassembler sometimes has dangling pointers ... WTF?!
+              ////try
+              ////{
+              ////  memset ( (void *)var.default_value, 0, sizeof (var.default_value) );
+              ////
+              ////  if (var.var_desc.DefaultValue != nullptr && SK_ValidatePointer (var.var_desc.DefaultValue))
+              ////  {
+              ////    memcpy ( (void *)var.default_value,
+              ////                     var.var_desc.DefaultValue,
+              ////  std::min ( sizeof (var.default_value),
+              ////             (size_t)var.var_desc.Size) );
+              ////  }
+              ////}
+              ////
+              ////catch (const SK_SEH_IgnoredException&)
+              ////{
+              ////  dll_log->Log ( L" -> Dangling Pointer for Variable Default Value: '%hs'",
+              ////                   var.var_desc.Name );
+              ////}
+              ////SK_SEH_RemoveTranslator (orig_se);
 
               unnamed_struct.first.emplace_back (var);
+            }
+
+            else
+            {
+              dll_log->Log ( L" -> Unexpected Shader Type Class: '%lu', for Variable '%hs'",
+                            static_cast <UINT> (var.type_desc.Class),
+                                                var.var_desc.Name );
             }
           }
         }
@@ -1650,7 +1678,7 @@ SK_D3D11_MakeDrawableCopy ( ID3D11Device              *pDevice,
       drawable_desc.CPUAccessFlags     = 0x0;
       drawable_desc.Format             =
         SK_DXGI_MakeTypedFormat (tex_desc.Format);
-      drawable_desc.MipLevels          = 0;
+      drawable_desc.MipLevels          = 1;
       drawable_desc.MiscFlags          = 0;
 
     // We're about to create a temporary texture that Special K would

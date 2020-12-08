@@ -564,7 +564,6 @@ NtWaitForSingleObject_Detour (
   }
 
   auto ret =
-    Handle == nullptr ? STATUS_SUCCESS :
     NtWaitForSingleObject_Original (
       Handle, Alertable, Timeout
     );
@@ -1283,7 +1282,18 @@ void SK_Scheduler_Init (void)
                              NtSetTimerResolution_Detour,
     static_cast_p2p <void> (&NtSetTimerResolution_Original) );
 
-  InterlockedExchange (&__sleep_init, 1);
+  if (! InterlockedCompareExchange (&__sleep_init, 1, 0))
+  {
+    SK_ICommandProcessor* pCommandProc =
+      SK_GetCommandProcessor ();
+
+
+    pCommandProc->AddVariable ( "Render.FrameRate.SleeplessRenderThread",
+            new SK_IVarStub <bool> (&config.render.framerate.sleepless_render));
+
+    pCommandProc->AddVariable ( "Render.FrameRate.SleeplessWindowThread",
+            new SK_IVarStub <bool> (&config.render.framerate.sleepless_window));
+  }
 
 #ifdef NO_HOOK_QPC
   QueryPerformanceCounter_Original =

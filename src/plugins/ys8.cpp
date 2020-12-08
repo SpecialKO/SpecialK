@@ -1679,12 +1679,6 @@ SK_YS8_InitPlugin (void)
         static_cast_p2p <void> (&_D3D11_CopyResource_Original) );
   MH_QueueEnableHook (            D3D11_CopyResource_Override  );
 
-  SK_CreateFuncHook (       L"ID3D11Device::CreateTexture2D",
-                               D3D11Dev_CreateTexture2D_Override,
-                                 SK_YS8_CreateTexture2D,
-     static_cast_p2p <void> (&_D3D11Dev_CreateTexture2D_Original) );
-  MH_QueueEnableHook (         D3D11Dev_CreateTexture2D_Override  );
-
   //SK_CreateFuncHook (       L"ID3D11Device::CreateShaderResourceView",
   //                             D3D11Dev_CreateShaderResourceView_Override,
   //                               SK_YS8_CreateShaderResourceView,

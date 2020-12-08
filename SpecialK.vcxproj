@@ -132,7 +132,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;NOMINMAX;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WINBLUE;NOMINMAX;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS</PreprocessorDefinitions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -171,7 +171,6 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
@@ -226,7 +225,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;NOMINMAX;_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WINBLUE;NOMINMAX;_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -259,7 +258,6 @@
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <BrowseInformation>true</BrowseInformation>
-      <SupportJustMyCode>false</SupportJustMyCode>
       <ConformanceMode>false</ConformanceMode>
       <ExpandAttributedSource>true</ExpandAttributedSource>
       <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
@@ -269,6 +267,7 @@
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -324,7 +323,7 @@
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;SK_BUILD_DLL=1;SK_EXPORTS;NOMINMAX;_UNICODE;UNICODE;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;NOMINMAX;_UNICODE;UNICODE;WIN32;NDEBUG;LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;SK_BUILD_DLL=1;SK_EXPORTS;_USRDLL;_WINDOWS;DIRECTINPUT_VERSION=0x0800;GLEW_STATIC;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WINBLUE;SK_BUILD_DLL=1;SK_EXPORTS;NOMINMAX;_UNICODE;UNICODE;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;NOMINMAX;_UNICODE;UNICODE;WIN32;NDEBUG;LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;SK_BUILD_DLL=1;SK_EXPORTS;_USRDLL;_WINDOWS;DIRECTINPUT_VERSION=0x0800;GLEW_STATIC;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
@@ -358,7 +357,6 @@
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
-      <SupportJustMyCode>false</SupportJustMyCode>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <ConformanceMode>false</ConformanceMode>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
@@ -427,7 +425,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;SK_BUILD_DLL=1;SK_EXPORTS;NOMINMAX;_UNICODE;UNICODE;_WIN64;WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;SK_BUILD_DLL=1;SK_EXPORTS;_USRDLL;_WINDOWS;DIRECTINPUT_VERSION=0x0800;GLEW_STATIC;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WINBLUE;SK_BUILD_DLL=1;SK_EXPORTS;NOMINMAX;_UNICODE;UNICODE;_WIN64;WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;SK_BUILD_DLL=1;SK_EXPORTS;_USRDLL;_WINDOWS;DIRECTINPUT_VERSION=0x0800;GLEW_STATIC;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -453,16 +451,16 @@
       <OpenMPSupport>false</OpenMPSupport>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <EnablePREfast>false</EnablePREfast>
       <ShowIncludes>false</ShowIncludes>
-      <SupportJustMyCode>true</SupportJustMyCode>
       <EnableModules>false</EnableModules>
       <ConformanceMode>false</ConformanceMode>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1398,6 +1396,15 @@
     <ClInclude Include="depends\include\WinRing0\stdafx.h" />
     <ClInclude Include="depends\include\WinRing0\vxd\OpenLS.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d12.h" />
+    <ClInclude Include="include\shaders\imgui_d3d11_ps.h" />
+    <ClInclude Include="include\shaders\imgui_d3d11_vs.h" />
+    <ClInclude Include="include\shaders\sRGB_codec_ps.h" />
+    <ClInclude Include="include\shaders\steam_d3d11_ps.h" />
+    <ClInclude Include="include\shaders\steam_d3d11_vs.h" />
+    <ClInclude Include="include\shaders\uber_hdr_shader_ps.h" />
+    <ClInclude Include="include\shaders\uplay_d3d11_ps.h" />
+    <ClInclude Include="include\shaders\uplay_d3d11_vs.h" />
+    <ClInclude Include="include\shaders\vs_colorutil.h" />
     <ClInclude Include="include\SpecialK\ansel.h" />
     <ClInclude Include="include\SpecialK\compatibility\game_traits.h" />
     <ClInclude Include="include\SpecialK\com_util.h" />
@@ -1444,6 +1451,7 @@
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_state_tracker.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\utility\d3d11_texture.h" />
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_interfaces.h" />
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_screenshot.h" />
     <ClInclude Include="include\SpecialK\render\d3d8\d3d8_backend.h" />
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_screenshot.h" />
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h" />
@@ -1452,10 +1460,10 @@
     <ClInclude Include="include\SpecialK\diagnostics\compatibility.h" />
     <ClInclude Include="include\SpecialK\diagnostics\crash_handler.h" />
     <ClInclude Include="include\SpecialK\diagnostics\debug_utils.h" />
-    <ClInclude Include="include\SpecialK\render\dxgi\dxgi1_5.h" />
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_interfaces.h" />
+    <ClInclude Include="include\SpecialK\render\dxgi\_dxgi1_5.h" />
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_backend.h" />
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_hdr.h" />
-    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_interfaces.h" />
     <ClInclude Include="include\SpecialK\framerate.h" />
     <ClInclude Include="include\SpecialK\performance\gpu_monitor.h" />
     <ClInclude Include="include\SpecialK\hooks.h" />
@@ -1531,6 +1539,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\plugins\ac_valhalla.cpp" />
     <ClCompile Include="src\plugins\dragon_quest_xi.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1574,6 +1583,7 @@
     <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp" />
     <ClCompile Include="src\render\d3d11\utility\d3d11_map.cpp" />
     <ClCompile Include="src\render\d3d11\utility\pipeline_stats.cpp" />
+    <ClCompile Include="src\render\d3d12\d3d12_screenshot.cpp" />
     <ClCompile Include="src\render\d3d9\d3d9_screenshot.cpp" />
     <ClCompile Include="src\render\dxgi\dxgi_util.cpp" />
     <ClCompile Include="src\render\screenshot.cpp" />
@@ -2175,10 +2185,37 @@
     <FxCompile Include="resource\shaders\cs_histogram.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">LocalHistogramWorker</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">LocalHistogramWorker</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">LocalHistogramWorker</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">LocalHistogramWorker</EntryPointName>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</DisableOptimizations>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</EnableDebuggingInformation>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DisableOptimizations>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\cs_luminance_analysis.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.1</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">histogramCS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">histogramCS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">histogramCS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">histogramCS</EntryPointName>
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\HDR10\Rec2020_PQ_10bit-fixed.hlsl">
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
@@ -2254,7 +2291,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">uber_hdr_shader_ps_bytecode</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\include\shaders\%(Filename).h</HeaderFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -2263,6 +2299,18 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)\include\shaders\%(Filename).h</HeaderFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</DisableOptimizations>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <AllResourcesBound Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</AllResourcesBound>
+      <AllResourcesBound Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</AllResourcesBound>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DisableOptimizations>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</EnableDebuggingInformation>
+      <AllResourcesBound Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</AllResourcesBound>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnableDebuggingInformation>
+      <AllResourcesBound Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</AllResourcesBound>
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\vs_colorutil.hlsl">
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnableDebuggingInformation>
@@ -2329,6 +2377,32 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(DefiningProjectDirectory)\include\shaders\imgui_d3d11_vs.h</HeaderFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\sRGB_codec_ps.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)_bytecode</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)_bytecode</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\include\shaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ObjectFileOutput>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)\include\shaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\include\shaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ObjectFileOutput>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)\include\shaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)_bytecode</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)_bytecode</VariableName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="resource\shaders\steam_d3d11_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>

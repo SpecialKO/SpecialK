@@ -306,11 +306,12 @@ SK_Bypass_CRT (LPVOID)
        dxgi   = false,
        ddraw  = false,
        d3d11  = false,
+       d3d12  = false,
        glide  = false;
 
-  SK_TestRenderImports (__SK_hModHost, &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
+  SK_TestRenderImports (__SK_hModHost, &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d12, &d3d8, &ddraw, &glide);
 
-  const bool no_imports = !(gl || vulkan || d3d9 || d3d8 || ddraw || d3d11 || glide);
+  const bool no_imports = !(gl || vulkan || d3d9 || d3d8 || ddraw || d3d11 || d3d12 || glide);
 
   auto dgVoodoo_Check = [](void) ->
     bool
@@ -344,10 +345,6 @@ SK_Bypass_CRT (LPVOID)
   {
     switch (static_cast <SK_RenderAPI> (config.apis.last_known))
     {
-      case SK_RenderAPI::D3D11On12:
-        wszAPI = L"d3d12";
-        SK_SetDLLRole (DLL_ROLE::D3D12);
-        break;
       case SK_RenderAPI::D3D8:
       case SK_RenderAPI::D3D8On11:
         wszAPI = L"d3d8";

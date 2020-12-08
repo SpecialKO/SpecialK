@@ -89,7 +89,7 @@ struct SK_PluginRegistry
 extern SK_LazyGlobal <SK_PluginRegistry> plugin_mgr;
 
 #include <Windows.h>
-#include <render/dxgi/dxgi_interfaces.h>
+#include <render/dxgi/dxgi_backend.h>
 
 
 // As a general rule, plug-ins are only _built-in_ to the 64-bit DLL

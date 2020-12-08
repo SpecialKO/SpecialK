@@ -34,7 +34,7 @@
 //   Returns true if this is a valid way of (re)interpreting a sized datatype
 bool
 SK_DXGI_IsDataSizeClassOf ( DXGI_FORMAT typeless, DXGI_FORMAT typed,
-                            int         recursion = 0 )
+                            int         recursion )
 {
   switch (typeless)
   {
@@ -673,4 +673,329 @@ SK_DXGI_FormatToStr (DXGI_FORMAT fmt) noexcept
 
     default:                                     return L"UNKNOWN";
   }
+}
+
+#include <shaders/sRGB_codec_ps.h>
+#include <shaders/vs_colorutil.h>
+
+struct SK_DXGI_sRGBCoDec {
+  struct params_cbuffer_s {
+    BOOL passthrough;
+    BOOL apply;
+    BOOL strip;
+    BOOL padding;
+  } params;
+
+  ID3D11InputLayout*            pInputLayout = nullptr;
+  ID3D11Buffer*                  pSRGBParams = nullptr;
+
+  ID3D11SamplerState*              pSampler  = nullptr;
+
+  ID3D11ShaderResourceView*   pBackbufferSrv = nullptr;
+  ID3D11RenderTargetView*     pBackbufferRtv = nullptr;
+
+  ID3D11RasterizerState*        pRasterState = nullptr;
+  ID3D11DepthStencilState*          pDSState = nullptr;
+
+  ID3D11BlendState*             pBlendState  = nullptr;
+
+  SK_D3D11_Stateblock_Lite*               sb = nullptr;
+
+  SK::DXGI::ShaderBase <ID3D11PixelShader>  PixelShader_sRGB_NoMore;
+  SK::DXGI::ShaderBase <ID3D11VertexShader> VertexShader_Util;
+
+  void releaseResources (void)
+  {
+    if (pSampler       != nullptr) { pSampler->Release       (); pSampler       = nullptr; }
+
+    if (pBackbufferSrv != nullptr) { pBackbufferSrv->Release (); pBackbufferSrv = nullptr; }
+    if (pBackbufferRtv != nullptr) { pBackbufferRtv->Release (); pBackbufferRtv = nullptr; }
+
+    if (pRasterState   != nullptr) { pRasterState->Release   (); pRasterState   = nullptr; }
+    if (pDSState       != nullptr) { pDSState->Release       ();     pDSState   = nullptr; }
+
+    if (pSRGBParams    != nullptr) { pSRGBParams->Release    (); pSRGBParams    = nullptr; }
+    if (pBlendState    != nullptr) { pBlendState->Release    (); pBlendState    = nullptr; }
+    if (pInputLayout   != nullptr) { pInputLayout->Release   (); pInputLayout   = nullptr; }
+
+    PixelShader_sRGB_NoMore.releaseResources ();
+    VertexShader_Util.releaseResources       ();
+  }
+
+  bool
+  recompileShaders (void)
+  {
+    std::wstring debug_shader_dir = SK_GetConfigPath ();
+                 debug_shader_dir +=
+            LR"(SK_Res\Debug\shaders\)";
+
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    SK_ComQIPtr <ID3D11Device> pDev (rb.device);
+
+    bool ret =
+      pDev->CreatePixelShader ( sRGB_codec_ps_bytecode,
+                        sizeof (sRGB_codec_ps_bytecode),
+             nullptr, &PixelShader_sRGB_NoMore.shader ) == S_OK;
+    ret &=
+      pDev->CreateVertexShader ( colorutil_vs_bytecode,
+                         sizeof (colorutil_vs_bytecode),
+            nullptr, &VertexShader_Util.shader ) == S_OK;
+
+    return ret;
+  }
+
+  void
+  reloadResources (void)
+  {
+    releaseResources ();
+
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
+    SK_ComQIPtr <ID3D11Device>        pDev       (rb.device);
+    SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+
+    if (pDev != nullptr)
+    {
+      if (! recompileShaders ())
+        return;
+
+      if ( pBackbufferSrv == nullptr &&
+               pSwapChain != nullptr )
+      {
+        DXGI_SWAP_CHAIN_DESC swapDesc = { };
+        D3D11_TEXTURE2D_DESC desc     = { };
+
+        pSwapChain->GetDesc (&swapDesc);
+
+        desc.Width              = swapDesc.BufferDesc.Width;
+        desc.Height             = swapDesc.BufferDesc.Height;
+        desc.MipLevels          = 1;
+        desc.ArraySize          = 1;
+        desc.Format             = swapDesc.BufferDesc.Format;
+        desc.SampleDesc.Count   = 1;
+        desc.SampleDesc.Quality = 0;
+        desc.Usage              = D3D11_USAGE_DEFAULT;
+        desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
+        desc.CPUAccessFlags     = 0x0;
+        desc.MiscFlags          = 0x0;
+
+        SK_ComPtr <ID3D11Texture2D> pSRGBTexture;
+
+        pDev->CreateTexture2D          (&desc,        nullptr, &pSRGBTexture);
+        pDev->CreateShaderResourceView (pSRGBTexture, nullptr, &pBackbufferSrv);
+
+        D3D11_INPUT_ELEMENT_DESC local_layout [] = {
+          { "", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        };
+
+        pDev->CreateInputLayout ( local_layout, 1,
+                                    (DWORD *)(colorutil_vs_bytecode),
+                                      sizeof (colorutil_vs_bytecode) /
+                                      sizeof (colorutil_vs_bytecode [0]),
+                                        &pInputLayout );
+
+        D3D11_SAMPLER_DESC
+          sampler_desc                    = { };
+
+          sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+          sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_WRAP;
+          sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_WRAP;
+          sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_WRAP;
+          sampler_desc.MipLODBias         = 0.f;
+          sampler_desc.MaxAnisotropy      =   1;
+          sampler_desc.ComparisonFunc     =  D3D11_COMPARISON_NEVER;
+          sampler_desc.MinLOD             = -D3D11_FLOAT32_MAX;
+          sampler_desc.MaxLOD             =  D3D11_FLOAT32_MAX;
+
+        pDev->CreateSamplerState ( &sampler_desc,
+                                              &pSampler );
+
+        D3D11_BLEND_DESC
+        blend_desc                                        = { };
+        blend_desc.AlphaToCoverageEnable                  = false;
+        blend_desc.RenderTarget [0].BlendEnable           = false;
+        blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+        pDev->CreateBlendState ( &blend_desc,
+                                   &pBlendState );
+      }
+
+      D3D11_BUFFER_DESC desc = { };
+
+      desc.ByteWidth         = sizeof (params_cbuffer_s);
+      desc.Usage             = D3D11_USAGE_DYNAMIC;
+      desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
+      desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
+      desc.MiscFlags         = 0;
+
+      pDev->CreateBuffer (&desc, nullptr, &pSRGBParams);
+    }
+  }
+};
+
+SK_LazyGlobal <SK_DXGI_sRGBCoDec> srgb_codec;
+
+void
+SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext*       pImmediateContext,
+                             SK_D3D11_Stateblock_Lite** pSB );
+void
+SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
+                           ID3D11DeviceContext*      pDevCtx );
+
+void
+SK_DXGI_ReleaseSRGBLinearizer (void)
+{
+  srgb_codec->releaseResources ();
+}
+
+bool
+SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_ComQIPtr <IDXGISwapChain>      pSwapChain (pChainThatUsedToBeSRGB);// rb.swapchain);
+  SK_ComQIPtr <ID3D11Device>        pDev       (rb.device);
+  SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+
+  if (! pDevCtx)
+    return false;
+
+  auto& vs_hdr_util  = srgb_codec->VertexShader_Util;
+  auto& ps_hdr_scrgb = srgb_codec->PixelShader_sRGB_NoMore;
+
+  if ( vs_hdr_util.shader  == nullptr ||
+       ps_hdr_scrgb.shader == nullptr    )
+  {
+    srgb_codec->reloadResources ();
+  }
+
+  SK_ComPtr <ID3D11Resource> pSrc = nullptr;
+  SK_ComPtr <ID3D11Resource> pDst = nullptr;
+  DXGI_SWAP_CHAIN_DESC   swapDesc = { };
+
+  if (pSwapChain != nullptr)
+  {
+    pSwapChain->GetDesc (&swapDesc);
+
+    if ( SUCCEEDED (
+           pSwapChain->GetBuffer    (
+             0,
+               IID_ID3D11Texture2D,
+                 (void **)&pSrc.p  )
+                   )
+       )
+    {
+      srgb_codec->pBackbufferSrv->GetResource ( &pDst.p );
+                        pDevCtx->CopyResource (  pDst, pSrc );
+    }
+  }
+
+  SK_D3D11_CaptureStateBlock (pDevCtx, &srgb_codec->sb);
+
+  D3D11_MAPPED_SUBRESOURCE mapped_resource  = { };
+
+  if ( SUCCEEDED (
+         pDevCtx->Map ( srgb_codec->pSRGBParams,
+                          0, D3D11_MAP_WRITE_DISCARD, 0,
+                             &mapped_resource )
+                 )
+     )
+  {
+    srgb_codec->params.passthrough = config.render.dxgi.srgb_behavior == -1;
+    srgb_codec->params.apply       = config.render.dxgi.srgb_behavior ==  1;
+    srgb_codec->params.strip       = config.render.dxgi.srgb_behavior ==  0;
+
+    _ReadWriteBarrier ();
+
+    memcpy (          static_cast <SK_DXGI_sRGBCoDec::params_cbuffer_s *> (mapped_resource.pData),
+       &srgb_codec->params, sizeof SK_DXGI_sRGBCoDec::params_cbuffer_s );
+
+    pDevCtx->Unmap (srgb_codec->pSRGBParams, 0);
+  }
+
+  D3D11_PRIMITIVE_TOPOLOGY       OrigPrimTop;
+  SK_ComPtr <ID3D11VertexShader> pVS_Orig;
+  SK_ComPtr <ID3D11PixelShader>  pPS_Orig;
+  SK_ComPtr <ID3D11BlendState>   pBlendState_Orig;
+                            UINT uiOrigBlendMask;
+                           FLOAT fOrigBlendFactors [4] = { };
+  SK_ComPtr <ID3D11Buffer>       pConstantBufferPS_Orig;
+
+  pDevCtx->PSGetConstantBuffers (0,                                   1, &pConstantBufferPS_Orig.p);
+  pDevCtx->OMGetBlendState      (&pBlendState_Orig.p, fOrigBlendFactors,          &uiOrigBlendMask);
+  pDevCtx->VSGetShader          (&pVS_Orig.p,                   nullptr,                   nullptr);
+  pDevCtx->PSGetShader          (&pPS_Orig.p,                   nullptr,                   nullptr);
+
+  SK_ComPtr <ID3D11ShaderResourceView> pOrigResources [1] = {                            };
+  SK_ComPtr <ID3D11ShaderResourceView> pResources     [1] = { srgb_codec->pBackbufferSrv };
+
+  D3D11_RENDER_TARGET_VIEW_DESC rtdesc               = {                           };
+                                rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+                                rtdesc.Format        = DirectX::MakeSRGB (swapDesc.BufferDesc.Format);
+
+  pDevCtx->PSGetShaderResources   (0, 1, &pOrigResources [0].p);
+
+  pDevCtx->IAGetPrimitiveTopology (&OrigPrimTop);
+  pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+  pDevCtx->IASetVertexBuffers     (0, 0, nullptr, nullptr, nullptr);
+  pDevCtx->IASetInputLayout       (srgb_codec->pInputLayout);
+  pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
+
+  static const FLOAT                      fBlendFactor [4] =
+                                    { 0.0f, 0.0f, 0.0f, 0.0f };
+  pDevCtx->OMSetBlendState      (srgb_codec->pBlendState,
+                                          fBlendFactor,           0xFFFFFFFF);
+
+  pDevCtx->VSSetShader          (srgb_codec->VertexShader_Util.shader,       nullptr, 0);
+  pDevCtx->PSSetShader          (srgb_codec->PixelShader_sRGB_NoMore.shader, nullptr, 0);
+  pDevCtx->PSSetConstantBuffers (0,            1,     &srgb_codec->pSRGBParams);
+
+  SK_ComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
+
+  if ( SUCCEEDED (
+         pDev->CreateRenderTargetView ( pSrc, &rtdesc,
+                                  &pRenderTargetView.p )
+       )
+     )
+  {
+    pDevCtx->RSSetScissorRects        (0, nullptr);
+    pDevCtx->RSSetState               (nullptr   );
+    pDevCtx->OMSetDepthStencilState   (nullptr, 0);
+
+    pDevCtx->OMSetRenderTargets  ( 1,
+                                    &pRenderTargetView.p,
+                                       nullptr );
+
+    pDevCtx->PSSetShaderResources (0,                         1,          &pResources [0].p);
+    pDevCtx->PSSetSamplers        (0, 1, &srgb_codec->pSampler);
+
+    pDevCtx->HSSetShader  (nullptr, nullptr, 0);
+    pDevCtx->DSSetShader  (nullptr, nullptr, 0);
+    pDevCtx->GSSetShader  (nullptr, nullptr, 0);
+    pDevCtx->SOSetTargets (0, nullptr, nullptr);
+
+    pDevCtx->Draw (4, 0);
+
+    pDevCtx->PSSetShaderResources   (0,                       1,          &pOrigResources [0].p);
+    pDevCtx->IASetPrimitiveTopology (OrigPrimTop);
+    pDevCtx->PSSetShader            (pPS_Orig,         nullptr,           0);
+    pDevCtx->VSSetShader            (pVS_Orig,         nullptr,           0);
+    pDevCtx->PSSetConstantBuffers   (0,                       1,          &pConstantBufferPS_Orig.p);
+    pDevCtx->OMSetBlendState        (pBlendState_Orig, fOrigBlendFactors, uiOrigBlendMask);
+  }
+
+  SK_D3D11_ApplyStateBlock (srgb_codec->sb, pDevCtx);
+
+  return true;
 }

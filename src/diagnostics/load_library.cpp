@@ -701,7 +701,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
     catch (const SK_SEH_IgnoredException&)
     {
-      SetLastError (0);
+      SK_SetLastError (0);
     }
     SK_SEH_RemoveTranslator (orig_se);
 
@@ -755,7 +755,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     return hMod;
   }
 
-  SetLastError (ERROR_MOD_NOT_FOUND);
+  SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
   return nullptr;
 }
@@ -848,7 +848,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
   }
   catch (const SK_SEH_IgnoredException&)
   {
-    SetLastError (0);
+    SK_SetLastError (0);
   }
   SK_SEH_RemoveTranslator (orig_se);
 
@@ -937,7 +937,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   }
   catch (const SK_SEH_IgnoredException&)
   {
-    SetLastError (0);
+    SK_SetLastError (0);
   }
   SK_SEH_RemoveTranslator (orig_se);
 
@@ -1155,7 +1155,7 @@ SK_ReHookLoadLibrary (void)
 
   extern volatile LONG __SK_Init;
 
-  if (ReadAcquire (&__SK_Init) > 0)
+//if (ReadAcquire (&__SK_Init) > 0)
   {
     SK_ApplyQueuedHooks ();
   } SK_UnlockDllLoader  ();
@@ -1538,15 +1538,15 @@ SK_BootModule (const wchar_t* wszModName)
   {
     bool gl    = false, vulkan = false,
          d3d9  = false,
-         dxgi  = false, d3d11  = false,
+         dxgi  = false, d3d11  = false, d3d12 = false,
          d3d8  = false, ddraw  = false,
          glide = false;
 
     SK_TestRenderImports (
       SK_GetModuleHandleW (wszModName),
         &gl,    &vulkan, &d3d9,
-        &dxgi,  &d3d11,  &d3d8,
-        &ddraw, &glide
+        &dxgi,  &d3d11,  &d3d12,
+        &d3d8,  &ddraw,  &glide
     );
 
 #ifdef _M_IX86
@@ -1555,7 +1555,7 @@ SK_BootModule (const wchar_t* wszModName)
     if (d3d8)
       SK_BootD3D8  ();
 #endif
-    if (dxgi)
+    if (dxgi || d3d11 || d3d12)
       SK_BootDXGI ();
     if (d3d9)
       SK_BootD3D9 ();
@@ -1931,6 +1931,11 @@ SK_PreInitLoadLibrary (void)
 
   void SK_SymSetOpts (void);
        SK_SymSetOpts (    );
+
+  void SK_HookEngine_HookGetProcAddress (void);
+       SK_HookEngine_HookGetProcAddress ();
+
+  SK_InitCompatBlacklist    ();
 
   ///FreeLibrary_Original    = nullptr;
   ///LoadLibraryA_Original   = nullptr;

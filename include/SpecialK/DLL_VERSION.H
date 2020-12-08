@@ -3,9 +3,9 @@
 
 #define SK_MAJOR 0
 #define SK_MINOR 11
-#define SK_BUILD 0
-#define SK_REV_N 50
-#define SK_REV   50
+#define SK_BUILD 1
+#define SK_REV_N 0
+#define SK_REV   0
 
 
 #define _A2(a)     #a

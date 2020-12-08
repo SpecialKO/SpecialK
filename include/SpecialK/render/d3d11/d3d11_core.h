@@ -21,7 +21,6 @@
 
 #pragma once
 
-struct IUnknown;
 #include <Unknwnbase.h>
 #include <Windows.h>
 #include <Wincodec.h>
@@ -186,6 +185,16 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            ID3D11Device         **ppDevice,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext);
+
+__declspec (noinline)
+HRESULT
+WINAPI
+D3D11CoreCreateDevice_Detour ( IDXGIFactory*       pFactory,
+                               IDXGIAdapter*       pAdapter,
+                               UINT                Flags,
+                         const D3D_FEATURE_LEVEL*  pFeatureLevels,
+                               UINT                FeatureLevels,
+                               ID3D11Device**      ppDevice );
 
 
 // The device context a command list was built using
@@ -1339,7 +1348,16 @@ typedef HRESULT (WINAPI *D3D11CreateDeviceAndSwapChain_pfn)(
   _Out_opt_                            D3D_FEATURE_LEVEL*,
   _Out_opt_                            ID3D11DeviceContext**);
 
+typedef HRESULT (WINAPI *D3D11CoreCreateDevice_pfn)(
+          IDXGIFactory*       pFactory,
+          IDXGIAdapter*       pAdapter,
+          UINT                Flags,
+    const D3D_FEATURE_LEVEL*  pFeatureLevels,
+          UINT                FeatureLevels,
+          ID3D11Device**      ppDevice);
+
 extern D3D11CreateDevice_pfn             D3D11CreateDevice_Import;
+extern D3D11CoreCreateDevice_pfn         D3D11CoreCreateDevice_Import;
 extern D3D11CreateDeviceAndSwapChain_pfn D3D11CreateDeviceAndSwapChain_Import;
 
 extern          ID3D11Device*         g_pD3D11Dev;
@@ -1390,9 +1408,9 @@ struct SK_TimerQueryD3D11
 };
 
 struct d3d11_shader_resource_views_s {
-  uint32_t                  shader    [SK_D3D11_MAX_DEV_CONTEXTS+1]      =   { }  ;
-  ID3D11ShaderResourceView* views     [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
-  ID3D11ShaderResourceView* tmp_views [SK_D3D11_MAX_DEV_CONTEXTS+1][128] = { { } };
+  uint32_t                  shader    [SK_D3D11_MAX_DEV_CONTEXTS+1]     =   { }  ;
+  ID3D11ShaderResourceView* views     [SK_D3D11_MAX_DEV_CONTEXTS+1][64] = { { } };
+  ID3D11ShaderResourceView* tmp_views [SK_D3D11_MAX_DEV_CONTEXTS+1][64] = { { } };
   // Avoid allocating memory on the heap/stack when we have to manipulate an array
   //   large enough to store all D3D11 Shader Resource Views.
 };
@@ -1963,6 +1981,31 @@ SK_D3D11_UnRegisterHUDShader ( uint32_t         bytecode_crc32c,
                                std::type_index  (
                                          typeid ( ID3D11VertexShader )
                                                 )                    );
+
+struct sk_hook_d3d11_t {
+ ID3D11Device**        ppDevice;
+ ID3D11DeviceContext** ppImmediateContext;
+};
+
+struct SK_D3D11_TexCacheResidency_s
+{
+  struct
+  {
+    volatile LONG InVRAM   = 0;
+    volatile LONG Shared   = 0;
+    volatile LONG PagedOut = 0;
+  } count;
+
+  struct
+  {
+    volatile LONG64 InVRAM   = 0;
+    volatile LONG64 Shared   = 0;
+    volatile LONG64 PagedOut = 0;
+  } size;
+};
+
+extern SK_LazyGlobal <SK_D3D11_TexCacheResidency_s> SK_D3D11_TexCacheResidency;
+
 
 DWORD
 __stdcall

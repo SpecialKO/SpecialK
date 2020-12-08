@@ -3823,7 +3823,8 @@ SteamAPI_PumpThread (LPVOID user)
 
   if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
        SK_GetCurrentGameID () == SK_GAME_ID::JustCause3         ||
-       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 )
+       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2      ||
+       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon )
   {
     start_immediately = true;
   }

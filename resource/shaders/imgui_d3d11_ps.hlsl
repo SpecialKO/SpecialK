@@ -5,7 +5,7 @@ struct PS_INPUT
   float4 col : COLOR0;
   float2 uv  : TEXCOORD0;
   float2 uv2 : TEXCOORD1;
-  float2 uv3 : TEXCOORD2;
+  float3 uv3 : TEXCOORD2;
 };
 
 cbuffer viewportDims : register (b0)
@@ -19,10 +19,24 @@ Texture2D texture0    : register (t0);
 Texture2D hdrUnderlay : register (t1);
 Texture2D hdrHUD      : register (t2);
 
-float3 RemoveSRGBCurve (float3 x)
+float3
+RemoveSRGBCurve (float3 x)
 {
-  /* Approximately pow(x, 2.2)*/
-  return x < 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);
+  // Negative values can come back negative after gamma, unlike pow (...).
+  x = /* High-Pass filter the input to clip negative values to 0 */
+    max ( 0.0, isfinite (x) ? x : 0.0 );
+
+  // Piecewise is more accurate, but the fitted power-law curve will not
+  //   create near-black noise when expanding LDR -> HDR
+#define ACCURATE_AND_NOISY
+#ifdef  ACCURATE_AND_NOISY
+  return ( x < 0.04045f ) ?
+          (x / 12.92f)    : // High-pass filter x or gamma will return negative!
+    pow ( (x + 0.055f) / 1.055f, 2.4f );
+#else
+  // This suffers the same problem as piecewise; x * x * x allows negative color.
+  return max (0.0, x * (x * (x * 0.305306011 + 0.682171111) + 0.012522878));
+#endif
 }
 
 float3 ApplyREC709Curve (float3 x)
@@ -62,6 +76,21 @@ float3 RemoveREC2084Curve (float3 N)
   return
     pow (max (Np - c1, 0) / (c2 - c3 * Np), 1 / m1);
 }
+
+// Apply the ST.2084 curve to normalized linear values and outputs normalized non-linear values
+float3 LinearToST2084(float3 normalizedLinearValue)
+{
+    return pow((0.8359375f + 18.8515625f * pow(abs(normalizedLinearValue), 0.1593017578f)) / (1.0f + 18.6875f * pow(abs(normalizedLinearValue), 0.1593017578f)), 78.84375f);
+}
+
+
+// ST.2084 to linear, resulting in a linear normalized value
+float3 ST2084ToLinear(float3 ST2084)
+{
+    return pow(max(pow(abs(ST2084), 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f * pow(abs(ST2084), 1.0f / 78.84375f)), 1.0f / 0.1593017578f);
+}
+
+
 float3 REC709toREC2020 (float3 RGB709)
 {
   static const float3x3 ConvMat =
@@ -93,91 +122,40 @@ float4 main (PS_INPUT input) : SV_Target
 
   if (viewport.z > 0.f)
   {
-    float4 under_color;
-
-    float blend_alpha =
-      saturate (input.col.a * out_col.a);
-
-    if (abs (blend_alpha) < 0.001f) blend_alpha = 0.0f;
-    if (abs (blend_alpha) > 0.999f) blend_alpha = 1.0f;
-
-    float alpha =
-      blend_alpha;
-
-    float4 hud = float4 (0.0f, 0.0f, 0.0f, 0.0f);
-
     if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)
     {
-      hud = hdrHUD.Sample (sampler0, input.uv);
-      hud.rbg     = RemoveSRGBCurve (hud.rgb);
-      hud.rgb    *= ( input.uv3.xxx );
-      out_col.rgb = RemoveSRGBCurve (out_col.rgb);
-      out_col =
-        pow (abs (out_col), float4 (input.uv2.yyy, 1.0f)) *
-          input.uv2.xxxx;
+      out_col.rgb =
+        pow (
+          RemoveSRGBCurve (out_col.rgb),
+                input.uv2.yyy
+            ) * input.uv2.xxx;
       out_col.a   = 1.0f;
-      blend_alpha = 1.0f;
-      under_color = float4 (0.0f, 0.0f, 0.0f, 0.0f);
     }
 
     else
     {
-      under_color =
-        float4 ( hdrUnderlay.Sample ( sampler0, input.pos.xy /
-                                                viewport.zw ).rgb, 1.0);
       out_col =
-        pow (abs (input.col * out_col), float4 (input.uv3.yyy, 1.0f));
-
-      if (hdr10)
-      {
-        under_color.rgb =
-          REC2020toREC709 (
-            ( RemoveREC2084Curve (12.5f * under_color.rgb) )
-          );
-
-        blend_alpha =
-          saturate (
-            Luma   (
-              ApplyREC2084Curve (
-                float3 ( blend_alpha, blend_alpha, blend_alpha ),
-                                                  -input.uv3.x )
-            )
-          );
-      }
-
-      if (! hdr10)
-      {
-        blend_alpha =
-          saturate (
-            Luma   (
-              ApplyREC709Curve (
-                    float3 ( blend_alpha, blend_alpha, blend_alpha )
-                               )
-            )
-          );
-
-        under_color.rgb = 0.0f;
-      }
-
-      out_col.rgb *= blend_alpha;
+        float4 ( RemoveSRGBCurve (          input.col.rgb) *
+                 RemoveSRGBCurve (            out_col.rgb),
+                             pow (saturate (  out_col.a) *
+                                  saturate (input.col.a), 0.8)
+               );
     }
 
-    float4 final =
-      float4 (                         out_col.rgb +
-            (1.0f - blend_alpha) * under_color.rgb,
-          saturate (blend_alpha));
+    float hdr_scale  = hdr10 ? ( -input.uv3.x / 10000.0 )
+                             :    input.uv3.x;
 
-    if (hdr10)
-    {
-      final.rgb =
-        ApplyREC2084Curve ( REC709toREC2020 (final.rgb),
-                              -input.uv3.x );
-    }
+    float hdr_offset = hdr10 ? 0.0f : input.uv3.z;
 
-    else
-      final.rgb *= input.uv3.xxx;
+    hdr_scale -= hdr_offset;
 
-    return final;
+    return
+      float4 (   ( hdr10 ?
+        LinearToST2084 (
+          REC709toREC2020 ( saturate (out_col.rgb) ) * hdr_scale
+                       ) :  saturate (out_col.rgb)   * hdr_scale
+                 )                                   + hdr_offset,
+                            saturate (out_col.a  ) );
   }
 
   return

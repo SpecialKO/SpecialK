@@ -34,13 +34,15 @@ SK_LazyGlobal <
 volatile DWORD __SK_TLS_INDEX =
   TLS_OUT_OF_INDEXES;
 
+constexpr auto TlsMax0 =   64;
+constexpr auto TlsMax1 = 1088;
 
 SK_TLS*
 SK_TLS_FastTEBLookup (DWORD dwTlsIndex)
 {
   // It's not often we get an index this low,
   //   if we have one, it has a lower address in the TEB
-  if (dwTlsIndex < 64)
+  if (dwTlsIndex < TlsMax0)
   {
     return
       (SK_TLS *)(SK_Thread_GetTEB_FAST ()->TlsSlots [dwTlsIndex]);
@@ -53,14 +55,14 @@ SK_TLS_FastTEBLookup (DWORD dwTlsIndex)
   //  * The original claimed limitation of 64 indexes has not been true
   //      for a very long time. But there's still an upper-bound of ~1088.
   //
-  else if (dwTlsIndex <= 1088)
+  else if (dwTlsIndex <= TlsMax1)
   {
     TEB* pTEB =
       (TEB *)SK_Thread_GetTEB_FAST ();
 
     return ( pTEB->TlsExpansionSlots == nullptr ?
                                         nullptr : (SK_TLS *)
-          ((&pTEB->TlsExpansionSlots) [dwTlsIndex - 64]) );
+          ((&pTEB->TlsExpansionSlots) [dwTlsIndex - TlsMax0]) );
   }
 
   return nullptr;
@@ -78,7 +80,7 @@ SK_TLS_SetValue_NoFail (DWORD dwTlsIndex, SK_TLS *pTLS)
 
   // It's not often we get an index this low,
   //   if we have one, it has a lower address in the TEB
-  if (dwTlsIndex < 64)
+  if (dwTlsIndex < TlsMax0)
   {
     SK_ReleaseAssert (pTEB->TlsSlots [dwTlsIndex] == nullptr ||
                       pTEB->TlsSlots [dwTlsIndex] == pTLS);
@@ -97,21 +99,21 @@ SK_TLS_SetValue_NoFail (DWORD dwTlsIndex, SK_TLS *pTLS)
   //  * The original claimed limitation of 64 indexes has not been true
   //      for a very long time. But there's still an upper-bound of ~1088.
   //
-  else if (dwTlsIndex <= 1088)
+  else if (dwTlsIndex <= TlsMax1)
   {
     SK_ReleaseAssert (pTEB->TlsExpansionSlots != nullptr);
 
     if (pTEB->TlsExpansionSlots != nullptr)
     {
-      SK_ReleaseAssert ((&pTEB->TlsExpansionSlots)[dwTlsIndex - 64] == nullptr ||
-                        (&pTEB->TlsExpansionSlots)[dwTlsIndex - 64] == pTLS);
+      SK_ReleaseAssert ((&pTEB->TlsExpansionSlots)[dwTlsIndex - TlsMax0] == nullptr ||
+                        (&pTEB->TlsExpansionSlots)[dwTlsIndex - TlsMax0] == pTLS);
 
-      if ((&pTEB->TlsExpansionSlots)[dwTlsIndex - 64] == nullptr)
-      {   (&pTEB->TlsExpansionSlots)[dwTlsIndex - 64]  = pTLS;  }
+      if ((&pTEB->TlsExpansionSlots)[dwTlsIndex - TlsMax0] == nullptr)
+      {   (&pTEB->TlsExpansionSlots)[dwTlsIndex - TlsMax0]  = pTLS;  }
 
       return
         (SK_TLS *)
-          ((&pTEB->TlsExpansionSlots) [dwTlsIndex - 64]);
+          ((&pTEB->TlsExpansionSlots) [dwTlsIndex - TlsMax0]);
     }
   }
 
@@ -151,7 +153,7 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
 
     // Try to store it in TLS again, because this hash map is thread-safe,
     //   but not exactly fast under high contention workloads.
-    if (dwTLSIndex > 0 && dwTLSIndex < 1088)
+    if (dwTLSIndex > 0 && dwTLSIndex < TlsMax1)
       FlsSetValue ( dwTLSIndex, pTLS );
   }
 
@@ -264,7 +266,7 @@ SK_CleanupTLS (void)
   }
 
   if ( pTLS->context_record.pTLS     ==  pTLS &&
-       pTLS->context_record.dwTlsIdx != -1 )
+       pTLS->context_record.dwTlsIdx != std::numeric_limits <DWORD>::max () )
   {
     // ...
   }
@@ -1051,16 +1053,16 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
 {
   size_t freed = 0UL;
 
-  freed += d3d9          ->Cleanup (reason);
-  freed += imgui         ->Cleanup (reason);
-  freed += osd           ->Cleanup (reason);
-  freed += raw_input     ->Cleanup (reason);
-  freed += scratch_memory->Cleanup (reason);
-  freed += local_scratch ->Cleanup (reason);
-  freed += steam         ->Cleanup (reason);
-  freed += d3d11         ->Cleanup (reason);
-  freed += scheduler     ->Cleanup (reason);
-  freed += dxtex          .Cleanup (reason);
+  freed += d3d9.isAllocated           () ? d3d9          ->Cleanup (reason) : 0;
+  freed += imgui.isAllocated          () ? imgui         ->Cleanup (reason) : 0;
+  freed += osd.isAllocated            () ? osd           ->Cleanup (reason) : 0;
+  freed += raw_input.isAllocated      () ? raw_input     ->Cleanup (reason) : 0;
+  freed += scratch_memory.isAllocated () ? scratch_memory->Cleanup (reason) : 0;
+  freed += local_scratch.isAllocated  () ? local_scratch ->Cleanup (reason) : 0;
+  freed += steam.isAllocated          () ? steam         ->Cleanup (reason) : 0;
+  freed += d3d11.isAllocated          () ? d3d11         ->Cleanup (reason) : 0;
+  freed += scheduler.isAllocated      () ? scheduler     ->Cleanup (reason) : 0;
+  freed +=                                 dxtex          .Cleanup (reason)    ;
 
   if ((intptr_t)debug.handle > 0)
   {

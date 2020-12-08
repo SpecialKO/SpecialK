@@ -414,8 +414,8 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
               __SK_SUBSYSTEM__ );
 
 
-  pHdrCapabilities->driverExpandDefaultHdrParameters = 1;
-  pHdrCapabilities->static_metadata_descriptor_id    = NV_STATIC_METADATA_TYPE_1;
+/////pHdrCapabilities->driverExpandDefaultHdrParameters = 1;
+/////pHdrCapabilities->static_metadata_descriptor_id    = NV_STATIC_METADATA_TYPE_1;
 
   NvAPI_Status ret =
     NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
@@ -472,6 +472,8 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
   {
     static auto& rb =
       SK_GetCurrentRenderBackend ();
+
+    pHdrCapabilities->display_data.desired_content_min_luminance = 0;
 
     ///rb.scanout.nvapi_hdr.color_support_hdr.supports_YUV422_12bit =
     ///pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit;
@@ -769,8 +771,10 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     rb.working_gamut.minY =
      pHdrColorData->mastering_display_data.min_display_mastering_luminance  *  0.0001f;
 
-    rb.working_gamut.maxLocalY =
-      pHdrColorData->mastering_display_data.max_frame_average_light_level   * 0.00001f;
+    rb.working_gamut.maxLocalY   =
+      pHdrColorData->mastering_display_data.max_content_light_level;
+    rb.working_gamut.maxAverageY =
+      pHdrColorData->mastering_display_data.max_frame_average_light_level;
 
     rb.working_gamut.xr = (float)pHdrColorData->mastering_display_data.displayPrimary_x0 /
                           (float)50000.0f;
@@ -797,7 +801,16 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   {
     _LogGameRequestedValues ();
 
-    //bool passthrough = (pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH);
+    bool passthrough = (pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH);
+
+    extern bool  __SK_HDR_16BitSwap;
+    if (__SK_HDR_16BitSwap && passthrough)
+    {
+      //pHdrColorData->mastering_display_data.max_content_light_level = 1499;
+      //pHdrColorData->mastering_display_data.max_frame_average_light_level = 750;
+
+      pHdrColorData->hdrMode = NV_HDR_MODE_UHDA;
+    }
 
     //struct DisplayChromacities
     //{
@@ -863,7 +876,20 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     //pHdrColorData->version = NV_HDR_COLOR_DATA_VER;
 
     NvAPI_Status ret =
-      NvAPI_Disp_HdrColorControl_Original ( displayId, pHdrColorData );
+      NVAPI_OK;
+
+    extern bool __SK_HDR_10BitSwap;
+    extern bool __SK_HDR_16BitSwap;
+
+    if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
+    {
+      SK_LOG0 ( ( L"HDR:  << Ignoring NvAPI HDR because user is forcing DXGI HDR (which is better!)"
+                ), __SK_SUBSYSTEM__ );
+    }
+
+    else
+      ret =
+        NvAPI_Disp_HdrColorControl_Original ( displayId, pHdrColorData );
 
     if (NVAPI_OK == ret)
     {
@@ -907,13 +933,18 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
         rb.driver_based_hdr         = false;
         rb.scanout.nvapi_hdr.active = false;
 
-        extern bool __SK_HDR_10BitSwap;
-        extern bool __SK_HDR_16BitSwap;
-
-        if ( __SK_HDR_10BitSwap == false &&
-             __SK_HDR_16BitSwap == false )
+        if (__SK_HDR_10BitSwap == false &&
+            __SK_HDR_16BitSwap == false)
         {
           rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+        }
+
+        else
+        {
+          rb.driver_based_hdr         = false;
+          rb.scanout.nvapi_hdr.active = false;
+
+          pHdrColorData->hdrMode = NV_HDR_MODE_UHDA;
         }
       }
 

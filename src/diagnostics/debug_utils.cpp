@@ -252,7 +252,7 @@ WINAPI
 SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
                             LPCSTR                     lpProcName,
                             FARPROC                    lpProcAddr,
-                            PLDR_DATA_TABLE_ENTRY__SK *ppldrEntry=nullptr )
+                            PLDR_DATA_TABLE_ENTRY__SK *ppldrEntry )
 {
   static LdrFindEntryForAddress_pfn
          LdrFindEntryForAddress =
@@ -277,7 +277,7 @@ SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
      )
   {
     if (ppldrEntry != nullptr)
-      *ppldrEntry = pLdrEntry;
+       *ppldrEntry = pLdrEntry;
 
     const UNICODE_STRING_SK* ShortDllName =
       &pLdrEntry->BaseDllName;
@@ -325,6 +325,17 @@ SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
 
 void
 WINAPI
+SK_SetLastError (DWORD dwErrCode)
+{
+  if (SetLastError_Original != nullptr)
+      SetLastError_Original (dwErrCode);
+
+  else
+    SetLastError (dwErrCode);
+}
+
+void
+WINAPI
 SetLastError_Detour (
   _In_ DWORD dwErrCode
 )
@@ -342,26 +353,17 @@ SetLastError_Detour (
   {
     if (_ReturnAddress () != SetLastError_Detour)
     {
-      static HMODULE hModSteam =
-        SK_GetModuleHandleW (
-          SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
-                                  L"GameOverlayRenderer.dll" )
-        );
+      SK_TLS* pTLS =
+        SK_TLS_Bottom ();
 
-      if (hModSteam == nullptr || SK_GetCallingDLL () != hModSteam)
+      if (pTLS != nullptr)
       {
-        SK_TLS* pTLS =
-          SK_TLS_Bottom ();
+        auto& err_state =
+          pTLS->win32->error_state;
 
-        if (pTLS != nullptr)
-        {
-          auto& err_state =
-            pTLS->win32->error_state;
-
-          err_state.call_site    = _ReturnAddress ();
-          err_state.code         = dwErrCode;
-          GetSystemTimeAsFileTime (&err_state.last_time);
-        }
+        err_state.call_site    = _ReturnAddress ();
+        err_state.code         = dwErrCode;
+        GetSystemTimeAsFileTime (&err_state.last_time);
       }
     }
   }
@@ -396,6 +398,22 @@ SK_LazyGlobal <
     < std::string,           farptr > >
 > __SK_CachedDLLProcAddrs;
 
+HRESULT
+WINAPI
+D3D11On12CreateDevice_NOP (        _In_ IUnknown*             ,
+                                        UINT                  ,
+  _In_reads_opt_( FeatureLevels ) CONST D3D_FEATURE_LEVEL*    ,
+                                        UINT                  ,
+            _In_reads_opt_( NumQueues ) IUnknown* CONST*      ,
+                                        UINT                  ,
+                                        UINT                  ,
+                       _COM_Outptr_opt_ ID3D11Device**        ,
+                       _COM_Outptr_opt_ ID3D11DeviceContext** ,
+                       _Out_opt_        D3D_FEATURE_LEVEL*    )
+{
+  return E_NOTIMPL;
+}
+
 FARPROC
 WINAPI
 GetProcAddress_Detour     (
@@ -425,7 +443,7 @@ GetProcAddress_Detour     (
 
   if (hModCaller == SK_GetDLL ())
   {
-    SetLastError (NO_ERROR);
+    SK_SetLastError (NO_ERROR);
     return
       GetProcAddress_Original (hModule, lpProcName);
   }
@@ -442,32 +460,32 @@ GetProcAddress_Detour     (
   ///    *phMod = (HMODULE)1;
   ///};
 
-  static HMODULE hModSteamOverlay = nullptr;
-  static HMODULE hModSteamClient  = nullptr;
-  static HMODULE hModSteamAPI     = nullptr;
-
-  hModSteamOverlay  =
-  hModSteamOverlay != nullptr ?
-  hModSteamOverlay  :
-     SK_GetModuleHandle (
-       SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
-                               L"GameOverlayRenderer.dll" )
-                        );
-
-  hModSteamClient  =
-  hModSteamClient != nullptr ?
-  hModSteamClient  :
-     SK_GetModuleHandle (
-       SK_RunLHIfBitness ( 64, L"steamclient64.dll",
-                               L"steamclient.dll" )
-                        );
-  hModSteamAPI =
-  hModSteamAPI != nullptr ?
-  hModSteamAPI :
-    SK_GetModuleHandle (
-      SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                              L"steam_api.dll" )
-                       );
+  ////////static HMODULE hModSteamOverlay = nullptr;
+  ////////static HMODULE hModSteamClient  = nullptr;
+  ////////static HMODULE hModSteamAPI     = nullptr;
+  ////////
+  ////////hModSteamOverlay  =
+  ////////hModSteamOverlay != nullptr ?
+  ////////hModSteamOverlay  :
+  ////////   SK_GetModuleHandle (
+  ////////     SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
+  ////////                             L"GameOverlayRenderer.dll" )
+  ////////                      );
+  ////////
+  ////////hModSteamClient  =
+  ////////hModSteamClient != nullptr ?
+  ////////hModSteamClient  :
+  ////////   SK_GetModuleHandle (
+  ////////     SK_RunLHIfBitness ( 64, L"steamclient64.dll",
+  ////////                             L"steamclient.dll" )
+  ////////                      );
+  ////////hModSteamAPI =
+  ////////hModSteamAPI != nullptr ?
+  ////////hModSteamAPI :
+  ////////  SK_GetModuleHandle (
+  ////////    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+  ////////                            L"steam_api.dll" )
+  ////////                     );
 
   char proc_name [512] = { };
 
@@ -515,6 +533,26 @@ GetProcAddress_Detour     (
       WINAPI
       GetMessageA_Detour ( LPMSG lpMsg,          HWND hWnd,
                            UINT   wMsgFilterMin, UINT wMsgFilterMax );
+
+    if (             *lpProcName == 'D' &&
+         (! lstrcmpA (lpProcName, "D3D11On12CreateDevice")) )
+    {
+      if (SK_IsInjected ())
+      {
+        SK_RunOnce (
+          SK_ImGui_WarningWithTitle (
+            SK_FormatStringW (
+              L"The overlay '%ws' uses D3D11On12 and has been disabled to prevent crashing.\r\n\r\n\t\t"
+              L">> Please use Special K in Local Injection mode or turn the third-party overlay off.",
+                SK_GetCallerName ().c_str ()
+            ).c_str (),
+            L"A non-D3D12 native overlay was detected."
+          )
+        );
+
+        return nullptr;
+      }
+    }
 
     if ( *lpProcName == 'P'      &&
  StrStrA (lpProcName,   "PeekM") == lpProcName )
@@ -644,7 +682,9 @@ GetProcAddress_Detour     (
       SK_FormatString ("Ordinal_%lu", (intptr_t)lpProcName);
   }
 
-#define _NOCACHE 0
+  // Cache is known to cause problems in XInput 9.1.0 games,
+  //   it is not worth it.
+#define _NOCACHE 1
 #if _NOCACHE
   FARPROC farproc = nullptr;
 #else
@@ -678,24 +718,17 @@ GetProcAddress_Detour     (
   if (farproc != nullptr)
   {
 #if (! _NOCACHE)
-    SetLastError (NO_ERROR);
+    SK_SetLastError (NO_ERROR);
 #endif
   }
 
   else
   {
     if (hModule != nullptr)
-      SetLastError (ERROR_PROC_NOT_FOUND);
+      SK_SetLastError (ERROR_PROC_NOT_FOUND);
     else
-      SetLastError (ERROR_MOD_NOT_FOUND);
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
   }
-
-  //if (config.system.log_level == 0)
-  //{
-  //  SetLastError (dwLastErr);
-  //  return
-  //    GetProcAddress_Original (hModule, lpProcName);
-  //}
 
 
   static DWORD dwOptimus        = 0x1;
@@ -728,7 +761,7 @@ GetProcAddress_Detour     (
       }
     }
 
-    SetLastError (dwLastErr);
+    SK_SetLastError (dwLastErr);
 
     return farproc;
   }
@@ -774,21 +807,21 @@ GetProcAddress_Detour     (
     ///}
 
 
-    if (config.system.log_level > 0 && (uintptr_t)lpProcName > 65536)// && dll_log.lines > 15)
+    if (config.system.log_level > 0 && (uintptr_t)lpProcName > 65536)
     {
-      if ( hModCaller != SK_GetDLL ()  &&
-           hModCaller != hModSteamOverlay )
-      {
+      //if ( hModCaller != SK_GetDLL ()  &&
+      //     hModCaller != hModSteamOverlay )
+      //{
         SK_LOG3 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %ws)",
                         SK_GetModuleFullName (hModule).c_str (),
                                               lpProcName,
                           SK_SummarizeCaller (       ).c_str () ),
                      L"DLL_Loader" );
-      }
+      //}
     }
   }
 
-  SetLastError (dwLastErr);
+  SK_SetLastError (dwLastErr);
 
   if ((uintptr_t)farproc > 65536)
     return farproc;
@@ -1379,7 +1412,7 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
 
   OutputDebugStringA_Original (lpOutputString);
 
-  SetLastError (dwLastErr);
+  SK_SetLastError (dwLastErr);
 }
 
 void
@@ -1405,7 +1438,7 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 
   OutputDebugStringW_Original (lpOutputString);
 
-  SetLastError (dwLastErr);
+  SK_SetLastError (dwLastErr);
 }
 
 
@@ -1986,22 +2019,23 @@ ZwSetInformationThread_Detour (
     return 0;
   }
 
-  ///if ( ThreadInformationClass == ThreadZeroTlsCell ||
-  ///     ThreadInformationClass == ThreadSetTlsArrayAddress )
-  ///{
-  ///  DWORD                                 dwExitCode = 0;
-  ///  if (GetExitCodeThread (ThreadHandle, &dwExitCode) && dwExitCode == STILL_ACTIVE)
-  ///  {
-  ///    SK_LOG0 ( ( L"ZwSetInformationThread called trying to free TLS for a running thread." ),
-  ///                L"FixAntiDbg" );
-  ///
-  ///    SK_LOG0 ( ( L" >> Thanks, but no thanks. Ignoring this rather than crashing." ),
-  ///                L"FixAntiDbg" );
-  ///
-  ///    return 0;
-  ///  }
-  ///}
 
+  if ( ThreadInformationClass == ThreadZeroTlsCell ||
+       ThreadInformationClass == ThreadSetTlsArrayAddress )
+  {
+    DWORD                                 dwExitCode = 0;
+    if (GetExitCodeThread (ThreadHandle, &dwExitCode) && dwExitCode == STILL_ACTIVE)
+    {
+      return
+        ZwSetInformationThread_Original ( ThreadHandle,
+                                          ThreadInformationClass,
+                                          ThreadInformation,
+                                          ThreadInformationLength );
+
+    }
+  }
+
+  // Make sure not to do this if this call is intended to free TLS.
   SK_TLS *pTLS =
         SK_TLS_Bottom ();
 
@@ -2035,7 +2069,7 @@ ZwSetInformationThread_Detour (
     RtlAcquirePebLock_Detour ();
     RtlReleasePebLock_Detour ();
 
-    return 0;
+    return STATUS_SUCCESS;
   }
 
   return
@@ -2594,7 +2628,8 @@ DbgBreakPoint_Detour (void)
 {
   __try
   {
-    DbgBreakPoint_Original ();
+    if (DbgBreakPoint_Original != nullptr)
+        DbgBreakPoint_Original ();
   }
   __finally
   {
@@ -2705,8 +2740,10 @@ SK_Exception_HandleCxx (
 
       catch (_com_error& com_err)
       {
-        _bstr_t bstrSource      (com_err.Source      ());
-        _bstr_t bstrDescription (com_err.Description ());
+        _bstr_t bstrSource      ( com_err.ErrorInfo   () != nullptr ?
+                                  com_err.Source      ()            : L"Unknown" );
+        _bstr_t bstrDescription ( com_err.ErrorInfo   () != nullptr ?
+                                  com_err.Description ()            : L"Unknown" );
 
         SK_LOG0 ( ( L" >> Code: %08lx  <%s> - [Source: %s,  Desc: \"%s\"]",
                  com_err.Error        (),
@@ -3539,6 +3576,27 @@ CloseHandle_Detour ( HANDLE hObject )
 }
 
 
+//#define _EXTENDED_DEBUG
+
+void
+SK_HookEngine_HookGetProcAddress (void)
+{
+  ///////// Our GetProcAddress hook relies on SetLastError, which we also hook.
+  ///////SK_RunOnce (
+  ///////  SK_CreateDLLHook2 (      L"kernel32",
+  ///////                          "SetLastError",
+  ///////                           SetLastError_Detour,
+  ///////  static_cast_p2p <void> (&SetLastError_Original) )
+  ///////);
+
+  SK_RunOnce (
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "GetProcAddress",
+                               GetProcAddress_Detour,
+      static_cast_p2p <void> (&GetProcAddress_Original) )
+  );
+}
+
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
@@ -3558,67 +3616,67 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                            L"NtDll",
                             "RtlInitUnicodeString" );
 
-    SK_CreateDLLHook2 (    L"kernel32",
-                            "CloseHandle",
-                             CloseHandle_Detour,
-    static_cast_p2p <void> (&CloseHandle_Original) );
-
-    SK_CreateDLLHook2 (    L"NtDll",
-                            "RtlAcquirePebLock",
-                             RtlAcquirePebLock_Detour,
-    static_cast_p2p <void> (&RtlAcquirePebLock_Original) );
-
-    SK_CreateDLLHook2 (    L"NtDll",
-                            "RtlReleasePebLock",
-                             RtlReleasePebLock_Detour,
-    static_cast_p2p <void> (&RtlReleasePebLock_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "IsDebuggerPresent",
-                               IsDebuggerPresent_Detour,
-      static_cast_p2p <void> (&IsDebuggerPresent_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "SetThreadContext",
-                               SetThreadContext_Detour,
-      static_cast_p2p <void> (&SetThreadContext_Original) );
-
-    // Windows 10 Stability De-enhancer that Denuvo is likely to
-    //   try eventually...
-    if (SK_GetProcAddress ( SK_GetModuleHandle (L"kernelbase.dll"),
-                         "SetProcessValidCallTargets") != nullptr)
+#ifdef _EXTENDED_DEBUG
+    if (config.compatibility.advanced_debug)
     {
-      // Kill it proactively before it kills us
-      SK_CreateDLLHook2 (      L"kernelbase",
-                                "SetProcessValidCallTargets",
-                                 SetProcessValidCallTargets_Detour,
-        static_cast_p2p <void> (&SetProcessValidCallTargets_Original) );
-    }
+      SK_CreateDLLHook2 (    L"NtDll",
+                              "RtlAcquirePebLock",
+                               RtlAcquirePebLock_Detour,
+      static_cast_p2p <void> (&RtlAcquirePebLock_Original) );
 
-    spoof_debugger = bAllow;
-
-    if (config.compatibility.rehook_loadlibrary)
-    {
-      SK_CreateDLLHook2 (      L"kernel32",
-                                "TerminateProcess",
-                                 TerminateProcess_Detour,
-        static_cast_p2p <void> (&TerminateProcess_Original) );
+      SK_CreateDLLHook2 (    L"NtDll",
+                              "RtlReleasePebLock",
+                               RtlReleasePebLock_Detour,
+      static_cast_p2p <void> (&RtlReleasePebLock_Original) );
 
       SK_CreateDLLHook2 (      L"kernel32",
-                                "TerminateThread",
-                                 TerminateThread_Detour,
-        static_cast_p2p <void> (&TerminateThread_Original) );
+                                "IsDebuggerPresent",
+                                 IsDebuggerPresent_Detour,
+        static_cast_p2p <void> (&IsDebuggerPresent_Original) );
 
-      //SK_CreateDLLHook2 (       L"NtDll",
-      //                           "RtlExitUserThread",
-      //                            ExitThread_Detour,
-      //   static_cast_p2p <void> (&ExitThread_Original) );
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "SetThreadContext",
+                                 SetThreadContext_Detour,
+        static_cast_p2p <void> (&SetThreadContext_Original) );
 
-      SK_CreateDLLHook2 (      L"NtDll",
-                                "NtTerminateProcess",
-                                 NtTerminateProcess_Detour,
-        static_cast_p2p <void> (&NtTerminateProcess_Original) );
+      // Windows 10 Stability De-enhancer that Denuvo is likely to
+      //   try eventually...
+      if (SK_GetProcAddress ( SK_GetModuleHandle (L"kernelbase.dll"),
+                           "SetProcessValidCallTargets") != nullptr)
+      {
+        // Kill it proactively before it kills us
+        SK_CreateDLLHook2 (      L"kernelbase",
+                                  "SetProcessValidCallTargets",
+                                   SetProcessValidCallTargets_Detour,
+          static_cast_p2p <void> (&SetProcessValidCallTargets_Original) );
+      }
+
+      spoof_debugger = bAllow;
+
+      if (config.compatibility.rehook_loadlibrary)
+      {
+        SK_CreateDLLHook2 (      L"kernel32",
+                                  "TerminateProcess",
+                                   TerminateProcess_Detour,
+          static_cast_p2p <void> (&TerminateProcess_Original) );
+
+        SK_CreateDLLHook2 (      L"kernel32",
+                                  "TerminateThread",
+                                   TerminateThread_Detour,
+          static_cast_p2p <void> (&TerminateThread_Original) );
+
+        //SK_CreateDLLHook2 (       L"NtDll",
+        //                           "RtlExitUserThread",
+        //                            ExitThread_Detour,
+        //   static_cast_p2p <void> (&ExitThread_Original) );
+
+        SK_CreateDLLHook2 (      L"NtDll",
+                                  "NtTerminateProcess",
+                                   NtTerminateProcess_Detour,
+          static_cast_p2p <void> (&NtTerminateProcess_Original) );
+      }
     }
+#endif
 
     SK_CreateDLLHook2 (      L"kernel32",
                               "OutputDebugStringA",
@@ -3635,38 +3693,43 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                RaiseException_Detour,
       static_cast_p2p <void> (&RaiseException_Original) );
 
-    //SK_CreateDLLHook2 (      L"NtDll",
-    //                          "RtlRaiseException",
-    //                           RtlRaiseException_Detour,
-    //  static_cast_p2p <void> (&RtlRaiseException_Original) );
-
-    if (config.compatibility.rehook_loadlibrary)
+#ifdef _EXTENDED_DEBUG
+    if (config.advanced_debug)
     {
-      SK_CreateDLLHook2 (      L"NtDll",
-                                "RtlExitUserProcess",
-                                 RtlExitUserProcess_Detour,
-        static_cast_p2p <void> (&RtlExitUserProcess_Original) );
+      //SK_CreateDLLHook2 (      L"NtDll",
+      //                          "RtlRaiseException",
+      //                           RtlRaiseException_Detour,
+      //  static_cast_p2p <void> (&RtlRaiseException_Original) );
 
-          SK_CreateDLLHook2 (      L"NtDll",
-                                "RtlExitUserThread",
-                                 RtlExitUserThread_Detour,
-        static_cast_p2p <void> (&RtlExitUserThread_Original) );
+      if (config.compatibility.rehook_loadlibrary)
+      {
+        SK_CreateDLLHook2 (      L"NtDll",
+                                  "RtlExitUserProcess",
+                                   RtlExitUserProcess_Detour,
+          static_cast_p2p <void> (&RtlExitUserProcess_Original) );
+
+            SK_CreateDLLHook2 (      L"NtDll",
+                                  "RtlExitUserThread",
+                                   RtlExitUserThread_Detour,
+          static_cast_p2p <void> (&RtlExitUserThread_Original) );
+
+        SK_CreateDLLHook2 (      L"kernel32",
+                                  "ExitProcess",
+                                   ExitProcess_Detour,
+          static_cast_p2p <void> (&ExitProcess_Original) );
+      }
 
       SK_CreateDLLHook2 (      L"kernel32",
-                                "ExitProcess",
-                                 ExitProcess_Detour,
-        static_cast_p2p <void> (&ExitProcess_Original) );
+                                "DebugBreak",
+                                 DebugBreak_Detour,
+        static_cast_p2p <void> (&DebugBreak_Original) );
+
+      SK_CreateDLLHook2 (      L"NtDll",
+                              "DbgBreakPoint",
+                               DbgBreakPoint_Detour,
+      static_cast_p2p <void> (&DbgBreakPoint_Original) );
     }
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "DebugBreak",
-                               DebugBreak_Detour,
-      static_cast_p2p <void> (&DebugBreak_Original) );
-
-    SK_CreateDLLHook2 (      L"NtDll",
-                            "DbgBreakPoint",
-                             DbgBreakPoint_Detour,
-    static_cast_p2p <void> (&DbgBreakPoint_Original) );
+#endif
 
     //if (config.system.trace_create_thread)
     //{
@@ -3676,15 +3739,17 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     //    static_cast_p2p <void> (&CreateThread_Original) );
     //}
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "GetCommandLineW",
-                               GetCommandLineW_Detour,
-      static_cast_p2p <void> (&GetCommandLineW_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "GetCommandLineA",
-                               GetCommandLineA_Detour,
-      static_cast_p2p <void> (&GetCommandLineA_Original) );
+    // Watch_Dogs Legion does not like having this detour'd
+    //
+    ////////////SK_CreateDLLHook2 (      L"kernel32",
+    ////////////                          "GetCommandLineW",
+    ////////////                           GetCommandLineW_Detour,
+    ////////////  static_cast_p2p <void> (&GetCommandLineW_Original) );
+    ////////////
+    ////////////SK_CreateDLLHook2 (      L"kernel32",
+    ////////////                          "GetCommandLineA",
+    ////////////                           GetCommandLineA_Detour,
+    ////////////  static_cast_p2p <void> (&GetCommandLineA_Original) );
 
     SK_CreateDLLHook2 (      L"kernel32",
                               "ResetEvent",
@@ -3696,53 +3761,64 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                SetThreadPriority_Detour,
       static_cast_p2p <void> (&SetThreadPriority_Original) );
 
-#if 0
-    SK_CreateDLLHook2 (      L"NtDll",
-                              "NtCreateThreadEx",
-                               NtCreateThreadEx_Detour,
-      static_cast_p2p <void> (&NtCreateThreadEx_Original) );
-#else
-    SK_CreateDLLHook2 (      L"NtDll",
-                              "ZwCreateThreadEx",
-                               ZwCreateThreadEx_Detour,
-      static_cast_p2p <void> (&ZwCreateThreadEx_Original) );
-#endif
+  #if 0
+      SK_CreateDLLHook2 (      L"NtDll",
+                                "NtCreateThreadEx",
+                                 NtCreateThreadEx_Detour,
+        static_cast_p2p <void> (&NtCreateThreadEx_Original) );
+  #else
+      SK_CreateDLLHook2 (      L"NtDll",
+                                "ZwCreateThreadEx",
+                                 ZwCreateThreadEx_Detour,
+        static_cast_p2p <void> (&ZwCreateThreadEx_Original) );
+  #endif
 
-    SK_CreateDLLHook2 (      L"NtDll",
-                              "ZwSetInformationThread",
-                               ZwSetInformationThread_Detour,
-      static_cast_p2p <void> (&ZwSetInformationThread_Original) );
+      SK_CreateDLLHook2 (      L"NtDll",
+                                "ZwSetInformationThread",
+                                 ZwSetInformationThread_Detour,
+        static_cast_p2p <void> (&ZwSetInformationThread_Original) );
 
     SK_CreateDLLHook2 (      L"kernel32",
                               "SetThreadAffinityMask",
                                SetThreadAffinityMask_Detour,
       static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "GetProcAddress",
-                               GetProcAddress_Detour,
-      static_cast_p2p <void> (&GetProcAddress_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "SetLastError",
-                               SetLastError_Detour,
-      static_cast_p2p <void> (&SetLastError_Original) );
-
-    SK_CreateDLLHook2 (      L"NtDll",
-                              "DbgUiRemoteBreakin",
-                               DbgUiRemoteBreakin_Detour,
-      static_cast_p2p <void> (&DbgUiRemoteBreakin_Original) );
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "CheckRemoteDebuggerPresent",
-                               CheckRemoteDebuggerPresent_Detour,
-      static_cast_p2p <void> (&CheckRemoteDebuggerPresent_Original) );
-
+#ifdef _EXTENDED_DEBUG
+    if (config.advanced_debug)
+    {
+      SK_CreateDLLHook2 (      L"NtDll",
+                                "DbgUiRemoteBreakin",
+                                 DbgUiRemoteBreakin_Detour,
+        static_cast_p2p <void> (&DbgUiRemoteBreakin_Original) );
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "CheckRemoteDebuggerPresent",
+                                 CheckRemoteDebuggerPresent_Detour,
+        static_cast_p2p <void> (&CheckRemoteDebuggerPresent_Original) );
+    }
+#endif
 
     SK_Thread_InitDebugExtras ();
-    SK_InitCompatBlacklist    ();
 
-    RtlAcquirePebLock_Detour ();
-    RtlReleasePebLock_Detour ();
+#ifdef _EXTENDED_DEBUG
+    if (config.advanced_debug)
+    {
+      RtlAcquirePebLock_Detour ();
+      RtlReleasePebLock_Detour ();
+    }
+#endif
+
+    // Only hook if we actually have a debugger present, because
+    //   hooking this will be detected by many DRM / anti-debug as
+    //    the smoking gun that there is a debugger.
+    //if (SK_IsDebuggerPresent ())
+    {
+      ///SK_CreateDLLHook2 (    L"kernel32",
+      ///                        "CloseHandle",
+      ///                         CloseHandle_Detour,
+      ///static_cast_p2p <void> (&CloseHandle_Original) );
+    }
+
+  SK_HookEngine_HookGetProcAddress ();
 
     InterlockedIncrementRelease (&__init);
   }
@@ -3802,7 +3878,7 @@ SK_IsDebuggerPresent (void)
   if (IsDebuggerPresent_Original == nullptr)
   {
     if (ReadAcquire (&__SK_DLL_Attached))
-      SK::Diagnostics::Debugger::Allow (); // DONTCARE, just init
+      SK_RunOnce (SK::Diagnostics::Debugger::Allow ()); // DONTCARE, just init
   }
 
   if (bRealDebug)

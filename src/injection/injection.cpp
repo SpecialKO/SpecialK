@@ -188,7 +188,7 @@ SK_Inject_ValidateProcesses (void)
                       ReadAcquire (&hooked_pid) )
                   );
 
-    if (hProc == INVALID_HANDLE_VALUE)
+    if ((intptr_t)hProc.m_h <= 0)//== INVALID_HANDLE_VALUE)
     {
       ReadAcquire (&hooked_pid);
     }
@@ -542,7 +542,7 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
     OpenProcess ( PROCESS_TERMINATE, FALSE, dwProcessId )
   );
 
-  if (hProcess == INVALID_HANDLE_VALUE)
+  if ((intptr_t)hProcess.m_h <= 0)// == INVALID_HANDLE_VALUE)
     return FALSE;
 
   return
@@ -1189,7 +1189,7 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
   SK_AutoHandle   hProcSnap   (
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0) );
 
-  if (hProcSnap == INVALID_HANDLE_VALUE)
+  if ((intptr_t)hProcSnap.m_h <= 0)
     return false;
 
   pe32.dwSize = sizeof (PROCESSENTRY32W);

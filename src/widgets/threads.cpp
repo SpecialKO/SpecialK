@@ -1713,7 +1713,7 @@ public:
             OpenThread ( THREAD_ALL_ACCESS, false, dwSelectedTid )
           );
 
-          if (hThreadStack.m_h != INVALID_HANDLE_VALUE)
+          if ((intptr_t)hThreadStack.m_h > 0)//!= INVALID_HANDLE_VALUE)
           {
             FILETIME ftCreateStack, ftUserStack,
                      ftKernelStack, ftExitStack;

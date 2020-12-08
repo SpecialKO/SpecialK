@@ -313,7 +313,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                                nullptr )
     );
 
-    if (hVersionConfig != INVALID_HANDLE_VALUE)
+    if ((intptr_t)hVersionConfig.m_h > 0)// != INVALID_HANDLE_VALUE)
     {
       FILETIME ftModify = { };
 
@@ -485,7 +485,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                                   nullptr )
       );
 
-      while (hVersionFile != INVALID_HANDLE_VALUE && dwSize > 0)
+      while ((intptr_t)hVersionFile.m_h > 0 && dwSize > 0)
       {
         DWORD              dwRead = 0;
         CHeapPtr <uint8_t> pData;

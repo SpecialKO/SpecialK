@@ -91,7 +91,7 @@ __forceinline auto& operator [] (const int idx) noexcept (false) { return  (*get
 __forceinline bool  isAllocated (void)    const noexcept
 {
   return
-    ( ReadAcquire (&_initlock) == Committed );
+    ( ReadAcquire (&_initlock) == Committed ) && pDeferredObject.get () != nullptr;
 }
 
   SK_LazyGlobal              (const SK_LazyGlobal& ) = delete;
@@ -107,8 +107,8 @@ __forceinline bool  isAllocated (void)    const noexcept
     // Allocated off heap w/ C++ new
     if (isAllocated ())
     {
-      InterlockedExchange (&_initlock, Uninitialized);
       pDeferredObject.reset ();
+      InterlockedExchange (&_initlock, Uninitialized);
     }
 
     // Used SK's LocalAlloc wrapper, don't let unique_ptr delete!

@@ -1056,17 +1056,17 @@ MH_Initialize (VOID)
   {
     g_hHeap       = HeapCreate ( 0x0, sizeof (HOOK_ENTRY)     * (INITIAL_HOOK_CAPACITY*4) + 1 +
                                       sizeof (FROZEN_THREADS) * INITIAL_THREAD_CAPACITY   + 1 +
-                                      16384 * 16, 0 );
+                                      16384 * 16384, 0 );
 
-    g_NtDll.hHeap = HeapCreate ( 0x0, 2097152, 0 );
+    g_NtDll.hHeap = HeapCreate ( 0x0, 4194304, 0 );
 
     if (g_hHeap != NULL && g_NtDll.hHeap != NULL)
     {
       // Initialize the internal function buffer.
       InitializeBuffer ();
 
-      g_NtDll.pSnapshot  = HeapAlloc ( g_NtDll.hHeap, 0x0, 2097152);
-      g_NtDll.dwHeapSize = g_NtDll.pSnapshot != NULL ? 2097152 : 0;
+      g_NtDll.pSnapshot  = HeapAlloc ( g_NtDll.hHeap, 0x0, 4194304);
+      g_NtDll.dwHeapSize = g_NtDll.pSnapshot != NULL ? 4194304 : 0;
     }
 
     else

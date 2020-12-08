@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -27,6 +27,8 @@
 
 #include <SpecialK/log.h>
 
+#pragma comment(lib, "dwmapi.lib")
+
 LARGE_INTEGER
 SK_QueryPerf ()
 {
@@ -49,6 +51,18 @@ enum class SK_LimitApplicationSite {
   DontCare,
   EndOfFrame // = 4 (Default)
 };
+
+//float fSwapWaitRatio = 0.998877f;
+//float fSwapWaitFract = 0.998877f;
+
+//float fSwapWaitRatio = 0.77f;
+//float fSwapWaitFract = 0.79f;
+
+float fSwapWaitRatio = 0.745f;
+float fSwapWaitFract = 0.745f;
+
+float
+SK::Framerate::Limiter::undershoot_percent = 10.0f;
 
 void
 SK::Framerate::Init (void)
@@ -76,6 +90,14 @@ SK::Framerate::Init (void)
     pCommandProc->AddVariable ( "BusyWaitRatio",
             new SK_IVarStub <float> (&config.render.framerate.busy_wait_ratio));
 
+    pCommandProc->AddVariable ( "SwapWaitRatio",
+            new SK_IVarStub <float> (&fSwapWaitRatio));
+
+    pCommandProc->AddVariable ( "SwapWaitFract",
+            new SK_IVarStub <float> (&fSwapWaitFract));
+
+    pCommandProc->AddVariable ( "Undershoot",
+            new SK_IVarStub <float> (&SK::Framerate::Limiter::undershoot_percent));
 
     SK_Scheduler_Init ();
 
@@ -174,7 +196,6 @@ SK_D3D9_GetTimingDevice (void)
 }
 
 
-
 bool
 SK_Framerate_WaitForVBlank (void)
 {
@@ -200,6 +221,8 @@ SK_Framerate_WaitForVBlank (void)
     if (            dxgi_swap != nullptr &&
          SUCCEEDED (dxgi_swap->GetContainingOutput (&dxgi_output)) )
     {
+      DwmFlush ();
+
       // Dispatch through the trampoline, rather than hook
       //
       extern WaitForVBlank_pfn
@@ -212,8 +235,7 @@ SK_Framerate_WaitForVBlank (void)
     }
   }
 
-  else //if ( static_cast <int> (api)       &
-       //     static_cast <int> (SK_RenderAPI::D3D9) )
+  else
   {
     // This can be used in graphics APIs other than D3D,
     //   but it would be preferable to simply use D3DKMT
@@ -225,6 +247,8 @@ SK_Framerate_WaitForVBlank (void)
 
     if (d3d9ex != nullptr)
     {
+      DwmFlush ();
+
       UINT                             orig_latency = 3;
       d3d9ex->GetMaximumFrameLatency (&orig_latency);
       d3d9ex->SetMaximumFrameLatency (1);
@@ -246,11 +270,144 @@ SK_Framerate_WaitForVBlank (void)
 
   return false;
 }
-
-
-
+/////bool
+/////SK_Framerate_WaitForVBlank (void)
+/////{
+/////  void SK_D3DKMT_WaitForVBlank (void);
+/////       SK_D3DKMT_WaitForVBlank ();
+/////
+/////  return true;
+/////}
+/////
+/////
+/////
 extern bool __stdcall SK_IsGameWindowActive (void);
+/////
+/////
+/////typedef UINT D3DDDI_VIDEO_PRESENT_SOURCE_ID;
+/////typedef UINT D3DKMT_HANDLE;
+/////
+/////struct D3DKMT_WAITFORVERTICALBLANKEVENT
+/////{
+/////	D3DKMT_HANDLE                   hAdapter;      // in: adapter handle
+/////	D3DKMT_HANDLE                   hDevice;       // in: device handle [Optional]
+/////	D3DDDI_VIDEO_PRESENT_SOURCE_ID  VidPnSourceId; // in: adapter's VidPN Source ID
+/////};
+/////
+/////typedef struct D3DKMT_GETVERTICALBLANKEVENT
+/////{
+/////  D3DKMT_HANDLE                   hAdapter;      // in: adapter handle
+/////  D3DKMT_HANDLE                   hDevice;       // in: device handle [Optional]
+/////  D3DDDI_VIDEO_PRESENT_SOURCE_ID  VidPnSourceId; // in: adapter's VidPN Source ID
+/////  HANDLE*                         phEvent;
+/////} D3DKMT_GETVERTICALBLANKEVENT;
+/////
+/////typedef struct D3DKMT_OPENADAPTERFROMHDC
+/////{
+/////	HDC                             hDc;            // in:  DC that maps to a single display
+/////	D3DKMT_HANDLE                   hAdapter;       // out: adapter handle
+/////	LUID                            AdapterLuid;    // out: adapter LUID
+/////	D3DDDI_VIDEO_PRESENT_SOURCE_ID  VidPnSourceId;  // out: VidPN source ID for that particular display
+/////} D3DKMT_OPENADAPTERFROMHDC;
+/////
+/////typedef _Check_return_ NTSTATUS(APIENTRY *PFND3DKMT_OPENADAPTERFROMHDC)       (_Inout_              D3DKMT_OPENADAPTERFROMHDC*);
+/////typedef _Check_return_ NTSTATUS(APIENTRY *PFND3DKMT_WAITFORVERTICALBLANKEVENT)(   _In_ CONST struct D3DKMT_WAITFORVERTICALBLANKEVENT*);
+/////typedef _Check_return_ NTSTATUS(APIENTRY *PFND3DKMT_GETDWMVERTICALBLANKEVENT) (   _In_ CONST        D3DKMT_GETVERTICALBLANKEVENT*);
+/////
+/////SK_AutoHandle __SK_D3DKMT_DWM_VBlank (INVALID_HANDLE_VALUE);
+/////
+/////NTSTATUS
+/////SK_D3DKMT_InitWaitForDWMVBlank (void)
+/////{
+/////  if (__SK_D3DKMT_DWM_VBlank.m_h != INVALID_HANDLE_VALUE)
+/////    return S_OK;
+/////
+/////  D3DKMT_OPENADAPTERFROMHDC oa     = {          };
+/////	                          oa.hDc = GetDC (NULL);
+/////
+/////  static PFND3DKMT_OPENADAPTERFROMHDC
+/////             D3DKMTOpenAdapterFromHdc =
+/////    reinterpret_cast <PFND3DKMT_OPENADAPTERFROMHDC> (
+/////        SK_GetProcAddress (
+/////          SK_LoadLibraryW ( L"gdi32.dll" ),
+/////            "D3DKMTOpenAdapterFromHdc"
+/////                          )
+/////    );
+/////
+/////	NTSTATUS result =
+/////    D3DKMTOpenAdapterFromHdc (&oa);
+/////
+/////  if (SUCCEEDED (result))
+/////  {
+/////    static PFND3DKMT_WAITFORVERTICALBLANKEVENT
+/////              D3DKMTWaitForVerticalBlankEvent =
+/////      reinterpret_cast <PFND3DKMT_WAITFORVERTICALBLANKEVENT> (
+/////        SK_GetProcAddress (
+/////          SK_LoadLibraryW ( L"gdi32.dll" ),
+/////            "D3DKMTWaitForVerticalBlankEvent"
+/////                          )
+/////      );
+/////
+/////    static PFND3DKMT_GETDWMVERTICALBLANKEVENT
+/////              D3DKMTGetDWMVerticalBlankEvent =
+/////      reinterpret_cast <PFND3DKMT_GETDWMVERTICALBLANKEVENT> (
+/////        SK_GetProcAddress (
+/////          SK_LoadLibraryW ( L"gdi32.dll" ),
+/////            "D3DKMTGetDWMVerticalBlankEvent"
+/////                          )
+/////      );
+/////
+/////
+/////    D3DKMT_GETVERTICALBLANKEVENT
+/////    get_event = { };
+/////
+/////    get_event.hAdapter      = oa.hAdapter;
+/////    get_event.hDevice       =           0;
+/////    get_event.VidPnSourceId = oa.VidPnSourceId;
+/////    get_event.phEvent       = &__SK_D3DKMT_DWM_VBlank.m_h;
+/////
+/////    D3DKMT_WAITFORVERTICALBLANKEVENT
+/////      _event               = {         };
+/////      _event.hAdapter      = oa.hAdapter;
+/////      _event.hDevice       =           0;
+/////      _event.VidPnSourceId = oa.VidPnSourceId;
+/////
+/////    D3DKMTWaitForVerticalBlankEvent (&_event);
+/////
+/////    DWM_TIMING_INFO dwmTiming        = {                      };
+/////                    dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
+/////
+/////    ////if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
+/////    ////{
+/////    ////  while ( SK_QueryPerf ().QuadPart < dwmTiming.qpcVBlank )
+/////    ////    ;
+/////    ////
+/////    ////  return S_OK;
+/////    ////}
+/////
+/////    result = D3DKMTGetDWMVerticalBlankEvent != nullptr   ?
+/////             D3DKMTGetDWMVerticalBlankEvent (&get_event) : E_NOTIMPL;
+/////
+/////    //if (SUCCEEDED (result))
+/////      //__SK_D3DKMT_DWM_VBlank.m_h = hEvent;
+/////  }
+/////
+/////  ReleaseDC (NULL, oa.hDc);
+/////
+/////	return result;
+/////}
 
+void
+SK_D3DKMT_WaitForVBlank (void)
+{
+  SK_Framerate_WaitForVBlank ();
+  //SK_D3DKMT_InitWaitForDWMVBlank ();
+  //
+  //if (__SK_D3DKMT_DWM_VBlank.m_h != INVALID_HANDLE_VALUE)
+  //  WaitForSingleObject (__SK_D3DKMT_DWM_VBlank, INFINITE);
+};
+
+LONG64 __SK_VBlankLatency_QPCycles;
 
 void
 SK::Framerate::Limiter::init (double target)
@@ -269,7 +426,6 @@ SK::Framerate::Limiter::init (double target)
           ( ms / 1000.00 ) * static_cast <double> (_freqQuadPart)
                                                   );
 
-
   //
   // Align the start to VBlank for minimum input latency
   //
@@ -278,13 +434,14 @@ SK::Framerate::Limiter::init (double target)
   {
     // ^^^ Anything lower than a 5 FPS limit is probably user error.
 
-    DWORD dwNextTick =
-      timeGetTime () + static_cast <DWORD> (ms);
-
-    do
+    SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
+    if ((intptr_t)hWaitHandle.m_h > 0 )
     {
-      SK_Framerate_WaitForVBlank ();
-    } while (timeGetTime () <= dwNextTick);
+      SK_WaitForSingleObject (
+                  hWaitHandle,
+        std::max ( 48UL, 3 * static_cast <DWORD> (ms) )
+      );
+    }
   }
 
 
@@ -296,6 +453,38 @@ SK::Framerate::Limiter::init (double target)
   frames_of_fame.frames_measured.last.clock_val  = _perfQuadPart;
   frames_of_fame.frames_measured.first.initFrame  (_framesDrawn);
   frames_of_fame.frames_measured.last.frame_idx += _frames;
+
+
+  DWM_TIMING_INFO dwmTiming        = {                      };
+                  dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
+
+  if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
+  {
+    ticks_to_undershoot =
+      static_cast <ULONGLONG> (
+        static_cast < double> (ticks_per_frame) * 0.01 * undershoot_percent
+                              );
+
+    LONGLONG llCompositionLatency =
+        (LONGLONG)dwmTiming.qpcCompose -
+        (LONGLONG)dwmTiming.qpcVBlank;
+
+    ///static double uS =
+    ///  static_cast <double> ( SK_GetPerfFreq ().QuadPart ) / ( 1000.0 * 1000.0 );
+
+    ///SK_LOG0 ( ( L"Compose: %llu, VBlank: %llu, RefreshPeriod: %f uS...  CompositionLatency: %lli ticks",
+    ///              dwmTiming.qpcCompose,  dwmTiming.qpcVBlank,
+    ///               static_cast <double> (dwmTiming.qpcRefreshPeriod) * uS,
+    ///                         llCompositionLatency ), L"  DWM    ");
+
+    _perfQuadPart               =
+      dwmTiming.qpcVBlank - dwmTiming.qpcRefreshPeriod -
+                                  llCompositionLatency -
+                                   ticks_to_undershoot;
+
+    __SK_VBlankLatency_QPCycles =
+      _perfQuadPart - dwmTiming.qpcVBlank;
+  }
 
 
   WriteRelease64 ( &start, _perfQuadPart );
@@ -380,6 +569,11 @@ SK::Framerate::Limiter::wait (void)
   }
 
 
+  // Two limits applied on the same frame would cause problems, don't allow it.
+  if (ReadAcquire64 (&last_frame) == static_cast <LONG64> (SK_GetFramesDrawn ())) return;
+     WriteRelease64 (&last_frame,                          SK_GetFramesDrawn ());
+
+
   InterlockedIncrement64 (&frames);
 
 
@@ -419,7 +613,6 @@ SK::Framerate::Limiter::wait (void)
          next_  = ReadAcquire64 ( &frames ) * ticks_per_frame
                                             + start_;
 
-
   // Actual frametime before we forced a delay
   effective_ms =
     1000.0 * ( static_cast <double> (time_ - last_) /
@@ -438,12 +631,8 @@ SK::Framerate::Limiter::wait (void)
       modf ( missing_time, &missed_frames );
 
      static constexpr double dMissingTimeBoundary = 1.0;
-     static constexpr double dEdgeToleranceLow    = 0.005;
-     static constexpr double dEdgeToleranceHigh   = 0.995;
-
-     static volatile double dClockDrift = 0.0;
-
-     dClockDrift += edge_distance;
+     static constexpr double dEdgeToleranceLow    = 0.15;
+     static constexpr double dEdgeToleranceHigh   = 0.95;
 
     if ( missed_frames >= dMissingTimeBoundary &&
          edge_distance >= dEdgeToleranceLow    &&
@@ -471,45 +660,82 @@ SK::Framerate::Limiter::wait (void)
     };
 
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+
   if (next_ > 0LL)
   {
     // Flush the queue before waiting, otherwise we could be asking the
     //   driver to evaluate commands after it should have presented a
     //     finished frame.
     SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (
-      SK_GetCurrentRenderBackend ().d3d11.immediate_ctx
+      rb.d3d11.immediate_ctx
     );
 
     if (pDevCtx != nullptr)
         pDevCtx->Flush ();
 
-
-    double
-      to_next_in_secs =
-        SK_RecalcTimeToNextFrame ();
-
-    // busy_wait_ratio controls the ratio of scheduler-wait to busy-wait,
-    //   extensive testing shows 87.5% is most reasonable on the widest
-    //     selection of hardware.
-    LARGE_INTEGER liDelay;
-                  liDelay.QuadPart =
-                    static_cast <LONGLONG> (
-                      to_next_in_secs * 1000.0 *
-                      (double)config.render.framerate.busy_wait_ratio
-                    );
-
+    // For a Waitable chain to be effective, 100% busy-wait must not
+    //   be allowed.
+    if (config.render.framerate.swapchain_wait > 0)
+    {
+      config.render.framerate.busy_wait_ratio = std::max (
+        config.render.framerate.busy_wait_ratio, 0.01f
+      );
+    }
 
     // Create an unnamed waitable timer.
-    if (timer_wait == 0)
+    if (timer_wait == nullptr)
     {
       timer_wait =
         CreateWaitableTimer (nullptr, FALSE, nullptr);
     }
 
+    static constexpr
+      double duS = (1000.0 * 10000.0);
+
+    double
+      to_next_in_secs =
+        SK_RecalcTimeToNextFrame ();
+
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely decimating a CPU core.
-    if ( timer_wait != 0 && liDelay.QuadPart > 0LL)
+    if ( timer_wait != 0 && ( to_next_in_secs * config.render.framerate.busy_wait_ratio > 0.1 ||
+                                                config.render.framerate.swapchain_wait  > 0 ) )
     {
+      SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
+      if ((intptr_t)hWaitHandle.m_h > 0)
+      {
+        if ( to_next_in_secs > ((ms / 1000.0) * fSwapWaitRatio) &&
+             to_next_in_secs < 0.25f )
+          // Sanity check to prevent an otherwise unbounded wait.
+        {
+          LARGE_INTEGER uSecs;
+                        uSecs.QuadPart =
+            -static_cast <LONGLONG> ( duS *
+                                        to_next_in_secs *
+                                        ( fSwapWaitFract ) );
+
+          SK_WaitForSingleObject_Micro ( hWaitHandle,
+                                           &uSecs );
+        }
+
+        to_next_in_secs =
+          SK_RecalcTimeToNextFrame ();
+
+      }
+
+      // busy_wait_ratio controls the ratio of scheduler-wait to busy-wait,
+      //   extensive testing shows 87.5% is most reasonable on the widest
+      //     selection of hardware.
+      LARGE_INTEGER liDelay;
+                    liDelay.QuadPart =
+                      static_cast <LONGLONG> (
+                        to_next_in_secs * 1000.0 *
+                        (double)config.render.framerate.busy_wait_ratio
+                      );
+
         liDelay.QuadPart =
       -(liDelay.QuadPart * 10000LL);
 
@@ -522,39 +748,58 @@ SK::Framerate::Limiter::wait (void)
         DWORD  dwWait  = WAIT_FAILED;
         while (dwWait != WAIT_OBJECT_0)
         {
-          to_next_in_secs =
-            SK_RecalcTimeToNextFrame ();
-
           if (to_next_in_secs <= 0.0)
           {
             break;
           }
-
-          static constexpr
-            double duS = (1000.0 * 10000.0);
-
           // Negative values are used to tell the Nt systemcall
           //   to use relative rather than absolute time offset.
           LARGE_INTEGER uSecs;
                         uSecs.QuadPart =
             -static_cast <LONGLONG> (duS * to_next_in_secs);
 
-
           // System Call:  NtWaitForSingleObject  [Delay = 100 ns]
           dwWait =
             SK_WaitForSingleObject_Micro ( timer_wait,
                                              &uSecs );
 
-          if (dwWait != WAIT_OBJECT_0)
+          if ( dwWait != WAIT_OBJECT_0 &&
+               dwWait != WAIT_TIMEOUT )
+          {
             dll_log->Log (L"Result of WaitForSingleObject: %x", dwWait);
+          }
 
-          YieldProcessor ();
+          to_next_in_secs =
+            std::max (0.25, SK_RecalcTimeToNextFrame ());
+
+          if (to_next_in_secs > 0.0001)
+            YieldProcessor ();
         }
       }
     }
 
+
     // Any remaining wait-time will degenerate into a hybrid busy-wait,
     //   this is also when VBlank synchronization is applied if user wants.
+    if ( config.render.framerate.wait_for_vblank )
+    {
+      DWM_TIMING_INFO dwmTiming        = {                      };
+                      dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
+
+      BOOL bNextVBlankIsShortTerm = TRUE;
+
+      if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
+      {
+        if ( next_ < static_cast <LONG64> (dwmTiming.qpcVBlank) )
+             bNextVBlankIsShortTerm = FALSE;
+        if ( bNextVBlankIsShortTerm )
+        {
+          SK_Framerate_WaitForVBlank ();
+        }
+      }
+    }
+
+
     do
     {
       DWORD dwWaitMS =
@@ -579,14 +824,9 @@ SK::Framerate::Limiter::wait (void)
         }
       }
 
-      if ( config.render.framerate.wait_for_vblank )
-      {
-        SK_Framerate_WaitForVBlank ();
-      }
-
       time_ =
         SK_QueryPerf ().QuadPart;
-    } while (time_ <= next_);
+    } while (time_ < next_);
   }
 
   else
@@ -619,10 +859,31 @@ SK::Framerate::Limiter::effective_frametime (void)
   return effective_ms;
 }
 
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
 SK::Framerate::Limiter*
-SK::Framerate::GetLimiter (IUnknown *pSwapChain)
+SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
+                            bool      bCreate = true )
 {
+  // Prefer to reference SwapChains we wrap by their wrapped pointer
+  SK_ComPtr <IUnknown> pSwapChainUnwrapped;
+             IUnknown* pSwapChain;
+
+  if ( pSwapChain_ != nullptr &&
+       SUCCEEDED (
+         pSwapChain_->QueryInterface (
+           IID_IUnwrappedDXGISwapChain,
+                  (void **)&pSwapChainUnwrapped.p
+         )
+       )
+     )
+  {
+    pSwapChain = pSwapChainUnwrapped.p;
+  }
+
+  else
+    pSwapChain = pSwapChain_;
+
   static concurrency::concurrent_unordered_map < IUnknown *,
       std::unique_ptr <SK::Framerate::Limiter> > limiters_;
 
@@ -634,17 +895,42 @@ SK::Framerate::GetLimiter (IUnknown *pSwapChain)
 
   if (! limiters_.count (pSwapChain))
   {
-    limiters_ [pSwapChain] =
-      std::make_unique <SK::Framerate::Limiter> (
-        config.render.framerate.target_fps
-      );
+    if (bCreate)
+    {
+      limiters_ [pSwapChain] =
+        std::make_unique <SK::Framerate::Limiter> (
+          config.render.framerate.target_fps
+        );
 
-    SK_LOG0 ( ( L" Framerate Limiter Created to Track SwapChain (%ph)", pSwapChain ),
-                L"FrameLimit" );
+      SK_LOG0 ( ( L" Framerate Limiter Created to Track SwapChain (%ph)",
+                                                       pSwapChain
+                ), L"FrameLimit"
+              );
+    }
+
+    else
+      return nullptr;
   }
 
   return
     limiters_.at (pSwapChain).get ();
+}
+
+bool
+SK::Framerate::HasLimiter (IUnknown *pSwapChain)
+{
+  return
+    nullptr != SK_FramerateLimit_Factory
+               ( pSwapChain,     false );
+}
+
+SK::Framerate::Limiter*
+SK::Framerate::GetLimiter ( IUnknown *pSwapChain,
+                            bool      bCreateIfNoneExists )
+{
+  return
+    SK_FramerateLimit_Factory ( pSwapChain,
+                                bCreateIfNoneExists );
 }
 
 void

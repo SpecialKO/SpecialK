@@ -85,6 +85,24 @@ typedef BOOL (WINAPI *WriteFileEx_pfn)(
     PULONG           Key
   );
 
+NTSTATUS
+WINAPI
+NtReadFile_Detour (
+  _In_     HANDLE           FileHandle,
+  _In_opt_ HANDLE           Event,
+  _In_opt_ PVOID            ApcRoutine,
+  _In_opt_ PVOID            ApcContext,
+  _Out_    PVOID            IoStatusBlock,
+  _Out_    PVOID            Buffer,
+  _In_     ULONG            Length,
+  _In_opt_ PLARGE_INTEGER   ByteOffset,
+  _In_opt_ PULONG           Key );
+
+BOOL
+SK_File_GetNameFromHandle ( HANDLE   hFile,
+                            wchar_t *pwszFileName,
+                      const DWORD    uiMaxLen );
+
 extern ReadFile_pfn   ReadFile_Original;
 extern ReadFileEx_pfn ReadFileEx_Original;
 

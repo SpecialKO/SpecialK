@@ -26,15 +26,14 @@
 // DirectX
 #include <d3d11.h>
 
-bool __SK_ImGui_D3D11_DrawDeferred = false;
-bool running_on_12                 = false;
+bool running_on_12 = false;
 
 extern void
 SK_ImGui_User_NewFrame (void);
 
-// Data
-static INT64                    g_Time                  = 0;
-static INT64                    g_TicksPerSecond        = 0;
+  // Data
+  static INT64                    g_Time                  = 0;
+  static INT64                    g_TicksPerSecond        = 0;
 
 static ImGuiMouseCursor         g_LastMouseCursor       = ImGuiMouseCursor_COUNT;
 static bool                     g_HasGamepad            = false;
@@ -464,9 +463,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   if (! rb.d3d11.immediate_ctx)
     return;
 
-  //if (! rb.d3d11.deferred_ctx)
-  //  return;
-
   SK_ComQIPtr <ID3D11Device>        pDevice    (      rb.device       );
   SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
   SK_ComQIPtr <IDXGISwapChain>      pSwapChain (   rb.swapchain       );
@@ -652,15 +648,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
     memcpy         (&constant_buffer->mvp, mvp, sizeof (mvp));
 
-    static bool hdr_display = false;
-
-    hdr_display =
-          hdr_display ||
+    bool hdr_display =
       (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
-
-    SK_ReleaseAssert (hdr_display ==
-                      (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR))
-    );
 
     if (! hdr_display)
     {
@@ -690,8 +679,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       constant_buffer->luminance_scale [0] = ( bEOTF_is_PQ ? -80.0f * rb.ui_luminance :
                                                                       rb.ui_luminance );
       constant_buffer->luminance_scale [1] = 2.2f;
-      constant_buffer->luminance_scale [2] = ( bEOTF_is_PQ ? 1.0f : luma );
-      constant_buffer->luminance_scale [3] = ( bEOTF_is_PQ ? 1.0f : exp  );
+      constant_buffer->luminance_scale [2] = rb.display_gamut.minY * 1.0_Nits;
       constant_buffer->steam_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.steam.overlay_hdr_luminance :
                                                                       config.steam.overlay_hdr_luminance );
       constant_buffer->steam_luminance [1] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
@@ -883,10 +871,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     vtx_offset += cmd_list->VtxBuffer.Size;
   }
 
-  // Last-ditch effort to get the HDR post-process done before the UI.
-  void SK_HDR_SnapshotSwapchain (void);
-       SK_HDR_SnapshotSwapchain (    );
-
   pDevCtx->OMSetRenderTargets ( 0,
                           nullptr, nullptr );
   }
@@ -895,28 +879,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     sb.Apply (pDevCtx);
   }
   SK_SEH_RemoveTranslator (orig_se);
-
-#if 0
-  __SK_ImGui_D3D11_DrawDeferred = false;
-  if (__SK_ImGui_D3D11_DrawDeferred)
-  {
-    ComPtr <ID3D11CommandList> pCmdList = nullptr;
-
-    if ( SUCCEEDED (
-           pDevCtx->FinishCommandList ( TRUE,
-                                          &pCmdList.Get () )
-                   )
-       )
-    {
-      rb.d3d11.immediate_ctx->ExecuteCommandList (
-        pCmdList.p, TRUE
-      );
-    }
-
-    else
-      pDevCtx->Flush ();
-  }
-#endif
 }
 
 #include <SpecialK/config.h>
@@ -1022,11 +984,11 @@ ImGui_ImplDX11_CreateFontsTexture (void)
         D3D11_SAMPLER_DESC
           sampler_desc                    = { };
           sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-          sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_WRAP;
-          sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_WRAP;
-          sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_WRAP;
+          sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_CLAMP;
+          sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_CLAMP;
+          sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_CLAMP;
           sampler_desc.MipLODBias         = 0.f;
-          sampler_desc.ComparisonFunc     = D3D11_COMPARISON_ALWAYS;
+          sampler_desc.ComparisonFunc     = D3D11_COMPARISON_NEVER;
           sampler_desc.MinLOD             = 0.f;
           sampler_desc.MaxLOD             = 0.f;
 
@@ -1037,12 +999,12 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 
           sampler_desc = { };
 
-          sampler_desc.Filter             = D3D11_FILTER_ANISOTROPIC;
-          sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_MIRROR;
-          sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_MIRROR;
-          sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_MIRROR;
+          sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+          sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_CLAMP;
+          sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_CLAMP;
+          sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_CLAMP;
           sampler_desc.MipLODBias         = 0.f;
-          sampler_desc.ComparisonFunc     = D3D11_COMPARISON_ALWAYS;
+          sampler_desc.ComparisonFunc     = D3D11_COMPARISON_NEVER;
           sampler_desc.MinLOD             = 0.f;
           sampler_desc.MaxLOD             = 0.f;
 
@@ -1212,22 +1174,6 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
       if (GiantListThatDestroysTheStack1 [j] != nullptr)
           GiantListThatDestroysTheStack1 [j]->Release ();
     }
-    //SK_IMGUI_D3D11StateBlock
-    //  sb;
-    //  sb.Capture (pDevCtx, SK_IMGUI_D3D11StateBlock::VertexStage |
-    //                       SK_IMGUI_D3D11StateBlock::PixelStage);
-    //
-    //pDevCtx->VSSetShader          ( _P.pVertexShaderSteamHDR,
-    //                                  nullptr, 0 );
-    //pDevCtx->PSSetShader          ( _P.pPixelShaderSteamHDR,
-    //                                  nullptr, 0 );
-    //pDevCtx->VSSetConstantBuffers ( 0, 1,
-    //                                &_P.pVertexConstantBuffer );
-    //
-    //pfnD3D11Draw ( pDevCtx, VertexCount, StartVertexLocation );
-    //
-    //sb.Apply (pDevCtx, SK_IMGUI_D3D11StateBlock::VertexStage |
-    //                   SK_IMGUI_D3D11StateBlock::PixelStage);
 
     return
       S_OK;
@@ -1258,25 +1204,14 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer (UINT idx)
 
   SK_ComQIPtr <ID3D11Device> pDev (rb.device);
 
-  ///if (rb.api != SK_RenderAPI::D3D11On12)
-  ///{
-    if (! rb.device)
-      return false;
+  if (! rb.device)
+    return false;
 
-    if (! rb.d3d11.immediate_ctx)
-      return false;
+  if (! rb.d3d11.immediate_ctx)
+    return false;
 
-    if (! rb.swapchain)
-      return false;
-  ///}
-
-  ///if (rb.api == SK_RenderAPI::D3D11On12)
-  ///{
-  ///  rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
-  ///
-  ///                              rb.d3d11.immediate_ctx = nullptr;
-  ///  pDev->GetImmediateContext (&rb.d3d11.immediate_ctx.p);
-  ///}
+  if (! rb.swapchain)
+    return false;
 
   auto flag_result =
     SK_ImGui_FlagDrawing_OnD3D11Ctx (
@@ -1290,8 +1225,8 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer (UINT idx)
     return false;
 
   if ( pDev->CreateVertexShader ( (DWORD *)(imgui_d3d11_vs_bytecode),
-                                    sizeof (imgui_d3d11_vs_bytecode) /
-                                    sizeof (imgui_d3d11_vs_bytecode [0]),
+                                      sizeof (imgui_d3d11_vs_bytecode) /
+                                      sizeof (imgui_d3d11_vs_bytecode [0]),
                                       nullptr,
                                         &_P.pVertexShader ) != S_OK )
     return false;
@@ -1435,12 +1370,12 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer (UINT idx)
 
     desc.DepthEnable              = false;
     desc.DepthWriteMask           = D3D11_DEPTH_WRITE_MASK_ALL;
-    desc.DepthFunc                = D3D11_COMPARISON_ALWAYS;
+    desc.DepthFunc                = D3D11_COMPARISON_NEVER;
     desc.StencilEnable            = false;
     desc.FrontFace.StencilFailOp  = desc.FrontFace.StencilDepthFailOp =
                                     desc.FrontFace.StencilPassOp      =
                                     D3D11_STENCIL_OP_KEEP;
-    desc.FrontFace.StencilFunc    = D3D11_COMPARISON_ALWAYS;
+    desc.FrontFace.StencilFunc    = D3D11_COMPARISON_NEVER;
     desc.BackFace                 = desc.FrontFace;
 
     pDev->CreateDepthStencilState (&desc, &_P.pDepthStencilState);

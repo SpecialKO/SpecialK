@@ -267,6 +267,13 @@ SteamInternal_CreateInterface_Detour (const char *ver)
 {
   steam_log->Log (L"[Steam Wrap] [!] SteamInternal_CreateInterface (%hs)", ver);
 
+  //return
+  //  SteamInternal_CreateInterface_Original (ver);
+
+
+
+
+
   if (! lstrcmpA (ver, STEAMCLIENT_INTERFACE_VERSION))
   {
     ISteamClient* pClient =

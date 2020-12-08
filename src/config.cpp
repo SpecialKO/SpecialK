@@ -55,7 +55,7 @@ SK_GetCurrentGameID (void)
     auto constexpr hash_lower = [&](const wchar_t* const wstr) -> size_t
           { return hash_string                          (wstr, true); };
 
-    static std::unordered_map <size_t,                          SK_GAME_ID> _games =                     {
+    static std::unordered_map <size_t, SK_GAME_ID> _games = {
       { hash_lower (L"Tyranny.exe"),                            SK_GAME_ID::Tyranny                      },
       { hash_lower (L"TidesOfNumenera.exe"),                    SK_GAME_ID::TidesOfNumenera              },
       { hash_lower (L"MassEffectAndromeda.exe"),                SK_GAME_ID::MassEffect_Andromeda         },
@@ -127,7 +127,9 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"Octopath_Traveler-Win64-Shipping.exe"),   SK_GAME_ID::OctopathTraveler             },
       { hash_lower (L"SonicMania.exe"),                         SK_GAME_ID::SonicMania                   },
       { hash_lower (L"P4G.exe"),                                SK_GAME_ID::Persona4                     },
-      { hash_lower (L"HorizonZeroDawn.exe"),                    SK_GAME_ID::HorizonZeroDawn              }
+      { hash_lower (L"HorizonZeroDawn.exe"),                    SK_GAME_ID::HorizonZeroDawn              },
+      { hash_lower (L"bg3.exe"),                                SK_GAME_ID::BaldursGate3                 },
+      { hash_lower (L"YakuzaLikeADragon.exe"),                  SK_GAME_ID::YakuzaLikeADragon            }
     };
 
     first_check = false;
@@ -142,6 +144,14 @@ SK_GetCurrentGameID (void)
 
         extern void SK_FFXV_InitPlugin (void);
                     SK_FFXV_InitPlugin ();
+      }
+
+      if ( StrStrIW ( SK_GetHostApp (), L"ACValhalla" ) )
+      {
+        current_game = SK_GAME_ID::AssassinsCreed_Valhalla;
+
+        extern void SK_ACV_InitPlugin (void);
+                    SK_ACV_InitPlugin ();
       }
     }
 
@@ -445,7 +455,7 @@ struct {
     sk::ParameterBool*    deferred_isolation;
     sk::ParameterInt*     msaa_samples;
     sk::ParameterBool*    skip_present_test;
-    sk::ParameterBool*    spoof_hdr; // Not very practical; debug only
+    sk::ParameterInt*     srgb_behavior;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -519,6 +529,7 @@ struct {
     sk::ParameterBool*    haptic_ui;
     sk::ParameterBool*    disable_rumble;
     sk::ParameterBool*    hook_dinput8;
+    sk::ParameterBool*    hook_dinput7;
     sk::ParameterBool*    hook_hid;
     sk::ParameterBool*    hook_xinput;
 
@@ -691,14 +702,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   std::wstring osd_config, steam_config, macro_config;
 
-  full_name =
-    SK_FormatStringW ( L"%s%s.ini",
-                         SK_GetConfigPath (), name.c_str () );
+  full_name = // For paths with :, do not prepend the config root
+    name.find (L":") != std::wstring::npos ?
+      SK_FormatStringW ( L"%s.ini",             name.c_str () ) :
+      SK_FormatStringW ( L"%s%s.ini",
+                           SK_GetConfigPath (), name.c_str () );
 
 
   std::wstring undecorated_name (name);
 
-  if ( undecorated_name.find (L"default_") != std::wstring::npos )
+  if ( undecorated_name.find (L"default_") != std::wstring::npos &&
+       undecorated_name.find (L":")        == std::wstring::npos )
   {
       undecorated_name.erase ( undecorated_name.find (L"default_"),
                                         std::wstring (L"default_").length () );
@@ -912,6 +926,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.disable_ps4_hid,          L"Disable PS4 HID Interface (prevent double-input)",          dll_ini,         L"Input.Gamepad",         L"DisablePS4HID"),
     ConfigEntry (input.gamepad.haptic_ui,                L"Give tactile feedback on gamepads when navigating the UI",  dll_ini,         L"Input.Gamepad",         L"AllowHapticUI"),
     ConfigEntry (input.gamepad.hook_dinput8,             L"Install hooks for DirectInput 8",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput8"),
+    ConfigEntry (input.gamepad.hook_dinput7,             L"Install hooks for DirectInput 7",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput7"),
     ConfigEntry (input.gamepad.hook_hid,                 L"Install hooks for HID",                                     dll_ini,         L"Input.Gamepad",         L"EnableHID"),
     ConfigEntry (input.gamepad.native_ps4,               L"Native PS4 Mode (temporary)",                               dll_ini,         L"Input.Gamepad",         L"EnableNativePS4"),
     ConfigEntry (input.gamepad.disable_rumble,           L"Disable Rumble from ALL SOURCES (across all APIs)",         dll_ini,         L"Input.Gamepad",         L"DisableRumble"),
@@ -1071,7 +1086,8 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.skip_present_test,          L"Nix the swapchain present flag: DXGI_PRESENT_TEST to "
                                                          L"workaround bad third-party software that doesn't handle it"
                                                          L" correctly.",                                               dll_ini,         L"Render.DXGI",           L"SkipSwapChainPresentTest"),
-
+    ConfigEntry (render.dxgi.srgb_behavior,              L"How to handle sRGB SwapChains when we have to kill them for"
+                                                         L" Flip Model support (-1=Passthrough, 0=Strip, 1=Apply)",    dll_ini,         L"Render.DXGI",           L"sRGBBypassBehavior"),
 
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
     ConfigEntry (texture.d3d11.precise_hash,             L"Precise Hash Generation",                                   dll_ini,         L"Textures.D3D11",        L"PreciseHash"),
@@ -1876,6 +1892,10 @@ auto DeclKeybind =
         config.apis.d3d9ex.hook = false;
       } break;
 
+      case SK_GAME_ID::BaldursGate3:
+        config.compatibility.impersonate_debugger = true;
+        break;
+
       case SK_GAME_ID::Persona4:
       {
         config.window.treat_fg_as_active          = true;
@@ -1895,7 +1915,6 @@ auto DeclKeybind =
         //     know about relative input (e.g. RawInput).
         config.input.mouse.ignore_small_clips     = false;
         config.compatibility.impersonate_debugger = true;
-        config.window.treat_fg_as_active          = true;
         break;
 
       case SK_GAME_ID::Yakuza0:
@@ -1916,31 +1935,11 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                   =  false;
         config.apis.Vulkan.hook                   =  false;
         config.apis.dxgi.d3d12.hook               =  false;
-        config.display.force_windowed             =   true;
-        config.input.ui.use_hw_cursor             =  false;
-        config.input.gamepad.xinput.placehold [0] =   true;
-        config.input.gamepad.xinput.placehold [1] =   true;
-        config.input.gamepad.xinput.placehold [2] =   true;
-        config.input.gamepad.xinput.placehold [3] =   true;
-        config.window.borderless                  =   true;
-        config.window.center                      =   true;
-        config.window.fullscreen                  =   true;
         config.window.background_render           =   true;
         config.window.always_on_top               =     -1;
-        config.threads.enable_file_io_trace       =   true;
         config.textures.d3d11.cache               =  false;
-        config.textures.d3d11.uncompressed_mips   =   true;
-        config.textures.d3d11.cache_gen_mips      =   true;
         config.render.dxgi.deferred_isolation     =   true;
-        config.render.dxgi.present_test_skip      =   true;
-        config.cegui.enable                       =   true;
-        config.render.framerate.disable_flip      =  false;
-        config.render.framerate.buffer_count      =      5;
-        config.render.framerate.pre_render_limit  =      6;
-        config.render.framerate.present_interval  =      1;
-      //config.render.framerate.limiter_tolerance =   2.0f;
         config.render.framerate.flip_discard      =   true;
-        config.render.framerate.swapchain_wait    =    500;
         config.steam.reuse_overlay_pause          =  false;
 
         dll_ini->import (L"[Import.ReShade64_Custom]\n"
@@ -1974,6 +1973,23 @@ auto DeclKeybind =
         config.render.framerate.buffer_count      = 3;
         config.render.framerate.pre_render_limit  = 4;
         config.textures.cache.max_size            = 5120;
+        break;
+
+      case SK_GAME_ID::AssassinsCreed_Valhalla:
+        config.apis.d3d9.hook                    = false;
+        config.apis.d3d9ex.hook                  = false;
+        config.apis.OpenGL.hook                  = false;
+        config.apis.Vulkan.hook                  = false;
+        config.apis.dxgi.d3d11.hook              = false;
+        config.apis.dxgi.d3d12.hook              =  true;
+        config.render.framerate.flip_discard     =  true;
+        config.render.framerate.swapchain_wait   =     1;
+        config.render.framerate.busy_wait_ratio  =   .5f;
+        config.render.framerate.buffer_count     =     6;
+        config.render.framerate.pre_render_limit =     6;
+        config.render.framerate.present_interval =     1;
+        config.render.framerate.sleepless_render =  true;
+        config.render.framerate.sleepless_window =  true;
         break;
 
       case SK_GAME_ID::Shenmue:
@@ -2423,7 +2439,7 @@ auto DeclKeybind =
   render.dxgi.deferred_isolation->load  (config.render.dxgi.deferred_isolation);
   render.dxgi.skip_present_test->load   (config.render.dxgi.present_test_skip);
   render.dxgi.msaa_samples->load        (config.render.dxgi.msaa_samples);
-
+  render.dxgi.srgb_behavior->load       (config.render.dxgi.srgb_behavior);
 
   texture.d3d11.cache->load             (config.textures.d3d11.cache);
   texture.d3d11.precise_hash->load      (config.textures.d3d11.precise_hash);
@@ -2479,6 +2495,7 @@ auto DeclKeybind =
 
   // Hidden INI values; they're loaded, but never written
   input.gamepad.hook_dinput8->load      (config.input.gamepad.hook_dinput8);
+  input.gamepad.hook_dinput7->load      (config.input.gamepad.hook_dinput7);
   input.gamepad.hook_hid->load          (config.input.gamepad.hook_hid);
   input.gamepad.native_ps4->load        (config.input.gamepad.native_ps4);
 
@@ -3500,6 +3517,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.deferred_isolation->store   (config.render.dxgi.deferred_isolation);
       render.dxgi.skip_present_test->store    (config.render.dxgi.present_test_skip);
       render.dxgi.msaa_samples->store         (config.render.dxgi.msaa_samples);
+      render.dxgi.srgb_behavior->store        (config.render.dxgi.srgb_behavior);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||

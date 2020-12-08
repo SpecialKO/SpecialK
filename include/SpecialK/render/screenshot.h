@@ -48,9 +48,31 @@ struct SK_ScreenshotQueue
       volatile LONG with_sk_osd;
     };
   };
+
+  struct MemoryTotals {
+    std::atomic_size_t capture_bytes = 0;
+    std::atomic_size_t encode_bytes  = 0;
+    std::atomic_size_t write_bytes   = 0;
+  } static pooled,
+           completed;
+
+  static constexpr
+    MemoryTotals maximum =
+    {
+#ifdef _M_AMD64
+      1024 * 1024 * 1024,
+       512 * 1024 * 1024,
+       256 * 1024 * 1024
+#else
+      256 * 1024 * 1024,
+      128 * 1024 * 1024,
+       64 * 1024 * 1024
+#endif
+    };
 };
 
-extern SK_ScreenshotQueue enqueued_screenshots;
+extern SK_ScreenshotQueue
+ enqueued_screenshots;
 
 void
 SK_Screenshot_ProcessQueue ( SK_ScreenshotStage stage,
