@@ -26,6 +26,8 @@
 
 
 
+#include <../depends/include/boost/range/counting_range.hpp>
+
 #include <shaders/imgui_d3d11_vs.h>
 #include <shaders/imgui_d3d11_ps.h>
 
@@ -42,35 +44,61 @@
 // DirectX
 //#include <dxgi1_4.h>
 
-// DirectX data
-static ID3D12Device*                   g_pd3dDevice            = nullptr;
-static SK_ComPtr <ID3D12RootSignature> g_pRootSignature        = nullptr;
-static SK_ComPtr <ID3D12PipelineState> g_pPipelineState        = nullptr;
-static DXGI_FORMAT                     g_RTVFormat             = DXGI_FORMAT_UNKNOWN;
-static SK_ComPtr <ID3D12Resource>      g_pFontTextureResource  = nullptr;
-static D3D12_CPU_DESCRIPTOR_HANDLE     g_hFontSrvCpuDescHandle = {};
-static D3D12_GPU_DESCRIPTOR_HANDLE     g_hFontSrvGpuDescHandle = {};
-
-
-    extern float __SK_HDR_Luma;
-    extern float __SK_HDR_Exp;
-    extern float __SK_HDR_Saturation;
-    extern float __SK_HDR_HorizCoverage;
-    extern float __SK_HDR_VertCoverage;
-    extern int   __SK_HDR_tonemap;
-    extern int   __SK_HDR_visualization;
-    extern int   __SK_HDR_Bypass_sRGB;
-    extern float __SK_HDR_PaperWhite;
-    extern float __SK_HDR_user_sdr_Y;
-
-struct FrameResources
+struct SK_ImGui_D3D12Ctx
 {
-  SK_ComPtr <ID3D12Resource> IB;
-  SK_ComPtr <ID3D12Resource> VB;
-  int VertexBufferSize;
-  int IndexBufferSize;
-};
-std::vector <FrameResources> g_FrameResources;
+  SK_ComPtr <ID3D12Device>        pDevice;
+  SK_ComPtr <ID3D12RootSignature> pRootSignature;
+  SK_ComPtr <ID3D12PipelineState> pPipelineState;
+
+  DXGI_FORMAT                     RTVFormat             = DXGI_FORMAT_UNKNOWN;
+
+  SK_ComPtr <ID3D12Resource>      pFontTexture;
+  D3D12_CPU_DESCRIPTOR_HANDLE     hFontSrvCpuDescHandle = { };
+  D3D12_GPU_DESCRIPTOR_HANDLE     hFontSrvGpuDescHandle = { };
+
+  struct FrameHeap
+  {
+    struct buffer_s : SK_ComPtr <ID3D12Resource>
+    { INT size;
+    } Vb, Ib;
+  } frame_heaps [DXGI_MAX_SWAP_CHAIN_BUFFERS];
+} _imgui_d3d12;
+
+extern float __SK_HDR_Luma;
+extern float __SK_HDR_Exp;
+extern float __SK_HDR_Saturation;
+extern float __SK_HDR_HorizCoverage;
+extern float __SK_HDR_VertCoverage;
+extern int   __SK_HDR_tonemap;
+extern int   __SK_HDR_visualization;
+extern int   __SK_HDR_Bypass_sRGB;
+extern float __SK_HDR_PaperWhite;
+extern float __SK_HDR_user_sdr_Y;
+
+extern
+void
+__stdcall
+SK_D3D12_UpdateRenderStatsEx (ID3D12GraphicsCommandList  *pList, IDXGISwapChain3 *pSwapChain);
+
+HRESULT
+WINAPI
+D3D12SerializeRootSignature ( const D3D12_ROOT_SIGNATURE_DESC* pRootSignature,
+                                    D3D_ROOT_SIGNATURE_VERSION Version,
+                                    ID3DBlob**                 ppBlob,
+                                    ID3DBlob**                 ppErrorBlob )
+{
+  static D3D12SerializeRootSignature_pfn
+        _D3D12SerializeRootSignature =
+        (D3D12SerializeRootSignature_pfn)
+           SK_GetProcAddress ( L"d3d12.dll",
+                                "D3D12SerializeRootSignature" );
+
+  if (! _D3D12SerializeRootSignature)
+    return E_NOTIMPL;
+
+  return
+    _D3D12SerializeRootSignature (pRootSignature, Version, ppBlob, ppErrorBlob);
+}
 
 struct VERTEX_CONSTANT_BUFFER
 {
@@ -82,133 +110,171 @@ struct VERTEX_CONSTANT_BUFFER
   float steam_luminance [4];
 };
 
-static UINT64 _frame = 0;
-
-void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, SK_D3D12_RenderCtx::FrameCtx* pFrame)
+void
+ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
+              SK_D3D12_RenderCtx::FrameCtx* pFrame )
 {
-  FrameResources* frameResources =
-    &g_FrameResources [_frame % g_FrameResources.size ()];
-
-  SK_ComPtr <ID3D12GraphicsCommandList> ctx =
-    pFrame->pCmdList;
-
-  SK_ComPtr <ID3D12Resource> g_pVB = frameResources->VB;
-  SK_ComPtr <ID3D12Resource> g_pIB = frameResources->IB;
-
-  int g_VertexBufferSize = frameResources->VertexBufferSize;
-  int g_IndexBufferSize  = frameResources->IndexBufferSize;
-
-  // Create and grow vertex/index buffers if needed
-  if (! g_pVB.p || g_VertexBufferSize < draw_data->TotalVtxCount)
-  {
-    pFrame->wait_for_gpu ();
-
-    if (g_pVB.p)
-        g_pVB.Release ();
-
-    g_VertexBufferSize = draw_data->TotalVtxCount + 5000;
-
-    D3D12_HEAP_PROPERTIES
-      props                      = { };
-      props.Type                 = D3D12_HEAP_TYPE_UPLOAD;
-      props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-      props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-
-    D3D12_RESOURCE_DESC
-      desc                  = { };
-      desc.Dimension        = D3D12_RESOURCE_DIMENSION_BUFFER;
-      desc.Width            = g_VertexBufferSize * sizeof (ImDrawVert);
-      desc.Height           = 1;
-      desc.DepthOrArraySize = 1;
-      desc.MipLevels        = 1;
-      desc.Format           = DXGI_FORMAT_UNKNOWN;
-      desc.SampleDesc.Count = 1;
-      desc.Layout           = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-      desc.Flags            = D3D12_RESOURCE_FLAG_NONE;
-
-    if (g_pd3dDevice->CreateCommittedResource (&props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, IID_PPV_ARGS(&g_pVB)) < 0)
-      return;
-
-    frameResources->VB               = g_pVB;
-    frameResources->VertexBufferSize = g_VertexBufferSize;
-  }
-
-  if (! g_pIB.p || g_IndexBufferSize < draw_data->TotalIdxCount)
-  {
-    pFrame->wait_for_gpu ();
-
-    if (g_pIB.p)
-        g_pIB.Release ();
-
-    g_IndexBufferSize = draw_data->TotalIdxCount + 10000;
-
-    D3D12_HEAP_PROPERTIES
-      props                      = { };
-      props.Type                 = D3D12_HEAP_TYPE_UPLOAD;
-      props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-      props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-
-    D3D12_RESOURCE_DESC
-      desc                  = { };
-      desc.Dimension        = D3D12_RESOURCE_DIMENSION_BUFFER;
-      desc.Width            = g_IndexBufferSize * sizeof (ImDrawIdx);
-      desc.Height           = 1;
-      desc.DepthOrArraySize = 1;
-      desc.MipLevels        = 1;
-      desc.Format           = DXGI_FORMAT_UNKNOWN;
-      desc.SampleDesc.Count = 1;
-      desc.Layout           = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-      desc.Flags            = D3D12_RESOURCE_FLAG_NONE;
-
-      if (g_pd3dDevice->CreateCommittedResource (&props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, IID_PPV_ARGS(&g_pIB)) < 0)
-        return;
-
-    frameResources->IB              = g_pIB;
-    frameResources->IndexBufferSize = g_IndexBufferSize;
-  }
-
-  // Copy and convert all vertices into a single contiguous buffer
-  void *vtx_resource,
-       *idx_resource;
-
-  D3D12_RANGE range = { };
-
-  if (g_pVB->Map (0, &range, &vtx_resource) != S_OK)
+  if (! ( _d3d12_rbk->_pSwapChain.p || _d3d12_rbk->_pDevice.p ) )
     return;
-
-  if (g_pIB->Map (0, &range, &idx_resource) != S_OK)
-    return;
-
-  ImDrawVert* vtx_dst = (ImDrawVert *)vtx_resource;
-  ImDrawIdx*  idx_dst = (ImDrawIdx  *)idx_resource;
-
-  for (int n = 0; n < draw_data->CmdListsCount; n++)
-  {
-    const ImDrawList*
-      cmd_list = draw_data->CmdLists [n];
-
-    memcpy (vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
-    memcpy (idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
-
-    vtx_dst += cmd_list->VtxBuffer.Size;
-    idx_dst += cmd_list->IdxBuffer.Size;
-  }
-
-  g_pVB->Unmap (0, &range);
-  g_pIB->Unmap (0, &range);
 
   ImGuiIO& io =
     ImGui::GetIO ();
 
+  // The cmd list is either closed and needs resetting, or just wants pipeline state.
+  if (! pFrame->begin_cmd_list (/*g_PipelineState*/))
+  {
+    SK_ReleaseAssert (!"ImGui Frame Command List Could not be Reset");
+    return;
+  }
+
+  auto _frame =
+    _d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ();
+
+  SK_ReleaseAssert (_frame == pFrame->iBufferIdx);
+
+  SK_ImGui_D3D12Ctx::FrameHeap* pHeap =
+    &_imgui_d3d12.frame_heaps [pFrame->iBufferIdx];
+
+  auto descriptorHeaps =
+    pFrame->pRoot->descriptorHeaps;
+
+  SK_ComPtr <ID3D12GraphicsCommandList> ctx =
+    pFrame->pCmdList;
+
+  bool sync_cmd_list =
+    ( (! pHeap->Vb.p || pHeap->Vb.size < draw_data->TotalVtxCount) ||
+      (! pHeap->Ib.p || pHeap->Ib.size < draw_data->TotalIdxCount) );
+
+  // Creation, or reallocation of vtx / idx buffers required...
+  if (sync_cmd_list)
+  {
+    if (! pFrame->wait_for_gpu ())
+      return;
+
+    try
+    {
+      if (! pHeap->Vb.p || pHeap->Vb.size < draw_data->TotalVtxCount)
+      {
+        auto overAlloc =
+          draw_data->TotalVtxCount + 5000;
+
+        pHeap->Vb.Release ();
+        pHeap->Vb.size = 0;
+
+        D3D12_HEAP_PROPERTIES
+          props                      = { };
+          props.Type                 = D3D12_HEAP_TYPE_UPLOAD;
+          props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+          props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+        D3D12_RESOURCE_DESC
+          desc                  = { };
+          desc.Dimension        = D3D12_RESOURCE_DIMENSION_BUFFER;
+          desc.Width            = overAlloc * sizeof (ImDrawVert);
+          desc.Height           = 1;
+          desc.DepthOrArraySize = 1;
+          desc.MipLevels        = 1;
+          desc.Format           = DXGI_FORMAT_UNKNOWN;
+          desc.SampleDesc.Count = 1;
+          desc.Layout           = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+          desc.Flags            = D3D12_RESOURCE_FLAG_NONE;
+
+        ThrowIfFailed (
+          _imgui_d3d12.pDevice->CreateCommittedResource (
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+              nullptr, IID_PPV_ARGS (&pHeap->Vb.p)));
+        SK_D3D12_SetDebugName (       pHeap->Vb.p,
+          L"ImGui D3D12 VertexBuffer" + std::to_wstring (_frame));
+
+        pHeap->Vb.size = overAlloc;
+      }
+
+      if (! pHeap->Ib.p || pHeap->Ib.size < draw_data->TotalIdxCount)
+      {
+        auto overAlloc =
+          draw_data->TotalIdxCount + 10000;
+
+        pHeap->Ib.Release ();
+        pHeap->Ib.size = 0;
+
+        D3D12_HEAP_PROPERTIES
+          props                      = { };
+          props.Type                 = D3D12_HEAP_TYPE_UPLOAD;
+          props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+          props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+        D3D12_RESOURCE_DESC
+          desc                  = { };
+          desc.Dimension        = D3D12_RESOURCE_DIMENSION_BUFFER;
+          desc.Width            = overAlloc * sizeof (ImDrawIdx);
+          desc.Height           = 1;
+          desc.DepthOrArraySize = 1;
+          desc.MipLevels        = 1;
+          desc.Format           = DXGI_FORMAT_UNKNOWN;
+          desc.SampleDesc.Count = 1;
+          desc.Layout           = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+          desc.Flags            = D3D12_RESOURCE_FLAG_NONE;
+
+        ThrowIfFailed (
+          _imgui_d3d12.pDevice->CreateCommittedResource (
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+              nullptr, IID_PPV_ARGS (&pHeap->Ib.p)));
+        SK_D3D12_SetDebugName (       pHeap->Ib.p,
+          L"ImGui D3D12 IndexBuffer" + std::to_wstring (_frame));
+
+        pHeap->Ib.size = overAlloc;
+      }
+    }
+
+    catch (SK_ComException&)
+    {
+      return;
+    }
+  }
+
+  // Copy and convert all vertices into a single contiguous buffer
+  ImDrawVert* vtx_heap = nullptr;
+  ImDrawIdx*  idx_heap = nullptr;
+
+  D3D12_RANGE range = { };
+
+  try
+  {
+    ThrowIfFailed (pHeap->Vb->Map (0, &range, (void **)&vtx_heap));
+    ThrowIfFailed (pHeap->Ib->Map (0, &range, (void **)&idx_heap));
+
+    ImDrawVert* vtx_ptr = vtx_heap;
+    ImDrawIdx*  idx_ptr = idx_heap;
+
+    for (int n = 0; n < draw_data->CmdListsCount; n++)
+    {
+      const ImDrawList*
+        cmd_list = draw_data->CmdLists [n];
+
+      vtx_ptr = std::copy_n (cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size, vtx_ptr);
+      idx_ptr = std::copy_n (cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size, idx_ptr);
+    }
+
+    pHeap->Vb->Unmap (0, &range);
+    pHeap->Ib->Unmap (0, &range);
+  }
+
+  catch (SK_ComException&)
+  {
+    if (vtx_heap != nullptr) pHeap->Vb->Unmap (0, &range);
+    if (idx_heap != nullptr) pHeap->Ib->Unmap (0, &range);
+
+    return;
+  }
 
   if (! pFrame->begin_cmd_list ())
     return;
 
-  ctx->SetGraphicsRootSignature     (g_pRootSignature);
-  ctx->SetPipelineState             (g_pPipelineState);
+  ctx->SetGraphicsRootSignature (_imgui_d3d12.pRootSignature);
+  ctx->SetPipelineState         (_imgui_d3d12.pPipelineState);
 
-  ctx->OMSetRenderTargets (1, &pFrame->hRenderOutput,  FALSE,  nullptr);
-  ctx->SetDescriptorHeaps (1, &pFrame->pRoot->descriptorHeaps.pImGui.p);
+  ctx->OMSetRenderTargets       (1, &pFrame->hRenderOutput,  FALSE,  nullptr);
+  ctx->SetDescriptorHeaps       (1, &descriptorHeaps.pImGui.p);
 
 
   //
@@ -287,19 +353,19 @@ void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, SK_D3D12_RenderCtx::F
 
   ctx->IASetVertexBuffers ( 0,            1,
     std::array <D3D12_VERTEX_BUFFER_VIEW, 1> (
-    {   g_pVB->GetGPUVirtualAddress () + offset,
-              (UINT)g_VertexBufferSize * stride,
-                                         stride
+    {       pHeap->Vb->GetGPUVirtualAddress () + offset,
+      (UINT)pHeap->Vb.size * stride,
+                             stride
     }                                        ).data ()
   );
 
   ctx->IASetIndexBuffer (
     std::array <D3D12_INDEX_BUFFER_VIEW, 1> (
-    {         g_pIB->GetGPUVirtualAddress (),
-      g_IndexBufferSize * sizeof (ImDrawIdx),
-                          sizeof (ImDrawIdx) == 2 ?
-                             DXGI_FORMAT_R16_UINT :
-                             DXGI_FORMAT_R32_UINT
+    { pHeap->Ib->GetGPUVirtualAddress (),
+      pHeap->Ib.size * sizeof (ImDrawIdx),
+                       sizeof (ImDrawIdx) == 2 ?
+                          DXGI_FORMAT_R16_UINT :
+                          DXGI_FORMAT_R32_UINT
     }                                       ).data ()
   );
 
@@ -338,9 +404,7 @@ void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, SK_D3D12_RenderCtx::F
         &cmd_list->CmdBuffer [cmd_i];
 
       if (pcmd->UserCallback)
-      {
-        pcmd->UserCallback (cmd_list, pcmd);
-      }
+          pcmd->UserCallback (cmd_list, pcmd);
 
       else
       {
@@ -349,6 +413,8 @@ void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, SK_D3D12_RenderCtx::F
           (LONG)(pcmd->ClipRect.x - pos.x), (LONG)(pcmd->ClipRect.y - pos.y),
           (LONG)(pcmd->ClipRect.z - pos.x), (LONG)(pcmd->ClipRect.w - pos.y)
         };
+
+        SK_ReleaseAssert (r.left <= r.right && r.top <= r.bottom);
 
         ctx->SetGraphicsRootDescriptorTable ( 1,
               *(D3D12_GPU_DESCRIPTOR_HANDLE*)&pcmd->TextureId    );
@@ -374,13 +440,16 @@ ImGui_ImplDX12_CreateFontsTexture (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  static bool           init   = false;
+  if (! _imgui_d3d12.pDevice)
+    return;
+
   static unsigned char* pixels = nullptr;
   static int            width  = 0,
                         height = 0;
 
   // Only needs to be done once, the raw pixels are API agnostic
-  if (! init)
+  static bool          init = false;
+  if (! std::exchange (init, true))
   {
     SK_ImGui_LoadFonts ();
 
@@ -388,19 +457,25 @@ ImGui_ImplDX12_CreateFontsTexture (void)
                                    &width, &height );
   }
 
+  try {
+    SK_ComPtr <ID3D12Resource>            pTexture;
+    SK_ComPtr <ID3D12Resource>            uploadBuffer;
 
-  SK_ComPtr <ID3D12Resource>            pTexture;
-  SK_ComPtr <ID3D12Resource>            uploadBuffer;
+    SK_ComPtr <ID3D12Fence>               pFence;
+    SK_AutoHandle                         hEvent (
+                                  SK_CreateEvent ( nullptr, FALSE,
+                                                            FALSE, nullptr )
+                                                 );
 
-  SK_ComPtr <ID3D12Fence>               pFence;
-
-  SK_ComPtr <ID3D12CommandQueue>        cmdQueue;
-  SK_ComPtr <ID3D12CommandAllocator>    cmdAlloc;
-  SK_ComPtr <ID3D12GraphicsCommandList> cmdList;
+    SK_ComPtr <ID3D12CommandQueue>        cmdQueue;
+    SK_ComPtr <ID3D12CommandAllocator>    cmdAlloc;
+    SK_ComPtr <ID3D12GraphicsCommandList> cmdList;
 
 
-  // Upload texture to graphics system
-  {
+    ThrowIfFailed ( hEvent.m_h > 0 ?
+                              S_OK : E_UNEXPECTED );
+
+    // Upload texture to graphics system
     D3D12_HEAP_PROPERTIES
       props                      = { };
       props.Type                 = D3D12_HEAP_TYPE_DEFAULT;
@@ -421,10 +496,11 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       desc.Layout                = D3D12_TEXTURE_LAYOUT_UNKNOWN;
       desc.Flags                 = D3D12_RESOURCE_FLAG_NONE;
 
-    g_pd3dDevice->CreateCommittedResource(
-      &props, D3D12_HEAP_FLAG_NONE,
-      &desc,  D3D12_RESOURCE_STATE_COPY_DEST,
-       nullptr, IID_PPV_ARGS (&pTexture.p)
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommittedResource (
+        &props, D3D12_HEAP_FLAG_NONE,
+        &desc,  D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr, IID_PPV_ARGS (&pTexture.p))
     );
 
     UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
@@ -447,21 +523,18 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
-    HRESULT hr =
-      g_pd3dDevice->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE, &desc,
-                                                     D3D12_RESOURCE_STATE_GENERIC_READ,
-                                             nullptr, IID_PPV_ARGS (&uploadBuffer.p) );
-    IM_ASSERT (SUCCEEDED (hr));
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommittedResource (
+        &props, D3D12_HEAP_FLAG_NONE,
+        &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr, IID_PPV_ARGS (&uploadBuffer.p))
+    ); SK_D3D12_SetDebugName (  uploadBuffer.p,
+          L"ImGui D3D12 Texture Upload Buffer" );
 
-    void *mapped = nullptr;
+    void        *mapped = nullptr;
+    D3D12_RANGE  range  = { 0, uploadSize };
 
-    D3D12_RANGE range =
-     { 0, uploadSize };
-
-    hr =
-      uploadBuffer->Map (0, &range, &mapped);
-
-    IM_ASSERT (SUCCEEDED (hr));
+    ThrowIfFailed (uploadBuffer->Map (0, &range, &mapped));
 
     for ( int y = 0; y < height; y++ )
     {
@@ -497,15 +570,12 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
       barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-    hr =
-      g_pd3dDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS (&pFence.p));
-
-    IM_ASSERT (SUCCEEDED (hr));
-
-    HANDLE hEvent =
-      SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
-
-    IM_ASSERT (hEvent != nullptr);
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateFence (
+        0, D3D12_FENCE_FLAG_NONE,
+                  IID_PPV_ARGS (&pFence.p))
+     ); SK_D3D12_SetDebugName  ( pFence.p,
+     L"ImGui D3D12 Texture Upload Fence");
 
     D3D12_COMMAND_QUEUE_DESC
       queueDesc          = { };
@@ -513,43 +583,46 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       queueDesc.Flags    = D3D12_COMMAND_QUEUE_FLAG_NONE;
       queueDesc.NodeMask = 1;
 
-    hr =
-      g_pd3dDevice->CreateCommandQueue (&queueDesc, IID_PPV_ARGS (&cmdQueue.p));
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommandQueue (
+           &queueDesc, IID_PPV_ARGS (&cmdQueue.p))
+      ); SK_D3D12_SetDebugName (      cmdQueue.p,
+        L"ImGui D3D12 Texture Upload Cmd Queue");
 
-    IM_ASSERT (SUCCEEDED (hr));
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommandAllocator (
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+                    IID_PPV_ARGS (&cmdAlloc.p))
+    ); SK_D3D12_SetDebugName (     cmdAlloc.p,
+      L"ImGui D3D12 Texture Upload Cmd Allocator");
 
-    hr =
-      g_pd3dDevice->CreateCommandAllocator (D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&cmdAlloc.p));
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommandList (
+        0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+           cmdAlloc, nullptr,
+                  IID_PPV_ARGS (&cmdList.p))
+    ); SK_D3D12_SetDebugName (   cmdList.p,
+    L"ImGui D3D12 Texture Upload Cmd List");
 
-    IM_ASSERT (SUCCEEDED (hr));
+    cmdList->CopyTextureRegion ( &dstLocation, 0, 0, 0,
+                                 &srcLocation, nullptr );
+    cmdList->ResourceBarrier   ( 1, &barrier           );
 
-    hr =
-      g_pd3dDevice->CreateCommandList (0, D3D12_COMMAND_LIST_TYPE_DIRECT, cmdAlloc, NULL, IID_PPV_ARGS (&cmdList.p));
+    ThrowIfFailed (                     cmdList->Close ());
 
-    IM_ASSERT (SUCCEEDED (hr));
+                   cmdQueue->ExecuteCommandLists (1,
+                             (ID3D12CommandList* const*)
+                                       &cmdList);
 
-    cmdList->CopyTextureRegion (&dstLocation, 0, 0, 0, &srcLocation, NULL);
-    cmdList->ResourceBarrier   (1, &barrier);
-
-    hr =
-      cmdList->Close ();
-
-    IM_ASSERT (SUCCEEDED (hr));
-
-    cmdQueue->ExecuteCommandLists (1, (ID3D12CommandList* const*) &cmdList);
-
-    hr =
-      cmdQueue->Signal (pFence, 1);
-
-    IM_ASSERT (SUCCEEDED (hr));
-
-    pFence->SetEventOnCompletion (1, hEvent);
-    WaitForSingleObject          (   hEvent, INFINITE);
+    ThrowIfFailed (
+      cmdQueue->Signal (pFence,                       1));
+                        pFence->SetEventOnCompletion (1,
+                                  hEvent);
+    WaitForSingleObject          (hEvent, INFINITE);
 
     cmdList.Release      ();
     cmdAlloc.Release     ();
     cmdQueue.Release     ();
-    CloseHandle          (hEvent);
     pFence.Release       ();
     uploadBuffer.Release ();
 
@@ -562,38 +635,37 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       srvDesc.Texture2D.MostDetailedMip = 0;
       srvDesc.Shader4ComponentMapping   = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    g_pd3dDevice->CreateShaderResourceView (
-      pTexture, &srvDesc,
-        g_hFontSrvCpuDescHandle
+    _imgui_d3d12.pDevice->CreateShaderResourceView (
+      pTexture, &srvDesc, _imgui_d3d12.hFontSrvCpuDescHandle
     );
 
-    g_pFontTextureResource =
+    _imgui_d3d12.pFontTexture =
       pTexture;
 
-    init = true;
+    SK_D3D12_SetDebugName (
+      _imgui_d3d12.pFontTexture.p, L"ImGui D3D12 FontTexture"
+    );
+
+    io.Fonts->TexID =
+      (ImTextureID)_imgui_d3d12.hFontSrvGpuDescHandle.ptr;
   }
 
-#if 0
-  // Store our identifier
-  static_assert (sizeof(ImTextureID) >= sizeof(g_hFontSrvGpuDescHandle.ptr), \
-                 "Can't pack descriptor handle into TexID, 32-bit not supported yet.");
-#endif
-
-  io.Fonts->TexID =
-    (ImTextureID)g_hFontSrvGpuDescHandle.ptr;
+  catch (const SK_ComException&) {
+  };
 }
 
 bool
 ImGui_ImplDX12_CreateDeviceObjects (void)
 {
-  if (! g_pd3dDevice)
+  if (! _imgui_d3d12.pDevice)
     return false;
 
-  if (g_pPipelineState)
-    ImGui_ImplDX12_InvalidateDeviceObjects ();
-
-  // Create the root signature
+  try
   {
+    if (_imgui_d3d12.pPipelineState)
+      ImGui_ImplDX12_InvalidateDeviceObjects ();
+
+    // Create the root signature
     D3D12_DESCRIPTOR_RANGE
       descRange                                   = { };
       descRange.RangeType                         = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
@@ -652,53 +724,39 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
         D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS     |
         D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS );
 
-    ID3DBlob*
-      pBlob = nullptr;
+    SK_ComPtr <ID3DBlob>
+                  pBlob;
 
-    typedef
-      HRESULT (*D3D12SerializeRootSignature_pfn)(
-                 const D3D12_ROOT_SIGNATURE_DESC   *pRootSignature,
-                       D3D_ROOT_SIGNATURE_VERSION   Version,
-                       ID3DBlob                   **ppBlob,
-                       ID3DBlob                   **ppErrorBlob);
-
-    static D3D12SerializeRootSignature_pfn
-           D3D12SerializeRootSignature =
-          (D3D12SerializeRootSignature_pfn)
-             SK_GetProcAddress ( L"d3d12.dll",
-                                  "D3D12SerializeRootSignature" );
-
-    if ( FAILED ( D3D12SerializeRootSignature ( &desc,
-                                                  D3D_ROOT_SIGNATURE_VERSION_1,
-                                                    &pBlob, nullptr ) ) )
-    {
-      return false;
-    }
-
-    g_pd3dDevice->CreateRootSignature (
-      0, pBlob->GetBufferPointer (),
-         pBlob->GetBufferSize    (),
-           IID_PPV_ARGS (&g_pRootSignature)
+    ThrowIfFailed (
+      D3D12SerializeRootSignature ( &desc,
+               D3D_ROOT_SIGNATURE_VERSION_1,
+                 &pBlob, nullptr)
     );
-    pBlob->Release ();
-  }
 
-  D3D12_GRAPHICS_PIPELINE_STATE_DESC
-    psoDesc                       = { };
-    psoDesc.NodeMask              = 1;
-    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    psoDesc.pRootSignature        = g_pRootSignature;
-    psoDesc.SampleMask            = UINT_MAX;
-    psoDesc.NumRenderTargets      = 1;
-    psoDesc.RTVFormats [0]        = g_RTVFormat;
-    psoDesc.SampleDesc.Count      = 1;
-    psoDesc.Flags                 = D3D12_PIPELINE_STATE_FLAG_NONE;
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateRootSignature (
+        0, pBlob->GetBufferPointer (),
+           pBlob->GetBufferSize    (),
+                  IID_PPV_ARGS (&_imgui_d3d12.pRootSignature.p))
+    ); SK_D3D12_SetDebugName (   _imgui_d3d12.pRootSignature.p,
+                                L"ImGui D3D12 Root Signture");
 
-    psoDesc.VS = {
-                    imgui_d3d11_vs_bytecode,
-            sizeof (imgui_d3d11_vs_bytecode) /
-            sizeof (imgui_d3d11_vs_bytecode) [0]
-                  };
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC
+      psoDesc                       = { };
+      psoDesc.NodeMask              = 1;
+      psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+      psoDesc.pRootSignature        = _imgui_d3d12.pRootSignature;
+      psoDesc.SampleMask            = UINT_MAX;
+      psoDesc.NumRenderTargets      = 1;
+      psoDesc.RTVFormats [0]        = _imgui_d3d12.RTVFormat;
+      psoDesc.SampleDesc.Count      = 1;
+      psoDesc.Flags                 = D3D12_PIPELINE_STATE_FLAG_NONE;
+
+      psoDesc.VS = {
+                imgui_d3d11_vs_bytecode,
+        sizeof (imgui_d3d11_vs_bytecode) /
+        sizeof (imgui_d3d11_vs_bytecode) [0]
+                   };
 
     // Create the input layout
     static D3D12_INPUT_ELEMENT_DESC local_layout[] = {
@@ -710,67 +768,70 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
     psoDesc.InputLayout =
     { local_layout, 3 };
 
-    psoDesc.PS = { imgui_d3d11_ps_bytecode,
-           sizeof (imgui_d3d11_ps_bytecode) /
-           sizeof (imgui_d3d11_ps_bytecode) [0]
-    };
+    psoDesc.PS = {
+              imgui_d3d11_ps_bytecode,
+      sizeof (imgui_d3d11_ps_bytecode) /
+      sizeof (imgui_d3d11_ps_bytecode) [0]
+                 };
 
-  // Create the blending setup
-  {
+    // Create the blending setup
     D3D12_BLEND_DESC&
-      desc                                        = psoDesc.BlendState;
-      desc.AlphaToCoverageEnable                  = false;
-      desc.RenderTarget [0].BlendEnable           = true;
-      desc.RenderTarget [0].SrcBlend              = D3D12_BLEND_SRC_ALPHA;
-      desc.RenderTarget [0].DestBlend             = D3D12_BLEND_INV_SRC_ALPHA;
-      desc.RenderTarget [0].BlendOp               = D3D12_BLEND_OP_ADD;
-      desc.RenderTarget [0].SrcBlendAlpha         = D3D12_BLEND_ONE;//INV_SRC_ALPHA;
-      desc.RenderTarget [0].DestBlendAlpha        = D3D12_BLEND_ZERO;
-      desc.RenderTarget [0].BlendOpAlpha          = D3D12_BLEND_OP_ADD;
-      desc.RenderTarget [0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-  }
+      blendDesc                                        = psoDesc.BlendState;
+      blendDesc.AlphaToCoverageEnable                  = false;
+      blendDesc.RenderTarget [0].BlendEnable           = true;
+      blendDesc.RenderTarget [0].SrcBlend              = D3D12_BLEND_SRC_ALPHA;
+      blendDesc.RenderTarget [0].DestBlend             = D3D12_BLEND_INV_SRC_ALPHA;
+      blendDesc.RenderTarget [0].BlendOp               = D3D12_BLEND_OP_ADD;
+      blendDesc.RenderTarget [0].SrcBlendAlpha         = D3D12_BLEND_ONE;//INV_SRC_ALPHA;
+      blendDesc.RenderTarget [0].DestBlendAlpha        = D3D12_BLEND_ZERO;
+      blendDesc.RenderTarget [0].BlendOpAlpha          = D3D12_BLEND_OP_ADD;
+      blendDesc.RenderTarget [0].RenderTargetWriteMask = //D3D12_COLOR_WRITE_ENABLE_ALL;
+                                                         D3D12_COLOR_WRITE_ENABLE_RED   |
+                                                         D3D12_COLOR_WRITE_ENABLE_GREEN |
+                                                         D3D12_COLOR_WRITE_ENABLE_BLUE;
 
-  // Create the rasterizer state
-  {
+    // Create the rasterizer state
     D3D12_RASTERIZER_DESC&
-      desc                       = psoDesc.RasterizerState;
-      desc.FillMode              = D3D12_FILL_MODE_SOLID;
-      desc.CullMode              = D3D12_CULL_MODE_NONE;
-      desc.FrontCounterClockwise = FALSE;
-      desc.DepthBias             = D3D12_DEFAULT_DEPTH_BIAS;
-      desc.DepthBiasClamp        = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-      desc.SlopeScaledDepthBias  = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
-      desc.DepthClipEnable       = true;
-      desc.MultisampleEnable     = FALSE;
-      desc.AntialiasedLineEnable = FALSE;
-      desc.ForcedSampleCount     = 0;
-      desc.ConservativeRaster    = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-  }
+      rasterDesc                       = psoDesc.RasterizerState;
+      rasterDesc.FillMode              = D3D12_FILL_MODE_SOLID;
+      rasterDesc.CullMode              = D3D12_CULL_MODE_NONE;
+      rasterDesc.FrontCounterClockwise = FALSE;
+      rasterDesc.DepthBias             = D3D12_DEFAULT_DEPTH_BIAS;
+      rasterDesc.DepthBiasClamp        = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+      rasterDesc.SlopeScaledDepthBias  = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+      rasterDesc.DepthClipEnable       = true;
+      rasterDesc.MultisampleEnable     = FALSE;
+      rasterDesc.AntialiasedLineEnable = FALSE;
+      rasterDesc.ForcedSampleCount     = 0;
+      rasterDesc.ConservativeRaster    = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-  // Create depth-stencil State
-  {
+    // Create depth-stencil State
     D3D12_DEPTH_STENCIL_DESC&
-      desc                              = psoDesc.DepthStencilState;
-      desc.DepthEnable                  = false;
-      desc.DepthWriteMask               = D3D12_DEPTH_WRITE_MASK_ALL;
-      desc.DepthFunc                    = D3D12_COMPARISON_FUNC_ALWAYS;
-      desc.StencilEnable                = false;
-      desc.FrontFace.StencilFailOp      =
-      desc.FrontFace.StencilDepthFailOp =
-      desc.FrontFace.StencilPassOp      = D3D12_STENCIL_OP_KEEP;
-      desc.FrontFace.StencilFunc        = D3D12_COMPARISON_FUNC_ALWAYS;
-      desc.BackFace                     =
-      desc.FrontFace;
+      stencilDesc                              = psoDesc.DepthStencilState;
+      stencilDesc.DepthEnable                  = false;
+      stencilDesc.DepthWriteMask               = D3D12_DEPTH_WRITE_MASK_ZERO;
+      stencilDesc.DepthFunc                    = D3D12_COMPARISON_FUNC_ALWAYS;
+      stencilDesc.StencilEnable                = false;
+      stencilDesc.FrontFace.StencilFailOp      =
+      stencilDesc.FrontFace.StencilDepthFailOp =
+      stencilDesc.FrontFace.StencilPassOp      = D3D12_STENCIL_OP_KEEP;
+      stencilDesc.FrontFace.StencilFunc        = D3D12_COMPARISON_FUNC_ALWAYS;
+      stencilDesc.BackFace                     =
+      stencilDesc.FrontFace;
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateGraphicsPipelineState (
+        &psoDesc, IID_PPV_ARGS (&_imgui_d3d12.pPipelineState.p))
+    ); SK_D3D12_SetDebugName (   _imgui_d3d12.pPipelineState.p,
+                                 L"ImGui D3D12 Pipeline State");
+
+    ImGui_ImplDX12_CreateFontsTexture ();
   }
 
-  if ( FAILED ( g_pd3dDevice->CreateGraphicsPipelineState    (
-                  &psoDesc, IID_PPV_ARGS (&g_pPipelineState) ) )
-     )
+  catch (SK_ComException&)
   {
     return false;
   }
-
-  ImGui_ImplDX12_CreateFontsTexture ();
 
   return true;
 }
@@ -778,26 +839,21 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
 void
 ImGui_ImplDX12_InvalidateDeviceObjects (void)
 {
-  if (! g_pd3dDevice)
+  if (! _imgui_d3d12.pDevice)
     return;
 
-  if (g_pRootSignature)
-      g_pRootSignature.Release ();
-  if (g_pPipelineState)
-      g_pPipelineState.Release ();
+  _imgui_d3d12.pRootSignature.Release ();
+  _imgui_d3d12.pPipelineState.Release ();
 
   // We copied g_pFontTextureView to io.Fonts->TexID so let's clear that as well.
-  if (g_pFontTextureResource) {
-      g_pFontTextureResource.Release ();
-      ImGui::GetIO ().Fonts->TexID = NULL;
-  }
+  _imgui_d3d12.pFontTexture.Release ();
 
-  for ( auto& frame : g_FrameResources )
+  ImGui::GetIO ().Fonts->TexID = nullptr;
+
+  for ( auto& frame : _imgui_d3d12.frame_heaps )
   {
-    if (frame.IB)
-        frame.IB.Release ();
-    if (frame.VB)
-        frame.VB.Release ();
+    frame.Ib.Release (); frame.Ib.size = 0;
+    frame.Vb.Release (); frame.Vb.size = 0;
   }
 }
 
@@ -808,23 +864,24 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
                       D3D12_CPU_DESCRIPTOR_HANDLE font_srv_cpu_desc_handle,
                       D3D12_GPU_DESCRIPTOR_HANDLE font_srv_gpu_desc_handle )
 {
-#ifndef NDEBUG
-  dll_log->Log (L"[DX12Init] Device: %p, Frames in Flight: %lu, Format: %lu", device, num_frames_in_flight, rtv_format);
-#endif
+  SK_LOG0 ( ( L"Device: %p, Backbuffers: %lu, Format: %ws",
+                device, num_frames_in_flight,
+                                      SK_DXGI_FormatToStr (rtv_format).c_str () ),
+              L"D3D12 Init" );
 
-  g_pd3dDevice            = device;
-  g_RTVFormat             = rtv_format;
-  g_hFontSrvCpuDescHandle = font_srv_cpu_desc_handle;
-  g_hFontSrvGpuDescHandle = font_srv_gpu_desc_handle;
-  g_FrameResources.resize (num_frames_in_flight * 2);
+  _imgui_d3d12.pDevice               = device;
+  _imgui_d3d12.RTVFormat             = rtv_format;
+  _imgui_d3d12.hFontSrvCpuDescHandle = font_srv_cpu_desc_handle;
+  _imgui_d3d12.hFontSrvGpuDescHandle = font_srv_gpu_desc_handle;
 
   // Create buffers with a default size (they will later be grown as needed)
-  for ( auto& frame : g_FrameResources )
+  for ( auto& frame : _imgui_d3d12.frame_heaps )
   {
-    frame.IB               = nullptr;
-    frame.VB               = nullptr;
-    frame.VertexBufferSize = 5000;
-    frame.IndexBufferSize  = 10000;
+    frame.Ib.Release ();
+    frame.Vb.Release ();
+
+    frame.Vb.size = 25000;
+    frame.Ib.size = 50000;
   }
 
   return true;
@@ -833,21 +890,20 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
 void
 ImGui_ImplDX12_Shutdown (void)
 {
-#ifndef NDEBUG
-  dll_log->Log (L"[DX12Shutdown] Device: %p, Frames in Flight: %lu, Format: %lu", g_pd3dDevice, g_numFramesInFlight, g_RTVFormat);
-#endif
-
   ImGui_ImplDX12_InvalidateDeviceObjects ();
 
-  g_FrameResources.clear ();
+  SK_LOG0 ( ( L"Device: %p, Format: %lu", _imgui_d3d12.pDevice.p,
+                                          _imgui_d3d12.RTVFormat ),
+              L"D3D12Reset" );
 
-  g_pd3dDevice                = NULL;
-  g_hFontSrvCpuDescHandle.ptr = 0;
-  g_hFontSrvGpuDescHandle.ptr = 0;
+  _imgui_d3d12.pDevice.Release ();
+  _imgui_d3d12.hFontSrvCpuDescHandle.ptr = 0;
+  _imgui_d3d12.hFontSrvGpuDescHandle.ptr = 0;
 }
 
 void
 SK_ImGui_User_NewFrame (void);
+
 
 // Data
 static INT64                    g_Time                  = 0;
@@ -862,24 +918,20 @@ SK_ImGui_PollGamepad (void);
 void
 ImGui_ImplDX12_NewFrame (void)
 {
-  ///if (! g_pPipelineState)
-  ///  ImGui_ImplDX12_CreateDeviceObjects ();
-  ///
-  ///
-  ///if (g_pd3dDevice == nullptr || g_hFontSrvCpuDescHandle.ptr == 0 || g_hFontSrvGpuDescHandle.ptr == 0)
-  ///  return;
+  if ( _imgui_d3d12.pDevice                   == nullptr ||
+       _imgui_d3d12.hFontSrvCpuDescHandle.ptr == 0       ||
+       _imgui_d3d12.hFontSrvGpuDescHandle.ptr == 0 ) return;
 
+  if (! _imgui_d3d12.pPipelineState)
+    ImGui_ImplDX12_CreateDeviceObjects ();
 
-  static bool first = true;
-
-  if (first)
+  static bool        first = true;
+  if (std::exchange (first, false))
   {
     g_TicksPerSecond  =
       SK_GetPerfFreq ( ).QuadPart;
     g_Time            =
       SK_QueryPerf   ( ).QuadPart;
-
-    first = false;
 
     ImGuiIO& io =
       ImGui::GetIO ();
@@ -918,11 +970,13 @@ ImGui_ImplDX12_NewFrame (void)
   auto& io =
     ImGui::GetIO ();
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.device)
     return;
+
+  SK_ReleaseAssert (rb.device == _imgui_d3d12.pDevice);
 
   io.DeltaTime =
     std::min ( 1.0f,
@@ -972,7 +1026,7 @@ using D3D12GraphicsCommandList_CopyTextureRegion_pfn = void
 void
 STDMETHODCALLTYPE
 D3D12GraphicsCommandList_CopyTextureRegion_Detour (
-        ID3D12GraphicsCommandList    *This,
+         ID3D12GraphicsCommandList   *This,
   const  D3D12_TEXTURE_COPY_LOCATION *pDst,
          UINT                         DstX,
          UINT                         DstY,
@@ -991,7 +1045,9 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
     D3D12_RESOURCE_DESC dst_desc =
       pDst->pResource->GetDesc ();
 
-    if ( DirectX::BitsPerColor (dst_desc.Format) !=
+    if ( dst_desc.Format != DXGI_FORMAT_UNKNOWN &&
+         dst_desc.Format != src_desc.Format     &&
+         DirectX::BitsPerColor (dst_desc.Format) !=
          DirectX::BitsPerColor (src_desc.Format) )
     {
       return;
@@ -1006,7 +1062,8 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
 void
 _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
 {
-  if (D3D12GraphicsCommandList_CopyTextureRegion_Original == nullptr)
+  if (std::exchange (D3D12GraphicsCommandList_CopyTextureRegion_Original,
+                    (D3D12GraphicsCommandList_CopyTextureRegion_pfn)1) == nullptr)
   {
     SK_CreateVFTableHook ( L"ID3D12GraphicsCommandList::CopyTextureRegion",
                            *(void***)*(&pCmdList), 16,
@@ -1019,93 +1076,87 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
 
 
 void
-SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain_)
+SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
-  pSwapChain = pSwapChain_;
-
-  if (pDevice.p == nullptr)
+  if (! _pDevice.p || frames_.empty ())
   {
-    init (pSwapChain, pCommandQueue);
+    init (pSwapChain, _pCommandQueue.p);
   }
 
-  UINT swapIdx =
-    pSwapChain->GetCurrentBackBufferIndex ();
-
-#ifdef DEBUG
-  SK_ReleaseAssert (swapIdx < frames_.size ());
-#endif
-
-  if (frames_.empty () || swapIdx >= frames_.size ())
+  if (! _pCommandQueue.p)
     return;
 
-  FrameCtx& currentFrame =
+  SK_ComPtr <ID3D12Device>
+             pD3D12Device;
+
+  if (FAILED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D12Device.p))))
+    return;
+
+  if (! pD3D12Device.IsEqualObject (_pDevice.p))
+    return;
+
+  UINT swapIdx =
+    _pSwapChain->GetCurrentBackBufferIndex ();
+
+  DXGI_SWAP_CHAIN_DESC1          swapDesc = { };
+  pSwapChain->GetDesc1         (&swapDesc); SK_ReleaseAssert (
+       _imgui_d3d12.RTVFormat == swapDesc.Format );
+  if ( _imgui_d3d12.RTVFormat != swapDesc.Format || swapIdx > frames_.size () )
+  {
+    return;
+  }
+
+  FrameCtx& stagingFrame =
     frames_ [swapIdx];
 
   auto pCommandList =
-    currentFrame.pCmdList.p;
+    stagingFrame.pCmdList.p;
 
 	// Make sure all commands for this command allocator have finished executing before reseting it
-	if (currentFrame.fence->GetCompletedValue () < currentFrame.fence.value)
+	if (stagingFrame.fence->GetCompletedValue () < stagingFrame.fence.value)
 	{
-		if ( SUCCEEDED ( currentFrame.fence->SetEventOnCompletion (
-                     currentFrame.fence.value,
-                     currentFrame.fence.event                 )
+		if ( SUCCEEDED ( stagingFrame.fence->SetEventOnCompletion (
+                     stagingFrame.fence.value,
+                     stagingFrame.fence.event                 )
                    )
        )
     {
       // Event is automatically reset after this wait is released
-      WaitForSingleObject (currentFrame.fence.event, INFINITE);
+      WaitForSingleObject (stagingFrame.fence.event, INFINITE);
     }
 	}
 
-  D3D12_RESOURCE_BARRIER hdr_copy_barriers [] =
+  // Screenshot may have left this in a recording state
+  if (! stagingFrame.bCmdListRecording)
   {
-    CD3DX12_RESOURCE_BARRIER::Transition (
-      currentFrame.pRenderOutput,
-        D3D12_RESOURCE_STATE_PRESENT,
-        D3D12_RESOURCE_STATE_COPY_SOURCE ),
-    CD3DX12_RESOURCE_BARRIER::Transition (
-      currentFrame.hdr.pSwapChainCopy,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-        D3D12_RESOURCE_STATE_COPY_DEST   )
-  };
+    stagingFrame.pCmdAllocator->Reset ();
 
-  D3D12_RESOURCE_BARRIER hdr_process_barriers [] =
-  {
-    CD3DX12_RESOURCE_BARRIER::Transition (
-      currentFrame.hdr.pSwapChainCopy,
-        D3D12_RESOURCE_STATE_COPY_DEST,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ),
-    CD3DX12_RESOURCE_BARRIER::Transition (
-      currentFrame.pRenderOutput,
-        D3D12_RESOURCE_STATE_COPY_SOURCE,
-        D3D12_RESOURCE_STATE_RENDER_TARGET )
-  };
+    if (! stagingFrame.begin_cmd_list ())
+    {
+      SK_ReleaseAssert (!"Command List Cannot Begin");
+      return;
+    }
+  }
 
-  currentFrame.pCmdAllocator->Reset ();
+  ////SK_D3D12_UpdateRenderStatsEx ( stagingFrame.pCmdList,
+  ////                               stagingFrame.pRoot->pSwapChain );
 
-  if (! currentFrame.begin_cmd_list ())
-    return;
-
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  bool hdr_display =
-    (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
+  ///bool hdr_display =
+  ///  (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
 
-  extern bool __SK_HDR_16BitSwap;
-
-  if ( hdr_display &&            __SK_HDR_16BitSwap &&
-       currentFrame.hdr.pSwapChainCopy.p != nullptr &&
+  extern bool
+       __SK_HDR_16BitSwap;
+  if ( __SK_HDR_16BitSwap &&
+       stagingFrame.hdr.pSwapChainCopy.p != nullptr &&
                         pHDRPipeline.p   != nullptr &&
                         pHDRSignature.p  != nullptr )
   {
     SK_RunOnce (
       _InitCopyTextureRegionHook (pCommandList)
     );
-
-    auto& io =
-      ImGui::GetIO ();
 
     HDR_LUMINANCE
       cbuffer_luma = {
@@ -1116,7 +1167,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain_)
         }
       };
 
-    HDR_COLORSPACE_PARAMS
+    static HDR_COLORSPACE_PARAMS
       cbuffer_cspace                       = { };
 
       cbuffer_cspace.uiToneMapper          =   __SK_HDR_tonemap;
@@ -1139,67 +1190,59 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain_)
       cbuffer_cspace.hdrLuminance_Min      = rb.display_gamut.minY * 1.0_Nits;
       cbuffer_cspace.currentTime           = (float)timeGetTime ();
 
-    pCommandList->SetGraphicsRootSignature      (pHDRSignature);
-    pCommandList->SetPipelineState              (pHDRPipeline);
-    pCommandList->SetGraphicsRoot32BitConstants (0, 4,  &cbuffer_luma,   0);
-    pCommandList->SetGraphicsRoot32BitConstants (1, 12, &cbuffer_cspace, 0);
+    static FLOAT         kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-    // Setup render state
-    pCommandList->RSSetViewports ( 1,
-       std::array <D3D12_VIEWPORT, 1> (
-       {             0.0f, 0.0f,
-         io.DisplaySize.x, io.DisplaySize.y,
-                     0.0f, 1.0f
-       }                              ).data ()
-    );
-    pCommandList->RSSetScissorRects ( 1,
-              std::array <D3D12_RECT, 1> (
-              {                      0,                      0,
-                (LONG)io.DisplaySize.x, (LONG)io.DisplaySize.y
-              }                          ).data ()
-    );
+    pCommandList->SetGraphicsRootSignature          ( pHDRSignature                                  );
+    pCommandList->SetPipelineState                  ( pHDRPipeline                                   );
+    pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0                      );
+    pCommandList->SetGraphicsRoot32BitConstants     ( 1, 12, &cbuffer_cspace, 0                      );
 
-    pCommandList->ResourceBarrier                   ( 2, hdr_copy_barriers                           );
-    pCommandList->OMSetBlendFactor                  ( std::initializer_list <float> (
-                                                         { 0.0f, 0.0f, 0.0f, 0.0f } ).begin ()       );
+    pCommandList->OMSetBlendFactor                  ( kfBlendFactors                                 );
     pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP           );
 
-    pCommandList->CopyResource                      (     currentFrame.hdr.pSwapChainCopy.p,
-                                                          currentFrame.     pRenderOutput.p          );
-    pCommandList->ResourceBarrier                   ( 2,               hdr_process_barriers          );
+    // pRenderOutput is expected to promote from STATE_PRESENT to STATE_COPY_SOURCE without a barrier.
+    pCommandList->CopyResource                      (     stagingFrame.hdr.pSwapChainCopy.p,
+                                                          stagingFrame.     pRenderOutput.p          );
+    pCommandList->ResourceBarrier                   ( 2,  stagingFrame.hdr.barriers.process          );
     pCommandList->SetDescriptorHeaps                ( 1, &descriptorHeaps.pHDR.p                     );
-    pCommandList->SetGraphicsRootDescriptorTable    ( 2,  currentFrame.hdr.hSwapChainCopy_GPU        );
-    //pCommandList->SetGraphicsRootShaderResourceView ( 2,  currentFrame.hdr.hSwapChainCopy_GPU.ptr );
-    pCommandList->OMSetRenderTargets                ( 1, &currentFrame.hRenderOutput, FALSE, nullptr );
+    pCommandList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hSwapChainCopy_GPU        );
+    pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hRenderOutput, FALSE, nullptr );
+    pCommandList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                        );
+    pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                   );
     pCommandList->DrawInstanced                     ( 4, 1, 0, 0                                     );
+    pCommandList->ResourceBarrier                   ( 1,  stagingFrame.hdr.barriers.copy_end         );
   }
 
   else
-    transition_state (pCommandList, currentFrame.pRenderOutput, D3D12_RESOURCE_STATE_PRESENT,
+    transition_state (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_PRESENT,
                                                                 D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+  // Queue-up Pre-SK OSD Screenshots
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeGameHUD, rb); // Before Game HUD (meaningless in D3D12)
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeOSD,     rb);
 
   extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                SK_ImGui_DrawFrame (       0x00,          nullptr );
 
-  // Potentially have to restart command list here because a screenshot was taken
-	if (! currentFrame.begin_cmd_list ())
-		return;
+  // Queue-up Post-SK OSD Screenshots
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame, rb);
 
-  transition_state   (pCommandList, currentFrame.pRenderOutput, D3D12_RESOURCE_STATE_RENDER_TARGET,
+  transition_state   (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_RENDER_TARGET,
                                                                 D3D12_RESOURCE_STATE_PRESENT);
 
-  currentFrame.exec_cmd_list ();
+  ////SK_D3D12_UpdateRenderStatsEx ( stagingFrame.pCmdList,
+  ////                               stagingFrame.pRoot->pSwapChain );
 
-  if ( const UINT64 sync_value = currentFrame.fence.value + 1;
-		     SUCCEEDED ( pCommandQueue->Signal (
-                                 currentFrame.fence.p,
-                    sync_value             )
+  stagingFrame.exec_cmd_list ();
+
+  if ( const UINT64 sync_value = stagingFrame.fence.value + 1;
+		     SUCCEEDED ( _pCommandQueue->Signal (
+                                 stagingFrame.fence.p,
+                    sync_value              )
                    )
      )
   {
-    _frame++;
-
-	  currentFrame.fence.value =
+	  stagingFrame.fence.value =
       sync_value;
   }
 }
@@ -1231,10 +1274,13 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
 	assert (bCmdListRecording);
 
-	bCmdListRecording = false;
+  ////SK_D3D12_UpdateRenderStatsEx ( pCmdList,
+  ////                               pRoot->pSwapChain );
 
 	if (FAILED (pCmdList->Close ()))
 		return;
+
+  bCmdListRecording = false;
 
 	ID3D12CommandList* const cmd_lists [] = {
     pCmdList.p
@@ -1244,9 +1290,9 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   //   do not attempt to execute the command list, just close it.
   //
   //  Failure to skip execution will result in device removal
-  if (pRoot->pSwapChain->GetCurrentBackBufferIndex () == iBufferIdx)
+  if (pRoot->_pSwapChain->GetCurrentBackBufferIndex () == iBufferIdx)
   {
-	  pRoot->pCommandQueue->ExecuteCommandLists (
+	  pRoot->_pCommandQueue->ExecuteCommandLists (
       ARRAYSIZE (cmd_lists),
                  cmd_lists
     );
@@ -1270,8 +1316,8 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void)
     return false;
 
   if ( FAILED (
-         pRoot->pCommandQueue->Signal (
-           fence.p, sync_value       )
+         pRoot->_pCommandQueue->Signal (
+           fence.p, sync_value         )
               )
      )
   {
@@ -1279,8 +1325,8 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void)
   }
 
   if ( SUCCEEDED (
-         fence->SetEventOnCompletion  (
-           sync_value, fence.event    )
+         fence->SetEventOnCompletion (
+           sync_value, fence.event   )
                  )
      )
   {
@@ -1296,6 +1342,11 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void)
 
 SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 {
+  // Execute and wait for any cmds on the current pending swap,
+  //   everything else can be destroyed with no sync.
+  if (this->pRoot->_pSwapChain->GetCurrentBackBufferIndex () != iBufferIdx)
+    bCmdListRecording = false;
+
   wait_for_gpu               ();
 
   pCmdList.Release           ();
@@ -1315,14 +1366,23 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
   }
 }
 
-void
-SK_D3D12_RenderCtx::release (void)
-{
-  if (pCommandQueue != nullptr)
-  {
-	//pCommandQueue.Release                ();
+#include <d3d12sdklayers.h>
 
-    frames_.clear ();
+void
+SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
+{
+  if ( (_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
+        _pSwapChain.IsEqualObject  (pSwapChain) )
+  {
+    if (SK_IsDebuggerPresent ())
+    {
+      SK_ComQIPtr <ID3D12DebugDevice>
+                        pDebugDevice (_pDevice.p);
+
+      if (pDebugDevice)
+          pDebugDevice->ReportLiveDeviceObjects ( D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL|
+                                                  D3D12_RLDO_IGNORE_INTERNAL );
+    }
 
     ImGui_ImplDX12_Shutdown ();
 
@@ -1333,228 +1393,193 @@ SK_D3D12_RenderCtx::release (void)
 	  descriptorHeaps.pImGui.Release       ();
     descriptorHeaps.pHDR.Release         ();
 
-    pSwapChain.Release                   ();
-    pDevice.Release                      ();
+    frames_.clear ();
+
+    _pSwapChain.Release ();
+    _pDevice.Release    ();
   }
 }
 
-static constexpr int _MinimumTriesToSkip = 1;// DXGI_MAX_SWAP_CHAIN_BUFFERS;
-
 bool
-SK_D3D12_RenderCtx::init (IDXGISwapChain3* pSwapChain_, ID3D12CommandQueue* pCommandQueue_)
+SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
-  if (pCommandQueue_ && (! pCommandQueue))
-    pCommandQueue = pCommandQueue_;
-
-  static int tries = 0;
-
-  DXGI_SWAP_CHAIN_DESC1   swapDesc1 = { };
-  pSwapChain_->GetDesc1 (&swapDesc1);
-
-  ///// Delay-init to avoid all kinds of hook wackiness
-  if (tries++ <= swapDesc1.BufferCount)
-    return false;
-
-  tries = 0;
-
-  pSwapChain =
-    pSwapChain_;
-
-  if ( pCommandQueue != nullptr && SUCCEEDED (
-         pCommandQueue->GetDevice ( __uuidof (ID3D12Device),
-                                    (void **)&pDevice.p )
-                 )
-     )
+  // This is the first time we've seen this device (unless something really funky's going on)
+  if ( _pCommandQueue.p == nullptr &&
+        pCommandQueue   != nullptr )
   {
+    _pCommandQueue =
+     pCommandQueue;
+  }
+
+  if (_pDevice.p == nullptr)
+  {
+    if ( _pCommandQueue.p != nullptr && SUCCEEDED (
+           _pCommandQueue->GetDevice ( IID_PPV_ARGS (&_pDevice.p) )
+                                                  )
+       )
+    {
+      _pSwapChain =
+       pSwapChain;
+
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      if (rb.swapchain == nullptr)
+      {
+        rb.swapchain           = pSwapChain;
+        rb.device              = _pDevice.p;
+        rb.d3d12.command_queue = _pCommandQueue.p;
+        rb.api                 = SK_RenderAPI::D3D12;
+      }
+    }
+  }
+
+  if (! _pSwapChain.p)
+  {
+    return false;
+  }
+
+  else
+  {
+    DXGI_SWAP_CHAIN_DESC1  swapDesc1 = { };
+    pSwapChain->GetDesc1 (&swapDesc1);
+
     SK_ReleaseAssert (swapDesc1.BufferCount > 0);
     frames_.resize   (swapDesc1.BufferCount);
 
-    for ( auto& frameCtx : frames_ )
+    try
     {
-      SK_ReleaseAssert (
-        SUCCEEDED (
-             pDevice->CreateFence (
-                   0, D3D12_FENCE_FLAG_NONE,
-            IID_PPV_ARGS (&frameCtx.fence.p)
-                                  )
-                  )
-                       );
+      ThrowIfFailed (
+        _pDevice->CreateDescriptorHeap (
+          std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount,
+                       D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
+                                       IID_PPV_ARGS (&descriptorHeaps.pImGui.p)));
+                              SK_D3D12_SetDebugName ( descriptorHeaps.pImGui.p,
+                                        L"ImGui D3D12 Descriptor Heap" );
+      ThrowIfFailed (
+        _pDevice->CreateDescriptorHeap (
+          std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount,
+                       D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
+                                       IID_PPV_ARGS (&descriptorHeaps.pHDR.p)));
+                              SK_D3D12_SetDebugName ( descriptorHeaps.pHDR.p,
+                                        L"SK D3D12 HDR Descriptor Heap" );
+      ThrowIfFailed (
+        _pDevice->CreateDescriptorHeap (
+          std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_RTV,            swapDesc1.BufferCount,
+                       D3D12_DESCRIPTOR_HEAP_FLAG_NONE,           0 }.data (),
+                                       IID_PPV_ARGS (&descriptorHeaps.pBackBuffers.p)));
+                              SK_D3D12_SetDebugName ( descriptorHeaps.pBackBuffers.p,
+                                        L"SK D3D12 Backbuffer Descriptor Heap" );
 
-      SK_ComPtr <ID3D12CommandAllocator>    pAllocator;
-      SK_ComPtr <ID3D12GraphicsCommandList> pList;
+      const auto  rtvDescriptorSize =
+        _pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+      const auto  srvDescriptorSize =
+        _pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-      if ( FAILED (
-             pDevice->CreateCommandAllocator ( D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                                 IID_PPV_ARGS (&pAllocator.p)
-                                             )
-                  )
-         )
+      auto        rtvHandle         =
+        descriptorHeaps.pBackBuffers->GetCPUDescriptorHandleForHeapStart ();
+
+      int bufferIdx = 0;
+
+      for ( auto& frame : frames_ )
       {
-        return false;
-      }
+        frame.iBufferIdx =
+               bufferIdx++;
 
-      if ( FAILED (
-           pDevice->CreateCommandList ( 0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                          pAllocator, nullptr,
-                                            IID_PPV_ARGS (&pList.p)
-                                      )
-                )
-           ||
-         FAILED (
-           pList->Close ()
-                )
-       )
-      {
-        return false;
-      }
+        ThrowIfFailed (
+          _pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,          IID_PPV_ARGS (&frame.fence.p)));
+        ThrowIfFailed (
+          _pDevice->CreateCommandAllocator (
+                                    D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&frame.pCmdAllocator.p)));
+        ThrowIfFailed (
+          _pDevice->CreateCommandList (
+                                 0, D3D12_COMMAND_LIST_TYPE_DIRECT,                frame.pCmdAllocator, nullptr,
+                                                                    IID_PPV_ARGS (&frame.pCmdList.p)));
+        ThrowIfFailed (                                                            frame.pCmdList->Close ());
+        ThrowIfFailed (
+          _pSwapChain->GetBuffer (frame.iBufferIdx,                 IID_PPV_ARGS (&frame.pRenderOutput.p)));
 
-      frameCtx.pCmdAllocator = pAllocator;
-      frameCtx.pCmdList      = pList;
-    }
+        frame.hRenderOutput.ptr =
+                  rtvHandle.ptr + frame.iBufferIdx * rtvDescriptorSize;
 
-    D3D12_DESCRIPTOR_HEAP_DESC
-      heapDesc_ImGui                = { };
-	    heapDesc_ImGui.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	    heapDesc_ImGui.NumDescriptors = static_cast <UINT> (frames_.size ());
-	    heapDesc_ImGui.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        _pDevice->CreateRenderTargetView ( frame.pRenderOutput, nullptr,
+                                           frame.hRenderOutput );
 
-    if ( FAILED (
-           pDevice->CreateDescriptorHeap (         &heapDesc_ImGui,
-                             IID_PPV_ARGS (&descriptorHeaps.pImGui.p)
-                                         )
-                )
-       )
-    {
-      return false;
-    }
+        ThrowIfFailed (
+          _pDevice->CreateCommittedResource (
+            std::array < D3D12_HEAP_PROPERTIES, 1 >  {
+                         D3D12_HEAP_TYPE_DEFAULT, D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+                                                  D3D12_MEMORY_POOL_UNKNOWN,
+                                              0, 1   }.data (),
+                         D3D12_HEAP_FLAG_NONE,
+            std::array < D3D12_RESOURCE_DESC,   1 > {
+                         D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+                                         0,
+                           swapDesc1.Width, swapDesc1.Height,
+                                         1,                1,
+                           swapDesc1.Format, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN,
+                                                       D3D12_RESOURCE_FLAG_NONE }.data (),
+                           D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                                                IID_PPV_ARGS (&frame.hdr.pSwapChainCopy.p)));
 
-    D3D12_DESCRIPTOR_HEAP_DESC
-      heapDesc_BackBuffers                = {                            };
-			heapDesc_BackBuffers.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-			heapDesc_BackBuffers.NumDescriptors = static_cast <UINT> (frames_.size ());
-			heapDesc_BackBuffers.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        frame.hdr.vp.Width       = static_cast <FLOAT> (swapDesc1.Width);
+        frame.hdr.vp.Height      = static_cast <FLOAT> (swapDesc1.Height);
+        frame.hdr.scissor.right  =                      swapDesc1.Width;
+        frame.hdr.scissor.bottom =                      swapDesc1.Height;
 
-    if ( FAILED (
-           pDevice->CreateDescriptorHeap ( &heapDesc_BackBuffers,
-                     IID_PPV_ARGS (&descriptorHeaps.pBackBuffers.p)
-                                         )
-                )
-       )
-    {
-      return false;
-    }
+        frame.hdr.hSwapChainCopy_CPU.ptr =
+          descriptorHeaps.pHDR->GetCPUDescriptorHandleForHeapStart ().ptr +
+                                   srvDescriptorSize                      * frame.iBufferIdx;
 
-    D3D12_DESCRIPTOR_HEAP_DESC
-      heapDesc_HDR                = {                            };
-			heapDesc_HDR.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-      heapDesc_HDR.NumDescriptors = static_cast <UINT> (frames_.size ());
-			heapDesc_HDR.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        frame.hdr.hSwapChainCopy_GPU.ptr =
+          descriptorHeaps.pHDR->GetGPUDescriptorHandleForHeapStart ().ptr +
+                                   srvDescriptorSize                      * frame.iBufferIdx;
 
-    if ( FAILED (
-           pDevice->CreateDescriptorHeap ( &heapDesc_HDR,
-                     IID_PPV_ARGS (&descriptorHeaps.pHDR.p)
-                                         )
-                )
-       )
-    {
-      descriptorHeaps.pHDR = nullptr;
-    }
-
-    const auto rtvDescriptorSize =
-      pDevice->GetDescriptorHandleIncrementSize (
-            D3D12_DESCRIPTOR_HEAP_TYPE_RTV
-      );
-
-    const auto srvDescriptorSize =
-      pDevice->GetDescriptorHandleIncrementSize (
-            D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
-      );
-
-	  D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle =
-      descriptorHeaps.pBackBuffers->GetCPUDescriptorHandleForHeapStart ();
-
-    D3D12_CPU_DESCRIPTOR_HANDLE srvHandleCPU =
-      descriptorHeaps.pHDR->GetCPUDescriptorHandleForHeapStart ();
-    D3D12_GPU_DESCRIPTOR_HANDLE srvHandleGPU =
-      descriptorHeaps.pHDR->GetGPUDescriptorHandleForHeapStart ();
-
-    int i = 0;
-
-	  for ( auto& frameCtx : frames_ )
-    {
-      SK_ComPtr <ID3D12Resource>
-                       pBackBuffer;
-
-		  if ( FAILED (
-             pSwapChain->GetBuffer ( i++,
-               IID_PPV_ARGS (&pBackBuffer.p)
-                                   )
-                  )
-         ) continue;
-
-      frameCtx.hRenderOutput =
-        rtvHandle;
-
-		  pDevice->CreateRenderTargetView (
-         pBackBuffer, nullptr, rtvHandle
-      );
-
-      frameCtx.pRenderOutput = pBackBuffer;
-
-      rtvHandle.ptr +=
-        rtvDescriptorSize;
-
-      D3D12_RESOURCE_DESC
-        desc                  = { D3D12_RESOURCE_DIMENSION_TEXTURE2D };
-	  	  desc.Width            = swapDesc1.Width;
-	  	  desc.Height           = swapDesc1.Height;
-	  	  desc.DepthOrArraySize = 1;
-	  	  desc.MipLevels        = 1;
-	  	  desc.Format           = swapDesc1.Format;
-	  	  desc.SampleDesc       = { 1, 0 };
-
-      D3D12_HEAP_PROPERTIES
-        props                      = { D3D12_HEAP_TYPE_DEFAULT };
-        props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        props.VisibleNodeMask      = 1;
-
-	  	if ( SUCCEEDED ( pDevice->CreateCommittedResource (
-                      &props, D3D12_HEAP_FLAG_NONE, &desc,
-                              D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr,
-                                IID_PPV_ARGS (&frameCtx.hdr.pSwapChainCopy.p)
-                                                        )
-                     )
-         )
-      {
-        pDevice->CreateShaderResourceView (
-          frameCtx.hdr.pSwapChainCopy.p,
-            nullptr,
-              srvHandleCPU
+        _pDevice->CreateShaderResourceView ( frame.hdr.pSwapChainCopy.p, nullptr,
+                                             frame.hdr.hSwapChainCopy_CPU
         );
 
-        frameCtx.hdr.hSwapChainCopy_CPU = srvHandleCPU;
-        frameCtx.hdr.hSwapChainCopy_GPU = srvHandleGPU;
+        // As long as HDR processing comes first, we can implicitly transition the swapchain from
+        //   STATE_PRESENT to D3D12_RESOURCE_STATE_COPY_SOURCE
+        frame.hdr.barriers.copy_end [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
+        frame.hdr.barriers.process  [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
+        frame.hdr.barriers.process  [1].Transition.pResource =     frame.pRenderOutput.p;
 
-        srvHandleCPU.ptr += srvDescriptorSize;
-        srvHandleGPU.ptr += srvDescriptorSize;
+        frame.pRoot       = this;
+
+        frame.fence.value = 0;
+        frame.fence.event =
+          SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
+
+        struct {        ID3D12Object *pObj;
+                 const std::wstring  &kName;
+        } _debugObjects [] =
+          {
+            { frame.hdr.pSwapChainCopy.p, L"SK D3D12 HDR Buffer"   },
+            { frame.pCmdAllocator.p,      L"SK D3D12 CmdAllocator" },
+            { frame.pCmdList.p,           L"SK D3D12 CmdList"      },
+            { frame.fence.p,              L"SK D3D12 Fence"        }
+          };
+
+        for ( auto&& _obj : _debugObjects )
+        {
+          SK_D3D12_SetDebugName (
+            _obj.pObj,
+            _obj.kName + std::to_wstring (frame.iBufferIdx)
+          );
+        }
+
+        frame.bCmdListRecording = false;
       }
 
-      frameCtx.fence.event       =
-        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
-      frameCtx.fence.value       = 0;
-      frameCtx.bCmdListRecording = false;
-
-      frameCtx.pRoot      =  this;
-      frameCtx.iBufferIdx = i - 1;
-	  }
-
-    // Create the root signature
-    {
+      // Create the root signature
       D3D12_DESCRIPTOR_RANGE
         srv_range                    = {};
 		    srv_range.RangeType          = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		    srv_range.NumDescriptors     = 1;//3; // t1, t2
+		    srv_range.NumDescriptors     = 1;
 		    srv_range.BaseShaderRegister = 0; // t0
 
       D3D12_ROOT_PARAMETER
@@ -1610,119 +1635,111 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3* pSwapChain_, ID3D12CommandQueue* pCom
       SK_ComPtr <ID3DBlob>
                     pBlob;
 
-      typedef
-        HRESULT (*D3D12SerializeRootSignature_pfn)(
-                   const D3D12_ROOT_SIGNATURE_DESC   *pRootSignature,
-                         D3D_ROOT_SIGNATURE_VERSION   Version,
-                         ID3DBlob                   **ppBlob,
-                         ID3DBlob                   **ppErrorBlob);
+      ThrowIfFailed (
+        D3D12SerializeRootSignature (
+          &desc, D3D_ROOT_SIGNATURE_VERSION_1,
+            &pBlob.p, nullptr )     );
 
-      static D3D12SerializeRootSignature_pfn
-             D3D12SerializeRootSignature =
-            (D3D12SerializeRootSignature_pfn)
-               SK_GetProcAddress ( L"d3d12.dll",
-                                    "D3D12SerializeRootSignature" );
-
-      if ( SUCCEEDED ( D3D12SerializeRootSignature ( &desc,
-                                                       D3D_ROOT_SIGNATURE_VERSION_1,
-                                                         &pBlob.p, nullptr ) ) )
-      {
-        pDevice->CreateRootSignature (
+      ThrowIfFailed (
+        _pDevice->CreateRootSignature (
           0, pBlob->GetBufferPointer (),
              pBlob->GetBufferSize    (),
-               IID_PPV_ARGS (&pHDRSignature)
-        );
+                 IID_PPV_ARGS (&pHDRSignature.p))
+      ); SK_D3D12_SetDebugName (pHDRSignature.p, L"SK HDR Root Signature");
+
+      D3D12_GRAPHICS_PIPELINE_STATE_DESC
+        psoDesc                       = { };
+        psoDesc.NodeMask              = 1;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.pRootSignature        = pHDRSignature;
+        psoDesc.SampleMask            = UINT_MAX;
+        psoDesc.NumRenderTargets      = 1;
+        psoDesc.RTVFormats [0]        = swapDesc1.Format;
+        psoDesc.SampleDesc.Count      = 1;
+        psoDesc.Flags                 = D3D12_PIPELINE_STATE_FLAG_NONE;
+
+        psoDesc.VS = { colorutil_vs_bytecode,
+               sizeof (colorutil_vs_bytecode) /
+               sizeof (colorutil_vs_bytecode) [0]
+                     };
+
+        psoDesc.PS = { uber_hdr_shader_ps_bytecode,
+               sizeof (uber_hdr_shader_ps_bytecode) /
+               sizeof (uber_hdr_shader_ps_bytecode) [0]
+                     };
+
+      // Create the blending setup
+      D3D12_BLEND_DESC&
+        blendDesc                                        = psoDesc.BlendState;
+        blendDesc.AlphaToCoverageEnable                  = false;
+        blendDesc.RenderTarget [0].BlendEnable           = true;
+        blendDesc.RenderTarget [0].SrcBlend              = D3D12_BLEND_SRC_ALPHA;
+        blendDesc.RenderTarget [0].DestBlend             = D3D12_BLEND_INV_SRC_ALPHA;
+        blendDesc.RenderTarget [0].BlendOp               = D3D12_BLEND_OP_ADD;
+        blendDesc.RenderTarget [0].SrcBlendAlpha         = D3D12_BLEND_ONE;//INV_SRC_ALPHA;
+        blendDesc.RenderTarget [0].DestBlendAlpha        = D3D12_BLEND_ZERO;
+        blendDesc.RenderTarget [0].BlendOpAlpha          = D3D12_BLEND_OP_ADD;
+        blendDesc.RenderTarget [0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED   |
+                                                           D3D12_COLOR_WRITE_ENABLE_GREEN |
+                                                           D3D12_COLOR_WRITE_ENABLE_BLUE;
+
+      // Create the rasterizer state
+      D3D12_RASTERIZER_DESC&
+        rasterDesc                       = psoDesc.RasterizerState;
+        rasterDesc.FillMode              = D3D12_FILL_MODE_SOLID;
+        rasterDesc.CullMode              = D3D12_CULL_MODE_NONE;
+        rasterDesc.FrontCounterClockwise = FALSE;
+        rasterDesc.DepthBias             = D3D12_DEFAULT_DEPTH_BIAS;
+        rasterDesc.DepthBiasClamp        = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+        rasterDesc.SlopeScaledDepthBias  = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+        rasterDesc.DepthClipEnable       = true;
+        rasterDesc.MultisampleEnable     = FALSE;
+        rasterDesc.AntialiasedLineEnable = FALSE;
+        rasterDesc.ForcedSampleCount     = 0;
+        rasterDesc.ConservativeRaster    = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+      // Create depth-stencil State
+      D3D12_DEPTH_STENCIL_DESC&
+        depthDesc                              = psoDesc.DepthStencilState;
+        depthDesc.DepthEnable                  = false;
+        depthDesc.DepthWriteMask               = D3D12_DEPTH_WRITE_MASK_ZERO;
+        depthDesc.DepthFunc                    = D3D12_COMPARISON_FUNC_NEVER;
+        depthDesc.StencilEnable                = false;
+        depthDesc.FrontFace.StencilFailOp      =
+        depthDesc.FrontFace.StencilDepthFailOp =
+        depthDesc.FrontFace.StencilPassOp      = D3D12_STENCIL_OP_KEEP;
+        depthDesc.FrontFace.StencilFunc        = D3D12_COMPARISON_FUNC_NEVER;
+        depthDesc.BackFace                     =
+        depthDesc.FrontFace;
+
+      ThrowIfFailed (
+        _pDevice->CreateGraphicsPipelineState (
+          &psoDesc, IID_PPV_ARGS (&pHDRPipeline.p)
+       ));SK_D3D12_SetDebugName  ( pHDRPipeline.p, L"SK HDR Pipeline State" );
+
+	    if (
+        ImGui_ImplDX12_Init ( _pDevice,
+                              swapDesc1.BufferCount,
+                                swapDesc1.Format,
+		  		descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart (),
+		  		descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart ()))
+      {
+        ImGui_ImplDX12_CreateDeviceObjects ();
+
+        return true;
       }
     }
 
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC
-      psoDesc                       = { };
-      psoDesc.NodeMask              = 1;
-      psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-      psoDesc.pRootSignature        = pHDRSignature;
-      psoDesc.SampleMask            = UINT_MAX;
-      psoDesc.NumRenderTargets      = 1;
-      psoDesc.RTVFormats [0]        = swapDesc1.Format;
-      psoDesc.SampleDesc.Count      = 1;
-      psoDesc.Flags                 = D3D12_PIPELINE_STATE_FLAG_NONE;
-
-      psoDesc.VS = { colorutil_vs_bytecode,
-             sizeof (colorutil_vs_bytecode) /
-             sizeof (colorutil_vs_bytecode) [0]
-                   };
-
-      psoDesc.PS = { uber_hdr_shader_ps_bytecode,
-             sizeof (uber_hdr_shader_ps_bytecode) /
-             sizeof (uber_hdr_shader_ps_bytecode) [0]
-                   };
-
-    // Create the blending setup
+    catch (SK_ComException& e)
     {
-      D3D12_BLEND_DESC&
-        desc                                        = psoDesc.BlendState;
-        desc.AlphaToCoverageEnable                  = false;
-        desc.RenderTarget [0].BlendEnable           = true;
-        desc.RenderTarget [0].SrcBlend              = D3D12_BLEND_SRC_ALPHA;
-        desc.RenderTarget [0].DestBlend             = D3D12_BLEND_INV_SRC_ALPHA;
-        desc.RenderTarget [0].BlendOp               = D3D12_BLEND_OP_ADD;
-        desc.RenderTarget [0].SrcBlendAlpha         = D3D12_BLEND_ONE;//INV_SRC_ALPHA;
-        desc.RenderTarget [0].DestBlendAlpha        = D3D12_BLEND_ZERO;
-        desc.RenderTarget [0].BlendOpAlpha          = D3D12_BLEND_OP_ADD;
-        desc.RenderTarget [0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+      SK_ImGui_WarningWithTitle (
+        SK_FormatStringW ( L"SK D3D12 Init Failed: %hs", e.what () ).c_str (),
+                           L"D3D12 Is b0rked!"
+                                );
     }
-
-    // Create the rasterizer state
-    {
-      D3D12_RASTERIZER_DESC&
-        desc                       = psoDesc.RasterizerState;
-        desc.FillMode              = D3D12_FILL_MODE_SOLID;
-        desc.CullMode              = D3D12_CULL_MODE_NONE;
-        desc.FrontCounterClockwise = FALSE;
-        desc.DepthBias             = D3D12_DEFAULT_DEPTH_BIAS;
-        desc.DepthBiasClamp        = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-        desc.SlopeScaledDepthBias  = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
-        desc.DepthClipEnable       = true;
-        desc.MultisampleEnable     = FALSE;
-        desc.AntialiasedLineEnable = FALSE;
-        desc.ForcedSampleCount     = 0;
-        desc.ConservativeRaster    = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-    }
-
-    // Create depth-stencil State
-    {
-      D3D12_DEPTH_STENCIL_DESC&
-        desc                              = psoDesc.DepthStencilState;
-        desc.DepthEnable                  = false;
-        desc.DepthWriteMask               = D3D12_DEPTH_WRITE_MASK_ALL;
-        desc.DepthFunc                    = D3D12_COMPARISON_FUNC_ALWAYS;
-        desc.StencilEnable                = false;
-        desc.FrontFace.StencilFailOp      =
-        desc.FrontFace.StencilDepthFailOp =
-        desc.FrontFace.StencilPassOp      = D3D12_STENCIL_OP_KEEP;
-        desc.FrontFace.StencilFunc        = D3D12_COMPARISON_FUNC_ALWAYS;
-        desc.BackFace                     =
-        desc.FrontFace;
-    }
-
-    if ( FAILED ( pDevice->CreateGraphicsPipelineState    (
-                    &psoDesc, IID_PPV_ARGS (&pHDRPipeline) ) )
-       )
-    {
-      pHDRSignature.Release ();
-    }
-
-	  ImGui_ImplDX12_Init ( pDevice, static_cast <int> (frames_.size ()),
-                            swapDesc1.Format,
-				descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart (),
-				descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart ()
-    );
-
-	  ImGui_ImplDX12_CreateDeviceObjects ();
-
-    return true;
   }
 
   return false;
 }
 
-SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk2;
+SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk;
