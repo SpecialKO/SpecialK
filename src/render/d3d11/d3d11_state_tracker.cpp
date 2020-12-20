@@ -68,7 +68,7 @@ SK_ImGui_IsDrawing_OnD3D11Ctx (UINT dev_idx, ID3D11DeviceContext* pDevCtx)
 {
   if (pDevCtx == nullptr || dev_idx == UINT_MAX)
   {
-    static auto& rb =
+    auto& rb =
       SK_GetCurrentRenderBackend ();
 
     pDevCtx =
@@ -96,7 +96,7 @@ SK_ImGui_IsDrawing_OnD3D11Ctx (UINT dev_idx, ID3D11DeviceContext* pDevCtx)
 std::pair <BOOL*, BOOL>
 SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( dev_idx == UINT_MAX )
@@ -351,10 +351,11 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     return;
 
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_ComQIPtr <ID3D11Device> pDev (rb.device);
+  auto pDev =
+    rb.getDevice <ID3D11Device> ();
 
   if (! pDev)
     return;
@@ -391,6 +392,9 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     ID3D11Query                                    *pQuery = nullptr;
     if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
     {
+      // We'll strip this when the query finishes
+      pDevContext->AddRef ();
+
       InterlockedExchangePointer ((void **)&duration.start.dev_ctx, pDevContext);
       InterlockedExchangePointer ((void **)&duration.start.async,   pQuery);
       pDevContext->End                                             (pQuery);
@@ -402,7 +406,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 void
 d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (dev_idx == UINT_MAX)
@@ -466,7 +470,8 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
   if ( pDevCtx != nullptr && SK_D3D11_IsDevCtxDeferred (pDevCtx) )
     return;
 
-  SK_ComQIPtr <ID3D11Device> dev (rb.device);
+  auto dev =
+    rb.getDevice <ID3D11Device> ();
 
   if ( dev     != nullptr &&
        pDevCtx != nullptr && ReadAcquire (&disjoint_query.active) )
