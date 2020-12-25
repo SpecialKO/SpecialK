@@ -1097,7 +1097,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
   {
     SK_LOG0 ( (L"Handling WM_DISPLAYCHANGE"), L"Window Mgr");
 
-    static auto& rb =
+    auto& rb =
       SK_GetCurrentRenderBackend ();
 
     if ( ((int)rb.api & (int)SK_RenderAPI::D3D11) ||
@@ -1166,8 +1166,11 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
         {
           SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
 
-          if (config.input.keyboard.catch_alt_f4)
+          if (SK_ImGui_Active ())
+          {
+            SK_ImGui_WantExit = true;
             return 1;
+          }
 
           return 0;
         } break;
@@ -1184,8 +1187,11 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
           {
             SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
 
-            if (config.input.keyboard.catch_alt_f4)
+            if (SK_ImGui_Active ())
+            {
+              SK_ImGui_WantExit = true;
               return 1;
+            }
           }
 
           return 0;
@@ -1567,7 +1573,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     RtlSecureZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
 
 
-  if (SK_ImGui_Active () && config.input.gamepad.haptic_ui)
+  if (SK_ImGui_Active () && config.input.gamepad.haptic_ui && nav_usable)
   {
     ImGuiContext& g =
       *GImGui;

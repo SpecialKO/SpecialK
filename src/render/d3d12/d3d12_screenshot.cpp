@@ -22,10 +22,25 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d12/d3d12_screenshot.h>
 
+#include <../depends/include/DirectXTex/d3dx12.h>
+
+// Not Fully Implemented for D3D12
+bool SK_D3D12_EnableTracking      = false;
+bool SK_D3D12_EnableMMIOTracking  = false;
+volatile LONG
+     SK_D3D12_DrawTrackingReqs    = 0L;
+volatile LONG
+     SK_D3D12_CBufferTrackingReqs = 0L;
 
 
-// Not Implemented for D3D12
-//extern volatile LONG  SK_D3D11_DrawTrackingReqs;
+extern void SK_Screenshot_PlaySound (void);
+
+HRESULT
+SK_D3D12_CaptureScreenshot (
+  SK_D3D12_Screenshot   *pScreenshot,
+  D3D12_RESOURCE_STATES  beforeState = D3D12_RESOURCE_STATE_PRESENT,
+  D3D12_RESOURCE_STATES  afterState  = D3D12_RESOURCE_STATE_PRESENT
+) noexcept;
 
 SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveFrom) noexcept
 {
@@ -33,24 +48,47 @@ SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveF
   {
     dispose ();
 
-    pDev                            = moveFrom.pDev;
-    pCommandQueue                   = moveFrom.pCommandQueue;
+    if (moveFrom.readback_ctx.pFence.p != nullptr)
+    {
+      auto &&rFrom = moveFrom.readback_ctx,
+           &&rTo   =          readback_ctx;
 
-    pSwapChain                      = moveFrom.pSwapChain;
-    pBackbufferSurface              = moveFrom.pBackbufferSurface;
-    pStagingBackbufferCopy          = moveFrom.pStagingBackbufferCopy;
+      rTo.pBackbufferSurface       = rFrom.pBackbufferSurface;
+      rTo.pStagingBackbufferCopy   = rFrom.pStagingBackbufferCopy;
 
-     pPixelBufferFence              = moveFrom.pPixelBufferFence;
-    uiPixelBufferFenceVal           = moveFrom.uiPixelBufferFenceVal;
-    ulCommandIssuedOnFrame          = moveFrom.ulCommandIssuedOnFrame;
+      rTo.pCmdQueue                = rFrom.pCmdQueue;
+      rTo.pCmdAlloc                = rFrom.pCmdAlloc;
+      rTo.pCmdList                 = rFrom.pCmdList;
 
-    framebuffer.Width               = moveFrom.framebuffer.Width;
-    framebuffer.Height              = moveFrom.framebuffer.Height;
-    framebuffer.NativeFormat        = moveFrom.framebuffer.NativeFormat;
-    framebuffer.PackedDstPitch      = moveFrom.framebuffer.PackedDstPitch;
-    framebuffer.PackedDstSlicePitch = moveFrom.framebuffer.PackedDstSlicePitch;
-    framebuffer.AlphaMode           = moveFrom.framebuffer.AlphaMode;
-    framebuffer.PBufferSize         = moveFrom.framebuffer.PBufferSize;
+      rTo.pFence                   = rFrom.pFence;
+      rTo.uiFenceVal               = rFrom.uiFenceVal;
+
+      rTo.pBackingStore            = rFrom.pBackingStore;
+
+
+      rFrom.pBackbufferSurface     = nullptr;
+      rFrom.pStagingBackbufferCopy = nullptr;
+
+      rFrom.pCmdQueue              = nullptr;
+      rFrom.pCmdAlloc              = nullptr;
+      rFrom.pCmdList               = nullptr;
+
+      rFrom.pFence                 = nullptr;
+      rFrom.uiFenceVal             =       0;
+
+      rFrom.pBackingStore          = nullptr;
+    }
+
+    auto&& fromBuffer =
+       moveFrom.framebuffer;
+
+    ulCommandIssuedOnFrame          = std::exchange (moveFrom.ulCommandIssuedOnFrame, 0);
+
+    framebuffer.Width               = std::exchange (fromBuffer.Width,                0);
+    framebuffer.Height              = std::exchange (fromBuffer.Height,               0);
+    framebuffer.PackedDstPitch      = std::exchange (fromBuffer.PackedDstPitch,       0);
+    framebuffer.PackedDstSlicePitch = std::exchange (fromBuffer.PackedDstSlicePitch,  0);
+    framebuffer.PBufferSize         = std::exchange (fromBuffer.PBufferSize,          0);
 
     framebuffer.PixelBuffer.reset (
       moveFrom.framebuffer.PixelBuffer.get () // XXX: Shouldn't this be release?
@@ -58,23 +96,10 @@ SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveF
 
     //framebuffer.PixelBuffer.reset   ( moveFrom.framebuffer.PixelBuffer.release () );
 
-    moveFrom.pDev                            = nullptr;
-    moveFrom.pCommandQueue                   = nullptr;
-    moveFrom.pSwapChain                      = nullptr;
-    moveFrom.pStagingBackbufferCopy          = nullptr;
-
-    moveFrom.pPixelBufferFence               = nullptr;
-    moveFrom.uiPixelBufferFenceVal           = 0;
-    moveFrom.ulCommandIssuedOnFrame          = 0;
-
-    moveFrom.framebuffer.Width               = 0;
-    moveFrom.framebuffer.Height              = 0;
-    moveFrom.framebuffer.NativeFormat        = DXGI_FORMAT_UNKNOWN;
-    moveFrom.framebuffer.PackedDstPitch      = 0;
-    moveFrom.framebuffer.PackedDstSlicePitch = 0;
-    moveFrom.framebuffer.AlphaMode           = DXGI_ALPHA_MODE_UNSPECIFIED;
-    moveFrom.framebuffer.PBufferSize         = 0;
+    framebuffer.AlphaMode           = std::exchange (fromBuffer.AlphaMode,    DXGI_ALPHA_MODE_UNSPECIFIED);
+    framebuffer.NativeFormat        = std::exchange (fromBuffer.NativeFormat, DXGI_FORMAT_UNKNOWN);
   }
+
   return *this;
 }
 
@@ -158,7 +183,7 @@ struct ShaderBase
         if (! err.empty ())
         {
           dll_log->LogEx ( true,
-                             L"SK D3D11 Shader (SM=%hs) [%ws]: %hs",
+                             L"SK D3D12 Shader (SM=%hs) [%ws]: %hs",
                                szShaderModel, wszShaderName,
                                  err.c_str ()
                          );
@@ -287,10 +312,11 @@ struct ShaderBase
 };
 
 SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&       pDevice,
-                                           const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue ) :
-                     pDev (pDevice),
-            pCommandQueue (pCmdQueue)
+                                           const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue,
+                                           const SK_ComPtr <IDXGISwapChain3>&    pSwapChain )
 {
+  readback_ctx.pBackingStore = &framebuffer;
+
   //SK_ScopedBool decl_tex_scope (
   //  SK_D3D12_DeclareTexInjectScope ()
   //);
@@ -298,382 +324,360 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
   static auto& io =
     ImGui::GetIO ();
 
-  if (pDev != nullptr)
+  if ( pDevice    != nullptr &&
+       pSwapChain != nullptr &&
+       pCmdQueue  != nullptr )
   {
+    readback_ctx.pCmdQueue = pCmdQueue;
+
     static SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
-    D3D11_QUERY_DESC fence_query_desc =
+    SK_ComQIPtr <IDXGISwapChain4>
+        pSwap4 (pSwapChain);
+
+    if (pSwap4.p != nullptr)
     {
-      D3D11_QUERY_EVENT,
-      0x00
-    };
+      DXGI_SWAP_CHAIN_DESC1 sd1 = {};
+      pSwap4->GetDesc1    (&sd1);
 
-    if ( SUCCEEDED ( pDev->CreateFence ( 0, D3D12_FENCE_FLAG_NONE,
-                 __uuidof (ID3D12Fence),
-           (void **)&pPixelBufferFence.p
-                                       )
-                   )
-       )
+      framebuffer.AlphaMode =
+              sd1.AlphaMode;
+    }
+    ulCommandIssuedOnFrame = SK_GetFramesDrawn ();
+
+    SK_ComPtr <ID3D12Resource> pBackbuffer;
+
+    ////extern bool __SK_HDR_16BitSwap;
+    ////
+    ////HRESULT hr =
+    ////  (! __SK_HDR_16BitSwap) ?
+    ////  pSwapChain->GetBuffer (
+    ////    pSwapChain->GetCurrentBackBufferIndex (),
+    ////          IID_PPV_ARGS (&pBackbuffer.p)
+    ////  ) : S_OK;
+    ////
+    ////if (SUCCEEDED (hr))
     {
-      if (rb.swapchain != nullptr)
-          rb.swapchain->QueryInterface <IDXGISwapChain3> (&pSwapChain.p);
+      readback_ctx.pCmdList  = _d3d12_rbk->frames_ [pSwapChain->GetCurrentBackBufferIndex ()].pCmdList.p;
+      readback_ctx.pCmdAlloc = _d3d12_rbk->frames_ [pSwapChain->GetCurrentBackBufferIndex ()].pCmdAllocator.p;
+      pBackbuffer            = _d3d12_rbk->frames_ [pSwapChain->GetCurrentBackBufferIndex ()].pRenderOutput.p;
 
-      if (pSwapChain != nullptr)
-      {
-        SK_ComQIPtr <IDXGISwapChain4> pSwap4 (pSwapChain);
+      readback_ctx.pBackbufferSurface            = pBackbuffer;
+      D3D12_RESOURCE_DESC        backbuffer_desc = pBackbuffer->GetDesc ();
 
-        if (pSwap4 != nullptr)
-        {
-          DXGI_SWAP_CHAIN_DESC1 sd1 = {};
-          pSwap4->GetDesc1    (&sd1);
-
-          framebuffer.AlphaMode =
-                  sd1.AlphaMode;
-        }
-        ulCommandIssuedOnFrame = SK_GetFramesDrawn ();
-
-        if ( SUCCEEDED ( pSwapChain->GetBuffer (
-              pSwapChain->GetCurrentBackBufferIndex (),
-                           __uuidof (ID3D12Resource),
-                             (void **)&pBackbufferSurface.p
-                                               )
-                       )
-           )
-        {
-          bool hdr10_to_scRGB = false;
-
-          SK_ComPtr <ID3D12Resource> pHDRConvertTex;
-
-          D3D12_RESOURCE_DESC        backbuffer_desc =
-                                    pBackbufferSurface->GetDesc ();
-
-          framebuffer.Width        = backbuffer_desc.Width;
-          framebuffer.Height       = backbuffer_desc.Height;
-          framebuffer.NativeFormat = backbuffer_desc.Format;
-
-          bool hdr =
-            (  rb.isHDRCapable ()  &&
-              (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+      framebuffer.Width        = backbuffer_desc.Width;
+      framebuffer.Height       = backbuffer_desc.Height;
+      framebuffer.NativeFormat = backbuffer_desc.Format;
 
 #ifdef HDR_CONVERT
-          if (hdr && backbuffer_desc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
-          {
-            D3D11_TEXTURE2D_DESC tex_desc = { };
-            tex_desc.Width          = framebuffer.Width;
-            tex_desc.Height         = framebuffer.Height;
-            tex_desc.Format         = DXGI_FORMAT_R16G16B16A16_FLOAT;
-            tex_desc.MipLevels      = 1;
-            tex_desc.ArraySize      = 1;
-            tex_desc.SampleDesc     = { 1, 0 };
-            tex_desc.BindFlags      = D3D11_BIND_RENDER_TARGET |
-                                      D3D11_BIND_SHADER_RESOURCE;
-            tex_desc.Usage          = D3D11_USAGE_DEFAULT;
-            tex_desc.CPUAccessFlags = 0x0;
+      SK_ComPtr <ID3D12Resource> pHDRConvertTex;
 
-            if ( SUCCEEDED (
-                   pDev->CreateTexture2D (&tex_desc, nullptr, &pHDRConvertTex.p)
-                 )
-               )
-            {
-              D3D11_RENDER_TARGET_VIEW_DESC rtdesc
-                = { };
+      bool hdr10_to_scRGB = false;
 
-              rtdesc.Format             = DXGI_FORMAT_R16G16B16A16_FLOAT;
-              rtdesc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
-              rtdesc.Texture2D.MipSlice = 0;
+      bool hdr =
+        (  rb.isHDRCapable ()  &&
+          (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
 
-              SK_ComPtr <ID3D11RenderTargetView> pRenderTargetView;
+      if (hdr && backbuffer_desc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
+      {
+        D3D11_TEXTURE2D_DESC tex_desc = { };
+        tex_desc.Width          = framebuffer.Width;
+        tex_desc.Height         = framebuffer.Height;
+        tex_desc.Format         = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        tex_desc.MipLevels      = 1;
+        tex_desc.ArraySize      = 1;
+        tex_desc.SampleDesc     = { 1, 0 };
+        tex_desc.BindFlags      = D3D11_BIND_RENDER_TARGET |
+                                  D3D11_BIND_SHADER_RESOURCE;
+        tex_desc.Usage          = D3D11_USAGE_DEFAULT;
+        tex_desc.CPUAccessFlags = 0x0;
 
-              if (SUCCEEDED (pDev->CreateRenderTargetView (pHDRConvertTex, &rtdesc, &pRenderTargetView.p)))
-              {
-                DXGI_SWAP_CHAIN_DESC swapDesc = { };
-                D3D11_TEXTURE2D_DESC desc     = { };
-
-                pSwapChain->GetDesc (&swapDesc);
-
-                desc.Width            = swapDesc.BufferDesc.Width;
-                desc.Height           = swapDesc.BufferDesc.Height;
-                desc.MipLevels        = 1;
-                desc.ArraySize        = 1;
-                desc.Format           = swapDesc.BufferDesc.Format;
-                desc.SampleDesc.Count = 1;
-                desc.Usage            = D3D11_USAGE_DEFAULT;
-                desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
-                desc.CPUAccessFlags   = 0;
-
-                static ShaderBase <ID3D11PixelShader>  PixelShader_HDR10toscRGB;
-                static ShaderBase <ID3D11VertexShader> VertexShaderHDR_Util;
-
-              //static std::wstring debug_shader_dir = SK_GetConfigPath ();
-
-                static bool compiled = true;
-
-                SK_RunOnce ( compiled =
-                  PixelShader_HDR10toscRGB.compileShaderString (
-                    "#pragma warning ( disable : 3571 )                  \n\
-                    struct PS_INPUT                                      \n\
-                    {                                                    \n\
-                      float4 pos      : SV_POSITION;                     \n\
-                      float4 color    : COLOR0;                          \n\
-                      float2 uv       : TEXCOORD0;                       \n\
-                      float2 coverage : TEXCOORD1;                       \n\
-                    };                                                   \n\
-                                                                         \n\
-                    sampler   sampler0 : register (s0);                  \n\
-                    Texture2D texHDR10 : register (t0);                  \n\
-                                                                         \n\
-                    static const double3x3 from2020to709 = {             \n\
-                       1.660496, -0.587656, -0.072840,                   \n\
-                      -0.124546,  1.132895,  0.008348,                   \n\
-                      -0.018154, -0.100597,  1.118751                    \n\
-                    };                                                   \n\
-                                                                         \n\
-                    double3 RemoveREC2084Curve (double3 N)               \n\
-                    {                                                    \n\
-                      double  m1 = 2610.0 / 4096.0 / 4;                  \n\
-                      double  m2 = 2523.0 / 4096.0 * 128;                \n\
-                      double  c1 = 3424.0 / 4096.0;                      \n\
-                      double  c2 = 2413.0 / 4096.0 * 32;                 \n\
-                      double  c3 = 2392.0 / 4096.0 * 32;                 \n\
-                      double3 Np = pow (N, 1 / m2);                      \n\
-                                                                         \n\
-                      return                                             \n\
-                        pow (max (Np - c1, 0) / (c2 - c3 * Np), 1 / m1); \n\
-                    }                                                    \n\
-                                                                         \n\
-                    float4 main ( PS_INPUT input ) : SV_TARGET           \n\
-                    {                                                    \n\
-                      double4 hdr10_color =                              \n\
-                        texHDR10.Sample (sampler0, input.uv);            \n\
-                                                                         \n\
-                      // HDR10 (normalized) is 125x brighter than scRGB  \n\
-                      hdr10_color.rgb =                                  \n\
-                        125.0 *                                          \n\
-                          mul ( from2020to709,                           \n\
-                                  RemoveREC2084Curve ( hdr10_color.rgb ) \n\
-                              );                                         \n\
-                                                                         \n\
-                      return                                             \n\
-                        float4 (hdr10_color.rgb, 1.0);                   \n\
-                    }", L"HDR10->scRGB Color Transform", "main", "ps_5_0", true )
-                );
-
-                SK_RunOnce ( compiled &=
-                  VertexShaderHDR_Util.compileShaderString (
-                    "cbuffer vertexBuffer : register (b0)       \n\
-                    {                                           \n\
-                      float4 Luminance;                         \n\
-                    };                                          \n\
-                                                                \n\
-                    struct PS_INPUT                             \n\
-                    {                                           \n\
-                      float4 pos      : SV_POSITION;            \n\
-                      float4 col      : COLOR0;                 \n\
-                      float2 uv       : TEXCOORD0;              \n\
-                      float2 coverage : TEXCOORD1;              \n\
-                    };                                          \n\
-                                                                \n\
-                    struct VS_INPUT                             \n\
-                    {                                           \n\
-                      uint vI : SV_VERTEXID;                    \n\
-                    };                                          \n\
-                                                                \n\
-                    PS_INPUT main ( VS_INPUT input )            \n\
-                    {                                           \n\
-                      PS_INPUT                                  \n\
-                        output;                                 \n\
-                                                                \n\
-                        output.uv  = float2 (input.vI  & 1,     \n\
-                                             input.vI >> 1);    \n\
-                        output.col = float4 (Luminance.rgb,1);  \n\
-                        output.pos =                            \n\
-                          float4 ( ( output.uv.x - 0.5f ) * 2,  \n\
-                                  -( output.uv.y - 0.5f ) * 2,  \n\
-                                                   0.0f,        \n\
-                                                   1.0f );      \n\
-                                                                \n\
-                        output.coverage =                       \n\
-                          float2 ( (Luminance.z * .5f + .5f),   \n\
-                                   (Luminance.w * .5f + .5f) ); \n\
-                                                                \n\
-                      return                                    \n\
-                        output;                                 \n\
-                    }", L"HDR Color Utility Vertex Shader",
-                         "main", "vs_5_0", true )
-                );
-
-                if (compiled)
-                {
-                  SK_ComPtr <ID3D11Texture2D>          pHDR10Texture = nullptr;
-                  SK_ComPtr <ID3D11ShaderResourceView> pHDR10Srv     = nullptr;
-
-                  D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = { };
-
-                  srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-                  srvDesc.Format                    = desc.Format;
-                  srvDesc.Texture2D.MipLevels       = desc.MipLevels;
-                  srvDesc.Texture2D.MostDetailedMip = 0;
-
-                  pDev->CreateTexture2D          ( &desc, nullptr,
-                                                   &pHDR10Texture.p );
-                  pImmediateCtx->CopyResource    ( pHDR10Texture,
-                                                     pBackbufferSurface );
-
-                  pDev->CreateShaderResourceView (pHDR10Texture, &srvDesc, &pHDR10Srv.p);
-
-                  ID3D11ShaderResourceView* pResources [1] = { pHDR10Srv };
-
-                  pImmediateCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-                  static const FLOAT                      fBlendFactor [4] =
-                                                      { 0.0f, 0.0f, 0.0f, 1.0f };
-                  pImmediateCtx->VSSetShader          (VertexShaderHDR_Util.shader,     nullptr, 0);
-                  pImmediateCtx->PSSetShader          (PixelShader_HDR10toscRGB.shader, nullptr, 0);
-                  pImmediateCtx->GSSetShader          (nullptr,                         nullptr, 0);
-                  pImmediateCtx->HSSetShader          (nullptr,                         nullptr, 0);
-                  pImmediateCtx->DSSetShader          (nullptr,                         nullptr, 0);
-
-                  pImmediateCtx->PSSetShaderResources (0, 1, pResources);
-                  pImmediateCtx->OMSetRenderTargets   (1, &pRenderTargetView.p, nullptr);
-
-                  static bool run_once = false;
-
-                  static D3D11_RASTERIZER_DESC    raster_desc = { };
-                  static D3D11_DEPTH_STENCIL_DESC depth_desc  = { };
-                  static D3D11_BLEND_DESC         blend_desc  = { };
-
-                  if (! run_once)
-                  {
-                    raster_desc.FillMode        = D3D11_FILL_SOLID;
-                    raster_desc.CullMode        = D3D11_CULL_NONE;
-                    raster_desc.ScissorEnable   = false;
-                    raster_desc.DepthClipEnable = true;
-
-                    depth_desc.DepthEnable      = false;
-                    depth_desc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
-                    depth_desc.DepthFunc        = D3D11_COMPARISON_ALWAYS;
-                    depth_desc.StencilEnable    = false;
-                    depth_desc.FrontFace.StencilFailOp = depth_desc.FrontFace.StencilDepthFailOp =
-                                                         depth_desc.FrontFace.StencilPassOp      =
-                                                       D3D11_STENCIL_OP_KEEP;
-                    depth_desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-                    depth_desc.BackFace              = depth_desc.FrontFace;
-
-                    blend_desc.AlphaToCoverageEnable                  = false;
-                    blend_desc.RenderTarget [0].BlendEnable           = true;
-                    blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
-                    blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
-                    blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
-                    blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-                    blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
-                    blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-                    blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-                  }
-
-                  SK_RunOnce (run_once = true);
-
-                  SK_ComPtr <ID3D11RasterizerState>                     pRasterizerState;
-                  pDev->CreateRasterizerState           (&raster_desc, &pRasterizerState);
-                  SK_ComPtr <ID3D11DepthStencilState>                   pDepthStencilState;
-                  pDev->CreateDepthStencilState         (&depth_desc,  &pDepthStencilState);
-                  SK_ComPtr <ID3D11BlendState>                          pBlendState;
-                  pDev->CreateBlendState                (&blend_desc,  &pBlendState);
-
-                  pImmediateCtx->OMSetDepthStencilState (pDepthStencilState, 0);
-                  pImmediateCtx->RSSetState             (pRasterizerState     );
-                  pImmediateCtx->OMSetBlendState        (pBlendState,
-                                                         fBlendFactor, 0xFFFFFFFF);
-
-                  D3D11_VIEWPORT vp = { };
-
-                  vp.Height   = io.DisplaySize.y;
-                  vp.Width    = io.DisplaySize.x;
-                  vp.MinDepth = 0.0f;
-                  vp.MaxDepth = 1.0f;
-                  vp.TopLeftX = vp.TopLeftY = 0.0f;
-
-                  pImmediateCtx->RSSetViewports (1, &vp);
-
-                  pImmediateCtx->Draw (4, 0);
-
-                  hdr10_to_scRGB           = true;
-                  framebuffer.NativeFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                }
-              }
-            }
-          }
-#endif
-
-          ///D3D11_TEXTURE2D_DESC staging_desc =
-          ///{
-          ///  framebuffer.Width, framebuffer.Height,
-          ///  1,                 1,
-          ///
-          ///  framebuffer.NativeFormat,
-          ///
-          ///  { 1, 0 },//D3D11_STANDARD_MULTISAMPLE_PATTERN },
-          ///
-          ///    D3D11_USAGE_STAGING,     0x00,
-          ///  ( D3D11_CPU_ACCESS_READ ), 0x00
-          ///};
-
-
-          const uint32_t data_pitch     = framebuffer.Width * 4;
-	        const uint32_t download_pitch = (data_pitch + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
-                                                    & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
-
-	        D3D12_RESOURCE_DESC
-            staging_desc                  = { D3D12_RESOURCE_DIMENSION_BUFFER };
-	          staging_desc.Width            = framebuffer.Height * download_pitch;
-	          staging_desc.Height           = 1;
-	          staging_desc.DepthOrArraySize = 1;
-	          staging_desc.MipLevels        = 1;
-	          staging_desc.SampleDesc       = { 1, 0 };
-	          staging_desc.Layout           = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-          D3D12_HEAP_PROPERTIES
-            heapProps                     = { D3D12_HEAP_TYPE_READBACK };
-
-          if ( SUCCEEDED (
-            pDev->CreateCommittedResource ( &heapProps, D3D12_HEAP_FLAG_NONE,
-              &staging_desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-                                           __uuidof (ID3D12Resource),
-                                 (void **)&pStagingBackbufferCopy.p )
-                         )
+        if ( SUCCEEDED (
+               pDev->CreateTexture2D (&tex_desc, nullptr, &pHDRConvertTex.p)
              )
+           )
+        {
+          D3D11_RENDER_TARGET_VIEW_DESC rtdesc
+            = { };
+
+          rtdesc.Format             = DXGI_FORMAT_R16G16B16A16_FLOAT;
+          rtdesc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
+          rtdesc.Texture2D.MipSlice = 0;
+
+          SK_ComPtr <ID3D11RenderTargetView> pRenderTargetView;
+
+          if (SUCCEEDED (pDev->CreateRenderTargetView (pHDRConvertTex, &rtdesc, &pRenderTargetView.p)))
           {
-            // DXGI Flip Model Does Not Allow This, so ignore...
-            SK_ReleaseAssert (backbuffer_desc.SampleDesc.Count == 1);
+            DXGI_SWAP_CHAIN_DESC swapDesc = { };
+            D3D11_TEXTURE2D_DESC desc     = { };
 
-            if (backbuffer_desc.SampleDesc.Count == 1)
+            pSwapChain->GetDesc (&swapDesc);
+
+            desc.Width            = swapDesc.BufferDesc.Width;
+            desc.Height           = swapDesc.BufferDesc.Height;
+            desc.MipLevels        = 1;
+            desc.ArraySize        = 1;
+            desc.Format           = swapDesc.BufferDesc.Format;
+            desc.SampleDesc.Count = 1;
+            desc.Usage            = D3D11_USAGE_DEFAULT;
+            desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
+            desc.CPUAccessFlags   = 0;
+
+            static ShaderBase <ID3D11PixelShader>  PixelShader_HDR10toscRGB;
+            static ShaderBase <ID3D11VertexShader> VertexShaderHDR_Util;
+
+          //static std::wstring debug_shader_dir = SK_GetConfigPath ();
+
+            static bool compiled = true;
+
+            SK_RunOnce ( compiled =
+              PixelShader_HDR10toscRGB.compileShaderString (
+                "#pragma warning ( disable : 3571 )                  \n\
+                struct PS_INPUT                                      \n\
+                {                                                    \n\
+                  float4 pos      : SV_POSITION;                     \n\
+                  float4 color    : COLOR0;                          \n\
+                  float2 uv       : TEXCOORD0;                       \n\
+                  float2 coverage : TEXCOORD1;                       \n\
+                };                                                   \n\
+                                                                     \n\
+                sampler   sampler0 : register (s0);                  \n\
+                Texture2D texHDR10 : register (t0);                  \n\
+                                                                     \n\
+                static const double3x3 from2020to709 = {             \n\
+                   1.660496, -0.587656, -0.072840,                   \n\
+                  -0.124546,  1.132895,  0.008348,                   \n\
+                  -0.018154, -0.100597,  1.118751                    \n\
+                };                                                   \n\
+                                                                     \n\
+                double3 RemoveREC2084Curve (double3 N)               \n\
+                {                                                    \n\
+                  double  m1 = 2610.0 / 4096.0 / 4;                  \n\
+                  double  m2 = 2523.0 / 4096.0 * 128;                \n\
+                  double  c1 = 3424.0 / 4096.0;                      \n\
+                  double  c2 = 2413.0 / 4096.0 * 32;                 \n\
+                  double  c3 = 2392.0 / 4096.0 * 32;                 \n\
+                  double3 Np = pow (N, 1 / m2);                      \n\
+                                                                     \n\
+                  return                                             \n\
+                    pow (max (Np - c1, 0) / (c2 - c3 * Np), 1 / m1); \n\
+                }                                                    \n\
+                                                                     \n\
+                float4 main ( PS_INPUT input ) : SV_TARGET           \n\
+                {                                                    \n\
+                  double4 hdr10_color =                              \n\
+                    texHDR10.Sample (sampler0, input.uv);            \n\
+                                                                     \n\
+                  // HDR10 (normalized) is 125x brighter than scRGB  \n\
+                  hdr10_color.rgb =                                  \n\
+                    125.0 *                                          \n\
+                      mul ( from2020to709,                           \n\
+                              RemoveREC2084Curve ( hdr10_color.rgb ) \n\
+                          );                                         \n\
+                                                                     \n\
+                  return                                             \n\
+                    float4 (hdr10_color.rgb, 1.0);                   \n\
+                }", L"HDR10->scRGB Color Transform", "main", "ps_5_0", true )
+            );
+
+            SK_RunOnce ( compiled &=
+              VertexShaderHDR_Util.compileShaderString (
+                "cbuffer vertexBuffer : register (b0)       \n\
+                {                                           \n\
+                  float4 Luminance;                         \n\
+                };                                          \n\
+                                                            \n\
+                struct PS_INPUT                             \n\
+                {                                           \n\
+                  float4 pos      : SV_POSITION;            \n\
+                  float4 col      : COLOR0;                 \n\
+                  float2 uv       : TEXCOORD0;              \n\
+                  float2 coverage : TEXCOORD1;              \n\
+                };                                          \n\
+                                                            \n\
+                struct VS_INPUT                             \n\
+                {                                           \n\
+                  uint vI : SV_VERTEXID;                    \n\
+                };                                          \n\
+                                                            \n\
+                PS_INPUT main ( VS_INPUT input )            \n\
+                {                                           \n\
+                  PS_INPUT                                  \n\
+                    output;                                 \n\
+                                                            \n\
+                    output.uv  = float2 (input.vI  & 1,     \n\
+                                         input.vI >> 1);    \n\
+                    output.col = float4 (Luminance.rgb,1);  \n\
+                    output.pos =                            \n\
+                      float4 ( ( output.uv.x - 0.5f ) * 2,  \n\
+                              -( output.uv.y - 0.5f ) * 2,  \n\
+                                               0.0f,        \n\
+                                               1.0f );      \n\
+                                                            \n\
+                    output.coverage =                       \n\
+                      float2 ( (Luminance.z * .5f + .5f),   \n\
+                               (Luminance.w * .5f + .5f) ); \n\
+                                                            \n\
+                  return                                    \n\
+                    output;                                 \n\
+                }", L"HDR Color Utility Vertex Shader",
+                     "main", "vs_5_0", true )
+            );
+
+            if (compiled)
             {
-              if (hdr10_to_scRGB)
+              SK_ComPtr <ID3D11Texture2D>          pHDR10Texture = nullptr;
+              SK_ComPtr <ID3D11ShaderResourceView> pHDR10Srv     = nullptr;
+
+              D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = { };
+
+              srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+              srvDesc.Format                    = desc.Format;
+              srvDesc.Texture2D.MipLevels       = desc.MipLevels;
+              srvDesc.Texture2D.MostDetailedMip = 0;
+
+              pDev->CreateTexture2D          ( &desc, nullptr,
+                                               &pHDR10Texture.p );
+              pImmediateCtx->CopyResource    ( pHDR10Texture,
+                                                 pBackbufferSurface );
+
+              pDev->CreateShaderResourceView (pHDR10Texture, &srvDesc, &pHDR10Srv.p);
+
+              ID3D11ShaderResourceView* pResources [1] = { pHDR10Srv };
+
+              pImmediateCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+              static const FLOAT                      fBlendFactor [4] =
+                                                  { 0.0f, 0.0f, 0.0f, 1.0f };
+              pImmediateCtx->VSSetShader          (VertexShaderHDR_Util.shader,     nullptr, 0);
+              pImmediateCtx->PSSetShader          (PixelShader_HDR10toscRGB.shader, nullptr, 0);
+              pImmediateCtx->GSSetShader          (nullptr,                         nullptr, 0);
+              pImmediateCtx->HSSetShader          (nullptr,                         nullptr, 0);
+              pImmediateCtx->DSSetShader          (nullptr,                         nullptr, 0);
+
+              pImmediateCtx->PSSetShaderResources (0, 1, pResources);
+              pImmediateCtx->OMSetRenderTargets   (1, &pRenderTargetView.p, nullptr);
+
+              static bool run_once = false;
+
+              static D3D11_RASTERIZER_DESC    raster_desc = { };
+              static D3D11_DEPTH_STENCIL_DESC depth_desc  = { };
+              static D3D11_BLEND_DESC         blend_desc  = { };
+
+              if (! run_once)
               {
-                //pImmediateCtx->CopyResource ( pStagingBackbufferCopy,
-                //                              pHDRConvertTex          );
+                raster_desc.FillMode        = D3D11_FILL_SOLID;
+                raster_desc.CullMode        = D3D11_CULL_NONE;
+                raster_desc.ScissorEnable   = false;
+                raster_desc.DepthClipEnable = true;
+
+                depth_desc.DepthEnable      = false;
+                depth_desc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
+                depth_desc.DepthFunc        = D3D11_COMPARISON_ALWAYS;
+                depth_desc.StencilEnable    = false;
+                depth_desc.FrontFace.StencilFailOp = depth_desc.FrontFace.StencilDepthFailOp =
+                                                     depth_desc.FrontFace.StencilPassOp      =
+                                                   D3D11_STENCIL_OP_KEEP;
+                depth_desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+                depth_desc.BackFace              = depth_desc.FrontFace;
+
+                blend_desc.AlphaToCoverageEnable                  = false;
+                blend_desc.RenderTarget [0].BlendEnable           = true;
+                blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+                blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
+                blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+                blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+                blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
+                blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+                blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
               }
 
-              else
-              {
-                //pImmediateCtx->CopyResource ( pStagingBackbufferCopy,
-                //                              pBackbufferSurface      );
-              }
+              SK_RunOnce (run_once = true);
+
+              SK_ComPtr <ID3D11RasterizerState>                     pRasterizerState;
+              pDev->CreateRasterizerState           (&raster_desc, &pRasterizerState);
+              SK_ComPtr <ID3D11DepthStencilState>                   pDepthStencilState;
+              pDev->CreateDepthStencilState         (&depth_desc,  &pDepthStencilState);
+              SK_ComPtr <ID3D11BlendState>                          pBlendState;
+              pDev->CreateBlendState                (&blend_desc,  &pBlendState);
+
+              pImmediateCtx->OMSetDepthStencilState (pDepthStencilState, 0);
+              pImmediateCtx->RSSetState             (pRasterizerState     );
+              pImmediateCtx->OMSetBlendState        (pBlendState,
+                                                     fBlendFactor, 0xFFFFFFFF);
+
+              D3D11_VIEWPORT vp = { };
+
+              vp.Height   = io.DisplaySize.y;
+              vp.Width    = io.DisplaySize.x;
+              vp.MinDepth = 0.0f;
+              vp.MaxDepth = 1.0f;
+              vp.TopLeftX = vp.TopLeftY = 0.0f;
+
+              pImmediateCtx->RSSetViewports (1, &vp);
+
+              pImmediateCtx->Draw (4, 0);
+
+              hdr10_to_scRGB           = true;
+              framebuffer.NativeFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
             }
-
-            //if (pImmediateCtx3 != nullptr)
-            //{
-            //  pImmediateCtx3->Flush1 (D3D11_CONTEXT_TYPE_COPY, nullptr);
-            //}
-            //
-            //pImmediateCtx->End (pPixelBufferFence);
-
-            pPixelBufferFence->Signal (uiPixelBufferFenceVal++);
-
-            return;
           }
         }
       }
+#endif
+#if 0
+      const uint32_t data_pitch     = framebuffer.Width * 4;
+	    const uint32_t download_pitch = (data_pitch + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
+                                                & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
+
+	    D3D12_RESOURCE_DESC
+        staging_desc                  = { D3D12_RESOURCE_DIMENSION_BUFFER };
+	      staging_desc.Width            = framebuffer.Height * download_pitch;
+	      staging_desc.Height           = 1;
+	      staging_desc.DepthOrArraySize = 1;
+	      staging_desc.MipLevels        = 1;
+	      staging_desc.SampleDesc       = { 1, 0 };
+	      staging_desc.Layout           = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+      D3D12_HEAP_PROPERTIES
+        heapProps                     = { D3D12_HEAP_TYPE_READBACK };
+
+      if ( SUCCEEDED (
+        pDev->CreateCommittedResource ( &heapProps, D3D12_HEAP_FLAG_NONE,
+          &staging_desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+            __uuidof (ID3D12Resource),
+              (void **)&pReadback->pStagingBackbufferCopy.p )
+                     )
+         )
+      {
+        // DXGI Flip Model Does Not Allow This, so ignore...
+        SK_ReleaseAssert (backbuffer_desc.SampleDesc.Count == 1);
+
+        if (backbuffer_desc.SampleDesc.Count == 1)
+        {
+          if (hdr10_to_scRGB)
+          {
+            //pImmediateCtx->CopyResource ( pStagingBackbufferCopy,
+            //                              pHDRConvertTex          );
+          }
+
+          else
+          {
+            //pImmediateCtx->CopyResource ( pStagingBackbufferCopy,
+            //                              pBackbufferSurface      );
+          }
+        }
+#endif
+        HRESULT hr =
+          SK_D3D12_CaptureScreenshot (this);
+
+        if (SUCCEEDED (hr))
+        {
+          SK_Screenshot_PlaySound ();
+          return;
+        }
+      //}
     }
   }
 
@@ -691,14 +695,18 @@ SK_D3D12_Screenshot::framebuffer_s::root_;
 void
 SK_D3D12_Screenshot::dispose (void) noexcept
 {
-  pPixelBufferFence      = nullptr;
-  pStagingBackbufferCopy = nullptr;
-  pCommandQueue          = nullptr;
+  readback_ctx.pFence                 = nullptr;
+  readback_ctx.uiFenceVal             =       0;
 
-  pSwapChain             = nullptr;
-  pDev                   = nullptr;
+  readback_ctx.pStagingBackbufferCopy = nullptr;
+  readback_ctx.pBackbufferSurface     = nullptr;
 
-  pBackbufferSurface     = nullptr;
+  readback_ctx.pCmdQueue              = nullptr;
+  readback_ctx.pCmdAlloc              = nullptr;
+  readback_ctx.pCmdList               = nullptr;
+
+  // Hopefully we still point back to ourself
+  SK_ReleaseAssert (readback_ctx.pBackingStore == &framebuffer);
 
   if ( framebuffer.PixelBuffer ==
        framebuffer.root_.bytes )
@@ -710,11 +718,243 @@ SK_D3D12_Screenshot::dispose (void) noexcept
 
   framebuffer.PixelBuffer.reset (nullptr);
 
+  size_t before =
+    SK_ScreenshotQueue::pooled.capture_bytes.load ();
+
   SK_ScreenshotQueue::pooled.capture_bytes -=
     std::exchange (
       framebuffer.PBufferSize, 0
     );
+
+  if (before < SK_ScreenshotQueue::pooled.capture_bytes.load  ( ))
+  {            SK_ScreenshotQueue::pooled.capture_bytes.store (0); SK_ReleaseAssert (false && "capture underflow"); }
 };
+
+
+inline void
+SK_D3D12_TransitionResource (
+    _In_ ID3D12GraphicsCommandList *pCmdList,
+    _In_ ID3D12Resource            *pResource,
+    _In_ D3D12_RESOURCE_STATES      stateBefore,
+    _In_ D3D12_RESOURCE_STATES      stateAfter )
+{
+  assert (pCmdList  != nullptr);
+  assert (pResource != nullptr);
+
+  if (stateBefore == stateAfter)
+      return;
+
+  D3D12_RESOURCE_BARRIER
+    barrier_desc                        = {                                    };
+    barrier_desc.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrier_desc.Transition.pResource   = pResource;
+    barrier_desc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    barrier_desc.Transition.StateBefore = stateBefore;
+    barrier_desc.Transition.StateAfter  = stateAfter;
+
+  pCmdList->ResourceBarrier (
+    1, &barrier_desc
+  );
+}
+
+#include <../depends/include/DirectXTex/d3dx12.h>
+
+//--------------------------------------------------------------------------------------
+HRESULT
+SK_D3D12_CaptureScreenshot (
+  SK_D3D12_Screenshot   *pScreenshot,
+  D3D12_RESOURCE_STATES  beforeState,
+  D3D12_RESOURCE_STATES  afterState
+) noexcept
+{
+  auto pStagingCtx =
+    pScreenshot->getReadbackContext ();
+
+  auto pCmdQueue =
+    pStagingCtx->pCmdQueue;
+
+  auto pSource =
+    pStagingCtx->pBackbufferSurface;
+
+  /// TODO: This should be a passed argument, rather than stored.
+  pStagingCtx->pBackbufferSurface.Release ();
+
+  SK_ComPtr <ID3D12Device> pDevice;
+
+  if (FAILED (pCmdQueue->GetDevice (IID_PPV_ARGS (&pDevice.p))))
+    return E_INVALIDARG;
+
+  D3D12_HEAP_PROPERTIES sourceHeapProperties = { };
+  D3D12_HEAP_FLAGS      sourceHeapFlags      = { };
+
+  HRESULT hr =
+    pSource->GetHeapProperties ( &sourceHeapProperties,
+                                 &sourceHeapFlags );
+
+  if (FAILED (hr))
+       return hr;
+
+  D3D12_RESOURCE_DESC desc =
+     pSource->GetDesc ();
+
+  SK_ReleaseAssert (desc.MipLevels <= 1);
+
+  D3D12_PLACED_SUBRESOURCE_FOOTPRINT
+         layout            = {  };
+  UINT64 totalResourceSize = 0ULL;
+
+  pDevice->GetCopyableFootprints (
+    &desc, 0, 1, 0,
+      &layout, nullptr,
+               nullptr,
+                 &totalResourceSize
+  );
+
+  auto& pBackingStore =
+    pStagingCtx->pBackingStore;
+
+  pBackingStore->PixelBuffer.reset (
+    new (std::nothrow) uint8_t [static_cast <SIZE_T> (totalResourceSize)]
+  );
+
+  if (! pBackingStore->PixelBuffer)
+    return E_OUTOFMEMORY;
+
+  pBackingStore->PBufferSize =
+    static_cast <SIZE_T> (totalResourceSize);
+
+  ///extern bool __SK_HDR_16BitSwap;
+  ///
+  ///if (! __SK_HDR_16BitSwap)
+  ///{
+  ///  // Create a command allocator
+  ///  hr =
+  ///    pDevice->CreateCommandAllocator ( D3D12_COMMAND_LIST_TYPE_DIRECT,
+  ///                   IID_PPV_ARGS (&pStagingCtx->pCmdAlloc.p) );
+  ///  if (FAILED (hr))
+  ///       return hr;
+  ///
+  ///  // Spin up a new command list
+  ///  hr =
+  ///    pDevice->CreateCommandList ( 0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+  ///                                  pStagingCtx->pCmdAlloc, nullptr,
+  ///                   IID_PPV_ARGS (&pStagingCtx->pCmdList.p) );
+  ///
+  ///  if (FAILED (hr))
+  ///       return hr;
+  ///}
+
+  CD3DX12_HEAP_PROPERTIES defaultHeapProperties  (D3D12_HEAP_TYPE_DEFAULT);
+  CD3DX12_HEAP_PROPERTIES readBackHeapProperties (D3D12_HEAP_TYPE_READBACK);
+
+  // Readback resources must be buffers
+  D3D12_RESOURCE_DESC
+    bufferDesc                    = {};
+    bufferDesc.Alignment          = desc.Alignment;
+    bufferDesc.DepthOrArraySize   = 1;
+    bufferDesc.Dimension          = D3D12_RESOURCE_DIMENSION_BUFFER;
+    bufferDesc.Flags              = D3D12_RESOURCE_FLAG_NONE;
+    bufferDesc.Format             = DXGI_FORMAT_UNKNOWN;
+    bufferDesc.Height             = 1;
+    bufferDesc.Width              = pBackingStore->PBufferSize;
+    bufferDesc.Layout             = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    bufferDesc.MipLevels          = 1;
+    bufferDesc.SampleDesc.Count   = 1;
+    bufferDesc.SampleDesc.Quality = 0;
+
+  DirectX::ComputePitch (
+    pBackingStore->NativeFormat,
+      static_cast <size_t> (pBackingStore->Width),
+      static_cast <size_t> (pBackingStore->Height),
+        pBackingStore->PackedDstPitch,
+        pBackingStore->PackedDstSlicePitch
+   );
+
+  // Since we're going to be screenshotting the SwapChain backbuffer,
+  //   there's no way it could be MSAA in D3D12 (Flip Model)
+  SK_ReleaseAssert (desc.SampleDesc.Count <= 1);
+
+  // Create a staging texture
+  hr =
+    pDevice->CreateCommittedResource (
+      &readBackHeapProperties, D3D12_HEAP_FLAG_NONE,
+      &bufferDesc,             D3D12_RESOURCE_STATE_COPY_DEST,
+          nullptr,
+      IID_PPV_ARGS (&pStagingCtx->pStagingBackbufferCopy.p)
+    );
+
+  if (FAILED (hr))
+       return hr;
+
+  bool bRecording =
+    _d3d12_rbk->frames_ [_d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].bCmdListRecording;
+
+  if (! bRecording)
+  {
+    SK_ReleaseAssert (!"D3D12 Screenshot Initiated While SK Was Not Recording A Command List!");
+
+    _d3d12_rbk->frames_ [_d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
+
+    beforeState = D3D12_RESOURCE_STATE_PRESENT;
+    afterState  = D3D12_RESOURCE_STATE_PRESENT;
+  }
+
+  else
+  {
+    beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+    afterState  = D3D12_RESOURCE_STATE_RENDER_TARGET;
+  }
+
+  // Transition the resource if necessary
+  SK_D3D12_TransitionResource ( pStagingCtx->pCmdList, pSource,
+                 beforeState, D3D12_RESOURCE_STATE_COPY_SOURCE );
+
+  CD3DX12_TEXTURE_COPY_LOCATION copyDest (pStagingCtx->pStagingBackbufferCopy, layout);
+  CD3DX12_TEXTURE_COPY_LOCATION copySrc  (pSource,                                  0);
+
+  pStagingCtx->pCmdList->CopyTextureRegion ( &copyDest, 0, 0,
+                                          0, &copySrc, nullptr );
+
+  // Transition the resource to the next state
+  SK_D3D12_TransitionResource ( pStagingCtx->pCmdList, pSource,
+                  D3D12_RESOURCE_STATE_COPY_SOURCE, afterState );
+
+
+  //if (! __SK_HDR_16BitSwap)
+  //{
+  //  hr =
+  //    pStagingCtx->pCmdList->Close ();
+  //
+  //  if (FAILED (hr))
+  //       return hr;
+  //
+  //  // Execute the command list
+  //  pCmdQueue->ExecuteCommandLists (
+  //    1, CommandListCast (&pStagingCtx->pCmdList.p)
+  //  );
+  //}
+  //
+  //else
+  //{
+  _d3d12_rbk->frames_ [_d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].exec_cmd_list  ();
+  _d3d12_rbk->frames_ [_d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
+  //}
+
+  // Create a fence
+  hr =
+    pDevice->CreateFence ( 0, D3D12_FENCE_FLAG_NONE,
+                 IID_PPV_ARGS (&pStagingCtx->pFence.p) );
+
+  if (FAILED (hr))
+       return hr;
+
+  // Signal the fence
+  hr =
+    pCmdQueue->Signal ( pStagingCtx->pFence,
+                        pStagingCtx->uiFenceVal + 1 );
+
+  return hr;
+}
 
 bool
 SK_D3D12_Screenshot::getData ( UINT     *pWidth,
@@ -722,19 +962,94 @@ SK_D3D12_Screenshot::getData ( UINT     *pWidth,
                                uint8_t **ppData,
                                bool      Wait ) noexcept
 {
-  auto& pooled =
-    SK_ScreenshotQueue::pooled;
-
   auto ReadBack = [&](void) -> bool
   {
-    const size_t BitsPerPel =
-      DirectX::BitsPerPixel (framebuffer.NativeFormat);
+    auto& pStaging =
+      getReadbackContext ()->pStagingBackbufferCopy;
+
+    if (! pStaging)
+      return false;
+
+    SK_ComPtr <ID3D12Device> pDevice;
+
+    pStaging->GetDevice (
+      IID_PPV_ARGS (&pDevice.p)
+    );
+
+    BYTE *pData = nullptr;
+
+    HRESULT hr =
+      pStaging->Map (0, nullptr, reinterpret_cast <void **> (&pData));
+
+    if (FAILED (hr))
+      return false;
+
+    SK_ReleaseAssert (framebuffer.PBufferSize == GetRequiredIntermediateSize (pStaging, 0, 1));
+
+    D3D12_MEMCPY_DEST destData = {
+      framebuffer.PixelBuffer.get (),
+      framebuffer.PackedDstPitch,
+      framebuffer.PackedDstSlicePitch
+    };
+
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout            = {  };
+    UINT64                             totalResourceSize = 0ULL;
+
+    const auto staging_desc =
+      pStaging->GetDesc ();
+
+    UINT64 RowSizeInBytes = 0ULL;
+    UINT   NumRows        = 0U;
+
+    pDevice->GetCopyableFootprints (
+      &staging_desc, 0, 1, 0,
+        &layout, &NumRows,
+                    &RowSizeInBytes,
+          &totalResourceSize
+    );
+
+    SK_ReleaseAssert (totalResourceSize == framebuffer.PBufferSize);
+
+    D3D12_SUBRESOURCE_DATA srcData =
+    {
+                      pData + layout.Offset,
+      static_cast <LONG_PTR> (layout.Footprint.RowPitch),
+      static_cast <LONG_PTR> (layout.Footprint.RowPitch * NumRows)
+    };
+
+    SK_ReleaseAssert (RowSizeInBytes <= (SIZE_T)-1);
+
+    if (RowSizeInBytes > (SIZE_T)-1)
+    {
+      pStaging->Unmap (0, nullptr);
+      return false;
+    }
+
+    MemcpySubresource ( &destData, &srcData,
+           (SIZE_T)RowSizeInBytes,  NumRows, 1 );
+
+    SK_LOG0 ( ( L"Screenshot Readback Complete after %li frames",
+                 SK_GetFramesDrawn () - ulCommandIssuedOnFrame ),
+                L"D3D12SShot" );
+
+    *pWidth  = static_cast <UINT> (framebuffer.Width);
+    *pHeight = static_cast <UINT> (framebuffer.Height);
+    *ppData  =
+      framebuffer.PixelBuffer.get ();
+
+    pStaging->Unmap (0, nullptr);
+
+    return true;
+
+#ifdef FINISHED_D3D12
     const UINT   Subresource =
       D3D11CalcSubresource ( 0, 0, 1 );
 
     D3D11_MAPPED_SUBRESOURCE finished_copy = { };
 
-#ifdef FINISHED_D3D12
+    auto& pooled =
+      SK_ScreenshotQueue::pooled;
+
     if ( SUCCEEDED ( pImmediateCtx->Map (
                        pStagingBackbufferCopy, Subresource,
                          D3D11_MAP_READ,        0x0,
@@ -814,7 +1129,7 @@ SK_D3D12_Screenshot::getData ( UINT     *pWidth,
 
       SK_LOG0 ( ( L"Screenshot Readback Complete after %li frames",
                     SK_GetFramesDrawn () - ulCommandIssuedOnFrame ),
-                  L"D3D11SShot" );
+                  L"D3D12SShot" );
 
       pImmediateCtx->Unmap ( pStagingBackbufferCopy,
                                        Subresource );
@@ -824,6 +1139,10 @@ SK_D3D12_Screenshot::getData ( UINT     *pWidth,
 
       return true;
     }
+#else
+    //UNREFERENCED_PARAMETER (pWidth);
+    //UNREFERENCED_PARAMETER (pHeight);
+    //UNREFERENCED_PARAMETER (ppData);
 #endif
 
     dispose ();
@@ -876,9 +1195,7 @@ SK_D3D12_ShouldSkipHUD (void)
 LONG
 SK_D3D12_ShowGameHUD (void)
 {
-#ifdef SK_D3D12_HUDLESS
   InterlockedDecrement (&SK_D3D12_DrawTrackingReqs);
-#endif
 
   return
     InterlockedIncrement (&__SK_HUD_YesOrNo);
@@ -887,9 +1204,7 @@ SK_D3D12_ShowGameHUD (void)
 LONG
 SK_D3D12_HideGameHUD (void)
 {
-#ifdef SK_D3D12_HUDLESS
   InterlockedIncrement (&SK_D3D12_DrawTrackingReqs);
-#endif
 
   return
     InterlockedDecrement (&__SK_HUD_YesOrNo);
@@ -1037,13 +1352,13 @@ SK_D3D12_UnRegisterHUDShader ( uint32_t         bytecode_crc32c,
 }
 
 bool
-SK_D3D12_CaptureSteamScreenshot  ( SK_ScreenshotStage when =
-                                   SK_ScreenshotStage::EndOfFrame )
+SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
+                              SK_ScreenshotStage::EndOfFrame )
 {
-  static const SK_RenderBackend_V2& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( (int)rb.api & (int)SK_RenderAPI::D3D11 )
+  if ( (int)rb.api & (int)SK_RenderAPI::D3D12 )
   {
     static const
       std::map <SK_ScreenshotStage, int>
@@ -1071,8 +1386,8 @@ SK_D3D12_CaptureSteamScreenshot  ( SK_ScreenshotStage when =
         {
           return false;
         }
-#endif
         return false;
+#endif
       }
 
       InterlockedIncrement (
@@ -1091,7 +1406,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                     bool               wait   = false,
                                     bool               purge  = false )
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   const int __MaxStage = 2;
@@ -1135,17 +1450,22 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
       {
         if (InterlockedDecrement (&enqueued_screenshots.stages [stage]) >= 0)
         {    // --
-          SK_ComQIPtr <ID3D12Device> pDev (rb.device);
+          SK_ComQIPtr <ID3D12Device>
+              pDev (_d3d12_rbk->_pDevice);
 
-          if (pDev != nullptr)
+          SK_ReleaseAssert (pDev.IsEqualObject (rb.device));
+
+          if (pDev != nullptr && rb.swapchain != nullptr)
           {
-
-            if ( SK_ScreenshotQueue::pooled.capture_bytes <
-                 SK_ScreenshotQueue::maximum.capture_bytes )
+            if ( SK_ScreenshotQueue::pooled.capture_bytes.load  () <
+                 SK_ScreenshotQueue::maximum.capture_bytes.load () )
             {
+              SK_ReleaseAssert (rb.d3d12.command_queue.p != nullptr);
+
               screenshot_queue->push (
                 new SK_D3D12_Screenshot (
-                  pDev, _d3d12_rbk2->pCommandQueue
+                  pDev, rb.d3d12.command_queue, (IDXGISwapChain3 *)
+                        rb.swapchain.p
                 )
               );
             }
@@ -1192,6 +1512,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
     hWriteThread =
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
       SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
       do
       {
@@ -1233,261 +1556,554 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             {
               using namespace DirectX;
 
+              bool  skip_me = false;
               Image raw_img = { };
 
               ComputePitch (
                 pFrameData->NativeFormat,
-                  pFrameData->Width, pFrameData->Height,
+                  static_cast <size_t> (pFrameData->Width),
+                  static_cast <size_t> (pFrameData->Height),
                     raw_img.rowPitch, raw_img.slicePitch
               );
 
+              // Steam wants JPG, smart people want PNG
+              DirectX::WICCodecs codec = WIC_CODEC_JPEG;
+
               raw_img.format = pop_off->getInternalFormat ();
-              raw_img.width  = pFrameData->Width;
-              raw_img.height = pFrameData->Height;
+              raw_img.width  = static_cast <size_t> (pFrameData->Width);
+              raw_img.height = static_cast <size_t> (pFrameData->Height);
               raw_img.pixels = pFrameData->PixelBuffer.get ();
 
-            //extern void SK_SteamAPI_InitManagers (void);
-                          SK_SteamAPI_InitManagers ();
+              bool hdr = ( rb.isHDRCapable () &&
+                          (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+
+              SK_RunOnce (SK_SteamAPI_InitManagers ());
 
               wchar_t       wszAbsolutePathToScreenshot [ MAX_PATH + 2 ] = { };
               wcsncpy_s   ( wszAbsolutePathToScreenshot,  MAX_PATH,
-                              screenshot_manager->getExternalScreenshotPath (),
+                              rb.screenshot_mgr.getBasePath (),
                                 _TRUNCATE );
 
-              PathAppendW          (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
-              SK_CreateDirectories (wszAbsolutePathToScreenshot);
-
-              ScratchImage
-                un_srgb;
-                un_srgb.InitializeFromImage (raw_img);
-
-              DirectX::TexMetadata
-              meta           = {           };
-              meta.width     = raw_img.width;
-              meta.height    = raw_img.height;
-              meta.depth     = 1;
-              meta.format    = raw_img.format;
-              meta.dimension = TEX_DIMENSION_TEXTURE2D;
-              meta.arraySize = 1;
-              meta.mipLevels = 1;
-
-              switch (pFrameData->AlphaMode)
+              if ( config.steam.screenshots.enable_hook &&
+                          steam_ctx.Screenshots ()      != nullptr )
               {
-                case DXGI_ALPHA_MODE_UNSPECIFIED:
-                  meta.SetAlphaMode (TEX_ALPHA_MODE_UNKNOWN);
-                  break;
-                case DXGI_ALPHA_MODE_PREMULTIPLIED:
-                  meta.SetAlphaMode (TEX_ALPHA_MODE_PREMULTIPLIED);
-                  break;
-                case DXGI_ALPHA_MODE_STRAIGHT:
-                  meta.SetAlphaMode (TEX_ALPHA_MODE_STRAIGHT);
-                  break;
-                case DXGI_ALPHA_MODE_IGNORE:
-                  meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
-                  break;
+                PathAppendW          (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
+                SK_CreateDirectories (wszAbsolutePathToScreenshot);
               }
 
-
-              ScratchImage
-                un_scrgb;
-                un_scrgb.Initialize (meta);
-
-              static const XMVECTORF32 c_MaxNitsFor2084 =
-                { 10000.0f, 10000.0f, 10000.0f, 1.f };
-
-              static const XMMATRIX c_from2020to709 =
+              else if ( hdr )
               {
-                { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
-                { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
-                { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
-                { 0.f,          0.f,         0.f,        1.f }
-              };
+                time_t
+                  screenshot_time;
 
-              auto RemoveGamma_sRGB = [](XMVECTOR value) ->
-              void
-              {
-                value.m128_f32 [0] = ( value.m128_f32 [0] < 0.04045f ) ?
-                                       value.m128_f32 [0] / 12.92f     :
-                                 pow ((value.m128_f32 [0] + 0.055f) / 1.055f, 2.4f);
-                value.m128_f32 [1] = ( value.m128_f32 [1] < 0.04045f ) ?
-                                       value.m128_f32 [1] / 12.92f     :
-                                 pow ((value.m128_f32 [1] + 0.055f) / 1.055f, 2.4f);
-                value.m128_f32 [2] = ( value.m128_f32 [2] < 0.04045f ) ?
-                                       value.m128_f32 [2] / 12.92f     :
-                                 pow ((value.m128_f32 [2] + 0.055f) / 1.055f, 2.4f);
-              };
+                codec = WIC_CODEC_PNG;
 
-              auto ApplyGamma_sRGB = [](XMVECTOR value) ->
-              void
-              {
-                value.m128_f32 [0] = ( value.m128_f32 [0] < 0.0031308f ) ?
-                                       value.m128_f32 [0] * 12.92f      :
-                         1.055f * pow (value.m128_f32 [0], 1.0f / 2.4f) - 0.055f;
-                value.m128_f32 [1] = ( value.m128_f32 [1] < 0.0031308f ) ?
-                                       value.m128_f32 [1] * 12.92f      :
-                         1.055f * pow (value.m128_f32 [1], 1.0f / 2.4f) - 0.055f;
-                value.m128_f32 [2] = ( value.m128_f32 [2] < 0.0031308f ) ?
-                                       value.m128_f32 [2] * 12.92f      :
-                         1.055f * pow (value.m128_f32 [2], 1.0f / 2.4f) - 0.055f;
-              };
-
-              HRESULT hr = S_OK;
-
-              if ( un_srgb.GetImages () &&
-                   rb.isHDRCapable   () && rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
-              {
-                TransformImage ( un_srgb.GetImages     (),
-                                 un_srgb.GetImageCount (),
-                                 un_srgb.GetMetadata   (),
-                  [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
-                {
-                  UNREFERENCED_PARAMETER(y);
-
-                  for (size_t j = 0; j < width; ++j)
-                  {
-                    XMVECTOR value  = inPixels [j];
-                    XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
-                              value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
-
-                    ApplyGamma_sRGB (value);
-
-                    outPixels [j]   =                     value;
-                  }
-                }, un_scrgb);
-
-                std::swap (un_scrgb, un_srgb);
+                PathAppendW (         wszAbsolutePathToScreenshot,
+                  SK_FormatStringW ( LR"(LDR\%lu.png)",
+                              time (&screenshot_time) ).c_str () );
+                SK_CreateDirectories (wszAbsolutePathToScreenshot);
               }
 
-              XMVECTOR maxLum = XMVectorZero ();
+              // Not HDR and not importing to Steam,
+              //   we've got nothing left to do...
+              else
+              {
+                skip_me = true;
+              }
 
-              hr =              un_srgb.GetImages     () ?
-                EvaluateImage ( un_srgb.GetImages     (),
-                                un_srgb.GetImageCount (),
-                                un_srgb.GetMetadata   (),
-                [&](const XMVECTOR* pixels, size_t width, size_t y)
+              if (! skip_me)
+              {
+                ScratchImage
+                  un_srgb;
+                  un_srgb.InitializeFromImage (raw_img);
+
+                DirectX::TexMetadata
+                meta           = {           };
+                meta.width     = raw_img.width;
+                meta.height    = raw_img.height;
+                meta.depth     = 1;
+                meta.format    = raw_img.format;
+                meta.dimension = TEX_DIMENSION_TEXTURE2D;
+                meta.arraySize = 1;
+                meta.mipLevels = 1;
+
+                switch (pFrameData->AlphaMode)
                 {
-                  UNREFERENCED_PARAMETER(y);
+                  case DXGI_ALPHA_MODE_UNSPECIFIED:
+                    meta.SetAlphaMode (TEX_ALPHA_MODE_UNKNOWN);
+                    break;
+                  case DXGI_ALPHA_MODE_PREMULTIPLIED:
+                    meta.SetAlphaMode (TEX_ALPHA_MODE_PREMULTIPLIED);
+                    break;
+                  case DXGI_ALPHA_MODE_STRAIGHT:
+                    meta.SetAlphaMode (TEX_ALPHA_MODE_STRAIGHT);
+                    break;
+                  case DXGI_ALPHA_MODE_IGNORE:
+                    meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+                    break;
+                }
 
-                  for (size_t j = 0; j < width; ++j)
-                  {
-                    static const XMVECTORF32 s_luminance =
-                    //{ 0.3f, 0.59f, 0.11f, 0.f };
-                    { 0.2125862307855955516f,
-                      0.7151703037034108499f,
-                      0.07220049864333622685f };
+                meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
 
-                    XMVECTOR v = *pixels++;
-                             v = XMVector3Dot (v, s_luminance);
+                ScratchImage
+                  un_scrgb;
+                  un_scrgb.Initialize (meta);
 
-                    maxLum =
-                      XMVectorMax (v, maxLum);
-                  }
-                })                                       : E_POINTER;
+                static const XMVECTORF32 c_MaxNitsFor2084 =
+                  { 10000.0f, 10000.0f, 10000.0f, 1.f };
 
-                maxLum =
-                  XMVectorMultiply (maxLum, maxLum);
+                static const XMMATRIX c_from2020to709 =
+                {
+                  { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
+                  { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
+                  { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
+                  { 0.f,          0.f,         0.f,        1.f }
+                };
 
-                ApplyGamma_sRGB (maxLum);
+                auto RemoveGamma_sRGB = [](XMVECTOR value) ->
+                void
+                {
+                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.04045f ) ?
+                                         value.m128_f32 [0] / 12.92f     :
+                                   pow ((value.m128_f32 [0] + 0.055f) / 1.055f, 2.4f);
+                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.04045f ) ?
+                                         value.m128_f32 [1] / 12.92f     :
+                                   pow ((value.m128_f32 [1] + 0.055f) / 1.055f, 2.4f);
+                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.04045f ) ?
+                                         value.m128_f32 [2] / 12.92f     :
+                                   pow ((value.m128_f32 [2] + 0.055f) / 1.055f, 2.4f);
+                };
 
-                hr =               un_srgb.GetImages     () ?
+                auto ApplyGamma_sRGB = [](XMVECTOR value) ->
+                void
+                {
+                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.0031308f ) ?
+                                         value.m128_f32 [0] * 12.92f      :
+                           1.055f * pow (value.m128_f32 [0], 1.0f / 2.4f) - 0.055f;
+                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.0031308f ) ?
+                                         value.m128_f32 [1] * 12.92f      :
+                           1.055f * pow (value.m128_f32 [1], 1.0f / 2.4f) - 0.055f;
+                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.0031308f ) ?
+                                         value.m128_f32 [2] * 12.92f      :
+                           1.055f * pow (value.m128_f32 [2], 1.0f / 2.4f) - 0.055f;
+                };
+
+                HRESULT hr = S_OK;
+
+                if ( un_srgb.GetImages  () &&
+                     hdr                   && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
+                     rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+                { // ^^^ EOTF is not always accurate, but we know SMPTE 2084 is not used w/ FP16 color
                   TransformImage ( un_srgb.GetImages     (),
                                    un_srgb.GetImageCount (),
                                    un_srgb.GetMetadata   (),
-                  [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
                   {
                     UNREFERENCED_PARAMETER(y);
 
                     for (size_t j = 0; j < width; ++j)
                     {
-                      XMVECTOR value = inPixels [j];
-                      XMVECTOR scale =
-                        XMVectorDivide (
-                          XMVectorAdd (
-                            g_XMOne, XMVectorDivide ( value,
-                                                        maxLum
-                                                    )
-                                      ),
-                          XMVectorAdd (
-                            g_XMOne, value
-                                      )
-                        );
+                      XMVECTOR value  = inPixels [j];
+                      XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
+                                value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
 
-                      XMVECTOR nvalue =
-                        XMVectorMultiply (value, scale);
-                                value =
-                        XMVectorSelect   (value, nvalue, g_XMSelect1110);
-                         ApplyGamma_sRGB (value);
-                      outPixels [j]   =   value;
+                      ApplyGamma_sRGB (value);
+
+                      outPixels [j]   =                     value;
                     }
-                  }, un_scrgb)                             : E_POINTER;
+                  }, un_scrgb);
 
-              std::swap (un_srgb, un_scrgb);
-
-              if (         un_srgb.GetImages ()) {
-                Convert ( *un_srgb.GetImages (),
-                            DXGI_FORMAT_R8G8B8A8_UNORM,
-                              TEX_FILTER_DITHER_DIFFUSION |
-                              TEX_FILTER_SRGB,
-                                TEX_THRESHOLD_DEFAULT,
-                                  un_scrgb );
-              }
-              if (               un_scrgb.GetImages () &&
-                    SUCCEEDED (
-                SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
-                                   GetWICCodec         (WIC_CODEC_JPEG),
-                                    wszAbsolutePathToScreenshot )
-                             )
-                 )
-              {
-                wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
-                wcsncpy_s   ( wszAbsolutePathToThumbnail,  MAX_PATH,
-                                screenshot_manager->getExternalScreenshotPath (),
-                                  _TRUNCATE );
-
-                PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
-
-                float aspect = (float)pFrameData->Height /
-                               (float)pFrameData->Width;
-
-                ScratchImage thumbnailImage;
-
-                Resize ( *un_scrgb.GetImages (), 200,
-                           static_cast <size_t> (200.0 * aspect),
-                            TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
-                          | TEX_FILTER_TRIANGLE,
-                              thumbnailImage );
-
-                if (               thumbnailImage.GetImages ()) {
-                  SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_DITHER,
-                                    GetWICCodec                (WIC_CODEC_JPEG),
-                                      wszAbsolutePathToThumbnail );
-
-                  std::string ss_path (
-                    SK_WideCharToUTF8 (wszAbsolutePathToScreenshot)
-                  );
-
-                  std::string ss_thumb (
-                    SK_WideCharToUTF8 (wszAbsolutePathToThumbnail)
-                  );
-
-                  ScreenshotHandle screenshot =
-                    SK_SteamAPI_AddScreenshotToLibraryEx (
-                      ss_path.c_str    (),
-                        ss_thumb.c_str (),
-                          pFrameData->Width, pFrameData->Height,
-                            true );
-
-                  SK_LOG1 ( ( L"Finished Steam Screenshot Import for Handle: '%x' (%lu frame latency)",
-                              screenshot, SK_GetFramesDrawn () - pop_off->getStartFrame () ),
-                                L"SteamSShot" );
-
-                  // Remove the temporary files...
-                  DeleteFileW (wszAbsolutePathToThumbnail);
+                  std::swap (un_scrgb, un_srgb);
                 }
-                DeleteFileW (wszAbsolutePathToScreenshot);
+
+                XMVECTOR maxLum = XMVectorZero ();
+
+                hr =              un_srgb.GetImages     () ?
+                  EvaluateImage ( un_srgb.GetImages     (),
+                                  un_srgb.GetImageCount (),
+                                  un_srgb.GetMetadata   (),
+                  [&](const XMVECTOR* pixels, size_t width, size_t y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      static const XMVECTORF32 s_luminance =
+                      //{ 0.3f, 0.59f, 0.11f, 0.f };
+                      { 0.2125862307855955516f,
+                        0.7151703037034108499f,
+                        0.07220049864333622685f };
+
+                      XMVECTOR v = *pixels++;
+                      RemoveGamma_sRGB          (v);
+                               v = XMVector3Dot (v, s_luminance);
+
+                      maxLum =
+                        XMVectorMax (v, maxLum);
+                    }
+                  })                                       : E_POINTER;
+
+#define _CHROMA_SCALE TRUE
+#ifndef _CHROMA_SCALE
+                  maxLum =
+                    XMVector3Length  (maxLum);
+#else
+                  maxLum =
+                    XMVectorMultiply (maxLum, maxLum);
+#endif
+
+                  hr =               un_srgb.GetImages     () ?
+                    TransformImage ( un_srgb.GetImages     (),
+                                     un_srgb.GetImageCount (),
+                                     un_srgb.GetMetadata   (),
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                    {
+                      UNREFERENCED_PARAMETER(y);
+
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        XMVECTOR value = inPixels [j];
+
+                        XMVECTOR scale =
+                          XMVectorDivide (
+                            XMVectorAdd (
+                              g_XMOne, XMVectorDivide ( value,
+                                                          maxLum
+                                                      )
+                                        ),
+                            XMVectorAdd (
+                              g_XMOne, value
+                                        )
+                          );
+
+                        XMVECTOR nvalue =
+                          XMVectorMultiply (value, scale);
+                                  value =
+                          XMVectorSelect   (value, nvalue, g_XMSelect1110);
+                        outPixels [j]   =   value;
+                      }
+                    }, un_scrgb)                             : E_POINTER;
+
+                std::swap (un_srgb, un_scrgb);
+
+                if (         un_srgb.GetImages ()) {
+                  Convert ( *un_srgb.GetImages (),
+                              DXGI_FORMAT_B8G8R8X8_UNORM,
+                                TEX_FILTER_DITHER |
+                                TEX_FILTER_SRGB,
+                                  TEX_THRESHOLD_DEFAULT,
+                                    un_scrgb );
+                }
+                if (               un_scrgb.GetImages () &&
+                      SUCCEEDED (
+                  SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
+                                     GetWICCodec         (codec),
+                                      wszAbsolutePathToScreenshot )
+                               )
+                   )
+                {
+                  if ( config.steam.screenshots.enable_hook &&
+                          steam_ctx.Screenshots () != nullptr )
+                  {
+                    wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
+                    wcsncpy_s   ( wszAbsolutePathToThumbnail,  MAX_PATH,
+                                    rb.screenshot_mgr.getBasePath (),
+                                      _TRUNCATE );
+
+                    PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
+
+                    float aspect = (float)pFrameData->Height /
+                                   (float)pFrameData->Width;
+
+                    ScratchImage thumbnailImage;
+
+                    Resize ( *un_scrgb.GetImages (), 200,
+                               static_cast <size_t> (200.0 * aspect),
+                                TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
+                              | TEX_FILTER_TRIANGLE,
+                                  thumbnailImage );
+
+                    if (               thumbnailImage.GetImages ()) {
+                      SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_DITHER,
+                                        GetWICCodec                (codec),
+                                          wszAbsolutePathToThumbnail );
+
+                      std::string ss_path (
+                        SK_WideCharToUTF8 (wszAbsolutePathToScreenshot)
+                      );
+
+                      std::string ss_thumb (
+                        SK_WideCharToUTF8 (wszAbsolutePathToThumbnail)
+                      );
+
+                      ScreenshotHandle screenshot =
+                        SK_SteamAPI_AddScreenshotToLibraryEx (
+                          ss_path.c_str    (),
+                            ss_thumb.c_str (),
+                              static_cast <int> (pFrameData->Width),
+                              static_cast <int> (pFrameData->Height),
+                                true );
+
+                      SK_LOG1 ( ( L"Finished Steam Screenshot Import for Handle: '%x' (%lu frame latency)",
+                                  screenshot, SK_GetFramesDrawn () - pop_off->getStartFrame () ),
+                                    L"SteamSShot" );
+
+                      // Remove the temporary files...
+                      DeleteFileW (wszAbsolutePathToThumbnail);
+                    }
+                    DeleteFileW (wszAbsolutePathToScreenshot);
+                  }
+                }
+              }
+#if 0
+              // Not HDR and not importing to Steam,
+              //   we've got nothing left to do...
+              else
+              {
+                skip_me = true;
               }
 
-              if (! config.steam.screenshots.png_compress)
+              if ((! skip_me) && pop_off != nullptr)
+              {
+                ScratchImage
+                  un_srgb;
+                  un_srgb.InitializeFromImage (raw_img);
+
+                DirectX::TexMetadata
+                meta           = {           };
+                meta.width     = raw_img.width;
+                meta.height    = raw_img.height;
+                meta.depth     = 1;
+                meta.format    = raw_img.format;
+                meta.dimension = TEX_DIMENSION_TEXTURE2D;
+                meta.arraySize = 1;
+                meta.mipLevels = 1;
+
+                switch (pFrameData->AlphaMode)
+                {
+                  case DXGI_ALPHA_MODE_UNSPECIFIED:
+                    meta.SetAlphaMode (TEX_ALPHA_MODE_UNKNOWN);
+                    break;
+                  case DXGI_ALPHA_MODE_PREMULTIPLIED:
+                    meta.SetAlphaMode (TEX_ALPHA_MODE_PREMULTIPLIED);
+                    break;
+                  case DXGI_ALPHA_MODE_STRAIGHT:
+                    meta.SetAlphaMode (TEX_ALPHA_MODE_STRAIGHT);
+                    break;
+                  case DXGI_ALPHA_MODE_IGNORE:
+                    meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+                    break;
+                }
+
+                meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+
+                ScratchImage
+                  un_scrgb;
+                  un_scrgb.Initialize (meta);
+
+                static const XMVECTORF32 c_MaxNitsFor2084 =
+                  { 10000.0f, 10000.0f, 10000.0f, 1.f };
+
+                static const XMMATRIX c_from2020to709 =
+                {
+                  { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
+                  { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
+                  { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
+                  { 0.f,          0.f,         0.f,        1.f }
+                };
+
+                auto RemoveGamma_sRGB = [](XMVECTOR value) ->
+                void
+                {
+                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.04045f ) ?
+                                         value.m128_f32 [0] / 12.92f     :
+                                   pow ((value.m128_f32 [0] + 0.055f) / 1.055f, 2.4f);
+                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.04045f ) ?
+                                         value.m128_f32 [1] / 12.92f     :
+                                   pow ((value.m128_f32 [1] + 0.055f) / 1.055f, 2.4f);
+                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.04045f ) ?
+                                         value.m128_f32 [2] / 12.92f     :
+                                   pow ((value.m128_f32 [2] + 0.055f) / 1.055f, 2.4f);
+                };
+
+                auto ApplyGamma_sRGB = [](XMVECTOR value) ->
+                void
+                {
+                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.0031308f ) ?
+                                         value.m128_f32 [0] * 12.92f      :
+                           1.055f * pow (value.m128_f32 [0], 1.0f / 2.4f) - 0.055f;
+                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.0031308f ) ?
+                                         value.m128_f32 [1] * 12.92f      :
+                           1.055f * pow (value.m128_f32 [1], 1.0f / 2.4f) - 0.055f;
+                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.0031308f ) ?
+                                         value.m128_f32 [2] * 12.92f      :
+                           1.055f * pow (value.m128_f32 [2], 1.0f / 2.4f) - 0.055f;
+                };
+
+                HRESULT hr = S_OK;
+
+                if ( un_srgb.GetImages () &&
+                     rb.isHDRCapable   () && rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+                {
+                  TransformImage ( un_srgb.GetImages     (),
+                                   un_srgb.GetImageCount (),
+                                   un_srgb.GetMetadata   (),
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      XMVECTOR value  = inPixels [j];
+                      XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
+                                value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
+
+                      ApplyGamma_sRGB (value);
+
+                      outPixels [j]   =                     value;
+                    }
+                  }, un_scrgb);
+
+                  std::swap (un_scrgb, un_srgb);
+                }
+
+                XMVECTOR maxLum = XMVectorZero ();
+
+                hr =              un_srgb.GetImages     () ?
+                  EvaluateImage ( un_srgb.GetImages     (),
+                                  un_srgb.GetImageCount (),
+                                  un_srgb.GetMetadata   (),
+                  [&](const XMVECTOR* pixels, size_t width, size_t y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      static const XMVECTORF32 s_luminance =
+                      //{ 0.3f, 0.59f, 0.11f, 0.f };
+                      { 0.2125862307855955516f,
+                        0.7151703037034108499f,
+                        0.07220049864333622685f };
+
+                      XMVECTOR v = *pixels++;
+                               v = XMVector3Dot (v, s_luminance);
+
+                      maxLum =
+                        XMVectorMax (v, maxLum);
+                    }
+                  })                                       : E_POINTER;
+
+                  maxLum =
+                    XMVectorMultiply (maxLum, maxLum);
+
+                  ApplyGamma_sRGB (maxLum);
+
+                  hr =               un_srgb.GetImages     () ?
+                    TransformImage ( un_srgb.GetImages     (),
+                                     un_srgb.GetImageCount (),
+                                     un_srgb.GetMetadata   (),
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                    {
+                      UNREFERENCED_PARAMETER(y);
+
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        XMVECTOR value = inPixels [j];
+                        XMVECTOR scale =
+                          XMVectorDivide (
+                            XMVectorAdd (
+                              g_XMOne, XMVectorDivide ( value,
+                                                          maxLum
+                                                      )
+                                        ),
+                            XMVectorAdd (
+                              g_XMOne, value
+                                        )
+                          );
+
+                        XMVECTOR nvalue =
+                          XMVectorMultiply (value, scale);
+                                  value =
+                          XMVectorSelect   (value, nvalue, g_XMSelect1110);
+                           ApplyGamma_sRGB (value);
+                        outPixels [j]   =   value;
+                      }
+                    }, un_scrgb)                             : E_POINTER;
+
+                std::swap (un_srgb, un_scrgb);
+
+                if (         un_srgb.GetImages ()) {
+                  Convert ( *un_srgb.GetImages (),
+                              DXGI_FORMAT_B8G8R8X8_UNORM,
+                                TEX_FILTER_DITHER |
+                                TEX_FILTER_SRGB,
+                                  TEX_THRESHOLD_DEFAULT,
+                                    un_scrgb );
+                }
+                if (               un_scrgb.GetImages () &&
+                      SUCCEEDED (
+                  SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
+                                     GetWICCodec         (WIC_CODEC_JPEG),
+                                      wszAbsolutePathToScreenshot )
+                               )
+                   )
+                {
+                  wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
+                  wcsncpy_s   ( wszAbsolutePathToThumbnail,  MAX_PATH,
+                                  rb.screenshot_mgr.getBasePath (),
+                                    _TRUNCATE );
+
+                  PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
+
+                  float aspect = (float)pFrameData->Height /
+                                 (float)pFrameData->Width;
+
+                  ScratchImage thumbnailImage;
+
+                  Resize ( *un_scrgb.GetImages (), 200,
+                             static_cast <size_t> (200.0 * aspect),
+                              TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
+                            | TEX_FILTER_TRIANGLE,
+                                thumbnailImage );
+
+                  if (               thumbnailImage.GetImages ()) {
+                    SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_DITHER,
+                                      GetWICCodec                (WIC_CODEC_JPEG),
+                                        wszAbsolutePathToThumbnail );
+
+                    std::string ss_path (
+                      SK_WideCharToUTF8 (wszAbsolutePathToScreenshot)
+                    );
+
+                    std::string ss_thumb (
+                      SK_WideCharToUTF8 (wszAbsolutePathToThumbnail)
+                    );
+
+                    ScreenshotHandle screenshot =
+                      SK_SteamAPI_AddScreenshotToLibraryEx (
+                        ss_path.c_str    (),
+                          ss_thumb.c_str (),
+                            (UINT)pFrameData->Width,
+                            (UINT)pFrameData->Height,
+                              true );
+
+                    SK_LOG1 ( ( L"Finished Steam Screenshot Import for Handle: '%x' (%lu frame latency)",
+                                screenshot, SK_GetFramesDrawn () - pop_off->getStartFrame () ),
+                                  L"SteamSShot" );
+
+                    // Remove the temporary files...
+                    DeleteFileW (wszAbsolutePathToThumbnail);
+                  }
+                  DeleteFileW (wszAbsolutePathToScreenshot);
+                }
+
+                if (! config.screenshots.png_compress)
+                {
+                  delete pop_off;
+                         pop_off = nullptr;
+                }
+#endif
+              if (! config.screenshots.png_compress)
               {
                 delete pop_off;
                        pop_off = nullptr;
@@ -1506,7 +2122,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
           SetEvent   (signal.abort.finished); // Abort is complete
         }
 
-        if (config.steam.screenshots.png_compress)
+        if (config.screenshots.png_compress)
         {
           int enqueued_lossless = 0;
 
@@ -1561,6 +2177,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
             if (InterlockedCompareExchangePointer (&hThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
             {                                     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD {
+              auto& rb =
+                SK_GetCurrentRenderBackend ();
+
               concurrency::concurrent_queue <SK_D3D12_Screenshot::framebuffer_s *>*
                 images_to_write =
                   (concurrency::concurrent_queue <SK_D3D12_Screenshot::framebuffer_s *>*)pUser;
@@ -1580,7 +2199,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 while   (! images_to_write->empty   (          ))
                 { while (! images_to_write->try_pop (pFrameData))
                   {
-                    SK_Sleep (15);
+                    SwitchToThread ();
                   }
 
                   if (ReadAcquire (&__SK_DLL_Ending))
@@ -1590,12 +2209,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                   wchar_t       wszAbsolutePathToLossless [ MAX_PATH + 2 ] = { };
                   wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH,
-                                  screenshot_manager->getExternalScreenshotPath (),
+                                  rb.screenshot_mgr.getBasePath (),
                                     _TRUNCATE );
 
                   bool hdr =
-                    ( SK_GetCurrentRenderBackend ().isHDRCapable () &&
-                     (SK_GetCurrentRenderBackend ().framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+                     (rb.isHDRCapable ()  &&
+                     (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
 
                   if (hdr)
                   {
@@ -1666,15 +2285,15 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     }
 
                     ComputePitch ( pFrameData->NativeFormat,
-                                     pFrameData->Width,
-                                     pFrameData->Height,
+             static_cast <size_t> (pFrameData->Width),
+             static_cast <size_t> (pFrameData->Height),
                                        raw_img.rowPitch,
                                        raw_img.slicePitch
                     );
 
                     raw_img.format = pFrameData->NativeFormat;
-                    raw_img.width  = pFrameData->Width;
-                    raw_img.height = pFrameData->Height;
+                    raw_img.width  = static_cast <size_t> (pFrameData->Width);
+                    raw_img.height = static_cast <size_t> (pFrameData->Height);
                     raw_img.pixels = pFrameData->PixelBuffer.get ();
 
                     SK_CreateDirectories (wszAbsolutePathToLossless);
@@ -1695,14 +2314,14 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     if (SUCCEEDED (hrSaveToWIC))
                     {
                       // Refresh
-                      screenshot_manager->getExternalScreenshotRepository (true);
+                      rb.screenshot_mgr.getRepoStats (true);
                     }
 
                     else
                     {
                       SK_LOG0 ( ( L"Unable to write Screenshot, hr=%s",
                                                      SK_DescribeHRESULT (hrSaveToWIC) ),
-                                  L"D3D11SShot" );
+                                  L"D3D12SShot" );
 
                       SK_ImGui_Warning ( L"Smart Screenshot Capture Failed.\n\n"
                                          L"\t\t\t\t>> More than likely this is a problem with MSAA or Windows 7\n\n"
@@ -1717,7 +2336,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               SK_Thread_CloseSelf ();
 
               return 0;
-            }, L"[SK] D3D11 Screenshot Encoder",
+            }, L"[SK] D3D12 Screenshot Encoder",
               (LPVOID)&raw_images_ );
           } }
 
@@ -1736,7 +2355,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
       CloseHandle (signal.hq_encode);
 
       return 0;
-    }, L"[SK] D3D11 Screenshot Capture" );
+    }, L"[SK] D3D12 Screenshot Capture" );
 
     InterlockedIncrement (&_lockVal);
   }
@@ -1846,12 +2465,10 @@ SK_D3D12_WaitOnAllScreenshots (void)
 
 void SK_Screenshot_D3D12_EndFrame (void)
 {
-#ifdef SK_D3D12_HUDLESS
   if (InterlockedCompareExchange (&__SK_D3D12_InitiateHudFreeShot, 0, -1) == -1)
   {
     SK_D3D12_ShowGameHUD ();
   }
-#endif
 }
 
 bool SK_Screenshot_D3D12_BeginFrame (void)
@@ -1884,4 +2501,440 @@ bool SK_Screenshot_D3D12_BeginFrame (void)
   }
 
   return false;
+}
+
+
+// For effects that blink; updated once per-frame.
+extern DWORD dwFrameTime;
+
+DWORD D3D12_GetFrameTime (void)
+{
+  return dwFrameTime;
+}
+
+void
+SK_D3D12_BeginFrame (void)
+{
+  if (SK_Screenshot_D3D12_BeginFrame ())
+  {
+    ///// This looks silly, but it lets HUDless screenshots
+    /////   set shader state before the frame begins... to
+    /////     remove HUD shaders.
+    return
+      SK_D3D12_BeginFrame (); // This recursion will end.
+  }
+}
+
+void
+SK_D3D12_EndFrame (SK_TLS* /* pTLS = SK_TLS_Bottom ()*/)
+{
+  for ( auto end_frame_fn : plugin_mgr->end_frame_fns )
+  {
+    end_frame_fn ();
+  }
+
+  static SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  dwFrameTime = SK::ControlPanel::current_time;
+
+  SK_Screenshot_D3D12_RestoreHUD ();
+  SK_Screenshot_D3D12_EndFrame   ();
+
+
+  // Stuff inherited from SK's D3D11 codebase, but
+  //   not yet implemented in D3D12
+#if 0
+  static auto& shaders =
+    SK_D3D11_Shaders;
+
+#ifdef TRACK_THREADS
+  {
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
+
+    SK_D3D11_MemoryThreads->clear_active   ();
+    SK_D3D11_ShaderThreads->clear_active   ();
+    SK_D3D11_DrawThreads->clear_active     ();
+    SK_D3D11_DispatchThreads->clear_active ();
+  }
+#endif
+
+  //for ( auto& it : shaders.reshade_triggered )
+  //            it = false;
+  shaders->reshade_triggered = false;
+
+  {
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
+
+    RtlSecureZeroMemory ( reshade_trigger_before->data (),
+                          reshade_trigger_before->size () * sizeof (bool) );
+    RtlSecureZeroMemory ( reshade_trigger_after->data  (),
+                          reshade_trigger_after->size  () * sizeof (bool) );
+  }
+
+  static auto& vertex   = shaders->vertex;
+  static auto& pixel    = shaders->pixel;
+  static auto& geometry = shaders->geometry;
+  static auto& domain   = shaders->domain;
+  static auto& hull     = shaders->hull;
+  static auto& compute  = shaders->compute;
+
+  {
+    const UINT dev_idx =
+      SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
+
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
+
+    vertex.tracked.deactivate   (nullptr, dev_idx);
+    pixel.tracked.deactivate    (nullptr, dev_idx);
+    geometry.tracked.deactivate (nullptr, dev_idx);
+    hull.tracked.deactivate     (nullptr, dev_idx);
+    domain.tracked.deactivate   (nullptr, dev_idx);
+    compute.tracked.deactivate  (nullptr, dev_idx);
+
+    if (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS)
+    {
+      RtlSecureZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlSecureZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+    }
+  }
+
+
+  {
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
+    tracked_rtv->clear   ();
+
+    ////for ( auto& it : *used_textures ) it->Release ();
+
+    used_textures->clear ();
+    mem_map_stats->clear ();
+  }
+
+  // True if the disjoint query is complete and we can get the results of
+  //   each tracked shader's timing
+  static bool disjoint_done = false;
+
+  auto pDev =
+    rb.getDevice <ID3D11Device>                (                      );
+  SK_ComQIPtr    <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+
+  if (! ( pDevCtx != nullptr &&
+          pDev    != nullptr ) )
+    return;
+
+
+  // End the Query and probe results (when the pipeline has drained)
+  if ( pDevCtx != nullptr && (! disjoint_done) &&
+       ReadPointerAcquire (
+         (volatile PVOID *)&d3d11_shader_tracking_s::disjoint_query.async
+                          )
+     )
+  {
+    if (ReadAcquire (&d3d11_shader_tracking_s::disjoint_query.active))
+    {
+      pDevCtx->End (
+        (ID3D11Asynchronous  *)ReadPointerAcquire (
+             (volatile PVOID *)&d3d11_shader_tracking_s::disjoint_query.async)
+                   );
+      InterlockedExchange ( &d3d11_shader_tracking_s::disjoint_query.active,
+                              FALSE );
+    }
+
+    else
+    {
+      HRESULT const hr = pDevCtx->GetData (
+        (ID3D11Asynchronous *)ReadPointerAcquire (
+            (volatile PVOID *)&d3d11_shader_tracking_s::disjoint_query.async),
+                              &d3d11_shader_tracking_s::disjoint_query.last_results,
+                        sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT, 0x0
+                                          );
+
+      if (hr == S_OK)
+      {
+        ((ID3D11Asynchronous *)ReadPointerAcquire (
+          (volatile PVOID*)&d3d11_shader_tracking_s::disjoint_query.async)
+        )->Release ();
+
+        InterlockedExchangePointer (
+          (void **)&d3d11_shader_tracking_s::disjoint_query.async, nullptr
+        );
+
+        // Check for failure, if so, toss out the results.
+        if (! d3d11_shader_tracking_s::disjoint_query.last_results.Disjoint)
+          disjoint_done = true;
+
+        else
+        {
+          auto ClearTimers =
+          [](d3d11_shader_tracking_s* tracker)
+          {
+            for (auto& it : tracker->timers)
+            {
+              SK_COM_ValidateRelease ((IUnknown **)&it.start.async);
+              SK_COM_ValidateRelease ((IUnknown **)&it.end.async);
+
+              SK_COM_ValidateRelease ((IUnknown **)&it.start.dev_ctx);
+              SK_COM_ValidateRelease ((IUnknown **)&it.end.dev_ctx);
+            }
+
+            tracker->timers.clear ();
+          };
+
+          ClearTimers (&vertex.tracked);
+          ClearTimers (&pixel.tracked);
+          ClearTimers (&geometry.tracked);
+          ClearTimers (&hull.tracked);
+          ClearTimers (&domain.tracked);
+          ClearTimers (&compute.tracked);
+
+          disjoint_done = true;
+        }
+      }
+    }
+  }
+
+  if (pDevCtx != nullptr && disjoint_done)
+  {
+   const
+    auto
+     GetTimerDataStart =
+     []( d3d12_shader_tracking_s::duration_s *duration,
+         bool                                &success   ) ->
+      UINT64
+      {
+        ID3D11DeviceContext* dev_ctx =
+          (ID3D11DeviceContext *)ReadPointerAcquire (
+            (volatile PVOID *)&duration->start.dev_ctx
+          );
+
+        if (             dev_ctx != nullptr &&
+             SUCCEEDED ( dev_ctx->GetData (
+               (ID3D11Query *)ReadPointerAcquire
+                 ((volatile PVOID *)&duration->start.async),
+                                    &duration->start.last_results,
+                                      sizeof UINT64, 0x00
+                                         )
+                       )
+           )
+        {
+          SK_COM_ValidateRelease ((IUnknown **)&duration->start.async);
+          SK_COM_ValidateRelease ((IUnknown **)&duration->start.dev_ctx);
+
+          success = true;
+
+          return duration->start.last_results;
+        }
+
+        success = false;
+
+        return 0;
+      };
+
+   const
+    auto
+     GetTimerDataEnd =
+     []( d3d12_shader_tracking_s::duration_s *duration,
+         bool                                &success ) ->
+      UINT64
+      {
+        if ( (ID3D11Query *)ReadPointerAcquire (
+               (volatile PVOID *)&duration->end.async
+                                               ) == nullptr )
+        {
+          return duration->start.last_results;
+        }
+
+        ID3D11DeviceContext* dev_ctx =
+          (ID3D11DeviceContext *)ReadPointerAcquire (
+               (volatile PVOID *)&duration->end.dev_ctx
+          );
+
+        if (             dev_ctx != nullptr &&
+             SUCCEEDED ( dev_ctx->GetData (
+               (ID3D11Query *)ReadPointerAcquire
+                    ((volatile PVOID *)&duration->end.async),
+                                       &duration->end.last_results,
+                                         sizeof UINT64, 0x00
+                                          )
+                       )
+           )
+        {
+          SK_COM_ValidateRelease ((IUnknown **)&duration->end.async);
+          SK_COM_ValidateRelease ((IUnknown **)&duration->end.dev_ctx);
+
+          success = true;
+
+          return duration->end.last_results;
+        }
+
+        success = false;
+
+        return 0;
+      };
+
+    auto CalcRuntimeMS =
+    [ ](d3d12_shader_tracking_s *tracker) noexcept
+     {
+      if (tracker->runtime_ticks != 0ULL)
+      {
+        tracker->runtime_ms =
+          1000.0 * gsl::narrow_cast <double>
+          (        static_cast <long double>    (
+                 tracker->runtime_ticks.load () ) /
+                   static_cast <long double>                    (
+                 tracker->disjoint_query.last_results.Frequency )
+          );
+
+
+         // Way too long to be valid, just re-use the last known good value
+         if ( tracker->runtime_ms > 12.0 )
+              tracker->runtime_ms = tracker->last_runtime_ms;
+
+         tracker->last_runtime_ms =
+              tracker->runtime_ms;
+       }
+
+       else
+       {
+         tracker->runtime_ms = 0.0;
+       }
+     };
+
+    const
+     auto
+      AccumulateRuntimeTicks =
+      [&](       d3d12_shader_tracking_s             *tracker,
+           const std::unordered_map <uint32_t, LONG> &blacklist )
+      {
+        tracker->runtime_ticks = 0ULL;
+
+        for ( auto& it : tracker->timers )
+        {
+          bool success0 = false,
+               success1 = false;
+
+          const UINT64
+            time1 = GetTimerDataStart (&it, success0);
+
+          const UINT64 time0 =
+                 ( success0 == false ) ? 0ULL :
+                      GetTimerDataEnd (&it, success1);
+
+          if ( success0 != false &&
+               success1 != false )
+          {
+            tracker->runtime_ticks +=
+              ( time0 - time1 );
+          }
+
+          // Data's no good, we need to release the queries manually or
+          //   we're going to leak!
+          else
+          {
+            SK_COM_ValidateRelease ((IUnknown **)&it.end.async);
+            SK_COM_ValidateRelease ((IUnknown **)&it.end.dev_ctx);
+
+            SK_COM_ValidateRelease ((IUnknown **)&it.start.async);
+            SK_COM_ValidateRelease ((IUnknown **)&it.start.dev_ctx);
+          }
+        }
+
+
+        if (   tracker->cancel_draws   ||
+               tracker->num_draws == 0 || blacklist.count
+             ( tracker->crc32c )   > 0
+           )
+        {
+          tracker->runtime_ticks   = 0ULL;
+          tracker->runtime_ms      = 0.0;
+          tracker->last_runtime_ms = 0.0;
+        }
+
+        tracker->timers.clear ();
+      };
+
+    AccumulateRuntimeTicks (&vertex.tracked,   vertex.blacklist);
+    CalcRuntimeMS          (&vertex.tracked);
+
+    AccumulateRuntimeTicks (&pixel.tracked,    pixel.blacklist);
+    CalcRuntimeMS          (&pixel.tracked);
+
+    AccumulateRuntimeTicks (&geometry.tracked, geometry.blacklist);
+    CalcRuntimeMS          (&geometry.tracked);
+
+    AccumulateRuntimeTicks (&hull.tracked,     hull.blacklist);
+    CalcRuntimeMS          (&hull.tracked);
+
+    AccumulateRuntimeTicks (&domain.tracked,   domain.blacklist);
+    CalcRuntimeMS          (&domain.tracked);
+
+    AccumulateRuntimeTicks (&compute.tracked,  compute.blacklist);
+    CalcRuntimeMS          (&compute.tracked);
+
+    disjoint_done = false;
+  }
+
+  vertex.tracked.clear   ();
+  pixel.tracked.clear    ();
+  geometry.tracked.clear ();
+  hull.tracked.clear     ();
+  domain.tracked.clear   ();
+  compute.tracked.clear  ();
+
+  vertex.changes_last_frame   = 0;
+  pixel.changes_last_frame    = 0;
+  geometry.changes_last_frame = 0;
+  hull.changes_last_frame     = 0;
+  domain.changes_last_frame   = 0;
+  compute.changes_last_frame  = 0;
+
+  extern bool SK_D3D11_ShowShaderModDlg (void);
+
+  if (! SK_D3D11_ShowShaderModDlg ())
+    SK_D3D11_EnableMMIOTracking = false;
+
+  for (auto& it_ctx : *SK_D3D11_PerCtxResources )
+  {
+    int spins = 0;
+
+    while (InterlockedCompareExchange (&it_ctx.writing_, 1, 0) != 0)
+    {
+      if ( ++spins > 0x1000 )
+      {
+        SleepEx (1, FALSE);
+        spins = 0;
+      }
+    }
+
+    const UINT dev_idx =
+      SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
+
+    if (it_ctx.ctx_id_ == dev_idx)
+    {
+      it_ctx.temp_resources.clear ();
+      it_ctx.used_textures.clear  ();
+    }
+
+    SK_D3D11_RenderTargets [it_ctx.ctx_id_].clear ();
+
+    InterlockedExchange (&it_ctx.writing_, 0);
+  }
+
+  {
+    std::scoped_lock <SK_Thread_HybridSpinlock>
+           auto_lock (*cs_render_view);
+
+    SK_D3D11_TempResources->clear ();
+  }
+
+  SK_D3D11_TextureResampler->processFinished (pDev, pDevCtx, pTLS);
+#endif
 }

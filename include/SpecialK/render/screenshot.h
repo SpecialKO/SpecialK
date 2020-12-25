@@ -74,12 +74,46 @@ struct SK_ScreenshotQueue
 extern SK_ScreenshotQueue
  enqueued_screenshots;
 
+class                    SK_RenderBackend_V2;
+using SK_RenderBackend = SK_RenderBackend_V2;
+
 void
 SK_Screenshot_ProcessQueue ( SK_ScreenshotStage stage,
-                       const SK_RenderBackend&  rb = SK_GetCurrentRenderBackend () );
+                       const SK_RenderBackend&  rb );
 
 bool
 SK_Screenshot_IsCapturingHUDless (void);
 
 bool
 SK_Screenshot_IsCapturing (void);
+
+#include <concurrent_unordered_map.h>
+
+class SK_ScreenshotManager
+{
+public:
+  // No info about the files is managed, this is
+  //   just a running tally updated when a new
+  //     screenshot is written.
+  struct screenshot_repository_s {
+    LARGE_INTEGER liSize = { 0, 0 };
+    UINT           files =      0U ;
+  };
+
+  SK_ScreenshotManager (void) noexcept
+  {
+    init ();
+  }
+
+  ~SK_ScreenshotManager (void) = default;
+
+  void init (void);
+
+  const wchar_t*           getBasePath  (void) const;
+  screenshot_repository_s& getRepoStats (bool refresh = false);
+
+protected:
+  screenshot_repository_s screenshots = { };
+
+private:
+};

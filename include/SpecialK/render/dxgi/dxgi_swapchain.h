@@ -38,7 +38,12 @@ interface ID3D12Device;
 const GUID IID_IUnwrappedDXGISwapChain =
 { 0xe8a33b4a, 0x1405, 0x424c, { 0xae, 0x88, 0xd, 0x3e, 0x9d, 0x46, 0xc9, 0x14 } };
 
+// {24430A12-6E3C-4706-AFFA-B3EEF2DF4102}
+const GUID IID_IWrapDXGISwapChain =
+{ 0x24430a12, 0x6e3c, 0x4706, { 0xaf, 0xfa, 0xb3, 0xee, 0xf2, 0xdf, 0x41, 0x2 } };
 
+
+__declspec (uuid ("{24430A12-6E3C-4706-AFFA-B3EEF2DF4102}") )
 struct IWrapDXGISwapChain : IDXGISwapChain4
 {
   IWrapDXGISwapChain ( ID3D11Device   *pDevice,
@@ -81,10 +86,15 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
       Release ();
 
       pReal = (IDXGISwapChain *)pPromotion;
+             ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
 
       SK_LOG0 ( ( L"Promoted IDXGISwapChain to IDXGISwapChain%lu", ver_),
                   __SK_SUBSYSTEM__ );
     }
+
+    this->SetPrivateDataInterface  (IID_IUnwrappedDXGISwapChain, this);
+    pReal->SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, this);
+
   }
 
   IWrapDXGISwapChain ( ID3D11Device    *pDevice,
@@ -121,62 +131,16 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     {
       Release ();
 
-      pReal = (IDXGISwapChain *)pPromotion;
+      pReal =  (IDXGISwapChain *)pPromotion;
+              ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
 
       SK_LOG0 ( ( L"Promoted IDXGISwapChain1 to IDXGISwapChain%lu", ver_),
                   __SK_SUBSYSTEM__ );
     }
+
+    this->SetPrivateDataInterface  (IID_IUnwrappedDXGISwapChain, this);
+    pReal->SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, this);
   }
-
-  //IWrapDXGISwapChain ( ID3D12Device    *pDevice12,
-  //                     IDXGISwapChain1 *pSwapChain ) :
-  //  pReal  (pSwapChain),
-  //  pDev12 ( pDevice12),
-  //  ver_   (    0     )
-  //{
-  //  if (! pSwapChain)
-  //    return;
-  //
-  //  InterlockedExchange (
-  //    &refs_, pReal->AddRef  () - 1
-  //  );        pReal->Release ();
-  //  AddRef ();
-  //
-  //  InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
-  //
-  //  IUnknown *pPromotion = nullptr;
-  //
-  //  if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
-  //  {
-  //    ver_ = 4;
-  //  }
-  //
-  //  else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
-  //  {
-  //    ver_ = 3;
-  //  }
-  //
-  //  else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
-  //  {
-  //    ver_ = 2;
-  //  }
-  //
-  //  else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain1, (void **)&pPromotion)))
-  //  {
-  //    ver_ = 1;
-  //  }
-  //
-  //  if (ver_ != 0)
-  //  {
-  //    Release ();
-  //
-  //    pReal = (IDXGISwapChain1 *)pPromotion;
-  //
-  //    SK_LOG0 ( ( L"Promoted IDXGISwapChain1 to IDXGISwapChain%li", ver_),
-  //                __SK_SUBSYSTEM__ );
-  //  }
-  //}
-
 
 
   virtual ~IWrapDXGISwapChain (void)
@@ -256,10 +220,17 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
   virtual HRESULT STDMETHODCALLTYPE SetHDRMetaData (DXGI_HDR_METADATA_TYPE Type, UINT Size, void *pMetaData) override; // 40
   #pragma endregion
 
-  volatile LONG   refs_ = 0;
-  IDXGISwapChain *pReal;
-  IUnknown       *pDev;
-  unsigned int    ver_;
+  volatile LONG         refs_ = 0;
+  IDXGISwapChain       *pReal;
+  IUnknown             *pDev;
+  unsigned int          ver_;
+  HWND                  hWnd_ = 0;
+
+  UINT                  gameWidth_      = 0;
+  UINT                  gameHeight_     = 0;
+  bool                  fakeFullscreen_ = false;
+  DXGI_FORMAT           lastRequested_  = DXGI_FORMAT_UNKNOWN;
+  DXGI_COLOR_SPACE_TYPE lastColorSpace_ = DXGI_COLOR_SPACE_RESERVED;
 };
 
 

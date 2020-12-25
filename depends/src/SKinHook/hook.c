@@ -603,7 +603,8 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
            (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueProcess & 0xFFFFFFFFU) != dwPID )
         continue;
 
-      if (pThreads->pItems == NULL)
+      if ( pThreads         != NULL &&
+           pThreads->pItems == NULL )
       {
         pThreads->capacity = INITIAL_THREAD_CAPACITY;
         pThreads->pItems   =
@@ -628,11 +629,12 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
         if (p == NULL)
           break;
 
-        pThreads->capacity <<= 1;
-        pThreads->pItems     = p;
+        if (pThreads) pThreads->capacity <<= 1;
+        if (pThreads) pThreads->pItems     = p;
       }
 
-      pThreads->pItems [pThreads->size++].tid =
+      if (pThreads)
+          pThreads->pItems [pThreads->size++].tid =
         (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueThread & 0xFFFFFFFFU);
     }
   }
@@ -1045,16 +1047,18 @@ MH_Initialize (VOID)
     g_NtDll.Module =
       GetModuleHandleW (L"NtDll.dll");
 
-    g_NtDll.DelayExecution =
-      (NtDelayExecution_pfn)
-        GetProcAddress (g_NtDll.Module, "NtDelayExecution");
+    if (g_NtDll.Module)
+    {   g_NtDll.DelayExecution =
+          (NtDelayExecution_pfn)
+            GetProcAddress (g_NtDll.Module, "NtDelayExecution");
+    }
   }
 
   EnterSpinLock ();
 
   if (g_hHeap == NULL)
   {
-    g_hHeap       = HeapCreate ( 0x0, sizeof (HOOK_ENTRY)     * (INITIAL_HOOK_CAPACITY*4) + 1 +
+      g_hHeap     = HeapCreate ( 0x0, sizeof (HOOK_ENTRY)     * (INITIAL_HOOK_CAPACITY*4) + 1 +
                                       sizeof (FROZEN_THREADS) * INITIAL_THREAD_CAPACITY   + 1 +
                                       16384 * 16384, 0 );
 

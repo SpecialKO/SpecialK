@@ -1,6 +1,6 @@
 //-------------------------------------------------------------------------------------
 // DirectXTexD3D12.cpp
-//  
+//
 // DirectX Texture Library - Direct3D 12 helpers
 //
 // THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
@@ -482,7 +482,7 @@ HRESULT DirectX::CreateTextureEx(
 
 
 //-------------------------------------------------------------------------------------
-// Prepares a texture resource for upload 
+// Prepares a texture resource for upload
 //-------------------------------------------------------------------------------------
 
 _Use_decl_annotations_
@@ -754,57 +754,57 @@ HRESULT DirectX::CaptureTexture(
         depth = 1;
     }
 
-    for (UINT plane = 0; plane < numberOfPlanes; ++plane)
+
+    UINT dindex = D3D12CalcSubresource (0, 0, 0, 1, 1);
+
+    assert(dindex < numberOfResources);
+
+    const Image* img =
+      result.GetImage (0, 0, 0);
+
+    if (! img)
     {
-        for (UINT item = 0; item < arraySize; ++item)
-        {
-            for (UINT level = 0; level < desc.MipLevels; ++level)
-            {
-                UINT dindex = D3D12CalcSubresource(level, item, plane, desc.MipLevels, arraySize);
-                assert(dindex < numberOfResources);
-
-                const Image* img = result.GetImage(level, item, 0);
-                if (!img)
-                {
-                    pStaging->Unmap(0, nullptr);
-                    result.Release();
-                    return E_FAIL;
-                }
-
-                if (!img->pixels)
-                {
-                    pStaging->Unmap(0, nullptr);
-                    result.Release();
-                    return E_POINTER;
-                }
-
-                D3D12_MEMCPY_DEST destData = { img->pixels, img->rowPitch, img->slicePitch };
-
-                AdjustPlaneResource(img->format, img->height, plane, destData);
-
-                D3D12_SUBRESOURCE_DATA srcData =
-                {
-                    pData + pLayout[dindex].Offset,
-                    static_cast<LONG_PTR>(pLayout[dindex].Footprint.RowPitch),
-                    static_cast<LONG_PTR>(pLayout[dindex].Footprint.RowPitch * pNumRows[dindex])
-                };
-
-                if (pRowSizesInBytes[dindex] > (SIZE_T)-1)
-                {
-                    pStaging->Unmap(0, nullptr);
-                    result.Release();
-                    return E_FAIL;
-                }
-
-                MemcpySubresource(&destData, &srcData,
-                    (SIZE_T)pRowSizesInBytes[dindex],
-                    pNumRows[dindex],
-                    pLayout[dindex].Footprint.Depth);
-            }
-        }
+        pStaging->Unmap (0, nullptr);
+        result.Release ();
+        return false;
     }
 
-    pStaging->Unmap(0, nullptr);
+    if (! img->pixels)
+    {
+      pStaging->Unmap (0, nullptr);
+      result.Release ();
+      return false;
+    }
 
-    return S_OK;
+    D3D12_MEMCPY_DEST destData = {
+      img->pixels, img->rowPitch,
+                 img->slicePitch
+    };
+
+    AdjustPlaneResource ( img->format, img->height, 0, destData );
+
+    D3D12_SUBRESOURCE_DATA srcData =
+    {
+                      pData + pLayout  [dindex].Offset,
+      static_cast <LONG_PTR> (pLayout  [dindex].Footprint.RowPitch),
+      static_cast <LONG_PTR> (pLayout  [dindex].Footprint.RowPitch *
+                              pNumRows [dindex])
+    };
+
+    if (pRowSizesInBytes [dindex] > (SIZE_T)-1)
+    {
+      pStaging->Unmap (0, nullptr);
+      result.Release  ();
+      return false;
+    }
+
+    MemcpySubresource ( &destData, &srcData,
+      (SIZE_T)pRowSizesInBytes [dindex],
+                      pNumRows [dindex],
+                       pLayout [dindex].Footprint.Depth
+    );
+
+    pStaging->Unmap (0, nullptr);
+
+    return true;
 }

@@ -772,8 +772,11 @@ SK_TVFix_BeginFrame (void)
 
   if (rb.device != nullptr && InterlockedCompareExchange (&__init, 1, 0))
   {
-    SK_ComQIPtr <ID3D11Device> pDev     (rb.device);
-    SK_ComQIPtr  <IDXGIDevice> pDXGIDev (rb.device);
+    auto pDev =
+      rb.getDevice <ID3D11Device> ();
+    SK_ComQIPtr    <IDXGIDevice>
+                    pDXGIDev
+                       (pDev);
 
     if (pDXGIDev != nullptr)
     {   pDXGIDev->SetGPUThreadPriority (5); }
@@ -797,9 +800,11 @@ SK_TVFix_BeginFrame (void)
 
     if (ulFramesDrawn == 31)
     {
-      SK_ComQIPtr <ID3D11Device> pDevD3D11 (rb.device);
-      SK_ComQIPtr <IDXGIDevice>  pDXGIDev  (pDevD3D11);
+      auto pDevD3D11 =
+        rb.getDevice <ID3D11Device> ();
 
+      SK_ComQIPtr <IDXGIDevice>
+          pDXGIDev (pDevD3D11);
       if (pDXGIDev != nullptr)
       {
         INT nPrio = 0;

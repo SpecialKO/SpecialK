@@ -684,6 +684,10 @@ void
 SK_Tobii_Startup ( tobii_api_t*&    api,
                    tobii_device_t*& device )
 {
+  // Known broken as of 12/19/20
+  //
+  return;
+
   if (has_tobii)
     return;
 
@@ -720,7 +724,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
   tobii_error_t error =
     tobii_api_create (&api, nullptr, nullptr);
 
-  SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR)
+  //SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR)
 
     if (error != TOBII_ERROR_NO_ERROR)
     {

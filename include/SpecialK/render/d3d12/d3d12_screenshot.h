@@ -37,16 +37,32 @@
 class SK_D3D12_Screenshot
 {
 public:
-  explicit SK_D3D12_Screenshot (          SK_D3D12_Screenshot&& moveFrom) noexcept { *this = std::move (moveFrom); }
-  explicit SK_D3D12_Screenshot (const SK_ComPtr <ID3D12Device>&       pDevice,
-                                const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue );
+  struct framebuffer_s;
+
+  struct readback_ctx_s {
+    SK_ComPtr <ID3D12CommandQueue>        pCmdQueue              = nullptr;
+    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList               = nullptr;
+    SK_ComPtr <ID3D12CommandAllocator>    pCmdAlloc              = nullptr;
+
+    SK_ComPtr <ID3D12Resource>            pBackbufferSurface     = nullptr;
+    SK_ComPtr <ID3D12Resource>            pStagingBackbufferCopy = nullptr;
+
+    SK_ComPtr <ID3D12Fence>               pFence                 = nullptr;
+    UINT64                                uiFenceVal             =       0;
+
+    framebuffer_s*                        pBackingStore          = nullptr;
+  };
+
+  explicit SK_D3D12_Screenshot (           SK_D3D12_Screenshot&& moveFrom) noexcept { *this = std::move (moveFrom); }
+  explicit SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&       pDevice,
+                                 const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue,
+                                 const SK_ComPtr <IDXGISwapChain3>&    pSwapChain );
 
           ~SK_D3D12_Screenshot (void) {
             dispose ();
           }
 
-  __inline bool isValid (void) noexcept { return pCommandQueue.p   != nullptr &&
-                                                 pPixelBufferFence != nullptr; }
+  __inline bool isValid (void) noexcept { return readback_ctx.pFence.p != nullptr; }
   __inline bool isReady (void)
   {
     if (                                      (! isValid ()) ||
@@ -56,8 +72,8 @@ public:
     }
 
     return (
-      pPixelBufferFence->GetCompletedValue () >=
-     uiPixelBufferFenceVal
+      readback_ctx.pFence->GetCompletedValue () >
+      readback_ctx.uiFenceVal
            );
   }
 
@@ -97,14 +113,14 @@ public:
       PixelBuffer.reset ();
     }
 
-    UINT               Width               = 0,
-                       Height              = 0;
+    UINT64             Width               = 0ULL,
+                       Height              = 0ULL;
     DXGI_FORMAT        NativeFormat        = DXGI_FORMAT_UNKNOWN;
     DXGI_ALPHA_MODE    AlphaMode           = DXGI_ALPHA_MODE_IGNORE;
 
-    size_t             PBufferSize         = 0L;
-    size_t             PackedDstPitch      = 0L,
-                       PackedDstSlicePitch = 0L;
+    size_t             PBufferSize         = 0UL;
+    size_t             PackedDstPitch      = 0UL,
+                       PackedDstSlicePitch = 0UL;
 
     std::unique_ptr
       <uint8_t []>     PixelBuffer         = nullptr;
@@ -127,20 +143,19 @@ public:
       ulCommandIssuedOnFrame;
   }
 
+  readback_ctx_s*
+  getReadbackContext (void)
+  {
+    return &readback_ctx;
+  }
+
 protected:
-  SK_ComPtr <ID3D12Device>        pDev                   = nullptr;
-  SK_ComPtr <ID3D12CommandQueue>  pCommandQueue          = nullptr;
+  ULONG64                                 ulCommandIssuedOnFrame = 0;
 
-  SK_ComPtr <IDXGISwapChain3>     pSwapChain             = nullptr;
-  SK_ComPtr <ID3D12Resource>      pBackbufferSurface     = nullptr;
-  SK_ComPtr <ID3D12Resource>      pStagingBackbufferCopy = nullptr;
+  readback_ctx_s                          readback_ctx           = {     };
+  framebuffer_s                           framebuffer            = {     };
 
-  SK_ComPtr <ID3D12Fence>         pPixelBufferFence      = nullptr;
-  UINT64                          uiPixelBufferFenceVal  = 0;
-
-  ULONG64                         ulCommandIssuedOnFrame = 0;
-
-  framebuffer_s                   framebuffer            = {     };
+  using readback_ptr = std::shared_ptr <readback_ctx_s>&;
 };
 
 void SK_D3D12_WaitOnAllScreenshots   (void);

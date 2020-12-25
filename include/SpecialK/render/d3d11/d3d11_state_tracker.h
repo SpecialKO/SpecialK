@@ -487,6 +487,79 @@ SK_D3D11_CreateShader_Impl (
       InvokeCreateRoutine ();
   }
 
+
+  uint32_t checksum =
+    SK_D3D11_ChecksumShaderBytecode (
+                    pShaderBytecode,
+                           BytecodeLength );
+
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  static bool
+      hash_only = (rb.api == SK_RenderAPI::D3D12);
+  if (hash_only)
+  {
+    if (type == sk_shader_class::Pixel && checksum == 0x9aefe985)
+    {
+      extern std::string
+        __SK_MakeSteamPS ( bool  hdr10,
+                           bool  scRGB,
+                           float max_luma );
+      extern
+        ID3D10Blob*
+        __SK_MakeSteamPS_Bytecode ( bool  hdr10,
+                                    bool  scRGB,
+                                    float max_luma );
+
+      extern bool __SK_HDR_16BitSwap;
+      if (        __SK_HDR_16BitSwap || ( rb.hdr_capable &&
+                                          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))
+      {
+        static std::string steam_ps_scRGB =
+          __SK_MakeSteamPS (false, true, config.steam.overlay_hdr_luminance);
+
+        SK_RunOnce (
+          dll_log->Log ( L" Steam Replacement Pixel Shader <scRGB %f nits>",
+                          config.steam.overlay_hdr_luminance * 80.0f
+                                 )//,steam_ps_scRGB.c_str () )
+        );
+
+        static ID3D10Blob* steam_blob_scRGB =
+        __SK_MakeSteamPS_Bytecode (false, true, config.steam.overlay_hdr_luminance);
+
+        pShaderBytecode = steam_blob_scRGB->GetBufferPointer ();
+        BytecodeLength  = steam_blob_scRGB->GetBufferSize    ();
+
+      }
+
+      else if (
+        ( rb.hdr_capable &&
+          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
+              )
+      {
+        static std::string steam_ps_PQ =
+          __SK_MakeSteamPS (true, false, config.steam.overlay_hdr_luminance * 80.0f);
+
+        SK_RunOnce (
+          dll_log->Log ( L" Steam Replacement Pixel Shader <PQ %f nits>",
+                            config.steam.overlay_hdr_luminance
+                                   )//, steam_ps_PQ.c_str () )
+        );
+
+        static ID3D10Blob* steam_blob_PQ =
+          __SK_MakeSteamPS_Bytecode (true, false, config.steam.overlay_hdr_luminance * 80.0f);
+
+        pShaderBytecode = steam_blob_PQ->GetBufferPointer ();
+        BytecodeLength  = steam_blob_PQ->GetBufferSize    ();
+      }
+    }
+
+    return
+      InvokeCreateRoutine ();
+  }
+
   // In debug builds, keep a tally of threads involved in shader management.
   //
   //   (Per-frame and lifetime statistics are tabulated)
@@ -568,11 +641,6 @@ SK_D3D11_CreateShader_Impl (
   GetResources (
     &pCritical, &pShaderRepo
   );
-
-  uint32_t checksum =
-    SK_D3D11_ChecksumShaderBytecode (
-                    pShaderBytecode,
-                           BytecodeLength );
 
   // Checksum failure, just give the data to D3D11 and hope for the best
   if (checksum == 0x00)

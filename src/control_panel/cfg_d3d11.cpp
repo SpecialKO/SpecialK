@@ -321,7 +321,7 @@ SK::ControlPanel::D3D11::Draw (void)
     {
       auto _ResetLimiter = [&](void) -> void
       {
-        static auto& rb =
+        auto& rb =
           SK_GetCurrentRenderBackend ();
 
         auto *pLimiter =

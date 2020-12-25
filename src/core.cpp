@@ -88,6 +88,7 @@ SK_GetInitParams (void)
 
 extern void SK_D3D11_BeginFrame (void);
 extern void SK_D3D11_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());
+extern void SK_D3D12_BeginFrame (void);
 extern void SK_D3D12_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());
 
 wchar_t*
@@ -782,6 +783,10 @@ DllThread (LPVOID user)
   SetCurrentThreadDescription (                 L"[SK] Primary Initialization Thread" );
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST       );
   SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                          );
+
+  extern void
+  SK_ImGui_LoadFonts (void);
+  SK_ImGui_LoadFonts (    );
 
   auto* params =
     static_cast <init_params_s *> (user);
@@ -2143,7 +2148,7 @@ static volatile LONG CEGUI_Init = FALSE;
 void
 SetupCEGUI (SK_RenderAPI& LastKnownAPI)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.api == SK_RenderAPI::D3D12)
@@ -2470,10 +2475,16 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         );
       }
 
-      if (rb.api == SK_RenderAPI::D3D11)
+      extern SK_Widget* SK_HDR_GetWidget (void);
+
+      if ( (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11)) ||
+           (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12)) )
       {
-        extern SK_Widget* SK_HDR_GetWidget (void);
-                  SK_HDR_GetWidget ()->run (    );
+        auto hdr =
+          SK_HDR_GetWidget ();
+
+        if (hdr != nullptr)
+            hdr->run ();
       }
 
       // Maybe make this into an option, but for now just get this the hell out
@@ -2533,6 +2544,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
   }
 }
 
+std::atomic_int __SK_RenderThreadCount = 0;
+
 void
 SK_MMCS_BeginBufferSwap (void)
 {
@@ -2543,6 +2556,8 @@ SK_MMCS_BeginBufferSwap (void)
 
   if ( ! render_threads.count (SK_Thread_GetCurrentId ()) )
   {
+    __SK_RenderThreadCount++;
+
     static bool   first = true;
     auto*  task = first ?
       SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
@@ -2577,7 +2592,7 @@ void
 __stdcall
 SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   static SK_RenderAPI LastKnownAPI =
@@ -2587,6 +2602,12 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
        (int)SK_RenderAPI::D3D11 )
   {
     SK_D3D11_BeginFrame ();
+  }
+
+  else if ( (int)rb.api &
+            (int)SK_RenderAPI::D3D12 )
+  {
+    SK_D3D12_BeginFrame ();
   }
 
   if (config.render.framerate.enforcement_policy == 0)
@@ -2607,14 +2628,6 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   for ( auto begin_frame_fn : plugin_mgr->begin_frame_fns )
   {
     begin_frame_fn ();
-  }
-
-  static const auto& io =
-    ImGui::GetIO ();
-
-  if (io.Fonts == nullptr)
-  {
-    SK_ImGui_LoadFonts ();
   }
 
   // Handle init. actions that depend on the number of frames
@@ -2785,7 +2798,7 @@ SK_Input_PollKeyboard (void)
 void
 SK_BackgroundRender_EndFrame (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   static bool background_last_frame = false;
@@ -2855,7 +2868,7 @@ HRESULT
 __stdcall
 SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   auto _FrameTick = [&](void) -> void
@@ -2890,6 +2903,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   {
     // Clear any resources we were tracking for the shader mod subsystem
     SK_D3D11_EndFrame (pTLS);
+  }
+
+  else if ( static_cast <int> (rb.api) &
+            static_cast <int> (SK_RenderAPI::D3D12) )
+  {
+    SK_D3D12_EndFrame (pTLS);
   }
 
   // TODO: Add a per-frame callback for plug-ins, because this is stupid

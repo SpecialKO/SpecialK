@@ -39,11 +39,12 @@ SK_D3D11_UpdateRenderStatsEx (const IDXGISwapChain* pSwapChain)
   if (pSwapChain == nullptr)
     return;
 
-  static const auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_ComQIPtr <ID3D11Device>        pDev    (rb.device);
-  SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+  auto pDev =
+    rb.getDevice <ID3D11Device> ();
+  SK_ComQIPtr    <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
   if (! ( pDev         != nullptr &&
           pDevCtx      != nullptr &&

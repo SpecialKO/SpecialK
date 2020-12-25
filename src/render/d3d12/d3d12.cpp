@@ -41,24 +41,6 @@ WaitForInitD3D12 (void)
   SK_Thread_SpinUntilFlagged (&__d3d12_ready);
 }
 
-namespace SK
-{
-  namespace DXGI
-  {
-    struct PipelineStatsD3D12
-    {
-      struct StatQueryD3D12
-      {
-        ID3D12QueryHeap* heap   = nullptr;
-        bool             active = false;
-      } query;
-
-      D3D12_QUERY_DATA_PIPELINE_STATISTICS
-                 last_results   = { };
-    } pipeline_stats_d3d12;
-  };
-};
-
 
 HRESULT
 WINAPI

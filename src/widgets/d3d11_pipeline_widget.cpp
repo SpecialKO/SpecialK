@@ -31,7 +31,7 @@ SK_CountToString (uint64_t count);
 class SKWG_D3D11_Pipeline : public SK_Widget
 {
 public:
-  SKWG_D3D11_Pipeline (void) : SK_Widget ("D3D11_Pipeline")
+  SKWG_D3D11_Pipeline (void) : SK_Widget ("D3D1x_Pipeline")
   {
     SK_ImGui_Widgets->d3d11_pipeline = this;
 
@@ -332,4 +332,3 @@ SKWG_D3D11_Pipeline* SK_Widget_GetD3D11Pipeline (void)
   static SKWG_D3D11_Pipeline  __d3d11_pipeline__;
   return                     &__d3d11_pipeline__;
 }
-

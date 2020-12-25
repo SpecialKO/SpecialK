@@ -147,10 +147,6 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
-  //CD3D11_SHADER_RESOURCE_VIEW_DESC _desc (
-  //  D3D11_SRV_DIMENSION_TEXTURE2D
-  //);
-
   if ( pDesc != nullptr && pResource != nullptr )
   {
     D3D11_RESOURCE_DIMENSION   dim;

@@ -40,8 +40,8 @@
 #include <atlbase.h>
 #include <cstdint>
 
-#include <SpecialK\render\d3d12\d3d12_interfaces.h>
-
+#include <SpecialK/render/d3d12/d3d12_interfaces.h>
+#include <SpecialK/render/screenshot.h>
 
 class SK_RenderBackend_V1
 {
@@ -133,7 +133,6 @@ struct SK_ColorSpace {
 
 const wchar_t*
 HDRModeToStr (NV_HDR_MODE mode);
-
 
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
@@ -326,13 +325,45 @@ public:
   void updateActiveAPI ( SK_RenderAPI _api =
                          SK_RenderAPI::Reserved );
 
+  struct d3d10_s
+  {
+    SK_ComPtr <ID3D10Device>        device        = nullptr;
+  } d3d10;
+
   // TODO: Proper abstraction
   struct d3d11_s
   {
+    SK_ComPtr <ID3D11Device>        device        = nullptr;
                ID3D11DeviceContext* immediate_ctx = nullptr;
     SK_ComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
   } d3d11;
 
+  struct d3d12_s
+  {
+    SK_ComPtr <ID3D12Device>       device        = nullptr;
+    SK_ComPtr <ID3D12CommandQueue> command_queue = nullptr;
+  } d3d12;
+
+
+        HRESULT       setDevice (IUnknown* pDevice);
+  template < class Q, const IID& riid = __uuidof (Q) >
+        SK_ComPtr <Q> getDevice (void)
+        {
+          if ( riid == IID_IDirect3DDevice9
+          ||   riid == IID_IDirect3DDevice9Ex
+          ||   riid == IID_ID3D10Device
+          ||   riid == IID_ID3D11Device
+          ||   riid == IID_ID3D12Device      )
+          {
+            return
+              SK_ComQIPtr <Q> (device);
+          }
+
+          assert (!"Unknown Render Device Class Requested");
+
+          return
+            SK_ComQIPtr <Q> (device);
+        }
 
   struct gsync_s
   {
@@ -342,6 +373,9 @@ public:
     BOOL                  active       = FALSE;
     DWORD                 last_checked = 0;
   } gsync_state;
+
+
+  SK_ScreenshotManager    screenshot_mgr;
 
 
   //
@@ -643,5 +677,9 @@ typedef struct
 bool SK_RenderBackendUtil_IsFullscreen (void);
 void SK_D3D_SetupShaderCompiler        (void);
 void SK_Display_DisableDPIScaling      (void);
+
+extern SK_LazyGlobal <
+    SK_RenderBackend > __SK_RBkEnd;
+
 
 #endif /* __SK__RENDER_BACKEND__H__ */

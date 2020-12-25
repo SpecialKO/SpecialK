@@ -31,8 +31,15 @@ typedef BOOL (WINAPI *GetLogicalProcessorInformation_pfn)(PSYSTEM_LOGICAL_PROCES
                       GetLogicalProcessorInformation_pfn
                       GetLogicalProcessorInformation_Original = nullptr;
 
+typedef BOOL (WINAPI *GetLogicalProcessorInformationEx_pfn)(LOGICAL_PROCESSOR_RELATIONSHIP,PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX,PDWORD);
+                       GetLogicalProcessorInformationEx_pfn
+                       GetLogicalProcessorInformationEx_Original = nullptr;
+
 const std::vector <uintptr_t>&
 SK_CPU_GetLogicalCorePairs (void);
+
+size_t
+SK_CPU_CountPhysicalCores (void);
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -47,55 +54,165 @@ GetLogicalProcessorInformation_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (Buffer == nullptr || config.render.framerate.override_num_cpus == -1)
-  {
-    return
-      GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
-  }
+  static const
+    std::vector <uintptr_t>& pairs =
+      SK_CPU_GetLogicalCorePairs ();
 
-  const BOOL bRet =
+  return
     GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
+}
 
-  if (bRet && ReturnedLength != nullptr)
+BOOL
+WINAPI
+GetLogicalProcessorInformationEx_Detour (
+  LOGICAL_PROCESSOR_RELATIONSHIP           RelationshipType,
+  PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX Buffer,
+  PDWORD                                   ReturnedLength )
+{
+  SK_LOG_FIRST_CALL
+
+  static const
+    int core_count =
+      static_cast <int> (SK_CPU_CountPhysicalCores ());
+
+  int extra_cores =
+    config.render.framerate.override_num_cpus == -1 ? 0 :
+    config.render.framerate.override_num_cpus - core_count;
+
+  ////dll_log->Log (L"Allocating %lu extra CPU cores", extra_cores);
+
+  if (extra_cores > 0 && RelationshipType == RelationAll)
   {
-    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
-      Buffer;
-
-    DWORD   dwOffset = 0;
-    while ( dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION)
-                    <= *ReturnedLength )
+    auto getFakeProcessorCount = []() -> std::pair <char*, DWORD>
     {
-      switch (lpi->Relationship)
+      int extra_cores =
+        config.render.framerate.override_num_cpus - core_count;
+
+      DWORD len    = 0;
+      char* buffer = NULL;
+
+      if (FALSE == GetLogicalProcessorInformationEx_Original (RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer, &len))
       {
-        case RelationProcessorCore:
+		    if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
         {
-          static const
-            std::vector <uintptr_t>& pairs =
-              SK_CPU_GetLogicalCorePairs ();
+          size_t extraAlloc = 0;
+          size_t extraCores = extra_cores;
 
-          //static const
-          //  std::set <uintptr_t> masks (
-          //    pairs.cbegin (), pairs.cend ()
-          //  );
-          //
-          //if (pairs.size () != masks.size ())
-          //{
-          //  // ...
-          //}
-        } break;
+			    buffer = (char *)malloc (len);
 
-        default:
-          break;
+          if (GetLogicalProcessorInformationEx_Original (RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer, &len))
+          {
+				    char* ptr = buffer;
+
+				    while (ptr < buffer + len)
+            {
+					    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
+
+              if (pi->Relationship == RelationProcessorCore)
+              {
+                while (extraCores > 0)
+                {
+                  extraCores--;
+                  extraAlloc += pi->Size;
+                }
+					    }
+					    ptr            += pi->Size;
+				    }
+			    }
+
+          free (buffer);
+
+          buffer = (char *)malloc (len + extraAlloc);
+
+          if (GetLogicalProcessorInformationEx_Original (RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer, &len))
+          {
+            char *cores_ = (char *)malloc (extraAlloc);
+
+				    char* ptr = buffer;
+
+            extraCores = extra_cores;
+
+				    while (ptr < buffer + len)
+            {
+					    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
+
+              if (pi->Relationship == RelationProcessorCore)
+              {
+                char* pExtra =
+                  cores_;
+
+                while (extraCores > 0)
+                {
+                  memcpy (pExtra, pi, pi->Size);
+                          pExtra +=   pi->Size;
+
+                  extraCores--;
+                }
+					    }
+					    ptr += pi->Size;
+				    }
+
+            memcpy (ptr, cores_, extraAlloc);
+
+            len += (DWORD)extraAlloc;
+          }
+
+          return std::make_pair (buffer, len);
+        }
       }
 
-      dwOffset +=
-        sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
+      return std::make_pair (nullptr, 0);
+    };
 
-      lpi++;
+    static std::pair <char *, DWORD> spoof =
+      getFakeProcessorCount ();
+
+    if ( ReturnedLength != nullptr && *ReturnedLength < spoof.second )
+    {
+      SetLastError (ERROR_INSUFFICIENT_BUFFER);
+
+      *ReturnedLength = spoof.second;
+
+      return FALSE;
+    }
+
+    else if ( ReturnedLength != nullptr && *ReturnedLength >= spoof.second )
+    {
+      if (Buffer != nullptr)
+      {
+        memcpy (Buffer, spoof.first, spoof.second);
+             *ReturnedLength =       spoof.second;
+
+        int cores   = 0;
+        int logical = 0;
+
+        char*  ptr = (char *)Buffer;
+				while (ptr < (char *)Buffer + spoof.second)
+        {
+				  PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
+
+          if (pi->Relationship == RelationProcessorCore)
+          {
+				  	cores++;
+
+            for (size_t g = 0; g < pi->Processor.GroupCount; ++g)
+            {
+				  		logical +=
+                CountSetBits (pi->Processor.GroupMask [g].Mask);
+				  	}
+				  }
+				  ptr += pi->Size;
+				}
+
+        ////dll_log->Log (L"Returning %lu cores, %lu logical", cores, logical);
+      }
+
+      return TRUE;
     }
   }
 
-  return bRet;
+  return
+    GetLogicalProcessorInformationEx_Original ( RelationshipType, Buffer, ReturnedLength );
 }
 
 void
@@ -130,10 +247,15 @@ SK_GetSystemInfo (LPSYSTEM_INFO lpSystemInfo)
 void
 SK_CPU_InstallHooks (void)
 {
-  //SK_CreateDLLHook2 (      L"Kernel32",
-  //                          "GetLogicalProcessorInformation",
-  //                           GetLogicalProcessorInformation_Detour,
-  //  static_cast_p2p <void> (&GetLogicalProcessorInformation_Original) );
+  SK_CreateDLLHook2 (      L"Kernel32",
+                            "GetLogicalProcessorInformation",
+                             GetLogicalProcessorInformation_Detour,
+    static_cast_p2p <void> (&GetLogicalProcessorInformation_Original) );
+
+  SK_CreateDLLHook2 (      L"Kernel32",
+                            "GetLogicalProcessorInformationEx",
+                             GetLogicalProcessorInformationEx_Detour,
+    static_cast_p2p <void> (&GetLogicalProcessorInformationEx_Original) );
 
   SK_CreateDLLHook2 (     L"Kernel32",
                             "GetSystemInfo",

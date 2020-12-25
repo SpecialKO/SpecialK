@@ -210,7 +210,7 @@ SK_OPT_PlugInCfg (void)
 
 
         extern void SK_ImGui_AdjustCursor (void);
-
+                    SK_ImGui_AdjustCursor ();
         changed = true;
       }
 

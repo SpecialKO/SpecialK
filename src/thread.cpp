@@ -312,6 +312,29 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
   return hr;
 }
 
+#define STATUS_SUCCESS     0
+
+ using RtlEnterCriticalSection_pfn = NTSTATUS (WINAPI *)(PRTL_CRITICAL_SECTION);
+       RtlEnterCriticalSection_pfn
+       RtlEnterCriticalSection_Original = nullptr;
+
+NTSTATUS
+WINAPI
+RtlEnterCriticalSection_Detour (
+  PRTL_CRITICAL_SECTION crit
+)
+{
+  // If we were to block here during DLL unload,
+  //   Windows might terminate the softwre.
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return STATUS_SUCCESS;
+
+  return
+    RtlEnterCriticalSection_Original (
+      crit
+    );
+}
+
 using InitializeCriticalSection_pfn = void (WINAPI *)(LPCRITICAL_SECTION lpCriticalSection);
       InitializeCriticalSection_pfn
       InitializeCriticalSection_Original = nullptr;
@@ -322,7 +345,31 @@ InitializeCriticalSection_Detour (
   LPCRITICAL_SECTION lpCriticalSection
 )
 {
-  InitializeCriticalSectionEx (lpCriticalSection, 0, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN);
+  if (lpCriticalSection == nullptr)
+    return;
+
+  InitializeCriticalSectionEx (
+    lpCriticalSection, 0,
+      RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN
+  );
+}
+
+void
+SK_HookCriticalSections (void)
+{
+  if (RtlEnterCriticalSection_Original == nullptr)
+    SK_CreateDLLHook2 ( L"NtDll", "RtlEnterCriticalSection",
+                                   RtlEnterCriticalSection_Detour,
+          static_cast_p2p <void> (&RtlEnterCriticalSection_Original)
+    );
+
+  if (InitializeCriticalSection_Original == nullptr)
+    SK_CreateDLLHook2 ( L"kernel32", "InitializeCriticalSection",
+                                      InitializeCriticalSection_Detour,
+             static_cast_p2p <void> (&InitializeCriticalSection_Original)
+    );
+
+  SK_RunOnce (SK_ApplyQueuedHooks ());
 }
 
 bool

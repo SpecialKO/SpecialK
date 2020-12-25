@@ -294,32 +294,6 @@ struct sk_config_t
 
     struct screenshot_handler_s {
       bool    enable_hook           =  true;
-      bool    png_compress          =  true;
-      bool    show_osd_by_default   =  true;
-
-      SK_ConfigSerializedKeybind
-              game_hud_free_keybind = {
-        SK_Keybind {
-          "Take Screenshot without Game's HUD", L"Num -",
-           false, false, false, VK_OEM_MINUS
-        }, L"HUDFree"
-      };
-
-      SK_ConfigSerializedKeybind
-              sk_osd_free_keybind = {
-        SK_Keybind {
-          "Take Screenshot without Special K's OSD", L"F8",
-           true, true, false, VK_F8
-        }, L"WithoutOSD"
-      };
-
-      SK_ConfigSerializedKeybind
-              sk_osd_insertion_keybind = {
-        SK_Keybind {
-          "Take Screenshot and insert Special K's OSD", L"Ctrl+Shift+F8",
-           false, false, true, VK_F8
-        }, L"InsertOSD"
-      };
     } screenshots;
   } steam;
 
@@ -327,6 +301,34 @@ struct sk_config_t
     float overlay_luminance     = 4.375f; // 350 nits
   } uplay;
 
+  struct screenshots_s {
+    bool    png_compress          =  true;
+    bool    show_osd_by_default   =  true;
+
+    SK_ConfigSerializedKeybind
+         game_hud_free_keybind = {
+      SK_Keybind {
+        "Take Screenshot without Game's HUD", L"Num -",
+         false, false, false, VK_OEM_MINUS
+      }, L"HUDFree"
+    };
+
+    SK_ConfigSerializedKeybind
+           sk_osd_free_keybind = {
+      SK_Keybind {
+        "Take Screenshot without Special K's OSD", L"Ctrl+Shift+F8",
+         true, true, false, VK_F8
+      }, L"WithoutOSD"
+    };
+
+    SK_ConfigSerializedKeybind
+      sk_osd_insertion_keybind = {
+      SK_Keybind {
+        "Take Screenshot and insert Special K's OSD", L"Alt+F8",
+         false, false, true, VK_F8
+      }, L"InsertOSD"
+    };
+  } screenshots;
 
   struct render_s {
     struct framerate_s {
@@ -925,6 +927,7 @@ enum class SK_GAME_ID
   HorizonZeroDawn,              // HorizonZeroDawn.exe
   BaldursGate3,                 // bg3.exe
   AssassinsCreed_Valhalla,      // ACValhalla.exe / ACValhalla_Plus.exe
+  Cyberpunk2077,                // Cyberpunk2077.exe
   UNKNOWN_GAME               = 0xffff
 };
 

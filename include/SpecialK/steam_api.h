@@ -59,10 +59,12 @@ namespace SK
     bool  __stdcall TakeScreenshot   (SK_ScreenshotStage when = SK_ScreenshotStage::EndOfFrame);
 
 
-    uint32_t    AppID        (void);
-    std::string AppName      (void);
+    uint32_t    AppID           (void);
+    std::string AppName         (void);
 
-    CSteamID    UserSteamID  (void);
+    CSteamID    UserSteamID     (void);
+
+    LONGLONG    GetCallbacksRun (void);
 
 
     // The state that we are explicitly telling the game
@@ -180,10 +182,6 @@ struct SK_SteamAchievement
   bool        unlocked_;
 };
 
-
-
-#include <concurrent_unordered_map.h>
-
 class SK_Steam_ScreenshotManager
 {
 public:
@@ -195,14 +193,8 @@ public:
     _Types
   };
 
-  static constexpr UINT _StatusTypes = (UINT)ScreenshotStatus::_Types;
-
-
-  struct screenshot_repository_s {
-    LARGE_INTEGER liSize;
-    unsigned int  files;
-  };
-
+  static constexpr UINT _StatusTypes =
+                  (UINT)ScreenshotStatus::_Types;
 
   SK_Steam_ScreenshotManager (void) noexcept :
        request ( this, &SK_Steam_ScreenshotManager::OnScreenshotRequest ),
@@ -229,23 +221,15 @@ public:
 
   void init (void);
 
-  const wchar_t*
-  getExternalScreenshotPath (void) const;
-
-  screenshot_repository_s&
-  getExternalScreenshotRepository (bool refresh = false);
-
-
 protected:
   concurrency::concurrent_unordered_map <ScreenshotHandle, EResult>
                           screenshots_handled;
-  screenshot_repository_s external_screenshots     = { };
   HANDLE                  hSigReady [_StatusTypes] = {
     INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE
   };
 
 private:
-} extern *screenshot_manager;
+} extern *steam_screenshot_manager;
 
 size_t SK_SteamAPI_GetNumPossibleAchievements (void);
 

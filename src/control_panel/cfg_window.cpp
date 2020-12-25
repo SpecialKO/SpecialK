@@ -26,7 +26,7 @@
 bool
 SK::ControlPanel::Window::Draw (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( ImGui::CollapsingHeader ("Window Management") )

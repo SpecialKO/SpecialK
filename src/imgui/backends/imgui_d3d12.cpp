@@ -23,8 +23,7 @@
 #include <imgui/backends/imgui_d3d12.h>
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
-
-
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
 #include <../depends/include/boost/range/counting_range.hpp>
 
@@ -290,52 +289,49 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   // Setup orthographic projection matrix into our constant buffer
   // Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right).
   VERTEX_CONSTANT_BUFFER vertex_constant_buffer = { };
+
+  VERTEX_CONSTANT_BUFFER* constant_buffer =
+                  &vertex_constant_buffer;
+
+  float L = 0.0f;
+  float R = 0.0f + io.DisplaySize.x;
+  float T = 0.0f;
+  float B = 0.0f + io.DisplaySize.y;
+  float mvp[4][4] =
   {
-    VERTEX_CONSTANT_BUFFER* constant_buffer =
-      &vertex_constant_buffer;
+    { 2.0f/(R-L),     0.0f,         0.0f,       0.0f },
+    {  0.0f,          2.0f/(T-B),   0.0f,       0.0f },
+    {  0.0f,          0.0f,         0.5f,       0.0f },
+    { (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f },
+  };
+  memcpy (&constant_buffer->mvp, mvp, sizeof (mvp));
 
-    float L = 0.0f;
-    float R = 0.0f + io.DisplaySize.x;
-    float T = 0.0f;
-    float B = 0.0f + io.DisplaySize.y;
-    float mvp[4][4] =
-    {
-      { 2.0f/(R-L),     0.0f,         0.0f,       0.0f },
-      {  0.0f,          2.0f/(T-B),   0.0f,       0.0f },
-      {  0.0f,          0.0f,         0.5f,       0.0f },
-      { (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f },
-    };
-    memcpy (&constant_buffer->mvp, mvp, sizeof (mvp));
+  if (! hdr_display)
+  {
+    constant_buffer->luminance_scale [0] = 1.0f; constant_buffer->luminance_scale [1] = 1.0f;
+    constant_buffer->luminance_scale [2] = 0.0f; constant_buffer->luminance_scale [3] = 0.0f;
+    constant_buffer->steam_luminance [0] = 1.0f; constant_buffer->steam_luminance [1] = 1.0f;
+    constant_buffer->steam_luminance [2] = 1.0f; constant_buffer->steam_luminance [3] = 1.0f;
+  }
 
-    if (! hdr_display)
-    {
-      constant_buffer->luminance_scale [0] = 1.0f; constant_buffer->luminance_scale [1] = 1.0f;
-      constant_buffer->luminance_scale [2] = 0.0f; constant_buffer->luminance_scale [3] = 0.0f;
-      constant_buffer->steam_luminance [0] = 1.0f; constant_buffer->steam_luminance [1] = 1.0f;
-      constant_buffer->steam_luminance [2] = 1.0f; constant_buffer->steam_luminance [3] = 1.0f;
-    }
+  else
+  {
+    SK_RenderBackend::scan_out_s::SK_HDR_TRANSFER_FUNC eotf =
+      rb.scanout.getEOTF ();
 
-    else
-    {
-      SK_RenderBackend::scan_out_s::SK_HDR_TRANSFER_FUNC eotf =
-        rb.scanout.getEOTF ();
+    bool bEOTF_is_PQ =
+     ( eotf == SK_RenderBackend::scan_out_s::SMPTE_2084 );
 
-      bool bEOTF_is_PQ =
-        (eotf == SK_RenderBackend::scan_out_s::SMPTE_2084);
-
-      constant_buffer->luminance_scale [0] = ( bEOTF_is_PQ ? -80.0f * rb.ui_luminance :
-                                                                      rb.ui_luminance );
-      constant_buffer->luminance_scale [1] = 2.2f;
-      constant_buffer->luminance_scale [2] = rb.display_gamut.minY * 1.0_Nits;
-      constant_buffer->steam_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.steam.overlay_hdr_luminance :
-                                                                      config.steam.overlay_hdr_luminance );
-      constant_buffer->steam_luminance [1] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
-                                                  //                                     1.0f));
-      constant_buffer->steam_luminance [2] = ( bEOTF_is_PQ ? -80.0f * config.uplay.overlay_luminance :
-                                                                      config.uplay.overlay_luminance );
-      constant_buffer->steam_luminance [3] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
-                                                  //                1.0f));
-    }
+    constant_buffer->luminance_scale [0] = ( bEOTF_is_PQ ? -80.0f * rb.ui_luminance :
+                                                                    rb.ui_luminance );
+    constant_buffer->luminance_scale [1] = 2.2f;
+    constant_buffer->luminance_scale [2] = rb.display_gamut.minY * 1.0_Nits;
+    constant_buffer->steam_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.steam.overlay_hdr_luminance :
+                                                                    config.steam.overlay_hdr_luminance );
+    constant_buffer->steam_luminance [1] = 2.2f;
+    constant_buffer->steam_luminance [2] = ( bEOTF_is_PQ ? -80.0f * config.uplay.overlay_luminance :
+                                                                    config.uplay.overlay_luminance );
+    constant_buffer->steam_luminance [3] = 2.2f;
   }
 
   // Setup viewport
@@ -424,12 +420,8 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
                                               vtx_offset,      0 );
       }
 
-      idx_offset +=
-        pcmd->ElemCount;
-    }
-
-    vtx_offset +=
-      cmd_list->VtxBuffer.Size;
+      idx_offset += pcmd->ElemCount;
+    } vtx_offset +=  cmd_list->VtxBuffer.Size;
   }
 }
 
@@ -620,12 +612,6 @@ ImGui_ImplDX12_CreateFontsTexture (void)
                                   hEvent);
     WaitForSingleObject          (hEvent, INFINITE);
 
-    cmdList.Release      ();
-    cmdAlloc.Release     ();
-    cmdQueue.Release     ();
-    pFence.Release       ();
-    uploadBuffer.Release ();
-
     // Create texture view
     D3D12_SHADER_RESOURCE_VIEW_DESC
       srvDesc                           = { };
@@ -759,20 +745,19 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
                    };
 
     // Create the input layout
-    static D3D12_INPUT_ELEMENT_DESC local_layout[] = {
+    static D3D12_INPUT_ELEMENT_DESC local_layout [] = {
       { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, static_cast<UINT>((size_t)(&((ImDrawVert*)0)->pos)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
       { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, static_cast<UINT>((size_t)(&((ImDrawVert*)0)->uv)),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
       { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, static_cast<UINT>((size_t)(&((ImDrawVert*)0)->col)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
 
-    psoDesc.InputLayout =
-    { local_layout, 3 };
+      psoDesc.InputLayout = {       local_layout, 3   };
 
-    psoDesc.PS = {
-              imgui_d3d11_ps_bytecode,
-      sizeof (imgui_d3d11_ps_bytecode) /
-      sizeof (imgui_d3d11_ps_bytecode) [0]
-                 };
+      psoDesc.PS = {
+                imgui_d3d11_ps_bytecode,
+        sizeof (imgui_d3d11_ps_bytecode) /
+        sizeof (imgui_d3d11_ps_bytecode) [0]
+                   };
 
     // Create the blending setup
     D3D12_BLEND_DESC&
@@ -826,14 +811,14 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
                                  L"ImGui D3D12 Pipeline State");
 
     ImGui_ImplDX12_CreateFontsTexture ();
+
+    return true;
   }
 
   catch (SK_ComException&)
   {
     return false;
   }
-
-  return true;
 }
 
 void
@@ -892,9 +877,12 @@ ImGui_ImplDX12_Shutdown (void)
 {
   ImGui_ImplDX12_InvalidateDeviceObjects ();
 
-  SK_LOG0 ( ( L"Device: %p, Format: %lu", _imgui_d3d12.pDevice.p,
-                                          _imgui_d3d12.RTVFormat ),
-              L"D3D12Reset" );
+  if (_imgui_d3d12.pDevice.p != nullptr)
+  {
+    SK_LOG0 ( ( L"Device: %p, Format: %ws", _imgui_d3d12.pDevice.p,
+                       SK_DXGI_FormatToStr (_imgui_d3d12.RTVFormat).c_str () ),
+                L"D3D12Reset" );
+  }
 
   _imgui_d3d12.pDevice.Release ();
   _imgui_d3d12.hFontSrvCpuDescHandle.ptr = 0;
@@ -1109,6 +1097,11 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   FrameCtx& stagingFrame =
     frames_ [swapIdx];
 
+  SK_ReleaseAssert (stagingFrame.fence.p != nullptr);
+
+  if (stagingFrame.fence == nullptr)
+    return;
+
   auto pCommandList =
     stagingFrame.pCmdList.p;
 
@@ -1192,6 +1185,11 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
     static FLOAT         kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
+    stagingFrame.hdr.barriers.copy_end ->Flags = D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
+    stagingFrame.hdr.barriers.process[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
+    stagingFrame.hdr.barriers.process[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
+
+
     pCommandList->SetGraphicsRootSignature          ( pHDRSignature                                  );
     pCommandList->SetPipelineState                  ( pHDRPipeline                                   );
     pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0                      );
@@ -1215,7 +1213,9 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   else
     transition_state (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_PRESENT,
-                                                                D3D12_RESOURCE_STATE_RENDER_TARGET);
+                                                                D3D12_RESOURCE_STATE_RENDER_TARGET,
+                                                                D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+                                                                D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY);
 
   // Queue-up Pre-SK OSD Screenshots
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeGameHUD, rb); // Before Game HUD (meaningless in D3D12)
@@ -1228,7 +1228,9 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame, rb);
 
   transition_state   (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_RENDER_TARGET,
-                                                                D3D12_RESOURCE_STATE_PRESENT);
+                                                                D3D12_RESOURCE_STATE_PRESENT,
+                                                                D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+                                                                D3D12_RESOURCE_BARRIER_FLAG_END_ONLY);
 
   ////SK_D3D12_UpdateRenderStatsEx ( stagingFrame.pCmdList,
   ////                               stagingFrame.pRoot->pSwapChain );
@@ -1367,12 +1369,34 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 }
 
 #include <d3d12sdklayers.h>
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
+  SK_ComQIPtr <IDXGISwapChain> pSwapChain_ (pSwapChain);
+  SK_ComPtr   <IDXGISwapChain> pSwapChainUnwrapped;
+
+  UINT _size =
+        sizeof (LPVOID);
+
+  IUnknown* pUnwrapped = nullptr;
+
+  if ( pSwapChain != nullptr &&
+       SUCCEEDED (
+         pSwapChain_->GetPrivateData (
+           IID_IUnwrappedDXGISwapChain, &_size,
+              &pUnwrapped
+                 )                  )
+     )
+  {
+             pSwapChainUnwrapped.p =
+    (IDXGISwapChain *)pUnwrapped;
+  }
+
   if ( (_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
-        _pSwapChain.IsEqualObject  (pSwapChain) )
+        _pSwapChain.IsEqualObject  (pSwapChain)            ||
+        _pSwapChain.IsEqualObject  (pUnwrapped) )
   {
     if (SK_IsDebuggerPresent ())
     {
@@ -1383,6 +1407,12 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
           pDebugDevice->ReportLiveDeviceObjects ( D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL|
                                                   D3D12_RLDO_IGNORE_INTERNAL );
     }
+
+    extern void
+    SK_D3D12_EndFrame (SK_TLS*);
+
+    SK_D3D12_EndFrame ( SK_TLS_Bottom () );
+
 
     ImGui_ImplDX12_Shutdown ();
 
@@ -1494,11 +1524,22 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         ThrowIfFailed (
           _pDevice->CreateCommandAllocator (
                                     D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&frame.pCmdAllocator.p)));
-        ThrowIfFailed (
-          _pDevice->CreateCommandList (
-                                 0, D3D12_COMMAND_LIST_TYPE_DIRECT,                frame.pCmdAllocator, nullptr,
+
+        SK_ComQIPtr <ID3D12Device4>
+                          pDevice4 (_pDevice);
+
+        if (! pDevice4) {
+          ThrowIfFailed (
+            _pDevice->CreateCommandList ( 0,
+                                    D3D12_COMMAND_LIST_TYPE_DIRECT,                frame.pCmdAllocator.p, nullptr,
                                                                     IID_PPV_ARGS (&frame.pCmdList.p)));
-        ThrowIfFailed (                                                            frame.pCmdList->Close ());
+          ThrowIfFailed (                                                          frame.pCmdList->Close ());
+        } else {
+          ThrowIfFailed ( pDevice4->CreateCommandList1 ( 0,
+                                    D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                    D3D12_COMMAND_LIST_FLAG_NONE,   IID_PPV_ARGS (&frame.pCmdList.p)));
+        }
+
         ThrowIfFailed (
           _pSwapChain->GetBuffer (frame.iBufferIdx,                 IID_PPV_ARGS (&frame.pRenderOutput.p)));
 

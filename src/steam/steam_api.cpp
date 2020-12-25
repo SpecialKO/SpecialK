@@ -706,7 +706,10 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
 
 
 extern bool
-SK_D3D11_CaptureSteamScreenshot (SK_ScreenshotStage when);
+SK_D3D11_CaptureScreenshot (SK_ScreenshotStage when);
+
+extern bool
+SK_D3D12_CaptureScreenshot (SK_ScreenshotStage when);
 
 extern bool
 SK_D3D9_CaptureSteamScreenshot  (SK_ScreenshotStage when);
@@ -731,9 +734,19 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
 
   if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
   {
-    SK_D3D11_CaptureSteamScreenshot (
-      config.steam.screenshots.show_osd_by_default ?
-                   SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
+    SK_D3D11_CaptureScreenshot (
+      config.screenshots.show_osd_by_default ?
+              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
+    );
+
+    return;
+  }
+
+  else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D12 )
+  {
+    SK_D3D12_CaptureScreenshot (
+      config.screenshots.show_osd_by_default ?
+              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
     );
 
     return;
@@ -843,7 +856,7 @@ void
 SK_Steam_ScreenshotManager::init (void)
 {
   __try {
-    getExternalScreenshotRepository (true);
+    SK_GetCurrentRenderBackend ().screenshot_mgr.getRepoStats (true);
 
     auto pScreenshots =
       steam_ctx.Screenshots ();
@@ -862,68 +875,6 @@ SK_Steam_ScreenshotManager::init (void)
     }
   } __except (EXCEPTION_EXECUTE_HANDLER) { };
 }
-
-const wchar_t*
-SK_Steam_ScreenshotManager::
-getExternalScreenshotPath (void) const
-{
-  static wchar_t
-    wszAbsolutePathToScreenshots [ MAX_PATH + 2 ] = { };
-
-  if (*wszAbsolutePathToScreenshots != L'\0')
-    return wszAbsolutePathToScreenshots;
-
-  wcsncpy_s    ( wszAbsolutePathToScreenshots, MAX_PATH,
-                 SK_GetConfigPath (),          _TRUNCATE      );
-  PathAppendW  ( wszAbsolutePathToScreenshots, L"Screenshots" );
-
-  return         wszAbsolutePathToScreenshots;
-}
-
-SK_Steam_ScreenshotManager::screenshot_repository_s&
-SK_Steam_ScreenshotManager::getExternalScreenshotRepository (bool refresh)
-{
-  static bool init = false;
-
-  if (refresh || (! init))
-  {
-    external_screenshots.files           = 0;
-    external_screenshots.liSize.QuadPart = 0ULL;
-
-    WIN32_FIND_DATA fd        = {   };
-    std::wstring    directory = getExternalScreenshotPath ();
-    HANDLE          hFind     =
-      FindFirstFileW   (_ConstructPath (directory, L"*").data (), &fd);
-
-    if (hFind != INVALID_HANDLE_VALUE)
-    {
-      do
-      {
-        if (         (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
-          (  wcsncmp (fd.cFileName, L"." , MAX_PATH) != 0)             &&
-            (wcsncmp (fd.cFileName, L"..", MAX_PATH) != 0) )
-        {
-          SK_Steam_RecursiveFileScrub ( _ConstructPath   (
-                                          _ConstructPath ( directory, fd.cFileName ),
-                                          L""            ).data (),
-            external_screenshots.files, external_screenshots.liSize,
-            L"*",                       L"SK_SteamScreenshotImport.jpg",
-            false
-          );
-        }
-      } while (FindNextFile (hFind, &fd));
-
-      FindClose (hFind);
-
-      init = true;
-    }
-  }
-
-  return external_screenshots;
-}
-
-SK_Steam_ScreenshotManager *screenshot_manager = nullptr;
-
 
 bool  __SK_Steam_IgnoreOverlayActivation = false;
 DWORD __SK_Steam_MagicThread             =     0;
@@ -3377,6 +3328,7 @@ private:
 };
 
 static std::unique_ptr <SK_Steam_AchievementManager> steam_achievements = nullptr;
+static std::unique_ptr <SK_Steam_ScreenshotManager>  steam_screenshots  = nullptr;
 
 void
 SK_Steam_LoadUnlockSound (const wchar_t* wszUnlockSound)
@@ -3978,6 +3930,13 @@ SK::SteamAPI::UserSteamID (void)
   return usr_steam_id;
 }
 
+LONGLONG
+SK::SteamAPI::GetCallbacksRun (void)
+{
+  return
+    ReadAcquire64 (&SK_SteamAPI_CallbackRunCount);
+}
+
 uint32_t
 SK::SteamAPI::AppID (void)
 {
@@ -4396,52 +4355,61 @@ bool
 __stdcall
 SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when)
 {
-  ISteamScreenshots* pScreenshots =
-    steam_ctx.Screenshots ();
+  steam_log->LogEx (true, L"  >> Triggering Screenshot: ");
 
-  if (pScreenshots != nullptr)
+  bool captured = false;
+
+  if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+       static_cast <int> (SK_RenderAPI::D3D11) )
   {
-    steam_log->LogEx (true, L"  >> Triggering Screenshot: ");
+    captured =
+      SK_D3D11_CaptureScreenshot (when);
+  }
 
-    if (config.steam.screenshots.enable_hook)
-    {
-      if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
-      {
-        SK_D3D11_CaptureSteamScreenshot (when);
+  else if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <int> (SK_RenderAPI::D3D12) )
+  {
+    captured =
+      SK_D3D12_CaptureScreenshot (when);
+  }
 
-        steam_log->LogEx ( false, L"Stage=%x (SK_SmartCapture)\n",
-          (int)when );
-        return true;
-      }
+  //else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
+  //{
+  //  // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
+  //  //if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
+  //  {
+  //    SK_D3D9_CaptureSteamScreenshot ( when );
+  //
+  //
+  //    steam_log->LogEx ( false, L"Stage=%x (SK_SmartCapture)\n",
+  //                        (int)when );
+  //    return true;
+  //  }
+  //}
 
-      //else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
-      //{
-      //  // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
-      //  //if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
-      //  {
-      //    SK_D3D9_CaptureSteamScreenshot ( when );
-      //
-      //
-      //    steam_log->LogEx ( false, L"Stage=%x (SK_SmartCapture)\n",
-      //                        (int)when );
-      //    return true;
-      //  }
-      //}
-    }
-
-    pScreenshots->TriggerScreenshot ();
-    steam_log->LogEx (false, L"EndOfFrame (Steam Overlay)\n");
-
-    if ( when != SK_ScreenshotStage::EndOfFrame )
-    {
-      steam_log->Log(L" >> WARNING: Smart Capture disabled or unsupported"
-                     L"; screenshot taken at end-of-frame.");
-    }
+  if (captured)
+  {
+    steam_log->LogEx ( false, L"Stage=%x (SK_SmartCapture)\n",
+                         static_cast <int> (when) );
 
     return true;
   }
 
-  return false;
+  ISteamScreenshots* pScreenshots =
+    steam_ctx.Screenshots ();
+
+  if (pScreenshots)
+  {   pScreenshots->TriggerScreenshot ();
+      steam_log->LogEx (false, L"EndOfFrame (Steam Overlay)\n");
+  }
+
+  if ( when != SK_ScreenshotStage::EndOfFrame )
+  {
+    steam_log->Log (L" >> WARNING: Smart Capture disabled or unsupported"
+                    L"; screenshot taken at end-of-frame.");
+  }
+
+  return true;
 }
 
 
@@ -4934,8 +4902,8 @@ SK_SteamAPI_InitManagers (void)
 {
   if (! InterlockedCompareExchange (&SK_SteamAPI_ManagersInitialized, 1, 0))
   {
-    if (steam_ctx.Screenshots () && (! screenshot_manager))
-     screenshot_manager = new SK_Steam_ScreenshotManager ();
+    if (steam_ctx.Screenshots () && (! steam_screenshots))
+       steam_screenshots.reset (new SK_Steam_ScreenshotManager ());
 
     ISteamUserStats* stats =
       steam_ctx.UserStats ();
@@ -4978,15 +4946,9 @@ SK_SteamAPI_DestroyManagers (void)
   if (InterlockedCompareExchange (&SK_SteamAPI_ManagersInitialized, 0, 1) == 1)
   {
     steam_achievements.reset ();
+    steam_screenshots.reset  ();
     overlay_manager.reset    ();
     user_manager.reset       ();
-
-    if (screenshot_manager != nullptr)
-    {
-      auto* to_delete = screenshot_manager;
-                        screenshot_manager = nullptr;
-      delete to_delete;
-    }
   }
 }
 
@@ -5332,7 +5294,7 @@ SK_SteamAPI_AddScreenshotToLibraryEx ( const char *pchFilename,
 
     if (Wait)
     {
-      screenshot_manager->WaitOnScreenshot ( handle );
+      steam_screenshots->WaitOnScreenshot ( handle );
     }
 
     return handle;

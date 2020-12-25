@@ -31,7 +31,6 @@
 #pragma warning (push)
 #pragma warning (disable : 4714)
 
-
 extern SK_LazyGlobal <
   concurrency::concurrent_unordered_map <DWORD, std::wstring>
 > _SK_ThreadNames;
@@ -460,17 +459,15 @@ GetProcAddress_Detour     (
   ///    *phMod = (HMODULE)1;
   ///};
 
-  ////////static HMODULE hModSteamOverlay = nullptr;
+
   ////////static HMODULE hModSteamClient  = nullptr;
   ////////static HMODULE hModSteamAPI     = nullptr;
   ////////
-  ////////hModSteamOverlay  =
-  ////////hModSteamOverlay != nullptr ?
-  ////////hModSteamOverlay  :
-  ////////   SK_GetModuleHandle (
-  ////////     SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
-  ////////                             L"GameOverlayRenderer.dll" )
-  ////////                      );
+  static HMODULE hModSteamOverlay =
+    SK_GetModuleHandle (
+       SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
+                               L"GameOverlayRenderer.dll" )
+                       );
   ////////
   ////////hModSteamClient  =
   ////////hModSteamClient != nullptr ?
@@ -534,25 +531,29 @@ GetProcAddress_Detour     (
       GetMessageA_Detour ( LPMSG lpMsg,          HWND hWnd,
                            UINT   wMsgFilterMin, UINT wMsgFilterMax );
 
-    if (             *lpProcName == 'D' &&
-         (! lstrcmpA (lpProcName, "D3D11On12CreateDevice")) )
-    {
-      if (SK_IsInjected ())
-      {
-        SK_RunOnce (
-          SK_ImGui_WarningWithTitle (
-            SK_FormatStringW (
-              L"The overlay '%ws' uses D3D11On12 and has been disabled to prevent crashing.\r\n\r\n\t\t"
-              L">> Please use Special K in Local Injection mode or turn the third-party overlay off.",
-                SK_GetCallerName ().c_str ()
-            ).c_str (),
-            L"A non-D3D12 native overlay was detected."
-          )
-        );
-
-        return nullptr;
-      }
-    }
+    ////
+    //// Compat Hack No Longer Needed, but is a handy way to disable
+    ////   D3D11On12 interop if a game needs pure D3D12 for some reson.
+    ////
+    ////if (             *lpProcName == 'D' &&
+    ////     (! lstrcmpA (lpProcName, "D3D11On12CreateDevice")) )
+    ////{
+    ////  if (SK_IsInjected ())
+    ////  {
+    ////    SK_RunOnce (
+    ////      SK_ImGui_WarningWithTitle (
+    ////        SK_FormatStringW (
+    ////          L"The overlay '%ws' uses D3D11On12 and has been disabled to prevent crashing.\r\n\r\n\t\t"
+    ////          L">> Please use Special K in Local Injection mode or turn the third-party overlay off.",
+    ////            SK_GetCallerName ().c_str ()
+    ////        ).c_str (),
+    ////        L"A non-D3D12 native overlay was detected."
+    ////      )
+    ////    );
+    ////
+    ////    return nullptr;
+    ////  }
+    ////}
 
     if ( *lpProcName == 'P'      &&
  StrStrA (lpProcName,   "PeekM") == lpProcName )
@@ -809,15 +810,15 @@ GetProcAddress_Detour     (
 
     if (config.system.log_level > 0 && (uintptr_t)lpProcName > 65536)
     {
-      //if ( hModCaller != SK_GetDLL ()  &&
-      //     hModCaller != hModSteamOverlay )
-      //{
+      if ( hModCaller != SK_GetDLL ()  &&
+           hModCaller != hModSteamOverlay )
+      {
         SK_LOG3 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %ws)",
                         SK_GetModuleFullName (hModule).c_str (),
                                               lpProcName,
                           SK_SummarizeCaller (       ).c_str () ),
                      L"DLL_Loader" );
-      //}
+      }
     }
   }
 
@@ -3590,10 +3591,10 @@ SK_HookEngine_HookGetProcAddress (void)
   ///////);
 
   SK_RunOnce (
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "GetProcAddress",
-                               GetProcAddress_Detour,
-      static_cast_p2p <void> (&GetProcAddress_Original) )
+    SK_CreateDLLHook (      L"kernel32",
+                             "GetProcAddress",
+                              GetProcAddress_Detour,
+     static_cast_p2p <void> (&GetProcAddress_Original) )
   );
 }
 
@@ -3617,7 +3618,7 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                             "RtlInitUnicodeString" );
 
 #ifdef _EXTENDED_DEBUG
-    if (config.compatibility.advanced_debug)
+    if (true)//config.compatibility.advanced_debug)
     {
       SK_CreateDLLHook2 (    L"NtDll",
                               "RtlAcquirePebLock",
@@ -3694,7 +3695,7 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
       static_cast_p2p <void> (&RaiseException_Original) );
 
 #ifdef _EXTENDED_DEBUG
-    if (config.advanced_debug)
+    if (true)//config.advanced_debug)
     {
       //SK_CreateDLLHook2 (      L"NtDll",
       //                          "RtlRaiseException",
@@ -3784,7 +3785,7 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
       static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
 
 #ifdef _EXTENDED_DEBUG
-    if (config.advanced_debug)
+    if (true)//config.advanced_debug)
     {
       SK_CreateDLLHook2 (      L"NtDll",
                                 "DbgUiRemoteBreakin",
@@ -3800,7 +3801,7 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     SK_Thread_InitDebugExtras ();
 
 #ifdef _EXTENDED_DEBUG
-    if (config.advanced_debug)
+    if (true)//config.advanced_debug)
     {
       RtlAcquirePebLock_Detour ();
       RtlReleasePebLock_Detour ();
@@ -3817,8 +3818,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
       ///                         CloseHandle_Detour,
       ///static_cast_p2p <void> (&CloseHandle_Original) );
     }
-
-  SK_HookEngine_HookGetProcAddress ();
 
     InterlockedIncrementRelease (&__init);
   }
@@ -4201,19 +4200,15 @@ SAFE_SymFromAddr (
   if (Trampoline == nullptr)
     return bRet;
 
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_ACCESS_VIOLATION
-    )
-  );
-  try
-  {
+  __try {
     bRet =
       Trampoline (hProcess, Address, Displacement, Symbol);
   }
-  catch (const SK_SEH_IgnoredException&) { }
-  SK_SEH_RemoveTranslator (orig_se);
+
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                    EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
+  {
+  }
 
   return bRet;
 }

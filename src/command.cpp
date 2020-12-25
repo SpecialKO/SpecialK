@@ -139,6 +139,12 @@ SK_ICommandProcessor::SK_ICommandProcessor (void)
   process_cmd_lock =
     std::make_unique <SK_Thread_HybridSpinlock> (1024);
 
+  add_remove_cmd_lock =
+    std::make_unique <SK_Thread_HybridSpinlock> (128);
+
+  add_remove_var_lock =
+    std::make_unique <SK_Thread_HybridSpinlock> (128);
+
   AddCommand ("source", new SK_SourceCmd (this));
 }
 
@@ -156,7 +162,7 @@ SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
     return nullptr;
 
   std::scoped_lock <SK_Thread_HybridSpinlock>
-        scope_lock (*process_cmd_lock);
+        scope_lock (*add_remove_cmd_lock);
 
   /* Command already exists, what should we do?! */
   if (FindCommand (szCommand) != nullptr)
@@ -171,7 +177,7 @@ bool
 SK_ICommandProcessor::RemoveCommand (const char* szCommand)
 {
   std::scoped_lock <SK_Thread_HybridSpinlock>
-      scope_lock (*process_cmd_lock);
+      scope_lock (*add_remove_cmd_lock);
 
   if (FindCommand (szCommand) != nullptr)
   {
@@ -189,7 +195,7 @@ SK_ICommand*
 SK_ICommandProcessor::FindCommand (const char* szCommand)
 {
   std::scoped_lock <SK_Thread_HybridSpinlock>
-        scope_lock (*process_cmd_lock);
+        scope_lock (*add_remove_cmd_lock);
 
   const auto command =
     commands_.find (szCommand);
@@ -212,7 +218,7 @@ SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariab
     return nullptr;
 
   std::scoped_lock <SK_Thread_HybridSpinlock>
-        scope_lock (*process_cmd_lock);
+        scope_lock (*add_remove_var_lock);
 
   /* Variable already exists, what should we do?! */
   if (FindVariable (szVariable) != nullptr)
@@ -229,7 +235,7 @@ bool
 SK_ICommandProcessor::RemoveVariable (const char* szVariable)
 {
   std::scoped_lock <SK_Thread_HybridSpinlock>
-        scope_lock (*process_cmd_lock);
+        scope_lock (*add_remove_var_lock);
 
   if (FindVariable (szVariable) != nullptr)
   {
@@ -247,7 +253,7 @@ const SK_IVariable*
 SK_ICommandProcessor::FindVariable (const char* szVariable)
 {
   std::scoped_lock <SK_Thread_HybridSpinlock>
-        scope_lock (*process_cmd_lock);
+        scope_lock (*add_remove_var_lock);
 
   const auto variable =
     variables_.find (szVariable);

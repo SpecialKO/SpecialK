@@ -1,4 +1,78 @@
+/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
+
+#pragma once
+
 #include <Unknwnbase.h>
+
+#include <d3d12.h>
+
+typedef
+  HRESULT (*D3D12SerializeRootSignature_pfn)(
+             const D3D12_ROOT_SIGNATURE_DESC   *pRootSignature,
+                   D3D_ROOT_SIGNATURE_VERSION   Version,
+                   ID3DBlob                   **ppBlob,
+                   ID3DBlob                   **ppErrorBlob);
+
+#if 0
+ID3D12Device vftable
+--------------------
+7  UINT                           STDMETHODCALLTYPE GetNodeCount
+8  HRESULT                        STDMETHODCALLTYPE CreateCommandQueue
+9  HRESULT                        STDMETHODCALLTYPE CreateCommandAllocator
+10 HRESULT                        STDMETHODCALLTYPE CreateGraphicsPipelineState
+11 HRESULT                        STDMETHODCALLTYPE CreateComputePipelineState
+12 HRESULT                        STDMETHODCALLTYPE CreateCommandList
+13 HRESULT                        STDMETHODCALLTYPE CheckFeatureSupport
+14 HRESULT                        STDMETHODCALLTYPE CreateDescriptorHeap
+15 UINT                           STDMETHODCALLTYPE GetDescriptorHandleIncrementSize
+16 HRESULT                        STDMETHODCALLTYPE CreateRootSignature
+17 void                           STDMETHODCALLTYPE CreateConstantBufferView
+18 void                           STDMETHODCALLTYPE CreateShaderResourceView
+19 void                           STDMETHODCALLTYPE CreateUnorderedAccessView
+20 void                           STDMETHODCALLTYPE CreateRenderTargetView
+21 void                           STDMETHODCALLTYPE CreateDepthStencilView
+22 void                           STDMETHODCALLTYPE CreateSampler
+23 void                           STDMETHODCALLTYPE CopyDescriptors
+24 void                           STDMETHODCALLTYPE CopyDescriptorsSimple
+25 D3D12_RESOURCE_ALLOCATION_INFO STDMETHODCALLTYPE GetResourceAllocationInfo
+26 D3D12_HEAP_PROPERTIES          STDMETHODCALLTYPE GetCustomHeapProperties
+27 HRESULT                        STDMETHODCALLTYPE CreateCommittedResource
+28 HRESULT                        STDMETHODCALLTYPE CreateHeap
+29 HRESULT                        STDMETHODCALLTYPE CreatePlacedResource
+30 HRESULT                        STDMETHODCALLTYPE CreateReservedResource
+31 HRESULT                        STDMETHODCALLTYPE CreateSharedHandle
+32 HRESULT                        STDMETHODCALLTYPE OpenSharedHandle
+33 HRESULT                        STDMETHODCALLTYPE OpenSharedHandleByName
+34 HRESULT                        STDMETHODCALLTYPE MakeResident
+35 HRESULT                        STDMETHODCALLTYPE Evict
+36 HRESULT                        STDMETHODCALLTYPE CreateFence
+37 HRESULT                        STDMETHODCALLTYPE GetDeviceRemovedReason
+38 void                           STDMETHODCALLTYPE GetCopyableFootprints
+39 HRESULT                        STDMETHODCALLTYPE CreateQueryHeap
+40 HRESULT                        STDMETHODCALLTYPE SetStablePowerState
+41 HRESULT                        STDMETHODCALLTYPE CreateCommandSignature
+42 void                           STDMETHODCALLTYPE GetResourceTiling
+43 LUID                           STDMETHODCALLTYPE GetAdapterLuid
+#endif
 
 #if 0
     typedef struct ID3D12GraphicsCommandListVtbl
@@ -367,3 +441,123 @@ typedef HRESULT (WINAPI *D3D12CreateDevice_pfn)(
 
 extern          IUnknown*      g_pD3D12Dev;
 extern D3D12CreateDevice_pfn   D3D12CreateDevice_Import;
+
+#include <d3d12.h>
+#include <dxgidebug.h>
+#include <D3D11SDKLayers.h>
+
+struct SK_D3D12_StateTransition : D3D12_RESOURCE_BARRIER
+{
+  SK_D3D12_StateTransition ( D3D12_RESOURCE_STATES before,
+                             D3D12_RESOURCE_STATES after ) :
+           D3D12_RESOURCE_BARRIER ( { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE,
+                                    { nullptr, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+                                               before,
+                                               after
+                                    }
+                                    }
+           )
+  { };
+};
+
+struct SK_D3D12_RenderCtx {
+  SK_ComPtr <ID3D12Device>                _pDevice          = nullptr;
+  SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue    = nullptr;
+  SK_ComPtr <IDXGISwapChain3>             _pSwapChain       = nullptr;
+
+  SK_ComPtr <ID3D12PipelineState>         pHDRPipeline      = nullptr;
+  SK_ComPtr <ID3D12RootSignature>         pHDRSignature     = nullptr;
+
+  struct {
+    SK_ComPtr <ID3D12DescriptorHeap>      pBackBuffers      = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pImGui            = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pHDR              = nullptr;
+  } descriptorHeaps;
+
+	struct FrameCtx {
+    SK_D3D12_RenderCtx*                   pRoot             = nullptr;
+
+    struct FenceCtx : SK_ComPtr <ID3D12Fence> {
+      HANDLE                              event             =       0;
+      volatile UINT64                     value             =       0;
+    } fence;
+
+    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList          = nullptr;
+		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator     = nullptr;
+    bool                                  bCmdListRecording =   false;
+
+		SK_ComPtr <ID3D12Resource>            pRenderOutput     = nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput;
+    UINT                                  iBufferIdx        =UINT_MAX;
+
+    struct {
+      SK_ComPtr <ID3D12Resource>          pSwapChainCopy    = nullptr;
+      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU;
+      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU;
+      D3D12_RECT                          scissor           = {     };
+      D3D12_VIEWPORT                      vp                = {     };
+
+      struct {
+        SK_D3D12_StateTransition          process  [2]      = {
+          { D3D12_RESOURCE_STATE_COPY_DEST,   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },
+          { D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET         }
+        },                                copy_end [1]      = {
+          { D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST   }
+        };
+      } barriers;
+    } hdr;
+
+    bool wait_for_gpu   (void);
+    bool begin_cmd_list (const SK_ComPtr <ID3D12PipelineState> &state = nullptr);
+	  void exec_cmd_list  (void);
+
+              ~FrameCtx (void);
+	};
+
+  std::vector <FrameCtx>                frames_;
+
+  void present (IDXGISwapChain3*    pSwapChain);
+  void release (IDXGISwapChain*     pSwapChain);
+  bool init    (IDXGISwapChain3*    pSwapChain,
+                ID3D12CommandQueue* pCommandQueue);
+
+  static void
+    transition_state (
+		  const SK_ComPtr <ID3D12GraphicsCommandList>& list,
+		  const SK_ComPtr <ID3D12Resource>&            res,
+		                         D3D12_RESOURCE_STATES from,
+                             D3D12_RESOURCE_STATES to,
+		                                          UINT subresource =
+                             D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+                      D3D12_RESOURCE_BARRIER_FLAGS flags =
+                             D3D12_RESOURCE_BARRIER_FLAG_NONE
+    )
+	  {
+	  	D3D12_RESOURCE_BARRIER
+        transition = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION };
+	  	  transition.Transition.pResource   = res.p;
+	  	  transition.Transition.Subresource = subresource;
+	  	  transition.Transition.StateBefore = from;
+	  	  transition.Transition.StateAfter  = to;
+        transition.Flags                  = flags;
+
+	  	list->ResourceBarrier
+      ( 1,    &transition );
+	  }
+
+};
+
+extern SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk;
+
+struct SK_ImGui_ResourcesD3D12
+{
+  SK_ComPtr <ID3D12DescriptorHeap> heap;
+
+  SK_ComPtr <ID3D12PipelineState> pipeline;
+  SK_ComPtr <ID3D12RootSignature> signature;
+
+	SK_ComPtr <ID3D12Resource> indices  [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
+  int                    num_indices  [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
+  SK_ComPtr <ID3D12Resource> vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
+	int                    num_vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
+};

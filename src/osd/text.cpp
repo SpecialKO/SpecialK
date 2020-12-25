@@ -583,8 +583,8 @@ void
 __stdcall
 SK_InstallOSD (void)
 {
-  SK_CEGUI_QueueResetD3D9  ();
-  SK_CEGUI_QueueResetD3D11 ();
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)  SK_CEGUI_QueueResetD3D9  ();
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) SK_CEGUI_QueueResetD3D11 ();
 
   if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE))
   {
@@ -708,7 +708,7 @@ SK_DrawOSD (void)
     }
   }
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   // Delay this a few frames so we do not create multiple framerate limiters
@@ -2180,8 +2180,9 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
          it->second              == nullptr           ||
          it->second->font_.cegui == nullptr )
     {
-      SK_CEGUI_QueueResetD3D11 ();
-      SK_CEGUI_QueueResetD3D9  ();
+      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) SK_CEGUI_QueueResetD3D11 ();
+      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)  SK_CEGUI_QueueResetD3D9  ();
+
       return fabs (y - base_y);
     }
 
@@ -2204,8 +2205,9 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
          it->second              == nullptr           ||
          it->second->font_.cegui == nullptr )
     {
-      SK_CEGUI_QueueResetD3D11 ();
-      SK_CEGUI_QueueResetD3D9  ();
+      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) SK_CEGUI_QueueResetD3D11 ();
+      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)  SK_CEGUI_QueueResetD3D9  ();
+
       return fabs (y - base_y);
     }
 

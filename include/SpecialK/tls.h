@@ -383,6 +383,7 @@ public:
   SK_ComPtr <ID3D11RenderTargetView> pRTVOrig;
 
   SK_ComPtr <ID3D11BlendState>       pOrigBlendState;
+
   UINT                               uiOrigBlendMask          = 0x0;
   FLOAT                              fOrigBlendFactors [4]    =
                                        { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -392,10 +393,6 @@ public:
 
   SK_D3D11_Stateblock_Lite*          stateBlock               = nullptr;
   size_t                             stateBlockSize           = 0;
-
-  // Sampler to share between ImGui and CEGUI
-  SK_ComPtr <ID3D11SamplerState>     uiSampler_clamp;
-  SK_ComPtr <ID3D11SamplerState>     uiSampler_wrap;
 
   SK_ComPtr <ID3D11Buffer>           pOriginalCBuffers [6]
         [D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT]

@@ -26,7 +26,6 @@ struct PS_INPUT
 };
 sampler   sampler0     : register (s0);
 Texture2D texMainScene : register (t0);
-Texture2D texHUD       : register (t1);
 
 static const float _PI     = 3.141592654;
 static const float _TWO_PI = 2 * _PI;
@@ -1799,7 +1798,7 @@ float4 main (PS_INPUT input) : SV_TARGET
              :           SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
                              sdrIsImplicitlysRGB ).rgb
-                      ) /** hdrExposure*/;
+                      );
 
 
   if ( input.coverage.x < input.uv.x ||

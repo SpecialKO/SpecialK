@@ -152,6 +152,11 @@ extern const GUID IID_IUnwrappedD3D11RenderTargetView;
 struct __declspec (uuid ("9A222196-4D44-45C3-AAA4-2FD47915CC70"))
                       IUnwrappedD3D11DeviceContext;
 
+// {4F5D4B49-730F-4BFA-A6A4-0C82BF114001}
+static constexpr GUID IID_ITrackThisD3D11Device =
+{ 0x4f5d4b49, 0x730f, 0x4bfa, { 0xa6, 0xa4, 0xc, 0x82, 0xbf, 0x11, 0x40, 0x1 } };
+
+
 
 
 
@@ -2245,3 +2250,248 @@ SK_D3D11_DeclKMT (D3DPerformance_EndEvent);
 SK_D3D11_DeclKMT (D3DPerformance_GetStatus);
 SK_D3D11_DeclKMT (D3DPerformance_SetMarker);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct SK_ImGui_D3D11Ctx
+{
+  SK_ComPtr <ID3D11Device>             pDevice;
+  SK_ComPtr <ID3D11DeviceContext>      pDevCtx;
+
+  DXGI_FORMAT                          RTVFormat = DXGI_FORMAT_UNKNOWN;
+
+  SK_ComPtr <ID3D11Texture2D>          pFontTexture;
+  SK_ComPtr <ID3D11ShaderResourceView> pFontTextureView;
+
+  SK_ComPtr <ID3D11VertexShader>       pVertexShader;
+  SK_ComPtr <ID3D11PixelShader>        pPixelShader;
+
+  struct {
+    struct {
+      SK_ComPtr <ID3D11VertexShader>   pPixelShader;
+      SK_ComPtr < ID3D11PixelShader  > pVertexShader;
+    } SteamHDR, uPlayHDR;
+  } overlays;
+
+  SK_ComPtr <ID3D11InputLayout>        pInputLayout;
+
+  SK_ComPtr <ID3D11Buffer>             pVertexConstantBuffer;
+  SK_ComPtr <ID3D11Buffer>             pPixelConstantBuffer;
+
+  struct {
+    SK_ComPtr <ID3D11SamplerState>     pFont_clamp;
+    SK_ComPtr <ID3D11SamplerState>     pFont_wrap;
+  } samplers;
+
+  SK_ComPtr <ID3D11BlendState>         pBlendState;
+  SK_ComPtr <ID3D11RasterizerState>    pRasterizerState;
+  SK_ComPtr <ID3D11DepthStencilState>  pDepthStencilState;
+
+  struct FrameHeap
+  {
+    struct buffer_s : SK_ComPtr <ID3D11Buffer>
+    {
+      INT size;
+    } Vb, Ib;
+  } frame_heaps [DXGI_MAX_SWAP_CHAIN_BUFFERS];
+};
+
+// {DEC73284-D747-44CD-8E90-F6FC58754567}
+static const GUID IID_SKD3D11RenderCtx =
+{ 0xdec73284, 0xd747, 0x44cd, { 0x8e, 0x90, 0xf6, 0xfc, 0x58, 0x75, 0x45, 0x67 } };
+
+struct SK_D3D11_RenderCtx {
+  SK_ComPtr <ID3D11Device>                _pDevice          = nullptr;
+  SK_ComPtr <ID3D11DeviceContext>         _pDeviceCtx       = nullptr;
+  SK_ComPtr <IDXGISwapChain>              _pSwapChain       = nullptr;
+
+	struct FrameCtx {
+    SK_D3D11_RenderCtx*                   pRoot             = nullptr;
+
+    //struct FenceCtx : SK_ComPtr <ID3D12Fence> {
+    //  HANDLE                              event             =       0;
+    //  volatile UINT64                     value             =       0;
+    //} fence;
+
+		SK_ComPtr <ID3D11Texture2D>           pRenderOutput     = nullptr;
+    UINT                                  iBufferIdx        =UINT_MAX;
+
+    struct {
+      SK_ComPtr <ID3D11Texture2D>         pSwapChainCopy    = nullptr;
+      SK_ComPtr <ID3D11RenderTargetView>  pRTV              = nullptr;
+      D3D11_RECT                          scissor           = {     };
+      D3D11_VIEWPORT                      vp                = {     };
+    } hdr;
+
+    ~FrameCtx (void);
+	};
+
+  SK_ComPtr <ID3D11BlendState>            pGenericBlend     = nullptr;
+
+  std::vector <FrameCtx>                frames_;
+
+  void present (IDXGISwapChain*      pSwapChain);
+  void release (IDXGISwapChain*      pSwapChain);
+  bool init    (IDXGISwapChain*      pSwapChain,
+                ID3D11Device*        pDevice,
+                ID3D11DeviceContext* pDeviceCtx);
+};
+
+extern SK_LazyGlobal <SK_ImGui_D3D11Ctx>  _imgui_d3d11;
+extern SK_LazyGlobal <SK_D3D11_RenderCtx> _d3d11_rbk;
+
+
+
+template <class _T>
+static
+__forceinline
+UINT
+calc_count (_T** arr, UINT max_count) noexcept
+{
+  for ( int i = gsl::narrow_cast <int> (max_count) - 1 ;
+            i >= 0 ;
+          --i )
+  {
+    if (arr [i] != nullptr)
+      return i + 1;
+  }
+
+  return max_count;
+}
+
+
+#define SK_D3D11_MAX_SCISSORS \
+  D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE
+
+#define D3D11_SHADER_MAX_INSTANCES_PER_CLASS 256
+
+struct StateBlockDataStore {
+  UINT                       ScissorRectsCount, ViewportsCount;
+  D3D11_RECT                 ScissorRects [SK_D3D11_MAX_SCISSORS];
+  D3D11_VIEWPORT             Viewports    [SK_D3D11_MAX_SCISSORS];
+  ID3D11RasterizerState*     RS;
+  ID3D11BlendState*          BlendState;
+  FLOAT                      BlendFactor  [4];
+  UINT                       SampleMask;
+  UINT                       StencilRef;
+  ID3D11DepthStencilState*   DepthStencilState;
+  ID3D11ShaderResourceView*  PSShaderResources [2];
+  ID3D11SamplerState*        PSSampler;
+  ID3D11PixelShader*         PS;
+  ID3D11VertexShader*        VS;
+  ID3D11GeometryShader*      GS;
+  ID3D11HullShader*          HS;
+  ID3D11DomainShader*        DS;
+  UINT                       PSInstancesCount, VSInstancesCount, GSInstancesCount,
+                             HSInstancesCount, DSInstancesCount;
+  ID3D11ClassInstance       *PSInstances  [D3D11_SHADER_MAX_INTERFACES],
+                            *VSInstances  [D3D11_SHADER_MAX_INTERFACES],
+                            *GSInstances  [D3D11_SHADER_MAX_INTERFACES],
+                            *HSInstances  [D3D11_SHADER_MAX_INTERFACES],
+                            *DSInstances  [D3D11_SHADER_MAX_INTERFACES];
+  D3D11_PRIMITIVE_TOPOLOGY   PrimitiveTopology;
+  ID3D11Buffer              *IndexBuffer,
+                            *VertexBuffer,
+                            *VSConstantBuffer,
+                            *PSConstantBuffer;
+  UINT                       IndexBufferOffset, VertexBufferStride,
+                             VertexBufferOffset;
+  DXGI_FORMAT                IndexBufferFormat;
+  ID3D11InputLayout*         InputLayout;
+
+  ID3D11DepthStencilView*    DepthStencilView;
+  ID3D11RenderTargetView*    RenderTargetView;
+};
+
+struct D3DX11_STATE_BLOCK
+{
+  ID3D11VertexShader*        VS;
+  ID3D11SamplerState*        VSSamplers             [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+  ID3D11ShaderResourceView*  VSShaderResources      [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+  ID3D11Buffer*              VSConstantBuffers      [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+  ID3D11ClassInstance*       VSInterfaces           [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                       VSInterfaceCount;
+
+  ID3D11GeometryShader*      GS;
+  ID3D11SamplerState*        GSSamplers             [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+  ID3D11ShaderResourceView*  GSShaderResources      [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+  ID3D11Buffer*              GSConstantBuffers      [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+  ID3D11ClassInstance*       GSInterfaces           [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                       GSInterfaceCount;
+
+  ID3D11HullShader*          HS;
+  ID3D11SamplerState*        HSSamplers             [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+  ID3D11ShaderResourceView*  HSShaderResources      [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+  ID3D11Buffer*              HSConstantBuffers      [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+  ID3D11ClassInstance*       HSInterfaces           [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                       HSInterfaceCount;
+
+  ID3D11DomainShader*        DS;
+  ID3D11SamplerState*        DSSamplers             [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+  ID3D11ShaderResourceView*  DSShaderResources      [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+  ID3D11Buffer*              DSConstantBuffers      [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+  ID3D11ClassInstance*       DSInterfaces           [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                       DSInterfaceCount;
+
+  ID3D11PixelShader*         PS;
+  ID3D11SamplerState*        PSSamplers             [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+  ID3D11ShaderResourceView*  PSShaderResources      [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+  ID3D11Buffer*              PSConstantBuffers      [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+  ID3D11ClassInstance*       PSInterfaces           [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                       PSInterfaceCount;
+
+  ID3D11ComputeShader*       CS;
+  ID3D11SamplerState*        CSSamplers             [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+  ID3D11ShaderResourceView*  CSShaderResources      [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+  ID3D11Buffer*              CSConstantBuffers      [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+  ID3D11ClassInstance*       CSInterfaces           [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                       CSInterfaceCount;
+  ID3D11UnorderedAccessView* CSUnorderedAccessViews [D3D11_PS_CS_UAV_REGISTER_COUNT];
+
+  ID3D11Buffer*              IAVertexBuffers        [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+  UINT                       IAVertexBuffersStrides [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+  UINT                       IAVertexBuffersOffsets [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+  ID3D11Buffer*              IAIndexBuffer;
+  DXGI_FORMAT                IAIndexBufferFormat;
+  UINT                       IAIndexBufferOffset;
+  ID3D11InputLayout*         IAInputLayout;
+  D3D11_PRIMITIVE_TOPOLOGY   IAPrimitiveTopology;
+
+  ID3D11RenderTargetView*    OMRenderTargets        [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+  ID3D11DepthStencilView*    OMRenderTargetStencilView;
+  ID3D11UnorderedAccessView* OMUnorderedAccessViews [D3D11_PS_CS_UAV_REGISTER_COUNT];
+  ID3D11DepthStencilState*   OMDepthStencilState;
+  UINT                       OMDepthStencilRef;
+  ID3D11BlendState*          OMBlendState;
+  FLOAT                      OMBlendFactor          [4];
+  UINT                       OMSampleMask;
+
+  UINT                       RSViewportCount;
+  D3D11_VIEWPORT             RSViewports            [D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+  UINT                       RSScissorRectCount;
+  D3D11_RECT                 RSScissorRects         [D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+  ID3D11RasterizerState*     RSRasterizerState;
+  ID3D11Buffer*              SOBuffers              [4];
+  ID3D11Predicate*           Predication;
+  BOOL                       PredicationValue;
+};
+
+
+void
+SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext*       pImmediateContext,
+                             SK_D3D11_Stateblock_Lite** pSB );
+
+void
+SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
+                           ID3D11DeviceContext*      pDevCtx );

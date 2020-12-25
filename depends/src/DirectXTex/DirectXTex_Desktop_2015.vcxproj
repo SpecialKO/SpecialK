@@ -253,7 +253,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/Zc:strictStrings- /Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf</AdditionalOptions>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;WIN32;NDEBUG;_LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;WIN32;NDEBUG;_LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>DirectXTexP.h</PrecompiledHeaderFile>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\$(TargetName)\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
@@ -318,7 +318,7 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/Zc:strictStrings- /Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf</AdditionalOptions>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;WIN32;NDEBUG;_LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;WIN32;NDEBUG;_LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>DirectXTexP.h</PrecompiledHeaderFile>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\$(TargetName)\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
@@ -393,6 +393,7 @@
     <ClCompile Include="DirectXTexCompressGPU.cpp" />
     <ClCompile Include="DirectXTexConvert.cpp" />
     <ClCompile Include="DirectXTexD3D11.cpp" />
+    <ClCompile Include="DirectXTexD3D12.cpp" />
     <ClCompile Include="DirectXTexDDS.cpp" />
     <ClCompile Include="DirectXTexFlipRotate.cpp" />
     <ClCompile Include="DirectXTexImage.cpp" />

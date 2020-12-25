@@ -377,20 +377,20 @@ SK_Hook_PreCacheModule ( const wchar_t             *wszModuleName,
 
         it->target.addr = nullptr;
 
-        // If hot-patched, then don't bother
-        if (! SKX_IsHotPatchableAddr (target_addr))
-        {
-          SK_LOG1 ( ( L"Discarding global address for '%50hs' (not hot patched)",
-                      it->target.symbol_name ),
-                      L"Hook Cache" );
-
-          ++it_global;
-
-          continue;
-        }
-
         if (SK_Modules->LoadLibraryLL (it->target.module_path))
         {
+          // If hot-patched, then don't bother
+          if (! SKX_IsHotPatchableAddr (target_addr))
+          {
+            SK_LOG1 ( ( L"Discarding global address for '%50hs' (not hot patched)",
+                        it->target.symbol_name ),
+                        L"Hook Cache" );
+
+            ++it_global;
+
+            continue;
+          }
+
           SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s'"
                       L" { Last seen in '%s' }",
                                   it->target.symbol_name,
@@ -1197,30 +1197,34 @@ SK_CreateUser32Hook ( const char  *pszProcName,
 
   // Win32u is faster on systems that dispatch system calls through it
   //
-  //static sk_import_test_s win32u_test [] = { { "win32u.dll", false } };
-  //static bool             tested         =                   false;
-  //
-  //if (! tested)
-  //{
-  //  SK_TestImports (SK_GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof (sk_import_test_s));
-  //  tested = true;
-  //
-  //  if (! win32u_test [0].used)
-  //  {
-  //    ///SK_LOG0 ( (L" *** WARNING: System's user32.dll does not dispatch system calls through Win32U.DLL ***"),
-  //    ///           L"HookEngine" );
-  //  }
-  //}
+  static sk_import_test_s win32u_test [] = { { "win32u.dll", false } };
+  static bool             tested         =                   false;
+
+  if (! std::exchange (tested, true))
+  {
+    SK_TestImports (
+      SK_GetModuleHandle (L"user32"),
+                             win32u_test,
+                     sizeof (win32u_test) /
+                  sizeof (sk_import_test_s)
+    );
+
+    if (! win32u_test [0].used)
+    {
+      SK_LOG0 ( (L" *** WARNING: System's user32.dll does not dispatch system calls through Win32U.DLL ***"),
+                 L"HookEngine" );
+    }
+  }
 
   char    proc_name   [128] = { };
   wchar_t module_name [128] = L"Win32U.DLL";
 
-  //if (win32u_test [0].used)
-  //{
-  //  strncpy (proc_name, pszProcName, 127);
-  //}
-  //
-  //else
+  if (win32u_test [0].used)
+  {
+    strncpy (proc_name, pszProcName, 127);
+  }
+
+  else
   {
     wcscpy (module_name, L"user32");
 
@@ -1231,7 +1235,11 @@ SK_CreateUser32Hook ( const char  *pszProcName,
   }
 
   return
-    SK_CreateDLLHook2 (module_name, proc_name, pDetour, ppOriginal, ppFuncAddr);
+    SK_CreateDLLHook2 ( module_name,
+                          proc_name,
+                            pDetour,
+                         ppOriginal,
+                         ppFuncAddr );
 }
 
 

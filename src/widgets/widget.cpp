@@ -637,10 +637,12 @@ SK_Widget::save (iSK_INI* /*ini*/)
 }
 
 class SKWG_D3D11_Pipeline : public SK_Widget { };
+class SKWG_D3D12_Pipeline : public SK_Widget { };
 class SKWG_CPU_Monitor    : public SK_Widget { };
 
 
 extern SKWG_D3D11_Pipeline* SK_Widget_GetD3D11Pipeline (void);
+extern SKWG_D3D12_Pipeline* SK_Widget_GetD3D12Pipeline (void);
 extern SKWG_CPU_Monitor*    SK_Widget_GetCPU           (void);
 
 void
@@ -861,10 +863,11 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
   auto widgets =
-  { SK_ImGui_Widgets->frame_pacing,   SK_ImGui_Widgets->volume_control,
-    SK_ImGui_Widgets->gpu_monitor,    SK_ImGui_Widgets->cpu_monitor,
-    SK_ImGui_Widgets->d3d11_pipeline, SK_ImGui_Widgets->thread_profiler,
-    SK_ImGui_Widgets->hdr_control,    SK_ImGui_Widgets->tobii
+  { SK_ImGui_Widgets->frame_pacing,    SK_ImGui_Widgets->volume_control,
+    SK_ImGui_Widgets->gpu_monitor,     SK_ImGui_Widgets->cpu_monitor,
+    SK_ImGui_Widgets->d3d11_pipeline,  SK_ImGui_Widgets->d3d12_pipeline,
+    SK_ImGui_Widgets->thread_profiler, SK_ImGui_Widgets->hdr_control,
+    SK_ImGui_Widgets->tobii
   };
 
   for (auto& widget : widgets)
@@ -904,12 +907,11 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
   // TEMP HACK: Screenshots
   //
   static
-    const
-      std::set <SK_ConfigSerializedKeybind *>
+    std::array <SK_ConfigSerializedKeybind *, 3>
         screenshot_keys = {
-          &config.steam.screenshots.game_hud_free_keybind,
-          &config.steam.screenshots.sk_osd_free_keybind,
-          &config.steam.screenshots.sk_osd_insertion_keybind
+          &config.screenshots.game_hud_free_keybind,
+          &config.screenshots.sk_osd_free_keybind,
+          &config.screenshots.sk_osd_insertion_keybind
         };
 
   if ( uiMaskedKeyCode ==
@@ -925,11 +927,14 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
   static const auto& game_id =
     SK_GetCurrentGameID ();
 
-  for ( auto& keybind : screenshot_keys )
+  for ( auto keybind : screenshot_keys )
   {
-    if ( uiMaskedKeyCode == keybind->masked_code )
+    // Exact key tests are undesirable here, allow extra keys to be pressed
+    if ( vkCode == keybind->vKey && ((! keybind->ctrl)  || Control) &&
+                                    ((! keybind->alt)   || Alt)     &&
+                                    ((! keybind->shift) || Shift) )
     {
-      if (       keybind == &config.steam.screenshots.game_hud_free_keybind )
+      if (       keybind == &config.screenshots.game_hud_free_keybind )
       {
 #ifdef _M_AMD64
         static bool __yakuza0 =
@@ -945,14 +950,14 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
           SK_TriggerHudFreeScreenshot ();
       }
 
-      else if (  keybind == &config.steam.screenshots.sk_osd_free_keybind )
+      else if (  keybind == &config.screenshots.sk_osd_free_keybind )
       {
         SK::SteamAPI::TakeScreenshot (
           SK_ScreenshotStage::BeforeOSD
         );
       }
 
-      else if (  keybind == &config.steam.screenshots.sk_osd_insertion_keybind )
+      else if (  keybind == &config.screenshots.sk_osd_insertion_keybind )
       {
         SK::SteamAPI::TakeScreenshot (
           SK_ScreenshotStage::EndOfFrame
@@ -971,13 +976,15 @@ BOOL
 SK_ImGui_WidgetRegistry::SaveConfig (void)
 {
   SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
+  SK_RunOnce (SK_ImGui_Widgets->d3d12_pipeline = SK_Widget_GetD3D12Pipeline ());
   SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU ());
 
   auto widgets =
-  { SK_ImGui_Widgets->frame_pacing,   SK_ImGui_Widgets->volume_control,
-    SK_ImGui_Widgets->gpu_monitor,    SK_ImGui_Widgets->cpu_monitor,
-    SK_ImGui_Widgets->d3d11_pipeline, SK_ImGui_Widgets->thread_profiler,
-    SK_ImGui_Widgets->hdr_control,    SK_ImGui_Widgets->tobii
+  { SK_ImGui_Widgets->frame_pacing,    SK_ImGui_Widgets->volume_control,
+    SK_ImGui_Widgets->gpu_monitor,     SK_ImGui_Widgets->cpu_monitor,
+    SK_ImGui_Widgets->d3d11_pipeline,  SK_ImGui_Widgets->d3d12_pipeline,
+    SK_ImGui_Widgets->thread_profiler, SK_ImGui_Widgets->hdr_control,
+    SK_ImGui_Widgets->tobii
   };
 
   for ( auto& widget : widgets )

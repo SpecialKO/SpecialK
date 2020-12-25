@@ -1,4 +1,8 @@
-﻿+ Added preliminary D3D12 Support
+﻿+ Temporarily disabled Tobii Eye Tracking features (and its Widget)
++ Disabled D3D Shader Compiler Hooks (e.g. nop D3DStripShader)
+   >> Tends to break D3D12 engines that use persistent shader caches
+
++ Added preliminary D3D12 Support
 
  >> Has compatibility issues with some non-native D3D12 overlays
       (i.e. RTSS and Steam), but works correctly with native D3D12

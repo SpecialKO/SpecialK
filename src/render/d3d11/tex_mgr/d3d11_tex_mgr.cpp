@@ -764,10 +764,12 @@ HRESULT
 __stdcall
 SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 {
-  static const auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_ComQIPtr <ID3D11Device>        pDev    (rb.device);
+  auto pDev =
+    rb.getDevice <ID3D11Device> ();
+
   SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
   if ( pDev    != nullptr &&
@@ -1595,19 +1597,20 @@ SK_D3D11_TexCacheCheckpoint (void)
   static auto& textures =
     SK_D3D11_Textures;
 
-  static const auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto& Entries_2D  = textures->Entries_2D;
   static auto& Evicted_2D  = textures->Evicted_2D;
   static auto& Textures_2D = textures->Textures_2D;
 
-  SK_ComQIPtr <ID3D11Device> pDevice  (rb.device);
-  SK_ComQIPtr <IDXGIDevice>  pDXGIDev (pDevice);
+  auto pDevice =
+    rb.getDevice <ID3D11Device> ();
+  SK_ComQIPtr    <IDXGIDevice>  pDXGIDev (pDevice);
 
   if ( config.textures.cache.residency_managemnt &&
-       pDevice  != nullptr                       &&
-       pDXGIDev != nullptr )
+       pDevice.p != nullptr                      &&
+       pDXGIDev  != nullptr )
   {
     const
     auto   MAX_TEXTURES_PER_PASS  = 32UL;
@@ -2312,8 +2315,9 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
 
     if (blacklist)
     {
-      textures->Blacklist_2D [desc.MipLevels].emplace (tag);
-      pTex->Release ();
+      if (textures->Blacklist_2D [desc.MipLevels].emplace (tag).second)
+        pTex->Release (); // First removal needs our reference stripped,
+                          //   all others do not
     }
     else
     {
@@ -2353,7 +2357,8 @@ SK_D3D11_TexMgr::updateDebugNames (void)
 
         if (tex_desc.debug_name.empty ())
         {
-          char szDesc     [128] = { };
+          char     szDesc [128] = { };
+          wchar_t wszDesc [128] = { };
           UINT uiDescLen = 127;
 
           auto se_orig =
@@ -2364,15 +2369,33 @@ SK_D3D11_TexMgr::updateDebugNames (void)
           );
           try
           {
+            uiDescLen = sizeof (wszDesc) - sizeof (wchar_t);
+
             if ( SUCCEEDED (
                  (*tex_ref)->GetPrivateData (
-                   WKPDID_D3DDebugObjectName,
-                         &uiDescLen, szDesc )
-                           )
+                   WKPDID_D3DDebugObjectNameW,
+                         &uiDescLen, wszDesc )
+                           ) && uiDescLen > sizeof (wchar_t)
                )
             {
               tex_desc.debug_name =
-                szDesc;
+                SK_WideCharToUTF8 (wszDesc);
+            }
+
+            else
+            {
+              uiDescLen = sizeof (szDesc) - sizeof (char);
+
+              if ( SUCCEEDED (
+                     (*tex_ref)->GetPrivateData (
+                       WKPDID_D3DDebugObjectName,
+                             &uiDescLen, szDesc )
+                             ) && uiDescLen > sizeof (char)
+                 )
+              {
+                tex_desc.debug_name =
+                  szDesc;
+              }
             }
           }
           catch (const SK_SEH_IgnoredException&) { }
@@ -3116,8 +3139,7 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
   static auto& textures =
     SK_D3D11_Textures;
 
-  static const
-    SK_RenderBackend& rb =
+  auto& rb =
       SK_GetCurrentRenderBackend ();
 
   HRESULT hr =
@@ -3152,7 +3174,9 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
         DirectX::ScratchImage scratch;
 
         SK_ComPtr   <ID3D11Resource> pInjTex = nullptr;
-        SK_ComQIPtr <ID3D11Device>   pDev (rb.device);
+
+        auto pDev =
+          rb.getDevice <ID3D11Device> ();
 
         hr =
           DirectX::LoadFromDDSFile (fname.c_str (), 0x0, &mdata, scratch);

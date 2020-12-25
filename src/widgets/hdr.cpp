@@ -96,14 +96,14 @@ auto
 
 void SK_ImGui_DrawGamut (void);
 
-sk::ParameterBool* _SK_HDR_10BitSwapChain;
-sk::ParameterBool* _SK_HDR_16BitSwapChain;
-sk::ParameterBool* _SK_HDR_Promote10BitRGBATo16BitFP;
-sk::ParameterBool* _SK_HDR_Promote11BitRGBTo16BitFP;
-sk::ParameterBool* _SK_HDR_Promote8BitRGBxTo16BitFP;
-sk::ParameterInt*  _SK_HDR_ActivePreset;
-sk::ParameterBool* _SK_HDR_FullRange;
-sk::ParameterInt*  _SK_HDR_sRGBBypassBehavior;
+sk::ParameterBool* _SK_HDR_10BitSwapChain            = nullptr;
+sk::ParameterBool* _SK_HDR_16BitSwapChain            = nullptr;
+sk::ParameterBool* _SK_HDR_Promote10BitRGBATo16BitFP = nullptr;
+sk::ParameterBool* _SK_HDR_Promote11BitRGBTo16BitFP  = nullptr;
+sk::ParameterBool* _SK_HDR_Promote8BitRGBxTo16BitFP  = nullptr;
+sk::ParameterInt*  _SK_HDR_ActivePreset              = nullptr;
+sk::ParameterBool* _SK_HDR_FullRange                 = nullptr;
+sk::ParameterInt*  _SK_HDR_sRGBBypassBehavior        = nullptr;
 
 bool  __SK_HDR_10BitSwap        = false;
 bool  __SK_HDR_16BitSwap        = false;
@@ -206,9 +206,6 @@ struct SK_HDR_Preset_s {
   {
     if (cfg_nits == nullptr)
     {
-      static auto& rb =
-        SK_GetCurrentRenderBackend ();
-
       cfg_nits =
         _CreateConfigParameterFloat ( SK_HDR_SECTION,
                    SK_FormatStringW (L"scRGBLuminance_[%lu]", preset_idx).c_str (),
@@ -294,6 +291,9 @@ SK_HDR_KeyPress ( BOOL Control,
   return FALSE;
 }
 
+
+#include <SpecialK/render/d3d11/d3d11_core.h>
+
 extern iSK_INI* osd_ini;
 
 class SKWG_HDR_Control : public SK_Widget
@@ -329,7 +329,7 @@ public:
   {
     static bool first_widget_run = true;
 
-    static auto& rb =
+    auto& rb =
       SK_GetCurrentRenderBackend ();
 
     // Check for situation where sRGB is stripped and user has not
@@ -441,11 +441,7 @@ public:
       }
     }
 
-    if (__SK_HDR_16BitSwap ||
-        __SK_HDR_10BitSwap)
-    {
-      hdr_presets [__SK_HDR_Preset].activate ();
-    }
+    hdr_presets [__SK_HDR_Preset].activate ();
   }
 
   void draw (void) override
@@ -453,7 +449,7 @@ public:
     if (ImGui::GetFont () == nullptr)
       return;
 
-    static auto& rb =
+    auto& rb =
       SK_GetCurrentRenderBackend ();
 
 
@@ -529,22 +525,26 @@ public:
                                         )
             )
     {
+      bool changed = false;
+
       if (ImGui::RadioButton ("None###SK_HDR_NONE", &sel, 0))
       {
+        changed = true;
+
         __SK_HDR_10BitSwap = false;
         __SK_HDR_16BitSwap = false;
 
         _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
         _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
 
-
-        dll_ini->write (dll_ini->get_filename ());
       }
 
       ImGui::SameLine ();
 
       if (ImGui::RadioButton ("scRGB HDR (16-bit)###SK_HDR_scRGB", &sel, 2))
       {
+        changed = true;
+
         __SK_HDR_16BitSwap = true;
         __SK_HDR_10BitSwap = false;
 
@@ -555,14 +555,30 @@ public:
         if (rb.api != SK_RenderAPI::D3D12)
         {
           config.render.framerate.flip_discard = true;
-          config.render.framerate.buffer_count =
-            std::max ( 2,
-                         config.render.framerate.buffer_count );
-        }
 
+          //// Should be able to handle this without an explicit override set now
+          //config.render.framerate.buffer_count =
+          //  std::max ( 2,
+          //               config.render.framerate.buffer_count );
+        }
+      }
+
+      if (changed)
+      {
         dll_ini->write (
           dll_ini->get_filename ()
         );
+
+        SK_ComQIPtr <IDXGISwapChain3> pSwapChain (rb.swapchain);
+
+        if (pSwapChain)
+        {
+          rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
+                                                              : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;//DXGI_COLOR_SPACE_CUSTOM
+          pSwapChain->SetColorSpace1 (__SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
+                                                           DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+        //rb.scanout.dxgi_colorspace = rb.scanout.colorspace_override;
+        }
       }
     }
 
@@ -595,6 +611,7 @@ public:
 
       if (pSwap4 != nullptr)
       {
+        static
         DXGI_OUTPUT_DESC1      out_desc  = { };
         DXGI_SWAP_CHAIN_DESC1 swap_desc1 = { };
            pSwap4->GetDesc1 (&swap_desc1);
@@ -1297,7 +1314,7 @@ SK_ImGui_DrawGamut (void)
   ImDrawList* draw_list =
     ImGui::GetWindowDrawList ();
 
-  static const SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   struct color_triangle_s {

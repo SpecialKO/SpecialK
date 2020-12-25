@@ -3602,6 +3602,15 @@
     <ClCompile Include="src\render\d3d12\d3d12_screenshot.cpp">
       <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
     </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12_pipeline_stats.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\cyberpunk2077.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d11on12_shader_restitution.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\cursors\ovr_ptr.cur">
@@ -4575,6 +4584,12 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
@@ -4601,6 +4616,9 @@
       <Filter>Resource Files</Filter>
     </Media>
     <Media Include="resource\dream_theater.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="resource\screenshot.wav">
       <Filter>Resource Files</Filter>
     </Media>
   </ItemGroup>

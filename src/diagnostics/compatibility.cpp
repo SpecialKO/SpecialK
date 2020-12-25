@@ -915,9 +915,6 @@ SK_BypassInject (void)
 void
 SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 {
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
   if (Fullscreen)
   {
     if (/*rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM || */SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)

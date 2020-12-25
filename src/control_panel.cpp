@@ -458,8 +458,6 @@ SK_ImGui_ProcessWarnings (void)
                                     ImGuiWindowFlags_NoScrollWithMouse )
      )
   {
-    ImGui::FocusWindow (ImGui::GetCurrentWindow ());
-
     ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f),
                            "\n\t%ws\t\n\n", warning.message.c_str () );
 
@@ -476,10 +474,7 @@ SK_ImGui_ProcessWarnings (void)
 
       ImGui::CloseCurrentPopup ();
     }
-    else
-      ImGui::SetItemDefaultFocus ();
-
-    ImGui::EndPopup ();
+    ImGui::EndPopup       ();
   }
 }
 
@@ -654,47 +649,52 @@ SK_ImGui_ControlPanelTitle (void)
 void
 SK_ImGui_AdjustCursor (void)
 {
-  static          HANDLE hAdjustEvent = nullptr;
-  static volatile LONG   lInit        = 0;
+  static CHandle hAdjustEvent (
+    SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
+  );
 
-  if (! InterlockedCompareExchange (&lInit, 1, 0))
-  {
-    hAdjustEvent =
-      SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+  SetEvent (hAdjustEvent.m_h);
 
-    SK_Thread_Create ([](LPVOID pUser)->
-    DWORD
+  static HANDLE
+    hThread = SK_Thread_CreateEx (
+    [](LPVOID pUser)-> DWORD
     {
-      SetCurrentThreadDescription (L"[SK] Cursor Adjustment Thread");
+      HANDLE hSignals [] = {
+        __SK_DLL_TeardownEvent,
+             (HANDLE)pUser
+      };
 
-      InterlockedIncrement (&lInit);
+      DWORD dwWaitStatus =
+              WAIT_ABANDONED;
 
-
-      HANDLE hEvent = (HANDLE)pUser;
-
-      while (0 == ReadAcquire (&__SK_DLL_Ending))
+      while (dwWaitStatus != WAIT_OBJECT_0)
       {
-        if ( WaitForSingleObject ((HANDLE)pUser, INFINITE) == WAIT_OBJECT_0 )
-        {
-          SK_ClipCursor (nullptr);
-             SK_AdjustWindow   ();       // Restore game's clip cursor behavior
-        }
-      }
-      hAdjustEvent = INVALID_HANDLE_VALUE;
-      CloseHandle (hEvent);
+        dwWaitStatus =
+          WaitForMultipleObjects ( 2, hSignals, FALSE, INFINITE );
 
+        if (dwWaitStatus == (WAIT_OBJECT_0 + 1))
+        {
+          ResetEvent (hSignals [1]);
+
+          //SK_ClipCursor (nullptr);
+          //   SK_AdjustWindow   ();       // Restore game's clip cursor behavior
+
+          SK_Window_RepositionIfNeeded ();
+
+          //extern void SK_AdjustClipRect (void);
+          //            SK_AdjustClipRect ();
+        }
+      };
+
+      hAdjustEvent.Close ();
 
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, (LPVOID)hAdjustEvent);
-  }
-
-  else
-    SK_Thread_SpinUntilAtomicMin (&lInit, 2);
-
-  if ((uintptr_t)hAdjustEvent > (uintptr_t)nullptr)
-       SetEvent (hAdjustEvent);
+    },
+    L"[SK] Cursor Adjustment Thread",
+    (LPVOID)hAdjustEvent
+  );
 }
 
 bool reset_frame_history = true;
@@ -1632,7 +1632,7 @@ SK_ImGui_ControlPanel (void)
       }
 
 
-      static auto& rb =
+      auto& rb =
         SK_GetCurrentRenderBackend ();
 
       auto HDRMenu =
@@ -1710,20 +1710,14 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Separator ();
 
-        bool hdr_changed = false;
-
-        if (config.steam.screenshots.enable_hook)
-        {
-          hdr_changed =
+        bool hdr_changed =
             ImGui::Checkbox ( "Keep Full-Range JPEG-XR HDR Screenshots (.JXR)",
-                                &config.steam.screenshots.png_compress );
-        }
+                                &config.screenshots.png_compress );
 
-        if ( ( screenshot_manager != nullptr &&
-               screenshot_manager->getExternalScreenshotRepository ().files > 0 ) )
+        if ( rb.screenshot_mgr.getRepoStats ().files > 0 )
         {
-          const SK_Steam_ScreenshotManager::screenshot_repository_s& repo =
-            screenshot_manager->getExternalScreenshotRepository (hdr_changed);
+          const SK_ScreenshotManager::screenshot_repository_s& repo =
+            rb.screenshot_mgr.getRepoStats (hdr_changed);
 
           ImGui::BeginGroup (  );
           ImGui::TreePush   ("");
@@ -1738,7 +1732,7 @@ SK_ImGui_ControlPanel (void)
           {
             SK_ShellExecuteW ( nullptr,
               L"explore",
-                screenshot_manager->getExternalScreenshotPath (),
+                rb.screenshot_mgr.getBasePath (),
                   nullptr, nullptr,
                         SW_NORMAL
             );
@@ -1747,6 +1741,9 @@ SK_ImGui_ControlPanel (void)
           ImGui::TreePop  ();
           ImGui::EndGroup ();
         }
+
+        if (hdr_changed)
+          SK_SaveConfig ();
 
         ImGui::Separator ();
 
@@ -2561,7 +2558,8 @@ SK_ImGui_ControlPanel (void)
       if ( static_cast <int> (rb.api) &
            static_cast <int> (SK_RenderAPI::D3D9) )
       {
-        SK_ComQIPtr <IDirect3DDevice9> pDev9 (rb.device);
+        auto pDev9 =
+          rb.getDevice <IDirect3DDevice9> ();
 
         if (pDev9 != nullptr)
         {
@@ -3198,7 +3196,8 @@ SK_ImGui_ControlPanel (void)
     bool gpumon        = SK_ImGui_Widgets->gpu_monitor->isVisible     ();
     bool volumecontrol = SK_ImGui_Widgets->volume_control->isVisible  ();
     bool cpumon        = SK_ImGui_Widgets->cpu_monitor->isVisible     ();
-    bool pipeline      = SK_ImGui_Widgets->d3d11_pipeline->isVisible  ();
+    bool pipeline11    = SK_ImGui_Widgets->d3d11_pipeline->isVisible  ();
+    bool pipeline12    = SK_ImGui_Widgets->d3d12_pipeline->isVisible  ();
     bool threads       = SK_ImGui_Widgets->thread_profiler->isVisible ();
     bool hdr           = SK_ImGui_Widgets->hdr_control->isVisible     ();
     bool tobii         = SK_ImGui_Widgets->tobii->isVisible           ();
@@ -3235,16 +3234,33 @@ SK_ImGui_ControlPanel (void)
                                         setActive  (volumecontrol);
     }
 
-    if ( (int)render_api & (int)SK_RenderAPI::D3D11 )
+    if ( (int)render_api & (int)SK_RenderAPI::D3D11 ||
+         (int)render_api & (int)SK_RenderAPI::D3D12 )
     {
-      ImGui::SameLine ();
-      ImGui::Checkbox ("Texture Cache", &SK_ImGui_Widgets->texcache);
+      if ((int)render_api & (int)SK_RenderAPI::D3D11)
+      {
+        ImGui::SameLine ();
+        ImGui::Checkbox ("Texture Cache", &SK_ImGui_Widgets->texcache);
+      }
 
       ImGui::SameLine ();
-      if (ImGui::Checkbox ("Pipeline Stats", &pipeline))
+
+      if ((int)render_api & (int)SK_RenderAPI::D3D11)
       {
-        SK_ImGui_Widgets->d3d11_pipeline->setVisible (pipeline).
-                                          setActive  (pipeline);
+        if (ImGui::Checkbox ("Pipeline Stats###Pipeline11", &pipeline11))
+        {
+          SK_ImGui_Widgets->d3d11_pipeline->setVisible (pipeline11).
+                                            setActive  (pipeline11);
+        }
+      }
+
+      else
+      {
+        if (ImGui::Checkbox ("Pipeline Stats###Pipeline12", &pipeline12))
+        {
+          SK_ImGui_Widgets->d3d12_pipeline->setVisible (pipeline12).
+                                            setActive  (pipeline12);
+        }
       }
     }
 
@@ -3258,6 +3274,7 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
+#if 0
     ImGui::SameLine ();
 
     if (ImGui::Checkbox ("Tobii Eyetracker", &tobii))
@@ -3265,6 +3282,9 @@ SK_ImGui_ControlPanel (void)
       SK_ImGui_Widgets->tobii->setVisible (tobii).
                                setActive  (tobii);
     }
+#else
+    UNREFERENCED_PARAMETER (tobii);
+#endif
 
     ImGui::SameLine ();
 
@@ -3275,6 +3295,129 @@ SK_ImGui_ControlPanel (void)
     }
 
     ImGui::TreePop  ();
+  }
+
+  if (ImGui::CollapsingHeader ("Screenshots"))
+  {
+    ImGui::TreePush ("");
+
+    ImGui::BeginGroup ();
+
+    if (SK::SteamAPI::AppID () > 0 && SK::SteamAPI::GetCallbacksRun ())
+    {
+      if (ImGui::Checkbox ("Enable Steam Screenshot Hook", &config.steam.screenshots.enable_hook))
+      {
+        rb.screenshot_mgr.init ();
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ( "In D3D11/12 games, integrates SK's high-performance/quality screenshot capture "
+                            "system, adding HDR -> LDR support and other things." );
+      }
+    }
+
+    bool png_changed = false;
+
+    ImGui::Checkbox ("Include Special K OSD in Screenshots", &config.screenshots.show_osd_by_default);
+
+    if (rb.api != SK_RenderAPI::D3D12)
+    {
+      png_changed =
+        ImGui::Checkbox ( rb.isHDRCapable () ? "Keep HDR .JXR Screenshots     " :
+                                               "Keep Lossless .PNG Screenshots",
+                                                               &config.screenshots.png_compress       );
+    } else { config.screenshots.png_compress = true; }
+
+    if ( rb.screenshot_mgr.getRepoStats ().files > 0 )
+    {
+      const SK_ScreenshotManager::screenshot_repository_s& repo =
+        rb.screenshot_mgr.getRepoStats (png_changed);
+
+      ImGui::BeginGroup (  );
+      ImGui::TreePush   ("");
+      ImGui::Text ( "%u files using %ws",
+                      repo.files,
+                        SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
+                  );
+
+      if (SK::SteamAPI::AppID () > 0 && SK::SteamAPI::GetCallbacksRun () && ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ( rb.isHDRCapable () ?
+                              "Steam does not support HDR Screenshots, so SK maintains its own storage for .JXR Screenshots" :
+                              "Steam does not support .PNG Screenshots, so SK maintains its own storage for Lossless Screenshots." );
+      }
+
+      ImGui::SameLine ();
+
+      if (ImGui::Button ("Browse"))
+      {
+        SK_ShellExecuteW ( nullptr,
+          L"explore",
+            rb.screenshot_mgr.getBasePath (),
+              nullptr, nullptr,
+                    SW_NORMAL
+        );
+      }
+
+      ImGui::TreePop  ();
+      ImGui::EndGroup ();
+    }
+
+    ImGui::EndGroup ();
+
+    const auto Keybinding =
+    [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
+    auto
+    {
+      if (! (binding != nullptr && param != nullptr))
+        return false;
+
+      std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+                  label += binding->bind_name;
+
+      if (ImGui::Selectable (label.c_str (), false))
+      {
+        ImGui::OpenPopup (binding->bind_name);
+      }
+
+      std::wstring original_binding = binding->human_readable;
+
+      SK_ImGui_KeybindDialog (binding);
+
+      if (original_binding != binding->human_readable)
+      {
+        param->store (binding->human_readable);
+
+        return true;
+      }
+
+      return false;
+    };
+
+    static std::set <SK_ConfigSerializedKeybind *>
+      keybinds = {
+        &config.screenshots.game_hud_free_keybind,
+        &config.screenshots.sk_osd_free_keybind,
+        &config.screenshots.sk_osd_insertion_keybind
+      };
+
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+    for ( auto& keybind : keybinds )
+    {
+      ImGui::Text          ( "%s:  ",
+                               keybind->bind_name );
+    }
+    ImGui::EndGroup   ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+    for ( auto& keybind : keybinds )
+    {
+      Keybinding ( keybind, keybind->param );
+    }
+    ImGui::EndGroup   ();
+    ImGui::TreePop    ();
   }
 
   SK::ControlPanel::PlugIns::Draw ();
@@ -3509,9 +3652,10 @@ SK_ImGui_StageNextFrame (void)
         SK_ImGui_Widgets->gpu_monitor,
           SK_ImGui_Widgets->cpu_monitor,
             SK_ImGui_Widgets->d3d11_pipeline,
-              SK_ImGui_Widgets->thread_profiler,
-                SK_ImGui_Widgets->hdr_control,
-                  SK_ImGui_Widgets->tobii
+              SK_ImGui_Widgets->d3d12_pipeline,
+                SK_ImGui_Widgets->thread_profiler,
+                  SK_ImGui_Widgets->hdr_control,
+                    SK_ImGui_Widgets->tobii
   };
 
   if (init_widgets)
@@ -3519,7 +3663,10 @@ SK_ImGui_StageNextFrame (void)
     init_widgets = false;
 
     for (auto& widget : widgets)
-      widget->run_base ();
+    {
+      if (widget != nullptr)
+          widget->run_base ();
+    }
   }
 
 
@@ -3543,6 +3690,9 @@ SK_ImGui_StageNextFrame (void)
 
   for (auto& widget : widgets)
   {
+    if (widget == nullptr)
+      continue;
+
     if (widget->isActive ())
         widget->run_base ();
 
@@ -3862,12 +4012,13 @@ SK_ImGui_StageNextFrame (void)
                                       ImGuiWindowFlags_NoScrollWithMouse )
        )
     {
+      nav_usable = true;
+
       static const char* szConfirm =
         " Confirm Exit? ";
       static const char* szDisclaimer =
         "\n         You will lose any unsaved game progress.      \n\n";
 
-      ImGui::FocusWindow (ImGui::GetCurrentWindow ());
       ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
       ImGui::Separator   ();
 
@@ -3875,12 +4026,32 @@ SK_ImGui_StageNextFrame (void)
 
       ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
 
+
+      if (ImGui::IsWindowAppearing ())
+      {
+        ImGui::GetIO ().MousePos        = ImGui::GetCursorScreenPos ();
+        ImGui::GetIO ().WantSetMousePos = true;
+      }
+
       if (ImGui::Button  ("Okay"))
       {
         SK_SelfDestruct     (   );
         SK_TerminateProcess (0x0);
         ExitProcess         (0x0);
       }
+      if (ImGui::IsWindowAppearing ())
+      {
+        ImGui::GetIO ().NavActive  = true;
+        ImGui::GetIO ().NavVisible = true;
+
+        ImGui::SetNavID (
+          ImGui::GetItemID (), 0
+        );
+
+        GImGui->NavDisableHighlight  = false;
+        GImGui->NavDisableMouseHover =  true;
+      }
+
 
       //ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth ()*0.33f);
       //ImGui::SameLine (); ImGui::SameLine (); ImGui::PopItemWidth ();
@@ -3891,10 +4062,9 @@ SK_ImGui_StageNextFrame (void)
       {
         SK_ImGui_WantExit  = false;
         SK_ReShade_Visible = false;
+        nav_usable         = false;
         ImGui::CloseCurrentPopup ();
       }
-
-      ImGui::SetItemDefaultFocus ();
 
       ImGui::SameLine    ();
       ImGui::TextUnformatted (" ");
@@ -3903,7 +4073,7 @@ SK_ImGui_StageNextFrame (void)
       ImGui::Checkbox    ( "Enable Alt + F4",
                              &config.input.keyboard.catch_alt_f4 );
 
-      ImGui::EndPopup    ();
+      ImGui::EndPopup       ();
     }
   }
 
@@ -3962,7 +4132,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     SK_ImGui_StageNextFrame ();
   }
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.api == SK_RenderAPI::OpenGL)
@@ -3974,7 +4144,10 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if ( ( static_cast <int> (rb.api) &
               static_cast <int> (SK_RenderAPI::D3D9) ) != 0 )
   {
+    //auto pDev =
+    //      rb.getDevice <IDirect3DDevice9> ();
     SK_ComQIPtr <IDirect3DDevice9> pDev (rb.device);
+
 
     if ( pDev != nullptr && SUCCEEDED (
            pDev->BeginScene ()
@@ -3997,19 +4170,23 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if ( ( static_cast <int> (rb.api) &
               static_cast <int> (SK_RenderAPI::D3D12) ) != 0 )
   {
-    if (_d3d12_rbk2->frames_.size () > 0)
+    if (_d3d12_rbk->frames_.size () > 0)
     {
       int swapIdx = 0;
 
-      if (_d3d12_rbk2->pSwapChain != nullptr)
-          swapIdx = _d3d12_rbk2->pSwapChain->GetCurrentBackBufferIndex ();
+      if (_d3d12_rbk->_pSwapChain != nullptr)
+          swapIdx = _d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ();
 
-      SK_ReleaseAssert (swapIdx < _d3d12_rbk2->frames_.size ());
+      SK_ReleaseAssert (
+        swapIdx < static_cast <int> (_d3d12_rbk->frames_.size ())
+      );
 
-      void ImGui_ImplDX12_RenderDrawData (ImDrawData*, SK_D3D12_RenderCtx::FrameCtx*);
+      void ImGui_ImplDX12_RenderDrawData ( ImDrawData*,
+                         SK_D3D12_RenderCtx::FrameCtx* );
 
-      ImGui::Render ();
-      ImGui_ImplDX12_RenderDrawData (ImGui::GetDrawData (), &_d3d12_rbk2->frames_ [swapIdx]);
+                                      ImGui::Render      ();
+      ImGui_ImplDX12_RenderDrawData ( ImGui::GetDrawData (),
+                                        &_d3d12_rbk->frames_ [swapIdx] );
     }
   }
 

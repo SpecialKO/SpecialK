@@ -24,6 +24,9 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/commands/limit_reset.inl>
 
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
+
+
 
 #include <SpecialK/log.h>
 
@@ -199,7 +202,7 @@ SK_D3D9_GetTimingDevice (void)
 bool
 SK_Framerate_WaitForVBlank (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -207,7 +210,8 @@ SK_Framerate_WaitForVBlank (void)
      thread_prio_boost (THREAD_PRIORITY_TIME_CRITICAL);
 
   // If available (Windows 8+), wait on the swapchain
-  SK_ComQIPtr <IDirect3DDevice9Ex> d3d9ex (rb.device);
+  auto d3d9ex =
+    rb.getDevice <IDirect3DDevice9Ex> ();
 
   // D3D10/11/12
   SK_ComQIPtr <IDXGISwapChain>     dxgi_swap (rb.swapchain);
@@ -660,21 +664,24 @@ SK::Framerate::Limiter::wait (void)
     };
 
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
 
   if (next_ > 0LL)
   {
-    // Flush the queue before waiting, otherwise we could be asking the
-    //   driver to evaluate commands after it should have presented a
-    //     finished frame.
-    SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (
-      rb.d3d11.immediate_ctx
-    );
+    if (rb.api == SK_RenderAPI::D3D11)
+    {
+      // Flush the queue before waiting, otherwise we could be asking the
+      //   driver to evaluate commands after it should have presented a
+      //     finished frame.
+      SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (
+        rb.d3d11.immediate_ctx
+      );
 
-    if (pDevCtx != nullptr)
-        pDevCtx->Flush ();
+      if (pDevCtx != nullptr)
+          pDevCtx->Flush ();
+    }
 
     // For a Waitable chain to be effective, 100% busy-wait must not
     //   be allowed.
@@ -859,26 +866,33 @@ SK::Framerate::Limiter::effective_frametime (void)
   return effective_ms;
 }
 
-#include <SpecialK/render/dxgi/dxgi_swapchain.h>
-
 SK::Framerate::Limiter*
 SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
                             bool      bCreate = true )
 {
   // Prefer to reference SwapChains we wrap by their wrapped pointer
-  SK_ComPtr <IUnknown> pSwapChainUnwrapped;
-             IUnknown* pSwapChain;
+  SK_ComQIPtr <IDXGISwapChain> pSwapChain (pSwapChain_);
+  SK_ComPtr   <IDXGISwapChain> pSwapChainUnwrapped;
 
-  if ( pSwapChain_ != nullptr &&
+  UINT _size =
+        sizeof (LPVOID);
+
+  IUnknown* pUnwrapped = nullptr;
+
+  if ( pSwapChain_  != nullptr &&
+       pSwapChain.p != nullptr &&
        SUCCEEDED (
-         pSwapChain_->QueryInterface (
-           IID_IUnwrappedDXGISwapChain,
-                  (void **)&pSwapChainUnwrapped.p
-         )
-       )
+         pSwapChain->GetPrivateData (
+           IID_IUnwrappedDXGISwapChain, &_size,
+              &pUnwrapped
+                 )                  )
      )
   {
-    pSwapChain = pSwapChainUnwrapped.p;
+             pSwapChainUnwrapped.p =
+    (IDXGISwapChain *)pUnwrapped;
+
+             pSwapChain            =
+             pSwapChainUnwrapped.p;
   }
 
   else
@@ -893,17 +907,17 @@ SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
     )
   );
 
-  if (! limiters_.count (pSwapChain))
+  if (! limiters_.count (pSwapChain.p))
   {
     if (bCreate)
     {
-      limiters_ [pSwapChain] =
+      limiters_ [pSwapChain.p] =
         std::make_unique <SK::Framerate::Limiter> (
           config.render.framerate.target_fps
         );
 
       SK_LOG0 ( ( L" Framerate Limiter Created to Track SwapChain (%ph)",
-                                                       pSwapChain
+                                                       pSwapChain.p
                 ), L"FrameLimit"
               );
     }

@@ -238,7 +238,9 @@ private:
   std::unordered_map < std::string, std::unique_ptr <SK_IVariable>,
     str_hash_compare <std::string> > variables_;
 
-  std::unique_ptr <SK_Thread_HybridSpinlock> process_cmd_lock = nullptr;
+  std::unique_ptr <SK_Thread_HybridSpinlock> process_cmd_lock    = nullptr;
+  std::unique_ptr <SK_Thread_HybridSpinlock> add_remove_var_lock = nullptr;
+  std::unique_ptr <SK_Thread_HybridSpinlock> add_remove_cmd_lock = nullptr;
 };
 
 

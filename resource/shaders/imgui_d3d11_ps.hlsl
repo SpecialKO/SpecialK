@@ -14,10 +14,9 @@ cbuffer viewportDims : register (b0)
 };
 
 sampler   sampler0    : register (s0);
-
 Texture2D texture0    : register (t0);
-Texture2D hdrUnderlay : register (t1);
-Texture2D hdrHUD      : register (t2);
+//Texture2D hdrUnderlay : register (t1);
+//Texture2D hdrHUD      : register (t2);
 
 float3
 RemoveSRGBCurve (float3 x)

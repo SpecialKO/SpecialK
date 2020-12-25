@@ -2260,7 +2260,7 @@ SK_FAR_IsPlugIn (void)
 void
 far_game_state_s::uncapFPS (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   DWORD old_protect_mask;
@@ -2287,7 +2287,7 @@ far_game_state_s::uncapFPS (void)
 void
 far_game_state_s::capFPS (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   auto* pLimiter =

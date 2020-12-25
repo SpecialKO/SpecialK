@@ -470,8 +470,8 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
 
   if (ret == NVAPI_OK)
   {
-    static auto& rb =
-      SK_GetCurrentRenderBackend ();
+    //auto& rb =
+    //  SK_GetCurrentRenderBackend ();
 
     pHdrCapabilities->display_data.desired_content_min_luminance = 0;
 
@@ -600,7 +600,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   if (config.apis.NvAPI.disable_hdr)
     return NVAPI_LIBRARY_NOT_FOUND;
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_LOG_FIRST_CALL
@@ -1430,7 +1430,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
 
   if (! init)
   {
-    InitializeCriticalSection (&cs_aa_override);
+    InitializeCriticalSectionEx (&cs_aa_override, 0, 0x0);
     init = true;
   }
 

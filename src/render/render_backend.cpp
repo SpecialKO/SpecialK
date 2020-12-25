@@ -33,6 +33,7 @@
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
 
 #include <SpecialK/nvapi.h>
@@ -65,7 +66,7 @@ SK_Display_GetDefaultRefreshRate (void)
 
   if (dwLastChecked < timeGetTime () - 500UL)
   {
-    SK_RenderBackend& rb =
+    auto& rb =
       SK_GetCurrentRenderBackend ();
 
     fRefresh =
@@ -78,16 +79,15 @@ SK_Display_GetDefaultRefreshRate (void)
 }
 
 
-SK_LazyGlobal <SK_RenderBackend> __SK_RBkEnd;
+SK_LazyGlobal <
+  SK_RenderBackend
+> __SK_RBkEnd;
 
 SK_RenderBackend&
 __stdcall
 SK_GetCurrentRenderBackend (void)
 {
-  static auto& rb =
-    __SK_RBkEnd.get ();
-
-  return rb;
+  return __SK_RBkEnd.get ();
 }
 
 void
@@ -322,16 +322,6 @@ SK_BootDXGI (void)
     return;
   }
 
-
-  SK_DXGI_QuickHook ();
-
-  // Establish the minimal set of APIs necessary to work as dxgi.dll
-  if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-  {
-    if (! config.apis.dxgi.d3d12.hook)
-          config.apis.dxgi.d3d11.hook = true;
-  }
-
 #ifdef _M_AMD64
   //
   // TEMP HACK: D3D11 must be enabled to hook D3D12...
@@ -348,6 +338,15 @@ SK_BootDXGI (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
+    SK_DXGI_QuickHook ();
+
+    // Establish the minimal set of APIs necessary to work as dxgi.dll
+    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+    {
+      if (! config.apis.dxgi.d3d12.hook)
+            config.apis.dxgi.d3d11.hook = true;
+    }
+
     if (pTLS)
         pTLS->d3d11->ctx_init_thread = true;
 
@@ -447,7 +446,7 @@ SK_BootVulkan (void)
 void
 SK_RenderBackend_V2::gsync_s::update (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
@@ -518,7 +517,7 @@ SK_RenderBackend_V2::gsync_s::update (void)
 bool
 SK_RenderBackendUtil_IsFullscreen (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComQIPtr <IDXGISwapChain>
@@ -663,7 +662,7 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
         }
 
         if ( SUCCEEDED (
-               pSwapChain->SetFullscreenState (TRUE, nullptr)
+               pSwapChain->SetFullscreenState (TRUE, pOutput.p)
                        )
            )
         {
@@ -870,8 +869,13 @@ SK_RenderBackend_V2::getSwapWaitHandle (void)
   {
     if (config.render.framerate.pre_render_limit > 0)
     {
-      HANDLE hWait =
-        pSwap2.p->GetFrameLatencyWaitableObject ();
+      DXGI_SWAP_CHAIN_DESC swap_desc = { };
+      pSwap2->GetDesc    (&swap_desc);
+
+      HANDLE hWait = 0;
+
+      if (swap_desc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+        hWait = pSwap2.p->GetFrameLatencyWaitableObject ();
 
       if ((intptr_t)hWait > 0)
       {
@@ -950,6 +954,7 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     }
 
     d3d11.immediate_ctx = nullptr;
+    d3d12.command_queue = nullptr;
 
     void
     SK_HDR_ReleaseResources (void);
@@ -1069,7 +1074,7 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
 SK_RenderBackend_V2::scan_out_s::SK_HDR_TRANSFER_FUNC
 SK_RenderBackend_V2::scan_out_s::getEOTF (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (nvapi_hdr.isHDR10 ())
@@ -1534,6 +1539,9 @@ SK_D3D_SetupShaderCompiler (void)
 
   if (SUCCEEDED (__HrLoadAllImportsForDll ("D3DCOMPILER_47.dll")))
   {
+// Causes problems with CroEngine games, we don't need unstripped
+//   shaders anyway.
+#ifdef _USE_ANTISTRIP
     for ( auto& stripper : strippers )
     {
       if (SK_GetModuleHandleW (stripper.wszDll) != nullptr)
@@ -1544,6 +1552,7 @@ SK_D3D_SetupShaderCompiler (void)
                             stripper.ppfnTrampoline );
       }
     }
+#endif
   }
 }
 
@@ -1886,7 +1895,7 @@ SK_RenderBackend_V2::checkHDRState (void)
 
   if (pSwap3.p != nullptr)
   { extern void
-    SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This);
+    SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *pDesc = nullptr);
     SK_DXGI_UpdateColorSpace (pSwap3.p);
 
     return
@@ -1894,4 +1903,60 @@ SK_RenderBackend_V2::checkHDRState (void)
   }
 
   return false;
+}
+
+
+HRESULT
+SK_RenderBackend_V2::setDevice (IUnknown *pDevice)
+{
+  if (device.p == pDevice)
+    return S_OK;
+
+  else if (pDevice != nullptr)
+  {
+    bool already_set =
+      device.p != nullptr;
+
+    //SK_ComQIPtr <ID3D10Device> pDevice10 (pDevice);
+    //if (pDevice10.p != nullptr)
+    //{
+    ////d3d10.device = pDevice10;
+    //        device = pDevice10;
+    //}
+    //
+
+    if (! already_set)
+    {
+      if (config.apis.dxgi.d3d11.hook)
+      {
+        SK_ComQIPtr <ID3D11Device> pDevice11 (pDevice);
+        if (pDevice11.p != nullptr)
+        {
+        //d3d11.device = pDevice11;
+                device = pDevice;//pDevice11;
+        }
+      }
+
+      if (config.apis.dxgi.d3d12.hook)
+      {
+        SK_ComQIPtr <ID3D12Device> pDevice12 (pDevice);
+        if (pDevice12.p != nullptr)
+        {
+        //d3d12.device = pDevice12;
+                device = pDevice;//pDevice12;
+        }
+      }
+    }
+
+    if (already_set)
+      return DXGI_ERROR_DEVICE_RESET;
+
+    return S_OK;
+  }
+
+  else
+  {
+    device = nullptr;
+    return DXGI_ERROR_DEVICE_REMOVED;
+  }
 }

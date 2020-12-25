@@ -301,7 +301,7 @@ SK::D3D9::VertexBufferTracker::clear (void)
 void
 SK::D3D9::VertexBufferTracker::use (void)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.device)
@@ -312,7 +312,8 @@ SK::D3D9::VertexBufferTracker::use (void)
 
   IDirect3DVertexDeclaration9* decl = nullptr;
 
-  SK_ComQIPtr <IDirect3DDevice9> pDev (rb.device);
+  auto pDev =
+    rb.getDevice <IDirect3DDevice9> ();
 
   if (! pDev)
   {
@@ -705,6 +706,8 @@ SK_CEGUI_InitBase    (void);
 void
 ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 {
+  SK_Window_RepositionIfNeeded ();
+
   if (cegD3D9 != nullptr || (pDev == nullptr))
   {
     SK_Steam_ClearPopups ();
@@ -1102,7 +1105,7 @@ WINAPI
 SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 {
   BehaviorFlags &= ~D3DCREATE_FPU_PRESERVE;
-  BehaviorFlags &= ~D3DCREATE_NOWINDOWCHANGES;
+////BehaviorFlags &= ~D3DCREATE_NOWINDOWCHANGES;
 
   if (config.render.d3d9.force_impure)
     BehaviorFlags &= ~D3DCREATE_PUREDEVICE;
@@ -1468,7 +1471,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
 
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -1481,6 +1484,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
       rb.releaseOwnedResources ();
 
       rb.device    = dispatch->pDevice;
+      //rb.setDevice  (dispatch->pDevice);
       rb.swapchain = dispatch->pSwapChain;
     }
 
@@ -1520,7 +1524,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
       D3DPRESENT_PARAMETERS              pparams = { };
       pSwapChain->GetPresentParameters (&pparams);
 
-      rb.device    = pDev;
+      rb.setDevice  (pDev);
       rb.swapchain = pSwapChain;
 
       // Queue-up Pre-SK OSD Screenshots
@@ -3372,7 +3376,8 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   }
 
 
-  SK_ComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (pDevice);
+  SK_ComQIPtr <IWrapDirect3DDevice9>
+                    pWrappedDevice (pDevice);
 
   if (pWrappedDevice != nullptr)
   {
@@ -3385,6 +3390,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
          rb.api == SK_RenderAPI::Reserved )
     {
       rb.device = pWrappedDevice;
+      //rb.setDevice (pWrappedDevice);
     }
   }
 
@@ -8116,31 +8122,34 @@ SK_D3D9_EndFrame (void)
       tex_mgr.logUsedTextures ();
     }
 
+    //auto pDev = rb.getDevice <IDirect3DDevice9> ();
+    //if ( pDev == nullptr ||
+    //    (pDev->GetAvailableTextureMem () / 1048576UL) < 64UL )
     SK_ComQIPtr <IDirect3DDevice9> pDev (rb.device);
 
     if (pDev == nullptr || (pDev->GetAvailableTextureMem () / 1048576UL) < 64UL)
+
     {
       SK_D3D9_TriggerReset (false);
     }
   }
 
   if (tex_mgr.init)
-    tex_mgr.resetUsedTextures ();
+      tex_mgr.resetUsedTextures ();
 }
 
 __declspec (noinline)
 bool
 SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* PrimitiveCount*/, UINT /*StartVertex*/, bool& wireframe)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.device == nullptr)
     return false;
 
-  SK_ComQIPtr <IDirect3DDevice9> pDevice (rb.device);
-
-  if (pDevice.p == nullptr)
+  auto pDevice    = rb.getDevice <IDirect3DDevice9> ();
+  if ( pDevice.p == nullptr )
     return false;
 
   auto& _Shaders    = Shaders.get    ();

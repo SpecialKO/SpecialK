@@ -793,7 +793,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     return 0;
   }
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto game_id =

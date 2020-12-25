@@ -1161,7 +1161,7 @@ SK_Input_HookXInput1_4 (void)
                 L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput1_4.dll";
-    pCtx->hMod                               = SK_Modules->LoadLibraryLL (pCtx->wszModuleName);
+    pCtx->hMod                               = SK_Modules->LoadLibrary (pCtx->wszModuleName);
 
     if (SK_Modules->isValid (pCtx->hMod))
     {
@@ -1217,7 +1217,7 @@ SK_Input_HookXInput1_3 (void)
                 L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput1_3.dll";
-    pCtx->hMod                               = SK_Modules->LoadLibraryLL (pCtx->wszModuleName);
+    pCtx->hMod                               = SK_Modules->LoadLibrary (pCtx->wszModuleName);
 
     if (SK_Modules->isValid (pCtx->hMod))
     {
@@ -1273,7 +1273,7 @@ SK_Input_HookXInput9_1_0 (void)
                 L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput9_1_0.dll";
-    pCtx->hMod                               = SK_Modules->LoadLibraryLL (pCtx->wszModuleName);
+    pCtx->hMod                               = SK_Modules->LoadLibrary (pCtx->wszModuleName);
 
     if (SK_Modules->isValid (pCtx->hMod))
     {
@@ -1836,7 +1836,7 @@ SK_XInput_PollController ( INT           iJoyID,
           (ReadPointerAcquire ((volatile LPVOID *)&_xinput_ctx.primary_hook));
 
       HMODULE hModXInput1_3 =
-        SK_Modules->LoadLibraryLL (L"XInput1_3.dll");
+        SK_Modules->LoadLibrary (L"XInput1_3.dll");
 
       if (SK_Modules->isValid (hModXInput1_3))
       {

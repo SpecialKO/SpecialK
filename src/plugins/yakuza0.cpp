@@ -1183,7 +1183,7 @@ SK_Yakuza0_PlugInCfg (void)
 
         static std::set <SK_ConfigSerializedKeybind *>
           keybinds = {
-          &config.steam.screenshots.game_hud_free_keybind
+          &config.screenshots.game_hud_free_keybind
         };
 
         ImGui::BeginGroup ();
@@ -1207,16 +1207,18 @@ SK_Yakuza0_PlugInCfg (void)
         {
           png_changed =
             ImGui::Checkbox ( "Keep Lossless .PNG Screenshots",
-                              &config.steam.screenshots.png_compress      );
+                              &config.screenshots.png_compress      );
         }
 
-        if ( ( screenshot_manager != nullptr &&
-               screenshot_manager->getExternalScreenshotRepository ().files > 0 ) )
+        auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        if ( rb.screenshot_mgr.getRepoStats ().files > 0 )
         {
           ImGui::SameLine ();
 
-          const SK_Steam_ScreenshotManager::screenshot_repository_s& repo =
-            screenshot_manager->getExternalScreenshotRepository (png_changed);
+          const SK_ScreenshotManager::screenshot_repository_s& repo =
+            rb.screenshot_mgr.getRepoStats (png_changed);
 
           ImGui::BeginGroup ();
           ImGui::TreePush   ();
@@ -1238,7 +1240,7 @@ SK_Yakuza0_PlugInCfg (void)
             SK_ShellExecuteW (
               nullptr,
                 L"explore",
-                  screenshot_manager->getExternalScreenshotPath (),
+                  rb.screenshot_mgr.getBasePath (),
                   nullptr, nullptr,
                     SW_NORMAL
             );

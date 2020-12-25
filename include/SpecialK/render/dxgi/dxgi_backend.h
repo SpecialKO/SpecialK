@@ -29,6 +29,7 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/render/d3d11/d3d11_interfaces.h>
+#include <SpecialK/render/d3d12/d3d12_interfaces.h>
 
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
@@ -310,19 +311,51 @@ void
 SK_D3D11_CopyContextHandle ( ID3D11DeviceContext *pSrcCtx,
                              ID3D11DeviceContext *pDstCtx );
 
+static int __SK_D3D11_DebugLayerActive = -1;
+
 __forceinline
 void
 SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
-                        const std::string&       kName )
+                        const std::wstring&      kName )
 {
-  return;
+  if (__SK_D3D11_DebugLayerActive == -1)
+  {
+    SK_ComPtr <ID3D11Device> pDev;
+    pDevChild->GetDevice (  &pDev.p );
+
+    SK_ComQIPtr <ID3D11Debug> pDebug (pDev);
+    __SK_D3D11_DebugLayerActive =
+                              pDebug.p != nullptr ?
+                                                1 : 0;
+  }
+
+  if (! __SK_D3D11_DebugLayerActive)
+    return;
 
   if (pDevChild != nullptr && kName.size () > 0)
   {
-    pDevChild->SetPrivateData ( WKPDID_D3DDebugObjectName,
-                                  gsl::narrow_cast <UINT> ( kName.size () ),
-                                                            kName.data ()
-                              );
+    D3D_SET_OBJECT_NAME_N_W ( pDevChild,
+                   static_cast <UINT> ( kName.size () ),
+                                        kName.data ()
+                            );
+  }
+}
+
+__forceinline
+void
+SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
+                        const std::wstring&     kName )
+{
+  if (pD3D12Obj != nullptr && kName.size () > 0)
+  {
+#if 1
+    D3D_SET_OBJECT_NAME_N_W ( pD3D12Obj,
+                   static_cast <UINT> ( kName.size () ),
+                                        kName.data ()
+                            );
+#else
+    pD3D12Obj->SetName ( kName.c_str () );
+#endif
   }
 }
 
@@ -461,176 +494,5 @@ void WINAPI SK_HookDXGI       (void);
 void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 
 void WINAPI SK_DXGI_SetPreferredAdapter (int override_id) noexcept;
-
-
-#include <d3d12.h>
-
-struct SK_D3D12_RenderCtx {
-  SK_ComPtr <ID3D12Device>                pDevice           = nullptr;
-  SK_ComPtr <ID3D12CommandQueue>          pCommandQueue     = nullptr;
-  SK_ComPtr <IDXGISwapChain3>             pSwapChain        = nullptr;
-
-  SK_ComPtr <ID3D12PipelineState>         pHDRPipeline      = nullptr;
-  SK_ComPtr <ID3D12RootSignature>         pHDRSignature     = nullptr;
-
-  struct {
-    SK_ComPtr <ID3D12DescriptorHeap>      pBackBuffers      = nullptr;
-    SK_ComPtr <ID3D12DescriptorHeap>      pImGui            = nullptr;
-    SK_ComPtr <ID3D12DescriptorHeap>      pHDR              = nullptr;
-  } descriptorHeaps;
-
-	struct FrameCtx {
-    SK_D3D12_RenderCtx*                   pRoot             = nullptr;
-
-    struct FenceCtx : SK_ComPtr <ID3D12Fence> {
-      HANDLE                              event             =       0;
-      volatile UINT64                     value             =       0;
-    } fence;
-
-    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList          = nullptr;
-		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator     = nullptr;
-    bool                                  bCmdListRecording =   false;
-
-		SK_ComPtr <ID3D12Resource>            pRenderOutput     = nullptr;
-		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput;
-    UINT                                  iBufferIdx        =UINT_MAX;
-
-    struct {
-      SK_ComPtr <ID3D12Resource>          pSwapChainCopy    = nullptr;
-      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU;
-      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU;
-    } hdr;
-
-    bool wait_for_gpu   (void);
-    bool begin_cmd_list (const SK_ComPtr <ID3D12PipelineState> &state = nullptr);
-	  void exec_cmd_list  (void);
-
-              ~FrameCtx (void);
-	};
-
-  std::vector <FrameCtx>                frames_;
-
-  void present (IDXGISwapChain3*    pSwapChain);
-  void release (void);
-  bool init    (IDXGISwapChain3*    pSwapChain,
-                ID3D12CommandQueue* pCommandQueue);
-
-  static void
-    transition_state (
-		  const SK_ComPtr <ID3D12GraphicsCommandList>& list,
-		  const SK_ComPtr <ID3D12Resource>&            res,
-		                         D3D12_RESOURCE_STATES from,
-                             D3D12_RESOURCE_STATES to,
-		                                          UINT subresource =
-                             D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
-    )
-	  {
-	  	D3D12_RESOURCE_BARRIER
-        transition = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION };
-	  	  transition.Transition.pResource   = res.p;
-	  	  transition.Transition.Subresource = subresource;
-	  	  transition.Transition.StateBefore = from;
-	  	  transition.Transition.StateAfter  = to;
-
-	  	list->ResourceBarrier
-      ( 1,    &transition );
-	  }
-
-};
-
-extern SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk2;
-
-struct SK_ImGui_ResourcesD3D12
-{
-  SK_ComPtr <ID3D12DescriptorHeap> heap;
-
-  SK_ComPtr <ID3D12PipelineState> pipeline;
-  SK_ComPtr <ID3D12RootSignature> signature;
-
-	SK_ComPtr <ID3D12Resource> indices  [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
-  int                    num_indices  [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
-  SK_ComPtr <ID3D12Resource> vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
-	int                    num_vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
-};
-
-struct ImDrawData;
-
-struct SK_D3D12_Backend
-{
-  static void
-    transitionState (
-		  const SK_ComPtr <ID3D12GraphicsCommandList>& list,
-		  const SK_ComPtr <ID3D12Resource>&            res,
-		                         D3D12_RESOURCE_STATES from,
-                             D3D12_RESOURCE_STATES to,
-		                                          UINT subresource =
-                             D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
-    )
-	  {
-	  	D3D12_RESOURCE_BARRIER
-        transition = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION };
-	  	  transition.Transition.pResource   = res.p;
-	  	  transition.Transition.Subresource = subresource;
-	  	  transition.Transition.StateBefore = from;
-	  	  transition.Transition.StateAfter  = to;
-
-	  	list->ResourceBarrier
-      ( 1,    &transition );
-	  }
-
-  bool InitImGuiResources  (void);
-  void RenderImGuiDrawData (ImDrawData *data);
-
-  bool Init    (const DXGI_SWAP_CHAIN_DESC& swapDesc);
-  void Reset   (void);
-
-  void startPresent (void);
-  void endPresent   (void);
-
-  bool BeginCommandList    (const SK_ComPtr <ID3D12PipelineState> &state = nullptr) const;
-	void ExecuteCommandList  (void)                                                   const;
-	bool WaitForCommandQueue (void)                                                   const;
-
-  ID3D12RootSignature*
-    CreateRootSignature (const D3D12_ROOT_SIGNATURE_DESC& desc) const;
-
-
-        SK_ComPtr <ID3D12Device>       _device;
-        SK_ComPtr <ID3D12CommandQueue> _commandqueue;
-        SK_ComPtr <IDXGISwapChain3>    _swapchain;
-	      UINT                           _swap_index  = 0;
-
-  UINT _srv_handle_size     = 0;
-	UINT _rtv_handle_size     = 0;
-	UINT _dsv_handle_size     = 0;
-	UINT _sampler_handle_size = 0;
-
-  std::vector <
-    SK_ComPtr <ID3D12Fence>
-  >                            _fence;
-	mutable std::vector <UINT64> _fence_value;
-	HANDLE                       _fence_event = nullptr;
-
-	std::vector <
-    SK_ComPtr <ID3D12CommandAllocator>
-  >                                     _cmd_alloc;
-  SK_ComPtr <ID3D12GraphicsCommandList> _cmd_list;
-  mutable bool                          _cmd_list_is_recording = false;
-
-	std::vector <
-    SK_ComPtr <ID3D12Resource>
-  >                                _backbuffers;
-  DXGI_FORMAT                      _backbuffer_format = DXGI_FORMAT_UNKNOWN;
-	SK_ComPtr <ID3D12Resource>       _backbuffer_texture;
-	SK_ComPtr <ID3D12DescriptorHeap> _backbuffer_rtvs;
-	SK_ComPtr <ID3D12DescriptorHeap> _depthstencil_dsvs;
-
-  UINT   _width           = 0;
-  UINT   _height          = 0;
-  size_t _color_bit_depth = 0;
-  LONG64 _framecount      = 0LL;
-};
-
-extern SK_LazyGlobal <SK_D3D12_Backend> _d3d12_rbk;
 
 #endif /* __SK__DXGI_BACKEND_H__ */

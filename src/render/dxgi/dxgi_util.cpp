@@ -729,10 +729,11 @@ struct SK_DXGI_sRGBCoDec {
                  debug_shader_dir +=
             LR"(SK_Res\Debug\shaders\)";
 
-    static auto& rb =
+    auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    SK_ComQIPtr <ID3D11Device> pDev (rb.device);
+    auto pDev =
+      rb.getDevice <ID3D11Device> ();
 
     bool ret =
       pDev->CreatePixelShader ( sRGB_codec_ps_bytecode,
@@ -751,12 +752,13 @@ struct SK_DXGI_sRGBCoDec {
   {
     releaseResources ();
 
-    static auto& rb =
+    auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
-    SK_ComQIPtr <ID3D11Device>        pDev       (rb.device);
-    SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+    auto                                 pDev =
+      rb.getDevice <ID3D11Device>                   (            );
+    SK_ComQIPtr    <IDXGISwapChain>      pSwapChain (rb.swapchain);
+    SK_ComQIPtr    <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
 
     if (pDev != nullptr)
     {
@@ -814,6 +816,8 @@ struct SK_DXGI_sRGBCoDec {
         pDev->CreateSamplerState ( &sampler_desc,
                                               &pSampler );
 
+        SK_D3D11_SetDebugName (pSampler, L"sRGBLinearizer SamplerState");
+
         D3D11_BLEND_DESC
         blend_desc                                        = { };
         blend_desc.AlphaToCoverageEnable                  = false;
@@ -828,6 +832,8 @@ struct SK_DXGI_sRGBCoDec {
 
         pDev->CreateBlendState ( &blend_desc,
                                    &pBlendState );
+
+        SK_D3D11_SetDebugName (pBlendState, L"sRGBLinearizer BlendState");
       }
 
       D3D11_BUFFER_DESC desc = { };
@@ -839,6 +845,8 @@ struct SK_DXGI_sRGBCoDec {
       desc.MiscFlags         = 0;
 
       pDev->CreateBuffer (&desc, nullptr, &pSRGBParams);
+
+      SK_D3D11_SetDebugName (pSRGBParams, L"sRGBLinearizer CBuffer");
     }
   }
 };
@@ -861,12 +869,13 @@ SK_DXGI_ReleaseSRGBLinearizer (void)
 bool
 SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_ComQIPtr <IDXGISwapChain>      pSwapChain (pChainThatUsedToBeSRGB);// rb.swapchain);
-  SK_ComQIPtr <ID3D11Device>        pDev       (rb.device);
-  SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+  auto                                 pDev =
+    rb.getDevice <ID3D11Device>                   (                      );
+  SK_ComQIPtr    <IDXGISwapChain>      pSwapChain (pChainThatUsedToBeSRGB);// rb.swapchain);
+  SK_ComQIPtr    <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
 
   if (! pDevCtx)
     return false;
@@ -948,7 +957,9 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
 
   pDevCtx->IAGetPrimitiveTopology (&OrigPrimTop);
   pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-  pDevCtx->IASetVertexBuffers     (0, 0, nullptr, nullptr, nullptr);
+  pDevCtx->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
+                                         std::array <UINT,           1> { 0       }.data (),
+                                         std::array <UINT,           1> { 0       }.data ());
   pDevCtx->IASetInputLayout       (srgb_codec->pInputLayout);
   pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
@@ -969,6 +980,8 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
        )
      )
   {
+    SK_D3D11_SetDebugName (pRenderTargetView, L"sRGBLinearizer Single-Use RTV");
+
     pDevCtx->RSSetScissorRects        (0, nullptr);
     pDevCtx->RSSetState               (nullptr   );
     pDevCtx->OMSetDepthStencilState   (nullptr, 0);

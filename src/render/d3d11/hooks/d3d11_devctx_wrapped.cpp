@@ -645,7 +645,7 @@ public:
   {
   #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_SetShaderResources_Impl (
+          SK_D3D11_SetShaderResources_Impl (
            SK_D3D11_ShaderType::Pixel,
                        deferred_,
                   nullptr, pReal,
@@ -862,7 +862,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
 
 #ifndef SK_D3D11_LAZY_WRAP
       if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_DrawInstanced_Impl (pReal,
+            SK_D3D11_DrawInstanced_Impl (pReal,
                                         VertexCountPerInstance,
                                                       InstanceCount,
                                    StartVertexLocation,
@@ -1227,22 +1227,31 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
 
     SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
 
+    bool early_out =
+      SK_D3D11_IgnoreWrappedOrDeferred (TRUE, pReal);
+
     // ImGui gets to pass-through without invoking the hook
     if (! config.textures.cache.allow_staging)
     {
       if (! SK_D3D11_ShouldTrackRenderOp (pReal, dev_ctx_handle_))
       {
-        return
-          pReal->CopySubresourceRegion (
-                    pDstResource,
-                     DstSubresource,
-                     DstX, DstY, DstZ,
-                    pSrcResource,
-                     SrcSubresource,
-                    pSrcBox
-          );
+        early_out = true;
       }
     }
+
+    if (early_out)
+    {
+      return
+        pReal->CopySubresourceRegion (
+                  pDstResource,
+                   DstSubresource,
+                   DstX, DstY, DstZ,
+                  pSrcResource,
+                   SrcSubresource,
+                  pSrcBox
+        );
+    }
+
 
 
     D3D11_RESOURCE_DIMENSION res_dim = { };
@@ -1561,7 +1570,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   {
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_SetShader_Impl   (pReal,
+        SK_D3D11_SetShader_Impl          (      pReal,
                pHullShader, sk_shader_class::Hull,
                                     ppClassInstances,
                                    NumClassInstances, true,

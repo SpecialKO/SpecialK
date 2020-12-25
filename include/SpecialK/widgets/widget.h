@@ -48,6 +48,7 @@ struct SK_ImGui_WidgetRegistry
   SK_Widget* gpu_monitor     = nullptr;
   SK_Widget* cpu_monitor     = nullptr;
   SK_Widget* d3d11_pipeline  = nullptr;
+  SK_Widget* d3d12_pipeline  = nullptr;
   SK_Widget* thread_profiler = nullptr;
 
   SK_Widget* hdr_control     = nullptr;

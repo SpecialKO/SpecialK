@@ -115,7 +115,7 @@ NtReadFile_Detour (
       const DWORD dwTid =
         SK_Thread_GetCurrentId ();
 
-      static auto& rb =
+      auto& rb =
         SK_GetCurrentRenderBackend ();
 
       const auto dwRenderTid =

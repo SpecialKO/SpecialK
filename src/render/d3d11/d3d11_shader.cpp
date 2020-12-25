@@ -117,7 +117,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
     }
   };
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   bool early_out =
@@ -1699,8 +1699,7 @@ SK_D3D11_MakeDrawableCopy ( ID3D11Device              *pDevice,
       if (tex_desc.SampleDesc.Count > 1)
       {
         pDevCtx->ResolveSubresource ( pDrawableTex.p,     D3D11CalcSubresource (0, 0, 0),
-                                      pUndrawableTexture, D3D11CalcSubresource ( rtv_desc.Texture2D.MipSlice, 0,
-                                                                                 tex_desc.MipLevels ),
+                                      pUndrawableTexture, D3D11CalcSubresource (0, 0, tex_desc.MipLevels),
                                                           drawable_desc.Format );
       }
 
@@ -2059,7 +2058,7 @@ ShaderMenu
 const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView> >& set_of_resources,
       uint32_t                                                    shader )
 {
-  static SK_RenderBackend& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( blacklist.find (shader) !=
@@ -2132,8 +2131,10 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
           //srv_desc.Format =
           //  SK_DXGI_MakeTypedFormat (srv_desc.Format);
 
-          SK_ComQIPtr                 <ID3D11Device> pDev (rb.device);
-          if (                                       pDev != nullptr &&
+          auto pDev =
+            rb.getDevice <ID3D11Device> ();
+
+          if (                                       pDev     != nullptr &&
                SUCCEEDED (SK_D3D11_MakeDrawableCopy (pDev, pTex, nullptr, &pSRV2.p))
              )
           {
@@ -2762,11 +2763,12 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             if ( pRes != nullptr &&
                  pTex != nullptr )
             {
-              static const SK_RenderBackend& rb =
+              auto& rb =
                 SK_GetCurrentRenderBackend ();
 
-              SK_ComQIPtr <ID3D11Device>             pDev (rb.device.p);
-              SK_ComPtr   <ID3D11ShaderResourceView> pSRV;
+              auto pDev =
+                rb.getDevice <ID3D11Device> ();
+              SK_ComPtr      <ID3D11ShaderResourceView> pSRV;
 
               D3D11_TEXTURE2D_DESC   desc = { };
               pTex->GetDesc        (&desc);
@@ -2920,22 +2922,40 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
       if (rkShader.name.empty ())
       {
-        UINT uiDescLen    =  127;
-        char szDesc [128] = { };
+        UINT     uiDescLen    =  127;
+        char     szDesc [128] = { };
+        wchar_t wszDesc [128] = { };
 
-        if ( (! pShader) ||
-               FAILED ( ((ID3D11Resource *)pShader)->GetPrivateData (
-                            WKPDID_D3DDebugObjectName,
-                              &uiDescLen, szDesc                    )
-                      )
-           )
+        if (pShader)
         {
-          rkShader.name =
-            SK_FormatString ("%08x", it);
+          uiDescLen = sizeof (wszDesc) - sizeof (wchar_t);
+
+          if ( SUCCEEDED ( ((ID3D11Resource *)pShader)->GetPrivateData (
+                                    WKPDID_D3DDebugObjectNameW,
+                                      &uiDescLen, wszDesc               )
+                         )           &&uiDescLen > sizeof (wchar_t)
+             )
+          {
+            rkShader.name = SK_WideCharToUTF8 (wszDesc);
+          }
+
+          else
+          {
+            uiDescLen = sizeof (szDesc) - sizeof (char);
+
+            if ( SUCCEEDED ( ((ID3D11Resource *)pShader)->GetPrivateData (
+                                         WKPDID_D3DDebugObjectName,
+                                           &uiDescLen, szDesc            )
+                           )              &&uiDescLen > sizeof (char)
+               )
+            {
+              rkShader.name = szDesc;
+            }
+          }
         }
 
-        else
-          rkShader.name = szDesc;
+        if (rkShader.name.empty ())
+            rkShader.name = SK_FormatString ("%08x", it);
       }
 
       const char* szDesc =

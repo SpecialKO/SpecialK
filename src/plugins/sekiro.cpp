@@ -581,7 +581,7 @@ SK_Sekiro_PlugInCfg (void)
 
       if (no_frame_limit)
       {
-        static auto& rb =
+        auto& rb =
           SK_GetCurrentRenderBackend ();
 
         static UINT                num_modes   = 0;

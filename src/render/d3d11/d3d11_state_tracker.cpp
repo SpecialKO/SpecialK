@@ -485,12 +485,13 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 
     ID3D11Query* pQuery = nullptr;
     if ( SUCCEEDED ( dev->CreateQuery (&query_desc, &pQuery ) ) )
-    { InterlockedExchangePointer (
-      (PVOID *) (&duration.end.dev_ctx), pDevCtx
-    );
-    InterlockedExchangePointer (
-      (PVOID *) (&duration.end.async),   pQuery
-    );                     pDevCtx->End (pQuery);
+    {
+      InterlockedExchangePointer (
+        (PVOID *) (&duration.end.dev_ctx), pDevCtx
+      );                                   pDevCtx->AddRef ();
+      InterlockedExchangePointer (
+        (PVOID *) (&duration.end.async),   pQuery
+      );                     pDevCtx->End (pQuery);
     }
   }
 }

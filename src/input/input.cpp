@@ -1884,7 +1884,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
   SK_LOG_FIRST_CALL
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   // Game WANTED to change its position, so remember that.
@@ -1995,7 +1995,7 @@ USHORT
 WINAPI
 SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
 {
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   auto SK_ConsumeVKey = [&](int vKey) ->
@@ -2526,7 +2526,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         const auto wnd_pos =
           (LPWINDOWPOS)(lpMsg->lParam);
 
-        if (wnd_pos->flags ^ SWP_NOMOVE)
+        if (! (wnd_pos->flags & SWP_NOMOVE))
         {
           const int width =
             game_window.game.window.right - game_window.game.window.left;
@@ -2540,7 +2540,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
           game_window.game.window.bottom = wnd_pos->y + height;
         }
 
-        if (wnd_pos->flags ^ SWP_NOSIZE)
+        if (! (wnd_pos->flags & SWP_NOSIZE))
         {
           game_window.game.window.right =
             game_window.game.window.left + wnd_pos->cx;
@@ -2576,7 +2576,8 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         //game_window.game.client = game_window.actual.client;
         //game_window.game.window = game_window.actual.window;
 
-        if (((wnd_pos->flags ^ SWP_NOMOVE) || (wnd_pos->flags ^ SWP_NOSIZE)))
+        if ((! (wnd_pos->flags & SWP_NOMOVE)) || (! (wnd_pos->flags & SWP_NOSIZE)))
+        //if (((wnd_pos->flags ^ SWP_NOMOVE) || (wnd_pos->flags ^ SWP_NOSIZE)))
         {
           bool offset = false;
 
@@ -2610,10 +2611,10 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
           if (config.window.center)
             SK_AdjustWindow ();
 
-          else if (offset && (wnd_pos->flags ^ SWP_NOMOVE))
+          else if (offset && (! (wnd_pos->flags & SWP_NOMOVE)))
             SK_AdjustWindow ();
 
-          else if ((!(config.window.res.override.isZero () || temp_override)) && (wnd_pos->flags ^ SWP_NOSIZE))
+          else if ((!(config.window.res.override.isZero () || temp_override)) && (! (wnd_pos->flags & SWP_NOSIZE)))
             SK_AdjustWindow ();
 
           if (temp_override)
@@ -2643,10 +2644,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
 
       case WM_SIZE:
-        ImGui_ImplDX11_InvalidateDeviceObjects ();
-        // Fallthrough to WM_MOVE
-
-        if (lpMsg->wParam == SIZE_MINIMIZED)
+        if (lpMsg->wParam != SIZE_RESTORED)
           break;
 
       case WM_MOVE:
@@ -2728,7 +2726,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
           extern DPI_AWARENESS
           SK_GetThreadDpiAwareness (void);
 
-        //if (SK_GetThreadDpiAwareness () != DPI_AWARENESS_UNAWARE)
+          if (SK_GetThreadDpiAwareness () != DPI_AWARENESS_UNAWARE)
           {
             const RECT* suggested_rect =
                 (RECT *)lpMsg->lParam;
@@ -2745,9 +2743,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
                   SWP_NOZORDER | SWP_NOACTIVATE
             );
 
-            extern void
-            SK_ImGui_AdjustCursor (void);
-            SK_ImGui_AdjustCursor ();
+            SK_Window_RepositionIfNeeded ();
           }
         }
       } break;
@@ -2810,11 +2806,11 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&GetKeyState_Original) );
 #endif
 
-  //SK_CreateUser32Hook (      "NtUserGetKeyboardState",
-  SK_CreateDLLHook2 (       L"user32",
-                                   "GetKeyboardState",
-                             //"NtUserGetKeyboardState",
-                              NtUserGetKeyboardState_Detour,
+  SK_CreateUser32Hook ("NtUserGetKeyboardState",
+  //SK_CreateDLLHook2 (
+  //L"user32",               //"GetKeyboardState",
+                       //"NtUserGetKeyboardState",
+                        NtUserGetKeyboardState_Detour,
      static_cast_p2p <void> (&GetKeyboardState_Original) );
 
 
@@ -2888,6 +2884,8 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&keybd_event_Original) );
 
 
+
+#ifdef __MANAGE_RAW_INPUT_REGISTRATION
   //SK_CreateUser32Hook (      "NtUserRegisterRawInputDevices",
   SK_CreateDLLHook2 (       L"user32",
                                    "RegisterRawInputDevices",
@@ -2899,6 +2897,7 @@ void SK_Input_PreInit (void)
                                    "GetRegisteredRawInputDevices",
                               NtUserGetRegisteredRawInputDevices_Detour,
      static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
+#endif
 
 
   SK_CreateDLLHook2 (       L"user32",

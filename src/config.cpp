@@ -129,7 +129,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"P4G.exe"),                                SK_GAME_ID::Persona4                     },
       { hash_lower (L"HorizonZeroDawn.exe"),                    SK_GAME_ID::HorizonZeroDawn              },
       { hash_lower (L"bg3.exe"),                                SK_GAME_ID::BaldursGate3                 },
-      { hash_lower (L"YakuzaLikeADragon.exe"),                  SK_GAME_ID::YakuzaLikeADragon            }
+      { hash_lower (L"YakuzaLikeADragon.exe"),                  SK_GAME_ID::YakuzaLikeADragon            },
+      { hash_lower (L"Cyberpunk2077.exe"),                      SK_GAME_ID::Cyberpunk2077                }
     };
 
     first_check = false;
@@ -346,10 +347,8 @@ struct {
 
   struct
   {
-    // Will evolve over time, only supports D3D11 right now.
+    // Will evolve over time, only supports D3D11/12 right now.
     sk::ParameterBool*    smart_capture;
-    sk::ParameterBool*    include_osd_default;
-    sk::ParameterBool*    keep_png_copy;
   } screenshots;
 
   struct
@@ -357,6 +356,11 @@ struct {
     sk::ParameterFloat*   hdr_luminance;
   } overlay;
 } steam;
+
+struct {
+  sk::ParameterBool*      include_osd_default;
+  sk::ParameterBool*      keep_png_copy;
+} screenshots;
 
 struct {
   struct
@@ -725,7 +729,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (create)
     SK_CreateDirectories ( full_name.c_str () );
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -899,6 +903,12 @@ auto DeclKeybind =
     ConfigEntry (imgui.show_gsync_status,                L"Show G-Sync Status on Control Panel",                       osd_ini,         L"ImGui.Global",          L"ShowGSyncStatus"),
     ConfigEntry (imgui.mac_style_menu,                   L"Use Mac-style Menu Bar",                                    osd_ini,         L"ImGui.Global",          L"UseMacStyleMenu"),
     ConfigEntry (imgui.show_input_apis,                  L"Show Input APIs currently in-use",                          osd_ini,         L"ImGui.Global",          L"ShowActiveInputAPIs"),
+
+    ConfigEntry (screenshots.keep_png_copy,              L"Keep a .PNG compressed copy of each screenshot?",           osd_ini,         L"Screenshot.System",     L"KeepLosslessPNG"),
+    Keybind ( &config.screenshots.game_hud_free_keybind, L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
+    Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
+    Keybind ( &config.screenshots.
+                               sk_osd_insertion_keybind, L"Take a screenshot and insert SK's OSD",                     osd_ini,         L"Screenshot.System"),
 
 
     // Input
@@ -1176,16 +1186,7 @@ auto DeclKeybind =
 
     // These are all system-wide for all Steam games
     ConfigEntry (steam.overlay.hdr_luminance,            L"Make the Steam Overlay visible in HDR mode!",               steam_ini,       L"Steam.Overlay",         L"Luminance_scRGB"),
-    ConfigEntry (steam.screenshots.include_osd_default,  L"Should a screenshot triggered BY Steam include SK's OSD?",  steam_ini,       L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
-    ConfigEntry (steam.screenshots.keep_png_copy,        L"Keep a .PNG compressed copy of each screenshot?",           steam_ini,       L"Steam.Screenshots",     L"KeepLosslessPNG"),
-
-    Keybind     (&config.steam.screenshots.game_hud_free_keybind,
-                                                         L"Take a screenshot without the HUD",                         steam_ini,       L"Steam.Screenshots"),
-    Keybind     (&config.steam.screenshots.sk_osd_free_keybind,
-                                                         L"Take a screenshot without SK's OSD",                        steam_ini,       L"Steam.Screenshots"),
-    Keybind     (&config.steam.screenshots.sk_osd_insertion_keybind,
-                                                         L"Take a screenshot and insert SK's OSD",                     steam_ini,       L"Steam.Screenshots"),
-
+    ConfigEntry (screenshots.include_osd_default,        L"Should a screenshot triggered BY Steam include SK's OSD?",  steam_ini,       L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
 
     // Swashbucklers pay attention
     //////////////////////////////////////////////////////////////////////////
@@ -2033,6 +2034,12 @@ auto DeclKeybind =
         config.steam.silent             = true;
       } break;
 
+      case SK_GAME_ID::Cyberpunk2077:
+      {
+        extern void SK_CP2077_InitPlugin (void);
+                    SK_CP2077_InitPlugin (    );
+      } break;
+
       case SK_GAME_ID::OctopathTraveler:
       {
         // It's a Denuvo game, so it may take a while to start...
@@ -2770,14 +2777,14 @@ auto DeclKeybind =
 
   steam.overlay.hdr_luminance->load           (config.steam.overlay_hdr_luminance);
   steam.screenshots.smart_capture->load       (config.steam.screenshots.enable_hook);
-  steam.screenshots.include_osd_default->load (config.steam.screenshots.show_osd_by_default);
-  steam.screenshots.keep_png_copy->load       (config.steam.screenshots.png_compress);
-
   uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
 
-  LoadKeybind (&config.steam.screenshots.game_hud_free_keybind);
-  LoadKeybind (&config.steam.screenshots.sk_osd_free_keybind);
-  LoadKeybind (&config.steam.screenshots.sk_osd_insertion_keybind);
+  screenshots.include_osd_default->load       (config.screenshots.show_osd_by_default);
+  screenshots.keep_png_copy->load             (config.screenshots.png_compress);
+
+  LoadKeybind (&config.screenshots.game_hud_free_keybind);
+  LoadKeybind (&config.screenshots.sk_osd_free_keybind);
+  LoadKeybind (&config.screenshots.sk_osd_insertion_keybind);
 
 
   if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
@@ -3186,7 +3193,7 @@ SK_SaveConfig ( std::wstring name,
        osd_ini         == nullptr    )
     return;
 
-  static auto& rb =
+  auto& rb =
     SK_GetCurrentRenderBackend ();
 
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
@@ -3631,9 +3638,9 @@ SK_SaveConfig ( std::wstring name,
   steam.overlay.hdr_luminance->store           (config.steam.overlay_hdr_luminance);
 
   steam.screenshots.smart_capture->store       (config.steam.screenshots.enable_hook);
-  steam.screenshots.include_osd_default->
-                                   store       (config.steam.screenshots.show_osd_by_default);
-  steam.screenshots.keep_png_copy->store       (config.steam.screenshots.png_compress);
+
+  screenshots.include_osd_default->store       (config.screenshots.show_osd_by_default);
+  screenshots.keep_png_copy->store             (config.screenshots.png_compress);
 
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
 
