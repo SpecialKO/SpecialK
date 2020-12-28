@@ -4616,20 +4616,6 @@ D3D11Dev_CreateTexture2D_Impl (
   if (! bIgnoreThisUpload) bIgnoreThisUpload = (! (SK_D3D11_cache_textures ||
                                                    SK_D3D11_dump_textures  ||
                                                    SK_D3D11_inject_textures));
-  if (  bIgnoreThisUpload)
-  {
-    return
-      D3D11Dev_CreateTexture2D_Original ( This,            pDesc,
-                                            pInitialData, ppTexture2D );
-  }
-
-  if (pDesc == nullptr || ppTexture2D == nullptr)
-  {
-    return
-      D3D11Dev_CreateTexture2D_Original (This, pDesc,
-                                         pInitialData, ppTexture2D);
-  }
-
 
   //// ------------
   auto& rb =
@@ -4644,6 +4630,9 @@ D3D11Dev_CreateTexture2D_Impl (
     This->GetImmediateContext (&pDevCtx.p);
        rb.d3d11.immediate_ctx = pDevCtx;
        rb.setDevice            (pDev);
+
+    SK_LOG0 ( (L"Active D3D11 Device Context Established on first Texture Upload" ),
+               L"  D3D 11  " );
   }
 
   if (! ( pDev    != nullptr &&
@@ -4656,6 +4645,24 @@ D3D11Dev_CreateTexture2D_Impl (
                                             pInitialData, ppTexture2D );
   }
   //// -----------
+
+  if (! SK_GetCurrentRenderBackend ().getDevice <ID3D11Device> ().IsEqualObject (This)) { SK_ReleaseAssert (!"Texture upload not cached because it happened on the wrong device");
+    bIgnoreThisUpload = TRUE;
+  }
+
+  if (  bIgnoreThisUpload)
+  {
+    return
+      D3D11Dev_CreateTexture2D_Original ( This,            pDesc,
+                                            pInitialData, ppTexture2D );
+  }
+
+  if (pDesc == nullptr || ppTexture2D == nullptr)
+  {
+    return
+      D3D11Dev_CreateTexture2D_Original (This, pDesc,
+                                         pInitialData, ppTexture2D);
+  }
 
   SK_D3D11_TextureResampler->processFinished (This, pDevCtx, pTLS);
 
@@ -6093,10 +6100,10 @@ HookD3D11 (LPVOID user)
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
 
-  static volatile LONG __d3d11_hooked = FALSE;
+  static volatile LONG __d3d11_hooked = 0;
 
   // This only needs to be done once
-  if (! InterlockedCompareExchange (&__d3d11_hooked, TRUE, FALSE))
+  if (InterlockedCompareExchange (&__d3d11_hooked, 1, 0) == 0)
   {
   SK_LOG0 ( (L"  Hooking D3D11"), __SK_SUBSYSTEM__ );
 
@@ -8521,7 +8528,7 @@ SKX_ImGui_RegisterDiscardableResource (IUnknown* pRes)
 
 
 void
-SK_D3D11_ResetShaders (void)
+SK_D3D11_ResetShaders (ID3D11Device* pDevice)
 {
   static auto& shaders  = SK_D3D11_Shaders;
   static auto& vertex   = shaders->vertex;
@@ -8531,57 +8538,57 @@ SK_D3D11_ResetShaders (void)
   static auto& hull     = shaders->hull;
   static auto& compute  = shaders->compute;
 
-  for (auto& it : vertex.descs)
+  for (auto& it : vertex.descs [pDevice])
   {
     if (it.second.pShader->Release () == 0)
     {
-      vertex.rev.erase   ((ID3D11VertexShader *)it.second.pShader);
-      vertex.descs.erase (it.first);
+      vertex.rev [pDevice].erase   ((ID3D11VertexShader *)it.second.pShader);
+      vertex.descs [pDevice].erase (it.first);
     }
   }
 
-  for (auto& it : pixel.descs)
+  for (auto& it : pixel.descs [pDevice])
   {
     if (it.second.pShader->Release () == 0)
     {
-      pixel.rev.erase   ((ID3D11PixelShader *)it.second.pShader);
-      pixel.descs.erase (it.first);
+      pixel.rev [pDevice].erase   ((ID3D11PixelShader *)it.second.pShader);
+      pixel.descs [pDevice].erase (it.first);
     }
   }
 
-  for (auto& it : geometry.descs)
+  for (auto& it : geometry.descs [pDevice])
   {
     if (it.second.pShader->Release () == 0)
     {
-      geometry.rev.erase   ((ID3D11GeometryShader *)it.second.pShader);
-      geometry.descs.erase (it.first);
+      geometry.rev [pDevice].erase   ((ID3D11GeometryShader *)it.second.pShader);
+      geometry.descs [pDevice].erase (it.first);
     }
   }
 
-  for (auto& it : hull.descs)
+  for (auto& it : hull.descs [pDevice])
   {
     if (it.second.pShader->Release () == 0)
     {
-      hull.rev.erase   ((ID3D11HullShader *)it.second.pShader);
-      hull.descs.erase (it.first);
+      hull.rev [pDevice].erase   ((ID3D11HullShader *)it.second.pShader);
+      hull.descs [pDevice].erase (it.first);
     }
   }
 
-  for (auto& it : domain.descs)
+  for (auto& it : domain.descs [pDevice])
   {
     if (it.second.pShader->Release () == 0)
     {
-      domain.rev.erase   ((ID3D11DomainShader *)it.second.pShader);
-      domain.descs.erase (it.first);
+      domain.rev [pDevice].erase   ((ID3D11DomainShader *)it.second.pShader);
+      domain.descs [pDevice].erase (it.first);
     }
   }
 
-  for (auto& it : compute.descs)
+  for (auto& it : compute.descs [pDevice])
   {
     if (it.second.pShader->Release () == 0)
     {
-      compute.rev.erase   ((ID3D11ComputeShader *)it.second.pShader);
-      compute.descs.erase (it.first);
+      compute.rev [pDevice].erase   ((ID3D11ComputeShader *)it.second.pShader);
+      compute.descs [pDevice].erase (it.first);
     }
   }
 }

@@ -359,7 +359,6 @@ SK_Hook_PreCacheModule ( const wchar_t             *wszModuleName,
   sk_hook_cache_enablement_s cache_state =
     SK_Hook_IsCacheEnabled (ini_name.c_str (), ini);
 
-
   // This first pass will iterate over any records in the DLL's shared
   //   data segment (for global injection).
   //
@@ -484,17 +483,16 @@ SK_Hook_PreCacheModule ( const wchar_t             *wszModuleName,
 
 sk_hook_cache_enablement_s
 SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
-                               iSK_INI *ini         )
+                               iSK_INI *ini )
 {
   if (ini == nullptr)
-    return {};
-
+    return { };
 
   sk_hook_cache_enablement_s ret;
 
   struct cache_pool_s {
-    const wchar_t  *wszName;
-          bool     *pEnable;
+    const std::wstring_view kName;
+          bool*             pEnable;
   } pools [] = { { L"Global", &ret.use_cached_addresses.global },
                  { L"Local",  &ret.use_cached_addresses.local  } };
 
@@ -503,14 +501,14 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
     iSK_INISection& cfg_sec =
       ini->get_section (wszSecName);
 
-    for ( auto it : pools )
+    for ( auto&& it : pools )
     {
       std::wstring key_name =
-        SK_FormatStringW (L"Enable%sCache", it.wszName);
+        SK_FormatStringW (L"Enable%sCache", it.kName.data ());
 
       if (cfg_sec.contains_key (key_name.c_str ()))
       {
-        (*it.pEnable) =
+        *(it.pEnable) =
           SK_IsTrue (cfg_sec.get_value (key_name.c_str ()).c_str ());
       }
 
@@ -518,11 +516,11 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
       {
         if ((! _wcsicmp (wszSecName, L"D3D11.Hooks")) && (! SK_IsInjected ()) )
         {
-          (*it.pEnable) = true;
+          *(it.pEnable) = true;
         }
 
         else
-          *it.pEnable = (! _wcsicmp (it.wszName, L"Global"));
+          *(it.pEnable) = (! _wcsicmp (it.kName.data (), L"Global"));
 
         cfg_sec.add_key_value ( key_name.c_str (),
                                   *(it.pEnable) ? L"true" :

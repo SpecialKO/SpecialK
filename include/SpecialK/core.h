@@ -171,8 +171,8 @@ extern SK_LazyGlobal <iSK_Logger> steam_log;
 
 
 // Pass nullptr to cleanup ALL windows; for internal use only.
-void SK_Win32_CleanupDummyWindow (HWND hWnd = nullptr);
-HWND SK_Win32_CreateDummyWindow  (void               );
+void SK_Win32_CleanupDummyWindow (HWND hWnd       = nullptr);
+HWND SK_Win32_CreateDummyWindow  (HWND hWndParent = HWND_MESSAGE);
 
 void __stdcall SK_EstablishRootPath   (void);
 void __stdcall SK_StartPerfMonThreads (void);

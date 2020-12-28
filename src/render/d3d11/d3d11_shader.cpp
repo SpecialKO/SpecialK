@@ -224,6 +224,8 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
       _Finish ();
   }
 
+  SK_ComPtr <ID3D11Device> pDevice;
+  pDevCtx->GetDevice     (&pDevice.p);
 
   SK_D3D11_ShaderDesc
      *pDesc    = nullptr;
@@ -231,12 +233,13 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
   {
     pCritical->lock ();
 
-    auto shader_desc =
-      pShaderRepo->rev.find (pShader);
+    auto& rev_map     = pShaderRepo->rev [pDevice];
+    auto  shader_desc =
+      rev_map.find (pShader);
 
     pCritical->unlock ();
 
-    if (shader_desc != pShaderRepo->rev.end ())
+    if (shader_desc != rev_map.end ())
     {
       pDesc =
         shader_desc->second;
@@ -256,8 +259,8 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
 
         pCritical->lock ();
 
-        pShaderRepo->rev [pShader] =
-                (pDesc = &pShaderRepo->descs [crc32c]);
+        rev_map [pShader] =
+          (pDesc = &pShaderRepo->descs [pDevice][crc32c]);
 
         pCritical->unlock ();
       }
@@ -2277,6 +2280,9 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
 void
 SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 {
+  ID3D11Device* pDevice =
+    (ID3D11Device *)(SK_GetCurrentRenderBackend ().device.p);
+
   std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_shader);
 
   static auto& io =
@@ -2366,7 +2372,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     tracker = GetShaderTracker (shader_type);
 
   auto GetShaderSet =
-    [](const sk_shader_class& type) ->
+    [&](const sk_shader_class& type) ->
       std::set <uint32_t>&
       {
         static std::set <uint32_t> set  [6];
@@ -2379,10 +2385,12 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             static auto& vertex =
               shaders->vertex;
 
-            if (size [0] == vertex.descs.size ())
+            auto& descs = vertex.descs [pDevice];
+
+            if (size [0] == descs.size ())
               return set [0];
 
-            for (auto const& vertex_shader : vertex.descs)
+            for (auto const& vertex_shader : descs)
             {
               // Ignore ImGui / CEGUI shaders
               if ( vertex_shader.first != 0xb42ede74 &&
@@ -2392,7 +2400,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
               }
             }
 
-                   size [0] = vertex.descs.size ();
+                   size [0] = descs.size ();
             return set  [0];
           } break;
 
@@ -2401,10 +2409,12 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             static auto& pixel =
               shaders->pixel;
 
-            if (size [1] == pixel.descs.size ())
+            auto& descs = pixel.descs [pDevice];
+
+            if (size [1] == descs.size ())
               return set [1];
 
-            for (auto const& pixel_shader : pixel.descs)
+            for (auto const& pixel_shader : descs)
             {
               // Ignore ImGui / CEGUI shaders
               if ( pixel_shader.first != 0xd3af3aa0 &&
@@ -2414,7 +2424,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
               }
             }
 
-                   size [1] = pixel.descs.size ();
+                   size [1] = descs.size ();
             return set  [1];
           } break;
 
@@ -2423,15 +2433,17 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             static auto& geometry =
               shaders->geometry;
 
-            if (size [2] == geometry.descs.size ())
+            auto& descs = geometry.descs [pDevice];
+
+            if (size [2] == descs.size ())
               return set [2];
 
-            for (auto const& geometry_shader : geometry.descs)
+            for (auto const& geometry_shader : descs)
             {
               if (geometry_shader.first > 0x00000000) set [2].emplace (geometry_shader.first);
             }
 
-                   size [2] = geometry.descs.size ();
+                   size [2] = descs.size ();
             return set  [2];
           } break;
 
@@ -2440,15 +2452,17 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             static auto& hull =
               shaders->hull;
 
-            if (size [3] == hull.descs.size ())
+            auto& descs = hull.descs [pDevice];
+
+            if (size [3] == descs.size ())
               return set [3];
 
-            for (auto const& hull_shader : hull.descs)
+            for (auto const& hull_shader : descs)
             {
               if (hull_shader.first > 0x00000000) set [3].emplace (hull_shader.first);
             }
 
-                   size [3] = hull.descs.size ();
+                   size [3] = descs.size ();
             return set  [3];
           } break;
 
@@ -2457,15 +2471,17 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             static auto& domain =
               shaders->domain;
 
-            if (size [4] == domain.descs.size ())
+            auto& descs = domain.descs [pDevice];
+
+            if (size [4] == descs.size ())
               return set [4];
 
-            for (auto const& domain_shader : domain.descs)
+            for (auto const& domain_shader : descs)
             {
               if (domain_shader.first > 0x00000000) set [4].emplace (domain_shader.first);
             }
 
-                   size [4] = domain.descs.size ();
+                   size [4] = descs.size ();
             return set  [4];
           } break;
 
@@ -2474,15 +2490,17 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             static auto& compute =
               shaders->compute;
 
-            if (size [5] == compute.descs.size ())
+            auto& descs = compute.descs [pDevice];
+
+            if (size [5] == descs.size ())
               return set [5];
 
-            for (auto const& compute_shader : compute.descs)
+            for (auto const& compute_shader : descs)
             {
               if (compute_shader.first > 0x00000000) set [5].emplace (compute_shader.first);
             }
 
-                   size [5] = compute.descs.size ();
+                   size [5] = descs.size ();
             return set  [5];
           } break;
         }
@@ -2889,7 +2907,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     SK_D3D11_ShaderDesc&
       {
         return
-          ((SK_D3D11_KnownShaders::ShaderRegistry <ID3D11VertexShader>*)ShaderBase (type))->descs [
+          ((SK_D3D11_KnownShaders::ShaderRegistry <ID3D11VertexShader>*)ShaderBase (type))->descs [pDevice][
             crc32c
           ];
       };
@@ -3250,13 +3268,13 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         auto repo =
           repos [sk_shader_state_s::ClassToIdx (shader_type)];
 
-        hr = D3DDisassemble ( repo->descs [tracker->crc32c].bytecode.data (),
-                              repo->descs [tracker->crc32c].bytecode.size (),
+        hr = D3DDisassemble ( repo->descs [pDevice][tracker->crc32c].bytecode.data (),
+                              repo->descs [pDevice][tracker->crc32c].bytecode.size (),
                                 D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm);
         if (SUCCEEDED (hr))
         {
-             D3DReflect     ( repo->descs [tracker->crc32c].bytecode.data (),
-                              repo->descs [tracker->crc32c].bytecode.size (),
+             D3DReflect     ( repo->descs [pDevice][tracker->crc32c].bytecode.data (),
+                              repo->descs [pDevice][tracker->crc32c].bytecode.size (),
                                 IID_ID3D11ShaderReflection, (void **)&pReflect);
         }
       }

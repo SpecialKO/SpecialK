@@ -371,7 +371,7 @@ template <typename _T>
 class SK_D3D11_IsShaderLoaded
 {
 public:
-  SK_D3D11_IsShaderLoaded (uint32_t crc32c)
+  SK_D3D11_IsShaderLoaded (ID3D11Device* pDevice, uint32_t crc32c)
   {
     static auto& shaders =
       SK_D3D11_Shaders;
@@ -408,8 +408,8 @@ public:
       crit_sec->lock ();
 
       loaded =
-        ( repository->descs.find (crc32c) !=
-          repository->descs.cend (      )  );
+        ( repository->descs [pDevice].find (crc32c) !=
+          repository->descs [pDevice].cend (      )  );
 
       crit_sec->unlock ();
     }
@@ -654,7 +654,7 @@ SK_D3D11_CreateShader_Impl (
     pCritical->lock ();     // Lock during cache check
 
     const bool cached =
-      pShaderRepo->descs.count (checksum) != 0;
+      pShaderRepo->descs [This].count (checksum) != 0;
 
     SK_D3D11_ShaderDesc* pCachedDesc = nullptr;
 
@@ -730,7 +730,7 @@ SK_D3D11_CreateShader_Impl (
         //
         //  (nb: DOES NOT ACCOUNT FOR ALT. SUBROUTINES [Class Linkage])
         //
-        if (pShaderRepo->descs.count (checksum) != 0)
+        if (pShaderRepo->descs [This].count (checksum) != 0)
         {
           ((IUnknown *)*ppShader)->Release ();
 
@@ -747,13 +747,13 @@ SK_D3D11_CreateShader_Impl (
             SKID_D3D11KnownShaderCrc32c, sizeof (uint32_t), &checksum
           );
 
-          pShaderRepo->descs.emplace (
+          pShaderRepo->descs [This].emplace (
             std::make_pair (checksum, desc)
           );
         }
 
         pCachedDesc
-          = &pShaderRepo->descs [checksum];
+          = &pShaderRepo->descs [This][checksum];
       }
     }
 
@@ -770,7 +770,7 @@ SK_D3D11_CreateShader_Impl (
       //  * Consider a tagging system to prevent aliasing in the future.
       //
       pCachedDesc =
-        &pShaderRepo->descs [checksum];
+        &pShaderRepo->descs [This][checksum];
 
       SK_LOG3 ( ( L"Shader Class %lu Cache Hit for Checksum %08x", type, checksum ),
                   L"DX11Shader" );
@@ -792,7 +792,7 @@ SK_D3D11_CreateShader_Impl (
       ///           pShaderRepo->rev [*ppShader] != checksum )
       ///  pShaderRepo->rev.erase (*ppShader);
 
-      pShaderRepo->rev.emplace (
+      pShaderRepo->rev [This].emplace (
         std::make_pair (*ppShader, pCachedDesc)
       );
     }

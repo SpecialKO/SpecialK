@@ -79,18 +79,8 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
     riid == __uuidof (IDXGISwapChain1)      ||
     riid == __uuidof (IDXGISwapChain2)      ||
     riid == __uuidof (IDXGISwapChain3)      ||
-    riid == __uuidof (IDXGISwapChain4)      ||
-    riid == IID_IUnwrappedDXGISwapChain )
+    riid == __uuidof (IDXGISwapChain4) )
   {
-    if (riid == IID_IUnwrappedDXGISwapChain)
-    {
-      pReal->AddRef ();
-
-      (*ppvObj) = pReal;
-
-      return S_OK;
-    }
-
     auto _GetVersion = [](REFIID riid) ->
     UINT
     {
@@ -128,8 +118,6 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
     {
       AddRef ();
     }
-
-    InterlockedIncrement (&refs_);
 
     *ppvObj = this;
 
@@ -180,8 +168,18 @@ IWrapDXGISwapChain::Release (void)
   ULONG xrefs =
     InterlockedDecrement (&refs_);
 
-  if (xrefs == 0)
+  ULONG refs =
+    pReal->Release ();
+
+  if (xrefs == 1 || (xrefs == 2 && (SK_GetCurrentRenderBackend ().swapchain.p == this ||
+                                    SK_GetCurrentRenderBackend ().swapchain.p == pReal)))
   {
+    if (xrefs == 1)
+    {
+      SK_LOG0 ( ( L"Releasing wrapped SwapChain (%p)... device=%p, hwnd=%p", pReal, pDev.p, hWnd_),
+                  L"   DXGI   ");
+    }
+
     // We're going to make this available for recycling
     if (hWnd_ != 0)
     {
@@ -196,25 +194,33 @@ IWrapDXGISwapChain::Release (void)
         this, std::exchange (hWnd_, (HWND)0), pDev
       );
 
-      SK_GetCurrentRenderBackend ().releaseOwnedResources ();
-
-      if (xrefs == 0)
+      if (SK_GetCurrentRenderBackend ().swapchain.p == this ||
+          SK_GetCurrentRenderBackend ().swapchain.p == pReal)
       {
-        SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
+        SK_ReleaseAssert (SK_GetCurrentRenderBackend ().device.IsEqualObject (pDev) ||
+                          SK_GetCurrentRenderBackend ().device.p == nullptr);
 
-        ///if (ReadAcquire (&refs_) == 0)
-        ///{
-        ///  if (ver_ > 0)
-        ///    InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChain1s);
-        ///  else
-        ///    InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
-        ///}
+        SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+      }
+
+      if (xrefs == 1)
+        SK_ReleaseAssert (refs == 0);
+
+      if (refs == 0)
+      {
+        if (ver_ > 0)
+          InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChain1s);
+        else
+          InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
+
+        pDev.Release ();
+
+        //delete this;
       }
     }
   }
 
-  return
-    pReal->Release ();
+  return refs;
 }
 
 HRESULT
@@ -252,8 +258,12 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
 {
+  SK_ReleaseAssert (pDev.p != nullptr);
+
+  //return
+  //  pReal->GetDevice (riid, ppDevice);
   return
-    ((IUnknown *)pDev)->QueryInterface (riid, ppDevice);
+    pDev->QueryInterface (riid, ppDevice);
 }
 
 HRESULT
@@ -299,29 +309,29 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
 {
-  ///DXGI_SWAP_CHAIN_DESC  sd = { };
-  ///pReal->GetDesc      (&sd);
-  ///
-  ///if (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-  ///{
-  ///  if (Fullscreen == TRUE)
-  ///  {
-  ///    SK_RunOnce (
-  ///      SK_ImGui_Warning ( L"Fullscreen Exclusive Mode is not Supported on Waitable SwapChains.\r\n\r\n\t"
-  ///                         L">> Please Change In-Game Settings to Borderless Window Mode ASAP to Prevent Compat. Issues" )
-  ///    );
-  ///
-  ///    SK_LOG_ONCE ( L" >> Ignoring SetFullscreenState (...) on a Latency Waitable SwapChain." );
-  ///
-  ///    if (! std::exchange (_fakeFullscreen, true))
-  ///      return S_OK;
-  ///  }
-  ///
-  ///  _fakeFullscreen = false;
-  ///
-  ///  // If we're latency-waitable, then we're already in windowed mode... nothing to do here.
-  ///  return S_OK;
-  ///}
+  DXGI_SWAP_CHAIN_DESC  sd = { };
+  pReal->GetDesc      (&sd);
+
+  if (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+  {
+    if (Fullscreen == TRUE)
+    {
+      SK_RunOnce (
+        SK_ImGui_Warning ( L"Fullscreen Exclusive Mode is not Supported on Waitable SwapChains.\r\n\r\n\t"
+                           L">> Please Change In-Game Settings to Borderless Window Mode ASAP to Prevent Compat. Issues" )
+      );
+
+      SK_LOG_ONCE ( L" >> Ignoring SetFullscreenState (...) on a Latency Waitable SwapChain." );
+
+      //if (! std::exchange (fakeFullscreen_, true))
+      return S_OK;
+    }
+
+    ////fakeFullscreen_ = false;
+    ////
+    ////// If we're latency-waitable, then we're already in windowed mode... nothing to do here.
+    ////return S_OK;
+  }
 
   return
     pReal->SetFullscreenState (Fullscreen, pTarget);
@@ -331,31 +341,31 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFullscreenState (BOOL *pFullscreen, IDXGIOutput **ppTarget)
 {
-  //DXGI_SWAP_CHAIN_DESC swapDesc = { };
-  //pReal->GetDesc     (&swapDesc);
-  //
-  //if (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-  //{
-  //  if (_fakeFullscreen)
-  //  {
-  //    if (pFullscreen)
-  //       *pFullscreen = TRUE;
-  //
-  //    if (ppTarget != nullptr)
-  //      pReal->GetContainingOutput (ppTarget);
-  //
-  //    return S_OK;
-  //  }
-  //
-  //  if ( ppTarget != nullptr)
-  //      *ppTarget =  nullptr;
-  //
-  //  if (pFullscreen)
-  //     *pFullscreen = FALSE;
-  //
-  //  return
-  //    S_OK;
-  //}
+  ///DXGI_SWAP_CHAIN_DESC swapDesc = { };
+  ///pReal->GetDesc     (&swapDesc);
+  ///
+  ///if (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+  ///{
+  ///  if (fakeFullscreen_)
+  ///  {
+  ///    if (pFullscreen)
+  ///       *pFullscreen = TRUE;
+  ///
+  ///    if (ppTarget != nullptr)
+  ///      pReal->GetContainingOutput (ppTarget);
+  ///
+  ///    return S_OK;
+  ///  }
+  ///
+  ///  if ( ppTarget != nullptr)
+  ///      *ppTarget =  nullptr;
+  ///
+  ///  if (pFullscreen)
+  ///     *pFullscreen = FALSE;
+  ///
+  ///  return
+  ///    S_OK;
+  ///}
 
   return
     pReal->GetFullscreenState (pFullscreen, ppTarget);
@@ -368,19 +378,22 @@ IWrapDXGISwapChain::GetDesc (DXGI_SWAP_CHAIN_DESC *pDesc)
   HRESULT hr =
     pReal->GetDesc (pDesc);
 
-  if (SUCCEEDED (hr))
-  {
-    if (lastRequested_ == DXGI_FORMAT_UNKNOWN)
-        lastRequested_ =  pDesc->BufferDesc.Format;
-
-    if (pDesc->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-        pDesc->Windowed = FALSE;
-
-    extern bool
-        __SK_HDR_16BitSwap;
-    if (__SK_HDR_16BitSwap && pDesc->BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-                              pDesc->BufferDesc.Format =  lastRequested_;
-  }
+  ///if (SUCCEEDED (hr))
+  ///{
+  ///  if (lastRequested_ == DXGI_FORMAT_UNKNOWN)
+  ///      lastRequested_ =  pDesc->BufferDesc.Format;
+  ///
+  ///  //if (fakeFullscreen_)
+  ///  //{
+  ///    if (pDesc->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+  ///      pDesc->Windowed = FALSE;
+  ///  //}
+  ///
+  ///  extern bool
+  ///      __SK_HDR_16BitSwap;
+  ///  if (__SK_HDR_16BitSwap && pDesc->BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+  ///                            pDesc->BufferDesc.Format =  lastRequested_;
+  ///}
 
   return hr;
 }

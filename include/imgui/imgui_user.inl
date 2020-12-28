@@ -130,6 +130,7 @@ extern float analog_sensitivity;
 #include <set>
 #include <SpecialK/log.h>
 
+extern bool SK_WantBackgroundRender (void);
 
 #define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead  (type);
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite (type);
@@ -228,7 +229,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             }
 
             // Block mouse input to the game while it's in the background
-            if (config.window.background_render && (! focus))
+            if (SK_WantBackgroundRender () && (! focus))
               filter = true;
 
             mouse = true;
@@ -286,7 +287,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
 
             // Block keyboard input to the game while it's in the background
-            if (config.window.background_render && (! focus))
+            if (SK_WantBackgroundRender () && (! focus))
               filter = true;
 
 
@@ -309,14 +310,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             if (!(((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
             {
               pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-                    io.KeysDown [VKey & 0xFF] = game_window.active;
+                    io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
             }
 
             switch (((RAWINPUT *) pData)->data.keyboard.Message)
             {
               case WM_KEYDOWN:
               case WM_SYSKEYDOWN:
-                      io.KeysDown [VKey & 0xFF] = game_window.active;
+                      io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
                 pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
                 break;
 
@@ -416,14 +417,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               if (! (((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
               {
                 pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-                      io.KeysDown [VKey & 0xFF] = game_window.active;
+                      io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
               }
 
               switch (((RAWINPUT *) pData)->data.keyboard.Message)
               {
                 case WM_KEYDOWN:
                 case WM_SYSKEYDOWN:
-                  io.KeysDown [VKey & 0xFF] = game_window.active;
+                  io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
                   break;
 
                 case WM_KEYUP:
@@ -701,7 +702,7 @@ MessageProc ( const HWND&   hWnd,
     {
       ActivateWindow (((HWND)wParam == hWnd));
 
-      if ((! window_active) && config.window.background_render)
+      if ((! window_active) && SK_WantBackgroundRender ())
         return true;
     } break;
 
@@ -738,7 +739,7 @@ MessageProc ( const HWND&   hWnd,
         }
       }
 
-      if ((! window_active) && config.window.background_render)
+      if ((! window_active) && SK_WantBackgroundRender ())
         return true;
     } break;
 
@@ -780,14 +781,14 @@ MessageProc ( const HWND&   hWnd,
     case WM_RBUTTONUP:
     case WM_MBUTTONUP:
     case WM_XBUTTONUP:
-      if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
+      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
       {
         return true;
       } break;
 
 
     case WM_MOUSEWHEEL:
-      if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
+      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
       {
         io.MouseWheel +=
           static_cast <float> (GET_WHEEL_DELTA_WPARAM (wParam)) /
@@ -814,7 +815,7 @@ MessageProc ( const HWND&   hWnd,
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
     {
-      if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
+      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
       {
         InterlockedIncrement (&__SK_KeyMessageCount);
 
@@ -991,7 +992,7 @@ MessageProc ( const HWND&   hWnd,
 
     case WM_CHAR:
     {
-      if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
+      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
       {
         InterlockedIncrement (&__SK_KeyMessageCount);
 
@@ -1087,6 +1088,8 @@ MessageProc ( const HWND&   hWnd,
   return false;
 };
 
+extern bool WINAPI SK_IsGameWindowActive (void);
+
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
@@ -1122,7 +1125,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
   if (msg == WM_SETCURSOR)
   {
-    if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
+    if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
     {
       SK_ImGui_Cursor.update ();
 
@@ -1144,9 +1147,9 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
     switch (LOWORD (wParam & 0xFFF0))
     {
-      case SC_ICON: // Minimize
-      case SC_ZOOM: // Maximize
-        return 1;
+      ///case SC_ICON: // Minimize
+      ///case SC_ZOOM: // Maximize
+      ///  return 1;
 
       case SC_RESTORE:
       case SC_SIZE:
@@ -1296,7 +1299,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
     {
       // Only handle key-down if the game window is active,
       //   otherwise treat it as key release.
-      io.KeysDown [wParam & 0xFF] = game_window.active;
+      io.KeysDown [wParam & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
     }
 
     else if ( uMsg == WM_KEYUP ||
@@ -2208,6 +2211,12 @@ SK_ImGui_User_NewFrame (void)
   g.Style.AntiAliasedLines = config.imgui.render.antialias_lines;
   g.Style.AntiAliasedFill  = config.imgui.render.antialias_contours;
 
+
+  // Save original cursor position
+  SK_GetCursorPos               (&SK_ImGui_Cursor.pos);
+  SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
+  io.MousePos.x = SK_ImGui_Cursor.pos.x;
+  io.MousePos.y = SK_ImGui_Cursor.pos.y;
 
   ImGui::NewFrame ();
 

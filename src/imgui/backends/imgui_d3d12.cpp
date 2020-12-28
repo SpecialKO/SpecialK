@@ -1185,9 +1185,9 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
     static FLOAT         kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-    stagingFrame.hdr.barriers.copy_end ->Flags = D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
-    stagingFrame.hdr.barriers.process[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
-    stagingFrame.hdr.barriers.process[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
+  //stagingFrame.hdr.barriers.copy_end ->Flags = D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
+  //stagingFrame.hdr.barriers.process[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
+  //stagingFrame.hdr.barriers.process[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
 
 
     pCommandList->SetGraphicsRootSignature          ( pHDRSignature                                  );
@@ -1214,8 +1214,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   else
     transition_state (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_PRESENT,
                                                                 D3D12_RESOURCE_STATE_RENDER_TARGET,
-                                                                D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-                                                                D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY);
+                                                                D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
   // Queue-up Pre-SK OSD Screenshots
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeGameHUD, rb); // Before Game HUD (meaningless in D3D12)
@@ -1229,8 +1228,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   transition_state   (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_RENDER_TARGET,
                                                                 D3D12_RESOURCE_STATE_PRESENT,
-                                                                D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-                                                                D3D12_RESOURCE_BARRIER_FLAG_END_ONLY);
+                                                                D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
   ////SK_D3D12_UpdateRenderStatsEx ( stagingFrame.pCmdList,
   ////                               stagingFrame.pRoot->pSwapChain );
@@ -1346,7 +1344,8 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 {
   // Execute and wait for any cmds on the current pending swap,
   //   everything else can be destroyed with no sync.
-  if (this->pRoot->_pSwapChain->GetCurrentBackBufferIndex () != iBufferIdx)
+  if ( this->pRoot == nullptr ||
+       this->pRoot->_pSwapChain->GetCurrentBackBufferIndex () != iBufferIdx )
     bCmdListRecording = false;
 
   wait_for_gpu               ();
@@ -1596,7 +1595,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
 
         struct {        ID3D12Object *pObj;
-                 const std::wstring  &kName;
+                 const std::wstring   kName;
         } _debugObjects [] =
           {
             { frame.hdr.pSwapChainCopy.p, L"SK D3D12 HDR Buffer"   },
@@ -1784,3 +1783,29 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 }
 
 SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk;
+
+
+
+void
+SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
+                        const std::wstring&     kName )
+{
+  if (pD3D12Obj != nullptr && kName.size () > 0)
+  {
+#if 1
+    D3D_SET_OBJECT_NAME_N_W ( pD3D12Obj,
+                   static_cast <UINT> ( kName.size () ),
+                                        kName.data ()
+                            );
+    std::string utf8_copy =
+      SK_WideCharToUTF8 (kName);
+
+    D3D_SET_OBJECT_NAME_N_A ( pD3D12Obj,
+                   static_cast <UINT> ( (utf8_copy).size () ),
+                                        (utf8_copy).data ()
+                            );
+#else
+    pD3D12Obj->SetName ( kName.c_str () );
+#endif
+  }
+}

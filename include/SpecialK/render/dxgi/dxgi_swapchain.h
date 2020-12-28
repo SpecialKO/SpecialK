@@ -55,42 +55,40 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     if (! pSwapChain)
       return;
 
-    AddRef ();
-
-    InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChains);
-
     IUnknown *pPromotion = nullptr;
 
-    if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
+    if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
     {
       ver_ = 4;
     }
 
-    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
     {
       ver_ = 3;
     }
 
-    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
     {
       ver_ = 2;
     }
 
-    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain1, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain1, (void **)&pPromotion)))
     {
       ver_ = 1;
     }
 
     if (ver_ != 0)
     {
-      Release ();
-
-      pReal = (IDXGISwapChain *)pPromotion;
-             ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
+      ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
 
       SK_LOG0 ( ( L"Promoted IDXGISwapChain to IDXGISwapChain%lu", ver_),
                   __SK_SUBSYSTEM__ );
     }
+
+    InterlockedIncrement (ver_ > 0 ? &SK_DXGI_LiveWrappedSwapChain1s
+                                   : &SK_DXGI_LiveWrappedSwapChains);
+
+    pDev = pDevice;
 
     this->SetPrivateDataInterface  (IID_IUnwrappedDXGISwapChain, this);
     pReal->SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, this);
@@ -106,37 +104,33 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     if (! pSwapChain)
       return;
 
-    AddRef ();
-
-    InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
-
     IUnknown *pPromotion = nullptr;
 
-    if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
+    if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
     {
       ver_ = 4;
     }
 
-    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
     {
       ver_ = 3;
     }
 
-    else if (SUCCEEDED (pReal->QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
     {
       ver_ = 2;
     }
 
     if (ver_ != 1)
     {
-      Release ();
-
-      pReal =  (IDXGISwapChain *)pPromotion;
-              ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
-
       SK_LOG0 ( ( L"Promoted IDXGISwapChain1 to IDXGISwapChain%lu", ver_),
                   __SK_SUBSYSTEM__ );
     }
+
+    InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
+
+    ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
+                        pDev  = pDevice;
 
     this->SetPrivateDataInterface  (IID_IUnwrappedDXGISwapChain, this);
     pReal->SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, this);
@@ -220,9 +214,9 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
   virtual HRESULT STDMETHODCALLTYPE SetHDRMetaData (DXGI_HDR_METADATA_TYPE Type, UINT Size, void *pMetaData) override; // 40
   #pragma endregion
 
-  volatile LONG         refs_ = 0;
+  volatile LONG         refs_ = 1;
   IDXGISwapChain       *pReal;
-  IUnknown             *pDev;
+  SK_ComPtr <IUnknown>  pDev;
   unsigned int          ver_;
   HWND                  hWnd_ = 0;
 

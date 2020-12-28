@@ -584,26 +584,26 @@ SK_LazyGlobal <SK_D3D11_KnownThreads> SK_D3D11_ShaderThreads;
 
 
 
-bool SKX_D3D11_IsVtxShaderLoaded (uint32_t crc32c)
+bool SKX_D3D11_IsVtxShaderLoaded (ID3D11Device* pDevice, uint32_t crc32c)
 {
   std::scoped_lock <SK_Thread_HybridSpinlock> _lock (
     *cs_shader_vs.get ()
   );
 
   bool bRet =
-    SK_D3D11_Shaders->vertex.descs.count (crc32c) != 0;
+    SK_D3D11_Shaders->vertex.descs [pDevice].count (crc32c) != 0;
 
   return bRet;
 }
 
-bool SKX_D3D11_IsPixShaderLoaded (uint32_t crc32c)
+bool SKX_D3D11_IsPixShaderLoaded (ID3D11Device* pDevice, uint32_t crc32c)
 {
   std::scoped_lock <SK_Thread_HybridSpinlock> _lock(
     *cs_shader_ps.get()
   );
 
   bool bRet =
-    SK_D3D11_Shaders->pixel.descs.count (crc32c) != 0;
+    SK_D3D11_Shaders->pixel.descs [pDevice].count (crc32c) != 0;
 
   return bRet;
 }

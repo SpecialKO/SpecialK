@@ -341,23 +341,9 @@ SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
   }
 }
 
-__forceinline
 void
 SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
-                        const std::wstring&     kName )
-{
-  if (pD3D12Obj != nullptr && kName.size () > 0)
-  {
-#if 1
-    D3D_SET_OBJECT_NAME_N_W ( pD3D12Obj,
-                   static_cast <UINT> ( kName.size () ),
-                                        kName.data ()
-                            );
-#else
-    pD3D12Obj->SetName ( kName.c_str () );
-#endif
-  }
-}
+                        const std::wstring&     kName );
 
 namespace SK
 {

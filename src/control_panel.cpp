@@ -1658,9 +1658,12 @@ SK_ImGui_ControlPanel (void)
         static bool    steam_overlay = false;
         static ULONG64 first_try     = SK_GetFramesDrawn ();
 
+        auto pDevice =
+          rb.getDevice <ID3D11Device> ();
+
         if ((! steam_overlay) && ((SK_GetFramesDrawn () - first_try) < 240))
         {      steam_overlay =
-          SK_D3D11_IsShaderLoaded <ID3D11VertexShader> (
+          SK_D3D11_IsShaderLoaded <ID3D11VertexShader> (pDevice,
             STEAM_OVERLAY_VS_CRC32C
           );
         }
@@ -1686,7 +1689,7 @@ SK_ImGui_ControlPanel (void)
 
         if ((! uplay_overlay) && ((SK_GetFramesDrawn () - first_try) < 240))
         {      uplay_overlay =
-          SK_D3D11_IsShaderLoaded <ID3D11PixelShader> (
+          SK_D3D11_IsShaderLoaded <ID3D11PixelShader> (pDevice,
             UPLAY_OVERLAY_PS_CRC32C
           );
         }
@@ -2947,20 +2950,23 @@ SK_ImGui_ControlPanel (void)
                               ImGui::Spacing ();
           ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
 
-          changed |=
-            ImGui::Checkbox ( "Sleepless Render Thread",
-                                &config.render.framerate.sleepless_render );
-
-          if (ImGui::IsItemHovered ())
+          if (rb.api != SK_RenderAPI::D3D12)
           {
-            SK::Framerate::EventCounter::SleepStats& stats =
-              SK::Framerate::GetEvents ()->getRenderThreadStats ();
+            changed |=
+              ImGui::Checkbox ( "Sleepless Render Thread",
+                                  &config.render.framerate.sleepless_render );
 
-              ImGui::SetTooltip
-                             ( "(%li ms asleep, %li ms awake)",
-                                 /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                   ReadAcquire (&stats.time.allowed),
-                                   ReadAcquire (&stats.time.deprived) );
+            if (ImGui::IsItemHovered ())
+            {
+              SK::Framerate::EventCounter::SleepStats& stats =
+                SK::Framerate::GetEvents ()->getRenderThreadStats ();
+
+                ImGui::SetTooltip
+                               ( "(%li ms asleep, %li ms awake)",
+                                   /*(stats.attempts - stats.rejections), stats.attempts,*/
+                                     ReadAcquire (&stats.time.allowed),
+                                     ReadAcquire (&stats.time.deprived) );
+            }
           }
 
           ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
@@ -3373,7 +3379,7 @@ SK_ImGui_ControlPanel (void)
       if (! (binding != nullptr && param != nullptr))
         return false;
 
-      std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+      std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "##";
                   label += binding->bind_name;
 
       if (ImGui::Selectable (label.c_str (), false))
@@ -4098,15 +4104,10 @@ SK_ImGui_StageNextFrame (void)
 }
 
 
-extern IMGUI_API void ImGui_ImplGL3_RenderDrawData  (ImDrawData* draw_data);
-extern IMGUI_API void ImGui_ImplDX9_RenderDrawData  (ImDrawData* draw_data);
-extern IMGUI_API void ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data);
-extern/*IMGUI_API*/
-                 void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, ID3D12GraphicsCommandList* ctx);
-
-//#ifdef _WIN64
-//extern         void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data);
-//#endif
+extern IMGUI_API    void ImGui_ImplGL3_RenderDrawData  (ImDrawData* draw_data);
+extern IMGUI_API    void ImGui_ImplDX9_RenderDrawData  (ImDrawData* draw_data);
+extern IMGUI_API    void ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data);
+extern/*IMGUI_API*/ void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, ID3D12GraphicsCommandList* ctx);
 
 //
 // Hook this to override Special K's GUI
@@ -4144,10 +4145,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if ( ( static_cast <int> (rb.api) &
               static_cast <int> (SK_RenderAPI::D3D9) ) != 0 )
   {
-    //auto pDev =
-    //      rb.getDevice <IDirect3DDevice9> ();
-    SK_ComQIPtr <IDirect3DDevice9> pDev (rb.device);
-
+    auto pDev =
+          rb.getDevice <IDirect3DDevice9> ();
 
     if ( pDev != nullptr && SUCCEEDED (
            pDev->BeginScene ()

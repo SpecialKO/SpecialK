@@ -800,7 +800,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
 
     cs_shader_gs->lock ();
 
-    if (! geo_shaders.descs.count (checksum))
+    if (! geo_shaders.descs [This].count (checksum))
     {
       SK_D3D11_ShaderDesc desc;
 
@@ -812,17 +812,17 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
         &((uint8_t *) pShaderBytecode) [BytecodeLength]
       );
 
-      geo_shaders.descs.emplace (std::make_pair (checksum, desc));
+      geo_shaders.descs [This].emplace (std::make_pair (checksum, desc));
     }
 
     SK_D3D11_ShaderDesc* pDesc =
-      &geo_shaders.descs [checksum];
+      &geo_shaders.descs [This][checksum];
 
-    if ( geo_shaders.rev.count (*ppGeometryShader) &&
-               geo_shaders.rev [*ppGeometryShader]->crc32c != checksum )
-         geo_shaders.rev.erase (*ppGeometryShader);
+    if ( geo_shaders.rev [This].count (*ppGeometryShader) &&
+               geo_shaders.rev [This][*ppGeometryShader]->crc32c != checksum )
+         geo_shaders.rev [This].erase (*ppGeometryShader);
 
-    geo_shaders.rev.emplace (std::make_pair (*ppGeometryShader, pDesc));
+    geo_shaders.rev [This].emplace (std::make_pair (*ppGeometryShader, pDesc));
 
     cs_shader_gs->unlock ();
 

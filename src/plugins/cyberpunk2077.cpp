@@ -108,23 +108,12 @@ void SK_CP2077_InitPlugin (void)
 
   if (val.empty ())
   {
-    SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
-    SK_GetDLLConfig ()->parse ();
+    config.input.keyboard.catch_alt_f4       = false;
+    config.render.framerate.sleepless_render = false;
+    config.render.framerate.sleepless_window = false;
 
-    config.window.borderless                 = true;
-    config.window.fullscreen                 = true;
-    config.display.force_windowed            = true;
-    config.window.background_render          = true;
-    config.window.treat_fg_as_active         = true;
-    config.render.framerate.buffer_count     = 3;
-    config.render.framerate.drop_late_flips  = true;
-    config.render.framerate.flip_discard     = true;
-    config.render.framerate.pre_render_limit = 4;
-    config.render.framerate.sleepless_render = true;
-    config.render.framerate.sleepless_window = true;
-
-    val.assign (L"false");
-
-    SK_SaveConfig ();
+    SK_GetDLLConfig ()->write (
+      SK_GetDLLConfig ()->get_filename ()
+    );
   }
 }

@@ -67,7 +67,7 @@ auto
     return false;
 
   std::string label =
-    SK_WideCharToUTF8 (binding->human_readable) + "###";
+    SK_WideCharToUTF8 (binding->human_readable) + "##";
 
   label += binding->bind_name;
 
@@ -665,70 +665,6 @@ public:
 
           ImGui::TreePush ("");
 
-          //bool hdr_gamut_support (false);
-
-          /////if (swap_desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-          /////{
-          /////  hdr_gamut_support = true;
-          /////}
-          /////
-          /////if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM ||
-          /////     rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )
-          /////{
-          /////  hdr_gamut_support = true;
-          /////  ImGui::RadioButton ("Rec 709###SK_HDR_Rec709_PQ",   &cspace, 0); ImGui::SameLine ();
-          /////}
-          ///////else if (cspace == 0) cspace = 1;
-          /////
-          /////if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM ||
-          /////     rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )
-          /////{
-          /////  hdr_gamut_support = true;
-          /////  ImGui::RadioButton ("Rec 2020###SK_HDR_Rec2020_PQ", &cspace, 1); ImGui::SameLine ();
-          /////}
-          ///////else if (cspace == 1) cspace = 0;
-          /////
-          /////if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM ||
-          /////     rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )
-          /////{
-          /////  ImGui::RadioButton ("Native###SK_HDR_NativeGamut",  &cspace, 2); ImGui::SameLine ();
-          /////}
-
-          /////if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM ||
-          /////     rb.scanout.getEOTF ()       == SK_RenderBackend::scan_out_s::SMPTE_2084 )// hdr_gamut_support)
-          /////{
-          /////    HDR10MetaData.RedPrimary   [0] =
-          /////      static_cast <UINT16> (DisplayChromacityList [cspace].RedX * 50000.0f);
-          /////    HDR10MetaData.RedPrimary   [1] =
-          /////      static_cast <UINT16> (DisplayChromacityList [cspace].RedY * 50000.0f);
-          /////
-          /////    HDR10MetaData.GreenPrimary [0] =
-          /////      static_cast <UINT16> (DisplayChromacityList [cspace].GreenX * 50000.0f);
-          /////    HDR10MetaData.GreenPrimary [1] =
-          /////      static_cast <UINT16> (DisplayChromacityList [cspace].GreenY * 50000.0f);
-          /////
-          /////    HDR10MetaData.BluePrimary  [0] =
-          /////      static_cast <UINT16> (DisplayChromacityList [cspace].BlueX * 50000.0f);
-          /////    HDR10MetaData.BluePrimary  [1] =
-          /////      static_cast <UINT16> (DisplayChromacityList [cspace].BlueY * 50000.0f);
-          /////
-          /////    HDR10MetaData.WhitePoint   [0] =
-          /////      static_cast <UINT16> (DisplayChromacityList [cspace].WhiteX * 50000.0f);
-          /////    HDR10MetaData.WhitePoint   [1] =
-          /////      static_cast <UINT16> (DisplayChromacityList [cspace].WhiteY * 50000.0f);
-          /////
-          /////    static float fLuma [4] = { out_desc.MaxLuminance,
-          /////                               out_desc.MinLuminance,
-          /////                               2000.0f,       600.0f };
-          /////
-          /////    ImGui::InputFloat4 ("Luminance Coefficients###SK_HDR_MetaCoeffs", fLuma);// , 1);
-          /////
-          /////    HDR10MetaData.MaxMasteringLuminance     = static_cast <UINT>   (fLuma [0] * 10000.0f);
-          /////    HDR10MetaData.MinMasteringLuminance     = static_cast <UINT>   (fLuma [1] * 10000.0f);
-          /////    HDR10MetaData.MaxContentLightLevel      = static_cast <UINT16> (fLuma [2]);
-          /////    HDR10MetaData.MaxFrameAverageLightLevel = static_cast <UINT16> (fLuma [3]);
-          /////}
-
           ImGui::Separator ();
 
           ImGui::BeginGroup ();
@@ -964,104 +900,107 @@ public:
           ImGui::EndGroup  ();
           ImGui::Separator ();
 
-          bool cfg_quality =
-            ImGui::CollapsingHeader ( "Performance / Quality",
-                                        ImGuiTreeNodeFlags_DefaultOpen );
-
-          if (ImGui::IsItemHovered ())
+          if (rb.api != SK_RenderAPI::D3D12)
           {
-            ImGui::BeginTooltip    ();
-            ImGui::TextUnformatted ("Remastering may improve HDR highlights, but requires more VRAM and GPU horsepower.");
-            ImGui::Separator       ();
-            ImGui::BulletText      ("Some games need remastering for their UI to work correctly (usually 8-bit remastering)");
-            ImGui::BulletText      ("Some games crash when remastering, so troubleshooting should start with enabling/disabling these");
-            ImGui::BulletText      ("Remastering can eliminate banding not caused by texture compression (#1 enemy of HDR!)");
-            ImGui::EndTooltip      ();
-          }
-
-          if (cfg_quality)
-          {
-            static bool changed_once = false;
-                   bool changed      = false;
-
-            ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f));
-
-            auto _SummarizeTargets =
-            [](DWORD dwPromoted, DWORD dwCandidates, ULONG64 ullBytesExtra)
-            {
-              float promoted   = static_cast <float> (dwPromoted);
-              float candidates = static_cast <float> (dwCandidates);
-
-              float ratio = candidates > 0 ?
-                 promoted / candidates     : 0.0f;
-
-              ImGui::ProgressBar ( ratio, ImVec2 (-1, 0),
-                SK_FormatString ( "%lu/%lu Candidates Remastered", dwPromoted, dwCandidates ).c_str ()
-                                 );
-              ImGui::BulletText  ("%+.2f MiB Additional VRAM Used",
-                static_cast <float> ( ullBytesExtra ) / (1024.0f * 1024.0f));
-
-            };
-
-            changed |= ImGui::Checkbox ("Remaster 8-bit Render Passes",  &SK_HDR_RenderTargets_8bpc->PromoteTo16Bit);
+            bool cfg_quality =
+              ImGui::CollapsingHeader ( "Performance / Quality",
+                                          ImGuiTreeNodeFlags_DefaultOpen );
 
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("May Break FMV in Unreal Engine Games");
+              ImGui::TextUnformatted ("Remastering may improve HDR highlights, but requires more VRAM and GPU horsepower.");
               ImGui::Separator       ();
-              _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded),
-                                      ReadULongAcquire (&SK_HDR_RenderTargets_8bpc->CandidatesSeen),
-                                      ReadAcquire64    (&SK_HDR_RenderTargets_8bpc->BytesAllocated));
+              ImGui::BulletText      ("Some games need remastering for their UI to work correctly (usually 8-bit remastering)");
+              ImGui::BulletText      ("Some games crash when remastering, so troubleshooting should start with enabling/disabling these");
+              ImGui::BulletText      ("Remastering can eliminate banding not caused by texture compression (#1 enemy of HDR!)");
               ImGui::EndTooltip      ();
             }
 
-                       ImGui::SameLine ();
-            changed |= ImGui::Checkbox ("Remaster 10-bit Render Passes", &SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
-
-            if (ImGui::IsItemHovered ())
+            if (cfg_quality)
             {
-              ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("May Strengthen Atmospheric Bloom");
-              ImGui::Separator       ();
-              _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_10bpc->TargetsUpgraded),
-                                      ReadULongAcquire (&SK_HDR_RenderTargets_10bpc->CandidatesSeen),
-                                      ReadAcquire64    (&SK_HDR_RenderTargets_10bpc->BytesAllocated));
-              ImGui::EndTooltip      ();
-            }
+              static bool changed_once = false;
+                     bool changed      = false;
 
-                       ImGui::SameLine ();
-            changed |= ImGui::Checkbox ("Remaster 11-bit Render Passes", &SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
+              ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f));
 
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("May Cause -or- Correct Blue / Yellow Hue Shifting");
-              ImGui::Separator       ();
-              _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_11bpc->TargetsUpgraded),
-                                      ReadULongAcquire (&SK_HDR_RenderTargets_11bpc->CandidatesSeen),
-                                      ReadAcquire64    (&SK_HDR_RenderTargets_11bpc->BytesAllocated));
-              ImGui::EndTooltip      ();
-            }
+              auto _SummarizeTargets =
+              [](DWORD dwPromoted, DWORD dwCandidates, ULONG64 ullBytesExtra)
+              {
+                float promoted   = static_cast <float> (dwPromoted);
+                float candidates = static_cast <float> (dwCandidates);
 
-            ImGui::PopStyleColor ();
+                float ratio = candidates > 0 ?
+                   promoted / candidates     : 0.0f;
 
-            changed_once |= changed;
+                ImGui::ProgressBar ( ratio, ImVec2 (-1, 0),
+                  SK_FormatString ( "%lu/%lu Candidates Remastered", dwPromoted, dwCandidates ).c_str ()
+                                   );
+                ImGui::BulletText  ("%+.2f MiB Additional VRAM Used",
+                  static_cast <float> ( ullBytesExtra ) / (1024.0f * 1024.0f));
 
-            if (changed_once)
-            {
-              ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
-              ImGui::BulletText     ("Game Restart Required");
-              ImGui::PopStyleColor  ();
-            }
+              };
 
-            if (changed)
-            {
-              _SK_HDR_Promote8BitRGBxTo16BitFP->store  (SK_HDR_RenderTargets_8bpc ->PromoteTo16Bit);
-              _SK_HDR_Promote10BitRGBATo16BitFP->store (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
-              _SK_HDR_Promote11BitRGBTo16BitFP->store  (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
+              changed |= ImGui::Checkbox ("Remaster 8-bit Render Passes",  &SK_HDR_RenderTargets_8bpc->PromoteTo16Bit);
 
-              dll_ini->write (dll_ini->get_filename ());
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::BeginTooltip    ();
+                ImGui::TextUnformatted ("May Break FMV in Unreal Engine Games");
+                ImGui::Separator       ();
+                _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded),
+                                        ReadULongAcquire (&SK_HDR_RenderTargets_8bpc->CandidatesSeen),
+                                        ReadAcquire64    (&SK_HDR_RenderTargets_8bpc->BytesAllocated));
+                ImGui::EndTooltip      ();
+              }
+
+                         ImGui::SameLine ();
+              changed |= ImGui::Checkbox ("Remaster 10-bit Render Passes", &SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::BeginTooltip    ();
+                ImGui::TextUnformatted ("May Strengthen Atmospheric Bloom");
+                ImGui::Separator       ();
+                _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_10bpc->TargetsUpgraded),
+                                        ReadULongAcquire (&SK_HDR_RenderTargets_10bpc->CandidatesSeen),
+                                        ReadAcquire64    (&SK_HDR_RenderTargets_10bpc->BytesAllocated));
+                ImGui::EndTooltip      ();
+              }
+
+                         ImGui::SameLine ();
+              changed |= ImGui::Checkbox ("Remaster 11-bit Render Passes", &SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::BeginTooltip    ();
+                ImGui::TextUnformatted ("May Cause -or- Correct Blue / Yellow Hue Shifting");
+                ImGui::Separator       ();
+                _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_11bpc->TargetsUpgraded),
+                                        ReadULongAcquire (&SK_HDR_RenderTargets_11bpc->CandidatesSeen),
+                                        ReadAcquire64    (&SK_HDR_RenderTargets_11bpc->BytesAllocated));
+                ImGui::EndTooltip      ();
+              }
+
+              ImGui::PopStyleColor ();
+
+              changed_once |= changed;
+
+              if (changed_once)
+              {
+                ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+                ImGui::BulletText     ("Game Restart Required");
+                ImGui::PopStyleColor  ();
+              }
+
+              if (changed)
+              {
+                _SK_HDR_Promote8BitRGBxTo16BitFP->store  (SK_HDR_RenderTargets_8bpc ->PromoteTo16Bit);
+                _SK_HDR_Promote10BitRGBATo16BitFP->store (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
+                _SK_HDR_Promote11BitRGBTo16BitFP->store  (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
+
+                dll_ini->write (dll_ini->get_filename ());
+              }
             }
           }
 

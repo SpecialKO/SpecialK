@@ -813,6 +813,9 @@ private:
                        pWindowManager;
 };
 
+
+extern bool SK_WantBackgroundRender ();
+
 #define PreventAlwaysOnTop 0
 #define        AlwaysOnTop 1
 
@@ -842,10 +845,10 @@ ActivateWindow ( HWND hWnd,
     SK_Window_RepositionIfNeeded ();
 
     SK_XInput_Enable (
-      (! config.window.background_render) ?
-                                   active ? TRUE
-                                          : FALSE
-                                          : TRUE );
+      (! SK_WantBackgroundRender ()) ?
+                              active ? TRUE
+                                     : FALSE
+                                     : TRUE );
 
     if (! active)
     {
@@ -912,7 +915,7 @@ ActivateWindow ( HWND hWnd,
 
   else if ((! active) && state_changed)
   {
-    if ((! rb.fullscreen_exclusive) && config.window.background_render)
+    if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
     {
       game_window.cursor_visible =
         ShowCursor (TRUE) >= 1;
@@ -959,7 +962,7 @@ ActivateWindow ( HWND hWnd,
     SK_ClipCursor (nullptr);
   }
 
-  if (state_changed && (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd)))
+  if (state_changed && (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd)))
     SK_ImGui_Cursor.activateWindow (active);
 
   wm_dispatch->active_windows [hWnd] = active;
@@ -1056,7 +1059,6 @@ SK_SetWindowResX (LONG x)
 {
   //game_window.game.client.right = game_window.game.client.left + x;
   game_window.render_x = x;
-  SK_Window_RepositionIfNeeded ();
 }
 
 void
@@ -1064,7 +1066,6 @@ SK_SetWindowResY (LONG y)
 {
   //game_window.game.client.bottom = game_window.game.client.top + y;
   game_window.render_y = y;
-  SK_Window_RepositionIfNeeded ();
 }
 
 LPRECT
@@ -3354,7 +3355,7 @@ GetWindowInfo_Detour (HWND hwnd, PWINDOWINFO pwi)
        pwi->cbSize == sizeof (WINDOWINFO) &&
        bRet                               &&
                  hwnd == game_window.hWnd &&
-          config.window.background_render )
+          SK_WantBackgroundRender () )
   {
     pwi->dwWindowStatus |= WS_ACTIVECAPTION;
   }
@@ -3530,7 +3531,7 @@ PeekMessageA_Detour (
                                           wRemoveMsg )
      )
   { // ---- RAW Input Background Hack ----
-    if ( config.window.background_render &&
+    if (      SK_WantBackgroundRender () &&
               lpMsg->message == WM_INPUT &&
               lpMsg->wParam  == RIM_INPUTSINK )
     {
@@ -3618,9 +3619,9 @@ PeekMessageW_Detour (
                                           wRemoveMsg )
      )
   { // ---- RAW Input Background Hack ----
-    if ( config.window.background_render &&
-              lpMsg->message == WM_INPUT &&
-              lpMsg->wParam  == RIM_INPUTSINK )
+    if ( SK_WantBackgroundRender () &&
+         lpMsg->message == WM_INPUT &&
+         lpMsg->wParam  == RIM_INPUTSINK )
     {
       bool keyboard;
       bool mouse;
@@ -4013,7 +4014,7 @@ GetForegroundWindow_Detour (void)
 
   if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
   {
-    if ( config.window.background_render ||
+    if ( SK_WantBackgroundRender () ||
          config.window.treat_fg_as_active )
     {
       return game_window.hWnd;
@@ -4277,7 +4278,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
 #endif
 
-    if (! game_window.active)
+    if (! SK_IsGameWindowActive ())//game_window.active)
     {
       // Using a static kinda prevents us from supporting multiple windows,
       //   but it's good enough for now.
@@ -4339,6 +4340,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
     } break;
 
+    case WM_WINDOWPOSCHANGING:
+      SK_Window_RepositionIfNeeded ();
+      break;
+
     case WM_SYSCOMMAND:
       ///if ((! rb.fullscreen_exclusive) && config.window.background_render)
       ///{
@@ -4399,7 +4404,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         rb.fullscreen_exclusive = false;
 
-        if ((! rb.fullscreen_exclusive) && config.window.background_render)
+        if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
         {
           // Blocking this message helps with many games that
           //   mute audio in the background
@@ -4415,7 +4420,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
       {
-        if ((! rb.fullscreen_exclusive) && config.window.background_render)
+        if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
                    L"Window Mgr" );
@@ -4427,7 +4432,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         // Game window was deactivated, but the game doesn't need to know this!
         //   in fact, it needs to be told the opposite.
-        if ((! rb.fullscreen_exclusive) && config.window.background_render)
+        if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
                    L"Window Mgr" );
@@ -4462,7 +4467,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                           L"Window Mgr" );
 
             if ( (! rb.fullscreen_exclusive) &&
-                    config.window.background_render
+                    SK_WantBackgroundRender ()
                 )
             {
               game_window.DefWindowProc ( hWnd, uMsg,
@@ -4486,7 +4491,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           if (wParam == FALSE)
           {
             if ( (! rb.fullscreen_exclusive) &&
-                    config.window.background_render
+                    SK_WantBackgroundRender ()
                 )
             {
               game_window.DefWindowProc ( hWnd, uMsg,
@@ -4553,7 +4558,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           }
         }
 
-        if ((! rb.fullscreen_exclusive) && config.window.background_render)
+        if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
         {
           if (! activate)
           {
@@ -4578,12 +4583,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       ActivateWindow (hWnd, wParam == TRUE);
 
-      if ( SK_IsGameWindowActive (    ) || config.window.background_render )
+      if ( SK_IsGameWindowActive (    ) || SK_WantBackgroundRender () )
            SK_XInput_Enable      (TRUE);
 
       if (wParam == FALSE)
       {
-        if ( config.window.background_render &&
+        if ( SK_WantBackgroundRender () &&
              (! rb.fullscreen_exclusive)        )
         {
           // What purpose does this serve?
@@ -5431,23 +5436,7 @@ SK_GetGameWindow (void)
   return game_window.hWnd;
 }
 
-bool
-__stdcall
-SK_IsGameWindowActive (void)
-{
-  static DWORD dwGamePid =
-    GetCurrentProcessId ();
-         DWORD dwProcId;
 
-  if ( game_window.active ||
-      GetWindowThreadProcessId  (
-        SK_GetForegroundWindow ( ),
-                      &dwProcId ) &&
-       ( dwGamePid ==  dwProcId ) )
-    return true;
-
-  return false;
-}
 
 
 void

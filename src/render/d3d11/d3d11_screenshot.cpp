@@ -1833,7 +1833,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
   do
   {
-    while (! screenshot_queue->empty ())
+    do
     {
       SK_D3D11_Screenshot*            pop_off   = nullptr;
       if ( screenshot_queue->try_pop (pop_off) &&
@@ -1862,9 +1862,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             rejected_screenshots.push (pop_off);
         }
       }
-    }
+    } while ((! screenshot_queue->empty ()) && (purge || wait));
 
-    while (! rejected_screenshots.empty ())
+    do
     {
       SK_D3D11_Screenshot*               push_back   = nullptr;
       if ( rejected_screenshots.try_pop (push_back) &&
@@ -1876,7 +1876,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
         else
           screenshot_queue->push (push_back);
       }
-    }
+    } while ((! rejected_screenshots.empty ()) && (purge || wait));
 
     if ( wait ||
                  purge )

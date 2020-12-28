@@ -316,16 +316,16 @@ struct sk_config_t
     SK_ConfigSerializedKeybind
            sk_osd_free_keybind = {
       SK_Keybind {
-        "Take Screenshot without Special K's OSD", L"Ctrl+Shift+F8",
-         true, true, false, VK_F8
+        "Take Screenshot without Special K's OSD", L"F9",
+         false, true, false, VK_F9
       }, L"WithoutOSD"
     };
 
     SK_ConfigSerializedKeybind
       sk_osd_insertion_keybind = {
       SK_Keybind {
-        "Take Screenshot and insert Special K's OSD", L"Alt+F8",
-         false, false, true, VK_F8
+        "Take Screenshot and insert Special K's OSD", L"F8",
+         false, false, false, VK_F8
       }, L"InsertOSD"
     };
   } screenshots;

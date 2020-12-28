@@ -1682,8 +1682,8 @@ struct SK_D3D11_KnownShaders
       tracked.current_ = &current;
     }
 
-    std::unordered_map <_T*,      SK_D3D11_ShaderDesc*>  rev;
-    std::unordered_map <uint32_t, SK_D3D11_ShaderDesc>   descs;
+    concurrency::concurrent_unordered_map <ID3D11Device*, std::unordered_map <_T*,      SK_D3D11_ShaderDesc*>>  rev;
+    concurrency::concurrent_unordered_map <ID3D11Device*, std::unordered_map <uint32_t, SK_D3D11_ShaderDesc>>   descs;
 
     std::unordered_map <uint32_t, LONG>                  blacklist;
     std::unordered_map <uint32_t, std::string>           names;

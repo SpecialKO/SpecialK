@@ -1807,27 +1807,77 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
 struct SK_DummyWindows {
-  std::set <HWND> list;
-  std::mutex      lock;
+  struct window_s {
+    HWND hWnd   = 0;
+    BOOL active = FALSE;
+
+    struct {
+      HWND    hWnd    = 0;
+      BOOL    unicode = FALSE;
+      WNDPROC wndproc = nullptr;
+    } parent;
+  };
+
+  std::unordered_map <HWND, window_s> list;
+  std::set           <HWND>           unique;
+  std::recursive_mutex                lock;
 };
 
 SK_LazyGlobal <SK_DummyWindows> dummy_windows;
 
-HWND
-SK_Win32_CreateDummyWindow (void)
+LRESULT
+WINAPI
+ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+LRESULT
+WINAPI
+DummyWindowProc (_In_  HWND   hWnd,
+                 _In_  UINT   uMsg,
+                 _In_  WPARAM wParam,
+                 _In_  LPARAM lParam)
 {
-  std::scoped_lock <std::mutex>
+  SK_DummyWindows::window_s* pWindow = nullptr;
+
+  {
+    std::scoped_lock <std::recursive_mutex> auto_lock (dummy_windows->lock);
+
+    if (dummy_windows->unique.count (hWnd))
+      pWindow = &dummy_windows->list [hWnd];
+  }
+
+  if (pWindow != nullptr && IsWindow (pWindow->parent.hWnd))
+  {
+    MSG msg;
+    msg.hwnd    = pWindow->parent.hWnd;
+    msg.message = uMsg;
+    msg.lParam  = lParam;
+    msg.wParam  = wParam;
+
+    bool SK_ImGui_HandlesMessage (MSG * lpMsg, bool /*remove*/, bool /*peek*/);
+    if  (SK_ImGui_HandlesMessage (&msg, false, false))
+      return ImGui_WndProcHandler (pWindow->parent.hWnd, uMsg, wParam, lParam);
+  }
+
+  return
+    DefWindowProcW (hWnd, uMsg, wParam, lParam);
+};
+
+HWND
+SK_Win32_CreateDummyWindow (HWND hWndParent)
+{
+  std::scoped_lock <std::recursive_mutex>
          auto_lock (dummy_windows->lock);
 
   static WNDCLASSW wc          = {
-    CS_OWNDC,
-    DefWindowProcW,
+    0/*CS_OWNDC*/,
+    DummyWindowProc,
     0x00, 0x00,
-    SK_GetDLL        (                        ),
-    LoadIcon         (nullptr, IDI_APPLICATION),
-    LoadCursor       (nullptr, IDC_WAIT       ),
+    SK_GetDLL        (                                         ),
+    LoadIcon         (nullptr,               IDI_APPLICATION   ),
+    nullptr,
+  //LoadCursor       (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_POINTER),
     static_cast <HBRUSH> (
-      GetStockObject (         BLACK_BRUSH    )
+      GetStockObject (                       NULL_BRUSH        )
                          ),
     nullptr,
     L"Special K Dummy Window Class"
@@ -1839,20 +1889,67 @@ SK_Win32_CreateDummyWindow (void)
                           L"Special K Dummy Window Class",
                             &wc_existing ) )
   {
+    RECT rect = { };
+    GetWindowRect (game_window.hWnd, &rect);
+
     HWND hWnd =
-      CreateWindowExW ( 0L, L"Special K Dummy Window Class",
+      CreateWindowExW ( WS_EX_NOACTIVATE | WS_EX_NOPARENTNOTIFY,
+                            L"Special K Dummy Window Class",
                             L"Special K Dummy Window",
-                              WS_OVERLAPPED,
-                                CW_USEDEFAULT, CW_USEDEFAULT,
-                                 CW_USEDEFAULT, CW_USEDEFAULT,
-                                  HWND_MESSAGE, nullptr,
+                              IsWindow (hWndParent) ? WS_CHILD : WS_CLIPSIBLINGS,
+                                rect.left, rect.top,
+                                 rect.right - rect.left, rect.bottom - rect.top,
+                                  hWndParent, nullptr,
                                     SK_GetDLL (), nullptr );
 
     if (hWnd != SK_HWND_DESKTOP)
     {
-      ShowWindowAsync (hWnd, SW_SHOWMINNOACTIVE);
-      dummy_windows->list.emplace (hWnd);
+      if (dummy_windows->unique.emplace (hWnd).second)
+      {
+        SK_DummyWindows::window_s window;
+        window.hWnd        = hWnd;
+        window.active      = true;
+        window.parent.hWnd = hWndParent;
+
+        window.parent.unicode = IsWindowUnicode            (window.parent.hWnd);
+        window.parent.wndproc = (WNDPROC)GetWindowLongPtrW (window.parent.hWnd, GWLP_WNDPROC);
+
+        dummy_windows->list [hWnd] = window;
+
+        if (hWndParent != 0 && IsWindow (hWndParent))
+        {
+          SK_Thread_Create ([](LPVOID user)->DWORD
+          {
+            HWND hWnd = (HWND)user;
+
+            SetForegroundWindow (hWnd);
+            SetFocus            (hWnd);
+            SetActiveWindow     (hWnd);
+            ShowWindow          (hWnd, SW_HIDE);
+
+            MSG                 msg = { };
+            while (GetMessage (&msg, 0, 0, 0))
+            {
+              TranslateMessage (&msg);
+              DispatchMessage  (&msg);
+
+              if (msg.message == WM_DESTROY && msg.hwnd == hWnd)
+              {
+                SK_Win32_CleanupDummyWindow (hWnd);
+                break;
+              }
+            }
+
+            SK_Thread_CloseSelf ();
+
+            return 0;
+          }, (LPVOID)hWnd);
+        }
+      }
     }
+
+    else
+      SK_ReleaseAssert (!"CreateDummyWindow Failed");
 
     return hWnd;
   }
@@ -1868,24 +1965,39 @@ SK_Win32_CreateDummyWindow (void)
 void
 SK_Win32_CleanupDummyWindow (HWND hwnd)
 {
-  std::scoped_lock <std::mutex>
+  std::scoped_lock <std::recursive_mutex>
          auto_lock (dummy_windows->lock);
 
-  std::set <HWND> cleaned_windows;
+  std::vector <HWND> cleaned_windows;
 
-  for ( auto& it : dummy_windows->list )
+  if (dummy_windows->list.count (hwnd))
   {
-    if (it == hwnd || hwnd == nullptr)
+    auto& window = dummy_windows->list [hwnd];
+
+    if (DestroyWindow (window.hWnd))
     {
-      if (DestroyWindow (it))
+      //if (IsWindow (     window.parent.hWnd))
+      //  SetActiveWindow (window.parent.hWnd);
+    }
+    cleaned_windows.emplace_back (window.hWnd);
+  }
+
+  else if (hwnd == 0)
+  {
+    for (auto& it : dummy_windows->list)
+    {
+      if (DestroyWindow (it.second.hWnd))
       {
-        cleaned_windows.emplace (it);
+        //if (it.second.parent.hWnd != 0 && IsWindow (it.second.parent.hWnd))
+        //  SetActiveWindow (it.second.parent.hWnd);
       }
+      cleaned_windows.emplace_back (it.second.hWnd);
     }
   }
 
   for ( auto& it : cleaned_windows )
-    dummy_windows->list.erase (it);
+    if (dummy_windows->list.count (it))
+        dummy_windows->list.erase (it);
 
   if (dummy_windows->list.empty ())
     UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );

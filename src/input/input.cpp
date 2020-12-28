@@ -1420,7 +1420,7 @@ HCURSOR GetGameCursor (void)
   return hCurLast;
 }
 
-HWND SK_Win32_CreateDummyWindow  (void);
+HWND SK_Win32_CreateDummyWindow  (HWND hWndParent);
 void SK_Win32_CleanupDummyWindow (HWND hwnd);
 
 struct capture_ctx_s {
@@ -1433,46 +1433,46 @@ struct capture_ctx_s {
   {
     hCursor = GetCursor (  );
 
-    HWND hWndOrig =
-      GetCapture ();
-
-    if (hWndOrig != 0)
+    //HWND hWndOrig =
+    //  GetCapture ();
+    //
+    //if (hWndOrig != 0)
     {
       if (          hDummy == 0)
-      {             hDummy = SK_Win32_CreateDummyWindow ();
-        ShowWindow (hDummy,  SW_SHOW);
+      {             hDummy = SK_Win32_CreateDummyWindow (SK_GetGameWindow ());
+        ShowWindow (hDummy,  SW_SHOWNOACTIVATE);
         ShowWindow (hDummy,  SW_MAXIMIZE);
       }
 
-      HWND hWndCaptureGame =
-        SK_GetGameWindow ();
-
-      // Undo any existing capture
-      hWnd =
-        SetCapture (hDummy);
+      //HWND hWndCaptureGame =
+      //  SK_GetGameWindow ();
+      //
+      //// Undo any existing capture
+      //hWnd =
+      //  SetCapture (hDummy);
 
       // We're going to use the game window
       //   as the capture / rect.
-      if (hWndCaptureGame != 0)
-      {
-        RECT rcClient = { };
-
-        GetWindowRect (hWndCaptureGame, &rcClient);
-        { ClipCursor  (                 &rcClient);
-        }
-      }
+      //if (hWndCaptureGame != 0)
+      //{
+      //  RECT rcClient = { };
+      //
+      //  GetWindowRect (hWndCaptureGame, &rcClient);
+      //  { ClipCursor  (                 &rcClient);
+      //  }
+      //}
     }
   }
 
   void release (void)
   {
-    if (hWnd != 0)
-    {
-      SetCapture (hWnd);
-                  hWnd = 0;
-    }
-    else
-      ReleaseCapture ();
+    //if (hWnd != 0)
+    //{
+    //  SetCapture (hWnd);
+    //              hWnd = 0;
+    //}
+    //else
+    //  ReleaseCapture ();
 
     if (hDummy != 0)
     {
@@ -1480,12 +1480,33 @@ struct capture_ctx_s {
                                    hDummy = 0;
     }
 
-    if (         hCursor != 0)
-    { SetCursor (hCursor);
-                 hCursor  = 0;
-    }
+    //if (         hCursor != 0)
+    //{ SetCursor (hCursor);
+    //             hCursor  = 0;
+    //}
   }
 } static _capture_ctx;
+
+bool
+__stdcall
+SK_IsGameWindowActive (void)
+{
+  static DWORD dwGamePid =
+    GetCurrentProcessId ();
+         DWORD dwProcId;
+
+  if (_capture_ctx.hDummy != 0 && IsWindow (_capture_ctx.hDummy))
+    return true;
+
+  if ( game_window.active ||
+      GetWindowThreadProcessId  (
+        SK_GetForegroundWindow ( ),
+                      &dwProcId ) &&
+       ( dwGamePid ==  dwProcId ) )
+    return true;
+
+  return false;
+}
 
 void
 ImGui_ToggleCursor (void)
@@ -1495,7 +1516,7 @@ ImGui_ToggleCursor (void)
 
   if (! SK_ImGui_Cursor.visible)
   {
-  ///////_capture_ctx.capture ();
+    //_capture_ctx.capture ();
 
     SK_ImGui_CenterCursorOnWindow ();
 
@@ -1526,7 +1547,7 @@ ImGui_ToggleCursor (void)
 
     io.WantCaptureMouse = false;
 
-    ///////_capture_ctx.release ();
+    //_capture_ctx.release ();
   }
 
   SK_ImGui_Cursor.visible = (! SK_ImGui_Cursor.visible);
@@ -1766,13 +1787,19 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
 float SK_SO4_MouseScale = 2.467f;
 
+bool SK_WantBackgroundRender (void)
+{
+  return
+    config.window.background_render /*|| (_capture_ctx.hDummy != 0 && IsWindow (_capture_ctx.hDummy))*/;
+}
+
 BOOL
 WINAPI
 GetCursorPos_Detour (LPPOINT lpPoint)
 {
   SK_LOG_FIRST_CALL
 
-  if (config.window.background_render && (! SK_IsGameWindowActive ()))
+  if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
     *lpPoint = SK_ImGui_Cursor.orig_pos;
 
@@ -1896,7 +1923,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
   // Don't let the game continue moving the cursor while
   //   Alt+Tabbed out
   if ((! rb.fullscreen_exclusive) &&
-      config.window.background_render && (! SK_IsGameWindowActive ()))
+      SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
     return TRUE;
   }
@@ -2019,7 +2046,7 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
 
   // Block keyboard input to the game while it's in the background
   if ((! fullscreen) &&
-      config.window.background_render && (! SK_IsGameWindowActive ()))
+      SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
     return
       SK_ConsumeVKey (vKey);
@@ -2350,7 +2377,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
   bool handled = false;
 
-  if ((! lpMsg) || IsChild (game_window.hWnd, lpMsg->hwnd))
+  if ((! lpMsg)/* || IsChild (game_window.hWnd, lpMsg->hwnd)*/)
   {
     return handled;
   }
@@ -2521,171 +2548,175 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
 
 
+      ///////case WM_WINDOWPOSCHANGING:
+      ///////{
+      ///////  const auto wnd_pos =
+      ///////    (LPWINDOWPOS)(lpMsg->lParam);
+      ///////
+      ///////  if (! (wnd_pos->flags & SWP_NOMOVE))
+      ///////  {
+      ///////    const int width =
+      ///////      game_window.game.window.right - game_window.game.window.left;
+      ///////    const int height =
+      ///////      game_window.game.window.bottom - game_window.game.window.top;
+      ///////
+      ///////    game_window.game.window.left   = wnd_pos->x;
+      ///////    game_window.game.window.top    = wnd_pos->y;
+      ///////
+      ///////    game_window.game.window.right  = wnd_pos->x + width;
+      ///////    game_window.game.window.bottom = wnd_pos->y + height;
+      ///////  }
+      ///////
+      ///////  if (! (wnd_pos->flags & SWP_NOSIZE))
+      ///////  {
+      ///////    game_window.game.window.right =
+      ///////      game_window.game.window.left + wnd_pos->cx;
+      ///////    game_window.game.window.bottom =
+      ///////      game_window.game.window.top + wnd_pos->cy;
+      ///////  }
+      ///////
+      ///////  if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
+      ///////    SK_AdjustBorder ();
+      ///////
+      ///////  //game_window.game.client = game_window.game.window;
+      ///////
+      ///////  // Filter this message
+      ///////  if (config.window.borderless && config.window.fullscreen)
+      ///////  {
+      ///////    game_window.DefWindowProc (lpMsg->hwnd,
+      ///////                               lpMsg->message, lpMsg->wParam,
+      ///////                               lpMsg->lParam);
+      ///////
+      ///////    handled = true;
+      ///////  }
+      ///////} break;
+      ///////
+      ///////
+      ///////case WM_WINDOWPOSCHANGED:
+      ///////{
+      ///////  const auto wnd_pos =
+      ///////    reinterpret_cast <LPWINDOWPOS> (lpMsg->lParam);
+      ///////
+      ///////  SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+      ///////  SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
+      ///////
+      ///////  //game_window.game.client = game_window.actual.client;
+      ///////  //game_window.game.window = game_window.actual.window;
+      ///////
+      ///////  if ((! (wnd_pos->flags & SWP_NOMOVE)) || (! (wnd_pos->flags & SWP_NOSIZE)))
+      ///////  //if (((wnd_pos->flags ^ SWP_NOMOVE) || (wnd_pos->flags ^ SWP_NOSIZE)))
+      ///////  {
+      ///////    bool offset = false;
+      ///////
+      ///////    // Test for user-defined position; if it exists, then we must
+      ///////    //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
+      ///////    if (config.window.offset.x.absolute ||
+      ///////        config.window.offset.y.absolute ||
+      ///////        (config.window.offset.x.percent >  0.000001f  ||
+      ///////         config.window.offset.x.percent < -0.000001f) ||
+      ///////        (config.window.offset.y.percent >  0.000001f  ||
+      ///////         config.window.offset.y.percent < -0.000001f)
+      ///////        )
+      ///////    {
+      ///////      offset = true;
+      ///////    }
+      ///////
+      ///////    bool temp_override = false;
+      ///////
+      ///////    // Prevent all of this craziness from resizing the window accidentally
+      ///////    if (config.window.res.override.isZero ())
+      ///////    {
+      ///////      temp_override = true;
+      ///////      RECT client = {  };
+      ///////
+      ///////      SK_GetClientRect (game_window.hWnd, &client);
+      ///////
+      ///////      config.window.res.override.x = client.right  - client.left;
+      ///////      config.window.res.override.y = client.bottom - client.top;
+      ///////    }
+      ///////
+      ///////    if (config.window.center)
+      ///////      SK_AdjustWindow ();
+      ///////
+      ///////    else if (offset && (! (wnd_pos->flags & SWP_NOMOVE)))
+      ///////      SK_AdjustWindow ();
+      ///////
+      ///////    else if ((!(config.window.res.override.isZero () || temp_override)) && (! (wnd_pos->flags & SWP_NOSIZE)))
+      ///////      SK_AdjustWindow ();
+      ///////
+      ///////    if (temp_override)
+      ///////    {
+      ///////      config.window.res.override.x = 0;
+      ///////      config.window.res.override.y = 0;
+      ///////    }
+      ///////
+      ///////    if (config.window.unconfine_cursor)
+      ///////      SK_ClipCursor (nullptr);
+      ///////
+      ///////    else if (config.window.confine_cursor)
+      ///////      SK_ClipCursor (&game_window.actual.window);
+      ///////  }
+      ///////
+      ///////  // Filter this message
+      ///////  if (config.window.borderless && config.window.fullscreen)
+      ///////  {
+      ///////    game_window.DefWindowProc (lpMsg->hwnd,
+      ///////                               lpMsg->message, lpMsg->wParam,
+      ///////                               lpMsg->lParam);
+      ///////
+      ///////    return
+      ///////      (handled = true);
+      ///////  }
+      ///////} break;
+      ///////
+      ///////
+      ///////case WM_SIZE:
+      ///////  if (lpMsg->wParam == SIZE_MINIMIZED)
+      ///////    break;
+      ///////
+      ///////case WM_MOVE:
+      ///////{
+      ///////  SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+      ///////  SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
+      ///////
+      ///////  if (config.window.confine_cursor)
+      ///////    SK_ClipCursor (&game_window.actual.window);
+      ///////  else if (config.window.unconfine_cursor)
+      ///////    SK_ClipCursor (nullptr);
+      ///////
+      ///////
+      ///////  // Filter this message
+      ///////  if (config.window.borderless && config.window.fullscreen)
+      ///////  {
+      ///////    game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
+      ///////                                lpMsg->wParam, lpMsg->lParam );
+      ///////
+      ///////    return
+      ///////      (handled = true);
+      ///////  }
+      ///////} break;
+      ///////
+      ///////
+      ///////case WM_SIZING:
+      ///////case WM_MOVING:
+      ///////{
+      ///////  if (config.window.unconfine_cursor)
+      ///////    SK_ClipCursor (nullptr);
+      ///////
+      ///////  // Filter this message
+      ///////  if (config.window.borderless && config.window.fullscreen)
+      ///////  {
+      ///////    game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
+      ///////                                lpMsg->wParam, lpMsg->lParam );
+      ///////
+      ///////    return
+      ///////      (handled = true);
+      ///////  }
+      ///////} break;
+
       case WM_WINDOWPOSCHANGING:
-      {
-        const auto wnd_pos =
-          (LPWINDOWPOS)(lpMsg->lParam);
-
-        if (! (wnd_pos->flags & SWP_NOMOVE))
-        {
-          const int width =
-            game_window.game.window.right - game_window.game.window.left;
-          const int height =
-            game_window.game.window.bottom - game_window.game.window.top;
-
-          game_window.game.window.left   = wnd_pos->x;
-          game_window.game.window.top    = wnd_pos->y;
-
-          game_window.game.window.right  = wnd_pos->x + width;
-          game_window.game.window.bottom = wnd_pos->y + height;
-        }
-
-        if (! (wnd_pos->flags & SWP_NOSIZE))
-        {
-          game_window.game.window.right =
-            game_window.game.window.left + wnd_pos->cx;
-          game_window.game.window.bottom =
-            game_window.game.window.top + wnd_pos->cy;
-        }
-
-        if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
-          SK_AdjustBorder ();
-
-        //game_window.game.client = game_window.game.window;
-
-        // Filter this message
-        if (config.window.borderless && config.window.fullscreen)
-        {
-          game_window.DefWindowProc (lpMsg->hwnd,
-                                     lpMsg->message, lpMsg->wParam,
-                                     lpMsg->lParam);
-
-          handled = true;
-        }
-      } break;
-
-
-      case WM_WINDOWPOSCHANGED:
-      {
-        const auto wnd_pos =
-          reinterpret_cast <LPWINDOWPOS> (lpMsg->lParam);
-
-        SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
-        SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
-
-        //game_window.game.client = game_window.actual.client;
-        //game_window.game.window = game_window.actual.window;
-
-        if ((! (wnd_pos->flags & SWP_NOMOVE)) || (! (wnd_pos->flags & SWP_NOSIZE)))
-        //if (((wnd_pos->flags ^ SWP_NOMOVE) || (wnd_pos->flags ^ SWP_NOSIZE)))
-        {
-          bool offset = false;
-
-          // Test for user-defined position; if it exists, then we must
-          //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
-          if (config.window.offset.x.absolute ||
-              config.window.offset.y.absolute ||
-              (config.window.offset.x.percent >  0.000001f  ||
-               config.window.offset.x.percent < -0.000001f) ||
-              (config.window.offset.y.percent >  0.000001f  ||
-               config.window.offset.y.percent < -0.000001f)
-              )
-          {
-            offset = true;
-          }
-
-          bool temp_override = false;
-
-          // Prevent all of this craziness from resizing the window accidentally
-          if (config.window.res.override.isZero ())
-          {
-            temp_override = true;
-            RECT client = {  };
-
-            SK_GetClientRect (game_window.hWnd, &client);
-
-            config.window.res.override.x = client.right  - client.left;
-            config.window.res.override.y = client.bottom - client.top;
-          }
-
-          if (config.window.center)
-            SK_AdjustWindow ();
-
-          else if (offset && (! (wnd_pos->flags & SWP_NOMOVE)))
-            SK_AdjustWindow ();
-
-          else if ((!(config.window.res.override.isZero () || temp_override)) && (! (wnd_pos->flags & SWP_NOSIZE)))
-            SK_AdjustWindow ();
-
-          if (temp_override)
-          {
-            config.window.res.override.x = 0;
-            config.window.res.override.y = 0;
-          }
-
-          if (config.window.unconfine_cursor)
-            SK_ClipCursor (nullptr);
-
-          else if (config.window.confine_cursor)
-            SK_ClipCursor (&game_window.actual.window);
-        }
-
-        // Filter this message
-        if (config.window.borderless && config.window.fullscreen)
-        {
-          game_window.DefWindowProc (lpMsg->hwnd,
-                                     lpMsg->message, lpMsg->wParam,
-                                     lpMsg->lParam);
-
-          return
-            (handled = true);
-        }
-      } break;
-
-
-      case WM_SIZE:
-        if (lpMsg->wParam != SIZE_RESTORED)
-          break;
-
-      case WM_MOVE:
-      {
-        SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
-        SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
-
-        if (config.window.confine_cursor)
-          SK_ClipCursor (&game_window.actual.window);
-        else if (config.window.unconfine_cursor)
-          SK_ClipCursor (nullptr);
-
-
-        // Filter this message
-        if (config.window.borderless && config.window.fullscreen)
-        {
-          game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
-                                      lpMsg->wParam, lpMsg->lParam );
-
-          return
-            (handled = true);
-        }
-      } break;
-
-
-      case WM_SIZING:
-      case WM_MOVING:
-      {
-        if (config.window.unconfine_cursor)
-          SK_ClipCursor (nullptr);
-
-        // Filter this message
-        if (config.window.borderless && config.window.fullscreen)
-        {
-          game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
-                                      lpMsg->wParam, lpMsg->lParam );
-
-          return
-            (handled = true);
-        }
-      } break;
+        SK_Window_RepositionIfNeeded ();
+        break;
     }
 
     if (! SK_IsGameWindowActive ())
@@ -2806,9 +2837,9 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&GetKeyState_Original) );
 #endif
 
-  SK_CreateUser32Hook ("NtUserGetKeyboardState",
-  //SK_CreateDLLHook2 (
-  //L"user32",               //"GetKeyboardState",
+  //SK_CreateUser32Hook ("NtUserGetKeyboardState",
+  SK_CreateDLLHook2 (
+  L"user32",                 "GetKeyboardState",
                        //"NtUserGetKeyboardState",
                         NtUserGetKeyboardState_Detour,
      static_cast_p2p <void> (&GetKeyboardState_Original) );
