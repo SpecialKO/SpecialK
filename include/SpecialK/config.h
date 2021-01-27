@@ -304,6 +304,8 @@ struct sk_config_t
   struct screenshots_s {
     bool    png_compress          =  true;
     bool    show_osd_by_default   =  true;
+    bool    play_sound            =  true;
+    bool    copy_to_clipboard     =  true;
 
     SK_ConfigSerializedKeybind
          game_hud_free_keybind = {
@@ -317,7 +319,7 @@ struct sk_config_t
            sk_osd_free_keybind = {
       SK_Keybind {
         "Take Screenshot without Special K's OSD", L"F9",
-         false, true, false, VK_F9
+         false, false, false, VK_F9
       }, L"WithoutOSD"
     };
 
@@ -405,10 +407,17 @@ struct sk_config_t
       bool    draw_in_vidcap     = true;
     } osd;
 
-    // OSD Render Stats (D3D11 Only Right Now)
+    // OSD Render Stats
     bool      show               = false;
     struct keybinds_s {
-      BYTE    toggle [4]         = { VK_CONTROL, VK_SHIFT, 'R', 0 };
+      //BYTE    toggle [4]         = { VK_CONTROL, VK_SHIFT, 'R', 0 };
+      SK_ConfigSerializedKeybind
+        hud_toggle = {
+          SK_Keybind {
+            "Toggle Game's HUD", L"Alt+Shift+H",
+             false, true, true, 'H'
+          }, L"HUDToggle"
+        };
     } keys;
   } render;
 
@@ -456,6 +465,7 @@ struct sk_config_t
     bool on_demand_dump           = false;
     bool d3d9_mod                 = false; // Causing compat issues in some D3D9Ex games ATM
     bool dump_on_load             = false;
+    bool clamp_lod_bias           = false;
   } textures;
 
   struct file_trace_s {
@@ -879,7 +889,6 @@ enum class SK_GAME_ID
   FinalFantasyX_X2,             // FFX.exe / FFX-2.exe / FFX&X-2_Will.exe
   DeadlyPremonition,            // DP.exe DPLauncher.exe
   GalGun_Double_Peace,          // GG2Game.exe
-  AKIBAs_Trip,                  // AkibaUU.exe
   YS_Seven,                     // Ys7.exe
   LifeIsStrange_BeforeTheStorm, // Life is Strange - Before the Storm.exe
   Tales_of_Symphonia,           // TOS.exe
@@ -928,6 +937,7 @@ enum class SK_GAME_ID
   BaldursGate3,                 // bg3.exe
   AssassinsCreed_Valhalla,      // ACValhalla.exe / ACValhalla_Plus.exe
   Cyberpunk2077,                // Cyberpunk2077.exe
+  AtelierRyza2,                 // Atelier_Ryza_2.exe
   UNKNOWN_GAME               = 0xffff
 };
 

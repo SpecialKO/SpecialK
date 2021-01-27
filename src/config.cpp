@@ -82,7 +82,6 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"FFX&X-2_Will.exe"),                       SK_GAME_ID::FinalFantasyX_X2             },
       { hash_lower (L"DP.exe"),                                 SK_GAME_ID::DeadlyPremonition            },
       { hash_lower (L"GG2Game.exe"),                            SK_GAME_ID::GalGun_Double_Peace          },
-      { hash_lower (L"AkibaUU.exe"),                            SK_GAME_ID::AKIBAs_Trip                  },
       { hash_lower (L"Ys7.exe"),                                SK_GAME_ID::YS_Seven                     },
       { hash_lower (L"TOS.exe"),                                SK_GAME_ID::Tales_of_Symphonia           },
       { hash_lower (L"Tales of Zestiria.exe"),                  SK_GAME_ID::Tales_of_Zestiria            },
@@ -130,7 +129,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"HorizonZeroDawn.exe"),                    SK_GAME_ID::HorizonZeroDawn              },
       { hash_lower (L"bg3.exe"),                                SK_GAME_ID::BaldursGate3                 },
       { hash_lower (L"YakuzaLikeADragon.exe"),                  SK_GAME_ID::YakuzaLikeADragon            },
-      { hash_lower (L"Cyberpunk2077.exe"),                      SK_GAME_ID::Cyberpunk2077                }
+      { hash_lower (L"Cyberpunk2077.exe"),                      SK_GAME_ID::Cyberpunk2077                },
+      { hash_lower (L"Atelier_Ryza_2.exe"),                     SK_GAME_ID::AtelierRyza2                 }
     };
 
     first_check = false;
@@ -360,6 +360,8 @@ struct {
 struct {
   sk::ParameterBool*      include_osd_default;
   sk::ParameterBool*      keep_png_copy;
+  sk::ParameterBool*      play_sound;
+  sk::ParameterBool*      copy_to_clipboard;
 } screenshots;
 
 struct {
@@ -478,6 +480,9 @@ struct {
 } display;
 
 struct {
+  struct {
+    sk::ParameterBool*    clamp_lod_bias;
+  } d3d9;
   struct {
     sk::ParameterBool*    precise_hash;
     sk::ParameterBool*    inject;
@@ -905,6 +910,9 @@ auto DeclKeybind =
     ConfigEntry (imgui.show_input_apis,                  L"Show Input APIs currently in-use",                          osd_ini,         L"ImGui.Global",          L"ShowActiveInputAPIs"),
 
     ConfigEntry (screenshots.keep_png_copy,              L"Keep a .PNG compressed copy of each screenshot?",           osd_ini,         L"Screenshot.System",     L"KeepLosslessPNG"),
+    ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggeirng Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
+    ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR copy to the Windows Clipboard",                 osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
+    Keybind ( &config.render.keys.hud_toggle,            L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
     Keybind ( &config.screenshots.game_hud_free_keybind, L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.
@@ -1099,6 +1107,7 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.srgb_behavior,              L"How to handle sRGB SwapChains when we have to kill them for"
                                                          L" Flip Model support (-1=Passthrough, 0=Strip, 1=Apply)",    dll_ini,         L"Render.DXGI",           L"sRGBBypassBehavior"),
 
+    ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
     ConfigEntry (texture.d3d11.precise_hash,             L"Precise Hash Generation",                                   dll_ini,         L"Textures.D3D11",        L"PreciseHash"),
 
@@ -2040,6 +2049,14 @@ auto DeclKeybind =
                     SK_CP2077_InitPlugin (    );
       } break;
 
+      case SK_GAME_ID::AtelierRyza2:
+      {
+        config.render.framerate.flip_discard  = true;
+        config.render.dxgi.deferred_isolation = true; // For texture mods / HUD tracking
+
+        SK_D3D11_DeclHUDShader_Vtx (0x1a7704f4);
+      } break;
+
       case SK_GAME_ID::OctopathTraveler:
       {
         // It's a Denuvo game, so it may take a while to start...
@@ -2257,8 +2274,8 @@ auto DeclKeybind =
 
     if (! config.render.framerate.rescan_ratio.empty ())
     {
-      swscanf (config.render.framerate.rescan_ratio.c_str (), L"%i/%i", &config.render.framerate.rescan_.Numerator,
-                                                                        &config.render.framerate.rescan_.Denom);
+      swscanf (config.render.framerate.rescan_ratio.c_str (), L"%i/%i", (INT*)&config.render.framerate.rescan_.Numerator,
+                                                                        (INT*)&config.render.framerate.rescan_.Denom);
     }
 
     if ( config.render.framerate.rescan_.Numerator != static_cast <UINT> (-1) &&
@@ -2275,6 +2292,7 @@ auto DeclKeybind =
   render.d3d9.force_d3d9ex->load        (config.render.d3d9.force_d3d9ex);
   render.d3d9.impure->load              (config.render.d3d9.force_impure);
   render.d3d9.enable_texture_mods->load (config.textures.d3d9_mod);
+  texture.d3d9.clamp_lod_bias->load     (config.textures.clamp_lod_bias);
 
 
   // DXGI
@@ -2781,7 +2799,10 @@ auto DeclKeybind =
 
   screenshots.include_osd_default->load       (config.screenshots.show_osd_by_default);
   screenshots.keep_png_copy->load             (config.screenshots.png_compress);
+  screenshots.play_sound->load                (config.screenshots.play_sound);
+  screenshots.copy_to_clipboard->load         (config.screenshots.copy_to_clipboard);
 
+  LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.screenshots.game_hud_free_keybind);
   LoadKeybind (&config.screenshots.sk_osd_free_keybind);
   LoadKeybind (&config.screenshots.sk_osd_insertion_keybind);
@@ -2941,21 +2962,6 @@ auto DeclKeybind =
           //SK_ResHack_PatchGame3 (3200, 1800);
           //SK_ResHack_PatchGame3 (1920, 1080);
           //SK_ResHack_PatchGame3 (3840, 2160);
-        } break;
-
-
-        case SK_GAME_ID::AKIBAs_Trip:
-        {
-          SK_Thread_Create ([](LPVOID) ->
-          DWORD
-          {
-            void
-            SK_ResHack_PatchGame (uint32_t w, uint32_t h);
-            SK_ResHack_PatchGame (1920, 1080);
-            SK_Thread_CloseSelf  ();
-
-            return 0;
-          });
         } break;
       }
     }
@@ -3404,8 +3410,8 @@ SK_SaveConfig ( std::wstring name,
       if (! config.render.framerate.rescan_ratio.empty ())
       {
         swscanf ( config.render.framerate.rescan_ratio.c_str (), L"%i/%i",
-          &config.render.framerate.rescan_.Numerator,
-          &config.render.framerate.rescan_.Denom);
+          (INT *)&config.render.framerate.rescan_.Numerator,
+          (INT *)&config.render.framerate.rescan_.Denom);
       }
 
       if ( config.render.framerate.rescan_.Numerator != static_cast <UINT> (-1) &&
@@ -3421,6 +3427,7 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.refresh_rate->store        (config.render.framerate.refresh_rate);
 
     render.framerate.enforcement_policy->store    (config.render.framerate.enforcement_policy);
+    texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
 
     // SLI only works in Direct3D
     nvidia.sli.compatibility->store               (config.nvidia.sli.compatibility);
@@ -3641,6 +3648,8 @@ SK_SaveConfig ( std::wstring name,
 
   screenshots.include_osd_default->store       (config.screenshots.show_osd_by_default);
   screenshots.keep_png_copy->store             (config.screenshots.png_compress);
+  screenshots.play_sound->store                (config.screenshots.play_sound);
+  screenshots.copy_to_clipboard->store         (config.screenshots.copy_to_clipboard);
 
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
 
@@ -4619,6 +4628,11 @@ SK_RenderAPI
 __stdcall
 SK_Render_GetAPIHookMask (void)
 {
+  if (config.apis.last_known != SK_RenderAPI::Reserved)
+  {
+    return static_cast <SK_RenderAPI> (config.apis.last_known);
+  }
+
   int mask = 0;
 
 #ifdef _M_IX86
