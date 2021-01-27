@@ -3186,9 +3186,6 @@
     <ClInclude Include="include\SpecialK\render\d3d11\utility\d3d11_texture.h">
       <Filter>Header Files\Backends\Render\D3D11</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\render\dxgi\_dxgi1_5.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_interfaces.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
@@ -4535,6 +4532,8 @@
     <None Include="packages.config">
       <Filter>Tobii</Filter>
     </None>
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
