@@ -167,12 +167,18 @@ D3D11Dev_CreateShaderResourceView_Override (
       {
         bool override = false;
 
-        if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-             DirectX::BitsPerPixel (pDesc->Format) !=
-             DirectX::BitsPerPixel (tex_desc.Format) )
+        if (! DirectX::IsDepthStencil (pDesc->Format))
         {
-          override  = true;
-          newFormat = tex_desc.Format;
+          if (                         pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+              ( DirectX::BitsPerPixel (pDesc->Format) !=
+                DirectX::BitsPerPixel (tex_desc.Format) ) ||
+              ( DirectX::MakeTypeless (pDesc->Format) != // Handle cases such as BC3 -> BC7: Size = Same, Fmt != Same
+                DirectX::MakeTypeless (tex_desc.Format) )
+             ) // Does not handle sRGB vs. non-sRGB, but generally the game
+          {    //   won't render stuff correctly if injected textures change that.
+            override  = true;
+            newFormat = tex_desc.Format;
+          }
         }
 
         if ( SK_D3D11_OverrideDepthStencil (newFormat) )
@@ -186,40 +192,50 @@ D3D11Dev_CreateShaderResourceView_Override (
           auto& cache_desc =
             textures->Textures_2D [(ID3D11Texture2D *)pResource];
 
-          newFormat =
-            cache_desc.desc.Format;
+          SK_ComPtr <ID3D11Device> pCacheDevice;
+          cache_desc.texture->GetDevice (&pCacheDevice.p);
 
-          newMipLevels =
-            pDesc->Texture2D.MipLevels;
-
-          if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-               DirectX::MakeTypeless (pDesc->Format) !=
-               DirectX::MakeTypeless (newFormat    )  )
+          if (pCacheDevice.IsEqualObject (This))
           {
-            if (DirectX::IsSRGB (pDesc->Format))
-              newFormat = DirectX::MakeSRGB (newFormat);
+            newFormat =
+              cache_desc.desc.Format;
 
-            override = true;
+            newMipLevels =
+              pDesc->Texture2D.MipLevels;
 
-            SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
-                          cache_desc.crc32c,
-                     SK_DXGI_FormatToStr (pDesc->Format).c_str      (),
-                              SK_DXGI_FormatToStr (newFormat).c_str () ),
-                        L"DX11TexMgr" );
+            if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+                 DirectX::MakeTypeless (pDesc->Format) !=
+                 DirectX::MakeTypeless (newFormat    )  )
+            {
+              if (DirectX::IsSRGB (pDesc->Format))
+                newFormat = DirectX::MakeSRGB (newFormat);
+
+              override = true;
+
+              SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
+                            cache_desc.crc32c,
+                       SK_DXGI_FormatToStr (pDesc->Format).c_str      (),
+                                SK_DXGI_FormatToStr (newFormat).c_str () ),
+                          L"DX11TexMgr" );
+            }
+
+            if ( config.textures.d3d11.generate_mips &&
+                 cache_desc.desc.MipLevels != pDesc->Texture2D.MipLevels )
+            {
+              override     = true;
+              newMipLevels = cache_desc.desc.MipLevels;
+
+              SK_LOG1 ( ( L"Overriding Resource View Mip Levels for Cached Texture '%08x'  { Was: %lu, Now: %lu }",
+                            cache_desc.crc32c,
+                              pDesc->Texture2D.MipLevels,
+                                 newMipLevels ),
+                          L"DX11TexMgr" );
+            }
           }
 
-          if ( config.textures.d3d11.generate_mips &&
-               cache_desc.desc.MipLevels != pDesc->Texture2D.MipLevels )
-          {
-            override     = true;
-            newMipLevels = cache_desc.desc.MipLevels;
-
-            SK_LOG1 ( ( L"Overriding Resource View Mip Levels for Cached Texture '%08x'  { Was: %lu, Now: %lu }",
-                          cache_desc.crc32c,
-                            pDesc->Texture2D.MipLevels,
-                               newMipLevels ),
-                        L"DX11TexMgr" );
-          }
+          else if (config.system.log_level > 0)
+            // TODO: Texture cache needs to be per-device
+            SK_ReleaseAssert (!"Attempted to use a cached texture on the wrong device!");
         }
 
         if (override)
@@ -236,31 +252,9 @@ D3D11Dev_CreateShaderResourceView_Override (
           }
 
           HRESULT hr =
-            DXGI_ERROR_INVALID_CALL;
-
-          auto orig_se =
-          SK_SEH_ApplyTranslator (
-            SK_FilteringStructuredExceptionTranslator (
-              EXCEPTION_ACCESS_VIOLATION
-            )
-          );
-          try {
-            hr =
-              D3D11Dev_CreateShaderResourceView_Original (
-                This,        pResource,
-                  &descCopy, ppSRView                       );
-          }
-
-          //catch ( _com_error& err )
-          //{
-          //  SK_LOG0 ( ( L"!! COM Error During "
-          //              L"CreateShaderResourceView (...) - '%s'",
-          //                err.ErrorMessage ()
-          //            ),L"   DXGI   " );
-          //}
-
-          catch (const SK_SEH_IgnoredException&) { };
-          SK_SEH_RemoveTranslator (orig_se);
+            D3D11Dev_CreateShaderResourceView_Original (
+              This,        pResource,
+                &descCopy, ppSRView                       );
 
           if (SUCCEEDED (hr))
           {
@@ -271,31 +265,10 @@ D3D11Dev_CreateShaderResourceView_Override (
     }
   }
 
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_ACCESS_VIOLATION
-    )
-  );
-  try {
-    HRESULT hr =
-      D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
-                                                     pDesc, ppSRView );
-
-    SK_SEH_RemoveTranslator (orig_se);
-    return  hr;
-  }
-  catch (const SK_SEH_IgnoredException&)
-  {
-    try {
-      *ppSRView = nullptr;// pLastGood;
-    }
-    catch (const SK_SEH_IgnoredException&)
-    {
-    }
-  }
-  SK_SEH_RemoveTranslator (orig_se);
-  return DXGI_ERROR_INVALID_CALL;
+  HRESULT hr =
+    D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
+                                                   pDesc, ppSRView );
+  return  hr;
 }
 
 __declspec (noinline)
