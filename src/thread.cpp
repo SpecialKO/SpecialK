@@ -698,13 +698,16 @@ using _SK_MMCS_TaskMap =
           DWORD, SK_MMCS_TaskEntry*
         >;
 
+SK_LazyGlobal <
+      _SK_MMCS_TaskMap
+>             _task_map;
+
 __declspec (noinline)
 _SK_MMCS_TaskMap&
 SK_MMCS_GetTaskMap (void)
 {
-  static _SK_MMCS_TaskMap
-                  task_map;
-  return          task_map;
+  return
+    _task_map.get ();
 }
 
 size_t
