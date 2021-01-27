@@ -1412,10 +1412,12 @@ struct SK_TimerQueryD3D11
            UINT64               last_results = {     };
 };
 
+#define _MAX_VIEWS 128
+
 struct d3d11_shader_resource_views_s {
-  uint32_t                  shader    [SK_D3D11_MAX_DEV_CONTEXTS+1]     =   { }  ;
-  ID3D11ShaderResourceView* views     [SK_D3D11_MAX_DEV_CONTEXTS+1][64] = { { } };
-  ID3D11ShaderResourceView* tmp_views [SK_D3D11_MAX_DEV_CONTEXTS+1][64] = { { } };
+  uint32_t                  shader    [SK_D3D11_MAX_DEV_CONTEXTS+1]             =   { }  ;
+  ID3D11ShaderResourceView* views     [SK_D3D11_MAX_DEV_CONTEXTS+1][_MAX_VIEWS] = { { } };
+  ID3D11ShaderResourceView* tmp_views [SK_D3D11_MAX_DEV_CONTEXTS+1][_MAX_VIEWS] = { { } };
   // Avoid allocating memory on the heap/stack when we have to manipulate an array
   //   large enough to store all D3D11 Shader Resource Views.
 };
@@ -1428,7 +1430,7 @@ struct d3d11_shader_tracking_s
     {
       active.set (i, false);
 
-      RtlZeroMemory (current_->views [i], 128);
+      RtlZeroMemory (current_->views [i], _MAX_VIEWS * sizeof (ID3D11ShaderResourceView*));
     }
 
     num_draws          = 0;

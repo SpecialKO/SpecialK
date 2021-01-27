@@ -497,9 +497,8 @@ SK_D3D11_CreateShader_Impl (
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  static bool
-      hash_only = (rb.api == SK_RenderAPI::D3D12);
-  if (hash_only)
+  bool hash_only = (rb.api == SK_RenderAPI::D3D12);
+  if ( hash_only )
   {
     if (type == sk_shader_class::Pixel && checksum == 0x9aefe985)
     {
@@ -521,7 +520,7 @@ SK_D3D11_CreateShader_Impl (
           __SK_MakeSteamPS (false, true, config.steam.overlay_hdr_luminance);
 
         SK_RunOnce (
-          dll_log->Log ( L" Steam Replacement Pixel Shader <scRGB %f nits>",
+          dll_log->Log ( L"[SteamRange] Steam Replacement Pixel Shader <scRGB %f nits>",
                           config.steam.overlay_hdr_luminance * 80.0f
                                  )//,steam_ps_scRGB.c_str () )
         );
@@ -543,7 +542,7 @@ SK_D3D11_CreateShader_Impl (
           __SK_MakeSteamPS (true, false, config.steam.overlay_hdr_luminance * 80.0f);
 
         SK_RunOnce (
-          dll_log->Log ( L" Steam Replacement Pixel Shader <PQ %f nits>",
+          dll_log->Log ( L"[SteamRange] Steam Replacement Pixel Shader <PQ %f nits>",
                             config.steam.overlay_hdr_luminance
                                    )//, steam_ps_PQ.c_str () )
         );

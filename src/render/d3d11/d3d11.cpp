@@ -1850,6 +1850,41 @@ SK_D3D11_CopyResource_Impl (
     }
   }
 
+
+  // What if we're trying to copy to a dest texture that needs format changed to R16G16B16A16 (HDR?)
+  //
+  //   Needs a stretchrect type of deal, suggest user override fmt.
+  //
+  if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  {
+    SK_ComQIPtr <ID3D11Texture2D> pTexDst (pDstResource);
+    SK_ComQIPtr <ID3D11Texture2D> pTexSrc (pSrcResource);
+
+    D3D11_TEXTURE2D_DESC dst_desc = { };
+    D3D11_TEXTURE2D_DESC src_desc = { };
+
+    pTexSrc->GetDesc (&src_desc);
+    pTexDst->GetDesc (&dst_desc);
+
+    if (src_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT && src_desc.Format != dst_desc.Format)
+    {
+      static bool warned_once = false;
+      if (! std::exchange (warned_once, true))
+      {
+        SK_ImGui_Warning (
+          SK_FormatStringW (
+            L"HDR Format Mismatch During CopyResource: Src=%ws, Dst=%ws",
+              SK_DXGI_FormatToStr (src_desc.Format).c_str (),
+              SK_DXGI_FormatToStr (dst_desc.Format).c_str ()
+          ).c_str ()
+        );
+      }
+
+      return;
+    }
+  }
+
+
   _Finish ();
 
 
@@ -3274,6 +3309,7 @@ SK_D3D11_DispatchHandler ( ID3D11DeviceContext* pDevCtx,
   return false;
 }
 
+DEFINE_GUID(IID_ID3D11On12Device,0x85611e73,0x70a9,0x490e,0x96,0x14,0xa9,0xe3,0x02,0x77,0x79,0x04);
 
 bool
 SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
@@ -3281,28 +3317,6 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
 {
          const bool bDeferred  =   SK_D3D11_IsDevCtxDeferred (pDevCtx);
   static const bool bIsolation = config.render.dxgi.deferred_isolation;
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  SK_ComPtr <ID3D11Device>        pDevice;
-  pDevCtx->GetDevice            (&pDevice.p);
-
-
-  /////SK_ComPtr <ID3D11DeviceContext>  pTrackedDeviceCtx (rb.d3d11.immediate_ctx);
-  /////
-  /////if (           (! bDeferred) &&  pTrackedDeviceCtx)
-  /////{
-  /////  SK_ComPtr <ID3D11Device>       pTrackedDevice;
-  /////  pTrackedDeviceCtx->GetDevice (&pTrackedDevice.p);
-  /////  if (! pDevice.IsEqualObject (  pTrackedDevice))
-  /////  {
-  /////    return true;
-  /////  }
-  /////}
-
-  if (! pDevice.IsEqualObject (rb.device))
-    return true;
 
   if (  (  bDeferred  && (! bIsolation) ) ||
       ( (! bDeferred) && (  bWrapped  )
@@ -3312,6 +3326,45 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
     return
       true;
   }
+
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_ComPtr <ID3D11Device>   pDevice;
+  pDevCtx->GetDevice       (&pDevice.p);
+
+  // TOO HIGH OVERHEAD: Use direct compare and expect a few misses
+  //if (! rb.getDevice <ID3D11Device> ().IsEqualObject (pDevice))
+  if (rb.device.p != pDevice.p)
+  {
+    if (config.system.log_level > 0)
+    {
+      SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
+    }
+
+    return true;
+  }
+
+
+  //
+  // Handle D3D11On12, but only if the active API is not already D3D11 :)
+  //
+  if (rb.api != SK_RenderAPI::D3D11)
+  {
+    SK_ComPtr <IUnknown> pD3D11On12Device;
+    if (pDevice)
+        pDevice->QueryInterface (
+          IID_ID3D11On12Device,
+    (void **)&pD3D11On12Device.p);
+
+    if (pD3D11On12Device.p != nullptr)
+    {
+    //SK_ReleaseAssert (!"D3D11On12");
+      return true;
+    }
+  }
+
 
   return
     false;
@@ -3598,6 +3651,14 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
   }
 
 
+  bool early_out =
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
+    (! bMustNotIgnore) );
+
+  if (early_out)
+  {
+    return _Finish ();
+  }
 
   // Render-state tracking needs to be forced-on for the
   //   Steam Overlay HDR fix to work.
@@ -3631,15 +3692,6 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
         return;
       }
     }
-  }
-
-  bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
-
-  if (early_out)
-  {
-    return _Finish ();
   }
 
   if (! SK_D3D11_ShouldTrackDrawCall ( pDevCtx,
@@ -3895,51 +3947,6 @@ SK_D3D11_DrawIndexedInstancedIndirect_Impl (
   if (draw_action == Override)
     SK_D3D11_PostDraw (dev_idx, pTLS);
 }
-
-//__forceinline
-//void
-//STDMETHODCALLTYPE
-//SK_D3D11_DrawIndexedInstancedIndirect_Impl (
-//  _In_ ID3D11DeviceContext *pDevCtx,
-//  _In_ ID3D11Buffer        *pBufferForArgs,
-//  _In_ UINT                 AlignedByteOffsetForArgs,
-//       BOOL                 bWrapped )
-//{
-//  if (SK_D3D11_IsDevCtxDeferred (pDevCtx) && (! config.d3d11.deferred_isolation)))
-//  {
-//    return
-//      bWrapped ?
-//        pDevCtx->DrawIndexedInstancedIndirect ( pBufferForArgs, AlignedByteOffsetForArgs )
-//               :
-//      D3D11_DrawIndexedInstancedIndirect_Original ( pDevCtx, pBufferForArgs,
-//                                                      AlignedByteOffsetForArgs );
-//  }
-//
-//  SK_TLS *pTLS = nullptr;
-//
-//  SK_ReShade_DrawCallback.call (pDevCtx, SK_D3D11_ReshadeDrawFactors.indexed_instanced_indirect, pTLS);
-//
-//  if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstancedIndirect, &pTLS))
-//  {
-//    return
-//      bWrapped ?
-//        pDevCtx->DrawIndexedInstancedIndirect ( pBufferForArgs, AlignedByteOffsetForArgs )
-//               :
-//      D3D11_DrawIndexedInstancedIndirect_Original ( pDevCtx, pBufferForArgs,
-//                                                      AlignedByteOffsetForArgs );
-//  }
-//
-//  if (SK_D3D11_DrawHandler (pDevCtx, pTLS))
-//    return;
-//
-//  bWrapped ?
-//    pDevCtx->DrawIndexedInstancedIndirect ( pBufferForArgs, AlignedByteOffsetForArgs )
-//           :
-//  D3D11_DrawIndexedInstancedIndirect_Original ( pDevCtx, pBufferForArgs,
-//                                                  AlignedByteOffsetForArgs );
-//
-//  SK_D3D11_PostDraw (dev_idx, pTLS);
-//}
 
 void
 STDMETHODCALLTYPE
@@ -4460,6 +4467,51 @@ D3D11Dev_CreateTexture2D_Impl (
                     LPVOID                   lpCallerAddr,
                     SK_TLS                  *pTLS )
 {
+  auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+  SK_ComQIPtr <ID3D11Device>        pDev    (This);
+  SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+
+  SK_ComPtr <IUnknown>                                      pD3D11On12Device;
+  if (This)
+      This->QueryInterface (IID_ID3D11On12Device, (void **)&pD3D11On12Device.p);
+
+  if (pD3D11On12Device.p != nullptr)
+  {
+    return
+      D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
+  }
+
+  auto rb_device =
+    rb.getDevice <ID3D11Device> ();
+
+  if (rb_device.p != nullptr && (! rb_device.IsEqualObject (This)))
+  {
+    if (config.system.log_level > 0)
+    {
+      SK_ReleaseAssert (!"Texture upload not cached because it happened on the wrong device");
+    }
+
+    return
+      D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
+  }
+
+  else if (rb.device.p == nullptr)
+  {
+    // Better late than never
+    if (! pDevCtx)
+    {
+      This->GetImmediateContext (&pDevCtx.p);
+         rb.d3d11.immediate_ctx = pDevCtx;
+         rb.setDevice            (pDev);
+
+      SK_LOG0 ( (L"Active D3D11 Device Context Established on first Texture Upload" ),
+                 L"  D3D 11  " );
+    }
+  }
+
+
   static auto& textures =
     SK_D3D11_Textures;
 
@@ -4564,9 +4616,6 @@ D3D11Dev_CreateTexture2D_Impl (
             if ( bpc == 8  && rgba &&
                  bpp == 32 )
             {
-              auto& rb =
-                SK_GetCurrentRenderBackend ();
-
               SK_ComQIPtr <IDXGISwapChain> pSwap (
                 rb.swapchain
               );
@@ -4617,24 +4666,6 @@ D3D11Dev_CreateTexture2D_Impl (
                                                    SK_D3D11_dump_textures  ||
                                                    SK_D3D11_inject_textures));
 
-  //// ------------
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  SK_ComQIPtr <ID3D11Device>        pDev    (This);
-  SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
-
-  // Better late than never
-  if (! pDevCtx)
-  {
-    This->GetImmediateContext (&pDevCtx.p);
-       rb.d3d11.immediate_ctx = pDevCtx;
-       rb.setDevice            (pDev);
-
-    SK_LOG0 ( (L"Active D3D11 Device Context Established on first Texture Upload" ),
-               L"  D3D 11  " );
-  }
-
   if (! ( pDev    != nullptr &&
           pDevCtx != nullptr ) )
   {
@@ -4645,10 +4676,6 @@ D3D11Dev_CreateTexture2D_Impl (
                                             pInitialData, ppTexture2D );
   }
   //// -----------
-
-  if (! SK_GetCurrentRenderBackend ().getDevice <ID3D11Device> ().IsEqualObject (This)) { SK_ReleaseAssert (!"Texture upload not cached because it happened on the wrong device");
-    bIgnoreThisUpload = TRUE;
-  }
 
   if (  bIgnoreThisUpload)
   {
@@ -5747,13 +5774,13 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
   static          bool hooked = false;
   if (! std::exchange (hooked,  true))
   {
-    if (config.apis.last_known == SK_RenderAPI::D3D12)
-    {
-      SK_LOG0 ( ( L" Last known render API was D3D12, reducing D3D11 DevCtx hook level to avoid D3D11On12 insanity." ),
-                  L"*D3D11On12" );
-
-      return;
-    }
+    ///if (config.apis.last_known == SK_RenderAPI::D3D12)
+    ///{
+    ///  SK_LOG0 ( ( L" Last known render API was D3D12, reducing D3D11 DevCtx hook level to avoid D3D11On12 insanity." ),
+    ///              L"*D3D11On12" );
+    ///
+    ///  return;
+    ///}
 
 #if 0
     DXGI_VIRTUAL_OVERRIDE ( pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
@@ -6180,19 +6207,19 @@ HookD3D11 (LPVOID user)
   if ( pHooks->ppDevice           != nullptr &&
        pHooks->ppImmediateContext != nullptr )
   {
-    // Minimum functionality mode in order to prevent chaos caused by D3D11On12
-    if (config.apis.last_known == SK_RenderAPI::D3D12)
-    {
-      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   15,
-                        "ID3D11Device::CreatePixelShader",
-                              D3D11Dev_CreatePixelShader_Override,
-                              D3D11Dev_CreatePixelShader_Original,
-                              D3D11Dev_CreatePixelShader_pfn );
-
-      SK_LOG0 ( ( L" Last known render API was D3D12, reducing D3D11 hook level to avoid D3D11On12 insanity." ),
-                  L"*D3D11On12" );
-      return true;
-    }
+    ////// Minimum functionality mode in order to prevent chaos caused by D3D11On12
+    ////if (config.apis.last_known == SK_RenderAPI::D3D12)
+    ////{
+    ////  DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   15,
+    ////                    "ID3D11Device::CreatePixelShader",
+    ////                          D3D11Dev_CreatePixelShader_Override,
+    ////                          D3D11Dev_CreatePixelShader_Original,
+    ////                          D3D11Dev_CreatePixelShader_pfn );
+    ////
+    ////  SK_LOG0 ( ( L" Last known render API was D3D12, reducing D3D11 hook level to avoid D3D11On12 insanity." ),
+    ////              L"*D3D11On12" );
+    ////  return true;
+    ////}
 
 
 

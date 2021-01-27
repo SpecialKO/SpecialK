@@ -1,4 +1,50 @@
-﻿+ Temporarily disabled Tobii Eye Tracking features (and its Widget)
+﻿21.01.28
+========
+ + Fixed D3D11 performance issues caused by 20.12.29's D3D11On12 safeguards
+ + Added ability to customize HUD toggle keybind (refer to Global/osd.ini)
+ + No longer display latency stats for non-Fullscreen / Flip Model SwapChains
+
+21.01.27
+========
+ + Correctly handle D3D11 texture mods that change format: BC3 -> BC7
+ + Improve support for D3D11 texture mods for textures with partial mipchains
+
+21.01.11
+========
+ + Added Option to Clamp Negative Texture LOD Bias to 0 in D3D9
+
+20.12.30
+========
+ + Added option to disable screenshot sound
+ + Added disk free space check to screenshot capture
+ + Added option to copy screenshots to clipboard
+ + Reduced volume of screenshot sound
+ + Added outlines to SK's UI elements
+
+20.12.29
+========
++ Added support for switching between D3D11/D3D12 on-the-fly in Serious Sam 4
+
+ >> Should assist with D3D11On12 and Ansel compatibility in normal games that
+      don't support this bizarre render API hotswap feature
+
++ Fixed framerate uncap in NieR: Automata
+
+20.12.28
+========
++ Disabled auto-update checks on all game-specific plug-ins built-in to SK
+
+20.12.27
+========
++ Fixed uPlay Overlay Support in D3D12
++ Fixed UE3 infinitely shrinking windows when removing borders
++ Disabled Haptic Feedback unless using Gamepad Input in the control panel
++ Alt+F4 Capture only provides a confirmation dialog if the game would
+    otherwise block Alt+F4 functionality, or SK's control panel is open.
++ Fixed Mouse Input Capture in Dying Light
++ Added Screenshot Sound
++ Added HDR Screenshot support to D3D12
++ Temporarily disabled Tobii Eye Tracking features (and its Widget)
 + Disabled D3D Shader Compiler Hooks (e.g. nop D3DStripShader)
    >> Tends to break D3D12 engines that use persistent shader caches
 

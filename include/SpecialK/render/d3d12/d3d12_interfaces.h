@@ -442,6 +442,8 @@ typedef HRESULT (WINAPI *D3D12CreateDevice_pfn)(
 extern          IUnknown*      g_pD3D12Dev;
 extern D3D12CreateDevice_pfn   D3D12CreateDevice_Import;
 
+#include <atomic>
+
 #include <d3d12.h>
 #include <dxgidebug.h>
 #include <D3D11SDKLayers.h>
@@ -480,6 +482,9 @@ struct SK_D3D12_RenderCtx {
     struct FenceCtx : SK_ComPtr <ID3D12Fence> {
       HANDLE                              event             =       0;
       volatile UINT64                     value             =       0;
+
+      HRESULT SignalSequential (ID3D12CommandQueue *pCmdQueue);
+      HRESULT WaitSequential   (void);
     } fence;
 
     SK_ComPtr <ID3D12GraphicsCommandList> pCmdList          = nullptr;
@@ -487,13 +492,13 @@ struct SK_D3D12_RenderCtx {
     bool                                  bCmdListRecording =   false;
 
 		SK_ComPtr <ID3D12Resource>            pRenderOutput     = nullptr;
-		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput;
+		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput     =  { 0 };
     UINT                                  iBufferIdx        =UINT_MAX;
 
     struct {
       SK_ComPtr <ID3D12Resource>          pSwapChainCopy    = nullptr;
-      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU;
-      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU;
+      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU = { 0 };
+      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU = { 0 };
       D3D12_RECT                          scissor           = {     };
       D3D12_VIEWPORT                      vp                = {     };
 
@@ -545,6 +550,8 @@ struct SK_D3D12_RenderCtx {
       ( 1,    &transition );
 	  }
 
+  // On reset, delay re-initialization
+  std::atomic_int frame_delay = 1;
 };
 
 extern SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk;

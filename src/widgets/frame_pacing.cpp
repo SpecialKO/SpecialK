@@ -519,6 +519,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
   latency.stats.ScaleMs =
     std::max ( 99.0f, latency.stats.MaxMs );
 
+  static bool has_latency = false;
+
   if (pSwap1.p != nullptr)
   {
     // Queue the insanity of trying to track render latency using static
@@ -551,7 +553,11 @@ SK_ImGui_DrawGraph_FramePacing (void)
              SK_ImGui_Frames->getLastValue ();
 
         latency.counters.frameStats0 = latency.counters.frameStats1;
+
+        has_latency = true;
       }
+
+      else has_latency = false;
 
       latency.stats.History [latency.counters.lastFrame % std::size (latency.stats.History)] =
         fabs (latency.delays.TotalMs);
@@ -563,6 +569,10 @@ SK_ImGui_DrawGraph_FramePacing (void)
         std::end   ( latency.stats.History ), 0.0f )
       / std::size  ( latency.stats.History );
 
+  }
+
+  if (has_latency)
+  {
     snprintf
       ( szAvg,
           511, (const char *)
