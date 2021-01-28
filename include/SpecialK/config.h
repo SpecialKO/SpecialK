@@ -388,6 +388,7 @@ struct sk_config_t
       bool    test_present       = false;
       bool    full_state_cache   = false;
       bool    debug_layer        = false;
+      bool    low_spec_mode      = false; // Disable D3D11 Render Mods
       bool    allow_tearing      =  true;
       bool    safe_fullscreen    = false;
       bool    enhanced_depth     = false;
@@ -921,7 +922,7 @@ enum class SK_GAME_ID
   Yakuza0,                      // Yakuza0.exe
   YakuzaKiwami,                 // YakuzaKiwami.exe
   YakuzaKiwami2,                // YakuzaKiwami2.exe
-  YakuzaLikeADragon,            // YakuzaLikeADragon.exe
+  YakuzaUnderflow,              // Yakuza*.exe
   MonsterHunterWorld,           // MonsterHunterWorld.exe
   Shenmue,                      // Shenmue.exe
   DragonQuestXI,                // DRAGON QUEST XI.exe

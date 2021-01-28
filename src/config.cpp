@@ -128,7 +128,6 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"P4G.exe"),                                SK_GAME_ID::Persona4                     },
       { hash_lower (L"HorizonZeroDawn.exe"),                    SK_GAME_ID::HorizonZeroDawn              },
       { hash_lower (L"bg3.exe"),                                SK_GAME_ID::BaldursGate3                 },
-      { hash_lower (L"YakuzaLikeADragon.exe"),                  SK_GAME_ID::YakuzaLikeADragon            },
       { hash_lower (L"Cyberpunk2077.exe"),                      SK_GAME_ID::Cyberpunk2077                },
       { hash_lower (L"Atelier_Ryza_2.exe"),                     SK_GAME_ID::AtelierRyza2                 }
     };
@@ -153,6 +152,14 @@ SK_GetCurrentGameID (void)
 
         extern void SK_ACV_InitPlugin (void);
                     SK_ACV_InitPlugin ();
+      }
+
+      // Basically, _every single Yakuza game ever_ releases more references than it acquires...
+      //   so just assume this is never going to get better and anything with Yakuza in the name
+      //     needs help counting.
+      if ( StrStrIW ( SK_GetHostApp (), L"Yakuza" ) )
+      {
+        current_game = SK_GAME_ID::YakuzaUnderflow;
       }
     }
 
@@ -462,6 +469,7 @@ struct {
     sk::ParameterInt*     msaa_samples;
     sk::ParameterBool*    skip_present_test;
     sk::ParameterInt*     srgb_behavior;
+    sk::ParameterBool*    low_spec_mode;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -1106,6 +1114,7 @@ auto DeclKeybind =
                                                          L" correctly.",                                               dll_ini,         L"Render.DXGI",           L"SkipSwapChainPresentTest"),
     ConfigEntry (render.dxgi.srgb_behavior,              L"How to handle sRGB SwapChains when we have to kill them for"
                                                          L" Flip Model support (-1=Passthrough, 0=Strip, 1=Apply)",    dll_ini,         L"Render.DXGI",           L"sRGBBypassBehavior"),
+    ConfigEntry (render.dxgi.low_spec_mode,              L"Disable D3D11 Render Mods (for slight perf. increase)",     dll_ini,         L"Render.DXGI",           L"LowSpecMode"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -2465,6 +2474,7 @@ auto DeclKeybind =
   render.dxgi.skip_present_test->load   (config.render.dxgi.present_test_skip);
   render.dxgi.msaa_samples->load        (config.render.dxgi.msaa_samples);
   render.dxgi.srgb_behavior->load       (config.render.dxgi.srgb_behavior);
+  render.dxgi.low_spec_mode->load       (config.render.dxgi.low_spec_mode);
 
   texture.d3d11.cache->load             (config.textures.d3d11.cache);
   texture.d3d11.precise_hash->load      (config.textures.d3d11.precise_hash);
@@ -3532,6 +3542,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.skip_present_test->store    (config.render.dxgi.present_test_skip);
       render.dxgi.msaa_samples->store         (config.render.dxgi.msaa_samples);
       render.dxgi.srgb_behavior->store        (config.render.dxgi.srgb_behavior);
+      render.dxgi.low_spec_mode->store        (config.render.dxgi.low_spec_mode);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||

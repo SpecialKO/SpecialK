@@ -1,4 +1,4 @@
-﻿/**
+﻿3/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -3315,8 +3315,8 @@ bool
 SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
                                    ID3D11DeviceContext* pDevCtx )
 {
-         const bool bDeferred  =   SK_D3D11_IsDevCtxDeferred (pDevCtx);
-  static const bool bIsolation = config.render.dxgi.deferred_isolation;
+         const bool  bDeferred  =   SK_D3D11_IsDevCtxDeferred (pDevCtx);
+  static const bool& bIsolation = config.render.dxgi.deferred_isolation;
 
   if (  (  bDeferred  && (! bIsolation) ) ||
       ( (! bDeferred) && (  bWrapped  )
@@ -3331,19 +3331,23 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_ComPtr <ID3D11Device>   pDevice;
-  pDevCtx->GetDevice       (&pDevice.p);
+  SK_ComPtr <ID3D11Device> pDevice;
 
-  // TOO HIGH OVERHEAD: Use direct compare and expect a few misses
-  //if (! rb.getDevice <ID3D11Device> ().IsEqualObject (pDevice))
-  if (rb.device.p != pDevice.p)
+  if ((! bWrapped) && pDevCtx != rb.d3d11.immediate_ctx)
   {
-    if (config.system.log_level > 0)
-    {
-      SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
-    }
+    pDevCtx->GetDevice (&pDevice.p);
 
-    return true;
+    // TOO HIGH OVERHEAD: Use direct compare and expect a few misses
+    //if (! rb.getDevice <ID3D11Device> ().IsEqualObject (pDevice))
+    if (rb.device.p != pDevice.p)
+    {
+      if (config.system.log_level > 0)
+      {
+        SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
+      }
+
+      return true;
+    }
   }
 
 
@@ -4129,7 +4133,7 @@ SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (
   static bool yakuza = ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami ||
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
-                         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon );
+                         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow );
   extern bool __SK_Yakuza_TrackRTVs;
 #endif
 
@@ -4268,7 +4272,7 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
   static bool yakuza = ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami ||
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
-                         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon );
+                         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow );
   extern bool __SK_Yakuza_TrackRTVs;
 #endif
 
@@ -4752,7 +4756,7 @@ D3D11Dev_CreateTexture2D_Impl (
     (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0) ||
     (SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami) ||
     (SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2) ||
-    (SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon);
+    (SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow);
 
   if (__sk_yk)
   {
@@ -6099,7 +6103,7 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
 extern
 unsigned int __stdcall HookD3D12                   (LPVOID user);
 
-bool SK_D3D11_DontTrackUnlessModToolsAreOpen = false;
+bool& SK_D3D11_DontTrackUnlessModToolsAreOpen = config.render.dxgi.low_spec_mode;
 
 DWORD
 __stdcall

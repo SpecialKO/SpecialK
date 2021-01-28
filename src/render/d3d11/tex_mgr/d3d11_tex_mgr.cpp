@@ -278,7 +278,7 @@ IUnknown_Release (IUnknown* This)
   static bool __yk =
     ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
-      SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon );
+      SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow );
 
   extern bool  __SK_Y0_SafetyLeak;
   if ( __yk && __SK_Y0_SafetyLeak )

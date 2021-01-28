@@ -362,7 +362,7 @@ SK_Yakuza0_PlugInInit (void)
   static bool yakuza0 =
     SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0;
   static bool yakuza_dragon =
-    SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon;
+    SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow;
 
   extern std::wstring&
     SK_GetRoamingDir (void);
@@ -696,19 +696,19 @@ SK_Yakuza0_PlugInCfg (void)
   static bool yakuza0 =
     SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0;
 
-  static bool yakuza_dragon =
-    SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon;
+  static bool yakuza_cant_count =
+    SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow;
 
-  if ( (yakuza0       && ImGui::CollapsingHeader ("Yakuza 0",              ImGuiTreeNodeFlags_DefaultOpen)) ||
-       (yakuza_dragon && ImGui::CollapsingHeader ("Yakuza: Like a Dragon", ImGuiTreeNodeFlags_DefaultOpen)) ||
-                         ImGui::CollapsingHeader ("Yakuza Kiwami 2",       ImGuiTreeNodeFlags_DefaultOpen |
-                                                                           ImGuiTreeNodeFlags_AllowItemOverlap) )
+  if ( (yakuza0           && ImGui::CollapsingHeader ("Yakuza 0",                  ImGuiTreeNodeFlags_DefaultOpen)) ||
+       (yakuza_cant_count && ImGui::CollapsingHeader ("Yakuza: Trouble Counting?", ImGuiTreeNodeFlags_DefaultOpen)) ||
+                             ImGui::CollapsingHeader ("Yakuza Kiwami 2",           ImGuiTreeNodeFlags_DefaultOpen |
+                                                                                   ImGuiTreeNodeFlags_AllowItemOverlap) )
   {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
 
-    if (! (yakuza0 || yakuza_dragon))
+    if (! (yakuza0 || yakuza_cant_count))
     {
       ImGui::SameLine ();
 
@@ -748,7 +748,7 @@ SK_Yakuza0_PlugInCfg (void)
       config.textures.d3d11.cache = __SK_Y0_SafetyLeak;
     }
 
-    if (! (yakuza0 || yakuza_dragon))
+    if (! (yakuza0 || yakuza_cant_count))
     {
       extern volatile PVOID __SK_GameBaseAddr;
       static         LPVOID         pBaseAddr =
@@ -1115,7 +1115,7 @@ SK_Yakuza0_PlugInCfg (void)
       ImGui::EndGroup   ();
     }
 
-    if ((! yakuza_dragon) &&
+    if ((! yakuza_cant_count) &&
         ImGui::CollapsingHeader ("Texture Management"))
     {
       static bool tex_changed = false;

@@ -1,4 +1,8 @@
-﻿21.01.28
+﻿21.01.29
+========
+ + Yakuza 3, no surprise, incorrectly counts resource references
+
+21.01.28
 ========
  + Fixed D3D11 performance issues caused by 20.12.29's D3D11On12 safeguards
  + Added ability to customize HUD toggle keybind (refer to Global/osd.ini)
@@ -23,102 +27,108 @@
 
 20.12.29
 ========
-+ Added support for switching between D3D11/D3D12 on-the-fly in Serious Sam 4
+ + Added support for switching between D3D11/D3D12 on-the-fly in Serious Sam 4
 
- >> Should assist with D3D11On12 and Ansel compatibility in normal games that
-      don't support this bizarre render API hotswap feature
+  >> Should assist with D3D11On12 and Ansel compatibility in normal games that
+       don't support this bizarre render API hotswap feature
 
-+ Fixed framerate uncap in NieR: Automata
+ + Fixed framerate uncap in NieR: Automata
 
 20.12.28
 ========
-+ Disabled auto-update checks on all game-specific plug-ins built-in to SK
+ + Disabled auto-update checks on all game-specific plug-ins built-in to SK
 
 20.12.27
 ========
-+ Fixed uPlay Overlay Support in D3D12
-+ Fixed UE3 infinitely shrinking windows when removing borders
-+ Disabled Haptic Feedback unless using Gamepad Input in the control panel
-+ Alt+F4 Capture only provides a confirmation dialog if the game would
-    otherwise block Alt+F4 functionality, or SK's control panel is open.
-+ Fixed Mouse Input Capture in Dying Light
-+ Added Screenshot Sound
-+ Added HDR Screenshot support to D3D12
-+ Temporarily disabled Tobii Eye Tracking features (and its Widget)
-+ Disabled D3D Shader Compiler Hooks (e.g. nop D3DStripShader)
-   >> Tends to break D3D12 engines that use persistent shader caches
+ + Fixed uPlay Overlay Support in D3D12
+ + Fixed UE3 infinitely shrinking windows when removing borders
+ + Disabled Haptic Feedback unless using Gamepad Input in the control panel
+ + Alt+F4 Capture only provides a confirmation dialog if the game would
+     otherwise block Alt+F4 functionality, or SK's control panel is open.
+ + Fixed Mouse Input Capture in Dying Light
+ + Added Screenshot Sound
+ + Added HDR Screenshot support to D3D12
 
-+ Added preliminary D3D12 Support
+0.12.0:
+-------
 
- >> Has compatibility issues with some non-native D3D12 overlays
-      (i.e. RTSS and Steam), but works correctly with native D3D12
-        overlays (i.e. Discord)
+ + Added preliminary D3D12 Support
 
-+ Added HDR minimum luminance (black level) to tonemap for scRGB
-+ Added workaround for Ogre games that load CEGUI before Special K does
-+ Fixed Racing Wheel Input not responding when SK hooks DirectInput 8
-+ Added sRGB Bypass Mode for SDR games that need sRGB removed for Flip Model
+  >> Has compatibility issues with some non-native D3D12 overlays
+       (i.e. RTSS and Steam), but works correctly with native D3D12
+         overlays (i.e. Discord)
 
- >> Games that used to be too dark can now use Flip Model
+ + Temporarily disabled Tobii Eye Tracking features (and its Widget)
+ + Disabled D3D Shader Compiler Hooks (e.g. nop D3DStripShader)
+    >> Tends to break D3D12 engines that use persistent shader caches
 
-+ Changed HDR Display Name Query to use NvAPI on compatible systems to
-    correctly map DXGI Display Handles to EDID Display Names
-+ Added HDR Widget option to control "Implicit sRGB" gamma processing,
-    this is needed for many Unity engine games that would otherwise be
-      too dark to do any kind of processing on.
+0.11.0.52:
 
-+ Fixed Mute in Background Mode when combined with "Continue Rendering."
-+ Fixed Background Rendering Mode in many games
-+ Added VRAM Usage to HDR Remastering Checkbox Tooltips
-+ Added the same Yakuza reference counting fixes needed to keep 0, Kiwami 1 and
-    Kiwami 2 from crashing to Like a Dragon -- somebody fix the damn engine (!!)
+ + Added HDR minimum luminance (black level) to tonemap for scRGB
+ + Added workaround for Ogre games that load CEGUI before Special K does
+ + Fixed Racing Wheel Input not responding when SK hooks DirectInput 8
+ + Added sRGB Bypass Mode for SDR games that need sRGB removed for Flip Model
 
-+ Added button to Reset HDR Presets to HDR widget
+  >> Games that used to be too dark can now use Flip Model
 
- >> Later versions will add buttons to import and export presets from previously
-      configured games
+ + Changed HDR Display Name Query to use NvAPI on compatible systems to
+     correctly map DXGI Display Handles to EDID Display Names
+ + Added HDR Widget option to control "Implicit sRGB" gamma processing,
+     this is needed for many Unity engine games that would otherwise be
+       too dark to do any kind of processing on.
 
-+ Fixed widget slider / dropdown behavior so that it blocks mouse input to game
-+ Added DXGIGetDebugInterface1 (...) to SpecialK{64|32}.dll for games that need it
+ + Fixed Mute in Background Mode when combined with "Continue Rendering."
+ + Fixed Background Rendering Mode in many games
+ + Added VRAM Usage to HDR Remastering Checkbox Tooltips
+ + Added the same Yakuza reference counting fixes needed to keep 0, Kiwami 1 and
+     Kiwami 2 from crashing to Like a Dragon -- somebody fix the damn engine (!!)
 
-+ Corrected near-black noise when processing sRGB LDR images for HDR tonemapping
- --------------------
- * Care must be taken when using sRGB gamma if the input image may have negative
-     color values, because sRGB gamma's x*x*x property preserves negative values.
- --------------------
-+ Added support for HDR10 image processing so that SK's HDR widget can control
-    games with official HDR support now (usually does a better job :P)
+ + Added button to Reset HDR Presets to HDR widget
 
-  >> When running a game with official HDR support, most are HDR10 and you
-       will need to run SK's HDR widget in HDR10 Passthrough or Filmic mode,
+  >> Later versions will add buttons to import and export presets from previously
+       configured games
 
-       Expect to target ~10,000 nits because games that use HDR10 don't
-         actually bother to encode luminance levels into the signal.
+ + Fixed widget slider / dropdown behavior so that it blocks mouse input to game
+ + Added DXGIGetDebugInterface1 (...) to SpecialK{64|32}.dll for games that need it
 
-+ Boosted black level when using ACEScg tonemap mode for more shadow detail
+ + Corrected near-black noise when processing sRGB LDR images for HDR tonemapping
+  --------------------
+  * Care must be taken when using sRGB gamma if the input image may have negative
+      color values, because sRGB gamma's x*x*x property preserves negative values.
+  --------------------
+ + Added support for HDR10 image processing so that SK's HDR widget can control
+     games with official HDR support now (usually does a better job :P)
 
-+ Fixed issues preventing Ys8 from starting (again...)
-+ Fixed a bunch of anti-debug problems in various Ubisoft games
+   >> When running a game with official HDR support, most are HDR10 and you
+        will need to run SK's HDR widget in HDR10 Passthrough or Filmic mode,
 
-+ Added more details to latency monitoring in framepacing widget
+        Expect to target ~10,000 nits because games that use HDR10 don't
+          actually bother to encode luminance levels into the signal.
 
-+ Framerate Limiter now defaults to Screen Refresh if no limit is set,
-    for the framepacing widget's scale
+ + Boosted black level when using ACEScg tonemap mode for more shadow detail
 
-+ Added Gamut Overshoot Visualization
-+ Added HDR Overbright Bit Visualization
+ + Fixed issues preventing Ys8 from starting (again...)
+ + Fixed a bunch of anti-debug problems in various Ubisoft games
 
-+ Added support for loading 'default_{SpecialK|<api_name>}.ini' from
-    Documents\My Mods\SpecialK\Profiles\<game_name> and
-    Documents\My Mods\SpecialK\Global\
+ + Added more details to latency monitoring in framepacing widget
 
-   >> These will be loaded the first time you launch a game, or after
-        resetting the game's config. Global is loaded first, then profile.
+ + Framerate Limiter now defaults to Screen Refresh if no limit is set,
+     for the framepacing widget's scale
 
-+ Fixed uninitialized D3D11 State Block pointer in Thread Local Storage
-+ Fixed D3D11 RenderTargetView HDR Format override for 2D Array Textures
-+ Fixed GetProcAddress (...) caching that causes input-related issues in
-    games that use the wrong XInput DLL for they system they are running
+ + Added Gamut Overshoot Visualization
+ + Added HDR Overbright Bit Visualization
+
+ + Added support for loading 'default_{SpecialK|<api_name>}.ini' from
+     Documents\My Mods\SpecialK\Profiles\<game_name> and
+     Documents\My Mods\SpecialK\Global\
+
+    >> These will be loaded the first time you launch a game, or after
+         resetting the game's config. Global is loaded first, then profile.
+
+ + Fixed uninitialized D3D11 State Block pointer in Thread Local Storage
+ + Fixed D3D11 RenderTargetView HDR Format override for 2D Array Textures
+ + Fixed GetProcAddress (...) caching that causes input-related issues in
+     games that use the wrong XInput DLL for the system they are running
 
 
 0.11.0.51:

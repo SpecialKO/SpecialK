@@ -482,7 +482,7 @@ D3D11Dev_CreateSamplerState_Override
   static bool __yakuza =
     ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
-      SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon );
+      SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow );
 
   if (__yakuza)
   {
