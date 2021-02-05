@@ -580,6 +580,9 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
   PSYSTEM_PROCESS_INFORMATION pProc =
     SnapshotProcs_NtDll ();
 
+  if (pProc == NULL)
+    return;
+
   int i = 0;
 
   do
