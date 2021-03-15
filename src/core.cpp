@@ -2861,8 +2861,6 @@ SK_BeginBufferSwap (void)
     SK_BeginBufferSwapEx (TRUE);
 }
 
-extern bool __stdcall SK_IsGameWindowActive (void);
-
 // Todo, move out of here
 void
 SK_Input_PollKeyboard (void)

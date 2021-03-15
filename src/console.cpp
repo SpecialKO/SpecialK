@@ -60,10 +60,10 @@ SK_Console::Draw (void)
     LARGE_INTEGER now;
     LARGE_INTEGER freq;
 
-    QueryPerformanceFrequency        (&freq);
+    QueryPerformanceFrequency (&freq);
 
-    extern LARGE_INTEGER SK_QueryPerf (void);
-    now = SK_QueryPerf ();
+    now =
+      SK_QueryPerf ();
 
     // Blink the Carret
     if ((now.QuadPart - last_time.QuadPart) > (freq.QuadPart / 3))
@@ -198,9 +198,6 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 
 
 extern SHORT SK_ImGui_ToggleKeys [4];
-
-extern HWND WINAPI SK_GetFocus (void);
-extern bool WINAPI SK_IsGameWindowActive (void);
 
 bool
 SK_ImGui_ProcessKeyPress (const BYTE& vkCode)

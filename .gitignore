@@ -275,3 +275,4 @@ paket-files/
 /include/shaders/imgui_d3d11_vs.h
 /include/shaders/imgui_d3d11_ps.h
 /flip.txt
+*.clang-tidy

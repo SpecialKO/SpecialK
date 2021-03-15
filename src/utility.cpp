@@ -1242,10 +1242,6 @@ private:
   const wchar_t* wstrptr_ { nullptr };
 };
 
-
-extern
-LPVOID SK_Debug_GetImageBaseAddr (void);
-
 bool
 SK_PE32_IsLargeAddressAware (void)
 {

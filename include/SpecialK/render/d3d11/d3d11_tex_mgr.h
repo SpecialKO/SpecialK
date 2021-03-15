@@ -334,4 +334,8 @@ SK_D3D11_Resampler_ProcessFinished ( ID3D11Device        *pDev,
                                      ID3D11DeviceContext *pDevCtx,
                                      SK_TLS              *pTLS = SK_TLS_Bottom () );
 
+extern LONG SK_D3D11_Resampler_GetActiveJobCount  (void);
+extern LONG SK_D3D11_Resampler_GetWaitingJobCount (void);
+extern LONG SK_D3D11_Resampler_GetErrorCount      (void);
+
 extern SK_LazyGlobal <SK_D3D11_TexMgr> SK_D3D11_Textures;

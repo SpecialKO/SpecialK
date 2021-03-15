@@ -76,11 +76,11 @@ SK::Framerate::Init (void)
   {
     SK_FPU_LogPrecision ();
 
-    
+
     SK_ICommandProcessor* pCommandProc =
       SK_GetCommandProcessor ();
 
-    
+
     pCommandProc->AddVariable ( "LimitSite",
             new SK_IVarStub <int> (&config.render.framerate.enforcement_policy));
 
@@ -315,7 +315,6 @@ SK_Framerate_WaitForVBlank (void)
 /////
 /////
 /////
-extern bool __stdcall SK_IsGameWindowActive (void);
 /////
 /////
 /////typedef UINT D3DDDI_VIDEO_PRESENT_SOURCE_ID;

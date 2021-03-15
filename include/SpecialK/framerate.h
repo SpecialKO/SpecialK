@@ -51,7 +51,7 @@ static constexpr auto
         (! (isinf (float_val) || isnan (float_val)));
     };
 
-extern float SK_Framerate_GetPercentileByIdx (int idx);
+float SK_Framerate_GetPercentileByIdx (int idx);
 
 using QueryPerformanceCounter_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount);
 
@@ -59,8 +59,8 @@ BOOL
 WINAPI
 SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount);
 
-extern LARGE_INTEGER SK_GetPerfFreq (void);
-extern LARGE_INTEGER SK_QueryPerf   (void);
+LARGE_INTEGER SK_GetPerfFreq (void);
+LARGE_INTEGER SK_QueryPerf   (void);
 
 __forceinline
 LARGE_INTEGER

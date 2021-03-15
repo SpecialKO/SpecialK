@@ -181,7 +181,7 @@ public:
   } displays [16];
 
   uint32_t                display_crc [16] = { }; // Quick detect for changing displays
-  
+
   bool                    stale_display_info   = true; // Output topology is stale, update it during getContainingOutput (...)
 
   struct scan_out_s {
@@ -433,6 +433,11 @@ public:
   const output_s* getContainingOutput  (const RECT& rkRect);
 };
 #pragma pack(pop)
+
+LONG
+__stdcall
+SK_ChangeDisplaySettings (DEVMODEW *lpDevMode, DWORD dwFlags);
+
 
 using SK_RenderBackend = SK_RenderBackend_V2;
 
@@ -706,6 +711,8 @@ typedef struct
     } data;
   } SK_MONITOR_CAPABILITIES;
 
+DPI_AWARENESS
+SK_GetThreadDpiAwareness (void);
 
 bool SK_RenderBackendUtil_IsFullscreen (void);
 void SK_D3D_SetupShaderCompiler        (void);

@@ -397,5 +397,8 @@ SK_SEH_SetTranslator (
 void WINAPI
 SK_SetLastError (DWORD dwErrCode);
 
+LPVOID
+SK_Debug_GetImageBaseAddr (void);
+
 
 #endif /* __SK__DEBUG_UTILS_H__ */

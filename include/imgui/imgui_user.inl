@@ -1088,8 +1088,6 @@ MessageProc ( const HWND&   hWnd,
   return false;
 };
 
-extern bool WINAPI SK_IsGameWindowActive (void);
-
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,

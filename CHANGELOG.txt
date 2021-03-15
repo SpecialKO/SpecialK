@@ -2,7 +2,7 @@
 ========
  + NVIDIA Reflex Configuration made Simpler
  + NVIDIA Reflex settings now stored in INI files per-game
- + Added support for HDR in D3D12 version of The Median
+ + Added support for HDR in D3D12 version of The Medium
 
 21.03.15
 ========

@@ -43,9 +43,8 @@
 #include <SpecialK/nvapi.h>
 
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
+#include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
-
-extern bool __stdcall SK_IsGameWindowActive (void);
 
 LONG imgui_staged_frames   = 0;
 LONG imgui_finished_frames = 0;
@@ -83,12 +82,6 @@ extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
 
 extern bool     __stdcall SK_FAR_IsPlugIn      (void);
 extern void     __stdcall SK_FAR_ControlPanel  (void);
-
-       bool               SK_DXGI_FullStateCache = false;
-
-
-extern int  __SK_FramerateLimitApplicationSite;
-extern bool __SK_DropLateFrames;
 
 std::wstring
 SK_NvAPI_GetGPUInfoStr (void);
@@ -320,54 +313,6 @@ namespace SK_ImGui
     return false;
   }
 } // namespace SK_ImGui
-
-
-struct sk_imgui_nav_state_s {
-  bool nav_usable   = false;
-  bool io_NavUsable = false;
-  bool io_NavActive = false;
-};
-
-////e#include <stack>
-////estd::stack <sk_imgui_nav_state_s> SK_ImGui_NavStack;
-////e
-////evoid
-////eSK_ImGui_PushNav (bool enable)
-////e{
-////e  ImGuiIO& io =
-////e    ImGui::GetIO ();
-////e
-////e  SK_ImGui_NavStack.push ( { nav_usable, io.NavUsable, io.NavActive } );
-////e
-////e  if (enable)
-////e  {
-////e    nav_usable = true; io.NavUsable = true; io.NavActive = true;
-////e  }
-////e}
-////e
-////evoid
-////eSK_ImGui_PopNav (void)
-////e{
-////e  ImGuiIO& io =
-////e    ImGui::GetIO ();
-////e
-////e  // Underflow?
-////e  if (SK_ImGui_NavStack.empty ()) {
-////e    dll_log->Log (L"ImGui Nav State Underflow");
-////e    return;
-////e  }
-////e
-////e  auto& stack_top =
-////e    SK_ImGui_NavStack.top ();
-////e
-////e  nav_usable   = stack_top.nav_usable;
-////e  io.NavActive = stack_top.io_NavActive;
-////e  io.NavUsable = stack_top.io_NavUsable;
-////e
-////e  SK_ImGui_NavStack.pop ();
-////e}
-
-
 
 struct SK_Warning {
   std::string  title;   // UTF-8   for ImGui
@@ -699,8 +644,6 @@ SK_ImGui_AdjustCursor (void)
 }
 
 bool reset_frame_history = true;
-bool was_reset           = false;
-
 
 class SK_ImGui_FrameHistory : public SK_Stat_DataHistory <float, 120>
 {
@@ -728,6 +671,171 @@ SK_PlugIn_ControlPanelWidget (void)
 #pragma optimize( "", on )
 
 void
+SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
+{
+  static bool dirty = true;
+
+  if (bMarkDirty)
+  {
+    dirty = true;
+    return;
+  }
+
+  struct list_s {
+    int                   idx    =  0 ;
+    std::vector <DEVMODE> modes  = { };
+    std::string           string = " ";
+
+    void clear (void) {
+      idx = 0;
+      modes.clear  ();
+      string.clear ();
+    }
+  };
+
+  static list_s refresh;
+  static list_s resolution;
+
+  if (dirty)
+  {
+    POINT ptCenter = {
+      (game_window.actual.window.left + game_window.actual.window.right ) / 2,
+      (game_window.actual.window.top  + game_window.actual.window.bottom) / 2
+    };
+
+    MONITORINFOEX minfo       = { };
+    HMONITOR      hMonCurrent =
+      MonitorFromPoint (ptCenter, MONITOR_DEFAULTTONULL);
+
+    if (hMonCurrent != nullptr)
+    {
+      refresh.clear    ();
+      resolution.clear ();
+
+      minfo.cbSize = sizeof (MONITORINFOEX);
+      GetMonitorInfo (hMonCurrent, &minfo);
+
+      DEVMODE dm_now  = { },
+              dm_enum = { };
+
+      dm_now.dmSize  = sizeof (DEVMODE);
+      dm_enum.dmSize = sizeof (DEVMODE);
+
+      if (EnumDisplaySettings (minfo.szDevice, ENUM_CURRENT_SETTINGS, &dm_now))
+      {
+        for (                                 auto idx = 0        ;
+              EnumDisplaySettings (minfo.szDevice, idx, &dm_enum) ;
+                                                 ++idx )
+        {
+          dm_enum.dmSize =
+            sizeof (DEVMODE);
+
+          if ( dm_enum.dmBitsPerPel == dm_now.dmBitsPerPel &&
+               dm_enum.dmPelsWidth  == dm_now.dmPelsWidth  &&
+               dm_enum.dmPelsHeight == dm_now.dmPelsHeight )
+          {
+            refresh.modes.push_back (dm_enum);
+          }
+        }
+
+        std::sort ( std::begin (refresh.modes),
+                    std::end   (refresh.modes), []( const DEVMODE& a,
+                                                    const DEVMODE& b )
+                    {
+                      return a.dmDisplayFrequency >
+                             b.dmDisplayFrequency;
+                    }
+                  );
+
+        for (                                 auto idx = 0        ;
+              EnumDisplaySettings (minfo.szDevice, idx, &dm_enum) ;
+                                                 ++idx )
+        {
+          dm_enum.dmSize =
+            sizeof (DEVMODE);
+
+          if ( dm_enum.dmBitsPerPel       == dm_now.dmBitsPerPel &&
+               dm_enum.dmDisplayFrequency == dm_now.dmDisplayFrequency )
+          {
+            resolution.modes.push_back (dm_enum);
+          }
+        }
+
+        std::sort ( std::begin (resolution.modes),
+                    std::end   (resolution.modes), []( const DEVMODE& a,
+                                                       const DEVMODE& b )
+                    {
+                      return ( a.dmPelsWidth * a.dmPelsHeight ) >
+                             ( b.dmPelsWidth * b.dmPelsHeight );
+                    }
+                  );
+      }
+
+      int idx = 0;
+
+      for ( auto& it : refresh.modes )
+      {
+        if (     it.dmDisplayFrequency ==
+             dm_now.dmDisplayFrequency )
+          refresh.idx = idx;
+
+        refresh.string += std::to_string (it.dmDisplayFrequency) + " Hz";
+        refresh.string += '\0';
+
+        idx++;
+      }
+
+      idx = 0;
+
+      for ( auto& it : resolution.modes )
+      {
+        if ( it.dmPelsWidth  == dm_now.dmPelsWidth &&
+             it.dmPelsHeight == dm_now.dmPelsHeight )
+          resolution.idx = idx;
+
+        resolution.string += std::to_string (it.dmPelsWidth) + "x" +
+                             std::to_string (it.dmPelsHeight);
+        resolution.string += '\0';
+
+        idx++;
+      }
+
+      resolution.string += '\0';
+      refresh.string    += '\0';
+
+      dirty = false;
+    }
+  }
+
+  ImGui::TextColored ( ImColor (0.75f, 0.75f, 0.75f), "Desktop Settings" );
+  ImGui::SameLine              ( 0.0f, 30.0f);
+  ImGui::TextColored ( ImColor (1.f,    1.f,    1.f   ), "%ws",
+                         SK_GetCurrentRenderBackend ().display_name );
+
+  ImGui::TreePush ();
+
+  if (ImGui::Combo (   "Resolution",  &resolution.idx,
+                                       resolution.string.c_str () ))
+  {
+    if ( DISP_CHANGE_SUCCESSFUL ==
+           SK_ChangeDisplaySettings ( &resolution.modes [resolution.idx],
+                                      CDS_UPDATEREGISTRY )
+       ) dirty = true;
+  }
+
+  if (ImGui::Combo ( "Refresh Rate",  &refresh.idx,
+                                       refresh.string.c_str () ))
+  {
+    if ( DISP_CHANGE_SUCCESSFUL ==
+           SK_ChangeDisplaySettings ( &refresh.modes [refresh.idx],
+                                      CDS_UPDATEREGISTRY )
+       ) dirty = true;
+  }
+
+  ImGui::TreePop ();
+}
+
+void
 DisplayModeMenu (bool windowed)
 {
   static SK_RenderBackend& rb =
@@ -738,11 +846,11 @@ DisplayModeMenu (bool windowed)
     DISPLAY_MODE_FULLSCREEN = 1
   };
 
-  int         mode      = windowed ? DISPLAY_MODE_WINDOWED :
-                                     DISPLAY_MODE_FULLSCREEN;
-  int    orig_mode      = mode;
-  bool       force      = windowed ? config.display.force_windowed :
-                                     config.display.force_fullscreen;
+  int         mode  = windowed ? DISPLAY_MODE_WINDOWED :
+                                 DISPLAY_MODE_FULLSCREEN;
+  int    orig_mode  = mode;
+  bool       force  = windowed ? config.display.force_windowed :
+                                 config.display.force_fullscreen;
 
   const char* modes = "Windowed Mode\0Fullscreen Mode\0\0";
 
@@ -1366,6 +1474,10 @@ DisplayModeMenu (bool windowed)
         SK_DeferCommand ("Window.Borderless toggle");
       }
     }
+
+    ImGui::Separator ();
+
+    SK_Display_ResolutionSelectUI ();
   }
 }
 
@@ -4105,11 +4217,6 @@ SK_ImGui_StageNextFrame (void)
       }
 
       float extra_lines = 0.0f;
-
-
-      extern LONG SK_D3D11_Resampler_GetActiveJobCount  (void);
-      extern LONG SK_D3D11_Resampler_GetWaitingJobCount (void);
-      extern LONG SK_D3D11_Resampler_GetErrorCount      (void);
 
       const LONG jobs =
         ( SK_D3D11_Resampler_GetActiveJobCount  () +

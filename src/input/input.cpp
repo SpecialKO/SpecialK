@@ -1279,10 +1279,6 @@ sk_imgui_cursor_s::activateWindow (bool active)
 
 
 
-
-HWND WINAPI    SK_GetForegroundWindow (void);
-bool __stdcall SK_IsGameWindowActive  (void);
-
 bool
 SK_ImGui_WantKeyboardCapture (void)
 {
@@ -2167,9 +2163,6 @@ LRESULT
 WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-extern BOOL
-SK_IsChild (HWND hWndParent, HWND hWnd);
-
   struct SK_MouseTimer {
     POINTS pos      = {     }; // POINT (Short) - Not POINT plural ;)
     DWORD  sampled  =     0UL;
@@ -2184,7 +2177,8 @@ SK_IsChild (HWND hWndParent, HWND hWnd);
 bool
 SK_Window_IsCursorActive (void)
 {
-  return last_mouse.cursor;
+  return
+    last_mouse.cursor;
 }
 
 bool
@@ -2751,9 +2745,6 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         {
           //const int dpi = HIWORD(wParam);
           //printf("WM_DPICHANGED to %d (%.0f%%)\n", dpi, (float)dpi / 96.0f * 100.0f);
-
-          extern DPI_AWARENESS
-          SK_GetThreadDpiAwareness (void);
 
           if (SK_GetThreadDpiAwareness () != DPI_AWARENESS_UNAWARE)
           {

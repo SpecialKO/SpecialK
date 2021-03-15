@@ -445,6 +445,21 @@ struct window_t {
 
 class SK_TLS;
 
+bool
+__stdcall
+SK_IsGameWindowActive (void);
+
+HWND
+WINAPI
+SK_GetForegroundWindow (void);
+
+HWND
+WINAPI
+SK_GetFocus (void);
+
+BOOL
+SK_IsChild (HWND hWndParent, HWND hWnd);
+
 BOOL
 SK_Win32_IsGUIThread ( DWORD    dwTid = SK_Thread_GetCurrentId (),
                        SK_TLS **ppTLS = nullptr );

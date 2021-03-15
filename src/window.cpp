@@ -54,9 +54,6 @@ static constexpr int SK_MAX_WINDOW_DIM = 16384;
 #endif
 
 
-bool __stdcall SK_IsGameWindowActive (void);
-
-
 BOOL
 WINAPI
 SetWindowPlacement_Detour (
@@ -4295,8 +4292,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        uMsg == WM_SETFOCUS
      )
   {
-    rb.stale_display_info = true;
-    rb.updateOutputTopology ();
+    if (uMsg == WM_DISPLAYCHANGE)
+    {
+      rb.stale_display_info = true;
+      rb.updateOutputTopology ();
+    }
 
     if (! SK_IsGameWindowActive ())//game_window.active)
     {
@@ -5236,13 +5236,6 @@ SK_InstallWindowHook (HWND hWnd)
                                TranslateMessage_Detour,
       static_cast_p2p <void> (&TranslateMessage_Original) );
 
-
-    ////NtUserPeekMessage =
-    ////  reinterpret_cast <NtUserPeekMessage_pfn> (
-    ////    SK_GetProcAddress ( SK_GetModuleHandle (L"win32u"),
-    ////                          "NtUserPeekMessage" )
-    ////  );
-
     SK_CreateDLLHook2 (      L"user32",
                               "PeekMessageA",
                                PeekMessageA_Detour,
@@ -5263,26 +5256,6 @@ SK_InstallWindowHook (HWND hWnd)
                                GetMessageW_Detour,
       static_cast_p2p <void> (&GetMessageW_Original) );
 
-
-    // Hook as few of these as possible, disrupting the message pump
-    //   when we already have the game's main window hooked is redundant.
-    //
-    //   ** PeekMessage is hooked because The Witness pulls mouse click events
-    //        out of the pump without passing them through its window procedure.
-    //
-    //SK_CreateUser32Hook (     "GetMessageA",
-    //                           GetMessageA_Detour,
-    //  static_cast_p2p <void> (&GetMessageA_Original) );
-    //SK_CreateUser32Hook (     "GetMessageW",
-    //                           GetMessageW_Detour,
-    //  static_cast_p2p <void> (&GetMessageW_Original) );
-
-    ////SK_CreateUser32Hook (     "DispatchMessageA",
-    ////                           DispatchMessageA_Detour,
-    ////  static_cast_p2p <void> (&DispatchMessageA_Original) );
-    ////SK_CreateUser32Hook (     "DispatchMessageW",
-    ////                           DispatchMessageW_Detour,
-    ////  static_cast_p2p <void> (&DispatchMessageW_Original) );
 
     game_window.WndProc_Original = nullptr;
   }
@@ -5703,6 +5676,16 @@ ChangeDisplaySettingsA_Detour (
 
   return
     ChangeDisplaySettingsExA_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
+}
+
+LONG
+__stdcall
+SK_ChangeDisplaySettings (DEVMODEW *lpDevMode, DWORD dwFlags)
+{
+  return
+    ChangeDisplaySettingsW_Original != nullptr           ?
+    ChangeDisplaySettingsW_Original (lpDevMode, dwFlags) :
+    ChangeDisplaySettingsW          (lpDevMode, dwFlags);
 }
 
 LONG

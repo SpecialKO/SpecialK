@@ -21,12 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 
-
 #include <SpecialK/control_panel/compatibility.h>
-
-extern HWND WINAPI    SK_GetForegroundWindow (void);
-extern HWND WINAPI    SK_GetFocus            (void);
-extern bool __stdcall SK_IsGameWindowActive  (void);
 
 using namespace SK::ControlPanel;
 

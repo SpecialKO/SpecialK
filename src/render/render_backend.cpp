@@ -1031,9 +1031,6 @@ SK_RenderBackend_V2::window_registry_s::getFocus (void)
   return focus;
 }
 
-
-extern HWND WINAPI SK_GetFocus (void);
-
 void
 SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 {
@@ -2413,9 +2410,14 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
   }
 }
 
+extern void
+SK_Display_ResolutionSelectUI (bool bMarkDirty);
+
 void
 SK_RenderBackend_V2::updateOutputTopology (void)
 {
+  SK_Display_ResolutionSelectUI (true);
+
   if (swapchain.p == nullptr)
     return;
 

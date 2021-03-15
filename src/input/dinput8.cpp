@@ -27,11 +27,6 @@
 #define __SK_SUBSYSTEM__ L" DInput 8 "
 
 
-
-
-extern bool __stdcall SK_IsGameWindowActive (void);
-
-
 using finish_pfn = void (WINAPI *)(void);
 
 

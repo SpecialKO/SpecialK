@@ -25,9 +25,6 @@ extern iSK_INI* osd_ini;
 
 extern void SK_ImGui_DrawGraph_FramePacing (void);
 
-extern bool __stdcall SK_IsGameWindowActive (void);
-
-
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
 namespace

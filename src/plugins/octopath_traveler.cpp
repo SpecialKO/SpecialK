@@ -23,6 +23,7 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
+#include <SpecialK/diagnostics/debug_utils.h>
 
 #define OPT_VERSION_NUM L"0.1.4"
 #define OPT_VERSION_STR L"Octopus Trapper v " OPT_VERSION_NUM
@@ -244,10 +245,6 @@ SK_OPT_PlugInCfg (void)
 
   return true;
 }
-
-
-extern
-LPVOID SK_Debug_GetImageBaseAddr (void);
 
 void
 SK_OPT_FixUpLimiter (void)
