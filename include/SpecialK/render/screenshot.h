@@ -89,6 +89,9 @@ SK_Screenshot_IsCapturing (void);
 
 #include <concurrent_unordered_map.h>
 
+
+#include <../depends/include/DirectXTex/DirectXTex.h>
+
 class SK_ScreenshotManager
 {
 public:
@@ -109,8 +112,11 @@ public:
 
   void init (void);
 
-  const wchar_t*           getBasePath  (void) const;
-  screenshot_repository_s& getRepoStats (bool refresh = false);
+  const wchar_t*           getBasePath     (void) const;
+  screenshot_repository_s& getRepoStats    (bool refresh = false);
+
+  bool                     checkDiskSpace  (uint64_t bytes_needed) const;
+  bool                     copyToClipboard (const DirectX::Image& image) const;
 
 protected:
   screenshot_repository_s screenshots = { };

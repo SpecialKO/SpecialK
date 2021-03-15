@@ -707,7 +707,10 @@ SK_Steam_ThreadContext::Cleanup (SK_TLS_CleanupReason_e reason)
 
   if (reason == Unload)
   {
-    if (steam_ctx.Utils () != nullptr && client_user != 0 && reason == Unload)
+    auto* utils =
+      steam_ctx.Utils ();
+
+    if (utils != nullptr && client_user != 0 && reason == Unload)
     {
       if (steam_ctx.ReleaseThreadUser ())
       {
@@ -717,7 +720,7 @@ SK_Steam_ThreadContext::Cleanup (SK_TLS_CleanupReason_e reason)
       }
     }
 
-    if (steam_ctx.Utils () != nullptr && client_pipe != 0 && reason == Unload)
+    if (utils != nullptr && client_pipe != 0 && reason == Unload)
     {
       if (steam_ctx.ReleaseThreadPipe ())
       {

@@ -365,8 +365,8 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
           framebuffer.NativeFormat = backbuffer_desc.Format;
 
           bool hdr =
-            (  rb.isHDRCapable ()  &&
-              (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+            (rb.isHDRCapable () &&
+             rb.isHDRActive  ());
 
           if (hdr && backbuffer_desc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
           {
@@ -1165,11 +1165,14 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             if ( SK_ScreenshotQueue::pooled.capture_bytes.load  () <
                  SK_ScreenshotQueue::maximum.capture_bytes.load () )
             {
-              screenshot_queue->push (
-                new SK_D3D11_Screenshot (
-                  pDev
-                )
-              );
+              if (SK_GetCurrentRenderBackend ().screenshot_mgr.checkDiskSpace (20ULL * 1024ULL * 1024ULL))
+              {
+                screenshot_queue->push (
+                  new SK_D3D11_Screenshot (
+                    pDev
+                  )
+                );
+              }
             }
 
             else {
@@ -1278,7 +1281,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               raw_img.pixels = pFrameData->PixelBuffer.get ();
 
               bool hdr = ( rb.isHDRCapable () &&
-                          (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+                           rb.isHDRActive  () );
 
               SK_RunOnce (SK_SteamAPI_InitManagers ());
 
@@ -1497,6 +1500,12 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                   TEX_THRESHOLD_DEFAULT,
                                     un_scrgb );
                 }
+
+                if (un_scrgb.GetImages ())
+                {
+                  rb.screenshot_mgr.copyToClipboard (*un_scrgb.GetImages ());
+                }
+
                 if (               un_scrgb.GetImages () &&
                       SUCCEEDED (
                   SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
@@ -1577,7 +1586,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
           SetEvent   (signal.abort.finished); // Abort is complete
         }
 
-        if (config.screenshots.png_compress)
+        if (config.screenshots.png_compress || config.screenshots.copy_to_clipboard)
         {
           int enqueued_lossless = 0;
 
@@ -1669,7 +1678,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                   bool hdr =
                     ( SK_GetCurrentRenderBackend ().isHDRCapable () &&
-                     (SK_GetCurrentRenderBackend ().framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+                      SK_GetCurrentRenderBackend ().isHDRActive  () );
 
                   if (hdr)
                   {
@@ -1751,36 +1760,56 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     raw_img.height = pFrameData->Height;
                     raw_img.pixels = pFrameData->PixelBuffer.get ();
 
-                    SK_CreateDirectories (wszAbsolutePathToLossless);
-
-                    ScratchImage
-                      un_srgb;
-                      un_srgb.InitializeFromImage (raw_img);
-
-                    HRESULT hrSaveToWIC =     un_srgb.GetImages () ?
-                              SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
-                                      GetWICCodec (hdr ? WIC_CODEC_WMP :
-                                                         WIC_CODEC_PNG),
-                                           wszAbsolutePathToLossless,
-                                             hdr ?
-                                               &GUID_WICPixelFormat64bppRGBAHalf :
-                                               nullptr ) : E_POINTER;
-
-                    if (SUCCEEDED (hrSaveToWIC))
+                    if (config.screenshots.copy_to_clipboard)
                     {
-                      // Refresh
-                      rb.screenshot_mgr.getRepoStats (true);
+                      ScratchImage
+                        clipboard;
+                        clipboard.InitializeFromImage (raw_img);
+
+                      if (SUCCEEDED ( Convert ( raw_img,
+                                                  DXGI_FORMAT_B8G8R8X8_UNORM,
+                                                    TEX_FILTER_DITHER,
+                                                      TEX_THRESHOLD_DEFAULT,
+                                                        clipboard ) ) )
+                      {
+                        if (! hdr)
+                          rb.screenshot_mgr.copyToClipboard (*clipboard.GetImages ());
+                      }
                     }
 
-                    else
+                    if (config.screenshots.png_compress)
                     {
-                      SK_LOG0 ( ( L"Unable to write Screenshot, hr=%s",
-                                                     SK_DescribeHRESULT (hrSaveToWIC) ),
-                                  L"D3D11SShot" );
+                      SK_CreateDirectories (wszAbsolutePathToLossless);
 
-                      SK_ImGui_Warning ( L"Smart Screenshot Capture Failed.\n\n"
-                                         L"\t\t\t\t>> More than likely this is a problem with MSAA or Windows 7\n\n"
-                                         L"\t\tTo prevent future problems, disable this under Steam Enhancements / Screenshots" );
+                      ScratchImage
+                        un_srgb;
+                        un_srgb.InitializeFromImage (raw_img);
+
+                      HRESULT hrSaveToWIC =     un_srgb.GetImages () ?
+                                SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
+                                        GetWICCodec (hdr ? WIC_CODEC_WMP :
+                                                           WIC_CODEC_PNG),
+                                             wszAbsolutePathToLossless,
+                                               hdr ?
+                                                 &GUID_WICPixelFormat64bppRGBAHalf :
+                                                 nullptr ) : E_POINTER;
+
+                      if (SUCCEEDED (hrSaveToWIC))
+                      {
+                        // Refresh
+                        rb.screenshot_mgr.getRepoStats (true);
+                      }
+
+                      else
+                      {
+                        SK_LOG0 ( ( L"Unable to write Screenshot, hr=%s",
+                                                       SK_DescribeHRESULT (hrSaveToWIC) ),
+                                    L"D3D11SShot" );
+
+                        SK_ImGui_Warning ( L"Smart Screenshot Capture Failed.\n\n"
+                                           L"\t\t\t\t>> More than likely this is a problem with MSAA or Windows 7\n\n"
+                                           L"\t\tTo prevent future problems, disable this under Steam Enhancements / Screenshots" );
+                      }
                     }
 
                     delete pFrameData;

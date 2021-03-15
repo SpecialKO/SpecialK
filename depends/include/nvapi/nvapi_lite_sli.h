@@ -87,7 +87,7 @@ typedef struct
 //!                  and what the AFR group index will be for the next frame. \p
 //!                  pDevice can be either a IDirect3DDevice9 or ID3D10Device pointer.
 //!
-//! SUPPORTED OS:  Windows XP and higher
+//! SUPPORTED OS:  Windows 7 and higher
 //!
 //!
 //! \since Release: 173
@@ -106,18 +106,18 @@ NVAPI_INTERFACE NvAPI_D3D_GetCurrentSLIState(IUnknown *pDevice, NV_GET_CURRENT_S
 // FUNCTION NAME: NvAPI_D3D_SetResourceHint
 //
 //! \fn NvAPI_D3D_SetResourceHint(IUnknown *pDev, NVDX_ObjectHandle obj,
-//!                                          NVAPI_D3D_SETRESOURCEHINT_CATEGORY dwHintCategory,
-//!                                          NvU32 dwHintName,
+//!                                          NVAPI_D3D_SETRESOURCEHINT_CATEGORY dwHintCategory, 
+//!                                          NvU32 dwHintName, 
 //!                                          NvU32 *pdwHintValue)
 //!
 //!   DESCRIPTION: This is a general purpose function for passing down various resource
 //!                related hints to the driver. Hints are divided into categories
 //!                and types within each category. For DX11 devices this function is free-threaded.
-//!                An application is responsible to complete this call before making use of the resource
+//!                An application is responsible to complete this call before making use of the resource 
 //!                in a rendering context (therefore applying inter-thread synchronization as appropriate).
 //!                As a debug help to an application the driver enforces that a resource in this call was never bound.
 //!
-//! SUPPORTED OS:  Windows XP and higher
+//! SUPPORTED OS:  Windows 7 and higher
 //!
 //!
 //! \since Release: 185
@@ -130,8 +130,8 @@ NVAPI_INTERFACE NvAPI_D3D_GetCurrentSLIState(IUnknown *pDevice, NV_GET_CURRENT_S
 //!
 //! \return an int which could be an NvAPI status or DX HRESULT code
 //!
-//! \retval ::NVAPI_OK
-//! \retval ::NVAPI_INVALID_ARGUMENT
+//! \retval ::NVAPI_OK               
+//! \retval ::NVAPI_INVALID_ARGUMENT  
 //! \retval ::NVAPI_INVALID_CALL     It is illegal to change a hint dynamically when the resource is already bound.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,17 +155,17 @@ typedef enum _NVAPI_D3D_SETRESOURCEHINT_CATEGORY
 //!  Types of SLI hints; \n
 //!  NVAPI_D3D_SRH_SLI_APP_CONTROLLED_INTERFRAME_CONTENT_SYNC: Valid values : 0 or 1 \n
 //!  Default value: 0 \n
-//!  Explanation: If the value is 1, the driver will not track any rendering operations that would mark this resource as dirty,
+//!  Explanation: If the value is 1, the driver will not track any rendering operations that would mark this resource as dirty, 
 //!  avoiding any form of synchronization across frames rendered in parallel in multiple GPUs in AFR mode.
-//!
+//! 
 //!  NVAPI_D3D_SRH_SLI_ASK_FOR_BROADCAST_USAGE: Valid values : 0 or 1 \n
 //!  Default value: 0 \n
-//!  Explanation: If the value is 1, the driver will try to perform operations which involved target resource in broadcast,
+//!  Explanation: If the value is 1, the driver will try to perform operations which involved target resource in broadcast, 
 //!  where it's possible. Hint is static and must be set before resource starts using.
-//!
+//!  
 //!  NVAPI_D3D_SRH_SLI_RESPECT_DRIVER_INTERFRAME_CONTENT_SYNC: Valid values : 0 or 1 \n
 //!  Default value: 0 \n
-//!  Explanation: If the value is 1, the driver will do dirty resource resolve regardless of discard flags in the application profile or
+//!  Explanation: If the value is 1, the driver will do dirty resource resolve regardless of discard flags in the application profile or 
 //!  AFR-FriendlyD3DHints.exe name using.
 //!
 typedef enum _NVAPI_D3D_SETRESOURCEHINT_SLI
@@ -177,8 +177,8 @@ typedef enum _NVAPI_D3D_SETRESOURCEHINT_SLI
 
 //! \ingroup dx
 NVAPI_INTERFACE NvAPI_D3D_SetResourceHint(IUnknown *pDev, NVDX_ObjectHandle obj,
-                                          NVAPI_D3D_SETRESOURCEHINT_CATEGORY dwHintCategory,
-                                          NvU32 dwHintName,
+                                          NVAPI_D3D_SETRESOURCEHINT_CATEGORY dwHintCategory, 
+                                          NvU32 dwHintName, 
                                           NvU32 *pdwHintValue);
 #endif //defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__)
 
@@ -188,10 +188,10 @@ NVAPI_INTERFACE NvAPI_D3D_SetResourceHint(IUnknown *pDev, NVDX_ObjectHandle obj,
 // FUNCTION NAME: NvAPI_D3D_BeginResourceRendering
 //
 //! \fn NvAPI_D3D_BeginResourceRendering(IUnknown *pDeviceOrContext, NVDX_ObjectHandle obj, NvU32 Flags)
-//!   DESCRIPTION: This function tells the driver that the resource will begin to receive updates. It must be used in combination with NvAPI_D3D_EndResourceRendering().
-//!                The primary use of this function is allow the driver to initiate early inter-frame synchronization of resources while running in AFR SLI mode.
+//!   DESCRIPTION: This function tells the driver that the resource will begin to receive updates. It must be used in combination with NvAPI_D3D_EndResourceRendering(). 
+//!                The primary use of this function is allow the driver to initiate early inter-frame synchronization of resources while running in AFR SLI mode. 
 //!
-//! SUPPORTED OS:  Windows XP and higher
+//! SUPPORTED OS:  Windows 7 and higher
 //!
 //!
 //! \since Release: 185
@@ -227,10 +227,10 @@ NVAPI_INTERFACE NvAPI_D3D_BeginResourceRendering(IUnknown *pDeviceOrContext, NVD
 // FUNCTION NAME: NvAPI_D3D_EndResourceRendering
 //
 //!   DESCRIPTION: This function tells the driver that the resource is done receiving updates. It must be used in combination with
-//!                NvAPI_D3D_BeginResourceRendering().
-//!                The primary use of this function is allow the driver to initiate early inter-frame syncs of resources while running in AFR SLI mode.
+//!                NvAPI_D3D_BeginResourceRendering(). 
+//!                The primary use of this function is allow the driver to initiate early inter-frame syncs of resources while running in AFR SLI mode. 
 //!
-//! SUPPORTED OS:  Windows XP and higher
+//! SUPPORTED OS:  Windows 7 and higher
 //!
 //!
 //! \since Release: 185

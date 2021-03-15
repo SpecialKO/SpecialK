@@ -23,6 +23,8 @@
 #include <SpecialK/resource.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/render/d3d12/d3d12_interfaces.h>
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
@@ -86,10 +88,6 @@ SK_GetInitParams (void)
   return SKX_GetInitParams ();
 };
 
-extern void SK_D3D11_BeginFrame (void);
-extern void SK_D3D11_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());
-extern void SK_D3D12_BeginFrame (void);
-extern void SK_D3D12_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());
 
 wchar_t*
 SKX_GetBackend (void)
@@ -319,8 +317,6 @@ SK_LoadGPUVendorAPIs (void)
               MB_ICONWARNING | MB_OK
         );
       }
-
-
 
       config.nvidia.bugs.snuffed_ansel = true;
 
@@ -626,7 +622,7 @@ SK_InitFinishCallback (void)
   bool rundll_invoked =
     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
 
-  if (rundll_invoked || SK_IsSuperSpecialK () || wcslen (__SK_BootedCore) == 0u)
+  if (rundll_invoked || SK_IsSuperSpecialK () || *__SK_BootedCore == L'\0')
   {
     init_mutex->unlock ();
     return;
@@ -1742,7 +1738,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       case SK_GAME_ID::Yakuza0:
       case SK_GAME_ID::YakuzaKiwami:
       case SK_GAME_ID::YakuzaKiwami2:
-      case SK_GAME_ID::YakuzaLikeADragon:
+      case SK_GAME_ID::YakuzaUnderflow:
         SK_Yakuza0_PlugInInit ();
         break;
 #else
@@ -2552,6 +2548,70 @@ return;
   }
 }
 
+
+void
+SK_NvSleep (int site)
+{
+  if (sk::NVAPI::nv_hardware && config.nvidia.sleep.enable && site == config.nvidia.sleep.enforcement_site)
+  {
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    static LONG64 frames_drawn = 0;
+
+    if (rb.frames_drawn == frames_drawn)
+      return;
+
+    frames_drawn = rb.frames_drawn;
+
+    static bool valid = true;
+
+    if (! valid)
+      return;
+
+    if (config.nvidia.sleep.frame_interval_us != 0)
+    {
+      if (__target_fps > 0.0)
+        config.nvidia.sleep.frame_interval_us = static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
+      else
+        config.nvidia.sleep.frame_interval_us = 0;
+    }
+
+    NV_SET_SLEEP_MODE_PARAMS
+      sleepParams                   = {                          };
+      sleepParams.version           = NV_SET_SLEEP_MODE_PARAMS_VER;
+      sleepParams.bLowLatencyBoost  = config.nvidia.sleep.low_latency_boost;
+      sleepParams.bLowLatencyMode   = config.nvidia.sleep.low_latency;
+      sleepParams.minimumIntervalUs = config.nvidia.sleep.frame_interval_us;
+
+    static NV_SET_SLEEP_MODE_PARAMS
+      lastParams = { 1, true, true, 69, { 0 } };
+
+    if (rb.device != nullptr)
+    {
+      if ( lastParams.bLowLatencyBoost  != sleepParams.bLowLatencyBoost ||
+           lastParams.bLowLatencyMode   != sleepParams.bLowLatencyMode  ||
+           lastParams.minimumIntervalUs != sleepParams.minimumIntervalUs )
+      {
+        if ( NVAPI_OK !=
+               NvAPI_D3D_SetSleepMode (
+                 rb.device, &sleepParams
+               )
+           ) valid = false;
+
+        lastParams = sleepParams;
+      }
+
+      if ( NVAPI_OK != NvAPI_D3D_Sleep (rb.device) )
+        valid = false;
+
+      if (! valid)
+        SK_ImGui_Warning (L"NVIDIA Reflex Sleep Invalid State");
+    }
+  }
+};
+
+
 void
 SK_FrameCallback ( SK_RenderBackend& rb,
                    ULONG64           frames_drawn =
@@ -2704,6 +2764,8 @@ void
 __stdcall
 SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 {
+  SK_NvSleep (0);
+
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -2722,7 +2784,7 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
     SK_D3D12_BeginFrame ();
   }
 
-  if (config.render.framerate.enforcement_policy == 0)
+  if (config.render.framerate.enforcement_policy == 0 && rb.swapchain.p != nullptr)
   {
     SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
   }
@@ -2766,9 +2828,11 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   rb.present_staging.end_cegui.time =
     SK_QueryPerf ();
 
-  if (config.render.framerate.enforcement_policy == 1)
+  if (config.render.framerate.enforcement_policy == 1 && rb.swapchain.p != nullptr)
   {
     SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
+
+    SK_NvSleep (1);
   }
 
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
@@ -2782,7 +2846,7 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   rb.present_staging.submit.time =
     SK_QueryPerf ();
 
-  if (config.render.framerate.enforcement_policy == 4)
+  if (config.render.framerate.enforcement_policy == 4 && rb.swapchain.p != nullptr)
   {
     SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
   }
@@ -2995,7 +3059,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     // Tock
   };
 
-  if (config.render.framerate.enforcement_policy == 3)
+  if (config.render.framerate.enforcement_policy == 3 && rb.swapchain.p != nullptr)
   {
     _FrameTick ();
   }
@@ -3066,10 +3130,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   SK_StartPerfMonThreads ();
 
-  if (config.render.framerate.enforcement_policy == 2)
+  if (config.render.framerate.enforcement_policy == 2 || rb.swapchain.p == nullptr)
   {
     _FrameTick ();
   }
+
+  SK_NvSleep (1);
 
   return hr;
 }

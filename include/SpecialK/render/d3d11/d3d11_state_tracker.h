@@ -25,9 +25,19 @@
 #include <SpecialK/render/d3d11/d3d11_shader.h>
 
 // For really wacky engines that wrap shader interfaces w/o correct layering
-static const GUID SKID_D3D11KnownShaderCrc32c =
+static constexpr GUID SKID_D3D11KnownShaderCrc32c =
 // {5C5298BB-0F9D-5022-A19D-A2E69792AE14}
   { 0x5c5298bb, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x14 } };
+
+// ID3D11DeviceContext* private data used for indexing various per-ctx lookups
+static constexpr GUID SKID_D3D11DeviceContextHandle =
+// {5C5298CA-0F9C-5932-A19D-A2E69792AE03}
+  { 0x5c5298ca, 0xf9c,  0x5932, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x3 } };
+
+// The device context a command list was built using
+static constexpr GUID SKID_D3D11DeviceContextOrigin =
+// {5C5298CA-0F9D-5022-A19D-A2E69792AE03}
+{ 0x5c5298ca, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x03 } };
 
 enum class SK_D3D11DispatchType
 {
@@ -905,7 +915,7 @@ extern volatile LONG  SK_D3D11_DrawTrackingReqs;
 extern volatile LONG  SK_D3D11_CBufferTrackingReqs;
 extern volatile ULONG SK_D3D11_LiveTexturesDirty;
 
-extern bool           SK_D3D11_DontTrackUnlessModToolsAreOpen;
+extern bool&          SK_D3D11_DontTrackUnlessModToolsAreOpen;
 
 
 // Only accessed by the swapchain thread and only to clear any outstanding
@@ -925,6 +935,8 @@ extern SK_LazyGlobal <
 extern SK_LazyGlobal <std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1>> reshade_trigger_before;
 extern SK_LazyGlobal <std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1>> reshade_trigger_after;
 
+extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
+extern SK_LazyGlobal <target_tracking_s> tracked_rtv;
 
 void
 SK_D3D11_SetShader_Impl ( ID3D11DeviceContext*        pDevCtx,

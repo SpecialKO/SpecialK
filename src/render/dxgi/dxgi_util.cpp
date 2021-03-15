@@ -795,7 +795,7 @@ struct SK_DXGI_sRGBCoDec {
         };
 
         pDev->CreateInputLayout ( local_layout, 1,
-                                    (DWORD *)(colorutil_vs_bytecode),
+                                     (void *)(colorutil_vs_bytecode),
                                       sizeof (colorutil_vs_bytecode) /
                                       sizeof (colorutil_vs_bytecode [0]),
                                         &pInputLayout );

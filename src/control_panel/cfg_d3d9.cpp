@@ -51,11 +51,20 @@ SK::ControlPanel::D3D9::Draw (void)
 
     ImGui::SameLine ();
 
-    ImGui::Checkbox ("Enable Texture Modding (Experimental)", &config.textures.d3d9_mod);
+    ImGui::Checkbox ("Enable Texture Modding", &config.textures.d3d9_mod);
 
     if (ImGui::IsItemHovered ())
     {
       ImGui::SetTooltip ("Requires a game restart.");
+    }
+
+    ImGui::SameLine ();
+
+    ImGui::Checkbox ("Clamp LOD Bias", &config.textures.clamp_lod_bias);
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ("Prevents artificial texture sharpening / shimmer");
     }
 
     ImGui::SameLine ();

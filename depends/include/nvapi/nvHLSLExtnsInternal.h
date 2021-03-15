@@ -40,20 +40,23 @@
 
 struct NvShaderExtnStruct
 {
-    uint   opcode;      // opcode
-    uint   rid;         // resource ID
-    uint   sid;         // sampler ID
-
-    uint4  dst1u;       // destination operand 1 (for instructions that need extra destination operands)
-    uint4  padding0[3]; // currently unused
-
-    uint4  src0u;       // uint source operand  0
-    uint4  src1u;       // uint source operand  0
-    uint4  src2u;       // uint source operand  0
-    uint4  dst0u;       // uint destination operand
-
-    uint   markUavRef;  // the next store to UAV is fake and is used only to identify the uav slot
-    float  padding1[28];// struct size: 256 bytes
+    uint   opcode;                  // opcode
+    uint   rid;                     // resource ID
+    uint   sid;                     // sampler ID
+            
+    uint4  dst1u;                   // destination operand 1 (for instructions that need extra destination operands)
+    uint4  src3u;                   // source operand 3
+    uint4  src4u;                   // source operand 4
+    uint4  src5u;                   // source operand 5
+            
+    uint4  src0u;                   // uint source operand  0
+    uint4  src1u;                   // uint source operand  0
+    uint4  src2u;                   // uint source operand  0
+    uint4  dst0u;                   // uint destination operand
+            
+    uint   markUavRef;              // the next store to UAV is fake and is used only to identify the uav slot
+    uint   numOutputsForIncCounter; // Used for output to IncrementCounter 
+    float  padding1[27];            // struct size: 256 bytes
 };
 
 // RW structured buffer for Nvidia shader extensions
@@ -634,4 +637,131 @@ uint2 __NvAtomicOpUINT64(RWTexture3D<uint2> uav, uint3 address, uint2 value, uin
     g_NvidiaExt[index].opcode   = NV_EXTN_OP_UINT64_ATOMIC;
 
     return g_NvidiaExt[index].dst0u.xy;
+}
+
+
+uint4 __NvFootprint(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint footprintmode, uint gran, int3 offset = int3(0, 0, 0))
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x = texIndex;
+    g_NvidiaExt[index].src0u.y  = smpIndex;
+    g_NvidiaExt[index].src1u.xyz = asuint(location);
+    g_NvidiaExt[index].src1u.w = gran;
+    g_NvidiaExt[index].src3u.x = texSpace;
+    g_NvidiaExt[index].src3u.y = smpSpace;
+    g_NvidiaExt[index].src3u.z = texType;
+    g_NvidiaExt[index].src3u.w = footprintmode;
+    g_NvidiaExt[index].src4u.xyz = asuint(offset);
+
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_FOOTPRINT;
+    g_NvidiaExt[index].numOutputsForIncCounter = 4;
+
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    uint4 op;
+    op.x = g_NvidiaExt.IncrementCounter();
+    op.y = g_NvidiaExt.IncrementCounter();
+    op.z = g_NvidiaExt.IncrementCounter();
+    op.w = g_NvidiaExt.IncrementCounter();
+    return op;
+}
+
+uint4 __NvFootprintBias(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint footprintmode, uint gran, float bias, int3 offset = int3(0, 0, 0))
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x = texIndex;
+    g_NvidiaExt[index].src0u.y  = smpIndex;
+    g_NvidiaExt[index].src1u.xyz = asuint(location);
+    g_NvidiaExt[index].src1u.w = gran;
+    g_NvidiaExt[index].src2u.x = asuint(bias);
+    g_NvidiaExt[index].src3u.x = texSpace;
+    g_NvidiaExt[index].src3u.y = smpSpace;
+    g_NvidiaExt[index].src3u.z = texType;
+    g_NvidiaExt[index].src3u.w = footprintmode;
+    g_NvidiaExt[index].src4u.xyz = asuint(offset);
+
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_FOOTPRINT_BIAS;
+    g_NvidiaExt[index].numOutputsForIncCounter = 4;
+
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    uint4 op;
+    op.x = g_NvidiaExt.IncrementCounter();
+    op.y = g_NvidiaExt.IncrementCounter();
+    op.z = g_NvidiaExt.IncrementCounter();
+    op.w = g_NvidiaExt.IncrementCounter();
+    return op;
+}
+
+uint4 __NvFootprintLevel(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint footprintmode, uint gran, float lodLevel, int3 offset = int3(0, 0, 0))
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x = texIndex;
+    g_NvidiaExt[index].src0u.y  = smpIndex;
+    g_NvidiaExt[index].src1u.xyz = asuint(location);
+    g_NvidiaExt[index].src1u.w = gran;
+    g_NvidiaExt[index].src2u.x = asuint(lodLevel);
+    g_NvidiaExt[index].src3u.x = texSpace;
+    g_NvidiaExt[index].src3u.y = smpSpace;
+    g_NvidiaExt[index].src3u.z = texType;
+    g_NvidiaExt[index].src3u.w = footprintmode;
+    g_NvidiaExt[index].src4u.xyz = asuint(offset);
+
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_FOOTPRINT_LEVEL;
+    g_NvidiaExt[index].numOutputsForIncCounter = 4;
+
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    uint4 op;
+    op.x = g_NvidiaExt.IncrementCounter();
+    op.y = g_NvidiaExt.IncrementCounter();
+    op.z = g_NvidiaExt.IncrementCounter();
+    op.w = g_NvidiaExt.IncrementCounter();
+    return op;
+}
+
+uint4 __NvFootprintGrad(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint footprintmode, uint gran, float3 ddx, float3 ddy, int3 offset = int3(0, 0, 0))
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x = texIndex;
+    g_NvidiaExt[index].src0u.y  = smpIndex;
+    g_NvidiaExt[index].src1u.xyz = asuint(location);
+    g_NvidiaExt[index].src1u.w = gran;
+    g_NvidiaExt[index].src2u.xyz = asuint(ddx);
+    g_NvidiaExt[index].src5u.xyz = asuint(ddy);
+    g_NvidiaExt[index].src3u.x = texSpace;
+    g_NvidiaExt[index].src3u.y = smpSpace;
+    g_NvidiaExt[index].src3u.z = texType;
+    g_NvidiaExt[index].src3u.w = footprintmode;
+    g_NvidiaExt[index].src4u.xyz = asuint(offset);
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_FOOTPRINT_GRAD;
+    g_NvidiaExt[index].numOutputsForIncCounter = 4;
+
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    uint4 op;
+    op.x = g_NvidiaExt.IncrementCounter();
+    op.y = g_NvidiaExt.IncrementCounter();
+    op.z = g_NvidiaExt.IncrementCounter();
+    op.w = g_NvidiaExt.IncrementCounter();
+    return op;
+}
+
+// returns value of special register - specify subopcode from any of NV_SPECIALOP_* specified in nvShaderExtnEnums.h - other opcodes undefined behavior
+uint __NvGetSpecial(uint subOpCode)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_GET_SPECIAL;
+    g_NvidiaExt[index].src0u.x = subOpCode;
+    return g_NvidiaExt.IncrementCounter();
+}
+
+// predicate is returned in laneValid indicating if srcLane is in range and val from specified lane is returned.
+int __NvShflGeneric(int val, uint srcLane, uint maskClampVal, out uint laneValid)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x  =  val;                             // variable to be shuffled
+    g_NvidiaExt[index].src0u.y  =  srcLane;                         // source lane
+    g_NvidiaExt[index].src0u.z  =  maskClampVal;
+    g_NvidiaExt[index].opcode   =  NV_EXTN_OP_SHFL_GENERIC;
+    g_NvidiaExt[index].numOutputsForIncCounter = 2;
+
+    laneValid = asuint(g_NvidiaExt.IncrementCounter());
+    return g_NvidiaExt.IncrementCounter();
 }

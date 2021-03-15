@@ -83,12 +83,12 @@ public:
       pDeferredObject.get ();
   }
 
-__forceinline    T& get         (void)          noexcept         { return   *getPtr ();       }
-__forceinline    T* operator->  (void)          noexcept         { return    getPtr ();       }
-__forceinline    T& operator*   (void)          noexcept         { return   *getPtr ();       }
-__forceinline       operator T& (void)          noexcept         { return    get    ();       }
-__forceinline auto& operator [] (const int idx) noexcept (false) { return  (*getPtr ())[idx]; }
-__forceinline bool  isAllocated (void)    const noexcept
+__forceinline    T& get         (void)            noexcept         { return   *getPtr ();       }
+__forceinline    T* operator->  (void)            noexcept         { return    getPtr ();       }
+__forceinline    T& operator*   (void)            noexcept         { return   *getPtr ();       }
+__forceinline       operator T& (void)            noexcept         { return    get    ();       }
+__forceinline auto& operator [] (const ULONG idx) noexcept (false) { return  (*getPtr ())[idx]; }
+__forceinline bool  isAllocated (void) const      noexcept
 {
   return
     ( ReadAcquire (&_initlock) == Committed ) && pDeferredObject.get () != nullptr;

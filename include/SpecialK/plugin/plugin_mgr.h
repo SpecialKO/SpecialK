@@ -51,6 +51,8 @@ SK_HasPlugin (void);
 
 
 using SK_EndFrame_pfn                  = void   (__stdcall *)( void        );
+using SK_EndFrameEx_pfn                = void   (__stdcall *)( BOOL
+                                                               bWaitOnFail );
 using SK_BeginFrame_pfn                = void   (__stdcall *)( void        );
 using SK_ReleaseGfx_pfn                = void   (__stdcall *)( void        );
 using SK_PlugIn_ControlPanelWidget_pfn = void   (__stdcall *)( void        );

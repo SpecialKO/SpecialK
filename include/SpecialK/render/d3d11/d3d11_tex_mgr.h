@@ -34,6 +34,22 @@ struct cache_params_s {
       bool ignore_non_mipped = false;
 } extern cache_opts;
 
+struct resample_job_s {
+  DirectX::ScratchImage *data;
+  ID3D11Texture2D       *texture;
+
+  uint32_t               crc32c;
+
+  struct {
+    int64_t preprocess; // Time performing various work required for submission
+                        //   (i.e. decompression)
+
+    int64_t received;
+    int64_t started;
+    int64_t finished;
+  } time;
+};
+
 // Temporary staging for memory-mapped texture uploads
 //
 struct mapped_resources_s {
@@ -309,5 +325,13 @@ public:
 
   std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
 };
+
+bool
+SK_D3D11_Resampler_PostJob         ( resample_job_s       job );
+
+bool
+SK_D3D11_Resampler_ProcessFinished ( ID3D11Device        *pDev,
+                                     ID3D11DeviceContext *pDevCtx,
+                                     SK_TLS              *pTLS = SK_TLS_Bottom () );
 
 extern SK_LazyGlobal <SK_D3D11_TexMgr> SK_D3D11_Textures;

@@ -43,8 +43,8 @@ const GUID IID_IWrapDXGISwapChain =
 { 0x24430a12, 0x6e3c, 0x4706, { 0xaf, 0xfa, 0xb3, 0xee, 0xf2, 0xdf, 0x41, 0x2 } };
 
 
-__declspec (uuid ("{24430A12-6E3C-4706-AFFA-B3EEF2DF4102}") )
-struct IWrapDXGISwapChain : IDXGISwapChain4
+struct DECLSPEC_UUID("24430A12-6E3C-4706-AFFA-B3EEF2DF4102")
+IWrapDXGISwapChain : IDXGISwapChain4
 {
   IWrapDXGISwapChain ( ID3D11Device   *pDevice,
                        IDXGISwapChain *pSwapChain ) :
@@ -55,31 +55,41 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     if (! pSwapChain)
       return;
 
+    DXGI_SWAP_CHAIN_DESC            sd = { };
+    if (SUCCEEDED (pReal->GetDesc (&sd)))
+    {
+      hWnd_     = sd.OutputWindow;
+      waitable_ = sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    }
+
     IUnknown *pPromotion = nullptr;
 
-    if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
+    if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain4, reinterpret_cast <void **> (&pPromotion))))
     {
       ver_ = 4;
     }
 
-    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain3, reinterpret_cast <void **> (&pPromotion))))
     {
       ver_ = 3;
     }
 
-    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain2, reinterpret_cast <void **> (&pPromotion))))
     {
       ver_ = 2;
     }
 
-    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain1, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain1, reinterpret_cast <void **> (&pPromotion))))
     {
       ver_ = 1;
     }
 
     if (ver_ != 0)
     {
-      ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
+      static_cast <IDXGISwapChain1 *>
+        (pReal)->GetHwnd (&hWnd_);
+
+      SK_ReleaseAssert (sd.OutputWindow == 0 || sd.OutputWindow == hWnd_);
 
       SK_LOG0 ( ( L"Promoted IDXGISwapChain to IDXGISwapChain%lu", ver_),
                   __SK_SUBSYSTEM__ );
@@ -88,11 +98,11 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     InterlockedIncrement (ver_ > 0 ? &SK_DXGI_LiveWrappedSwapChain1s
                                    : &SK_DXGI_LiveWrappedSwapChains);
 
-    pDev = pDevice;
+    SK_ComQIPtr <ID3D12Device>
+             pDev12 ( pDevice );
+    d3d12_ = pDev12.p != nullptr;
 
-    this->SetPrivateDataInterface  (IID_IUnwrappedDXGISwapChain, this);
-    pReal->SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, this);
-
+    SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
   }
 
   IWrapDXGISwapChain ( ID3D11Device    *pDevice,
@@ -104,19 +114,26 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     if (! pSwapChain)
       return;
 
+    DXGI_SWAP_CHAIN_DESC            sd = { };
+    if (SUCCEEDED (pReal->GetDesc (&sd)))
+    {
+      hWnd_     = sd.OutputWindow;
+      waitable_ = sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    }
+
     IUnknown *pPromotion = nullptr;
 
-    if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain4, (void **)&pPromotion)))
+    if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain4, reinterpret_cast <void **> (&pPromotion))))
     {
       ver_ = 4;
     }
 
-    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain3, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain3, reinterpret_cast <void **> (&pPromotion))))
     {
       ver_ = 3;
     }
 
-    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain2, (void **)&pPromotion)))
+    else if (SUCCEEDED (QueryInterface (IID_IDXGISwapChain2, reinterpret_cast <void **> (&pPromotion))))
     {
       ver_ = 2;
     }
@@ -129,11 +146,16 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
 
     InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
 
-    ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
-                        pDev  = pDevice;
+    static_cast <IDXGISwapChain1 *>
+      (pReal)->GetHwnd (&hWnd_);
 
-    this->SetPrivateDataInterface  (IID_IUnwrappedDXGISwapChain, this);
-    pReal->SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, this);
+    SK_ReleaseAssert (sd.OutputWindow == 0 || sd.OutputWindow == hWnd_);
+
+    SK_ComQIPtr <ID3D12Device>
+             pDev12 ( pDevice );
+    d3d12_ = pDev12.p != nullptr;
+
+    SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
   }
 
 
@@ -220,6 +242,8 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
   unsigned int          ver_;
   HWND                  hWnd_ = 0;
 
+  bool                  d3d12_          = false;
+  bool                  waitable_       = false;
   UINT                  gameWidth_      = 0;
   UINT                  gameHeight_     = 0;
   bool                  fakeFullscreen_ = false;

@@ -194,7 +194,7 @@ public:
   };
 
   static constexpr UINT _StatusTypes =
-                  (UINT)ScreenshotStatus::_Types;
+    static_cast <UINT> (ScreenshotStatus::_Types);
 
   SK_Steam_ScreenshotManager (void) noexcept :
        request ( this, &SK_Steam_ScreenshotManager::OnScreenshotRequest ),
@@ -582,7 +582,7 @@ public:
   static
   std::vector <std::string>
   getKeys ( const std::string&               input,
-                  std::deque  <std::string>  sections,
+                  std::vector <std::string>  sections,
                   std::vector <std::string>* values = nullptr )
   {
     std::vector <std::string> ret;
@@ -591,14 +591,14 @@ public:
       return ret;
 
     struct {
-      std::deque <std::string> path;
+      std::vector <std::string> path;
 
       struct {
         std::string actual;
         std::string test;
       } heap;
 
-      void heapify (std::deque <std::string> const* sections = nullptr)
+      void heapify (std::vector <std::string> const* sections = nullptr)
       {
         int i = 0;
 
@@ -684,16 +684,16 @@ public:
 
   static
   std::string
-  getValue ( const std::string&              input,
-             const std::deque <std::string>& sections,
-                   std::string               key )
+  getValue ( const std::string&               input,
+             const std::vector <std::string>& sections,
+                   std::string                key )
   {
     std::vector <std::string> values;
     std::vector <std::string> keys (
       SK_Steam_KeyValues::getKeys (input, sections, &values)
     );
 
-    int idx = 0;
+    size_t idx = 0;
     for ( auto it : keys )
     {
       if (it._Equal (key))

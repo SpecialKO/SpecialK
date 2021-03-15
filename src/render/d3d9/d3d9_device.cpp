@@ -211,7 +211,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateAdditionalSwapChain(D3DPRE
 
   if (SUCCEEDED (hr))
   {
-    *ppSwapChain = (IDirect3DSwapChain9 *)new IWrapDirect3DSwapChain9 (this, pTemp);
+    *ppSwapChain = new IWrapDirect3DSwapChain9 (this, pTemp);
 
     additional_swapchains_.push_back ((IWrapDirect3DSwapChain9 *)*ppSwapChain);
   }

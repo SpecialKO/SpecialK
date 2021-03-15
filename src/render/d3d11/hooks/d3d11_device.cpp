@@ -160,11 +160,11 @@ D3D11Dev_CreateShaderResourceView_Override (
       SK_ComQIPtr <ID3D11Texture2D>
           pTex2D (pResource);
       D3D11_TEXTURE2D_DESC  tex_desc = { };
-      if (pTex2D != nullptr)
-          pTex2D->GetDesc (&tex_desc);
 
       if (pTex2D != nullptr)
       {
+        pTex2D->GetDesc (&tex_desc);
+
         bool override = false;
 
         if (! DirectX::IsDepthStencil (pDesc->Format))

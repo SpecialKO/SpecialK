@@ -31,7 +31,6 @@
 #pragma warning(disable: 4244)
 
 extern iSK_INI* dll_ini;
-extern bool     __SK_HDR_16BitSwap;
 
 bool                      SK_TVFix_PlugInCfg         (void);
 HRESULT STDMETHODCALLTYPE SK_TVFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
@@ -274,8 +273,10 @@ SK_TVFix_CheckVersion (LPVOID user)
         __stdcall
         SK_UpdateSoftware (const wchar_t* wszProduct);
 
-      if (SK_FetchVersionInfo (L"TVF"))
-          SK_UpdateSoftware   (L"TVF");
+      // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
+      //
+      ////if (SK_FetchVersionInfo (L"TVF"))
+      ////    SK_UpdateSoftware   (L"TVF");
 
       SK_Thread_CloseSelf ();
 

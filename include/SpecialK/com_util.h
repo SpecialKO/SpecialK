@@ -972,9 +972,7 @@ public:
   {
     ATLASSERT(pp != NULL);
 
-    HRESULT hr = E_POINTER;
-
-    hr =
+    HRESULT hr =
       p->QueryInterface (__uuidof(Q), (void**)pp);
 
     return hr;

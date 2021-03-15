@@ -82,7 +82,7 @@ public:
         // This is all happening from the application's message pump in most games,
         //   so this specialized function avoids deadlocking the pump.
         InternalGetWindowText (win.root, wszTitle, 511);
-        WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, &bUsedDefaultChar);
+        WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, static_cast <int> (wcslen (wszTitle)), szTitle, 511, nullptr, &bUsedDefaultChar);
 
         //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
                     //L"  WASAPI  " );
@@ -179,6 +179,7 @@ public:
     if (! ppv)
       return E_INVALIDARG;
 
+    // UNSAFE, FIXEME
     if (IID_IUnknown == riid)
     {
       AddRef ();
@@ -485,9 +486,10 @@ public:
   SK_WASAPI_AudioSession** getInactive (int* pCount = nullptr) noexcept
   {
     if (pCount)
-      *pCount = (int)inactive_sessions_.view.size ();
+      *pCount = static_cast <int> (inactive_sessions_.view.size ());
 
-    return inactive_sessions_.view.data ();
+    return
+      inactive_sessions_.view.data ();
   }
 
   HRESULT

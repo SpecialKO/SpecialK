@@ -34,9 +34,9 @@ namespace SK
 {
   namespace ControlPanel
   {
-    extern SK_RenderAPI  render_api;
-    extern uint64_t      current_tick;
-    extern unsigned long current_time;
+    extern SK_RenderAPI render_api;
+    extern uint64_t     current_tick;
+    extern DWORD        current_time;
 
     struct font_cfg_s
     {

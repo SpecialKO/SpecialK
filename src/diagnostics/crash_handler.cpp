@@ -1007,14 +1007,12 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     bool& last_chance = pTLS->debug.last_chance;
           last_chance = true;
 
-    WIN32_FIND_DATA fd     = {                  };
-    HANDLE          hFind  = INVALID_HANDLE_VALUE;
-
     wchar_t   wszFindPattern [MAX_PATH + 2] = { };
     lstrcatW (wszFindPattern, SK_GetConfigPath ());
     lstrcatW (wszFindPattern,    LR"(logs\*.log)");
 
-    hFind =
+    WIN32_FIND_DATA fd    = { };
+    HANDLE          hFind =
       FindFirstFileW (wszFindPattern, &fd);
 
     if (hFind != INVALID_HANDLE_VALUE)
@@ -1250,29 +1248,31 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
   {
     MODULEINFO mod_info = { };
 
-    GetModuleInformation (
-      GetCurrentProcess (), hMod, &mod_info, sizeof (mod_info)
-    );
+    if (! GetModuleInformation (
+            GetCurrentProcess (), hMod, &mod_info, sizeof (mod_info) )
+       ) return 0;
 
     const auto BaseAddr =
       (DWORD64)mod_info.lpBaseOfDll;
 
     char szModName [MAX_PATH + 2] = {  };
 
-    GetModuleFileNameA  ( hMod,
-                            szModName,
-                              MAX_PATH );
+    if (!  GetModuleFileNameA ( hMod,
+                                  szModName,
+                                    MAX_PATH )
+       ) return 0;
 
     char* pszShortName = szModName;
 
     PathStripPathA (pszShortName);
 
-    SymLoadModule64 ( GetCurrentProcess (),
-                        nullptr,
-                          pszShortName,
-                            nullptr,
-                              BaseAddr,
-                                mod_info.SizeOfImage );
+    if (! SymLoadModule64 ( GetCurrentProcess (),
+                              nullptr,
+                                pszShortName,
+                                  nullptr,
+                                    BaseAddr,
+                                      mod_info.SizeOfImage )
+       ) return 0;
 
     dbghelp_callers.insert (hMod);
   }

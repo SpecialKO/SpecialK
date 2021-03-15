@@ -100,11 +100,15 @@ GetLogicalProcessorInformationEx_Detour (
 
 			    buffer = (char *)malloc (len);
 
-          if (GetLogicalProcessorInformationEx_Original (RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer, &len))
+          if ( buffer != nullptr &&
+               GetLogicalProcessorInformationEx_Original (
+                 RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer,
+                   &len )
+             )
           {
 				    char* ptr = buffer;
 
-				    while (ptr < buffer + len)
+				    while (ptr != nullptr && ptr < buffer + len)
             {
 					    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
 
@@ -120,11 +124,16 @@ GetLogicalProcessorInformationEx_Detour (
 				    }
 			    }
 
-          free (buffer);
+          if (buffer != nullptr)
+            free (buffer);
 
           buffer = (char *)malloc (len + extraAlloc);
 
-          if (GetLogicalProcessorInformationEx_Original (RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer, &len))
+          if ( buffer != nullptr &&
+               GetLogicalProcessorInformationEx_Original (
+                 RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer,
+                   &len )
+             )
           {
             char *cores_ = (char *)malloc (extraAlloc);
 
@@ -132,7 +141,7 @@ GetLogicalProcessorInformationEx_Detour (
 
             extraCores = extra_cores;
 
-				    while (ptr < buffer + len)
+				    while (ptr != nullptr && ptr < buffer + len)
             {
 					    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
 
@@ -425,3 +434,63 @@ SK_CPU_CountLogicalCores (void)
 
   return 0;
 }
+
+void
+SK_FPU_LogPrecision (void)
+{
+  UINT x87_control_word = 0x0,
+      sse2_control_word = 0x0;
+
+#ifdef _M_IX86
+  __control87_2 ( 0, 0, &x87_control_word,
+                       &sse2_control_word );
+#else
+  x87_control_word  =
+    _control87 (0, 0);
+  sse2_control_word =
+   x87_control_word;
+#endif
+
+  auto _LogPrecision = [&](UINT cw, LPCWSTR name)
+  {
+    SK_LOG0 ( ( L" %s FPU Control Word: %s", name,
+                  (cw & _PC_24) == _PC_24 ? L"Single Precision (24-bit)" :
+                  (cw & _PC_53) == _PC_53 ? L"Double Precision (53-bit)" :
+                  (cw & _PC_64) == _PC_64 ? L"Double Extended Precision (64-bit)" :
+                      SK_FormatStringW ( L"Unknown (cw=%x)",
+                                    cw ).c_str ()
+              ), L" FPU Mode " );
+  };
+
+  _LogPrecision (x87_control_word,  L" x87");
+  _LogPrecision (sse2_control_word, L"SSE2");
+}
+
+SK_FPU_ControlWord
+SK_FPU_SetControlWord (UINT mask, SK_FPU_ControlWord *pNewControl)
+{
+  SK_FPU_ControlWord orig_cw = { };
+
+  #ifdef _M_IX86
+  __control87_2 (0, 0, &orig_cw.x87, &orig_cw.sse2);
+  __control87_2 (pNewControl->x87,  mask, &pNewControl->x87, nullptr);
+  __control87_2 (pNewControl->sse2, mask, nullptr,           &pNewControl->sse2);
+#else
+  orig_cw.sse2 = _control87 (0, 0);
+  orig_cw.x87  = orig_cw.sse2;
+  _control87 (pNewControl->x87, mask);
+#endif
+
+  return orig_cw;
+};
+
+SK_FPU_ControlWord
+SK_FPU_SetPrecision (UINT precision)
+{
+  SK_FPU_ControlWord cw_to_set = {
+    precision, precision
+  };
+
+  return
+    SK_FPU_SetControlWord (_MCW_PC, &cw_to_set);
+};

@@ -1098,33 +1098,16 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
   // Handle this message, but don't remove it.
   if (msg == WM_DISPLAYCHANGE)
   {
-    SK_LOG0 ( (L"Handling WM_DISPLAYCHANGE"), L"Window Mgr");
-
-    auto& rb =
-      SK_GetCurrentRenderBackend ();
-
-    if ( ((int)rb.api & (int)SK_RenderAPI::D3D11) ||
-         ((int)rb.api & (int)SK_RenderAPI::D3D12 ))
-    {
-      extern void
-      SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
-
-      SK_ComQIPtr <IDXGISwapChain> pSwap (rb.swapchain);
-
-      if (pSwap != nullptr)
-      {
-        SK_DXGI_UpdateSwapChain (pSwap);
-      }
-    }
+    SK_LOG0 ( (L"ImGui Witnessed WM_DISPLAYCHANGE"), L"Window Mgr" );
   }
 
   static auto& io =
     ImGui::GetIO ();
 
-
-
   if (msg == WM_SETCURSOR)
   {
+  //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
+
     if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
     {
       SK_ImGui_Cursor.update ();
@@ -1143,14 +1126,11 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
   if (msg == WM_SYSCOMMAND)
   {
+    //SK_LOG0 ( (L"ImGui Witnessed WM_SYSCOMMAND"), L"Window Mgr" );
     //dll_log.Log (L"WM_SYSCOMMAND (wParam=%x, lParam=%x) [HWND=%x] :: Game Window = %x", (wParam & 0xFFF0), lParam, hWnd, game_window.hWnd);
 
     switch (LOWORD (wParam & 0xFFF0))
     {
-      ///case SC_ICON: // Minimize
-      ///case SC_ZOOM: // Maximize
-      ///  return 1;
-
       case SC_RESTORE:
       case SC_SIZE:
       case SC_PREVWINDOW:
@@ -1166,43 +1146,49 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
       // Generally an application will handle this, but if it doesn't,
       //   trigger Special K's popup window,
       case SC_CLOSE:
+      {
+        //SK_LOG0 ( (L"ImGui Examined SysCmd (SC_CLOSE)"), L"Window Mgr" );
+
+        SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
+
+        if (SK_ImGui_Active () || config.input.keyboard.override_alt_f4)
+        {
+          SK_ImGui_WantExit = true;
+          return 1;
+        }
+
+        return 0;
+      } break;
+
+      case SC_KEYMENU:
+      {
+        //SK_LOG0 ( (L"ImGui Examined SysCmd (SC_KEYMENU)"), L"Window Mgr" );
+
+        // Disable ALT application menu
+        if (lParam == 0x00 || lParam == 0x20)
+        {
+          return 1;
+        }
+
+        else if (lParam == 0x05/*VK_F4*/) // DOES NOT USE Virtual Key Codes!
         {
           SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
 
-          if (SK_ImGui_Active ())
+          if (SK_ImGui_Active () || config.input.keyboard.override_alt_f4)
           {
             SK_ImGui_WantExit = true;
             return 1;
           }
-
-          return 0;
-        } break;
-
-      case SC_KEYMENU:
-        {
-          // Disable ALT application menu
-          if (lParam == 0x00 || lParam == 0x20)
-          {
-            return 1;
-          }
-
-          else if (lParam == 0x05/*VK_F4*/) // DOES NOT USE Virtual Key Codes!
-          {
-            SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
-
-            if (SK_ImGui_Active ())
-            {
-              SK_ImGui_WantExit = true;
-              return 1;
-            }
-          }
-
-          return 0;
         }
-        break;
+
+        return 0;
+      }
+      break;
 
       case SC_SCREENSAVE:
       case SC_MONITORPOWER:
+        //SK_LOG0 ( ( L"ImGui ImGui Examined SysCmd (SC_SCREENSAVE) or (SC_MONITORPOWER)" ),
+        //            L"Window Mgr" );
         if (config.window.disable_screensaver)
           return 1;
         break;
@@ -1211,8 +1197,6 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
         return 0;
     }
   }
-
-
 
   if (msg == WM_DEVICECHANGE)
   {
@@ -1311,7 +1295,9 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
     if (config.input.ui.capture_mouse)
     {
-      mouse_capture = (uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST);
+      mouse_capture =
+        ( uMsg >= WM_MOUSEFIRST &&
+          uMsg <= WM_MOUSELAST );
     }
 
     if ( keyboard_capture || mouse_capture || filter_raw_input )
@@ -2179,11 +2165,64 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
 #include <SpecialK/control_panel.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
+static LARGE_INTEGER g_Time           = { };
+static LARGE_INTEGER g_TicksPerSecond = { };
+
 void
 SK_ImGui_User_NewFrame (void)
 {
   static auto& io =
     ImGui::GetIO ();
+
+  // Setup time step
+  auto current_time =
+    SK_QueryPerf ();
+
+  static bool        first = true;
+  if (std::exchange (first, false))
+  {
+    g_TicksPerSecond = SK_GetPerfFreq ();
+    g_Time           = current_time;
+
+    io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
+    io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
+    io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
+    io.KeyMap [ImGuiKey_UpArrow]    = VK_UP;
+    io.KeyMap [ImGuiKey_DownArrow]  = VK_DOWN;
+    io.KeyMap [ImGuiKey_PageUp]     = VK_PRIOR;
+    io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
+    io.KeyMap [ImGuiKey_Home]       = VK_HOME;
+    io.KeyMap [ImGuiKey_End]        = VK_END;
+    io.KeyMap [ImGuiKey_Insert]     = VK_INSERT;
+    io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
+    io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
+    io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
+    io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
+    io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
+    io.KeyMap [ImGuiKey_A]          = 'A';
+    io.KeyMap [ImGuiKey_C]          = 'C';
+    io.KeyMap [ImGuiKey_V]          = 'V';
+    io.KeyMap [ImGuiKey_X]          = 'X';
+    io.KeyMap [ImGuiKey_Y]          = 'Y';
+    io.KeyMap [ImGuiKey_Z]          = 'Z';
+  }
+
+  io.DeltaTime =
+    std::min ( 1.0f,
+    std::max ( 0.0f, static_cast <float> (
+                    (static_cast <long double> (                                current_time.QuadPart)   -
+                     static_cast <long double> (std::exchange (g_Time.QuadPart, current_time.QuadPart))) /
+                     static_cast <long double> (               g_TicksPerSecond.QuadPart             ) ) )
+    );
+
+  // Read keyboard modifiers inputs
+  io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
+  io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
+  io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
+
+  io.KeySuper  = false;
+
+  SK_ImGui_PollGamepad ();
 
   if (nav_usable)
   {
@@ -2212,23 +2251,51 @@ SK_ImGui_User_NewFrame (void)
   g.Style.AntiAliasedFill  = config.imgui.render.antialias_contours;
 
 
-  // Save original cursor position
-  SK_GetCursorPos               (&SK_ImGui_Cursor.pos);
-  SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
-  io.MousePos.x = SK_ImGui_Cursor.pos.x;
-  io.MousePos.y = SK_ImGui_Cursor.pos.y;
-
-  ImGui::NewFrame ();
-
-
   //
   // Idle Cursor Detection  (when UI is visible, but mouse does not require capture)
   //
   //          Remove the cursor after a brief timeout period (500 ms),
   //            it will come back if moved ;)
   //
-  static int last_x = 0,
-             last_y = 0;
+  static int last_x = SK_ImGui_Cursor.pos.x,
+             last_y = SK_ImGui_Cursor.pos.y;
+
+
+  POINT                           cursor_pos = { };
+  SK_GetCursorPos               (&cursor_pos);
+  SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
+
+  if ( cursor_pos.x != last_x ||
+       cursor_pos.y != last_y )
+  {
+    if ( abs (SK_ImGui_Cursor.pos.x - cursor_pos.x) > 3 ||
+         abs (SK_ImGui_Cursor.pos.y - cursor_pos.y) > 3 )
+    {
+#define SK_LOG_ONCE_N(lvl,expr,src) { static bool _once = false; if ((! std::exchange (_once, true))) SK_LOG##lvl (expr,src); }
+#define SK_LOG_ONCE(expr,src) \
+        SK_LOG_ONCE_N(0,expr,src);
+
+      SK_LOG_ONCE ( ( L"Mouse input appears to be inconsistent..." ),
+                      L"Win32Input" );
+
+      SK_ImGui_Cursor.pos = cursor_pos;
+    }
+  }
+
+  if ( SK_ImGui_Cursor.pos.x != last_x ||
+       SK_ImGui_Cursor.pos.y != last_y )
+  {
+    io.MousePos.x = static_cast <float> (SK_ImGui_Cursor.pos.x);
+    io.MousePos.y = static_cast <float> (SK_ImGui_Cursor.pos.y);
+  }
+
+
+
+
+  ImGui::NewFrame ();
+
+
+
 
   if ( abs (last_x - SK_ImGui_Cursor.pos.x) > 3 ||
        abs (last_y - SK_ImGui_Cursor.pos.y) > 3 ||

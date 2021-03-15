@@ -27,9 +27,6 @@
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 #include <SpecialK/render/d3d11/utility/d3d11_texture.h>
 
-extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
-extern SK_LazyGlobal <target_tracking_s> tracked_rtv;
-
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -646,7 +643,7 @@ D3D11_ExecuteCommandList_Override (
 
     SK_ComPtr <ID3D11DeviceContext>
          pBuildContext (nullptr);
-    UINT  size        =        0;
+    UINT  size        =        sizeof (LPVOID);
 
     // Fix for Yakuza0, why the hell is it passing nullptr?!
     if (pCommandList == nullptr)
@@ -669,13 +666,13 @@ D3D11_ExecuteCommandList_Override (
     }
 
 
-
-    pCommandList->GetPrivateData (
+    // Broken
+#if 0
+    if ( SUCCEEDED (
+      pCommandList->GetPrivateData (
       SKID_D3D11DeviceContextOrigin,
-         &size,   &pBuildContext.p
-    );
-
-    if (pBuildContext.p != nullptr)
+         &size,   &pBuildContext.p )
+       )           )
     {
       if (! pBuildContext.IsEqualObject (This))
       {
@@ -685,11 +682,12 @@ D3D11_ExecuteCommandList_Override (
         );
       }
 
-      pBuildContext->SetPrivateData (
-        SKID_D3D11DeviceContextOrigin,
-            0,      nullptr
-      );
+      pCommandList->SetPrivateDataInterface (SKID_D3D11DeviceContextOrigin, nullptr);
     }
+#else
+    UNREFERENCED_PARAMETER (size);
+#endif
+
 
     D3D11_ExecuteCommandList_Original ( This,
       pCommandList,
@@ -734,8 +732,7 @@ D3D11_FinishCommandList_Override (
     if (SUCCEEDED (hr) && (ppCommandList               != nullptr &&
                           (RestoreDeferredContextState == FALSE)))
     {
-      (*ppCommandList)->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
-                                           sizeof (ptrdiff_t), This );
+      (*ppCommandList)->SetPrivateDataInterface ( SKID_D3D11DeviceContextOrigin, This );
     }
 
     return hr;
@@ -755,6 +752,49 @@ D3D11_RSSetScissorRects_Override (
         UINT                 NumRects,
   const D3D11_RECT          *pRects )
 {
+  if (pRects == nullptr)
+    return D3D11_RSSetScissorRects_Original (This, NumRects, pRects);
+
+  static auto game_id =
+    SK_GetCurrentGameID ();
+
+#ifdef _M_AMD64
+    if (game_id == SK_GAME_ID::GalGunReturns)
+    {
+      if (! config.window.res.override.isZero ())
+      {
+        if (NumRects == 0)
+            NumRects  = 1;
+
+        if (NumRects        == 1    &&
+            ((pRects->right == 1920 ||
+              pRects->right == 480) ||
+             (pRects->right < static_cast <LONG> (config.window.res.override.x) &&
+              pRects->right > static_cast <LONG> (config.window.res.override.x) * 0.97f) ) )
+        {
+          D3D11_RECT rectNew = *pRects;
+
+          if (rectNew.right == 480)
+          {
+            rectNew.right  = static_cast <LONG> (config.window.res.override.x / 4);
+            rectNew.bottom = static_cast <LONG> (config.window.res.override.y / 4);
+          }
+
+          else
+          {
+            rectNew.right  = static_cast <LONG> (config.window.res.override.x);
+            rectNew.bottom = static_cast <LONG> (config.window.res.override.y);
+          }
+          
+          return
+            D3D11_RSSetScissorRects_Original (
+              This, NumRects, &rectNew
+            );
+        }
+      }
+    }
+#endif
+
   return
     D3D11_RSSetScissorRects_Original (This, NumRects, pRects);
 }
@@ -1899,6 +1939,50 @@ D3D11_RSSetViewports_Override (
         UINT                 NumViewports,
   const D3D11_VIEWPORT*      pViewports )
 {
+  if (pViewports == nullptr)
+    return D3D11_RSSetViewports_Original (
+             This, NumViewports, pViewports );
+
+  static auto game_id =
+    SK_GetCurrentGameID ();
+
+#ifdef _M_AMD64
+    if (game_id == SK_GAME_ID::GalGunReturns)
+    {
+      if (! config.window.res.override.isZero ())
+      {
+        if (NumViewports == 0)
+            NumViewports  = 1;
+
+        if (NumViewports        == 1    &&
+            ((pViewports->Width == 1920 ||
+              pViewports->Width == 480) ||
+             (pViewports->Width < config.window.res.override.x &&
+              pViewports->Width > config.window.res.override.x * 0.97f) ) )
+        {
+          D3D11_VIEWPORT vpNew = *pViewports;
+
+          if (pViewports->Width == 480)
+          {
+            vpNew.Width  = static_cast <float> (config.window.res.override.x / 4);
+            vpNew.Height = static_cast <float> (config.window.res.override.y / 4);
+          }
+
+          else
+          {
+            vpNew.Width  = static_cast <float> (config.window.res.override.x);
+            vpNew.Height = static_cast <float> (config.window.res.override.y);
+          }
+          
+          return
+            D3D11_RSSetViewports_Original (
+              This, NumViewports, &vpNew
+            );
+        }
+      }
+    }
+#endif
+
   ///if (NumViewports == 0 && pViewports != nullptr)
   ///    NumViewports  = 1;
   ///

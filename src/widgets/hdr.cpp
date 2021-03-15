@@ -20,8 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-
-
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 #define SK_HDR_SECTION     L"SpecialK.HDR"
 #define SK_MISC_SECTION    L"SpecialK.Misc"
@@ -35,12 +34,6 @@ enum {
   SK_HDR_TONEMAP_HDR10_PASSTHROUGH = 2,
   SK_HDR_TONEMAP_HDR10_FILMIC      = 3
 };
-
-extern int   __SK_HDR_tonemap;
-extern int   __SK_HDR_visualization;
-extern int   __SK_HDR_Bypass_sRGB;
-extern float __SK_HDR_PaperWhite;
-extern float __SK_HDR_user_sdr_Y;
 
 auto
 DeclKeybind = [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
@@ -309,20 +302,27 @@ public:
     SK_ICommandProcessor* pCommandProc =
       SK_GetCommandProcessor ();
 
-    pCommandProc->AddVariable ( "HDR.Preset",
-            new SK_IVarStub <int> (&__SK_HDR_Preset));
+    try {
+      pCommandProc->AddVariable ( "HDR.Preset",
+              new SK_IVarStub <int> (&__SK_HDR_Preset));
 
-    pCommandProc->AddVariable ( "HDR.Visualization",
-            new SK_IVarStub <int> (&__SK_HDR_visualization));
+      pCommandProc->AddVariable ( "HDR.Visualization",
+              new SK_IVarStub <int> (&__SK_HDR_visualization));
 
-    pCommandProc->AddVariable ( "HDR.Tonemap",
-            new SK_IVarStub <int> (&__SK_HDR_tonemap));
+      pCommandProc->AddVariable ( "HDR.Tonemap",
+              new SK_IVarStub <int> (&__SK_HDR_tonemap));
 
-    pCommandProc->AddVariable ( "HDR.HorizontalSplit",
-            new SK_IVarStub <float> (&__SK_HDR_HorizCoverage));
+      pCommandProc->AddVariable ( "HDR.HorizontalSplit",
+              new SK_IVarStub <float> (&__SK_HDR_HorizCoverage));
 
-    pCommandProc->AddVariable ( "HDR.VerticalSplit",
-            new SK_IVarStub <float> (&__SK_HDR_VertCoverage));
+      pCommandProc->AddVariable ( "HDR.VerticalSplit",
+              new SK_IVarStub <float> (&__SK_HDR_VertCoverage));
+    }
+
+    catch (...)
+    {
+
+    }
   };
 
   void run (void) override
@@ -334,7 +334,7 @@ public:
 
     // Check for situation where sRGB is stripped and user has not
     //   selected a bypass behavior -- they need to be warned.
-    if (rb.srgb_stripped && __SK_HDR_Bypass_sRGB < 0)
+    if (rb.srgb_stripped && __SK_HDR_Bypass_sRGB < -1)
     {
       SK_RunOnce (
         SK_ImGui_WarningWithTitle (
@@ -464,9 +464,8 @@ public:
       u8"      Passthrough (SDR -> HDR or scRGB) \0      ACES Filmic (SDR -> HDR)\0"
       u8"HDR10 Passthrough (Native HDR)\0\0\0";
 
-    extern int __SK_HDR_tonemap;
-
-    if (! rb.isHDRCapable ())
+    // If override is not enabled and display is not HDR capable, then do nothing.
+    if ((! rb.isHDRCapable ()) && (! __SK_HDR_16BitSwap))
       return;
 
     static auto& io (ImGui::GetIO ());
@@ -490,33 +489,33 @@ public:
     static int sel = __SK_HDR_16BitSwap ? 2 :
                      __SK_HDR_10BitSwap ? 1 : 0;
 
-    if (! rb.isHDRCapable ())
-    {
-      if ( __SK_HDR_10BitSwap ||
-           __SK_HDR_16BitSwap   )
-      {
-        SK_RunOnce (SK_ImGui_Warning (
-          L"Please Restart the Game\n\n\t\tHDR Features were Enabled on a non-HDR Display!")
-        );
-
-        __SK_HDR_16BitSwap = false;
-        __SK_HDR_10BitSwap = false;
-
-        SK_HDR_RenderTargets_10bpc->PromoteTo16Bit = true;
-        SK_HDR_RenderTargets_11bpc->PromoteTo16Bit = true;
-        SK_HDR_RenderTargets_8bpc->PromoteTo16Bit  = false;
-
-        SK_RunOnce (_SK_HDR_16BitSwapChain->store            (__SK_HDR_16BitSwap));
-        SK_RunOnce (_SK_HDR_10BitSwapChain->store            (__SK_HDR_10BitSwap));
-        SK_RunOnce (_SK_HDR_Promote8BitRGBxTo16BitFP->store  (SK_HDR_RenderTargets_8bpc->PromoteTo16Bit));
-        SK_RunOnce (_SK_HDR_Promote10BitRGBATo16BitFP->store (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit));
-        SK_RunOnce (_SK_HDR_Promote11BitRGBTo16BitFP->store  (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit));
-
-        SK_RunOnce (dll_ini->write (dll_ini->get_filename ()));
-      }
-    }
-
-    else if ( rb.isHDRCapable () &&
+    //if (! rb.isHDRCapable ())
+    //{
+    //  if ( __SK_HDR_10BitSwap ||
+    //       __SK_HDR_16BitSwap   )
+    //  {
+    //    SK_RunOnce (SK_ImGui_Warning (
+    //      L"Please Restart the Game\n\n\t\tHDR Features were Enabled on a non-HDR Display!")
+    //    );
+    //
+    //    __SK_HDR_16BitSwap = false;
+    //    __SK_HDR_10BitSwap = false;
+    //
+    //    SK_HDR_RenderTargets_10bpc->PromoteTo16Bit = true;
+    //    SK_HDR_RenderTargets_11bpc->PromoteTo16Bit = true;
+    //    SK_HDR_RenderTargets_8bpc->PromoteTo16Bit  = false;
+    //
+    //    SK_RunOnce (_SK_HDR_16BitSwapChain->store            (__SK_HDR_16BitSwap));
+    //    SK_RunOnce (_SK_HDR_10BitSwapChain->store            (__SK_HDR_10BitSwap));
+    //    SK_RunOnce (_SK_HDR_Promote8BitRGBxTo16BitFP->store  (SK_HDR_RenderTargets_8bpc->PromoteTo16Bit));
+    //    SK_RunOnce (_SK_HDR_Promote10BitRGBATo16BitFP->store (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit));
+    //    SK_RunOnce (_SK_HDR_Promote11BitRGBTo16BitFP->store  (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit));
+    //
+    //    SK_RunOnce (dll_ini->write (dll_ini->get_filename ()));
+    //  }
+    //}
+    //
+    /*else */if ( /*rb.isHDRCapable () &&*/
                 ImGui::CollapsingHeader (
                   "HDR Calibration###SK_HDR_CfgHeader",
                                      ImGuiTreeNodeFlags_DefaultOpen |
@@ -541,7 +540,7 @@ public:
 
       ImGui::SameLine ();
 
-      if (ImGui::RadioButton ("scRGB HDR (16-bit)###SK_HDR_scRGB", &sel, 2))
+      if (ImGui::RadioButton ("scRGB HDR###SK_HDR_scRGB", &sel, 2))
       {
         changed = true;
 
@@ -582,7 +581,7 @@ public:
       }
     }
 
-    if (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR))
+    if (rb.isHDRCapable () && rb.isHDRActive ())
     {
       if (ImGui::IsItemHovered ())
       {
@@ -594,6 +593,12 @@ public:
           ImGui::EndTooltip ();
         }
       }
+    }
+
+    if (! rb.isHDRCapable ())
+    {
+      ImGui::SameLine ();
+      ImGui::TextColored (ImColor::HSV (0.05f, 0.95f, 0.95f), "HDR Unsupported on Current Monitor / Desktop (!!)");
     }
 
     if ( ( TenBitSwap_Original     != __SK_HDR_10BitSwap ||
@@ -713,23 +718,23 @@ public:
 
           auto& pINI = dll_ini;
 
-          float nits =
+          float peak_nits =
             __SK_HDR_Luma / 1.0_Nits;
 
           if ( __SK_HDR_tonemap != SK_HDR_TONEMAP_HDR10_PASSTHROUGH )
           {
-            if (ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &nits, 80.0f,
+            if (ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 80.0f,
                                           __SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY
                                                               :  rb.display_gamut.maxAverageY,
                 (const char *)u8"Peak White Luminance: %.1f cd/m²" ))
             {
-              __SK_HDR_Luma = nits * 1.0_Nits;
+              __SK_HDR_Luma = peak_nits * 1.0_Nits;
 
               auto& preset =
                 hdr_presets [__SK_HDR_Preset];
 
               preset.peak_white_nits =
-                nits * 1.0_Nits;
+                peak_nits * 1.0_Nits;
               preset.cfg_nits->store (preset.peak_white_nits);
 
               // Paper White needs to respond to changes in Peak White
@@ -818,7 +823,6 @@ public:
             int selected =
               (__SK_HDR_Preset == i) ? 1 : 0;
 
-            char              select_idx  [ 4 ] =  "\0";
             char              hashed_name [128] = { };
             strncpy_s (       hashed_name, 128,
               hdr_presets [i].preset_name, _TRUNCATE);
@@ -1459,8 +1463,8 @@ SK_ImGui_DrawGamut (void)
                                            sizeof (cie_pts [0]) );
     for ( auto& pt : cie_pts )
     {
-      pts.push_back ( ImVec2 (X0 +          pt.x * width, Y0 + (height -          pt.y * height)) );
-    } pts.push_back ( ImVec2 (X0 + cie_pts [0].x * width, Y0 + (height - cie_pts [0].y * height)) );
+      pts.emplace_back ( ImVec2 (X0 +          pt.x * width, Y0 + (height -          pt.y * height)) );
+    } pts.emplace_back ( ImVec2 (X0 + cie_pts [0].x * width, Y0 + (height - cie_pts [0].y * height)) );
 
     auto display_pts =
       _MakeTriangleVerts (r, g, b, w);

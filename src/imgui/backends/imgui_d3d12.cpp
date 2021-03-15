@@ -38,7 +38,7 @@
 #include <DirectXTex/d3dx12.h>
 
 #define D3D12_RESOURCE_STATE_SHADER_RESOURCE \
-	(D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+  (D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 
 // DirectX
 //#include <dxgi1_4.h>
@@ -55,6 +55,8 @@ struct SK_ImGui_D3D12Ctx
   D3D12_CPU_DESCRIPTOR_HANDLE     hFontSrvCpuDescHandle = { };
   D3D12_GPU_DESCRIPTOR_HANDLE     hFontSrvGpuDescHandle = { };
 
+  HWND                            hWndSwapChain         =   0;
+
   struct FrameHeap
   {
     struct buffer_s : SK_ComPtr <ID3D12Resource>
@@ -62,17 +64,6 @@ struct SK_ImGui_D3D12Ctx
     } Vb, Ib;
   } frame_heaps [DXGI_MAX_SWAP_CHAIN_BUFFERS];
 } _imgui_d3d12;
-
-extern float __SK_HDR_Luma;
-extern float __SK_HDR_Exp;
-extern float __SK_HDR_Saturation;
-extern float __SK_HDR_HorizCoverage;
-extern float __SK_HDR_VertCoverage;
-extern int   __SK_HDR_tonemap;
-extern int   __SK_HDR_visualization;
-extern int   __SK_HDR_Bypass_sRGB;
-extern float __SK_HDR_PaperWhite;
-extern float __SK_HDR_user_sdr_Y;
 
 extern
 void
@@ -283,7 +274,8 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
     SK_GetCurrentRenderBackend ();
 
   bool hdr_display =
-    (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
+    (rb.isHDRCapable () &&
+     rb.isHDRActive  ());
 
 
   // Setup orthographic projection matrix into our constant buffer
@@ -625,8 +617,9 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       pTexture, &srvDesc, _imgui_d3d12.hFontSrvCpuDescHandle
     );
 
-    _imgui_d3d12.pFontTexture =
-      pTexture;
+    _imgui_d3d12.pFontTexture.Attach (
+      pTexture.Detach ()
+    );
 
     SK_D3D12_SetDebugName (
       _imgui_d3d12.pFontTexture.p, L"ImGui D3D12 FontTexture"
@@ -675,9 +668,9 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
       param [1].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_PIXEL;
 
       param [2].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	    param [2].Constants.ShaderRegister            = 0; // b0
-	    param [2].Constants.Num32BitValues            = 4;
-	    param [2].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_PIXEL;
+      param [2].Constants.ShaderRegister            = 0; // b0
+      param [2].Constants.Num32BitValues            = 4;
+      param [2].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_PIXEL;
 
     D3D12_STATIC_SAMPLER_DESC
       staticSampler = { };
@@ -847,17 +840,20 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
                       int                         num_frames_in_flight,
                       DXGI_FORMAT                 rtv_format,
                       D3D12_CPU_DESCRIPTOR_HANDLE font_srv_cpu_desc_handle,
-                      D3D12_GPU_DESCRIPTOR_HANDLE font_srv_gpu_desc_handle )
+                      D3D12_GPU_DESCRIPTOR_HANDLE font_srv_gpu_desc_handle,
+                      HWND                        hwnd )
 {
-  SK_LOG0 ( ( L"Device: %p, Backbuffers: %lu, Format: %ws",
+  SK_LOG0 ( ( L"(+) Acquiring D3D12 Render Context: Device=%08xh, SwapChain: {%lu x %ws, HWND=%08xh}",
                 device, num_frames_in_flight,
-                                      SK_DXGI_FormatToStr (rtv_format).c_str () ),
-              L"D3D12 Init" );
+                                      SK_DXGI_FormatToStr (rtv_format).c_str (),
+                                      hwnd ),
+              L"D3D12BkEnd" );
 
   _imgui_d3d12.pDevice               = device;
   _imgui_d3d12.RTVFormat             = rtv_format;
   _imgui_d3d12.hFontSrvCpuDescHandle = font_srv_cpu_desc_handle;
   _imgui_d3d12.hFontSrvGpuDescHandle = font_srv_gpu_desc_handle;
+  _imgui_d3d12.hWndSwapChain         = hwnd;
 
   // Create buffers with a default size (they will later be grown as needed)
   for ( auto& frame : _imgui_d3d12.frame_heaps )
@@ -879,9 +875,11 @@ ImGui_ImplDX12_Shutdown (void)
 
   if (_imgui_d3d12.pDevice.p != nullptr)
   {
-    SK_LOG0 ( ( L"Device: %p, Format: %ws", _imgui_d3d12.pDevice.p,
-                       SK_DXGI_FormatToStr (_imgui_d3d12.RTVFormat).c_str () ),
-                L"D3D12Reset" );
+    SK_LOG0 ( ( L"(-) Releasing D3D12 Render Context: Device=%08xh, SwapChain: {%ws, HWND=%08xh}",
+                                            _imgui_d3d12.pDevice.p,
+                       SK_DXGI_FormatToStr (_imgui_d3d12.RTVFormat).c_str (),
+                                            _imgui_d3d12.hWndSwapChain),
+                L"D3D12BkEnd" );
   }
 
   _imgui_d3d12.pDevice.Release ();
@@ -892,16 +890,7 @@ ImGui_ImplDX12_Shutdown (void)
 void
 SK_ImGui_User_NewFrame (void);
 
-
-// Data
-static INT64                    g_Time                  = 0;
-static INT64                    g_TicksPerSecond        = 0;
-
 #include <SpecialK/window.h>
-
-void
-SK_ImGui_PollGamepad (void);
-
 
 void
 ImGui_ImplDX12_NewFrame (void)
@@ -913,51 +902,6 @@ ImGui_ImplDX12_NewFrame (void)
   if (! _imgui_d3d12.pPipelineState)
     ImGui_ImplDX12_CreateDeviceObjects ();
 
-  static bool        first = true;
-  if (std::exchange (first, false))
-  {
-    g_TicksPerSecond  =
-      SK_GetPerfFreq ( ).QuadPart;
-    g_Time            =
-      SK_QueryPerf   ( ).QuadPart;
-
-    ImGuiIO& io =
-      ImGui::GetIO ();
-
-    io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
-    io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
-    io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
-    io.KeyMap [ImGuiKey_UpArrow]    = VK_UP;
-    io.KeyMap [ImGuiKey_DownArrow]  = VK_DOWN;
-    io.KeyMap [ImGuiKey_PageUp]     = VK_PRIOR;
-    io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
-    io.KeyMap [ImGuiKey_Home]       = VK_HOME;
-    io.KeyMap [ImGuiKey_End]        = VK_END;
-    io.KeyMap [ImGuiKey_Insert]     = VK_INSERT;
-    io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
-    io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
-    io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
-    io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
-    io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
-    io.KeyMap [ImGuiKey_A]          = 'A';
-    io.KeyMap [ImGuiKey_C]          = 'C';
-    io.KeyMap [ImGuiKey_V]          = 'V';
-    io.KeyMap [ImGuiKey_X]          = 'X';
-    io.KeyMap [ImGuiKey_Y]          = 'Y';
-    io.KeyMap [ImGuiKey_Z]          = 'Z';
-  }
-
-
-  // Setup time step
-  INT64 current_time;
-
-  SK_QueryPerformanceCounter (
-    reinterpret_cast <LARGE_INTEGER *> (&current_time)
-  );
-
-  auto& io =
-    ImGui::GetIO ();
-
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -965,23 +909,6 @@ ImGui_ImplDX12_NewFrame (void)
     return;
 
   SK_ReleaseAssert (rb.device == _imgui_d3d12.pDevice);
-
-  io.DeltaTime =
-    std::min ( 1.0f,
-    std::max ( 0.0f, static_cast <float> (
-                    (static_cast <long double> (                       current_time) -
-                     static_cast <long double> (std::exchange (g_Time, current_time))) /
-                     static_cast <long double> (               g_TicksPerSecond      ) ) )
-    );
-
-  // Read keyboard modifiers inputs
-  io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
-  io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
-  io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
-
-  io.KeySuper  = false;
-
-  SK_ImGui_PollGamepad ();
 
   //// Start the frame
   SK_ImGui_User_NewFrame ();
@@ -1022,23 +949,55 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
   const  D3D12_TEXTURE_COPY_LOCATION *pSrc,
   const  D3D12_BOX                   *pSrcBox )
 {
-  D3D12_RESOURCE_DESC src_desc =
-    pSrc->pResource->GetDesc ();
+  D3D12_TEXTURE_COPY_LOCATION src = *pSrc,
+                              dst = *pDst;
 
-  if ( D3D12_RESOURCE_DIMENSION_TEXTURE2D == src_desc.Dimension &&
-       DXGI_FORMAT_R16G16B16A16_TYPELESS  ==
-                     DirectX::MakeTypeless ( src_desc.Format )
-     )
+  if (__SK_HDR_16BitSwap)
   {
-    D3D12_RESOURCE_DESC dst_desc =
-      pDst->pResource->GetDesc ();
+    D3D12_RESOURCE_DESC
+      src_desc = pSrc->pResource->GetDesc (),
+      dst_desc = pDst->pResource->GetDesc ();
 
-    if ( dst_desc.Format != DXGI_FORMAT_UNKNOWN &&
-         dst_desc.Format != src_desc.Format     &&
-         DirectX::BitsPerColor (dst_desc.Format) !=
-         DirectX::BitsPerColor (src_desc.Format) )
+    if ( ( D3D12_RESOURCE_DIMENSION_TEXTURE2D == dst_desc.Dimension ||
+           D3D12_RESOURCE_DIMENSION_TEXTURE2D == src_desc.Dimension ) &&
+                           src_desc.MipLevels == 1 &&
+                           dst_desc.MipLevels == 1 )
     {
-      return;
+      DXGI_FORMAT srcFmt = src_desc.Format,
+                  dstFmt = dst_desc.Format;
+
+      static auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      SK_ComQIPtr <IDXGISwapChain>
+          pSwap (  rb.swapchain  );
+      DXGI_SWAP_CHAIN_DESC swapDesc = { };
+      if (pSwap)
+          pSwap->GetDesc (&swapDesc);
+
+      if ( pSwap.p == nullptr ||
+           ( src_desc.Width  == swapDesc.BufferDesc.Width &&
+             src_desc.Height == swapDesc.BufferDesc.Height ) ||
+           ( dst_desc.Width  == swapDesc.BufferDesc.Width &&
+             dst_desc.Height == swapDesc.BufferDesc.Height ) )
+      {
+        auto typelessSrc = DirectX::MakeTypeless (srcFmt),
+             typelessDst = DirectX::MakeTypeless (dstFmt);
+
+        if ( DXGI_FORMAT_R16G16B16A16_TYPELESS == typelessDst ||
+             DXGI_FORMAT_R16G16B16A16_TYPELESS == typelessSrc )
+        {
+          if ( typelessSrc != typelessDst     &&
+               DirectX::BitsPerColor (srcFmt) !=
+               DirectX::BitsPerColor (dstFmt) )
+          {
+            static volatile LONG   lSkips = 0;
+            InterlockedIncrement (&lSkips);
+
+            return;
+          }
+        }
+      }
     }
   }
 
@@ -1068,7 +1027,8 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
   if (! _pDevice.p || frames_.empty ())
   {
-    init (pSwapChain, _pCommandQueue.p);
+    if (! init (pSwapChain, _pCommandQueue.p))
+      return;
   }
 
   if (! _pCommandQueue.p)
@@ -1105,10 +1065,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   auto pCommandList =
     stagingFrame.pCmdList.p;
 
-	// Make sure all commands for this command allocator have finished executing before reseting it
-	if (stagingFrame.fence->GetCompletedValue () < stagingFrame.fence.value)
-	{
-		if ( SUCCEEDED ( stagingFrame.fence->SetEventOnCompletion (
+  // Make sure all commands for this command allocator have finished executing before reseting it
+  if (stagingFrame.fence->GetCompletedValue () < stagingFrame.fence.value)
+  {
+    if ( SUCCEEDED ( stagingFrame.fence->SetEventOnCompletion (
                      stagingFrame.fence.value,
                      stagingFrame.fence.event                 )
                    )
@@ -1117,7 +1077,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       // Event is automatically reset after this wait is released
       WaitForSingleObject (stagingFrame.fence.event, INFINITE);
     }
-	}
+  }
 
   // Screenshot may have left this in a recording state
   if (! stagingFrame.bCmdListRecording)
@@ -1140,8 +1100,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   ///bool hdr_display =
   ///  (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
 
-  extern bool
-       __SK_HDR_16BitSwap;
   if ( __SK_HDR_16BitSwap &&
        stagingFrame.hdr.pSwapChainCopy.p != nullptr &&
                         pHDRPipeline.p   != nullptr &&
@@ -1184,11 +1142,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       cbuffer_cspace.currentTime           = (float)timeGetTime ();
 
     static FLOAT         kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-  //stagingFrame.hdr.barriers.copy_end ->Flags = D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
-  //stagingFrame.hdr.barriers.process[0].Flags = D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
-  //stagingFrame.hdr.barriers.process[1].Flags = D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
-
 
     pCommandList->SetGraphicsRootSignature          ( pHDRSignature                                  );
     pCommandList->SetPipelineState                  ( pHDRPipeline                                   );
@@ -1236,13 +1189,13 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   stagingFrame.exec_cmd_list ();
 
   if ( const UINT64 sync_value = stagingFrame.fence.value + 1;
-		     SUCCEEDED ( _pCommandQueue->Signal (
+         SUCCEEDED ( _pCommandQueue->Signal (
                                  stagingFrame.fence.p,
                     sync_value              )
                    )
      )
   {
-	  stagingFrame.fence.value =
+    stagingFrame.fence.value =
       sync_value;
   }
 }
@@ -1272,17 +1225,17 @@ SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineSta
 void
 SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
-	assert (bCmdListRecording);
+  assert (bCmdListRecording);
 
   ////SK_D3D12_UpdateRenderStatsEx ( pCmdList,
   ////                               pRoot->pSwapChain );
 
-	if (FAILED (pCmdList->Close ()))
-		return;
+  if (FAILED (pCmdList->Close ()))
+    return;
 
   bCmdListRecording = false;
 
-	ID3D12CommandList* const cmd_lists [] = {
+  ID3D12CommandList* const cmd_lists [] = {
     pCmdList.p
   };
 
@@ -1292,7 +1245,7 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   //  Failure to skip execution will result in device removal
   if (pRoot->_pSwapChain->GetCurrentBackBufferIndex () == iBufferIdx)
   {
-	  pRoot->_pCommandQueue->ExecuteCommandLists (
+    pRoot->_pCommandQueue->ExecuteCommandLists (
       ARRAYSIZE (cmd_lists),
                  cmd_lists
     );
@@ -1308,8 +1261,8 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void)
     exec_cmd_list ();
   }
 
-	// Increment fence value to ensure it has not been signaled before
-	const UINT64 sync_value =
+  // Increment fence value to ensure it has not been signaled before
+  const UINT64 sync_value =
     fence.value + 1;
 
   if (! fence.event)
@@ -1330,11 +1283,11 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void)
                  )
      )
   {
-		WaitForSingleObject (fence.event, INFINITE);
+    WaitForSingleObject (fence.event, INFINITE);
   }
 
-	// Update CPU side fence value now that it is guaranteed to have come through
-	fence.value =
+  // Update CPU side fence value now that it is guaranteed to have come through
+  fence.value =
     sync_value;
 
   return true;
@@ -1373,29 +1326,26 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
-  SK_ComQIPtr <IDXGISwapChain> pSwapChain_ (pSwapChain);
-  SK_ComPtr   <IDXGISwapChain> pSwapChainUnwrapped;
-
-  UINT _size =
-        sizeof (LPVOID);
-
-  IUnknown* pUnwrapped = nullptr;
-
-  if ( pSwapChain != nullptr &&
-       SUCCEEDED (
-         pSwapChain_->GetPrivateData (
-           IID_IUnwrappedDXGISwapChain, &_size,
-              &pUnwrapped
-                 )                  )
-     )
-  {
-             pSwapChainUnwrapped.p =
-    (IDXGISwapChain *)pUnwrapped;
-  }
+  //SK_ComPtr <IDXGISwapChain> pSwapChain_ (pSwapChain);
+  //
+  //UINT _size =
+  //      sizeof (LPVOID);
+  //
+  //SK_ComPtr <IUnknown> pUnwrapped;
+  //
+  //if ( pSwapChain != nullptr &&
+  //     SUCCEEDED (
+  //       pSwapChain->GetPrivateData (
+  //         IID_IUnwrappedDXGISwapChain, &_size,
+  //            &pUnwrapped
+  //               )                   )
+  //   )
+  //{
+  //}
 
   if ( (_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
-        _pSwapChain.IsEqualObject  (pSwapChain)            ||
-        _pSwapChain.IsEqualObject  (pUnwrapped) )
+        _pSwapChain.IsEqualObject  (pSwapChain)            )//||
+        //_pSwapChain.IsEqualObject  (pUnwrapped) )
   {
     if (SK_IsDebuggerPresent ())
     {
@@ -1419,8 +1369,11 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
     pHDRSignature.Release                ();
 
     descriptorHeaps.pBackBuffers.Release ();
-	  descriptorHeaps.pImGui.Release       ();
+    descriptorHeaps.pImGui.Release       ();
     descriptorHeaps.pHDR.Release         ();
+
+    ///// 1 frame delay for re-init
+    ///frame_delay.fetch_add (1);
 
     frames_.clear ();
 
@@ -1439,6 +1392,12 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
     _pCommandQueue =
      pCommandQueue;
   }
+
+
+  // Delay (re-)init for issues with Ubisoft games
+  if ( frame_delay.fetch_sub (1) > 0 ) return false;
+  else frame_delay.exchange  (0);
+
 
   if (_pDevice.p == nullptr)
   {
@@ -1618,9 +1577,9 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       // Create the root signature
       D3D12_DESCRIPTOR_RANGE
         srv_range                    = {};
-		    srv_range.RangeType          = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		    srv_range.NumDescriptors     = 1;
-		    srv_range.BaseShaderRegister = 0; // t0
+        srv_range.RangeType          = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+        srv_range.NumDescriptors     = 1;
+        srv_range.BaseShaderRegister = 0; // t0
 
       D3D12_ROOT_PARAMETER
         param [3]                                     = { };
@@ -1757,12 +1716,16 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           &psoDesc, IID_PPV_ARGS (&pHDRPipeline.p)
        ));SK_D3D12_SetDebugName  ( pHDRPipeline.p, L"SK HDR Pipeline State" );
 
-	    if (
+      HWND                   hWnd = HWND_BROADCAST;
+      _pSwapChain->GetHwnd (&hWnd);
+
+      if (
         ImGui_ImplDX12_Init ( _pDevice,
                               swapDesc1.BufferCount,
                                 swapDesc1.Format,
-		  		descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart (),
-		  		descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart ()))
+          descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart (),
+          descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart (), hWnd)
+         )
       {
         ImGui_ImplDX12_CreateDeviceObjects ();
 

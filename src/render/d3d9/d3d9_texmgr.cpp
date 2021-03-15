@@ -3344,13 +3344,12 @@ SK::D3D9::TextureManager::refreshDataSources (void)
          INVALID_FILE_ATTRIBUTES )
   {
     WIN32_FIND_DATA fd;
-    HANDLE          hFind  = INVALID_HANDLE_VALUE;
     int             files  = 0;
     LARGE_INTEGER   liSize = { 0 };
 
     tex_log->LogEx ( true, L"[Inject Tex] Enumerating injectable textures..." );
 
-    hFind =
+    HANDLE hFind =
       FindFirstFileW ((*SK_D3D11_res_root + L"\\inject\\textures\\blocking\\*").c_str (), &fd);
 
     if (hFind != INVALID_HANDLE_VALUE)
@@ -3467,7 +3466,6 @@ SK::D3D9::TextureManager::refreshDataSources (void)
 
             rec.size    = fsize.LowPart;
             rec.archive = std::numeric_limits <unsigned int>::max ();
-            rec.method  = DontCare;
             InterlockedExchange (
            &rec.removed, FALSE  );
 

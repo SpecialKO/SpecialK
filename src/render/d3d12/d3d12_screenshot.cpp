@@ -617,17 +617,17 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
 #endif
 #if 0
     const uint32_t data_pitch     = framebuffer.Width * 4;
-	  const uint32_t download_pitch = (data_pitch + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
+    const uint32_t download_pitch = (data_pitch + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
                                               & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
 
-	  D3D12_RESOURCE_DESC
+    D3D12_RESOURCE_DESC
       staging_desc                  = { D3D12_RESOURCE_DIMENSION_BUFFER };
-	    staging_desc.Width            = framebuffer.Height * download_pitch;
-	    staging_desc.Height           = 1;
-	    staging_desc.DepthOrArraySize = 1;
-	    staging_desc.MipLevels        = 1;
-	    staging_desc.SampleDesc       = { 1, 0 };
-	    staging_desc.Layout           = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+      staging_desc.Width            = framebuffer.Height * download_pitch;
+      staging_desc.Height           = 1;
+      staging_desc.DepthOrArraySize = 1;
+      staging_desc.MipLevels        = 1;
+      staging_desc.SampleDesc       = { 1, 0 };
+      staging_desc.Layout           = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
     D3D12_HEAP_PROPERTIES
       heapProps                     = { D3D12_HEAP_TYPE_READBACK };
@@ -852,14 +852,17 @@ SK_D3D12_CaptureScreenshot (
   if (FAILED (hr))
        return hr;
 
+  auto& d3d12_rbk =
+    _d3d12_rbk;
+
   bool bRecording =
-    _d3d12_rbk->frames_ [_d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].bCmdListRecording;
+    d3d12_rbk->frames_ [d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].bCmdListRecording;
 
   if (! bRecording)
   {
     SK_ReleaseAssert (!"D3D12 Screenshot Initiated While SK Was Not Recording A Command List!");
 
-    _d3d12_rbk->frames_ [_d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
+    d3d12_rbk->frames_ [d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
 
     beforeState = D3D12_RESOURCE_STATE_PRESENT;
     afterState  = D3D12_RESOURCE_STATE_PRESENT;
@@ -886,8 +889,8 @@ SK_D3D12_CaptureScreenshot (
                   D3D12_RESOURCE_STATE_COPY_SOURCE, afterState );
 
 
-  _d3d12_rbk->frames_ [_d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].exec_cmd_list  ();
-  _d3d12_rbk->frames_ [_d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
+  d3d12_rbk->frames_ [d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].exec_cmd_list  ();
+  d3d12_rbk->frames_ [d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
 
   // Create a fence
   hr =
@@ -941,7 +944,7 @@ SK_D3D12_Screenshot::getData ( UINT     *pWidth,
       framebuffer.PackedDstSlicePitch
     };
 
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout            = {  };
+      D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout            = {  };
     UINT64                             totalResourceSize = 0ULL;
 
     const auto staging_desc =
@@ -963,7 +966,8 @@ SK_D3D12_Screenshot::getData ( UINT     *pWidth,
     {
                       pData + layout.Offset,
       static_cast <LONG_PTR> (layout.Footprint.RowPitch),
-      static_cast <LONG_PTR> (layout.Footprint.RowPitch * NumRows)
+      static_cast <LONG_PTR> (layout.Footprint.RowPitch) *
+      static_cast <LONG_PTR> (NumRows)
     };
 
     SK_ReleaseAssert (RowSizeInBytes <= (SIZE_T)-1);
@@ -1411,12 +1415,15 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             {
               SK_ReleaseAssert (rb.d3d12.command_queue.p != nullptr);
 
-              screenshot_queue->push (
-                new SK_D3D12_Screenshot (
-                  pDev, rb.d3d12.command_queue, (IDXGISwapChain3 *)
-                        rb.swapchain.p
-                )
-              );
+              if (SK_GetCurrentRenderBackend ().screenshot_mgr.checkDiskSpace (20ULL * 1024ULL * 1024ULL))
+              {
+                screenshot_queue->push (
+                  new SK_D3D12_Screenshot (
+                    pDev, rb.d3d12.command_queue, (IDXGISwapChain3 *)
+                          rb.swapchain.p
+                  )
+                );
+              }
             }
 
             else {
@@ -1524,7 +1531,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               raw_img.pixels = pFrameData->PixelBuffer.get ();
 
               bool hdr = ( rb.isHDRCapable () &&
-                          (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+                           rb.isHDRActive  () );
 
               SK_RunOnce (SK_SteamAPI_InitManagers ());
 
@@ -1743,6 +1750,14 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                   TEX_THRESHOLD_DEFAULT,
                                     un_scrgb );
                 }
+
+                // Copy to Clipboard
+                if (un_scrgb.GetImages ())
+                {
+                  rb.screenshot_mgr.copyToClipboard (*un_scrgb.GetImages ());
+                }
+
+                // Save to Disk
                 if (               un_scrgb.GetImages () &&
                       SUCCEEDED (
                   SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
@@ -2071,7 +2086,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
           SetEvent   (signal.abort.finished); // Abort is complete
         }
 
-        if (config.screenshots.png_compress)
+        if (config.screenshots.png_compress || config.screenshots.copy_to_clipboard)
         {
           int enqueued_lossless = 0;
 
@@ -2163,7 +2178,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                   bool hdr =
                      (rb.isHDRCapable ()  &&
-                     (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
+                      rb.isHDRActive ());
 
                   if (hdr)
                   {
@@ -2245,13 +2260,32 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     raw_img.height = static_cast <size_t> (pFrameData->Height);
                     raw_img.pixels = pFrameData->PixelBuffer.get ();
 
-                    SK_CreateDirectories (wszAbsolutePathToLossless);
+                    if (config.screenshots.copy_to_clipboard)
+                    {
+                      ScratchImage
+                        clipboard;
+                        clipboard.InitializeFromImage (raw_img);
 
-                    ScratchImage
-                      un_srgb;
-                      un_srgb.InitializeFromImage (raw_img);
+                      if (SUCCEEDED ( Convert ( raw_img,
+                                                  DXGI_FORMAT_B8G8R8X8_UNORM,
+                                                    TEX_FILTER_DITHER,
+                                                      TEX_THRESHOLD_DEFAULT,
+                                                        clipboard ) ) )
+                      {
+                        if (! hdr)
+                          rb.screenshot_mgr.copyToClipboard (*clipboard.GetImages ());
+                      }
+                    }
 
-                    HRESULT hrSaveToWIC =     un_srgb.GetImages () ?
+                    if (config.screenshots.png_compress)
+                    {
+                      SK_CreateDirectories (wszAbsolutePathToLossless);
+
+                      ScratchImage
+                        un_srgb;
+                        un_srgb.InitializeFromImage (raw_img);
+
+                      HRESULT hrSaveToWIC =   un_srgb.GetImages () ?
                               SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
                                       GetWICCodec (hdr ? WIC_CODEC_WMP :
                                                          WIC_CODEC_PNG),
@@ -2260,21 +2294,22 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                                &GUID_WICPixelFormat64bppRGBAHalf :
                                                nullptr ) : E_POINTER;
 
-                    if (SUCCEEDED (hrSaveToWIC))
-                    {
-                      // Refresh
-                      rb.screenshot_mgr.getRepoStats (true);
-                    }
+                      if (SUCCEEDED (hrSaveToWIC))
+                      {
+                        // Refresh
+                        rb.screenshot_mgr.getRepoStats (true);
+                      }
 
-                    else
-                    {
-                      SK_LOG0 ( ( L"Unable to write Screenshot, hr=%s",
-                                                     SK_DescribeHRESULT (hrSaveToWIC) ),
-                                  L"D3D12SShot" );
+                      else
+                      {
+                        SK_LOG0 ( ( L"Unable to write Screenshot, hr=%s",
+                                                       SK_DescribeHRESULT (hrSaveToWIC) ),
+                                    L"D3D12SShot" );
 
-                      SK_ImGui_Warning ( L"Smart Screenshot Capture Failed.\n\n"
-                                         L"\t\t\t\t>> More than likely this is a problem with MSAA or Windows 7\n\n"
-                                         L"\t\tTo prevent future problems, disable this under Steam Enhancements / Screenshots" );
+                        SK_ImGui_Warning ( L"Smart Screenshot Capture Failed.\n\n"
+                                           L"\t\t\t\t>> More than likely this is a problem with MSAA or Windows 7\n\n"
+                                           L"\t\tTo prevent future problems, disable this under Steam Enhancements / Screenshots" );
+                      }
                     }
 
                     delete pFrameData;

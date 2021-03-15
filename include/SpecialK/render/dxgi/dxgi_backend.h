@@ -172,17 +172,17 @@
 
 HRESULT
 WINAPI
-CreateDXGIFactory  (       REFIID   riid,
-                     _Out_ void   **ppFactory );
+CreateDXGIFactory  (              REFIID   riid,
+                     _COM_Outptr_ void   **ppFactory );
 HRESULT
 WINAPI
-CreateDXGIFactory1 (       REFIID   riid,
-                     _Out_ void   **ppFactory );
+CreateDXGIFactory1 (              REFIID   riid,
+                     _COM_Outptr_ void   **ppFactory );
 HRESULT
 WINAPI
-CreateDXGIFactory2 (       UINT     Flags,
-                           REFIID   riid,
-                     _Out_ void   **ppFactory );
+CreateDXGIFactory2 (              UINT     Flags,
+                                  REFIID   riid,
+                     _COM_Outptr_ void   **ppFactory );
 
 
 
@@ -382,8 +382,8 @@ namespace SK
         {
           hrCompile =
             pDev->CreateVertexShader (
-                      pByteCode,
-              sizeof (pByteCode), nullptr,
+                       pByteCode,
+              sizeof (*pByteCode), nullptr,
               reinterpret_cast <ID3D11VertexShader **>(&shader)
             );
         }
@@ -393,8 +393,8 @@ namespace SK
         {
           hrCompile =
             pDev->CreatePixelShader (
-                      pByteCode,
-              sizeof (pByteCode), nullptr,
+                       pByteCode,
+              sizeof (*pByteCode), nullptr,
               reinterpret_cast <ID3D11PixelShader **>(&shader)
             );
         }
@@ -480,5 +480,7 @@ void WINAPI SK_HookDXGI       (void);
 void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 
 void WINAPI SK_DXGI_SetPreferredAdapter (int override_id) noexcept;
+
+void SK_DXGI_UpdateSwapChain (IDXGISwapChain* This);
 
 #endif /* __SK__DXGI_BACKEND_H__ */

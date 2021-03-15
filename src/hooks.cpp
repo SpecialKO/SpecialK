@@ -1264,14 +1264,14 @@ SK_CreateVFTableHook ( const wchar_t  *pwszFuncName,
           ppVFTable [dwOffset],
             pDetour,
               ppOriginal );
-  }
 
-  if (status == MH_OK)
-  {
-    SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
+    if (status == MH_OK)
+    {
+      SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-    status =
-      SK_EnableHook (ppVFTable [dwOffset]);
+      status =
+        SK_EnableHook (ppVFTable [dwOffset]);
+    }
   }
 
   if (status != MH_OK)
@@ -1308,14 +1308,14 @@ SK_CreateVFTableHookEx ( const wchar_t  *pwszFuncName,
             pDetour,
               ppOriginal,
                 idx );
-  }
 
-  if (status == MH_OK)
-  {
-    SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
+    if (status == MH_OK)
+    {
+      SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-    status =
-      SK_EnableHookEx (ppVFTable [dwOffset], idx);
+      status =
+        SK_EnableHookEx (ppVFTable [dwOffset], idx);
+    }
   }
 
   if (status != MH_OK)
@@ -1350,14 +1350,14 @@ SK_CreateVFTableHook2 ( const wchar_t  *pwszFuncName,
           ppVFTable [dwOffset],
             pDetour,
               ppOriginal );
-  }
 
-  if (status == MH_OK)
-  {
-    SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
+    if (status == MH_OK)
+    {
+      SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-    status =
-      MH_QueueEnableHook (ppVFTable [dwOffset]);
+      status =
+        MH_QueueEnableHook (ppVFTable [dwOffset]);
+    }
   }
 
   if (status != MH_OK)
@@ -1392,14 +1392,14 @@ SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
           ppVFTable [dwOffset],
             pDetour,
               ppOriginal );
-  }
 
-  if (status == MH_OK)
-  {
-    SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
+    if (status == MH_OK)
+    {
+      SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-    //status =
-    //  MH_QueueEnableHook (ppVFTable [dwOffset]);
+      //status =
+      //  MH_QueueEnableHook (ppVFTable [dwOffset]);
+    }
   }
 
   if (status != MH_OK)

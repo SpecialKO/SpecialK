@@ -26,7 +26,7 @@ __declspec (noinline)
 concurrency::concurrent_unordered_set <HMODULE>&
 SK_DbgHlp_Callers (void)
 {
-  static concurrency::concurrent_unordered_set <HMODULE> _callers (32);
+  static concurrency::concurrent_unordered_set <HMODULE> _callers (64);
   return                                                 _callers;
 }
 
@@ -1826,19 +1826,14 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
     SK_Thread_Create ([](LPVOID user) -> DWORD
     {
+      static SK_AutoHandle hWalkDone (
+        SK_CreateEvent (nullptr, FALSE, TRUE, nullptr)
+      );
+
       SetCurrentThreadDescription (L"[SK] DLL Enumerator");
       SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-      static volatile LONG                walking  =  0;
-      while (InterlockedCompareExchange (&walking, 1, 0))
-      {
-        static LONG start = timeGetTime ();
-
-        MsgWaitForMultipleObjectsEx ( 0, nullptr, 20UL,
-                                        QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
-
-        //if (timeGetTime () - start > 125UL) break;
-      }
+      SK_WaitForSingleObject (hWalkDone.m_h, INFINITE);
 
       WaitForInit ();
 
@@ -1874,7 +1869,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       {
         delete pWorkingSet;
 
-        InterlockedExchange (&walking, 0);
+        SetEvent (hWalkDone.m_h);
 
         CleanupLog   (pLogger);
         SK_Thread_CloseSelf ();
@@ -1912,7 +1907,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
       delete pWorkingSet;
 
-      InterlockedExchange (&walking, 0);
+      SetEvent (hWalkDone.m_h);
 
       SK_Thread_CloseSelf ();
 
@@ -1998,6 +1993,39 @@ BlacklistLibrary (const _T* lpFileName)
       nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
       nv_blacklist.emplace_back (SK_TEXT("nvspcap"));
       nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI"));
+      init = true;
+    }
+
+    for ( auto it : nv_blacklist )
+    {
+      if (StrStrI (lpFileName, it))
+      {
+        HMODULE hModNV;
+
+        if ( GetModuleHandleEx (
+               GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                 it, &hModNV   )
+           )
+        {
+          SK_FreeLibrary (hModNV);
+        }
+
+        return TRUE;
+      }
+    }
+  }
+
+  if (config.nvidia.bugs.bypass_ansel)
+  {
+    static bool init = false;
+
+    static std::vector < const _T* >
+                nv_blacklist;
+
+    if (! init)
+    {
+      nv_blacklist.emplace_back (SK_TEXT("nvcamera64.dll"));
+      nv_blacklist.emplace_back (SK_TEXT("nvcamera.dll"));
       init = true;
     }
 

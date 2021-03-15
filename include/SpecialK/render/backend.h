@@ -140,9 +140,11 @@ public:
    SK_RenderBackend_V2 (void);
   ~SK_RenderBackend_V2 (void);
 
-  SK_ComPtr <IUnknown>   device               = nullptr;
-  SK_ComPtr <IUnknown>   swapchain            = nullptr;
-  SK_AutoHandle          swapchain_waithandle = 0;
+  SK_ComPtr <IUnknown>   device                = nullptr;
+  SK_ComPtr <IUnknown>   swapchain             = nullptr;
+  SK_ComPtr <IDXGIFactory1>
+                         factory               = nullptr; // Used to enumerate display modes, the rb doesn't create any resources
+  HMONITOR               monitor               = nullptr;
 
   // Different views of the same resource (API interop)
   struct {
@@ -152,6 +154,7 @@ public:
                           dxgi                 = nullptr;
     NVDX_ObjectHandle     nvapi                = nullptr;
   } surface;
+
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
   int                     present_interval     = 0; // Present interval on last call to present
@@ -162,6 +165,24 @@ public:
   bool                    driver_based_hdr     = false;
   SK_ColorSpace           display_gamut        = { 0.0f }; // EDID
   SK_ColorSpace           working_gamut        = { 0.0f }; // Metadata range
+
+  struct output_s {
+    UINT                  idx             = 0;
+    RECT                  rect            = { 0, 0, 0, 0 };
+    int                   bpc             = 8;
+    SK_ColorSpace         gamut           = { };
+    DXGI_COLOR_SPACE_TYPE colorspace      = DXGI_COLOR_SPACE_CUSTOM;
+    bool                  primary         = false;
+    bool                  hdr             = false;
+    bool                  attached        = false;
+    wchar_t               name      [128] = { };
+    wchar_t               dxgi_name [32]  = { };
+    HMONITOR              monitor         =   0;
+  } displays [16];
+
+  uint32_t                display_crc [16] = { }; // Quick detect for changing displays
+  
+  bool                    stale_display_info   = true; // Output topology is stale, update it during getContainingOutput (...)
 
   struct scan_out_s {
     int                   bpc                  = 8;
@@ -279,14 +300,19 @@ public:
   __inline void setHDRCapable (bool set) noexcept { hdr_capable = set; }
   __inline bool isHDRCapable  (void)     noexcept
   {
-    if (framebuffer_flags& SK_FRAMEBUFFER_FLAG_HDR)
-      hdr_capable = true;
+    ////if (framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
+    ////  hdr_capable = true;
 
     if (driver_based_hdr)
       hdr_capable = true;
 
     return
       hdr_capable;
+  }
+  __inline bool isHDRActive (void) noexcept
+  {
+    return
+      framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR;
   }
 
   struct                 {
@@ -312,6 +338,7 @@ public:
     // This Unity engine is so terrible at window management that we need
     //   to flag the game and start disabling features!
     bool                  unity                = false;
+    bool                  unreal               = false;
 
     void setFocus  (HWND hWndFocus);
     void setDevice (HWND hWndRender);
@@ -359,10 +386,13 @@ public:
               SK_ComQIPtr <Q> (device);
           }
 
-          assert (!"Unknown Render Device Class Requested");
+          //static_assert ( riid == IID_IDirect3DDevice9   ||
+          //                riid == IID_IDirect3DDevice9Ex ||
+          //                riid == IID_ID3D11Device       ||
+          //                riid == IID_ID3D12Device,
+          //  "Unknown Render Device Class Requested" );
 
-          return
-            SK_ComQIPtr <Q> (device);
+          return nullptr;
         }
 
   struct gsync_s
@@ -398,6 +428,9 @@ public:
 
   HANDLE getSwapWaitHandle   (void);
   void releaseOwnedResources (void);
+
+  void            updateOutputTopology (void);
+  const output_s* getContainingOutput  (const RECT& rkRect);
 };
 #pragma pack(pop)
 

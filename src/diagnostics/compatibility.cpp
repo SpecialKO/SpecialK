@@ -869,7 +869,7 @@ SK_Bypass_CRT (LPVOID)
     }
   }
 
-  if (! temp_dll.empty ())
+  if (temp_dll.empty ())
     SK_RestartGame (nullptr);
   else
     SK_RestartGame (temp_dll.c_str ());

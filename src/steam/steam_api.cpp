@@ -2841,13 +2841,16 @@ public:
 
   void requestStats (void)
   {
-    if (steam_ctx.UserStats ())
+    auto pUserStats =
+      steam_ctx.UserStats ();
+
+    if (pUserStats != nullptr)
     {
-      if (steam_ctx.UserStats ()->RequestCurrentStats ())
+      if (pUserStats->RequestCurrentStats ())
       {
         SteamAPICall_t hCall =
-          steam_ctx.UserStats ()->RequestUserStats (
-               steam_ctx.User ()->GetSteamID ()
+          pUserStats->RequestUserStats (
+            steam_ctx.User ()->GetSteamID ()
           );
 
         self_listener.Set ( hCall,
@@ -3181,10 +3184,13 @@ protected:
     }
     achv_unlock->setText (szUnlockTime);
 
+    auto pUserStats = steam_ctx.UserStats ();
+    auto pUtils = steam_ctx.Utils ();
+
     int icon_idx =
-      ( steam_ctx.UserStats () ?
-        steam_ctx.UserStats ()->GetAchievementIcon (achievement->name_) :
-                               0 );
+      ( pUserStats != nullptr ?
+        pUserStats->GetAchievementIcon (achievement->name_) :
+                              0 );
 
     // Icon width and height
     uint32 w = 0,
@@ -3192,8 +3198,8 @@ protected:
 
     if (icon_idx != 0)
     {
-      if (steam_ctx.Utils ())
-          steam_ctx.Utils ()->GetImageSize (icon_idx, &w, &h);
+      if (pUtils != nullptr)
+          pUtils->GetImageSize (icon_idx, &w, &h);
 
       int tries = 1;
 
@@ -3202,9 +3208,9 @@ protected:
         achievement->icons_.achieved =
           (uint8_t *)_aligned_malloc (static_cast <size_t> (4) * w * h, 16);
 
-        if (steam_ctx.Utils ())
+        if (pUtils != nullptr)
         {
-          if ( ! steam_ctx.Utils ()->GetImageRGBA (
+          if ( ! pUtils->GetImageRGBA (
                    icon_idx,
                      achievement->icons_.achieved,
                        ( 4 * w * h )
@@ -3776,7 +3782,7 @@ SteamAPI_PumpThread (LPVOID user)
   if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
        SK_GetCurrentGameID () == SK_GAME_ID::JustCause3         ||
        SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2      ||
-       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaLikeADragon )
+       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
   {
     start_immediately = true;
   }
@@ -5508,6 +5514,29 @@ static SK_Steam_FileSigPass_e
        SK_Steam_FileSigPass_e::Executable
   );
 
+bool
+__stdcall
+SK_Steam_GetInstalledDepots (DepotId_t *depots)
+{
+  __try
+  {
+    const auto pApps  = steam_ctx.Apps  ();
+    const auto pUtils = steam_ctx.Utils ();
+
+    if (pApps != nullptr)
+    {   pApps->GetInstalledDepots (pUtils->GetAppID (), depots, 16);
+        return true;
+    }
+  }
+
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                EXCEPTION_EXECUTE_HANDLER  :
+                EXCEPTION_CONTINUE_SEARCH )
+  {
+  }
+
+  return false;
+}
 uint32_t
 __stdcall
 SK_Steam_PiratesAhoy (void)
@@ -5522,8 +5551,8 @@ SK_Steam_PiratesAhoy (void)
   {
     DepotId_t depots [16] = { };
 
-    pApps->RequestAllProofOfPurchaseKeys ();
-    pApps->GetInstalledDepots            (pUtils->GetAppID (), depots, 16);
+    if (! SK_Steam_GetInstalledDepots (depots))
+      return verdict;
 
     if ( hAsyncSigCheck == 0 &&
       (! config.steam.silent) )
@@ -6954,7 +6983,7 @@ SK_SteamAPIContext::ReassignAppIDForPipe ( HSteamPipe hPipe,
   {
     IClientUtils_001* utils = nullptr;
 
-    if (utils == nullptr && hPipe != 0)
+    if (hPipe != 0)
     {
       utils =
         client_engine->GetIClientUtils (hPipe,

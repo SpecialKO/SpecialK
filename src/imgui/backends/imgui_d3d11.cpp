@@ -13,6 +13,7 @@
 #include <imgui/backends/imgui_d3d11.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
 #include <shaders/imgui_d3d11_vs.h>
@@ -20,6 +21,10 @@
 
 #include <shaders/steam_d3d11_vs.h>
 #include <shaders/steam_d3d11_ps.h>
+
+#include <shaders/rtss_d3d11_vs.h>
+#include <shaders/discord_d3d11_vs.h>
+#include <shaders/discord_d3d11_ps.h>
 
 #include <shaders/uplay_d3d11_vs.h>
 #include <shaders/uplay_d3d11_ps.h>
@@ -33,9 +38,6 @@ extern void
 SK_ImGui_User_NewFrame (void);
 
 // Data
-static INT64                    g_Time                  = 0;
-static INT64                    g_TicksPerSecond        = 0;
-
 static ImGuiMouseCursor         g_LastMouseCursor       = ImGuiMouseCursor_COUNT;
 static bool                     g_HasGamepad            = false;
 static bool                     g_WantUpdateHasGamepad  = true;
@@ -333,33 +335,36 @@ struct SK_IMGUI_D3D11StateBlock {
 static constexpr           UINT _MAX_BACKBUFFERS        = 1;
 
 struct SK_ImGui_D3D11_BackbufferResourceIsolation {
-  ID3D11VertexShader*       pVertexShader         = nullptr;
-  ID3D11VertexShader*       pVertexShaderSteamHDR = nullptr;
-  ID3D11VertexShader*       pVertexShaderuPlayHDR = nullptr;
-  ID3D11PixelShader*        pPixelShaderuPlayHDR  = nullptr;
-  ID3D11PixelShader*        pPixelShaderSteamHDR  = nullptr;
-  ID3D11InputLayout*        pInputLayout          = nullptr;
-  ID3D11Buffer*             pVertexConstantBuffer = nullptr;
-  ID3D11Buffer*             pPixelConstantBuffer  = nullptr;
-  ID3D11PixelShader*        pPixelShader          = nullptr;
-  ID3D11SamplerState*       pFontSampler_clamp    = nullptr;
-  ID3D11SamplerState*       pFontSampler_wrap     = nullptr;
-  ID3D11ShaderResourceView* pFontTextureView      = nullptr;
-  ID3D11RasterizerState*    pRasterizerState      = nullptr;
-  ID3D11BlendState*         pBlendState           = nullptr;
-  ID3D11DepthStencilState*  pDepthStencilState    = nullptr;
+  ID3D11VertexShader*       pVertexShader           = nullptr;
+  ID3D11VertexShader*       pVertexShaderSteamHDR   = nullptr;
+  ID3D11VertexShader*       pVertexShaderDiscordHDR = nullptr;
+  ID3D11VertexShader*       pVertexShaderRTSSHDR    = nullptr;
+  ID3D11VertexShader*       pVertexShaderuPlayHDR   = nullptr;
+  ID3D11PixelShader*        pPixelShaderuPlayHDR    = nullptr;
+  ID3D11PixelShader*        pPixelShaderSteamHDR    = nullptr;
+  ID3D11PixelShader*        pPixelShaderDiscordHDR  = nullptr;
+  ID3D11InputLayout*        pInputLayout            = nullptr;
+  ID3D11Buffer*             pVertexConstantBuffer   = nullptr;
+  ID3D11Buffer*             pPixelConstantBuffer    = nullptr;
+  ID3D11PixelShader*        pPixelShader            = nullptr;
+  ID3D11SamplerState*       pFontSampler_clamp      = nullptr;
+  ID3D11SamplerState*       pFontSampler_wrap       = nullptr;
+  ID3D11ShaderResourceView* pFontTextureView        = nullptr;
+  ID3D11RasterizerState*    pRasterizerState        = nullptr;
+  ID3D11BlendState*         pBlendState             = nullptr;
+  ID3D11DepthStencilState*  pDepthStencilState      = nullptr;
 
   SK_ComPtr
-    < ID3D11Texture2D >     pBackBuffer           = nullptr;
+    < ID3D11Texture2D >     pBackBuffer             = nullptr;
   SK_ComPtr <
       ID3D11RenderTargetView
-  >                         pRenderTargetView     = nullptr;
+  >                         pRenderTargetView       = nullptr;
 
-  ID3D11Buffer*             pVB                   = nullptr;
-  ID3D11Buffer*             pIB                   = nullptr;
+  ID3D11Buffer*             pVB                     = nullptr;
+  ID3D11Buffer*             pIB                     = nullptr;
 
-  int                       VertexBufferSize      = 5000,
-                            IndexBufferSize       = 10000;
+  int                       VertexBufferSize        = 5000,
+                            IndexBufferSize         = 10000;
 } _Frame [_MAX_BACKBUFFERS];
 
 SK_LazyGlobal <SK_ImGui_D3D11Ctx>  _imgui_d3d11;
@@ -425,7 +430,9 @@ struct VERTEX_CONSTANT_BUFFER
   // scRGB allows values > 1.0, sRGB (SDR) simply clamps them
   float luminance_scale [4]; // For HDR displays,    1.0 = 80 Nits
                              // For SDR displays, >= 1.0 = 80 Nits
-  float steam_luminance [4];
+  float steam_luminance   [4];
+  float discord_luminance [2];
+  float rtss_luminance    [2];
 };
 
 
@@ -483,7 +490,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     &_Frame [currentBuffer];
 
   if (! _P->pVertexConstantBuffer)
-    return;
+      return ImGui_ImplDX11_InvalidateDeviceObjects ();
 
   if (! _P->pPixelConstantBuffer)
     return;
@@ -641,9 +648,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
     D3D11_MAPPED_SUBRESOURCE mapped_resource;
 
-    if (! _P->pVertexConstantBuffer)
-      return ImGui_ImplDX11_InvalidateDeviceObjects ();
-
     if (pDevCtx->Map (_P->pVertexConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
       return;
 
@@ -653,21 +657,21 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     memcpy         (&constant_buffer->mvp, mvp, sizeof (mvp));
 
     bool hdr_display =
-      (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
+      (rb.isHDRCapable () &&
+       rb.isHDRActive  ());
 
     if (! hdr_display)
     {
-      constant_buffer->luminance_scale [0] = 1.0f; constant_buffer->luminance_scale [1] = 1.0f;
-      constant_buffer->luminance_scale [2] = 0.0f; constant_buffer->luminance_scale [3] = 0.0f;
-      constant_buffer->steam_luminance [0] = 1.0f; constant_buffer->steam_luminance [1] = 1.0f;
-      constant_buffer->steam_luminance [2] = 1.0f; constant_buffer->steam_luminance [3] = 1.0f;
+      constant_buffer->luminance_scale   [0] = 1.0f; constant_buffer->luminance_scale   [1] = 1.0f;
+      constant_buffer->luminance_scale   [2] = 0.0f; constant_buffer->luminance_scale   [3] = 0.0f;
+      constant_buffer->steam_luminance   [0] = 1.0f; constant_buffer->steam_luminance   [1] = 1.0f;
+      constant_buffer->steam_luminance   [2] = 1.0f; constant_buffer->steam_luminance   [3] = 1.0f;
+      constant_buffer->discord_luminance [0] = 1.0f; constant_buffer->discord_luminance [1] = 1.0f;
+      constant_buffer->rtss_luminance    [0] = 1.0f; constant_buffer->rtss_luminance    [1] = 1.0f;
     }
 
     else
     {
-      extern float __SK_HDR_Luma;
-      extern float __SK_HDR_Exp;
-
       float luma = 0.0f,
             exp  = 0.0f;
 
@@ -680,18 +684,26 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       bool bEOTF_is_PQ =
         (eotf == SK_RenderBackend::scan_out_s::SMPTE_2084);
 
-      constant_buffer->luminance_scale [0] = ( bEOTF_is_PQ ? -80.0f * rb.ui_luminance :
-                                                                      rb.ui_luminance );
-      constant_buffer->luminance_scale [1] = 2.2f;
-      constant_buffer->luminance_scale [2] = rb.display_gamut.minY * 1.0_Nits;
-      constant_buffer->steam_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.steam.overlay_hdr_luminance :
-                                                                      config.steam.overlay_hdr_luminance );
-      constant_buffer->steam_luminance [1] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
-                                                  //                                     1.0f));
-      constant_buffer->steam_luminance [2] = ( bEOTF_is_PQ ? -80.0f * config.uplay.overlay_luminance :
-                                                                      config.uplay.overlay_luminance );
-      constant_buffer->steam_luminance [3] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
+      constant_buffer->luminance_scale   [0] = ( bEOTF_is_PQ ? -80.0f * rb.ui_luminance :
+                                                                        rb.ui_luminance );
+      constant_buffer->luminance_scale   [1] = 2.2f;
+      constant_buffer->luminance_scale   [2] = rb.display_gamut.minY * 1.0_Nits;
+      constant_buffer->steam_luminance   [0] = ( bEOTF_is_PQ ? -80.0f * config.steam.overlay_hdr_luminance :
+                                                                        config.steam.overlay_hdr_luminance );
+      constant_buffer->steam_luminance   [1] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
+                                                    //                                     1.0f));
+      constant_buffer->steam_luminance   [2] = ( bEOTF_is_PQ ? -80.0f * config.uplay.overlay_luminance :
+                                                                        config.uplay.overlay_luminance );
+      constant_buffer->steam_luminance   [3] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
                                                   //                1.0f));
+      constant_buffer->rtss_luminance    [0] = ( bEOTF_is_PQ ? -80.0f * config.rtss.overlay_luminance :
+                                                                        config.rtss.overlay_luminance );
+      constant_buffer->rtss_luminance    [1] = 2.2f;
+
+      constant_buffer->discord_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.discord.overlay_luminance :
+                                                                        config.discord.overlay_luminance );
+      constant_buffer->discord_luminance [1] = 2.2f;
+
     }
 
     pDevCtx->Unmap (_P->pVertexConstantBuffer, 0);
@@ -704,9 +716,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
     pDevCtx->Unmap (_P->pPixelConstantBuffer, 0);
   }
-
-  if (! _P->pRenderTargetView.p)
-    return;
 
   SK_IMGUI_D3D11StateBlock
     sb             = { };
@@ -948,7 +957,8 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
 
   try
   {
-    for ( auto i = 0 ; i < _MAX_BACKBUFFERS ; ++i )
+    auto i = 0;
+    //for ( auto i = 0 ; i < _MAX_BACKBUFFERS ; ++i )
     {
       _BuildForSlot (i);
     }
@@ -997,6 +1007,10 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
     E_NOT_VALID_STATE;
 }
 
+#define STEAM_OVERLAY_VS_CRC32C   0xf48cf597
+#define DISCORD_OVERLAY_VS_CRC32C 0x085ee17b
+#define RTSS_OVERLAY_VS_CRC32C    0x671afc2f
+
 HRESULT
 SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
                           _In_ UINT                 VertexCount,
@@ -1021,6 +1035,58 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
     pDevCtx->VSSetShader          ( _P->pVertexShaderSteamHDR,
                                       nullptr, 0 );
     pDevCtx->PSSetShader          ( _P->pPixelShaderSteamHDR,
+                                      nullptr, 0 );
+    pDevCtx->VSSetConstantBuffers ( 0, 1,
+                                    &_P->pVertexConstantBuffer );
+    pfnD3D11Draw ( pDevCtx, VertexCount, StartVertexLocation );
+
+    return
+      S_OK;
+  }
+
+  return
+    E_NOT_VALID_STATE;
+}
+
+HRESULT
+SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
+                                   _In_ UINT                 VertexCount,
+                                   _In_ UINT                 StartVertexLocation,
+                                   _In_ uint32_t             crc32,
+                                   _In_ D3D11_Draw_pfn       pfnD3D11Draw )
+{
+  UNREFERENCED_PARAMETER (crc32);
+
+  auto* _P =
+    &_Frame [g_frameIndex % g_numFramesInSwapChain];
+
+  auto flag_result =
+    SK_ImGui_FlagDrawing_OnD3D11Ctx (
+      SK_D3D11_GetDeviceContextHandle (pDevCtx)
+    );
+
+  SK_ScopedBool auto_bool0 (flag_result.first);
+                           *flag_result.first = flag_result.second;
+
+  if ( _P->pVertexShaderDiscordHDR != nullptr &&
+       _P->pVertexConstantBuffer   != nullptr &&
+       _P->pPixelShaderDiscordHDR  != nullptr    )
+  {
+    if (crc32 == DISCORD_OVERLAY_VS_CRC32C)
+    {
+      config.discord.present = true;
+      pDevCtx->VSSetShader          ( _P->pVertexShaderDiscordHDR,
+                                        nullptr, 0 );
+    }
+
+    else if (crc32 == RTSS_OVERLAY_VS_CRC32C)
+    {
+      config.rtss.present = true;
+      pDevCtx->VSSetShader          ( _P->pVertexShaderRTSSHDR,
+                                        nullptr, 0 );
+    }
+
+    pDevCtx->PSSetShader          ( _P->pPixelShaderDiscordHDR,
                                       nullptr, 0 );
     pDevCtx->VSSetConstantBuffers ( 0, 1,
                                     &_P->pVertexConstantBuffer );
@@ -1070,7 +1136,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
   try
   {
     ThrowIfFailed (
-      pDev->CreateVertexShader ((DWORD *)(imgui_d3d11_vs_bytecode),
+      pDev->CreateVertexShader ( (void *)(imgui_d3d11_vs_bytecode),
                                   sizeof (imgui_d3d11_vs_bytecode) /
                                   sizeof (imgui_d3d11_vs_bytecode [0]),
                                     nullptr, &_P->pVertexShader));
@@ -1078,7 +1144,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                           L"ImGui Vertex Shader");
 
     ThrowIfFailed (
-      pDev->CreateVertexShader ((DWORD *)(steam_d3d11_vs_bytecode),
+      pDev->CreateVertexShader ( (void *)(steam_d3d11_vs_bytecode),
                                   sizeof (steam_d3d11_vs_bytecode) /
                                   sizeof (steam_d3d11_vs_bytecode [0]),
                                     nullptr, &_P->pVertexShaderSteamHDR));
@@ -1086,7 +1152,23 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                               L"Steam Overlay HDR Vertex Shader");
 
     ThrowIfFailed (
-      pDev->CreateVertexShader ((DWORD *)(uplay_d3d11_vs_bytecode),
+      pDev->CreateVertexShader ( (void *)(discord_d3d11_vs_bytecode),
+                                  sizeof (discord_d3d11_vs_bytecode) /
+                                  sizeof (discord_d3d11_vs_bytecode [0]),
+                                    nullptr, &_P->pVertexShaderDiscordHDR));
+    SK_D3D11_SetDebugName (                   _P->pVertexShaderDiscordHDR,
+                              L"Discord Overlay HDR Vertex Shader");
+
+    ThrowIfFailed (
+      pDev->CreateVertexShader ( (void *)(rtss_d3d11_vs_bytecode),
+                                  sizeof (rtss_d3d11_vs_bytecode) /
+                                  sizeof (rtss_d3d11_vs_bytecode [0]),
+                                    nullptr, &_P->pVertexShaderRTSSHDR));
+    SK_D3D11_SetDebugName (                   _P->pVertexShaderRTSSHDR,
+                              L"RTSS Overlay HDR Vertex Shader");
+
+    ThrowIfFailed (
+      pDev->CreateVertexShader ( (void *)(uplay_d3d11_vs_bytecode),
                                   sizeof (uplay_d3d11_vs_bytecode) /
                                   sizeof (uplay_d3d11_vs_bytecode [0]),
                                     nullptr, &_P->pVertexShaderuPlayHDR));
@@ -1102,7 +1184,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
 
     ThrowIfFailed (
       pDev->CreateInputLayout ( local_layout, 3,
-                                  (DWORD *)(imgui_d3d11_vs_bytecode),
+                                   (void *)(imgui_d3d11_vs_bytecode),
                                     sizeof (imgui_d3d11_vs_bytecode) /
                                     sizeof (imgui_d3d11_vs_bytecode [0]),
                             &_P->pInputLayout ));
@@ -1122,10 +1204,6 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
         pDev->CreateBuffer (&desc, nullptr, &_P->pVertexConstantBuffer));
 
       desc.ByteWidth         = sizeof (float) * 4;
-      desc.Usage             = D3D11_USAGE_DYNAMIC;
-      desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
-      desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
-      desc.MiscFlags         = 0;
 
       ThrowIfFailed (
         pDev->CreateBuffer (&desc, nullptr, &_P->pPixelConstantBuffer));
@@ -1135,27 +1213,35 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     }
 
     ThrowIfFailed (
-      pDev->CreatePixelShader ( (DWORD *)(imgui_d3d11_ps_bytecode),
-                                  sizeof (imgui_d3d11_ps_bytecode) /
-                                  sizeof (imgui_d3d11_ps_bytecode [0]),
-                                    nullptr, &_P->pPixelShader ));
-    SK_D3D11_SetDebugName (                   _P->pPixelShader,
-                                          L"ImGui Pixel Shader");
+      pDev->CreatePixelShader ( (void *)(imgui_d3d11_ps_bytecode),
+                                 sizeof (imgui_d3d11_ps_bytecode) /
+                                 sizeof (imgui_d3d11_ps_bytecode [0]),
+                                   nullptr, &_P->pPixelShader ));
+    SK_D3D11_SetDebugName (                  _P->pPixelShader,
+                                         L"ImGui Pixel Shader");
 
     ThrowIfFailed (
-      pDev->CreatePixelShader ( (DWORD *) (steam_d3d11_ps_bytecode),
-                                   sizeof (steam_d3d11_ps_bytecode) /
-                                   sizeof (steam_d3d11_ps_bytecode [0]),
-                                     nullptr, &_P->pPixelShaderSteamHDR ));
-    SK_D3D11_SetDebugName (                    _P->pPixelShaderSteamHDR,
+      pDev->CreatePixelShader ( (void *) (steam_d3d11_ps_bytecode),
+                                  sizeof (steam_d3d11_ps_bytecode) /
+                                  sizeof (steam_d3d11_ps_bytecode [0]),
+                                    nullptr, &_P->pPixelShaderSteamHDR ));
+    SK_D3D11_SetDebugName (                   _P->pPixelShaderSteamHDR,
                                L"Steam Overlay HDR Pixel Shader");
 
     ThrowIfFailed (
-      pDev->CreatePixelShader ( (DWORD *) (uplay_d3d11_ps_bytecode),
-                                   sizeof (uplay_d3d11_ps_bytecode) /
-                                   sizeof (uplay_d3d11_ps_bytecode [0]),
-                                     nullptr, &_P->pPixelShaderuPlayHDR ));
-    SK_D3D11_SetDebugName (                    _P->pPixelShaderuPlayHDR,
+      pDev->CreatePixelShader ( (void *) (discord_d3d11_ps_bytecode),
+                                  sizeof (discord_d3d11_ps_bytecode) /
+                                  sizeof (discord_d3d11_ps_bytecode [0]),
+                                    nullptr, &_P->pPixelShaderDiscordHDR ));
+    SK_D3D11_SetDebugName (                   _P->pPixelShaderDiscordHDR,
+                               L"Discord Overlay HDR Pixel Shader");
+
+    ThrowIfFailed (
+      pDev->CreatePixelShader ( (void *) (uplay_d3d11_ps_bytecode),
+                                  sizeof (uplay_d3d11_ps_bytecode) /
+                                  sizeof (uplay_d3d11_ps_bytecode [0]),
+                                    nullptr, &_P->pPixelShaderuPlayHDR ));
+    SK_D3D11_SetDebugName (                   _P->pPixelShaderuPlayHDR,
                                L"uPlay Overlay HDR Pixel Shader");
 
     // Create the blending setup
@@ -1376,24 +1462,27 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
       return 0;
     };
 
-    if (_P->pFontSampler_clamp)    { _ReleaseAndCountRefs (&_P->pFontSampler_clamp);    assert (refs == 0); }
-    if (_P->pFontSampler_wrap)     { _ReleaseAndCountRefs (&_P->pFontSampler_wrap);     assert (refs == 0); }
-    if (_P->pFontTextureView)      { _ReleaseAndCountRefs (&_P->pFontTextureView);      assert (refs == 0); ImGui::GetIO ().Fonts->TexID = nullptr; }
-    if (_P->pIB)                   { _ReleaseAndCountRefs (&_P->pIB);                   assert (refs == 0); }
-    if (_P->pVB)                   { _ReleaseAndCountRefs (&_P->pVB);                   assert (refs == 0); }
+    if (_P->pFontSampler_clamp)      { _ReleaseAndCountRefs (&_P->pFontSampler_clamp);      assert (refs == 0); }
+    if (_P->pFontSampler_wrap)       { _ReleaseAndCountRefs (&_P->pFontSampler_wrap);       assert (refs == 0); }
+    if (_P->pFontTextureView)        { _ReleaseAndCountRefs (&_P->pFontTextureView);        assert (refs == 0); ImGui::GetIO ().Fonts->TexID = nullptr; }
+    if (_P->pIB)                     { _ReleaseAndCountRefs (&_P->pIB);                     assert (refs == 0); }
+    if (_P->pVB)                     { _ReleaseAndCountRefs (&_P->pVB);                     assert (refs == 0); }
 
-    if (_P->pBlendState)           { _ReleaseAndCountRefs (&_P->pBlendState);           assert (refs == 0); }
-    if (_P->pDepthStencilState)    { _ReleaseAndCountRefs (&_P->pDepthStencilState);    assert (refs == 0); }
-    if (_P->pRasterizerState)      { _ReleaseAndCountRefs (&_P->pRasterizerState);      assert (refs == 0); }
-    if (_P->pPixelShader)          { _ReleaseAndCountRefs (&_P->pPixelShader);          assert (refs == 0); }
-    if (_P->pPixelShaderuPlayHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderuPlayHDR);  assert (refs == 0); }
-    if (_P->pPixelShaderSteamHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderSteamHDR);  assert (refs == 0); }
-    if (_P->pVertexConstantBuffer) { _ReleaseAndCountRefs (&_P->pVertexConstantBuffer); assert (refs == 0); }
-    if (_P->pPixelConstantBuffer)  { _ReleaseAndCountRefs (&_P->pPixelConstantBuffer);  assert (refs == 0); }
-    if (_P->pInputLayout)          { _ReleaseAndCountRefs (&_P->pInputLayout);          assert (refs == 0); }
-    if (_P->pVertexShader)         { _ReleaseAndCountRefs (&_P->pVertexShader);         assert (refs == 0); }
-    if (_P->pVertexShaderSteamHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderSteamHDR); assert (refs == 0); }
-    if (_P->pVertexShaderuPlayHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR); assert (refs == 0); }
+    if (_P->pBlendState)             { _ReleaseAndCountRefs (&_P->pBlendState);             assert (refs == 0); }
+    if (_P->pDepthStencilState)      { _ReleaseAndCountRefs (&_P->pDepthStencilState);      assert (refs == 0); }
+    if (_P->pRasterizerState)        { _ReleaseAndCountRefs (&_P->pRasterizerState);        assert (refs == 0); }
+    if (_P->pPixelShader)            { _ReleaseAndCountRefs (&_P->pPixelShader);            assert (refs == 0); }
+    if (_P->pPixelShaderuPlayHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderuPlayHDR);    assert (refs == 0); }
+    if (_P->pPixelShaderSteamHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderSteamHDR);    assert (refs == 0); }
+    if (_P->pPixelShaderDiscordHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderDiscordHDR);  assert (refs == 0); }
+    if (_P->pVertexConstantBuffer)   { _ReleaseAndCountRefs (&_P->pVertexConstantBuffer);   assert (refs == 0); }
+    if (_P->pPixelConstantBuffer)    { _ReleaseAndCountRefs (&_P->pPixelConstantBuffer);    assert (refs == 0); }
+    if (_P->pInputLayout)            { _ReleaseAndCountRefs (&_P->pInputLayout);            assert (refs == 0); }
+    if (_P->pVertexShader)           { _ReleaseAndCountRefs (&_P->pVertexShader);           assert (refs == 0); }
+    if (_P->pVertexShaderSteamHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderSteamHDR);   assert (refs == 0); }
+    if (_P->pVertexShaderDiscordHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderDiscordHDR); assert (refs == 0); }
+    if (_P->pVertexShaderRTSSHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderRTSSHDR);    assert (refs == 0); }
+    if (_P->pVertexShaderuPlayHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR);   assert (refs == 0); }
 
     if (_P->pRenderTargetView.p)
         _P->pRenderTargetView.Release ();
@@ -1411,15 +1500,6 @@ ImGui_ImplDX11_Init ( IDXGISwapChain*      pSwapChain,
                       ID3D11Device*        pDevice,
                       ID3D11DeviceContext* pDevCtx )
 {
-  static bool        first = true;
-  if (std::exchange (first, false))
-  {
-    g_TicksPerSecond  =
-      SK_GetPerfFreq ( ).QuadPart;
-    g_Time            =
-      SK_QueryPerf   ( ).QuadPart;
-  }
-
   ImGuiIO& io =
     ImGui::GetIO ();
 
@@ -1433,28 +1513,6 @@ ImGui_ImplDX11_Init ( IDXGISwapChain*      pSwapChain,
   g_frameBufferHeight    = swap_desc.BufferDesc.Height;
   g_hWnd                 = swap_desc.OutputWindow;
   io.ImeWindowHandle     = g_hWnd;
-
-  io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
-  io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
-  io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
-  io.KeyMap [ImGuiKey_UpArrow]    = VK_UP;
-  io.KeyMap [ImGuiKey_DownArrow]  = VK_DOWN;
-  io.KeyMap [ImGuiKey_PageUp]     = VK_PRIOR;
-  io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
-  io.KeyMap [ImGuiKey_Home]       = VK_HOME;
-  io.KeyMap [ImGuiKey_End]        = VK_END;
-  io.KeyMap [ImGuiKey_Insert]     = VK_INSERT;
-  io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
-  io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
-  io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
-  io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
-  io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
-  io.KeyMap [ImGuiKey_A]          = 'A';
-  io.KeyMap [ImGuiKey_C]          = 'C';
-  io.KeyMap [ImGuiKey_V]          = 'V';
-  io.KeyMap [ImGuiKey_X]          = 'X';
-  io.KeyMap [ImGuiKey_Y]          = 'Y';
-  io.KeyMap [ImGuiKey_Z]          = 'Z';
 
   auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -1475,25 +1533,18 @@ ImGui_ImplDX11_Shutdown (void)
 #include <SpecialK/window.h>
 
 void
-SK_ImGui_PollGamepad (void);
-
-void
 ImGui_ImplDX11_NewFrame (void)
 {
-  // Setup time step
-  INT64 current_time;
-
-  SK_QueryPerformanceCounter (
-    reinterpret_cast <LARGE_INTEGER *> (&current_time)
-  );
-
   auto& io =
     ImGui::GetIO ();
 
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (! rb.getDevice <ID3D11Device> ())
+  auto pDev =
+    rb.getDevice <ID3D11Device> ();
+
+  if (! pDev.p)
     return;
 
   auto flag_result =
@@ -1507,10 +1558,6 @@ ImGui_ImplDX11_NewFrame (void)
   auto *_Pool =
     &_Frame [g_frameIndex % g_numFramesInSwapChain];
 
-  SK_ComQIPtr    <IDXGISwapChain>
-       pSwapChain ( rb.swapchain );
-  auto pDev    =    rb.getDevice <ID3D11Device> ();
-
   if (! _Pool->pFontSampler_clamp)
     return;
 
@@ -1518,6 +1565,9 @@ ImGui_ImplDX11_NewFrame (void)
 
   if (io.Fonts->Fonts.empty ())
   {
+    SK_ComQIPtr  <IDXGISwapChain>
+      pSwapChain ( rb.swapchain );
+
     // This has nothing to do with swapchain, other than we want to abstract
     //   storage per-chain
     ImGui_ImplDX11_CreateFontsTexture (pSwapChain, pDev);
@@ -1525,45 +1575,6 @@ ImGui_ImplDX11_NewFrame (void)
     if (io.Fonts->Fonts.empty ())
       return;
   }
-
-  io.DeltaTime =
-    std::min ( 1.0f,
-    std::max ( 0.0f, static_cast <float> (
-                    (static_cast <long double> (                       current_time) -
-                     static_cast <long double> (std::exchange (g_Time, current_time))) /
-                     static_cast <long double> (               g_TicksPerSecond      ) ) )
-    );
-
-
-  // Read keyboard modifiers inputs
-  io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
-  io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
-  io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
-
-  io.KeySuper  = false;
-
-  // For games that hijack the mouse cursor using DirectInput 8.
-  //
-  //  -- Acquire actually means release their exclusive ownership : )
-  //
-  //if (SK_ImGui_WantMouseCapture ())
-  //  SK_Input_DI8Mouse_Acquire ();
-  //else
-  //  SK_Input_DI8Mouse_Release ();
-
-
-  // Update OS mouse cursor with the cursor requested by imgui
-  //ImGuiMouseCursor mouse_cursor =
-  //           io.MouseDrawCursor ? ImGuiMouseCursor_None  :
-  //                                ImGui::GetMouseCursor ( );
-  //
-  //if (g_LastMouseCursor != mouse_cursor)
-  //{
-  //    g_LastMouseCursor = mouse_cursor;
-  //    ImGui_ImplWin32_UpdateMouseCursor();
-  //}
-
-  SK_ImGui_PollGamepad ();
 
   //// Start the frame
   SK_ImGui_User_NewFrame ();
@@ -1653,10 +1664,16 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
       return true;
     }
 
-    SK_LOG0 ( ( L"SK_D3D11_RenderCtx::init (%p, %p, %p)", pSwapChain, pDevice, pDeviceCtx),
-                  "  D3D 11  " );
+    DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+    pSwapChain->GetDesc (&swapDesc);
 
-    if ((! ImGui_ImplDX11_Init (pSwapChain, pDevice, pDeviceCtx)) || _Frame [0].pBackBuffer.p == nullptr ||
+    SK_LOG0 ( ( L"(+) Acquiring D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %ws, HWND=%08xh}",
+                pDevice,             swapDesc.BufferCount,
+                SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).c_str (),
+                                     swapDesc.OutputWindow ),
+              L"D3D11BkEnd" );
+
+    if ((! ImGui_ImplDX11_Init (pSwapChain, pDevice, pDeviceCtx)) || _Frame [0].pBackBuffer.p       == nullptr ||
                                                                      _Frame [0].pRenderTargetView.p == nullptr)
     {
       //throw (SK_ComException (E_INVALIDARG));
@@ -1664,8 +1681,6 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
 
     else
     {
-      void
-      SK_DXGI_UpdateSwapChain (IDXGISwapChain* This);
       SK_DXGI_UpdateSwapChain (pSwapChain);
 
       D3D11_BLEND_DESC
@@ -1718,37 +1733,41 @@ __stdcall
 SK_D3D11_ResetTexCache (void);
 
 void
-SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ());
-
-void
 SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
 {
-  SK_ComQIPtr <IDXGISwapChain> pSwapChain_ (pSwapChain);
-  SK_ComPtr   <IDXGISwapChain> pSwapChainUnwrapped;
-
-  UINT _size =
-        sizeof (LPVOID);
-
-  IUnknown* pUnwrapped = nullptr;
-
-  if ( pSwapChain != nullptr &&
-       SUCCEEDED (
-         pSwapChain_->GetPrivateData (
-           IID_IUnwrappedDXGISwapChain, &_size,
-              &pUnwrapped
-                 )                  )
-     )
-  {
-             pSwapChainUnwrapped.p =
-    (IDXGISwapChain *)pUnwrapped;
-  }
+  //SK_ComPtr <IDXGISwapChain> pSwapChain_ (pSwapChain);
+  //
+  //UINT _size =
+  //      sizeof (LPVOID);
+  //
+  //SK_ComPtr <IUnknown> pUnwrapped = nullptr;
+  //
+  //if ( pSwapChain != nullptr &&
+  //     SUCCEEDED (
+  //       pSwapChain->GetPrivateData (
+  //         IID_IUnwrappedDXGISwapChain, &_size,
+  //            &pUnwrapped.p
+  //               )                  )
+  //   )
+  //{
+  //}
 
   if ( (_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
-        _pSwapChain.IsEqualObject  (pSwapChain)            ||
-        _pSwapChain.IsEqualObject  (pUnwrapped) )
+        _pSwapChain.IsEqualObject  (pSwapChain)            )//||
+        //_pSwapChain.IsEqualObject  (pUnwrapped) )
   {
-    SK_LOG0 ( ( L"SK_D3D11_RenderCtx::Release (%p)", pSwapChain),
-                "  D3D 11  " );
+
+    DXGI_SWAP_CHAIN_DESC swapDesc = { };
+
+    if (_pSwapChain.p != nullptr)
+        _pSwapChain->GetDesc (&swapDesc);
+
+    SK_LOG0 ( ( L"(-) Releasing D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %ws, HWND=%08xh}",
+                                        _pDevice.p,
+                                        swapDesc.BufferCount,
+                   SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).c_str (),
+                                        swapDesc.OutputWindow),
+            L"D3D11BkEnd" );
 
     SK_ReleaseAssert (pSwapChain == nullptr || _pSwapChain.p == nullptr || _pSwapChain.IsEqualObject (pSwapChain));
 
@@ -1860,7 +1879,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
     hdr_mode =
      ( rb.isHDRCapable () &&
-      (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+       rb.isHDRActive  () );
 
     if (rb.srgb_stripped && (! hdr_mode))
     {

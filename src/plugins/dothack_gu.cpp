@@ -231,10 +231,12 @@ SK_DGPU_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  if (SK_FetchVersionInfo (L"dGPU"))
-  {
-    SK_UpdateSoftware (L"dGPU");
-  }
+  // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
+  //
+  ////if (SK_FetchVersionInfo (L"dGPU"))
+  ////{
+  ////  SK_UpdateSoftware (L"dGPU");
+  ////}
 
   return 0;
 }

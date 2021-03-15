@@ -425,9 +425,12 @@ SK::ControlPanel::D3D11::Draw (void)
         {
           ImGui::BeginTooltip ();
           ImGui::Text         ("Reduces Windowed Input Latency in SK's Framerate Limiter");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("Fullscreen Exclusive Will Not Work While Enabled");
-          ImGui::BulletText   ("Fullscreen Exclusive is Obsolete, seriously...");
+          if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
+          {
+            ImGui::Separator  ();
+            ImGui::BulletText ("Fullscreen Exclusive Will Not Work While Enabled");
+            ImGui::BulletText ("Fullscreen Exclusive is Obsolete, seriously...");
+          }
           ImGui::EndTooltip   ();
         }
 
@@ -776,7 +779,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if (swap_desc.Flags != 0)
         ImGui::TextUnformatted ("Flags:");
       if (swap_flag_count > 1) { for ( int i = 1; i < swap_flag_count; i++ ) ImGui::TextUnformatted ("\n"); }
-      if (rb.isHDRCapable ())
+      //if (rb.isHDRCapable ())
       {
         ImGui::Separator  ();
         ImGui::Text ("Display Device:   ");
@@ -819,7 +822,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       {
         ImGui::Text          ("%ws",                                        swap_flags.c_str ());
       }
-      if (rb.isHDRCapable ())
+      //if (rb.isHDRCapable ())
       {
         bool _fullscreen = true;
 

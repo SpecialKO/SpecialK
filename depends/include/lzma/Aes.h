@@ -6,6 +6,8 @@
 
 #include "7zTypes.h"
 
+#pragma warning (disable:4028)
+
 EXTERN_C_BEGIN
 
 #define AES_BLOCK_SIZE 16

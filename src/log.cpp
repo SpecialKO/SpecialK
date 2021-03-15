@@ -180,11 +180,8 @@ SK_FlushLog (iSK_Logger* pLog)
     );
   }
 
-  if (ReadAcquire (&__SK_DLL_Ending) < 1)
+  if (ReadAcquire (&__SK_DLL_Ending) < 1 && hFlushReq != nullptr)
   {
-    while ((intptr_t)hFlushReq <= 0)
-      SK_Sleep (1);
-
     if ( ( flush_set->find ( pLog )   ==
            flush_set->cend (      ) ) ||
            flush_set.get( )[ pLog ] == false )
@@ -301,7 +298,7 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
 
   bool bRet =
     InitializeCriticalSectionEx (&log_mutex, 400, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
-                                                  SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO) == TRUE;
+                                                  SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO) != FALSE;
    lockless = true;
 
   if ((! bRet) || (fLog == nullptr))

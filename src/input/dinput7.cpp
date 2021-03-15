@@ -1041,7 +1041,7 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  if (devices7_w->count (guid_crc32c))
+  if (devices7_w.get ().count (guid_crc32c))
   {
     *lplpDirectInputDevice = devices7_w [guid_crc32c];
                              devices7_w [guid_crc32c]->AddRef ();
@@ -1136,7 +1136,7 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  if (devices7_a->count (guid_crc32c))
+  if (devices7_a.get ().count (guid_crc32c))
   {
     *lplpDirectInputDevice = devices7_a [guid_crc32c];
                              devices7_a [guid_crc32c]->AddRef ();

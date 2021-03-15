@@ -25,6 +25,8 @@
 #include <SpecialK/nvapi.h>
 #include <nvapi/NvApiDriverSettings.h>
 
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
+
 using NvAPI_Disp_GetHdrCapabilities_pfn = NvAPI_Status (__cdecl *)(NvU32, NV_HDR_CAPABILITIES*);
 using NvAPI_Disp_HdrColorControl_pfn    = NvAPI_Status (__cdecl *)(NvU32, NV_HDR_COLOR_DATA*);
 using NvAPI_Disp_ColorControl_pfn       = NvAPI_Status (__cdecl *)(NvU32, NV_COLOR_DATA*);
@@ -413,28 +415,10 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                                                                      L"No" ),
               __SK_SUBSYSTEM__ );
 
-
-/////pHdrCapabilities->driverExpandDefaultHdrParameters = 1;
-/////pHdrCapabilities->static_metadata_descriptor_id    = NV_STATIC_METADATA_TYPE_1;
-
   NvAPI_Status ret =
     NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
 
-  ////SK_DXGI_HDRControl* pHDRCtl =
-  ////  SK_HDR_GetControl ();
-
-
-    if ( pHdrCapabilities->isST2084EotfSupported ||
-         pHdrCapabilities->isTraditionalHdrGammaSupported )
-    {
-      auto& rb =
-        SK_GetCurrentRenderBackend ();
-
-      rb.driver_based_hdr = true;
-          rb.setHDRCapable (true);
-    }
-
-    dll_log->LogEx ( true,
+  dll_log->LogEx ( true,
       L"[ HDR Caps ]\n"
       L"  +-----------------+---------------------\n"
       L"  | Red Primary.... |  %f, %f\n"
@@ -803,7 +787,6 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
     bool passthrough = (pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH);
 
-    extern bool  __SK_HDR_16BitSwap;
     if (__SK_HDR_16BitSwap && passthrough)
     {
       //pHdrColorData->mastering_display_data.max_content_light_level = 1499;
@@ -827,20 +810,20 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     //              0.13100f, 0.04600f,
     //              0.31270f, 0.32900f };
     //
-		//DXGI_HDR_METADATA_HDR10 HDR10MetaData = { };
+    //DXGI_HDR_METADATA_HDR10 HDR10MetaData = { };
     //
-		//HDR10MetaData.RedPrimary   [0] = static_cast <uint16_t>(rec2020.RedX   * 50000.0f);
-		//HDR10MetaData.RedPrimary   [1] = static_cast <uint16_t>(rec2020.RedY   * 50000.0f);
-		//HDR10MetaData.GreenPrimary [0] = static_cast <uint16_t>(rec2020.GreenX * 50000.0f);
-		//HDR10MetaData.GreenPrimary [1] = static_cast <uint16_t>(rec2020.GreenY * 50000.0f);
-		//HDR10MetaData.BluePrimary  [0] = static_cast <uint16_t>(rec2020.BlueX  * 50000.0f);
-		//HDR10MetaData.BluePrimary  [1] = static_cast <uint16_t>(rec2020.BlueY  * 50000.0f);
-		//HDR10MetaData.WhitePoint   [0] = static_cast <uint16_t>(rec2020.WhiteX * 50000.0f);
-		//HDR10MetaData.WhitePoint   [1] = static_cast <uint16_t>(rec2020.WhiteY * 50000.0f);
-		//HDR10MetaData.MaxMasteringLuminance     = static_cast <uint32_t>(100000.0f * 10000.0f);
-		//HDR10MetaData.MinMasteringLuminance     = static_cast <uint32_t>(0.001f    * 10000.0f);
-		//HDR10MetaData.MaxContentLightLevel      = static_cast <uint16_t>(2000);
-		//HDR10MetaData.MaxFrameAverageLightLevel = static_cast <uint16_t>(500);
+    //HDR10MetaData.RedPrimary   [0] = static_cast <uint16_t>(rec2020.RedX   * 50000.0f);
+    //HDR10MetaData.RedPrimary   [1] = static_cast <uint16_t>(rec2020.RedY   * 50000.0f);
+    //HDR10MetaData.GreenPrimary [0] = static_cast <uint16_t>(rec2020.GreenX * 50000.0f);
+    //HDR10MetaData.GreenPrimary [1] = static_cast <uint16_t>(rec2020.GreenY * 50000.0f);
+    //HDR10MetaData.BluePrimary  [0] = static_cast <uint16_t>(rec2020.BlueX  * 50000.0f);
+    //HDR10MetaData.BluePrimary  [1] = static_cast <uint16_t>(rec2020.BlueY  * 50000.0f);
+    //HDR10MetaData.WhitePoint   [0] = static_cast <uint16_t>(rec2020.WhiteX * 50000.0f);
+    //HDR10MetaData.WhitePoint   [1] = static_cast <uint16_t>(rec2020.WhiteY * 50000.0f);
+    //HDR10MetaData.MaxMasteringLuminance     = static_cast <uint32_t>(100000.0f * 10000.0f);
+    //HDR10MetaData.MinMasteringLuminance     = static_cast <uint32_t>(0.001f    * 10000.0f);
+    //HDR10MetaData.MaxContentLightLevel      = static_cast <uint16_t>(2000);
+    //HDR10MetaData.MaxFrameAverageLightLevel = static_cast <uint16_t>(500);
     //
     //if (rb.swapchain.p != nullptr && passthrough)
     //{
@@ -877,9 +860,6 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
     NvAPI_Status ret =
       NVAPI_OK;
-
-    extern bool __SK_HDR_10BitSwap;
-    extern bool __SK_HDR_16BitSwap;
 
     if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
     {
@@ -941,9 +921,6 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
         else
         {
-          rb.driver_based_hdr         = false;
-          rb.scanout.nvapi_hdr.active = false;
-
           pHdrColorData->hdrMode = NV_HDR_MODE_UHDA;
         }
       }
@@ -1992,7 +1969,7 @@ SK_NvAPI_GetAnselEnablement (DLL_ROLE role)
 
   NvU32 ansel_allow_enum       = ANSEL_ALLOW_ID;
   NvU32 ansel_enable_enum      = ANSEL_ENABLE_ID;
-  NvU32 ansel_whitelisted_enum = ANSEL_WHITELISTED_ID;
+  NvU32 ansel_allowlisted_enum = ANSEL_ALLOWLISTED_ID;
 
   NVAPI_SILENT ();
 
@@ -2054,20 +2031,20 @@ SK_NvAPI_GetAnselEnablement (DLL_ROLE role)
   NVDRS_SETTING ansel_enable_val              = {               };
                 ansel_enable_val.version      = NVDRS_SETTING_VER;
 
-  NVDRS_SETTING ansel_whitelisted_val         = {               };
-                ansel_whitelisted_val.version = NVDRS_SETTING_VER;
+  NVDRS_SETTING ansel_allowlisted_val         = {               };
+                ansel_allowlisted_val.version = NVDRS_SETTING_VER;
 
   // These settings may not exist, and getting back a value of 0 is okay...
   NVAPI_SILENT  ();
   NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, ansel_allow_enum,       &ansel_allow_val));
   NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, ansel_enable_enum,      &ansel_enable_val));
-  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, ansel_whitelisted_enum, &ansel_whitelisted_val));
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, ansel_allowlisted_enum, &ansel_allowlisted_val));
   NVAPI_VERBOSE ();
 
   INT iRet =
    ( ansel_allow_val.u32CurrentValue       == ANSEL_ALLOW_ALLOWED    &&
      ansel_enable_val.u32CurrentValue      == ANSEL_ENABLE_ON        &&
-     ansel_whitelisted_val.u32CurrentValue == ANSEL_WHITELISTED_ALLOWED )
+     ansel_allowlisted_val.u32CurrentValue == ANSEL_ALLOWLISTED_ALLOWED )
                                             ? 1
                                             : 0;
 
@@ -2085,6 +2062,12 @@ SK_NvAPI_SetAnselEnablement (DLL_ROLE role, bool enabled)
   if (! nv_hardware)
     return FALSE;
 
+
+  // Forcefully block the Ansel DLL
+  config.nvidia.bugs.bypass_ansel = (! enabled);
+
+
+
   NvAPI_Status       ret       = NVAPI_ERROR;
   NvDRSSessionHandle hSession  = { };
 
@@ -2100,7 +2083,7 @@ SK_NvAPI_SetAnselEnablement (DLL_ROLE role, bool enabled)
 
   NvU32 ansel_allow_enum       = ANSEL_ALLOW_ID;
   NvU32 ansel_enable_enum      = ANSEL_ENABLE_ID;
-  NvU32 ansel_whitelisted_enum = ANSEL_WHITELISTED_ID;
+  NvU32 ansel_allowlisted_enum = ANSEL_ALLOWLISTED_ID;
 
   NvU32 ansel_allow_to_set =
     enabled ? ANSEL_ALLOW_ALLOWED
@@ -2110,9 +2093,9 @@ SK_NvAPI_SetAnselEnablement (DLL_ROLE role, bool enabled)
     enabled ? ANSEL_ENABLE_ON
             : ANSEL_ENABLE_OFF;
 
-  NvU32 ansel_whitelisted_to_set =
-    enabled ? ANSEL_WHITELISTED_ALLOWED
-            : ANSEL_WHITELISTED_DISALLOWED;
+  NvU32 ansel_allowlisted_to_set =
+    enabled ? ANSEL_ALLOWLISTED_ALLOWED
+            : ANSEL_ALLOWLISTED_DISALLOWED;
 
   NVAPI_SILENT ();
 
@@ -2174,14 +2157,14 @@ SK_NvAPI_SetAnselEnablement (DLL_ROLE role, bool enabled)
   NVDRS_SETTING ansel_enable_val              = {               };
                 ansel_enable_val.version      = NVDRS_SETTING_VER;
 
-  NVDRS_SETTING ansel_whitelisted_val         = {               };
-                ansel_whitelisted_val.version = NVDRS_SETTING_VER;
+  NVDRS_SETTING ansel_allowlisted_val         = {               };
+                ansel_allowlisted_val.version = NVDRS_SETTING_VER;
 
   // These settings may not exist, and getting back a value of 0 is okay...
   NVAPI_SILENT ();
   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, ansel_allow_enum,       &ansel_allow_val));
   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, ansel_enable_enum,      &ansel_enable_val));
-  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, ansel_whitelisted_enum, &ansel_whitelisted_val));
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, ansel_allowlisted_enum, &ansel_allowlisted_val));
   NVAPI_VERBOSE ();
 
 
@@ -2215,21 +2198,21 @@ SK_NvAPI_SetAnselEnablement (DLL_ROLE role, bool enabled)
     already_set = FALSE;
   }
 
-  bool not_whitelisted = false;
+  bool not_allowlisted = false;
 
-  if (ansel_whitelisted_val.u32CurrentValue != ansel_whitelisted_to_set)
+  if (ansel_allowlisted_val.u32CurrentValue != ansel_allowlisted_to_set)
   {
-    ansel_whitelisted_val         = {               };
-    ansel_whitelisted_val.version = NVDRS_SETTING_VER;
+    ansel_allowlisted_val         = {               };
+    ansel_allowlisted_val.version = NVDRS_SETTING_VER;
 
-    NVAPI_SET_DWORD (ansel_whitelisted_val, ansel_whitelisted_enum, ansel_whitelisted_to_set);
-    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &ansel_whitelisted_val));
+    NVAPI_SET_DWORD (ansel_allowlisted_val, ansel_allowlisted_enum, ansel_allowlisted_to_set);
+    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &ansel_allowlisted_val));
 
     already_set = FALSE;
   }
 
   else
-    not_whitelisted = true;
+    not_allowlisted = true;
 
   if (! already_set)
   {
@@ -2237,8 +2220,8 @@ SK_NvAPI_SetAnselEnablement (DLL_ROLE role, bool enabled)
   } NVAPI_CALL (DRS_DestroySession (hSession));
 
 
-  // We turned off the remaining Ansel profile flags, but it was already not whitelisted.
-  if ((! enabled) && not_whitelisted)
+  // We turned off the remaining Ansel profile flags, but it was already not allowlisted.
+  if ((! enabled) && not_allowlisted)
     return false;
 
 

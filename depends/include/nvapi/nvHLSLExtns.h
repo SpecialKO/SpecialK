@@ -70,6 +70,22 @@ int NvShfl(int val, uint srcLane, int width = NV_WARP_SIZE)
     return g_NvidiaExt.IncrementCounter();
 }
 
+int2 NvShfl(int2 val, uint srcLane, int width = NV_WARP_SIZE)
+{
+    int x = NvShfl(val.x, srcLane, width);
+    int y = NvShfl(val.y, srcLane, width);
+    return int2(x, y);
+}
+
+int4 NvShfl(int4 val, uint srcLane, int width = NV_WARP_SIZE)
+{
+    int x = NvShfl(val.x, srcLane, width);
+    int y = NvShfl(val.y, srcLane, width);
+    int z = NvShfl(val.z, srcLane, width);
+    int w = NvShfl(val.w, srcLane, width);
+    return int4(x, y, z, w);
+}
+
 //
 // Copy from a lane with lower ID relative to caller
 //
@@ -154,6 +170,11 @@ int NvGetLaneId()
     return g_NvidiaExt.IncrementCounter();
 }
 
+// returns value of special register - specify subopcode from any of NV_SPECIALOP_* specified in nvShaderExtnEnums.h - other opcodes undefined behavior
+uint NvGetSpecial(uint subOpCode)
+{
+    return __NvGetSpecial(subOpCode);
+}
 
 //----------------------------------------------------------------------------//
 //----------------------------- FP16 Atmoic Functions-------------------------//
@@ -963,4 +984,643 @@ uint4 NvEvaluateAttributeSnappedForVPRS(uint4 attrib, uint2 offset)
     value.z = asuint(g_NvidiaExt.IncrementCounter());
     value.w = asuint(g_NvidiaExt.IncrementCounter());
     return value;
+}
+
+// MATCH instruction variants 
+uint NvWaveMatch(uint value)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x = value;
+    g_NvidiaExt[index].src1u.x = 1;
+    g_NvidiaExt[index].opcode  = NV_EXTN_OP_MATCH_ANY;
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    return g_NvidiaExt.IncrementCounter();
+}
+
+uint NvWaveMatch(uint2 value)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy = value.xy;
+    g_NvidiaExt[index].src1u.x = 2;
+    g_NvidiaExt[index].opcode  = NV_EXTN_OP_MATCH_ANY;
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    return g_NvidiaExt.IncrementCounter();
+}
+
+uint NvWaveMatch(uint4 value)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u = value;
+    g_NvidiaExt[index].src1u.x = 4;
+    g_NvidiaExt[index].opcode  = NV_EXTN_OP_MATCH_ANY;
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    return g_NvidiaExt.IncrementCounter();
+}
+
+uint NvWaveMatch(float value)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x = asuint(value);
+    g_NvidiaExt[index].src1u.x = 1;
+    g_NvidiaExt[index].opcode  = NV_EXTN_OP_MATCH_ANY;
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    return g_NvidiaExt.IncrementCounter();
+}
+
+uint NvWaveMatch(float2 value)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy = asuint(value);
+    g_NvidiaExt[index].src1u.x = 2;
+    g_NvidiaExt[index].opcode  = NV_EXTN_OP_MATCH_ANY;
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    return g_NvidiaExt.IncrementCounter();
+}
+
+uint NvWaveMatch(float4 value)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u = asuint(value);
+    g_NvidiaExt[index].src1u.x = 4;
+    g_NvidiaExt[index].opcode  = NV_EXTN_OP_MATCH_ANY;
+    // result is returned as the return value of IncrementCounter on fake UAV slot
+    return g_NvidiaExt.IncrementCounter();
+}
+
+
+//----------------------------------------------------------------------------//
+//------------------------------ Footprint functions -------------------------//
+//----------------------------------------------------------------------------//
+// texSpace and smpSpace must be immediates, texIndex and smpIndex can be variable
+// offset must be immediate
+// the required components of location and offset fields can be filled depending on the dimension/type of the texture
+// texType should be one of 2D or 3D as defined in nvShaderExtnEnums.h and and should be an immediate literal
+// if the above restrictions are not met, the behaviour of this instruction is undefined
+
+uint4 NvFootprintFine(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, int3 offset = int3(0, 0, 0))
+{
+    return __NvFootprint(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_FINE, gran, offset);
+}
+
+uint4 NvFootprintCoarse(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, int3 offset = int3(0, 0, 0))
+{
+    return __NvFootprint(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_COARSE, gran, offset);
+}
+
+
+
+uint4 NvFootprintFineBias(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float bias, int3 offset = int3(0, 0, 0))
+{
+    return __NvFootprintBias(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_FINE, gran, bias, offset);
+}
+
+uint4 NvFootprintCoarseBias(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float bias, int3 offset = int3(0, 0, 0))
+{
+    return __NvFootprintBias(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_COARSE, gran, bias, offset);
+}
+
+
+
+uint4 NvFootprintFineLevel(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float lodLevel, int3 offset = int3(0, 0, 0))
+{
+    return __NvFootprintLevel(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_FINE, gran, lodLevel, offset);
+}
+
+uint4 NvFootprintCoarseLevel(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float lodLevel, int3 offset = int3(0, 0, 0))
+{
+    return __NvFootprintLevel(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_COARSE, gran, lodLevel, offset);
+}
+
+
+
+uint4 NvFootprintFineGrad(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float3 ddx, float3 ddy, int3 offset = int3(0, 0, 0))
+{
+    return __NvFootprintGrad(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_FINE, gran, ddx, ddy, offset);
+}
+
+uint4 NvFootprintCoarseGrad(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float3 ddx, float3 ddy, int3 offset = int3(0, 0, 0))
+{
+    return __NvFootprintGrad(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_COARSE, gran, ddx, ddy, offset);
+}
+
+uint NvFootprintExtractLOD(uint4 blob)
+{
+    return ((blob.w & 0xF000) >> 12);
+}
+
+uint NvFootprintExtractReturnGran(uint4 blob)
+{
+    return ((blob.z & 0xF000000) >> 24);
+}
+
+uint2 NvFootprintExtractAnchorTileLoc2D(uint4 blob)
+{
+    uint2 loc;
+    loc.x = (blob.w & 0xFFF);
+    loc.y = (blob.z & 0xFFF);
+    return loc;
+}
+
+uint3 NvFootprintExtractAnchorTileLoc3D(uint4 blob)
+{
+    uint3 loc;
+    loc.x = (blob.w & 0xFFF);
+    loc.y = ((blob.w & 0xFFF0000) >> 16);
+    loc.z = (blob.z & 0x1FFF);
+    return loc;
+}
+
+uint2 NvFootprintExtractOffset2D(uint4 blob)
+{
+    uint2 loc;
+    loc.x = ((blob.z & 0x070000) >> 16);
+    loc.y = ((blob.z & 0x380000) >> 19);
+    return loc;
+}
+
+uint3 NvFootprintExtractOffset3D(uint4 blob)
+{
+    uint3 loc;
+    loc.x = ((blob.z & 0x030000) >> 16);
+    loc.y = ((blob.z & 0x0C0000) >> 18);
+    loc.z = ((blob.z & 0x300000) >> 20);
+    return loc;
+}
+
+uint2 NvFootprintExtractBitmask(uint4 blob)
+{
+    return blob.xy;
+}
+
+
+// Variant of Footprint extensions which returns isSingleLod (out parameter) 
+// isSingleLod = true -> This footprint request touched the texels from only single LOD.
+uint4 NvFootprintFine(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, out uint isSingleLod, int3 offset = int3(0, 0, 0))
+{
+    uint4 res = __NvFootprint(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_FINE, gran, offset);
+    isSingleLod = __NvGetSpecial(NV_SPECIALOP_FOOTPRINT_SINGLELOD_PRED);
+    return res;
+}
+
+uint4 NvFootprintCoarse(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, out uint isSingleLod, int3 offset = int3(0, 0, 0))
+{
+    uint4 res = __NvFootprint(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_COARSE, gran, offset);
+    isSingleLod = __NvGetSpecial(NV_SPECIALOP_FOOTPRINT_SINGLELOD_PRED);
+    return res;
+}
+
+
+
+uint4 NvFootprintFineBias(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float bias, out uint isSingleLod, int3 offset = int3(0, 0, 0))
+{
+    uint4 res = __NvFootprintBias(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_FINE, gran, bias, offset);
+    isSingleLod = __NvGetSpecial(NV_SPECIALOP_FOOTPRINT_SINGLELOD_PRED);
+    return res;
+}
+
+uint4 NvFootprintCoarseBias(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float bias, out uint isSingleLod, int3 offset = int3(0, 0, 0))
+{
+    uint4 res = __NvFootprintBias(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_COARSE, gran, bias, offset);
+    isSingleLod = __NvGetSpecial(NV_SPECIALOP_FOOTPRINT_SINGLELOD_PRED);
+    return res;
+}
+
+
+
+uint4 NvFootprintFineLevel(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float lodLevel, out uint isSingleLod, int3 offset = int3(0, 0, 0))
+{
+    uint4 res = __NvFootprintLevel(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_FINE, gran, lodLevel, offset);
+    isSingleLod = __NvGetSpecial(NV_SPECIALOP_FOOTPRINT_SINGLELOD_PRED);
+    return res;
+}
+
+uint4 NvFootprintCoarseLevel(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float lodLevel, out uint isSingleLod, int3 offset = int3(0, 0, 0))
+{
+    uint4 res = __NvFootprintLevel(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_COARSE, gran, lodLevel, offset);
+    isSingleLod = __NvGetSpecial(NV_SPECIALOP_FOOTPRINT_SINGLELOD_PRED);
+    return res;
+}
+
+
+
+uint4 NvFootprintFineGrad(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float3 ddx, float3 ddy, out uint isSingleLod, int3 offset = int3(0, 0, 0))
+{
+    uint4 res = __NvFootprintGrad(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_FINE, gran, ddx, ddy, offset);
+    isSingleLod = __NvGetSpecial(NV_SPECIALOP_FOOTPRINT_SINGLELOD_PRED);
+    return res;
+}
+
+uint4 NvFootprintCoarseGrad(uint texSpace, uint texIndex, uint smpSpace, uint smpIndex, uint texType, float3 location, uint gran, float3 ddx, float3 ddy, out uint isSingleLod, int3 offset = int3(0, 0, 0))
+{
+    uint4 res = __NvFootprintGrad(texSpace, texIndex, smpSpace, smpIndex, texType, location, NV_EXTN_FOOTPRINT_MODE_COARSE, gran, ddx, ddy, offset);
+    isSingleLod = __NvGetSpecial(NV_SPECIALOP_FOOTPRINT_SINGLELOD_PRED);
+    return res;
+}
+
+
+uint NvActiveThreads()
+{
+    return NvBallot(1);
+}
+
+
+//----------------------------------------------------------------------------//
+//------------------------------ WaveMultiPrefix functions -------------------//
+//----------------------------------------------------------------------------//
+
+// Following are the WaveMultiPrefix functions for different operations (Add, Bitand, BitOr, BitXOr) for different datatypes (uint, uint2, uint4) 
+// This is a set of functions which implement multi-prefix operations among the set of active lanes in the current wave (WARP). 
+// A multi-prefix operation comprises a set of prefix operations, executed in parallel within subsets of lanes identified with the provided bitmasks. 
+// These bitmasks represent partitioning of the set of active lanes in the current wave into N groups (where N is the number of unique masks across all lanes in the wave). 
+// N prefix operations are then performed each within its corresponding group. 
+// The groups are assumed to be non-intersecting (that is, a given lane can be a member of one and only one group), 
+// and bitmasks in all lanes belonging to the same group are required to be the same.
+// There are 2 type of functions - Exclusive and Inclusive prefix operations.
+// e.g. For NvWaveMultiPrefixInclusiveAdd(val, mask) operation - For each of the groups (for which mask input is same) following is the expected output : 
+// i^th thread in a group has value = sum(values of threads 0 to i)
+// For Exclusive version of same opeartion - 
+// i^th thread in a group has value = sum(values of threads 0 to i-1)  and 0th thread in a the Group has value 0 
+
+// Extensions for Add 
+uint NvWaveMultiPrefixInclusiveAdd(uint val, uint mask)
+{
+    uint temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        // As remainingThreads only has threads in group with smaller thread ids than its own thread-id nextLane can never be 31 for any thread in the group except the smallest one
+        // For smallest thread in the group, remainingThreads is 0 -->  nextLane is ~0 (i.e. considering last 5 bits its 31)
+        // So passing maskClampValue=30 to __NvShflGeneric, it will return laneValid=false for the smallest thread in the group. So update val and nextLane based on laneValid.
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val + temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint NvWaveMultiPrefixExclusiveAdd(uint val, uint mask)
+{
+    uint temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : 0;
+    return NvWaveMultiPrefixInclusiveAdd(val, mask);
+}
+
+uint2 NvWaveMultiPrefixInclusiveAdd(uint2 val, uint mask)
+{
+    uint2 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val + temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint2 NvWaveMultiPrefixExclusiveAdd(uint2 val, uint mask)
+{
+    uint2 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : uint2(0, 0);
+    return NvWaveMultiPrefixInclusiveAdd(val, mask);
+}
+
+uint4 NvWaveMultiPrefixInclusiveAdd(uint4 val, uint mask)
+{
+    uint4 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val + temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint4 NvWaveMultiPrefixExclusiveAdd(uint4 val, uint mask)
+{
+    uint4 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : uint4(0, 0, 0, 0);
+    return NvWaveMultiPrefixInclusiveAdd(val, mask);
+}
+
+// MultiPrefix extensions for Bitand
+uint NvWaveMultiPrefixInclusiveAnd(uint val, uint mask)
+{
+    uint temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val & temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint NvWaveMultiPrefixExclusiveAnd(uint val, uint mask)
+{
+    uint temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : ~0;
+    return NvWaveMultiPrefixInclusiveAnd(val, mask);
+}
+
+uint2 NvWaveMultiPrefixInclusiveAnd(uint2 val, uint mask)
+{
+    uint2 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val & temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint2 NvWaveMultiPrefixExclusiveAnd(uint2 val, uint mask)
+{
+    uint2 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : uint2(~0, ~0);
+    return NvWaveMultiPrefixInclusiveAnd(val, mask);
+}
+
+
+uint4 NvWaveMultiPrefixInclusiveAnd(uint4 val, uint mask)
+{
+    uint4 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val & temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint4 NvWaveMultiPrefixExclusiveAnd(uint4 val, uint mask)
+{
+    uint4 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : uint4(~0, ~0, ~0, ~0);
+    return NvWaveMultiPrefixInclusiveAnd(val, mask);
+}
+
+
+// MultiPrefix extensions for BitOr
+uint NvWaveMultiPrefixInclusiveOr(uint val, uint mask)
+{
+    uint temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val | temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint NvWaveMultiPrefixExclusiveOr(uint val, uint mask)
+{
+    uint temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : 0;
+    return NvWaveMultiPrefixInclusiveOr(val, mask);
+}
+
+uint2 NvWaveMultiPrefixInclusiveOr(uint2 val, uint mask)
+{
+    uint2 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val | temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint2 NvWaveMultiPrefixExclusiveOr(uint2 val, uint mask)
+{
+    uint2 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : uint2(0, 0);
+    return NvWaveMultiPrefixInclusiveOr(val, mask);
+}
+
+
+uint4 NvWaveMultiPrefixInclusiveOr(uint4 val, uint mask)
+{
+    uint4 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val | temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint4 NvWaveMultiPrefixExclusiveOr(uint4 val, uint mask)
+{
+    uint4 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : uint4(0, 0, 0, 0);
+    return NvWaveMultiPrefixInclusiveOr(val, mask);
+}
+
+
+// MultiPrefix extensions for BitXOr
+uint NvWaveMultiPrefixInclusiveXOr(uint val, uint mask)
+{
+    uint temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val ^ temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint NvWaveMultiPrefixExclusiveXOr(uint val, uint mask)
+{
+    uint temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : 0;
+    return NvWaveMultiPrefixInclusiveXOr(val, mask);
+}
+
+uint2 NvWaveMultiPrefixInclusiveXOr(uint2 val, uint mask)
+{
+    uint2 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val ^ temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint2 NvWaveMultiPrefixExclusiveXOr(uint2 val, uint mask)
+{
+    uint2 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : uint2(0, 0);
+    return NvWaveMultiPrefixInclusiveXOr(val, mask);
+}
+
+
+uint4 NvWaveMultiPrefixInclusiveXOr(uint4 val, uint mask)
+{
+    uint4 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint nextLane = firstbithigh(remainingThreads);
+    for (uint i = 0; i < NV_WARP_SIZE_LOG2; i++)
+    {
+        temp = NvShfl(val, nextLane);
+        uint laneValid;
+        uint newLane = asuint(__NvShflGeneric(nextLane, nextLane, 30, laneValid));
+        if (laneValid) // if nextLane's nextLane is valid
+        {
+            val = val ^ temp;
+            nextLane = newLane;
+        }
+    }
+    return val;
+}
+
+uint4 NvWaveMultiPrefixExclusiveXOr(uint4 val, uint mask)
+{
+    uint4 temp;
+    uint a = NvActiveThreads();
+    uint remainingThreads = a & __NvGetSpecial(NV_SPECIALOP_THREADLTMASK) & mask;
+    uint lane = firstbithigh(remainingThreads);
+    temp = NvShfl(val, lane);
+    val = remainingThreads != 0 ? temp : uint4(0, 0, 0, 0);
+    return NvWaveMultiPrefixInclusiveXOr(val, mask);
 }

@@ -1,6 +1,125 @@
-﻿21.01.29
+﻿21.03.16
+========
+ + NVIDIA Reflex Configuration made Simpler
+ + NVIDIA Reflex settings now stored in INI files per-game
+ + Added support for HDR in D3D12 version of The Median
+
+21.03.15
+========
+ + Improved HDR Metadata for accurate sRGB retrofits and ideal black floor
+ + Disabled XInput Hotplug functionality because something appears to be
+     breaking it (Steam overlay? or something else?)
+
+       >> Either way, better off without the broken feature for now.
+
+21.03.14.Reflex
+===============
+ + Adds experimental NVIDIA Reflex functionality to the framerate limiter
+
+21.03.14
+========
+ + Fixed missing textures in D3D11 Render Mod Tools when modified textures have
+     a different number of mipmap LODs than the original texture
+ + Fixed a bug that occasionally added borders to borderless games at startup
+ + Removed "(16-bit)" from the scRGB button in the HDR widget to avoid confusion
+
+21.03.13
+========
+ + Improved Framerate Limiter accuracy in games that change x87/SSE2 FPU precision
+ + Fixed an issue in Koei Tecmo games that detects Alt-Tab as gamepad disconnection
+ + Fixed loading texture mods from sub-directories of `inject\textures\...`
+
+21.03.12.1
+==========
+ + Fixed EDID issues in D3D9 and OpenGL games
+ + Fixed parsing of corrupted EDIDs, and stopped using NvAPI to get display EDID
+ + Improved support for late injection into D3D11 games; HDR needs early inject
+
+21.03.12
+========
+ + Fixed input issues with Background Render mode and applications that use
+     child dialogs (i.e. 'Confirm Exit' message boxes)
+ + Cleaned up Help menu in Control Panel with relevant links
+ + Removed branch information and referenced SK's Wiki in the startup banner
+
+21.03.11
+========
+ + Fixed crash in NieR: Automata due to DXGI factories
+ + Fixed various issues with Ansel in D3D11 games
+
+21.03.10
+========
+ + Added real-time HDR on/off state detection
+ + Added per-monitor HDR support
+ + Added warning when HDR is enabled but the game's window is on a non-HDR monitor
+ + HDR widget remains functional (to help disable SK HDR) if SK HDR is enabled on
+     a non-HDR monitor. It will vanish as-per original design if SK HDR is disable
+
+ + Added option to FORCEFULLY disable Ansel (NvCamera{64}.dll), since NV no longer
+     honors the per-game driver setting that was designed to do this.
+
+     [NVIDIA.Bugs]
+     DisableAnselShimLoader={true|false}
+
+21.03.06
+========
+ + Added HDR support to RTSS overlay
+ + Added independent luminance control for Discord and RTSS to SK's HDR menu
+    >> These options will only show up if said overlay is detected actively rendering
+
+21.03.05
+========
+ + Added HDR support to Discord overlay; re-uses Special K's preferences for Steam
+     overlay luminance. This only applies in D3D11 at the moment.
+ + Removed Control.exe from global injection blacklist; it's no longer a launcher
+
+21.03.02
+========
+ + Add checks for redundant calls to IDXGISwapChain::ResizeBuffers (...), to reduce
+     performance loss in Watch_Dogs: Legion
+ + Automatically disable caching textures without mipmaps in all Unity Engine games
+
+21.03.01
+========
+ + Fix HDR turning off when games examine DXGI containing outputs (monitors) that
+     are SDR... (i.e. multi-monitor mixed SDR/HDR situations)
+ + Workaround issues with Cyberpunk 2077's Cyber Engine Tweak overlay
+
+21.02.15
+========
+ + Gal*Gun Returns Resolution Fix: Fixes internal render resolution using the value
+     of OverrideRes= in SK's INI (can be set from cpl, but requires a game restart).
+
+21.02.09
+========
+ + Nioh 2 needs "Sleepless Window Thread" turned on in SK's framerate limiter to fix
+     its framepacing with "Effects: High"; option enabled by default now.
+ + 32-bit version of SK now built with same compiler version as used in 21.02.05+
+
+21.02.05
+========
+ + Workaround new Visual C++ compiler bug that breaks double-precision FP math in x64
+  ( That bug was responsible for incorrectly sized UI windows and other things )
+
+21.01.30.1
+==========
+ + Default all Yakuza games to Borderless Fullscreen + Flip Model
+ + Disable game's Alt-F4 handler in all Yakuza games because it can deadlock
+ + Remove Always-on-Top Window style from all Yakuza games
+ + Force DPI Awareness ON in all Yakuza games the correct way
+ + Disable buttons on CPU widget when the main control panel is not open
+
+  >> For users unfortunate enough to be playing a Yakuza game:
+
+    * Press and Hold Ctrl + Shift during game startup and use SK's AppCompat
+        [ Reset Config ] function the first time you use this version.
+
+
+21.01.29
 ========
  + Yakuza 3, no surprise, incorrectly counts resource references
+ + Fixed HDR / Flip Model override support in games that create 8x8 SwapChains
+     (i.e. The Elder Scrolls Online)
 
 21.01.28
 ========

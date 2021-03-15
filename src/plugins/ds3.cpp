@@ -317,9 +317,10 @@ SK_DS3_CheckVersion (LPVOID user)
   __stdcall
   SK_UpdateSoftware (const wchar_t* wszProduct);
 
-
-  if (SK_FetchVersionInfo (L"SoulsUnsqueezed"))
-    SK_UpdateSoftware (L"SoulsUnsqueezed");
+  // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
+  //
+  ////if (SK_FetchVersionInfo (L"SoulsUnsqueezed"))
+  ////  SK_UpdateSoftware (L"SoulsUnsqueezed");
 
   return 0;
 }

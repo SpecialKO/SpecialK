@@ -1,4 +1,3 @@
-
 /**
  * This file is part of Special K.
  *
@@ -57,15 +56,13 @@ class iParameter
 {
 public:
   iParameter (void) noexcept : type_ (std::type_index (typeid (iParameter))) {
-    ini        = nullptr;
-    //type_      = std::type_index (typeid (iParameter));
+    ini = nullptr;
   }
 
   virtual ~iParameter (void) noexcept { }
 
   virtual std::wstring get_value_str (void)                     = 0;
   virtual void         set_value_str (const wchar_t *str)       = 0;
-//virtual void         set_value_str (      std::wstring&  str) = 0;
   virtual void         set_value_str (const std::wstring&  str) = 0;
 
   // Read value from INI
@@ -312,6 +309,9 @@ public:
       );
     }
 
+    else
+      assert (false);
+
     return params.back ().get ();
   }
   //----------------------------------------------------------------------------
@@ -328,150 +328,6 @@ private:
   std::vector <std::unique_ptr <iParameter>> params;
 };
 }
-
-#if 0
-interface iSK_ParameterBase
-{
-  iSK_ParameterBase (void) {
-    ini = nullptr;
-  }
-
-  STDMETHOD_ (std::wstring, get_value_str)(THIS)                   = 0;
-  STDMETHOD_ (void,         set_value_str)(THIS_ std::wstring str) = 0;
-
-  // Store value in INI and/or XML
-  STDMETHOD_ (void,         store_str)    (THIS_ std::wstring str) = 0;
-
-  STDMETHOD_ (void, register_to_ini)(THIS_ iSK_INI      *file,
-                                           std::wstring  section,
-                                           std::wstring  key );
-
-protected:
-private:
-  iSK_INI*             ini;
-  std::wstring         ini_section;
-  std::wstring         ini_key;
-};
-
-template <typename _T>
-interface iSK_Parameter : public iSK_ParameterBase
-{
-  iSK_Parameter (void) {
-    ini = nullptr;
-  }
-
-  STDMETHOD_ (void,         set_value_str)(THIS_ std::wstring str) = 0;
-  STDMETHOD_ (std::wstring, get_value_str)(THIS)                   = 0;
-
-  // Store value in INI and/or XML
-  STDMETHOD_ (void, store_str)(THIS_ std::wstring str) = 0;
-  STDMETHOD_ (void, store)    (THIS_ _T           val) = 0;
-
-  STDMETHOD_ (_T,           get_value)    (THIS)                   = 0;
-  STDMETHOD_ (void,         set_value)    (THIS_ _T           val) = 0;
-
-  // Read value from INI
-  STDMETHOD_ (bool, load)(THIS_ _T& ref) = 0;
-
-protected:
-private:
-  _T                   value;
-};
-
-interface iSK_ParameterInt : public iSK_Parameter <int>
-{
-  std::wstring get_value_str (void);
-  int          get_value     (void);
-
-  void         set_value     (int          val);
-  void         set_value_str (std::wstring str);
-
-  void         store         (int          val);
-  void         store_str     (std::wstring str);
-
-  bool         load          (int& ref);
-
-protected:
-  int value;
-};
-
-interface iSK_ParameterInt64 : public iSK_Parameter <int64_t>
-{
-  std::wstring get_value_str (void);
-  int64_t      get_value     (void);
-
-  void         set_value     (int64_t      val);
-  void         set_value_str (std::wstring str);
-
-  void         store         (int64_t      val);
-  void         store_str     (std::wstring str);
-
-  bool         load          (int64_t&     ref);
-
-protected:
-  int64_t value;
-};
-
-interface iSK_ParameterBool : public iSK_Parameter <bool>
-{
-  std::wstring get_value_str (void);
-  bool         get_value     (void);
-
-  void         set_value     (bool         val);
-  void         set_value_str (std::wstring str);
-
-  void         store         (bool         val);
-  void         store_str     (std::wstring str);
-
-  bool         load          (bool&        ref);
-
-protected:
-  bool value;
-};
-
-interface iSK_ParameterFloat : public iSK_Parameter <float>
-{
-  std::wstring get_value_str (void);
-  float        get_value     (void);
-
-  void         set_value     (float        val);
-  void         set_value_str (std::wstring str);
-
-  void         store         (float        val);
-  void         store_str     (std::wstring str);
-
-  bool         load          (float&       ref);
-
-protected:
-  float value;
-};
-
-interface iSK_ParameterStringW : public iSK_Parameter <std::wstring>
-{
-public:
-  std::wstring get_value_str (void);
-  std::wstring get_value     (void);
-
-  void         set_value     (std::wstring str);
-  void         set_value_str (std::wstring str);
-
-  void         store         (std::wstring val);
-  void         store_str     (std::wstring str);
-
-  bool         load          (std::wstring& ref);
-
-
-protected:
-  std::wstring value;
-};
-
-interface iSK_ParameterFactory {
-  template <typename _T> iSK_ParameterBase* create_parameter  (const wchar_t* name);
-
-private:
-  std::vector <iSK_ParameterBase *> params;
-};
-#endif
 
 extern SK_LazyGlobal <sk::ParameterFactory> g_ParameterFactory;
 

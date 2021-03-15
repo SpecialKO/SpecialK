@@ -284,28 +284,34 @@ SK_YS8_RecursiveFileExport (
       FILE*    fIN  =
         _wfopen         (in_file.c_str (), L"rb+");
 
-      uint8_t *data =
-        new uint8_t [size] { };
-
-      fread  (data, size, 1, fIN);
-      fclose (               fIN);
-
-      for (size_t i = 0; i < size; i++)
+      if (fIN)
       {
-        data [i] = (  (data [i] << 4U) |
-                     ~(data [i] >> 4U) & 0xFU )
-                                       & 0xFF;
+        uint8_t *data =
+          new uint8_t [size] { };
+
+        fread  (data, size, 1, fIN);
+        fclose (               fIN);
+
+        for (size_t i = 0; i < size; i++)
+        {
+          data [i] = (  (data [i] << 4U) |
+                       ~(data [i] >> 4U) & 0xFU )
+                                         & 0xFF;
+        }
+
+        SK_CreateDirectories (out_file.c_str ());
+
+        FILE* fOUT =
+          _wfopen ( out_file.c_str (), L"wb+" );
+
+        if (fOUT)
+        {
+          fwrite (data, size, 1, fOUT);
+          fclose (               fOUT);
+        }
+
+        delete [] data;
       }
-
-      SK_CreateDirectories (out_file.c_str ());
-
-      FILE* fOUT =
-        _wfopen ( out_file.c_str (), L"wb+" );
-
-      fwrite (data, size, 1, fOUT);
-      fclose (               fOUT);
-
-      delete [] data;
     }
 
     else if ( _wcsicmp (fd.cFileName, L"SK_Export") != 0 )
@@ -496,11 +502,11 @@ _SK_RecursiveFileSizeProbe (const wchar_t *wszDir, bool top_lvl = false)
   return size;
 };
 
-extern bool b_66b35959;
-extern bool b_9d665ae2;
-extern bool b_b21c8ab9;
-extern bool b_6bb0972d;
-extern bool b_05da09bd;
+bool b_66b35959 = false;
+bool b_9d665ae2 = false;
+bool b_b21c8ab9 = false;
+bool b_6bb0972d = false;
+bool b_05da09bd = true;
 
 void
 __stdcall
@@ -845,10 +851,14 @@ SK_YS8_ControlPanel (void)
         const LONG64 llTotalBytes =
           ReadAcquire64 (&llBytesSkipped) + ReadAcquire64 (&llBytesCopied);
 
-        ImGui::PushStyleColor (ImGuiCol_PlotHistogram, (ImVec4&&)ImColor::HSV ((float)std::min ((long double)1.0, (long double)ReadAcquire64 (&llBytesSkipped) / (long double)(llTotalBytes)) * 0.278f, 0.88f, 0.333f));
-        ImGui::ProgressBar ( float (((long double)ReadAcquire64 (&llBytesSkipped)) /
+        LONG64 llSkipped =
+          ReadAcquire64 (&llBytesSkipped);
+
+        ImGui::PushStyleColor (ImGuiCol_PlotHistogram, (ImVec4&&)ImColor::HSV ((float)std::min ((long double)1.0, (long double)llSkipped / (long double)(llTotalBytes)) * 0.278f, 0.88f, 0.333f));
+
+        ImGui::ProgressBar ( float (((long double)llSkipped) /
                                      (long double)(llTotalBytes)), ImVec2 (-1,0),
-          SK_FormatString ("%ws out of %ws were avoided\t\t\t\tDirty Hash (%ws :: Load=%4.2f)", SK_File_SizeToString (ReadAcquire64 (&llBytesSkipped)).c_str (),
+          SK_FormatString ("%ws out of %ws were avoided\t\t\t\tDirty Hash (%ws :: Load=%4.2f)", SK_File_SizeToString (llSkipped).c_str (),
                                                                                                 SK_File_SizeToString (llTotalBytes).c_str (),
                                                                                                 SK_File_SizeToString (ys8_dirty_resources->size () * (sizeof (uintptr_t) + sizeof (bool))).c_str (),
                                                                                                                       ys8_dirty_resources->load_factor ()).c_str ());

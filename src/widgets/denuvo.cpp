@@ -65,7 +65,6 @@ SK_Denuvo_UsedByGame (bool retest)
 
 
   WIN32_FIND_DATA fd     = {   };
-  HANDLE          hFind  = INVALID_HANDLE_VALUE;
   int             files  =   0;
   LARGE_INTEGER   liSize = {   };
 
@@ -81,7 +80,7 @@ SK_Denuvo_UsedByGame (bool retest)
   swprintf_s ( wszSearchPath,  MAX_PATH,
                  L"%ws*", wszInstallPath );
 
-  hFind =
+  HANDLE hFind =
     FindFirstFileW (wszSearchPath, &fd);
 
   if (hFind != INVALID_HANDLE_VALUE)

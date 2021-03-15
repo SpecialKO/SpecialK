@@ -1404,11 +1404,10 @@ public:
   void
   resolveNameAndDescForPowerScheme (power_scheme_s& scheme)
   {
-    DWORD   dwRet         = ERROR_NOT_READY;
     DWORD   dwLen         = 511;
     wchar_t wszName [512] = { };
 
-    dwRet =
+    DWORD dwRet =
       PowerReadFriendlyName ( nullptr,
                                &scheme.uid,
                                   nullptr, nullptr,
@@ -1659,7 +1658,7 @@ public:
            float longest_line      = 0.0f;
 
     bool show_mode_buttons =
-      (SK_ImGui_Visible || ImGui::IsWindowHovered ());
+      (SK_ImGui_Visible);// || ImGui::IsWindowHovered ());
 
     bool show_install_button = (! SK_WR0_Init ())  &&
                                   SK_ImGui_Visible &&

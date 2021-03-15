@@ -29,7 +29,6 @@
 using NTSTATUS = _Return_type_success_(return >= 0) LONG;
 
 
-HMODULE                    NtDll                  = nullptr;
 NtQueryTimerResolution_pfn NtQueryTimerResolution = nullptr;
 NtSetTimerResolution_pfn   NtSetTimerResolution   = nullptr;
 
@@ -227,7 +226,6 @@ SK_WaitForSingleObject_Micro ( _In_  HANDLE          hHandle,
       case STATUS_TIMEOUT:
         return WAIT_TIMEOUT;
       case STATUS_ALERTED:
-        return WAIT_IO_COMPLETION;
       case STATUS_USER_APC:
         return WAIT_IO_COMPLETION;
     }
@@ -1193,13 +1191,14 @@ NtSetTimerResolution_Detour
 
   NtQueryTimerResolution =
   reinterpret_cast <NtQueryTimerResolution_pfn> (
-    SK_GetProcAddress (NtDll, "NtQueryTimerResolution")
+    SK_GetProcAddress (L"NtDll", "NtQueryTimerResolution")
   );
 
   if (NtQueryTimerResolution != nullptr)
   {
-    ULONG min, max, cur;
+    ULONG                    min,  max,  cur;
     NtQueryTimerResolution (&min, &max, &cur);
+
     dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
                      static_cast <float> (cur * 100)/1000000.0f );
 
@@ -1216,138 +1215,112 @@ NtSetTimerResolution_Detour
 
 void SK_Scheduler_Init (void)
 {
-  RtlQueryPerformanceFrequency =
+  static std::once_flag the_wuncler;
+
+  std::call_once (the_wuncler, [&](void)
+  {
+    NtQueryTimerResolution =
+      reinterpret_cast <NtQueryTimerResolution_pfn> (
+        SK_GetProcAddress ( L"NtDll",
+                             "NtQueryTimerResolution" ) );
+
+    NtSetTimerResolution =
+      reinterpret_cast <NtSetTimerResolution_pfn> (
+        SK_GetProcAddress ( L"NtDll",
+                             "NtSetTimerResolution" ) );
+
+    RtlQueryPerformanceFrequency =
+      (QueryPerformanceCounter_pfn)
+      SK_GetProcAddress ( L"NtDll",
+                           "RtlQueryPerformanceFrequency" );
+
+    RtlQueryPerformanceCounter =
     (QueryPerformanceCounter_pfn)
-    SK_GetProcAddress ( L"NtDll",
-                         "RtlQueryPerformanceFrequency" );
+      SK_GetProcAddress ( L"NtDll",
+                           "RtlQueryPerformanceCounter" );
 
-  RtlQueryPerformanceCounter =
-  (QueryPerformanceCounter_pfn)
-    SK_GetProcAddress ( L"NtDll",
-                         "RtlQueryPerformanceCounter" );
+    ZwQueryPerformanceCounter =
+      (QueryPerformanceCounter_pfn)
+      SK_GetProcAddress ( L"NtDll",
+                           "ZwQueryPerformanceCounter" );
 
-  ZwQueryPerformanceCounter =
-    (QueryPerformanceCounter_pfn)
-    SK_GetProcAddress ( L"NtDll",
-                         "ZwQueryPerformanceCounter" );
-
-  NtDelayExecution =
-    (NtDelayExecution_pfn)
-    SK_GetProcAddress ( L"NtDll",
-                         "NtDelayExecution" );
+    NtDelayExecution =
+      (NtDelayExecution_pfn)
+      SK_GetProcAddress ( L"NtDll",
+                           "NtDelayExecution" );
 
 //#define NO_HOOK_QPC
 #ifndef NO_HOOK_QPC
-  SK_GetPerfFreq ();
-  SK_CreateDLLHook2 (      L"kernel32",
-                            "QueryPerformanceFrequency",
-                             QueryPerformanceFrequency_Detour,
-    static_cast_p2p <void> (&QueryPerformanceFrequency_Original) );
+    SK_GetPerfFreq ();
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "QueryPerformanceFrequency",
+                               QueryPerformanceFrequency_Detour,
+      static_cast_p2p <void> (&QueryPerformanceFrequency_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32",
-                            "QueryPerformanceCounter",
-                             QueryPerformanceCounter_Detour,
-    static_cast_p2p <void> (&QueryPerformanceCounter_Original),
-    static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "QueryPerformanceCounter",
+                               QueryPerformanceCounter_Detour,
+      static_cast_p2p <void> (&QueryPerformanceCounter_Original),
+      static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
 #endif
 
-  SK_CreateDLLHook2 (      L"kernel32",
-                            "Sleep",
-                             Sleep_Detour,
-    static_cast_p2p <void> (&Sleep_Original),
-    static_cast_p2p <void> (&pfnSleep) );
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "Sleep",
+                               Sleep_Detour,
+      static_cast_p2p <void> (&Sleep_Original),
+      static_cast_p2p <void> (&pfnSleep) );
 
-  SK_CreateDLLHook2 (      L"KernelBase.dll",
-                            "SleepEx",
-                             SleepEx_Detour,
-    static_cast_p2p <void> (&SleepEx_Original) );
+    SK_CreateDLLHook2 (      L"KernelBase.dll",
+                              "SleepEx",
+                               SleepEx_Detour,
+      static_cast_p2p <void> (&SleepEx_Original) );
 
-  SK_CreateDLLHook2 (      L"KernelBase.dll",
-                            "SwitchToThread",
-                             SwitchToThread_Detour,
-    static_cast_p2p <void> (&SwitchToThread_Original) );
+    SK_CreateDLLHook2 (      L"KernelBase.dll",
+                              "SwitchToThread",
+                               SwitchToThread_Detour,
+      static_cast_p2p <void> (&SwitchToThread_Original) );
 
-  SK_CreateDLLHook2 (      L"NtDll",
-                            "NtWaitForSingleObject",
-                             NtWaitForSingleObject_Detour,
-    static_cast_p2p <void> (&NtWaitForSingleObject_Original) );
+    SK_CreateDLLHook2 (      L"NtDll",
+                              "NtWaitForSingleObject",
+                               NtWaitForSingleObject_Detour,
+      static_cast_p2p <void> (&NtWaitForSingleObject_Original) );
 
-  SK_CreateDLLHook2 (      L"NtDll",
-                            "NtWaitForMultipleObjects",
-                             NtWaitForMultipleObjects_Detour,
-    static_cast_p2p <void> (&NtWaitForMultipleObjects_Original) );
+    SK_CreateDLLHook2 (      L"NtDll",
+                              "NtWaitForMultipleObjects",
+                               NtWaitForMultipleObjects_Detour,
+      static_cast_p2p <void> (&NtWaitForMultipleObjects_Original) );
 
-  SK_CreateDLLHook2 (      L"NtDll",
-                            "NtSetTimerResolution",
-                             NtSetTimerResolution_Detour,
-    static_cast_p2p <void> (&NtSetTimerResolution_Original) );
+    SK_CreateDLLHook2 (      L"NtDll",
+                              "NtSetTimerResolution",
+                               NtSetTimerResolution_Detour,
+      static_cast_p2p <void> (&NtSetTimerResolution_Original) );
 
-  if (! InterlockedCompareExchange (&__sleep_init, 1, 0))
-  {
-    SK_ICommandProcessor* pCommandProc =
-      SK_GetCommandProcessor ();
+    if (! InterlockedCompareExchange (&__sleep_init, 1, 0))
+    {
+      SK_ICommandProcessor* pCommandProc =
+        SK_GetCommandProcessor ();
 
 
-    pCommandProc->AddVariable ( "Render.FrameRate.SleeplessRenderThread",
-            new SK_IVarStub <bool> (&config.render.framerate.sleepless_render));
+      pCommandProc->AddVariable ( "Render.FrameRate.SleeplessRenderThread",
+              new SK_IVarStub <bool> (&config.render.framerate.sleepless_render));
 
-    pCommandProc->AddVariable ( "Render.FrameRate.SleeplessWindowThread",
-            new SK_IVarStub <bool> (&config.render.framerate.sleepless_window));
-  }
+      pCommandProc->AddVariable ( "Render.FrameRate.SleeplessWindowThread",
+              new SK_IVarStub <bool> (&config.render.framerate.sleepless_window));
+    }
 
 #ifdef NO_HOOK_QPC
-  QueryPerformanceCounter_Original =
-    reinterpret_cast <QueryPerformanceCounter_pfn> (
-      SK_GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
-                         "QueryPerformanceCounter" )
-    );
+    QueryPerformanceCounter_Original =
+      reinterpret_cast <QueryPerformanceCounter_pfn> (
+        SK_GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
+                           "QueryPerformanceCounter" )
+      );
 #endif
-
-  //if (! config.render.framerate.enable_mmcss)
-  {
-    if (NtDll == nullptr)
-    {
-      NtDll =
-        SK_LoadLibraryW (L"NtDll.dll");
-    }
-
-    if (NtDll != nullptr)
-    {
-      SK_RunOnce (
-        NtQueryTimerResolution =
-          reinterpret_cast <NtQueryTimerResolution_pfn> (
-            SK_GetProcAddress (NtDll, "NtQueryTimerResolution")
-          )
-        );
-
-      SK_RunOnce (
-        NtSetTimerResolution =
-          reinterpret_cast <NtSetTimerResolution_pfn> (
-            SK_GetProcAddress (NtDll, "NtSetTimerResolution")
-          )
-        );
-
-      if (NtQueryTimerResolution != nullptr &&
-          NtSetTimerResolution   != nullptr)
-      {
-        ULONG min, max, cur;
-        NtQueryTimerResolution (&min, &max, &cur);
-        dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                         static_cast <float> (cur * 100)/1000000.0f );
-        NtSetTimerResolution   (max, TRUE,  &cur);
-        dll_log->Log ( L"[  Timing  ] New resolution....: %f ms",
-                         static_cast <float> (cur * 100)/1000000.0f );
-      }
-    }
-  }
+  });
 }
 
 void
 SK_Scheduler_Shutdown (void)
 {
-  //if (NtDll != nullptr)
-  //  SK_FreeLibrary (NtDll);
-
   //SK_DisableHook (pfnSleep);
   //SK_DisableHook (pfnQueryPerformanceCounter);
 }

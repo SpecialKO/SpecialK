@@ -129,7 +129,9 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"HorizonZeroDawn.exe"),                    SK_GAME_ID::HorizonZeroDawn              },
       { hash_lower (L"bg3.exe"),                                SK_GAME_ID::BaldursGate3                 },
       { hash_lower (L"Cyberpunk2077.exe"),                      SK_GAME_ID::Cyberpunk2077                },
-      { hash_lower (L"Atelier_Ryza_2.exe"),                     SK_GAME_ID::AtelierRyza2                 }
+      { hash_lower (L"Atelier_Ryza_2.exe"),                     SK_GAME_ID::AtelierRyza2                 },
+      { hash_lower (L"nioh2.exe"),                              SK_GAME_ID::Nioh2                        },
+      { hash_lower (L"HuniePop 2 - Double Date.exe"),           SK_GAME_ID::HuniePop2                    },
     };
 
     first_check = false;
@@ -138,6 +140,12 @@ SK_GetCurrentGameID (void)
     // For games that can't be matched using a single executable filename
     if (! _games.count (hash_lower (SK_GetHostApp ())))
     {
+      auto app_id =
+        SK_Steam_GetAppID_NoAPI ();
+
+      if (app_id == 1382330)
+        current_game = SK_GAME_ID::Persona5Strikers;
+
       if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) )
       {
         current_game = SK_GAME_ID::FinalFantasyXV;
@@ -146,7 +154,7 @@ SK_GetCurrentGameID (void)
                     SK_FFXV_InitPlugin ();
       }
 
-      if ( StrStrIW ( SK_GetHostApp (), L"ACValhalla" ) )
+      else if ( StrStrIW ( SK_GetHostApp (), L"ACValhalla" ) )
       {
         current_game = SK_GAME_ID::AssassinsCreed_Valhalla;
 
@@ -157,9 +165,27 @@ SK_GetCurrentGameID (void)
       // Basically, _every single Yakuza game ever_ releases more references than it acquires...
       //   so just assume this is never going to get better and anything with Yakuza in the name
       //     needs help counting.
-      if ( StrStrIW ( SK_GetHostApp (), L"Yakuza" ) )
+      else if ( StrStrIW ( SK_GetHostApp (), L"Yakuza" ) )
       {
         current_game = SK_GAME_ID::YakuzaUnderflow;
+      }
+
+      else if ( StrStrIW ( SK_GetHostApp  (), L"game"           ) )
+      {    if ( StrStrIW ( SK_GetHostPath (), L"GalGun Returns" ) )
+        {
+          current_game = SK_GAME_ID::GalGunReturns;
+        }
+
+        else if ( StrStrIW ( SK_GetFullyQualifiedApp (),
+                             L"P5S" ) )
+        {
+          current_game = SK_GAME_ID::Persona5Strikers;
+          config.apis.d3d9.hook                    = false;
+          config.apis.d3d9ex.hook                  = false;
+          config.input.keyboard.override_alt_f4    = true;
+          config.input.keyboard.catch_alt_f4       = true;
+          config.window.background_render          = true;
+        }
       }
     }
 
@@ -379,6 +405,20 @@ struct {
 } uplay;
 
 struct {
+  struct
+  {
+    sk::ParameterFloat*   hdr_luminance;
+  } overlay;
+} discord;
+
+struct {
+  struct
+  {
+    sk::ParameterFloat*   hdr_luminance;
+  } overlay;
+} rtss;
+
+struct {
   sk::ParameterBool*      per_monitor_aware;
   sk::ParameterBool*      per_monitor_all_threads;
   sk::ParameterBool*      disable;
@@ -401,7 +441,16 @@ struct {
   {
   //sk::ParameterBool*    fix_10bit_gsync;
     sk::ParameterBool*    snuffed_ansel;
+    sk::ParameterBool*    bypass_ansel;
   } bugs;
+
+  struct
+  {
+    sk::ParameterBool* enable;
+    sk::ParameterBool* low_latency;
+    sk::ParameterBool* low_latency_boost;
+    sk::ParameterInt*  engagement_policy;
+  } reflex;
 } nvidia;
 
 struct {
@@ -518,6 +567,7 @@ struct {
   struct
   {
     sk::ParameterBool*    catch_alt_f4;
+    sk::ParameterBool*    bypass_alt_f4;
     sk::ParameterBool*    disabled_to_game;
   } keyboard;
 
@@ -720,7 +770,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   std::wstring osd_config, steam_config, macro_config;
 
   full_name = // For paths with :, do not prepend the config root
-    name.find (L":") != std::wstring::npos ?
+    name.find (L':') != std::wstring::npos ?
       SK_FormatStringW ( L"%s.ini",             name.c_str () ) :
       SK_FormatStringW ( L"%s%s.ini",
                            SK_GetConfigPath (), name.c_str () );
@@ -729,7 +779,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   std::wstring undecorated_name (name);
 
   if ( undecorated_name.find (L"default_") != std::wstring::npos &&
-       undecorated_name.find (L":")        == std::wstring::npos )
+       undecorated_name.find (L':')        == std::wstring::npos )
   {
       undecorated_name.erase ( undecorated_name.find (L"default_"),
                                         std::wstring (L"default_").length () );
@@ -881,6 +931,8 @@ auto DeclKeybind =
     ConfigEntry (monitoring.SLI.show,                    L"Show SLI Monitoring",                                       osd_ini,         L"Monitor.SLI",           L"Show"),
 
     ConfigEntry (uplay.overlay.hdr_luminance,            L"Make the uPlay Overlay visible in HDR mode!",               osd_ini,         L"uPlay.Overlay",         L"Luminance_scRGB"),
+    ConfigEntry (rtss.overlay.hdr_luminance,             L"Make the RTSS Overlay visible in HDR mode!",                osd_ini,         L"RTSS.Overlay",          L"Luminance_scRGB"),
+    ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
 
     // Performance Monitoring  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
@@ -931,6 +983,7 @@ auto DeclKeybind =
     //////////////////////////////////////////////////////////////////////////
 
     ConfigEntry (input.keyboard.catch_alt_f4,            L"If the game does not handle Alt+F4, offer a replacement",   dll_ini,         L"Input.Keyboard",        L"CatchAltF4"),
+    ConfigEntry (input.keyboard.bypass_alt_f4,           L"Forcefully disable a game's Alt+F4 handler",                dll_ini,         L"Input.Keyboard",        L"BypassAltF4Handler"),
     ConfigEntry (input.keyboard.disabled_to_game,        L"Completely stop all keyboard input from reaching the Game", dll_ini,         L"Input.Keyboard",        L"DisabledToGame"),
 
     ConfigEntry (input.mouse.disabled_to_game,           L"Completely stop all mouse input from reaching the Game",    dll_ini,         L"Input.Mouse",           L"DisabledToGame"),
@@ -1070,6 +1123,11 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
                                                          L"refresh rate with VSYNC enabled (similar to NV Fast Sync).", dll_ini,        L"Render.DXGI",           L"DropLateFrames"),
 
+    ConfigEntry (nvidia.reflex.enable,                   L"Enable NVIDIA Reflex Integration w/ SK's limiter",          dll_ini,         L"NVIDIA.Reflex",         L"Enable"),
+    ConfigEntry (nvidia.reflex.low_latency,              L"Low Latency Mode",                                          dll_ini,         L"NVIDIA.Reflex",         L"LowLatency"),
+    ConfigEntry (nvidia.reflex.low_latency_boost,        L"Reflex Boost (lower-latency power scaling)",                dll_ini,         L"NVIDIA.Reflex",         L"LowLatencyBoost"),
+    ConfigEntry (nvidia.reflex.engagement_policy,        L"When to apply Reflex's magic",                              dll_ini,         L"NVIDIA.Reflex",         L"EngagementPolicy"),
+
     // OpenGL
     //////////////////////////////////////////////////////////////////////////
 
@@ -1143,6 +1201,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.api.disable_hdr,                 L"Prevent Game from Using NvAPI HDR Features",                dll_ini,         L"NVIDIA.API",            L"DisableHDR"),
     ConfigEntry (nvidia.bugs.snuffed_ansel,              L"By default, Special K disables Ansel at first launch, but"
                                                          L" users have an option under 'Help|..' to turn it back on.", dll_ini,         L"NVIDIA.Bugs",           L"AnselSleepsWithFishes"),
+    ConfigEntry (nvidia.bugs.bypass_ansel,               L"Forcefully block nvcamera{64}.dll",                         dll_ini,         L"NVIDIA.Bugs",           L"DisableAnselShimLoader"),
     ConfigEntry (nvidia.sli.compatibility,               L"SLI Compatibility Bits",                                    dll_ini,         L"NVIDIA.SLI",            L"CompatibilityBits"),
     ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
     ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
@@ -1864,6 +1923,9 @@ auto DeclKeybind =
 #endif
 
       case SK_GAME_ID::ChronoTrigger:
+        // Don't accidentally hook the D3D9 device used for video playback
+        config.apis.d3d9.hook   = false;
+        config.apis.d3d9ex.hook = false;
         break;
 
       case SK_GAME_ID::Ys_Eight:
@@ -1928,6 +1990,18 @@ auto DeclKeybind =
 
 
 #ifdef _M_AMD64
+      case SK_GAME_ID::GalGunReturns:
+        config.input.keyboard.override_alt_f4    = true;
+        break;
+
+      case SK_GAME_ID::Persona5Strikers:
+        config.apis.d3d9.hook                    = false;
+        config.apis.d3d9ex.hook                  = false;
+        config.input.keyboard.override_alt_f4    = true;
+        config.input.keyboard.catch_alt_f4       = true;
+        config.window.background_render          = true;
+        break;
+
       case SK_GAME_ID::HorizonZeroDawn:
         // Game uses UI mouse cursor position for mouselook,
         //   it needs to be clipped because developers don't
@@ -1937,29 +2011,47 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Yakuza0:
+      {
+        if (! IsProcessDPIAware ())
+        {
+          void SK_Display_ForceDPIAwarenessUsingAppCompat (void);
+               SK_Display_ForceDPIAwarenessUsingAppCompat ();
+
+          void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
+               SK_Display_SetMonitorDPIAwareness (false);
+
+          SK_RestartGame ();
+        }
+
         ///// Engine has a problem with its texture management that
         /////   makes texture caching / modding impossible.
         config.textures.d3d11.cache               = false;
-        config.textures.cache.allow_unsafe_refs   = true;
+        config.textures.cache.allow_unsafe_refs   =  true;
         config.render.dxgi.deferred_isolation     = false;
         config.textures.cache.residency_managemnt = false;
         config.cegui.enable                       = false; // Off by default
         config.render.framerate.disable_flip      = false;
-        break;
+        config.render.framerate.swapchain_wait    =     1;
+        config.window.borderless                  =  true;
+        config.window.fullscreen                  =  true;
+        config.input.keyboard.override_alt_f4     =  true;
 
-        case SK_GAME_ID::YakuzaKiwami:
-        case SK_GAME_ID::YakuzaKiwami2:
+        HMONITOR hMonitor =
+          MonitorFromWindow ( HWND_DESKTOP,
+                                MONITOR_DEFAULTTOPRIMARY );
+
+        MONITORINFO mi   = {         };
+        mi.cbSize        = sizeof (mi);
+        GetMonitorInfo (hMonitor, &mi);
+
+        config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
+        config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
+      }
+      break;
+
+      case SK_GAME_ID::YakuzaKiwami2:
         config.apis.d3d9.hook                     =  false;
         config.apis.d3d9ex.hook                   =  false;
-        config.apis.OpenGL.hook                   =  false;
-        config.apis.Vulkan.hook                   =  false;
-        config.apis.dxgi.d3d12.hook               =  false;
-        config.window.background_render           =   true;
-        config.window.always_on_top               =     -1;
-        config.textures.d3d11.cache               =  false;
-        config.render.dxgi.deferred_isolation     =   true;
-        config.render.framerate.flip_discard      =   true;
-        config.steam.reuse_overlay_pause          =  false;
 
         dll_ini->import (L"[Import.ReShade64_Custom]\n"
                          L"Architecture=x64\n"
@@ -1971,7 +2063,44 @@ auto DeclKeybind =
         SK_D3D11_DeclHUDShader (0x48dd4bc3, ID3D11VertexShader);
         SK_D3D11_DeclHUDShader (0x54c0d366, ID3D11VertexShader);
         SK_D3D11_DeclHUDShader (0xb943178b, ID3D11VertexShader);
-        break;
+
+      case SK_GAME_ID::YakuzaKiwami:
+      case SK_GAME_ID::YakuzaUnderflow:
+      {
+        if (! IsProcessDPIAware ())
+        {
+          void SK_Display_ForceDPIAwarenessUsingAppCompat (void);
+               SK_Display_ForceDPIAwarenessUsingAppCompat ();
+
+          void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
+               SK_Display_SetMonitorDPIAwareness (false);
+
+          SK_RestartGame ();
+        }
+
+        config.textures.d3d11.cache               =  false;
+        config.window.background_render           =   true;
+        config.window.always_on_top               =      0;
+        config.render.dxgi.deferred_isolation     =   true;
+        config.render.framerate.flip_discard      =   true;
+        config.steam.reuse_overlay_pause          =  false;
+        config.render.framerate.swapchain_wait    =      1;
+        config.window.borderless                  =   true;
+        config.window.fullscreen                  =   true;
+        config.input.keyboard.override_alt_f4     =   true;
+
+        HMONITOR hMonitor =
+          MonitorFromWindow ( HWND_DESKTOP,
+                                MONITOR_DEFAULTTOPRIMARY );
+
+        MONITORINFO mi   = {         };
+        mi.cbSize        = sizeof (mi);
+        GetMonitorInfo (hMonitor, &mi);
+
+        config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
+        config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
+      }
+      break;
 
       case SK_GAME_ID::DragonQuestXI:
         config.apis.d3d9.hook                     = false;
@@ -2063,7 +2192,20 @@ auto DeclKeybind =
         config.render.framerate.flip_discard  = true;
         config.render.dxgi.deferred_isolation = true; // For texture mods / HUD tracking
 
+        // Don't accidentally hook the D3D9 device used for video playback
+        config.apis.d3d9.hook   = false;
+        config.apis.d3d9ex.hook = false;
+
         SK_D3D11_DeclHUDShader_Vtx (0x1a7704f4);
+      } break;
+
+      case SK_GAME_ID::Nioh2:
+      {
+        // Kill the win32 message box, SK's in-game confirmation is gamepad friendly
+        config.input.keyboard.override_alt_f4    = true;
+        config.render.framerate.flip_discard     = true;
+        config.render.framerate.swapchain_wait   = 1;
+        config.render.framerate.sleepless_window = true;
       } break;
 
       case SK_GAME_ID::OctopathTraveler:
@@ -2117,6 +2259,14 @@ auto DeclKeybind =
 
         extern void SK_OPT_InitPlugin (void);
                     SK_OPT_InitPlugin (    );
+      } break;
+
+      case SK_GAME_ID::HuniePop2:
+      {
+        // Unity engine game is detected as GL due to no imports
+        config.apis.OpenGL.hook                = false;
+        config.apis.d3d9.hook                  = false;
+        config.textures.cache.ignore_nonmipped = true;
       } break;
 #endif
     }
@@ -2222,6 +2372,7 @@ auto DeclKeybind =
 
   nvidia.api.disable_hdr->load    (config.apis.NvAPI.disable_hdr);
   nvidia.bugs.snuffed_ansel->load (config.nvidia.bugs.snuffed_ansel);
+  nvidia.bugs.bypass_ansel->load  (config.nvidia.bugs.bypass_ansel);
 
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
@@ -2265,6 +2416,11 @@ auto DeclKeybind =
   nvidia.sli.mode->load                     (config.nvidia.sli.mode);
   nvidia.sli.num_gpus->load                 (config.nvidia.sli.num_gpus);
   nvidia.sli.override->load                 (config.nvidia.sli.override);
+
+  nvidia.reflex.enable->load                (config.nvidia.sleep.enable);
+  nvidia.reflex.low_latency->load           (config.nvidia.sleep.low_latency);
+  nvidia.reflex.low_latency_boost->load     (config.nvidia.sleep.low_latency_boost);
+  nvidia.reflex.engagement_policy->load     (config.nvidia.sleep.enforcement_site);
 
   render.framerate.busy_wait_ratio->load    (config.render.framerate.busy_wait_ratio);
   render.framerate.wait_for_vblank->load    (config.render.framerate.wait_for_vblank);
@@ -2503,6 +2659,7 @@ auto DeclKeybind =
     SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
 
   input.keyboard.catch_alt_f4->load     (config.input.keyboard.catch_alt_f4);
+  input.keyboard.bypass_alt_f4->load    (config.input.keyboard.override_alt_f4);
   input.keyboard.disabled_to_game->load (config.input.keyboard.disabled_to_game);
 
   input.mouse.disabled_to_game->load    (config.input.mouse.disabled_to_game);
@@ -2806,6 +2963,8 @@ auto DeclKeybind =
   steam.overlay.hdr_luminance->load           (config.steam.overlay_hdr_luminance);
   steam.screenshots.smart_capture->load       (config.steam.screenshots.enable_hook);
   uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
+  rtss.overlay.hdr_luminance->load            (config.rtss.overlay_luminance);
+  discord.overlay.hdr_luminance->load         (config.discord.overlay_luminance);
 
   screenshots.include_osd_default->load       (config.screenshots.show_osd_by_default);
   screenshots.keep_png_copy->load             (config.screenshots.png_compress);
@@ -2933,6 +3092,7 @@ auto DeclKeybind =
     {
       switch (SK_GetCurrentGameID ())
       {
+      //case SK_GAME_ID::GalGunReturns:
         case SK_GAME_ID::GalGun_Double_Peace:
         case SK_GAME_ID::DuckTalesRemastered:
         {
@@ -3283,8 +3443,10 @@ SK_SaveConfig ( std::wstring name,
 
   nvidia.api.disable_hdr->store               (config.apis.NvAPI.disable_hdr);
   nvidia.bugs.snuffed_ansel->store            (config.nvidia.bugs.snuffed_ansel);
+  nvidia.bugs.bypass_ansel->store             (config.nvidia.bugs.bypass_ansel);
 
   input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);
+  input.keyboard.bypass_alt_f4->store         (config.input.keyboard.override_alt_f4);
   input.keyboard.disabled_to_game->store      (config.input.keyboard.disabled_to_game);
 
   input.mouse.disabled_to_game->store         (config.input.mouse.disabled_to_game);
@@ -3444,6 +3606,11 @@ SK_SaveConfig ( std::wstring name,
     nvidia.sli.mode->store                        (config.nvidia.sli.mode);
     nvidia.sli.num_gpus->store                    (config.nvidia.sli.num_gpus);
     nvidia.sli.override->store                    (config.nvidia.sli.override);
+
+    nvidia.reflex.enable->store                   (config.nvidia.sleep.enable);
+    nvidia.reflex.low_latency->store              (config.nvidia.sleep.low_latency);
+    nvidia.reflex.low_latency_boost->store        (config.nvidia.sleep.low_latency_boost);
+    nvidia.reflex.engagement_policy->store        (config.nvidia.sleep.enforcement_site);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
@@ -3663,6 +3830,8 @@ SK_SaveConfig ( std::wstring name,
   screenshots.copy_to_clipboard->store         (config.screenshots.copy_to_clipboard);
 
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
+  discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);
+  rtss.overlay.hdr_luminance->store            (config.rtss.overlay_luminance);
 
   silent->store                                (config.system.silent);
   log_level->store                             (config.system.log_level);
@@ -3854,8 +4023,6 @@ SK_Keybind::parse (void)
 
   if (! init)
   {
-    init = true;
-
     for (int i = 0; i < 0xFF; i++)
     {
       wchar_t name [64] = { };
@@ -3986,7 +4153,7 @@ SK_Keybind::parse (void)
   {
     SK_KeyMap_StandardizeNames (wszTok);
 
-    if (wszTok != nullptr && *wszTok != L'\0')
+    if (*wszTok != L'\0')
     {
       BYTE vKey_ =
         humanToVirtual [hash_string (wszTok)];
@@ -4182,7 +4349,7 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
 
 
   wchar_t   wszAppID [32] = { };
-  swprintf (wszAppID, L"%0i", uiAppID);
+  swprintf (wszAppID, L"%0ul", uiAppID);
 
   if (fwd_map.contains_key (wszRelPath))
     fwd_map.get_value      (wszRelPath) = wszAppID;

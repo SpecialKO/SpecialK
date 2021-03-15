@@ -236,6 +236,11 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
 }
 
 
+// NVIDIA Reflex intergraiton
+extern void
+SK_NvSleep (int site);
+
+
 extern bool
 SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
@@ -249,7 +254,7 @@ bool
 SK_XInput_Enable ( BOOL bEnable )
 {
   bool before =
-   (xinput_enabled == TRUE);
+   (xinput_enabled != FALSE);
 
   auto& _xinput_ctx =
          xinput_ctx.get ();
@@ -307,6 +312,8 @@ XInputGetState1_3_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
+  SK_NvSleep (2);
+
   auto& _xinput_ctx =
          xinput_ctx.get ();
 
@@ -642,6 +649,8 @@ XInputGetStateEx1_4_Detour (
   _In_  DWORD            dwUserIndex,
   _Out_ XINPUT_STATE_EX *pState )
 {
+  SK_NvSleep (2);
+
   auto& _xinput_ctx =
          xinput_ctx.get ();
 
@@ -851,6 +860,8 @@ XInputGetState9_1_0_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
+  SK_NvSleep (2);
+
   auto& _xinput_ctx =
          xinput_ctx.get ();
 
@@ -925,8 +936,8 @@ XInputGetCapabilities9_1_0_Detour (
           { ERROR_DEVICE_NOT_CONNECTED, { 0 } }
   };
 
-  if ( dwUserIndex >= 0 &&
-       dwUserIndex < XUSER_MAX_COUNT &&
+  if ( static_cast <LONG> (dwUserIndex) >= 0 &&
+                            dwUserIndex < XUSER_MAX_COUNT &&
          __cached_caps [dwUserIndex].first == ERROR_SUCCESS )
   {
     if (pCapabilities != nullptr)
@@ -1100,7 +1111,7 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 
   // Down-level (XInput 9_1_0) does not have XInputEnable
   //
-  if (pCtx->XInputGetStateEx_Target != nullptr)
+  if (pCtx->XInputEnable_Target != nullptr)
   {
     SK_CreateDLLHook2 (         pCtx->wszModuleName,
                                      "XInputEnable",

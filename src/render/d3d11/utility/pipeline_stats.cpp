@@ -178,7 +178,7 @@ SK_D3D11_GetGeometryPipelineDesc (wchar_t* wszDesc)
   {
     swprintf ( wszDesc,
                 L"%s  GEOM   : %s   (%s Prims)",
-                  wszDesc,
+                  std::wstring (wszDesc).c_str (),
                     SK_CountToString (stats.GSInvocations).c_str (),
                       SK_CountToString (stats.GSPrimitives).c_str () );
   }
@@ -187,7 +187,7 @@ SK_D3D11_GetGeometryPipelineDesc (wchar_t* wszDesc)
   {
     swprintf ( wszDesc,
                 L"%s  GEOM   : <Unused>",
-                  wszDesc );
+                  std::wstring (wszDesc).c_str () );
   }
 }
 
@@ -201,7 +201,7 @@ SK_D3D11_GetTessellationPipelineDesc (wchar_t* wszDesc)
   {
     swprintf ( wszDesc,
                 L"%s  TESS   : %s Hull ==> %s Domain",
-                  wszDesc,
+                  std::wstring (wszDesc).c_str (),
                     SK_CountToString (stats.HSInvocations).c_str (),
                       SK_CountToString (stats.DSInvocations).c_str () ) ;
   }
@@ -210,7 +210,7 @@ SK_D3D11_GetTessellationPipelineDesc (wchar_t* wszDesc)
   {
     swprintf ( wszDesc,
                 L"%s  TESS   : <Unused>",
-                  wszDesc );
+                  std::wstring (wszDesc).c_str () );
   }
 }
 
@@ -224,7 +224,7 @@ SK_D3D11_GetRasterPipelineDesc (wchar_t* wszDesc)
   {
     swprintf ( wszDesc,
                 L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )",
-                  wszDesc, 100.0 *
+                  std::wstring (wszDesc).c_str (), 100.0 *
                       ( static_cast <double> (stats.CPrimitives) /
                         static_cast <double> (stats.CInvocations) ),
                     SK_CountToString (stats.CInvocations).c_str () );
@@ -234,7 +234,7 @@ SK_D3D11_GetRasterPipelineDesc (wchar_t* wszDesc)
   {
     swprintf ( wszDesc,
                 L"%s  RASTER : <Unused>",
-                  wszDesc );
+                  std::wstring (wszDesc).c_str () );
   }
 }
 
@@ -248,7 +248,7 @@ SK_D3D11_GetPixelPipelineDesc (wchar_t* wszDesc)
   {
     swprintf ( wszDesc,
                 L"%s  PIXEL  : %s   (%s Triangles OUT)",
-                  wszDesc,
+                  std::wstring (wszDesc).c_str (),
                     SK_CountToString (stats.PSInvocations).c_str (),
                       SK_CountToString (stats.CPrimitives).c_str () );
   }
@@ -257,7 +257,7 @@ SK_D3D11_GetPixelPipelineDesc (wchar_t* wszDesc)
   {
     swprintf ( wszDesc,
                 L"%s  PIXEL  : <Unused>",
-                  wszDesc );
+                  std::wstring (wszDesc).c_str () );
   }
 }
 
@@ -271,14 +271,15 @@ SK_D3D11_GetComputePipelineDesc (wchar_t* wszDesc)
   {
     swprintf ( wszDesc,
                 L"%s  COMPUTE: %s",
-                  wszDesc, SK_CountToString (stats.CSInvocations).c_str () );
+                  std::wstring (wszDesc).c_str (),
+  SK_CountToString (stats.CSInvocations).c_str () );
   }
 
   else
   {
     swprintf ( wszDesc,
                 L"%s  COMPUTE: <Unused>",
-                  wszDesc );
+                  std::wstring (wszDesc).c_str () );
   }
 }
 

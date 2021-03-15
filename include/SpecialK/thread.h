@@ -118,7 +118,7 @@ public:
     LeaveCriticalSection (cs_);
   }
 
-  _Releases_nonreentrant_lock_ (*this->cs_)
+  _Acquires_exclusive_lock_ (*this->cs_)
   bool try_lock (void) noexcept
   {
     return
@@ -145,7 +145,7 @@ public:
   }
 
 private:
-  CRITICAL_SECTION impl_cs_;
+  CRITICAL_SECTION impl_cs_ = { };
 };
 
 

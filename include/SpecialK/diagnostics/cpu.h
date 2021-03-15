@@ -28,4 +28,14 @@
 const std::vector <uintptr_t>&
 SK_CPU_GetLogicalCorePairs (void);
 
+void
+SK_FPU_LogPrecision (void);
+
+struct SK_FPU_ControlWord {
+  UINT x87, sse2;
+};
+
+SK_FPU_ControlWord SK_FPU_SetPrecision   (UINT precision);
+SK_FPU_ControlWord SK_FPU_SetControlWord (UINT mask, SK_FPU_ControlWord *pNewControl);
+
 #endif /* __SK__CPU_H__ */

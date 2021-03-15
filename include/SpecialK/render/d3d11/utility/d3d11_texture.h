@@ -73,3 +73,6 @@ UINT
 
   return lods;
 };
+
+extern void
+SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS);

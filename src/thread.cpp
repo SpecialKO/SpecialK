@@ -157,7 +157,7 @@ SK_Thread_RaiseNameException (THREADNAME_INFO* pTni)
       SK_RaiseException ( MAGIC_THREAD_EXCEPTION,
                             SK_EXCEPTION_CONTINUABLE,
                               argc,
-          (const ULONG_PTR *)pTni );
+             (const ULONG_PTR *)pTni );
     }
     __except (EXCEPTION_EXECUTE_HANDLER) { }
   }
@@ -372,6 +372,41 @@ SK_HookCriticalSections (void)
   SK_RunOnce (SK_ApplyQueuedHooks ());
 }
 
+HRESULT
+WINAPI
+SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
+{
+  SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
+  if (! pTLS->debug.naming)
+  {
+    char      szDesc [256] = { };
+    wcstombs (szDesc, lpThreadDescription, 255);
+
+    THREADNAME_INFO info = {       };
+    info.dwType          =      4096;
+    info.szName          =    szDesc;
+    info.dwThreadID      = (DWORD)GetThreadId (hThread);
+    info.dwFlags         =       0x0;
+
+    const DWORD argc = sizeof (info) /
+                       sizeof (ULONG_PTR);
+
+    pTLS->debug.naming = true;
+
+    RaiseException ( MAGIC_THREAD_EXCEPTION,
+                       SK_EXCEPTION_CONTINUABLE,
+                         argc,
+        (const ULONG_PTR *)&info );
+
+    pTLS->debug.naming = false;
+  }
+
+  return
+    SetThreadDescription_Original (hThread, lpThreadDescription);
+}
+
 bool
 SK_Thread_InitDebugExtras (void)
 {
@@ -380,7 +415,7 @@ SK_Thread_InitDebugExtras (void)
   if (! InterlockedCompareExchangeAcquire (&run_once, 1, 0))
   {
     // Hook QPC and Sleep
-    SK::Framerate::Init ();
+    SK_Scheduler_Init ();
 
     // Only available in Windows 10
     //
@@ -399,7 +434,20 @@ SK_Thread_InitDebugExtras (void)
     if (SK_GetThreadDescription == nullptr)
       SK_GetThreadDescription = &GetThreadDescription_NOP;
 
+    if (SetThreadDescription_Original == nullptr)
+    {
+      if (SK_GetProcAddress (L"kernel32", "SetThreadDescription") != nullptr)
+      {
+        SK_CreateDLLHook2 (L"kernel32", "SetThreadDescription",
+                           SetThreadDescription_Detour,
+                           static_cast_p2p <void> (&SetThreadDescription_Original)
+        );
+      }
+    }
+
     InterlockedIncrementRelease (&run_once);
+
+    SK_ApplyQueuedHooks ();
   }
 
   else

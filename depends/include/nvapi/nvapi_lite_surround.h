@@ -39,7 +39,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-//! SUPPORTED OS:  Windows XP and higher
+//! SUPPORTED OS:  Windows 7 and higher
 //!
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -60,7 +60,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////
 NVAPI_INTERFACE NvAPI_DISP_GetGDIPrimaryDisplayId(NvU32* displayId);
 #define NV_MOSAIC_MAX_DISPLAYS      (64)
-//! SUPPORTED OS:  Windows Vista and higher
+//! SUPPORTED OS:  Windows 7 and higher
 //!
 ///////////////////////////////////////////////////////////////////////////////
 //

@@ -35,19 +35,22 @@ SK_ScreenshotQueue enqueued_screenshots { 0, 0, 0 };
 
 void SK_Screenshot_PlaySound (void)
 {
-  static HGLOBAL sound_ref     =
-    LoadResource (   SK_GetDLL (),
-      FindResource ( SK_GetDLL (), MAKEINTRESOURCE (IDR_SCREENSHOT), L"WAVE" )
-                 );
-
-  if (sound_ref != nullptr)
+  if (config.screenshots.play_sound)
   {
-    static auto sound =
-      LockResource (sound_ref);
+    static HGLOBAL sound_ref     =
+      LoadResource (   SK_GetDLL (),
+        FindResource ( SK_GetDLL (), MAKEINTRESOURCE (IDR_SCREENSHOT), L"WAVE" )
+                   );
 
-    if (sound != nullptr)
-      PlaySound ( (LPCWSTR)sound, nullptr, SND_ASYNC |
-                                           SND_MEMORY );
+    if (sound_ref != nullptr)
+    {
+      static auto sound =
+        LockResource (sound_ref);
+
+      if (sound != nullptr)
+        PlaySound ( (LPCWSTR)sound, nullptr, SND_ASYNC |
+                                             SND_MEMORY );
+    }
   }
 }
 
@@ -122,10 +125,128 @@ SK_ScreenshotManager::getBasePath (void) const
     return wszAbsolutePathToScreenshots;
 
   wcsncpy_s    ( wszAbsolutePathToScreenshots, MAX_PATH,
-                 SK_GetConfigPath (),          _TRUNCATE      );
-  PathAppendW  ( wszAbsolutePathToScreenshots, L"Screenshots" );
+                 SK_GetConfigPath (),          _TRUNCATE        );
+  PathAppendW  ( wszAbsolutePathToScreenshots, L"Screenshots\\" );
 
   return         wszAbsolutePathToScreenshots;
+}
+
+bool
+SK_ScreenshotManager::copyToClipboard (const DirectX::Image& image) const
+{
+  if (! config.screenshots.copy_to_clipboard)
+    return false;
+
+  if (OpenClipboard (nullptr))
+  {
+    int _bpc    =
+      static_cast <int> (DirectX::BitsPerPixel (image.format)),
+        _width  =
+      static_cast <int> (                       image.width),
+        _height =
+      static_cast <int> (                       image.height);
+
+    SK_ReleaseAssert (image.format == DXGI_FORMAT_B8G8R8X8_UNORM);
+
+    HBITMAP hBitmapCopy =
+       CreateBitmap (
+         _width, _height, 1,
+           _bpc, image.pixels
+       );
+
+    BITMAPINFOHEADER
+      bmh                 = { };
+      bmh.biSize          = sizeof (BITMAPINFOHEADER);
+      bmh.biWidth         =   _width;
+      bmh.biHeight        =  -_height;
+      bmh.biPlanes        =  1;
+      bmh.biBitCount      =  static_cast <WORD> (_bpc);
+      bmh.biCompression   = BI_RGB;
+      bmh.biXPelsPerMeter = 10;
+      bmh.biYPelsPerMeter = 10;
+
+    BITMAPINFO
+      bmi                 = { };
+      bmi.bmiHeader       = bmh;
+
+    HDC hdcDIB =
+      CreateCompatibleDC (GetDC (nullptr));
+
+    void* bitplane = nullptr;
+
+    HBITMAP
+      hBitmap =
+        CreateDIBSection ( hdcDIB, &bmi, DIB_RGB_COLORS,
+            &bitplane, nullptr, 0 );
+    memcpy ( bitplane,
+               image.pixels,
+                 (_bpc / 8) * _width * _height
+           );
+
+    HDC     hdcSrc  = CreateCompatibleDC (GetDC (nullptr));
+    HDC     hdcDst  = CreateCompatibleDC (GetDC (nullptr));
+
+    HBITMAP hbmpSrc = (HBITMAP)SelectObject (hdcSrc, hBitmap);
+    HBITMAP hbmpDst = (HBITMAP)SelectObject (hdcDst, hBitmapCopy);
+
+    BitBlt (hdcDst, 0, 0, _width,
+                          _height, hdcSrc, 0, 0, SRCCOPY);
+
+    SelectObject     (hdcSrc, hbmpSrc);
+    SelectObject     (hdcDst, hbmpDst);
+
+    EmptyClipboard   ();
+    SetClipboardData (CF_BITMAP, hBitmapCopy);
+    CloseClipboard   ();
+
+    DeleteDC         (hdcSrc);
+    DeleteDC         (hdcDst);
+    DeleteDC         (hdcDIB);
+
+    return true;
+  }
+
+  return false;
+}
+
+#if 0
+  if (IsClipboardFormatAvailable (CF_BITMAP))
+  {
+
+#endif
+
+bool
+SK_ScreenshotManager::checkDiskSpace (uint64_t bytes_needed) const
+{
+  ULARGE_INTEGER
+    useable  = { }, // Amount the current user's quota allows
+    capacity = { },
+    free     = { };
+
+  SK_CreateDirectories (getBasePath ());
+
+  BOOL bRet =
+    GetDiskFreeSpaceExW (
+      getBasePath (),
+        &useable, &capacity, &free );
+
+  SK_ReleaseAssert (bRet);
+
+  // Don't take screenshots if the storage for one single screenshot is > 85% of remaining space
+  if (static_cast <double> (bytes_needed) > static_cast <double> (useable.QuadPart) * .85)
+  {
+    SK_ImGui_Warning (L"Not enough Disk Space to take Screenshot, please free up or disable feature.");
+    return false;
+  }
+
+  // Don't take screenshots if the general free space is < 3%
+  if (static_cast <double> (free.QuadPart) / static_cast <double> (capacity.QuadPart) < 0.03)
+  {
+    SK_ImGui_Warning (L"Free space on Screenshot Drive is < 3%, disabling Screenshots.");
+    return false;
+  }
+
+  return true;
 }
 
 SK_ScreenshotManager::screenshot_repository_s&

@@ -173,15 +173,15 @@ namespace SK
       };
 
       struct snapshot_s {
-        bool        *pRestart;
-        bool        *pFullRestart;
-        bool        *pBackground;
+        bool        *pRestart     = nullptr;
+        bool        *pFullRestart = nullptr;
+        bool        *pBackground  = nullptr;
 
-        double       ms;
-        double       fps;
-        double       effective_ms;
+        double       ms              = 0.0;
+        double       fps             = 0.0;
+        double       effective_ms    = 0.0;
 
-        uint64_t     ticks_per_frame;
+        uint64_t     ticks_per_frame =   0;
 
         volatile
           LONG64     time  = { },

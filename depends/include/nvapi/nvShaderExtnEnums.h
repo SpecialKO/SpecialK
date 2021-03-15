@@ -51,7 +51,7 @@
 //---------------------------- Misc constants --------------------------------//
 //----------------------------------------------------------------------------//
 #define NV_WARP_SIZE                                       32
-
+#define NV_WARP_SIZE_LOG2                                   5
 
 //----------------------------------------------------------------------------//
 //---------------------------- opCode constants ------------------------------//
@@ -71,8 +71,52 @@
 #define NV_EXTN_OP_FP16_ATOMIC                             12
 #define NV_EXTN_OP_FP32_ATOMIC                             13
 
+#define NV_EXTN_OP_GET_SPECIAL                             19
+
 #define NV_EXTN_OP_UINT64_ATOMIC                           20
 
+#define NV_EXTN_OP_MATCH_ANY                               21 
+
+// FOOTPRINT - For Sample and SampleBias
+#define NV_EXTN_OP_FOOTPRINT                               28
+#define NV_EXTN_OP_FOOTPRINT_BIAS                          29
+
 #define NV_EXTN_OP_GET_SHADING_RATE                        30
+
+// FOOTPRINT - For SampleLevel and SampleGrad
+#define NV_EXTN_OP_FOOTPRINT_LEVEL                         31
+#define NV_EXTN_OP_FOOTPRINT_GRAD                          32
+
+// SHFL Generic
+#define NV_EXTN_OP_SHFL_GENERIC                            33
+
 #define NV_EXTN_OP_VPRS_EVAL_ATTRIB_AT_SAMPLE              51
 #define NV_EXTN_OP_VPRS_EVAL_ATTRIB_SNAPPED                52
+
+
+
+//----------------------------------------------------------------------------//
+//-------------------- GET_SPECIAL subOpCode constants -----------------------//
+//----------------------------------------------------------------------------//
+#define NV_SPECIALOP_THREADLTMASK                           4
+#define NV_SPECIALOP_FOOTPRINT_SINGLELOD_PRED               5
+#define NV_SPECIALOP_GLOBAL_TIMER_LO                        9
+#define NV_SPECIALOP_GLOBAL_TIMER_HI                       10
+
+//----------------------------------------------------------------------------//
+//----------------------------- Texture Types  -------------------------------//
+//----------------------------------------------------------------------------//
+#define NV_EXTN_TEXTURE_1D                                  2
+#define NV_EXTN_TEXTURE_1D_ARRAY                            3
+#define NV_EXTN_TEXTURE_2D                                  4
+#define NV_EXTN_TEXTURE_2D_ARRAY                            5
+#define NV_EXTN_TEXTURE_3D                                  6
+#define NV_EXTN_TEXTURE_CUBE                                7
+#define NV_EXTN_TEXTURE_CUBE_ARRAY                          8
+
+
+//---------------------------------------------------------------------------//
+//----------------FOOTPRINT Enums for NvFootprint* extns---------------------//
+//---------------------------------------------------------------------------//
+#define NV_EXTN_FOOTPRINT_MODE_FINE                         0
+#define NV_EXTN_FOOTPRINT_MODE_COARSE                       1

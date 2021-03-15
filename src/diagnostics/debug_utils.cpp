@@ -813,11 +813,21 @@ GetProcAddress_Detour     (
       if ( hModCaller != SK_GetDLL ()  &&
            hModCaller != hModSteamOverlay )
       {
-        SK_LOG3 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %ws)",
-                        SK_GetModuleFullName (hModule).c_str (),
-                                              lpProcName,
-                          SK_SummarizeCaller (       ).c_str () ),
-                     L"DLL_Loader" );
+        auto orig_se =
+          SK_SEH_ApplyTranslator (
+            SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION)
+          );
+        try {
+          SK_LOG3 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %ws)",
+                          SK_GetModuleFullName (hModule).c_str (),
+                                                lpProcName,
+                            SK_SummarizeCaller (       ).c_str () ),
+                       L"DLL_Loader" );
+        }
+
+        catch (const SK_SEH_IgnoredException&) {
+        }
+        SK_SEH_RemoveTranslator (orig_se);
       }
     }
   }
@@ -3598,6 +3608,79 @@ SK_HookEngine_HookGetProcAddress (void)
   );
 }
 
+
+using SetWindowsHookEx_pfn = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
+      SetWindowsHookEx_pfn SetWindowsHookExA_Original = nullptr;
+      SetWindowsHookEx_pfn SetWindowsHookExW_Original = nullptr;
+
+LRESULT
+CALLBACK
+SK_NOP_KeyboardProc (
+  _In_ int    code,
+  _In_ WPARAM wParam,
+  _In_ LPARAM lParam )
+{
+  return
+    CallNextHookEx (0, code, wParam, lParam);
+}
+
+HHOOK
+WINAPI
+SetWindowsHookExW_Detour (
+  int       idHook,
+  HOOKPROC  lpfn,
+  HINSTANCE hmod,
+  DWORD     dwThreadId )
+{
+  switch (idHook)
+  {
+    case WH_KEYBOARD:
+    case WH_KEYBOARD_LL:
+      SK_LOG0 ( ( L" <> Game uses a%sKeyboard Hook...",
+                        idHook == WH_KEYBOARD_LL ? L"Low-Level " : L" " ),
+                                      L"Input Hook" );
+
+      //SK_MessageBox (L"Keyboard Hook Denied", L"Pfft", MB_OK);
+      //lpfn = SK_NOP_KeyboardProc;
+      if (config.input.keyboard.override_alt_f4)
+      {
+        return 0;
+      }
+      break;
+  }
+
+  return
+    SetWindowsHookExW_Original (idHook, lpfn, hmod, dwThreadId);
+}
+
+HHOOK
+WINAPI
+SetWindowsHookExA_Detour (
+  int       idHook,
+  HOOKPROC  lpfn,
+  HINSTANCE hmod,
+  DWORD     dwThreadId )
+{
+  switch (idHook)
+  {
+    case WH_KEYBOARD:
+    case WH_KEYBOARD_LL:
+      SK_LOG0 ( ( L" <> Game uses a%sKeyboard Hook...",
+                        idHook == WH_KEYBOARD_LL ? L"Low-Level " : L" " ),
+                                      L"Input Hook" );
+
+      if (config.input.keyboard.override_alt_f4)
+      {
+        return 0;
+      }
+      //lpfn = SK_NOP_KeyboardProc;
+      break;
+  }
+
+  return
+    SetWindowsHookExA_Original (idHook, lpfn, hmod, dwThreadId);
+}
+
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
@@ -3693,6 +3776,16 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                               "RaiseException",
                                RaiseException_Detour,
       static_cast_p2p <void> (&RaiseException_Original) );
+
+    SK_CreateDLLHook2 (      L"User32",
+                              "SetWindowsHookExA",
+                               SetWindowsHookExA_Detour,
+      static_cast_p2p <void> (&SetWindowsHookExA_Original) );
+
+    SK_CreateDLLHook2 (      L"User32",
+                              "SetWindowsHookExW",
+                               SetWindowsHookExW_Detour,
+      static_cast_p2p <void> (&SetWindowsHookExW_Original) );
 
 #ifdef _EXTENDED_DEBUG
     if (true)//config.advanced_debug)

@@ -134,7 +134,6 @@ SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
   if (SK_D3D11_IgnoreWrappedOrDeferred (false, pDevCtx))
   {
     return false;
-
   }
 
   if (SK_D3D11_IsDevCtxDeferred (pDevCtx))
@@ -171,7 +170,7 @@ SK_D3D11_ShouldTrackMMIO ( ID3D11DeviceContext* pDevCtx,
 HMODULE hModReShade = (HMODULE)-2;
 
 
-extern bool SK_D3D11_DontTrackUnlessModToolsAreOpen;
+bool& SK_D3D11_DontTrackUnlessModToolsAreOpen = config.render.dxgi.low_spec_mode;
 
 bool
 SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
@@ -275,9 +274,6 @@ SK_D3D11_KnownThreads::mark (void)
   active.emplace (SK_Thread_GetCurrentId ());
 #endif
 }
-
-extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
-extern SK_LazyGlobal <target_tracking_s> tracked_rtv;
 
 // This is not a smart ptr., it may point to something, but we're not
 //   holding any references. The pointer is used only for comparison.

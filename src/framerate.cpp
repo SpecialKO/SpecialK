@@ -26,7 +26,7 @@
 
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
-
+#include <SpecialK/diagnostics/cpu.h>
 
 #include <SpecialK/log.h>
 
@@ -74,10 +74,13 @@ SK::Framerate::Init (void)
 
   std::call_once (the_wuncler, [&](void)
   {
+    SK_FPU_LogPrecision ();
+
+    
     SK_ICommandProcessor* pCommandProc =
       SK_GetCommandProcessor ();
 
-
+    
     pCommandProc->AddVariable ( "LimitSite",
             new SK_IVarStub <int> (&config.render.framerate.enforcement_policy));
 
@@ -107,6 +110,33 @@ SK::Framerate::Init (void)
 
     pCommandProc->AddVariable ( "MaxDeltaTime",
         new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
+
+    //if (! config.render.framerate.enable_mmcss)
+    {
+      extern NtQueryTimerResolution_pfn NtQueryTimerResolution;
+      extern NtSetTimerResolution_pfn   NtSetTimerResolution;
+      extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
+
+      if ( NtQueryTimerResolution != nullptr &&
+           NtSetTimerResolution   != nullptr )
+      {
+        ULONG min, max, cur;
+        NtQueryTimerResolution (&min, &max, &cur);
+
+        SK_LOG0 ( ( L"Kernel resolution.: %f ms",
+                      static_cast <float> (cur * 100)/1000000.0f ),
+                    L"  Timing  " );
+
+        if (NtSetTimerResolution_Original != nullptr)
+            NtSetTimerResolution_Original (max, TRUE,  &cur);
+        else
+            NtSetTimerResolution          (max, TRUE,  &cur);
+
+        SK_LOG0 ( ( L"New resolution....: %f ms",
+                      static_cast <float> (cur * 100)/1000000.0f ),
+                    L"  Timing  " );
+      }
+    }
   });
 }
 
@@ -544,6 +574,11 @@ SK::Framerate::Limiter::wait (void)
   if (ReadAcquire (&__SK_DLL_Ending) != 0)
     return;
 
+
+  SK_FPU_ControlWord fpu_cw_orig =
+    SK_FPU_SetPrecision (_PC_64);
+
+
   if (! background)
   {
     if (fps != __target_fps) {
@@ -569,6 +604,7 @@ SK::Framerate::Limiter::wait (void)
   }
 
   if (__target_fps <= 0.0f) {
+    SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
     return;
   }
 
@@ -670,19 +706,6 @@ SK::Framerate::Limiter::wait (void)
 
   if (next_ > 0LL)
   {
-    if (rb.api == SK_RenderAPI::D3D11)
-    {
-      // Flush the queue before waiting, otherwise we could be asking the
-      //   driver to evaluate commands after it should have presented a
-      //     finished frame.
-      SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (
-        rb.d3d11.immediate_ctx
-      );
-
-      if (pDevCtx != nullptr)
-          pDevCtx->Flush ();
-    }
-
     // For a Waitable chain to be effective, 100% busy-wait must not
     //   be allowed.
     if (config.render.framerate.swapchain_wait > 0)
@@ -838,8 +861,8 @@ SK::Framerate::Limiter::wait (void)
 
   else
   {
-    dll_log->Log ( L"[FrameLimit] Framerate limiter lost time?! "
-                   L"(non-monotonic clock)" );
+    SK_LOG0 ( ( L"Framerate limiter lost time?! (non-monotonic clock)" ),
+                L"FrameLimit" );
     InterlockedAdd64 (&start, -next_);
   }
 
@@ -851,6 +874,8 @@ SK::Framerate::Limiter::wait (void)
     lazy_init = true;
          init (fps);
   }
+
+  SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
 }
 
 
@@ -872,31 +897,16 @@ SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
 {
   // Prefer to reference SwapChains we wrap by their wrapped pointer
   SK_ComQIPtr <IDXGISwapChain> pSwapChain (pSwapChain_);
-  SK_ComPtr   <IDXGISwapChain> pSwapChainUnwrapped;
+  SK_ComPtr   <IDXGISwapChain> pUnwrap;
 
-  UINT _size =
-        sizeof (LPVOID);
+  UINT size = sizeof (LPVOID);
 
-  IUnknown* pUnwrapped = nullptr;
+  if (pSwapChain.p != nullptr)
+      pSwapChain.p->GetPrivateData (IID_IUnwrappedDXGISwapChain, &size, (void *)&pUnwrap.p);
 
-  if ( pSwapChain_  != nullptr &&
-       pSwapChain.p != nullptr &&
-       SUCCEEDED (
-         pSwapChain->GetPrivateData (
-           IID_IUnwrappedDXGISwapChain, &_size,
-              &pUnwrapped
-                 )                  )
-     )
-  {
-             pSwapChainUnwrapped.p =
-    (IDXGISwapChain *)pUnwrapped;
-
-             pSwapChain            =
-             pSwapChainUnwrapped.p;
-  }
-
-  else
-    pSwapChain = pSwapChain_;
+  if ( pUnwrap != nullptr &&
+       pUnwrap != pSwapChain_ )
+     pSwapChain_ = pUnwrap;
 
   static concurrency::concurrent_unordered_map < IUnknown *,
       std::unique_ptr <SK::Framerate::Limiter> > limiters_;
@@ -907,17 +917,17 @@ SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
     )
   );
 
-  if (! limiters_.count (pSwapChain.p))
+  if (! limiters_.count (pSwapChain_))
   {
     if (bCreate)
     {
-      limiters_ [pSwapChain.p] =
+      limiters_ [pSwapChain_] =
         std::make_unique <SK::Framerate::Limiter> (
           config.render.framerate.target_fps
         );
 
       SK_LOG0 ( ( L" Framerate Limiter Created to Track SwapChain (%ph)",
-                                                       pSwapChain.p
+                                                       pSwapChain_
                 ), L"FrameLimit"
               );
     }
@@ -927,7 +937,7 @@ SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
   }
 
   return
-    limiters_.at (pSwapChain).get ();
+    limiters_.at (pSwapChain_).get ();
 }
 
 bool
@@ -967,8 +977,11 @@ SK::Framerate::Tick ( bool          wait,
   }
 
 
-  now = SK_CurrentPerf ();
-  dt  =
+  if (now.QuadPart == 0)
+      now = SK_CurrentPerf ();
+
+  if (dt + 0.0000001 <= 0.0000001)
+      dt =
     static_cast <double> (now.QuadPart -
                   pLimiter->amortization._last_frame.QuadPart) /
     static_cast <double> (SK::Framerate::Stats::freq.QuadPart);

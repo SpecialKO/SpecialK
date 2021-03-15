@@ -267,8 +267,8 @@ SK_ICommandProcessor::FindVariable (const char* szVariable)
 SK_ICommandResult
 SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock>
-        scope_lock (*process_cmd_lock);
+  ////std::scoped_lock <SK_Thread_HybridSpinlock>
+  ////      scope_lock (*process_cmd_lock);
 
   if (szCommandLine != nullptr && strlen (szCommandLine))
   {

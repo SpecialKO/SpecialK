@@ -69,7 +69,7 @@ public:
       return false;
     }
 
-    return false;
+    return true;
   }
 
   void dispose (void);

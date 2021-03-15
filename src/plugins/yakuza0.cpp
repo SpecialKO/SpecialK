@@ -23,8 +23,6 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
-typedef long LONG;
-
 extern volatile
   LONG SK_D3D11_DrawTrackingReqs;
 extern volatile
@@ -1130,7 +1128,7 @@ SK_Yakuza0_PlugInCfg (void)
 
       if (new_change)
       {
-        tex_changed |= new_change;
+        tex_changed = true;
 
         _SK_Y0_FixAniso->store     (__SK_Y0_FixAniso);
         _SK_Y0_ClampLODBias->store (__SK_Y0_ClampLODBias);

@@ -134,7 +134,7 @@ using SetClassLong_pfn      = LONG (WINAPI *)(
   _In_ LONG dwNewLong
 );
 
-using SetClassLongPtr_pfn   = LONG_PTR (WINAPI *)(
+using SetClassLongPtr_pfn   = ULONG_PTR (WINAPI *)(
   _In_ HWND     hWnd,
   _In_ int      nIndex,
   _In_ LONG_PTR dwNewLong
@@ -145,7 +145,7 @@ using GetClassLong_pfn      = LONG (WINAPI *)(
   _In_ int  nIndex
 );
 
-using GetClassLongPtr_pfn   = LONG_PTR (WINAPI *)(
+using GetClassLongPtr_pfn   = ULONG_PTR (WINAPI *)(
   _In_ HWND hWnd,
   _In_ int  nIndex
 );
@@ -332,13 +332,15 @@ struct sk_window_s {
     RECT   window { 0, 0, 640, 480 };
     //};
 
-    ULONG_PTR style           = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-    ULONG_PTR style_ex        = WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
+    ULONG_PTR style           = 0x0;//WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+    ULONG_PTR style_ex        = 0x0;//WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
   } game, actual;
 
-  ULONG_PTR   border_style    = WS_CLIPSIBLINGS     | WS_CLIPCHILDREN |
-                                WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-  ULONG_PTR   border_style_ex = WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
+  ULONG_PTR   border_style    = WS_CAPTION      | WS_SYSMENU | WS_POPUP |
+                                WS_MINIMIZEBOX  | WS_VISIBLE |
+                                WS_CLIPSIBLINGS |
+                                WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW;
+  ULONG_PTR   border_style_ex = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 
 //  RECT      rect        { 0, 0,
 //                          0, 0 };
@@ -376,7 +378,10 @@ struct sk_window_s {
   //  (TODO: Should probably be a reference count to return to)
   bool      cursor_visible   = true;
 
-  void    getRenderDims (long& x, long& y) noexcept {
+  // Next call to AdjustBorder will add a border if one does not exist
+  bool      attach_border    = false;
+
+  void    getRenderDims (LONG& x, LONG& y) noexcept {
     x = (actual.client.right  - actual.client.left);
     y = (actual.client.bottom - actual.client.top);
   }
@@ -386,8 +391,8 @@ struct sk_window_s {
 
   SetWindowLongPtr_pfn SetWindowLongPtr = SetWindowLongPtrW;
   GetWindowLongPtr_pfn GetWindowLongPtr = GetWindowLongPtrW;
-  SetClassLongPtr_pfn  SetClassLongPtr  = SetClassLongPtrW;
-  GetClassLongPtr_pfn  GetClassLongPtr  = GetClassLongPtrW;
+  SetClassLongPtr_pfn  SetClassLongPtr  = ::SetClassLongPtrW;
+  GetClassLongPtr_pfn  GetClassLongPtr  = ::GetClassLongPtrW;
   DefWindowProc_pfn    DefWindowProc    = DefWindowProcW;
   CallWindowProc_pfn   CallWindowProc   = CallWindowProcW;
 

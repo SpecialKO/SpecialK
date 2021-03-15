@@ -164,9 +164,11 @@ public:
                    MODULEINFO&    info,
                    const wchar_t* name    ) noexcept : hMod_ (hModWin32), refs_ (1)
    {
-     base_ = info.lpBaseOfDll;
-     size_ = info.SizeOfImage;
-     wcsncpy_s (name_, MAX_PATH, name, _TRUNCATE);
+     base_ =                       info.lpBaseOfDll;
+     size_ = static_cast <size_t> (info.SizeOfImage);
+
+     wcsncpy_s ( name_, MAX_PATH,
+                 name, _TRUNCATE );
 
      AddRef ();
    };

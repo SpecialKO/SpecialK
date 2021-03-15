@@ -146,8 +146,8 @@ SK_Inject_InitShutdownEvent (void)
           SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                  LR"(Local\SK_GlobalHookTeardown64)") );
 
-    if ( (uintptr_t)hTeardown > 0 &&
-                  GetLastError () == ERROR_ALREADY_EXISTS )
+    if ( reinterpret_cast <intptr_t> (hTeardown) > 0 &&
+                                 GetLastError () == ERROR_ALREADY_EXISTS )
     {
       ResetEvent (hTeardown);
     }
@@ -188,7 +188,7 @@ SK_Inject_ValidateProcesses (void)
                       ReadAcquire (&hooked_pid) )
                   );
 
-    if ((intptr_t)hProc.m_h <= 0)//== INVALID_HANDLE_VALUE)
+    if (reinterpret_cast <intptr_t> (hProc.m_h) <= 0)//== INVALID_HANDLE_VALUE)
     {
       ReadAcquire (&hooked_pid);
     }
@@ -247,8 +247,8 @@ public:
   {
     if (mem_ != nullptr && (*mem_) != nullptr)
     {
-      SK_LocalFree ((HLOCAL)*mem_);
-                            *mem_ = nullptr;
+      SK_LocalFree (static_cast <HLOCAL> (*mem_));
+                                          *mem_ = nullptr;
     }
   }
 
@@ -267,8 +267,8 @@ SetPermissions (const std::wstring& wstrFilePath)
   DWORD                dwResult = ERROR_SUCCESS;
   PSID                 pSID     = nullptr;
 
-  SK_Auto_Local auto_sid  ((LPVOID *)&pSID);
-  SK_Auto_Local auto_dacl ((LPVOID *)&pNewDACL);
+  SK_Auto_Local auto_sid  (static_cast      <LPVOID *> (&pSID));
+  SK_Auto_Local auto_dacl (reinterpret_cast <LPVOID *> (&pNewDACL));
 
   // Get a pointer to the existing DACL
   dwResult =
@@ -360,7 +360,7 @@ SK_Inject_AcquireProcess (void)
       // Hold a reference so that removing the CBT hook doesn't crash the software
       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                           GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                            (LPCWSTR)&SK_Inject_AcquireProcess,
+   reinterpret_cast <LPCWSTR> (&SK_Inject_AcquireProcess),
                                &hModHookInstance );
 
       break;
@@ -414,7 +414,7 @@ CBTProc ( _In_ int    nCode,
 
   if ( hModule_CBT == nullptr &&
          GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                               (LPCWSTR)&CBTProc, &hModule_CBT )
+            reinterpret_cast <LPCWSTR> (&CBTProc), &hModule_CBT )
      )
   {
     LONG idx =
@@ -433,7 +433,7 @@ CBTProc ( _In_ int    nCode,
     DWORD
     {
       HMODULE hMod =
-        *((HMODULE *)lpUser);
+        *(static_cast <HMODULE *> (lpUser));
 
       //
       // Exception handling is not valid until after the CRT invokes
@@ -454,18 +454,19 @@ CBTProc ( _In_ int    nCode,
         const char* szDesc =
           "[SK] Global Hook Pacifier";
 
-        THREADNAME_INFO info = {  };
-        info.dwType     =      4096;
-        info.szName     =    szDesc;
-        info.dwThreadID = (DWORD)-1;
-        info.dwFlags    =       0x0;
+        THREADNAME_INFO
+          info            = {                      };
+          info.dwType     =                     4096;
+          info.szName     =                   szDesc;
+          info.dwThreadID = static_cast <DWORD> (-1);
+          info.dwFlags    =                      0x0;
 
         const DWORD argc = sizeof (info) /
                            sizeof (ULONG_PTR);
 
         RaiseException ( SK_WINNT_THREAD_NAME_EXCEPTION,
                            0x0, argc,
-                             (const ULONG_PTR *)&info );
+          reinterpret_cast <const ULONG_PTR *> (&info) );
       }
       __except (EXCEPTION_EXECUTE_HANDLER) { };
 
@@ -486,7 +487,9 @@ CBTProc ( _In_ int    nCode,
       {
         LARGE_INTEGER liDelay = { };
                       liDelay.QuadPart =
-          (LONGLONG)(-10000.0l * (long double)dwMilliseconds);
+          static_cast <LONGLONG> (
+            -10000.0 * static_cast <double> (dwMilliseconds)
+                                 );
 
         HANDLE events [] =
              { hWaitTimer,
@@ -501,8 +504,8 @@ CBTProc ( _In_ int    nCode,
           while (dwWaitStatus != WAIT_FAILED)
           {
             dwWaitStatus =
-              WaitForMultipleObjectsEx ( 2, events,        FALSE,
-                                           dwMilliseconds, FALSE );
+              WaitForMultipleObjectsEx ( 2, events,   FALSE,
+                                            INFINITE, FALSE );
 
             if (dwWaitStatus == WAIT_OBJECT_0)
               continue;
@@ -522,7 +525,7 @@ CBTProc ( _In_ int    nCode,
       FreeLibraryAndExitThread (hMod, 0x0);
 
       return 0;
-    }, (LPVOID)&hModule_CBT, 0x0, nullptr);
+    }, static_cast <LPVOID> (&hModule_CBT), 0x0, nullptr);
 
     if (hThread != SK_INVALID_HANDLE)
       CloseHandle (hThread);
@@ -542,7 +545,7 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
     OpenProcess ( PROCESS_TERMINATE, FALSE, dwProcessId )
   );
 
-  if ((intptr_t)hProcess.m_h <= 0)// == INVALID_HANDLE_VALUE)
+  if (reinterpret_cast <intptr_t> (hProcess.m_h) <= 0)// == INVALID_HANDLE_VALUE)
     return FALSE;
 
   return
@@ -645,7 +648,7 @@ SKX_RemoveCBTHook (void)
       SendMessageTimeout ( HWND_BROADCAST,
                              WM_NULL, 0, 0,
                                SMTO_ABORTIFHUNG,
-                                 100UL, &dwpResult );
+                                 150UL, &dwpResult );
 
       SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
                               DeleteFileW (L"SpecialK32.pid") );
@@ -659,8 +662,8 @@ SKX_RemoveCBTHook (void)
       SK_Process_Suspend (pid);
     }
 
-    if ((uintptr_t)hHookTeardown > 0)
-      CloseHandle (hHookTeardown);
+    if (reinterpret_cast <uintptr_t> (hHookTeardown) > 0)
+      CloseHandle (                   hHookTeardown);
 
     WriteRelease (&__SK_HookContextOwner, FALSE);
   }
@@ -715,7 +718,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
                        SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                               LR"(Local\SK_GlobalHookTeardown64)") );
 
-                 if ((intptr_t)hHookTeardown > 0)
+                 if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
                  {
                    ResetEvent (hHookTeardown);
                  }
@@ -743,7 +746,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
                    }
                  }
 
-                 if ((intptr_t)hHookTeardown > 0)
+                 if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
                  {
 
                    CloseHandle (hHookTeardown);
@@ -1194,7 +1197,7 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 
   pe32.dwSize = sizeof (PROCESSENTRY32W);
 
-  if (Process32FirstW (hProcSnap, &pe32) != TRUE)
+  if (Process32FirstW (hProcSnap, &pe32) == FALSE)
   {
     return false;
   }
@@ -1383,7 +1386,7 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
 }
 
 void
-SK_Inject_ParseWhiteAndBlacklists (std::wstring base_path)
+SK_Inject_ParseWhiteAndBlacklists (const std::wstring& base_path)
 {
   struct list_builder_s {
     struct dll_shared_seg_s {

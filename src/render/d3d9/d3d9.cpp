@@ -984,8 +984,11 @@ SK_UnpackD3DX9 (void)
       FILE* fPackedD3DX9 =
         _wfopen   (wszArchive, L"wb");
 
-      fwrite      (locked, 1, res_size, fPackedD3DX9);
-      fclose      (fPackedD3DX9);
+      if (fPackedD3DX9 != nullptr)
+      {
+        fwrite    (locked, 1, res_size, fPackedD3DX9);
+        fclose    (fPackedD3DX9);
+      }
 
       using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
@@ -1104,8 +1107,7 @@ void
 WINAPI
 SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 {
-  BehaviorFlags &= ~D3DCREATE_FPU_PRESERVE;
-////BehaviorFlags &= ~D3DCREATE_NOWINDOWCHANGES;
+  ////BehaviorFlags &= ~D3DCREATE_NOWINDOWCHANGES;
 
   if (config.render.d3d9.force_impure)
     BehaviorFlags &= ~D3DCREATE_PUREDEVICE;
@@ -2530,6 +2532,16 @@ D3D9SetSamplerState_Override ( IDirect3DDevice9    *This,
                                D3DSAMPLERSTATETYPE  Type,
                                DWORD                Value )
 {
+  if (config.textures.clamp_lod_bias)
+  {
+    if (Type == D3DSAMP_MIPMAPLODBIAS)
+    {
+      auto pfValue = (FLOAT *)&Value;
+          *pfValue =
+            std::max (0.0f, *pfValue);
+    }
+  }
+
   return
     D3D9Device_SetSamplerState_Original ( This,
                                             Sampler,
@@ -3111,7 +3123,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
     SK_QueryPerformanceCounter (&liNow);
 
                                                                       // Rudimentary protection against video textures
-    if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
+    if (pDestinationTexture && ((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
     {
       pSrc->last_used.QuadPart = liNow.QuadPart;
       pDst->last_used.QuadPart = liNow.QuadPart;
@@ -3370,6 +3382,8 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
+  return pparams;
+
   if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex || (! pDevice))
   {
     return pparams;
@@ -3434,279 +3448,284 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
   if (pparams != nullptr)
   {
-    D3DDEVICE_CREATION_PARAMETERS dcparams = {};
-
-    if (pDevice != nullptr)
-      pDevice->GetCreationParameters (&dcparams);
-
-    auto& windows =
-      rb.windows;
-
-    if (game_window.hWnd == nullptr || (! IsWindow (game_window.hWnd)))
+    if ( rb.api == SK_RenderAPI::D3D9   ||
+         rb.api == SK_RenderAPI::D3D9Ex ||
+         rb.api == SK_RenderAPI::Reserved )
     {
-      if (dcparams.hFocusWindow)
-        windows.setFocus (dcparams.hFocusWindow);
-      else if (pparams->hDeviceWindow)
-        windows.setFocus (pparams->hDeviceWindow);
-    }
+      D3DDEVICE_CREATION_PARAMETERS dcparams = {};
 
-    if (windows.device == nullptr || (! IsWindow (windows.device)))
-    {
-      windows.setDevice (
-        pparams->hDeviceWindow     != nullptr ?
-          pparams->hDeviceWindow   :
-            (HWND)windows.device   != nullptr?
-              (HWND)windows.device :
-                (HWND)windows.focus );
-    }
+      if (pDevice != nullptr)
+        pDevice->GetCreationParameters (&dcparams);
 
+      auto& windows =
+        rb.windows;
 
-    bool switch_to_fullscreen = ( config.display.force_fullscreen && pparams->Windowed )  ||
-                                   ( (! rb.fullscreen_exclusive)  &&
-                                        request_mode_change       == mode_change_request_e::Fullscreen );
-
-    bool switch_to_windowed   = ( config.display.force_windowed   && (! pparams->Windowed) ) ||
-                                   (    rb.fullscreen_exclusive   &&
-                                        request_mode_change       == mode_change_request_e::Windowed   );
-
-
-    if (switch_to_fullscreen && windows.device )
-    {
-      pparams->hDeviceWindow = windows.device;
-
-      HMONITOR hMonitor =
-        MonitorFromWindow ( game_window.hWnd,
-                              MONITOR_DEFAULTTONEAREST );
-
-      MONITORINFO mi  = { };
-      mi.cbSize       = sizeof (mi);
-      GetMonitorInfo (hMonitor, &mi);
-
-      // This must be non-zero to go fullscreen
-      if (pparams->FullScreen_RefreshRateInHz == 0)
+      if (game_window.hWnd == nullptr || (! IsWindow (game_window.hWnd)))
       {
-        if (config.render.framerate.refresh_rate == -1)
+        if (dcparams.hFocusWindow)
+          windows.setFocus (dcparams.hFocusWindow);
+        else if (pparams->hDeviceWindow)
+          windows.setFocus (pparams->hDeviceWindow);
+      }
+
+      if (windows.device == nullptr || (! IsWindow (windows.device)))
+      {
+        windows.setDevice (
+          pparams->hDeviceWindow     != nullptr ?
+            pparams->hDeviceWindow   :
+              (HWND)windows.device   != nullptr?
+                (HWND)windows.device :
+                  (HWND)windows.focus );
+      }
+
+
+      bool switch_to_fullscreen = ( config.display.force_fullscreen && pparams->Windowed )  ||
+                                     ( (! rb.fullscreen_exclusive)  &&
+                                          request_mode_change       == mode_change_request_e::Fullscreen );
+
+      bool switch_to_windowed   = ( config.display.force_windowed   && (! pparams->Windowed) ) ||
+                                     (    rb.fullscreen_exclusive   &&
+                                          request_mode_change       == mode_change_request_e::Windowed   );
+
+
+      if (switch_to_fullscreen && windows.device )
+      {
+        pparams->hDeviceWindow = windows.device;
+
+        HMONITOR hMonitor =
+          MonitorFromWindow ( game_window.hWnd,
+                                MONITOR_DEFAULTTONEAREST );
+
+        MONITORINFO mi  = { };
+        mi.cbSize       = sizeof (mi);
+        GetMonitorInfo (hMonitor, &mi);
+
+        // This must be non-zero to go fullscreen
+        if (pparams->FullScreen_RefreshRateInHz == 0)
         {
-          if (*ppFullscreenDisplayMode != nullptr)
-            pparams->FullScreen_RefreshRateInHz = (*ppFullscreenDisplayMode)->RefreshRate;
-
-          if (pparams->FullScreen_RefreshRateInHz == 0)
+          if (config.render.framerate.refresh_rate == -1)
           {
-            extern float
-            SK_Display_GetDefaultRefreshRate (void);
+            if (*ppFullscreenDisplayMode != nullptr)
+              pparams->FullScreen_RefreshRateInHz = (*ppFullscreenDisplayMode)->RefreshRate;
 
-            pparams->FullScreen_RefreshRateInHz =
-              static_cast <UINT> (SK_Display_GetDefaultRefreshRate ());
+            if (pparams->FullScreen_RefreshRateInHz == 0)
+            {
+              extern float
+              SK_Display_GetDefaultRefreshRate (void);
+
+              pparams->FullScreen_RefreshRateInHz =
+                static_cast <UINT> (SK_Display_GetDefaultRefreshRate ());
+            }
           }
         }
-      }
 
-      if (config.render.framerate.refresh_rate != -1.0f)
-      {
-        pparams->FullScreen_RefreshRateInHz =
-          (UINT)config.render.framerate.refresh_rate;
-      }
-
-      if (pparams->FullScreen_RefreshRateInHz != 0)
-      {
-        pparams->BackBufferCount        = std::max (pparams->BackBufferCount, 1U);
-        pparams->EnableAutoDepthStencil = true;
-
-        pparams->Windowed               = FALSE;
-
-
-        UINT monitor_width  = mi.rcMonitor.right  - mi.rcMonitor.left;
-        UINT monitor_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
-
-        if ( pparams->BackBufferWidth < 512 ||
-             pparams->BackBufferWidth > monitor_width )
-             pparams->BackBufferWidth = monitor_width;
-
-        if ( pparams->BackBufferHeight < 256 ||
-             pparams->BackBufferHeight > monitor_height )
-             pparams->BackBufferHeight = monitor_height;
-
-
-        if (*ppFullscreenDisplayMode == nullptr)
-          *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->d3d9->allocTempFullscreenStorage ();
-
-        if (*ppFullscreenDisplayMode != nullptr)
+        if (config.render.framerate.refresh_rate != -1.0f)
         {
-          (*ppFullscreenDisplayMode)->Height           = pparams->BackBufferHeight;
-          (*ppFullscreenDisplayMode)->Width            = pparams->BackBufferWidth;
-          (*ppFullscreenDisplayMode)->RefreshRate      = pparams->FullScreen_RefreshRateInHz;
-          (*ppFullscreenDisplayMode)->Format           = pparams->BackBufferFormat;
-          (*ppFullscreenDisplayMode)->ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
+          pparams->FullScreen_RefreshRateInHz =
+            (UINT)config.render.framerate.refresh_rate;
+        }
+
+        if (pparams->FullScreen_RefreshRateInHz != 0)
+        {
+          pparams->BackBufferCount        = std::max (pparams->BackBufferCount, 1U);
+          pparams->EnableAutoDepthStencil = true;
+
+          pparams->Windowed               = FALSE;
+
+
+          UINT monitor_width  = mi.rcMonitor.right  - mi.rcMonitor.left;
+          UINT monitor_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+          if ( pparams->BackBufferWidth < 512 ||
+               pparams->BackBufferWidth > monitor_width )
+               pparams->BackBufferWidth = monitor_width;
+
+          if ( pparams->BackBufferHeight < 256 ||
+               pparams->BackBufferHeight > monitor_height )
+               pparams->BackBufferHeight = monitor_height;
+
+
+          if (*ppFullscreenDisplayMode == nullptr)
+            *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->d3d9->allocTempFullscreenStorage ();
+
+          if (*ppFullscreenDisplayMode != nullptr)
+          {
+            (*ppFullscreenDisplayMode)->Height           = pparams->BackBufferHeight;
+            (*ppFullscreenDisplayMode)->Width            = pparams->BackBufferWidth;
+            (*ppFullscreenDisplayMode)->RefreshRate      = pparams->FullScreen_RefreshRateInHz;
+            (*ppFullscreenDisplayMode)->Format           = pparams->BackBufferFormat;
+            (*ppFullscreenDisplayMode)->ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
+          }
+        }
+
+        else
+        {
+          pparams->Windowed = TRUE;
+
+          // Must be NULL if the fullscreen override failed
+          if (ppFullscreenDisplayMode != nullptr)
+            (*ppFullscreenDisplayMode) = nullptr;
+
+          SK_LOG0 ( ( L" *** Could not force fullscreen mode due to indeterminate refresh rate!" ),
+                      L"   D3D9   ");
         }
       }
 
-      else
+
+      else if (switch_to_windowed)
       {
-        pparams->Windowed = TRUE;
-
-        // Must be NULL if the fullscreen override failed
-        if (ppFullscreenDisplayMode != nullptr)
-          (*ppFullscreenDisplayMode) = nullptr;
-
-        SK_LOG0 ( ( L" *** Could not force fullscreen mode due to indeterminate refresh rate!" ),
-                    L"   D3D9   ");
-      }
-    }
-
-
-    else if (switch_to_windowed)
-    {
-      if (pparams->hDeviceWindow || dcparams.hFocusWindow != nullptr)
-      {
-        pparams->Windowed                   = TRUE;
-        pparams->FullScreen_RefreshRateInHz = 0;
-
-        // Must be NULL if forcing fullscreen -> windowed
-        if (*ppFullscreenDisplayMode != nullptr)
-          *ppFullscreenDisplayMode = nullptr;
-      }
-
-      else
-      {
-        SK_LOG0 ( ( L" *** Could not force windowed mode, game has no device window?!" ),
-                    L"   D3D9   ");
-        pparams->Windowed = FALSE;
-      }
-    }
-
-
-    //
-    //  <-(+] Forced Borderless Window [+)->
-    //     ------------------------------
-    //        -> ( NOT FULLSCREEN ) <-
-    //
-    if (pparams->Windowed && config.window.borderless && (! config.window.fullscreen))
-    {
-      //  <- @  [No Resolution Override]  @ ->
-      //
-      if (config.window.res.override.isZero ())
-      {
-        RECT wnd_rect =
-          *SK_GetGameRect ();
-
-        static int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
-        static int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
-        static int title = SK_GetSystemMetrics (SM_CYCAPTION );
-
-        if ( SK_DiscontEpsilon ( pparams->BackBufferWidth,
-                                   ( wnd_rect.right  - wnd_rect.left ),
-                                   (       2 * x_dlg + 1             ) )
-
-                               ||
-
-             SK_DiscontEpsilon ( pparams->BackBufferHeight,
-                                   ( wnd_rect.bottom - wnd_rect.top  ),
-                                   (       2 * y_dlg + title + 1     ) )
-           )
+        if (pparams->hDeviceWindow || dcparams.hFocusWindow != nullptr)
         {
-          pparams->BackBufferWidth  = ( wnd_rect.right  - wnd_rect.left );
-          pparams->BackBufferHeight = ( wnd_rect.bottom - wnd_rect.top  );
+          pparams->Windowed                   = TRUE;
+          pparams->FullScreen_RefreshRateInHz = 0;
 
-          dll_log->Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
-                           pparams->BackBufferWidth,
-                             pparams->BackBufferHeight );
+          // Must be NULL if forcing fullscreen -> windowed
+          if (*ppFullscreenDisplayMode != nullptr)
+            *ppFullscreenDisplayMode = nullptr;
+        }
+
+        else
+        {
+          SK_LOG0 ( ( L" *** Could not force windowed mode, game has no device window?!" ),
+                      L"   D3D9   ");
+          pparams->Windowed = FALSE;
         }
       }
 
-      //  <- @  [OVERRIDE Resolution]  @ ->
+
+      //
+      //  <-(+] Forced Borderless Window [+)->
+      //     ------------------------------
+      //        -> ( NOT FULLSCREEN ) <-
+      //
+      if (pparams->Windowed && config.window.borderless && (! config.window.fullscreen))
+      {
+        //  <- @  [No Resolution Override]  @ ->
+        //
+        if (config.window.res.override.isZero ())
+        {
+          RECT wnd_rect =
+            *SK_GetGameRect ();
+
+          static int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
+          static int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
+          static int title = SK_GetSystemMetrics (SM_CYCAPTION );
+
+          if ( SK_DiscontEpsilon ( pparams->BackBufferWidth,
+                                     ( wnd_rect.right  - wnd_rect.left ),
+                                     (       2 * x_dlg + 1             ) )
+
+                                 ||
+
+               SK_DiscontEpsilon ( pparams->BackBufferHeight,
+                                     ( wnd_rect.bottom - wnd_rect.top  ),
+                                     (       2 * y_dlg + title + 1     ) )
+             )
+          {
+            pparams->BackBufferWidth  = ( wnd_rect.right  - wnd_rect.left );
+            pparams->BackBufferHeight = ( wnd_rect.bottom - wnd_rect.top  );
+
+            dll_log->Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
+                             pparams->BackBufferWidth,
+                               pparams->BackBufferHeight );
+          }
+        }
+
+        //  <- @  [OVERRIDE Resolution]  @ ->
+        //
+        else
+        {
+          pparams->BackBufferWidth  = config.window.res.override.x;
+          pparams->BackBufferHeight = config.window.res.override.y;
+        }
+      }
+
+             RECT        client = {        };
+      SK_GetClientRect ( pparams->hDeviceWindow,
+                        &client );
+
+
+      //  Non-Zero Values for Backbuffer Width / Height
+      //  =============================================
+      //
+      //   An override may be necessary; at the very least we will make
+      //     note of the explicit values provided by the game.
+      //
+      //
+      //  NOTE:    If (Zero, Zero) is supplied for (Width, Height) -- it is a
+      // ~~~~~~~     special-case indicating to Windows that the client rect.
+      //               determines SwapChain resolution
+      //
+      //     -=> * The client rectangle can be spoofed by Special K even +
+      //         +   to the D3D9 Runtime itself !                        * <=-
+      //
+      //
+      //    -------------------------------------------------------------------
+      //    (  The 0x0 case is one we have to consider carefully in order     )
+      //    (    to figure out how the game is designed to behave vis-a-vis.  )
+      //    (      resolution scaling if the window is resized.               )
+      //
+      if (pparams->BackBufferWidth != 0 && pparams->BackBufferHeight != 0)
+      {
+        /* User wants an override, so let's get down to brass tacks... */
+        if (! config.window.res.override.isZero ())
+        {
+          pparams->BackBufferWidth  = config.window.res.override.x;
+          pparams->BackBufferHeight = config.window.res.override.y;
+        }
+
+        /* If this is Zero, we need to actually create the render device / swapchain and
+             then get the value Windows assigned us... */
+        SK_SetWindowResX (pparams->BackBufferWidth);
+        SK_SetWindowResY (pparams->BackBufferHeight);
+      }
+
+      // Implicit Resolution
+      //
       //
       else
       {
-        pparams->BackBufferWidth  = config.window.res.override.x;
-        pparams->BackBufferHeight = config.window.res.override.y;
+        // If this is zero, we need to actually create the render device / swapchain and
+        //   then get the value Windows assigned us...
+        SK_SetWindowResX (client.right  - client.left);
+        SK_SetWindowResY (client.bottom - client.top);;
       }
-    }
 
-           RECT        client = {        };
-    SK_GetClientRect ( pparams->hDeviceWindow,
-                      &client );
+      // Range Restrict to prevent D3DERR_INVALID_CALL
+      if (pparams->PresentationInterval > 16)
+          pparams->PresentationInterval = 0;
 
-
-    //  Non-Zero Values for Backbuffer Width / Height
-    //  =============================================
-    //
-    //   An override may be necessary; at the very least we will make
-    //     note of the explicit values provided by the game.
-    //
-    //
-    //  NOTE:    If (Zero, Zero) is supplied for (Width, Height) -- it is a
-    // ~~~~~~~     special-case indicating to Windows that the client rect.
-    //               determines SwapChain resolution
-    //
-    //     -=> * The client rectangle can be spoofed by Special K even +
-    //         +   to the D3D9 Runtime itself !                        * <=-
-    //
-    //
-    //    -------------------------------------------------------------------
-    //    (  The 0x0 case is one we have to consider carefully in order     )
-    //    (    to figure out how the game is designed to behave vis-a-vis.  )
-    //    (      resolution scaling if the window is resized.               )
-    //
-    if (pparams->BackBufferWidth != 0 && pparams->BackBufferHeight != 0)
-    {
-      /* User wants an override, so let's get down to brass tacks... */
-      if (! config.window.res.override.isZero ())
+      if (pparams->Windowed)
       {
-        pparams->BackBufferWidth  = config.window.res.override.x;
-        pparams->BackBufferHeight = config.window.res.override.y;
+        //SetWindowPos_Original ( hWndRender,
+                                  //HWND_TOP,
+                                    //0, 0,
+                                      //pparams->BackBufferWidth, pparams->BackBufferHeight,
+                                        //SWP_NOZORDER | SWP_NOSENDCHANGING );
       }
 
-      /* If this is Zero, we need to actually create the render device / swapchain and
-           then get the value Windows assigned us... */
-      SK_SetWindowResX (pparams->BackBufferWidth);
-      SK_SetWindowResY (pparams->BackBufferHeight);
+      else if (switch_to_fullscreen)
+      {
+        //if ( SetWindowLongPtrW_Original == nullptr ||
+        //     GetWindowLongPtrW_Original == nullptr )
+        //{
+        //  SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE, (GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
+        //  SetWindowPos      (pparams->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE             | SWP_NOSIZE     | SWP_DEFERERASE |
+        //                                                                   SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS     | SWP_SHOWWINDOW | SWP_NOREPOSITION );
+        //
+        //  SK_InstallWindowHook (pparams->hDeviceWindow);
+        //}
+        //
+        //else
+        //{
+        //  SetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
+        //  SetWindowPos_Original      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE         | SWP_NOSIZE     | SWP_DEFERERASE |
+        //                                                                      SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOREPOSITION );
+        //}
+      }
+
+      rb.fullscreen_exclusive = (! pparams->Windowed);
     }
-
-    // Implicit Resolution
-    //
-    //
-    else
-    {
-      // If this is zero, we need to actually create the render device / swapchain and
-      //   then get the value Windows assigned us...
-      SK_SetWindowResX (client.right  - client.left);
-      SK_SetWindowResY (client.bottom - client.top);;
-    }
-
-    // Range Restrict to prevent D3DERR_INVALID_CALL
-    if (pparams->PresentationInterval > 16)
-        pparams->PresentationInterval = 0;
-
-    if (pparams->Windowed)
-    {
-      //SetWindowPos_Original ( hWndRender,
-                                //HWND_TOP,
-                                  //0, 0,
-                                    //pparams->BackBufferWidth, pparams->BackBufferHeight,
-                                      //SWP_NOZORDER | SWP_NOSENDCHANGING );
-    }
-
-    else if (switch_to_fullscreen)
-    {
-      //if ( SetWindowLongPtrW_Original == nullptr ||
-      //     GetWindowLongPtrW_Original == nullptr )
-      //{
-      //  SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE, (GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
-      //  SetWindowPos      (pparams->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE             | SWP_NOSIZE     | SWP_DEFERERASE |
-      //                                                                   SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS     | SWP_SHOWWINDOW | SWP_NOREPOSITION );
-      //
-      //  SK_InstallWindowHook (pparams->hDeviceWindow);
-      //}
-      //
-      //else
-      //{
-      //  SetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
-      //  SetWindowPos_Original      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE         | SWP_NOSIZE     | SWP_DEFERERASE |
-      //                                                                      SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOREPOSITION );
-      //}
-    }
-
-    rb.fullscreen_exclusive = (! pparams->Windowed);
   }
 
   return pparams;
@@ -5003,7 +5022,7 @@ SK::D3D9::getPipelineStatsDesc (void)
   {
     swprintf ( wszDesc,
                  L"%s  PIXEL  : %5.2f%%\n",
-                   wszDesc,
+                   std::wstring (wszDesc).c_str (),
                      stats.PixelProcessingTimePercent );
   }
 
@@ -5011,7 +5030,7 @@ SK::D3D9::getPipelineStatsDesc (void)
   {
     swprintf ( wszDesc,
                  L"%s  PIXEL  : <Unused>\n",
-                   wszDesc );
+                   std::wstring (wszDesc).c_str () );
   }
 
   //
@@ -5021,7 +5040,7 @@ SK::D3D9::getPipelineStatsDesc (void)
   {
     swprintf ( wszDesc,
                  L"%s  OTHER  : %5.2f%%\n",
-                   wszDesc, stats.OtherGPUProcessingTimePercent);
+                   std::wstring (wszDesc).c_str (), stats.OtherGPUProcessingTimePercent);
   }
 
   //
@@ -5031,7 +5050,7 @@ SK::D3D9::getPipelineStatsDesc (void)
   {
     swprintf ( wszDesc,
                  L"%s  IDLE   : %5.2f%%\n",
-                   wszDesc,
+                   std::wstring (wszDesc).c_str (),
                      stats.GPUIdleTimePercent );
   }
 
@@ -6278,7 +6297,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
               case D3DDECLTYPE_SHORT4:     return "short4";
               case D3DDECLTYPE_UBYTE4N:    return "ubyte4 (UNORM)";
               case D3DDECLTYPE_SHORT2N:    return "short2 (SNORM)";
-              case D3DDECLTYPE_SHORT4N:    return "short2 (SNORM)";
+              case D3DDECLTYPE_SHORT4N:    return "short4 (SNORM)";
               case D3DDECLTYPE_USHORT2N:   return "short2 (UNORM)";
               case D3DDECLTYPE_USHORT4N:   return "short4 (UNORM)";
               case D3DDECLTYPE_UDEC3:      return "udec3";
@@ -6321,20 +6340,20 @@ SK_LiveVertexStreamView (bool& can_scroll)
               case 1:
                 switch (usage)
                 {
-                  case D3DDECLUSAGE_POSITION:     snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_BLENDWEIGHT:  snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_BLENDINDICES: snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_NORMAL:       snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_PSIZE:        snprintf (szOut, 64, " "          ); break;
-                  case D3DDECLUSAGE_TEXCOORD:     snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_TANGENT:      snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_BINORMAL:     snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_TESSFACTOR:   snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_POSITIONT:    snprintf (szOut, 64, " "          ); break;
-                  case D3DDECLUSAGE_COLOR:        snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_FOG:          snprintf (szOut, 64, " "          ); break;
-                  case D3DDECLUSAGE_DEPTH:        snprintf (szOut, 64, " [%lu]", idx); break;
-                  case D3DDECLUSAGE_SAMPLE:       snprintf (szOut, 64, " "          ); break;
+                  case D3DDECLUSAGE_POSITION:     snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_BLENDWEIGHT:  snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_BLENDINDICES: snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_NORMAL:       snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_PSIZE:        snprintf (szOut, 64, " "         ); break;
+                  case D3DDECLUSAGE_TEXCOORD:     snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_TANGENT:      snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_BINORMAL:     snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_TESSFACTOR:   snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_POSITIONT:    snprintf (szOut, 64, " "         ); break;
+                  case D3DDECLUSAGE_COLOR:        snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_FOG:          snprintf (szOut, 64, " "         ); break;
+                  case D3DDECLUSAGE_DEPTH:        snprintf (szOut, 64, " [%i]", idx); break;
+                  case D3DDECLUSAGE_SAMPLE:       snprintf (szOut, 64, " "         ); break;
                 };
                 break;
             }

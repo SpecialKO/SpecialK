@@ -22,6 +22,7 @@
     <ProjectGuid>{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libzma</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -38,9 +38,6 @@
 
 #include <execution>
 
-
-//#include "../../../src/render/d3d11/hooks/d3d11_devctx_wrapped.cpp"
-
 #define SK_D3D11_WRAP_IMMEDIATE_CTX
 #define SK_D3D11_WRAP_DEFERRED_CTX
 
@@ -65,7 +62,6 @@ SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader);
 
 LPVOID pfnD3D11CreateDevice             = nullptr;
 LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
-//LPVOID pfnD3D11CoreCreateDevice         = nullptr;
 
 HMODULE SK::DXGI::hModD3D11 = nullptr;
 
@@ -88,7 +84,6 @@ extern "C"
 {
   // Global DLL's cache
 __declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDevice)
-//__declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CoreCreateDevice)
 __declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDeviceAndSwapChain)
 };
 #pragma data_seg ()
@@ -97,45 +92,24 @@ __declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDeviceAndSwapChain)
 // Local DLL's cached addresses
 SK_HookCacheEntryLocal ( D3D11CreateDevice,             L"d3d11.dll",
                          D3D11CreateDevice_Detour,
-                        &D3D11CreateDevice_Import )
-//SK_HookCacheEntryLocal ( D3D11CoreCreateDevice,         L"d3d11.dll",
-//                         D3D11CoreCreateDevice_Detour,
-//                        &D3D11CoreCreateDevice_Import )
+static_cast_p2p <void> (&D3D11CreateDevice_Import) )
 SK_HookCacheEntryLocal ( D3D11CreateDeviceAndSwapChain, L"d3d11.dll",
                          D3D11CreateDeviceAndSwapChain_Detour,
-                        &D3D11CreateDeviceAndSwapChain_Import )
+static_cast_p2p <void> (&D3D11CreateDeviceAndSwapChain_Import) )
 
 static sk_hook_cache_array global_d3d11_records =
   { &GlobalHook_D3D11CreateDevice,
-  //&GlobalHook_D3D11CoreCreateDevice,
     &GlobalHook_D3D11CreateDeviceAndSwapChain };
 
 static sk_hook_cache_array local_d3d11_records =
   { &LocalHook_D3D11CreateDevice,
-  //&LocalHook_D3D11CoreCreateDevice,
     &LocalHook_D3D11CreateDeviceAndSwapChain };
 
-extern SK_LazyGlobal <memory_tracking_s>     mem_map_stats;
-       SK_LazyGlobal <SK_D3D11_KnownShaders> SK_D3D11_Shaders;
-       SK_LazyGlobal <target_tracking_s>     tracked_rtv;
+
+SK_LazyGlobal <SK_D3D11_KnownShaders> SK_D3D11_Shaders;
+SK_LazyGlobal <target_tracking_s>     tracked_rtv;
 
 volatile LONG __SKX_ComputeAntiStall = 1;
-
-extern float __SK_HDR_HorizCoverage;
-extern float __SK_HDR_VertCoverage;
-
-extern bool __SK_HDR_10BitSwap;
-extern bool __SK_HDR_16BitSwap;
-
-// ID3D11DeviceContext* private data used for indexing various per-ctx lookups
-const GUID SKID_D3D11DeviceContextHandle =
-// {5C5298CA-0F9C-5932-A19D-A2E69792AE03}
-  { 0x5c5298ca, 0xf9c,  0x5932, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x3 } };
-
-// The device context a command list was built using
-const GUID SKID_D3D11DeviceContextOrigin =
-// {5C5298CA-0F9D-5022-A19D-A2E69792AE03}
-{ 0x5c5298ca, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x03 } };
 
 volatile LONG SK_D3D11_NumberOfSeenContexts = 0;
 volatile LONG _mutex_init                   = 0;
@@ -574,7 +548,6 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
 
   _CacheResolution (idx, pDevCtx, handle);
 
-  if    (new_handle != nullptr)
   delete new_handle;
   return     handle;
 }
@@ -663,458 +636,6 @@ SK_D3D11_DescribeResource (ID3D11Resource* pRes)
   }
 };
 
-
-struct resample_job_s {
-  DirectX::ScratchImage *data;
-  ID3D11Texture2D       *texture;
-
-  uint32_t               crc32c;
-
-  struct {
-    int64_t preprocess; // Time performing various work required for submission
-                        //   (i.e. decompression)
-
-    int64_t received;
-    int64_t started;
-    int64_t finished;
-  } time;
-};
-
-static       HANDLE hResampleWork       = INVALID_HANDLE_VALUE;
-static unsigned int dispatch_thread_idx = 0;
-
-struct resample_dispatch_s
-{
-  void delayInit (void)
-  {
-    hResampleWork =
-      SK_CreateEvent ( nullptr, FALSE,
-                                FALSE,
-          SK_FormatStringW ( LR"(Local\SK_DX11TextureResample_Dispatch_%x)",
-                               GetCurrentProcessId () ).c_str ()
-      );
-
-    SYSTEM_INFO        sysinfo = { };
-    SK_GetSystemInfo (&sysinfo);
-
-    max_workers =
-      std::max (1UL, sysinfo.dwNumberOfProcessors - 1);
-
-    PROCESSOR_NUMBER                                 pnum = { };
-    GetThreadIdealProcessorEx (GetCurrentThread (), &pnum);
-
-    dispatch_thread_idx =
-           ( pnum.Group + pnum.Number );
-  }
-
-  bool postJob (resample_job_s job)
-  {
-    job.time.received =
-      SK_QueryPerf ().QuadPart;
-
-                           job.texture->AddRef ();
-    waiting_textures.push (job);
-
-    InterlockedIncrement  (&stats.textures_waiting);
-
-    SK_RunOnce (delayInit ());
-
-    bool ret = false;
-
-    if (InterlockedIncrement (&active_workers) <= max_workers)
-    {
-      SK_Thread_Create ( [](LPVOID pDispatchBase) ->
-      DWORD
-      {
-        resample_dispatch_s* pResampler =
-          (resample_dispatch_s *)pDispatchBase;
-
-        SetThreadPriority ( SK_GetCurrentThread (),
-                            THREAD_MODE_BACKGROUND_BEGIN );
-
-        static volatile LONG thread_num = 0;
-
-        uintptr_t thread_idx = ReadAcquire (&thread_num);
-        uintptr_t logic_idx  = 0;
-
-        // There will be an odd-man-out in any SMT implementation since the
-        //   SwapChain thread has an ideal _logical_ CPU core.
-        bool         disjoint     = false;
-
-
-        InterlockedIncrement (&thread_num);
-
-
-        if (thread_idx == dispatch_thread_idx)
-        {
-          disjoint = true;
-          thread_idx++;
-          InterlockedIncrement (&thread_num);
-        }
-
-
-        for ( auto& it : SK_CPU_GetLogicalCorePairs () )
-        {
-          if ( it & ( (uintptr_t)1 << thread_idx ) ) break;
-          else                       ++logic_idx;
-        }
-
-        const ULONG_PTR logic_mask =
-          SK_CPU_GetLogicalCorePairs ()[logic_idx];
-
-
-        SK_TLS *pTLS =
-          SK_TLS_Bottom ();
-
-        SetThreadIdealProcessor ( SK_GetCurrentThread (),
-                                    gsl::narrow_cast <DWORD> (thread_idx) );
-        if (! disjoint)
-        {
-          SetThreadAffinityMask ( SK_GetCurrentThread (), logic_mask );
-        }
-
-        std::wstring desc = L"[SK] D3D11 Texture Resampling ";
-
-  const int logical_siblings = CountSetBits (logic_mask);
-        if (logical_siblings > 1 && (! disjoint))
-        {
-          desc += L"HyperThread < ";
-          for ( int i = 0,
-                    j = 0;
-                    i < SK_GetBitness ();
-                  ++i )
-          {
-            if ( (logic_mask & ( static_cast <uintptr_t> (1) << i ) ) )
-            {
-              desc += std::to_wstring (i);
-
-              if ( ++j < logical_siblings ) desc += L",";
-            }
-          }
-          desc += L" >";
-        }
-
-        else
-          desc += SK_FormatStringW (L"Thread %lu", thread_idx);
-
-
-        SetCurrentThreadDescription (desc.c_str ());
-
-        SK_ScopedBool decl_tex_scope (
-          SK_D3D11_DeclareTexInjectScope ()
-        );
-
-        auto* task =
-          SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
-                                           SK_WideCharToUTF8 (desc).c_str (),
-                                             "Playback",
-                                             "DisplayPostProcessing" );
-
-        if ( task        != nullptr                &&
-             task->dwTid == SK_Thread_GetCurrentId () )
-        {
-          task->setPriority (AVRT_PRIORITY_HIGH);
-        }
-
-        else
-        {
-          SetThreadPriorityBoost ( SK_GetCurrentThread (),
-                                   TRUE );
-          SetThreadPriority (      SK_GetCurrentThread (),
-                                   THREAD_PRIORITY_TIME_CRITICAL );
-        }
-
-        do
-        {
-          resample_job_s job = { };
-
-          while (pResampler->waiting_textures.try_pop (job))
-          {
-            job.time.started = SK_QueryPerf ().QuadPart;
-
-            InterlockedDecrement (&pResampler->stats.textures_waiting);
-            InterlockedIncrement (&pResampler->stats.textures_resampling);
-
-            DirectX::ScratchImage* pNewImg = nullptr;
-
-            const HRESULT hr =
-              SK_D3D11_MipmapCacheTexture2DEx ( *job.data,
-                                                 job.crc32c,
-                                                 job.texture,
-                                                &pNewImg,
-                                                 pTLS );
-
-            delete job.data;
-
-            if (FAILED (hr))
-            {
-              dll_log->Log (L"Resampler failure (crc32c=%x)", job.crc32c);
-              InterlockedIncrement (&pResampler->stats.error_count);
-              job.texture->Release ();
-            }
-
-            else
-            {
-              job.time.finished = SK_QueryPerf ().QuadPart;
-              job.data          = pNewImg;
-
-              pResampler->finished_textures.push (job);
-            }
-
-            InterlockedDecrement (&pResampler->stats.textures_resampling);
-          }
-
-          ///if (task != nullptr && task->hTask > 0)
-          ///    task->disassociateWithTask ();
-
-          if (SK_WaitForSingleObject (hResampleWork, 666UL) != WAIT_OBJECT_0)
-          {
-            if ( task        == nullptr                ||
-                 task->dwTid != SK_Thread_GetCurrentId () )
-            {
-              SetThreadPriorityBoost ( SK_GetCurrentThread (),
-                                       FALSE );
-              SetThreadPriority (      SK_GetCurrentThread (),
-                                       THREAD_PRIORITY_LOWEST );
-            }
-
-            SK_WaitForSingleObject (hResampleWork, INFINITE);
-          }
-
-          ///if (task != nullptr && task->hTask > 0)
-          ///    task->reassociateWithTask ();
-        } while (ReadAcquire (&__SK_DLL_Ending) == 0);
-
-        InterlockedDecrement (&pResampler->active_workers);
-
-        SK_Thread_CloseSelf ();
-
-        return 0;
-      }, (LPVOID)this );
-
-      ret = true;
-    }
-
-    SetEvent (hResampleWork);
-
-    return ret;
-  };
-
-
-  bool processFinished ( ID3D11Device        *pDev,
-                         ID3D11DeviceContext *pDevCtx,
-                         SK_TLS              *pTLS = SK_TLS_Bottom () )
-  {
-    size_t MAX_TEXTURE_UPLOADS_PER_FRAME;
-    int    MAX_UPLOAD_TIME_PER_FRAME_IN_MS;
-
-    extern int SK_D3D11_TexStreamPriority;
-    switch    (SK_D3D11_TexStreamPriority)
-    {
-      case 0:
-        MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 3UL;
-        MAX_TEXTURE_UPLOADS_PER_FRAME   =
-          static_cast <size_t> (ReadAcquire (&stats.textures_waiting) / 7) + 1;
-        break;
-
-      case 1:
-      default:
-        MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 13UL;
-        MAX_TEXTURE_UPLOADS_PER_FRAME   =
-          static_cast <size_t> (ReadAcquire (&stats.textures_waiting) / 4) + 1;
-        break;
-
-      case 2:
-        MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 27UL;
-        MAX_TEXTURE_UPLOADS_PER_FRAME   =
-          static_cast <size_t> (ReadAcquire (&stats.textures_waiting) / 2) + 1;
-    }
-
-
-    static const uint64_t _TicksPerMsec =
-      ( SK_GetPerfFreq ().QuadPart / 1000ULL );
-
-
-          size_t   uploaded   = 0;
-    const uint64_t start_tick = SK::ControlPanel::current_tick;//SK_QueryPerf ().QuadPart;
-    const uint64_t deadline   = start_tick + MAX_UPLOAD_TIME_PER_FRAME_IN_MS * _TicksPerMsec;
-
-    SK_ScopedBool auto_bool_mem (&pTLS->imgui->drawing);
-                                  pTLS->imgui->drawing = true;
-    SK_ScopedBool decl_tex_scope (
-      SK_D3D11_DeclareTexInjectScope (pTLS)
-    );
-
-    bool processed = false;
-
-    static auto& textures =
-      SK_D3D11_Textures;
-
-    //
-    // Finish Resampled Texture Uploads (discard if texture is no longer live)
-    //
-    while (! finished_textures.empty ())
-    {
-      resample_job_s finished = { };
-
-      if ( pDev    != nullptr &&
-           pDevCtx != nullptr    )
-      {
-        if (finished_textures.try_pop (finished))
-        {
-          // Due to cache purging behavior and the fact that some crazy games issue back-to-back loads of the same resource,
-          //   we need to test the cache health prior to trying to service this request.
-          if ( ( ( finished.time.started > textures->LastPurge_2D ) ||
-                 ( SK_D3D11_TextureIsCached (finished.texture) )  ) &&
-                finished.data         != nullptr                    &&
-                finished.texture      != nullptr )
-          {
-            SK_ComPtr <ID3D11Texture2D> pTempTex;
-
-            const HRESULT ret =
-              DirectX::CreateTexture (
-                pDev, finished.data->GetImages   (), finished.data->GetImageCount (),
-                      finished.data->GetMetadata (), (ID3D11Resource **)&pTempTex);
-
-            if (SUCCEEDED (ret))
-            {
-
-              ///D3D11_TEXTURE2D_DESC        texDesc = { };
-              ///finished.texture->GetDesc (&texDesc);
-              ///
-              ///pDevCtx->SetResourceMinLOD (finished.texture, (FLOAT)(texDesc.MipLevels - 1));
-
-              pDevCtx->CopyResource (finished.texture, pTempTex);
-
-              uploaded++;
-
-              InterlockedIncrement (&stats.textures_finished);
-
-              // Various wait-time statistics;  the job queue is HyperThreading aware and helps reduce contention on
-              //                                  the list of finished textures ( Which we need to service from the
-              //                                                                   game's original calling thread ).
-              const uint64_t wait_in_queue = ( finished.time.started      - finished.time.received );
-              const uint64_t work_time     = ( finished.time.finished     - finished.time.started  );
-              const uint64_t wait_finished = ( SK_CurrentPerf ().QuadPart - finished.time.finished );
-
-              SK_LOG1 ( (L"ReSample Job %4lu (hash=%08x {%4lux%#4lu}) => %9.3f ms TOTAL :: ( %9.3f ms pre-proc, "
-                                                                                           L"%9.3f ms work queue, "
-                                                                                           L"%9.3f ms resampling, "
-                                                                                           L"%9.3f ms finish queue )",
-                           ReadAcquire (&stats.textures_finished), finished.crc32c,
-                           finished.data->GetMetadata ().width,    finished.data->GetMetadata ().height,
-                         ( (long double)SK_CurrentPerf ().QuadPart - (long double)finished.time.received +
-                           (long double)finished.time.preprocess ) / (long double)_TicksPerMsec,
-                           (long double)finished.time.preprocess   / (long double)_TicksPerMsec,
-                           (long double)wait_in_queue              / (long double)_TicksPerMsec,
-                           (long double)work_time                  / (long double)_TicksPerMsec,
-                           (long double)wait_finished              / (long double)_TicksPerMsec ),
-                       L"DX11TexMgr"  );
-            }
-
-            else
-              InterlockedIncrement (&stats.error_count);
-          }
-
-          else
-          {
-            SK_LOG0 ( (L"Texture (%x) was loaded too late, discarding...", finished.crc32c),
-                       L"DX11TexMgr" );
-
-            InterlockedIncrement (&stats.textures_too_late);
-          }
-
-
-          if (finished.data != nullptr)
-          {
-            //delete finished.data;
-                   finished.data = nullptr;
-          }
-
-
-
-          IUnknown_AtomicRelease ((void **)&finished.texture);
-
-          processed = true;
-
-
-          if ( uploaded >= MAX_TEXTURE_UPLOADS_PER_FRAME ||
-               deadline <  (uint64_t)SK_QueryPerf ().QuadPart )  break;
-        }
-
-        else
-          break;
-      }
-
-      else
-        break;
-    }
-
-    return processed;
-  };
-
-
-  struct stats_s
-  {
-    ~stats_s (void) ///
-    {
-      if (hResampleWork != INVALID_HANDLE_VALUE)
-      {
-        CloseHandle (hResampleWork);
-                     hResampleWork = INVALID_HANDLE_VALUE;
-      }
-    }
-
-    volatile LONG textures_resampled    = 0L;
-    volatile LONG textures_compressed   = 0L;
-    volatile LONG textures_decompressed = 0L;
-
-    volatile LONG textures_waiting      = 0L;
-    volatile LONG textures_resampling   = 0L;
-    volatile LONG textures_too_late     = 0L;
-    volatile LONG textures_finished     = 0L;
-
-    volatile LONG error_count           = 0L;
-  } stats;
-
-           LONG max_workers    = 0;
-  volatile LONG active_workers = 0;
-
-  concurrency::concurrent_queue <resample_job_s> waiting_textures;
-  concurrency::concurrent_queue <resample_job_s> finished_textures;
-};
-
-SK_LazyGlobal <resample_dispatch_s> SK_D3D11_TextureResampler;
-
-
-LONG
-SK_D3D11_Resampler_GetActiveJobCount (void)
-{
-  return
-    ReadAcquire (&SK_D3D11_TextureResampler->stats.textures_resampling);
-}
-
-LONG
-SK_D3D11_Resampler_GetWaitingJobCount (void)
-{
-  return
-    ReadAcquire (&SK_D3D11_TextureResampler->stats.textures_waiting);
-}
-
-LONG
-SK_D3D11_Resampler_GetRetiredCount (void)
-{
-  return
-    ReadAcquire (&SK_D3D11_TextureResampler->stats.textures_resampled);
-}
-
-LONG
-SK_D3D11_Resampler_GetErrorCount (void)
-{
-  return
-    ReadAcquire (&SK_D3D11_TextureResampler->stats.error_count);
-}
-
 volatile LONG  __d3d11_ready    = FALSE;
 
 void WaitForInitD3D11 (void)
@@ -1154,15 +675,6 @@ SK_RESHADE_CALLBACK_GetDSV       SK_ReShade_GetDepthStencilViewCallback;
 SK_RESHADE_CALLBACK_ClearDSV     SK_ReShade_ClearDepthStencilViewCallback;
 SK_RESHADE_CALLBACK_CopyResource SK_ReShade_CopyResourceCallback;
 
-
-#ifndef _SK_WITHOUT_D3DX11
-D3DX11CreateTextureFromMemory_pfn D3DX11CreateTextureFromMemory = nullptr;
-D3DX11CreateTextureFromFileW_pfn  D3DX11CreateTextureFromFileW  = nullptr;
-D3DX11GetImageInfoFromFileW_pfn   D3DX11GetImageInfoFromFileW   = nullptr;
-HMODULE                           hModD3DX11_43                 = nullptr;
-#endif
-
-
 uint32_t
 __stdcall
 SK_D3D11_TextureHashFromCache (ID3D11Texture2D* pTex);
@@ -1177,7 +689,6 @@ struct d3d11_caps_t {
 
 D3D11CreateDeviceAndSwapChain_pfn D3D11CreateDeviceAndSwapChain_Import = nullptr;
 D3D11CreateDevice_pfn             D3D11CreateDevice_Import             = nullptr;
-//D3D11CoreCreateDevice_pfn         D3D11CoreCreateDevice_Import         = nullptr;
 
 void
 SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
@@ -1395,9 +906,6 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
     _Finish (pDesc);
 }
 
-
-
-bool drawing_cpl = false;
 
 void
 STDMETHODCALLTYPE
@@ -2124,62 +1632,6 @@ SK_D3D11_PostDraw (UINT& dev_idx, SK_TLS *pTLS)
   SK_D3D11_ClearResidualDrawState (dev_idx, pTLS);
 }
 
-class SK_D3D11_AbstractBlacklist
-{
-public:
-  explicit operator uint32_t (void) const {
-    return for_shader.crc32c;
-  };
-
-  struct {
-    uint32_t crc32c;
-  } for_shader;// [6];
-
-  struct     {
-    struct   {
-      struct vtx_count_cond_s {
-        std::pair <bool,int> vertices;
-                              }
-        more_than,
-        less_than;
-             } have;
-             } if_meshes;
-};
-
-SK_LazyGlobal <Concurrency::concurrent_unordered_multimap <uint32_t, SK_D3D11_AbstractBlacklist>>
-SK_D3D11_BlacklistDrawcalls;
-
-void
-_make_blacklist_draw_min_verts ( uint32_t crc32c,
-                                int      value  )
-{
-  SK_D3D11_AbstractBlacklist min_verts = { };
-
-  min_verts.for_shader.crc32c = crc32c;
-  min_verts.if_meshes.have.less_than.vertices =
-    std::make_pair ( true, value );
-  min_verts.if_meshes.have.more_than.vertices =
-    std::make_pair ( false, 0    );
-
-  SK_D3D11_BlacklistDrawcalls->insert (std::make_pair (crc32c, min_verts));
-}
-
-void
-_make_blacklist_draw_max_verts ( uint32_t crc32c,
-                                 int      value  )
-{
-  SK_D3D11_AbstractBlacklist max_verts = { };
-
-  max_verts.for_shader.crc32c = crc32c;
-  max_verts.if_meshes.have.more_than.vertices =
-    std::make_pair ( true, value );
-  max_verts.if_meshes.have.less_than.vertices =
-    std::make_pair ( false, 0    );
-
-  SK_D3D11_BlacklistDrawcalls->insert (std::make_pair (crc32c, max_verts));
-}
-
-
 void*
 __cdecl
 SK_SEH_Guarded_memcpy (
@@ -2215,7 +1667,7 @@ SK_LazyGlobal <concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_
 bool SK_D3D11_KnownShaders::reshade_triggered;
 
 // Indicates whether the shader mod window is tracking render target refs
-static bool live_rt_view = true;
+extern bool live_rt_view;
 
 bool
 SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader)
@@ -2250,8 +1702,6 @@ SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader)
   return false;
 #endif
 }
-
-ID3D11ShaderResourceView* g_pRawHDR = nullptr;
 
 static auto constexpr SK_CBUFFER_SLOTS =
   D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
@@ -2352,32 +1802,37 @@ const
     {
       if (_reshade_trigger_before [dev_idx])
       {
-
-        auto flag_result =
-          SK_ImGui_FlagDrawing_OnD3D11Ctx (dev_idx);
+        if (ppTLS != nullptr)
+        {
+          auto flag_result =
+            SK_ImGui_FlagDrawing_OnD3D11Ctx (dev_idx);
 
           SK_ScopedBool auto_bool (flag_result.first);
                                   *flag_result.first = flag_result.second;
 
-          if (ppTLS != nullptr && *ppTLS == nullptr)
-             *ppTLS  = SK_TLS_Bottom ();
+          if (*ppTLS == nullptr)
+              *ppTLS  = SK_TLS_Bottom ();
 
-          SK_ScopedBool auto_bool1 (&(*ppTLS)->imgui->drawing);
-                                     (*ppTLS)->imgui->drawing = true;
+          if (*ppTLS != nullptr)
+          {
+            SK_ScopedBool auto_bool1 (&(*ppTLS)->imgui->drawing);
+                                       (*ppTLS)->imgui->drawing = true;
 
-         SK_ScopedBool decl_tex_scope (
-           SK_D3D11_DeclareTexInjectScope ()
-         );
+            SK_ScopedBool decl_tex_scope (
+              SK_D3D11_DeclareTexInjectScope ()
+            );
 
-         shaders->reshade_triggered                = true;
-                 _reshade_trigger_before [dev_idx] = false;
+            shaders->reshade_triggered                = true;
+                    _reshade_trigger_before [dev_idx] = false;
 
-        SK_ReShade_PresentCallback->explicit_draw.calls++;
-        SK_ReShade_PresentCallback->explicit_draw.src_ctx = pDevCtx;
+            SK_ReShade_PresentCallback->explicit_draw.calls++;
+            SK_ReShade_PresentCallback->explicit_draw.src_ctx = pDevCtx;
 
-        SK_ReShade_PresentCallback->fn (
-       &SK_ReShade_PresentCallback->explicit_draw
-        );
+            SK_ReShade_PresentCallback->fn (
+           &SK_ReShade_PresentCallback->explicit_draw
+            );
+          }
+        }
       }
     }
   };
@@ -3667,7 +3122,7 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
   // Render-state tracking needs to be forced-on for the
   //   Steam Overlay HDR fix to work.
   if ( rb.isHDRCapable ()  &&
-      (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) )
+       rb.isHDRActive  () )
   {
     if (dev_idx == UINT_MAX)
     {
@@ -3675,10 +3130,15 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
         SK_D3D11_GetDeviceContextHandle (pDevCtx);
     }
 
-#define STEAM_OVERLAY_VS_CRC32C 0xf48cf597
+    uint32_t vs_crc =
+      SK_D3D11_Shaders->vertex.current.shader [dev_idx];
+
+#define STEAM_OVERLAY_VS_CRC32C   0xf48cf597
+#define DISCORD_OVERLAY_VS_CRC32C 0x085ee17b
+#define RTSS_OVERLAY_VS_CRC32C    0x671afc2f
 
     if ( STEAM_OVERLAY_VS_CRC32C ==
-           SK_D3D11_Shaders->vertex.current.shader [dev_idx]  )
+                       vs_crc )
     {
       extern HRESULT
         SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
@@ -3690,6 +3150,27 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
              SK_D3D11_InjectSteamHDR ( pDevCtx, VertexCount,
                                          StartVertexLocation,
                                            D3D11_Draw_Original )
+           )
+         )
+      {
+        return;
+      }
+    }
+
+    else if ( DISCORD_OVERLAY_VS_CRC32C == vs_crc ||
+                 RTSS_OVERLAY_VS_CRC32C == vs_crc )
+    {
+      extern HRESULT
+        SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
+                                           _In_ UINT                 VertexCount,
+                                           _In_ UINT                 StartVertexLocation,
+                                           _In_ uint32_t             crc32,
+                                           _In_ D3D11_Draw_pfn       pfnD3D11Draw );
+
+      if ( SUCCEEDED (
+             SK_D3D11_InjectGenericHDROverlay ( pDevCtx, VertexCount,
+                                                  StartVertexLocation,
+                                                    vs_crc, D3D11_Draw_Original )
            )
          )
       {
@@ -3788,7 +3269,7 @@ SK_D3D11_DrawIndexed_Impl (
   // Render-state tracking needs to be forced-on for the
   //   Steam Overlay HDR fix to work.
   if ( rb.isHDRCapable ()  &&
-      (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) )
+       rb.isHDRActive  () )
   {
 #define UPLAY_OVERLAY_PS_CRC32C 0x35ae281c
 
@@ -4394,50 +3875,17 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
   }
 }
 
-void WINAPI SK_D3D11_SetResourceRoot      (const wchar_t* root)  ;
-void WINAPI SK_D3D11_EnableTexDump        (bool enable)          ;
-void WINAPI SK_D3D11_EnableTexInject      (bool enable)          ;
-void WINAPI SK_D3D11_EnableTexCache       (bool enable)          ;
-void WINAPI SK_D3D11_PopulateResourceList (bool refresh = false) ;
-
-
-bool b_66b35959 = false;
-bool b_9d665ae2 = false;
-bool b_b21c8ab9 = false;
-bool b_6bb0972d = false;
-bool b_05da09bd = true;
-
-#ifdef _SK_WITHOUT_D3DX11
 [[deprecated]]
-#endif
 HRESULT
 SK_D3DX11_SAFE_GetImageInfoFromFileW (const wchar_t* wszTex, D3DX11_IMAGE_INFO* pInfo)
 {
   UNREFERENCED_PARAMETER (wszTex);
   UNREFERENCED_PARAMETER (pInfo);
-#ifndef _SK_WITHOUT_D3DX11
-  __try {
-    return D3DX11GetImageInfoFromFileW (wszTex, nullptr, pInfo, nullptr);
-  }
 
-  __except ( /* GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ? */
-               EXCEPTION_EXECUTE_HANDLER /* :
-               EXCEPTION_CONTINUE_SEARCH */ )
-  {
-    SK_LOG0 ( ( L"Texture '%s' is corrupt, please delete it.",
-                  wszTex ),
-                L" TexCache " );
-
-    return E_FAIL;
-  }
-#else
   return E_NOTIMPL;
-#endif
 }
 
-#ifdef _SK_WITHOUT_D3DX11
 [[deprecated]]
-#endif
 HRESULT
 SK_D3DX11_SAFE_CreateTextureFromFileW ( ID3D11Device*           pDevice,   LPCWSTR           pSrcFile,
                                         D3DX11_IMAGE_LOAD_INFO* pLoadInfo, ID3D11Resource** ppTexture )
@@ -4445,20 +3893,7 @@ SK_D3DX11_SAFE_CreateTextureFromFileW ( ID3D11Device*           pDevice,   LPCWS
   UNREFERENCED_PARAMETER (pDevice),   UNREFERENCED_PARAMETER (pSrcFile),
   UNREFERENCED_PARAMETER (pLoadInfo), UNREFERENCED_PARAMETER (ppTexture);
 
-#ifndef _SK_WITHOUT_D3DX11
-  __try {
-    return D3DX11CreateTextureFromFileW (pDevice, pSrcFile, pLoadInfo, nullptr, ppTexture, nullptr);
-  }
-
-  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-               EXCEPTION_EXECUTE_HANDLER :
-               EXCEPTION_CONTINUE_SEARCH )
-  {
-    return E_FAIL;
-  }
-#else
   return E_NOTIMPL;
-#endif
 }
 
 HRESULT
@@ -4506,14 +3941,29 @@ D3D11Dev_CreateTexture2D_Impl (
     // Better late than never
     if (! pDevCtx)
     {
-      This->GetImmediateContext (&pDevCtx.p);
-         rb.d3d11.immediate_ctx = pDevCtx;
-         rb.setDevice            (pDev);
+      // Only from devices belonging to the game, no wrappers or Ansel
+      SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
 
-      SK_LOG0 ( (L"Active D3D11 Device Context Established on first Texture Upload" ),
-                 L"  D3D 11  " );
+      if (pSwapChain.p != nullptr)
+      {
+        SK_ComPtr <ID3D11Device> pSwapDev;
+
+        if (SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pSwapDev.p))) && pDev.IsEqualObject (pSwapDev))
+        {
+          This->GetImmediateContext (&pDevCtx.p);
+             rb.d3d11.immediate_ctx = pDevCtx;
+             rb.setDevice            (pDev);
+
+          SK_LOG0 ( (L"Active D3D11 Device Context Established on first Texture Upload" ),
+                     L"  D3D 11  " );
+        }
+      }
     }
   }
+
+  // Compat hack needed in all Unity games
+  if (rb.windows.unity)
+    config.textures.cache.ignore_nonmipped = true;
 
 
   static auto& textures =
@@ -4534,16 +3984,39 @@ D3D11Dev_CreateTexture2D_Impl (
       if (SK_GetCallingDLL (lpCallerAddr) == SK_GetModuleHandle (nullptr))
           SK_TVFix_CreateTexture2D (pDesc);
     }
+
+    else if (game_id == SK_GAME_ID::GalGunReturns)
+    {
+      if (! config.window.res.override.isZero ())
+      {
+        if ((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) ||
+            (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL))
+        {
+          if (pDesc->Width == 480  && pDesc->Height == 270)
+          {
+            pDesc->Width  = config.window.res.override.x / 4;
+            pDesc->Height = config.window.res.override.y / 4;
+          }
+
+          if (pDesc->Width == 1920 && pDesc->Height == 1080)
+          {
+            pDesc->Width  = config.window.res.override.x;
+            pDesc->Height = config.window.res.override.y;
+          }
+        }
+      }
+    }
 #endif
   }
 
   //--- HDR Format Wars (or at least format re-training) ---
-  if ( pDesc        != nullptr             &&
-       pDesc->Usage != D3D11_USAGE_STAGING &&
-       pDesc->Usage != D3D11_USAGE_DYNAMIC &&
+  if ( pDesc                 != nullptr             &&
+       pDesc->Usage          != D3D11_USAGE_STAGING &&
+       pDesc->Usage          != D3D11_USAGE_DYNAMIC &&
                    ( pInitialData          == nullptr ||
                      pInitialData->pSysMem == nullptr ) )
   {
+
     static constexpr UINT _UnwantedFlags =
         ( D3D11_BIND_VERTEX_BUFFER   | D3D11_BIND_INDEX_BUFFER     |
           D3D11_BIND_CONSTANT_BUFFER | D3D11_BIND_STREAM_OUTPUT    |
@@ -4565,9 +4038,8 @@ D3D11Dev_CreateTexture2D_Impl (
          )
       {
         size_t bpp =
-          DirectX::BitsPerPixel (pDesc->Format);
-
-        size_t bpc =
+          DirectX::BitsPerPixel (pDesc->Format),
+               bpc =
           DirectX::BitsPerColor (pDesc->Format);
 
         if (pDesc->SampleDesc.Count == 1)
@@ -4612,9 +4084,11 @@ D3D11Dev_CreateTexture2D_Impl (
 
             // The HDR formats are RGB(A), they do not play nicely with BGR{A|x}
             bool rgba =
-              (  _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
-                 _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS ||
-                 _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS );
+              ( _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
+                _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS );
+
+            if (! rb.windows.unreal)
+              rgba = ( rgba || _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS );
 
             // 8-bit RGB(x) -> 16-bit FP
             if ( bpc == 8  && rgba &&
@@ -4695,7 +4169,7 @@ D3D11Dev_CreateTexture2D_Impl (
                                          pInitialData, ppTexture2D);
   }
 
-  SK_D3D11_TextureResampler->processFinished (This, pDevCtx, pTLS);
+  SK_D3D11_Resampler_ProcessFinished (This, pDevCtx, pTLS);
 
   SK_D3D11_MemoryThreads->mark ();
 
@@ -4910,7 +4384,7 @@ D3D11Dev_CreateTexture2D_Impl (
 
   if (injectable)
   {
-    if (SK_D3D11_res_root->length ())
+    if (! SK_D3D11_res_root->empty ())
     {
       wchar_t     wszTex [MAX_PATH + 2] = { };
       wcsncpy_s ( wszTex, MAX_PATH,
@@ -4922,11 +4396,6 @@ D3D11Dev_CreateTexture2D_Impl (
       {
 
         HRESULT hr = E_UNEXPECTED;
-
-        // To allow texture reloads, we cannot allow immutable usage on these textures.
-        //
-        if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
-        {   pDesc->Usage  = D3D11_USAGE_DEFAULT; }
 
         DirectX::TexMetadata mdata;
 
@@ -4964,11 +4433,10 @@ D3D11Dev_CreateTexture2D_Impl (
               pDesc->Usage          = new_desc.Usage;
               pDesc->Width          = new_desc.Width;
 
+              // To allow texture reloads, we cannot allow immutable usage on these textures.
+              //
               if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
-              {
-                pDesc->Usage    = D3D11_USAGE_DEFAULT;
-                orig_desc.Usage = D3D11_USAGE_DEFAULT;
-              }
+              {   pDesc->Usage  = D3D11_USAGE_DEFAULT; }
 
               size =
                 SK_D3D11_ComputeTextureSize (pDesc);
@@ -5134,59 +4602,59 @@ D3D11Dev_CreateTexture2D_Impl (
 
       bool error = false;
 
-      for (size_t slice = 0; slice < mdata.arraySize; ++slice)
+      do
       {
+        size_t slice = 0,
+               lod   = 0;
+
         size_t height = mdata.height;
 
-        for (size_t lod = 0; lod < mdata.mipLevels; ++lod)
+        const DirectX::Image* img =
+          image->GetImage (lod, slice, 0);
+
+        if (! (img && img->pixels))
         {
-          const DirectX::Image* img =
-            image->GetImage (lod, slice, 0);
-
-          if (! (img && img->pixels))
-          {
-            error = true;
-            break;
-          }
-
-          const size_t lines =
-            DirectX::ComputeScanlines (mdata.format, height);
-
-          if (! lines)
-          {
-            error = true;
-            break;
-          }
-
-          auto sptr =
-            static_cast <const uint8_t *>(
-              pInitialData [lod].pSysMem
-            );
-
-          if (sptr == nullptr)
-            continue;
-
-          uint8_t* dptr =
-            img->pixels;
-
-          for (size_t h = 0; h < lines; ++h)
-          {
-            const size_t msize =
-              std::min <size_t> ( img->rowPitch,
-                                    pInitialData [lod].SysMemPitch );
-
-            memcpy_s (dptr, img->rowPitch, sptr, msize);
-
-            sptr += pInitialData [lod].SysMemPitch;
-            dptr += img->rowPitch;
-          }
-
-          if (height > 1) height >>= 1;
+          error = true;
+          break;
         }
+
+        const size_t lines =
+          DirectX::ComputeScanlines (mdata.format, height);
+
+        if (! lines)
+        {
+          error = true;
+          break;
+        }
+
+        auto sptr =
+          static_cast <const uint8_t *>(
+            pInitialData [lod].pSysMem
+          );
+
+        if (sptr == nullptr)
+          break;
+
+        uint8_t* dptr =
+          img->pixels;
+
+        for (size_t h = 0; h < lines; ++h)
+        {
+          const size_t msize =
+            std::min <size_t> ( img->rowPitch,
+                                  pInitialData [lod].SysMemPitch );
+
+          memcpy_s (dptr, img->rowPitch, sptr, msize);
+
+          sptr += pInitialData [lod].SysMemPitch;
+          dptr += img->rowPitch;
+        }
+
+        if (height > 1) height >>= 1;
 
         if (error)
           break;
-      }
+      } while (false);
 
       const DirectX::Image* orig_img =
         image->GetImage (0, 0, 0);
@@ -5277,7 +4745,7 @@ D3D11Dev_CreateTexture2D_Impl (
         if (resample.data->GetMetadata ().IsCubemap ())
           SK_LOG0 ( (L"Neat, a Cubemap!"), L"DirectXTex" );
 
-        SK_D3D11_TextureResampler->postJob (resample);
+        SK_D3D11_Resampler_PostJob (resample);
 
         // It's the thread pool's problem now, don't free this.
         image = nullptr;
@@ -5348,96 +4816,6 @@ D3D11Dev_CreateTexture2D_Impl (
 
   return ret;
 }
-
-void
-SK_D3D11_InitTextures (void)
-{
-  static auto *pCommandProcessor =
-    SK_GetCommandProcessor ();
-
-//extern          SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
-  static volatile LONG                         SK_D3D11_tex_init = FALSE;
-
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
-
-  if (! InterlockedCompareExchangeAcquire (&SK_D3D11_tex_init, TRUE, FALSE))
-  {
-    if (pTLS != nullptr)
-        pTLS->d3d11->ctx_init_thread = true;
-
-    static bool bFFX =
-      (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyX_X2);
-
-    if (bFFX)
-      SK_D3D11_inject_textures_ffx = true;
-
-    preload_cs = std::make_unique <SK_Thread_HybridSpinlock> (0x01);
-    dump_cs    = std::make_unique <SK_Thread_HybridSpinlock> (0x02);
-    inject_cs  = std::make_unique <SK_Thread_HybridSpinlock> (0x10);
-    hash_cs    = std::make_unique <SK_Thread_HybridSpinlock> (0x40);
-    cache_cs   = std::make_unique <SK_Thread_HybridSpinlock> (0x80);
-    tex_cs     = std::make_unique <SK_Thread_HybridSpinlock> (0xFF);
-
-    cache_opts.max_entries       = config.textures.cache.max_entries;
-    cache_opts.min_entries       = config.textures.cache.min_entries;
-    cache_opts.max_evict         = config.textures.cache.max_evict;
-    cache_opts.min_evict         = config.textures.cache.min_evict;
-    cache_opts.max_size          = config.textures.cache.max_size;
-    cache_opts.min_size          = config.textures.cache.min_size;
-    cache_opts.ignore_non_mipped = config.textures.cache.ignore_nonmipped;
-
-    //
-    // Legacy Hack for Untitled Project X (FFX/FFX-2)
-    //
-  //extern bool SK_D3D11_inject_textures_ffx;
-    if       (! SK_D3D11_inject_textures_ffx)
-    {
-      SK_D3D11_EnableTexCache  (config.textures.d3d11.cache);
-      SK_D3D11_EnableTexDump   (config.textures.d3d11.dump);
-      SK_D3D11_EnableTexInject (config.textures.d3d11.inject);
-      SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root.c_str ());
-    }
-
-    pCommandProcessor->AddVariable ("TexCache.Enable",
-         new SK_IVarStub <bool> ((bool *)&config.textures.d3d11.cache));
-    pCommandProcessor->AddVariable ("TexCache.MaxEntries",
-         new SK_IVarStub <int>  ((int *)&cache_opts.max_entries));
-    pCommandProcessor->AddVariable ("TexC ache.MinEntries",
-         new SK_IVarStub <int>  ((int *)&cache_opts.min_entries));
-    pCommandProcessor->AddVariable ("TexCache.MaxSize",
-         new SK_IVarStub <int>  ((int *)&cache_opts.max_size));
-    pCommandProcessor->AddVariable ("TexCache.MinSize",
-         new SK_IVarStub <int>  ((int *)&cache_opts.min_size));
-    pCommandProcessor->AddVariable ("TexCache.MinEvict",
-         new SK_IVarStub <int>  ((int *)&cache_opts.min_evict));
-    pCommandProcessor->AddVariable ("TexCache.MaxEvict",
-         new SK_IVarStub <int>  ((int *)&cache_opts.max_evict));
-    pCommandProcessor->AddVariable ("TexCache.IgnoreNonMipped",
-         new SK_IVarStub <bool> ((bool *)&cache_opts.ignore_non_mipped));
-
-    if ((! SK_D3D11_inject_textures_ffx) && config.textures.d3d11.inject)
-      SK_D3D11_PopulateResourceList ();
-
-
-#ifdef _M_AMD64
-    static bool bOkami =
-      (SK_GetCurrentGameID () == SK_GAME_ID::Okami);
-
-    if (bOkami)
-    {
-      extern void SK_Okami_LoadConfig (void);
-                  SK_Okami_LoadConfig ();
-    }
-#endif
-
-    InterlockedIncrementRelease (&SK_D3D11_tex_init);
-  }
-
-  else if (pTLS != nullptr && (! pTLS->d3d11->ctx_init_thread))
-    SK_Thread_SpinUntilAtomicMin (&SK_D3D11_tex_init, 2);
-}
-
 
 volatile LONG SK_D3D11_initialized = FALSE;
 
@@ -5582,13 +4960,6 @@ SK_D3D11_Init (void)
            SK_GetProcAddress (hBackend, "D3D11CreateDevice");
       }
 
-    //if (! LocalHook_D3D11CoreCreateDevice.active)
-    //{
-    //  D3D11CoreCreateDevice_Import            =  \
-    //   (D3D11CoreCreateDevice_pfn)               \
-    //     SK_GetProcAddress (hBackend, "D3D11CoreCreateDevice");
-    //}
-
       if (! LocalHook_D3D11CreateDeviceAndSwapChain.active)
       {
         D3D11CreateDeviceAndSwapChain_Import            =  \
@@ -5601,11 +4972,6 @@ SK_D3D11_Init (void)
                   __SK_SUBSYSTEM__ );
       SK_LogSymbolName                    (D3D11CreateDevice_Import);
 
-      //SK_LOG0 ( ( L"  D3D11CoreCreateDevice:         %s",
-      //              SK_MakePrettyAddress (D3D11CoreCreateDevice_Import).c_str () ),
-      //            __SK_SUBSYSTEM__ );
-      //SK_LogSymbolName                   (D3D11CoreCreateDevice_Import);
-
       SK_LOG0 ( ( L"  D3D11CreateDeviceAndSwapChain: %s",
                     SK_MakePrettyAddress (D3D11CreateDeviceAndSwapChain_Import).c_str () ),
                   __SK_SUBSYSTEM__ );
@@ -5613,7 +4979,6 @@ SK_D3D11_Init (void)
 
       pfnD3D11CreateDeviceAndSwapChain = D3D11CreateDeviceAndSwapChain_Import;
       pfnD3D11CreateDevice             = D3D11CreateDevice_Import;
-    //pfnD3D11CoreCreateDevice         = D3D11CoreCreateDevice_Import;
 
       InterlockedIncrementRelease (&SK_D3D11_initialized);
     }
@@ -5637,24 +5002,6 @@ SK_D3D11_Init (void)
                                                      L"{ Cached }" ),
                         __SK_SUBSYSTEM__ );
       }
-
-      //if ( LocalHook_D3D11CoreCreateDevice.active ||
-      //    ( MH_OK ==
-      //       SK_CreateDLLHook2 (      L"d3d11.dll",
-      //                                 "D3D11CoreCreateDevice",
-      //                                  D3D11CoreCreateDevice_Detour,
-      //         static_cast_p2p <void> (&D3D11CoreCreateDevice_Import),
-      //                              &pfnD3D11CoreCreateDevice )
-      //    )
-      //   )
-      //{
-      //        SK_LOG0 ( ( L"  D3D11CoreCreateDevice:          %s  %s",
-      //  SK_MakePrettyAddress (pfnD3D11CoreCreateDevice ? pfnD3D11CoreCreateDevice :
-      //                                                      D3D11CoreCreateDevice_Import).c_str (),
-      //                        pfnD3D11CoreCreateDevice ? L"{ Hooked }" :
-      //                                                   L"{ Cached }" ),
-      //                  __SK_SUBSYSTEM__ );
-      //}
 
       if ( LocalHook_D3D11CreateDeviceAndSwapChain.active ||
           ( MH_OK ==
@@ -5682,8 +5029,6 @@ SK_D3D11_Init (void)
 
         if ( ( LocalHook_D3D11CreateDevice.active ||
                MH_OK == MH_QueueEnableHook (pfnD3D11CreateDevice) ) &&
-           //( LocalHook_D3D11CoreCreateDevice.active ||
-           //  MH_OK == MH_QueueEnableHook (pfnD3D11CoreCreateDevice) ) &&
              ( LocalHook_D3D11CreateDeviceAndSwapChain.active ||
                MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
         {
@@ -5704,12 +5049,6 @@ SK_D3D11_Init (void)
            pfnD3D11CreateDeviceAndSwapChain :
               D3D11CreateDeviceAndSwapChain_Import;
     LocalHook_D3D11CreateDeviceAndSwapChain.active      = TRUE;
-
-    //LocalHook_D3D11CoreCreateDevice.target.addr =
-    //       pfnD3D11CoreCreateDevice ?
-    //       pfnD3D11CoreCreateDevice :
-    //          D3D11CoreCreateDevice_Import;
-    //LocalHook_D3D11CoreCreateDevice.active      = TRUE;
 
     LocalHook_D3D11CreateDevice.target.addr =
            pfnD3D11CreateDevice ?
@@ -6101,9 +5440,7 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
 
 
 extern
-unsigned int __stdcall HookD3D12                   (LPVOID user);
-
-bool& SK_D3D11_DontTrackUnlessModToolsAreOpen = config.render.dxgi.low_spec_mode;
+unsigned int __stdcall HookD3D12 (LPVOID user);
 
 DWORD
 __stdcall
@@ -6420,918 +5757,8 @@ HookD3D11 (LPVOID user)
 
 SK_LazyGlobal <SK_D3D11_StateTrackingCounters> SK_D3D11_TrackingCount;
 
-bool convert_typeless = false;
-
-static size_t debug_tex_id = 0x0;
-static size_t tex_dbg_idx  = 0;
-
-void
-SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
-{
-  static auto& io =
-    ImGui::GetIO ();
-
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  static auto& textures =
-    SK_D3D11_Textures;
-
-  static auto& TexRefs_2D =
-     textures->TexRefs_2D;
-
-  static auto& Textures_2D =
-    textures->Textures_2D;
-
-  std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
-
-  ImGui::PushID ("Texture2D_D3D11");
-
-  const float font_size           = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
-  const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y   +
-                                                ImGui::GetStyle ().ItemInnerSpacing.y;
-
-  static float last_ht    = 256.0f;
-  static float last_width = 256.0f;
-
-  struct list_entry_s {
-    std::string          name      = "I need an adult!";
-    uint32_t             tag       = 0UL;
-    uint32_t             crc32c    = 0UL;
-    bool                 injected  = false;
-    D3D11_TEXTURE2D_DESC desc      = { };
-    D3D11_TEXTURE2D_DESC orig_desc = { };
-    BOOL                 mipmapped =  -1; // We must calculate this
-    ID3D11Texture2D*     pTex      = nullptr;
-    //SK_ComPtr <ID3D11Texture2D>
-    //                     pTex      = nullptr;
-    size_t               size      = 0;
-  };
-
-  static std::vector <list_entry_s> list_contents;
-  static std::unordered_map
-           <uint32_t, list_entry_s> texture_map;
-  static              bool          list_dirty      = true;
-  static              bool          lod_list_dirty  = true;
-  static              float         max_name_len    = 0.0f; // For dynamic texture name list sizing
-  static              size_t        sel             =    0;
-  static              int           tex_set         =    1;
-  static              int           lod             =    0;
-  static              char          lod_list [1024]   {  };
-
-  static              int           refresh_interval     = 0UL; // > 0 = Periodic Refresh
-  static              ULONG64       last_frame           = 0UL;
-  static              size_t        total_texture_memory = 0ULL;
-  static              size_t        non_mipped           = 0ULL; // Num Non-mimpapped textures loaded
-
-
-  ImGui::Text      ("Current list represents %5.2f MiB of texture memory",
-                       (double)total_texture_memory / (double)(1024 * 1024));
-  ImGui::SameLine  ( );
-
-  ImGui::PushItemWidth (ImGui::GetContentRegionAvailWidth () * 0.33f);
-  ImGui::SliderInt     ("Frames Between Texture Refreshes", &refresh_interval, 0, 120);
-  ImGui::PopItemWidth  ();
-
-  ImGui::BeginChild ( ImGui::GetID ("ToolHeadings"), ImVec2 (font_size * 66.0f, font_size * 2.5f), false,
-                        ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NavFlattened );
-
-  if (InterlockedCompareExchange (&SK_D3D11_LiveTexturesDirty, FALSE, TRUE))
-  {
-    texture_map.clear   ();
-    list_contents.clear ();
-
-    last_ht             =  0;
-    last_width          =  0;
-    lod                 =  0;
-
-    list_dirty          = true;
-  }
-
-  if (ImGui::Button ("  Refresh Textures  "))
-  {
-    list_dirty = true;
-  }
-
-  if (ImGui::IsItemHovered ())
-  {
-    if (tex_set == 1) ImGui::SetTooltip ("Refresh the list using textures drawn during the last frame.");
-    else              ImGui::SetTooltip ("Refresh the list using ALL cached textures.");
-  }
-
-  if (non_mipped > 0)
-  {
-    ImGui::SameLine ();
-
-    if (ImGui::Button ("  Generate Mipmaps  ###GenerateMipmaps_ALL"))
-    {
-      for (auto& entry_it : texture_map)
-      {
-        auto& entry = entry_it.second;
-
-        if (! entry.injected)
-        {
-          if (! SK_D3D11_IsDumped (entry.crc32c, 0x0))
-          {
-            bool skip = false;
-
-            if ((SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia))
-            {
-              if ( StrStrIA (entry.name.c_str (), "E_")    == entry.name.c_str () ||
-                   StrStrIA (entry.name.c_str (), "U_")    == entry.name.c_str () ||
-                   StrStrIA (entry.name.c_str (), "LOGO_") == entry.name.c_str () )
-              {
-                skip = true;
-              }
-            }
-
-            if ((! skip) && SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (entry.pTex, entry.crc32c, pTLS)))
-            {
-              entry.mipmapped = TRUE;
-              non_mipped--;
-            }
-          }
-        }
-      }
-    }
-
-    if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("There are currently %lu textures without mipmaps", non_mipped);
-  }
-
-  ImGui::SameLine      ();
-  ImGui::PushItemWidth (font_size * strlen ("Used Textures   ") / 2);
-
-  ImGui::Combo ("###TexturesD3D11_TextureSet", &tex_set, "All Textures\0Used Textures\0\0", 2);
-
-  ImGui::PopItemWidth ();
-  ImGui::SameLine     ();
-
-  if (ImGui::Button (" Clear Debug "))
-  {
-    sel                     = std::numeric_limits <size_t>::max ();
-    debug_tex_id            =  0;
-    list_contents.clear ();
-    last_ht                 =  0;
-    last_width              =  0;
-    lod                     =  0;
-    SK_D3D11_TrackedTexture =  nullptr;
-  }
-
-  if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Exits texture debug mode.");
-
-  ImGui::SameLine ();
-
-  if (ImGui::Button ("  Reload All Injected Textures  "))
-  {
-    SK_D3D11_ReloadAllTextures ();
-  }
-
-  ImGui::SameLine ();
-  ImGui::Checkbox ("Highlight Selected Texture in Game##D3D11_HighlightSelectedTexture",
-                                       &config.textures.d3d11.highlight_debug);
-  ImGui::SameLine ();
-
-  static bool hide_inactive = true;
-
-  ImGui::Checkbox  ("Hide Inactive Textures##D3D11_HideInactiveTextures",
-                                                  &hide_inactive);
-  ImGui::Separator ();
-  ImGui::EndChild  ();
-
-
-  for (auto& it_ctx : *SK_D3D11_PerCtxResources )
-  {
-    int spins = 0;
-
-    while (InterlockedCompareExchange (&it_ctx.writing_, 1, 0) != 0)
-    {
-      if ( ++spins > 0x1000 )
-      {
-        SK_Sleep (1);
-        spins  =  0;
-      }
-    }
-
-    for ( auto& it_res : it_ctx.used_textures )
-    {
-      if (it_res != nullptr)
-      {
-        used_textures->insert (it_res);
-      }
-    }
-
-    it_ctx.used_textures.clear ();
-
-    InterlockedExchange (&it_ctx.writing_, 0);
-  }
-
-
-  if (   list_dirty ||    refresh_interval > 0)
-  {
-    if ( list_dirty || ( (refresh_interval + last_frame) <
-                                      (LONG)SK_GetFramesDrawn () ) )
-    {
-      list_dirty           = true;
-      last_frame           = SK_GetFramesDrawn ();
-      total_texture_memory = 0ULL;
-      non_mipped           = 0ULL;
-    }
-  }
-
-  if (list_dirty)
-  {
-    if (debug_tex_id == 0)
-      last_ht = 0;
-
-    max_name_len = 0.0f;
-
-    {
-      texture_map.reserve (textures->HashMap_2D.size ());
-
-      if (! textures->HashMap_2D.empty ())
-            textures->updateDebugNames ();
-
-      // Relatively immutable textures
-      for (auto& it : textures->HashMap_2D)
-      {
-        std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*(it.mutex));
-
-        for (auto& it2 : it.entries)
-        {
-          if (it2.second == nullptr)
-            continue;
-
-          const auto& tex_ref =
-            TexRefs_2D.find (it2.second);
-
-          if ( tex_ref != TexRefs_2D.cend () )
-          {
-            list_entry_s entry = { };
-
-            entry.crc32c = 0;
-            entry.tag    = it2.first;
-            entry.pTex   = it2.second;
-            entry.name.clear ();
-
-            if (SK_D3D11_TextureIsCached (it2.second))
-            {
-              const SK_D3D11_TexMgr::tex2D_descriptor_s& desc =
-                textures->Textures_2D [it2.second];
-
-              entry.desc      = desc.desc;
-              entry.orig_desc = desc.orig_desc;
-              entry.size      = desc.mem_size;
-              entry.crc32c    = desc.crc32c;
-              entry.injected  = desc.injected;
-
-              if (desc.debug_name.empty ())
-                entry.name = SK_FormatString ("%08x", entry.crc32c);
-              else
-                entry.name = desc.debug_name;
-            }
-
-            else
-              continue;
-
-            if (entry.size > 0 && entry.crc32c != 0x00)
-              texture_map [entry.crc32c] = entry;
-          }
-        }
-      }
-
-      std::vector <list_entry_s> temp_list;
-                                 temp_list.reserve (texture_map.size ());
-
-      // Self-sorted list, yay :)
-      for (auto& it : texture_map)
-      {
-        if (it.second.pTex == nullptr)
-          continue;
-
-        const bool active =
-          ( used_textures->find (it.second.pTex) !=
-            used_textures->cend (              )  );
-
-        if (active || tex_set == 0)
-        {
-          list_entry_s entry        = { };
-
-          entry.crc32c    = it.second.crc32c;
-          entry.tag       = it.second.tag;
-          entry.desc      = it.second.desc;
-          entry.orig_desc = it.second.orig_desc;
-          entry.name      = it.second.name;
-          max_name_len    = std::max (max_name_len, ImGui::CalcTextSize (entry.name.c_str (), nullptr, true).x);
-
-          entry.pTex      = it.second.pTex;
-          entry.size      = it.second.size;
-          entry.injected  = it.second.injected;
-
-          entry.mipmapped =
-            ( CalcMipmapLODs ( entry.desc.Width,
-                               entry.desc.Height ) == entry.desc.MipLevels );
-
-          if (! entry.mipmapped)
-            non_mipped++;
-
-          temp_list.emplace_back  (entry);
-          total_texture_memory  += entry.size;
-        }
-      }
-
-      std::sort ( std::execution::par,
-                     temp_list.begin (),
-                     temp_list.end   (),
-        []( list_entry_s& a,
-            list_entry_s& b ) noexcept
-        {
-          return
-            ( a.name < b.name );
-        }
-      );
-
-      std::swap (list_contents, temp_list);
-    }
-
-    list_dirty = false;
-
-    if ((! TexRefs_2D.count (SK_D3D11_TrackedTexture)) ||
-           Textures_2D      [SK_D3D11_TrackedTexture].crc32c == 0x0 )
-    {
-      SK_D3D11_TrackedTexture = nullptr;
-    }
-  }
-
-  ImGui::BeginGroup ();
-
-  ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
-  ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
-
-  const float text_spacing = 3.0f * ImGui::GetStyle ().ItemSpacing.x +
-                                    ImGui::GetStyle ().ScrollbarSize;
-
-  ImGui::BeginChild ( ImGui::GetID ("D3D11_TexHashes_CRC32C"),
-                      ImVec2 ( text_spacing + max_name_len, std::max (font_size * 15.0f, last_ht)),
-                        true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
-
-  if (ImGui::IsWindowHovered ())
-    can_scroll = false;
-
-  static int draws = 0;
-
-  if (! list_contents.empty ())
-  {
-    static size_t last_sel     = std::numeric_limits <size_t>::max ();
-    static bool   sel_changed  = false;
-
-    // Don't select a texture immediately
-    if (sel != last_sel && draws++ != 0)
-      sel_changed = true;
-
-    last_sel = sel;
-
-    for ( size_t line = 0; line < list_contents.size (); line++)
-    {
-      const bool active =
-        ( used_textures->find (list_contents [line].pTex) !=
-          used_textures->cend (                         )  );
-
-      if (active)
-        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.95f, 1.0f));
-      else
-        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.425f, 0.425f, 0.425f, 0.9f));
-
-      if ((! hide_inactive) || active)
-      {
-        ImGui::PushID (list_contents [line].crc32c);
-
-        if (line == sel)
-        {
-          bool selected = true;
-          ImGui::Selectable (list_contents [line].name.c_str (), &selected);
-
-          if (sel_changed)
-          {
-            if (! ImGui::IsItemVisible  ())
-              ImGui::SetScrollHereY     (0.5f);
-            ImGui::SetKeyboardFocusHere (    );
-
-            sel_changed     = false;
-            tex_dbg_idx     = line;
-            sel             = line;
-            debug_tex_id    = list_contents [line].crc32c;
-    SK_D3D11_TrackedTexture = list_contents [line].pTex;
-            lod             = 0;
-            lod_list_dirty  = true;
-            *lod_list       = '\0';
-          }
-        }
-
-        else
-        {
-          bool selected = false;
-
-          if (ImGui::Selectable (list_contents [line].name.c_str (), &selected))
-          {
-            sel_changed     = true;
-            tex_dbg_idx     = line;
-            sel             = line;
-            debug_tex_id    = list_contents [line].crc32c;
-    SK_D3D11_TrackedTexture = list_contents [line].pTex;
-            lod             = 0;
-            lod_list_dirty  = true;
-            *lod_list       = '\0';
-          }
-        }
-
-        ImGui::PopID ();
-      }
-
-      ImGui::PopStyleColor ();
-    }
-  }
-
-  ImGui::EndChild ();
-
-  if (ImGui::IsItemHovered () || ImGui::IsItemFocused ())
-  {
-    int dir = 0;
-
-    if (ImGui::IsItemFocused ())
-    {
-      ImGui::BeginTooltip ();
-      ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "");
-      ImGui::Separator    ();
-      ImGui::BulletText   ("Press LB to select the previous texture from this list");
-      ImGui::BulletText   ("Press RB to select the next texture from this list");
-      ImGui::EndTooltip   ();
-    }
-
-    else
-    {
-      ImGui::BeginTooltip ();
-      ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "");
-      ImGui::Separator    ();
-      ImGui::BulletText   ("Press %ws to select the previous texture from this list", virtKeyCodeToHumanKeyName [VK_OEM_4]);
-      ImGui::BulletText   ("Press %ws to select the next texture from this list",     virtKeyCodeToHumanKeyName [VK_OEM_6]);
-      ImGui::EndTooltip   ();
-    }
-
-         if ( io.NavInputs             [ImGuiNavInput_FocusPrev] &&
-              io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f )
-         { dir = -1; }
-    else if ( io.NavInputs             [ImGuiNavInput_FocusNext] &&
-              io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f )
-         { dir =  1; }
-
-    else
-    {
-           if ( io.KeysDown         [VK_OEM_4] &&
-                io.KeysDownDuration [VK_OEM_4] == 0.0f )
-           { dir = -1;  io.WantCaptureKeyboard = true; }
-      else if ( io.KeysDown         [VK_OEM_6] &&
-                io.KeysDownDuration [VK_OEM_6] == 0.0f )
-           { dir =  1;  io.WantCaptureKeyboard = true; }
-    }
-
-    if (dir != 0)
-    {
-      if ((SSIZE_T)sel <  0)                     sel = 0;
-      if (         sel >= list_contents.size ()) sel = list_contents.size () - 1;
-      if ((SSIZE_T)sel <  0)                     sel = 0;
-
-      while ((SSIZE_T)sel >= 0 && sel < list_contents.size ())
-      {
-        if ( (dir < 0 && sel == 0                        ) ||
-             (dir > 0 && sel == list_contents.size () - 1)    )
-        {
-          break;
-        }
-
-        sel += dir;
-
-        if (hide_inactive)
-        {
-          const bool active =
-            ( used_textures->find (list_contents [sel].pTex) !=
-              used_textures->cend (                        ) );
-
-          if (active)
-            break;
-        }
-
-        else
-          break;
-      }
-
-      if ((SSIZE_T)sel <  0)                     sel = 0;
-      if (         sel >= list_contents.size ()) sel = list_contents.size () - 1;
-      if ((SSIZE_T)sel <  0)                     sel = 0;
-    }
-  }
-
-  ImGui::SameLine     ();
-  ImGui::PushStyleVar (ImGuiStyleVar_ChildRounding, 20.0f);
-
-  last_ht    = std::max (last_ht,    16.0f);
-  last_width = std::max (last_width, 16.0f);
-
-  if (debug_tex_id != 0x00 && texture_map.count ((uint32_t)debug_tex_id))
-  {
-    list_entry_s& entry =
-      texture_map [(uint32_t)debug_tex_id];
-
-    D3D11_TEXTURE2D_DESC tex_desc  = entry.orig_desc;
-    size_t               tex_size  = 0UL;
-    float                load_time = 0.0f;
-
-    SK_ComPtr <ID3D11Texture2D> pTex;
-    pTex.Attach (
-      textures->getTexture2D ( (uint32_t)entry.tag,
-                                              &tex_desc,
-                                              &tex_size,
-                                              &load_time, pTLS )
-    );
-
-    const bool staged = false;
-
-    if (pTex != nullptr)
-    {
-      // Get the REAL format, not the one the engine knows about through texture cache
-      pTex->GetDesc (&tex_desc);
-
-      if (lod_list_dirty)
-      {
-        const UINT w = tex_desc.Width;
-        const UINT h = tex_desc.Height;
-
-        char* pszLODList = lod_list;
-
-        for ( UINT i = 0 ; i < tex_desc.MipLevels ; i++ )
-        {
-          size_t len =
-            sprintf ( pszLODList, "LOD%u: (%ux%u)", i,
-                        std::max (1U, w >> i),
-                        std::max (1U, h >> i) );
-
-          pszLODList += (len + 1);
-        }
-
-        *pszLODList = '\0';
-
-        lod_list_dirty = false;
-      }
-
-
-      SK_ComPtr <ID3D11ShaderResourceView> pSRV  = nullptr;
-      D3D11_SHADER_RESOURCE_VIEW_DESC   srv_desc = {     };
-
-      srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-      srv_desc.Format                    = tex_desc.Format;
-
-      // Typeless compressed types need to assume a type, or they won't render :P
-      switch (srv_desc.Format)
-      {
-        case DXGI_FORMAT_BC1_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC1_UNORM;
-          break;
-        case DXGI_FORMAT_BC2_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC2_UNORM;
-          break;
-        case DXGI_FORMAT_BC3_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC3_UNORM;
-          break;
-        case DXGI_FORMAT_BC4_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC4_UNORM;
-          break;
-        case DXGI_FORMAT_BC5_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC5_UNORM;
-          break;
-        case DXGI_FORMAT_BC6H_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC6H_SF16;
-          break;
-        case DXGI_FORMAT_BC7_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC7_UNORM;
-          break;
-
-        case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-          break;
-        case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-          break;
-
-        case DXGI_FORMAT_R8_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R8_UNORM;
-          break;
-        case DXGI_FORMAT_R8G8_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R8G8_UNORM;
-          break;
-
-        case DXGI_FORMAT_R16_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R16_FLOAT;
-          break;
-        case DXGI_FORMAT_R16G16_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R16G16_FLOAT;
-          break;
-        case DXGI_FORMAT_R16G16B16A16_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-          break;
-
-        case DXGI_FORMAT_R32_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-          break;
-        case DXGI_FORMAT_R32G32_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R32G32_FLOAT;
-          break;
-        case DXGI_FORMAT_R32G32B32_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-          break;
-        case DXGI_FORMAT_R32G32B32A32_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-          break;
-      };
-
-      srv_desc.Texture2D.MipLevels       = (UINT)-1;
-      srv_desc.Texture2D.MostDetailedMip =        tex_desc.MipLevels;
-
-      auto pDev =
-        rb.getDevice <ID3D11Device> ();
-
-      if (pDev != nullptr)
-      {
-#if 0
-        ImVec4 border_color = config.textures.highlight_debug_tex ?
-                                ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
-                                  (__remap_textures && has_alternate) ? ImVec4 (0.5f,  0.5f,  0.5f, 1.0f) :
-                                                                        ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
-#else
-        const ImVec4 border_color = entry.injected ? ImVec4 (0.3f,  0.3f,  1.0f, 1.0f) :
-                                                     ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
-#endif
-
-        ImGui::PushStyleColor (ImGuiCol_Border, border_color);
-
-        const float scale_factor = 1.0f;
-
-        const float content_avail_y =
-          ( ImGui::GetWindowContentRegionMax ().y -
-            ImGui::GetWindowContentRegionMin ().y ) / scale_factor;
-        const float content_avail_x =
-          ( ImGui::GetWindowContentRegionMax ().x -
-            ImGui::GetWindowContentRegionMin ().x ) / scale_factor;
-
-            float effective_width,
-                  effective_height;
-
-        effective_height =
-          std::max (std::min ((float)(tex_desc.Height >> lod), 256.0f),
-                    std::min ((float)(tex_desc.Height >> lod),
-             (content_avail_y - font_size_multiline * 11.0f - 24.0f)));
-        effective_width  =
-          std::min (      (float)(tex_desc.Width  >> lod), (effective_height*
-         (std::max (1.0f, (float)(tex_desc.Width  >> lod)) /
-          std::max (1.0f, (float)(tex_desc.Height >> lod)))));
-
-        if (effective_width > (content_avail_x - font_size * 28.0f))
-        {
-          effective_width   = std::max (std::min ((float)(tex_desc.Width >> lod), 256.0f),
-                                                    (content_avail_x - font_size * 28.0f));
-          effective_height  =  effective_width * (std::max (1.0f, (float)(tex_desc.Height >> lod))
-                                                / std::max (1.0f, (float)(tex_desc.Width  >> lod)) );
-        }
-
-        ImGui::BeginGroup     ();
-        ImGui::BeginChild     ( ImGui::GetID ("Texture_Select_D3D11"),
-                                ImVec2 ( -1.0f, -1.0f ),
-                                  true,
-                                    ImGuiWindowFlags_AlwaysAutoResize |
-                                    ImGuiWindowFlags_NoScrollbar      |
-                                    ImGuiWindowFlags_NavFlattened );
-
-        //if ((! config.textures.highlight_debug_tex) && has_alternate)
-        //{
-        //  if (ImGui::IsItemHovered ())
-        //    ImGui::SetTooltip ("Click me to make this texture the visible version.");
-        //
-        //  // Allow the user to toggle texture override by clicking the frame
-        //  if (ImGui::IsItemClicked ())
-        //    __remap_textures = false;
-        //}
-
-        last_width  = effective_width  + font_size * 28.0f;
-
-        // Unsigned -> Signed so we can easily spot underflows
-        LONG refs =
-          pTex.p->AddRef  () - 1;
-          pTex.p->Release ();
-
-        ImGui::BeginGroup      (                  );
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.f));
-        ImGui::TextUnformatted ( "Dimensions:   " );
-        ImGui::PopStyleColor   (                  );
-        ImGui::EndGroup        (                  );
-        ImGui::SameLine        (                  );
-        ImGui::BeginGroup      (                  );
-        ImGui::PushItemWidth   (                -1);
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
-        ImGui::Combo           ("###Texture_LOD_D3D11", &lod, lod_list, tex_desc.MipLevels);
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.f));
-        ImGui::PopItemWidth    (                  );
-        ImGui::PopStyleColor   (                 2);
-        ImGui::EndGroup        (                  );
-
-        ImGui::BeginGroup      (                  );
-        ImGui::TextUnformatted ( "Format:       " );
-        ImGui::TextUnformatted ( "Hash:         " );
-        ImGui::TextUnformatted ( "Data Size:    " );
-        ImGui::TextUnformatted ( "Load Time:    " );
-        ImGui::TextUnformatted ( "Cache Hits:   " );
-        ImGui::TextUnformatted ( "References:   " );
-        ImGui::EndGroup        (                  );
-        ImGui::SameLine        (                  );
-        ImGui::BeginGroup      (                  );
-        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
-        ImGui::Text            ( "%ws",
-                                   SK_DXGI_FormatToStr (tex_desc.Format).c_str () );
-        ImGui::Text            ( "%08x", entry.crc32c);
-        ImGui::Text            ( "%.3f MiB",
-                                   tex_size / (1024.0f * 1024.0f) );
-        ImGui::Text            ( "%.3f ms",
-                                   load_time );
-        ImGui::Text            ( "%li",
-                                   ReadAcquire (&textures->Textures_2D [pTex].hits) );
-        ImGui::Text            ( "%li", refs      );
-        ImGui::PopStyleColor   (                  );
-        ImGui::EndGroup        (                  );
-        ImGui::Separator       (                  );
-
-        static bool flip_vertical   = false;
-        static bool flip_horizontal = false;
-
-        ImGui::Checkbox ("Flip Vertically##D3D11_FlipVertical",     &flip_vertical);   ImGui::SameLine ();
-        ImGui::Checkbox ("Flip Horizontally##D3D11_FlipHorizontal", &flip_horizontal);
-
-        if (! entry.injected)
-        {
-          if (! SK_D3D11_IsDumped (entry.crc32c, 0x0))
-          {
-            if ( ImGui::Button ("  Dump Texture to Disk  ###DumpTexture") )
-            {
-              SK_ScopedBool decl_tex_scope (
-                SK_D3D11_DeclareTexInjectScope (pTLS)
-              );
-
-              SK_D3D11_DumpTexture2D (
-                pTex, entry.crc32c
-              );
-            }
-          }
-
-          else
-          {
-            if ( ImGui::Button ("  Delete Dumped Texture from Disk  ###DumpTexture") )
-            {
-              SK_D3D11_DeleteDumpedTexture (entry.crc32c);
-            }
-          }
-
-          if (entry.mipmapped == -1)
-          {   entry.mipmapped  = ( CalcMipmapLODs ( entry.desc.Width,
-                                                    entry.desc.Height ) == entry.desc.MipLevels )
-                               ? TRUE : FALSE;
-          }
-
-          if (entry.mipmapped == FALSE)
-          {
-            ImGui::SameLine ();
-
-            if (ImGui::Button ("  Generate Mipmaps  ###GenerateMipmaps"))
-            {
-              SK_ScopedBool decl_tex_scope (
-                SK_D3D11_DeclareTexInjectScope (pTLS)
-              );
-
-              HRESULT
-              __stdcall
-              SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c, SK_TLS* pTLS,
-                                                   ID3D11DeviceContext*  pDevCtx = (ID3D11DeviceContext *)SK_GetCurrentRenderBackend ().d3d11.immediate_ctx,
-                                                   ID3D11Device*         pDev    = (ID3D11Device        *)SK_GetCurrentRenderBackend ().device.p );
-
-
-              if (SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (pTex, entry.crc32c, pTLS)))
-              {
-                entry.mipmapped = TRUE;
-                non_mipped--;
-              }
-            }
-          }
-        }
-
-        if (staged)
-        {
-          ImGui::SameLine ();
-          ImGui::TextColored (ImColor::HSV (0.25f, 1.0f, 1.0f), "Staged textures cannot be re-injected yet.");
-        }
-
-        if (entry.injected)
-        {
-          if ( ImGui::Button ("  Reload Texture  ###ReloadTexture") )
-          {
-            SK_D3D11_ReloadTexture (pTex);
-          }
-
-          ImGui::SameLine    ();
-          ImGui::TextColored (ImVec4 (0.05f, 0.95f, 0.95f, 1.0f), "This texture has been injected over the original.");
-        }
-
-        if ( effective_height != (float)(tex_desc.Height >> lod) ||
-             effective_width  != (float)(tex_desc.Width  >> lod) )
-        {
-          if (! entry.injected)
-            ImGui::SameLine ();
-
-          ImGui::TextColored (ImColor::HSV (0.5f, 1.0f, 1.0f), "Texture was rescaled to fit.");
-        }
-
-        if (! entry.injected)
-          ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
-        else
-           ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.05f, 0.95f, 0.95f, 1.0f));
-
-        srv_desc.Texture2D.MipLevels       = 1;
-        srv_desc.Texture2D.MostDetailedMip = lod;
-
-        if (SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, &pSRV.p)))
-        {
-          const ImVec2 uv0 (flip_horizontal ? 1.0f : 0.0f, flip_vertical ? 1.0f : 0.0f);
-          const ImVec2 uv1 (flip_horizontal ? 0.0f : 1.0f, flip_vertical ? 0.0f : 1.0f);
-
-          ImGui::BeginChildFrame (ImGui::GetID ("TextureView_Frame"), ImVec2 (effective_width + 8.0f, effective_height + 8.0f),
-                                  ImGuiWindowFlags_AlwaysAutoResize |
-                                  ImGuiWindowFlags_NoInputs         | ImGuiWindowFlags_NoScrollbar |
-                                  ImGuiWindowFlags_NoNavInputs      | ImGuiWindowFlags_NoNavFocus );
-
-          SK_D3D11_TempResources->push_back (pSRV.p);
-
-          ImGui::Image            ( pSRV,
-                                     ImVec2 (effective_width, effective_height),
-                                       uv0,                       uv1,
-                                       ImColor (255,255,255,255), ImColor (255,255,255,128)
-                               );
-          ImGui::EndChildFrame ();
-
-          static DWORD dwLastUnhovered = 0;
-
-          if (ImGui::IsItemHovered ())
-          {
-            if (SK::ControlPanel::current_time - dwLastUnhovered > 666UL)
-            {
-              ImGui::BeginTooltip    ();
-              ImGui::BeginGroup      ();
-              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.785f, 0.785f, 0.785f, 1.f));
-              ImGui::TextUnformatted ("Usage:");
-              ImGui::TextUnformatted ("Bind Flags:");
-              if (tex_desc.MiscFlags != 0)
-                ImGui::TextUnformatted("Misc Flags:");
-              ImGui::PopStyleColor   ();
-              ImGui::EndGroup        ();
-              ImGui::SameLine        ();
-              ImGui::BeginGroup      ();
-              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.f));
-              ImGui::Text            ("%ws", SK_D3D11_DescribeUsage     (
-                                               tex_desc.Usage )             );
-              ImGui::Text            ("%ws", SK_D3D11_DescribeBindFlags (
-                              (D3D11_BIND_FLAG)tex_desc.BindFlags).c_str () );
-              if (tex_desc.MiscFlags != 0)
-              {
-                ImGui::Text          ("%ws", SK_D3D11_DescribeMiscFlags (
-                     (D3D11_RESOURCE_MISC_FLAG)tex_desc.MiscFlags).c_str () );
-              }
-              ImGui::PopStyleColor   ();
-              ImGui::EndGroup        ();
-              ImGui::EndTooltip      ();
-            }
-          }
-
-          else
-            dwLastUnhovered = SK::ControlPanel::current_time;
-        }
-        ImGui::PopStyleColor   ();
-        ImGui::EndChild        ();
-        ImGui::EndGroup        ();
-        last_ht =
-        ImGui::GetItemRectSize ().y;
-        ImGui::PopStyleColor   ();
-      }
-    }
-  }
-  ImGui::EndGroup      ( );
-  ImGui::PopStyleColor (1);
-  ImGui::PopStyleVar   (2);
-  ImGui::PopID         ( );
-}
+extern void
+SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS);
 
 UINT _GetStashedRTVIndex (ID3D11RenderTargetView* pRTV)
 {
@@ -7379,1141 +5806,7 @@ SK_ImGui_AutoFont::Detach (void)
   return false;
 }
 
-bool SK_D3D11_KnownTargets::_mod_tool_wants = false;
 
-bool
-SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
-{
-  if (pTLS == nullptr)
-      pTLS  = SK_TLS_Bottom ();
-
-  static auto& io =
-    ImGui::GetIO ();
-
-  // Flag this thread so the IUnknown::AddRef (...) that comes as a result
-  //   of GetResource (...) does not count as texture cache hits.
-  SK_ScopedBool auto_draw (&pTLS->imgui->drawing);
-                            pTLS->imgui->drawing = true;
-
-  SK_ScopedBool decl_tex_scope (
-    SK_D3D11_DeclareTexInjectScope (pTLS)
-  );
-
-  static SK_RenderBackend_V2& rb =
-    SK_GetCurrentRenderBackend ();
-
-  std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
-                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
-                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
-                     SK_Thread_HybridSpinlock >
-    fort_knox ( *cs_shader,    *cs_shader_vs, *cs_shader_ps,
-                *cs_shader_gs, *cs_shader_hs, *cs_shader_ds,
-                *cs_shader_cs );
-
-
-  const float font_size           = (ImGui::GetFont ()->FontSize * io.FontGlobalScale);
-  const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y +
-                                                ImGui::GetStyle ().ItemInnerSpacing.y;
-
-  bool show_dlg = true;
-
-  ImGui::SetNextWindowSize ( ImVec2 ( io.DisplaySize.x * 0.66f,
-                                      io.DisplaySize.y * 0.42f ), ImGuiCond_Appearing);
-  ImGui::SetNextWindowSizeConstraints ( /*ImVec2 (768.0f, 384.0f),*/
-                                        ImVec2 ( io.DisplaySize.x * 0.16f, io.DisplaySize.y * 0.16f ),
-                                        ImVec2 ( io.DisplaySize.x * 0.96f, io.DisplaySize.y * 0.96f ) );
-
-  if ( ImGui::Begin ( "D3D11 Render Mod Toolkit###D3D11_RenderDebug",
-  //SK_D3D11_MemoryThreads.count_active         (), SK_D3D11_MemoryThreads.count_all   (),
-  //  SK_D3D11_ShaderThreads.count_active       (), SK_D3D11_ShaderThreads.count_all   (),
-  //    SK_D3D11_DrawThreads.count_active       (), SK_D3D11_DrawThreads.count_all     (),
-  //      SK_D3D11_DispatchThreads.count_active (), SK_D3D11_DispatchThreads.count_all () ).c_str (),
-                        &show_dlg ) )
-  {
-    SK_D3D11_EnableTracking = true;
-
-    bool can_scroll = (
-      ImGui::IsWindowFocused     () &&
-      ImGui::IsMouseHoveringRect ( ImVec2 (ImGui::GetWindowPos ().x,
-                                           ImGui::GetWindowPos ().y),
-                                   ImVec2 (ImGui::GetWindowPos ().x + ImGui::GetWindowSize ().x,
-                                           ImGui::GetWindowPos ().y + ImGui::GetWindowSize ().y) )
-    );
-
-    ImGui::PushItemWidth (ImGui::GetWindowWidth () * 0.666f);
-
-    ImGui::Columns (2);
-
-    ImGui::BeginChild ( ImGui::GetID ("Render_Left_Side"), ImVec2 (0,0), false,
-                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
-
-    if (ImGui::CollapsingHeader ("Live Shader View", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-      SK_D3D11_LiveShaderView (can_scroll);
-    }
-
-    auto FormatNumber = [](int num) ->
-    const char*
-    {
-      static char szNumber       [16] = { };
-      static char szPrettyNumber [32] = { };
-
-      char dot   [2] = ".";
-      char comma [2] = ",";
-
-      const NUMBERFMTA fmt = { 0, 0, 3, dot, comma, 0 };
-
-      snprintf (szNumber, 15, "%li", num);
-
-      GetNumberFormatA ( MAKELCID (LOCALE_USER_DEFAULT, SORT_DEFAULT),
-                           0x00,
-                             szNumber, &fmt,
-                               szPrettyNumber, 32 );
-
-      return szPrettyNumber;
-    };
-
-    if (ImGui::CollapsingHeader ("Draw Call Filters", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-      ImGui::TreePush ("");
-
-      static auto& shaders =
-        SK_D3D11_Shaders;
-
-      static auto& vertex  = shaders->vertex;
-
-      auto tracker =
-        &vertex.tracked;
-
-      static int min_verts_input,
-                 max_verts_input;
-
-      ImGui::Text   ("Vertex Shader: %x", tracker->crc32c.load ());
-
-      bool add_min = ImGui::Button   ("Add Min Filter"); ImGui::SameLine ();
-                     ImGui::InputInt ("Min Verts", &min_verts_input);
-      bool add_max = ImGui::Button   ("Add Max Filter"); ImGui::SameLine ();
-                     ImGui::InputInt ("Max Verts", &max_verts_input);
-
-      ImGui::Separator ();
-
-      if (add_min) _make_blacklist_draw_min_verts (tracker->crc32c, min_verts_input);
-      if (add_max) _make_blacklist_draw_max_verts (tracker->crc32c, max_verts_input);
-
-      int idx = 0;
-      ImGui::BeginGroup ();
-      for (auto& blacklist : *SK_D3D11_BlacklistDrawcalls)
-      {
-        if ( blacklist.second.if_meshes.have.less_than.vertices.first ||
-             blacklist.second.if_meshes.have.more_than.vertices.first    )
-        {
-          ImGui::PushID (idx++);
-          if (ImGui::Button ("Remove Filter"))
-          {
-            blacklist.second.if_meshes.have.less_than.vertices =
-              std::make_pair ( false, 0 );
-            blacklist.second.if_meshes.have.more_than.vertices =
-              std::make_pair ( false, 0 );
-          }
-          ImGui::PopID  ();
-        }
-      }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-
-      int rule_idx = 0;
-
-      ImGui::BeginGroup ();
-      for (auto& blacklist : *SK_D3D11_BlacklistDrawcalls)
-      {
-        if ( blacklist.second.if_meshes.have.less_than.vertices.first ||
-             blacklist.second.if_meshes.have.more_than.vertices.first    )
-        {
-          ImGui::Text ("Rule%lu  ", rule_idx++);
-        }
-      }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for (auto& blacklist : *SK_D3D11_BlacklistDrawcalls)
-      {
-        if ( blacklist.second.if_meshes.have.less_than.vertices.first ||
-             blacklist.second.if_meshes.have.more_than.vertices.first    )
-        {
-          ImGui::Text ("Vtx Shader: %x  ", blacklist.first);
-        }
-      }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for (auto& blacklist : *SK_D3D11_BlacklistDrawcalls)
-      {
-        if ( blacklist.second.if_meshes.have.less_than.vertices.first ||
-             blacklist.second.if_meshes.have.more_than.vertices.first    )
-        {
-          if (blacklist.second.if_meshes.have.less_than.vertices.first)
-          {
-            ImGui::Text ("Min. Verts = %lu", blacklist.second.if_meshes.have.less_than.vertices.second);
-          }
-        }
-      }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for (auto& blacklist : *SK_D3D11_BlacklistDrawcalls)
-      {
-        if ( blacklist.second.if_meshes.have.less_than.vertices.first ||
-             blacklist.second.if_meshes.have.more_than.vertices.first    )
-        {
-          if (blacklist.second.if_meshes.have.more_than.vertices.first)
-          {
-            ImGui::Text ("Max. Verts = %lu", blacklist.second.if_meshes.have.more_than.vertices.second);
-          }
-        }
-      }
-      ImGui::EndGroup  ();
-      ImGui::TreePop   ();
-    }
-
-    if (ImGui::CollapsingHeader ("Live Memory View", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-      SK_D3D11_EnableMMIOTracking = true;
-      ////std::scoped_lock <SK_Thread_CriticalSection> auto_lock (cs_mmio);
-
-      ImGui::BeginChild ( ImGui::GetID ("Render_MemStats_D3D11"), ImVec2 (0, 0), false,
-                          ImGuiWindowFlags_NoNavInputs |
-                          ImGuiWindowFlags_NoNavFocus  |
-                          ImGuiWindowFlags_AlwaysAutoResize );
-
-      auto& last_frame =
-        mem_map_stats->last_frame;
-
-      ImGui::TreePush   (""                      );
-      ImGui::BeginGroup (                        );
-      ImGui::BeginGroup (                        );
-      ImGui::TextColored(ImColor (0.9f, 1.0f, 0.15f, 1.0f), "Mapped Memory"  );
-      ImGui::TreePush   (""                      );
- ImGui::TextUnformatted ("Read-Only:            ");
- ImGui::TextUnformatted ("Write-Only:           ");
- ImGui::TextUnformatted ("Read-Write:           ");
- ImGui::TextUnformatted ("Write (Discard):      ");
- ImGui::TextUnformatted ("Write (No Overwrite): ");
- ImGui::TextUnformatted (""               );
-      ImGui::TreePop    (                        );
-      ImGui::TextColored(ImColor (0.9f, 1.0f, 0.15f, 1.0f), "Resource Types"  );
-      ImGui::TreePush   (""               );
- ImGui::TextUnformatted ("Unknown:       ");
- ImGui::TextUnformatted ("Buffers:       ");
-      ImGui::TreePush   (""               );
- ImGui::TextUnformatted ("Index:         ");
- ImGui::TextUnformatted ("Vertex:        ");
- ImGui::TextUnformatted ("Constant:      ");
-      ImGui::TreePop    (                 );
- ImGui::TextUnformatted ("Textures:      ");
-      ImGui::TreePush   (""               );
- ImGui::TextUnformatted ("Textures (1D): ");
- ImGui::TextUnformatted ("Textures (2D): ");
- ImGui::TextUnformatted ("Textures (3D): ");
-      ImGui::TreePop    (                 );
- ImGui::TextUnformatted (""               );
-      ImGui::TreePop    (                 );
-      ImGui::TextColored(ImColor (0.9f, 1.0f, 0.15f, 1.0f), "Memory Totals"  );
-      ImGui::TreePush   (""               );
- ImGui::TextUnformatted ("Bytes Read:    ");
- ImGui::TextUnformatted ("Bytes Written: ");
- ImGui::TextUnformatted ("Bytes Copied:  ");
-      ImGui::TreePop    (                 );
-      ImGui::EndGroup   (                 );
-
-      ImGui::SameLine   (                        );
-
-      ImGui::BeginGroup (                        );
- ImGui::TextUnformatted (""                      );
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.map_types [0]));
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.map_types [1]));
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.map_types [2]));
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.map_types [3]));
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.map_types [4]));
- ImGui::TextUnformatted (""                      );
- ImGui::TextUnformatted (""                      );
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.resource_types [0]));
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.resource_types [1]));
-      ImGui::TreePush   (""                      );
-      ImGui::Text       ("%s",     FormatNumber ((int)last_frame.buffer_types [0]));
-      ImGui::Text       ("%s",     FormatNumber ((int)last_frame.buffer_types [1]));
-      ImGui::Text       ("%s",     FormatNumber ((int)last_frame.buffer_types [2]));
-      ImGui::TreePop    (                        );
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.resource_types [2] +
-                                                 last_frame.resource_types [3] +
-                                                 last_frame.resource_types [4]));
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.resource_types [2]));
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.resource_types [3]));
-      ImGui::Text       ("( %s )", FormatNumber (last_frame.resource_types [4]));
- ImGui::TextUnformatted (""                      );
- ImGui::TextUnformatted (""                      );
-
-      if ((double)last_frame.bytes_read < (0.75f * 1024.0 * 1024.0))
-        ImGui::Text     ("( %06.2f KiB )", (double)last_frame.bytes_read    / (1024.0));
-      else
-        ImGui::Text     ("( %06.2f MiB )", (double)last_frame.bytes_read    / (1024.0 * 1024.0));
-
-      if ((double)last_frame.bytes_written < (0.75f * 1024.0 * 1024.0))
-        ImGui::Text     ("( %06.2f KiB )", (double)last_frame.bytes_written / (1024.0));
-      else
-        ImGui::Text     ("( %06.2f MiB )", (double)last_frame.bytes_written / (1024.0 * 1024.0));
-
-      if ((double)last_frame.bytes_copied < (0.75f * 1024.0 * 1024.0))
-        ImGui::Text     ("( %06.2f KiB )", (double)last_frame.bytes_copied / (1024.0));
-      else
-        ImGui::Text     ("( %06.2f MiB )", (double)last_frame.bytes_copied / (1024.0 * 1024.0));
-
-      ImGui::EndGroup   (                        );
-
-      ImGui::SameLine   (                        );
-
-      auto& lifetime =
-        mem_map_stats->lifetime;
-
-      ImGui::BeginGroup (                        );
-      ImGui::Text       (""                      );
-      ImGui::Text       (" / %s", FormatNumber (lifetime.map_types [0]));
-      ImGui::Text       (" / %s", FormatNumber (lifetime.map_types [1]));
-      ImGui::Text       (" / %s", FormatNumber (lifetime.map_types [2]));
-      ImGui::Text       (" / %s", FormatNumber (lifetime.map_types [3]));
-      ImGui::Text       (" / %s", FormatNumber (lifetime.map_types [4]));
-      ImGui::Text       (""                      );
-      ImGui::Text       (""                      );
-      ImGui::Text       (" / %s", FormatNumber (lifetime.resource_types [0]));
-      ImGui::Text       (" / %s", FormatNumber (lifetime.resource_types [1]));
-      ImGui::Text       ("");
-      ImGui::Text       ("");
-      ImGui::Text       ("");
-      ImGui::Text       (" / %s", FormatNumber (lifetime.resource_types [2] +
-                                                lifetime.resource_types [3] +
-                                                lifetime.resource_types [4]));
-      ImGui::Text       (" / %s", FormatNumber (lifetime.resource_types [2]));
-      ImGui::Text       (" / %s", FormatNumber (lifetime.resource_types [3]));
-      ImGui::Text       (" / %s", FormatNumber (lifetime.resource_types [4]));
-      ImGui::Text       (""                      );
-      ImGui::Text       (""                      );
-
-      if ((double)lifetime.bytes_read < (0.75f * 1024.0 * 1024.0 * 1024.0))
-        ImGui::Text     (" / %06.2f MiB", (double)lifetime.bytes_read    / (1024.0 * 1024.0));
-      else
-        ImGui::Text     (" / %06.2f GiB", (double)lifetime.bytes_read    / (1024.0 * 1024.0 * 1024.0));
-
-      if ((double)lifetime.bytes_written < (0.75f * 1024.0 * 1024.0 * 1024.0))
-        ImGui::Text     (" / %06.2f MiB", (double)lifetime.bytes_written / (1024.0 * 1024.0));
-      else
-        ImGui::Text     (" / %06.2f GiB", (double)lifetime.bytes_written / (1024.0 * 1024.0 * 1024.0));
-
-      if ((double)lifetime.bytes_copied < (0.75f * 1024.0 * 1024.0 * 1024.0))
-        ImGui::Text     (" / %06.2f MiB", (double)lifetime.bytes_copied / (1024.0 * 1024.0));
-      else
-        ImGui::Text     (" / %06.2f GiB", (double)lifetime.bytes_copied / (1024.0 * 1024.0 * 1024.0));
-
-      ImGui::EndGroup   (                        );
-      ImGui::EndGroup   (                        );
-      ImGui::TreePop    (                        );
-      ImGui::EndChild   ();
-    }
-
-    else
-      SK_D3D11_EnableMMIOTracking = false;
-
-    ImGui::EndChild   ();
-
-    ImGui::NextColumn ();
-
-    ImGui::BeginChild ( ImGui::GetID ("Render_Right_Side"), ImVec2 (0, 0), false,
-                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened | ImGuiWindowFlags_NoScrollbar );
-
-    static bool uncollapsed_tex = true;
-    static bool uncollapsed_rtv = true;
-
-    float scale = (uncollapsed_tex ? 1.0f * (uncollapsed_rtv ? 0.5f : 1.0f) : -1.0f);
-
-    ImGui::BeginChild     ( ImGui::GetID ("Live_Texture_View_Panel"),
-                            ImVec2 ( -1.0f, scale == -1.0f ? font_size_multiline * 1.666f :
-                   ( ImGui::GetWindowContentRegionMax ().y - ImGui::GetWindowContentRegionMin ().y ) *
-                                   scale - (scale == 1.0f ? font_size_multiline * 1.666f : 0.0f) ),
-                              true,
-                                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
-
-    uncollapsed_tex =
-      ImGui::CollapsingHeader ( "Live Texture View",
-                                config.textures.d3d11.cache ? ImGuiTreeNodeFlags_DefaultOpen :
-                                                              0x0 );
-
-    if (! config.textures.d3d11.cache)
-    {
-      ImGui::SameLine    ();
-      ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f), "\t(Unavailable because Texture Caching is not enabled!)");
-    }
-
-    uncollapsed_tex = uncollapsed_tex && config.textures.d3d11.cache;
-
-    if (uncollapsed_tex)
-    {
-      static bool warned_invalid_ref_count = false;
-
-      if ((! warned_invalid_ref_count) && ReadAcquire (&SK_D3D11_TexRefCount_Failures) > 0)
-      {
-        SK_ImGui_Warning ( L"The game's graphics engine is not correctly tracking texture memory.\n\n"
-                           L"\t\t\t\t>> Texture mod support has been partially disabled to prevent memory leaks.\n\n"
-                           L"\t\tYou may force support for texture mods by setting AllowUnsafeRefCounting=true" );
-
-        warned_invalid_ref_count = true;
-      }
-
-      SK_D3D11_LiveTextureView (can_scroll, pTLS);
-    }
-
-    ImGui::EndChild ();
-
-    scale = (live_rt_view ? (1.0f * (uncollapsed_tex ? 0.5f : 1.0f)) : -1.0f);
-
-    ImGui::BeginChild     ( ImGui::GetID ("Live_RenderTarget_View_Panel"),
-                            ImVec2 ( -1.0f, scale == -1.0f ? font_size_multiline * 1.666f :
-                   ( ImGui::GetWindowContentRegionMax ().y - ImGui::GetWindowContentRegionMin ().y ) *
-                                    scale - (scale == 1.0f ? font_size_multiline * 1.666f : 0.0f) ),
-                              true,
-                                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
-
-    live_rt_view =
-        ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen);
-
-    SK_D3D11_KnownTargets::_mod_tool_wants =
-        live_rt_view;
-    if (live_rt_view)
-    {
-      std::unordered_map < ID3D11RenderTargetView*, UINT > rt_indexes;
-
-      std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
-
-      //SK_AutoCriticalSection auto_cs_rv (&cs_render_view, true);
-
-      //if (auto_cs2.try_result ())
-      {
-      static float last_ht    = 256.0f;
-      static float last_width = 256.0f;
-
-      static std::vector <std::string> list_contents;
-      static int                       list_filled    =    0;
-      static bool                      list_dirty     = true;
-      static UINT                      last_sel_idx   =    0;
-      static size_t                    sel            = std::numeric_limits <size_t>::max ();
-      static bool                      first_frame    = true;
-
-      std::set < SK_ComPtr <ID3D11RenderTargetView> > live_textures;
-
-      struct lifetime
-      {
-        ULONG64 last_frame;
-        ULONG64 frames_active;
-      };
-
-      ULONG64 frames_drawn =
-        SK_GetFramesDrawn ();
-
-      std::unordered_map < ID3D11RenderTargetView* , lifetime> render_lifetime;
-      std::vector        < ID3D11RenderTargetView* >           render_textures;
-
-      //render_textures.reserve (128);
-      //render_textures.clear   ();
-
-      const UINT dev_idx =
-        SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
-
-      //for (auto& rtl : *SK_D3D11_RenderTargets )
-      auto& rtl = SK_D3D11_RenderTargets [dev_idx];
-                  if (! rtl.rt_views.empty ()  )
-      for (auto& it  :  rtl.rt_views           )
-      {
-        D3D11_RENDER_TARGET_VIEW_DESC desc = { };
-
-        if (it == nullptr)
-          continue;
-
-        auto orig_se =
-        SK_SEH_ApplyTranslator (
-          SK_FilteringStructuredExceptionTranslator (
-            EXCEPTION_ACCESS_VIOLATION
-          )
-        );
-        try
-        {
-          it->GetDesc (&desc);
-        }
-        catch (const SK_SEH_IgnoredException& e) {
-          UNREFERENCED_PARAMETER (e);
-          desc.Format = DXGI_FORMAT_UNKNOWN;
-        }
-        SK_SEH_RemoveTranslator (orig_se);
-
-        if (desc.Format == DXGI_FORMAT_UNKNOWN)
-          continue;
-
-        if ( desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D ||
-             desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS )
-        {
-          SK_ComPtr <ID3D11Resource>  pRes = nullptr;
-          SK_ComPtr <ID3D11Texture2D> pTex = nullptr;
-
-          orig_se =
-          SK_SEH_ApplyTranslator (
-            SK_FilteringStructuredExceptionTranslator (
-              EXCEPTION_ACCESS_VIOLATION
-            )
-          );
-          try {
-            it->GetResource (&pRes.p);
-
-            if (pRes.p != nullptr)
-                pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
-          }
-          catch (const SK_SEH_IgnoredException&) {
-            continue;
-          }
-          SK_SEH_RemoveTranslator (orig_se);
-
-          if ( pRes != nullptr &&
-               pTex != nullptr )
-          {
-            D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
-
-            srv_desc.Format                    = desc.Format;
-            srv_desc.Texture2D.MipLevels       = desc.Texture2D.MipSlice + 1;
-            srv_desc.Texture2D.MostDetailedMip = desc.Texture2D.MipSlice;
-            srv_desc.ViewDimension             = desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS ?
-                                                                       D3D11_SRV_DIMENSION_TEXTURE2DMS :
-                                                                       D3D11_SRV_DIMENSION_TEXTURE2D;
-
-            auto pDev =
-              rb.getDevice <ID3D11Device> ();
-
-            if (pDev != nullptr)
-            {
-              if (render_lifetime.count (it) == 0)
-              {
-                render_textures.push_back (it);
-                render_lifetime.insert    ( std::make_pair (it,
-                                              lifetime { frames_drawn, 1 }) );
-              }
-
-              else
-              {
-                auto& lifetime =
-                  render_lifetime [it];
-
-                lifetime.frames_active++;
-                lifetime.last_frame = frames_drawn;
-              }
-
-              live_textures.insert (it);
-            }
-          }
-        }
-      }
-
-       const ULONG64      zombie_threshold = 1;//120;
-      static ULONG64 last_zombie_pass      = frames_drawn;
-
-      if (last_zombie_pass <= frames_drawn - zombie_threshold / 2)
-      {
-        bool newly_dead = false;
-
-        const auto time_to_live =
-          frames_drawn - zombie_threshold;
-
-        for (auto& it : render_textures)
-        {
-          if ( render_lifetime.count (it) != 0 &&
-                     render_lifetime [it].last_frame < time_to_live )
-          {
-            render_lifetime.erase (it);
-            newly_dead = true;
-          }
-        }
-
-        if (newly_dead)
-        {
-          render_textures.clear ();
-
-          for (auto& it : render_lifetime)
-            render_textures.push_back (it.first);
-        }
-
-        last_zombie_pass = frames_drawn;
-      }
-
-
-      std::unordered_set <ID3D11RenderTargetView *> discard_views;
-
-      static volatile
-        LONG idx_counter = 0;
-
-      if (list_dirty)
-      {
-            sel = std::numeric_limits <size_t>::max ();
-        int idx = 0;
-
-        std::vector <std::pair <ID3D11RenderTargetView*, UINT>>
-          rt2;
-          rt2.reserve (render_textures.size ());
-
-        for ( auto& it : render_textures )
-        {
-          auto orig_se =
-          SK_SEH_ApplyTranslator (
-            SK_FilteringStructuredExceptionTranslator (
-              EXCEPTION_ACCESS_VIOLATION
-            )
-          );// , Silent);
-          try
-          {
-            UINT   size        = 4;
-            UINT   data        = 0;
-
-            if (live_textures.count (it) != 0)
-            {
-              if ( FAILED (it->GetPrivateData ( SKID_D3D11DeviceContextHandle, &size, &data )))
-              {
-                size = 4;
-                data =
-                  ( InterlockedIncrement (&idx_counter) + 1 );
-
-                it->SetPrivateData ( SKID_D3D11DeviceContextHandle, size, &data );
-              }
-
-              rt2.emplace_back (std::make_pair (it, data));
-            }
-          }
-          catch (const SK_SEH_IgnoredException&)
-          {                                    }
-          SK_SEH_RemoveTranslator (orig_se);// , Verbose0);
-        }
-
-        // The underlying list is unsorted for speed, but that's not at all
-        //   intuitive to humans, so sort the thing when we have the RT view open.
-        std::sort ( std::execution::par,
-                        rt2.begin (),
-                        rt2.end   (),
-          []( std::pair <ID3D11RenderTargetView*, UINT> a,
-              std::pair <ID3D11RenderTargetView*, UINT> b )
-          {
-            UINT ax = a.second;
-            UINT bx = b.second;
-
-            if (ax == std::numeric_limits <size_t>::max () ||
-                bx == std::numeric_limits <size_t>::max ())
-            {
-              return false;
-            }
-
-            return ( ax < bx );
-          }
-        );
-
-        std::vector        < ID3D11RenderTargetView*       > rt1;
-
-        for (auto& it : rt2)
-        {
-          rt1.emplace_back       (it.first);
-          rt_indexes [it.first] = it.second;
-        }
-
-        std::swap (rt1, render_textures);
-
-        static char
-          szDesc [128] = { };
-
-        std::vector <std::string> temp_list;
-                                  temp_list.reserve (render_textures.size ());
-
-        for ( auto& it : render_textures )
-        {
-          if (it == nullptr)
-            continue;
-
-          char     szDebugDesc [128] = { };
-          wchar_t wszDebugDesc [128] = { };
-          UINT     uiDebugLen        = 127;
-
-          bool named = false;
-
-          UINT rtv_idx = 0;
-
-          auto orig_se =
-          SK_SEH_ApplyTranslator (
-            SK_FilteringStructuredExceptionTranslator (
-              EXCEPTION_ACCESS_VIOLATION
-            )
-          );// , Silent);
-          try
-          {
-            if (live_textures.count (it) != 0)
-            {
-              rtv_idx =
-                rt_indexes [it];
-
-              if (rtv_idx != std::numeric_limits <UINT>::max ())
-              {
-                uiDebugLen = sizeof (wszDebugDesc) - sizeof (wchar_t);
-
-                if ( SUCCEEDED (
-                       it->GetPrivateData (
-                         WKPDID_D3DDebugObjectNameW, &uiDebugLen, wszDebugDesc )
-                                )                  && uiDebugLen > sizeof (wchar_t)
-                   )
-                {
-                  snprintf (szDesc, 127, "%ws###rtv_%lu", wszDebugDesc, rtv_idx);
-                  named = true;
-                }
-
-                else
-                {
-                  uiDebugLen = sizeof (szDebugDesc) - sizeof (char);
-
-                  if ( SUCCEEDED (
-                       it->GetPrivateData (
-                         WKPDID_D3DDebugObjectName, &uiDebugLen, szDebugDesc )
-                                 )                && uiDebugLen > sizeof (char)
-                     )
-                  {
-                    snprintf (szDesc, 127, "%s###rtv_%lu", szDebugDesc, rtv_idx);
-                    named = true;
-                  }
-                }
-              }
-
-              else { discard_views.emplace (it); }
-            }
-            else   { discard_views.emplace (it); }
-          }
-
-          // Unity engine games recycle RTVs and there's a chance getting the debug name
-          //   will be invalidated by another thread
-          catch (const SK_SEH_IgnoredException&)
-          {
-            SK_LOG1 ( (L" >> RTV name lifetime shorter than object."),
-                       L"  D3D 11  " );
-          }
-          SK_SEH_RemoveTranslator (orig_se);// , Verbose0);
-
-          if (! named)
-          {
-            sprintf ( szDesc, "%07lu###rtv_%lu",
-                       (discard_views.count (it) == 0) ? rtv_idx :
-                             ReadAcquire (&idx_counter), rtv_idx );
-          }
-
-          temp_list.emplace_back (szDesc);
-
-          if (rtv_idx == last_sel_idx)
-          {
-            sel = idx;
-          }
-
-          ++idx;
-        }
-
-        std::swap (list_contents, temp_list);
-      }
-
-      static bool hovered = false;
-      static bool focused = false;
-             bool manual_change = false;
-
-      if (hovered || focused)
-      {
-        can_scroll = false;
-
-        if (!render_textures.empty ())
-        {
-          if (! focused)//hovered)
-          {
-            ImGui::BeginTooltip ();
-            ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
-            ImGui::Separator    ();
-            ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the previous output", virtKeyCodeToHumanKeyName [VK_OEM_4]);
-            ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the next output",     virtKeyCodeToHumanKeyName [VK_OEM_6]);
-            ImGui::EndTooltip   ();
-          }
-
-          else
-          {
-            ImGui::BeginTooltip ();
-            ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
-            ImGui::Separator    ();
-            ImGui::BulletText   ("Press LB to select the previous output");
-            ImGui::BulletText   ("Press RB to select the next output");
-            ImGui::EndTooltip   ();
-          }
-
-          int direction = 0;
-
-               if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { direction--;  io.WantCaptureKeyboard = true; }
-          else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { direction++;  io.WantCaptureKeyboard = true; }
-
-          else {
-                 if (io.NavInputs [ImGuiNavInput_FocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f) { direction--; }
-            else if (io.NavInputs [ImGuiNavInput_FocusNext] && io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f) { direction++; }
-          }
-
-          int neutral_idx = 0;
-
-          for (UINT i = 0; i < render_textures.size (); i++)
-          {
-            if (rt_indexes [render_textures [i]] >= last_sel_idx)
-            {
-              neutral_idx = i;
-              break;
-            }
-          }
-
-          size_t last_sel = sel;
-                      sel =
-            gsl::narrow_cast <size_t> (neutral_idx) + direction;
-
-          if ((SSIZE_T)sel <  0) sel = 0;
-
-          if ((ULONG)sel >= (ULONG)render_textures.size ())
-          {
-            sel = render_textures.size () - 1;
-          }
-
-          if ((SSIZE_T)sel <  0) sel = 0;
-
-          if (direction != 0 && last_sel != sel)
-          {
-            manual_change = true;
-            last_sel_idx  =
-              rt_indexes [render_textures [sel]];
-          }
-        }
-      }
-
-      ImGui::BeginGroup     ();
-      ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
-      ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
-
-      ImGui::BeginChild ( ImGui::GetID ("RenderTargetViewList"),
-                          ImVec2 ( font_size * 7.0f, -1.0f),
-                            true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
-
-      if (! render_textures.empty ())
-      {
-        ImGui::BeginGroup ();
-
-        if (first_frame)
-        {
-          sel         = 0;
-          first_frame = false;
-        }
-
-        static bool sel_changed  = false;
-
-        ///if ((SSIZE_T)sel >= 0 && sel < (int)render_textures.size ())
-        ///{
-        ///  if (last_sel_idx != _GetStashedRTVIndex (render_textures [sel]))
-        ///  {
-        ///    int i = 0;
-        ///
-        ///    for ( auto& entry : render_textures )
-        ///    {
-        ///      if (_GetStashedRTVIndex (entry) == last_sel_idx)
-        ///      {
-        ///        sel         = i;
-        ///        sel_changed = true;
-        ///        break;
-        ///      }
-        ///
-        ///      ++i;
-        ///    }
-        ///  }
-        ///}
-
-        for ( UINT line = 0; line < list_contents.size (); line++ )
-        {
-          ImGuiSelectableFlags flags =
-            discard_views.count (render_textures [line]) ?
-                           ImGuiSelectableFlags_Disabled : 0;
-
-          bool selected = (! sel_changed) &&
-            ( rt_indexes [render_textures [line]] == last_sel_idx );
-
-          if (selected) { sel = line; }
-
-          if (line == sel)
-          {
-            ImGui::Selectable (list_contents [line].c_str (), &selected, flags);
-
-            if (sel_changed)
-            {
-              if (! ImGui::IsItemVisible  ())
-                ImGui::SetScrollHereY     (0.5f);
-              ImGui::SetKeyboardFocusHere (    );
-
-              sel_changed  = false;
-              last_sel_idx =
-                rt_indexes [render_textures [sel]];
-
-              InterlockedExchangePointer ( (PVOID *)&tracked_rtv->resource,
-                                              render_textures [sel] );
-            }
-          }
-
-          else
-          {
-            if (ImGui::Selectable (list_contents [line].c_str (), &selected, flags))
-            {
-              if (selected)
-              {
-                sel_changed          = true;
-                sel                  =  line;
-                last_sel_idx         =
-                  rt_indexes [render_textures [sel]];
-
-                InterlockedExchangePointer ( (PVOID *)&tracked_rtv->resource,
-                                                render_textures [sel] );
-              }
-            }
-          }
-        }
-
-        ImGui::EndGroup ();
-      }
-
-      ImGui::EndChild      ();
-      ImGui::PopStyleColor ();
-      ImGui::PopStyleVar   ();
-      ImGui::EndGroup      ();
-
-
-      if (ImGui::IsItemHovered (ImGuiHoveredFlags_RectOnly))
-      {
-        hovered = ImGui::IsItemHovered ();
-        focused = ImGui::IsItemFocused ();
-      }
-
-      else
-      {
-        hovered = false; focused = false;
-      }
-
-
-      if ( render_textures.size  () >      (size_t)sel   &&
-             live_textures.count (render_textures [sel]) &&
-             discard_views.count (render_textures [sel]) == 0 )
-      {
-        SK_ComPtr <ID3D11RenderTargetView>
-          rt_view (render_textures [sel]);
-
-        D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = { };
-        rt_view->GetDesc            (&rtv_desc);
-
-        D3D11_TEXTURE2D_DESC desc = { };
-
-        ULONG refs =
-          rt_view.p->AddRef  () - 1;
-          rt_view.p->Release ();
-
-        if ( rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D ||
-             rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS )
-        {
-          bool multisampled =
-            rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS;
-
-          SK_ComPtr   <ID3D11Resource>        pRes = nullptr;
-                       rt_view->GetResource (&pRes.p);
-          SK_ComQIPtr <ID3D11Texture2D> pTex (pRes.p);
-
-          if ( pRes != nullptr &&
-               pTex != nullptr )
-          {
-            pTex->GetDesc (&desc);
-
-            auto pDev =
-              rb.getDevice <ID3D11Device> ();
-
-            SK_ComPtr   <ID3D11ShaderResourceView> pSRV;
-
-            SK_D3D11_MakeDrawableCopy (pDev, pTex, rt_view, &pSRV.p);
-
-            //D3D11_SHADER_RESOURCE_VIEW_DESC  srv_desc = { };
-            //
-            //srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-            //srv_desc.Format                    = SK_D3D11_MakeTypedFormat (rtv_desc.Format);
-            //srv_desc.Texture2D.MipLevels       = (UINT)-1;
-            //srv_desc.Texture2D.MostDetailedMip =  0;
-
-            if (pDev != nullptr)
-            {
-              const size_t row0  = std::max (tracked_rtv->ref_vs.size (), tracked_rtv->ref_ps.size ());
-              const size_t row1  =           tracked_rtv->ref_gs.size ();
-              const size_t row2  = std::max (tracked_rtv->ref_hs.size (), tracked_rtv->ref_ds.size ());
-              const size_t row3  =           tracked_rtv->ref_cs.size ();
-
-              const size_t bottom_list = row0 + row1 + row2 + row3;
-
-              const bool success = ( pSRV.p != nullptr );
-
-              const float content_avail_y = ImGui::GetWindowContentRegionMax ().y - ImGui::GetWindowContentRegionMin ().y;
-              const float content_avail_x = ImGui::GetWindowContentRegionMax ().x - ImGui::GetWindowContentRegionMin ().x;
-                    float effective_width = 0.0f, effective_height = 0.0f;
-
-              if (success)
-              {
-                // Some Render Targets are MASSIVE, let's try to keep the damn things on the screen ;)
-                if (bottom_list > 0)
-                  effective_height = std::max (256.0f, content_avail_y - ((float)(bottom_list + 4) * font_size_multiline * 1.125f));
-                else
-                  effective_height = std::max (256.0f, std::max (content_avail_y, (float)desc.Height));
-
-                effective_width    = effective_height  * ((float)desc.Width / (float)desc.Height );
-
-                if (effective_width > content_avail_x)
-                {
-                  effective_width  = std::max (content_avail_x, 256.0f);
-                  effective_height = effective_width * ((float)desc.Height / (float)desc.Width);
-                }
-              }
-
-              ImGui::SameLine ();
-
-              ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.5f, 0.5f, 0.5f, 1.0f));
-              ImGui::BeginChild      ( ImGui::GetID ("RenderTargetPreview"),
-                                       ImVec2 ( -1.0f, -1.0f ),
-                                         true,
-                                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
-
-              last_width  = content_avail_x;//effective_width;
-              last_ht     = content_avail_y;//effective_height + ( font_size_multiline * (bottom_list + 4) * 1.125f );
-
-              ImGui::BeginGroup (                  );
-              ImGui::Text       ( "Dimensions:   " );
-              ImGui::Text       ( "Format:       " );
-              ImGui::Text       ( "Usage:        " );
-              ImGui::EndGroup   (                  );
-
-              ImGui::SameLine   ( );
-
-              ImGui::BeginGroup (                                              );
-              ImGui::Text       ( "%lux%lu",
-                                    desc.Width, desc.Height/*, effective_width, effective_height, 0.9875f * content_avail_y - ((float)(bottom_list + 3) * font_size * 1.125f), content_avail_y*//*,
-                                      pTex->d3d9_tex->GetLevelCount ()*/       );
-              ImGui::Text       ( "%ws",
-                                    SK_DXGI_FormatToStr (desc.Format).c_str () );
-              ImGui::Text       ( "%ws",
-                                    SK_D3D11_DescribeUsage (desc.Usage) );
-              ImGui::EndGroup   ();
-
-              ImGui::SameLine   ();
-
-              ImGui::BeginGroup ();
-              ImGui::Text       ( "References:   " );
-              ImGui::Text       ( "Bind Flags:   " );
-              ImGui::Text       ( "Misc. Flags:  " );
-              ImGui::EndGroup   (                  );
-
-              ImGui::SameLine   ();
-
-              ImGui::BeginGroup ();
-              ImGui::Text       ( "%lu",                   refs );
-              ImGui::Text       ( "%ws", SK_D3D11_DescribeBindFlags ((D3D11_BIND_FLAG)         desc.BindFlags).c_str ());
-              ImGui::Text       ( multisampled ? "Multi-Sampled (%lux)" : "", desc.SampleDesc.Count); ImGui::SameLine ();
-              ImGui::Text       ( "%ws", SK_D3D11_DescribeMiscFlags ((D3D11_RESOURCE_MISC_FLAG)desc.MiscFlags).c_str ());
-              ImGui::EndGroup   (                  );
-
-              if (success && pSRV != nullptr)
-              {
-                ImGui::Separator  ( );
-
-                ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
-                ImGui::BeginChildFrame   (ImGui::GetID ("ShaderResourceView_Frame"),
-                                            ImVec2 (effective_width + 8.0f, effective_height + 8.0f),
-                                            ImGuiWindowFlags_AlwaysAutoResize );
-
-                SK_D3D11_TempResources->push_back (pSRV.p);
-                SK_D3D11_TempResources->push_back (rt_view.p);
-
-                ImGui::Image             ( pSRV.p,
-                                             ImVec2 (effective_width, effective_height),
-                                               ImVec2  (0,0),             ImVec2  (1,1),
-                                               ImColor (255,255,255,255), ImColor (255,255,255,128)
-                                         );
-
-#if 0
-                if (ImGui::IsItemHovered ())
-                {
-                  ImGui::BeginTooltip ();
-                  ImGui::BeginGroup   ();
-                  ImGui::TextUnformatted ("Mip Levels:   ");
-                  if (desc.SampleDesc.Count > 1)
-                  {
-                    ImGui::TextUnformatted ("Sample Count: ");
-                    ImGui::TextUnformatted ("MSAA Quality: ");
-                  }
-                  ImGui::TextUnformatted ("Usage:        ");
-                  ImGui::TextUnformatted ("Bind Flags:   ");
-                  ImGui::TextUnformatted ("CPU Access:   ");
-                  ImGui::TextUnformatted ("Misc Flags:   ");
-                  ImGui::EndGroup     ();
-
-                  ImGui::SameLine     ();
-
-                  ImGui::BeginGroup   ();
-                  ImGui::Text ("%u", desc.MipLevels);
-                  if (desc.SampleDesc.Count > 1)
-                  {
-                    ImGui::Text ("%u", desc.SampleDesc.Count);
-                    ImGui::Text ("%u", desc.SampleDesc.Quality);
-                  }
-                  ImGui::Text (      "%ws", SK_D3D11_DescribeUsage (desc.Usage));
-                  ImGui::Text ("%u (  %ws)", desc.BindFlags,
-                                          SK_D3D11_DescribeBindFlags (
-                    (D3D11_BIND_FLAG)desc.BindFlags).c_str ());
-                  ImGui::Text ("%x", desc.CPUAccessFlags);
-                  ImGui::Text ("%x", desc.MiscFlags);
-                  ImGui::EndGroup   ();
-                  ImGui::EndTooltip ();
-                }
-#endif
-
-                ImGui::EndChildFrame     (    );
-                ImGui::PopStyleColor     (    );
-              }
-
-              if (bottom_list)
-              {
-                ImGui::Separator  ( );
-
-                SK_D3D11_ShaderModDlg_RTVContributors ();
-              }
-
-              ImGui::EndChild      ( );
-              ImGui::PopStyleColor (1);
-            }
-          }
-        }
-      }
-      }
-    }
-
-    ImGui::EndChild     ( );
-    ImGui::EndChild     ( );
-    ImGui::Columns      (1);
-
-    ImGui::PopItemWidth ( );
-  }
-
-  ImGui::End            ( );
-
-  SK_D3D11_EnableTracking =
-         show_dlg;
-  return show_dlg;
-}
 
 
 
@@ -8626,21 +5919,6 @@ SK_D3D11_ResetShaders (ID3D11Device* pDevice)
 
 
 
-
-//SK_ICommand
-//{
-//  virtual SK_ICommandResult execute (const char* szArgs) = 0;
-//
-//  virtual const char* getHelp            (void) { return "No Help Available"; }
-//
-//  virtual int         getNumArgs         (void) { return 0; }
-//  virtual int         getNumOptionalArgs (void) { return 0; }
-//  virtual int         getNumRequiredArgs (void) {
-//    return getNumArgs () - getNumOptionalArgs ();
-//  }
-//};
-
-
 void
 SK_D3D11_BeginFrame (void)
 {
@@ -8665,21 +5943,12 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
 
   SK_D3D11_LoadShaderState (false);
 
-  ///auto& rb =
-  ///  SK_GetCurrentRenderBackend ();
-  ///
-  ///if (rb.isHDRCapable ())
-  ///{
-  ///  SK_ImGui_Widgets.hdr_control->run ();
-  ///}
-
   UNREFERENCED_PARAMETER (pSwapChain);
 
   SK_D3D11_InitShaderMods ();
 
-  LocalHook_D3D11CreateDevice.active             = true;
-//LocalHook_D3D11CoreCreateDevice.active         = true;
-  LocalHook_D3D11CreateDeviceAndSwapChain.active = true;
+  LocalHook_D3D11CreateDevice.active             = TRUE;
+  LocalHook_D3D11CreateDeviceAndSwapChain.active = TRUE;
 
   for ( auto& it : local_d3d11_records )
   {
@@ -8880,7 +6149,7 @@ UINT
 SK_D3D11_MakeDebugFlags (UINT uiOrigFlags)
 {
   //UINT Flags =  (D3D11_CREATE_DEVICE_DEBUG | uiOrigFlags);
-	//     Flags &= ~D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY;
+  //     Flags &= ~D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY;
 
   return uiOrigFlags;// Flags;
 }
@@ -8967,16 +6236,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 {
   Flags =
     SK_D3D11_MakeDebugFlags (Flags);
-
-  if (Flags & D3D11_CREATE_DEVICE_SINGLETHREADED)
-  {
-    SK_LOG0 ( ( L"Ignoring D3D11 Device Creation (Single-Threaded)" ),
-                L"  D3D 11  " );
-    return D3D11CreateDeviceAndSwapChain_Import ( pAdapter, DriverType, Software,
-                                                    Flags, pFeatureLevels, FeatureLevels, SDKVersion,
-                                                      pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel,
-                                                        ppImmediateContext );
-  }
 
   WaitForInitD3D11 ();
 
@@ -9179,9 +6438,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         nullptr != StrStrIW (wszClass,L"RTSSWndClass")
        );
 
-      /////extern void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
-      /////            SK_DXGI_HookSwapChain (*ppSwapChain);
-
       if (! dummy_window)
       {
         auto& windows =
@@ -9270,27 +6526,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   return res;
 }
-
-//__declspec (noinline)
-//HRESULT
-//WINAPI
-//D3D11CoreCreateDevice_Detour ( IDXGIFactory*       pFactory,
-//                               IDXGIAdapter*       pAdapter,
-//                               UINT                Flags,
-//                         const D3D_FEATURE_LEVEL*  pFeatureLevels,
-//                               UINT                FeatureLevels,
-//                               ID3D11Device**      ppDevice )
-//{
-//  Flags =
-//    SK_D3D11_MakeDebugFlags (Flags);
-//
-//  DXGI_LOG_CALL_1 (L"D3D11CoreCreateDevice        ", L"Flags=0x%x", Flags);
-//
-//  return
-//    D3D11CoreCreateDevice_Import ( pFactory, pAdapter, Flags,
-//                                       pFeatureLevels, FeatureLevels,
-//                                         ppDevice );
-//}
 
 __declspec (noinline)
 HRESULT
@@ -9635,1372 +6870,8 @@ D3D11Dev_GetImmediateContext3_Override (
 }
 
 
-#include <shaders/uber_hdr_shader_ps.h>
-#include <shaders/vs_colorutil.h>
-
-struct SK_HDR_FIXUP
-{
-  static std::string
-      _SpecialNowhere;
-
-  ID3D11Buffer*             mainSceneCBuffer = nullptr;
-  ID3D11Buffer*                   hudCBuffer = nullptr;
-  ID3D11Buffer*            colorSpaceCBuffer = nullptr;
-
-  ID3D11InputLayout*            pInputLayout = nullptr;
-
-  ID3D11SamplerState*              pSampler0 = nullptr;
-
-  ID3D11ShaderResourceView*         pMainSrv = nullptr;
-  ID3D11ShaderResourceView*          pHUDSrv = nullptr;
-
-  ID3D11RenderTargetView*           pMainRtv = nullptr;
-  ID3D11RenderTargetView*            pHUDRtv = nullptr;
-
-  ID3D11RasterizerState*        pRasterState = nullptr;
-  ID3D11DepthStencilState*          pDSState = nullptr;
-
-  ID3D11BlendState*             pBlendState0 = nullptr;
-  ID3D11BlendState*             pBlendState1 = nullptr;
-
-  enum SK_HDR_Type {
-    None        = 0x000ul,
-    HDR10       = 0x010ul,
-    HDR10Plus   = 0x011ul,
-    DolbyVision = 0x020ul,
-
-    scRGB       = 0x100ul, // Not a real signal / data standard,
-                           //   but a real useful colorspace even so.
-  } __SK_HDR_Type = None;
-
-  DXGI_FORMAT
-  SK_HDR_GetPreferredDXGIFormat (DXGI_FORMAT fmt_in)
-  {
-    if (__SK_HDR_10BitSwap)
-      __SK_HDR_Type = HDR10;
-    else if (__SK_HDR_16BitSwap)
-      __SK_HDR_Type = scRGB;
-
-    else
-    {
-      if (fmt_in == DXGI_FORMAT_R10G10B10A2_UNORM)
-        __SK_HDR_Type = HDR10;
-      else if (fmt_in == DXGI_FORMAT_R16G16B16A16_FLOAT)
-        __SK_HDR_Type = scRGB;
-    }
-
-    if (     (__SK_HDR_Type & scRGB) != 0)
-      return DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-    else if ((__SK_HDR_Type & HDR10) != 0)
-      return DXGI_FORMAT_R10G10B10A2_UNORM;
-
-    else
-    {
-      SK_LOG0 ( ( L"Unknown HDR Format, using R10G10B10A2 (HDR10-ish)" ),
-                  L"HDR Inject" );
-
-      return
-        DXGI_FORMAT_R10G10B10A2_UNORM;
-    }
-  }
-
-  SK::DXGI::ShaderBase <ID3D11PixelShader>  PixelShader_scRGB;
-  SK::DXGI::ShaderBase <ID3D11VertexShader> VertexShaderHDR_Util;
-
-  void releaseResources (void)
-  {
-    if (mainSceneCBuffer  != nullptr)  { mainSceneCBuffer->Release  ();   mainSceneCBuffer = nullptr; }
-    if (hudCBuffer        != nullptr)  { hudCBuffer->Release        ();         hudCBuffer = nullptr; }
-    if (colorSpaceCBuffer != nullptr)  { colorSpaceCBuffer->Release ();  colorSpaceCBuffer = nullptr; }
-
-    if (pSampler0         != nullptr)  { pSampler0->Release         ();          pSampler0 = nullptr; }
-
-    if (pMainSrv          != nullptr)  { pMainSrv->Release          ();           pMainSrv = nullptr; }
-    if (pHUDSrv           != nullptr)  { pHUDSrv->Release           ();            pHUDSrv = nullptr; }
-
-    if (pMainRtv          != nullptr)  { pMainRtv->Release          ();           pMainRtv = nullptr; }
-    if (pHUDRtv           != nullptr)  { pHUDRtv->Release           ();            pHUDRtv = nullptr; }
-
-    if (pRasterState      != nullptr)  { pRasterState->Release      ();       pRasterState = nullptr; }
-    if (pDSState          != nullptr)  { pDSState->Release          ();           pDSState = nullptr; }
-
-    if (pBlendState0      != nullptr)  { pBlendState0->Release      ();       pBlendState0 = nullptr; }
-    if (pBlendState1      != nullptr)  { pBlendState1->Release      ();       pBlendState1 = nullptr; }
-
-    if (pInputLayout      != nullptr)  { pInputLayout->Release      ();       pInputLayout = nullptr; }
-
-    PixelShader_scRGB.releaseResources    ();
-    VertexShaderHDR_Util.releaseResources ();
-  }
-
-  bool
-  recompileShaders (void)
-  {
-    std::wstring debug_shader_dir = SK_GetConfigPath ();
-                 debug_shader_dir +=
-            LR"(SK_Res\Debug\shaders\)";
-
-    auto& rb =
-      SK_GetCurrentRenderBackend ();
-
-    auto pDev =
-      rb.getDevice <ID3D11Device> ();
-
-    bool ret =
-      pDev->CreatePixelShader ( uber_hdr_shader_ps_bytecode,
-                        sizeof (uber_hdr_shader_ps_bytecode),
-             nullptr, &PixelShader_scRGB.shader ) == S_OK;
-    ret &=
-      pDev->CreateVertexShader ( colorutil_vs_bytecode,
-                         sizeof (colorutil_vs_bytecode),
-            nullptr, &VertexShaderHDR_Util.shader ) == S_OK;
-
-    return ret;
-  }
-
-  void
-  reloadResources (void)
-  {
-    if (mainSceneCBuffer  != nullptr) { mainSceneCBuffer->Release  ();   mainSceneCBuffer = nullptr; }
-    if (colorSpaceCBuffer != nullptr) { colorSpaceCBuffer->Release ();  colorSpaceCBuffer = nullptr; }
-    ////if (hudCBuffer       == nullptr)  { hudCBuffer->Release       ();        hudCBuffer = nullptr; }
-
-    if (pSampler0        != nullptr)  { pSampler0->Release        ();         pSampler0 = nullptr; }
-
-    if (pMainSrv         != nullptr)  { pMainSrv->Release         ();          pMainSrv = nullptr; }
-    if (pHUDSrv          != nullptr)  { pHUDSrv->Release          ();           pHUDSrv = nullptr; }
-
-    if (pMainRtv         != nullptr)  { pMainRtv->Release         ();          pMainRtv = nullptr; }
-    if (pHUDRtv          != nullptr)  { pHUDRtv->Release          ();           pHUDRtv = nullptr; }
-
-    if (pRasterState     != nullptr)  { pRasterState->Release     ();      pRasterState = nullptr; }
-    if (pDSState         != nullptr)  { pDSState->Release         ();          pDSState = nullptr; }
-
-    if (pBlendState0     != nullptr)  { pBlendState0->Release     ();      pBlendState0 = nullptr; }
-    if (pBlendState1     != nullptr)  { pBlendState1->Release     ();      pBlendState1 = nullptr; }
-
-    if (pInputLayout     != nullptr)  { pInputLayout->Release     ();      pInputLayout = nullptr; }
-
-
-    auto& rb =
-      SK_GetCurrentRenderBackend ();
-
-    auto pDev =
-      rb.getDevice <ID3D11Device> ();
-
-    SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
-    SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
-
-    if (pDev != nullptr)
-    {
-      if (! recompileShaders ())
-        return;
-
-      D3D11_BUFFER_DESC desc = { };
-
-      desc.ByteWidth         = sizeof (HDR_LUMINANCE);
-      desc.Usage             = D3D11_USAGE_DYNAMIC;
-      desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
-      desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
-      desc.MiscFlags         = 0;
-
-      pDev->CreateBuffer (&desc, nullptr, &mainSceneCBuffer);
-
-      desc.ByteWidth         = sizeof (HDR_COLORSPACE_PARAMS);
-      desc.Usage             = D3D11_USAGE_DYNAMIC;
-      desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
-      desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
-      desc.MiscFlags         = 0;
-
-      pDev->CreateBuffer (&desc, nullptr, &colorSpaceCBuffer);
-    }
-
-    if ( pMainSrv == nullptr &&
-       pSwapChain != nullptr )
-    {
-      DXGI_SWAP_CHAIN_DESC swapDesc = { };
-      D3D11_TEXTURE2D_DESC desc     = { };
-
-      pSwapChain->GetDesc (&swapDesc);
-
-      desc.Width              = swapDesc.BufferDesc.Width;
-      desc.Height             = swapDesc.BufferDesc.Height;
-      desc.MipLevels          = 1;
-      desc.ArraySize          = 1;
-      desc.Format             = SK_HDR_GetPreferredDXGIFormat (swapDesc.BufferDesc.Format);
-      desc.SampleDesc.Count   = 1; // Will probably regret this if HDR ever procreates with MSAA
-      desc.SampleDesc.Quality = 0;
-      desc.Usage              = D3D11_USAGE_DEFAULT;
-      desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
-      desc.CPUAccessFlags     = 0x0;
-      desc.MiscFlags          = 0x0;
-
-      SK_ComPtr <ID3D11Texture2D> pHDRTexture;
-
-      pDev->CreateTexture2D          (&desc,       nullptr, &pHDRTexture);
-      pDev->CreateShaderResourceView (pHDRTexture, nullptr, &pMainSrv);
-
-      D3D11_INPUT_ELEMENT_DESC local_layout [] = {
-        { "", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-      };
-
-      pDev->CreateInputLayout ( local_layout, 1,
-                                  (DWORD *)(colorutil_vs_bytecode),
-                                    sizeof (colorutil_vs_bytecode) /
-                                    sizeof (colorutil_vs_bytecode [0]),
-                                      &pInputLayout );
-
-      D3D11_SAMPLER_DESC
-        sampler_desc                    = { };
-
-        sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-        sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_WRAP;
-        sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_WRAP;
-        sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_WRAP;
-        sampler_desc.MipLODBias         = 0.f;
-        sampler_desc.MaxAnisotropy      =   1;
-        sampler_desc.ComparisonFunc     =  D3D11_COMPARISON_NEVER;
-        sampler_desc.MinLOD             = -D3D11_FLOAT32_MAX;
-        sampler_desc.MaxLOD             =  D3D11_FLOAT32_MAX;
-
-      pDev->CreateSamplerState ( &sampler_desc,
-                                            &pSampler0 );
-
-      SK_D3D11_SetDebugName (pSampler0,    L"SK HDR SamplerState");
-      SK_D3D11_SetDebugName (pInputLayout, L"SK HDR InputLayout");
-
-      SK_D3D11_SetDebugName (pHDRTexture,  L"SK HDR OutputTex");
-      SK_D3D11_SetDebugName (pMainSrv,     L"SK HDR OutputSRV");
-
-      SK_D3D11_SetDebugName (colorSpaceCBuffer, L"SK HDR ColorSpace CBuffer");
-      SK_D3D11_SetDebugName (mainSceneCBuffer,  L"SK HDR MainScene CBuffer");
-    }
-  }
-};
-
-SK_LazyGlobal <SK_HDR_FIXUP> hdr_base;
-
-int   __SK_HDR_tonemap       = 1;
-int   __SK_HDR_visualization = 0;
-int   __SK_HDR_Bypass_sRGB   = -1;
-float __SK_HDR_PaperWhite    = 3.75f;
-float __SK_HDR_user_sdr_Y    = 100.0f;
-
 void
-SK_HDR_ReleaseResources (void)
-{
-  hdr_base->releaseResources ();
-}
-
-void
-SK_HDR_InitResources (void)
-{
-  hdr_base->reloadResources ();
-}
-
-void
-SK_HDR_SnapshotSwapchain (void)
-{
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  bool hdr_display =
-    (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
-
-  if (! hdr_display)
-    return;
-
-  SK_RenderBackend::scan_out_s::SK_HDR_TRANSFER_FUNC eotf =
-    rb.scanout.getEOTF ();
-
-  bool bEOTF_is_PQ =
-    (eotf == SK_RenderBackend::scan_out_s::SMPTE_2084);
-
-  if (bEOTF_is_PQ)
-    return;
-
-
-  struct snapshot_cache_s {
-    ULONG64 lLastFrame = SK_GetFramesDrawn () - 1;
-    ULONG64 lHDRFrames =                        0;
-
-    SK_D3D11_Stateblock_Lite
-                 *sb                      = nullptr;
-
-    ID3D11Buffer *last_gpu_cbuffer_cspace = hdr_base->colorSpaceCBuffer;
-    ID3D11Buffer *last_gpu_cbuffer_luma   = hdr_base->mainSceneCBuffer;
-    uint32_t      last_hash_luma          = 0x0;
-    uint32_t      last_hash_cspace        = 0x0;
-  };
-
-  static
-    concurrency::concurrent_unordered_map <
-    IUnknown *,
-    snapshot_cache_s
-  > snapshot_cache;
-
-
-  auto& snap_cache =
-    snapshot_cache [rb.swapchain];
-
-  ULONG64 lThisFrame = SK_GetFramesDrawn ();
-  if     (lThisFrame == snap_cache.lLastFrame) { return; }
-  else               {  snap_cache.lLastFrame = lThisFrame; }
-
-  auto& vs_hdr_util  = hdr_base->VertexShaderHDR_Util;
-  auto& ps_hdr_scrgb = hdr_base->PixelShader_scRGB;
-
-  if ( vs_hdr_util.shader  == nullptr ||
-       ps_hdr_scrgb.shader == nullptr    )
-  {
-    if (snap_cache.lHDRFrames++ > 2) hdr_base->reloadResources ();
-  }
-
-  DXGI_SWAP_CHAIN_DESC swapDesc = { };
-
-  if ( vs_hdr_util.shader  != nullptr &&
-       ps_hdr_scrgb.shader != nullptr &&
-       hdr_base->pMainSrv  != nullptr )
-  {
-    auto pDev =
-      rb.getDevice <ID3D11Device> ();
-
-    SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
-    SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
-
-    if (pDev != nullptr && pDevCtx == nullptr)
-    {   pDev->GetImmediateContext (&pDevCtx.p); }
-
-    if (! pDevCtx) return;
-
-    SK_ComPtr <ID3D11Resource> pSrc = nullptr;
-    SK_ComPtr <ID3D11Resource> pDst = nullptr;
-
-    if (pSwapChain != nullptr)
-    {
-      pSwapChain->GetDesc (&swapDesc);
-
-      if ( SUCCEEDED (
-             pSwapChain->GetBuffer    (
-               0,
-                 IID_ID3D11Texture2D,
-                   (void **)&pSrc.p  )
-                     )
-         )
-      {
-        hdr_base->pMainSrv->GetResource ( &pDst.p );
-                  pDevCtx->CopyResource (  pDst, pSrc );
-      }
-    }
-
-    D3D11_MAPPED_SUBRESOURCE mapped_resource  = { };
-    HDR_LUMINANCE            cbuffer_luma     = { };
-    HDR_COLORSPACE_PARAMS    cbuffer_cspace   = { };
-
-    if (snap_cache.last_gpu_cbuffer_cspace != hdr_base->colorSpaceCBuffer) {
-        snap_cache.last_gpu_cbuffer_cspace =  hdr_base->colorSpaceCBuffer;
-        snap_cache.last_hash_cspace        = 0x0;
-    }
-
-    if (snap_cache.last_gpu_cbuffer_luma != hdr_base->mainSceneCBuffer) {
-        snap_cache.last_gpu_cbuffer_luma =  hdr_base->mainSceneCBuffer;
-        snap_cache.last_hash_luma        = 0x0;
-    }
-
-    extern float __SK_HDR_Luma;
-    extern float __SK_HDR_Exp;
-    extern float __SK_HDR_Saturation;
-
-    cbuffer_luma.luminance_scale [0] =  __SK_HDR_Luma;
-    cbuffer_luma.luminance_scale [1] =  __SK_HDR_Exp;
-    cbuffer_luma.luminance_scale [2] = (__SK_HDR_HorizCoverage / 100.0f) * 2.0f - 1.0f;
-    cbuffer_luma.luminance_scale [3] = (__SK_HDR_VertCoverage  / 100.0f) * 2.0f - 1.0f;
-
-    //uint32_t cb_hash_luma =
-    //  crc32c (0x0, (const void *) &cbuffer_luma, sizeof SK_HDR_FIXUP::HDR_LUMINANCE);
-    //
-    ////if (cb_hash_luma != snap_cache.last_hash_luma)
-    {
-      if ( SUCCEEDED (
-             pDevCtx->Map ( hdr_base->mainSceneCBuffer,
-                              0, D3D11_MAP_WRITE_DISCARD, 0,
-                                 &mapped_resource )
-                     )
-         )
-      {
-        _ReadWriteBarrier ();
-
-        memcpy (          static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
-                 &cbuffer_luma, sizeof HDR_LUMINANCE );
-
-        pDevCtx->Unmap (hdr_base->mainSceneCBuffer, 0);
-
-      //snap_cache.last_hash_luma = cb_hash_luma;
-      }
-
-      else return;
-    }
-
-    cbuffer_cspace.uiToneMapper           =   __SK_HDR_tonemap;
-    cbuffer_cspace.hdrSaturation          =   __SK_HDR_Saturation;
-    cbuffer_cspace.hdrPaperWhite          =   __SK_HDR_PaperWhite;
-    cbuffer_cspace.sdrLuminance_NonStd    =   __SK_HDR_user_sdr_Y * 1.0_Nits;
-    cbuffer_cspace.sdrIsImplicitlysRGB    =   __SK_HDR_Bypass_sRGB != 1;
-    cbuffer_cspace.visualFunc [0]         = (uint32_t)__SK_HDR_visualization;
-    cbuffer_cspace.visualFunc [1]         = (uint32_t)__SK_HDR_visualization;
-    cbuffer_cspace.visualFunc [2]         = (uint32_t)__SK_HDR_visualization;
-
-    cbuffer_cspace.hdrLuminance_MaxAvg   = __SK_HDR_tonemap == 2 ?
-                                    rb.working_gamut.maxAverageY != 0.0f ?
-                                    rb.working_gamut.maxAverageY         : rb.display_gamut.maxAverageY
-                                                                 :         rb.display_gamut.maxAverageY;
-    cbuffer_cspace.hdrLuminance_MaxLocal = __SK_HDR_tonemap == 2 ?
-                                    rb.working_gamut.maxLocalY != 0.0f ?
-                                    rb.working_gamut.maxLocalY         : rb.display_gamut.maxLocalY
-                                                                 :       rb.display_gamut.maxLocalY;
-    cbuffer_cspace.hdrLuminance_Min      = rb.display_gamut.minY * 1.0_Nits;
-    cbuffer_cspace.currentTime           = (float)timeGetTime ();
-
-    //uint32_t cb_hash_cspace =
-    //  crc32c (0x0, (const void *) &cbuffer_cspace, sizeof SK_HDR_FIXUP::HDR_COLORSPACE_PARAMS);
-    //
-    ////if (cb_hash_cspace != snap_cache.last_hash_cspace)
-    {
-      if ( SUCCEEDED (
-             pDevCtx->Map ( hdr_base->colorSpaceCBuffer,
-                              0, D3D11_MAP_WRITE_DISCARD, 0,
-                                &mapped_resource )
-                     )
-         )
-      {
-        _ReadWriteBarrier ();
-
-        memcpy (            static_cast <HDR_COLORSPACE_PARAMS *> (mapped_resource.pData),
-                 &cbuffer_cspace, sizeof HDR_COLORSPACE_PARAMS );
-
-        pDevCtx->Unmap (hdr_base->colorSpaceCBuffer, 0);
-
-      //snap_cache.last_hash_cspace = cb_hash_cspace;
-      }
-
-      else return;
-    }
-
-    void
-    SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext*       pImmediateContext,
-                                 SK_D3D11_Stateblock_Lite** pSB );
-    void
-    SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
-                               ID3D11DeviceContext*      pDevCtx );
-
-    SK_ComPtr <ID3D11RenderTargetView>  pRenderTargetView;
-    if (! _d3d11_rbk->frames_.empty ()) pRenderTargetView =
-          _d3d11_rbk->frames_ [0].hdr.pRTV;
-
-    if ( pRenderTargetView.p != nullptr )
-    {
-      SK_D3D11_CaptureStateBlock (pDevCtx, &snap_cache.sb);
-
-      D3D11_PRIMITIVE_TOPOLOGY       OrigPrimTop;
-      SK_ComPtr <ID3D11VertexShader> pVS_Orig;
-      SK_ComPtr <ID3D11PixelShader>  pPS_Orig;
-      SK_ComPtr <ID3D11BlendState>   pBlendState_Orig;
-                                UINT uiOrigBlendMask;
-                               FLOAT fOrigBlendFactors [4] = { };
-      SK_ComPtr <ID3D11Buffer>       pConstantBufferVS_Orig;
-      SK_ComPtr <ID3D11Buffer>       pConstantBufferPS_Orig;
-
-      pDevCtx->VSGetConstantBuffers (0,                                   1, &pConstantBufferVS_Orig.p);
-      pDevCtx->PSGetConstantBuffers (0,                                   1, &pConstantBufferPS_Orig.p);
-      pDevCtx->OMGetBlendState      (&pBlendState_Orig.p, fOrigBlendFactors,          &uiOrigBlendMask);
-      pDevCtx->VSGetShader          (&pVS_Orig.p,                   nullptr,                   nullptr);
-      pDevCtx->PSGetShader          (&pPS_Orig.p,                   nullptr,                   nullptr);
-
-      SK_ComPtr <ID3D11ShaderResourceView> pOrigResources [2] = { };
-      SK_ComPtr <ID3D11ShaderResourceView> pResources     [2] = {
-        hdr_base->pMainSrv,    hdr_base->pHUDSrv     };
-
-      //D3D11_RENDER_TARGET_VIEW_DESC rtdesc               = {                           };
-      //                              rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-
-      pDevCtx->PSGetShaderResources   (0, 2, &pOrigResources [0].p);
-
-      pDevCtx->IAGetPrimitiveTopology (&OrigPrimTop);
-
-      pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-      pDevCtx->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
-                                             std::array <UINT,           1> { 0       }.data (),
-                                             std::array <UINT,           1> { 0       }.data ());
-      pDevCtx->IASetInputLayout       (hdr_base->pInputLayout);
-      pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
-
-      static const FLOAT                      fBlendFactor [4] =
-                                        { 0.0f, 0.0f, 0.0f, 0.0f };
-      pDevCtx->OMSetBlendState      (nullptr, fBlendFactor,           0xFFFFFFFF);
-      pDevCtx->VSSetConstantBuffers (0,            1, &hdr_base->mainSceneCBuffer);
-
-      pDevCtx->VSSetShader          (hdr_base->VertexShaderHDR_Util.shader, nullptr, 0);
-      pDevCtx->PSSetConstantBuffers (0,            1,     &hdr_base->colorSpaceCBuffer);
-
-      if ( swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
-           ( rb.scanout.dxgi_colorspace     != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 &&
-             rb.scanout.dwm_colorspace      != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 &&
-             rb.scanout.colorspace_override != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ) )
-      {
-      }
-
-      else
-      {
-        //rtdesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-        pDevCtx->PSSetShader        (hdr_base->PixelShader_scRGB.shader, nullptr, 0);
-      }
-
-      pDevCtx->RSSetScissorRects        (0, nullptr);
-      pDevCtx->RSSetState               (nullptr   );
-      pDevCtx->OMSetDepthStencilState   (nullptr, 0);
-
-      pDevCtx->OMSetRenderTargets  ( 1,
-                                      &pRenderTargetView.p,
-                                         nullptr );
-
-      pDevCtx->PSSetShaderResources (0,                         2,          &pResources [0].p);
-      pDevCtx->PSSetSamplers        (0, 1, &hdr_base->pSampler0);
-
-      pDevCtx->HSSetShader  (nullptr, nullptr, 0);
-      pDevCtx->DSSetShader  (nullptr, nullptr, 0);
-      pDevCtx->GSSetShader  (nullptr, nullptr, 0);
-      pDevCtx->SOSetTargets (0, nullptr, nullptr);
-
-      pDevCtx->Draw (4, 0);
-
-      pDevCtx->PSSetShaderResources   (0,                       2,          &pOrigResources [0].p);
-      pDevCtx->IASetPrimitiveTopology (OrigPrimTop);
-      pDevCtx->PSSetShader            (pPS_Orig,         nullptr,           0);
-      pDevCtx->VSSetShader            (pVS_Orig,         nullptr,           0);
-      pDevCtx->VSSetConstantBuffers   (0,                       1,          &pConstantBufferVS_Orig.p);
-      pDevCtx->PSSetConstantBuffers   (0,                       1,          &pConstantBufferPS_Orig.p);
-      pDevCtx->OMSetBlendState        (pBlendState_Orig, fOrigBlendFactors, uiOrigBlendMask);
-
-                              ++snap_cache.lHDRFrames;
-      SK_D3D11_ApplyStateBlock (snap_cache.sb, pDevCtx);
-    }
-  }
-}
-
-void
-SK_HDR_CombineSceneWithHUD (void)
-{
-}
-
-bool
-SK_HDR_RecompileShaders (void)
-{
-  return
-    hdr_base->recompileShaders ();
-}
-
-ID3D11ShaderResourceView*
-SK_HDR_GetUnderlayResourceView (void)
-{
-  return
-    hdr_base->pMainSrv;
-}
-
-
-
-
-
-
-
-struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
-{
-  void capture (ID3D11DeviceContext* pCtx)
-  {
-    if (pCtx == nullptr)
-      return;
-
-    SK_ComPtr <ID3D11Device>
-                      pDev;
-    pCtx->GetDevice (&pDev.p);
-
-    if ( pDev == nullptr )
-      return;
-
-    D3D_FEATURE_LEVEL ft_lvl =
-      pDev->GetFeatureLevel ();
-
-    ScissorRectsCount = ViewportsCount =
-      D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-
-    pCtx->RSGetScissorRects      (      &ScissorRectsCount, ScissorRects);
-    pCtx->RSGetViewports         (      &ViewportsCount,    Viewports);
-    pCtx->RSGetState             (      &RS);
-    pCtx->OMGetBlendState        (      &BlendState,         BlendFactor,
-                                                            &SampleMask);
-    pCtx->OMGetDepthStencilState (      &DepthStencilState, &StencilRef);
-  //pCtx->PSGetShaderResources   (0, 2, PSShaderResources);
-    pCtx->PSGetConstantBuffers   (0, 1, &PSConstantBuffer);
-    pCtx->PSGetSamplers          (0, 1, &PSSampler);
-
-    PSInstancesCount = VSInstancesCount = GSInstancesCount =
-    HSInstancesCount = DSInstancesCount  =
-      D3D11_SHADER_MAX_INTERFACES;// D3D11_SHADER_MAX_INSTANCES_PER_CLASS;
-
-    pCtx->PSGetShader            (&PS, PSInstances, &PSInstancesCount);
-    pCtx->VSGetShader            (&VS, VSInstances, &VSInstancesCount);
-
-    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-    {
-      pCtx->GSGetShader             (&GS, GSInstances, &GSInstancesCount);
-      GSInstancesCount =     calc_count ( GSInstances,  GSInstancesCount);
-    }
-
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-    {
-      pCtx->HSGetShader            (&HS, HSInstances, &HSInstancesCount);
-      HSInstancesCount =     calc_count (HSInstances,  HSInstancesCount);
-
-      pCtx->DSGetShader            (&DS, DSInstances, &DSInstancesCount);
-      DSInstancesCount =     calc_count (DSInstances,  DSInstancesCount);
-    }
-
-    pCtx->VSGetConstantBuffers   (0, 1, &VSConstantBuffer);
-    pCtx->IAGetPrimitiveTopology (      &PrimitiveTopology);
-    pCtx->IAGetIndexBuffer       (      &IndexBuffer,  &IndexBufferFormat,
-                                                       &IndexBufferOffset);
-    pCtx->IAGetVertexBuffers     (0, 1, &VertexBuffer, &VertexBufferStride,
-                                                       &VertexBufferOffset);
-    pCtx->IAGetInputLayout       (      &InputLayout );
-    pCtx->OMGetRenderTargets     (1, &RenderTargetView, &DepthStencilView);
-
-    PSInstancesCount = calc_count (PSInstances, PSInstancesCount);
-    VSInstancesCount = calc_count (VSInstances, VSInstancesCount);
-  }
-
-  void apply (ID3D11DeviceContext* pCtx)
-  {
-    if (pCtx == nullptr)
-      return;
-
-    SK_ComPtr <ID3D11Device>
-                      pDev;
-    pCtx->GetDevice (&pDev.p);
-
-    if ( pDev == nullptr )
-      return;
-
-    D3D_FEATURE_LEVEL ft_lvl =
-      pDev->GetFeatureLevel ();
-
-    pCtx->RSSetScissorRects      (ScissorRectsCount, ScissorRects);
-    pCtx->RSSetViewports         (ViewportsCount,    Viewports);
-    pCtx->OMSetDepthStencilState (DepthStencilState, StencilRef);
-    pCtx->RSSetState             (RS);
-    pCtx->PSSetShader            (PS, PSInstances,   PSInstancesCount);
-    pCtx->VSSetShader            (VS, VSInstances,   VSInstancesCount);
-    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-      pCtx->GSSetShader          (GS, GSInstances,   GSInstancesCount);
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-    {
-      pCtx->HSSetShader          (HS, HSInstances,   HSInstancesCount);
-      pCtx->DSSetShader          (DS, DSInstances,   DSInstancesCount);
-    }
-    pCtx->OMSetBlendState        (BlendState,        BlendFactor,
-                                                     SampleMask);
-    pCtx->IASetIndexBuffer       (IndexBuffer,       IndexBufferFormat,
-                                                     IndexBufferOffset);
-    pCtx->IASetInputLayout       (InputLayout);
-    pCtx->IASetPrimitiveTopology (PrimitiveTopology);
-    pCtx->PSSetShaderResources   (0, 1, std::array <ID3D11ShaderResourceView *, 1> { nullptr }.data ()/*PSShaderResources*/);
-    pCtx->PSSetConstantBuffers   (0, 1, &PSConstantBuffer);
-    pCtx->VSSetConstantBuffers   (0, 1, &VSConstantBuffer);
-    pCtx->PSSetSamplers          (0, 1, &PSSampler);
-    pCtx->IASetVertexBuffers     (0, 1, &VertexBuffer,    &VertexBufferStride,
-                                                          &VertexBufferOffset);
-    pCtx->OMSetRenderTargets     (1,    &RenderTargetView, DepthStencilView);
-
-    if (RS)                    RS->Release                    ();
-    if (PS)                    PS->Release                    ();
-    if (VS)                    VS->Release                    ();
-    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0 &&
-        GS)                    GS->Release                    ();
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0 &&
-        HS)                    HS->Release                    ();
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0 &&
-        DS)                    DS->Release                    ();
-    if (PSSampler)             PSSampler->Release             ();
-    if (BlendState)            BlendState->Release            ();
-    if (InputLayout)           InputLayout->Release           ();
-    if (IndexBuffer)           IndexBuffer->Release           ();
-    if (VertexBuffer)          VertexBuffer->Release          ();
-  //if (PSShaderResources [0]) PSShaderResources [0]->Release ();
-  //if (PSShaderResources [1]) PSShaderResources [1]->Release ();
-    if (VSConstantBuffer)      VSConstantBuffer->Release      ();
-    if (PSConstantBuffer)      PSConstantBuffer->Release      ();
-    if (RenderTargetView)      RenderTargetView->Release      ();
-    if (DepthStencilView)      DepthStencilView->Release      ();
-    if (DepthStencilState)     DepthStencilState->Release     ();
-
-    //
-    // Now balance the reference counts that D3D added even though we did not want them :P
-    //
-    for (UINT i = 0; i < VSInstancesCount; i++)
-    {
-      if (VSInstances [i])
-          VSInstances [i]->Release ();
-    }
-
-    for (UINT i = 0; i < PSInstancesCount; i++)
-    {
-      if (PSInstances [i])
-          PSInstances [i]->Release ();
-    }
-
-    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-    {
-      for (UINT i = 0; i < GSInstancesCount; i++)
-      {
-        if (GSInstances [i])
-            GSInstances [i]->Release ();
-      }
-    }
-
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-    {
-      for (UINT i = 0; i < HSInstancesCount; i++)
-      {
-        if (HSInstances [i])
-            HSInstances [i]->Release ();
-      }
-
-      for (UINT i = 0; i < DSInstancesCount; i++)
-      {
-        if (DSInstances [i])
-            DSInstances [i]->Release ();
-      }
-    }
-  }
-};
-
-void
-SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext*       pImmediateContext,
-                             SK_D3D11_Stateblock_Lite** pSB )
-{
-  if (pSB != nullptr)
-  {
-    if (*pSB == nullptr)
-    {
-      *pSB = new SK_D3D11_Stateblock_Lite ();
-    }
-
-    RtlSecureZeroMemory ( *pSB,
-                      sizeof (SK_D3D11_Stateblock_Lite) );
-
-    (*pSB)->capture (pImmediateContext);
-  }
-}
-
-void
-SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
-                           ID3D11DeviceContext*      pDevCtx )
-{
-  if (pBlock != nullptr && pDevCtx != nullptr)
-      pBlock->apply (pDevCtx);
-}
-
-SK_D3D11_Stateblock_Lite*
-SK_D3D11_CreateAndCaptureStateBlock (ID3D11DeviceContext* pImmediateContext)
-{
-  ///// Uses TLS to reduce dynamic memory pressure as much as possible
-  ///auto* sb =
-    //SK_TLS_Bottom ()->d3d11.getStateBlock ();
-  SK_D3D11_Stateblock_Lite* sb = new SK_D3D11_Stateblock_Lite ();
-
-  RtlSecureZeroMemory ( sb,
-                  sizeof (SK_D3D11_Stateblock_Lite) );
-
-  sb->capture (pImmediateContext);
-
-  return sb;
-}
-
-void
-SK_D3D11_ReleaseAndApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
-                                     ID3D11DeviceContext*      pDevCtx )
-{
-  if (pBlock == nullptr)
-    return;
-
-         pBlock->apply (pDevCtx);
-  delete pBlock;
-}
-
-void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
-{
-  if (dc == nullptr)
-    return;
-
-  SK_ComPtr <ID3D11Device>
-                  pDev;
-  dc->GetDevice (&pDev.p);
-
-  if ( pDev == nullptr )
-    return;
-
-  const D3D_FEATURE_LEVEL ft_lvl = pDev->GetFeatureLevel ();
-
-  RtlSecureZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
-
-  sb->OMBlendFactor [0] = 0.0f;
-  sb->OMBlendFactor [1] = 0.0f;
-  sb->OMBlendFactor [2] = 0.0f;
-  sb->OMBlendFactor [3] = 0.0f;
-
-
-  dc->VSGetShader          (&sb->VS, sb->VSInterfaces, &sb->VSInterfaceCount);
-
-  dc->VSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->VSSamplers);
-  dc->VSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->VSShaderResources);
-  dc->VSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->VSConstantBuffers);
-
-  if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-  {
-    dc->GSGetShader          (&sb->GS, sb->GSInterfaces, &sb->GSInterfaceCount);
-
-    dc->GSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->GSSamplers);
-    dc->GSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->GSShaderResources);
-    dc->GSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->GSConstantBuffers);
-  }
-
-  if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-  {
-    dc->HSGetShader          (&sb->HS, sb->HSInterfaces, &sb->HSInterfaceCount);
-
-    dc->HSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->HSSamplers);
-    dc->HSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->HSShaderResources);
-    dc->HSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->HSConstantBuffers);
-
-    dc->DSGetShader          (&sb->DS, sb->DSInterfaces, &sb->DSInterfaceCount);
-    dc->DSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->DSSamplers);
-    dc->DSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->DSShaderResources);
-    dc->DSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->DSConstantBuffers);
-  }
-
-  dc->PSGetShader          (&sb->PS, sb->PSInterfaces, &sb->PSInterfaceCount);
-
-  dc->PSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->PSSamplers);
-  dc->PSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->PSShaderResources);
-  dc->PSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->PSConstantBuffers);
-
-  if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-  {
-    dc->CSGetShader          (&sb->CS, sb->CSInterfaces, &sb->CSInterfaceCount);
-
-    dc->CSGetSamplers             (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->CSSamplers);
-    dc->CSGetShaderResources      (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->CSShaderResources);
-    dc->CSGetConstantBuffers      (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->CSConstantBuffers);
-    dc->CSGetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT,                    sb->CSUnorderedAccessViews);
-  }
-
-  dc->IAGetVertexBuffers     (0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT,  sb->IAVertexBuffers,
-                                                                             sb->IAVertexBuffersStrides,
-                                                                             sb->IAVertexBuffersOffsets);
-  dc->IAGetIndexBuffer       (&sb->IAIndexBuffer, &sb->IAIndexBufferFormat, &sb->IAIndexBufferOffset);
-  dc->IAGetInputLayout       (&sb->IAInputLayout);
-  dc->IAGetPrimitiveTopology (&sb->IAPrimitiveTopology);
-
-
-  dc->OMGetBlendState        (&sb->OMBlendState,         sb->OMBlendFactor, &sb->OMSampleMask);
-  dc->OMGetDepthStencilState (&sb->OMDepthStencilState, &sb->OMDepthStencilRef);
-
-  dc->OMGetRenderTargets ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, &sb->OMRenderTargetStencilView );
-
-  sb->RSViewportCount    = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-
-  dc->RSGetViewports         (&sb->RSViewportCount, sb->RSViewports);
-
-  sb->RSScissorRectCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-
-  dc->RSGetScissorRects      (&sb->RSScissorRectCount, sb->RSScissorRects);
-  dc->RSGetState             (&sb->RSRasterizerState);
-
-  if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-  {
-    dc->SOGetTargets         (4, sb->SOBuffers);
-  }
-
-  dc->GetPredication         (&sb->Predication, &sb->PredicationValue);
-}
-
-void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
-{
-  if (dc == nullptr)
-    return;
-
-  SK_ComPtr <ID3D11Device>
-                  pDev;
-  dc->GetDevice (&pDev.p);
-
-  if ( pDev == nullptr )
-    return;
-
-  const D3D_FEATURE_LEVEL ft_lvl = pDev->GetFeatureLevel ();
-
-  dc->VSSetShader            (sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
-
-  if (sb->VS != nullptr) sb->VS->Release ();
-
-  for (UINT i = 0; i < sb->VSInterfaceCount; i++)
-  {
-    if (sb->VSInterfaces [i] != nullptr)
-        sb->VSInterfaces [i]->Release ();
-  }
-
-  UINT VSSamplerCount =
-    calc_count               (sb->VSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-  if (VSSamplerCount)
-  {
-    dc->VSSetSamplers        (0, VSSamplerCount, sb->VSSamplers);
-
-    for (UINT i = 0; i < VSSamplerCount; i++)
-    {
-      if (sb->VSSamplers [i] != nullptr)
-          sb->VSSamplers [i]->Release ();
-    }
-  }
-
-  UINT VSShaderResourceCount =
-    calc_count               (sb->VSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-  if (VSShaderResourceCount)
-  {
-    dc->VSSetShaderResources (0, VSShaderResourceCount, sb->VSShaderResources);
-
-    for (UINT i = 0; i < VSShaderResourceCount; i++)
-    {
-      if (sb->VSShaderResources [i] != nullptr)
-          sb->VSShaderResources [i]->Release ();
-    }
-  }
-
-  UINT VSConstantBufferCount =
-    calc_count               (sb->VSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-  if (VSConstantBufferCount)
-  {
-    dc->VSSetConstantBuffers (0, VSConstantBufferCount, sb->VSConstantBuffers);
-
-    for (UINT i = 0; i < VSConstantBufferCount; i++)
-    {
-      if (sb->VSConstantBuffers [i] != nullptr)
-          sb->VSConstantBuffers [i]->Release ();
-    }
-  }
-
-
-  if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-  {
-    dc->GSSetShader            (sb->GS, sb->GSInterfaces, sb->GSInterfaceCount);
-
-    if (sb->GS != nullptr) sb->GS->Release ();
-
-    for (UINT i = 0; i < sb->GSInterfaceCount; i++)
-    {
-      if (sb->GSInterfaces [i] != nullptr)
-          sb->GSInterfaces [i]->Release ();
-    }
-
-    UINT GSSamplerCount =
-      calc_count               (sb->GSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-    if (GSSamplerCount)
-    {
-      dc->GSSetSamplers        (0, GSSamplerCount, sb->GSSamplers);
-
-      for (UINT i = 0; i < GSSamplerCount; i++)
-      {
-        if (sb->GSSamplers [i] != nullptr)
-            sb->GSSamplers [i]->Release ();
-      }
-    }
-
-    UINT GSShaderResourceCount =
-      calc_count               (sb->GSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-    if (GSShaderResourceCount)
-    {
-      dc->GSSetShaderResources (0, GSShaderResourceCount, sb->GSShaderResources);
-
-      for (UINT i = 0; i < GSShaderResourceCount; i++)
-      {
-        if (sb->GSShaderResources [i] != nullptr)
-            sb->GSShaderResources [i]->Release ();
-      }
-    }
-
-    UINT GSConstantBufferCount =
-      calc_count               (sb->GSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-    if (GSConstantBufferCount)
-    {
-      dc->GSSetConstantBuffers (0, GSConstantBufferCount, sb->GSConstantBuffers);
-
-      for (UINT i = 0; i < GSConstantBufferCount; i++)
-      {
-        if (sb->GSConstantBuffers [i] != nullptr)
-            sb->GSConstantBuffers [i]->Release ();
-      }
-    }
-  }
-
-
-  if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-  {
-    dc->HSSetShader            (sb->HS, sb->HSInterfaces, sb->HSInterfaceCount);
-
-    if (sb->HS != nullptr) sb->HS->Release ();
-
-    for (UINT i = 0; i < sb->HSInterfaceCount; i++)
-    {
-      if (sb->HSInterfaces [i] != nullptr)
-          sb->HSInterfaces [i]->Release ();
-    }
-
-    UINT HSSamplerCount =
-      calc_count               (sb->HSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-    if (HSSamplerCount)
-    {
-      dc->HSSetSamplers        (0, HSSamplerCount, sb->HSSamplers);
-
-      for (UINT i = 0; i < HSSamplerCount; i++)
-      {
-        if (sb->HSSamplers [i] != nullptr)
-            sb->HSSamplers [i]->Release ();
-      }
-    }
-
-    UINT HSShaderResourceCount =
-      calc_count               (sb->HSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-    if (HSShaderResourceCount)
-    {
-      dc->HSSetShaderResources (0, HSShaderResourceCount, sb->HSShaderResources);
-
-      for (UINT i = 0; i < HSShaderResourceCount; i++)
-      {
-        if (sb->HSShaderResources [i] != nullptr)
-            sb->HSShaderResources [i]->Release ();
-      }
-    }
-
-    UINT HSConstantBufferCount =
-      calc_count               (sb->HSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-    if (HSConstantBufferCount)
-    {
-      dc->HSSetConstantBuffers (0, HSConstantBufferCount, sb->HSConstantBuffers);
-
-      for (UINT i = 0; i < HSConstantBufferCount; i++)
-      {
-        if (sb->HSConstantBuffers [i] != nullptr)
-            sb->HSConstantBuffers [i]->Release ();
-      }
-    }
-
-
-    dc->DSSetShader            (sb->DS, sb->DSInterfaces, sb->DSInterfaceCount);
-
-    if (sb->DS != nullptr) sb->DS->Release ();
-
-    for (UINT i = 0; i < sb->DSInterfaceCount; i++)
-    {
-      if (sb->DSInterfaces [i] != nullptr)
-          sb->DSInterfaces [i]->Release ();
-    }
-
-    UINT DSSamplerCount =
-      calc_count               (sb->DSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-    if (DSSamplerCount)
-    {
-      dc->DSSetSamplers        (0, DSSamplerCount, sb->DSSamplers);
-
-      for (UINT i = 0; i < DSSamplerCount; i++)
-      {
-        if (sb->DSSamplers [i] != nullptr)
-            sb->DSSamplers [i]->Release ();
-      }
-    }
-
-    UINT DSShaderResourceCount =
-      calc_count               (sb->DSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-    if (DSShaderResourceCount)
-    {
-      dc->DSSetShaderResources (0, DSShaderResourceCount, sb->DSShaderResources);
-
-      for (UINT i = 0; i < DSShaderResourceCount; i++)
-      {
-        if (sb->DSShaderResources [i] != nullptr)
-            sb->DSShaderResources [i]->Release ();
-      }
-    }
-
-    UINT DSConstantBufferCount =
-      calc_count               (sb->DSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-    if (DSConstantBufferCount)
-    {
-      dc->DSSetConstantBuffers (0, DSConstantBufferCount, sb->DSConstantBuffers);
-
-      for (UINT i = 0; i < DSConstantBufferCount; i++)
-      {
-        if (sb->DSConstantBuffers [i] != nullptr)
-            sb->DSConstantBuffers [i]->Release ();
-      }
-    }
-  }
-
-
-  dc->PSSetShader            (sb->PS, sb->PSInterfaces, sb->PSInterfaceCount);
-
-  if (sb->PS != nullptr) sb->PS->Release ();
-
-  for (UINT i = 0; i < sb->PSInterfaceCount; i++)
-  {
-    if (sb->PSInterfaces [i] != nullptr)
-        sb->PSInterfaces [i]->Release ();
-  }
-
-  UINT PSSamplerCount =
-    calc_count               (sb->PSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-  if (PSSamplerCount)
-  {
-    dc->PSSetSamplers        (0, PSSamplerCount, sb->PSSamplers);
-
-    for (UINT i = 0; i < PSSamplerCount; i++)
-    {
-      if (sb->PSSamplers [i] != nullptr)
-          sb->PSSamplers [i]->Release ();
-    }
-  }
-
-  UINT PSShaderResourceCount =
-    calc_count               (sb->PSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-  if (PSShaderResourceCount)
-  {
-    dc->PSSetShaderResources (0, PSShaderResourceCount, sb->PSShaderResources);
-
-    for (UINT i = 0; i < PSShaderResourceCount; i++)
-    {
-      if (sb->PSShaderResources [i] != nullptr)
-          sb->PSShaderResources [i]->Release ();
-    }
-  }
-
-  UINT PSConstantBufferCount =
-    calc_count               (sb->PSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-  if (PSConstantBufferCount)
-  {
-    dc->PSSetConstantBuffers (0, PSConstantBufferCount, sb->PSConstantBuffers);
-
-    for (UINT i = 0; i < PSConstantBufferCount; i++)
-    {
-      if (sb->PSConstantBuffers [i] != nullptr)
-          sb->PSConstantBuffers [i]->Release ();
-    }
-  }
-
-
-  if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-  {
-    dc->CSSetShader            (sb->CS, sb->CSInterfaces, sb->CSInterfaceCount);
-
-    if (sb->CS != nullptr)
-      sb->CS->Release ();
-
-    for (UINT i = 0; i < sb->CSInterfaceCount; i++)
-    {
-      if (sb->CSInterfaces [i] != nullptr)
-          sb->CSInterfaces [i]->Release ();
-    }
-
-    UINT CSSamplerCount =
-      calc_count               (sb->CSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-    if (CSSamplerCount)
-    {
-      dc->CSSetSamplers        (0, CSSamplerCount, sb->CSSamplers);
-
-      for (UINT i = 0; i < CSSamplerCount; i++)
-      {
-        if (sb->CSSamplers [i] != nullptr)
-            sb->CSSamplers [i]->Release ();
-      }
-    }
-
-    UINT CSShaderResourceCount =
-      calc_count               (sb->CSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-    if (CSShaderResourceCount)
-    {
-      dc->CSSetShaderResources (0, CSShaderResourceCount, sb->CSShaderResources);
-
-      for (UINT i = 0; i < CSShaderResourceCount; i++)
-      {
-        if (sb->CSShaderResources [i] != nullptr)
-            sb->CSShaderResources [i]->Release ();
-      }
-    }
-
-    UINT CSConstantBufferCount =
-      calc_count               (sb->CSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-    if (CSConstantBufferCount)
-    {
-      dc->CSSetConstantBuffers (0, CSConstantBufferCount, sb->CSConstantBuffers);
-
-      for (UINT i = 0; i < CSConstantBufferCount; i++)
-      {
-        if (sb->CSConstantBuffers [i] != nullptr)
-            sb->CSConstantBuffers [i]->Release ();
-      }
-    }
-
-    UINT minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] =
-    { std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max () };
-
-    dc->CSSetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
-
-    for (auto& CSUnorderedAccessView : sb->CSUnorderedAccessViews)
-    {
-      if (CSUnorderedAccessView != nullptr)
-          CSUnorderedAccessView->Release ();
-    }
-  }
-
-
-  UINT IAVertexBufferCount =
-    calc_count               (sb->IAVertexBuffers, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT);
-
-  if (IAVertexBufferCount)
-  {
-    dc->IASetVertexBuffers   (0, IAVertexBufferCount, sb->IAVertexBuffers,
-                                                      sb->IAVertexBuffersStrides,
-                                                      sb->IAVertexBuffersOffsets);
-
-    for (UINT i = 0; i < IAVertexBufferCount; i++)
-    {
-      if (sb->IAVertexBuffers [i] != nullptr)
-          sb->IAVertexBuffers [i]->Release ();
-    }
-  }
-
-  dc->IASetIndexBuffer       (sb->IAIndexBuffer, sb->IAIndexBufferFormat, sb->IAIndexBufferOffset);
-  dc->IASetInputLayout       (sb->IAInputLayout);
-  dc->IASetPrimitiveTopology (sb->IAPrimitiveTopology);
-
-  if (sb->IAIndexBuffer != nullptr) sb->IAIndexBuffer->Release ();
-  if (sb->IAInputLayout != nullptr) sb->IAInputLayout->Release ();
-
-
-  dc->OMSetBlendState        (sb->OMBlendState,        sb->OMBlendFactor,
-                                                       sb->OMSampleMask);
-  dc->OMSetDepthStencilState (sb->OMDepthStencilState, sb->OMDepthStencilRef);
-
-  if (sb->OMBlendState)        sb->OMBlendState->Release        ();
-  if (sb->OMDepthStencilState) sb->OMDepthStencilState->Release ();
-
-  UINT OMRenderTargetCount =
-    calc_count (sb->OMRenderTargets, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
-
-  if (OMRenderTargetCount)
-  {
-    dc->OMSetRenderTargets   (OMRenderTargetCount, sb->OMRenderTargets,
-                                                   sb->OMRenderTargetStencilView);
-
-    for (UINT i = 0; i < OMRenderTargetCount; i++)
-    {
-      if (sb->OMRenderTargets [i] != nullptr)
-          sb->OMRenderTargets [i]->Release ();
-    }
-  }
-
-  if (sb->OMRenderTargetStencilView != nullptr)
-      sb->OMRenderTargetStencilView->Release ();
-
-  dc->RSSetViewports         (sb->RSViewportCount,     sb->RSViewports);
-  dc->RSSetScissorRects      (sb->RSScissorRectCount,  sb->RSScissorRects);
-
-  dc->RSSetState             (sb->RSRasterizerState);
-
-  if (sb->RSRasterizerState != nullptr)
-      sb->RSRasterizerState->Release ();
-
-  if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-  {
-    UINT SOBufferCount =
-      calc_count (sb->SOBuffers, 4);
-
-    if (SOBufferCount)
-    {
-      UINT SOBuffersOffsets [4] = {   };
-
-      dc->SOSetTargets (SOBufferCount, sb->SOBuffers, SOBuffersOffsets);
-
-      for (UINT i = 0; i < SOBufferCount; i++)
-      {
-        if (sb->SOBuffers [i] != nullptr)
-            sb->SOBuffers [i]->Release ();
-      }
-    }
-  }
-
-  dc->SetPredication (sb->Predication, sb->PredicationValue);
-
-  if (sb->Predication != nullptr)
-      sb->Predication->Release ();
-}
-
-// The struct is implemented here, so that's where we allocate it.
-SK_D3D11_Stateblock_Lite*
-SK_D3D11_AllocStateBlock (size_t& size) noexcept
-{
-  size =
-    sizeof (                SK_D3D11_Stateblock_Lite );
-  return new (std::nothrow) SK_D3D11_Stateblock_Lite { };
-}
-
-void
-SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb) noexcept
-{
-  assert (sb != nullptr);
-
-  delete sb;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-void
-SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
+SK_D3D11_EndFrame (SK_TLS* pTLS)
 {
   for ( auto end_frame_fn : plugin_mgr->end_frame_fns )
   {
@@ -11425,15 +7296,9 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
     SK_D3D11_TempResources->clear ();
   }
 
-  SK_D3D11_TextureResampler->processFinished (pDev, pDevCtx, pTLS);
+  SK_D3D11_Resampler_ProcessFinished (pDev, pDevCtx, pTLS);
 }
 
-
-
-
-
-
-std::string SK_HDR_FIXUP::_SpecialNowhere;
 
 std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader      = nullptr;
 std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader_vs   = nullptr;

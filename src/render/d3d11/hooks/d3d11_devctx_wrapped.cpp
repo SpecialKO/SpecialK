@@ -49,14 +49,8 @@ const GUID IID_IUnwrappedD3D11DeviceContext =
 static const GUID IID_IUnwrappedD3D11Multithread =
 { 0xf674a27d, 0xa14e, 0x48ba, { 0x9e, 0x1e, 0xa7, 0x2d, 0x20, 0xc0, 0x18, 0xb4 } };
 
-
-
-extern SK_LazyGlobal <memory_tracking_s> mem_map_stats;
-extern SK_LazyGlobal <target_tracking_s> tracked_rtv;
-
 extern SK_LazyGlobal <std::unordered_set <ID3D11Texture2D *>>                         used_textures;
 extern SK_LazyGlobal <std::unordered_map <ID3D11DeviceContext *, mapped_resources_s>> mapped_resources;
-
 
 #define track_immediate config.render.dxgi.deferred_isolation
 
@@ -288,8 +282,8 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
-    pMultiThread.p =
-      SK_D3D11_WrapperFactory->wrapMultithread (this);
+    ////pMultiThread.p =
+    ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext1* dev_ctx) : pReal (dev_ctx)
@@ -321,8 +315,8 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
-    pMultiThread =
-      SK_D3D11_WrapperFactory->wrapMultithread (this);
+    ////pMultiThread =
+    ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext2* dev_ctx) : pReal (dev_ctx)
@@ -354,8 +348,8 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
-    pMultiThread.p =
-      SK_D3D11_WrapperFactory->wrapMultithread (this);
+    ////pMultiThread.p =
+    ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext3* dev_ctx) : pReal (dev_ctx)
@@ -385,8 +379,8 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
-    pMultiThread.p =
-      SK_D3D11_WrapperFactory->wrapMultithread (this);
+    ////pMultiThread.p =
+    ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   explicit SK_IWrapD3D11DeviceContext (ID3D11DeviceContext4* dev_ctx) : pReal (dev_ctx)
@@ -406,8 +400,8 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
-    pMultiThread.p =
-      SK_D3D11_WrapperFactory->wrapMultithread (this);
+    ////pMultiThread.p =
+    ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
 
   virtual ~SK_IWrapD3D11DeviceContext (void) = default;
@@ -491,32 +485,32 @@ public:
       return hr;
     }
 
-    else if (riid == IID_ID3D11Multithread)
-    {
-      hr =
-        ( pMultiThread.p != nullptr ) ?
-                                 S_OK : E_NOINTERFACE;
-
-      if (hr == E_NOINTERFACE)
-      {
-        hr =
-          pReal->QueryInterface (riid, (void**)&pMultiThread.p);
-      }
-
-      else
-      {
-        hr = S_OK;
-
-        pMultiThread.p->AddRef ();
-      }
-
-      if (SUCCEEDED (hr))
-      {
-        *ppvObj = pMultiThread;
-
-        return hr;
-      }
-    }
+    ////else if (riid == IID_ID3D11Multithread)
+    ////{
+    ////  hr =
+    ////    ( pMultiThread.p != nullptr ) ?
+    ////                             S_OK : E_NOINTERFACE;
+    ////
+    ////  if (hr == E_NOINTERFACE)
+    ////  {
+    ////    hr =
+    ////      pReal->QueryInterface (riid, (void**)&pMultiThread.p);
+    ////  }
+    ////
+    ////  else
+    ////  {
+    ////    hr = S_OK;
+    ////
+    ////    pMultiThread.p->AddRef ();
+    ////  }
+    ////
+    ////  if (SUCCEEDED (hr))
+    ////  {
+    ////    *ppvObj = pMultiThread;
+    ////
+    ////    return hr;
+    ////  }
+    ////}
 
     else if (riid == IID_ID3D11Device)
     {
@@ -532,7 +526,8 @@ public:
     //if (SUCCEEDED (hr))
     //  InterlockedIncrement (&refs_);
 
-    if ( riid != IID_ID3DUserDefinedAnnotation )
+    if ( riid != IID_ID3DUserDefinedAnnotation &&
+         riid != IID_ID3D11Multithread )
     {
       static
         std::unordered_set <std::wstring> reported_guids;
@@ -579,11 +574,6 @@ public:
     if (refs == 0)
     {
       SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
-
-      pMultiThread = nullptr;
-
-      //delete this;
-      return 0;
     }
 
     return refs;
@@ -1218,10 +1208,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     {
       return;
     }
-
-    SK_TLS* pTLS =
-      SK_TLS_Bottom ();
-
     static auto& textures =
       SK_D3D11_Textures;
 
@@ -1333,6 +1319,9 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
 
           if (checksum != 0x00 && dst_desc.Usage != D3D11_USAGE_STAGING)
           {
+            SK_TLS* pTLS =
+              SK_TLS_Bottom ();
+
             textures->refTexture2D ( pDstTex,
                                      &dst_desc,
                                      cache_tag,
@@ -1485,7 +1474,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
 
     SK_ComPtr <ID3D11DeviceContext>
          pBuildContext (nullptr);
-    UINT  size        =        0;
+    UINT  size        =        sizeof (LPVOID);
 
 
     // Fix for Yakuza0, why the hell is it passing nullptr?!
@@ -1508,14 +1497,13 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     }
 
 
-
-
-    pCommandList->GetPrivateData (
+    // Broken
+#if 0
+    if ( SUCCEEDED (
+      pCommandList->GetPrivateData (
       SKID_D3D11DeviceContextOrigin,
-         &size,   &pBuildContext.p
-    );
-
-    if (pBuildContext.p != nullptr)
+         &size,   &pBuildContext.p )
+       )           )
     {
       if (! pBuildContext.IsEqualObject (pReal))
       {
@@ -1525,11 +1513,11 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         );
       }
 
-      pBuildContext->SetPrivateData (
-        SKID_D3D11DeviceContextOrigin,
-            0,      nullptr
-      );
+      pCommandList->SetPrivateDataInterface (SKID_D3D11DeviceContextOrigin, nullptr);
     }
+#else
+    UNREFERENCED_PARAMETER (size);
+#endif
 
     pReal->ExecuteCommandList (
       pCommandList,
@@ -2623,9 +2611,9 @@ private:
   bool                  deferred_       = false;
   UINT                  dev_ctx_handle_ = UINT_MAX;
   ID3D11DeviceContext*  pReal           = nullptr;
-  SK_ComPtr
-    <SK_IWrapD3D11Multithread>
-                        pMultiThread    = nullptr;
+  ///SK_ComPtr
+  ///  <SK_IWrapD3D11Multithread>
+  ///                      pMultiThread    = nullptr;
 };
 
 ID3D11DeviceContext4*

@@ -299,7 +299,18 @@ struct sk_config_t
 
   struct uplay_s {
     float overlay_luminance     = 4.375f; // 350 nits
+    bool  present               = false;  // Is the overlay detected?
   } uplay;
+
+  struct discord_s {
+    float overlay_luminance     = 4.375f; // 350 nits
+    bool  present               = false;  // Is the overlay detected?
+  } discord;
+
+  struct rtss_s {
+    float overlay_luminance     = 4.375f; // 350 nits
+    bool  present               = false;  // Is the overlay detected?
+  } rtss;
 
   struct screenshots_s {
     bool    png_compress          =  true;
@@ -348,11 +359,12 @@ struct sk_config_t
       struct rescan_s {
         UINT Denom               =  1;
         UINT Numerator           =
-                            UINT (-1);
+               static_cast <UINT> (-1);
       } rescan_;
       int     refresh_denom      =  1;
       int     pin_render_thread  = -1;
       bool    flip_discard       = false;
+      bool    flip_sequential    = false;
       bool    disable_flip       = false;
       bool    drop_late_flips    = true;
       bool    wait_for_vblank    = false;
@@ -495,7 +507,15 @@ struct sk_config_t
     //bool    fix_10bit_gsync   = false;
       bool    kill_hdr          = false;
       bool    snuffed_ansel     = false;
+      bool    bypass_ansel      = false;
     } bugs;
+    struct sleep_s {
+      bool    enable            =  false;
+      bool    low_latency       =   true;
+      bool    low_latency_boost =   true;
+      UINT    frame_interval_us =      0;
+      int     enforcement_site  =      1;
+    } sleep;
   } nvidia;
 
   struct input_s {
@@ -547,6 +567,7 @@ struct sk_config_t
     struct keyboard_s {
       bool    block_windows_key = false;
       bool    catch_alt_f4      = true;
+      bool    override_alt_f4   = false; // For games that have prompts (i.e. DQ XI / Yakuza)
       bool    disabled_to_game  = false;
     } keyboard;
 
@@ -939,6 +960,10 @@ enum class SK_GAME_ID
   AssassinsCreed_Valhalla,      // ACValhalla.exe / ACValhalla_Plus.exe
   Cyberpunk2077,                // Cyberpunk2077.exe
   AtelierRyza2,                 // Atelier_Ryza_2.exe
+  Nioh2,                        // nioh2.exe
+  HuniePop2,                    // HuniePop 2 - Double Date.exe
+  GalGunReturns,                // GalGun Returns/game.exe
+  Persona5Strikers,             // P5S/game.exe
   UNKNOWN_GAME               = 0xffff
 };
 

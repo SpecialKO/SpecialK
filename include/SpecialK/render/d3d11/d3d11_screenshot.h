@@ -96,7 +96,7 @@ public:
     ~framebuffer_s (void)
     {
       if (PixelBuffer == root_.bytes)
-        PixelBuffer.release ();
+        PixelBuffer.release (); // Does not free
 
       PixelBuffer.reset ();
     }

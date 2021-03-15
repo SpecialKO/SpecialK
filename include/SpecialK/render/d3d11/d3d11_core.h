@@ -142,7 +142,6 @@ extern const GUID IID_ID3D11Device3;
 extern const GUID IID_ID3D11Device4;
 extern const GUID IID_ID3D11Device5;
 
-
 // {9A222196-4D44-45C3-AAA4-2FD47915CC70}
 extern const GUID IID_IUnwrappedD3D11DeviceContext;
 
@@ -200,10 +199,6 @@ D3D11CoreCreateDevice_Detour ( IDXGIFactory*       pFactory,
                          const D3D_FEATURE_LEVEL*  pFeatureLevels,
                                UINT                FeatureLevels,
                                ID3D11Device**      ppDevice );
-
-
-// The device context a command list was built using
-extern const GUID SKID_D3D11DeviceContextOrigin;
 
 extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader;
 extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader_vs;
@@ -2318,7 +2313,7 @@ struct SK_D3D11_RenderCtx {
   SK_ComPtr <ID3D11DeviceContext>         _pDeviceCtx       = nullptr;
   SK_ComPtr <IDXGISwapChain>              _pSwapChain       = nullptr;
 
-	struct FrameCtx {
+  struct FrameCtx {
     SK_D3D11_RenderCtx*                   pRoot             = nullptr;
 
     //struct FenceCtx : SK_ComPtr <ID3D12Fence> {
@@ -2326,7 +2321,7 @@ struct SK_D3D11_RenderCtx {
     //  volatile UINT64                     value             =       0;
     //} fence;
 
-		SK_ComPtr <ID3D11Texture2D>           pRenderOutput     = nullptr;
+    SK_ComPtr <ID3D11Texture2D>           pRenderOutput     = nullptr;
     UINT                                  iBufferIdx        =UINT_MAX;
 
     struct {
@@ -2337,7 +2332,7 @@ struct SK_D3D11_RenderCtx {
     } hdr;
 
     ~FrameCtx (void);
-	};
+  };
 
   SK_ComPtr <ID3D11BlendState>            pGenericBlend     = nullptr;
 
@@ -2361,7 +2356,7 @@ __forceinline
 UINT
 calc_count (_T** arr, UINT max_count) noexcept
 {
-  for ( int i = gsl::narrow_cast <int> (max_count) - 1 ;
+  for ( INT i = static_cast <INT> (max_count - 1) ;
             i >= 0 ;
           --i )
   {
@@ -2497,3 +2492,6 @@ SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext*       pImmediateContext,
 void
 SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
                            ID3D11DeviceContext*      pDevCtx );
+
+void SK_D3D11_BeginFrame (void);
+void SK_D3D11_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());

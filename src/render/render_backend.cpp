@@ -34,6 +34,7 @@
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 
 #include <SpecialK/nvapi.h>
@@ -927,8 +928,6 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     SK_LOG1 ( ( L"API: %x", api ),
                __SK_SUBSYSTEM__ );
 
-    swapchain_waithandle.Close ();
-
 ///#define _USE_FLUSH
 
     // Flushing at shutdown may cause deadlocks
@@ -938,8 +937,9 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
         d3d11.immediate_ctx->ClearState ();
     }
 #endif
-    swapchain = nullptr;// .Reset();
-    device    = nullptr;//.Reset    ();
+    swapchain = nullptr;//.Reset();
+    device    = nullptr;//.Reset();
+    factory   = nullptr;
 
     if (surface.d3d9 != nullptr)
     {
@@ -1515,6 +1515,7 @@ SK_D3D_SetupShaderCompiler (void)
     }
   }
 
+#if 0
   struct SK_D3D_AntiStrip {
     const wchar_t*    wszDll;
     const    char*    szSymbol;
@@ -1536,6 +1537,7 @@ SK_D3D_SetupShaderCompiler (void)
     { L"D3DCOMPILER_40.dll",
        "D3DStripShader",   D3DStripShader_40_Detour,
   static_cast_p2p <void> (&D3DStripShader_40_Original) } };
+#endif
 
   if (SUCCEEDED (__HrLoadAllImportsForDll ("D3DCOMPILER_47.dll")))
   {
@@ -1772,6 +1774,47 @@ SK_Display_PopDPIScaling (void)
   }
 }
 
+void SK_Display_ForceDPIAwarenessUsingAppCompat (void)
+{
+  DWORD   dwProcessSize = MAX_PATH;
+  wchar_t wszProcessName [MAX_PATH + 2] = { };
+
+  HANDLE hProc =
+   SK_GetCurrentProcess ();
+
+  QueryFullProcessImageName (
+    hProc, 0,
+      wszProcessName, &dwProcessSize
+  );
+
+  const wchar_t* wszKey        =
+    LR"(Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers)";
+  DWORD          dwDisposition = 0x00;
+  HKEY           hKey          = nullptr;
+
+  const LSTATUS status =
+    RegCreateKeyExW ( HKEY_CURRENT_USER,
+                        wszKey,      0,
+                          nullptr, 0x0,
+                          KEY_READ | KEY_WRITE,
+                             nullptr,
+                               &hKey,
+                                 &dwDisposition );
+
+  if ( status == ERROR_SUCCESS &&
+       hKey   != nullptr          )
+  {
+    RegSetValueExW (
+      hKey, wszProcessName,
+        0, REG_SZ,
+          (BYTE *)L"HIGHDPIAWARE",
+             16 * sizeof (wchar_t) );
+
+    RegFlushKey (hKey);
+    RegCloseKey (hKey);
+  }
+}
+
 void
 SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10)
 {
@@ -1899,7 +1942,7 @@ SK_RenderBackend_V2::checkHDRState (void)
     SK_DXGI_UpdateColorSpace (pSwap3.p);
 
     return
-      isHDRCapable ();
+      isHDRCapable () && isHDRActive ();
   }
 
   return false;
@@ -1934,6 +1977,7 @@ SK_RenderBackend_V2::setDevice (IUnknown *pDevice)
         {
         //d3d11.device = pDevice11;
                 device = pDevice;//pDevice11;
+                api    = SK_RenderAPI::D3D11;
         }
       }
 
@@ -1944,6 +1988,7 @@ SK_RenderBackend_V2::setDevice (IUnknown *pDevice)
         {
         //d3d12.device = pDevice12;
                 device = pDevice;//pDevice12;
+                api    = SK_RenderAPI::D3D12;
         }
       }
     }
@@ -1959,4 +2004,827 @@ SK_RenderBackend_V2::setDevice (IUnknown *pDevice)
     device = nullptr;
     return DXGI_ERROR_DEVICE_REMOVED;
   }
+}
+
+const uint8_t
+  edid_v1_header [] =
+    { 0x00, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0x00 };
+
+const uint8_t
+  edid_v1_descriptor_flag [] =
+    { 0x00, 0x00 };
+
+const wchar_t*
+DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
+
+#define EDID_LENGTH                        0x80
+#define EDID_HEADER                        0x00
+#define EDID_HEADER_END                    0x07
+
+#define ID_MANUFACTURER_NAME               0x08
+#define ID_MANUFACTURER_NAME_END           0x09
+
+#define EDID_STRUCT_VERSION                0x12
+#define EDID_STRUCT_REVISION               0x13
+
+#define UNKNOWN_DESCRIPTOR           (uint8_t)1
+#define DETAILED_TIMING_BLOCK        (uint8_t)2
+#define DESCRIPTOR_DATA                       5
+
+#define DETAILED_TIMING_DESCRIPTIONS_START 0x36
+#define DETAILED_TIMING_DESCRIPTION_SIZE     18
+#define NUM_DETAILED_TIMING_DESCRIPTIONS      4
+
+const uint8_t MONITOR_NAME                = 0xfc;
+
+static uint8_t
+blockType (uint8_t* block) noexcept
+{
+  if (  block [0] == 0 &&
+        block [1] == 0 &&
+        block [2] == 0 &&
+        block [3] != 0 &&
+        block [4] == 0    )
+  {
+    if (block [3] >= (uint8_t) 0xFA)
+    {
+      return
+        block [3];
+    }
+  }
+
+  return
+    UNKNOWN_DESCRIPTOR;
+}
+
+static std::string
+SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
+{
+  char     name [13] = { };
+  unsigned i;
+
+  uint8_t const* ptr =
+    block + DESCRIPTOR_DATA;
+
+  for (i = 0; i < 13; ++i, ++ptr)
+  {
+    if (*ptr == 0xa)
+    {
+      name [i] = '\0';
+
+      return
+        name;
+    }
+
+    name [i] = *ptr;
+  }
+
+  return name;
+}
+
+static std::string
+SK_EDID_Parse (uint8_t *edid, size_t length)
+{
+  std::string edid_name;
+
+  unsigned int i        = 0;
+  uint8_t*     block    = 0;
+  uint8_t      checksum = 0;
+
+  for (i = 0; i < length; ++i)
+    checksum += edid [i];
+
+  // Bad checksum, fail EDID
+  if (checksum != 0)
+  {
+    dll_log->Log (L"SK_EDID_Parse (...): Checksum fail");
+    return "";
+  }
+
+  if ( 0 != memcmp ( (const char*)edid          + EDID_HEADER,
+                     (const char*)edid_v1_header, EDID_HEADER_END + 1 ) )
+
+  {
+    dll_log->Log (L"SK_EDID_Parse (...): Not V1 Header");
+
+    // Not a V1 header
+    return "";
+  }
+
+  // Monitor name and timings
+  block =
+    &edid [DETAILED_TIMING_DESCRIPTIONS_START];
+
+  uint8_t *end =
+    &edid [length - 1];
+
+#if 0
+  int byte_idx = 0;
+
+  while (block < end)
+  {
+    dll_log->Log (L"Byte %lu : %u", byte_idx++, (uint32_t) (*block));
+    ++block;
+  }
+#endif
+
+  while (block < end)
+  {
+    uint8_t type =
+      blockType (block);
+
+    switch (type)
+    {
+      case DETAILED_TIMING_BLOCK:
+        block += DETAILED_TIMING_DESCRIPTION_SIZE;
+        break;
+
+      case UNKNOWN_DESCRIPTOR:
+        ++block;
+        break;
+
+      case MONITOR_NAME:
+      {
+        uint8_t vendorString [5] = { };
+
+        vendorString [0] =  (edid [8] >> 2   & 31)
+                                             + 64;
+        vendorString [1] = ((edid [8]  & 3) << 3) |
+                            (edid [9] >> 5)  + 64;
+        vendorString [2] =  (edid [9]  & 31) + 64;
+
+        edid_name = (const char *)vendorString;
+        edid_name += " ";
+        edid_name +=
+          SK_EDID_GetMonitorNameFromBlock (block);
+
+        bool one_pt_4 =
+          ((((unsigned) edid [10]) & 0xffU) == 4);
+
+#define EDID_LOG2(x) {                              \
+          if (one_pt_4) SK_LOG2 (x, L" EDID 1.4 "); \
+          else          SK_LOG2 (x, L" EDID 1.3 "); }
+
+        EDID_LOG2 ( ( L"SK_EDID_Parse (...): [ Name: %hs ]",
+                      edid_name.c_str () ) );
+
+      block += DETAILED_TIMING_DESCRIPTION_SIZE;
+    } break;
+
+    default:
+      ++block;
+      break;
+    }
+  }
+
+  return edid_name;
+}
+
+//#include "../depends/include/nvapi/nvapi_lite_common.h"
+
+static
+const GUID
+      GUID_CLASS_MONITOR =
+    { 0x4d36e96e, 0xe325, 0x11ce, 0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18 };
+
+static
+const GUID
+      GUID_DEVINTERFACE_MONITOR =
+    { 0xe6f07b5f, 0xee97, 0x4a90, 0xb0, 0x76, 0x33, 0xf5, 0x7b, 0xf4, 0xea, 0xa7 };
+
+std::wstring
+SK_GetKeyPathFromHKEY (HKEY& key)
+{
+#define STATUS_SUCCESS          ((NTSTATUS)0x00000000L)
+#define STATUS_BUFFER_TOO_SMALL ((NTSTATUS)0xC0000023L)
+
+  std::wstring keyPath;
+
+  if (key != nullptr)
+  {
+    typedef DWORD (__stdcall *NtQueryKey_pfn)(
+                       HANDLE KeyHandle,
+                       int    KeyInformationClass,
+                       PVOID  KeyInformation,
+                       ULONG  Length,
+                       PULONG ResultLength );
+
+    static
+      NtQueryKey_pfn    NtQueryKey =
+      reinterpret_cast <NtQueryKey_pfn> (
+        SK_GetProcAddress ( L"NtDll.dll",
+                             "NtQueryKey" ) );
+
+    if (NtQueryKey != nullptr)
+    {
+      DWORD size   = 0;
+      DWORD result = 0;
+
+      result =
+        NtQueryKey (key, 3, nullptr, 0, &size);
+
+      if (result == STATUS_BUFFER_TOO_SMALL)
+      {
+        size += 2;
+
+        wchar_t* buffer =
+          new (std::nothrow) wchar_t [size / sizeof (wchar_t)];
+
+        if (buffer != nullptr)
+        {
+          result =
+            NtQueryKey (key, 3, buffer, size, &size);
+
+          if (result == STATUS_SUCCESS)
+          {
+            buffer [size / sizeof (wchar_t)] = L'\0';
+
+            keyPath =
+              std::wstring (buffer + 2);
+          }
+
+          delete [] buffer;
+        }
+      }
+    }
+  }
+
+  return
+    keyPath;
+}
+
+void
+SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc = nullptr);
+
+
+static volatile LONG lUpdatingOutputs = 0;
+
+void
+SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
+                              DXGI_OUTPUT_DESC&              outDesc )
+{
+  if (*display.name == L'\0')
+  {
+    std::string edid_name;
+
+    UINT devIdx = display.idx;
+
+    wsprintf (display.name, L"UNKNOWN");
+
+    bool nvSuppliedEDID = false;
+
+    // This is known to return EDIDs with checksums that don't match expected,
+    //   there's not much benefit to getting EDID this way, so use the registry instead.
+#if 0
+    if (sk::NVAPI::nv_hardware != false)
+    {
+      NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = { };
+      NvU32               nvGpuCount                             =   0;
+      NvDisplayHandle     nvDisplayHandle;
+      NvU32               nvOutputId  = std::numeric_limits <NvU32>::max ();
+      NvU32               nvDisplayId = std::numeric_limits <NvU32>::max ();
+
+      if ( NVAPI_OK ==
+             NvAPI_GetAssociatedNvidiaDisplayHandle (
+               SK_FormatString (R"(%ws)", outDesc.DeviceName).c_str (),
+                 &nvDisplayHandle
+             ) &&
+           NVAPI_OK ==
+             NvAPI_GetAssociatedDisplayOutputId (nvDisplayHandle, &nvOutputId) &&
+           NVAPI_OK ==
+             NvAPI_GetPhysicalGPUsFromDisplay   (nvDisplayHandle, nvGpuHandles,
+                                                                 &nvGpuCount)  &&
+           NVAPI_OK ==
+             NvAPI_SYS_GetDisplayIdFromGpuAndOutputId (
+               nvGpuHandles [0], nvOutputId,
+                                &nvDisplayId
+             )
+         )
+      {
+        NV_EDID edid = {         };
+        edid.version = NV_EDID_VER;
+
+        if ( NVAPI_OK ==
+               NvAPI_GPU_GetEDID (
+                 nvGpuHandles [0],
+                 nvDisplayId, &edid
+               )
+           )
+        {
+          edid_name =
+            SK_EDID_Parse ( edid.EDID_Data,
+                              edid.sizeofEDID );
+
+          if (! edid_name.empty ())
+          {
+            nvSuppliedEDID = true;
+          }
+        }
+      }
+    }
+#endif
+
+    *display.name = L'\0';
+
+     //@TODO - ELSE: Test support for various HDR colorspaces.
+
+    DISPLAY_DEVICEW        disp_desc = { };
+    disp_desc.cb = sizeof (disp_desc);
+
+    if (EnumDisplayDevices ( outDesc.DeviceName, 0,
+                               &disp_desc, EDD_GET_DEVICE_INTERFACE_NAME ))
+    {
+      if (! nvSuppliedEDID)
+      {
+        HDEVINFO devInfo =
+          SetupDiGetClassDevsEx ( &GUID_CLASS_MONITOR,
+                                    nullptr, nullptr,
+                                      DIGCF_PRESENT,
+                                        nullptr, nullptr, nullptr );
+
+        if ((! nvSuppliedEDID) && devInfo != nullptr)
+        {
+          wchar_t   wszDevName [ 64] = { };
+          wchar_t   wszDevInst [128] = { };
+          wchar_t* pwszTok           = nullptr;
+
+          swscanf (disp_desc.DeviceID, LR"(\\?\DISPLAY#%ws)", wszDevName);
+
+          pwszTok =
+            StrStrIW (wszDevName, L"#");
+
+          if (pwszTok != nullptr)
+          {
+            *pwszTok = L'\0';
+            wcsncpy_s ( wszDevInst,  128,
+                        pwszTok + 1, _TRUNCATE );
+
+            pwszTok =
+              StrStrIW (wszDevInst, L"#");
+
+            if (pwszTok != nullptr)
+               *pwszTok  = L'\0';
+
+
+            uint8_t EDID_Data [256] = { };
+            DWORD   edid_size       =  sizeof (EDID_Data);
+
+
+            DWORD   dwType = REG_NONE;
+            LRESULT lStat  =
+              RegGetValueW ( HKEY_LOCAL_MACHINE,
+                SK_FormatStringW ( LR"(SYSTEM\CurrentControlSet\Enum\DISPLAY\)"
+                                   LR"(%ws\%ws\Device Parameters)",
+                                     wszDevName, wszDevInst ).c_str (),
+                              L"EDID",
+                                RRF_RT_REG_BINARY, &dwType,
+                                  EDID_Data, &edid_size );
+
+            if (ERROR_SUCCESS == lStat)
+            {
+              edid_name =
+                SK_EDID_Parse ( EDID_Data, edid_size );
+            }
+
+            //DISPLAY#MEIA296#5&2dafe0a1&3&UID41221#
+          }
+        }
+      }
+
+      if (EnumDisplayDevices (outDesc.DeviceName, 0, &disp_desc, 0))
+      {
+        if (SK_GetCurrentRenderBackend ().display_crc [display.idx] == 0)
+        {
+          dll_log->Log ( L"[Output Dev] DeviceName: %ws, devIdx: %lu, DeviceID: %ws",
+                           disp_desc.DeviceName, devIdx,
+                             disp_desc.DeviceID );
+        }
+
+        wsprintf ( display.name, edid_name.empty () ?
+                                    LR"(%ws (%ws))" :
+                                      L"%hs",
+                     edid_name.empty () ?
+                       disp_desc.DeviceString :
+            (WCHAR *)edid_name.c_str (),
+                         disp_desc.DeviceName );
+      }
+    }
+  }
+}
+
+void
+SK_RenderBackend_V2::updateOutputTopology (void)
+{
+  if (swapchain.p == nullptr)
+    return;
+
+  SK_ComPtr <IDXGIAdapter> pAdapter;
+
+  auto _GetAdapter = [&]( IUnknown*      swapchain,
+               SK_ComPtr <IDXGIAdapter>& pAdapter ) ->
+  bool
+  {
+    SK_ComQIPtr <IDXGISwapChain>
+                     pSwapChain (swapchain);
+
+    if (! pSwapChain)
+      return false;
+
+    LUID                       luidAdapter = { };
+    SK_ComPtr <IDXGIFactory1>  pFactory1;
+
+    if (SUCCEEDED (pSwapChain->GetParent (IID_PPV_ARGS (&pFactory1.p))))
+    {
+      if (factory.p == nullptr)
+      {
+        if (! pFactory1->IsCurrent ()) // Stale factories must be retired
+        {
+          CreateDXGIFactory1_Import (IID_IDXGIFactory1, (void **)&factory.p);
+        }
+      }
+
+      if (factory.p != nullptr)
+      {
+        if (! factory->IsCurrent ()) // Stale factories must be retired
+        {
+          factory.Release ();
+          CreateDXGIFactory1_Import (IID_IDXGIFactory1, (void **)&factory.p);
+        }
+
+        pFactory1 = factory;
+      }
+    }
+
+    SK_ComPtr <ID3D12Device>                             pDevice12; // D3D12
+    if (SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pDevice12.p))))
+    {
+      // Yep, now for the fun part
+      luidAdapter =
+        pDevice12->GetAdapterLuid ();
+    }
+
+    // D3D11 or something else
+    else
+    {
+      SK_ComPtr <IDXGIDevice>                                         pDevice;
+      if ( FAILED (pSwapChain->GetDevice  (IID_IDXGIDevice, (void **)&pDevice.p)) ||
+           FAILED (   pDevice->GetAdapter (                         &pAdapter.p)) )
+        return false;
+
+      DXGI_ADAPTER_DESC   adapterDesc = { };
+      pAdapter->GetDesc (&adapterDesc);
+
+      luidAdapter =
+        adapterDesc.AdapterLuid;
+    }
+
+    SK_ComQIPtr <IDXGIFactory4>
+        pFactory4   (pFactory1);
+    if (pFactory4 != nullptr)
+    {
+      pAdapter.Release ();
+
+      if ( FAILED (
+             pFactory4->EnumAdapterByLuid ( luidAdapter,
+                                       IID_IDXGIAdapter,
+                                     (void **)&pAdapter.p )
+                  )
+         ) return false;
+    }
+
+    else if (pFactory1 != nullptr)
+    {
+      SK_ComPtr <IDXGIAdapter> pNewAdapter;
+
+      for ( auto                      idx = 0 ; SUCCEEDED (
+            pFactory1->EnumAdapters ( idx, &pNewAdapter.p ) ) ;
+                                    ++idx )
+      {
+        DXGI_ADAPTER_DESC      adapterDesc = { };
+        pNewAdapter->GetDesc (&adapterDesc);
+
+        if (adapterDesc.AdapterLuid.HighPart == luidAdapter.HighPart &&
+            adapterDesc.AdapterLuid.LowPart  == luidAdapter.LowPart)
+        {
+          pAdapter = pNewAdapter;
+          break;
+        }
+      }
+    }
+
+    return
+      ( pAdapter.p != nullptr );
+  };
+
+  while (InterlockedCompareExchange (&lUpdatingOutputs, 1, 0) != 0)
+    ;
+
+  if (! _GetAdapter (swapchain.p, pAdapter))
+  {
+    InterlockedCompareExchange (&lUpdatingOutputs, 0, 1);
+    return;
+  }
+
+  static constexpr
+    size_t display_size = sizeof (SK_RenderBackend_V2::output_s),
+       num_displays     = sizeof ( displays) /
+                                   display_size;
+
+  bool display_changed [num_displays] = { };
+
+  for ( auto idx = 0 ; idx < num_displays ; ++idx )
+  {
+    RtlSecureZeroMemory (
+      &displays [idx], display_size
+    );
+  }
+
+  UINT                             idx = 0;
+  SK_ComPtr <IDXGIOutput>                pOutput;
+
+  while ( DXGI_ERROR_NOT_FOUND !=
+            pAdapter->EnumOutputs (idx, &pOutput.p) )
+  {
+    auto& display =
+      displays [idx];
+
+    if (pOutput.p != nullptr)
+    {
+      DXGI_OUTPUT_DESC1 outDesc1 = { };
+      DXGI_OUTPUT_DESC  outDesc  = { };
+
+      if (SUCCEEDED (pOutput->GetDesc (&outDesc)))
+      {
+        display.idx      = idx;
+        display.monitor  = outDesc.Monitor;
+        display.rect     = outDesc.DesktopCoordinates;
+        display.attached = outDesc.AttachedToDesktop;
+
+        wcsncpy_s ( display.dxgi_name,  32,
+                    outDesc.DeviceName, _TRUNCATE );
+
+        SK_RBkEnd_UpdateMonitorName (display, outDesc);
+
+        MONITORINFO
+          minfo        = {                  };
+          minfo.cbSize = sizeof (MONITORINFO);
+
+        GetMonitorInfoA (display.monitor, &minfo);
+
+        display.primary =
+          ( minfo.dwFlags & MONITORINFOF_PRIMARY );
+
+        SK_ComQIPtr <IDXGIOutput6>
+            pOutput6 (pOutput);
+        if (pOutput6.p != nullptr)
+        {
+          if (SUCCEEDED (pOutput6->GetDesc1 (&outDesc1)))
+          {
+            display.bpc               = outDesc1.BitsPerColor;
+            display.gamut.minY        = outDesc1.MinLuminance;
+            display.gamut.maxY        = outDesc1.MaxLuminance;
+            display.gamut.maxLocalY   = outDesc1.MaxLuminance;
+            display.gamut.maxAverageY = outDesc1.MaxFullFrameLuminance;
+            display.gamut.xr          = outDesc1.RedPrimary   [0];
+            display.gamut.yr          = outDesc1.RedPrimary   [1];
+            display.gamut.xb          = outDesc1.BluePrimary  [0];
+            display.gamut.yb          = outDesc1.BluePrimary  [1];
+            display.gamut.xg          = outDesc1.GreenPrimary [0];
+            display.gamut.yg          = outDesc1.GreenPrimary [1];
+            display.gamut.Xw          = outDesc1.WhitePoint   [0];
+            display.gamut.Yw          = outDesc1.WhitePoint   [1];
+            display.gamut.Zw          = 1.0f - display.gamut.Xw - display.gamut.Yw;
+            display.colorspace        = outDesc1.ColorSpace;
+
+            display.hdr               = outDesc1.ColorSpace ==
+              DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+          }
+        }
+      }
+    }
+
+    stale_display_info = false;
+
+    pOutput.Release ();
+
+    idx++;
+  }
+
+  idx = 0;
+
+  while ( DXGI_ERROR_NOT_FOUND !=
+            pAdapter->EnumOutputs (idx, &pOutput.p) )
+  {
+    auto& display =
+      displays [idx];
+
+    if (pOutput.p != nullptr)
+    {
+      auto old_crc =
+       display_crc [idx];
+
+       display_crc [idx] =
+               crc32c ( 0,
+      &display,
+       display_size   );
+
+      display_changed [idx] =
+        old_crc != display_crc [idx];
+
+      SK_ComQIPtr <IDXGISwapChain> pChain (swapchain.p);
+
+      DXGI_SWAP_CHAIN_DESC swapDesc         = { };
+      RECT                 rectOutputWindow = { };
+
+      if (pChain.p != nullptr)
+      {
+        pChain->GetDesc (&swapDesc);
+        GetWindowRect   ( swapDesc.OutputWindow, &rectOutputWindow);
+      }
+
+      auto pContainer =
+        getContainingOutput (rectOutputWindow);
+
+      if (pContainer != nullptr)
+      {
+        if (pContainer->monitor == display.monitor)
+        {
+          wcsncpy_s ( display_name,        128,
+                      display.name, _TRUNCATE );
+
+          // Late init
+          if (monitor != display.monitor)
+              monitor  = display.monitor;
+
+          display_gamut.xr = display.gamut.xr;
+          display_gamut.yr = display.gamut.yr;
+          display_gamut.xg = display.gamut.xg;
+          display_gamut.yg = display.gamut.yg;
+          display_gamut.xb = display.gamut.xb;
+          display_gamut.yb = display.gamut.yb;
+          display_gamut.Xw = display.gamut.Xw;
+          display_gamut.Yw = display.gamut.Yw;
+          display_gamut.Zw = 1.0f - display.gamut.Xw - display.gamut.Yw;
+
+          display_gamut.minY        = display.gamut.minY;
+          display_gamut.maxY        = display.gamut.maxY;
+          display_gamut.maxLocalY   = display.gamut.maxY;
+          display_gamut.maxAverageY = display.gamut.maxAverageY;
+
+          //if ( (display.colorspace   == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+          //      // This is pretty much never going to happen in windowed mode
+          //      display.colorspace   == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709     ) )
+          //{
+          //  setHDRCapable (true);
+          //}
+          //
+          //else
+          //  setHDRCapable (false);
+
+          if (display.attached)
+          {
+            scanout.dwm_colorspace =
+              display.colorspace;
+          }
+
+          SK_ComQIPtr <IDXGISwapChain3>
+                 pSwap3 (swapchain.p);
+          if (   pSwap3)
+          {
+            // Windows tends to cache this stuff, we're going to build our own with
+            //   more up-to-date values instead.
+            DXGI_OUTPUT_DESC1 uncachedOutDesc;
+            uncachedOutDesc.BitsPerColor = pContainer->bpc;
+            uncachedOutDesc.ColorSpace   = pContainer->colorspace;
+
+            SK_DXGI_UpdateColorSpace (pSwap3.p, &uncachedOutDesc);
+
+            if ((! isHDRCapable ()) && __SK_HDR_16BitSwap)
+            {
+              SK_RunOnce (
+                SK_ImGui_WarningWithTitle (
+                  L"ERROR: Special K HDR Applied to a non-HDR Display\r\n\r\n"
+                  L"\t\t>> Please Disable SK HDR or Set the Windows Desktop to use HDR",
+                                           L"HDR is Unsupported by the Active Display" )
+              );
+            }
+          }
+        }
+      }
+
+      if (display_changed [idx])
+      {
+        dll_log->LogEx ( true,
+          L"[Output Dev]\n"
+          L"  +-----------------+---------------------\n"
+          L"  | EDID Device Name |  %ws\n"
+          L"  | DXGI Device Name |  %ws (HMONITOR: %x)\n"
+          L"  | Desktop Display. |  %ws%ws\n"
+          L"  | Bits Per Color.. |  %u\n"
+          L"  | Color Space..... |  %s\n"
+          L"  | Red Primary..... |  %f, %f\n"
+          L"  | Green Primary... |  %f, %f\n"
+          L"  | Blue Primary.... |  %f, %f\n"
+          L"  | White Point..... |  %f, %f\n"
+          L"  | Min Luminance... |  %f\n"
+          L"  | Max Luminance... |  %f\n"
+          L"  |  \"  FullFrame... |  %f\n"
+          L"  +-----------------+---------------------\n",
+            display.name,
+            display.dxgi_name, display.monitor,
+            display.attached ? L"Yes"                : L"No",
+            display.primary  ? L" (Primary Display)" : L"",
+                        display.bpc,
+            DXGIColorSpaceToStr (display.colorspace),
+            display.gamut.xr,    display.gamut.yr,
+            display.gamut.xg,    display.gamut.yg,
+            display.gamut.xb,    display.gamut.yb,
+            display.gamut.Xw,    display.gamut.Yw,
+            display.gamut.minY,  display.gamut.maxY,
+            display.gamut.maxAverageY
+        );
+      }
+
+      pOutput.Release ();
+    }
+
+    idx++;
+  }
+
+  bool any_changed =
+    std::count ( std::begin (display_changed),
+                 std::end   (display_changed), true ) > 0;
+
+  if (any_changed)
+  {
+    for ( UINT i = 0 ; i < idx; ++i )
+    {
+      SK_LOG0 ( ( L"%s Monitor %i: [ %ix%i | (%5i,%#5i) ] \"%ws\" :: %s",
+                    displays [i].primary ? L"*" : L" ",
+                    displays [i].idx,
+                    displays [i].rect.right  - displays [i].rect.left,
+                    displays [i].rect.bottom - displays [i].rect.top,
+                    displays [i].rect.left,    displays [i].rect.top,
+                    displays [i].name,
+                    displays [i].hdr ? L"HDR" : L"SDR" ),
+                  L"   DXGI   " );
+    }
+  }
+
+  InterlockedDecrement (&lUpdatingOutputs);
+}
+
+// Compute the overlay area of two rectangles, A and B.
+// (ax1, ay1) = left-top coordinates of A; (ax2, ay2) = right-bottom coordinates of A
+// (bx1, by1) = left-top coordinates of B; (bx2, by2) = right-bottom coordinates of B
+inline int
+ComputeIntersectionArea ( int ax1, int ay1, int ax2, int ay2,
+                          int bx1, int by1, int bx2, int by2 )
+{
+  return std::max (0, std::min (ax2, bx2) -
+                      std::max (ax1, bx1) ) *
+         std::max (0, std::min (ay2, by2) -
+                      std::max (ay1, by1) );
+}
+
+const SK_RenderBackend_V2::output_s*
+SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
+{
+  //while (InterlockedCompareExchange (&lUpdatingOutputs, 1, 0) != 0)
+  //  ;
+
+  const output_s* pOutput = nullptr;
+
+  float bestIntersectArea = -1.0f;
+
+  int ax1 = rkRect.left,
+      ax2 = rkRect.right;
+  int ay1 = rkRect.top,
+      ay2 = rkRect.bottom;
+
+  for ( auto& it : displays )
+  {
+    if (! IsRectEmpty (&it.rect))
+    {
+      int bx1 = it.rect.left;
+      int by1 = it.rect.top;
+      int bx2 = it.rect.right;
+      int by2 = it.rect.bottom;
+
+      int intersectArea =
+        ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
+
+      if (intersectArea > bestIntersectArea)
+      {
+        pOutput           = &it;
+        bestIntersectArea =
+          static_cast <float> (intersectArea);
+      }
+    }
+  }
+
+  //InterlockedDecrement (&lUpdatingOutputs);
+
+  return pOutput;
 }

@@ -179,9 +179,10 @@ SK_NNK2_CheckVersion (LPVOID user)
   __stdcall
   SK_UpdateSoftware (const wchar_t* wszProduct);
 
-
-  if (SK_FetchVersionInfo (L"NiNoStutter"))
-      SK_UpdateSoftware   (L"NiNoStutter");
+  // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
+  //
+  ////if (SK_FetchVersionInfo (L"NiNoStutter"))
+  ////    SK_UpdateSoftware   (L"NiNoStutter");
 
   return 0;
 }

@@ -1210,7 +1210,7 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
         swscanf (  it.first.c_str (),
                    L"Version.%127s",  wszBranchName);
 
-        branches.push_back (
+        branches.emplace_back (
                    SK_WideCharToUTF8 (wszBranchName)
         );
       }

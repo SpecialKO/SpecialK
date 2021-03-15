@@ -1125,11 +1125,8 @@ SK_CleanupMutex (SK_Thread_HybridSpinlock **ppMutex)
   if (  ppMutex != nullptr &&
        *ppMutex != nullptr    )
   {
-    auto to_delete = ppMutex;
-    if  (to_delete != nullptr) // <-- Stupid Static Analysis, too tired to argue with a robot
-    {
-      delete* to_delete; *ppMutex = nullptr;
-    }
+    auto    to_delete = ppMutex;
+    delete* to_delete; *ppMutex = nullptr;
   }
 };
 

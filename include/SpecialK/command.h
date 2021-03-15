@@ -147,7 +147,7 @@ interface SK_IVarStub : public SK_IVariable
     if (szOut != nullptr      &&     *dwLen >= 7)
       strncpy_s (szOut, 7, "(null)", *dwLen);
 
-    *dwLen = std::min (*dwLen, (uint32_t)strlen ("(null)"));
+    *dwLen = std::min (*dwLen, static_cast <uint32_t> (strlen ("(null)")));
   }
 
   const T& getValue (void) const { return *var_; }
@@ -160,7 +160,7 @@ interface SK_IVarStub : public SK_IVariable
 
   // Public interface, the other one is not visible outside this DLL.
   void* getValuePointer (void) const override {
-    return (void *)getValuePtr ();
+    return static_cast <void *> (getValuePtr ());
   }
 
   /// NOTE: Avoid doing this, as much as possible...

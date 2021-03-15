@@ -568,3 +568,6 @@ struct SK_ImGui_ResourcesD3D12
   SK_ComPtr <ID3D12Resource> vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
 	int                    num_vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
 };
+
+void SK_D3D12_BeginFrame (void);
+void SK_D3D12_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());

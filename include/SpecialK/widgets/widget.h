@@ -123,8 +123,8 @@ public:
   SK_Widget& setScale         (float       fScale)        noexcept { scale          = fScale;         return *this; }
 //---------------------
   SK_Widget& setVisible       (bool        bVisible)      noexcept { visible        = bVisible;
-                                                                 if (visible)
-                                                          setActive (visible);                        return *this; }
+                                                                 if (visible)  {
+                                                          setActive (visible); }                      return *this; }
   SK_Widget& flashVisible     (void)                      noexcept { last_flash     =
                                                static_cast <float> ( SK_GetCurrentMS () ) / 1000.0f;  return *this; }
   SK_Widget& setActive        (bool        bActive)       noexcept { active         = bActive;        return *this; }
@@ -140,6 +140,7 @@ public:
   SK_Widget& setSize          (ImVec2&     iv2Size)       noexcept { size           = iv2Size;        return *this; }
   SK_Widget& setPos           (ImVec2&     iv2Pos)        noexcept { pos            = iv2Pos;         return *this; }
   SK_Widget& setDockingPoint  (DockAnchor  dock_anchor)   noexcept { docking        = dock_anchor;    return *this; }
+  SK_Widget& setAlpha         (float       fAlpha)        noexcept { alpha          = fAlpha;         return *this; }
 
 
   const std::string& getName          (void) const noexcept { return    name;                   }
@@ -162,6 +163,7 @@ public:
   const ImVec2&      getSize          (void) const noexcept { return    size;                   }
   const ImVec2&      getPos           (void) const noexcept { return    pos;                    }
   const DockAnchor&  getDockingPoint  (void) const noexcept { return    docking;                }
+  const float        getAlpha         (void) const noexcept { return    alpha;                  }
 
   const SK_Keybind&  getToggleKey     (void) const noexcept { return    toggle_key;             }
   const SK_Keybind&  getFocusKey      (void) const noexcept { return    focus_key;              }
@@ -217,6 +219,8 @@ protected:
   sk::ParameterInt*     param_docking        = nullptr;
   sk::ParameterFloat*   param_scale          = nullptr;
   sk::ParameterFloat*   param_flash_duration = nullptr;
+  sk::ParameterFloat*   param_alpha          = nullptr;
+  sk::ParameterFloat*   param_nits           = nullptr;
   // TODO: Add memory allocator and timing so that performance and resource
   //         consumption for individual widgets can be tracked.
 
@@ -235,6 +239,8 @@ protected:
   bool        border         = true;
   bool        click_through  = false;
   float       flash_duration = 1.5f;
+  float       alpha          = 1.0f;
+  float       nits           = 80.0f;
 
   ImVec2      min_size       = ImVec2 ( 375.0,  240.0);
   ImVec2      max_size       = ImVec2 (1024.0, 1024.0);

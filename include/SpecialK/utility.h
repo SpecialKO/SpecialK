@@ -211,8 +211,8 @@ public:
   {
     // We cannot close these handles because technically they
     //   were never opened (by usermode code).
-    if ((intptr_t)m_h < (intptr_t)nullptr)
-                  m_h =           nullptr;
+    if (reinterpret_cast <intptr_t> (m_h) < reinterpret_cast <intptr_t> (nullptr))
+                                     m_h =                               nullptr;
 
     // Signed handles are often special cases
     //   such as -2 = Current Thread, -1 = Current Process
@@ -597,7 +597,7 @@ private:
   {
   public:
     InstructionSet_Internal (void) : nIds_     { 0     }, nExIds_   { 0     },
-                                     vendor_   ( ""    ), brand_    ( ""    ),
+                                     vendor_   (       ), brand_    (       ),
                                      family_   { 0     }, model_    { 0     },
                                      stepping_ { 0     },
                                      isIntel_  { false }, isAMD_    { false },
@@ -642,12 +642,9 @@ private:
         stepping_ =  data_ [1][0]       & 0xF;
         model_    = (data_ [1][0] >> 4) & 0xF;
         family_   = (data_ [1][0] >> 8) & 0xF;
-      }
 
-      // Load Bitset with Flags for Function 0x00000001
-      //
-      if (nIds_ >= 1)
-      {
+        // Load Bitset with Flags for Function 0x00000001
+        //
         f_1_ECX_ = data_ [1][2];
         f_1_EDX_ = data_ [1][3];
       }

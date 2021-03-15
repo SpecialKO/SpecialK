@@ -42,7 +42,7 @@
 // Memory slot.
 typedef struct _MEMORY_SLOT
 {
-    union
+    union _UNION
     {
         struct _MEMORY_SLOT *pNext;
         UINT8 buffer[MEMORY_SLOT_SIZE];

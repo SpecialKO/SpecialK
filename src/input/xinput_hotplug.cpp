@@ -98,6 +98,9 @@ SK_XInput_Holding (DWORD dwUserIndex)
 void
 SK_XInput_NotifyDeviceArrival (void)
 {
+  return;
+
+
   static HANDLE hNotifyEvent =
     SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
 

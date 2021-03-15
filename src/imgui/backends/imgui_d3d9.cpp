@@ -20,8 +20,6 @@ SK_ImGui_User_NewFrame (void);
 
 // Data
 static HWND                    g_hWnd             = 0;
-static INT64                   g_Time             = 0;
-static INT64                   g_TicksPerSecond   = 0;
        LPDIRECT3DDEVICE9       g_pd3dDevice       = nullptr;
 static LPDIRECT3DVERTEXBUFFER9 g_pVB              = nullptr;
 static LPDIRECT3DINDEXBUFFER9  g_pIB              = nullptr;
@@ -409,42 +407,8 @@ ImGui_ImplDX9_Init ( void*                  hwnd,
   g_hWnd       = static_cast <HWND> (hwnd);
   g_pd3dDevice = device;
 
-  static bool first = true;
-
-  if (first)
-  {
-    g_TicksPerSecond  =
-      SK_GetPerfFreq ( ).QuadPart;
-    g_Time            =
-      SK_QueryPerf   ( ).QuadPart;
-
-    first = false;
-  }
-
   ImGuiIO& io =
     ImGui::GetIO ();
-
-  // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
-  io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
-  io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
-  io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
-  io.KeyMap [ImGuiKey_UpArrow]    = VK_UP;
-  io.KeyMap [ImGuiKey_DownArrow]  = VK_DOWN;
-  io.KeyMap [ImGuiKey_PageUp]     = VK_PRIOR;
-  io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
-  io.KeyMap [ImGuiKey_Home]       = VK_HOME;
-  io.KeyMap [ImGuiKey_End]        = VK_END;
-  io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
-  io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
-  io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
-  io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
-  io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
-  io.KeyMap [ImGuiKey_A]          = 'A';
-  io.KeyMap [ImGuiKey_C]          = 'C';
-  io.KeyMap [ImGuiKey_V]          = 'V';
-  io.KeyMap [ImGuiKey_X]          = 'X';
-  io.KeyMap [ImGuiKey_Y]          = 'Y';
-  io.KeyMap [ImGuiKey_Z]          = 'Z';
 
   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
   io.ImeWindowHandle = g_hWnd;
@@ -601,9 +565,6 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
 }
 
 void
-SK_ImGui_PollGamepad (void);
-
-void
 ImGui_ImplDX9_NewFrame (void)
 {
   auto& io =
@@ -674,42 +635,6 @@ ImGui_ImplDX9_NewFrame (void)
       }
     }
   }
-
-
-  // Setup time step
-  INT64 current_time;
-
-  SK_QueryPerformanceCounter (
-    reinterpret_cast <LARGE_INTEGER *> (&current_time)
-  );
-
-  io.DeltaTime =
-    std::min ( 1.0f,
-    std::max ( 0.0f, static_cast <float>  (
-                    (static_cast <double> (                       current_time) -
-                     static_cast <double> (std::exchange (g_Time, current_time))) /
-                     static_cast <double> (               g_TicksPerSecond      ) ) )
-    );
-
-  // Read keyboard modifiers inputs
-  io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
-  io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
-  io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
-
-  io.KeySuper  = false;
-
-  SK_ImGui_PollGamepad ();
-
-
-  // For games that hijack the mouse cursor using DirectInput 8.
-  //
-  //  -- Acquire actually means release their exclusive ownership : )
-  //
-  //if (SK_ImGui_WantMouseCapture ())
-  //  SK_Input_DI8Mouse_Acquire ();
-  //else
-  //  SK_Input_DI8Mouse_Release ();
-
 
   // Start the frame
   SK_ImGui_User_NewFrame ();

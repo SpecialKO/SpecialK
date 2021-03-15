@@ -130,7 +130,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
   bool implicit_track = false;
 
   if ( rb.isHDRCapable ()  &&
-      (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) )
+       rb.isHDRActive  () )
   {
     if ( type == sk_shader_class::Vertex ||
          type == sk_shader_class::Pixel     )
@@ -3078,7 +3078,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         size_t&& sel =
           static_cast <size_t&&> (list->sel);
 
-        if ( sel >= shader_set.size () || sel < 0 )
+        if ( sel >= shader_set.size () )
         {
           sel =
             static_cast <size_t>       (
@@ -3451,17 +3451,17 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     if (shader_type != sk_shader_class::Compute)
     {
       if (tracker->cancel_draws)
-        snprintf (szDraws, 128, "%3lu Skipped Draw%sLast Frame",  draws, draws != 1 ? "s " : " ");
+        snprintf (szDraws, 128, "%3i Skipped Draw%sLast Frame",  draws, draws != 1 ? "s " : " ");
       else
-        snprintf (szDraws, 128, "%3lu Draw%sLast Frame        " , draws, draws != 1 ? "s " : " ");
+        snprintf (szDraws, 128, "%3i Draw%sLast Frame        " , draws, draws != 1 ? "s " : " ");
     }
 
     else
     {
       if (tracker->cancel_draws)
-        snprintf (szDraws, 128, "%3lu Skipped Dispatch%sLast Frame", draws, draws != 1 ? "es " : " ");
+        snprintf (szDraws, 128, "%3i Skipped Dispatch%sLast Frame", draws, draws != 1 ? "es " : " ");
       else
-        snprintf (szDraws, 128, "%3lu Dispatch%sLast Frame        ", draws, draws != 1 ? "es " : " ");
+        snprintf (szDraws, 128, "%3i Dispatch%sLast Frame        ", draws, draws != 1 ? "es " : " ");
     }
 
     snprintf (szTextures,   64, "(%#i %s)",  num_used_textures, num_used_textures != 1 ? "textures" : "texture");

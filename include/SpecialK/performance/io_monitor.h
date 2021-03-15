@@ -71,7 +71,7 @@ struct WMI_refresh_thread_t
   IWbemConfigureRefresher *pConfig                      = nullptr;
   IWbemHiPerfEnum         *pEnum                        = nullptr;
   IWbemObjectAccess      **apEnumAccess                 = nullptr;
-  long                     lID                          = 0;
+  LONG                     lID                          = 0;
 
   DWORD                    dwNumObjects                 = 0;
   DWORD                    dwNumReturned                = 0;
@@ -145,12 +145,12 @@ struct cpu_perf_t : WMI_refresh_thread_t
                     total_delta_all.QuadPart =
                   ( total_delta_run.QuadPart + total_delta_idle.QuadPart );
 
-      const long double
+      const double
         rational_cpu_load =
-          std::min   (100.0l,
-            std::max (  0.0l,
-              ( 100.0l - (static_cast <long double> (dt_cpu.IdleTime.QuadPart)/
-                          static_cast <long double> (total_delta_run.QuadPart)) * 100.0l )
+          std::min   (100.0,
+            std::max (  0.0,
+              ( 100.0 - (static_cast <double> (dt_cpu.IdleTime.QuadPart)/
+                         static_cast <double> (total_delta_run.QuadPart)) * 100.0 )
             )
           );
 
@@ -163,8 +163,8 @@ struct cpu_perf_t : WMI_refresh_thread_t
 
       InterlockedExchange (
         &percent_kernel,    static_cast < LONG >
-                          ((static_cast <long double> (dt_cpu.KernelTime.QuadPart)/
-                            static_cast <long double> ( total_delta_run.QuadPart )) * rational_cpu_load)
+                          ((static_cast <double> (dt_cpu.KernelTime.QuadPart)/
+                            static_cast <double> ( total_delta_run.QuadPart )) * rational_cpu_load)
       );
       InterlockedExchange (
         &percent_user  ,    static_cast < LONG >
@@ -173,8 +173,8 @@ struct cpu_perf_t : WMI_refresh_thread_t
       );
       InterlockedExchange (
         &percent_interrupt, static_cast < LONG >
-                          ((static_cast <long double> ( dt_cpu.InterruptTime.QuadPart )/
-                            static_cast <long double> (    total_delta_run.QuadPart   )) * rational_cpu_load)
+                          ((static_cast <double> ( dt_cpu.InterruptTime.QuadPart )/
+                            static_cast <double> (    total_delta_run.QuadPart   )) * rational_cpu_load)
       );
 
       return total_delta_all;
@@ -252,16 +252,16 @@ struct cpu_perf_t : WMI_refresh_thread_t
 
 struct disk_perf_t : WMI_refresh_thread_t
 {
-  long                     lNameHandle                  = 0;
+  LONG                     lNameHandle                  = 0;
 
-  long                     lDiskBytesPerSecHandle       = 0;
-  long                     lDiskReadBytesPerSecHandle   = 0;
-  long                     lDiskWriteBytesPerSecHandle  = 0;
+  LONG                     lDiskBytesPerSecHandle       = 0;
+  LONG                     lDiskReadBytesPerSecHandle   = 0;
+  LONG                     lDiskWriteBytesPerSecHandle  = 0;
 
-  long                     lPercentDiskReadTimeHandle   = 0;
-  long                     lPercentDiskWriteTimeHandle  = 0;
-  long                     lPercentDiskTimeHandle       = 0;
-  long                     lPercentIdleTimeHandle       = 0;
+  LONG                     lPercentDiskReadTimeHandle   = 0;
+  LONG                     lPercentDiskWriteTimeHandle  = 0;
+  LONG                     lPercentDiskTimeHandle       = 0;
+  LONG                     lPercentIdleTimeHandle       = 0;
 
   struct disk_stat_s {
     char                   name [32]                    = { };
@@ -282,11 +282,11 @@ struct disk_perf_t : WMI_refresh_thread_t
 
 struct pagefile_perf_t : WMI_refresh_thread_t
 {
-  long                     lNameHandle                  = 0;
+  LONG                     lNameHandle                  = 0;
 
-  long                     lPercentUsageHandle          = 0;
-  long                     lPercentUsagePeakHandle      = 0;
-  long                     lPercentUsage_BaseHandle     = 0;
+  LONG                     lPercentUsageHandle          = 0;
+  LONG                     lPercentUsagePeakHandle      = 0;
+  LONG                     lPercentUsage_BaseHandle     = 0;
 
   struct {
     char                   name [256]                   = { };

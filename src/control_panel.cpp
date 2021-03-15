@@ -43,6 +43,7 @@
 #include <SpecialK/nvapi.h>
 
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 extern bool __stdcall SK_IsGameWindowActive (void);
 
@@ -55,7 +56,7 @@ extern float g_fDPIScale;
 using namespace SK::ControlPanel;
 
 SK_RenderAPI                 SK::ControlPanel::render_api;
-unsigned long                SK::ControlPanel::current_time = 0;
+DWORD                        SK::ControlPanel::current_time = 0;
 uint64_t                     SK::ControlPanel::current_tick;// Perf Counter
 SK::ControlPanel::font_cfg_s SK::ControlPanel::font;
 
@@ -1685,6 +1686,40 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
+        if (config.rtss.present)
+        {
+          float rtss_nits =
+            config.rtss.overlay_luminance / 1.0_Nits;
+
+          if ( ImGui::SliderFloat ( "RTSS Overlay Luminance###RTSS_LUMINANCE",
+                                     &rtss_nits,
+                                      80.0f, rb.display_gamut.maxAverageY,
+                                        (const char *)u8"%.1f cd/m²" ) )
+          {
+            config.rtss.overlay_luminance =
+                                    rtss_nits * 1.0_Nits;
+
+            SK_SaveConfig ();
+          }
+        }
+
+        if (config.discord.present)
+        {
+          float discord_nits =
+            config.discord.overlay_luminance / 1.0_Nits;
+
+          if ( ImGui::SliderFloat ( "Discord Overlay Luminance###DISCORD_LUMINANCE",
+                                     &discord_nits,
+                                      80.0f, rb.display_gamut.maxAverageY,
+                                        (const char *)u8"%.1f cd/m²" ) )
+          {
+            config.discord.overlay_luminance =
+                                    discord_nits * 1.0_Nits;
+
+            SK_SaveConfig ();
+          }
+        }
+
         static bool uplay_overlay = false;
 
         if ((! uplay_overlay) && ((SK_GetFramesDrawn () - first_try) < 240))
@@ -1765,7 +1800,7 @@ SK_ImGui_ControlPanel (void)
       };
 
       if ( rb.isHDRCapable ()  &&
-          (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) )
+           rb.isHDRActive  () )
       {
         if (ImGui::BeginMenu ("HDR"))
         {
@@ -2029,19 +2064,70 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Separator ();
 
-        /////if ( ImGui::MenuItem ( "View Release Notes",
-        /////                         SK_WideCharToUTF8 (current_branch.release.title).c_str (),
-        /////                           &selected
-        /////                     )
-        /////   )
-        /////{
-        /////  SK_SteamOverlay_GoToURL (
-        /////    SK_WideCharToUTF8 (current_branch.release.notes).c_str (),
-        /////      true
-        /////  );
-        /////}
+        if (ImGui::BeginMenu ("Support Us##Donate"))
+        {
+          if (ImGui::MenuItem ( "Recurring Donation + Perks", "Become a Patron", &selected ))
+          {
+            SK_SteamOverlay_GoToURL (
+                "https://www.patreon.com/bePatron?u=33423623", true
+            );
+          }
 
-        if (ImGui::MenuItem ("About this Software...", "", &selected))
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::TextColored  (ImColor::HSV (.963f, .789f, .989f), "Patreon Benefits");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("The names of mid-tier or higher patrons are permanently displayed in SKIF");
+            ImGui::BulletText   ("Access to special Discord channels and prioritized support");
+            ImGui::Spacing      ();
+            ImGui::TextColored  (ImColor::HSV (.432f, .789f, .999f), "Donations Pay For");
+            ImGui::Separator    ();
+            ImGui::BeginGroup   ();
+            ImGui::BulletText   ("Web Services:  ");
+            ImGui::BulletText   ("Code Services: ");
+            ImGui::BulletText   ("Game Testing:  ");
+            ImGui::EndGroup     ();
+            ImGui::SameLine     ();
+            ImGui::BeginGroup   ();
+            ImGui::Text         ("Wiki, Discourse, GitLab, CDN storage, Dedicated E-Mail Server");
+            ImGui::Text         ("Code signing, disassemblers, debuggers, static analysis...");
+            ImGui::Text         ("Games often have to be purchased for compatibility testing...");
+            ImGui::EndGroup     ();
+            ImGui::Separator    ();
+            ImGui::EndTooltip   ();
+          }
+
+          if (ImGui::MenuItem ( "One-Time Donation", "Donate with PayPal", &selected ))
+          {
+            SK_SteamOverlay_GoToURL (
+                "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8A7FSUFJ6KB2U", true
+            );
+          }
+
+          ImGui::EndMenu        ();
+        }
+
+        if (ImGui::MenuItem ( "Documentation", "Official Wiki", &selected ))
+        {
+          SK_SteamOverlay_GoToURL (
+              "https://wiki.special-k.info", true
+          );
+        }
+
+
+        if ( ImGui::MenuItem ( "Release History",
+                                 "Downloads",
+                                   &selected
+                             )
+           )
+        {
+          SK_SteamOverlay_GoToURL ("https://discord.gg/rXkxsb8U",
+              true
+          );
+        }
+
+        if (ImGui::MenuItem ("About this Software...", "Licensed Software", &selected))
           eula.show = true;
 
         ImGui::Separator ();
@@ -2352,8 +2438,8 @@ SK_ImGui_ControlPanel (void)
 
 
   ImGui::SetNextWindowSizeConstraints (
-    ImVec2 (250, 75), ImVec2 ( 0.9f * io.DisplaySize.x,
-                               0.9f * io.DisplaySize.y )
+    ImVec2 (250, 150), ImVec2 ( 0.9f * io.DisplaySize.x,
+                                0.9f * io.DisplaySize.y )
   );
 
 
@@ -2472,7 +2558,7 @@ SK_ImGui_ControlPanel (void)
 
     bool sRGB     = rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB;
     bool hdr_out  = rb.isHDRCapable ()  &&
-                   (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR);
+                    rb.isHDRActive  ();
     bool override = false;
 
     RECT client;
@@ -3155,6 +3241,79 @@ SK_ImGui_ControlPanel (void)
                                      "Number of CPUs: %d" );
           }
           ImGui::EndGroup      ();
+
+          if (sk::NVAPI::nv_hardware)
+          {
+            ImGui::Separator  ();
+
+            ImGui::Checkbox   ("Enable NVIDIA Reflex", &config.nvidia.sleep.enable);
+            ImGui::TreePush   ();
+            ImGui::BeginGroup ();
+            if (config.nvidia.sleep.enable)
+            {
+              int mode = 0;
+
+              if (config.nvidia.sleep.low_latency_boost == true)
+                mode = 2;
+              else if ( config.nvidia.sleep.low_latency == true)
+                mode = 1;
+              else
+                mode = 0;
+
+              if (ImGui::Combo ("Reflex Mode", &mode, "Off\0Low Latency\0Low Latency + Boost\0\0"))
+              {
+                switch (mode)
+                {
+                  case 0:
+                    config.nvidia.sleep.low_latency       = false;
+                    config.nvidia.sleep.low_latency_boost = false;
+                    break;
+
+                  case 1:
+                    config.nvidia.sleep.low_latency       = true;
+                    config.nvidia.sleep.low_latency_boost = false;
+                    break;
+
+                  case 2:
+                    config.nvidia.sleep.low_latency       = true;
+                    config.nvidia.sleep.low_latency_boost = true;
+                    break;
+                }
+              }
+
+              if (mode != 0)
+              {
+                bool unlimited =
+                  config.nvidia.sleep.frame_interval_us == 0;
+
+                if (ImGui::Checkbox ("Reflex Unlimited FPS", &unlimited))
+                {
+                  if (unlimited) config.nvidia.sleep.frame_interval_us = 0;
+                  else           config.nvidia.sleep.frame_interval_us =
+                           static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
+                }
+
+                ImGui::SliderInt  ( "Reflex Engagement",
+                  &config.nvidia.sleep.enforcement_site, 0,
+                                                         2 );
+
+                if (ImGui::IsItemHovered ())
+                {
+                  ImGui::BeginTooltip ();
+                  ImGui::BulletText   ("0: Before End-of-Frame");
+                  ImGui::BulletText   ("1: During Start-of-Frame");
+                  ImGui::BulletText   ("2: On First Input Polled");
+                  ImGui::Separator    ();
+                  ImGui::TreePush     ();
+                  ImGui::Text         ("Input Polling Reflex Triggers are Experimental; only supports gamepad input currently");
+                  ImGui::TreePop      ();
+                  ImGui::EndTooltip   ();
+                }
+              }
+            }
+            ImGui::EndGroup   ();
+            ImGui::TreePop    ();
+          }
         }
       }
     }
@@ -3270,7 +3429,7 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
-    if (rb.isHDRCapable ())
+    if (rb.isHDRCapable () || __SK_HDR_16BitSwap)
     {
       ImGui::SameLine ();
       if (ImGui::Checkbox ("HDR Display", &hdr))
@@ -3321,11 +3480,19 @@ SK_ImGui_ControlPanel (void)
         ImGui::SetTooltip ( "In D3D11/12 games, integrates SK's high-performance/quality screenshot capture "
                             "system, adding HDR -> LDR support and other things." );
       }
+
+      if (config.steam.screenshots.enable_hook)
+      {
+        ImGui::TreePush ("");
+        ImGui::Checkbox ("Show OSD in Steam Screenshots", &config.screenshots.show_osd_by_default);
+        ImGui::TreePop  (  );
+      }
     }
 
     bool png_changed = false;
 
-    ImGui::Checkbox ("Include Special K OSD in Screenshots", &config.screenshots.show_osd_by_default);
+    ImGui::Checkbox ("Copy Screenshots to Clipboard",        &config.screenshots.copy_to_clipboard);
+    ImGui::Checkbox ("Play Sound on Screenshot Capture",     &config.screenshots.play_sound);
 
     if (rb.api != SK_RenderAPI::D3D12)
     {
@@ -3334,41 +3501,6 @@ SK_ImGui_ControlPanel (void)
                                                "Keep Lossless .PNG Screenshots",
                                                                &config.screenshots.png_compress       );
     } else { config.screenshots.png_compress = true; }
-
-    if ( rb.screenshot_mgr.getRepoStats ().files > 0 )
-    {
-      const SK_ScreenshotManager::screenshot_repository_s& repo =
-        rb.screenshot_mgr.getRepoStats (png_changed);
-
-      ImGui::BeginGroup (  );
-      ImGui::TreePush   ("");
-      ImGui::Text ( "%u files using %ws",
-                      repo.files,
-                        SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
-                  );
-
-      if (SK::SteamAPI::AppID () > 0 && SK::SteamAPI::GetCallbacksRun () && ImGui::IsItemHovered ())
-      {
-        ImGui::SetTooltip ( rb.isHDRCapable () ?
-                              "Steam does not support HDR Screenshots, so SK maintains its own storage for .JXR Screenshots" :
-                              "Steam does not support .PNG Screenshots, so SK maintains its own storage for Lossless Screenshots." );
-      }
-
-      ImGui::SameLine ();
-
-      if (ImGui::Button ("Browse"))
-      {
-        SK_ShellExecuteW ( nullptr,
-          L"explore",
-            rb.screenshot_mgr.getBasePath (),
-              nullptr, nullptr,
-                    SW_NORMAL
-        );
-      }
-
-      ImGui::TreePop  ();
-      ImGui::EndGroup ();
-    }
 
     ImGui::EndGroup ();
 
@@ -3410,6 +3542,7 @@ SK_ImGui_ControlPanel (void)
 
     ImGui::SameLine   ();
     ImGui::BeginGroup ();
+    ImGui::BeginGroup ();
     for ( auto& keybind : keybinds )
     {
       ImGui::Text          ( "%s:  ",
@@ -3421,6 +3554,43 @@ SK_ImGui_ControlPanel (void)
     for ( auto& keybind : keybinds )
     {
       Keybinding ( keybind, keybind->param );
+    }
+    ImGui::EndGroup   ();
+
+    if ( rb.screenshot_mgr.getRepoStats ().files > 0 )
+    {
+      const SK_ScreenshotManager::screenshot_repository_s& repo =
+        rb.screenshot_mgr.getRepoStats (png_changed);
+
+      ImGui::BeginGroup (  );
+      ImGui::Separator  (  );
+      ImGui::TreePush   ("");
+      ImGui::Text ( "%u files using %ws",
+                      repo.files,
+                        SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
+                  );
+
+      if (SK::SteamAPI::AppID () > 0 && SK::SteamAPI::GetCallbacksRun () && ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ( rb.isHDRCapable () ?
+                              "Steam does not support HDR Screenshots, so SK maintains its own storage for .JXR Screenshots" :
+                              "Steam does not support .PNG Screenshots, so SK maintains its own storage for Lossless Screenshots." );
+      }
+
+      ImGui::SameLine ();
+
+      if (ImGui::Button ("Browse"))
+      {
+        SK_ShellExecuteW ( nullptr,
+          L"explore",
+            rb.screenshot_mgr.getBasePath (),
+              nullptr, nullptr,
+                    SW_NORMAL
+        );
+      }
+
+      ImGui::TreePop  ();
+      ImGui::EndGroup ();
     }
     ImGui::EndGroup   ();
     ImGui::TreePop    ();
@@ -3601,21 +3771,21 @@ SK_ImGui_StageNextFrame (void)
   static auto& io =
     ImGui::GetIO ();
 
-  SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-
-  if (pSwapChain != nullptr)
-  {
-    DXGI_SWAP_CHAIN_DESC  desc = {};
-    pSwapChain->GetDesc (&desc);
-
-    // scRGB
-    if ( rb.isHDRCapable ()   &&
-        (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
-                              &&
-        desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-    {
-    }
-  }
+  ///SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+  ///
+  ///if (pSwapChain != nullptr)
+  ///{
+  ///  DXGI_SWAP_CHAIN_DESC  desc = {};
+  ///  pSwapChain->GetDesc (&desc);
+  ///
+  ///  // scRGB
+  ///  if ( rb.isHDRCapable ()   &&
+  ///      (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
+  ///                            &&
+  ///      desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+  ///  {
+  ///  }
+  ///}
 
   extern volatile
                LONG __SK_ScreenShot_CapturingHUDless;
@@ -3748,14 +3918,14 @@ SK_ImGui_StageNextFrame (void)
     {
       ImGui::Text            ("  Hello");                                                            ImGui::SameLine ();
       ImGui::TextColored     (ImColor::HSV (0.075f, 1.0f, 1.0f), "%s", szName);                      ImGui::SameLine ();
-      ImGui::TextUnformatted ("please see the Release Notes, under");                                ImGui::SameLine ();
+      ImGui::TextUnformatted ("please see the Disord Release Channel, under");                        ImGui::SameLine ();
     }
     else
     {
-      ImGui::TextUnformatted ("  Please see the Release Notes, under");                              ImGui::SameLine ();
+      ImGui::TextUnformatted ("  Please see the Discord Release Channel, under");                     ImGui::SameLine ();
     }
-    ImGui::TextColored       (ImColor::HSV (.52f, 1.f, 1.f),  "Help | Release Notes");               ImGui::SameLine ();
-    ImGui::TextUnformatted   ("for what passes as documentation for this project.");
+    ImGui::TextColored       (ImColor::HSV (.52f, 1.f, 1.f),  "Help | Releases");                    ImGui::SameLine ();
+    ImGui::TextUnformatted   ("for beta / stabe updates to this project.");
 
     ImGui::Spacing ();
     ImGui::Spacing ();
@@ -3841,11 +4011,12 @@ SK_ImGui_StageNextFrame (void)
 
       ImGui::Text          ("You are currently using"); ImGui::SameLine ();
       ImGui::TextColored   (ImColor::HSV (.15f,.9f,1.f), "%s",
-                            utf8_release_title.c_str());ImGui::SameLine ();
-      ImGui::Text          ("from the");                ImGui::SameLine ();
-      ImGui::TextColored   (ImColor::HSV (.4f,.9f,1.f), "%s",
-                            utf8_branch_name.c_str ()); ImGui::SameLine ();
-      ImGui::Text          ("development branch.");
+                            SK_GetVersionStrA ()); ImGui::SameLine ();
+                            //utf8_release_title.c_str());ImGui::SameLine ();
+    //ImGui::Text          ("from the");                ImGui::SameLine ();
+    //ImGui::TextColored   (ImColor::HSV (.4f,.9f,1.f), "%s",
+    //                      utf8_branch_name.c_str ()); ImGui::SameLine ();
+    //ImGui::Text          ("development branch.");
       ImGui::Spacing       ();
       ImGui::Spacing       ();
       ImGui::TreePush      ("");
@@ -3951,9 +4122,12 @@ SK_ImGui_StageNextFrame (void)
 
       if (config.textures.cache.residency_managemnt)
       {
-        if (ReadAcquire (&SK_D3D11_TexCacheResidency->count.InVRAM)   > 0) extra_lines++;
-        if (ReadAcquire (&SK_D3D11_TexCacheResidency->count.Shared)   > 0) extra_lines++;
-        if (ReadAcquire (&SK_D3D11_TexCacheResidency->count.PagedOut) > 0) extra_lines++;
+        auto* residency =
+          SK_D3D11_TexCacheResidency.getPtr ();
+
+        if (ReadAcquire (&residency->count.InVRAM)   > 0) extra_lines++;
+        if (ReadAcquire (&residency->count.Shared)   > 0) extra_lines++;
+        if (ReadAcquire (&residency->count.PagedOut) > 0) extra_lines++;
       }
 
       ImGui::SetNextWindowSize  (

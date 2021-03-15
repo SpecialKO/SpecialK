@@ -234,6 +234,8 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
       g_ParameterFactory->create_parameter <int> (L"Thread Priority")
     );
 
+  if (! prio_cfg)
+    return;
 
   if (this == &*sk_ffxv_swapchain)
   {
@@ -246,11 +248,8 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
     SK_ApplyQueuedHooks ();
 #endif
 
-    if (prio_cfg != nullptr)
-    {
-      prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix",
-                                           L"SwapChainPriority" );
-    }
+    prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix",
+                                         L"SwapChainPriority" );
   }
 
   else if (this == &*sk_ffxv_vsync)

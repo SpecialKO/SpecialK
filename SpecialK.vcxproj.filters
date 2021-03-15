@@ -295,9 +295,6 @@
     <Filter Include="Header Files\Backends\Render\Shaders">
       <UniqueIdentifier>{acbb52fe-3c5a-4cb0-9116-449ea5e2bc52}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Input\Steam\XInput">
-      <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Render\DXGI\D3D12">
       <UniqueIdentifier>{265671c5-9f3c-406c-943f-ce5e7971715e}</UniqueIdentifier>
     </Filter>
@@ -306,6 +303,18 @@
     </Filter>
     <Filter Include="Header Files\Backends\Render\DXGI\D3D12">
       <UniqueIdentifier>{3e923e07-48d4-4ac9-bf42-013e95361c6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\XInput">
+      <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\DXGI\D3D11\Mod Tools">
+      <UniqueIdentifier>{02b10c01-d721-4472-8d6e-929220554785}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\DXGI\D3D11\HDR">
+      <UniqueIdentifier>{6f961191-bc5f-4963-b633-6904ee5de7d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\DXGI\D3D11\Textures">
+      <UniqueIdentifier>{c18f8665-c686-454e-a3b5-c12bedf9b429}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -3162,9 +3171,6 @@
     <ClInclude Include="include\shaders\vs_colorutil.h">
       <Filter>Header Files\Backends\Render\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
-      <Filter>Header Files\Backends\Render\D3D11</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_core.h">
       <Filter>Header Files\Backends\Render\D3D11</Filter>
     </ClInclude>
@@ -3194,6 +3200,9 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_screenshot.h">
       <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
+      <Filter>Header Files\Control Panel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -3264,10 +3273,10 @@
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\input\xinput_hotplug.cpp">
-      <Filter>Source Files\Backends\Input\Steam\XInput</Filter>
+      <Filter>Source Files\Backends\Input\XInput</Filter>
     </ClCompile>
     <ClCompile Include="src\input\xinput_core.cpp">
-      <Filter>Source Files\Backends\Input\Steam\XInput</Filter>
+      <Filter>Source Files\Backends\Input\XInput</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\plugin_mgr.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -3527,12 +3536,6 @@
     <ClCompile Include="src\render\d3d11\d3d11_state_tracker.cpp">
       <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
-    </ClCompile>
-    <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\dxgi\dxgi_util.cpp">
       <Filter>Source Files\Backends\Render\DXGI</Filter>
     </ClCompile>
@@ -3607,6 +3610,27 @@
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d11on12_shader_restitution.cpp">
       <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\mod_tools\d3d11_texture_mods.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11\Mod Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\mod_tools\d3d11_shader_mods.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11\Mod Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\hdr\d3d11_hdr.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11\HDR</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11_stateblock.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_resampler.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11\Textures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4592,6 +4616,9 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
@@ -4808,6 +4835,15 @@
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
     <FxCompile Include="resource\shaders\sRGB_codec_ps.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\discord_d3d11_ps.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\discord_d3d11_vs.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\rtss_d3d11_vs.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

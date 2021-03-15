@@ -43,6 +43,9 @@ static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"gamebarft.exe"),
   SK_MakeUnicode (L"gamebar.exe"),
   SK_MakeUnicode (L"svchost.exe"),
+  SK_MakeUnicode (L"conhost.exe"),
+  SK_MakeUnicode (L"dllhost.exe"),
+  SK_MakeUnicode (L"dllhst3g.exe"),
 };
 
 static constexpr UNICODE_STRING __graylist [] = {
@@ -133,7 +136,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"ubisoftgamelauncher64.exe"),
   SK_MakeUnicode (L"sen3launcher.exe"),
 
-  SK_MakeUnicode (L"control.exe"),
+  ////SK_MakeUnicode (L"control.exe"),
 #else
   SK_MakeUnicode (L"vacodeinspectionsserver.exe"),
 
@@ -152,8 +155,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"s2gs.exe"),      // Sacred 2 game server
 #endif
 
-  SK_MakeUnicode (L"conhost.exe"),
-  SK_MakeUnicode (L"dllhost.exe"),
   SK_MakeUnicode (L"sihost.exe"),
   SK_MakeUnicode (L"postcrashdump.exe"),
 
@@ -183,7 +184,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"activationui.exe"),
   SK_MakeUnicode (L"zossteamstarter.exe"),
   SK_MakeUnicode (L"eac.exe"),
-  SK_MakeUnicode (L"EALink.exe"),
+  SK_MakeUnicode (L"ealink.exe"),
 
   SK_MakeUnicode (L"clupdater.exe"),
   SK_MakeUnicode (L"activate.exe"),
@@ -192,4 +193,20 @@ static constexpr UNICODE_STRING __blacklist [] = {
 
   SK_MakeUnicode (L"olrstatecheck.exe"),
   SK_MakeUnicode (L"olrsubmission.exe"),
+
+  SK_MakeUnicode (L"steamtours.exe"),
+  SK_MakeUnicode (L"vrcompositor.exe"),
+  SK_MakeUnicode (L"vrdashboard.exe"),
+  SK_MakeUnicode (L"vrmonitor.exe"),
+  SK_MakeUnicode (L"vrserver.exe"),
+  SK_MakeUnicode (L"vrservice.exe"),
+  SK_MakeUnicode (L"vrstartup.exe"),
+  SK_MakeUnicode (L"vrwebhelper.exe"),
+  SK_MakeUnicode (L"vrserverhelper.exe"),
+  SK_MakeUnicode (L"MagnetEngine.exe"),
+  SK_MakeUnicode (L"vrpathreg.exe"),
+  SK_MakeUnicode (L"spotify.exe"),
+  SK_MakeUnicode (L"localbridge.exe"),
+  SK_MakeUnicode (L"xboxappservices.exe"),
+  SK_MakeUnicode (L"win32bridge.server.exe"),
 };

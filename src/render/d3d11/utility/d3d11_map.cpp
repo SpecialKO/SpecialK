@@ -334,7 +334,7 @@ SK_D3D11_Unmap_Impl (
       {
         checksum =
           crc32_tex ( &desc,
-                     (D3D11_SUBRESOURCE_DATA *)(
+            reinterpret_cast <D3D11_SUBRESOURCE_DATA *>(
                         &map_ctx.textures [pResource]
                      ), &size, &top_crc32 );
 

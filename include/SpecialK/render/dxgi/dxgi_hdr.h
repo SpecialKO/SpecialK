@@ -111,8 +111,30 @@ extern SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_8bpc;
 extern SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_10bpc;
 extern SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_11bpc;
 
+extern bool __SK_HDR_10BitSwap;
+extern bool __SK_HDR_16BitSwap;
+
+extern float __SK_HDR_Luma;
+extern float __SK_HDR_Exp;
+extern float __SK_HDR_Saturation;
+extern float __SK_HDR_user_sdr_Y;
+extern float __SK_HDR_MiddleLuma;
+extern int   __SK_HDR_Preset;
+extern bool  __SK_HDR_FullRange;
+
+extern float __SK_HDR_UI_Luma;
+extern float __SK_HDR_HorizCoverage;
+extern float __SK_HDR_VertCoverage;
+
+extern int   __SK_HDR_tonemap;
+extern int   __SK_HDR_visualization;
+extern int   __SK_HDR_Bypass_sRGB;
+extern float __SK_HDR_PaperWhite;
+extern float __SK_HDR_user_sdr_Y;
+
+
 
 SK_DXGI_HDRControl*
 SK_HDR_GetControl (void);
 
-#endif __SK__DXGI_HDR_H__
+#endif /*__SK__DXGI_HDR_H__*/

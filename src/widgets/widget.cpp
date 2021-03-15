@@ -130,6 +130,18 @@ SK_Widget::run_base (void)
                          L"",
                            SK_FormatStringW (L"Widget.%hs",    name.c_str ()),
                              L"Position" );
+
+    param_alpha =
+      LoadWidgetFloat ( &alpha, osd_ini,
+                          L"",
+                            SK_FormatStringW (L"Widget.%hs",   name.c_str ()),
+                              L"Alpha" );
+
+    param_nits =
+      LoadWidgetFloat ( &nits, osd_ini,
+                          L"",
+                            SK_FormatStringW (L"Widget.%hs",   name.c_str ()),
+                              L"HDRLuminance" );
   }
 
   run ();
@@ -456,11 +468,12 @@ SK_Widget::draw_base (void)
   {
     extern bool    SK_Tobii_WantWidgetGazing (void);
     extern ImVec2& SK_Tobii_GetGazePosition  (void);
-           ImVec2 vTobiiPos =
-                   SK_Tobii_GetGazePosition  (    );
 
     if (SK_Tobii_WantWidgetGazing ())
     {
+      ImVec2 vTobiiPos =
+        SK_Tobii_GetGazePosition  (    );
+
       const ImVec2 vPos =
         getPos ();
 
@@ -468,36 +481,39 @@ SK_Widget::draw_base (void)
         getSize ();
 
       const bool bad_data =
-        (    vTobiiPos.x == 0.0f &&
-             vTobiiPos.y == 0.0f    );
+        (vTobiiPos.x == 0.0f &&
+         vTobiiPos.y == 0.0f);
 
       const ImVec2 vMousePos =
         ImGui::GetMousePos ();
 
       // First test the regular cursor -- if that's hovering the widget,
       //   it's pretty darn important the widget be bright enough to use.
-      bool outside  =
-        (! ( vMousePos.x <= (vPos.x + vSize.x) &&
-             vMousePos.x >=  vPos.x            &&
-             vMousePos.y <= (vPos.y + vSize.y) &&
-             vMousePos.y >=  vPos.y          )    );
+      bool outside =
+        (!(vMousePos.x <= (vPos.x + vSize.x) &&
+           vMousePos.x >= vPos.x &&
+           vMousePos.y <= (vPos.y + vSize.y) &&
+           vMousePos.y >= vPos.y));
 
       if (outside)
       {
         // Cursor's not hovering, maybe Tobii is?
         outside =
-          (! ( vTobiiPos.x <= (vPos.x + vSize.x + vSize.x * 0.125f) &&
-               vTobiiPos.x >=  vPos.x -           vSize.x * 0.125f  &&
-               vTobiiPos.y <= (vPos.y + vSize.y + vSize.y * 0.125f) &&
-               vTobiiPos.y >=  vPos.y -           vSize.y * 0.125f)    );
+          (!(vTobiiPos.x <= (vPos.x + vSize.x + vSize.x * 0.125f) &&
+             vTobiiPos.x >= vPos.x - vSize.x * 0.125f &&
+             vTobiiPos.y <= (vPos.y + vSize.y + vSize.y * 0.125f) &&
+             vTobiiPos.y >= vPos.y - vSize.y * 0.125f));
 
-        // Nope, nothing's hovering, so dim this widget
+      // Nope, nothing's hovering, so dim this widget
         if (bad_data || outside)
         {
           fAlpha *= 0.125f;
         }
       }
     }
+
+    else
+      fAlpha = alpha;
   }
 
   else
@@ -631,6 +647,7 @@ SK_Widget::save (iSK_INI* /*ini*/)
     param_size->store           (     size          );
     param_flash_duration->store (     flash_duration);
     param_pos->store            (     pos           );
+    param_alpha->store          (     alpha         );
   }
 
   OnConfig (ConfigEvent::SaveComplete);
@@ -805,10 +822,11 @@ SK_Widget::config_base (void)
   ImGui::EndGroup   (  );
   ImGui::TreePop    (  );
   ImGui::Separator  (  );
-  ImGui::SliderFloat("Flash Time", &flash_duration,
-                                             0.10f, 15.0f,
-                                        "%.3f (Seconds)");
-  ImGui::SliderFloat("Widget Scale", &scale, 0.25f, 2.0f);
+  changed |= ImGui::SliderFloat("Alpha Scale", &alpha, 0.01f, 1.0f);
+  changed |= ImGui::SliderFloat("Flash Time",  &flash_duration,
+                                                       0.10f, 15.0f,
+                                                   "%.3f (Seconds)");
+  changed |= ImGui::SliderFloat("Widget Scale", &scale, 0.25f, 2.0f);
   ImGui::Separator  (  );
 
   const bool done =
@@ -914,10 +932,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
           &config.screenshots.sk_osd_insertion_keybind
         };
 
-  if ( uiMaskedKeyCode ==
-         SK_MakeKeyMask ( 'H', false, true,
-                                      true )
-     )
+  if ( config.render.keys.hud_toggle.masked_code == uiMaskedKeyCode )
   {
     SK_D3D11_ToggleGameHUD ();
 

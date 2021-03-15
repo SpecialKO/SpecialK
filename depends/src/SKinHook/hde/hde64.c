@@ -133,7 +133,7 @@ unsigned int hde64_disasm(const void *code, hde64s *hs)
                 // warning C26451 : Arithmetic overflow : Using operator '*' on a 4 byte value
                 //                  and then casting the result to a 8 byte value.Cast the value
                 //                  to the wider type before calling operator '*' to avoid overflow (io.2).
-                ht = hde64_table + DELTA_FPU_MODRM + (int)t*8;
+                ht = hde64_table + DELTA_FPU_MODRM + (uintptr_t)t*8;
                 t = ht[m_reg] << m_rm;
             } else {
                 ht = hde64_table + DELTA_FPU_REG;

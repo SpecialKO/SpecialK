@@ -101,7 +101,7 @@ class SK_TLS;
 //   and a pointer to any allocated storage.
 struct SK_TlsRecord {
   DWORD   dwTlsIdx = std::numeric_limits <DWORD>::max ();
-  SK_TLS *pTLS;
+  SK_TLS *pTLS     = nullptr;
 };
 
 SK_TlsRecord* SK_GetTLS     (SK_TLS** ppTLS);
@@ -189,7 +189,7 @@ public:
     if (data == nullptr || len < needed)
     {
       if (data != nullptr)
-        SK_LocalFree ((HLOCAL)data);
+        SK_LocalFree (static_cast <HLOCAL> (data));
 
       const UINT
         uFlags =
@@ -256,8 +256,8 @@ class SK_TLS_DynamicContext
 public:
   size_t virtual Cleanup                (SK_TLS_CleanupReason_e reason = Unload);
 
-                  SK_TLS_DynamicContext (void) noexcept { };
-         virtual ~SK_TLS_DynamicContext (void) noexcept { };
+                  SK_TLS_DynamicContext (void) { };
+         virtual ~SK_TLS_DynamicContext (void) { };
 };
 
 class SK_TLS_ScratchMemory : public SK_TLS_DynamicContext
@@ -496,8 +496,8 @@ public:
     DWORD    code          = NO_ERROR;
   } error_state;
 
-  HWND last_active         = (HWND)-1;
-  HWND active              = (HWND)-1;
+  HWND last_active         = reinterpret_cast <HWND> (-1);
+  HWND active              = reinterpret_cast <HWND> (-1);
   LONG GUI                 = -1;
 
   int  thread_prio         =  0;
@@ -608,7 +608,7 @@ class SK_Sched_ThreadContext : public SK_TLS_DynamicContext
 {
 public:
   DWORD         priority      = THREAD_PRIORITY_NORMAL;
-  DWORD_PTR     affinity_mask = (DWORD_PTR)-1;
+  DWORD_PTR     affinity_mask = static_cast <DWORD_PTR> (-1);
   bool          lock_affinity = false;
   bool          background_io = false;
   SK_MMCS_TaskEntry*
@@ -656,7 +656,7 @@ public:
 
   virtual ~SK_TLS (void) noexcept (false)
   {
-    Cleanup ();
+    // Cleanup ();
   }
 
   void Init (DWORD idx)
@@ -732,6 +732,7 @@ public:
     bool             mapped            = false;
     bool             last_chance       = false;
     bool             in_DllMain        = false;
+    bool             naming            = false; // Don't recursively set thread names
   } debug;
 
   struct tex_mgmt_s

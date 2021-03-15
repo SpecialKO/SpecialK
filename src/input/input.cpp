@@ -372,14 +372,11 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
 
     for (auto& it : raw_mice)
     {
-      HWND hWnd = it.hwndTarget;
-
       if (raw_overrides.mouse.legacy_messages)
       {
         different    |= (it.dwFlags & RIDEV_NOLEGACY) != 0;
         it.dwFlags   &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
         it.dwFlags   &= ~RIDEV_CAPTUREMOUSE;
-        it.hwndTarget = hWnd;
         SK_RegisterRawInputDevices ( &it, 1, sizeof (RAWINPUTDEVICE) );
       }
 
@@ -1499,10 +1496,11 @@ SK_IsGameWindowActive (void)
     return true;
 
   if ( game_window.active ||
-      GetWindowThreadProcessId  (
-        SK_GetForegroundWindow ( ),
-                      &dwProcId ) &&
-       ( dwGamePid ==  dwProcId ) )
+      ( GetWindowThreadProcessId  (
+         SK_GetForegroundWindow ( ),
+                       &dwProcId ) &&
+        ( dwGamePid ==  dwProcId ) )
+     )
     return true;
 
   return false;

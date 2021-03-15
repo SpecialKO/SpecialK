@@ -606,39 +606,40 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
            (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueProcess & 0xFFFFFFFFU) != dwPID )
         continue;
 
-      if ( pThreads         != NULL &&
-           pThreads->pItems == NULL )
+      if (pThreads != NULL)
       {
-        pThreads->capacity = INITIAL_THREAD_CAPACITY;
-        pThreads->pItems   =
-              (PTHREAD_ENTRY)HeapAlloc (
+        if (pThreads->pItems == NULL)
+        {
+          pThreads->capacity = INITIAL_THREAD_CAPACITY;
+          pThreads->pItems   =
+                (PTHREAD_ENTRY)HeapAlloc (
+                  g_hHeap, 0,
+                    pThreads->capacity * sizeof (THREAD_ENTRY)
+                );
+
+          if (pThreads->pItems == NULL)
+            break;
+        }
+
+        else if (pThreads->size >= pThreads->capacity)
+        {
+          PTHREAD_ENTRY p =
+              (PTHREAD_ENTRY)HeapReAlloc (
                 g_hHeap, 0,
-                  pThreads->capacity * sizeof (THREAD_ENTRY)
+                  pThreads->pItems,
+        (SIZE_T)(((UINT)pThreads->capacity << 1) & (0xFFFFFFFFUL)) * sizeof (THREAD_ENTRY)
               );
 
-        if (pThreads->pItems == NULL)
-          break;
+          if (p == NULL)
+            break;
+
+          pThreads->capacity <<= 1;
+          pThreads->pItems     = p;
+        }
+
+        pThreads->pItems [pThreads->size++].tid =
+          (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueThread & 0xFFFFFFFFU);
       }
-
-      else if (pThreads->size >= pThreads->capacity)
-      {
-        PTHREAD_ENTRY p =
-            (PTHREAD_ENTRY)HeapReAlloc (
-              g_hHeap, 0,
-                pThreads->pItems,
-      (SIZE_T)(((UINT)pThreads->capacity << 1) & (0xFFFFFFFFUL)) * sizeof (THREAD_ENTRY)
-            );
-
-        if (p == NULL)
-          break;
-
-        if (pThreads) pThreads->capacity <<= 1;
-        if (pThreads) pThreads->pItems     = p;
-      }
-
-      if (pThreads)
-          pThreads->pItems [pThreads->size++].tid =
-        (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueThread & 0xFFFFFFFFU);
     }
   }
 }
@@ -891,7 +892,7 @@ Unfreeze (PFROZEN_THREADS pThreads)
 
         if ( hThread != NULL )
         {
-          DWORD                                dwExit;
+          DWORD                                dwExit = 0;
           if ( (! GetExitCodeThread (hThread, &dwExit)) ||
                                                dwExit == STILL_ACTIVE )
           {
