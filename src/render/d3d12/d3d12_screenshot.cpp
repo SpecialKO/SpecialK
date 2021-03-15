@@ -944,7 +944,7 @@ SK_D3D12_Screenshot::getData ( UINT     *pWidth,
       framebuffer.PackedDstSlicePitch
     };
 
-      D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout            = {  };
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout            = {  };
     UINT64                             totalResourceSize = 0ULL;
 
     const auto staging_desc =
