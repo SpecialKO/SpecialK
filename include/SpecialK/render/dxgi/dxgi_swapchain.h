@@ -249,6 +249,11 @@ IWrapDXGISwapChain : IDXGISwapChain4
   bool                  fakeFullscreen_ = false;
   DXGI_FORMAT           lastRequested_  = DXGI_FORMAT_UNKNOWN;
   DXGI_COLOR_SPACE_TYPE lastColorSpace_ = DXGI_COLOR_SPACE_RESERVED;
+
+  UINT        lastWidth       = 0;
+  UINT        lastHeight      = 0;
+  DXGI_FORMAT lastFormat      = DXGI_FORMAT_UNKNOWN;
+  UINT        lastBufferCount = 0;
 };
 
 

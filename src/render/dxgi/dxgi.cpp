@@ -43,7 +43,7 @@
 
 #include <CoreWindow.h>
 
-BOOL _NO_ALLOW_MODE_SWITCH = TRUE;
+BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
 
 #include <../depends/include/DirectXTex/d3dx12.h>
 
@@ -2344,19 +2344,39 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
                          pLazyD3D12Device                 )
        )
     {
-      rb.setDevice            (pLazyD3D12Device);
-      rb.swapchain           = pLazyD3D12Chain;
-      rb.d3d12.command_queue = This;
-      rb.api                 = SK_RenderAPI::D3D12;
+      if (rb.d3d12.command_queue == nullptr)
+      {
+        rb.setDevice            (pLazyD3D12Device);
+        rb.swapchain           = pLazyD3D12Chain;
+        rb.d3d12.command_queue = This;
+        rb.api                 = SK_RenderAPI::D3D12;
 
-      _d3d12_rbk->init (
-        (IDXGISwapChain3 *)pLazyD3D12Chain,
-          This
-      );
+        _d3d12_rbk->init (
+          (IDXGISwapChain3 *)pLazyD3D12Chain,
+            This
+        );
+      }
     }
 
     else once = false;
   }
+
+
+  static
+    volatile LONG64   llLastFrameMarked = 0;
+  if (ReadAcquire64 (&llLastFrameMarked) < ReadAcquire64 (&SK_RenderBackend::frames_drawn))
+  {
+    static auto& rb =
+     SK_GetCurrentRenderBackend ();
+
+    WriteRelease64 (
+      &llLastFrameMarked, 
+       ReadAcquire64 (&SK_RenderBackend::frames_drawn)
+    );
+
+    rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+  }
+
 
   return
     D3D12CommandQueue_ExecuteCommandLists_Original (
@@ -2533,13 +2553,15 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
   if (process)
   {
+    rb.setLatencyMarkerNV (SIMULATION_END);
+
     if (_IsBackendD3D11 (rb.api))
     {
       // Start / End / Readback Pipeline Stats
       SK_D3D11_UpdateRenderStats (This);
     }
 
-    if (rb.api == SK_RenderAPI::Reserved)
+    if (rb.api == SK_RenderAPI::Reserved || rb.api == SK_RenderAPI::D3D12)
     {
       // Late initialization
       //
@@ -2784,17 +2806,21 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         }
       }
     }
+    
+    if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
+    else if (_IsBackendD3D11 (rb.api)) SK_CEGUI_DrawD3D11 (This);
 
     if ( pDev != nullptr || pDev12 != nullptr )
     {
       SK_BeginBufferSwapEx (bWaitOnFailure);
     }
 
-    if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
-    else if (_IsBackendD3D11 (rb.api)) SK_CEGUI_DrawD3D11 (This);
+    rb.setLatencyMarkerNV (PRESENT_START);
 
     HRESULT hr =
       _Present ( interval, flags );
+
+    rb.setLatencyMarkerNV (PRESENT_END);
 
     if ( pDev != nullptr || pDev12 != nullptr )
     {
@@ -2822,6 +2848,10 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       if (_IsBackendD3D11 (rb.api) && InterlockedCompareExchange (&lResetD3D11, 0, 1)) _d3d11_rbk->release (This);
       if (_IsBackendD3D12 (rb.api) && InterlockedCompareExchange (&lResetD3D12, 0, 1)) _d3d12_rbk->release (This);
 
+      rb.setLatencyMarkerNV (SIMULATION_START);
+
+    // We have hooks in the D3D11/12 state tracker that should take care of this
+    //rb.setLatencyMarkerNV (RENDERSUBMIT_START);
 
       return ret;
     }
@@ -3154,6 +3184,16 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
                     pClosestMatch, pConcernedDevice
       );
 
+    if (FAILED (hr))
+    {
+      ZeroMemory (pClosestMatch, sizeof (DXGI_MODE_DESC));
+
+      // Prevent code that does not check error messages from
+      //   potentially dividing by zero.
+      pClosestMatch->RefreshRate.Denominator = 1;
+      pClosestMatch->RefreshRate.Numerator   = 1;
+    }
+
     return
       hr;
   }
@@ -3426,18 +3466,21 @@ DXGIOutput_FindClosestMatchingMode_Override (
                      This, pModeToMatch, pClosestMatch,
                                          pConcernedDevice ) );
 
-  SK_LOG0 (
-    ( L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, "
-                                           L"Scanlines=%s",
-      pClosestMatch->Width, pClosestMatch->Height,
-        pClosestMatch->RefreshRate.Denominator != 0 ?
-          static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
-          static_cast <float> (pClosestMatch->RefreshRate.Denominator) :
-            std::numeric_limits <float>::quiet_NaN (),
-      SK_DXGI_FormatToStr           (pClosestMatch->Format).c_str (),
-      SK_DXGI_DescribeScalingMode   (pClosestMatch->Scaling),
-      SK_DXGI_DescribeScanlineOrder (pClosestMatch->ScanlineOrdering) ),
-      L"   DXGI   " );
+  if (SUCCEEDED (ret))
+  {
+    SK_LOG0 (
+      ( L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, "
+                                             L"Scanlines=%s",
+        pClosestMatch->Width, pClosestMatch->Height,
+          pClosestMatch->RefreshRate.Denominator != 0 ?
+            static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
+            static_cast <float> (pClosestMatch->RefreshRate.Denominator) :
+              std::numeric_limits <float>::quiet_NaN (),
+        SK_DXGI_FormatToStr           (pClosestMatch->Format).c_str (),
+        SK_DXGI_DescribeScalingMode   (pClosestMatch->Scaling),
+        SK_DXGI_DescribeScanlineOrder (pClosestMatch->ScanlineOrdering) ),
+        L"   DXGI   " );
+  }
 
   return ret;
 }
@@ -3603,6 +3646,9 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     }
   }
 
+  DXGI_SWAP_CHAIN_DESC swapDesc = { };
+       This->GetDesc (&swapDesc);
+
   HRESULT    ret = E_UNEXPECTED;
   DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget))
 
@@ -3610,22 +3656,22 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   {
     rb.fullscreen_exclusive = Fullscreen;
 
-    //HRESULT hr =
-    //  This->Present (0, DXGI_PRESENT_TEST);
-    //
-    //if ( FAILED (hr) || hr == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
+    HRESULT hr =
+      This->Present (0, DXGI_PRESENT_TEST);
+    
+    if ( FAILED (hr) || hr == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
     {
       if (SK_DXGI_IsFlipModelSwapChain (sd))
       {
         //
         // Necessary provisions for Fullscreen Flip Mode
         //
-        //if (config.render.framerate.flip_discard)
+        if (config.render.framerate.flip_discard && (! pDev12.p)) // D3D12 software already handles this correctly
         {
           UINT _Flags =
             SK_DXGI_FixUpLatencyWaitFlag (This, sd.Flags);
 
-          if ( FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)) )
+          if ( /* swapDesc.Windowed == Fullscreen && */FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)) )
             return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
         }
       }
@@ -4090,10 +4136,10 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   //  STOP RESIZING THE SWAPCHAIN EVERY FRAME (!!))
   if (nop)
   {
-    ///SK_LOG0 ( ( L"Ignoring ResizeBuffers (...) because arguments are a NOP and performance would suffer" ),
-    ///            L"   DXGI   " );
-    ///
-    ///return S_OK;
+    ////SK_LOG0 ( ( L"Ignoring ResizeBuffers (...) because arguments are a NOP and performance would suffer" ),
+    ////            L"   DXGI   " );
+    ////
+    ////return S_OK;
   }
 
   ResetImGui_D3D12 (This);
@@ -5376,7 +5422,8 @@ DXGIFactory_CreateSwapChain_Override (
 
   // D3D12 games (pD3D12Queue) do not need this hack,
   //   they adhere to the documented beahvior of DXGI Flip Model
-  if ( pD3D12Queue.p  == nullptr &&
+  if ( /*(! config.apis.d3d9.translated) &&*/
+       pD3D12Queue.p  == nullptr &&
        pSwapToRecycle != nullptr )
   {
     DXGI_SWAP_CHAIN_DESC      recycle_desc = { };
@@ -5470,7 +5517,7 @@ DXGIFactory_CreateSwapChain_Override (
 #ifdef  __NIER_HACK
           if (  pD3D12Queue.p  == nullptr &&
                 pSwapToRecycle == nullptr &&
-               ppSwapChain     != nullptr )
+               ppSwapChain     != nullptr /*&& (! config.apis.d3d9.translated)*/ )
           {
             pSwapToRecycle = *ppSwapChain;
 
@@ -5683,7 +5730,7 @@ SK_DXGI_ReleaseSwapChainOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pD
     _d3d11_rbk->release (swapchain);
   }
 
-  // D3D12 can never have more than one HWND on a swapchain, so ...
+  // D3D12 can never have more than one swapchain on an HWND, so ...
   //   this is silly
   else if (_recyclable_d3d12.count (hWnd) > 0)
   {
@@ -5795,7 +5842,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   IDXGISwapChain1 *pCache = nullptr;
 
   // Cache Flip Model Chains
-  if ((! bFlipOriginal) && SK_DXGI_IsFlipModelSwapEffect (new_desc1.SwapEffect)) pCache =
+  if (/*(! bFlipOriginal) && */SK_DXGI_IsFlipModelSwapEffect (new_desc1.SwapEffect)) pCache =
     SK_DXGI_GetCachedSwapChainForHwnd (
                                  hWnd,
       pDev12.p != nullptr ? static_cast <IUnknown *> (pDev12.p)
@@ -5842,11 +5889,11 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       {
         SK_DXGI_MakeCachedSwapChainForHwnd
              ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev11.p) );
-        if ((! bFlipOriginal))
+        //if ((! bFlipOriginal))
         {
           // Cache the chain, in case the game tries to create multiple swapchains on one HWND
-              (*ppSwapChain)->AddRef ();
-              (*ppSwapChain)->AddRef ();
+          (*ppSwapChain)->AddRef ();
+          (*ppSwapChain)->AddRef ();
         }
       }
 
@@ -6828,8 +6875,6 @@ dxgi_init_callback (finish_pfn finish)
     //WaitForInitDXGI ();
   }
 
-  __HrLoadAllImportsForDll ("d3dx11_43.dll");
-
   finish ();
 }
 
@@ -6983,6 +7028,19 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
 
   if (SUCCEEDED (hr))
   {
+    if (config.render.dxgi.hide_hdr_support)
+    {
+      if (SK_GetCallingDLL () != SK_GetDLL ())
+      {
+        if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+            ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
+        {
+          *pColorSpaceSupported = 0x0;
+          return hr;
+        }
+      }
+    }
+
     if ( *pColorSpaceSupported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT )
       SK_LOG0 ( ( L"[#] Color Space Supported. ") , L" DXGI HDR ");
     if ( *pColorSpaceSupported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_OVERLAY_PRESENT )
@@ -7017,6 +7075,17 @@ SK_DXGISwap3_SetColorSpace1_Impl (
               ),L"   DXGI   " );
 
     ColorSpace = (DXGI_COLOR_SPACE_TYPE)rb.scanout.colorspace_override;
+  }
+
+  DXGI_SWAP_CHAIN_DESC   swapDesc = { };
+  pSwapChain3->GetDesc (&swapDesc);
+  
+  if ( __SK_HDR_16BitSwap &&
+         swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT
+                      && ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
+  {                      ColorSpace  = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+    SK_LOG0 ( ( L"Game tried to use the wrong color space (HDR10), using scRGB instead."),
+                L" DXGI HDR " );
   }
 
   HRESULT hr =                      bWrapped ?
@@ -7079,6 +7148,16 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
   HRESULT hr =
     IDXGIOutput6_GetDesc1_Original (This, pDesc);
 
+  if (config.render.dxgi.hide_hdr_support)
+  {
+    if (SK_GetCallingDLL () != SK_GetDLL ())
+    {
+      if (SUCCEEDED (hr) && pDesc->ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
+      {
+        pDesc->ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+      }
+    }
+  }
 #if 0
   static volatile LONG lRecursion = 0;
 

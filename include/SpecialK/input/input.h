@@ -49,6 +49,8 @@ void SK_Input_PreHookXInput   (void);
 void SK_Input_PreInit (void);
 void SK_Input_Init    (void);
 
+void SK_Input_SetLatencyMarker (void);
+
 
 SHORT WINAPI SK_GetAsyncKeyState (int vKey);
 
@@ -120,7 +122,8 @@ struct sk_input_api_context_s
   } active { false, false, false, false };
 
   void markRead  (sk_input_dev_type type) noexcept
-  { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+  { SK_Input_SetLatencyMarker ();
+    InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
                                                  type == sk_input_dev_type::Keyboard ? 1 :
                                                  type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
   void markWrite  (sk_input_dev_type type) noexcept
@@ -432,6 +435,8 @@ SHORT WINAPI SK_GetKeyState      (int   nVirtKey);
 BOOL  WINAPI SK_GetKeyboardState (PBYTE lpKeyState);
 
 extern char SK_KeyMap_LeftHand_Arrow (char key);
+
+extern DWORD SK_GetCurrentMS (void);
 
 
 #endif /* __SK__INPUT_H__ */

@@ -178,6 +178,16 @@ public:
     wchar_t               name      [128] = { };
     wchar_t               dxgi_name [32]  = { };
     HMONITOR              monitor         =   0;
+    struct native_res_s {
+      uint32_t            width;
+      uint32_t            height;
+    } native;
+    struct nvapi_ctx_s {
+      //NvPhysicalGpuHandle gpu_handle;
+      //NvDisplayHandle     display_handle;
+      NvU32               display_id;
+      //NvU32               output_id;
+    } nvapi;
   } displays [16];
 
   uint32_t                display_crc [16] = { }; // Quick detect for changing displays
@@ -397,7 +407,7 @@ public:
 
   struct gsync_s
   {
-    void update (void);
+    void update (bool force = false);
 
     BOOL                  capable      = FALSE;
     BOOL                  active       = FALSE;
@@ -431,6 +441,13 @@ public:
 
   void            updateOutputTopology (void);
   const output_s* getContainingOutput  (const RECT& rkRect);
+
+  bool setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE    marker);
+  bool getLatencyReportNV (NV_LATENCY_RESULT_PARAMS *pGetLatencyParams);
+  void driverSleepNV      (int site);
+
+  std::string parseEDIDForName      (uint8_t* edid, size_t length);
+  POINT       parseEDIDForNativeRes (uint8_t* edid, size_t length);
 };
 #pragma pack(pop)
 
@@ -720,6 +737,5 @@ void SK_Display_DisableDPIScaling      (void);
 
 extern SK_LazyGlobal <
     SK_RenderBackend > __SK_RBkEnd;
-
 
 #endif /* __SK__RENDER_BACKEND__H__ */

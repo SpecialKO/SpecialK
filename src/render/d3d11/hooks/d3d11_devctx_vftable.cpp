@@ -237,9 +237,6 @@ D3D11_UpdateSubresource1_pfn                        D3D11_UpdateSubresource1_Ori
 // 114 FinishCommandList
 
 
-extern SK_LazyGlobal <std::unordered_set <ID3D11Texture2D *>>                         used_textures;
-extern SK_LazyGlobal <std::unordered_map <ID3D11DeviceContext *, mapped_resources_s>> mapped_resources;
-
 // TODO
 //////#include <../src/render/d3d11/d3d11_dev_ctx.cpp>
 

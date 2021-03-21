@@ -66,9 +66,6 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
     success;
 }
 
-extern volatile LONG __SK_Init;
-
-
 NtReadFile_pfn  NtReadFile_Original  = nullptr;
 NtWriteFile_pfn NtWriteFile_Original = nullptr;
 

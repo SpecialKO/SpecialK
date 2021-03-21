@@ -47,10 +47,6 @@ volatile LONG     SK_SteamAPI_CallbackRateLimit   = -1L;
 volatile LONG   __SK_Steam_init = FALSE;
 volatile LONG   __SteamAPI_hook = FALSE;
 
-extern SK_Thread_HybridSpinlock* steam_callback_cs;
-extern SK_Thread_HybridSpinlock* steam_popup_cs;
-extern SK_Thread_HybridSpinlock* steam_init_cs;
-
 // To spoof Overlay Activation (pause the game)
 
 void SK_Steam_UpdateGlobalAchievements (void);

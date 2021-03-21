@@ -268,7 +268,11 @@ namespace SK
       static
       float         undershoot_percent;
 
+      static
+      double        timer_res_ms;
+
     private:
+
       bool          restart      = false;
       bool          full_restart = false;
       bool          background   = false;
@@ -715,6 +719,7 @@ extern void SK_Scheduler_Shutdown (void);
 extern HRESULT WINAPI
 SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo);
 
+extern volatile LONG64 lD3DKMTPresentCalls;
 
 
 #endif /* __SK__FRAMERATE_H__ */

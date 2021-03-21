@@ -338,7 +338,8 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::TreePush ("");
 
       ImGui::BeginGroup ();
-      ImGui::Checkbox ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
+      ImGui::Checkbox   ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
+
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
@@ -347,64 +348,6 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::BulletText   ("Makes Windowed Mode Perform ~Same as Fullscreen Exclusive");
         ImGui::EndTooltip   ();
       }
-      ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-
-        ImGui::Text       ("This Controls V-Sync");
-        ImGui::Separator  (                                               );
-        ImGui::BulletText ("-1=Game Controlled,  0=Force Off,  1=Force On");
-        ImGui::BulletText (">1=Fractional Refresh Rates");
-
-        ImGui::EndTooltip ();
-      }
-
-      config.render.framerate.present_interval =
-        std::max (-1, std::min (4, config.render.framerate.present_interval));
-
-      if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
-      {
-        static auto& io =
-          ImGui::GetIO ();
-
-        // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
-        PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)io.DisplaySize.x,
-                                                                                (LONG)io.DisplaySize.y ) );
-
-        _ResetLimiter ();
-      }
-
-      // Clamp to [-1,oo)
-      if (config.render.framerate.buffer_count < -1)
-          config.render.framerate.buffer_count = -1;
-
-      if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
-      {
-        if (config.render.framerate.pre_render_limit < -1)
-            config.render.framerate.pre_render_limit = -1;
-
-        else if (config.render.framerate.pre_render_limit > config.render.framerate.buffer_count + 1)
-          config.render.framerate.pre_render_limit = config.render.framerate.buffer_count + 1;
-
-        SK_ComQIPtr <IDXGISwapChain> pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
-
-        if (pSwapChain != nullptr)
-        {
-          void
-          SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain );
-          SK_DXGI_UpdateLatencies (                 pSwapChain );
-
-          _ResetLimiter ();
-        }
-      }
-
-      if (ImGui::Checkbox ("Wait for VBLANK", &config.render.framerate.wait_for_vblank))
-        _ResetLimiter ();
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Input Latency Reduction; requires VERY stable framerate.");
 
       if (config.render.framerate.flip_discard)
       {
@@ -462,6 +405,64 @@ SK::ControlPanel::D3D11::Draw (void)
         }
       }
 
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+
+      ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+
+        ImGui::Text       ("This Controls V-Sync");
+        ImGui::Separator  (                                               );
+        ImGui::BulletText ("-1=Game Controlled,  0=Force Off,  1=Force On");
+        ImGui::BulletText (">1=Fractional Refresh Rates");
+
+        ImGui::EndTooltip ();
+      }
+
+      config.render.framerate.present_interval =
+        std::max (-1, std::min (4, config.render.framerate.present_interval));
+
+      if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
+      {
+        static auto& io =
+          ImGui::GetIO ();
+
+        // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
+        PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)io.DisplaySize.x,
+                                                                                (LONG)io.DisplaySize.y ) );
+
+        _ResetLimiter ();
+      }
+
+      // Clamp to [-1,oo)
+      if (config.render.framerate.buffer_count < -1)
+          config.render.framerate.buffer_count = -1;
+
+      if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
+      {
+        if (config.render.framerate.pre_render_limit < -1)
+            config.render.framerate.pre_render_limit = -1;
+
+        else if (config.render.framerate.pre_render_limit > config.render.framerate.buffer_count + 1)
+          config.render.framerate.pre_render_limit = config.render.framerate.buffer_count + 1;
+
+        SK_ComQIPtr <IDXGISwapChain>
+            pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
+        if (pSwapChain != nullptr)
+        {
+          void
+          SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain );
+          SK_DXGI_UpdateLatencies (                 pSwapChain );
+
+          _ResetLimiter ();
+        }
+      }
+      ImGui::EndGroup ();
+
       const bool changed =
         (flip         != config.render.framerate.flip_discard      ) ||
         (waitable     != config.render.framerate.swapchain_wait > 0) ||
@@ -473,8 +474,7 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::BulletText     ("Game Restart Required");
         ImGui::PopStyleColor  ();
       }
-      ImGui::EndGroup       (  );
-      ImGui::TreePop  (  );
+      ImGui::TreePop  ();
     }
 
     if (d3d11 && ImGui::CollapsingHeader ("Texture Management"))

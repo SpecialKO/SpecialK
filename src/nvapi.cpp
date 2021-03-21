@@ -1374,6 +1374,7 @@ bool SK_NvAPI_InitializeHDR (void)
   return true;
 }
 
+SK_LazyGlobal <NV_GET_CURRENT_SLI_STATE> SK_NV_sli_state;
 
 NV_GET_CURRENT_SLI_STATE
 NVAPI::GetSLIState (IUnknown* pDev)

@@ -538,6 +538,21 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
   //  return false;
   //}
 
+  static
+    volatile LONG64   llLastFrameMarked = 0;
+  if (ReadAcquire64 (&llLastFrameMarked) < SK_GetFramesDrawn ())
+  {
+    static auto& rb =
+     SK_GetCurrentRenderBackend ();
+
+    WriteRelease64 (
+      &llLastFrameMarked, 
+       SK_GetFramesDrawn ()
+    );
+
+    rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+  }
+
   // If ReShade (custom version) is loaded, state tracking is non-optional
   if ( (intptr_t)hModReShade < (intptr_t)nullptr )
                  hModReShade = SK_ReShade_GetDLL ();

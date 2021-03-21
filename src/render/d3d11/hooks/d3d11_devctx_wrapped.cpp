@@ -49,9 +49,6 @@ const GUID IID_IUnwrappedD3D11DeviceContext =
 static const GUID IID_IUnwrappedD3D11Multithread =
 { 0xf674a27d, 0xa14e, 0x48ba, { 0x9e, 0x1e, 0xa7, 0x2d, 0x20, 0xc0, 0x18, 0xb4 } };
 
-extern SK_LazyGlobal <std::unordered_set <ID3D11Texture2D *>>                         used_textures;
-extern SK_LazyGlobal <std::unordered_map <ID3D11DeviceContext *, mapped_resources_s>> mapped_resources;
-
 #define track_immediate config.render.dxgi.deferred_isolation
 
 //#define SK_D3D11_LAZY_WRAP

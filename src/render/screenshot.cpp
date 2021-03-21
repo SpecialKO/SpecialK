@@ -239,10 +239,10 @@ SK_ScreenshotManager::checkDiskSpace (uint64_t bytes_needed) const
     return false;
   }
 
-  // Don't take screenshots if the general free space is < 3%
-  if (static_cast <double> (free.QuadPart) / static_cast <double> (capacity.QuadPart) < 0.03)
+  // Don't take screenshots if the general free space is < .5%
+  if (static_cast <double> (free.QuadPart) / static_cast <double> (capacity.QuadPart) < 0.005)
   {
-    SK_ImGui_Warning (L"Free space on Screenshot Drive is < 3%, disabling Screenshots.");
+    SK_ImGui_Warning (L"Free space on Screenshot Drive is < 0.5%, disabling Screenshots.");
     return false;
   }
 

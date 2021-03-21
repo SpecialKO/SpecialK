@@ -182,6 +182,8 @@ extern volatile LONG __SK_DLL_Ending;
 extern volatile LONG __SK_DLL_Attached;
 extern volatile LONG __SK_DLL_Refs;
 
+extern volatile LONG __SK_Init;
+
 HANDLE
 WINAPI
 SK_CreateEvent (

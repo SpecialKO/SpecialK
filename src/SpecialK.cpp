@@ -689,20 +689,51 @@ _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
 }
 
 
+bool
+__stdcall
+SK_dgVoodoo_CheckForInterop (void)
+{
+  HMODULE hModD3D9 =
+    SK_GetModuleHandle (L"d3d9.dll");
+
+  if ( hModD3D9                == 0 &&
+       INVALID_FILE_ATTRIBUTES != GetFileAttributes (L"d3d9.dll") )
+  {
+    hModD3D9 =
+      SK_LoadLibraryW (L"d3d9.dll");
+  }
+
+  if (hModD3D9 != 0)
+  {
+    std::wstring str_d3d9ver =
+      SK_GetDLLVersionStr (
+        SK_GetModuleFullName (hModD3D9).c_str ()
+                          );
+  
+    if (str_d3d9ver.find (L"dgVoodoo") != std::wstring::npos)
+    {
+      config.apis.d3d9.hook       = false;
+      config.apis.d3d9.translated = true;
+      
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 BOOL
 __stdcall
 SK_EstablishDllRole (skWin32Module&& module)
 {
   SK_SetDLLRole (DLL_ROLE::INVALID);
 
-#ifndef _M_AMD64
   static bool has_dgvoodoo =
    ( GetFileAttributesW (
        SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
            std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" )
                          .c_str ()
                         ).c_str () ) != INVALID_FILE_ATTRIBUTES );
-#endif
 
   const wchar_t* wszSelfTitledDLL =
     module;
@@ -718,6 +749,8 @@ SK_EstablishDllRole (skWin32Module&& module)
   if (0 == SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
   {
     SK_SetDLLRole (DLL_ROLE::DInput8);
+
+    SK_dgVoodoo_CheckForInterop ();
 
     if ( SK_IsDLLSpecialK (L"dxgi.dll")     ||
          SK_IsDLLSpecialK (L"d3d9.dll")     ||
@@ -953,9 +986,12 @@ SK_EstablishDllRole (skWin32Module&& module)
         //
         if (config.apis.last_known != SK_RenderAPI::Reserved)
         {
-          if (_SKM_AutoBootLastKnownAPI (config.apis.last_known))
+          if (! SK_dgVoodoo_CheckForInterop ())
           {
-            return true;
+            if (_SKM_AutoBootLastKnownAPI (config.apis.last_known))
+            {
+              return true;
+            }
           }
         }
 
@@ -985,6 +1021,12 @@ SK_EstablishDllRole (skWin32Module&& module)
         d3d11  |= (SK_GetModuleHandle (L"d3dx11_43.dll") != nullptr);
 
         d3d12  |= (SK_GetModuleHandle (L"d3d12.dll")     != nullptr);
+
+        if (SK_dgVoodoo_CheckForInterop ())
+        {
+          d3d9  = false;
+          d3d11 = true;
+        }
 
 #ifndef _M_AMD64
         d3d8   |= (SK_GetModuleHandle (L"d3d8.dll")      != nullptr);

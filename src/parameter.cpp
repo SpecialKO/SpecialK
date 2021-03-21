@@ -74,6 +74,32 @@ sk::iParameter::store (void)
   return ret;
 }
 
+bool
+sk::iParameter::empty (void)
+{
+  if (ini != nullptr)
+  {
+    const wchar_t*  sec_name =
+      ini_section.c_str ();
+
+    if (ini->contains_section (sec_name))
+    {
+      iSK_INISection& section =
+        ini->get_section (sec_name);
+
+      if (section.contains_key (ini_key.c_str ()))
+      {
+        std::wstring& new_value =
+          section.get_value (ini_key.c_str ());
+
+        return new_value.empty ();
+      }
+    }
+  }
+
+  return false;
+}
+
 
 std::wstring
 sk::ParameterInt::get_value_str (void)

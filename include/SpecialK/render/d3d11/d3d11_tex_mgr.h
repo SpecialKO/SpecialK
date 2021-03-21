@@ -97,6 +97,13 @@ extern std::unique_ptr <SK_Thread_HybridSpinlock> cache_cs;
 extern std::unique_ptr <SK_Thread_HybridSpinlock> inject_cs;
 extern std::unique_ptr <SK_Thread_HybridSpinlock> preload_cs;
 
+// Can only be accessed from the thread drawing ImGui
+extern SK_LazyGlobal <std::unordered_set <ID3D11Texture2D *>>
+                     used_textures;
+
+extern SK_LazyGlobal <std::unordered_map <ID3D11DeviceContext *, mapped_resources_s>>
+                     mapped_resources;
+
 extern SK_LazyGlobal <std::wstring>
                      SK_D3D11_res_root;
 extern bool          SK_D3D11_need_tex_reset;

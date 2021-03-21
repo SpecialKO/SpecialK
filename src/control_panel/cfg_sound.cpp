@@ -298,7 +298,7 @@ SK_ImGui_VolumeManager (void)
   if (audio_session != nullptr)
     app_name = audio_session->getName ();
 
-  app_name += "###AudioSessionAppName";
+  app_name += "##AudioSessionAppName";
 
   ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.90f, 0.68f, 0.45f));
   ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.90f, 0.72f, 0.80f));

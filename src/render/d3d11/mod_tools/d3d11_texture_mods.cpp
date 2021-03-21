@@ -40,12 +40,6 @@ bool convert_typeless = false;
 static size_t debug_tex_id = 0x0;
 static size_t tex_dbg_idx  = 0;
 
-extern SK_LazyGlobal <SK_D3D11_TexMgr> SK_D3D11_Textures;
-extern SK_LazyGlobal <
-  std::unordered_set <ID3D11Texture2D *>
-                     > used_textures;
-
-
 void
 SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 {

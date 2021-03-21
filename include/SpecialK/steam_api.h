@@ -719,6 +719,10 @@ SK_SteamAPI_AddScreenshotToLibraryEx ( const char *pchFilename,
 
 extern volatile LONG SK_SteamAPI_CallbackRateLimit;
 
+extern SK_Thread_HybridSpinlock* steam_callback_cs;
+extern SK_Thread_HybridSpinlock* steam_popup_cs;
+extern SK_Thread_HybridSpinlock* steam_init_cs;
+
 
 
 

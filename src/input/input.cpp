@@ -3097,6 +3097,26 @@ SK_Input_Init (void)
 }
 
 
+void
+SK_Input_SetLatencyMarker (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+                  DWORD64 ulFramesDrawn =
+                      SK_GetFramesDrawn ( );
+  static volatile DWORD64  ulLastFrame  = 0;
+  if (ReadULong64Acquire (&ulLastFrame) < ulFramesDrawn)
+  {
+    if (config.nvidia.sleep.enforcement_site == 2)
+      rb.driverSleepNV (2);
+    else
+      rb.setLatencyMarkerNV (INPUT_SAMPLE);
+
+    WriteULong64Release (&ulLastFrame, ulFramesDrawn);
+  }
+}
+
 
 SK_LazyGlobal <sk_input_api_context_s> SK_XInput_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;

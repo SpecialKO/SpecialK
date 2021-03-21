@@ -188,22 +188,6 @@
 #include <SpecialK/injection/injection.h>
 #include <SpecialK/plugin/reshade.h>
 
-//#include <dxgi.h>
-//#include <d3d11.h>
-//
-//#include <SpecialK/render/backend.h>
-//#include <SpecialK/render/dxgi/dxgi_hdr.h>
-//#include <SpecialK/render/dxgi/dxgi_backend.h>
-//#include <SpecialK/render/dxgi/dxgi_swapchain.h>
-//#include <SpecialK/render/dxgi/dxgi_interfaces.h>
-//#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
-//#include <SpecialK/render/d3d11/d3d11_4.h>
-
-//#include <SpecialK/render/vk/vulkan_backend.h>
-//#include <SpecialK/render/gl/opengl_backend.h>
-
-//#include <SpecialK/render/screenshot.h>
-
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
 

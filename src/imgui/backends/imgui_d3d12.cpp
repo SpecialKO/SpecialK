@@ -949,23 +949,18 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
   const  D3D12_TEXTURE_COPY_LOCATION *pSrc,
   const  D3D12_BOX                   *pSrcBox )
 {
-  D3D12_TEXTURE_COPY_LOCATION src = *pSrc,
-                              dst = *pDst;
-
   if (__SK_HDR_16BitSwap)
   {
+    // Format override siliness in D3D12
+    static volatile LONG lSizeSkips   = 0;
+    static volatile LONG lFormatSkips = 0;
+
     D3D12_RESOURCE_DESC
       src_desc = pSrc->pResource->GetDesc (),
       dst_desc = pDst->pResource->GetDesc ();
 
-    if ( ( D3D12_RESOURCE_DIMENSION_TEXTURE2D == dst_desc.Dimension ||
-           D3D12_RESOURCE_DIMENSION_TEXTURE2D == src_desc.Dimension ) &&
-                           src_desc.MipLevels == 1 &&
-                           dst_desc.MipLevels == 1 )
+    if (D3D12_RESOURCE_DIMENSION_TEXTURE2D == src_desc.Dimension)
     {
-      DXGI_FORMAT srcFmt = src_desc.Format,
-                  dstFmt = dst_desc.Format;
-
       static auto& rb =
         SK_GetCurrentRenderBackend ();
 
@@ -976,23 +971,33 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
           pSwap->GetDesc (&swapDesc);
 
       if ( pSwap.p == nullptr ||
-           ( src_desc.Width  == swapDesc.BufferDesc.Width &&
-             src_desc.Height == swapDesc.BufferDesc.Height ) ||
-           ( dst_desc.Width  == swapDesc.BufferDesc.Width &&
-             dst_desc.Height == swapDesc.BufferDesc.Height ) )
+           ( src_desc.Width  == swapDesc.BufferDesc.Width  &&
+             src_desc.Height == swapDesc.BufferDesc.Height &&
+             src_desc.Format == swapDesc.BufferDesc.Format )
+         )
       {
-        auto typelessSrc = DirectX::MakeTypeless (srcFmt),
-             typelessDst = DirectX::MakeTypeless (dstFmt);
-
-        if ( DXGI_FORMAT_R16G16B16A16_TYPELESS == typelessDst ||
-             DXGI_FORMAT_R16G16B16A16_TYPELESS == typelessSrc )
+        if ( dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER &&
+             dst_desc.Height    == 1                               && DstX == 0 && DstY    == 0
+                                                                   && DstZ == 0 && pSrcBox == nullptr &&
+             dst_desc.Width     != src_desc.Width   *
+                                   src_desc.Height  *
+            DirectX::BitsPerPixel (src_desc.Format) / 8 )
         {
+          InterlockedIncrement (&lSizeSkips);
+
+          return;
+        }
+
+        else if ( dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+        {
+          auto typelessSrc = DirectX::MakeTypeless (src_desc.Format),
+               typelessDst = DirectX::MakeTypeless (dst_desc.Format);
+
           if ( typelessSrc != typelessDst     &&
-               DirectX::BitsPerColor (srcFmt) !=
-               DirectX::BitsPerColor (dstFmt) )
+               DirectX::BitsPerPixel (src_desc.Format) !=
+               DirectX::BitsPerPixel (dst_desc.Format) )
           {
-            static volatile LONG   lSkips = 0;
-            InterlockedIncrement (&lSkips);
+            InterlockedIncrement (&lFormatSkips);
 
             return;
           }

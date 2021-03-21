@@ -3440,13 +3440,3 @@ SK_D3D11_TexMgr::lod_hash_table_s::touch (ID3D11Texture2D *pTex)
     tex_desc.last_used  = SK_QueryPerf ().QuadPart;
   }
 }
-
-
-// Can only be accessed from the thread drawing ImGui
-SK_LazyGlobal <
-  std::unordered_set <ID3D11Texture2D *>
-> used_textures;
-
-SK_LazyGlobal <
-  std::unordered_map <ID3D11DeviceContext *, mapped_resources_s>
-> mapped_resources;

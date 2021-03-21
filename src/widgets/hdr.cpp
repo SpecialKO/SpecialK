@@ -59,10 +59,10 @@ auto
   if (param == nullptr)
     return false;
 
-  std::string label =
-    SK_WideCharToUTF8 (binding->human_readable) + "##";
+  ImGui::PushID (binding->bind_name);
 
-  label += binding->bind_name;
+  std::string label =
+    SK_WideCharToUTF8 (binding->human_readable);
 
   if (ImGui::Selectable (label.c_str (), false))
   {
@@ -73,6 +73,8 @@ auto
     binding->human_readable;
 
   SK_ImGui_KeybindDialog (binding);
+
+  ImGui::PopID ();
 
   if (original_binding != binding->human_readable)
   {

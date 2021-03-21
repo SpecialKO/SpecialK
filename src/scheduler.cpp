@@ -160,6 +160,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       else if (dwWait == WAIT_OBJECT_0 + 1)
       {
         PeekAndDispatch ();
+        break;
       }
 
       else

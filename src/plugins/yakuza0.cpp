@@ -1155,7 +1155,7 @@ SK_Yakuza0_PlugInCfg (void)
         auto Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
           auto
         {
-          std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+          std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "##";
           label += binding->bind_name;
 
           if (ImGui::Selectable (label.c_str (), false))

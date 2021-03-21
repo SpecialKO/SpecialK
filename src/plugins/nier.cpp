@@ -32,8 +32,10 @@
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 
-#define FAR_VERSION_NUM L"0.7.1"
+#define FAR_VERSION_NUM L"0.8.0"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
+
+bool __FAR_Steam = false;
 
 // Block until update finishes, otherwise the update dialog
 //   will be dismissed as the game crashes when it tries to
@@ -65,8 +67,13 @@ struct far_game_state_s
   bool   patchable   = false; // True only if the memory addresses can be validated
 
   bool needFPSCap (void) {
-    return enforce_cap|| (   *pMenu != 0) || (*pLoading   != 0) ||
-                         (*pHacking != 0) || (*pShortcuts != 0);
+    if (__FAR_Steam)
+    {
+      return enforce_cap|| (   *pMenu != 0) || (*pLoading   != 0) ||
+                           (*pHacking != 0) || (*pShortcuts != 0);
+    }
+
+    return enforce_cap;
   }
 
   void capFPS   (void);
@@ -421,10 +428,13 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
       uint8_t tstep0      [] = { 0x73, 0x1C, 0xC7, 0x05, 0x00, 0x00 };
       uint8_t tstep0_mask [] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00 };
 
-      pmin_tstep = static_cast <uint8_t *> (SK_ScanAligned ( tstep0, sizeof tstep0, tstep0_mask, 4 ));
+      pmin_tstep = static_cast <uint8_t *> (SK_ScanAligned ( tstep0, sizeof tstep0, tstep0_mask, 1 ));
       pmax_tstep = pmin_tstep + 0x2c;
 
-      dll_log->Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
+      if (pmin_tstep != nullptr)   // Steam Version
+        dll_log->Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
+      else                         // Windows Store Version      
+        pspinlock = psleep + 0x50;
 
       //{ 0xF3, 0x0F, 0x11, 0x44, 0x24, 0x20, 0xF3, 0x0F, 0x11, 0x4C, 0x24, 0x24, 0xF3, 0x0F, 0x11, 0x54, 0x24, 0x28, 0xF3, 0x0F, 0x11, 0x5C, 0x24, 0x2C }    (-4) = HUD Opacity
     }
@@ -472,7 +482,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
                                 "  Press Ctrl + Shift + Backspace to access In-Game Config Menu\n"
                                 "    ( Select + Start on Gamepads )\n\n"
                                 "   * This message will go away the first time you actually read it and successfully toggle the OSD.\n" );
-  else if (config.system.log_level == 1)
+  else if (__FAR_Steam && config.system.log_level == 1)
   {
     std::string validation = "";
 
@@ -498,7 +508,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     SK_DrawExternalOSD ( "FAR", validation );
   }
 
-  else if (config.system.log_level > 1)
+  else if (__FAR_Steam && config.system.log_level > 1)
   {
     std::string state = "";
 
@@ -861,6 +871,10 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 //  Note that there are more low-res 800x450 buffers not yet handled by this,
 //  but which could probably be handled similarly. Primarily, SSAO.
 
+// NOTE (Kaldaien):
+//
+//  Windows Store version increased the resolution to 960x540, but the general overview remains
+//
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -873,8 +887,9 @@ SK_FAR_CreateTexture2D (
   if (ppTexture2D == nullptr)
     return _D3D11Dev_CreateTexture2D_Original ( This, pDesc, pInitialData, nullptr );
 
-  static UINT   resW      = far_bloom.width; // horizontal resolution, must be set at application start
-  static double resFactor = resW / 1600.0;   // the factor required to scale to the largest part of the pyramid
+  static UINT   resW      = far_bloom.width;               // horizontal resolution, must be set at application start
+  static double resFactor = resW / ( __FAR_Steam ?
+                                            1600 : 1920 ); // the factor required to scale to the largest part of the pyramid
 
   bool bloom = false;
   bool ao    = false;
@@ -891,12 +906,16 @@ SK_FAR_CreateTexture2D (
     {
       if (__SK_HDR_16BitSwap || pDesc->Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
       {
-        if (
-                (pDesc->Width == 800 && pDesc->Height == 450)
-             || (pDesc->Width == 400 && pDesc->Height == 225)
-             || (pDesc->Width == 200 && pDesc->Height == 112)
-             || (pDesc->Width == 100 && pDesc->Height == 56)
-             /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/
+        if ( ( __FAR_Steam && (pDesc->Width == 800 && pDesc->Height == 450)
+                           || (pDesc->Width == 400 && pDesc->Height == 225)
+                           || (pDesc->Width == 200 && pDesc->Height == 112)
+                           || (pDesc->Width == 100 && pDesc->Height == 56)
+                         /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/ ) ||
+             (                (pDesc->Width == 960 && pDesc->Height == 540)
+                           || (pDesc->Width == 480 && pDesc->Height == 268)
+                           || (pDesc->Width == 240 && pDesc->Height == 134)
+                           || (pDesc->Width == 120 && pDesc->Height == 67)
+                           || (pDesc->Width == 100 && pDesc->Height == 56) )
            )
         {
           static int num_r11g11b10_textures = 0;
@@ -915,7 +934,8 @@ SK_FAR_CreateTexture2D (
             {
               // Scale the upper parts of the pyramid fully
               // and lower levels progressively less
-              double pyramidLevelFactor  = (static_cast <double> (pDesc->Width) - 50.0) / 750.0;
+              double pyramidLevelFactor  = __FAR_Steam ? (static_cast <double> (pDesc->Width) - 50.0) / 750.0
+                                                       : (static_cast <double> (pDesc->Width) - 60.0) / 900.0;
               double scalingFactor       = 1.0 + (resFactor - 1.0) * pyramidLevelFactor;
 
               copy.Width  = static_cast <UINT> (copy.Width  * scalingFactor);
@@ -936,7 +956,8 @@ SK_FAR_CreateTexture2D (
     case DXGI_FORMAT_R32_FLOAT:
     case DXGI_FORMAT_D24_UNORM_S8_UINT:
     {
-      if (pDesc->Width == 800 && pDesc->Height == 450)
+      if ((__FAR_Steam && pDesc->Width == 800 && pDesc->Height == 450) ||
+                         (pDesc->Width == 960 && pDesc->Height == 540))
       {
         // Skip the first two textures that match this pattern, they are
         //   not related to AO.
@@ -1021,12 +1042,18 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
 
     pDevCtx->RSGetViewports (&numViewports, &vp);
 
-    if (  (vp.Width == 800 && vp.Height == 450)
-       || (vp.Width == 400 && vp.Height == 225)
-       || (vp.Width == 200 && vp.Height == 112)
-       || (vp.Width == 100 && vp.Height == 56 )
-       || (vp.Width == 50  && vp.Height == 28 )
-       || (vp.Width == 25  && vp.Height == 14 )
+    if (  (__FAR_Steam && (vp.Width == 800 && vp.Height == 450)
+                       || (vp.Width == 400 && vp.Height == 225)
+                       || (vp.Width == 200 && vp.Height == 112)
+                       || (vp.Width == 100 && vp.Height == 56 )
+                       || (vp.Width == 50  && vp.Height == 28 )
+                       || (vp.Width == 25  && vp.Height == 14 ) ) ||
+          (               (vp.Width == 960 && vp.Height == 540)
+                       || (vp.Width == 480 && vp.Height == 268)
+                       || (vp.Width == 240 && vp.Height == 134)
+                       || (vp.Width == 120 && vp.Height == 67)
+                       || (vp.Width == 100 && vp.Height == 56)
+                       || (vp.Width == 60  && vp.Height == 33 ))
        )
     {
       SK_ComPtr <ID3D11RenderTargetView> rtView = nullptr;
@@ -1414,16 +1441,30 @@ SK_FAR_EULA_Insert (LPVOID reserved)
 void
 SK_FAR_InitPlugin (void)
 {
+  uint8_t tstep0      [] = { 0x73, 0x1C, 0xC7, 0x05, 0x00, 0x00 };
+  uint8_t tstep0_mask [] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00 };
+
+  pmin_tstep = static_cast <uint8_t *> (SK_ScanAligned ( tstep0, sizeof tstep0, tstep0_mask, 4 ));
+  pmax_tstep = pmin_tstep + 0x2c;
+
+  if (pmin_tstep != nullptr)
+  {
+    __FAR_Steam = true;
+  }
+
   SK_SetPluginName (FAR_VERSION_STR);
 
   plugin_mgr->first_frame_fns.push_back (SK_FAR_PresentFirstFrame);
   plugin_mgr->config_fns.push_back      (SK_FAR_PlugInCfg);
 
-  SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
-                               D3D11Dev_CreateBuffer_Override,
-                                 SK_FAR_CreateBuffer,
-     static_cast_p2p <void> (&_D3D11Dev_CreateBuffer_Original) );
-  MH_QueueEnableHook (         D3D11Dev_CreateBuffer_Override  );
+  if (__FAR_Steam)
+  {
+    SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
+                                 D3D11Dev_CreateBuffer_Override,
+                                   SK_FAR_CreateBuffer,
+       static_cast_p2p <void> (&_D3D11Dev_CreateBuffer_Original) );
+    MH_QueueEnableHook (         D3D11Dev_CreateBuffer_Override  );
+  }
 
   SK_CreateFuncHook (       L"ID3D11Device::CreateShaderResourceView",
                                D3D11Dev_CreateShaderResourceView_Override,
@@ -1865,7 +1906,8 @@ SK_FAR_PlugInCfg (void)
 
         ImGui::BeginGroup ();
 
-        if (ImGui::RadioButton ("Default Bloom Res. (800x450)", &bloom_behavior, 0))
+        if (ImGui::RadioButton (__FAR_Steam ? "Default Bloom Res. (800x450)" :
+                                              "Default Bloom Res. (960x540)", &bloom_behavior, 0))
         {
           changed = true;
 
@@ -1918,7 +1960,8 @@ SK_FAR_PlugInCfg (void)
         int ao_behavior = (far_ao_width->get_value () != -1) ? 3 : 2;
 
         ImGui::BeginGroup      ();
-        if (ImGui::RadioButton ("Default AO Res.    (800x450)", &ao_behavior, 2))
+        if (ImGui::RadioButton (__FAR_Steam ? "Default AO Res.    (800x450)" :
+                                              "Default AO Res.    (960x540)", &ao_behavior, 2))
         {
           changed = true;
 
@@ -1953,7 +1996,7 @@ SK_FAR_PlugInCfg (void)
       ImGui::TreePop  ();
     }
 
-    if (ImGui::CollapsingHeader ("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+    if (__FAR_Steam && ImGui::CollapsingHeader ("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush ("");
 
@@ -2096,12 +2139,12 @@ SK_FAR_PlugInCfg (void)
       ImGui::TreePop ();
     }
 
-    if (ImGui::CollapsingHeader ("Camera and HUD"))
+    if (__FAR_Steam && ImGui::CollapsingHeader ("Camera and HUD"))
     {
       auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
         auto
         {
-          std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+          std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "##";
                       label += binding->bind_name;
 
           if (ImGui::Selectable (label.c_str (), false))
@@ -2274,14 +2317,17 @@ far_game_state_s::uncapFPS (void)
   memset (pspinlock, 0x90, 2);
   mend   (pspinlock, 2)
 
-  mbegin (pmin_tstep, 1)
-  *pmin_tstep = 0xEB;
-  mend   (pmin_tstep, 1)
+  if (__FAR_Steam)
+  {
+    mbegin (pmin_tstep, 1)
+    *pmin_tstep = 0xEB;
+    mend   (pmin_tstep, 1)
 
-  mbegin (pmax_tstep, 2)
-  pmax_tstep [0] = 0x90;
-  pmax_tstep [1] = 0xE9;
-  mend   (pmax_tstep, 2)
+    mbegin (pmax_tstep, 2)
+    pmax_tstep [0] = 0x90;
+    pmax_tstep [1] = 0xE9;
+    mend   (pmax_tstep, 2)
+  }
 }
 
 
@@ -2308,19 +2354,30 @@ far_game_state_s::capFPS (void)
                       pLimiter->set_limit (59.94);
   }
 
-  mbegin (pspinlock, 2)
-  pspinlock [0] = 0x77;
-  pspinlock [1] = 0x9F;
-  mend   (pspinlock, 2)
+  if (__FAR_Steam)
+  {
+    mbegin (pspinlock, 2)
+    pspinlock [0] = 0x77;
+    pspinlock [1] = 0x9F;
+    mend   (pspinlock, 2)
 
-  mbegin (pmin_tstep, 1)
-  *pmin_tstep = 0x73;
-  mend   (pmin_tstep, 1)
+    mbegin (pmin_tstep, 1)
+    *pmin_tstep = 0x73;
+    mend   (pmin_tstep, 1)
 
-  mbegin (pmax_tstep, 2)
-  pmax_tstep [0] = 0x0F;
-  pmax_tstep [1] = 0x86;
-  mend   (pmax_tstep, 2)
+    mbegin (pmax_tstep, 2)
+    pmax_tstep [0] = 0x0F;
+    pmax_tstep [1] = 0x86;
+    mend   (pmax_tstep, 2)
+  }
+
+  else
+  {
+    mbegin (pspinlock, 2)
+    pspinlock [0] = 0x77;
+    pspinlock [1] = 0x9D;
+    mend   (pspinlock, 2)
+  }
 }
 
 

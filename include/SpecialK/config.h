@@ -347,7 +347,6 @@ struct sk_config_t
     struct framerate_s {
       float   target_fps         =  0.0f;
       float   target_fps_bg      =  0.0f;
-      float   busy_wait_ratio    =  0.825f;
       int     override_num_cpus  = -1;
       int     pre_render_limit   = -1;
       int     present_interval   = -1;
@@ -372,6 +371,7 @@ struct sk_config_t
       bool    sleepless_window   = false;
       bool    enable_mmcss       = true;
       int     enforcement_policy = 4; // Refer to framerate.cpp
+      bool    auto_low_latency   = true; // VRR users have the limiter default to low-latency
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex       = false;
@@ -410,6 +410,7 @@ struct sk_config_t
                                           // -1 = Passthrough,
                                           //  0 = Strip,
                                           //  1 = Apply
+      bool    hide_hdr_support   = false; // Games won't know HDR is supported
     } dxgi;
 
     struct osd_s {
@@ -511,8 +512,8 @@ struct sk_config_t
     } bugs;
     struct sleep_s {
       bool    enable            =  false;
-      bool    low_latency       =   true;
-      bool    low_latency_boost =   true;
+      bool    low_latency       =  false;
+      bool    low_latency_boost =  false;
       UINT    frame_interval_us =      0;
       int     enforcement_site  =      1;
     } sleep;
@@ -672,7 +673,8 @@ struct sk_config_t
 #endif
 
     struct d3d9_s {
-      bool   hook = true;
+      bool   hook       = true;
+      bool   translated = false;
     } d3d9,
       d3d9ex;
 
@@ -997,7 +999,8 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
 using wstring_hash = size_t;
 
-extern SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>> humanKeyNameToVirtKeyCode;
-extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>> virtKeyCodeToHumanKeyName;
+extern SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>>           humanKeyNameToVirtKeyCode;
+extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>>           virtKeyCodeToHumanKeyName;
+extern SK_LazyGlobal <std::unordered_multimap <uint32_t, SK_KeyCommand>> SK_KeyboardMacros;
 
 #endif /* __SK__CONFIG_H__ */

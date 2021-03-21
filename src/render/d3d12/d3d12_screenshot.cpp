@@ -881,6 +881,9 @@ SK_D3D12_CaptureScreenshot (
   CD3DX12_TEXTURE_COPY_LOCATION copyDest (pStagingCtx->pStagingBackbufferCopy, layout);
   CD3DX12_TEXTURE_COPY_LOCATION copySrc  (pSource,                                  0);
 
+  copyDest.PlacedFootprint.Footprint.Format = pBackingStore->NativeFormat;
+   copySrc.PlacedFootprint.Footprint.Format = pBackingStore->NativeFormat;
+
   pStagingCtx->pCmdList->CopyTextureRegion ( &copyDest, 0, 0,
                                           0, &copySrc, nullptr );
 

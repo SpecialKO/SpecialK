@@ -172,5 +172,7 @@ BOOL           SK_NvAPI_DisableAnsel       (DLL_ROLE role);
 void __stdcall SK_NvAPI_SetAppFriendlyName (const wchar_t* wszFriendlyName);
 void __stdcall SK_NvAPI_SetAppName         (const wchar_t* wszAppName);
 
+extern SK_LazyGlobal <NV_GET_CURRENT_SLI_STATE> SK_NV_sli_state;
+
 
 #endif /* __SK__NVAPI_H__ */

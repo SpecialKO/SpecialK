@@ -445,7 +445,7 @@ SK_BootVulkan (void)
 
 
 void
-SK_RenderBackend_V2::gsync_s::update (void)
+SK_RenderBackend_V2::gsync_s::update (bool force)
 {
   auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -461,8 +461,8 @@ SK_RenderBackend_V2::gsync_s::update (void)
     rb.surface.nvapi = nullptr;
   };
 
-  if (! (config.apis.NvAPI.gsync_status &&
-                 sk::NVAPI::nv_hardware) )
+  if (! ((force || config.apis.NvAPI.gsync_status) &&
+                           sk::NVAPI::nv_hardware) )
   {
     capable = false;
 
@@ -2080,8 +2080,8 @@ SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
   return name;
 }
 
-static std::string
-SK_EDID_Parse (uint8_t *edid, size_t length)
+std::string
+SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length)
 {
   std::string edid_name;
 
@@ -2178,6 +2178,41 @@ SK_EDID_Parse (uint8_t *edid, size_t length)
   return edid_name;
 }
 
+POINT
+SK_RenderBackend_V2::parseEDIDForNativeRes (uint8_t* edid, size_t length)
+{
+  unsigned int   i = 0;
+  uint8_t checksum = 0;
+
+  for (i = 0; i < length; ++i)
+    checksum += edid [i];
+
+  // Bad checksum, fail EDID
+  if (checksum != 0)
+  {
+    dll_log->Log (L"SK_EDID_Parse (...): Checksum fail");
+    return { };
+  }
+
+  if (0 != memcmp ((const char*)edid + EDID_HEADER,
+                   (const char*)edid_v1_header, EDID_HEADER_END + 1))
+
+  {
+    dll_log->Log (L"SK_EDID_Parse (...): Not V1 Header");
+
+    // Not a V1 header
+    return { };
+  }
+
+  POINT ret = {
+    ( (edid [58] >> 4) << 8) | edid [56],
+    ( (edid [61] >> 4) << 8) | edid [59]
+  };
+
+  return ret;
+}
+
+
 //#include "../depends/include/nvapi/nvapi_lite_common.h"
 
 static
@@ -2261,6 +2296,9 @@ void
 SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                               DXGI_OUTPUT_DESC&              outDesc )
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   if (*display.name == L'\0')
   {
     std::string edid_name;
@@ -2381,7 +2419,13 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
             if (ERROR_SUCCESS == lStat)
             {
               edid_name =
-                SK_EDID_Parse ( EDID_Data, edid_size );
+                rb.parseEDIDForName ( EDID_Data, edid_size );
+
+              auto nativeRes =
+                rb.parseEDIDForNativeRes ( EDID_Data, edid_size );
+
+              display.native.width  = nativeRes.x;
+              display.native.height = nativeRes.y;
             }
 
             //DISPLAY#MEIA296#5&2dafe0a1&3&UID41221#
@@ -2562,6 +2606,40 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         display.monitor  = outDesc.Monitor;
         display.rect     = outDesc.DesktopCoordinates;
         display.attached = outDesc.AttachedToDesktop;
+
+
+        if (sk::NVAPI::nv_hardware != false)
+        {
+          NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = { };
+          NvU32               nvGpuCount                             =   0;
+          NvDisplayHandle     nvDisplayHandle;
+          NvU32               nvOutputId  = std::numeric_limits <NvU32>::max ();
+          NvU32               nvDisplayId = std::numeric_limits <NvU32>::max ();
+
+          if ( NVAPI_OK ==
+                 NvAPI_GetAssociatedNvidiaDisplayHandle (
+                   SK_FormatString (R"(%ws)", outDesc.DeviceName).c_str (),
+                     &nvDisplayHandle
+                 ) &&
+               NVAPI_OK ==
+                 NvAPI_GetAssociatedDisplayOutputId (nvDisplayHandle, &nvOutputId) &&
+               NVAPI_OK ==
+                 NvAPI_GetPhysicalGPUsFromDisplay   (nvDisplayHandle, nvGpuHandles,
+                                                                     &nvGpuCount)  &&
+               NVAPI_OK ==
+                 NvAPI_SYS_GetDisplayIdFromGpuAndOutputId (
+                   nvGpuHandles [0], nvOutputId,
+                                    &nvDisplayId
+                 )
+             )
+          {
+          //display.nvapi.display_handle = nvDisplayHandle;
+          //display.nvapi.gpu_handle     = nvGpuHandles [0];
+          //display.nvapi.output_id      = nvOutputId;
+            display.nvapi.display_id     = nvDisplayId;
+          }
+        }
+
 
         wcsncpy_s ( display.dxgi_name,  32,
                     outDesc.DeviceName, _TRUNCATE );
@@ -2829,4 +2907,279 @@ SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
   //InterlockedDecrement (&lUpdatingOutputs);
 
   return pOutput;
+}
+
+bool
+SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
+{
+  if (! sk::NVAPI::nv_hardware)
+    return false;
+
+  if (device.p == nullptr)
+    return false;
+
+  NV_LATENCY_MARKER_PARAMS
+    markerParams            = {                          };
+    markerParams.version    = NV_LATENCY_MARKER_PARAMS_VER;
+    markerParams.markerType = marker;
+    markerParams.frameID    = static_cast <NvU64> (
+              ReadAcquire64 (&frames_drawn)       );
+
+  NvAPI_Status ret =
+    NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
+
+  return
+    ( ret == NVAPI_OK );
+}
+
+bool
+SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyParams)
+{
+  if (! sk::NVAPI::nv_hardware)
+    return false;
+
+  if (device.p == nullptr)
+    return false;
+
+  NvAPI_Status ret =
+    NvAPI_D3D_GetLatency (device.p, pGetLatencyParams);
+
+  return
+    ( ret == NVAPI_OK );
+}
+
+
+void
+SK_RenderBackend_V2::driverSleepNV (int site)
+{
+  if (! sk::NVAPI::nv_hardware)
+    return;
+
+  if (! device.p)
+    return;
+
+  if (site == 2)
+    setLatencyMarkerNV (INPUT_SAMPLE);
+
+  if (site == config.nvidia.sleep.enforcement_site)
+  {
+    static bool
+      valid = true;
+
+    if (! valid)
+      return;
+
+    if (config.nvidia.sleep.frame_interval_us != 0)
+    {
+      ////extern float __target_fps;
+      ////
+      ////if (__target_fps > 0.0)
+      ////  config.nvidia.sleep.frame_interval_us = static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
+      ////else
+      config.nvidia.sleep.frame_interval_us = 0;
+    }
+
+    NV_SET_SLEEP_MODE_PARAMS
+      sleepParams = {                          };
+      sleepParams.version           = NV_SET_SLEEP_MODE_PARAMS_VER;
+      sleepParams.bLowLatencyBoost  = config.nvidia.sleep.low_latency_boost;
+      sleepParams.bLowLatencyMode   = config.nvidia.sleep.low_latency;
+      sleepParams.minimumIntervalUs = config.nvidia.sleep.frame_interval_us;
+
+    static NV_SET_SLEEP_MODE_PARAMS
+      lastParams = { 1, true, true, 69, { 0 } };
+
+    if (! config.nvidia.sleep.enable)
+    {
+      sleepParams.bLowLatencyBoost  = false;
+      sleepParams.bLowLatencyMode   = false;
+      sleepParams.minimumIntervalUs = 0;
+    }
+
+    static volatile LONG64
+                         _frames_drawn =
+      std::numeric_limits <LONG64>::max ();
+    if ( ReadAcquire64 (&_frames_drawn) ==
+         ReadAcquire64  (&frames_drawn) )
+      return;
+
+    //if ( lastParams.bLowLatencyBoost  != sleepParams.bLowLatencyBoost ||
+    //     lastParams.bLowLatencyMode   != sleepParams.bLowLatencyMode  ||
+    //     lastParams.minimumIntervalUs != sleepParams.minimumIntervalUs )
+    {
+      if ( NVAPI_OK !=
+             NvAPI_D3D_SetSleepMode (
+               device.p, &sleepParams
+             )
+         ) valid = false;
+
+      else
+      {
+        //NV_GET_SLEEP_STATUS_PARAMS
+        //  getParams         = {                            };
+        //  getParams.version = NV_GET_SLEEP_STATUS_PARAMS_VER;
+
+        //NvAPI_D3D_Sleep (device.p);
+        //
+        //if ( NVAPI_OK ==
+        //       NvAPI_D3D_GetSleepStatus (
+        //         device.p, &getParams
+        //       )
+        //   )
+        //{
+        //  config.nvidia.sleep.low_latency = getParams.bLowLatencyMode;
+        //
+        //  if (! config.nvidia.sleep.low_latency)
+        //        config.nvidia.sleep.low_latency_boost = false;
+        //
+        //  lastParams.bLowLatencyMode  = getParams.bLowLatencyMode;
+        //  lastParams.bLowLatencyBoost = config.nvidia.sleep.low_latency_boost;
+        //}
+
+        lastParams = sleepParams;
+      }
+    }
+
+    if (config.nvidia.sleep.enable)
+    {
+      if ( NVAPI_OK != NvAPI_D3D_Sleep (device.p) )
+        valid = false;
+    }
+
+    WriteRelease64 (&_frames_drawn,
+      ReadAcquire64 (&frames_drawn));
+
+    if ((! valid) && ( api == SK_RenderAPI::D3D11 ||
+                       api == SK_RenderAPI::D3D12 ))
+    {
+      SK_ImGui_Warning (L"NVIDIA Reflex Sleep Invalid State");
+    }
+  }
+};
+
+void
+SK_NV_AdaptiveSyncControl (void)
+{
+  if (sk::NVAPI::nv_hardware != false)
+  {
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    for ( auto& display : rb.displays )
+    {
+      if (display.monitor == rb.monitor)
+      {
+        NV_GET_ADAPTIVE_SYNC_DATA
+                     getAdaptiveSync       = {                           };
+        ZeroMemory (&getAdaptiveSync,  sizeof (NV_GET_ADAPTIVE_SYNC_DATA));
+                     getAdaptiveSync.version = NV_GET_ADAPTIVE_SYNC_DATA_VER;
+
+        if ( NVAPI_OK ==
+               NvAPI_DISP_GetAdaptiveSyncData (
+                 display.nvapi.display_id,
+                         &getAdaptiveSync )
+           )
+        {
+          static NvU64 lastFlipTimeStamp = 0;
+                 NvU64 deltaFlipTime     = getAdaptiveSync.lastFlipTimeStamp - lastFlipTimeStamp;
+                       lastFlipTimeStamp = getAdaptiveSync.lastFlipTimeStamp;
+
+          static double dFlipPrint = 0.0;
+
+          if (deltaFlipTime > 0)
+          {
+            double dFlipRate  =                1.0 /
+            ( static_cast <double> (deltaFlipTime) /
+              static_cast <double> (SK_GetPerfFreq ().QuadPart) );
+                   dFlipPrint = dFlipRate;
+          }
+
+          rb.gsync_state.update (true);
+
+          ImGui::Text       ("Adaptive Sync Status for %ws", rb.display_name);
+          ImGui::Separator  ();
+          ImGui::BeginGroup ();
+          ImGui::Text       ("Current State:");
+          if (! getAdaptiveSync.bDisableAdaptiveSync)
+          {
+            ImGui::Text     ("Frame Splitting:");
+
+            if (getAdaptiveSync.maxFrameInterval != 0)
+              ImGui::Text   ("Max Frame Interval:");
+          }
+          ImGui::Text       ("Effective Refresh:");
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+
+          ImGui::Text       ( getAdaptiveSync.bDisableAdaptiveSync   ? "Disabled" :
+                                               rb.gsync_state.active ? "Active"   :
+                                                                       "Inactive" );
+          if (! getAdaptiveSync.bDisableAdaptiveSync)
+          {
+            ImGui::Text     ( getAdaptiveSync.bDisableFrameSplitting ? "Disabled" :
+                                                                       "Enabled" );
+
+            if (getAdaptiveSync.maxFrameInterval != 0)
+              ImGui::Text   ( "%#06.2f Hz ",
+                               1000000.0 / static_cast <double> (getAdaptiveSync.maxFrameInterval) );
+          }
+
+          ImGui::Text       ( "%#06.2f Hz ", dFlipPrint );
+          ImGui::Text       ( "\t\t\t\t\t\t\t\t" );
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+
+          static bool secret_menu = false;
+
+          if (ImGui::IsItemClicked (1))
+            secret_menu = true;
+
+          bool toggle_sync  = false;
+          bool toggle_split = false;
+
+          if (secret_menu)
+          {
+            toggle_sync =
+              ImGui::Button (
+                getAdaptiveSync.bDisableAdaptiveSync == 0x0 ?
+                              "Disable Adaptive Sync"       :
+                               "Enable Adaptive Sync" );
+
+            toggle_split =
+              ImGui::Button (
+                getAdaptiveSync.bDisableFrameSplitting == 0x0 ?
+                              "Disable Frame Splitting"       :
+                               "Enable Frame Splitting" );
+          }
+
+          ImGui::EndGroup   ();
+
+          if (toggle_sync || toggle_split)
+          {
+            NV_SET_ADAPTIVE_SYNC_DATA
+                         setAdaptiveSync;
+            ZeroMemory (&setAdaptiveSync,  sizeof (NV_SET_ADAPTIVE_SYNC_DATA));
+                         setAdaptiveSync.version = NV_SET_ADAPTIVE_SYNC_DATA_VER;
+
+            setAdaptiveSync.bDisableAdaptiveSync   =
+              toggle_sync ? !getAdaptiveSync.bDisableAdaptiveSync :
+                             getAdaptiveSync.bDisableAdaptiveSync;
+            setAdaptiveSync.bDisableFrameSplitting =
+              toggle_split ? !getAdaptiveSync.bDisableFrameSplitting :
+                              getAdaptiveSync.bDisableFrameSplitting;
+
+            NvAPI_DISP_SetAdaptiveSyncData (
+              display.nvapi.display_id,
+                      &setAdaptiveSync
+            );
+          }
+
+          //ImGui::EndGroup   ();
+        }
+        break;
+      }
+    }
+  }
 }

@@ -93,22 +93,22 @@ struct SK_XInputContext
     XInput1_4   { },
     XInput9_1_0 { };
 
-  SK_Thread_HybridSpinlock          cs_poll   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x200),
-                                                                             SK_Thread_HybridSpinlock (0x200),
-                                                                             SK_Thread_HybridSpinlock (0x200),
-                                                                             SK_Thread_HybridSpinlock (0x100) },
-                                    cs_haptic [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x040),
-                                                                             SK_Thread_HybridSpinlock (0x040),
-                                                                             SK_Thread_HybridSpinlock (0x040),
-                                                                             SK_Thread_HybridSpinlock (0x040) },
-                                    cs_hook   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x010),
-                                                                             SK_Thread_HybridSpinlock (0x010),
-                                                                             SK_Thread_HybridSpinlock (0x010),
-                                                                             SK_Thread_HybridSpinlock (0x010) },
-                                    cs_caps   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x100),
-                                                                             SK_Thread_HybridSpinlock (0x100),
-                                                                             SK_Thread_HybridSpinlock (0x100),
-                                                                             SK_Thread_HybridSpinlock (0x100) };
+  SK_Thread_HybridSpinlock          cs_poll   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x888),
+                                                                             SK_Thread_HybridSpinlock (0x888),
+                                                                             SK_Thread_HybridSpinlock (0x888),
+                                                                             SK_Thread_HybridSpinlock (0x888) },
+                                    cs_haptic [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x444),
+                                                                             SK_Thread_HybridSpinlock (0x444),
+                                                                             SK_Thread_HybridSpinlock (0x444),
+                                                                             SK_Thread_HybridSpinlock (0x444) },
+                                    cs_hook   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0xfff),
+                                                                             SK_Thread_HybridSpinlock (0xfff),
+                                                                             SK_Thread_HybridSpinlock (0xfff),
+                                                                             SK_Thread_HybridSpinlock (0xfff) },
+                                    cs_caps   [XUSER_MAX_COUNT]          = { SK_Thread_HybridSpinlock (0x222),
+                                                                             SK_Thread_HybridSpinlock (0x222),
+                                                                             SK_Thread_HybridSpinlock (0x222),
+                                                                             SK_Thread_HybridSpinlock (0x222) };
 
   volatile instance_s*              primary_hook                         = nullptr;
   volatile LONG                     primary_level                        = XInputLevel_NONE;
@@ -236,11 +236,6 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
 }
 
 
-// NVIDIA Reflex intergraiton
-extern void
-SK_NvSleep (int site);
-
-
 extern bool
 SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
@@ -295,10 +290,17 @@ XInputEnable1_3_Detour (
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_3;
 
-  if (! config.window.background_render)
-  //  pCtx->XInputEnable_Original (TRUE);
-  //else
-    xinput_enabled = enable;
+  if (config.window.background_render)
+  {
+    xinput_enabled             = TRUE;
+    pCtx->XInputEnable_Original (TRUE);
+  }
+  
+  else
+  {
+    xinput_enabled             = enable;
+    pCtx->XInputEnable_Original (enable);
+  }
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -312,8 +314,6 @@ XInputGetState1_3_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  SK_NvSleep (2);
-
   auto& _xinput_ctx =
          xinput_ctx.get ();
 
@@ -367,7 +367,7 @@ XInputGetStateEx1_3_Detour (
   _Out_ XINPUT_STATE_EX *pState )
 {
   auto& _xinput_ctx =
-         xinput_ctx.get();
+         xinput_ctx.get ();
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
@@ -582,8 +582,16 @@ XInputEnable1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_4;
 
-  if (! config.window.background_render)
-    xinput_enabled = enable;
+  if (config.window.background_render)
+  {
+    xinput_enabled             = TRUE;
+    pCtx->XInputEnable_Original (TRUE);
+  }
+  else
+  {
+    xinput_enabled             = enable;
+    pCtx->XInputEnable_Original (enable);
+  }
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -649,8 +657,6 @@ XInputGetStateEx1_4_Detour (
   _In_  DWORD            dwUserIndex,
   _Out_ XINPUT_STATE_EX *pState )
 {
-  SK_NvSleep (2);
-
   auto& _xinput_ctx =
          xinput_ctx.get ();
 
@@ -860,8 +866,6 @@ XInputGetState9_1_0_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  SK_NvSleep (2);
-
   auto& _xinput_ctx =
          xinput_ctx.get ();
 

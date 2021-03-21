@@ -1970,7 +1970,7 @@ public:
 
         char szName [128] = { };
 
-        snprintf (szName, 127, "###CPU_%u", i-1);
+        snprintf (szName, 127, "##CPU_%u", i-1);
 
         const float samples =
           std::min ( (float)cpu_records [i].getUpdates  (),

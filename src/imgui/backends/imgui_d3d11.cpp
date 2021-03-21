@@ -1832,6 +1832,9 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   if (_d3d11_rbk->frames_.empty ())
     return;
 
+  if (! _pDeviceCtx.p)
+    return;
+
   auto& rb =
     SK_GetCurrentRenderBackend ();
 

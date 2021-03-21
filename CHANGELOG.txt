@@ -1,4 +1,59 @@
-﻿21.03.16
+﻿21.03.21
+========
+ + Fixed empty keybind INI entries reverting to default value on config load
+ + Fixed latency markers not being clipped to control panel window bounds
+ + Framerate Limiter automatically defaults to low-latency mode in D3D9/11
+     games if a G-Sync compatible (and active) monitor is detected.
+ + Fixed crashing in Ys 8 when hot-plugging DirectInput 8 devices
+
+21.03.20
+========
+ + Fixed typo in startup version banner
+ + Compatible with NieR: Automata Something Something God Edition
+ + Added minimal implementation of FAR for NieR: Automata (Windows Store)
+  >> Framerate uncap only, intended so you can replace limiter with SK's
+       (game still needs to run at 60 FPS for game logic)
+ + Added option to hide HDR support from games so they do not enable HDR
+
+    ( [Render.DXGI] HideHDRSupport={true|false} )
+
+   -> Use this on NieR: Automata, and then use SK's HDR features instead
+
+21.03.19.1 (HOTFIX)
+========== --------
+ + Fixed Steam game profile name generation (game.exe -> human readable)
+ + Removed 'Timing Accuracy' slider from Framerate Limiter; it's obsolete
+
+21.03.19
+========
+ + Fixed Adaptive Sync status not updating for some users
+ + Removed NVIDIA Reflex options from control panel for D3D9 / GL games
+ + Added a timing chart for all of the latency markers
+ + Added a latency marker for Special K's activity
+ + Added input latency measurement for KB&M users
+
+   >> Keyboard & Mouse input processing is a less reliable measure of
+      latency than gamepad, since KB&M is event-driven and reads from
+      these devices may happen in response to said event only to be
+      processed later.
+
+21.03.18
+========
+ + NVIDIA Reflex defaults to Disabled
+ + NVIDIA Reflex config changes apply even if SK's limiter is disabled
+ + Fixed wrong decimal units in Latency Marker summary
+ + Mentioned G-Sync behavior in Reflex Mode tooltip
+
+21.03.17
+========
+ + Added Desktop Resolution / Refresh config to Display Menu
+ + Added Adaptive Sync info to the Framerate Limiter Advanced tab
+ + Added Latency Marker Analysis to Framerate Limiter Advanced tab
+     ( Requires NVIDIA hardware )
+ + Lowered disk-free check before taking screenshots to 0.5% (from 3%)
+ + Fixed blank HDR screenshots in D3D12 games
+
+21.03.16
 ========
  + NVIDIA Reflex Configuration made Simpler
  + NVIDIA Reflex settings now stored in INI files per-game

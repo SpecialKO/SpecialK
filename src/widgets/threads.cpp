@@ -20,14 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-
-extern SK_LazyGlobal <
-  concurrency::concurrent_unordered_map <DWORD, std::wstring>
-> _SK_ThreadNames;
-
-extern SK_LazyGlobal <
-  concurrency::concurrent_unordered_set <DWORD>
-> _SK_SelfTitledThreads;
+#include <SpecialK/diagnostics/debug_utils.h>
 
 #pragma pack(push,8)
 typedef LONG NTSTATUS;

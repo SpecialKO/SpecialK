@@ -2205,13 +2205,16 @@ SK_ImGui_User_NewFrame (void)
     io.KeyMap [ImGuiKey_Z]          = 'Z';
   }
 
+  double delta =
+    static_cast <double> (                 current_time.QuadPart  -
+           std::exchange (g_Time.QuadPart, current_time.QuadPart)
+                         ),
+         ticks_per_sec =
+    static_cast <double> (g_TicksPerSecond.QuadPart);
+
   io.DeltaTime =
-    std::min ( 1.0f,
-    std::max ( 0.0f, static_cast <float> (
-                    (static_cast <long double> (                                current_time.QuadPart)   -
-                     static_cast <long double> (std::exchange (g_Time.QuadPart, current_time.QuadPart))) /
-                     static_cast <long double> (               g_TicksPerSecond.QuadPart             ) ) )
-    );
+    std::min ( 2.0f,
+    std::max ( 0.0f, static_cast <float> ( delta / ticks_per_sec ) ) );
 
   // Read keyboard modifiers inputs
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;

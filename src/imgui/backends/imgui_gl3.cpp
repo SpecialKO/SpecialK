@@ -419,7 +419,8 @@ ImGui_ImplGL3_InvalidateDeviceObjects (void)
       1, &g_FontTexture
     );    g_FontTexture = 0;
 
-    io.Fonts->TexID = nullptr;
+    if (io.Fonts != nullptr)
+        io.Fonts->TexID = nullptr;
   }
 }
 

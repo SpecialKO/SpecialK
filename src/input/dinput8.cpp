@@ -1349,7 +1349,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                                            lplpDirectInputDevice,
                                                             pUnkOuter ) );
 
-  if (SUCCEEDED (hr))
+  if (SUCCEEDED (hr) && *lplpDirectInputDevice != nullptr)
   {
     int hook_count = 0;
 
@@ -1465,7 +1465,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                                            lplpDirectInputDevice,
                                                             pUnkOuter ) );
 
-  if (SUCCEEDED (hr))
+  if (SUCCEEDED (hr) && *lplpDirectInputDevice != nullptr)
   {
     int hook_count = 0;
 

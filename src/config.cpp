@@ -213,10 +213,14 @@ auto LoadKeybind =
 
         if (ret != nullptr)
         {
-          if (! static_cast <sk::iParameter *> (ret)->load ())
+          if (! static_cast <sk::iParameter *> (ret)->load  ())
           {
-            binding->parse ();
-            ret->store     (binding->human_readable);
+            // If the key exists without a value, skip assigning the default
+            if (! static_cast <sk::iParameter *> (ret)->empty ())
+            {
+              binding->parse ();
+              ret->store     (binding->human_readable);
+            }
           }
 
           binding->human_readable = ret->get_value ();
@@ -477,7 +481,6 @@ struct {
   struct {
     sk::ParameterFloat*   target_fps;
     sk::ParameterFloat*   target_fps_bg;
-    sk::ParameterFloat*   busy_wait_ratio;
     sk::ParameterFloat*   limiter_tolerance;
     sk::ParameterInt*     prerender_limit;
     sk::ParameterInt*     present_interval;
@@ -495,6 +498,7 @@ struct {
     sk::ParameterInt*     override_cpu_count;
     sk::ParameterInt*     enforcement_policy;
     sk::ParameterBool*    drop_late_frames;
+    sk::ParameterBool*    auto_low_latency;
 
     struct
     {
@@ -519,6 +523,7 @@ struct {
     sk::ParameterBool*    skip_present_test;
     sk::ParameterInt*     srgb_behavior;
     sk::ParameterBool*    low_spec_mode;
+    sk::ParameterBool*    hide_hdr_support;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -1104,7 +1109,6 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.target_fps,            L"Framerate Target (negative signed values are non-limiting)",dll_ini,         L"Render.FrameRate",      L"TargetFPS"),
     ConfigEntry (render.framerate.target_fps_bg,         L"Framerate Target (window in background;  0.0 = same as fg)",dll_ini,         L"Render.FrameRate",      L"BackgroundFPS"),
     ConfigEntry (render.framerate.limiter_tolerance,     L"Limiter Tolerance",                                         dll_ini,         L"Render.FrameRate",      L"LimiterTolerance"),
-    ConfigEntry (render.framerate.busy_wait_ratio,       L"Ratio of time spent Busy-Waiting to Event-Waiting",         dll_ini,         L"Render.FrameRate",      L"MaxBusyWaitPercent"),
     ConfigEntry (render.framerate.wait_for_vblank,       L"Limiter Will Wait for VBLANK",                              dll_ini,         L"Render.FrameRate",      L"WaitForVBLANK"),
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
@@ -1121,7 +1125,9 @@ auto DeclKeybind =
 
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
-                                                         L"refresh rate with VSYNC enabled (similar to NV Fast Sync).", dll_ini,        L"Render.DXGI",           L"DropLateFrames"),
+                                                         L"refresh rate with VSYNC enabled (similar to NV Fast Sync).",dll_ini,         L"Render.DXGI",           L"DropLateFrames"),
+    ConfigEntry (render.framerate.auto_low_latency,      L"If G-Sync is seen supported, automatically change limiter"
+                                                         L" mode to low-latency.",                                     dll_ini,         L"Render.DXGI",           L"AutoLowLatency"),
 
     ConfigEntry (nvidia.reflex.enable,                   L"Enable NVIDIA Reflex Integration w/ SK's limiter",          dll_ini,         L"NVIDIA.Reflex",         L"Enable"),
     ConfigEntry (nvidia.reflex.low_latency,              L"Low Latency Mode",                                          dll_ini,         L"NVIDIA.Reflex",         L"LowLatency"),
@@ -1173,6 +1179,7 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.srgb_behavior,              L"How to handle sRGB SwapChains when we have to kill them for"
                                                          L" Flip Model support (-1=Passthrough, 0=Strip, 1=Apply)",    dll_ini,         L"Render.DXGI",           L"sRGBBypassBehavior"),
     ConfigEntry (render.dxgi.low_spec_mode,              L"Disable D3D11 Render Mods (for slight perf. increase)",     dll_ini,         L"Render.DXGI",           L"LowSpecMode"),
+    ConfigEntry (render.dxgi.hide_hdr_support,           L"Prevent games from detecting monitor HDR support",          dll_ini,         L"Render.DXGI",           L"HideHDRSupport"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -1347,9 +1354,6 @@ auto DeclKeybind =
   host_executable.hLibrary     = GetModuleHandle     (nullptr);
   host_executable.product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (host_executable.hLibrary).c_str ());
 
-
-
-  extern SK_LazyGlobal <std::unordered_multimap <uint32_t, SK_KeyCommand>> SK_KeyboardMacros;
 
   SK_KeyboardMacros->clear   ();
 
@@ -2132,7 +2136,6 @@ auto DeclKeybind =
         config.apis.dxgi.d3d12.hook              =  true;
         config.render.framerate.flip_discard     =  true;
         config.render.framerate.swapchain_wait   =     1;
-        config.render.framerate.busy_wait_ratio  =   .5f;
         config.render.framerate.buffer_count     =     6;
         config.render.framerate.pre_render_limit =     6;
         config.render.framerate.present_interval =     1;
@@ -2422,7 +2425,6 @@ auto DeclKeybind =
   nvidia.reflex.low_latency_boost->load     (config.nvidia.sleep.low_latency_boost);
   nvidia.reflex.engagement_policy->load     (config.nvidia.sleep.enforcement_site);
 
-  render.framerate.busy_wait_ratio->load    (config.render.framerate.busy_wait_ratio);
   render.framerate.wait_for_vblank->load    (config.render.framerate.wait_for_vblank);
   render.framerate.buffer_count->load       (config.render.framerate.buffer_count);
   render.framerate.prerender_limit->load    (config.render.framerate.pre_render_limit);
@@ -2476,6 +2478,7 @@ auto DeclKeybind =
   }
 
   render.framerate.drop_late_frames->load (config.render.framerate.drop_late_flips);
+  render.framerate.auto_low_latency->load (config.render.framerate.auto_low_latency);
 
   if (render.framerate.disable_flip_model->load (config.render.framerate.disable_flip))
   {
@@ -2631,6 +2634,7 @@ auto DeclKeybind =
   render.dxgi.msaa_samples->load        (config.render.dxgi.msaa_samples);
   render.dxgi.srgb_behavior->load       (config.render.dxgi.srgb_behavior);
   render.dxgi.low_spec_mode->load       (config.render.dxgi.low_spec_mode);
+  render.dxgi.hide_hdr_support->load    (config.render.dxgi.hide_hdr_support);
 
   texture.d3d11.cache->load             (config.textures.d3d11.cache);
   texture.d3d11.precise_hash->load      (config.textures.d3d11.precise_hash);
@@ -3565,8 +3569,7 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.enable_mmcss->store        (config.render.framerate.enable_mmcss);
 
   render.framerate.override_cpu_count->store  (config.render.framerate.override_num_cpus);
-  render.framerate.busy_wait_ratio->store     (config.render.framerate.busy_wait_ratio);
-
+  
   if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::DInput8) ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )
   {
@@ -3607,15 +3610,17 @@ SK_SaveConfig ( std::wstring name,
     nvidia.sli.num_gpus->store                    (config.nvidia.sli.num_gpus);
     nvidia.sli.override->store                    (config.nvidia.sli.override);
 
-    nvidia.reflex.enable->store                   (config.nvidia.sleep.enable);
-    nvidia.reflex.low_latency->store              (config.nvidia.sleep.low_latency);
-    nvidia.reflex.low_latency_boost->store        (config.nvidia.sleep.low_latency_boost);
-    nvidia.reflex.engagement_policy->store        (config.nvidia.sleep.enforcement_site);
+    render.framerate.auto_low_latency->store      (config.render.framerate.auto_low_latency);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
         ( SK_GetDLLRole () & DLL_ROLE::DXGI    ) )
     {
+      nvidia.reflex.enable->store                 (config.nvidia.sleep.enable);
+      nvidia.reflex.low_latency->store            (config.nvidia.sleep.low_latency);
+      nvidia.reflex.low_latency_boost->store      (config.nvidia.sleep.low_latency_boost);
+      nvidia.reflex.engagement_policy->store      (config.nvidia.sleep.enforcement_site);
+
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
@@ -3710,6 +3715,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.msaa_samples->store         (config.render.dxgi.msaa_samples);
       render.dxgi.srgb_behavior->store        (config.render.dxgi.srgb_behavior);
       render.dxgi.low_spec_mode->store        (config.render.dxgi.low_spec_mode);
+      render.dxgi.hide_hdr_support->store     (config.render.dxgi.hide_hdr_support);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||
@@ -3962,7 +3968,15 @@ SK_Keybind::update (void)
     (*virtKeyCodeToHumanKeyName)[(BYTE)(vKey & 0xFF)];
 
   if (*key_name == L'\0')
+  {
+    ctrl           = false;
+    alt            = false;
+    shift          = false;
+    masked_code    = 0x0;
+    human_readable = L"<Not Bound>";
+
     return;
+  }
 
   std::queue <std::wstring> words;
 
@@ -4131,6 +4145,7 @@ SK_Keybind::parse (void)
   wchar_t* wszBuf = nullptr;
   wchar_t* wszTok = std::wcstok (wszKeyBind, L"+", &wszBuf);
 
+  vKey  = 0x0;
   ctrl  = false;
   alt   = false;
   shift = false;
@@ -4349,7 +4364,7 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
 
 
   wchar_t   wszAppID [32] = { };
-  swprintf (wszAppID, L"%0ul", uiAppID);
+  swprintf (wszAppID, L"%0u", uiAppID);
 
   if (fwd_map.contains_key (wszRelPath))
     fwd_map.get_value      (wszRelPath) = wszAppID;

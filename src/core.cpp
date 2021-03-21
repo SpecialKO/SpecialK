@@ -2256,6 +2256,12 @@ static volatile LONG CEGUI_Init = FALSE;
 void
 SetupCEGUI (SK_RenderAPI& LastKnownAPI)
 {
+  if (StrStrIW (SK_GetHostPath (), L"WindowsApps"))
+  {
+    config.cegui.enable = false;
+    return;
+  }
+
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -2548,70 +2554,6 @@ return;
   }
 }
 
-
-void
-SK_NvSleep (int site)
-{
-  if (sk::NVAPI::nv_hardware && config.nvidia.sleep.enable && site == config.nvidia.sleep.enforcement_site)
-  {
-    auto& rb =
-      SK_GetCurrentRenderBackend ();
-
-    static LONG64 frames_drawn = 0;
-
-    if (rb.frames_drawn == frames_drawn)
-      return;
-
-    frames_drawn = rb.frames_drawn;
-
-    static bool valid = true;
-
-    if (! valid)
-      return;
-
-    if (config.nvidia.sleep.frame_interval_us != 0)
-    {
-      if (__target_fps > 0.0)
-        config.nvidia.sleep.frame_interval_us = static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
-      else
-        config.nvidia.sleep.frame_interval_us = 0;
-    }
-
-    NV_SET_SLEEP_MODE_PARAMS
-      sleepParams                   = {                          };
-      sleepParams.version           = NV_SET_SLEEP_MODE_PARAMS_VER;
-      sleepParams.bLowLatencyBoost  = config.nvidia.sleep.low_latency_boost;
-      sleepParams.bLowLatencyMode   = config.nvidia.sleep.low_latency;
-      sleepParams.minimumIntervalUs = config.nvidia.sleep.frame_interval_us;
-
-    static NV_SET_SLEEP_MODE_PARAMS
-      lastParams = { 1, true, true, 69, { 0 } };
-
-    if (rb.device != nullptr)
-    {
-      if ( lastParams.bLowLatencyBoost  != sleepParams.bLowLatencyBoost ||
-           lastParams.bLowLatencyMode   != sleepParams.bLowLatencyMode  ||
-           lastParams.minimumIntervalUs != sleepParams.minimumIntervalUs )
-      {
-        if ( NVAPI_OK !=
-               NvAPI_D3D_SetSleepMode (
-                 rb.device, &sleepParams
-               )
-           ) valid = false;
-
-        lastParams = sleepParams;
-      }
-
-      if ( NVAPI_OK != NvAPI_D3D_Sleep (rb.device) )
-        valid = false;
-
-      if (! valid)
-        SK_ImGui_Warning (L"NVIDIA Reflex Sleep Invalid State");
-    }
-  }
-};
-
-
 void
 SK_FrameCallback ( SK_RenderBackend& rb,
                    ULONG64           frames_drawn =
@@ -2764,8 +2706,6 @@ void
 __stdcall
 SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 {
-  SK_NvSleep (0);
-
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -2783,6 +2723,9 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   {
     SK_D3D12_BeginFrame ();
   }
+
+  rb.driverSleepNV      (0);
+  rb.setLatencyMarkerNV (RENDERSUBMIT_END);
 
   if (config.render.framerate.enforcement_policy == 0 && rb.swapchain.p != nullptr)
   {
@@ -2831,8 +2774,6 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   if (config.render.framerate.enforcement_policy == 1 && rb.swapchain.p != nullptr)
   {
     SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
-
-    SK_NvSleep (1);
   }
 
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
@@ -2846,7 +2787,7 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   rb.present_staging.submit.time =
     SK_QueryPerf ();
 
-  if (config.render.framerate.enforcement_policy == 4 && rb.swapchain.p != nullptr)
+  if (config.render.framerate.enforcement_policy == 4)
   {
     SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
   }
@@ -3029,9 +2970,7 @@ SK_SLI_UpdateStatus (IUnknown *device)
     //   one frame late, but this is the safest approach.
     if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
     {
-      extern SK_LazyGlobal <NV_GET_CURRENT_SLI_STATE> sli_state;
-
-      *sli_state =
+      *SK_NV_sli_state =
         sk::NVAPI::GetSLIState (device);
     }
   }
@@ -3110,6 +3049,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
         rb.api
   );
 
+  rb.driverSleepNV (1);
+
+  if (config.render.framerate.enforcement_policy == 2)
+  {
+    _FrameTick ();
+  }
+
   SK_RunOnce (
     SK::DXGI::StartBudgetThread_NoAdapter ()
   );
@@ -3127,13 +3073,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
   SK_StartPerfMonThreads ();
-
-  if (config.render.framerate.enforcement_policy == 2 || rb.swapchain.p == nullptr)
-  {
-    _FrameTick ();
-  }
-
-  SK_NvSleep (1);
 
   return hr;
 }

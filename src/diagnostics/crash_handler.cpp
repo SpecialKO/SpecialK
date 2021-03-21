@@ -40,8 +40,6 @@ extern const wchar_t*
 __stdcall
 SK_GetDebugSymbolPath (void);
 
-extern volatile LONG __SK_Init;
-
 void
 SK_SymSetOpts_Once (void)
 {

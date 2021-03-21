@@ -26,8 +26,6 @@
 #endif
 #define __SK_SUBSYSTEM__ L"ThreadUtil"
 
-extern volatile LONG __SK_Init;
-
 ///////////////////////////////////////////////////////////////////////////
 //
 // Thread Name Assignment for Meaningful Debug Identification

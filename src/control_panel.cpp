@@ -709,6 +709,22 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     if (hMonCurrent != nullptr)
     {
+      DWORD native_width  = 0,
+            native_height = 0;
+
+      static auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      for ( auto& display : rb.displays )
+      {
+        if (display.monitor == hMonCurrent)
+        {
+          native_width  = display.native.width;
+          native_height = display.native.height;
+          break;
+        }
+      }
+
       refresh.clear    ();
       resolution.clear ();
 
@@ -734,6 +750,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
                dm_enum.dmPelsWidth  == dm_now.dmPelsWidth  &&
                dm_enum.dmPelsHeight == dm_now.dmPelsHeight )
           {
+            dm_enum.dmFields =
+              DM_DISPLAYFREQUENCY;
+
             refresh.modes.push_back (dm_enum);
           }
         }
@@ -757,6 +776,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
           if ( dm_enum.dmBitsPerPel       == dm_now.dmBitsPerPel &&
                dm_enum.dmDisplayFrequency == dm_now.dmDisplayFrequency )
           {
+            dm_enum.dmFields =
+              ( DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY );
+
             resolution.modes.push_back (dm_enum);
           }
         }
@@ -779,7 +801,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
              dm_now.dmDisplayFrequency )
           refresh.idx = idx;
 
-        refresh.string += std::to_string (it.dmDisplayFrequency) + " Hz";
+        refresh.string += "  " + std::to_string (it.dmDisplayFrequency) + " Hz";
         refresh.string += '\0';
 
         idx++;
@@ -792,6 +814,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         if ( it.dmPelsWidth  == dm_now.dmPelsWidth &&
              it.dmPelsHeight == dm_now.dmPelsHeight )
           resolution.idx = idx;
+
+        if ( it.dmPelsWidth  == native_width &&
+             it.dmPelsHeight == native_height )
+        { resolution.string += "* "; } else
+          resolution.string += "  ";
 
         resolution.string += std::to_string (it.dmPelsWidth) + "x" +
                              std::to_string (it.dmPelsHeight);
@@ -1499,6 +1526,503 @@ extern volatile  LONG __SK_FramesToTear;
 
 extern void SK_ImGui_DrawGraph_FramePacing (void);
 
+SK::Framerate::Stats gamepad_stats;
+
+void
+SK_NV_LatencyControlPanel (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (sk::NVAPI::nv_hardware && ( rb.api == SK_RenderAPI::D3D11 ||
+                                  rb.api == SK_RenderAPI::D3D12 ))
+  {
+    ImGui::Separator  ();
+    ImGui::Text       ("NVIDIA Driver Black Magic");
+    ImGui::TreePush   ();
+    ImGui::BeginGroup ();
+  
+    int reflex_mode = 0;
+  
+    if (config.nvidia.sleep.enable)
+    {
+      if (config.nvidia.sleep.low_latency_boost == true)
+        reflex_mode = 3;
+      else if (config.nvidia.sleep.low_latency == true)
+        reflex_mode = 2;
+      else
+        reflex_mode = 1;
+    }
+    else
+      reflex_mode = 0;
+  
+    if ( ImGui::Combo ( "NVIDIA Reflex Mode", &reflex_mode,
+                           "Off\0Minimal\0Low Latency\0"
+                                         "Low Latency + Boost\0\0" )
+       )
+    {
+      switch (reflex_mode)
+      {
+        case 0:
+          config.nvidia.sleep.enable            = false;
+          config.nvidia.sleep.low_latency       = false;
+          config.nvidia.sleep.low_latency_boost = false;
+          break;
+  
+        case 1:
+          config.nvidia.sleep.enable            = true;
+          config.nvidia.sleep.low_latency       = false;
+          config.nvidia.sleep.low_latency_boost = false;
+          break;
+  
+        case 2:
+          config.nvidia.sleep.enable            = true;
+          config.nvidia.sleep.low_latency       = true;
+          config.nvidia.sleep.low_latency_boost = false;
+          break;
+  
+        case 3:
+          config.nvidia.sleep.enable            = true;
+          config.nvidia.sleep.low_latency       = true;
+          config.nvidia.sleep.low_latency_boost = true;
+          break;
+      }
+  
+      rb.driverSleepNV (config.nvidia.sleep.enforcement_site);
+    }
+  
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("NOTE: Reflex has greatest impact on G-Sync users -- it may lower peak framerate to minimize latency.");
+  
+    if (reflex_mode != 0)
+    {
+      ///bool unlimited =
+      ///  config.nvidia.sleep.frame_interval_us == 0;
+      ///
+      ///if (ImGui::Checkbox ("Reflex Unlimited FPS", &unlimited))
+      ///{
+      ///  if (unlimited) config.nvidia.sleep.frame_interval_us = 0;
+      ///  else           config.nvidia.sleep.frame_interval_us =
+      ///           static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
+      ///}
+  
+      ImGui::Combo ( "NVIDIA Reflex Trigger Point", &config.nvidia.sleep.enforcement_site,
+                       "End-of-Frame\0Start-of-Frame\0Input Hook\0\0" );
+  
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("Input Polling Reflex Triggers are Experimental; only supports gamepad input currently");
+      }
+    }
+    ImGui::EndGroup   ();
+  
+    ////ImGui::SameLine   ();
+  
+    ImGui::BeginGroup ();
+  
+    NV_LATENCY_RESULT_PARAMS
+      latencyResults         = {                          };
+      latencyResults.version = NV_LATENCY_RESULT_PARAMS_VER;
+  
+    struct stage_timing_s
+    {
+      const char* label;
+      const char*
+             desc = nullptr;
+      NvU64   min = std::numeric_limits <NvU64>::max (),
+              max = std::numeric_limits <NvU64>::min (),
+              sum = 0;
+      double  avg = 0.0;
+      int samples = 0;
+      NvU64 start = 0;
+      NvU64   end = 0;
+      ImColor color;
+    } sim      { "Simulation"       }, render  { "Render Submit"   },
+      specialk { "Special K"        }, present { "Present"         },
+      driver   { "Driver"           }, os      { "OS Render Queue" },
+      gpu      { "GPU Render"       },
+      total    { "Total Frame Time" },
+      input    { "Input Age"        };
+  
+    stage_timing_s* stages [] = {
+      &sim,     &render, &specialk,
+      &present, &driver, &os,
+      &gpu,
+    };
+
+    specialk.desc = "Includes drawing SK's overlay and framerate limiting";
+  
+    float fLegendY = 0.0f; // Anchor pt to align latency timing legend w/ text
+    int   id       = 0;
+  
+    for ( auto* stage : stages )
+    {
+      stage->color =
+        ImColor::HSV ( ( ++id ) / static_cast <float> (sizeof (stages) / sizeof (*stages)), 0.5f, 1.0f);
+    }
+  
+    if (rb.getLatencyReportNV (&latencyResults))
+    {
+      for ( auto idx = 63 ; idx >= 0 ; --idx )
+      {
+        auto& frame =
+          latencyResults.frameReport [idx];
+  
+        auto _UpdateStat =
+        [&]( NvU64           start,
+             NvU64           end,
+             stage_timing_s* stage )
+        {
+          if (start != 0 && end != 0)
+          {
+            auto duration =
+              (end - start);
+
+            if (duration >= 0.0)
+            {  
+              stage->samples++;
+  
+              stage->sum += duration;
+              stage->min = (duration < stage->min) ?
+                            duration : stage->min;
+              stage->max = (duration > stage->max) ?
+                            duration : stage->max;
+  
+              if (idx == 63) {
+                stage->start = start;
+                stage->end   = end;
+              }
+            }
+          }
+        };
+  
+        _UpdateStat (frame.simStartTime,           frame.simEndTime,           &sim);
+        _UpdateStat (frame.renderSubmitStartTime,  frame.renderSubmitEndTime,  &render);
+        _UpdateStat (frame.presentStartTime,       frame.presentEndTime,       &present);
+        _UpdateStat (frame.driverStartTime,        frame.driverEndTime,        &driver);
+        _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime, &os);
+        _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,     &gpu);
+        _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,     &total);
+        _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,     &input);
+        _UpdateStat (frame.renderSubmitEndTime,    frame.presentStartTime,     &specialk);
+      }
+  
+      auto _UpdateAverages = [&](stage_timing_s* stage)
+      {
+        if (stage->samples != 0)
+        {
+          stage->avg = static_cast <double> (stage->sum) /
+                       static_cast <double> (stage->samples);
+        }
+      };
+  
+      stage_timing_s *min_stage = &sim,
+                     *max_stage = &sim;
+  
+      for (auto* pStage : stages)
+      {
+        _UpdateAverages (    pStage     );
+  
+        if (min_stage->avg > pStage->avg)
+            min_stage      = pStage;
+        if (max_stage->avg < pStage->avg)
+            max_stage      = pStage;
+      }
+  
+      _UpdateAverages (&input);
+      _UpdateAverages (&total);
+
+      if (input.avg > total.avg)
+          input.avg = 0.0;
+  
+      ImGui::BeginGroup ();
+      for ( auto* pStage : stages )
+      {
+        ImGui::TextColored (
+          pStage == min_stage ? ImColor (0.1f, 1.0f, 0.1f) :
+          pStage == max_stage ? ImColor (1.0f, 0.1f, 0.1f) :
+                                ImColor (.75f, .75f, .75f),
+            pStage->label );
+
+        if (ImGui::IsItemHovered ())
+        {
+          if (pStage->desc != nullptr)
+            ImGui::SetTooltip (pStage->desc);
+        }
+      }
+      ImGui::Separator   ();
+      ImGui::TextColored (
+        ImColor (1.f, 1.f, 1.f), "Total Frame Time"
+      );
+      if (input.avg != 0.0)
+      ImGui::TextColored (
+        ImColor (1.f, 1.f, 1.f), "Input Age"
+      );
+      ImGui::EndGroup   ();
+      ImGui::SameLine   (0.0f, 10.0f);
+      ImGui::BeginGroup ();
+      ////for (auto* pStage : stages)
+      ////{
+      ////  ImGui::TextColored (
+      ////    ImColor (0.825f, 0.825f, 0.825f),
+      ////      "Min / Max / Avg" );
+      ////}
+      ////ImGui::EndGroup   ();
+      ////ImGui::SameLine   (0.0f);
+      ////ImGui::BeginGroup ();
+      ////for (auto* pStage : stages)
+      ////{
+      ////  ImGui::TextColored (
+      ////    ImColor (0.905f, 0.905f, 0.905f),
+      ////      "%llu", pStage->min );
+      ////}
+      ////ImGui::EndGroup   ();
+      ////ImGui::SameLine   (0.0f);
+      ////ImGui::BeginGroup ();
+      ////for (auto* pStage : stages)
+      ////{
+      ////  ImGui::TextColored (
+      ////    ImColor (0.915f, 0.915f, 0.915f),
+      ////      "%llu", pStage->max );
+      ////}
+      ////ImGui::EndGroup   ();
+      ////ImGui::SameLine   (0.0f);
+      ////ImGui::BeginGroup ();
+      for (auto* pStage : stages)
+      {
+        ImGui::TextColored (
+          pStage == min_stage ? ImColor (0.6f, 1.0f, 0.6f) :
+          pStage == max_stage ? ImColor (1.0f, 0.6f, 0.6f) :
+                                ImColor (0.9f, 0.9f, 0.9f),
+            "%4.2f ms",
+              10000.0 * ( pStage->avg /
+                            static_cast <double> (SK_GetPerfFreq ().QuadPart)
+                        )
+        );
+      }
+      ImGui::Separator   ();
+  
+      double frametime = 10000.0 *
+        total.avg / static_cast <double> (SK_GetPerfFreq ().QuadPart);
+      
+      fLegendY =
+        ImGui::GetCursorScreenPos ().y;
+
+      ImGui::TextColored (
+        ImColor (1.f, 1.f, 1.f),
+          "%4.2f ms",
+            frametime, 1000.0 / frametime
+                         );
+
+      static bool
+          input_sampled = false;
+      if (input_sampled || input.avg != 0.0)
+      {   input_sampled = true;
+        ImGui::TextColored (
+          ImColor (1.f, 1.f, 1.f),
+            input.avg != 0.0 ?
+                  "%4.2f ms" : "--",
+              10000.0 *
+                input.avg / static_cast <double> (SK_GetPerfFreq ().QuadPart)
+                           );
+
+        fLegendY +=
+          ImGui::GetTextLineHeightWithSpacing () / 2.0f;
+      }
+      ImGui::EndGroup   ();
+    }
+  
+    ImGui::SameLine   (0, 10.0f);
+    ImGui::BeginGroup ();
+  
+    extern void
+    SK_NV_AdaptiveSyncControl (void);
+    SK_NV_AdaptiveSyncControl ();
+  
+  
+    float fMaxWidth  = ImGui::GetContentRegionAvail        ().x,
+          fMaxHeight = ImGui::GetTextLineHeightWithSpacing () * 2.8f,
+          fInset     = fMaxWidth  *  0.025f,
+          X0         = ImGui::GetCursorScreenPos ().x,
+          Y0         = ImGui::GetCursorScreenPos ().y - ImGui::GetTextLineHeightWithSpacing ();
+          fMaxWidth *= 0.95f;
+  
+    static DWORD                                  dwLastUpdate = 0;
+    static float                                  scale        = 1.0f;
+    static std::vector <stage_timing_s>           sorted_stages;
+    static _NV_LATENCY_RESULT_PARAMS::FrameReport frame_report;
+    
+    if (dwLastUpdate < SK::ControlPanel::current_time - 266)
+    {   dwLastUpdate = SK::ControlPanel::current_time;
+  
+      frame_report =
+        latencyResults.frameReport [63];
+  
+      sorted_stages.clear ();
+  
+      for (auto* stage : stages)
+      {
+        sorted_stages.push_back (*stage);
+      }
+  
+      scale = fMaxWidth /
+        static_cast <float> ( frame_report.gpuRenderEndTime -
+                              frame_report.simStartTime );
+  
+      std::sort ( std::begin (sorted_stages),
+                  std::end   (sorted_stages),
+                  [](stage_timing_s& a, stage_timing_s& b)
+                  {
+                    return ( a.start < b.start );
+                  }
+                );
+    }
+  
+    ImDrawList* draw_list =
+      ImGui::GetWindowDrawList ();
+  
+ ///draw_list->PushClipRect ( //ImVec2 (0.0f, 0.0f), ImVec2 (ImGui::GetIO ().DisplaySize.x, ImGui::GetIO ().DisplaySize.y) );
+ ///                          ImVec2 (X0,                                     Y0),
+ ///                          ImVec2 (X0 + ImGui::GetContentRegionAvail ().x, Y0 + fMaxHeight) );
+  
+    float x  = X0 + fInset;
+    float y  = Y0;
+    float dY = fMaxHeight / 7.0f;
+  
+    for ( auto& kStage : sorted_stages )
+    {
+      x = X0 + fInset +
+      ( kStage.start - frame_report.simStartTime ) 
+                     * scale;
+  
+      float duration =
+        (kStage.end - kStage.start) * scale;
+  
+      ImVec2 r0 (x,            y),
+             r1 (x + duration, y + dY);
+
+      draw_list->AddRectFilled ( r0, r1, kStage.color );
+
+      if (ImGui::IsMouseHoveringRect (r0, r1))
+      {
+        ImGui::SetTooltip (kStage.label);
+      }
+  
+      y += dY;
+    }
+  
+    if (frame_report.inputSampleTime != 0)
+    {
+      x = X0 + fInset + ( frame_report.inputSampleTime -
+                          frame_report.simStartTime )  *  scale;
+    
+      draw_list->AddCircle (
+        ImVec2  (x, Y0 + fMaxHeight / 2.0f), 4,
+        ImColor (1.0f, 1.0f, 1.0f, 1.0f),    12, 2
+      );
+    }
+  
+ ///draw_list->PopClipRect ();
+  
+    ImGui::SetCursorScreenPos (
+      ImVec2 (ImGui::GetCursorScreenPos ().x, fLegendY)
+    );
+  
+    for ( auto *pStage : stages )
+    {
+      ImGui::TextColored (pStage->color, pStage->label);
+      
+      if (ImGui::IsItemHovered ())
+      {
+        if (pStage->desc != nullptr)
+          ImGui::SetTooltip (pStage->desc);
+      }
+
+      ImGui::SameLine    (0.0f, 12.0f);
+    }
+    
+    ImGui::Spacing    ();
+  
+    ImGui::EndGroup   ();
+
+    static bool   init       = false;
+    static HANDLE hStartStop =
+      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+
+    if (! init)
+    {     init = true;
+      SK_Thread_Create ([](LPVOID user) -> DWORD
+      {
+        XINPUT_STATE states [2] = { };
+        ULONGLONG    times  [2] = { };
+        int                   i = 0;
+        
+        do
+        {
+          WaitForSingleObject (hStartStop, INFINITE);
+
+          if (SK_XInput_PollController (0, &states [i % 2]))
+          {
+            XINPUT_STATE& old = states [(i + 1) % 2];
+            XINPUT_STATE& now = states [ i++    % 2];
+
+            if (old.dwPacketNumber != now.dwPacketNumber)
+            {
+              LARGE_INTEGER nowTime = SK_QueryPerf ();
+              ULONGLONG     oldTime = times [0];
+                                      times [0] = times [1];
+                                      times [1] = nowTime.QuadPart;
+
+              gamepad_stats.addSample ( 1000.0 *
+                static_cast <double> (times [0] - oldTime) /
+                static_cast <double> (SK_GetPerfFreq ().QuadPart),
+                  nowTime
+              );
+            }
+          }
+        } while (! ReadAcquire (&__SK_DLL_Ending));
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, (LPVOID)hStartStop);
+    }
+    
+    static bool started = false;
+
+    if (ImGui::Button (started ? "Stop Gamepad Latency Test" :
+                                 "Start Gamepad Latency Test"))
+    {
+      if (! started) { started = true;  SetEvent   (hStartStop); }
+      else           { started = false; ResetEvent (hStartStop); }
+    }
+    
+    static double high_min = std::numeric_limits <double>::max (),
+                  high_max,
+                  avg;
+
+    if (started)
+    {
+      ImGui::SameLine  ( );
+      ImGui::Text      ( "%lu Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+                           gamepad_stats.calcNumSamples (),
+                           gamepad_stats.calcMin        (),
+                           gamepad_stats.calcMax        (),
+                           gamepad_stats.calcMean       () );
+
+      high_min = std::min (gamepad_stats.calcMin (), high_min);
+    }
+  //high_max = std::max (gamepad_stats.calcMax (), high_max);
+
+    if (high_min < 250.0)
+      ImGui::Text     ( "Minimum Latency: %4.2f ms", high_min );
+  
+    ImGui::EndGroup   ();
+    ImGui::TreePop    ();
+  }
+}
+
+
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -1621,8 +2145,6 @@ SK_ImGui_ControlPanel (void)
 
         if (supports_texture_mods)
         {
-          extern SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
-
           static bool bHasTextureMods =
             ( INVALID_FILE_ATTRIBUTES !=
                 GetFileAttributesW (SK_D3D11_res_root->c_str ()) );
@@ -2635,6 +3157,9 @@ SK_ImGui_ControlPanel (void)
     // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
     auto api_mask = static_cast <int> (rb.api);
 
+    bool translated_d3d9 =
+      config.apis.d3d9.translated;
+
     if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D12))      != 0x0 &&
           api_mask != static_cast <int> (SK_RenderAPI::D3D12) )
     {
@@ -2642,9 +3167,12 @@ SK_ImGui_ControlPanel (void)
     }
 
     else if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) != 0x0 &&
-               api_mask != static_cast <int> (SK_RenderAPI::D3D11) )
+              (api_mask != static_cast <int> (SK_RenderAPI::D3D11) || translated_d3d9) )
     {
-      lstrcatA (szAPIName, (const char *)u8"→11" );
+      if (! translated_d3d9)
+        lstrcatA (szAPIName, (const char *)    u8"→11");
+      else
+        lstrcpyA (szAPIName, (const char *)u8"D3D9→11");
     }
 
     lstrcatA ( szAPIName, SK_GetBitness () == 32 ? "           [ 32-bit ]" :
@@ -2838,6 +3366,12 @@ SK_ImGui_ControlPanel (void)
           if (rb.gsync_state.active)
           {
             strcat (szGSyncStatus, "Active");
+            
+            // Opt-in to Auto-Low Latency the first time this is seen
+            if (config.render.framerate.auto_low_latency) {
+                config.render.framerate.enforcement_policy = 2;
+                config.render.framerate.auto_low_latency   = false;
+            }
           }
           else
             strcat (szGSyncStatus, "Inactive");
@@ -2854,7 +3388,7 @@ SK_ImGui_ControlPanel (void)
         if (rb.api == SK_RenderAPI::OpenGL && ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip (
-            "The N  IA driver API does not report this status in OpenGL."
+            "The NVIDIA driver API does not report this status in OpenGL."
           );
         }
       }
@@ -3127,8 +3661,91 @@ SK_ImGui_ControlPanel (void)
         if (advanced)
         {
           ImGui::TreePop    ();
+          ImGui::Separator  ();
+          if (__target_fps > 0.0f)
+          {
+            ImGui::BeginGroup ();
+
+            static bool bLowLatency =
+                ( config.render.framerate.enforcement_policy == 2);
+
+            if (ImGui::Checkbox ("Low Latency Mode", &bLowLatency))
+            {
+              if (bLowLatency) config.render.framerate.enforcement_policy = 2;
+              else             config.render.framerate.enforcement_policy = 4;
+
+              _ResetLimiter ();
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ();
+              ImGui::Text         ("Reduces Input Latency");
+              ImGui::Separator    ();
+              ImGui::BulletText   ("This mode is ideal for users with G-Sync / VRR displays");
+              ImGui::BulletText   ("Latency reduction can be quite profound, but comes with potential minor stutter");
+              ImGui::Separator    ();
+              ImGui::BulletText   ("The default mode has some latency benefits, but was designed to fix stutter on fixed-refresh displays");
+              ImGui::EndTooltip   ();
+            }
+
+            //ImGui::SliderInt ("Limit Enforcement Site", &__SK_FramerateLimitApplicationSite, 0, 4);
+
+            if ( rb.api == SK_RenderAPI::D3D11 ||
+                 rb.api == SK_RenderAPI::D3D12 )
+            {
+              if (ImGui::Checkbox ("Drop Late Frames", &config.render.framerate.drop_late_flips))
+                _ResetLimiter ();
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::SetTooltip ("Always Present Newest Frame (DXGI Flip Model)");
+              }
+            }
+
+            ImGui::EndGroup   ();
+            ImGui::SameLine   (0.0f, 20.0f);
+          }
+
           ImGui::BeginGroup ();
 
+          if (rb.api != SK_RenderAPI::D3D12)
+          {
+            changed |=
+              ImGui::Checkbox ( "Sleepless Render Thread",
+                                  &config.render.framerate.sleepless_render );
+
+            if (ImGui::IsItemHovered ())
+            {
+              SK::Framerate::EventCounter::SleepStats& stats =
+                SK::Framerate::GetEvents ()->getRenderThreadStats ();
+
+              ImGui::SetTooltip
+                             ( "(%li ms asleep, %li ms awake)",
+                                 /*(stats.attempts - stats.rejections), stats.attempts,*/
+                                   ReadAcquire (&stats.time.allowed),
+                                   ReadAcquire (&stats.time.deprived) );
+            }
+          }
+
+          changed |=
+            ImGui::Checkbox ( "Sleepless Window Thread",
+                                &config.render.framerate.sleepless_window );
+
+          if (ImGui::IsItemHovered ())
+          {
+            SK::Framerate::EventCounter::SleepStats& stats =
+              SK::Framerate::GetEvents ()->getMessagePumpStats ();
+
+            ImGui::SetTooltip
+                           ( "(%li ms asleep, %li ms awake)",
+                               /*(stats.attempts - stats.rejections), stats.attempts,*/
+                                 ReadAcquire (&stats.time.allowed),
+                                 ReadAcquire (&stats.time.deprived) );
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   (0.0f, 20.0f);
+          ImGui::BeginGroup ();
           if ( ImGui::Checkbox ( "Use Multimedia Class Scheduling",
                                    &config.render.framerate.enable_mmcss ) )
           {
@@ -3144,197 +3761,12 @@ SK_ImGui_ControlPanel (void)
             ImGui::EndTooltip   ();
           }
 
-          ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
-                              ImGui::Spacing ();
-          ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
-
-          if (rb.api != SK_RenderAPI::D3D12)
-          {
-            changed |=
-              ImGui::Checkbox ( "Sleepless Render Thread",
-                                  &config.render.framerate.sleepless_render );
-
-            if (ImGui::IsItemHovered ())
-            {
-              SK::Framerate::EventCounter::SleepStats& stats =
-                SK::Framerate::GetEvents ()->getRenderThreadStats ();
-
-                ImGui::SetTooltip
-                               ( "(%li ms asleep, %li ms awake)",
-                                   /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                     ReadAcquire (&stats.time.allowed),
-                                     ReadAcquire (&stats.time.deprived) );
-            }
-          }
-
-          ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
-                              ImGui::Spacing ();
-          ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
-
-          changed |=
-            ImGui::Checkbox ( "Sleepless Window Thread",
-                                &config.render.framerate.sleepless_window );
-
-          if (ImGui::IsItemHovered ())
-          {
-            SK::Framerate::EventCounter::SleepStats& stats =
-              SK::Framerate::GetEvents ()->getMessagePumpStats ();
-
-              ImGui::SetTooltip
-                             ( "(%li ms asleep, %li ms awake)",
-                                 /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                   ReadAcquire (&stats.time.allowed),
-                                   ReadAcquire (&stats.time.deprived) );
-          }
-          ImGui::EndGroup   ();
-
-          ImGui::BeginGroup ();
-          if (__target_fps > 0.0f)
-          {
-            //if (ImGui::SliderInt   ( "Maximum CPU Render-Ahead",
-            //                           &config.render.framerate.max_render_ahead,
-            //                             0, 2,
-            //                         config.render.framerate.max_render_ahead != 1 ?
-            //                           "%.0f Frames" : "%.0f Frame" )
-            //   )
-            //{
-            //  SK::Framerate::GetLimiter ()->init (
-            //    SK::Framerate::GetLimiter ()->get_limit ()
-            //  );
-            //}
-            //
-            //if (ImGui::IsItemHovered ())
-            //{
-            //  ImGui::BeginTooltip   (  );
-            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
-            //  ImGui::Text           ("Controls How Many Frames CPU May Prepare In Advance");
-            //  ImGui::Separator      (  );
-            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
-            //  ImGui::Text           ("  Lower = Stricter Adherence to Framerate Limit + Lower Input Latency");
-            //  ImGui::PopStyleColor  ( 2);
-            //  ImGui::BulletText     ("0 is reasonable if your GPU consistently draws at or above the target rate");
-            //  ImGui::TreePush       ("");
-            //  ImGui::BulletText     ("Consider 1 or 2 to help with stuttering otherwise");
-            //  ImGui::TreePop        (  );
-            //  ImGui::EndTooltip     (  );
-            //}
-            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
-            //  ImGui::Text           ("  Lower = Stricter, but setting");
-            //  ImGui::SameLine       ();
-
-#if 0
-            ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 1.0f, 24.0f);
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip   ();
-              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.95f, 0.75f, 0.25f, 1.0f));
-              ImGui::Text           ("Controls Framerate Smoothness\n\n");
-              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.75f, 0.75f, 0.75f, 1.0f));
-              ImGui::Text           ("  Lower = Stricter, but setting");
-              ImGui::SameLine       ();
-              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.95f, 1.0f, 0.65f, 1.0f));
-              ImGui::Text           ("too low");
-              ImGui::SameLine       ();
-              ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.75f, 0.75f, 0.75f, 1.0f));
-              ImGui::Text           ("will cause framerate instability...");
-              ImGui::PopStyleColor (4);
-              ImGui::Separator      ( );
-              ImGui::Text           ("Recomputes clock phase if a single frame takes longer than <1.0 + tolerance> x <target_ms> to complete");
-              ImGui::BulletText     ("Adjust this if your set limit is fighting with VSYNC (frequent frametime graph oscillations).");
-              ImGui::EndTooltip     ( );
-            }
-#else
-            float fPercent  = 1.0f -
-              config.render.framerate.busy_wait_ratio;
-                  fPercent *= 100.0f;
-
-            if ( ImGui::SliderFloat ( "Timing Accuracy",
-                                        &fPercent,
-                                          5.0f, 100.0f, "Maximum CPU: %0.3f%%" )
-               )
-            {
-              config.render.framerate.busy_wait_ratio =
-                1.0f - (fPercent / 100.0f);
-            }
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip ( );
-              ImGui::Text         ("Reserve CPU for Timing Accuracy");
-              ImGui::Separator    ( );
-              ImGui::BulletText   ("The default value is usually adequate");
-              ImGui::BulletText   ("In the worst stuttering games, give 100%% a try");
-              if (config.render.framerate.swapchain_wait)
-                ImGui::BulletText ("99%% is the limit when using Waitable SwapChains");
-              ImGui::EndTooltip   ( );
-            }
-#endif
-
-            //SK_ComQIPtr <ID3D11Device> pDev     (rb.device);
-            //SK_ComQIPtr <IDXGIDevice>  pDXGIDev (pDev);
-            //
-            //if (pDXGIDev != nullptr)
-            //{
-            //  static INT nPrio  = -8;
-            //  if        (nPrio == -8) pDXGIDev->GetGPUThreadPriority (&nPrio);
-            //
-            //  if (ImGui::SliderInt ("GPU Priority", &nPrio, -7, 7))
-            //  {
-            //    if (SUCCEEDED (pDXGIDev->SetGPUThreadPriority ( nPrio)))
-            //                   pDXGIDev->GetGPUThreadPriority (&nPrio);
-            //  }
-            //}
-#if 1
-            static bool bLowLatency =
-              ( config.render.framerate.enforcement_policy == 2);
-
-            if (ImGui::Checkbox ("Low Latency Mode", &bLowLatency))
-            {
-              if (bLowLatency) config.render.framerate.enforcement_policy = 2;
-              else             config.render.framerate.enforcement_policy = 4;
-
-              _ResetLimiter ();
-            }
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip ();
-              ImGui::Text         ("Reduces Input Latency");
-              ImGui::Separator    ();
-              ImGui::BulletText   ("Introduces a bit of frametime instability");
-              ImGui::BulletText   (" ... go by feel rather than graph \"flatness\" ;)");
-              ImGui::BulletText   ("Default is OFF, but you are encouraged to try ON");
-              ImGui::EndTooltip   ();
-            }
-
-            //ImGui::SliderInt ("Limit Enforcement Site", &__SK_FramerateLimitApplicationSite, 0, 4);
-
-            if ( rb.api == SK_RenderAPI::D3D11 ||
-                 rb.api == SK_RenderAPI::D3D12 )
-            {
-              ImGui::SameLine ();
-
-              if (ImGui::Checkbox ("Drop Late Frames", &config.render.framerate.drop_late_flips))
-                _ResetLimiter ();
-
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::SetTooltip ("Always Present Newest Frame (DXGI Flip Model)");
-              }
-            }
-#endif
-          }
-          ImGui::EndGroup  ();
-          ImGui::Separator ();
-
           bool spoof =
             ( config.render.framerate.override_num_cpus != -1 );
 
           static SYSTEM_INFO             si = { };
           SK_RunOnce (SK_GetSystemInfo (&si));
 
-          ImGui::BeginGroup    ();
           if ( ImGui::Checkbox ("Spoof CPU Core Count", &spoof) )
           {
             config.render.framerate.override_num_cpus =
@@ -3342,90 +3774,21 @@ SK_ImGui_ControlPanel (void)
           }
 
           if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Useful in Unity games -- set lower than actual to fix negative performance scaling.");
+              ImGui::SetTooltip ("Useful in Unity games -- set lower than actual to fix negative performance scaling.");
+
+          ImGui::EndGroup ();
 
           if (spoof)
           {
-            ImGui::SameLine    (                            );
-            ImGui::SliderInt   ( "###SPOOF_CPU_COUNT",
-                                 &config.render.framerate.override_num_cpus,
-                                   1, si.dwNumberOfProcessors,
-                                     "Number of CPUs: %d" );
-          }
-          ImGui::EndGroup      ();
-
-          if (sk::NVAPI::nv_hardware)
-          {
-            ImGui::Separator  ();
-
-            ImGui::Checkbox   ("Enable NVIDIA Reflex", &config.nvidia.sleep.enable);
-            ImGui::TreePush   ();
             ImGui::BeginGroup ();
-            if (config.nvidia.sleep.enable)
-            {
-              int mode = 0;
-
-              if (config.nvidia.sleep.low_latency_boost == true)
-                mode = 2;
-              else if ( config.nvidia.sleep.low_latency == true)
-                mode = 1;
-              else
-                mode = 0;
-
-              if (ImGui::Combo ("Reflex Mode", &mode, "Off\0Low Latency\0Low Latency + Boost\0\0"))
-              {
-                switch (mode)
-                {
-                  case 0:
-                    config.nvidia.sleep.low_latency       = false;
-                    config.nvidia.sleep.low_latency_boost = false;
-                    break;
-
-                  case 1:
-                    config.nvidia.sleep.low_latency       = true;
-                    config.nvidia.sleep.low_latency_boost = false;
-                    break;
-
-                  case 2:
-                    config.nvidia.sleep.low_latency       = true;
-                    config.nvidia.sleep.low_latency_boost = true;
-                    break;
-                }
-              }
-
-              if (mode != 0)
-              {
-                bool unlimited =
-                  config.nvidia.sleep.frame_interval_us == 0;
-
-                if (ImGui::Checkbox ("Reflex Unlimited FPS", &unlimited))
-                {
-                  if (unlimited) config.nvidia.sleep.frame_interval_us = 0;
-                  else           config.nvidia.sleep.frame_interval_us =
-                           static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
-                }
-
-                ImGui::SliderInt  ( "Reflex Engagement",
-                  &config.nvidia.sleep.enforcement_site, 0,
-                                                         2 );
-
-                if (ImGui::IsItemHovered ())
-                {
-                  ImGui::BeginTooltip ();
-                  ImGui::BulletText   ("0: Before End-of-Frame");
-                  ImGui::BulletText   ("1: During Start-of-Frame");
-                  ImGui::BulletText   ("2: On First Input Polled");
-                  ImGui::Separator    ();
-                  ImGui::TreePush     ();
-                  ImGui::Text         ("Input Polling Reflex Triggers are Experimental; only supports gamepad input currently");
-                  ImGui::TreePop      ();
-                  ImGui::EndTooltip   ();
-                }
-              }
-            }
+            ImGui::SliderInt  ( "###SPOOF_CPU_COUNT",
+                                &config.render.framerate.override_num_cpus,
+                                  1, si.dwNumberOfProcessors,
+                                    "Number of CPUs: %d" );
             ImGui::EndGroup   ();
-            ImGui::TreePop    ();
           }
+
+          SK_NV_LatencyControlPanel ();
         }
       }
     }
@@ -3623,8 +3986,10 @@ SK_ImGui_ControlPanel (void)
       if (! (binding != nullptr && param != nullptr))
         return false;
 
-      std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "##";
-                  label += binding->bind_name;
+      std::string label =
+        SK_WideCharToUTF8 (binding->human_readable);
+
+      ImGui::PushID (binding->bind_name);
 
       if (ImGui::Selectable (label.c_str (), false))
       {
@@ -3634,6 +3999,8 @@ SK_ImGui_ControlPanel (void)
       std::wstring original_binding = binding->human_readable;
 
       SK_ImGui_KeybindDialog (binding);
+
+      ImGui::PopID ();
 
       if (original_binding != binding->human_readable)
       {
@@ -3909,15 +4276,15 @@ SK_ImGui_StageNextFrame (void)
 
 
 
-  //
-  // Framerate history
-  //
-  if (! (reset_frame_history || skip_frame_history))
-  {
-    SK_ImGui_Frames->timeFrame (io.DeltaTime);
-  }
-
-  else if (reset_frame_history) SK_ImGui_Frames->reset ();
+  //////
+  ////// Framerate history
+  //////
+  ////if (! (reset_frame_history || skip_frame_history))
+  ////{
+  ////  SK_ImGui_Frames->timeFrame (io.DeltaTime);
+  ////}
+  ////
+  ////else if (reset_frame_history) SK_ImGui_Frames->reset ();
 
   reset_frame_history = false;
 
@@ -4030,14 +4397,14 @@ SK_ImGui_StageNextFrame (void)
     {
       ImGui::Text            ("  Hello");                                                            ImGui::SameLine ();
       ImGui::TextColored     (ImColor::HSV (0.075f, 1.0f, 1.0f), "%s", szName);                      ImGui::SameLine ();
-      ImGui::TextUnformatted ("please see the Disord Release Channel, under");                        ImGui::SameLine ();
+      ImGui::TextUnformatted ("please see the Disord Release Channel, under");                       ImGui::SameLine ();
     }
     else
     {
-      ImGui::TextUnformatted ("  Please see the Discord Release Channel, under");                     ImGui::SameLine ();
+      ImGui::TextUnformatted ("  Please see the Discord Release Channel, under");                    ImGui::SameLine ();
     }
     ImGui::TextColored       (ImColor::HSV (.52f, 1.f, 1.f),  "Help | Releases");                    ImGui::SameLine ();
-    ImGui::TextUnformatted   ("for beta / stabe updates to this project.");
+    ImGui::TextUnformatted   ("for beta / stable updates to this project.");
 
     ImGui::Spacing ();
     ImGui::Spacing ();

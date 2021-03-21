@@ -770,19 +770,20 @@ SK_Widget::config_base (void)
       if (param == nullptr || binding == nullptr)
         return false;
 
-      std::string label  =
-        SK_WideCharToUTF8 (binding->human_readable) + "###";
-                  label += binding->bind_name;
+      std::string label =
+        SK_WideCharToUTF8 (binding->human_readable);
 
+      ImGui::PushID (binding->bind_name);
+      
       if (ImGui::Selectable (label.c_str (), false))
-      {
         ImGui::OpenPopup (binding->bind_name);
-      }
 
       std::wstring original_binding =
                             binding->human_readable;
 
       SK_ImGui_KeybindDialog (binding);
+
+      ImGui::PopID ();
 
       if (original_binding != binding->human_readable)
       {

@@ -31,15 +31,6 @@
 #pragma warning (push)
 #pragma warning (disable : 4714)
 
-extern SK_LazyGlobal <
-  concurrency::concurrent_unordered_map <DWORD, std::wstring>
-> _SK_ThreadNames;
-extern SK_LazyGlobal <
-  concurrency::concurrent_unordered_set <DWORD>
-> _SK_SelfTitledThreads;
-
-extern volatile LONG __SK_Init;
-
 const wchar_t*
 SK_SEH_CompatibleCallerName (LPCVOID lpAddr);
 
@@ -3684,6 +3675,8 @@ SetWindowsHookExA_Detour (
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
+  return true;
+
   if (SK_IsHostAppSKIM ())
   {
     return true;

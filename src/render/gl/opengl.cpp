@@ -1376,7 +1376,6 @@ wglDeleteContext (HGLRC hglrc)
 
     if (config.cegui.enable && (uintptr_t)cegGL > 1)
     {
-    //cegGL->destroy (*cegGL);
       cegGL->destroySystem ();
       cegGL       = nullptr;
     }

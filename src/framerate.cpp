@@ -65,7 +65,7 @@ float fSwapWaitRatio = 0.745f;
 float fSwapWaitFract = 0.745f;
 
 float
-SK::Framerate::Limiter::undershoot_percent = 10.0f;
+SK::Framerate::Limiter::undershoot_percent = 4.25f;
 
 void
 SK::Framerate::Init (void)
@@ -92,9 +92,6 @@ SK::Framerate::Init (void)
             new SK_IVarStub <float> (&__target_fps));
     pCommandProc->AddVariable ( "BackgroundFPS",
             new SK_IVarStub <float> (&__target_fps_bg));
-
-    pCommandProc->AddVariable ( "BusyWaitRatio",
-            new SK_IVarStub <float> (&config.render.framerate.busy_wait_ratio));
 
     pCommandProc->AddVariable ( "SwapWaitRatio",
             new SK_IVarStub <float> (&fSwapWaitRatio));
@@ -135,6 +132,9 @@ SK::Framerate::Init (void)
         SK_LOG0 ( ( L"New resolution....: %f ms",
                       static_cast <float> (cur * 100)/1000000.0f ),
                     L"  Timing  " );
+
+        SK::Framerate::Limiter::timer_res_ms =
+          (static_cast <double> (cur) * 100.0) / 1000000.0;
       }
     }
   });
@@ -466,15 +466,8 @@ SK::Framerate::Limiter::init (double target)
        ms <= 200.0f )
   {
     // ^^^ Anything lower than a 5 FPS limit is probably user error.
-
-    SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
-    if ((intptr_t)hWaitHandle.m_h > 0 )
-    {
-      SK_WaitForSingleObject (
-                  hWaitHandle,
-        std::max ( 48UL, 3 * static_cast <DWORD> (ms) )
-      );
-    }
+    
+    SK_Framerate_WaitForVBlank ();
   }
 
 
@@ -670,8 +663,8 @@ SK::Framerate::Limiter::wait (void)
       modf ( missing_time, &missed_frames );
 
      static constexpr double dMissingTimeBoundary = 1.0;
-     static constexpr double dEdgeToleranceLow    = 0.15;
-     static constexpr double dEdgeToleranceHigh   = 0.95;
+     static constexpr double dEdgeToleranceLow    = 0.001;
+     static constexpr double dEdgeToleranceHigh   = 0.999;
 
     if ( missed_frames >= dMissingTimeBoundary &&
          edge_distance >= dEdgeToleranceLow    &&
@@ -705,15 +698,6 @@ SK::Framerate::Limiter::wait (void)
 
   if (next_ > 0LL)
   {
-    // For a Waitable chain to be effective, 100% busy-wait must not
-    //   be allowed.
-    if (config.render.framerate.swapchain_wait > 0)
-    {
-      config.render.framerate.busy_wait_ratio = std::max (
-        config.render.framerate.busy_wait_ratio, 0.01f
-      );
-    }
-
     // Create an unnamed waitable timer.
     if (timer_wait == nullptr)
     {
@@ -729,10 +713,11 @@ SK::Framerate::Limiter::wait (void)
         SK_RecalcTimeToNextFrame ();
 
     // First use a kernel-waitable timer to scrub off most of the
-    //   wait time without completely decimating a CPU core.
-    if ( timer_wait != 0 && ( to_next_in_secs * config.render.framerate.busy_wait_ratio > 0.1 ||
-                                                config.render.framerate.swapchain_wait  > 0 ) )
+    //   wait time without completely gobbling up a CPU core.
+    if ( timer_wait != 0 && to_next_in_secs * 1000.0 > timer_res_ms )
     {
+      // The ideal thing to wait on is the SwapChain, since it is what we are
+      //   ultimately trying to throttle :)
       SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
       if ((intptr_t)hWaitHandle.m_h > 0)
       {
@@ -750,37 +735,37 @@ SK::Framerate::Limiter::wait (void)
                                            &uSecs );
         }
 
+        // After the SwapChain wait, there may be additional wait time required
         to_next_in_secs =
           SK_RecalcTimeToNextFrame ();
-
       }
 
-      // busy_wait_ratio controls the ratio of scheduler-wait to busy-wait,
-      //   extensive testing shows 87.5% is most reasonable on the widest
-      //     selection of hardware.
+      // Schedule the wait period just shy of the timer resolution determined
+      //   by NtQueryTimerResolution (...). Excess wait time will be handled by
+      //     spinning, because the OS scheduler is not accurate enough.
       LARGE_INTEGER liDelay;
                     liDelay.QuadPart =
                       static_cast <LONGLONG> (
-                        to_next_in_secs * 1000.0 *
-                        (double)config.render.framerate.busy_wait_ratio
-                      );
+                        to_next_in_secs * 1000.0 - timer_res_ms
+                                             );
 
         liDelay.QuadPart =
       -(liDelay.QuadPart * 10000LL);
 
-      // Light-weight and high-precision -- but it's not a good idea to
-      //   spend more than ~90% of our projected wait time in here or
-      //     we will miss deadlines frequently.
-      if ( SetWaitableTimer ( timer_wait, &liDelay,
-                                0, nullptr, nullptr, TRUE ) )
+      // Check if the next frame is sooner than waitable timer resolution before
+      //   rescheduling this thread.
+      if ( to_next_in_secs * 1000.0 > timer_res_ms &&
+           SetWaitableTimer ( timer_wait, &liDelay,
+                              0, nullptr, nullptr, TRUE ) )
       {
         DWORD  dwWait  = WAIT_FAILED;
         while (dwWait != WAIT_OBJECT_0)
         {
-          if (to_next_in_secs <= 0.0)
+          if (to_next_in_secs * 1000.0 <= timer_res_ms)
           {
             break;
           }
+
           // Negative values are used to tell the Nt systemcall
           //   to use relative rather than absolute time offset.
           LARGE_INTEGER uSecs;
@@ -956,6 +941,18 @@ SK::Framerate::GetLimiter ( IUnknown *pSwapChain,
                                 bCreateIfNoneExists );
 }
 
+class SK_ImGui_FrameHistory : public SK_Stat_DataHistory <float, 120>
+{
+public:
+  void timeFrame       (double seconds)
+  {
+    addValue ((float)(1000.0 * seconds));
+  }
+};
+
+extern SK_LazyGlobal <SK_ImGui_FrameHistory> SK_ImGui_Frames;
+extern bool                                  reset_frame_history;
+
 void
 SK::Framerate::Tick ( bool          wait,
                       double        dt,
@@ -997,6 +994,25 @@ SK::Framerate::Tick ( bool          wait,
       pLimiter->effective_frametime (),
         now
     );
+
+    static ULONG64 last_frame         = 0;
+    bool           skip_frame_history = false;
+
+    if (last_frame < SK_GetFramesDrawn () - 1)
+    {
+      skip_frame_history = true;
+    }
+
+    if (last_frame != SK_GetFramesDrawn ())
+    {   last_frame  = SK_GetFramesDrawn ();
+
+      if (! (reset_frame_history || skip_frame_history))
+      {
+        SK_ImGui_Frames->timeFrame (dt);
+      }
+      
+      else if (reset_frame_history) SK_ImGui_Frames->reset ();
+    }
   }
 
   static constexpr int _NUM_STATS = 5;
@@ -1265,3 +1281,5 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
   return
     kReadBuffer.second;
 }
+
+double SK::Framerate::Limiter::timer_res_ms = 0.0;

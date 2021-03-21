@@ -167,10 +167,10 @@ SK_LazyGlobal <
                 SK_D3D11_MAX_DEV_CONTEXTS + 1 >
               > SK_D3D11_PerCtxResources;
 
-extern SK_LazyGlobal <
+SK_LazyGlobal        <
   std::unordered_set <ID3D11Texture2D *>
                      > used_textures;
-extern SK_LazyGlobal <
+SK_LazyGlobal        <
   std::unordered_map < ID3D11DeviceContext *,
                        mapped_resources_s  >
                      > mapped_resources;

@@ -34,8 +34,6 @@ struct IUnknown;
 #include <string>
 #include <map>
 
-extern SK_LazyGlobal <sk::ParameterFactory> SK_Widget_ParameterFactory;
-
 struct ImGuiWindow;
 class  SK_Widget;
 
@@ -71,9 +69,8 @@ struct SK_ImGui_WidgetRegistry
   float  scale    = 1.0f;
 };
 
+extern SK_LazyGlobal <sk::ParameterFactory>    SK_Widget_ParameterFactory;
 extern SK_LazyGlobal <SK_ImGui_WidgetRegistry> SK_ImGui_Widgets;
-
-extern           DWORD SK_GetCurrentMS (void);
 
 class SK_Widget
 {
@@ -514,12 +511,12 @@ protected:
 
       for (auto val : values)
       {
-        if (++sample > updates)
+        if ((sample + 1) > updates)
           break;
 
         sum += val;
 
-        if (sample == 1) { max = val; min = val; }
+        if (++sample == 1) { max = val; min = val; }
 
         else
         {
@@ -528,9 +525,19 @@ protected:
         }
       }
 
-      cached_stats.avg = sum / sample;
-      cached_stats.min = min;
-      cached_stats.max = max;
+      if (sample > 0)
+      {
+        cached_stats.avg = sum / sample;
+        cached_stats.min = min;
+        cached_stats.max = max;
+      }
+
+      else
+      {
+        cached_stats.avg = 0;
+        cached_stats.min = 0;
+        cached_stats.max = 0;
+      }
 
       cached_stats.last_calc = updates;
     }

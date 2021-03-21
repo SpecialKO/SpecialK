@@ -57,7 +57,7 @@ Keybinding (SK_Keybind* binding, sk::ParameterStringW* param)
 {
   bool        ret   = false;
   std::string label =
-    SK_WideCharToUTF8 (binding->human_readable) + "###";
+    SK_WideCharToUTF8 (binding->human_readable) + "##";
 
   label += binding->bind_name;
 

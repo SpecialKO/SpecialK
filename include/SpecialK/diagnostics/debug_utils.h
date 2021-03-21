@@ -26,6 +26,7 @@
 
 #include <Windows.h>
 #include <SpecialK/tls.h>
+#include <concurrent_unordered_map.h>
 
 namespace SK
 {
@@ -400,5 +401,12 @@ SK_SetLastError (DWORD dwErrCode);
 LPVOID
 SK_Debug_GetImageBaseAddr (void);
 
+
+extern SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <DWORD, std::wstring>
+> _SK_ThreadNames;
+extern SK_LazyGlobal <
+  concurrency::concurrent_unordered_set <DWORD>
+> _SK_SelfTitledThreads;
 
 #endif /* __SK__DEBUG_UTILS_H__ */

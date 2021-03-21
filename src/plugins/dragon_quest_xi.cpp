@@ -386,7 +386,7 @@ Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
 auto
 {
   std::string label =
-    SK_WideCharToUTF8 (binding->human_readable) + "###";
+    SK_WideCharToUTF8 (binding->human_readable) + "##";
 
   label += binding->bind_name;
 
