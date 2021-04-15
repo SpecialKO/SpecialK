@@ -61,11 +61,11 @@ enum class SK_LimitApplicationSite {
 //float fSwapWaitRatio = 0.77f;
 //float fSwapWaitFract = 0.79f;
 
-float fSwapWaitRatio = 0.745f;
-float fSwapWaitFract = 0.745f;
+float fSwapWaitRatio = 0.15f;
+float fSwapWaitFract = 0.85f;
 
 float
-SK::Framerate::Limiter::undershoot_percent = 4.25f;
+SK::Framerate::Limiter::undershoot_percent = 7.5f;
 
 void
 SK::Framerate::Init (void)
@@ -440,11 +440,19 @@ SK_D3DKMT_WaitForVBlank (void)
   //  WaitForSingleObject (__SK_D3DKMT_DWM_VBlank, INFINITE);
 };
 
+#include <d3dkmthk.h>
+
 LONG64 __SK_VBlankLatency_QPCycles;
 
 void
 SK::Framerate::Limiter::init (double target)
 {
+  SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
+  if ((intptr_t)hWaitHandle.m_h > 0)
+  {
+    WaitForSingleObjectEx (hWaitHandle, 50UL, FALSE);
+  }
+
   ms  = 1000.0 / static_cast <double> (target);
   fps =          static_cast <double> (target);
 
@@ -458,18 +466,6 @@ SK::Framerate::Limiter::init (double target)
   ticks_per_frame = static_cast <ULONGLONG>       (
           ( ms / 1000.00 ) * static_cast <double> (_freqQuadPart)
                                                   );
-
-  //
-  // Align the start to VBlank for minimum input latency
-  //
-  if ( ms >    0.0f &&
-       ms <= 200.0f )
-  {
-    // ^^^ Anything lower than a 5 FPS limit is probably user error.
-    
-    SK_Framerate_WaitForVBlank ();
-  }
-
 
   auto _perfQuadPart = SK_QueryPerf   ( ).QuadPart;
   auto _frames       = ReadAcquire64     (&frames);
@@ -495,18 +491,21 @@ SK::Framerate::Limiter::init (double target)
         (LONGLONG)dwmTiming.qpcCompose -
         (LONGLONG)dwmTiming.qpcVBlank;
 
-    ///static double uS =
-    ///  static_cast <double> ( SK_GetPerfFreq ().QuadPart ) / ( 1000.0 * 1000.0 );
+    static double uS =
+      static_cast <double> ( SK_GetPerfFreq ().QuadPart ) / ( 1000.0 * 1000.0 );
 
-    ///SK_LOG0 ( ( L"Compose: %llu, VBlank: %llu, RefreshPeriod: %f uS...  CompositionLatency: %lli ticks",
-    ///              dwmTiming.qpcCompose,  dwmTiming.qpcVBlank,
-    ///               static_cast <double> (dwmTiming.qpcRefreshPeriod) * uS,
-    ///                         llCompositionLatency ), L"  DWM    ");
+    //SK_LOG0 ( ( L"Compose: %llu, VBlank: %llu, RefreshPeriod: %f uS...  CompositionLatency: %lli ticks",
+    //              dwmTiming.qpcCompose,  dwmTiming.qpcVBlank,
+    //               static_cast <double> (dwmTiming.qpcRefreshPeriod) * uS,
+    //                         llCompositionLatency ), L"  DWM    ");
 
-    _perfQuadPart               =
-      dwmTiming.qpcVBlank - dwmTiming.qpcRefreshPeriod -
-                                  llCompositionLatency -
-                                   ticks_to_undershoot;
+    _perfQuadPart =
+      dwmTiming.qpcVBlank;
+    
+    //if (config.render.framerate.enforcement_policy == 2)
+    //  _perfQuadPart += (llCompositionLatency + ticks_to_undershoot);
+    //else
+    _perfQuadPart -= (llCompositionLatency + ticks_to_undershoot);
 
     __SK_VBlankLatency_QPCycles =
       _perfQuadPart - dwmTiming.qpcVBlank;
@@ -663,19 +662,24 @@ SK::Framerate::Limiter::wait (void)
       modf ( missing_time, &missed_frames );
 
      static constexpr double dMissingTimeBoundary = 1.0;
-     static constexpr double dEdgeToleranceLow    = 0.001;
-     static constexpr double dEdgeToleranceHigh   = 0.999;
+     static constexpr double dEdgeToleranceLow    = 0.025;
+     static constexpr double dEdgeToleranceHigh   = 0.975;
 
     if ( missed_frames >= dMissingTimeBoundary &&
          edge_distance >= dEdgeToleranceLow    &&
          edge_distance <= dEdgeToleranceHigh )
     {
+      SK_LOG1 ( ( L"Frame Skipping (%f frames) :: Edge Distance=%f", 
+                    missed_frames, edge_distance ), __SK_SUBSYSTEM__ );
+
       InterlockedAdd64 ( &frames,
            (LONG64)missed_frames );
 
       next_  =
         ReadAcquire64 ( &frames ) * ticks_per_frame
                                   + start_;
+
+      InterlockedAdd (&SK_RenderBackend::flip_skip, 1);
     }
   }
 
@@ -698,6 +702,10 @@ SK::Framerate::Limiter::wait (void)
 
   if (next_ > 0LL)
   {
+    // Flush batched commands before zonking this thread off
+    if (rb.d3d11.immediate_ctx != nullptr)
+        rb.d3d11.immediate_ctx->Flush ();
+
     // Create an unnamed waitable timer.
     if (timer_wait == nullptr)
     {
@@ -712,41 +720,35 @@ SK::Framerate::Limiter::wait (void)
       to_next_in_secs =
         SK_RecalcTimeToNextFrame ();
 
+    // The ideal thing to wait on is the SwapChain, since it is what we are
+    //   ultimately trying to throttle :)
+    SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
+    if ((intptr_t)hWaitHandle.m_h > 0)
+    {
+      DWORD dwWaitState = WAIT_FAILED;
+
+      do
+      {
+        dwWaitState =
+          WaitForSingleObjectEx ( hWaitHandle.m_h, 1000 * to_next_in_secs,
+                                    TRUE );
+
+        to_next_in_secs =
+          std::max (0.0, SK_RecalcTimeToNextFrame ());
+      } while ( dwWaitState == WAIT_IO_COMPLETION );
+    }
+
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely gobbling up a CPU core.
     if ( timer_wait != 0 && to_next_in_secs * 1000.0 > timer_res_ms )
     {
-      // The ideal thing to wait on is the SwapChain, since it is what we are
-      //   ultimately trying to throttle :)
-      SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
-      if ((intptr_t)hWaitHandle.m_h > 0)
-      {
-        if ( to_next_in_secs > ((ms / 1000.0) * fSwapWaitRatio) &&
-             to_next_in_secs < 0.25f )
-          // Sanity check to prevent an otherwise unbounded wait.
-        {
-          LARGE_INTEGER uSecs;
-                        uSecs.QuadPart =
-            -static_cast <LONGLONG> ( duS *
-                                        to_next_in_secs *
-                                        ( fSwapWaitFract ) );
-
-          SK_WaitForSingleObject_Micro ( hWaitHandle,
-                                           &uSecs );
-        }
-
-        // After the SwapChain wait, there may be additional wait time required
-        to_next_in_secs =
-          SK_RecalcTimeToNextFrame ();
-      }
-
       // Schedule the wait period just shy of the timer resolution determined
       //   by NtQueryTimerResolution (...). Excess wait time will be handled by
       //     spinning, because the OS scheduler is not accurate enough.
       LARGE_INTEGER liDelay;
                     liDelay.QuadPart =
                       static_cast <LONGLONG> (
-                        to_next_in_secs * 1000.0 - timer_res_ms
+                        to_next_in_secs * 1000.0 - timer_res_ms * 0.45
                                              );
 
         liDelay.QuadPart =
@@ -754,14 +756,16 @@ SK::Framerate::Limiter::wait (void)
 
       // Check if the next frame is sooner than waitable timer resolution before
       //   rescheduling this thread.
-      if ( to_next_in_secs * 1000.0 > timer_res_ms &&
-           SetWaitableTimer ( timer_wait, &liDelay,
+      if ( SetWaitableTimer ( timer_wait, &liDelay,
                               0, nullptr, nullptr, TRUE ) )
       {
         DWORD  dwWait  = WAIT_FAILED;
         while (dwWait != WAIT_OBJECT_0)
         {
-          if (to_next_in_secs * 1000.0 <= timer_res_ms)
+          to_next_in_secs =
+            std::max (0.0, SK_RecalcTimeToNextFrame ());
+
+          if (to_next_in_secs * 1000.0 <= timer_res_ms * 1.55)
           {
             break;
           }
@@ -777,17 +781,12 @@ SK::Framerate::Limiter::wait (void)
             SK_WaitForSingleObject_Micro ( timer_wait,
                                              &uSecs );
 
-          if ( dwWait != WAIT_OBJECT_0 &&
+          if ( dwWait != WAIT_OBJECT_0     &&
+               dwWait != WAIT_OBJECT_0 + 1 &&
                dwWait != WAIT_TIMEOUT )
           {
             dll_log->Log (L"Result of WaitForSingleObject: %x", dwWait);
           }
-
-          to_next_in_secs =
-            std::max (0.25, SK_RecalcTimeToNextFrame ());
-
-          if (to_next_in_secs > 0.0001)
-            YieldProcessor ();
         }
       }
     }

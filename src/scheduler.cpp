@@ -216,7 +216,7 @@ SK_WaitForSingleObject_Micro ( _In_  HANDLE          hHandle,
     NTSTATUS NtStatus =
       NtWaitForSingleObject_Original (
         hHandle,
-          FALSE,
+          TRUE,
             pliMicroseconds
       );
 
@@ -1190,10 +1190,10 @@ NtSetTimerResolution_Detour
 {
   NTSTATUS ret = 0;
 
-  NtQueryTimerResolution =
-  reinterpret_cast <NtQueryTimerResolution_pfn> (
-    SK_GetProcAddress (L"NtDll", "NtQueryTimerResolution")
-  );
+  if (NtQueryTimerResolution == nullptr)
+      NtQueryTimerResolution = 
+     (NtQueryTimerResolution_pfn)::SK_GetProcAddress ( L"NtDll",
+     "NtQueryTimerResolution" );
 
   if (NtQueryTimerResolution != nullptr)
   {
@@ -1209,7 +1209,11 @@ NtSetTimerResolution_Detour
       ret = NtSetTimerResolution_Original (max, TRUE, CurrentResolution);
   }
 
-  SK_LOG0 ((L"NtSetTimerResolution (%f ms : %s) issued by %s", (float)(DesiredResolution * 100) / 1000000.0, SetResolution ? L"Set" : L"Get", SK_GetCallerName ().c_str ()), L"WIN-SCHED");
+  SK_LOG0 ( ( L"NtSetTimerResolution (%f ms : %s) issued by %s",
+                (float)(DesiredResolution * 100) / 1000000.0,
+                            SetResolution ? L"Set" : L"Get",
+                                  SK_GetCallerName ().c_str () ),
+           L"Scheduler " );
 
   return ret;
 }

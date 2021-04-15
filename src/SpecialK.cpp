@@ -158,6 +158,8 @@ SK_GetDLLName (void) noexcept
     __SK_hModSelf;
 }
 
+#include <appmodel.h>
+
 // Various detection methods to prevent injection into software that is
 //   either untested or known incompatible.
 //
@@ -179,8 +181,38 @@ SK_KeepAway (void)
     return 0;
   }
 
-    HMODULE hModApp =
-        GetModuleHandle (nullptr);
+  HMODULE hModApp =
+      GetModuleHandle (nullptr);
+
+  wchar_t wszPackageName [32] = { };
+  UINT32  uiLen               =  0;
+  LONG    rc                  =
+    GetCurrentPackageFullName (&uiLen, wszPackageName);
+
+  if (rc != APPMODEL_ERROR_NO_PACKAGE)
+  {
+    bool gl    = false, vulkan = false, d3d9  = false, d3d11 = false,
+         dxgi  = false, d3d8   = false, ddraw = false, d3d12 = false,
+         glide = false;
+
+    SK_TestRenderImports (
+      hModApp,
+        &gl, &vulkan,
+          &d3d9, &dxgi, &d3d11, &d3d12,
+            &d3d8, &ddraw, &glide
+    );
+
+    // UWP, oh no!
+
+    if (! (d3d11 || d3d12 || d3d9 || gl))
+    {
+      // Look for tells that this is a game, if none exist, ignore the UWP trash app
+      if (! ( GetModuleHandle (L"hid.dll"      ) ||
+              GetModuleHandle (L"dsound.dll"   ) ||
+              GetModuleHandle (L"XInput1_4.dll"))) return 1;
+    }
+  }
+
 
   wchar_t                         wszSystemDir   [MAX_PATH + 2] = { };
   wchar_t                         wszWindowsDir  [MAX_PATH + 2] = { };
@@ -197,6 +229,10 @@ SK_KeepAway (void)
 
   // If user-interactive, check against an internal blacklist
   #include <SpecialK/injection/blacklist.h>
+
+  // No NtDll? We probably don't want to be here :)
+  if (! GetModuleHandle (L"NtDll"))
+    return 1;
 
   auto LdrGetDllHandle =
       (LdrGetDllHandle_pfn)SK_GetProcAddress ( L"NtDll",
@@ -323,7 +359,12 @@ DllMain ( HMODULE hModule,
 
       auto EarlyOut   =
         [&](BOOL bRet = TRUE)
-        { return bRet; };
+      {  
+        extern void SK_Inject_SpawnUnloadListener (void);
+                    SK_Inject_SpawnUnloadListener ();
+
+        return bRet;
+      };
 
       // We use SKIM for injection and rundll32 for various tricks
       //   involving restarting the currently running game; neither
@@ -339,12 +380,15 @@ DllMain ( HMODULE hModule,
           EarlyOut (TRUE);
       }
 
+      __SK_DLL_TeardownEvent =
+        SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
+
       // Social distancing like a boss!
       INT dll_isolation_lvl =
         SK_KeepAway ();
 
       if      (dll_isolation_lvl >= 3) return EarlyOut (FALSE);
-      else if (dll_isolation_lvl >  0) return EarlyOut (TRUE);
+      else if (dll_isolation_lvl >  0) return EarlyOut (FALSE);
 
       // We reserve the right to deny attaching the DLL, this will
       //   generally happen if a game has opted-out of global injection.
@@ -354,9 +398,6 @@ DllMain ( HMODULE hModule,
       //   re-inject itself constantly; just return TRUE here.
       if (DLL_ROLE::INVALID == SK_GetDLLRole ())    return EarlyOut (TRUE);
       if (! SK_Attach         (SK_GetDLLRole ()))   return EarlyOut (FALSE);
-
-      __SK_DLL_TeardownEvent =
-        SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
 
       InterlockedIncrementRelease (
         &__SK_DLL_Refs
@@ -696,11 +737,17 @@ SK_dgVoodoo_CheckForInterop (void)
   HMODULE hModD3D9 =
     SK_GetModuleHandle (L"d3d9.dll");
 
-  if ( hModD3D9                == 0 &&
-       INVALID_FILE_ATTRIBUTES != GetFileAttributes (L"d3d9.dll") )
+  if (hModD3D9 == 0)
   {
-    hModD3D9 =
-      SK_LoadLibraryW (L"d3d9.dll");
+    wchar_t     wszDllPath [MAX_PATH] = { };
+    PathAppend (wszDllPath, SK_GetHostPath ());
+    PathAppend (wszDllPath, L"d3d9.dll");
+
+    if (PathFileExistsW (wszDllPath))
+    {
+      hModD3D9 =
+        SK_LoadLibraryW (wszDllPath);
+    }
   }
 
   if (hModD3D9 != 0)
@@ -796,7 +843,8 @@ SK_EstablishDllRole (skWin32Module&& module)
   //
   // This is an injected DLL, not a wrapper DLL...
   //
-  else if (SK_Path_wcsstr (wszShort, L"SpecialK") != nullptr)
+  else if ( SK_Path_wcsstr (wszShort, L"SpecialK32.dll") != nullptr ||
+            SK_Path_wcsstr (wszShort, L"SpecialK64.dll") != nullptr )
   {
              // SET the injected state
              SK_IsInjected (true);
@@ -898,10 +946,10 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         if (role != DLL_ROLE::INVALID)
         {
-          SK_InitCentralConfig ();
-
           if (SK_Inject_ProcessBlacklist ())
             return SK_DontInject ();
+          
+          SK_InitCentralConfig ();
 
           SK_SetDLLRole (role);
           explicit_inject = true;
@@ -1015,12 +1063,14 @@ SK_EstablishDllRole (skWin32Module&& module)
         // Not specific enough; some engines will pull in DXGI even if they
         //   do not use D3D10/11/12/D2D/DWrite
         //
-        dxgi   |= (SK_GetModuleHandle (L"dxgi.dll")      != nullptr);
+      //dxgi   |= (SK_GetModuleHandle (L"dxgi.dll")      != nullptr);
 
         d3d11  |= (SK_GetModuleHandle (L"d3d11.dll")     != nullptr);
         d3d11  |= (SK_GetModuleHandle (L"d3dx11_43.dll") != nullptr);
 
         d3d12  |= (SK_GetModuleHandle (L"d3d12.dll")     != nullptr);
+
+        dxgi   |= ( d3d11 | d3d12 );
 
         if (SK_dgVoodoo_CheckForInterop ())
         {
@@ -1258,14 +1308,6 @@ SK_Attach (DLL_ROLE role)
       SK_TLS_Acquire ();
 
       _time64 (&__SK_DLL_AttachTime);
-
-      void SK_D3D11_InitMutexes (void);
-           SK_D3D11_InitMutexes (    );
-
-      extern void SK_ImGui_Init (void);
-                  SK_ImGui_Init (    );
-
-      SK::Diagnostics::Debugger::Allow (true);
 
       InterlockedCompareExchangeAcquire (
         &__SK_DLL_Attached,

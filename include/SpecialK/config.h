@@ -724,6 +724,7 @@ struct sk_config_t
     bool    game_output         = true;
     bool    central_repository  = false;
     bool    ignore_rtss_delay   = false;
+    bool    wait_for_debugger   = false;
   } system;
 };
 

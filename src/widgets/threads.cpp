@@ -542,12 +542,12 @@ ProcessInformation ( PDWORD                       pdData,
 
   if (NtQuerySystemInformation == nullptr)
   {
-    if (! SK_GetModuleHandleW  (L"NtDll.dll"))
-       SK_Modules->LoadLibrary (L"NtDll.dll");
+    if (! SK_GetModuleHandleW  (L"NtDll"))
+       SK_Modules->LoadLibrary (L"NtDll");
 
     NtQuerySystemInformation =
       (NtQuerySystemInformation_pfn)
-        SK_GetProcAddress (L"NtDll.dll",
+        SK_GetProcAddress (L"NtDll",
                             "NtQuerySystemInformation");
   }
 
@@ -1162,34 +1162,31 @@ public:
 
   void run (void) override
   {
-    SK_RunOnce (
+    static
+      std::once_flag init_once;
+    std::call_once ( init_once, [&](void)
+    {
       k32SetThreadInformation =
         (SetThreadInformation_pfn)SK_GetProcAddress (
           L"kernel32",
            "SetThreadInformation"
-        )
-    );
+        );
 
-    SK_RunOnce (
       k32GetThreadInformation =
         (GetThreadInformation_pfn)SK_GetProcAddress (
           L"kernel32",
            "GetThreadInformation"
-        )
-    );
+        );
 
-    SK_RunOnce (
       NtQueryInformationProcess =
         (NtQueryInformationProcess_pfn)SK_GetProcAddress (
           L"NtDll",
            "NtQueryInformationProcess"
-        )
-    );
+        );
 
-    SK_RunOnce (
       data_thread =
-        std::make_unique <SK_Thread_DataCollector> ()
-    );
+        std::make_unique <SK_Thread_DataCollector> ();
+    } );
 
     static float last_rebalance = 0.0f;
 
@@ -1711,11 +1708,11 @@ public:
             FILETIME ftCreateStack, ftUserStack,
                      ftKernelStack, ftExitStack;
 
-            GetThreadTimes           ( hThreadStack, &ftCreateStack, &ftExitStack, &ftKernelStack, &ftUserStack );
-            SK_ImGui_ThreadCallstack ( hThreadStack, LARGE_INTEGER {       ftUserStack.dwLowDateTime,
-                                                                     (LONG)ftUserStack.dwHighDateTime   },
-                                                     LARGE_INTEGER {       ftKernelStack.dwLowDateTime,
-                                                                     (LONG)ftKernelStack.dwHighDateTime } );
+            GetThreadTimes           ( hThreadStack.m_h, &ftCreateStack, &ftExitStack, &ftKernelStack, &ftUserStack );
+            SK_ImGui_ThreadCallstack ( hThreadStack.m_h, LARGE_INTEGER {       ftUserStack.dwLowDateTime,
+                                                                         (LONG)ftUserStack.dwHighDateTime   },
+                                                         LARGE_INTEGER {       ftKernelStack.dwLowDateTime,
+                                                                         (LONG)ftKernelStack.dwHighDateTime } );
           }
         }
 
@@ -1913,7 +1910,7 @@ public:
                        THREAD_SET_INFORMATION   |
                        THREAD_SUSPEND_RESUME, FALSE, dwSelectedTid );
 
-        if (GetProcessIdOfThread (hSelectedThread) != GetCurrentProcessId ())
+        if (GetProcessIdOfThread (hSelectedThread.m_h) != GetCurrentProcessId ())
         {
           hSelectedThread.Close ();
           hSelectedThread.m_h = INVALID_HANDLE_VALUE;
@@ -2018,6 +2015,9 @@ public:
 
                           if (SuspendThread (hThread__) != -1)
                           {
+                            CONTEXT                           threadCtx = { };
+                            GetThreadContext (hThread__.m_h, &threadCtx);
+
                             suspend_me.time_requested  =
                               SK_GetCurrentMS   ();
                             suspend_me.frame_requested =
@@ -2047,7 +2047,7 @@ public:
                             if (thread.frame_requested > (SK_GetFramesDrawn () - MIN_FRAMES))
                             {
                               SK_ImGui_Warning (L"Unsafe thread suspension detected; thread resumed to prevent deadlock!");
-                              ResumeThread (hThread);
+                              ResumeThread (hThread.m_h);
                             }
 
                             continue;
@@ -2390,7 +2390,7 @@ public:
         DWORD_PTR pdwStartAddress;
 
         static NtQueryInformationThread_pfn NtQueryInformationThread =
-          (NtQueryInformationThread_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"NtDll.dll"),
+          (NtQueryInformationThread_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"NtDll"),
                                                                                  "NtQueryInformationThread" );
 
         HANDLE hThread = it.second->hThread;

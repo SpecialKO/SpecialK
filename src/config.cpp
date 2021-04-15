@@ -467,6 +467,7 @@ sk::ParameterBool*        enable_cegui;
 sk::ParameterBool*        safe_cegui;
 sk::ParameterFloat*       mem_reserve;
 sk::ParameterBool*        debug_output;
+sk::ParameterBool*        debug_wait;
 sk::ParameterBool*        game_output;
 sk::ParameterBool*        handle_crashes;
 sk::ParameterBool*        prefer_fahrenheit;
@@ -475,6 +476,7 @@ sk::ParameterInt*         log_level;
 sk::ParameterBool*        trace_libraries;
 sk::ParameterBool*        strict_compliance;
 sk::ParameterBool*        silent;
+sk::ParameterFloat*       init_delay;
 sk::ParameterStringW*     version; // Version at last boot
 
 struct {
@@ -841,7 +843,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
   macro_config       =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\macros.ini)";
 
-
   if (init == FALSE || dll_ini == nullptr)
   {
     init = -1;
@@ -1089,11 +1090,13 @@ auto DeclKeybind =
     ConfigEntry (trace_libraries,                        L"Trace DLL Loading (needed for dynamic API detection)",      dll_ini,         L"SpecialK.System",       L"TraceLoadLibrary"),
     ConfigEntry (log_level,                              L"Log Verbosity (0=General, 5=Insane Debug)",                 dll_ini,         L"SpecialK.System",       L"LogLevel"),
     ConfigEntry (handle_crashes,                         L"Use Custom Crash Handler",                                  dll_ini,         L"SpecialK.System",       L"UseCrashHandler"),
+    ConfigEntry (debug_wait,                             L"Halt Special K Initialization Until Debugger is Attached",  dll_ini,         L"SpecialK.System",       L"WaitForDebugger"),
     ConfigEntry (debug_output,                           L"Print Application's Debug Output in real-time",             dll_ini,         L"SpecialK.System",       L"DebugOutput"),
     ConfigEntry (game_output,                            L"Log Application's Debug Output",                            dll_ini,         L"SpecialK.System",       L"GameOutput"),
     ConfigEntry (ignore_rtss_delay,                      L"Ignore RTSS Delay Incompatibilities",                       dll_ini,         L"SpecialK.System",       L"IgnoreRTSSHookDelay"),
     ConfigEntry (enable_cegui,                           L"Enable CEGUI (lazy loading)",                               dll_ini,         L"SpecialK.System",       L"EnableCEGUI"),
     ConfigEntry (safe_cegui,                             L"Safely Initialize CEGUI",                                   dll_ini,         L"SpecialK.System",       L"SafeInitCEGUI"),
+    ConfigEntry (init_delay,                             L"Delay Global Injection Initialization for x-many Seconds",  dll_ini,         L"SpecialK.System",       L"GlobalInjectDelay"),
     ConfigEntry (version,                                L"The last version that wrote the config file",               dll_ini,         L"SpecialK.System",       L"Version"),
 
 
@@ -2024,7 +2027,10 @@ auto DeclKeybind =
           void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
                SK_Display_SetMonitorDPIAwareness (false);
 
-          SK_RestartGame ();
+          // Oly do this for Steam games, the Microsoft Store Yakuza games
+          //   are chronically DPI unaware and broken
+          if (StrStrIW (SK_GetHostPath (), L"SteamApps"))
+            SK_RestartGame ();
         }
 
         ///// Engine has a problem with its texture management that
@@ -2079,7 +2085,10 @@ auto DeclKeybind =
           void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
                SK_Display_SetMonitorDPIAwareness (false);
 
-          SK_RestartGame ();
+          // Oly do this for Steam games, the Microsoft Store Yakuza games
+          //   are chronically DPI unaware and broken
+          if (StrStrIW (SK_GetHostPath (), L"SteamApps"))
+            SK_RestartGame ();
         }
 
         config.textures.d3d11.cache               =  false;
@@ -3035,10 +3044,12 @@ auto DeclKeybind =
   prefer_fahrenheit->load (config.system.prefer_fahrenheit);
   ignore_rtss_delay->load (config.system.ignore_rtss_delay);
   handle_crashes->load    (config.system.handle_crashes);
+  debug_wait->load        (config.system.wait_for_debugger);
   debug_output->load      (config.system.display_debug_out);
   game_output->load       (config.system.game_output);
   enable_cegui->load      (config.cegui.enable);
   safe_cegui->load        (config.cegui.safe_init);
+  init_delay->load        (config.system.global_inject_delay);
   version->load           (config.system.version);
 
   SK_RunOnce (config.cegui.orig_enable = config.cegui.enable);
@@ -3145,6 +3156,18 @@ auto DeclKeybind =
   //   if the user has any; that involves renaming the file after loading it.
   if (! migrate_steam_config.empty ())
     steam_ini->rename (migrate_steam_config.c_str ());
+
+
+  // Config opted-in to debugger wait
+  if (config.system.wait_for_debugger)
+  {
+    if (     ! SK_IsDebuggerPresent ())
+    { while (! SK_IsDebuggerPresent ())
+               SK_SleepEx (100, FALSE);
+
+      __debugbreak ();
+    }
+  }
 
   return (! empty);
 }
@@ -3864,10 +3887,12 @@ SK_SaveConfig ( std::wstring name,
     debug_output->store                        (config.system.display_debug_out);
   }
 
+  debug_wait->store                            (config.system.wait_for_debugger);
   enable_cegui->store                          (config.cegui.enable);
   safe_cegui->store                            (config.cegui.safe_init);
   trace_libraries->store                       (config.system.trace_load_library);
   strict_compliance->store                     (config.system.strict_compliance);
+  init_delay->store                            (config.system.global_inject_delay);
   version->store                               (SK_GetVersionStrW ());
 
   if (dll_ini != nullptr && (! (nvapi_init && sk::NVAPI::nv_hardware) || (! sk::NVAPI::CountSLIGPUs ())))

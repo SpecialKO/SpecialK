@@ -1763,7 +1763,7 @@ XYZtosRGB (float3 color)
 
 float4 main (PS_INPUT input) : SV_TARGET
 {
-  input.color.x -= hdrLuminance_Min;
+  input.color.x -= hdrLuminance_Min / 80.0f;
 
   bool bIsHDR10 = false;
 
@@ -1804,7 +1804,7 @@ float4 main (PS_INPUT input) : SV_TARGET
   if ( input.coverage.x < input.uv.x ||
        input.coverage.y < input.uv.y )
   {
-    return hdr_color;
+    return hdr_color * 3.75;
   }
 
 
@@ -1894,7 +1894,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     (                            hdrPaperWhite +
       fLuma * (input.color.xxx - hdrPaperWhite) );
 
-  hdr_color.rgb += hdrLuminance_Min;
+  hdr_color.rgb += hdrLuminance_Min / 80.0f;
 
   fLuma =
     Luminance (hdr_color.rgb);

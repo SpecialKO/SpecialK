@@ -46,6 +46,7 @@ static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"conhost.exe"),
   SK_MakeUnicode (L"dllhost.exe"),
   SK_MakeUnicode (L"dllhst3g.exe"),
+  SK_MakeUnicode (L"identity_helper.exe"),
 };
 
 static constexpr UNICODE_STRING __graylist [] = {

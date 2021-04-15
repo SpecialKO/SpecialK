@@ -1,4 +1,26 @@
-﻿21.03.21
+﻿21.03.25
+========
+ + Fixed Microsoft Store Yakuza game builds failing due to DPI awareness
+ + Added option to wait for debugger attach after config load
+ + Added option to delay Global Injection for an exact number of seconds
+
+     [SpecialK.System]
+     GlobalInjectDelay=...
+ 
+  >> NOTE: Many D3D11/12 features do not work when delay loading is used.
+
+21.03.23
+========
+ + Improved compatibility with NieR: Automata (QLOC)
+ + Fixed a number of RTSS-related D3D11/12 SwapChain resize/create bugs
+ + Added detection for third-party overlay interference in latency stats
+
+21.03.22
+========
+ + Fixed Structured Exception Handling incompat. in some 32-bit games
+ + Added gamepad latency tester under Input Management / Gamepad section
+
+21.03.21
 ========
  + Fixed empty keybind INI entries reverting to default value on config load
  + Fixed latency markers not being clipped to control panel window bounds

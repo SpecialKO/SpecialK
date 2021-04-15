@@ -39,6 +39,12 @@ SK_GetModuleHandleW (PCWSTR lpModuleName)
   if (lpModuleName == nullptr)
     return GetModuleHandleW (nullptr);
 
+  static HMODULE hModNtDll =
+    GetModuleHandleW (L"NtDll");
+
+  if (! hModNtDll)
+    return 0;
+
   HMODULE hMod = nullptr;
 
   typedef void (WINAPI *RtlInitUnicodeString_pfn)
@@ -50,16 +56,14 @@ SK_GetModuleHandleW (PCWSTR lpModuleName)
     const UNICODE_STRING*, HMODULE*            );
 
   static RtlInitUnicodeString_pfn
-    RtlInitUnicodeString =
-    (RtlInitUnicodeString_pfn) SK_GetProcAddress (
-                                 SK_LoadLibraryW ( L"NtDll.dll" ),
-                                                    "RtlInitUnicodeString" );
+         RtlInitUnicodeString =
+         (RtlInitUnicodeString_pfn) SK_GetProcAddress ( hModNtDll,
+                                                          "RtlInitUnicodeString" );
 
   static LdrGetDllHandle_pfn
          LdrGetDllHandle =
-        (LdrGetDllHandle_pfn) SK_GetProcAddress (
-                                SK_LoadLibraryW ( L"NtDll.dll" ),
-                                                   "LdrGetDllHandle" );
+        (LdrGetDllHandle_pfn) SK_GetProcAddress ( hModNtDll,
+                                                    "LdrGetDllHandle" );
 
   UNICODE_STRING         ucsModuleName          = { };
   RtlInitUnicodeString (&ucsModuleName, lpModuleName);
@@ -508,7 +512,7 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
 
       if (cfg_sec.contains_key (key_name.c_str ()))
       {
-        *(it.pEnable) =
+        *(it.pEnable) = config.system.global_inject_delay > 0.0f ||
           SK_IsTrue (cfg_sec.get_value (key_name.c_str ()).c_str ());
       }
 

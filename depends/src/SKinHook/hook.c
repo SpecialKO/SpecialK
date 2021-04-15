@@ -732,6 +732,9 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
           DWORD  dwSuspend =
             SuspendThread (hThread);
 
+          CONTEXT                     threadContext;
+          GetThreadContext (hThread, &threadContext);
+
           if (GetExitCodeThread (hThread, &dwExitCode))
           {
             if (dwExitCode == STILL_ACTIVE)
@@ -740,7 +743,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
 
               if (dwSuspend < MAXIMUM_SUSPEND_COUNT)
               {
-                 if (dwSuspend > 0)
+                if (dwSuspend > 0)
                 {
                   ++frozen;
                 }
@@ -823,6 +826,9 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
 
             if ( (dwRet = SuspendThread (hThread)) != (DWORD)-1 )
             {
+              CONTEXT                     threadContext;
+              GetThreadContext (hThread, &threadContext);
+
               ++pThread->suspensions;
 
               // Thread is suspended, we can stop now

@@ -601,8 +601,8 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     ThrowIfFailed (
       cmdQueue->Signal (pFence,                       1));
                         pFence->SetEventOnCompletion (1,
-                                  hEvent);
-    WaitForSingleObject          (hEvent, INFINITE);
+                                  hEvent.m_h);
+    WaitForSingleObject          (hEvent.m_h, INFINITE);
 
     // Create texture view
     D3D12_SHADER_RESOURCE_VIEW_DESC

@@ -30,12 +30,12 @@
 #include <SpecialK/plugin/plugin_mgr.h>
 #include <SpecialK/plugin/nier.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
 
-#define FAR_VERSION_NUM L"0.8.0"
+
+#define FAR_VERSION_NUM L"0.8.5"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
-
-bool __FAR_Steam = false;
 
 // Block until update finishes, otherwise the update dialog
 //   will be dismissed as the game crashes when it tries to
@@ -43,8 +43,7 @@ bool __FAR_Steam = false;
 volatile LONG   __FAR_init        = FALSE;
          float  __FAR_MINIMUM_EXT = 0.0f;
          bool   __FAR_Freelook    = false;
-         double __FAR_TargetFPS   = 59.94;
-
+         bool   __FAR_FastLoads   = false;
 
 #define WORKING_FPS_UNCAP
 #define WORKING_CAMERA_CONTROLS
@@ -54,30 +53,73 @@ volatile LONG   __FAR_init        = FALSE;
 
 struct far_game_state_s
 {
-  // Game state addresses courtesy of Francesco149
-  DWORD* pMenu       = reinterpret_cast <DWORD *> (0x14190D494);//0x1418F39C4;
-  DWORD* pLoading    = reinterpret_cast <DWORD *> (0x14198F0A0);//0x141975520;
-  DWORD* pHacking    = reinterpret_cast <DWORD *> (0x1410FA090);//0x1410E0AB4;
-  DWORD* pShortcuts  = reinterpret_cast <DWORD *> (0x141415AC4);//0x1413FC35C;
+  bool   bSteam       = false;
 
-  float* pHUDOpacity = reinterpret_cast <float *> (0x1419861BC);//0x14196C63C;
+  DWORD* pMenu        = nullptr;
+  DWORD* pLoading     = nullptr;
+  DWORD* pHacking     = nullptr;
+  DWORD* pShortcuts   = nullptr;
 
-  bool   capped      = true;  // Actual state of limiter
-  bool   enforce_cap = true;  // User's current preference
-  bool   patchable   = false; // True only if the memory addresses can be validated
+  float* pHUDOpacity  = nullptr;
+
+  bool   fast_loading = false; // Limiter's suspended to make loads faster
+  bool   capped       = true;  // Actual state of limiter
+  bool   enforce_cap  = true;  // User's current preference
+  int    present_rate = 1;     // VSYNC
+  bool   patchable    = false; // True only if the memory addresses can be validated
 
   bool needFPSCap (void) {
-    if (__FAR_Steam)
-    {
-      return enforce_cap|| (   *pMenu != 0) || (*pLoading   != 0) ||
-                           (*pHacking != 0) || (*pShortcuts != 0);
+    if (! patchable)
+      return true;
+
+    __try {
+      return enforce_cap ||
+        (   *pMenu != 0) || ( (! __FAR_FastLoads) && (*pLoading   != 0) ) ||
+        (*pHacking != 0) ||                          (*pShortcuts != 0);
     }
 
-    return enforce_cap;
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+      return true;
+    }
   }
 
   void capFPS   (void);
   void uncapFPS (void);
+
+  void initForSteam (void)
+  {
+    bSteam          = true;
+    __FAR_FastLoads = false;
+
+    // Game state addresses courtesy of Francesco149
+    pMenu        = reinterpret_cast <DWORD *> (0x14190D494); //0x1418F39C4;
+    pLoading     = reinterpret_cast <DWORD *> (0x14198F0A0); //0x141975520;
+    pHacking     = reinterpret_cast <DWORD *> (0x1410FA090); //0x1410E0AB4;
+    pShortcuts   = reinterpret_cast <DWORD *> (0x141415AC4); //0x1413FC35C;
+
+     pHUDOpacity = reinterpret_cast <float *> (0x1419861BC); //0x14196C63C;
+  }
+
+  void initForMicrosoft (void)
+  {
+    bSteam          = false;
+    __FAR_FastLoads = true;
+
+    uintptr_t uiBaseAddr =
+      reinterpret_cast <uintptr_t> (
+        SK_Debug_GetImageBaseAddr ()
+      );
+
+    pMenu      = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A46C);
+    pLoading   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x146AEC0);
+    pHacking   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A46C /* WRONG */);
+    pShortcuts = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A408);
+  }
+
+  bool isSteam   (void) const { return bSteam; }
+  bool isLoading (void) const { return pLoading != nullptr ?
+                                                 *pLoading : false; }
 } static game_state;
 
 
@@ -94,9 +136,9 @@ sk::ParameterInt*     far_bloom_skip                = nullptr;
 sk::ParameterInt*     far_ao_width                  = nullptr;
 sk::ParameterInt*     far_ao_height                 = nullptr;
 sk::ParameterBool*    far_ao_disable                = nullptr;
-sk::ParameterBool*    far_limiter_busy              = nullptr;
+//sk::ParameterBool*    far_limiter_busy              = nullptr;
 sk::ParameterBool*    far_uncap_fps                 = nullptr;
-sk::ParameterBool*    far_slow_state_cache          = nullptr;
+sk::ParameterBool*    far_fastload                  = nullptr;
 sk::ParameterBool*    far_rtss_warned               = nullptr;
 sk::ParameterBool*    far_osd_disclaimer            = nullptr;
 sk::ParameterBool*    far_accepted_license          = nullptr;
@@ -204,24 +246,6 @@ struct {
 bool                      SK_FAR_PlugInCfg         (void);
 HRESULT STDMETHODCALLTYPE SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
 
-// Was threaded originally, but it is important to block until
-//   the update check completes.
-unsigned int
-__stdcall
-SK_FAR_CheckVersion (LPVOID user)
-{
-  UNREFERENCED_PARAMETER (user);
-
-  // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
-  //
-  ///if (SK_FetchVersionInfo (L"FAR/dinput8"))
-  ///  SK_UpdateSoftware (L"FAR/dinput8");
-
-  return 0;
-}
-
-
-
 HRESULT
 WINAPI
 SK_FAR_CreateBuffer (
@@ -246,10 +270,29 @@ SK_FAR_CreateBuffer (
   };
 
 
+  if (pDesc != nullptr && pDesc->StructureByteStride == 48 && pDesc->ByteWidth == 48 && pInitialData != nullptr && pInitialData->pSysMem != nullptr)
+  {
+    struct exposure_s {
+      float padding0; float exposure;
+      float padding2; float padding3;
+
+      float brightness; float padding5;
+      float padding6;   float padding7;
+
+      float vignette0; float vignette1;
+      float padding10; float padding11;
+    } *pData = (exposure_s *)pInitialData->pSysMem;
+
+    ///SK_LOG0 ( ( L"Exposure: %f, Brightness: %f, V0: %f, V1: %f",
+    ///              pData->exposure,  pData->brightness,
+    ///              pData->vignette0, pData->vignette1
+    ///            ), L"Test" );
+  }
+
   // Global Illumination (DrDaxxy)
   if ( pDesc != nullptr && pDesc->StructureByteStride == sizeof (far_light_volume_s)       &&
                            pDesc->ByteWidth           == sizeof (far_light_volume_s) * 128 &&
-                           pDesc->BindFlags            & D3D11_BIND_SHADER_RESOURCE )
+                           pDesc->BindFlags            & D3D11_BIND_SHADER_RESOURCE)
   {
     new_desc.ByteWidth = sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize;
 
@@ -263,44 +306,47 @@ SK_FAR_CreateBuffer (
       auto* lights =
         static_const_cast <far_light_volume_s *, void *> (pInitialData->pSysMem);
 
-      static far_light_volume_s new_lights [128];
-
+      far_light_volume_s
+                   new_lights [128] = { };
       CopyMemory ( new_lights,
-                     lights,
-                       sizeof (far_light_volume_s) * 128 );
+                       lights,
+           sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize );
 
-      // This code is bloody ugly, but it works ;)
-      for (UINT i = 0; i < __FAR_GlobalIllumWorkGroupSize; i++)
+      if (game_state.isSteam ())
       {
-        float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
-                                lights [i].world_pos [2], lights [i].world_pos [3] };
-
-        glm::vec4   cam_pos_world ( light_pos [0] - (reinterpret_cast <float *> (far_cam.pCamera)) [0],
-                                    light_pos [1] - (reinterpret_cast <float *> (far_cam.pCamera)) [1],
-                                    light_pos [2] - (reinterpret_cast <float *> (far_cam.pCamera)) [2],
-                                                 1.0f );
-
-        glm::mat4x4 world_mat ( lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
-                                lights [i].world_to_vol [ 4], lights [i].world_to_vol [ 5], lights [i].world_to_vol [ 6], lights [i].world_to_vol [ 7],
-                                lights [i].world_to_vol [ 8], lights [i].world_to_vol [ 9], lights [i].world_to_vol [10], lights [i].world_to_vol [11],
-                                lights [i].world_to_vol [12], lights [i].world_to_vol [13], lights [i].world_to_vol [14], lights [i].world_to_vol [15] );
-
-        glm::vec4   test = world_mat * cam_pos_world;
-
-        if ( ( fabs (lights [i].half_extents [0]) <= fabs (test.x) * __FAR_MINIMUM_EXT ||
-               fabs (lights [i].half_extents [1]) <= fabs (test.y) * __FAR_MINIMUM_EXT ||
-               fabs (lights [i].half_extents [2]) <= fabs (test.z) * __FAR_MINIMUM_EXT )  /* && ( fabs (lights [i].half_extents [0]) > 0.0001f ||
-                                                                                                  fabs (lights [i].half_extents [1]) > 0.0001f ||
-                                                                                                  fabs (lights [i].half_extents [2]) > 0.0001f ) */ )
+        // This code is bloody ugly, but it works ;)
+        for (UINT i = 0; i < std::min (__FAR_GlobalIllumWorkGroupSize, 128U); i++)
         {
-          // Degenerate light volume
-          new_lights [i].half_extents [0] = 0.0f;
-          new_lights [i].half_extents [1] = 0.0f;
-          new_lights [i].half_extents [2] = 0.0f;
-
-          // Project to infinity (but not beyond, because that makes no sense)
-          new_lights [i].world_pos [0] = 0.0f; new_lights [i].world_pos [1] = 0.0f;
-          new_lights [i].world_pos [2] = 0.0f; new_lights [i].world_pos [3] = 0.0f;
+          float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
+                                  lights [i].world_pos [2], lights [i].world_pos [3] };
+        
+          glm::vec4   cam_pos_world ( light_pos [0] - (reinterpret_cast <float *> (far_cam.pCamera)) [0],
+                                      light_pos [1] - (reinterpret_cast <float *> (far_cam.pCamera)) [1],
+                                      light_pos [2] - (reinterpret_cast <float *> (far_cam.pCamera)) [2],
+                                                   1.0f );
+        
+          glm::mat4x4 world_mat ( lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
+                                  lights [i].world_to_vol [ 4], lights [i].world_to_vol [ 5], lights [i].world_to_vol [ 6], lights [i].world_to_vol [ 7],
+                                  lights [i].world_to_vol [ 8], lights [i].world_to_vol [ 9], lights [i].world_to_vol [10], lights [i].world_to_vol [11],
+                                  lights [i].world_to_vol [12], lights [i].world_to_vol [13], lights [i].world_to_vol [14], lights [i].world_to_vol [15] );
+        
+          glm::vec4   test = world_mat * cam_pos_world;
+        
+          if ( ( fabs (lights [i].half_extents [0]) <= fabs (test.x) * __FAR_MINIMUM_EXT ||
+                 fabs (lights [i].half_extents [1]) <= fabs (test.y) * __FAR_MINIMUM_EXT ||
+                 fabs (lights [i].half_extents [2]) <= fabs (test.z) * __FAR_MINIMUM_EXT )  /* && ( fabs (lights [i].half_extents [0]) > 0.0001f ||
+                                                                                                    fabs (lights [i].half_extents [1]) > 0.0001f ||
+                                                                                                    fabs (lights [i].half_extents [2]) > 0.0001f ) */ )
+          {
+            // Degenerate light volume
+            new_lights [i].half_extents [0] = 0.0f;
+            new_lights [i].half_extents [1] = 0.0f;
+            new_lights [i].half_extents [2] = 0.0f;
+        
+            // Project to infinity (but not beyond, because that makes no sense)
+            new_lights [i].world_pos [0] = 0.0f; new_lights [i].world_pos [1] = 0.0f;
+            new_lights [i].world_pos [2] = 0.0f; new_lights [i].world_pos [3] = 0.0f;
+          }
         }
       }
 
@@ -312,7 +358,8 @@ SK_FAR_CreateBuffer (
     pDesc = &new_desc;
   }
 
-  return _D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
+  return
+    _D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
 }
 
 HRESULT
@@ -366,6 +413,62 @@ SK_FAR_PSSetConstantBuffers (
   _In_     UINT                  NumBuffers,
   _In_opt_ ID3D11Buffer *const  *ppConstantBuffers )
 {
+  ////if (StartSlot == 0 && NumBuffers == 1 && ppConstantBuffers != nullptr && (*ppConstantBuffers) != nullptr)
+  ////{
+  ////  D3D11_BUFFER_DESC bufferDesc = { };
+  ////  (*ppConstantBuffers)->GetDesc (&bufferDesc);
+  ////
+  ////  if (bufferDesc.ByteWidth == 48)
+  ////  {
+  ////    struct exposure_s {
+  ////      float padding0; float exposure;
+  ////      float padding2; float padding3;
+  ////
+  ////      float brightness; float padding5;
+  ////      float padding6;   float padding7;
+  ////
+  ////      float vignette0; float vignette1;
+  ////      float padding10; float padding11;
+  ////    };// *pData = (exposure_s*)pInitialData->pSysMem;
+  ////
+  ////    //D3D11_MAP map_setup = { };
+  ////    //          map_setup.
+  ////
+  ////    SK_ComPtr <ID3D11Device> pDevice = nullptr;
+  ////    This->GetDevice (&pDevice);
+  ////
+  ////    bufferDesc.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+  ////    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+  ////    bufferDesc.Usage          = D3D11_USAGE_STAGING;
+  ////
+  ////    SK_ComPtr <ID3D11Buffer> pCopyBuffer;
+  ////    pDevice->CreateBuffer (&bufferDesc, nullptr, &pCopyBuffer);
+  ////
+  ////    This->CopySubresourceRegion (
+  ////      pCopyBuffer, 0, 0, 0, 0, (*ppConstantBuffers), 0, nullptr
+  ////    );
+  ////
+  ////    D3D11_MAPPED_SUBRESOURCE mappedSub = { };
+  ////                             mappedSub.RowPitch = 48;
+  ////    if ( SUCCEEDED (This->Map (pCopyBuffer, 0, D3D11_MAP_READ, 0x0, &mappedSub) ) )
+  ////    {
+  ////      exposure_s *pData =
+  ////        (exposure_s *)mappedSub.pData;
+  ////
+  ////      SK_LOG0 (
+  ////        ( L"Exposure: %f, Brightness: %f, V0: %f, V1: %f",
+  ////            pData->exposure,  pData->brightness,
+  ////            pData->vignette0, pData->vignette1
+  ////        ), L"Test" );
+  ////
+  ////      This->Unmap (pCopyBuffer, 0);
+  ////    }
+  ////    //0x49a3eacf
+  ////
+  ////    /////SK_LOG0 ((L"PSSetConstantBuffers"), L"Test");
+  ////  }
+  ////}
+
   _D3D11_PSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
 }
 
@@ -482,7 +585,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
                                 "  Press Ctrl + Shift + Backspace to access In-Game Config Menu\n"
                                 "    ( Select + Start on Gamepads )\n\n"
                                 "   * This message will go away the first time you actually read it and successfully toggle the OSD.\n" );
-  else if (__FAR_Steam && config.system.log_level == 1)
+  else if (config.system.log_level == 1)
   {
     std::string validation = "";
 
@@ -508,7 +611,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     SK_DrawExternalOSD ( "FAR", validation );
   }
 
-  else if (__FAR_Steam && config.system.log_level > 1)
+  else if (config.system.log_level > 1)
   {
     std::string state = "";
 
@@ -558,6 +661,33 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     {
       game_state.uncapFPS ();
       game_state.capped = false;
+    }
+
+
+    if (__FAR_FastLoads && game_state.fast_loading != game_state.isLoading ())
+    {
+      auto pLimiter =
+        SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain.p);
+
+      game_state.fast_loading =
+         game_state.isLoading ();
+
+      if (game_state.fast_loading)
+      {
+        game_state.present_rate =
+          config.render.framerate.present_interval;
+          config.render.framerate.present_interval = 0;
+
+        pLimiter->suspend ();
+      }
+
+      else
+      {
+        config.render.framerate.present_interval =
+                     game_state.present_rate;
+
+        pLimiter->resume  ();
+      }
     }
 
 
@@ -803,13 +933,9 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
   if (! InterlockedCompareExchange (&__FAR_init, 1, 0))
   {
-    // Global injector is a separate product (that includes this plug-in)
-    if (! SK_IsInjected ())
-      SK_FAR_CheckVersion (nullptr);
-
     game_state.enforce_cap = (! far_uncap_fps->get_value ());
 
-    bool busy_wait = far_limiter_busy->get_value ();
+    bool busy_wait = true;// far_limiter_busy->get_value ();
 
     game_state.patchable =
       SK_FAR_SetLimiterWait ( busy_wait ? SK_FAR_WaitBehavior::Busy :
@@ -852,6 +978,11 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   return S_OK;
 }
 
+const wchar_t*
+SK_D3D11_DescribeUsage (D3D11_USAGE usage) noexcept;
+
+std::wstring
+SK_D3D11_DescribeBindFlags (UINT flags);
 
 // Overview (Durante):
 //
@@ -875,6 +1006,7 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 //
 //  Windows Store version increased the resolution to 960x540, but the general overview remains
 //
+
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -884,17 +1016,33 @@ SK_FAR_CreateTexture2D (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
+  //if (! game_state.isSteam ())
+  // return
+  //  _D3D11Dev_CreateTexture2D_Original ( This,
+  //                                        pDesc, pInitialData,
+  //                                          ppTexture2D );
+
   if (ppTexture2D == nullptr)
     return _D3D11Dev_CreateTexture2D_Original ( This, pDesc, pInitialData, nullptr );
 
-  static UINT   resW      = far_bloom.width;               // horizontal resolution, must be set at application start
-  static double resFactor = resW / ( __FAR_Steam ?
-                                            1600 : 1920 ); // the factor required to scale to the largest part of the pyramid
+  static UINT   resW      = far_bloom.width; // horizontal resolution, must be set at application start
+  static double resFactor = resW / (
+           game_state.isSteam () ?
+                            1600 : 1920 );   // the factor required to scale to the largest part of the pyramid
 
   bool bloom = false;
   bool ao    = false;
 
   D3D11_TEXTURE2D_DESC copy (*pDesc);
+
+  ////if (! DirectX::IsCompressed (pDesc->Format))
+  ////{
+  ////  dll_log->Log (L"Tex2D: (%lux%lu): %s { %s/%s }",
+  ////          pDesc->Width,
+  ////          pDesc->Height, SK_DXGI_FormatToStr (pDesc->Format)   .c_str (),
+  ////                      SK_D3D11_DescribeUsage (pDesc->Usage),
+  ////                  SK_D3D11_DescribeBindFlags (pDesc->BindFlags).c_str ());
+  ////}
 
   switch (pDesc->Format)
   {
@@ -906,16 +1054,17 @@ SK_FAR_CreateTexture2D (
     {
       if (__SK_HDR_16BitSwap || pDesc->Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
       {
-        if ( ( __FAR_Steam && (pDesc->Width == 800 && pDesc->Height == 450)
+        if ( (                (pDesc->Width == 800 && pDesc->Height == 450)
                            || (pDesc->Width == 400 && pDesc->Height == 225)
                            || (pDesc->Width == 200 && pDesc->Height == 112)
                            || (pDesc->Width == 100 && pDesc->Height == 56)
                          /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/ ) ||
-             (                (pDesc->Width == 960 && pDesc->Height == 540)
+            (                ( pDesc->Width == 960 && pDesc->Height == 540)
                            || (pDesc->Width == 480 && pDesc->Height == 268)
                            || (pDesc->Width == 240 && pDesc->Height == 134)
                            || (pDesc->Width == 120 && pDesc->Height == 67)
-                           || (pDesc->Width == 100 && pDesc->Height == 56) )
+                           || (pDesc->Width == 100 && pDesc->Height == 56)
+                         /*|| (pDesc->Width == 60 && pDesc->Height == 67)*/ )
            )
         {
           static int num_r11g11b10_textures = 0;
@@ -934,8 +1083,8 @@ SK_FAR_CreateTexture2D (
             {
               // Scale the upper parts of the pyramid fully
               // and lower levels progressively less
-              double pyramidLevelFactor  = __FAR_Steam ? (static_cast <double> (pDesc->Width) - 50.0) / 750.0
-                                                       : (static_cast <double> (pDesc->Width) - 60.0) / 900.0;
+              double pyramidLevelFactor  = game_state.isSteam () ? (static_cast <double> (pDesc->Width) - 50.0) / 750.0
+                                                                 : (static_cast <double> (pDesc->Width) - 60.0) / 900.0;
               double scalingFactor       = 1.0 + (resFactor - 1.0) * pyramidLevelFactor;
 
               copy.Width  = static_cast <UINT> (copy.Width  * scalingFactor);
@@ -954,15 +1103,15 @@ SK_FAR_CreateTexture2D (
     // 800x450 D24_UNORM_S8_UINT depth/stencil used together with R8G8B8A8_UNORM buffer for something (unclear) later on
     case DXGI_FORMAT_R8G8B8A8_UNORM:
     case DXGI_FORMAT_R32_FLOAT:
+  //case DXGI_FORMAT_R8_UNORM: // ??
     case DXGI_FORMAT_D24_UNORM_S8_UINT:
     {
-      if ((__FAR_Steam && pDesc->Width == 800 && pDesc->Height == 450) ||
-                         (pDesc->Width == 960 && pDesc->Height == 540))
+      if (game_state.isSteam () && pDesc->Width == 800 && pDesc->Height == 450)
       {
         // Skip the first two textures that match this pattern, they are
         //   not related to AO.
         static int num_r32_textures = 0;
-
+        
         if (pDesc->Format == DXGI_FORMAT_R32_FLOAT)
           num_r32_textures++;
 
@@ -994,9 +1143,10 @@ SK_FAR_CreateTexture2D (
   }
 
 
-  HRESULT hr = _D3D11Dev_CreateTexture2D_Original ( This,
-                                                      pDesc, pInitialData,
-                                                        ppTexture2D );
+  HRESULT hr =
+    _D3D11Dev_CreateTexture2D_Original ( This,
+                                           pDesc, pInitialData,
+                                             ppTexture2D );
 
   return hr;
 }
@@ -1032,28 +1182,46 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
       //return true;
   }
 
-  UINT numViewports = 0;
-
+  UINT                      numViewports = 0;
   pDevCtx->RSGetViewports (&numViewports, nullptr);
 
   if (numViewports == 1 && (far_bloom.width != -1 || far_ao.width != -1))
   {
-    D3D11_VIEWPORT vp;
+    D3D11_VIEWPORT            vp = { };
+    pDevCtx->RSGetViewports
+             (&numViewports, &vp);
 
-    pDevCtx->RSGetViewports (&numViewports, &vp);
+    //{
+    //  SK_ComPtr <ID3D11RenderTargetView> rtView = nullptr;
+    //
+    //  pDevCtx->OMGetRenderTargets (1,   &rtView, nullptr);
+    //
+    //  if (rtView)
+    //  {
+    //    D3D11_RENDER_TARGET_VIEW_DESC
+    //                      desc = { };
+    //    rtView->GetDesc (&desc);
+    //
+    //    if (desc.Format == DXGI_FORMAT_R11G11B10_FLOAT ||
+    //        desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+    //    {
+    //      dll_log->Log (L"%fx%f", vp.Width, vp.Height);
+    //    }
+    //  }
+    //}
 
-    if (  (__FAR_Steam && (vp.Width == 800 && vp.Height == 450)
-                       || (vp.Width == 400 && vp.Height == 225)
-                       || (vp.Width == 200 && vp.Height == 112)
-                       || (vp.Width == 100 && vp.Height == 56 )
-                       || (vp.Width == 50  && vp.Height == 28 )
-                       || (vp.Width == 25  && vp.Height == 14 ) ) ||
-          (               (vp.Width == 960 && vp.Height == 540)
-                       || (vp.Width == 480 && vp.Height == 268)
-                       || (vp.Width == 240 && vp.Height == 134)
-                       || (vp.Width == 120 && vp.Height == 67)
-                       || (vp.Width == 100 && vp.Height == 56)
-                       || (vp.Width == 60  && vp.Height == 33 ))
+    if (  (game_state.isSteam () &&
+                          (vp.Width == 800.0f && vp.Height == 450.0f)
+                       || (vp.Width == 400.0f && vp.Height == 225.0f)
+                       || (vp.Width == 200.0f && vp.Height == 112.0f)
+                       || (vp.Width == 100.0f && vp.Height == 56.0f )
+                       || (vp.Width == 50.0f  && vp.Height == 28.0f )
+                       || (vp.Width == 25.0f  && vp.Height == 14.0f ) ) ||
+          (               (vp.Width == 960.0f && vp.Height == 540.0f)
+                       || (vp.Width == 480.0f && vp.Height == 268.0f)
+                       || (vp.Width == 240.0f && vp.Height == 134.0f)
+                       || (vp.Width == 120.0f && vp.Height == 67.0f )
+                       || (vp.Width == 100.0f && vp.Height == 56.0f ) )
        )
     {
       SK_ComPtr <ID3D11RenderTargetView> rtView = nullptr;
@@ -1069,8 +1237,11 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
         if ( desc.Format == DXGI_FORMAT_R11G11B10_FLOAT    || // Bloom
             (desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT && __SK_HDR_16BitSwap)
                                                            ||
-             desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM     || // AO
+            ( game_state.isSteam () &&
+           ( desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM     || // AO
              desc.Format == DXGI_FORMAT_R32_FLOAT )           // AO
+            )
+           )
         {
           SK_ComPtr <ID3D11Resource> rt = nullptr;
 
@@ -1078,14 +1249,12 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
 
           if (rt != nullptr)
           {
-            SK_ComPtr <ID3D11Texture2D> rttex = nullptr;
-
-            rt->QueryInterface <ID3D11Texture2D> (&rttex);
-
+            SK_ComQIPtr <ID3D11Texture2D>
+                rttex (rt);
             if (rttex != nullptr)
             {
-              D3D11_TEXTURE2D_DESC texdesc;
-              rttex->GetDesc (&texdesc);
+              D3D11_TEXTURE2D_DESC texdesc = { };
+              rttex->GetDesc     (&texdesc);
 
               if (texdesc.Width != vp.Width)
               {
@@ -1118,17 +1287,19 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 // NOTE: rather than storing them statically here (basically a global) the lifetime should probably be managed
 
                 SK_ComPtr <ID3D11Device> dev;
-                pDevCtx->GetDevice (&dev);
+                pDevCtx->GetDevice     (&dev);
 
-                D3D11_BUFFER_DESC buffdesc;
-                buffdesc.ByteWidth           = 16;
-                buffdesc.Usage               = D3D11_USAGE_IMMUTABLE;
-                buffdesc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
-                buffdesc.CPUAccessFlags      = 0;
-                buffdesc.MiscFlags           = 0;
-                buffdesc.StructureByteStride = 16;
+                D3D11_BUFFER_DESC
+                  buffdesc;
+                  buffdesc.ByteWidth           = 16;
+                  buffdesc.Usage               = D3D11_USAGE_IMMUTABLE;
+                  buffdesc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
+                  buffdesc.CPUAccessFlags      = 0;
+                  buffdesc.MiscFlags           = 0;
+                  buffdesc.StructureByteStride = 16;
 
-                D3D11_SUBRESOURCE_DATA initialdata;
+                D3D11_SUBRESOURCE_DATA
+                           initialdata = { };
 
                 // Bloom
                 //   If we are not rendering to a mip map for hierarchical Z, the format is
@@ -1148,15 +1319,19 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                                  constants [2] =        vp.Width;
                                  constants [3] =        vp.Height;
 
-                    initialdata.pSysMem = constants;
+                    initialdata.pSysMem =
+                      constants;
 
                     ID3D11Buffer                                *replacementbuffer = nullptr;
                     dev->CreateBuffer (&buffdesc, &initialdata, &replacementbuffer);
 
-                    buffers [texdesc.Width] = replacementbuffer;
+                    buffers [texdesc.Width] =
+                      replacementbuffer;
                   }
 
-                  pDevCtx->PSSetConstantBuffers (12, 1, &buffers [texdesc.Width]);
+                  pDevCtx->PSSetConstantBuffers (
+                    12, 1, &buffers [texdesc.Width]
+                  );
 
                   if (far_bloom.disable)
                     return true;
@@ -1166,7 +1341,7 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 //
                 //   For hierarchical Z mips, the format is
                 //   [ W, H, LOD (Mip-1), 0.0f ]
-                else if (far_ao.width != -1)
+                else if (game_state.isSteam () && far_ao.width != -1)
                 {
                   static std::unordered_map <UINT, ID3D11Buffer*> mipBuffers;
 
@@ -1438,6 +1613,14 @@ SK_FAR_EULA_Insert (LPVOID reserved)
 }
 
 
+
+extern SK_LazyGlobal <
+  concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s>
+> __SK_D3D11_PixelShader_CBuffer_Overrides;
+
+d3d11_shader_tracking_s::cbuffer_override_s* SK_FAR_CB_Override;
+
+
 void
 SK_FAR_InitPlugin (void)
 {
@@ -1447,24 +1630,19 @@ SK_FAR_InitPlugin (void)
   pmin_tstep = static_cast <uint8_t *> (SK_ScanAligned ( tstep0, sizeof tstep0, tstep0_mask, 4 ));
   pmax_tstep = pmin_tstep + 0x2c;
 
-  if (pmin_tstep != nullptr)
-  {
-    __FAR_Steam = true;
-  }
+  if (pmin_tstep != nullptr) game_state.initForSteam     ();
+  else                       game_state.initForMicrosoft ();
 
   SK_SetPluginName (FAR_VERSION_STR);
 
   plugin_mgr->first_frame_fns.push_back (SK_FAR_PresentFirstFrame);
   plugin_mgr->config_fns.push_back      (SK_FAR_PlugInCfg);
 
-  if (__FAR_Steam)
-  {
-    SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
-                                 D3D11Dev_CreateBuffer_Override,
-                                   SK_FAR_CreateBuffer,
-       static_cast_p2p <void> (&_D3D11Dev_CreateBuffer_Original) );
-    MH_QueueEnableHook (         D3D11Dev_CreateBuffer_Override  );
-  }
+  SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
+                               D3D11Dev_CreateBuffer_Override,
+                                 SK_FAR_CreateBuffer,
+     static_cast_p2p <void> (&_D3D11Dev_CreateBuffer_Original) );
+  MH_QueueEnableHook (         D3D11Dev_CreateBuffer_Override  );
 
   SK_CreateFuncHook (       L"ID3D11Device::CreateShaderResourceView",
                                D3D11Dev_CreateShaderResourceView_Override,
@@ -1570,22 +1748,6 @@ SK_FAR_InitPlugin (void)
 
     far_gi_min_light_extent->store     (__FAR_MINIMUM_EXT);
 
-
-    far_limiter_busy =
-        dynamic_cast <sk::ParameterBool *>
-          (far_factory->create_parameter <bool> (L"Favor Busy-Wait For Better Timing"));
-
-    far_limiter_busy->register_to_ini ( far_prefs,
-                                      L"FAR.FrameRate",
-                                        L"UseBusyWait" );
-
-    if (! static_cast <sk::iParameter *> (far_limiter_busy)->load ())
-    {
-      // Enable by default, most people should have enough CPU cores for this
-      //   policy to be practical.
-      far_limiter_busy->store (true);
-    }
-
     far_uncap_fps =
         dynamic_cast <sk::ParameterBool *>
           (far_factory->create_parameter <bool> (L"Bypass game's framerate ceiling"));
@@ -1597,7 +1759,34 @@ SK_FAR_InitPlugin (void)
     // Disable by default, needs more testing :)
     if (! static_cast <sk::iParameter *> (far_uncap_fps)->load ())
     {
-      far_uncap_fps->store (false);
+      far_uncap_fps->store (true);
+
+      config.render.framerate.target_fps = 60.0;
+
+      extern float __target_fps;
+                   __target_fps = 60.0;
+
+      SK::Framerate::GetLimiter (
+        SK_GetCurrentRenderBackend ().swapchain.p
+      )->set_limit (__target_fps);
+
+      // Guaranteed Windows 10
+      if (! game_state.isSteam ())
+        config.render.framerate.swapchain_wait = 1;
+    }
+
+    far_fastload =
+        dynamic_cast <sk::ParameterBool *>
+          (far_factory->create_parameter <bool> (
+            L"Kill framerate limits during load") );
+
+    far_fastload->register_to_ini ( far_prefs,
+                                      L"FAR.FrameRate",
+                                        L"FastLoad" );
+
+    if (! far_fastload->load (game_state.fast_loading))
+    {
+      far_fastload->store (game_state.fast_loading = true);
     }
 
 #ifndef WORKING_FPS_UNCAP
@@ -1618,27 +1807,6 @@ SK_FAR_InitPlugin (void)
     {
       far_rtss_warned->store (false);
     }
-
-    //far_slow_state_cache =
-    //  dynamic_cast <sk::ParameterBool *>
-    //    (far_factory.create_parameter <bool> (L"Disable D3D11.1 Interop Stateblocks"));
-    //
-    //far_slow_state_cache->register_to_ini ( far_prefs,
-    //                                          L"FAR.Compatibility",
-    //                                            L"NoD3D11Interop" );
-    //
-    //extern bool SK_DXGI_FullStateCache;
-    //
-    //if (! far_slow_state_cache->load ())
-    //  SK_DXGI_FullStateCache = false;
-    //else
-    //  SK_DXGI_FullStateCache = far_slow_state_cache->get_value ();
-    //
-    //config.render.dxgi.full_state_cache = SK_DXGI_FullStateCache;
-
-    //far_slow_state_cache->set_value (SK_DXGI_FullStateCache);
-    //far_slow_state_cache->store     ();
-
 
     far_osd_disclaimer =
         dynamic_cast <sk::ParameterBool *>
@@ -1844,6 +2012,12 @@ SK_FAR_InitPlugin (void)
 
     SK_GetCommandProcessor ()->AddVariable ("FAR.GIWorkgroups", SK_CreateVar (SK_IVariable::Int,     &__FAR_GlobalIllumWorkGroupSize));
     //SK_GetCommandProcessor ()->AddVariable ("FAR.BusyWait",     SK_CreateVar (SK_IVariable::Boolean, &__FAR_BusyWait));
+
+    __SK_D3D11_PixelShader_CBuffer_Overrides->push_back (
+      { 0x49a3eacf, 48, false, 1, 0, 48, { 0.0f, 1.0f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f } }
+    );
+
+    SK_FAR_CB_Override = &__SK_D3D11_PixelShader_CBuffer_Overrides->back ();
   }
 }
 
@@ -1882,6 +2056,20 @@ SK_FAR_PlugInCfg (void)
 
     if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
+      changed |= ImGui::Checkbox ("Manual Override", &SK_FAR_CB_Override->Enable);
+
+      if (SK_FAR_CB_Override->Enable)
+      {
+        ImGui::TreePush    ("");
+        ImGui::BeginGroup  ();
+        changed |= ImGui::SliderFloat ("Exposure",   &SK_FAR_CB_Override->Values [1], 0.0f, 1.0f);
+        changed |= ImGui::SliderFloat ("Brightness", &SK_FAR_CB_Override->Values [4], 0.0f, 1.0f);
+        changed |= ImGui::SliderFloat ("Vignette0",  &SK_FAR_CB_Override->Values [8], 0.0f, 1.0f);
+        changed |= ImGui::SliderFloat ("Vignette1",  &SK_FAR_CB_Override->Values [9], 0.0f, 1.0f);
+        ImGui::EndGroup    ();
+        ImGui::TreePop     ();
+      }
+
       ImGui::TreePush ("");
 
       bool bloom = (! far_bloom.disable);
@@ -1906,8 +2094,9 @@ SK_FAR_PlugInCfg (void)
 
         ImGui::BeginGroup ();
 
-        if (ImGui::RadioButton (__FAR_Steam ? "Default Bloom Res. (800x450)" :
-                                              "Default Bloom Res. (960x540)", &bloom_behavior, 0))
+        if (ImGui::RadioButton ( game_state.isSteam ()
+                                   ? "Default Bloom Res. (800x450)"
+                                   : "Default Bloom Res. (960x540)", &bloom_behavior, 0))
         {
           changed = true;
 
@@ -1940,63 +2129,67 @@ SK_FAR_PlugInCfg (void)
 
       bool ao = (! far_ao.disable);
 
-      if (ImGui::Checkbox ("Ambient Occlusion", &ao))
+      if (game_state.isSteam ())
       {
-        far_ao.disable = (! ao);
-
-        far_ao_disable->store (far_ao.disable);
-
-        changed = true;
-      }
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("For Debug Purposes ONLY, please leave enabled ;)");
-
-
-      if (! far_ao.disable)
-      {
-        ImGui::TreePush ("");
-
-        int ao_behavior = (far_ao_width->get_value () != -1) ? 3 : 2;
-
-        ImGui::BeginGroup      ();
-        if (ImGui::RadioButton (__FAR_Steam ? "Default AO Res.    (800x450)" :
-                                              "Default AO Res.    (960x540)", &ao_behavior, 2))
+        if (ImGui::Checkbox ("Ambient Occlusion", &ao))
         {
-          changed = true;
+          far_ao.disable = (! ao);
 
-          far_ao_width->store  (-1);
-          far_ao_height->store (-1);
-        }
-
-        ImGui::SameLine ();
-
-        // 1/4 resolution actually, but this is easier to describe to the end-user
-        if (ImGui::RadioButton ("Native AO Res.   ",            &ao_behavior, 3))
-        {
-          far_ao_width->store  (static_cast <int> (ImGui::GetIO ().DisplaySize.x));
-          far_ao_height->store (static_cast <int> (ImGui::GetIO ().DisplaySize.y));
+          far_ao_disable->store (far_ao.disable);
 
           changed = true;
         }
 
-        if (ImGui::IsItemHovered ()) {
-          ImGui::BeginTooltip ();
-          ImGui::Text        ("Improve AO Quality");
-          ImGui::Separator   ();
-          ImGui::BulletText  ("Performance Cost is Negligible");
-          ImGui::BulletText  ("Changing this setting requires a full application restart");
-          ImGui::EndTooltip  ();
-        }
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("For Debug Purposes ONLY, please leave enabled ;)");
 
-        ImGui::EndGroup ();
-        ImGui::TreePop  ();
+
+        if (! far_ao.disable)
+        {
+          ImGui::TreePush ("");
+
+          int ao_behavior = (far_ao_width->get_value () != -1) ? 3 : 2;
+
+          ImGui::BeginGroup      ();
+          if (ImGui::RadioButton ( game_state.isSteam ()
+                                  ? "Default AO Res.    (800x450)"
+                                  : "Default AO Res.    (960x540)", &ao_behavior, 2))
+          {
+            changed = true;
+
+            far_ao_width->store  (-1);
+            far_ao_height->store (-1);
+          }
+
+          ImGui::SameLine ();
+
+          // 1/4 resolution actually, but this is easier to describe to the end-user
+          if (ImGui::RadioButton ("Native AO Res.   ",            &ao_behavior, 3))
+          {
+            far_ao_width->store  (static_cast <int> (ImGui::GetIO ().DisplaySize.x));
+            far_ao_height->store (static_cast <int> (ImGui::GetIO ().DisplaySize.y));
+
+            changed = true;
+          }
+
+          if (ImGui::IsItemHovered ()) {
+            ImGui::BeginTooltip ();
+            ImGui::Text        ("Improve AO Quality");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("Performance Cost is Negligible");
+            ImGui::BulletText  ("Changing this setting requires a full application restart");
+            ImGui::EndTooltip  ();
+          }
+
+          ImGui::EndGroup ();
+          ImGui::TreePop  ();
+        }
       }
 
       ImGui::TreePop  ();
     }
 
-    if (__FAR_Steam && ImGui::CollapsingHeader ("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader ("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush ("");
 
@@ -2065,23 +2258,26 @@ SK_FAR_PlugInCfg (void)
         //ImGui::Checkbox ("Compatibility Mode", &__FAR_GlobalIllumCompatMode);
       }
 
-      float extent = __FAR_MINIMUM_EXT * 100.0f;
-
-      if (ImGui::SliderFloat ("Minimum Light Extent", &extent, 0.0f, 100.0f, "%0.2f%%"))
+      if (game_state.isSteam ())
       {
-        __FAR_MINIMUM_EXT = std::min (1.0f, std::max (0.0f, extent / 100.0f));
+        float extent = __FAR_MINIMUM_EXT * 100.0f;
 
-        far_gi_min_light_extent->store (__FAR_MINIMUM_EXT);
-      }
+        if (ImGui::SliderFloat ("Minimum Light Extent", &extent, 0.0f, 100.0f, "%0.2f%%"))
+        {
+          __FAR_MINIMUM_EXT = std::min (1.0f, std::max (0.0f, extent / 100.0f));
 
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Fine-tune Light Culling");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("Higher values are faster, but will produce visible artifacts.");
-        ImGui::BulletText   ("Use Park Ruins: Attraction Sq. as a reference when adjusting this.");
-        ImGui::EndTooltip   ();
+          far_gi_min_light_extent->store (__FAR_MINIMUM_EXT);
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Fine-tune Light Culling");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Higher values are faster, but will produce visible artifacts.");
+          ImGui::BulletText   ("Use Park Ruins: Attraction Sq. as a reference when adjusting this.");
+          ImGui::EndTooltip   ();
+        }
       }
 
       ImGui::TreePop ();
@@ -2092,7 +2288,6 @@ SK_FAR_PlugInCfg (void)
       ImGui::TreePush ("");
 
       bool remove_cap = far_uncap_fps->get_value ();
-      bool busy_wait  = (wait_behavior == SK_FAR_WaitBehavior::Busy);
 
 #ifdef WORKING_FPS_UNCAP
       if (ImGui::Checkbox ("Remove 60 FPS Cap  ", &remove_cap))
@@ -2103,43 +2298,55 @@ SK_FAR_PlugInCfg (void)
         far_uncap_fps->store   (remove_cap);
       }
 
-      if (ImGui::IsItemHovered ()) {
+      if (ImGui::IsItemHovered ())
+      {
         ImGui::BeginTooltip ();
         ImGui::Text        ("Can be toggled with "); ImGui::SameLine ();
         ImGui::TextColored (ImVec4 (1.0f, 0.8f, 0.1f, 1.0f), "Ctrl + Shift + .");
         ImGui::Separator   ();
         ImGui::TreePush    ("");
-        ImGui::TextColored (ImVec4 (0.9f, 0.9f, 0.9f, 1.0f), "Two things to consider when enabling this");
-        ImGui::TreePush    ("");
-        ImGui::BulletText  ("The game has no refresh rate setting, edit dxgi.ini to establish fullscreen refresh rate.");
-        ImGui::BulletText  ("The mod is pre-configured with a 59.94 FPS framerate limit, adjust accordingly.");
-        ImGui::TreePop     ();
+        
+        if (game_state.isSteam ())
+        {
+          ImGui::TextColored (ImVec4 (0.9f, 0.9f, 0.9f, 1.0f), "Two things to consider when enabling this");
+          ImGui::TreePush    ("");
+          ImGui::BulletText  ("The game has no refresh rate setting, edit dxgi.ini to establish fullscreen refresh rate.");
+          ImGui::BulletText  ("The mod is pre-configured with a 59.94 FPS framerate limit, adjust accordingly.");
+          ImGui::TreePop     ();
+        }
+
+        else
+        {
+          ImGui::BulletText ("This cannot be used for non-60 FPS gameplay in the Microsoft Store version");
+          ImGui::BulletText ("Enable this and then use SK's limiter @60 FPS instead for lower latency");
+        }
+
         ImGui::TreePop     ();
         ImGui::EndTooltip  ();
       }
 
-      ImGui::SameLine ();
-#endif
-
-      if (ImGui::Checkbox ("Use Busy-Wait For Capped FPS", &busy_wait))
+      if (! game_state.isSteam ())
       {
-        changed = true;
+        ImGui::SameLine ();
 
-        if (busy_wait)
-          SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
-        else
-          SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Sleep);
+        if (ImGui::Checkbox ("Fast Load Mode", &__FAR_FastLoads))
+        {
+          changed = true;
 
-        far_limiter_busy->store (busy_wait);
+          far_fastload->store (__FAR_FastLoads);
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("Disables framerate limits during load screens to speed things the hell up.");
+        }
       }
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Fixes video stuttering, but may cause it during gameplay.");
+#endif
 
       ImGui::TreePop ();
     }
 
-    if (__FAR_Steam && ImGui::CollapsingHeader ("Camera and HUD"))
+    if (game_state.isSteam () && ImGui::CollapsingHeader ("Camera and HUD"))
     {
       auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
         auto
@@ -2192,7 +2399,7 @@ SK_FAR_PlugInCfg (void)
       }
 
 
-            ImGui::SameLine ();
+      ImGui::SameLine ();
       changed |= Keybinding (&far_cam.focus_binding, far_focus_lock);
 
       ImGui::Checkbox ("Use Gamepad Freelook", &__FAR_Freelook);
@@ -2229,10 +2436,15 @@ SK_FAR_PlugInCfg (void)
                                       const wchar_t* import_name, bool& enable, int& order,
                                       int default_order = 1 );
 
-      static wchar_t wszReShadePath [MAX_PATH + 2] = { };
-
-      if (*wszReShadePath == 0)
-        SK_PathCombineW (wszReShadePath, SK_GetHostPath (), L"ReShade64.dll");
+      static wchar_t
+           wszReShadePath [MAX_PATH + 2] = { };
+      if (*wszReShadePath == L'\0')
+      {
+        if (game_state.isSteam ())
+             SK_PathCombineW (wszReShadePath, SK_GetHostPath   (), L"ReShade64.dll");
+        else SK_PathCombineW (wszReShadePath, SK_GetConfigPath (), L"ReShade64.dll");
+        // The Microsoft Store version runs from a read-only directory.
+      }
 
       ImGui::TreePush      ("");
       static int  load_order     = 0;
@@ -2311,13 +2523,15 @@ far_game_state_s::uncapFPS (void)
   DWORD old_protect_mask;
 
   SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
-  SK::Framerate::GetLimiter (rb.swapchain.p)->set_limit (__FAR_TargetFPS);
+
+  extern float __target_fps;
+  SK::Framerate::GetLimiter (rb.swapchain.p)->set_limit (__target_fps);
 
   mbegin (pspinlock, 2)
   memset (pspinlock, 0x90, 2);
   mend   (pspinlock, 2)
 
-  if (__FAR_Steam)
+  if (game_state.isSteam ())
   {
     mbegin (pmin_tstep, 1)
     *pmin_tstep = 0xEB;
@@ -2343,18 +2557,19 @@ far_game_state_s::capFPS (void)
 
   DWORD  old_protect_mask;
 
-  if (! far_limiter_busy->get_value ())
-    SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Sleep);
-  else {
+  //if (! far_limiter_busy->get_value ())
+  //  SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Sleep);
+  //else {
     // Save and later restore FPS
     //
     //   Avoid using Special K's command processor because that
     //     would store this value persistently.
-    __FAR_TargetFPS = pLimiter->get_limit ();
-                      pLimiter->set_limit (59.94);
-  }
+  if ( pLimiter->get_limit () <= 0.0 ||
+       pLimiter->get_limit () > 60.0 )
+       pLimiter->set_limit (    60.0 );
+  //}
 
-  if (__FAR_Steam)
+  if (game_state.isSteam ())
   {
     mbegin (pspinlock, 2)
     pspinlock [0] = 0x77;

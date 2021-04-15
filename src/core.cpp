@@ -1259,6 +1259,83 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  // If Global Injection Delay, block initialization thread until the delay period ends
+  if (SK_IsInjected () && config.system.global_inject_delay > 0.0f)
+  {
+    struct packaged_params_s {
+      std::wstring backend; // Persistent copy
+      void*        callback;
+      HANDLE       thread =   INVALID_HANDLE_VALUE;
+      HANDLE       parent =   INVALID_HANDLE_VALUE;
+      DWORD        resume =                      0; // Number of times we Suspended
+      CONTEXT      ctx    = {                    };
+    } static  delay_params  { backend,  callback };
+
+    if (delay_params.thread == INVALID_HANDLE_VALUE)
+    {   
+      DuplicateHandle ( GetCurrentProcess (), SK_TLS_Bottom ()->debug.handle,
+                        GetCurrentProcess (), &delay_params.parent,
+                          THREAD_ALL_ACCESS, FALSE, 0x0 );
+
+      delay_params.thread =
+      SK_Thread_CreateEx ([](LPVOID) -> DWORD
+      {
+        DWORD dwMilliseconds =
+          static_cast <DWORD> (config.system.global_inject_delay * 1000.0f);
+
+        SK_SleepEx (dwMilliseconds, FALSE);
+
+        if (delay_params.parent != INVALID_HANDLE_VALUE)
+        {
+          DWORD dwCount =
+            SuspendThread (    delay_params.parent );
+
+          if ( dwCount >= 0 &&
+               dwCount < MAXIMUM_SUSPEND_COUNT )
+          {
+            if ( GetThreadContext (
+                               delay_params.parent,
+                              &delay_params.ctx   )
+               )             ++delay_params.resume;
+            else ResumeThread (delay_params.parent);
+          }
+        }
+
+        SK_StartupCore        (delay_params.backend.c_str (),
+                               delay_params.callback);
+
+        if (delay_params.parent != INVALID_HANDLE_VALUE)
+        {
+          if (                 delay_params.resume > 0 )
+          {
+            if ( SetThreadContext (
+                               delay_params.parent,
+                              &delay_params.ctx   )
+               ) ResumeThread (delay_params.parent);
+          } else OutputDebugStringA (
+             "[SK Init] Unable to Restore Suspended Thread Context");
+          CloseHandle         (delay_params.parent);
+        }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] Global Injection Delay", &delay_params);
+
+      return true;
+    }
+  }
+
+
+  void SK_D3D11_InitMutexes (void);
+       SK_D3D11_InitMutexes (    );
+
+  extern void SK_ImGui_Init (void);
+              SK_ImGui_Init (    );
+
+  SK::Diagnostics::Debugger::Allow (true);
+
+
   __SK_BootedCore = backend;
 
   // Before loading any config files, test the game's environment variables
@@ -1385,29 +1462,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_HookWinAPI             ();
       SK_CPU_InstallHooks       ();
 
-      const wchar_t* wszVaporApi =
-        SK_RunLHIfBitness ( 64, L"vapor_api64.dll",
-                                L"vapor_api32.dll" );
-
-      if (PathFileExistsW (wszVaporApi))
-      {
-        int app_id = 1157970;
-
-        using vaporSetAppID_pfn =
-          void (__cdecl*)(UINT32 appid);
-
-        HMODULE hModVaporAPI =
-          SK_LoadLibraryW (wszVaporApi);
-
-        vaporSetAppID_pfn
-        vaporSetAppID = (vaporSetAppID_pfn)
-          SK_GetProcAddress (hModVaporAPI,
-                        "vaporSetAppID" );
-
-        if (vaporSetAppID != nullptr)
-            vaporSetAppID (app_id);
-      }
-
       SK_NvAPI_PreInitHDR       ();
       SK_NvAPI_InitializeHDR    ();
           //SK_ApplyQueuedHooks ();
@@ -1501,10 +1555,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     dll_log->LogEx (true,  L"  >> Writing base INI file, because none existed... ");
 
     // Fake a frame so that the config file writes
-    WriteRelease64 (&SK_RenderBackend::frames_drawn, 1);
+    WriteULong64Release
+                   (&SK_RenderBackend::frames_drawn, 1);
     SK_SaveConfig  (config_name);
     SK_LoadConfig  (config_name);
-    WriteRelease64 (&SK_RenderBackend::frames_drawn, 0);
+    WriteULong64Release
+                   (&SK_RenderBackend::frames_drawn, 0);
 
     dll_log->LogEx (false, L"done!\n");
   }
@@ -2256,12 +2312,6 @@ static volatile LONG CEGUI_Init = FALSE;
 void
 SetupCEGUI (SK_RenderAPI& LastKnownAPI)
 {
-  if (StrStrIW (SK_GetHostPath (), L"WindowsApps"))
-  {
-    config.cegui.enable = false;
-    return;
-  }
-
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -2275,7 +2325,14 @@ return;
   if ( (rb.api != SK_RenderAPI::Reserved) &&
         rb.api == LastKnownAPI            &&
        ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ) )
-  {
+  {  
+    if (StrStrIW (SK_GetHostPath (), L"WindowsApps"))
+    {
+      config.cegui.enable = false;
+
+      return;
+    }
+
     if ( SK_GetModuleHandle (L"CEGUIBase-0")         != nullptr &&
          SK_GetModuleHandle (L"CEGUIOgreRenderer-0") != nullptr )
     {
@@ -2298,8 +2355,6 @@ return;
         return;
       }
     }
-
-    InterlockedIncrement64 (&SK_RenderBackend::frames_drawn);
 
     // Brutally stupid hack for brutally stupid OS (Windows 7)
     //
@@ -3063,7 +3118,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   SK_SLI_UpdateStatus   (device);
   SK_Input_PollKeyboard (      );
 
-  InterlockedIncrementAcquire64 (
+  InterlockedIncrementAcquire (
     &SK_RenderBackend::frames_drawn
   );
 

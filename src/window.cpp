@@ -35,7 +35,7 @@
 static constexpr int SK_MAX_WINDOW_DIM = 16384;
 
 // WS_SYSMENU keeps the window's icon unchanged
-#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | WS_SYSMENU | \
+#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | \
                            WS_CLIPCHILDREN | WS_CLIPSIBLINGS )
 #define SK_BORDERLESS_EX ( WS_EX_APPWINDOW )
 
@@ -844,6 +844,8 @@ ActivateWindow ( HWND hWnd,
 
   if (state_changed)
   {
+    InterlockedIncrement (&SK_RenderBackend::flip_skip);
+
     if (SK_WantBackgroundRender ())
     {
       SK_XInput_Enable (TRUE);
@@ -1692,6 +1694,10 @@ AdjustWindowRect_Detour (
       dwStyle &= ~WS_BORDER;
       dwStyle &= ~WS_THICKFRAME;
       dwStyle &= ~WS_DLGFRAME;
+
+
+      dwStyle &= ~WS_GROUP;
+      dwStyle &= ~WS_SYSMENU;
     }
 
     if (config.window.fullscreen && (! bMenu) && (IsRectEmpty (lpRect)))
@@ -1764,6 +1770,10 @@ AdjustWindowRectEx_Detour (
       dwStyle &= ~WS_BORDER;
       dwStyle &= ~WS_THICKFRAME;
       dwStyle &= ~WS_DLGFRAME;
+
+      
+      dwStyle &= ~WS_GROUP;
+      dwStyle &= ~WS_SYSMENU;
     }
 
     if (config.window.fullscreen && (! bMenu) && (IsRectEmpty (lpRect) && (! (dwExStyle & 0x20000000))))
@@ -2545,6 +2555,9 @@ SK_SetWindowStyle (DWORD_PTR dwStyle_ptr, SetWindowLongPtr_pfn pDispatchFunc)
   dwStyle |=  ( WS_VISIBLE  | WS_SYSMENU );
   dwStyle &= ~( WS_DISABLED | WS_ICONIC  | WS_CHILD );
 
+  if (config.window.borderless)
+    dwStyle &= ~( WS_GROUP | WS_SYSMENU );
+
 
   game_window.actual.style = dwStyle;
 
@@ -2871,11 +2884,15 @@ SK_Window_RepositionIfNeeded (void)
           //   accomodate the new internal resolution
           if (! EqualRect (&rcClientOrig, &game_window.actual.client))
           {
-            extern volatile LONG lResetD3D11;
-            //if (     SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12)
-            //  InterlockedCompareExchange (&lResetD3D12, 1, 0);
-            if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
-              InterlockedCompareExchange (&lResetD3D11, 1, 0);
+            if ( rcClientOrig.right  - rcClientOrig.left != rcClientLast.right  - rcClientLast.left ||
+                 rcClientOrig.bottom - rcClientOrig.top  != rcClientLast.bottom - rcClientLast.top )
+            {
+              extern volatile LONG lResetD3D11;
+              //if (     SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12)
+              //  InterlockedCompareExchange (&lResetD3D12, 1, 0);
+              if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
+                InterlockedCompareExchange (&lResetD3D11, 1, 0);
+            }
           }
 
           ullLastFrame =
@@ -4295,7 +4312,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     if (uMsg == WM_DISPLAYCHANGE)
     {
       rb.stale_display_info = true;
-      rb.updateOutputTopology ();
+      rb.queueUpdateOutputs ();
+    //rb.updateOutputTopology ();
     }
 
     if (! SK_IsGameWindowActive ())//game_window.active)
@@ -4361,7 +4379,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_WINDOWPOSCHANGED:
       SK_Window_RepositionIfNeeded ();
 
-      rb.updateOutputTopology ();
+      rb.queueUpdateOutputs ();
       break;
 
     case WM_SYSCOMMAND:
@@ -5189,6 +5207,9 @@ SK_InstallWindowHook (HWND hWnd)
   if (SK_IsAddressExecutable (game_window.WndProc_Original, true))
     return;
 
+  auto hModUser32 =
+    SK_GetModuleHandle (L"user32");
+
   static volatile LONG               __installed =      FALSE;
   if (! InterlockedCompareExchange (&__installed, TRUE, FALSE))
   {
@@ -5199,19 +5220,18 @@ SK_InstallWindowHook (HWND hWnd)
 
     if (! tested)
     {
-      SK_TestImports (SK_GetModuleHandle (L"user32"), win32u_test,
-                                              sizeof (win32u_test) /
-                                              sizeof (sk_import_test_s));
+      SK_TestImports (hModUser32, win32u_test,
+                          sizeof (win32u_test) /
+                          sizeof (sk_import_test_s));
       tested = true;
     }
 
-
     GetThreadDpiAwarenessContext = (GetThreadDpiAwarenessContext_pfn)
-      SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
+      SK_GetProcAddress ( hModUser32,
                          "GetThreadDpiAwarenessContext" );
 
     GetAwarenessFromDpiAwarenessContext = (GetAwarenessFromDpiAwarenessContext_pfn)
-      SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
+      SK_GetProcAddress ( hModUser32,
                   "GetAwarenessFromDpiAwarenessContext" );
 
     SK_CreateDLLHook2 ( L"user32", "GetDpiForSystem",               GetDpiForSystem_Detour,               static_cast_p2p <void> (&GetDpiForSystem_Original)               );
@@ -5295,10 +5315,10 @@ SK_InstallWindowHook (HWND hWnd)
 
     game_window.SetWindowLongPtr = SK_SetWindowLongPtrW;
     game_window.DefWindowProc    = (DefWindowProc_pfn)
-                 SK_GetProcAddress (SK_GetModuleHandle (L"user32"),
+                 SK_GetProcAddress (hModUser32,
                                     "DefWindowProcW");
     game_window.CallWindowProc   = (CallWindowProc_pfn)
-                 SK_GetProcAddress (SK_GetModuleHandle (L"user32"),
+                 SK_GetProcAddress (hModUser32,
                                     "CallWindowProcW" );
   }
 
@@ -5309,10 +5329,10 @@ SK_InstallWindowHook (HWND hWnd)
 
     game_window.SetWindowLongPtr = SK_SetWindowLongPtrA;
     game_window.DefWindowProc    = (DefWindowProc_pfn)
-                 SK_GetProcAddress (SK_GetModuleHandle (L"user32"),
+                 SK_GetProcAddress (hModUser32,
                                     "DefWindowProcA");
     game_window.CallWindowProc   = (CallWindowProc_pfn)
-                 SK_GetProcAddress (SK_GetModuleHandle (L"user32"),
+                 SK_GetProcAddress (hModUser32,
                                     "CallWindowProcA" );
   }
 
@@ -5758,6 +5778,9 @@ SK_HookWinAPI (void)
     // Initialize the Window Manager
     SK_WindowManager::getInstance ();
 
+    auto hModUser32 =
+      SK_GetModuleHandle (L"user32");
+
 #ifdef _DEBUG
     int phys_w         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALWIDTH);
     int phys_h         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALHEIGHT);
@@ -5873,7 +5896,7 @@ SK_HookWinAPI (void)
 #else
     GetWindowRect_Original =
       reinterpret_cast <GetWindowRect_pfn> (
-        SK_GetProcAddress ( L"user32", "GetWindowRect" )
+        SK_GetProcAddress ( hModUser32, "GetWindowRect" )
       );
 #endif
 
@@ -5885,7 +5908,7 @@ SK_HookWinAPI (void)
 #else
     GetClientRect_Original =
       reinterpret_cast <GetClientRect_pfn> (
-        SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
+        SK_GetProcAddress ( hModUser32,
                        "GetClientRect" )
         );
 #endif
@@ -5949,27 +5972,25 @@ SK_HookWinAPI (void)
 #else
     ChangeDisplaySettingsA_Original =
       (ChangeDisplaySettingsA_pfn)SK_GetProcAddress
-      ( L"user32", "ChangeDisplaySettingsA" );
+      ( hModUser32, "ChangeDisplaySettingsA" );
     ChangeDisplaySettingsExA_Original =
       (ChangeDisplaySettingsExA_pfn)SK_GetProcAddress
-      ( L"user32", "ChangeDisplaySettingsExA" );
+      ( hModUser32, "ChangeDisplaySettingsExA" );
     ChangeDisplaySettingsW_Original =
       (ChangeDisplaySettingsW_pfn)SK_GetProcAddress
-      ( L"user32", "ChangeDisplaySettingsW" );
+      ( hModUser32, "ChangeDisplaySettingsW" );
     ChangeDisplaySettingsExW_Original =
       (ChangeDisplaySettingsExW_pfn)SK_GetProcAddress
-      ( L"user32", "ChangeDisplaySettingsExW" );
+      ( hModUser32, "ChangeDisplaySettingsExW" );
 #endif
 
 
     EnumDisplaySettingsA_Original =
-      (EnumDisplaySettingsA_pfn) SK_GetProcAddress (
-        SK_GetModuleHandle (L"user32"),
-              "EnumDisplaySettingsA" );
+      (EnumDisplaySettingsA_pfn) SK_GetProcAddress
+      ( hModUser32, "EnumDisplaySettingsA" );
     EnumDisplaySettingsW_Original =
-      (EnumDisplaySettingsW_pfn) SK_GetProcAddress (
-        SK_GetModuleHandle (L"user32"),
-              "EnumDisplaySettingsW" );
+      (EnumDisplaySettingsW_pfn) SK_GetProcAddress
+      ( hModUser32, "EnumDisplaySettingsW" );
 
     SK_ApplyQueuedHooks ();
 
@@ -6101,7 +6122,8 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
       pWin->CallProc (hWnd_, Msg, wParam, lParam);
   }
 
-  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
+             GetExceptionCode () == EXCEPTION_BREAKPOINT       ?
                                     EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
   {
   }

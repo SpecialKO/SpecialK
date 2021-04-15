@@ -158,8 +158,9 @@ namespace SK
       void        set_undershoot      (float percent) { undershoot_percent = percent; };
       float       get_undershoot      (void) {   return undershoot_percent;           };
 
-      int32_t     suspend             (void) noexcept { return ++limit_behavior; }
-      int32_t     resume              (void) noexcept { return --limit_behavior; }
+      int32_t     suspend             (void) noexcept { return ++limit_behavior;     }
+      int32_t     resume              (void) noexcept { return --limit_behavior;     }
+      bool        frozen              (void) noexcept { return   limit_behavior < 0; }
 
       void        reset (bool full = false) noexcept {
         if (full) full_restart = true;

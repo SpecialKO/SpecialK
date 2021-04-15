@@ -40,7 +40,7 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/resource.h> // Unpack shader compiler
 
-volatile LONG64 SK_RenderBackend::frames_drawn = 0;
+volatile ULONG64 SK_RenderBackend::frames_drawn = 0ULL;
 
 
 class SK_AutoDC
@@ -870,6 +870,22 @@ SK_RenderBackend_V2::getSwapWaitHandle (void)
   {
     if (config.render.framerate.pre_render_limit > 0)
     {
+      /////if (
+      /////  FAILED ( pSwap2.p->SetMaximumFrameLatency (
+      /////             config.render.framerate.pre_render_limit
+      /////                                            )
+      /////         )
+      /////   )
+      /////{
+      /////  SK_LOG0 ( ( L"Failed to SetMaximumFrameLatency: %i",
+      /////                config.render.framerate.pre_render_limit ),
+      /////              L"   DXGI   " );
+      /////
+      /////  config.render.framerate.pre_render_limit = -1;
+      /////
+      /////  return 0;
+      /////}
+
       DXGI_SWAP_CHAIN_DESC swap_desc = { };
       pSwap2->GetDesc    (&swap_desc);
 
@@ -880,24 +896,6 @@ SK_RenderBackend_V2::getSwapWaitHandle (void)
 
       if ((intptr_t)hWait > 0)
       {
-        if (
-          FAILED ( pSwap2.p->SetMaximumFrameLatency (
-                     config.render.framerate.pre_render_limit
-                    )
-                 )
-           )
-        {
-          SK_LOG0 ( ( L"Failed to SetMaximumFrameLatency: %i",
-                        config.render.framerate.pre_render_limit ),
-                      L"   DXGI   " );
-
-          config.render.framerate.pre_render_limit = -1;
-
-          CloseHandle (hWait);
-
-          return 0;
-        }
-
         return hWait;
       }
     }
@@ -1157,6 +1155,13 @@ SK_Render_GetAPIName (SK_RenderAPI api)
 void
 SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
 {
+  if (update_outputs)
+  {
+    updateOutputTopology ();
+
+    update_outputs = false;
+  }
+
   static SK_RenderAPI LastKnownAPI =
          SK_RenderAPI::Reserved;
 
@@ -1594,24 +1599,22 @@ using GetThreadDpiAwarenessContext_pfn  =
 using GetAwarenessFromDpiAwarenessContext_pfn =
                          DPI_AWARENESS (WINAPI *)(DPI_AWARENESS_CONTEXT);
 
+skWin32Module user32_dll;
+skWin32Module shcore_dll;
+
 DPI_AWARENESS_CONTEXT
 WINAPI
 SK_Display_GetThreadDpiAwarenessContext (void)
 {
   assert (SK_IsWindows10OrGreater ());
 
-  static HINSTANCE     user32_dll =
-    SK_LoadLibraryW (L"user32.dll");
+  if (user32_dll == skWin32Module::Uninitialized)
+      user32_dll  =
+        SK_Modules->LoadLibrary (L"user32.dll");
 
-  static GetThreadDpiAwarenessContext_pfn
-         GetThreadDpiAwarenessContextFn = nullptr;
-
-  if (GetThreadDpiAwarenessContextFn == nullptr)
-  {   GetThreadDpiAwarenessContextFn =
-     (GetThreadDpiAwarenessContext_pfn)
-      SK_GetProcAddress ( user32_dll,
-      "GetThreadDpiAwarenessContext" );
-  }
+  static auto       GetThreadDpiAwarenessContextFn = user32_dll.
+    GetProcAddress <GetThreadDpiAwarenessContext_pfn>
+                  ("GetThreadDpiAwarenessContext");
 
   if (GetThreadDpiAwarenessContextFn != nullptr)
     return GetThreadDpiAwarenessContextFn ();
@@ -1630,18 +1633,13 @@ SK_Display_GetThreadDpiAwareness (void)
   {
     assert (SK_IsWindows10OrGreater ());
 
-    static HINSTANCE     user32_dll =
-      SK_LoadLibraryW (L"user32.dll");
+    if (user32_dll == skWin32Module::Uninitialized)
+        user32_dll  =
+          SK_Modules->LoadLibrary (L"user32.dll");
 
-    static GetAwarenessFromDpiAwarenessContext_pfn
-           GetAwarenessFromDpiAwarenessContextFn = nullptr;
-
-    if (GetAwarenessFromDpiAwarenessContextFn == nullptr)
-    {   GetAwarenessFromDpiAwarenessContextFn =
-       (GetAwarenessFromDpiAwarenessContext_pfn)
-        SK_GetProcAddress ( user32_dll,
-        "GetAwarenessFromDpiAwarenessContext" );
-    }
+    static auto       GetAwarenessFromDpiAwarenessContextFn = user32_dll.
+      GetProcAddress <GetAwarenessFromDpiAwarenessContext_pfn>
+                    ("GetAwarenessFromDpiAwarenessContext");
 
     if (GetAwarenessFromDpiAwarenessContextFn != nullptr)
       return GetAwarenessFromDpiAwarenessContextFn (dpi_ctx);
@@ -1656,26 +1654,19 @@ SK_Display_SetThreadDpiAwarenessContext (DPI_AWARENESS_CONTEXT dpi_ctx)
 {
   assert (SK_IsWindows10OrGreater ());
 
-  static HINSTANCE     user32_dll =
-    SK_LoadLibraryW (L"user32.dll");
+  if (user32_dll == skWin32Module::Uninitialized)
+      user32_dll  =
+        SK_Modules->LoadLibrary (L"user32.dll");
 
-  static SetThreadDpiAwarenessContext_pfn
-         SetThreadDpiAwarenessContextFn = nullptr;
-
-  if (SetThreadDpiAwarenessContextFn == nullptr)
-  {   SetThreadDpiAwarenessContextFn =
-     (SetThreadDpiAwarenessContext_pfn)
-      SK_GetProcAddress ( user32_dll,
-      "SetThreadDpiAwarenessContext" );
-  }
+  static auto       SetThreadDpiAwarenessContextFn = user32_dll.
+    GetProcAddress <SetThreadDpiAwarenessContext_pfn>
+                  ("SetThreadDpiAwarenessContext");
 
   if (SetThreadDpiAwarenessContextFn != nullptr)
     return SetThreadDpiAwarenessContextFn (dpi_ctx);
 
   return nullptr;
 }
-
-static SetProcessDpiAwareness_pfn       SetProcessDpiAwarenessFn       = nullptr;
 
 extern BOOL SK_IsWindows8Point1OrGreater (void);
 extern BOOL SK_IsWindows10OrGreater      (void);
@@ -1696,19 +1687,13 @@ SK_Display_IsProcessDPIAware (void)
 
   if (SK_IsWindows8Point1OrGreater ())
   {
-    static HINSTANCE     shcore_dll =
-      SK_LoadLibraryW (L"shcore.dll");
+    if (shcore_dll == skWin32Module::Uninitialized)
+        shcore_dll  =
+          SK_Modules->LoadLibrary (L"shcore.dll");
 
-    static GetProcessDpiAwareness_pfn
-           GetProcessDpiAwarenessFn = nullptr;
-
-    if (GetProcessDpiAwarenessFn == nullptr)
-    {
-      GetProcessDpiAwarenessFn =
-        (GetProcessDpiAwareness_pfn)
-      SK_GetProcAddress (shcore_dll,
-          "GetProcessDpiAwareness");
-    }
+    static auto       GetProcessDpiAwarenessFn = shcore_dll.
+      GetProcAddress <GetProcessDpiAwareness_pfn>
+                    ("GetProcessDpiAwareness");
 
     if (GetProcessDpiAwarenessFn != nullptr)
     {
@@ -1829,16 +1814,13 @@ SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10)
 
   if (SK_IsWindows8Point1OrGreater ())
   {
-    static HINSTANCE     shcore_dll =
-      SK_LoadLibraryW (L"shcore.dll");
+    if (shcore_dll == skWin32Module::Uninitialized)
+        shcore_dll  =
+          SK_Modules->LoadLibrary (L"shcore.dll");
 
-    if (SetProcessDpiAwarenessFn == nullptr)
-    {
-      SetProcessDpiAwarenessFn =
-        (SetProcessDpiAwareness_pfn)
-      SK_GetProcAddress (shcore_dll,
-          "SetProcessDpiAwareness");
-    }
+    static auto       SetProcessDpiAwarenessFn = shcore_dll.
+      GetProcAddress <SetProcessDpiAwareness_pfn>
+                    ("SetProcessDpiAwareness");
 
     if (SetProcessDpiAwarenessFn != nullptr)
     {
@@ -1905,16 +1887,13 @@ SK_Display_DisableDPIScaling (void)
 
   if (SK_IsWindows8Point1OrGreater ())
   {
-    static HINSTANCE     shcore_dll =
-      SK_LoadLibraryW (L"shcore.dll");
+    if (shcore_dll == skWin32Module::Uninitialized)
+        shcore_dll  =
+          SK_Modules->LoadLibrary (L"shcore.dll");
 
-    if (SetProcessDpiAwarenessFn == nullptr)
-    {
-      SetProcessDpiAwarenessFn =
-        (SetProcessDpiAwareness_pfn)
-      SK_GetProcAddress (shcore_dll,
-          "SetProcessDpiAwareness");
-    }
+    static auto       SetProcessDpiAwarenessFn = shcore_dll.
+      GetProcAddress <SetProcessDpiAwareness_pfn>
+                    ("SetProcessDpiAwareness");
 
     if (SetProcessDpiAwarenessFn != nullptr)
     {
@@ -2458,6 +2437,12 @@ extern void
 SK_Display_ResolutionSelectUI (bool bMarkDirty);
 
 void
+SK_RenderBackend_V2::queueUpdateOutputs (void)
+{
+  update_outputs = true;
+}
+
+void
 SK_RenderBackend_V2::updateOutputTopology (void)
 {
   SK_Display_ResolutionSelectUI (true);
@@ -2482,23 +2467,34 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
     if (SUCCEEDED (pSwapChain->GetParent (IID_PPV_ARGS (&pFactory1.p))))
     {
-      if (factory.p == nullptr)
+      // We might have cached hooks that make this impossible
+      if (CreateDXGIFactory1_Import != nullptr)
       {
-        if (! pFactory1->IsCurrent ()) // Stale factories must be retired
+        if (factory.p == nullptr)
         {
-          CreateDXGIFactory1_Import (IID_IDXGIFactory1, (void **)&factory.p);
+          if (! pFactory1->IsCurrent ()) // Stale factories must be retired
+          {
+            CreateDXGIFactory1_Import (IID_IDXGIFactory1, (void **)&factory.p);
+          }
+        }
+
+        if (factory.p != nullptr)
+        {
+          if (! factory->IsCurrent ()) // Stale factories must be retired
+          {
+            factory.Release ();
+            CreateDXGIFactory1_Import (IID_IDXGIFactory1, (void **)&factory.p);
+          }
+
+          if (factory != nullptr)
+            pFactory1 = factory;
         }
       }
 
-      if (factory.p != nullptr)
+      else
       {
-        if (! factory->IsCurrent ()) // Stale factories must be retired
-        {
-          factory.Release ();
-          CreateDXGIFactory1_Import (IID_IDXGIFactory1, (void **)&factory.p);
-        }
-
-        pFactory1 = factory;
+        SK_LOG0 ( ( L"DXGI Factory is Stale, but hook caching does not permit creation of a new one." ),
+                    L"   DXGI   " );
       }
     }
 
@@ -2752,16 +2748,6 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           display_gamut.maxLocalY   = display.gamut.maxY;
           display_gamut.maxAverageY = display.gamut.maxAverageY;
 
-          //if ( (display.colorspace   == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
-          //      // This is pretty much never going to happen in windowed mode
-          //      display.colorspace   == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709     ) )
-          //{
-          //  setHDRCapable (true);
-          //}
-          //
-          //else
-          //  setHDRCapable (false);
-
           if (display.attached)
           {
             scanout.dwm_colorspace =
@@ -2785,7 +2771,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
               SK_RunOnce (
                 SK_ImGui_WarningWithTitle (
                   L"ERROR: Special K HDR Applied to a non-HDR Display\r\n\r\n"
-                  L"\t\t>> Please Disable SK HDR or Set the Windows Desktop to use HDR",
+                  L"\t\t>> Please Disable SK HDR or set the Windows Desktop to use HDR",
                                            L"HDR is Unsupported by the Active Display" )
               );
             }
@@ -2909,24 +2895,35 @@ SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
   return pOutput;
 }
 
+volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
+volatile LONG    SK_RenderBackend::flip_skip = 0;
+
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
 {
-  if (! sk::NVAPI::nv_hardware)
-    return false;
-
-  if (device.p == nullptr)
-    return false;
-
-  NV_LATENCY_MARKER_PARAMS
-    markerParams            = {                          };
-    markerParams.version    = NV_LATENCY_MARKER_PARAMS_VER;
-    markerParams.markerType = marker;
-    markerParams.frameID    = static_cast <NvU64> (
-              ReadAcquire64 (&frames_drawn)       );
-
   NvAPI_Status ret =
-    NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
+    NVAPI_INVALID_CONFIGURATION;
+
+  if (sk::NVAPI::nv_hardware && device.p != nullptr)
+  {
+    NV_LATENCY_MARKER_PARAMS
+      markerParams            = {                          };
+      markerParams.version    = NV_LATENCY_MARKER_PARAMS_VER;
+      markerParams.markerType = marker;
+      markerParams.frameID    = static_cast <NvU64> (
+           ReadULong64Acquire (&frames_drawn)       );
+
+    ret =
+      NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
+  }
+
+  if ( marker == RENDERSUBMIT_END /*|| 
+       marker == RENDERSUBMIT_START*/ )
+  {
+    latency.submitQueuedFrame (
+      SK_ComQIPtr <IDXGISwapChain1> (swapchain)
+    );
+  }
 
   return
     ( ret == NVAPI_OK );
@@ -2996,11 +2993,10 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       sleepParams.minimumIntervalUs = 0;
     }
 
-    static volatile LONG64
-                         _frames_drawn =
-      std::numeric_limits <LONG64>::max ();
-    if ( ReadAcquire64 (&_frames_drawn) ==
-         ReadAcquire64  (&frames_drawn) )
+    static volatile ULONG64 _frames_drawn =
+      std::numeric_limits <ULONG64>::max ();
+    if ( ReadULong64Acquire (&_frames_drawn) ==
+         ReadULong64Acquire  (&frames_drawn) )
       return;
 
     //if ( lastParams.bLowLatencyBoost  != sleepParams.bLowLatencyBoost ||
@@ -3046,13 +3042,14 @@ SK_RenderBackend_V2::driverSleepNV (int site)
         valid = false;
     }
 
-    WriteRelease64 (&_frames_drawn,
-      ReadAcquire64 (&frames_drawn));
+    WriteULong64Release (&_frames_drawn,
+      ReadULong64Acquire (&frames_drawn));
 
     if ((! valid) && ( api == SK_RenderAPI::D3D11 ||
                        api == SK_RenderAPI::D3D12 ))
     {
-      SK_ImGui_Warning (L"NVIDIA Reflex Sleep Invalid State");
+      SK_LOG0 ( ( L"NVIDIA Reflex Sleep Invalid State" ),
+                  __SK_SUBSYSTEM__ );
     }
   }
 };
@@ -3175,8 +3172,6 @@ SK_NV_AdaptiveSyncControl (void)
                       &setAdaptiveSync
             );
           }
-
-          //ImGui::EndGroup   ();
         }
         break;
       }

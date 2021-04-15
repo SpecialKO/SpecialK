@@ -1756,7 +1756,6 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
         _pSwapChain.IsEqualObject  (pSwapChain)            )//||
         //_pSwapChain.IsEqualObject  (pUnwrapped) )
   {
-
     DXGI_SWAP_CHAIN_DESC swapDesc = { };
 
     if (_pSwapChain.p != nullptr)

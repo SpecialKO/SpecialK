@@ -238,7 +238,7 @@ public:
     return *this;
   }
 
-  operator const HMODULE&       (void) const noexcept {
+  operator const HMODULE        (void) const noexcept {
     return hMod_;
   };
   operator const _AddressRange& (void) const noexcept {
@@ -264,6 +264,18 @@ public:
   operator const wchar_t*       (void) const noexcept {
     return name_;
   }
+
+  template <typename _T>
+  __inline           _T
+  GetProcAddress (const char* szFunc) const noexcept
+  {
+    return
+      reinterpret_cast <_T> (
+        SK_GetProcAddress (
+          hMod_, szFunc
+        )
+      );
+  };
 
 
   static constexpr HMODULE  Uninitialized = nullptr;
@@ -571,7 +583,7 @@ public:
         _ReleaseLibrary (_loaded_libraries [it->second]);
     }
 
-    assert (false); // This is why freeing libraries by name is a bad idea!
+    assert (!"FreeLibrary (...) on unknown module!"); // This is why freeing libraries by name is a bad idea!
 
     return skWin32Module::Uninitialized;
   }
@@ -579,7 +591,7 @@ public:
   HMODULE
   FreeLibrary (skWin32Module&& module)
   {
-                    assert ((HMODULE)module != 0);
+           assert ((HMODULE)module != 0);
     return _ReleaseLibrary (module);
   }
 
@@ -624,34 +636,36 @@ skWin32Module::Release (void) noexcept
   const LONG ret =
     InterlockedDecrement (&refs_);
 
-  ///if (refs_ == 0)
-  ///{
-  ///  auto&         registrar = SK_Modules;
-  ///   auto& libs  ( registrar._loaded_libraries   );
-  ///   auto& names ( registrar._known_module_names );
-  ///   auto& addrs ( registrar._known_module_bases );
-  ///
-  ///  const BOOL really_gone =
-  ///    FreeLibrary (hMod_);
-  ///
-  ///  const auto& it =
-  ///    libs.find (hMod_);
-  ///
-  ///  if (   it != libs.cend () )
-  ///  {
-  ///    // All of our references, plus all of the game's references are gone
-  ///    if (really_gone)
-  ///    {
-  ///      // So we have to stop knowing that which is unknowable
-  ///      names.erase (it->second);
-  ///      addrs.erase (it->second);
-  ///    }
-  ///
-  ///    libs.erase (hMod_);
-  ///  }
-  ///
-  ///  delete this;
-  ///}
+  assert (ret != 0 || refs_ == 0);
+
+  if (refs_ == 0)
+  {
+    auto&         registrar = SK_Modules;
+    auto& libs  ( registrar->_loaded_libraries   );
+    auto& names ( registrar->_known_module_names );
+    auto& addrs ( registrar->_known_module_bases );
+  
+    const BOOL really_gone =
+      FreeLibrary (hMod_);
+  
+    const auto& it =
+      libs.find (hMod_);
+  
+    if (   it != libs.cend () )
+    {
+      // All of our references, plus all of the game's references are gone
+      if (really_gone)
+      {
+        // So we have to stop knowing that which is unknowable
+        names.erase (it->second);
+        addrs.erase (it->second);
+      }
+  
+      libs.erase (hMod_);
+    }
+  
+    delete this;
+  }
 
   return ret;
 }

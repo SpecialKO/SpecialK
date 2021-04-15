@@ -1713,8 +1713,9 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
 #pragma pack (pop)
 
   static HMODULE hModNtDLL =
-    //SK_GetModuleHandleW (L"NtDll.dll");//
-    SK_LoadLibraryW (L"NtDll.dll");
+    SK_GetModuleHandleW   (L"NtDll") != 0 ?
+      SK_GetModuleHandleW (L"NtDll")      :
+          SK_LoadLibraryW (L"NtDll");
 
   static auto RtlGetUnloadEventTraceEx =
     reinterpret_cast <RtlGetUnloadEventTraceEx_pfn> (

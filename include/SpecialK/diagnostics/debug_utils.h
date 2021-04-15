@@ -316,13 +316,36 @@ public:
 
 static constexpr int SK_EXCEPTION_CONTINUABLE = 0x0;
 
+using RaiseException_pfn =
+  void (WINAPI *)(       DWORD      dwExceptionCode,
+                         DWORD      dwExceptionFlags,
+                         DWORD      nNumberOfArguments,
+                   const ULONG_PTR *lpArguments );
+
+extern "C" RaiseException_pfn
+           RaiseException_Original;
+
+static
+__forceinline
 void
-WINAPI
 SK_RaiseException
 (       DWORD      dwExceptionCode,
         DWORD      dwExceptionFlags,
         DWORD      nNumberOfArguments,
-  const ULONG_PTR *lpArguments );
+  const ULONG_PTR *lpArguments )
+{
+  if (RaiseException_Original != nullptr)
+  {
+    RaiseException_Original ( dwExceptionCode,    dwExceptionFlags,
+                              nNumberOfArguments, lpArguments );
+  }
+
+  else
+  {
+    RaiseException ( dwExceptionCode,    dwExceptionFlags,
+                     nNumberOfArguments, lpArguments );
+  }
+}
 
 
 #define SK_BasicStructuredExceptionTranslator         \

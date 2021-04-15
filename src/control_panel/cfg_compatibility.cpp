@@ -390,33 +390,126 @@ SK::ControlPanel::Compatibility::Draw (void)
         ImGui::Columns   (1);
         break;
 
-     case 1:
-        ImGui::Text      ( "App_Active   : %s", SK_IsGameWindowActive  () ? "Yes" : "No" );
-        ImGui::Text      ( "Active HWND  : %p", GetActiveWindow        () );
-        ImGui::Text      ( "Foreground   : %p", SK_GetForegroundWindow () );
-        ImGui::Text      ( "Input Focus  : %p", SK_GetFocus            () );
-        ImGui::Separator (    );
-        ImGui::Text      ( "HWND         : Focus: %6p, Device: %6p",
-                                           rb.windows.focus.hwnd, rb.windows.device.hwnd );
-        ImGui::Text      ( "Window Class : %32ws :: %32ws", rb.windows.focus.class_name,
-                                                            rb.windows.device.class_name );
-        ImGui::Text      ( "Window Title : %32ws :: %32ws", rb.windows.focus.title,
-                                                            rb.windows.device.title );
-        ImGui::Text      ( "Owner PID    : %8lu, %8lu",     rb.windows.focus.owner.pid,
-                                                            rb.windows.device.owner.pid );
-        ImGui::Text      ( "Owner TID    : %8lu, %8lu",     rb.windows.focus.owner.tid,
-                                                            rb.windows.device.owner.tid );
-        ImGui::Text      ( "Init. Frame  : %8lu, %8lu",
-                                                            rb.windows.focus.last_changed,
-                                                            rb.windows.device.last_changed );
-        ImGui::Text      ( "Unicode      : %8s, %8s",       rb.windows.focus.unicode  ? "Yes" : "No",
-                                                            rb.windows.device.unicode ? "Yes" : "No" );
-        ImGui::Text      ( "Top          : %8p, %8p",
-                             GetTopWindow (rb.windows.focus.hwnd),
-                             GetTopWindow (rb.windows.device.hwnd)     );
-        ImGui::Text      ( "Parent       : %8p, %8p",
-                                          (rb.windows.focus.parent),
-                                          (rb.windows.device.parent)   );
+      case 1:
+      {
+        auto _SummarizeWindowStyle = [&](DWORD dwStyle) -> std::string
+        {
+          std::string summary;
+
+          if ((dwStyle & WS_OVERLAPPED)   == WS_OVERLAPPED)   summary += "Overlapped, ";
+          if ((dwStyle & WS_POPUP)        == WS_POPUP)        summary += "Popup, ";
+          if ((dwStyle & WS_CHILD)        == WS_CHILD)        summary += "Child, ";
+          if ((dwStyle & WS_MINIMIZE)     == WS_MINIMIZE)     summary += "Minimize, ";
+          if ((dwStyle & WS_VISIBLE)      == WS_VISIBLE)      summary += "Visible, ";
+          if ((dwStyle & WS_DISABLED)     == WS_DISABLED)     summary += "Disabled, ";
+          if ((dwStyle & WS_CLIPSIBLINGS) == WS_CLIPSIBLINGS) summary += "Clip Siblings, ";
+          if ((dwStyle & WS_CLIPCHILDREN) == WS_CLIPCHILDREN) summary += "Clip Children, ";
+          if ((dwStyle & WS_MAXIMIZE)     == WS_MAXIMIZE)     summary += "Maximize, ";
+          if ((dwStyle & WS_CAPTION)      == WS_CAPTION)      summary += "Caption, ";
+          if ((dwStyle & WS_BORDER)       == WS_BORDER)       summary += "Border, ";
+          if ((dwStyle & WS_DLGFRAME)     == WS_DLGFRAME)     summary += "Dialog Frame, ";
+          if ((dwStyle & WS_VSCROLL)      == WS_VSCROLL)      summary += "Vertical Scrollbar, ";
+          if ((dwStyle & WS_HSCROLL)      == WS_HSCROLL)      summary += "Horizontal Scrollbar, ";
+          if ((dwStyle & WS_SYSMENU)      == WS_SYSMENU)      summary += "System Menu, ";
+          if ((dwStyle & WS_THICKFRAME)   == WS_THICKFRAME)   summary += "Thick Frame, ";
+          if ((dwStyle & WS_GROUP)        == WS_GROUP)        summary += "Group, ";
+          if ((dwStyle & WS_TABSTOP)      == WS_TABSTOP)      summary += "Tabstop, ";
+          
+          if ((dwStyle & WS_OVERLAPPEDWINDOW) == WS_OVERLAPPEDWINDOW)
+                                                              summary += "Overlapped Window, ";
+          if ((dwStyle & WS_POPUPWINDOW)      == WS_POPUPWINDOW)
+                                                              summary += "Popup Window, ";
+
+          return summary;
+        };
+
+        ImGui::BeginGroup ();
+        ImGui::Text      ( "App_Active   :" );
+        ImGui::Text      ( "Active HWND  :" );
+        ImGui::Text      ( "Foreground   :" );
+        ImGui::Text      ( "Input Focus  :" );
+        ImGui::Separator (                  );
+        ImGui::Text      ( ""               );
+        ImGui::Text      ( "HWND         :" );
+
+        ImGui::Text      ( "Window Class :" );
+
+        ImGui::Text      ( "Window Title :" );
+
+        ImGui::Text      ( "Owner PID    :" );
+
+        ImGui::Text      ( "Owner TID    :" );
+
+        ImGui::Text      ( "Init. Frame  :" );
+
+        ImGui::Text      ( "Unicode      :" );
+
+        ImGui::Text      ( "Top          :" );
+
+        ImGui::Text      ( "Parent       :" );
+        ImGui::Text      ( "Style        :" );
+        ImGui::Text      ( "ExStyle      :" );
+
+        ImGui::EndGroup  ();
+        ImGui::SameLine  ();
+        ImGui::BeginGroup();
+        ImGui::Text      ( "%s", SK_IsGameWindowActive  () ? "Yes" : "No" );
+        ImGui::Text      ( "%p", GetActiveWindow        () );
+        ImGui::Text      ( "%p", SK_GetForegroundWindow () );
+        ImGui::Text      ( "%p", SK_GetFocus            () );
+        ImGui::Separator (                                 );                                  
+        ImGui::BeginGroup();
+        ImGui::Text      ( "Focus"                                         );
+        ImGui::Text      ( "%6p",          rb.windows.focus.hwnd           );
+        ImGui::Text      ( "%ws",          rb.windows.focus.class_name     );
+        ImGui::Text      ( "%ws",          rb.windows.focus.title          );
+        ImGui::Text      ( "%8lu",         rb.windows.focus.owner.pid      );
+        ImGui::Text      ( "%8lu",         rb.windows.focus.owner.tid      );
+        ImGui::Text      ( "%8lu",         rb.windows.focus.last_changed   );
+        ImGui::Text      ( "%8s",          rb.windows.focus.unicode ?
+                                                              "Yes" : "No" );
+        ImGui::Text      ( "%8p", 
+                             GetTopWindow (rb.windows.focus.hwnd)          );
+        ImGui::Text      ( "%8p",                                          
+                             GetTopWindow (rb.windows.focus.parent)        );
+        ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.focus.hwnd, GWL_STYLE)   );
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ( _SummarizeWindowStyle (
+                                  SK_GetWindowLongPtrW (rb.windows.focus.hwnd, GWL_STYLE)
+                              ).c_str ());
+
+        ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.focus.hwnd, GWL_EXSTYLE) );
+        ImGui::EndGroup ();
+        if (rb.windows.focus.hwnd != rb.windows.device.hwnd)
+        {
+          ImGui::SameLine  ();
+          ImGui::BeginGroup();
+          ImGui::Text      ( "Device"                                        );
+          ImGui::Text      ( "%6p",          rb.windows.device.hwnd          );
+          ImGui::Text      ( "%ws",          rb.windows.device.class_name    );
+          ImGui::Text      ( "%ws",          rb.windows.device.title         );
+          ImGui::Text      ( "%8lu",         rb.windows.device.owner.pid     );
+          ImGui::Text      ( "%8lu",         rb.windows.device.owner.tid     );
+          ImGui::Text      ( "%8lu",         rb.windows.device.last_changed  );
+          ImGui::Text      ( "%8s",          rb.windows.device.unicode ?
+                                                                 "Yes" : "No" );
+          ImGui::Text      ( "%8p", 
+                               GetTopWindow (rb.windows.device.hwnd)         );
+          ImGui::Text      ( "%8p",                                          
+                               GetTopWindow (rb.windows.device.parent)       );
+          ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_STYLE)   );
+          
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ( _SummarizeWindowStyle (
+                                    SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_STYLE)
+                                ).c_str ());
+
+          ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_EXSTYLE) );
+          ImGui::EndGroup  ();
+        }
+        ImGui::EndGroup ();
+        }
         break;
       }
 

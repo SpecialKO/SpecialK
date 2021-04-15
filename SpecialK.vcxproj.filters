@@ -3632,6 +3632,9 @@
     <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp">
       <Filter>Source Files\Backends\Render\DXGI\D3D11\Textures</Filter>
     </ClCompile>
+    <ClCompile Include="src\widgets\latency.cpp">
+      <Filter>Source Files\ImGui\Widgets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\cursors\ovr_ptr.cur">

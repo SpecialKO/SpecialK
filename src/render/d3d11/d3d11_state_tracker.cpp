@@ -530,27 +530,21 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
                          const SK_D3D11DrawType     draw_type,
                                UINT                 dev_idx )
 {
-  //// Engine is way too parallel with its 8 queues, don't even try to
-  ////   track the deferred command stream!
-  //if ( SK_D3D11_IsDevCtxDeferred (pDevCtx) &&
-  //     SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey )
-  //{
-  //  return false;
-  //}
-
-  static
-    volatile LONG64   llLastFrameMarked = 0;
-  if (ReadAcquire64 (&llLastFrameMarked) < SK_GetFramesDrawn ())
+  if (ReadULong64Acquire (&SK_Reflex_LastFrameMarked) < SK_GetFramesDrawn ())
   {
     static auto& rb =
-     SK_GetCurrentRenderBackend ();
+      SK_GetCurrentRenderBackend ();
 
-    WriteRelease64 (
-      &llLastFrameMarked, 
-       SK_GetFramesDrawn ()
-    );
+    // Don't let D3D11On12 confuse things
+    if (rb.api == SK_RenderAPI::D3D11)
+    {
+      WriteULong64Release (
+        &SK_Reflex_LastFrameMarked, 
+         SK_GetFramesDrawn ()
+      );
 
-    rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+      rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+    }
   }
 
   // If ReShade (custom version) is loaded, state tracking is non-optional

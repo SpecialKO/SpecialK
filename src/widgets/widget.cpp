@@ -400,8 +400,8 @@ SK_Widget::draw_base (void)
   }
 
 
-  int flags = ImGuiWindowFlags_NoTitleBar      | ImGuiWindowFlags_NoCollapse         |
-              ImGuiWindowFlags_NoScrollbar     | ImGuiWindowFlags_NoFocusOnAppearing |
+  int flags = ImGuiWindowFlags_NoTitleBar      |   ImGuiWindowFlags_NoCollapse         |
+            /*ImGuiWindowFlags_NoScrollbar     |*/ ImGuiWindowFlags_NoFocusOnAppearing |
               ImGuiWindowFlags_NoSavedSettings | (border ? 0x0 : ImGuiWindowFlags_NoBackground);
 
   if (autofit)
@@ -823,7 +823,7 @@ SK_Widget::config_base (void)
   ImGui::EndGroup   (  );
   ImGui::TreePop    (  );
   ImGui::Separator  (  );
-  changed |= ImGui::SliderFloat("Alpha Scale", &alpha, 0.01f, 1.0f);
+//changed |= ImGui::SliderFloat("Alpha Scale", &alpha, 0.01f, 1.0f);
   changed |= ImGui::SliderFloat("Flash Time",  &flash_duration,
                                                        0.10f, 15.0f,
                                                    "%.3f (Seconds)");
@@ -886,7 +886,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
     SK_ImGui_Widgets->gpu_monitor,     SK_ImGui_Widgets->cpu_monitor,
     SK_ImGui_Widgets->d3d11_pipeline,  SK_ImGui_Widgets->d3d12_pipeline,
     SK_ImGui_Widgets->thread_profiler, SK_ImGui_Widgets->hdr_control,
-    SK_ImGui_Widgets->tobii
+    SK_ImGui_Widgets->tobii,           SK_ImGui_Widgets->latency
   };
 
   for (auto& widget : widgets)
@@ -1000,7 +1000,7 @@ SK_ImGui_WidgetRegistry::SaveConfig (void)
     SK_ImGui_Widgets->gpu_monitor,     SK_ImGui_Widgets->cpu_monitor,
     SK_ImGui_Widgets->d3d11_pipeline,  SK_ImGui_Widgets->d3d12_pipeline,
     SK_ImGui_Widgets->thread_profiler, SK_ImGui_Widgets->hdr_control,
-    SK_ImGui_Widgets->tobii
+    SK_ImGui_Widgets->tobii,           SK_ImGui_Widgets->latency
   };
 
   for ( auto& widget : widgets )

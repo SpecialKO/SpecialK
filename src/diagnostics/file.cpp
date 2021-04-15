@@ -368,7 +368,7 @@ SK_File_CanUserWriteToPath (const wchar_t* wszPath)
       {
         SK_AutoHandle hImpersonatedToken (INVALID_HANDLE_VALUE);
 
-        if ( DuplicateToken ( hToken, SecurityImpersonation, &hImpersonatedToken.m_h ) )
+        if ( DuplicateToken ( hToken.m_h, SecurityImpersonation, &hImpersonatedToken.m_h ) )
         {
           GENERIC_MAPPING mapping          = { 0xFFFFFFFF,
                                                0xFFFFFFFF,
@@ -389,7 +389,7 @@ SK_File_CanUserWriteToPath (const wchar_t* wszPath)
 
           MapGenericMask (&dwMask, &mapping);
 
-          if ( AccessCheck ( security, hImpersonatedToken, dwMask,
+          if ( AccessCheck ( security, hImpersonatedToken.m_h, dwMask,
                                &mapping, &privileges,
                                  &privilegesLength, &grantedAccess,
                                    &result ) )

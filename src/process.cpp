@@ -264,7 +264,7 @@ struct SK_NtDllContext
     lock ();
 
     Module =
-      SK_LoadLibraryW (L"NtDll.dll");
+      SK_LoadLibraryW (L"NtDll");
 
     if (Module != nullptr)
     {

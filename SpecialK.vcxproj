@@ -1707,6 +1707,7 @@
     <ClCompile Include="src\widgets\frame_pacing.cpp" />
     <ClCompile Include="src\widgets\gpu_widget.cpp" />
     <ClCompile Include="src\widgets\hdr.cpp" />
+    <ClCompile Include="src\widgets\latency.cpp" />
     <ClCompile Include="src\widgets\threads.cpp" />
     <ClCompile Include="src\widgets\tobii.cpp" />
     <ClCompile Include="src\widgets\volume_control.cpp" />

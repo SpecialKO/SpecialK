@@ -78,7 +78,7 @@ SK_File_GetHash_32 (       sk_hash_algo                 algorithm,
 
       do
       {
-        ReadFile ( hFile,
+        ReadFile ( hFile.m_h,
                      buf,
                        read_size,
                          &dwReadChunk,

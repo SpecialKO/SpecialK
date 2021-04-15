@@ -133,7 +133,7 @@ SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
 
       bRet =
         SUCCEEDED (
-          SK_SetThreadDescription ( hRealHandle,
+          SK_SetThreadDescription ( hRealHandle.m_h,
               wideDesc.c_str ()   )
                   );
     }
@@ -250,7 +250,7 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
                                     0 ) )
     {
       hr =
-       ( SK_SetThreadDescription ( hRealHandle,
+       ( SK_SetThreadDescription ( hRealHandle.m_h,
              lpThreadDescription )             );
     }
 
@@ -303,7 +303,7 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
                                  0 ) )
   {
     hr =
-      SK_GetThreadDescription ( hRealHandle,
+      SK_GetThreadDescription ( hRealHandle.m_h,
                                   threadDescription );
   }
 
@@ -558,9 +558,6 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
   SK_ThreadBaseParams *pStartParams =
     static_cast <SK_ThreadBaseParams *> (lpUserPassThrough);
 
-  while (pStartParams->hHandleToStuffInternally == INVALID_HANDLE_VALUE)
-    SK_Sleep (1);
-
   SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
     SK_TLS_Bottom () : nullptr;
 
@@ -612,16 +609,21 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
 
   unsigned int dwTid = 0;
 
-  HANDLE hRet  =
+  HANDLE hRet =
     reinterpret_cast <HANDLE> (
       _beginthreadex ( nullptr, 0,
                (_beginthreadex_proc_type)SKX_ThreadThunk,
                  (LPVOID)params,
-                   0x0, &dwTid )
+                   CREATE_SUSPENDED, &dwTid )
     );
 
+  params->hHandleToStuffInternally = hRet;
+
+  if (hRet != 0)
+    ResumeThread (hRet);
+
   return
-    ( (params->hHandleToStuffInternally = hRet) );
+    hRet;
 }
 
 extern "C"

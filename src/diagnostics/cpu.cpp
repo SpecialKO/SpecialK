@@ -261,10 +261,10 @@ SK_CPU_InstallHooks (void)
                              GetLogicalProcessorInformation_Detour,
     static_cast_p2p <void> (&GetLogicalProcessorInformation_Original) );
 
-  SK_CreateDLLHook2 (      L"Kernel32",
-                            "GetLogicalProcessorInformationEx",
-                             GetLogicalProcessorInformationEx_Detour,
-    static_cast_p2p <void> (&GetLogicalProcessorInformationEx_Original) );
+  ///////SK_CreateDLLHook2 (      L"Kernel32",
+  ///////                          "GetLogicalProcessorInformationEx",
+  ///////                           GetLogicalProcessorInformationEx_Detour,
+  ///////  static_cast_p2p <void> (&GetLogicalProcessorInformationEx_Original) );
 
   SK_CreateDLLHook2 (     L"Kernel32",
                             "GetSystemInfo",

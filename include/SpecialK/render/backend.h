@@ -335,7 +335,34 @@ public:
       begin_texmgmt, end_texmgmt;
   } present_staging;
 
-  static volatile LONG64  frames_drawn;
+
+  struct latency_monitor_s {
+    void submitQueuedFrame (IDXGISwapChain1* pSwapChain);
+
+    struct {
+        DXGI_FRAME_STATISTICS frameStats0   = {   };
+        DXGI_FRAME_STATISTICS frameStats1   = {   };
+        UINT                  lastPresent   =     0;
+        ULONGLONG             lastFrame     =  0ULL;
+    } counters;
+    struct {
+        UINT                 PresentQueue   =     0;
+        UINT                    SyncDelay   =     0;
+        float                     TotalMs   =  0.0f;
+    } delays;
+    struct {
+        float                 AverageMs     =  0.0f;
+        float                     MaxMs     =  0.0f;
+        float                   ScaleMs     = 99.0f;
+        float                 History [120] = {   };
+    } stats;
+
+    bool stale = true;
+  } static latency;
+
+
+  static volatile ULONG64 frames_drawn;
+  static volatile LONG    flip_skip; // DXGI flip queue glitch reduction
 
   struct window_registry_s
   {
@@ -428,7 +455,6 @@ public:
   volatile DWORD           thread       =  0;
   SK_Thread_HybridSpinlock res_lock;
 
-
   bool canEnterFullscreen    (void);
 
   void requestFullscreenMode (bool override = false);
@@ -439,6 +465,7 @@ public:
   HANDLE getSwapWaitHandle   (void);
   void releaseOwnedResources (void);
 
+  void            queueUpdateOutputs   (void);
   void            updateOutputTopology (void);
   const output_s* getContainingOutput  (const RECT& rkRect);
 
@@ -448,6 +475,8 @@ public:
 
   std::string parseEDIDForName      (uint8_t* edid, size_t length);
   POINT       parseEDIDForNativeRes (uint8_t* edid, size_t length);
+
+  bool update_outputs = false;
 };
 #pragma pack(pop)
 
@@ -491,6 +520,7 @@ SK_COM_ValidateRelease (IUnknown** ppObj);
 const wchar_t*
 SK_Render_GetAPIName (SK_RenderAPI api);
 
+extern volatile ULONG64 SK_Reflex_LastFrameMarked;
 
 __forceinline
 ULONG64
@@ -498,7 +528,7 @@ __stdcall
 SK_GetFramesDrawn (void)
 {
   return
-    ULONG { gsl::narrow_cast <ULONG> (ReadAcquire64 (&SK_RenderBackend::frames_drawn)) };
+    ReadULong64Acquire (&SK_RenderBackend::frames_drawn);
 }
 
 typedef enum

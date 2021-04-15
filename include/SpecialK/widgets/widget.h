@@ -42,6 +42,7 @@ struct SK_ImGui_WidgetRegistry
   bool texcache = false;
 
   SK_Widget* frame_pacing    = nullptr;
+  SK_Widget* latency         = nullptr;
   SK_Widget* volume_control  = nullptr;
   SK_Widget* gpu_monitor     = nullptr;
   SK_Widget* cpu_monitor     = nullptr;

@@ -408,6 +408,56 @@ SK_D3DKMT_QueryAdapterPerfData ( HDC                      hDC,
   return result;
 }
 
+SK_RenderBackend::latency_monitor_s SK_RenderBackend::latency;
+
+void
+SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapChain)
+{
+  if (pSwapChain == nullptr)
+  {
+    stale = true;
+    return;
+  }
+
+  if (              latency.counters.lastFrame !=
+     std::exchange (latency.counters.lastFrame, SK_GetFramesDrawn ()) )
+  {
+    if (SUCCEEDED (pSwapChain->GetFrameStatistics  (&latency.counters.frameStats1)))
+    {              pSwapChain->GetLastPresentCount (&latency.counters.lastPresent);
+
+      SK_RunOnce (latency.counters.frameStats0 = latency.counters.frameStats1);
+
+      LARGE_INTEGER time;
+                    time.QuadPart =
+        ( latency.counters.frameStats1.SyncQPCTime.QuadPart -
+          latency.counters.frameStats0.SyncQPCTime.QuadPart );
+
+      latency.delays.PresentQueue =
+        ( latency.counters.lastPresent -
+          latency.counters.frameStats1.PresentCount );
+
+      latency.delays.SyncDelay    =
+        ( latency.counters.frameStats1.SyncRefreshCount -
+          latency.counters.frameStats0.SyncRefreshCount );
+
+      latency.delays .TotalMs     =
+                  static_cast <float>  (
+         1000.0 * static_cast <double> (             time.QuadPart) /
+                  static_cast <double> (SK_GetPerfFreq ().QuadPart) ) -
+           SK_ImGui_Frames->getLastValue ();
+
+      latency.counters.frameStats0 = latency.counters.frameStats1;
+
+      stale = false;
+    }
+
+    else stale = true;
+
+    latency.stats.History [latency.counters.lastFrame % std::size (latency.stats.History)] =
+      fabs (latency.delays.TotalMs);
+  }
+}
+
 void
 SK_ImGui_DrawGraph_FramePacing (void)
 {
@@ -486,90 +536,25 @@ SK_ImGui_DrawGraph_FramePacing (void)
       SK_ImGui_DrawFramePercentiles ();
 
 
-  SK_ComQIPtr <IDXGISwapChain1> pSwap1 (
-    SK_GetCurrentRenderBackend ().swapchain.p
-  );
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
 
-  struct {
-    struct {
-        DXGI_FRAME_STATISTICS frameStats0   = {   };
-        DXGI_FRAME_STATISTICS frameStats1   = {   };
-        UINT                  lastPresent   =     0;
-        ULONGLONG             lastFrame     =  0ULL;
-    } counters;
-    struct {
-        UINT                 PresentQueue   =     0;
-        UINT                    SyncDelay   =     0;
-        float                     TotalMs   =  0.0f;
-    } delays;
-    struct {
-        float                 AverageMs     =  0.0f;
-        float                     MaxMs     =  0.0f;
-        float                   ScaleMs     = 99.0f;
-        float                 History [120] = {   };
-    } stats;
-  } static latency;
-
-  latency.stats.MaxMs =
-    *std::max_element ( std::begin (latency.stats.History),
-                        std::end   (latency.stats.History) );
-  latency.stats.ScaleMs =
-    std::max ( 99.0f, latency.stats.MaxMs );
-
-  static bool has_latency = false;
-
-  if (pSwap1.p != nullptr)
+  if (! rb.latency.stale)
   {
-    // Queue the insanity of trying to track render latency using static
-    //   variables, when there can be 2 copies of this widget open at once (!!)
-    if (              latency.counters.lastFrame !=
-       std::exchange (latency.counters.lastFrame, SK_GetFramesDrawn ()) )
-    {
-      if (SUCCEEDED (pSwap1->GetFrameStatistics  (&latency.counters.frameStats1)))
-      {              pSwap1->GetLastPresentCount (&latency.counters.lastPresent);
+    rb.latency.stats.MaxMs =
+      *std::max_element ( std::begin (rb.latency.stats.History),
+                          std::end   (rb.latency.stats.History) );
+    rb.latency.stats.ScaleMs =
+     std::max ( 99.0f, rb.latency.stats.MaxMs );
 
-        SK_RunOnce (latency.counters.frameStats0 = latency.counters.frameStats1);
+    // ...
 
-        LARGE_INTEGER time;
-                      time.QuadPart =
-          ( latency.counters.frameStats1.SyncQPCTime.QuadPart -
-            latency.counters.frameStats0.SyncQPCTime.QuadPart );
-
-        latency.delays.PresentQueue =
-          ( latency.counters.lastPresent -
-            latency.counters.frameStats1.PresentCount );
-
-        latency.delays.SyncDelay    =
-          ( latency.counters.frameStats1.SyncRefreshCount -
-            latency.counters.frameStats0.SyncRefreshCount );
-
-        latency.delays .TotalMs     =
-                    static_cast <float>  (
-           1000.0 * static_cast <double> (             time.QuadPart) /
-                    static_cast <double> (SK_GetPerfFreq ().QuadPart) ) -
-             SK_ImGui_Frames->getLastValue ();
-
-        latency.counters.frameStats0 = latency.counters.frameStats1;
-
-        has_latency = true;
-      }
-
-      else has_latency = false;
-
-      latency.stats.History [latency.counters.lastFrame % std::size (latency.stats.History)] =
-        fabs (latency.delays.TotalMs);
-    }
-
-    latency.stats.AverageMs =
+    rb.latency.stats.AverageMs =
       std::accumulate (
-        std::begin ( latency.stats.History ),
-        std::end   ( latency.stats.History ), 0.0f )
-      / std::size  ( latency.stats.History );
+        std::begin ( rb.latency.stats.History ),
+        std::end   ( rb.latency.stats.History ), 0.0f )
+      / std::size  ( rb.latency.stats.History );
 
-  }
-
-  if (has_latency)
-  {
     snprintf
       ( szAvg,
           511, (const char *)
@@ -578,12 +563,12 @@ SK_ImGui_DrawGraph_FramePacing (void)
           u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
               sum / frames,
                 target_frametime,
-                    latency.delays.PresentQueue,
-                    latency.delays.PresentQueue != 1 ?
-                                                "s " : "  ",
-                      latency.stats.AverageMs,
-                      latency.stats.MaxMs,
-                        latency.delays.SyncDelay,
+                    rb.latency.delays.PresentQueue,
+                    rb.latency.delays.PresentQueue != 1 ?
+                                                   "s " : "  ",
+                      rb.latency.stats.AverageMs,
+                      rb.latency.stats.MaxMs,
+                        rb.latency.delays.SyncDelay,
             (double)max - (double)min,
                     1000.0f / (sum / frames),
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
@@ -625,12 +610,12 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImVec4 (.66f, .66f, .66f, .75f));
   ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
                                             "###Floating_LatencyHistogram",
-                           latency.stats.History,
-                             IM_ARRAYSIZE (latency.stats.History),
-                               (SK_GetFramesDrawn () + 1) % 120,
+                           rb.latency.stats.History,
+                             IM_ARRAYSIZE (rb.latency.stats.History),
+                               SK_GetFramesDrawn () % 120,
                                  "",
                                    0,
-                                     latency.stats.ScaleMs,
+                                     rb.latency.stats.ScaleMs,
                                       border_dims );
   ImGui::PopStyleColor  ();
 

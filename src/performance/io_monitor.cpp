@@ -386,7 +386,7 @@ SK_MonitorCPU (LPVOID user_param)
   {
     NtQuerySystemInformation_SK =
       (NtQuerySystemInformation_SK_pfn)
-        SK_GetProcAddress ( L"NtDll.dll",
+        SK_GetProcAddress ( L"NtDll",
                              "NtQuerySystemInformation" );
   }
 

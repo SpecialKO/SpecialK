@@ -32,7 +32,7 @@ SK_RawInput_GetMice      (bool* pDifferent = nullptr);
 extern std::vector <RAWINPUTDEVICE>
 SK_RawInput_GetKeyboards (bool* pDifferent = nullptr);
 
-
+SK::Framerate::Stats gamepad_stats;
 
 void SK_ImGui_UpdateCursor (void)
 {
@@ -714,6 +714,77 @@ extern float SK_ImGui_PulseNav_Strength;
           if (count > 1)   GamepadDebug (JOYSTICKID2); }
       }
 
+      static bool   init       = false;
+      static HANDLE hStartStop =
+        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+
+      if (! init)
+      {     init = true;
+        SK_Thread_Create ([](LPVOID) -> DWORD
+        {
+          XINPUT_STATE states [2] = { };
+          ULONGLONG    times  [2] = { };
+          int                   i = 0;
+          
+          do
+          {
+            WaitForSingleObject (hStartStop, INFINITE);
+
+            if (SK_XInput_PollController (0, &states [i % 2]))
+            {
+              XINPUT_STATE& old = states [(i + 1) % 2];
+              XINPUT_STATE& now = states [ i++    % 2];
+
+              if (old.dwPacketNumber != now.dwPacketNumber)
+              {
+                LARGE_INTEGER nowTime = SK_QueryPerf ();
+                ULONGLONG     oldTime = times [0];
+                                        times [0] = times [1];
+                                        times [1] = nowTime.QuadPart;
+
+                gamepad_stats.addSample ( 1000.0 *
+                  static_cast <double> (times [0] - oldTime) /
+                  static_cast <double> (SK_GetPerfFreq ().QuadPart),
+                    nowTime
+                );
+              }
+            }
+          } while (! ReadAcquire (&__SK_DLL_Ending));
+
+          SK_Thread_CloseSelf ();
+
+          return 0;
+        }, (LPVOID)hStartStop);
+      }
+      
+      static bool started = false;
+
+      if (ImGui::Button (started ? "Stop Gamepad Latency Test" :
+                                   "Start Gamepad Latency Test"))
+      {
+        if (! started) { started = true;  SetEvent   (hStartStop); }
+        else           { started = false; ResetEvent (hStartStop); }
+      }
+      
+      static double high_min = std::numeric_limits <double>::max (),
+                    high_max,
+                    avg;
+
+      if (started)
+      {
+        ImGui::SameLine  ( );
+        ImGui::Text      ( "%lu Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+                             gamepad_stats.calcNumSamples (),
+                             gamepad_stats.calcMin        (),
+                             gamepad_stats.calcMax        (),
+                             gamepad_stats.calcMean       () );
+
+        high_min = std::min (gamepad_stats.calcMin (), high_min);
+      }
+  //high_max = std::max (gamepad_stats.calcMax (), high_max);
+
+      if (high_min < 250.0)
+        ImGui::Text     ( "Minimum Latency: %4.2f ms", high_min );
       ImGui::TreePop         ( );
     }
 

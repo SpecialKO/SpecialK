@@ -81,6 +81,7 @@ CreateDXGIFactory_pfn             CreateDXGIFactory_Import               = nullp
 CreateDXGIFactory1_pfn            CreateDXGIFactory1_Import              = nullptr;
 CreateDXGIFactory2_pfn            CreateDXGIFactory2_Import              = nullptr;
 
+
 using DXGIDeclareAdapterRemovalSupport_pfn =
 HRESULT (WINAPI *)(void);
 
@@ -2362,16 +2363,15 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
   }
 
 
-  static
-    volatile LONG64   llLastFrameMarked = 0;
-  if (ReadAcquire64 (&llLastFrameMarked) < ReadAcquire64 (&SK_RenderBackend::frames_drawn))
+  if ( ReadULong64Acquire (&SK_Reflex_LastFrameMarked) <
+       ReadULong64Acquire (&SK_RenderBackend::frames_drawn) )
   {
     static auto& rb =
      SK_GetCurrentRenderBackend ();
 
-    WriteRelease64 (
-      &llLastFrameMarked, 
-       ReadAcquire64 (&SK_RenderBackend::frames_drawn)
+    WriteULong64Release (
+      &SK_Reflex_LastFrameMarked,
+       ReadULong64Acquire (&SK_RenderBackend::frames_drawn)
     );
 
     rb.setLatencyMarkerNV (RENDERSUBMIT_START);
@@ -2392,6 +2392,11 @@ auto _IsBackendD3D12 = [](const SK_RenderAPI& api) { return             api == S
 
 volatile LONG lResetD3D11 = 0;
 volatile LONG lResetD3D12 = 0;
+
+volatile LONG lSkipNextPresent = 0;
+
+volatile LONG lSemaphoreCount0 = 0;
+volatile LONG lSemaphoreCount1 = 0;
 
 HRESULT
 SK_DXGI_PresentBase ( IDXGISwapChain         *This,
@@ -2560,6 +2565,15 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       // Start / End / Readback Pipeline Stats
       SK_D3D11_UpdateRenderStats (This);
     }
+
+
+    if (ReadULong64Acquire (&SK_Reflex_LastFrameMarked) <
+        ReadULong64Acquire (&SK_RenderBackend::frames_drawn) - 1)
+    {
+      // D3D11 Draw Call / D3D12 Command List Exec hooks did not catch any rendering commands
+      rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+    }
+
 
     if (rb.api == SK_RenderAPI::Reserved || rb.api == SK_RenderAPI::D3D12)
     {
@@ -2785,27 +2799,11 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       }
     }
 
-
     // Application preference
     if (interval == -1)
         interval = SyncInterval;
 
     rb.present_interval = interval;
-
-    {
-      SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
-      if ((intptr_t)hWaitHandle.m_h > 0 )
-      {
-        if (SK_WaitForSingleObject (hWaitHandle, 0) == WAIT_TIMEOUT)
-        {
-          if (pLimiter->get_limit () > 0.0L)
-          {
-            flags   |= DXGI_PRESENT_RESTART;
-            interval = 0;
-          }
-        }
-      }
-    }
     
     if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
     else if (_IsBackendD3D11 (rb.api)) SK_CEGUI_DrawD3D11 (This);
@@ -2815,12 +2813,34 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       SK_BeginBufferSwapEx (bWaitOnFailure);
     }
 
+
     rb.setLatencyMarkerNV (PRESENT_START);
 
+    SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
+    if ((intptr_t)hWaitHandle.m_h > 0)
+    {
+      if (SK_WaitForSingleObject (hWaitHandle.m_h, 0) == WAIT_TIMEOUT)
+      {
+        interval   = 0;
+        flags     |= DXGI_PRESENT_RESTART;
+      }
+    }
+
+    if (ReadAcquire        (&SK_RenderBackend::flip_skip) > 0) {
+      InterlockedDecrement (&SK_RenderBackend::flip_skip);
+      interval      = 0;
+      flags |= DXGI_PRESENT_RESTART;
+    }
+
     HRESULT hr =
-      _Present ( interval, flags );
+      _Present ( interval, flags | DXGI_PRESENT_DO_NOT_WAIT );
 
     rb.setLatencyMarkerNV (PRESENT_END);
+
+
+    if (hr == DXGI_ERROR_WAS_STILL_DRAWING)
+        hr = S_OK;
+
 
     if ( pDev != nullptr || pDev12 != nullptr )
     {
@@ -3132,6 +3152,14 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
                 _In_opt_  IUnknown       *pConcernedDevice,
                           BOOL            bApplyOverrides )
 {
+  if (! FindClosestMatchingMode_Original)
+  {
+    SK_LOG0 ( ( L"SK_DXGI_FindClosestMode (...) called without a hooked IDXGIOutput" ),
+                L"   DXGI   " );
+
+    return E_NOINTERFACE;
+  }
+
   SK_ComPtr <IDXGIDevice> pSwapDevice;
   SK_ComPtr <IDXGIOutput> pSwapOutput;
 
@@ -4125,23 +4153,6 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
     }
   }
 
-  bool nop =
-    ( BufferCount == 0                   || swap_desc.BufferCount       == BufferCount ) &&
-    ( Width       == 0                   || swap_desc.BufferDesc.Width  == Width       ) &&
-    ( Height      == 0                   || swap_desc.BufferDesc.Height == Height      ) &&
-    ( NewFormat   == DXGI_FORMAT_UNKNOWN || swap_desc.BufferDesc.Format == NewFormat   );
-
-  // Hack for Watch_Dogs: Legion
-  //
-  //  STOP RESIZING THE SWAPCHAIN EVERY FRAME (!!))
-  if (nop)
-  {
-    ////SK_LOG0 ( ( L"Ignoring ResizeBuffers (...) because arguments are a NOP and performance would suffer" ),
-    ////            L"   DXGI   " );
-    ////
-    ////return S_OK;
-  }
-
   ResetImGui_D3D12 (This);
   ResetCEGUI_D3D11 (This);
 
@@ -4162,11 +4173,6 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
       SK_DXGI_ReportLiveObjects ( nullptr != rb.device ?
                                              rb.device : pDevice.p );
     }
-
-    // Try releasing again, but realistically this should be a nop unless somehow
-    //   we re-initialized the render backend during the real ResizeBuffers (...)
-    ResetImGui_D3D12 (This);
-    ResetCEGUI_D3D11 (This);
   }
 
   DXGI_CALL (ret, ret);
@@ -4868,7 +4874,7 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
   DXGI_SWAP_CHAIN_DESC  swapDesc = { };
   pSwapChain->GetDesc (&swapDesc);
 
-  if (! (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
+  //if (! (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
   {
     if ( max_latency < 16 &&
          max_latency >  0 )
@@ -4887,6 +4893,8 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
       }
     }
   }
+
+  InterlockedAdd (&SK_RenderBackend::flip_skip, 1);
 }
 
 void
@@ -4994,7 +5002,7 @@ SK_DXGI_CreateSwapChain_PostInit (
       if ((intptr_t)hWaitHandle.m_h > 0 )
         {
         SK_WaitForSingleObject (
-              hWaitHandle, 15
+              hWaitHandle.m_h, 15
         );
       }
     }
@@ -5420,125 +5428,146 @@ DXGIFactory_CreateSwapChain_Override (
 #ifdef  __NIER_HACK
   static SK_ComPtr <IDXGISwapChain> pSwapToRecycle = nullptr;
 
-  // D3D12 games (pD3D12Queue) do not need this hack,
-  //   they adhere to the documented beahvior of DXGI Flip Model
-  if ( /*(! config.apis.d3d9.translated) &&*/
-       pD3D12Queue.p  == nullptr &&
-       pSwapToRecycle != nullptr )
+  auto descCopy = *pDesc;
+
+  if ( SK_DXGI_IsFlipModelSwapChain (new_desc) &&
+    (! SK_DXGI_IsFlipModelSwapChain (descCopy)) )
   {
-    DXGI_SWAP_CHAIN_DESC      recycle_desc = { };
-    pSwapToRecycle->GetDesc (&recycle_desc);
-
-    if (recycle_desc.OutputWindow == new_desc.OutputWindow)
+    if (pSwapToRecycle != nullptr)
     {
-      // Our hopefully clean SwapChain needs a facelift before recycling :)
-      if ( recycle_desc.BufferDesc.Width  != pDesc->BufferDesc.Width  ||
-           recycle_desc.BufferDesc.Height != pDesc->BufferDesc.Height ||
-           recycle_desc.BufferDesc.Format != pDesc->BufferDesc.Format ||
-           recycle_desc.BufferCount       != pDesc->BufferCount )
-      {
-        // This could well fail if anything references the backbufers still...
-        if ( FAILED ( pSwapToRecycle->ResizeBuffers (
-                        pDesc->BufferCount,
-                          pDesc->BufferDesc.Width, pDesc->BufferDesc.Height,
-                          pDesc->BufferDesc.Format, SK_DXGI_FixUpLatencyWaitFlag (
-                            pSwapToRecycle, recycle_desc.Flags ) )
-                    )
-           )
-        {
-          if ( config.window.res.override.x != pDesc->BufferDesc.Width ||
-               config.window.res.override.y != pDesc->BufferDesc.Height )
-          {
-            SK_ImGui_WarningWithTitle ( L"Engine is Leaking References and Cannot Change Resolutions\r\n\r\n\t"
-                                        L">> An override has been configured, please restart the game.",
-                                          L"SK Flip Model Override" );
+      DXGI_SWAP_CHAIN_DESC      recycle_desc = { };
+      pSwapToRecycle->GetDesc (&recycle_desc);
 
-            config.window.res.override.x = pDesc->BufferDesc.Width;
-            config.window.res.override.y = pDesc->BufferDesc.Height;
+      if (recycle_desc.OutputWindow == new_desc.OutputWindow)
+      {
+        // Our hopefully clean SwapChain needs a facelift before recycling :)
+        if ( recycle_desc.BufferDesc.Width  != pDesc->BufferDesc.Width  ||
+             recycle_desc.BufferDesc.Height != pDesc->BufferDesc.Height ||
+             recycle_desc.BufferDesc.Format != pDesc->BufferDesc.Format ||
+             recycle_desc.BufferCount       != pDesc->BufferCount )
+        {
+          _d3d11_rbk->release (pSwapToRecycle.p);
+
+          // This could well fail if anything references the backbufers still...
+          if ( FAILED ( pSwapToRecycle->ResizeBuffers (
+                          pDesc->BufferCount,
+                            pDesc->BufferDesc.Width, pDesc->BufferDesc.Height,
+                            pDesc->BufferDesc.Format, SK_DXGI_FixUpLatencyWaitFlag (
+                              pSwapToRecycle, recycle_desc.Flags ) )
+                      )
+             )
+          {
+            if ( config.window.res.override.x != pDesc->BufferDesc.Width ||
+                 config.window.res.override.y != pDesc->BufferDesc.Height )
+            {
+              if ( recycle_desc.BufferDesc.Width  != pDesc->BufferDesc.Width ||
+                   recycle_desc.BufferDesc.Height != pDesc->BufferDesc.Height )
+              {
+                SK_ImGui_WarningWithTitle ( L"Engine is Leaking References and Cannot Change Resolutions\r\n\r\n\t"
+                                            L">> An override has been configured, please restart the game.",
+                                              L"SK Flip Model Override" );
+              }
+
+              config.window.res.override.x = pDesc->BufferDesc.Width;
+              config.window.res.override.y = pDesc->BufferDesc.Height;
+            }
+          }
+
+          if (recycle_desc.Flags != pDesc->Flags)
+          {
+            SK_LOG0 ( ( L" Flags (%x) on SwapChain to be recycled for HWND (%p) do not match requested (%x)...",
+                        recycle_desc.Flags, pDesc->OutputWindow, pDesc->Flags ),
+                        L"DXGI Reuse" );
           }
         }
 
-        if (recycle_desc.Flags != pDesc->Flags)
-        {
-          SK_LOG0 ( ( L" Flags (%x) on SwapChain to be recycled for HWND (%p) do not match requested (%x)...",
-                      recycle_desc.Flags, pDesc->OutputWindow, pDesc->Flags ),
-                      L"DXGI Reuse" );
-        }
+        // Add Ref because game expects to create a new object and we are
+        //   returning an existing ref-counted object in its place.
+                       pSwapToRecycle.p->AddRef ();
+        *ppSwapChain = pSwapToRecycle.p;
+
+        return S_OK;
       }
 
-      // Add Ref because game expects to create a new object and we are
-      //   returning an existing ref-counted object in its place.
-                     pSwapToRecycle.p->AddRef ();
-      *ppSwapChain = pSwapToRecycle.p;
-
-      if (pD3D12Queue)
-        SK_GetCurrentRenderBackend ().swapchain = *ppSwapChain;
-
-      return S_OK;
+      SK_ComPtr <IDXGISwapChain> pSwapToKill =
+                                 pSwapToRecycle;
+      pSwapToRecycle = nullptr;
+      pSwapToKill.p->Release ();
     }
-
-    // Copy, Swap & Chop - SwapChain Murderer
-    //
-    //  * Recycle candidate not a clean match; we only give out clean garbage!
-    //
-    //     1) Stop holding an extra reference to prolong its lifetime
-    //     2) Stop trying to substitute new SwapChain creation using it
-    //        \--> By resetting the ptr.
-    //
-    SK_ComPtr <IDXGISwapChain> pSwapToKill =
-                               pSwapToRecycle;
-    pSwapToRecycle = nullptr;
-    pSwapToKill.p->Release ();
   }
 #endif
 
   pDesc = &new_desc;
 
-  auto CreateSwapChain_Lambchop =
-    [&] (void) ->
-      BOOL
-      {
-        IDXGISwapChain* pTemp = nullptr;
+  IDXGISwapChain* pTemp = nullptr;
 
-        DXGI_CALL ( ret,
-                      CreateSwapChain_Original ( This, pDevice,
-                                                       pDesc, &pTemp )
-                  );
+  ret =
+    CreateSwapChain_Original ( This, pDevice,
+                                 pDesc, &pTemp );
 
-        if ( SUCCEEDED (ret) )
-        {
-          if (pTemp != nullptr)
-          {
-            SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, &pTemp);
-            SK_DXGI_WrapSwapChain            (pDevice,             pTemp,
-                                                     ppSwapChain);
-          }
+  // Retry creation after releasing the Render Backend resources
+  if ( ret == E_ACCESSDENIED )
+  {
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    SK_ReleaseAssert (pDesc->OutputWindow == rb.windows.getDevice ());
+
+    _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
+    _d3d12_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
+
+    rb.releaseOwnedResources ();
+
+    ret =
+      CreateSwapChain_Original ( This, pDevice,
+                                   pDesc, &pTemp );
+  }
+
+  DXGI_CALL ( ret, ret );
+
+  if ( SUCCEEDED (ret) )
+  {
+    if (pTemp != nullptr)
+    {
+      SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, &pTemp);
+      SK_DXGI_WrapSwapChain            (pDevice,             pTemp,
+                                               ppSwapChain);
+    }
 
 #ifdef  __NIER_HACK
-          if (  pD3D12Queue.p  == nullptr &&
-                pSwapToRecycle == nullptr &&
-               ppSwapChain     != nullptr /*&& (! config.apis.d3d9.translated)*/ )
-          {
-            pSwapToRecycle = *ppSwapChain;
+    if ( SK_DXGI_IsFlipModelSwapChain (new_desc) &&
+      (! SK_DXGI_IsFlipModelSwapChain (descCopy)) )
+    {
+      if (  pD3D12Queue.p  == nullptr &&
+            pSwapToRecycle == nullptr &&
+           ppSwapChain     != nullptr /*&& (! config.apis.d3d9.translated)*/ )
+      {
+        pSwapToRecycle = *ppSwapChain;
 
-            // We are going to reuse this, it needs a long and prosperous life.
-            pSwapToRecycle.p->AddRef ();
-          }
+        // We are going to reuse this, it needs a long and prosperous life.
+        pSwapToRecycle.p->AddRef ();
+      }
+    }
 #endif
 
-          return TRUE;
-        }
+    return ret;
+  }
 
-        return FALSE;
-      };
+  SK_LOG0 ( ( L"SwapChain Creation Failed, trying again without overrides..." ),
+              L"   DXGI   " );
 
+  DXGI_CALL ( ret,
+                CreateSwapChain_Original ( This, pDevice,
+                                             orig_desc, &pTemp ) );
 
-  if (! CreateSwapChain_Lambchop ())
+  if (pTemp != nullptr)
   {
-    // Fallback-on-Fail
-    pDesc = orig_desc;
+    auto origDescCopy =
+      *orig_desc;
 
-    CreateSwapChain_Lambchop ();
+    SK_DXGI_CreateSwapChain_PostInit (pDevice, &origDescCopy, &pTemp);
+    SK_DXGI_WrapSwapChain            (pDevice,                 pTemp,
+                                               ppSwapChain);
   }
 
   return ret;
@@ -5608,13 +5637,36 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
       {
         IDXGISwapChain1* pTemp = nullptr;
 
-        DXGI_CALL( ret, CreateSwapChainForCoreWindow_Original (
-                          This,
-                            pDevice,
-                              pWindow,
-                                pDesc,
-                                  pRestrictToOutput,
-                                    &pTemp ) );
+        ret = CreateSwapChainForCoreWindow_Original (
+                This,
+                  pDevice,
+                    pWindow,
+                      pDesc,
+                        pRestrictToOutput,
+                          &pTemp );
+
+        // DXGI Flip Model only allows 1 chain per-HWND, release our owned resources
+        //   and try this again...
+        if ( ret == E_ACCESSDENIED )
+        {
+          auto& rb =
+            SK_GetCurrentRenderBackend ();
+
+          _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
+          _d3d12_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
+
+          rb.releaseOwnedResources ();
+
+          ret = CreateSwapChainForCoreWindow_Original (
+                  This,
+                    pDevice,
+                      pWindow,
+                        pDesc,
+                          pRestrictToOutput,
+                            &pTemp );
+        }
+
+        DXGI_CALL (ret, ret);
 
         if ( SUCCEEDED (ret) )
         {
@@ -5658,23 +5710,30 @@ static concurrency::concurrent_unordered_map <HWND, IDXGISwapChain1*> _recyclabl
 IDXGISwapChain1*
 SK_DXGI_GetCachedSwapChainForHwnd (HWND hWnd, IUnknown* pDevice)
 {
+  SK_ComQIPtr <ID3D11Device> pDev11 (pDevice);
+  SK_ComQIPtr <ID3D12Device> pDev12 (pDevice);
+
   IDXGISwapChain1* pChain = nullptr;
 
 #ifdef __PAIR_DEVICE_TO_CHAIN
-  if ( _recyclable_d3d11.count (hWnd) )
+  if ( pDev11.p != nullptr && _recyclable_d3d11.count (hWnd) )
   {
     SK_ReleaseAssert (_recyclable_d3d11 [hWnd].count (pDevice) > 0);
 
     pChain = (IDXGISwapChain1 *)_recyclable_d3d11 [hWnd][pDevice];
-    pChain->AddRef ();
+
+    if (pChain != nullptr)
+        pChain->AddRef ();
   }
 
-  else if ( _recyclable_d3d12.count (hWnd) )
+  else if ( pDev12.p != nullptr && _recyclable_d3d12.count (hWnd) )
   {
     SK_ReleaseAssert (_recyclable_d3d12 [hWnd].count (pDevice) > 0);
 
     pChain = (IDXGISwapChain1 *)_recyclable_d3d12 [hWnd][pDevice];
-    pChain->AddRef ();
+
+    if (pChain != nullptr)
+        pChain->AddRef ();
   }
 #else
   if ( _recyclables.count (hWnd) != 0 )
@@ -5690,9 +5749,12 @@ SK_DXGI_GetCachedSwapChainForHwnd (HWND hWnd, IUnknown* pDevice)
 IDXGISwapChain1*
 SK_DXGI_MakeCachedSwapChainForHwnd (IDXGISwapChain1* pSwapChain, HWND hWnd, IUnknown* pDevice)
 {
+  SK_ComQIPtr <ID3D11Device> pDev11 (pDevice);
+  SK_ComQIPtr <ID3D12Device> pDev12 (pDevice);
+
 #ifdef __PAIR_DEVICE_TO_CHAIN
-  if (pDevice != nullptr) _recyclable_d3d11 [hWnd][pDevice] = pSwapChain;
-  else                    _recyclable_d3d12 [hWnd][pDevice] = pSwapChain;
+  if      (pDev11.p != nullptr) _recyclable_d3d11 [hWnd][pDevice] = pSwapChain;
+  else if (pDev12.p != nullptr) _recyclable_d3d12 [hWnd][pDevice] = pSwapChain;
 #else
   _recyclables [hWnd] = pSwapChain;
 #endif
@@ -5703,6 +5765,9 @@ SK_DXGI_MakeCachedSwapChainForHwnd (IDXGISwapChain1* pSwapChain, HWND hWnd, IUnk
 UINT
 SK_DXGI_ReleaseSwapChainOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pDevice)
 {
+  SK_ComQIPtr <ID3D11Device> pDev11 (pDevice);
+  SK_ComQIPtr <ID3D12Device> pDev12 (pDevice);
+
 #ifdef _DEBUG
   auto* pValidate =
     _recyclables [hWnd];
@@ -5719,7 +5784,7 @@ SK_DXGI_ReleaseSwapChainOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pD
   _recyclables [hWnd] = nullptr;
 #else
 #ifdef __PAIR_DEVICE_TO_CHAIN
-  if (_recyclable_d3d11 [hWnd][pDevice] != nullptr)
+  if (pDev11.p != nullptr && _recyclable_d3d11 [hWnd][pDevice] != nullptr)
   {
     auto swapchain =
       _recyclable_d3d11 [hWnd][pDevice];
@@ -5732,7 +5797,7 @@ SK_DXGI_ReleaseSwapChainOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pD
 
   // D3D12 can never have more than one swapchain on an HWND, so ...
   //   this is silly
-  else if (_recyclable_d3d12.count (hWnd) > 0)
+  else if (pDev12.p != nullptr && _recyclable_d3d12.count (hWnd) > 0)
   {
     auto swapchain =
       _recyclable_d3d12 [hWnd][pDevice];
@@ -5796,8 +5861,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc  = pFullscreenDesc ? *pFullscreenDesc :
                        DXGI_SWAP_CHAIN_FULLSCREEN_DESC { };
 
-  bool bFlipOriginal =
-    SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect);
+  ///bool bFlipOriginal =
+  ///  SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect);
 
   pDesc           =            &new_desc1;
   pFullscreenDesc =
@@ -5859,11 +5924,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     //SK_ReleaseAssert (pCache->AddRef  () == 2 && pCache->Release () == 1);
 
     SK::Framerate::GetLimiter (pCache)->reset  (true);
-                               pCache ->AddRef (    );
     *ppSwapChain       =       pCache;
-
-    if (pCmdQueue != nullptr)
-      SK_GetCurrentRenderBackend ().swapchain = *ppSwapChain;
 
     return
       ret;
@@ -5871,8 +5932,28 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   pDesc = &new_desc1;
 
-  DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
-                                                       pRestrictToOutput, &pTemp ) );
+  ret =
+    CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
+                                        pRestrictToOutput, &pTemp );
+
+  if ( ret == E_ACCESSDENIED )
+  {
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    SK_ReleaseAssert (hWnd == rb.windows.getDevice ());
+
+    _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
+    _d3d12_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
+
+    rb.releaseOwnedResources ();
+
+    ret =
+      CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
+                                          pRestrictToOutput, &pTemp );
+  }
+
+  DXGI_CALL ( ret, ret );
 
   if ( SUCCEEDED (ret) )
   {
@@ -5889,12 +5970,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       {
         SK_DXGI_MakeCachedSwapChainForHwnd
              ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev11.p) );
-        //if ((! bFlipOriginal))
-        {
-          // Cache the chain, in case the game tries to create multiple swapchains on one HWND
-          (*ppSwapChain)->AddRef ();
-          (*ppSwapChain)->AddRef ();
-        }
       }
 
       // D3D12
@@ -5902,15 +5977,23 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       {
         SK_DXGI_MakeCachedSwapChainForHwnd
              ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev12.p) );
-            //(*ppSwapChain)->AddRef ();
       }
     }
 
     return ret;
   }
 
+  SK_LOG0 ( ( L"SwapChain Creation Failed, trying again without overrides..." ),
+              L"   DXGI   " );
+
   DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, &orig_desc1, &orig_fullscreen_desc,
-                                                       pRestrictToOutput, ppSwapChain ) );
+                                                       pRestrictToOutput, &pTemp ) );
+
+  if (pTemp != nullptr)
+  {
+    SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, &orig_desc1, &orig_fullscreen_desc, &pTemp);
+      SK_DXGI_WrapSwapChain1          (pDevice,                                            pTemp, ppSwapChain);
+  }
 
   return ret;
 }
@@ -7581,30 +7664,30 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
               (void **)/*&pFactory2.p*/&pFactory, 15 );
         }
 
-        if (! LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow.active)
-        {
-          DXGI_VIRTUAL_HOOK ( /*&pFactory2.p*/&pFactory, 16,
-                              "IDXGIFactory2::CreateSwapChainForCoreWindow",
-                               DXGIFactory2_CreateSwapChainForCoreWindow_Override,
-                                            CreateSwapChainForCoreWindow_Original,
-                                            CreateSwapChainForCoreWindow_pfn );
-          SK_Hook_TargetFromVFTable (
-            LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
-              (void **)/*&pFactory2.p*/&pFactory, 16 );
-        }
-
-        if (! LocalHook_IDXGIFactory2_CreateSwapChainForComposition.active)
-        {
-          DXGI_VIRTUAL_HOOK ( /*&pFactory2.p*/&pFactory, 24,
-                              "IDXGIFactory2::CreateSwapChainForComposition",
-                               DXGIFactory2_CreateSwapChainForComposition_Override,
-                                            CreateSwapChainForComposition_Original,
-                                            CreateSwapChainForComposition_pfn );
-
-          SK_Hook_TargetFromVFTable (
-            LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
-              (void **)/*&pFactory2.p*/&pFactory, 24 );
-        }
+    ////if (! LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow.active)
+    ////{
+    ////  DXGI_VIRTUAL_HOOK ( /*&pFactory2.p*/&pFactory, 16,
+    ////                      "IDXGIFactory2::CreateSwapChainForCoreWindow",
+    ////                       DXGIFactory2_CreateSwapChainForCoreWindow_Override,
+    ////                                    CreateSwapChainForCoreWindow_Original,
+    ////                                    CreateSwapChainForCoreWindow_pfn );
+    ////  SK_Hook_TargetFromVFTable (
+    ////    LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
+    ////      (void **)/*&pFactory2.p*/&pFactory, 16 );
+    ////}
+    ////
+    ////if (! LocalHook_IDXGIFactory2_CreateSwapChainForComposition.active)
+    ////{
+    ////  DXGI_VIRTUAL_HOOK ( /*&pFactory2.p*/&pFactory, 24,
+    ////                      "IDXGIFactory2::CreateSwapChainForComposition",
+    ////                       DXGIFactory2_CreateSwapChainForComposition_Override,
+    ////                                    CreateSwapChainForComposition_Original,
+    ////                                    CreateSwapChainForComposition_pfn );
+    ////
+    ////  SK_Hook_TargetFromVFTable (
+    ////    LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
+    ////      (void **)/*&pFactory2.p*/&pFactory, 24 );
+    ////}
       }
     }
 

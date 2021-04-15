@@ -334,6 +334,7 @@ SK::ControlPanel::D3D11::Draw (void)
       static bool flip         = config.render.framerate.flip_discard;
       static bool waitable     = config.render.framerate.swapchain_wait > 0;
       static int  buffer_count = config.render.framerate.buffer_count;
+      static int  prerender    = config.render.framerate.pre_render_limit;
 
       ImGui::TreePush ("");
 
@@ -345,7 +346,7 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::BeginTooltip ();
         ImGui::Text         ("High-Performance Windowed Rendering");
         ImGui::Separator    ();
-        ImGui::BulletText   ("Makes Windowed Mode Perform ~Same as Fullscreen Exclusive");
+        ImGui::BulletText   ("Makes Windowed Mode Perform Same as Fullscreen Exclusive");
         ImGui::EndTooltip   ();
       }
 
@@ -358,6 +359,21 @@ SK::ControlPanel::D3D11::Draw (void)
           if (! waitable_) config.render.framerate.swapchain_wait = 0;
           else             config.render.framerate.swapchain_wait = 15;
 
+          if (waitable_)
+          {
+            // Setup default values when first turned on
+            if (config.render.framerate.pre_render_limit == -1)
+            {
+              config.render.framerate.pre_render_limit =
+                std::min (
+                  std::max ( config.render.framerate.buffer_count + 1, 3 ),
+                                                                       3 );
+            }
+
+            else
+              config.render.framerate.pre_render_limit = -1;
+          }
+
           _ResetLimiter ();
         }
 
@@ -367,12 +383,12 @@ SK::ControlPanel::D3D11::Draw (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ();
-          ImGui::Text         ("Reduces Windowed Input Latency in SK's Framerate Limiter");
+          ImGui::Text         ("Reduces Input Latency in SK's Framerate Limiter");
           if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
           {
             ImGui::Separator  ();
-            ImGui::BulletText ("Fullscreen Exclusive Will Not Work While Enabled");
-            ImGui::BulletText ("Fullscreen Exclusive is Obsolete, seriously...");
+            ImGui::BulletText ("Fullscreen Exclusive will not work while enabled");
+            ImGui::BulletText ("Fullscreen Exclusive is obsolete");
           }
           ImGui::EndTooltip   ();
         }
@@ -418,7 +434,11 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::Text       ("This Controls V-Sync");
         ImGui::Separator  (                                               );
         ImGui::BulletText ("-1=Game Controlled,  0=Force Off,  1=Force On");
-        ImGui::BulletText (">1=Fractional Refresh Rates");
+
+        if (config.render.framerate.drop_late_flips && config.render.framerate.present_interval)
+          ImGui::BulletText ("Values > 1 do not Apply unless \"Drop Late Frames\" or SK's Framerate Limiter are Disabled");
+        else
+          ImGui::BulletText (">1=Fractional Refresh Rates");
 
         ImGui::EndTooltip ();
       }
@@ -431,34 +451,46 @@ SK::ControlPanel::D3D11::Draw (void)
         static auto& io =
           ImGui::GetIO ();
 
-        // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
-        PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)io.DisplaySize.x,
-                                                                                (LONG)io.DisplaySize.y ) );
+        if (config.render.framerate.buffer_count > 0)
+        {
+          if (config.render.framerate.flip_discard)
+              config.render.framerate.buffer_count = std::min (15, std::max (2, config.render.framerate.buffer_count));
+          else
+              config.render.framerate.buffer_count = std::min (15, std::max (1, config.render.framerate.buffer_count));
 
-        _ResetLimiter ();
+          // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
+          PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)io.DisplaySize.x,
+                                                                                  (LONG)io.DisplaySize.y ) );
+
+          _ResetLimiter ();
+        }
       }
 
       // Clamp to [-1,oo)
-      if (config.render.framerate.buffer_count < -1)
+      if (config.render.framerate.buffer_count <  0)
           config.render.framerate.buffer_count = -1;
 
       if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
       {
-        if (config.render.framerate.pre_render_limit < -1)
+        if (config.render.framerate.pre_render_limit <  0)
             config.render.framerate.pre_render_limit = -1;
 
-        else if (config.render.framerate.pre_render_limit > config.render.framerate.buffer_count + 1)
-          config.render.framerate.pre_render_limit = config.render.framerate.buffer_count + 1;
-
-        SK_ComQIPtr <IDXGISwapChain>
-            pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
-        if (pSwapChain != nullptr)
+        else
         {
-          void
-          SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain );
-          SK_DXGI_UpdateLatencies (                 pSwapChain );
+          if (config.render.framerate.buffer_count > 0)
+              config.render.framerate.pre_render_limit = std::min ( config.render.framerate.pre_render_limit,
+                                                                      config.render.framerate.buffer_count + 1 );
 
-          _ResetLimiter ();
+          SK_ComQIPtr <IDXGISwapChain>
+              pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
+          if (pSwapChain != nullptr)
+          {
+            void
+            SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain );
+            SK_DXGI_UpdateLatencies (                 pSwapChain );
+
+            _ResetLimiter ();
+          }
         }
       }
       ImGui::EndGroup ();
@@ -466,7 +498,8 @@ SK::ControlPanel::D3D11::Draw (void)
       const bool changed =
         (flip         != config.render.framerate.flip_discard      ) ||
         (waitable     != config.render.framerate.swapchain_wait > 0) ||
-        (buffer_count != config.render.framerate.buffer_count      );
+        (buffer_count != config.render.framerate.buffer_count      ) ||
+        (prerender    != config.render.framerate.pre_render_limit);
 
       if (changed)
       {

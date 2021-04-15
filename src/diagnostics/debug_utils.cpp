@@ -2063,7 +2063,9 @@ ZwSetInformationThread_Detour (
     //
     if (config.system.log_level > 5)
     {
-      SuspendThread (ThreadHandle);
+      CONTEXT                          ThreadContext = { };
+      SuspendThread    (ThreadHandle);
+      GetThreadContext (ThreadHandle, &ThreadContext);
     }
 
     SK::Diagnostics::Debugger::Allow (true);
@@ -2707,12 +2709,6 @@ DbgUiRemoteBreakin_Detour (PVOID Context)
   //RtlExitUserThread_Original (STATUS_SUCCESS);
 }
 
-using RaiseException_pfn =
-  void (WINAPI *)(       DWORD      dwExceptionCode,
-                         DWORD      dwExceptionFlags,
-                         DWORD      nNumberOfArguments,
-                   const ULONG_PTR *lpArguments );
-
 extern "C" RaiseException_pfn
            RaiseException_Original = nullptr;
 
@@ -2878,13 +2874,13 @@ SK_Exception_HandleThreadName (
 
         if ((! sk_ffxv_vsync->hThread) && StrStrIA (info->szName, "VSync"))
         {
-          sk_ffxv_vsync->setup (hThread);
+          sk_ffxv_vsync->setup (hThread.m_h);
         }
 
         else if ( (! sk_ffxv_async_run->hThread) &&
                      StrStrIA (info->szName, "AsyncFile.Run") )
         {
-          sk_ffxv_async_run->setup (hThread);
+          sk_ffxv_async_run->setup (hThread.m_h);
         }
       }
 
@@ -3327,48 +3323,13 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
 
     __finally
     {
-      SK::Diagnostics::CrashHandler::Reinstall ();
+      ///////SK::Diagnostics::CrashHandler::Reinstall ();
     }
   }
 
   __finally
   { };
 }
-
-
-void
-WINAPI
-SK_RaiseException
-(       DWORD      dwExceptionCode,
-        DWORD      dwExceptionFlags,
-        DWORD      nNumberOfArguments,
-  const ULONG_PTR *lpArguments )
-{
-  __try
-  {
-    __try
-    {
-      if (RaiseException_Original != nullptr)
-      {
-        RaiseException_Original ( dwExceptionCode,    dwExceptionFlags,
-                                  nNumberOfArguments, lpArguments );
-      }
-
-      else
-      {
-        RaiseException ( dwExceptionCode,    dwExceptionFlags,
-                         nNumberOfArguments, lpArguments );
-      }
-    }
-
-    __except (EXCEPTION_CONTINUE_SEARCH) { };
-  }
-  __except ( dwExceptionFlags ==
-               SK_EXCEPTION_CONTINUABLE     ?
-                  EXCEPTION_EXECUTE_HANDLER :
-                  EXCEPTION_CONTINUE_SEARCH ) { }
-}
-
 
 //// Detoured so we can get thread names
 //[[noreturn]]
@@ -3529,12 +3490,15 @@ RaiseException_Detour (
       __debugbreak ();
     }
 
-    SK::Diagnostics::CrashHandler::Reinstall ();
+    ////////SK::Diagnostics::CrashHandler::Reinstall ();
 
-    SK_RaiseException (
-      dwExceptionCode,    dwExceptionFlags,
-      nNumberOfArguments, lpArguments
-    );
+    if (dwExceptionCode != EXCEPTION_BREAKPOINT || SK_IsDebuggerPresent ())
+    {
+      SK_RaiseException (
+        dwExceptionCode,    dwExceptionFlags,
+        nNumberOfArguments, lpArguments
+      );
+    }
   }
 }
 
@@ -3675,8 +3639,6 @@ SetWindowsHookExA_Detour (
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
-  return true;
-
   if (SK_IsHostAppSKIM ())
   {
     return true;

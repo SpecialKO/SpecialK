@@ -85,7 +85,7 @@ SK_COM_TestInit (void)
   }
 
   HRESULT hr =
-    SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
+    SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken.m_h, &str);
 
   if (SUCCEEDED (hr))
   {
@@ -295,20 +295,6 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
 bool
 SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 {
-  using GetUserProfileDirectoryW_pfn =
-    BOOL (WINAPI *)(HANDLE, LPWSTR, LPDWORD);
-
-  static auto      hModUserEnv =
-    SK_LoadLibraryW (L"USERENV.DLL");
-
-  static auto _GetUserProfileDirectoryW =
-              (GetUserProfileDirectoryW_pfn)
-            SK_GetProcAddress ( hModUserEnv,
-              "GetUserProfileDirectoryW" );
-
-  if (! _GetUserProfileDirectoryW)
-    return false;
-
   SK_AutoHandle hToken (
     INVALID_HANDLE_VALUE
   );
@@ -316,9 +302,9 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
   if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
 
-  if (! _GetUserProfileDirectoryW ( hToken, buf,
-                                      reinterpret_cast <DWORD *> (pdwLen)
-                                  )
+  if (! GetUserProfileDirectoryW ( hToken.m_h, buf,
+                                     reinterpret_cast <DWORD *> (pdwLen)
+                                 )
      )
   {
     return false;
@@ -546,7 +532,7 @@ SK_File_FullCopy ( const wchar_t* from,
 
   // Here's where the magic happens, apply the attributes from the
   //   original file to the new one!
-  SetFileTime ( hTo,
+  SetFileTime ( hTo.m_h,
                   &FromFileData.ftCreationTime,
                     &FromFileData.ftLastAccessTime,
                       &FromFileData.ftLastWriteTime );
@@ -622,7 +608,7 @@ SK_IsAdmin (void)
     DWORD cbSize =
       sizeof (TOKEN_ELEVATION);
 
-    if ( GetTokenInformation ( hToken,
+    if ( GetTokenInformation ( hToken.m_h,
                                  TokenElevation,
                                    &Elevation,
                                      sizeof (Elevation),
@@ -683,7 +669,7 @@ typedef FARPROC (WINAPI *GetProcAddress_pfn)(HMODULE,LPCSTR);
 
 FARPROC
 WINAPI
-SK_GetProcAddress (HMODULE hMod, const char* szFunc) noexcept
+SK_GetProcAddress (const HMODULE hMod, const char* szFunc) noexcept
 {
   FARPROC proc = nullptr;
 
@@ -1084,6 +1070,7 @@ SK_GetCallerName (LPCVOID pReturn)
     SK_GetModuleName (SK_GetCallingDLL (pReturn));
 }
 
+
 std::queue <DWORD>
 SK_SuspendAllOtherThreads (void)
 {
@@ -1098,7 +1085,7 @@ SK_SuspendAllOtherThreads (void)
     THREADENTRY32 tent        = {                    };
                   tent.dwSize = sizeof (THREADENTRY32);
 
-    if (Thread32First (hSnap, &tent))
+    if (Thread32First (hSnap.m_h, &tent))
     {
       //bool locked =
       //  dll_log.lock ();
@@ -1119,13 +1106,15 @@ SK_SuspendAllOtherThreads (void)
             {
               threads.push  (tent.th32ThreadID);
 
-              SuspendThread (hThread);
+              CONTEXT                         threadContext = { };
+              SuspendThread    (hThread.m_h);
+              GetThreadContext (hThread.m_h, &threadContext);
             }
           }
         }
 
         tent.dwSize = sizeof (tent);
-      } while (Thread32Next (hSnap, &tent));
+      } while (Thread32Next (hSnap.m_h, &tent));
 
       //if (locked)
       //  dll_log.unlock ();
@@ -1149,7 +1138,7 @@ SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
     THREADENTRY32 tent        = {                    };
                   tent.dwSize = sizeof (THREADENTRY32);
 
-    if (Thread32First (hSnap, &tent))
+    if (Thread32First (hSnap.m_h, &tent))
     {
       //bool locked =
       //  dll_log.lock ();
@@ -1171,13 +1160,15 @@ SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
             {
               threads.push  (tent.th32ThreadID);
 
-              SuspendThread (hThread);
+              CONTEXT                         threadContext = { };
+              SuspendThread    (hThread.m_h);
+              GetThreadContext (hThread.m_h, &threadContext);
             }
           }
         }
 
         tent.dwSize = sizeof (tent);
-      } while (Thread32Next (hSnap, &tent));
+      } while (Thread32Next (hSnap.m_h, &tent));
 
       //if (locked)
       //  dll_log.unlock ();
@@ -1670,8 +1661,8 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   if (! wszName)
     return false;
 
-  if ((! SK_GetModuleHandleW (wszName)) && PathFileExistsW (wszName))
-             SK_LoadLibraryW (wszName);
+  /////if ((! SK_GetModuleHandleW (wszName)) && PathFileExistsW (wszName))
+  /////           SK_LoadLibraryW (wszName);
 
   if (SK_GetProcAddress (SK_GetModuleHandleW (wszName), "SK_GetDLL") != nullptr)
     return true;
@@ -1679,7 +1670,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   UINT cbTranslatedBytes = 0,
        cbProductBytes    = 0;
 
-  size_t dwSize = 16384;
+  size_t dwSize = 16383;
   uint8_t cbData [16384] = { };
 
   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
@@ -1737,7 +1728,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
            cbVersionBytes    = 0;
 
   uint8_t cbData [16384] = { };
-  size_t dwSize = 16384;
+  size_t dwSize = 16383;
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -2745,6 +2736,10 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 void
 SK_RestartGame (const wchar_t* wszDLL)
 {
+  // This would make debugging very difficult otherwise :)
+  if (SK_IsDebuggerPresent ())
+              __debugbreak ();
+
   wchar_t wszShortPath [MAX_PATH + 2] = { };
   wchar_t wszFullname  [MAX_PATH + 2] = { };
 

@@ -202,7 +202,7 @@ IWrapDXGISwapChain::Release (void)
 
   HWND hwnd = hWnd_;
 
-  if (xrefs == 1)
+  if (xrefs == 0)
   {
     // We're going to make this available for recycling
     if (hWnd_ != 0)
@@ -412,8 +412,37 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
+  //
+  // Fix a number of problems caused by RTSS
+  //
+  {
+    DXGI_SWAP_CHAIN_DESC swapDesc = { };
+    pReal->GetDesc     (&swapDesc);
+
+    // We can't add or remove this flag, or the API call will fail. So fix it (!!) :)
+    if (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+      SwapChainFlags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    else
+      SwapChainFlags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+
+    if (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
+      SwapChainFlags |=  DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+    else
+      SwapChainFlags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+
+    extern bool
+        __SK_HDR_16BitSwap;
+    if (__SK_HDR_16BitSwap && swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+    {
+      if (NewFormat != DXGI_FORMAT_UNKNOWN)
+          NewFormat  = swapDesc.BufferDesc.Format;
+    }
+  }
+
+
   HRESULT hr =
     pReal->ResizeBuffers (BufferCount, Width, Height, NewFormat, SwapChainFlags);
+
 
   if (SUCCEEDED (hr))
   {
@@ -424,6 +453,13 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     if (Width != 0)
     gameWidth_ =
         Width;
+  }
+
+  else
+  {
+    if ( config.render.framerate.flip_discard &&
+         config.window.res.override.x != 0    &&
+         config.window.res.override.y != 0 ) return S_OK;
   }
 
   return hr;

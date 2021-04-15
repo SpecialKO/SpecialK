@@ -28,15 +28,9 @@
 
 #define SK_INVALID_HANDLE nullptr
 
-NtUserSetWindowsHookEx_pfn
-NtUserSetWindowsHookEx    = nullptr;
-
-NtUserCallNextHookEx_pfn
-NtUserCallNextHookEx      = nullptr;
-
-NtUserUnhookWindowsHookEx_pfn
-NtUserUnhookWindowsHookEx = nullptr;
-
+NtUserSetWindowsHookEx_pfn    NtUserSetWindowsHookEx    = nullptr;
+NtUserCallNextHookEx_pfn      NtUserCallNextHookEx      = nullptr;
+NtUserUnhookWindowsHookEx_pfn NtUserUnhookWindowsHookEx = nullptr;
 
 HMODULE hModHookInstance = nullptr;
 
@@ -132,7 +126,8 @@ SK_Inject_InitShutdownEvent (void)
 {
   if (dwHookPID == 0)
   {
-    bAdmin           = SK_IsAdmin ();
+    bAdmin =
+      SK_IsAdmin ();
 
     SECURITY_ATTRIBUTES
       sattr          = { };
@@ -152,7 +147,8 @@ SK_Inject_InitShutdownEvent (void)
       ResetEvent (hTeardown);
     }
 
-    dwHookPID        = GetCurrentProcessId ();
+    dwHookPID =
+      GetCurrentProcessId ();
   }
 }
 
@@ -195,12 +191,12 @@ SK_Inject_ValidateProcesses (void)
 
     else
     {
-      DWORD dwExitCode = STILL_ACTIVE;
-
-      GetExitCodeProcess (hProc, &dwExitCode);
-
-      if (dwExitCode != STILL_ACTIVE)
+      DWORD                           dwExitCode  = STILL_ACTIVE;
+      GetExitCodeProcess (hProc.m_h, &dwExitCode);
+      if (                            dwExitCode != STILL_ACTIVE)
+      {
         ReadAcquire (&hooked_pid);
+      }
     }
   }
 }
@@ -394,44 +390,41 @@ SKX_GetCBTHook (void) noexcept
 
 // Don't use a local static variable, since that drags in the MSVCRT to do
 //   the dirty work, just make this a global.
-HMODULE hModule_CBT = nullptr;
+HMODULE g_hModule_CBT   = nullptr;
+HANDLE  g_hPacifyThread = SK_INVALID_HANDLE;
+HANDLE  g_hHookTeardown = SK_INVALID_HANDLE;
 
-LRESULT
-CALLBACK
-CBTProc ( _In_ int    nCode,
-          _In_ WPARAM wParam,
-          _In_ LPARAM lParam )
+void
+SK_Inject_SpawnUnloadListener (void)
 {
-  if (nCode < 0)
-  {
-    LRESULT lRet =
-      CallNextHookEx (nullptr, nCode, wParam, lParam);
-
-    // ...
-
-    return lRet;
-  }
-
-  if ( hModule_CBT == nullptr &&
+  if ( g_hPacifyThread == SK_INVALID_HANDLE &&
+       g_hModule_CBT   == nullptr           &&
          GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-            reinterpret_cast <LPCWSTR> (&CBTProc), &hModule_CBT )
+            reinterpret_cast <LPCWSTR> (&CBTProc), &g_hModule_CBT )
      )
   {
-    LONG idx =
-      InterlockedIncrement (&num_hooked_pids);
+    if (g_hHookTeardown == SK_INVALID_HANDLE)
+        g_hHookTeardown =
+          OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+              SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
+                                     LR"(Local\SK_GlobalHookTeardown64)") );
 
-    if (idx < MAX_HOOKED_PROCS)
-    {
-      WriteULongRelease (
-        &hooked_pids [idx],
-          GetCurrentProcessId ()
-      );
-    }
-
-    HANDLE hThread =
-    CreateThread (nullptr, 0, [](LPVOID lpUser) -> //-V513
+    if (g_hHookTeardown != SK_INVALID_HANDLE)
+    g_hPacifyThread =
+    CreateThread (nullptr, 0, [](LPVOID lpUser) ->
     DWORD
     {
+      LONG idx =
+        InterlockedIncrement (&num_hooked_pids);
+
+      if (idx < MAX_HOOKED_PROCS)
+      {
+        WriteULongRelease (
+          &hooked_pids [idx],
+            GetCurrentProcessId ()
+        );
+      }
+
       HMODULE hMod =
         *(static_cast <HMODULE *> (lpUser));
 
@@ -470,66 +463,44 @@ CBTProc ( _In_ int    nCode,
       }
       __except (EXCEPTION_EXECUTE_HANDLER) { };
 
-
-      HANDLE hHookTeardown =
-        OpenEvent ( EVENT_ALL_ACCESS, FALSE,
-            SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
-                                   LR"(Local\SK_GlobalHookTeardown64)") );
-
-      // Every 20 seconds anything we're injected into has to wake up and
-      //   give us a chance to unload.
-      DWORD  dwMilliseconds = 20000uL;
-      HANDLE hWaitTimer =
-        CreateWaitableTimer (nullptr , FALSE, nullptr);
-
-      if ( hWaitTimer    != SK_INVALID_HANDLE &&
-           hHookTeardown != SK_INVALID_HANDLE    )
+      if (g_hHookTeardown != SK_INVALID_HANDLE)
       {
-        LARGE_INTEGER liDelay = { };
-                      liDelay.QuadPart =
-          static_cast <LONGLONG> (
-            -10000.0 * static_cast <double> (dwMilliseconds)
-                                 );
-
-        HANDLE events [] =
-             { hWaitTimer,
-               hHookTeardown };
-
-        if ( SetWaitableTimer ( hWaitTimer, &liDelay,
-                                  dwMilliseconds, nullptr,
-                                                  nullptr, TRUE )
-           )
-        {
-          DWORD  dwWaitStatus  = WAIT_TIMEOUT;
-          while (dwWaitStatus != WAIT_FAILED)
-          {
-            dwWaitStatus =
-              WaitForMultipleObjectsEx ( 2, events,   FALSE,
-                                            INFINITE, FALSE );
-
-            if (dwWaitStatus == WAIT_OBJECT_0)
-              continue;
-
-            // Any other wait state is unexpected and the safest behavior
-            //   is to let this thread run to completion and unload the DLL.
-            break;
-          }
-
-          CancelWaitableTimer (hWaitTimer);
-          CloseHandle         (hWaitTimer);
-        }
-
-        CloseHandle (hHookTeardown);
+        WaitForSingleObject (
+                     g_hHookTeardown, INFINITE);
+        CloseHandle (g_hHookTeardown);
+                     g_hHookTeardown = SK_INVALID_HANDLE;
       }
+      
+      CloseHandle (g_hPacifyThread);
+                   g_hPacifyThread = SK_INVALID_HANDLE;
 
-      FreeLibraryAndExitThread (hMod, 0x0);
+      if (hMod != nullptr)
+        FreeLibraryAndExitThread (hMod, 0x0);
+                                  hMod = nullptr;
 
       return 0;
-    }, static_cast <LPVOID> (&hModule_CBT), 0x0, nullptr);
+    }, static_cast <LPVOID> (&g_hModule_CBT), CREATE_SUSPENDED, nullptr);
 
-    if (hThread != SK_INVALID_HANDLE)
-      CloseHandle (hThread);
+    if (            g_hPacifyThread != SK_INVALID_HANDLE) {
+      ResumeThread (g_hPacifyThread);
+    } else {
+      if (           g_hHookTeardown != SK_INVALID_HANDLE)
+      { CloseHandle (g_hHookTeardown);
+                     g_hHookTeardown = SK_INVALID_HANDLE;
+      }
+      FreeLibrary  (g_hModule_CBT);
+                    g_hModule_CBT = nullptr;
+    }
   }
+}
+
+LRESULT
+CALLBACK
+CBTProc ( _In_ int    nCode,
+          _In_ WPARAM wParam,
+          _In_ LPARAM lParam )
+{
+  SK_Inject_SpawnUnloadListener ();
 
   return
     CallNextHookEx (
@@ -549,7 +520,7 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
     return FALSE;
 
   return
-    SK_TerminateProcess ( hProcess, uExitCode );
+    SK_TerminateProcess ( hProcess.m_h, uExitCode );
 }
 
 
@@ -626,7 +597,7 @@ SKX_RemoveCBTHook (void)
 
       if (                      0 == dwPid ||
            suspended_pids.count     (dwPid)||
-           running_pids.count       (dwPid)||
+             running_pids.count     (dwPid)||
            GetCurrentProcessId () == dwPid )
         continue;
 
@@ -648,14 +619,13 @@ SKX_RemoveCBTHook (void)
       SendMessageTimeout ( HWND_BROADCAST,
                              WM_NULL, 0, 0,
                                SMTO_ABORTIFHUNG,
-                                 150UL, &dwpResult );
+                                 250UL, &dwpResult );
 
       SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
                               DeleteFileW (L"SpecialK32.pid") );
     }
 
-    hHookCBT  = nullptr;
-    hHookOrig = nullptr;
+    hHookCBT = nullptr;
 
     for ( auto& pid : suspended_pids )
     {
@@ -748,8 +718,8 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
 
                  if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
                  {
-
                    CloseHandle (hHookTeardown);
+                                hHookTeardown = 0;
                  }
 
                  SK_Thread_CloseSelf ();
@@ -815,7 +785,7 @@ SK_Inject_EnableCentralizedConfig (void)
   if (fOut != nullptr)
   {
     fputws (L" ", fOut);
-    fclose (fOut);
+    fclose (      fOut);
 
     config.system.central_repository = true;
   }
@@ -1195,9 +1165,10 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
   if ((intptr_t)hProcSnap.m_h <= 0)
     return false;
 
-  pe32.dwSize = sizeof (PROCESSENTRY32W);
+  pe32.dwSize =
+    sizeof (PROCESSENTRY32W);
 
-  if (Process32FirstW (hProcSnap, &pe32) == FALSE)
+  if (Process32FirstW (hProcSnap.m_h, &pe32) == FALSE)
   {
     return false;
   }
@@ -1209,11 +1180,12 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
       window_t win =
         SK_FindRootWindow (pe32.th32ProcessID);
 
-      SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
+      if (win.root != 0)
+        SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
 
       return true;
     }
-  } while (Process32NextW (hProcSnap, &pe32));
+  } while (Process32NextW (hProcSnap.m_h, &pe32));
 
   return false;
 }
@@ -1462,13 +1434,16 @@ SK_Inject_InitWhiteAndBlacklists (void)
           FILE_NOTIFY_CHANGE_LAST_WRITE
       );
 
-    while ( FindNextChangeNotification (
-                   hChangeNotification ) != FALSE )
+    if (hChangeNotification != INVALID_HANDLE_VALUE)
     {
-      if ( WAIT_OBJECT_0 ==
-             WaitForSingleObject (hChangeNotification, INFINITE) )
+      while ( FindNextChangeNotification (
+                     hChangeNotification ) != FALSE )
       {
-        SK_Inject_ParseWhiteAndBlacklists (global_cfg_dir);
+        if ( WAIT_OBJECT_0 ==
+               WaitForSingleObject (hChangeNotification, INFINITE) )
+        {
+          SK_Inject_ParseWhiteAndBlacklists (global_cfg_dir);
+        }
       }
     }
 
@@ -1505,7 +1480,7 @@ SK_Inject_TestWhitelists (const wchar_t* wszExecutable)
 {
   // Sort of a temporary hack for important games that I support that are
   //   sold on alternative stores to Steam.
-  if (StrStrIW (wszExecutable, L"ffxv") != nullptr)
+  if (StrStrNIW (wszExecutable, L"ffxv", MAX_PATH) != nullptr)
     return true;
 
   return
@@ -1517,7 +1492,6 @@ SK_Inject_TestUserBlacklist (const wchar_t* wszExecutable)
 {
   if ( blacklist_count <= 0 )
     return false;
-
 
   for ( int i = 0; i < blacklist_count; i++ )
   {
