@@ -631,7 +631,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         }
       }
 
-       const ULONG64      zombie_threshold = 1;//120;
+       const ULONG64      zombie_threshold = 4;//120;
       static ULONG64 last_zombie_pass      = frames_drawn;
 
       if (last_zombie_pass <= frames_drawn - zombie_threshold / 2)

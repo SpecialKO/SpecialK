@@ -745,7 +745,7 @@ SK_DrawOSD (void)
        rb.gsync_state.active  );
 
 
-    if (mean != INFINITY)
+    if (fabs (mean - INFINITY) > std::numeric_limits <double>::epsilon ())
     {
       const char* format = "";
 

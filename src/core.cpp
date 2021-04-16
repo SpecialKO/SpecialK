@@ -1263,12 +1263,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_IsInjected () && config.system.global_inject_delay > 0.0f)
   {
     struct packaged_params_s {
-      std::wstring backend; // Persistent copy
-      void*        callback;
-      HANDLE       thread =   INVALID_HANDLE_VALUE;
-      HANDLE       parent =   INVALID_HANDLE_VALUE;
-      DWORD        resume =                      0; // Number of times we Suspended
-      CONTEXT      ctx    = {                    };
+      std::wstring backend  = L""; // Persistent copy
+      void*        callback =                nullptr;
+      HANDLE       thread   =   INVALID_HANDLE_VALUE;
+      HANDLE       parent   =   INVALID_HANDLE_VALUE;
+      DWORD        resume   =                      0; // Number of times we Suspended
+      CONTEXT      ctx      = {                    };
     } static  delay_params  { backend,  callback };
 
     if (delay_params.thread == INVALID_HANDLE_VALUE)

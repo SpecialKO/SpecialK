@@ -730,7 +730,7 @@ SK::Framerate::Limiter::wait (void)
       do
       {
         dwWaitState =
-          WaitForSingleObjectEx ( hWaitHandle.m_h, 1000 * to_next_in_secs,
+          WaitForSingleObjectEx ( hWaitHandle.m_h, static_cast <DWORD> (1000.0 * to_next_in_secs),
                                     TRUE );
 
         to_next_in_secs =

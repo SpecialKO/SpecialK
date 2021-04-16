@@ -2444,11 +2444,13 @@ public:
 
         // If the user wants a screenshot, but no popups (why?!), this is when
         //   the screenshot needs to be taken.
-        if ( config.steam.achievements.take_screenshot &&
-          (! ( config.steam.achievements.popup.show    &&
-               config.cegui.enable ) ) )
-        {
-          SK::SteamAPI::TakeScreenshot ();
+        if (       config.steam.achievements.take_screenshot )
+        {  if ( (! config.steam.achievements.popup.show) ||
+                (! config.cegui.enable)                  ||
+                (  SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12 ) )
+           {
+             SK::SteamAPI::TakeScreenshot ();
+           }
         }
 
         // Re-calculate percentage unlocked
@@ -3635,7 +3637,7 @@ SteamAPI_RunCallbacks_Detour (void)
     );
     try
     {
-      if (ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) > 24 && fetch_stats)
+      if (ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) > 24)
       {
         SK_Steam_SetNotifyCorner ();
 

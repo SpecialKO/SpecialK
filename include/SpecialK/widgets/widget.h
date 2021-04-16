@@ -447,7 +447,7 @@ public:
   void addValue (_T val, bool only_if_different = false) noexcept
   {
     const bool insert =
-      (! only_if_different) || (last_val != val);
+      (! only_if_different) || fabs (last_val - val) > std::numeric_limits <_T>::epsilon ();
 
     if (insert)
     {

@@ -43,7 +43,7 @@ SK_ImGui_DrawGraph_Latency (void)
   
   struct stage_timing_s
   {
-    const char* label;
+    const char* label = nullptr;
     const char*
            desc = nullptr;
     NvU64   min = std::numeric_limits <NvU64>::max (),

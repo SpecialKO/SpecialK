@@ -1491,8 +1491,8 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
         _P->pBackBuffer.Release ();
   };
 
-  for ( UINT i = 0 ; i < _MAX_BACKBUFFERS ; ++i )
-    _CleanupBackbuffer (i);
+  //for ( UINT i = 0 ; i < _MAX_BACKBUFFERS ; ++i )
+  _CleanupBackbuffer (0);
 }
 
 bool

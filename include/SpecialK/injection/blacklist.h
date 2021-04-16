@@ -7,7 +7,7 @@ typedef struct _UNICODE_STRING {
   USHORT         MaximumLength;
   PWSTR          Buffer;
 } UNICODE_STRING,
-*PUNICODE_STRING; //-V677
+*PUNICODE_STRING;
 #pragma pack (pop)
 
 typedef NTSTATUS (NTAPI* LdrGetDllHandle_pfn)(

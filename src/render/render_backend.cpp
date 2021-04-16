@@ -1281,13 +1281,18 @@ sk_hwnd_cache_s::sk_hwnd_cache_s (HWND wnd)
     owner.tid =
       GetWindowThreadProcessId (hwnd, &owner.pid);
 
-    RealGetWindowClassW        (hwnd, class_name, 127);
-    InternalGetWindowText      (hwnd, title,      127);
+    if ( 0 ==
+           RealGetWindowClassW   (hwnd, class_name, 128) )
+                                       *class_name = L'\0';
+    if ( 0 ==
+           InternalGetWindowText (hwnd, title,      128) )
+                                       *title = L'\0';
 
     unicode = IsWindowUnicode  (hwnd);
     parent  = GetParent        (hwnd);
 
-    last_changed = SK_GetFramesDrawn ();
+    if (*title != L'\0' && *class_name != L'\0')
+      last_changed = SK_GetFramesDrawn ();
   }
 }
 
@@ -2363,7 +2368,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
           wchar_t   wszDevInst [128] = { };
           wchar_t* pwszTok           = nullptr;
 
-          swscanf (disp_desc.DeviceID, LR"(\\?\DISPLAY#%ws)", wszDevName);
+          swscanf (disp_desc.DeviceID, LR"(\\?\DISPLAY#%63ws)", wszDevName);
 
           pwszTok =
             StrStrIW (wszDevName, L"#");

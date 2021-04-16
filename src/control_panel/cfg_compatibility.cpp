@@ -67,6 +67,7 @@ SK::ControlPanel::Compatibility::Draw (void)
 #ifdef _M_AMD64
           case SK_RenderAPI::D3D12:
             config.apis.dxgi.d3d12.hook = true;
+            break;
 #endif
           case SK_RenderAPI::D3D11:
             config.apis.dxgi.d3d11.hook = true;

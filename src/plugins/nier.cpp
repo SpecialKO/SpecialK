@@ -269,32 +269,14 @@ SK_FAR_CreateBuffer (
     float half_extents [ 4];
   };
 
-
-  if (pDesc != nullptr && pDesc->StructureByteStride == 48 && pDesc->ByteWidth == 48 && pInitialData != nullptr && pInitialData->pSysMem != nullptr)
-  {
-    struct exposure_s {
-      float padding0; float exposure;
-      float padding2; float padding3;
-
-      float brightness; float padding5;
-      float padding6;   float padding7;
-
-      float vignette0; float vignette1;
-      float padding10; float padding11;
-    } *pData = (exposure_s *)pInitialData->pSysMem;
-
-    ///SK_LOG0 ( ( L"Exposure: %f, Brightness: %f, V0: %f, V1: %f",
-    ///              pData->exposure,  pData->brightness,
-    ///              pData->vignette0, pData->vignette1
-    ///            ), L"Test" );
-  }
-
   // Global Illumination (DrDaxxy)
   if ( pDesc != nullptr && pDesc->StructureByteStride == sizeof (far_light_volume_s)       &&
                            pDesc->ByteWidth           == sizeof (far_light_volume_s) * 128 &&
                            pDesc->BindFlags            & D3D11_BIND_SHADER_RESOURCE)
   {
     new_desc.ByteWidth = sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize;
+                                 far_light_volume_s
+                                 new_lights [128] = { };
 
     // New Stuff for 0.6.0
     // -------------------
@@ -306,8 +288,6 @@ SK_FAR_CreateBuffer (
       auto* lights =
         static_const_cast <far_light_volume_s *, void *> (pInitialData->pSysMem);
 
-      far_light_volume_s
-                   new_lights [128] = { };
       CopyMemory ( new_lights,
                        lights,
            sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize );
@@ -1026,9 +1006,10 @@ SK_FAR_CreateTexture2D (
     return _D3D11Dev_CreateTexture2D_Original ( This, pDesc, pInitialData, nullptr );
 
   static UINT   resW      = far_bloom.width; // horizontal resolution, must be set at application start
-  static double resFactor = resW / (
+  static double resFactor =
+        (double)resW / (
            game_state.isSteam () ?
-                            1600 : 1920 );   // the factor required to scale to the largest part of the pyramid
+                          1600.0 : 1920.0 ); // the factor required to scale to the largest part of the pyramid
 
   bool bloom = false;
   bool ao    = false;

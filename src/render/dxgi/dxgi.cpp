@@ -6601,8 +6601,6 @@ WINAPI CreateDXGIFactory (REFIID   riid,
     DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
   }
 
-  else SK_ReleaseAssert (CreateDXGIFactory_Import != nullptr);
-
   if (SUCCEEDED (ret))
     SK_DXGI_LazyHookFactory ((IDXGIFactory *)*ppFactory);
 

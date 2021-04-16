@@ -179,13 +179,13 @@ public:
     wchar_t               dxgi_name [32]  = { };
     HMONITOR              monitor         =   0;
     struct native_res_s {
-      uint32_t            width;
-      uint32_t            height;
+      uint32_t            width           =   0;
+      uint32_t            height          =   0;
     } native;
     struct nvapi_ctx_s {
       //NvPhysicalGpuHandle gpu_handle;
       //NvDisplayHandle     display_handle;
-      NvU32               display_id;
+      NvU32               display_id      =   0;
       //NvU32               output_id;
     } nvapi;
   } displays [16];

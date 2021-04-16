@@ -104,6 +104,7 @@ extern bool SK_Process_Resume      (DWORD dwPid);
 extern volatile LONG  __SK_HookContextOwner;
 
 SK_InjectionRecord_s*
+__stdcall
 SK_Inject_GetRecord (int idx)
 {
   wcsncpy_s

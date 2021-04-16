@@ -645,6 +645,7 @@ SKX_InstallCBTHook           = SKX_InstallCBTHook
 SKX_RemoveCBTHook            = SKX_RemoveCBTHook
 SKX_IsHookingCBT             = SKX_IsHookingCBT
 SKX_GetInjectedPIDs          = SKX_GetInjectedPIDs
+SK_Inject_GetRecord          = SK_Inject_GetRecord
 
 __SK_InjectionHistory        = __SK_InjectionHistory          DATA
 

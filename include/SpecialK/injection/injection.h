@@ -63,31 +63,30 @@ SK_Inject_TestBlacklists (const wchar_t* wszExecutable);
 
 // Internal use only
 //
-void
-SK_Inject_ReleaseProcess (void);
-
-void
-SK_Inject_AcquireProcess (void);
+void SK_Inject_ReleaseProcess (void);
+void SK_Inject_AcquireProcess (void);
 
 
-#define MAX_INJECTED_PROCS        16
-#define MAX_INJECTED_PROC_HISTORY 64
+#define MAX_INJECTED_PROCS        32
+#define MAX_INJECTED_PROC_HISTORY 128
 
 extern "C"
 {
 struct SK_InjectionRecord_s
 {
   struct {
-    wchar_t    name [MAX_PATH + 2] =  { 0 };
-    DWORD      id                  =    0;
-    __time64_t inject              = 0ULL;
-    __time64_t eject               = 0ULL;
+    wchar_t    name [MAX_PATH + 2] = { 0 };
+    DWORD      id                  =   0  ;
+    __time64_t inject              =  0ULL;
+    __time64_t eject               =  0ULL;
     bool       crashed             = false;
   } process;
 
   struct {
-    SK_RenderAPI api    = SK_RenderAPI::Reserved;
-    ULONG64      frames = 0ULL;
+    SK_RenderAPI api        = SK_RenderAPI::Reserved;
+    ULONG64      frames     =  0ULL;
+    bool         fullscreen = false;
+    bool         dpi_aware  = false;
   } render;
 
   // Use a bitmask instead of this stupidness
@@ -99,12 +98,18 @@ struct SK_InjectionRecord_s
     bool steam        = false;
   } input;
 
+  struct {
+    uint32_t steam_appid = 0;
+    // Others?
+  } platform;
+
   static __declspec (dllexport) volatile LONG count;
   static __declspec (dllexport) volatile LONG rollovers;
 };
 };
 
 SK_InjectionRecord_s*
+__stdcall
 SK_Inject_GetRecord (int idx);
 
 // Returns false if there is nothing to wait on, or if something else is

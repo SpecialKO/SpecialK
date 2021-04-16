@@ -35,7 +35,7 @@
 static constexpr int SK_MAX_WINDOW_DIM = 16384;
 
 // WS_SYSMENU keeps the window's icon unchanged
-#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | \
+#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | WS_SYSMENU | \
                            WS_CLIPCHILDREN | WS_CLIPSIBLINGS )
 #define SK_BORDERLESS_EX ( WS_EX_APPWINDOW )
 
@@ -1696,8 +1696,8 @@ AdjustWindowRect_Detour (
       dwStyle &= ~WS_DLGFRAME;
 
 
-      dwStyle &= ~WS_GROUP;
-      dwStyle &= ~WS_SYSMENU;
+      //dwStyle &= ~WS_GROUP;
+      //dwStyle &= ~WS_SYSMENU;
     }
 
     if (config.window.fullscreen && (! bMenu) && (IsRectEmpty (lpRect)))
@@ -1772,8 +1772,8 @@ AdjustWindowRectEx_Detour (
       dwStyle &= ~WS_DLGFRAME;
 
       
-      dwStyle &= ~WS_GROUP;
-      dwStyle &= ~WS_SYSMENU;
+      //dwStyle &= ~WS_GROUP;
+      //dwStyle &= ~WS_SYSMENU;
     }
 
     if (config.window.fullscreen && (! bMenu) && (IsRectEmpty (lpRect) && (! (dwExStyle & 0x20000000))))
@@ -2884,15 +2884,15 @@ SK_Window_RepositionIfNeeded (void)
           //   accomodate the new internal resolution
           if (! EqualRect (&rcClientOrig, &game_window.actual.client))
           {
-            if ( rcClientOrig.right  - rcClientOrig.left != rcClientLast.right  - rcClientLast.left ||
-                 rcClientOrig.bottom - rcClientOrig.top  != rcClientLast.bottom - rcClientLast.top )
-            {
+            //if ( rcClientOrig.right  - rcClientOrig.left != rcClientLast.right  - rcClientLast.left ||
+            //     rcClientOrig.bottom - rcClientOrig.top  != rcClientLast.bottom - rcClientLast.top )
+            //{
               extern volatile LONG lResetD3D11;
               //if (     SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12)
               //  InterlockedCompareExchange (&lResetD3D12, 1, 0);
               if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
                 InterlockedCompareExchange (&lResetD3D11, 1, 0);
-            }
+            //}
           }
 
           ullLastFrame =
@@ -4430,7 +4430,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         rb.fullscreen_exclusive = false;
 
-        if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
+        if (SK_WantBackgroundRender ())
         {
           // Blocking this message helps with many games that
           //   mute audio in the background

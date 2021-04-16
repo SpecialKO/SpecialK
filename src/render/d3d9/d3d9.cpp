@@ -3385,7 +3385,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  return pparams;
+////return pparams;
 
   if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex || (! pDevice))
   {

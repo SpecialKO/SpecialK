@@ -680,10 +680,10 @@ SK_DXGI_FormatToStr (DXGI_FORMAT fmt) noexcept
 
 struct SK_DXGI_sRGBCoDec {
   struct params_cbuffer_s {
-    BOOL passthrough;
-    BOOL apply;
-    BOOL strip;
-    BOOL padding;
+    BOOL passthrough = FALSE;
+    BOOL apply       = FALSE;
+    BOOL strip       = FALSE;
+    BOOL padding     = FALSE;
   } params;
 
   ID3D11InputLayout*            pInputLayout = nullptr;
