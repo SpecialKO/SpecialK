@@ -84,6 +84,7 @@
 #define FXAA_ALLOW_STRING                          L"NVIDIA Predefined FXAA Usage"
 #define FXAA_ENABLE_STRING                         L"Enable FXAA"
 #define FXAA_INDICATOR_ENABLE_STRING               L"Enable FXAA Indicator"
+#define LATENCY_INDICATOR_AUTOALIGN_STRING         L"Autoalign flash indicator"
 #define MCSFRSHOWSPLIT_STRING                      L"SLI indicator"
 #define NV_QUALITY_UPSCALING_STRING                L"NVIDIA Quality upscaling"
 #define OPTIMUS_MAXAA_STRING                       L"Maximum AA samples allowed for a given application"
@@ -182,6 +183,7 @@ enum ESetting {
     FXAA_ALLOW_ID                                 = 0x1034CB89,
     FXAA_ENABLE_ID                                = 0x1074C972,
     FXAA_INDICATOR_ENABLE_ID                      = 0x1068FB9C,
+    LATENCY_INDICATOR_AUTOALIGN_ID                = 0x1095F170,
     MCSFRSHOWSPLIT_ID                             = 0x10287051,
     NV_QUALITY_UPSCALING_ID                       = 0x10444444,
     OPTIMUS_MAXAA_ID                              = 0x10F9DC83,
@@ -234,9 +236,9 @@ enum ESetting {
     SET_VAB_DATA_ID                               = 0x00AB8687,
     VSYNCMODE_ID                                  = 0x00A879CF,
     VSYNCTEARCONTROL_ID                           = 0x005A375C,
-    TOTAL_DWORD_SETTING_NUM = 92,
+    TOTAL_DWORD_SETTING_NUM = 93,
     TOTAL_WSTRING_SETTING_NUM = 4,
-    TOTAL_SETTING_NUM = 96,
+    TOTAL_SETTING_NUM = 97,
     INVALID_SETTING_ID = 0xFFFFFFFF
 };
 
@@ -644,6 +646,13 @@ enum EValues_FXAA_INDICATOR_ENABLE {
     FXAA_INDICATOR_ENABLE_ON                             = 1,
     FXAA_INDICATOR_ENABLE_NUM_VALUES = 2,
     FXAA_INDICATOR_ENABLE_DEFAULT = FXAA_INDICATOR_ENABLE_OFF
+};
+
+enum EValues_LATENCY_INDICATOR_AUTOALIGN {
+    LATENCY_INDICATOR_AUTOALIGN_DISABLED                 = 0x0,
+    LATENCY_INDICATOR_AUTOALIGN_ENABLED                  = 0x1,
+    LATENCY_INDICATOR_AUTOALIGN_NUM_VALUES = 2,
+    LATENCY_INDICATOR_AUTOALIGN_DEFAULT = LATENCY_INDICATOR_AUTOALIGN_ENABLED
 };
 
 enum EValues_MCSFRSHOWSPLIT {

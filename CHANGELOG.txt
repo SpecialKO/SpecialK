@@ -1,4 +1,9 @@
-﻿21.04.16
+﻿21.04.17
+========
+ + Add support for new NVIDIA Reflex feature
+    (Latency Marker-trained Optimization)
+
+21.04.16
 ========
  + Allow Steam achievement screenshots in D3D12 even though there is no
      popup to take a screenshot of (CEGUI unsupported).

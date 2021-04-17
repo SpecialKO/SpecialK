@@ -475,9 +475,10 @@ SK_Inject_SpawnUnloadListener (void)
       CloseHandle (g_hPacifyThread);
                    g_hPacifyThread = SK_INVALID_HANDLE;
 
-      if (hMod != nullptr)
+      if (hMod != nullptr) {
         FreeLibraryAndExitThread (hMod, 0x0);
                                   hMod = nullptr;
+      }
 
       return 0;
     }, static_cast <LPVOID> (&g_hModule_CBT), CREATE_SUSPENDED, nullptr);

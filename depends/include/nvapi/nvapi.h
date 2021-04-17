@@ -41,7 +41,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Date: Dec 10, 2020 
+// Date: Mar 31, 2021 
 // File: nvapi.h
 //
 // NvAPI provides an interface to NVIDIA devices. This file contains the 
@@ -3158,6 +3158,52 @@ NVAPI_INTERFACE NvAPI_GPU_SetECCConfiguration(NvPhysicalGpuHandle hPhysicalGpu, 
 
 
 
+// The following enum is providing definitions for events signaled by a Quadro Sync (QSYNC) device.
+// QSYNC event broadcast is supported for Windows 10 and later OS.
+typedef enum
+{
+    NV_QSYNC_EVENT_NONE                    =  0,
+    NV_QSYNC_EVENT_SYNC_LOSS               =  1,    // Frame Lock sync loss event
+    NV_QSYNC_EVENT_SYNC_GAIN               =  2,    // Frame Lock sync gain event
+    NV_QSYNC_EVENT_HOUSESYNC_GAIN          =  3,    // House cable gain(plug in) event
+    NV_QSYNC_EVENT_HOUSESYNC_LOSS          =  4,    // House cable loss(plug out) event
+    NV_QSYNC_EVENT_RJ45_GAIN               =  5,    // RJ45 cable gain(plug in) event
+    NV_QSYNC_EVENT_RJ45_LOSS               =  6,    // RJ45 cable loss(plug out) event
+} NV_QSYNC_EVENT;
+
+typedef struct
+{
+    NV_QSYNC_EVENT   qsyncEvent;       // One of the value of the enum NV_QSYNC_EVENT
+    NvU32            reserved[7];      // Reserved for future use. Do not use this.
+} NV_QSYNC_EVENT_DATA;
+
+//! Callback for QSYNC event
+typedef void(__cdecl *NVAPI_CALLBACK_QSYNCEVENT)(NV_QSYNC_EVENT_DATA qyncEventData, void *callbackParam);
+
+//! Enum for Event IDs
+typedef enum
+{
+    NV_EVENT_TYPE_NONE = 0,
+    NV_EVENT_TYPE_QSYNC = 6,
+} NV_EVENT_TYPE;
+
+//! Core NV_EVENT_REGISTER_CALLBACK structure declaration
+typedef struct
+{
+    NvU32                 version;          //!< version field to ensure minimum version compatibility
+    NV_EVENT_TYPE         eventId;          //!< ID of the event being sent
+    void                  *callbackParam;   //!< This value will be passed back to the callback function when an event occurs
+    union
+    {
+        NVAPI_CALLBACK_QSYNCEVENT    nvQSYNCEventCallback; //!< Callback function pointer for QSYNC events
+    }nvCallBackFunc;
+
+} NV_EVENT_REGISTER_CALLBACK, *PNV_EVENT_REGISTER_CALLBACK;
+
+//! Macro for constructing the version field of ::NV_EVENT_REGISTER_CALLBACK
+#define NV_EVENT_REGISTER_CALLBACK_VERSION     MAKE_NVAPI_VERSION(NV_EVENT_REGISTER_CALLBACK,1)
+
+
 //! \ingroup gpu
 typedef enum _NV_GPU_WORKSTATION_FEATURE_TYPE
 {
@@ -3721,6 +3767,41 @@ typedef NV_LICENSABLE_FEATURES_V3     NV_LICENSABLE_FEATURES;
 /////////////////////////////////////////////////////////////////////////////////
 NVAPI_INTERFACE NvAPI_GPU_GetLicensableFeatures(__in NvPhysicalGpuHandle hPhysicalGpu, __inout NV_LICENSABLE_FEATURES *pLicensableFeatures);
 
+
+
+typedef struct _NV_GPU_VR_READY_V1
+{
+    NvU32  version;                            //!< Structure Version.
+    NvU32  isVRReady : 1;                      //!< Is the requested GPU VR ready.
+	NvU32  reserved  : 31;
+} NV_GPU_VR_READY_V1;
+
+#define NV_GPU_VR_READY_VER1             MAKE_NVAPI_VERSION(NV_GPU_VR_READY_V1, 1)
+#define NV_GPU_VR_READY_VER              NV_GPU_VR_READY_VER1
+typedef NV_GPU_VR_READY_V1               NV_GPU_VR_READY;
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_GPU_GetVRReadyData
+//
+//! DESCRIPTION: This API will return NVIDIA GPU VR Ready state.
+//!
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! TCC_SUPPORTED
+//!
+//! \since Release: 465
+//!
+//! \param [inout] pGpuVrReadyData - This structure will be filled with required information.
+//!
+//! \return  This API can return any of the error codes enumerated in
+//!          #NvAPI_Status.  If there are return error codes with specific
+//!          meaning for this API, they are listed below.
+//!
+//! \ingroup gpu
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_GPU_GetVRReadyData(__in NvPhysicalGpuHandle hPhysicalGpu, __inout NV_GPU_VR_READY *pGpuVrReadyData);
 //! Used in NvAPI_GPU_GetPerfDecreaseInfo.
 //! Bit masks for knowing the exact reason for performance decrease
 typedef enum _NVAPI_GPU_PERF_DECREASE
@@ -5344,6 +5425,54 @@ NVAPI_INTERFACE NvAPI_GPU_ClientIllumZonesGetControl(__in NvPhysicalGpuHandle hP
 //!          they are listed below.
 ///////////////////////////////////////////////////////////////////////////////
 NVAPI_INTERFACE NvAPI_GPU_ClientIllumZonesSetControl(__in NvPhysicalGpuHandle hPhysicalGpu, __inout NV_GPU_CLIENT_ILLUM_ZONE_CONTROL_PARAMS *pIllumZonesControl);
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_Event_RegisterCallback
+//
+//! DESCRIPTION:   This API registers the process for events. This API should be called for each eventcallback.
+//!                The handle returned to the client will be common across all eventCallbacks.
+//!
+//! SUPPORTED OS:  Windows 7 and higher
+//!
+//!
+//! \param [in]  eventCallback  Pointer to NV_EVENT_REGISTER_CALLBACK structure to call
+//!                             on new events
+//! \param [out] phClient       Handle to client for use with
+//!                             unregister function
+//!
+//! \retval ::NVAPI_OK - completed request
+//! \retval ::NVAPI_API_NOT_INTIALIZED - NvAPI not initialized
+//! \retval ::NVAPI_INVALID_ARGUMENT - Invalid argument
+//! \retval ::NVAPI_ERROR - miscellaneous error occurred
+//!
+//! \ingroup gpu
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_Event_RegisterCallback(PNV_EVENT_REGISTER_CALLBACK eventCallback,
+                                             NvEventHandle* phClient);
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_Event_UnregisterCallback
+//
+//! DESCRIPTION:   This API unregister an event handle.
+//!                This API should be called only once per process(irrespective of the number of callbacks registered).
+//!
+//! SUPPORTED OS:  Windows 7 and higher
+//!
+//!
+//! \param [in]    hClient  Handle associated with this listeners
+//!                         event queue. Same as returned from
+//!                         NvAPI_Event_RegisterCallback().
+//!
+//! \retval ::NVAPI_OK - completed request
+//! \retval ::NVAPI_API_NOT_INTIALIZED - NvAPI not initialized
+//! \retval ::NVAPI_INVALID_ARGUMENT - Invalid argument
+//! \retval ::NVAPI_ERROR - miscellaneous error occurred
+//!
+//! \ingroup gpu
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_Event_UnregisterCallback(NvEventHandle hClient);
 ///////////////////////////////////////////////////////////////////////////////
 //
 // FUNCTION NAME: NvAPI_EnumNvidiaDisplayHandle
@@ -8037,6 +8166,25 @@ typedef NV_MOSAIC_GRID_TOPO_V2           NV_MOSAIC_GRID_TOPO;
 
 
 
+
+
+
+//! Do not change the current GPU topology. If the NO_DRIVER_RELOAD bit is not
+//! specified, then it may still require a driver reload.
+#define NV_MOSAIC_SETDISPLAYTOPO_FLAG_CURRENT_GPU_TOPOLOGY NV_BIT(0)
+
+//! Do not allow a driver reload. That is, stick with the same master GPU as well as the
+//! same SLI configuration.
+#define NV_MOSAIC_SETDISPLAYTOPO_FLAG_NO_DRIVER_RELOAD     NV_BIT(1)
+
+//! When choosing a GPU topology, choose the topology with the best performance.
+//! Without this flag, it will choose the topology that uses the smallest number
+//! of GPU's.
+#define NV_MOSAIC_SETDISPLAYTOPO_FLAG_MAXIMIZE_PERFORMANCE NV_BIT(2)
+
+//! Do not return an error if no configuration will work with all of the grids.
+#define NV_MOSAIC_SETDISPLAYTOPO_FLAG_ALLOW_INVALID        NV_BIT(3)
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // FUNCTION NAME:   NvAPI_Mosaic_SetDisplayGrids
@@ -8068,24 +8216,6 @@ typedef NV_MOSAIC_GRID_TOPO_V2           NV_MOSAIC_GRID_TOPO;
 //! \retval ::NVAPI_ERROR                       Miscellaneous error occurred
 //! \ingroup mosaicapi 
 ///////////////////////////////////////////////////////////////////////////////
-
-
-//! Do not change the current GPU topology. If the NO_DRIVER_RELOAD bit is not
-//! specified, then it may still require a driver reload.
-#define NV_MOSAIC_SETDISPLAYTOPO_FLAG_CURRENT_GPU_TOPOLOGY NV_BIT(0)
-
-//! Do not allow a driver reload. That is, stick with the same master GPU as well as the
-//! same SLI configuration.
-#define NV_MOSAIC_SETDISPLAYTOPO_FLAG_NO_DRIVER_RELOAD     NV_BIT(1)
-
-//! When choosing a GPU topology, choose the topology with the best performance.
-//! Without this flag, it will choose the topology that uses the smallest number
-//! of GPU's.
-#define NV_MOSAIC_SETDISPLAYTOPO_FLAG_MAXIMIZE_PERFORMANCE NV_BIT(2)
-
-//! Do not return an error if no configuration will work with all of the grids.
-#define NV_MOSAIC_SETDISPLAYTOPO_FLAG_ALLOW_INVALID        NV_BIT(3)
-
 NVAPI_INTERFACE NvAPI_Mosaic_SetDisplayGrids(__in_ecount(gridCount) NV_MOSAIC_GRID_TOPO *pGridTopologies, __in NvU32 gridCount, __in NvU32 setTopoFlags);
 
 
@@ -8588,7 +8718,6 @@ typedef struct _NV_GSYNC_DISPLAY
 ///////////////////////////////////////////////////////////////////////////////
 NVAPI_INTERFACE NvAPI_GSync_GetTopology(__in NvGSyncDeviceHandle hNvGSyncDevice, __inout_opt NvU32 *gsyncGpuCount,  __inout_ecount_part_opt(*gsyncGpuCount, *gsyncGpuCount) NV_GSYNC_GPU *gsyncGPUs,
                                         __inout_opt NvU32 *gsyncDisplayCount, __inout_ecount_part_opt(*gsyncDisplayCount, *gsyncDisplayCount) NV_GSYNC_DISPLAY *gsyncDisplays);
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -11571,6 +11700,91 @@ NVAPI_INTERFACE NvAPI_D3D12_CreateHeap(__in       ID3D12Device     *pDevice,
 #if defined (__cplusplus) && defined(__d3d12_h__)
 ///////////////////////////////////////////////////////////////////////////////
 //
+// FUNCTION NAME: NvAPI_D3D12_CreateHeap2
+//
+//! \since Release: 465
+//
+//! \code
+//!   DESCRIPTION: NvAPI_D3D12_CreateHeap2 is a wrapper of ID3D12Device::CreateHeap
+//!                NV_D3D12_HEAP_FLAG_CPUVISIBLE_VIDMEM gives driver hint to create the heap on vidmem
+//!                only upload heaps use this flag currently, others behave exactly as ID3D12Device::CreateHeap
+//!                Best practice: Query available space in cpu visible vidmem using NvAPI_D3D12_QueryCpuVisibleVidmem 
+//!                before using this flag 
+//!
+//!         \param [in]        pDevice                A pointer to D3D12 device.
+//!         \param [in]        pDesc                  A pointer to a D3D12_HEAP_DESC structure that describes the heap
+//!         \param [in]        pNVHeapParams          A pointer to a NV_HEAP_PARAMS structure that gives additional NV specific resource creation information(NV_D3D12_HEAP_FLAGS below for more info)
+//!         \param [in]        riid                   The globally unique identifier (GUID) for the resource interface.
+//!         \param [out]       ppvHeap                A pointer to a memory block that receives a pointer to the heap. Cannot be NULL.
+//!
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//! \return  This API can return any of the error codes enumerated in
+//!          #NvAPI_Status.  If there are return error codes with specific
+//!          meaning for this API, they are listed below.
+//!
+//! \endcode
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+typedef enum {
+    NV_D3D12_HEAP_FLAG_NONE             = 0,
+    NV_D3D12_HEAP_FLAG_CPUVISIBLE_VIDMEM= 1,      //!< Hint to create heap in cpuvisible vidmem
+} NV_D3D12_HEAP_FLAGS;
+
+typedef struct _NV_HEAP_PARAMS_V1
+{
+    NvU32                     version;          //!<Version of structure. Must always be first member
+    NV_D3D12_HEAP_FLAGS       NVHeapFlags;      //!<Additional NV specific flags 
+} NV_HEAP_PARAMS_V1;
+
+#define NV_HEAP_PARAMS_VER_1 MAKE_NVAPI_VERSION(NV_HEAP_PARAMS_V1, 1)
+
+#define NV_HEAP_PARAMS_VER   NV_HEAP_PARAMS_VER_1
+typedef NV_HEAP_PARAMS_V1    NV_HEAP_PARAMS;
+
+NVAPI_INTERFACE NvAPI_D3D12_CreateHeap2(__in       ID3D12Device         *pDevice,
+                                        __in const D3D12_HEAP_DESC      *pDesc,
+                                        __in const NV_HEAP_PARAMS       *pNVHeapParams,
+                                        __in       REFIID               riid,
+                                        __out      void                 **ppvHeap);
+
+#endif //defined(__cplusplus) && defined(__d3d12_h__)
+
+
+#if defined (__cplusplus) && defined(__d3d12_h__)
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_D3D12_QueryCpuVisibleVidmem
+//
+//! \since Release: 465
+//
+//! \code
+//!   DESCRIPTION: NvAPI_D3D12_QueryCpuVisibleVidmem queries total bytes and unused bytes in 
+//!                cpu visible vdmem
+//!
+//!         \param [in]        pDevice                A pointer to D3D12 device.
+//!         \param [out]       pTotalBytes            Total bytes in cpu visible vidmem
+//!         \param [out]       pFreeBytes             Unused bytes in cpu visible vidmem 
+//!
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//! \return  This API can return any of the error codes enumerated in
+//!          #NvAPI_Status.  If there are return error codes with specific
+//!          meaning for this API, they are listed below.
+//!
+//! \endcode
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_D3D12_QueryCpuVisibleVidmem(__in       ID3D12Device  *pDevice,
+                                                  __out      NvU64         *pTotalBytes,
+                                                  __out      NvU64         *pFreeBytes);
+
+#endif //defined(__cplusplus) && defined(__d3d12_h__)
+
+
+#if defined (__cplusplus) && defined(__d3d12_h__)
+///////////////////////////////////////////////////////////////////////////////
+//
 // FUNCTION NAME: NvAPI_D3D12_ReservedResourceGetDesc
 //
 //! \since Release: 375
@@ -12724,6 +12938,166 @@ NVAPI_INTERFACE NvAPI_D3D12_ExecuteMetaCommand(__in                             
                                                __in                                          NvU32                      ExecutionParametersDataSize);
 
 #endif //defined(__cplusplus) && defined(__d3d12_h__)
+
+
+#if defined (__cplusplus) && defined(__d3d12_h__)
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_D3D12_CreateCommittedResource
+//
+//! \since Release: 384
+//
+//! \code
+//!   DESCRIPTION: Wrapper around ID3D12Device::CreateCommittedResource to allow creation of resources according to params provided.
+//!                HTEX resource is created when NV_D3D12_RESOURCE_FLAG_HTEX is set in the nvResourceFlags parameter.
+//!                NV_D3D12_RESOURCE_FLAG_CPUVISIBLE_VIDMEM gives driver hint to create the resource on cpu visible vidmem
+//!                only upload resources use this flag currently, others behave exactly as ID3D12Device::CreateCommittedResource
+//!                Otherwise the function behaves exactly same as regular ID3D12Device::CreateCommittedResource.
+//!                When NV_D3D12_RESOURCE_FLAG_HTEX is set, the texels are centered on integer coordinates and filtering 
+//!                and LOD are calculated based on the size minus one, which then allows the edges to filter to the exact texels on the edge, 
+//!                eliminating the border/edge filtering issue. Dimension of next mip level is CEIL(currentMipDimension/2), and size of smallest mip is 2x2.
+//!                Note that NV_D3D12_RESOURCE_FLAG_HTEX can't be used for shared resources.
+//!                Best practice: Query available space in cpu visible vidmem using NvAPI_D3D12_QueryCpuVisibleVidmem 
+//!                before using NV_D3D12_RESOURCE_FLAG_CPUVISIBLE_VIDMEM 
+//!
+//!         \param [in]        pDevice                A pointer to D3D12 device.
+//!         \param [in]        pHeapProperties        A pointer to a D3D12_HEAP_PROPERTIES structure that provides properties for the resource's heap.
+//!         \param [in]        HeapFlags              Heap options, as a bitwise-OR'd combination of D3D12_HEAP_FLAGS enumeration constants.
+//!         \param [in]        pDesc                  A pointer to a D3D12_RESOURCE_DESC structure that describes the resource.
+//!         \param [in]        InitialState           The initial state of the resource, as a bitwise-OR'd combination of D3D12_RESOURCE_STATES enumeration constants.
+//!         \param [in]        pOptimizedClearValue   Specifies a D3D12_CLEAR_VALUE that describes the default value for a clear color.
+//!         \param [in]        pNVResourceParams      A pointer to a structure containing additional NV specific resource creation information (see NV_D3D12_RESOURCE_FLAGS below for more info on flags)
+//!         \param [in]        riid                   The globally unique identifier (GUID) for the resource interface.
+//!         \param [out]       ppvResource            A pointer to memory that receives the requested interface pointer to the created resource object. 
+//!                                                   ppvResource can be NULL, to enable capability testing. When ppvResource is NULL, no object will be created and pSupported 
+//!                                                   will be set to true when pResourceDesc is valid.
+//!         \param [out]       pSupported             optional, needed only for capability testing when ppvResource is NULL
+//! SUPPORTED OS:  Windows 10
+//!
+//! \return  This API can return any of the error codes enumerated in
+//!          #NvAPI_Status.  If there are return error codes with specific
+//!          meaning for this API, they are listed below.
+//! \endcode
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+
+typedef enum {
+    NV_D3D12_RESOURCE_FLAG_NONE             = 0,
+    NV_D3D12_RESOURCE_FLAG_HTEX             = 1,      //!< Create HTEX texture
+    NV_D3D12_RESOURCE_FLAG_CPUVISIBLE_VIDMEM= 2,      //!< Hint to create resource in cpuvisible vidmem
+} NV_D3D12_RESOURCE_FLAGS;
+
+typedef struct _NV_RESOURCE_PARAMS_V1
+{
+    NvU32                     version;          //!<Version of structure. Must always be first member
+    NV_D3D12_RESOURCE_FLAGS   NVResourceFlags;  //!<Additional NV specific flags (set the NV_D3D12_RESOURCE_FLAG_HTEX bit to create HTEX texture)
+} NV_RESOURCE_PARAMS_V1;
+
+#define NV_RESOURCE_PARAMS_VER_1 MAKE_NVAPI_VERSION(NV_RESOURCE_PARAMS_V1, 1)
+
+#define NV_RESOURCE_PARAMS_VER   NV_RESOURCE_PARAMS_VER_1
+typedef NV_RESOURCE_PARAMS_V1    NV_RESOURCE_PARAMS;
+
+NVAPI_INTERFACE NvAPI_D3D12_CreateCommittedResource(__in       ID3D12Device             *pDevice,
+                                                    __in const D3D12_HEAP_PROPERTIES    *pHeapProperties,          
+                                                    __in       D3D12_HEAP_FLAGS         HeapFlags,
+                                                    __in const D3D12_RESOURCE_DESC      *pDesc,
+                                                    __in       D3D12_RESOURCE_STATES    InitialState,
+                                                    __in const D3D12_CLEAR_VALUE        *pOptimizedClearValue,
+                                                    __in const NV_RESOURCE_PARAMS       *pNVResourceParams,
+                                                    __in       REFIID                    riid,
+                                                    __out_opt  void                      **ppvResource,
+                                                    __out_opt  bool                      *pSupported);
+
+#endif //defined(__cplusplus) && defined(__d3d12_h__)
+
+
+#if defined (__cplusplus) && defined(__d3d12_h__)
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_D3D12_GetCopyableFootprints
+//
+//! \since Release: 384
+//
+//! \code
+//!   DESCRIPTION: Wrapper around ID3D12Device::GetCopyableFootprints for getting correct staging resource footprint for HTEX resources
+//!                created using NvAPI_D3D12_CreateCommittedResource / NvAPI_D3D12_CreatePlacedResource with NV_D3D12_RESOURCE_FLAG_HTEX flag
+//!
+//!         \param [in]        pDevice                A pointer to D3D12 device.
+//!         \param [in]        pResourceDesc          A description of the resource, as a pointer to a D3D12_RESOURCE_DESC structure.
+//!         \param [in]        pNVResourceParams      A pointer to a structure containing additional NV specific resource information
+//!         \param [in]        FirstSubresource       Index of the first subresource in the resource. The range of valid values is 0 to D3D12_REQ_SUBRESOURCES
+//!         \param [in]        NumSubresources        The number of subresources in the resource. The range of valid values is 0 to (D3D12_REQ_SUBRESOURCES - FirstSubresource).
+//!         \param [in]        BaseOffset             The offset, in bytes, to the resource.
+//!         \param [out]       pLayouts               A pointer to an array (of length NumSubresources) of D3D12_PLACED_SUBRESOURCE_FOOTPRINT structures, to be filled with the 
+//!                                                   description and placement of each subresource.
+//!         \param [out]       pRowSizeInBytes        A pointer to an array (of length NumSubresources) of integer variables, each entry to be 
+//!                                                   filled with the unpadded size in bytes of a row, of each subresource.
+//!         \param [out]       pTotalBytes            A pointer to an integer variable, to be filled with the total size, in bytes.
+//!
+//! SUPPORTED OS:  Windows 10
+//!
+//! \return  This API can return any of the error codes enumerated in
+//!          #NvAPI_Status.  If there are return error codes with specific
+//!          meaning for this API, they are listed below.
+//!
+//! \endcode
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+
+NVAPI_INTERFACE NvAPI_D3D12_GetCopyableFootprints(__in                               ID3D12Device                        *pDevice,
+                                                  __in const                         D3D12_RESOURCE_DESC                 *pResourceDesc,
+                                                  __in const                         NV_RESOURCE_PARAMS                  *pNVResourceParams,
+                                                  __in                               UINT                                 FirstSubresource,
+                                                  __in                               UINT                                 NumSubresources,
+                                                  __in                               UINT64                               BaseOffset,
+                                                  __out_ecount_opt(NumSubresources)  D3D12_PLACED_SUBRESOURCE_FOOTPRINT  *pLayouts,
+                                                  __out_ecount_opt(NumSubresources)  UINT                                *pNumRows,
+                                                  __out_ecount_opt(NumSubresources)  UINT64                              *pRowSizeInBytes,
+                                                  __out_opt                          UINT64                              *pTotalBytes);
+
+#endif //defined(__cplusplus) && defined(__d3d12_h__)
+
+
+#if defined (__cplusplus) && defined(__d3d12_h__)
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_D3D12_CopyTextureRegion
+//
+//! \since Release: 384
+//
+//! \code
+//!   DESCRIPTION: Wrapper around ID3D12GraphicsCommandList::CopyTextureRegion for allowing copying to/from HTEX resources
+//!                created using NvAPI_D3D12_CreatePlacedResource with NV_D3D12_RESOURCE_FLAG_HTEX flag.
+//!
+//!         \param [in]        pCommandList           A pointer to D3D12 graphics command list.
+//!         \param [in]        pDst                   Specifies the destination D3D12_TEXTURE_COPY_LOCATION. The subresource referred to must be in the D3D12_RESOURCE_STATE_COPY_DEST state.
+//!         \param [in]        DstX                   The x-coordinate of the upper left corner of the destination region.
+//!         \param [in]        DstY                   The y-coordinate of the upper left corner of the destination region.
+//!         \param [in]        DstZ                   The z-coordinate of the upper left corner of the destination region.
+//!         \param [in]        pSrc                   Specifies the source D3D12_TEXTURE_COPY_LOCATION. The subresource referred to must be in the D3D12_RESOURCE_STATE_COPY_SOURCE state.
+//!         \param [in]        pSrcBox                Specifies an optional D3D12_BOX that sets the size of the source texture to copy.
+//!
+//! SUPPORTED OS:  Windows 10
+//!
+//! \return  This API can return any of the error codes enumerated in
+//!          #NvAPI_Status.  If there are return error codes with specific
+//!          meaning for this API, they are listed below.
+//!
+//! \endcode
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+
+NVAPI_INTERFACE NvAPI_D3D12_CopyTextureRegion(__in              ID3D12GraphicsCommandList           *pCommandList,
+                                              __in const        D3D12_TEXTURE_COPY_LOCATION         *pDst,
+                                              __in              UINT                                 DstX,
+                                              __in              UINT                                 DstY,
+                                              __in              UINT                                 DstZ,
+                                              __in const        D3D12_TEXTURE_COPY_LOCATION         *pSrc,
+                                              __in_opt const    D3D12_BOX                           *pSrcBox);
+
+#endif //defined(__cplusplus) && defined(__d3d12_h__)
+
 
 
 #if defined (__cplusplus) && defined(__d3d12_h__)
@@ -14526,6 +14900,24 @@ typedef NV_FOVEATED_RENDERING_UPDATE_GAZE_DATA_PARAMS_V1     NV_FOVEATED_RENDERI
 #define NV_FOVEATED_RENDERING_UPDATE_GAZE_DATA_PARAMS_VER1   MAKE_NVAPI_VERSION(NV_FOVEATED_RENDERING_UPDATE_GAZE_DATA_PARAMS_V1, 1)
 #define NV_FOVEATED_RENDERING_UPDATE_GAZE_DATA_PARAMS_VER    NV_FOVEATED_RENDERING_UPDATE_GAZE_DATA_PARAMS_VER1
 
+
+DECLARE_INTERFACE(ID3DNvGazeHandler_V2)
+{
+    BEGIN_INTERFACE
+
+    STDMETHOD_(ULONG,AddRef)(THIS) PURE;
+    STDMETHOD_(ULONG,Release)(THIS) PURE;
+
+    // Updates the gaze data for foveated rendering
+    STDMETHOD_(NvAPI_Status,UpdateGazeData)(THIS_ IUnknown* pContext, NV_FOVEATED_RENDERING_UPDATE_GAZE_DATA_PARAMS* pUpdateGazeDataParams) PURE;
+
+
+    END_INTERFACE
+};
+typedef ID3DNvGazeHandler_V2    ID3DNvGazeHandler;
+#define ID3DNvGazeHandler_VER2  MAKE_NVAPI_VERSION(ID3DNvGazeHandler_V2, 2)
+#define ID3DNvGazeHandler_VER   ID3DNvGazeHandler_VER2
+
 DECLARE_INTERFACE(ID3DNvGazeHandler_V1)
 {
     BEGIN_INTERFACE
@@ -14538,10 +14930,11 @@ DECLARE_INTERFACE(ID3DNvGazeHandler_V1)
 
     END_INTERFACE
 };
-
-typedef ID3DNvGazeHandler_V1    ID3DNvGazeHandler;
 #define ID3DNvGazeHandler_VER1  MAKE_NVAPI_VERSION(ID3DNvGazeHandler_V1, 1)
+#ifndef ID3DNvGazeHandler_VER
+typedef ID3DNvGazeHandler_V1    ID3DNvGazeHandler;
 #define ID3DNvGazeHandler_VER   ID3DNvGazeHandler_VER1
+#endif
 
 typedef enum _NV_GAZE_DATA_TYPE
 {
@@ -14550,6 +14943,25 @@ typedef enum _NV_GAZE_DATA_TYPE
     NV_GAZE_DATA_STEREO = 2,
     NV_GAZE_DATA_MAX = NV_GAZE_DATA_STEREO
 } NV_GAZE_DATA_TYPE;
+
+typedef struct _NV_GAZE_HANDLER_INIT_PARAMS_V2
+{
+    NvU32               version;            //!< (IN) Struct version
+    
+    NvU32               GazeDataDeviceId;   //!< (IN) ID of the gaze data provider. Needed only for supporting more than one device with eye tracking.
+                                            //        Should be 0 if gaze data is provided only from a single device. Should be less than (MAX_NUMBER_OF_GAZE_DATA_PROVIDERS - 1)
+
+    NV_GAZE_DATA_TYPE   GazeDataType;       //!< (IN) Describes whether gaze is Mono or Stereo
+    NvU32               flags;              //!< (IN) Reserved for future use
+    float               fHorizontalFOV;     //!< (IN) Horizontal Field of View
+    float               fVericalFOV;        //!< (IN) Vertical Field of View
+
+    ID3DNvGazeHandler_V2    **ppNvGazeHandler;    //!< (OUT) Interface for Gaze Data Handler
+} NV_GAZE_HANDLER_INIT_PARAMS_V2;
+
+typedef NV_GAZE_HANDLER_INIT_PARAMS_V2     NV_GAZE_HANDLER_INIT_PARAMS;
+#define NV_GAZE_HANDLER_INIT_PARAMS_VER2   MAKE_NVAPI_VERSION(NV_GAZE_HANDLER_INIT_PARAMS_V2, 2)
+#define NV_GAZE_HANDLER_INIT_PARAMS_VER    NV_GAZE_HANDLER_INIT_PARAMS_VER2
 
 typedef struct _NV_GAZE_HANDLER_INIT_PARAMS_V1
 {
@@ -14566,9 +14978,11 @@ typedef struct _NV_GAZE_HANDLER_INIT_PARAMS_V1
     ID3DNvGazeHandler_V1    **ppNvGazeHandler;    //!< (OUT) Interface for Gaze Data Handler
 } NV_GAZE_HANDLER_INIT_PARAMS_V1;
 
-typedef NV_GAZE_HANDLER_INIT_PARAMS_V1     NV_GAZE_HANDLER_INIT_PARAMS;
 #define NV_GAZE_HANDLER_INIT_PARAMS_VER1   MAKE_NVAPI_VERSION(NV_GAZE_HANDLER_INIT_PARAMS_V1, 1)
+#ifndef NV_GAZE_HANDLER_INIT_PARAMS_VER
+typedef NV_GAZE_HANDLER_INIT_PARAMS_V1     NV_GAZE_HANDLER_INIT_PARAMS;
 #define NV_GAZE_HANDLER_INIT_PARAMS_VER    NV_GAZE_HANDLER_INIT_PARAMS_VER1
+#endif
 
 #endif // defined(__cplusplus) && (defined(__d3d11_h__))
 
@@ -15028,8 +15442,9 @@ typedef struct _NV_SET_SLEEP_MODE_PARAMS
     NvU32  version;                                       //!< (IN) Structure version
     NvBool bLowLatencyMode;                               //!< (IN) Low latency mode enable/disable.
     NvBool bLowLatencyBoost;                              //!< (IN) Request maximum GPU clock frequency regardless of workload.
-    NvU32  minimumIntervalUs;                             //!< (IN) Minimum frame interval in microseconds. 0 = no frame rate limit. 
-    NvU8   rsvd[32];                                      //!< (IN) Reserved. Must be set to 0s.
+    NvU32  minimumIntervalUs;                             //!< (IN) Minimum frame interval in microseconds. 0 = no frame rate limit.
+    NvBool bUseMarkersToOptimize;                         //!< (IN) Allow latency markers to be used for runtime optimizations.
+    NvU8   rsvd[31];                                      //!< (IN) Reserved. Must be set to 0s.
 } NV_SET_SLEEP_MODE_PARAMS_V1;
 
 typedef NV_SET_SLEEP_MODE_PARAMS_V1            NV_SET_SLEEP_MODE_PARAMS;

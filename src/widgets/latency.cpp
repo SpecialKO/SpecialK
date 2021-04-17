@@ -457,6 +457,8 @@ SK_ImGui_DrawConfig_Latency (void)
     {
       ImGui::SetTooltip ("Input Polling Reflex Triggers are Experimental; only supports gamepad input currently");
     }
+
+    ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.sleep.marker_optimization);
   }
   ImGui::EndGroup   ();
 }

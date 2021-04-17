@@ -453,6 +453,7 @@ struct {
     sk::ParameterBool* enable;
     sk::ParameterBool* low_latency;
     sk::ParameterBool* low_latency_boost;
+    sk::ParameterBool* marker_optimization;
     sk::ParameterInt*  engagement_policy;
   } reflex;
 } nvidia;
@@ -1135,6 +1136,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.reflex.enable,                   L"Enable NVIDIA Reflex Integration w/ SK's limiter",          dll_ini,         L"NVIDIA.Reflex",         L"Enable"),
     ConfigEntry (nvidia.reflex.low_latency,              L"Low Latency Mode",                                          dll_ini,         L"NVIDIA.Reflex",         L"LowLatency"),
     ConfigEntry (nvidia.reflex.low_latency_boost,        L"Reflex Boost (lower-latency power scaling)",                dll_ini,         L"NVIDIA.Reflex",         L"LowLatencyBoost"),
+    ConfigEntry (nvidia.reflex.marker_optimization,      L"Train Reflex using Latency Markers for Optimization",       dll_ini,         L"NVIDIA.Reflex",         L"OptimizeByMarkers"),
     ConfigEntry (nvidia.reflex.engagement_policy,        L"When to apply Reflex's magic",                              dll_ini,         L"NVIDIA.Reflex",         L"EngagementPolicy"),
 
     // OpenGL
@@ -2432,6 +2434,7 @@ auto DeclKeybind =
   nvidia.reflex.enable->load                (config.nvidia.sleep.enable);
   nvidia.reflex.low_latency->load           (config.nvidia.sleep.low_latency);
   nvidia.reflex.low_latency_boost->load     (config.nvidia.sleep.low_latency_boost);
+  nvidia.reflex.marker_optimization->load   (config.nvidia.sleep.marker_optimization);
   nvidia.reflex.engagement_policy->load     (config.nvidia.sleep.enforcement_site);
 
   render.framerate.wait_for_vblank->load    (config.render.framerate.wait_for_vblank);
@@ -3643,7 +3646,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.reflex.low_latency->store            (config.nvidia.sleep.low_latency);
       nvidia.reflex.low_latency_boost->store      (config.nvidia.sleep.low_latency_boost);
       nvidia.reflex.engagement_policy->store      (config.nvidia.sleep.enforcement_site);
-
+      nvidia.reflex.marker_optimization->store    (config.nvidia.sleep.marker_optimization);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);

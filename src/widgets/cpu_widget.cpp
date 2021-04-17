@@ -2149,7 +2149,7 @@ public:
             else
               ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.28F, 1.f, 1.f, 1.f));
 
-            if (fabs (core_sensors.clock_MHz - 0.0) > std::numeric_limits <double>::epsilon ())
+            if (fabs (core_sensors.clock_MHz - 0.0) < std::numeric_limits <double>::epsilon ())
             {
               if (parked_since == 0 || show_parked)
                 ImGui::Text       ("%4.2f GHz", static_cast <float> (cpu_stats.cpus [j-1].CurrentMhz) / 1000.0f);

@@ -2788,7 +2788,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       {
         dll_log->LogEx ( true,
           L"[Output Dev]\n"
-          L"  +-----------------+---------------------\n"
+          L"  +------------------+---------------------\n"
           L"  | EDID Device Name |  %ws\n"
           L"  | DXGI Device Name |  %ws (HMONITOR: %x)\n"
           L"  | Desktop Display. |  %ws%ws\n"
@@ -2801,7 +2801,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           L"  | Min Luminance... |  %f\n"
           L"  | Max Luminance... |  %f\n"
           L"  |  \"  FullFrame... |  %f\n"
-          L"  +-----------------+---------------------\n",
+          L"  +------------------+---------------------\n",
             display.name,
             display.dxgi_name, display.monitor,
             display.attached ? L"Yes"                : L"No",
@@ -2983,10 +2983,11 @@ SK_RenderBackend_V2::driverSleepNV (int site)
 
     NV_SET_SLEEP_MODE_PARAMS
       sleepParams = {                          };
-      sleepParams.version           = NV_SET_SLEEP_MODE_PARAMS_VER;
-      sleepParams.bLowLatencyBoost  = config.nvidia.sleep.low_latency_boost;
-      sleepParams.bLowLatencyMode   = config.nvidia.sleep.low_latency;
-      sleepParams.minimumIntervalUs = config.nvidia.sleep.frame_interval_us;
+      sleepParams.version               = NV_SET_SLEEP_MODE_PARAMS_VER;
+      sleepParams.bLowLatencyBoost      = config.nvidia.sleep.low_latency_boost;
+      sleepParams.bLowLatencyMode       = config.nvidia.sleep.low_latency;
+      sleepParams.minimumIntervalUs     = config.nvidia.sleep.frame_interval_us;
+      sleepParams.bUseMarkersToOptimize = config.nvidia.sleep.marker_optimization;
 
     static NV_SET_SLEEP_MODE_PARAMS
       lastParams = { 1, true, true, 69, { 0 } };

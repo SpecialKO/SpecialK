@@ -497,33 +497,34 @@ struct sk_config_t
   struct nvidia_s {
     struct sli_s {
       std::wstring
-              compatibility     = L"0x00000000";
+              compatibility       = L"0x00000000";
       std::wstring
-              mode              = L"Auto";
+              mode                = L"Auto";
       std::wstring
-              num_gpus          = L"Auto";
-      bool    override          = false;
+              num_gpus            = L"Auto";
+      bool    override            = false;
     } sli;
     struct bugs_s {
-    //bool    fix_10bit_gsync   = false;
-      bool    kill_hdr          = false;
-      bool    snuffed_ansel     = false;
-      bool    bypass_ansel      = false;
+    //bool    fix_10bit_gsync     = false;
+      bool    kill_hdr            = false;
+      bool    snuffed_ansel       = false;
+      bool    bypass_ansel        = false;
     } bugs;
     struct sleep_s {
-      bool    enable            =  false;
-      bool    low_latency       =  false;
-      bool    low_latency_boost =  false;
-      UINT    frame_interval_us =      0;
-      int     enforcement_site  =      1;
+      bool    enable              =  false;
+      bool    low_latency         =  false;
+      bool    low_latency_boost   =  false;
+      UINT    frame_interval_us   =      0;
+      int     enforcement_site    =      1;
+      bool    marker_optimization =  false;
     } sleep;
   } nvidia;
 
   struct input_s {
     struct cursor_s {
-      int     timeout           = 1500UL;
-      bool    manage            = false;
-      bool    keys_activate     = true;
+      int     timeout             = 1500UL;
+      bool    manage              =  false;
+      bool    keys_activate       =   true;
     } cursor;
 
     struct ui_s {
