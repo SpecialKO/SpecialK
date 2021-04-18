@@ -83,10 +83,12 @@ struct SK_InjectionRecord_s
   } process;
 
   struct {
-    SK_RenderAPI api        = SK_RenderAPI::Reserved;
-    ULONG64      frames     =  0ULL;
-    bool         fullscreen = false;
-    bool         dpi_aware  = false;
+    SK_RenderAPI api                       = SK_RenderAPI::Reserved;
+    ULONG64      frames                    =  0ULL;
+    bool         fullscreen                = false;
+    bool         dpi_aware                 = false;
+    char         swapchain_analysis [1024] =    "";
+    bool         want_analysis             = false;
   } render;
 
   // Use a bitmask instead of this stupidness

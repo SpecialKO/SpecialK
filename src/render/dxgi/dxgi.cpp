@@ -2832,8 +2832,16 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       flags |= DXGI_PRESENT_RESTART;
     }
 
+    if ( config.nvidia.sleep.low_latency_boost &&
+         config.nvidia.sleep.enable            &&
+         sk::NVAPI::nv_hardware                &&
+         config.render.framerate.target_fps != 0.0 )
+    {
+      flags |= DXGI_PRESENT_DO_NOT_WAIT;
+    }
+
     HRESULT hr =
-      _Present ( interval, flags | DXGI_PRESENT_DO_NOT_WAIT );
+      _Present ( interval, flags );
 
     rb.setLatencyMarkerNV (PRESENT_END);
 

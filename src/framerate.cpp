@@ -55,9 +55,6 @@ enum class SK_LimitApplicationSite {
   EndOfFrame // = 4 (Default)
 };
 
-//float fSwapWaitRatio = 0.998877f;
-//float fSwapWaitFract = 0.998877f;
-
 //float fSwapWaitRatio = 0.77f;
 //float fSwapWaitFract = 0.79f;
 
@@ -304,143 +301,12 @@ SK_Framerate_WaitForVBlank (void)
 
   return false;
 }
-/////bool
-/////SK_Framerate_WaitForVBlank (void)
-/////{
-/////  void SK_D3DKMT_WaitForVBlank (void);
-/////       SK_D3DKMT_WaitForVBlank ();
-/////
-/////  return true;
-/////}
-/////
-/////
-/////
-/////
-/////
-/////typedef UINT D3DDDI_VIDEO_PRESENT_SOURCE_ID;
-/////typedef UINT D3DKMT_HANDLE;
-/////
-/////struct D3DKMT_WAITFORVERTICALBLANKEVENT
-/////{
-/////	D3DKMT_HANDLE                   hAdapter;      // in: adapter handle
-/////	D3DKMT_HANDLE                   hDevice;       // in: device handle [Optional]
-/////	D3DDDI_VIDEO_PRESENT_SOURCE_ID  VidPnSourceId; // in: adapter's VidPN Source ID
-/////};
-/////
-/////typedef struct D3DKMT_GETVERTICALBLANKEVENT
-/////{
-/////  D3DKMT_HANDLE                   hAdapter;      // in: adapter handle
-/////  D3DKMT_HANDLE                   hDevice;       // in: device handle [Optional]
-/////  D3DDDI_VIDEO_PRESENT_SOURCE_ID  VidPnSourceId; // in: adapter's VidPN Source ID
-/////  HANDLE*                         phEvent;
-/////} D3DKMT_GETVERTICALBLANKEVENT;
-/////
-/////typedef struct D3DKMT_OPENADAPTERFROMHDC
-/////{
-/////	HDC                             hDc;            // in:  DC that maps to a single display
-/////	D3DKMT_HANDLE                   hAdapter;       // out: adapter handle
-/////	LUID                            AdapterLuid;    // out: adapter LUID
-/////	D3DDDI_VIDEO_PRESENT_SOURCE_ID  VidPnSourceId;  // out: VidPN source ID for that particular display
-/////} D3DKMT_OPENADAPTERFROMHDC;
-/////
-/////typedef _Check_return_ NTSTATUS(APIENTRY *PFND3DKMT_OPENADAPTERFROMHDC)       (_Inout_              D3DKMT_OPENADAPTERFROMHDC*);
-/////typedef _Check_return_ NTSTATUS(APIENTRY *PFND3DKMT_WAITFORVERTICALBLANKEVENT)(   _In_ CONST struct D3DKMT_WAITFORVERTICALBLANKEVENT*);
-/////typedef _Check_return_ NTSTATUS(APIENTRY *PFND3DKMT_GETDWMVERTICALBLANKEVENT) (   _In_ CONST        D3DKMT_GETVERTICALBLANKEVENT*);
-/////
-/////SK_AutoHandle __SK_D3DKMT_DWM_VBlank (INVALID_HANDLE_VALUE);
-/////
-/////NTSTATUS
-/////SK_D3DKMT_InitWaitForDWMVBlank (void)
-/////{
-/////  if (__SK_D3DKMT_DWM_VBlank.m_h != INVALID_HANDLE_VALUE)
-/////    return S_OK;
-/////
-/////  D3DKMT_OPENADAPTERFROMHDC oa     = {          };
-/////	                          oa.hDc = GetDC (NULL);
-/////
-/////  static PFND3DKMT_OPENADAPTERFROMHDC
-/////             D3DKMTOpenAdapterFromHdc =
-/////    reinterpret_cast <PFND3DKMT_OPENADAPTERFROMHDC> (
-/////        SK_GetProcAddress (
-/////          SK_LoadLibraryW ( L"gdi32.dll" ),
-/////            "D3DKMTOpenAdapterFromHdc"
-/////                          )
-/////    );
-/////
-/////	NTSTATUS result =
-/////    D3DKMTOpenAdapterFromHdc (&oa);
-/////
-/////  if (SUCCEEDED (result))
-/////  {
-/////    static PFND3DKMT_WAITFORVERTICALBLANKEVENT
-/////              D3DKMTWaitForVerticalBlankEvent =
-/////      reinterpret_cast <PFND3DKMT_WAITFORVERTICALBLANKEVENT> (
-/////        SK_GetProcAddress (
-/////          SK_LoadLibraryW ( L"gdi32.dll" ),
-/////            "D3DKMTWaitForVerticalBlankEvent"
-/////                          )
-/////      );
-/////
-/////    static PFND3DKMT_GETDWMVERTICALBLANKEVENT
-/////              D3DKMTGetDWMVerticalBlankEvent =
-/////      reinterpret_cast <PFND3DKMT_GETDWMVERTICALBLANKEVENT> (
-/////        SK_GetProcAddress (
-/////          SK_LoadLibraryW ( L"gdi32.dll" ),
-/////            "D3DKMTGetDWMVerticalBlankEvent"
-/////                          )
-/////      );
-/////
-/////
-/////    D3DKMT_GETVERTICALBLANKEVENT
-/////    get_event = { };
-/////
-/////    get_event.hAdapter      = oa.hAdapter;
-/////    get_event.hDevice       =           0;
-/////    get_event.VidPnSourceId = oa.VidPnSourceId;
-/////    get_event.phEvent       = &__SK_D3DKMT_DWM_VBlank.m_h;
-/////
-/////    D3DKMT_WAITFORVERTICALBLANKEVENT
-/////      _event               = {         };
-/////      _event.hAdapter      = oa.hAdapter;
-/////      _event.hDevice       =           0;
-/////      _event.VidPnSourceId = oa.VidPnSourceId;
-/////
-/////    D3DKMTWaitForVerticalBlankEvent (&_event);
-/////
-/////    DWM_TIMING_INFO dwmTiming        = {                      };
-/////                    dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
-/////
-/////    ////if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
-/////    ////{
-/////    ////  while ( SK_QueryPerf ().QuadPart < dwmTiming.qpcVBlank )
-/////    ////    ;
-/////    ////
-/////    ////  return S_OK;
-/////    ////}
-/////
-/////    result = D3DKMTGetDWMVerticalBlankEvent != nullptr   ?
-/////             D3DKMTGetDWMVerticalBlankEvent (&get_event) : E_NOTIMPL;
-/////
-/////    //if (SUCCEEDED (result))
-/////      //__SK_D3DKMT_DWM_VBlank.m_h = hEvent;
-/////  }
-/////
-/////  ReleaseDC (NULL, oa.hDc);
-/////
-/////	return result;
-/////}
 
 void
 SK_D3DKMT_WaitForVBlank (void)
 {
   SK_Framerate_WaitForVBlank ();
-  //SK_D3DKMT_InitWaitForDWMVBlank ();
-  //
-  //if (__SK_D3DKMT_DWM_VBlank.m_h != INVALID_HANDLE_VALUE)
-  //  WaitForSingleObject (__SK_D3DKMT_DWM_VBlank, INFINITE);
 };
-
-#include <d3dkmthk.h>
 
 LONG64 __SK_VBlankLatency_QPCycles;
 

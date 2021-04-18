@@ -33,6 +33,7 @@ SK_ImGui
   bool BatteryMeter (void);
 };
 
+
 static bool has_battery   = false;
 static bool debug_limiter = false;
 
@@ -458,6 +459,7 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
   }
 }
 
+
 void
 SK_ImGui_DrawGraph_FramePacing (void)
 {
@@ -762,11 +764,36 @@ SK_ImGui_DrawGraph_FramePacing (void)
   //}
 }
 
+extern bool         __SK_InjectionHistory_want_analysis [MAX_INJECTED_PROC_HISTORY]       = { };
+extern char         __SK_InjectionHistory_analysis      [MAX_INJECTED_PROC_HISTORY][1024] = { };
+
 void
 SK_ImGui_DrawFramePercentiles (void)
 {
   if (! SK_FramePercentiles->display)
     return;
+
+  for (auto i = 0; i < MAX_INJECTED_PROCS; i++)
+  {
+    auto *pInjectRecord =
+      SK_Inject_GetRecord (i);
+
+    if (pInjectRecord->process.id == GetProcessId (GetCurrentProcess ()))
+    {   pInjectRecord->render.want_analysis     = true;
+        __SK_InjectionHistory_want_analysis [i] = true;
+      
+      if (*pInjectRecord->render.swapchain_analysis != '\0')
+      {
+        ImGui::TextWrapped ("%hs", pInjectRecord->render.swapchain_analysis);
+      }
+
+      else if (*__SK_InjectionHistory_analysis [i] != '\0')
+      {
+        ImGui::TextWrapped ("%hs", __SK_InjectionHistory_analysis [i]);
+      }
+      break;
+    }
+  }
 
   auto pLimiter =
     SK::Framerate::GetLimiter (

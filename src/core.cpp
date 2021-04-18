@@ -1448,8 +1448,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         return 0;
       });
 
-
-
       // Setup unhooked function pointers
       SK_MinHook_Init           ();
       SK_PreInitLoadLibrary     ();

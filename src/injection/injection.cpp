@@ -76,6 +76,8 @@ extern "C"
     SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
     SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved
   };
+  bool         __SK_InjectionHistory_want_analysis [MAX_INJECTED_PROC_HISTORY]       = { };
+  char         __SK_InjectionHistory_analysis      [MAX_INJECTED_PROC_HISTORY][1024] = { };
 
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                 =  0L;
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
@@ -108,14 +110,15 @@ __stdcall
 SK_Inject_GetRecord (int idx)
 {
   wcsncpy_s
-          (__SK_InjectionHistory [idx].process.name,   MAX_PATH-1, &__SK_InjectionHistory_name    [idx * MAX_PATH], _TRUNCATE);
-           __SK_InjectionHistory [idx].process.id      = __SK_InjectionHistory_ids    [idx];
-           __SK_InjectionHistory [idx].process.inject  = __SK_InjectionHistory_inject [idx];
-           __SK_InjectionHistory [idx].process.eject   = __SK_InjectionHistory_eject  [idx];
-           __SK_InjectionHistory [idx].process.crashed = __SK_InjectionHistory_crash  [idx];
-
-           __SK_InjectionHistory [idx].render.api      = __SK_InjectionHistory_api    [idx];
-           __SK_InjectionHistory [idx].render.frames   = __SK_InjectionHistory_frames [idx];
+         (__SK_InjectionHistory [idx].process.name,   MAX_PATH-1, &__SK_InjectionHistory_name    [idx * MAX_PATH], _TRUNCATE);
+          __SK_InjectionHistory [idx].process.id                = __SK_InjectionHistory_ids           [idx];
+          __SK_InjectionHistory [idx].process.inject            = __SK_InjectionHistory_inject        [idx];
+          __SK_InjectionHistory [idx].process.eject             = __SK_InjectionHistory_eject         [idx];
+          __SK_InjectionHistory [idx].process.crashed           = __SK_InjectionHistory_crash         [idx];
+                                                                
+          __SK_InjectionHistory [idx].render.api                = __SK_InjectionHistory_api           [idx];
+          __SK_InjectionHistory [idx].render.frames             = __SK_InjectionHistory_frames        [idx];
+          __SK_InjectionHistory [idx].render.want_analysis      = __SK_InjectionHistory_want_analysis [idx];
 
   return &__SK_InjectionHistory [idx];
 }

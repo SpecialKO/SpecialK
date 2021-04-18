@@ -2990,13 +2990,14 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       sleepParams.bUseMarkersToOptimize = config.nvidia.sleep.marker_optimization;
 
     static NV_SET_SLEEP_MODE_PARAMS
-      lastParams = { 1, true, true, 69, { 0 } };
+      lastParams = { 1, true, true, 69, 0, { 0 } };
 
     if (! config.nvidia.sleep.enable)
     {
-      sleepParams.bLowLatencyBoost  = false;
-      sleepParams.bLowLatencyMode   = false;
-      sleepParams.minimumIntervalUs = 0;
+      sleepParams.bLowLatencyBoost      = false;
+      sleepParams.bLowLatencyMode       = false;
+      sleepParams.bUseMarkersToOptimize = false;
+      sleepParams.minimumIntervalUs     = 0;
     }
 
     static volatile ULONG64 _frames_drawn =

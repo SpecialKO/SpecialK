@@ -1,4 +1,13 @@
-﻿21.04.17
+﻿21.04.18
+========
+ + Fixed an issue where custom latency optimizations were being applied even
+     when Reflex was inactive.
+
+   >> SK has a few special tricks for Reflex + Low Latency + Boost,
+        they are not suitable for use without Reflex and were causing
+          frametime wobble
+
+21.04.17
 ========
  + Add support for new NVIDIA Reflex feature
     (Latency Marker-trained Optimization)
