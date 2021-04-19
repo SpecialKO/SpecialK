@@ -2320,6 +2320,11 @@ auto DeclKeybind =
 
 #ifdef _M_AMD64
   apis.d3d12.hook->load  (config.apis.dxgi.d3d12.hook);
+
+  // We need to enable D3D11 hooking for D3D12 to work reliably
+  if (config.apis.dxgi.d3d12.hook)
+      config.apis.dxgi.d3d11.hook = true;
+
 #endif
 
   if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
