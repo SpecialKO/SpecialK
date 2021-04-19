@@ -184,36 +184,6 @@ SK_KeepAway (void)
   HMODULE hModApp =
       GetModuleHandle (nullptr);
 
-  wchar_t wszPackageName [32] = { };
-  UINT32  uiLen               =  0;
-  LONG    rc                  =
-    GetCurrentPackageFullName (&uiLen, wszPackageName);
-
-  if (rc != APPMODEL_ERROR_NO_PACKAGE)
-  {
-    bool gl    = false, vulkan = false, d3d9  = false, d3d11 = false,
-         dxgi  = false, d3d8   = false, ddraw = false, d3d12 = false,
-         glide = false;
-
-    SK_TestRenderImports (
-      hModApp,
-        &gl, &vulkan,
-          &d3d9, &dxgi, &d3d11, &d3d12,
-            &d3d8, &ddraw, &glide
-    );
-
-    // UWP, oh no!
-
-    if (! (d3d11 || d3d12 || d3d9 || gl))
-    {
-      // Look for tells that this is a game, if none exist, ignore the UWP trash app
-      if (! ( GetModuleHandle (L"hid.dll"      ) ||
-              GetModuleHandle (L"dsound.dll"   ) ||
-              GetModuleHandle (L"XInput1_4.dll"))) return 1;
-    }
-  }
-
-
   wchar_t                         wszSystemDir   [MAX_PATH + 2] = { };
   wchar_t                         wszWindowsDir  [MAX_PATH + 2] = { };
   GetSystemWindowsDirectoryW     (wszWindowsDir,  MAX_PATH);
@@ -266,6 +236,40 @@ SK_KeepAway (void)
   if (ret == 0)
       ret =
     _TestUndesirableDll ( __blacklist, 2 );
+
+
+  if (ret == 0)
+  {
+    wchar_t wszPackageName [32] = { };
+    UINT32  uiLen               =  0;
+    LONG    rc                  =
+      GetCurrentPackageFullName (&uiLen, wszPackageName);
+
+    if (rc != APPMODEL_ERROR_NO_PACKAGE)
+    {
+      bool gl    = false, vulkan = false, d3d9  = false, d3d11 = false,
+           dxgi  = false, d3d8   = false, ddraw = false, d3d12 = false,
+           glide = false;
+
+      SK_TestRenderImports (
+        hModApp,
+          &gl, &vulkan,
+            &d3d9, &dxgi, &d3d11, &d3d12,
+              &d3d8, &ddraw, &glide
+      );
+
+      // UWP, oh no!
+
+      if (! (d3d11 || d3d12 || d3d9 || gl))
+      {
+        // Look for tells that this is a game, if none exist, ignore the UWP trash app
+        if (! ( GetModuleHandle (L"hid.dll"      ) ||
+                GetModuleHandle (L"dsound.dll"   ) ||
+                GetModuleHandle (L"XInput1_4.dll"))) return 1;
+      }
+    }
+  }
+
 
   return ret;
 }
@@ -359,9 +363,12 @@ DllMain ( HMODULE hModule,
 
       auto EarlyOut   =
         [&](BOOL bRet = TRUE)
-      {  
-        extern void SK_Inject_SpawnUnloadListener (void);
-                    SK_Inject_SpawnUnloadListener ();
+      {
+        if (bRet)
+        {
+          __SK_DLL_TeardownEvent =
+            SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
+        }
 
         return bRet;
       };
@@ -380,24 +387,24 @@ DllMain ( HMODULE hModule,
           EarlyOut (TRUE);
       }
 
-      __SK_DLL_TeardownEvent =
-        SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
-
       // Social distancing like a boss!
       INT dll_isolation_lvl =
         SK_KeepAway ();
 
-      if      (dll_isolation_lvl >= 3) return EarlyOut (FALSE);
-      else if (dll_isolation_lvl >  0) return EarlyOut (FALSE);
+      if      (dll_isolation_lvl >= 3)             return EarlyOut (FALSE);
+      else if (dll_isolation_lvl >  0)             return EarlyOut (TRUE);
 
       // We reserve the right to deny attaching the DLL, this will
       //   generally happen if a game has opted-out of global injection.
-      if (! SK_EstablishDllRole (hModule))          return EarlyOut (TRUE);
+      if (! SK_EstablishDllRole (hModule))         return EarlyOut (TRUE);
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
-      if (DLL_ROLE::INVALID == SK_GetDLLRole ())    return EarlyOut (TRUE);
-      if (! SK_Attach         (SK_GetDLLRole ()))   return EarlyOut (FALSE);
+      if (DLL_ROLE::INVALID == SK_GetDLLRole ())   return EarlyOut (TRUE);
+      if (! SK_Attach         (SK_GetDLLRole ()))  return EarlyOut (TRUE);
+
+      __SK_DLL_TeardownEvent =
+        SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
 
       InterlockedIncrementRelease (
         &__SK_DLL_Refs
@@ -408,7 +415,6 @@ DllMain ( HMODULE hModule,
       //   Must hold a reference to this DLL so that removing the global
       //     hook does not crash the game.
       SK_Inject_AcquireProcess ();
-
 
       return
         ( __SK_DLL_TeardownEvent != nullptr );

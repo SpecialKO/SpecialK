@@ -1,4 +1,13 @@
-﻿21.04.18
+﻿21.04.19
+========
+ + Fixed D3D12 API hooks not activating if users disable D3D11 API hooking
+ + Reduced the number of required blacklisted executables significantly
+     
+    >> The "[SK] Hook Pacifier" thread will keep SK's injection logic idle
+         in non-game / whitelisted software as originally designed, without
+           causing the DLL to get stuck in UWP / .Net / Managed apps.
+
+21.04.18
 ========
  + Fixed an issue where custom latency optimizations were being applied even
      when Reflex was inactive.

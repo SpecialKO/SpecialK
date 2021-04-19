@@ -790,6 +790,8 @@ DllThread (LPVOID user)
   SK_InitCore ( params->backend,
                 params->callback );
 
+
+
   WriteULongRelease (&dwInitThreadId, 0);
 
   return 0;

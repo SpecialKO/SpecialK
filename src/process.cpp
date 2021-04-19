@@ -218,6 +218,7 @@ typedef NTSTATUS (WINAPI *NtDelayExecution_pfn)(
 
 struct SK_NtDllContext
 {
+  BOOL                         _uninit                =    TRUE;
   NtQuerySystemInformation_pfn QuerySystemInformation = nullptr;
   NtDelayExecution_pfn         DelayExecution         = nullptr;
   NtSuspendProcess_pfn         SuspendProcess         = nullptr;
@@ -229,6 +230,42 @@ struct SK_NtDllContext
   DWORD                        dwPadding0 = 0UL;
   PSYSTEM_PROCESS_INFORMATION  pSnapshot  = nullptr;
   volatile LONG                _lock      =  0L;
+
+  void init (void)
+  {
+    if (std::exchange (_uninit, FALSE))
+    {
+      lock ();
+
+      Module =
+        SK_LoadLibraryW (L"NtDll");
+
+      if (Module != nullptr)
+      {
+        QuerySystemInformation  = (NtQuerySystemInformation_pfn)
+          SK_GetProcAddress (Module, "NtQuerySystemInformation");
+        SuspendProcess          = (NtSuspendProcess_pfn)
+          SK_GetProcAddress (Module, "NtSuspendProcess");
+        ResumeProcess           = (NtResumeProcess_pfn)
+          SK_GetProcAddress (Module, "NtResumeProcess");
+      }
+
+      hHeap =
+        HeapCreate (0x0, 1048576, 0);
+
+      if (hHeap != nullptr)
+      {
+        pSnapshot = (PSYSTEM_PROCESS_INFORMATION)
+          HeapAlloc (hHeap, 0x0, 262144);
+
+        dwHeapSize =
+          ( pSnapshot != NULL ?
+                       262144 : 0 );
+      }
+
+      unlock ();
+    }
+  }
 
   void lock   (void) noexcept
   {
@@ -261,35 +298,7 @@ struct SK_NtDllContext
 
   SK_NtDllContext (void) noexcept (false)
   {
-    lock ();
-
-    Module =
-      SK_LoadLibraryW (L"NtDll");
-
-    if (Module != nullptr)
-    {
-      QuerySystemInformation  = (NtQuerySystemInformation_pfn)
-        SK_GetProcAddress (Module, "NtQuerySystemInformation");
-      SuspendProcess          = (NtSuspendProcess_pfn)
-        SK_GetProcAddress (Module, "NtSuspendProcess");
-      ResumeProcess           = (NtResumeProcess_pfn)
-        SK_GetProcAddress (Module, "NtResumeProcess");
-    }
-
-    hHeap =
-      HeapCreate (0x0, 1048576, 0);
-
-    if (hHeap != nullptr)
-    {
-      pSnapshot = (PSYSTEM_PROCESS_INFORMATION)
-        HeapAlloc (hHeap, 0x0, 262144);
-
-      dwHeapSize =
-        ( pSnapshot != NULL ?
-                     262144 : 0 );
-    }
-
-    unlock ();
+    // ^^^ Refer to init (...)
   }
 
   ~SK_NtDllContext (void) noexcept (false)
@@ -328,6 +337,7 @@ SK_NtDllContext SK_NtDll;
 PSYSTEM_PROCESS_INFORMATION
 SK_Process_SnapshotNt (void)
 {
+      SK_NtDll.init ();
   if (SK_NtDll.QuerySystemInformation == nullptr)
   {
     return nullptr;
@@ -388,6 +398,7 @@ SK_Process_SnapshotNt (void)
 VOID
 SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
 {
+  SK_NtDll.init ();
   SK_NtDll.lock ();
 
   PSYSTEM_PROCESS_INFORMATION pProc = nullptr;
@@ -482,6 +493,7 @@ SK_Process_Snapshot (void)
 bool
 SK_Process_IsSuspended (DWORD dwPid)
 {
+  SK_NtDll.init ();
   SK_NtDll.lock ();
 
   bool state = false;
@@ -517,6 +529,7 @@ SK_Process_IsSuspended (DWORD dwPid)
 bool
 SK_Process_Suspend (DWORD dwPid)
 {
+      SK_NtDll.init ();
   if (SK_NtDll.SuspendProcess == nullptr)
     return false;
 
@@ -539,6 +552,7 @@ SK_Process_Suspend (DWORD dwPid)
 bool
 SK_Process_Resume (DWORD dwPid)
 {
+      SK_NtDll.init ();
   if (SK_NtDll.ResumeProcess == nullptr)
     return false;
 

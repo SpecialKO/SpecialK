@@ -327,8 +327,8 @@ SK_BootDXGI (void)
   //
   // TEMP HACK: D3D11 must be enabled to hook D3D12...
   //
-  ///if (config.apis.dxgi.d3d12.hook && (! config.apis.dxgi.d3d11.hook))
-  ///  config.apis.dxgi.d3d11.hook = true;
+  if (config.apis.dxgi.d3d12.hook && (! config.apis.dxgi.d3d11.hook))
+    config.apis.dxgi.d3d11.hook = true;
 #endif
 
   if (! ( config.apis.dxgi.d3d11.hook ||

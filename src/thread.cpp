@@ -227,6 +227,11 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     SK_Thread_RaiseNameException (&info);
 
 
+    SK_RunOnce (
+      SK_SetThreadDescription = (decltype (SK_SetThreadDescription)) GetProcAddress (GetModuleHandleW (L"Kernel32"), 
+        "SetThreadDescription")
+    );
+
     // Windows 7 / 8 can go no further, they will have to be happy with the
     //   TLS-backed name or a debugger must catch the exception above.
     //
@@ -238,23 +243,9 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
 
     // Finally, use the new API added in Windows 10...
-    HRESULT       hr         = E_UNEXPECTED;
-    SK_AutoHandle hRealHandle (INVALID_HANDLE_VALUE);
-
-    if ( DuplicateHandle ( SK_GetCurrentProcess (),
-                           SK_GetCurrentThread  (),
-                           SK_GetCurrentProcess (),
-                             &hRealHandle.m_h,
-                               THREAD_ALL_ACCESS,
-                                 FALSE,
-                                    0 ) )
-    {
-      hr =
-       ( SK_SetThreadDescription ( hRealHandle.m_h,
-             lpThreadDescription )             );
-    }
-
-    return hr;
+    return
+      SK_SetThreadDescription ( GetCurrentThread (),
+          lpThreadDescription );
   }
 
   return S_OK;
@@ -283,6 +274,11 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
     return S_OK;
   }
 
+  SK_RunOnce (
+    SK_GetThreadDescription = (decltype (SK_GetThreadDescription)) GetProcAddress (GetModuleHandleW (L"Kernel32"), 
+      "GetThreadDescription")
+  );
+
   // No TLS, no GetThreadDescription (...) -- we are boned :-\
   //
   if ( SK_GetThreadDescription == &GetThreadDescription_NOP ||
@@ -291,23 +287,9 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
     return E_NOTIMPL;
   }
 
-  HRESULT       hr         = E_UNEXPECTED;
-  SK_AutoHandle hRealHandle (   nullptr  );
-
-  if ( DuplicateHandle ( SK_GetCurrentProcess (),
-                         SK_GetCurrentThread  (),
-                         SK_GetCurrentProcess (),
-                           &hRealHandle.m_h,
-                             THREAD_ALL_ACCESS,
-                               FALSE,
-                                 0 ) )
-  {
-    hr =
-      SK_GetThreadDescription ( hRealHandle.m_h,
-                                  threadDescription );
-  }
-
-  return hr;
+  return
+    SK_GetThreadDescription ( GetCurrentThread (),
+                                threadDescription );
 }
 
 #define STATUS_SUCCESS     0
