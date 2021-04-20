@@ -1206,9 +1206,6 @@ SK_UnhookLoadLibrary (void)
   _loader_hooks->LoadLibraryExA_target      = nullptr;
   _loader_hooks->FreeLibrary_target         = nullptr;
 
-  // Re-establish the non-hooked functions
-  SK_PreInitLoadLibrary ();
-
   SK_UnlockDllLoader ();
 }
 
@@ -1932,12 +1929,6 @@ SK_PreInitLoadLibrary (void)
        SK_HookEngine_HookGetProcAddress ();
 
   SK_InitCompatBlacklist    ();
-
-  ///FreeLibrary_Original    = nullptr;
-  ///LoadLibraryA_Original   = nullptr;
-  ///LoadLibraryW_Original   = nullptr;
-  ///LoadLibraryExA_Original = nullptr;
-  ///LoadLibraryExW_Original = nullptr;
 
   LoadPackagedLibrary_Original = nullptr; // Windows 8 feature
 }

@@ -1276,8 +1276,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     if (delay_params.thread == INVALID_HANDLE_VALUE)
     {   
       DuplicateHandle ( GetCurrentProcess (), SK_TLS_Bottom ()->debug.handle,
-                        GetCurrentProcess (), &delay_params.parent,
-                          THREAD_ALL_ACCESS, FALSE, 0x0 );
+                        nullptr,              &delay_params.parent,
+                          THREAD_ALL_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE |
+                                                    DUPLICATE_SAME_ACCESS );
 
       delay_params.thread =
       SK_Thread_CreateEx ([](LPVOID) -> DWORD
@@ -1316,7 +1317,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                ) ResumeThread (delay_params.parent);
           } else OutputDebugStringA (
              "[SK Init] Unable to Restore Suspended Thread Context");
-          CloseHandle         (delay_params.parent);
         }
 
         SK_Thread_CloseSelf ();
@@ -1327,7 +1327,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       return true;
     }
   }
+  
 
+  // Setup unhooked function pointers
+  SK_MinHook_Init           ();
+  SK_PreInitLoadLibrary     ();
+
+  SK::Diagnostics::Debugger::Allow        ();
+  SK::Diagnostics::CrashHandler::InitSyms ();
 
   void SK_D3D11_InitMutexes (void);
        SK_D3D11_InitMutexes (    );
@@ -1449,13 +1456,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
         return 0;
       });
-
-      // Setup unhooked function pointers
-      SK_MinHook_Init           ();
-      SK_PreInitLoadLibrary     ();
-
-      SK::Diagnostics::Debugger::Allow        ();
-      SK::Diagnostics::CrashHandler::InitSyms ();
 
       //// Do this from the startup thread [these functions queue, but don't apply]
       SK_Input_PreInit          (); // Hook only symbols in user32 and kernel32

@@ -354,12 +354,7 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_ATTACH:
     {
-      // Try, if assigned already (how?!) do not deadlock the Kernel loader
-      if ( __SK_hModSelf       != hModule )
-        skModuleRegistry::Self   (hModule);
-
-      else
-        return TRUE;
+      skModuleRegistry::Self (hModule);
 
       auto EarlyOut   =
         [&](BOOL bRet = TRUE)

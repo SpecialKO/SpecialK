@@ -317,7 +317,7 @@ SK_Inject_AcquireProcess (void)
 
       // Hold a reference so that removing the CBT hook doesn't crash the software
       GetModuleHandleEx (
-        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
             (LPCWSTR)&SK_Inject_AcquireProcess,
                              &hModHookInstance
                         );
@@ -399,9 +399,6 @@ SK_Inject_SpawnUnloadListener (void)
           );
         }
 
-        HMODULE hMod =
-          *(static_cast <HMODULE *> (lpUser));
-
         // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
         SetThreadDescription_pfn
             _SetThreadDescriptionWin10 =
@@ -428,13 +425,6 @@ SK_Inject_SpawnUnloadListener (void)
         
         _AtomicClose (g_hPacifyThread);
 
-        if (hMod != nullptr)
-        {
-          FreeLibraryAndExitThread (
-            std::exchange (hMod, nullptr), 0x0
-          );
-        }
-
         return 0;
       }, static_cast <LPVOID> (&g_hModule_CBT), CREATE_SUSPENDED, nullptr);
 
@@ -444,9 +434,7 @@ SK_Inject_SpawnUnloadListener (void)
       
       else
       {
-        _AtomicClose (g_hHookTeardown)
-        FreeLibrary  (g_hModule_CBT);
-                      g_hModule_CBT = nullptr;
+        _AtomicClose (g_hHookTeardown);
       }
     }
   }
@@ -505,6 +493,8 @@ SKX_InstallCBTHook (void)
 
   hHookCBT =
     SetWindowsHookEx (WH_CBT, CBTProc, hModSelf, 0);
+
+  FreeLibrary (hModSelf);
 }
 
 
@@ -520,8 +510,8 @@ SKX_RemoveCBTHook (void)
   HHOOK hHookOrig =
     SKX_GetCBTHook ();
 
-  HMODULE                                                                         hModTemp;
-  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCWSTR)&CBTProc, &hModTemp );
+  HMODULE                                                                        hModTemp;
+  GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCWSTR)&CBTProc, &hModTemp);
 
   if ( hHookOrig != nullptr &&
          UnhookWindowsHookEx (hHookOrig) )

@@ -46,7 +46,6 @@ static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"gamebar.exe"),
   SK_MakeUnicode (L"spotify.exe"),
   SK_MakeUnicode (L"jusched.exe"),
-  SK_MakeUnicode (L"svchost.exe"),
   SK_MakeUnicode (L"conhost.exe"),
   SK_MakeUnicode (L"dllhost.exe"),
   SK_MakeUnicode (L"dllhst3g.exe"),
@@ -197,6 +196,9 @@ static constexpr UNICODE_STRING __blacklist [] = {
 // Bluelist = Bounce the DLL out ASAP, do not attempt to defer unload
 static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"setup.exe"),
+  SK_MakeUnicode (L"svchost.exe"),
+  SK_MakeUnicode (L"gamebarft.exe"),
+  SK_MakeUnicode (L"gamebarftserver.exe"),
   SK_MakeUnicode (L"oalinst.exe"),
   SK_MakeUnicode (L"dxsetup.exe"),
   SK_MakeUnicode (L"uninstall.exe"),
@@ -300,9 +302,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
   //   Stuff like Spotify otherwise appears to
   //     be a game since it uses D3D shaders
   SK_MakeUnicode (L"libcef.dll"),
-  
-  SK_MakeUnicode (L"gamebarftserver.exe"),
-  SK_MakeUnicode (L"gamebarft.exe"),
   SK_MakeUnicode (L"gamebar.exe"),
 };
 #endif
