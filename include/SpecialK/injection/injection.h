@@ -69,17 +69,19 @@ void SK_Inject_AcquireProcess (void);
 
 #define MAX_INJECTED_PROCS        32
 #define MAX_INJECTED_PROC_HISTORY 128
+#define INJECTION_RECORD_ABI_VER  "1.1"
 
 extern "C"
 {
 struct SK_InjectionRecord_s
 {
   struct {
-    wchar_t    name [MAX_PATH + 2] = { 0 };
-    DWORD      id                  =   0  ;
-    __time64_t inject              =  0ULL;
-    __time64_t eject               =  0ULL;
-    bool       crashed             = false;
+    wchar_t      name  [MAX_PATH + 2] = { 0 };
+    DWORD        id                   =   0  ;
+    __time64_t   inject               =  0ULL;
+    __time64_t   eject                =  0ULL;
+    bool         crashed              = false;
+    wchar_t      win_title [     128] = { 0 };
   } process;
 
   struct {
@@ -93,15 +95,15 @@ struct SK_InjectionRecord_s
 
   // Use a bitmask instead of this stupidness
   struct {
-    bool xinput       = false;
-    bool raw_input    = false;
-    bool direct_input = false;
-    bool hid          = false;
-    bool steam        = false;
+    bool         xinput                    = false;
+    bool         raw_input                 = false;
+    bool         direct_input              = false;
+    bool         hid                       = false;
+    bool         steam                     = false;
   } input;
 
   struct {
-    uint32_t steam_appid = 0;
+    uint32_t     steam_appid = 0;
     // Others?
   } platform;
 
@@ -112,7 +114,15 @@ struct SK_InjectionRecord_s
 
 SK_InjectionRecord_s*
 __stdcall
-SK_Inject_GetRecord (int idx);
+SK_Inject_GetRecordByIdx (int idx);
+
+SK_InjectionRecord_s*
+__stdcall
+SK_Inject_GetRecord (DWORD dwPid);
+
+HRESULT
+__stdcall
+SK_Inject_AuditRecord (DWORD dwPid, SK_InjectionRecord_s *pData, size_t cbSize);
 
 // Returns false if there is nothing to wait on, or if something else is
 //   already waiting for unhook.

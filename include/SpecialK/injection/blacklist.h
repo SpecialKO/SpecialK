@@ -197,8 +197,11 @@ static constexpr UNICODE_STRING __blacklist [] = {
 static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"setup.exe"),
   SK_MakeUnicode (L"svchost.exe"),
+  SK_MakeUnicode (L"jusched.exe"),
   SK_MakeUnicode (L"gamebarft.exe"),
   SK_MakeUnicode (L"gamebarftserver.exe"),
+  SK_MakeUnicode (L"perfwatson2.exe"),
+  SK_MakeUnicode (L"runtimebroker.exe"),
   SK_MakeUnicode (L"oalinst.exe"),
   SK_MakeUnicode (L"dxsetup.exe"),
   SK_MakeUnicode (L"uninstall.exe"),
@@ -226,7 +229,6 @@ static constexpr UNICODE_STRING __graylist [] = {
 #endif
 
   SK_MakeUnicode (L"streaming_client.exe"),
-  SK_MakeUnicode (L"wow_helper.exe"),
   SK_MakeUnicode (L"firaxisbugreporter.exe"),
   SK_MakeUnicode (L"writeminidump.exe"),
   SK_MakeUnicode (L"crashreporter.exe"),

@@ -218,6 +218,7 @@ SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo)
 
 
 
+#pragma pack (push,8)
 typedef UINT D3DDDI_VIDEO_PRESENT_SOURCE_ID;
 typedef UINT D3DKMT_HANDLE;
 
@@ -351,6 +352,7 @@ typedef struct _D3DKMT_QUERYADAPTERINFO
   _Inout_bytecount_(PrivateDriverDataSize) PVOID                   PrivateDriverData;
   _Out_      UINT32 PrivateDriverDataSize;
 } D3DKMT_QUERYADAPTERINFO;
+#pragma pack (pop)
 
 typedef NTSTATUS (NTAPI *PFND3DKMT_QUERYADAPTERINFO)(D3DKMT_QUERYADAPTERINFO *pData);
 
@@ -460,6 +462,49 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
 }
 
 
+int extra_present_mon_line = 0;
+
+void
+SK_SpawnPresentMonWorker (void)
+{
+  static bool started = false;
+          if (started) return;
+
+  SK_RunOnce (started = true);
+  
+  static HANDLE hPresentMonThread = 0;
+
+  hPresentMonThread =
+  SK_Thread_CreateEx ( [](LPVOID lpUser) -> DWORD
+  {
+    extern int SK_PresentMon_Main (int argc, char **argv);
+  
+    std::string pid =
+      std::to_string (PtrToUlong (lpUser));
+  
+    const char* argv_ [] =
+    { SK_RunLHIfBitness (
+        32, "SpecialK_PresentMon32",
+            "SpecialK_PresentMon64"
+      ), "-no_csv",
+         "-process_id",
+                  pid.c_str (),
+         "-stop_existing_session" };
+  
+    SK_PresentMon_Main ( sizeof (argv_    )/
+                         sizeof (argv_ [0]),
+                        (char **)argv_ );
+
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  }, L"[SK] PresentMonLite_ETW", (LPVOID)ULongToPtr (GetCurrentProcessId ()));
+}
+
+std::string   SK_PresentDebugStr [2] = { "", "" };
+volatile LONG SK_PresentIdx;
+
+
 void
 SK_ImGui_DrawGraph_FramePacing (void)
 {
@@ -531,6 +576,20 @@ SK_ImGui_DrawGraph_FramePacing (void)
     else
       target_frametime = 16.666667f;
   }
+
+  SK_SpawnPresentMonWorker ();
+  if (! SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)].empty ())
+  {
+    extra_present_mon_line = 1;
+
+    ImGui::TextUnformatted (
+      SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)].c_str ()
+    );
+  }
+
+  else
+    extra_present_mon_line = 0;
+
 
   extern void SK_ImGui_DrawFramePercentiles (void);
 
@@ -764,36 +823,11 @@ SK_ImGui_DrawGraph_FramePacing (void)
   //}
 }
 
-extern bool         __SK_InjectionHistory_want_analysis [MAX_INJECTED_PROC_HISTORY]       = { };
-extern char         __SK_InjectionHistory_analysis      [MAX_INJECTED_PROC_HISTORY][1024] = { };
-
 void
 SK_ImGui_DrawFramePercentiles (void)
 {
   if (! SK_FramePercentiles->display)
     return;
-
-  for (auto i = 0; i < MAX_INJECTED_PROCS; i++)
-  {
-    auto *pInjectRecord =
-      SK_Inject_GetRecord (i);
-
-    if (pInjectRecord->process.id == GetProcessId (GetCurrentProcess ()))
-    {   pInjectRecord->render.want_analysis     = true;
-        __SK_InjectionHistory_want_analysis [i] = true;
-      
-      if (*pInjectRecord->render.swapchain_analysis != '\0')
-      {
-        ImGui::TextWrapped ("%hs", pInjectRecord->render.swapchain_analysis);
-      }
-
-      else if (*__SK_InjectionHistory_analysis [i] != '\0')
-      {
-        ImGui::TextWrapped ("%hs", __SK_InjectionHistory_analysis [i]);
-      }
-      break;
-    }
-  }
 
   auto pLimiter =
     SK::Framerate::GetLimiter (
@@ -1100,6 +1134,9 @@ public:
       if (percentile0.has_data) extra_line_space += 1.16f;
       if (percentile1.has_data) extra_line_space += 1.16f;
     }
+
+    if (extra_present_mon_line > 0)
+        extra_line_space += 1.16f;
 
     // If configuring ...
     if (state__ != 0) extra_line_space += (1.16f * 5.5f);

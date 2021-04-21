@@ -42,6 +42,7 @@
 #define BASE_PROTOCOL      1
 #define LAYERED_PROTOCOL   0
 
+#pragma pack (push,8)
 typedef struct _WSAPROTOCOLCHAIN {
     int ChainLen;                                 /* the length of the chain,     */
                                                   /* length = 0 means layered protocol, */
@@ -89,6 +90,7 @@ typedef struct _WSANETWORKEVENTS {
        long lNetworkEvents;
        int iErrorCode[FD_MAX_EVENTS];
 } WSANETWORKEVENTS, FAR * LPWSANETWORKEVENTS;
+#pragma pack (pop)
 
 #include <SpecialK/nvapi.h>
 

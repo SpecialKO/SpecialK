@@ -51,14 +51,17 @@ extern "C"
 
   LONG         g_sHookedPIDs [MAX_INJECTED_PROCS]                 =  {   0   };
 
-  wchar_t      __SK_InjectionHistory_name   [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  {   0   };
-  DWORD        __SK_InjectionHistory_ids    [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  __time64_t   __SK_InjectionHistory_inject [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  __time64_t   __SK_InjectionHistory_eject  [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  bool         __SK_InjectionHistory_crash  [MAX_INJECTED_PROC_HISTORY]            =  { false };
+  wchar_t      __SK_InjectionHistory_name      [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  {   0   };
+  wchar_t      __SK_InjectionHistory_win_title [MAX_INJECTED_PROC_HISTORY * 128     ] =  {   0   };
+  char         __SK_InjectionHistory_swap_mon  [MAX_INJECTED_PROC_HISTORY * 1024    ] =  {   0   };
+  DWORD        __SK_InjectionHistory_ids       [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  __time64_t   __SK_InjectionHistory_inject    [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  __time64_t   __SK_InjectionHistory_eject     [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  bool         __SK_InjectionHistory_crash     [MAX_INJECTED_PROC_HISTORY]            =  { false };
 
-  ULONG64      __SK_InjectionHistory_frames [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  SK_RenderAPI __SK_InjectionHistory_api    [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
+  ULONG64      __SK_InjectionHistory_frames    [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  SK_RenderAPI __SK_InjectionHistory_api       [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
+  AppId_t      __SK_InjectionHistory_AppId     [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
 
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                 =  0L;
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
@@ -88,19 +91,83 @@ extern volatile LONG  __SK_HookContextOwner;
 
 SK_InjectionRecord_s*
 __stdcall
-SK_Inject_GetRecord (int idx)
+SK_Inject_GetRecordByIdx (int idx)
 {
-  wcsncpy_s
-         (__SK_InjectionHistory [idx].process.name,   MAX_PATH-1, &__SK_InjectionHistory_name    [idx * MAX_PATH], _TRUNCATE);
-          __SK_InjectionHistory [idx].process.id                 = __SK_InjectionHistory_ids     [idx];
-          __SK_InjectionHistory [idx].process.inject             = __SK_InjectionHistory_inject  [idx];
-          __SK_InjectionHistory [idx].process.eject              = __SK_InjectionHistory_eject   [idx];
-          __SK_InjectionHistory [idx].process.crashed            = __SK_InjectionHistory_crash   [idx];
+  return
+    SK_Inject_GetRecord (
+      __SK_InjectionHistory_ids [idx]
+    );
+}
 
-          __SK_InjectionHistory [idx].render.api                 = __SK_InjectionHistory_api     [idx];
-          __SK_InjectionHistory [idx].render.frames              = __SK_InjectionHistory_frames  [idx];
+SK_InjectionRecord_s*
+__stdcall
+SK_Inject_GetRecord (DWORD dwPid)
+{
+  for ( int idx = 0                         ;
+            idx < MAX_INJECTED_PROC_HISTORY ;
+          ++idx )
+  {
+    if ( __SK_InjectionHistory_ids [idx] == dwPid )
+    {
+      wcsncpy_s (__SK_InjectionHistory [idx].process.name,             MAX_PATH-1, &__SK_InjectionHistory_name      [idx * MAX_PATH], _TRUNCATE);
+      wcsncpy_s (__SK_InjectionHistory [idx].process.win_title,               128, &__SK_InjectionHistory_win_title [idx * 128     ], _TRUNCATE);
+      strncpy_s (__SK_InjectionHistory [idx].render.swapchain_analysis,      1024, &__SK_InjectionHistory_swap_mon  [idx * 1024    ], _TRUNCATE);
 
-  return &__SK_InjectionHistory [idx];
+                 __SK_InjectionHistory [idx].process.id           = __SK_InjectionHistory_ids     [idx];
+                 __SK_InjectionHistory [idx].process.inject       = __SK_InjectionHistory_inject  [idx];
+                 __SK_InjectionHistory [idx].process.eject        = __SK_InjectionHistory_eject   [idx];
+                 __SK_InjectionHistory [idx].process.crashed      = __SK_InjectionHistory_crash   [idx];
+                 
+                 __SK_InjectionHistory [idx].render.api           = __SK_InjectionHistory_api     [idx];
+                 __SK_InjectionHistory [idx].render.frames        = __SK_InjectionHistory_frames  [idx];
+                 __SK_InjectionHistory [idx].platform.steam_appid = __SK_InjectionHistory_AppId   [idx];
+
+      return    &__SK_InjectionHistory [idx];
+    }
+  }
+
+  return nullptr;
+}
+
+HRESULT
+__stdcall
+SK_Inject_AuditRecord ( DWORD                 dwPid,
+                        SK_InjectionRecord_s *pData,
+                        size_t                cbSize )
+{
+  if (cbSize == sizeof (SK_InjectionRecord_s))
+  {
+    for ( int idx = 0                         ;
+              idx < MAX_INJECTED_PROC_HISTORY ;
+            ++idx )
+    {
+      if ( __SK_InjectionHistory [idx].process.id == dwPid )
+      { wcsncpy_s (
+           __SK_InjectionHistory [idx].process.name,        MAX_PATH-1, pData->process.name,              _TRUNCATE);
+        wcsncpy_s (
+           __SK_InjectionHistory [idx].process.win_title,          128, pData->process.win_title,         _TRUNCATE);
+        strncpy_s (
+           __SK_InjectionHistory [idx].render.swapchain_analysis, 1024, pData->render.swapchain_analysis, _TRUNCATE);
+
+           __SK_InjectionHistory [idx].process.id           = __SK_InjectionHistory_ids    [idx];
+           __SK_InjectionHistory [idx].process.inject       = __SK_InjectionHistory_inject [idx];
+           __SK_InjectionHistory [idx].process.eject        = __SK_InjectionHistory_eject  [idx];
+           __SK_InjectionHistory [idx].process.crashed      = __SK_InjectionHistory_crash  [idx];
+                   
+           __SK_InjectionHistory [idx].render.api           = __SK_InjectionHistory_api    [idx];
+           __SK_InjectionHistory [idx].render.frames        = __SK_InjectionHistory_frames [idx];
+           __SK_InjectionHistory [idx].platform.steam_appid = __SK_InjectionHistory_AppId  [idx];
+
+        strncpy_s(
+          &__SK_InjectionHistory_swap_mon [idx * 1024],                1024,
+           __SK_InjectionHistory [idx].render.swapchain_analysis, _TRUNCATE);
+
+        return S_OK;
+      }
+    }
+  }
+
+  return E_NOINTERFACE;
 }
 
 LONG local_record = 0;
@@ -371,8 +438,7 @@ SK_Inject_SpawnUnloadListener (void)
   //
   if ( g_hPacifyThread == SK_INVALID_HANDLE &&
        g_hModule_CBT   == nullptr           &&
-         GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+         GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
             reinterpret_cast <LPCWSTR> (&CBTProc), &g_hModule_CBT )
      )
   {
@@ -422,8 +488,9 @@ SK_Inject_SpawnUnloadListener (void)
         }
 
         ////InterlockedDecrement (&num_hooked_pids);
-        
-        _AtomicClose (g_hPacifyThread);
+
+        _AtomicClose             (g_hPacifyThread);
+        FreeLibraryAndExitThread (g_hModule_CBT, 0x0);
 
         return 0;
       }, static_cast <LPVOID> (&g_hModule_CBT), CREATE_SUSPENDED, nullptr);
@@ -488,13 +555,12 @@ SKX_InstallCBTHook (void)
   }
 
   HMODULE hModSelf;
-  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                      GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                         (LPCWSTR)&CBTProc, &hModSelf );
 
   hHookCBT =
     SetWindowsHookEx (WH_CBT, CBTProc, hModSelf, 0);
-
-  FreeLibrary (hModSelf);
 }
 
 
@@ -510,8 +576,9 @@ SKX_RemoveCBTHook (void)
   HHOOK hHookOrig =
     SKX_GetCBTHook ();
 
-  HMODULE                                                                        hModTemp;
-  GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCWSTR)&CBTProc, &hModTemp);
+  HMODULE                                                                              hModTemp;
+  GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                     GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&CBTProc, &hModTemp);
 
   if ( hHookOrig != nullptr &&
          UnhookWindowsHookEx (hHookOrig) )
@@ -534,6 +601,8 @@ SKX_RemoveCBTHook (void)
     LONG             hooked_pid_count =
       std::max   (0L,
         std::min (MAX_HOOKED_PROCS, ReadAcquire (&num_hooked_pids)));
+
+    WriteRelease (&__SK_HookContextOwner, FALSE);
 
     SK_Process_Snapshot ();
 
@@ -561,8 +630,6 @@ SKX_RemoveCBTHook (void)
         else
           running_pids.emplace (dwPid);
       }
-      
-      WriteRelease (&__SK_HookContextOwner, FALSE);
     } while (false);// ReadAcquire (&num_hooked_pids) > 0);
 
     // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
@@ -573,7 +640,7 @@ SKX_RemoveCBTHook (void)
       SendMessageTimeout ( HWND_BROADCAST,
                              WM_NULL, 0, 0,
                                SMTO_ABORTIFHUNG,
-                                 25UL, &dwpResult );
+                                 2UL, &dwpResult );
 
       SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
                               DeleteFileW (L"SpecialK32.pid") );
@@ -591,9 +658,6 @@ SKX_RemoveCBTHook (void)
   }
 
   dwHookPID = 0x0;
-
-  if (hModTemp != 0)
-    FreeLibrary (hModTemp);
 }
 
 bool

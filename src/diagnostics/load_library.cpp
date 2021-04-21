@@ -1594,7 +1594,7 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
           if ( (! third_party_dlls.overlays.rtss_hooks) &&
                 StrStrIW (wszModName, L"RTSSHooks") )
           {
-            // Hold a reference to this DLL so it is not unloaded prematurely
+                        // Hold a reference to this DLL so it is not unloaded prematurely
             GetModuleHandleEx ( 0x0,
                                   wszModName,
                                     &third_party_dlls.overlays.rtss_hooks );
@@ -1605,7 +1605,7 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
           else if ( (! third_party_dlls.overlays.steam_overlay) &&
                      StrStrIW (wszModName, L"gameoverlayrenderer") )
           {
-            // Hold a reference to this DLL so it is not unloaded prematurely
+                        // Hold a reference to this DLL so it is not unloaded prematurely
             GetModuleHandleEx ( 0x0,
                                   wszModName,
                                     &third_party_dlls.overlays.steam_overlay );
@@ -1709,7 +1709,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
   );
 #pragma pack (pop)
 
-  static HMODULE hModNtDLL =
+    static HMODULE hModNtDLL =
     SK_GetModuleHandleW   (L"NtDll") != 0 ?
       SK_GetModuleHandleW (L"NtDll")      :
           SK_LoadLibraryW (L"NtDll");

@@ -1392,6 +1392,10 @@
     <ClInclude Include="depends\include\WinRing0\stdafx.h" />
     <ClInclude Include="depends\include\WinRing0\vxd\OpenLS.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d12.h" />
+    <ClInclude Include="include\imgui\fa_brands_400.ttf.h" />
+    <ClInclude Include="include\imgui\fa_regular_400.ttf.h" />
+    <ClInclude Include="include\imgui\fa_solid_900.ttf.h" />
+    <ClInclude Include="include\imgui\font_awesome.h" />
     <ClInclude Include="include\shaders\imgui_d3d11_ps.h" />
     <ClInclude Include="include\shaders\imgui_d3d11_vs.h" />
     <ClInclude Include="include\shaders\sRGB_codec_ps.h" />
@@ -1483,6 +1487,20 @@
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_swapchain.h" />
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_swapchain.h" />
     <ClInclude Include="include\SpecialK\render\backend.h" />
+    <ClInclude Include="include\SpecialK\render\present_mon\Debug.hpp" />
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_D3D9.h" />
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_Dwm_Core.h" />
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_DXGI.h" />
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_DxgKrnl.h" />
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_EventMetadata.h" />
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_Win32k.h" />
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\NT_Process.h" />
+    <ClInclude Include="include\SpecialK\render\present_mon\LateStageReprojectionData.hpp" />
+    <ClInclude Include="include\SpecialK\render\present_mon\MixedRealityTraceConsumer.hpp" />
+    <ClInclude Include="include\SpecialK\render\present_mon\PresentMon.hpp" />
+    <ClInclude Include="include\SpecialK\render\present_mon\PresentMonTraceConsumer.hpp" />
+    <ClInclude Include="include\SpecialK\render\present_mon\TraceConsumer.hpp" />
+    <ClInclude Include="include\SpecialK\render\present_mon\TraceSession.hpp" />
     <ClInclude Include="include\SpecialK\render\screenshot.h" />
     <ClInclude Include="include\SpecialK\resource.h" />
     <ClInclude Include="include\SpecialK\sha1.h" />
@@ -1589,6 +1607,62 @@
     <ClCompile Include="src\render\d3d12\d3d12_pipeline_stats.cpp" />
     <ClCompile Include="src\render\d3d9\d3d9_screenshot.cpp" />
     <ClCompile Include="src\render\dxgi\dxgi_util.cpp" />
+    <ClCompile Include="src\render\present_mon\CommandLine.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PM_Console.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\ConsumerThread.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\CsvOutput.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\LateStageReprojectionData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\MainThread.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\MixedRealityTraceConsumer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\OutputThread.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PD_TraceSession.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PM_Debug.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PM_TraceSession.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PresentMonTraceConsumer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\Privilege.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\TraceConsumer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\render\screenshot.cpp" />
     <ClCompile Include="src\scheduler.cpp" />
     <ClCompile Include="src\stdafx.cpp">

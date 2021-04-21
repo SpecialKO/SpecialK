@@ -2382,7 +2382,7 @@ SK_ImGui_ControlPanel (void)
             for ( unsigned int i = 0 ; i < records.capacity () ; i++ )
             {
               SK_InjectionRecord_s *pRecord =
-                SK_Inject_GetRecord (i);
+                SK_Inject_GetRecordByIdx (i);
 
               if (pRecord->process.id != 0)
               {

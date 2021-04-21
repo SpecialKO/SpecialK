@@ -1510,6 +1510,7 @@ public:
       SK_StartPerfMonThreads (    );
     }
 
+#pragma pack (push,8)
     // Used only if more accurate MSR-based data cannot be
     //   sensed.
     typedef struct _PROCESSOR_POWER_INFORMATION {
@@ -1521,6 +1522,7 @@ public:
       ULONG CurrentIdleState;
     } PROCESSOR_POWER_INFORMATION,
      *PPROCESSOR_POWER_INFORMATION;
+#pragma pack(pop)
 
     SYSTEM_INFO        sinfo = { };
     SK_GetSystemInfo (&sinfo);

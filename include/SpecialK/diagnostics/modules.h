@@ -66,7 +66,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when = SK_ModuleEnum::PreLoad);
 extern "C" {
 #endif
 
-  #pragma pack (push,8)
+#pragma pack (push,8)
 #ifndef _WINDEF_
 typedef void *HANDLE;
 

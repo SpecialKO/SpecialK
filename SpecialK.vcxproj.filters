@@ -316,6 +316,18 @@
     <Filter Include="Source Files\Backends\Render\DXGI\D3D11\Textures">
       <UniqueIdentifier>{c18f8665-c686-454e-a3b5-c12bedf9b429}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\External Libraries\ImGui\Fonts">
+      <UniqueIdentifier>{4638ae06-c287-46bf-95a1-479672e60d24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\PresentMon">
+      <UniqueIdentifier>{1d7182b2-5632-4acb-ac0f-c43dcd7f2607}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\PresentMon">
+      <UniqueIdentifier>{ec9872fc-c040-4493-83d5-7e275a4a15aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\PresentMon\ETW">
+      <UniqueIdentifier>{59588ebf-2a95-42ed-815c-eeb069eec91a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3204,6 +3216,60 @@
     <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
       <Filter>Header Files\Control Panel</Filter>
     </ClInclude>
+    <ClInclude Include="include\imgui\fa_brands_400.ttf.h">
+      <Filter>Header Files\External Libraries\ImGui\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\fa_regular_400.ttf.h">
+      <Filter>Header Files\External Libraries\ImGui\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\fa_solid_900.ttf.h">
+      <Filter>Header Files\External Libraries\ImGui\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\font_awesome.h">
+      <Filter>Header Files\External Libraries\ImGui\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\Debug.hpp">
+      <Filter>Header Files\Backends\Render\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\LateStageReprojectionData.hpp">
+      <Filter>Header Files\Backends\Render\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\MixedRealityTraceConsumer.hpp">
+      <Filter>Header Files\Backends\Render\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\PresentMon.hpp">
+      <Filter>Header Files\Backends\Render\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\PresentMonTraceConsumer.hpp">
+      <Filter>Header Files\Backends\Render\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\TraceConsumer.hpp">
+      <Filter>Header Files\Backends\Render\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\TraceSession.hpp">
+      <Filter>Header Files\Backends\Render\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_D3D9.h">
+      <Filter>Header Files\Backends\Render\PresentMon\ETW</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_Dwm_Core.h">
+      <Filter>Header Files\Backends\Render\PresentMon\ETW</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_DXGI.h">
+      <Filter>Header Files\Backends\Render\PresentMon\ETW</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_DxgKrnl.h">
+      <Filter>Header Files\Backends\Render\PresentMon\ETW</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_EventMetadata.h">
+      <Filter>Header Files\Backends\Render\PresentMon\ETW</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_Win32k.h">
+      <Filter>Header Files\Backends\Render\PresentMon\ETW</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\present_mon\ETW\NT_Process.h">
+      <Filter>Header Files\Backends\Render\PresentMon\ETW</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3634,6 +3700,48 @@
     </ClCompile>
     <ClCompile Include="src\widgets\latency.cpp">
       <Filter>Source Files\ImGui\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\CommandLine.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PM_Console.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\ConsumerThread.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\CsvOutput.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\LateStageReprojectionData.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\MainThread.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\MixedRealityTraceConsumer.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\OutputThread.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PD_TraceSession.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PM_Debug.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PM_TraceSession.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\PresentMonTraceConsumer.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\Privilege.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\present_mon\TraceConsumer.cpp">
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

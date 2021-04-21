@@ -459,7 +459,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     log_entry;
     log_entry.reserve (16384);
 
-    HMODULE hModSource               = nullptr;
+  HMODULE hModSource               = nullptr;
   char    szModName [MAX_PATH + 2] = { };
   HANDLE  hProc                    = SK_GetCurrentProcess ();
 

@@ -54,7 +54,28 @@ SK_ImGui_GetGlyphRangesDefaultEx (void)
   return &ranges [0];
 }
 
+#include <../imgui/fa_regular_400.ttf.h>
+#include <../imgui/fa_brands_400.ttf.h>
+#include <../imgui/fa_solid_900.ttf.h>
+
+#include <../imgui/font_awesome.h>
+
+const ImWchar*
+SK_ImGui_GetGlyphRangesFontAwesome (void)
+{
+  static const ImWchar ranges [] =
+  {
+    ICON_MIN_FA, ICON_MAX_FA,
+    0
+  };
+  return &ranges [0];
+}
+
 SK_LazyGlobal <SK_Thread_HybridSpinlock> font_lock;
+
+#include              <filesystem>
+#include              <fstream>
+namespace sk_fs = std::filesystem;
 
 void
 SK_ImGui_LoadFonts (void)
@@ -112,6 +133,59 @@ SK_ImGui_LoadFonts (void)
     LoadFont (config.imgui.font.chinese.file,   config.imgui.font.chinese.size,  io.Fonts->GetGlyphRangesChineseSimplifiedCommon (), &font_cfg);
     //LoadFont (config.imgui.font.korean.file,    config.imgui.font.korean.size,   io.Fonts->GetGlyphRangesKorean                (), &font_cfg);
     LoadFont (config.imgui.font.cyrillic.file,  config.imgui.font.cyrillic.size, io.Fonts->GetGlyphRangesCyrillic                (), &font_cfg);
+    
+    sk_fs::path fontDir
+          (SK_GetDocumentsDir ());
+  
+    fontDir /= L"My Mods"  ;
+    fontDir /= L"SpecialK" ;
+    fontDir /= L"Fonts"    ;
+
+  if (! sk_fs::exists (            fontDir))
+        sk_fs::create_directories (fontDir);
+
+  static auto
+    sk_fs_wb = ( std::ios_base::binary
+               | std::ios_base::out  );
+
+  auto _UnpackFontIfNeeded =
+  [&]( const char*   szFont,
+       const uint8_t akData [],
+       const size_t  cbSize )
+  {
+    if (! sk_fs::is_regular_file ( fontDir / szFont)          ) 
+                   std::ofstream ( fontDir / szFont, sk_fs_wb ).
+      write ( reinterpret_cast <const char *> (akData),
+                                               cbSize);
+  };
+
+  auto      awesome_fonts = {
+    std::make_tuple (
+      FONT_ICON_FILE_NAME_FAR, fa_regular_400_ttf,
+                   _ARRAYSIZE (fa_regular_400_ttf) ),
+    std::make_tuple (
+      FONT_ICON_FILE_NAME_FAS, fa_solid_900_ttf,
+                   _ARRAYSIZE (fa_solid_900_ttf) ),
+    std::make_tuple (
+      FONT_ICON_FILE_NAME_FAB, fa_brands_400_ttf,
+                   _ARRAYSIZE (fa_brands_400_ttf) )
+                            };
+
+  std::for_each (
+            awesome_fonts.begin (),
+            awesome_fonts.end   (),
+    [&](const auto& font)
+    {        _UnpackFontIfNeeded (
+      std::get <0> (font),
+      std::get <1> (font),
+      std::get <2> (font)        );
+       LoadFont (SK_WideCharToUTF8 (
+                    fontDir/
+      std::get <0> (font)).c_str (),
+       config.imgui.font.default_font.size,
+        SK_ImGui_GetGlyphRangesFontAwesome (),
+                   &font_cfg);
+    }           );
 
     io.Fonts->AddFontDefault ();
 

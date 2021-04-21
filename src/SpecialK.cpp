@@ -359,11 +359,8 @@ DllMain ( HMODULE hModule,
       auto EarlyOut   =
         [&](BOOL bRet = TRUE)
       {
-        if (bRet)
-        {
-          __SK_DLL_TeardownEvent =
-            SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
-        }
+        if (! SK_GetHostAppUtil ()->isInjectionTool ())
+          DisableThreadLibraryCalls (hModule);
 
         return bRet;
       };
