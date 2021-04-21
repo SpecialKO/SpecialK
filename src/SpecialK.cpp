@@ -240,9 +240,9 @@ SK_KeepAway (void)
 
   if (ret == 0)
   {
-    wchar_t wszPackageName [32] = { };
-    UINT32  uiLen               =  0;
-    LONG    rc                  =
+    wchar_t wszPackageName [PACKAGE_FULL_NAME_MAX_LENGTH] = { };
+    UINT32  uiLen                                         =  0;
+    LONG    rc                                            =
       GetCurrentPackageFullName (&uiLen, wszPackageName);
 
     if (rc != APPMODEL_ERROR_NO_PACKAGE)
@@ -356,11 +356,14 @@ DllMain ( HMODULE hModule,
     {
       skModuleRegistry::Self (hModule);
 
+      __SK_DLL_TeardownEvent =
+        SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
+
       auto EarlyOut   =
         [&](BOOL bRet = TRUE)
       {
-        if (! SK_GetHostAppUtil ()->isInjectionTool ())
-          DisableThreadLibraryCalls (hModule);
+        ////if (! SK_GetHostAppUtil ()->isInjectionTool ())
+        ////  DisableThreadLibraryCalls (hModule);
 
         return bRet;
       };
@@ -394,9 +397,6 @@ DllMain ( HMODULE hModule,
       //   re-inject itself constantly; just return TRUE here.
       if (DLL_ROLE::INVALID == SK_GetDLLRole ())   return EarlyOut (TRUE);
       if (! SK_Attach         (SK_GetDLLRole ()))  return EarlyOut (TRUE);
-
-      __SK_DLL_TeardownEvent =
-        SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
 
       InterlockedIncrementRelease (
         &__SK_DLL_Refs
@@ -486,6 +486,15 @@ DllMain ( HMODULE hModule,
       if ((uintptr_t)__SK_DLL_TeardownEvent > (uintptr_t)nullptr)
       { CloseHandle (__SK_DLL_TeardownEvent);
                      __SK_DLL_TeardownEvent = INVALID_HANDLE_VALUE;
+      }
+
+      // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
+      if (InterlockedCompareExchange (&__SK_HookContextOwner, FALSE, TRUE))
+      {
+        SK_RunLHIfBitness (
+          64, DeleteFileW (L"SpecialK64.pid"),
+              DeleteFileW (L"SpecialK32.pid")
+        );
       }
 
 #ifdef DEBUG

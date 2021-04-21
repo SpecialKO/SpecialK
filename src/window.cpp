@@ -5349,7 +5349,6 @@ SK_InstallWindowHook (HWND hWnd)
   void SK_MakeWindowHook (   WNDPROC,  WNDPROC, HWND);
        SK_MakeWindowHook (class_proc, wnd_proc, hWnd);
 
-
   if ( game_window.WndProc_Original != nullptr )
   {
           bool  has_raw_mouse = false;
@@ -5586,6 +5585,19 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
   else if (! _wcsicmp (wszClassName, L"UnrealWindow"))
     SK_GetCurrentRenderBackend ().windows.unreal = true;
+
+
+  if (SK_IsInjected ())
+  {
+    auto *pRecord =
+      SK_Inject_GetRecord (GetCurrentProcessId ());
+
+    wcsncpy (pRecord->process.win_title, wszTitle, 127);
+
+    SK_Inject_AuditRecord ( pRecord->process.id,
+                            pRecord,
+                   sizeof (*pRecord) );
+  }
 }
 
 

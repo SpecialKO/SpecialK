@@ -321,7 +321,7 @@ void UpdateLsrCsv(LateStageReprojectionData& lsr, ProcessInfo* proc, LateStageRe
     fprintf(fp, "\n");
 }
 
-void UpdateConsole(std::unordered_map<uint32_t, ProcessInfo> const& activeProcesses, LateStageReprojectionData& lsr)
+void UpdateConsole(std::unordered_map<uint32_t, ProcessInfo> const&, LateStageReprojectionData&)
 {
     ///////auto const& args = GetCommandLineArgs();
     ///////

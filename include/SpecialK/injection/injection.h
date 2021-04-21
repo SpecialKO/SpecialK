@@ -23,6 +23,7 @@
 #define __SK__INJECTION_H__
 
 #include <Unknwnbase.h>
+#include <appmodel.h>
 
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
@@ -69,7 +70,7 @@ void SK_Inject_AcquireProcess (void);
 
 #define MAX_INJECTED_PROCS        32
 #define MAX_INJECTED_PROC_HISTORY 128
-#define INJECTION_RECORD_ABI_VER  "1.1"
+#define INJECTION_RECORD_ABI_VER  "1.2"
 
 extern "C"
 {
@@ -89,8 +90,6 @@ struct SK_InjectionRecord_s
     ULONG64      frames                    =  0ULL;
     bool         fullscreen                = false;
     bool         dpi_aware                 = false;
-    char         swapchain_analysis [1024] =    "";
-    bool         want_analysis             = false;
   } render;
 
   // Use a bitmask instead of this stupidness
@@ -103,7 +102,10 @@ struct SK_InjectionRecord_s
   } input;
 
   struct {
-    uint32_t     steam_appid = 0;
+    uint32_t     steam_appid     =  0 ;
+    wchar_t      uwp_full_name [
+             PACKAGE_FULL_NAME_MAX_LENGTH
+                               ] = { };
     // Others?
   } platform;
 

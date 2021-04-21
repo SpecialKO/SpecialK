@@ -3568,15 +3568,79 @@ using SetWindowsHookEx_pfn = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
       SetWindowsHookEx_pfn SetWindowsHookExA_Original = nullptr;
       SetWindowsHookEx_pfn SetWindowsHookExW_Original = nullptr;
 
+
+
+
+
+std::map <
+  DWORD, HOOKPROC > _RealMouseProcs;
+         HOOKPROC   _RealMouseProc;
+
+std::map <
+  DWORD, HOOKPROC > _RealKeyboardProcs;
+         HOOKPROC   _RealKeyboardProc;
+
 LRESULT
 CALLBACK
-SK_NOP_KeyboardProc (
-  _In_ int    code,
+SK_Proxy_MouseProc   (
+  _In_ int    nCode,
   _In_ WPARAM wParam,
   _In_ LPARAM lParam )
 {
-  return
-    CallNextHookEx (0, code, wParam, lParam);
+  DWORD dwTid =
+    GetCurrentThreadId ();
+
+  if (SK_ImGui_WantMouseCapture ())
+  {
+    return
+      CallNextHookEx (
+          nullptr, nCode,
+           wParam, lParam );
+  }
+
+  else
+  {
+    using MouseProc =
+      LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
+    
+    return
+      ((MouseProc)_RealMouseProcs.count (dwTid) ?
+                  _RealMouseProcs.at    (dwTid) :
+                  _RealMouseProc)( nCode, wParam,
+                                          lParam );
+  }
+}
+
+
+LRESULT
+CALLBACK
+SK_Proxy_KeyboardProc (
+  _In_ int    nCode,
+  _In_ WPARAM wParam,
+  _In_ LPARAM lParam  )
+{
+  DWORD dwTid =
+    GetCurrentThreadId ();
+
+  if (SK_ImGui_WantKeyboardCapture ())
+  {
+    return
+      CallNextHookEx (
+          nullptr, nCode,
+           wParam, lParam );
+  }
+
+  else
+  {
+    using KeyboardProc =
+      LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
+    
+    return
+      ((KeyboardProc)_RealKeyboardProcs.count (dwTid) ?
+                     _RealKeyboardProcs.at    (dwTid) :
+                     _RealKeyboardProc)( nCode, wParam,
+                                                lParam );
+  }
 }
 
 HHOOK
@@ -3587,25 +3651,62 @@ SetWindowsHookExW_Detour (
   HINSTANCE hmod,
   DWORD     dwThreadId )
 {
+  wchar_t                   wszHookMod [MAX_PATH] = { };
+  GetModuleFileNameW (hmod, wszHookMod, MAX_PATH);
+
   switch (idHook)
   {
     case WH_KEYBOARD:
     case WH_KEYBOARD_LL:
-      SK_LOG0 ( ( L" <> Game uses a%sKeyboard Hook...",
-                        idHook == WH_KEYBOARD_LL ? L"Low-Level " : L" " ),
-                                      L"Input Hook" );
+    {
+      SK_LOG0 ( ( L" <Unicode>: Game module ( %ws ) uses a%wsKeyboard Hook...",
+                       wszHookMod,
+                        idHook == WH_KEYBOARD_LL ?
+                                   L" Low-Level " : L" " ),
+                                           L"Input Hook" );
 
-      //SK_MessageBox (L"Keyboard Hook Denied", L"Pfft", MB_OK);
-      //lpfn = SK_NOP_KeyboardProc;
       if (config.input.keyboard.override_alt_f4)
       {
         return 0;
       }
-      break;
+
+      // Game seems to be using keyboard hooks instead of a normal Window Proc;
+      //   that makes life more complicated for SK/ImGui... but we got this!
+      if (idHook == WH_KEYBOARD)
+      {
+        if (dwThreadId != 0) _RealKeyboardProcs [dwThreadId] = lpfn;
+        else                 _RealKeyboardProc               = lpfn;
+        
+        lpfn = SK_Proxy_KeyboardProc;
+      }
+    } break;
+
+    case WH_MOUSE:
+    case WH_MOUSE_LL:
+    {
+      SK_LOG0 ( ( L" <Unicode>: Game module ( %ws ) uses a%wsMouse Hook...",
+                 wszHookMod,
+                  idHook == WH_MOUSE_LL    ?
+                            L" Low-Level " : L" " ),
+                                    L"Input Hook" );
+      
+      // Game seems to be using mouse hooks instead of a normal Window Proc;
+      //   that makes life more complicated for SK/ImGui... but we got this!
+      if (idHook == WH_MOUSE)
+      {
+        if (dwThreadId != 0) _RealMouseProcs [dwThreadId] = lpfn;
+        else                 _RealMouseProc               = lpfn;
+
+        lpfn = SK_Proxy_MouseProc;
+      }
+    } break;
   }
 
   return
-    SetWindowsHookExW_Original (idHook, lpfn, hmod, dwThreadId);
+    SetWindowsHookExW_Original (
+      idHook, lpfn,
+              hmod, dwThreadId
+    );
 }
 
 HHOOK
@@ -3616,24 +3717,62 @@ SetWindowsHookExA_Detour (
   HINSTANCE hmod,
   DWORD     dwThreadId )
 {
+  wchar_t                   wszHookMod [MAX_PATH] = { };
+  GetModuleFileNameW (hmod, wszHookMod, MAX_PATH);
+
   switch (idHook)
   {
     case WH_KEYBOARD:
     case WH_KEYBOARD_LL:
-      SK_LOG0 ( ( L" <> Game uses a%sKeyboard Hook...",
-                        idHook == WH_KEYBOARD_LL ? L"Low-Level " : L" " ),
-                                      L"Input Hook" );
+    {
+      SK_LOG0 ( ( L" <ANSI>: Game module ( %ws ) uses a%wsKeyboard Hook...",
+                       wszHookMod,
+                        idHook == WH_KEYBOARD_LL ?
+                                   L" Low-Level " : L" " ),
+                                           L"Input Hook" );
 
       if (config.input.keyboard.override_alt_f4)
       {
         return 0;
       }
-      //lpfn = SK_NOP_KeyboardProc;
-      break;
+
+      // Game seems to be using keyboard hooks instead of a normal Window Proc;
+      //   that makes life more complicated for SK/ImGui... but we got this!
+      if (idHook == WH_KEYBOARD)
+      {
+        if (dwThreadId != 0) _RealKeyboardProcs [dwThreadId] = lpfn;
+        else                 _RealKeyboardProc               = lpfn;
+        
+        lpfn = SK_Proxy_KeyboardProc;
+      }
+    } break;
+
+    case WH_MOUSE:
+    case WH_MOUSE_LL:
+    {
+      SK_LOG0 ( ( L" <ANSI>: Game module ( %ws ) uses a%wsMouse Hook...",
+                 wszHookMod,
+                  idHook == WH_MOUSE_LL    ?
+                            L" Low-Level " : L" " ),
+                                    L"Input Hook" );
+      
+      // Game seems to be using mouse hooks instead of a normal Window Proc;
+      //   that makes life more complicated for SK/ImGui... but we got this!
+      if (idHook == WH_MOUSE)
+      {
+        if (dwThreadId != 0) _RealMouseProcs [dwThreadId] = lpfn;
+        else                 _RealMouseProc               = lpfn;
+        
+        lpfn = SK_Proxy_MouseProc;
+      }
+    } break;
   }
 
   return
-    SetWindowsHookExA_Original (idHook, lpfn, hmod, dwThreadId);
+    SetWindowsHookExA_Original (
+      idHook, lpfn,
+              hmod, dwThreadId
+    );
 }
 
 bool

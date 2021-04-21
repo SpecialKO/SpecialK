@@ -51,17 +51,18 @@ extern "C"
 
   LONG         g_sHookedPIDs [MAX_INJECTED_PROCS]                 =  {   0   };
 
-  wchar_t      __SK_InjectionHistory_name      [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  {   0   };
-  wchar_t      __SK_InjectionHistory_win_title [MAX_INJECTED_PROC_HISTORY * 128     ] =  {   0   };
-  char         __SK_InjectionHistory_swap_mon  [MAX_INJECTED_PROC_HISTORY * 1024    ] =  {   0   };
-  DWORD        __SK_InjectionHistory_ids       [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  __time64_t   __SK_InjectionHistory_inject    [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  __time64_t   __SK_InjectionHistory_eject     [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  bool         __SK_InjectionHistory_crash     [MAX_INJECTED_PROC_HISTORY]            =  { false };
+  wchar_t      __SK_InjectionHistory_name       [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  {   0   };
+  wchar_t      __SK_InjectionHistory_win_title  [MAX_INJECTED_PROC_HISTORY * 128     ] =  {   0   };
+  DWORD        __SK_InjectionHistory_ids        [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  __time64_t   __SK_InjectionHistory_inject     [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  __time64_t   __SK_InjectionHistory_eject      [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  bool         __SK_InjectionHistory_crash      [MAX_INJECTED_PROC_HISTORY]            =  { false };
 
-  ULONG64      __SK_InjectionHistory_frames    [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  SK_RenderAPI __SK_InjectionHistory_api       [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
-  AppId_t      __SK_InjectionHistory_AppId     [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  ULONG64      __SK_InjectionHistory_frames     [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  SK_RenderAPI __SK_InjectionHistory_api        [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
+  AppId_t      __SK_InjectionHistory_AppId      [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  wchar_t      __SK_InjectionHistory_UwpPackage [MAX_INJECTED_PROC_HISTORY *
+                                                         PACKAGE_FULL_NAME_MAX_LENGTH] =  {   0   };
 
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                 =  0L;
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
@@ -109,18 +110,21 @@ SK_Inject_GetRecord (DWORD dwPid)
   {
     if ( __SK_InjectionHistory_ids [idx] == dwPid )
     {
-      wcsncpy_s (__SK_InjectionHistory [idx].process.name,             MAX_PATH-1, &__SK_InjectionHistory_name      [idx * MAX_PATH], _TRUNCATE);
-      wcsncpy_s (__SK_InjectionHistory [idx].process.win_title,               128, &__SK_InjectionHistory_win_title [idx * 128     ], _TRUNCATE);
-      strncpy_s (__SK_InjectionHistory [idx].render.swapchain_analysis,      1024, &__SK_InjectionHistory_swap_mon  [idx * 1024    ], _TRUNCATE);
+      wcsncpy_s (__SK_InjectionHistory [idx].process.name,     MAX_PATH-1, &__SK_InjectionHistory_name       [idx * MAX_PATH], _TRUNCATE);
+      wcsncpy_s (__SK_InjectionHistory [idx].process.win_title,       128, &__SK_InjectionHistory_win_title  [idx * 128     ], _TRUNCATE);
+      wcsncpy_s (__SK_InjectionHistory [idx].platform.uwp_full_name,
+                                             PACKAGE_FULL_NAME_MAX_LENGTH, &__SK_InjectionHistory_UwpPackage [idx *
+                                             PACKAGE_FULL_NAME_MAX_LENGTH                                                   ], _TRUNCATE);
 
-                 __SK_InjectionHistory [idx].process.id           = __SK_InjectionHistory_ids     [idx];
-                 __SK_InjectionHistory [idx].process.inject       = __SK_InjectionHistory_inject  [idx];
-                 __SK_InjectionHistory [idx].process.eject        = __SK_InjectionHistory_eject   [idx];
-                 __SK_InjectionHistory [idx].process.crashed      = __SK_InjectionHistory_crash   [idx];
+                 __SK_InjectionHistory [idx].process.id             = __SK_InjectionHistory_ids     [idx];
+                 __SK_InjectionHistory [idx].process.inject         = __SK_InjectionHistory_inject  [idx];
+                 __SK_InjectionHistory [idx].process.eject          = __SK_InjectionHistory_eject   [idx];
+                 __SK_InjectionHistory [idx].process.crashed        = __SK_InjectionHistory_crash   [idx];
                  
-                 __SK_InjectionHistory [idx].render.api           = __SK_InjectionHistory_api     [idx];
-                 __SK_InjectionHistory [idx].render.frames        = __SK_InjectionHistory_frames  [idx];
-                 __SK_InjectionHistory [idx].platform.steam_appid = __SK_InjectionHistory_AppId   [idx];
+                 __SK_InjectionHistory [idx].render.api             = __SK_InjectionHistory_api     [idx];
+                 __SK_InjectionHistory [idx].render.frames          = __SK_InjectionHistory_frames  [idx];
+
+                 __SK_InjectionHistory [idx].platform.steam_appid   = __SK_InjectionHistory_AppId   [idx];
 
       return    &__SK_InjectionHistory [idx];
     }
@@ -143,24 +147,40 @@ SK_Inject_AuditRecord ( DWORD                 dwPid,
     {
       if ( __SK_InjectionHistory [idx].process.id == dwPid )
       { wcsncpy_s (
-           __SK_InjectionHistory [idx].process.name,        MAX_PATH-1, pData->process.name,              _TRUNCATE);
+           __SK_InjectionHistory [idx].process.name, MAX_PATH-1, pData->process.name,           _TRUNCATE);
         wcsncpy_s (
-           __SK_InjectionHistory [idx].process.win_title,          128, pData->process.win_title,         _TRUNCATE);
-        strncpy_s (
-           __SK_InjectionHistory [idx].render.swapchain_analysis, 1024, pData->render.swapchain_analysis, _TRUNCATE);
+           __SK_InjectionHistory [idx].process.win_title,   128, pData->process.win_title,      _TRUNCATE);
+        wcsncpy_s (
+           __SK_InjectionHistory [idx].platform.uwp_full_name,                 
+                                   PACKAGE_FULL_NAME_MAX_LENGTH, pData->platform.uwp_full_name, _TRUNCATE);
 
-           __SK_InjectionHistory [idx].process.id           = __SK_InjectionHistory_ids    [idx];
-           __SK_InjectionHistory [idx].process.inject       = __SK_InjectionHistory_inject [idx];
-           __SK_InjectionHistory [idx].process.eject        = __SK_InjectionHistory_eject  [idx];
-           __SK_InjectionHistory [idx].process.crashed      = __SK_InjectionHistory_crash  [idx];
-                   
-           __SK_InjectionHistory [idx].render.api           = __SK_InjectionHistory_api    [idx];
-           __SK_InjectionHistory [idx].render.frames        = __SK_InjectionHistory_frames [idx];
-           __SK_InjectionHistory [idx].platform.steam_appid = __SK_InjectionHistory_AppId  [idx];
+        wcsncpy_s (&__SK_InjectionHistory_name         [idx * MAX_PATH], MAX_PATH-1,
+                    __SK_InjectionHistory [idx].process.name,           _TRUNCATE);
+        wcsncpy_s (&__SK_InjectionHistory_win_title    [idx * 128     ], 128,
+                    __SK_InjectionHistory [idx].process.win_title,      _TRUNCATE);
+        wcsncpy_s (&__SK_InjectionHistory_UwpPackage [idx * PACKAGE_FULL_NAME_MAX_LENGTH],
+                                                            PACKAGE_FULL_NAME_MAX_LENGTH,
+                    __SK_InjectionHistory [idx].platform.uwp_full_name, _TRUNCATE);
 
-        strncpy_s(
-          &__SK_InjectionHistory_swap_mon [idx * 1024],                1024,
-           __SK_InjectionHistory [idx].render.swapchain_analysis, _TRUNCATE);
+
+         __SK_InjectionHistory_inject [idx] = pData->process.inject;
+         __SK_InjectionHistory_eject  [idx] = pData->process.eject;
+         __SK_InjectionHistory_crash  [idx] = pData->process.crashed;
+         
+         __SK_InjectionHistory_api    [idx] = pData->render.api;
+         __SK_InjectionHistory_frames [idx] = pData->render.frames;
+
+         __SK_InjectionHistory_AppId  [idx] = pData->platform.steam_appid;
+
+
+         __SK_InjectionHistory [idx].process.id           = __SK_InjectionHistory_ids    [idx];
+         __SK_InjectionHistory [idx].process.inject       = __SK_InjectionHistory_inject [idx];
+         __SK_InjectionHistory [idx].process.eject        = __SK_InjectionHistory_eject  [idx];
+         __SK_InjectionHistory [idx].process.crashed      = __SK_InjectionHistory_crash  [idx];
+                 
+         __SK_InjectionHistory [idx].render.api           = __SK_InjectionHistory_api    [idx];
+         __SK_InjectionHistory [idx].render.frames        = __SK_InjectionHistory_frames [idx];
+         __SK_InjectionHistory [idx].platform.steam_appid = __SK_InjectionHistory_AppId  [idx];
 
         return S_OK;
       }
@@ -382,9 +402,19 @@ SK_Inject_AcquireProcess (void)
       wcsncpy_s (&__SK_InjectionHistory_name [local_record * MAX_PATH], MAX_PATH,
                                          wszHostFullName,             _TRUNCATE);
 
+      wchar_t                                wszPackageName [PACKAGE_FULL_NAME_MAX_LENGTH] = { };
+      UINT32                          uiLen                                                =  0 ;
+      if (GetCurrentPackageFullName (&uiLen, wszPackageName) != APPMODEL_ERROR_NO_PACKAGE)
+      {
+        wcsncpy_s (&__SK_InjectionHistory_UwpPackage [
+                                              local_record * PACKAGE_FULL_NAME_MAX_LENGTH],
+                                      uiLen, wszPackageName,                    _TRUNCATE);
+      }
+
       // Hold a reference so that removing the CBT hook doesn't crash the software
       GetModuleHandleEx (
-        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
             (LPCWSTR)&SK_Inject_AcquireProcess,
                              &hModHookInstance
                         );
@@ -412,11 +442,8 @@ SKX_GetCBTHook (void) noexcept
   return hHookCBT;
 }
 
-// Don't use a local static variable, since that drags in the MSVCRT to do
-//   the dirty work, just make this a global.
-HMODULE g_hModule_CBT   = nullptr;
-HANDLE  g_hPacifyThread = SK_INVALID_HANDLE;
-HANDLE  g_hHookTeardown = SK_INVALID_HANDLE;
+HANDLE  g_hPacifierThread = 0;
+HMODULE g_hModule_CBT     = 0;
 
 void
 SK_Inject_SpawnUnloadListener (void)
@@ -424,86 +451,66 @@ SK_Inject_SpawnUnloadListener (void)
 #define _AtomicClose(handle) if ((handle) != SK_INVALID_HANDLE) \
       CloseHandle (std::exchange((handle), SK_INVALID_HANDLE));
 
-  //
-  // Exception handling is not valid until after the CRT invokes
-  //   dllmain_dispatch, hopefully it has done so by the time this
-  //     thread begins execution.
-  //
-  //   * Don't move this code outside of the thread, and don't use
-  //       the Visual C++ CRT _beginthread (...) construct within this
-  //         hook.
-  //
-  //     ==> In fact, don't use any part of the C/C++ standard library
-  //           unless you are fond of impossible to debug problems !!
-  //
-  if ( g_hPacifyThread == SK_INVALID_HANDLE &&
-       g_hModule_CBT   == nullptr           &&
-         GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-            reinterpret_cast <LPCWSTR> (&CBTProc), &g_hModule_CBT )
-     )
+  if (! g_hModule_CBT)
   {
-    if (g_hHookTeardown == SK_INVALID_HANDLE)
-        g_hHookTeardown =
-          OpenEvent ( EVENT_ALL_ACCESS, FALSE,
-              SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
-                                     LR"(Local\SK_GlobalHookTeardown64)") );
+    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+      reinterpret_cast <LPCWSTR> (&CBTProc), &g_hModule_CBT );
 
-    if (g_hHookTeardown != SK_INVALID_HANDLE)
-    {
-      g_hPacifyThread =
+    g_hPacifierThread =
       CreateThread (nullptr, 0, [](LPVOID lpUser) ->
       DWORD
       {
-        LONG idx =
-          InterlockedIncrement (&num_hooked_pids);
-
-        if (idx < MAX_HOOKED_PROCS)
+        HANDLE hHookTeardown =
+          OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+              SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
+                                     LR"(Local\SK_GlobalHookTeardown64)") );
+        
+        std::once_flag  once;
+        std::call_once (once,[]
         {
-          WriteULongRelease (
-            &hooked_pids [idx],
-              GetCurrentProcessId ()
-          );
-        }
-
+          LONG idx =
+            InterlockedIncrement (&num_hooked_pids);
+      
+          if (idx < MAX_HOOKED_PROCS)
+          {
+            WriteULongRelease (
+              &hooked_pids [idx],
+                GetCurrentProcessId ()
+            );
+          }
+        });
+      
         // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
         SetThreadDescription_pfn
             _SetThreadDescriptionWin10 =
             (SetThreadDescription_pfn)GetProcAddress (GetModuleHandle (L"Kernel32"),
             "SetThreadDescription");
-
+      
         if (_SetThreadDescriptionWin10 != nullptr) {
             _SetThreadDescriptionWin10 (
               GetCurrentThread (),
                 L"[SK] Global Hook Pacifier"
             );
         }
-
-        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
-
-        if (g_hHookTeardown != SK_INVALID_HANDLE)
-        {
-          WaitForSingleObject (
-                        g_hHookTeardown, INFINITE);
-          _AtomicClose (g_hHookTeardown);
-        }
-
-        ////InterlockedDecrement (&num_hooked_pids);
-
-        _AtomicClose             (g_hPacifyThread);
-        FreeLibraryAndExitThread (g_hModule_CBT, 0x0);
-
-        return 0;
-      }, static_cast <LPVOID> (&g_hModule_CBT), CREATE_SUSPENDED, nullptr);
-
-
-      if (            g_hPacifyThread != SK_INVALID_HANDLE)
-        ResumeThread (g_hPacifyThread);
       
-      else
-      {
-        _AtomicClose (g_hHookTeardown);
-      }
-    }
+        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
+      
+        if (hHookTeardown != SK_INVALID_HANDLE)
+        {
+          InterlockedIncrement (&injected_procs);
+      
+          WaitForSingleObject  (hHookTeardown, INFINITE);
+          _AtomicClose         (hHookTeardown);
+      
+          InterlockedDecrement (&injected_procs);
+        }
+      
+                      g_hModule_CBT = 0;
+        _AtomicClose (g_hPacifierThread);
+          
+        return 0;
+      }, nullptr, 0x0, nullptr);
   }
 }
 
@@ -551,16 +558,17 @@ SKX_InstallCBTHook (void)
   {
     void SK_Inject_InitWhiteAndBlacklists (void);
          SK_Inject_InitWhiteAndBlacklists ();
-    InterlockedIncrementRelease (&injected_procs);
   }
 
-  HMODULE hModSelf;
+  HMODULE                                   hModSelf;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                       GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                         (LPCWSTR)&CBTProc, &hModSelf );
-
   hHookCBT =
-    SetWindowsHookEx (WH_CBT, CBTProc, hModSelf, 0);
+    SetWindowsHookEx (WH_CBT,     CBTProc,  hModSelf, 0);
+
+  if (hHookCBT != 0)
+    InterlockedExchange (&__SK_HookContextOwner, TRUE);
 }
 
 
@@ -568,44 +576,41 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
-  if (SK_GetHostAppUtil ()->isInjectionTool ())
-  {
-    InterlockedDecrement (&injected_procs);
-  }
-
   HHOOK hHookOrig =
     SKX_GetCBTHook ();
 
-  HMODULE                                                                              hModTemp;
-  GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                     GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&CBTProc, &hModTemp);
+  HANDLE hHookTeardown =
+    OpenEvent ( (DWORD)EVENT_ALL_ACCESS, FALSE,
+      SK_RunLHIfBitness ( 32, LR"(Local\SK_GlobalHookTeardown32)",
+                              LR"(Local\SK_GlobalHookTeardown64)") );
 
   if ( hHookOrig != nullptr &&
          UnhookWindowsHookEx (hHookOrig) )
   {
+    if ((intptr_t)hHookTeardown > 0)
+    {   SetEvent (hHookTeardown);  }
+
+    
+    if (SK_GetHostAppUtil ()->isInjectionTool ())
+    {
+      InterlockedDecrement (&injected_procs);
+    }
+
                          whitelist_count = 0;
     RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
                          blacklist_count = 0;
     RtlSecureZeroMemory (blacklist_patterns, sizeof (blacklist_patterns));
 
-    HANDLE hHookTeardown =
-      OpenEvent ( (DWORD)EVENT_ALL_ACCESS, FALSE,
-          SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
-                                 LR"(Local\SK_GlobalHookTeardown64)") );
-
-    if ((intptr_t)hHookTeardown > 0)
-    {   SetEvent (hHookTeardown);  }
-
-    std::set <DWORD> running_pids;
+              DWORD       self_pid = GetCurrentProcessId ();
+    std::set <DWORD>   running_pids;
     std::set <DWORD> suspended_pids;
     LONG             hooked_pid_count =
       std::max   (0L,
         std::min (MAX_HOOKED_PROCS, ReadAcquire (&num_hooked_pids)));
 
-    WriteRelease (&__SK_HookContextOwner, FALSE);
-
     SK_Process_Snapshot ();
 
+    int tries = 0;
     do
     {
       for ( int i = 0                ;
@@ -615,47 +620,43 @@ SKX_RemoveCBTHook (void)
         DWORD dwPid =
           ReadULongAcquire (&hooked_pids [i]);
 
-        if (                      0 == dwPid ||
-             suspended_pids.count     (dwPid)||
-               running_pids.count     (dwPid)||
-             GetCurrentProcessId () == dwPid )
-          continue;
+        if (                   0 == dwPid  ||
+              suspended_pids.count (dwPid) ||
+                running_pids.count (dwPid) ||
+                        self_pid == dwPid ) continue;
 
         if (SK_Process_IsSuspended (dwPid))
         {
-          suspended_pids.emplace (dwPid);
-               SK_Process_Resume (dwPid);
+            suspended_pids.emplace (dwPid);
+                 SK_Process_Resume (dwPid);
         }
-
-        else
-          running_pids.emplace (dwPid);
+        else running_pids.emplace  (dwPid);
       }
-    } while (false);// ReadAcquire (&num_hooked_pids) > 0);
 
-    // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
-    if (! ReadAcquire (&__SK_HookContextOwner))
-    {
-      DWORD_PTR dwpResult = 0;
-
+      DWORD_PTR dwpResult = 0x0;
       SendMessageTimeout ( HWND_BROADCAST,
-                             WM_NULL, 0, 0,
-                               SMTO_ABORTIFHUNG,
-                                 2UL, &dwpResult );
+                            WM_NULL, 0, 0,
+                         SMTO_ABORTIFHUNG,
+                                      7UL,
+               &dwpResult );
 
-      SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
-                              DeleteFileW (L"SpecialK32.pid") );
+      if (++tries > 4)
+        break;
     }
+    while (ReadAcquire (&injected_procs) > 0);
 
     hHookCBT = nullptr;
 
-    for ( auto& pid : suspended_pids )
+    // After waking all suspended pids while the hook teardown
+    //   was active, they can go back to being suspended ;)
+    for ( auto pid : suspended_pids )
     {
       SK_Process_Suspend (pid);
     }
-
-    if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
-      CloseHandle (                  hHookTeardown);
   }
+
+  if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
+    CloseHandle (                  hHookTeardown);
 
   dwHookPID = 0x0;
 }

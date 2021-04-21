@@ -717,7 +717,7 @@ void Output (void)
     // just reading it without correlation to gRecordingToggleHistory, we
     // don't need the critical section.
 #if !DEBUG_VERBOSE
-    auto realtimeRecording = gIsRecording;
+  //auto realtimeRecording = gIsRecording;
     switch (args.mConsoleOutputType)
     {
       case ConsoleOutput::None:
@@ -735,11 +735,6 @@ void Output (void)
                         pair.second );
 
       UpdateConsole (gProcesses, lsrData);
-
-  ////if (realtimeRecording)
-  ////  ConsolePrintLn ("** RECORDING **");
-
-    ////CommitConsole ();
       break;
     }
 #endif
@@ -777,7 +772,7 @@ void Output (void)
       &pair.second;
 
     if (processInfo->mHandle != NULL)
-      CloseHandle (processInfo->mHandle);
+      CloseHandle  (processInfo->mHandle);
 
     CloseOutputCsv (processInfo);
   }

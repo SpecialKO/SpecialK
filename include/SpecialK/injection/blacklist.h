@@ -196,12 +196,12 @@ static constexpr UNICODE_STRING __blacklist [] = {
 // Bluelist = Bounce the DLL out ASAP, do not attempt to defer unload
 static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"setup.exe"),
-  SK_MakeUnicode (L"svchost.exe"),
-  SK_MakeUnicode (L"jusched.exe"),
   SK_MakeUnicode (L"gamebarft.exe"),
   SK_MakeUnicode (L"gamebarftserver.exe"),
+  SK_MakeUnicode (L"jusched.exe"),
   SK_MakeUnicode (L"perfwatson2.exe"),
   SK_MakeUnicode (L"runtimebroker.exe"),
+  SK_MakeUnicode (L"svchost.exe"),
   SK_MakeUnicode (L"oalinst.exe"),
   SK_MakeUnicode (L"dxsetup.exe"),
   SK_MakeUnicode (L"uninstall.exe"),
