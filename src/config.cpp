@@ -132,6 +132,7 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"Atelier_Ryza_2.exe"),                     SK_GAME_ID::AtelierRyza2                 },
       { hash_lower (L"nioh2.exe"),                              SK_GAME_ID::Nioh2                        },
       { hash_lower (L"HuniePop 2 - Double Date.exe"),           SK_GAME_ID::HuniePop2                    },
+      { hash_lower (L"NieR Replicant ver.1.22474487139.exe"),   SK_GAME_ID::NieR_Sqrt_1_5                }
     };
 
     first_check = false;
@@ -2016,7 +2017,7 @@ auto DeclKeybind =
         //   it needs to be clipped because developers don't
         //     know about relative input (e.g. RawInput).
         config.input.mouse.ignore_small_clips     = false;
-        config.compatibility.impersonate_debugger = true;
+        config.compatibility.impersonate_debugger = false;
         break;
 
       case SK_GAME_ID::Yakuza0:
@@ -2282,6 +2283,25 @@ auto DeclKeybind =
         config.apis.d3d9.hook                  = false;
         config.textures.cache.ignore_nonmipped = true;
       } break;
+
+      case SK_GAME_ID::NieR_Sqrt_1_5:
+      {
+        config.window.treat_fg_as_active         =  true;
+        config.apis.OpenGL.hook                  = false;
+        config.apis.d3d9.hook                    = false;
+        config.apis.d3d9ex.hook                  = false;
+        config.input.ui.use_hw_cursor            = false;
+        config.input.cursor.keys_activate        = false;
+        config.input.cursor.manage               =  true;
+        config.input.cursor.timeout              =     0;
+        config.render.framerate.sleepless_window =  true;
+        config.render.framerate.buffer_count     =     3;
+        config.render.framerate.swapchain_wait   =     3;
+        config.render.framerate.pre_render_limit =     3;
+        config.render.framerate.target_fps       =    60;
+        config.render.framerate.flip_discard     =  true;
+        config.input.gamepad.disable_ps4_hid     =  true;
+      }
 #endif
     }
   }

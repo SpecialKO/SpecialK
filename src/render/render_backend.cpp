@@ -2079,8 +2079,8 @@ SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length)
   // Bad checksum, fail EDID
   if (checksum != 0)
   {
-    dll_log->Log (L"SK_EDID_Parse (...): Checksum fail");
-    return "";
+    SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
+    //return "";
   }
 
   if ( 0 != memcmp ( (const char*)edid          + EDID_HEADER,
@@ -2174,7 +2174,7 @@ SK_RenderBackend_V2::parseEDIDForNativeRes (uint8_t* edid, size_t length)
   // Bad checksum, fail EDID
   if (checksum != 0)
   {
-    dll_log->Log (L"SK_EDID_Parse (...): Checksum fail");
+    SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
     return { };
   }
 
@@ -2295,7 +2295,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
     // This is known to return EDIDs with checksums that don't match expected,
     //   there's not much benefit to getting EDID this way, so use the registry instead.
-#if 0
+#if 1
     if (sk::NVAPI::nv_hardware != false)
     {
       NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = { };
@@ -2332,8 +2332,13 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
            )
         {
           edid_name =
-            SK_EDID_Parse ( edid.EDID_Data,
-                              edid.sizeofEDID );
+            rb.parseEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
+
+          auto nativeRes =
+            rb.parseEDIDForNativeRes ( edid.EDID_Data, edid.sizeofEDID );
+
+          display.native.width  = nativeRes.x;
+          display.native.height = nativeRes.y;
 
           if (! edid_name.empty ())
           {
@@ -2662,6 +2667,18 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         {
           if (SUCCEEDED (pOutput6->GetDesc1 (&outDesc1)))
           {
+            if (outDesc1.MinLuminance > outDesc1.MaxFullFrameLuminance)
+              std::swap (outDesc1.MinLuminance, outDesc1.MaxFullFrameLuminance);
+
+            static bool once = false;
+
+            if (! std::exchange (once, true))
+            {
+              SK_LOG0 ( (L" --- Working around DXGI bug, swapping invalid min / avg luminance levels"),
+                         L"   DXGI   "
+                      );
+            }
+
             display.bpc               = outDesc1.BitsPerColor;
             display.gamut.minY        = outDesc1.MinLuminance;
             display.gamut.maxY        = outDesc1.MaxLuminance;

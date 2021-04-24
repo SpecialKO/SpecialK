@@ -53,12 +53,18 @@ void
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS *pTLS)
 {
   HWND hWndThis  = SK_GetActiveWindow (pTLS);
-  if ( hWndThis !=   SK_GetGameWindow ()   )
-  {
-    SK_SleepEx (dwMilliseconds, bAlertable);
+  ////////if ( hWndThis !=   SK_GetGameWindow ()   )
+  ////////{
+  ////////  SK_SleepEx (dwMilliseconds, bAlertable);
+  ////////
+  ////////  return;
+  ////////}
 
-    return;
-  }
+  dwMilliseconds = std::max (1UL, dwMilliseconds);
+
+  auto now = SK_CurrentPerf  ().QuadPart;
+  auto end =
+       now + (SK_GetPerfFreq ().QuadPart / 1000LL) * dwMilliseconds;
 
   bool bUnicode =
     IsWindowUnicode (hWndThis);
@@ -72,11 +78,11 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     // Avoid having Windows marshal Unicode messages like a dumb ass
     if (bUnicode)
     {
-      if (PeekMessageW (&msg, SK_GetGameWindow (), 0U, 0U, PM_REMOVE)
+      while (PeekMessageW (&msg, /*SK_GetGameWindow ()*/0, 0U, 0U, PM_REMOVE)
               &&         msg.message != WM_NULL
-              &&       ( msg.hwnd    == 0 ||
-                         msg.hwnd    == SK_GetGameWindow () )
-         )
+            /*&&       ( msg.hwnd    == 0 ||
+                         msg.hwnd    == SK_GetGameWindow ()*/ )
+         //)
       {
         SK_LOG1 ( ( L"Dispatched Message: %x to Unicode HWND: %x while "
                     L"framerate limiting!", msg.message, msg.hwnd ),
@@ -89,11 +95,11 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
 
     else
     {
-      if (PeekMessageA (&msg, SK_GetGameWindow (), 0U, 0U, PM_REMOVE)
+      while (PeekMessageA (&msg, /*SK_GetGameWindow ()*/0, 0U, 0U, PM_REMOVE)
               &&         msg.message != WM_NULL
-              &&       ( msg.hwnd    == 0 ||
-                         msg.hwnd    == SK_GetGameWindow () )
-         )
+            /*&&       ( msg.hwnd    == 0 ||
+                         msg.hwnd    == SK_GetGameWindow ()*/ )
+         //)
       {
         SK_LOG1 ( ( L"Dispatched Message: %x to ANSI HWND: %x while "
                     L"framerate limiting!", msg.message, msg.hwnd ),
@@ -116,32 +122,28 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     YieldProcessor ();
   }
 
-  LARGE_INTEGER liStart      = SK_CurrentPerf ();
-  long long     liTicksPerMS = SK_GetPerfFreq ().QuadPart / 1000LL;
-  long long     liEnd        = liStart.QuadPart +
-                             ( liTicksPerMS     * dwMilliseconds );
+  static long long 
+    liTicksPerMS = SK_GetPerfFreq ().QuadPart / 1000LL;
 
-  LARGE_INTEGER
-           liNow = liStart;
-
-  while ( (liNow = SK_CurrentPerf ()).QuadPart <
-                                           liEnd )
+  while ( ( now =
+              SK_CurrentPerf ().QuadPart ) < end )
   {
     DWORD dwMaxWait =
-      narrow_cast <DWORD> (std::max (0LL, (liEnd - liNow.QuadPart) /
-                                                   liTicksPerMS  ) );
+      narrow_cast <DWORD> (std::max (0LL, (end - now) /
+                                      liTicksPerMS  ) );
 
     if (dwMaxWait < INT_MAX)
     {
       dwMaxWait =
-        std::min (1UL, dwMaxWait);
+        std::max (1UL, dwMaxWait);
 
       DWORD dwWait =
         MsgWaitForMultipleObjectsEx (
           1, &__SK_DLL_TeardownEvent,
             dwMaxWait,
-               QS_ALLINPUT
-             | QS_ALLPOSTMESSAGE,
+             /*QS_ALLINPUT*/QS_INPUT |
+                            QS_TIMER | QS_POSTMESSAGE
+                                     | QS_SENDMESSAGE,
                  bAlertable ? MWMO_ALERTABLE
                             : 0x0
         );
@@ -160,7 +162,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       else if (dwWait == WAIT_OBJECT_0 + 1)
       {
         PeekAndDispatch ();
-        break;
+      //break;
       }
 
       else

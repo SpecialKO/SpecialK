@@ -115,12 +115,12 @@ UpdateConsole ( uint32_t           processId,
     int idx = (ReadAcquire (&SK_PresentIdx) + 1) % 2;
 
     SK_PresentDebugStr [idx] =
-      SK_FormatString (" "/*"    %016llX (%s)*/ICON_FA_LINK " %s: "/*SyncInterval=%d Flags=%d *//*"%.2lf ms/frame */"(%.1lf fps",
-  /*address, */RuntimeToString (presentN.Runtime),
+      SK_FormatString (" "/*"    %016llX (%s)*/ICON_FA_LINK " %s: "/*SyncInterval=%d Flags=%d *//*"%.2lf ms/frame (%.1lf fps"*/,
+  /*address, */RuntimeToString (presentN.Runtime)//,
                                 //presentN.SyncInterval,
                                 //presentN.PresentFlags,
                                                      //1000.0 * cpuAvg,
-                                                          1.0 / cpuAvg
+                                                          //1.0 / cpuAvg
       );
   
     /////////if (dspAvg > 0.0)
@@ -129,12 +129,12 @@ UpdateConsole ( uint32_t           processId,
     /////////
     /////////}
   
-    if (latAvg > 0.0)
-    {
-      SK_PresentDebugStr [idx] += SK_FormatString (", %.2lf ms latency", 1000.0 * latAvg);
-    }
-  
-    SK_PresentDebugStr [idx] += ")";
+    //if (latAvg > 0.0)
+    //{
+    //  SK_PresentDebugStr [idx] += SK_FormatString (", %.2lf ms latency", 1000.0 * latAvg);
+    //}
+    //
+    //SK_PresentDebugStr [idx] += ")";
   
     if (displayN != nullptr)
     {

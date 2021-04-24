@@ -791,6 +791,28 @@ DllThread (LPVOID user)
                 params->callback );
 
 
+  
+  AppId_t appid (
+    SK_Steam_GetAppID_NoAPI ()
+  );
+
+  if (SK_IsInjected ())
+  {
+    DWORD dwPid =
+      GetCurrentProcessId ();
+
+    auto *pInjectMeta =
+      SK_Inject_GetRecord (dwPid);
+
+    if (pInjectMeta != nullptr)
+    {
+      pInjectMeta->process.id           = dwPid;
+      pInjectMeta->platform.steam_appid = appid;
+
+      SK_Inject_AuditRecord ( dwPid, pInjectMeta,
+                            sizeof (*pInjectMeta) );
+    }
+  }
 
   WriteULongRelease (&dwInitThreadId, 0);
 

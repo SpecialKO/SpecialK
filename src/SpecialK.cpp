@@ -356,14 +356,14 @@ DllMain ( HMODULE hModule,
     {
       skModuleRegistry::Self (hModule);
 
-      __SK_DLL_TeardownEvent =
-        SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
-
       auto EarlyOut   =
         [&](BOOL bRet = TRUE)
       {
-        ////if (! SK_GetHostAppUtil ()->isInjectionTool ())
-        ////  DisableThreadLibraryCalls (hModule);
+        if (bRet)
+        {
+          __SK_DLL_TeardownEvent =
+            SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
+        }
 
         return bRet;
       };
@@ -397,6 +397,9 @@ DllMain ( HMODULE hModule,
       //   re-inject itself constantly; just return TRUE here.
       if (DLL_ROLE::INVALID == SK_GetDLLRole ())   return EarlyOut (TRUE);
       if (! SK_Attach         (SK_GetDLLRole ()))  return EarlyOut (TRUE);
+
+      __SK_DLL_TeardownEvent =
+        SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
 
       InterlockedIncrementRelease (
         &__SK_DLL_Refs

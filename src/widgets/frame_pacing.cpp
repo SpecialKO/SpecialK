@@ -1135,14 +1135,15 @@ public:
       if (percentile1.has_data) extra_line_space += 1.16f;
     }
 
-    if (extra_present_mon_line > 0)
-        extra_line_space += 1.16f;
-
     // If configuring ...
     if (state__ != 0) extra_line_space += (1.16f * 5.5f);
 
     ImVec2   new_size (font_size * 35, font_size_multiline * (5.44f + extra_line_space));
              new_size.y += fExtraData;
+
+    if (extra_present_mon_line > 0)
+             new_size.y += ImGui::GetFont ()->FontSize + ImGui::GetStyle ().ItemSpacing.y;
+
     setSize (new_size);
 
     if (isVisible ())// && state__ == 0)
