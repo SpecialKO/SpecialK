@@ -2389,8 +2389,21 @@ SK_ImGui_User_NewFrame (void)
   else
     SK_ImGui_Cursor.idle = false;
 
+
+  if (config.input.cursor.manage && (! config.input.ui.use_hw_cursor))
+  {
+    if (SK_ImGui_Cursor.idle)
+    {
+      SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, 0);
+      SetCursor                                        (0);
+    }
+  }
+
+
   if (was_idle != SK_ImGui_Cursor.idle)
+  {
     SK_ImGui_Cursor.update ();
+  }
 
   //if (eula.show)
     SK_ImGui_DrawEULA (&eula);
