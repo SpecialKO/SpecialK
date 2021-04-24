@@ -968,6 +968,7 @@ enum class SK_GAME_ID
   HuniePop2,                    // HuniePop 2 - Double Date.exe
   GalGunReturns,                // GalGun Returns/game.exe
   Persona5Strikers,             // P5S/game.exe
+  NieR_Sqrt_1_5,                // NieR Replicant ver.1.22474487139.exe
   UNKNOWN_GAME               = 0xffff
 };
 

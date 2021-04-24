@@ -55,48 +55,171 @@ typedef struct _UNICODE_STRING_SK {
 } UNICODE_STRING_SK;
 #endif
 
-typedef struct _LDR_DATA_TABLE_ENTRY__SK
+typedef enum _LDR_DDAG_STATE
 {
-  LIST_ENTRY        InLoadOrderLinks;
-  LIST_ENTRY        InMemoryOrderLinks;
-  LIST_ENTRY        InInitializationOrderLinks;
-  PVOID             DllBase;
-  PVOID             EntryPoint;
-  ULONG             SizeOfImage;
-  UNICODE_STRING_SK FullDllName;
-  UNICODE_STRING_SK BaseDllName;
-  ULONG             Flags;
-  WORD              LoadCount;
-  WORD              TlsIndex;
+  LdrModulesMerged                 = -5,
+  LdrModulesInitError              = -4,
+  LdrModulesSnapError              = -3,
+  LdrModulesUnloaded               = -2,
+  LdrModulesUnloading              = -1,
+  LdrModulesPlaceHolder            =  0,
+  LdrModulesMapping                =  1,
+  LdrModulesMapped                 =  2,
+  LdrModulesWaitingForDependencies =  3,
+  LdrModulesSnapping               =  4,
+  LdrModulesSnapped                =  5,
+  LdrModulesCondensed              =  6,
+  LdrModulesReadyToInit            =  7,
+  LdrModulesInitializing           =  8,
+  LdrModulesReadyToRun             =  9
+} LDR_DDAG_STATE;
 
-  union _A
+typedef enum _LDR_DLL_LOAD_REASON
+{
+  LoadReasonStaticDependency,
+  LoadReasonStaticForwarderDependency,
+  LoadReasonDynamicForwarderDependency,
+  LoadReasonDelayloadDependency,
+  LoadReasonDynamicLoad,
+  LoadReasonAsImageLoad,
+  LoadReasonAsDataLoad,
+  LoadReasonEnclavePrimary, // REDSTONE3
+  LoadReasonEnclaveDependency,
+  LoadReasonUnknown = -1
+} LDR_DLL_LOAD_REASON,
+*PLDR_DLL_LOAD_REASON;
+
+typedef struct _RTL_BALANCED_NODE
+{
+  union
   {
-    LIST_ENTRY   HashLinks;
-    struct _B
+    struct _RTL_BALANCED_NODE   *Children [2];
+    struct
     {
-      PVOID      SectionPointer;
-      ULONG      CheckSum;
+      struct _RTL_BALANCED_NODE *Left;
+      struct _RTL_BALANCED_NODE *Right;
     };
   };
 
-  union _C
+  union
   {
-    ULONG        TimeDateStamp;
-    PVOID        LoadedImports;
+    UCHAR     Red     : 1;
+    UCHAR     Balance : 2;
+    ULONG_PTR ParentValue;
+  };
+} RTL_BALANCED_NODE,
+*PRTL_BALANCED_NODE;
+
+typedef struct _LDR_SERVICE_TAG_RECORD
+{
+  _LDR_SERVICE_TAG_RECORD *Next;
+  ULONG                    ServiceTag;
+} LDR_SERVICE_TAG_RECORD,
+*PLDR_SERVICE_TAG_RECORD;
+
+typedef struct _LDRP_CSLIST
+{
+  PSINGLE_LIST_ENTRY Tail;
+} LDRP_CSLIST,
+*PLDRP_CSLIST;
+
+typedef struct _LDR_DDAG_NODE
+{
+  LIST_ENTRY              Modules;
+  PLDR_SERVICE_TAG_RECORD ServiceTagList;
+  ULONG                   LoadCount;
+  ULONG                   ReferenceCount;
+  ULONG                   DependencyCount;
+  union
+  {
+    LDRP_CSLIST           Dependencies;
+    SINGLE_LIST_ENTRY     RemovalLink;
+  };
+  LDRP_CSLIST             IncomingDependencies;
+  LDR_DDAG_STATE          State;
+  SINGLE_LIST_ENTRY       CondenseLink;
+  ULONG                   PreorderNumber;
+  ULONG                   LowestLink;
+} LDR_DDAG_NODE,
+*PLDR_DDAG_NODE;
+
+typedef struct _LDR_DATA_TABLE_ENTRY__SK
+{
+  LIST_ENTRY             InLoadOrderLinks;
+  LIST_ENTRY             InMemoryOrderLinks;
+  union
+  {
+    LIST_ENTRY           InInitializationOrderLinks;
+    LIST_ENTRY           InProgressLinks;
+  };
+  PVOID                  DllBase;
+  PVOID                  EntryPoint;
+  ULONG                  SizeOfImage;
+  UNICODE_STRING_SK      FullDllName;
+  UNICODE_STRING_SK      BaseDllName;
+  union
+  {
+    UCHAR                FlagGroup [4];
+    ULONG                Flags;
+    struct
+    {
+      ULONG              PackagedBinary          : 1;
+      ULONG              MarkedForRemoval        : 1;
+      ULONG              ImageDll                : 1;
+      ULONG              LoadNotificationsSent   : 1;
+      ULONG              TelemetryEntryProcessed : 1;
+      ULONG              ProcessStaticImport     : 1;
+      ULONG              InLegacyLists           : 1;
+      ULONG              InIndexes               : 1;
+      ULONG              ShimDll                 : 1;
+      ULONG              InExceptionTable        : 1;
+      ULONG              ReservedFlags1          : 2;
+      ULONG              LoadInProgress          : 1;
+      ULONG              LoadConfigProcessed     : 1;
+      ULONG              EntryProcessed          : 1;
+      ULONG              ProtectDelayLoad        : 1;
+      ULONG              ReservedFlags3          : 2;
+      ULONG              DontCallForThreads      : 1;
+      ULONG              ProcessAttachCalled     : 1;
+      ULONG              ProcessAttachFailed     : 1;
+      ULONG              CorDeferredValidate     : 1;
+      ULONG              CorImage                : 1;
+      ULONG              DontRelocate            : 1;
+      ULONG              CorILOnly               : 1;
+      ULONG              ReservedFlags5          : 3;
+      ULONG              Redirected              : 1;
+      ULONG              ReservedFlags6          : 2;
+      ULONG              CompatDatabaseProcessed : 1;
+    };
   };
 
-  _ACTIVATION_CONTEXT
-    *EntryPointActivationContext;
-  PVOID          PatchInformation;
-  LIST_ENTRY     ForwarderLinks;
-  LIST_ENTRY     ServiceTagLinks;
-  LIST_ENTRY     StaticLinks;
+  USHORT                 ObsoleteLoadCount;
+  USHORT                 TlsIndex;
+  LIST_ENTRY             HashLinks;
+  ULONG                  TimeDateStamp;
+  struct
+    _ACTIVATION_CONTEXT *EntryPointActivationContext;
+  PVOID                  Lock;
+  PLDR_DDAG_NODE         DdagNode;
+  LIST_ENTRY             NodeModuleLink;
+  struct
+    _LDRP_LOAD_CONTEXT  *LoadContext;
+  PVOID                  ParentDllBase;
+  PVOID                  SwitchBackContext;
+  RTL_BALANCED_NODE      BaseAddressIndexNode;
+  RTL_BALANCED_NODE      MappingInfoIndexNode;
+  ULONG_PTR              OriginalBase;
+  LARGE_INTEGER          LoadTime;
+  ULONG                  BaseNameHashValue;
+  LDR_DLL_LOAD_REASON    LoadReason;
+  ULONG                  ImplicitPathOptions;
+  ULONG                  ReferenceCount;
+  ULONG                  DependentLoadFlags;
+  UCHAR                  SigningLevel; // since REDSTONE2
 } LDR_DATA_TABLE_ENTRY__SK,
 *PLDR_DATA_TABLE_ENTRY__SK;
 
-typedef NTSTATUS (NTAPI *LdrFindEntryForAddress_pfn)
-( HMODULE                    hMod,
-  LDR_DATA_TABLE_ENTRY__SK **ppLdrDat              );
+using LdrFindEntryForAddress_pfn    = NTSTATUS (NTAPI *)(HMODULE,PLDR_DATA_TABLE_ENTRY__SK*);
 #pragma pack (pop)
 
 // Returns true if the host executable is Large Address Aware

@@ -442,8 +442,162 @@ SKX_GetCBTHook (void) noexcept
   return hHookCBT;
 }
 
-HANDLE  g_hPacifierThread = 0;
-HMODULE g_hModule_CBT     = 0;
+
+
+
+#include <winternl.h>                   //PROCESS_BASIC_INFORMATION
+
+// warning C4996: 'GetVersionExW': was declared deprecated
+#pragma warning (disable : 4996)
+bool
+IsWindows8OrGreater (void)
+{
+  OSVERSIONINFO
+    ovi                     = { 0 };
+    ovi.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+  
+  GetVersionEx (&ovi);
+
+  if ( (ovi.dwMajorVersion == 6 &&
+        ovi.dwMinorVersion >= 2) ||
+         ovi.dwMajorVersion > 6
+     ) return true;
+  
+  return false;
+} //IsWindows8OrGreater
+#pragma warning (default : 4996)
+
+
+
+bool
+ReadMem (void *addr, void *buf, int size)
+{
+  BOOL b = ReadProcessMemory( GetCurrentProcess(), addr, buf, size, nullptr );
+    return b != FALSE;
+}
+
+#ifdef _WIN64
+    #define BITNESS 1
+#else
+    #define BITNESS 0
+#endif
+
+using NtQueryInformationProcess_pfn = NTSTATUS (NTAPI *)(HANDLE,PROCESSINFOCLASS,PVOID,ULONG,PULONG);
+
+int
+GetModuleReferenceCount (HMODULE hDll)
+{
+  HMODULE hNtDll =
+    LoadLibraryW (L"NtDll");
+  if (!   hNtDll)
+      return 0;
+
+  LdrFindEntryForAddress_pfn
+  LdrFindEntryForAddress =
+ (LdrFindEntryForAddress_pfn)GetProcAddress (hNtDll,
+ "LdrFindEntryForAddress");
+
+  PLDR_DATA_TABLE_ENTRY__SK pldr_data_table = nullptr;
+
+  bool b = false;
+  if (LdrFindEntryForAddress != nullptr) b =
+    NT_SUCCESS (
+      LdrFindEntryForAddress ( hDll, &pldr_data_table )
+  );
+  FreeLibrary (hNtDll);
+
+  return                          b ?
+    pldr_data_table->ReferenceCount : 0;
+}
+
+//
+//  Queries for .dll module load count, returns 0 if fails.
+//
+int
+GetModuleLoadCount (HMODULE hDll)
+{
+  // Not supported by earlier versions of windows.
+  if (! IsWindows8OrGreater ())
+    return 0;
+
+  PROCESS_BASIC_INFORMATION pbi = { 0 };
+
+  HMODULE hNtDll =
+    LoadLibraryW (L"NtDll");
+  if (!   hNtDll)
+      return 0;
+
+  NtQueryInformationProcess_pfn
+  NtQueryInformationProcess =
+ (NtQueryInformationProcess_pfn)GetProcAddress (hNtDll,
+ "NtQueryInformationProcess");
+
+  bool b = false;
+  if (NtQueryInformationProcess != nullptr) b = NT_SUCCESS (
+      NtQueryInformationProcess ( GetCurrentProcess (),
+                                    ProcessBasicInformation, &pbi,
+                                                      sizeof (pbi), nullptr )
+  );
+  FreeLibrary (hNtDll);
+
+  if (! b)
+    return 0;
+
+  char* LdrDataOffset =
+    (char *)(pbi.PebBaseAddress) + offsetof (PEB, Ldr);
+
+  char*        addr;
+  PEB_LDR_DATA LdrData;
+
+  if ((! ReadMem (LdrDataOffset, &addr,    sizeof (void *))) ||
+      (! ReadMem (addr,          &LdrData, sizeof (LdrData))) )
+    return 0;
+
+  LIST_ENTRY* head = LdrData.InMemoryOrderModuleList.Flink;
+  LIST_ENTRY* next = head;
+
+  do {
+    LDR_DATA_TABLE_ENTRY   LdrEntry;
+    LDR_DATA_TABLE_ENTRY* pLdrEntry =
+      CONTAINING_RECORD (head, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
+
+    if (! ReadMem (pLdrEntry , &LdrEntry, sizeof (LdrEntry)))
+      return 0;
+
+    if (LdrEntry.DllBase == (void *)hDll)
+    {
+      //  
+      //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_data_table_entry.htm
+      //
+      int offDdagNode =
+        (0x14 - BITNESS) * sizeof(void*);   // See offset on LDR_DDAG_NODE *DdagNode;
+      
+      ULONG count        = 0;
+      char* addrDdagNode = ((char*)pLdrEntry) + offDdagNode;
+      
+      //
+      //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_ddag_node.htm
+      //  See offset on ULONG LoadCount;
+      //
+      if ( (! ReadMem (addrDdagNode, &addr,     sizeof (void *))) ||
+           (! ReadMem (              addr + 3 * sizeof (void *),
+                                    &count,     sizeof (count))) )
+          return 0;
+      
+      return
+        (int)count;
+    } //if
+
+    head = LdrEntry.InMemoryOrderLinks.Flink;
+  }while( head != next );
+
+  return 0;
+} //GetModuleLoadCount
+
+         HANDLE   g_hPacifierThread = SK_INVALID_HANDLE;
+         HANDLE   g_hHookTeardown   = SK_INVALID_HANDLE;
+volatile HMODULE  g_hModule_CBT     = 0;
+volatile LONG     g_sOnce           = 0;
 
 void
 SK_Inject_SpawnUnloadListener (void)
@@ -451,13 +605,9 @@ SK_Inject_SpawnUnloadListener (void)
 #define _AtomicClose(handle) if ((handle) != SK_INVALID_HANDLE) \
       CloseHandle (std::exchange((handle), SK_INVALID_HANDLE));
 
-  if (! g_hModule_CBT)
+  if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, 0))
   {
-    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-      reinterpret_cast <LPCWSTR> (&CBTProc), &g_hModule_CBT );
-
-    g_hPacifierThread =
+    g_hPacifierThread = (HANDLE)
       CreateThread (nullptr, 0, [](LPVOID lpUser) ->
       DWORD
       {
@@ -465,9 +615,8 @@ SK_Inject_SpawnUnloadListener (void)
           OpenEvent ( EVENT_ALL_ACCESS, FALSE,
               SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
                                      LR"(Local\SK_GlobalHookTeardown64)") );
-        
-        std::once_flag  once;
-        std::call_once (once,[]
+
+        if (! InterlockedCompareExchange (&g_sOnce, TRUE, FALSE))
         {
           LONG idx =
             InterlockedIncrement (&num_hooked_pids);
@@ -479,7 +628,7 @@ SK_Inject_SpawnUnloadListener (void)
                 GetCurrentProcessId ()
             );
           }
-        });
+        }
       
         // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
         SetThreadDescription_pfn
@@ -489,28 +638,66 @@ SK_Inject_SpawnUnloadListener (void)
       
         if (_SetThreadDescriptionWin10 != nullptr) {
             _SetThreadDescriptionWin10 (
-              GetCurrentThread (),
+              g_hPacifierThread,
                 L"[SK] Global Hook Pacifier"
             );
         }
       
-        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
+        SetThreadPriority (g_hPacifierThread, THREAD_PRIORITY_TIME_CRITICAL);
       
+        HANDLE signals [] = {
+              hHookTeardown,
+          __SK_DLL_TeardownEvent
+        };
+
         if (hHookTeardown != SK_INVALID_HANDLE)
         {
-          InterlockedIncrement (&injected_procs);
+          InterlockedIncrement  (&injected_procs);
       
-          WaitForSingleObject  (hHookTeardown, INFINITE);
-          _AtomicClose         (hHookTeardown);
-      
-          InterlockedDecrement (&injected_procs);
+          MsgWaitForMultipleObjectsEx (
+            2, signals, INFINITE, QS_ALLINPUT, 0x0
+          );
+
+          InterlockedDecrement  (&injected_procs);
         }
-      
-                      g_hModule_CBT = 0;
-        _AtomicClose (g_hPacifierThread);
-          
+
+        if (! SK_GetHostAppUtil ()->isInjectionTool ())
+        {
+          //if (GetModuleReferenceCount (SK_GetDLL ()) > 1)
+          if (GetModuleLoadCount (SK_GetDLL ()) > 1)
+                          FreeLibrary (SK_GetDLL ());
+        }
+
+        CloseHandle (g_hPacifierThread);
+                     g_hPacifierThread = 0;
+
+        _AtomicClose (hHookTeardown);
+
+        InterlockedExchangePointer ((void **)&g_hModule_CBT, 0);
+
+        if (GetModuleReferenceCount (SK_GetDLL ()) >= 1)
+          FreeLibraryAndExitThread  (SK_GetDLL (), 0x0);
+
         return 0;
-      }, nullptr, 0x0, nullptr);
+      }, nullptr, CREATE_SUSPENDED, nullptr
+    );
+
+    if (g_hPacifierThread != 0)
+    {
+      HMODULE hMod;
+
+      GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                            (LPCWSTR)SK_GetDLL (), &hMod );
+
+      if (hMod)
+      {
+        InterlockedExchangePointer ((void **)&g_hModule_CBT, hMod);
+        ResumeThread               (g_hPacifierThread);
+      }
+
+      else
+        CloseHandle (g_hPacifierThread);
+    }
   }
 }
 
@@ -561,8 +748,7 @@ SKX_InstallCBTHook (void)
   }
 
   HMODULE                                   hModSelf;
-  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                      GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                         (LPCWSTR)&CBTProc, &hModSelf );
   hHookCBT =
     SetWindowsHookEx (WH_CBT,     CBTProc,  hModSelf, 0);
@@ -576,6 +762,10 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
+  HMODULE                                   hModSelf;
+  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                        (LPCWSTR)&CBTProc, &hModSelf );
+
   HHOOK hHookOrig =
     SKX_GetCBTHook ();
 
@@ -584,13 +774,12 @@ SKX_RemoveCBTHook (void)
       SK_RunLHIfBitness ( 32, LR"(Local\SK_GlobalHookTeardown32)",
                               LR"(Local\SK_GlobalHookTeardown64)") );
 
+  if ((intptr_t)hHookTeardown > 0)
+  {   SetEvent (hHookTeardown);  }
+
   if ( hHookOrig != nullptr &&
          UnhookWindowsHookEx (hHookOrig) )
-  {
-    if ((intptr_t)hHookTeardown > 0)
-    {   SetEvent (hHookTeardown);  }
-
-    
+  {    
     if (SK_GetHostAppUtil ()->isInjectionTool ())
     {
       InterlockedDecrement (&injected_procs);
@@ -625,10 +814,11 @@ SKX_RemoveCBTHook (void)
                 running_pids.count (dwPid) ||
                         self_pid == dwPid ) continue;
 
-        if (SK_Process_IsSuspended (dwPid))
+        if (SK_Process_IsSuspended (dwPid) &&
+           (! suspended_pids.count (dwPid)))
         {
+          if (SK_Process_Resume (   dwPid))
             suspended_pids.emplace (dwPid);
-                 SK_Process_Resume (dwPid);
         }
         else running_pids.emplace  (dwPid);
       }
@@ -637,15 +827,13 @@ SKX_RemoveCBTHook (void)
       SendMessageTimeout ( HWND_BROADCAST,
                             WM_NULL, 0, 0,
                          SMTO_ABORTIFHUNG,
-                                      7UL,
+                                      4UL,
                &dwpResult );
 
-      if (++tries > 4)
+      if (suspended_pids.empty () || ++tries > 3)
         break;
     }
     while (ReadAcquire (&injected_procs) > 0);
-
-    hHookCBT = nullptr;
 
     // After waking all suspended pids while the hook teardown
     //   was active, they can go back to being suspended ;)
@@ -653,12 +841,16 @@ SKX_RemoveCBTHook (void)
     {
       SK_Process_Suspend (pid);
     }
+
+    hHookCBT = nullptr;
   }
 
   if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
     CloseHandle (                  hHookTeardown);
 
   dwHookPID = 0x0;
+
+  FreeLibrary (hModSelf);
 }
 
 bool
@@ -725,15 +917,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
                      WaitForMultipleObjects ( 2, events,
                                                 FALSE, INFINITE );
 
-                   if ( dwWait ==   WAIT_OBJECT_0          ||
-                        dwWait == ( WAIT_OBJECT_0    + 1 ) ||
-                        dwWait ==   WAIT_ABANDONED_0       ||
-                        dwWait == ( WAIT_ABANDONED_0 + 1 ) ||
-                        dwWait ==   WAIT_TIMEOUT           ||
-                        dwWait ==   WAIT_FAILED )
-                   {
-                      break;
-                   }
+                    break;
                  }
 
                  if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
@@ -767,6 +951,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
     const char* szPIDFile =
       SK_RunLHIfBitness ( 32, "SpecialK32.pid",
                               "SpecialK64.pid" );
+
     FILE* fPID =
       fopen (szPIDFile, "r");
 
@@ -784,10 +969,10 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
     }
 
     SKX_RemoveCBTHook ();
-  }
 
-  if (nCmdShow != -128)
-    SK_ExitProcess (0x00);
+    if (nCmdShow != -128)
+      SK_ExitProcess (0x00);
+  }
 }
 
 

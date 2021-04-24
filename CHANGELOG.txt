@@ -1,4 +1,24 @@
-﻿21.04.19
+﻿21.04.24
+========
+ + Improvements for mouse cursor BS in NieR Sqrt 1.5
+ + Improved Sleepless Window Thread for Sqrt 1.5
+ + Default most settings to optimal for Sqrt 1.5
+    ( Delete your config file for best results )
+ 
+  ==> Still no word on WTF is wrong with the engine's texture memory,
+        it's giving wrong data to D3D11 at upload time, and D3D11 does not
+          crash, however, I cannot intercept and extract any of the data.
+
+    * Square-Enix is.... nope, I'm at a loss for words. 
+
+21.04.23
+========
+ + Fixed incorrect EDID display names on latest gen (360 Hz) G-Sync displays
+ + Fixed incorrect EDID luminance levels reported by DXGI on some DELL displays
+ + Added PresentMon capabilities to the framepacing widget to distinguish the
+     myriad of different modes all calling themselves Flip Model :)
+
+21.04.19
 ========
  + Fixed D3D12 API hooks not activating if users disable D3D11 API hooking
  + Reduced the number of required blacklisted executables significantly
