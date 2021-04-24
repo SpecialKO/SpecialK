@@ -347,8 +347,8 @@ SK_OPT_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 void
 SK_OPT_InitPlugin (void)
 {
-  plugin_mgr->config_fns.push_back      (SK_OPT_PlugInCfg);
-  plugin_mgr->first_frame_fns.push_back (SK_OPT_PresentFirstFrame);
+  plugin_mgr->config_fns.emplace      (SK_OPT_PlugInCfg);
+  plugin_mgr->first_frame_fns.emplace (SK_OPT_PresentFirstFrame);
 
   extern void
   __stdcall

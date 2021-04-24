@@ -1368,10 +1368,16 @@ SK_DS3_EndFrame (void)
 
 HRESULT
 STDMETHODCALLTYPE
-SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
-                           UINT            SyncInterval,
-                           UINT            Flags )
+SK_DS3_PresentFirstFrame ( IUnknown *_This,
+                           UINT      SyncInterval,
+                           UINT      Flags )
 {
+  SK_ComQIPtr <IDXGISwapChain> This
+                             (_This);
+
+  if (! This.p)
+    return E_POINTER;
+
   UNREFERENCED_PARAMETER (Flags);
   UNREFERENCED_PARAMETER (SyncInterval);
 

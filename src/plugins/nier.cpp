@@ -244,7 +244,7 @@ struct {
 } far_ao;
 
 bool                      SK_FAR_PlugInCfg         (void);
-HRESULT STDMETHODCALLTYPE SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
+HRESULT STDMETHODCALLTYPE SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
 
 HRESULT
 WINAPI
@@ -1616,8 +1616,8 @@ SK_FAR_InitPlugin (void)
 
   SK_SetPluginName (FAR_VERSION_STR);
 
-  plugin_mgr->first_frame_fns.push_back (SK_FAR_PresentFirstFrame);
-  plugin_mgr->config_fns.push_back      (SK_FAR_PlugInCfg);
+  plugin_mgr->first_frame_fns.emplace (SK_FAR_PresentFirstFrame);
+  plugin_mgr->config_fns.emplace      (SK_FAR_PlugInCfg);
 
   SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
                                D3D11Dev_CreateBuffer_Override,

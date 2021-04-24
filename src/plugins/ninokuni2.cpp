@@ -257,7 +257,7 @@ SK_NNK2_InitPlugin (void)
 {
   SK_SetPluginName (NNS_VERSION_STR);
 
-  plugin_mgr->config_fns.push_back (SK_NNK2_PlugInCfg);
+  plugin_mgr->config_fns.emplace (SK_NNK2_PlugInCfg);
 
   SK_NNK2_CheckVersion (nullptr);
 

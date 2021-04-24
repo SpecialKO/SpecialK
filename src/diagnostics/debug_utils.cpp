@@ -3590,25 +3590,33 @@ SK_Proxy_MouseProc   (
   DWORD dwTid =
     GetCurrentThreadId ();
 
-  if (SK_ImGui_WantMouseCapture ())
+  if (nCode >= 0)
   {
-    return
-      CallNextHookEx (
-          nullptr, nCode,
-           wParam, lParam );
+    if (SK_ImGui_WantMouseCapture ())
+    {
+      return
+        CallNextHookEx (
+            nullptr, nCode,
+             wParam, lParam );
+    }
+
+    else
+    {
+      using MouseProc =
+        LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
+      
+      return
+        ((MouseProc)_RealMouseProcs.count (dwTid) ?
+                    _RealMouseProcs.at    (dwTid) :
+                    _RealMouseProc)( nCode, wParam,
+                                            lParam );
+    }
   }
 
-  else
-  {
-    using MouseProc =
-      LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
-    
-    return
-      ((MouseProc)_RealMouseProcs.count (dwTid) ?
-                  _RealMouseProcs.at    (dwTid) :
-                  _RealMouseProc)( nCode, wParam,
-                                          lParam );
-  }
+  return
+    CallNextHookEx (
+        nullptr, nCode,
+         wParam, lParam );
 }
 
 
@@ -3622,25 +3630,47 @@ SK_Proxy_KeyboardProc (
   DWORD dwTid =
     GetCurrentThreadId ();
 
-  if (SK_ImGui_WantKeyboardCapture ())
+  if (nCode >= 0)
   {
-    return
-      CallNextHookEx (
-          nullptr, nCode,
-           wParam, lParam );
+    if (config.input.keyboard.override_alt_f4)
+    {
+      SHORT vKey =
+          wParam;
+
+      if ( (vKey == VK_F4   && (SK_GetAsyncKeyState (VK_MENU) & 0x8001)) ||
+           (vKey == VK_MENU && (SK_GetAsyncKeyState (VK_F4)   & 0x8001)) )
+      {
+        extern bool SK_ImGui_WantExit;
+                    SK_ImGui_WantExit = true;
+        return 1;
+      }
+    }
+
+    if (SK_ImGui_WantKeyboardCapture ())
+    {
+      return
+        CallNextHookEx (
+            nullptr, nCode,
+             wParam, lParam );
+    }
+
+    else
+    {
+      using KeyboardProc =
+        LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
+      
+      return
+        ((KeyboardProc)_RealKeyboardProcs.count (dwTid) ?
+                       _RealKeyboardProcs.at    (dwTid) :
+                       _RealKeyboardProc)( nCode, wParam,
+                                                  lParam );
+    }
   }
 
-  else
-  {
-    using KeyboardProc =
-      LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
-    
-    return
-      ((KeyboardProc)_RealKeyboardProcs.count (dwTid) ?
-                     _RealKeyboardProcs.at    (dwTid) :
-                     _RealKeyboardProc)( nCode, wParam,
-                                                lParam );
-  }
+  return
+    CallNextHookEx (
+        nullptr, nCode,
+         wParam, lParam );
 }
 
 HHOOK
@@ -3664,11 +3694,6 @@ SetWindowsHookExW_Detour (
                         idHook == WH_KEYBOARD_LL ?
                                    L" Low-Level " : L" " ),
                                            L"Input Hook" );
-
-      if (config.input.keyboard.override_alt_f4)
-      {
-        return 0;
-      }
 
       // Game seems to be using keyboard hooks instead of a normal Window Proc;
       //   that makes life more complicated for SK/ImGui... but we got this!
@@ -3730,11 +3755,6 @@ SetWindowsHookExA_Detour (
                         idHook == WH_KEYBOARD_LL ?
                                    L" Low-Level " : L" " ),
                                            L"Input Hook" );
-
-      if (config.input.keyboard.override_alt_f4)
-      {
-        return 0;
-      }
 
       // Game seems to be using keyboard hooks instead of a normal Window Proc;
       //   that makes life more complicated for SK/ImGui... but we got this!

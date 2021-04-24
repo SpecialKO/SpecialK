@@ -553,8 +553,8 @@ SK_DGPU_InitPlugin (void)
 {
   SK_SetPluginName (DGPU_VERSION_STR);
 
-  plugin_mgr->config_fns.push_back      (SK_DGPU_PlugInCfg);
-  plugin_mgr->first_frame_fns.push_back (SK_DGPU_PresentFirstFrame);
+  plugin_mgr->config_fns.emplace      (SK_DGPU_PlugInCfg);
+  plugin_mgr->first_frame_fns.emplace (SK_DGPU_PresentFirstFrame);
 
   dgpu_config->antialiasing.scale =
       dynamic_cast <sk::ParameterFloat *>

@@ -355,8 +355,8 @@ SK_LazyGlobal <SK_Yakuza_SaveFace> kiwami2_face;
 void
 SK_Yakuza0_PlugInInit (void)
 {
-  plugin_mgr->config_fns.push_back      (SK_Yakuza0_PlugInCfg);
-  plugin_mgr->begin_frame_fns.push_back (SK_Yakuza0_BeginFrame);
+  plugin_mgr->config_fns.emplace      (SK_Yakuza0_PlugInCfg);
+  plugin_mgr->begin_frame_fns.emplace (SK_Yakuza0_BeginFrame);
   static bool yakuza0 =
     SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0;
   static bool yakuza_dragon =

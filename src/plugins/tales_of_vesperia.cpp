@@ -336,9 +336,9 @@ SK_TVFix_InitPlugin (void)
 
   SK_SetPluginName (TVFIX_VERSION_STR);
 
-  plugin_mgr->config_fns.push_back      (SK_TVFix_PlugInCfg);
-  plugin_mgr->first_frame_fns.push_back (SK_TVFix_PresentFirstFrame);
-  plugin_mgr->begin_frame_fns.push_back (SK_TVFix_BeginFrame);
+  plugin_mgr->config_fns.emplace      (SK_TVFix_PlugInCfg);
+  plugin_mgr->first_frame_fns.emplace (SK_TVFix_PresentFirstFrame);
+  plugin_mgr->begin_frame_fns.emplace (SK_TVFix_BeginFrame);
 
   SK_CreateFuncHook (      L"SteamAPI_RunCallbacks_Detour",
                              SteamAPI_RunCallbacks_Detour,

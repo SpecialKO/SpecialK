@@ -1765,8 +1765,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     {
 #ifdef _M_AMD64
       case SK_GAME_ID::StarOcean4:
-        extern bool                       SK_SO4_PlugInCfg (void);
-        plugin_mgr->config_fns.push_back (SK_SO4_PlugInCfg);
+        extern bool                     SK_SO4_PlugInCfg (void);
+        plugin_mgr->config_fns.emplace (SK_SO4_PlugInCfg);
         break;
 
       case SK_GAME_ID::AssassinsCreed_Odyssey:
@@ -1799,18 +1799,18 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         break;
 
       case SK_GAME_ID::PillarsOfEternity2:
-        extern bool                       SK_POE2_PlugInCfg (void);
-        plugin_mgr->config_fns.push_back (SK_POE2_PlugInCfg);
+        extern bool                     SK_POE2_PlugInCfg (void);
+        plugin_mgr->config_fns.emplace (SK_POE2_PlugInCfg);
         break;
 
       case SK_GAME_ID::LifeIsStrange_BeforeTheStorm:
-        extern bool                       SK_LSBTS_PlugInCfg (void);
-        plugin_mgr->config_fns.push_back (SK_LSBTS_PlugInCfg);
+        extern bool                     SK_LSBTS_PlugInCfg (void);
+        plugin_mgr->config_fns.emplace (SK_LSBTS_PlugInCfg);
         break;
 
       case SK_GAME_ID::Okami:
-        extern bool                       SK_Okami_PlugInCfg (void);
-        plugin_mgr->config_fns.push_back (SK_Okami_PlugInCfg);
+        extern bool                     SK_Okami_PlugInCfg (void);
+        plugin_mgr->config_fns.emplace (SK_Okami_PlugInCfg);
         break;
 
       case SK_GAME_ID::Yakuza0:
@@ -1824,6 +1824,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         SK_Persona4_InitPlugin ();
         break;
 #endif
+
+      case SK_GAME_ID::NieR_Sqrt_1_5:
+        extern void
+        SK_NIER_RAD_InitPlugin (void);
+        SK_NIER_RAD_InitPlugin (    );
+
+        extern bool                     SK_NIER_RAD_PlugInCfg (void);
+        plugin_mgr->config_fns.emplace (SK_NIER_RAD_PlugInCfg);
+        break;
     }
 
     extern void SK_Widget_InitHDR (void);

@@ -3743,6 +3743,9 @@
     <ClCompile Include="src\render\present_mon\TraceConsumer.cpp">
       <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\nier_√1.5.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\cursors\ovr_ptr.cur">

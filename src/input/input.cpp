@@ -1193,15 +1193,19 @@ ImGuiCursor_Impl (void)
   // Hardware Cursor
   //
   if (config.input.ui.use_hw_cursor && ci.hCursor != desired)
-  {
-    SK_SetCursor (desired);
-                       ci.cbSize = sizeof (CURSORINFO);
-    SK_GetCursorInfo (&ci);
-  }
+  { 
+    if (SK_ImGui_IsMouseRelevant ())
+    {
+      SK_SetCursor (desired);
+    //}
+      ci.cbSize = sizeof (CURSORINFO);
+      SK_GetCursorInfo (&ci);
 
-  if ( config.input.ui.use_hw_cursor && (ci.flags & CURSOR_SHOWING) )
-  {
-    io.MouseDrawCursor = false;
+      if (config.input.ui.use_hw_cursor && (ci.flags & CURSOR_SHOWING))
+      {
+        io.MouseDrawCursor = false;
+      }
+    }
   }
 
   //

@@ -83,7 +83,7 @@ SK_FO4_InitPlugin (void)
 
     //(NvAPI_GPU_GetMemoryInfo_t)NvAPI_QueryInterface (__NvAPI_GPU_GetMemoryInfo);
 
-  SK_RunOnce (plugin_mgr->first_frame_fns.push_back (SK_FO4_PresentFirstFrame));
+  SK_RunOnce (plugin_mgr->first_frame_fns.emplace (SK_FO4_PresentFirstFrame));
 
 #if 0
   SK_CreateFuncHook ( L"NvAPI_GPU_GetMemoryInfo", NvAPI_GPU_GetMemoryInfo,

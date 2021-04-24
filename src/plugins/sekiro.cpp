@@ -755,8 +755,8 @@ SK_Sekiro_PlugInCfg (void)
 void
 SK_Sekiro_InitPlugin (void)
 {
-  plugin_mgr->config_fns.push_back      (SK_Sekiro_PlugInCfg);
-  plugin_mgr->first_frame_fns.push_back (SK_Sekiro_PresentFirstFrame);
+  plugin_mgr->config_fns.emplace      (SK_Sekiro_PlugInCfg);
+  plugin_mgr->first_frame_fns.emplace (SK_Sekiro_PresentFirstFrame);
 
   //void* pFOVBase =
   //  SK_Scan ( "\xF3\x0F\x10\x08\xF3\x0F\x59\x0D\x0C\xE7\x9B\x02", strlen (

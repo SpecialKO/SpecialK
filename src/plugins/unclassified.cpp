@@ -199,7 +199,7 @@ GetEnvironmentVariableA_Detour ( LPCSTR lpName,
 void
 SK_FFXV_InitPlugin (void)
 {
-  plugin_mgr->config_fns.push_back (SK_FFXV_PlugInCfg);
+  plugin_mgr->config_fns.emplace (SK_FFXV_PlugInCfg);
 
   std::unordered_set <uint32_t>
   __SK_FFXV_UI_Pix_Shaders =
@@ -705,7 +705,7 @@ SK_IVariable *pVarBypassLimiter;
 void
 SK_SM_PlugInInit (void)
 {
-  plugin_mgr->config_fns.push_back (SK_SM_PlugInCfg);
+  plugin_mgr->config_fns.emplace (SK_SM_PlugInCfg);
 
   auto cp =
     SK_GetCommandProcessor ();
@@ -967,7 +967,7 @@ sk::ParameterFloat* _SK_ACO_AutoRebalanceInterval;
 void
 SK_ACO_PlugInInit (void)
 {
-  plugin_mgr->config_fns.push_back (SK_ACO_PlugInCfg);
+  plugin_mgr->config_fns.emplace (SK_ACO_PlugInCfg);
 
   __SK_MHW_KillAntiDebug = false;
 

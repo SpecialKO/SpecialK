@@ -52,126 +52,149 @@ extern HWND WINAPI SK_GetActiveWindow (SK_TLS *pTLS);
 void
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS *pTLS)
 {
-  HWND hWndThis  = SK_GetActiveWindow (pTLS);
-  ////////if ( hWndThis !=   SK_GetGameWindow ()   )
-  ////////{
-  ////////  SK_SleepEx (dwMilliseconds, bAlertable);
-  ////////
-  ////////  return;
-  ////////}
+  static double
+    dTicksPerMS = static_cast <double> (SK_GetPerfFreq ().QuadPart) / 1000.0;
 
-  dwMilliseconds = std::max (1UL, dwMilliseconds);
+  if (dwMilliseconds == INFINITE)
+  {
+    SK_LOG0 ( ( L"Infinite Sleep On Window Thread (!!) - SK will not force thread awake..." ),
+                L"Win32-Pump" );
+    
+    SK_SleepEx (
+      INFINITE,
+        bAlertable
+    );
 
-  auto now = SK_CurrentPerf  ().QuadPart;
-  auto end =
-       now + (SK_GetPerfFreq ().QuadPart / 1000LL) * dwMilliseconds;
+    return;
+  }
+
+  HWND hWndThis  =      pTLS != nullptr ?
+    SK_GetActiveWindow (pTLS)           :
+       GetActiveWindow (    );
 
   bool bUnicode =
     IsWindowUnicode (hWndThis);
 
-  auto PeekAndDispatch =
-  [&]
+  // Avoid having Windows marshal Unicode messages like a dumb ass
+  MSG        msg (                           { }                 );
+  auto      Peek (bUnicode ? PeekMessageW     :      PeekMessageA);
+  auto  Dispatch (bUnicode ? DispatchMessageW :  DispatchMessageA);
+  auto Translate (bUnicode ? TranslateMessage : TranslateMessage );
+  auto   wszDesc (bUnicode ? L"Unicode"       :           L"ANSI");
+
+  auto PeekAndDispatch = [&]
   {
-    MSG msg     = {      };
-    msg.message = WM_NULL ;
+    while ( Peek (&msg, 0, 0U, 0U, PM_REMOVE) )
+    {  Translate (&msg);
+        Dispatch (&msg);
 
-    // Avoid having Windows marshal Unicode messages like a dumb ass
-    if (bUnicode)
-    {
-      while (PeekMessageW (&msg, /*SK_GetGameWindow ()*/0, 0U, 0U, PM_REMOVE)
-              &&         msg.message != WM_NULL
-            /*&&       ( msg.hwnd    == 0 ||
-                         msg.hwnd    == SK_GetGameWindow ()*/ )
-         //)
-      {
-        SK_LOG1 ( ( L"Dispatched Message: %x to Unicode HWND: %x while "
-                    L"framerate limiting!", msg.message, msg.hwnd ),
-                    L"Win32-Pump" );
-
-        TranslateMessage (&msg);
-        DispatchMessageW (&msg);
-      }
-    }
-
-    else
-    {
-      while (PeekMessageA (&msg, /*SK_GetGameWindow ()*/0, 0U, 0U, PM_REMOVE)
-              &&         msg.message != WM_NULL
-            /*&&       ( msg.hwnd    == 0 ||
-                         msg.hwnd    == SK_GetGameWindow ()*/ )
-         //)
-      {
-        SK_LOG1 ( ( L"Dispatched Message: %x to ANSI HWND: %x while "
-                    L"framerate limiting!", msg.message, msg.hwnd ),
-                    L"Win32-Pump" );
-
-        TranslateMessage (&msg);
-        DispatchMessageA (&msg);
-      }
+      SK_LOG1 ( ( L"Dispatched Message: %x to %ws HWND: %x while "
+                  L"framerate limiting!",
+                   msg.message, wszDesc,
+                   msg.hwnd ),                       L"Win32-Pump" );
     }
   };
 
-
-  if (dwMilliseconds == 0)
+  if (! wcsicmp (SK_TLS_Bottom ()->debug.name, L"InputThread"))
   {
-    PeekAndDispatch ();
-
-    if (SwitchToThread ())
-      return;
-
-    YieldProcessor ();
-  }
-
-  static long long 
-    liTicksPerMS = SK_GetPerfFreq ().QuadPart / 1000LL;
-
-  while ( ( now =
-              SK_CurrentPerf ().QuadPart ) < end )
-  {
-    DWORD dwMaxWait =
-      narrow_cast <DWORD> (std::max (0LL, (end - now) /
-                                      liTicksPerMS  ) );
-
-    if (dwMaxWait < INT_MAX)
+    static volatile LONG               s_Once    =   FALSE;
+    if (! InterlockedCompareExchange (&s_Once, TRUE, FALSE))
     {
-      dwMaxWait =
-        std::max (1UL, dwMaxWait);
+      SetThreadPriority      ( GetCurrentThread (),
+                            THREAD_PRIORITY_ABOVE_NORMAL );
+      SetThreadPriorityBoost ( GetCurrentThread (), TRUE );
 
-      DWORD dwWait =
-        MsgWaitForMultipleObjectsEx (
-          1, &__SK_DLL_TeardownEvent,
-            dwMaxWait,
-             /*QS_ALLINPUT*/QS_INPUT |
-                            QS_TIMER | QS_POSTMESSAGE
-                                     | QS_SENDMESSAGE,
-                 bAlertable ? MWMO_ALERTABLE
-                            : 0x0
-        );
+      SK_MMCS_TaskEntry* task_me =
+        ( config.render.framerate.enable_mmcss ?
+          SK_MMCS_GetTaskForThreadID ( GetCurrentThreadId (),
+                    "InputThread" ) : nullptr );
 
-      if ( dwWait == WAIT_OBJECT_0 ||
-           dwWait == WAIT_TIMEOUT )
+      if (task_me != nullptr)
       {
-        break;
+        task_me->setPriority (AVRT_PRIORITY_CRITICAL);
       }
-
-      else if (bAlertable && dwWait == WAIT_IO_COMPLETION)
-      {
-        break;
-      }
-
-      else if (dwWait == WAIT_OBJECT_0 + 1)
-      {
-        PeekAndDispatch ();
-      //break;
-      }
-
-      else
-        SK_ReleaseAssert (! L"Unexpected Wait State in call to MsgWaitForMultipleObjectsEx (...)");
     }
 
-    else
-      break;
+    extern
+      volatile LONG _SK_NIER_RAD_InputPollingPeriod;
+    dwMilliseconds =
+      ReadAcquire (&_SK_NIER_RAD_InputPollingPeriod);
   }
+
+  dwMilliseconds =
+    std::max (1UL, dwMilliseconds);
+
+  auto now = SK_CurrentPerf ().QuadPart;
+  auto end =
+       now + static_cast <LONGLONG> (
+             static_cast < double > (                      dTicksPerMS) *
+                                    (static_cast <double> (dwMilliseconds)));
+
+  int count = 0;
+
+  do
+  {
+    DWORD dwMaxWait =
+      narrow_cast <DWORD>     (
+        std::max ( 0UL, static_cast <DWORD> (
+          static_cast <double> ( end - now ) / (dTicksPerMS / 1.666) ) )
+                              );
+
+    if (dwMaxWait < UINT_MAX && dwMaxWait > 0)
+    {
+      DWORD dwWaitState =
+        MsgWaitForMultipleObjectsEx (
+          1, &__SK_DLL_TeardownEvent,
+            dwMaxWait, QS_ALLINPUT, MWMO_INPUTAVAILABLE |
+          bAlertable ? MWMO_ALERTABLE
+                     : 0x0 );
+
+      // APC popping up in strange places?
+      if (     dwWaitState == WAIT_IO_COMPLETION)
+      {  SK_ReleaseAssert (  "WAIT_IO_COMPLETION"
+                                  && bAlertable );
+        PeekAndDispatch ();
+      }
+
+      // Waiting messages
+      else if (dwWaitState == WAIT_OBJECT_0 + 1)
+      {
+        PeekAndDispatch ();
+
+        if (++count > 10)
+          return;
+      }
+
+      // DLL Shutdown
+      else if (dwWaitState == WAIT_OBJECT_0)
+      {
+        return;
+      }
+
+      // Embarassing
+      else if (dwWaitState == WAIT_TIMEOUT)
+      {
+        PeekAndDispatch ();
+        return;
+      }
+
+      // ???
+      else SK_ReleaseAssert (!
+             L"Unexpected Wait State in call to "
+             L"MsgWaitForMultipleObjectsEx (...)");
+    }
+
+    // -:- Wait was too long, handle it the normal way.
+    else
+    {
+      PeekAndDispatch ();
+      return;
+    }
+
+    now =
+      SK_CurrentPerf ().QuadPart;
+  }
+  while (now < end);
 }
 
 

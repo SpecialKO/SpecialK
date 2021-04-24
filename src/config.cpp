@@ -23,6 +23,8 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
+#include <filesystem>
+
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
 iSK_INI*       dll_ini    = nullptr;
@@ -2286,22 +2288,34 @@ auto DeclKeybind =
 
       case SK_GAME_ID::NieR_Sqrt_1_5:
       {
-        config.window.treat_fg_as_active         =  true;
+        config.textures.d3d11.cache              = false;
         config.apis.OpenGL.hook                  = false;
         config.apis.d3d9.hook                    = false;
         config.apis.d3d9ex.hook                  = false;
         config.input.ui.use_hw_cursor            = false;
+        config.window.treat_fg_as_active          = true;
         config.input.cursor.keys_activate        = false;
         config.input.cursor.manage               =  true;
         config.input.cursor.timeout              =     0;
+        config.render.framerate.present_interval =     1;
         config.render.framerate.sleepless_window =  true;
-        config.render.framerate.buffer_count     =     3;
-        config.render.framerate.swapchain_wait   =     3;
-        config.render.framerate.pre_render_limit =     3;
+        config.render.framerate.buffer_count     =     4;
+        config.render.framerate.swapchain_wait   =     1;
+        config.render.framerate.pre_render_limit =     4;
         config.render.framerate.target_fps       =    60;
         config.render.framerate.flip_discard     =  true;
         config.input.gamepad.disable_ps4_hid     =  true;
-      }
+        config.threads.enable_file_io_trace      =  true;
+        config.input.keyboard.catch_alt_f4       =  true;
+        config.input.keyboard.override_alt_f4    =  true;
+
+        // Public Service
+        CopyFile (
+          SK_FormatStringW (       L"%ws/XInput1_4.dll",  
+                               SK_GetSystemDirectory ()
+                           ).c_str (), L"XInput9_1_0.dll",
+                                                  FALSE );
+      } break;
 #endif
     }
   }

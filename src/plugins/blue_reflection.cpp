@@ -436,8 +436,8 @@ SK_IT_InitPlugin (void)
 {
   SK_SetPluginName (IT_VERSION_STR);
 
-  plugin_mgr->first_frame_fns.push_back (SK_IT_PresentFirstFrame);
-  plugin_mgr->config_fns.push_back      (SK_IT_PlugInCfg);
+  plugin_mgr->first_frame_fns.emplace (SK_IT_PresentFirstFrame);
+  plugin_mgr->config_fns.emplace      (SK_IT_PlugInCfg);
 
   //SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
   //                             D3D11Dev_CreateBuffer_Override,

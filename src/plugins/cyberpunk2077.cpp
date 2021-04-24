@@ -100,7 +100,7 @@ void SK_CP2077_InitPlugin (void)
 {
   SK_SetPluginName (L"Special K v " SK_VERSION_STR_W L" // " CP2077_VERSION_STR);
 
-  plugin_mgr->config_fns.push_back (SK_CP2077_PlugInCfg);
+  plugin_mgr->config_fns.emplace (SK_CP2077_PlugInCfg);
 
   auto val =
     SK_GetDLLConfig ()->get_section (L"Cyberpunk.2077").

@@ -317,7 +317,7 @@ SK_DQXI_WindowMessageFilter (LPMSG lpMsg, bool bReserved0, bool bReserved1)
 void
 SK_DQXI_PlugInInit (void)
 {
-  plugin_mgr->config_fns.push_back (SK_DQXI_PlugInCfg);
+  plugin_mgr->config_fns.emplace (SK_DQXI_PlugInCfg);
 
 
     SK_CreateFuncHook (      L"SK_ImGui_HandlesMessage",

@@ -79,12 +79,12 @@ struct SK_PluginRegistry
 
   bool isPlugin          = false;
 
-  std::vector <SK_PlugIn_Init_pfn>                     init_fns;
-  std::vector <SK_PlugIn_ControlPanelCfg_pfn>        config_fns;
-  std::vector <SK_PlugIn_PresentFirstFrame_pfn> first_frame_fns;
-  std::vector <SK_EndFrame_pfn>                   end_frame_fns;
-  std::vector <SK_BeginFrame_pfn>               begin_frame_fns;
-  std::vector <SK_ReleaseGfx_pfn>               release_gfx_fns;
+  std::set <SK_PlugIn_Init_pfn>                     init_fns;
+  std::set <SK_PlugIn_ControlPanelCfg_pfn>        config_fns;
+  std::set <SK_PlugIn_PresentFirstFrame_pfn> first_frame_fns;
+  std::set <SK_EndFrame_pfn>                   end_frame_fns;
+  std::set <SK_BeginFrame_pfn>               begin_frame_fns;
+  std::set <SK_ReleaseGfx_pfn>               release_gfx_fns;
 
   std::wstring plugin_name;
 };
@@ -113,7 +113,7 @@ bool SK_FO4_IsFullscreen       (void);
 bool SK_FO4_IsBorderlessWindow (void);
 
 HRESULT __stdcall
-     SK_FO4_PresentFirstFrame  (IDXGISwapChain *, UINT, UINT);
+     SK_FO4_PresentFirstFrame  (IUnknown *, UINT, UINT);
 
 
 // TODO: Get this stuff out of here, it's breaking what little design work there is.
@@ -122,25 +122,25 @@ bool SK_DS3_UseFlipMode        (void);
 bool SK_DS3_IsBorderless       (void);
 
 HRESULT __stdcall
-     SK_DS3_PresentFirstFrame  (IDXGISwapChain *, UINT, UINT);
+     SK_DS3_PresentFirstFrame  (IUnknown *, UINT, UINT);
 
 HRESULT __stdcall
-     SK_FAR_PresentFirstFrame  (IDXGISwapChain *, UINT, UINT);
+     SK_FAR_PresentFirstFrame  (IUnknown *, UINT, UINT);
 
 HRESULT __stdcall
-     SK_IT_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
+     SK_IT_PresentFirstFrame   (IUnknown *, UINT, UINT);
 
 HRESULT __stdcall
-     SK_DGPU_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
+     SK_DGPU_PresentFirstFrame (IUnknown *, UINT, UINT);
 
 HRESULT __stdcall
-     SK_TVFIX_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
+     SK_TVFIX_PresentFirstFrame (IUnknown *, UINT, UINT);
 
 HRESULT __stdcall
-     SK_Sekiro_PresentFirstFrame (IDXGISwapChain*, UINT, UINT);
+     SK_Sekiro_PresentFirstFrame (IUnknown *, UINT, UINT);
 
 HRESULT __stdcall
-     SK_OPT_PresentFirstFrame    (IDXGISwapChain*, UINT, UINT);
+     SK_OPT_PresentFirstFrame    (IUnknown *, UINT, UINT);
 
 void SK_Yakuza0_PlugInInit (void);
 bool SK_Yakuza0_PlugInCfg  (void);

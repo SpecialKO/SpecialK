@@ -817,7 +817,7 @@ SKX_RemoveCBTHook (void)
         if (SK_Process_IsSuspended (dwPid) &&
            (! suspended_pids.count (dwPid)))
         {
-          if (SK_Process_Resume (   dwPid))
+          if (SK_Process_Resume    (dwPid))
             suspended_pids.emplace (dwPid);
         }
         else running_pids.emplace  (dwPid);
@@ -827,20 +827,20 @@ SKX_RemoveCBTHook (void)
       SendMessageTimeout ( HWND_BROADCAST,
                             WM_NULL, 0, 0,
                          SMTO_ABORTIFHUNG,
-                                      4UL,
+                                      8UL,
                &dwpResult );
 
-      if (suspended_pids.empty () || ++tries > 3)
+      if (suspended_pids.empty () || ++tries > 4)
         break;
     }
     while (ReadAcquire (&injected_procs) > 0);
 
-    // After waking all suspended pids while the hook teardown
-    //   was active, they can go back to being suspended ;)
-    for ( auto pid : suspended_pids )
-    {
-      SK_Process_Suspend (pid);
-    }
+    ////// After waking all suspended pids while the hook teardown
+    //////   was active, they can go back to being suspended ;)
+    ////for ( auto pid : suspended_pids )
+    ////{
+    ////  SK_Process_Suspend (pid);
+    ////}
 
     hHookCBT = nullptr;
   }
@@ -850,7 +850,8 @@ SKX_RemoveCBTHook (void)
 
   dwHookPID = 0x0;
 
-  FreeLibrary (hModSelf);
+  if (           hModSelf != 0)
+    FreeLibrary (hModSelf);
 }
 
 bool
@@ -905,19 +906,15 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
                    ResetEvent (hHookTeardown);
                  }
 
-                 while ( ReadAcquire       (&__SK_DLL_Attached) ||
-                         SK_GetHostAppUtil ()->isInjectionTool () )
+                 if ( ReadAcquire       (&__SK_DLL_Attached) ||
+                      SK_GetHostAppUtil ()->isInjectionTool () )
                  {
-                   HANDLE events [] = { __SK_DLL_TeardownEvent != 0 ?
-                                        __SK_DLL_TeardownEvent :
-                                            hHookTeardown,
-                                            hHookTeardown };
+                   HANDLE events [] =
+                      { __SK_DLL_TeardownEvent != 0 ?
+                        __SK_DLL_TeardownEvent : hHookTeardown,
+                                                 hHookTeardown };
 
-                   DWORD dwWait =
-                     WaitForMultipleObjects ( 2, events,
-                                                FALSE, INFINITE );
-
-                    break;
+                   WaitForMultipleObjects (2, events, FALSE, INFINITE);
                  }
 
                  if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
