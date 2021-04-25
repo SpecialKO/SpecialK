@@ -54,6 +54,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
 {
   static double
     dTicksPerMS = static_cast <double> (SK_GetPerfFreq ().QuadPart) / 1000.0;
+  auto     now =                        SK_CurrentPerf ().QuadPart;
 
   if (dwMilliseconds == INFINITE)
   {
@@ -84,7 +85,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
 
   auto PeekAndDispatch = [&]
   {
-    while ( Peek (&msg, 0, 0U, 0U, PM_REMOVE) )
+    while ( Peek (&msg, hWndThis, 0U, 0U, PM_REMOVE) )
     {  Translate (&msg);
         Dispatch (&msg);
 
@@ -101,8 +102,8 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     if (! InterlockedCompareExchange (&s_Once, TRUE, FALSE))
     {
       SetThreadPriority      ( GetCurrentThread (),
-                            THREAD_PRIORITY_ABOVE_NORMAL );
-      SetThreadPriorityBoost ( GetCurrentThread (), TRUE );
+                                 THREAD_PRIORITY_HIGHEST  );
+      SetThreadPriorityBoost ( GetCurrentThread (), FALSE );
 
       SK_MMCS_TaskEntry* task_me =
         ( config.render.framerate.enable_mmcss ?
@@ -111,41 +112,34 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
 
       if (task_me != nullptr)
       {
-        task_me->setPriority (AVRT_PRIORITY_CRITICAL);
+        task_me->setPriority (AVRT_PRIORITY_NORMAL);
       }
     }
-
-    extern
-      volatile LONG _SK_NIER_RAD_InputPollingPeriod;
-    dwMilliseconds =
-      ReadAcquire (&_SK_NIER_RAD_InputPollingPeriod);
   }
 
   dwMilliseconds =
     std::max (1UL, dwMilliseconds);
 
-  auto now = SK_CurrentPerf ().QuadPart;
   auto end =
        now + static_cast <LONGLONG> (
              static_cast < double > (                      dTicksPerMS) *
                                     (static_cast <double> (dwMilliseconds)));
-
-  int count = 0;
-
+       now =
+         SK_CurrentPerf ().QuadPart;
   do
   {
     DWORD dwMaxWait =
-      narrow_cast <DWORD>     (
-        std::max ( 0UL, static_cast <DWORD> (
-          static_cast <double> ( end - now ) / (dTicksPerMS / 1.666) ) )
-                              );
+      narrow_cast <DWORD> (
+        std::max ( 0.0,
+          static_cast <double> ( end - now ) / (dTicksPerMS) ) 
+                          );
 
-    if (dwMaxWait < UINT_MAX && dwMaxWait > 0)
+    if (dwMaxWait < 5000UL && dwMaxWait > 0)
     {
       DWORD dwWaitState =
         MsgWaitForMultipleObjectsEx (
           1, &__SK_DLL_TeardownEvent,
-            dwMaxWait, QS_ALLINPUT, MWMO_INPUTAVAILABLE |
+            dwMaxWait, QS_ALLINPUT,
           bAlertable ? MWMO_ALERTABLE
                      : 0x0 );
 
@@ -153,16 +147,14 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       if (     dwWaitState == WAIT_IO_COMPLETION)
       {  SK_ReleaseAssert (  "WAIT_IO_COMPLETION"
                                   && bAlertable );
-        PeekAndDispatch ();
+        //return;
       }
 
       // Waiting messages
       else if (dwWaitState == WAIT_OBJECT_0 + 1)
       {
         PeekAndDispatch ();
-
-        if (++count > 10)
-          return;
+        // ...
       }
 
       // DLL Shutdown
@@ -174,21 +166,34 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       // Embarassing
       else if (dwWaitState == WAIT_TIMEOUT)
       {
-        PeekAndDispatch ();
         return;
       }
 
       // ???
-      else SK_ReleaseAssert (!
-             L"Unexpected Wait State in call to "
-             L"MsgWaitForMultipleObjectsEx (...)");
+      else
+      {
+        SK_ReleaseAssert (!
+                          L"Unexpected Wait State in call to "
+                          L"MsgWaitForMultipleObjectsEx (...)");
+        
+        return;
+      }
     }
 
     // -:- Wait was too long, handle it the normal way.
     else
     {
-      PeekAndDispatch ();
-      return;
+      static int switch_count = 0;
+
+      if (dwMaxWait == 0)
+      {
+        PeekAndDispatch ();
+
+        if (((++switch_count % 5) != 0) || (! SwitchToThread ()))
+          dwMaxWait = 1;
+      }
+
+      SK_SleepEx (dwMaxWait, bAlertable);
     }
 
     now =

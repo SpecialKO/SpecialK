@@ -4363,6 +4363,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       // Save original cursor position
       SK_GetCursorPos               (&SK_ImGui_Cursor.pos);
       SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
+
+      if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
+      {
+        return 0;
+      }
       break;
 
     case WM_SETCURSOR:
@@ -4373,6 +4378,14 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           return 0;
         }
+      }
+    } break;
+
+    case WM_TIMER:
+    {
+      if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
+      {
+        return 0;
       }
     } break;
 

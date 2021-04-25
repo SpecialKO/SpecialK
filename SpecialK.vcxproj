@@ -1552,6 +1552,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\plugins\ac_valhalla.cpp" />
     <ClCompile Include="src\plugins\cyberpunk2077.cpp" />
     <ClCompile Include="src\plugins\dragon_quest_xi.cpp">
@@ -1713,7 +1714,6 @@
     <ClCompile Include="src\injection\injection.cpp" />
     <ClCompile Include="src\input\dinput7.cpp" />
     <ClCompile Include="src\input\dinput8.cpp" />
-    <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\input\steam.cpp" />
     <ClCompile Include="src\input\xinput_core.cpp" />
     <ClCompile Include="src\input\xinput_hotplug.cpp" />

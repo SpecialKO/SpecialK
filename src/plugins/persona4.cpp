@@ -193,9 +193,9 @@ SK_Persona4_InitPlugin (void)
 {
   SK_RunOnce (SK_Persona4.ini_params.init ());
   SK_RunOnce (
-    plugin_mgr->config_fns.emplace (SK_Persona4_PlugInCfg)
+    plugin_mgr->config_fns.insert (SK_Persona4_PlugInCfg)
   );
   SK_RunOnce (
-    plugin_mgr->end_frame_fns.emplace (SK_Persona4_EndFrame)
+    plugin_mgr->end_frame_fns.insert (SK_Persona4_EndFrame)
   );
 }

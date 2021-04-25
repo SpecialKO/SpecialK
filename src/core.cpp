@@ -1355,6 +1355,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_MinHook_Init           ();
   SK_PreInitLoadLibrary     ();
 
+  void SK_HookCriticalSections (void);
+       SK_HookCriticalSections (   );
+
   SK::Diagnostics::Debugger::Allow        ();
   SK::Diagnostics::CrashHandler::InitSyms ();
 

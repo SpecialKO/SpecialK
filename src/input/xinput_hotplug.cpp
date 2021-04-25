@@ -146,8 +146,8 @@ SK_XInput_NotifyDeviceArrival (void)
 
               for (auto& placeholder : placeholders)
               {
-                if (idx++ != 0) WriteULongRelease (&placeholder.RecheckInterval, (33UL));
-                else            WriteULongRelease (&placeholder.RecheckInterval, (1UL));
+                if (idx++ != 0) WriteULongRelease (&placeholder.RecheckInterval, (333UL));
+                else            WriteULongRelease (&placeholder.RecheckInterval, (100UL));
               }
 
               return 0;
@@ -211,8 +211,8 @@ SK_XInput_NotifyDeviceArrival (void)
                 }
               }
 
-              SK_XInput_SetRefreshInterval (500UL);
-//              SK_XInput_SetRefreshInterval (15000UL);
+//              SK_XInput_SetRefreshInterval (500UL);
+              SK_XInput_SetRefreshInterval (15000UL);
             }
 
             dwWaitStatus =

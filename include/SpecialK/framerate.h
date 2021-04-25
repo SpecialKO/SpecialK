@@ -137,7 +137,7 @@ namespace SK
 
     class Limiter {
     public:
-      Limiter (double target = 60.0);
+      Limiter (double target = 60.0, bool tracks_game_window = true);
 
       ~Limiter (void)
       {
@@ -145,7 +145,7 @@ namespace SK
           CloseHandle (timer_wait);
       }//= default;
 
-      void            init            (double target);
+      void            init            (double target, bool tracks_window = true); // Todo, use an opaque handle to denote which window
       void            wait            (void);
       bool        try_wait            (void); // No actual wait, just return
                                               //  whether a wait would have occurred.
@@ -309,8 +309,9 @@ namespace SK
       int32_t        limit_behavior =
                      LIMIT_APPLY;
 
-      HANDLE         timer_wait   = 0;
-      bool           lazy_init    = false;
+      bool           tracks_window = true;
+      HANDLE         timer_wait    = 0;
+      bool           lazy_init     = false;
     };
 
     using EventCounter = class EventCounter_V1;

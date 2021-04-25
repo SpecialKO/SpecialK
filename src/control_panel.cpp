@@ -4480,14 +4480,14 @@ SK_ImGui_Toggle (void)
         //   idle cursor detection to hide the mouse cursor after closing
         //     the control panel.
         SK_ImGui_Cursor.last_move = 0;
-
+       
         //SK_ImGui_Cursor.showSystemCursor ();
       }
 
       else
       {
         SK_ImGui_Cursor.last_move = current_time;
-
+        
         //SK_ImGui_Cursor.showImGuiCursor ();
 
         if (EnableEULAIfPirate ())

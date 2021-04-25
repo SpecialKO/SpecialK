@@ -40,6 +40,8 @@ SK_QueryPerf ()
 }
 
 
+#include <concurrent_unordered_map.h>
+
 LARGE_INTEGER                               SK::Framerate::Stats::freq = {};
 SK_LazyGlobal <SK::Framerate::EventCounter> SK::Framerate::events;
 
@@ -144,9 +146,10 @@ SK::Framerate::Shutdown (void)
 }
 
 
-SK::Framerate::Limiter::Limiter (double target)
+SK::Framerate::Limiter::Limiter (double target, bool tracks_game_window)
 {
-  effective_ms = 0.0;
+  effective_ms  = 0.0;
+  tracks_window = tracks_game_window;
 
   init (target);
 }
@@ -311,12 +314,15 @@ SK_D3DKMT_WaitForVBlank (void)
 LONG64 __SK_VBlankLatency_QPCycles;
 
 void
-SK::Framerate::Limiter::init (double target)
+SK::Framerate::Limiter::init (double target, bool tracks_window)
 {
-  SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
-  if ((intptr_t)hWaitHandle.m_h > 0)
+  if (tracks_window)
   {
-    WaitForSingleObjectEx (hWaitHandle, 50UL, FALSE);
+    SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
+    if ((intptr_t)hWaitHandle.m_h > 0)
+    {
+      WaitForSingleObjectEx (hWaitHandle, 50UL, FALSE);
+    }
   }
 
   ms  = 1000.0 / static_cast <double> (target);
@@ -346,7 +352,7 @@ SK::Framerate::Limiter::init (double target)
   DWM_TIMING_INFO dwmTiming        = {                      };
                   dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
 
-  if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
+  if ( tracks_window && SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
   {
     ticks_to_undershoot =
       static_cast <ULONGLONG> (
@@ -397,10 +403,13 @@ SK::Framerate::Limiter::try_wait (void)
     return false;
   }
 
-  if (SK_IsGameWindowActive () || __target_fps_bg == 0.0f)
+  if (tracks_window)
   {
-    if (__target_fps <= 0.0f) {
-      return false;
+    if (SK_IsGameWindowActive () || __target_fps_bg == 0.0f)
+    {
+      if (__target_fps <= 0.0f) {
+        return false;
+      }
     }
   }
 
@@ -421,7 +430,7 @@ SK::Framerate::Limiter::wait (void)
     return;
   }
 
-  if (background == SK_IsGameWindowActive ())
+  if (tracks_window && background == SK_IsGameWindowActive ())
   {
     background = (! background);
   }
@@ -443,7 +452,7 @@ SK::Framerate::Limiter::wait (void)
     }
   }
 
-  else
+  else if (tracks_window)
   {
     if (__target_fps_bg > 0.0f)
     {
@@ -460,19 +469,22 @@ SK::Framerate::Limiter::wait (void)
     }
   }
 
-  if (__target_fps <= 0.0f) {
+  if (tracks_window && __target_fps <= 0.0f) {
     SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
     return;
   }
 
 
-  // Two limits applied on the same frame would cause problems, don't allow it.
-  if (ReadAcquire64 (&last_frame) == static_cast <LONG64> (SK_GetFramesDrawn ())) return;
-     WriteRelease64 (&last_frame,                          SK_GetFramesDrawn ());
+  static
+    concurrency::concurrent_unordered_map <DWORD, LONG64> _frame_shame;
 
+  // Two limits applied on the same frame would cause problems, don't allow it.
+  if (_frame_shame.count (GetCurrentThreadId ()) &&
+      _frame_shame       [GetCurrentThreadId ()] == SK_GetFramesDrawn ()) return;
+  else
+      _frame_shame       [GetCurrentThreadId ()]  = SK_GetFramesDrawn ();
 
   InterlockedIncrement64 (&frames);
-
 
   auto _time =
     SK_QueryPerf ().QuadPart;
@@ -484,7 +496,7 @@ SK::Framerate::Limiter::wait (void)
   {
     if (full_restart)
     {
-      init (__target_fps);
+      init (__target_fps, tracks_window);
       full_restart = false;
     }
 
@@ -545,7 +557,9 @@ SK::Framerate::Limiter::wait (void)
         ReadAcquire64 ( &frames ) * ticks_per_frame
                                   + start_;
 
-      InterlockedAdd (&SK_RenderBackend::flip_skip, 1);
+      if (tracks_window)
+        InterlockedAdd (&SK_RenderBackend::flip_skip, 1);
+      else full_restart = true;
     }
   }
 
@@ -569,7 +583,7 @@ SK::Framerate::Limiter::wait (void)
   if (next_ > 0LL)
   {
     // Flush batched commands before zonking this thread off
-    if (rb.d3d11.immediate_ctx != nullptr)
+    if (tracks_window && rb.d3d11.immediate_ctx != nullptr)
         rb.d3d11.immediate_ctx->Flush ();
 
     // Create an unnamed waitable timer.
@@ -588,8 +602,8 @@ SK::Framerate::Limiter::wait (void)
 
     // The ideal thing to wait on is the SwapChain, since it is what we are
     //   ultimately trying to throttle :)
-    SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
-    if ((intptr_t)hWaitHandle.m_h > 0)
+    SK_AutoHandle                 hWaitHandle (rb.getSwapWaitHandle ());
+    if (tracks_window &&(intptr_t)hWaitHandle.m_h > 0)
     {
       DWORD dwWaitState = WAIT_FAILED;
 
@@ -660,7 +674,7 @@ SK::Framerate::Limiter::wait (void)
 
     // Any remaining wait-time will degenerate into a hybrid busy-wait,
     //   this is also when VBlank synchronization is applied if user wants.
-    if ( config.render.framerate.wait_for_vblank )
+    if ( tracks_window && config.render.framerate.wait_for_vblank )
     {
       DWM_TIMING_INFO dwmTiming        = {                      };
                       dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
@@ -721,7 +735,7 @@ SK::Framerate::Limiter::wait (void)
   if (! lazy_init)
   {
     lazy_init = true;
-         init (fps);
+         init (fps, tracks_window);
   }
 
   SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);

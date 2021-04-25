@@ -1176,18 +1176,44 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
   static auto& io =
     ImGui::GetIO ();
 
+  if (msg == WM_TIMER)
+  {
+    extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
+
+    MSG
+      msg_ = { };
+      msg_.message = msg;
+      msg_.lParam  = lParam;
+      msg_.wParam  = wParam;
+
+    SK_Input_DetermineMouseIdleState (&msg_);
+  }
+
   if (msg == WM_SETCURSOR)
   {
   //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
 
-    if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+    ////if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
     {
+      bool managed = false;
+
       SK_ImGui_Cursor.update ();
 
       if ( SK_ImGui_WantMouseCapture () &&
               ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow) )
       {
         return TRUE;
+      }
+
+      if (config.input.cursor.manage)
+      {
+        extern bool SK_Window_IsCursorActive (void);
+
+        if (! SK_Window_IsCursorActive ())
+        {
+          SK_SetCursor (0);
+          return TRUE;
+        }
       }
     }
   }
@@ -2389,21 +2415,38 @@ SK_ImGui_User_NewFrame (void)
   else
     SK_ImGui_Cursor.idle = false;
 
-
-  if (config.input.cursor.manage && (! config.input.ui.use_hw_cursor))
-  {
-    if (SK_ImGui_Cursor.idle)
-    {
-      SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, 0);
-      SetCursor                                        (0);
-    }
-  }
-
-
   if (was_idle != SK_ImGui_Cursor.idle)
   {
     SK_ImGui_Cursor.update ();
   }
+
+
+  if (config.input.cursor.manage)
+  {
+    extern bool SK_Window_IsCursorActive       (void);
+    extern bool SK_InputUtil_IsHWCursorVisible (void);
+
+    if (SK_Window_IsCursorActive ())
+    {
+      if (! SK_InputUtil_IsHWCursorVisible ())
+      {
+        if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
+          while ( ShowCursor (TRUE) < 0 ) ;
+      }
+    }
+
+    else
+    {
+      if (SK_InputUtil_IsHWCursorVisible ())
+      {
+        if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
+          while ( ShowCursor (FALSE) >= -1 ) ;
+
+        SK_SetCursor (0);
+      }
+    }
+  }
+
 
   //if (eula.show)
     SK_ImGui_DrawEULA (&eula);

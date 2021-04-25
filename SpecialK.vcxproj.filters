@@ -3650,9 +3650,6 @@
     <ClCompile Include="src\render\d3d11\utility\d3d11_map.cpp">
       <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\input.cpp">
-      <Filter>Source Files\Backends\Input</Filter>
-    </ClCompile>
     <ClCompile Include="src\plugins\ac_valhalla.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
@@ -3745,6 +3742,9 @@
     </ClCompile>
     <ClCompile Include="src\plugins\nier_√1.5.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\input.cpp">
+      <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

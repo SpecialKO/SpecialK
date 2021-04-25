@@ -38,7 +38,7 @@ SK_InputUtil_IsHWCursorVisible (void)
   SK_GetCursorInfo (&cursor_info);
 
   return
-    ( cursor_info.flags & CURSOR_SHOWING );
+    ( (cursor_info.flags & CURSOR_SHOWING) /*&& (cursor_info.hCursor != 0)*/ );
 }
 
 #define SK_HID_READ(type)  SK_HID_Backend->markRead  (type);
@@ -1192,19 +1192,15 @@ ImGuiCursor_Impl (void)
   //
   // Hardware Cursor
   //
-  if (config.input.ui.use_hw_cursor && ci.hCursor != desired)
+  if (config.input.ui.use_hw_cursor)
   { 
     if (SK_ImGui_IsMouseRelevant ())
     {
-      SK_SetCursor (desired);
-    //}
-      ci.cbSize = sizeof (CURSORINFO);
-      SK_GetCursorInfo (&ci);
+      if (ci.hCursor != desired)
+        SK_SetCursor (  desired);
 
-      if (config.input.ui.use_hw_cursor && (ci.flags & CURSOR_SHOWING))
-      {
-        io.MouseDrawCursor = false;
-      }
+      io.MouseDrawCursor =
+        ( (! SK_InputUtil_IsHWCursorVisible ()) && (! SK_ImGui_Cursor.idle) );
     }
   }
 
@@ -1247,7 +1243,7 @@ sk_imgui_cursor_s::showSystemCursor (bool system)
 
     SK_GetCursorInfo (&cursor_info);
 
-    if ((! SK_ImGui_IsMouseRelevant ()) || (cursor_info.flags & CURSOR_SHOWING))
+    if ((! SK_ImGui_IsMouseRelevant ()) || SK_InputUtil_IsHWCursorVisible ())
       io.MouseDrawCursor = false;
 
     else
@@ -1342,7 +1338,7 @@ SK_ImGui_WantGamepadCapture (void)
 #ifdef _M_AMD64
   // Stupid hack, breaking whatever abstraction this horrible mess passes for
   extern bool __FAR_Freelook;
-  if (__FAR_Freelook)
+          if (__FAR_Freelook)
     imgui_capture = true;
 #endif
 
@@ -1633,6 +1629,11 @@ NtUserSetCursor_Detour (
     return
       NtUserSetCursor_Original (ImGui_DesiredCursor ());
   }
+
+  extern bool SK_Window_IsCursorActive (void);
+
+  if (config.input.cursor.manage && (! SK_Window_IsCursorActive ()))
+    return SK_ImGui_Cursor.img;
 
   return
     NtUserSetCursor_Original (hCursor);
@@ -2168,12 +2169,13 @@ WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
   struct SK_MouseTimer {
-    POINTS pos      = {     }; // POINT (Short) - Not POINT plural ;)
-    DWORD  sampled  =     0UL;
-    bool   cursor   =    true;
+    POINTS  pos      = {     }; // POINT (Short) - Not POINT plural ;)
+    DWORD   sampled  =     0UL;
+    bool    cursor   =    true;
 
-    int    init     =   FALSE;
-    UINT   timer_id = 0x68993;
+    int     init     =   FALSE;
+    UINT    timer_id = 0x68993;
+    HCURSOR class_cursor;
   } static last_mouse;
 
   //extern bool IsControllerPluggedIn (INT iJoyID);
@@ -2197,7 +2199,11 @@ SK_Window_ActivateCursor (bool changed = false)
       if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
         while ( ShowCursor (TRUE) < 0 ) ;
 
-      last_mouse.cursor = true;
+      SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)last_mouse.class_cursor);
+      SetCursor                                                  (last_mouse.class_cursor);
+
+      last_mouse.class_cursor = 0;
+      last_mouse.cursor       = true;
     }
   }
 
@@ -2227,6 +2233,18 @@ SK_Window_DeactivateCursor (bool ignore_imgui = false)
   {
     if ((! SK_IsSteamOverlayActive ()))
     {
+      if (was_active)
+      {
+        HCURSOR cursor =
+          (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);
+
+        if (cursor != 0)
+          last_mouse.class_cursor = cursor;
+      }
+      
+      SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, 0);
+      SK_SetCursor     (0);
+
       if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
         while ( ShowCursor (FALSE) >= -1 ) ;
 
@@ -2247,13 +2265,15 @@ SK_Input_DetermineMouseIdleState (MSG* lpMsg)
       gsl::narrow_cast <UINT> (config.input.cursor.timeout) / 2 :
                                                            250UL;
 
-    SetTimer ( lpMsg->hwnd,
+    // This was being installed on the wrong HWND, consider a dedicated timer
+    //   in the future.
+    SetTimer ( game_window.hWnd,//lpMsg->hwnd,
                  gsl::narrow_cast <UINT_PTR> (last_mouse.timer_id),
                    _timeout, nullptr );
   }
 
   bool activation_event =
-    (lpMsg->message == WM_MOUSEMOVE || lpMsg->message == WM_SETCURSOR) && (! SK_IsSteamOverlayActive ());
+    ( lpMsg->message == WM_MOUSEMOVE || lpMsg->message == WM_SETCURSOR ) && (! SK_IsSteamOverlayActive ());
 
   // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
   if (activation_event)
@@ -2264,9 +2284,6 @@ SK_Input_DetermineMouseIdleState (MSG* lpMsg)
     if ( abs (last_mouse.pos.x - GET_X_LPARAM (lpMsg->lParam)) < threshold &&
          abs (last_mouse.pos.y - GET_Y_LPARAM (lpMsg->lParam)) < threshold )
       activation_event = false;
-
-    last_mouse.pos =
-      MAKEPOINTS (lpMsg->lParam);
   }
 
   if (config.input.cursor.keys_activate)
@@ -2279,8 +2296,8 @@ SK_Input_DetermineMouseIdleState (MSG* lpMsg)
   // If timeout is 0, just hide the thing indefinitely
   if (activation_event)
   {
-    if ( config.input.cursor.timeout != 0 ||
-         bCapturingMouse )
+    if ((config.input.cursor.manage && config.input.cursor.timeout != 0) ||
+        bCapturingMouse)
     {
       SK_Window_ActivateCursor (true);
     }
@@ -2290,14 +2307,19 @@ SK_Input_DetermineMouseIdleState (MSG* lpMsg)
             lpMsg->wParam  == last_mouse.timer_id &&
             (! SK_IsSteamOverlayActive ()) )
   {
-    if (! bCapturingMouse)
-    {
-      SK_Window_DeactivateCursor ();
-    }
+    LPARAM        lPos =
+      GetMessagePos ();
 
-    else
+    // Record the cursor pos (at time of timer fire)
+    last_mouse.pos =
+      MAKEPOINTS (lPos);
+
+    if (config.input.cursor.manage)
     {
-      SK_Window_ActivateCursor ();
+      if (! bCapturingMouse)
+      {
+        SK_Window_DeactivateCursor ();
+      }
     }
 
     return true;
@@ -2351,12 +2373,6 @@ SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
 bool
 SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 {
-  // Many GL games mysteriously violate this with no ill-effect...
-  //
-  ///assert ( lpMsg->hwnd == 0 ||
-  ///         lpMsg->hwnd == game_window.hWnd );
-
-
   #if 0
   if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
   {
@@ -2462,9 +2478,13 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
               handled = true;
             }
 
-            if (SK_Input_DetermineMouseIdleState (lpMsg))
+            else if (config.input.cursor.manage)
             {
-              handled = true;
+              if (! SK_Window_IsCursorActive ())
+              {
+                SK_SetCursor (0);
+                handled = true;
+              }
             }
           }
         }

@@ -28,11 +28,13 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.0.1"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.1.1"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
-volatile LONG      _SK_NIER_RAD_InputPollingPeriod = 6;
+volatile LONG      _SK_NIER_RAD_InputPollingPeriod = 8;
 sk::ParameterInt* __SK_NIER_RAD_InputPollingPeriod;
+//volatile BOOL       _SK_NIER_RAD_UseInputPacing = TRUE;
+//sk::ParameterBool* __SK_NIER_RAD_UseInputPacing;
 
 bool SK_NIER_RAD_PlugInCfg (void)
 {
@@ -52,24 +54,23 @@ bool SK_NIER_RAD_PlugInCfg (void)
       ImGui::Checkbox ("Enable InputThread Rescheduling", &config.render.framerate.sleepless_window);
 
     ImGui::EndGroup    ();
-    ImGui::SameLine    ();
-    ImGui::BeginGroup  ();
 
     int tmp =
        ReadAcquire (&_SK_NIER_RAD_InputPollingPeriod);
 
     if (config.render.framerate.sleepless_window)
     {
-      ImGui::SameLine ();
-
-      if (ImGui::SliderInt (ICON_FA_GAMEPAD " InputThread Polling (ms)", &tmp, 1, 16)) {
+      ImGui::SameLine    ();
+      ImGui::BeginGroup  ();
+      if (ImGui::SliderInt (ICON_FA_GAMEPAD " InputThread Polling (ms)", &tmp, 4, 12))
+      {
         changed = true;
-        WriteRelease (&_SK_NIER_RAD_InputPollingPeriod, tmp);
-
-        __SK_NIER_RAD_InputPollingPeriod->store (tmp);
+        WriteRelease (&_SK_NIER_RAD_InputPollingPeriod,        tmp);
+                      __SK_NIER_RAD_InputPollingPeriod->store (tmp);
       }
 
-      if (ImGui::IsItemHovered ()) {
+      if (ImGui::IsItemHovered ())
+      {
         ImGui::BeginTooltip ();
         ImGui::Text ("Game Default = 8 ms, which is typical gamepad polling latency.");
         ImGui::Separator  ();
@@ -151,8 +152,9 @@ bool SK_NIER_RAD_PlugInCfg (void)
 
       if (high_min < 250.0)
         ImGui::Text     ( "Minimum Latency: %4.2f ms", high_min );
+
+      ImGui::EndGroup ();
     }
-    ImGui::EndGroup ();
 
     if (changed)
     {
@@ -166,17 +168,44 @@ bool SK_NIER_RAD_PlugInCfg (void)
 }
 
 
+#include <SpecialK/plugin/plugin_mgr.h>
+
+void
+__stdcall
+SK_NIER_RAD_BeginFrame (void)
+{
+  extern bool SK_Window_IsCursorActive (void);
+
+  /////if (config.input.cursor.manage)
+  /////{
+  /////  //if (! SK_Window_IsCursorActive ())
+  /////  {
+  /////    extern bool SK_InputUtil_IsHWCursorVisible (void);
+  /////
+  /////    if (SK_InputUtil_IsHWCursorVisible ())
+  /////    {
+  /////      SetClassLongW (game_window.hWnd, GCLP_HCURSOR, 0);
+  /////
+  /////      while ( ShowCursor (FALSE) >= -1 ) ;
+  /////            SK_SetCursor (nullptr);
+  /////    }
+  /////  }
+  /////}
+}
+
 void SK_NIER_RAD_InitPlugin (void)
 {
+  plugin_mgr->begin_frame_fns.emplace (SK_NIER_RAD_BeginFrame);
+
   SK_SetPluginName (L"Special K v " SK_VERSION_STR_W L" // " RADICAL_REPLICANT_VERSION_STR);
 
   __SK_NIER_RAD_InputPollingPeriod =
     _CreateConfigParameterInt ( L"Radical.Replicant",
                                 L"InputThreadPollingMs", (int &)_SK_NIER_RAD_InputPollingPeriod,
-                                                          L"Input Polling" );
+                                                         L"Input Polling" );
 
   if (! __SK_NIER_RAD_InputPollingPeriod->load  ((int &)_SK_NIER_RAD_InputPollingPeriod))
-        __SK_NIER_RAD_InputPollingPeriod->store (6);
+        __SK_NIER_RAD_InputPollingPeriod->store (8);
 
   plugin_mgr->config_fns.emplace (SK_NIER_RAD_PlugInCfg);
 
