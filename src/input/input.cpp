@@ -38,7 +38,7 @@ SK_InputUtil_IsHWCursorVisible (void)
   SK_GetCursorInfo (&cursor_info);
 
   return
-    ( (cursor_info.flags & CURSOR_SHOWING) /*&& (cursor_info.hCursor != 0)*/ );
+    ( (cursor_info.flags & CURSOR_SHOWING) && (cursor_info.hCursor != 0) );
 }
 
 #define SK_HID_READ(type)  SK_HID_Backend->markRead  (type);
@@ -1199,8 +1199,9 @@ ImGuiCursor_Impl (void)
       if (ci.hCursor != desired)
         SK_SetCursor (  desired);
 
+      extern bool SK_Window_IsCursorActive (void);
       io.MouseDrawCursor =
-        ( (! SK_InputUtil_IsHWCursorVisible ()) && (! SK_ImGui_Cursor.idle) );
+        ( (! SK_InputUtil_IsHWCursorVisible ()) && (! SK_ImGui_Cursor.idle) && (SK_Window_IsCursorActive ()) );
     }
   }
 
@@ -1517,8 +1518,6 @@ ImGui_ToggleCursor (void)
     // Save original cursor position
     SK_GetCursorPos               (&SK_ImGui_Cursor.pos);
     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
-
-    io.WantCaptureMouse = true;
   }
 
   else
@@ -1538,8 +1537,6 @@ ImGui_ToggleCursor (void)
                           screen.y );
       }
     }
-
-    io.WantCaptureMouse = false;
 
     //_capture_ctx.release ();
   }
@@ -1629,11 +1626,6 @@ NtUserSetCursor_Detour (
     return
       NtUserSetCursor_Original (ImGui_DesiredCursor ());
   }
-
-  extern bool SK_Window_IsCursorActive (void);
-
-  if (config.input.cursor.manage && (! SK_Window_IsCursorActive ()))
-    return SK_ImGui_Cursor.img;
 
   return
     NtUserSetCursor_Original (hCursor);

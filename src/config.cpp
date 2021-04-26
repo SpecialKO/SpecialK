@@ -2292,15 +2292,16 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                   = false;
         config.apis.d3d9.hook                     = false;
         config.apis.d3d9ex.hook                   = false;
-        config.window.treat_fg_as_active           = true;
         config.input.cursor.keys_activate         = false;
         config.input.cursor.manage                =  true;
-        config.input.cursor.timeout               =  1500;
+        config.input.cursor.timeout               =   750;
         config.input.ui.use_hw_cursor             = false;
-        config.input.ui.capture_hidden            = true;
-        SK_ImGui_Cursor.prefs.no_warp.ui_open     = true;
+        config.input.ui.capture_hidden            = false;
+        SK_ImGui_Cursor.prefs.no_warp.ui_open     =  true;
         config.render.framerate.present_interval  =     1;
         config.render.framerate.sleepless_window  =  true;
+        config.render.framerate.sleepless_render  = false; // Reshade Problems
+        config.render.framerate.max_delta_time    =     1;
         config.render.framerate.buffer_count      =     4;
         config.render.framerate.swapchain_wait    =     1;
         config.render.framerate.pre_render_limit  =     4;
@@ -2308,6 +2309,12 @@ auto DeclKeybind =
         config.render.framerate.flip_discard      =  true;
         config.input.gamepad.disable_ps4_hid      =  true;
         config.threads.enable_file_io_trace       =  true;
+        config.window.dont_hook_wndproc           =  true;
+        config.window.treat_fg_as_active          =  true;
+      //nfig.steam.preload_overlay              =  true;
+        SK_D3D11_DeclHUDShader (0x3e464f00, ID3D11VertexShader);
+
+      //config.render.dxgi.deferred_isolation     = true;
         config.input.keyboard.catch_alt_f4        =  true;
         config.input.keyboard.override_alt_f4     =  true;
       } break;

@@ -115,31 +115,61 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         task_me->setPriority (AVRT_PRIORITY_NORMAL);
       }
     }
-  }
 
-  dwMilliseconds =
-    std::max (1UL, dwMilliseconds);
+    extern volatile LONG _SK_NIER_RAD_InputPollingPeriod;
+
+    if (dwMilliseconds == 8)
+        dwMilliseconds = ReadAcquire (&_SK_NIER_RAD_InputPollingPeriod);
+  }
+  
+  // Not good
+  else if (dwMilliseconds == 0)
+  {
+    concurrency::concurrent_unordered_set <DWORD> raised_prios;
+
+    if (raised_prios.insert (SK_GetCurrentThreadId ()).second)
+    {
+      SetThreadPriority  (GetCurrentThread (),
+       GetThreadPriority (GetCurrentThread ()) + 1);
+
+      SK_MMCS_TaskEntry* task_me =
+        ( config.render.framerate.enable_mmcss ?
+          SK_MMCS_GetTaskForThreadID ( GetCurrentThreadId (),
+                    "Dubious Sleeper (0 ms)" ) : nullptr );
+
+      if (task_me != nullptr)
+      {
+        task_me->setPriority (AVRT_PRIORITY_NORMAL);
+      }
+    }
+  }
 
   auto end =
        now + static_cast <LONGLONG> (
-             static_cast < double > (                      dTicksPerMS) *
+             static_cast < double > (                         dTicksPerMS) *
                                     (static_cast <double> (dwMilliseconds)));
        now =
          SK_CurrentPerf ().QuadPart;
+
   do
   {
     DWORD dwMaxWait =
       narrow_cast <DWORD> (
         std::max ( 0.0,
-          static_cast <double> ( end - now ) / (dTicksPerMS) ) 
+          static_cast <double> ( end - now ) / dTicksPerMS )
                           );
 
-    if (dwMaxWait < 5000UL && dwMaxWait > 0)
+    if (dwMaxWait < 5000UL)
     {
+      if (dwMaxWait == 0 && config.render.framerate.max_delta_time < 1)
+          dwMaxWait = 1;
+
       DWORD dwWaitState =
         MsgWaitForMultipleObjectsEx (
           1, &__SK_DLL_TeardownEvent,
-            dwMaxWait, QS_ALLINPUT,
+            dwMaxWait, QS_INPUT |
+                       QS_TIMER |
+                       QS_HOTKEY,
           bAlertable ? MWMO_ALERTABLE
                      : 0x0 );
 
@@ -147,7 +177,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       if (     dwWaitState == WAIT_IO_COMPLETION)
       {  SK_ReleaseAssert (  "WAIT_IO_COMPLETION"
                                   && bAlertable );
-        //return;
+        return;
       }
 
       // Waiting messages
@@ -155,6 +185,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       {
         PeekAndDispatch ();
         // ...
+        return;
       }
 
       // DLL Shutdown
@@ -178,22 +209,15 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         
         return;
       }
+
+      if (dwMilliseconds == 0)
+        return;
     }
 
-    // -:- Wait was too long, handle it the normal way.
     else
     {
-      static int switch_count = 0;
-
-      if (dwMaxWait == 0)
-      {
-        PeekAndDispatch ();
-
-        if (((++switch_count % 5) != 0) || (! SwitchToThread ()))
-          dwMaxWait = 1;
-      }
-
       SK_SleepEx (dwMaxWait, bAlertable);
+      return;
     }
 
     now =

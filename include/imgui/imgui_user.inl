@@ -259,25 +259,25 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   bool foreground =
     GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
-  if (foreground)
-  {
-    if (self && (! already_processed))
-      SK_RawInput_EnableLegacyMouse  (true);
-    else
-      SK_RawInput_RestoreLegacyMouse ();
-
-    //SK_RawInput_EnableLegacyMouse  (true);
-    //
-    //// Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
-    ////
-    if (self && (! already_processed))
-    {
-      if (SK_ImGui_WantTextCapture ())
-          SK_RawInput_EnableLegacyKeyboard (true);
-    }
-    else
-      SK_RawInput_RestoreLegacyKeyboard ();
-  }
+  //////////////////if (foreground)
+  //////////////////{
+  //////////////////  if (self && (! already_processed))
+  //////////////////    SK_RawInput_EnableLegacyMouse  (true);
+  //////////////////  else
+  //////////////////    SK_RawInput_RestoreLegacyMouse ();
+  //////////////////
+  //////////////////  //SK_RawInput_EnableLegacyMouse  (true);
+  //////////////////  //
+  //////////////////  //// Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
+  //////////////////  ////
+  //////////////////  if (self && (! already_processed))
+  //////////////////  {
+  //////////////////    if (SK_ImGui_WantTextCapture ())
+  //////////////////        SK_RawInput_EnableLegacyKeyboard (true);
+  //////////////////  }
+  //////////////////  else
+  //////////////////    SK_RawInput_RestoreLegacyKeyboard ();
+  //////////////////}
 
 
   int size =

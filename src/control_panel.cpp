@@ -4293,8 +4293,6 @@ SK_ImGui_StageNextFrame (void)
     SK_SetCursorPos ( screen_pos.x,
                       screen_pos.y );
 
-    io.WantCaptureMouse = true;
-
     SK_ImGui_UpdateCursor ();
   }
 
@@ -4533,8 +4531,8 @@ SK_ImGui_Toggle (void)
     // Immediately stop capturing keyboard/mouse events,
     //   this is the only way to preserve cursor visibility
     //     in some games (i.e. Tales of Berseria)
-    io.WantCaptureKeyboard = (! SK_ImGui_Visible);
-    io.WantCaptureMouse    = (! SK_ImGui_Visible);
+////io.WantCaptureKeyboard = (! SK_ImGui_Visible);
+////io.WantCaptureMouse    = (! SK_ImGui_Visible);
 
 
     // Clear navigation focus on window close
