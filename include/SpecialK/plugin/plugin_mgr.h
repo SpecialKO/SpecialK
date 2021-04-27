@@ -204,20 +204,28 @@ _CreateConfigParameterFloat ( const wchar_t* wszSection,
                               const wchar_t* wszOldKeyName     = nullptr );
 
 sk::ParameterBool*
-_CreateConfigParameterBool ( const wchar_t* wszSection,
-                             const wchar_t* wszKey,
-                             bool& backingStore,
-                             const wchar_t* wszDescription    = L"No Description",
-                             const wchar_t* wszOldSectionName = nullptr,
-                             const wchar_t* wszOldKeyName     = nullptr );
+_CreateConfigParameterBool  ( const wchar_t* wszSection,
+                              const wchar_t* wszKey,
+                              bool& backingStore,
+                              const wchar_t* wszDescription    = L"No Description",
+                              const wchar_t* wszOldSectionName = nullptr,
+                              const wchar_t* wszOldKeyName     = nullptr );
 
 sk::ParameterInt*
-_CreateConfigParameterInt  ( const wchar_t* wszSection,
-                             const wchar_t* wszKey,
-                             int& backingStore,
-                             const wchar_t* wszDescription    = L"No Description",
-                             const wchar_t* wszOldSectionName = nullptr,
-                             const wchar_t* wszOldKeyName     = nullptr );
+_CreateConfigParameterInt   ( const wchar_t* wszSection,
+                              const wchar_t* wszKey,
+                              int& backingStore,
+                              const wchar_t* wszDescription    = L"No Description",
+                              const wchar_t* wszOldSectionName = nullptr,
+                              const wchar_t* wszOldKeyName     = nullptr );
+
+sk::ParameterInt64*
+_CreateConfigParameterInt64 ( const wchar_t* wszSection,
+                              const wchar_t* wszKey,
+                              int64_t& backingStore,
+                              const wchar_t* wszDescription    = L"No Description",
+                              const wchar_t* wszOldSectionName = nullptr,
+                              const wchar_t* wszOldKeyName     = nullptr );
 
 #endif /* __SK__Plugin__Manager_H__ */
 

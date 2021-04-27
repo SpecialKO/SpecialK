@@ -28,35 +28,157 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.3.1"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.4.0"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
-volatile LONG     _SK_NIER_RAD_InputPollingPeriod = 8;
-volatile LONG     _SK_NIER_RAD_ResilientFramerate = 0;
+volatile LONG       _SK_NIER_RAD_InputPollingPeriod     = 8;
+volatile BYTE       _SK_NIER_RAD_HighDynamicFramerate   = false;
 
-sk::ParameterInt* __SK_NIER_RAD_InputPollingPeriod;
-sk::ParameterInt* __SK_NIER_RAD_ResilientFramerate;
+sk::ParameterInt*   __SK_NIER_RAD_InputPollingPeriod   = nullptr;
+sk::ParameterBool*  __SK_NIER_RAD_HighDynamicFramerate = nullptr;
+sk::ParameterInt64* __SK_NIER_RAD_LastKnownTSOffset    = nullptr;
 
-/*
-NieR Replicant ver.1.22474487139.exe+42C37A - F3 0F11 01            - movss [rcx],xmm0
-Write 1.0f there for perfect time dilation / smooth framerate
-whole function:
-NieR Replicant ver.1.22474487139.exe+42C360 - FF 41 18              - inc [rcx+18]
-NieR Replicant ver.1.22474487139.exe+42C363 - 0F28 C1               - movaps xmm0,xmm1
-NieR Replicant ver.1.22474487139.exe+42C366 - F3 0F59 05 261A9200   - mulss xmm0,["NieR Replicant ver.1.22474487139.exe"+D4DD94] { (60,00) }
-NieR Replicant ver.1.22474487139.exe+42C36E - FF 41 1C              - inc [rcx+1C]
-NieR Replicant ver.1.22474487139.exe+42C371 - F3 0F11 49 04         - movss [rcx+04],xmm1
-NieR Replicant ver.1.22474487139.exe+42C376 - F3 0F5A C9            - cvtss2sd xmm1,xmm1
-NieR Replicant ver.1.22474487139.exe+42C37A - F3 0F11 01            - movss [rcx],xmm0                << Write time dilation: 0.0 is pause. Vegetation still moves. 
-NieR Replicant ver.1.22474487139.exe+42C37E - F2 0F58 49 10         - addsd xmm1,[rcx+10]
-NieR Replicant ver.1.22474487139.exe+42C383 - F2 0F11 49 10         - movsd [rcx+10],xmm1
-NieR Replicant ver.1.22474487139.exe+42C388 - C3                    - ret 
+struct {
+  bool enabled = false;
+  
+  struct {
+    bool   paused =   false;
+    float *dt     = nullptr;
 
-xmm1 contains the frame time, e.g. 0.016666
-*/
+    void pause        (void) { paused =       true; }
+    void unpause      (void) { paused =      false; }
+    void toggle_pause (void) { paused = (! paused); }
+  } npc, player;
 
+  struct {
+    uint64_t offset = 0x42C37A;
+    void*    addr   =  nullptr;
 
+    struct {
+      const char* instructions;
+    } normal { "\xF3\x0F\x11\x01" },
+      bypass { "\x90\x90\x90\x90" };
+  } tick; // tock
 
+  struct {
+    uint64_t offset = 0x42C371;
+    void*    addr   =  nullptr;
+
+    struct {
+      const char* instructions;
+    } normal { "\xF3\x0F\x11\x49\x04" },
+      bypass { "\x90\x90\x90\x90\x90" };
+  } dt;
+
+  bool init (void)
+  {
+    if ( tick.addr != nullptr &&
+           dt.addr != nullptr ) return true;
+
+    static LPCVOID pBase =
+      SK_Debug_GetImageBaseAddr ();
+
+    if (pBase == nullptr)
+      return false;
+
+    tick.addr =
+      (LPVOID)((uintptr_t)pBase + tick.offset);
+    dt.addr =
+      (LPVOID)((uintptr_t)pBase + dt.offset);
+
+    if (! ( SK_ValidatePointer (tick.addr) &&
+            SK_ValidatePointer (  dt.addr) ) )
+    {
+      tick.addr = nullptr;
+      dt.addr   = nullptr;
+
+      return false;
+    }
+
+    DWORD dwOriginal = 0x0;
+
+    VirtualProtect (
+      tick.addr, 4,
+        PAGE_EXECUTE_READWRITE, &dwOriginal );
+
+    VirtualProtect (
+      dt.addr, 4,
+        PAGE_EXECUTE_READWRITE, &dwOriginal );
+
+    return true;
+  }
+
+  bool enable (void)
+  {
+    if (! init ())
+      return false;
+
+    if (enabled) return true;
+
+    memcpy (tick.addr, tick.bypass.instructions, 4);
+    memcpy (dt.addr,   dt.bypass.instructions,   5);
+
+    enabled = true;
+
+    return true;
+  }
+
+  bool disable (void)
+  {
+    if (! init ())
+      return false;
+
+    if (! enabled) return true;
+
+    memcpy (tick.addr, tick.normal.instructions, 4);
+    memcpy (dt.addr,   dt.normal.instructions,   5);
+    
+    enabled = false;
+
+    return true;
+  }
+
+  void step (float dt)
+  {
+    assert (enabled);
+
+    if (! enabled)
+      return;
+
+    static auto constexpr
+      tickOffset = 0x4B1B0B0,
+      stepOffset = 0x4B1B0B4;
+    
+    static auto pBaseAddr =
+      SK_Debug_GetImageBaseAddr ();
+
+    static float *pTick =
+      (float *)((uintptr_t)pBaseAddr + tickOffset);
+    static float *pStep =
+      (float *)((uintptr_t)pBaseAddr + stepOffset);
+           float *pStepNPC = npc.dt;
+
+    static DWORD
+      dwOrigProtect = 0x0;
+
+    SK_RunOnce (
+      VirtualProtect ( pTick, sizeof (float),
+                         PAGE_EXECUTE_READWRITE, &dwOrigProtect )
+    );
+    SK_RunOnce (
+      VirtualProtect ( pStep, sizeof (float),
+                         PAGE_EXECUTE_READWRITE, &dwOrigProtect )
+    );
+    SK_RunOnce (
+      VirtualProtect ( pStepNPC, sizeof (float),
+                         PAGE_EXECUTE_READWRITE, &dwOrigProtect )
+    );
+
+    *pStep    = player.paused ? 0.0f : dt;
+    *pStepNPC = npc.paused    ? 0.0f : dt;
+    *pTick    =                      1.0f;
+  }
+} static clockOverride;
 
 void
 SK_NIER_RAD_GamepadLatencyTester (void)
@@ -199,7 +321,7 @@ SK_NIER_RAD_PerfCpl (void)
     {
       config.render.framerate.max_delta_time =
         bLightSleep ?
-        1 : 0;
+                  1 : 0;
     }
 
     if (ImGui::IsItemHovered ())
@@ -228,22 +350,83 @@ SK_NIER_RAD_PerfCpl (void)
 bool
 SK_NIER_RAD_FramerateCpl (void)
 {
+  bool changed = false;
+
   ImGui::TreePush ("");
   ImGui::BeginGroup ();
 
-  bool bResilientFramerate =
-    ReadAcquire (&_SK_NIER_RAD_ResilientFramerate) != 0;
+  bool bHighDynamicFramerate =
+    ReadUCharAcquire (
+      &_SK_NIER_RAD_HighDynamicFramerate);
 
-  if (ImGui::Checkbox ( "Framerate Resilience",
-                          &bResilientFramerate ))
+  if (ImGui::Checkbox ( "High Dynamic Framerate",
+                          &bHighDynamicFramerate ))
   {
-    if (bResilientFramerate) WriteRelease (
-         &_SK_NIER_RAD_ResilientFramerate,
-                      bResilientFramerate ? 1 
-                                          : 0 );
+    changed = true;
 
-
+    WriteUCharRelease (
+    &_SK_NIER_RAD_HighDynamicFramerate,
+                 bHighDynamicFramerate);
+    __SK_NIER_RAD_HighDynamicFramerate->store (bHighDynamicFramerate);
   }
+
+  if (ImGui::IsItemHovered ())
+  {
+    ImGui::SetTooltip ("Enable framerates > 60; some game mechanics may not work correctly.");
+  }
+
+  if (bHighDynamicFramerate)
+  {
+    ImGui::SameLine ();
+
+    if ( ImGui::Button (clockOverride.npc.paused ? ICON_FA_PLAY " NPCs" :
+                                                   ICON_FA_PAUSE " NPCs") )
+    {
+      clockOverride.npc.toggle_pause ();
+    }
+    
+    ImGui::SameLine ();
+
+    if ( ImGui::Button (clockOverride.player.paused ? ICON_FA_PLAY  " Player" :
+                                                      ICON_FA_PAUSE " Player") )
+    {
+      clockOverride.player.toggle_pause ();
+    }
+  }
+  
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  auto* pLimiter =
+    SK::Framerate::GetLimiter (rb.swapchain);
+
+  if ( bHighDynamicFramerate && 
+         ( pLimiter->get_limit () == 60.0 ||
+           pLimiter->get_limit () == 0.0f ) )
+  {
+    ImGui::TextColored     (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+    ImGui::SameLine        ();
+    ImGui::TextColored     (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                            "\tPlease Configure Special K's Framerate Limiter");
+  }
+
+  ImGui::Separator       ();
+  ImGui::TextUnformatted (
+    ICON_FA_SEARCH_LOCATION
+      " Thanks to Ersh and SkacikPL for the initial implementation"
+  );
+
+  ImGui::EndGroup ();
+  ImGui::TreePop  ();
+
+  if (changed) {
+    SK_GetDLLConfig ()->write (
+      SK_GetDLLConfig ()->get_filename ()
+    );
+  }
+
+
+  return changed;
 }
 
 bool
@@ -265,7 +448,9 @@ SK_NIER_RAD_VisualCpl (void)
     }
 
     if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Adds minor CPU overhead for render state tracking; turn off for better perf.");
+        ImGui::SetTooltip (
+          "Adds minor CPU overhead for render state tracking; turn off for better perf."
+        );
   }
   ImGui::EndGroup   ();
   ImGui::SameLine   ();
@@ -335,6 +520,23 @@ bool SK_NIER_RAD_PlugInCfg (void)
         SK_NIER_RAD_VisualCpl ();
     }
 
+    if (clockOverride.npc.dt != nullptr)
+    {
+      if (ImGui::CollapsingHeader (ICON_FA_FLAG_CHECKERED "\tHigh Dynamic Framerate"))
+      {
+        changed |=
+          SK_NIER_RAD_FramerateCpl ();
+
+        if (ReadUCharAcquire (&_SK_NIER_RAD_HighDynamicFramerate))
+        {
+          ImGui::TextUnformatted (ICON_FA_INFO_CIRCLE); ImGui::SameLine ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.5f, 1.0f, 0.1f, 1.0f));
+          ImGui::TextUnformatted ("For best results, turn everything on in the Performance tab.");
+          ImGui::PopStyleColor   (1);
+        }
+      }
+    }
+
     ImGui::TreePop       ( );
     ImGui::PopStyleColor (3);
 
@@ -352,10 +554,58 @@ bool SK_NIER_RAD_PlugInCfg (void)
 
 #include <SpecialK/plugin/plugin_mgr.h>
 
+
 void
 __stdcall
 SK_NIER_RAD_BeginFrame (void)
 {
+  if (clockOverride.npc.dt != nullptr)
+  {
+    DWORD dwOrig = 0x0;
+
+    SK_RunOnce (
+      VirtualProtect (
+        clockOverride.npc.dt, sizeof (float),
+           PAGE_EXECUTE_READWRITE, &dwOrig )
+    );
+
+    static
+      LARGE_INTEGER
+        liLastFrame = SK_QueryPerf   (),
+        liPerfFreq  = SK_GetPerfFreq ();
+      LARGE_INTEGER
+        liThisFrame = SK_QueryPerf   ();
+
+    if (ReadUCharAcquire (&_SK_NIER_RAD_HighDynamicFramerate) != 0)
+    {
+      clockOverride.enable ();
+
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+      
+      double dt =
+        static_cast <double> ( liThisFrame.QuadPart -
+                               liLastFrame.QuadPart ) /
+        static_cast <double> (  liPerfFreq.QuadPart );
+
+      clockOverride.step (dt);
+    }
+
+    else
+    {
+      clockOverride.disable ();
+
+      static constexpr float
+        fStandardDynamicTimestep =
+                     1000.0f / 60.0f / 1000.0f;
+
+      *clockOverride.npc.dt =
+        fStandardDynamicTimestep;
+    }
+
+    liLastFrame =
+      liThisFrame;
+  }
 }
 
 void SK_NIER_RAD_InitPlugin (void)
@@ -371,6 +621,62 @@ void SK_NIER_RAD_InitPlugin (void)
 
   if (! __SK_NIER_RAD_InputPollingPeriod->load  ((int &)_SK_NIER_RAD_InputPollingPeriod))
         __SK_NIER_RAD_InputPollingPeriod->store (8);
+
+
+  __SK_NIER_RAD_HighDynamicFramerate =
+    _CreateConfigParameterBool ( L"Radical.Replicant",
+                                 L"HighDynamicFramerate", (bool &)_SK_NIER_RAD_HighDynamicFramerate,
+                                                          L"Moar Powa!" );
+
+  if (! __SK_NIER_RAD_HighDynamicFramerate->load  ((bool &)_SK_NIER_RAD_HighDynamicFramerate))
+        __SK_NIER_RAD_HighDynamicFramerate->store (false);
+
+  static const
+    int64_t default_tsOffset = 0xABCBD0;
+    int64_t         tsOffset = 0x0;
+
+  __SK_NIER_RAD_LastKnownTSOffset =
+    _CreateConfigParameterInt64 ( L"Radical.Replicant",
+                                  L"LastKnownTimestepOffset", tsOffset,
+                                                              L"Testing..." );
+
+  if (! __SK_NIER_RAD_LastKnownTSOffset->load  (tsOffset))
+        __SK_NIER_RAD_LastKnownTSOffset->store (default_tsOffset);
+
+  static const float* pfTimestep =
+    reinterpret_cast <float *> (
+      (((uintptr_t)SK_Debug_GetImageBaseAddr () + tsOffset) +
+                                                ( tsOffset == 0 ?
+                                          default_tsOffset      : 0x0 ) ) );
+
+  static bool bValid =
+    SK_ValidatePointer (pfTimestep, true)  &&
+                      (*pfTimestep > 0.016 &&
+                       *pfTimestep < 0.017);
+
+  if (bValid && clockOverride.init ())
+  {
+    clockOverride.npc.dt =
+      const_cast <float *>(pfTimestep);
+
+    // Config had no idea, but the default value worked.
+    if (tsOffset == 0)
+    {
+      __SK_NIER_RAD_LastKnownTSOffset->store (
+        ( tsOffset = default_tsOffset )
+      );
+    }
+  }
+
+  else if (tsOffset != 0)
+  {
+    SK_ImGui_Warning (
+      L"Timestep Address Invalid, framerate uncap disabled.");
+
+    __SK_NIER_RAD_LastKnownTSOffset->store (
+      ( tsOffset = 0 )
+    );
+  }
 
   plugin_mgr->config_fns.emplace (SK_NIER_RAD_PlugInCfg);
 

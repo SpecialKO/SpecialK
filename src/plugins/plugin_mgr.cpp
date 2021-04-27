@@ -266,15 +266,16 @@ _CreateConfigParameter ( std::type_index type,
 {
   enum class _ParameterType
   {
-    Bool, Int, Float, StringW
+    Bool, Int, Int64, Float, StringW
   };
 
   static const
     std::unordered_map < std::type_index, _ParameterType >
       __type_map =
       {
-        { std::type_index (typeid (bool)),         _ParameterType::Bool    },
+        { std::type_index (typeid (bool)),         _ParameterType::Bool    },         
         { std::type_index (typeid (int)),          _ParameterType::Int     },
+        { std::type_index (typeid (int64_t)),      _ParameterType::Int64   },
         { std::type_index (typeid (float)),        _ParameterType::Float   },
         { std::type_index (typeid (std::wstring)), _ParameterType::StringW },
       };
@@ -287,6 +288,8 @@ _CreateConfigParameter ( std::type_index type,
           std::type_index (typeid (sk::ParameterBool) )   },
         { std::type_index (typeid (int)               ),
           std::type_index (typeid (sk::ParameterInt)  )   },
+        { std::type_index (typeid (int64_t)           ),
+          std::type_index (typeid (sk::ParameterInt64))   },
         { std::type_index (typeid (float)             ),
           std::type_index (typeid (sk::ParameterFloat))   },
         { std::type_index (typeid (std::wstring)      ),
@@ -337,6 +340,21 @@ _CreateConfigParameter ( std::type_index type,
             {
               return pIntParam->load (
                 *static_cast <int *> (pBackingStore)
+              );
+            }
+          } break;
+
+          case _ParameterType::Int64:
+          {
+            sk::ParameterInt64 *pInt64Param =
+              dynamic_cast <sk::ParameterInt64 *> (
+                pParam
+              );
+
+            if (pInt64Param != nullptr)
+            {
+              return pInt64Param->load (
+                *static_cast <int64_t *> (pBackingStore)
               );
             }
           } break;
@@ -416,6 +434,21 @@ _CreateConfigParameter ( std::type_index type,
             }
           } break;
 
+          case _ParameterType::Int64:
+          {
+            auto *pParamInt64 =
+              dynamic_cast <sk::ParameterInt64 *> (
+                pParam
+              );
+
+            SK_ReleaseAssert (pParamInt64 != nullptr);
+
+            if (pParamInt64 != nullptr)
+            {
+              pParamInt64->store (*static_cast <int64_t *> (pBackingStore));
+            }
+          } break;
+
           case _ParameterType::Float:
           {
             auto *pParamFloat =
@@ -456,19 +489,25 @@ _CreateConfigParameter ( std::type_index type,
       case _ParameterType::Bool:
       {
         pParam =
-          g_ParameterFactory->create_parameter <bool>  (wszDescription);
+          g_ParameterFactory->create_parameter <bool>    (wszDescription);
       } break;
 
       case _ParameterType::Int:
       {
         pParam =
-          g_ParameterFactory->create_parameter <int>   (wszDescription);
+          g_ParameterFactory->create_parameter <int>     (wszDescription);
+      } break;
+
+      case _ParameterType::Int64:
+      {
+        pParam =
+          g_ParameterFactory->create_parameter <int64_t> (wszDescription);
       } break;
 
       case _ParameterType::Float:
       {
         pParam =
-          g_ParameterFactory->create_parameter <float> (wszDescription);
+          g_ParameterFactory->create_parameter <float>   (wszDescription);
       } break;
 
       case _ParameterType::StringW:
@@ -576,6 +615,25 @@ _CreateConfigParameterInt  ( const wchar_t* wszSection,
     dynamic_cast <sk::ParameterInt *> (
       _CreateConfigParameter ( std::type_index (
                                  typeid (int)
+                                ),
+                                wszSection,        wszKey,
+                               &backingStore,      wszDescription,
+                                wszOldSectionName, wszOldKeyName )
+    );
+}
+
+sk::ParameterInt64*
+_CreateConfigParameterInt64 ( const wchar_t* wszSection,
+                              const wchar_t* wszKey,
+                                    int64_t& backingStore,
+                              const wchar_t* wszDescription,
+                              const wchar_t* wszOldSectionName,
+                              const wchar_t* wszOldKeyName )
+{
+  return
+    dynamic_cast <sk::ParameterInt64 *> (
+      _CreateConfigParameter ( std::type_index (
+                                 typeid (int64_t)
                                 ),
                                 wszSection,        wszKey,
                                &backingStore,      wszDescription,

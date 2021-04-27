@@ -70,8 +70,6 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
   SK_SetCursorPos               ( screen_pos.x,
                                   screen_pos.y );
 
-  io.WantCaptureMouse = true;
-
   SK_ImGui_UpdateCursor ();
 }
 
