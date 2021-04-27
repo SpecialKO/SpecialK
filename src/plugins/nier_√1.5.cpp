@@ -28,7 +28,7 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.4.0"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.4.1"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 volatile LONG       _SK_NIER_RAD_InputPollingPeriod     = 8;
@@ -608,6 +608,46 @@ SK_NIER_RAD_BeginFrame (void)
   }
 }
 
+
+static IDirectInput8W_EnumDevices_pfn _IDirectInput8W_EnumDevices = nullptr;
+
+HRESULT
+WINAPI
+IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
+                                    DWORD                    dwDevType,
+                                    LPDIENUMDEVICESCALLBACKW lpCallback,
+                                    LPVOID                   pvRef,
+                                    DWORD                    dwFlags )
+{
+  if (dwDevType == DI8DEVCLASS_GAMECTRL && config.input.gamepad.disable_ps4_hid)
+  {
+    static bool          once = false;
+    if (! std::exchange (once, true))
+    {
+      SK_LOG0 ( ( L"IDirectInput8W::EnumDevices (DevType=%x, Flags: %x) { Allowed }",
+                                             dwDevType,  dwFlags),
+                  L"RadicalRep" );
+
+      return
+        _IDirectInput8W_EnumDevices ( This, dwDevType,
+                                        lpCallback, pvRef,
+                                          dwFlags );
+    }
+
+    SK_LOG0 ( ( L"IDirectInput8W::EnumDevices (DevType=%x, Flags: %x) { Ignored }",
+                                             dwDevType,  dwFlags),
+                L"RadicalRep" );
+
+    // Once is enough, all future calls are invalid to prevent performance hiccups
+    return DIERR_INVALIDPARAM;
+  }
+
+  return
+    _IDirectInput8W_EnumDevices ( This, dwDevType,
+                                    lpCallback, pvRef,
+                                      dwFlags );
+}
+
 void SK_NIER_RAD_InitPlugin (void)
 {
   plugin_mgr->begin_frame_fns.emplace (SK_NIER_RAD_BeginFrame);
@@ -677,6 +717,25 @@ void SK_NIER_RAD_InitPlugin (void)
       ( tsOffset = 0 )
     );
   }
+
+
+  // DirectInput8 EnumDevices Fixup
+  // ------------------------------
+  extern
+  HRESULT
+  WINAPI
+  IDirectInput8W_EnumDevices_Detour ( IDirectInput8W*          This,
+                                      DWORD                    dwDevType,
+                                      LPDIENUMDEVICESCALLBACKW lpCallback,
+                                      LPVOID                   pvRef,
+                                      DWORD                    dwFlags );
+
+  SK_CreateFuncHook (         L"IDirectInput8W::EnumDevices",
+                              IDirectInput8W_EnumDevices_Detour,
+                              IDirectInput8W_EnumDevices_Bypass,
+    static_cast_p2p <void> (&_IDirectInput8W_EnumDevices) );
+
+  SK_EnableHook (             IDirectInput8W_EnumDevices_Detour);
 
   plugin_mgr->config_fns.emplace (SK_NIER_RAD_PlugInCfg);
 

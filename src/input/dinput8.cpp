@@ -56,6 +56,9 @@ DirectInput8Create_pfn
 IDirectInput8W_CreateDevice_pfn
         IDirectInput8W_CreateDevice_Original               = nullptr;
 
+IDirectInput8W_EnumDevices_pfn
+        IDirectInput8W_EnumDevices_Original                = nullptr;
+
 IDirectInputDevice8W_GetDeviceState_pfn
         IDirectInputDevice8W_GetDeviceState_Original       = nullptr;
 
@@ -64,6 +67,9 @@ IDirectInputDevice8W_SetCooperativeLevel_pfn
 
 IDirectInput8A_CreateDevice_pfn
         IDirectInput8A_CreateDevice_Original               = nullptr;
+
+IDirectInput8A_EnumDevices_pfn
+        IDirectInput8A_EnumDevices_Original                = nullptr;
 
 IDirectInputDevice8A_GetDeviceState_pfn
         IDirectInputDevice8A_GetDeviceState_Original       = nullptr;
@@ -84,6 +90,23 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                      REFGUID                rguid,
                                      LPDIRECTINPUTDEVICE8W *lplpDirectInputDevice,
                                      LPUNKNOWN              pUnkOuter );
+
+HRESULT
+WINAPI
+IDirectInput8A_EnumDevices_Detour ( IDirectInput8A*          This,
+                                    DWORD                    dwDevType,
+                                    LPDIENUMDEVICESCALLBACKA lpCallback,
+                                    LPVOID                   pvRef,
+                                    DWORD                    dwFlags );
+
+HRESULT
+WINAPI
+IDirectInput8W_EnumDevices_Detour ( IDirectInput8W*          This,
+                                    DWORD                    dwDevType,
+                                    LPDIENUMDEVICESCALLBACKW lpCallback,
+                                    LPVOID                   pvRef,
+                                    DWORD                    dwFlags );
+
 
 
 volatile LONG __di8_ready = FALSE;
@@ -147,7 +170,21 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8W_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
 
-          SK_EnableHook (vftable [3]);
+          MH_QueueEnableHook (vftable [3]);
+          //SK_EnableHook (vftable [3]);
+        }
+
+        if (! IDirectInput8W_EnumDevices_Original)
+        {
+          void** vftable = *(void***)*ppvOut;
+
+          SK_CreateFuncHook (       L"IDirectInput8W::EnumDevices",
+                                     vftable [4],
+                                     IDirectInput8W_EnumDevices_Detour,
+            static_cast_p2p <void> (&IDirectInput8W_EnumDevices_Original) );
+
+          MH_QueueEnableHook (vftable [4]);
+          //SK_EnableHook (vftable [4]);
         }
       }
     }
@@ -171,11 +208,28 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8A_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
 
-          SK_EnableHook (vftable [3]);
+          MH_QueueEnableHook (vftable [3]);
+          //SK_EnableHook (vftable [3]);
+        }
+
+        if (! IDirectInput8A_EnumDevices_Original)
+        {
+          void** vftable = *(void***)*ppvOut;
+
+          SK_CreateFuncHook (       L"IDirectInput8A::EnumDevices",
+                                     vftable [4],
+                                     IDirectInput8A_EnumDevices_Detour,
+            static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
+          
+          MH_QueueEnableHook (vftable [4]);
+          //SK_EnableHook (vftable [4]);
         }
       }
     }
   }
+
+  if (SUCCEEDED (hr))
+    SK_ApplyQueuedHooks ();
 
   return hr;
 }
@@ -373,7 +427,21 @@ CoCreateInstance_DI8 (
                                    IDirectInput8A_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
 
-        SK_EnableHook (vftable [3]);
+        MH_QueueEnableHook (vftable [3]);
+        //SK_EnableHook (vftable [3]);
+      }
+
+      if (! IDirectInput8A_EnumDevices_Original)
+      {
+        void** vftable = *(void***)*ppv;
+
+        SK_CreateFuncHook (       L"IDirectInput8A::EnumDevices",
+                                   vftable [4],
+                                   IDirectInput8A_EnumDevices_Detour,
+          static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
+
+        MH_QueueEnableHook (vftable [4]);
+        //SK_EnableHook (vftable [4]);
       }
     }
   }
@@ -397,10 +465,27 @@ CoCreateInstance_DI8 (
                                    IDirectInput8W_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
 
-        SK_EnableHook (vftable [3]);
+        MH_QueueEnableHook (vftable [3]);
+        //SK_EnableHook (vftable [3]);
+      }
+
+      if (! IDirectInput8A_EnumDevices_Original)
+      {
+        void** vftable = *(void***)*ppv;
+
+        SK_CreateFuncHook (       L"IDirectInput8W::EnumDevices",
+                                   vftable [4],
+                                   IDirectInput8W_EnumDevices_Detour,
+          static_cast_p2p <void> (&IDirectInput8W_EnumDevices_Original) );
+
+        MH_QueueEnableHook (vftable [4]);
+        //SK_EnableHook (vftable [4]);
       }
     }
   }
+
+  if (SUCCEEDED (hr))
+    SK_ApplyQueuedHooks ();
 
   return hr;
 }
@@ -454,7 +539,21 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8A_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
 
-            SK_EnableHook (vftable [3]);
+            MH_QueueEnableHook (vftable [3]);
+            //SK_EnableHook (vftable [3]);
+          }
+
+          if (! IDirectInput8A_EnumDevices_Original)
+          {
+            void** vftable = *(void***)*&pResults->pItf;
+
+            SK_CreateFuncHook (       L"IDirectInput8A::EnumDevices",
+                                       vftable [4],
+                                       IDirectInput8A_EnumDevices_Detour,
+              static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
+
+            MH_QueueEnableHook (vftable [4]);
+            //SK_EnableHook (vftable [4]);
           }
         }
 
@@ -469,12 +568,29 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8W_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
 
-            SK_EnableHook (vftable [3]);
+            MH_QueueEnableHook (vftable [3]);
+            //SK_EnableHook (vftable [3]);
+          }
+
+          if (! IDirectInput8W_EnumDevices_Original)
+          {
+            void** vftable = *(void***)*&pResults->pItf;
+
+            SK_CreateFuncHook (       L"IDirectInput8W::EnumDevices",
+                                       vftable [4],
+                                       IDirectInput8W_EnumDevices_Detour,
+              static_cast_p2p <void> (&IDirectInput8W_EnumDevices_Original) );
+
+            MH_QueueEnableHook (vftable [4]);
+            //SK_EnableHook (vftable [4]);
           }
         }
       }
     }
   }
+
+  if (SUCCEEDED (hr))
+    SK_ApplyQueuedHooks ();
 
   return hr;
 }
@@ -1526,6 +1642,34 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
 #endif
 
   return hr;
+}
+
+HRESULT
+WINAPI
+IDirectInput8A_EnumDevices_Detour ( IDirectInput8A*          This,
+                                    DWORD                    dwDevType,
+                                    LPDIENUMDEVICESCALLBACKA lpCallback,
+                                    LPVOID                   pvRef,
+                                    DWORD                    dwFlags )
+{
+  return
+    IDirectInput8A_EnumDevices_Original ( This, dwDevType,
+                                            lpCallback, pvRef,
+                                              dwFlags );
+}
+
+HRESULT
+WINAPI
+IDirectInput8W_EnumDevices_Detour ( IDirectInput8W*          This,
+                                    DWORD                    dwDevType,
+                                    LPDIENUMDEVICESCALLBACKW lpCallback,
+                                    LPVOID                   pvRef,
+                                    DWORD                    dwFlags )
+{
+  return
+    IDirectInput8W_EnumDevices_Original ( This, dwDevType,
+                                            lpCallback, pvRef,
+                                              dwFlags );
 }
 
 void

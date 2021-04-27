@@ -4487,6 +4487,14 @@ using IDirectInput8W_CreateDevice_pfn = HRESULT (WINAPI *)(
   LPUNKNOWN              pUnkOuter
 );
 
+using IDirectInput8W_EnumDevices_pfn = HRESULT (WINAPI *)(
+  IDirectInput8W          *This,
+  DWORD                    dwDevType,
+  LPDIENUMDEVICESCALLBACKW lpCallback,
+  LPVOID                   pvRef,
+  DWORD                    dwFlags
+);
+
 using IDirectInputDevice8W_GetDeviceState_pfn = HRESULT (WINAPI *)(
   LPDIRECTINPUTDEVICE8W This,
   DWORD                 cbData,
@@ -4504,6 +4512,14 @@ using IDirectInput8A_CreateDevice_pfn = HRESULT (WINAPI *)(
   REFGUID                rguid,
   LPDIRECTINPUTDEVICE8A *lplpDirectInputDevice,
   LPUNKNOWN              pUnkOuter
+);
+
+using IDirectInput8A_EnumDevices_pfn = HRESULT (WINAPI *)(
+  IDirectInput8A          *This,
+  DWORD                    dwDevType,
+  LPDIENUMDEVICESCALLBACKA lpCallback,
+  LPVOID                   pvRef,
+  DWORD                    dwFlags
 );
 
 using IDirectInputDevice8A_GetDeviceState_pfn = HRESULT (WINAPI *)(
