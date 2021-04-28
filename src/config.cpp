@@ -2311,7 +2311,7 @@ auto DeclKeybind =
         config.threads.enable_file_io_trace       =  true;
         config.window.dont_hook_wndproc           =  true;
         config.window.treat_fg_as_active          =  true;
-      //nfig.steam.preload_overlay              =  true;
+        config.steam.preload_overlay              =  true;
         SK_D3D11_DeclHUDShader (0x3e464f00, ID3D11VertexShader);
 
       //config.render.dxgi.deferred_isolation     = true;

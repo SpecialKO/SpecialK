@@ -167,9 +167,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       DWORD dwWaitState =
         MsgWaitForMultipleObjectsEx (
           1, &__SK_DLL_TeardownEvent,
-            dwMaxWait, QS_INPUT |
-                       QS_TIMER |
-                       QS_HOTKEY,
+            dwMaxWait, QS_ALLINPUT,
           bAlertable ? MWMO_ALERTABLE
                      : 0x0 );
 

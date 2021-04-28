@@ -26,9 +26,10 @@
 #include <SpecialK/DLL_VERSION.H>
 #include <imgui/font_awesome.h>
 
+
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.4.1"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.4.5"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 volatile LONG       _SK_NIER_RAD_InputPollingPeriod     = 8;
@@ -264,59 +265,20 @@ SK_NIER_RAD_PerfCpl (void)
 {
   bool changed = false;
 
+  bool bLightSleep =
+      config.render.framerate.max_delta_time == 1;
+
   ImGui::TreePush ("");
   ImGui::BeginGroup ();
   {
     changed |=
-      ImGui::Checkbox ( "Disable HID / XInput Stutter Quagmire",
+      ImGui::Checkbox ( "Fix XInput Performance Issues",
                          &config.input.gamepad.disable_ps4_hid );
     
-    if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip (
-            "Requires a full game restart to fully take effect");
-
     changed |=
       ImGui::Checkbox ( "Enable InputThread Rescheduling",
                &config.render.framerate.sleepless_window );
-  }
-  ImGui::EndGroup    ();
 
-  if (config.render.framerate.sleepless_window)
-  {
-    int tmp =
-     ReadAcquire (&_SK_NIER_RAD_InputPollingPeriod);
-
-    ImGui::SameLine    ();
-    ImGui::BeginGroup  ();
-    {
-      if (ImGui::SliderInt (ICON_FA_GAMEPAD 
-                              " InputThread Polling (ms)",    &tmp, 4, 12))
-      {
-        changed = true;
-        WriteRelease (&_SK_NIER_RAD_InputPollingPeriod,        tmp);
-                      __SK_NIER_RAD_InputPollingPeriod->store (tmp);
-      }
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Game Default = 8 ms, which is typical gamepad polling latency.");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("Higher values may prevent performance problems, but with added input latency.");
-        ImGui::BulletText   ("Use SK's gamepad latency tester to see where your gamepad stacks up...");
-        ImGui::EndTooltip   ();
-      }
-
-      SK_NIER_RAD_GamepadLatencyTester ();
-    }
-    ImGui::EndGroup ();
-  }
-
-  bool bLightSleep =
-    config.render.framerate.max_delta_time == 1;
-
-  ImGui::BeginGroup ();
-  {
     if (ImGui::Checkbox ("Light Sleep Mode", &bLightSleep))
     {
       config.render.framerate.max_delta_time =
@@ -329,11 +291,54 @@ SK_NIER_RAD_PerfCpl (void)
       ImGui::SetTooltip ("Enable potentially unlimited framerate, but with added CPU load");
     }
   }
-  ImGui::EndGroup   ();
-  ImGui::SameLine   ();
-  ImGui::BeginGroup ();
+  ImGui::EndGroup    ();
+  ImGui::SameLine    ();
+  ImGui::BeginGroup  ();
   {
-    if (bLightSleep && (!config.render.framerate.sleepless_window))
+    int tmp =
+      ReadAcquire (&_SK_NIER_RAD_InputPollingPeriod);
+
+    if (config.input.gamepad.disable_ps4_hid)
+    {
+      ImGui::TextColored (ImVec4 (.2f, 1.f, 0.6f, 1.f), ICON_FA_INFO_CIRCLE);
+      ImGui::SameLine ();
+      ImGui::TextColored (ImVec4 (.75f, .75f, .75f, 1.f), "If your gamepad no longer works, turn the XInput fix off.");
+    }
+
+    else
+      ImGui::Text ("");
+
+
+    if (config.render.framerate.sleepless_window)
+    {
+      if (ImGui::SliderInt (ICON_FA_GAMEPAD
+                            " InputThread Polling (ms)", &tmp, 4, 12))
+      {
+        changed = true;
+        WriteRelease (&_SK_NIER_RAD_InputPollingPeriod, tmp);
+        __SK_NIER_RAD_InputPollingPeriod->store (tmp);
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text ("Game Default = 8 ms, which is typical gamepad polling latency.");
+        ImGui::Separator ();
+        ImGui::BulletText ("Higher values may prevent performance problems, but with added input latency.");
+        ImGui::BulletText ("Use SK's gamepad latency tester to see where your gamepad stacks up...");
+        ImGui::EndTooltip ();
+      }
+
+      SK_NIER_RAD_GamepadLatencyTester ();      
+    }
+    else
+    {
+      ImGui::Text ("");
+      ImGui::Text ("");
+    }
+    
+
+    if (bLightSleep && (! config.render.framerate.sleepless_window))
     {
       ImGui::TextUnformatted (ICON_FA_INFO_CIRCLE); ImGui::SameLine ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.5f, 1.0f, 0.1f, 1.0f));
@@ -465,14 +470,14 @@ SK_NIER_RAD_VisualCpl (void)
       );
     }
 
-    if (orig_deferred != config.render.dxgi.deferred_isolation &&
-        orig_deferred == false)
-    {
-      ImGui::TextUnformatted (ICON_FA_INFO_CIRCLE); ImGui::SameLine ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.5f, 1.0f, 0.1f, 1.0f));
-      ImGui::TextUnformatted ("Game restart required for changes to apply.");
-      ImGui::PopStyleColor   (1);
-    }
+////if (orig_deferred != config.render.dxgi.deferred_isolation &&
+////    orig_deferred == false)
+////{
+////  ImGui::TextUnformatted (ICON_FA_INFO_CIRCLE); ImGui::SameLine ();
+////  ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.5f, 1.0f, 0.1f, 1.0f));
+////  ImGui::TextUnformatted ("Game restart required for changes to apply.");
+////  ImGui::PopStyleColor   (1);
+////}
   }
   ImGui::EndGroup   ();
   ImGui::TreePop    ();
@@ -576,6 +581,12 @@ SK_NIER_RAD_BeginFrame (void)
       LARGE_INTEGER
         liThisFrame = SK_QueryPerf   ();
 
+    static float fOrigTimestep =
+      *clockOverride.npc.dt;
+
+    if (! clockOverride.enabled)
+      fOrigTimestep = *clockOverride.npc.dt;
+
     if (ReadUCharAcquire (&_SK_NIER_RAD_HighDynamicFramerate) != 0)
     {
       clockOverride.enable ();
@@ -593,14 +604,17 @@ SK_NIER_RAD_BeginFrame (void)
 
     else
     {
-      clockOverride.disable ();
+      if (clockOverride.enabled)
+      {
+        clockOverride.disable ();
 
-      static constexpr float
-        fStandardDynamicTimestep =
-                     1000.0f / 60.0f / 1000.0f;
+        static constexpr float
+          fStandardDynamicTimestep =
+                       1000.0f / 60.0f / 1000.0f;
 
-      *clockOverride.npc.dt =
-        fStandardDynamicTimestep;
+        *clockOverride.npc.dt =
+          fOrigTimestep;
+      }
     }
 
     liLastFrame =
@@ -610,6 +624,21 @@ SK_NIER_RAD_BeginFrame (void)
 
 
 static IDirectInput8W_EnumDevices_pfn _IDirectInput8W_EnumDevices = nullptr;
+
+HRESULT                                hr_devices;
+DWORD                                  last_full_test = 0;
+static std::vector <DIDEVICEINSTANCEW> devices_w;
+static std::vector <DIDEVICEINSTANCEW> devices_attached_w;
+std::recursive_mutex                   device_lock;
+
+BOOL DIEnumDevicesCallback_ ( LPCDIDEVICEINSTANCE lpddi,
+                              LPVOID pvRef )
+{
+  devices_w.push_back (*lpddi);
+
+  return
+    DIENUM_CONTINUE;
+}
 
 HRESULT
 WINAPI
@@ -621,6 +650,9 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
 {
   if (dwDevType == DI8DEVCLASS_GAMECTRL && config.input.gamepad.disable_ps4_hid)
   {
+    std::scoped_lock <std::recursive_mutex> lock
+                                    (device_lock);
+
     static bool          once = false;
     if (! std::exchange (once, true))
     {
@@ -628,18 +660,41 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
                                              dwDevType,  dwFlags),
                   L"RadicalRep" );
 
-      return
+      hr_devices =
         _IDirectInput8W_EnumDevices ( This, dwDevType,
-                                        lpCallback, pvRef,
-                                          dwFlags );
+                                        DIEnumDevicesCallback_, pvRef,
+                                          DIEDFL_ALLDEVICES );
     }
 
-    SK_LOG0 ( ( L"IDirectInput8W::EnumDevices (DevType=%x, Flags: %x) { Ignored }",
-                                             dwDevType,  dwFlags),
-                L"RadicalRep" );
+    else
+    {
+      SK_LOG0 ( ( L"IDirectInput8W::EnumDevices (DevType=%x, Flags: %x) { Ignored }",
+                                               dwDevType,  dwFlags),
+                  L"RadicalRep" );
+    }
 
-    // Once is enough, all future calls are invalid to prevent performance hiccups
-    return DIERR_INVALIDPARAM;
+    if (last_full_test < timeGetTime () - 2500UL)
+    {
+      devices_attached_w.clear ();
+
+      for ( auto& device : devices_w )
+      {
+        if ( DI_OK == This->GetDeviceStatus (device.guidInstance) )
+        {
+          devices_attached_w.push_back (device);
+        }
+      }
+
+      last_full_test = timeGetTime ();
+    }
+    
+    for ( auto& attached : devices_attached_w )
+    {
+      if ( lpCallback (&attached, pvRef) == DIENUM_STOP )
+        break;
+    }
+    
+    return S_OK;
   }
 
   return
