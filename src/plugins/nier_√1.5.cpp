@@ -29,7 +29,7 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.4.5"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.4.6"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 volatile LONG       _SK_NIER_RAD_InputPollingPeriod     = 8;
@@ -329,7 +329,7 @@ SK_NIER_RAD_PerfCpl (void)
         ImGui::EndTooltip ();
       }
 
-      SK_NIER_RAD_GamepadLatencyTester ();      
+      SK_NIER_RAD_GamepadLatencyTester ();
     }
     else
     {
@@ -469,15 +469,6 @@ SK_NIER_RAD_VisualCpl (void)
           "Refer to the Screenshots section of the Control Panel for more."
       );
     }
-
-////if (orig_deferred != config.render.dxgi.deferred_isolation &&
-////    orig_deferred == false)
-////{
-////  ImGui::TextUnformatted (ICON_FA_INFO_CIRCLE); ImGui::SameLine ();
-////  ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.5f, 1.0f, 0.1f, 1.0f));
-////  ImGui::TextUnformatted ("Game restart required for changes to apply.");
-////  ImGui::PopStyleColor   (1);
-////}
   }
   ImGui::EndGroup   ();
   ImGui::TreePop    ();
@@ -673,7 +664,7 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
                   L"RadicalRep" );
     }
 
-    if (last_full_test < timeGetTime () - 2500UL)
+    if (last_full_test < timeGetTime () - 30000UL)
     {
       devices_attached_w.clear ();
 

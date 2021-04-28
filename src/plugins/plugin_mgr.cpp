@@ -42,14 +42,18 @@ SKX_SetPluginName (const wchar_t* wszName)
   plugin_mgr->isPlugin    = true;
 }
 
-std::wstring
+std::wstring&
 __stdcall
 SK_GetPluginName (void)
 {
   if (plugin_mgr->isPlugin)
     return plugin_mgr->plugin_name;
 
-  return L"Special K";
+  static
+    std::wstring none =
+       L"Special K";
+
+  return none;
 }
 
 bool

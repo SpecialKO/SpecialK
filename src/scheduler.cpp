@@ -47,11 +47,14 @@ QueryPerformanceCounter_pfn QueryPerformanceFrequency_Original = nullptr;
 QueryPerformanceCounter_pfn RtlQueryPerformanceFrequency       = nullptr;
 
 
-extern HWND WINAPI SK_GetActiveWindow (SK_TLS *pTLS);
+extern HWND WINAPI SK_GetActiveWindow (           SK_TLS *pTLS);
+extern BOOL WINAPI SK_IsWindowUnicode (HWND hWnd, SK_TLS *pTLS);
 
 void
-SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS *pTLS)
+SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS **ppTLS)
 {
+  SK_TLS* pTLS = nullptr;
+
   static double
     dTicksPerMS = static_cast <double> (SK_GetPerfFreq ().QuadPart) / 1000.0;
   auto     now =                        SK_CurrentPerf ().QuadPart;
@@ -69,12 +72,20 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     return;
   }
 
-  HWND hWndThis  =      pTLS != nullptr ?
-    SK_GetActiveWindow (pTLS)           :
-       GetActiveWindow (    );
+  if (pTLS == nullptr)
+  {   pTLS =
+    *ppTLS == nullptr ? SK_TLS_Bottom ()
+                      : *ppTLS; }
+
+  if (  pTLS  != nullptr &&
+       *ppTLS == nullptr  )
+       *ppTLS = pTLS;
+
+  HWND hWndThis =
+    SK_GetActiveWindow (pTLS);
 
   bool bUnicode =
-    IsWindowUnicode (hWndThis);
+    SK_IsWindowUnicode (hWndThis, pTLS);
 
   // Avoid having Windows marshal Unicode messages like a dumb ass
   MSG        msg (                           { }                 );
@@ -96,18 +107,20 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     }
   };
 
-  if (! wcsicmp (SK_TLS_Bottom ()->debug.name, L"InputThread"))
+  if (! wcsicmp (pTLS->debug.name, L"InputThread"))
   {
     static volatile LONG               s_Once    =   FALSE;
     if (! InterlockedCompareExchange (&s_Once, TRUE, FALSE))
     {
-      SetThreadPriority      ( GetCurrentThread (),
-                                 THREAD_PRIORITY_HIGHEST  );
-      SetThreadPriorityBoost ( GetCurrentThread (), FALSE );
+      auto thread =
+        SK_GetCurrentThread ();
+
+      SetThreadPriority      ( thread, THREAD_PRIORITY_HIGHEST );
+      SetThreadPriorityBoost ( thread,                  FALSE  );
 
       SK_MMCS_TaskEntry* task_me =
         ( config.render.framerate.enable_mmcss ?
-          SK_MMCS_GetTaskForThreadID ( GetCurrentThreadId (),
+          SK_MMCS_GetTaskForThreadID ( SK_GetCurrentThreadId (),
                     "InputThread" ) : nullptr );
 
       if (task_me != nullptr)
@@ -125,16 +138,20 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
   // Not good
   else if (dwMilliseconds == 0)
   {
-    concurrency::concurrent_unordered_set <DWORD> raised_prios;
-
+    static
+      concurrency::concurrent_unordered_set <DWORD>
+        raised_prios;
     if (raised_prios.insert (SK_GetCurrentThreadId ()).second)
     {
-      SetThreadPriority  (GetCurrentThread (),
-       GetThreadPriority (GetCurrentThread ()) + 1);
+      auto thread =
+        SK_GetCurrentThread ();
+
+      SetThreadPriority  (thread,
+       GetThreadPriority (thread) + 1);
 
       SK_MMCS_TaskEntry* task_me =
         ( config.render.framerate.enable_mmcss ?
-          SK_MMCS_GetTaskForThreadID ( GetCurrentThreadId (),
+          SK_MMCS_GetTaskForThreadID ( SK_GetCurrentThreadId (),
                     "Dubious Sleeper (0 ms)" ) : nullptr );
 
       if (task_me != nullptr)
@@ -942,7 +959,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       if (bRenderThread)
         SK::Framerate::events->getMessagePumpStats ().wake (dwMilliseconds);
 
-      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, bAlertable, pTLS);
+      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, bAlertable, &pTLS);
 
       return 0;
     }

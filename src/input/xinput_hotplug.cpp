@@ -433,6 +433,41 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
   return dwRet;
 }
 
+void
+SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
+{
+  static constexpr DWORD MIGRATION_PERIOD = 1500;
+
+  static DWORD lastSeenController = DWORD_MAX;
+  static DWORD lastSeenTime       =         0;
+
+  if (success)
+  {
+    DWORD dwTime =
+     SK::ControlPanel::current_time;
+
+    bool migrate = ( dwPacketCount > 1 )
+         &&
+      ( lastSeenController == DWORD_MAX             || 
+        lastSeenTime       < dwTime - MIGRATION_PERIOD );
+    
+    if (lastSeenController == dwUserIndex)
+        lastSeenTime        = dwTime;
+
+    if (migrate)
+    {   lastSeenController                  = dwUserIndex;
+        lastSeenTime                        = dwTime;
+        config.input.gamepad.xinput.ui_slot = dwUserIndex;
+    }
+  }
+
+  else if (dwUserIndex == config.input.gamepad.xinput.ui_slot)
+  {
+    lastSeenController                  = DWORD_MAX;
+    config.input.gamepad.xinput.ui_slot = 0;
+  }
+}
+
 // Make sure that virtual and physical controllers
 //   always return monotonic results
 void
@@ -462,8 +497,17 @@ SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState
 
       pState->dwPacketNumber =
         journal.sequence.current;
+
+      SK_XInput_UpdateSlotForUI (
+        true, dwUserIndex,
+          journal.packet_count.real
+      );
     }
   }
+  
+  else
+    SK_XInput_UpdateSlotForUI (
+      false, dwUserIndex, 0 );
 
   // Failure will be handled by placeholders if need be.
 }

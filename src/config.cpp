@@ -2303,20 +2303,27 @@ auto DeclKeybind =
         config.render.framerate.sleepless_render  = false; // Reshade Problems
         config.render.framerate.max_delta_time    =     1;
         config.render.framerate.buffer_count      =     4;
-        config.render.framerate.swapchain_wait    =     1;
-        config.render.framerate.pre_render_limit  =     4;
+        config.render.framerate.swapchain_wait    =     0;
+        config.render.framerate.pre_render_limit  =     3;
         config.render.framerate.target_fps        =    60;
+        config.render.framerate.drop_late_flips   = false;
         config.render.framerate.flip_discard      =  true;
         config.input.gamepad.disable_ps4_hid      =  true;
         config.threads.enable_file_io_trace       =  true;
         config.window.dont_hook_wndproc           =  true;
-        config.window.treat_fg_as_active          =  true;
         config.steam.preload_overlay              =  true;
+        config.window.background_render           =  true;
+
         SK_D3D11_DeclHUDShader (0x3e464f00, ID3D11VertexShader);
 
       //config.render.dxgi.deferred_isolation     = true;
         config.input.keyboard.catch_alt_f4        =  true;
         config.input.keyboard.override_alt_f4     =  true;
+
+        config.nvidia.sleep.enable                = true;
+        config.nvidia.sleep.low_latency_boost     = true;
+        config.nvidia.sleep.marker_optimization   = true;
+        config.nvidia.sleep.enforcement_site      =    2;
       } break;
 #endif
     }

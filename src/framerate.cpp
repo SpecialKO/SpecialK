@@ -478,11 +478,14 @@ SK::Framerate::Limiter::wait (void)
   static
     concurrency::concurrent_unordered_map <DWORD, LONG64> _frame_shame;
 
+  auto threadId    = GetCurrentThreadId ();
+  auto framesDrawn = SK_GetFramesDrawn  ();
+
   // Two limits applied on the same frame would cause problems, don't allow it.
-  if (_frame_shame.count (GetCurrentThreadId ()) &&
-      _frame_shame       [GetCurrentThreadId ()] == SK_GetFramesDrawn ()) return;
+  if (_frame_shame.count (threadId) &&
+      _frame_shame       [threadId] == framesDrawn) return;
   else
-      _frame_shame       [GetCurrentThreadId ()]  = SK_GetFramesDrawn ();
+      _frame_shame       [threadId]  = framesDrawn;
 
   InterlockedIncrement64 (&frames);
 

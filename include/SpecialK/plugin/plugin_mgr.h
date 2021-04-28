@@ -41,7 +41,7 @@ void
 __stdcall
 SKX_SetPluginName (const wchar_t* wszName);
 
-std::wstring
+std::wstring&
 __stdcall
 SK_GetPluginName (void);
 

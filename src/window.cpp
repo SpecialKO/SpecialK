@@ -3930,6 +3930,24 @@ typedef HWND (WINAPI *SetActiveWindow_pfn)(HWND);
                       SetActiveWindow_pfn
                       SetActiveWindow_Original = nullptr;
 
+BOOL
+WINAPI
+SK_IsWindowUnicode (HWND hWnd, SK_TLS *pTLS)
+{
+  if (pTLS == nullptr)
+    pTLS = SK_TLS_Bottom ();
+  
+  if (pTLS->win32->unicode.first == hWnd)
+    return pTLS->win32->unicode.second;
+
+  pTLS->win32->unicode =
+    std::make_pair (   hWnd,
+      IsWindowUnicode (hWnd) );
+
+  return
+    pTLS->win32->unicode.second;
+}
+
 HWND
 WINAPI
 SK_GetActiveWindow (SK_TLS *pTLS)
@@ -3939,7 +3957,7 @@ SK_GetActiveWindow (SK_TLS *pTLS)
 
   if (pTLS != nullptr)
   {
-    if (pTLS->win32->active == nullptr)
+    if ((uintptr_t)pTLS->win32->active == (uintptr_t)-1)
     {
       pTLS->win32->active =
         GetActiveWindow_Original ();
@@ -3959,14 +3977,16 @@ GetActiveWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  SK_TLS *pTLS =
-        SK_TLS_Bottom ();
+  SK_TLS
+   *pTLS =
+  SK_TLS_Bottom ();
 
   if (pTLS != nullptr)
   {
     // Take this opportunity to update any stale data
     //   since we're making a round-trip anyway.
-    pTLS->win32->active = nullptr;
+    pTLS->win32->active =
+      GetActiveWindow_Original ();
   }
 
   ///if (config.window.background_render)
@@ -6160,26 +6180,54 @@ BOOL
 SK_Win32_IsGUIThread ( DWORD    dwTid,
                        SK_TLS **ppTLS )
 {
-  UNREFERENCED_PARAMETER (ppTLS);
+  SK_TLS
+   *pTLS = nullptr;
 
-  static volatile LONG64 last_result = 0x0;
-                  LONG64 test_result =
-                    ReadAcquire64 (&last_result);
-
-  if ((DWORD)(test_result & 0x00000000FFFFFFFFULL) == dwTid)
+  if (  ppTLS != nullptr &&
+       *ppTLS != nullptr  )
   {
-    return (test_result >> 32) > 0 ? TRUE : FALSE;
+    pTLS = *ppTLS;
   }
 
-  BOOL bGUI =
-    IsGUIThread (FALSE);
+  else
+  {
+    pTLS = dwTid ==
+      SK_GetCurrentThreadId () ?
+              SK_TLS_Bottom () :
+              SK_TLS_BottomEx (dwTid);
 
-  test_result = (bGUI ? (1ull << 32) : 0)
-    | (LONG64)(dwTid & 0xFFFFFFFFUL);
+    if (ppTLS != nullptr && dwTid == SK_GetCurrentThreadId ())
+       *ppTLS  = pTLS;
+  }
 
-  InterlockedExchange64 (&last_result, test_result);
+  if (pTLS->win32->GUI != -1)
+    return pTLS->win32->GUI;
 
-  return bGUI;
+  else
+  {
+    pTLS->win32->GUI =
+      IsGUIThread (FALSE);
+  }
+
+  ////static volatile LONG64 last_result = 0x0;
+  ////                LONG64 test_result =
+  ////                  ReadAcquire64 (&last_result);
+  ////
+  ////if ((DWORD)(test_result & 0x00000000FFFFFFFFULL) == dwTid)
+  ////{
+  ////  return (test_result >> 32) > 0 ? TRUE : FALSE;
+  ////}
+  ////
+  ////BOOL bGUI =
+  ////  IsGUIThread (FALSE);
+  ////
+  ////test_result = (bGUI ? (1ull << 32) : 0)
+  ////  | (LONG64)(dwTid & 0xFFFFFFFFUL);
+  ////
+  ////InterlockedExchange64 (&last_result, test_result);
+
+  return
+    pTLS->win32->GUI;
 
 }
 

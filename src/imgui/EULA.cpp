@@ -70,7 +70,7 @@ SK_ImGui_DrawEULA_PlugIn (LPVOID reserved)
   DBG_UNREFERENCED_LOCAL_VARIABLE (io);
 }
 
-extern std::wstring
+extern std::wstring&
 __stdcall
 SK_GetPluginName (void);
 
@@ -109,12 +109,13 @@ SK_ImGui_DrawEULA (LPVOID reserved)
                                                350.0f * scaler.y), ImVec2 ( 0.925f * io.DisplaySize.x * scaler.x,
                                                                             0.925f * io.DisplaySize.y * scaler.y ) );
 
-  std::wstring plugin = SK_GetPluginName ();
-
-         char szTitle [256] = { };
+  static std::wstring
+              plugin        = SK_GetPluginName ();
+  static char szTitle [256] = { };
   static bool open          = true;
 
-  sprintf (szTitle, "%ws Software License Agreement", plugin.c_str ());
+  if (*szTitle == '\0')
+    sprintf (szTitle, "%ws Software License Agreement", plugin.c_str ());
 
   if (((show_eula_s *)reserved)->show)
     ImGui::OpenPopup (szTitle);

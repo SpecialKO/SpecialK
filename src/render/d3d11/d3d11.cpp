@@ -4373,7 +4373,7 @@ D3D11Dev_CreateTexture2D_Impl (
                                 float fStrengthRight );
 
     if (config.textures.cache.vibrate_on_miss)
-      SK_XInput_PulseController (0, 1.0f, 0.0f);
+      SK_XInput_PulseController (config.input.gamepad.xinput.ui_slot, 1.0f, 0.0f);
 
     textures->CacheMisses_2D++;
   }

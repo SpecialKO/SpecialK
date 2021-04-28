@@ -2116,6 +2116,9 @@ SK_ShutdownCore (const wchar_t* backend)
   dll_log->Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
   SK_Win32_CleanupDummyWindow ();
 
+  // No more exit rumble, please :)
+  for ( auto i = 0; i < XUSER_MAX_COUNT ; ++i )
+    SK_XInput_ZeroHaptics (i);
 
   if (config.window.background_mute)
     SK_SetGameMute (false);

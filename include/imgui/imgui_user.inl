@@ -1693,7 +1693,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 #ifdef SK_STEAM_CONTROLLER_SUPPORT
     if (! ControllerPresent (config.input.gamepad.steam.ui_slot))
     {
-      SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
+      SK_XInput_PulseController ( config.input.gamepad.steam.ui_slot,
                                     haptic_events.PulseTitle.run  () +
                                     haptic_events.PulseButton.run () +
                     std::min (0.4f, haptic_events.PulseNav.run ()),
@@ -1705,7 +1705,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     else
 #endif
     {
-      SK_XInput_PulseController ( config.input.gamepad.steam.ui_slot,
+      SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
                                     haptic_events.PulseTitle.run  () +
                                     haptic_events.PulseButton.run () +
                     std::min (0.4f, haptic_events.PulseNav.run ()),

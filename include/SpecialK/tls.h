@@ -498,9 +498,13 @@ public:
 
   HWND last_active         = reinterpret_cast <HWND> (-1);
   HWND active              = reinterpret_cast <HWND> (-1);
-  LONG GUI                 = -1;
+  LONG GUI                 =    -1;  
 
-  int  thread_prio         =  0;
+  // Cached view
+  std::pair <HWND, BOOL>
+       unicode;
+
+  int  thread_prio         =     0;
 
   struct
   {

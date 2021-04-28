@@ -1,4 +1,11 @@
-﻿21.04.24
+﻿21.04.28
+========
+ + XInput UI controller slot is now determined automatically based on idle
+     detection on each of the 4 possible slots.
+ + XInput haptic feedback is cleared at application exit
+ + XInput haptic feedback uses the UI controller slot instead of always 0
+
+21.04.24
 ========
  + Improvements for mouse cursor BS in NieR Sqrt 1.5
  + Improved Sleepless Window Thread for Sqrt 1.5
