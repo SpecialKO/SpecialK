@@ -848,6 +848,22 @@ ActivateWindow ( HWND hWnd,
 
     if (SK_WantBackgroundRender ())
     {
+      if (game_window.active)
+      {
+        INPUT
+          inputs [2]            = {            };
+          inputs [0].type       = INPUT_KEYBOARD;
+          inputs [0].ki.wVk     = VK_TAB;
+          inputs [0].ki.dwFlags = KEYEVENTF_KEYUP;
+          inputs [1].type       = INPUT_KEYBOARD;
+          inputs [1].ki.wVk     = VK_MENU;
+          inputs [1].ki.dwFlags = KEYEVENTF_KEYUP;
+      
+        SK_SendInput (2, inputs, sizeof (INPUT));
+        
+        SendMessage (game_window.hWnd, WM_KEYUP, VK_MENU, 0x0);
+      }
+
       SK_XInput_Enable (TRUE);
 
       //(! SK_WantBackgroundRender ()) ?
@@ -1202,7 +1218,7 @@ bool SK_ImGui_ImplicitMouseAntiwarp (void)
   {
     // Depending on warp prefs, we may not allow the game to know about mouse movement
     //   (even if ImGui doesn't want mouse capture)
-    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
+    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open                                      ) ||
          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
     {
       return true;
@@ -1276,7 +1292,7 @@ ClipCursor_Detour (const RECT *lpRect)
     game_window.cursor_clip = *lpRect;
   }
 
-  else
+  else if (! config.window.confine_cursor)
     return SK_ClipCursor (nullptr);
 
 
@@ -1285,7 +1301,23 @@ ClipCursor_Detour (const RECT *lpRect)
   if ( config.window.confine_cursor &&
         &game_window.cursor_clip    != lpRect )
   {
-    return TRUE;
+    if (SK_IsGameWindowActive ())
+    {
+      if (lpRect != nullptr)
+      {
+        // If confining, and the game provides a rectangle small enough to satisfy confinement,
+        //   then allow it to happen.
+        if ( PtInRect (&game_window.actual.window, POINT { lpRect->left,  lpRect->top    }) &&
+             PtInRect (&game_window.actual.window, POINT { lpRect->right, lpRect->bottom }) )
+        {
+            return
+              SK_ClipCursor (lpRect);
+        }
+      }
+
+      return
+        SK_ClipCursor (&game_window.actual.window);
+    }
   }
 
 
@@ -3960,7 +3992,9 @@ SK_GetActiveWindow (SK_TLS *pTLS)
     if ((uintptr_t)pTLS->win32->active == (uintptr_t)-1)
     {
       pTLS->win32->active =
-        GetActiveWindow_Original ();
+        GetActiveWindow_Original != nullptr ?
+        GetActiveWindow_Original ()         :
+        GetActiveWindow          ();
     }
 
     return
@@ -3968,7 +4002,9 @@ SK_GetActiveWindow (SK_TLS *pTLS)
   }
 
   return
-    GetActiveWindow_Original ();
+    GetActiveWindow_Original != nullptr ?
+    GetActiveWindow_Original ()         :
+    GetActiveWindow          ();
 }
 
 HWND
@@ -4017,19 +4053,11 @@ HWND
 WINAPI
 SK_SetActiveWindow (HWND hWnd)
 {
-  HWND hWndRet = nullptr;
-
-  if (SetActiveWindow_Original != nullptr)
-  {
-    hWndRet =
-      SetActiveWindow_Original (hWnd);
-  }
-
-  else
-  {
-    hWndRet =
-      SetActiveWindow (hWnd);
-  }
+  HWND
+    hWndRet = 
+      SetActiveWindow_Original != nullptr ?
+      SetActiveWindow_Original (hWnd)     :
+      SetActiveWindow          (hWnd);
 
   if (hWndRet != nullptr)
   {
@@ -6180,6 +6208,7 @@ BOOL
 SK_Win32_IsGUIThread ( DWORD    dwTid,
                        SK_TLS **ppTLS )
 {
+#if 0
   SK_TLS
    *pTLS = nullptr;
 
@@ -6208,27 +6237,30 @@ SK_Win32_IsGUIThread ( DWORD    dwTid,
     pTLS->win32->GUI =
       IsGUIThread (FALSE);
   }
-
-  ////static volatile LONG64 last_result = 0x0;
-  ////                LONG64 test_result =
-  ////                  ReadAcquire64 (&last_result);
-  ////
-  ////if ((DWORD)(test_result & 0x00000000FFFFFFFFULL) == dwTid)
-  ////{
-  ////  return (test_result >> 32) > 0 ? TRUE : FALSE;
-  ////}
-  ////
-  ////BOOL bGUI =
-  ////  IsGUIThread (FALSE);
-  ////
-  ////test_result = (bGUI ? (1ull << 32) : 0)
-  ////  | (LONG64)(dwTid & 0xFFFFFFFFUL);
-  ////
-  ////InterlockedExchange64 (&last_result, test_result);
-
+  
   return
     pTLS->win32->GUI;
+#else
+  static volatile LONG64 last_result = 0x0;
+                  LONG64 test_result =
+                    ReadAcquire64 (&last_result);
+  
+  if ((DWORD)(test_result & 0x00000000FFFFFFFFULL) == dwTid)
+  {
+    return (test_result >> 32) > 0 ? TRUE : FALSE;
+  }
+  
+  BOOL bGUI =
+    IsGUIThread (FALSE);
+  
+  test_result = (bGUI ? (1ull << 32) : 0)
+    | (LONG64)(dwTid & 0xFFFFFFFFUL);
+  
+  InterlockedExchange64 (&last_result, test_result);
 
+  return
+    bGUI;
+#endif
 }
 
 

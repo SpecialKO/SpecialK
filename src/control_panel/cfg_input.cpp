@@ -313,10 +313,10 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
 
         if ( ImGui::SliderFloat ( "Seconds Before Hiding",
-                                    &seconds, 0.0f, 30.0f ) )
+                                    &seconds, 0.0f, 103.0f ) )
         {
           config.input.cursor.timeout =
-            static_cast <LONG> (( seconds * 1000.0f ));
+            static_cast <LONG> ( seconds * 1000.0f );
         }
 
         ImGui::PopStyleColor (4);
@@ -351,23 +351,30 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::TreePush      ("");
 
       ImGui::Columns        (2);
-      ImGui::Checkbox       ("Haptic UI Feedback", &config.input.gamepad.haptic_ui);
+      if (config.input.gamepad.hook_xinput)
+      {
+        ImGui::Checkbox       ("Haptic UI Feedback", &config.input.gamepad.haptic_ui);
 
-      ImGui::SameLine       ();
+        ImGui::SameLine       ();
 
-      ImGui::Checkbox       ("Disable ALL Rumble", &config.input.gamepad.disable_rumble);
+        if (config.input.gamepad.hook_xinput && config.input.gamepad.xinput.hook_setstate)
+          ImGui::Checkbox     ("Disable ALL Rumble", &config.input.gamepad.disable_rumble);
+      }
 
       ImGui::NextColumn     ();
 
-      ImGui::Checkbox       ("Rehook XInput", &config.input.gamepad.rehook_xinput); ImGui::SameLine ();
-
-      if (ImGui::IsItemHovered ())
+      if (config.input.gamepad.hook_xinput)
       {
-        ImGui::BeginTooltip  ();
+        ImGui::Checkbox ("Rehook XInput", &config.input.gamepad.rehook_xinput); ImGui::SameLine ();
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
           ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Re-installs input hooks if third-party hooks are detected.");
-          ImGui::Separator   ();
-          ImGui::BulletText  ("This may improve compatibility with x360ce, but will require a game restart.");
-        ImGui::EndTooltip    ();
+          ImGui::Separator ();
+          ImGui::BulletText ("This may improve compatibility with x360ce, but will require a game restart.");
+          ImGui::EndTooltip ();
+        }
       }
 
       ImGui::Checkbox       ("Disable PS4 HID Input", &config.input.gamepad.disable_ps4_hid);
@@ -395,7 +402,8 @@ SK::ControlPanel::Input::Draw (void)
       const int num_steam_controllers =
         0;/// steam_input.count;
 
-      if ( num_steam_controllers == 0 && ( connected [0] || connected [1] ||
+      if ( config.input.gamepad.hook_xinput &&
+           num_steam_controllers == 0 && ( connected [0] || connected [1] ||
                                            connected [2] || connected [3] ) )
       {
         ImGui::Text("UI Controlled By:  "); ImGui::SameLine();
@@ -461,48 +469,51 @@ SK::ControlPanel::Input::Draw (void)
       }
 #endif
 
-      ImGui::Text ("XInput Placeholders");
-
-      if (ImGui::IsItemHovered ())
+      if (config.input.gamepad.hook_xinput)
       {
-        ImGui::BeginTooltip  ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
-          ImGui::Separator   ();
-          ImGui::BulletText  ("Useful for games like God Eater 2 that do not support hot-plugging in a sane way.");
-          ImGui::BulletText  ("Also reduces performance problems games cause themselves by trying to poll controllers that are not connected.");
-        ImGui::EndTooltip    ();
-      }
-
-      ImGui::SameLine();
-
-      auto XInputPlaceholderCheckbox = [](const char* szName, DWORD dwIndex)
-      {
-        ImGui::Checkbox (szName, &config.input.gamepad.xinput.placehold [dwIndex]);
-
-        const SK_XInput_PacketJournal journal =
-          SK_XInput_GetPacketJournal (dwIndex);
+        ImGui::Text ("XInput Placeholders");
 
         if (ImGui::IsItemHovered ())
         {
-          ImGui::BeginTooltip ( );
-           ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing" );
-           ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
-                                  journal.sequence.last, journal.sequence.current );
-           ImGui::Separator   ( );
-           ImGui::Columns     (2, nullptr, 0);
-           ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
-           ImGui::Text        ("%+07li", journal.packet_count.virt);        ImGui::NextColumn ();
-           ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
-           ImGui::Text        ("%+07li", journal.packet_count.real);
-           ImGui::Columns     (1);
-          ImGui::EndTooltip   ( );
+          ImGui::BeginTooltip  ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("Useful for games like God Eater 2 that do not support hot-plugging in a sane way.");
+            ImGui::BulletText  ("Also reduces performance problems games cause themselves by trying to poll controllers that are not connected.");
+          ImGui::EndTooltip    ();
         }
-      };
 
-      XInputPlaceholderCheckbox ("Slot 0", 0); ImGui::SameLine ();
-      XInputPlaceholderCheckbox ("Slot 1", 1); ImGui::SameLine ();
-      XInputPlaceholderCheckbox ("Slot 2", 2); ImGui::SameLine ();
-      XInputPlaceholderCheckbox ("Slot 3", 3);
+        ImGui::SameLine();
+
+        auto XInputPlaceholderCheckbox = [](const char* szName, DWORD dwIndex)
+        {
+          ImGui::Checkbox (szName, &config.input.gamepad.xinput.placehold [dwIndex]);
+
+          const SK_XInput_PacketJournal journal =
+            SK_XInput_GetPacketJournal (dwIndex);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ( );
+             ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing" );
+             ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
+                                    journal.sequence.last, journal.sequence.current );
+             ImGui::Separator   ( );
+             ImGui::Columns     (2, nullptr, 0);
+             ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
+             ImGui::Text        ("%+07li", journal.packet_count.virt);        ImGui::NextColumn ();
+             ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
+             ImGui::Text        ("%+07li", journal.packet_count.real);
+             ImGui::Columns     (1);
+            ImGui::EndTooltip   ( );
+          }
+        };
+
+        XInputPlaceholderCheckbox ("Slot 0", 0); ImGui::SameLine ();
+        XInputPlaceholderCheckbox ("Slot 1", 1); ImGui::SameLine ();
+        XInputPlaceholderCheckbox ("Slot 2", 2); ImGui::SameLine ();
+        XInputPlaceholderCheckbox ("Slot 3", 3);
+      }
 
 // TODO
 #if 0
@@ -699,7 +710,7 @@ extern float SK_ImGui_PulseNav_Strength;
         static DWORD dwLastCheck = current_time;
         static UINT  dwLastCount = joyGetNumDevs ();
 
-        const DWORD _CHECK_INTERVAL = 500UL;
+        const DWORD _CHECK_INTERVAL = 1500UL;
 
         UINT count =
           ( dwLastCheck < (current_tick - _CHECK_INTERVAL) ) ?
@@ -712,77 +723,80 @@ extern float SK_ImGui_PulseNav_Strength;
           if (count > 1)   GamepadDebug (JOYSTICKID2); }
       }
 
-      static bool   init       = false;
-      static HANDLE hStartStop =
-        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+      if (config.input.gamepad.hook_xinput)
+      {
+        static bool   init       = false;
+        static HANDLE hStartStop =
+          SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
 
-      if (! init)
-      {     init = true;
-        SK_Thread_Create ([](LPVOID) -> DWORD
-        {
-          XINPUT_STATE states [2] = { };
-          ULONGLONG    times  [2] = { };
-          int                   i = 0;
-          
-          do
+        if (! init)
+        {     init = true;
+          SK_Thread_Create ([](LPVOID) -> DWORD
           {
-            WaitForSingleObject (hStartStop, INFINITE);
-
-            if (SK_XInput_PollController (0, &states [i % 2]))
+            XINPUT_STATE states [2] = { };
+            ULONGLONG    times  [2] = { };
+            int                   i = 0;
+            
+            do
             {
-              XINPUT_STATE& old = states [(i + 1) % 2];
-              XINPUT_STATE& now = states [ i++    % 2];
+              WaitForSingleObject (hStartStop, INFINITE);
 
-              if (old.dwPacketNumber != now.dwPacketNumber)
+              if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &states [i % 2]))
               {
-                LARGE_INTEGER nowTime = SK_QueryPerf ();
-                ULONGLONG     oldTime = times [0];
-                                        times [0] = times [1];
-                                        times [1] = nowTime.QuadPart;
+                XINPUT_STATE& old = states [(i + 1) % 2];
+                XINPUT_STATE& now = states [ i++    % 2];
 
-                gamepad_stats.addSample ( 1000.0 *
-                  static_cast <double> (times [0] - oldTime) /
-                  static_cast <double> (SK_GetPerfFreq ().QuadPart),
-                    nowTime
-                );
+                if (old.dwPacketNumber != now.dwPacketNumber)
+                {
+                  LARGE_INTEGER nowTime = SK_QueryPerf ();
+                  ULONGLONG     oldTime = times [0];
+                                          times [0] = times [1];
+                                          times [1] = nowTime.QuadPart;
+
+                  gamepad_stats.addSample ( 1000.0 *
+                    static_cast <double> (times [0] - oldTime) /
+                    static_cast <double> (SK_GetPerfFreq ().QuadPart),
+                      nowTime
+                  );
+                }
               }
-            }
-          } while (! ReadAcquire (&__SK_DLL_Ending));
+            } while (! ReadAcquire (&__SK_DLL_Ending));
 
-          SK_Thread_CloseSelf ();
+            SK_Thread_CloseSelf ();
 
-          return 0;
-        }, (LPVOID)hStartStop);
-      }
-      
-      static bool started = false;
+            return 0;
+          }, (LPVOID)hStartStop);
+        }
+        
+        static bool started = false;
 
-      if (ImGui::Button (started ? "Stop Gamepad Latency Test" :
-                                   "Start Gamepad Latency Test"))
-      {
-        if (! started) { started = true;  SetEvent   (hStartStop); }
-        else           { started = false; ResetEvent (hStartStop); }
-      }
-      
-      static double high_min = std::numeric_limits <double>::max (),
-                    high_max,
-                    avg;
+        if (ImGui::Button (started ? "Stop Gamepad Latency Test" :
+                                     "Start Gamepad Latency Test"))
+        {
+          if (! started) { started = true;  SetEvent   (hStartStop); }
+          else           { started = false; ResetEvent (hStartStop); }
+        }
+        
+        static double high_min = std::numeric_limits <double>::max (),
+                      high_max,
+                      avg;
 
-      if (started)
-      {
-        ImGui::SameLine  ( );
-        ImGui::Text      ( "%lu Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
-                             gamepad_stats.calcNumSamples (),
-                             gamepad_stats.calcMin        (),
-                             gamepad_stats.calcMax        (),
-                             gamepad_stats.calcMean       () );
+        if (started)
+        {
+          ImGui::SameLine  ( );
+          ImGui::Text      ( "%lu Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+                               gamepad_stats.calcNumSamples (),
+                               gamepad_stats.calcMin        (),
+                               gamepad_stats.calcMax        (),
+                               gamepad_stats.calcMean       () );
 
-        high_min = std::min (gamepad_stats.calcMin (), high_min);
-      }
+          high_min = std::min (gamepad_stats.calcMin (), high_min);
+        }
   //high_max = std::max (gamepad_stats.calcMax (), high_max);
 
-      if (high_min < 250.0)
-        ImGui::Text     ( "Minimum Latency: %4.2f ms", high_min );
+        if (high_min < 250.0)
+          ImGui::Text     ( "Minimum Latency: %4.2f ms", high_min );
+      }
       ImGui::TreePop         ( );
     }
 
@@ -1003,8 +1017,20 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::Checkbox  ("Disable Mouse Input to Game",    &config.input.mouse.disabled_to_game);
       ImGui::SameLine  ();
       ImGui::Checkbox  ("Disable Keyboard Input to Game", &config.input.keyboard.disabled_to_game);
-      ImGui::SameLine  ();
-      ImGui::Checkbox  ("Disable Gamepad Input to Game",  &config.input.gamepad.disabled_to_game);
+
+      if (/*config.input.gamepad.hook_dinput7 ||*/ config.input.gamepad.hook_dinput8 ||
+          /*config.input.gamepad.hook_hid     ||*/ config.input.gamepad.hook_xinput)
+      {
+        //if (      SK_DI7_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
+        //          SK_DI8_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
+        //          SK_HID_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
+        //     SK_RawInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
+        //       SK_XInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 )
+        {
+          ImGui::SameLine  ();
+          ImGui::Checkbox  ("Disable Gamepad Input to Game",  &config.input.gamepad.disabled_to_game);
+        }
+      }
 #if 0
       ImGui::Separator ();
 

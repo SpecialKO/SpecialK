@@ -29,6 +29,9 @@
 #include <Windows.h>
 #include <cstdint>
 
+extern LARGE_INTEGER SK_GetPerfFreq (void);
+extern LARGE_INTEGER SK_QueryPerf   (void);
+
 #define SK_LOG_INPUT_CALL { static int  calls  = 0; { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 
 bool SK_ImGui_WantGamepadCapture  (void);
@@ -121,6 +124,10 @@ struct sk_input_api_context_s
     bool keyboard, mouse, gamepad, other;
   } active { false, false, false, false };
 
+  struct {
+    volatile uint64_t keyboard, mouse, gamepad, other;
+  } viewed; // Data was processed by the game at this time (QPC)
+
   void markRead  (sk_input_dev_type type) noexcept
   { SK_Input_SetLatencyMarker ();
     InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
@@ -130,6 +137,18 @@ struct sk_input_api_context_s
   { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
                                                 type == sk_input_dev_type::Keyboard ? 1 :
                                                 type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+  void markViewed (sk_input_dev_type type) noexcept
+  {
+    auto qpcNow = SK_QueryPerf ().QuadPart;
+
+    switch (type)
+    {
+      case sk_input_dev_type::Mouse:    WriteULong64Release (&viewed.mouse,    qpcNow); break;
+      case sk_input_dev_type::Keyboard: WriteULong64Release (&viewed.keyboard, qpcNow); break;
+      case sk_input_dev_type::Gamepad:  WriteULong64Release (&viewed.gamepad,  qpcNow); break;
+      case sk_input_dev_type::Other:    WriteULong64Release (&viewed.other,    qpcNow); break;
+    }
+  }
 
   bool nextFrame (void)
   {
@@ -172,6 +191,25 @@ struct sk_input_api_context_s
 
 
     return active_data;
+  }
+
+  // Age in seconds since the game last saw input for this class of device
+  float getInputAge (sk_input_dev_type devType)
+  {
+    uint64_t qpcSample = 0ULL;
+
+    switch (devType)
+    {
+      case sk_input_dev_type::Mouse:    qpcSample = ReadULong64Acquire (&viewed.mouse);    break;
+      case sk_input_dev_type::Keyboard: qpcSample = ReadULong64Acquire (&viewed.keyboard); break;
+      case sk_input_dev_type::Gamepad:  qpcSample = ReadULong64Acquire (&viewed.gamepad);  break;
+      case sk_input_dev_type::Other:    qpcSample = ReadULong64Acquire (&viewed.other);    break;
+    }
+
+    return static_cast <float> (
+      static_cast <double> (SK_QueryPerf   ().QuadPart - qpcSample) /
+      static_cast <double> (SK_GetPerfFreq ().QuadPart)
+                               );
   }
 };
 

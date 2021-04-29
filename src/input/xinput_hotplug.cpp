@@ -458,6 +458,13 @@ SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
     {   lastSeenController                  = dwUserIndex;
         lastSeenTime                        = dwTime;
         config.input.gamepad.xinput.ui_slot = dwUserIndex;
+
+      if (! config.input.gamepad.disabled_to_game)
+      {
+        SK_QueryPerformanceCounter (
+          (LARGE_INTEGER *)&SK_XInput_Backend->viewed.gamepad
+        );
+      }
     }
   }
 

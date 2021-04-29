@@ -3568,17 +3568,26 @@ using SetWindowsHookEx_pfn = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
       SetWindowsHookEx_pfn SetWindowsHookExA_Original = nullptr;
       SetWindowsHookEx_pfn SetWindowsHookExW_Original = nullptr;
 
+using UnhookWindowsHookEx_pfn = BOOL (WINAPI *)(HHOOK);
+      UnhookWindowsHookEx_pfn UnhookWindowsHookEx_Original = nullptr;
 
 
-
-
+class SK_Win32_WindowHookManager {
+public:
 std::map <
   DWORD, HOOKPROC > _RealMouseProcs;
          HOOKPROC   _RealMouseProc;
+std::map <
+  DWORD, HHOOK >    _RealMouseHooks;
+         HHOOK      _RealMouseHook;
 
 std::map <
   DWORD, HOOKPROC > _RealKeyboardProcs;
          HOOKPROC   _RealKeyboardProc;
+std::map <
+  DWORD, HHOOK >    _RealKeyboardHooks;
+         HHOOK      _RealKeyboardHook;
+} __hooks;
 
 LRESULT
 CALLBACK
@@ -3606,10 +3615,10 @@ SK_Proxy_MouseProc   (
         LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
       
       return
-        ((MouseProc)_RealMouseProcs.count (dwTid) ?
-                    _RealMouseProcs.at    (dwTid) :
-                    _RealMouseProc)( nCode, wParam,
-                                            lParam );
+        ((MouseProc)__hooks._RealMouseProcs.count (dwTid) ?
+                    __hooks._RealMouseProcs.at    (dwTid) :
+                    __hooks._RealMouseProc)( nCode, wParam,
+                                                    lParam );
     }
   }
 
@@ -3637,8 +3646,14 @@ SK_Proxy_KeyboardProc (
       SHORT vKey =
           wParam;
 
-      if ( (vKey == VK_F4   && (SK_GetAsyncKeyState (VK_MENU) & 0x8001)) ||
-           (vKey == VK_MENU && (SK_GetAsyncKeyState (VK_F4)   & 0x8001)) )
+      bool wasPressed =
+        ( lParam & (1 << 30) ) != 0;
+      bool isPressed =
+        ( lParam & (1 << 31) ) != 0;
+      bool isAltDown =
+        ( lParam & (1 << 29) ) != 0;
+
+      if (vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
       {
         extern bool SK_ImGui_WantExit;
                     SK_ImGui_WantExit = true;
@@ -3656,14 +3671,23 @@ SK_Proxy_KeyboardProc (
 
     else
     {
+      if (config.window.background_render)
+      {
+        SHORT vKey =
+            wParam;
+
+        if (vKey == VK_MENU || vKey == VK_LMENU || vKey == VK_RMENU)
+        {   vKey  = VK_MENU; }
+      }
+
       using KeyboardProc =
         LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
       
       return
-        ((KeyboardProc)_RealKeyboardProcs.count (dwTid) ?
-                       _RealKeyboardProcs.at    (dwTid) :
-                       _RealKeyboardProc)( nCode, wParam,
-                                                  lParam );
+        ((KeyboardProc)__hooks._RealKeyboardProcs.count (dwTid) ?
+                       __hooks._RealKeyboardProcs.at    (dwTid) :
+                       __hooks._RealKeyboardProc)( nCode, wParam,
+                                                          lParam );
     }
   }
 
@@ -3671,6 +3695,67 @@ SK_Proxy_KeyboardProc (
     CallNextHookEx (
         nullptr, nCode,
          wParam, lParam );
+}
+
+BOOL
+WINAPI
+UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
+{
+  for ( auto hook : __hooks._RealMouseHooks )
+  {
+    if (hook.second == hhk)
+    {
+      __hooks._RealMouseHooks.erase (hook.first);
+      __hooks._RealMouseProcs.erase (hook.first);
+
+      return
+        UnhookWindowsHookEx_Original (hhk);
+    }
+  }
+
+  if (hhk == __hooks._RealMouseHook)
+  {
+    __hooks._RealMouseProc = 0;
+    __hooks._RealMouseHook = 0;
+
+    return
+      UnhookWindowsHookEx_Original (hhk);
+  }
+
+  for ( auto hook : __hooks._RealKeyboardHooks )
+  {
+    if (hook.second == hhk)
+    {
+      __hooks._RealKeyboardHooks.erase (hook.first);
+      __hooks._RealKeyboardProcs.erase (hook.first);
+
+      return
+        UnhookWindowsHookEx_Original (hhk);
+    }
+  }
+
+  if (hhk == __hooks._RealKeyboardHook)
+  {
+    __hooks._RealKeyboardProc = 0;
+    __hooks._RealKeyboardHook = 0;
+
+    return
+      UnhookWindowsHookEx_Original (hhk);
+  }
+
+  for ( auto hook : __hooks._RealKeyboardHooks )
+  {
+    if (hook.second == hhk)
+    {
+      __hooks._RealKeyboardProcs.erase (hook.first);
+
+      return
+        UnhookWindowsHookEx_Original (hhk);
+    }
+  }
+
+  return
+    UnhookWindowsHookEx_Original (hhk);
 }
 
 HHOOK
@@ -3699,10 +3784,23 @@ SetWindowsHookExW_Detour (
       //   that makes life more complicated for SK/ImGui... but we got this!
       if (idHook == WH_KEYBOARD)
       {
-        if (dwThreadId != 0) _RealKeyboardProcs [dwThreadId] = lpfn;
-        else                 _RealKeyboardProc               = lpfn;
+        bool install = false;
+
+        if (dwThreadId != 0)
+        {
+          if (! __hooks._RealKeyboardProcs.count (dwThreadId))
+          {     __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
+                                                      install = true;
+          }
+        }
+
+        else if (__hooks._RealKeyboardProc == nullptr)
+        {        __hooks._RealKeyboardProc = lpfn;
+                                   install = true;
+        }
         
-        lpfn = SK_Proxy_KeyboardProc;
+        if (install)
+          lpfn = SK_Proxy_KeyboardProc;
       }
     } break;
 
@@ -3719,10 +3817,23 @@ SetWindowsHookExW_Detour (
       //   that makes life more complicated for SK/ImGui... but we got this!
       if (idHook == WH_MOUSE)
       {
-        if (dwThreadId != 0) _RealMouseProcs [dwThreadId] = lpfn;
-        else                 _RealMouseProc               = lpfn;
+        bool install = false;
 
-        lpfn = SK_Proxy_MouseProc;
+        if (dwThreadId != 0)
+        {
+          if (! __hooks._RealMouseProcs.count (dwThreadId))
+          {     __hooks._RealMouseProcs       [dwThreadId] = lpfn;
+                                                   install = true;
+          }
+        }
+
+        else if (__hooks._RealMouseProc == nullptr)
+        {        __hooks._RealMouseProc = lpfn;
+                                install = true;
+        }
+        
+        if (install)
+          lpfn = SK_Proxy_MouseProc;
       }
     } break;
   }
@@ -3760,10 +3871,23 @@ SetWindowsHookExA_Detour (
       //   that makes life more complicated for SK/ImGui... but we got this!
       if (idHook == WH_KEYBOARD)
       {
-        if (dwThreadId != 0) _RealKeyboardProcs [dwThreadId] = lpfn;
-        else                 _RealKeyboardProc               = lpfn;
+        bool install = false;
+
+        if (dwThreadId != 0)
+        {
+          if (! __hooks._RealKeyboardProcs.count (dwThreadId))
+          {     __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
+                                                      install = true;
+          }
+        }
+
+        else if (__hooks._RealKeyboardProc == nullptr)
+        {        __hooks._RealKeyboardProc = lpfn;
+                                   install = true;
+        }
         
-        lpfn = SK_Proxy_KeyboardProc;
+        if (install)
+          lpfn = SK_Proxy_KeyboardProc;
       }
     } break;
 
@@ -3780,10 +3904,23 @@ SetWindowsHookExA_Detour (
       //   that makes life more complicated for SK/ImGui... but we got this!
       if (idHook == WH_MOUSE)
       {
-        if (dwThreadId != 0) _RealMouseProcs [dwThreadId] = lpfn;
-        else                 _RealMouseProc               = lpfn;
+        bool install = false;
+
+        if (dwThreadId != 0)
+        {
+          if (! __hooks._RealMouseProcs.count (dwThreadId))
+          {     __hooks._RealMouseProcs       [dwThreadId] = lpfn;
+                                                   install = true;
+          }
+        }
+
+        else if (__hooks._RealMouseProc == nullptr)
+        {        __hooks._RealMouseProc = lpfn;
+                                install = true;
+        }
         
-        lpfn = SK_Proxy_MouseProc;
+        if (install)
+          lpfn = SK_Proxy_MouseProc;
       }
     } break;
   }
@@ -3900,6 +4037,11 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                               "SetWindowsHookExW",
                                SetWindowsHookExW_Detour,
       static_cast_p2p <void> (&SetWindowsHookExW_Original) );
+
+    SK_CreateDLLHook2 (      L"User32",
+                              "UnhookWindowsHookEx",
+                               UnhookWindowsHookEx_Detour,
+      static_cast_p2p <void> (&UnhookWindowsHookEx_Original) );
 
 #ifdef _EXTENDED_DEBUG
     if (true)//config.advanced_debug)

@@ -107,7 +107,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     }
   };
 
-  if (! wcsicmp (pTLS->debug.name, L"InputThread"))
+  if (*pTLS->debug.name == L'I' && (! wcsicmp (pTLS->debug.name, L"InputThread")))
   {
     static volatile LONG               s_Once    =   FALSE;
     if (! InterlockedCompareExchange (&s_Once, TRUE, FALSE))
@@ -138,11 +138,9 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
   // Not good
   else if (dwMilliseconds == 0)
   {
-    static
-      concurrency::concurrent_unordered_set <DWORD>
-        raised_prios;
-    if (raised_prios.insert (SK_GetCurrentThreadId ()).second)
-    {
+    if (! pTLS->win32->mmcs_task)
+    {     pTLS->win32->mmcs_task = true;
+
       auto thread =
         SK_GetCurrentThread ();
 
@@ -861,7 +859,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     return 0;
   }
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto game_id =

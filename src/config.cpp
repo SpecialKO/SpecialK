@@ -453,11 +453,11 @@ struct {
 
   struct
   {
-    sk::ParameterBool* enable;
-    sk::ParameterBool* low_latency;
-    sk::ParameterBool* low_latency_boost;
-    sk::ParameterBool* marker_optimization;
-    sk::ParameterInt*  engagement_policy;
+    sk::ParameterBool*    enable;
+    sk::ParameterBool*    low_latency;
+    sk::ParameterBool*    low_latency_boost;
+    sk::ParameterBool*    marker_optimization;
+    sk::ParameterInt*     engagement_policy;
   } reflex;
 } nvidia;
 
@@ -615,6 +615,7 @@ struct {
       sk::ParameterInt*     ui_slot;
       sk::ParameterInt*     placeholders;
       sk::ParameterStringW* assignment;
+      sk::ParameterBool*    hook_setstate;
     } xinput;
 
     struct {
@@ -1025,7 +1026,8 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.ui_slot,           L"XInput Controller that owns the config UI",                 dll_ini,         L"Input.XInput",          L"UISlot"),
     ConfigEntry (input.gamepad.xinput.placeholders,      L"XInput Controller Slots to Fake Connectivity On",           dll_ini,         L"Input.XInput",          L"PlaceholderMask"),
     ConfigEntry (input.gamepad.xinput.assignment,        L"Re-Assign XInput Slots",                                    dll_ini,         L"Input.XInput",          L"SlotReassignment"),
-  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
+    ConfigEntry (input.gamepad.xinput.hook_setstate,     L"Hook vibration; fix third-party created feedback loops",    dll_ini,         L"Input.XInput",          L"HookSetState"),
+ //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
 
     ConfigEntry (input.gamepad.steam.ui_slot,            L"Steam Controller that owns the config UI",                  dll_ini,         L"Input.Steam",           L"UISlot"),
 
@@ -2293,7 +2295,7 @@ auto DeclKeybind =
         config.apis.d3d9.hook                     = false;
         config.apis.d3d9ex.hook                   = false;
         config.input.cursor.keys_activate         = false;
-        config.input.cursor.manage                =  true;
+        config.input.cursor.manage                = false; // Automagic
         config.input.cursor.timeout               =   750;
         config.input.ui.use_hw_cursor             = false;
         config.input.ui.capture_hidden            = false;
@@ -2308,22 +2310,16 @@ auto DeclKeybind =
         config.render.framerate.target_fps        =    60;
         config.render.framerate.drop_late_flips   = false;
         config.render.framerate.flip_discard      =  true;
-        config.input.gamepad.disable_ps4_hid      =  true;
+        config.input.gamepad.disable_ps4_hid      = false; // Automagic
         config.threads.enable_file_io_trace       =  true;
-        config.window.dont_hook_wndproc           =  true;
-        config.steam.preload_overlay              =  true;
-        config.window.background_render           =  true;
+        config.steam.preload_overlay              = false; // Set to false because of loss of rumble
+        config.window.background_render           = false;
 
         SK_D3D11_DeclHUDShader (0x3e464f00, ID3D11VertexShader);
 
       //config.render.dxgi.deferred_isolation     = true;
         config.input.keyboard.catch_alt_f4        =  true;
         config.input.keyboard.override_alt_f4     =  true;
-
-        config.nvidia.sleep.enable                = true;
-        config.nvidia.sleep.low_latency_boost     = true;
-        config.nvidia.sleep.marker_optimization   = true;
-        config.nvidia.sleep.enforcement_site      =    2;
       } break;
 #endif
     }
@@ -2767,7 +2763,8 @@ auto DeclKeybind =
     config.input.gamepad.xinput.placehold [3] = ( placeholder_mask & 0x8 );
   }
 
-  input.gamepad.disable_rumble->load (config.input.gamepad.disable_rumble);
+  input.gamepad.disable_rumble->load       (config.input.gamepad.disable_rumble);
+  input.gamepad.xinput.hook_setstate->load (config.input.gamepad.xinput.hook_setstate);
 
 
   if (((sk::iParameter *)input.gamepad.xinput.assignment)->load ())
@@ -2800,7 +2797,6 @@ auto DeclKeybind =
 
     free (wszAssign);
   }
-
   input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.ui_slot->load    ((int &)config.input.gamepad.steam.ui_slot);
 
@@ -3571,6 +3567,7 @@ SK_SaveConfig ( std::wstring name,
 
   input.gamepad.xinput.assignment->store     (xinput_assign);
   input.gamepad.disable_rumble->store        (config.input.gamepad.disable_rumble);
+  input.gamepad.xinput.hook_setstate->store  (config.input.gamepad.xinput.hook_setstate);
 
   threads.enable_mem_alloc_trace->store      (config.threads.enable_mem_alloc_trace);
   threads.enable_file_io_trace->store        (config.threads.enable_file_io_trace);

@@ -115,6 +115,9 @@ struct SK_XInputContext
 
   static bool preventHapticRecursion (DWORD dwUserIndex, bool enter)
   {
+    if (! config.input.gamepad.xinput.hook_setstate)
+      return false;
+
     static volatile ULONG locks [4] =
       { 0, 0, 0, 0 };
 
@@ -135,8 +138,11 @@ struct SK_XInputContext
         ////extern void
         ////SK_ImGui_Warning (const wchar_t* wszMessage);
         ////
-        ////SK_ImGui_Warning (L"Problematic XInput software detected (infinite haptic feedback loop), please restart the Steam client.");
+        ////SK_ImGui_Warning (L"Problematic third-party XInput software detected (infinite haptic feedback loop), please change the load order of Steam overlay."
+        ////                  L"\n\n\tYour game may stutter or lockup anytime there is vibration until you resolve this problem.");
       }
+
+      config.input.gamepad.xinput.hook_setstate = false;
 
       return true;
     }
@@ -525,6 +531,9 @@ XInputSetState1_3_Detour (
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_3;
 
+  if (! config.input.gamepad.xinput.hook_setstate)
+    return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+
   if (! xinput_enabled)
   {
     _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
@@ -817,6 +826,9 @@ XInputSetState1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
                         &_xinput_ctx.XInput1_4;
 
+  if (! config.input.gamepad.xinput.hook_setstate)
+    return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+
   if (! xinput_enabled)
   {
     _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
@@ -1008,6 +1020,9 @@ XInputSetState9_1_0_Detour (
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput9_1_0;
 
+  if (! config.input.gamepad.xinput.hook_setstate)
+    return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+
   if (! xinput_enabled)
   {
     _xinput_ctx.preventHapticRecursion (dwUserIndex, false);
@@ -1072,14 +1087,17 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
                               pCtx->XInputGetCapabilities_Detour,
      static_cast_p2p <void> (&pCtx->XInputGetCapabilities_Original) );
 
-  pCtx->XInputSetState_Target =
-    SK_GetProcAddress ( pCtx->wszModuleName,
-                                   "XInputSetState" );
+  if (config.input.gamepad.xinput.hook_setstate)
+  {
+    pCtx->XInputSetState_Target =
+      SK_GetProcAddress ( pCtx->wszModuleName,
+                                     "XInputSetState" );
 
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "XInputSetState",
-                              pCtx->XInputSetState_Detour,
-     static_cast_p2p <void> (&pCtx->XInputSetState_Original) );
+    SK_CreateDLLHook2 (         pCtx->wszModuleName,
+                                     "XInputSetState",
+                                pCtx->XInputSetState_Detour,
+       static_cast_p2p <void> (&pCtx->XInputSetState_Original) );
+  }
 
   pCtx->XInputGetBatteryInformation_Target =
     SK_GetProcAddress ( pCtx->wszModuleName,
@@ -1184,8 +1202,10 @@ SK_Input_HookXInput1_4 (void)
       pCtx->XInputGetState_Detour              = XInputGetState1_4_Detour;
       pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_4_Detour;
       pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_4_Detour;
-      pCtx->XInputSetState_Detour              = XInputSetState1_4_Detour;
       pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformation1_4_Detour;
+      
+      pCtx->XInputSetState_Detour              =
+        config.input.gamepad.xinput.hook_setstate ? XInputSetState1_4_Detour : nullptr;
 
       SK_Input_HookXInputContext (pCtx);
 
@@ -1240,8 +1260,10 @@ SK_Input_HookXInput1_3 (void)
       pCtx->XInputGetState_Detour              = XInputGetState1_3_Detour;
       pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_3_Detour;
       pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_3_Detour;
-      pCtx->XInputSetState_Detour              = XInputSetState1_3_Detour;
       pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformation1_3_Detour;
+
+      pCtx->XInputSetState_Detour              =
+        config.input.gamepad.xinput.hook_setstate ? XInputSetState1_3_Detour : nullptr;
 
       SK_Input_HookXInputContext (pCtx);
 
@@ -1295,8 +1317,10 @@ SK_Input_HookXInput9_1_0 (void)
       pCtx->XInputGetState_Detour              = XInputGetState9_1_0_Detour;
       pCtx->XInputGetStateEx_Detour            = nullptr; // Not supported
       pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities9_1_0_Detour;
-      pCtx->XInputSetState_Detour              = XInputSetState9_1_0_Detour;
       pCtx->XInputGetBatteryInformation_Detour = nullptr; // Not supported
+
+      pCtx->XInputSetState_Detour              =
+        config.input.gamepad.xinput.hook_setstate ? XInputSetState9_1_0_Detour : nullptr;
 
       SK_Input_HookXInputContext (pCtx);
 
@@ -1389,51 +1413,54 @@ SK_XInput_RehookIfNeeded (void)
   }
 
 
-  ret =
-    MH_QueueEnableHook (pCtx->XInputSetState_Target);
-
-
-  // Test for modified hooks
-  if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                 ( pCtx->XInputSetState_Target != nullptr &&
-           memcmp (pCtx->orig_inst_set,
-                   pCtx->XInputSetState_Target, 6 ) )
-     )
+  if (config.input.gamepad.xinput.hook_setstate)
   {
-    if ( MH_OK == MH_RemoveHook (pCtx->XInputSetState_Target) )
-    {
-      if ( MH_OK ==
-             SK_CreateDLLHook2 (  pCtx->wszModuleName,
-                                       "XInputSetState",
-                                  pCtx->XInputSetState_Detour,
-         static_cast_p2p <void> (&pCtx->XInputSetState_Original) )
-         )
-      {
-        SK_LOG0 ( ( L" Re-hooked XInput (Set) using '%s'...",
-                       pCtx->wszModuleName ),
-                    L"Input Mgr." );
+    ret =
+      MH_QueueEnableHook (pCtx->XInputSetState_Target);
 
-        if (pCtx->hMod == _xinput_ctx.XInput1_3.hMod)
-          _xinput_ctx.XInput1_3 = *pCtx;
-        if (pCtx->hMod == _xinput_ctx.XInput1_4.hMod)
-          _xinput_ctx.XInput1_4 = *pCtx;
-        if (pCtx->hMod == _xinput_ctx.XInput9_1_0.hMod)
-          _xinput_ctx.XInput9_1_0 = *pCtx;
+
+    // Test for modified hooks
+    if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
+                   ( pCtx->XInputSetState_Target != nullptr &&
+             memcmp (pCtx->orig_inst_set,
+                     pCtx->XInputSetState_Target, 6 ) )
+       )
+    {
+      if ( MH_OK == MH_RemoveHook (pCtx->XInputSetState_Target) )
+      {
+        if ( MH_OK ==
+               SK_CreateDLLHook2 (  pCtx->wszModuleName,
+                                         "XInputSetState",
+                                    pCtx->XInputSetState_Detour,
+           static_cast_p2p <void> (&pCtx->XInputSetState_Original) )
+           )
+        {
+          SK_LOG0 ( ( L" Re-hooked XInput (Set) using '%s'...",
+                         pCtx->wszModuleName ),
+                      L"Input Mgr." );
+
+          if (pCtx->hMod == _xinput_ctx.XInput1_3.hMod)
+            _xinput_ctx.XInput1_3 = *pCtx;
+          if (pCtx->hMod == _xinput_ctx.XInput1_4.hMod)
+            _xinput_ctx.XInput1_4 = *pCtx;
+          if (pCtx->hMod == _xinput_ctx.XInput9_1_0.hMod)
+            _xinput_ctx.XInput9_1_0 = *pCtx;
+        }
+
+        else
+        {
+          SK_LOG0 ( ( L" Failed to re-hook XInput (Set) using '%s'...",
+                 pCtx->wszModuleName ),
+              L"Input Mgr." );
+        }
       }
 
       else
       {
-        SK_LOG0 ( ( L" Failed to re-hook XInput (Set) using '%s'...",
+        SK_LOG0 ( ( L" Failed to remove XInput (Set) hook from '%s'...",
                pCtx->wszModuleName ),
             L"Input Mgr." );
       }
-    }
-
-    else
-    {
-      SK_LOG0 ( ( L" Failed to remove XInput (Set) hook from '%s'...",
-             pCtx->wszModuleName ),
-          L"Input Mgr." );
     }
   }
   pCtx->XInputSetState_Original =
@@ -1647,8 +1674,11 @@ SK_XInput_RehookIfNeeded (void)
   if (pCtx->XInputGetState_Target != nullptr)
     memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   6);
 
-  if (pCtx->XInputSetState_Target != nullptr)
-    memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,               6);
+  if (config.input.gamepad.xinput.hook_setstate)
+  {
+    if (pCtx->XInputSetState_Target != nullptr)
+      memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,             6);
+  }
 
   if (pCtx->XInputGetCapabilities_Target != nullptr)
     memcpy (pCtx->orig_inst_caps, pCtx->XInputGetCapabilities_Target,       6);

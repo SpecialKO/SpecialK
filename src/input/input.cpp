@@ -41,11 +41,13 @@ SK_InputUtil_IsHWCursorVisible (void)
     ( (cursor_info.flags & CURSOR_SHOWING) && (cursor_info.hCursor != 0) );
 }
 
-#define SK_HID_READ(type)  SK_HID_Backend->markRead  (type);
-#define SK_HID_WRITE(type) SK_HID_Backend->markWrite (type);
+#define SK_HID_READ(type)  SK_HID_Backend->markRead   (type);
+#define SK_HID_WRITE(type) SK_HID_Backend->markWrite  (type);
+#define SK_HID_VIEW(type)  SK_HID_Backend->markViewed (type);
 
-#define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead  (type);
-#define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite (type);
+#define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead   (type);
+#define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite  (type);
+#define SK_RAWINPUT_VIEW(type)  SK_RawInput_Backend->markViewed (type);
 
 
 //////////////////////////////////////////////////////////////
@@ -82,6 +84,9 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
         {
           filter = true;
         }
+        
+        else
+          SK_HID_VIEW (sk_input_dev_type::Gamepad);
       } break;
 
       case HID_USAGE_GENERIC_POINTER:
@@ -93,6 +98,9 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
         {
           filter = true;
         }
+
+        else
+          SK_HID_VIEW (sk_input_dev_type::Mouse);
       } break;
 
       case HID_USAGE_GENERIC_KEYBOARD:
@@ -104,6 +112,9 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
         {
           filter = true;
         }
+
+        else
+          SK_HID_VIEW (sk_input_dev_type::Keyboard);
       } break;
     }
   }
@@ -931,18 +942,24 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
               SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
               if (SK_ImGui_WantKeyboardCapture ())
                 remove = true;
+              else
+                SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);        
               break;
 
             case RIM_TYPEMOUSE:
               SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
               if (SK_ImGui_WantMouseCapture ())
                 remove = true;
+              else
+                SK_RAWINPUT_VIEW (sk_input_dev_type::Mouse);
               break;
 
             default:
               SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
               if (SK_ImGui_WantGamepadCapture ())
                 remove = true;
+              else
+                SK_RAWINPUT_VIEW (sk_input_dev_type::Gamepad);
               break;
           }
 

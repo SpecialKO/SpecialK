@@ -30,8 +30,9 @@
 using finish_pfn = void (WINAPI *)(void);
 
 
-#define SK_DI8_READ(type)  SK_DI8_Backend->markRead  (type);
-#define SK_DI8_WRITE(type) SK_DI8_Backend->markWrite (type);
+#define SK_DI8_READ(type)  SK_DI8_Backend->markRead   (type);
+#define SK_DI8_WRITE(type) SK_DI8_Backend->markWrite  (type);
+#define SK_DI8_VIEW(type)  SK_DI8_Backend->markViewed (type);
 
 
 #define DINPUT8_CALL(_Ret, _Call) {                                      \
@@ -1149,6 +1150,9 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
                     std::end   (out->rgdwPOV),
                       std::numeric_limits <DWORD>::max () );
       }
+      
+      else
+        SK_DI8_VIEW (sk_input_dev_type::Gamepad);
     }
 
     else if (cbData == sizeof (DIJOYSTATE))
@@ -1188,6 +1192,9 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
                     std::end   (out->rgdwPOV),
                       std::numeric_limits <DWORD>::max () );
       }
+      
+      else
+        SK_DI8_VIEW (sk_input_dev_type::Gamepad);
     }
 
     else if (This == _dik8->pDev || cbData == 256)
@@ -1202,6 +1209,9 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
       if (disabled_to_game || (! SK_IsGameWindowActive ()) || FAILED (hr))
         RtlSecureZeroMemory (lpvData, cbData);
+
+      else
+        SK_DI8_VIEW (sk_input_dev_type::Keyboard);
     }
 
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
@@ -1222,6 +1232,9 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
       if (disabled_to_game || (! SK_IsGameWindowActive ()) || FAILED (hr))
         RtlSecureZeroMemory (lpvData, cbData);
+
+      else
+        SK_DI8_VIEW (sk_input_dev_type::Mouse);
     }
   }
 

@@ -504,6 +504,8 @@ public:
   std::pair <HWND, BOOL>
        unicode;
 
+  bool mmcs_task           = false;
+
   int  thread_prio         =     0;
 
   struct

@@ -557,6 +557,7 @@ struct sk_config_t
         int   ui_slot           =    0;
         bool  placehold  [4]    = { false };
         int   assignment [4]    = { 0, 1, 2, 3 };
+        bool  hook_setstate     = true; // Some software causes feedback loops
       } xinput;
 
       struct steam_s
@@ -594,9 +595,9 @@ struct sk_config_t
       // If absolute cursor position is stuck (i.e. Dreamfall Chapters) use this
       bool    add_relative_motion = true;
       bool    disabled_to_game    = false;
-      bool    ignore_small_clips  = true; // Ignore mouse clipping rects < 75% the
-                                          //   dimensions of the client window, so
-                                          //     that UI input works.
+      bool    ignore_small_clips  = false; // Ignore mouse clipping rects < 75% the
+                                           //   dimensions of the client window, so
+                                           //     that UI input works.
     } mouse;
   } input;
 

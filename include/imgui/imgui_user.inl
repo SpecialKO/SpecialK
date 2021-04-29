@@ -313,6 +313,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                   (! filter) )
             {
               SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
+              SK_QueryPerformanceCounter ((LARGE_INTEGER *)&SK_RawInput_Backend->viewed.mouse);
             }
           } break;
 
@@ -379,6 +380,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            && (! filter) )
             {
               SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
+              SK_QueryPerformanceCounter ((LARGE_INTEGER *)&SK_RawInput_Backend->viewed.keyboard);
             }
 
             if (!(((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
@@ -415,6 +417,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            && (! filter) )
             {
               SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
+              SK_QueryPerformanceCounter ((LARGE_INTEGER *)&SK_RawInput_Backend->viewed.gamepad);
             }
           } break;
         }
