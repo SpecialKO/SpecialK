@@ -116,7 +116,7 @@ struct SK_XInputContext
   static bool preventHapticRecursion (DWORD dwUserIndex, bool enter)
   {
     if (! config.input.gamepad.xinput.hook_setstate)
-      return false;
+      return true;
 
     static volatile ULONG locks [4] =
       { 0, 0, 0, 0 };
@@ -138,8 +138,8 @@ struct SK_XInputContext
         ////extern void
         ////SK_ImGui_Warning (const wchar_t* wszMessage);
         ////
-        ////SK_ImGui_Warning (L"Problematic third-party XInput software detected (infinite haptic feedback loop), please change the load order of Steam overlay."
-        ////                  L"\n\n\tYour game may stutter or lockup anytime there is vibration until you resolve this problem.");
+        SK_ImGui_Warning (L"Problematic third-party XInput software detected (infinite haptic feedback loop), disabling vibration."
+                          L"\n\n\Restart your game to restore vibration support.");
       }
 
       config.input.gamepad.xinput.hook_setstate = false;
@@ -517,9 +517,6 @@ XInputSetState1_3_Detour (
   auto& _xinput_ctx =
          xinput_ctx.get ();
 
-  if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
-    return ERROR_SUCCESS;
-
   HMODULE hModCaller = SK_GetCallingDLL ();
 
   dwUserIndex =
@@ -527,6 +524,9 @@ XInputSetState1_3_Detour (
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
+
+  if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
+    return ERROR_SUCCESS;
 
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput1_3;
@@ -812,9 +812,6 @@ XInputSetState1_4_Detour (
   auto& _xinput_ctx =
          xinput_ctx.get ();
 
-  if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
-    return ERROR_SUCCESS;
-
   HMODULE hModCaller = SK_GetCallingDLL ();
 
   dwUserIndex =
@@ -822,6 +819,9 @@ XInputSetState1_4_Detour (
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
+
+  if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
+    return ERROR_SUCCESS;
 
   SK_XInputContext::instance_s* pCtx =
                         &_xinput_ctx.XInput1_4;
@@ -1006,9 +1006,6 @@ XInputSetState9_1_0_Detour (
   auto& _xinput_ctx =
          xinput_ctx.get ();
 
-  if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
-    return ERROR_SUCCESS;
-
   HMODULE hModCaller = SK_GetCallingDLL ();
 
   dwUserIndex =
@@ -1016,6 +1013,9 @@ XInputSetState9_1_0_Detour (
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
+
+  if (_xinput_ctx.preventHapticRecursion (dwUserIndex, true))
+    return ERROR_SUCCESS;
 
   SK_XInputContext::instance_s* pCtx =
     &_xinput_ctx.XInput9_1_0;
@@ -1808,6 +1808,8 @@ _ShouldRecheckStatus (INT iJoyID)
   );
 }
 
+std::wstring SK_XInput_LinkedVersion = L"";
+
 bool
 WINAPI
 SK_XInput_PollController ( INT           iJoyID,
@@ -1842,43 +1844,43 @@ SK_XInput_PollController ( INT           iJoyID,
       return false;
 
     // First try 1.3, that's generally available.
-    SK_Input_HookXInput1_3 ();
+    /*if (SK_XInput_LinkedVersion.empty () || StrStrIW (SK_XInput_LinkedVersion.c_str (), L"XInput1_3"))*/ SK_Input_HookXInput1_3 ();
     pCtx =
-      static_cast <SK_XInputContext::instance_s *>
-        (ReadPointerAcquire ((volatile LPVOID *)&_xinput_ctx.primary_hook));
+      static_cast <SK_XInputContext::instance_s*>
+      (ReadPointerAcquire ((volatile LPVOID*)&_xinput_ctx.primary_hook));
 
-    // Then 1.4
+  // Then 1.4
     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
     {
-      SK_Input_HookXInput1_4 ();
+      /*if (SK_XInput_LinkedVersion.empty () || StrStrIW (SK_XInput_LinkedVersion.c_str (), L"XInput1_4"))*/ SK_Input_HookXInput1_4 ();
       pCtx =
-        static_cast <SK_XInputContext::instance_s *>
-          (ReadPointerAcquire ((volatile LPVOID *)&_xinput_ctx.primary_hook));
+        static_cast <SK_XInputContext::instance_s*>
+        (ReadPointerAcquire ((volatile LPVOID*)&_xinput_ctx.primary_hook));
     }
 
     // Down-level 9_1_0 if all else fails (does not support XInputEx)
     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
     {
-      SK_Input_HookXInput9_1_0 ();
+      /*if (SK_XInput_LinkedVersion.empty () || StrStrIW (SK_XInput_LinkedVersion.c_str (), L"XInput9_1_0"))*/ SK_Input_HookXInput9_1_0 ();
       pCtx =
-        static_cast <SK_XInputContext::instance_s *>
-          (ReadPointerAcquire ((volatile LPVOID *)&_xinput_ctx.primary_hook));
+        static_cast <SK_XInputContext::instance_s*>
+        (ReadPointerAcquire ((volatile LPVOID*)&_xinput_ctx.primary_hook));
     }
 
 
     // No XInput?! User shouldn't be playing games :P
     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
     {
-      SK_LOG0 ( ( L"Unable to hook XInput, attempting to enter limp-mode..."
-                  L" input-related features may not work as intended." ),
-                  L"Input Mgr." );
+      SK_LOG0 ((L"Unable to hook XInput, attempting to enter limp-mode..."
+                L" input-related features may not work as intended."),
+               L"Input Mgr.");
       InterlockedExchangePointer (
-        (LPVOID *)&_xinput_ctx.primary_hook,
-                  &_xinput_ctx.XInput1_3 );
+        (LPVOID*)&_xinput_ctx.primary_hook,
+        &_xinput_ctx.XInput1_3);
 
       pCtx =
-        static_cast <SK_XInputContext::instance_s *>
-          (ReadPointerAcquire ((volatile LPVOID *)&_xinput_ctx.primary_hook));
+        static_cast <SK_XInputContext::instance_s*>
+        (ReadPointerAcquire ((volatile LPVOID*)&_xinput_ctx.primary_hook));
 
       HMODULE hModXInput1_3 =
         SK_Modules->LoadLibrary (L"XInput1_3.dll");
@@ -1887,8 +1889,8 @@ SK_XInput_PollController ( INT           iJoyID,
       {
         pCtx->XInputGetState_Original =
           (XInputGetState_pfn)
-            SK_GetProcAddress ( L"XInput1_3.dll",
-                                 "XInputGetState" );
+          SK_GetProcAddress (L"XInput1_3.dll",
+                             "XInputGetState");
       }
     }
 
@@ -2013,11 +2015,20 @@ SK_Input_PreHookXInput (void)
 
     if (tests [0].used || tests [1].used || tests [2].used)
     {
+#if 0
+      SK_LOG0 ( ( L"Game uses XInput, deferring input hooks..." ),
+                  L"  Input   " );
+      if (tests [0].used) { /*SK_Input_HookXInput1_3   ();*/ SK_XInput_LinkedVersion = L"XInput1_3.dll";   }
+      if (tests [1].used) { /*SK_Input_HookXInput1_4   ();*/ SK_XInput_LinkedVersion = L"XInput1_4.dll";   }
+      if (tests [2].used) { /*SK_Input_HookXInput9_1_0 ();*/ SK_XInput_LinkedVersion = L"XInput9_1_0.dll"; }
+#else
       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
                   L"  Input   " );
-      if (tests [0].used) SK_Input_HookXInput1_3   ();
-      if (tests [1].used) SK_Input_HookXInput1_4   ();
-      if (tests [2].used) SK_Input_HookXInput9_1_0 ();
+      if (tests [0].used) { SK_Input_HookXInput1_3   (); }
+      if (tests [1].used) { SK_Input_HookXInput1_4   (); }
+      if (tests [2].used) { SK_Input_HookXInput9_1_0 (); }
+
+#endif
     }
 
     if (SK_GetModuleHandleW (L"XInput1_3.dll"))

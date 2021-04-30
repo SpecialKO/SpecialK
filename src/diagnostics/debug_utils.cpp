@@ -546,50 +546,50 @@ GetProcAddress_Detour     (
     ////  }
     ////}
 
-    if ( *lpProcName == 'P'      &&
- StrStrA (lpProcName,   "PeekM") == lpProcName )
-    {
-      if (! lstrcmpA (lpProcName, "PeekMessageA"))
-      {
-        return
-          (FARPROC)PeekMessageA_Detour;
-      }
-
-      else if (! lstrcmpA (lpProcName, "PeekMessageW"))
-      {
-        return
-          (FARPROC) PeekMessageW_Detour;
-      }
-
-      return
-        GetProcAddress_Original (
-          hModule, lpProcName
-        );
-    }
-
-    else if ( *lpProcName == 'G'     &&
-      StrStrA (lpProcName,   "GetM") == lpProcName )
-    {
-      if (! lstrcmpA (lpProcName, "GetMessageA"))
-      {
-        return
-          (FARPROC) GetMessageA_Detour;
-      }
-
-      else if (! lstrcmpA (lpProcName, "GetMessageW"))
-      {
-        return
-          (FARPROC) GetMessageW_Detour;
-      }
-
-      return
-        GetProcAddress_Original (
-          hModule, lpProcName
-        );
-    }
+////    if ( *lpProcName == 'P'      &&
+//// StrStrA (lpProcName,   "PeekM") == lpProcName )
+////    {
+////      if (! lstrcmpA (lpProcName, "PeekMessageA"))
+////      {
+////        return
+////          (FARPROC)PeekMessageA_Detour;
+////      }
+////
+////      else if (! lstrcmpA (lpProcName, "PeekMessageW"))
+////      {
+////        return
+////          (FARPROC) PeekMessageW_Detour;
+////      }
+////
+////      return
+////        GetProcAddress_Original (
+////          hModule, lpProcName
+////        );
+////    }
+////
+////    else if ( *lpProcName == 'G'     &&
+////      StrStrA (lpProcName,   "GetM") == lpProcName )
+////    {
+////      if (! lstrcmpA (lpProcName, "GetMessageA"))
+////      {
+////        return
+////          (FARPROC) GetMessageA_Detour;
+////      }
+////
+////      else if (! lstrcmpA (lpProcName, "GetMessageW"))
+////      {
+////        return
+////          (FARPROC) GetMessageW_Detour;
+////      }
+////
+////      return
+////        GetProcAddress_Original (
+////          hModule, lpProcName
+////        );
+////    }
 
     // MSI Nahimic workaround
-    else if ( *lpProcName == 'N' &&
+    if ( *lpProcName == 'N' &&
   (! lstrcmpA (lpProcName, "NoHotPatch")) )
     {
       static     DWORD NoHotPatch = 0x1;
@@ -3596,9 +3596,6 @@ SK_Proxy_MouseProc   (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam )
 {
-  DWORD dwTid =
-    GetCurrentThreadId ();
-
   if (nCode >= 0)
   {
     if (SK_ImGui_WantMouseCapture ())
@@ -3611,6 +3608,11 @@ SK_Proxy_MouseProc   (
 
     else
     {
+      SK_WinHook_Backend->markRead (sk_input_dev_type::Mouse);
+
+      DWORD dwTid =
+        GetCurrentThreadId ();
+
       using MouseProc =
         LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
       
@@ -3636,12 +3638,10 @@ SK_Proxy_KeyboardProc (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam  )
 {
-  DWORD dwTid =
-    GetCurrentThreadId ();
-
   if (nCode >= 0)
   {
-    if (config.input.keyboard.override_alt_f4)
+    if ( config.input.keyboard.override_alt_f4 &&
+            config.input.keyboard.catch_alt_f4 )
     {
       SHORT vKey =
           wParam;
@@ -3671,6 +3671,10 @@ SK_Proxy_KeyboardProc (
 
     else
     {
+      DWORD dwTid =
+        GetCurrentThreadId ();
+
+      SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
       if (config.window.background_render)
       {
         SHORT vKey =

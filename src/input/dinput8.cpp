@@ -187,6 +187,8 @@ DirectInput8Create ( HINSTANCE hinst,
           //MH_QueueEnableHook (vftable [4]);
           SK_EnableHook (vftable [4]);
         }
+        
+        //SK_RunOnce (SK_ApplyQueuedHooks ());
       }
     }
 
@@ -225,12 +227,11 @@ DirectInput8Create ( HINSTANCE hinst,
           //MH_QueueEnableHook (vftable [4]);
           SK_EnableHook (vftable [4]);
         }
+
+        //SK_RunOnce (SK_ApplyQueuedHooks ());
       }
     }
   }
-
-  //if (SUCCEEDED (hr))
-  //  SK_ApplyQueuedHooks ();
 
   return hr;
 }
@@ -448,6 +449,8 @@ CoCreateInstance_DI8 (
         //MH_QueueEnableHook (vftable [4]);
         SK_EnableHook (vftable [4]);
       }
+
+      //SK_RunOnce (SK_ApplyQueuedHooks ());
     }
   }
 
@@ -486,11 +489,10 @@ CoCreateInstance_DI8 (
         //MH_QueueEnableHook (vftable [4]);
         SK_EnableHook (vftable [4]);
       }
+
+      //SK_RunOnce (SK_ApplyQueuedHooks ());
     }
   }
-
-  //if (SUCCEEDED (hr))
-  //  SK_ApplyQueuedHooks ();
 
   return hr;
 }
@@ -560,6 +562,8 @@ CoCreateInstanceEx_DI8 (
             //MH_QueueEnableHook (vftable [4]);
             SK_EnableHook (vftable [4]);
           }
+          
+          //SK_RunOnce (SK_ApplyQueuedHooks ());
         }
 
         else if (*pResults->pIID == IID_IDirectInput8W)
@@ -589,13 +593,12 @@ CoCreateInstanceEx_DI8 (
             //MH_QueueEnableHook (vftable [4]);
             SK_EnableHook (vftable [4]);
           }
+
+          //SK_RunOnce (SK_ApplyQueuedHooks ());
         }
       }
     }
   }
-
-  if (SUCCEEDED (hr))
-    SK_ApplyQueuedHooks ();
 
   return hr;
 }
@@ -1498,7 +1501,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                    IDirectInputDevice8W_GetDeviceState_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8W_GetDeviceState_Original) );
 
-        if (MH_OK == SK_EnableHook (vftable [9]))
+        if (MH_OK == MH_EnableHook (vftable [9]))
           ++hook_count;
       }
 
@@ -1509,7 +1512,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                    IDirectInputDevice8W_SetCooperativeLevel_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8W_SetCooperativeLevel_Original) );
 
-        if (MH_OK == SK_EnableHook (vftable [13]))
+        if (MH_OK == MH_EnableHook (vftable [13]))
           ++hook_count;
       }
 
@@ -1523,8 +1526,8 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
       devices8_w [guid_crc32c] = *lplpDirectInputDevice;
       devices8_w [guid_crc32c]->AddRef ();
 
-      ////if (hook_count > 0)
-      ////  SK_ApplyQueuedHooks ();
+      //if (hook_count > 0)
+      //  SK_ApplyQueuedHooks ();
     }
   }
 
@@ -1614,7 +1617,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                    IDirectInputDevice8A_GetDeviceState_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8A_GetDeviceState_Original) );
 
-        if (MH_OK == SK_EnableHook (vftable [9]))
+        if (MH_OK == MH_EnableHook (vftable [9]))
           ++hook_count;
       }
 
@@ -1625,7 +1628,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                    IDirectInputDevice8A_SetCooperativeLevel_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8A_SetCooperativeLevel_Original) );
 
-        if (MH_OK == SK_EnableHook (vftable [13]))
+        if (MH_OK == MH_EnableHook (vftable [13]))
           ++hook_count;
       }
 
@@ -1639,8 +1642,8 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
       devices8_a [guid_crc32c] = *lplpDirectInputDevice;
       devices8_a [guid_crc32c]->AddRef ();
 
-      ////if (hook_count > 0)
-      ////  SK_ApplyQueuedHooks ();
+      //if (hook_count > 0)
+      //  SK_ApplyQueuedHooks ();
     }
   }
 
@@ -1779,7 +1782,7 @@ SK_Input_PreHookDI8 (void)
                                        nullptr );
       }
 
-      if (tests [0].used || SK_GetModuleHandle (L"dinput.dll"))
+      if (tests [0].used/* || SK_GetModuleHandle (L"dinput.dll")*/)
       {
         SK_Modules->LoadLibraryLL (L"dinput.dll");
                            SK_Input_PreHookDI7 ();

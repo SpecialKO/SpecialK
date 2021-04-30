@@ -4275,8 +4275,16 @@ SK_ImGui_StageNextFrame (void)
       ImGui::TextUnformatted (" ");
       ImGui::SameLine    ();
 
-      ImGui::Checkbox    ( "Enable Alt + F4",
-                             &config.input.keyboard.catch_alt_f4 );
+      if (ImGui::Checkbox ( "Enable Alt + F4",
+                              &config.input.keyboard.catch_alt_f4 ))
+      {
+        // If user turns off here, then also turn off keyboard hook bypass
+        if (! config.input.keyboard.catch_alt_f4)
+              config.input.keyboard.override_alt_f4 = false;
+      }
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("If disabled, game's default Alt+F4 behavior will apply");
 
       ImGui::EndPopup       ();
     }

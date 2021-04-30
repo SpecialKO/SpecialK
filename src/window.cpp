@@ -3966,40 +3966,34 @@ BOOL
 WINAPI
 SK_IsWindowUnicode (HWND hWnd, SK_TLS *pTLS)
 {
-  if (pTLS == nullptr)
-    pTLS = SK_TLS_Bottom ();
-  
-  if (pTLS->win32->unicode.first == hWnd)
-    return pTLS->win32->unicode.second;
-
-  pTLS->win32->unicode =
-    std::make_pair (   hWnd,
-      IsWindowUnicode (hWnd) );
+  // Faster
+  if (hWnd == game_window.hWnd)
+    return game_window.unicode;
 
   return
-    pTLS->win32->unicode.second;
+    IsWindowUnicode (hWnd);
 }
 
 HWND
 WINAPI
 SK_GetActiveWindow (SK_TLS *pTLS)
 {
-  if (pTLS == nullptr)
-      pTLS  = SK_TLS_Bottom ();
-
-  if (pTLS != nullptr)
-  {
-    if ((uintptr_t)pTLS->win32->active == (uintptr_t)-1)
-    {
-      pTLS->win32->active =
-        GetActiveWindow_Original != nullptr ?
-        GetActiveWindow_Original ()         :
-        GetActiveWindow          ();
-    }
-
-    return
-      pTLS->win32->active;
-  }
+  ////if (pTLS == nullptr)
+  ////    pTLS  = SK_TLS_Bottom ();
+  ////
+  ////if (pTLS != nullptr)
+  ////{
+  ////  if ((uintptr_t)pTLS->win32->active == (uintptr_t)-1)
+  ////  {
+  ////    pTLS->win32->active =
+  ////      GetActiveWindow_Original != nullptr ?
+  ////      GetActiveWindow_Original ()         :
+  ////      GetActiveWindow          ();
+  ////  }
+  ////
+  ////  return
+  ////    pTLS->win32->active;
+  ////}
 
   return
     GetActiveWindow_Original != nullptr ?
@@ -4013,40 +4007,40 @@ GetActiveWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  SK_TLS
-   *pTLS =
-  SK_TLS_Bottom ();
-
-  if (pTLS != nullptr)
-  {
-    // Take this opportunity to update any stale data
-    //   since we're making a round-trip anyway.
-    pTLS->win32->active =
-      GetActiveWindow_Original ();
-  }
-
-  ///if (config.window.background_render)
-  ///{
-  ///  // Keep a cache of non-NULL active HWNDs for this thread
-  ///  concurrency::concurrent_unordered_map <DWORD, HWND>
-  ///    active_windows;
-  ///
-  ///  HWND hWndActive =
-  ///    SK_GetActiveWindow (pTLS);
-  ///  DWORD dwTid     =
-  ///    pTLS->debug.tid;
-  ///
-  ///  if ( hWndActive != nullptr )
-  ///           active_windows       [dwTid] = hWndActive;
-  ///  else if (active_windows.count (dwTid) &&
-  ///           active_windows       [dwTid] == SK_GetGameWindow ())
-  ///    return active_windows       [dwTid];
-  ///  else
-  ///    return SK_GetGameWindow ();
-  ///}
+  ////SK_TLS
+  //// *pTLS =
+  ////SK_TLS_Bottom ();
+  ////
+  ////if (pTLS != nullptr)
+  ////{
+  ////  // Take this opportunity to update any stale data
+  ////  //   since we're making a round-trip anyway.
+  ////  pTLS->win32->active =
+  ////    GetActiveWindow_Original ();
+  ////}
+  ////
+  ///////if (config.window.background_render)
+  ///////{
+  ///////  // Keep a cache of non-NULL active HWNDs for this thread
+  ///////  concurrency::concurrent_unordered_map <DWORD, HWND>
+  ///////    active_windows;
+  ///////
+  ///////  HWND hWndActive =
+  ///////    SK_GetActiveWindow (pTLS);
+  ///////  DWORD dwTid     =
+  ///////    pTLS->debug.tid;
+  ///////
+  ///////  if ( hWndActive != nullptr )
+  ///////           active_windows       [dwTid] = hWndActive;
+  ///////  else if (active_windows.count (dwTid) &&
+  ///////           active_windows       [dwTid] == SK_GetGameWindow ())
+  ///////    return active_windows       [dwTid];
+  ///////  else
+  ///////    return SK_GetGameWindow ();
+  ///////}
 
   return
-    SK_GetActiveWindow (pTLS);
+    SK_GetActiveWindow (/*pTLS*/nullptr);
 }
 
 HWND
@@ -5596,9 +5590,6 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     {
       game_window.WndProc_Original = nullptr;
     }
-
-    if (game_window.WndProc_Original != nullptr)
-      SK_ApplyQueuedHooks ();
   }
 
 

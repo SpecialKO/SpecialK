@@ -98,16 +98,26 @@ SK::ControlPanel::Input::Draw (void)
     static DWORD last_di8      = 0;
     static DWORD last_steam    = 0;
     static DWORD last_rawinput = 0;
+    static DWORD last_winhook  = 0;
+    static DWORD last_win32    = 0;
 
     struct { ULONG reads; } xinput { };
     struct { ULONG reads; } steam  { };
+
+    struct { ULONG kbd_reads, mouse_reads; } winhook { };
 
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di7       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input { };
 
+    struct { ULONG cursorpos,      keystate,
+               keyboardstate, asynckeystate;              } win32     { };
+
     xinput.reads            = SK_XInput_Backend->reads   [2];
+
+    winhook.kbd_reads       = SK_WinHook_Backend->reads  [1];
+    winhook.mouse_reads     = SK_WinHook_Backend->reads  [0];
 
     di7.kbd_reads           = SK_DI7_Backend->reads      [1];
     di7.mouse_reads         = SK_DI7_Backend->reads      [0];
@@ -124,6 +134,11 @@ SK::ControlPanel::Input::Draw (void)
     raw_input.kbd_reads     = SK_RawInput_Backend->reads [1];
     raw_input.mouse_reads   = SK_RawInput_Backend->reads [0];
     raw_input.gamepad_reads = SK_RawInput_Backend->reads [2];
+
+    win32.asynckeystate     = SK_Win32_Backend->reads    [3];
+    win32.keyboardstate     = SK_Win32_Backend->reads    [2];
+    win32.keystate          = SK_Win32_Backend->reads    [1];
+    win32.cursorpos         = SK_Win32_Backend->reads    [0];
 
     steam.reads             = SK_Steam_Backend->reads    [2];
 
@@ -145,6 +160,12 @@ SK::ControlPanel::Input::Draw (void)
 
     if (SK_RawInput_Backend->nextFrame ())
       last_rawinput = current_time;
+
+    if (SK_WinHook_Backend->nextFrame ())
+      last_winhook  = current_time;
+
+    if (SK_Win32_Backend->nextFrameWin32 ())
+      last_win32    = current_time;
 
 
     if (last_steam > current_time - 500UL)
@@ -273,6 +294,61 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::EndTooltip   ();
       }
     }
+
+    if (last_winhook > current_time - 10000UL)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_winhook ) / 10000.0f ), 1.0f, 0.8f));
+      ImGui::SameLine      ();
+      ImGui::Text ("       Windows Hook");
+      ImGui::PopStyleColor ();
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        if (winhook.mouse_reads > 0)
+          ImGui::Text ("Mouse      %lu", winhook.mouse_reads);
+        if (winhook.kbd_reads > 0)
+          ImGui::Text ("Keyboard   %lu", winhook.kbd_reads);
+        ImGui::EndTooltip   ();
+      }
+    }
+
+    if (last_win32 > current_time - 10000UL)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_win32 ) / 10000.0f ), 1.0f, 0.8f));
+      ImGui::SameLine      ();
+      ImGui::Text ("       Win32");
+      ImGui::PopStyleColor ();
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::BeginGroup   ();
+        if (win32.asynckeystate > 0)
+          ImGui::TextUnformatted ("GetAsyncKeyState\t");
+        if (win32.keystate > 0)
+          ImGui::TextUnformatted ("GetKeyState\t");
+        if (win32.keyboardstate > 0)
+          ImGui::TextUnformatted ("GetKeyboardState\t");
+        if (win32.cursorpos > 0)
+          ImGui::TextUnformatted ("GetCursorPos\t");
+        
+        ImGui::EndGroup     ();
+        ImGui::SameLine     ();
+        ImGui::BeginGroup   ();
+        
+        if (win32.asynckeystate > 0)
+          ImGui::Text ("%lu", win32.asynckeystate);
+        if (win32.keystate > 0)
+          ImGui::Text ("%lu", win32.keystate);
+        if (win32.keyboardstate > 0)
+          ImGui::Text ("%lu", win32.keyboardstate);
+        if (win32.cursorpos > 0)
+          ImGui::Text ("%lu", win32.cursorpos);
+        ImGui::EndGroup     ();
+        ImGui::EndTooltip   ();
+      }
+    }
   }
 
   if (input_mgmt_open)
@@ -322,7 +398,7 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::PopStyleColor (4);
       }
 
-#if 0
+#if 1
       if (! config.input.cursor.manage)
       {
         if (! SK_Window_IsCursorActive ())

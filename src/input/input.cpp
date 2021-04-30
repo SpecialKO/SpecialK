@@ -297,10 +297,9 @@ SK_Input_HookHID (void)
     HidP_GetCaps_Original =
       (HidP_GetCaps_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"HID.DLL"),
                                             "HidP_GetCaps" );
-
-    if (SK_GetFramesDrawn () > 1)
-      SK_ApplyQueuedHooks ();
-
+    
+    SK_ApplyQueuedHooks ();
+    
     InterlockedIncrementRelease (&hooked);
   }
 
@@ -1858,6 +1857,8 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
   if (bRet)
   {
+    SK_Win32_Backend->markRead (sk_win32_func::GetCursorPos);
+
     SK_ImGui_Cursor.orig_pos = *lpPoint;
     SK_ImGui_Cursor.pos      = *lpPoint;
 
@@ -2081,6 +2082,11 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
     }
   }
 
+  if (pfnGetFunc == GetAsyncKeyState_Original)
+    SK_Win32_Backend->markRead (sk_win32_func::GetAsyncKeystate);
+  else if (pfnGetFunc == GetKeyState_Original)
+    SK_Win32_Backend->markRead (sk_win32_func::GetKeyState);
+
   return
     pfnGetFunc (vKey);
 }
@@ -2167,6 +2173,9 @@ NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
         RtlSecureZeroMemory (lpKeyState, 7);
       }
     }
+
+    if (! (capture_keyboard && capture_mouse))
+      SK_Win32_Backend->markRead (sk_win32_func::GetKeyboardState);
   }
 
   return bRet;
@@ -3155,6 +3164,8 @@ SK_LazyGlobal <sk_input_api_context_s> SK_XInput_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
 
+SK_LazyGlobal <sk_input_api_context_s> SK_Win32_Backend;
+SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend;
 
 bool SK_ImGui_InputLanguage_s::changed      = true; // ^^^^ Default = true
 HKL  SK_ImGui_InputLanguage_s::keybd_layout;

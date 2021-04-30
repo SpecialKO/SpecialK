@@ -3445,7 +3445,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
   DXGI_MODE_DESC mode_to_match = *pModeToMatch;
 
   if (  config.render.framerate.rescan_.Denom !=  1 ||
-       (config.render.framerate.refresh_rate  != -1 &&
+       (config.render.framerate.refresh_rate   > 0.0f &&
          mode_to_match.RefreshRate.Numerator  !=
   (UINT)config.render.framerate.refresh_rate) )
   {
@@ -4257,13 +4257,13 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
           pNewTargetParameters->Scaling  !=
             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
                                 ||
-       ( config.render.framerate.refresh_rate          != -1 &&
+       ( config.render.framerate.refresh_rate          > 0.0f &&
            pNewTargetParameters->RefreshRate.Numerator !=
              (UINT)config.render.framerate.refresh_rate )
     )
   {
-    if (  config.render.framerate.rescan_.Denom != 1  ||
-        ( config.render.framerate.refresh_rate  != -1 &&
+    if (  config.render.framerate.rescan_.Denom !=  1   ||
+        ( config.render.framerate.refresh_rate   > 0.0f &&
           new_new_params.RefreshRate.Numerator  !=
     (UINT)config.render.framerate.refresh_rate )
        )
@@ -4713,7 +4713,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
       }
 
       if ( config.render.framerate.rescan_.Denom   !=  1 ||
-          (config.render.framerate.refresh_rate    != -1 &&
+          (config.render.framerate.refresh_rate    > 0.0f &&
            pDesc->BufferDesc.RefreshRate.Numerator != static_cast <UINT> (
            config.render.framerate.refresh_rate                          )
           )

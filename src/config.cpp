@@ -2299,6 +2299,7 @@ auto DeclKeybind =
         config.input.cursor.timeout               =   750;
         config.input.ui.use_hw_cursor             = false;
         config.input.ui.capture_hidden            = false;
+        config.input.ui.capture_mouse             = false;
         SK_ImGui_Cursor.prefs.no_warp.ui_open     =  true;
         config.render.framerate.present_interval  =     1;
         config.render.framerate.sleepless_window  =  true;
@@ -2308,7 +2309,7 @@ auto DeclKeybind =
         config.render.framerate.swapchain_wait    =     0;
         config.render.framerate.pre_render_limit  =     3;
         config.render.framerate.target_fps        =    60;
-        config.render.framerate.drop_late_flips   = false;
+        config.render.framerate.drop_late_flips   =  true;
         config.render.framerate.flip_discard      =  true;
         config.input.gamepad.disable_ps4_hid      = false; // Automagic
         config.threads.enable_file_io_trace       =  true;
@@ -2320,6 +2321,11 @@ auto DeclKeybind =
       //config.render.dxgi.deferred_isolation     = true;
         config.input.keyboard.catch_alt_f4        =  true;
         config.input.keyboard.override_alt_f4     =  true;
+
+       //config.nvidia.sleep.enable               = true;
+         config.nvidia.sleep.enforcement_site     = 2;
+       //config.nvidia.sleep.low_latency          = true;
+       //config.nvidia.sleep.low_latency_boost    = true;
       } break;
 #endif
     }
@@ -3541,6 +3547,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.disable_ps4_hid->store        (config.input.gamepad.disable_ps4_hid);
   input.gamepad.rehook_xinput->store          (config.input.gamepad.rehook_xinput);
   input.gamepad.haptic_ui->store              (config.input.gamepad.haptic_ui);
+  input.gamepad.native_ps4->store             (config.input.gamepad.native_ps4);
 
   int placeholder_mask = 0x0;
 

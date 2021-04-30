@@ -53,8 +53,6 @@ extern BOOL WINAPI SK_IsWindowUnicode (HWND hWnd, SK_TLS *pTLS);
 void
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS **ppTLS)
 {
-  SK_TLS* pTLS = nullptr;
-
   static double
     dTicksPerMS = static_cast <double> (SK_GetPerfFreq ().QuadPart) / 1000.0;
   auto     now =                        SK_CurrentPerf ().QuadPart;
@@ -72,20 +70,11 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     return;
   }
 
-  if (pTLS == nullptr)
-  {   pTLS =
-    *ppTLS == nullptr ? SK_TLS_Bottom ()
-                      : *ppTLS; }
-
-  if (  pTLS  != nullptr &&
-       *ppTLS == nullptr  )
-       *ppTLS = pTLS;
-
   HWND hWndThis =
-    SK_GetActiveWindow (pTLS);
+    SK_GetActiveWindow (nullptr);
 
   bool bUnicode =
-    SK_IsWindowUnicode (hWndThis, pTLS);
+    SK_IsWindowUnicode (hWndThis, nullptr);
 
   // Avoid having Windows marshal Unicode messages like a dumb ass
   MSG        msg (                           { }                 );
@@ -107,55 +96,84 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     }
   };
 
-  if (*pTLS->debug.name == L'I' && (! wcsicmp (pTLS->debug.name, L"InputThread")))
+  if (SK_GetCurrentGameID () == SK_GAME_ID::NieR_Sqrt_1_5)
   {
-    static volatile LONG               s_Once    =   FALSE;
-    if (! InterlockedCompareExchange (&s_Once, TRUE, FALSE))
+    static DWORD InputThread = 0;
+
+    static volatile LONG                                   s_Once = FALSE;
+    if ((! InputThread) && (! InterlockedCompareExchange (&s_Once, TRUE, FALSE)))
     {
-      auto thread =
-        SK_GetCurrentThread ();
+      SK_TLS* pTLS =
+        SK_TLS_Bottom ();
 
-      SetThreadPriority      ( thread, THREAD_PRIORITY_HIGHEST );
-      SetThreadPriorityBoost ( thread,                  FALSE  );
-
-      SK_MMCS_TaskEntry* task_me =
-        ( config.render.framerate.enable_mmcss ?
-          SK_MMCS_GetTaskForThreadID ( SK_GetCurrentThreadId (),
-                    "InputThread" ) : nullptr );
-
-      if (task_me != nullptr)
+      if (*pTLS->debug.name == L'I' && (!wcsicmp (pTLS->debug.name, L"InputThread")))
       {
-        task_me->setPriority (AVRT_PRIORITY_NORMAL);
+        auto thread =
+          SK_GetCurrentThread ();
+
+        SetThreadPriority (thread, THREAD_PRIORITY_HIGHEST);
+        SetThreadPriorityBoost (thread, FALSE);
+
+        SK_MMCS_TaskEntry* task_me =
+          (config.render.framerate.enable_mmcss ?
+           SK_MMCS_GetTaskForThreadID (SK_GetCurrentThreadId (),
+                                       "InputThread") : nullptr);
+
+        if (task_me != nullptr)
+        {
+          task_me->setPriority (AVRT_PRIORITY_NORMAL);
+        }
+
+        InputThread = SK_GetCurrentThreadId ();
       }
+
+      else
+        InterlockedExchange (&s_Once, FALSE);
     }
 
-    extern volatile LONG _SK_NIER_RAD_InputPollingPeriod;
+    if (SK_GetCurrentThreadId () == InputThread)
+    {
+      extern volatile LONG _SK_NIER_RAD_InputPollingPeriod;
 
-    if (dwMilliseconds == 8)
+      if (dwMilliseconds == 8)
         dwMilliseconds = ReadAcquire (&_SK_NIER_RAD_InputPollingPeriod);
+
+      SK_SleepEx (dwMilliseconds, bAlertable);
+      return;
+    }
   }
   
   // Not good
-  else if (dwMilliseconds == 0)
+  if (dwMilliseconds == 0)
   {
-    if (! pTLS->win32->mmcs_task)
-    {     pTLS->win32->mmcs_task = true;
+    static DWORD dwLastTid = 0;
 
-      auto thread =
-        SK_GetCurrentThread ();
+    if (SK_GetCurrentThreadId () != dwLastTid)
+    {
+      SK_TLS* pTLS =
+        SK_TLS_Bottom ();
 
-      SetThreadPriority  (thread,
-       GetThreadPriority (thread) + 1);
-
-      SK_MMCS_TaskEntry* task_me =
-        ( config.render.framerate.enable_mmcss ?
-          SK_MMCS_GetTaskForThreadID ( SK_GetCurrentThreadId (),
-                    "Dubious Sleeper (0 ms)" ) : nullptr );
-
-      if (task_me != nullptr)
-      {
-        task_me->setPriority (AVRT_PRIORITY_NORMAL);
+      if (! pTLS->win32->mmcs_task)
+      {     pTLS->win32->mmcs_task = true;
+        auto thread =
+          SK_GetCurrentThread ();
+      
+        SetThreadPriority  (thread,
+         GetThreadPriority (thread) + 1);
+      
+        SK_MMCS_TaskEntry* task_me =
+          ( config.render.framerate.enable_mmcss ?
+            SK_MMCS_GetTaskForThreadID ( SK_GetCurrentThreadId (),
+                      "Dubious Sleeper (0 ms)" ) : nullptr );
+      
+        if (task_me != nullptr)
+        {
+          task_me->setPriority (AVRT_PRIORITY_NORMAL);
+        }
       }
+
+      if (pTLS->win32->mmcs_task)
+        dwLastTid = SK_GetCurrentThreadId ();
     }
   }
 
@@ -179,10 +197,13 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       if (dwMaxWait == 0 && config.render.framerate.max_delta_time < 1)
           dwMaxWait = 1;
 
+      else if (dwMaxWait <= config.render.framerate.max_delta_time)
+        return;
+
       DWORD dwWaitState =
         MsgWaitForMultipleObjectsEx (
           1, &__SK_DLL_TeardownEvent,
-            dwMaxWait, QS_ALLINPUT,
+            dwMaxWait, QS_ALLEVENTS,
           bAlertable ? MWMO_ALERTABLE
                      : 0x0 );
 
@@ -196,7 +217,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       // Waiting messages
       else if (dwWaitState == WAIT_OBJECT_0 + 1)
       {
-        PeekAndDispatch ();
+        //PeekAndDispatch ();
         // ...
         return;
       }
@@ -896,7 +917,11 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   BOOL bRenderThread = sleepless_render ? ((DWORD)ReadULongAcquire (&rb.thread) == dwTid) :
                                                                                    false;
 
-  if (bRenderThread)
+  // Steam doesn't init correctly without sleeping for 25 ms
+#define STEAM_THRESHOLD 25
+#define MIN_FRAMES_DRAWN 5
+
+  if (bRenderThread && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
   {
 #pragma region Tales of Vesperia Render NoSleep
 #ifdef _M_AMD64
@@ -913,7 +938,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 #endif
 #pragma endregion
 
-    if (sleepless_render && dwMilliseconds != INFINITE)
+    if (sleepless_render && dwMilliseconds != INFINITE && dwMilliseconds != STEAM_THRESHOLD)
     {
       static bool reported = false;
             if (! reported)
@@ -940,9 +965,9 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     SK::Framerate::events->getRenderThreadStats ().sleep  (dwMilliseconds);
   }
 
-  if (bGUIThread)
+  if (bGUIThread && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
   {
-    if (sleepless_window && dwMilliseconds != INFINITE)
+    if (sleepless_window && dwMilliseconds != INFINITE && dwMilliseconds != STEAM_THRESHOLD)
     {
       static bool reported = false;
             if (! reported)
@@ -1027,7 +1052,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   // TODO: Stop this nonsense and make an actual parameter for this...
   //         (min sleep?)
-  if ( max_delta_time <= dwMilliseconds )
+  if ( max_delta_time <= dwMilliseconds || SK_GetFramesDrawn () < MIN_FRAMES_DRAWN )
   {
     //dll_log.Log (L"SleepEx (%lu, %s) -- %s", dwMilliseconds, bAlertable ?
     //             L"Alertable" : L"Non-Alertable",

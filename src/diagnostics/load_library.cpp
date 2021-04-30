@@ -235,6 +235,9 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 #pragma pop_macro ("StrStrI")
 }
 
+
+extern std::wstring SK_XInput_LinkedVersion;
+
 template <typename _T>
 void
 __stdcall
@@ -472,12 +475,15 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
               ( StrStrI  (lpFileName, SK_TEXT("OpenGL32.dll")) ||
                 StrStrIW (wszModName,        L"OpenGL32.dll") ))
       SK_BootOpenGL ();
-    else if (   StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
-      SK_Input_HookXInput1_3 ();
-    else if (   StrStrI (lpFileName, SK_TEXT("xinput1_4.dll")) )
-      SK_Input_HookXInput1_4 ();
-    else if (   StrStrI (lpFileName, SK_TEXT("xinput9_1_0.dll")) )
-      SK_Input_HookXInput9_1_0 ();
+    else if (   //SK_XInput_LinkedVersion.empty () &&
+                StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
+                                 SK_Input_HookXInput1_3 ();
+    else if (   //SK_XInput_LinkedVersion.empty () &&
+                StrStrI (lpFileName, SK_TEXT("xinput1_4.dll")) )
+                                 SK_Input_HookXInput1_4 ();
+    else if (   //SK_XInput_LinkedVersion.empty () &&
+                StrStrI (lpFileName, SK_TEXT("xinput9_1_0.dll")) )
+                                 SK_Input_HookXInput9_1_0 ();
     else if (   StrStrI (lpFileName, SK_TEXT("dinput8.dll")) )
       SK_Input_HookDI8 ();
     else if (   StrStrI (lpFileName, SK_TEXT("dinput.dll")) )

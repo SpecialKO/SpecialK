@@ -81,12 +81,12 @@ struct sk_imgui_cursor_s
 
   void    update           (void);
 
-  void   LocalToScreen    (LPPOINT lpPoint);
-  void   LocalToClient    (LPPOINT lpPoint);
-  void   ClientToLocal    (LPPOINT lpPoint);
-  void   ScreenToLocal    (LPPOINT lpPoint);
+  void    LocalToScreen    (LPPOINT lpPoint);
+  void    LocalToClient    (LPPOINT lpPoint);
+  void    ClientToLocal    (LPPOINT lpPoint);
+  void    ScreenToLocal    (LPPOINT lpPoint);
 
-  void   activateWindow   (bool active);
+  void    activateWindow   (bool active);
 
   struct {
     struct {
@@ -105,6 +105,14 @@ enum class sk_input_dev_type {
   Keyboard = 2,
   Gamepad  = 4,
   Other    = 8
+};
+
+
+enum class sk_win32_func {
+  GetCursorPos     = 1,
+  GetKeyState      = 2,
+  GetKeyboardState = 4,
+  GetAsyncKeystate = 8
 };
 
 
@@ -133,6 +141,10 @@ struct sk_input_api_context_s
     InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
                                                  type == sk_input_dev_type::Keyboard ? 1 :
                                                  type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+  void markRead  (sk_win32_func type) noexcept
+  { InterlockedIncrement (&last_frame.reads    [ type == sk_win32_func::GetCursorPos     ? 0 :
+                                                 type == sk_win32_func::GetKeyState      ? 1 :
+                                                 type == sk_win32_func::GetKeyboardState ? 2 : 3 ] ); }
   void markWrite  (sk_input_dev_type type) noexcept
   { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
                                                 type == sk_input_dev_type::Keyboard ? 1 :
@@ -148,6 +160,48 @@ struct sk_input_api_context_s
       case sk_input_dev_type::Gamepad:  WriteULong64Release (&viewed.gamepad,  qpcNow); break;
       case sk_input_dev_type::Other:    WriteULong64Release (&viewed.other,    qpcNow); break;
     }
+  }
+
+  bool nextFrameWin32 (void)
+  {
+    bool active_data = false;
+
+    active.keyboard = false; active.gamepad = false;
+    active.mouse    = false; active.other   = false;
+
+
+    InterlockedAdd  (&reads   [0], last_frame.reads  [0]);
+    InterlockedAdd  (&writes  [0], last_frame.writes [0]);
+
+      if (ReadAcquire (&last_frame.reads  [0]))  { active.mouse = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [0]))  { active.mouse = true; active_data = true; }
+
+    InterlockedAdd  (&reads   [1], last_frame.reads  [1]);
+    InterlockedAdd  (&writes  [1], last_frame.writes [1]);
+
+      if (ReadAcquire (&last_frame.reads  [1]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [1]))  { active.keyboard = true; active_data = true; }
+
+    InterlockedAdd  (&reads   [2], last_frame.reads  [2]);
+    InterlockedAdd  (&writes  [2], last_frame.writes [2]);
+
+      if (ReadAcquire (&last_frame.reads  [2]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [2]))  { active.keyboard = true; active_data = true; }
+
+    InterlockedAdd  (&reads   [3], last_frame.reads  [3]);
+    InterlockedAdd  (&writes  [3], last_frame.writes [3]);
+
+      if (ReadAcquire (&last_frame.reads  [2]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [2]))  { active.keyboard = true; active_data = true; }
+
+
+    InterlockedExchange (&last_frame.reads  [0], 0);   InterlockedExchange (&last_frame.reads  [1], 0);
+    InterlockedExchange (&last_frame.writes [0], 0);   InterlockedExchange (&last_frame.writes [1], 0);
+    InterlockedExchange (&last_frame.reads  [2], 0);   InterlockedExchange (&last_frame.reads  [3], 0);
+    InterlockedExchange (&last_frame.writes [2], 0);   InterlockedExchange (&last_frame.writes [3], 0);
+
+
+    return active_data;
   }
 
   bool nextFrame (void)
@@ -218,6 +272,7 @@ extern SK_LazyGlobal <sk_input_api_context_s> SK_DI8_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_DI7_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_Win32_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend; // (Low-Level) KB/M Hook
 extern SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
 
 extern SK_LazyGlobal <sk_input_api_context_s> SK_WinMM_Backend;

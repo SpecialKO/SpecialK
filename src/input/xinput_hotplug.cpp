@@ -95,6 +95,27 @@ SK_XInput_Holding (DWORD dwUserIndex)
   return false;
 }
 
+std::set <HANDLE> SK_HID_DeviceArrivalEvents;
+std::set <HANDLE> SK_HID_DeviceRemovalEvents;
+
+void SK_HID_AddDeviceArrivalEvent (HANDLE hEvent)
+{
+  if (SK_HID_DeviceRemovalEvents.empty () &&
+      SK_HID_DeviceArrivalEvents.empty ())
+         SK_XInput_NotifyDeviceArrival ();
+
+  SK_HID_DeviceArrivalEvents.emplace (hEvent);
+}
+
+void SK_HID_AddDeviceRemovalEvent (HANDLE hEvent)
+{
+  if (SK_HID_DeviceRemovalEvents.empty () &&
+      SK_HID_DeviceArrivalEvents.empty ())
+         SK_XInput_NotifyDeviceArrival ();
+
+  SK_HID_DeviceRemovalEvents.emplace (hEvent);
+}
+
 void
 SK_XInput_NotifyDeviceArrival (void)
 {
@@ -130,6 +151,9 @@ SK_XInput_NotifyDeviceArrival (void)
               {
                 case DBT_DEVICEARRIVAL:
                 {
+                  for ( auto event : SK_HID_DeviceArrivalEvents )
+                    SetEvent (event);
+
                   SetEvent (hNotifyEvent);
 
                   SK_LOG_FIRST_CALL //( ( L"USB HID Hotplug Notify is HOT; disabling lazy controller checks." ),
@@ -138,6 +162,9 @@ SK_XInput_NotifyDeviceArrival (void)
 
                 case DBT_DEVICEREMOVECOMPLETE:
                 {
+                  for ( auto event : SK_HID_DeviceRemovalEvents )
+                    SetEvent (event);
+
                   SK_XInput_SetRefreshInterval (timeGetTime ());
                 } break;
               }
@@ -211,8 +238,8 @@ SK_XInput_NotifyDeviceArrival (void)
                 }
               }
 
-//              SK_XInput_SetRefreshInterval (500UL);
-              SK_XInput_SetRefreshInterval (15000UL);
+              SK_XInput_SetRefreshInterval (500UL);
+//              SK_XInput_SetRefreshInterval (3333UL);
             }
 
             dwWaitStatus =

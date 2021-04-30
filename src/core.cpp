@@ -1355,19 +1355,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_MinHook_Init           ();
   SK_PreInitLoadLibrary     ();
 
-  void SK_HookCriticalSections (void);
-       SK_HookCriticalSections (   );
-
-  SK::Diagnostics::Debugger::Allow        ();
-  SK::Diagnostics::CrashHandler::InitSyms ();
+  SK::Diagnostics::Debugger::Allow        (true);
+  SK::Diagnostics::CrashHandler::InitSyms (    );
 
   void SK_D3D11_InitMutexes (void);
        SK_D3D11_InitMutexes (    );
 
   extern void SK_ImGui_Init (void);
               SK_ImGui_Init (    );
-
-  SK::Diagnostics::Debugger::Allow (true);
 
 
   __SK_BootedCore = backend;
@@ -1489,7 +1484,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       SK_NvAPI_PreInitHDR       ();
       SK_NvAPI_InitializeHDR    ();
-          //SK_ApplyQueuedHooks ();
 
       ////// For the global injector, when not started by SKIM, check its version
       ////if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
@@ -1651,7 +1645,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         SK_COMPAT_UnloadFraps ();
 
     SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
-    SK_ApplyQueuedHooks  ();
   }
 
 
