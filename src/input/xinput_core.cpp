@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <imgui/font_awesome.h>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -139,7 +140,7 @@ struct SK_XInputContext
         ////SK_ImGui_Warning (const wchar_t* wszMessage);
         ////
         SK_ImGui_Warning (L"Problematic third-party XInput software detected (infinite haptic feedback loop), disabling vibration."
-                          L"\n\n\Restart your game to restore vibration support.");
+                          L"\n\n\tRestart your game to restore vibration support.");
       }
 
       config.input.gamepad.xinput.hook_setstate = false;

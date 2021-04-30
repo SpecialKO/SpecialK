@@ -360,16 +360,6 @@ SK_NIER_RAD_PerfCpl (void)
     if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Changing this setting may help prevent the Steam Overlay from breaking gamepad input.");
 
-    //if (SK_DI8_Backend->viewed.gamepad != 0)
-    //{
-    //  ImGui::SameLine    ();
-    //  ImGui::TextColored (ImVec4 (.2f, 1.f, 0.6f, 1.f), ICON_FA_QUESTION_CIRCLE);
-    //  ImGui::SameLine    ();
-    //  
-    //  changed |=
-    //    ImGui::Checkbox ("My controller is DirectInput", &config.input.gamepad.native_ps4);
-    //}
-
     if (config.render.framerate.sleepless_window)
     {
       if (ImGui::SliderInt (ICON_FA_GAMEPAD

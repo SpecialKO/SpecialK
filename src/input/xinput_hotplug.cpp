@@ -24,7 +24,7 @@
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif
-#define __SK_SUBSYSTEM__ L"XInput_Hot"
+#define __SK_SUBSYSTEM__ L"HIDHotplug"
 
 #include <SpecialK/input/xinput_hotplug.h>
 
@@ -137,7 +137,7 @@ SK_XInput_NotifyDeviceArrival (void)
         static constexpr DWORD ShutdownEvent = ( WAIT_OBJECT_0 + 1 );
 
         extern void SK_XInput_SetRefreshInterval (ULONG ulIntervalMS);
-        extern void SK_XInput_Refresh (UINT iJoyID);
+        extern void SK_XInput_Refresh            (UINT iJoyID);
 
         auto SK_HID_DeviceNotifyProc =
       [] (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -150,31 +150,59 @@ SK_XInput_NotifyDeviceArrival (void)
               switch (wParam)
               {
                 case DBT_DEVICEARRIVAL:
-                {
-                  for ( auto event : SK_HID_DeviceArrivalEvents )
-                    SetEvent (event);
-
-                  SetEvent (hNotifyEvent);
-
-                  SK_LOG_FIRST_CALL //( ( L"USB HID Hotplug Notify is HOT; disabling lazy controller checks." ),
-                                          //L"XInput_Hot" ) );
-                } break;
-
                 case DBT_DEVICEREMOVECOMPLETE:
                 {
-                  for ( auto event : SK_HID_DeviceRemovalEvents )
-                    SetEvent (event);
+                  DEV_BROADCAST_HDR* pDevHdr =
+                    (DEV_BROADCAST_HDR *)lParam;
 
-                  SK_XInput_SetRefreshInterval (timeGetTime ());
+                  if (pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+                  {
+                    bool arrival =
+                      (wParam == DBT_DEVICEARRIVAL);
+
+                    SK_ReleaseAssert (
+                      pDevHdr->dbch_size >= sizeof (DEV_BROADCAST_DEVICEINTERFACE_W)
+                    )
+
+                    DEV_BROADCAST_DEVICEINTERFACE_W *pDev =
+                      (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
+
+                    static const GUID GUID_DEVINTERFACE_HID =
+                      { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
+
+                    if (IsEqualGUID (pDev->dbcc_classguid, GUID_DEVINTERFACE_HID))
+                    {
+                      SK_LOG0 ( ( L" Device %s:\t%s",  arrival ? L"Arrival"
+                                                               : L"Removal",
+                                                       pDev->dbcc_name ),
+                                  __SK_SUBSYSTEM__ );
+
+                      if (arrival)
+                      {
+                        for (  auto event : SK_HID_DeviceArrivalEvents  )
+                          SetEvent (event);
+
+                        SetEvent (hNotifyEvent);
+                      }
+
+                      else
+                      {
+                        for (  auto event : SK_HID_DeviceRemovalEvents  )
+                          SetEvent (event);
+
+                        SK_XInput_SetRefreshInterval (timeGetTime ());
+                      }
+
+                      int idx = 0;
+
+                      for (auto& placeholder : placeholders)
+                      {
+                        if (idx++ != 0) WriteULongRelease (&placeholder.RecheckInterval, (333UL));
+                        else            WriteULongRelease (&placeholder.RecheckInterval, (100UL));
+                      }
+                    }
+                  }
                 } break;
-              }
-
-              int idx = 0;
-
-              for (auto& placeholder : placeholders)
-              {
-                if (idx++ != 0) WriteULongRelease (&placeholder.RecheckInterval, (333UL));
-                else            WriteULongRelease (&placeholder.RecheckInterval, (100UL));
               }
 
               return 0;
@@ -199,6 +227,7 @@ SK_XInput_NotifyDeviceArrival (void)
             (HWND)CreateWindowEx ( 0, L"SK_HID_Listener",    NULL, 0,
                                    0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL );
 
+          // It's technically unnecessary to register this, but not a bad idea
           HDEVNOTIFY hDevNotify =
             SK_RegisterDeviceNotification (hWndDeviceListener);
 
@@ -239,7 +268,6 @@ SK_XInput_NotifyDeviceArrival (void)
               }
 
               SK_XInput_SetRefreshInterval (500UL);
-//              SK_XInput_SetRefreshInterval (3333UL);
             }
 
             dwWaitStatus =
@@ -591,7 +619,7 @@ RegisterDeviceNotificationW_Detour (
       Flags |= DEVICE_NOTIFY_ALL_INTERFACE_CLASSES;
 
       SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationW (...)"),
-                 L"XInput_Hot" );
+                 __SK_SUBSYSTEM__ );
     }
   }
 
@@ -635,7 +663,7 @@ RegisterDeviceNotificationA_Detour (
       Flags |= DEVICE_NOTIFY_ALL_INTERFACE_CLASSES;
 
       SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationA (...)"),
-                 L"XInput_Hot" );
+                 __SK_SUBSYSTEM__ );
     }
   }
 
