@@ -615,6 +615,45 @@ WaitForInit (void)
 }
 
 
+// Stuff might be unimplemented in Wine, limp home if it throws this exception
+#define EXCEPTION_WINE_STUB 0x80000100
+
+void SK_SEH_InitFinishCallback (void)
+{
+  __try
+  {
+    if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
+      SK::DXGI::StartBudgetThread_NoAdapter ();
+
+    static const GUID  nil_guid = {     };
+                 GUID* pGUID    = nullptr;
+
+    // Make note of the system's original power scheme
+    if ( ERROR_SUCCESS ==
+           PowerGetActiveScheme ( nullptr,
+                                    &pGUID )
+       )
+    {
+      config.cpu.power_scheme_guid_orig = *pGUID;
+
+      SK_LocalFree ((HLOCAL)pGUID);
+    }
+
+    // Apply a powerscheme override if one is set
+    if (! IsEqualGUID (config.cpu.power_scheme_guid, nil_guid))
+    {
+      PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid);
+    }
+
+    SK_LoadGPUVendorAPIs ();
+  }
+
+  __except ( GetExceptionCode () == EXCEPTION_WINE_STUB       ?
+                                    EXCEPTION_EXECUTE_HANDLER :
+                                    EXCEPTION_CONTINUE_SEARCH )
+  { }
+}
+
 void
 __stdcall
 SK_InitFinishCallback (void)
@@ -706,30 +745,8 @@ SK_InitFinishCallback (void)
 
   SK_Console::getInstance ()->Start ();
 
-  if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
-    SK::DXGI::StartBudgetThread_NoAdapter ();
-
-  static const GUID  nil_guid = {     };
-               GUID* pGUID    = nullptr;
-
-  // Make note of the system's original power scheme
-  if ( ERROR_SUCCESS ==
-         PowerGetActiveScheme ( nullptr,
-                                  &pGUID )
-     )
-  {
-    config.cpu.power_scheme_guid_orig = *pGUID;
-
-    SK_LocalFree ((HLOCAL)pGUID);
-  }
-
-  // Apply a powerscheme override if one is set
-  if (! IsEqualGUID (config.cpu.power_scheme_guid, nil_guid))
-  {
-    PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid);
-  }
-
-  SK_LoadGPUVendorAPIs ();
+  // SEH to handle Wine Stub functions
+  SK_SEH_InitFinishCallback ();
 
   dll_log->LogEx (false, L"------------------------------------------------"
                          L"-------------------------------------------\n" );
@@ -1349,21 +1366,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       return true;
     }
   }
-  
-
-  // Setup unhooked function pointers
-  SK_MinHook_Init           ();
-  SK_PreInitLoadLibrary     ();
-
-  SK::Diagnostics::Debugger::Allow        (true);
-  SK::Diagnostics::CrashHandler::InitSyms (    );
-
-  void SK_D3D11_InitMutexes (void);
-       SK_D3D11_InitMutexes (    );
-
-  extern void SK_ImGui_Init (void);
-              SK_ImGui_Init (    );
-
 
   __SK_BootedCore = backend;
 
@@ -1476,18 +1478,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
         return 0;
       });
-
-      //// Do this from the startup thread [these functions queue, but don't apply]
-      SK_Input_PreInit          (); // Hook only symbols in user32 and kernel32
-      SK_HookWinAPI             ();
-      SK_CPU_InstallHooks       ();
-
-      SK_NvAPI_PreInitHDR       ();
-      SK_NvAPI_InitializeHDR    ();
-
-      ////// For the global injector, when not started by SKIM, check its version
-      ////if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-      ////  SK_Thread_Create ( CheckVersionThread );
     }
   }
 
@@ -1587,6 +1577,33 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! __SK_bypass)
   {
+    // Setup unhooked function pointers
+    SK_MinHook_Init                  (    );
+    SK_PreInitLoadLibrary            (    );
+    SK::Diagnostics::Debugger::Allow (true);
+
+    if (config.system.handle_crashes)
+      SK::Diagnostics::CrashHandler::Init   (    );
+    SK::Diagnostics::CrashHandler::InitSyms (    );
+
+    void SK_D3D11_InitMutexes (void);
+         SK_D3D11_InitMutexes (    );
+
+    extern void SK_ImGui_Init (void);
+                SK_ImGui_Init (    );
+
+    //// Do this from the startup thread [these functions queue, but don't apply]
+    SK_Input_PreInit          (); // Hook only symbols in user32 and kernel32
+    SK_HookWinAPI             ();
+    SK_CPU_InstallHooks       ();
+
+    SK_NvAPI_PreInitHDR       ();
+    SK_NvAPI_InitializeHDR    ();
+
+    ////// For the global injector, when not started by SKIM, check its version
+    ////if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+    ////  SK_Thread_Create ( CheckVersionThread );
+
     if (config.dpi.disable_scaling)   SK_Display_DisableDPIScaling      (     );
     if (config.dpi.per_monitor.aware) SK_Display_SetMonitorDPIAwareness (false);
 
@@ -1595,9 +1612,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     if (config.system.display_debug_out)
       SK::Diagnostics::Debugger::SpawnConsole ();
-
-    if (config.system.handle_crashes)
-      SK::Diagnostics::CrashHandler::Init     ();
 
     // Steam Overlay and SteamAPI Manipulation
     //

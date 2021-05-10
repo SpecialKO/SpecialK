@@ -212,6 +212,7 @@ extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
 
 extern          HWND hWndUpdateDlg;
 extern volatile LONG __SK_TaskDialogActive;
+                bool __SK_Wine = false;
 
 
 #ifndef SK_BUILD__INSTALLER
@@ -996,6 +997,7 @@ extern int                      gpu_prio;
 bool bAlwaysAllowFullscreen = false;
 bool bFlipMode              = false;
 bool bWait                  = false;
+bool bOriginallyFlip        = false;
 
 // Used for integrated GPU override
 int              SK_DXGI_preferred_adapter = -1;
@@ -3692,23 +3694,27 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   {
     rb.fullscreen_exclusive = Fullscreen;
 
-    HRESULT hr =
-      This->Present (0, DXGI_PRESENT_TEST);
-    
-    if ( FAILED (hr) || hr == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
+    // Any Flip Model game already knows to do this stuff...
+    if (! bOriginallyFlip)
     {
-      if (SK_DXGI_IsFlipModelSwapChain (sd))
+      HRESULT hr =
+        This->Present (0, DXGI_PRESENT_TEST);
+      
+      if ( FAILED (hr) || hr == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
       {
-        //
-        // Necessary provisions for Fullscreen Flip Mode
-        //
-        if (config.render.framerate.flip_discard && (! pDev12.p)) // D3D12 software already handles this correctly
+        if (SK_DXGI_IsFlipModelSwapChain (sd))
         {
-          UINT _Flags =
-            SK_DXGI_FixUpLatencyWaitFlag (This, sd.Flags);
+          //
+          // Necessary provisions for Fullscreen Flip Mode
+          //
+          if (config.render.framerate.flip_discard && (! pDev12.p)) // D3D12 software already handles this correctly
+          {
+            UINT _Flags =
+              SK_DXGI_FixUpLatencyWaitFlag (This, sd.Flags);
 
-          if ( /* swapDesc.Windowed == Fullscreen && */FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)) )
-            return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
+            if ( /* swapDesc.Windowed == Fullscreen && */FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)) )
+              return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
+          }
         }
       }
     }
@@ -4030,7 +4036,7 @@ SK_DXGI_ReportLiveObjects (IUnknown *pDev = nullptr)
     SK_ComPtr <IDXGIDebug>                                   pDXGIDebug;
     ThrowIfFailed (SK_DXGI_GetDebugInterface (IID_PPV_ARGS (&pDXGIDebug.p)));
 
-    return
+      return
       pDXGIDebug->ReportLiveObjects  (DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
   }
 
@@ -4522,7 +4528,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
     bool already_flip_model =
       SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect);
 
-
+    bOriginallyFlip = already_flip_model;
 
     // If auto-update prompt is visible, don't go fullscreen.
     if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE) ||
@@ -7604,33 +7610,39 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
           (void **)&pFactory, 10 );
     }
 
-    SK_ComQIPtr <IDXGIFactory1> pFactory1 (pFactory);
+    __SK_Wine =
+      ( SK_GetModuleHandleW (L"wined3d.dll") != nullptr );
 
-    // 12 EnumAdapters1
-    // 13 IsCurrent
-    if (pFactory1 != nullptr)
+    if (! __SK_Wine)
     {
-      DXGI_VIRTUAL_HOOK ( /*&pFactory1.p*/&pFactory,     12,
-                          "IDXGIFactory1::EnumAdapters1",
-                           EnumAdapters1_Override,
-                           EnumAdapters1_Original,
-                           EnumAdapters1_pfn );
-    }
+      SK_ComQIPtr <IDXGIFactory1> pFactory1 (pFactory);
 
-    else
-    {
-      //
-      // EnumAdapters actually calls EnumAdapters1 if the interface
-      //   implements IDXGIFactory1...
-      //
-      //  >> Avoid some nasty recursion and only hook EnumAdapters if the
-      //       interface version is DXGI 1.0.
-      //
-      DXGI_VIRTUAL_HOOK ( &pFactory,     7,
-                          "IDXGIFactory::EnumAdapters",
-                           EnumAdapters_Override,
-                           EnumAdapters_Original,
-                           EnumAdapters_pfn );
+      // 12 EnumAdapters1
+      // 13 IsCurrent
+      if (pFactory1 != nullptr)
+      {
+        DXGI_VIRTUAL_HOOK ( /*&pFactory1.p*/&pFactory,     12,
+                            "IDXGIFactory1::EnumAdapters1",
+                             EnumAdapters1_Override,
+                             EnumAdapters1_Original,
+                             EnumAdapters1_pfn );
+      }
+
+      else
+      {
+        //
+        // EnumAdapters actually calls EnumAdapters1 if the interface
+        //   implements IDXGIFactory1...
+        //
+        //  >> Avoid some nasty recursion and only hook EnumAdapters if the
+        //       interface version is DXGI 1.0.
+        //
+        DXGI_VIRTUAL_HOOK ( &pFactory,     7,
+                            "IDXGIFactory::EnumAdapters",
+                             EnumAdapters_Override,
+                             EnumAdapters_Original,
+                             EnumAdapters_pfn );
+      }
     }
 
 
@@ -8209,6 +8221,13 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
               )
             )
       {
+        if (i >= MAX_GPU_NODES)
+        {
+          dll_log->LogEx ( true, L"[ DXGI 1.4 ] Too many devices, stopping at %lu...",
+                                   MAX_GPU_NODES );
+          break;
+        }
+
         if ( i > 0 )
         {
           dll_log->LogEx ( false, L"\n"                              );
@@ -8253,6 +8272,13 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
               )
             )
       {
+        if (i >= MAX_GPU_NODES)
+        {
+          dll_log->LogEx ( true, L"[ DXGI 1.4 ] Too many devices, stopping at %lu...",
+                                   MAX_GPU_NODES );
+          break;
+        }
+
         if ( i > 0 )
         {
           dll_log->LogEx ( false, L"\n"                              );
@@ -8562,6 +8588,9 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
     return E_ACCESSDENIED;
+
+  if (__SK_Wine)
+    return E_NOTIMPL;
 
   HRESULT hr = E_NOTIMPL;
 
