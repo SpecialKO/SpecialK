@@ -2397,7 +2397,7 @@ public:
 
         ntStatus =
           NtQueryInformationThread (  hThread, ThreadQuerySetWin32StartAddress,
-                                     &pdwStartAddress, sizeof (DWORD), nullptr );
+                                     &pdwStartAddress, sizeof (DWORD_PTR), nullptr );
 
         char  thread_name [512] = { };
         char  szSymbol    [256] = { };
