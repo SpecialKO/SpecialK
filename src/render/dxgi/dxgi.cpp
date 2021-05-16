@@ -2538,11 +2538,11 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
   struct osd_test_s {
           ULONG64 last_frame          = SK_GetFramesDrawn ();
-          DWORD   dwLastCheck         = timeGetTime       ();
+          DWORD   dwLastCheck         = SK_timeGetTime    ();
     const DWORD         CheckInterval = 250;
   } static _osd;
 
-  if ( timeGetTime () > _osd.dwLastCheck + _osd.CheckInterval )
+  if ( SK_timeGetTime () > _osd.dwLastCheck + _osd.CheckInterval )
   {
     if (config.render.osd._last_vidcap_frame == _osd.last_frame                &&
                                       Source == SK_DXGI_PresentSource::Wrapper &&
@@ -2553,7 +2553,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       config.render.osd.draw_in_vidcap = true;
     }
 
-    _osd.dwLastCheck = timeGetTime       ();
+    _osd.dwLastCheck = SK_timeGetTime    ();
     _osd.last_frame  = SK_GetFramesDrawn ();
   }
 
@@ -2954,6 +2954,56 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
     );
 }
 
+struct {
+  IDXGIFactory1* pFactory1         = nullptr;
+  IDXGIAdapter1* pAdapter1         = nullptr;
+  INT            EnumeratedAdapter =      -1;
+
+  concurrency::concurrent_unordered_map < uint32_t,
+                             std::vector < DXGI_MODE_DESC > >
+                                              cached_descs;
+
+  bool isCurrent (void) {
+    return pFactory1 != nullptr &&
+           pFactory1->IsCurrent ();
+  }
+
+  HRESULT addRef (void** ppFactory) {
+    if (! pFactory1)
+      return E_NOINTERFACE;
+
+    if (! ppFactory)
+      return E_POINTER;
+
+    pFactory1->AddRef ();
+
+    *ppFactory =
+      pFactory1;
+
+    return S_OK;
+  }
+
+  ULONG release (void) {
+    ULONG ret = 0;
+
+    if (pFactory1 != nullptr)
+      ret = pFactory1->Release ();
+
+    pFactory1 = nullptr;
+
+    if (pAdapter1 != nullptr)
+        pAdapter1->Release ();
+
+    pAdapter1 = nullptr;
+
+    EnumeratedAdapter = -1;
+
+    cached_descs.clear ();
+
+    return ret;
+  }
+} __SK_RE8_FactoryCache;
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2967,40 +3017,34 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                          DXGI_MODE_DESC *pDesc)
 {
   struct callframe_s {
-    DXGI_FORMAT ef;
-    UINT         f;
-  } frame = { EnumFormat, Flags };
+    IDXGIOutput* out;
+    DXGI_FORMAT   ef;
+    UINT           f;
+  } frame = { This, EnumFormat, Flags };
 
   uint32_t tag =
     crc32c (0x0, &frame, sizeof (callframe_s));
-
-  static concurrency::concurrent_unordered_map <
-           uint32_t, std::vector <DXGI_MODE_DESC>
-         > cached_descs;
-
 
   static const auto game_id =
     SK_GetCurrentGameID ();
 
 #ifdef _M_AMD64
-  extern bool SK_NNK2_CacheModes;
-
-  if (game_id == SK_GAME_ID::NiNoKuni2 && SK_NNK2_CacheModes)
+  if (game_id == SK_GAME_ID::ResidentEvil8)
   {
-    if (! cached_descs [tag].empty ())
+    if (! __SK_RE8_FactoryCache.cached_descs [tag].empty ())
     {
       int modes = 0;
 
       if (*pNumModes == 0)
       {
-        *pNumModes = (UINT)cached_descs [tag].size ();
+        *pNumModes = (UINT)__SK_RE8_FactoryCache.cached_descs [tag].size ();
              modes = *pNumModes;
       }
 
       else
       {
         modes =
-          (int)std::min (cached_descs [tag].size (), (size_t)*pNumModes);
+          (int)std::min (__SK_RE8_FactoryCache.cached_descs [tag].size (), (size_t)*pNumModes);
       }
 
 
@@ -3008,26 +3052,31 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       {
         for (int i = 0; i < modes; i++)
         {
-          pDesc [i] = cached_descs [tag][i];
+          pDesc [i] = __SK_RE8_FactoryCache.cached_descs [tag][i];
         }
       }
 
       return S_OK;
     }
+
+    else SK_LOG_ONCE (L"[Res Enum 8] STFU Capcom, one GetDisplayModeList (...) call is enough");
   }
 #endif
 
 
   if (pDesc != nullptr)
   {
-    DXGI_LOG_CALL_I5 ( L"       IDXGIOutput", L"GetDisplayModeList       ",
-                         L"  %08" PRIxPTR L"h, %i, %02x, NumModes=%lu, %08"
-                                  PRIxPTR L"h)",
-                (uintptr_t)This,
-                           EnumFormat,
-                               Flags,
-                                 *pNumModes,
-                                    (uintptr_t)pDesc );
+    if (SK_GetCurrentGameID () != SK_GAME_ID::ResidentEvil8 || __SK_RE8_FactoryCache.cached_descs.empty ())
+    {
+      DXGI_LOG_CALL_I5 ( L"       IDXGIOutput", L"GetDisplayModeList       ",
+                           L"  %08" PRIxPTR L"h, %i, %02x, NumModes=%lu, %08"
+                                    PRIxPTR L"h)",
+                  (uintptr_t)This,
+                             EnumFormat,
+                                 Flags,
+                                   *pNumModes,
+                                      (uintptr_t)pDesc );
+    }
   }
 
   if (config.render.dxgi.scaling_mode != -1)
@@ -3129,15 +3178,18 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
       if (pDescLocal == nullptr)
       {
-        dll_log->Log ( L"[   DXGI   ]      >> %lu modes (%li removed)",
-                         *pNumModes,
-                           removed_count );
+        if (SK_GetCurrentGameID () != SK_GAME_ID::ResidentEvil8 || __SK_RE8_FactoryCache.cached_descs.empty ())
+        {
+          dll_log->Log (L"[   DXGI   ]      >> %lu modes (%li removed)",
+                        *pNumModes,
+                        removed_count);
+        }
 
-        cached_descs [tag].resize (*pNumModes);
+        __SK_RE8_FactoryCache.cached_descs [tag].resize (*pNumModes);
 
         for (UINT i = 0; i < *pNumModes; i++)
         {
-          cached_descs [tag][i] = pDesc [i];
+          __SK_RE8_FactoryCache.cached_descs [tag][i] = pDesc [i];
         }
       }
     }
@@ -6430,6 +6482,20 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
                                           UINT            Adapter,
                                    _Out_  IDXGIAdapter1 **ppAdapter)
 {
+  static auto current_game =
+    SK_GetCurrentGameID ();
+
+  if (current_game == SK_GAME_ID::ResidentEvil8 && This == __SK_RE8_FactoryCache.pFactory1)
+  {
+    if ((UINT)__SK_RE8_FactoryCache.EnumeratedAdapter == Adapter)
+    {
+                   __SK_RE8_FactoryCache.pAdapter1->AddRef ();
+      *ppAdapter = __SK_RE8_FactoryCache.pAdapter1;
+
+      return S_OK;
+    }
+  }
+
   std::wstring iname = SK_GetDXGIFactoryInterface    (This);
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
@@ -6438,6 +6504,20 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
 
   HRESULT ret;
   DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
+
+  if (SUCCEEDED (ret))
+  {
+    if (current_game == SK_GAME_ID::ResidentEvil8 && This == __SK_RE8_FactoryCache.pFactory1)
+    {
+      if (__SK_RE8_FactoryCache.EnumeratedAdapter == -1)
+      {
+        __SK_RE8_FactoryCache.EnumeratedAdapter =    Adapter;
+        __SK_RE8_FactoryCache.pAdapter1         = *ppAdapter;
+      
+        (*ppAdapter)->AddRef ();
+      }
+    }
+  }
 
 #if 0
   // For games that try to enumerate all adapters until the API returns failure,
@@ -6626,14 +6706,37 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
                      _Out_ void   **ppFactory)
 
 {
+  static auto current_game =
+    SK_GetCurrentGameID ();
+
+  if ( current_game == SK_GAME_ID::ResidentEvil8 &&
+       riid         == IID_IDXGIFactory1 )
+  {
+    if (__SK_RE8_FactoryCache.isCurrent ())
+      return
+        __SK_RE8_FactoryCache.addRef (ppFactory);
+
+    else
+      __SK_RE8_FactoryCache.release ();
+  }
+
+
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
   UNREFERENCED_PARAMETER (iver);
 
-  DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ",
-                    L"%s, %08" PRIxPTR L"h",
-                      iname.c_str (), (uintptr_t)ppFactory );
+  //if (riid != IID_IDXGIFactory1 || (! __SK_RE8_FactoryCache.isCurrent ()))
+  //{
+    DXGI_LOG_CALL_2 (L"                    CreateDXGIFactory1       ",
+                     L"%s, %08" PRIxPTR L"h",
+                     iname.c_str (), (uintptr_t)ppFactory);
+  //}
+
+  //else
+  //{
+  //  SK_LOG_ONCE (L"[Res Enum 8] STFU Capcom, one factory is enough!");
+  //}
 
   if (CreateDXGIFactory1_Import == nullptr)
   {
@@ -6669,6 +6772,18 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
     *ppFactory = pFactory_;
 #endif
     SK_DXGI_LazyHookFactory ((IDXGIFactory *)*ppFactory);
+    
+    if ( current_game == SK_GAME_ID::ResidentEvil8 &&
+                 riid == IID_IDXGIFactory1 )
+    {
+      SK_ReleaseAssert (__SK_RE8_FactoryCache.pFactory1 == nullptr);
+
+      __SK_RE8_FactoryCache.pFactory1 =
+         (IDXGIFactory1 *)*ppFactory;
+
+      // Hold a ref for cache persistence
+      __SK_RE8_FactoryCache.pFactory1->AddRef ();
+    }
   }
 
   return     ret;
@@ -8385,7 +8500,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     //static DWORD dwLastTest  = 0;
     //static DWORD dwLastSize  = SK_D3D11_Textures.Entries_2D.load ();
     //
-    //DWORD dwNow = timeGetTime ();
+    //DWORD dwNow = SK_timeGetTime ();
     //
     //if ( ( SK_D3D11_Textures.Evicted_2D.load () != dwLastEvict ||
     //       SK_D3D11_Textures.Entries_2D.load () != dwLastSize     ) &&

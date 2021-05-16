@@ -134,7 +134,8 @@ public:
     ///if (SUCCEEDED (hr))
     ///  InterlockedIncrement (&refs_);
 
-    if ( riid != IID_ID3DUserDefinedAnnotation )
+    if ( riid != IID_ID3DUserDefinedAnnotation && 
+         riid != IID_ID3D11VideoContext )      // 61F21C45-3C0E-4A74-9CEA-67100D9AD5E4
     {
       static
         std::unordered_set <std::wstring> reported_guids;
@@ -523,8 +524,13 @@ public:
     //if (SUCCEEDED (hr))
     //  InterlockedIncrement (&refs_);
 
+    if ( riid == IID_ID3D11VideoContext )
+      SK_LOG0 ( (L" * Game is using ID3D11VideoContext..."),
+                 L"D3D11Video" );
+
     if ( riid != IID_ID3DUserDefinedAnnotation &&
-         riid != IID_ID3D11Multithread )
+         riid != IID_ID3D11Multithread         &&
+         riid != IID_ID3D11VideoContext )      // 61F21C45-3C0E-4A74-9CEA-67100D9AD5E4)
     {
       static
         std::unordered_set <std::wstring> reported_guids;
@@ -1296,20 +1302,20 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
                                    pSrcResource, SrcSubresource, pSrcBox );
 
 #pragma region CacheStagingMappedResources
-    if (! config.textures.cache.allow_staging)
+    if (config.textures.cache.allow_staging)
     {
-      if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) ||
-             SK_D3D11_IsStagingCacheable (res_dim, pDstResource) ) && SrcSubresource == 0 && DstSubresource == 0)
+      if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource)/*||
+             SK_D3D11_IsStagingCacheable (res_dim, pDstResource)*/) && /*SrcSubresource == 0 && */DstSubresource == 0)
       {
         auto& map_ctx = (*mapped_resources)[pReal];
 
-        if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource))
+        if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource) && (! SK_D3D11_TextureIsCached (pDstTex)))
         {
           const uint32_t top_crc32 = map_ctx.dynamic_texturesx [pSrcResource];
           const uint32_t checksum  = map_ctx.dynamic_textures  [pSrcResource];
 
           D3D11_TEXTURE2D_DESC dst_desc = { };
-          pDstTex->GetDesc (&dst_desc);
+          pDstTex->GetDesc   (&dst_desc);
 
           const uint32_t cache_tag =
             safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof (D3D11_TEXTURE2D_DESC));
@@ -1319,20 +1325,100 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
             SK_TLS* pTLS =
               SK_TLS_Bottom ();
 
+            static auto& textures =
+              SK_D3D11_Textures;
+
+            std::wstring filename = L"";
+
+            // Temp hack for 1-LOD Staging Texture Uploads
+            bool injectable = (
+              SK_D3D11_IsInjectable (top_crc32, checksum) ||
+              SK_D3D11_IsInjectable (top_crc32, 0x00)
+            );
+
+            if (injectable)
+            {
+              if (! SK_D3D11_res_root->empty ())
+              {
+                wchar_t     wszTex [MAX_PATH + 2] = { };
+                wcsncpy_s ( wszTex, MAX_PATH,
+                      SK_D3D11_TexNameFromChecksum (
+                               top_crc32, checksum,
+                                               0x0 ).c_str (),
+                                   _TRUNCATE );
+
+                if (PathFileExistsW (wszTex))
+                {
+                  HRESULT hr = E_UNEXPECTED;
+
+                  DirectX::TexMetadata  mdata;
+                  DirectX::ScratchImage img;
+
+                  if ( SUCCEEDED ((hr = DirectX::GetMetadataFromDDSFile (wszTex, 0,  mdata     ))) &&
+                       SUCCEEDED ((hr = DirectX::LoadFromDDSFile        (wszTex, 0, &mdata, img))) )
+                  {
+                    SK_ComPtr <ID3D11Texture2D> pOverrideTex;
+                    SK_ComPtr <ID3D11Device>    pDevice;
+                    pReal->GetDevice          (&pDevice.p);                    
+
+                    SK_ScopedBool decl_tex_scope (
+                      SK_D3D11_DeclareTexInjectScope (pTLS)
+                    );
+
+                    if ( SUCCEEDED ((hr = DirectX::CreateTexture (pDevice.p,
+                                                                  img.GetImages     (),
+                                                                  img.GetImageCount (), mdata,
+                            reinterpret_cast <ID3D11Resource**> (&pOverrideTex.p)))) )
+                    {
+                      D3D11_TEXTURE2D_DESC    new_desc = { };
+                      pOverrideTex->GetDesc (&new_desc);
+                      
+                      ///SK_ReleaseAssert (
+                      ///  map_ctx.dynamic_sizes2 [checksum] == SK_D3D11_ComputeTextureSize (&new_desc)
+                      ///);
+
+                      std::scoped_lock <SK_Thread_HybridSpinlock>
+                            scope_lock (*cache_cs);
+
+                      pReal->CopyResource (pDstResource, pOverrideTex);
+                      
+                      const ULONGLONG load_end =
+                        (ULONGLONG)SK_QueryPerf ().QuadPart;
+
+                      //time_elapsed = load_end - map_ctx.texture_times [pDstResource];
+                      filename     = wszTex;
+
+                      SK_LOG0 ( ( L" *** Texture Injected Late... %x :: %x  { %ws }",
+                                                          top_crc32, cache_tag, wszTex ),
+                                  L"StagingTex" );
+                    }
+                  }
+                }
+              }
+            }
+
+            textures->CacheMisses_2D++;
+
             textures->refTexture2D ( pDstTex,
-                                     &dst_desc,
-                                     cache_tag,
-                                     map_ctx.dynamic_sizes2 [checksum],
-                                     map_ctx.dynamic_times2 [checksum],
-                                     top_crc32,
-                                     L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
-                                     pTLS );
+                                      &dst_desc,
+                                        cache_tag,
+                                          map_ctx.dynamic_sizes2   [checksum],
+                                            map_ctx.dynamic_times2 [checksum],
+                                              top_crc32,
+                                                filename.empty () ? map_ctx.dynamic_files2 [checksum].c_str () :
+                                                filename.c_str (),
+                                                  nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
+                                                    pTLS );
+
+            if ((! filename.empty ()) || (! map_ctx.dynamic_files2 [checksum].empty ()))
+              textures->Textures_2D [pDstTex].injected = true;
 
             map_ctx.dynamic_textures.erase  (pSrcResource);
             map_ctx.dynamic_texturesx.erase (pSrcResource);
 
             map_ctx.dynamic_sizes2.erase    (checksum);
             map_ctx.dynamic_times2.erase    (checksum);
+            map_ctx.dynamic_files2.erase    (checksum);
           }
         }
       }

@@ -259,25 +259,25 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   bool foreground =
     GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
-  //////////////////if (foreground)
-  //////////////////{
-  //////////////////  if (self && (! already_processed))
-  //////////////////    SK_RawInput_EnableLegacyMouse  (true);
-  //////////////////  else
-  //////////////////    SK_RawInput_RestoreLegacyMouse ();
-  //////////////////
-  //////////////////  //SK_RawInput_EnableLegacyMouse  (true);
-  //////////////////  //
-  //////////////////  //// Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
-  //////////////////  ////
-  //////////////////  if (self && (! already_processed))
-  //////////////////  {
-  //////////////////    if (SK_ImGui_WantTextCapture ())
-  //////////////////        SK_RawInput_EnableLegacyKeyboard (true);
-  //////////////////  }
-  //////////////////  else
-  //////////////////    SK_RawInput_RestoreLegacyKeyboard ();
-  //////////////////}
+  if (foreground)
+  {
+    if (self && (! already_processed))
+      SK_RawInput_EnableLegacyMouse  (true);
+    else
+      SK_RawInput_RestoreLegacyMouse ();
+  
+    //SK_RawInput_EnableLegacyMouse  (true);
+    //
+    //// Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
+    ////
+    if (self && (! already_processed))
+    {
+      if (SK_ImGui_WantTextCapture ())
+          SK_RawInput_EnableLegacyKeyboard (true);
+    }
+    else
+      SK_RawInput_RestoreLegacyKeyboard ();
+  }
 
 
   int size =
@@ -1198,8 +1198,6 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
     ////if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
     {
-      bool managed = false;
-
       SK_ImGui_Cursor.update ();
 
       if ( SK_ImGui_WantMouseCapture () &&
@@ -1422,8 +1420,8 @@ SK_ImGui_FilterXInput (
 {
   bool disable =
     config.input.gamepad.disabled_to_game ||
-      ( SK_ImGui_WantGamepadCapture ()    &&
-        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot );
+      ( SK_ImGui_WantGamepadCapture ()   /*&&
+        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot*/ );
 
   if (disable)
   {
@@ -1517,6 +1515,64 @@ extern IDirectInputDevice8W_GetDeviceState_pfn
 extern XINPUT_STATE  di8_to_xi;
 extern XINPUT_STATE  joy_to_xi;
 
+using joyGetNumDevs_pfn  = UINT (WINAPI *)(void);
+using joyGetPosEx_pfn    = UINT (WINAPI *)(UINT,LPJOYINFOEX);
+using joyGetDevCapsW_pfn = UINT (WINAPI *)(UINT_PTR,LPJOYCAPSW,UINT);
+
+UINT
+WINAPI
+SK_joyGetPosEx ( _In_  UINT        uJoyID,
+                 _Out_ LPJOYINFOEX pji )
+{
+  static HMODULE hModWinMM =
+    LoadLibraryEx ( L"winmm.dll", nullptr,
+                      LOAD_LIBRARY_SEARCH_SYSTEM32 );
+
+  static  joyGetPosEx_pfn
+         _joyGetPosEx =
+         (joyGetPosEx_pfn)SK_GetProcAddress (hModWinMM,
+         "joyGetPosEx"                      );
+
+  return
+    _joyGetPosEx (uJoyID, pji);
+}
+
+UINT
+WINAPI
+SK_joyGetDevCapsW ( _In_                     UINT_PTR   uJoyID,
+                    _Out_writes_bytes_(cbjc) LPJOYCAPSW pjc,
+                    _In_                     UINT       cbjc )
+{
+  static HMODULE hModWinMM =
+    LoadLibraryEx ( L"winmm.dll", nullptr,
+                      LOAD_LIBRARY_SEARCH_SYSTEM32 );
+
+  static  joyGetDevCapsW_pfn
+         _joyGetDevCapsW =
+         (joyGetDevCapsW_pfn)SK_GetProcAddress (hModWinMM,
+         "joyGetDevCapsW"                      );
+
+  return
+    _joyGetDevCapsW (uJoyID, pjc, cbjc);
+}
+
+UINT
+WINAPI
+SK_joyGetNumDevs (void)
+{
+  static HMODULE hModWinMM =
+    LoadLibraryEx ( L"winmm.dll", nullptr,
+                      LOAD_LIBRARY_SEARCH_SYSTEM32 );
+
+  static  joyGetNumDevs_pfn
+         _joyGetNumDevs =
+         (joyGetNumDevs_pfn)SK_GetProcAddress (hModWinMM,
+         "joyGetNumDevs"                      );
+
+  return
+    _joyGetNumDevs ();
+}
+
 bool
 SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 {
@@ -1588,8 +1644,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
                      JOY_RETURNCENTERED | JOY_USEDEADZONE;
 
-    joyGetPosEx    (JOYSTICKID1, &joy_ex);
-    joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
+    SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
+    SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
 
     SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
   }

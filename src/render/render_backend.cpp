@@ -65,7 +65,7 @@ SK_Display_GetDefaultRefreshRate (void)
   static float fRefresh      = 0.0f;
   static DWORD dwLastChecked = 0;
 
-  if (dwLastChecked < timeGetTime () - 500UL)
+  if (dwLastChecked < SK_timeGetTime () - 500UL)
   {
     auto& rb =
       SK_GetCurrentRenderBackend ();
@@ -73,7 +73,7 @@ SK_Display_GetDefaultRefreshRate (void)
     fRefresh =
       static_cast <float> (rb.windows.device.getDevCaps ().res.refresh);
 
-    dwLastChecked = timeGetTime ();
+    dwLastChecked = SK_timeGetTime ();
   }
 
   return fRefresh;
@@ -473,7 +473,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
   bool success = false;
 
   DWORD dwTimeNow =
-    timeGetTime ();
+    SK_timeGetTime ();
 
   if ( last_checked < (dwTimeNow - 666UL) )
   {    last_checked =  dwTimeNow;
@@ -1110,7 +1110,7 @@ SK_RenderBackend_V2::scan_out_s::getEOTF (void)
 sk_hwnd_cache_s::devcaps_s&
 sk_hwnd_cache_s::getDevCaps (void)
 {
-  const DWORD dwNow = timeGetTime ();
+  const DWORD dwNow = SK_timeGetTime ();
 
   if (devcaps.last_checked < dwNow - 333UL)
   {

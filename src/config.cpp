@@ -134,7 +134,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"Atelier_Ryza_2.exe"),                     SK_GAME_ID::AtelierRyza2                 },
       { hash_lower (L"nioh2.exe"),                              SK_GAME_ID::Nioh2                        },
       { hash_lower (L"HuniePop 2 - Double Date.exe"),           SK_GAME_ID::HuniePop2                    },
-      { hash_lower (L"NieR Replicant ver.1.22474487139.exe"),   SK_GAME_ID::NieR_Sqrt_1_5                }
+      { hash_lower (L"NieR Replicant ver.1.22474487139.exe"),   SK_GAME_ID::NieR_Sqrt_1_5                },
+      { hash_lower (L"re8.exe"),                                SK_GAME_ID::ResidentEvil8                },
     };
 
     first_check = false;
@@ -616,6 +617,7 @@ struct {
       sk::ParameterInt*     placeholders;
       sk::ParameterStringW* assignment;
       sk::ParameterBool*    hook_setstate;
+      sk::ParameterBool*    auto_slot_assign;
     } xinput;
 
     struct {
@@ -1027,6 +1029,8 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.placeholders,      L"XInput Controller Slots to Fake Connectivity On",           dll_ini,         L"Input.XInput",          L"PlaceholderMask"),
     ConfigEntry (input.gamepad.xinput.assignment,        L"Re-Assign XInput Slots",                                    dll_ini,         L"Input.XInput",          L"SlotReassignment"),
     ConfigEntry (input.gamepad.xinput.hook_setstate,     L"Hook vibration; fix third-party created feedback loops",    dll_ini,         L"Input.XInput",          L"HookSetState"),
+    ConfigEntry (input.gamepad.xinput.auto_slot_assign,  L"Switch a game hard-coded to use Slot 0 to an active pad",   dll_ini,         L"Input.XInput",          L"AutoSlotAssign"),
+ 
  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
 
     ConfigEntry (input.gamepad.steam.ui_slot,            L"Steam Controller that owns the config UI",                  dll_ini,         L"Input.Steam",           L"UISlot"),
@@ -2290,43 +2294,48 @@ auto DeclKeybind =
 
       case SK_GAME_ID::NieR_Sqrt_1_5:
       {
-        config.textures.d3d11.cache               = false;
-        config.apis.OpenGL.hook                   = false;
-        config.apis.d3d9.hook                     = false;
-        config.apis.d3d9ex.hook                   = false;
-        config.input.cursor.keys_activate         = false;
-        config.input.cursor.manage                = false; // Automagic
-        config.input.cursor.timeout               =   750;
-        config.input.ui.use_hw_cursor             = false;
-        config.input.ui.capture_hidden            = false;
-        config.input.ui.capture_mouse             = false;
-        SK_ImGui_Cursor.prefs.no_warp.ui_open     =  true;
-        config.render.framerate.present_interval  =     1;
-        config.render.framerate.sleepless_window  =  true;
-        config.render.framerate.sleepless_render  = false; // Reshade Problems
-        config.render.framerate.max_delta_time    =     1;
-        config.render.framerate.buffer_count      =     4;
-        config.render.framerate.swapchain_wait    =     0;
-        config.render.framerate.pre_render_limit  =     3;
-        config.render.framerate.target_fps        =    60;
-        config.render.framerate.drop_late_flips   =  true;
-        config.render.framerate.flip_discard      =  true;
-        config.input.gamepad.disable_ps4_hid      = false; // Automagic
-        config.threads.enable_file_io_trace       =  true;
-        config.steam.preload_overlay              = false; // Set to false because of loss of rumble
-        config.window.background_render           = false;
+        config.textures.d3d11.cache                  = false;
+        config.apis.OpenGL.hook                      = false;
+        config.apis.d3d9.hook                        = false;
+        config.apis.d3d9ex.hook                      = false;
+        config.input.cursor.keys_activate            = false;
+        config.input.cursor.manage                   = false; // Automagic
+        config.input.cursor.timeout                  =   750;
+        config.input.ui.use_hw_cursor                = false;
+        config.input.ui.capture_hidden               = false;
+        config.input.ui.capture_mouse                = false;
+        SK_ImGui_Cursor.prefs.no_warp.ui_open        =  true;
+        config.render.framerate.present_interval     =     1;
+        config.render.framerate.sleepless_window     =  true;
+        config.render.framerate.sleepless_render     = false; // Reshade Problems
+        config.render.framerate.max_delta_time       =     1;
+        config.render.framerate.buffer_count         =     4;
+        config.render.framerate.swapchain_wait       =     0;
+        config.render.framerate.pre_render_limit     =     3;
+        config.render.framerate.target_fps           =    60;
+        config.render.framerate.drop_late_flips      =  true;
+        config.render.framerate.flip_discard         =  true;
+        config.input.gamepad.disable_ps4_hid         = false; // Automagic
+        config.input.gamepad.xinput.auto_slot_assign = true;
+        config.threads.enable_file_io_trace          =  true;
+        config.steam.preload_overlay                 = false; // Set to false because of loss of rumble
+        config.window.background_render              = false;
 
         SK_D3D11_DeclHUDShader (0x3e464f00, ID3D11VertexShader);
 
-      //config.render.dxgi.deferred_isolation     = true;
-        config.input.keyboard.catch_alt_f4        =  true;
-        config.input.keyboard.override_alt_f4     =  true;
-
-       //config.nvidia.sleep.enable               = true;
-         config.nvidia.sleep.enforcement_site     = 2;
-       //config.nvidia.sleep.low_latency          = true;
-       //config.nvidia.sleep.low_latency_boost    = true;
+      //config.render.dxgi.deferred_isolation        = true;
+        config.input.keyboard.catch_alt_f4           =  true;
+        config.input.keyboard.override_alt_f4        =  true;
+                                                     
+        config.nvidia.sleep.enable                   = true;
+        config.nvidia.sleep.enforcement_site         = 2;
+        config.nvidia.sleep.low_latency              = true;
+        config.nvidia.sleep.low_latency_boost        = true;
       } break;
+
+      case SK_GAME_ID::ResidentEvil8:
+        config.steam.silent                          = true; // Steam integration is unstable
+        break;
 #endif
     }
   }
@@ -2769,9 +2778,9 @@ auto DeclKeybind =
     config.input.gamepad.xinput.placehold [3] = ( placeholder_mask & 0x8 );
   }
 
-  input.gamepad.disable_rumble->load       (config.input.gamepad.disable_rumble);
-  input.gamepad.xinput.hook_setstate->load (config.input.gamepad.xinput.hook_setstate);
-
+  input.gamepad.disable_rumble->load          (config.input.gamepad.disable_rumble);
+  input.gamepad.xinput.hook_setstate->load    (config.input.gamepad.xinput.hook_setstate);
+  input.gamepad.xinput.auto_slot_assign->load (config.input.gamepad.xinput.auto_slot_assign);
 
   if (((sk::iParameter *)input.gamepad.xinput.assignment)->load ())
   {
@@ -3572,17 +3581,17 @@ SK_SaveConfig ( std::wstring name,
       xinput_assign += L",";
   }
 
-  input.gamepad.xinput.assignment->store     (xinput_assign);
-  input.gamepad.disable_rumble->store        (config.input.gamepad.disable_rumble);
-  input.gamepad.xinput.hook_setstate->store  (config.input.gamepad.xinput.hook_setstate);
-
-  threads.enable_mem_alloc_trace->store      (config.threads.enable_mem_alloc_trace);
-  threads.enable_file_io_trace->store        (config.threads.enable_file_io_trace);
-
-  window.borderless->store                   (config.window.borderless);
-  window.center->store                       (config.window.center);
-  window.background_render->store            (config.window.background_render);
-  window.background_mute->store              (config.window.background_mute);
+  input.gamepad.xinput.assignment->store       (xinput_assign);
+  input.gamepad.disable_rumble->store          (config.input.gamepad.disable_rumble);
+  input.gamepad.xinput.hook_setstate->store    (config.input.gamepad.xinput.hook_setstate);
+  input.gamepad.xinput.auto_slot_assign->store (config.input.gamepad.xinput.auto_slot_assign);
+  threads.enable_mem_alloc_trace->store        (config.threads.enable_mem_alloc_trace);
+  threads.enable_file_io_trace->store          (config.threads.enable_file_io_trace);
+                                               
+  window.borderless->store                     (config.window.borderless);
+  window.center->store                         (config.window.center);
+  window.background_render->store              (config.window.background_render);
+  window.background_mute->store                (config.window.background_mute);
   if (config.window.offset.x.absolute != 0)
   {
     wchar_t   wszAbsolute [16] = { };

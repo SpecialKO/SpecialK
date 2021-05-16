@@ -65,11 +65,14 @@ SK_GetCurrentMS (void)
   // Handle possible scenario where SK uses this before
   // the control panel is initialized / rendered
   if (SK::ControlPanel::current_time == 0)
-      SK::ControlPanel::current_time = timeGetTime ();
+      SK::ControlPanel::current_time = SK_timeGetTime ();
 
   return
     SK::ControlPanel::current_time;
 }
+
+void
+SK_Display_UpdateOutputTopology (void);
 
 bool __imgui_alpha = true;
 
@@ -698,10 +701,13 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   if (dirty)
   {
-    POINT ptCenter = {
-      (game_window.actual.window.left + game_window.actual.window.right ) / 2,
-      (game_window.actual.window.top  + game_window.actual.window.bottom) / 2
-    };
+    POINT
+     ptCenter = {
+       game_window.actual.window.left   +
+     ( game_window.actual.window.right  - game_window.actual.window.left ) / 2,
+       game_window.actual.window.top    +
+     ( game_window.actual.window.bottom - game_window.actual.window.top  ) / 2
+                };
 
     MONITORINFOEX minfo       = { };
     HMONITOR      hMonCurrent =
@@ -832,6 +838,62 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
       dirty = false;
     }
+  }
+
+  std::vector <int> outputs;
+
+  char display_list [4096] = { };
+  int  active_idx          =  0;
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  for ( auto& display : rb.displays )
+  {
+    if (display.attached)
+      outputs.push_back (display.idx);
+  }
+
+  char* pszDispList =
+       display_list;
+
+  for ( auto output : outputs )
+  {
+    StrCatA ( pszDispList,
+      SK_WideCharToUTF8 (
+        rb.displays [output].name
+      ).c_str ()
+    );
+
+    pszDispList +=
+      wcslen (rb.displays [output].name);
+
+    (*pszDispList++) = '\0';
+
+    if (! wcsicmp ( rb.displays [output].name,
+                              rb.display_name )
+       ) active_idx = output;
+  }
+
+  (*pszDispList++) = '\0';
+
+  if (ImGui::Combo ("Preferred Monitor", &active_idx, display_list))
+  {
+    SK_DeferCommand ("Window.Center 0");
+
+    config.display.monitor_handle = rb.displays [active_idx].monitor;
+    config.display.monitor_idx    = rb.displays [active_idx].idx;
+
+    SK_Window_RepositionIfNeeded ();
+
+    SK_DeferCommand ("Window.Center 1");
+    SK_SetCursorPos
+    ( rb.displays [active_idx].rect.left   +
+     (rb.displays [active_idx].rect.right  - rb.displays [active_idx].rect.left) / 2,
+      rb.displays [active_idx].rect.top    +
+     (rb.displays [active_idx].rect.bottom - rb.displays [active_idx].rect.top)  / 2 );
+
+    dirty = true;
   }
 
   ImGui::TextColored ( ImColor (0.75f, 0.75f, 0.75f), "Desktop Settings" );
@@ -1740,20 +1802,20 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        if ( (! SK::SteamAPI::AppID ())          &&
-             (! config.steam.force_load_steamapi) )
-        {
-          ImGui::Separator ();
-
-          if (ImGui::MenuItem ("Manually Inject SteamAPI", ""))
-          {
-            config.steam.force_load_steamapi = true;
-            SK_Steam_KickStart  ();
-
-            if (SK_GetFramesDrawn () > 1)
-              SK_ApplyQueuedHooks ();
-          }
-        }
+        ////////if ( (! SK::SteamAPI::AppID ())          &&
+        ////////     (! config.steam.force_load_steamapi) )
+        ////////{
+        ////////  ImGui::Separator ();
+        ////////
+        ////////  if (ImGui::MenuItem ("Manually Inject SteamAPI", ""))
+        ////////  {
+        ////////    config.steam.force_load_steamapi = true;
+        ////////    SK_Steam_KickStart  ();
+        ////////
+        ////////    if (SK_GetFramesDrawn () > 1)
+        ////////      SK_ApplyQueuedHooks ();
+        ////////  }
+        ////////}
 
         ImGui::Separator ();
         //if (ImGui::MenuItem ("Unload Special K", "EXPERIMENTAL"))
@@ -3703,6 +3765,105 @@ SK_Steam_GetUserName (char* pszName, int max_len = 512)
   }
 }
 
+
+LRESULT
+CALLBACK
+SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
+{
+  if (code < 0)
+    return CallNextHookEx (0, code, wParam, lParam);
+
+  if (SK_ImGui_Visible)
+  {
+    auto& io =
+      ImGui::GetIO ();
+
+    MOUSEHOOKSTRUCT* mhs =
+      (MOUSEHOOKSTRUCT*)lParam;
+
+    switch (wParam)
+    {
+      case WM_MOUSEMOVE:
+      {
+        SK_ImGui_Cursor.pos.x = mhs->pt.x;
+        SK_ImGui_Cursor.pos.y = mhs->pt.y;
+
+        io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+        io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+      } break;
+
+
+      // Does not work correctly
+      ///case WM_MOUSEWHEEL:
+      ///  io.MouseWheel +=
+      ///    static_cast <float> (GET_WHEEL_DELTA_WPARAM (mhs->dwExtraInfo)) /
+      ///    static_cast <float> (WHEEL_DELTA);
+      ///  break;
+
+
+      case WM_LBUTTONDOWN:
+      case WM_LBUTTONDBLCLK:
+        io.MouseClicked [0] = true;
+        break;
+
+      case WM_RBUTTONDOWN:
+      case WM_RBUTTONDBLCLK:
+        io.MouseClicked [1] = true;
+        break;
+
+      case WM_MBUTTONDOWN:
+      case WM_MBUTTONDBLCLK:
+        io.MouseClicked [2] = true;
+        break;
+
+      case WM_XBUTTONDOWN:
+      case WM_XBUTTONDBLCLK:
+      {
+        WORD Flags =
+          GET_XBUTTON_WPARAM (mhs->dwExtraInfo);
+
+        io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
+        io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
+      } break;
+    }
+
+    if (SK_ImGui_WantMouseCapture () && (wParam != WM_MOUSEWHEEL))
+      return 1;
+  }
+
+  return
+    CallNextHookEx (0, code, wParam, lParam);
+}
+
+LRESULT
+CALLBACK
+SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
+{
+  if (code < 0)
+    return CallNextHookEx (0, code, wParam, lParam);
+
+  if (SK_ImGui_Visible)
+  {
+    auto& io =
+      ImGui::GetIO ();
+
+    bool wasPressed =
+        ( lParam & (1 << 30) ) != 0;
+    bool isPressed =
+        ( lParam & (1 << 31) ) == 0;
+    bool isAltDown =
+        ( lParam & (1 << 29) ) != 0;
+
+    io.KeysDown [wParam] = isPressed;
+
+    if (SK_ImGui_WantKeyboardCapture () && (! io.WantTextInput))
+      return 1;
+  }
+
+  return
+    CallNextHookEx (0, code, wParam, lParam);
+}
+
 void
 SK_ImGui_StageNextFrame (void)
 {
@@ -3739,8 +3900,8 @@ SK_ImGui_StageNextFrame (void)
                           ImGui::GetStyle ().ItemInnerSpacing.y;
   }
 
-  current_tick = SK_QueryPerf ().QuadPart;
-  current_time = timeGetTime  ();
+  current_tick = SK_QueryPerf   ().QuadPart;
+  current_time = SK_timeGetTime ();
 
   bool d3d9  = false;
   bool d3d11 = false;
@@ -3878,6 +4039,28 @@ SK_ImGui_StageNextFrame (void)
 
   if (SK_ImGui_Visible)
   {
+    using  SetWindowsHookEx_pfn = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
+    extern SetWindowsHookEx_pfn SetWindowsHookExA_Original;
+    extern SetWindowsHookEx_pfn SetWindowsHookExW_Original;
+
+    SK_RunOnce (IsGUIThread (TRUE));
+    
+    SK_RunOnce (
+      SetWindowsHookExW_Original (
+        WH_KEYBOARD, SK_ImGui_KeyboardProc,
+          skModuleRegistry::Self (),
+              GetCurrentThreadId ()
+                                 )
+    );
+    
+    SK_RunOnce (
+      SetWindowsHookExW_Original (
+        WH_MOUSE,    SK_ImGui_MouseProc,
+          skModuleRegistry::Self (),
+              GetCurrentThreadId ()
+                                 )
+    );
+
     SK_ControlPanel_Activated = true;
     keep_open                 = SK_ImGui_ControlPanel ();
   }
@@ -4423,7 +4606,7 @@ SK_ImGui_Toggle (void)
 
   if (last_frame != SK_GetFramesDrawn ())
   {
-    current_time  = timeGetTime       ();
+    current_time  = SK_timeGetTime    ();
     last_frame    = SK_GetFramesDrawn ();
   }
 
@@ -4562,3 +4745,574 @@ SK_ImGui_Toggle (void)
       SK_ImGui_OpenCloseCallback->fn (SK_ImGui_OpenCloseCallback->data);
   }
 }
+
+
+
+
+void
+SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
+                              DXGI_OUTPUT_DESC&              outDesc );
+void
+SK_DXGI_UpdateColorSpace    ( IDXGISwapChain3*   This,
+                              DXGI_OUTPUT_DESC1* outDesc = nullptr );
+
+const wchar_t*
+DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
+
+void
+SK_Display_UpdateOutputTopology (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.swapchain != nullptr && rb.device != nullptr)
+  {
+    rb.updateOutputTopology ();
+    return;
+  }
+  
+  SK_Display_ResolutionSelectUI (true);
+  
+  static
+    CreateDXGIFactory1_pfn
+   _CreateDXGIFactory1 ( CreateDXGIFactory1_Import != nullptr ?
+                         CreateDXGIFactory1_Import            :
+    CreateDXGIFactory1 );
+
+  static SK_ComPtr <IDXGIFactory1> pFactory1;
+         SK_ComPtr <IDXGIAdapter > pAdapter;
+
+  if (   pFactory1 != nullptr &&
+      (! pFactory1->IsCurrent ()))  
+         pFactory1.Release    ();
+
+  auto                        _GetAdapter
+= [&] (SK_ComPtr <IDXGIAdapter>& pAdapter)
+->bool
+  {
+    try
+    {
+      ThrowIfFailed (
+         (nullptr == pFactory1.p) ?
+           _CreateDXGIFactory1  (
+             IID_IDXGIFactory1,
+           (void **)&pFactory1.p) :     S_OK );
+      ThrowIfFailed (pFactory1->EnumAdapters
+                             ( 0, &pAdapter ));
+
+      return true;
+    }
+
+    catch (const SK_ComException& e)
+    {
+      SK_LOG0 ( (  L"%ws -> %hs",
+                   __FUNCTIONW__, e.what ()
+                ), L"MonitorTop" );
+
+      return false;
+    }
+  };
+
+  if (_GetAdapter (pAdapter))
+  {
+    LUID luidAdapter = { };
+
+    /////SK_ComPtr <ID3D12Device>                             pDevice12; // D3D12
+    /////if (SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pDevice12.p))))
+    /////{
+    /////  // Yep, now for the fun part
+    /////  luidAdapter =
+    /////    pDevice12->GetAdapterLuid ();
+    /////}
+
+    // D3D11 or something else
+    {
+      DXGI_ADAPTER_DESC   adapterDesc = { };
+      pAdapter->GetDesc (&adapterDesc);
+
+      luidAdapter =
+        adapterDesc.AdapterLuid;
+    }
+
+    static constexpr
+      size_t display_size = sizeof (SK_RenderBackend_V2::output_s),
+         num_displays     = sizeof ( rb.displays) /
+                                     display_size;
+
+    bool display_changed [num_displays] = { };
+
+    for ( auto idx = 0 ; idx < num_displays ; ++idx )
+    {
+      RtlSecureZeroMemory (
+        &rb.displays [idx], display_size
+      );
+    }
+
+    UINT                             idx = 0;
+    SK_ComPtr <IDXGIOutput>                pOutput;
+
+    while ( DXGI_ERROR_NOT_FOUND !=
+              pAdapter->EnumOutputs (idx, &pOutput.p) )
+    {
+      auto& display =
+        rb.displays [idx];
+
+      if (pOutput.p != nullptr)
+      {
+        DXGI_OUTPUT_DESC1 outDesc1 = { };
+        DXGI_OUTPUT_DESC  outDesc  = { };
+
+        if (SUCCEEDED (pOutput->GetDesc (&outDesc)))
+        {
+          display.idx      = idx;
+          display.monitor  = outDesc.Monitor;
+          display.rect     = outDesc.DesktopCoordinates;
+          display.attached = outDesc.AttachedToDesktop;
+
+
+          if (sk::NVAPI::nv_hardware != false)
+          {
+            NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = { };
+            NvU32               nvGpuCount                             =   0;
+            NvDisplayHandle     nvDisplayHandle;
+            NvU32               nvOutputId  = std::numeric_limits <NvU32>::max ();
+            NvU32               nvDisplayId = std::numeric_limits <NvU32>::max ();
+
+            if ( NVAPI_OK ==
+                   NvAPI_GetAssociatedNvidiaDisplayHandle (
+                     SK_FormatString (R"(%ws)", outDesc.DeviceName).c_str (),
+                       &nvDisplayHandle
+                   ) &&
+                 NVAPI_OK ==
+                   NvAPI_GetAssociatedDisplayOutputId (nvDisplayHandle, &nvOutputId) &&
+                 NVAPI_OK ==
+                   NvAPI_GetPhysicalGPUsFromDisplay   (nvDisplayHandle, nvGpuHandles,
+                                                                       &nvGpuCount)  &&
+                 NVAPI_OK ==
+                   NvAPI_SYS_GetDisplayIdFromGpuAndOutputId (
+                     nvGpuHandles [0], nvOutputId,
+                                      &nvDisplayId
+                   )
+               )
+            {
+            //display.nvapi.display_handle = nvDisplayHandle;
+            //display.nvapi.gpu_handle     = nvGpuHandles [0];
+            //display.nvapi.output_id      = nvOutputId;
+              display.nvapi.display_id     = nvDisplayId;
+            }
+          }
+
+          wcsncpy_s ( display.dxgi_name,  32,
+                      outDesc.DeviceName, _TRUNCATE );
+
+          SK_RBkEnd_UpdateMonitorName (display, outDesc);
+
+          MONITORINFO
+            minfo        = {                  };
+            minfo.cbSize = sizeof (MONITORINFO);
+
+          GetMonitorInfoA (display.monitor, &minfo);
+
+          display.primary =
+            ( minfo.dwFlags & MONITORINFOF_PRIMARY );
+
+          SK_ComQIPtr <IDXGIOutput6>
+              pOutput6 (pOutput);
+          if (pOutput6.p != nullptr)
+          {
+            if (SUCCEEDED (pOutput6->GetDesc1 (&outDesc1)))
+            {
+              if (outDesc1.MinLuminance > outDesc1.MaxFullFrameLuminance)
+                std::swap (outDesc1.MinLuminance, outDesc1.MaxFullFrameLuminance);
+
+              static bool once = false;
+
+              if (! std::exchange (once, true))
+              {
+                SK_LOG0 ( (L" --- Working around DXGI bug, swapping invalid min / avg luminance levels"),
+                           L"   DXGI   "
+                        );
+              }
+
+              display.bpc               = outDesc1.BitsPerColor;
+              display.gamut.minY        = outDesc1.MinLuminance;
+              display.gamut.maxY        = outDesc1.MaxLuminance;
+              display.gamut.maxLocalY   = outDesc1.MaxLuminance;
+              display.gamut.maxAverageY = outDesc1.MaxFullFrameLuminance;
+              display.gamut.xr          = outDesc1.RedPrimary   [0];
+              display.gamut.yr          = outDesc1.RedPrimary   [1];
+              display.gamut.xb          = outDesc1.BluePrimary  [0];
+              display.gamut.yb          = outDesc1.BluePrimary  [1];
+              display.gamut.xg          = outDesc1.GreenPrimary [0];
+              display.gamut.yg          = outDesc1.GreenPrimary [1];
+              display.gamut.Xw          = outDesc1.WhitePoint   [0];
+              display.gamut.Yw          = outDesc1.WhitePoint   [1];
+              display.gamut.Zw          = 1.0f - display.gamut.Xw - display.gamut.Yw;
+              display.colorspace        = outDesc1.ColorSpace;
+
+              display.hdr               = outDesc1.ColorSpace ==
+                DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+            }
+          }
+        }
+      }
+
+      rb.stale_display_info = false;
+
+      pOutput.Release ();
+
+      idx++;
+    }
+
+    idx = 0;
+
+    while ( DXGI_ERROR_NOT_FOUND !=
+              pAdapter->EnumOutputs (idx, &pOutput.p) )
+    {
+      auto& display =
+        rb.displays [idx];
+
+      if (pOutput.p != nullptr)
+      {
+        auto old_crc =
+         rb.display_crc [idx];
+
+         rb.display_crc [idx] =
+                 crc32c ( 0,
+        &display,
+         display_size   );
+
+        display_changed [idx] =
+          old_crc != rb.display_crc [idx];
+
+        SK_ComQIPtr <IDXGISwapChain> pChain (rb.swapchain.p);
+
+        DXGI_SWAP_CHAIN_DESC swapDesc         = { };
+        RECT                 rectOutputWindow = { };
+
+        if (pChain.p != nullptr)
+        {
+          pChain->GetDesc (&swapDesc);
+          GetWindowRect   ( swapDesc.OutputWindow, &rectOutputWindow);
+        }
+
+        auto pContainer =
+          rb.getContainingOutput (rectOutputWindow);
+
+        if (pContainer != nullptr)
+        {
+          if (pContainer->monitor == display.monitor)
+          {
+            wcsncpy_s ( rb.display_name,    128,
+                        display.name, _TRUNCATE );
+
+            // Late init
+            if (rb.monitor != display.monitor)
+                rb.monitor  = display.monitor;
+
+            rb.display_gamut.xr = display.gamut.xr;
+            rb.display_gamut.yr = display.gamut.yr;
+            rb.display_gamut.xg = display.gamut.xg;
+            rb.display_gamut.yg = display.gamut.yg;
+            rb.display_gamut.xb = display.gamut.xb;
+            rb.display_gamut.yb = display.gamut.yb;
+            rb.display_gamut.Xw = display.gamut.Xw;
+            rb.display_gamut.Yw = display.gamut.Yw;
+            rb.display_gamut.Zw = 1.0f - display.gamut.Xw - display.gamut.Yw;
+
+            rb.display_gamut.minY        = display.gamut.minY;
+            rb.display_gamut.maxY        = display.gamut.maxY;
+            rb.display_gamut.maxLocalY   = display.gamut.maxY;
+            rb.display_gamut.maxAverageY = display.gamut.maxAverageY;
+
+            if (display.attached)
+            {
+              rb.scanout.dwm_colorspace =
+                display.colorspace;
+            }
+
+            SK_ComQIPtr <IDXGISwapChain3>
+                   pSwap3 (rb.swapchain.p);
+            if (   pSwap3)
+            {
+              // Windows tends to cache this stuff, we're going to build our own with
+              //   more up-to-date values instead.
+              DXGI_OUTPUT_DESC1 uncachedOutDesc;
+              uncachedOutDesc.BitsPerColor = pContainer->bpc;
+              uncachedOutDesc.ColorSpace   = pContainer->colorspace;
+
+              SK_DXGI_UpdateColorSpace (pSwap3.p, &uncachedOutDesc);
+
+              if ((! rb.isHDRCapable ()) && __SK_HDR_16BitSwap)
+              {
+                SK_RunOnce (
+                  SK_ImGui_WarningWithTitle (
+                    L"ERROR: Special K HDR Applied to a non-HDR Display\r\n\r\n"
+                    L"\t\t>> Please Disable SK HDR or set the Windows Desktop to use HDR",
+                                             L"HDR is Unsupported by the Active Display" )
+                );
+              }
+            }
+          }
+        }
+
+        if (display_changed [idx])
+        {
+          dll_log->LogEx ( true,
+            L"[Output Dev]\n"
+            L"  +------------------+---------------------\n"
+            L"  | EDID Device Name |  %ws\n"
+            L"  | DXGI Device Name |  %ws (HMONITOR: %x)\n"
+            L"  | Desktop Display. |  %ws%ws\n"
+            L"  | Bits Per Color.. |  %u\n"
+            L"  | Color Space..... |  %s\n"
+            L"  | Red Primary..... |  %f, %f\n"
+            L"  | Green Primary... |  %f, %f\n"
+            L"  | Blue Primary.... |  %f, %f\n"
+            L"  | White Point..... |  %f, %f\n"
+            L"  | Min Luminance... |  %f\n"
+            L"  | Max Luminance... |  %f\n"
+            L"  |  \"  FullFrame... |  %f\n"
+            L"  +------------------+---------------------\n",
+              display.name,
+              display.dxgi_name, display.monitor,
+              display.attached ? L"Yes"                : L"No",
+              display.primary  ? L" (Primary Display)" : L"",
+                          display.bpc,
+              DXGIColorSpaceToStr (display.colorspace),
+              display.gamut.xr,    display.gamut.yr,
+              display.gamut.xg,    display.gamut.yg,
+              display.gamut.xb,    display.gamut.yb,
+              display.gamut.Xw,    display.gamut.Yw,
+              display.gamut.minY,  display.gamut.maxY,
+              display.gamut.maxAverageY
+          );
+        }
+
+        pOutput.Release ();
+      }
+
+      idx++;
+    }
+
+    bool any_changed =
+      std::count ( std::begin (display_changed),
+                   std::end   (display_changed), true ) > 0;
+
+    if (any_changed)
+    {
+      for ( UINT i = 0 ; i < idx; ++i )
+      {
+        SK_LOG0 ( ( L"%s Monitor %i: [ %ix%i | (%5i,%#5i) ] \"%ws\" :: %s",
+                      rb.displays [i].primary ? L"*" : L" ",
+                      rb.displays [i].idx,
+                      rb.displays [i].rect.right  - rb.displays [i].rect.left,
+                      rb.displays [i].rect.bottom - rb.displays [i].rect.top,
+                      rb.displays [i].rect.left,    rb.displays [i].rect.top,
+                      rb.displays [i].name,
+                      rb.displays [i].hdr ? L"HDR" : L"SDR" ),
+                    L"   DXGI   " );
+      }
+    }
+  }
+}
+
+///void
+///SK_Display_GetMonitorName ( HMONITOR hMon,
+///                            wchar_t* wszName )
+///{
+///  static auto& rb =
+///    SK_GetCurrentRenderBackend ();
+///
+///  if (*display.name == L'\0')
+///  {
+///    std::string edid_name;
+///
+///    UINT devIdx = display.idx;
+///
+///    wsprintf (display.name, L"UNKNOWN");
+///
+///    bool nvSuppliedEDID = false;
+///
+///    // This is known to return EDIDs with checksums that don't match expected,
+///    //   there's not much benefit to getting EDID this way, so use the registry instead.
+///#if 1
+///    if (sk::NVAPI::nv_hardware != false)
+///    {
+///      NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = { };
+///      NvU32               nvGpuCount                             =   0;
+///      NvDisplayHandle     nvDisplayHandle;
+///      NvU32               nvOutputId  = std::numeric_limits <NvU32>::max ();
+///      NvU32               nvDisplayId = std::numeric_limits <NvU32>::max ();
+///
+///      if ( NVAPI_OK ==
+///             NvAPI_GetAssociatedNvidiaDisplayHandle (
+///               SK_FormatString (R"(%ws)", outDesc.DeviceName).c_str (),
+///                 &nvDisplayHandle
+///             ) &&
+///           NVAPI_OK ==
+///             NvAPI_GetAssociatedDisplayOutputId (nvDisplayHandle, &nvOutputId) &&
+///           NVAPI_OK ==
+///             NvAPI_GetPhysicalGPUsFromDisplay   (nvDisplayHandle, nvGpuHandles,
+///                                                                 &nvGpuCount)  &&
+///           NVAPI_OK ==
+///             NvAPI_SYS_GetDisplayIdFromGpuAndOutputId (
+///               nvGpuHandles [0], nvOutputId,
+///                                &nvDisplayId
+///             )
+///         )
+///      {
+///        NV_EDID edid = {         };
+///        edid.version = NV_EDID_VER;
+///
+///        if ( NVAPI_OK ==
+///               NvAPI_GPU_GetEDID (
+///                 nvGpuHandles [0],
+///                 nvDisplayId, &edid
+///               )
+///           )
+///        {
+///          edid_name =
+///            rb.parseEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
+///
+///          auto nativeRes =
+///            rb.parseEDIDForNativeRes ( edid.EDID_Data, edid.sizeofEDID );
+///
+///          display.native.width  = nativeRes.x;
+///          display.native.height = nativeRes.y;
+///
+///          if (! edid_name.empty ())
+///          {
+///            nvSuppliedEDID = true;
+///          }
+///        }
+///      }
+///    }
+///#endif
+///
+///    *display.name = L'\0';
+///
+///     //@TODO - ELSE: Test support for various HDR colorspaces.
+///
+///    DISPLAY_DEVICEW        disp_desc = { };
+///    disp_desc.cb = sizeof (disp_desc);
+///
+///    if (EnumDisplayDevices ( outDesc.DeviceName, 0,
+///                               &disp_desc, EDD_GET_DEVICE_INTERFACE_NAME ))
+///    {
+///      if (! nvSuppliedEDID)
+///      {
+///        HDEVINFO devInfo =
+///          SetupDiGetClassDevsEx ( &GUID_CLASS_MONITOR,
+///                                    nullptr, nullptr,
+///                                      DIGCF_PRESENT,
+///                                        nullptr, nullptr, nullptr );
+///
+///        if ((! nvSuppliedEDID) && devInfo != nullptr)
+///        {
+///          wchar_t   wszDevName [ 64] = { };
+///          wchar_t   wszDevInst [128] = { };
+///          wchar_t* pwszTok           = nullptr;
+///
+///          swscanf (disp_desc.DeviceID, LR"(\\?\DISPLAY#%63ws)", wszDevName);
+///
+///          pwszTok =
+///            StrStrIW (wszDevName, L"#");
+///
+///          if (pwszTok != nullptr)
+///          {
+///            *pwszTok = L'\0';
+///            wcsncpy_s ( wszDevInst,  128,
+///                        pwszTok + 1, _TRUNCATE );
+///
+///            pwszTok =
+///              StrStrIW (wszDevInst, L"#");
+///
+///            if (pwszTok != nullptr)
+///               *pwszTok  = L'\0';
+///
+///
+///            uint8_t EDID_Data [256] = { };
+///            DWORD   edid_size       =  sizeof (EDID_Data);
+///
+///
+///            DWORD   dwType = REG_NONE;
+///            LRESULT lStat  =
+///              RegGetValueW ( HKEY_LOCAL_MACHINE,
+///                SK_FormatStringW ( LR"(SYSTEM\CurrentControlSet\Enum\DISPLAY\)"
+///                                   LR"(%ws\%ws\Device Parameters)",
+///                                     wszDevName, wszDevInst ).c_str (),
+///                              L"EDID",
+///                                RRF_RT_REG_BINARY, &dwType,
+///                                  EDID_Data, &edid_size );
+///
+///            if (ERROR_SUCCESS == lStat)
+///            {
+///              edid_name =
+///                rb.parseEDIDForName ( EDID_Data, edid_size );
+///
+///              auto nativeRes =
+///                rb.parseEDIDForNativeRes ( EDID_Data, edid_size );
+///
+///              display.native.width  = nativeRes.x;
+///              display.native.height = nativeRes.y;
+///            }
+///
+///            //DISPLAY#MEIA296#5&2dafe0a1&3&UID41221#
+///          }
+///        }
+///      }
+///
+///      if (EnumDisplayDevices (outDesc.DeviceName, 0, &disp_desc, 0))
+///      {
+///        if (SK_GetCurrentRenderBackend ().display_crc [display.idx] == 0)
+///        {
+///          dll_log->Log ( L"[Output Dev] DeviceName: %ws, devIdx: %lu, DeviceID: %ws",
+///                           disp_desc.DeviceName, devIdx,
+///                             disp_desc.DeviceID );
+///        }
+///
+///        wsprintf ( display.name, edid_name.empty () ?
+///                                    LR"(%ws (%ws))" :
+///                                      L"%hs",
+///                     edid_name.empty () ?
+///                       disp_desc.DeviceString :
+///            (WCHAR *)edid_name.c_str (),
+///                         disp_desc.DeviceName );
+///      }
+///    }
+///  }
+///}
+
+///BOOL
+///CALLBACK
+///SK_Display_MonitorEnumProc ( HMONITOR hMonitor,
+///                             HDC      hDC,
+///                             LPRECT   lpRect,
+///                             LPARAM   lParam )
+///{
+///  SK_Monitor_s monitor = {      };
+///     monitor.hMonitor  = hMonitor;
+///     monitor.rcRect    =  *lpRect;
+///
+///  SK_Monitors->push_back (
+///    monitor
+///  );
+///
+///  return TRUE;
+///}
+///
+///void
+///SK_Display_UpdateMonitors (void)
+///{
+///  SK_Monitors->clear ();
+///
+///  if (
+///    EnumDisplayMonitors ( nullptr, nullptr,
+///    SK_Display_MonitorEnumProc, (LPARAM)&SK_Monitors
+///                        )
+///     )
+///  {
+///    // ...
+///  }
+///}

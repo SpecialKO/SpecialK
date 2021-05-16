@@ -476,7 +476,7 @@ SK_File_MoveNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
                           MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED ) )
   {
     wchar_t wszTemp [MAX_PATH + 2] = { };
-    GetTempFileNameW (SK_SYS_GetInstallPath ().c_str (), L"SKI", timeGetTime (), wszTemp);
+    GetTempFileNameW (SK_SYS_GetInstallPath ().c_str (), L"SKI", SK_timeGetTime (), wszTemp);
 
     MoveFileExW ( wszNew, wszTemp, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
     MoveFileExW ( wszOld, wszNew,  MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
@@ -3109,7 +3109,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
   else if (StrStrA (lpszCmdLine, "Uninstall"))
   {
-    DWORD   dwTime                       = timeGetTime ();
+    DWORD   dwTime                       = SK_timeGetTime ();
     wchar_t wszCurrentDir [MAX_PATH + 2] = { };
     wchar_t wszUserDLL    [MAX_PATH + 2] = { };
     wchar_t wszKernelSys  [MAX_PATH + 2] = { };
@@ -3240,7 +3240,7 @@ SK_WinRing0_Uninstall (void)
     SK_GetModuleFullName (skModuleRegistry::Self ());
 
   wchar_t wszTemp [MAX_PATH + 2] = { };
-  DWORD   dwTime                 = timeGetTime ();
+  DWORD   dwTime                 = SK_timeGetTime ();
 
   GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
                            dwTime                         , wszTemp);
@@ -3385,7 +3385,7 @@ SK_WinRing0_Install (void)
     wchar_t wszTemp [MAX_PATH + 2] = { };
 
     GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
-                             timeGetTime          (), wszTemp);
+                             SK_timeGetTime       (), wszTemp);
     SK_File_MoveNoFail      (installer_path.c_str (), wszTemp);
     SK_DeleteTemporaryFiles (path_to_driver.c_str ()         );
   }
@@ -4769,4 +4769,55 @@ SK_make_unique_nothrow (Args && ... args) noexcept
        std::unique_ptr <T> (
   new (std::nothrow)    T  (std::forward
                       < Args >     (args)   ...));
+}
+
+using timeGetTime_pfn = DWORD (WINAPI *)(void);
+using PlaySoundW_pfn  = BOOL  (WINAPI *)(LPCWSTR,HMODULE,DWORD);
+
+DWORD
+WINAPI
+SK_timeGetTime (void)
+{
+  static
+    LONGLONG qpcFreqAsMS
+    ( SK_GetPerfFreq ().QuadPart / 1000ULL );
+
+  LARGE_INTEGER                    qpcNow;
+  if (SK_QueryPerformanceCounter (&qpcNow))
+    return                         qpcNow.QuadPart /
+                                   qpcFreqAsMS;
+  
+
+  static HMODULE hModWinMM =
+    LoadLibraryEx ( L"winmm.dll", nullptr,
+                      LOAD_LIBRARY_SEARCH_SYSTEM32 );
+
+  static timeGetTime_pfn
+   winmm_timeGetTime =
+        (timeGetTime_pfn)GetProcAddress (hModWinMM,
+        "timeGetTime"                   );
+
+  return
+    winmm_timeGetTime ();
+}
+
+BOOL
+WINAPI
+SK_PlaySound ( _In_opt_ LPCWSTR pszSound,
+               _In_opt_ HMODULE hmod,
+               _In_     DWORD   fdwSound )
+{
+  static HMODULE hModWinMM =
+    LoadLibraryEx ( L"winmm.dll", nullptr,
+                      LOAD_LIBRARY_SEARCH_SYSTEM32 );
+
+  static PlaySoundW_pfn
+         PlaySoundW =
+        (PlaySoundW_pfn)SK_GetProcAddress (hModWinMM,
+        "PlaySoundW"                      );
+
+  return
+    PlaySoundW (
+      pszSound, hmod,
+      fdwSound );
 }

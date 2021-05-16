@@ -309,15 +309,15 @@ SK_DGPU_PlugInCfg (void)
 
     static DWORD dwLastActive = 0;
 
-    if (jobs != 0 || dwLastActive > timeGetTime () - 500)
+    if (jobs != 0 || dwLastActive > SK_timeGetTime () - 500)
     {
       if (jobs > 0)
-        dwLastActive = timeGetTime ();
+        dwLastActive = SK_timeGetTime ();
 
       if (jobs > 0)
         ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (SK_D3D11_Resampler_GetActiveJobCount ()) / (float)jobs), 0.15f, 1.0f));
       else
-        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (timeGetTime () - dwLastActive) / 500.0f), 1.0f, 0.8f));
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (SK_timeGetTime () - dwLastActive) / 500.0f), 1.0f, 0.8f));
 
       ImGui::SameLine       ();
       if (SK_D3D11_Resampler_GetErrorCount ())

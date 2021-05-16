@@ -462,7 +462,8 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
 }
 
 
-int extra_present_mon_line = 0;
+       int    extra_present_mon_line = 0;
+extern bool __SK_Wine;
 
 void
 SK_SpawnPresentMonWorker (void)
@@ -471,6 +472,10 @@ SK_SpawnPresentMonWorker (void)
           if (started) return;
 
   SK_RunOnce (started = true);
+
+  // Wine doesn't support this...
+  if (__SK_Wine)
+    return;
   
   static HANDLE hPresentMonThread = 0;
 
@@ -781,8 +786,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
         {
           static DWORD
               dwLastUpdate = 0;
-          if (dwLastUpdate < (timeGetTime () - 250))
-          {   dwLastUpdate =  timeGetTime ();
+          if (dwLastUpdate < (SK_timeGetTime () - 250))
+          {   dwLastUpdate =  SK_timeGetTime ();
             SK_D3DKMT_QueryAdapterPerfData (hDC,
                           &adapterPerfData );
           }

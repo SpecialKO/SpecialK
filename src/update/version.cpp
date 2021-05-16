@@ -563,7 +563,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   InterlockedExchange (&lock, 0);
 
   if (bRet)
-    InterlockedExchange (&__SK_LastVersionCheckTime, timeGetTime ());
+    InterlockedExchange (&__SK_LastVersionCheckTime, SK_timeGetTime ());
 
   return bRet;
 }
@@ -1047,7 +1047,7 @@ SK_FetchVersionInfo2 ( const wchar_t* wszProduct,
   InterlockedExchange (&lock, 0);
 
   if (bRet)
-    InterlockedExchange (&__SK_LastVersionCheckTime, timeGetTime ());
+    InterlockedExchange (&__SK_LastVersionCheckTime, SK_timeGetTime ());
 
   return bRet;
 }

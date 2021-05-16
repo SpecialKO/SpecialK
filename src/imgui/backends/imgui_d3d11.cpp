@@ -1955,7 +1955,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
                              || SK_ImGui_Visible))
   {
     static DWORD dwLastUpdate = 0;
-           DWORD dwNow        = timeGetTime ();
+           DWORD dwNow        = SK_timeGetTime ();
 
     if (dwLastUpdate < dwNow - 2000UL)
     {   dwLastUpdate = dwNow;

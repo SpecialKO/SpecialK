@@ -925,7 +925,7 @@ SK_UnloadImports (void)
       if ((intptr_t)import.hLibrary > 0)
       {
         DWORD dwTime =
-          timeGetTime ();
+          SK_timeGetTime ();
 
         if (_IsRoleSame (import.role->get_value_ref (), SK_IMPORT_ROLE_PLUGIN))
         {
@@ -949,7 +949,7 @@ SK_UnloadImports (void)
           dll_log->LogEx ( false,
                            L"-------------------------[ Free Lib ]                "
                            L"                           success! (%4u ms)\n",
-                             timeGetTime ( ) - dwTime );
+                             SK_timeGetTime ( ) - dwTime );
         }
 
         else

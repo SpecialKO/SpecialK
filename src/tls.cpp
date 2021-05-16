@@ -141,20 +141,28 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
   //   container. This is a lock-contended data store, so it is important
   //     to try and migrate the data into TLS as quickly as possible.
   //
-  auto& emergency_room =
-    __SK_EmergencyTLS.get ();
+  concurrency::concurrent_unordered_map 
+    < DWORD, SK_TLS *> *emergency_room = nullptr;
 
 
-  if ( pTLS == nullptr &&
-       emergency_room.count (SK_Thread_GetCurrentId ()) != 0 )
+  if (pTLS == nullptr)
   {
-    pTLS =
-      emergency_room [SK_Thread_GetCurrentId ()];
+    emergency_room =
+      __SK_EmergencyTLS.getPtr ();
 
-    // Try to store it in TLS again, because this hash map is thread-safe,
-    //   but not exactly fast under high contention workloads.
-    if (dwTLSIndex > 0 && dwTLSIndex < TlsMax1)
-      FlsSetValue ( dwTLSIndex, pTLS );
+    auto tid =
+      SK_Thread_GetCurrentId ();
+
+    if (emergency_room->count (tid) != 0 )
+    {
+      pTLS =
+        (*emergency_room)[tid];
+
+      // Try to store it in TLS again, because this hash map is thread-safe,
+      //   but not exactly fast under high contention workloads.
+      if (dwTLSIndex > 0 && dwTLSIndex < TlsMax1)
+        FlsSetValue       ( dwTLSIndex, pTLS );
+    }
   }
 
   // We have no TLS data for this thread, time to allocate one.
@@ -186,7 +194,10 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
         }
 
         else {
-          emergency_room [SK_Thread_GetCurrentId ()] = pTLS;
+          emergency_room =
+            __SK_EmergencyTLS.getPtr ();
+
+          (*emergency_room)[SK_Thread_GetCurrentId ()] = pTLS;
           // We can't store the TLS index, but it's in a place where it can
           //   be looked up as needed.
           success = true;
@@ -332,7 +343,7 @@ SK_TLS_Bottom (void)
 {
   // For unusual cases where SK_TLS_Bottom is called
   //   before DllMain (...) returns.
-  SK_RunOnce (SK_TLS_Acquire ());
+  ////SK_RunOnce (SK_TLS_Acquire ());
 
   // This doesn't work for WOW64 executables, so
   //   basically any 32-bit program on a modern
@@ -751,7 +762,7 @@ SK_Win32_ThreadContext::getThreadPriority (bool nocache)
   if (nocache)
   {
     thread_prio            = GetThreadPriority (SK_GetCurrentThread ());
-    last_tested_prio.time  = timeGetTime       ();
+    last_tested_prio.time  = SK_timeGetTime    ();
     last_tested_prio.frame = SK_GetFramesDrawn ();
 
     return thread_prio;
@@ -759,7 +770,7 @@ SK_Win32_ThreadContext::getThreadPriority (bool nocache)
 
   if (last_tested_prio.frame < SK_GetFramesDrawn ())
   {
-    DWORD dwNow = timeGetTime ();
+    DWORD dwNow = SK_timeGetTime ();
 
     if (last_tested_prio.time < dwNow - _RefreshInterval)
     {
@@ -978,7 +989,7 @@ SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
 
   if (new_alloc)
   {
-    last_realloc = timeGetTime ();
+    last_realloc = SK_timeGetTime ();
     last_trim    = last_realloc;
   }
 
@@ -988,7 +999,7 @@ SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
 void
 SK_DXTex_ThreadContext::moveAlloc (void)
 {
-  last_realloc = timeGetTime ();
+  last_realloc = SK_timeGetTime ();
   last_trim    = last_realloc;
 
   reserve = 0;
@@ -998,8 +1009,8 @@ SK_DXTex_ThreadContext::moveAlloc (void)
 bool
 SK_DXTex_ThreadContext::tryTrim (void)
 {
-  if (        reserve > _SlackSpace &&
-       timeGetTime () - last_trim   >= _TimeBetweenTrims )
+  if (           reserve > _SlackSpace &&
+       SK_timeGetTime () - last_trim   >= _TimeBetweenTrims )
   {
     dll_log->Log (L"Trimming tid %x's DXTex memory pool from %lu to %lu",
                   SK_Thread_GetCurrentId (), reserve, _SlackSpace);
@@ -1007,7 +1018,7 @@ SK_DXTex_ThreadContext::tryTrim (void)
     buffer = static_cast <uint8_t *>              (
       _aligned_realloc (buffer,  _SlackSpace, 16) );
                      reserve   = _SlackSpace;
-                     last_trim = timeGetTime ();
+                     last_trim = SK_timeGetTime ();
 
     return true;
   }

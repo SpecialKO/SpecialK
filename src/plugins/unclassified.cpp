@@ -218,6 +218,26 @@ SK_FFXV_InitPlugin (void)
   //  static_cast_p2p <void> (&GetEnvironmentVariableA_Original) );
 }
 
+bool fix_sleep_0 = false;
+
+extern DWORD WINAPI SleepEx_Detour (DWORD, BOOL);
+             static SleepEx_pfn
+                    SleepEx_Override = nullptr;
+
+DWORD
+WINAPI
+SK_FFXV_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
+{
+  if ( dwMilliseconds == 0 && fix_sleep_0 )
+  {
+    SwitchToThread ();
+    return 0;
+  }
+
+  return
+    SleepEx_Override (dwMilliseconds, bAlertable);
+}
+
 void
 SK_FFXV_Thread::setup (HANDLE __hThread)
 {
@@ -239,6 +259,11 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
 
   if (this == &*sk_ffxv_swapchain)
   {
+    SK_CreateFuncHook (      L"SleepEx_Detour",
+                               SleepEx_Detour,
+                               SK_FFXV_SleepEx,
+      static_cast_p2p <void> (&SleepEx_Override) );
+    SK_EnableHook        (     SleepEx_Detour );
 #if 0
     SK_CreateDLLHook2 (      L"kernel32",
                               "SleepConditionVariableCS",

@@ -29,8 +29,10 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.5.7"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.7.1"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
+
+//#define _RR_HDF
 
 volatile LONG       _SK_NIER_RAD_InputPollingPeriod     = 8;
 volatile BYTE       _SK_NIER_RAD_HighDynamicFramerate   = false;
@@ -39,6 +41,7 @@ volatile BYTE       _SK_NIER_RAD_HighDynamicFramerate   = false;
          bool       _SK_NIER_RAD_LightSleepMode         = TRUE;
          bool       _SK_NIER_RAD_EnumOnlyForceFeedback  = false;
          bool       _SK_NIER_RAD_IgnoreJoystickHIDUsage = true;
+         bool       _SK_NIER_RAD_CacheLastGamepad       = true;
 
 sk::ParameterInt*   __SK_NIER_RAD_InputPollingPeriod     = nullptr;
 sk::ParameterBool*  __SK_NIER_RAD_AutoCursorHide         = nullptr;
@@ -47,10 +50,20 @@ sk::ParameterBool*  __SK_NIER_RAD_FixDInput8EnumDevices  = nullptr;
 sk::ParameterBool*  __SK_NIER_RAD_EnumOnlyForceFeedback  = nullptr;
 sk::ParameterBool*  __SK_NIER_RAD_IgnoreJoystickHIDUsage = nullptr;
 sk::ParameterBool*  __SK_NIER_RAD_LightSleepMode         = nullptr;
+sk::ParameterBool*  __SK_NIER_RAD_CacheLastGamepad       = nullptr;
 sk::ParameterInt64* __SK_NIER_RAD_LastKnownTSOffset      = nullptr;
 
 HANDLE __SK_NIER_RAD_DeviceArrivalEvent = INVALID_HANDLE_VALUE;
 HANDLE __SK_NIER_RAD_DeviceRemovalEvent = INVALID_HANDLE_VALUE;
+
+struct {
+  HRESULT                         hr;
+  std::vector <DIDEVICEINSTANCEW> devices;
+  std::vector <DIDEVICEINSTANCEW> attached;
+  std::recursive_mutex            lock;
+  DIDEVICEINSTANCEW               last_good = { };
+} static __DInput8;
+
 
 struct {
   bool enabled = false;
@@ -180,7 +193,7 @@ struct {
     return true;
   }
 
-  void step (float dt)
+  void step (float _dt)
   {
     assert (enabled);
 
@@ -216,9 +229,9 @@ struct {
                          PAGE_EXECUTE_READWRITE, &dwOrigProtect )
     );
 
-    *pStep    = player.paused ? 0.0f : dt;
-    *pStepNPC = npc.paused    ? 0.0f : dt;
-    *pTick    =                      1.0f;
+    *pStep    = player.paused ? 0.0f : _dt;
+    *pStepNPC = npc.paused    ? 0.0f : _dt;
+    *pTick    =                       1.0f;
   }
 } static clockOverride;
 
@@ -406,6 +419,7 @@ SK_NIER_RAD_PerfCpl (void)
 bool
 SK_NIER_RAD_FramerateCpl (void)
 {
+#ifdef _RR_HDF
   bool changed = false;
 
   ImGui::TreePush ("");
@@ -483,6 +497,9 @@ SK_NIER_RAD_FramerateCpl (void)
 
 
   return changed;
+#else
+  return true;
+#endif
 }
 
 bool
@@ -567,6 +584,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
         SK_NIER_RAD_VisualCpl ();
     }
 
+#ifdef _RR_HDF
     if (clockOverride.npc.dt != nullptr)
     {
       bool hdf =
@@ -589,6 +607,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
         }
       }
     }
+#endif
 
     if (ImGui::CollapsingHeader (ICON_FA_MOUSE "\tInput Settings"))
     {
@@ -605,7 +624,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
       }
 
       if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Auto-enable idle cursor hiding if gamepad input is detected");
+          ImGui::SetTooltip ("Auto-enable idle cursor hiding if gamepad input is detected");
 
       if (! _SK_NIER_RAD_AutoCursorHide)
       {
@@ -632,7 +651,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
         }
       }
 
-      if (ImGui::Checkbox ("Ignore DirectInput Gamepads that do not support Force Feedback", &_SK_NIER_RAD_EnumOnlyForceFeedback))
+      if (ImGui::Checkbox ("Ignore non-rumble DirectInput Gamepads", &_SK_NIER_RAD_EnumOnlyForceFeedback))
       {
         __SK_NIER_RAD_EnumOnlyForceFeedback->store (
           _SK_NIER_RAD_EnumOnlyForceFeedback
@@ -642,7 +661,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
       }
 
       if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Prevent certain non-gamepad devices from preventing Mouse and Keyboard from working");
+          ImGui::SetTooltip ("Prevent certain non-gamepad devices from preventing Mouse and Keyboard from working");
 
       if (ImGui::Checkbox ("Ignore DirectInput Joysticks", &_SK_NIER_RAD_IgnoreJoystickHIDUsage))
       {
@@ -654,7 +673,37 @@ bool SK_NIER_RAD_PlugInCfg (void)
       }
 
       if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Prevent certain non-gamepad devices from preventing Mouse and Keyboard from working");
+          ImGui::SetTooltip ("Prevent certain non-gamepad devices from preventing Mouse and Keyboard from working");
+
+      if (ImGui::Checkbox ("Enable Gamepad Hot-Plug Support", &_SK_NIER_RAD_CacheLastGamepad))
+      {
+        __SK_NIER_RAD_CacheLastGamepad->store (_SK_NIER_RAD_CacheLastGamepad);
+
+        changed = true;
+      }
+
+      if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Cache the last used controller so gamepads do not need to be turned on / plugged in before starting the game.");
+
+      if (_SK_NIER_RAD_CacheLastGamepad || __DInput8.last_good.wUsage == 0x05)
+      {
+        ImGui::SameLine      ();
+        ImGui::Text          ("\t" ICON_FA_GAMEPAD " Hot-Plug Device:  %ws\t", __DInput8.last_good.tszProductName);
+        ImGui::SameLine      ();
+
+        if (ImGui::Button ("Clear Cache"))
+        {
+           _SK_NIER_RAD_CacheLastGamepad = false;
+          __SK_NIER_RAD_CacheLastGamepad->store (_SK_NIER_RAD_CacheLastGamepad);
+
+          changed = true;
+
+          ZeroMemory ( &__DInput8.last_good,
+                sizeof (__DInput8.last_good) );
+
+          DeleteFileW (L"dinput8.devcache");
+        }
+      }
 
       ImGui::TreePop ();
     }
@@ -683,7 +732,7 @@ SK_NIER_RAD_BeginFrame (void)
 {
   // Enable cursor management for gamepad users
   if ( SK_XInput_Backend->getInputAge (sk_input_dev_type::Gamepad) < 1.0f ||
-       SK_DI8_Backend->getInputAge    (sk_input_dev_type::Gamepad) < 1.0f )
+          SK_DI8_Backend->getInputAge (sk_input_dev_type::Gamepad) < 1.0f )
   {
     extern XINPUT_STATE di8_to_xi;
 
@@ -705,7 +754,8 @@ SK_NIER_RAD_BeginFrame (void)
         config.input.gamepad.disable_ps4_hid = true;
     }
   }
-  
+
+#ifdef __RR_HDF
   if (clockOverride.npc.dt != nullptr)
   {
     DWORD dwOrig = 0x0;
@@ -732,16 +782,13 @@ SK_NIER_RAD_BeginFrame (void)
     if (ReadUCharAcquire (&_SK_NIER_RAD_HighDynamicFramerate) != 0)
     {
       clockOverride.enable ();
-
-      auto& rb =
-        SK_GetCurrentRenderBackend ();
       
       double dt =
         static_cast <double> ( liThisFrame.QuadPart -
                                liLastFrame.QuadPart ) /
         static_cast <double> (  liPerfFreq.QuadPart );
 
-      clockOverride.step (dt);
+      clockOverride.step (static_cast <float> (dt));
     }
 
     else
@@ -762,19 +809,48 @@ SK_NIER_RAD_BeginFrame (void)
     liLastFrame =
       liThisFrame;
   }
+#endif
 }
 
+#include <minwindef.h>
+
+using  KeyboardProc_pfn = LRESULT (CALLBACK *)(int, WPARAM, LPARAM);
+static KeyboardProc_pfn
+      _KeyboardProc = nullptr;
+
+extern
+LRESULT
+CALLBACK
+SK_Proxy_KeyboardProc (
+  _In_ int    nCode,
+  _In_ WPARAM wParam,
+  _In_ LPARAM lParam  );
+
+LRESULT
+CALLBACK
+SK_NIER_RAD_KeyboardProc (
+  _In_ int    nCode,
+  _In_ WPARAM wParam,
+  _In_ LPARAM lParam  )
+{
+  // Game uses a keyboard hook for input that the Steam overlay cannot block
+  if (SK::SteamAPI::GetOverlayState (true))
+  {
+    return
+      CallNextHookEx (0, nCode, wParam, lParam);
+  }
+
+  return
+    _KeyboardProc (nCode, wParam, lParam);
+}
 
 static IDirectInput8W_EnumDevices_pfn _IDirectInput8W_EnumDevices = nullptr;
-
-HRESULT                                hr_devices;
-static std::vector <DIDEVICEINSTANCEW> devices_w;
-static std::vector <DIDEVICEINSTANCEW> devices_attached_w;
-std::recursive_mutex                   device_lock;
 
 BOOL DIEnumDevicesCallback_ ( LPCDIDEVICEINSTANCE lpddi,
                               LPVOID pvRef )
 {
+  UNREFERENCED_PARAMETER (pvRef);
+
   wchar_t                              wszGUID [41] = { };
   StringFromGUID2 (lpddi->guidProduct, wszGUID, 40);
 
@@ -790,7 +866,7 @@ BOOL DIEnumDevicesCallback_ ( LPCDIDEVICEINSTANCE lpddi,
   }
 
   else
-    devices_w.push_back (*lpddi);
+    __DInput8.devices.push_back (*lpddi);
 
   return
     DIENUM_CONTINUE;
@@ -807,7 +883,7 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
   if (dwDevType == DI8DEVCLASS_GAMECTRL && _SK_NIER_RAD_FixDInput8EnumDevices)
   {
     std::scoped_lock <std::recursive_mutex> lock
-                                    (device_lock);
+                                    (__DInput8.lock);
 
     static bool          once = false;
     if (! std::exchange (once, true))
@@ -816,7 +892,7 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
                                              dwDevType,  dwFlags),
                   L"RadicalRep" );
 
-      hr_devices =
+      __DInput8.hr =
         _IDirectInput8W_EnumDevices ( This, dwDevType,
                                         DIEnumDevicesCallback_, pvRef,
                                           _SK_NIER_RAD_EnumOnlyForceFeedback ? DIEDFL_FORCEFEEDBACK
@@ -845,22 +921,38 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
         events [dwWait - WAIT_OBJECT_0]
       );
 
-      devices_attached_w.clear ();
+      __DInput8.attached.clear ();
 
-      for ( auto& device : devices_w )
+      for ( auto& device : __DInput8.devices )
       {
         if ( DI_OK == This->GetDeviceStatus (device.guidInstance) )
         {
-          devices_attached_w.push_back (device);
+          __DInput8.attached.push_back (device);
+
+          if (_SK_NIER_RAD_CacheLastGamepad && device.wUsage == 0x05)
+          {
+            __DInput8.last_good = device;
+
+            if (FILE* fLastKnownController  = fopen ("dinput8.devcache", "wb");
+                      fLastKnownController != nullptr)
+            {
+              fwrite (&__DInput8.last_good, sizeof (__DInput8.last_good), 1,
+                      fLastKnownController);
+              fclose (fLastKnownController);
+            }
+          }
         }
       }
     }
 
-    for ( auto& attached : devices_attached_w )
+    for ( auto& attached : __DInput8.attached )
     {
       if ( lpCallback (&attached, pvRef) == DIENUM_STOP )
         break;
     }
+
+    if (__DInput8.attached.empty () && __DInput8.last_good.wUsage == 0x05)
+      lpCallback (&__DInput8.last_good, pvRef);
     
     return S_OK;
   }
@@ -886,6 +978,7 @@ void SK_NIER_RAD_InitPlugin (void)
         __SK_NIER_RAD_InputPollingPeriod->store (8);
 
 
+#ifdef _RR_HDF
   __SK_NIER_RAD_HighDynamicFramerate =
     _CreateConfigParameterBool ( L"Radical.Replicant",
                                  L"HighDynamicFramerate", (bool &)_SK_NIER_RAD_HighDynamicFramerate,
@@ -893,6 +986,8 @@ void SK_NIER_RAD_InitPlugin (void)
 
   if (! __SK_NIER_RAD_HighDynamicFramerate->load  ((bool &)_SK_NIER_RAD_HighDynamicFramerate))
         __SK_NIER_RAD_HighDynamicFramerate->store (false);
+#endif
+
 
   __SK_NIER_RAD_AutoCursorHide =
     _CreateConfigParameterBool ( L"Radical.Replicant",
@@ -926,6 +1021,14 @@ void SK_NIER_RAD_InitPlugin (void)
   if (! __SK_NIER_RAD_IgnoreJoystickHIDUsage->load  (_SK_NIER_RAD_IgnoreJoystickHIDUsage))
         __SK_NIER_RAD_IgnoreJoystickHIDUsage->store (true);
 
+  __SK_NIER_RAD_CacheLastGamepad =
+    _CreateConfigParameterBool ( L"Radical.Replicant",
+                                 L"EnabeHotPlug", _SK_NIER_RAD_CacheLastGamepad,
+                      L"Use a device cache to support late insertion" );
+
+  if (! __SK_NIER_RAD_CacheLastGamepad->load  (_SK_NIER_RAD_CacheLastGamepad))
+        __SK_NIER_RAD_CacheLastGamepad->store (true);
+
   __SK_NIER_RAD_LightSleepMode =
     _CreateConfigParameterBool ( L"Radical.Replicant",
                                  L"LightSleepMode", _SK_NIER_RAD_LightSleepMode,
@@ -941,6 +1044,7 @@ void SK_NIER_RAD_InitPlugin (void)
 
   config.input.gamepad.native_ps4 = false;
 
+#ifdef _RR_HDF
   static const
     int64_t default_tsOffset = 0xABCBD0;
     int64_t         tsOffset = 0x0;
@@ -987,6 +1091,7 @@ void SK_NIER_RAD_InitPlugin (void)
       ( tsOffset = 0 )
     );
   }
+#endif
 
 
   // DirectInput8 EnumDevices Fixup
@@ -1018,8 +1123,14 @@ void SK_NIER_RAD_InitPlugin (void)
         SK_CreateEvent (nullptr, TRUE, FALSE, L"Device Removal")
     )                          );
 
+  SK_CreateFuncHook (       L"Keyboard Hook",
+                              SK_Proxy_KeyboardProc,
+                              SK_NIER_RAD_KeyboardProc,
+                static_cast_p2p <void> (&_KeyboardProc) );
+
   SK_EnableHook (             IDirectInput8W_EnumDevices_Detour);
-  
+  SK_EnableHook (             SK_Proxy_KeyboardProc);
+
   config.input.gamepad.disable_ps4_hid = false;
 
   plugin_mgr->config_fns.emplace (SK_NIER_RAD_PlugInCfg);
@@ -1027,6 +1138,17 @@ void SK_NIER_RAD_InitPlugin (void)
   // Disable cursor management until gamepad activity is registered
   if (_SK_NIER_RAD_AutoCursorHide)
     config.input.cursor.manage = false;
+
+  if (_SK_NIER_RAD_CacheLastGamepad)
+  {
+    if (FILE* fLastKnownController  = fopen ("dinput8.devcache", "rb");
+              fLastKnownController != nullptr)
+    {
+      fread  (&__DInput8.last_good, sizeof (__DInput8.last_good), 1,
+              fLastKnownController);
+      fclose (fLastKnownController);
+    }
+  }
 
   SK_GetDLLConfig ()->write (
     SK_GetDLLConfig ()->get_filename ()

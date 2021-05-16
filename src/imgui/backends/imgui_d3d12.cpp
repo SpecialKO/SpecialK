@@ -1144,7 +1144,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                                       rb.working_gamut.maxLocalY         : rb.display_gamut.maxLocalY
                                                                    :       rb.display_gamut.maxLocalY;
       cbuffer_cspace.hdrLuminance_Min      = rb.display_gamut.minY * 1.0_Nits;
-      cbuffer_cspace.currentTime           = (float)timeGetTime ();
+      cbuffer_cspace.currentTime           = (float)SK_timeGetTime ();
 
     static FLOAT         kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
 

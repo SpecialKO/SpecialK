@@ -51,20 +51,16 @@ safe_crc32c_ex (uint32_t seed, const void* pData, size_t size, bool* failed)
 
   uint32_t ret = 0x0;
 
-  auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-  try
-  {
+  __try {
     ret =
       crc32c (seed, pData, size);
   }
 
-  catch (const SK_SEH_IgnoredException&)
+  __except (EXCEPTION_EXECUTE_HANDLER)
   {
     if (failed != nullptr)
        *failed = true;
   }
-  SK_SEH_RemoveTranslator (orig_se);
 
   return ret;
 }
@@ -175,15 +171,12 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
           ( stride * ( height / 4 +
                        height % 4 ) );
 
-        auto orig_se =
-        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-        try {
-          checksum  = safe_crc32c (checksum, (const uint8_t *)pData, lod_size);
-          size     += lod_size;
-        }
+        bool failed = false;
 
-        // Triggered by a certain JRPG that shall remain nameless (not so Marvelous!)
-        catch (const SK_SEH_IgnoredException&)
+        checksum =
+          safe_crc32c_ex (checksum, (const uint8_t *)pData, lod_size, &failed);
+
+        if (failed)
         {
           size +=
             ( static_cast <size_t> (stride) * ( static_cast <size_t> (height) /
@@ -194,10 +187,10 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
           SK_LOG0 ( ( L"Access Violation while Hashing Texture: %x", checksum ),
                       L" Tex Hash " );
 
-          SK_SEH_RemoveTranslator (orig_se);
           return 0;
         }
-        SK_SEH_RemoveTranslator (orig_se);
+
+        size += lod_size;
       }
 
       else
@@ -273,7 +266,7 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
           return 0;
       }
 
-      else if (pDesc->Usage != D3D11_USAGE_STAGING)
+      else// if (pDesc->Usage != D3D11_USAGE_STAGING)
       {
         for (unsigned int j = 0; j < height; j++)
         {

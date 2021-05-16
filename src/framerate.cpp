@@ -314,8 +314,11 @@ SK_D3DKMT_WaitForVBlank (void)
 LONG64 __SK_VBlankLatency_QPCycles;
 
 void
-SK::Framerate::Limiter::init (double target, bool tracks_window)
+SK::Framerate::Limiter::init (double target, bool _tracks_window)
 {
+  this->tracks_window =
+       _tracks_window;
+
   if (tracks_window)
   {
     SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
@@ -473,10 +476,6 @@ SK::Framerate::Limiter::wait (void)
     SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
     return;
   }
-
-
-  static
-    concurrency::concurrent_unordered_map <DWORD, LONG64> _frame_shame;
 
   auto threadId    = GetCurrentThreadId ();
   auto framesDrawn = SK_GetFramesDrawn  ();

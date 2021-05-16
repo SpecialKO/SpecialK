@@ -1716,7 +1716,7 @@ SK_D3D11_TexCacheCheckpoint (void)
     static DWORD  dwInitiateEvict = 0;
     static DWORD  dwInitiateSize  = 0;
 
-    const  DWORD  dwNow           = timeGetTime ();
+    const  DWORD  dwNow           = SK_timeGetTime ();
 
     static size_t cur_tex         = 0;
 
@@ -3380,8 +3380,8 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
 
       const SK_D3D11_TEXTURE2D_DESC desc (tex_desc);
 
-      if ( (desc.Usage         != D3D11_USAGE_STAGING   ) ||
-           (desc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) )
+      if ( (desc.Usage         == D3D11_USAGE_STAGING    ) &&
+           (desc.CPUAccessFlags & D3D11_CPU_ACCESS_READ) )
       {
         if (pTLS == nullptr)
             pTLS  = SK_TLS_Bottom ();

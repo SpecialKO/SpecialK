@@ -60,6 +60,7 @@ struct mapped_resources_s {
   std::unordered_map <ID3D11Resource*,  uint32_t>                 dynamic_texturesx;
   std::map           <uint32_t,         uint64_t>                 dynamic_times2;
   std::map           <uint32_t,         size_t>                   dynamic_sizes2;
+  std::map           <uint32_t,         std::wstring>             dynamic_files2; // Single-LOD Staged Upload
 };
 
 struct SK_D3D11_TEXTURE2D_DESC

@@ -1437,7 +1437,7 @@ SK_ApplyQueuedHooks (void)
 #endif
 
   const DWORD dwStart =
-    timeGetTime ();
+    SK_timeGetTime ();
 
   MH_STATUS status =
     MH_ApplyQueued ();
@@ -1450,7 +1450,7 @@ SK_ApplyQueuedHooks (void)
   const int lvl =
     SK_IsDebug () ? 0 : 1;
 
-  SK_LOG ((L" >> %lu ms", timeGetTime () - dwStart), lvl, L" Min Hook ");
+  SK_LOG ((L" >> %lu ms", SK_timeGetTime () - dwStart), lvl, L" Min Hook ");
 
   return status;
 }

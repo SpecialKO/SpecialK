@@ -101,8 +101,8 @@ SK::ControlPanel::Input::Draw (void)
     static DWORD last_winhook  = 0;
     static DWORD last_win32    = 0;
 
-    struct { ULONG reads; } xinput { };
-    struct { ULONG reads; } steam  { };
+    struct { ULONG reads [XUSER_MAX_COUNT]; } xinput { };
+    struct { ULONG reads;                   } steam  { };
 
     struct { ULONG kbd_reads, mouse_reads; } winhook { };
 
@@ -114,7 +114,10 @@ SK::ControlPanel::Input::Draw (void)
     struct { ULONG cursorpos,      keystate,
                keyboardstate, asynckeystate;              } win32     { };
 
-    xinput.reads            = SK_XInput_Backend->reads   [2];
+    xinput.reads [0]        = SK_XInput_Backend->reads   [0];
+    xinput.reads [1]        = SK_XInput_Backend->reads   [1];
+    xinput.reads [2]        = SK_XInput_Backend->reads   [2];
+    xinput.reads [3]        = SK_XInput_Backend->reads   [3];
 
     winhook.kbd_reads       = SK_WinHook_Backend->reads  [1];
     winhook.mouse_reads     = SK_WinHook_Backend->reads  [0];
@@ -193,7 +196,11 @@ SK::ControlPanel::Input::Draw (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-        ImGui::Text         ("Gamepad     %lu", xinput.reads);
+        for ( int i = 0 ; i < XUSER_MAX_COUNT ; ++i )
+        {
+          if (xinput.reads [i] > 0)
+            ImGui::Text     ("Gamepad %d     %lu", i, xinput.reads [i]);
+        }
         ImGui::EndTooltip   ();
       }
     }
@@ -589,6 +596,14 @@ SK::ControlPanel::Input::Draw (void)
         XInputPlaceholderCheckbox ("Slot 1", 1); ImGui::SameLine ();
         XInputPlaceholderCheckbox ("Slot 2", 2); ImGui::SameLine ();
         XInputPlaceholderCheckbox ("Slot 3", 3);
+
+        ImGui::BeginGroup ();
+        ImGui::Text       (" Slot Redistribution ");
+        int* slots =
+          config.input.gamepad.xinput.assignment;
+        ImGui::SameLine   ();
+        ImGui::InputInt4  ("###Slot Remapping", slots);
+        ImGui::EndGroup   ();
       }
 
 // TODO
@@ -624,7 +639,7 @@ extern float SK_ImGui_PulseNav_Strength;
       void
       {
         //// Only 2 joysticks (possibly fewer if the driver's b0rked)
-        //if ( idx >= joyGetNumDevs () )
+        //if ( idx >= SK_joyGetNumDevs () )
         //{
         //  return;
         //}
@@ -648,7 +663,7 @@ extern float SK_ImGui_PulseNav_Strength;
                          JOY_RETURNCENTERED | JOY_USEDEADZONE;
 
         uiLastErr        [idx] =
-          joyGetDevCapsW (idx, &joy_caps, sizeof (JOYCAPSW));
+       SK_joyGetDevCapsW (idx, &joy_caps, sizeof (JOYCAPSW));
               liLastPoll [idx] = SK_QueryPerf ();
         if (   uiLastErr [idx] != JOYERR_NOERROR || joy_caps.wCaps == 0)
         {
@@ -659,7 +674,7 @@ extern float SK_ImGui_PulseNav_Strength;
         }
 
         uiLastErr     [idx] =
-          joyGetPosEx (idx, &joy_ex);
+       SK_joyGetPosEx (idx, &joy_ex);
            liLastPoll [idx] = SK_QueryPerf ();
         if (uiLastErr [idx] != JOYERR_NOERROR)
           return;
@@ -778,26 +793,20 @@ extern float SK_ImGui_PulseNav_Strength;
 
       ImGui::Separator       ( );
 
-      static bool winmm =
-        ((uintptr_t)SK_GetModuleHandleW (L"Winmm.dll") > 0);
+      static DWORD dwLastCheck = current_time;
+      static UINT  dwLastCount = SK_joyGetNumDevs ();
 
-      if (winmm)
-      {
-        static DWORD dwLastCheck = current_time;
-        static UINT  dwLastCount = joyGetNumDevs ();
+      const DWORD _CHECK_INTERVAL = 1500UL;
 
-        const DWORD _CHECK_INTERVAL = 1500UL;
+      UINT count =
+        ( dwLastCheck < (current_tick - _CHECK_INTERVAL) ) ?
+                  SK_joyGetNumDevs () : dwLastCount;
 
-        UINT count =
-          ( dwLastCheck < (current_tick - _CHECK_INTERVAL) ) ?
-                       joyGetNumDevs () : dwLastCount;
+      if (dwLastCheck < (current_tick - _CHECK_INTERVAL))
+          dwLastCount = count;
 
-        if (dwLastCheck < (current_tick - _CHECK_INTERVAL))
-            dwLastCount = count;
-
-        if (  count > 0) { GamepadDebug (JOYSTICKID1);
-          if (count > 1)   GamepadDebug (JOYSTICKID2); }
-      }
+      if (  count > 0) { GamepadDebug (JOYSTICKID1);
+        if (count > 1)   GamepadDebug (JOYSTICKID2); }
 
       if (config.input.gamepad.hook_xinput)
       {

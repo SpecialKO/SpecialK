@@ -791,7 +791,7 @@ namespace streaming_memory {
       mpool->data =
         malloc (mpool->data_len);
 
-      mpool->data_age = timeGetTime ();
+      mpool->data_age = SK_timeGetTime ();
 
       if (mpool->data != nullptr)
       {
@@ -850,7 +850,7 @@ namespace streaming_memory {
         if (mpool->data != nullptr)
         {
           mpool->data_len = max_size;
-          mpool->data_age = timeGetTime ();
+          mpool->data_age = SK_timeGetTime ();
         }
 
         else
@@ -1151,7 +1151,8 @@ SK::D3D9::TextureManager::updateQueueOSD (void)
 {
   if (false)//true)//config.textures.show_loading_text)
   {
-    DWORD dwTime = timeGetTime ();
+    DWORD dwTime =
+         SK_timeGetTime ();
 
     //if (TryEnterCriticalSection (&osd_cs))
     {
@@ -3196,7 +3197,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
       size_t before = streaming_memory::data_len ();
 
       streaming_memory::trim ( MIN_SIZE,
-                                 timeGetTime () - MIN_AGE );
+                                 SK_timeGetTime () - MIN_AGE );
 
       size_t now    = streaming_memory::data_len ();
 
@@ -3221,7 +3222,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
     }
   } while (dwWaitStatus != (wait.thread_end));
 
-  streaming_memory::trim (0, timeGetTime ());
+  streaming_memory::trim (0, SK_timeGetTime ());
 
   //SK_Thread_CloseSelf ();
   return 0;
@@ -3811,7 +3812,7 @@ ISKTextureD3D9::getDrawTexture (void) const
   {
     extern DWORD tracked_tex_blink_duration;
 
-    if (timeGetTime () % tracked_tex_blink_duration > tracked_tex_blink_duration / 2)
+    if (SK_timeGetTime () % tracked_tex_blink_duration > tracked_tex_blink_duration / 2)
       pTexToUse = nullptr;
   }
 

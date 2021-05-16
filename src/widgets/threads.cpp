@@ -1162,6 +1162,11 @@ public:
 
   void run (void) override
   {
+    extern bool
+        __SK_Wine;
+    if (__SK_Wine)
+      return;
+
     static
       std::once_flag init_once;
     std::call_once ( init_once, [&](void)
@@ -1190,8 +1195,8 @@ public:
 
     static float last_rebalance = 0.0f;
 
-    if ( __SK_Thread_RebalanceEveryNSeconds > 0.0f &&
-        ( (float)timeGetTime () / 1000.0f ) >
+    if ( __SK_Thread_RebalanceEveryNSeconds    > 0.0f &&
+        ( (float)SK_timeGetTime () / 1000.0f ) >
        (last_rebalance + __SK_Thread_RebalanceEveryNSeconds) )
     {
       SK_Thread_RebalanceThreads ();
@@ -1211,7 +1216,7 @@ public:
     if (rebalance && rebalance_list.empty ())
     {
       last_rebalance =
-        static_cast <float> (timeGetTime ()) / 1000.0f;
+        static_cast <float> (SK_timeGetTime ()) / 1000.0f;
 
       for ( auto& it : *SKWG_Ordered_Threads )
       {
@@ -1362,7 +1367,7 @@ public:
     static          DWORD dwLastTime           =    0;
 
     const DWORD dwNow =
-      timeGetTime ();
+      SK_timeGetTime ();
     const LONG  last  =
       ReadAcquire (&lLastThreadCreate);
     // If true, no new threads have been created since we
@@ -1550,7 +1555,7 @@ public:
     if (ImGui::GetFont () == nullptr) return;
 
     DWORD dwNow =
-      timeGetTime ();
+      SK_timeGetTime ();
 
            bool drew_tooltip   = false;
     static bool show_callstack = false;

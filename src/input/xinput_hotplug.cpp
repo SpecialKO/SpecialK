@@ -41,7 +41,7 @@ struct {
   {
     WriteULongRelease (&RecheckInterval, dwTime);
   }
-  void  updatePollTime (DWORD dwTime = timeGetTime ())
+  void  updatePollTime (DWORD dwTime = SK_timeGetTime ())
   {
     WriteULongRelease (&last_polled, dwTime);
   }
@@ -83,9 +83,8 @@ SK_XInput_Holding (DWORD dwUserIndex)
       placeholders [dwUserIndex].getRefreshTime ();
 
     if (dwRecheck < 6666UL)
-      placeholders [dwUserIndex].setRefreshTime (dwRecheck * 2);
-    else
-      placeholders [dwUserIndex].setRefreshTime (timeGetTime ());
+         placeholders [dwUserIndex].setRefreshTime (dwRecheck * 2);
+    else placeholders [dwUserIndex].setRefreshTime (SK_timeGetTime ());
 
     return true;
   }
@@ -190,7 +189,7 @@ SK_XInput_NotifyDeviceArrival (void)
                         for (  auto event : SK_HID_DeviceRemovalEvents  )
                           SetEvent (event);
 
-                        SK_XInput_SetRefreshInterval (timeGetTime ());
+                        SK_XInput_SetRefreshInterval (SK_timeGetTime ());
                       }
 
                       int idx = 0;
@@ -253,7 +252,7 @@ SK_XInput_NotifyDeviceArrival (void)
               for ( auto& placeholder : placeholders )
               {
                 placeholder.updatePollTime (
-                  ( timeGetTime () - placeholder.getRefreshTime () )
+                  ( SK_timeGetTime () - placeholder.getRefreshTime () )
                 );
 
                 if (ReadAcquire (&placeholder.holding) && idx != 0)
@@ -309,22 +308,21 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
   if (pState      == nullptr)         return (DWORD)E_POINTER;
 
-  bool was_holding = ReadAcquire (&placeholders [dwUserIndex].holding);
+  bool was_holding =
+    ReadAcquire (&placeholders [dwUserIndex].holding);
 
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
     if (! ReadAcquire (&placeholders [dwUserIndex].holding))
-    {
-      placeholders [dwUserIndex].updatePollTime ();
-
-      WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
+    {                   placeholders [dwUserIndex].updatePollTime ();
+         WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
     }
 
     else
     {
-      if ( placeholders [dwUserIndex].lastPolled () <
-           timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
+      if (                     placeholders [dwUserIndex].lastPolled     () <
+           SK_timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
       {
         // Re-check the next time this controller is polled
         WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
@@ -384,16 +382,14 @@ SK_XInput_PlaceHoldCaps ( DWORD                dwRet,
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
     if (! ReadAcquire (&placeholders [dwUserIndex].holding))
-    {
-      placeholders [dwUserIndex].updatePollTime ();
-
-      WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
+    {                   placeholders [dwUserIndex].updatePollTime ();
+         WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
     }
 
     else
     {
-      if ( placeholders [dwUserIndex].lastPolled () <
-           timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
+      if (                     placeholders [dwUserIndex].lastPolled     () <
+           SK_timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
       {
         // Re-check the next time this controller is polled
         WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
@@ -426,16 +422,15 @@ SK_XInput_PlaceHoldBattery ( DWORD                       dwRet,
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
-    if (! ReadAcquire (&placeholders [dwUserIndex].holding)) {
-      placeholders [dwUserIndex].updatePollTime ();
-
-      WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
+    if (! ReadAcquire (&placeholders [dwUserIndex].holding))
+    {                   placeholders [dwUserIndex].updatePollTime ();
+         WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
     }
 
     else
     {
-      if ( placeholders [dwUserIndex].lastPolled () <
-           timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
+      if (                     placeholders [dwUserIndex].lastPolled     () <
+           SK_timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
       {
         // Re-check the next time this controller is polled
         WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
@@ -463,18 +458,15 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
     if (! ReadAcquire (&placeholders [dwUserIndex].holding))
-    {
-      placeholders [dwUserIndex].updatePollTime ();
-
-      WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
+    {                   placeholders [dwUserIndex].updatePollTime ();
+         WriteRelease (&placeholders [dwUserIndex].holding, TRUE);
     }
 
     else
     {
-      if ( placeholders [dwUserIndex].lastPolled () <
-           timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
-      {
-        WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
+      if (                     placeholders [dwUserIndex].lastPolled     () <
+           SK_timeGetTime () - placeholders [dwUserIndex].getRefreshTime () )
+      {         WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
       }
     }
 
@@ -506,13 +498,13 @@ SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
       ( lastSeenController == DWORD_MAX             || 
         lastSeenTime       < dwTime - MIGRATION_PERIOD );
     
-    if (lastSeenController == dwUserIndex)
+    if (lastSeenController == config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)])
         lastSeenTime        = dwTime;
 
     if (migrate)
-    {   lastSeenController                  = dwUserIndex;
+    {   lastSeenController                  = config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
         lastSeenTime                        = dwTime;
-        config.input.gamepad.xinput.ui_slot = dwUserIndex;
+        config.input.gamepad.xinput.ui_slot = config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
       if (! config.input.gamepad.disabled_to_game)
       {
@@ -523,7 +515,7 @@ SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
     }
   }
 
-  else if (dwUserIndex == config.input.gamepad.xinput.ui_slot)
+  else if (config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)] == config.input.gamepad.xinput.ui_slot)
   {
     lastSeenController                  = DWORD_MAX;
     config.input.gamepad.xinput.ui_slot = 0;

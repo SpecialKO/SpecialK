@@ -382,6 +382,8 @@ DllMain ( HMODULE hModule,
           EarlyOut (TRUE);
       }
 
+      SK_TLS_Acquire ();
+
       // Social distancing like a boss!
       INT dll_isolation_lvl =
         SK_KeepAway ();
@@ -455,7 +457,7 @@ DllMain ( HMODULE hModule,
         SK_Detach (SK_GetDLLRole ());
       }
 
-      if (bAttached)
+      if (bAttached || SK_TLS_HasSlot ())
       {
         SK_TLS *pTLS     = nullptr;
         auto    tls_slot =

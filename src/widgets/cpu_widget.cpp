@@ -1474,10 +1474,15 @@ public:
         SK_CPU_DeviceNotifyCallback, nullptr
       };
 
-      PowerSettingRegisterNotification ( &GUID_POWERSCHEME_PERSONALITY,
-                                           DEVICE_NOTIFY_CALLBACK,
-                                             (HANDLE)&dnsp,
-                                               &active_scheme.notify );
+      extern bool
+            __SK_Wine;
+      if (! __SK_Wine)
+      {
+        PowerSettingRegisterNotification ( &GUID_POWERSCHEME_PERSONALITY,
+                                             DEVICE_NOTIFY_CALLBACK,
+                                               (HANDLE)&dnsp,
+                                                 &active_scheme.notify );
+      }
     }
   };
 

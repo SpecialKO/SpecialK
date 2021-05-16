@@ -1725,8 +1725,11 @@ SK_D3D11_MakeDrawableCopy ( ID3D11Device              *pDevice,
 
   else
   {
-    srv_desc.Texture2D.MipLevels       = tex_desc.MipLevels;
-    srv_desc.Texture2D.MostDetailedMip = rtv_desc.Texture2D.MipSlice;
+    srv_desc.Texture2D.MipLevels       = 1;
+    srv_desc.Texture2D.MostDetailedMip = 0;
+
+    ////srv_desc.Texture2D.MipLevels       = tex_desc.MipLevels;
+    ////srv_desc.Texture2D.MostDetailedMip = rtv_desc.Texture2D.MipSlice;
 
     return
       pDevice->CreateShaderResourceView ( pUndrawableTexture, &srv_desc, ppCopyView );

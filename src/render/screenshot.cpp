@@ -48,8 +48,8 @@ void SK_Screenshot_PlaySound (void)
         LockResource (sound_ref);
 
       if (sound != nullptr)
-        PlaySound ( (LPCWSTR)sound, nullptr, SND_ASYNC |
-                                             SND_MEMORY );
+        SK_PlaySound ( (LPCWSTR)sound, nullptr, SND_ASYNC |
+                                                SND_MEMORY );
     }
   }
 }

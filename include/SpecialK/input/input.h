@@ -27,6 +27,8 @@
 #include <Unknwnbase.h>
 
 #include <Windows.h>
+#include <joystickapi.h>
+
 #include <cstdint>
 
 extern LARGE_INTEGER SK_GetPerfFreq (void);
@@ -145,6 +147,8 @@ struct sk_input_api_context_s
   { InterlockedIncrement (&last_frame.reads    [ type == sk_win32_func::GetCursorPos     ? 0 :
                                                  type == sk_win32_func::GetKeyState      ? 1 :
                                                  type == sk_win32_func::GetKeyboardState ? 2 : 3 ] ); }
+  void markRead  (DWORD slot) noexcept
+  { InterlockedIncrement (&last_frame.reads    [ slot ]); }
   void markWrite  (sk_input_dev_type type) noexcept
   { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
                                                 type == sk_input_dev_type::Keyboard ? 1 :
@@ -531,5 +535,8 @@ extern char SK_KeyMap_LeftHand_Arrow (char key);
 
 extern DWORD SK_GetCurrentMS (void);
 
+UINT WINAPI SK_joyGetNumDevs  (void);
+UINT WINAPI SK_joyGetPosEx    (UINT,LPJOYINFOEX);
+UINT WINAPI SK_joyGetDevCapsW (UINT_PTR,LPJOYCAPSW,UINT);
 
 #endif /* __SK__INPUT_H__ */

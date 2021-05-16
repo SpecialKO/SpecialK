@@ -450,7 +450,7 @@ SK_HDR_SnapshotSwapchain (void)
                                     rb.working_gamut.maxLocalY         : rb.display_gamut.maxLocalY
                                                                  :       rb.display_gamut.maxLocalY;
     cbuffer_cspace.hdrLuminance_Min      = rb.display_gamut.minY * 1.0_Nits;
-    cbuffer_cspace.currentTime           = (float)timeGetTime ();
+    cbuffer_cspace.currentTime           = (float)SK_timeGetTime ();
 
     //uint32_t cb_hash_cspace =
     //  crc32c (0x0, (const void *) &cbuffer_cspace, sizeof SK_HDR_FIXUP::HDR_COLORSPACE_PARAMS);

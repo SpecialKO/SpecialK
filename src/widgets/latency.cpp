@@ -80,11 +80,14 @@ SK_ImGui_DrawGraph_Latency (void)
   
   if (rb.getLatencyReportNV (&latencyResults))
   {
+    static const auto freq =
+      SK_GetPerfFreq ().QuadPart;
+
     for ( auto idx = 63 ; idx >= 0 ; --idx )
     {
       auto& frame =
         latencyResults.frameReport [idx];
-  
+
       auto _UpdateStat =
       [&]( NvU64           start,
            NvU64           end,
@@ -95,7 +98,7 @@ SK_ImGui_DrawGraph_Latency (void)
           auto duration =
             (end - start);
 
-          if (duration >= 0.0)
+          if (duration >= 0 && duration < freq)
           {  
             stage->samples++;
   

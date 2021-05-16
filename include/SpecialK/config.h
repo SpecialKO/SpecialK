@@ -436,7 +436,9 @@ struct sk_config_t
   } render;
 
   struct display_s {
+    int       monitor_default     = MONITOR_DEFAULTTOPRIMARY;
     int       monitor_idx         =    -1; // TODO
+    HMONITOR  monitor_handle      =     0;
     float     refresh_rate        =  0.0f; // TODO
     bool      force_fullscreen    = false;
     bool      force_windowed      = false;
@@ -557,7 +559,8 @@ struct sk_config_t
         int   ui_slot           =    0;
         bool  placehold  [4]    = { false };
         int   assignment [4]    = { 0, 1, 2, 3 };
-        bool  hook_setstate     = true; // Some software causes feedback loops
+        bool  hook_setstate     =  true; // Some software causes feedback loops
+        bool  auto_slot_assign  = false;
       } xinput;
 
       struct steam_s
@@ -970,6 +973,7 @@ enum class SK_GAME_ID
   GalGunReturns,                // GalGun Returns/game.exe
   Persona5Strikers,             // P5S/game.exe
   NieR_Sqrt_1_5,                // NieR Replicant ver.1.22474487139.exe
+  ResidentEvil8,                // re8.exe
   UNKNOWN_GAME               = 0xffff
 };
 

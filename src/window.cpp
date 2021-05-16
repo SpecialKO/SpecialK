@@ -344,9 +344,10 @@ public:
 
             SK_GetClientRect (game_window.hWnd, &client);
 
-            HMONITOR hMonitor =
+            HMONITOR hMonitor = config.display.monitor_handle != 0 ?
+                                config.display.monitor_handle      :
               MonitorFromWindow ( game_window.hWnd,
-                                 MONITOR_DEFAULTTONEAREST );
+                                    config.display.monitor_default );
 
             MONITORINFO mi  = { };
             mi.cbSize       =  sizeof (mi);
@@ -860,9 +861,14 @@ ActivateWindow ( HWND hWnd,
           inputs [1].ki.dwFlags = KEYEVENTF_KEYUP;
       
         SK_SendInput (2, inputs, sizeof (INPUT));
-        
-        SendMessage (game_window.hWnd, WM_KEYUP, VK_MENU, 0x0);
+      
+        SK_Sleep (2);
       }
+
+      // Don't let Alt or Tab get stuck down...
+      SendMessage (game_window.hWnd, WM_KEYUP,    VK_MENU, 0x0);
+      SendMessage (game_window.hWnd, WM_KEYUP,     VK_TAB, 0x0);
+      SendMessage (game_window.hWnd, WM_SYSKEYUP,  VK_TAB, 0x0);
 
       SK_XInput_Enable (TRUE);
 
@@ -1575,37 +1581,38 @@ GetClientRect_Detour (
 {
   SK_LOG_FIRST_CALL
 
-    if ( config.window.borderless &&
-        (hWnd == game_window.hWnd /*|| IsChild (hWnd, game_window.hWnd)*/)
-                                  && config.window.fullscreen )
-    {
-      //lpRect->left = 0; lpRect->right  = config.window.res.override.x;
-      //lpRect->top  = 0; lpRect->bottom = config.window.res.override.y;
+  if ( config.window.borderless &&
+      (hWnd == game_window.hWnd /*|| IsChild (hWnd, game_window.hWnd)*/)
+                                && config.window.fullscreen )
+  {
+    //lpRect->left = 0; lpRect->right  = config.window.res.override.x;
+    //lpRect->top  = 0; lpRect->bottom = config.window.res.override.y;
 
-      HMONITOR hMonitor =
-        MonitorFromWindow ( game_window.hWnd,
-                           MONITOR_DEFAULTTOPRIMARY );
+    HMONITOR hMonitor = config.display.monitor_handle != 0 ?
+                        config.display.monitor_handle      :
+      MonitorFromWindow ( game_window.hWnd,
+                            config.display.monitor_default );
 
-      MONITORINFO mi   = {         };
-      mi.cbSize        = sizeof (mi);
-      GetMonitorInfo (hMonitor, &mi);
+    MONITORINFO mi   = {         };
+    mi.cbSize        = sizeof (mi);
+    GetMonitorInfo (hMonitor, &mi);
 
-      lpRect->left  = 0;
-      lpRect->right = mi.rcMonitor.right - mi.rcMonitor.left;
+    lpRect->left  = 0;
+    lpRect->right = mi.rcMonitor.right - mi.rcMonitor.left;
 
-      lpRect->top    = 0;
-      lpRect->bottom = mi.rcMonitor.bottom - mi.rcMonitor.top;
+    lpRect->top    = 0;
+    lpRect->bottom = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
-      //    *lpRect = game_window.game.client;
+    //    *lpRect = game_window.game.client;
 
-      return TRUE;
-    }
+    return TRUE;
+  }
 
-    else
-    {
-      return
-        SK_GetClientRect (hWnd, lpRect);
-    }
+  else
+  {
+    return
+      SK_GetClientRect (hWnd, lpRect);
+  }
 }
 
 static
@@ -1617,37 +1624,38 @@ GetWindowRect_Detour (
 {
   SK_LOG_FIRST_CALL
 
-    if ( config.window.borderless &&
-        (hWnd == game_window.hWnd /*|| IsChild (hWnd, game_window.hWnd)*/)
-                                  && config.window.fullscreen )
-    {
-      //lpRect->left = 0; lpRect->right  = config.window.res.override.x;
-      //lpRect->top  = 0; lpRect->bottom = config.window.res.override.y;
+  if ( config.window.borderless &&
+      (hWnd == game_window.hWnd /*|| IsChild (hWnd, game_window.hWnd)*/)
+                                && config.window.fullscreen )
+  {
+    //lpRect->left = 0; lpRect->right  = config.window.res.override.x;
+    //lpRect->top  = 0; lpRect->bottom = config.window.res.override.y;
 
-      HMONITOR hMonitor =
-        MonitorFromWindow ( game_window.hWnd,
-                           MONITOR_DEFAULTTOPRIMARY );
+    HMONITOR hMonitor = config.display.monitor_handle != 0 ?
+                        config.display.monitor_handle      :
+      MonitorFromWindow ( game_window.hWnd,
+                            config.display.monitor_default );
 
-      MONITORINFO mi   = {         };
-      mi.cbSize        = sizeof (mi);
-      GetMonitorInfo (hMonitor, &mi);
+    MONITORINFO mi   = {         };
+    mi.cbSize        = sizeof (mi);
+    GetMonitorInfo (hMonitor, &mi);
 
-      lpRect->left  = mi.rcMonitor.left;
-      lpRect->right = mi.rcMonitor.right;
+    lpRect->left  = mi.rcMonitor.left;
+    lpRect->right = mi.rcMonitor.right;
 
-      lpRect->top    = mi.rcMonitor.top;
-      lpRect->bottom = mi.rcMonitor.bottom;
+    lpRect->top    = mi.rcMonitor.top;
+    lpRect->bottom = mi.rcMonitor.bottom;
 
-      //*lpRect = game_window.game.window;
+    //*lpRect = game_window.game.window;
 
-      return TRUE;
-    }
+    return TRUE;
+  }
 
-    else
-    {
-      return
-        SK_GetWindowRect (hWnd, lpRect);
-    }
+  else
+  {
+    return
+      SK_GetWindowRect (hWnd, lpRect);
+  }
 }
 
 bool
@@ -1734,9 +1742,10 @@ AdjustWindowRect_Detour (
 
     if (config.window.fullscreen && (! bMenu) && (IsRectEmpty (lpRect)))
     {
-      HMONITOR hMonitor =
+      HMONITOR hMonitor = config.display.monitor_handle != 0 ?
+                          config.display.monitor_handle      :
         MonitorFromWindow ( game_window.hWnd,
-                           MONITOR_DEFAULTTONEAREST );
+                              config.display.monitor_default );//MONITOR_DEFAULTTONEAREST );
 
       MONITORINFO mi   = {         };
       mi.cbSize        = sizeof (mi);
@@ -1810,9 +1819,10 @@ AdjustWindowRectEx_Detour (
 
     if (config.window.fullscreen && (! bMenu) && (IsRectEmpty (lpRect) && (! (dwExStyle & 0x20000000))))
     {
-      HMONITOR hMonitor =
+      HMONITOR hMonitor = config.display.monitor_handle != 0 ?
+                          config.display.monitor_handle      :
         MonitorFromWindow ( game_window.hWnd,
-                           MONITOR_DEFAULTTONEAREST );
+                              config.display.monitor_default );//MONITOR_DEFAULTTONEAREST );
 
       MONITORINFO mi   = {         };
       mi.cbSize        = sizeof (mi);
@@ -2669,9 +2679,10 @@ SK_ComputeClientOrigin (void)
 bool
 SK_IsRectTooBigForDesktop (const RECT& wndRect)
 {
-  HMONITOR hMonitor =
+  HMONITOR hMonitor = config.display.monitor_handle != 0 ?
+                      config.display.monitor_handle      :
     MonitorFromWindow ( game_window.hWnd,
-                       MONITOR_DEFAULTTONEAREST );
+                          config.display.monitor_default );//MONITOR_DEFAULTTONEAREST );
 
   MONITORINFO mi   = {         };
   mi.cbSize        = sizeof (mi);
@@ -2713,9 +2724,10 @@ SK_Window_HasBorder (HWND hWnd)
 bool
 SK_Window_IsFullscreen (HWND hWnd)
 {
-  HMONITOR hMonitor =
+  HMONITOR hMonitor = config.display.monitor_handle != 0 ?
+                      config.display.monitor_handle      :
     MonitorFromWindow ( hWnd,
-                          MONITOR_DEFAULTTONEAREST );
+                          config.display.monitor_default );//MONITOR_DEFAULTTONEAREST );
 
   RECT                     rc_window = { };
   SK_GetWindowRect (hWnd, &rc_window);
@@ -3069,9 +3081,10 @@ SK_AdjustWindow (void)
 {
   SK_WINDOW_LOG_CALL3 ();
 
-  HMONITOR hMonitor =
+  HMONITOR hMonitor =   config.display.monitor_handle != 0 ?
+                        config.display.monitor_handle      :
     MonitorFromWindow ( game_window.hWnd,
-                       MONITOR_DEFAULTTONEAREST );
+                          config.display.monitor_default );//MONITOR_DEFAULTTONEAREST );
 
   MONITORINFO mi   = {         };
   mi.cbSize        = sizeof (mi);
@@ -3563,7 +3576,9 @@ PeekMessageA_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
+#if _DEBUG
   SK_LOG_FIRST_CALL
+#endif
 
   auto PeekFunc = NtUserPeekMessage != nullptr ?
                   NtUserPeekMessage :
@@ -3647,7 +3662,9 @@ PeekMessageW_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
+#if _DEBUG
   SK_LOG_FIRST_CALL
+#endif
 
   auto PeekFunc = NtUserPeekMessage != nullptr ?
                   NtUserPeekMessage :
@@ -3966,6 +3983,8 @@ BOOL
 WINAPI
 SK_IsWindowUnicode (HWND hWnd, SK_TLS *pTLS)
 {
+  UNREFERENCED_PARAMETER (pTLS);
+
   // Faster
   if (hWnd == game_window.hWnd)
     return game_window.unicode;
@@ -3978,6 +3997,7 @@ HWND
 WINAPI
 SK_GetActiveWindow (SK_TLS *pTLS)
 {
+  UNREFERENCED_PARAMETER (pTLS);
   ////if (pTLS == nullptr)
   ////    pTLS  = SK_TLS_Bottom ();
   ////
@@ -6086,9 +6106,10 @@ sk_window_s::updateDims (void)
 {
   if (config.window.borderless && config.window.fullscreen)
   {
-    HMONITOR hMonitor =
+    HMONITOR hMonitor = config.display.monitor_handle != 0 ?
+                        config.display.monitor_handle      :
       MonitorFromWindow ( hWnd,
-                            MONITOR_DEFAULTTONEAREST );
+                            config.display.monitor_default); //MONITOR_DEFAULTTONEAREST );
 
     MONITORINFO     mi        = { 0 };
                     mi.cbSize = sizeof (mi);
@@ -6199,6 +6220,7 @@ BOOL
 SK_Win32_IsGUIThread ( DWORD    dwTid,
                        SK_TLS **ppTLS )
 {
+  UNREFERENCED_PARAMETER (ppTLS);
 #if 0
   SK_TLS
    *pTLS = nullptr;

@@ -808,6 +808,10 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
                                           texDesc.Format;
         //pDesc = nullptr;
       }
+
+      if (texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+        ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
+                                          texDesc.Format;
     }
   }
 #endif
@@ -953,8 +957,7 @@ SK_D3D11_UpdateSubresource_Impl (
   }
 
 
-  static const bool __sk_dqxi =
-    false;
+  static const bool __sk_dqxi = true;
     //( SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI );
 
   if ( pDstBox != nullptr && ( pDstBox->left  >= pDstBox->right  ||
@@ -1060,7 +1063,8 @@ const uint32_t cache_tag    =
         SK_D3D11_DeclareTexInjectScope (pTLS)
       );
 
-      const auto start      = SK_QueryPerf ().QuadPart;
+      const auto start =
+        SK_QueryPerf ().QuadPart;
 
       SK_ComPtr <ID3D11Texture2D> pCachedTex;
       pCachedTex.Attach (
@@ -1296,8 +1300,8 @@ SK_D3D11_CopyResource_Impl (
     return;
   }
 
-  if ( //(! config.render.dxgi.deferred_isolation) &&
-            SK_D3D11_IsDevCtxDeferred (pDevCtx) )
+  if ( (! config.render.dxgi.deferred_isolation) &&
+          SK_D3D11_IsDevCtxDeferred (pDevCtx) )
   {
     return
       _Finish ();
@@ -1467,13 +1471,19 @@ SK_D3D11_CopyResource_Impl (
                                       map_ctx.dynamic_sizes2   [checksum],
                                         map_ctx.dynamic_times2 [checksum],
                                           top_crc32,
-                                 L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
+                                            map_ctx.dynamic_files2 [checksum].c_str (),
+                                              nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
                                                 pTLS );
+
+        if (! map_ctx.dynamic_files2 [checksum].empty ())
+          textures->Textures_2D [pDstTex].injected = true;
+
         map_ctx.dynamic_textures.erase  (pSrcResource);
         map_ctx.dynamic_texturesx.erase (pSrcResource);
 
         map_ctx.dynamic_sizes2.erase    (checksum);
         map_ctx.dynamic_times2.erase    (checksum);
+        map_ctx.dynamic_files2.erase    (checksum);
       }
     }
   }
@@ -3971,6 +3981,12 @@ D3D11Dev_CreateTexture2D_Impl (
 
   if (pDesc != nullptr)
   {
+    // Make all staging textures read/write so that we can perform injection
+    //  -- NieR: Replicant lacks write access on some
+    if (pDesc->Usage == D3D11_USAGE_STAGING)
+        pDesc->CPUAccessFlags |= ( D3D11_CPU_ACCESS_WRITE |
+                                   D3D11_CPU_ACCESS_READ );
+
     static auto game_id =
       SK_GetCurrentGameID ();
 
@@ -5670,7 +5686,7 @@ HookD3D11 (LPVOID user)
                                 D3D11Dev_GetImmediateContext_Original,
                                 D3D11Dev_GetImmediateContext_pfn );
 
-#if 0
+#if 1
     IUnknown *pDev1 = nullptr;
     IUnknown *pDev2 = nullptr;
     IUnknown *pDev3 = nullptr;

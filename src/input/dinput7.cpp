@@ -1082,7 +1082,7 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
                                  vftable [9],
                                  IDirectInputDevice7W_GetDeviceState_Detour,
         static_cast_p2p <void> (&IDirectInputDevice7W_GetDeviceState_Original) );
-      MH_QueueEnableHook (vftable [9]);
+      MH_EnableHook (vftable [9]);
     }
 
     if (! IDirectInputDevice7W_SetCooperativeLevel_Original)
@@ -1091,7 +1091,7 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
                                  vftable [13],
                                  IDirectInputDevice7W_SetCooperativeLevel_Detour,
         static_cast_p2p <void> (&IDirectInputDevice7W_SetCooperativeLevel_Original) );
-      MH_QueueEnableHook (vftable [13]);
+      MH_EnableHook (vftable [13]);
     }
 
     if (rguid == GUID_SysMouse)
@@ -1104,7 +1104,7 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
     devices7_w [guid_crc32c] = *lplpDirectInputDevice;
     devices7_w [guid_crc32c]->AddRef ();
 
-    SK_ApplyQueuedHooks ();
+    //SK_ApplyQueuedHooks ();
   }
 
 #if 0
@@ -1179,7 +1179,7 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
                                  vftable [9],
                                  IDirectInputDevice7A_GetDeviceState_Detour,
         static_cast_p2p <void> (&IDirectInputDevice7A_GetDeviceState_Original) );
-      MH_QueueEnableHook (vftable [9]);
+      MH_EnableHook (vftable [9]);
     }
 
     if (! IDirectInputDevice7A_SetCooperativeLevel_Original)
@@ -1188,7 +1188,7 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
                                  vftable [13],
                                  IDirectInputDevice7A_SetCooperativeLevel_Detour,
         static_cast_p2p <void> (&IDirectInputDevice7A_SetCooperativeLevel_Original) );
-      MH_QueueEnableHook (vftable [13]);
+      MH_EnableHook (vftable [13]);
     }
 
     if (rguid == GUID_SysMouse)
@@ -1201,7 +1201,7 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
     devices7_a [guid_crc32c] = *lplpDirectInputDevice;
     devices7_a [guid_crc32c]->AddRef ();
 
-    SK_ApplyQueuedHooks ();
+    ////SK_ApplyQueuedHooks ();
   }
 
 #if 0

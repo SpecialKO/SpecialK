@@ -264,8 +264,8 @@ SK_Yakuza0_BeginFrame (void)
         pVolume->GetMasterVolume (&fOrigVol);
 
     static DWORD dwStartTime =
-        timeGetTime ();
-    if (timeGetTime () < (dwStartTime + 20000UL))
+        SK_timeGetTime ();
+    if (SK_timeGetTime () < (dwStartTime + 20000UL))
     {
       if (pVolume != nullptr)
       {

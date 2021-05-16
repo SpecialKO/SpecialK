@@ -234,6 +234,13 @@ SK_LoadGPUVendorAPIs (void)
   dll_log->LogEx (false, L"================================================"
                          L"===========================================\n" );
 
+  
+  extern bool
+      __SK_Wine;
+  if (__SK_Wine)
+    return;
+
+
   dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI)...");
 
   nvapi_init =
@@ -1835,6 +1842,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         break;
 #endif
 
+#ifdef _M_AMD64
       case SK_GAME_ID::NieR_Sqrt_1_5:
         extern void
         SK_NIER_RAD_InitPlugin (void);
@@ -1843,6 +1851,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         extern bool                     SK_NIER_RAD_PlugInCfg (void);
         plugin_mgr->config_fns.emplace (SK_NIER_RAD_PlugInCfg);
         break;
+#endif
     }
 
     extern void SK_Widget_InitHDR (void);
@@ -2160,10 +2169,10 @@ SK_ShutdownCore (const wchar_t* backend)
                            L"Thread...          ");
 
   DWORD dwTime =
-       timeGetTime ();
+    SK_timeGetTime ();
   SK_EndGPUPolling ();
 
-  dll_log->LogEx    (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+  dll_log->LogEx    (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
 
 
   SK_Steam_KillPump ();
@@ -2186,7 +2195,7 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log->LogEx (true, L"[ Perfmon. ] Shutting down %-30s ", wszFmtName);
 
     DWORD dwTime_WMIShutdown =
-            timeGetTime ();
+         SK_timeGetTime ();
 
     if (hThread != INVALID_HANDLE_VALUE)
     {
@@ -2213,7 +2222,7 @@ SK_ShutdownCore (const wchar_t* backend)
     }
 
     dll_log->LogEx ( false, L"done! (%4u ms)\n",
-                       timeGetTime () - dwTime_WMIShutdown );
+                    SK_timeGetTime () - dwTime_WMIShutdown );
   };
 
   auto& cpu_stats      = *SK_WMI_CPUStats;
@@ -2243,9 +2252,10 @@ SK_ShutdownCore (const wchar_t* backend)
   {
     dll_log->LogEx       (true,  L"[ SpecialK ] Saving user preferences to"
                                  L" %10s.ini... ", config_name);
-    dwTime = timeGetTime ();
+    dwTime =
+          SK_timeGetTime (           );
     SK_SaveConfig        (config_name);
-    dll_log->LogEx       (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+    dll_log->LogEx       (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
   }
 
 
@@ -2254,17 +2264,17 @@ SK_ShutdownCore (const wchar_t* backend)
     SK_UnloadImports        ();
     SK::Framerate::Shutdown ();
 
-    dll_log->LogEx       (true, L"[ SpecialK ] Shutting down MinHook...                     ");
+    dll_log->LogEx          (true, L"[ SpecialK ] Shutting down MinHook...                     ");
 
-    dwTime = timeGetTime ();
-    SK_MinHook_UnInit    ();
-    dll_log->LogEx       (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+    dwTime = SK_timeGetTime ();
+    SK_MinHook_UnInit       ();
+    dll_log->LogEx          (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
 
 
-    dll_log->LogEx       (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
-    dwTime = timeGetTime ();
-    SK_WMI_Shutdown      ();
-    dll_log->LogEx       (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+    dll_log->LogEx          (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
+    dwTime = SK_timeGetTime ();
+    SK_WMI_Shutdown         ();
+    dll_log->LogEx          (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
 
 
     if (nvapi_init)

@@ -1,4 +1,22 @@
-﻿21.04.28
+﻿21.05.16
+========
+ + Improved performance of Resident Evil 8 when changing display settings,
+     it has a nasty habit of checking resolution support every frame and
+       SK now caches DXGI Factories and Resolution Mode Lists until they
+         actually change.
+
+  ==> Bottom line, this saves up to 3 ms of DXGI API overhead every frame (!!)
+
+ + Added texture mod support for NieR Sqrt 1.5
+ + Added a drop-down menu in 'Display' to move borderless fullscreen windows
+     between available monitors
+
+21.05.10
+========
+ + Fixed DXVK issue with QueryVideoMemoryInfo returning successful HRESULTS
+     for adapters that don't exist.
+
+21.04.28
 ========
  + XInput UI controller slot is now determined automatically based on idle
      detection on each of the 4 possible slots.

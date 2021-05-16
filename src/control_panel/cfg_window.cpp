@@ -167,7 +167,7 @@ SK::ControlPanel::Window::Draw (void)
 
         HMONITOR hMonitor =
           MonitorFromWindow ( rb.windows.device,
-                                MONITOR_DEFAULTTONEAREST );
+                                /*config.display.monitor_default*/ MONITOR_DEFAULTTONEAREST );
 
         MONITORINFO mi  = { };
         mi.cbSize       = sizeof (mi);

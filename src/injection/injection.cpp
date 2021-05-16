@@ -608,7 +608,7 @@ SK_Inject_SpawnUnloadListener (void)
   if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, 0))
   {
     g_hPacifierThread = (HANDLE)
-      CreateThread (nullptr, 0, [](LPVOID lpUser) ->
+      CreateThread (nullptr, 0, [](LPVOID) ->
       DWORD
       {
         HANDLE hHookTeardown =
@@ -1337,8 +1337,8 @@ SK_Inject_SwitchToGlobalInjector (void)
   wchar_t wszTemp [MAX_PATH + 2] = { };
 
   lstrcatW         (wszOut, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-  GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
-  MoveFileW        (wszOut,                                    wszTemp);
+  GetTempFileNameW (SK_GetHostPath (), L"SKI", SK_timeGetTime (), wszTemp);
+  MoveFileW        (wszOut,                                       wszTemp);
 
   SK_SaveConfig (L"SpecialK");
 

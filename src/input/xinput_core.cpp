@@ -326,11 +326,14 @@ XInputGetState1_3_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
@@ -378,11 +381,14 @@ XInputGetStateEx1_3_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
@@ -431,11 +437,14 @@ XInputGetCapabilities1_3_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
@@ -476,11 +485,14 @@ XInputGetBatteryInformation1_3_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
   if (pBatteryInformation == nullptr)         return (DWORD)E_POINTER;
 
@@ -520,6 +532,9 @@ XInputSetState1_3_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
@@ -552,7 +567,7 @@ XInputSetState1_3_Detour (
                                       }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
-                 dwUserIndex == config.input.gamepad.xinput.ui_slot &&
+                 /*dwUserIndex == config.input.gamepad.xinput.ui_slot &&*/
                    config.input.gamepad.haptic_ui ) ||
                config.input.gamepad.disable_rumble;
 
@@ -619,12 +634,15 @@ XInputGetState1_4_Detour (
          xinput_ctx.get ();
 
   HMODULE hModCaller = SK_GetCallingDLL ();
+  
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
 
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
@@ -672,11 +690,14 @@ XInputGetStateEx1_4_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
@@ -724,12 +745,15 @@ XInputGetCapabilities1_4_Detour (
          xinput_ctx.get ();
 
   HMODULE hModCaller = SK_GetCallingDLL ();
+  
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
 
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
@@ -769,12 +793,15 @@ XInputGetBatteryInformation1_4_Detour (
          xinput_ctx.get ();
 
   HMODULE hModCaller = SK_GetCallingDLL ();
+  
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
 
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
   if (pBatteryInformation == nullptr) return (DWORD)E_POINTER;
 
@@ -815,6 +842,9 @@ XInputSetState1_4_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
@@ -847,7 +877,7 @@ XInputSetState1_4_Detour (
                                       }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
-                 dwUserIndex == config.input.gamepad.xinput.ui_slot &&
+                 /*dwUserIndex == config.input.gamepad.xinput.ui_slot &&*/
                    config.input.gamepad.haptic_ui ) ||
                config.input.gamepad.disable_rumble;
 
@@ -884,11 +914,14 @@ XInputGetState9_1_0_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
 
@@ -937,11 +970,14 @@ XInputGetCapabilities9_1_0_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+  SK_XINPUT_READ (dwUserIndex)
 
 
   //// Yakuza speedup (9.1.0 always returns a fixed set of caps)
@@ -1009,6 +1045,9 @@ XInputSetState9_1_0_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
@@ -1041,7 +1080,7 @@ XInputSetState9_1_0_Detour (
                                       }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
-                 dwUserIndex == config.input.gamepad.xinput.ui_slot &&
+               /*dwUserIndex == config.input.gamepad.xinput.ui_slot &&*/
                    config.input.gamepad.haptic_ui ) ||
                config.input.gamepad.disable_rumble;
 
@@ -1804,8 +1843,8 @@ static bool
 _ShouldRecheckStatus (INT iJoyID)
 {
   return (
-                      ReadULongAcquire (&last_poll [iJoyID]   ) <
-    (timeGetTime () - ReadULongAcquire (&SK_XInput_RefreshTime))
+                         ReadULongAcquire (&last_poll [iJoyID]   ) <
+    (SK_timeGetTime () - ReadULongAcquire (&SK_XInput_RefreshTime))
   );
 }
 
@@ -1967,7 +2006,7 @@ SK_XInput_PollController ( INT           iJoyID,
     }
 
     if (ReadULongAcquire (&dwRet     [iJoyID]) == ERROR_DEVICE_NOT_CONNECTED)
-       WriteULongRelease (&last_poll [iJoyID], timeGetTime ());
+       WriteULongRelease (&last_poll [iJoyID], SK_timeGetTime ());
   }
 
   InterlockedExchange ( &_xinput_ctx.LastSlotState [iJoyID],

@@ -477,10 +477,14 @@ SK::ControlPanel::Compatibility::Draw (void)
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ( _SummarizeWindowStyle (
-                                  SK_GetWindowLongPtrW (rb.windows.focus.hwnd, GWL_STYLE)
+                                  static_cast <DWORD> (
+                                    SK_GetWindowLongPtrW (rb.windows.focus.hwnd, GWL_STYLE)
+                                  )
                               ).c_str ());
 
-        ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.focus.hwnd, GWL_EXSTYLE) );
+        ImGui::Text      ( "%8x", static_cast <DWORD> (
+                                    SK_GetWindowLongPtrW (rb.windows.focus.hwnd, GWL_EXSTYLE)
+                         )                            );
         ImGui::EndGroup ();
         if (rb.windows.focus.hwnd != rb.windows.device.hwnd)
         {
@@ -503,7 +507,9 @@ SK::ControlPanel::Compatibility::Draw (void)
           
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ( _SummarizeWindowStyle (
-                                    SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_STYLE)
+                                    static_cast <DWORD> (
+                                      SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_STYLE)
+                                    )
                                 ).c_str ());
 
           ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_EXSTYLE) );

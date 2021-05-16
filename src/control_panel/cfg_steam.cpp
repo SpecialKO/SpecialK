@@ -1032,7 +1032,7 @@ SK_SteamDB_BuildRandomAgentString (void)
     L"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36"
   };
 
-  SK_RunOnce (srand (timeGetTime ()));
+  SK_RunOnce (srand (SK_timeGetTime ()));
 
   // Use one of these fake agent strings for the entire runtime of the application.
   static unsigned int agent_idx0 =

@@ -2435,8 +2435,8 @@ public:
 
         if (config.steam.achievements.play_sound)
         {
-          PlaySound ( (LPCWSTR)unlock_sound, nullptr, SND_ASYNC |
-                                                      SND_MEMORY );
+          SK_PlaySound ( (LPCWSTR)unlock_sound, nullptr, SND_ASYNC |
+                                                         SND_MEMORY );
         }
 
         steam_log->Log ( L" Achievement: '%hs' (%hs) - Unlocked!",
@@ -2507,7 +2507,7 @@ public:
 
           popup.window      = nullptr;
           popup.final_pos   = false;
-          popup.time        = timeGetTime ();
+          popup.time        = SK_timeGetTime ();
           popup.achievement = achievement;
 
           popups.push_back (popup);
@@ -2651,11 +2651,11 @@ public:
 
         while (it != popups.cend ())
         {
-          if (timeGetTime () < (*it).time + POPUP_DURATION_MS)
+          if (SK_timeGetTime () < (*it).time + POPUP_DURATION_MS)
           {
             float percent_of_lifetime =
-              ( static_cast <float> ((*it).time + POPUP_DURATION_MS - timeGetTime ()) /
-                static_cast <float> (             POPUP_DURATION_MS)                  );
+              ( static_cast <float> ((*it).time + POPUP_DURATION_MS - SK_timeGetTime ()) /
+                static_cast <float> (             POPUP_DURATION_MS)                     );
 
             //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
             CEGUI::Window* win = (*it).window;
@@ -2699,8 +2699,8 @@ public:
               // Since we're not going to draw this, treat it as a new
               //   popup until it first becomes visible.
               (*it).time =
-                timeGetTime ();
-              win->hide     ();
+                SK_timeGetTime ();
+              win->hide        ();
             }
 
             else
@@ -3688,7 +3688,7 @@ SteamAPI_RunCallbacks_Detour (void)
     {
       if (try_me)
       {
-        DWORD dwNow = timeGetTime ();
+        DWORD dwNow = SK_timeGetTime ();
 
         static DWORD
             dwLastOnlineStateCheck = 0UL;

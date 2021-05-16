@@ -54,20 +54,20 @@ UpdateConsole ( uint32_t           processId,
     if (chain.mPresentHistoryCount < 2)
       continue;
   
-    auto const& present0 =
-      *chain.mPresentHistory [
-      (chain.mNextPresentIndex - chain.mPresentHistoryCount) % 
-                             SwapChainData::PRESENT_HISTORY_MAX_COUNT
-                             ];
+    //auto const& present0 =
+    //  *chain.mPresentHistory [
+    //  (chain.mNextPresentIndex - chain.mPresentHistoryCount) % 
+    //                         SwapChainData::PRESENT_HISTORY_MAX_COUNT
+    //                         ];
     auto const& presentN =
       *chain.mPresentHistory [
       (chain.mNextPresentIndex - 1)                          % 
                              SwapChainData::PRESENT_HISTORY_MAX_COUNT
                              ];
 
-    auto cpuAvg =
-      QpcDeltaToSeconds (presentN.QpcTime - present0.QpcTime) /
-                             (chain.mPresentHistoryCount - 1);
+    ///auto cpuAvg =
+    ///  QpcDeltaToSeconds (presentN.QpcTime - present0.QpcTime) /
+    ///                         (chain.mPresentHistoryCount - 1);
     auto dspAvg = 0.0;
     auto latAvg = 0.0;
   

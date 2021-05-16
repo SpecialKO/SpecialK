@@ -729,9 +729,8 @@ SK_DrawOSD (void)
     const double effective_mean = pLimiter->frame_history2->calcMean  ();
 
     static double fps           = 0.0;
-    static DWORD  last_fps_time = timeGetTime ();
-
-    const  DWORD         dwTime = timeGetTime ();
+    static DWORD  last_fps_time = SK_timeGetTime ();
+    const  DWORD         dwTime = SK_timeGetTime ();
 
     if (dwTime - last_fps_time > 666)
     {

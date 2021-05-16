@@ -546,47 +546,47 @@ GetProcAddress_Detour     (
     ////  }
     ////}
 
-////    if ( *lpProcName == 'P'      &&
-//// StrStrA (lpProcName,   "PeekM") == lpProcName )
-////    {
-////      if (! lstrcmpA (lpProcName, "PeekMessageA"))
-////      {
-////        return
-////          (FARPROC)PeekMessageA_Detour;
-////      }
-////
-////      else if (! lstrcmpA (lpProcName, "PeekMessageW"))
-////      {
-////        return
-////          (FARPROC) PeekMessageW_Detour;
-////      }
-////
-////      return
-////        GetProcAddress_Original (
-////          hModule, lpProcName
-////        );
-////    }
-////
-////    else if ( *lpProcName == 'G'     &&
-////      StrStrA (lpProcName,   "GetM") == lpProcName )
-////    {
-////      if (! lstrcmpA (lpProcName, "GetMessageA"))
-////      {
-////        return
-////          (FARPROC) GetMessageA_Detour;
-////      }
-////
-////      else if (! lstrcmpA (lpProcName, "GetMessageW"))
-////      {
-////        return
-////          (FARPROC) GetMessageW_Detour;
-////      }
-////
-////      return
-////        GetProcAddress_Original (
-////          hModule, lpProcName
-////        );
-////    }
+    if ( *lpProcName == 'P'      &&
+ StrStrA (lpProcName,   "PeekM") == lpProcName )
+    {
+      if (! lstrcmpA (lpProcName, "PeekMessageA"))
+      {
+        return
+          (FARPROC)PeekMessageA_Detour;
+      }
+
+      else if (! lstrcmpA (lpProcName, "PeekMessageW"))
+      {
+        return
+          (FARPROC) PeekMessageW_Detour;
+      }
+
+      return
+        GetProcAddress_Original (
+          hModule, lpProcName
+        );
+    }
+
+    else if ( *lpProcName == 'G'     &&
+      StrStrA (lpProcName,   "GetM") == lpProcName )
+    {
+      if (! lstrcmpA (lpProcName, "GetMessageA"))
+      {
+        return
+          (FARPROC) GetMessageA_Detour;
+      }
+
+      else if (! lstrcmpA (lpProcName, "GetMessageW"))
+      {
+        return
+          (FARPROC) GetMessageW_Detour;
+      }
+
+      return
+        GetProcAddress_Original (
+          hModule, lpProcName
+        );
+    }
 
     // MSI Nahimic workaround
     if ( *lpProcName == 'N' &&
@@ -3608,6 +3608,13 @@ SK_Proxy_MouseProc   (
 
     else
     {
+      // Game uses a mouse hook for input that the Steam overlay cannot block
+      if (SK::SteamAPI::GetOverlayState (true))
+      {
+        return
+          CallNextHookEx (0, nCode, wParam, lParam);
+      }
+
       SK_WinHook_Backend->markRead (sk_input_dev_type::Mouse);
 
       DWORD dwTid =
@@ -3640,18 +3647,21 @@ SK_Proxy_KeyboardProc (
 {
   if (nCode >= 0)
   {
+    using KeyboardProc =
+      LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
+
+    bool wasPressed =
+        ( lParam & (1 << 30) ) != 0;
+    bool isPressed =
+        ( lParam & (1 << 31) ) != 0;
+    bool isAltDown =
+        ( lParam & (1 << 29) ) != 0;
+
     if ( config.input.keyboard.override_alt_f4 &&
             config.input.keyboard.catch_alt_f4 )
     {
       SHORT vKey =
-          wParam;
-
-      bool wasPressed =
-        ( lParam & (1 << 30) ) != 0;
-      bool isPressed =
-        ( lParam & (1 << 31) ) != 0;
-      bool isAltDown =
-        ( lParam & (1 << 29) ) != 0;
+          static_cast <SHORT> (wParam);
 
       if (vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
       {
@@ -3671,6 +3681,13 @@ SK_Proxy_KeyboardProc (
 
     else
     {
+      // Game uses a keyboard hook for input that the Steam overlay cannot block
+      if (SK::SteamAPI::GetOverlayState (true) || SK_Console::getInstance ()->isVisible ())
+      {
+        return
+          CallNextHookEx (0, nCode, wParam, lParam);
+      }
+
       DWORD dwTid =
         GetCurrentThreadId ();
 
@@ -3678,15 +3695,14 @@ SK_Proxy_KeyboardProc (
       if (config.window.background_render)
       {
         SHORT vKey =
-            wParam;
+            static_cast <SHORT> (wParam);
 
-        if (vKey == VK_MENU || vKey == VK_LMENU || vKey == VK_RMENU)
-        {   vKey  = VK_MENU; }
+        if (vKey == VK_TAB && isAltDown && isPressed)
+        {
+          return 1;
+        }
       }
 
-      using KeyboardProc =
-        LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
-      
       return
         ((KeyboardProc)__hooks._RealKeyboardProcs.count (dwTid) ?
                        __hooks._RealKeyboardProcs.at    (dwTid) :

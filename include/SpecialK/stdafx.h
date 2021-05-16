@@ -233,7 +233,6 @@
 #include <processthreadsapi.h>
 
 #pragma comment (lib,    "avrt.lib")
-#pragma comment (lib,    "winmm.lib")
 #pragma comment (lib,    "secur32.lib")
 #pragma comment (lib,    "wininet.lib")
 #pragma comment (lib,    "Shlwapi.lib")

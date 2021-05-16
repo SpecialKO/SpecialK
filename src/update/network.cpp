@@ -421,10 +421,10 @@ RemindMeLater_DlgProc (
         srand (GetCurrentProcessId ());
 
         if (! (rand () % 2))
-          PlaySound ( (LPCWSTR)annoy_sound->buf,
-                      nullptr,
-                        SND_ASYNC |
-                        SND_MEMORY );
+          SK_PlaySound ( (LPCWSTR)annoy_sound->buf,
+                         nullptr,
+                           SND_ASYNC |
+                           SND_MEMORY );
 
         FILETIME                  ftNow;
         GetSystemTimeAsFileTime (&ftNow);

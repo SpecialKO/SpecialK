@@ -535,10 +535,10 @@ SK_YS8_ControlPanel (void)
 
     static DWORD dwLastActive = 0;
 
-    if (jobs != 0 || dwLastActive > timeGetTime () - 500)
+    if (jobs != 0 || dwLastActive > SK_timeGetTime () - 500)
     {
       if (jobs > 0)
-        dwLastActive = timeGetTime ();
+        dwLastActive = SK_timeGetTime ();
 
       if (jobs > 0)
       {
@@ -555,7 +555,7 @@ SK_YS8_ControlPanel (void)
       else
       {
         ImGui::PushStyleColor ( ImGuiCol_Text,
-                        (ImVec4&&)ImColor::HSV ( 0.4f - ( 0.4f * (timeGetTime () - dwLastActive) /
+                        (ImVec4&&)ImColor::HSV ( 0.4f - ( 0.4f * (SK_timeGetTime () - dwLastActive) /
                                                           500.0f ),
                                                    1.0f,
                                                      0.8f

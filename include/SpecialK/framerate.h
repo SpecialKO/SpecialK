@@ -312,6 +312,9 @@ namespace SK
       bool           tracks_window = true;
       HANDLE         timer_wait    = 0;
       bool           lazy_init     = false;
+
+      // Two limits applied on the same frame would cause problems, don't allow it.
+      std::unordered_map <DWORD, ULONG64> _frame_shame;
     };
 
     using EventCounter = class EventCounter_V1;
@@ -465,7 +468,7 @@ namespace SK
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (_isreal (datum.val) && datum.val > 0.0)
+            if (datum.val > 0.0 && _isreal (datum.val))
             {
               ++samples_used;
               mean += datum.val;
@@ -553,7 +556,7 @@ namespace SK
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (_isreal (datum.val) && datum.val > 0.0)
+            if (datum.val > 0.0 && _isreal (datum.val))
             {
               sd2 += (datum.val - mean) *
                      (datum.val - mean);
@@ -573,7 +576,7 @@ namespace SK
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (_isreal (datum.val) && datum.val > 0.0)
+            if (datum.val > 0.0 && _isreal (datum.val))
             {
               if (datum.val < min)
                 min = datum.val;
@@ -592,7 +595,7 @@ namespace SK
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (_isreal (datum.val) && datum.val > 0.0)
+            if (datum.val > 0.0 && _isreal (datum.val))
             {
               if (datum.val > max)
                 max = datum.val;

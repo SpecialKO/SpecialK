@@ -38,6 +38,7 @@ NtDelayExecution_pfn       NtDelayExecution       = nullptr;
 LPVOID pfnQueryPerformanceCounter = nullptr;
 LPVOID pfnSleep                   = nullptr;
 
+double                      dTicksPerMS                        =     0.0;
 Sleep_pfn                   Sleep_Original                     = nullptr;
 SleepEx_pfn                 SleepEx_Original                   = nullptr;
 QueryPerformanceCounter_pfn QueryPerformanceCounter_Original   = nullptr;
@@ -53,9 +54,7 @@ extern BOOL WINAPI SK_IsWindowUnicode (HWND hWnd, SK_TLS *pTLS);
 void
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS **ppTLS)
 {
-  static double
-    dTicksPerMS = static_cast <double> (SK_GetPerfFreq ().QuadPart) / 1000.0;
-  auto     now =                        SK_CurrentPerf ().QuadPart;
+  UNREFERENCED_PARAMETER (ppTLS);
 
   if (dwMilliseconds == INFINITE)
   {
@@ -70,33 +69,37 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     return;
   }
 
-  HWND hWndThis =
-    SK_GetActiveWindow (nullptr);
-
-  bool bUnicode =
-    SK_IsWindowUnicode (hWndThis, nullptr);
-
-  // Avoid having Windows marshal Unicode messages like a dumb ass
-  MSG        msg (                           { }                 );
-  auto      Peek (bUnicode ? PeekMessageW     :      PeekMessageA);
-  auto  Dispatch (bUnicode ? DispatchMessageW :  DispatchMessageA);
-  auto Translate (bUnicode ? TranslateMessage : TranslateMessage );
-  auto   wszDesc (bUnicode ? L"Unicode"       :           L"ANSI");
-
+//#define SK_DISPATCH_SLEEP
+#ifdef  SK_DISPATCH_SLEEP
   auto PeekAndDispatch = [&]
   {
+    constexpr HWND hWndThis =    0;
+    constexpr bool bUnicode = true;
+  
+    // Avoid having Windows marshal Unicode messages like a dumb ass
+              MSG        msg (                           { }                 );
+    constexpr auto      Peek (bUnicode ? PeekMessageW     :      PeekMessageA);
+    constexpr auto  Dispatch (bUnicode ? DispatchMessageW :  DispatchMessageA);
+    constexpr auto Translate (bUnicode ? TranslateMessage : TranslateMessage );
+    constexpr auto   wszDesc (bUnicode ? L"Unicode"       :           L"ANSI");
+
     while ( Peek (&msg, hWndThis, 0U, 0U, PM_REMOVE) )
     {  Translate (&msg);
         Dispatch (&msg);
-
+  
       SK_LOG1 ( ( L"Dispatched Message: %x to %ws HWND: %x while "
                   L"framerate limiting!",
                    msg.message, wszDesc,
                    msg.hwnd ),                       L"Win32-Pump" );
     }
   };
+#endif
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::NieR_Sqrt_1_5)
+#ifdef _M_AMD64
+  static bool bNierSqrt1_5 =
+    SK_GetCurrentGameID () == SK_GAME_ID::NieR_Sqrt_1_5;
+
+  if (bNierSqrt1_5)
   {
     static DWORD InputThread = 0;
 
@@ -106,7 +109,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      if (*pTLS->debug.name == L'I' && (!wcsicmp (pTLS->debug.name, L"InputThread")))
+      if (*pTLS->debug.name == L'I' && (! _wcsicmp (pTLS->debug.name, L"InputThread")))
       {
         auto thread =
           SK_GetCurrentThread ();
@@ -142,6 +145,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       return;
     }
   }
+#endif
   
   // Not good
   if (dwMilliseconds == 0)
@@ -177,12 +181,14 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     }
   }
 
+
+
+  auto now =
+         SK_CurrentPerf ().QuadPart;
   auto end =
        now + static_cast <LONGLONG> (
              static_cast < double > (                         dTicksPerMS) *
                                     (static_cast <double> (dwMilliseconds)));
-       now =
-         SK_CurrentPerf ().QuadPart;
 
   do
   {
@@ -197,7 +203,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       if (dwMaxWait == 0 && config.render.framerate.max_delta_time < 1)
           dwMaxWait = 1;
 
-      else if (dwMaxWait <= config.render.framerate.max_delta_time)
+      else if (dwMaxWait <= (DWORD)config.render.framerate.max_delta_time)
         return;
 
       DWORD dwWaitState =
@@ -217,8 +223,10 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       // Waiting messages
       else if (dwWaitState == WAIT_OBJECT_0 + 1)
       {
-        //PeekAndDispatch ();
+#ifdef SK_DISPATCH_SLEEP
+        PeekAndDispatch ();
         // ...
+#endif
         return;
       }
 
@@ -259,10 +267,6 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
   }
   while (now < end);
 }
-
-
-bool fix_sleep_0 = false;
-
 
 float
 SK_Sched_ThreadContext::most_recent_wait_s::getRate (void)
@@ -874,25 +878,11 @@ DWORD
 WINAPI
 SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 {
-  if (   ReadAcquire (&__SK_DLL_Ending  ) ||
-      (! ReadAcquire (&__SK_DLL_Attached) ) )
-  {
-    return 0;
-  }
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  static auto game_id =
-    SK_GetCurrentGameID ();
-
-  if ( game_id        == SK_GAME_ID::FinalFantasyXV &&
-       dwMilliseconds == 0                          && fix_sleep_0 )
-  {
-    SwitchToThread ();
-    return 0;
-  }
-
+  ///if (   ReadAcquire (&__SK_DLL_Ending  ) ||
+  ///    (! ReadAcquire (&__SK_DLL_Attached) ) )
+  ///{
+  ///  return 0;
+  ///}
 
   const bool sleepless_render = config.render.framerate.sleepless_render;
   const bool sleepless_window = config.render.framerate.sleepless_window;
@@ -901,9 +891,14 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     ( sleepless_render ||
       sleepless_window );
 
+  static const auto game_id =
+        SK_GetCurrentGameID ();
+
+#ifdef _TVFIX
   bWantThreadClassification |=
     ( game_id == SK_GAME_ID::Tales_of_Vesperia &&
             1 == dwMilliseconds );
+#endif
 
   DWORD dwTid =
     bWantThreadClassification   ?
@@ -914,7 +909,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   BOOL bGUIThread    = sleepless_window ?     SK_Win32_IsGUIThread (dwTid, &pTLS)         :
                                                                                    false;
-  BOOL bRenderThread = sleepless_render ? ((DWORD)ReadULongAcquire (&rb.thread) == dwTid) :
+  BOOL bRenderThread = sleepless_render ? ((DWORD)ReadULongAcquire (&SK_GetCurrentRenderBackend ().thread) == dwTid) :
                                                                                    false;
 
   // Steam doesn't init correctly without sleeping for 25 ms
@@ -923,6 +918,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   if (bRenderThread && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
   {
+#ifdef _TVFIX
 #pragma region Tales of Vesperia Render NoSleep
 #ifdef _M_AMD64
     if (game_id == SK_GAME_ID::Tales_of_Vesperia)
@@ -937,18 +933,23 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     }
 #endif
 #pragma endregion
+#endif
 
     if (sleepless_render && dwMilliseconds != INFINITE && dwMilliseconds != STEAM_THRESHOLD)
     {
-      static bool reported = false;
-            if (! reported)
-            {
-              dll_log->Log ( L"[FrameLimit] Sleep called from render "
-                             L"thread: %lu ms!", dwMilliseconds );
-              reported = true;
-            }
+      if (config.system.log_level > 0)
+      {
+        static bool reported = false;
+              if (! reported)
+              {
+                dll_log->Log ( L"[FrameLimit] Sleep called from render "
+                               L"thread: %lu ms!", dwMilliseconds );
+                reported = true;
+              }
+      }
 
-      SK::Framerate::events->getRenderThreadStats ().wake (dwMilliseconds);
+      if (SK_ImGui_Visible)
+        SK::Framerate::events->getRenderThreadStats ().wake (dwMilliseconds);
 
       //if (bGUIThread)
       //  SK::Framerate::events->getMessagePumpStats ().wake (dwMilliseconds);
@@ -962,24 +963,29 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       return 0;
     }
 
-    SK::Framerate::events->getRenderThreadStats ().sleep  (dwMilliseconds);
+    if (SK_ImGui_Visible)
+      SK::Framerate::events->getRenderThreadStats ().sleep  (dwMilliseconds);
   }
 
   if (bGUIThread && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
   {
     if (sleepless_window && dwMilliseconds != INFINITE && dwMilliseconds != STEAM_THRESHOLD)
     {
-      static bool reported = false;
-            if (! reported)
-            {
-              dll_log->Log ( L"[FrameLimit] Sleep called from GUI thread: "
-                             L"%lu ms!", dwMilliseconds );
-              reported = true;
-            }
+      if (config.system.log_level > 0)
+      {
+        static bool reported = false;
+              if (! reported)
+              {
+                dll_log->Log ( L"[FrameLimit] Sleep called from GUI thread: "
+                               L"%lu ms!", dwMilliseconds );
+                reported = true;
+              }
+      }
+      
+      if (SK_ImGui_Visible)
+        SK::Framerate::events->getMessagePumpStats ().wake   (dwMilliseconds);
 
-      SK::Framerate::events->getMessagePumpStats ().wake   (dwMilliseconds);
-
-      if (bRenderThread)
+      if (bRenderThread && SK_ImGui_Visible)
         SK::Framerate::events->getMessagePumpStats ().wake (dwMilliseconds);
 
       SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, bAlertable, &pTLS);
@@ -987,12 +993,14 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       return 0;
     }
 
-    SK::Framerate::events->getMessagePumpStats ().sleep (dwMilliseconds);
+    if (SK_ImGui_Visible)
+      SK::Framerate::events->getMessagePumpStats ().sleep (dwMilliseconds);
   }
 
   DWORD max_delta_time =
     narrow_cast <DWORD> (config.render.framerate.max_delta_time);
 
+#ifdef _TVFIX
 #pragma region Tales of Vesperia Anti-Stutter Code
 #ifdef _M_AMD64
   extern bool SK_TVFix_ActiveAntiStutter (void);
@@ -1049,6 +1057,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   }
 #endif
 #pragma endregion
+#endif
 
   // TODO: Stop this nonsense and make an actual parameter for this...
   //         (min sleep?)
@@ -1070,11 +1079,6 @@ Sleep_Detour (DWORD dwMilliseconds)
 {
   SleepEx_Detour (dwMilliseconds, FALSE);
 }
-
-#ifdef _M_AMD64
-float __SK_SHENMUE_ClockFuzz = 20.0f;
-extern volatile LONG SK_BypassResult;
-#endif
 
 BOOL
 WINAPI
@@ -1106,15 +1110,33 @@ SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount)
     return QueryPerformanceCounter (lpPerformanceCount);
 }
 
+BOOL
+WINAPI
+QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER* lpPerformanceCount)
+{
+  return
+    RtlQueryPerformanceCounter          ?
+    RtlQueryPerformanceCounter          (lpPerformanceCount) :
+       QueryPerformanceCounter_Original ?
+       QueryPerformanceCounter_Original (lpPerformanceCount) :
+       QueryPerformanceCounter          (lpPerformanceCount);
+}
+
+
 #ifdef _M_AMD64
 extern bool SK_Shenmue_IsLimiterBypassed   (void              );
 extern bool SK_Shenmue_InitLimiterOverride (LPVOID pQPCRetAddr);
 extern bool SK_Shenmue_UseNtDllQPC;
 #endif
 
+#ifdef _M_AMD64
+float __SK_SHENMUE_ClockFuzz = 20.0f;
+extern volatile LONG SK_BypassResult;
+#endif
+
 BOOL
 WINAPI
-QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
+QueryPerformanceCounter_Shenmue_Detour (_Out_ LARGE_INTEGER* lpPerformanceCount)
 {
 #pragma region Shenmue Clock Fuzzing
 #ifdef _M_AMD64
@@ -1210,42 +1232,42 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 #pragma endregion
 
   return
-    RtlQueryPerformanceCounter          ?
-    RtlQueryPerformanceCounter          (lpPerformanceCount) :
-       QueryPerformanceCounter_Original ?
-       QueryPerformanceCounter_Original (lpPerformanceCount) :
-       QueryPerformanceCounter          (lpPerformanceCount);
+    QueryPerformanceCounter_Detour (lpPerformanceCount);
 }
 
+LARGE_INTEGER _SK_PerfFreq     = { 0UL };
+volatile LONG _SK_PerfFreqInit =  FALSE;
 
 LARGE_INTEGER
 SK_GetPerfFreq (void)
 {
-  static LARGE_INTEGER freq = { 0UL };
-  static volatile LONG init = FALSE;
+  if (     _SK_PerfFreq.QuadPart != 0)
+    return _SK_PerfFreq;
 
-  if (ReadAcquire (&init) < 2)
+
+
+  if (ReadAcquire (&_SK_PerfFreqInit) < 2)
   {
-      RtlQueryPerformanceFrequency =
-        (QueryPerformanceCounter_pfn)
+    RtlQueryPerformanceFrequency =
+      (QueryPerformanceCounter_pfn)
     SK_GetProcAddress ( L"NtDll",
                          "RtlQueryPerformanceFrequency" );
 
-    if (! InterlockedCompareExchange (&init, 1, 0))
+    if (! InterlockedCompareExchange (&_SK_PerfFreqInit, 1, 0))
     {
       if (RtlQueryPerformanceFrequency != nullptr)
-          RtlQueryPerformanceFrequency            (&freq);
+          RtlQueryPerformanceFrequency            (&_SK_PerfFreq);
       else if (QueryPerformanceFrequency_Original != nullptr)
-               QueryPerformanceFrequency_Original (&freq);
+               QueryPerformanceFrequency_Original (&_SK_PerfFreq);
       else
-        QueryPerformanceFrequency                 (&freq);
+        QueryPerformanceFrequency                 (&_SK_PerfFreq);
 
-      InterlockedIncrement (&init);
+      InterlockedIncrement (&_SK_PerfFreqInit);
 
-      return freq;
+      return _SK_PerfFreq;
     }
 
-    if (ReadAcquire (&init) < 2)
+    if (ReadAcquire (&_SK_PerfFreqInit) < 2)
     {
       LARGE_INTEGER freq2 = { };
 
@@ -1261,7 +1283,8 @@ SK_GetPerfFreq (void)
     }
   }
 
-  return freq;
+  return
+    _SK_PerfFreq;
 }
 
 
@@ -1316,6 +1339,9 @@ void SK_Scheduler_Init (void)
 
   std::call_once (the_wuncler, [&](void)
   {
+    dTicksPerMS =
+      static_cast <double> (SK_GetPerfFreq ().QuadPart) / 1000.0;
+
     NtQueryTimerResolution =
       reinterpret_cast <NtQueryTimerResolution_pfn> (
         SK_GetProcAddress ( L"NtDll",
@@ -1354,11 +1380,23 @@ void SK_Scheduler_Init (void)
                                QueryPerformanceFrequency_Detour,
       static_cast_p2p <void> (&QueryPerformanceFrequency_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "QueryPerformanceCounter",
-                               QueryPerformanceCounter_Detour,
-      static_cast_p2p <void> (&QueryPerformanceCounter_Original),
-      static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::Shenmue)
+    {
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "QueryPerformanceCounter",
+                                 QueryPerformanceCounter_Shenmue_Detour,
+        static_cast_p2p <void> (&QueryPerformanceCounter_Original),
+        static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
+    }
+    else
+    {
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "QueryPerformanceCounter",
+                                 QueryPerformanceCounter_Detour,
+        static_cast_p2p <void> (&QueryPerformanceCounter_Original),
+        static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
+    }
 #endif
 
     SK_CreateDLLHook2 (      L"kernel32",
