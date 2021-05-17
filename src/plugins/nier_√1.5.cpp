@@ -29,10 +29,10 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.7.1"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.8.0"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
-//#define _RR_HDF
+#define _RR_HDF
 
 volatile LONG       _SK_NIER_RAD_InputPollingPeriod     = 8;
 volatile BYTE       _SK_NIER_RAD_HighDynamicFramerate   = false;
@@ -64,10 +64,189 @@ struct {
   DIDEVICEINSTANCEW               last_good = { };
 } static __DInput8;
 
+struct {
+  bool compatible = false;
+  bool dynamic    = false;
+
+  struct patch_s
+  {
+          size_t   size;
+    const char*    replacement;
+
+          bool     patched    = false;
+
+          void*    patch_addr = nullptr;
+          void*    orig_code  = nullptr;
+
+    bool apply (void* addr)
+    {
+      bool  ret          = false;
+      DWORD dwOrigAccess = 0x0UL;
+
+      assert (patch_addr == 0x0 || patch_addr == addr);
+
+      if (orig_code == nullptr)
+      {
+        ret =
+          VirtualProtect ( addr, size, PAGE_READWRITE, &dwOrigAccess);
+
+        if (ret)
+        {
+          orig_code = std::malloc (size);
+          memcpy (orig_code, addr, size);
+          VirtualProtect (   addr, size, dwOrigAccess,  &dwOrigAccess);
+        }
+      }
+
+      auto suspended =
+        SK_SuspendAllOtherThreads ();
+
+	    if (VirtualProtect (addr, size, PAGE_EXECUTE_READWRITE, &dwOrigAccess))
+      {   memcpy         (addr, replacement, size);
+	        VirtualProtect (addr, size, dwOrigAccess,           &dwOrigAccess);
+
+        ret = true;
+      }
+
+      if (ret)
+        patched = true;
+
+      SK_ResumeThreads (suspended);
+
+      return ret;
+    }
+
+    bool revert (void)
+    {
+      if (! patched)
+        return true; // nop
+
+      auto suspended =
+        SK_SuspendAllOtherThreads ();
+
+      bool  ret          = false;
+      DWORD dwOrigAccess = 0x0UL;
+
+      if (VirtualProtect (patch_addr, size, PAGE_EXECUTE_READWRITE, &dwOrigAccess))
+      {   memcpy         (patch_addr, orig_code, size);
+          VirtualProtect (patch_addr, size, PAGE_EXECUTE_READWRITE, &dwOrigAccess);
+
+        ret = true;
+      }
+
+      SK_ResumeThreads (suspended);
+
+      return ret;
+    }
+
+    ~patch_s (void) { revert (); std::free (std::exchange (orig_code, nullptr)); }
+
+  } dtPatch        { 4,  "\xAD\xBE\xFA\xFF"                     },
+    rotationPatch0 { 8,  "\xE9\x2B\x8E\xE0\xFF\x90\x90\x90"     },
+    rotationPatch1 { 26, "\xF3\x0F\x10\x0D\xCC\x7E\x8D\x00\xF3"
+                         "\x0F\x5E\x0D\xE0\x51\x6A\x04\xF3\x0F"
+                         "\x59\xD1\xE9\xBF\x71\x1F\x00\x90"     };
+
+  struct address_s {
+    uintptr_t offset;
+    void*     ptr;
+  } dtFloat        { 0x15228,   nullptr },
+    dtFix          { 0x69377,   nullptr },
+    dtVal          { 0x4B1B0B4, nullptr },
+    rotationCave   { 0x475EC0,  nullptr },
+    rotationDetour { 0x66D090,  nullptr },
+    bLoadScreen    { 0x2704050, nullptr };
+
+  bool init (void)
+  {
+    compatible = true;
+
+    auto pBaseAddr =
+      reinterpret_cast <uintptr_t> (SK_Debug_GetImageBaseAddr ());
+
+    dtFloat.ptr        = reinterpret_cast <void *>(pBaseAddr + dtFloat.offset       );
+    dtFix.ptr          = reinterpret_cast <void *>(pBaseAddr + dtFix.offset         );
+    dtVal.ptr          = reinterpret_cast <void *>(pBaseAddr + dtVal.offset         );
+    rotationCave.ptr   = reinterpret_cast <void *>(pBaseAddr + rotationCave.offset  );
+    rotationDetour.ptr = reinterpret_cast <void *>(pBaseAddr + rotationDetour.offset);
+    bLoadScreen.ptr    = reinterpret_cast <void *>(pBaseAddr + bLoadScreen.offset   );
+
+    return true;
+  }
+
+  bool isInLoadScreen (void) { return compatible && *(bool *)bLoadScreen.ptr; }
+
+  bool enable (void)
+  {
+    bool ret = false;
+
+    if (! init ())
+      return ret;
+
+    if (compatible)
+    {
+      auto suspended =
+        SK_SuspendAllOtherThreads ();
+
+      DWORD                                                      dwOrigProt;
+      if (VirtualProtect (      dtFloat.ptr, 4, PAGE_READWRITE, &dwOrigProt))
+      {               *(float *)dtFloat.ptr = 0.0f;
+          VirtualProtect (      dtFloat.ptr, 4, dwOrigProt,     &dwOrigProt);
+
+        ret  =        dtPatch.apply (dtFix.ptr         );
+        ret &= rotationPatch0.apply (rotationDetour.ptr);
+        ret &= rotationPatch1.apply (rotationCave.ptr  );
+      }
+
+      if (! ret)
+      {
+        dtPatch.revert        ();
+        rotationPatch0.revert ();
+        rotationPatch1.revert ();
+      }
+
+      if (ret)
+        dynamic = true;
+
+      SK_ResumeThreads (suspended);
+    }
+
+    return ret;
+  }
+
+  bool disable (void)
+  {
+    bool ret = false;
+
+    if (! init ())
+      return ret;
+
+    if (compatible && dynamic)
+    {
+      auto suspended =
+        SK_SuspendAllOtherThreads ();
+
+      ret  = dtPatch.revert ();
+
+      ret &= rotationPatch0.revert ();
+      ret &= rotationPatch1.revert ();
+      
+      if (ret)
+        dynamic = false;
+
+      SK_ResumeThreads (suspended);
+    }
+
+    if (! dynamic)
+      SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 60.0");
+
+    return ret;
+  }
+} framerate_ctl;
 
 struct {
   bool enabled = false;
-  
+
   struct {
     bool   paused =   false;
     float *dt     = nullptr;
@@ -121,6 +300,8 @@ struct {
 
       return false;
     }
+
+    framerate_ctl.init ();
 
     return true;
   }
@@ -438,13 +619,16 @@ SK_NIER_RAD_FramerateCpl (void)
     &_SK_NIER_RAD_HighDynamicFramerate,
                  bHighDynamicFramerate);
     __SK_NIER_RAD_HighDynamicFramerate->store (bHighDynamicFramerate);
+
+    if (bHighDynamicFramerate)
+      framerate_ctl.enable ();
+    else
+    {
+      framerate_ctl.disable ();
+    }
   }
 
-  if (ImGui::IsItemHovered ())
-  {
-    ImGui::SetTooltip ("Enable framerates > 60; some game mechanics may not work correctly.");
-  }
-
+#ifdef _RR_HDF_EX
   if (bHighDynamicFramerate)
   {
     ImGui::SameLine ();
@@ -463,6 +647,7 @@ SK_NIER_RAD_FramerateCpl (void)
       clockOverride.player.toggle_pause ();
     }
   }
+#endif
   
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -471,8 +656,8 @@ SK_NIER_RAD_FramerateCpl (void)
     SK::Framerate::GetLimiter (rb.swapchain);
 
   if ( bHighDynamicFramerate && 
-         ( pLimiter->get_limit () == 60.0 ||
-           pLimiter->get_limit () == 0.0f ) )
+         ( (pLimiter->get_limit () == 60.0 && (! framerate_ctl.isInLoadScreen ())) ||
+            pLimiter->get_limit () == 0.0f ) )
   {
     ImGui::TextColored     (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
     ImGui::SameLine        ();
@@ -585,13 +770,13 @@ bool SK_NIER_RAD_PlugInCfg (void)
     }
 
 #ifdef _RR_HDF
-    if (clockOverride.npc.dt != nullptr)
+    if (clockOverride.npc.dt != nullptr) // Validated pointer avoids showing this option if executable is invalid
     {
       bool hdf =
         ImGui::CollapsingHeader (ICON_FA_FLAG_CHECKERED "\tHigh Dynamic Framerate");
 
       if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Feature is experimental and requires an area change for speed to normalize.");
+          ImGui::SetTooltip ("NOTE: The game will be limited to 60 FPS at the tile screen and during load screens");
 
       if (hdf)
       {
@@ -755,7 +940,24 @@ SK_NIER_RAD_BeginFrame (void)
     }
   }
 
-#ifdef __RR_HDF
+
+  extern float __target_fps;
+
+  if (framerate_ctl.isInLoadScreen ())
+  {
+    __target_fps = 60.0;
+  }
+
+  else
+  {
+    float fLimit =
+      std::max (0.0f, config.render.framerate.target_fps);
+
+    __target_fps = fLimit;
+  }
+
+
+#ifdef __RR_HDF_EX
   if (clockOverride.npc.dt != nullptr)
   {
     DWORD dwOrig = 0x0;
@@ -978,6 +1180,8 @@ void SK_NIER_RAD_InitPlugin (void)
         __SK_NIER_RAD_InputPollingPeriod->store (8);
 
 
+  framerate_ctl.init ();
+
 #ifdef _RR_HDF
   __SK_NIER_RAD_HighDynamicFramerate =
     _CreateConfigParameterBool ( L"Radical.Replicant",
@@ -1080,6 +1284,9 @@ void SK_NIER_RAD_InitPlugin (void)
         ( tsOffset = default_tsOffset )
       );
     }
+
+    if (_SK_NIER_RAD_HighDynamicFramerate)
+      framerate_ctl.enable ();
   }
 
   else if (tsOffset != 0)
