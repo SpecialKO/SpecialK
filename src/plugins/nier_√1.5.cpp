@@ -29,13 +29,13 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.8.0"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.8.3"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 #define _RR_HDF
 
 volatile LONG       _SK_NIER_RAD_InputPollingPeriod     = 8;
-volatile BYTE       _SK_NIER_RAD_HighDynamicFramerate   = false;
+volatile BYTE       _SK_NIER_RAD_HighDynamicFramerate   = true;
          bool       _SK_NIER_RAD_AutoCursorHide         = true;
          bool       _SK_NIER_RAD_FixDInput8EnumDevices  = true;
          bool       _SK_NIER_RAD_LightSleepMode         = TRUE;
@@ -63,186 +63,6 @@ struct {
   std::recursive_mutex            lock;
   DIDEVICEINSTANCEW               last_good = { };
 } static __DInput8;
-
-struct {
-  bool compatible = false;
-  bool dynamic    = false;
-
-  struct patch_s
-  {
-          size_t   size;
-    const char*    replacement;
-
-          bool     patched    = false;
-
-          void*    patch_addr = nullptr;
-          void*    orig_code  = nullptr;
-
-    bool apply (void* addr)
-    {
-      bool  ret          = false;
-      DWORD dwOrigAccess = 0x0UL;
-
-      assert (patch_addr == 0x0 || patch_addr == addr);
-
-      if (orig_code == nullptr)
-      {
-        ret =
-          VirtualProtect ( addr, size, PAGE_READWRITE, &dwOrigAccess);
-
-        if (ret)
-        {
-          orig_code = std::malloc (size);
-          memcpy (orig_code, addr, size);
-          VirtualProtect (   addr, size, dwOrigAccess,  &dwOrigAccess);
-        }
-      }
-
-      auto suspended =
-        SK_SuspendAllOtherThreads ();
-
-	    if (VirtualProtect (addr, size, PAGE_EXECUTE_READWRITE, &dwOrigAccess))
-      {   memcpy         (addr, replacement, size);
-	        VirtualProtect (addr, size, dwOrigAccess,           &dwOrigAccess);
-
-        ret = true;
-      }
-
-      if (ret)
-        patched = true;
-
-      SK_ResumeThreads (suspended);
-
-      return ret;
-    }
-
-    bool revert (void)
-    {
-      if (! patched)
-        return true; // nop
-
-      auto suspended =
-        SK_SuspendAllOtherThreads ();
-
-      bool  ret          = false;
-      DWORD dwOrigAccess = 0x0UL;
-
-      if (VirtualProtect (patch_addr, size, PAGE_EXECUTE_READWRITE, &dwOrigAccess))
-      {   memcpy         (patch_addr, orig_code, size);
-          VirtualProtect (patch_addr, size, PAGE_EXECUTE_READWRITE, &dwOrigAccess);
-
-        ret = true;
-      }
-
-      SK_ResumeThreads (suspended);
-
-      return ret;
-    }
-
-    ~patch_s (void) { revert (); std::free (std::exchange (orig_code, nullptr)); }
-
-  } dtPatch        { 4,  "\xAD\xBE\xFA\xFF"                     },
-    rotationPatch0 { 8,  "\xE9\x2B\x8E\xE0\xFF\x90\x90\x90"     },
-    rotationPatch1 { 26, "\xF3\x0F\x10\x0D\xCC\x7E\x8D\x00\xF3"
-                         "\x0F\x5E\x0D\xE0\x51\x6A\x04\xF3\x0F"
-                         "\x59\xD1\xE9\xBF\x71\x1F\x00\x90"     };
-
-  struct address_s {
-    uintptr_t offset;
-    void*     ptr;
-  } dtFloat        { 0x15228,   nullptr },
-    dtFix          { 0x69377,   nullptr },
-    dtVal          { 0x4B1B0B4, nullptr },
-    rotationCave   { 0x475EC0,  nullptr },
-    rotationDetour { 0x66D090,  nullptr },
-    bLoadScreen    { 0x2704050, nullptr };
-
-  bool init (void)
-  {
-    compatible = true;
-
-    auto pBaseAddr =
-      reinterpret_cast <uintptr_t> (SK_Debug_GetImageBaseAddr ());
-
-    dtFloat.ptr        = reinterpret_cast <void *>(pBaseAddr + dtFloat.offset       );
-    dtFix.ptr          = reinterpret_cast <void *>(pBaseAddr + dtFix.offset         );
-    dtVal.ptr          = reinterpret_cast <void *>(pBaseAddr + dtVal.offset         );
-    rotationCave.ptr   = reinterpret_cast <void *>(pBaseAddr + rotationCave.offset  );
-    rotationDetour.ptr = reinterpret_cast <void *>(pBaseAddr + rotationDetour.offset);
-    bLoadScreen.ptr    = reinterpret_cast <void *>(pBaseAddr + bLoadScreen.offset   );
-
-    return true;
-  }
-
-  bool isInLoadScreen (void) { return compatible && *(bool *)bLoadScreen.ptr; }
-
-  bool enable (void)
-  {
-    bool ret = false;
-
-    if (! init ())
-      return ret;
-
-    if (compatible)
-    {
-      auto suspended =
-        SK_SuspendAllOtherThreads ();
-
-      DWORD                                                      dwOrigProt;
-      if (VirtualProtect (      dtFloat.ptr, 4, PAGE_READWRITE, &dwOrigProt))
-      {               *(float *)dtFloat.ptr = 0.0f;
-          VirtualProtect (      dtFloat.ptr, 4, dwOrigProt,     &dwOrigProt);
-
-        ret  =        dtPatch.apply (dtFix.ptr         );
-        ret &= rotationPatch0.apply (rotationDetour.ptr);
-        ret &= rotationPatch1.apply (rotationCave.ptr  );
-      }
-
-      if (! ret)
-      {
-        dtPatch.revert        ();
-        rotationPatch0.revert ();
-        rotationPatch1.revert ();
-      }
-
-      if (ret)
-        dynamic = true;
-
-      SK_ResumeThreads (suspended);
-    }
-
-    return ret;
-  }
-
-  bool disable (void)
-  {
-    bool ret = false;
-
-    if (! init ())
-      return ret;
-
-    if (compatible && dynamic)
-    {
-      auto suspended =
-        SK_SuspendAllOtherThreads ();
-
-      ret  = dtPatch.revert ();
-
-      ret &= rotationPatch0.revert ();
-      ret &= rotationPatch1.revert ();
-      
-      if (ret)
-        dynamic = false;
-
-      SK_ResumeThreads (suspended);
-    }
-
-    if (! dynamic)
-      SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 60.0");
-
-    return ret;
-  }
-} framerate_ctl;
 
 struct {
   bool enabled = false;
@@ -300,8 +120,6 @@ struct {
 
       return false;
     }
-
-    framerate_ctl.init ();
 
     return true;
   }
@@ -415,6 +233,206 @@ struct {
     *pTick    =                       1.0f;
   }
 } static clockOverride;
+
+struct _framerate_ctx_s {
+  bool compatible = false;
+  bool dynamic    = false;
+
+  float       dtFloatBackup = 0.0f;
+
+  static bool _suspended;
+  static auto _suspendThreads (void)
+  {
+    std::queue <DWORD> suspended_tids;
+
+#ifdef SAFE_PATCH
+    if (! std::exchange (_suspended, true))
+      suspended_tids = SK_SuspendAllOtherThreads ();
+    
+    if (suspended_tids.empty ())
+       _suspended = false;
+#endif
+
+    return suspended_tids;
+  }
+
+  static void _resumeThreads (std::queue <DWORD>& tids)
+  {
+    if (tids.empty ())
+      return;
+    
+    if (std::exchange (_suspended, false))
+      SK_ResumeThreads (tids);
+  }
+
+  struct patch_s
+  {
+          size_t   size;
+    const char*    replacement;
+
+          bool     patched    = false;
+
+          void*    patch_addr = nullptr;
+          void*    orig_code  = nullptr;
+
+    bool apply (void* addr)
+    {
+      bool  ret          = false;
+      DWORD dwOrigAccess = 0x0UL,
+            dwNewAccess  = PAGE_EXECUTE_READWRITE;
+
+      assert (patch_addr == 0x0 || patch_addr == addr);
+
+      auto suspended_tids =
+        _suspendThreads ();
+
+	    if (VirtualProtect (addr, size, dwNewAccess, &dwOrigAccess))
+      {
+        if (      orig_code == nullptr)
+        {         orig_code = std::malloc (size);
+          memcpy (orig_code, addr,         size);
+        }
+
+        memcpy         (addr, replacement, size);
+	      VirtualProtect (addr, size, dwOrigAccess, &dwOrigAccess);
+
+        ret = true;
+      }
+
+      if (ret)
+        patched = true;
+
+      _resumeThreads (suspended_tids);
+
+      return ret;
+    }
+
+    bool revert (void)
+    {
+      if (! patched)
+        return true; // nop
+
+      auto suspended_tids =
+        _suspendThreads ();
+
+      bool  ret          = false;
+      DWORD dwOrigAccess = 0x0UL,
+            dwNewAccess  = PAGE_EXECUTE_READWRITE;
+
+      if (VirtualProtect (patch_addr,            size, dwNewAccess,  &dwOrigAccess))
+      {   memcpy         (patch_addr, orig_code, size);
+          VirtualProtect (patch_addr,            size, dwOrigAccess, &dwOrigAccess);
+
+        ret = true;
+      }
+
+      _resumeThreads (suspended_tids);
+
+      return ret;
+    }
+
+    ~patch_s (void) { revert (); std::free (std::exchange (orig_code, nullptr)); }
+
+  } dtPatch        { 4,  "\xAD\xBE\xFA\xFF"                     },
+    rotationPatch0 { 8,  "\xE9\x2B\x8E\xE0\xFF\x90\x90\x90"     },
+    rotationPatch1 { 26, "\xF3\x0F\x10\x0D\xCC\x7E\x8D\x00\xF3"
+                         "\x0F\x5E\x0D\xE0\x51\x6A\x04\xF3\x0F"
+                         "\x59\xD1\xE9\xBF\x71\x1F\x00\x90"     };
+
+  struct address_s {
+    uintptr_t offset;
+    void*     ptr;
+  } dtFloat        { 0x15228,   nullptr },
+    dtFix          { 0x69377,   nullptr },
+    dtVal          { 0x4B1B0B4, nullptr },
+    rotationCave   { 0x475EC0,  nullptr },
+    rotationDetour { 0x66D090,  nullptr },
+    bLoadScreen    { 0x2704050, nullptr };
+
+  bool init (void)
+  {
+    compatible =
+      clockOverride.init ();
+
+    auto pBaseAddr =
+      reinterpret_cast <uintptr_t> (SK_Debug_GetImageBaseAddr ());
+
+    dtFloat.ptr        = reinterpret_cast <void *>(pBaseAddr + dtFloat.offset       );
+    dtFix.ptr          = reinterpret_cast <void *>(pBaseAddr + dtFix.offset         );
+    dtVal.ptr          = reinterpret_cast <void *>(pBaseAddr + dtVal.offset         );
+    rotationCave.ptr   = reinterpret_cast <void *>(pBaseAddr + rotationCave.offset  );
+    rotationDetour.ptr = reinterpret_cast <void *>(pBaseAddr + rotationDetour.offset);
+    bLoadScreen.ptr    = reinterpret_cast <void *>(pBaseAddr + bLoadScreen.offset   );
+
+    return true;
+  }
+
+  bool isInLoadScreen (void) { return compatible && *(bool *)bLoadScreen.ptr; }
+
+  bool enable (void)
+  {
+    bool ret = false;
+
+    if (! init ())
+      return ret;
+
+    if (compatible && (! dynamic))
+    {
+      DWORD                                                                dwOrigProt;
+      if (VirtualProtect (        dtFloat.ptr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+      { dtFloatBackup = *(float *)dtFloat.ptr;
+                        *(float *)dtFloat.ptr = 0.0f;
+          VirtualProtect (        dtFloat.ptr, 4, dwOrigProt,             &dwOrigProt);
+
+        ret  =        dtPatch.apply (dtFix.ptr         );
+        ret &= rotationPatch0.apply (rotationDetour.ptr);
+        ret &= rotationPatch1.apply (rotationCave.ptr  );
+      }
+
+      if (! ret)
+      {
+        dtPatch.revert        ();
+        rotationPatch0.revert ();
+        rotationPatch1.revert ();
+      }
+
+      if (ret)
+        dynamic = true;
+    }
+
+    return ret;
+  }
+
+  bool disable (void)
+  {
+    bool ret = false;
+
+    if (! init ())
+      return ret;
+
+    if (compatible && dynamic)
+    {
+      DWORD                                                                dwOrigProt;
+      if (VirtualProtect (        dtFloat.ptr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+      {                 *(float *)dtFloat.ptr = dtFloatBackup;
+          VirtualProtect (        dtFloat.ptr, 4, dwOrigProt,             &dwOrigProt);
+      }
+
+      ret  = dtPatch.revert ();
+
+      ret &= rotationPatch0.revert ();
+      ret &= rotationPatch1.revert ();
+      
+      if (ret)
+        dynamic = false;
+    }
+
+    if (! dynamic)
+      SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 60.0");
+
+    return ret;
+  }
+} framerate_ctl;
 
 void
 SK_NIER_RAD_GamepadLatencyTester (void)
@@ -693,21 +711,21 @@ SK_NIER_RAD_VisualCpl (void)
   ImGui::TreePush ("");
 
   bool changed = false;
+  
+  changed |= ImGui::Checkbox ("D3D11 State Tracker Performance Mode", &config.render.dxgi.low_spec_mode);
 
-  static bool orig_deferred =
-    config.render.dxgi.deferred_isolation;
+  if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip (
+        "Reduce Special K's Render Mod Functionality Unless Mod Tools are Open or Texture Mods are Present"
+      );
 
   ImGui::BeginGroup ();
   {
-    if (ImGui::Checkbox ("Enable HUDless Screenshots", &config.render.dxgi.deferred_isolation))
-    {
-      changed = true;
-      //
-    }
+    changed |= ImGui::Checkbox ("Enable HUDless Screenshots and Texture Mods", &config.render.dxgi.deferred_isolation);
 
     if (ImGui::IsItemHovered ())
         ImGui::SetTooltip (
-          "Adds minor CPU overhead for render state tracking; turn off for better perf."
+          "Turning this off may boost framerate slightly on CPU-limited systems"
         );
   }
   ImGui::EndGroup   ();
@@ -943,17 +961,21 @@ SK_NIER_RAD_BeginFrame (void)
 
   extern float __target_fps;
 
+  static float origFpsLimit    =  0.0f;
+  static bool  wasInLoadScreen = false;
+
   if (framerate_ctl.isInLoadScreen ())
   {
+    if (! std::exchange (wasInLoadScreen, true))
+      origFpsLimit = __target_fps;
+
     __target_fps = 60.0;
   }
 
   else
   {
-    float fLimit =
-      std::max (0.0f, config.render.framerate.target_fps);
-
-    __target_fps = fLimit;
+    if (std::exchange (wasInLoadScreen, false))
+      __target_fps = origFpsLimit;
   }
 
 
@@ -1179,9 +1201,6 @@ void SK_NIER_RAD_InitPlugin (void)
   if (! __SK_NIER_RAD_InputPollingPeriod->load  ((int &)_SK_NIER_RAD_InputPollingPeriod))
         __SK_NIER_RAD_InputPollingPeriod->store (8);
 
-
-  framerate_ctl.init ();
-
 #ifdef _RR_HDF
   __SK_NIER_RAD_HighDynamicFramerate =
     _CreateConfigParameterBool ( L"Radical.Replicant",
@@ -1189,7 +1208,63 @@ void SK_NIER_RAD_InitPlugin (void)
                                                           L"Moar Powa!" );
 
   if (! __SK_NIER_RAD_HighDynamicFramerate->load  ((bool &)_SK_NIER_RAD_HighDynamicFramerate))
-        __SK_NIER_RAD_HighDynamicFramerate->store (false);
+        __SK_NIER_RAD_HighDynamicFramerate->store (true);
+
+  static const
+    int64_t default_tsOffset = 0xABCBD0;
+    int64_t         tsOffset = 0x0;
+
+  __SK_NIER_RAD_LastKnownTSOffset =
+    _CreateConfigParameterInt64 ( L"Radical.Replicant",
+                                  L"LastKnownTimestepOffset", tsOffset,
+                                                              L"Testing..." );
+
+  if (! __SK_NIER_RAD_LastKnownTSOffset->load  (tsOffset))
+        __SK_NIER_RAD_LastKnownTSOffset->store (default_tsOffset);
+
+  static const float* pfTimestep =
+    reinterpret_cast <float *> (
+      (((uintptr_t)SK_Debug_GetImageBaseAddr () + tsOffset) +
+                                                ( tsOffset == 0 ?
+                                          default_tsOffset      : 0x0 ) ) );
+
+  static bool bValid =
+    SK_ValidatePointer (pfTimestep, true)  &&
+                      (*pfTimestep > 0.016 &&
+                       *pfTimestep < 0.017);
+
+  if (bValid && clockOverride.init ())
+  {
+    clockOverride.npc.dt =
+      const_cast <float *>(pfTimestep);
+
+    // Config had no idea, but the default value worked.
+    if (tsOffset == 0)
+    {
+      __SK_NIER_RAD_LastKnownTSOffset->store (
+        ( tsOffset = default_tsOffset )
+      );
+    }
+
+    if (_SK_NIER_RAD_HighDynamicFramerate)
+      framerate_ctl.enable ();
+  }
+
+  else if (tsOffset != 0)
+  {
+    SK_ImGui_Warning (
+      L"Timestep Address Invalid, framerate uncap disabled.");
+
+    __SK_NIER_RAD_LastKnownTSOffset->store (
+      ( tsOffset = 0 )
+    );
+  }
+
+  if (! bValid)
+  {
+                                               _SK_NIER_RAD_HighDynamicFramerate = false;
+    __SK_NIER_RAD_HighDynamicFramerate->store (_SK_NIER_RAD_HighDynamicFramerate);
+  }
 #endif
 
 
@@ -1247,58 +1322,6 @@ void SK_NIER_RAD_InitPlugin (void)
     std::max (config.render.framerate.max_delta_time, 1);
 
   config.input.gamepad.native_ps4 = false;
-
-#ifdef _RR_HDF
-  static const
-    int64_t default_tsOffset = 0xABCBD0;
-    int64_t         tsOffset = 0x0;
-
-  __SK_NIER_RAD_LastKnownTSOffset =
-    _CreateConfigParameterInt64 ( L"Radical.Replicant",
-                                  L"LastKnownTimestepOffset", tsOffset,
-                                                              L"Testing..." );
-
-  if (! __SK_NIER_RAD_LastKnownTSOffset->load  (tsOffset))
-        __SK_NIER_RAD_LastKnownTSOffset->store (default_tsOffset);
-
-  static const float* pfTimestep =
-    reinterpret_cast <float *> (
-      (((uintptr_t)SK_Debug_GetImageBaseAddr () + tsOffset) +
-                                                ( tsOffset == 0 ?
-                                          default_tsOffset      : 0x0 ) ) );
-
-  static bool bValid =
-    SK_ValidatePointer (pfTimestep, true)  &&
-                      (*pfTimestep > 0.016 &&
-                       *pfTimestep < 0.017);
-
-  if (bValid && clockOverride.init ())
-  {
-    clockOverride.npc.dt =
-      const_cast <float *>(pfTimestep);
-
-    // Config had no idea, but the default value worked.
-    if (tsOffset == 0)
-    {
-      __SK_NIER_RAD_LastKnownTSOffset->store (
-        ( tsOffset = default_tsOffset )
-      );
-    }
-
-    if (_SK_NIER_RAD_HighDynamicFramerate)
-      framerate_ctl.enable ();
-  }
-
-  else if (tsOffset != 0)
-  {
-    SK_ImGui_Warning (
-      L"Timestep Address Invalid, framerate uncap disabled.");
-
-    __SK_NIER_RAD_LastKnownTSOffset->store (
-      ( tsOffset = 0 )
-    );
-  }
-#endif
 
 
   // DirectInput8 EnumDevices Fixup
@@ -1361,3 +1384,5 @@ void SK_NIER_RAD_InitPlugin (void)
     SK_GetDLLConfig ()->get_filename ()
   );
 }
+
+bool _framerate_ctx_s::_suspended = false;

@@ -4784,8 +4784,8 @@ SK_timeGetTime (void)
 
   LARGE_INTEGER                    qpcNow;
   if (SK_QueryPerformanceCounter (&qpcNow))
-    return                         qpcNow.QuadPart /
-                                   qpcFreqAsMS;
+    return   static_cast <DWORD> ((qpcNow.QuadPart /
+                                   qpcFreqAsMS) & 0xFFFFFFFFLL);
   
 
   static HMODULE hModWinMM =

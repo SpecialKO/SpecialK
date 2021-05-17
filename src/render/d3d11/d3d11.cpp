@@ -5686,7 +5686,7 @@ HookD3D11 (LPVOID user)
                                 D3D11Dev_GetImmediateContext_Original,
                                 D3D11Dev_GetImmediateContext_pfn );
 
-#if 1
+#if 0
     IUnknown *pDev1 = nullptr;
     IUnknown *pDev2 = nullptr;
     IUnknown *pDev3 = nullptr;

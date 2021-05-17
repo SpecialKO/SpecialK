@@ -784,7 +784,7 @@ SK_CEGUI_InitD3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDeviceCtx, ID3D
     SK_CEGUI_InitBase    ();
 
     SK_PopupManager::getInstance       ()->destroyAllPopups (        );
-    SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
+    SK_TextOverlayManager::getInstance ()->resetAllOverlays (/*cegD3D11*/);
   }
 
   SK_Steam_ClearPopups ();

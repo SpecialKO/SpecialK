@@ -1296,6 +1296,11 @@ sk_imgui_cursor_s::activateWindow (bool active)
 
 
 
+extern BOOL
+__stdcall
+SK_IsConsoleVisible (void);
+
+
 bool
 SK_ImGui_WantKeyboardCapture (void)
 {
@@ -1311,6 +1316,9 @@ SK_ImGui_WantKeyboardCapture (void)
     imgui_capture = true;
 
   if (config.input.keyboard.disabled_to_game)
+    imgui_capture = true;
+
+  if (SK_IsConsoleVisible ())
     imgui_capture = true;
 
   return

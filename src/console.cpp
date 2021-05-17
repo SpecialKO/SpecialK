@@ -51,7 +51,7 @@ SK_Console::Draw (void)
   static bool          carret    = false;
   static LARGE_INTEGER last_time = { 0ULL };
 
-           std::string output    = "";
+  std::string output;
 
   if (visible)
   {
@@ -84,12 +84,26 @@ SK_Console::Draw (void)
     }
   }
 
-  else
-  {
-    output.clear ();
-  }
 
-  SK_DrawExternalOSD ("SpecialK Console", output);
+  if (! output.empty ())
+  {
+    ImGui::SetNextWindowSize (ImGui::GetIO ().DisplaySize, ImGuiCond_Always);
+    ImGui::SetNextWindowPos  (ImVec2 (0.0f, 0.0f),         ImGuiCond_Always);
+
+    ImGui::Begin ("###OSD_Console", nullptr, ImGuiWindowFlags_NoTitleBar    | ImGuiWindowFlags_NoResize           | ImGuiWindowFlags_NoMove                | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoSavedSettings |
+                                             ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus        | ImGuiWindowFlags_NoNav      | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs );
+
+    SK_TextOverlay* pOverlay =
+      SK_TextOverlayManager::getInstance    ()->
+                             getTextOverlay ("SpecialK Console");
+
+    if (pOverlay != nullptr)
+        pOverlay->setPos (2.0f, 0.0f);
+
+    SK_DrawExternalOSD ("SpecialK Console", output);
+
+    ImGui::End   ();
+  }
 }
 
 void

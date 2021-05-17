@@ -2869,12 +2869,6 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 
   if (config.cegui.frames_drawn > 0 || rb.api == SK_RenderAPI::D3D12)
   {
-    if (! SK::SteamAPI::GetOverlayState (true))
-    {
-      if (rb.api != SK_RenderAPI::D3D12)
-        SK_DrawOSD     ();
-      SK_DrawConsole   ();
-    }
   }
 
   rb.present_staging.end_cegui.time =

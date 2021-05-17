@@ -27,9 +27,6 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 
-
-#include <GL/glew.h>
-
 #include <SpecialK/nvapi.h>
 
 
@@ -69,7 +66,6 @@ SK_TextOverlayManager::SK_TextOverlayManager (void)
   lock_ =
     std::make_unique <SK_Thread_HybridSpinlock> (104858);
 
-  gui_ctx_         = nullptr;
   need_full_reset_ = false;
 
   SK_ICommandProcessor* cmd =
@@ -204,20 +200,24 @@ SK_TextOverlayManager::getTextOverlay (const char* szAppName)
 
 SK_TextOverlay::SK_TextOverlay (const char* szAppName)
 {
-  strncpy (data_.name, szAppName,          32);
-  strncpy (font_.name, "Consolas-12.font", 64);
+  strncpy (data_.name, szAppName, 32);
+  strncpy (font_.name, "Consola", 64);
 
-  data_.text_len = 32768;
-  data_.text     = (char *)calloc (1, data_.text_len);
+  data_.text_capacity = 4096;
+  data_.text          = (char *)calloc (1, data_.text_capacity);
 
   if (data_.text != nullptr)
-    *data_.text  = '\0';
-  else
-    data_.text_len = 0; // Failed to allocate memory
+  {
+    *data_.text     = '\0';
+     data_.text_len = 0;
+  }
 
-  geometry_   = nullptr;
-  renderer_   = nullptr;
-  font_.cegui = nullptr;
+  else
+  {
+    data_.text_capacity = 0; // Failed to allocate memory
+    data_.text_len      = 0;
+  }
+
   font_.scale = 1.0f;
 }
 
@@ -226,21 +226,12 @@ SK_TextOverlay::~SK_TextOverlay (void)
   SK_TextOverlayManager::getInstance ()->
                    removeTextOverlay (data_.name);
 
-  if (data_.text != nullptr)
-  {
-    free ((void *)data_.text);
-    data_.text_len = 0;
-    data_.text     = nullptr;
-  }
+  std::free (data_.text);
 
-  if (geometry_ != nullptr)
-  {
-    if (renderer_ != nullptr)
-    {
-      renderer_->destroyGeometryBuffer (*geometry_);
-      geometry_ = nullptr;
-    }
-  }
+  data_.text_capacity = 0;
+  data_.text_len      = 0;
+
+  data_.text          = nullptr;
 }
 
 
@@ -501,18 +492,18 @@ SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
   {
     //converted = in_temp * 2 + 30;
     converted = (int32_t)((float)(in_temp) * 9.0f/5.0f + 32.0f);
-    swprintf (wszOut, L"%#3li°F", converted);
+    swprintf (wszOut, L"%#3liF", converted);
   }
 
   else if (in_unit == Fahrenheit && out_unit == Celsius)
   {
     converted = (int32_t)(((float)in_temp - 32.0f) * (5.0f/9.0f));
-    swprintf (wszOut, L"%#2li°C", converted);
+    swprintf (wszOut, L"%#2liC", converted);
   }
 
   else
   {
-    swprintf (wszOut, L"%#2li°C", in_temp);
+    swprintf (wszOut, L"%#2liC", in_temp);
   }
 
   return wszOut;
@@ -570,20 +561,10 @@ SKX_DrawExternalOSD (const char* szAppName, const char* szText)
 }
 
 
-// This is a terrible design, but I don't care.
-extern void
-SK_CEGUI_QueueResetD3D11 (void);
-
-extern void
-SK_CEGUI_QueueResetD3D9  (void);
-
 void
 __stdcall
 SK_InstallOSD (void)
 {
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)  SK_CEGUI_QueueResetD3D9  ();
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) SK_CEGUI_QueueResetD3D11 ();
-
   if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE))
   {
     SK_TextOverlayManager::getInstance ()->createTextOverlay ("Special K");
@@ -621,6 +602,12 @@ SK_DrawOSD (void)
   if (! ReadAcquire (&osd_init))
     return FALSE;
 
+  ImGui::SetNextWindowSize (ImGui::GetIO ().DisplaySize, ImGuiCond_Always);
+  ImGui::SetNextWindowPos  (ImVec2 (0.0f, 0.0f),         ImGuiCond_Always);
+
+  ImGui::Begin ("###OSD", nullptr,   ImGuiWindowFlags_NoTitleBar    | ImGuiWindowFlags_NoResize           | ImGuiWindowFlags_NoMove                | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoSavedSettings |
+                                     ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus        | ImGuiWindowFlags_NoNav      | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs );
+
   char* pszOSD = szOSD;
        *pszOSD = '\0';
 
@@ -651,7 +638,7 @@ SK_DrawOSD (void)
     {
       GetModuleFileName (hModGame, wszGameName, MAX_PATH);
 
-      if (StrStrIW (wszGameName,      L"BatmanAK.exe"))
+      if (     StrStrIW (wszGameName, L"BatmanAK.exe"))
         plugin_mgr->isArkhamKnight = true;
       else if (StrStrIW (wszGameName, L"Tales of Zestiria.exe"))
         plugin_mgr->isTalesOfZestiria = true;
@@ -719,7 +706,6 @@ SK_DrawOSD (void)
 
   if (pLimiter != nullptr)
   {
-
     const double mean    = pLimiter->frame_history->calcMean     ();
     const double sd      = pLimiter->frame_history->calcSqStdDev (mean);
     const double min     = pLimiter->frame_history->calcMin      ();
@@ -1315,10 +1301,9 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 
   OSD_M_PRINTF "\n" OSD_END
   {
-    PROCESS_MEMORY_COUNTERS_EX pmcx = { };
-
-    pmcx.cb = sizeof (pmcx);
-
+    PROCESS_MEMORY_COUNTERS_EX
+      pmcx    = {           };
+      pmcx.cb = sizeof (pmcx);
 
     GetProcessMemoryInfo (
       SK_GetCurrentProcess (),
@@ -1326,7 +1311,6 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
              &pmcx,
       sizeof (pmcx)
     );
-
 
     std::wstring working_set =
       SK_File_SizeToString (pmcx.WorkingSetSize, MiB);
@@ -1477,20 +1461,10 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
   // Avoid unnecessary MMIO when the user has the OSD turned off
   cleared = (! config.osd.show);
 
-  BOOL    bRet = FALSE;
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
-
-  const bool inj_thr =
-    pTLS->texture_management.injection_thread;
-    pTLS->texture_management.injection_thread = true;
-
-  bRet =
+  BOOL bRet =
     SK_UpdateOSD (szOSD);
 
-  pTLS->texture_management.injection_thread = inj_thr;
-
-  //game_debug.Log (L"%hs", szOSD);
+  ImGui::End ();
 
   return
     bRet;
@@ -1513,7 +1487,7 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
                            getTextOverlay (lpAppName);
 
 #define IMPLICIT_CREATION
-#ifdef IMPLICIT_CREATION
+#ifdef  IMPLICIT_CREATION
   if (pOverlay == nullptr)
   {
     pOverlay =
@@ -1637,100 +1611,12 @@ SK_ResizeOSD (float scale_incr, LPCSTR lpAppName)
   SK_SetOSDScale (scale_incr, true, lpAppName);
 }
 
-
-// CEGUI leaks vertex array state, and this solution is simpler than
-//   recompiling that mess of DLLs until I can eliminate CEGUI.
-//
 void
-SK_CEGUI_GL_PushVertexState (void);
-
-void
-SK_CEGUI_GL_PopVertexState (void);
-
-
-void trans_func (unsigned int, EXCEPTION_POINTERS*);
-void
-SE_Func         (CEGUI::Renderer*& pRenderer, SK_TextOverlay& overlay, const CEGUI::Rectf& scrn);
-
-class SE_Exception// : public std::exception
+SK_TextOverlay::reset (void)
 {
-public:
-   SE_Exception (void) = default;
-  ~SE_Exception (void) = default;
-
-   explicit
-   SE_Exception (unsigned int n) : nSE (n) {
-   }
-
-  unsigned int getSeNumber (void) const {
-    return nSE;
-  }
-
-private:
-  unsigned int nSE;
-};
-
-void
-SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
-{
-  font_.cegui = nullptr;
-  geometry_   = nullptr;
-  renderer_   = pRenderer;
-
-  if (pRenderer != nullptr)
-  {
-    font_.cegui =
-      &CEGUI::FontManager::getDllSingleton ().createFromFile (font_.name);
-
-    if (font_.cegui != nullptr         && pRenderer->getDisplaySize () != CEGUI::Sizef (0.0f, 0.0f))
-        font_.cegui->setNativeResolution (pRenderer->getDisplaySize ());
-
-    const CEGUI::Rectf scrn(
-          CEGUI::Vector2f   (0.0f, 0.0f), pRenderer->getDisplaySize ()
-                           );
-
-    //dll_log.Log (L"%fx%f", pRenderer->getDisplaySize ().d_width, pRenderer->getDisplaySize ().d_height);
-
-    auto orig_se =
-    SK_SEH_ApplyTranslator (trans_func);
-    try
-    {
-      SE_Func (pRenderer, *this, scrn);
-    }
-
-    catch (SE_Exception& e)
-    {
-      UNREFERENCED_PARAMETER (e);
-
-      if (geometry_ == nullptr)
-        SK_TextOverlayManager::getInstance ()->removeTextOverlay (getName ());
-      // CEGUI has known issues that I don't want to fix by recompiling
-    }
-    SK_SEH_RemoveTranslator (orig_se);
-  }
+  transform_.x = 0.0f;
+  transform_.y = 0.0f;
 }
-
-void
-SE_Func (CEGUI::Renderer*& pRenderer, SK_TextOverlay& overlay, const CEGUI::Rectf& scrn)
-{
-  __try {
-    overlay.geometry_ =
-      &(pRenderer->createGeometryBuffer ());
-
-    overlay.geometry_->setClippingRegion (scrn);
-  }
-
-  __finally {
-  }
-}
-
-void
-trans_func (unsigned int/* u*/, EXCEPTION_POINTERS* /* pExp*/)
-{
-  throw SE_Exception ();
-}
-
-
 
 // Not re-entrant, but that should not matter.
 //
@@ -1807,199 +1693,168 @@ SK_OSD_GetDefaultColor (float& r, float& g, float& b) noexcept
 float
 SK_TextOverlay::update (const char* szText)
 {
-  const size_t len =
+  const size_t src_len =
     ( szText != nullptr ? strlen (szText) :
                                      0   );
 
-  if (szText != nullptr)
+  if (src_len != 0)
   {
-            *data_.text = '\0';
-    strncat (data_.text, szText, std::min (len + 1, data_.text_len));
+    if (data_.text_capacity <  src_len)
+    {   data_.text_capacity = (src_len + 4096) -
+                              (src_len % 4096);
+        data_.text = (char *)
+            std::realloc ( data_.text,
+                           data_.text_capacity );
+    }
+
+    data_.text_len =
+      std::min (data_.text_capacity, src_len + 1);
+
+    strncpy_s (
+      data_.text,
+      data_.text_len, szText,
+           _TRUNCATE );
   }
 
-  if (font_.cegui && geometry_)
+  else
   {
-    // Empty the gometry buffer and bail-out.
-    if (szText == nullptr || (! strlen (data_.text)))
-    {
-      geometry_->reset ();
+    *data_.text     = '\0';
+     data_.text_len =   0 ;
+  }
 
-      data_.extent = 0.0f;
-      return data_.extent;
-    }
+  // Empty the gometry buffer and bail-out.
+  if (szText == nullptr || *data_.text == '\0')
+  {
+           data_.extent = 0.0f;
+    return data_.extent;
+  }
 
-          float baseline = 0.0f;
-    const float spacing  = font_.cegui->getLineSpacing () * font_.scale;
+  extern ImFont*   SK_ImGui_GetFont_Consolas (void);
+  ImGui::PushFont (SK_ImGui_GetFont_Consolas (   ));
 
-    float red   = static_cast <float> (config.osd.red)   / 255.0f;
-    float green = static_cast <float> (config.osd.green) / 255.0f;
-    float blue  = static_cast <float> (config.osd.blue)  / 255.0f;
+  auto pImGuiWindow = ImGui::GetCurrentWindow ();
+       pImGuiWindow->FontWindowScale = font_.scale;
 
-    if (config.osd.red == -1 || config.osd.green == -1 || config.osd.blue == -1)
-    {
-      SK_OSD_GetDefaultColor (red, green, blue);
-    }
+        float baseline = 0.0f;
+  const float spacing  = pImGuiWindow->CalcFontSize () + ImGui::GetStyle ().ItemSpacing.y;
 
-    float   x, y;
-    getPos (x, y);
+  float red   = static_cast <float> (config.osd.red)   / 255.0f;
+  float green = static_cast <float> (config.osd.green) / 255.0f;
+  float blue  = static_cast <float> (config.osd.blue)  / 255.0f;
 
-    SK_TLS *pTLS =
-      SK_TLS_Bottom ();
+  if ( config.osd.red   == -1 ||
+       config.osd.green == -1 ||
+       config.osd.blue  == -1 )
+  {
+    SK_OSD_GetDefaultColor (red, green, blue);
+  }
 
-    SK_ReleaseAssert (pTLS != nullptr);
+  float   x, y;
+  getPos (x, y);
 
-    char* text =
-      pTLS->osd->allocText (32768);
+  x += transform_.x;
+  y += transform_.y;
 
-    if (text == nullptr)
-    {
-      static bool reported = false;
 
-      if (! reported)
-      {
-        SK_ReleaseAssert ( "Something strange in the neighborhood" &&
-                             text != nullptr );
+  if (temp_.tokenizer_workingset.capacity () < data_.text_len)
+      temp_.tokenizer_workingset.resize (      data_.text_len);
 
-        SK_RunOnce (reported = true);
-      }
+  auto tokenized_text =
+    temp_.tokenizer_workingset.data ();
 
-      return 0.0f;
-    }
+  strncpy_s ( tokenized_text, data_.text_len, 
+                              data_.text, _TRUNCATE );
 
-            *text = '\0';
-    strncat (text, data_.text, 32767);
+  char token [2] = "\n";
 
-    char token [2] = "\n";
+  int   num_lines    = SK_CountLines (tokenized_text);
+  char* line         = strtok_ex     (tokenized_text, token);
 
-    int   num_lines    = SK_CountLines (text);
-    char* line         = strtok_ex     (text, token);
+  bool  has_tokens   = (num_lines > 0);
 
-    bool  has_tokens   = (num_lines > 0);
+  line =
+    ( has_tokens ? line
+                 : tokenized_text );
 
-    if (! has_tokens)
-      line = text;
+  float longest_line = 0.0f;
 
-    float longest_line = 0.0f;
-
-    // Compute the longest line so we can left-align text
-    if (x < 0.0f)
-    {
-      while (line != nullptr)
-      {
-        // Fast-path: Skip blank lines
-        if (*line != '\0')
-        {
-          float extent =
-            font_.cegui->getTextExtent (line, font_.scale);
-
-          longest_line = std::max (extent, longest_line);
-        }
-
-        if (has_tokens)
-          line = strtok_ex (nullptr, token);
-        else
-          line = nullptr;
-      }
-
-      // Add 1.0 so that an X position of -1.0 is perfectly flush with the right
-      x = renderer_->getDisplaySize ().d_width + x - longest_line + 1.0f;
-
-      strncpy (text, data_.text, 32767);
-
-      // Restart tokenizing
-      if (! has_tokens)
-        line = text;
-      else
-        line = strtok_ex (text, token);
-    }
-
-    CEGUI::System::getDllSingleton ().
-              getDefaultGUIContext ().
-              removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
-    geometry_->reset ();
-
-    CEGUI::ColourRect foreground (
-      CEGUI::Colour ( red,
-                        green,
-                          blue )
-    );
-
-    CEGUI::ColourRect shadow (
-      CEGUI::Colour ( 0.0f, 0.0f, 0.0f )
-    );
-
-    if (y < 0.0f)
-      y = renderer_->getDisplaySize ().d_height + y - (num_lines * spacing) + 1.0f;
-
-    CEGUI::String cegui_line (line != nullptr ? line : "");
-
+  // Compute the longest line so we can left-align text
+  if (x < 0.0f)
+  {
     while (line != nullptr)
     {
       // Fast-path: Skip blank lines
       if (*line != '\0')
       {
-        const size_t line_len =
-          strlen (line);
-
-        if (cegui_line.capacity () < line_len)
-          cegui_line.resize (line_len * 2);
-
-        try
-        {
-          cegui_line.replace (
-            cegui_line.begin (),
-              cegui_line.end (),
-                line
-          );
-          // First the shadow
-          //
-          font_.cegui->drawText (
-            *geometry_,
-              cegui_line,
-                CEGUI::Vector2f (x + 1.0f, y + baseline + 1.0f),
-                  nullptr,
-                    shadow,
-                      0.0f,
-                        font_.scale,
-                        font_.scale );
-
-          // Then the foreground
-          //
-          font_.cegui->drawText (
-            *geometry_,
-              cegui_line,
-                CEGUI::Vector2f (x, y + baseline),
-                  nullptr,
-                    foreground,
-                      0.0f,
-                        font_.scale,
-                        font_.scale );
-        }
-
-        catch (const CEGUI::Exception&)
-        {
-          line = nullptr;
-        };
+        longest_line = std::max ( longest_line,
+            ImGui::GetFont ()->CalcTextSizeA   (
+                 pImGuiWindow->CalcFontSize (),
+                           FLT_MAX, 0.0f, line ).x
+                                );
       }
 
-      baseline += spacing;
-
-      if (has_tokens)
-        line = strtok_ex (nullptr, token);
-      else
-        line = nullptr;
+      line =
+        ( has_tokens ? strtok_ex (nullptr, token)
+                     :            nullptr );
     }
 
-    CEGUI::System::getDllSingleton ().
-              getDefaultGUIContext ().
-              addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
+    // Add 1.0 so that an X position of -1.0 is perfectly flush with the right
+    x = ImGui::GetIO ().DisplaySize.x + x - longest_line + 1.0f;
 
-      data_.extent = baseline;
-    return
-      data_.extent;
+    strncpy_s ( tokenized_text, data_.text_len,
+                                data_.text, _TRUNCATE );
+
+    // Restart tokenizing
+    line = 
+      ( has_tokens ? strtok_ex (tokenized_text, token)
+                   :            tokenized_text );
   }
 
-    data_.extent = 0.0f;
+  else x += 5.0f; // Fix-up for text off-screen
+
+  static const ImVec4 shadow     (0.0f,  0.0f, 0.0f, 1.0f);
+               ImVec4 foreground ( red, green, blue, 1.0f);
+
+  if (y < 0.0f)
+    y = ImGui::GetIO ().DisplaySize.y + y - ((num_lines + 1) * spacing) + 1.0f;
+
+  auto draw_list = ImGui::GetWindowDrawList  ();
+  auto font_size = ImGui::GetFontSize        ();
+  auto font      = SK_ImGui_GetFont_Consolas ();
+
+  while (line != nullptr)
+  {
+    // Fast-path: Skip blank lines
+    if (*line != '\0')
+    {
+      // First the shadow
+      //
+      draw_list->AddText (
+        font,
+        font_size, ImVec2 (x            + 1.f,
+                           y + baseline + 1.f),
+                   shadow,         line,
+                              NULL, 0.0f, nullptr );
+      // Then the foreground
+      //
+      draw_list->AddText (
+        font,
+        font_size, ImVec2 (x, y + baseline),
+                   foreground,        line, 
+                              NULL, 0.0f, nullptr );
+    }
+
+    line =
+      ( has_tokens ? strtok_ex (nullptr, token)
+                   :            nullptr );
+
+    baseline += spacing;
+  }
+
+  data_.extent = baseline;
+
+  ImGui::PopFont ();
+  
   return
     data_.extent;
 }
@@ -2007,20 +1862,15 @@ SK_TextOverlay::update (const char* szText)
 float
 SK_TextOverlay::draw (float x, float y, bool full)
 {
-  if (geometry_ != nullptr)
+  transform_.x = x;
+  transform_.y = y;
+
+  if (full)
   {
-    geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
-
-    if (full)
-    {
-      geometry_->draw ();
-      update          (nullptr);
-    }
-
-    return data_.extent;
+    update (nullptr);
   }
 
-  return 0.0f;
+  return data_.extent;
 }
 
 void
@@ -2059,8 +1909,8 @@ SK_TextOverlay::setPos (float x,float y) noexcept
   // We cannot anchor the command console to the left or bottom...
   if (! strcmp (data_.name, "SpecialK Console"))
   {
-    x = std::min (0.0f, x);
-    y = std::min (0.0f, y);
+    x = std::max (0.0f, x);
+    y = std::max (0.0f, y);
   }
 
   pos_.x = x;
@@ -2076,85 +1926,49 @@ SK_TextOverlay::getPos (float& x, float& y) noexcept
 
 
 void
-SK_TextOverlayManager::queueReset (CEGUI::Renderer* renderer)
+SK_TextOverlayManager::queueReset (void)
 {
-  UNREFERENCED_PARAMETER (renderer);
-
   need_full_reset_ = true;
 }
 
 void
-SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
+SK_TextOverlayManager::resetAllOverlays (void)
 {
-  if (renderer != nullptr)
-  {
-    gui_ctx_ =
-      &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
-  }
-
-std::scoped_lock <SK_Thread_HybridSpinlock>
-      scope_lock (*lock_);
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+        scope_lock (*lock_);
 
   auto it =
     overlays_.begin ();
 
-  if (glGenVertexArrays != nullptr)
-  {
-    if (! SK_GL_GetCurrentContext ())
-      return;
-  }
-
   while (it != overlays_.cend ())
   {
-    if (renderer == nullptr)
-    {
-      it->second->pos_.x = static_cast <float> (config.osd.pos_x);
-      it->second->pos_.y = static_cast <float> (config.osd.pos_y);
+    it->second->pos_.x = static_cast <float> (config.osd.pos_x);
+    it->second->pos_.y = static_cast <float> (config.osd.pos_y);
 
-      it->second->font_.scale = config.osd.scale;
+    it->second->font_.scale = config.osd.scale;
 
-      it->second->font_.primary_color =
-       ( ( (config.osd.red   << 16) & 0xff0000 ) |
-         ( (config.osd.green << 8)  & 0xff00   ) |
-           (config.osd.blue         & 0xff     ) );
+    it->second->font_.primary_color =
+     ( ( (config.osd.red   << 16) & 0xff0000 ) |
+       ( (config.osd.green << 8)  & 0xff00   ) |
+         (config.osd.blue         & 0xff     ) );
 
-      it->second->font_.shadow_color = 0xff000000;
-    }
+    it->second->font_.shadow_color = 0xff000000;
 
-    if (it->second->geometry_ != nullptr)
-      gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
-
-    it->second->reset (renderer);
-
-    if (it->second->geometry_ != nullptr)
-    {
-        it->second->update        (nullptr);
-      gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
-    }
+    it->second->reset  ();
+    it->second->update (nullptr);
 
     ++it;
   }
 
-  if (renderer == nullptr)
+  it =
+    overlays_.begin ();
+
+  while (it != overlays_.cend ())
   {
-    it =
-      overlays_.begin ();
+    it->second->reset  ();
+    it->second->update (nullptr);
 
-    while (it != overlays_.cend ())
-    {
-      if (it->second->geometry_ != nullptr)
-        gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
-
-      it->second->reset (renderer);
-
-      if (it->second->geometry_ != nullptr)
-      {
-          it->second->update        (nullptr);
-        gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
-      }
-
-      ++it;
-    }
+    ++it;
   }
 }
 
@@ -2173,13 +1987,9 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
       overlays_.cbegin ();
 
     // Handle situations where the OSD font is not yet loaded
-    if ( it                      == overlays_.cend () ||
-         it->second              == nullptr           ||
-         it->second->font_.cegui == nullptr )
+    if ( it         == overlays_.cend () ||
+         it->second == nullptr )
     {
-      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) SK_CEGUI_QueueResetD3D11 ();
-      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)  SK_CEGUI_QueueResetD3D9  ();
-
       return fabs (y - base_y);
     }
 
@@ -2199,17 +2009,13 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 
     // Handle situations where the OSD font is not yet loaded
     if ( it                      == overlays_.rend () ||
-         it->second              == nullptr           ||
-         it->second->font_.cegui == nullptr )
+         it->second              == nullptr )
     {
-      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) SK_CEGUI_QueueResetD3D11 ();
-      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)  SK_CEGUI_QueueResetD3D9  ();
-
       return fabs (y - base_y);
     }
 
     // Push the starting position up one whole line
-    y -= it->second->font_.cegui->getFontHeight (config.osd.scale);
+ /////////////////y -= it->second->font_.cegui->getFontHeight (config.osd.scale);
 
     while (it != overlays_.rend ())
     {

@@ -779,7 +779,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
         SK_CEGUI_InitBase    ();
 
         SK_PopupManager::getInstance ()->destroyAllPopups       ();
-        SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D9);
+        SK_TextOverlayManager::getInstance ()->resetAllOverlays (/*cegD3D9*/);
       }
 
       if (! locale_orig.empty ())

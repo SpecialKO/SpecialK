@@ -117,7 +117,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
     }
   };
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   bool early_out =
@@ -2064,7 +2064,7 @@ ShaderMenu
 const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView> >& set_of_resources,
       uint32_t                                                    shader )
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( blacklist.find (shader) !=
@@ -2784,7 +2784,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             if ( pRes != nullptr &&
                  pTex != nullptr )
             {
-              auto& rb =
+              static auto& rb =
                 SK_GetCurrentRenderBackend ();
 
               auto pDev =

@@ -66,6 +66,29 @@ float fSwapWaitFract = 0.85f;
 float
 SK::Framerate::Limiter::undershoot_percent = 7.5f;
 
+class SK_FramerateLimiter_CfgProxy : public SK_IVariableListener {
+  bool OnVarChange (SK_IVariable* var, void* val = nullptr)
+  {
+    if ((float *)var->getValuePointer () == &__target_fps)
+    {
+      config.render.framerate.target_fps =
+        *static_cast <float *> (val);
+
+      __target_fps = config.render.framerate.target_fps;
+    }
+
+    if ((float *)var->getValuePointer () == &__target_fps_bg)
+    {
+      config.render.framerate.target_fps_bg =
+        *static_cast <float *> (val);
+
+      __target_fps_bg = config.render.framerate.target_fps_bg;
+    }
+
+    return true;
+  }
+} __ProdigalFramerateSon;
+
 void
 SK::Framerate::Init (void)
 {
@@ -88,9 +111,9 @@ SK::Framerate::Init (void)
 
 
     pCommandProc->AddVariable ( "TargetFPS",
-            new SK_IVarStub <float> (&__target_fps));
+            new SK_IVarStub <float> (&__target_fps,    &__ProdigalFramerateSon));
     pCommandProc->AddVariable ( "BackgroundFPS",
-            new SK_IVarStub <float> (&__target_fps_bg));
+            new SK_IVarStub <float> (&__target_fps_bg, &__ProdigalFramerateSon));
 
     pCommandProc->AddVariable ( "SwapWaitRatio",
             new SK_IVarStub <float> (&fSwapWaitRatio));

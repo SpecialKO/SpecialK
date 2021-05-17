@@ -68,7 +68,7 @@ SK_ImGui_IsDrawing_OnD3D11Ctx (UINT dev_idx, ID3D11DeviceContext* pDevCtx)
 {
   if (pDevCtx == nullptr || dev_idx == UINT_MAX)
   {
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
     pDevCtx =
@@ -96,7 +96,7 @@ SK_ImGui_IsDrawing_OnD3D11Ctx (UINT dev_idx, ID3D11DeviceContext* pDevCtx)
 std::pair <BOOL*, BOOL>
 SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( dev_idx == UINT_MAX )
@@ -172,6 +172,13 @@ HMODULE hModReShade = (HMODULE)-2;
 
 bool& SK_D3D11_DontTrackUnlessModToolsAreOpen = config.render.dxgi.low_spec_mode;
 
+bool SK_D3D11_IsTrackingRequired (void)
+{
+  return
+    ReadAcquire (&SK_D3D11_DrawTrackingReqs)    > 0 ||
+    ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0;
+}
+
 bool
 SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
                                UINT                 dev_idx )
@@ -191,7 +198,7 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
     return false;
   }
 
-  if (SK_D3D11_DontTrackUnlessModToolsAreOpen && (! SK_D3D11_EnableTracking))
+  if (SK_D3D11_DontTrackUnlessModToolsAreOpen && (! SK_D3D11_EnableTracking) && (! SK_D3D11_IsTrackingRequired ()))
     return false;
 
   bool deferred =
@@ -347,7 +354,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     return;
 
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   auto pDev =
@@ -402,7 +409,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 void
 d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (dev_idx == UINT_MAX)

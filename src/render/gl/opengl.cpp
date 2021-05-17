@@ -1255,7 +1255,7 @@ void ResetCEGUI_GL (void)
         SK_CEGUI_InitBase    ();
 
               SK_PopupManager::getInstance ()->destroyAllPopups (     );
-        SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
+        SK_TextOverlayManager::getInstance ()->resetAllOverlays (/*cegGL*/);
 
         SK_Steam_ClearPopups ();
 
@@ -1695,7 +1695,7 @@ SK_Overlay_DrawGL (void)
       {
         if (reset_overlays)
         {
-          SK_TextOverlayManager::getInstance ( )->resetAllOverlays (cegGL);
+          SK_TextOverlayManager::getInstance ( )->resetAllOverlays (/*cegGL*/);
           reset_overlays = false;
         }
 

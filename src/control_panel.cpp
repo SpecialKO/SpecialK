@@ -870,8 +870,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     (*pszDispList++) = '\0';
 
-    if (! wcsicmp ( rb.displays [output].name,
-                              rb.display_name )
+    if (! _wcsicmp ( rb.displays [output].name,
+                               rb.display_name )
        ) active_idx = output;
   }
 
@@ -3847,12 +3847,12 @@ SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
     auto& io =
       ImGui::GetIO ();
 
-    bool wasPressed =
-        ( lParam & (1 << 30) ) != 0;
+  //bool wasPressed =
+  //    ( lParam & (1 << 30) ) != 0;
     bool isPressed =
         ( lParam & (1 << 31) ) == 0;
-    bool isAltDown =
-        ( lParam & (1 << 29) ) != 0;
+  //bool isAltDown =
+  //    ( lParam & (1 << 29) ) != 0;
 
     io.KeysDown [wParam] = isPressed;
 
@@ -4040,7 +4040,7 @@ SK_ImGui_StageNextFrame (void)
   if (SK_ImGui_Visible)
   {
     using  SetWindowsHookEx_pfn = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
-    extern SetWindowsHookEx_pfn SetWindowsHookExA_Original;
+  //extern SetWindowsHookEx_pfn SetWindowsHookExA_Original;
     extern SetWindowsHookEx_pfn SetWindowsHookExW_Original;
 
     SK_RunOnce (IsGUIThread (TRUE));
@@ -4102,6 +4102,17 @@ SK_ImGui_StageNextFrame (void)
       widget->draw_base ();
     }
   }
+
+
+  
+  if (! SK::SteamAPI::GetOverlayState (true))
+  {
+    SK_DrawOSD     ();
+    SK_DrawConsole ();
+  }
+
+
+
 
   static DWORD dwStartTime = current_time;
   if ((current_time < dwStartTime + 1000 * config.version_banner.duration) || eula.show)

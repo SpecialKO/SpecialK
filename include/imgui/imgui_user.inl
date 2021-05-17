@@ -77,6 +77,13 @@ SK_LazyGlobal <SK_Thread_HybridSpinlock> font_lock;
 #include              <fstream>
 namespace sk_fs = std::filesystem;
 
+ImFont* __SK_ImGui_FontConsolas;
+ImFont*
+SK_ImGui_GetFont_Consolas (void)
+{
+  return __SK_ImGui_FontConsolas;
+}
+
 void
 SK_ImGui_LoadFonts (void)
 {
@@ -186,8 +193,14 @@ SK_ImGui_LoadFonts (void)
         SK_ImGui_GetGlyphRangesFontAwesome (),
                    &font_cfg);
     }           );
-
+  
     io.Fonts->AddFontDefault ();
+
+    font_cfg           = {   };
+    font_cfg.MergeMode = false;
+
+    __SK_ImGui_FontConsolas =
+      LoadFont ("Consolab.ttf", 18, SK_ImGui_GetGlyphRangesDefaultEx (), &font_cfg);
 
     InterlockedIncrementRelease (&init);
   }
@@ -1420,8 +1433,8 @@ SK_ImGui_FilterXInput (
 {
   bool disable =
     config.input.gamepad.disabled_to_game ||
-      ( SK_ImGui_WantGamepadCapture ()   /*&&
-        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot*/ );
+      ( SK_ImGui_WantGamepadCapture ()   &&
+        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot );
 
   if (disable)
   {

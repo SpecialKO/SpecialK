@@ -2294,7 +2294,8 @@ auto DeclKeybind =
 
       case SK_GAME_ID::NieR_Sqrt_1_5:
       {
-        config.textures.d3d11.cache                  = false;
+        config.textures.d3d11.cache                  =  true;
+        config.textures.cache.allow_staging          =  true;
         config.apis.OpenGL.hook                      = false;
         config.apis.d3d9.hook                        = false;
         config.apis.d3d9ex.hook                      = false;
@@ -2316,14 +2317,16 @@ auto DeclKeybind =
         config.render.framerate.drop_late_flips      =  true;
         config.render.framerate.flip_discard         =  true;
         config.input.gamepad.disable_ps4_hid         = false; // Automagic
-        config.input.gamepad.xinput.auto_slot_assign = true;
+        config.input.gamepad.xinput.auto_slot_assign =  true;
         config.threads.enable_file_io_trace          =  true;
         config.steam.preload_overlay                 = false; // Set to false because of loss of rumble
         config.window.background_render              = false;
 
         SK_D3D11_DeclHUDShader (0x3e464f00, ID3D11VertexShader);
 
-      //config.render.dxgi.deferred_isolation        = true;
+        config.render.dxgi.deferred_isolation        =  true; // Enable render mods
+        config.render.dxgi.low_spec_mode             =  true; // Reduce state tracking overhead
+
         config.input.keyboard.catch_alt_f4           =  true;
         config.input.keyboard.override_alt_f4        =  true;
                                                      
@@ -3649,8 +3652,8 @@ SK_SaveConfig ( std::wstring name,
   display.force_windowed->store               (config.display.force_windowed);
 
 //if (close_config)
-  render.framerate.target_fps->store          (__target_fps);
-  render.framerate.target_fps_bg->store       (__target_fps_bg);
+  render.framerate.target_fps->store          (config.render.framerate.target_fps);//__target_fps);
+  render.framerate.target_fps_bg->store       (config.render.framerate.target_fps_bg);//__target_fps_bg);
   render.framerate.sleepless_render->store    (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->store    (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->store        (config.render.framerate.enable_mmcss);

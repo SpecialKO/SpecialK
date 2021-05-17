@@ -1211,8 +1211,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     {
       return;
     }
-    static auto& textures =
-      SK_D3D11_Textures;
 
     SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
 

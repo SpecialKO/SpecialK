@@ -51,13 +51,6 @@ void __stdcall SK_OSD_GetDefaultColor (float& r,  float& g,  float& b) noexcept;
 
 #include <map>
 
-namespace CEGUI {
-  class Renderer;
-  class GUIContext;
-  class Font;
-  class GeometryBuffer;
-}
-
 class SK_TextOverlay
 {
 friend class SK_TextOverlayManager;
@@ -68,7 +61,7 @@ public:
   float update    (const char* szText);
 
   float draw      (float x = 0.0f, float y = 0.0f, bool full = false);
-  void  reset     (CEGUI::Renderer* renderer);
+  void  reset     (void);//CEGUI::Renderer* renderer);
 
   void  resize    (float incr)                 noexcept;
   void  setScale  (float scale)                noexcept;
@@ -89,15 +82,16 @@ private:
   {
     char   name [64] = { };
 
-    char*  text      = nullptr; // UTF-8
-    size_t text_len  = 0;
-    float  extent    = 0.0f;// Rendered height, in pixels
+    char*  text          = nullptr; // UTF-8
+    size_t text_len      = 0;
+    size_t text_capacity = 0;
+    float  extent        = 0.0f;// Rendered height, in pixels
   } data_;
 
   struct
   {
-    CEGUI::Font*
-           cegui     = nullptr;
+    ///CEGUI::Font*
+    ///       cegui     = nullptr;
 
     char   name [64] = { };
     float  scale     = 1.0f;
@@ -105,12 +99,18 @@ private:
     DWORD  shadow_color  = 0x0;
   } font_;
 
-public:
-  CEGUI::GeometryBuffer*
-           geometry_    = nullptr;
-  CEGUI::Renderer*
-           renderer_    = nullptr;;
+  struct
+  {
+    std::vector <char> tokenizer_workingset;
+  } temp_;
 
+  struct
+  {
+    float x = 0.0f,
+          y = 0.0f;
+  } transform_;
+
+public:
   struct {
     float  x = 0.0f,
            y = 0.0f;
@@ -131,9 +131,9 @@ public:
   SK_TextOverlay* getTextOverlay    (const char* szAppName);
 
 
-  void            queueReset         (CEGUI::Renderer* renderer);
+  void            queueReset         (void);//CEGUI::Renderer* renderer);
 
-  void            resetAllOverlays   (CEGUI::Renderer* renderer);
+  void            resetAllOverlays   (void);//CEGUI::Renderer* renderer);
   float           drawAllOverlays    (float x, float y, bool full = false);
   void            destroyAllOverlays (void);
 
@@ -146,7 +146,7 @@ public:
 
 private:
   bool                                     need_full_reset_ = true;
-  CEGUI::GUIContext*                       gui_ctx_         = nullptr;
+//CEGUI::GUIContext*                       gui_ctx_         = nullptr;
   std::map <std::string, SK_TextOverlay *> overlays_;
 
   struct {
