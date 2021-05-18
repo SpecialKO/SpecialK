@@ -1,4 +1,9 @@
-﻿21.05.17
+﻿21.05.18
+========
+ + Improved startup reliability of Resident Evil 8 (bad engine!)
+ + Enabled Legacy HID Keyboard Input in RE8 so that text input works
+
+21.05.17
 ========
  + Re-wrote Text OSD and Command Console Rendering using ImGui;
      these features now work in UWP and D3D12 software

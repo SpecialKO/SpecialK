@@ -773,27 +773,33 @@ NtUserRegisterRawInputDevices_Detour (
     {      pDevices [i] =
    pRawInputDevices [i];
 
-      /////if ( pDevices [i].hwndTarget  !=   0 &&
-      /////     pDevices [i].usUsagePage == 0x1 &&
-      /////   ( pDevices [i].usUsage     == 0x4 ||
-      /////     pDevices [i].usUsage     == 0x5 ||
-      /////     pDevices [i].usUsage     == 0x8 ) )
-      /////{
-      /////  pDevices [i].dwFlags        |= RIDEV_INPUTSINK;
-      /////}
+#define _ALLOW_BACKGROUND_GAMEPAD
+#define _ALLOW_LEGACY_KEYBOARD
 
+#ifdef _ALLOW_BACKGROUND_GAMEPAD
+      if ( pDevices [i].hwndTarget  !=   0                                 &&
+           pDevices [i].usUsagePage == HID_USAGE_PAGE_GENERIC              &&
+         ( pDevices [i].usUsage     == HID_USAGE_GENERIC_JOYSTICK          ||
+           pDevices [i].usUsage     == HID_USAGE_GENERIC_GAMEPAD           ||
+           pDevices [i].usUsage     == HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER ) )
+      {
+        pDevices [i].dwFlags        |= RIDEV_INPUTSINK;
+      }
+#endif
 
-      // Resident Evil 3
-      if (pDevices [i].usUsagePage ==  0x1 &&
-          pDevices [i].usUsage     ==  0x6)
+#ifdef _ALLOW_LEGACY_KEYBOARD
+      if (pDevices [i].usUsagePage ==  HID_USAGE_PAGE_GENERIC &&
+          pDevices [i].usUsage     ==  HID_USAGE_GENERIC_KEYBOARD)
       {   pDevices [i].dwFlags     &= ~RIDEV_NOLEGACY;
         /*pDevices [i].dwFlags     |=  RIDEV_NOHOTKEYS;*/ }
+#endif
 
-
-      ////if (pDevices [i].usUsagePage ==  0x1 &&
-      ////    pDevices [i].usUsage     ==  0x2)
-      ////{if(pDevices [i].dwFlags     &   RIDEV_NOLEGACY)
-      ////    pDevices [i].dwFlags     &= ~RIDEV_CAPTUREMOUSE; }
+#ifdef _ALLOW_LEGACY_MOUSE
+      if (pDevices [i].usUsagePage ==  HID_USAGE_PAGE_GENERIC &&
+          pDevices [i].usUsage     ==  HID_USAGE_GENERIC_MOUSE)
+      {if(pDevices [i].dwFlags     &   RIDEV_NOLEGACY)
+          pDevices [i].dwFlags     &= ~RIDEV_CAPTUREMOUSE; }
+#endif
 
       raw_devices.push_back (pDevices [i]);
 
@@ -2789,7 +2795,8 @@ void SK_Input_PreInit (void)
 
 
 
-#ifdef __MANAGE_RAW_INPUT_REGISTRATION
+#define __MANAGE_RAW_INPUT_REGISTRATION
+#ifdef  __MANAGE_RAW_INPUT_REGISTRATION
   //SK_CreateUser32Hook (      "NtUserRegisterRawInputDevices",
   SK_CreateDLLHook2 (       L"user32",
                                    "RegisterRawInputDevices",

@@ -2958,9 +2958,7 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
 }
 
 struct {
-  IDXGIFactory1* pFactory1         = nullptr;
-  IDXGIAdapter1* pAdapter1         = nullptr;
-  INT            EnumeratedAdapter =      -1;
+  IDXGIFactory1* pFactory1 = nullptr;
 
   concurrency::concurrent_unordered_map < uint32_t,
                              std::vector < DXGI_MODE_DESC > >
@@ -2989,19 +2987,12 @@ struct {
   ULONG release (void) {
     ULONG ret = 0;
 
+    cached_descs.clear ();
+
     if (pFactory1 != nullptr)
       ret = pFactory1->Release ();
 
     pFactory1 = nullptr;
-
-    if (pAdapter1 != nullptr)
-        pAdapter1->Release ();
-
-    pAdapter1 = nullptr;
-
-    EnumeratedAdapter = -1;
-
-    cached_descs.clear ();
 
     return ret;
   }
@@ -6368,7 +6359,8 @@ HRESULT
 STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
                                        UINT                Adapter,
                               _Inout_  IDXGIAdapter      **ppAdapter,
-                                       EnumAdapters_pfn    pFunc)
+                                       EnumAdapters_pfn    pFunc,
+                                       BOOL                silent = FALSE)
 
 
 {
@@ -6425,7 +6417,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
   }
 
   // Logic to skip Intel and Microsoft adapters and return only AMD / NV
-  if (! wcsnlen (desc.Description, 128))
+  if (*desc.Description == L'\0')//! wcsnlen (desc.Description, 128))
     dll_log->LogEx (false, L" >> Assertion filed: Zero-length adapter name!\n");
 
 #ifdef SKIP_INTEL
@@ -6445,37 +6437,40 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
     return (pFunc (This, Adapter + 1, ppAdapter));
   }
 
-  dll_log->LogEx (true, L"[   DXGI   ]  @ Returned Adapter %lu: '%32s' (LUID: %08X:%08X)",
-    Adapter,
-      desc.Description,
-        desc.AdapterLuid.HighPart,
-          desc.AdapterLuid.LowPart );
-
-  //
-  // Windows 8 has a software implementation, which we can detect.
-  //
-  SK_ComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
-  // XXX
-
-  if (pAdapter1 != nullptr)
+  if (! silent)
   {
-    DXGI_ADAPTER_DESC1 desc1 = { };
+    dll_log->LogEx (true, L"[   DXGI   ]  @ Returned Adapter %lu: '%32s' (LUID: %08X:%08X)",
+      Adapter,
+        desc.Description,
+          desc.AdapterLuid.HighPart,
+            desc.AdapterLuid.LowPart );
 
-    if (            GetDesc1_Original != nullptr &&
-         SUCCEEDED (GetDesc1_Original (pAdapter1, &desc1)) )
+    //
+    // Windows 8 has a software implementation, which we can detect.
+    //
+    SK_ComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
+    // XXX
+
+    if (pAdapter1 != nullptr)
     {
+      DXGI_ADAPTER_DESC1 desc1 = { };
+
+      if (            GetDesc1_Original != nullptr &&
+           SUCCEEDED (GetDesc1_Original (pAdapter1, &desc1)) )
+      {
 #define DXGI_ADAPTER_FLAG_REMOTE   0x1
 #define DXGI_ADAPTER_FLAG_SOFTWARE 0x2
-      if (desc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
-        dll_log->LogEx (false, L" <Software>");
-      else
-        dll_log->LogEx (false, L" <Hardware>");
-      if (desc1.Flags & DXGI_ADAPTER_FLAG_REMOTE)
-        dll_log->LogEx (false, L" [Remote]");
+        if (desc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+          dll_log->LogEx (false, L" <Software>");
+        else
+          dll_log->LogEx (false, L" <Hardware>");
+        if (desc1.Flags & DXGI_ADAPTER_FLAG_REMOTE)
+          dll_log->LogEx (false, L" [Remote]");
+      }
     }
-  }
 
-  dll_log->LogEx (false, L"\n");
+    dll_log->LogEx (false, L"\n");
+  }
 
   return S_OK;
 }
@@ -6488,39 +6483,23 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
   static auto current_game =
     SK_GetCurrentGameID ();
 
-  if (current_game == SK_GAME_ID::ResidentEvil8 && This == __SK_RE8_FactoryCache.pFactory1)
-  {
-    if ((UINT)__SK_RE8_FactoryCache.EnumeratedAdapter == Adapter)
-    {
-                   __SK_RE8_FactoryCache.pAdapter1->AddRef ();
-      *ppAdapter = __SK_RE8_FactoryCache.pAdapter1;
-
-      return S_OK;
-    }
-  }
-
-  std::wstring iname = SK_GetDXGIFactoryInterface    (This);
-
-  DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
-                       L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
-                         (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
-
   HRESULT ret;
-  DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
+  bool silent =
+    (current_game == SK_GAME_ID::ResidentEvil8 && This == __SK_RE8_FactoryCache.pFactory1);
 
-  if (SUCCEEDED (ret))
+  if (! silent)
   {
-    if (current_game == SK_GAME_ID::ResidentEvil8 && This == __SK_RE8_FactoryCache.pFactory1)
-    {
-      if (__SK_RE8_FactoryCache.EnumeratedAdapter == -1)
-      {
-        __SK_RE8_FactoryCache.EnumeratedAdapter =    Adapter;
-        __SK_RE8_FactoryCache.pAdapter1         = *ppAdapter;
-      
-        (*ppAdapter)->AddRef ();
-      }
-    }
+    std::wstring iname = SK_GetDXGIFactoryInterface    (This);
+
+    DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
+                         L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
+                           (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
+
+    DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
   }
+
+  else
+    ret = EnumAdapters1_Original (This,Adapter,ppAdapter);
 
 #if 0
   // For games that try to enumerate all adapters until the API returns failure,
@@ -6547,7 +6526,7 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
 
   if (SUCCEEDED (ret) && ppAdapter != nullptr && (*ppAdapter) != nullptr) {
     return EnumAdapters_Common (This, Adapter, reinterpret_cast <IDXGIAdapter **>  (ppAdapter),
-                                               reinterpret_cast <EnumAdapters_pfn> (EnumAdapters1_Original));
+                                               reinterpret_cast <EnumAdapters_pfn> (EnumAdapters1_Original), silent);
   }
 
   return ret;

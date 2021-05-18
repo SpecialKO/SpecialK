@@ -354,6 +354,8 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_ATTACH:
     {
+      SetErrorMode (SEM_FAILCRITICALERRORS | SEM_NOALIGNMENTFAULTEXCEPT);
+
       skModuleRegistry::Self (hModule);
 
       auto EarlyOut   =
@@ -532,6 +534,8 @@ DllMain ( HMODULE hModule,
     //
     case DLL_THREAD_ATTACH:
     {
+      SetThreadErrorMode (SEM_FAILCRITICALERRORS, nullptr);
+
       InterlockedIncrementAcquire (&lLastThreadCreate);
       InterlockedIncrementAcquire (&__SK_Threads_Attached);
 

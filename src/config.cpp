@@ -3228,7 +3228,7 @@ auto DeclKeybind =
   {
     if (     ! SK_IsDebuggerPresent ())
     { while (! SK_IsDebuggerPresent ())
-               SK_SleepEx (100, FALSE);
+               SK_SleepEx (500, TRUE);
 
       __debugbreak ();
     }
