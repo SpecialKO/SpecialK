@@ -52,11 +52,11 @@ public:
 
 enum
 {
-  SK_FRAMEBUFFER_FLAG_SRGB    = 0x01u,
-  SK_FRAMEBUFFER_FLAG_FLOAT   = 0x02u,
-  SK_FRAMEBUFFER_FLAG_RGB10A2 = 0x04u,
-  SK_FRAMEBUFFER_FLAG_MSAA    = 0x08u,
-  SK_FRAMEBUFFER_FLAG_HDR     = 0x10u,
+  SK_FRAMEBUFFER_FLAG_SRGB    = 0x01U,
+  SK_FRAMEBUFFER_FLAG_FLOAT   = 0x02U,
+  SK_FRAMEBUFFER_FLAG_RGB10A2 = 0x04U,
+  SK_FRAMEBUFFER_FLAG_MSAA    = 0x08U,
+  SK_FRAMEBUFFER_FLAG_HDR     = 0x10U,
 };
 
 enum reset_stage_e
@@ -116,7 +116,7 @@ float
 operator"" _Nits ( long double whitepoint_scalar ) noexcept
 {
   return
-    static_cast <float> ( whitepoint_scalar / 80.0f );
+    static_cast <float> ( whitepoint_scalar / 80.0F );
 }
 
 #pragma pack(push)
@@ -163,8 +163,8 @@ public:
   bool                    srgb_stripped        = false; // sRGB may be stripped from swapchains for advanced features to work
   bool                    hdr_capable          = false;
   bool                    driver_based_hdr     = false;
-  SK_ColorSpace           display_gamut        = { 0.0f }; // EDID
-  SK_ColorSpace           working_gamut        = { 0.0f }; // Metadata range
+  SK_ColorSpace           display_gamut        = { 0.0F }; // EDID
+  SK_ColorSpace           working_gamut        = { 0.0F }; // Metadata range
 
   struct output_s {
     UINT                  idx             = 0;
@@ -348,12 +348,12 @@ public:
     struct {
         UINT                 PresentQueue   =     0;
         UINT                    SyncDelay   =     0;
-        float                     TotalMs   =  0.0f;
+        float                     TotalMs   =  0.0F;
     } delays;
     struct {
-        float                 AverageMs     =  0.0f;
-        float                     MaxMs     =  0.0f;
-        float                   ScaleMs     = 99.0f;
+        float                 AverageMs     =  0.0F;
+        float                     MaxMs     =  0.0F;
+        float                   ScaleMs     = 99.0F;
         float                 History [120] = {   };
     } stats;
 

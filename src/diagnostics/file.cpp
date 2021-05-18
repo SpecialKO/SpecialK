@@ -33,9 +33,9 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
 
   auto ptrcFni =
     reinterpret_cast <FILE_NAME_INFO *>
-    ( SK_TLS_Bottom ()->scratch_memory->cmd.alloc   (
-        sizeof (FILE_NAME_INFO)        *
-       (sizeof (FILE_NAME_INFO) + _MAX_PATH), true )
+    ( SK_TLS_Bottom ()->scratch_memory->cmd.alloc (
+            sizeof (  FILE_NAME_INFO  ) +
+                              _MAX_PATH * 2, true )
     );
 
   auto *pFni = ptrcFni;
@@ -44,8 +44,8 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
     GetFileInformationByHandleEx ( hFile,
                                      FileNameInfo,
                                        pFni,
-                                         sizeof (FILE_NAME_INFO) +
-                            (_MAX_PATH * sizeof (wchar_t)) );
+                             sizeof (FILE_NAME_INFO) +
+                                           _MAX_PATH * 2 );
 
   if (success && pFni != nullptr)
   {
@@ -301,10 +301,7 @@ SK_GetFileSD ( const wchar_t              *wszPath,
 {
   BOOL bRetVal = FALSE;
 
-  SECURITY_INFORMATION secInfo =
-    DACL_SECURITY_INFORMATION;
-
-  if (! wcslen (wszPath))
+  if (0 == wcslen (wszPath))
     return bRetVal;
 
   SK_AutoHandle hFile (
@@ -321,6 +318,9 @@ SK_GetFileSD ( const wchar_t              *wszPath,
 
   else
   {
+    SECURITY_INFORMATION secInfo =
+      DACL_SECURITY_INFORMATION;
+
     DWORD dwErr =
       GetSecurityInfo (
         hFile,   SE_FILE_OBJECT,

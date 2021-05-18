@@ -316,10 +316,10 @@ public:
 
   struct scratch_mem_s
   {
-    LPVOID   storage = nullptr;
-    uint32_t size    = 0;
+    LPVOID storage = nullptr;
+    size_t size    = 0;
 
-    uint32_t reclaim (void)
+    size_t reclaim (void)
     {
       if (size > 0)
       {
@@ -327,8 +327,8 @@ public:
         {
           _aligned_free (storage);
 
-          const uint32_t orig_size = size;
-                              size = 0;
+          const size_t orig_size = size;
+                            size = 0;
 
           return orig_size;
         }
@@ -530,19 +530,6 @@ public:
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
-class SK_OSD_ThreadContext : public SK_TLS_DynamicContext
-{
-public:
-  // Allocates and grows this buffer until a cleanup operation demands
-  //   we shrink it.
-  char* allocText (size_t needed);
-
-  char*  text          = nullptr;
-  size_t text_capacity = 0;
-
-  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
-};
-
 class SK_Steam_ThreadContext : public SK_TLS_DynamicContext
 {
 public:
@@ -709,7 +696,6 @@ public:
   SK_LazyGlobal <SK_RawInput_ThreadContext> raw_input;
   SK_LazyGlobal <SK_Win32_ThreadContext>    win32;
 
-  SK_LazyGlobal <SK_OSD_ThreadContext>      osd;
   SK_LazyGlobal <SK_Steam_ThreadContext>    steam;
 
   SK_LazyGlobal <SK_Sched_ThreadContext>    scheduler;

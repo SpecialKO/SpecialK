@@ -232,14 +232,19 @@ extern BOOL WINAPI  SK_TerminateProcess (      HANDLE    hProcess,
 extern void __cdecl SK__endthreadex     ( _In_ unsigned _ReturnCode ) noexcept;
 
 
-constexpr uint8_t
+enum SK_Bitness {
+  ThirtyTwoBit = 32,
+  SixtyFourBit = 64
+};
+
+constexpr SK_Bitness
 __stdcall
 SK_GetBitness (void)
 {
 #ifdef _WIN64
-  return 64;
+  return SixtyFourBit;
 #endif
-  return 32;
+  return ThirtyTwoBit;
 }
 
 // Avoid the C++ stdlib and use CPU interlocked instructions instead, so this
@@ -249,15 +254,15 @@ SK_GetBitness (void)
 #define SK_RunOnceStdCpp(x) { static std::once_flag the_wuncler;             \
                                 std::call_once (the_wuncler, [&](){ (x); }); }
 
-#define SK_RunIf32Bit(x)         { SK_GetBitness () == 32  ? (x) :  0; }
-#define SK_RunIf64Bit(x)         { SK_GetBitness () == 64  ? (x) :  0; }
-#define SK_RunLHIfBitness(b,l,r)   SK_GetBitness () == (b) ? (l) : (r)
+#define SK_RunIf32Bit(x)         { SK_GetBitness () == ThirtyTwoBit  ? (x) :  0; }
+#define SK_RunIf64Bit(x)         { SK_GetBitness () == SixtyFourBit  ? (x) :  0; }
+#define SK_RunLHIfBitness(b,l,r)   SK_GetBitness () == (b)           ? (l) : (r)
 
 
 #define SK_LOG_FIRST_CALL { bool called = false;                                       \
                      SK_RunOnce (called = true);                                       \
                              if (called) {                                             \
-        SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__),       __SK_SUBSYSTEM__); \
+        SK_LOG0 ( (L"[!] > First Call: %34s", __FUNCTIONW__),      __SK_SUBSYSTEM__); \
         SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); } }
 
 
@@ -660,10 +665,10 @@ private:
       // Calling __cpuid with 0x80000000 as the function_id argument
       // gets the number of the highest valid extended ID.
       //
-       __cpuid (cpui.data ( ), 0x80000000);
+       __cpuid (cpui.data ( ), 0x80000000U);
       nExIds_ = cpui      [0];
 
-      for (int i = 0x80000000; i <= nExIds_; ++i)
+      for (int i = 0x80000000U; i <= nExIds_; ++i)
       {
         __cpuidex          (cpui.data (), i, 0);
         extdata_.push_back (cpui);
@@ -671,14 +676,14 @@ private:
 
       // Load Bitset with Flags for Function 0x80000001
       //
-      if (nExIds_ >= 0x80000001)
+      if (nExIds_ >= 0x80000001U)
       {
         f_81_ECX_ = extdata_ [1][2];
         f_81_EDX_ = extdata_ [1][3];
       }
 
       // Interpret CPU Brand String if Reported
-      if (nExIds_ >= 0x80000004)
+      if (nExIds_ >= 0x80000004U)
       {
         char    brand [0x40] =
         {                    };

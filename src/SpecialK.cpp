@@ -431,9 +431,9 @@ DllMain ( HMODULE hModule,
       if ((intptr_t)__SK_DLL_TeardownEvent > (intptr_t)nullptr) SetEvent (
                     __SK_DLL_TeardownEvent                               );
 
-      if (! InterlockedCompareExchangeRelease ( &__SK_DLL_Ending,
-                                                  TRUE,
-                                                    FALSE )
+      if ( FALSE == InterlockedCompareExchangeRelease ( &__SK_DLL_Ending,
+                                                           TRUE,
+                                                             FALSE )
          )
       {
         // If the DLL being unloaded is the source of a global hook, then
@@ -828,27 +828,27 @@ SK_EstablishDllRole (skWin32Module&& module)
     }
   }
 
-  else if (! SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
+  else if (0 == SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
     SK_SetDLLRole (DLL_ROLE::DXGI);
 
-  else if (! SK_Path_wcsicmp (wszShort, L"d3d11.dll"))
+  else if (0 == SK_Path_wcsicmp (wszShort, L"d3d11.dll"))
   {
     SK_SetDLLRole ( static_cast <DLL_ROLE> ( (int)DLL_ROLE::DXGI |
                                              (int)DLL_ROLE::D3D11 ) );
   }
 
 #ifndef _M_AMD64
-  else if (! SK_Path_wcsicmp (wszShort, L"d3d8.dll")  && has_dgvoodoo)
+  else if (0 == SK_Path_wcsicmp (wszShort, L"d3d8.dll")  && has_dgvoodoo)
     SK_SetDLLRole (DLL_ROLE::D3D8);
 
-  else if (! SK_Path_wcsicmp (wszShort, L"ddraw.dll") && has_dgvoodoo)
+  else if (0 == SK_Path_wcsicmp (wszShort, L"ddraw.dll") && has_dgvoodoo)
     SK_SetDLLRole (DLL_ROLE::DDraw);
 #endif
 
-  else if (! SK_Path_wcsicmp (wszShort, L"d3d9.dll"))
+  else if (0 == SK_Path_wcsicmp (wszShort, L"d3d9.dll"))
     SK_SetDLLRole (DLL_ROLE::D3D9);
 
-  else if (! SK_Path_wcsicmp (wszShort, L"OpenGL32.dll"))
+  else if (0 == SK_Path_wcsicmp (wszShort, L"OpenGL32.dll"))
     SK_SetDLLRole (DLL_ROLE::OpenGL);
 
 
@@ -1265,8 +1265,8 @@ SK_Attach (DLL_ROLE role)
     pBootStrapper = &bootstraps.at (role);
   }
 
-  if (! InterlockedCompareExchangeAcquire (
-          &__SK_DLL_Attached, TRUE, FALSE )
+  if (FALSE == InterlockedCompareExchangeAcquire (
+                 &__SK_DLL_Attached, TRUE, FALSE )
      )
   {
     auto _InitMutexes =

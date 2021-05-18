@@ -129,13 +129,13 @@ SK::ControlPanel::Compatibility::Draw (void)
       };
 
 #ifdef _M_AMD64
-      constexpr int num_lines = 4; // Basic set of APIs
+      constexpr float num_lines = 4.0f; // Basic set of APIs
 #else
-      constexpr int num_lines = 5; // + DirectDraw / Direct3D 8
+      constexpr float num_lines = 5.0f; // + DirectDraw / Direct3D 8
 #endif
 
-      ImGui::PushStyleVar                                                                          (ImGuiStyleVar_ChildRounding, 10.0f);
-      ImGui::BeginChild ("", ImVec2 (font.size * 39, font.size_multiline * num_lines * 1.1f), true, ImGuiWindowFlags_NavFlattened);
+      ImGui::PushStyleVar                                                                             (ImGuiStyleVar_ChildRounding, 10.0f);
+      ImGui::BeginChild ("", ImVec2 (font.size * 39.0f, font.size_multiline * num_lines * 1.1f), true, ImGuiWindowFlags_NavFlattened);
 
       ImGui::Columns    ( 2 );
 

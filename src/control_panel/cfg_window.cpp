@@ -198,9 +198,9 @@ SK::ControlPanel::Window::Draw (void)
                 fy_pos =
             gsl::narrow_cast <float> (y_pos);
 
-          moved  = ImGui::SliderFloat ("X Offset##WindowPix",       &fx_pos, 0, extent_x, "%.0f pixels"); ImGui::SameLine ();
+          moved  = ImGui::SliderFloat ("X Offset##WindowPix",       &fx_pos, 0.0f, extent_x, "%.0f pixels"); ImGui::SameLine ();
           moved |= ImGui::Checkbox    ("Right-aligned##WindowPix",  &right_align);
-          moved |= ImGui::SliderFloat ("Y Offset##WindowPix",       &fy_pos, 0, extent_y, "%.0f pixels"); ImGui::SameLine ();
+          moved |= ImGui::SliderFloat ("Y Offset##WindowPix",       &fy_pos, 0.0f, extent_y, "%.0f pixels"); ImGui::SameLine ();
           moved |= ImGui::Checkbox    ("Bottom-aligned##WindowPix", &bottom_align);
 
           if (moved)
@@ -280,9 +280,9 @@ SK::ControlPanel::Window::Draw (void)
           //   Adjusting the Slider
           static bool queue_move = false;
 
-          moved  = ImGui::SliderFloat ("X Offset##WindowRel",       &x_pos, 0, extent_x, "%.3f %%"); ImGui::SameLine ();
+          moved  = ImGui::SliderFloat ("X Offset##WindowRel",       &x_pos, 0.0f, extent_x, "%.3f %%"); ImGui::SameLine ();
           moved |= ImGui::Checkbox    ("Right-aligned##WindowRel",  &right_align);
-          moved |= ImGui::SliderFloat ("Y Offset##WindowRel",       &y_pos, 0, extent_y, "%.3f %%"); ImGui::SameLine ();
+          moved |= ImGui::SliderFloat ("Y Offset##WindowRel",       &y_pos, 0.0f, extent_y, "%.3f %%"); ImGui::SameLine ();
           moved |= ImGui::Checkbox    ("Bottom-aligned##WindowRel", &bottom_align);
 
           // We need to set pixel offset to 1 to do what the user expects

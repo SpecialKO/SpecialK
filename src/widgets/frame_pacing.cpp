@@ -465,6 +465,8 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
        int    extra_present_mon_line = 0;
 extern bool __SK_Wine;
 
+extern int SK_PresentMon_Main (int argc, char **argv);
+
 void
 SK_SpawnPresentMonWorker (void)
 {
@@ -481,9 +483,7 @@ SK_SpawnPresentMonWorker (void)
 
   hPresentMonThread =
   SK_Thread_CreateEx ( [](LPVOID lpUser) -> DWORD
-  {
-    extern int SK_PresentMon_Main (int argc, char **argv);
-  
+  {  
     std::string pid =
       std::to_string (PtrToUlong (lpUser));
   
@@ -509,6 +509,7 @@ SK_SpawnPresentMonWorker (void)
 std::string   SK_PresentDebugStr [2] = { "", "" };
 volatile LONG SK_PresentIdx;
 
+extern void SK_ImGui_DrawFramePercentiles (void);
 
 void
 SK_ImGui_DrawGraph_FramePacing (void)
@@ -595,8 +596,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
   else
     extra_present_mon_line = 0;
 
-
-  extern void SK_ImGui_DrawFramePercentiles (void);
 
   if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
@@ -886,15 +885,13 @@ SK_ImGui_DrawFramePercentiles (void)
        snapshots.mean->calcMean (all_samples) );
   }
 
-  float p0_ratio =
-        percentile0.computed_fps / mean.computed_fps;
-  float p1_ratio =
-        percentile1.computed_fps / mean.computed_fps;
-
   if ( std::isnormal (percentile0.computed_fps) ||
         (! show_immediate)
      )
   {
+    float p0_ratio =
+        percentile0.computed_fps / mean.computed_fps;
+
     if (! std::isnormal (percentile0.computed_fps))
     {
       mean.computeFPS (
@@ -920,7 +917,7 @@ SK_ImGui_DrawFramePercentiles (void)
 
     ImGui::BeginGroup ();
 
-    if (data_timespan > 0)
+    if (data_timespan > 0.0)
     {
     //ImGui::Text ("Sample Size");
 
@@ -940,7 +937,7 @@ SK_ImGui_DrawFramePercentiles (void)
       ImGui::PopStyleColor (2);
     }
 
-    if (percentile1.has_data && data_timespan > 0)
+    if (percentile1.has_data && data_timespan > 0.0)
     {
       ImGui::Spacing          ();
       ImGui::Spacing          ();
@@ -991,9 +988,6 @@ SK_ImGui_DrawFramePercentiles (void)
     unsigned int     p0_color  (
       ImColor::HSV ( p0_ratio * 0.278f,
               0.88f, luminance )
-                   ),p1_color  (
-      ImColor::HSV ( p1_ratio * 0.278f,
-              0.88f, luminance )
                    );
 
     ImGui::SameLine       ( );
@@ -1008,10 +1002,18 @@ SK_ImGui_DrawFramePercentiles (void)
                                 percentile0.computed_fps
                                             ).c_str ()
                           );
-    if ( data_timespan > 0                     &&
+    if ( data_timespan > 0.0                   &&
          std::isnormal ( percentile1.computed_fps )
        )
     { percentile1.has_data = true;
+    
+      float p1_ratio =
+          percentile1.computed_fps / mean.computed_fps;
+
+      unsigned       p1_color  (
+      ImColor::HSV ( p1_ratio * 0.278f,
+              0.88f, luminance )
+                   );
 
       ImGui::PushStyleColor ( ImGuiCol_PlotHistogram,
                               p1_color                 );
@@ -1093,7 +1095,7 @@ public:
 
     static volatile LONG init = 0;
 
-    if (! InterlockedCompareExchange (&init, 1, 0))
+    if (0 == InterlockedCompareExchange (&init, 1, 0))
     {
       //auto *display_framerate_percentiles_above =
       //  SK_CreateVar (
@@ -1128,22 +1130,22 @@ public:
     const float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
     const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
-    float extra_line_space = 0.0f;
+    float extra_line_space = 0.0F;
 
     auto& percentile0 = SK_FramePercentiles->percentile0;
     auto& percentile1 = SK_FramePercentiles->percentile1;
 
-    if (has_battery)            extra_line_space += 1.16f;
+    if (has_battery)            extra_line_space += 1.16F;
     if (SK_FramePercentiles->display)
     {
-      if (percentile0.has_data) extra_line_space += 1.16f;
-      if (percentile1.has_data) extra_line_space += 1.16f;
+      if (percentile0.has_data) extra_line_space += 1.16F;
+      if (percentile1.has_data) extra_line_space += 1.16F;
     }
 
     // If configuring ...
-    if (state__ != 0) extra_line_space += (1.16f * 5.5f);
+    if (state__ != 0) extra_line_space += (1.16F * 5.5F);
 
-    ImVec2   new_size (font_size * 35, font_size_multiline * (5.44f + extra_line_space));
+    ImVec2   new_size (font_size * 35.0F, font_size_multiline * (5.44F + extra_line_space));
              new_size.y += fExtraData;
 
     if (extra_present_mon_line > 0)

@@ -103,13 +103,13 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
   {
     static DWORD InputThread = 0;
 
-    static volatile LONG                                   s_Once = FALSE;
-    if ((! InputThread) && (! InterlockedCompareExchange (&s_Once, TRUE, FALSE)))
+    static volatile LONG                                          s_Once = FALSE;
+    if ((! InputThread) && (FALSE == InterlockedCompareExchange (&s_Once, TRUE, FALSE)))
     {
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
-      if (*pTLS->debug.name == L'I' && (! _wcsicmp (pTLS->debug.name, L"InputThread")))
+      if (*pTLS->debug.name == L'I' && (0 == _wcsicmp (pTLS->debug.name, L"InputThread")))
       {
         auto thread =
           SK_GetCurrentThread ();
@@ -381,7 +381,7 @@ NtWaitForMultipleObjects_Detour (
                TimeOut                  );
   }
 
-  if (! ( SK_GetFramesDrawn () && SK_MMCS_GetTaskCount () > 1 ) )
+  if (! ( SK_GetFramesDrawn () > 0 && SK_MMCS_GetTaskCount () > 1 ) )
   {
     return
       NtWaitForMultipleObjects_Original (
@@ -460,9 +460,9 @@ NtWaitForSingleObject_Detour (
   }
 
 #ifndef _UNITY_HACK
-  if (! ( SK_GetFramesDrawn () && SK_MMCS_GetTaskCount () > 1 ) )
+  if (! ( SK_GetFramesDrawn () > 0 && SK_MMCS_GetTaskCount () > 1 ) )
 #else
-  if (  ! SK_GetFramesDrawn () )
+  if (    SK_GetFramesDrawn () == 0 )
 #endif
   {
     return
@@ -851,13 +851,13 @@ SwitchToThread_Detour (void)
 }
 
 
-volatile LONG __sleep_init = 0;
+volatile LONG __sleep_init = FALSE;
 
 DWORD
 WINAPI
 SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) noexcept
 {
-  if (! ReadAcquire (&__sleep_init))
+  if (ReadAcquire (&__sleep_init) == FALSE)
     return SleepEx (dwMilliseconds, bAlertable);
 
   return
@@ -1253,7 +1253,7 @@ SK_GetPerfFreq (void)
     SK_GetProcAddress ( L"NtDll",
                          "RtlQueryPerformanceFrequency" );
 
-    if (! InterlockedCompareExchange (&_SK_PerfFreqInit, 1, 0))
+    if (0 == InterlockedCompareExchange (&_SK_PerfFreqInit, 1, 0))
     {
       if (RtlQueryPerformanceFrequency != nullptr)
           RtlQueryPerformanceFrequency            (&_SK_PerfFreq);
@@ -1430,7 +1430,7 @@ void SK_Scheduler_Init (void)
                                NtSetTimerResolution_Detour,
       static_cast_p2p <void> (&NtSetTimerResolution_Original) );
 
-    if (! InterlockedCompareExchange (&__sleep_init, 1, 0))
+    if (0 == InterlockedCompareExchange (&__sleep_init, 1, 0))
     {
       SK_ICommandProcessor* pCommandProc =
         SK_GetCommandProcessor ();

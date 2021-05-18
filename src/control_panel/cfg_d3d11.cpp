@@ -218,7 +218,9 @@ SK_ImGui_DrawTexCache_Chart (void)
 }
 
 
-extern bool SK_D3D11_ShaderModDlg (SK_TLS *pTLS = SK_TLS_Bottom ());
+extern bool SK_D3D11_ShaderModDlg   (SK_TLS *pTLS = SK_TLS_Bottom ());
+extern void SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain);
+
 
 using SK_ReShade_OnDrawD3D11_pfn =
 void (__stdcall *)(void*, ID3D11DeviceContext*, unsigned int);
@@ -435,7 +437,7 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::Separator  (                                               );
         ImGui::BulletText ("-1=Game Controlled,  0=Force Off,  1=Force On");
 
-        if (config.render.framerate.drop_late_flips && config.render.framerate.present_interval)
+        if (config.render.framerate.drop_late_flips && config.render.framerate.present_interval != 0)
           ImGui::BulletText ("Values > 1 do not Apply unless \"Drop Late Frames\" or SK's Framerate Limiter are Disabled");
         else
           ImGui::BulletText (">1=Fractional Refresh Rates");
@@ -485,9 +487,7 @@ SK::ControlPanel::D3D11::Draw (void)
               pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
           if (pSwapChain != nullptr)
           {
-            void
-            SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain );
-            SK_DXGI_UpdateLatencies (                 pSwapChain );
+            SK_DXGI_UpdateLatencies (pSwapChain);
 
             _ResetLimiter ();
           }
@@ -713,8 +713,8 @@ SK::ControlPanel::D3D11::Draw (void)
     }
 
     // This only works when we have wrapped SwapChains
-    if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains) ||
-         ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) )
+    if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
+         ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
     {
       if (d3d11) ImGui::SameLine   ();
       OSD::DrawVideoCaptureOptions ();
@@ -781,11 +781,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       static SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      INT          swap_flag_count = 0;
-      std::wstring swap_flags      =
-        SK_DXGI_DescribeSwapChainFlags (
-          static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags),
-                                             &swap_flag_count);
+      INT swap_flag_count = 0;
 
       ImGui::BeginTooltip      ();
       ImGui::PushStyleColor    (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
@@ -853,6 +849,9 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         ImGui::Text          ("%u",                                         swap_desc.SampleDesc.Count);
       if (swap_desc.Flags != 0)
       {
+        std::wstring swap_flags      =          SK_DXGI_DescribeSwapChainFlags (
+                                        static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags),
+                                                                           &swap_flag_count);
         ImGui::Text          ("%ws",                                        swap_flags.c_str ());
       }
       //if (rb.isHDRCapable ())

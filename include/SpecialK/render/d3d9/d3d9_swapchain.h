@@ -49,7 +49,7 @@ struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
                                                             d3d9ex_ (false),
                                                             pDev    (dev)
   {
-                                  orig->AddRef  (),
+                                  orig->AddRef  ();
     InterlockedExchange  (&refs_, orig->Release ());
 
     InterlockedIncrement (&SK_D3D9_LiveWrappedSwapChains);
@@ -60,7 +60,7 @@ struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
                                                              d3d9ex_ (true),
                                                              pDev    (dev)
   {
-                                  orig->AddRef  (),
+                                  orig->AddRef  ();
     InterlockedExchange  (&refs_, orig->Release ());
 
     InterlockedIncrement (&SK_D3D9_LiveWrappedSwapChains);

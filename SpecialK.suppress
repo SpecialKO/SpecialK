@@ -1,0 +1,346 @@
+<?xml version="1.0" standalone="yes"?>
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="SuppressVersion">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="CurrentVersion" type="xs:int" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Table1">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="FileName" type="xs:string" default="" />
+                <xs:element name="ErrorCode" type="xs:string" default="" />
+                <xs:element name="Message" type="xs:string" default="" />
+                <xs:element name="CodePrev" type="xs:unsignedInt" default="0" />
+                <xs:element name="CodeCurrent" type="xs:unsignedInt" default="0" />
+                <xs:element name="CodeNext" type="xs:unsignedInt" default="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+      <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//Table1" />
+        <xs:field xpath="FileName" />
+        <xs:field xpath="ErrorCode" />
+        <xs:field xpath="Message" />
+        <xs:field xpath="CodePrev" />
+        <xs:field xpath="CodeCurrent" />
+        <xs:field xpath="CodeNext" />
+      </xs:unique>
+    </xs:element>
+  </xs:schema>
+  <SuppressVersion>
+    <CurrentVersion>2</CurrentVersion>
+  </SuppressVersion>
+  <Table1>
+    <FileName>debug_utils.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...FlagGroup [_];.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>13706473</CodeCurrent>
+    <CodeNext>113033</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>window.h</FileName>
+    <ErrorCode>V3515</ErrorCode>
+    <Message>All integer constants of unsigned type should have 'U' suffix.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>76424342</CodeCurrent>
+    <CodeNext>3481801062</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>com_util.cpp</FileName>
+    <ErrorCode>V3515</ErrorCode>
+    <Message>All integer constants of unsigned type should have 'U' suffix.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>5301385</CodeCurrent>
+    <CodeNext>2313359</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>sound.h</FileName>
+    <ErrorCode>V3511</ErrorCode>
+    <Message>The 'if' ... 'else if' construct should be terminated with an 'else' statement.</Message>
+    <CodePrev>3478990212</CodePrev>
+    <CodeCurrent>1507360379</CodeCurrent>
+    <CodeNext>3479015812</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>debug_utils.h</FileName>
+    <ErrorCode>V802</ErrorCode>
+    <Message>On _-bit platform, structure size can be reduced from _ to _ bytes by rearranging the fields according to their sizes in decreasing order.</Message>
+    <CodePrev>1907953360</CodePrev>
+    <CodeCurrent>123</CodeCurrent>
+    <CodeNext>14801337</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>utility.h</FileName>
+    <ErrorCode>V3501</ErrorCode>
+    <Message>Octal constant '_' should not be used.</Message>
+    <CodePrev>43</CodePrev>
+    <CodeCurrent>16759791</CodeCurrent>
+    <CodeNext>879</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>utility.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: std::bitset &lt;_&gt; f___ECX_;.</Message>
+    <CodePrev>72909</CodePrev>
+    <CodeCurrent>728950157</CodeCurrent>
+    <CodeNext>728950197</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>screenshot.h</FileName>
+    <ErrorCode>V3509</ErrorCode>
+    <Message>Unions should not be used.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1332</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>backend.h</FileName>
+    <ErrorCode>V703</ErrorCode>
+    <Message>It is odd that the 'isMonxvYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
+    <CodePrev>4286630476</CodePrev>
+    <CodeCurrent>4286642764</CodeCurrent>
+    <CodeNext>46135977</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>backend.h</FileName>
+    <ErrorCode>V703</ErrorCode>
+    <Message>It is odd that the 'isMonsYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
+    <CodePrev>46135977</CodePrev>
+    <CodeCurrent>4292725331</CodeCurrent>
+    <CodeNext>4288400118</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>backend.h</FileName>
+    <ErrorCode>V703</ErrorCode>
+    <Message>It is odd that the 'isMonAdobeYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
+    <CodePrev>4292725331</CodePrev>
+    <CodeCurrent>4288400118</CodeCurrent>
+    <CodeNext>4294147660</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>backend.h</FileName>
+    <ErrorCode>V703</ErrorCode>
+    <Message>It is odd that the 'isMonAdobeRGBCapable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
+    <CodePrev>4288400118</CodePrev>
+    <CodeCurrent>4294147660</CodeCurrent>
+    <CodeNext>3989580059</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_gi_workgroups'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3286675560</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_gi_min_light_extent'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>4076215292</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_uncap_fps'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>65184858</CodeCurrent>
+    <CodeNext>4279500</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_fastload'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>2481111658</CodeCurrent>
+    <CodeNext>4279500</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_rtss_warned'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1407447144</CodeCurrent>
+    <CodeNext>68573052</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_osd_disclaimer'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1944739010</CodeCurrent>
+    <CodeNext>66768</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_accepted_license'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>62921635</CodeCurrent>
+    <CodeNext>533012</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_bloom_width'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3018061515</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_bloom_disable'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3823548801</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_bloom_skip'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1407347635</CodeCurrent>
+    <CodeNext>4271756</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_fix_motion_blur'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3019085487</CodeCurrent>
+    <CodeNext>4271756</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_ao_disable'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3823266401</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_ao_width'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3017982515</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_ao_height'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>870491645</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'ret'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3017149831</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>sound.cpp</FileName>
+    <ErrorCode>V126</ErrorCode>
+    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>580011500</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>io_monitor.cpp</FileName>
+    <ErrorCode>V126</ErrorCode>
+    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>148391</CodeCurrent>
+    <CodeNext>22071445</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>io_monitor.cpp</FileName>
+    <ErrorCode>V126</ErrorCode>
+    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>148391</CodeCurrent>
+    <CodeNext>44145301</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>dxgi_backend.h</FileName>
+    <ErrorCode>V202</ErrorCode>
+    <Message>Explicit conversion from memsize type to _-bit integer type: static_cast&lt; UINT &gt; (kName.size())</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>3394563967</CodeCurrent>
+    <CodeNext>3680170855</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>file.cpp</FileName>
+    <ErrorCode>V121</ErrorCode>
+    <Message>Implicit conversion of the type of 'new' operator's argument to size_t type.</Message>
+    <CodePrev>1750813329</CodePrev>
+    <CodeCurrent>3812624690</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>cpu.cpp</FileName>
+    <ErrorCode>V202</ErrorCode>
+    <Message>Explicit conversion from memsize type to _-bit integer type.</Message>
+    <CodePrev>617749</CodePrev>
+    <CodeCurrent>1934876823</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>cpu.cpp</FileName>
+    <ErrorCode>V106</ErrorCode>
+    <Message>Implicit type conversion first argument 'len' of function 'malloc' to memsize type.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>2446304889</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>cpu.cpp</FileName>
+    <ErrorCode>V547</ErrorCode>
+    <Message>Expression 'pLogProcInfo != nullptr' is always false.</Message>
+    <CodePrev>74061967</CodePrev>
+    <CodeCurrent>1235785375</CodeCurrent>
+    <CodeNext>125</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>cpu.cpp</FileName>
+    <ErrorCode>V104</ErrorCode>
+    <Message>Implicit conversion of 'dwNeededBytes' to memsize type in an arithmetic expression.</Message>
+    <CodePrev>3682495</CodePrev>
+    <CodeCurrent>127877584</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>cfg_compatibility.cpp</FileName>
+    <ErrorCode>V126</ErrorCode>
+    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
+    <CodePrev>2156274515</CodePrev>
+    <CodeCurrent>1878572109</CodeCurrent>
+    <CodeNext>230473870</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d11_devctx_wrapped.cpp</FileName>
+    <ErrorCode>V547</ErrorCode>
+    <Message>Expression 'xrefs == _' is always false.</Message>
+    <CodePrev>341319884</CodePrev>
+    <CodeCurrent>3170002416</CodeCurrent>
+    <CodeNext>125</CodeNext>
+  </Table1>
+</NewDataSet>

@@ -45,6 +45,8 @@ extern SK_LazyGlobal <concurrency::concurrent_vector <d3d11_shader_tracking_s::c
 
 d3d11_shader_tracking_s::cbuffer_override_s* SK_MHW_CB_Override;
 
+extern size_t SK_CPU_CountLogicalCores (void);
+
 bool SK_MHW_PlugInCfg (void);
 
 void
@@ -199,9 +201,6 @@ SK_MHW_PlugInCfg (void)
 
       bool changed = false;
 
-      extern size_t
-      SK_CPU_CountLogicalCores (void);
-
       static bool has_logical_processors =
         SK_CPU_CountLogicalCores () > 0;
 
@@ -254,11 +253,11 @@ SK_MHW_PlugInCfg (void)
 
       if (rb.isHDRCapable ())
       {
-        bool hdr_open =
-          SK_ImGui_Widgets->hdr_control->isVisible ();
-
         if ( ImGui::Button ( "HDR Signal Control Panel" ) )
         {
+          bool hdr_open =
+            SK_ImGui_Widgets->hdr_control->isVisible ();
+
           SK_ImGui_Widgets->hdr_control->setVisible (! hdr_open);
 
           if (! hdr_open)

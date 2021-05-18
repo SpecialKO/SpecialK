@@ -24,6 +24,8 @@
 #include <SpecialK/render/d3d11/d3d11_screenshot.h>
 
 
+extern void SK_Screenshot_PlaySound            (void);
+extern void SK_Steam_CatastropicScreenshotFail (void);
 
 extern volatile LONG  SK_D3D11_DrawTrackingReqs;
 
@@ -398,14 +400,6 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
 
               if (SUCCEEDED (pDev->CreateRenderTargetView (pHDRConvertTex, &rtdesc, &pRenderTargetView.p)))
               {
-                extern void
-                SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext       *pImmediateContext,
-                                             SK_D3D11_Stateblock_Lite **pSB );
-
-                extern void
-                SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite *pBlock,
-                                           ID3D11DeviceContext      *pDevCtx );
-
                 static SK_D3D11_Stateblock_Lite* pSB = nullptr;
 
                 SK_D3D11_CaptureStateBlock (pImmediateCtx, &pSB);
@@ -698,8 +692,8 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
 
             pImmediateCtx->End (pPixelBufferFence);
 
-            extern void SK_Screenshot_PlaySound (void);
-                        SK_Screenshot_PlaySound ();
+            SK_Screenshot_PlaySound ();
+
             return;
           }
         }
@@ -707,9 +701,7 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
     }
   }
 
-
-  extern void SK_Steam_CatastropicScreenshotFail (void);
-              SK_Steam_CatastropicScreenshotFail ();
+  SK_Steam_CatastropicScreenshotFail ();
 
   // Something went wrong, crap!
   dispose ();
@@ -1651,7 +1643,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
 
-              while (! ReadAcquire (&__SK_DLL_Ending))
+              while (0 == ReadAcquire (&__SK_DLL_Ending))
               {
                 SK_D3D11_Screenshot::framebuffer_s *pFrameData =
                   nullptr;
@@ -1829,7 +1821,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             SetEvent (signal.hq_encode);
           }
         }
-      } while (! ReadAcquire (&__SK_DLL_Ending));
+      } while (0 == ReadAcquire (&__SK_DLL_Ending));
 
       SK_Thread_CloseSelf ();
 
@@ -1975,7 +1967,7 @@ bool SK_Screenshot_D3D11_BeginFrame (void)
     //InterlockedDecrement (&SK_D3D11_DrawTrackingReqs); (Handled by ShowGameHUD)
     }
 
-    else if (! ReadAcquire (&__SK_D3D11_InitiateHudFreeShot))
+    else if (0 == ReadAcquire (&__SK_D3D11_InitiateHudFreeShot))
     {
       InterlockedDecrement (&__SK_D3D11_QueuedShots);
       InterlockedExchange  (&__SK_D3D11_InitiateHudFreeShot, 1);

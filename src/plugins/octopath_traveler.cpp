@@ -209,9 +209,8 @@ SK_OPT_PlugInCfg (void)
           config.window.unconfine_cursor = 0;
         }
 
+        SK_ImGui_AdjustCursor ();
 
-        extern void SK_ImGui_AdjustCursor (void);
-                    SK_ImGui_AdjustCursor ();
         changed = true;
       }
 
@@ -264,7 +263,7 @@ SK_OPT_FixUpLimiter (void)
 
   __try {
     valid =
-      (! memcmp (
+      (0 == memcmp (
            "\xF3\x0F\x10\x00\x41\x0F\x2F\xC0\x77\x03\x0F\x28\xC6",
            (LPVOID)addr_FramerateJitterBranch, 13 )
          );
@@ -320,7 +319,7 @@ SK_OPT_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  while (! InterlockedAdd (&__OPT_init, 0)) SK_Sleep (16);
+  while (0 == InterlockedAdd (&__OPT_init, 0)) SK_Sleep (16);
 
   // Creates frametime inconsistency since there are two threads
   //   that the game is known to present the swapchain from.
@@ -350,80 +349,81 @@ SK_OPT_InitPlugin (void)
   plugin_mgr->config_fns.emplace      (SK_OPT_PlugInCfg);
   plugin_mgr->first_frame_fns.emplace (SK_OPT_PresentFirstFrame);
 
-  extern void
-  __stdcall
-  SK_SetPluginName (std::wstring name);
   SK_SetPluginName (OPT_VERSION_STR);
 
   SK_D3D11_DeclHUDShader (0x71532076, ID3D11VertexShader);
   SK_D3D11_DeclHUDShader (0x9cb67cc4, ID3D11VertexShader);
 
+  static auto& opt_cfg =
+    opt_config.get ();
 
-  opt_config->ini_params.last_framelimit_bug_addr =
+  opt_cfg.ini_params.last_framelimit_bug_addr =
     dynamic_cast <sk::ParameterInt64 *> (
       g_ParameterFactory->create_parameter <int64_t> (L"Framerate Limiter Addr")
     );
 
-  opt_config->ini_params.no_bloom =
+  opt_cfg.ini_params.no_bloom =
     dynamic_cast <sk::ParameterBool *> (
       g_ParameterFactory->create_parameter <bool> (L"No Bloom")
     );
 
-  opt_config->ini_params.no_dof =
+  opt_cfg.ini_params.no_dof =
     dynamic_cast <sk::ParameterBool *> (
       g_ParameterFactory->create_parameter <bool> (L"No Depth of Field")
     );
 
-  opt_config->ini_params.no_godrays =
+  opt_cfg.ini_params.no_godrays =
     dynamic_cast <sk::ParameterBool *> (
       g_ParameterFactory->create_parameter <bool> (L"No Godrays")
     );
 
-  opt_config->ini_params.last_framelimit_bug_addr->register_to_ini (
+  opt_cfg.ini_params.last_framelimit_bug_addr->register_to_ini (
     SK_GetDLLConfig (), L"OctopusTrapper.Framerate", L"DestabilizingBranchAddr"
   );
 
-  opt_config->ini_params.no_dof->register_to_ini (
+  opt_cfg.ini_params.no_dof->register_to_ini (
     SK_GetDLLConfig (), L"OctopusTrapper.PostProcess", L"DisableDOF"
   );
 
-  opt_config->ini_params.no_bloom->register_to_ini (
+  opt_cfg.ini_params.no_bloom->register_to_ini (
     SK_GetDLLConfig (), L"OctopusTrapper.PostProcess", L"DisableBloom"
   );
 
-  opt_config->ini_params.no_godrays->register_to_ini (
+  opt_cfg.ini_params.no_godrays->register_to_ini (
     SK_GetDLLConfig (), L"OctopusTrapper.PostProcess", L"DisableGodrays"
   );
 
+  static auto& shaders =
+    SK_D3D11_Shaders.get ();
 
-  if (opt_config->ini_params.no_dof->load (opt_config->postprocess.dof))
+  if (opt_cfg.ini_params.no_dof->load (opt_cfg.postprocess.dof))
   {
-    if (opt_config->postprocess.dof)
+    if (opt_cfg.postprocess.dof)
     {
-      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_crc32c_dof);
+      shaders.pixel.addTrackingRef (shaders.pixel.blacklist, ps_crc32c_dof);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
   }
 
-  if (opt_config->ini_params.no_bloom->load (opt_config->postprocess.bloom))
+  if (opt_cfg.ini_params.no_bloom->load (opt_cfg.postprocess.bloom))
   {
-    if (opt_config->postprocess.bloom)
+    if (opt_cfg.postprocess.bloom)
     {
-      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_crc32c_bloom);
+      shaders.pixel.addTrackingRef (shaders.pixel.blacklist, ps_crc32c_bloom);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
   }
 
-  if (opt_config->ini_params.no_godrays->load (opt_config->postprocess.godrays))
+  if (opt_cfg.ini_params.no_godrays->load (opt_cfg.postprocess.godrays))
   {
-    if (opt_config->postprocess.godrays)
+    if (opt_cfg.postprocess.godrays)
     {
-      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_crc32c_godrays);
+      shaders.pixel.addTrackingRef (shaders.pixel.blacklist, ps_crc32c_godrays);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
   }
 
-  opt_config->ini_params.last_framelimit_bug_addr->load (opt_config->framerate_bug_addr);
+  opt_cfg.ini_params.last_framelimit_bug_addr->load (opt_cfg.framerate_bug_addr);
 
 
   InterlockedExchange (&__OPT_init, 1);

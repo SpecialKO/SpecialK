@@ -174,7 +174,7 @@ struct SK_SteamAchievement
 
     __forceinline float getPercent (void) noexcept
     {
-      return 100.0f * gsl::narrow_cast <float> (current) /
+      return 100.0F * gsl::narrow_cast <float> (current) /
                       gsl::narrow_cast <float> (max);
     }
   } progress_;
@@ -422,7 +422,7 @@ public:
   SK_IVariable*      notify_corner  = nullptr;
 
   SK_IVariable*      tbf_pirate_fun = nullptr;
-  float              tbf_float      = 45.0f;
+  float              tbf_float      = 45.0F;
 
   // Backing storage for the human readable variable names,
   //   the actual system uses an integer value but we need
@@ -651,8 +651,8 @@ public:
 
       if (quotes == 4)
       {
-        if (! _stricmp ( search_tree.heap.test.c_str   (),
-                         search_tree.heap.actual.c_str () ) )
+        if (0 == _stricmp ( search_tree.heap.test.c_str   (),
+                            search_tree.heap.actual.c_str () ) )
         {
           ret.emplace_back (name);
 

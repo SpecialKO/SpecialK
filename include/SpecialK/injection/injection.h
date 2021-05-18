@@ -86,8 +86,8 @@ struct SK_InjectionRecord_s
   } process;
 
   struct {
-    SK_RenderAPI api                       = SK_RenderAPI::Reserved;
     ULONG64      frames                    =  0ULL;
+    SK_RenderAPI api                       = SK_RenderAPI::Reserved;
     bool         fullscreen                = false;
     bool         dpi_aware                 = false;
   } render;

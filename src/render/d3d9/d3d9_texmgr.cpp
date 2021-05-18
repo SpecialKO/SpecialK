@@ -87,7 +87,7 @@ SK::D3D9::TextureManager::getInjectableTextures (SK::D3D9::TexList& texture_list
 {
   for ( auto& it : injectable_textures )
   {
-    if (! ReadAcquire (&it.second.removed))
+    if (ReadAcquire (&it.second.removed) == 0)
     {
       texture_list.emplace_back (
         std::make_pair ( it.first,
@@ -107,7 +107,7 @@ SK::D3D9::TextureManager::getInjectableTexture (uint32_t checksum)
 
   bool new_tex = false;
 
-  if (            (! injectable_textures.count (checksum)) ||
+  if (         (0 == injectable_textures.count (checksum)) ||
        ReadAcquire (&injectable_textures       [checksum].removed) )
   {
     new_tex = true;
@@ -553,8 +553,8 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
     //                     SK_D3D9_PoolToStr   (Pool) );
     //}
 
-    if ( ( Usage & D3DUSAGE_RENDERTARGET ) ||
-         ( Usage & D3DUSAGE_DEPTHSTENCIL ) /*||
+    if ( ( Usage & D3DUSAGE_RENDERTARGET ) == D3DUSAGE_RENDERTARGET   ||
+         ( Usage & D3DUSAGE_DEPTHSTENCIL ) == D3DUSAGE_DEPTHSTENCIL /*||
          ( Usage & D3DUSAGE_DYNAMIC      ) */ )
     {
       tex_mgr.trackRenderTarget (*ppTexture);
@@ -725,7 +725,7 @@ SK::D3D9::TextureManager::Injector::hasPendingStreams (void) const
 {
   bool ret = false;
 
-  if (ReadAcquire (&streaming) || stream_pool.queueLength () /*|| (resample_pool && resample_pool->queueLength ())*/)
+  if (ReadAcquire (&streaming) != 0 || stream_pool.queueLength () /*|| (resample_pool && resample_pool->queueLength ())*/)
     ret = true;
 
   return ret;
@@ -3365,7 +3365,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
             swscanf (fd.cFileName, L"%x.dds", &checksum);
 
             // Already got this texture...
-            if (! ReadAcquire (&injectable_textures [checksum].removed))
+            if (FALSE == ReadAcquire (&injectable_textures [checksum].removed))
                 continue;
 
             ++files;
@@ -3408,7 +3408,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
             swscanf (fd.cFileName, L"%x.dds", &checksum);
 
             // Already got this texture...
-            if (! ReadAcquire (&injectable_textures [checksum].removed))
+            if (FALSE == ReadAcquire (&injectable_textures [checksum].removed))
               continue;
 
             ++files;
@@ -3451,7 +3451,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
             swscanf (fd.cFileName, L"%x.dds", &checksum);
 
             // Already got this texture...
-            if (! ReadAcquire (&injectable_textures [checksum].removed))
+            if (FALSE == ReadAcquire (&injectable_textures [checksum].removed))
               continue;
 
             ++files;

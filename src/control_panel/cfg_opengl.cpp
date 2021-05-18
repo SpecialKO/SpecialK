@@ -30,7 +30,8 @@ using namespace SK::ControlPanel;
 bool
 SK::ControlPanel::OpenGL::Draw (void)
 {
-  if ( static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::OpenGL) &&
+  if ( ( static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::OpenGL) ) ==
+                                          static_cast <int> (SK_RenderAPI::OpenGL)   &&
        ImGui::CollapsingHeader ("OpenGL Settings", ImGuiTreeNodeFlags_DefaultOpen) )
   {
     ImGui::TreePush ("");

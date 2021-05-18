@@ -136,7 +136,7 @@ struct sk_input_api_context_s
 
   struct {
     volatile uint64_t keyboard, mouse, gamepad, other;
-  } viewed; // Data was processed by the game at this time (QPC)
+  } viewed { 0ULL, 0ULL, 0ULL, 0ULL }; // Data was processed by the game at this time (QPC)
 
   void markRead  (sk_input_dev_type type) noexcept
   { SK_Input_SetLatencyMarker ();

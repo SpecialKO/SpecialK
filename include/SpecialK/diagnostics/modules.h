@@ -134,8 +134,8 @@ SK_DLL_LoaderLockGuard (void) noexcept
   static SK_Thread_HybridSpinlock  static_loader (15);
   static SK_Thread_HybridSpinlock* loader_lock;
 
-  static volatile LONG               __init  =  0;
-  if (! InterlockedCompareExchange (&__init, 1, 0))
+  static volatile LONG                  __init  =  0;
+  if (0 == InterlockedCompareExchange (&__init, 1, 0))
   {
     if (loader_lock == nullptr)
         loader_lock  = &static_loader;
@@ -177,7 +177,7 @@ public:
    {
      extern volatile LONG __SK_DLL_Attached;
 
-     bool validate = (ReadAcquire (&__SK_DLL_Attached)) &&
+     bool validate = (ReadAcquire (&__SK_DLL_Attached) != 0) &&
        SK_IsDebuggerPresent ();
 
      DWORD dwNameLen=0;    BOOL       bHasValidInfo          = FALSE;
@@ -317,7 +317,7 @@ public:
 
   inline
   bool
-    isValid (const HMODULE hModTest) const noexcept
+    isValid (HMODULE const hModTest) const noexcept
   {
     return ( hModTest > (HMODULE)nullptr //&&
                        );// hModTest != INVALID_MODULE );

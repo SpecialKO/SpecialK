@@ -794,7 +794,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
         ImGui::CollapsingHeader (ICON_FA_FLAG_CHECKERED "\tHigh Dynamic Framerate");
 
       if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("NOTE: The game will be limited to 60 FPS at the tile screen and during load screens");
+          ImGui::SetTooltip ("NOTE: The game will be limited to 60 FPS at the title screen and during load screens");
 
       if (hdf)
       {
@@ -857,7 +857,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
       if (ImGui::Checkbox ("Ignore non-rumble DirectInput Gamepads", &_SK_NIER_RAD_EnumOnlyForceFeedback))
       {
         __SK_NIER_RAD_EnumOnlyForceFeedback->store (
-          _SK_NIER_RAD_EnumOnlyForceFeedback
+         _SK_NIER_RAD_EnumOnlyForceFeedback
         );
 
         changed = true;
@@ -869,7 +869,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
       if (ImGui::Checkbox ("Ignore DirectInput Joysticks", &_SK_NIER_RAD_IgnoreJoystickHIDUsage))
       {
         __SK_NIER_RAD_IgnoreJoystickHIDUsage->store (
-          _SK_NIER_RAD_IgnoreJoystickHIDUsage
+         _SK_NIER_RAD_IgnoreJoystickHIDUsage
         );
 
         changed = true;

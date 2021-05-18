@@ -105,12 +105,12 @@ struct gpu_sensors_t
       {
         if (pcie_gen == 2 || pcie_gen == 1 || pcie_gen == 0)
         {
-          return (pcie_transfer_rate / 8.0) * (0.8) * pcie_lanes;
+          return (static_cast <double> (pcie_transfer_rate) / 8.0) * (0.8) * static_cast <double> (pcie_lanes);
         }
 
         else if (pcie_gen == 3 || pcie_gen == 4)
         {
-          return (pcie_transfer_rate / 8.0) * (0.9846) * pcie_lanes;
+          return (static_cast <double> (pcie_transfer_rate) / 8.0) * (0.9846) * static_cast <double> (pcie_lanes);
         }
 
         // Something's rotten in GPU land.

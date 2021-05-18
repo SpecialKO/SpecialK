@@ -238,7 +238,7 @@ CrashHandler::Init (void)
 {
   static volatile LONG init = FALSE;
 
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  if (FALSE == InterlockedCompareExchange (&init, TRUE, FALSE))
   {
     SK_Thread_Create (
       [](LPVOID) ->
@@ -622,8 +622,8 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
 
   if (SUCCEEDED (GetCurrentThreadDescription (&wszThreadDescription)))
   {
-    if (         wszThreadDescription != nullptr &&
-         wcslen (wszThreadDescription)              )
+    if (         wszThreadDescription  != nullptr &&
+         wcslen (wszThreadDescription) > 0           )
     {
       log_entry_format ( L"[  Thread  ]  ~ Name.....: \"%s\"\n",
                            wszThreadDescription));
@@ -990,9 +990,10 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   // On second chance it's pretty clear that no exception handler exists,
   //   terminate the software.
-  const bool repeated = ( !memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
-                        ( !memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
-  const bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
+  const bool repeated = ( 0 == memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
+                        ( 0 == memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
+  const bool non_continue =     (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) ==
+                                                                                  EXCEPTION_NONCONTINUABLE;
 
   if ( (repeated || non_continue) /*&&
       (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)*/ )
@@ -1126,7 +1127,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                    log_file->fLog != nullptr &&
                    log_file       != crash_log.getPtr () )
               {
-                if (! InterlockedCompareExchange (&log_file->relocated, 1, 0))
+                if (0 == InterlockedCompareExchange (&log_file->relocated, 1, 0))
                 {
                                             log_file->lockless = false;
                   fflush (log_file->fLog);  log_file->lock ();

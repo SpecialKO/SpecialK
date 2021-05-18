@@ -853,16 +853,16 @@ SK_D3D12_CaptureScreenshot (
        return hr;
 
   auto& d3d12_rbk =
-    _d3d12_rbk;
+    _d3d12_rbk.get ();
 
   bool bRecording =
-    d3d12_rbk->frames_ [d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].bCmdListRecording;
+    d3d12_rbk.frames_ [d3d12_rbk._pSwapChain->GetCurrentBackBufferIndex ()].bCmdListRecording;
 
   if (! bRecording)
   {
     SK_ReleaseAssert (!"D3D12 Screenshot Initiated While SK Was Not Recording A Command List!");
 
-    d3d12_rbk->frames_ [d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
+    d3d12_rbk.frames_ [d3d12_rbk._pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
 
     beforeState = D3D12_RESOURCE_STATE_PRESENT;
     afterState  = D3D12_RESOURCE_STATE_PRESENT;
@@ -892,8 +892,8 @@ SK_D3D12_CaptureScreenshot (
                   D3D12_RESOURCE_STATE_COPY_SOURCE, afterState );
 
 
-  d3d12_rbk->frames_ [d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].exec_cmd_list  ();
-  d3d12_rbk->frames_ [d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
+  d3d12_rbk.frames_ [d3d12_rbk._pSwapChain->GetCurrentBackBufferIndex ()].exec_cmd_list  ();
+  d3d12_rbk.frames_ [d3d12_rbk._pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
 
   // Create a fence
   hr =

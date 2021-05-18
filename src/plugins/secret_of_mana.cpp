@@ -163,7 +163,7 @@ SK_SOM_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  while (! InterlockedAdd (&__SOM_init, 0)) SK_Sleep (16);
+  while (0 == InterlockedAdd (&__SOM_init, 0)) SK_Sleep (16);
 
   return S_OK;
 }
@@ -186,15 +186,18 @@ SK_SOM_InitPlugin (void)
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
 
-  som_config->shadows.scale =
+  auto som_cfg =
+    som_config.get ();
+
+  som_cfg.shadows.scale =
       dynamic_cast <sk::ParameterFloat *>
         (g_ParameterFactory->create_parameter <float> (L"Shadow Rescale"));
 
-  som_config->shadows.scale->register_to_ini ( SK_GetDLLConfig (),
-                                                L"SecretOfMana.Shadows",
-                                                  L"Scale" );
+  som_cfg.shadows.scale->register_to_ini ( SK_GetDLLConfig (),
+                                             L"SecretOfMana.Shadows",
+                                               L"Scale" );
 
-  som_config->shadows.scale->load (shadow_scale);
+  som_cfg.shadows.scale->load (shadow_scale);
 
   SK_ApplyQueuedHooks ();
 

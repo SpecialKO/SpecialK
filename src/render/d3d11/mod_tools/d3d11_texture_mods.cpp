@@ -63,8 +63,6 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   ImGui::PushID ("Texture2D_D3D11");
 
   const float font_size           = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
-  const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y   +
-                                                ImGui::GetStyle ().ItemInnerSpacing.y;
 
   static float last_ht    = 256.0f;
   static float last_width = 256.0f;
@@ -116,8 +114,8 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     texture_map.clear   ();
     list_contents.clear ();
 
-    last_ht             =  0;
-    last_width          =  0;
+    last_ht             =  0.0f;
+    last_width          =  0.0f;
     lod                 =  0;
 
     list_dirty          = true;
@@ -174,8 +172,11 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
       ImGui::SetTooltip ("There are currently %lu textures without mipmaps", non_mipped);
   }
 
+  static float const slen =
+        (float)strlen ("Used Textures   ") / 2.0f;
+
   ImGui::SameLine      ();
-  ImGui::PushItemWidth (font_size * strlen ("Used Textures   ") / 2);
+  ImGui::PushItemWidth (font_size * slen);
 
   ImGui::Combo ("###TexturesD3D11_TextureSet", &tex_set, "All Textures\0Used Textures\0\0", 2);
 
@@ -187,8 +188,8 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     sel                     = std::numeric_limits <size_t>::max ();
     debug_tex_id            =  0;
     list_contents.clear ();
-    last_ht                 =  0;
-    last_width              =  0;
+    last_ht                 =  0.0f;
+    last_width              =  0.0f;
     lod                     =  0;
     SK_D3D11_TrackedTexture =  nullptr;
   }
@@ -257,7 +258,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   if (list_dirty)
   {
     if (debug_tex_id == 0)
-      last_ht = 0;
+      last_ht = 0.0f;
 
     max_name_len = 0.0f;
 
@@ -491,10 +492,10 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
       ImGui::EndTooltip   ();
     }
 
-         if ( io.NavInputs             [ImGuiNavInput_FocusPrev] &&
+         if ( io.NavInputs             [ImGuiNavInput_FocusPrev] != 0.0f &&
               io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f )
          { dir = -1; }
-    else if ( io.NavInputs             [ImGuiNavInput_FocusNext] &&
+    else if ( io.NavInputs             [ImGuiNavInput_FocusNext] != 0.0f &&
               io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f )
          { dir =  1; }
 
@@ -550,7 +551,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   last_ht    = std::max (last_ht,    16.0f);
   last_width = std::max (last_width, 16.0f);
 
-  if (debug_tex_id != 0x00 && texture_map.count ((uint32_t)debug_tex_id))
+  if (debug_tex_id != 0x00 && texture_map.count ((uint32_t)debug_tex_id) > 0)
   {
     list_entry_s& entry =
       texture_map [(uint32_t)debug_tex_id];
@@ -698,6 +699,9 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
             float effective_width,
                   effective_height;
 
+        const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y   +
+                                                      ImGui::GetStyle ().ItemInnerSpacing.y;
+
         effective_height =
           std::max (std::min ((float)(tex_desc.Height >> lod), 256.0f),
                     std::min ((float)(tex_desc.Height >> lod),
@@ -747,7 +751,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
         ImGui::EndGroup        (                  );
         ImGui::SameLine        (                  );
         ImGui::BeginGroup      (                  );
-        ImGui::PushItemWidth   (                -1);
+        ImGui::PushItemWidth   (             -1.0f);
         ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
         ImGui::Combo           ("###Texture_LOD_D3D11", &lod, lod_list, tex_desc.MipLevels);
         ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.f));
@@ -769,7 +773,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
         ImGui::Text            ( "%ws",
                                    SK_DXGI_FormatToStr (tex_desc.Format).c_str () );
         ImGui::Text            ( "%08x", entry.crc32c);
-        ImGui::Text            ( "%.3f MiB",
+        ImGui::Text            ( "%.3f MiB", (float)
                                    tex_size / (1024.0f * 1024.0f) );
         ImGui::Text            ( "%.3f ms",
                                    load_time );

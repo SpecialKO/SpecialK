@@ -24,6 +24,9 @@
 
 #include <boost/container/static_vector.hpp>
 
+#define _L2(w)  L ## w
+#define  _L(w) _L2(w)
+
 extern NTSTATUS WINAPI
 SK_Module_LockLoader ( ULONG *pCookie,
                        ULONG   Flags,
@@ -1529,7 +1532,7 @@ SK_DisableHook (void *pTarget)
     if (pTarget != MH_ALL_HOOKS)
     {
       SK_LOG_MINHOOK ( status, L"Failed to Disable Hook with Address: %08"
-                               PRIxPTR L"h!",
+                               _L(PRIxPTR) L"h!",
                          (uintptr_t)pTarget );
     }
 
@@ -1556,7 +1559,7 @@ SK_RemoveHook (void *pTarget)
   if (status != MH_OK)
   {
     SK_LOG_MINHOOK ( status, L"Failed to Remove Hook with Address: %08"
-                             PRIxPTR L"h!",
+                             _L(PRIxPTR) L"h!",
                        (uintptr_t)pTarget );
   }
 

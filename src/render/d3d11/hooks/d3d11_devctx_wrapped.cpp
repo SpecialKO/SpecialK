@@ -228,6 +228,9 @@ private:
     SK_ComPtr <ID3D11Multithread>   pReal          = nullptr;
 };
 
+bool SK_D3D11_QueueContextReset (ID3D11DeviceContext* pDevCtx, UINT dev_ctx);
+bool SK_D3D11_DispatchContextResetQueue                       (UINT dev_ctx);
+
 class SK_IWrapD3D11DeviceContext : public ID3D11DeviceContext4
 {
 public:
@@ -1307,7 +1310,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
       {
         auto& map_ctx = (*mapped_resources)[pReal];
 
-        if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource) && (! SK_D3D11_TextureIsCached (pDstTex)))
+        if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource) > 0 && (! SK_D3D11_TextureIsCached (pDstTex)))
         {
           const uint32_t top_crc32 = map_ctx.dynamic_texturesx [pSrcResource];
           const uint32_t checksum  = map_ctx.dynamic_textures  [pSrcResource];
@@ -2247,9 +2250,6 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   void STDMETHODCALLTYPE ClearState (void) override
   {
     SK_LOG_FIRST_CALL
-
-    bool SK_D3D11_QueueContextReset (ID3D11DeviceContext* pDevCtx, UINT dev_ctx);
-    bool SK_D3D11_DispatchContextResetQueue (UINT dev_ctx);
 
     SK_D3D11_QueueContextReset  (pReal, dev_ctx_handle_);
     pReal->ClearState           (                      );

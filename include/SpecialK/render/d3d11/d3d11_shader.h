@@ -92,10 +92,10 @@ extern
 SK_LazyGlobal <SK_ReShadeDrawCallback_s>
                SK_ReShade_PresentCallback;
 
-  #define ShaderColorDecl(idx) {                                                \
-  { ImGuiCol_Header,        ImColor::HSV ( ((idx) + 1) / 6.0f, 0.5f,  0.45f) }, \
-  { ImGuiCol_HeaderHovered, ImColor::HSV ( ((idx) + 1) / 6.0f, 0.55f, 0.6f ) }, \
-  { ImGuiCol_HeaderActive,  ImColor::HSV ( ((idx) + 1) / 6.0f, 0.6f,  0.6f ) } }
+  #define ShaderColorDecl(idx) {                                                                       \
+  { ImGuiCol_Header,        ImColor::HSV ( (static_cast <float> (idx) + 1.0f) / 6.0f, 0.5f,  0.45f) }, \
+  { ImGuiCol_HeaderHovered, ImColor::HSV ( (static_cast <float> (idx) + 1.0f) / 6.0f, 0.55f, 0.6f ) }, \
+  { ImGuiCol_HeaderActive,  ImColor::HSV ( (static_cast <float> (idx) + 1.0f) / 6.0f, 0.6f,  0.6f ) } }
 
 
   static

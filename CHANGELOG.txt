@@ -1,4 +1,21 @@
-﻿21.05.16
+﻿21.05.17
+========
+ + Re-wrote Text OSD and Command Console Rendering using ImGui;
+     these features now work in UWP and D3D12 software
+ 
+  >> This is Phase 1 of Operation CEGUI Must Die:
+
+    CEGUI has been preventing SK from adopting newer graphics APIs, and
+    it is not compatible with UWP / Windows Store software. ImGui is more
+    flexible, but will take some time to re-implement things like Steam
+    achievement popups.
+
+   * Some visual differences are inevitable, but hopefully the text OSD is
+     familiar enough in its new form.
+
+ + Reduced D3D11 State Tracking Overhead for HUD Toggle in NieR Sqrt 1.5
+
+21.05.16
 ========
  + Improved performance of Resident Evil 8 when changing display settings,
      it has a nasty habit of checking resolution support every frame and

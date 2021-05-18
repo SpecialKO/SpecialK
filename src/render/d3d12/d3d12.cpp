@@ -139,7 +139,7 @@ SK_D3D12_Init (void)
 void
 SK_D3D12_Shutdown (void)
 {
-  if (! InterlockedCompareExchange (&SK_D3D12_initialized, FALSE, TRUE))
+  if (FALSE == InterlockedCompareExchange (&SK_D3D12_initialized, FALSE, TRUE))
     return;
 
   SK_FreeLibrary (SK::DXGI::hModD3D12);

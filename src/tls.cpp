@@ -488,25 +488,6 @@ SK_ImGui_ThreadContext::allocPolylineStorage (size_t needed)
   return polyline_storage;
 }
 
-char*
-SK_OSD_ThreadContext::allocText (size_t needed)
-{
-  if (text_capacity < needed || text == nullptr)
-  {
-    if (text != nullptr && text_capacity > 0)
-      _aligned_free (text);
-                     text =
-    (char *)_aligned_malloc (needed, 16);
-
-    if (text != nullptr)
-      text_capacity = needed;
-    else
-      text_capacity = 0;
-  }
-
-  return text;
-}
-
 wchar_t*
 SK_Steam_ThreadContext::allocScratchText (size_t needed)
 {
@@ -632,33 +613,6 @@ SK_ImGui_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
     {
       SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, polyline_capacity);
       polyline_capacity = 0;
-    }
-  }
-
-  return freed;
-}
-
-size_t
-SK_OSD_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
-{
-  size_t freed = 0;
-
-  if (text_capacity > 0)
-  {
-    if (text != nullptr)
-    {
-      freed += text_capacity;
-
-      _aligned_free (text);
-                     text = nullptr;
-
-            text_capacity = 0;
-    }
-
-    else
-    {
-      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, text_capacity);
-                                                          text_capacity = 0;
     }
   }
 
@@ -1069,7 +1023,6 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
 
   freed += d3d9.isAllocated           () ? d3d9          ->Cleanup (reason) : 0;
   freed += imgui.isAllocated          () ? imgui         ->Cleanup (reason) : 0;
-  freed += osd.isAllocated            () ? osd           ->Cleanup (reason) : 0;
   freed += raw_input.isAllocated      () ? raw_input     ->Cleanup (reason) : 0;
   freed += scratch_memory.isAllocated () ? scratch_memory->Cleanup (reason) : 0;
   freed += local_scratch.isAllocated  () ? local_scratch ->Cleanup (reason) : 0;

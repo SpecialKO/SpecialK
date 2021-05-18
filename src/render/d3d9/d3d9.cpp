@@ -22,6 +22,9 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
 
+#define _L2(w)  L ## w
+#define  _L(w) _L2(w)
+
 #include <SpecialK/render/d3d9/d3d9_device.h>
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
 
@@ -1890,8 +1893,8 @@ D3D9CreateAdditionalSwapChain_Override ( IDirect3DDevice9       *This,
                                          D3DPRESENT_PARAMETERS  *pPresentationParameters,
                                          IDirect3DSwapChain9   **ppSwapChain )
 {
-  dll_log->Log (L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h,"
-                                    L" %08" PRIxPTR L"h) - "
+  dll_log->Log (L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
+                                    L" %08" _L(PRIxPTR) L"h) - "
     L"%s",
     L"IDirect3DDevice9::CreateAdditionalSwapChain", This,
       (uintptr_t)pPresentationParameters, (uintptr_t)ppSwapChain,
@@ -2235,7 +2238,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
 
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
                  L"%s",
                  L"IDirect3DDevice9::Reset",
                    (uintptr_t)This, (uintptr_t)pPresentationParameters,
@@ -2299,8 +2302,8 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   }
 
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h,"
-                                    L" %08" PRIxPTR L"h) - "
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
+                                    L" %08"  _L(PRIxPTR) L"h) - "
                  L"%s",
                    L"IDirect3DDevice9Ex::ResetEx",
                      (uintptr_t)This, (uintptr_t)pPresentationParameters,
@@ -4459,10 +4462,10 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   }
 
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu,"
-                                     L" %08" PRIxPTR L"h, 0x%04X,"
-                                     L" %08" PRIxPTR L"h, %08" PRIxPTR L"h,"
-                                     L" %08" PRIxPTR L"h) - "
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu,"
+                                     L" %08" _L(PRIxPTR) L"h, 0x%04X,"
+                                     L" %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
+                                     L" %08" _L(PRIxPTR) L"h) - "
                  L"%s",
                  L"IDirect3D9Ex::CreateDeviceEx",
                    (uintptr_t)This, Adapter, (DWORD)DeviceType,
@@ -4519,7 +4522,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
     if (!StrStrIW (SK_GetHostApp ( ), L"vlc.exe"))
     {
       SK_LOG0 ( (L" %% Ignoring D3D9Ex device created using a video-only "
-                 L"SwapChain (%08" PRIxPTR L"h)", (uintptr_t)This),
+                 L"SwapChain (%08" _L(PRIxPTR) L"h)", (uintptr_t)This),
                  L"  D3D9Ex  ");
       *ppReturnedDeviceInterface = pTemp;
       return ret;
@@ -4598,10 +4601,10 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   }
 
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu, %08"
-                                             PRIxPTR L"h, 0x%04X, %08"
-                                             PRIxPTR L"h, %08"
-                                             PRIxPTR L"h) - "
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08"
+                                             _L(PRIxPTR) L"h, 0x%04X, %08"
+                                             _L(PRIxPTR) L"h, %08"
+                                             _L(PRIxPTR) L"h) - "
                  L"%s",
                    L"IDirect3D9::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
                      hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
@@ -4653,7 +4656,7 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
     if (! StrStrIW (SK_GetHostApp (), L"vlc.exe"))
     {
       SK_LOG0 ( (L" %% Ignoring D3D9 device created using a video-only "
-                 L"SwapChain (%08" PRIxPTR L")", (uintptr_t)This),
+                 L"SwapChain (%08" _L(PRIxPTR) L")", (uintptr_t)This),
                  L"   D3D9   ");
       return ret;
     }
@@ -4757,8 +4760,8 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
 
 
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu, %08" PRIxPTR
-                           L"h, 0x%04X, %08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08" _L(PRIxPTR)
+                           L"h, 0x%04X, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
                  L"%s",
                    L"IDirect3D9Ex::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
                      hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
@@ -4921,7 +4924,7 @@ Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
     WaitForInit       ();
 
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%lu, %08" PRIxPTR L"h) - "
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%lu, %08" _L(PRIxPTR) L"h) - "
                  L"%s",
                    L"Direct3DCreate9Ex",
                      SDKVersion,

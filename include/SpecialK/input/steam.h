@@ -23,8 +23,8 @@ typedef uint32_t ControllerIndex_t;
 struct STEAMINPUT_STATE
 {
          XINPUT_STATE*      to_xi          = nullptr;
-         ControllerIndex_t  controller_idx = INVALID_CONTROLLER_INDEX;
          ControllerHandle_t handle         = INVALID_CONTROLLER_HANDLE;
+         ControllerIndex_t  controller_idx = INVALID_CONTROLLER_INDEX;
          bool               connected      = false;
 
   static ISteamController*  pipe;

@@ -329,7 +329,7 @@ SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
                                                 1 : 0;
   }
 
-  if (! __SK_D3D11_DebugLayerActive)
+  if (__SK_D3D11_DebugLayerActive == 0)
     return;
 
   if (pDevChild != nullptr && kName.size () > 0)

@@ -216,8 +216,11 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
       }
     }
 
-    catch (SK_ComException&)
+    catch (const SK_ComException& e)
     {
+      SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
+                  L"ImGuiD3D12" );
+
       return;
     }
   }
@@ -249,10 +252,13 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
     pHeap->Ib->Unmap (0, &range);
   }
 
-  catch (SK_ComException&)
+  catch (const SK_ComException& e)
   {
     if (vtx_heap != nullptr) pHeap->Vb->Unmap (0, &range);
     if (idx_heap != nullptr) pHeap->Ib->Unmap (0, &range);
+
+    SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
+                L"ImGuiD3D12" );
 
     return;
   }
@@ -629,7 +635,9 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       (ImTextureID)_imgui_d3d12.hFontSrvGpuDescHandle.ptr;
   }
 
-  catch (const SK_ComException&) {
+  catch (const SK_ComException& e) {
+    SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
+                L"ImGuiD3D12" );
   };
 }
 
@@ -808,8 +816,11 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
     return true;
   }
 
-  catch (SK_ComException&)
+  catch (const SK_ComException& e)
   {
+    SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
+                L"ImGuiD3D12" );
+
     return false;
   }
 }
@@ -1362,10 +1373,7 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
                                                   D3D12_RLDO_IGNORE_INTERNAL );
     }
 
-    extern void
-    SK_D3D12_EndFrame (SK_TLS*);
-
-    SK_D3D12_EndFrame ( SK_TLS_Bottom () );
+    SK_D3D12_EndFrame (SK_TLS_Bottom ());
 
 
     ImGui_ImplDX12_Shutdown ();
@@ -1738,7 +1746,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       }
     }
 
-    catch (SK_ComException& e)
+    catch (const SK_ComException& e)
     {
       SK_ImGui_WarningWithTitle (
         SK_FormatStringW ( L"SK D3D12 Init Failed: %hs", e.what () ).c_str (),

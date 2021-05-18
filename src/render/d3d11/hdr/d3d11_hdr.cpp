@@ -477,13 +477,6 @@ SK_HDR_SnapshotSwapchain (void)
       else return;
     }
 
-    void
-    SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext*       pImmediateContext,
-                                 SK_D3D11_Stateblock_Lite** pSB );
-    void
-    SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
-                               ID3D11DeviceContext*      pDevCtx );
-
     SK_ComPtr <ID3D11RenderTargetView>  pRenderTargetView;
     if (! _d3d11_rbk->frames_.empty ()) pRenderTargetView =
           _d3d11_rbk->frames_ [0].hdr.pRTV;

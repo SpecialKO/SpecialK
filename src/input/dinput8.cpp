@@ -26,6 +26,9 @@
 #endif
 #define __SK_SUBSYSTEM__ L" DInput 8 "
 
+#define _L2(w)  L ## w
+#define  _L(w) _L2(w)
+
 
 using finish_pfn = void (WINAPI *)(void);
 
@@ -139,8 +142,8 @@ DirectInput8Create ( HINSTANCE hinst,
     WaitForInit_DI8 ();
   }
 
-  dll_log->Log ( L"[ DInput 8 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, ppvOut="
-                                      L"%08" PRIxPTR L"h, %08" PRIxPTR L"h)"
+  dll_log->Log ( L"[ DInput 8 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, ppvOut="
+                                      L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h)"
                                       L"                             -- %s",
                    L"DirectInput8Create",
                      (uintptr_t)hinst,             dwVersion, /*,*/
@@ -256,7 +259,7 @@ SK_BootDI8 (void)
 
       if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))
       {
-        dll_log->Log (L"[ DInput 8 ]   DirectInput8Create:   %08" PRIxPTR L"h",
+        dll_log->Log (L"[ DInput 8 ]   DirectInput8Create:   %08" _L(PRIxPTR) L"h",
           (uintptr_t)(DirectInput8Create_Import =  \
             reinterpret_cast <DirectInput8Create_pfn> (
               SK_GetProcAddress (hBackend, "DirectInput8Create")
@@ -286,7 +289,7 @@ SK_BootDI8 (void)
               );
           }
 
-          dll_log->Log (L"[ DInput 8 ]   DirectInput8Create:   %08" PRIxPTR
+          dll_log->Log (L"[ DInput 8 ]   DirectInput8Create:   %08" _L(PRIxPTR)
                                                         L"h  { Hooked }",
             (uintptr_t)DirectInput8Create_Import );
         }
@@ -398,8 +401,8 @@ CoCreateInstance_DI8 (
     WaitForInit_DI8 ();
   }
 
-  dll_log->Log ( L"[ DInput 8 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, ppvOut="
-                                      L"%08" PRIxPTR L"h, %08" PRIxPTR L"h)"
+  dll_log->Log ( L"[ DInput 8 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, ppvOut="
+                                      L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h)"
                                       L"             -- %s",
                    L"DirectInput8Create <CoCreateInstance>",
                      0, 0x800,
@@ -512,8 +515,8 @@ CoCreateInstanceEx_DI8 (
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
   { WaitForInit_DI8 ();                      }
 
-  dll_log->Log ( L"[ DInput 8 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, ppvOut="
-                                      L"%08" PRIxPTR L"h)"
+  dll_log->Log ( L"[ DInput 8 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, ppvOut="
+                                      L"%08" _L(PRIxPTR) L"h)"
                                       L"           -- %s",
                    L"DirectInputCreate <CoCreateInstanceEx>",
                      0, 0x800,
@@ -1464,9 +1467,9 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
   if (config.system.log_level > 1)
   {
     dll_log->Log ( L"[   Input  ] [!] IDirectInput8W::CreateDevice ("
-                                      L"%08" PRIxPTR L"h, %s,"
-                                      L"%08" PRIxPTR L"h, "
-                                      L"%08" PRIxPTR L"h)",
+                                      L"%08" _L(PRIxPTR) L"h, %s,"
+                                      L"%08" _L(PRIxPTR) L"h, "
+                                      L"%08" _L(PRIxPTR) L"h)",
                       (uintptr_t)This,
                                    wszDevice,
                           (uintptr_t)lplpDirectInputDevice,
@@ -1580,9 +1583,9 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
   if (config.system.log_level > 1)
   {
     dll_log->Log ( L"[   Input  ] [!] IDirectInput8A::CreateDevice ("
-                                      L"%08" PRIxPTR L"h, %s,"
-                                      L"%08" PRIxPTR L"h, "
-                                      L"%08" PRIxPTR L"h)",
+                                      L"%08" _L(PRIxPTR) L"h, %s,"
+                                      L"%08" _L(PRIxPTR) L"h, "
+                                      L"%08" _L(PRIxPTR) L"h)",
                       (uintptr_t)This,
                                    wszDevice,
                           (uintptr_t)lplpDirectInputDevice,

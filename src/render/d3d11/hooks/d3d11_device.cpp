@@ -780,9 +780,9 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
       desc.type   = SK_D3D11_ShaderType::Geometry;
       desc.crc32c = checksum;
 
-      desc.bytecode.insert ( desc.bytecode.cend  (),
-        &((uint8_t *) pShaderBytecode) [0],
-        &((uint8_t *) pShaderBytecode) [BytecodeLength]
+      desc.bytecode.insert (  desc.bytecode.cend  (),
+        &((const uint8_t *) pShaderBytecode) [0],
+        &((const uint8_t *) pShaderBytecode) [BytecodeLength]
       );
 
       geo_shaders.descs [This].emplace (std::make_pair (checksum, desc));

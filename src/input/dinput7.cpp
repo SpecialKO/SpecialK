@@ -26,9 +26,8 @@
 #endif
 #define __SK_SUBSYSTEM__ L" DInput 7 "
 
-
-
-
+#define _L2(w)  L ## w
+#define  _L(w) _L2(w)
 
 extern bool nav_usable;
 
@@ -125,8 +124,8 @@ DirectInputCreateEx ( HINSTANCE hinst,
     WaitForInit_DI7 ();
   }
 
-  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, ppvOut="
-                                      L"%08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
+  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, ppvOut="
+                                      L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
                  L"%s",
                    L"DirectInputCreate",
                      (uintptr_t)hinst,             dwVersion, /*,*/
@@ -201,8 +200,8 @@ DirectInputCreateA ( HINSTANCE       hinst,
     WaitForInit_DI7 ();
   }
 
-  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, "
-                      L"lplpDirectInput=%08" PRIxPTR L"h, %08" PRIxPTR
+  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
+                      L"lplpDirectInput=%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR)
                  L"h) - %s",
                    L"DirectInputCreateA",
                      (uintptr_t)hinst,                      dwVersion, /*,*/
@@ -251,8 +250,8 @@ DirectInputCreateW ( HINSTANCE       hinst,
     WaitForInit_DI7 ();
   }
 
-  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, "
-                      L"lplpDirectInput=%08" PRIxPTR L"h, %08" PRIxPTR
+  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
+                      L"lplpDirectInput=%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR)
                  L"h) - %s",
                    L"DirectInputCreateW",
                      (uintptr_t)hinst,                      dwVersion, /*,*/
@@ -323,13 +322,13 @@ SK_BootDI7 (void)
                                      DirectInputCreateW,
             static_cast_p2p <void> (&DirectInputCreateW_Import) );
 
-          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateEx: %08" PRIxPTR
+          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateEx: %08" _L(PRIxPTR)
                                   L"h  { Hooked }",
             (uintptr_t)(DirectInputCreateEx_Import) );
-          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateA:  %08" PRIxPTR
+          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateA:  %08" _L(PRIxPTR)
                                   L"h  { Hooked }",
             (uintptr_t)(DirectInputCreateA_Import) );
-          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateW:  %08" PRIxPTR
+          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateW:  %08" _L(PRIxPTR)
                                   L"h  { Hooked }",
             (uintptr_t)(DirectInputCreateW_Import) );
         }
@@ -357,13 +356,13 @@ SK_BootDI7 (void)
                                      DirectInputCreateW,
             static_cast_p2p <void> (&DirectInputCreateW_Import) );
 
-          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateEx: %08" PRIxPTR
+          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateEx: %08" _L(PRIxPTR)
                                   L"h  { Hooked }",
             (uintptr_t)(DirectInputCreateEx_Import) );
-          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateA:  %08" PRIxPTR
+          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateA:  %08" _L(PRIxPTR)
                                   L"h  { Hooked }",
             (uintptr_t)(DirectInputCreateA_Import) );
-          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateW:  %08" PRIxPTR
+          dll_log->Log (L"[ DInput 7 ]   DirectInputCreateW:  %08" _L(PRIxPTR)
                                   L"h  { Hooked }",
             (uintptr_t)(DirectInputCreateW_Import) );
         }
@@ -470,8 +469,8 @@ CoCreateInstance_DI7 (
     WaitForInit_DI7 ();
   }
 
-  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, "
-                               L"ppvOut=%08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
+  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
+                               L"ppvOut=%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
                  L"%s",
                    L"DirectInputCreate <CoCreateInstance> ",
                      0, 0x700,
@@ -548,8 +547,8 @@ CoCreateInstanceEx_DI7 (
     WaitForInit_DI7 ();
   }
 
-  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, "
-                               L"ppvOut=%08" PRIxPTR L"h) - "
+  dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
+                               L"ppvOut=%08" _L(PRIxPTR) L"h) - "
                  L"%s",
                    L"DirectInputCreate <CoCreateInstanceEx> ",
                      0, 0x700,
@@ -1050,9 +1049,9 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
 
   if (config.system.log_level > 1)
   {
-    dll_log->Log ( L"[   Input  ] [!] IDirectInput7W::CreateDevice (%08" PRIxPTR L"h, %s, "
-                                                                  L"%08" PRIxPTR L"h, "
-                                                                  L"%08" PRIxPTR L"h)",
+    dll_log->Log ( L"[   Input  ] [!] IDirectInput7W::CreateDevice (%08" _L(PRIxPTR) L"h, %s, "
+                                                                  L"%08" _L(PRIxPTR) L"h, "
+                                                                  L"%08" _L(PRIxPTR) L"h)",
                       (uintptr_t)This,
                                    wszDevice,
                           (uintptr_t)lplpDirectInputDevice,
@@ -1146,9 +1145,9 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
 
   if (config.system.log_level > 1)
   {
-    dll_log->Log ( L"[   Input  ] [!] IDirectInput7A::CreateDevice (%08" PRIxPTR L"h, %s, "
-                                                                  L"%08" PRIxPTR L"h, "
-                                                                  L"%08" PRIxPTR L"h)",
+    dll_log->Log ( L"[   Input  ] [!] IDirectInput7A::CreateDevice (%08" _L(PRIxPTR) L"h, %s, "
+                                                                  L"%08" _L(PRIxPTR) L"h, "
+                                                                  L"%08" _L(PRIxPTR) L"h)",
                       (uintptr_t)This,
                                    wszDevice,
                           (uintptr_t)lplpDirectInputDevice,

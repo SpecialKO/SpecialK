@@ -352,13 +352,13 @@ struct sk_window_s {
     bool     identical        = true;
 
     struct {
-      float  x                = 1.0f;
-      float  y                = 1.0f;
+      float  x                = 1.0F;
+      float  y                = 1.0F;
     } scale;
 
     struct {
-      float  x                = 0.0f;
-      float  y                = 0.0f;
+      float  x                = 0.0F;
+      float  y                = 0.0F;
     } offset;
   } coord_remap;
 

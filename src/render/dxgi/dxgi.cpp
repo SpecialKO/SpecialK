@@ -26,6 +26,9 @@
 #endif
 #define __SK_SUBSYSTEM__ L"   DXGI   "
 
+#define _L2(w)  L ## w
+#define  _L(w) _L2(w)
+
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
@@ -3069,8 +3072,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     if (SK_GetCurrentGameID () != SK_GAME_ID::ResidentEvil8 || __SK_RE8_FactoryCache.cached_descs.empty ())
     {
       DXGI_LOG_CALL_I5 ( L"       IDXGIOutput", L"GetDisplayModeList       ",
-                           L"  %08" PRIxPTR L"h, %i, %02x, NumModes=%lu, %08"
-                                    PRIxPTR L"h)",
+                           L"  %08" _L(PRIxPTR) L"h, %i, %02x, NumModes=%lu, %08"
+                                    _L(PRIxPTR) L"h)",
                   (uintptr_t)This,
                              EnumFormat,
                                  Flags,
@@ -3475,8 +3478,8 @@ DXGIOutput_FindClosestMatchingMode_Override (
 {
   DXGI_LOG_CALL_I4 (
     L"       IDXGIOutput", L"FindClosestMatchingMode         ",
-    L"%p, %08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
-                                 PRIxPTR L"h",
+    L"%p, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
+                                     _L(PRIxPTR) L"h",
       This, (uintptr_t)pModeToMatch, (uintptr_t)pClosestMatch,
             (uintptr_t)pConcernedDevice
   );
@@ -3650,7 +3653,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   This->GetDesc      (&sd);
 
   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
-                     L"%s, %08" PRIxPTR L"h",
+                     L"%s, %08" _L(PRIxPTR) L"h",
                       Fullscreen ? L"{ Fullscreen }" :
                                    L"{ Windowed }",   (uintptr_t)pTarget );
 
@@ -5315,7 +5318,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   {
     rb.api  = SK_RenderAPI::D3D12;
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain> (%08" PRIxPTR L"h) created using D3D12 Command Queue",
+    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) created using D3D12 Command Queue",
              (uintptr_t)pSwapChain ),
            L"   DXGI   " );
 
@@ -5345,7 +5348,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     *ppDest =
       new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain> (%08" PRIxPTR L"h) wrapped using D3D11 Device",
+    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
                  (uintptr_t)pSwapChain ),
                L"   DXGI   " );
 
@@ -5375,7 +5378,7 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   {
     rb.api  = SK_RenderAPI::D3D12;
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain1> (%08" PRIxPTR L"h) wrapped using D3D12 Command Queue",
+    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D12 Command Queue",
                  (uintptr_t)pSwapChain ),
                L"   DXGI   " );
 
@@ -5405,7 +5408,7 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     *ppDest =
       new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain1> (%08" PRIxPTR L"h) wrapped using D3D11 Device",
+    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
                  (uintptr_t)pSwapChain ),
                L"   DXGI   " );
 
@@ -5442,8 +5445,8 @@ DXGIFactory_CreateSwapChain_Override (
     {
       run_once = true;
       DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
-                           L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
-                                  PRIxPTR L"h",
+                           L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
+                                  _L(PRIxPTR) L"h",
                              (uintptr_t)pDevice, (uintptr_t)pDesc,
                              (uintptr_t)ppSwapChain );
     }
@@ -5461,8 +5464,8 @@ DXGIFactory_CreateSwapChain_Override (
   }
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
-                       L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
-                              PRIxPTR L"h",
+                       L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
+                              _L(PRIxPTR) L"h",
                          (uintptr_t)pDevice, (uintptr_t)pDesc,
                          (uintptr_t)ppSwapChain );
 
@@ -5655,10 +5658,10 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
   // Wrong prototype, but who cares right now? :P
   DXGI_LOG_CALL_I3 ( iname.c_str (),
                      L"CreateSwapChainForCoreWindow         ",
-                     L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, "
-                     L"%08" PRIxPTR L"h", (uintptr_t)pDevice,
-                                          (uintptr_t)pDesc,
-                                          (uintptr_t)ppSwapChain );
+                     L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, "
+                     L"%08" _L(PRIxPTR) L"h", (uintptr_t)pDevice,
+                                              (uintptr_t)pDesc,
+                                              (uintptr_t)ppSwapChain );
 
   if (iname == L"{Invalid-Factory-UUID}")
   {
@@ -5907,8 +5910,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     SK_GetDXGIFactoryInterface (This);
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
-                       L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
-                              PRIxPTR L"h",
+                       L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
+                              _L(PRIxPTR) L"h",
                          (uintptr_t)pDevice, (uintptr_t)hWnd, (uintptr_t)pDesc );
 
 //  if (iname == L"{Invalid-Factory-UUID}")
@@ -6079,7 +6082,7 @@ _Outptr_       IDXGISwapChain1       **ppSwapChain )
   // Wrong prototype, but who cares right now? :P
   DXGI_LOG_CALL_I3 ( iname.c_str (),
                      L"CreateSwapChainForComposition         ",
-                     L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, %08" PRIxPTR L"h",
+                     L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h",
                        (uintptr_t)pDevice,
                        (uintptr_t)pDesc,
                        (uintptr_t)ppSwapChain
@@ -6499,7 +6502,7 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
   std::wstring iname = SK_GetDXGIFactoryInterface    (This);
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
-                       L"%08" PRIxPTR L"h, %u, %08" PRIxPTR L"h",
+                       L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
                          (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
 
   HRESULT ret;
@@ -6558,7 +6561,7 @@ STDMETHODCALLTYPE EnumAdapters_Override (IDXGIFactory  *This,
   std::wstring iname = SK_GetDXGIFactoryInterface    (This);
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
-                       L"%08" PRIxPTR L"h, %u, %08" PRIxPTR L"h",
+                       L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
                          (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
 
   HRESULT ret;
@@ -6678,7 +6681,7 @@ WINAPI CreateDXGIFactory (REFIID   riid,
   UNREFERENCED_PARAMETER (iver);
 
   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ",
-                    L"%s, %08" PRIxPTR L"h",
+                    L"%s, %08" _L(PRIxPTR) L"h",
                       iname.c_str (), (uintptr_t)ppFactory );
 
   if (CreateDXGIFactory_Import == nullptr)
@@ -6729,7 +6732,7 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   //if (riid != IID_IDXGIFactory1 || (! __SK_RE8_FactoryCache.isCurrent ()))
   //{
     DXGI_LOG_CALL_2 (L"                    CreateDXGIFactory1       ",
-                     L"%s, %08" PRIxPTR L"h",
+                     L"%s, %08" _L(PRIxPTR) L"h",
                      iname.c_str (), (uintptr_t)ppFactory);
   //}
 
@@ -6800,7 +6803,7 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   UNREFERENCED_PARAMETER (iver);
 
   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ",
-                    L"0x%04X, %s, %08" PRIxPTR L"h",
+                    L"0x%04X, %s, %08" _L(PRIxPTR) L"h",
                       Flags, iname.c_str (), (uintptr_t)ppFactory );
 
   if (CreateDXGIFactory2_Import == nullptr)
@@ -8254,7 +8257,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
         if ( SUCCEEDED ( result ) )
         {
           dll_log->LogEx ( false,
-                             L"eid=0x%08" PRIxPTR L", cookie=%u\n",
+                             L"eid=0x%08" _L(PRIxPTR) L", cookie=%u\n",
                                (uintptr_t)budget_thread->event,
                                           budget_thread->cookie );
 

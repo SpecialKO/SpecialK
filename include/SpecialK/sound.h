@@ -94,7 +94,7 @@ public:
 #undef Process32Next
 
       // Use the exeuctable name if there is no window name
-      if (! strlen (szTitle))
+      if (0 == strnlen (szTitle, 512))
       {
         HANDLE hSnap =
           CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);

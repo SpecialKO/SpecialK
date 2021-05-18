@@ -52,7 +52,7 @@ SK_CountIO (io_perf_t& ioc, const double update)
   ioc.dt =
     now.QuadPart - ioc.last_update.QuadPart;
 
-  if (ioc.dt >= update)
+  if (static_cast <double> (ioc.dt) >= update)
   {
     IO_COUNTERS current_io = { };
 
@@ -368,6 +368,8 @@ typedef NTSTATUS (WINAPI *NtQuerySystemInformation_SK_pfn)(
 static NtQuerySystemInformation_SK_pfn
        NtQuerySystemInformation_SK = nullptr;
 
+extern void SK_CPU_UpdateAllSensors (void);
+
 DWORD
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
@@ -422,8 +424,8 @@ SK_MonitorCPU (LPVOID user_param)
       cpu.num_cpus * sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK);
 
   HANDLE wait_objs [] = {
-    *const_cast <const HANDLE*> (&cpu.hShutdownSignal),
-                               __SK_DLL_TeardownEvent };
+    *const_cast <const volatile HANDLE*> (&cpu.hShutdownSignal),
+                                        __SK_DLL_TeardownEvent };
 
   while ( dwRet !=  WAIT_OBJECT_0 &&
           dwRet != (WAIT_OBJECT_0 + 1) )
@@ -436,8 +438,7 @@ SK_MonitorCPU (LPVOID user_param)
     if (! (config.cpu.show || SK_ImGui_Widgets->cpu_monitor->isActive ()))
       continue;
 
-    extern void SK_CPU_UpdateAllSensors (void);
-                SK_CPU_UpdateAllSensors ();
+    SK_CPU_UpdateAllSensors ();
 
     PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK pPerformance =
       (PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK)
@@ -605,7 +606,7 @@ SK_MonitorDisk (LPVOID user)
 
   while (disk.lID != 0)
   {
-    if (MsgWaitForMultipleObjects (1, const_cast <const HANDLE *> (&disk.hShutdownSignal), FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
+    if (MsgWaitForMultipleObjects (1, &disk.hShutdownSignal, FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
       break;
 
     // Only poll WMI while the data view is visible
@@ -1027,7 +1028,7 @@ SK_MonitorPagefile (LPVOID user)
 
   while (pagefile.lID != 0)
   {
-    if (MsgWaitForMultipleObjects (1, const_cast <const HANDLE *> (&pagefile.hShutdownSignal), FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
+    if (MsgWaitForMultipleObjects (1, &pagefile.hShutdownSignal, FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
       break;
 
     // Only poll WMI while the pagefile stats are shown

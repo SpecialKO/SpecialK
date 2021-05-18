@@ -26,6 +26,9 @@
 #endif
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
+#define _L2(w)  L ## w
+#define  _L(w) _L2(w)
+
 #include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/d3d11/d3d11_shader.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
@@ -701,7 +704,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
   {
     if ( *ppDevice != g_pD3D11Dev )
     {
-      SK_LOG0 ( (L" >> Device = %08" PRIxPTR L"h (Feature Level:%s)",
+      SK_LOG0 ( (L" >> Device = %08" _L(PRIxPTR) L"h (Feature Level:%s)",
                       (uintptr_t)*ppDevice,
                         SK_DXGI_FeatureLevelsToStr ( 1,
                                                       (DWORD *)&FeatureLevel
@@ -4296,7 +4299,7 @@ D3D11Dev_CreateTexture2D_Impl (
   {
     SK_LOG1 ( ( L"Impossible to cache texture (Code Origin: '%s') -- Misc Flags: %x, MipLevels: %lu, "
                 L"ArraySize: %lu, CPUAccess: %x, BindFlags: %x, Usage: %x, pInitialData: %08"
-                PRIxPTR L" (%08" PRIxPTR L")",
+                PRIxPTR L" (%08" _L(PRIxPTR) L")",
                   SK_GetModuleName (SK_GetCallingDLL (lpCallerAddr)).c_str (), pDesc->MiscFlags, pDesc->MipLevels, pDesc->ArraySize,
                     pDesc->CPUAccessFlags, pDesc->BindFlags, pDesc->Usage, (uintptr_t)pInitialData,
                       pInitialData ? (uintptr_t)pInitialData->pSysMem : (uintptr_t)nullptr

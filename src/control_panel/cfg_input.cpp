@@ -173,7 +173,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_steam > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_steam ) / 500.0f ), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_steam ) / 500.0f ), 1.0f, 0.8f).Value);
       ImGui::SameLine ( );
       ImGui::Text ("       Steam");
       ImGui::PopStyleColor ( );
@@ -188,7 +188,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_xinput > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_xinput) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_xinput) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       %s", SK_XInput_GetPrimaryHookName ());
       ImGui::PopStyleColor  ();
@@ -207,7 +207,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_hid > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_hid) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_hid) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       HID");
       ImGui::PopStyleColor  ();
@@ -229,7 +229,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_di7 > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_di7) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_di7) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       DirectInput 7");
       ImGui::PopStyleColor  ();
@@ -254,7 +254,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_di8 > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_di8) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_di8) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       DirectInput 8");
       ImGui::PopStyleColor  ();
@@ -279,7 +279,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_rawinput > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - (0.4f * (current_time - last_rawinput) / 500.0f), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_rawinput) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       Raw Input");
       ImGui::PopStyleColor  ();
@@ -304,7 +304,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_winhook > current_time - 10000UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_winhook ) / 10000.0f ), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_winhook ) / 10000.0f ), 1.0f, 0.8f).Value);
       ImGui::SameLine      ();
       ImGui::Text ("       Windows Hook");
       ImGui::PopStyleColor ();
@@ -322,7 +322,7 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_win32 > current_time - 10000UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_win32 ) / 10000.0f ), 1.0f, 0.8f));
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_win32 ) / 10000.0f ), 1.0f, 0.8f).Value);
       ImGui::SameLine      ();
       ImGui::Text ("       Win32");
       ImGui::PopStyleColor ();
@@ -779,7 +779,7 @@ extern float SK_ImGui_PulseNav_Strength;
               rpos = static_cast <float> (axes [axis].now - axes [axis].min);
 
             ImGui::ProgressBar ( rpos / range,
-                                   ImVec2 (-1, 0),
+                                   ImVec2 (-1.0f, 0.0f),
                                      SK_FormatString ( "%s [ %.0f, { %.0f, %.0f } ]",
                                                          axes [axis].label, axes [axis].now,
                                                          axes [axis].min,   axes [axis].max ).c_str () );
@@ -845,7 +845,7 @@ extern float SK_ImGui_PulseNav_Strength;
                   );
                 }
               }
-            } while (! ReadAcquire (&__SK_DLL_Ending));
+            } while (0 == ReadAcquire (&__SK_DLL_Ending));
 
             SK_Thread_CloseSelf ();
 
@@ -1303,8 +1303,8 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
 
-  ImGui::SetNextWindowSizeConstraints ( ImVec2   (font_size *  9, font_size * 3),
-                                          ImVec2 (font_size * 30, font_size * 6) );
+  ImGui::SetNextWindowSizeConstraints ( ImVec2   (font_size *  9.0f, font_size * 3.0f),
+                                          ImVec2 (font_size * 30.0f, font_size * 6.0f) );
 
   if (ImGui::BeginPopupModal (keybind->bind_name, nullptr, ImGuiWindowFlags_AlwaysAutoResize |
                                                            ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))

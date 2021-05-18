@@ -364,8 +364,8 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     return;
 
   if ( nullptr ==
-      ReadPointerAcquire ((void **)&disjoint_query.async)
-      && timers.empty () )
+         ReadPointerAcquire ((const volatile PVOID *)&disjoint_query.async)
+           && timers.empty () )
   {
     D3D11_QUERY_DESC query_desc {
       D3D11_QUERY_TIMESTAMP_DISJOINT, 0x00
@@ -377,8 +377,8 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
       SK_ComPtr <ID3D11DeviceContext> pImmediateContext;
       pDev->GetImmediateContext     (&pImmediateContext.p);
 
-      InterlockedExchangePointer ((void **)&disjoint_query.async, pQuery);
-      pImmediateContext->Begin                                   (pQuery);
+      InterlockedExchangePointer ((/*volatile */PVOID *)&disjoint_query.async, pQuery);
+      pImmediateContext->Begin                                                (pQuery);
       InterlockedExchange (&disjoint_query.active, TRUE);
     }
   }
@@ -398,9 +398,9 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
       // We'll strip this when the query finishes
       pDevContext->AddRef ();
 
-      InterlockedExchangePointer ((void **)&duration.start.dev_ctx, pDevContext);
-      InterlockedExchangePointer ((void **)&duration.start.async,   pQuery);
-      pDevContext->End                                             (pQuery);
+      InterlockedExchangePointer ((/*volatile */PVOID *)&duration.start.dev_ctx, pDevContext);
+      InterlockedExchangePointer ((/*volatile */PVOID *)&duration.start.async,   pQuery);
+      pDevContext->End                                                          (pQuery);
       timers.emplace_back (duration);
     }
   }
@@ -477,7 +477,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
     rb.getDevice <ID3D11Device> ();
 
   if ( dev     != nullptr &&
-       pDevCtx != nullptr && ReadAcquire (&disjoint_query.active) )
+       pDevCtx != nullptr && ReadAcquire (&disjoint_query.active) != 0 )
   {
     D3D11_QUERY_DESC query_desc {
       D3D11_QUERY_TIMESTAMP, 0x00

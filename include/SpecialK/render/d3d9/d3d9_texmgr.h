@@ -99,12 +99,12 @@ public:
     d3d9_tex      = nullptr;
     original_pool = D3DPOOL_DEFAULT;
   }
-
+  
+  ISKTextureD3D9* d3d9_tex;
   uint32_t        crc32c;
   size_t          size;
   int             refs;
   float           load_time;
-  ISKTextureD3D9* d3d9_tex;
   D3DPOOL         original_pool;
 };
 
@@ -136,10 +136,10 @@ struct TexThreadStats {
   };
 
   struct TexRecord {
+             size_t        size    = 1;
     unsigned int           archive = std::numeric_limits <unsigned int>::max ();
              int           fileno  = 0UL;
     enum     TexLoadMethod method  = DontCare;
-             size_t        size    = 1UL;
     volatile LONG          removed = FALSE; // Rather than removing entries and
                                             //   shuffling lists in memory, alter this
   };
@@ -558,7 +558,7 @@ public:
         WaitForSingleObject (events_.results_waiting, 0);
 
       // Nothing waiting
-      if (dwResults != WAIT_OBJECT_0 && (! ReadAcquire (&jobs_done_)))
+      if (dwResults != WAIT_OBJECT_0 && (0 == ReadAcquire (&jobs_done_)))
         return;
 
       std::scoped_lock <SK_Thread_HybridSpinlock>
@@ -623,7 +623,7 @@ public:
           WaitForSingleObject (events_.jobs_added, 0);
       }
 
-      if (! ReadAcquire (&jobs_waiting_))
+      if (0 == ReadAcquire (&jobs_waiting_))
         return nullptr;
 
       {
@@ -838,10 +838,10 @@ public:
       return S_OK;
     }
 
-    if ( IsEqualGUID (riid, IID_IUnknown)              ||
-         IsEqualGUID (riid, IID_IDirect3DResource9)    ||
-         IsEqualGUID (riid, IID_IDirect3DTexture9)     ||
-         IsEqualGUID (riid, IID_IDirect3DBaseTexture9)    )
+    if ( IsEqualGUID (riid, IID_IUnknown)              != FALSE ||
+         IsEqualGUID (riid, IID_IDirect3DResource9)    != FALSE ||
+         IsEqualGUID (riid, IID_IDirect3DTexture9)     != FALSE ||
+         IsEqualGUID (riid, IID_IDirect3DBaseTexture9) != FALSE    )
     {
       AddRef ();
 

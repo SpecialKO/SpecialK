@@ -44,7 +44,7 @@ SK_CPU_CountPhysicalCores (void);
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif
-#define __SK_SUBSYSTEM__ "  CPUMgr  "
+#define __SK_SUBSYSTEM__ L"  CPUMgr  "
 
 BOOL
 WINAPI
@@ -98,7 +98,8 @@ GetLogicalProcessorInformationEx_Detour (
           size_t extraAlloc = 0;
           size_t extraCores = extra_cores;
 
-			    buffer = (char *)malloc (len);
+			    buffer =
+            (char *)malloc (len);
 
           if ( buffer != nullptr &&
                GetLogicalProcessorInformationEx_Original (
@@ -124,10 +125,8 @@ GetLogicalProcessorInformationEx_Detour (
 				    }
 			    }
 
-          if (buffer != nullptr)
-            free (buffer);
-
-          buffer = (char *)malloc (len + extraAlloc);
+          buffer = (char *)
+            std::realloc (buffer, len + extraAlloc);
 
           if ( buffer != nullptr &&
                GetLogicalProcessorInformationEx_Original (
@@ -135,35 +134,40 @@ GetLogicalProcessorInformationEx_Detour (
                    &len )
              )
           {
-            char *cores_ = (char *)malloc (extraAlloc);
+            auto cores_ =
+              (char *)malloc (extraAlloc),
+                 ptr    = buffer;
 
-				    char* ptr = buffer;
-
-            extraCores = extra_cores;
-
-				    while (ptr != nullptr && ptr < buffer + len)
+            if (cores_ != nullptr && ptr != nullptr)
             {
-					    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
+              extraCores = extra_cores;
 
-              if (pi->Relationship == RelationProcessorCore)
+				      while (ptr < buffer + len)
               {
-                char* pExtra =
-                  cores_;
+					      PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi =
+               (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
 
-                while (extraCores > 0)
+                if (pi->Relationship == RelationProcessorCore)
                 {
-                  memcpy (pExtra, pi, pi->Size);
-                          pExtra +=   pi->Size;
+                  char *pExtra =
+                    cores_;
 
-                  extraCores--;
-                }
-					    }
-					    ptr += pi->Size;
-				    }
+                  while (extraCores > 0)
+                  {
+                    memcpy (pExtra, pi, pi->Size);
+                            pExtra +=   pi->Size;
 
-            memcpy (ptr, cores_, extraAlloc);
+                    extraCores--;
+                  }
+					      }
+					      
+                ptr += pi->Size;
+				      }
 
-            len += (DWORD)extraAlloc;
+              memcpy (ptr, cores_, extraAlloc);
+
+              len += (DWORD)extraAlloc;
+            }
           }
 
           return std::make_pair (buffer, len);
@@ -192,8 +196,8 @@ GetLogicalProcessorInformationEx_Detour (
         memcpy (Buffer, spoof.first, spoof.second);
              *ReturnedLength =       spoof.second;
 
-        int cores   = 0;
-        int logical = 0;
+        size_t cores   = 0;
+        size_t logical = 0;
 
         char*  ptr = (char *)Buffer;
 				while (ptr < (char *)Buffer + spoof.second)

@@ -41,7 +41,7 @@
 //   will be dismissed as the game crashes when it tries to
 //     draw the first frame.
 volatile LONG   __FAR_init        = FALSE;
-         float  __FAR_MINIMUM_EXT = 0.0f;
+         float  __FAR_MINIMUM_EXT = 0.0F;
          bool   __FAR_Freelook    = false;
          bool   __FAR_FastLoads   = false;
 
@@ -53,8 +53,6 @@ volatile LONG   __FAR_init        = FALSE;
 
 struct far_game_state_s
 {
-  bool   bSteam       = false;
-
   DWORD* pMenu        = nullptr;
   DWORD* pLoading     = nullptr;
   DWORD* pHacking     = nullptr;
@@ -62,11 +60,12 @@ struct far_game_state_s
 
   float* pHUDOpacity  = nullptr;
 
+  int    present_rate = 1;     // VSYNC
   bool   fast_loading = false; // Limiter's suspended to make loads faster
   bool   capped       = true;  // Actual state of limiter
   bool   enforce_cap  = true;  // User's current preference
-  int    present_rate = 1;     // VSYNC
   bool   patchable    = false; // True only if the memory addresses can be validated
+  bool   bSteam       = false;
 
   bool needFPSCap (void) {
     if (! patchable)
@@ -165,7 +164,7 @@ struct
 {
   bool        enqueue = false; // Trigger a Steam screenshot
   int         clear   = 4;     // Reset enqueue after 3 frames
-  float       opacity = 1.0f;  // Original HUD opacity
+  float       opacity = 1.0F;  // Original HUD opacity
 
   SK_Keybind  keybind = {
     "HUD Free Screenshot", L"Num -",
@@ -186,7 +185,9 @@ struct far_cam_state_s
   vec3_t* pLook      = reinterpret_cast <vec3_t *> (0x141605410);//0x1415EB960;
   float*  pRoll      = reinterpret_cast <float  *> (0x141415B90);//1415EB990;
 
-  vec3_t  fwd, right, up;
+  vec3_t  fwd   = { 0.0F, 0.0F, 0.0F },
+          right = { 0.0F, 0.0F, 0.0F },
+          up    = { 0.0F, 0.0F, 0.0F };
 
   bool center_lock = false,
        focus_lock  = false;
@@ -227,9 +228,9 @@ bool   __FAR_GlobalIllumCompatMode    =  true;
 
 struct {
   int  width   =    -1; // Set at startup from user prefs, never changed
-  bool disable = false;
   int  skip    =     0;
-
+  
+  bool disable = false;
   bool active  = false;
 } far_bloom;
 
@@ -245,6 +246,18 @@ struct {
 
 bool                      SK_FAR_PlugInCfg         (void);
 HRESULT STDMETHODCALLTYPE SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
+
+extern bool
+SK_ImGui_SavePlugInPreference ( iSK_INI* ini, bool enable, const wchar_t* import_name,
+                                const wchar_t* role, int order, const wchar_t* path );
+
+extern void
+SK_ImGui_PlugInDisclaimer     ( void );
+
+extern bool
+SK_ImGui_PlugInSelector       ( iSK_INI* ini, const std::string& name, const wchar_t* path,
+                                const wchar_t* import_name, bool& enable, int& order,
+                                int default_order = 1 );
 
 HRESULT
 WINAPI
@@ -267,16 +280,15 @@ SK_FAR_CreateBuffer (
     float world_pos    [ 4];
     float world_to_vol [16];
     float half_extents [ 4];
-  };
+  } static new_lights  [128] = { };
 
   // Global Illumination (DrDaxxy)
   if ( pDesc != nullptr && pDesc->StructureByteStride == sizeof (far_light_volume_s)       &&
                            pDesc->ByteWidth           == sizeof (far_light_volume_s) * 128 &&
-                           pDesc->BindFlags            & D3D11_BIND_SHADER_RESOURCE)
+                           (pDesc->BindFlags           & D3D11_BIND_SHADER_RESOURCE) ==
+                                                         D3D11_BIND_SHADER_RESOURCE )
   {
     new_desc.ByteWidth = sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize;
-                                 far_light_volume_s
-                                 new_lights [128] = { };
 
     // New Stuff for 0.6.0
     // -------------------
@@ -319,13 +331,13 @@ SK_FAR_CreateBuffer (
                                                                                                     fabs (lights [i].half_extents [2]) > 0.0001f ) */ )
           {
             // Degenerate light volume
-            new_lights [i].half_extents [0] = 0.0f;
-            new_lights [i].half_extents [1] = 0.0f;
-            new_lights [i].half_extents [2] = 0.0f;
+            new_lights [i].half_extents [0] = 0.0F;
+            new_lights [i].half_extents [1] = 0.0F;
+            new_lights [i].half_extents [2] = 0.0F;
         
             // Project to infinity (but not beyond, because that makes no sense)
-            new_lights [i].world_pos [0] = 0.0f; new_lights [i].world_pos [1] = 0.0f;
-            new_lights [i].world_pos [2] = 0.0f; new_lights [i].world_pos [3] = 0.0f;
+            new_lights [i].world_pos [0] = 0.0F; new_lights [i].world_pos [1] = 0.0F;
+            new_lights [i].world_pos [2] = 0.0F; new_lights [i].world_pos [3] = 0.0F;
           }
         }
       }
@@ -705,10 +717,10 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     float norm = sqrt (LX*LX + LY*LY);
     float unit = 1.0f;
 
-    if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+    if (norm > static_cast <float> (XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE))
     {
-      norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
-      unit =         norm / (32767.0f  - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+      norm = std::min (norm, 32767.0f) - static_cast <float> (XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+      unit =           norm/(32767.0f  - static_cast <float> (XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE));
     }
 
     else
@@ -724,13 +736,13 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     float RX   = state.Gamepad.sThumbRX;
     float RY   = state.Gamepad.sThumbRY;
 
-          norm = sqrt (RX*RX + RY*RY);
-          unit = 1.0f;
+    norm = sqrt (RX*RX + RY*RY);
+    unit = 1.0f;
 
-    if (norm > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
+    if (norm > static_cast <float> (XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE))
     {
-      norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
-      unit =         norm / (32767.0f  - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+      norm = std::min (norm, 32767.0f) - static_cast <float> (XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+      unit =           norm/(32767.0f  - static_cast <float> (XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE));
     }
 
     else
@@ -903,6 +915,8 @@ SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 }
 
 
+extern void WINAPI SK_PluginKeyPress (BOOL,BOOL,BOOL,BYTE);
+
 HRESULT
 STDMETHODCALLTYPE
 SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
@@ -911,7 +925,7 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  if (! InterlockedCompareExchange (&__FAR_init, 1, 0))
+  if (0 == InterlockedCompareExchange (&__FAR_init, 1, 0))
   {
     game_state.enforce_cap = (! far_uncap_fps->get_value ());
 
@@ -924,7 +938,6 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
     //
     // Hook keyboard input, only necessary for the FPS cap toggle right now
     //
-    extern void WINAPI SK_PluginKeyPress (BOOL,BOOL,BOOL,BYTE);
     SK_CreateFuncHook (      L"SK_PluginKeyPress",
                                SK_PluginKeyPress,
                                SK_FAR_PluginKeyPress,
@@ -1044,7 +1057,6 @@ SK_FAR_CreateTexture2D (
                            || (pDesc->Width == 480 && pDesc->Height == 268)
                            || (pDesc->Width == 240 && pDesc->Height == 134)
                            || (pDesc->Width == 120 && pDesc->Height == 67)
-                           || (pDesc->Width == 100 && pDesc->Height == 56)
                          /*|| (pDesc->Width == 60 && pDesc->Height == 67)*/ )
            )
         {
@@ -1068,8 +1080,8 @@ SK_FAR_CreateTexture2D (
                                                                  : (static_cast <double> (pDesc->Width) - 60.0) / 900.0;
               double scalingFactor       = 1.0 + (resFactor - 1.0) * pyramidLevelFactor;
 
-              copy.Width  = static_cast <UINT> (copy.Width  * scalingFactor);
-              copy.Height = static_cast <UINT> (copy.Height * scalingFactor);
+              copy.Width  = static_cast <UINT> (static_cast <double> (copy.Width)  * scalingFactor);
+              copy.Height = static_cast <UINT> (static_cast <double> (copy.Height) * scalingFactor);
 
               pDesc       = &copy;
             }
@@ -1326,7 +1338,7 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 {
                   static std::unordered_map <UINT, ID3D11Buffer*> mipBuffers;
 
-                  if (! mipBuffers.count (desc.Texture2D.MipSlice))
+                  if (0 == mipBuffers.count (desc.Texture2D.MipSlice))
                   {
                     SK_LOG3 ( ( L"Create AO Buffer (%lu)", desc.Texture2D.MipSlice ),
                                 L"FAR PlugIn" );
@@ -1335,8 +1347,8 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                                  constants [0] = vp.Width;
                                  constants [1] = vp.Height;
                                  constants [2] =
-                            static_cast <float> (desc.Texture2D.MipSlice) - 1;
-                                 constants [3] = 0.0f;
+                            static_cast <float> (desc.Texture2D.MipSlice) - 1.0F;
+                                 constants [3] = 0.0F;
 
                     initialdata.pSysMem = constants;
 
@@ -1601,6 +1613,7 @@ extern SK_LazyGlobal <
 
 d3d11_shader_tracking_s::cbuffer_override_s* SK_FAR_CB_Override;
 
+extern void SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
 void
 SK_FAR_InitPlugin (void)
@@ -2342,7 +2355,6 @@ SK_FAR_PlugInCfg (void)
 
           std::wstring original_binding = binding->human_readable;
 
-          extern void SK_ImGui_KeybindDialog (SK_Keybind* keybind);
           SK_ImGui_KeybindDialog (binding);
 
           if (original_binding != binding->human_readable)
@@ -2405,18 +2417,6 @@ SK_FAR_PlugInCfg (void)
 
     if (reshade)
     {
-      extern bool
-      SK_ImGui_SavePlugInPreference ( iSK_INI* ini, bool enable, const wchar_t* import_name,
-                                      const wchar_t* role, int order, const wchar_t* path );
-
-      extern void
-      SK_ImGui_PlugInDisclaimer     ( void );
-
-      extern bool
-      SK_ImGui_PlugInSelector       ( iSK_INI* ini, const std::string& name, const wchar_t* path,
-                                      const wchar_t* import_name, bool& enable, int& order,
-                                      int default_order = 1 );
-
       static wchar_t
            wszReShadePath [MAX_PATH + 2] = { };
       if (*wszReShadePath == L'\0')

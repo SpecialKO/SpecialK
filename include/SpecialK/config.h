@@ -74,7 +74,7 @@ struct SK_ConfigSerializedKeybind : public SK_Keybind
 struct sk_config_t
 {
   struct whats_new_s {
-    float  duration       = 20.0f;
+    float  duration       = 20.0F;
   } version_banner;
 
   struct time_osd_s {
@@ -88,8 +88,8 @@ struct sk_config_t
   } time;
 
   struct mem_osd_s {
-    float  reserve        = 0.0f;// Unused / Unlimited
-    float  interval       = 0.25f;
+    float  reserve        = 0.0F;// Unused / Unlimited
+    float  interval       = 0.25F;
 
     struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'M', 0 };
@@ -100,7 +100,7 @@ struct sk_config_t
 
 
   struct io_osd_s {
-    float  interval       = 0.25f; // 250 msecs (4 Hz)
+    float  interval       = 0.25F; // 250 msecs (4 Hz)
 
     struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'I', 0 };
@@ -123,7 +123,7 @@ struct sk_config_t
     int    red            = MAXDWORD32;
     int    green          = MAXDWORD32;
     int    blue           = MAXDWORD32;
-    float  scale          =  1.0f;
+    float  scale          =  1.0F;
     int    pos_x          =  0;
     int    pos_y          =  0;
 
@@ -161,14 +161,14 @@ struct sk_config_t
     struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'F', 0 };
     } keys;
-    //float fps_interval  = 1.0f;
+    //float fps_interval  = 1.0F;
   } fps;
 
 
   struct gpu_osd_s {
     bool   show           = true;
     bool   print_slowdown = false;
-    float  interval       = 0.333333f;
+    float  interval       = 0.333333F;
 
     struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'G', 0 };
@@ -179,7 +179,7 @@ struct sk_config_t
   struct disk_osd_s {
     bool   show            = false;
 
-    float  interval        = 0.333333f;
+    float  interval        = 0.333333F;
     int    type            = 0; // Physical = 0,
                                 // Logical  = 1
 
@@ -191,7 +191,7 @@ struct sk_config_t
 
   struct pagefile_osd_s {
     bool   show            = false;
-    float  interval        = 2.5f;
+    float  interval        = 2.5F;
 
     struct keybinds_s {
       BYTE toggle [4]      = { VK_CONTROL, VK_MENU, VK_SHIFT, 'P' };
@@ -207,7 +207,7 @@ struct sk_config_t
   } cegui;
 
   struct imgui_s {
-    float   scale              = 1.0f;
+    float   scale              = 1.0F;
     bool    show_eula          = false; // Will be flipped on if no AppCache is present
     bool    show_input_apis    = true;
     bool    use_mac_style_menu = false;
@@ -215,7 +215,7 @@ struct sk_config_t
     struct font_s {
       struct font_params_s {
         std::string file   = "";
-        float       size   = 7.0f;
+        float       size   = 7.0F;
       } chinese,  cyrillic, default_font,
         japanese, korean;
     } font;
@@ -244,7 +244,7 @@ struct sk_config_t
               sound_file            = L"";
 
       struct popup_s {
-        float inset                 = 0.005f;
+        float inset                 = 0.005F;
         int   origin                = 0;
         int   duration              = 5000UL;
         bool  show                  =  true;
@@ -275,7 +275,7 @@ struct sk_config_t
     int       init_delay            = 0UL; // Disable to prevent crashing in many games
     int       callback_throttle     = -1;
 
-    float     overlay_hdr_luminance = 4.375f; // 350 nits
+    float     overlay_hdr_luminance = 4.375F; // 350 nits
                                               //   that do not use it
 
     bool      silent                = false;
@@ -298,17 +298,17 @@ struct sk_config_t
   } steam;
 
   struct uplay_s {
-    float overlay_luminance     = 4.375f; // 350 nits
+    float overlay_luminance     = 4.375F; // 350 nits
     bool  present               = false;  // Is the overlay detected?
   } uplay;
 
   struct discord_s {
-    float overlay_luminance     = 4.375f; // 350 nits
+    float overlay_luminance     = 4.375F; // 350 nits
     bool  present               = false;  // Is the overlay detected?
   } discord;
 
   struct rtss_s {
-    float overlay_luminance     = 4.375f; // 350 nits
+    float overlay_luminance     = 4.375F; // 350 nits
     bool  present               = false;  // Is the overlay detected?
   } rtss;
 
@@ -345,15 +345,15 @@ struct sk_config_t
 
   struct render_s {
     struct framerate_s {
-      float   target_fps         =  0.0f;
-      float   target_fps_bg      =  0.0f;
+      float   target_fps         =  0.0F;
+      float   target_fps_bg      =  0.0F;
       int     override_num_cpus  = -1;
       int     pre_render_limit   = -1;
       int     present_interval   = -1;
       int     buffer_count       = -1;
       int     max_delta_time     =  0; // Bad old setting; needs to be phased
       int     swapchain_wait     =  0;
-      float   refresh_rate       = -1.0f;
+      float   refresh_rate       = -1.0F;
  std::wstring rescan_ratio      =L"-1/1";
       struct rescan_s {
         UINT Denom               =  1;
@@ -397,6 +397,10 @@ struct sk_config_t
       int     msaa_samples       =    -1;
       // DXGI 1.1 (Ignored for now)
       int     rotation           =    -1; // -1 = Don't Care
+      int     srgb_behavior      =    -2; // -2 = sRGB Not Encountered Yet
+                                          // -1 = Passthrough,
+                                          //  0 = Strip,
+                                          //  1 = Apply
       bool    test_present       = false;
       bool    full_state_cache   = false;
       bool    debug_layer        = false;
@@ -406,17 +410,13 @@ struct sk_config_t
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
       bool    present_test_skip  = false;
-      int     srgb_behavior      =    -2; // -2 = sRGB Not Encountered Yet
-                                          // -1 = Passthrough,
-                                          //  0 = Strip,
-                                          //  1 = Apply
       bool    hide_hdr_support   = false; // Games won't know HDR is supported
     } dxgi;
 
     struct osd_s {
       ULONG64 _last_vidcap_frame = 0;
       ULONG64 _last_normal_frame = 0;
-      float   hdr_luminance      = 4.375f; // 350 nits
+      float   hdr_luminance      = 4.375F; // 350 nits
       // Required by default for compatibility with Mirillis Action!
       bool    draw_in_vidcap     = true;
     } osd;
@@ -439,7 +439,7 @@ struct sk_config_t
     int       monitor_default     = MONITOR_DEFAULTTOPRIMARY;
     int       monitor_idx         =    -1; // TODO
     HMONITOR  monitor_handle      =     0;
-    float     refresh_rate        =  0.0f; // TODO
+    float     refresh_rate        =  0.0F; // TODO
     bool      force_fullscreen    = false;
     bool      force_windowed      = false;
   } display;
@@ -513,12 +513,12 @@ struct sk_config_t
       bool    bypass_ansel        = false;
     } bugs;
     struct sleep_s {
-      bool    enable              =  false;
-      bool    low_latency         =  false;
-      bool    low_latency_boost   =  false;
       UINT    frame_interval_us   =      0;
       int     enforcement_site    =      1;
+      bool    low_latency         =  false;
+      bool    low_latency_boost   =  false;
       bool    marker_optimization =  false;
+      bool    enable              =  false;
     } sleep;
   } nvidia;
 
@@ -586,7 +586,7 @@ struct sk_config_t
       //   >> Ideally we want absolute cursor position every frame for the UI, but
       //        that's not always possible. <<
       //
-      float   antiwarp_deadzone   = 2.5f;
+      float   antiwarp_deadzone   = 2.5F;
 
       // Translate WM_MOUSEWHEEL messages into actual events that will trigger
       //   other mouse APIs such as DirectInput and RawInput.
@@ -622,12 +622,12 @@ struct sk_config_t
     struct offset_s {
       struct coordinate_s {
       int   absolute            = 0;
-      float percent             = 0.0f;
+      float percent             = 0.0F;
       } x, y;
       bool isZero (void) noexcept
             { return x.absolute == 0        && y.absolute == 0        &&
-                     x.percent  > -0.00001f && x.percent   < 0.00001f &&
-                     y.percent  > -0.00001f && y.percent   < 0.00001f; }
+                     x.percent  > -0.00001F && x.percent   < 0.00001F &&
+                     y.percent  > -0.00001F && y.percent   < 0.00001F; }
     } offset;
     int     always_on_top       = 0;
     bool    background_render   = false;
@@ -714,7 +714,7 @@ struct sk_config_t
     std::wstring
             version             = SK_GetVersionStrW ();
     int     log_level           = 0;
-    float   global_inject_delay = 0.0f;
+    float   global_inject_delay = 0.0F;
 #ifdef _DEBUG
     bool    trace_create_thread = true;
 #else

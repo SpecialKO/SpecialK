@@ -263,7 +263,8 @@ SK_YS8_RecursiveFileExport (
       continue;
     }
 
-    if ( (! (            fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) &&
+    if ( (  (            fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) !=
+                                               FILE_ATTRIBUTE_DIRECTORY) &&
            _TryPatterns (fd.cFileName)
        )
     {
@@ -272,20 +273,15 @@ SK_YS8_RecursiveFileExport (
                             wszRoot, wszSubDir,
                               fd.cFileName );
 
-      std::wstring out_file =
-        SK_FormatStringW ( LR"(%s\SK_Export\%s\%s)",
-                            wszRoot, wszSubDir,
-                              fd.cFileName );
-
-      const size_t size = gsl::narrow_cast <size_t> (
-        SK_File_GetSize (in_file.c_str ())
-      );
-
       FILE*    fIN  =
-        _wfopen         (in_file.c_str (), L"rb+");
+        _wfopen   (in_file.c_str (), L"rb+");
 
       if (fIN)
       {
+        const size_t size = gsl::narrow_cast <size_t> (
+          SK_File_GetSize (in_file.c_str ())
+        );
+
         uint8_t *data =
           new uint8_t [size] { };
 
@@ -298,6 +294,11 @@ SK_YS8_RecursiveFileExport (
                        ~(data [i] >> 4U) & 0xFU )
                                          & 0xFF;
         }
+
+        std::wstring out_file =
+          SK_FormatStringW ( LR"(%s\SK_Export\%s\%s)",
+                              wszRoot, wszSubDir,
+                                fd.cFileName );
 
         SK_CreateDirectories (out_file.c_str ());
 
@@ -364,17 +365,13 @@ const
       continue;
     }
 
-    if ( (! (            fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) &&
+    if ( (  (            fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) !=
+                                               FILE_ATTRIBUTE_DIRECTORY) &&
            _TryPatterns (fd.cFileName)
        )
     {
       std::wstring in_file =
         SK_FormatStringW ( LR"(%s\SK_Import\%s\%s)",
-                            wszRoot, wszSubDir,
-                              fd.cFileName );
-
-      std::wstring backup_file =
-        SK_FormatStringW ( LR"(%s\SK_Backup\%s\%s)",
                             wszRoot, wszSubDir,
                               fd.cFileName );
 
@@ -390,34 +387,42 @@ const
         uint8_t *data =
           new uint8_t [size] { };
 
-        fread  (data, size, 1, fIN);
-        fclose (               fIN);
-
-        for (size_t i = 0; i < size; i++)
+        if (data != nullptr)
         {
-          data [i] = ( ~(data [i] << 4U) & 0xF0U |
-                        (data [i] >> 4U) &  0xFU ) & 0xFFU;
+          fread  (data, size, 1, fIN);
+          fclose (               fIN);
+
+          for (size_t i = 0; i < size; i++)
+          {
+            data [i] = ( ~(data [i] << 4U) & 0xF0U |
+                          (data [i] >> 4U) &  0xFU ) & 0xFFU;
+          }
+
+          std::wstring out_file =
+            SK_FormatStringW ( LR"(%s\%s\%s)",
+                                wszRoot, wszSubDir,
+                                  fd.cFileName );
+
+          if (backup)
+          {
+            std::wstring backup_file =
+              SK_FormatStringW ( LR"(%s\SK_Backup\%s\%s)",
+                                  wszRoot, wszSubDir,
+                                    fd.cFileName );
+
+            SK_CreateDirectories ( backup_file.c_str () );
+            SK_File_MoveNoFail   ( out_file.c_str    (),
+                                   backup_file.c_str () );
+          }
+
+          FILE* fOUT =
+            _wfopen ( out_file.c_str (), L"wb+" );
+
+          fwrite (data, size, 1, fOUT);
+          fclose (               fOUT);
+
+          delete [] data;
         }
-
-        std::wstring out_file =
-          SK_FormatStringW ( LR"(%s\%s\%s)",
-                              wszRoot, wszSubDir,
-                                fd.cFileName );
-
-        if (backup)
-        {
-          SK_CreateDirectories ( backup_file.c_str () );
-          SK_File_MoveNoFail   ( out_file.c_str    (),
-                                 backup_file.c_str () );
-        }
-
-        FILE* fOUT =
-          _wfopen ( out_file.c_str (), L"wb+" );
-
-        fwrite (data, size, 1, fOUT);
-        fclose (               fOUT);
-
-        delete [] data;
 
         work_done.first  += 1;
         work_done.second += size;
@@ -449,11 +454,9 @@ static
 uint64_t
 _SK_RecursiveFileSizeProbe (const wchar_t *wszDir, bool top_lvl = false)
 {
-  uint64_t cached_size = 0ULL;
-
-  if ( top_lvl || _SK_YS8_CachedDirSizes->count (wszDir) )
+  if ( top_lvl || _SK_YS8_CachedDirSizes->count (wszDir) > 0 )
   {
-    if (! cached_size) cached_size = _SK_YS8_CachedDirSizes.get()[wszDir];
+    uint64_t cached_size = _SK_YS8_CachedDirSizes.get()[wszDir];
 
     if (cached_size > 0ULL)
       return cached_size;
@@ -478,7 +481,8 @@ _SK_RecursiveFileSizeProbe (const wchar_t *wszDir, bool top_lvl = false)
       continue;
     }
 
-    if (! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+    if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) !=
+                               FILE_ATTRIBUTE_DIRECTORY)
     {
       size +=
         ULARGE_INTEGER { fd.nFileSizeLow,
@@ -508,6 +512,11 @@ bool b_b21c8ab9 = false;
 bool b_6bb0972d = false;
 bool b_05da09bd = true;
 
+extern LONG SK_D3D11_Resampler_GetActiveJobCount  (void);
+extern LONG SK_D3D11_Resampler_GetWaitingJobCount (void);
+extern LONG SK_D3D11_Resampler_GetRetiredCount    (void);
+extern LONG SK_D3D11_Resampler_GetErrorCount      (void);
+
 void
 __stdcall
 SK_YS8_ControlPanel (void)
@@ -521,11 +530,6 @@ SK_YS8_ControlPanel (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
     bool changed = false;
-
-    extern LONG SK_D3D11_Resampler_GetActiveJobCount  (void);
-    extern LONG SK_D3D11_Resampler_GetWaitingJobCount (void);
-  //extern LONG SK_D3D11_Resampler_GetRetiredCount    (void);
-    extern LONG SK_D3D11_Resampler_GetErrorCount      (void);
 
     const bool tex_manage =
       ImGui::CollapsingHeader ("Texture Management##Ys8", ImGuiTreeNodeFlags_DefaultOpen);
@@ -543,23 +547,23 @@ SK_YS8_ControlPanel (void)
       if (jobs > 0)
       {
         ImGui::PushStyleColor ( ImGuiCol_Text,
-                        (ImVec4&&)ImColor::HSV ( 0.4f - ( 0.4f * (
+                                  ImColor::HSV ( 0.4f - ( 0.4f * (
                                                  SK_D3D11_Resampler_GetActiveJobCount ()
                                                                  ) /
                                                static_cast <float> (jobs)
                                                         ), 0.15f,
                                                              1.0f
-                                               )
+                                               ).Value
                               );
       }
       else
       {
         ImGui::PushStyleColor ( ImGuiCol_Text,
-                        (ImVec4&&)ImColor::HSV ( 0.4f - ( 0.4f * (SK_timeGetTime () - dwLastActive) /
+                                  ImColor::HSV ( 0.4f - ( 0.4f * (SK_timeGetTime () - dwLastActive) /
                                                           500.0f ),
                                                    1.0f,
                                                      0.8f
-                                               )
+                                               ).Value
                               );
       }
 
@@ -712,7 +716,7 @@ SK_YS8_ControlPanel (void)
         {
           ImGui::ProgressBar ( static_cast <float> (static_cast <long double> (ulBytesAvailable.QuadPart) /
                                                     static_cast <long double> (ulBytesTotal.QuadPart)       ),
-                                 ImVec2 (-1, 0),
+                                 ImVec2 (-1.0f, 0.0f),
               SK_WideCharToUTF8 (
                 SK_File_SizeToStringF (ulBytesAvailable.QuadPart, 2, 3) + L" Remaining Storage Capacity"
               ).c_str ()
@@ -857,10 +861,10 @@ SK_YS8_ControlPanel (void)
         ImGui::PushStyleColor (ImGuiCol_PlotHistogram, (ImVec4&&)ImColor::HSV ((float)std::min ((long double)1.0, (long double)llSkipped / (long double)(llTotalBytes)) * 0.278f, 0.88f, 0.333f));
 
         ImGui::ProgressBar ( float (((long double)llSkipped) /
-                                     (long double)(llTotalBytes)), ImVec2 (-1,0),
+                                     (long double)(llTotalBytes)), ImVec2 (-1.0f, 0.0f),
           SK_FormatString ("%ws out of %ws were avoided\t\t\t\tDirty Hash (%ws :: Load=%4.2f)", SK_File_SizeToString (llSkipped).c_str (),
                                                                                                 SK_File_SizeToString (llTotalBytes).c_str (),
-                                                                                                SK_File_SizeToString (ys8_dirty_resources->size () * (sizeof (uintptr_t) + sizeof (bool))).c_str (),
+                                                                                                SK_File_SizeToString (ys8_dirty_resources->size () * (sizeof (uintptr_t) + 1)).c_str (),
                                                                                                                       ys8_dirty_resources->load_factor ()).c_str ());
         ImGui::PopStyleColor ();
       }
@@ -1046,7 +1050,7 @@ const
 
       ImGui::TreePush ("");
 
-      if (! has_exports.count (export_dir) )
+      if (has_exports.count (export_dir) == 0)
       {
         has_exports [export_dir] =
           ( GetFileAttributesW (export_dir) != INVALID_FILE_ATTRIBUTES );
@@ -1056,7 +1060,7 @@ const
       {
         SK_YS8_RecursiveFileExport (wszWorkDir, wszSubdir, extensions);
 
-        has_exports [export_dir] = true;
+        has_exports [export_dir] = 0;
       }
 
       ImGui::SameLine ();
@@ -1588,7 +1592,8 @@ SK_YS8_CreateTexture2D (
   const bool depth_format =
     pDesc->Format == DXGI_FORMAT_R24G8_TYPELESS    ||
     pDesc->Format == DXGI_FORMAT_R32G8X24_TYPELESS ||
-    pDesc->Format == DXGI_FORMAT_B8G8R8X8_UNORM    || (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL);
+    pDesc->Format == DXGI_FORMAT_B8G8R8X8_UNORM    || (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ==
+                                                                          D3D11_BIND_DEPTH_STENCIL;
 
   const bool composite_format = (
     pDesc->Format == DXGI_FORMAT_B8G8R8A8_UNORM
@@ -1725,37 +1730,40 @@ SK_YS8_InitPlugin (void)
              static_cast_p2p <void> (&CreateFileW_Original) );
 
 
-  ys8_config->shadows.scale =
+  static auto&
+    ys8_cfg = ys8_config.get ();
+
+  ys8_cfg.shadows.scale =
       dynamic_cast <sk::ParameterFloat *>
         (g_ParameterFactory->create_parameter <float> (L"Shadow Rescale"));
 
-  ys8_config->shadows.scale->register_to_ini ( SK_GetDLLConfig (),
-                                                L"Ys8.Shadows",
-                                                  L"Scale" );
+  ys8_cfg.shadows.scale->register_to_ini ( SK_GetDLLConfig (),
+                                            L"Ys8.Shadows",
+                                              L"Scale" );
 
-  ys8_config->shadows.scale->load (__SK_YS8_ShadowScale);
+  ys8_cfg.shadows.scale->load (__SK_YS8_ShadowScale);
 
   __SK_YS8_ShadowScale =
     std::fmax (  1.f,
      std::fmin ( 4.f, __SK_YS8_ShadowScale )
               );
 
-  ys8_config->style.pixel_style =
+  ys8_cfg.style.pixel_style =
     dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory->create_parameter <std::wstring> (L"Art Style"));
 
-  ys8_config->style.pixel_style->register_to_ini ( SK_GetDLLConfig (),
-                                                    L"Ys8.Style",
-                                                      L"PixelStyle" );
+  ys8_cfg.style.pixel_style->register_to_ini ( SK_GetDLLConfig (),
+                                                L"Ys8.Style",
+                                                  L"PixelStyle" );
 
   std::wstring style;
-  ys8_config->style.pixel_style->load (style);
+  ys8_cfg.style.pixel_style->load (style);
 
   bool aa = true;
 
   //if (! SK_IsInjected ())
   {
-    if (! _wcsicmp (style.c_str (), L"Retro"))
+    if (0 == _wcsicmp (style.c_str (), L"Retro"))
     {
       max_anisotropy            = 8;
       anisotropic_filter        = true;
@@ -1773,7 +1781,7 @@ SK_YS8_InitPlugin (void)
       aa = false;
     }
 
-    else if (! _wcsicmp (style.c_str (), L"Sharp"))
+    else if (0 == _wcsicmp (style.c_str (), L"Sharp"))
     {
       max_anisotropy            =   14;
       anisotropic_filter        = true;
@@ -1812,86 +1820,86 @@ SK_YS8_InitPlugin (void)
 
 
 
-  ys8_config->mipmaps.cache =
+  ys8_cfg.mipmaps.cache =
       dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory->create_parameter <bool> (L"Store Completely Mipmapped Textures"));
 
-  ys8_config->mipmaps.cache->register_to_ini ( SK_GetDLLConfig (),
-                                                L"Ys8.Mipmaps",
-                                                  L"CacheToDisk" );
-  ys8_config->mipmaps.cache->load (config.textures.d3d11.cache_gen_mips);
+  ys8_cfg.mipmaps.cache->register_to_ini ( SK_GetDLLConfig (),
+                                            L"Ys8.Mipmaps",
+                                              L"CacheToDisk" );
+  ys8_cfg.mipmaps.cache->load (config.textures.d3d11.cache_gen_mips);
 
-  ys8_config->mipmaps.stream_rate =
+  ys8_cfg.mipmaps.stream_rate =
       dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory->create_parameter <int> (L"Streaming Priority"));
 
-  ys8_config->mipmaps.stream_rate->register_to_ini ( SK_GetDLLConfig (),
-                                                      L"Ys8.Mipmaps",
-                                                        L"StreamingPriority" );
+  ys8_cfg.mipmaps.stream_rate->register_to_ini ( SK_GetDLLConfig (),
+                                                  L"Ys8.Mipmaps",
+                                                    L"StreamingPriority" );
 
-  ys8_config->mipmaps.anisotropy =
+  ys8_cfg.mipmaps.anisotropy =
       dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory->create_parameter <int> (L"Maximum Anisotropic Filtering Level"));
 
-  ys8_config->mipmaps.anisotropy->register_to_ini ( SK_GetDLLConfig (),
-                                                      L"Ys8.Mipmaps",
-                                                        L"MaxAnisotropy" );
+  ys8_cfg.mipmaps.anisotropy->register_to_ini ( SK_GetDLLConfig (),
+                                                 L"Ys8.Mipmaps",
+                                                   L"MaxAnisotropy" );
 
-  ys8_config->mipmaps.anisotropy->load (max_anisotropy);
+  ys8_cfg.mipmaps.anisotropy->load (max_anisotropy);
 
 
-  ys8_config->performance.manage_clean_memory =
+  ys8_cfg.performance.manage_clean_memory =
       dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory->create_parameter <bool> (L"Take control of redundant buffer uploads"));
 
-  ys8_config->performance.manage_clean_memory->register_to_ini ( SK_GetDLLConfig (),
-                                                                  L"Ys8.Memory",
-                                                                    L"SkipUnchangedTextUploads" );
+  ys8_cfg.performance.manage_clean_memory->register_to_ini ( SK_GetDLLConfig (),
+                                                              L"Ys8.Memory",
+                                                                L"SkipUnchangedTextUploads" );
 
-  ys8_config->performance.manage_clean_memory->load (ManageCleanMemory);
+  ys8_cfg.performance.manage_clean_memory->load (ManageCleanMemory);
 
-  ys8_config->performance.aggressive_memory_mgmt =
+  ys8_cfg.performance.aggressive_memory_mgmt =
       dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory->create_parameter <bool> (L"Try to prevent even more"));
 
-  ys8_config->performance.aggressive_memory_mgmt->register_to_ini ( SK_GetDLLConfig (),
-                                                                     L"Ys8.Memory",
-                                                                       L"AggressiveMode" );
+  ys8_cfg.performance.aggressive_memory_mgmt->register_to_ini ( SK_GetDLLConfig (),
+                                                                 L"Ys8.Memory",
+                                                                   L"AggressiveMode" );
 
-  ys8_config->performance.aggressive_memory_mgmt->load (CatchAllMemoryFaults);
+  ys8_cfg.performance.aggressive_memory_mgmt->load (CatchAllMemoryFaults);
 
 
 
-  ys8_config->postproc.override_postproc =
+  ys8_cfg.postproc.override_postproc =
       dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory->create_parameter <bool> (L"Override post-processing"));
 
-  ys8_config->postproc.contrast =
+  ys8_cfg.postproc.contrast =
       dynamic_cast <sk::ParameterFloat *>
         (g_ParameterFactory->create_parameter <float> (L"Contrast"));
 
-  ys8_config->postproc.sharpness =
+  ys8_cfg.postproc.sharpness =
       dynamic_cast <sk::ParameterFloat *>
         (g_ParameterFactory->create_parameter <float> (L"Sharpness"));
 
-  ys8_config->postproc.vignette =
+  ys8_cfg.postproc.vignette =
       dynamic_cast <sk::ParameterFloat *>
         (g_ParameterFactory->create_parameter <float> (L"Vignette"));
 
 
-  ys8_config->postproc.override_postproc->register_to_ini ( SK_GetDLLConfig (),
-                                                             L"Ys8.PostProcess",
-                                                               L"Override" );
+  ys8_cfg.postproc.override_postproc->register_to_ini ( SK_GetDLLConfig (),
+                                                         L"Ys8.PostProcess",
+                                                           L"Override" );
 
-  ys8_config->postproc.contrast->register_to_ini ( SK_GetDLLConfig (),
-                                                    L"Ys8.PostProcess",
-                                                      L"Contrast" );
-  ys8_config->postproc.vignette->register_to_ini ( SK_GetDLLConfig (),
-                                                    L"Ys8.PostProcess",
-                                                      L"Vignette" );
-  ys8_config->postproc.sharpness->register_to_ini ( SK_GetDLLConfig (),
-                                                     L"Ys8.PostProcess",
-                                                       L"Sharpness" );
+  ys8_cfg.postproc.contrast->register_to_ini ( SK_GetDLLConfig (),
+                                                L"Ys8.PostProcess",
+                                                  L"Contrast" );
+  ys8_cfg.postproc.vignette->register_to_ini ( SK_GetDLLConfig (),
+                                                L"Ys8.PostProcess",
+                                                  L"Vignette" );
+  ys8_cfg.postproc.sharpness->register_to_ini ( SK_GetDLLConfig (),
+                                                 L"Ys8.PostProcess",
+                                                   L"Sharpness" );
 
 
   __SK_D3D11_PixelShader_CBuffer_Overrides->push_back (
@@ -1900,10 +1908,10 @@ SK_YS8_InitPlugin (void)
 
   SK_YS8_CB_Override = &__SK_D3D11_PixelShader_CBuffer_Overrides->back ();
 
-  ys8_config->postproc.override_postproc->load (SK_YS8_CB_Override->Enable);
-  ys8_config->postproc.contrast->load          (SK_YS8_CB_Override->Values [0]);
-  ys8_config->postproc.vignette->load          (SK_YS8_CB_Override->Values [1]);
-  ys8_config->postproc.sharpness->load         (SK_YS8_CB_Override->Values [3]);
+  ys8_cfg.postproc.override_postproc->load (SK_YS8_CB_Override->Enable);
+  ys8_cfg.postproc.contrast->load          (SK_YS8_CB_Override->Values [0]);
+  ys8_cfg.postproc.vignette->load          (SK_YS8_CB_Override->Values [1]);
+  ys8_cfg.postproc.sharpness->load         (SK_YS8_CB_Override->Values [3]);
 
   SK_ApplyQueuedHooks ();
 

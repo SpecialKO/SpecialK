@@ -565,7 +565,7 @@ ProcessInformation ( PDWORD                       pdData,
       void* pspi = nullptr;
 
       for ( dSize = pQuery->NtInfo.len;
-                 (pspi == nullptr) && dSize;
+                 (pspi == nullptr) && dSize  != 0;
                                       dSize <<= 1 )
       {
         pQuery->NtInfo.alloc (dSize, true);
@@ -1060,7 +1060,7 @@ public:
   struct SK_Thread_DataCollector
   {
     // Double-buffered
-    volatile SK_NtQuerySystemInformation* pQuery         = nullptr;
+             SK_NtQuerySystemInformation* pQuery         = nullptr;
              HANDLE                       hProduceThread = INVALID_HANDLE_VALUE;
              HANDLE                       hSignalProduce =
                SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
@@ -1203,7 +1203,7 @@ public:
     }
 
 
-    if ((! rebalance) && InterlockedCompareExchange (&rebalance_queue, 0, 1))
+    if ((! rebalance) && 1 == InterlockedCompareExchange (&rebalance_queue, 0, 1))
     {
       rebalance     = true;
       rebalance_idx = 0;
@@ -1308,14 +1308,14 @@ public:
                      DWORD_PTR dwMask = pTLS   ?
                 pTLS->scheduler->affinity_mask : DWORD_PTR_MAX;
 
-              if (pnum != ideal && ( (dwMask >> pnum)  & 0x1)
-                                && ( (dwMask >> ideal) & 0x1))
+              if (pnum != ideal && (( (dwMask >> pnum)  & 0x1) == 0x1)
+                                && (( (dwMask >> ideal) & 0x1) == 0x1))
               {
                 if ( SetThreadIdealProcessor ( it->hThread, ideal ) != DWORD_MAX )
                   pnum = ideal;
               }
 
-              if (pnum == ideal || (! ((dwMask >> ideal) & 0x1)))
+              if (pnum == ideal || ((dwMask >> ideal) & 0x1) != 0x1)
               {
                 if (pnum == ideal)
                   rebalance_idx++;
@@ -1513,7 +1513,7 @@ public:
           }
 
           SKWG_Thread_Entry* ptEnt =
-            SKWG_Threads [dwLocalTID];
+            SKWG_Threads.get ()[dwLocalTID];
 
           const auto& thread =
             pProc->aThreads [i];
@@ -1578,10 +1578,10 @@ public:
 
         ImGui::BeginTooltip ();
 
-        if (ReadAcquire64 (&pTLS->memory->global_bytes)  ||
-            ReadAcquire64 (&pTLS->memory->local_bytes)   ||
-            ReadAcquire64 (&pTLS->memory->virtual_bytes) ||
-            ReadAcquire64 (&pTLS->memory->heap_bytes)       )
+        if (ReadAcquire64 (&pTLS->memory->global_bytes)  != 0 ||
+            ReadAcquire64 (&pTLS->memory->local_bytes)   != 0 ||
+            ReadAcquire64 (&pTLS->memory->virtual_bytes) != 0 ||
+            ReadAcquire64 (&pTLS->memory->heap_bytes)    != 0    )
         {
           ImGui::BeginGroup   ();
           if (ReadAcquire64 (&pTLS->memory->local_bytes))   ImGui::TextUnformatted ("Local Memory:\t");
@@ -1593,19 +1593,19 @@ public:
           ImGui::SameLine     ();
 
           ImGui::BeginGroup   ();
-          if (ReadAcquire64 (&pTLS->memory->local_bytes))   ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->local_bytes),   2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory->global_bytes))  ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->global_bytes),  2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory->heap_bytes))    ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->heap_bytes),    2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory->virtual_bytes)) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->virtual_bytes), 2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->local_bytes)   != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->local_bytes),   2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->global_bytes)  != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->global_bytes),  2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->heap_bytes)    != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->heap_bytes),    2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->virtual_bytes) != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->virtual_bytes), 2, 3).c_str ());
           ImGui::EndGroup     ();
 
           ImGui::SameLine     ();
 
           ImGui::BeginGroup   ();
-          if (ReadAcquire64 (&pTLS->memory->local_bytes))   ImGui::TextUnformatted ("\t(Lifetime)");
-          if (ReadAcquire64 (&pTLS->memory->global_bytes))  ImGui::TextUnformatted ("\t(Lifetime)");
-          if (ReadAcquire64 (&pTLS->memory->heap_bytes))    ImGui::TextUnformatted ("\t(Lifetime)");
-          if (ReadAcquire64 (&pTLS->memory->virtual_bytes)) ImGui::TextUnformatted ("\t(In-Use Now)");
+          if (ReadAcquire64 (&pTLS->memory->local_bytes)   != 0) ImGui::TextUnformatted ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory->global_bytes)  != 0) ImGui::TextUnformatted ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory->heap_bytes)    != 0) ImGui::TextUnformatted ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory->virtual_bytes) != 0) ImGui::TextUnformatted ("\t(In-Use Now)");
           ImGui::EndGroup     ();
         }
 
@@ -1765,8 +1765,6 @@ public:
     static bool   hide_inactive       = true;
     static bool   reset_stats         = true;
 
-    bool clear_counters = false;
-
     extern std::vector <SK_MMCS_TaskEntry*>
     SK_MMCS_GetTasks (void);
 
@@ -1829,6 +1827,8 @@ public:
     if ( tasks.empty () ||
          ImGui::CollapsingHeader ("Normal Win32 Threads", ImGuiTreeNodeFlags_DefaultOpen) )
     {
+      bool clear_counters = false;
+
       ImGui::BeginGroup ();
 
       ImGui::BeginGroup ();
@@ -1947,9 +1947,9 @@ public:
             {
               struct suspend_params_s
               {
+                ULONG64 frame_requested;
                 HANDLE  hThread;
                 DWORD   dwTid;
-                ULONG64 frame_requested;
                 ULONG   time_requested;
               };
 
@@ -1957,7 +1957,7 @@ public:
                 to_suspend;
 
               to_suspend.push (
-                { nullptr, dwSelectedTid, SK_GetFramesDrawn (), SK_GetCurrentMS () }
+                { SK_GetFramesDrawn (), nullptr, dwSelectedTid, SK_GetCurrentMS () }
               );
 
               static HANDLE hThreadRecovery = INVALID_HANDLE_VALUE;
@@ -2062,7 +2062,7 @@ public:
                         }
 
                         std::swap (leftovers, suspended_threads);
-                      } while (! ReadAcquire (&__SK_DLL_Ending));
+                      } while (0 == ReadAcquire (&__SK_DLL_Ending));
 
                       CancelWaitableTimer (hRecoveryEvent);
                       CloseHandle         (hRecoveryEvent);
@@ -2359,8 +2359,8 @@ public:
       ImGui::PopStyleColor ();
 
       if (ImGui::IsItemHovered ())
-      { if ( ! dwErrorCode ) ThreadMemTooltip (it.second->dwTid);
-        else                 ImGui::SetTooltip ("Error Code: %lu", dwErrorCode);
+      { if (                           NO_ERROR == dwErrorCode ) ThreadMemTooltip (it.second->dwTid);
+        else ImGui::SetTooltip ("Error Code: %lu", dwErrorCode);
       }
 
     }

@@ -71,20 +71,23 @@ SK_LSBTS_PlugInCfg (void)
     const uint32_t ps_face = 0xbde11248;
     const uint32_t ps_skin = 0xa79e425c;
 
+    static auto& shaders =
+      SK_D3D11_Shaders.get ();
+
     ImGui::TreePush ("");
 
     if (ImGui::Checkbox ("Life is Wired", &wired))
     {
       if (wired)
       {
-        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.wireframe, ps_skin);
-        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.wireframe, ps_face);
+        shaders.pixel.addTrackingRef (shaders.pixel.wireframe, ps_skin);
+        shaders.pixel.addTrackingRef (shaders.pixel.wireframe, ps_face);
       }
 
       else
       {
-        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.wireframe, ps_skin);
-        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.wireframe, ps_face);
+        shaders.pixel.releaseTrackingRef (shaders.pixel.wireframe, ps_skin);
+        shaders.pixel.releaseTrackingRef (shaders.pixel.wireframe, ps_face);
       }
     }
 
@@ -92,12 +95,12 @@ SK_LSBTS_PlugInCfg (void)
     {
       if (evil)
       {
-        SK_D3D11_Shaders->vertex.addTrackingRef (SK_D3D11_Shaders->vertex.blacklist, vs_eyes);
+        shaders.vertex.addTrackingRef (shaders.vertex.blacklist, vs_eyes);
       }
 
       else
       {
-        SK_D3D11_Shaders->vertex.releaseTrackingRef (SK_D3D11_Shaders->vertex.blacklist, vs_eyes);
+        shaders.vertex.releaseTrackingRef (shaders.vertex.blacklist, vs_eyes);
       }
     }
 
@@ -105,14 +108,14 @@ SK_LSBTS_PlugInCfg (void)
     {
       if (even_stranger)
       {
-        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_face);
-        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_skin);
+        shaders.pixel.addTrackingRef (shaders.pixel.blacklist, ps_face);
+        shaders.pixel.addTrackingRef (shaders.pixel.blacklist, ps_skin);
       }
 
       else
       {
-        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_face);
-        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, ps_skin);
+        shaders.pixel.releaseTrackingRef (shaders.pixel.blacklist, ps_face);
+        shaders.pixel.releaseTrackingRef (shaders.pixel.blacklist, ps_skin);
       }
     }
 
@@ -339,15 +342,18 @@ SK_FFXV_PlugInCfg (void)
     if (ignis_vision || hair_club)
       SK_D3D11_EnableTracking = true;
 
+    static auto& shaders =
+      SK_D3D11_Shaders.get ();
+
     if (ImGui::Checkbox ((const char *)u8R"(Ignis Vision ™)", &ignis_vision))
     {
       if (ignis_vision)
       {
-        SK_D3D11_Shaders->vertex.addTrackingRef (SK_D3D11_Shaders->vertex.wireframe, 0x89d01dda);
-        SK_D3D11_Shaders->vertex.addTrackingRef (SK_D3D11_Shaders->vertex.on_top,    0x89d01dda);
+        shaders.vertex.addTrackingRef (shaders.vertex.wireframe, 0x89d01dda);
+        shaders.vertex.addTrackingRef (shaders.vertex.on_top,    0x89d01dda);
       } else {
-        SK_D3D11_Shaders->vertex.releaseTrackingRef (SK_D3D11_Shaders->vertex.wireframe, 0x89d01dda);
-        SK_D3D11_Shaders->vertex.releaseTrackingRef (SK_D3D11_Shaders->vertex.on_top,    0x89d01dda);
+        shaders.vertex.releaseTrackingRef (shaders.vertex.wireframe, 0x89d01dda);
+        shaders.vertex.releaseTrackingRef (shaders.vertex.on_top,    0x89d01dda);
       }
     }
 
@@ -358,29 +364,29 @@ SK_FFXV_PlugInCfg (void)
       if (hair_club)
       {
         // Normal Hair
-        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x1a77046d);
-        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x132b907a);
-        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8a0dbca1);
-        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xc9bb3e7f);
+        shaders.pixel.addTrackingRef (shaders.pixel.blacklist, 0x1a77046d);
+        shaders.pixel.addTrackingRef (shaders.pixel.blacklist, 0x132b907a);
+        shaders.pixel.addTrackingRef (shaders.pixel.blacklist, 0x8a0dbca1);
+        shaders.pixel.addTrackingRef (shaders.pixel.blacklist, 0xc9bb3e7f);
 
         // Wet Hair
-        //SK_D3D11_Shaders->pixel.blacklist.emplace (0x41c6add3);
-        //SK_D3D11_Shaders->pixel.blacklist.emplace (0x4524bf4f);
-        //SK_D3D11_Shaders->pixel.blacklist.emplace (0x62f9cfe8);
-        //SK_D3D11_Shaders->pixel.blacklist.emplace (0x95f7de71);
+        //shaders.pixel.blacklist.emplace (0x41c6add3);
+        //shaders.pixel.blacklist.emplace (0x4524bf4f);
+        //shaders.pixel.blacklist.emplace (0x62f9cfe8);
+        //shaders.pixel.blacklist.emplace (0x95f7de71);
 
         // HairWorks
-        SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x2d6f6ee8);
+        shaders.pixel.addTrackingRef (shaders.pixel.blacklist, 0x2d6f6ee8);
       } else {
-        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x1a77046d);
-        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x132b907a);
-        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8a0dbca1);
-        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xc9bb3e7f);
-        SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x2d6f6ee8);
-        //SK_D3D11_Shaders->pixel.blacklist.erase (0x41c6add3);
-        //SK_D3D11_Shaders->pixel.blacklist.erase (0x4524bf4f);
-        //SK_D3D11_Shaders->pixel.blacklist.erase (0x62f9cfe8);
-        //SK_D3D11_Shaders->pixel.blacklist.erase (0x95f7de71);
+        shaders.pixel.releaseTrackingRef (shaders.pixel.blacklist, 0x1a77046d);
+        shaders.pixel.releaseTrackingRef (shaders.pixel.blacklist, 0x132b907a);
+        shaders.pixel.releaseTrackingRef (shaders.pixel.blacklist, 0x8a0dbca1);
+        shaders.pixel.releaseTrackingRef (shaders.pixel.blacklist, 0xc9bb3e7f);
+        shaders.pixel.releaseTrackingRef (shaders.pixel.blacklist, 0x2d6f6ee8);
+        //shaders.pixel.blacklist.erase (0x41c6add3);
+        //shaders.pixel.blacklist.erase (0x4524bf4f);
+        //shaders.pixel.blacklist.erase (0x62f9cfe8);
+        //shaders.pixel.blacklist.erase (0x95f7de71);
       }
     }
 
@@ -735,9 +741,9 @@ SK_SM_PlugInInit (void)
   auto cp =
     SK_GetCommandProcessor ();
 
-       if (! _wcsicmp (SK_GetHostApp (), L"Shenmue.exe"))
+       if (0 == _wcsicmp (SK_GetHostApp (), L"Shenmue.exe"))
     __SK_SHENMUE_ClockFuzz = 20.0f;
-  else if (! _wcsicmp (SK_GetHostApp (), L"Shenmue2.exe"))
+  else if (0 == _wcsicmp (SK_GetHostApp (), L"Shenmue2.exe"))
     __SK_SHENMUE_ClockFuzz = 166.0f;
 
   _SK_SM_FullAspectCutscenes =
@@ -829,7 +835,7 @@ SK_SM_PlugInInit (void)
 
   if (SK_Shenmue_Limiter.want_bypass)
   {
-    if (config.render.framerate.target_fps == 0)
+    if (config.render.framerate.target_fps == 0.0f)
       cp->ProcessCommandLine ("TargetFPS 30.0");
 
     else
@@ -983,6 +989,9 @@ SK_SM_PlugInCfg (void)
 
 
 }
+
+extern void SK_ImGui_RebalanceThreadButton (void);
+
 extern float __SK_Thread_RebalanceEveryNSeconds;
 extern bool  __SK_MHW_KillAntiDebug;
 
@@ -1047,8 +1056,7 @@ SK_ACO_PlugInCfg (void)
       ImGui::EndTooltip      ();
     }
 
-    extern void SK_ImGui_RebalanceThreadButton (void);
-                SK_ImGui_RebalanceThreadButton (    );
+    SK_ImGui_RebalanceThreadButton ();
 
     if (ImGui::IsItemHovered ())
       ImGui::SetTooltip ("Redistribute CPU core assignment based on CPU usage history.");

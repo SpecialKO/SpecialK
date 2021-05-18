@@ -838,7 +838,6 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
       static bool hovered = false;
       static bool focused = false;
-             bool manual_change = false;
 
       if (hovered || focused)
       {
@@ -902,7 +901,6 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
           if (direction != 0 && last_sel != sel)
           {
-            manual_change = true;
             last_sel_idx  =
               rt_indexes [render_textures [sel]];
           }
@@ -1037,9 +1035,6 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         if ( rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D ||
              rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS )
         {
-          bool multisampled =
-            rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS;
-
           SK_ComPtr   <ID3D11Resource>        pRes = nullptr;
                        rt_view->GetResource (&pRes.p);
           SK_ComQIPtr <ID3D11Texture2D> pTex (pRes.p);
@@ -1133,6 +1128,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               ImGui::EndGroup   (                  );
 
               ImGui::SameLine   ();
+
+              bool multisampled =
+                rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS;
 
               ImGui::BeginGroup ();
               ImGui::Text       ( "%lu",                   refs );

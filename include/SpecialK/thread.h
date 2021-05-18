@@ -172,9 +172,9 @@ static void
 SK_Thread_SpinUntilFlagged ( _In_ _Interlocked_operand_ LONG volatile const *pFlag,
                                                         LONG                 _SpinMax = 75L ) noexcept
 {
-  while (! ReadAcquire (pFlag))
+  while (ReadAcquire (pFlag) == 0)
   {
-    for (int i = 0; i < _SpinMax && (! ReadAcquire (pFlag)); i++)
+    for (int i = 0; i < _SpinMax && (ReadAcquire (pFlag) == 0); i++)
       ;
 
     if (ReadAcquire (pFlag) == 1)

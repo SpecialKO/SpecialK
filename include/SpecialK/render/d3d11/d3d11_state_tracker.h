@@ -431,6 +431,16 @@ private:
   bool loaded;
 };
 
+extern std::string
+  __SK_MakeSteamPS ( bool  hdr10,
+                     bool  scRGB,
+                     float max_luma );
+extern
+  ID3D10Blob*
+  __SK_MakeSteamPS_Bytecode ( bool  hdr10,
+                              bool  scRGB,
+                              float max_luma );
+
 static
 __declspec (noinline)
 HRESULT
@@ -512,16 +522,6 @@ SK_D3D11_CreateShader_Impl (
   {
     if (type == sk_shader_class::Pixel && checksum == 0x9aefe985)
     {
-      extern std::string
-        __SK_MakeSteamPS ( bool  hdr10,
-                           bool  scRGB,
-                           float max_luma );
-      extern
-        ID3D10Blob*
-        __SK_MakeSteamPS_Bytecode ( bool  hdr10,
-                                    bool  scRGB,
-                                    float max_luma );
-
       extern bool __SK_HDR_16BitSwap;
       if (        __SK_HDR_16BitSwap || ( rb.hdr_capable &&
                                           rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))
@@ -730,8 +730,8 @@ SK_D3D11_CreateShader_Impl (
         desc.crc32c = checksum;
 
         desc.bytecode.insert ( desc.bytecode.cend  (),
-          &((uint8_t *) pShaderBytecode) [0],
-          &((uint8_t *) pShaderBytecode) [BytecodeLength]
+          &((const uint8_t *) pShaderBytecode) [0],
+          &((const uint8_t *) pShaderBytecode) [BytecodeLength]
         );
 
         // Concurrent shader creation resulted in the same shader twice,

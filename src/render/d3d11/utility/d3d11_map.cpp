@@ -329,16 +329,16 @@ SK_D3D11_Unmap_Impl (
 
       SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
 
-      uint32_t checksum  = 0;
-      size_t   size      = 0;
-      uint32_t top_crc32 = 0x00;
-
       D3D11_TEXTURE2D_DESC desc = { };
            pTex->GetDesc (&desc);
 
       if ( (desc.BindFlags & D3D11_BIND_SHADER_RESOURCE) ||
             desc.Usage    == D3D11_USAGE_STAGING )
       {
+        uint32_t checksum  = 0;
+        size_t   size      = 0;
+        uint32_t top_crc32 = 0x00;
+
         int levels = desc.MipLevels;
 
         desc.MipLevels = 1;
@@ -351,8 +351,6 @@ SK_D3D11_Unmap_Impl (
 
         //dll_log->Log (L"[DX11TexMgr] Mapped 2D texture... (%x -- %lu bytes)", checksum, size);
 
-        std::wstring filename = L"";
-
         if (checksum != 0x0)
         {
           static auto& textures =
@@ -362,11 +360,12 @@ SK_D3D11_Unmap_Impl (
           bool injectable = (
             desc.Usage == D3D11_USAGE_STAGING &&
             levels     ==  1                  &&
-            checksum   != 0x00                &&
              ( SK_D3D11_IsInjectable (top_crc32, checksum) ||
                SK_D3D11_IsInjectable (top_crc32, 0x00)
              )
           );
+
+          std::wstring filename;
 
           if (injectable)
           {
@@ -393,9 +392,8 @@ SK_D3D11_Unmap_Impl (
                   SK_ComPtr <ID3D11Device>    pDevice;
                   pDevCtx->GetDevice        (&pDevice.p);
                   
-                  if (! pTLS)
-                        pTLS =
-                      SK_TLS_Bottom ();
+                    pTLS =
+                  SK_TLS_Bottom ();
                   
                   SK_ScopedBool decl_tex_scope (
                     SK_D3D11_DeclareTexInjectScope (pTLS)

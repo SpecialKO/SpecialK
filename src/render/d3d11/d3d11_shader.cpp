@@ -2200,10 +2200,10 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
       }
     }
 
-    if (crc32c == 0x0 || listed.count (crc32c))
+    if (crc32c == 0x0 || listed.count (crc32c) > 0)
       continue;
 
-    if (cond_blacklist [shader].count (crc32c))
+    if (cond_blacklist [shader].count (crc32c) > 0)
     {
       ImGui::BeginGroup ();
 
@@ -2255,10 +2255,10 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
       }
     }
 
-    if (crc32c == 0x0 || listed.count (crc32c))
+    if (crc32c == 0x0 || listed.count (crc32c) > 0)
       continue;
 
-    if (! cond_blacklist [shader].count (crc32c))
+    if (cond_blacklist [shader].count (crc32c) == 0)
     {
       ImGui::BeginGroup ();
 
@@ -3050,8 +3050,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (! scrolled)
     {
-          if  (io.NavInputs [ImGuiNavInput_FocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f) { dir = -1; }
-      else if (io.NavInputs [ImGuiNavInput_FocusNext] && io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f) { dir =  1; }
+          if  (io.NavInputs [ImGuiNavInput_FocusPrev] != 0.0f && io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f) { dir = -1; }
+      else if (io.NavInputs [ImGuiNavInput_FocusNext] != 0.0f && io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f) { dir =  1; }
 
       else
       {
@@ -3249,8 +3249,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     HRESULT hr = E_FAIL;
 
-    if (                         ReadAcquire ((volatile LONG *)&tracker->crc32c) != 0 &&
-        (! (*disassembly).count (ReadAcquire ((volatile LONG *)&tracker->crc32c))) )
+    if (                         tracker->crc32c  != 0 &&
+           (*disassembly).count (tracker->crc32c) == 0 )
     {
       static SK_Thread_HybridSpinlock* locks [6] = {
         cs_shader_vs.get (), cs_shader_ps.get (), cs_shader_gs.get (),
@@ -3286,7 +3286,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         strlen ((const char *)pDisasm->GetBufferPointer ())
                                   : 0;
 
-      if (SUCCEEDED (hr) && len)
+      if (SUCCEEDED (hr) && len > 0)
       {
         char* szDisasm      = _strdup ((const char *)pDisasm->GetBufferPointer ());
         char* szDisasmEnd   = szDisasm != nullptr ?
@@ -4560,7 +4560,7 @@ struct SK_D3D11_CommandBase
           {
             case 0:
             {
-              if (! SK_D3D11_ShaderClassMap.count (wszTok))
+              if (SK_D3D11_ShaderClassMap.count (wszTok) == 0)
                 return SK_ICommandResult ("D3D11.ShaderMod.Set", szArgs, "Invalid Shader Type", 0, nullptr, this);
               else
                 shader_registry = SK_D3D11_ShaderClassMap.at (std::wstring (wszTok));
@@ -4822,7 +4822,7 @@ struct SK_D3D11_CommandBase
                 }
                 else if (0 == _wcsicmp (wszTok, L"HUD"))
                 {
-                  if (! shader_registry->hud.count      (shader_hash))
+                  if (shader_registry->hud.count        (shader_hash) == 0)
                   {
                     new_condition = true;
                     shader_registry->addTrackingRef     (shader_registry->hud, shader_hash);

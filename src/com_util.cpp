@@ -423,10 +423,11 @@ SK_WMI_Shutdown (void)
 
     while (ReadAcquire (&COM::base.wmi.init))
     {
-      for (int i = 0; i < _SpinMax && (ReadAcquire (&COM::base.wmi.init)); i++)
+      for (int i = 0; i < _SpinMax && (ReadAcquire (&COM::base.wmi.init) != 0L); i++) {
         ;
+      }
 
-      if (! ReadAcquire (&COM::base.wmi.init))
+      if (ReadAcquire (&COM::base.wmi.init) == 0L)
         break;
 
       MsgWaitForMultipleObjectsEx (0, nullptr, 16, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);

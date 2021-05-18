@@ -41,7 +41,8 @@ SK::ControlPanel::D3D9::Draw (void)
     show_shader_mod_dlg = SK_D3D9_TextureModDlg ();
 
 
-  if ( static_cast <int> (SK::ControlPanel::render_api) & static_cast <int> (SK_RenderAPI::D3D9) &&
+  if ( ( static_cast <int> (SK::ControlPanel::render_api) & static_cast <int> (SK_RenderAPI::D3D9) ) ==
+                                                            static_cast <int> (SK_RenderAPI::D3D9)   &&
        ImGui::CollapsingHeader ("Direct3D 9 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
   {
     ImGui::TreePush ("");
@@ -82,8 +83,8 @@ SK::ControlPanel::D3D9::Draw (void)
     }
 
     // This only works when we have wrapped SwapChains
-    if ( ReadAcquire (&SK_D3D9_LiveWrappedSwapChains) ||
-         ReadAcquire (&SK_D3D9_LiveWrappedSwapChainsEx) )
+    if ( ReadAcquire (&SK_D3D9_LiveWrappedSwapChains)   != 0 ||
+         ReadAcquire (&SK_D3D9_LiveWrappedSwapChainsEx) != 0 )
     {
       ImGui::SameLine              ();
       OSD::DrawVideoCaptureOptions ();
@@ -100,7 +101,7 @@ SK::ControlPanel::D3D9::Draw (void)
       ImGui::PushStyleVar (ImGuiStyleVar_ChildRounding, 15.0f);
       ImGui::TreePush     ("");
 
-      ImGui::BeginChild  ("Texture Details", ImVec2 ( font.size           * 30,
+      ImGui::BeginChild  ("Texture Details", ImVec2 ( font.size           * 30.0f,
                                                       font.size_multiline * 6.0f ),
                                                true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 

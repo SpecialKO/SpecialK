@@ -34,16 +34,16 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
   if (bRet)
   {
     struct toggle_state_s {
+               bool    *dest         = nullptr;
                ULONG64  frames_drawn = 0;
+      volatile LONG     testing      = FALSE;
                DWORD    initial_time = 0;
                DWORD    time_to_wait = 0;
                bool     original     = false,
                         new_val      = false;
-               bool    *dest         = nullptr;
-      volatile LONG     testing      = FALSE;
     } static osd_toggle              = {   };
 
-    if (! InterlockedCompareExchange (&osd_toggle.testing, TRUE, FALSE))
+    if (FALSE == InterlockedCompareExchange (&osd_toggle.testing, TRUE, FALSE))
     {
       osd_toggle.frames_drawn = SK_GetFramesDrawn ();
       osd_toggle.initial_time = SK::ControlPanel::current_time;
@@ -233,9 +233,9 @@ SK::ControlPanel::OSD::Draw (void)
     {
       ImGui::TreePush ("");
 
-      float r = static_cast <float> (config.osd.red)   / 255.0f,
-            g = static_cast <float> (config.osd.green) / 255.0f,
-            b = static_cast <float> (config.osd.blue)  / 255.0f;
+      float r = static_cast <float> (config.osd.red)   / 255.0F,
+            g = static_cast <float> (config.osd.green) / 255.0F,
+            b = static_cast <float> (config.osd.blue)  / 255.0F;
 
       float color [3] = { r, g, b };
       float       default_r,
@@ -250,23 +250,23 @@ SK::ControlPanel::OSD::Draw (void)
 
       if (ImGui::ColorEdit3 ("OSD Color", color))
       {
-        color [0] = std::max (std::min (color [0], 1.0f), 0.0f);
-        color [1] = std::max (std::min (color [1], 1.0f), 0.0f);
-        color [2] = std::max (std::min (color [2], 1.0f), 0.0f);
+        color [0] = std::max (std::min (color [0], 1.0F), 0.0f);
+        color [1] = std::max (std::min (color [1], 1.0F), 0.0f);
+        color [2] = std::max (std::min (color [2], 1.0F), 0.0f);
 
-        config.osd.red   = static_cast <int>(color [0] * 255);
-        config.osd.green = static_cast <int>(color [1] * 255);
-        config.osd.blue  = static_cast <int>(color [2] * 255);
+        config.osd.red   = static_cast <int>(color [0] * 255.0F);
+        config.osd.green = static_cast <int>(color [1] * 255.0F);
+        config.osd.blue  = static_cast <int>(color [2] * 255.0F);
 
-        if ( color [0] >= default_r - 0.001f &&
-             color [0] <= default_r + 0.001f    ) config.osd.red   = (int)MAXDWORD;
-        if ( color [1] >= default_g - 0.001f &&
-             color [1] <= default_g + 0.001f    ) config.osd.green = (int)MAXDWORD;
-        if ( color [2] >= default_b - 0.001f &&
-             color [2] <= default_b + 0.001f    ) config.osd.blue  = (int)MAXDWORD;
+        if ( color [0] >= default_r - 0.001F &&
+             color [0] <= default_r + 0.001F    ) config.osd.red   = (int)MAXDWORD;
+        if ( color [1] >= default_g - 0.001F &&
+             color [1] <= default_g + 0.001F    ) config.osd.green = (int)MAXDWORD;
+        if ( color [2] >= default_b - 0.001F &&
+             color [2] <= default_b + 0.001F    ) config.osd.blue  = (int)MAXDWORD;
       }
 
-      if (ImGui::SliderFloat ("OSD Scale", &config.osd.scale, 0.5f, 10.0f))
+      if (ImGui::SliderFloat ("OSD Scale", &config.osd.scale, 0.5F, 10.0F))
       {
         SK_SetOSDScale (config.osd.scale, false, nullptr);
       }

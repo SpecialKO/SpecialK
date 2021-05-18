@@ -67,7 +67,7 @@ struct tv_mem_addr_s
         SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
         try
         {
-          if (! memcmp (pattern, expected, pattern_len))
+          if (0 == memcmp (pattern, expected, pattern_len))
             scanned_addr = expected;
         }
 
@@ -138,12 +138,12 @@ struct tv_mem_addr_s
 
       VirtualProtect ((void*)((intptr_t)scanned_addr + rep_off), rep_size, PAGE_EXECUTE_READWRITE, &dwProtect);
 
-      if (rep_size == 8 && (! ((intptr_t)scanned_addr % 8)))
+      if (rep_size == 8 && (((intptr_t)scanned_addr % 8) == 0))
       {
         InterlockedExchange64 ((volatile LONG64*)((intptr_t)scanned_addr + rep_off), *(__int64 *)orig_bytes.data ());
       }
 
-      else if (rep_size == 2 && (! ((intptr_t)scanned_addr % 2)))
+      else if (rep_size == 2 && (((intptr_t)scanned_addr % 2) == 0))
       {
         InterlockedExchange16 ((volatile SHORT*)((intptr_t)scanned_addr + rep_off), *(SHORT *)"\x77\xBD");
       }
@@ -170,12 +170,12 @@ struct tv_mem_addr_s
 
       VirtualProtect ((void*)((intptr_t)scanned_addr + rep_off), rep_size, PAGE_EXECUTE_READWRITE, &dwProtect);
 
-      if (rep_size == 8 && (! ((intptr_t)scanned_addr % 8)))
+      if (rep_size == 8 && (((intptr_t)scanned_addr % 8) == 0))
       {
         InterlockedExchange64 ((volatile LONG64*)((intptr_t)scanned_addr + rep_off), *(LONG64 *)"\x90\x90\x90\x90\x90\x90\x90\x90");
       }
 
-      else if (rep_size == 2 && (! ((intptr_t)scanned_addr % 2)))
+      else if (rep_size == 2 && (((intptr_t)scanned_addr % 2) == 0))
       {
         InterlockedExchange16 ((volatile SHORT*)((intptr_t)scanned_addr + rep_off), *(SHORT *)"\x90\x90");
       }
@@ -253,6 +253,14 @@ SK_LazyGlobal <SK_TVFix_ModContext> tvfix_ctx;
 
 #define PS_CRC32_SHADOWFILTER 0x84da24a5
 
+extern bool
+__stdcall
+SK_FetchVersionInfo (const wchar_t* wszProduct);
+
+extern HRESULT
+__stdcall
+SK_UpdateSoftware (const wchar_t* wszProduct);
+
 unsigned int
 __stdcall
 SK_TVFix_CheckVersion (LPVOID user)
@@ -264,14 +272,6 @@ SK_TVFix_CheckVersion (LPVOID user)
     {
       while (SK_GetFramesDrawn () < 5)
         ;
-
-      extern bool
-        __stdcall
-        SK_FetchVersionInfo (const wchar_t* wszProduct);
-
-      extern HRESULT
-        __stdcall
-        SK_UpdateSoftware (const wchar_t* wszProduct);
 
       // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
       //

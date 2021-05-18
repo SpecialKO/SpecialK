@@ -32,6 +32,9 @@
 
 #include <execution>
 
+#define _L2(w)  L ## w
+#define  _L(w) _L2(w)
+
 std::unique_ptr <SK_Thread_HybridSpinlock> tex_cs     = nullptr;
 std::unique_ptr <SK_Thread_HybridSpinlock> hash_cs    = nullptr;
 std::unique_ptr <SK_Thread_HybridSpinlock> dump_cs    = nullptr;
@@ -80,7 +83,7 @@ SK_D3D11_InitTextures (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  if (! InterlockedCompareExchangeAcquire (&SK_D3D11_tex_init, TRUE, FALSE))
+  if (FALSE == InterlockedCompareExchangeAcquire (&SK_D3D11_tex_init, TRUE, FALSE))
   {
     if (pTLS != nullptr)
         pTLS->d3d11->ctx_init_thread = true;
@@ -432,9 +435,10 @@ IUnknown_Release (IUnknown* This)
                     pTex->GetDesc (&tex_desc);
 
               if ( (tex_desc.Usage    != D3D11_USAGE_IMMUTABLE) ||
-                   (tex_desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS) )
+                   (tex_desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS) ==
+                                         D3D11_BIND_UNORDERED_ACCESS)
               {
-                // Detach and relaease so that SK_ComQIPtr <...> dtors unwind
+                // Detach and release so that SK_ComQIPtr <...> dtors unwind
                 //   in the reverse order they were constructed.
                 IUnknown_Release_Original (pTex.Detach ());
                 IUnknown_Release_Original (pRes.Detach ());
@@ -1484,7 +1488,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
           mdata.format, height
         );
 
-      if  (! lines)
+      if  (lines == 0)
       {
         error = true;
         break;
@@ -1618,6 +1622,14 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   return E_FAIL;
 }
 
+
+extern void
+SK_D3D11_ProcessScreenshotQueueEx (
+  SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
+  bool                 wait = false,
+  bool                purge = false );
+
+
 SK_LazyGlobal <SK_D3D11_TexMgr> SK_D3D11_Textures;
 
 
@@ -1665,12 +1677,6 @@ void
 __stdcall
 SK_D3D11_ResetTexCache (void)
 {
-  extern void
-  SK_D3D11_ProcessScreenshotQueueEx (
-    SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
-    bool                 wait = false,
-    bool                purge = false );
-
   SK_D3D11_ProcessScreenshotQueueEx (
     SK_ScreenshotStage::_FlushQueue, false, true
   );
@@ -2521,7 +2527,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
   static volatile LONG init = FALSE;
 
-  if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
+  if (FALSE == InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
     DXGI_VIRTUAL_HOOK ( &pTex, 2, "IUnknown::Release",
                         IUnknown_Release,
@@ -2652,7 +2658,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
                 L"DX11TexMgr" );
   }
 
-  SK_LOG4 ( ( L"Referencing Texture '%x' with %lu mipmap levels :: (%08" PRIxPTR L"h)",
+  SK_LOG4 ( ( L"Referencing Texture '%x' with %lu mipmap levels :: (%08" _L(PRIxPTR) L"h)",
                 desc2d.crc32c,
                   desc2d.orig_desc.MipLevels,
                     (uintptr_t)pTex ),
@@ -3046,7 +3052,8 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
   {
     do
     {
-      if (           (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
+      if (           (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ==
+                                            FILE_ATTRIBUTE_DIRECTORY  &&
           (_wcsnicmp (fd.cFileName, L"."      , MAX_PATH) != 0)       &&
           (_wcsnicmp (fd.cFileName, L".."     , MAX_PATH) != 0)       &&
           (_wcsnicmp (fd.cFileName, L"UnX_Old", MAX_PATH) != 0)   )
@@ -3380,8 +3387,9 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
 
       const SK_D3D11_TEXTURE2D_DESC desc (tex_desc);
 
-      if ( (desc.Usage         == D3D11_USAGE_STAGING    ) &&
-           (desc.CPUAccessFlags & D3D11_CPU_ACCESS_READ) )
+      if ( (desc.Usage         == D3D11_USAGE_STAGING  ) &&
+           (desc.CPUAccessFlags & D3D11_CPU_ACCESS_READ) ==
+                                  D3D11_CPU_ACCESS_READ )
       {
         if (pTLS == nullptr)
             pTLS  = SK_TLS_Bottom ();
