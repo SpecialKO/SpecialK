@@ -343,4 +343,292 @@
     <CodeCurrent>3170002416</CodeCurrent>
     <CodeNext>125</CodeNext>
   </Table1>
+  <Table1>
+    <FileName>dxgi.cpp</FileName>
+    <ErrorCode>V595</ErrorCode>
+    <Message>The 'pDesc' pointer was utilized before it was verified against nullptr. Check lines: _, _.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>165867353</CodeCurrent>
+    <CodeNext>959364588</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>com_util.h</FileName>
+    <ErrorCode>V3545</ErrorCode>
+    <Message>Operands of the '!' operator should have bool essential type.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>250353921</CodeCurrent>
+    <CodeNext>22275</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>com_util.h</FileName>
+    <ErrorCode>V3545</ErrorCode>
+    <Message>Operands of the '||' operator should have bool essential type.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1776704764</CodeCurrent>
+    <CodeNext>2080120265</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>tls.h</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: 'reinterpret_cast&lt; HWND &gt; (- _)'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1883768256</CodeCurrent>
+    <CodeNext>1883896348</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>tls.h</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: 'reinterpret_cast&lt; HWND &gt; (- _)'.</Message>
+    <CodePrev>1883768256</CodePrev>
+    <CodeCurrent>1883896348</CodeCurrent>
+    <CodeNext>122229</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>lazy_global.h</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Instantiation of SK_LazyGlobal &lt; SK_ModuleAddrMap &gt;: Pointer to void should not be converted to a pointer to object.</Message>
+    <CodePrev>140647004</CodePrev>
+    <CodeCurrent>43029306</CodeCurrent>
+    <CodeNext>1007894832</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>debug_utils.h</FileName>
+    <ErrorCode>V117</ErrorCode>
+    <Message>Memsize type is used in the union.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>558343585</CodeCurrent>
+    <CodeNext>3030</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>debug_utils.h</FileName>
+    <ErrorCode>V117</ErrorCode>
+    <Message>Memsize type is used in the union.</Message>
+    <CodePrev>1712943</CodePrev>
+    <CodeCurrent>115376533</CodeCurrent>
+    <CodeNext>193</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>backend.h</FileName>
+    <ErrorCode>V703</ErrorCode>
+    <Message>It is odd that the 'isMonxvYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
+    <CodePrev>4293678668</CodePrev>
+    <CodeCurrent>4286630476</CodeCurrent>
+    <CodeNext>4286642764</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>core.h</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: '(HWND) - _'.</Message>
+    <CodePrev>254868898</CodePrev>
+    <CodeCurrent>1755297290</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>dxgi_swapchain.cpp</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: '(HWND) _xffff'.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>3988206244</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d11.cpp</FileName>
+    <ErrorCode>V3530</ErrorCode>
+    <Message>The 'load_end' variable should be declared in a scope that minimizes its visibility.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>376639700</CodeCurrent>
+    <CodeNext>1807609</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230081106</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080882</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230081010</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230081202</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080818</CodeCurrent>
+    <CodeNext>3633911288</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE shrink [_] = { VK...</Message>
+    <CodePrev>2230080818</CodePrev>
+    <CodeCurrent>3633911288</CodeCurrent>
+    <CodeNext>3964631669</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE expand [_] = { VK...</Message>
+    <CodePrev>3633911288</CodePrev>
+    <CodeCurrent>3964631669</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK_...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080690</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080530</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080562</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { V...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>997174892</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { V...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>997174988</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...short_name, _,.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>697057876</CodeCurrent>
+    <CodeNext>37052589</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...r = _;...</Message>
+    <CodePrev>76703</CodePrev>
+    <CodeCurrent>1599581873</CodeCurrent>
+    <CodeNext>431820</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...nt_policy = _;...</Message>
+    <CodePrev>150733333</CodePrev>
+    <CodeCurrent>3143200674</CodeCurrent>
+    <CodeNext>4096489883</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...&amp; checksum, _) );.</Message>
+    <CodePrev>58</CodePrev>
+    <CodeCurrent>488623445</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ..._t *)&amp;hash, _);.</Message>
+    <CodePrev>4497271</CodePrev>
+    <CodeCurrent>422217697</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ..._t *)&amp;hash, _) );.</Message>
+    <CodePrev>58</CodePrev>
+    <CodeCurrent>844435421</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...)&amp;checksum, _);.</Message>
+    <CodePrev>4497271</CodePrev>
+    <CodeCurrent>244311717</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...ta.width &lt; _ ||.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>93715252</CodeCurrent>
+    <CodeNext>215138234</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...ta.height &lt; _ ) return...</Message>
+    <CodePrev>93715252</CodePrev>
+    <CodeCurrent>215138234</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V821</ErrorCode>
+    <Message>Decreased performance. The 'load_start' variable can be constructed in a lower level scope.</Message>
+    <CodePrev>3360282241</CodePrev>
+    <CodeCurrent>1506558449</CodeCurrent>
+    <CodeNext>1807609</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>d3d9_texmgr.h</FileName>
+    <ErrorCode>V1002</ErrorCode>
+    <Message>The 'SK_Thread_HybridSpinlock' class, containing pointers, constructor and destructor, is copied by the automatically generated copy constructor.</Message>
+    <CodePrev>3926011895</CodePrev>
+    <CodeCurrent>2686529457</CodeCurrent>
+    <CodeNext>3557054494</CodeNext>
+  </Table1>
+  <Table1>
+    <FileName>command.cpp</FileName>
+    <ErrorCode>V1037</ErrorCode>
+    <Message>Two or more case-branches perform the same actions. Check lines: _, _, _</Message>
+    <CodePrev>1159029984</CodePrev>
+    <CodeCurrent>707983</CodeCurrent>
+    <CodeNext>2318059946</CodeNext>
+  </Table1>
 </NewDataSet>

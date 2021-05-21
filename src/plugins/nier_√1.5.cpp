@@ -29,7 +29,7 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.8.3"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.8.4"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 #define _RR_HDF

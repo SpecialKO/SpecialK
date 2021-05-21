@@ -654,11 +654,11 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
     wszSteamLib     =    resolved_dll;
   }
 
+  const std::wstring& qualified_lib =
+    SK_Steam_GetDLLPath ();
+
   if (! SK_Modules->LoadLibrary (wszSteamLib))
   {
-    const std::wstring& qualified_lib =
-      SK_Steam_GetDLLPath ();
-
     if (! qualified_lib.empty ())
     {
       SK_Modules->LoadLibrary (qualified_lib.c_str ());
@@ -693,6 +693,9 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
       static_cast_p2p <void> (&SteamInternal_CreateInterface_Original),
                            &pfnSteamInternal_CreateInterface );
     MH_QueueEnableHook (    pfnSteamInternal_CreateInterface );
+
+
+    SK_ApplyQueuedHooks ();
 
     return TRUE;
   }
@@ -1199,6 +1202,9 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       steam_log->Log ( L" * (%-28s) Installed Peer to Peer Session Request Callback",
                       caller.c_str () );
       break;
+    case GetAuthSessionTicketResponse_t::k_iCallback:
+      steam_log->Log ( L" * (%-28s) Installed Auth Session Ticket Response Callback",
+                      caller.c_str () );
     default:
     {
       steam_log->Log ( L" * (%-28s) Installed Callback (Class=%hs, Id=%li)",
@@ -1271,7 +1277,6 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
     case UserStatsReceived_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled User Stats Receipt Callback",
                       caller.c_str () );
-
       (*UserStatsReceived_callbacks)[pCallback] = false;
       break;
     case UserStatsStored_t::k_iCallback:
@@ -1336,6 +1341,9 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
       break;
     case P2PSessionRequest_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled Peer to Peer Session Request Callback",
+                      caller.c_str () );
+    case GetAuthSessionTicketResponse_t::k_iCallback:
+      steam_log->Log ( L" * (%-28s) Uninstalled Auth Session Ticket Response Callback",
                       caller.c_str () );
       break;
     default:

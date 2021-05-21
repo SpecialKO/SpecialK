@@ -446,6 +446,67 @@ SK_ImGui_ConfirmExit (void)
   ImGui::OpenPopup ("Confirm Forced Software Termination");
 }
 
+bool  SK_ImGui_UnconfirmedDisplayChanges = false;
+DWORD SK_ImGui_DisplayChangeTime         = 0;
+
+void
+SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::wstring display_name_, DEVMODEW orig_mode_)
+{
+  static bool               *pDirty = nullptr;
+  static std::wstring  display_name = L"";
+  static DEVMODEW         orig_mode = { };
+  static DWORD          dwInitiated = DWORD_MAX;
+
+  // We're initiating
+  if (pDirty_ != nullptr)
+  {
+    pDirty       = pDirty_;
+    display_name = display_name_;
+    orig_mode    = orig_mode_;
+    dwInitiated  = SK_timeGetTime ();
+
+    if (config.display.confirm_mode_changes)
+    {
+      SK_ImGui_UnconfirmedDisplayChanges = true;
+    } SK_ImGui_DisplayChangeTime         = dwInitiated;
+
+         *pDirty = true;
+  }
+
+  if (SK_ImGui_UnconfirmedDisplayChanges)
+  {
+    if (dwInitiated < SK_timeGetTime () - 15000)
+    {
+      SK_ChangeDisplaySettingsEx (
+                   display_name.c_str (), &orig_mode,
+                                       0, CDS_UPDATEREGISTRY, nullptr
+      );
+
+           *pDirty = true;
+
+      dwInitiated  = DWORD_MAX;
+      pDirty       = nullptr;
+      orig_mode    = { };
+      display_name = L"";
+
+      SK_ImGui_UnconfirmedDisplayChanges = false;
+
+      return;
+    }
+
+    static const auto& io =
+      ImGui::GetIO ();
+
+    SK_ImGui_SetNextWindowPosCenter     (ImGuiCond_Always);
+    ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f),
+                                            ImVec2 ( 0.925f * io.DisplaySize.x,
+                                                     0.925f * io.DisplaySize.y )
+                                        );
+
+    ImGui::OpenPopup ("Confirm Display Setting Changes");
+  }
+}
+
 bool
 SK_ImGui_IsItemClicked (void)
 {
@@ -696,8 +757,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     }
   };
 
-  static list_s refresh;
-  static list_s resolution;
+  static std::wstring display_name; // (i.e. \\DISPLAY0... legacy GDI name)
+  static list_s       refresh;
+  static list_s       resolution;
 
   if (dirty)
   {
@@ -734,8 +796,14 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       refresh.clear    ();
       resolution.clear ();
 
+      std::set <std::string> resolutions;
+      std::set <std::string> refreshes;
+
       minfo.cbSize = sizeof (MONITORINFOEX);
       GetMonitorInfo (hMonCurrent, &minfo);
+
+      display_name =
+        minfo.szDevice;
 
       DEVMODE dm_now  = { },
               dm_enum = { };
@@ -803,34 +871,48 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
       for ( auto& it : refresh.modes )
       {
-        if (     it.dmDisplayFrequency ==
-             dm_now.dmDisplayFrequency )
-          refresh.idx = idx;
+        std::string mode_str =
+          SK_FormatString ("  %u Hz", it.dmDisplayFrequency);
 
-        refresh.string += "  " + std::to_string (it.dmDisplayFrequency) + " Hz";
-        refresh.string += '\0';
+        if (refreshes.emplace (mode_str).second)
+        {
+          if (     it.dmDisplayFrequency ==
+               dm_now.dmDisplayFrequency )
+            refresh.idx = idx;
 
-        idx++;
+          refresh.string.append (mode_str);
+          refresh.string += '\0';
+
+          idx++;
+        }
       }
 
       idx = 0;
 
       for ( auto& it : resolution.modes )
       {
-        if ( it.dmPelsWidth  == dm_now.dmPelsWidth &&
-             it.dmPelsHeight == dm_now.dmPelsHeight )
-          resolution.idx = idx;
+        std::string mode_str =
+          SK_FormatString ( "%ux%u",
+                              it.dmPelsWidth,
+                              it.dmPelsHeight
+          );
 
-        if ( it.dmPelsWidth  == native_width &&
-             it.dmPelsHeight == native_height )
-        { resolution.string += "* "; } else
-          resolution.string += "  ";
+        if (resolutions.emplace (mode_str).second)
+        {
+          if ( it.dmPelsWidth  == dm_now.dmPelsWidth &&
+               it.dmPelsHeight == dm_now.dmPelsHeight )
+            resolution.idx = idx;
 
-        resolution.string += std::to_string (it.dmPelsWidth) + "x" +
-                             std::to_string (it.dmPelsHeight);
-        resolution.string += '\0';
+          if ( it.dmPelsWidth  == native_width &&
+               it.dmPelsHeight == native_height )
+          { resolution.string += "* "; } else
+            resolution.string += "  ";
 
-        idx++;
+          resolution.string.append (mode_str);
+          resolution.string += '\0';
+
+          idx++;
+        }
       }
 
       resolution.string += '\0';
@@ -879,14 +961,21 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   if (ImGui::Combo ("Preferred Monitor", &active_idx, display_list))
   {
-    SK_DeferCommand ("Window.Center 0");
+    auto* cp =
+      SK_GetCommandProcessor ();
+
+    cp->ProcessCommandLine (   "Window.Borderless 1");
+    cp->ProcessCommandLine (       "Window.Center 0");
+    cp->ProcessCommandLine (   "Window.Fullscreen 0");
+    cp->ProcessCommandLine ("Window.OverrideRes 0x0");
 
     config.display.monitor_handle = rb.displays [active_idx].monitor;
     config.display.monitor_idx    = rb.displays [active_idx].idx;
 
     SK_Window_RepositionIfNeeded ();
 
-    SK_DeferCommand ("Window.Center 1");
+    SK_DeferCommand ("Window.Fullscreen 1");
+
     SK_SetCursorPos
     ( rb.displays [active_idx].rect.left   +
      (rb.displays [active_idx].rect.right  - rb.displays [active_idx].rect.left) / 2,
@@ -906,19 +995,55 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   if (ImGui::Combo (   "Resolution",  &resolution.idx,
                                        resolution.string.c_str () ))
   {
-    if ( DISP_CHANGE_SUCCESSFUL ==
-           SK_ChangeDisplaySettings ( &resolution.modes [resolution.idx],
-                                      CDS_UPDATEREGISTRY )
-       ) dirty = true;
+    DEVMODE
+      dm_orig        = {              };
+      dm_orig.dmSize = sizeof (DEVMODE);
+
+    if (EnumDisplaySettings (display_name.c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
+    {
+      if ( DISP_CHANGE_SUCCESSFUL ==
+             SK_ChangeDisplaySettingsEx (
+                 display_name.c_str (), &resolution.modes [resolution.idx],
+                                     0, CDS_TEST, nullptr )
+         )
+      {
+        if ( DISP_CHANGE_SUCCESSFUL ==
+               SK_ChangeDisplaySettingsEx (
+                   display_name.c_str (), &resolution.modes [resolution.idx],
+                                       0, CDS_UPDATEREGISTRY, nullptr )
+           )
+        {
+          SK_ImGui_ConfirmDisplaySettings (&dirty, display_name, dm_orig);
+        }
+      }
+    }
   }
 
   if (ImGui::Combo ( "Refresh Rate",  &refresh.idx,
                                        refresh.string.c_str () ))
   {
-    if ( DISP_CHANGE_SUCCESSFUL ==
-           SK_ChangeDisplaySettings ( &refresh.modes [refresh.idx],
-                                      CDS_UPDATEREGISTRY )
-       ) dirty = true;
+    DEVMODE
+      dm_orig        = {              };
+      dm_orig.dmSize = sizeof (DEVMODE);
+
+    if (EnumDisplaySettings (display_name.c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
+    {
+      if ( DISP_CHANGE_SUCCESSFUL ==
+             SK_ChangeDisplaySettingsEx (
+                 display_name.c_str (), &refresh.modes [refresh.idx],
+                                     0, CDS_TEST, nullptr )
+         )
+      {
+        if ( DISP_CHANGE_SUCCESSFUL ==
+               SK_ChangeDisplaySettingsEx (
+                   display_name.c_str (), &refresh.modes [refresh.idx],
+                                       0, CDS_UPDATEREGISTRY, nullptr )
+           )
+        {
+          SK_ImGui_ConfirmDisplaySettings (&dirty, display_name, dm_orig);
+        }
+      }
+    }
   }
 
   ImGui::TreePop ();
@@ -4399,11 +4524,68 @@ SK_ImGui_StageNextFrame (void)
   SK_ImGui_ProcessWarnings ();
 
 
+  if (SK_ImGui_UnconfirmedDisplayChanges)
+  {
+    SK_ImGui_ConfirmDisplaySettings (nullptr, L"", {});
+
+    if ( ImGui::BeginPopupModal ( "Confirm Display Setting Changes",
+                                    nullptr,
+                                      ImGuiWindowFlags_AlwaysAutoResize |
+                                      ImGuiWindowFlags_NoScrollbar      |
+                                      ImGuiWindowFlags_NoScrollWithMouse )
+       )
+    {
+      ImGui::TextColored ( ImColor::HSV (0.075, 1.0f, 1.0f), "\n         Display Settings Will Revert in %4.1f Seconds...\n\n",
+                                               15.0f - ( (float)SK_timeGetTime () - (float)SK_ImGui_DisplayChangeTime ) / 1000.0f );
+      ImGui::Separator   ();
+
+      ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),     " Keep Changes?");
+
+      ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
+
+      if (ImGui::Button  ("Yes"))
+      {
+        SK_ImGui_UnconfirmedDisplayChanges = false;
+      }
+
+      if (ImGui::IsWindowAppearing ())
+      {
+        ImGui::GetIO ().NavActive  = true;
+        ImGui::GetIO ().NavVisible = true;
+
+        ImGui::SetNavID (
+          ImGui::GetItemID (), 0
+        );
+
+        GImGui->NavDisableHighlight  = false;
+        GImGui->NavDisableMouseHover =  true;
+      }
+
+      ImGui::SameLine    ();
+      if (ImGui::Button  ("No"))
+      {
+        SK_ImGui_DisplayChangeTime = 0;
+        ImGui::CloseCurrentPopup ();
+      }
+
+      ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
+
+      ImGui::Checkbox ( "Enable Confirmation",
+                          &config.display.confirm_mode_changes );
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("If disabled, resolution changes will apply immediately with no confirmation.");
+
+      ImGui::EndPopup ();
+    }
+  }
+
+
   if (SK_ImGui_WantExit)
   { SK_ReShade_Visible = true;
 
     SK_ImGui_ConfirmExit ();
-
+    
     if ( ImGui::BeginPopupModal ( "Confirm Forced Software Termination",
                                     nullptr,
                                       ImGuiWindowFlags_AlwaysAutoResize |
@@ -4421,7 +4603,7 @@ SK_ImGui_StageNextFrame (void)
       ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
       ImGui::Separator   ();
 
-      ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),     szConfirm);
+      ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),         szConfirm);
 
       ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
 
@@ -4450,7 +4632,6 @@ SK_ImGui_StageNextFrame (void)
         GImGui->NavDisableHighlight  = false;
         GImGui->NavDisableMouseHover =  true;
       }
-
 
       //ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth ()*0.33f);
       //ImGui::SameLine (); ImGui::SameLine (); ImGui::PopItemWidth ();

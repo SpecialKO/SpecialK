@@ -599,8 +599,8 @@ SK::ControlPanel::Input::Draw (void)
 
         ImGui::BeginGroup ();
         ImGui::Text       (" Slot Redistribution ");
-        int* slots =
-          config.input.gamepad.xinput.assignment;
+        auto slots =
+          (int *)config.input.gamepad.xinput.assignment;
         ImGui::SameLine   ();
         ImGui::InputInt4  ("###Slot Remapping", slots);
         ImGui::EndGroup   ();

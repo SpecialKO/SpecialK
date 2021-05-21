@@ -1247,7 +1247,7 @@ SK_DXGI_BeginHooking (void)
 {
   volatile static ULONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (InterlockedCompareExchange (&hooked, TRUE, FALSE) == FALSE)
   {
 #if 1
     //HANDLE hHookInitDXGI =
@@ -1794,7 +1794,7 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
 
     bool __WantGSyncUpdate =
       ( (config.fps.show && config.osd.show ) || SK_ImGui_Visible )
-                         && ReadAcquire (&__SK_NVAPI_UpdateGSync);
+                         && ReadAcquire (&__SK_NVAPI_UpdateGSync) != 0;
 
     if (__WantGSyncUpdate)
     {
@@ -1950,9 +1950,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                              pTLS->texture_management.injection_thread = TRUE;  \
 
   _SetupThreadContext ();
-
-  extern std::pair <BOOL*, BOOL>
-  SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
 
   auto flag_result =
     SK_ImGui_FlagDrawing_OnD3D11Ctx (
@@ -2168,10 +2165,14 @@ enum class SK_DXGI_PresentSource
 bool
 SK_DXGI_TestSwapChainCreationFlags (DWORD dwFlags)
 {
-  if ( (dwFlags & DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO)   ||
-       (dwFlags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)          ||
-      ( dwFlags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT ) ||
-       (dwFlags & DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER) )
+  if ( (dwFlags & DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO)   ==
+                  DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO    ||
+       (dwFlags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)          ==
+                  DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO           ||
+       (dwFlags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT) ==
+                  DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT  ||
+       (dwFlags & DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER)   ==
+                  DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER )
   {
     static bool logged = false;
 
@@ -2391,9 +2392,10 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
     );
 }
 
-auto _IsBackendD3D11 = [](const SK_RenderAPI& api) { return static_cast <int> (api) &
-                                                            static_cast <int> (SK_RenderAPI::D3D11); };
-auto _IsBackendD3D12 = [](const SK_RenderAPI& api) { return             api == SK_RenderAPI::D3D12;  };
+auto _IsBackendD3D11 = [](const SK_RenderAPI& api) { return ( static_cast <int> (api) &
+                                                              static_cast <int> (SK_RenderAPI::D3D11) ) ==
+                                                              static_cast <int> (SK_RenderAPI::D3D11); };
+auto _IsBackendD3D12 = [](const SK_RenderAPI& api) { return               api == SK_RenderAPI::D3D12;  };
 
 volatile LONG lResetD3D11 = 0;
 volatile LONG lResetD3D12 = 0;
@@ -2484,7 +2486,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     // Third-party software doesn't always behave compliantly in games that
     //   use presentation testing... so we may need to resort to this or
     //     the game's performance derails itself.
-    if ( (Flags & DXGI_PRESENT_TEST) && config.render.dxgi.present_test_skip )
+    if ( config.render.dxgi.present_test_skip && (Flags & DXGI_PRESENT_TEST) == DXGI_PRESENT_TEST )
       return S_OK;
 
     return
@@ -2492,7 +2494,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   }
 
   bool bWaitOnFailure =
-    ! (Flags & DXGI_PRESENT_DO_NOT_WAIT);
+    (Flags & DXGI_PRESENT_DO_NOT_WAIT)
+          != DXGI_PRESENT_DO_NOT_WAIT;
 
   if (! bWaitOnFailure)
     SK_LOG_ONCE (L"Encountered DXGI_PRESENT_DO_NOT_WAIT, Framerate Limiting May Behave Strangely");
@@ -2514,8 +2517,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
   bool process                = false;
   bool has_wrapped_swapchains =
-    ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) ||
-    ReadAcquire (&SK_DXGI_LiveWrappedSwapChains);
+    ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) > 0 ||
+    ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  > 0;
   // ^^^ It's not required that IDXGISwapChain1 or higher invokes Present1!
 
   if (config.render.osd.draw_in_vidcap && has_wrapped_swapchains)
@@ -2878,8 +2881,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
 
       // All hooked chains need to be servicing >= this reset request, or restart them
-      if (_IsBackendD3D11 (rb.api) && InterlockedCompareExchange (&lResetD3D11, 0, 1)) _d3d11_rbk->release (This);
-      if (_IsBackendD3D12 (rb.api) && InterlockedCompareExchange (&lResetD3D12, 0, 1)) _d3d12_rbk->release (This);
+      if (_IsBackendD3D11 (rb.api) && InterlockedCompareExchange (&lResetD3D11, 0, 1) == 1) _d3d11_rbk->release (This);
+      if (_IsBackendD3D12 (rb.api) && InterlockedCompareExchange (&lResetD3D12, 0, 1) == 1) _d3d12_rbk->release (This);
 
       rb.setLatencyMarkerNV (SIMULATION_START);
 
@@ -2958,45 +2961,214 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
 }
 
 struct {
-  IDXGIFactory1* pFactory1 = nullptr;
+  std::unique_ptr <std::recursive_mutex> mutex = nullptr;
+
+  struct {
+    IDXGIFactory*  pFactory  = nullptr;
+    IDXGIFactory1* pFactory1 = nullptr;
+    IDXGIFactory2* pFactory2 = nullptr;
+    IDXGIFactory3* pFactory3 = nullptr;
+    IDXGIFactory4* pFactory4 = nullptr;
+    IDXGIFactory5* pFactory5 = nullptr;
+
+    bool isCachcing (void) { 
+      return pFactory  != nullptr || pFactory1 != nullptr ||
+             pFactory2 != nullptr || pFactory3 != nullptr ||
+             pFactory4 != nullptr || pFactory5 != nullptr;
+    }
+  } cache;
+
+  struct {
+    // TODO
+  } debug_cache;
 
   concurrency::concurrent_unordered_map < uint32_t,
                              std::vector < DXGI_MODE_DESC > >
                                               cached_descs;
 
-  bool isCurrent (void) {
-    return pFactory1 != nullptr &&
-           pFactory1->IsCurrent ();
+  std::recursive_mutex& getMutex (void)
+  {
+    if (mutex == nullptr)
+        mutex = std::make_unique <std::recursive_mutex> ();
+
+    return
+      *mutex.get ();
   }
 
-  HRESULT addRef (void** ppFactory) {
-    if (! pFactory1)
-      return E_NOINTERFACE;
+  bool hasInterface (REFIID riid)
+  {
+    std::scoped_lock <std::recursive_mutex>
+                lock             (getMutex ());
 
-    if (! ppFactory)
-      return E_POINTER;
+    if (riid == IID_IDXGIFactory ) return cache.pFactory  != nullptr;
+    if (riid == IID_IDXGIFactory1) return cache.pFactory1 != nullptr;
+    if (riid == IID_IDXGIFactory2) return cache.pFactory2 != nullptr;
+    if (riid == IID_IDXGIFactory3) return cache.pFactory3 != nullptr;
+    if (riid == IID_IDXGIFactory4) return cache.pFactory4 != nullptr;
+    if (riid == IID_IDXGIFactory5) return cache.pFactory5 != nullptr;
 
-    pFactory1->AddRef ();
+    return false;
+  }
 
-    *ppFactory =
-      pFactory1;
+  bool isCurrent (void)
+  {
+    std::scoped_lock <std::recursive_mutex>
+                lock             (getMutex ());
+
+    bool current =
+      cache.isCachcing ();
+
+    if (current)
+    {
+      if (     cache.pFactory1 != nullptr && (! cache.pFactory1->IsCurrent ()))
+        current = false;
+      else if (cache.pFactory2 != nullptr && (! cache.pFactory2->IsCurrent ()))
+        current = false;
+      else if (cache.pFactory3 != nullptr && (! cache.pFactory3->IsCurrent ()))
+        current = false;
+      else if (cache.pFactory4 != nullptr && (! cache.pFactory4->IsCurrent ()))
+        current = false;
+      else if (cache.pFactory5 != nullptr && (! cache.pFactory5->IsCurrent ()))
+        current = false;
+      else if (cache.pFactory  != nullptr)
+      {
+        SK_ComQIPtr <IDXGIFactory1>    pFactory1 (cache.pFactory);
+        if (pFactory1 != nullptr && (! pFactory1->IsCurrent ()))
+          current = false;
+      }
+    }
+
+    return current;
+  }
+
+  HRESULT addRef (void** ppFactory, REFIID riid)
+  {
+    std::scoped_lock <std::recursive_mutex>
+                lock             (getMutex ());
+
+    IDXGIFactory* pFactory = nullptr;
+
+    if (     riid == IID_IDXGIFactory && cache.pFactory != nullptr)
+                              pFactory = cache.pFactory;
+    else if (riid == IID_IDXGIFactory1 && cache.pFactory1 != nullptr)
+                              pFactory =  cache.pFactory1;
+    else if (riid == IID_IDXGIFactory2 && cache.pFactory2 != nullptr)
+                              pFactory =  cache.pFactory2;
+    else if (riid == IID_IDXGIFactory3 && cache.pFactory3 != nullptr)
+                              pFactory =  cache.pFactory3;
+    else if (riid == IID_IDXGIFactory4 && cache.pFactory4 != nullptr)
+                              pFactory =  cache.pFactory4;
+    else if (riid == IID_IDXGIFactory4 && cache.pFactory5 != nullptr)
+                              pFactory =  cache.pFactory5;
+
+    if (pFactory != nullptr)
+        pFactory->AddRef (), *ppFactory = pFactory;
 
     return S_OK;
   }
 
-  ULONG release (void) {
-    ULONG ret = 0;
+  void addFactory (void** ppFactory, REFIID riid)
+  {
+    std::scoped_lock <std::recursive_mutex>
+                lock             (getMutex ());
+
+    if (! isCurrent ())
+              reset ();
+
+    if (     riid == IID_IDXGIFactory)
+    {
+      if (cache.pFactory != nullptr)
+        std::exchange (cache.pFactory, nullptr)->Release ();
+      
+      cache.pFactory = (IDXGIFactory *)*ppFactory;
+      cache.pFactory->AddRef ();
+    }
+
+    else if (riid == IID_IDXGIFactory1)
+    {
+      if (cache.pFactory1 != nullptr)
+        std::exchange (cache.pFactory1, nullptr)->Release ();
+      
+      cache.pFactory1 = (IDXGIFactory1 *)*ppFactory;
+      cache.pFactory1->AddRef ();
+    }
+
+    else if (riid == IID_IDXGIFactory2)
+    {
+      if (cache.pFactory2 != nullptr)
+        std::exchange (cache.pFactory2, nullptr)->Release ();
+      
+      cache.pFactory2 = (IDXGIFactory2 *)*ppFactory;
+      cache.pFactory2->AddRef ();
+    }
+
+    else if (riid == IID_IDXGIFactory3)
+    {
+      if (cache.pFactory3 != nullptr)
+        std::exchange (cache.pFactory3, nullptr)->Release ();
+      
+      cache.pFactory3 = (IDXGIFactory3 *)*ppFactory;
+      cache.pFactory3->AddRef ();
+    }
+
+    else if (riid == IID_IDXGIFactory4)
+    {
+      if (cache.pFactory4 != nullptr)
+        std::exchange (cache.pFactory4, nullptr)->Release ();
+      
+      cache.pFactory4 = (IDXGIFactory4 *)*ppFactory;
+      cache.pFactory4->AddRef ();
+    }
+
+    else if (riid == IID_IDXGIFactory5)
+    {
+      if (cache.pFactory5 != nullptr)
+        std::exchange (cache.pFactory5, nullptr)->Release ();
+      
+      cache.pFactory5 = (IDXGIFactory5 *)*ppFactory;
+      cache.pFactory5->AddRef ();
+    }
+  }
+
+  ULONG reset (void) {
+    std::scoped_lock <std::recursive_mutex>
+                lock             (getMutex ());
 
     cached_descs.clear ();
 
-    if (pFactory1 != nullptr)
-      ret = pFactory1->Release ();
+    if (cache.pFactory  != nullptr) { std::exchange (cache.pFactory,  nullptr)->Release (); }
+    if (cache.pFactory1 != nullptr) { std::exchange (cache.pFactory1, nullptr)->Release (); }
+    if (cache.pFactory2 != nullptr) { std::exchange (cache.pFactory2, nullptr)->Release (); }
+    if (cache.pFactory3 != nullptr) { std::exchange (cache.pFactory3, nullptr)->Release (); }
+    if (cache.pFactory4 != nullptr) { std::exchange (cache.pFactory4, nullptr)->Release (); }
+    if (cache.pFactory5 != nullptr) { std::exchange (cache.pFactory5, nullptr)->Release (); }
 
-    pFactory1 = nullptr;
-
-    return ret;
+    return 0;
   }
-} __SK_RE8_FactoryCache;
+} __SK_DXGI_FactoryCache;
+
+void*
+SK_StackAlloc (size_t size)
+{
+  __try
+  {
+    return
+      _malloca (size);
+  }
+
+  __except (GetExceptionCode () == STATUS_STACK_OVERFLOW)
+  {
+    _resetstkoflw ();
+  }
+
+  return nullptr;
+}
+
+void
+SK_StackFree (void* ptr)
+{
+  _freea (ptr);
+}
 
 __declspec (noinline)
 HRESULT
@@ -3010,68 +3182,65 @@ DXGIOutput_GetDisplayModeList_Override ( IDXGIOutput    *This,
 _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                          DXGI_MODE_DESC *pDesc)
 {
-  struct callframe_s {
-    IDXGIOutput* out;
-    DXGI_FORMAT   ef;
-    UINT           f;
-  } frame = { This, EnumFormat, Flags };
+  // For sanity sake, clear the number of modes rather than leaving it undefined in log calls :)
+  if (pDesc == nullptr)
+    *pNumModes = 0;
 
-  uint32_t tag =
-    crc32c (0x0, &frame, sizeof (callframe_s));
-
-  static const auto game_id =
-    SK_GetCurrentGameID ();
+  uint32_t tag = 0;
 
 #ifdef _M_AMD64
-  if (game_id == SK_GAME_ID::ResidentEvil8)
+  if (config.render.dxgi.use_factory_cache)
   {
-    if (! __SK_RE8_FactoryCache.cached_descs [tag].empty ())
+    DXGI_OUTPUT_DESC outputDesc = { };
+    This->GetDesc  (&outputDesc);
+
+    struct callframe_s {
+      HMONITOR    monitor;
+      DXGI_FORMAT  format;
+      UINT          flags;
+    } frame = { outputDesc.Monitor, EnumFormat, Flags };
+
+    tag =
+      crc32c (0x0, &frame, sizeof (callframe_s));
+
+    if (__SK_DXGI_FactoryCache.cached_descs.count (tag) != 0)
     {
-      int modes = 0;
+      auto& cache =
+        __SK_DXGI_FactoryCache.cached_descs [tag];
 
-      if (*pNumModes == 0)
-      {
-        *pNumModes = (UINT)__SK_RE8_FactoryCache.cached_descs [tag].size ();
-             modes = *pNumModes;
-      }
+      UINT cache_size =
+        cache.size ();
 
+      if (*pNumModes != 0)
+          *pNumModes = std::min (cache_size, *pNumModes);
       else
-      {
-        modes =
-          (int)std::min (__SK_RE8_FactoryCache.cached_descs [tag].size (), (size_t)*pNumModes);
-      }
+          *pNumModes =           cache_size;
 
-
-      if (pDesc)
+      if (pDesc != nullptr)
       {
-        for (int i = 0; i < modes; i++)
+        for (size_t i = 0; i < *pNumModes; i++)
         {
-          pDesc [i] = __SK_RE8_FactoryCache.cached_descs [tag][i];
+          pDesc [i] = cache [i];
         }
       }
 
+      SK_LOG1 ( ( L" IDXGIOutput::GetDisplayModeList (...): Returning Cached Data" ),
+                  L"   DXGI   " );
+
       return S_OK;
     }
-
-    else SK_LOG_ONCE (L"[Res Enum 8] STFU Capcom, one GetDisplayModeList (...) call is enough");
   }
 #endif
 
 
-  if (pDesc != nullptr)
-  {
-    if (SK_GetCurrentGameID () != SK_GAME_ID::ResidentEvil8 || __SK_RE8_FactoryCache.cached_descs.empty ())
-    {
-      DXGI_LOG_CALL_I5 ( L"       IDXGIOutput", L"GetDisplayModeList       ",
-                           L"  %08" _L(PRIxPTR) L"h, %i, %02x, NumModes=%lu, %08"
-                                    _L(PRIxPTR) L"h)",
-                  (uintptr_t)This,
-                             EnumFormat,
-                                 Flags,
-                                   *pNumModes,
-                                      (uintptr_t)pDesc );
-    }
-  }
+  DXGI_LOG_CALL_I5 ( L"     IDXGIOutput", L"GetDisplayModeList       ",
+                       L"%08" _L(PRIxPTR) L"h, %ws, %x, %lu, %08"
+                                _L(PRIxPTR) L"h",
+              (uintptr_t)This,
+                         SK_DXGI_FormatToStr (EnumFormat).c_str (),
+                             Flags,
+                               *pNumModes,
+                                  (uintptr_t)pDesc );
 
   if (config.render.dxgi.scaling_mode != -1)
     Flags |= DXGI_ENUM_MODES_SCALING;
@@ -3087,25 +3256,28 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   DXGI_MODE_DESC*
     pDescLocal = nullptr;
 
-  if (pDesc == nullptr && SUCCEEDED (hr))
-  {
-    pDescLocal =
-      reinterpret_cast <DXGI_MODE_DESC *>(
-        new uint8_t [sizeof (DXGI_MODE_DESC) * *pNumModes] { }
-      );
-    pDesc      = pDescLocal;
-
-    hr =
-      GetDisplayModeList_Original (
-        This,
-          EnumFormat,
-            Flags,
-              pNumModes,
-                pDesc );
-  }
-
   if (SUCCEEDED (hr))
   {
+    if (pDesc == nullptr && *pNumModes != 0)
+    {
+      pDescLocal =
+        reinterpret_cast <DXGI_MODE_DESC *>(
+          SK_StackAlloc (sizeof (DXGI_MODE_DESC) * *pNumModes)
+        );
+
+      if (pDescLocal != nullptr)
+      {
+        pDesc = pDescLocal;
+
+        GetDisplayModeList_Original (
+          This,
+            EnumFormat,
+              Flags,
+                pNumModes,
+                  pDesc );
+      }
+    }
+
     int removed_count = 0;
 
     if ( ! ( config.render.dxgi.res.min.isZero ()   &&
@@ -3170,20 +3342,20 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         }
       }
 
-      if (pDescLocal == nullptr)
-      {
-        if (SK_GetCurrentGameID () != SK_GAME_ID::ResidentEvil8 || __SK_RE8_FactoryCache.cached_descs.empty ())
-        {
-          dll_log->Log (L"[   DXGI   ]      >> %lu modes (%li removed)",
-                        *pNumModes,
-                        removed_count);
-        }
+      dll_log->Log ( L"[   DXGI   ]      >> %lu modes (%li removed)",
+                       *pNumModes,
+                         removed_count );
 
-        __SK_RE8_FactoryCache.cached_descs [tag].resize (*pNumModes);
+      if (tag != 0x0)
+      {
+        auto& cache =
+          __SK_DXGI_FactoryCache.cached_descs [tag];
+
+        cache.resize (*pNumModes);
 
         for (UINT i = 0; i < *pNumModes; i++)
         {
-          __SK_RE8_FactoryCache.cached_descs [tag][i] = pDesc [i];
+          cache [i] = pDesc [i];
         }
       }
     }
@@ -3191,7 +3363,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
   if (pDescLocal != nullptr)
   {
-    delete [] pDescLocal;
+    SK_StackFree (pDescLocal);
 
     pDescLocal = nullptr;
     pDesc      = nullptr;
@@ -3241,7 +3413,7 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
         config.render.framerate.rescan_.Denom;
       }
 
-      else if (config.render.framerate.refresh_rate != -1 &&
+      else if (config.render.framerate.refresh_rate != -1.0f &&
                 mode_to_match.RefreshRate.Numerator !=
          (UINT)config.render.framerate.refresh_rate)
       {
@@ -3322,15 +3494,15 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
             pNewTargetParameters->Scaling  !=
               (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
                                   ||
-         ( config.render.framerate.refresh_rate          != -1 &&
+         ( config.render.framerate.refresh_rate          != -1.0f &&
              pNewTargetParameters->RefreshRate.Numerator !=
                static_cast <UINT> (
            config.render.framerate.refresh_rate )
          )
       )
     {
-      if ( config.render.framerate.rescan_.Denom          !=  1 ||
-           (config.render.framerate.refresh_rate          != -1 &&
+      if ( config.render.framerate.rescan_.Denom          !=  1    ||
+           (config.render.framerate.refresh_rate          != -1.0f &&
                      new_new_params.RefreshRate.Numerator != static_cast <UINT>
            (config.render.framerate.refresh_rate) )
          )
@@ -3633,6 +3805,10 @@ SK_DXGI_IsSwapChainReal (IDXGISwapChain* pSwapChain)
   return
     SK_DXGI_IsSwapChainReal (desc);
 }
+
+static bool bSwapChainNeedsResize = false;
+static bool bRecycledSwapChains   = false;
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -3689,8 +3865,8 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
 
   // If auto-update prompt is visible, don't go fullscreen.
-  if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE) ||
-                               ReadAcquire (&__SK_TaskDialogActive) )
+  if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE)   ||
+                               ReadAcquire (&__SK_TaskDialogActive) != 0 )
   {
     Fullscreen = FALSE;
     pTarget    = nullptr;
@@ -3730,26 +3906,53 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     }
   }
 
-  DXGI_SWAP_CHAIN_DESC swapDesc = { };
-       This->GetDesc (&swapDesc);
+
+  // Does not work correctly when recycling swapchains
+  if (! bRecycledSwapChains)
+  {
+    SK_ComPtr <IDXGIOutput>                                            pOutput;
+    BOOL                                      _OriginalFullscreen;
+    if (SUCCEEDED (This->GetFullscreenState (&_OriginalFullscreen,    &pOutput.p)))
+    { bool  mode_change =      (Fullscreen != _OriginalFullscreen) || (pOutput.p != pTarget && pTarget != nullptr);
+      if (! mode_change)
+      {
+        SK_LOG0 ( ( L"Redundant Fullscreen Mode Change Ignored  ( %s )", Fullscreen ?
+                                                                      L"Fullscreen" : L"Windowed" ),
+                    L"   DXGI   " );
+        return S_OK;
+      }
+    }
+  }
+
+
+
+  extern void SK_Window_RemoveBorders  (void);
+  extern void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);
+
+  BOOL bOrigFullscreen = rb.fullscreen_exclusive;
+                         rb.fullscreen_exclusive = Fullscreen;
+
+  // D3D12's Fullscreen Optimization forgets to remove borders from time to time (lol)
+  if (Fullscreen) SK_Window_RemoveBorders  (        );
+//else            SK_Window_RestoreBorders (0x0, 0x0);
 
   HRESULT    ret = E_UNEXPECTED;
   DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget))
 
   if ( SUCCEEDED (ret) )
   {
-    rb.fullscreen_exclusive = Fullscreen;
-
-    // Any Flip Model game already knows to do this stuff...
-    if (! bOriginallyFlip)
+    if (SK_DXGI_IsFlipModelSwapChain (sd))
     {
-      HRESULT hr =
-        This->Present (0, DXGI_PRESENT_TEST);
-      
-      if ( FAILED (hr) || hr == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
+      // Any Flip Model game already knows to do this stuff...
+      if (! bOriginallyFlip)
       {
-        if (SK_DXGI_IsFlipModelSwapChain (sd))
+        HRESULT hr =
+          This->Present (0, DXGI_PRESENT_TEST);
+      
+        if ( FAILED (hr) || hr == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
         {
+          bSwapChainNeedsResize = true;
+
           //
           // Necessary provisions for Fullscreen Flip Mode
           //
@@ -3758,12 +3961,28 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
             UINT _Flags =
               SK_DXGI_FixUpLatencyWaitFlag (This, sd.Flags);
 
-            if ( /* swapDesc.Windowed == Fullscreen && */FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)) )
+            if (/* swapDesc.Windowed == Fullscreen && */FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)))
+            {
               return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
+            }
+
+            bSwapChainNeedsResize = false;
           }
         }
       }
+
+      else
+        bSwapChainNeedsResize = true;
     }
+  }
+
+  // Mode change failed, and we removed borders prematurealy... add them back!
+  else
+  {
+    rb.fullscreen_exclusive = bOrigFullscreen;
+
+    if (Fullscreen) SK_Window_RestoreBorders (0x0, 0x0);
+    else            SK_Window_RemoveBorders  (        );
   }
 
   return ret;
@@ -3885,7 +4104,7 @@ ImGui_ImplWin32_GetDpiScaleForMonitor (void* monitor)
 
   IM_ASSERT(xdpi == ydpi); // Please contact me if you hit this assert!
 
-  return    xdpi / 96.0f;
+  return (float)xdpi / 96.0f;
 }
 
 float
@@ -4213,15 +4432,43 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
     }
   }
 
-  ResetImGui_D3D12 (This);
-  ResetCEGUI_D3D11 (This);
+  bool skippable = false;
 
-  HRESULT     ret =
-    ResizeBuffers_Original ( This, BufferCount, Width, Height,
-                               NewFormat, SwapChainFlags );
+  if ( (swap_desc.BufferCount       == BufferCount    || BufferCount    == 0)                   &&
+       (swap_desc.BufferDesc.Width  == Width          || Width          == 0)                   &&
+       (swap_desc.BufferDesc.Height == Height         || Height         == 0)                   &&
+       (swap_desc.BufferDesc.Format == NewFormat      || NewFormat      == DXGI_FORMAT_UNKNOWN) &&
+       (swap_desc.Flags             == SwapChainFlags || SwapChainFlags == 0x0) )
+  {
+    skippable =
+      (! bSwapChainNeedsResize);
+  }
+
+  HRESULT ret = S_OK;
+
+
+  if (! skippable)
+  {
+    ResetImGui_D3D12 (This);
+    ResetCEGUI_D3D11 (This);
+
+    ret =
+      ResizeBuffers_Original ( This, BufferCount, Width, Height,
+                                 NewFormat, SwapChainFlags );
+
+    if (SUCCEEDED (ret))
+      bSwapChainNeedsResize = false;
+  }
 
   if (FAILED (ret))
   {
+    ResetImGui_D3D12 (This);
+    ResetCEGUI_D3D11 (This);
+
+    ret =
+      ResizeBuffers_Original ( This, BufferCount, Width, Height,
+                                   NewFormat, SwapChainFlags );
+
     if (SK_IsDebuggerPresent ())
     {
       SK_DXGI_OutputDebugString ( "IDXGISwapChain::ResizeBuffers (...) failed, look alive...",
@@ -4234,8 +4481,13 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
                                              rb.device : pDevice.p );
     }
   }
+    
 
-  DXGI_CALL (ret, ret);
+  if (! skippable)
+  { DXGI_CALL      (ret, ret); }
+  else
+  { DXGI_SKIP_CALL (ret, ret); }
+
 
   return ret;
 }
@@ -4247,6 +4499,9 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
   assert (pNewTargetParameters != nullptr);
+
+  DXGI_SWAP_CHAIN_DESC sd = { };
+  This->GetDesc      (&sd);
 
   DXGI_LOG_CALL_I6 (
     L"    IDXGISwapChain", L"ResizeTarget         ",
@@ -4418,12 +4673,39 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   //ResetImGui_D3D12 (This);
   //ResetCEGUI_D3D11 (This);
 
+  static UINT           numModeChanges = 0;
+  static DXGI_MODE_DESC lastModeSet;
+
+  bool skippable = false;
+
+  auto bd =
+       sd.BufferDesc;
+
+  if ( (bd.Width                   == pNewNewTargetParameters->Width   || pNewNewTargetParameters->Width  == 0)                   &&
+       (bd.Height                  == pNewNewTargetParameters->Height  || pNewNewTargetParameters->Height == 0)                   &&
+       (bd.Format                  == pNewNewTargetParameters->Format  || pNewNewTargetParameters->Format == DXGI_FORMAT_UNKNOWN) &&
+                                        // TODO: How to find the current mode?
+                                     (pNewNewTargetParameters->Scaling          == lastModeSet.Scaling          ||
+                                                                 numModeChanges == 0)                                             &&
+                                     (pNewNewTargetParameters->ScanlineOrdering == lastModeSet.ScanlineOrdering ||
+                                                                 numModeChanges == 0)                                             &&
+       (bd.RefreshRate.Numerator   == pNewNewTargetParameters->RefreshRate.Numerator)                                             &&
+       (bd.RefreshRate.Denominator == pNewNewTargetParameters->RefreshRate.Denominator) )
+  {
+    DXGI_SKIP_CALL (ret, S_OK);
+    return          ret;
+  }
+  
+
   DXGI_CALL ( ret,
                 ResizeTarget_Original (This, pNewNewTargetParameters)
             );
 
   if (SUCCEEDED (ret))
   {
+    lastModeSet = *pNewNewTargetParameters,
+                  ++numModeChanges;
+
     auto *pLimiter =
       SK::Framerate::GetLimiter (This);
 
@@ -4437,6 +4719,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
       SK_SetWindowResX (pNewNewTargetParameters->Width);
       SK_SetWindowResY (pNewNewTargetParameters->Height);
     }
+
+    bSwapChainNeedsResize = true;
   }
 
   return ret;
@@ -4577,8 +4861,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
     bOriginallyFlip = already_flip_model;
 
     // If auto-update prompt is visible, don't go fullscreen.
-    if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE) ||
-                                 ReadAcquire (&__SK_TaskDialogActive) )
+    if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE)   ||
+                                 ReadAcquire (&__SK_TaskDialogActive) != 0 )
     {
       pDesc->Windowed = true;
     }
@@ -5248,10 +5532,13 @@ public:
   ULONG          refs_;
 };
 
+void SK_DXGI_HookFactory     (IDXGIFactory    *pFactory);
+void SK_DXGI_HookPresentBase (IDXGISwapChain  *pSwapChain);
+void SK_DXGI_HookPresent1    (IDXGISwapChain1 *pSwapChain1);
+
 void
 SK_DXGI_LazyHookFactory (IDXGIFactory *pFactory)
 {
-  void        SK_DXGI_HookFactory (IDXGIFactory *pFactory);
   SK_RunOnce (SK_DXGI_HookFactory (pFactory));
   SK_RunOnce (SK_ApplyQueuedHooks (        ));
 }
@@ -5259,9 +5546,6 @@ SK_DXGI_LazyHookFactory (IDXGIFactory *pFactory)
 void
 SK_DXGI_LazyHookPresent (IDXGISwapChain *pSwapChain)
 {
-  void SK_DXGI_HookPresentBase (IDXGISwapChain  *pSwapChain);
-  void SK_DXGI_HookPresent1    (IDXGISwapChain1 *pSwapChain1);
-
   SK_RunOnce (SK_DXGI_HookSwapChain (pSwapChain));
 
   // This won't catch Present1 (...), but no games use that
@@ -5545,6 +5829,8 @@ DXGIFactory_CreateSwapChain_Override (
         //   returning an existing ref-counted object in its place.
                        pSwapToRecycle.p->AddRef ();
         *ppSwapChain = pSwapToRecycle.p;
+
+        bRecycledSwapChains = true;
 
         return S_OK;
       }
@@ -5975,6 +6261,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
                                       );
   if (pCache != nullptr)
   {
+    bRecycledSwapChains = true;
+
     DXGI_CALL ( ret, S_OK );
     SK_LOG0   (
       ( L" ### Returning Cached SwapChain for HWND previously seen" ),
@@ -6485,11 +6773,11 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
 
   HRESULT ret;
   bool silent =
-    (current_game == SK_GAME_ID::ResidentEvil8 && This == __SK_RE8_FactoryCache.pFactory1);
+    (current_game == SK_GAME_ID::ResidentEvil8);
 
   if (! silent)
   {
-    std::wstring iname = SK_GetDXGIFactoryInterface    (This);
+    std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
     DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
                          L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
@@ -6654,6 +6942,22 @@ HRESULT
 WINAPI CreateDXGIFactory (REFIID   riid,
                     _Out_ void   **ppFactory)
 {
+  if (config.render.dxgi.use_factory_cache)
+  {
+    bool current =
+      __SK_DXGI_FactoryCache.isCurrent ();
+
+    if (current)
+    {
+      if (__SK_DXGI_FactoryCache.hasInterface (riid))
+        return
+          __SK_DXGI_FactoryCache.addRef (ppFactory, riid);
+    }
+
+    else
+      __SK_DXGI_FactoryCache.reset ();
+  }
+
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
@@ -6678,7 +6982,14 @@ WINAPI CreateDXGIFactory (REFIID   riid,
   }
 
   if (SUCCEEDED (ret))
+  {
     SK_DXGI_LazyHookFactory ((IDXGIFactory *)*ppFactory);
+
+    if (config.render.dxgi.use_factory_cache)
+    {
+      __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
+    }
+  }
 
   return ret;
 }
@@ -6688,18 +6999,20 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
                      _Out_ void   **ppFactory)
 
 {
-  static auto current_game =
-    SK_GetCurrentGameID ();
-
-  if ( current_game == SK_GAME_ID::ResidentEvil8 &&
-       riid         == IID_IDXGIFactory1 )
+  if (config.render.dxgi.use_factory_cache)
   {
-    if (__SK_RE8_FactoryCache.isCurrent ())
-      return
-        __SK_RE8_FactoryCache.addRef (ppFactory);
+    bool current =
+      __SK_DXGI_FactoryCache.isCurrent ();
+
+    if (current)
+    {
+      if (__SK_DXGI_FactoryCache.hasInterface (riid))
+        return
+          __SK_DXGI_FactoryCache.addRef (ppFactory, riid);
+    }
 
     else
-      __SK_RE8_FactoryCache.release ();
+      __SK_DXGI_FactoryCache.reset ();
   }
 
 
@@ -6708,7 +7021,7 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
 
   UNREFERENCED_PARAMETER (iver);
 
-  //if (riid != IID_IDXGIFactory1 || (! __SK_RE8_FactoryCache.isCurrent ()))
+  //if (riid != IID_IDXGIFactory1 || (! __SK_DXGI_FactoryCache.isCurrent ()))
   //{
     DXGI_LOG_CALL_2 (L"                    CreateDXGIFactory1       ",
                      L"%s, %08" _L(PRIxPTR) L"h",
@@ -6755,16 +7068,9 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
 #endif
     SK_DXGI_LazyHookFactory ((IDXGIFactory *)*ppFactory);
     
-    if ( current_game == SK_GAME_ID::ResidentEvil8 &&
-                 riid == IID_IDXGIFactory1 )
+    if (config.render.dxgi.use_factory_cache)
     {
-      SK_ReleaseAssert (__SK_RE8_FactoryCache.pFactory1 == nullptr);
-
-      __SK_RE8_FactoryCache.pFactory1 =
-         (IDXGIFactory1 *)*ppFactory;
-
-      // Hold a ref for cache persistence
-      __SK_RE8_FactoryCache.pFactory1->AddRef ();
+      __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
     }
   }
 
@@ -6776,6 +7082,25 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
                            REFIID   riid,
                      _Out_ void   **ppFactory)
 {
+  static auto current_game =
+    SK_GetCurrentGameID ();
+
+  if (config.render.dxgi.use_factory_cache && Flags != 0x1) // 0x1 == Debug Factory
+  {
+    bool current =
+      __SK_DXGI_FactoryCache.isCurrent ();
+
+    if (current)
+    {
+      if (__SK_DXGI_FactoryCache.hasInterface (riid))
+        return
+          __SK_DXGI_FactoryCache.addRef (ppFactory, riid);
+    }
+
+    else
+      __SK_DXGI_FactoryCache.reset ();
+  }
+
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
@@ -6820,6 +7145,11 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
 #endif
 
     SK_DXGI_LazyHookFactory ((IDXGIFactory *)*ppFactory);
+
+    if (config.render.dxgi.use_factory_cache && Flags != 0x1) // 0x1 == Debug Factory
+    {
+      __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
+    }
   }
 
   return     ret;

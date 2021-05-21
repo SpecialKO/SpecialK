@@ -436,13 +436,13 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
       L"  |  ?  4:4:4 12bpc |  %s\n"
       L"  | YUV 4:2:2 12bpc |  %s\n"
       L"  +-----------------+---------------------\n",
-        (float)pHdrCapabilities->display_data.displayPrimary_x0,   (float)pHdrCapabilities->display_data.displayPrimary_y0,
-        (float)pHdrCapabilities->display_data.displayPrimary_x1,   (float)pHdrCapabilities->display_data.displayPrimary_y1,
-        (float)pHdrCapabilities->display_data.displayPrimary_x2,   (float)pHdrCapabilities->display_data.displayPrimary_y2,
-        (float)pHdrCapabilities->display_data.displayWhitePoint_x, (float)pHdrCapabilities->display_data.displayWhitePoint_y,
-        (float)pHdrCapabilities->display_data.desired_content_min_luminance,
-        (float)pHdrCapabilities->display_data.desired_content_max_luminance,
-        (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
+        (float)pHdrCapabilities->display_data.displayPrimary_x0   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y0   / (float)0xC350,
+        (float)pHdrCapabilities->display_data.displayPrimary_x1   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y1   / (float)0xC350,
+        (float)pHdrCapabilities->display_data.displayPrimary_x2   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y2   / (float)0xC350,
+        (float)pHdrCapabilities->display_data.displayWhitePoint_x / (float)0xC350, (float)pHdrCapabilities->display_data.displayWhitePoint_y / (float)0xC350,
+       ((float)pHdrCapabilities->display_data.desired_content_min_luminance               / (float)0xFFFF) * 6.55350f,
+       ((float)pHdrCapabilities->display_data.desired_content_max_luminance               / (float)0xFFFF) * 65535.0f,
+       ((float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance / (float)0xFFFF) * 65535.0f,
                pHdrCapabilities->isEdrSupported                                 ? L"Yes" : L"No",
                pHdrCapabilities->isST2084EotfSupported                          ? L"Yes" : L"No",
                pHdrCapabilities->isTraditionalHdrGammaSupported                 ? L"Yes" : L"No",
@@ -751,14 +751,14 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   void
   {
     rb.working_gamut.maxY =
-      pHdrColorData->mastering_display_data.max_display_mastering_luminance * 0.00001f;
+     ((float)pHdrColorData->mastering_display_data.max_display_mastering_luminance / (float)0xFFFF) * 65535.0f;
     rb.working_gamut.minY =
-     pHdrColorData->mastering_display_data.min_display_mastering_luminance  *  0.0001f;
+     ((float)pHdrColorData->mastering_display_data.min_display_mastering_luminance / (float)0xFFFF) * 6.55350f;
 
     rb.working_gamut.maxLocalY   =
-      pHdrColorData->mastering_display_data.max_content_light_level;
+     ((float)(pHdrColorData->mastering_display_data.max_content_light_level)       / (float)0xFFFF) * 65535.0f;
     rb.working_gamut.maxAverageY =
-      pHdrColorData->mastering_display_data.max_frame_average_light_level;
+     ((float)(pHdrColorData->mastering_display_data.max_frame_average_light_level) / (float)0xFFFF) * 65535.0f;
 
     rb.working_gamut.xr = (float)pHdrColorData->mastering_display_data.displayPrimary_x0 /
                           (float)50000.0f;

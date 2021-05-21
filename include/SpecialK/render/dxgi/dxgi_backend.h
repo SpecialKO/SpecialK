@@ -75,6 +75,12 @@
                 SK_DescribeHRESULT (_Ret) );                                \
 }
 
+#define DXGI_SKIP_CALL(_Ret, _Call) {                                        \
+  (_Ret) = (_Call);                                                          \
+  dll_log->Log ( L"[   DXGI   ] [@]  Skipped: %s  -  < " __FUNCTIONW__ L" >",\
+                SK_DescribeHRESULT (_Ret) );                                 \
+}
+
   // Interface-based DXGI call
 #define DXGI_LOG_CALL_I(_Interface,_Name,_Format)                            \
   {                                                                          \

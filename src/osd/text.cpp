@@ -30,22 +30,6 @@
 #include <SpecialK/nvapi.h>
 
 
-typedef struct _PROCESS_MEMORY_COUNTERS_EX {
-  DWORD  cb;
-  DWORD  PageFaultCount;
-  SIZE_T PeakWorkingSetSize;
-  SIZE_T WorkingSetSize;
-  SIZE_T QuotaPeakPagedPoolUsage;
-  SIZE_T QuotaPagedPoolUsage;
-  SIZE_T QuotaPeakNonPagedPoolUsage;
-  SIZE_T QuotaNonPagedPoolUsage;
-  SIZE_T PagefileUsage;
-  SIZE_T PeakPagefileUsage;
-  SIZE_T PrivateUsage;
-} PROCESS_MEMORY_COUNTERS_EX;
-
-
-
 SK_TextOverlayManager*
 SK_TextOverlayManager::getInstance (void)
 {
@@ -565,7 +549,7 @@ void
 __stdcall
 SK_InstallOSD (void)
 {
-  if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE))
+  if (InterlockedCompareExchange (&osd_init, TRUE, FALSE) == FALSE)
   {
     SK_TextOverlayManager::getInstance ()->createTextOverlay ("Special K");
 
@@ -582,7 +566,7 @@ SK_DrawOSD (void)
 {
   static bool cleared = false;
 
-  if ((! ReadAcquire (&osd_init)))
+  if (ReadAcquire (&osd_init) == FALSE)
     SK_InstallOSD ();
 
 #if 0
@@ -599,7 +583,7 @@ SK_DrawOSD (void)
   ////if ((! config.osd.show) && cleared)
   ////  return TRUE;
 
-  if (! ReadAcquire (&osd_init))
+  if (ReadAcquire (&osd_init) == FALSE)
     return FALSE;
 
   ImGui::SetNextWindowSize (ImGui::GetIO ().DisplaySize, ImGuiCond_Always);
@@ -1702,9 +1686,9 @@ SK_TextOverlay::update (const char* szText)
     if (data_.text_capacity <  src_len)
     {   data_.text_capacity = (src_len + 4096) -
                               (src_len % 4096);
-        data_.text = (char *)
-            std::realloc ( data_.text,
-                           data_.text_capacity );
+      std::free   (data_.text);
+                   data_.text = (char *)
+      std::malloc (data_.text_capacity );
     }
 
     data_.text_len =
@@ -1776,11 +1760,11 @@ SK_TextOverlay::update (const char* szText)
     ( has_tokens ? line
                  : tokenized_text );
 
-  float longest_line = 0.0f;
-
   // Compute the longest line so we can left-align text
   if (x < 0.0f)
   {
+    float longest_line = 0.0f;
+
     while (line != nullptr)
     {
       // Fast-path: Skip blank lines
@@ -1907,7 +1891,7 @@ void
 SK_TextOverlay::setPos (float x,float y) noexcept
 {
   // We cannot anchor the command console to the left or bottom...
-  if (! strcmp (data_.name, "SpecialK Console"))
+  if (0 == strcmp (data_.name, "SpecialK Console"))
   {
     x = std::max (0.0f, x);
     y = std::max (0.0f, y);
@@ -2076,11 +2060,13 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
       auto  it =  overlays_.cbegin ();
     while ( it != overlays_.cend   () )
     {
-      const auto pos_x = static_cast <float> (config.osd.pos_x);
-      const auto pos_y = static_cast <float> (config.osd.pos_y);
-
       if (var == pos_.x || var == pos_.y)
+      {
+        const auto pos_x = static_cast <float> (config.osd.pos_x);
+        const auto pos_y = static_cast <float> (config.osd.pos_y);
+
         it->second->setPos (pos_x, pos_y);
+      }
 
       else if (var == scale_)
         it->second->setScale (config.osd.scale);

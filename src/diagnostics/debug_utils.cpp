@@ -404,6 +404,31 @@ D3D11On12CreateDevice_NOP (        _In_ IUnknown*             ,
   return E_NOTIMPL;
 }
 
+using SteamAPI_RunCallbacks_pfn            = void (S_CALLTYPE *)(void);
+SteamAPI_RunCallbacks_pfn realRunCallbacks = nullptr;
+
+void S_CALLTYPE
+SteamAPI_RunCallbacks_throttled (void)
+{
+  static UINT64 ullLastCallback = 0;
+
+  if ((SK_QueryPerf ().QuadPart - ullLastCallback) > (UINT64)((double)SK_GetPerfFreq ().QuadPart * 0.666666))
+  {
+    ullLastCallback =
+      SK_QueryPerf ().QuadPart;
+
+    realRunCallbacks ();
+  }
+
+  return;
+}
+
+bool S_CALLTYPE
+SteamAPI_IsSteamRunning_override (void)
+{
+  return false;
+}
+
 FARPROC
 WINAPI
 GetProcAddress_Detour     (
@@ -474,6 +499,11 @@ GetProcAddress_Detour     (
   ////////    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
   ////////                            L"steam_api.dll" )
   ////////                     );
+
+  ////if (hModSteamOverlay != nullptr &&
+  ////    hModSteamOverlay == SK_GetCallingDLL ())
+  ////  return nullptr;
+
 
   char proc_name [512] = { };
 
@@ -546,7 +576,32 @@ GetProcAddress_Detour     (
     ////  }
     ////}
 
-    if ( *lpProcName == 'P'      &&
+    if ( SK_GetCurrentGameID () == SK_GAME_ID::ResidentEvil8 &&
+         *lpProcName == 'S'      &&
+ StrStrA (lpProcName, "SteamAPI_") == lpProcName)
+    {
+      if (! lstrcmpA (lpProcName, "SteamAPI_RunCallbacks"))
+      {
+        if (realRunCallbacks == nullptr)
+        {
+          realRunCallbacks = (SteamAPI_RunCallbacks_pfn)
+            GetProcAddress_Original (
+              hModule, lpProcName
+            );
+        }
+
+        return
+          (FARPROC)SteamAPI_RunCallbacks_throttled;
+      }
+
+      return
+        GetProcAddress_Original (
+          hModule, lpProcName
+        );
+    }
+
+    else if
+       ( *lpProcName == 'P'      &&
  StrStrA (lpProcName,   "PeekM") == lpProcName )
     {
       if (! lstrcmpA (lpProcName, "PeekMessageA"))

@@ -546,6 +546,7 @@ struct {
 struct {
   sk::ParameterBool*      force_fullscreen;
   sk::ParameterBool*      force_windowed;
+  sk::ParameterBool*      confirm_mode_changes;
 } display;
 
 struct {
@@ -946,6 +947,8 @@ auto DeclKeybind =
     ConfigEntry (uplay.overlay.hdr_luminance,            L"Make the uPlay Overlay visible in HDR mode!",               osd_ini,         L"uPlay.Overlay",         L"Luminance_scRGB"),
     ConfigEntry (rtss.overlay.hdr_luminance,             L"Make the RTSS Overlay visible in HDR mode!",                osd_ini,         L"RTSS.Overlay",          L"Luminance_scRGB"),
     ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
+
+    ConfigEntry (display.confirm_mode_changes,           L"Show Confirmation Dialog when Changing Display Modes",      osd_ini,         L"Display.Settings",      L"ConfirmChanges"),
 
     // Performance Monitoring  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
@@ -2287,11 +2290,12 @@ auto DeclKeybind =
       case SK_GAME_ID::HuniePop2:
       {
         // Unity engine game is detected as GL due to no imports
-        config.apis.OpenGL.hook                = false;
-        config.apis.d3d9.hook                  = false;
-        config.textures.cache.ignore_nonmipped = true;
+        config.apis.OpenGL.hook                      = false;
+        config.apis.d3d9.hook                        = false;
+        config.textures.cache.ignore_nonmipped       =  true;
       } break;
 
+      // You knowe it's a bad port when it requires all of these overrides (!!)
       case SK_GAME_ID::NieR_Sqrt_1_5:
       {
         config.textures.d3d11.cache                  =  true;
@@ -2330,14 +2334,22 @@ auto DeclKeybind =
         config.input.keyboard.catch_alt_f4           =  true;
         config.input.keyboard.override_alt_f4        =  true;
                                                      
-        config.nvidia.sleep.enable                   = true;
-        config.nvidia.sleep.enforcement_site         = 2;
-        config.nvidia.sleep.low_latency              = true;
-        config.nvidia.sleep.low_latency_boost        = true;
+        config.nvidia.sleep.enable                   =  true;
+        config.nvidia.sleep.enforcement_site         =     2;
+        config.nvidia.sleep.low_latency              =  true;
+        config.nvidia.sleep.low_latency_boost        =  true;
       } break;
 
       case SK_GAME_ID::ResidentEvil8:
-        config.steam.silent                          = true; // Steam integration is unstable
+        config.steam.achievements.pull_friend_stats  = false;
+        config.steam.auto_pump_callbacks             = false;
+        //config.steam.callback_throttle               =     1;
+        config.render.framerate.sleepless_window     = false;
+        config.render.framerate.sleepless_render     = false;
+        config.steam.preload_client                  =  true;
+        config.steam.preload_overlay                 =  true;
+        config.steam.silent                          =  true; // Steam integration is unstable
+        config.render.dxgi.use_factory_cache         =  true;
         break;
 #endif
     }
@@ -2456,6 +2468,7 @@ auto DeclKeybind =
 
   display.force_fullscreen->load            (config.display.force_fullscreen);
   display.force_windowed->load              (config.display.force_windowed);
+  display.confirm_mode_changes->load        (config.display.confirm_mode_changes);
 
   render.framerate.target_fps->load         (config.render.framerate.target_fps);
   render.framerate.target_fps_bg->load      (config.render.framerate.target_fps_bg);
@@ -3650,6 +3663,7 @@ SK_SaveConfig ( std::wstring name,
 
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
+  display.confirm_mode_changes->store         (config.display.confirm_mode_changes);
 
 //if (close_config)
   render.framerate.target_fps->store          (config.render.framerate.target_fps);//__target_fps);
@@ -4835,6 +4849,9 @@ SK_AppCache_Manager::getFriendAchievPct (uint64_t friend_, time_t* updated)
 bool
 SK_AppCache_Manager::wantFriendStats (void)
 {
+  if (! config.steam.achievements.pull_friend_stats)
+    return false;
+
   bool global_pref =
     config.steam.achievements.pull_friend_stats;
 

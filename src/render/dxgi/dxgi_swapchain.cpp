@@ -26,6 +26,13 @@
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
 
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGISwap3_SetColorSpace1_Impl (
+  IDXGISwapChain3       *pSwapChain3,
+  DXGI_COLOR_SPACE_TYPE  ColorSpace,
+  BOOL                   bWrapped = FALSE
+);
 
 extern BOOL _NO_ALLOW_MODE_SWITCH;
 
@@ -311,7 +318,8 @@ SK_DXGI_FixUpLatencyWaitFlag ( IDXGISwapChain *pSwapChain,
   DXGI_SWAP_CHAIN_DESC  desc = { };
   pSwapChain->GetDesc (&desc);
 
-  if ( (desc.Flags &  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) || (bCreation && config.render.framerate.swapchain_wait > 0) )
+  if ( (desc.Flags &  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+                  ==  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT || (bCreation && config.render.framerate.swapchain_wait > 0) )
             Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
   else      Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
@@ -734,14 +742,6 @@ STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetColorSpace1 (DXGI_COLOR_SPACE_TYPE ColorSpace)
 {
   assert (ver_ >= 3);
-
-  HRESULT
-  STDMETHODCALLTYPE
-  SK_DXGISwap3_SetColorSpace1_Impl (
-    IDXGISwapChain3       *pSwapChain3,
-    DXGI_COLOR_SPACE_TYPE  ColorSpace,
-    BOOL                   bWrapped = FALSE
-  );
 
   return
     SK_DXGISwap3_SetColorSpace1_Impl (

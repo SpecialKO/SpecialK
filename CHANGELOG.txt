@@ -1,4 +1,14 @@
-﻿21.05.18
+﻿21.05.21
+========
+ + Added memory (System, GPU and Texture Cache) statistics to crash logs
+ + Removed duplicate resolution and refresh combinations from drop-downs
+ + Mode changes in SK's Display menu now apply to the monitor the game is
+     primarily covering instead of the default system monitor
+ + Added optional 15 second confirmation timeout to display mode changes
+ + Improved reliabiility of 'Preferred Monitor' drop-down in Display Menu
+ + Improved performance in games that make redundant display mode changes
+
+21.05.18
 ========
  + Improved startup reliability of Resident Evil 8 (bad engine!)
  + Enabled Legacy HID Keyboard Input in RE8 so that text input works

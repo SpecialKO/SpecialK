@@ -729,11 +729,17 @@ SK_D3D11_SetShaderResources_Impl (
   auto& views =
     shader_base->current.views [dev_idx];
 
-  RtlCopyMemory (
-       &views [StartSlot],
-    ppShaderResourceViews,
-                 NumViews * sizeof (ID3D11ShaderResourceView*)
-  );
+  if (ppShaderResourceViews != nullptr && NumViews > 0)
+  {
+    RtlCopyMemory (
+         &views [StartSlot],
+      ppShaderResourceViews,
+                   NumViews * sizeof (ID3D11ShaderResourceView*)
+    );
+  }
+
+  else
+    ZeroMemory (shader_base->current.views [dev_idx], NumViews * sizeof (ID3D11ShaderResourceView));
 
 
   //// ImGui gets to pass-through without invoking the hook
@@ -745,7 +751,7 @@ SK_D3D11_SetShaderResources_Impl (
   }
 
 
-  if (ppShaderResourceViews && NumViews > 0 && shader_base != nullptr)
+  if (ppShaderResourceViews != nullptr && NumViews > 0 && shader_base != nullptr)
   {
     auto&& newResourceViews =
       shader_base->current.tmp_views [dev_idx];

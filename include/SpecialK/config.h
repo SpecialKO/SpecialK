@@ -411,6 +411,7 @@ struct sk_config_t
       bool    deferred_isolation = false;
       bool    present_test_skip  = false;
       bool    hide_hdr_support   = false; // Games won't know HDR is supported
+      bool    use_factory_cache  =  true; // Fix performance issues in Resident Evil 8
     } dxgi;
 
     struct osd_s {
@@ -436,57 +437,58 @@ struct sk_config_t
   } render;
 
   struct display_s {
-    int       monitor_default     = MONITOR_DEFAULTTOPRIMARY;
-    int       monitor_idx         =    -1; // TODO
-    HMONITOR  monitor_handle      =     0;
-    float     refresh_rate        =  0.0F; // TODO
-    bool      force_fullscreen    = false;
-    bool      force_windowed      = false;
+    int       monitor_default      = MONITOR_DEFAULTTOPRIMARY;
+    int       monitor_idx          =    -1; // TODO
+    HMONITOR  monitor_handle       =     0;
+    float     refresh_rate         =  0.0F; // TODO
+    bool      force_fullscreen     = false;
+    bool      force_windowed       = false;
+    bool      confirm_mode_changes = true;
   } display;
 
   struct textures_s {
     struct d3d11_s {
       std::wstring
-        res_root                  = L"SK_Res";
-      bool    precise_hash        = false;
-      bool    dump                = false;
-      bool    inject              = true;
-      bool    cache               = true;
-      bool    highlight_debug     = true;
-      bool    injection_keeps_fmt = false;
-      bool    generate_mips       = false;
-      bool    cache_gen_mips      =  true;
-      bool    uncompressed_mips   = false;
+        res_root                   = L"SK_Res";
+      bool    precise_hash         = false;
+      bool    dump                 = false;
+      bool    inject               = true;
+      bool    cache                = true;
+      bool    highlight_debug      = true;
+      bool    injection_keeps_fmt  = false;
+      bool    generate_mips        = false;
+      bool    cache_gen_mips       =  true;
+      bool    uncompressed_mips    = false;
     } d3d11;
     struct cache_s {
-      int     min_evict           = 64;
-      int     max_evict           = 1024;
-      int     min_entries         = 512;
-      int     max_entries         = 65536; // Bump max up from 8192 since the hashmap
-                                           //   is now segmented by number of mipmap LODs;
-                                           //
-                                           //  Overhead of managing a large hashmap is
-                                           //    much lower.
-      int     min_size            = 384L;
-      int     max_size            = 2048L;
-      bool    ignore_nonmipped    = false;
-      bool    allow_staging       = false;
-      bool    allow_unsafe_refs   = false; // Allow texture caching even in engines that
-                                           //   are not correctly keeping track of resources
-      bool    residency_managemnt = false;// true;
-      bool    vibrate_on_miss     = false;
-    } cache;
-
-    bool highlight_debug_tex      = false;
-    bool on_demand_dump           = false;
-    bool d3d9_mod                 = false; // Causing compat issues in some D3D9Ex games ATM
-    bool dump_on_load             = false;
-    bool clamp_lod_bias           = false;
-  } textures;
-
-  struct file_trace_s {
-    bool trace_reads              = false;
-    bool trace_writes             = false;
+      int     min_evict            = 64;
+      int     max_evict            = 1024;
+      int     min_entries          = 512;
+      int     max_entries          = 65536; // Bump max up from 8192 since the hashmap
+                                            //   is now segmented by number of mipmap LODs;
+                                            //
+                                            //  Overhead of managing a large hashmap is
+                                            //    much lower.
+      int     min_size             = 384L;
+      int     max_size             = 2048L;
+      bool    ignore_nonmipped     = false;
+      bool    allow_staging        = false;
+      bool    allow_unsafe_refs    = false; // Allow texture caching even in engines that
+                                            //   are not correctly keeping track of resources
+      bool    residency_managemnt  = false;// true;
+      bool    vibrate_on_miss      = false;
+    } cache;                       
+                                   
+    bool highlight_debug_tex       = false;
+    bool on_demand_dump            = false;
+    bool d3d9_mod                  = false; // Causing compat issues in some D3D9Ex games ATM
+    bool dump_on_load              = false;
+    bool clamp_lod_bias            = false;
+  } textures;                      
+                                   
+  struct file_trace_s {            
+    bool trace_reads               = false;
+    bool trace_writes              = false;
 
     struct ignore_files_s {
       Concurrency::concurrent_unordered_set <std::wstring> single_file;
@@ -558,6 +560,7 @@ struct sk_config_t
         unsigned
         int   ui_slot           =    0;
         bool  placehold  [4]    = { false };
+        unsigned
         int   assignment [4]    = { 0, 1, 2, 3 };
         bool  hook_setstate     =  true; // Some software causes feedback loops
         bool  auto_slot_assign  = false;

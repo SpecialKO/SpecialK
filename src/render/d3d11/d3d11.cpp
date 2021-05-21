@@ -63,6 +63,27 @@ DWORD D3D11_GetFrameTime (void)
 bool
 SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader);
 
+extern HRESULT
+  SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
+                            _In_ UINT                 VertexCount,
+                            _In_ UINT                 StartVertexLocation,
+                            _In_ D3D11_Draw_pfn       pfnD3D11Draw );
+
+extern HRESULT
+  SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
+                                     _In_ UINT                 VertexCount,
+                                     _In_ UINT                 StartVertexLocation,
+                                     _In_ uint32_t             crc32,
+                                     _In_ D3D11_Draw_pfn       pfnD3D11Draw );
+extern HRESULT
+  SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
+                             _In_ UINT                  IndexCount,
+                             _In_ UINT                  StartIndexLocation,
+                             _In_ INT                   BaseVertexLocation,
+                             _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
+
+extern bool SK_D3D11_ShowShaderModDlg (void);
+
 LPVOID pfnD3D11CreateDevice             = nullptr;
 LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
 
@@ -1466,17 +1487,23 @@ SK_D3D11_CopyResource_Impl (
         static auto& textures =
           SK_D3D11_Textures;
 
-        textures->CacheMisses_2D++;
+        if (! SK_D3D11_TextureIsCached (pDstTex))
+        {
+          textures->CacheMisses_2D++;
 
-        textures->refTexture2D ( pDstTex,
-                                  &dst_desc,
-                                    cache_tag,
-                                      map_ctx.dynamic_sizes2   [checksum],
-                                        map_ctx.dynamic_times2 [checksum],
-                                          top_crc32,
-                                            map_ctx.dynamic_files2 [checksum].c_str (),
-                                              nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
-                                                pTLS );
+          textures->refTexture2D ( pDstTex,
+                                    &dst_desc,
+                                      cache_tag,
+                                        map_ctx.dynamic_sizes2   [checksum],
+                                          map_ctx.dynamic_times2 [checksum],
+                                            top_crc32,
+                                              map_ctx.dynamic_files2 [checksum].c_str (),
+                                                nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
+                                                  pTLS );
+        }
+
+        else
+          textures->recordCacheHit (pDstTex);
 
         if (! map_ctx.dynamic_files2 [checksum].empty ())
           textures->Textures_2D [pDstTex].injected = true;
@@ -3153,12 +3180,6 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
     if ( STEAM_OVERLAY_VS_CRC32C ==
                        vs_crc )
     {
-      extern HRESULT
-        SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
-                                  _In_ UINT                 VertexCount,
-                                  _In_ UINT                 StartVertexLocation,
-                                  _In_ D3D11_Draw_pfn       pfnD3D11Draw );
-
       if ( SUCCEEDED (
              SK_D3D11_InjectSteamHDR ( pDevCtx, VertexCount,
                                          StartVertexLocation,
@@ -3173,13 +3194,6 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
     else if ( DISCORD_OVERLAY_VS_CRC32C == vs_crc ||
                  RTSS_OVERLAY_VS_CRC32C == vs_crc )
     {
-      extern HRESULT
-        SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
-                                           _In_ UINT                 VertexCount,
-                                           _In_ UINT                 StartVertexLocation,
-                                           _In_ uint32_t             crc32,
-                                           _In_ D3D11_Draw_pfn       pfnD3D11Draw );
-
       if ( SUCCEEDED (
              SK_D3D11_InjectGenericHDROverlay ( pDevCtx, VertexCount,
                                                   StartVertexLocation,
@@ -3295,14 +3309,6 @@ SK_D3D11_DrawIndexed_Impl (
     if ( UPLAY_OVERLAY_PS_CRC32C ==
            SK_D3D11_Shaders->pixel.current.shader [dev_idx] )
     {
-      extern HRESULT
-      SK_D3D11_Inject_uPlayHDR (
-        _In_ ID3D11DeviceContext  *pDevCtx,
-        _In_ UINT                  IndexCount,
-        _In_ UINT                  StartIndexLocation,
-        _In_ INT                   BaseVertexLocation,
-        _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
-
       if ( SUCCEEDED (
              SK_D3D11_Inject_uPlayHDR ( pDevCtx, IndexCount,
                                          StartIndexLocation,
@@ -4008,8 +4014,8 @@ D3D11Dev_CreateTexture2D_Impl (
     {
       if (! config.window.res.override.isZero ())
       {
-        if ((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) ||
-            (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL))
+        if ((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) == D3D11_BIND_RENDER_TARGET ||
+            (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
         {
           if (pDesc->Width == 480  && pDesc->Height == 270)
           {
@@ -4056,13 +4062,13 @@ D3D11Dev_CreateTexture2D_Impl (
                   SK_DXGI_IsFormatInteger (pDesc->Format) ) )
          )
       {
-        size_t bpp =
-          DirectX::BitsPerPixel (pDesc->Format),
-               bpc =
-          DirectX::BitsPerColor (pDesc->Format);
-
         if (pDesc->SampleDesc.Count == 1)
         {
+          size_t bpp =
+            DirectX::BitsPerPixel (pDesc->Format),
+                 bpc =
+            DirectX::BitsPerColor (pDesc->Format);
+
           if (     bpc == 11)
             InterlockedIncrement (&SK_HDR_RenderTargets_11bpc->CandidatesSeen);
           else if (bpc == 10)
@@ -4237,10 +4243,10 @@ D3D11Dev_CreateTexture2D_Impl (
 
   cacheable = cacheable &&
     (! (pDesc->BindFlags & ( D3D11_BIND_DEPTH_STENCIL |
-                             D3D11_BIND_RENDER_TARGET   )))  &&
-       (pDesc->BindFlags & ( D3D11_BIND_SHADER_RESOURCE |
-                             D3D11_BIND_UNORDERED_ACCESS  )) &&
-        (pDesc->Usage    <   D3D11_USAGE_DYNAMIC); // Cancel out Staging
+                             D3D11_BIND_RENDER_TARGET ) )    != 0x0) &&
+       (pDesc->BindFlags & ( D3D11_BIND_SHADER_RESOURCE  |
+                             D3D11_BIND_UNORDERED_ACCESS ) ) != 0x0  &&
+       (pDesc->Usage     <   D3D11_USAGE_DYNAMIC); // Cancel out Staging
                                                    //   They will be handled through a
                                                    //     different codepath.
 
@@ -4292,28 +4298,23 @@ D3D11Dev_CreateTexture2D_Impl (
     gen_mips = true;
   }
 
-
-  bool dynamic = false;
-
   if (config.textures.d3d11.cache && (! cacheable))
   {
     SK_LOG1 ( ( L"Impossible to cache texture (Code Origin: '%s') -- Misc Flags: %x, MipLevels: %lu, "
                 L"ArraySize: %lu, CPUAccess: %x, BindFlags: %x, Usage: %x, pInitialData: %08"
-                PRIxPTR L" (%08" _L(PRIxPTR) L")",
+                _L(PRIxPTR) L" (%08" _L(PRIxPTR) L")",
                   SK_GetModuleName (SK_GetCallingDLL (lpCallerAddr)).c_str (), pDesc->MiscFlags, pDesc->MipLevels, pDesc->ArraySize,
                     pDesc->CPUAccessFlags, pDesc->BindFlags, pDesc->Usage, (uintptr_t)pInitialData,
                       pInitialData ? (uintptr_t)pInitialData->pSysMem : (uintptr_t)nullptr
               ),
               L"DX11TexMgr" );
-
-    dynamic = true;
   }
 
   const bool dumpable =
               cacheable;
 
   cacheable =
-    cacheable && (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_WRITE));
+    cacheable && ( D3D11_CPU_ACCESS_WRITE != (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) );
 
 
   uint32_t top_crc32 = 0x00;
@@ -4344,13 +4345,10 @@ D3D11Dev_CreateTexture2D_Impl (
          )
        )
     {
-      const bool compressed =
-        DirectX::IsCompressed (pDesc->Format);
-
       // If this isn't an injectable texture, then filter out non-mipmapped
       //   textures.
       if ((! injectable) && cache_opts.ignore_non_mipped)
-        cacheable &= (pDesc->MipLevels > 1 || compressed);
+        cacheable &= (pDesc->MipLevels > 1 || DirectX::IsCompressed (pDesc->Format));
 
       if (cacheable)
       {
@@ -4385,12 +4383,6 @@ D3D11Dev_CreateTexture2D_Impl (
   //   of creation...
   if ( cacheable )
   {
-    bool
-    WINAPI
-    SK_XInput_PulseController ( INT   iJoyID,
-                                float fStrengthLeft,
-                                float fStrengthRight );
-
     if (config.textures.cache.vibrate_on_miss)
       SK_XInput_PulseController (config.input.gamepad.xinput.ui_slot, 1.0f, 0.0f);
 
@@ -4640,7 +4632,7 @@ D3D11Dev_CreateTexture2D_Impl (
         const size_t lines =
           DirectX::ComputeScanlines (mdata.format, height);
 
-        if (! lines)
+        if (lines == 0)
         {
           error = true;
           break;
@@ -7275,8 +7267,6 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
   domain.changes_last_frame   = 0;
   compute.changes_last_frame  = 0;
 
-
-  extern bool SK_D3D11_ShowShaderModDlg (void);
 
   if (! SK_D3D11_ShowShaderModDlg ())
     SK_D3D11_EnableMMIOTracking = false;

@@ -125,8 +125,9 @@ GetLogicalProcessorInformationEx_Detour (
 				    }
 			    }
 
-          buffer = (char *)
-            std::realloc (buffer, len + extraAlloc);
+          std::free   (buffer);
+                       buffer = (char *)
+          std::malloc (len + extraAlloc);
 
           if ( buffer != nullptr &&
                GetLogicalProcessorInformationEx_Original (

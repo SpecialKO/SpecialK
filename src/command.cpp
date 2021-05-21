@@ -270,7 +270,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
   ////std::scoped_lock <SK_Thread_HybridSpinlock>
   ////      scope_lock (*process_cmd_lock);
 
-  if (szCommandLine != nullptr && strlen (szCommandLine))
+  if (szCommandLine != nullptr && *szCommandLine != '\0')
   {
     char* command_word  = _strdup     (szCommandLine);
     if (  command_word == nullptr) return

@@ -276,3 +276,11 @@ paket-files/
 /include/shaders/imgui_d3d11_ps.h
 /flip.txt
 *.clang-tidy
+*.cppcheck
+*.snalyzerinfo
+*.a1
+*.s1
+*.a2
+*.s2
+/StaticAnalysis-cppcheck-build-dir/files.txt
+/StaticAnalysis-cppcheck-build-dir/statistics.txt

@@ -88,8 +88,8 @@ SK_Screenshot_IsCapturingHUDless (void)
     return true;
   }
 
-  if ( ReadAcquire (&enqueued_screenshots.pre_game_hud) ||
-       ReadAcquire (&enqueued_screenshots.without_sk_osd) )
+  if ( ReadAcquire (&enqueued_screenshots.pre_game_hud)   > 0 ||
+       ReadAcquire (&enqueued_screenshots.without_sk_osd) > 0 )
   {
     return true;
   }
@@ -277,7 +277,8 @@ SK_ScreenshotManager::getRepoStats (bool refresh)
     {
       do
       {
-        if (         (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
+        if (         (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) ==
+                                             FILE_ATTRIBUTE_DIRECTORY  &&
           (  wcsncmp (fd.cFileName, L"." , MAX_PATH) != 0)             &&
             (wcsncmp (fd.cFileName, L"..", MAX_PATH) != 0) )
         {

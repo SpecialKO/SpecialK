@@ -1609,18 +1609,24 @@ D3D11_CopySubresourceRegion_Override (
               }
             }
 
-            textures->CacheMisses_2D++;
+            if (! SK_D3D11_TextureIsCached (pDstTex))
+            {
+              textures->CacheMisses_2D++;
 
-            textures->refTexture2D ( pDstTex,
-                                      &dst_desc,
-                                        cache_tag,
-                                          map_ctx.dynamic_sizes2   [checksum],
-                                            map_ctx.dynamic_times2 [checksum],
-                                              top_crc32,
-                                                filename.empty () ? map_ctx.dynamic_files2 [checksum].c_str () :
-                                                filename.c_str (),
-                                                  nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
-                                                    pTLS );
+              textures->refTexture2D ( pDstTex,
+                                        &dst_desc,
+                                          cache_tag,
+                                            map_ctx.dynamic_sizes2   [checksum],
+                                              map_ctx.dynamic_times2 [checksum],
+                                                top_crc32,
+                                                  filename.empty () ? map_ctx.dynamic_files2 [checksum].c_str () :
+                                                  filename.c_str (),
+                                                    nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
+                                                      pTLS );
+            }
+
+            else
+              textures->recordCacheHit (pDstTex);
             
             if ((! filename.empty ()) || (! map_ctx.dynamic_files2 [checksum].empty ()))
               textures->Textures_2D [pDstTex].injected = true;

@@ -53,7 +53,6 @@ static constexpr int SK_MAX_WINDOW_DIM = 16384;
 # define SK_WINDOW_LOG_CALL_UNTESTED() { }
 #endif
 
-
 BOOL
 WINAPI
 SetWindowPlacement_Detour (
@@ -1769,6 +1768,47 @@ AdjustWindowRect_Detour (
 void SK_SetWindowStyle   (DWORD_PTR dwStyle_ptr,   SetWindowLongPtr_pfn pDispatchFunc = nullptr);
 void SK_SetWindowStyleEx (DWORD_PTR dwStyleEx_ptr, SetWindowLongPtr_pfn pDispatchFunc = nullptr);
 
+DWORD dwBorderStyle,
+      dwBorderStyleEx;
+
+void
+SK_Window_RemoveBorders (void)
+{
+  if (SK_Window_HasBorder (game_window.hWnd))
+  {
+    dwBorderStyle   = game_window.actual.style;
+    dwBorderStyleEx = game_window.actual.style_ex;
+
+    SK_SetWindowStyle   ( SK_BORDERLESS    );
+    SK_SetWindowStyleEx ( SK_BORDERLESS_EX );
+
+    SK_SetWindowPos ( game_window.hWnd,
+                               SK_HWND_TOP,
+                        0, 0,
+                        0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION   | SWP_NOSIZE |
+                               SWP_FRAMECHANGED | SWP_NOACTIVATE );
+  }
+}
+
+void
+SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx)
+{
+  if (! SK_Window_HasBorder (game_window.hWnd))
+  {
+    if (! config.window.borderless)
+    {
+      SK_SetWindowStyle   ( dwStyle   == 0 ? dwBorderStyle   : dwStyle   );
+      SK_SetWindowStyleEx ( dwStyleEx == 0 ? dwBorderStyleEx : dwStyleEx );
+
+      SK_SetWindowPos ( game_window.hWnd,
+                                 SK_HWND_TOP,
+                          0, 0,
+                          0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION   | SWP_NOSIZE |
+                                 SWP_FRAMECHANGED | SWP_NOACTIVATE );
+    }
+  }
+}
+
 BOOL
 WINAPI
 SK_AdjustWindowRectEx (
@@ -2762,6 +2802,9 @@ SK_AdjustBorder (void)
   if (game_window.GetWindowLongPtr == nullptr)
     return;
 
+  if (SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+    return;
+
   game_window.actual.style    =
     game_window.GetWindowLongPtr ( game_window.hWnd, GWL_STYLE   );
   game_window.actual.style_ex =
@@ -3122,7 +3165,7 @@ SK_AdjustWindow (void)
 
     // Adjust the desktop resolution to make room for window decorations
     //   if the game window were maximized.
-    if (! config.window.borderless) {
+    if ((! config.window.borderless) && (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)) {
       SK_AdjustWindowRect (
         &mi.rcWork,
         static_cast <LONG> (game_window.actual.style),
@@ -5838,6 +5881,20 @@ ChangeDisplaySettingsExW_Detour (
 }
 
 LONG
+__stdcall
+SK_ChangeDisplaySettingsEx ( _In_ LPCWSTR   lpszDeviceName,
+                             _In_ DEVMODEW *lpDevMode,
+                                  HWND      hWnd,
+                             _In_ DWORD     dwFlags,
+                             _In_ LPVOID    lParam )
+{
+  return
+    ChangeDisplaySettingsExW_Original != nullptr           ?
+    ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam) :
+    ChangeDisplaySettingsExW          (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+}
+
+LONG
 WINAPI
 ChangeDisplaySettingsW_Detour (
   _In_opt_ DEVMODEW *lpDevMode,
@@ -6216,11 +6273,14 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
   return ret;
 }
 
+#include <winternl.h>
+#include <winnt.h>
+
 BOOL
 SK_Win32_IsGUIThread ( DWORD    dwTid,
                        SK_TLS **ppTLS )
 {
-  UNREFERENCED_PARAMETER (ppTLS);
+  //UNREFERENCED_PARAMETER (ppTLS);
 #if 0
   SK_TLS
    *pTLS = nullptr;
@@ -6253,7 +6313,7 @@ SK_Win32_IsGUIThread ( DWORD    dwTid,
   
   return
     pTLS->win32->GUI;
-#else
+#elif 1
   static volatile LONG64 last_result = 0x0;
                   LONG64 test_result =
                     ReadAcquire64 (&last_result);
@@ -6273,6 +6333,8 @@ SK_Win32_IsGUIThread ( DWORD    dwTid,
 
   return
     bGUI;
+#else
+
 #endif
 }
 

@@ -22,6 +22,8 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
 
+#include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
+
 #ifdef _M_AMD64
 # define SK_DBGHELP_STUB(__proto) __proto##64
 #else
@@ -966,8 +968,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  CONTEXT&          last_ctx    = pTLS->debug.last_ctx;
-  EXCEPTION_RECORD& last_exc    = pTLS->debug.last_exc;
+  CONTEXT&          last_ctx = pTLS->debug.last_ctx;
+  EXCEPTION_RECORD& last_exc = pTLS->debug.last_exc;
 
 
   //if ( (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) &&
@@ -976,10 +978,134 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   //  __debugbreak ();
   //}
 
+  static bool          run_once = false;
+  if (! std::exchange (run_once,  true))
+  {
+    std::wstring hw_status =
+      L"==================================================================================================\n";
+
+    MEMORYSTATUSEX 
+      msex          = {           };// Mmmm, sex.
+      msex.dwLength = sizeof (msex);
+
+    GlobalMemoryStatusEx (&msex);
+
+    PROCESS_MEMORY_COUNTERS_EX
+      pmc_ex    = {             };
+      pmc_ex.cb = sizeof (pmc_ex);
+
+#if   0
+    if (SK_WMI_CPUStats->num_cpus > 1)
+    {
+      log_entry.append (
+        SK_FormatStringW (
+          L"<+> Aggregate CPU Load: %lu%%", ReadAcquire (&SK_WMI_CPUStats->cpus [SK_WMI_CPUStats->num_cpus].percent_load)
+        )
+      );
+
+      double dTemp = (double)
+        SK_WMI_CPUStats->cpus [SK_WMI_CPUStats->num_cpus].temp_c;s
+
+      if (dTemp > 0.0)
+      {
+        extern std::string
+        SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit);
+
+        log_entry.append (
+          std::wstring (L", Temperature: ") +
+            SK_UTF8ToWideChar (
+              SK_FormatTemperature (
+                dTemp,
+                  Celsius,
+                    config.system.prefer_fahrenheit ? Fahrenheit :
+                                                      Celsius )
+            )
+        );
+      }
+
+      log_entry.append (L"\n");
+    }  
+#endif
+
+    if ( GetProcessMemoryInfo (
+           GetCurrentProcess ( ), (PROCESS_MEMORY_COUNTERS *)&pmc_ex,
+                                                              pmc_ex.cb ) )
+    {
+      hw_status.append (
+        SK_FormatStringW (
+          L" <+> System Memory Load....: %lu%%\n", msex.dwMemoryLoad
+        )
+      );
+
+      hw_status.append (
+        SK_FormatStringW (
+          L"  # Current Working Set....: %6.3f GiB  (Max Used: %6.3f GiB out of Total Physical: %6.3f GiB)\n",
+            (float)((double)pmc_ex.WorkingSetSize     / (1024.0 * 1024.0 * 1024.0)),
+            (float)((double)pmc_ex.PeakWorkingSetSize / (1024.0 * 1024.0 * 1024.0)),
+            (float)((double)msex.ullTotalPhys         / (1024.0 * 1024.0 * 1024.0))
+        )
+      );
+      hw_status.append (
+        SK_FormatStringW (
+          L"  # Current Virtual Memory.: %6.3f GiB  (Max Used: %6.3f GiB)\n\n",              
+            (float)((double)pmc_ex.PrivateUsage      / (1024.0 * 1024.0 * 1024.0)),
+            (float)((double)pmc_ex.PeakPagefileUsage  / (1024.0 * 1024.0 * 1024.0))
+        )
+      );
+
+      if (SK_GPU_GetVRAMUsed (0) > 0)
+      {
+        if (SK_GPU_GetGPULoad (0) > 0.0f)
+        {
+          hw_status.append (
+            SK_FormatStringW (
+              L" <+> GPU0 Load.............: %5.2f%%", SK_GPU_GetGPULoad (0)
+            )
+          );
+          if (SK_GPU_GetTempInC (0) > 0.0f)
+          {
+            hw_status.append (
+              SK_FormatStringW (
+                L" at %5.2f°C", SK_GPU_GetTempInC (0)
+              )
+            );
+          }
+          hw_status.append (L"\n");
+        }
+        if (config.textures.d3d11.cache && SK_D3D11_Textures->Entries_2D.load () > 0)
+        {
+          hw_status.append (
+            SK_FormatStringW (
+              L"  - D3D11 Textures Cached..: %lu (%6.3f GiB Used, Quota: %6.3f GiB); %lu Evictions / %lu Hits\n",
+                        SK_D3D11_Textures->Entries_2D.load        (),
+        (float)((double)SK_D3D11_Textures->AggregateSize_2D.load  () / (1024.0 * 1024.0 * 1024.0)),
+        (float)((double)config.textures.cache.max_size               / (                  1024.0)),
+                        SK_D3D11_Textures->Evicted_2D.load        (),
+                        SK_D3D11_Textures->RedundantLoads_2D.load ()
+            )
+          );
+        }
+        hw_status.append (
+          SK_FormatStringW (
+            L"  - Current VRAM In Use....: %6.3f GiB / Max Useable VRAM: %6.3f GiB\n",
+            (float)((double)SK_GPU_GetVRAMUsed     (0) / (1024.0 * 1024.0 * 1024.0)),
+            (float)((double)SK_GPU_GetVRAMCapacity (0) / (1024.0 * 1024.0 * 1024.0))
+          )
+        );
+      }
+    }
+
+    hw_status.append (
+      L"=================================================================================================="
+    );
+
+    crash_log->LogEx (false, L"\n%ws\n\n", hw_status.c_str ());
+  }
+
   std::wstring log_entry =
     SK_SEH_SummarizeException (ExceptionInfo, true);
 
-  crash_log->Log   (L"\n\tUnhandled Top-Level Exception (%x):\n",
+  crash_log->Log   (L"   Unhandled Top-Level Exception (%x):\n",
                     ExceptionInfo->ExceptionRecord->ExceptionCode);
 
 

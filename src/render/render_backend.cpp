@@ -42,6 +42,9 @@
 
 volatile ULONG64 SK_RenderBackend::frames_drawn = 0ULL;
 
+extern void
+SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc = nullptr);
+
 
 class SK_AutoDC
 {
@@ -167,7 +170,7 @@ SK_BootD3D9 (void)
 
   static volatile LONG __booted = FALSE;
 
-  if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
+  if (InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE) == FALSE)
   {
     if (pTLS != nullptr)
         pTLS->d3d9->ctx_init_thread = true;
@@ -337,7 +340,7 @@ SK_BootDXGI (void)
 
   static volatile LONG __booted = FALSE;
 
-  if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
+  if (InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE) == FALSE)
   {
     SK_DXGI_QuickHook ();
 
@@ -397,7 +400,7 @@ SK_BootOpenGL (void)
 #ifndef SK_BUILD__INSTALLER
   static volatile LONG __booted = FALSE;
 
-  if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
+  if (InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE) == FALSE)
   {
     if (pTLS)
         pTLS->gl->ctx_init_thread = true;
@@ -470,13 +473,13 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       _ClearTemporarySurfaces ();
   }
 
-  bool success = false;
-
   DWORD dwTimeNow =
     SK_timeGetTime ();
 
   if ( last_checked < (dwTimeNow - 666UL) )
   {    last_checked =  dwTimeNow;
+
+    bool success = false;
 
     if ( rb.device       == nullptr ||
          rb.swapchain    == nullptr ||
@@ -608,7 +611,7 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
         SK_ComPtr          <IDXGIOutput>  pOutput;
         pSwapChain->GetContainingOutput (&pOutput);
 
-        if (config.render.framerate.refresh_rate != -1)
+        if (config.render.framerate.refresh_rate != -1.0f)
         {
           if (config.render.framerate.rescan_.Denom != 1)
           {
@@ -906,6 +909,9 @@ SK_RenderBackend_V2::getSwapWaitHandle (void)
   //       thus do not return INVALID_HANDLE_VALUE; return 0.
 }
 
+void SK_HDR_ReleaseResources       (void);
+void SK_DXGI_ReleaseSRGBLinearizer (void);
+
 void
 SK_RenderBackend_V2::releaseOwnedResources (void)
 {
@@ -954,12 +960,7 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     d3d11.immediate_ctx = nullptr;
     d3d12.command_queue = nullptr;
 
-    void
-    SK_HDR_ReleaseResources (void);
-    SK_HDR_ReleaseResources ();
-
-    void
-    SK_DXGI_ReleaseSRGBLinearizer (void);
+    SK_HDR_ReleaseResources       ();
     SK_DXGI_ReleaseSRGBLinearizer ();
   }
 
@@ -1918,8 +1919,7 @@ SK_RenderBackend_V2::checkHDRState (void)
   SK_ComQIPtr <IDXGISwapChain3> pSwap3 (swapchain.p);
 
   if (pSwap3.p != nullptr)
-  { extern void
-    SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *pDesc = nullptr);
+  { 
     SK_DXGI_UpdateColorSpace (pSwap3.p);
 
     return
@@ -2269,10 +2269,6 @@ SK_GetKeyPathFromHKEY (HKEY& key)
   return
     keyPath;
 }
-
-void
-SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc = nullptr);
-
 
 static volatile LONG lUpdatingOutputs = 0;
 
@@ -3095,107 +3091,119 @@ SK_NV_AdaptiveSyncControl (void)
         ZeroMemory (&getAdaptiveSync,  sizeof (NV_GET_ADAPTIVE_SYNC_DATA));
                      getAdaptiveSync.version = NV_GET_ADAPTIVE_SYNC_DATA_VER;
 
-        if ( NVAPI_OK ==
-               NvAPI_DISP_GetAdaptiveSyncData (
-                 display.nvapi.display_id,
-                         &getAdaptiveSync )
-           )
+        static DWORD lastChecked       = 0;
+        static NvU64 lastFlipTimeStamp = 0;
+        static NvU64 lastFlipFrame     = 0;
+        static double   dFlipPrint     = 0.0;
+
+        if (SK_timeGetTime () > lastChecked + 125)
+        {                       lastChecked = SK_timeGetTime ();
+          if ( NVAPI_OK ==
+                 NvAPI_DISP_GetAdaptiveSyncData (
+                   display.nvapi.display_id,
+                           &getAdaptiveSync )
+             )
+          {
+            NvU64 deltaFlipTime     = getAdaptiveSync.lastFlipTimeStamp - lastFlipTimeStamp;
+                  lastFlipTimeStamp = getAdaptiveSync.lastFlipTimeStamp;
+
+            if (deltaFlipTime > 0)
+            {
+              double dFlipRate  =
+                static_cast <double> (SK_GetFramesDrawn () - lastFlipFrame) *
+              ( static_cast <double> (deltaFlipTime) /
+                static_cast <double> (SK_GetPerfFreq ().QuadPart) );
+
+                 dFlipPrint = dFlipRate;
+              lastFlipFrame = SK_GetFramesDrawn ();
+            }
+
+            rb.gsync_state.update (true);
+          }
+
+          else lastChecked = SK_timeGetTime () + 250;
+        }
+
+        ImGui::Text       ("Adaptive Sync Status for %ws", rb.display_name);
+        ImGui::Separator  ();
+        ImGui::BeginGroup ();
+        ImGui::Text       ("Current State:");
+        if (! getAdaptiveSync.bDisableAdaptiveSync)
         {
-          static NvU64 lastFlipTimeStamp = 0;
-                 NvU64 deltaFlipTime     = getAdaptiveSync.lastFlipTimeStamp - lastFlipTimeStamp;
-                       lastFlipTimeStamp = getAdaptiveSync.lastFlipTimeStamp;
+          ImGui::Text     ("Frame Splitting:");
 
-          static double dFlipPrint = 0.0;
+          if (getAdaptiveSync.maxFrameInterval != 0)
+            ImGui::Text   ("Max Frame Interval:");
+        }
+        ImGui::Text       ("");
+      //ImGui::Text       ("Effective Refresh:");
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
 
-          if (deltaFlipTime > 0)
-          {
-            double dFlipRate  =                1.0 /
-            ( static_cast <double> (deltaFlipTime) /
-              static_cast <double> (SK_GetPerfFreq ().QuadPart) );
-                   dFlipPrint = dFlipRate;
-          }
+        ImGui::Text       ( getAdaptiveSync.bDisableAdaptiveSync   ? "Disabled" :
+                                             rb.gsync_state.active ? "Active"   :
+                                                                     "Inactive" );
+        if (! getAdaptiveSync.bDisableAdaptiveSync)
+        {
+          ImGui::Text     ( getAdaptiveSync.bDisableFrameSplitting ? "Disabled" :
+                                                                     "Enabled" );
 
-          rb.gsync_state.update (true);
+          if (getAdaptiveSync.maxFrameInterval != 0)
+            ImGui::Text   ( "%#06.2f Hz ",
+                             1000000.0 / static_cast <double> (getAdaptiveSync.maxFrameInterval) );
+        }
 
-          ImGui::Text       ("Adaptive Sync Status for %ws", rb.display_name);
-          ImGui::Separator  ();
-          ImGui::BeginGroup ();
-          ImGui::Text       ("Current State:");
-          if (! getAdaptiveSync.bDisableAdaptiveSync)
-          {
-            ImGui::Text     ("Frame Splitting:");
+      //ImGui::Text       ( "%#06.2f Hz ", dFlipPrint);
+        ImGui::Text       ( "" );
+        ImGui::Text       ( "\t\t\t\t\t\t\t\t" );
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
 
-            if (getAdaptiveSync.maxFrameInterval != 0)
-              ImGui::Text   ("Max Frame Interval:");
-          }
-          ImGui::Text       ("Effective Refresh:");
-          ImGui::EndGroup   ();
-          ImGui::SameLine   ();
-          ImGui::BeginGroup ();
+        static bool secret_menu = false;
 
-          ImGui::Text       ( getAdaptiveSync.bDisableAdaptiveSync   ? "Disabled" :
-                                               rb.gsync_state.active ? "Active"   :
-                                                                       "Inactive" );
-          if (! getAdaptiveSync.bDisableAdaptiveSync)
-          {
-            ImGui::Text     ( getAdaptiveSync.bDisableFrameSplitting ? "Disabled" :
-                                                                       "Enabled" );
+        if (ImGui::IsItemClicked (1))
+          secret_menu = true;
 
-            if (getAdaptiveSync.maxFrameInterval != 0)
-              ImGui::Text   ( "%#06.2f Hz ",
-                               1000000.0 / static_cast <double> (getAdaptiveSync.maxFrameInterval) );
-          }
+        bool toggle_sync  = false;
+        bool toggle_split = false;
 
-          ImGui::Text       ( "%#06.2f Hz ", dFlipPrint );
-          ImGui::Text       ( "\t\t\t\t\t\t\t\t" );
-          ImGui::EndGroup   ();
-          ImGui::SameLine   ();
-          ImGui::BeginGroup ();
+        if (secret_menu)
+        {
+          toggle_sync =
+            ImGui::Button (
+              getAdaptiveSync.bDisableAdaptiveSync == 0x0 ?
+                            "Disable Adaptive Sync"       :
+                             "Enable Adaptive Sync" );
 
-          static bool secret_menu = false;
+          toggle_split =
+            ImGui::Button (
+              getAdaptiveSync.bDisableFrameSplitting == 0x0 ?
+                            "Disable Frame Splitting"       :
+                             "Enable Frame Splitting" );
+        }
 
-          if (ImGui::IsItemClicked (1))
-            secret_menu = true;
+        ImGui::EndGroup   ();
 
-          bool toggle_sync  = false;
-          bool toggle_split = false;
+        if (toggle_sync || toggle_split)
+        {
+          NV_SET_ADAPTIVE_SYNC_DATA
+                       setAdaptiveSync;
+          ZeroMemory (&setAdaptiveSync,  sizeof (NV_SET_ADAPTIVE_SYNC_DATA));
+                       setAdaptiveSync.version = NV_SET_ADAPTIVE_SYNC_DATA_VER;
 
-          if (secret_menu)
-          {
-            toggle_sync =
-              ImGui::Button (
-                getAdaptiveSync.bDisableAdaptiveSync == 0x0 ?
-                              "Disable Adaptive Sync"       :
-                               "Enable Adaptive Sync" );
+          setAdaptiveSync.bDisableAdaptiveSync   =
+            toggle_sync ? !getAdaptiveSync.bDisableAdaptiveSync :
+                           getAdaptiveSync.bDisableAdaptiveSync;
+          setAdaptiveSync.bDisableFrameSplitting =
+            toggle_split ? !getAdaptiveSync.bDisableFrameSplitting :
+                            getAdaptiveSync.bDisableFrameSplitting;
 
-            toggle_split =
-              ImGui::Button (
-                getAdaptiveSync.bDisableFrameSplitting == 0x0 ?
-                              "Disable Frame Splitting"       :
-                               "Enable Frame Splitting" );
-          }
-
-          ImGui::EndGroup   ();
-
-          if (toggle_sync || toggle_split)
-          {
-            NV_SET_ADAPTIVE_SYNC_DATA
-                         setAdaptiveSync;
-            ZeroMemory (&setAdaptiveSync,  sizeof (NV_SET_ADAPTIVE_SYNC_DATA));
-                         setAdaptiveSync.version = NV_SET_ADAPTIVE_SYNC_DATA_VER;
-
-            setAdaptiveSync.bDisableAdaptiveSync   =
-              toggle_sync ? !getAdaptiveSync.bDisableAdaptiveSync :
-                             getAdaptiveSync.bDisableAdaptiveSync;
-            setAdaptiveSync.bDisableFrameSplitting =
-              toggle_split ? !getAdaptiveSync.bDisableFrameSplitting :
-                              getAdaptiveSync.bDisableFrameSplitting;
-
-            NvAPI_DISP_SetAdaptiveSyncData (
-              display.nvapi.display_id,
-                      &setAdaptiveSync
-            );
-          }
+          NvAPI_DISP_SetAdaptiveSyncData (
+            display.nvapi.display_id,
+                    &setAdaptiveSync
+          );
         }
         break;
       }

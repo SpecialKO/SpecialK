@@ -498,8 +498,8 @@ namespace SK
         const double
             avg_ms =
               std::accumulate ( sampled_lows.begin (),
-                                                  sampled_lows.begin ()  + end_sample_idx,
-                                   0.0 ) / (double)(end_sample_idx);
+                                sampled_lows.begin ()  + end_sample_idx,
+                                        0.0 ) / (double)(end_sample_idx);
 
         return
           avg_ms;

@@ -484,6 +484,13 @@ LONG
 __stdcall
 SK_ChangeDisplaySettings (DEVMODEW *lpDevMode, DWORD dwFlags);
 
+LONG
+__stdcall
+SK_ChangeDisplaySettingsEx ( _In_ LPCWSTR   lpszDeviceName,
+                             _In_ DEVMODEW *lpDevMode,
+                                  HWND      hWnd,
+                             _In_ DWORD     dwFlags,
+                             _In_ LPVOID    lParam );
 
 using SK_RenderBackend = SK_RenderBackend_V2;
 

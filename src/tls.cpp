@@ -475,8 +475,8 @@ SK_ImGui_ThreadContext::allocPolylineStorage (size_t needed)
 {
   if (polyline_capacity < needed || polyline_storage == nullptr)
   {
-    if (polyline_storage != nullptr && polyline_capacity > 0)
-      _aligned_free (polyline_storage);
+    if (polyline_storage != nullptr &&  polyline_capacity > 0)
+      _aligned_free (polyline_storage), polyline_capacity = 0;
                      polyline_storage = _aligned_malloc (needed, 16);
 
     if (polyline_storage != nullptr)
@@ -493,8 +493,8 @@ SK_Steam_ThreadContext::allocScratchText (size_t needed)
 {
   if (text_capacity < needed || text == nullptr)
   {
-    if (text != nullptr && text_capacity > 0)
-      _aligned_free (text);
+    if (text != nullptr &&  text_capacity > 0)
+      _aligned_free (text), text_capacity = 0;
 
     text =
       (wchar_t *)_aligned_malloc (
@@ -516,8 +516,8 @@ SK_RawInput_ThreadContext::allocData (size_t needed)
 {
   if (capacity < needed || data == nullptr)
   {
-    if (data != nullptr && capacity > 0)
-      _aligned_free (data);
+    if (data != nullptr &&  capacity > 0)
+      _aligned_free (data), capacity = 0;
                      data =
       (uint8_t *)_aligned_malloc (needed, 16);
 
@@ -537,7 +537,8 @@ SK_RawInput_ThreadContext::allocateDevices (size_t needed)
   {
     if (             devices != nullptr &&
                  num_devices > 0           )
-      _aligned_free (devices);
+      _aligned_free (devices),
+                 num_devices = 0;
                      devices =
     (RAWINPUTDEVICE *)_aligned_malloc (needed * sizeof (RAWINPUTDEVICE), 16);
 
@@ -770,7 +771,7 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
     if (stack_scratch.size < size)
     {
       if (             stack_scratch.size > 0              )
-        _aligned_free (stack_scratch.storage);
+        _aligned_free (stack_scratch.storage),    stack_scratch.size = 0;
                        stack_scratch.storage = _aligned_malloc (size, 16);
 
       if (stack_scratch.storage != nullptr)
@@ -883,20 +884,15 @@ SK_D3D11_ThreadContext::allocScreenshotMemory (size_t bytesNeeded)
   {
     if (screenshot.reserve < bytesNeeded)
     {
-      _aligned_free (screenshot.buffer);
+      _aligned_free (
+        std::exchange (screenshot.buffer, nullptr)
+      );
 
-      screenshot.buffer = (uint8_t *)
-        _aligned_malloc (bytesNeeded, 16);
-
-      if (screenshot.buffer != nullptr)
-
-      {
-        screenshot.reserve = bytesNeeded;
-      }
+      screenshot.reserve = 0;
     }
   }
 
-  else
+  if (screenshot.buffer == nullptr)
   {
     screenshot.buffer = (uint8_t *)
       _aligned_malloc (bytesNeeded, 16);
@@ -920,9 +916,8 @@ SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
 
   if (buffer == nullptr)
   {
-    buffer =
-      (uint8_t *)_aligned_malloc (elems, alignment);
-                        reserve = elems;
+    buffer  = (uint8_t *)_aligned_malloc (elems, alignment);
+    reserve = (buffer != nullptr)       ? elems : 0;
   }
 
   else
@@ -932,9 +927,12 @@ SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
       dll_log->Log (L"Growing tid %x's DXTex memory pool from %lu to %lu",
                     SK_Thread_GetCurrentId (), reserve, elems);
 
-      _aligned_free (buffer);
-                     buffer = (uint8_t *)_aligned_malloc (elems, alignment);
-                     reserve= elems;
+      _aligned_free (
+        std::exchange (buffer, nullptr)
+      );
+
+      buffer  = (uint8_t *)_aligned_malloc (elems, alignment);
+      reserve = (buffer != nullptr)       ? elems : 0;
     }
 
     else
@@ -969,10 +967,15 @@ SK_DXTex_ThreadContext::tryTrim (void)
     dll_log->Log (L"Trimming tid %x's DXTex memory pool from %lu to %lu",
                   SK_Thread_GetCurrentId (), reserve, _SlackSpace);
 
-    buffer = static_cast <uint8_t *>              (
-      _aligned_realloc (buffer,  _SlackSpace, 16) );
-                     reserve   = _SlackSpace;
-                     last_trim = SK_timeGetTime ();
+    auto pBuffer =
+      _aligned_realloc (buffer, _SlackSpace, 16);
+
+    if (pBuffer != nullptr)
+    {
+      buffer    = static_cast <uint8_t *> (pBuffer);
+      reserve   = _SlackSpace;
+      last_trim = SK_timeGetTime ();
+    }
 
     return true;
   }
@@ -991,6 +994,7 @@ SK_DXTex_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
     if (buffer != nullptr)
     {
       _aligned_free (buffer);
+                     buffer = nullptr;
 
       freed += reserve;
                reserve = 0;

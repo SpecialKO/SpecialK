@@ -101,10 +101,10 @@ public:
   }
   
   ISKTextureD3D9* d3d9_tex;
-  uint32_t        crc32c;
   size_t          size;
   int             refs;
   float           load_time;
+  uint32_t        crc32c;
   D3DPOOL         original_pool;
 };
 

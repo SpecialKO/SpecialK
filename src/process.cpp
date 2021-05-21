@@ -367,7 +367,15 @@ SK_Process_SnapshotNt (void)
                     HeapReAlloc ( SK_NtDll.hHeap,     0x0,
                                   SK_NtDll.pSnapshot, dSize ) ) == nullptr )
       {
-        ns = STATUS_NO_MEMORY;
+        ns    = STATUS_NO_MEMORY;
+        dData = 0;
+
+        if (               SK_NtDll.pSnapshot != nullptr) {
+          HeapFree (       SK_NtDll.hHeap,           0x0,
+            std::exchange (SK_NtDll.pSnapshot,   nullptr)
+          );
+        }
+
         break;
       }
 
