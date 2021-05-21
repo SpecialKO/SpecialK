@@ -42,6 +42,9 @@ extern const wchar_t*
 __stdcall
 SK_GetDebugSymbolPath (void);
 
+std::string
+SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
+
 void
 SK_SymSetOpts_Once (void)
 {
@@ -944,6 +947,31 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   return log_entry;
 }
 
+#ifdef _WIN64
+# include <../depends/src/SKinHook/hde/hde64.h>
+#else
+# include <../depends/src/SKinHook/hde/hde32.h>
+#endif
+
+LPVOID
+SKX_GetNextInstruction (LPVOID addr)
+{
+#ifdef _WIN64
+  hde64s               disasm = { };
+  hde64_disasm (addr, &disasm);
+#else
+  hde32s               disasm = { };
+  hde32_disasm (addr, &disasm);
+#endif
+
+  if (    ( disasm.flags & (F_ERROR | F_ERROR_LENGTH) ) ||
+       0 == disasm.len
+     )      disasm.len = 1;
+
+  return
+    (LPVOID)((uintptr_t)addr + disasm.len);
+}
+
 LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
@@ -1102,6 +1130,92 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     crash_log->LogEx (false, L"\n%ws\n\n", hw_status.c_str ());
   }
 
+  // On second chance it's pretty clear that no exception handler exists,
+  //   terminate the software.
+  const bool repeated = ( 0 == memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
+                        ( 0 == memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
+  const bool non_continue =     (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) ==
+                                                                                  EXCEPTION_NONCONTINUABLE;
+
+  if (SK_IsDebuggerPresent ())
+    return EXCEPTION_CONTINUE_SEARCH;
+
+  if (config.system.suppress_crashes)//&& (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) ==
+                                                                                          //EXCEPTION_NONCONTINUABLE)
+  {
+    static
+      concurrency::concurrent_unordered_map <LPCVOID, bool> __ignored_exceptions;
+
+    LPCVOID pExceptionAddr =
+      ExceptionInfo->ExceptionRecord->ExceptionAddress;
+
+    ExceptionInfo->ExceptionRecord->ExceptionFlags  &= ~EXCEPTION_NONCONTINUABLE;
+    //ExceptionInfo->ExceptionRecord->ExceptionAddress =
+    //  SKX_GetNextInstruction (ExceptionInfo->ExceptionRecord->ExceptionAddress);
+
+#ifdef _M_AMD64
+    ExceptionInfo->ContextRecord->Rip = (DWORD64)
+      SKX_GetNextInstruction ((LPVOID)(uintptr_t)(ExceptionInfo->ContextRecord->Rip));
+#else
+    ExceptionInfo->ContextRecord->Eip = (DWORD)
+      SKX_GetNextInstruction ((LPVOID)ExceptionInfo->ContextRecord->Eip);
+#endif
+
+    bool inserted = false;
+    {
+      if (__ignored_exceptions.count (                 pExceptionAddr) == 0)
+      {   __ignored_exceptions.insert (std::make_pair (pExceptionAddr, true));
+
+          inserted = true;
+      }
+    }
+
+    if (inserted)
+    {
+      uintptr_t base_addr = (uintptr_t)
+#ifdef _M_AMD64
+        SK_SymGetModuleBase (GetCurrentProcess (), (DWORD64)pExceptionAddr);
+#else
+        SK_SymGetModuleBase (GetCurrentProcess (), (DWORD)pExceptionAddr);
+#endif
+
+      std::wstring callsite =
+        SK_FormatStringW ( L"Unhandled Exception ("
+#ifdef _M_AMD64
+                           L"RIP: %ws+%08xh"//  < Best Guess Symbol Name: \"%hs\" >"
+#else
+                           L"EIP: %ws+%08xh"//  < Best Guess Symbol Name: \"%hs\" >"
+#endif
+                                                ") Ignored; Safety Not Guaranteed (!!)",
+                             SK_GetModuleName (SK_GetModuleFromAddr (pExceptionAddr)).c_str (),
+                                                          (uintptr_t)pExceptionAddr - base_addr//,
+             //SK_GetSymbolNameFromModuleAddr (SK_GetModuleFromAddr (pExceptionAddr),
+                                                        //(uintptr_t)pExceptionAddr - base_addr).c_str ()
+                          );
+
+
+      std::wstring log_entry =
+        SK_SEH_SummarizeException (ExceptionInfo, true);
+
+      crash_log->Log   (L"   Unhandled Top-Level Exception (%x):\n",
+                        ExceptionInfo->ExceptionRecord->ExceptionCode);
+
+
+      crash_log->LogEx  (false, L"%ws", log_entry.c_str ());
+
+      fflush (crash_log->fLog);
+
+
+
+      SK_ImGui_Warning (callsite.c_str ());
+    }
+
+    SetThreadContext (GetCurrentThread (), ExceptionInfo->ContextRecord);
+
+    return EXCEPTION_CONTINUE_EXECUTION;
+  }
+
+
   std::wstring log_entry =
     SK_SEH_SummarizeException (ExceptionInfo, true);
 
@@ -1113,13 +1227,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   fflush (crash_log->fLog);
 
-
-  // On second chance it's pretty clear that no exception handler exists,
-  //   terminate the software.
-  const bool repeated = ( 0 == memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
-                        ( 0 == memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
-  const bool non_continue =     (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) ==
-                                                                                  EXCEPTION_NONCONTINUABLE;
 
   if ( (repeated || non_continue) /*&&
       (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)*/ )

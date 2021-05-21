@@ -727,6 +727,7 @@ struct sk_config_t
     bool    strict_compliance   = false;
     bool    silent              = false;
     bool    handle_crashes      = true;
+    bool    suppress_crashes    = false;
     bool    prefer_fahrenheit   = false;
     bool    display_debug_out   = false;
     bool    game_output         = true;

@@ -1,4 +1,33 @@
-﻿21.05.21
+﻿21.05.22
+========
+ + Added Crash Supression System for DRM / Anti-Debug that Deliberately
+     rasies exceptions it knows the application will not handle in order
+       to cause a crash ( and make it look like someone else did it :P )
+
+   >> Safety is not guaranteed, if you opt-in game-ending crashes may
+        get you far enough in the game to save and restart, or demons
+          may fly out of noses and begin to delete NSFW content
+
+
+    (*) This is experimental; sacrifical guinea pigs may test by setting:
+
+            [SpecialK.System]
+            EnableCrashSuppression=true ; Nasal Demons, oh boy!
+
+
+     # In the current design, all crashes are candidates for suprression.
+     
+       (!) That is bad (even more than the already ill-advised feature)
+       
+        -  If this feature has any kind of staying power, it requires some
+           additional configuration for supressed exception codes and code
+           addresses.
+
+       (+) Otherwise, nothing distinguishes "safe" / malicious (DRM) crashes
+           from the more common "data may become corrupted if you continue"
+           kind of crash.
+
+21.05.21
 ========
  + Added memory (System, GPU and Texture Cache) statistics to crash logs
  + Removed duplicate resolution and refresh combinations from drop-downs

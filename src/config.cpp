@@ -475,6 +475,7 @@ sk::ParameterBool*        debug_output;
 sk::ParameterBool*        debug_wait;
 sk::ParameterBool*        game_output;
 sk::ParameterBool*        handle_crashes;
+sk::ParameterBool*        crash_suppression;
 sk::ParameterBool*        prefer_fahrenheit;
 sk::ParameterBool*        ignore_rtss_delay;
 sk::ParameterInt*         log_level;
@@ -1103,6 +1104,7 @@ auto DeclKeybind =
     ConfigEntry (trace_libraries,                        L"Trace DLL Loading (needed for dynamic API detection)",      dll_ini,         L"SpecialK.System",       L"TraceLoadLibrary"),
     ConfigEntry (log_level,                              L"Log Verbosity (0=General, 5=Insane Debug)",                 dll_ini,         L"SpecialK.System",       L"LogLevel"),
     ConfigEntry (handle_crashes,                         L"Use Custom Crash Handler",                                  dll_ini,         L"SpecialK.System",       L"UseCrashHandler"),
+    ConfigEntry (crash_suppression,                      L"Try to Recover from Exceptions that Would Cause a Crash",   dll_ini,         L"SpecialK.System",       L"EnableCrashSuppression"),
     ConfigEntry (debug_wait,                             L"Halt Special K Initialization Until Debugger is Attached",  dll_ini,         L"SpecialK.System",       L"WaitForDebugger"),
     ConfigEntry (debug_output,                           L"Print Application's Debug Output in real-time",             dll_ini,         L"SpecialK.System",       L"DebugOutput"),
     ConfigEntry (game_output,                            L"Log Application's Debug Output",                            dll_ini,         L"SpecialK.System",       L"GameOutput"),
@@ -2343,13 +2345,15 @@ auto DeclKeybind =
       case SK_GAME_ID::ResidentEvil8:
         config.steam.achievements.pull_friend_stats  = false;
         config.steam.auto_pump_callbacks             = false;
-        //config.steam.callback_throttle               =     1;
-        config.render.framerate.sleepless_window     = false;
+        //config.steam.callback_throttle               =   1;
+        config.render.framerate.sleepless_window     =  true;
         config.render.framerate.sleepless_render     = false;
         config.steam.preload_client                  =  true;
         config.steam.preload_overlay                 =  true;
-        config.steam.silent                          =  true; // Steam integration is unstable
+        config.steam.silent                          = false; // Steam integration is unstable
         config.render.dxgi.use_factory_cache         =  true;
+        config.render.framerate.max_delta_time       =     1;
+        config.system.suppress_crashes               =  true;
         break;
 #endif
     }
@@ -3122,6 +3126,7 @@ auto DeclKeybind =
   prefer_fahrenheit->load (config.system.prefer_fahrenheit);
   ignore_rtss_delay->load (config.system.ignore_rtss_delay);
   handle_crashes->load    (config.system.handle_crashes);
+  crash_suppression->load (config.system.suppress_crashes);
   debug_wait->load        (config.system.wait_for_debugger);
   debug_output->load      (config.system.display_debug_out);
   game_output->load       (config.system.game_output);
@@ -3958,6 +3963,7 @@ SK_SaveConfig ( std::wstring name,
   if (__SK_DLL_Ending == false)
   {
     handle_crashes->store                      (config.system.handle_crashes);
+    crash_suppression->store                   (config.system.suppress_crashes);
   }
 
   game_output->store                           (config.system.game_output);

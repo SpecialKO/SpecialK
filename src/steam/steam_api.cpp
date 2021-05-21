@@ -37,6 +37,10 @@ using threadsafe_callback_map = Concurrency::concurrent_unordered_map
                                                       <LPVOID, bool>;
 
 SK_LazyGlobal <threadsafe_callback_map> UserStatsReceived_callbacks;
+SK_LazyGlobal <threadsafe_callback_map> ScreenshotRequested_callbacks;
+SK_LazyGlobal <threadsafe_callback_map> UserStatsStored_callbacks;
+SK_LazyGlobal <threadsafe_callback_map> UserAchievementStored_callbacks;
+SK_LazyGlobal <threadsafe_callback_map> UserStatsUnloaded_callbacks;
 SK_LazyGlobal <callback_set>            overlay_activation_callbacks;
 SK_LazyGlobal <SK_SteamAPIContext>      pSteamCtx;
 
@@ -1095,17 +1099,17 @@ S_CALLTYPE
 SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 {
   // Don't care about OUR OWN callbacks ;)
-  if (SK_GetCallingDLL () == SK_GetDLL ())
-  {
-    if ( (! __SK_Steam_IgnoreOverlayActivation) ||
-            iCallback != GameOverlayActivated_t::k_iCallback )
-    {
-      if (SK_IsAddressExecutable           (pCallback))
-        SteamAPI_RegisterCallback_Original (pCallback, iCallback);
-    }
-
-    return;
-  }
+  ////////if (SK_GetCallingDLL () == SK_GetDLL ())
+  ////////{
+  ////////  if ( (! __SK_Steam_IgnoreOverlayActivation) ||
+  ////////          iCallback != GameOverlayActivated_t::k_iCallback )
+  ////////  {
+  ////////    if (SK_IsAddressExecutable           (pCallback))
+  ////////      SteamAPI_RegisterCallback_Original (pCallback, iCallback);
+  ////////  }
+  ////////
+  ////////  return;
+  ////////}
   std::wstring caller =
     SK_GetCallerName ();
 
@@ -1132,6 +1136,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     case ScreenshotRequested_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Installed Screenshot Callback",
                       caller.c_str () );
+      (*ScreenshotRequested_callbacks)[pCallback] = true;
       break;
     case UserStatsReceived_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Installed User Stats Receipt Callback",
@@ -1141,14 +1146,17 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     case UserStatsStored_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Installed User Stats Storage Callback",
                       caller.c_str () );
+      (*UserStatsStored_callbacks)[pCallback] = true;
       break;
     case UserAchievementStored_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Installed User Achievements Storage Callback",
                       caller.c_str () );
+      (*UserAchievementStored_callbacks)[pCallback] = true;
       break;
     case UserStatsUnloaded_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Installed User Stats Unloaded Callback",
                       caller.c_str () );
+      (*UserStatsUnloaded_callbacks)[pCallback] = true;
       break;
     case SteamShutdown_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Installed SteamAPI Shutdown Callback",
@@ -1205,6 +1213,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     case GetAuthSessionTicketResponse_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Installed Auth Session Ticket Response Callback",
                       caller.c_str () );
+      break;
     default:
     {
       steam_log->Log ( L" * (%-28s) Installed Callback (Class=%hs, Id=%li)",
@@ -1247,11 +1256,11 @@ S_CALLTYPE
 SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
 {
   // Skip this if we're uninstalling our own callback
-  if (SK_GetCallingDLL () == SK_GetDLL ())
-  {
-    SteamAPI_UnregisterCallback_Original (pCallback);
-    return;
-  }
+  ////////if (SK_GetCallingDLL () == SK_GetDLL ())
+  ////////{
+  ////////  SteamAPI_UnregisterCallback_Original (pCallback);
+  ////////  return;
+  ////////}
 
   std::wstring caller =
     SK_GetCallerName ();
@@ -1259,7 +1268,8 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
   if (steam_callback_cs != nullptr)
       steam_callback_cs->lock ();
 
-  int iCallback = pCallback->GetICallback ();
+  int iCallback =
+    pCallback->GetICallback ();
 
   switch (iCallback)
   {
@@ -1273,6 +1283,7 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
     case ScreenshotRequested_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled Screenshot Callback",
                       caller.c_str () );
+      (*ScreenshotRequested_callbacks)[pCallback] = false;
       break;
     case UserStatsReceived_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled User Stats Receipt Callback",
@@ -1282,14 +1293,17 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
     case UserStatsStored_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled User Stats Storage Callback",
                       caller.c_str () );
+      (*UserStatsStored_callbacks)[pCallback] = false;
       break;
     case UserAchievementStored_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled User Achievements Storage Callback",
                       caller.c_str () );
+      (*UserAchievementStored_callbacks)[pCallback] = false;
       break;
     case UserStatsUnloaded_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled User Stats Unloaded Callback",
                       caller.c_str () );
+      (*UserStatsUnloaded_callbacks)[pCallback] = false;
       break;
     case SteamShutdown_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled SteamAPI Shutdown Callback",
@@ -1946,15 +1960,8 @@ public:
 
           if (override_params.m_eResult != k_EResultOK)
           {
-            if (                          user_id !=
+            if ( user_id ==
                  override_params.m_steamIDUser.ConvertToUint64 () )
-            {
-              override_params.m_steamIDUser.SetFromUint64 (user_id);
-              override_params.m_eResult    =
-                k_EResultOK;
-            }
-
-            else
             {
               steam_log->Log (
                 L"Got UserStatsReceived Failure for Current Player, m_eResult=%x",
@@ -1963,7 +1970,7 @@ public:
             }
           }
 
-          if (pParam->m_eResult                        == k_EResultOK ||
+          if (/*pParam->m_eResult                        == k_EResultOK &&*/
               pParam->m_steamIDUser.ConvertToUint64 () == user_id)
           {
             TryCallback ((class CCallbackBase*)it.first, &override_params);
@@ -2116,8 +2123,8 @@ public:
           }
         }
 
-        if (pParam->m_eResult == k_EResultOK ||
-            pParam->m_steamIDUser.ConvertToUint64 () == user_id)
+        if ( pParam->m_eResult == k_EResultOK &&
+             pParam->m_steamIDUser.ConvertToUint64 () == user_id )
         {
           // Control freaks the @#$% out if achievement status isn't
           //   successful at all times.
@@ -2288,17 +2295,6 @@ public:
     if ( ! ( friend_count > 0 &&
               next_friend < friend_count ) )
     {
-      // We're done fetching user stats, it's safe to re-enstate the game's callback now.
-      for ( auto it : *UserStatsReceived_callbacks )
-      {
-        if (it.second && SK_IsAddressExecutable (it.first, true))
-        {
-          SteamAPI_RegisterCallback_Original (
-            (class CCallbackBase *)it.first, UserStatsReceived_t::k_iCallback
-          );
-        }
-      }
-
       // Trigger the game's callback in case it's stupidly waiting synchronously for
       //   this to happen (i.e. Yakuza Kiwami 2).
       steam_ctx.UserStats ()->RequestCurrentStats ();
