@@ -3270,6 +3270,9 @@
     <ClInclude Include="include\SpecialK\render\present_mon\ETW\NT_Process.h">
       <Filter>Header Files\Backends\Render\PresentMon\ETW</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\popups\popup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3745,6 +3748,9 @@
     </ClCompile>
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\popups\steam_achievement.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
