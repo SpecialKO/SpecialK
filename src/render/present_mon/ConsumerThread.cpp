@@ -22,7 +22,7 @@ SOFTWARE.
 
 #include <SpecialK/render/present_mon/PresentMon.hpp>
 
-static std::thread gThread;
+static std::thread *pThread = nullptr;
 
 static void
 Consume (TRACEHANDLE traceHandle)
@@ -48,7 +48,7 @@ Consume (TRACEHANDLE traceHandle)
 
   auto   status = ProcessTrace (&traceHandle, 1, nullptr, nullptr);
   (void) status;
-  
+
   // Signal MainThread to exit.  This is only needed if we are processing an
   // ETL file and ProcessTrace() returned because the ETL is done, but there
   // is no harm in calling ExitMainThread() if MainThread is already exiting
@@ -60,13 +60,21 @@ Consume (TRACEHANDLE traceHandle)
 void
 StartConsumerThread (TRACEHANDLE traceHandle)
 {
-  gThread =
-    std::thread (Consume, traceHandle);
+  pThread =
+    new std::thread (
+      Consume, traceHandle)
+    ;
 }
 
 void
 WaitForConsumerThreadToExit (void)
 {
-  if (gThread.joinable ())
-      gThread.join     ();
+  if (pThread != nullptr)
+  {
+    if (pThread->joinable ())
+        pThread->join     ();
+
+    delete
+      std::exchange (pThread, nullptr);
+  }
 }

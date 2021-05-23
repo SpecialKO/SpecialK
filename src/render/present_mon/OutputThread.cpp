@@ -26,8 +26,8 @@ SOFTWARE.
 #include <shlwapi.h>
 #include <thread>
 
-static std::thread gThread;
-static bool        gQuit = false;
+static std::thread *pThread = nullptr;
+static bool         gQuit   =   false;
 
 // When we collect realtime ETW events, we don't receive the events in real
 // time but rather sometime after they occur.  Since the user might be toggling
@@ -70,7 +70,7 @@ SetOutputRecordingState (bool record)
 
   uint64_t                                   qpc = 0;
   QueryPerformanceCounter ((LARGE_INTEGER*) &qpc);
-  
+
   EnterCriticalSection (&gRecordingToggleCS);
   gRecordingToggleHistory.emplace_back (qpc);
                        gIsRecording = record;
@@ -91,9 +91,9 @@ CopyRecordingToggleHistory (std::vector <uint64_t>* recordingToggleHistory)
       gIsRecording;
 
   LeaveCriticalSection (&gRecordingToggleCS);
-  
+
   auto recording =
-    recordingToggleHistory->size () + 
+    recordingToggleHistory->size () +
                        (isRecording ? 1 : 0);
 
   return
@@ -133,35 +133,35 @@ IsTargetProcess ( uint32_t           processId,
 {
   auto const& args =
     GetCommandLineArgs ();
-  
+
   // -exclude
   for ( auto excludeProcessName : args.mExcludeProcessNames )
   {
     if (_stricmp (excludeProcessName, processName.c_str ()) == 0)
       return false;
   }
-  
+
   // -capture_all
   if ( args.mTargetPid == 0           &&
        args.mTargetProcessNames.empty () )
   {
     return true;
   }
-  
+
   // -process_id
   if ( args.mTargetPid != 0      &&
        args.mTargetPid == processId )
   {
     return true;
   }
-  
+
   // -process_name
   for ( auto targetProcessName : args.mTargetProcessNames )
   {
     if (_stricmp (targetProcessName, processName.c_str ()) == 0)
       return true;
   }
-  
+
   return false;
 }
 
@@ -173,13 +173,13 @@ InitProcessInfo ( ProcessInfo       *processInfo,
 {
   auto target =
     IsTargetProcess (processId, processName);
-  
+
   processInfo->mHandle             = handle;
   processInfo->mModuleName         = processName;
   processInfo->mOutputCsv.mFile    = nullptr;
   processInfo->mOutputCsv.mWmrFile = nullptr;
   processInfo->mTargetProcess      = target;
-  
+
   if (target)
     gTargetProcessCount++;
 }
@@ -225,13 +225,13 @@ GetProcessInfo (uint32_t processId)
           PathFindFileNameA (path);
       }
     }
-    
+
     InitProcessInfo (
       processInfo, processId,
            handle, processName
     );
   }
-  
+
   return processInfo;
 }
 
@@ -253,7 +253,7 @@ CheckForTerminatedRealtimeProcesses (
   {
     auto processId   =  pair.first;
     auto processInfo = &pair.second;
-    
+
     DWORD exitCode = 0;
 
     if (                     processInfo->mHandle != NULL     &&
@@ -278,13 +278,13 @@ HandleTerminatedProcess (uint32_t processId)
 {
   auto const& args =
     GetCommandLineArgs ();
-  
+
   auto iter =
     gProcesses.find (processId);
 
   if (iter == gProcesses.end ())
     return; // shouldn't happen.
-  
+
   auto processInfo =
     &iter->second;
 
@@ -292,7 +292,7 @@ HandleTerminatedProcess (uint32_t processId)
   {
     // Close this process' CSV.
     CloseOutputCsv (processInfo);
-  
+
     // Quit if this is the last process tracked for -terminate_on_proc_exit.
     gTargetProcessCount -= 1;
 
@@ -302,7 +302,7 @@ HandleTerminatedProcess (uint32_t processId)
       ExitMainThread ();
     }
   }
-  
+
   gProcesses.erase (iter);
 }
 
@@ -337,7 +337,7 @@ UpdateProcesses (
          );
        }
     }
-    
+
     else
     {
       // Note any process termination in terminatedProcess, to be handled
@@ -368,7 +368,7 @@ AddPresents ( std::vector <
   {
     auto    presentEvent = presentEvents [i];
     assert (presentEvent->Completed);
-  
+
     // Stop processing events if we hit the next stop time.
     if (                     checkStopQpc &&
          presentEvent->QpcTime >= stopQpc )
@@ -376,14 +376,14 @@ AddPresents ( std::vector <
       *hitStopQpc = true;
       break;
     }
-  
+
     // Look up the swapchain this present belongs to.
     auto processInfo =
       GetProcessInfo (presentEvent->ProcessId);
 
     if (! processInfo->mTargetProcess)
         continue;
-  
+
     auto result =
       processInfo->mSwapChain.emplace (
         presentEvent->SwapChainAddress,
@@ -399,28 +399,28 @@ AddPresents ( std::vector <
       chain->mNextPresentIndex          = 1; // Start at 1 so that mLastDisplayedPresentIndex starts out invalid.
       chain->mLastDisplayedPresentIndex = 0;
     }
-  
+
     // Output CSV row if recording (need to do this before updating chain).
     if (recording)
       UpdateCsv (processInfo, *chain, *presentEvent);
-  
+
     // Add the present to the swapchain history.
     chain->mPresentHistory [chain->mNextPresentIndex % SwapChainData::PRESENT_HISTORY_MAX_COUNT] =
                                        presentEvent;
-  
+
     if (presentEvent->FinalState == PresentResult::Presented)
     {
                 chain->mLastDisplayedPresentIndex =  chain->mNextPresentIndex;
     } else if ( chain->mLastDisplayedPresentIndex == chain->mNextPresentIndex ) {
                 chain->mLastDisplayedPresentIndex = 0;
     }
-  
+
     chain->mNextPresentIndex += 1;
 
     if (chain->mPresentHistoryCount < SwapChainData::PRESENT_HISTORY_MAX_COUNT)
         chain->mPresentHistoryCount += 1;
   }
-  
+
   *presentEventIndex = i;
 }
 
@@ -487,7 +487,7 @@ PruneHistory (
   auto latestQpc =
     std::max (
       std::max ( processEvents.empty () ? 0ull : processEvents.back (). QpcTime,
-                 presentEvents.empty () ? 0ull : presentEvents.back ()->QpcTime 
+                 presentEvents.empty () ? 0ull : presentEvents.back ()->QpcTime
                ),    lsrEvents.empty () ? 0ull :     lsrEvents.back ()->QpcTime
              );
 
@@ -512,7 +512,7 @@ PruneHistory (
         if (index == swapChain->mLastDisplayedPresentIndex)
                      swapChain->mLastDisplayedPresentIndex = 0;
       }
-      
+
       swapChain->mPresentHistoryCount = count;
     }
   }
@@ -630,7 +630,7 @@ ProcessEvents (                 LateStageReprojectionData    *lsrData,
     {
       IncrementRecordingCount ();
       CloseOutputCsv (nullptr);
-      
+
       for ( auto& pair : gProcesses )
         CloseOutputCsv (&pair.second);
     }
@@ -788,18 +788,23 @@ StartOutputThread (void)
 {
   InitializeCriticalSection (&gRecordingToggleCS);
 
-  gThread =
-    std::thread (Output);
+  pThread =
+    new std::thread (Output);
 }
 
 void
 StopOutputThread (void)
 {
-  if (gThread.joinable ())
+  if ( pThread != nullptr &&
+       pThread->joinable  () )
   {
     gQuit = true;
-    gThread.join ();
-  
+
+    pThread->join ( );
+
+    delete
+      std::exchange (pThread, nullptr);
+
     DeleteCriticalSection (&gRecordingToggleCS);
   }
 }
