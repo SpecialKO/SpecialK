@@ -234,7 +234,7 @@ SK_LoadGPUVendorAPIs (void)
   dll_log->LogEx (false, L"================================================"
                          L"===========================================\n" );
 
-  
+
   extern bool
       __SK_Wine;
   if (__SK_Wine)
@@ -815,7 +815,7 @@ DllThread (LPVOID user)
                 params->callback );
 
 
-  
+
   AppId_t appid (
     SK_Steam_GetAppID_NoAPI ()
   );
@@ -1320,11 +1320,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     } static  delay_params  { backend,  callback };
 
     if (delay_params.thread == INVALID_HANDLE_VALUE)
-    {   
-      DuplicateHandle ( GetCurrentProcess (), SK_TLS_Bottom ()->debug.handle,
-                        nullptr,              &delay_params.parent,
-                          THREAD_ALL_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE |
-                                                    DUPLICATE_SAME_ACCESS );
+    {
+      if (! DuplicateHandle ( GetCurrentProcess (), SK_TLS_Bottom ()->debug.handle,
+                                nullptr,              &delay_params.parent,
+                                  THREAD_ALL_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE |
+                                                            DUPLICATE_SAME_ACCESS ) )
+      {             delay_params.parent  = INVALID_HANDLE_VALUE; }
+      if ((intptr_t)delay_params.parent <= 0)
+                    delay_params.parent  = INVALID_HANDLE_VALUE;
 
       delay_params.thread =
       SK_Thread_CreateEx ([](LPVOID) -> DWORD
@@ -1363,6 +1366,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                ) ResumeThread (delay_params.parent);
           } else OutputDebugStringA (
              "[SK Init] Unable to Restore Suspended Thread Context");
+
+          CloseHandle (delay_params.parent);
         }
 
         SK_Thread_CloseSelf ();
@@ -1581,94 +1586,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     dll_log->LogEx (false, L"done!\n");
   }
 
-
-  if (! __SK_bypass)
-  {
-    // Setup unhooked function pointers
-    SK_MinHook_Init                  (    );
-    SK_PreInitLoadLibrary            (    );
-    SK::Diagnostics::Debugger::Allow (true);
-
-    if (config.system.handle_crashes)
-      SK::Diagnostics::CrashHandler::Init   (    );
-    SK::Diagnostics::CrashHandler::InitSyms (    );
-
-    void SK_D3D11_InitMutexes (void);
-         SK_D3D11_InitMutexes (    );
-
-    extern void SK_ImGui_Init (void);
-                SK_ImGui_Init (    );
-
-    //// Do this from the startup thread [these functions queue, but don't apply]
-    SK_Input_PreInit          (); // Hook only symbols in user32 and kernel32
-    SK_HookWinAPI             ();
-    SK_CPU_InstallHooks       ();
-
-    SK_NvAPI_PreInitHDR       ();
-    SK_NvAPI_InitializeHDR    ();
-
-    ////// For the global injector, when not started by SKIM, check its version
-    ////if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-    ////  SK_Thread_Create ( CheckVersionThread );
-
-    if (config.dpi.disable_scaling)   SK_Display_DisableDPIScaling      (     );
-    if (config.dpi.per_monitor.aware) SK_Display_SetMonitorDPIAwareness (false);
-
-    SK_File_InitHooks    ();
-    SK_Network_InitHooks ();
-
-    if (config.system.display_debug_out)
-      SK::Diagnostics::Debugger::SpawnConsole ();
-
-    // Steam Overlay and SteamAPI Manipulation
-    //
-    if (! config.steam.silent)
-    {
-      config.steam.force_load_steamapi = false;
-
-      // TODO: Rename -- this initializes critical sections and performance
-      //                   counters needed by SK's SteamAPI back end.
-      //
-      SK_Steam_InitCommandConsoleVariables  ();
-
-      extern const wchar_t*
-        SK_Steam_GetDLLPath (void);
-
-      ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
-      /////   a number of general-purpose benefits (such as battery charge monitoring).
-      bool kick_start = config.steam.force_load_steamapi;
-
-      if (kick_start || (! SK_Steam_TestImports (SK_GetModuleHandle (nullptr))))
-      {
-        // Implicitly kick-start anything in SteamApps\common that does not import
-        //   SteamAPI...
-        if ((! kick_start) && config.steam.auto_inject)
-        {
-          if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
-          {
-            // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
-            //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
-            //     the game won't be happy about that!
-            kick_start =
-              (! SK_Modules->LoadLibrary (SK_Steam_GetDLLPath ())) ||
-                    config.steam.force_load_steamapi;
-          }
-        }
-
-        if (kick_start)
-          SK_Steam_KickStart (SK_Steam_GetDLLPath ());
-      }
-
-      SK_Steam_PreHookCore ();
-    }
-
-    if (SK_COMPAT_IsFrapsPresent ())
-        SK_COMPAT_UnloadFraps ();
-
-    SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
-  }
-
-
   dll_log->LogEx (false,
     L"----------------------------------------------------------------------"
     L"---------------------\n");
@@ -1761,6 +1678,93 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   dll_log->LogEx (false,
     L"----------------------------------------------------------------------"
     L"---------------------\n");
+
+
+    if (! __SK_bypass)
+  {
+    // Setup unhooked function pointers
+    SK_MinHook_Init                  (    );
+    SK_PreInitLoadLibrary            (    );
+    SK::Diagnostics::Debugger::Allow (true);
+
+    if (config.system.handle_crashes)
+      SK::Diagnostics::CrashHandler::Init   (    );
+    SK::Diagnostics::CrashHandler::InitSyms (    );
+
+    SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
+
+    void SK_D3D11_InitMutexes (void);
+         SK_D3D11_InitMutexes (    );
+
+    extern void SK_ImGui_Init (void);
+                SK_ImGui_Init (    );
+
+    //// Do this from the startup thread [these functions queue, but don't apply]
+    SK_Input_PreInit          (); // Hook only symbols in user32 and kernel32
+    SK_HookWinAPI             ();
+    SK_CPU_InstallHooks       ();
+    SK_NvAPI_PreInitHDR       ();
+    SK_NvAPI_InitializeHDR    ();
+
+    ////// For the global injector, when not started by SKIM, check its version
+    ////if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+    ////  SK_Thread_Create ( CheckVersionThread );
+
+    if (config.dpi.disable_scaling)   SK_Display_DisableDPIScaling      (     );
+    if (config.dpi.per_monitor.aware) SK_Display_SetMonitorDPIAwareness (false);
+
+    SK_File_InitHooks    ();
+    SK_Network_InitHooks ();
+
+    if (config.system.display_debug_out)
+      SK::Diagnostics::Debugger::SpawnConsole ();
+
+    // Steam Overlay and SteamAPI Manipulation
+    //
+    if (! config.steam.silent)
+    {
+      config.steam.force_load_steamapi = false;
+
+      // TODO: Rename -- this initializes critical sections and performance
+      //                   counters needed by SK's SteamAPI back end.
+      //
+      SK_Steam_InitCommandConsoleVariables  ();
+
+      extern const wchar_t*
+        SK_Steam_GetDLLPath (void);
+
+      ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
+      /////   a number of general-purpose benefits (such as battery charge monitoring).
+      bool kick_start = config.steam.force_load_steamapi;
+
+      if (kick_start || (! SK_Steam_TestImports (SK_GetModuleHandle (nullptr))))
+      {
+        // Implicitly kick-start anything in SteamApps\common that does not import
+        //   SteamAPI...
+        if ((! kick_start) && config.steam.auto_inject)
+        {
+          if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
+          {
+            // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
+            //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
+            //     the game won't be happy about that!
+            kick_start =
+              (! SK_Modules->LoadLibrary (SK_Steam_GetDLLPath ())) ||
+                    config.steam.force_load_steamapi;
+          }
+        }
+
+        if (kick_start)
+          SK_Steam_KickStart (SK_Steam_GetDLLPath ());
+      }
+
+      SK_Steam_PreHookCore ();
+    }
+
+    if (SK_COMPAT_IsFrapsPresent ())
+        SK_COMPAT_UnloadFraps ();
+  }
+
 
 
   if (config.system.silent)
@@ -2202,10 +2206,10 @@ SK_ShutdownCore (const wchar_t* backend)
       // Signal the thread to shutdown
       if ( hSignal == INVALID_HANDLE_VALUE ||
             SignalObjectAndWait (hSignal, hThread, 66UL, TRUE)
-                        != WAIT_OBJECT_0 ) // Give 66 milliseconds, and
-      {                                    // then we're killing
-        TerminateThread (hThread, 0x00);   // the thing!
-                         hThread = INVALID_HANDLE_VALUE;
+                        != WAIT_OBJECT_0 )  // Give 66 milliseconds, and
+      {                                     // then we're killing
+        SK_TerminateThread (hThread, 0x00); // the thing!
+                            hThread = INVALID_HANDLE_VALUE;
       }
 
       if (hThread != INVALID_HANDLE_VALUE)
@@ -2379,7 +2383,7 @@ return;
   if ( (rb.api != SK_RenderAPI::Reserved) &&
         rb.api == LastKnownAPI            &&
        ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ) )
-  {  
+  {
     if (StrStrIW (SK_GetHostPath (), L"WindowsApps"))
     {
       config.cegui.enable = false;

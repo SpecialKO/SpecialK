@@ -29,7 +29,7 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.8.4"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.9.0"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 #define _RR_HDF
@@ -186,7 +186,7 @@ struct {
     VirtualProtect (
       dt.addr, 5,
         dwOriginalDt, &dwOriginalDt );
-    
+
     enabled = false;
 
     return true;
@@ -202,7 +202,7 @@ struct {
     static auto constexpr
       tickOffset = 0x4B1B0B0,
       stepOffset = 0x4B1B0B4;
-    
+
     static auto pBaseAddr =
       SK_Debug_GetImageBaseAddr ();
 
@@ -248,7 +248,7 @@ struct _framerate_ctx_s {
 #ifdef SAFE_PATCH
     if (! std::exchange (_suspended, true))
       suspended_tids = SK_SuspendAllOtherThreads ();
-    
+
     if (suspended_tids.empty ())
        _suspended = false;
 #endif
@@ -260,7 +260,7 @@ struct _framerate_ctx_s {
   {
     if (tids.empty ())
       return;
-    
+
     if (std::exchange (_suspended, false))
       SK_ResumeThreads (tids);
   }
@@ -422,7 +422,7 @@ struct _framerate_ctx_s {
 
       ret &= rotationPatch0.revert ();
       ret &= rotationPatch1.revert ();
-      
+
       if (ret)
         dynamic = false;
     }
@@ -450,7 +450,7 @@ SK_NIER_RAD_GamepadLatencyTester (void)
       XINPUT_STATE states [2] = { };
       ULONGLONG    times  [2] = { };
       int                   i = 0;
-      
+
       do
       {
         WaitForSingleObject (hStartStop, INFINITE);
@@ -483,7 +483,7 @@ SK_NIER_RAD_GamepadLatencyTester (void)
       return 0;
     }, (LPVOID)hStartStop);
   }
-  
+
   static bool started = false;
 
   if (ImGui::Button (started ? "Stop Gamepad Latency Test" :
@@ -492,7 +492,7 @@ SK_NIER_RAD_GamepadLatencyTester (void)
     if (! started) { started = true;  SetEvent   (hStartStop); }
     else           { started = false; ResetEvent (hStartStop); }
   }
-  
+
   static double high_min = std::numeric_limits <double>::max (),
                 high_max,
                 avg;
@@ -529,7 +529,7 @@ SK_NIER_RAD_PerfCpl (void)
 
       changed = true;
     }
-    
+
     changed |=
       ImGui::Checkbox ( "Enable InputThread Rescheduling",
                &config.render.framerate.sleepless_window );
@@ -599,7 +599,7 @@ SK_NIER_RAD_PerfCpl (void)
       ImGui::Text ("");
       ImGui::Text ("");
     }
-    
+
 
     if (_SK_NIER_RAD_LightSleepMode && (! config.render.framerate.sleepless_window))
     {
@@ -656,7 +656,7 @@ SK_NIER_RAD_FramerateCpl (void)
     {
       clockOverride.npc.toggle_pause ();
     }
-    
+
     ImGui::SameLine ();
 
     if ( ImGui::Button (clockOverride.player.paused ? ICON_FA_PLAY  " Player" :
@@ -666,14 +666,14 @@ SK_NIER_RAD_FramerateCpl (void)
     }
   }
 #endif
-  
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   auto* pLimiter =
     SK::Framerate::GetLimiter (rb.swapchain);
 
-  if ( bHighDynamicFramerate && 
+  if ( bHighDynamicFramerate &&
          ( (pLimiter->get_limit () == 60.0 && (! framerate_ctl.isInLoadScreen ())) ||
             pLimiter->get_limit () == 0.0f ) )
   {
@@ -711,7 +711,7 @@ SK_NIER_RAD_VisualCpl (void)
   ImGui::TreePush ("");
 
   bool changed = false;
-  
+
   changed |= ImGui::Checkbox ("D3D11 State Tracker Performance Mode", &config.render.dxgi.low_spec_mode);
 
   if (ImGui::IsItemHovered ())
@@ -776,7 +776,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
       ImGui::TextColored     (ImVec4 (0.02f, 0.68f, 0.90f, 0.45f), ICON_FA_GRIN_STARS);
       ImGui::EndTooltip      ();
     }
-        
+
     if (bPerfOpen)
       changed |= SK_NIER_RAD_PerfCpl ();
 
@@ -944,7 +944,7 @@ SK_NIER_RAD_BeginFrame (void)
     {
       config.input.gamepad.native_ps4 = true;
     }
-    
+
     if (_SK_NIER_RAD_AutoCursorHide)
     {
       config.input.cursor.manage = true;
@@ -1006,7 +1006,7 @@ SK_NIER_RAD_BeginFrame (void)
     if (ReadUCharAcquire (&_SK_NIER_RAD_HighDynamicFramerate) != 0)
     {
       clockOverride.enable ();
-      
+
       double dt =
         static_cast <double> ( liThisFrame.QuadPart -
                                liLastFrame.QuadPart ) /
@@ -1177,7 +1177,7 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
 
     if (__DInput8.attached.empty () && __DInput8.last_good.wUsage == 0x05)
       lpCallback (&__DInput8.last_good, pvRef);
-    
+
     return S_OK;
   }
 
@@ -1364,7 +1364,7 @@ void SK_NIER_RAD_InitPlugin (void)
   config.input.gamepad.disable_ps4_hid = false;
 
   plugin_mgr->config_fns.emplace (SK_NIER_RAD_PlugInCfg);
-  
+
   // Disable cursor management until gamepad activity is registered
   if (_SK_NIER_RAD_AutoCursorHide)
     config.input.cursor.manage = false;

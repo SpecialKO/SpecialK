@@ -103,4 +103,18 @@ SK_VirtualAlloc (
   _In_     DWORD  flProtect);
 
 
+
+HLOCAL
+WINAPI
+SK_LocalFree       (
+  _In_ HLOCAL hMem ) noexcept;
+
+HLOCAL
+WINAPI
+SK_LocalAlloc (
+  _In_ UINT   uFlags,
+  _In_ SIZE_T uBytes ) noexcept;
+
+
+
 #endif /* __SK__MEMORY_H__ */

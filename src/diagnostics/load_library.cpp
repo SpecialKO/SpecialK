@@ -1163,7 +1163,7 @@ SK_ReHookLoadLibrary (void)
 
 //if (ReadAcquire (&__SK_Init) > 0)
   {
-    SK_ApplyQueuedHooks ();
+    if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
   } SK_UnlockDllLoader  ();
 
   return (calls > 1);

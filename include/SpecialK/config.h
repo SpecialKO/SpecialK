@@ -412,6 +412,7 @@ struct sk_config_t
       bool    present_test_skip  = false;
       bool    hide_hdr_support   = false; // Games won't know HDR is supported
       bool    use_factory_cache  =  true; // Fix performance issues in Resident Evil 8
+      bool    skip_mode_changes  = false; // Try to skip rendundant resolution changes
     } dxgi;
 
     struct osd_s {
@@ -477,16 +478,16 @@ struct sk_config_t
                                             //   are not correctly keeping track of resources
       bool    residency_managemnt  = false;// true;
       bool    vibrate_on_miss      = false;
-    } cache;                       
-                                   
+    } cache;
+
     bool highlight_debug_tex       = false;
     bool on_demand_dump            = false;
     bool d3d9_mod                  = false; // Causing compat issues in some D3D9Ex games ATM
     bool dump_on_load              = false;
     bool clamp_lod_bias            = false;
-  } textures;                      
-                                   
-  struct file_trace_s {            
+  } textures;
+
+  struct file_trace_s {
     bool trace_reads               = false;
     bool trace_writes              = false;
 

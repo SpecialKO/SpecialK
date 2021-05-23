@@ -114,26 +114,19 @@ SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
         SK_GetCurrentThreadId () :
              pTni->dwThreadID;
 
-    SK_AutoHandle hRealHandle (INVALID_HANDLE_VALUE);
     SK_AutoHandle hThread (
                OpenThread ( THREAD_SET_LIMITED_INFORMATION,
                               FALSE,
                                 dwTid ) );
 
-    if ( DuplicateHandle ( SK_GetCurrentProcess (),
-                           hThread.m_h,
-                           SK_GetCurrentProcess (),
-                             &hRealHandle.m_h,
-                               THREAD_ALL_ACCESS,
-                                 FALSE,
-                                    0 ) )
+    if (hThread.m_h != 0)
     {
       std::wstring wideDesc =
         SK_UTF8ToWideChar (pTni->szName);
 
       bRet =
         SUCCEEDED (
-          SK_SetThreadDescription ( hRealHandle.m_h,
+          SK_SetThreadDescription ( hThread.m_h,
               wideDesc.c_str ()   )
                   );
     }
@@ -185,9 +178,9 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
   bool non_empty =
     SUCCEEDED ( StringCbLengthW (
-                  lpThreadDescription, 255, &len
+                  lpThreadDescription, MAX_THREAD_NAME_LEN-1, &len
                 )
-              )                           && len > 0;
+              )                                             && len > 0;
 
   if (non_empty)
   {
@@ -195,11 +188,12 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
       ThreadNames =
         *_SK_ThreadNames;
 
-    SK_TLS *pTLS     = ( ReadAcquire (&__SK_DLL_Attached) ||
-                      (! ReadAcquire (&__SK_DLL_Ending)))  ?
-    SK_TLS_Bottom () : nullptr;
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();//= ( ReadAcquire (&__SK_DLL_Attached) ||
+                       // (! ReadAcquire (&__SK_DLL_Ending)))  ?
+                       //                     SK_TLS_Bottom () : nullptr;
 
-    DWORD                 dwTid  = SK_Thread_GetCurrentId ();
+    DWORD               dwTid  = SK_Thread_GetCurrentId ();
     __make_self_titled (dwTid);
            ThreadNames [dwTid] = lpThreadDescription;
 
@@ -209,14 +203,14 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
       //   when no debugger is attached.
       wcsncpy_s (
         pTLS->debug.name,
-          std::min (256, (int)len+1),
+          std::min (MAX_THREAD_NAME_LEN, (int)len+1),
             lpThreadDescription,
               _TRUNCATE
       );
     }
 
-    char      szDesc [256] = { };
-    wcstombs (szDesc, lpThreadDescription, 255);
+    char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
+    wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
 
     THREADNAME_INFO info = {       };
     info.dwType          =      4096;
@@ -228,7 +222,7 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
 
     SK_RunOnce (
-      SK_SetThreadDescription = (decltype (SK_SetThreadDescription)) GetProcAddress (GetModuleHandleW (L"Kernel32"), 
+      SK_SetThreadDescription = (decltype (SK_SetThreadDescription)) GetProcAddress (GetModuleHandleW (L"Kernel32"),
         "SetThreadDescription")
     );
 
@@ -255,19 +249,19 @@ HRESULT
 WINAPI
 GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
 {
-  SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
-    SK_TLS_Bottom () : nullptr;
+  SK_TLS* pTLS =      //= ReadAcquire (&__SK_DLL_Attached) ?
+    SK_TLS_Bottom (); //: nullptr;
 
   // Always use the TLS value if there is one
-  if (         pTLS != nullptr   &&
-       wcslen (pTLS->debug.name)    )
+  if ( pTLS != nullptr  &&
+      *pTLS->debug.name != L'\0' )
   {
     // This is not freed here; the caller is expected to free it!
     *threadDescription =
-      (wchar_t *)SK_LocalAlloc (LPTR, sizeof (wchar_t) * 1024);
+      (wchar_t *)SK_LocalAlloc (LPTR, sizeof (wchar_t) * MAX_THREAD_NAME_LEN);
 
     wcsncpy_s (
-      *threadDescription, 1023,
+      *threadDescription, MAX_THREAD_NAME_LEN-1,
         pTLS->debug.name, _TRUNCATE
     );
 
@@ -275,7 +269,7 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
   }
 
   SK_RunOnce (
-    SK_GetThreadDescription = (decltype (SK_GetThreadDescription)) GetProcAddress (GetModuleHandleW (L"Kernel32"), 
+    SK_GetThreadDescription = (decltype (SK_GetThreadDescription)) GetProcAddress (GetModuleHandleW (L"Kernel32"),
       "GetThreadDescription")
   );
 
@@ -361,8 +355,8 @@ SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
 
   if (! pTLS->debug.naming)
   {
-    char      szDesc [256] = { };
-    wcstombs (szDesc, lpThreadDescription, 255);
+    char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
+    wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
 
     THREADNAME_INFO info = {       };
     info.dwType          =      4096;
@@ -427,7 +421,7 @@ SK_Thread_InitDebugExtras (void)
 
     InterlockedIncrementRelease (&run_once);
 
-    SK_ApplyQueuedHooks ();
+    if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
   }
 
   else
@@ -526,11 +520,13 @@ SetThreadAffinityMask_Detour (
 
 
 
+#define MAX_THREAD_NAME_LEN MAX_PATH
+
 struct SK_ThreadBaseParams {
   LPTHREAD_START_ROUTINE lpStartFunc;
-  const wchar_t*         lpThreadName;
   LPVOID                 lpUserParams;
   HANDLE                 hHandleToStuffInternally;
+  wchar_t                lpThreadName [MAX_THREAD_NAME_LEN] = { };
 };
 
 DWORD
@@ -540,17 +536,31 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
   SK_ThreadBaseParams *pStartParams =
     static_cast <SK_ThreadBaseParams *> (lpUserPassThrough);
 
-  SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
-    SK_TLS_Bottom () : nullptr;
-
-  if (pStartParams->lpThreadName != nullptr)
-    SetCurrentThreadDescription (pStartParams->lpThreadName);
+  SK_TLS *pTLS =     //= ReadAcquire (&__SK_DLL_Attached) ?
+    SK_TLS_Bottom ();// : nullptr;
 
   if (pTLS != nullptr)
   {
     pTLS->debug.handle = pStartParams->hHandleToStuffInternally;
     pTLS->debug.tid    = SK_Thread_GetCurrentId ();
+
+#ifdef _DEBUG
+    SK_ReleaseAssert (
+      gsl::narrow_cast   <DWORD    > (
+        reinterpret_cast <DWORD_PTR> (
+          SK_Thread_GetTEB_FAST ()->Cid.UniqueThread
+        ) & 0x00000000FFFFFFFFULL
+      ) == GetCurrentThreadId ()
+    );
+#endif
   }
+
+  if (pStartParams->lpThreadName != nullptr)
+    SetCurrentThreadDescription (pStartParams->lpThreadName);
+
+  // Kick-off data collection on thread start
+  extern void SK_Widget_InvokeThreadProfiler (void);
+              SK_Widget_InvokeThreadProfiler (    );
 
   DWORD dwRet =
     pStartParams->lpStartFunc (pStartParams->lpUserParams);
@@ -584,10 +594,15 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
 
   assert (params != nullptr);
 
-  *params = {
-    lpStartFunc,  lpThreadName,
-    lpUserParams, INVALID_HANDLE_VALUE
-  };
+  params->lpStartFunc              = lpStartFunc;
+  params->lpUserParams             = lpUserParams;
+  params->hHandleToStuffInternally = INVALID_HANDLE_VALUE;
+
+  if (lpThreadName != nullptr)
+  {
+    wcsncpy_s ( params->lpThreadName,  MAX_THREAD_NAME_LEN,
+                        lpThreadName, _TRUNCATE );
+  }
 
   unsigned int dwTid = 0;
 
@@ -629,25 +644,26 @@ bool
 WINAPI
 SK_Thread_CloseSelf (void)
 {
-  SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
-    SK_TLS_Bottom () : nullptr;
+  SK_TLS* pTLS      =
+        SK_TLS_Bottom ();
+    //ReadAcquire (&__SK_DLL_Attached) ?
+    //                SK_TLS_Bottom () : nullptr;
 
   if (pTLS != nullptr)
   {
     HANDLE hCopyAndSwapHandle =
       INVALID_HANDLE_VALUE;
 
-    std::swap   (pTLS->debug.handle, hCopyAndSwapHandle);
-
-    if (! CloseHandle (hCopyAndSwapHandle))
-    {
-      std::swap (pTLS->debug.handle, hCopyAndSwapHandle);
-
-      return false;
+    if ((intptr_t)pTLS->debug.handle > 0)
+    { std::swap  (pTLS->debug.handle, hCopyAndSwapHandle);
+      if (! CloseHandle (             hCopyAndSwapHandle)) {
+        std::swap(pTLS->debug.handle, hCopyAndSwapHandle); }
+      else
+        return true;
     }
-  } else return false;
+  }
 
-  return true;
+  return false;
 }
 
 

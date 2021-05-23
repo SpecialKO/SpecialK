@@ -782,7 +782,7 @@ D3D11_RSSetScissorRects_Override (
             rectNew.right  = static_cast <LONG> (config.window.res.override.x);
             rectNew.bottom = static_cast <LONG> (config.window.res.override.y);
           }
-          
+
           return
             D3D11_RSSetScissorRects_Original (
               This, NumRects, &rectNew
@@ -1337,6 +1337,7 @@ D3D11_CopySubresourceRegion_Override (
   _In_           UINT                 SrcSubresource,
   _In_opt_ const D3D11_BOX           *pSrcBox )
 {
+#if 0
   // UB: If it's happening, pretend we never saw this...
   if (pDstResource == nullptr || pSrcResource == nullptr)
   {
@@ -1513,6 +1514,7 @@ D3D11_CopySubresourceRegion_Override (
 
     D3D11_CopySubresourceRegion_Original (This, pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
 
+#if 0
     if (config.textures.cache.allow_staging)
     {
       if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource) /*||
@@ -1568,11 +1570,11 @@ D3D11_CopySubresourceRegion_Override (
                     SK_ComPtr <ID3D11Texture2D> pOverrideTex;
                     SK_ComPtr <ID3D11Device>    pDevice;
                     This->GetDevice           (&pDevice.p);
-                    
+
                     if (! pTLS)
                           pTLS =
                         SK_TLS_Bottom ();
-                    
+
                     SK_ScopedBool decl_tex_scope (
                       SK_D3D11_DeclareTexInjectScope (pTLS)
                     );
@@ -1584,7 +1586,7 @@ D3D11_CopySubresourceRegion_Override (
                     {
                       D3D11_TEXTURE2D_DESC    new_desc = { };
                       pOverrideTex->GetDesc (&new_desc);
-                      
+
                       SK_ReleaseAssert (
                         map_ctx.dynamic_sizes2 [checksum] == SK_D3D11_ComputeTextureSize (&new_desc)
                       );
@@ -1593,7 +1595,7 @@ D3D11_CopySubresourceRegion_Override (
                             scope_lock (*cache_cs);
 
                       D3D11_CopyResource_Original (This, pDstResource, pOverrideTex);
-                      
+
                       const ULONGLONG load_end =
                         (ULONGLONG)SK_QueryPerf ().QuadPart;
 
@@ -1627,7 +1629,7 @@ D3D11_CopySubresourceRegion_Override (
 
             else
               textures->recordCacheHit (pDstTex);
-            
+
             if ((! filename.empty ()) || (! map_ctx.dynamic_files2 [checksum].empty ()))
               textures->Textures_2D [pDstTex].injected = true;
 
@@ -1641,6 +1643,7 @@ D3D11_CopySubresourceRegion_Override (
         }
       }
     }
+#endif
   }
 
   else
@@ -1652,6 +1655,28 @@ D3D11_CopySubresourceRegion_Override (
             SrcSubresource, pSrcBox
       );
   }
+#else
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    return
+      SK_D3D11_CopySubresourceRegion_Impl (
+        This, pDstResource, DstSubresource,
+          DstX, DstY, DstZ, pSrcResource,
+            SrcSubresource, pSrcBox,
+              false
+      );
+  }
+
+  else
+  {
+    return
+      D3D11_CopySubresourceRegion_Original (
+        This, pDstResource, DstSubresource,
+          DstX, DstY, DstZ, pSrcResource,
+            SrcSubresource, pSrcBox
+      );
+  }
+#endif
 }
 
 
@@ -2060,7 +2085,7 @@ D3D11_RSSetViewports_Override (
             vpNew.Width  = static_cast <float> (config.window.res.override.x);
             vpNew.Height = static_cast <float> (config.window.res.override.y);
           }
-          
+
           return
             D3D11_RSSetViewports_Original (
               This, NumViewports, &vpNew

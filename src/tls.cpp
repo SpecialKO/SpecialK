@@ -141,7 +141,7 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
   //   container. This is a lock-contended data store, so it is important
   //     to try and migrate the data into TLS as quickly as possible.
   //
-  concurrency::concurrent_unordered_map 
+  concurrency::concurrent_unordered_map
     < DWORD, SK_TLS *> *emergency_room = nullptr;
 
 
@@ -570,6 +570,7 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   freed += eula.reclaim                 ();
   freed += cpu_info.reclaim             ();
   freed += log.formatted_output.reclaim ();
+  freed += dxgi.mode_list.reclaim       ();
 
   for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
   {

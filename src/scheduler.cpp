@@ -60,7 +60,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
   {
     SK_LOG0 ( ( L"Infinite Sleep On Window Thread (!!) - SK will not force thread awake..." ),
                 L"Win32-Pump" );
-    
+
     SK_SleepEx (
       INFINITE,
         bAlertable
@@ -75,7 +75,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
   {
     constexpr HWND hWndThis =    0;
     constexpr bool bUnicode = true;
-  
+
     // Avoid having Windows marshal Unicode messages like a dumb ass
               MSG        msg (                           { }                 );
     constexpr auto      Peek (bUnicode ? PeekMessageW     :      PeekMessageA);
@@ -86,7 +86,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     while ( Peek (&msg, hWndThis, 0U, 0U, PM_REMOVE) )
     {  Translate (&msg);
         Dispatch (&msg);
-  
+
       SK_LOG1 ( ( L"Dispatched Message: %x to %ws HWND: %x while "
                   L"framerate limiting!",
                    msg.message, wszDesc,
@@ -146,7 +146,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     }
   }
 #endif
-  
+
   // Not good
   if (dwMilliseconds == 0)
   {
@@ -161,15 +161,15 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       {     pTLS->win32->mmcs_task = true;
         auto thread =
           SK_GetCurrentThread ();
-      
+
         SetThreadPriority  (thread,
          GetThreadPriority (thread) + 1);
-      
+
         SK_MMCS_TaskEntry* task_me =
           ( config.render.framerate.enable_mmcss ?
             SK_MMCS_GetTaskForThreadID ( SK_GetCurrentThreadId (),
                       "Dubious Sleeper (0 ms)" ) : nullptr );
-      
+
         if (task_me != nullptr)
         {
           task_me->setPriority (AVRT_PRIORITY_NORMAL);
@@ -248,7 +248,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         SK_ReleaseAssert (!
                           L"Unexpected Wait State in call to "
                           L"MsgWaitForMultipleObjectsEx (...)");
-        
+
         return;
       }
 
@@ -878,18 +878,18 @@ DWORD
 WINAPI
 SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 {
-  ///if (   ReadAcquire (&__SK_DLL_Ending  ) ||
-  ///    (! ReadAcquire (&__SK_DLL_Attached) ) )
-  ///{
-  ///  return 0;
-  ///}
+  if (   ReadAcquire (&__SK_DLL_Ending  ) ||
+      (! ReadAcquire (&__SK_DLL_Attached) ) )
+  {
+    return 0;
+  }
 
   const bool sleepless_render = config.render.framerate.sleepless_render;
   const bool sleepless_window = config.render.framerate.sleepless_window;
 
   bool bWantThreadClassification =
-    ( sleepless_render ||
-      sleepless_window );
+    ( sleepless_render /*||
+      sleepless_window*/ );
 
   static const auto game_id =
         SK_GetCurrentGameID ();
@@ -901,16 +901,18 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 #endif
 
   DWORD dwTid =
-    bWantThreadClassification   ?
-      SK_Thread_GetCurrentId () : 0;
+    ( bWantThreadClassification ) ?
+        SK_Thread_GetCurrentId () : 0x0;
 
   SK_TLS *pTLS =
     nullptr;
 
-  BOOL bGUIThread    = sleepless_window ?     SK_Win32_IsGUIThread (dwTid, &pTLS)         :
-                                                                                   false;
-  BOOL bRenderThread = sleepless_render ? ((DWORD)ReadULongAcquire (&SK_GetCurrentRenderBackend ().thread) == dwTid) :
-                                                                                   false;
+  BOOL bGUIThread    =
+    sleepless_window ? (SK_Thread_GetTEB_FAST ()->Win32ThreadInfo                != nullptr)
+                     : FALSE;
+  BOOL bRenderThread =
+    sleepless_render ? (ReadULongAcquire (&SK_GetCurrentRenderBackend ().thread) ==  dwTid )
+                     : FALSE;
 
   // Steam doesn't init correctly without sleeping for 25 ms
 #define STEAM_THRESHOLD 25
@@ -981,7 +983,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
                 reported = true;
               }
       }
-      
+
       if (SK_ImGui_Visible)
         SK::Framerate::events->getMessagePumpStats ().wake   (dwMilliseconds);
 
@@ -1306,7 +1308,7 @@ NtSetTimerResolution_Detour
   NTSTATUS ret = 0;
 
   if (NtQueryTimerResolution == nullptr)
-      NtQueryTimerResolution = 
+      NtQueryTimerResolution =
      (NtQueryTimerResolution_pfn)::SK_GetProcAddress ( L"NtDll",
      "NtQueryTimerResolution" );
 

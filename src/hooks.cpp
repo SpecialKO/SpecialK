@@ -1433,6 +1433,16 @@ SK_ApplyQueuedHooks (void)
     return MH_ERROR_DISABLED;
 
 
+  UINT                         uiHookCount = 0;
+  if ( MH_OK == SH_HookCount (&uiHookCount) )
+  {  SK_LOG1 ( ( L" -> Installed Hook Count: %lu  "
+                     L"[ Queue Initiated by: %ws ]",
+                                uiHookCount,
+                             SK_SummarizeCaller ().c_str () ),
+                                L"HookEngine" );
+  }
+
+
 #ifdef _DEBUG
   SK_LOG_CALL (" Min Hook ");
 #else
@@ -1480,6 +1490,18 @@ SK_EnableHook (void *pTarget)
     else
     {
       SK_LOG_MINHOOK ( status, L"Failed to Enable All Hooks!", 0 );
+    }
+  }
+
+  else
+  {
+    UINT                         uiHookCount = 0;
+    if ( MH_OK == SH_HookCount (&uiHookCount) )
+    {  SK_LOG1 ( ( L" -> Enabled non-Queued Hook, Count: %lu  "
+                            L"[ Inefficient Hooker: %ws ]",
+                                  uiHookCount,
+                               SK_SummarizeCaller ().c_str () ),
+                                  L"HookEngine" );
     }
   }
 

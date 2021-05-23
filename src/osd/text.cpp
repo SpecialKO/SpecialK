@@ -1802,9 +1802,8 @@ SK_TextOverlay::update (const char* szText)
   if (y < 0.0f)
     y = ImGui::GetIO ().DisplaySize.y + y - ((num_lines + 1) * spacing) + 1.0f;
 
-  auto draw_list = ImGui::GetWindowDrawList  ();
-  auto font_size = ImGui::GetFontSize        ();
-  auto font      = SK_ImGui_GetFont_Consolas ();
+  auto draw_list =
+    ImGui::GetWindowDrawList  ();
 
   while (line != nullptr)
   {
@@ -1814,18 +1813,18 @@ SK_TextOverlay::update (const char* szText)
       // First the shadow
       //
       draw_list->AddText (
-        font,
-        font_size, ImVec2 (x            + 1.f,
-                           y + baseline + 1.f),
-                   shadow,         line,
+        ImGui::GetFont     (),
+        ImGui::GetFontSize (), ImVec2 (x            + 1.f,
+                                       y + baseline + 1.f),
+                               shadow,         line,
                               NULL, 0.0f, nullptr );
       // Then the foreground
       //
       draw_list->AddText (
-        font,
-        font_size, ImVec2 (x, y + baseline),
-                   foreground,        line, 
-                              NULL, 0.0f, nullptr );
+        ImGui::GetFont     (),
+        ImGui::GetFontSize (), ImVec2 (x, y + baseline),
+                               foreground,        line, 
+                                 NULL, 0.0f, nullptr );
     }
 
     line =

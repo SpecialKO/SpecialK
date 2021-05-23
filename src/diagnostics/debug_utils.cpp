@@ -479,11 +479,6 @@ GetProcAddress_Detour     (
   ////////static HMODULE hModSteamClient  = nullptr;
   ////////static HMODULE hModSteamAPI     = nullptr;
   ////////
-  static HMODULE hModSteamOverlay =
-    SK_GetModuleHandle (
-       SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
-                               L"GameOverlayRenderer.dll" )
-                       );
   ////////
   ////////hModSteamClient  =
   ////////hModSteamClient != nullptr ?
@@ -576,32 +571,31 @@ GetProcAddress_Detour     (
     ////  }
     ////}
 
-    if ( SK_GetCurrentGameID () == SK_GAME_ID::ResidentEvil8 &&
-         *lpProcName == 'S'      &&
- StrStrA (lpProcName, "SteamAPI_") == lpProcName)
-    {
-      if (! lstrcmpA (lpProcName, "SteamAPI_RunCallbacks"))
-      {
-        if (realRunCallbacks == nullptr)
-        {
-          realRunCallbacks = (SteamAPI_RunCallbacks_pfn)
-            GetProcAddress_Original (
-              hModule, lpProcName
-            );
-        }
+ ////   if ( SK_GetCurrentGameID () == SK_GAME_ID::ResidentEvil8 &&
+ ////        *lpProcName == 'S'      &&
+ ////StrStrA (lpProcName, "SteamAPI_") == lpProcName)
+ ////   {
+ ////     if (! lstrcmpA (lpProcName, "SteamAPI_RunCallbacks"))
+ ////     {
+ ////       if (realRunCallbacks == nullptr)
+ ////       {
+ ////         realRunCallbacks = (SteamAPI_RunCallbacks_pfn)
+ ////           GetProcAddress_Original (
+ ////             hModule, lpProcName
+ ////           );
+ ////       }
+ ////
+ ////       return
+ ////         (FARPROC)SteamAPI_RunCallbacks_throttled;
+ ////     }
+ ////
+ ////     return
+ ////       GetProcAddress_Original (
+ ////         hModule, lpProcName
+ ////       );
+ ////   }
 
-        return
-          (FARPROC)SteamAPI_RunCallbacks_throttled;
-      }
-
-      return
-        GetProcAddress_Original (
-          hModule, lpProcName
-        );
-    }
-
-    else if
-       ( *lpProcName == 'P'      &&
+    if ( *lpProcName == 'P'      &&
  StrStrA (lpProcName,   "PeekM") == lpProcName )
     {
       if (! lstrcmpA (lpProcName, "PeekMessageA"))
@@ -856,6 +850,12 @@ GetProcAddress_Detour     (
 
     if (config.system.log_level > 0 && (uintptr_t)lpProcName > 65536)
     {
+      static HMODULE hModSteamOverlay =
+        SK_GetModuleHandle (
+           SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
+                                   L"GameOverlayRenderer.dll" )
+                           );
+
       if ( hModCaller != SK_GetDLL ()  &&
            hModCaller != hModSteamOverlay )
       {
@@ -1075,8 +1075,8 @@ TerminateProcess_Detour ( HANDLE hProcess,
 
 BOOL
 WINAPI
-TerminateThread_Detour ( HANDLE  hThread,
-                        DWORD  dwExitCode )
+TerminateThread_Detour ( HANDLE hThread,
+                         DWORD dwExitCode )
 {
   const bool abnormal_dll_state =
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
@@ -1084,6 +1084,29 @@ TerminateThread_Detour ( HANDLE  hThread,
 
   if (! abnormal_dll_state)
   {
+    // Fake it, TerminateThread is dangerous and often used by DRM only.
+    if ( (intptr_t)hThread > 0 )
+    {
+      DWORD                               dwHandleFlags = 0x0;
+      if (GetHandleInformation (hThread, &dwHandleFlags))
+      {
+        // We need to cover all bases here; this would throw an exception
+        //   that anti-debug would use to tear-down the whole game.
+        if ((dwHandleFlags & HANDLE_FLAG_PROTECT_FROM_CLOSE) !=
+                             HANDLE_FLAG_PROTECT_FROM_CLOSE)
+        {
+          if (GetThreadId (hThread) != GetCurrentThreadId ())
+          {
+            // Handle is real, we can close it.
+            SuspendThread (hThread);
+            CloseHandle   (hThread);
+          }
+        }
+      }
+    }
+
+    return TRUE;
+
     // Stupid anti-tamper, just ignore it, it'll all be over quickly
     if ( SK_GetCurrentGameID () == SK_GAME_ID::OctopathTraveler &&
                      dwExitCode == 0x0 )
@@ -2060,8 +2083,8 @@ ZwSetInformationThread_Detour (
                         SK_GetCurrentThread  (),
                         SK_GetCurrentProcess (),
                           &hDuplicate.m_h,
-                            THREAD_ALL_ACCESS,
-                              FALSE, 0 )
+                            THREAD_ALL_ACCESS, FALSE,
+                        DUPLICATE_SAME_ACCESS )
        )
     {
       ThreadHandle = hDuplicate.m_h;
@@ -2295,7 +2318,7 @@ ZwCreateThreadEx_Detour (
       if (pTLS != nullptr)
       {
         wcsncpy_s (
-          pTLS->debug.name,          256,
+          pTLS->debug.name,          MAX_THREAD_NAME_LEN,
                   thr_name.c_str (), _TRUNCATE
         );
       }
@@ -2476,7 +2499,7 @@ NtCreateThreadEx_Detour (
       if (pTLS != nullptr)
       {
         wcsncpy_s (
-          pTLS->debug.name,          256,
+          pTLS->debug.name,          MAX_THREAD_NAME_LEN,
                   thr_name.c_str (), _TRUNCATE
         );
       }
@@ -2510,52 +2533,55 @@ WINAPI
 SetThreadContext_Detour ( HANDLE hThread, const CONTEXT* pCtx )
 {
 //#define LETS_PLAY_DENUVO_GAMES
-#ifdef LETS_PLAY_DENUVO_GAMES
-  //
-  // It is extremely unusual for the host application to manipulate
-  //   Debug Registers.
-  //
-  //  Debuggers do this, but they do not execute code from inside
-  //    the application.
-  //
-  //  In all known cases of non-zero DRs, it is an anti-tamper
-  //    software layer trying to uninstall breakpoints.
-  //
-  if ( pCtx->Dr0 != 0x0 || pCtx->Dr1 != 0x0 ||
-       pCtx->Dr2 != 0x0 || pCtx->Dr3 != 0x0 ||
-     //pCtx->Dr4 != 0x0 || pCtx->Dr5 != 0x0 ||
-       pCtx->Dr6 != 0x0 || pCtx->Dr7 != 0x0 )
+#ifdef  LETS_PLAY_DENUVO_GAMES
+  if (SK_GetCurrentGameID () == SK_GAME_ID::ResidentEvil8)
   {
-    CONTEXT _CtxSanitized =
-      *pCtx;
+    //
+    // It is extremely unusual for the host application to manipulate
+    //   Debug Registers.
+    //
+    //  Debuggers do this, but they do not execute code from inside
+    //    the application.
+    //
+    //  In all known cases of non-zero DRs, it is an anti-tamper
+    //    software layer trying to uninstall breakpoints.
+    //
+    if ( pCtx->Dr0 != 0x0 || pCtx->Dr1 != 0x0 ||
+         pCtx->Dr2 != 0x0 || pCtx->Dr3 != 0x0 ||
+       //pCtx->Dr4 != 0x0 || pCtx->Dr5 != 0x0 ||
+         pCtx->Dr6 != 0x0 || pCtx->Dr7 != 0x0 )
+    {
+      CONTEXT _CtxSanitized =
+        *pCtx;
 
-    _CtxSanitized.Dr0 = 0x0; _CtxSanitized.Dr1 = 0x0;
-    _CtxSanitized.Dr2 = 0x0; _CtxSanitized.Dr3 = 0x0;
-    _CtxSanitized.Dr6 = 0x0; _CtxSanitized.Dr7 = 0x0;
+      _CtxSanitized.Dr0 = 0x0; _CtxSanitized.Dr1 = 0x0;
+      _CtxSanitized.Dr2 = 0x0; _CtxSanitized.Dr3 = 0x0;
+      _CtxSanitized.Dr6 = 0x0; _CtxSanitized.Dr7 = 0x0;
 
-    static
-      concurrency::concurrent_unordered_set <HANDLE> logged_tids;
+      static
+        concurrency::concurrent_unordered_set <HANDLE> logged_tids;
 
-    BOOL bRet =
-      SetThreadContext_Original ( hThread, &_CtxSanitized );
+      BOOL bRet =
+        SetThreadContext_Original ( hThread, &_CtxSanitized );
 
-    if (! logged_tids.count  (hThread))
-    {     logged_tids.insert (hThread);
+      if (! logged_tids.count  (hThread))
+      {     logged_tids.insert (hThread);
 
-      SK_LOG0 ( ( L"Anti-Debug Breakpoint Removal Detected ('%s' on '%s')",
-                    SK_Thread_GetName (                  hThread).c_str (),
-                    SK_Thread_GetName (SK_Thread_GetCurrentId ()).c_str () ),
-                  L"AntiTamper" );
+        SK_LOG0 ( ( L"Anti-Debug Breakpoint Removal Detected ('%s' on '%s')",
+                      SK_Thread_GetName (                  hThread).c_str (),
+                      SK_Thread_GetName (SK_Thread_GetCurrentId ()).c_str () ),
+                    L"AntiTamper" );
 
-      if (bRet)
-      {
-        // Add an extra value to the semaphore to prevent the next
-        //   attempt to do this from incurring performance overhead.
-        ResumeThread (hThread);
+        if (bRet)
+        {
+          // Add an extra value to the semaphore to prevent the next
+          //   attempt to do this from incurring performance overhead.
+          ResumeThread (hThread);
+        }
       }
-    }
 
-    return bRet;
+      return bRet;
+    }
   }
 #endif
 
@@ -2653,6 +2679,7 @@ IsDebuggerPresent_Detour (void)
   ///
   ///  RtlReleasePebLock_Original ();
   ///}
+
   if (config.compatibility.impersonate_debugger)
     return TRUE;
 
@@ -2912,7 +2939,7 @@ SK_Exception_HandleThreadName (
       {
         wcsncpy_s (
           pTLS->debug.name,
-          std::min (len+1, (size_t)255),
+          std::min (len+1, (size_t)MAX_THREAD_NAME_LEN-1),
           wide_name.c_str (),
           _TRUNCATE );
       }
@@ -3579,21 +3606,33 @@ BOOL
 WINAPI
 CloseHandle_Detour ( HANDLE hObject )
 {
+  BOOL bRet = FALSE;
+
   __try
   {
-    DWORD                               dwFlags = 0x0;
-    if (GetHandleInformation (hObject, &dwFlags))
+    DWORD                               dwFlags    (0x0);
+    if (GetHandleInformation (hObject, &dwFlags) && 0x0 ==
+                                       (dwFlags & HANDLE_FLAG_PROTECT_FROM_CLOSE))
     {
-      return
+      bRet =
         CloseHandle_Original (hObject);
     }
 
     assert (false);
   }
 
-  __except (EXCEPTION_CONTINUE_EXECUTION) { };
+  __except ( GetExceptionCode () == EXCEPTION_INVALID_HANDLE
+                                  ? EXCEPTION_EXECUTE_HANDLER
+                                  : EXCEPTION_CONTINUE_SEARCH )
+  {
+    bRet = FALSE;
+  }
 
-  return TRUE;
+  if (! bRet)
+    SK_SetLastError (ERROR_INVALID_HANDLE);
+
+  return
+    bRet;
 }
 
 
@@ -3611,10 +3650,10 @@ SK_HookEngine_HookGetProcAddress (void)
   ///////);
 
   SK_RunOnce (
-    SK_CreateDLLHook (      L"kernel32",
-                             "GetProcAddress",
-                              GetProcAddress_Detour,
-     static_cast_p2p <void> (&GetProcAddress_Original) )
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "GetProcAddress",
+                               GetProcAddress_Detour,
+      static_cast_p2p <void> (&GetProcAddress_Original) )
   );
 }
 
@@ -3677,7 +3716,7 @@ SK_Proxy_MouseProc   (
 
       using MouseProc =
         LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
-      
+
       return
         ((MouseProc)__hooks._RealMouseProcs.count (dwTid) ?
                     __hooks._RealMouseProcs.at    (dwTid) :
@@ -3873,7 +3912,7 @@ SetWindowsHookExW_Detour (
         {        __hooks._RealKeyboardProc = lpfn;
                                    install = true;
         }
-        
+
         if (install)
           lpfn = SK_Proxy_KeyboardProc;
       }
@@ -3887,7 +3926,7 @@ SetWindowsHookExW_Detour (
                   idHook == WH_MOUSE_LL    ?
                             L" Low-Level " : L" " ),
                                     L"Input Hook" );
-      
+
       // Game seems to be using mouse hooks instead of a normal Window Proc;
       //   that makes life more complicated for SK/ImGui... but we got this!
       if (idHook == WH_MOUSE)
@@ -3906,7 +3945,7 @@ SetWindowsHookExW_Detour (
         {        __hooks._RealMouseProc = lpfn;
                                 install = true;
         }
-        
+
         if (install)
           lpfn = SK_Proxy_MouseProc;
       }
@@ -3960,7 +3999,7 @@ SetWindowsHookExA_Detour (
         {        __hooks._RealKeyboardProc = lpfn;
                                    install = true;
         }
-        
+
         if (install)
           lpfn = SK_Proxy_KeyboardProc;
       }
@@ -3974,7 +4013,7 @@ SetWindowsHookExA_Detour (
                   idHook == WH_MOUSE_LL    ?
                             L" Low-Level " : L" " ),
                                     L"Input Hook" );
-      
+
       // Game seems to be using mouse hooks instead of a normal Window Proc;
       //   that makes life more complicated for SK/ImGui... but we got this!
       if (idHook == WH_MOUSE)
@@ -3993,7 +4032,7 @@ SetWindowsHookExA_Detour (
         {        __hooks._RealMouseProc = lpfn;
                                 install = true;
         }
-        
+
         if (install)
           lpfn = SK_Proxy_MouseProc;
       }

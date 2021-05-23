@@ -136,9 +136,6 @@
     <Filter Include="Source Files\Stats">
       <UniqueIdentifier>{3875728f-4125-4054-8f97-91f239a011e9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\ImGui\Backends">
-      <UniqueIdentifier>{ad396826-c477-4a64-abd3-b701ff898f4b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Render\DDraw">
       <UniqueIdentifier>{be4259a8-6e13-4821-8e15-b86ff8a6a7ad}</UniqueIdentifier>
     </Filter>
@@ -327,6 +324,9 @@
     </Filter>
     <Filter Include="Header Files\Backends\Render\PresentMon\ETW">
       <UniqueIdentifier>{59588ebf-2a95-42ed-815c-eeb069eec91a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ImGui\Backends">
+      <UniqueIdentifier>{ad396826-c477-4a64-abd3-b701ff898f4b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

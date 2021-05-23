@@ -463,6 +463,19 @@ SK_D3D11_Unmap_Impl (
 
 void
 STDMETHODCALLTYPE
+SK_D3D11_CopySubresourceRegion_Impl (
+            ID3D11DeviceContext *pDevCtx,
+  _In_           ID3D11Resource *pDstResource,
+  _In_           UINT            DstSubresource,
+  _In_           UINT            DstX,
+  _In_           UINT            DstY,
+  _In_           UINT            DstZ,
+  _In_           ID3D11Resource *pSrcResource,
+  _In_           UINT            SrcSubresource,
+  _In_opt_ const D3D11_BOX      *pSrcBox,
+                 BOOL            bWrapped );
+void
+STDMETHODCALLTYPE
 SK_D3D11_CopyResource_Impl (
        ID3D11DeviceContext *pDevCtx,
   _In_ ID3D11Resource      *pDstResource,

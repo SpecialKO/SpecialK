@@ -710,12 +710,14 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 
     char* szDupName =
       pTLS->scratch_memory->sym_resolve.alloc (
-        strlen (szModName) + 1
+        strnlen (szModName, MAX_PATH) + 1
       );
 
     if (szDupName != nullptr)
     {
-      strcpy (szDupName, szModName);
+      strncpy_s ( szDupName, pTLS->scratch_memory->sym_resolve.len,
+                  szModName, _TRUNCATE );
+
       char *pszShortName =
               szDupName;
 
@@ -890,11 +892,13 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
 
       char* szDupName =
         pTLS->scratch_memory->cmd.alloc (
-          strlen (szModName) + 1, true );
+          strnlen (szModName, MAX_PATH) + 1, true );
 
       if (szDupName != nullptr)
       {
-        strcpy (szDupName, szModName);
+        strncpy_s ( szDupName, pTLS->scratch_memory->cmd.len,
+                    szModName, _TRUNCATE );
+
         char* pszShortName =
                 szDupName;
 
@@ -1101,12 +1105,22 @@ public:
 
             do
             {
-              ULONG64 ullFrameStart = SK_GetFramesDrawn ();
-              while ( ullFrameStart > SK_GetFramesDrawn () - 2 )
-                SK_SleepEx (20, FALSE);
-
               dwWaitState =
                  WaitForMultipleObjects (2, hSignals, FALSE, INFINITE);
+
+              if (dwWaitState == WAIT_PRODUCE_DATA)
+              {
+                // Throttle data collection to once every 2 frames maximum
+                ULONG64 ullFrameStart = SK_GetFramesDrawn ();
+                while ( ullFrameStart > SK_GetFramesDrawn () - 2 )
+                {
+                  if ( WaitForSingleObject (pParams->hSignalShutdown, 33) != WAIT_TIMEOUT )
+                  {
+                    dwWaitState = WAIT_SHUTDOWN_THREAD;
+                    break;
+                  }
+                }
+              }
 
               SK_NtQuerySystemInformation* pWrite =
                 &pTLS->local_scratch->query [write_idx];
@@ -1145,7 +1159,7 @@ public:
 
     ~SK_Thread_DataCollector (void)
     {
-      SignalObjectAndWait (hSignalShutdown, hProduceThread, 100, FALSE);
+      SignalObjectAndWait (hSignalShutdown, hProduceThread, 250, FALSE);
       CloseHandle         (hSignalProduce);  CloseHandle (hSignalConsume);
       CloseHandle         (hSignalShutdown); CloseHandle (hProduceThread);
     }
@@ -1157,7 +1171,7 @@ public:
     SK_ImGui_Widgets->thread_profiler = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (false).
-                      setBorder       (true);;
+                      setBorder       (true);
   };
 
   void run (void) override
@@ -2404,9 +2418,9 @@ public:
           NtQueryInformationThread (  hThread, ThreadQuerySetWin32StartAddress,
                                      &pdwStartAddress, sizeof (DWORD_PTR), nullptr );
 
-        char  thread_name [512] = { };
-        char  szSymbol    [256] = { };
-        ULONG ulLen             = 191;
+        char  thread_name [MAX_THREAD_NAME_LEN] = { };
+        char  szSymbol    [256]                 = { };
+        ULONG ulLen                             = 191;
 
         SK::Diagnostics::CrashHandler::InitSyms ();
 
@@ -2418,21 +2432,22 @@ public:
 
         if (ulLen > 0)
         {
-          sprintf ( thread_name, "%s+%s",
-                   SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ),
-                                                           szSymbol );
+          snprintf ( thread_name, MAX_THREAD_NAME_LEN-1, "%s+%s",
+                       SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ),
+                                                               szSymbol );
         }
 
         else {
-          sprintf ( thread_name, "%s",
-                      SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str () );
+          snprintf ( thread_name, MAX_THREAD_NAME_LEN-1, "%s",
+                       SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ) );
         }
 
         SK_TLS* pTLS =
           SK_TLS_BottomEx (it.second->dwTid);
 
         if (pTLS != nullptr)
-          wcsncpy (pTLS->debug.name, SK_UTF8ToWideChar (thread_name).c_str (), 255);
+          wcsncpy_s ( pTLS->debug.name,               MAX_THREAD_NAME_LEN-1,
+                      SK_UTF8ToWideChar (thread_name).c_str (), _TRUNCATE );
 
         {
           if (_SK_ThreadNames->find (it.second->dwTid) == _SK_ThreadNames->cend ())
@@ -2774,4 +2789,16 @@ SK_LazyGlobal <SKWG_Thread_Profiler> __thread_profiler__;
 void SK_Widget_InitThreadProfiler (void)
 {
   SK_RunOnce (__thread_profiler__.get ());
+}
+
+void SK_Widget_InvokeThreadProfiler (void)
+{
+  extern volatile LONG          lLastThreadCreate;
+  InterlockedIncrementAcquire (&lLastThreadCreate);
+
+  if (ReadAcquire (&__SK_DLL_Ending) == FALSE)
+  {
+    SK_Widget_InitThreadProfiler ();
+        __thread_profiler__->run ();
+  }
 }

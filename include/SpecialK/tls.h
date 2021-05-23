@@ -58,6 +58,9 @@ struct SK_MMCS_TaskEntry;
 #define	D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT	( 15 )
 #endif
 
+
+#define MAX_THREAD_NAME_LEN MAX_PATH
+
 class SK_ModuleAddrMap
 {
 public:
@@ -282,6 +285,10 @@ public:
     SK_TLS_HeapDataStore <wchar_t> formatted_output;
   } log;
 
+  struct {
+    SK_TLS_HeapDataStore <DXGI_MODE_DESC> mode_list;
+  } dxgi;
+
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
@@ -498,7 +505,7 @@ public:
 
   HWND last_active         = reinterpret_cast <HWND> (-1);
   HWND active              = reinterpret_cast <HWND> (-1);
-  LONG GUI                 =    -1;  
+  LONG GUI                 =    -1;
 
   // Cached view
   std::pair <HWND, BOOL>
@@ -647,8 +654,11 @@ public:
     Init (idx);
   }
 
-  virtual ~SK_TLS (void) noexcept (false)
+  virtual ~SK_TLS (void)
   {
+    if ( (intptr_t)debug.handle > 0)
+      CloseHandle (debug.handle);
+
     // Cleanup ();
   }
 
@@ -657,15 +667,23 @@ public:
     context_record.dwTlsIdx = idx;
     context_record.pTLS     = this;
 
-    if (! DuplicateHandle ( SK_GetCurrentProcess (), SK_GetCurrentThread  (),
-                            SK_GetCurrentProcess (), &debug.handle,
-                            THREAD_ALL_ACCESS,       FALSE,
-                            0
-                          )
-       )
+    // Try to grab a reference to the existing thread handle (w/ ALL_ACCESS) first
+    debug.handle =
+      OpenThread ( THREAD_ALL_ACCESS, FALSE, SK_Thread_GetCurrentId () );
+
+    // If that fails, duplicate the thread handle with greater access
+    if ((intptr_t)debug.handle <= 0)
     {
-      debug.handle =
-        INVALID_HANDLE_VALUE;
+      if (! DuplicateHandle ( SK_GetCurrentProcess (), SK_GetCurrentThread  (),
+                              SK_GetCurrentProcess (), &debug.handle,
+                              THREAD_ALL_ACCESS,       FALSE,
+                              0x0
+                            )
+         )
+      {
+        debug.handle =
+          INVALID_HANDLE_VALUE;
+      }
     }
 
     debug.tid     = SK_Thread_GetCurrentId ();
@@ -711,9 +729,15 @@ public:
   //
   struct
   {
+    using callsite_list_t =
+      std::unordered_set <void *>;
+
     CONTEXT          last_ctx          = {   };
     EXCEPTION_RECORD last_exc          = {   };
-    wchar_t          name    [256]     = {   };
+    LONG             exception_repeats =     0;
+    callsite_list_t  suppressed_addrs  = {   };
+    wchar_t          name
+         [MAX_THREAD_NAME_LEN]         = {   };
     HANDLE           handle            = INVALID_HANDLE_VALUE;
     DWORD            tls_idx           =     0;
     DWORD            tid               =     0;

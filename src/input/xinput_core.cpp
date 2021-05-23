@@ -181,9 +181,10 @@ void
 SK_ApplyQueuedHooksIfInit (void)
 {
   //extern volatile LONG __SK_Init;
-  //
   //if (ReadAcquire (&__SK_Init) == 1)
-    SK_ApplyQueuedHooks ();
+
+
+  if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
 }
 
 const char*
@@ -302,7 +303,7 @@ XInputEnable1_3_Detour (
     xinput_enabled             = TRUE;
     pCtx->XInputEnable_Original (TRUE);
   }
-  
+
   else
   {
     xinput_enabled             = enable;
@@ -634,7 +635,7 @@ XInputGetState1_4_Detour (
          xinput_ctx.get ();
 
   HMODULE hModCaller = SK_GetCallingDLL ();
-  
+
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
 
@@ -745,7 +746,7 @@ XInputGetCapabilities1_4_Detour (
          xinput_ctx.get ();
 
   HMODULE hModCaller = SK_GetCallingDLL ();
-  
+
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
 
@@ -793,7 +794,7 @@ XInputGetBatteryInformation1_4_Detour (
          xinput_ctx.get ();
 
   HMODULE hModCaller = SK_GetCallingDLL ();
-  
+
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
 
@@ -1243,7 +1244,7 @@ SK_Input_HookXInput1_4 (void)
       pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_4_Detour;
       pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_4_Detour;
       pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformation1_4_Detour;
-      
+
       pCtx->XInputSetState_Detour              =
         config.input.gamepad.xinput.hook_setstate ? XInputSetState1_4_Detour : nullptr;
 

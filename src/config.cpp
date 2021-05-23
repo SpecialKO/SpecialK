@@ -532,6 +532,8 @@ struct {
     sk::ParameterInt*     srgb_behavior;
     sk::ParameterBool*    low_spec_mode;
     sk::ParameterBool*    hide_hdr_support;
+    sk::ParameterBool*    enable_factory_cache;
+    sk::ParameterBool*    skip_redundant_modes;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -1034,7 +1036,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.assignment,        L"Re-Assign XInput Slots",                                    dll_ini,         L"Input.XInput",          L"SlotReassignment"),
     ConfigEntry (input.gamepad.xinput.hook_setstate,     L"Hook vibration; fix third-party created feedback loops",    dll_ini,         L"Input.XInput",          L"HookSetState"),
     ConfigEntry (input.gamepad.xinput.auto_slot_assign,  L"Switch a game hard-coded to use Slot 0 to an active pad",   dll_ini,         L"Input.XInput",          L"AutoSlotAssign"),
- 
+
  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
 
     ConfigEntry (input.gamepad.steam.ui_slot,            L"Steam Controller that owns the config UI",                  dll_ini,         L"Input.Steam",           L"UISlot"),
@@ -1199,6 +1201,8 @@ auto DeclKeybind =
                                                          L" Flip Model support (-1=Passthrough, 0=Strip, 1=Apply)",    dll_ini,         L"Render.DXGI",           L"sRGBBypassBehavior"),
     ConfigEntry (render.dxgi.low_spec_mode,              L"Disable D3D11 Render Mods (for slight perf. increase)",     dll_ini,         L"Render.DXGI",           L"LowSpecMode"),
     ConfigEntry (render.dxgi.hide_hdr_support,           L"Prevent games from detecting monitor HDR support",          dll_ini,         L"Render.DXGI",           L"HideHDRSupport"),
+    ConfigEntry (render.dxgi.enable_factory_cache,       L"Cache DXGI Factories to reduce display mode list overhead", dll_ini,         L"Render.DXGI",           L"UseFactoryCache"),
+    ConfigEntry (render.dxgi.skip_redundant_modes,       L"Try to keep resolution setting changes to a minimum",       dll_ini,         L"Render.DXGI",           L"SkipRedundantModeChanges"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -2302,6 +2306,7 @@ auto DeclKeybind =
       {
         config.textures.d3d11.cache                  =  true;
         config.textures.cache.allow_staging          =  true;
+        config.textures.cache.max_size               =    64; // SmaLL cache; engine's leaky
         config.apis.OpenGL.hook                      = false;
         config.apis.d3d9.hook                        = false;
         config.apis.d3d9ex.hook                      = false;
@@ -2335,26 +2340,44 @@ auto DeclKeybind =
 
         config.input.keyboard.catch_alt_f4           =  true;
         config.input.keyboard.override_alt_f4        =  true;
-                                                     
+
         config.nvidia.sleep.enable                   =  true;
         config.nvidia.sleep.enforcement_site         =     2;
         config.nvidia.sleep.low_latency              =  true;
         config.nvidia.sleep.low_latency_boost        =  true;
+
+        config.system.suppress_crashes               =  true;
       } break;
 
       case SK_GAME_ID::ResidentEvil8:
-        config.steam.achievements.pull_friend_stats  = false;
-        config.steam.auto_pump_callbacks             = false;
-        //config.steam.callback_throttle               =   1;
-        config.render.framerate.sleepless_window     =  true;
+      { config.render.framerate.sleepless_window     =  true;
         config.render.framerate.sleepless_render     = false;
-        config.steam.preload_client                  =  true;
-        config.steam.preload_overlay                 =  true;
-        config.steam.silent                          = false; // Steam integration is unstable
         config.render.dxgi.use_factory_cache         =  true;
         config.render.framerate.max_delta_time       =     1;
         config.system.suppress_crashes               =  true;
-        break;
+        config.compatibility.impersonate_debugger    = false;
+
+        config.steam.silent =
+          !( PathFileExistsW ( L"steam_api64.dll" )
+          && CopyFile        ( L"steam_api64.dll",
+                            L"kaldaien_api64.dll", FALSE )
+           );
+
+        if (! config.steam.silent )
+        {     config.steam.auto_inject         =    true;
+              config.steam.auto_pump_callbacks =    true;
+              config.steam.force_load_steamapi =    true;
+              config.steam.preload_client      =    true;
+              config.steam.preload_overlay     =    true;
+              config.steam.init_delay          =       1;
+              config.steam.achievements.
+                            pull_friend_stats  =    true;
+              config.steam.silent              =   false;
+              config.steam.appid               = 1196590;
+              config.steam.dll_path            =
+                                   L"kaldaien_api64.dll";
+        }else config.steam.dll_path            =     L"";
+      } break;
 #endif
     }
   }
@@ -2714,79 +2737,81 @@ auto DeclKeybind =
       config.render.dxgi.exception_mode = -1;
   }
 
-  render.dxgi.test_present->load        (config.render.dxgi.test_present);
-  render.dxgi.swapchain_wait->load      (config.render.framerate.swapchain_wait);
+  render.dxgi.test_present->load         (config.render.dxgi.test_present);
+  render.dxgi.swapchain_wait->load       (config.render.framerate.swapchain_wait);
 
-  render.dxgi.safe_fullscreen->load     (config.render.dxgi.safe_fullscreen);
+  render.dxgi.safe_fullscreen->load      (config.render.dxgi.safe_fullscreen);
 
-  render.dxgi.enhanced_depth->load      (config.render.dxgi.enhanced_depth);
-  render.dxgi.deferred_isolation->load  (config.render.dxgi.deferred_isolation);
-  render.dxgi.skip_present_test->load   (config.render.dxgi.present_test_skip);
-  render.dxgi.msaa_samples->load        (config.render.dxgi.msaa_samples);
-  render.dxgi.srgb_behavior->load       (config.render.dxgi.srgb_behavior);
-  render.dxgi.low_spec_mode->load       (config.render.dxgi.low_spec_mode);
-  render.dxgi.hide_hdr_support->load    (config.render.dxgi.hide_hdr_support);
+  render.dxgi.enhanced_depth->load       (config.render.dxgi.enhanced_depth);
+  render.dxgi.deferred_isolation->load   (config.render.dxgi.deferred_isolation);
+  render.dxgi.skip_present_test->load    (config.render.dxgi.present_test_skip);
+  render.dxgi.msaa_samples->load         (config.render.dxgi.msaa_samples);
+  render.dxgi.srgb_behavior->load        (config.render.dxgi.srgb_behavior);
+  render.dxgi.low_spec_mode->load        (config.render.dxgi.low_spec_mode);
+  render.dxgi.hide_hdr_support->load     (config.render.dxgi.hide_hdr_support);
+  render.dxgi.enable_factory_cache->load (config.render.dxgi.use_factory_cache);
+  render.dxgi.skip_redundant_modes->load (config.render.dxgi.skip_mode_changes);
 
-  texture.d3d11.cache->load             (config.textures.d3d11.cache);
-  texture.d3d11.precise_hash->load      (config.textures.d3d11.precise_hash);
-  texture.d3d11.inject->load            (config.textures.d3d11.inject);
-        texture.res_root->load          (config.textures.d3d11.res_root);
+  texture.d3d11.cache->load              (config.textures.d3d11.cache);
+  texture.d3d11.precise_hash->load       (config.textures.d3d11.precise_hash);
+  texture.d3d11.inject->load             (config.textures.d3d11.inject);
+        texture.res_root->load           (config.textures.d3d11.res_root);
 
   texture.d3d11.injection_keeps_format->
-                                   load (config.textures.d3d11.injection_keeps_fmt);
-             texture.dump_on_load->load (config.textures.d3d11.dump);
-             texture.dump_on_load->load (config.textures.dump_on_load);
+                                   load  (config.textures.d3d11.injection_keeps_fmt);
+             texture.dump_on_load->load  (config.textures.d3d11.dump);
+             texture.dump_on_load->load  (config.textures.dump_on_load);
 
-  texture.d3d11.gen_mips->load          (config.textures.d3d11.generate_mips);
+  texture.d3d11.gen_mips->load           (config.textures.d3d11.generate_mips);
 
-  texture.cache.max_entries->load       (config.textures.cache.max_entries);
-  texture.cache.min_entries->load       (config.textures.cache.min_entries);
-  texture.cache.max_evict->load         (config.textures.cache.max_evict);
-  texture.cache.min_evict->load         (config.textures.cache.min_evict);
-  texture.cache.max_size->load          (config.textures.cache.max_size);
-  texture.cache.min_size->load          (config.textures.cache.min_size);
-  texture.cache.ignore_non_mipped->load (config.textures.cache.ignore_nonmipped);
-  texture.cache.allow_staging->load     (config.textures.cache.allow_staging);
-  texture.cache.allow_unsafe_refs->load (config.textures.cache.allow_unsafe_refs);
-  texture.cache.manage_residency->load  (config.textures.cache.residency_managemnt);
+  texture.cache.max_entries->load        (config.textures.cache.max_entries);
+  texture.cache.min_entries->load        (config.textures.cache.min_entries);
+  texture.cache.max_evict->load          (config.textures.cache.max_evict);
+  texture.cache.min_evict->load          (config.textures.cache.min_evict);
+  texture.cache.max_size->load           (config.textures.cache.max_size);
+  texture.cache.min_size->load           (config.textures.cache.min_size);
+  texture.cache.ignore_non_mipped->load  (config.textures.cache.ignore_nonmipped);
+  texture.cache.allow_staging->load      (config.textures.cache.allow_staging);
+  texture.cache.allow_unsafe_refs->load  (config.textures.cache.allow_unsafe_refs);
+  texture.cache.manage_residency->load   (config.textures.cache.residency_managemnt);
 
   if (config.render.dxgi.adapter_override != -1)
     SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
 
-  input.keyboard.catch_alt_f4->load     (config.input.keyboard.catch_alt_f4);
-  input.keyboard.bypass_alt_f4->load    (config.input.keyboard.override_alt_f4);
-  input.keyboard.disabled_to_game->load (config.input.keyboard.disabled_to_game);
+  input.keyboard.catch_alt_f4->load      (config.input.keyboard.catch_alt_f4);
+  input.keyboard.bypass_alt_f4->load     (config.input.keyboard.override_alt_f4);
+  input.keyboard.disabled_to_game->load  (config.input.keyboard.disabled_to_game);
 
-  input.mouse.disabled_to_game->load    (config.input.mouse.disabled_to_game);
+  input.mouse.disabled_to_game->load     (config.input.mouse.disabled_to_game);
 
-  input.cursor.manage->load             (config.input.cursor.manage);
-  input.cursor.keys_activate->load      (config.input.cursor.keys_activate);
+  input.cursor.manage->load              (config.input.cursor.manage);
+  input.cursor.keys_activate->load       (config.input.cursor.keys_activate);
 
                             float fTimeout;
   if (input.cursor.timeout->load (fTimeout))
     config.input.cursor.timeout = (int)(1000.0 * fTimeout);
 
-  input.cursor.ui_capture->load         (config.input.ui.capture);
-  input.cursor.hw_cursor->load          (config.input.ui.use_hw_cursor);
-  input.cursor.no_warp_ui->load         (SK_ImGui_Cursor.prefs.no_warp.ui_open);
-  input.cursor.no_warp_visible->load    (SK_ImGui_Cursor.prefs.no_warp.visible);
-  input.cursor.block_invisible->load    (config.input.ui.capture_hidden);
-  input.cursor.fix_synaptics->load      (config.input.mouse.fix_synaptics);
-  input.cursor.antiwarp_deadzone->load  (config.input.mouse.antiwarp_deadzone);
-  input.cursor.use_relative_input->load (config.input.mouse.add_relative_motion);
+  input.cursor.ui_capture->load          (config.input.ui.capture);
+  input.cursor.hw_cursor->load           (config.input.ui.use_hw_cursor);
+  input.cursor.no_warp_ui->load          (SK_ImGui_Cursor.prefs.no_warp.ui_open);
+  input.cursor.no_warp_visible->load     (SK_ImGui_Cursor.prefs.no_warp.visible);
+  input.cursor.block_invisible->load     (config.input.ui.capture_hidden);
+  input.cursor.fix_synaptics->load       (config.input.mouse.fix_synaptics);
+  input.cursor.antiwarp_deadzone->load   (config.input.mouse.antiwarp_deadzone);
+  input.cursor.use_relative_input->load  (config.input.mouse.add_relative_motion);
 
-  input.gamepad.disabled_to_game->load  (config.input.gamepad.disabled_to_game);
-  input.gamepad.disable_ps4_hid->load   (config.input.gamepad.disable_ps4_hid);
-  input.gamepad.rehook_xinput->load     (config.input.gamepad.rehook_xinput);
-  input.gamepad.hook_xinput->load       (config.input.gamepad.hook_xinput);
+  input.gamepad.disabled_to_game->load   (config.input.gamepad.disabled_to_game);
+  input.gamepad.disable_ps4_hid->load    (config.input.gamepad.disable_ps4_hid);
+  input.gamepad.rehook_xinput->load      (config.input.gamepad.rehook_xinput);
+  input.gamepad.hook_xinput->load        (config.input.gamepad.hook_xinput);
 
   // Hidden INI values; they're loaded, but never written
-  input.gamepad.hook_dinput8->load      (config.input.gamepad.hook_dinput8);
-  input.gamepad.hook_dinput7->load      (config.input.gamepad.hook_dinput7);
-  input.gamepad.hook_hid->load          (config.input.gamepad.hook_hid);
-  input.gamepad.native_ps4->load        (config.input.gamepad.native_ps4);
+  input.gamepad.hook_dinput8->load       (config.input.gamepad.hook_dinput8);
+  input.gamepad.hook_dinput7->load       (config.input.gamepad.hook_dinput7);
+  input.gamepad.hook_hid->load           (config.input.gamepad.hook_hid);
+  input.gamepad.native_ps4->load         (config.input.gamepad.native_ps4);
 
-  input.gamepad.haptic_ui->load         (config.input.gamepad.haptic_ui);
+  input.gamepad.haptic_ui->load          (config.input.gamepad.haptic_ui);
 
   int placeholder_mask;
 
@@ -3072,11 +3097,14 @@ auto DeclKeybind =
   LoadKeybind (&config.screenshots.sk_osd_insertion_keybind);
 
 
-  if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
+  if (config.steam.dll_path.empty ())
   {
-    // Setup sane initial values
-    config.steam.dll_path = SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                                                    L"steam_api.dll" );
+    if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
+    {
+      // Setup sane initial values
+      config.steam.dll_path = SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                                                      L"steam_api.dll" );
+    }
   }
 
   steam.system.dll_path->load                 (config.steam.dll_path);
@@ -3608,7 +3636,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.auto_slot_assign->store (config.input.gamepad.xinput.auto_slot_assign);
   threads.enable_mem_alloc_trace->store        (config.threads.enable_mem_alloc_trace);
   threads.enable_file_io_trace->store          (config.threads.enable_file_io_trace);
-                                               
+
   window.borderless->store                     (config.window.borderless);
   window.center->store                         (config.window.center);
   window.background_render->store              (config.window.background_render);
@@ -3678,7 +3706,7 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.enable_mmcss->store        (config.render.framerate.enable_mmcss);
 
   render.framerate.override_cpu_count->store  (config.render.framerate.override_num_cpus);
-  
+
   if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::DInput8) ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )
   {
@@ -3825,6 +3853,8 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.srgb_behavior->store        (config.render.dxgi.srgb_behavior);
       render.dxgi.low_spec_mode->store        (config.render.dxgi.low_spec_mode);
       render.dxgi.hide_hdr_support->store     (config.render.dxgi.hide_hdr_support);
+      render.dxgi.enable_factory_cache->store (config.render.dxgi.use_factory_cache);
+      render.dxgi.skip_redundant_modes->store (config.render.dxgi.skip_mode_changes);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||

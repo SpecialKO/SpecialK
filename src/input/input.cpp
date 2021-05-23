@@ -84,7 +84,7 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
         {
           filter = true;
         }
-        
+
         else
           SK_HID_VIEW (sk_input_dev_type::Gamepad);
       } break;
@@ -297,9 +297,9 @@ SK_Input_HookHID (void)
     HidP_GetCaps_Original =
       (HidP_GetCaps_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"HID.DLL"),
                                             "HidP_GetCaps" );
-    
-    SK_ApplyQueuedHooks ();
-    
+
+    if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
+
     InterlockedIncrementRelease (&hooked);
   }
 
@@ -948,7 +948,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
               if (SK_ImGui_WantKeyboardCapture ())
                 remove = true;
               else
-                SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);        
+                SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);
               break;
 
             case RIM_TYPEMOUSE:
@@ -1215,7 +1215,7 @@ ImGuiCursor_Impl (void)
   // Hardware Cursor
   //
   if (config.input.ui.use_hw_cursor)
-  { 
+  {
     if (SK_ImGui_IsMouseRelevant ())
     {
       if (ci.hCursor != desired)
@@ -2274,7 +2274,7 @@ SK_Window_DeactivateCursor (bool ignore_imgui = false)
         if (cursor != 0)
           last_mouse.class_cursor = cursor;
       }
-      
+
       SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, 0);
       SK_SetCursor     (0);
 
@@ -2599,6 +2599,14 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       case WM_WINDOWPOSCHANGING:
         SK_Window_RepositionIfNeeded ();
         break;
+
+      case WM_DISPLAYCHANGE:
+      case WM_WINDOWPOSCHANGED:
+      {
+        extern void
+        SK_Display_UpdateOutputTopology (void);
+        SK_Display_UpdateOutputTopology (    );
+      } break;
     }
 
     if (! SK_IsGameWindowActive ())
@@ -2656,6 +2664,10 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
             SK_Window_RepositionIfNeeded ();
           }
         }
+
+        extern void
+        SK_Display_UpdateOutputTopology (void);
+        SK_Display_UpdateOutputTopology (    );
       } break;
 
       default:

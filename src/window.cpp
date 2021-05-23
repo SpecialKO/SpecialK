@@ -858,9 +858,9 @@ ActivateWindow ( HWND hWnd,
           inputs [1].type       = INPUT_KEYBOARD;
           inputs [1].ki.wVk     = VK_MENU;
           inputs [1].ki.dwFlags = KEYEVENTF_KEYUP;
-      
+
         SK_SendInput (2, inputs, sizeof (INPUT));
-      
+
         SK_Sleep (2);
       }
 
@@ -1776,8 +1776,8 @@ SK_Window_RemoveBorders (void)
 {
   if (SK_Window_HasBorder (game_window.hWnd))
   {
-    dwBorderStyle   = game_window.actual.style;
-    dwBorderStyleEx = game_window.actual.style_ex;
+    dwBorderStyle   = static_cast <DWORD> (game_window.actual.style);
+    dwBorderStyleEx = static_cast <DWORD> (game_window.actual.style_ex);
 
     SK_SetWindowStyle   ( SK_BORDERLESS    );
     SK_SetWindowStyleEx ( SK_BORDERLESS_EX );
@@ -1852,7 +1852,7 @@ AdjustWindowRectEx_Detour (
       dwStyle &= ~WS_THICKFRAME;
       dwStyle &= ~WS_DLGFRAME;
 
-      
+
       //dwStyle &= ~WS_GROUP;
       //dwStyle &= ~WS_SYSMENU;
     }
@@ -2980,6 +2980,10 @@ SK_Window_RepositionIfNeeded (void)
               if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
                 InterlockedCompareExchange (&lResetD3D11, 1, 0);
             //}
+
+            extern void
+            SK_Display_UpdateOutputTopology (void);
+            SK_Display_UpdateOutputTopology (    );
           }
 
           ullLastFrame =
@@ -4111,7 +4115,7 @@ WINAPI
 SK_SetActiveWindow (HWND hWnd)
 {
   HWND
-    hWndRet = 
+    hWndRet =
       SetActiveWindow_Original != nullptr ?
       SetActiveWindow_Original (hWnd)     :
       SetActiveWindow          (hWnd);
@@ -5398,7 +5402,7 @@ SK_InstallWindowHook (HWND hWnd)
     game_window.WndProc_Original = nullptr;
   }
 
-  SK_ApplyQueuedHooks ();
+  if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
 
 
   if (! SK_GetFramesDrawn ())
@@ -6133,7 +6137,7 @@ SK_HookWinAPI (void)
       (EnumDisplaySettingsW_pfn) SK_GetProcAddress
       ( hModUser32, "EnumDisplaySettingsW" );
 
-    SK_ApplyQueuedHooks ();
+  ////SK_ApplyQueuedHooks ();
 
     InterlockedIncrement (&hooked);
   }
@@ -6280,8 +6284,9 @@ BOOL
 SK_Win32_IsGUIThread ( DWORD    dwTid,
                        SK_TLS **ppTLS )
 {
-  //UNREFERENCED_PARAMETER (ppTLS);
-#if 0
+//#define ORIGINAL
+//#define HYBRID
+#ifdef  ORIGINAL
   SK_TLS
    *pTLS = nullptr;
 
@@ -6310,31 +6315,112 @@ SK_Win32_IsGUIThread ( DWORD    dwTid,
     pTLS->win32->GUI =
       IsGUIThread (FALSE);
   }
-  
+
   return
     pTLS->win32->GUI;
-#elif 1
-  static volatile LONG64 last_result = 0x0;
-                  LONG64 test_result =
-                    ReadAcquire64 (&last_result);
-  
-  if ((DWORD)(test_result & 0x00000000FFFFFFFFULL) == dwTid)
+#elif defined (HYBRID)
+  static
+  concurrency::concurrent_unordered_map < DWORD,
+       BOOL > cached_test_results;        BOOL
+    bResult = FALSE;
+  if   (      cached_test_results.count (dwTid))
+    bResult = cached_test_results       [dwTid];
+  else {   GUITHREADINFO          gti =
+  { sizeof(GUITHREADINFO),       {   }};
+    if (GetGUIThreadInfo (dwTid, &gti)){
+    bResult    =                  gti.hwndFocus  != 0
+                               || gti.hwndActive != 0;
+  } auto *pTLS =
+      (  ppTLS != nullptr &&
+        *ppTLS != nullptr  )
+      ? *ppTLS :  nullptr;
+    if (  pTLS == nullptr
+       || pTLS->debug.tid != dwTid )
+          pTLS =
+        SK_TLS_BottomEx    ( dwTid );
+     if ( pTLS != nullptr
+       && pTLS->debug.tid == dwTid )
+          pTLS->win32->GUI           = bResult;
+       cached_test_results [ dwTid ] = bResult;
+  }                             return bResult;
+
+  // Completely wrong implementation... ( were you high?! )
+#else
+  static volatile LONG64 last_result [4] = { 0x0, 0x0, 0x0, 0X0 };
+                  LONG64 test_result0 =
+                    ReadAcquire64 (&last_result [0]),
+                         test_result1 =
+                    ReadAcquire64 (&last_result [1]),
+                         test_result2 =
+                    ReadAcquire64 (&last_result [2]),
+                         test_result3 =
+                    ReadAcquire64 (&last_result [3]);
+
+static volatile LONG     write_idx    = 0x0;
+
+  if (     (DWORD)(test_result0 & 0x00000000FFFFFFFFULL) == dwTid)
+    return (       test_result0 >> 32) > 0 ? TRUE : FALSE;
+  else if ((DWORD)(test_result1 & 0x00000000FFFFFFFFULL) == dwTid)
+    return (       test_result1 >> 32) > 0 ? TRUE : FALSE;
+  else if ((DWORD)(test_result2 & 0x00000000FFFFFFFFULL) == dwTid)
+    return (       test_result2 >> 32) > 0 ? TRUE : FALSE;
+  else if ((DWORD)(test_result3 & 0x00000000FFFFFFFFULL) == dwTid)
+    return (       test_result3 >> 32) > 0 ? TRUE : FALSE;
+
+  DWORD dwTidOfMe =
+    SK_GetCurrentThreadId ();
+
+  BOOL    bGUI;
+  SK_TLS *pTLS = nullptr;
+
+  if (dwTidOfMe == dwTid)
   {
-    return (test_result >> 32) > 0 ? TRUE : FALSE;
+    //pTLS =
+    //  SK_TLS_Bottom ();
+    //
+    //if (pTLS != nullptr && pTLS->win32->GUI != -1)
+    //  bGUI =               pTLS->win32->GUI;
+    //else
+      bGUI =
+        IsGUIThread (FALSE);
+
+    //if (pTLS != nullptr)
+    //    pTLS->win32->GUI = bGUI;
   }
-  
-  BOOL bGUI =
-    IsGUIThread (FALSE);
-  
-  test_result = (bGUI ? (1ull << 32) : 0)
+
+  else
+  {
+    //pTLS =
+    //  SK_TLS_BottomEx (dwTid);
+    //
+    //if (pTLS != nullptr && pTLS->win32->GUI != -1)
+    //  bGUI =               pTLS->win32->GUI;
+    //else
+    {
+      GUITHREADINFO
+        gti        = {                    };
+        gti.cbSize = sizeof (GUITHREADINFO);
+
+      bGUI =
+        GetGUIThreadInfo (dwTid, &gti);
+    }
+
+    //if (pTLS != nullptr)
+    //    pTLS->win32->GUI = bGUI;
+  }
+
+  auto idx =
+    InterlockedIncrement (&write_idx);
+
+  LONG64 test_result = (bGUI ? (1ull << 32) : 0)
     | (LONG64)(dwTid & 0xFFFFFFFFUL);
-  
-  InterlockedExchange64 (&last_result, test_result);
+
+  InterlockedExchange64 (
+    &last_result [idx % 4], test_result
+  );
 
   return
     bGUI;
-#else
-
 #endif
 }
 

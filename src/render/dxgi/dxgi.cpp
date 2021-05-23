@@ -1061,12 +1061,10 @@ SK_DXGI_RestrictResMax ( SK_DXGI_ResType dim,
        }
      }
 
-     covered.insert (idx);
-
      pDesc [idx].Width  = config.render.dxgi.res.max.x;
      pDesc [idx].Height = config.render.dxgi.res.max.y;
 
-     return true;
+     return (covered.emplace (idx).second);
    }
 
    covered.insert (idx);
@@ -1110,12 +1108,10 @@ SK_DXGI_RestrictResMin ( SK_DXGI_ResType dim,
        }
      }
 
-     covered.insert (idx);
-
      pDesc [idx].Width  = config.render.dxgi.res.min.x;
      pDesc [idx].Height = config.render.dxgi.res.min.y;
 
-     return true;
+     return (covered.emplace (idx).second);
    }
 
    covered.insert (idx);
@@ -2812,7 +2808,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         interval = SyncInterval;
 
     rb.present_interval = interval;
-    
+
     if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
     else if (_IsBackendD3D11 (rb.api)) SK_CEGUI_DrawD3D11 (This);
 
@@ -2971,7 +2967,7 @@ struct {
     IDXGIFactory4* pFactory4 = nullptr;
     IDXGIFactory5* pFactory5 = nullptr;
 
-    bool isCachcing (void) { 
+    bool isCachcing (void) {
       return pFactory  != nullptr || pFactory1 != nullptr ||
              pFactory2 != nullptr || pFactory3 != nullptr ||
              pFactory4 != nullptr || pFactory5 != nullptr;
@@ -2985,6 +2981,8 @@ struct {
   concurrency::concurrent_unordered_map < uint32_t,
                              std::vector < DXGI_MODE_DESC > >
                                               cached_descs;
+  concurrency::concurrent_unordered_map < uint32_t, size_t >
+                                               cache_hits;
 
   std::recursive_mutex& getMutex (void)
   {
@@ -3079,7 +3077,7 @@ struct {
     {
       if (cache.pFactory != nullptr)
         std::exchange (cache.pFactory, nullptr)->Release ();
-      
+
       cache.pFactory = (IDXGIFactory *)*ppFactory;
       cache.pFactory->AddRef ();
     }
@@ -3088,7 +3086,7 @@ struct {
     {
       if (cache.pFactory1 != nullptr)
         std::exchange (cache.pFactory1, nullptr)->Release ();
-      
+
       cache.pFactory1 = (IDXGIFactory1 *)*ppFactory;
       cache.pFactory1->AddRef ();
     }
@@ -3097,7 +3095,7 @@ struct {
     {
       if (cache.pFactory2 != nullptr)
         std::exchange (cache.pFactory2, nullptr)->Release ();
-      
+
       cache.pFactory2 = (IDXGIFactory2 *)*ppFactory;
       cache.pFactory2->AddRef ();
     }
@@ -3106,7 +3104,7 @@ struct {
     {
       if (cache.pFactory3 != nullptr)
         std::exchange (cache.pFactory3, nullptr)->Release ();
-      
+
       cache.pFactory3 = (IDXGIFactory3 *)*ppFactory;
       cache.pFactory3->AddRef ();
     }
@@ -3115,7 +3113,7 @@ struct {
     {
       if (cache.pFactory4 != nullptr)
         std::exchange (cache.pFactory4, nullptr)->Release ();
-      
+
       cache.pFactory4 = (IDXGIFactory4 *)*ppFactory;
       cache.pFactory4->AddRef ();
     }
@@ -3124,7 +3122,7 @@ struct {
     {
       if (cache.pFactory5 != nullptr)
         std::exchange (cache.pFactory5, nullptr)->Release ();
-      
+
       cache.pFactory5 = (IDXGIFactory5 *)*ppFactory;
       cache.pFactory5->AddRef ();
     }
@@ -3135,6 +3133,7 @@ struct {
                 lock             (getMutex ());
 
     cached_descs.clear ();
+    cache_hits.clear   ();
 
     if (cache.pFactory  != nullptr) { std::exchange (cache.pFactory,  nullptr)->Release (); }
     if (cache.pFactory1 != nullptr) { std::exchange (cache.pFactory1, nullptr)->Release (); }
@@ -3147,28 +3146,24 @@ struct {
   }
 } __SK_DXGI_FactoryCache;
 
-void*
-SK_StackAlloc (size_t size)
-{
-  __try
-  {
-    return
-      _malloca (size);
-  }
 
-  __except (GetExceptionCode () == STATUS_STACK_OVERFLOW)
-  {
-    _resetstkoflw ();
-  }
+auto
+ _EnumFlagsToStr =
+  [](UINT Flags)->
+    std::wstring
+  { std::wstring str;
 
-  return nullptr;
-}
+    if (Flags == 0x0)
+    {   str  = L"0x0";
+    } else
+    { if ( 0x0 != ( Flags & DXGI_ENUM_MODES_INTERLACED ) )
+        str +=                    L"Interlaced";
+      if ( 0x0 != ( Flags & DXGI_ENUM_MODES_SCALING    ) )
+        str += ( str.empty () ?    L"Stretched"
+                              : L" & Stetched" );
+    } return     str;
+  };
 
-void
-SK_StackFree (void* ptr)
-{
-  _freea (ptr);
-}
 
 __declspec (noinline)
 HRESULT
@@ -3186,19 +3181,29 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   if (pDesc == nullptr)
     *pNumModes = 0;
 
+  auto _LogCall = [&](void)
+  { DXGI_LOG_CALL_I5 ( L"     IDXGIOutput", L"GetDisplayModeList       ",
+                     L"%08" _L(PRIxPTR) L"h, %ws, %ws, %lu, %08"
+                              _L(PRIxPTR) L"h",
+            (uintptr_t)This,
+                       SK_DXGI_FormatToStr (EnumFormat).c_str (),
+                           _EnumFlagsToStr (     Flags).c_str (),
+                             *pNumModes,
+                                (uintptr_t)pDesc ); };
+
   uint32_t tag = 0;
 
 #ifdef _M_AMD64
   if (config.render.dxgi.use_factory_cache)
   {
-    DXGI_OUTPUT_DESC outputDesc = { };
-    This->GetDesc  (&outputDesc);
-
     struct callframe_s {
-      HMONITOR    monitor;
-      DXGI_FORMAT  format;
-      UINT          flags;
-    } frame = { outputDesc.Monitor, EnumFormat, Flags };
+      DXGI_OUTPUT_DESC   desc;
+      DXGI_FORMAT      format;
+      UINT              flags;
+    } frame = { {}, EnumFormat,
+                        Flags };
+
+    This->GetDesc (&frame.desc);
 
     tag =
       crc32c (0x0, &frame, sizeof (callframe_s));
@@ -3208,13 +3213,13 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       auto& cache =
         __SK_DXGI_FactoryCache.cached_descs [tag];
 
-      UINT cache_size =
-        cache.size ();
+      size_t cache_size =
+             cache.size ();
 
       if (*pNumModes != 0)
-          *pNumModes = std::min (cache_size, *pNumModes);
+          *pNumModes = gsl::narrow_cast <UINT> (std::min (cache_size, static_cast <size_t> (*pNumModes)));
       else
-          *pNumModes =           cache_size;
+          *pNumModes = gsl::narrow_cast <UINT> (          cache_size);
 
       if (pDesc != nullptr)
       {
@@ -3224,6 +3229,13 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         }
       }
 
+      size_t& hits =
+        __SK_DXGI_FactoryCache.cache_hits [tag];
+
+      // First cache hit needs to be logged
+      if (! hits++)
+        _LogCall ();
+
       SK_LOG1 ( ( L" IDXGIOutput::GetDisplayModeList (...): Returning Cached Data" ),
                   L"   DXGI   " );
 
@@ -3232,18 +3244,18 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   }
 #endif
 
+  _LogCall ();
 
-  DXGI_LOG_CALL_I5 ( L"     IDXGIOutput", L"GetDisplayModeList       ",
-                       L"%08" _L(PRIxPTR) L"h, %ws, %x, %lu, %08"
-                                _L(PRIxPTR) L"h",
-              (uintptr_t)This,
-                         SK_DXGI_FormatToStr (EnumFormat).c_str (),
-                             Flags,
-                               *pNumModes,
-                                  (uintptr_t)pDesc );
+  if (     config.render.dxgi.scaling_mode ==  0)
+    Flags &= ~DXGI_ENUM_MODES_SCALING;
+  else if (config.render.dxgi.scaling_mode != -1)
+    Flags |=  DXGI_ENUM_MODES_SCALING;
 
-  if (config.render.dxgi.scaling_mode != -1)
-    Flags |= DXGI_ENUM_MODES_SCALING;
+  if (     config.render.dxgi.scanline_order ==
+                DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE )
+    Flags &= ~DXGI_ENUM_MODES_INTERLACED;
+  else if (config.render.dxgi.scanline_order != -1)
+    Flags |=  DXGI_ENUM_MODES_INTERLACED;
 
   HRESULT hr =
     GetDisplayModeList_Original (
@@ -3253,72 +3265,76 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
             pNumModes,
               pDesc );
 
-  DXGI_MODE_DESC*
-    pDescLocal = nullptr;
-
   if (SUCCEEDED (hr))
   {
     if (pDesc == nullptr && *pNumModes != 0)
     {
-      pDescLocal =
-        reinterpret_cast <DXGI_MODE_DESC *>(
-          SK_StackAlloc (sizeof (DXGI_MODE_DESC) * *pNumModes)
-        );
+      DXGI_MODE_DESC*
+        pDescLocal = nullptr;
 
-      if (pDescLocal != nullptr)
+      SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
+      if ( pTLS != nullptr && ( pDescLocal =
+           pTLS->scratch_memory->dxgi.mode_list.alloc (*pNumModes) )
+         )
       {
-        pDesc = pDescLocal;
-
-        GetDisplayModeList_Original (
-          This,
+        hr =
+          GetDisplayModeList_Original ( This,
             EnumFormat,
               Flags,
                 pNumModes,
-                  pDesc );
+                  pDescLocal );
+
+        if (SUCCEEDED (hr))
+          pDesc = pDescLocal;
       }
     }
 
     int removed_count = 0;
 
-    if ( ! ( config.render.dxgi.res.min.isZero ()   &&
-             config.render.dxgi.res.max.isZero () ) &&
-         *pNumModes != 0 )
-    {
-      int last  = *pNumModes;
-      int first = 0;
-
-      std::set <int> min_cover;
-      std::set <int> max_cover;
-
-      if (! config.render.dxgi.res.min.isZero ())
-      {
-        // Restrict MIN (Sequential Scan: Last->First)
-        for ( int i = *pNumModes - 1 ; i >= 0 ; --i )
-        {
-          if (SK_DXGI_RestrictResMin (WIDTH,  first, i, min_cover, pDesc) ||
-              SK_DXGI_RestrictResMin (HEIGHT, first, i, min_cover, pDesc))
-          {
-            ++removed_count;
-          }
-        }
-      }
-
-      if (! config.render.dxgi.res.max.isZero ())
-      {
-        // Restrict MAX (Sequential Scan: First->Last)
-        for ( UINT i = 0 ; i < *pNumModes ; ++i )
-        {
-          if (SK_DXGI_RestrictResMax (WIDTH,  last, i, max_cover, pDesc) ||
-              SK_DXGI_RestrictResMax (HEIGHT, last, i, max_cover, pDesc))
-          {
-            ++removed_count;
-          }
-        }
-      }
-    }
-
     if (pDesc != nullptr)
     {
+      if ( ( ! ( config.render.dxgi.res.min.isZero ()     &&
+                 config.render.dxgi.res.max.isZero () ) ) &&
+                    *pNumModes != 0 )
+      {
+        int last  = *pNumModes;
+        int first = 0;
+
+        std::set <int> min_cover;
+        std::set <int> max_cover;
+
+        if (! config.render.dxgi.res.min.isZero ())
+        {
+          // Restrict MIN (Sequential Scan: Last->First)
+          for ( int i = *pNumModes - 1 ; i >= 0 ; --i )
+          {
+            if (SK_DXGI_RestrictResMin (WIDTH,  first, i, min_cover, pDesc) ||
+                SK_DXGI_RestrictResMin (HEIGHT, first, i, min_cover, pDesc))
+            {
+              ++removed_count;
+            }
+          }
+        }
+
+        if (! config.render.dxgi.res.max.isZero ())
+        {
+          // Restrict MAX (Sequential Scan: $->Last)
+          for ( UINT i = 0 ; i < *pNumModes ; ++i )
+          {
+            if (min_cover.count (i) != 0)
+                break;
+
+            if (SK_DXGI_RestrictResMax (WIDTH,  last, i, max_cover, pDesc) ||
+                SK_DXGI_RestrictResMax (HEIGHT, last, i, max_cover, pDesc))
+            {
+              ++removed_count;
+            }
+          }
+        }
+      }
+
       if (config.render.dxgi.scaling_mode != -1)
       {
         if ( config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_UNSPECIFIED &&
@@ -3342,6 +3358,21 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         }
       }
 
+#ifdef _DEBUG
+      if (removed_count > 0)
+      {        UINT idx = 0;
+        for ( auto pIt = pDesc ; pIt < pDesc + *pNumModes; ++pIt, ++idx )
+        {
+          dll_log->Log ( L"[   DXGI   ]  Mode%03u: %lux%lu [%ws] @ %4.1f Hz",
+                                              idx,  pIt->Width,
+                                                    pIt->Height,
+                               SK_DXGI_FormatToStr (pIt->Format).c_str (),
+                               static_cast <float> (pIt->RefreshRate.Numerator)
+                             / static_cast <float> (pIt->RefreshRate.Denominator) );
+        }
+      }
+#endif
+
       dll_log->Log ( L"[   DXGI   ]      >> %lu modes (%li removed)",
                        *pNumModes,
                          removed_count );
@@ -3359,14 +3390,6 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         }
       }
     }
-  }
-
-  if (pDescLocal != nullptr)
-  {
-    SK_StackFree (pDescLocal);
-
-    pDescLocal = nullptr;
-    pDesc      = nullptr;
   }
 
   return hr;
@@ -3906,35 +3929,35 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     }
   }
 
-
-  // Does not work correctly when recycling swapchains
-  if (! bRecycledSwapChains)
-  {
-    SK_ComPtr <IDXGIOutput>                                            pOutput;
-    BOOL                                      _OriginalFullscreen;
-    if (SUCCEEDED (This->GetFullscreenState (&_OriginalFullscreen,    &pOutput.p)))
-    { bool  mode_change =      (Fullscreen != _OriginalFullscreen) || (pOutput.p != pTarget && pTarget != nullptr);
-      if (! mode_change)
-      {
-        SK_LOG0 ( ( L"Redundant Fullscreen Mode Change Ignored  ( %s )", Fullscreen ?
-                                                                      L"Fullscreen" : L"Windowed" ),
-                    L"   DXGI   " );
-        return S_OK;
-      }
-    }
-  }
-
-
-
   extern void SK_Window_RemoveBorders  (void);
   extern void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);
 
   BOOL bOrigFullscreen = rb.fullscreen_exclusive;
                          rb.fullscreen_exclusive = Fullscreen;
 
-  // D3D12's Fullscreen Optimization forgets to remove borders from time to time (lol)
-  if (Fullscreen) SK_Window_RemoveBorders  (        );
-//else            SK_Window_RestoreBorders (0x0, 0x0);
+  if (config.render.dxgi.skip_mode_changes)
+  {
+    // Does not work correctly when recycling swapchains
+    if (! bRecycledSwapChains)
+    {
+      SK_ComPtr <IDXGIOutput>                                            pOutput;
+      BOOL                                      _OriginalFullscreen;
+      if (SUCCEEDED (This->GetFullscreenState (&_OriginalFullscreen,    &pOutput.p)))
+      { bool  mode_change =      (Fullscreen != _OriginalFullscreen) || (pOutput.p != pTarget && pTarget != nullptr);
+        if (! mode_change)
+        {
+          SK_LOG0 ( ( L"Redundant Fullscreen Mode Change Ignored  ( %s )", Fullscreen ?
+                                                                        L"Fullscreen" : L"Windowed" ),
+                      L"   DXGI   " );
+          return S_OK;
+        }
+      }
+    }
+
+    // D3D12's Fullscreen Optimization forgets to remove borders from time to time (lol)
+    if (Fullscreen) SK_Window_RemoveBorders  (        );
+    else            SK_Window_RestoreBorders (0x0, 0x0);
+  }
 
   HRESULT    ret = E_UNEXPECTED;
   DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget))
@@ -3948,26 +3971,20 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       {
         HRESULT hr =
           This->Present (0, DXGI_PRESENT_TEST);
-      
+
         if ( FAILED (hr) || hr == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
         {
           bSwapChainNeedsResize = true;
 
-          //
-          // Necessary provisions for Fullscreen Flip Mode
-          //
-          if (config.render.framerate.flip_discard && (! pDev12.p)) // D3D12 software already handles this correctly
+          UINT _Flags =
+            SK_DXGI_FixUpLatencyWaitFlag (This, sd.Flags);
+
+          if (sd.Windowed == Fullscreen && FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)))
           {
-            UINT _Flags =
-              SK_DXGI_FixUpLatencyWaitFlag (This, sd.Flags);
-
-            if (/* swapDesc.Windowed == Fullscreen && */FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)))
-            {
-              return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
-            }
-
-            bSwapChainNeedsResize = false;
+            return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
           }
+
+          bSwapChainNeedsResize = false;
         }
       }
 
@@ -3981,8 +3998,11 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   {
     rb.fullscreen_exclusive = bOrigFullscreen;
 
-    if (Fullscreen) SK_Window_RestoreBorders (0x0, 0x0);
-    else            SK_Window_RemoveBorders  (        );
+    if (config.render.dxgi.skip_mode_changes)
+    {
+      if (Fullscreen) SK_Window_RestoreBorders (0x0, 0x0);
+      else            SK_Window_RemoveBorders  (        );
+    }
   }
 
   return ret;
@@ -4434,14 +4454,17 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
 
   bool skippable = false;
 
-  if ( (swap_desc.BufferCount       == BufferCount    || BufferCount    == 0)                   &&
-       (swap_desc.BufferDesc.Width  == Width          || Width          == 0)                   &&
-       (swap_desc.BufferDesc.Height == Height         || Height         == 0)                   &&
-       (swap_desc.BufferDesc.Format == NewFormat      || NewFormat      == DXGI_FORMAT_UNKNOWN) &&
-       (swap_desc.Flags             == SwapChainFlags || SwapChainFlags == 0x0) )
+  if (config.render.dxgi.skip_mode_changes)
   {
-    skippable =
-      (! bSwapChainNeedsResize);
+    if ( (swap_desc.BufferCount       == BufferCount    || BufferCount    == 0)                   &&
+         (swap_desc.BufferDesc.Width  == Width          || Width          == 0)                   &&
+         (swap_desc.BufferDesc.Height == Height         || Height         == 0)                   &&
+         (swap_desc.BufferDesc.Format == NewFormat      || NewFormat      == DXGI_FORMAT_UNKNOWN) &&
+         (swap_desc.Flags             == SwapChainFlags || SwapChainFlags == 0x0) )
+    {
+      skippable =
+        (! bSwapChainNeedsResize);
+    }
   }
 
   HRESULT ret = S_OK;
@@ -4481,7 +4504,7 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
                                              rb.device : pDevice.p );
     }
   }
-    
+
 
   if (! skippable)
   { DXGI_CALL      (ret, ret); }
@@ -4676,26 +4699,27 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   static UINT           numModeChanges = 0;
   static DXGI_MODE_DESC lastModeSet;
 
-  bool skippable = false;
-
-  auto bd =
-       sd.BufferDesc;
-
-  if ( (bd.Width                   == pNewNewTargetParameters->Width   || pNewNewTargetParameters->Width  == 0)                   &&
-       (bd.Height                  == pNewNewTargetParameters->Height  || pNewNewTargetParameters->Height == 0)                   &&
-       (bd.Format                  == pNewNewTargetParameters->Format  || pNewNewTargetParameters->Format == DXGI_FORMAT_UNKNOWN) &&
-                                        // TODO: How to find the current mode?
-                                     (pNewNewTargetParameters->Scaling          == lastModeSet.Scaling          ||
-                                                                 numModeChanges == 0)                                             &&
-                                     (pNewNewTargetParameters->ScanlineOrdering == lastModeSet.ScanlineOrdering ||
-                                                                 numModeChanges == 0)                                             &&
-       (bd.RefreshRate.Numerator   == pNewNewTargetParameters->RefreshRate.Numerator)                                             &&
-       (bd.RefreshRate.Denominator == pNewNewTargetParameters->RefreshRate.Denominator) )
+  if (config.render.dxgi.skip_mode_changes)
   {
-    DXGI_SKIP_CALL (ret, S_OK);
-    return          ret;
+    auto bd =
+         sd.BufferDesc;
+
+    if ( (bd.Width                   == pNewNewTargetParameters->Width   || pNewNewTargetParameters->Width  == 0)                   &&
+         (bd.Height                  == pNewNewTargetParameters->Height  || pNewNewTargetParameters->Height == 0)                   &&
+         (bd.Format                  == pNewNewTargetParameters->Format  || pNewNewTargetParameters->Format == DXGI_FORMAT_UNKNOWN) &&
+                                          // TODO: How to find the current mode?
+                                       (pNewNewTargetParameters->Scaling          == lastModeSet.Scaling          ||
+                                                                   numModeChanges == 0)                                             &&
+                                       (pNewNewTargetParameters->ScanlineOrdering == lastModeSet.ScanlineOrdering ||
+                                                                   numModeChanges == 0)                                             &&
+         (bd.RefreshRate.Numerator   == pNewNewTargetParameters->RefreshRate.Numerator)                                             &&
+         (bd.RefreshRate.Denominator == pNewNewTargetParameters->RefreshRate.Denominator) )
+    {
+      DXGI_SKIP_CALL (ret, S_OK);
+      return          ret;
+    }
   }
-  
+
 
   DXGI_CALL ( ret,
                 ResizeTarget_Original (This, pNewNewTargetParameters)
@@ -7067,7 +7091,7 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
     *ppFactory = pFactory_;
 #endif
     SK_DXGI_LazyHookFactory ((IDXGIFactory *)*ppFactory);
-    
+
     if (config.render.dxgi.use_factory_cache)
     {
       __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
@@ -7601,7 +7625,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   DXGI_SWAP_CHAIN_DESC   swapDesc = { };
   pSwapChain3->GetDesc (&swapDesc);
-  
+
   if ( __SK_HDR_16BitSwap &&
          swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT
                       && ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
@@ -7814,9 +7838,6 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
   {
     SK_DXGI_HookPresent1 (pSwapChain1);
   }
-
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Reinstall ();
 }
 
 std::wstring
@@ -9093,8 +9114,8 @@ SK::DXGI::ShutdownBudgetThread ( void )
 
     else
     {
-      dll_log->LogEx  ( false, L"timed out (killing manually)!\n" );
-      TerminateThread ( budget_thread->handle,                  0 );
+      dll_log->LogEx     ( false, L"timed out (killing manually)!\n" );
+      SK_TerminateThread ( budget_thread->handle,                  0 );
     }
 
     if (budget_thread->handle != INVALID_HANDLE_VALUE)

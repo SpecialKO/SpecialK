@@ -1919,7 +1919,7 @@ SK_RenderBackend_V2::checkHDRState (void)
   SK_ComQIPtr <IDXGISwapChain3> pSwap3 (swapchain.p);
 
   if (pSwap3.p != nullptr)
-  { 
+  {
     SK_DXGI_UpdateColorSpace (pSwap3.p);
 
     return
@@ -2935,7 +2935,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
       NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
   }
 
-  if ( marker == RENDERSUBMIT_END /*|| 
+  if ( marker == RENDERSUBMIT_END /*||
        marker == RENDERSUBMIT_START*/ )
   {
     latency.submitQueuedFrame (

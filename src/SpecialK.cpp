@@ -354,8 +354,6 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_ATTACH:
     {
-      SetErrorMode (SEM_FAILCRITICALERRORS | SEM_NOALIGNMENTFAULTEXCEPT);
-
       skModuleRegistry::Self (hModule);
 
       auto EarlyOut   =
@@ -365,6 +363,8 @@ DllMain ( HMODULE hModule,
         {
           __SK_DLL_TeardownEvent =
             SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
+
+          DisableThreadLibraryCalls (hModule);
         }
 
         return bRet;
@@ -534,8 +534,6 @@ DllMain ( HMODULE hModule,
     //
     case DLL_THREAD_ATTACH:
     {
-      SetThreadErrorMode (SEM_FAILCRITICALERRORS, nullptr);
-
       InterlockedIncrementAcquire (&lLastThreadCreate);
       InterlockedIncrementAcquire (&__SK_Threads_Attached);
 
@@ -547,6 +545,10 @@ DllMain ( HMODULE hModule,
         if (pTLS != nullptr)
         {
           pTLS->debug.mapped = true;
+
+          // Kick-off data collection on external thread creation
+          extern void SK_Widget_InvokeThreadProfiler (void);
+                      SK_Widget_InvokeThreadProfiler (    );
         }
       }
     }
@@ -564,6 +566,9 @@ DllMain ( HMODULE hModule,
 
       if (SK_DLL_IsAttached ())
       {
+        extern void SK_Widget_InvokeThreadProfiler (void);
+                    SK_Widget_InvokeThreadProfiler (    );
+
         // Strip TLS and Mark Free able
         // ----------------------------
         //
@@ -772,16 +777,16 @@ SK_dgVoodoo_CheckForInterop (void)
       SK_GetDLLVersionStr (
         SK_GetModuleFullName (hModD3D9).c_str ()
                           );
-  
+
     if (str_d3d9ver.find (L"dgVoodoo") != std::wstring::npos)
     {
       config.apis.d3d9.hook       = false;
       config.apis.d3d9.translated = true;
-      
+
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -964,7 +969,7 @@ SK_EstablishDllRole (skWin32Module&& module)
         {
           if (SK_Inject_ProcessBlacklist ())
             return SK_DontInject ();
-          
+
           SK_InitCentralConfig ();
 
           SK_SetDLLRole (role);

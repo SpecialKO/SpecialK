@@ -730,7 +730,7 @@ SK_PlugIn_ControlPanelWidget (void)
 {
   // Give a function body to prevent dead code elimination
   int x = rand ();
-  ++x;
+    ++x;
 }
 #pragma optimize( "", on )
 
@@ -746,9 +746,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   }
 
   struct list_s {
-    int                   idx    =  0 ;
-    std::vector <DEVMODE> modes  = { };
-    std::string           string = " ";
+    int                    idx    =  0 ;
+    std::vector <DEVMODEW> modes  = { };
+    std::string            string = " ";
 
     void clear (void) {
       idx = 0;
@@ -757,12 +757,25 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     }
   };
 
-  static std::wstring display_name; // (i.e. \\DISPLAY0... legacy GDI name)
-  static list_s       refresh;
-  static list_s       resolution;
+  static
+   std::wstring display_name; // (i.e. \\DISPLAY0... legacy GDI name)
+  static list_s      refresh,
+                  resolution;
+
+  static DWORD
+    _maxWidth  = 0,
+    _maxHeight = 0,
+   _maxRefresh = 0,  _maxPixels           = 0,
+                     _maxAvailablePixels  = 0,
+                     _maxAvailableRefresh = 0;
 
   if (dirty)
   {
+    _maxWidth   = 0,
+    _maxHeight  = 0,  _maxPixels           = 0,
+    _maxRefresh = 0;  _maxAvailablePixels  = 0,
+                      _maxAvailableRefresh = 0;
+
     POINT
      ptCenter = {
        game_window.actual.window.left   +
@@ -777,8 +790,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     if (hMonCurrent != nullptr)
     {
-      DWORD native_width  = 0,
-            native_height = 0;
+      struct
+      { DWORD width, height;
+      } native {  0, 0    };
 
       static auto& rb =
         SK_GetCurrentRenderBackend ();
@@ -787,43 +801,58 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       {
         if (display.monitor == hMonCurrent)
         {
-          native_width  = display.native.width;
-          native_height = display.native.height;
+          native.width  = display.native.width;
+          native.height = display.native.height;
           break;
         }
       }
 
-      refresh.clear    ();
+         refresh.clear ();
       resolution.clear ();
 
-      std::set <std::string> resolutions;
-      std::set <std::string> refreshes;
+      std::set <std::string> resolutions,
+                               refreshes;
 
-      minfo.cbSize = sizeof (MONITORINFOEX);
+      minfo.cbSize =
+        sizeof (MONITORINFOEX);
+
       GetMonitorInfo (hMonCurrent, &minfo);
 
       display_name =
         minfo.szDevice;
 
-      DEVMODE dm_now  = { },
-              dm_enum = { };
+      DEVMODEW dm_now  = { },
+               dm_enum = { };
 
-      dm_now.dmSize  = sizeof (DEVMODE);
-      dm_enum.dmSize = sizeof (DEVMODE);
+       dm_now.dmSize = sizeof (DEVMODEW);
+      dm_enum.dmSize = sizeof (DEVMODEW);
 
-      if (EnumDisplaySettings (minfo.szDevice, ENUM_CURRENT_SETTINGS, &dm_now))
-      {
-        for (                                 auto idx = 0        ;
-              EnumDisplaySettings (minfo.szDevice, idx, &dm_enum) ;
-                                                 ++idx )
+      if ( EnumDisplaySettingsW (   minfo.szDevice, ENUM_CURRENT_SETTINGS,
+                                                         &dm_now ) )
+      { for (                                  auto idx = 0        ;
+              EnumDisplaySettingsW (minfo.szDevice, idx, &dm_enum) ;
+                                                  ++idx )
         {
           dm_enum.dmSize =
-            sizeof (DEVMODE);
+            sizeof (DEVMODEW);
+
+          if (dm_enum.dmBitsPerPel == dm_now.dmBitsPerPel)
+          {
+            _maxWidth   = std::max (_maxWidth, dm_enum.dmPelsWidth);
+            _maxHeight  = std::max (_maxWidth, dm_enum.dmPelsHeight);
+            _maxPixels  = std::max (           dm_enum.dmPelsWidth * dm_enum.dmPelsHeight,
+            _maxPixels             );
+            _maxRefresh = std::max (           dm_enum.dmDisplayFrequency,
+            _maxRefresh            );
+          }
 
           if ( dm_enum.dmBitsPerPel == dm_now.dmBitsPerPel &&
                dm_enum.dmPelsWidth  == dm_now.dmPelsWidth  &&
                dm_enum.dmPelsHeight == dm_now.dmPelsHeight )
           {
+            _maxAvailableRefresh = std::max ( dm_enum.dmDisplayFrequency,
+            _maxAvailableRefresh );
+
             dm_enum.dmFields =
               DM_DISPLAYFREQUENCY;
 
@@ -832,39 +861,34 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         }
 
         std::sort ( std::begin (refresh.modes),
-                    std::end   (refresh.modes), []( const DEVMODE& a,
-                                                    const DEVMODE& b )
-                    {
-                      return a.dmDisplayFrequency >
-                             b.dmDisplayFrequency;
-                    }
-                  );
+                    std::end   (refresh.modes), []( const DEVMODEW& a,
+                                                    const DEVMODEW& b )
+                    { return a.dmDisplayFrequency  >
+                             b.dmDisplayFrequency; } );
 
-        for (                                 auto idx = 0        ;
-              EnumDisplaySettings (minfo.szDevice, idx, &dm_enum) ;
-                                                 ++idx )
+        for (                                  auto idx = 0        ;
+              EnumDisplaySettingsW (minfo.szDevice, idx, &dm_enum) ;
+                                                  ++idx )
         {
           dm_enum.dmSize =
-            sizeof (DEVMODE);
+            sizeof (DEVMODEW);
 
-          if ( dm_enum.dmBitsPerPel       == dm_now.dmBitsPerPel &&
-               dm_enum.dmDisplayFrequency == dm_now.dmDisplayFrequency )
-          {
-            dm_enum.dmFields =
+          if ( dm_now.dmBitsPerPel       ==  dm_enum.dmBitsPerPel  &&
+               dm_now.dmDisplayFrequency ==  dm_enum.dmDisplayFrequency )
+          { _maxAvailablePixels = std::max ( dm_enum.dmPelsWidth * dm_enum.dmPelsHeight,
+            _maxAvailablePixels );           dm_enum.dmFields    =
               ( DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY );
 
-            resolution.modes.push_back (dm_enum);
+            resolution.modes.
+              emplace_back (dm_enum);
           }
         }
 
         std::sort ( std::begin (resolution.modes),
-                    std::end   (resolution.modes), []( const DEVMODE& a,
-                                                       const DEVMODE& b )
-                    {
-                      return ( a.dmPelsWidth * a.dmPelsHeight ) >
-                             ( b.dmPelsWidth * b.dmPelsHeight );
-                    }
-                  );
+                    std::end   (resolution.modes), []( const DEVMODEW& a,
+                                                       const DEVMODEW& b )
+                    { return ( a.dmPelsWidth * a.dmPelsHeight )  >
+                             ( b.dmPelsWidth * b.dmPelsHeight ); } );
       }
 
       int idx = 0;
@@ -872,18 +896,21 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       for ( auto& it : refresh.modes )
       {
         std::string mode_str =
-          SK_FormatString ("  %u Hz", it.dmDisplayFrequency);
+          SK_FormatString ( "  %u Hz",
+                   it.dmDisplayFrequency );
 
         if (refreshes.emplace (mode_str).second)
         {
-          if (     it.dmDisplayFrequency ==
-               dm_now.dmDisplayFrequency )
+          if ( dm_now.dmDisplayFrequency
+                == it.dmDisplayFrequency )
+          {
             refresh.idx = idx;
+          }
 
           refresh.string.append (mode_str);
           refresh.string += '\0';
 
-          idx++;
+          ++idx;
         }
       }
 
@@ -893,25 +920,26 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       {
         std::string mode_str =
           SK_FormatString ( "%ux%u",
-                              it.dmPelsWidth,
-                              it.dmPelsHeight
-          );
+               it.dmPelsWidth,
+               it.dmPelsHeight );
 
         if (resolutions.emplace (mode_str).second)
         {
           if ( it.dmPelsWidth  == dm_now.dmPelsWidth &&
                it.dmPelsHeight == dm_now.dmPelsHeight )
+          {
             resolution.idx = idx;
+          }
 
-          if ( it.dmPelsWidth  == native_width &&
-               it.dmPelsHeight == native_height )
-          { resolution.string += "* "; } else
-            resolution.string += "  ";
+          if ( it.dmPelsWidth  == native.width &&
+               it.dmPelsHeight == native.height )
+          {  resolution.string += "* "; } else
+             resolution.string += "  ";
 
           resolution.string.append (mode_str);
           resolution.string += '\0';
 
-          idx++;
+          ++idx;
         }
       }
 
@@ -939,6 +967,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   char* pszDispList =
        display_list;
 
+  bool found = false;
+
   for ( auto output : outputs )
   {
     StrCatA ( pszDispList,
@@ -948,33 +978,53 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     );
 
     pszDispList +=
-      wcslen (rb.displays [output].name);
+      wcsnlen (rb.displays [output].name, 128);
 
     (*pszDispList++) = '\0';
 
-    if (! _wcsicmp ( rb.displays [output].name,
-                               rb.display_name )
-       ) active_idx = output;
+    if (! _wcsnicmp ( rb.displays [output].name,
+                                rb.display_name, 128 )
+       ) { active_idx = output; found = true; }
   }
+
+  // Give it another go, the monitor was no-show...
+  if (! found) dirty = true;
 
   (*pszDispList++) = '\0';
 
-  if (ImGui::Combo ("Preferred Monitor", &active_idx, display_list))
-  {
-    auto* cp =
-      SK_GetCommandProcessor ();
+  //ImGui::TextColored ( ImColor (0.75f, 0.75f, 0.75f), "Desktop Settings" );
+  //ImGui::SameLine              ( 0.0f, 30.0f);
+  ImGui::TreePush ();
 
-    cp->ProcessCommandLine (   "Window.Borderless 1");
-    cp->ProcessCommandLine (       "Window.Center 0");
-    cp->ProcessCommandLine (   "Window.Fullscreen 0");
-    cp->ProcessCommandLine ("Window.OverrideRes 0x0");
+  if (ImGui::Combo ("Active Monitor", &active_idx, display_list))
+  {
+    //auto* cp =
+    //  SK_GetCommandProcessor ();
+
+    config.window.res.override.x = 0,
+    config.window.res.override.y = 0;
+    config.window.fullscreen     = false;
+    config.window.borderless     = false;
+    config.window.center         = false;
 
     config.display.monitor_handle = rb.displays [active_idx].monitor;
     config.display.monitor_idx    = rb.displays [active_idx].idx;
 
+    config.window.res.override.x = (rb.displays [active_idx].rect.right  - rb.displays [active_idx].rect.left),
+    config.window.res.override.y = (rb.displays [active_idx].rect.bottom - rb.displays [active_idx].rect.top);
+
     SK_Window_RepositionIfNeeded ();
 
-    SK_DeferCommand ("Window.Fullscreen 1");
+    //cp->ProcessCommandFormatted ("Window.OverrideRes %ux%u",
+
+    config.window.borderless = true;
+    config.window.center     = true;
+    config.window.fullscreen = true;
+
+    SK_Window_RepositionIfNeeded ();
+
+    config.window.res.override.x = 0;
+    config.window.res.override.y = 0;
 
     SK_SetCursorPos
     ( rb.displays [active_idx].rect.left   +
@@ -985,21 +1035,14 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     dirty = true;
   }
 
-  ImGui::TextColored ( ImColor (0.75f, 0.75f, 0.75f), "Desktop Settings" );
-  ImGui::SameLine              ( 0.0f, 30.0f);
-  ImGui::TextColored ( ImColor (1.f,    1.f,    1.f   ), "%ws",
-                         SK_GetCurrentRenderBackend ().display_name );
-
-  ImGui::TreePush ();
-
   if (ImGui::Combo (   "Resolution",  &resolution.idx,
                                        resolution.string.c_str () ))
   {
-    DEVMODE
-      dm_orig        = {              };
-      dm_orig.dmSize = sizeof (DEVMODE);
+    DEVMODEW
+      dm_orig        = {               };
+      dm_orig.dmSize = sizeof (DEVMODEW);
 
-    if (EnumDisplaySettings (display_name.c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
+    if (EnumDisplaySettingsW (display_name.c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
     {
       if ( DISP_CHANGE_SUCCESSFUL ==
              SK_ChangeDisplaySettingsEx (
@@ -1019,14 +1062,18 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     }
   }
 
+  if (ImGui::IsItemHovered () && (_maxAvailablePixels < _maxPixels))
+      ImGui::SetTooltip ("Higher Resolutions are Available by selecting a Different Refresh Rate");
+
+
   if (ImGui::Combo ( "Refresh Rate",  &refresh.idx,
                                        refresh.string.c_str () ))
   {
-    DEVMODE
-      dm_orig        = {              };
-      dm_orig.dmSize = sizeof (DEVMODE);
+    DEVMODEW
+      dm_orig        = {               };
+      dm_orig.dmSize = sizeof (DEVMODEW);
 
-    if (EnumDisplaySettings (display_name.c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
+    if (EnumDisplaySettingsW (display_name.c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
     {
       if ( DISP_CHANGE_SUCCESSFUL ==
              SK_ChangeDisplaySettingsEx (
@@ -1045,6 +1092,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       }
     }
   }
+
+  if (ImGui::IsItemHovered () && (_maxAvailableRefresh < _maxRefresh))
+      ImGui::SetTooltip ("Higher Refresh Rates are Available at a Different Resolution");
 
   ImGui::TreePop ();
 }
@@ -1255,10 +1305,11 @@ DisplayModeMenu (bool windowed)
 
       // Re-build the set of options if resolution changes,
       //   or if the swapchain buffer format does
-      if ( ! ( last_swapDesc.BufferDesc.Width                 == swapDesc1.Width  &&
-               last_swapDesc.BufferDesc.Height                == swapDesc1.Height &&
-               last_swapDesc.BufferDesc.Format                == swapDesc1.Format &&
-               last_swapDesc.BufferDesc.RefreshRate.Numerator == swapDesc.BufferDesc.RefreshRate.Numerator )
+      if ( ! ( last_swapDesc.BufferDesc.Width                   == swapDesc1.Width                           &&
+               last_swapDesc.BufferDesc.Height                  == swapDesc1.Height                          &&
+               last_swapDesc.BufferDesc.Format                  == swapDesc1.Format                          &&
+               last_swapDesc.BufferDesc.RefreshRate.Numerator   == swapDesc.BufferDesc.RefreshRate.Numerator &&
+               last_swapDesc.BufferDesc.RefreshRate.Denominator == swapDesc.BufferDesc.RefreshRate.Denominator )
          )
       {
         last_swapDesc.BufferDesc.Width  =
@@ -1276,7 +1327,6 @@ DisplayModeMenu (bool windowed)
         combo_str.clear     ( );
         refresh_rates.clear ( );
         dxgi_modes.resize   (0);
-
 
         nv_color_combo.clear      ( );
         nv_color_encodings.resize (0);
@@ -1715,7 +1765,7 @@ SK_NV_LatencyControlPanel (void)
     ImGui::Separator  ();
     ImGui::Text       ("NVIDIA Driver Black Magic");
     ImGui::TreePush   ();
-  
+
     SK_ImGui_DrawConfig_Latency ();
     SK_ImGui_DrawGraph_Latency  ();
 
@@ -2871,9 +2921,9 @@ SK_ImGui_ControlPanel (void)
               (api_mask != static_cast <int> (SK_RenderAPI::D3D11) || translated_d3d9) )
     {
       if (! translated_d3d9)
-        lstrcatA (szAPIName, (const char *)    u8"→11");
+        lstrcatA  (szAPIName, (const char *)    u8"→11");
       else
-        lstrcpyA (szAPIName, (const char *)u8"D3D9→11");
+        lstrcpynA (szAPIName, (const char *)u8"D3D9→11", 32);
     }
 
     lstrcatA ( szAPIName, SK_GetBitness () == 32 ? "           [ 32-bit ]" :
@@ -3067,7 +3117,7 @@ SK_ImGui_ControlPanel (void)
           if (rb.gsync_state.active)
           {
             strcat (szGSyncStatus, "Active");
-            
+
             // Opt-in to Auto-Low Latency the first time this is seen
             if (config.render.framerate.auto_low_latency) {
                 config.render.framerate.enforcement_policy = 2;
@@ -3906,54 +3956,58 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     MOUSEHOOKSTRUCT* mhs =
       (MOUSEHOOKSTRUCT*)lParam;
 
-    switch (wParam)
+    if (mhs->hwnd == game_window.hWnd)
     {
-      case WM_MOUSEMOVE:
+      switch (wParam)
       {
-        SK_ImGui_Cursor.pos.x = mhs->pt.x;
-        SK_ImGui_Cursor.pos.y = mhs->pt.y;
+        case WM_MOUSEMOVE:
+          if (PtInRect (&game_window.actual.window, mhs->pt))
+          {
+            SK_ImGui_Cursor.pos = mhs->pt;
+            SK_ImGui_Cursor.ScreenToLocal (
+                                  &SK_ImGui_Cursor.pos);
+            io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+            io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+          }
+          break;
 
-        io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-        io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-      } break;
+        // Does not work correctly
+        ///case WM_MOUSEWHEEL:
+        ///  io.MouseWheel +=
+        ///    static_cast <float> (GET_WHEEL_DELTA_WPARAM (mhs->dwExtraInfo)) /
+        ///    static_cast <float> (WHEEL_DELTA);
+        ///  break;
 
 
-      // Does not work correctly
-      ///case WM_MOUSEWHEEL:
-      ///  io.MouseWheel +=
-      ///    static_cast <float> (GET_WHEEL_DELTA_WPARAM (mhs->dwExtraInfo)) /
-      ///    static_cast <float> (WHEEL_DELTA);
-      ///  break;
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONDBLCLK:
+          io.MouseClicked [0] = true;
+          break;
 
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONDBLCLK:
+          io.MouseClicked [1] = true;
+          break;
 
-      case WM_LBUTTONDOWN:
-      case WM_LBUTTONDBLCLK:
-        io.MouseClicked [0] = true;
-        break;
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONDBLCLK:
+          io.MouseClicked [2] = true;
+          break;
 
-      case WM_RBUTTONDOWN:
-      case WM_RBUTTONDBLCLK:
-        io.MouseClicked [1] = true;
-        break;
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONDBLCLK:
+        {
+          ////WORD Flags =
+          ////  GET_XBUTTON_WPARAM (mhs->dwExtraInfo);
+          ////
+          ////io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
+          ////io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
+        } break;
+      }
 
-      case WM_MBUTTONDOWN:
-      case WM_MBUTTONDBLCLK:
-        io.MouseClicked [2] = true;
-        break;
-
-      case WM_XBUTTONDOWN:
-      case WM_XBUTTONDBLCLK:
-      {
-        WORD Flags =
-          GET_XBUTTON_WPARAM (mhs->dwExtraInfo);
-
-        io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
-        io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
-      } break;
+      if (SK_ImGui_WantMouseCapture () && (wParam != WM_MOUSEWHEEL))
+        return 1;
     }
-
-    if (SK_ImGui_WantMouseCapture () && (wParam != WM_MOUSEWHEEL))
-      return 1;
   }
 
   return
@@ -4168,8 +4222,8 @@ SK_ImGui_StageNextFrame (void)
   //extern SetWindowsHookEx_pfn SetWindowsHookExA_Original;
     extern SetWindowsHookEx_pfn SetWindowsHookExW_Original;
 
-    SK_RunOnce (IsGUIThread (TRUE));
-    
+  //SK_RunOnce (IsGUIThread (TRUE));
+
     SK_RunOnce (
       SetWindowsHookExW_Original (
         WH_KEYBOARD, SK_ImGui_KeyboardProc,
@@ -4177,7 +4231,7 @@ SK_ImGui_StageNextFrame (void)
               GetCurrentThreadId ()
                                  )
     );
-    
+
     SK_RunOnce (
       SetWindowsHookExW_Original (
         WH_MOUSE,    SK_ImGui_MouseProc,
@@ -4229,7 +4283,7 @@ SK_ImGui_StageNextFrame (void)
   }
 
 
-  
+
   if (! SK::SteamAPI::GetOverlayState (true))
   {
     SK_DrawOSD     ();
@@ -4535,8 +4589,8 @@ SK_ImGui_StageNextFrame (void)
                                       ImGuiWindowFlags_NoScrollWithMouse )
        )
     {
-      ImGui::TextColored ( ImColor::HSV (0.075, 1.0f, 1.0f), "\n         Display Settings Will Revert in %4.1f Seconds...\n\n",
-                                               15.0f - ( (float)SK_timeGetTime () - (float)SK_ImGui_DisplayChangeTime ) / 1000.0f );
+      ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n         Display Settings Will Revert in %4.1f Seconds...\n\n",
+                                                15.0f - ( (float)SK_timeGetTime () - (float)SK_ImGui_DisplayChangeTime ) / 1000.0f );
       ImGui::Separator   ();
 
       ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),     " Keep Changes?");
@@ -4585,7 +4639,7 @@ SK_ImGui_StageNextFrame (void)
   { SK_ReShade_Visible = true;
 
     SK_ImGui_ConfirmExit ();
-    
+
     if ( ImGui::BeginPopupModal ( "Confirm Forced Software Termination",
                                     nullptr,
                                       ImGuiWindowFlags_AlwaysAutoResize |
@@ -4861,14 +4915,14 @@ SK_ImGui_Toggle (void)
         //   idle cursor detection to hide the mouse cursor after closing
         //     the control panel.
         SK_ImGui_Cursor.last_move = 0;
-       
+
         //SK_ImGui_Cursor.showSystemCursor ();
       }
 
       else
       {
         SK_ImGui_Cursor.last_move = current_time;
-        
+
         //SK_ImGui_Cursor.showImGuiCursor ();
 
         if (EnableEULAIfPirate ())
@@ -4957,14 +5011,14 @@ SK_Display_UpdateOutputTopology (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (rb.swapchain != nullptr && rb.device != nullptr)
+  if ( rb.swapchain != nullptr &&
+       rb.device    != nullptr )
   {
     rb.updateOutputTopology ();
+
     return;
   }
-  
-  SK_Display_ResolutionSelectUI (true);
-  
+
   static
     CreateDXGIFactory1_pfn
    _CreateDXGIFactory1 ( CreateDXGIFactory1_Import != nullptr ?
@@ -4975,7 +5029,7 @@ SK_Display_UpdateOutputTopology (void)
          SK_ComPtr <IDXGIAdapter > pAdapter;
 
   if (   pFactory1 != nullptr &&
-      (! pFactory1->IsCurrent ()))  
+      (! pFactory1->IsCurrent ()))
          pFactory1.Release    ();
 
   auto                        _GetAdapter
@@ -5306,6 +5360,8 @@ SK_Display_UpdateOutputTopology (void)
                     L"   DXGI   " );
       }
     }
+
+    SK_Display_ResolutionSelectUI (true);
   }
 }
 

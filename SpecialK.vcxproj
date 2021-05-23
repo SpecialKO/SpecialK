@@ -444,7 +444,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <AdditionalOptions>/Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf  %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <OpenMPSupport>false</OpenMPSupport>

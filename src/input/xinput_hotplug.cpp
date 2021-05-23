@@ -495,9 +495,9 @@ SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
 
     bool migrate = ( dwPacketCount > 1 )
          &&
-      ( lastSeenController == DWORD_MAX             || 
+      ( lastSeenController == DWORD_MAX             ||
         lastSeenTime       < dwTime - MIGRATION_PERIOD );
-    
+
     if (lastSeenController == config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)])
         lastSeenTime        = dwTime;
 
@@ -558,7 +558,7 @@ SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState
       );
     }
   }
-  
+
   else
     SK_XInput_UpdateSlotForUI (
       false, dwUserIndex, 0 );
@@ -672,12 +672,12 @@ void
 SK_XInput_InitHotPlugHooks (void)
 {
 // According to the DLL Export Table, ...A and ...W are the same freaking function :)
-  SK_CreateDLLHook3 (       L"user32",
+  SK_CreateDLLHook2 (       L"user32",
                              "RegisterDeviceNotificationW",
                               RegisterDeviceNotificationW_Detour,
      static_cast_p2p <void> (&RegisterDeviceNotificationW_Original) );
 
-  SK_CreateDLLHook3 (       L"user32",
+  SK_CreateDLLHook2 (       L"user32",
                              "RegisterDeviceNotificationA",
                               RegisterDeviceNotificationA_Detour,
      static_cast_p2p <void> (&RegisterDeviceNotificationA_Original) );

@@ -24,6 +24,9 @@
 
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 
+#define _L2(w)  L ## w
+#define  _L(w) _L2(w)
+
 #ifdef _M_AMD64
 # define SK_DBGHELP_STUB(__proto) __proto##64
 #else
@@ -184,7 +187,7 @@ SetUnhandledExceptionFilter_Detour (_In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopL
 {
   UNREFERENCED_PARAMETER (lpTopLevelExceptionFilter);
 
-  SetUnhandledExceptionFilter_Original (lpTopLevelExceptionFilter);
+  //SetUnhandledExceptionFilter_Original (lpTopLevelExceptionFilter);
 
   return
     SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
@@ -996,8 +999,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  CONTEXT&          last_ctx = pTLS->debug.last_ctx;
-  EXCEPTION_RECORD& last_exc = pTLS->debug.last_exc;
+  ////CONTEXT          last_ctx = pTLS != nullptr ? pTLS->debug.last_ctx : CONTEXT          { };
+  ////EXCEPTION_RECORD last_exc = pTLS != nullptr ? pTLS->debug.last_exc : EXCEPTION_RECORD { };
 
 
   //if ( (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) &&
@@ -1012,7 +1015,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     std::wstring hw_status =
       L"==================================================================================================\n";
 
-    MEMORYSTATUSEX 
+    MEMORYSTATUSEX
       msex          = {           };// Mmmm, sex.
       msex.dwLength = sizeof (msex);
 
@@ -1052,7 +1055,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       }
 
       log_entry.append (L"\n");
-    }  
+    }
 #endif
 
     if ( GetProcessMemoryInfo (
@@ -1075,7 +1078,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       );
       hw_status.append (
         SK_FormatStringW (
-          L"  # Current Virtual Memory.: %6.3f GiB  (Max Used: %6.3f GiB)\n\n",              
+          L"  # Current Virtual Memory.: %6.3f GiB  (Max Used: %6.3f GiB)\n\n",
             (float)((double)pmc_ex.PrivateUsage      / (1024.0 * 1024.0 * 1024.0)),
             (float)((double)pmc_ex.PeakPagefileUsage  / (1024.0 * 1024.0 * 1024.0))
         )
@@ -1130,114 +1133,273 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     crash_log->LogEx (false, L"\n%ws\n\n", hw_status.c_str ());
   }
 
+#ifdef    _M_AMD64
+#  define _IP       Rip
+#  define _IP_TEXT "RIP"
+#else
+#  define _IP       Eip
+#  define _IP_TEXT "EIP"
+#endif
+
+  bool first_time_for_tid =
+    ( pTLS == nullptr ||
+      pTLS->debug.last_ctx._IP == 0 );
+
+  CONTEXT          dummy_ctx = { };
+  EXCEPTION_RECORD dummy_exc = { };
+  LONG             dummy_seq =  0 ;
+
+  auto& last_ctx        = pTLS != nullptr ? pTLS->debug.last_ctx          : dummy_ctx;
+  auto& last_exc        = pTLS != nullptr ? pTLS->debug.last_exc          : dummy_exc;
+  auto& repeat_sequence = pTLS != nullptr ? pTLS->debug.exception_repeats : dummy_seq;
+
+  bool  repeated        = false;
+
+  if (first_time_for_tid)
+  {
+    last_ctx        = *ExceptionInfo->ContextRecord;
+    last_exc        = *ExceptionInfo->ExceptionRecord;
+    repeat_sequence = 0;
+  }
+
+  else
+  {
+    repeated =
+      ( last_exc.ExceptionAddress/*_IP*/ == ExceptionInfo->ExceptionRecord->ExceptionAddress/*ContextRecord->_IP*/ );
+  }
+
   // On second chance it's pretty clear that no exception handler exists,
   //   terminate the software.
-  const bool repeated = ( 0 == memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
-                        ( 0 == memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
-  const bool non_continue =     (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) ==
-                                                                                  EXCEPTION_NONCONTINUABLE;
+//const bool repeated = ( 0 == memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
+//                      ( 0 == memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
+  const bool non_continue =                      (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) ==
+                                                                                                   EXCEPTION_NONCONTINUABLE;
 
-  if (SK_IsDebuggerPresent ())
-    return EXCEPTION_CONTINUE_SEARCH;
+  repeat_sequence =
+    ( repeated ? ++repeat_sequence
+               :   0 );
 
-  if (config.system.suppress_crashes)//&& (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) ==
-                                                                                          //EXCEPTION_NONCONTINUABLE)
+  last_ctx = *ExceptionInfo->ContextRecord;
+  last_exc = *ExceptionInfo->ExceptionRecord;
+
+  if (config.system.suppress_crashes && repeat_sequence < 64 && pTLS != nullptr)
   {
-    static
-      concurrency::concurrent_unordered_map <LPCVOID, bool> __ignored_exceptions;
+    LPVOID pExceptionAddr =
+      *reinterpret_cast <LPVOID *> (&ExceptionInfo->ContextRecord->_IP);
 
-    LPCVOID pExceptionAddr =
-      ExceptionInfo->ExceptionRecord->ExceptionAddress;
+    bool new_exception =
+        pTLS->debug.suppressed_addrs.emplace (pExceptionAddr).second;
 
-    ExceptionInfo->ExceptionRecord->ExceptionFlags  &= ~EXCEPTION_NONCONTINUABLE;
-    //ExceptionInfo->ExceptionRecord->ExceptionAddress =
-    //  SKX_GetNextInstruction (ExceptionInfo->ExceptionRecord->ExceptionAddress);
+    if (pTLS->debug.suppressed_addrs.size () > 3)
+      SK_RunOnce (MessageBeep (MB_ICONEXCLAMATION));
 
-#ifdef _M_AMD64
-    ExceptionInfo->ContextRecord->Rip = (DWORD64)
-      SKX_GetNextInstruction ((LPVOID)(uintptr_t)(ExceptionInfo->ContextRecord->Rip));
-#else
-    ExceptionInfo->ContextRecord->Eip = (DWORD)
-      SKX_GetNextInstruction ((LPVOID)ExceptionInfo->ContextRecord->Eip);
-#endif
+    ExceptionInfo->ExceptionRecord->
+      ExceptionFlags &= ~EXCEPTION_NONCONTINUABLE;
 
-    bool inserted = false;
+    if (new_exception)
     {
-      if (__ignored_exceptions.count (                 pExceptionAddr) == 0)
-      {   __ignored_exceptions.insert (std::make_pair (pExceptionAddr, true));
-
-          inserted = true;
-      }
-    }
-
-    if (inserted)
-    {
-      uintptr_t base_addr = (uintptr_t)
-#ifdef _M_AMD64
-        SK_SymGetModuleBase (GetCurrentProcess (), (DWORD64)pExceptionAddr);
-#else
-        SK_SymGetModuleBase (GetCurrentProcess (), (DWORD)pExceptionAddr);
-#endif
+      auto base_addr =
+        static_cast <uintptr_t> (
+          SK_SymGetModuleBase (GetCurrentProcess (), (DWORD_PTR)pExceptionAddr)
+        );
 
       std::wstring callsite =
-        SK_FormatStringW ( L"Unhandled Exception ("
-#ifdef _M_AMD64
-                           L"RIP: %ws+%08xh"//  < Best Guess Symbol Name: \"%hs\" >"
-#else
-                           L"EIP: %ws+%08xh"//  < Best Guess Symbol Name: \"%hs\" >"
-#endif
-                                                ") Ignored; Safety Not Guaranteed (!!)",
-                             SK_GetModuleName (SK_GetModuleFromAddr (pExceptionAddr)).c_str (),
-                                                          (uintptr_t)pExceptionAddr - base_addr//,
-             //SK_GetSymbolNameFromModuleAddr (SK_GetModuleFromAddr (pExceptionAddr),
-                                                        //(uintptr_t)pExceptionAddr - base_addr).c_str ()
-                          );
+        SK_FormatStringW (L"Unhandled Exception ("
+                     _L(_IP_TEXT)  L": %ws+%08xh) Ignored; "//  < Best Guess Symbol Name: \"%hs\" >"
+                          "Safety Not Guaranteed (!!)",
+                          SK_GetModuleName (
+                            SK_GetModuleFromAddr (pExceptionAddr) ).c_str (),
+                    reinterpret_cast <uintptr_t> (pExceptionAddr) - base_addr//,
+//SK_GetSymbolNameFromModuleAddr (SK_GetModuleFromAddr (pExceptionAddr),
+                        //reinterpret_cast <uintptr_t> (pExceptionAddr) - base_addr).c_str ()
+        );
 
-
-      std::wstring log_entry =
-        SK_SEH_SummarizeException (ExceptionInfo, true);
-
-      crash_log->Log   (L"   Unhandled Top-Level Exception (%x):\n",
-                        ExceptionInfo->ExceptionRecord->ExceptionCode);
-
-
-      crash_log->LogEx  (false, L"%ws", log_entry.c_str ());
+      crash_log->Log   (        L"   Unhandled Top-Level Exception (%x):\n",
+                                   ExceptionInfo->ExceptionRecord->ExceptionCode );
+      crash_log->LogEx ( false, L"%ws",
+        SK_SEH_SummarizeException (ExceptionInfo, true).c_str ()
+                       );
 
       fflush (crash_log->fLog);
-
-
 
       SK_ImGui_Warning (callsite.c_str ());
     }
 
-    SetThreadContext (GetCurrentThread (), ExceptionInfo->ContextRecord);
+    struct thread_rewrite_s
+    {
+    public:
+      thread_rewrite_s (PCONTEXT pContext)
+      {
+        context = *pContext;
 
-    return EXCEPTION_CONTINUE_EXECUTION;
+        auto* _InstPtr =
+          reinterpret_cast <uintptr_t*> (
+            &pContext->_IP
+          );
+
+        using  NtContinue_pfn = NTSTATUS (NTAPI*)(PCONTEXT, BOOLEAN);
+        static NtContinue_pfn
+               NtContinue = (NtContinue_pfn)SK_GetProcAddress (L"NtDll", "NtContinue");
+
+#ifndef NT_SUCCESS
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+#endif
+        if (NT_SUCCESS (NtContinue (&context, FALSE)))
+                        *pContext =  context;
+        else
+        {
+          *_InstPtr =
+            reinterpret_cast <std::remove_pointer <decltype       ( _InstPtr)>::type>
+              ( SKX_GetNextInstruction (reinterpret_cast <LPVOID> (*_InstPtr)) );
+        }
+
+#if 1
+        if ( DuplicateHandle ( GetCurrentProcess (), GetCurrentThread (),
+                               GetCurrentProcess (), &hThread, THREAD_SUSPEND_RESUME |
+                                                               THREAD_SET_CONTEXT,
+                                                                 FALSE, 0x0
+                             )
+           )
+        {
+          WritePointerRelease (
+            (volatile PVOID *)&_this, this
+          );                          this->context =
+                                          *pContext;
+
+          static std::atomic_intmax_t
+                   __ignored_exceptions;
+
+          HANDLE
+            hContextManipulator =
+              SK_Thread_CreateEx
+              ([](LPVOID user) -> DWORD
+                {
+                  auto *pRewrite =
+                    static_cast <thread_rewrite_s *> (user);
+
+                  if (pRewrite->hThread != 0)
+                  {
+                    CONTEXT origContext = {};
+
+                    SuspendThread    (pRewrite->hThread);
+
+                    if (GetThreadContext (pRewrite->hThread, &origContext))
+                        SetThreadContext (pRewrite->hThread, &pRewrite->context);
+
+                    delete
+                      ReadPointerAcquire ((volatile PVOID *)&pRewrite->_this);
+
+                    ResumeThread     (pRewrite->hThread);
+                    CloseHandle      (pRewrite->hThread);
+
+                    ++__ignored_exceptions;
+                  }
+
+                  SK_Thread_CloseSelf ();
+
+                  return 0;
+                }, SK_FormatStringW (
+                      L"[SK] Crash Suppressor ([%02lu]::tid=%x)",
+                        __ignored_exceptions.load (),
+                            SK_GetCurrentThreadId ()
+                                    )   .   c_str (),
+                this
+              );
+
+         // Suspend ourself and expect to magically jump somewhere, as if nothing happend ;)
+
+          //  This Code Never Finishes
+          // --------------------------
+          //
+          //   Context is re-written while this thread is suspended in order to move execution out
+          //     of here and back into the original call site that raised the unhandled exception.
+          //
+          SK_WaitForSingleObject (hContextManipulator, 1500);
+
+          // Failed?!  Wake up in 33 ms and briefly leak memory ( ...leak ends with a crash! :P )
+
+          DWORD                                        dwExitCode = DWORD_MAX;
+          if (GetExitCodeThread (hContextManipulator, &dwExitCode))
+          {
+            // Is thread still active for some reason?
+            if (dwExitCode == STILL_ACTIVE)
+              WritePointerRelease ((volatile LPVOID *)&_this, nullptr); // Do not delete this
+          }
+
+          //  ==>  Sayonara, time to die.  ( Memory Leak Solved In Firey Explosion, hurrah! )
+          *pContext = context;
+        }
+#else
+        context = *pContext;
+
+        if (pExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_NONCONTINUABLE_EXCEPTION)
+        {
+          using  NtContinue_pfn = NTSTATUS (NTAPI*)(PCONTEXT, BOOLEAN);
+          static NtContinue_pfn
+                 NtContinue = (NtContinue_pfn)SK_GetProcAddress (L"NtDll", "NtContinue");
+
+#ifndef NT_SUCCESS
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+#endif
+          if (NT_SUCCESS (NtContinue (&context, FALSE)))
+                          *pContext =  context;
+          else
+          {
+            auto* _InstPtr =
+              reinterpret_cast <uintptr_t*> (
+                &pExceptionInfo->ContextRecord->_IP
+              );
+
+            *_InstPtr =
+              reinterpret_cast <std::remove_pointer <decltype       ( _InstPtr)>::type>
+                ( SKX_GetNextInstruction (reinterpret_cast <LPVOID> (*_InstPtr)) );
+          }
+        }
+#endif
+      }
+
+    private :
+      CONTEXT  context;
+      HANDLE   hThread = INVALID_HANDLE_VALUE;
+      volatile  thread_rewrite_s*
+              _this    = nullptr;
+      DWORD    dwTid   = SK_Thread_GetCurrentId ();
+    };
+
+    ////// Leaks memory if rewrite's spawned crash suppression thread fails
+    auto rewrite =
+      new thread_rewrite_s (
+        ExceptionInfo->ContextRecord
+      );
+
+    UNREFERENCED_PARAMETER (rewrite);
+
+    // ... if execution reaches here, it is well and truly Game Over! :(
+    return
+      EXCEPTION_CONTINUE_EXECUTION;
   }
 
 
-  std::wstring log_entry =
-    SK_SEH_SummarizeException (ExceptionInfo, true);
-
-  crash_log->Log   (L"   Unhandled Top-Level Exception (%x):\n",
-                    ExceptionInfo->ExceptionRecord->ExceptionCode);
-
-
-  crash_log->LogEx  (false, L"%ws", log_entry.c_str ());
+  crash_log->Log   (        L"   Unhandled Top-Level Exception (%x):\n",
+                               ExceptionInfo->ExceptionRecord->ExceptionCode );
+  crash_log->LogEx ( false, L"%ws",
+    SK_SEH_SummarizeException (ExceptionInfo, true).c_str ()
+                   );
 
   fflush (crash_log->fLog);
 
 
-  if ( (repeated || non_continue) /*&&
-      (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)*/ )
+  if ( (non_continue && repeat_sequence > 1) ||
+                        repeat_sequence > 2 ) /*&&
+      (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)*/ //)
   {
     if (! config.system.handle_crashes)
     {
       SK_TerminateProcess (0xdeadbeef);
     }
 
-    bool& last_chance = pTLS->debug.last_chance;
-          last_chance = true;
+    if (pTLS != nullptr)
+        pTLS->debug.last_chance = true;
 
     wchar_t   wszFindPattern [MAX_PATH + 2] = { };
     lstrcatW (wszFindPattern, SK_GetConfigPath ());

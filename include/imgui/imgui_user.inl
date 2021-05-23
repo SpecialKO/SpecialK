@@ -140,10 +140,10 @@ SK_ImGui_LoadFonts (void)
     LoadFont (config.imgui.font.chinese.file,   config.imgui.font.chinese.size,  io.Fonts->GetGlyphRangesChineseSimplifiedCommon (), &font_cfg);
     //LoadFont (config.imgui.font.korean.file,    config.imgui.font.korean.size,   io.Fonts->GetGlyphRangesKorean                (), &font_cfg);
     LoadFont (config.imgui.font.cyrillic.file,  config.imgui.font.cyrillic.size, io.Fonts->GetGlyphRangesCyrillic                (), &font_cfg);
-    
+
     sk_fs::path fontDir
           (SK_GetDocumentsDir ());
-  
+
     fontDir /= L"My Mods"  ;
     fontDir /= L"SpecialK" ;
     fontDir /= L"Fonts"    ;
@@ -160,7 +160,7 @@ SK_ImGui_LoadFonts (void)
        const uint8_t akData [],
        const size_t  cbSize )
   {
-    if (! sk_fs::is_regular_file ( fontDir / szFont)          ) 
+    if (! sk_fs::is_regular_file ( fontDir / szFont)          )
                    std::ofstream ( fontDir / szFont, sk_fs_wb ).
       write ( reinterpret_cast <const char *> (akData),
                                                cbSize);
@@ -193,7 +193,7 @@ SK_ImGui_LoadFonts (void)
         SK_ImGui_GetGlyphRangesFontAwesome (),
                    &font_cfg);
     }           );
-  
+
     io.Fonts->AddFontDefault ();
 
     font_cfg           = {   };
@@ -2348,11 +2348,18 @@ SK_ImGui_User_NewFrame (void)
   auto current_time =
     SK_QueryPerf ();
 
+  double delta =
+    static_cast <double> (         current_time.QuadPart -
+                          std::exchange (g_Time.QuadPart, current_time.QuadPart)
+                          );
+
   static bool        first = true;
   if (std::exchange (first, false))
   {
     g_TicksPerSecond = SK_GetPerfFreq ();
     g_Time           = current_time;
+
+    delta = 0.0;
 
     io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
     io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
@@ -2377,15 +2384,13 @@ SK_ImGui_User_NewFrame (void)
     io.KeyMap [ImGuiKey_Z]          = 'Z';
   }
 
-  double delta =
-    static_cast <double> (                 current_time.QuadPart  -
-           std::exchange (g_Time.QuadPart, current_time.QuadPart)
-                         ),
-         ticks_per_sec =
+  static auto ticks_per_sec =
     static_cast <double> (g_TicksPerSecond.QuadPart);
 
   io.DeltaTime =
-    std::min ( 2.0f,
+    (delta <= 0.0) ?
+              0.0f :
+    std::min ( 0.333f,
     std::max ( 0.0f, static_cast <float> ( delta / ticks_per_sec ) ) );
 
   // Read keyboard modifiers inputs

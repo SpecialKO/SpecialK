@@ -134,7 +134,7 @@ public:
     ///if (SUCCEEDED (hr))
     ///  InterlockedIncrement (&refs_);
 
-    if ( riid != IID_ID3DUserDefinedAnnotation && 
+    if ( riid != IID_ID3DUserDefinedAnnotation &&
          riid != IID_ID3D11VideoContext )      // 61F21C45-3C0E-4A74-9CEA-67100D9AD5E4
     {
       static
@@ -1209,228 +1209,16 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_           UINT            SrcSubresource,
     _In_opt_ const D3D11_BOX      *pSrcBox ) override
   {
-    // UB: If it's happening, pretend we never saw this...
-    if (pDstResource == nullptr || pSrcResource == nullptr)
-    {
-      return;
-    }
-
-    SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
-
-    bool early_out =
-      SK_D3D11_IgnoreWrappedOrDeferred (TRUE, pReal);
-
-    // ImGui gets to pass-through without invoking the hook
-    if (! config.textures.cache.allow_staging)
-    {
-      if (! SK_D3D11_ShouldTrackRenderOp (pReal, dev_ctx_handle_))
-      {
-        early_out = true;
-      }
-    }
-
-    if (early_out)
-    {
-      return
-        pReal->CopySubresourceRegion (
-                  pDstResource,
-                   DstSubresource,
-                   DstX, DstY, DstZ,
-                  pSrcResource,
-                   SrcSubresource,
-                  pSrcBox
+#ifndef SK_D3D11_LAZY_WRAP
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+        SK_D3D11_CopySubresourceRegion_Impl (pReal,
+                 pDstResource, DstSubresource, DstX, DstY, DstZ,
+                 pSrcResource, SrcSubresource, pSrcBox, true
         );
-    }
-
-
-
-    D3D11_RESOURCE_DIMENSION res_dim = { };
-    pSrcResource->GetType  (&res_dim);
-
-
-    if (SK_D3D11_EnableMMIOTracking)
-    {
-      SK_D3D11_MemoryThreads->mark ();
-
-      switch (res_dim)
-      {
-        case D3D11_RESOURCE_DIMENSION_UNKNOWN:
-          mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_UNKNOWN]++;
-          break;
-        case D3D11_RESOURCE_DIMENSION_BUFFER:
-        {
-          mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_BUFFER]++;
-
-          SK_ComQIPtr <ID3D11Buffer> pBuffer (pSrcResource);
-
-          if (pBuffer.p != nullptr)
-          {
-            D3D11_BUFFER_DESC  buf_desc = { };
-            pBuffer->GetDesc (&buf_desc);
-            {
-              ////std::scoped_lock <SK_Thread_CriticalSection> auto_lock (cs_mmio);
-
-              if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
-                mem_map_stats->last_frame.buffer_types [0]++;
-              //mem_map_stats->last_frame.index_buffers.insert (pBuffer);
-
-              if (buf_desc.BindFlags & D3D11_BIND_VERTEX_BUFFER)
-                mem_map_stats->last_frame.buffer_types [1]++;
-              //mem_map_stats->last_frame.vertex_buffers.insert (pBuffer);
-
-              if (buf_desc.BindFlags & D3D11_BIND_CONSTANT_BUFFER)
-                mem_map_stats->last_frame.buffer_types [2]++;
-              //mem_map_stats->last_frame.constant_buffers.insert (pBuffer);
-            }
-
-            mem_map_stats->last_frame.bytes_copied += buf_desc.ByteWidth;
-          }
-        } break;
-        case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
-          mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE1D]++;
-          break;
-        case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
-          mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE2D]++;
-          break;
-        case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
-          mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE3D]++;
-          break;
-      }
-    }
-
-
-    pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
-                                   pSrcResource, SrcSubresource, pSrcBox );
-
-#pragma region CacheStagingMappedResources
-    if (config.textures.cache.allow_staging)
-    {
-      if ( ( SK_D3D11_IsStagingCacheable (res_dim, pSrcResource)/*||
-             SK_D3D11_IsStagingCacheable (res_dim, pDstResource)*/) && /*SrcSubresource == 0 && */DstSubresource == 0)
-      {
-        auto& map_ctx = (*mapped_resources)[pReal];
-
-        if (pDstTex != nullptr && map_ctx.dynamic_textures.count (pSrcResource) > 0 && (! SK_D3D11_TextureIsCached (pDstTex)))
-        {
-          const uint32_t top_crc32 = map_ctx.dynamic_texturesx [pSrcResource];
-          const uint32_t checksum  = map_ctx.dynamic_textures  [pSrcResource];
-
-          D3D11_TEXTURE2D_DESC dst_desc = { };
-          pDstTex->GetDesc   (&dst_desc);
-
-          const uint32_t cache_tag =
-            safe_crc32c (top_crc32, (uint8_t *)(&dst_desc), sizeof (D3D11_TEXTURE2D_DESC));
-
-          if (checksum != 0x00 && dst_desc.Usage != D3D11_USAGE_STAGING)
-          {
-            SK_TLS* pTLS =
-              SK_TLS_Bottom ();
-
-            static auto& textures =
-              SK_D3D11_Textures;
-
-            std::wstring filename = L"";
-
-            // Temp hack for 1-LOD Staging Texture Uploads
-            bool injectable = (
-              SK_D3D11_IsInjectable (top_crc32, checksum) ||
-              SK_D3D11_IsInjectable (top_crc32, 0x00)
-            );
-
-            if (injectable)
-            {
-              if (! SK_D3D11_res_root->empty ())
-              {
-                wchar_t     wszTex [MAX_PATH + 2] = { };
-                wcsncpy_s ( wszTex, MAX_PATH,
-                      SK_D3D11_TexNameFromChecksum (
-                               top_crc32, checksum,
-                                               0x0 ).c_str (),
-                                   _TRUNCATE );
-
-                if (PathFileExistsW (wszTex))
-                {
-                  HRESULT hr = E_UNEXPECTED;
-
-                  DirectX::TexMetadata  mdata;
-                  DirectX::ScratchImage img;
-
-                  if ( SUCCEEDED ((hr = DirectX::GetMetadataFromDDSFile (wszTex, 0,  mdata     ))) &&
-                       SUCCEEDED ((hr = DirectX::LoadFromDDSFile        (wszTex, 0, &mdata, img))) )
-                  {
-                    SK_ComPtr <ID3D11Texture2D> pOverrideTex;
-                    SK_ComPtr <ID3D11Device>    pDevice;
-                    pReal->GetDevice          (&pDevice.p);                    
-
-                    SK_ScopedBool decl_tex_scope (
-                      SK_D3D11_DeclareTexInjectScope (pTLS)
-                    );
-
-                    if ( SUCCEEDED ((hr = DirectX::CreateTexture (pDevice.p,
-                                                                  img.GetImages     (),
-                                                                  img.GetImageCount (), mdata,
-                            reinterpret_cast <ID3D11Resource**> (&pOverrideTex.p)))) )
-                    {
-                      D3D11_TEXTURE2D_DESC    new_desc = { };
-                      pOverrideTex->GetDesc (&new_desc);
-                      
-                      ///SK_ReleaseAssert (
-                      ///  map_ctx.dynamic_sizes2 [checksum] == SK_D3D11_ComputeTextureSize (&new_desc)
-                      ///);
-
-                      std::scoped_lock <SK_Thread_HybridSpinlock>
-                            scope_lock (*cache_cs);
-
-                      pReal->CopyResource (pDstResource, pOverrideTex);
-                      
-                      const ULONGLONG load_end =
-                        (ULONGLONG)SK_QueryPerf ().QuadPart;
-
-                      //time_elapsed = load_end - map_ctx.texture_times [pDstResource];
-                      filename     = wszTex;
-
-                      SK_LOG0 ( ( L" *** Texture Injected Late... %x :: %x  { %ws }",
-                                                          top_crc32, cache_tag, wszTex ),
-                                  L"StagingTex" );
-                    }
-                  }
-                }
-              }
-            }
-
-            if (! SK_D3D11_TextureIsCached (pDstTex))
-            {
-              textures->CacheMisses_2D++;
-
-              textures->refTexture2D ( pDstTex,
-                                        &dst_desc,
-                                          cache_tag,
-                                            map_ctx.dynamic_sizes2   [checksum],
-                                              map_ctx.dynamic_times2 [checksum],
-                                                top_crc32,
-                                                  filename.empty () ? map_ctx.dynamic_files2 [checksum].c_str () :
-                                                  filename.c_str (),
-                                                    nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/,
-                                                      pTLS );
-            }
-
-            else
-              textures->recordCacheHit (pDstTex);
-
-            if ((! filename.empty ()) || (! map_ctx.dynamic_files2 [checksum].empty ()))
-              textures->Textures_2D [pDstTex].injected = true;
-
-            map_ctx.dynamic_textures.erase  (pSrcResource);
-            map_ctx.dynamic_texturesx.erase (pSrcResource);
-
-            map_ctx.dynamic_sizes2.erase    (checksum);
-            map_ctx.dynamic_times2.erase    (checksum);
-            map_ctx.dynamic_files2.erase    (checksum);
-          }
-        }
-      }
-    }
-#pragma endregion CacheStagingMappedResources
+    else
+#endif
+      pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
+                                     pSrcResource, SrcSubresource, pSrcBox );
   }
 
   void STDMETHODCALLTYPE CopyResource (

@@ -698,8 +698,7 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
                            &pfnSteamInternal_CreateInterface );
     MH_QueueEnableHook (    pfnSteamInternal_CreateInterface );
 
-
-    SK_ApplyQueuedHooks ();
+    if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
 
     return TRUE;
   }
@@ -3784,7 +3783,12 @@ SteamAPI_PumpThread (LPVOID user)
   if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
        SK_GetCurrentGameID () == SK_GAME_ID::JustCause3         ||
        SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2      ||
-       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
+       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow    ||
+       GetModuleHandleW (
+         SK_RunLHIfBitness (64, L"kaldaien_api64.dll",
+                                L"kaldaien_api.dll" )
+       ) != nullptr
+     )
   {
     start_immediately = true;
   }
@@ -4737,10 +4741,10 @@ SteamAPI_Delay_Init (LPVOID)
   {
     SK_Sleep (std::max (1, config.steam.init_delay));
 
-    ++tries;
-
     if (SK_GetFramesDrawn () < 1)
       continue;
+
+    ++tries;
 
     if (ReadAcquire (&__SK_Steam_init))
     {
