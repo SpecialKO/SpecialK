@@ -595,47 +595,47 @@ GetProcAddress_Detour     (
  ////       );
  ////   }
 
-    if ( *lpProcName == 'P'      &&
- StrStrA (lpProcName,   "PeekM") == lpProcName )
-    {
-      if (! lstrcmpA (lpProcName, "PeekMessageA"))
-      {
-        return
-          (FARPROC)PeekMessageA_Detour;
-      }
-
-      else if (! lstrcmpA (lpProcName, "PeekMessageW"))
-      {
-        return
-          (FARPROC) PeekMessageW_Detour;
-      }
-
-      return
-        GetProcAddress_Original (
-          hModule, lpProcName
-        );
-    }
-
-    else if ( *lpProcName == 'G'     &&
-      StrStrA (lpProcName,   "GetM") == lpProcName )
-    {
-      if (! lstrcmpA (lpProcName, "GetMessageA"))
-      {
-        return
-          (FARPROC) GetMessageA_Detour;
-      }
-
-      else if (! lstrcmpA (lpProcName, "GetMessageW"))
-      {
-        return
-          (FARPROC) GetMessageW_Detour;
-      }
-
-      return
-        GetProcAddress_Original (
-          hModule, lpProcName
-        );
-    }
+/////////    if ( *lpProcName == 'P'      &&
+///////// StrStrA (lpProcName,   "PeekM") == lpProcName )
+/////////    {
+/////////      if (! lstrcmpA (lpProcName, "PeekMessageA"))
+/////////      {
+/////////        return
+/////////          (FARPROC)PeekMessageA_Detour;
+/////////      }
+/////////
+/////////      else if (! lstrcmpA (lpProcName, "PeekMessageW"))
+/////////      {
+/////////        return
+/////////          (FARPROC) PeekMessageW_Detour;
+/////////      }
+/////////
+/////////      return
+/////////        GetProcAddress_Original (
+/////////          hModule, lpProcName
+/////////        );
+/////////    }
+/////////
+/////////    else if ( *lpProcName == 'G'     &&
+/////////      StrStrA (lpProcName,   "GetM") == lpProcName )
+/////////    {
+/////////      if (! lstrcmpA (lpProcName, "GetMessageA"))
+/////////      {
+/////////        return
+/////////          (FARPROC) GetMessageA_Detour;
+/////////      }
+/////////
+/////////      else if (! lstrcmpA (lpProcName, "GetMessageW"))
+/////////      {
+/////////        return
+/////////          (FARPROC) GetMessageW_Detour;
+/////////      }
+/////////
+/////////      return
+/////////        GetProcAddress_Original (
+/////////          hModule, lpProcName
+/////////        );
+/////////    }
 
     // MSI Nahimic workaround
     if ( *lpProcName == 'N' &&
@@ -2115,12 +2115,12 @@ ZwSetInformationThread_Detour (
     }
   }
 
-  // Make sure not to do this if this call is intended to free TLS.
-  SK_TLS *pTLS =
-        SK_TLS_Bottom ();
-
   if ( ThreadInformationClass  == ThreadHideFromDebugger )
   {
+    // Make sure not to do this if this call is intended to free TLS.
+    SK_TLS *pTLS =
+          SK_TLS_Bottom ();
+
     if ( GetThreadId (ThreadHandle) == SK_Thread_GetCurrentId () ||
          (       pTLS               != nullptr   &&
                  pTLS->debug.handle == ThreadHandle )

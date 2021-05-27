@@ -1,4 +1,17 @@
-﻿21.05.22
+﻿21.05.27
+========
+
+ + Adds Windows Process / GPU Priority Boost features for scenarios where you
+     play games using a gamepad and a fullscreen borderless window, but
+       Windows gives its CPU/GPU priority boost to the application that owns
+         the keyboard instead.
+
+   Tl;Dr:  Background games (w/ Render In Background setup) get priority boosts.
+
+ + Fixed wrong resolution settings in the Display menu
+ + Fixed mode change confirmation dialog in Display menu
+
+21.05.22
 ========
  + Added Crash Supression System for DRM / Anti-Debug that Deliberately
      rasies exceptions it knows the application will not handle in order
@@ -16,9 +29,9 @@
 
 
      # In the current design, all crashes are candidates for suprression.
-     
+
        (!) That is bad (even more than the already ill-advised feature)
-       
+
         -  If this feature has any kind of staying power, it requires some
            additional configuration for supressed exception codes and code
            addresses.
@@ -46,7 +59,7 @@
 ========
  + Re-wrote Text OSD and Command Console Rendering using ImGui;
      these features now work in UWP and D3D12 software
- 
+
   >> This is Phase 1 of Operation CEGUI Must Die:
 
     CEGUI has been preventing SK from adopting newer graphics APIs, and
@@ -90,12 +103,12 @@
  + Improved Sleepless Window Thread for Sqrt 1.5
  + Default most settings to optimal for Sqrt 1.5
     ( Delete your config file for best results )
- 
+
   ==> Still no word on WTF is wrong with the engine's texture memory,
         it's giving wrong data to D3D11 at upload time, and D3D11 does not
           crash, however, I cannot intercept and extract any of the data.
 
-    * Square-Enix is.... nope, I'm at a loss for words. 
+    * Square-Enix is.... nope, I'm at a loss for words.
 
 21.04.23
 ========
@@ -108,7 +121,7 @@
 ========
  + Fixed D3D12 API hooks not activating if users disable D3D11 API hooking
  + Reduced the number of required blacklisted executables significantly
-     
+
     >> The "[SK] Hook Pacifier" thread will keep SK's injection logic idle
          in non-game / whitelisted software as originally designed, without
            causing the DLL to get stuck in UWP / .Net / Managed apps.
@@ -140,7 +153,7 @@
 
      [SpecialK.System]
      GlobalInjectDelay=...
- 
+
   >> NOTE: Many D3D11/12 features do not work when delay loading is used.
 
 21.03.23

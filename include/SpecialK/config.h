@@ -360,18 +360,18 @@ struct sk_config_t
         UINT Numerator           =
                static_cast <UINT> (-1);
       } rescan_;
-      int     refresh_denom      =  1;
-      int     pin_render_thread  = -1;
+      int     refresh_denom      =     1;
+      int     pin_render_thread  =    -1;
       bool    flip_discard       = false;
       bool    flip_sequential    = false;
       bool    disable_flip       = false;
-      bool    drop_late_flips    = true;
+      bool    drop_late_flips    =  true;
       bool    wait_for_vblank    = false;
       bool    sleepless_render   = false;
       bool    sleepless_window   = false;
-      bool    enable_mmcss       = true;
-      int     enforcement_policy = 4; // Refer to framerate.cpp
-      bool    auto_low_latency   = true; // VRR users have the limiter default to low-latency
+      bool    enable_mmcss       =  true;
+      int     enforcement_policy =     4; // Refer to framerate.cpp
+      bool    auto_low_latency   =  true; // VRR users have the limiter default to low-latency
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex       = false;
@@ -717,25 +717,31 @@ struct sk_config_t
   struct system_s {
     std::wstring
             version             = SK_GetVersionStrW ();
-    int     log_level           = 0;
+    int     log_level           =    0;
     float   global_inject_delay = 0.0F;
 #ifdef _DEBUG
-    bool    trace_create_thread = true;
+    bool    trace_create_thread =  true;
 #else
     bool    trace_create_thread = false;
 #endif
-    bool    trace_load_library  = true;
+    bool    trace_load_library  =  true;
     bool    strict_compliance   = false;
     bool    silent              = false;
-    bool    handle_crashes      = true;
+    bool    handle_crashes      =  true;
     bool    suppress_crashes    = false;
     bool    prefer_fahrenheit   = false;
     bool    display_debug_out   = false;
-    bool    game_output         = true;
+    bool    game_output         =  true;
     bool    central_repository  = false;
     bool    ignore_rtss_delay   = false;
     bool    wait_for_debugger   = false;
   } system;
+
+  struct priority_scheduling_s {
+    bool    raise_always = false;
+    bool    raise_bg     =  true;
+    bool    raise_fg     = false;
+  } priority;
 };
 
 template <class T>

@@ -475,14 +475,14 @@ SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::wstring display_name_, DEVM
 
   if (SK_ImGui_UnconfirmedDisplayChanges)
   {
-    if (dwInitiated < SK_timeGetTime () - 15000)
+    if (SK_ImGui_DisplayChangeTime < SK_timeGetTime () - 15000)
     {
       SK_ChangeDisplaySettingsEx (
                    display_name.c_str (), &orig_mode,
                                        0, CDS_UPDATEREGISTRY, nullptr
       );
 
-           *pDirty = true;
+      *pDirty = true;
 
       dwInitiated  = DWORD_MAX;
       pDirty       = nullptr;
@@ -745,6 +745,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     return;
   }
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   struct list_s {
     int                    idx    =  0 ;
     std::vector <DEVMODEW> modes  = { };
@@ -794,9 +797,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       { DWORD width, height;
       } native {  0, 0    };
 
-      static auto& rb =
-        SK_GetCurrentRenderBackend ();
-
       for ( auto& display : rb.displays )
       {
         if (display.monitor == hMonCurrent)
@@ -812,6 +812,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
       std::set <std::string> resolutions,
                                refreshes;
+
+      std::set <std::pair <DWORD, DWORD>> used_resolutions_;
+      std::set <DWORD>                    used_refreshes_;
 
       minfo.cbSize =
         sizeof (MONITORINFOEX);
@@ -856,7 +859,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
             dm_enum.dmFields =
               DM_DISPLAYFREQUENCY;
 
-            refresh.modes.push_back (dm_enum);
+            if (used_refreshes_.emplace (dm_enum.dmDisplayFrequency).second)
+            {
+              refresh.modes.
+                emplace_back (dm_enum);
+            }
           }
         }
 
@@ -879,8 +886,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
             _maxAvailablePixels );           dm_enum.dmFields    =
               ( DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY );
 
-            resolution.modes.
-              emplace_back (dm_enum);
+            if (used_resolutions_.emplace (std::make_pair (dm_enum.dmPelsWidth, dm_enum.dmPelsHeight)).second)
+            {
+              resolution.modes.
+                emplace_back (dm_enum);
+            }
           }
         }
 
@@ -954,9 +964,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   char display_list [4096] = { };
   int  active_idx          =  0;
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   for ( auto& display : rb.displays )
   {
@@ -1102,7 +1109,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 void
 DisplayModeMenu (bool windowed)
 {
-  static SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   enum {
@@ -1784,6 +1791,9 @@ SK_ImGui_ControlPanel (void)
   static auto& io =
     ImGui::GetIO ();
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   if (ImGui::GetFont () == nullptr)
   {
     dll_log->Log (L"[   ImGui   ]  Fatal Error:  No Font Loaded!");
@@ -1792,7 +1802,7 @@ SK_ImGui_ControlPanel (void)
 
 
   bool windowed =
-    (! SK_GetCurrentRenderBackend ().fullscreen_exclusive);
+    (! rb.fullscreen_exclusive);
 
   auto DisplayMenu =
     [&](void)
@@ -1817,7 +1827,7 @@ SK_ImGui_ControlPanel (void)
 
 
       // TEMP HACK: NvAPI does not support G-Sync Status in D3D12
-      if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
+      if (rb.api != SK_RenderAPI::D3D12)
       {
         if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
         {
@@ -1885,10 +1895,6 @@ SK_ImGui_ControlPanel (void)
           SK_ShellExecuteW ( nullptr, L"explore", log_dir.c_str (),
                                nullptr, nullptr, SW_NORMAL );
         }
-
-
-        static SK_RenderBackend& rb =
-          SK_GetCurrentRenderBackend ();
 
         bool supports_texture_mods =
         //( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9)  ) ||
@@ -2016,10 +2022,6 @@ SK_ImGui_ControlPanel (void)
         DisplayMenu    ();
         ImGui::EndMenu ();
       }
-
-
-      auto& rb =
-        SK_GetCurrentRenderBackend ();
 
       auto HDRMenu =
       [&](void)
@@ -2649,7 +2651,7 @@ SK_ImGui_ControlPanel (void)
             for ( const auto& it : records )
             {
               if (it->process.id == GetCurrentProcessId ())
-                  it->render.api  = SK_GetCurrentRenderBackend ().api;
+                  it->render.api  = rb.api;
 
               ImGui::Text ( " - %-12ws",
                                     SK_Render_GetAPIName (it->render.api) );
@@ -2898,9 +2900,6 @@ SK_ImGui_ControlPanel (void)
       ImGui::EndMenuBar     ();
     }
   }
-
-  static SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
 
           char szAPIName [32] = { };
     snprintf ( szAPIName, 32, "%ws",  rb.name );
@@ -3299,7 +3298,7 @@ SK_ImGui_ControlPanel (void)
             if (ImGui::IsItemHovered ())
             {
               static bool unity =
-                SK_GetCurrentRenderBackend ().windows.unity;
+                rb.windows.unity;
 
               ImGui::BeginTooltip ();
               ImGui::Text (
@@ -4052,6 +4051,8 @@ SK_ImGui_StageNextFrame (void)
   if (imgui_staged)
     return;
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
 
   // Excessively long frames from things like toggling the Steam overlay
   //   must be ignored.
@@ -4086,9 +4087,6 @@ SK_ImGui_StageNextFrame (void)
   bool d3d11 = false;
   bool d3d12 = false;
   bool gl    = false;
-
-  static SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
 
   if (rb.api == SK_RenderAPI::OpenGL)
   {
@@ -4616,9 +4614,12 @@ SK_ImGui_StageNextFrame (void)
       }
 
       ImGui::SameLine    ();
+
       if (ImGui::Button  ("No"))
       {
-        SK_ImGui_DisplayChangeTime = 0;
+        SK_ImGui_UnconfirmedDisplayChanges = true;
+        SK_ImGui_DisplayChangeTime         =    0;
+
         ImGui::CloseCurrentPopup ();
       }
 
@@ -4628,7 +4629,7 @@ SK_ImGui_StageNextFrame (void)
                           &config.display.confirm_mode_changes );
 
       if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("If disabled, resolution changes will apply immediately with no confirmation.");
+          ImGui::SetTooltip ("If disabled, resolution changes will apply immediately with no confirmation.");
 
       ImGui::EndPopup ();
     }

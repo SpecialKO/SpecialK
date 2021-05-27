@@ -371,58 +371,38 @@ NtWaitForMultipleObjects_Detour (
   IN BOOLEAN              Alertable,
   IN PLARGE_INTEGER       TimeOut OPTIONAL )
 {
-  // Unity spins a loop to signal its job semaphore
-  if (TimeOut != nullptr && TimeOut->QuadPart == 0)
-  {
-    return
-      NtWaitForMultipleObjects_Original (
-           ObjectCount, ObjectsArray,
-             WaitType, Alertable,
-               TimeOut                  );
-  }
-
-  if (! ( SK_GetFramesDrawn () > 0 && SK_MMCS_GetTaskCount () > 1 ) )
-  {
-    return
-      NtWaitForMultipleObjects_Original (
-           ObjectCount, ObjectsArray,
-             WaitType, Alertable,
-               TimeOut                  );
-  }
-
-  SK_TLS *pTLS =
-    SK_TLS_Bottom ();
-
-  if ( pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *)1 )
-  {
-    //if (pTLS->scheduler->mmcs_task->hTask > 0)
-    //    pTLS->scheduler->mmcs_task->disassociateWithTask ();
-  }
-
   DWORD dwRet =
     NtWaitForMultipleObjects_Original (
          ObjectCount, ObjectsArray,
            WaitType, Alertable,
              TimeOut                  );
 
-  if ( pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *)1 )
+  if (ReadAcquire (&__SK_MMCS_PendingChanges) > 0)
   {
-    auto task =
-      pTLS->scheduler->mmcs_task;
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
 
-    //if (pTLS->scheduler->mmcs_task->hTask > 0)
-    //  task->reassociateWithTask ();
-
-    if (InterlockedCompareExchange (&task->change.pending, 0, 1))
+    if (pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *)1)
     {
-      task->setPriority            ( task->change.priority );
+      auto task =
+        pTLS->scheduler->mmcs_task;
 
-      ///if (_stricmp (task->change.task0, task->task0) ||
-      ///    _stricmp (task->change.task1, task->task1))
-      ///{
-      ///  task->disassociateWithTask  ();
-      ///  task->setMaxCharacteristics (task->change.task0, task->change.task1);
-      ///}
+      //if (pTLS->scheduler->mmcs_task->hTask > 0)
+      //  task->reassociateWithTask ();
+
+      if (InterlockedCompareExchange (&task->change.pending, 0, 1))
+      {
+        task->setPriority            ( task->change.priority );
+
+        ///if (_stricmp (task->change.task0, task->task0) ||
+        ///    _stricmp (task->change.task1, task->task1))
+        ///{
+        ///  task->disassociateWithTask  ();
+        ///  task->setMaxCharacteristics (task->change.task0, task->change.task1);
+        ///}
+
+        InterlockedDecrement (&__SK_MMCS_PendingChanges);
+      }
     }
   }
 
@@ -451,26 +431,7 @@ NtWaitForSingleObject_Detour (
   IN BOOLEAN        Alertable,
   IN PLARGE_INTEGER Timeout  )
 {
-  if (Timeout != nullptr && Timeout->QuadPart == 0)
-  {
-    return
-      NtWaitForSingleObject_Original (
-        Handle, Alertable, Timeout
-      );
-  }
-
-#ifndef _UNITY_HACK
-  if (! ( SK_GetFramesDrawn () > 0 && SK_MMCS_GetTaskCount () > 1 ) )
-#else
-  if (    SK_GetFramesDrawn () == 0 )
-#endif
-  {
-    return
-      NtWaitForSingleObject_Original (
-        Handle, Alertable, Timeout
-      );
-  }
-
+#pragma region UnityHack
 #ifdef _UNITY_HACK
   if (bAlertable)
     InterlockedIncrement (&pTLS->scheduler->alert_waits);
@@ -624,17 +585,6 @@ NtWaitForSingleObject_Detour (
   }
 #endif
 
-  SK_TLS *pTLS =
-    SK_TLS_Bottom ();
-
-  if (! pTLS)
-  {
-    return
-      NtWaitForSingleObject_Original (
-        Handle, Alertable, Timeout
-      );
-  }
-
   //if (config.system.log_level > 0)
   //{
   //  dll_log.Log ( L"tid=%lu (\"%s\") WaitForSingleObject [Alertable: %lu] Timeout: %lli",
@@ -647,36 +597,39 @@ NtWaitForSingleObject_Detour (
   //
   //if (Timeout != nullptr)
   //  Timeout = nullptr;
-
-  if (pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *) 1)
-  {
-    //if (pTLS->scheduler->mmcs_task->hTask > 0)
-    //    pTLS->scheduler->mmcs_task->disassociateWithTask ();
-  }
+#pragma endregion
 
   auto ret =
     NtWaitForSingleObject_Original (
       Handle, Alertable, Timeout
     );
 
-  if (pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *) 1)
+  if (ReadAcquire (&__SK_MMCS_PendingChanges) > 0)
   {
-    auto task =
-      pTLS->scheduler->mmcs_task;
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
 
-    //if (pTLS->scheduler->mmcs_task->hTask > 0)
-    //                         task->reassociateWithTask ();
-
-    if (InterlockedCompareExchange (&task->change.pending, 0, 1))
+    if (pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry*)1)
     {
-      task->setPriority             ( task->change.priority );
+      auto task =
+        pTLS->scheduler->mmcs_task;
 
-      ///if (_stricmp (task->change.task0, task->task0) ||
-      ///    _stricmp (task->change.task1, task->task1))
-      ///{
-      ///  task->disassociateWithTask  ();
-      ///  task->setMaxCharacteristics (task->change.task0, task->change.task1);
-      ///}
+      //if (pTLS->scheduler->mmcs_task->hTask > 0)
+      //                         task->reassociateWithTask ();
+
+      if (InterlockedCompareExchange (&task->change.pending, 0, 1))
+      {
+        task->setPriority            ( task->change.priority );
+
+        ///if (_stricmp (task->change.task0, task->task0) ||
+        ///    _stricmp (task->change.task1, task->task1))
+        ///{
+        ///  task->disassociateWithTask  ();
+        ///  task->setMaxCharacteristics (task->change.task0, task->change.task1);
+        ///}
+
+        InterlockedDecrement (&__SK_MMCS_PendingChanges);
+      }
     }
   }
 
@@ -832,6 +785,8 @@ SwitchToThread_Detour (void)
         ///  task->disassociateWithTask  ();
         ///  task->setMaxCharacteristics (task->change.task0, task->change.task1);
         ///}
+
+        InterlockedDecrement (&__SK_MMCS_PendingChanges);
       }
     }
 

@@ -1376,8 +1376,8 @@ public:
     // Snapshotting is _slow_, so only do it when a thread has been created...
     extern volatile LONG  lLastThreadCreate;
     static          LONG  lLastThreadRefresh   =  -69;
-              const DWORD _UPDATE_INTERVAL1_MS =  100; // Refresh no more than once every 100 ms
-              const DWORD _UPDATE_INTERVAL2_MS = 3333; // Refresh at least once every 3.3 seconds
+              const DWORD _UPDATE_INTERVAL1_MS =  200; // Refresh no more than once every 200 ms
+              const DWORD _UPDATE_INTERVAL2_MS = 5000; // Refresh at least once every 5 seconds
     static          DWORD dwLastTime           =    0;
 
     const DWORD dwNow =

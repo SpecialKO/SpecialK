@@ -846,9 +846,35 @@ ActivateWindow ( HWND hWnd,
   {
     InterlockedIncrement (&SK_RenderBackend::flip_skip);
 
-    if (SK_WantBackgroundRender ())
+    if ((! active) && SK_WantBackgroundRender ())
     {
-      if (game_window.active)
+      SK_ComPtr <ID3D11Device> pDev11 =
+        SK_GetCurrentRenderBackend ().getDevice <ID3D11Device> ();
+      SK_ComPtr <ID3D12Device> pDev12 =
+        SK_GetCurrentRenderBackend ().getDevice <ID3D12Device> ();
+
+      SK_ComQIPtr <IDXGIDevice>
+          pDXGIDev (pDev11);
+      if (pDXGIDev == nullptr)
+          pDXGIDev = pDev12;
+
+      if ((config.priority.raise_bg) || config.priority.raise_always)
+      {
+        if (pDXGIDev != nullptr)
+            pDXGIDev->SetGPUThreadPriority (6);
+
+        SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
+      }
+
+      else
+      {
+        if (pDXGIDev != nullptr)
+            pDXGIDev->SetGPUThreadPriority (0);
+
+        SetPriorityClass (GetCurrentProcess (), NORMAL_PRIORITY_CLASS);
+      }
+
+      //if (game_window.active)
       {
         INPUT
           inputs [2]            = {            };
@@ -893,6 +919,34 @@ ActivateWindow ( HWND hWnd,
       };
     }
 
+    else
+    {
+      SK_ComPtr <ID3D11Device> pDev11 =
+        SK_GetCurrentRenderBackend ().getDevice <ID3D11Device> ();
+      SK_ComPtr <ID3D12Device> pDev12 =
+        SK_GetCurrentRenderBackend ().getDevice <ID3D12Device> ();
+
+      SK_ComQIPtr <IDXGIDevice>
+          pDXGIDev (pDev11);
+      if (pDXGIDev == nullptr)
+          pDXGIDev = pDev12;
+
+      if (config.priority.raise_fg || config.priority.raise_always)
+      {
+        if (pDXGIDev != nullptr)
+            pDXGIDev->SetGPUThreadPriority (6);
+
+        SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
+      }
+
+      else
+      {
+        if (pDXGIDev != nullptr)
+            pDXGIDev->SetGPUThreadPriority (0);
+
+        SetPriorityClass (GetCurrentProcess (), NORMAL_PRIORITY_CLASS);
+      }
+    }
     SK_Console::getInstance ()->reset ();
 
     if (config.window.background_mute)

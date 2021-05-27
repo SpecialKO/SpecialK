@@ -277,6 +277,8 @@ SK_AvRevertMmThreadCharacteristics (
 
 extern DWORD SK_GetRenderThreadID (void);
 
+extern volatile LONG __SK_MMCS_PendingChanges;
+
 struct SK_MMCS_TaskEntry {
   DWORD         dwTid      = 0;
   DWORD         dwTaskIdx  = 0;                    // MMCSS Task Idx
@@ -294,7 +296,8 @@ struct SK_MMCS_TaskEntry {
     char          task1 [64] = { };
 
     void flush (void) noexcept {
-      InterlockedExchange (&pending, TRUE);
+      if (! InterlockedExchange (&pending, TRUE))
+           InterlockedIncrement (&__SK_MMCS_PendingChanges);
     }
   } change;
 

@@ -399,7 +399,7 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
 
     _perfQuadPart =
       dwmTiming.qpcVBlank;
-    
+
     //if (config.render.framerate.enforcement_policy == 2)
     //  _perfQuadPart += (llCompositionLatency + ticks_to_undershoot);
     //else
@@ -572,7 +572,7 @@ SK::Framerate::Limiter::wait (void)
          edge_distance >= dEdgeToleranceLow    &&
          edge_distance <= dEdgeToleranceHigh )
     {
-      SK_LOG1 ( ( L"Frame Skipping (%f frames) :: Edge Distance=%f", 
+      SK_LOG1 ( ( L"Frame Skipping (%f frames) :: Edge Distance=%f",
                     missed_frames, edge_distance ), __SK_SUBSYSTEM__ );
 
       InterlockedAdd64 ( &frames,
@@ -627,20 +627,23 @@ SK::Framerate::Limiter::wait (void)
 
     // The ideal thing to wait on is the SwapChain, since it is what we are
     //   ultimately trying to throttle :)
-    SK_AutoHandle                 hWaitHandle (rb.getSwapWaitHandle ());
-    if (tracks_window &&(intptr_t)hWaitHandle.m_h > 0)
+    if (config.render.framerate.swapchain_wait > 0)
     {
-      DWORD dwWaitState = WAIT_FAILED;
-
-      do
+      SK_AutoHandle                 hWaitHandle (rb.getSwapWaitHandle ());
+      if (tracks_window &&(intptr_t)hWaitHandle.m_h > 0)
       {
-        dwWaitState =
-          WaitForSingleObjectEx ( hWaitHandle.m_h, static_cast <DWORD> (1000.0 * to_next_in_secs),
-                                    TRUE );
+        DWORD dwWaitState = WAIT_FAILED;
 
-        to_next_in_secs =
-          std::max (0.0, SK_RecalcTimeToNextFrame ());
-      } while ( dwWaitState == WAIT_IO_COMPLETION );
+        do
+        {
+          dwWaitState =
+            WaitForSingleObjectEx ( hWaitHandle.m_h, static_cast <DWORD> (1000.0 * to_next_in_secs),
+                                      TRUE );
+
+          to_next_in_secs =
+            std::max (0.0, SK_RecalcTimeToNextFrame ());
+        } while ( dwWaitState == WAIT_IO_COMPLETION );
+      }
     }
 
     // First use a kernel-waitable timer to scrub off most of the
@@ -914,7 +917,7 @@ SK::Framerate::Tick ( bool          wait,
       {
         SK_ImGui_Frames->timeFrame (dt);
       }
-      
+
       else if (reset_frame_history) SK_ImGui_Frames->reset ();
     }
   }

@@ -3096,7 +3096,7 @@ SK_NV_AdaptiveSyncControl (void)
         static NvU64 lastFlipFrame     = 0;
         static double   dFlipPrint     = 0.0;
 
-        if (SK_timeGetTime () > lastChecked + 125)
+        if (SK_timeGetTime () > lastChecked + 333)
         {                       lastChecked = SK_timeGetTime ();
           if ( NVAPI_OK ==
                  NvAPI_DISP_GetAdaptiveSyncData (
@@ -3121,7 +3121,7 @@ SK_NV_AdaptiveSyncControl (void)
             rb.gsync_state.update (true);
           }
 
-          else lastChecked = SK_timeGetTime () + 250;
+          else lastChecked = SK_timeGetTime () + 333;
         }
 
         ImGui::Text       ("Adaptive Sync Status for %ws", rb.display_name);

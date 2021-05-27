@@ -3456,23 +3456,23 @@ void TryRunCallbacksSEH (void)
     if (SteamAPI_RunCallbacks_Original != nullptr)
         SteamAPI_RunCallbacks_Original ();
   }
-  __except (EXCEPTION_EXECUTE_HANDLER) {
+  __finally {
   }
 }
 
 void TryRunCallbacks (void)
 {
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_BasicStructuredExceptionTranslator
-  );
-  try {
+  //auto orig_se =
+  //SK_SEH_ApplyTranslator (
+  //  SK_BasicStructuredExceptionTranslator
+  //);
+  //try {
     TryRunCallbacksSEH ();
-  }
-  catch (const SK_SEH_IgnoredException&)
-  {
-  }
-  SK_SEH_RemoveTranslator (orig_se);
+  //}
+  //catch (const SK_SEH_IgnoredException&)
+  //{
+  //}
+  //SK_SEH_RemoveTranslator (orig_se);
 }
 
 

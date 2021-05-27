@@ -659,6 +659,15 @@ struct {
 } window;
 
 struct {
+  struct {
+    sk::ParameterBool*  raise_always;
+    sk::ParameterBool*  raise_in_fg;
+    sk::ParameterBool*  raise_in_bg;
+  } priority;
+} scheduling;
+
+
+struct {
   sk::ParameterStringW*   power_scheme_guid;
 } cpu;
 
@@ -1138,6 +1147,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.enable_mmcss,          L"Enable Multimedia Class Scheduling for FPS Limiter Sleep",  dll_ini,         L"Render.FrameRate",      L"EnableMMCSS"),
     ConfigEntry (render.framerate.refresh_rate,          L"Fullscreen Refresh Rate",                                   dll_ini,         L"Render.FrameRate",      L"RefreshRate"),
     ConfigEntry (render.framerate.rescan_ratio,          L"Fullscreen Rational Scan Rate (precise refresh rate)",      dll_ini,         L"Render.FrameRate",      L"RescanRatio"),
+
     ConfigEntry (render.framerate.enforcement_policy,    L"Place Framerate Limiter Wait Before/After Present, etc.",   dll_ini,         L"Render.FrameRate",      L"LimitEnforcementPolicy"),
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
@@ -1254,6 +1264,10 @@ auto DeclKeybind =
     ConfigEntry (reverse_engineering.file.ignore_writes, L"Don't log activity for files in this list",                 dll_ini,         L"FileIO.Trace",          L"IgnoreWrites"),
 
     ConfigEntry (cpu.power_scheme_guid,                  L"Power Policy (GUID) to Apply At Application Start",         dll_ini,         L"CPU.Power",             L"PowerSchemeGUID"),
+
+    ConfigEntry (scheduling.priority.raise_always,       L"Always boost process priority to Highest",                  dll_ini,         L"Scheduler.Boost",       L"AlwaysRaisePriority"),
+    ConfigEntry (scheduling.priority.raise_in_bg,        L"Boost process priority to Highest in Background",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInBackground"),
+    ConfigEntry (scheduling.priority.raise_in_fg,        L"Boost process priority to Highest in Foreground",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInForeground"),
 
 
     // The one odd-ball Steam achievement setting that can be specified per-game
@@ -2568,6 +2582,13 @@ auto DeclKeybind =
     }
   }
 
+  scheduling.priority.raise_always->load (config.priority.raise_always);
+  scheduling.priority.raise_in_bg->load  (config.priority.raise_bg);
+  scheduling.priority.raise_in_fg->load  (config.priority.raise_fg);
+
+  if (config.priority.raise_always)
+    SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
+
   render.framerate.enforcement_policy->load (config.render.framerate.enforcement_policy);
 
   render.d3d9.force_d3d9ex->load        (config.render.d3d9.force_d3d9ex);
@@ -3714,6 +3735,10 @@ SK_SaveConfig ( std::wstring name,
     render.framerate.prerender_limit->store   (config.render.framerate.pre_render_limit);
     render.framerate.buffer_count->store      (config.render.framerate.buffer_count);
     render.framerate.present_interval->store  (config.render.framerate.present_interval);
+
+    scheduling.priority.raise_always->store   (config.priority.raise_always);
+    scheduling.priority.raise_in_bg->store    (config.priority.raise_bg);
+    scheduling.priority.raise_in_fg->store    (config.priority.raise_fg);
 
     if (render.framerate.rescan_ratio != nullptr)
     {

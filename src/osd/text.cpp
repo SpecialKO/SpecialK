@@ -677,7 +677,7 @@ SK_DrawOSD (void)
     }
   }
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   // Delay this a few frames so we do not create multiple framerate limiters
@@ -815,12 +815,12 @@ SK_DrawOSD (void)
   if (config.gpu.show || config.mem.show)
     SK_PollGPU ();
 
-  int afr_idx  = SK_NV_sli_state->currentAFRIndex,
-      afr_last = SK_NV_sli_state->previousFrameAFRIndex,
-      afr_next = SK_NV_sli_state->nextFrameAFRIndex;
-
   gpu_sensors_t* gpu_stats =
     SK_GPU_CurrentSensorData ();
+
+  int afr_idx  = gpu_stats->num_gpus > 1 ? SK_NV_sli_state->currentAFRIndex       : 0,
+      afr_last = gpu_stats->num_gpus > 1 ? SK_NV_sli_state->previousFrameAFRIndex : 0,
+      afr_next = gpu_stats->num_gpus > 1 ? SK_NV_sli_state->nextFrameAFRIndex     : 0;
 
 if (gpu_stats != nullptr)
 {
@@ -1285,16 +1285,21 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 
   OSD_M_PRINTF "\n" OSD_END
   {
-    PROCESS_MEMORY_COUNTERS_EX
-      pmcx    = {           };
-      pmcx.cb = sizeof (pmcx);
+    static PROCESS_MEMORY_COUNTERS_EX
+           pmcx    = {           };
+           pmcx.cb = sizeof (pmcx);
 
-    GetProcessMemoryInfo (
-      SK_GetCurrentProcess (),
-                 (PPROCESS_MEMORY_COUNTERS)
-             &pmcx,
-      sizeof (pmcx)
-    );
+    static DWORD              // Throttle stuff
+        lastMemoryUpdate = 0;
+    if (lastMemoryUpdate < SK::ControlPanel::current_time - 125)
+    {
+      GetProcessMemoryInfo (
+        SK_GetCurrentProcess (),
+                   (PPROCESS_MEMORY_COUNTERS)
+               &pmcx,
+        sizeof (pmcx)
+      );
+    }
 
     std::wstring working_set =
       SK_File_SizeToString (pmcx.WorkingSetSize, MiB);
@@ -1746,7 +1751,7 @@ SK_TextOverlay::update (const char* szText)
   auto tokenized_text =
     temp_.tokenizer_workingset.data ();
 
-  strncpy_s ( tokenized_text, data_.text_len, 
+  strncpy_s ( tokenized_text, data_.text_len,
                               data_.text, _TRUNCATE );
 
   char token [2] = "\n";
@@ -1789,7 +1794,7 @@ SK_TextOverlay::update (const char* szText)
                                 data_.text, _TRUNCATE );
 
     // Restart tokenizing
-    line = 
+    line =
       ( has_tokens ? strtok_ex (tokenized_text, token)
                    :            tokenized_text );
   }
@@ -1823,7 +1828,7 @@ SK_TextOverlay::update (const char* szText)
       draw_list->AddText (
         ImGui::GetFont     (),
         ImGui::GetFontSize (), ImVec2 (x, y + baseline),
-                               foreground,        line, 
+                               foreground,        line,
                                  NULL, 0.0f, nullptr );
     }
 
@@ -1837,7 +1842,7 @@ SK_TextOverlay::update (const char* szText)
   data_.extent = baseline;
 
   ImGui::PopFont ();
-  
+
   return
     data_.extent;
 }

@@ -1594,9 +1594,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 
   extern bool __stdcall SK_IsGameWindowActive (void);
 
-//if (SK_ImGui_WantMouseCapture ())
-      SK_ImGui_Cursor.update ();
-
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
   if ( SK_IsGameWindowActive () )

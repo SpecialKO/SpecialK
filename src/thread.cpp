@@ -857,3 +857,6 @@ SK_GetRenderThreadID (void)
   return
     ReadULongAcquire (&rb.thread);
 }
+
+
+volatile LONG __SK_MMCS_PendingChanges = 0;

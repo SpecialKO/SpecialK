@@ -2960,14 +2960,19 @@ struct {
   std::unique_ptr <std::recursive_mutex> mutex = nullptr;
 
   struct {
-    IDXGIFactory*  pFactory  = nullptr;
-    IDXGIFactory1* pFactory1 = nullptr;
-    IDXGIFactory2* pFactory2 = nullptr;
-    IDXGIFactory3* pFactory3 = nullptr;
-    IDXGIFactory4* pFactory4 = nullptr;
-    IDXGIFactory5* pFactory5 = nullptr;
+    IDXGIFactory*  pFactory    = nullptr;
+    IDXGIFactory1* pFactory1   = nullptr;
+    IDXGIFactory2* pFactory2   = nullptr;
+    IDXGIFactory3* pFactory3   = nullptr;
+    IDXGIFactory4* pFactory4   = nullptr;
+    IDXGIFactory5* pFactory5   = nullptr;
 
-    bool isCachcing (void) {
+    std::pair <IDXGIAdapter1*,
+               IDXGIFactory1*>
+                   pAdapter1_0 =
+                      { nullptr, nullptr };
+
+    bool isCaching (void) {
       return pFactory  != nullptr || pFactory1 != nullptr ||
              pFactory2 != nullptr || pFactory3 != nullptr ||
              pFactory4 != nullptr || pFactory5 != nullptr;
@@ -3014,7 +3019,7 @@ struct {
                 lock             (getMutex ());
 
     bool current =
-      cache.isCachcing ();
+      cache.isCaching ();
 
     if (current)
     {
@@ -3128,6 +3133,34 @@ struct {
     }
   }
 
+  IDXGIAdapter1* getAdapter0 (IDXGIFactory1* pFactory1)
+  {
+    std::scoped_lock <std::recursive_mutex>
+                lock              (getMutex ());
+
+    if (  cache.pAdapter1_0.second == pFactory1 &&
+          cache.pAdapter1_0.first  != nullptr )
+    {     cache.pAdapter1_0.first->AddRef (); return
+          cache.pAdapter1_0.first; }
+    else {
+      if (cache.pAdapter1_0.first != nullptr)std::exchange
+         (cache.pAdapter1_0.first,   nullptr)->Release ();
+
+          cache.pAdapter1_0.second = pFactory1;
+
+      auto hr =
+        EnumAdapters1_Original (pFactory1, 0,
+         &cache.pAdapter1_0.first);
+
+      if (SUCCEEDED (hr) &&
+          cache.pAdapter1_0.first != nullptr)
+      {   cache.pAdapter1_0.first->AddRef (); return
+          cache.pAdapter1_0.first; }
+     else cache.pAdapter1_0.second = nullptr;
+    }
+    return nullptr;
+  }
+
   ULONG reset (void) {
     std::scoped_lock <std::recursive_mutex>
                 lock             (getMutex ());
@@ -3135,12 +3168,14 @@ struct {
     cached_descs.clear ();
     cache_hits.clear   ();
 
-    if (cache.pFactory  != nullptr) { std::exchange (cache.pFactory,  nullptr)->Release (); }
-    if (cache.pFactory1 != nullptr) { std::exchange (cache.pFactory1, nullptr)->Release (); }
-    if (cache.pFactory2 != nullptr) { std::exchange (cache.pFactory2, nullptr)->Release (); }
-    if (cache.pFactory3 != nullptr) { std::exchange (cache.pFactory3, nullptr)->Release (); }
-    if (cache.pFactory4 != nullptr) { std::exchange (cache.pFactory4, nullptr)->Release (); }
-    if (cache.pFactory5 != nullptr) { std::exchange (cache.pFactory5, nullptr)->Release (); }
+    if (cache.pFactory          != nullptr) { std::exchange (cache.pFactory,          nullptr)->Release (); }
+    if (cache.pFactory1         != nullptr) { std::exchange (cache.pFactory1,         nullptr)->Release (); }
+    if (cache.pFactory2         != nullptr) { std::exchange (cache.pFactory2,         nullptr)->Release (); }
+    if (cache.pFactory3         != nullptr) { std::exchange (cache.pFactory3,         nullptr)->Release (); }
+    if (cache.pFactory4         != nullptr) { std::exchange (cache.pFactory4,         nullptr)->Release (); }
+    if (cache.pFactory5         != nullptr) { std::exchange (cache.pFactory5,         nullptr)->Release (); }
+
+    if (cache.pAdapter1_0.first != nullptr) { std::exchange (cache.pAdapter1_0.first, nullptr)->Release (); }
 
     return 0;
   }
@@ -6810,9 +6845,26 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
     DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
   }
 
+  // RE8 has a performance death wish
   else
-    ret = EnumAdapters1_Original (This,Adapter,ppAdapter);
+  {
+    if (Adapter == 0)
+    {
+      IDXGIAdapter1 *pAdapter1 =
+        __SK_DXGI_FactoryCache.getAdapter0 (This);
 
+      if (pAdapter1 != nullptr)
+      { *ppAdapter   = pAdapter1;
+
+        return S_OK;
+      }
+    }
+
+    return
+      EnumAdapters1_Original (
+        This, Adapter,
+            ppAdapter );
+  }
 #if 0
   // For games that try to enumerate all adapters until the API returns failure,
   //   only override valid adapters...

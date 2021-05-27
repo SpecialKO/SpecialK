@@ -1522,11 +1522,11 @@ SK_IsGameWindowActive (void)
   if (_capture_ctx.hDummy != 0 && IsWindow (_capture_ctx.hDummy))
     return true;
 
-  if ( game_window.active ||
-      ( GetWindowThreadProcessId  (
-         SK_GetForegroundWindow ( ),
-                       &dwProcId ) &&
-        ( dwGamePid ==  dwProcId ) )
+  if ( game_window.active //||
+      //( GetWindowThreadProcessId  (
+      //   SK_GetForegroundWindow ( ),
+      //                 &dwProcId ) &&
+      //  ( dwGamePid ==  dwProcId ) )
      )
     return true;
 
