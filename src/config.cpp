@@ -4396,12 +4396,15 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
     //SK_LOG0 ( ( L" Relative Path: %ws ", wszRelPath.data () ),
     //            L" AppCache " );
 
-    wchar_t    wszAppCache [MAX_PATH + 2] = { };
-    wcsncpy_s (wszAppCache, MAX_PATH,
-      SK_FormatStringW ( LR"(%s\My Mods\SpecialK\Profiles\AppCache\%s\SpecialK.AppCache)",
-                           SK_GetDocumentsDir ().c_str (),
-                             wszRelPath.data ()
-                       ).c_str (), MAX_PATH);
+    wchar_t            wszAppCache [MAX_PATH + 2] = { };
+    std::wstring_view
+      app_cache_view ( wszAppCache, MAX_PATH + 2 );
+
+    SK_FormatStringViewW (
+      app_cache_view, LR"(%s\My Mods\SpecialK\Profiles\AppCache\%s\SpecialK.AppCache)",
+        SK_GetDocumentsDir ().c_str (),
+          wszRelPath.data ()
+                         );
 
     // It may be necessary to write the INI immediately after creating it,
     //   but usually not.

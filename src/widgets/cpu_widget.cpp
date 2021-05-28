@@ -1258,7 +1258,7 @@ struct SK_ClockTicker {
 
 SK_LazyGlobal <SK_ClockTicker> __AverageEffectiveClock;
 
-#define UPDATE_INTERVAL_MS (1000.0 * config.cpu.interval * 2.0)
+#define UPDATE_INTERVAL_MS (1000.0 * config.cpu.interval)
 
 extern void SK_PushMultiItemsWidths (int components, float w_full = 0.0f);
 
@@ -1391,6 +1391,19 @@ SK_CPU_UpdateAllSensors (void)
   }
 }
 
+#pragma pack (push,8)
+// Used only if more accurate MSR-based data cannot be
+//   sensed.
+typedef struct _PROCESSOR_POWER_INFORMATION {
+  ULONG Number;
+  ULONG MaxMhz;
+  ULONG CurrentMhz;
+  ULONG MhzLimit;
+  ULONG MaxIdleState;
+  ULONG CurrentIdleState;
+} PROCESSOR_POWER_INFORMATION,
+ *PPROCESSOR_POWER_INFORMATION;
+#pragma pack(pop)
 
 class SKWG_CPU_Monitor : public SK_Widget
 {
@@ -1506,54 +1519,64 @@ public:
 
   void run (void) override
   {
-    static bool started = false;
+    extern bool __SK_Wine;
+    SK_RunOnce (__SK_Wine =
+      ( SK_GetModuleHandleW (L"wined3d.dll") != nullptr )
+               );
 
+    // Wine / Proton / Whatever does not implement most of this; abandon ship!
+    if (__SK_Wine) return;
+
+    /// -------- Line of No WINE --------)
+
+    static bool                   started = false;
     if ((! config.cpu.show) || (! started))
-    {
-      started = true;
-
-      SK_StartPerfMonThreads (    );
+    {                             started = true;
+      SK_StartPerfMonThreads ();
     }
 
-#pragma pack (push,8)
-    // Used only if more accurate MSR-based data cannot be
-    //   sensed.
-    typedef struct _PROCESSOR_POWER_INFORMATION {
-      ULONG Number;
-      ULONG MaxMhz;
-      ULONG CurrentMhz;
-      ULONG MhzLimit;
-      ULONG MaxIdleState;
-      ULONG CurrentIdleState;
-    } PROCESSOR_POWER_INFORMATION,
-     *PPROCESSOR_POWER_INFORMATION;
-#pragma pack(pop)
+    static auto& cpu_stats =
+      *SK_WMI_CPUStats;
 
-    static auto& cpu_stats = *SK_WMI_CPUStats;
-
-    if ( last_update           < ( SK::ControlPanel::current_time - update_freq ) &&
-          cpu_stats.num_cpus   > 0 )
+    if ( last_update         < ( SK::ControlPanel::current_time - update_freq ) &&
+          cpu_stats.num_cpus > 0 )
     {
+      SK_TLS *pTLS =
+            SK_TLS_Bottom ();
+
       // Processor count is not going to change at run-time or I will eat my hat
       static SYSTEM_INFO             sinfo = { };
       SK_RunOnce (SK_GetSystemInfo (&sinfo));
 
-      SK_TLS *pTLS =
-            SK_TLS_Bottom ();
-
       PPROCESSOR_POWER_INFORMATION pwi =
-        reinterpret_cast <PPROCESSOR_POWER_INFORMATION>   (
-          pTLS != nullptr ? pTLS->scratch_memory->cpu_info.alloc (
+        reinterpret_cast <PPROCESSOR_POWER_INFORMATION> (
+          pTLS != nullptr ?
+          pTLS->scratch_memory->cpu_info.alloc (
             sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors )
-                          : nullptr
-      );
+                          : nullptr                     );
 
-      if (pwi == nullptr) return; // Ohnoes (!!)
+      static bool bUseNtPower = true;
+      if (        bUseNtPower)
+      {
+        if (pwi == nullptr) return; // Ohnoes, I No Can Haz RAM (!!)
 
-      CallNtPowerInformation ( ProcessorInformation,
-                               nullptr, 0,
-                               pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
-      );
+        NTSTATUS ntStatus =
+          CallNtPowerInformation ( ProcessorInformation,
+                                   nullptr, 0,
+                                   pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors );
+
+#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
+#define STATUS_SUCCESS     0
+
+        bUseNtPower =
+          NT_SUCCESS (ntStatus);
+
+        if (! bUseNtPower)
+        {
+          SK_LOG0 ( ( L"Disabling CallNtPowerInformation (...) due to failed result: %x", ntStatus ),
+                      L"CPUMonitor" );
+        }
+      }
 
       if (   cpu_records.size () < ( static_cast <size_t> (cpu_stats.num_cpus) + 1 )
          ) { cpu_records.resize    ( static_cast <size_t> (cpu_stats.num_cpus) + 1 ); }
@@ -1584,24 +1607,16 @@ public:
       last_update =
         SK::ControlPanel::current_time;
 
-      float avg_clock = 0.0f;
 
-      for (unsigned int i = 0; i < sinfo.dwNumberOfProcessors; i++)
-      {
-        avg_clock +=
-          static_cast <float> (pwi [i].CurrentMhz);
-      }
+      auto avg =
+        __AverageEffectiveClock->getAvg ();
 
-      if (__AverageEffectiveClock->getAvg () == 0)
-      {
-        cpu_clocks.addValue ( avg_clock /
-                                static_cast <float> (sinfo.dwNumberOfProcessors) );
-      }
-
-      else
+      if (avg != 0)
       {
         cpu_clocks.addValue (
-          __AverageEffectiveClock->getAvg () / 1000000.0f
+          static_cast <float> (
+            static_cast <double> (avg) / 1000000.0
+          )
         );
 
         __AverageEffectiveClock->num_cores      = 0;
@@ -2031,7 +2046,7 @@ public:
             ImGui::Text           ("%4.2f GHz", cpu_clocks.getAvg () / 1000.0f);
             ImGui::PopStyleColor  (1);
 
-            if (fabs (dTemp - 0.0) > std::numeric_limits <double>::epsilon ())
+            if (dTemp != 0.0)
             {
               ImGui::SameLine        ();
               ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
@@ -2164,7 +2179,7 @@ public:
             else
               ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.28F, 1.f, 1.f, 1.f));
 
-            if (fabs (core_sensors.clock_MHz - 0.0) < std::numeric_limits <double>::epsilon ())
+            if (core_sensors.clock_MHz == 0.0)
             {
               if (parked_since == 0 || show_parked)
                 ImGui::Text       ("%4.2f GHz", static_cast <float> (cpu_stats.cpus [j-1].CurrentMhz) / 1000.0f);
@@ -2179,7 +2194,7 @@ public:
                 ImGui::Text       ("%4.2f GHz", core_sensors.clock_MHz / 1e+9f);
             }
 
-            if (fabs (core_sensors.temperature_C - 0.0) > std::numeric_limits <double>::epsilon ())
+            if (core_sensors.temperature_C != 0.0)
             {
               static std::string core_temp ("", 16);
 
@@ -2312,7 +2327,7 @@ public:
   }
 
 protected:
-  const DWORD update_freq        = 150UL;
+  const DWORD update_freq        = static_cast <DWORD> (UPDATE_INTERVAL_MS);
 
 private:
   struct active_scheme_s : power_scheme_s {
@@ -2322,7 +2337,7 @@ private:
 
   DWORD       last_update        = 0UL;
 
-  std::vector <SK_Stat_DataHistory <float, 96>> cpu_records = { };
+  std::vector <SK_Stat_DataHistory <float, 64>> cpu_records = { };
                SK_Stat_DataHistory <float,  3>  cpu_clocks  = { };
 };
 

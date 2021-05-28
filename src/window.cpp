@@ -6340,79 +6340,17 @@ BOOL
 SK_Win32_IsGUIThread ( DWORD    dwTid,
                        SK_TLS **ppTLS )
 {
-//#define ORIGINAL
-//#define HYBRID
-#ifdef  ORIGINAL
-  SK_TLS
-   *pTLS = nullptr;
+  UNREFERENCED_PARAMETER (ppTLS);
 
-  if (  ppTLS != nullptr &&
-       *ppTLS != nullptr  )
-  {
-    pTLS = *ppTLS;
-  }
-
-  else
-  {
-    pTLS = dwTid ==
-      SK_GetCurrentThreadId () ?
-              SK_TLS_Bottom () :
-              SK_TLS_BottomEx (dwTid);
-
-    if (ppTLS != nullptr && dwTid == SK_GetCurrentThreadId ())
-       *ppTLS  = pTLS;
-  }
-
-  if (pTLS->win32->GUI != -1)
-    return pTLS->win32->GUI;
-
-  else
-  {
-    pTLS->win32->GUI =
-      IsGUIThread (FALSE);
-  }
-
-  return
-    pTLS->win32->GUI;
-#elif defined (HYBRID)
-  static
-  concurrency::concurrent_unordered_map < DWORD,
-       BOOL > cached_test_results;        BOOL
-    bResult = FALSE;
-  if   (      cached_test_results.count (dwTid))
-    bResult = cached_test_results       [dwTid];
-  else {   GUITHREADINFO          gti =
-  { sizeof(GUITHREADINFO),       {   }};
-    if (GetGUIThreadInfo (dwTid, &gti)){
-    bResult    =                  gti.hwndFocus  != 0
-                               || gti.hwndActive != 0;
-  } auto *pTLS =
-      (  ppTLS != nullptr &&
-        *ppTLS != nullptr  )
-      ? *ppTLS :  nullptr;
-    if (  pTLS == nullptr
-       || pTLS->debug.tid != dwTid )
-          pTLS =
-        SK_TLS_BottomEx    ( dwTid );
-     if ( pTLS != nullptr
-       && pTLS->debug.tid == dwTid )
-          pTLS->win32->GUI           = bResult;
-       cached_test_results [ dwTid ] = bResult;
-  }                             return bResult;
-
-  // Completely wrong implementation... ( were you high?! )
-#else
-  static volatile LONG64 last_result [4] = { 0x0, 0x0, 0x0, 0X0 };
+  static volatile LONG64 last_result [3] = { 0x0, 0x0, 0x0 };
                   LONG64 test_result0 =
                     ReadAcquire64 (&last_result [0]),
                          test_result1 =
                     ReadAcquire64 (&last_result [1]),
                          test_result2 =
-                    ReadAcquire64 (&last_result [2]),
-                         test_result3 =
-                    ReadAcquire64 (&last_result [3]);
+                    ReadAcquire64 (&last_result [2]);
 
-static volatile LONG     write_idx    = 0x0;
+  static volatile LONG write_idx = 0;
 
   if (     (DWORD)(test_result0 & 0x00000000FFFFFFFFULL) == dwTid)
     return (       test_result0 >> 32) > 0 ? TRUE : FALSE;
@@ -6420,49 +6358,27 @@ static volatile LONG     write_idx    = 0x0;
     return (       test_result1 >> 32) > 0 ? TRUE : FALSE;
   else if ((DWORD)(test_result2 & 0x00000000FFFFFFFFULL) == dwTid)
     return (       test_result2 >> 32) > 0 ? TRUE : FALSE;
-  else if ((DWORD)(test_result3 & 0x00000000FFFFFFFFULL) == dwTid)
-    return (       test_result3 >> 32) > 0 ? TRUE : FALSE;
 
   DWORD dwTidOfMe =
     SK_GetCurrentThreadId ();
 
-  BOOL    bGUI;
-  SK_TLS *pTLS = nullptr;
+  BOOL
+    bGUI = FALSE;
 
   if (dwTidOfMe == dwTid)
   {
-    //pTLS =
-    //  SK_TLS_Bottom ();
-    //
-    //if (pTLS != nullptr && pTLS->win32->GUI != -1)
-    //  bGUI =               pTLS->win32->GUI;
-    //else
-      bGUI =
-        IsGUIThread (FALSE);
-
-    //if (pTLS != nullptr)
-    //    pTLS->win32->GUI = bGUI;
+    bGUI =
+      IsGUIThread (FALSE);
   }
 
   else
   {
-    //pTLS =
-    //  SK_TLS_BottomEx (dwTid);
-    //
-    //if (pTLS != nullptr && pTLS->win32->GUI != -1)
-    //  bGUI =               pTLS->win32->GUI;
-    //else
-    {
-      GUITHREADINFO
-        gti        = {                    };
-        gti.cbSize = sizeof (GUITHREADINFO);
+    GUITHREADINFO
+      gti        = {                    };
+      gti.cbSize = sizeof (GUITHREADINFO);
 
-      bGUI =
-        GetGUIThreadInfo (dwTid, &gti);
-    }
-
-    //if (pTLS != nullptr)
-    //    pTLS->win32->GUI = bGUI;
+    bGUI =
+      GetGUIThreadInfo (dwTid, &gti);
   }
 
   auto idx =
@@ -6472,12 +6388,11 @@ static volatile LONG     write_idx    = 0x0;
     | (LONG64)(dwTid & 0xFFFFFFFFUL);
 
   InterlockedExchange64 (
-    &last_result [idx % 4], test_result
+    &last_result [idx % 3], test_result
   );
 
   return
     bGUI;
-#endif
 }
 
 

@@ -27,12 +27,19 @@ SOFTWARE.
 extern std::string   SK_PresentDebugStr [2];
 extern volatile LONG SK_PresentIdx;
 
+#include <SpecialK/render/backend.h>
+
 void
 UpdateConsole ( uint32_t           processId,
                 ProcessInfo const& processInfo )
 {
-  auto const& args =
-    GetCommandLineArgs ();
+  UNREFERENCED_PARAMETER (processId);
+
+  ////if (processId != GetCurrentProcessId ())
+  ////  return;
+
+  ////auto const& args =
+  ////  GetCommandLineArgs ();
 
   // Don't display non-target or empty processes
   if ((! processInfo.mTargetProcess)      ||
@@ -43,6 +50,8 @@ UpdateConsole ( uint32_t           processId,
   }
 
   auto empty = true;
+
+  static char szRuntime [16] = { };
 
   for ( auto const& pair : processInfo.mSwapChain )
   {
@@ -59,24 +68,25 @@ UpdateConsole ( uint32_t           processId,
     //  (chain.mNextPresentIndex - chain.mPresentHistoryCount) %
     //                         SwapChainData::PRESENT_HISTORY_MAX_COUNT
     //                         ];
-    auto const& presentN =
-      *chain.mPresentHistory [
-      (chain.mNextPresentIndex - 1)                          %
-                             SwapChainData::PRESENT_HISTORY_MAX_COUNT
-                             ];
+    //auto const& presentN =
+    //  *chain.mPresentHistory [
+    //  (chain.mNextPresentIndex - 1)                          %
+    //                         SwapChainData::PRESENT_HISTORY_MAX_COUNT
+    //                         ];
 
     ///auto cpuAvg =
     ///  QpcDeltaToSeconds (presentN.QpcTime - present0.QpcTime) /
     ///                         (chain.mPresentHistoryCount - 1);
-    auto dspAvg = 0.0;
-    auto latAvg = 0.0;
+    //auto dspAvg = 0.0;
+    //auto latAvg = 0.0;
 
     PresentEvent* displayN = nullptr;
 
-    if (args.mTrackDisplay)
+    ///if (args.mTrackDisplay)
+    if (true)
     {
-      uint64_t display0ScreenTime = 0;
-      uint64_t latSum             = 0;
+    //uint64_t display0ScreenTime = 0;
+    //uint64_t latSum             = 0;
       uint32_t displayCount       = 0;
 
       for ( uint32_t i = 0                          ;
@@ -91,63 +101,58 @@ UpdateConsole ( uint32_t           processId,
 
         if (p->FinalState == PresentResult::Presented)
         {
-          if (displayCount == 0)
-              display0ScreenTime = p->ScreenTime;
+          ///if (displayCount == 0)
+          ///{
+          ///  display0ScreenTime = p->ScreenTime;
+          ///}
 
           displayN = p.get ();
-           latSum += p->ScreenTime - p->QpcTime;
+         //latSum += p->ScreenTime - p->QpcTime;
 
           displayCount++;
         }
       }
 
-      if (displayCount >= 2)
-        dspAvg = QpcDeltaToSeconds (displayN->ScreenTime - display0ScreenTime) /
-                                                            (displayCount - 1);
+      //if (displayCount >= 2)
+      //  dspAvg = QpcDeltaToSeconds (displayN->ScreenTime - display0ScreenTime) /
+      //                                                      (displayCount - 1);
+      //
+      //if (displayCount >= 1)
+      //  latAvg = QpcDeltaToSeconds (latSum)                / displayCount;
 
-      if (displayCount >= 1)
-        latAvg = QpcDeltaToSeconds (latSum)                / displayCount;
+      if (displayCount >  0)
+        std::exchange (empty, false);
     }
 
-    if (std::exchange (empty, false))
-      SK_FormatString ("%s[%d]:", processInfo.mModuleName.c_str (), processId);
+    int idx =
+      (ReadAcquire (&SK_PresentIdx) + 1) % 2;
 
-    int idx = (ReadAcquire (&SK_PresentIdx) + 1) % 2;
+    if (SK_PresentDebugStr [idx].capacity () < 128)
+        SK_PresentDebugStr [idx].resize       (128);
 
-    SK_PresentDebugStr [idx] =
-      SK_FormatString (" "/*"    %016llX (%s)*/ICON_FA_LINK " %s: "/*SyncInterval=%d Flags=%d *//*"%.2lf ms/frame (%.1lf fps"*/,
-  /*address, */RuntimeToString (presentN.Runtime)//,
-                                //presentN.SyncInterval,
-                                //presentN.PresentFlags,
-                                                     //1000.0 * cpuAvg,
-                                                          //1.0 / cpuAvg
-      );
+    std::string_view
+      present_debug_view (
+        SK_PresentDebugStr [idx].data (),      128);
 
-    /////////if (dspAvg > 0.0)
-    /////////{
-    /////////  SKIF_PresentDebugStr [idx] += SK_FormatString (", %.1lf fps displayed", 1.0 / dspAvg);
-    /////////
-    /////////}
-
-    //if (latAvg > 0.0)
-    //{
-    //  SK_PresentDebugStr [idx] += SK_FormatString (", %.2lf ms latency", 1000.0 * latAvg);
-    //}
-    //
-    //SK_PresentDebugStr [idx] += ")";
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
 
     if (displayN != nullptr)
     {
-      SK_PresentDebugStr [idx] += SK_FormatString (" %s ", PresentModeToString (displayN->PresentMode));
-    //ConsolePrint (" %s", PresentModeToString (displayN->PresentMode));
+      SK_FormatStringView (
+        present_debug_view,
+          " " ICON_FA_LINK "  %ws:  %s  ",
+                                 rb.name,
+            PresentModeToString (displayN->PresentMode)
+                          );
     }
-
-  //SKIF_PresentDebugStr [idx] += "\n";
   }
 
   if (! empty)
   {
-    WriteRelease (&SK_PresentIdx, (ReadAcquire (&SK_PresentIdx) + 1) % 2);
+    WriteRelease (&SK_PresentIdx, (
+     ReadAcquire (&SK_PresentIdx) + 1
+                                  ) % 2);
   }
 }
 

@@ -301,7 +301,14 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
               entry.injected  = desc.injected;
 
               if (desc.debug_name.empty ())
-                entry.name = SK_FormatString ("%08x", entry.crc32c);
+              {
+                                 entry.name.resize (9);
+                std::string_view entry_view
+                               ( entry.name.data (),
+                                 entry.name.size () );
+
+                SK_FormatStringView (entry_view, "%08x", entry.crc32c);
+              }
               else
                 entry.name = desc.debug_name;
             }

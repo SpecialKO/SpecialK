@@ -180,6 +180,9 @@ WINAPI
 GlobalFree_Detour   (
   _In_ HGLOBAL hMem )
 {
+  if (hMem == 0)
+       return 0;
+
   return
     GlobalFree_Original (hMem);
 }
@@ -189,6 +192,9 @@ WINAPI
 SK_LocalFree       (
   _In_ HLOCAL hMem ) noexcept
 {
+  if (hMem == 0)
+       return 0;
+
   if (LocalFree_Original != nullptr)
     return LocalFree_Original (hMem);
 
@@ -211,6 +217,9 @@ SK_VirtualFree           (
   _In_ SIZE_T dwSize,
   _In_ DWORD  dwFreeType )
 {
+  if (lpAddress == 0)
+    return FALSE;
+
   if (VirtualFree_Original != nullptr)
     return VirtualFree_Original (lpAddress, dwSize, dwFreeType);
 
@@ -224,8 +233,9 @@ VirtualFree_Detour       (
   _In_ SIZE_T dwSize,
   _In_ DWORD  dwFreeType )
 {
-  const BOOL bRet =
-    VirtualFree_Original (lpAddress, dwSize, dwFreeType);
+  const BOOL bRet =       lpAddress != nullptr ?
+    VirtualFree_Original (lpAddress, dwSize, dwFreeType)
+                                               : FALSE;
 
   if (bRet != FALSE)
   {
@@ -249,6 +259,9 @@ HeapFree_Detour (
   _In_ DWORD  dwFlags,
   _In_ LPVOID lpMem )
 {
+  if (hHeap == 0)
+    return FALSE;
+
   return
     HeapFree_Original (hHeap, dwFlags, lpMem);
 }
@@ -301,6 +314,9 @@ SK_Memory_InitHooks (void)
                             "HeapFree",
                              HeapFree_Detour,
     static_cast_p2p <void> (&HeapFree_Original) );
+
+  if (ReadAcquire (&__SK_Init) > 0)
+    SK_ApplyQueuedHooks ();
 }
 
 void

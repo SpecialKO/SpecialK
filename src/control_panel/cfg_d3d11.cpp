@@ -910,12 +910,18 @@ SK::ControlPanel::D3D11::TextureMenu (SK_TLS *pTLS)
         pTLS =
       SK_TLS_Bottom ();
 
-    if ( ImGui::MenuItem (
-           "Injectable Textures", SK_FormatString ( "%ws",
-                         SK_File_SizeToString ( SK_D3D11_Textures->injectable_texture_bytes, Auto, pTLS ).data ()
-                                              ).c_str (), nullptr
-                         )
-       )
+    static char injectable [MAX_PATH] = {};
+    static char dumped     [MAX_PATH] = {};
+
+    std::string_view inj_view (injectable, MAX_PATH),
+                    dump_view (    dumped, MAX_PATH);
+
+    SK_FormatStringView ( inj_view, "%ws",
+                            SK_File_SizeToString (
+                              SK_D3D11_Textures->injectable_texture_bytes, Auto, pTLS
+                                                 ).data () );
+
+    if ( ImGui::MenuItem ( "Injectable Textures", inj_view.data (), nullptr ) )
     {
       wcscpy      (wszPath, SK_D3D11_res_root->c_str ());
       PathAppendW (wszPath, LR"(inject\textures)");
@@ -923,20 +929,21 @@ SK::ControlPanel::D3D11::TextureMenu (SK_TLS *pTLS)
       SK_ShellExecuteW (nullptr, L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
     }
 
-    if ( (! SK_D3D11_Textures->dumped_textures.empty ()) &&
-         ImGui::MenuItem (
-           "Dumped Textures", SK_FormatString ( "%ws",
-                         SK_File_SizeToString ( SK_D3D11_Textures->dumped_texture_bytes, Auto, pTLS ).data ()
-                                              ).c_str (), nullptr
-                         )
-       )
+    if (! SK_D3D11_Textures->dumped_textures.empty ())
     {
-      wcscpy      (wszPath, SK_D3D11_res_root->c_str ());
-      PathAppendW (wszPath, LR"(dump\textures)");
-      PathAppendW (wszPath, SK_GetHostApp ());
+       SK_FormatStringView ( dump_view, "%ws",
+                               SK_File_SizeToString (
+                                 SK_D3D11_Textures->dumped_texture_bytes, Auto, pTLS
+                                                    ).data () );
+       if ( ImGui::MenuItem ( "Dumped Textures", dump_view.data (), nullptr ) )
+       {
+         wcscpy      (wszPath, SK_D3D11_res_root->c_str ());
+         PathAppendW (wszPath, LR"(dump\textures)");
+         PathAppendW (wszPath, SK_GetHostApp ());
 
-      SK_ShellExecuteW (nullptr, L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
-    }
+         SK_ShellExecuteW (nullptr, L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
+       }
+     }
 
     ImGui::EndMenu ();
   }

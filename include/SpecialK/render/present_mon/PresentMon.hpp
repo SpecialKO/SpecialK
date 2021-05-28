@@ -92,7 +92,7 @@ struct CommandLineArgs {
 // presents to compute averages, limited to 120 events (2 seconds @ 60Hz) to
 // reduce memory/compute overhead.
 struct SwapChainData {
-    enum { PRESENT_HISTORY_MAX_COUNT = 120 };
+    enum { PRESENT_HISTORY_MAX_COUNT = /*120*/5 };
     std::shared_ptr<PresentEvent> mPresentHistory[PRESENT_HISTORY_MAX_COUNT];
     uint32_t mPresentHistoryCount;
     uint32_t mNextPresentIndex;

@@ -990,9 +990,10 @@ SK_ImGui_DrawFramePercentiles (void)
               0.88f, luminance )
                    );
 
-    static char p0_txt [64] = { };
-            int p0_len      =
-      SK_FormatStringView ( std::string_view (p0_txt, 64),
+    static char      p0_txt          [64] = { };
+    std::string_view p0_view (p0_txt, 64);
+            int      p0_len      =
+      SK_FormatStringView ( p0_view,
                               "%3.1f%% Low FPS: %5.2f",
                                    percentile0.cutoff,
                                    percentile0.computed_fps );
@@ -1020,9 +1021,10 @@ SK_ImGui_DrawFramePercentiles (void)
               0.88f, luminance )
                    );
 
-      static char p1_txt [64] = { };
-             int  p1_len      =
-        SK_FormatStringView ( std::string_view (p1_txt, 64),
+        static char      p1_txt          [64] = { };
+        std::string_view p1_view (p1_txt, 64);
+                int      p1_len      =
+        SK_FormatStringView ( p1_view,
                                 "%3.1f%% Low FPS: %5.2f",
                                   percentile1.cutoff,
                                   percentile1.computed_fps );

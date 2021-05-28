@@ -635,9 +635,10 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     {
       log_entry_format ( L"[  Thread  ]  ~ Name.....: \"%s\"\n",
                            wszThreadDescription));
-                LocalFree (wszThreadDescription);
     }
   }
+
+  LocalFree (wszThreadDescription);
 
   log_entry_format (L"[ FaultMod ]  # File.....: '%hs'\n",  szModName));
 #ifdef _M_IX86

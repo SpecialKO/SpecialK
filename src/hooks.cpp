@@ -508,15 +508,18 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
     iSK_INISection& cfg_sec =
       ini->get_section (wszSecName);
 
+    static wchar_t wszKeyName [64];
+
     for ( auto&& it : pools )
     {
-      std::wstring key_name =
-        SK_FormatStringW (L"Enable%sCache", it.kName.data ());
+      std::wstring_view         key_name (wszKeyName, 64);
+                                         *wszKeyName = L'\0';
+      SK_FormatStringViewW (    key_name, L"Enable%sCache", it.kName.data ());
 
-      if (cfg_sec.contains_key (key_name.c_str ()))
+      if (cfg_sec.contains_key (key_name.data ()))
       {
         *(it.pEnable) = config.system.global_inject_delay > 0.0f ||
-          SK_IsTrue (cfg_sec.get_value (key_name.c_str ()).c_str ());
+          SK_IsTrue (cfg_sec.get_value (key_name.data ()).c_str ());
       }
 
       else
@@ -529,7 +532,7 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
         else
           *(it.pEnable) = (! _wcsicmp (it.kName.data (), L"Global"));
 
-        cfg_sec.add_key_value ( key_name.c_str (),
+        cfg_sec.add_key_value ( key_name.data (),
                                   *(it.pEnable) ? L"true" :
                                                   L"false" );
         //ini->write (ini->get_filename ());

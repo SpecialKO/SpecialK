@@ -2691,7 +2691,6 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                 wszDescription ).c_str ()
                                         )
           );
-          SK_LocalFree (wszDescription);
         }
       }
 
@@ -2701,6 +2700,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
           SetCurrentThreadDescription (L"[GAME] Primary Render Thread")
         );
       }
+
+      SK_LocalFree (wszDescription);
 
       extern SK_Widget* SK_HDR_GetWidget (void);
 

@@ -3495,7 +3495,7 @@ SK_FormatStringView (std::string_view& out, char const* const _Format, ...)
   va_end (_ArgList);
 
   len =
-    std::min ((int)out.size () - 1, len);
+    std::max (0, std::min ((int)out.size () - 1, len));
 
   va_start (_ArgList, _Format);
   {
@@ -3504,8 +3504,10 @@ SK_FormatStringView (std::string_view& out, char const* const _Format, ...)
   }
   va_end (_ArgList);
 
+  ((char *)out.data ())[std::max (0, std::min ((int)out.size (), len))] = '\0';
+
   return
-    static_cast <int> (len);
+    len;
 }
 
 std::wstring
@@ -3563,7 +3565,7 @@ SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
   va_end (_ArgList);
 
   len =
-    std::min ((int)out.size () - 1, len);
+    std::max (0, std::min ((int)out.size () - 1, len));
 
   va_start (_ArgList, _Format);
   {
@@ -3571,6 +3573,8 @@ SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
       _vsnwprintf ((wchar_t *)out.data (), len, _Format, _ArgList);
   }
   va_end (_ArgList);
+
+  ((wchar_t *)out.data ())[std::max (0, std::min ((int)out.size (), len))] = L'\0';
 
   return
     len;
