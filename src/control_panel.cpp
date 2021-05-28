@@ -1794,6 +1794,9 @@ SK_ImGui_ControlPanel (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
   if (ImGui::GetFont () == nullptr)
   {
     dll_log->Log (L"[   ImGui   ]  Fatal Error:  No Font Loaded!");
@@ -2146,9 +2149,9 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::BeginGroup (  );
           ImGui::TreePush   ("");
-          ImGui::Text ( "%lu files using %ws",
+          ImGui::Text ( "%u files using %ws",
                           repo.files,
-                            SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
+                            SK_File_SizeToString (repo.liSize.QuadPart, Auto, pTLS).data ()
                       );
 
           ImGui::SameLine ();
@@ -3819,7 +3822,7 @@ SK_ImGui_ControlPanel (void)
       ImGui::TreePush   ("");
       ImGui::Text ( "%u files using %ws",
                       repo.files,
-                        SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
+                        SK_File_SizeToString (repo.liSize.QuadPart, Auto, pTLS).data ()
                   );
 
       if (SK::SteamAPI::AppID () > 0 && SK::SteamAPI::GetCallbacksRun () && ImGui::IsItemHovered ())

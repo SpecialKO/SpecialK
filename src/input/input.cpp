@@ -1517,7 +1517,8 @@ SK_IsGameWindowActive (void)
 {
   static DWORD dwGamePid =
     GetCurrentProcessId ();
-         DWORD dwProcId;
+
+  // DWORD dwProcId;
 
   if (_capture_ctx.hDummy != 0 && IsWindow (_capture_ctx.hDummy))
     return true;

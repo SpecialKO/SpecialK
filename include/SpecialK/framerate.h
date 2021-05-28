@@ -41,15 +41,19 @@ constexpr T narrow_cast(U&& u)
 }
 
 static constexpr auto
-  _isreal =
-  [](double float_val) ->
-    bool
-    {
-      //return
-      //  std::isnormal (float_val);
-      return
-        (! (isinf (float_val) || isnan (float_val)));
-    };
+  _disreal =
+  [](double            double_val     ) ->bool
+  { return (  _dclass (double_val     ) == FP_NORMAL ); };
+
+static constexpr auto
+  _ldisreal =
+  [](long double       long_double_val) ->bool
+  { return ( _ldclass (long_double_val) == FP_NORMAL ); };
+
+static constexpr auto
+  _fdisreal =
+  [](float             float_val      ) ->bool
+  { return ( _fdclass (float_val      ) == FP_NORMAL ); };
 
 float SK_Framerate_GetPercentileByIdx (int idx);
 
@@ -468,7 +472,7 @@ namespace SK
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (datum.val > 0.0 && _isreal (datum.val))
+            if (datum.val > 0.0 && _disreal (datum.val))
             {
               ++samples_used;
               mean += datum.val;
@@ -556,7 +560,7 @@ namespace SK
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (datum.val > 0.0 && _isreal (datum.val))
+            if (datum.val > 0.0 && _disreal (datum.val))
             {
               sd2 += (datum.val - mean) *
                      (datum.val - mean);
@@ -576,7 +580,7 @@ namespace SK
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (datum.val > 0.0 && _isreal (datum.val))
+            if (datum.val > 0.0 && _disreal (datum.val))
             {
               if (datum.val < min)
                 min = datum.val;
@@ -595,7 +599,7 @@ namespace SK
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (datum.val > 0.0 && _isreal (datum.val))
+            if (datum.val > 0.0 && _disreal (datum.val))
             {
               if (datum.val > max)
                 max = datum.val;

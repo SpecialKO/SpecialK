@@ -608,7 +608,7 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       cmdQueue->Signal (pFence,                       1));
                         pFence->SetEventOnCompletion (1,
                                   hEvent.m_h);
-    WaitForSingleObject          (hEvent.m_h, INFINITE);
+    SK_WaitForSingleObject       (hEvent.m_h, INFINITE);
 
     // Create texture view
     D3D12_SHADER_RESOURCE_VIEW_DESC
@@ -1091,7 +1091,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
        )
     {
       // Event is automatically reset after this wait is released
-      WaitForSingleObject (stagingFrame.fence.event, INFINITE);
+      SK_WaitForSingleObject (stagingFrame.fence.event, INFINITE);
     }
   }
 
@@ -1299,7 +1299,7 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void)
                  )
      )
   {
-    WaitForSingleObject (fence.event, INFINITE);
+    SK_WaitForSingleObject (fence.event, INFINITE);
   }
 
   // Update CPU side fence value now that it is guaranteed to have come through

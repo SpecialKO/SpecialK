@@ -330,11 +330,9 @@ SK_IsOpenGL (void)
   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL);
 }
 
-std::wstring
-SK_File_SizeToString (uint64_t size, SK_UNITS unit)
+std::wstring_view
+SK_File_SizeToString (uint64_t size, SK_UNITS unit, SK_TLS* pTLS)
 {
-  wchar_t str [64] = { };
-
   if (unit == Auto)
   {
     if      (size > (1ULL << 32ULL)) unit = GiB;
@@ -342,32 +340,39 @@ SK_File_SizeToString (uint64_t size, SK_UNITS unit)
     else if (size > (1ULL << 12ULL)) unit = KiB;
     else                             unit = B;
   }
+
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
+  if (pTLS == nullptr)
+    return L"";
+
+  std::wstring_view         pwszString (
+    pTLS->scratch_memory->osd.wszFileSize.alloc (64, false), 64
+  );
 
   switch (unit)
   {
     case GiB:
-      swprintf (str, L"%#5llu GiB", size >> 30);
+      SK_FormatStringViewW (pwszString, L"%#5llu GiB", size >> 30);
       break;
     case MiB:
-      swprintf (str, L"%#5llu MiB", size >> 20);
+      SK_FormatStringViewW (pwszString, L"%#5llu MiB", size >> 20);
       break;
     case KiB:
-      swprintf (str, L"%#5llu KiB", size >> 10);
+      SK_FormatStringViewW (pwszString, L"%#5llu KiB", size >> 10);
       break;
     case B:
     default:
-      swprintf (str, L"%#3llu Bytes", size);
+      SK_FormatStringViewW (pwszString, L"%#3llu Bytes", size);
       break;
   }
 
-  return str;
+  return                    pwszString;
 }
 
-std::string
-SK_File_SizeToStringA (uint64_t size, SK_UNITS unit)
+std::string_view
+SK_File_SizeToStringA (uint64_t size, SK_UNITS unit, SK_TLS* pTLS)
 {
-  char str [64] = { };
-
   if (unit == Auto)
   {
     if      (size > (1ULL << 32ULL)) unit = GiB;
@@ -375,32 +380,39 @@ SK_File_SizeToStringA (uint64_t size, SK_UNITS unit)
     else if (size > (1ULL << 12ULL)) unit = KiB;
     else                             unit = B;
   }
+
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
+  if (pTLS == nullptr)
+    return "";
+
+  std::string_view         pszString (
+    pTLS->scratch_memory->osd.szFileSize.alloc (64, false), 64
+  );
 
   switch (unit)
   {
     case GiB:
-      sprintf (str, "%#5llu GiB", size >> 30);
+      SK_FormatStringView (pszString, "%#5llu GiB", size >> 30);
       break;
     case MiB:
-      sprintf (str, "%#5llu MiB", size >> 20);
+      SK_FormatStringView (pszString, "%#5llu MiB", size >> 20);
       break;
     case KiB:
-      sprintf (str, "%#5llu KiB", size >> 10);
+      SK_FormatStringView (pszString, "%#5llu KiB", size >> 10);
       break;
     case B:
     default:
-      sprintf (str, "%#3llu Bytes", size);
+      SK_FormatStringView (pszString, "%#3llu Bytes", size);
       break;
   }
 
-  return str;
+  return                   pszString;
 }
 
-std::string
-SK_File_SizeToStringAF (uint64_t size, int width, int precision, SK_UNITS unit)
+std::string_view
+SK_File_SizeToStringAF (uint64_t size, int width, int precision, SK_UNITS unit, SK_TLS* pTLS)
 {
-  char str [64] = { };
-
   if (unit == Auto)
   {
     if      (size > (1ULL << 32ULL)) unit = GiB;
@@ -409,33 +421,40 @@ SK_File_SizeToStringAF (uint64_t size, int width, int precision, SK_UNITS unit)
     else                             unit = B;
   }
 
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
+  if (pTLS == nullptr)
+    return "";
+
+  std::string_view       pszStr (
+    pTLS->scratch_memory->osd.szFileSize.alloc (32, false), 32
+  );
+
   switch (unit)
   {
   case GiB:
-    sprintf (str, "%#*.*f GiB", width, precision,
-            (float)size / (1024.0f * 1024.0f * 1024.0f));
+    SK_FormatStringView (pszStr, "%#*.*f GiB", width, precision,
+                                     (float)size / (1024.0f * 1024.0f * 1024.0f));
     break;
   case MiB:
-    sprintf (str, "%#*.*f MiB", width, precision,
-            (float)size / (1024.0f * 1024.0f));
+    SK_FormatStringView (pszStr, "%#*.*f MiB", width, precision,
+                                     (float)size / (1024.0f * 1024.0f));
     break;
   case KiB:
-    sprintf (str, "%#*.*f KiB", width, precision, (float)size / 1024.0f);
+    SK_FormatStringView (pszStr, "%#*.*f KiB", width, precision, (float)size / 1024.0f);
     break;
   case B:
   default:
-    sprintf (str, "%#*llu Bytes", width-1-precision, size);
+    SK_FormatStringView (pszStr, "%#*llu Bytes", width-1-precision, size);
     break;
   }
 
-  return str;
+  return                 pszStr;
 }
 
-std::wstring
-SK_File_SizeToStringF (uint64_t size, int width, int precision, SK_UNITS unit)
+std::wstring_view
+SK_File_SizeToStringF (uint64_t size, int width, int precision, SK_UNITS unit, SK_TLS* pTLS)
 {
-  wchar_t str [64] = { };
-
   if (unit == Auto)
   {
     if      (size > (1ULL << 32ULL)) unit = GiB;
@@ -444,80 +463,105 @@ SK_File_SizeToStringF (uint64_t size, int width, int precision, SK_UNITS unit)
     else                             unit = B;
   }
 
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
+  if (pTLS == nullptr)
+    return L"";
+
+  std::wstring_view       pwszStr (
+    pTLS->scratch_memory->osd.wszFileSize.alloc (64, false), 64
+  );
+
   switch (unit)
   {
   case GiB:
-    swprintf (str, L"%#*.*f GiB", width, precision,
-             (float)size / (1024.0f * 1024.0f * 1024.0f));
+    SK_FormatStringViewW (pwszStr, L"%#*.*f GiB", width, precision,
+                                           (float)size / (1024.0f * 1024.0f * 1024.0f));
     break;
   case MiB:
-    swprintf (str, L"%#*.*f MiB", width, precision,
-             (float)size / (1024.0f * 1024.0f));
+    SK_FormatStringViewW (pwszStr, L"%#*.*f MiB", width, precision,
+                                           (float)size / (1024.0f * 1024.0f));
     break;
   case KiB:
-    swprintf (str, L"%#*.*f KiB", width, precision, (float)size / 1024.0f);
+    SK_FormatStringViewW (pwszStr, L"%#*.*f KiB", width, precision, (float)size / 1024.0f);
     break;
   case B:
   default:
-    swprintf (str, L"%#*llu Bytes", width-1-precision, size);
+    SK_FormatStringViewW (pwszStr, L"%#*llu Bytes", width-1-precision, size);
     break;
   }
 
-  return str;
+  return                  pwszStr;
 }
 
-std::wstring
-SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
+std::wstring_view
+SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_TLS* pTLS = nullptr)
 {
   int32_t converted;
-  wchar_t wszOut [16] = { };
+
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
+  if (pTLS == nullptr)
+    return L"";
+
+  std::wstring_view       pwszStr (
+    pTLS->scratch_memory->osd.wszTemperature.alloc (16, false), 16
+  );
 
   if (in_unit == Celsius && out_unit == Fahrenheit)
   {
     //converted = in_temp * 2 + 30;
     converted = (int32_t)((float)(in_temp) * 9.0f/5.0f + 32.0f);
-    swprintf (wszOut, L"%#3liF", converted);
+    SK_FormatStringViewW (pwszStr, L"%#3liF", converted);
   }
 
   else if (in_unit == Fahrenheit && out_unit == Celsius)
   {
     converted = (int32_t)(((float)in_temp - 32.0f) * (5.0f/9.0f));
-    swprintf (wszOut, L"%#2liC", converted);
+    SK_FormatStringViewW (pwszStr, L"%#2liC", converted);
   }
 
   else
   {
-    swprintf (wszOut, L"%#2liC", in_temp);
+    SK_FormatStringViewW (pwszStr, L"%#2liC", in_temp);
   }
 
-  return wszOut;
+  return                  pwszStr;
 }
 
-std::string
-SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
+std::string_view
+SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_TLS* pTLS = nullptr)
 {
   double converted;
-  char szOut [16] = { };
+
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
+  if (pTLS == nullptr)
+    return "";
+
+  std::string_view   pszStr (
+    pTLS->scratch_memory->osd.szTemperature.alloc (16, false), 16
+  );
 
   if (in_unit == Celsius && out_unit == Fahrenheit)
   {
     //converted = in_temp * 2 + 30;
     converted = (in_temp * (9.0/5.0)) + 32.0;
-    sprintf (szOut, (const char *)u8"%#5.1f°F", converted);
+    SK_FormatStringView (pszStr, (const char *)u8"%#5.1f°F", converted);
   }
 
   else if (in_unit == Fahrenheit && out_unit == Celsius)
   {
     converted = (in_temp - 32.0) * (5.0/9.0);
-    sprintf (szOut, (const char *)u8"%#4.1f°C", converted);
+    SK_FormatStringView (pszStr, (const char *)u8"%#4.1f°C", converted);
   }
 
   else
   {
-    sprintf (szOut, (const char *)u8"%#4.1f°C", in_temp);
+    SK_FormatStringView (pszStr, (const char *)u8"%#4.1f°C", in_temp);
   }
 
-  return szOut;
+  return                 pszStr;
 }
 
 SK_LazyGlobal <std::string> external_osd_name;
@@ -526,9 +570,11 @@ BOOL
 __stdcall
 SK_DrawExternalOSD (std::string osd_app_name, std::string text)
 {
-  external_osd_name.get () = osd_app_name;
+  external_osd_name.get () =
+           osd_app_name;
 
-  SK_UpdateOSD (text.c_str (), nullptr, osd_app_name.c_str ());
+  SK_UpdateOSD ( text.c_str (), nullptr,
+         osd_app_name.c_str () );
 
   return TRUE;
 }
@@ -537,9 +583,11 @@ BOOL
 __stdcall
 SKX_DrawExternalOSD (const char* szAppName, const char* szText)
 {
-  external_osd_name.get () = szAppName;
+  external_osd_name.get () =
+          szAppName;
 
-  SK_UpdateOSD (szText, nullptr, szAppName);
+  SK_UpdateOSD ( szText, nullptr,
+                 szAppName );
 
   return TRUE;
 }
@@ -585,6 +633,9 @@ SK_DrawOSD (void)
 
   if (ReadAcquire (&osd_init) == FALSE)
     return FALSE;
+
+  SK_TLS *pTLS =
+        SK_TLS_Bottom ();
 
   ImGui::SetNextWindowSize (ImGui::GetIO ().DisplaySize, ImGuiCond_Always);
   ImGui::SetNextWindowPos  (ImVec2 (0.0f, 0.0f),         ImGuiCond_Always);
@@ -890,12 +941,15 @@ if (gpu_stats != nullptr)
       ///////OSD_END
     }
 
-    std::wstring temp =
+    static std::wstring temp (L"", 16);
+
+    temp.assign (
       SK_FormatTemperature (
         gpu_stats->gpus [i].temps_c.gpu,
           Celsius,
             config.system.prefer_fahrenheit ? Fahrenheit :
-                                              Celsius );
+                                              Celsius,     pTLS ).data () );
+
     OSD_G_PRINTF ", (%ws)",
       temp.c_str ()
     OSD_END
@@ -972,14 +1026,18 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
       // Add memory temperature if it exists
       if (i <= gpu_stats->num_gpus && gpu_stats->gpus [i].temps_c.ram != 0)
       {
-        std::wstring temp =
+        static std::wstring temp (L"", 16);
+
+        temp.assign (
           SK_FormatTemperature (
             gpu_stats->gpus [i].temps_c.gpu,
               Celsius,
                 config.system.prefer_fahrenheit ? Fahrenheit :
-                                                  Celsius );
+                                                  Celsius,     pTLS ).data ()
+          );
+
         OSD_G_PRINTF ", (%ws)",
-          temp.c_str ()
+          temp.data ()
         OSD_END
       }
 
@@ -1105,14 +1163,18 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
       // Add memory temperature if it exists
       if (gpu_stats->gpus [i].temps_c.ram != 0)
       {
-        std::wstring temp =
+        static std::wstring temp (L"", 16);
+
+        temp.assign (
           SK_FormatTemperature (
             gpu_stats->gpus [i].temps_c.gpu,
               Celsius,
                 config.system.prefer_fahrenheit ? Fahrenheit :
-                                                  Celsius );
+                                                  Celsius,     pTLS ).data ()
+        );
+
         OSD_G_PRINTF ", (%ws)",
-          temp.c_str ()
+          temp.data ()
         OSD_END
       }
     }
@@ -1301,14 +1363,20 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
       );
     }
 
-    std::wstring working_set =
-      SK_File_SizeToString (pmcx.WorkingSetSize, MiB);
-    std::wstring commit =
-      SK_File_SizeToString (pmcx.PrivateUsage,   MiB);
-    std::wstring virtual_size =
+    static
+      std::wstring working_set,
+                   commit,
+                   virtual_size;
+
+    working_set.assign  (
+      SK_File_SizeToString (pmcx.WorkingSetSize, MiB, pTLS).data ());
+    commit.assign       (
+      SK_File_SizeToString (pmcx.PrivateUsage,   MiB, pTLS).data ());
+    virtual_size.assign (
       SK_File_SizeToString (pmcx.PrivateUsage           +
                             pmcx.QuotaNonPagedPoolUsage +
-                            pmcx.QuotaPagedPoolUsage, MiB);
+                            pmcx.QuotaPagedPoolUsage, MiB,
+                                                      pTLS).data ());
 
     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
       working_set.c_str  (),
@@ -1316,14 +1384,19 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
       virtual_size.c_str ()
     OSD_END
 
-    std::wstring working_set_peak =
-      SK_File_SizeToString (pmcx.PeakWorkingSetSize,      MiB);
-    std::wstring commit_peak =
-      SK_File_SizeToString (pmcx.PeakPagefileUsage,       MiB);
-    std::wstring virtual_peak =
+    static
+      std::wstring working_set_peak,
+                   commit_peak,
+                   virtual_peak;
+
+    working_set_peak.assign (
+      SK_File_SizeToString (pmcx.PeakWorkingSetSize,      MiB, pTLS).data ());
+    commit_peak.assign      (
+      SK_File_SizeToString (pmcx.PeakPagefileUsage,       MiB, pTLS).data ());
+    virtual_peak.assign     (
       SK_File_SizeToString (pmcx.PeakPagefileUsage          +
                             pmcx.QuotaPeakNonPagedPoolUsage +
-                            pmcx.QuotaPeakPagedPoolUsage, MiB);
+                            pmcx.QuotaPeakPagedPoolUsage, MiB, pTLS).data ());
 
     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
       working_set_peak.c_str (),
@@ -1364,11 +1437,14 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 #endif
     for (DWORD i = 0; i < disk_stats.num_disks; i++)
     {
-      std::wstring read_bytes_sec =
-        SK_File_SizeToStringF (disk_stats.disks [i].read_bytes_sec, 6, 1);
+      static std::wstring read_bytes_sec,
+                          write_bytes_sec;
 
-      std::wstring write_bytes_sec =
-        SK_File_SizeToStringF (disk_stats.disks [i].write_bytes_sec, 6, 1);
+      read_bytes_sec.assign (
+        SK_File_SizeToStringF (disk_stats.disks [i].read_bytes_sec, 6, 1, Auto, pTLS).data ());
+
+      write_bytes_sec.assign (
+        SK_File_SizeToStringF (disk_stats.disks [i].write_bytes_sec, 6, 1, Auto, pTLS).data ());
 
       if (i == 0)
       {
@@ -1427,14 +1503,18 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 
   else
   {
+    static std::wstring usage,
+                        size,
+                        peak;
+
     for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++)
     {
-      std::wstring usage =
-        SK_File_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
-      std::wstring size =
-        SK_File_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
-      std::wstring peak =
-        SK_File_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
+      usage.assign (
+        SK_File_SizeToStringF (pagefile_stats.pagefiles [i].usage,      5, 2, Auto, pTLS).data ());
+      size.assign  (
+        SK_File_SizeToStringF (pagefile_stats.pagefiles [i].size,       5, 2, Auto, pTLS).data ());
+      peak.assign  (
+        SK_File_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5, 2, Auto, pTLS).data ());
 
       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
         pagefile_stats.pagefiles [i].name,

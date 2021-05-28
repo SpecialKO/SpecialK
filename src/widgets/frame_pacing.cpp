@@ -478,15 +478,15 @@ SK_SpawnPresentMonWorker (void)
   // Wine doesn't support this...
   if (__SK_Wine)
     return;
-  
+
   static HANDLE hPresentMonThread = 0;
 
   hPresentMonThread =
   SK_Thread_CreateEx ( [](LPVOID lpUser) -> DWORD
-  {  
+  {
     std::string pid =
       std::to_string (PtrToUlong (lpUser));
-  
+
     const char* argv_ [] =
     { SK_RunLHIfBitness (
         32, "SpecialK_PresentMon32",
@@ -495,7 +495,7 @@ SK_SpawnPresentMonWorker (void)
          "-process_id",
                   pid.c_str (),
          "-stop_existing_session" };
-  
+
     SK_PresentMon_Main ( sizeof (argv_    )/
                          sizeof (argv_ [0]),
                         (char **)argv_ );
@@ -990,23 +990,28 @@ SK_ImGui_DrawFramePercentiles (void)
               0.88f, luminance )
                    );
 
+    static char p0_txt [64] = { };
+            int p0_len      =
+      SK_FormatStringView ( std::string_view (p0_txt, 64),
+                              "%3.1f%% Low FPS: %5.2f",
+                                   percentile0.cutoff,
+                                   percentile0.computed_fps );
+
+      p0_txt [std::max (0, std::min (64, p0_len))] = '\0';
+
     ImGui::SameLine       ( );
     ImGui::BeginGroup     ( );
     ImGui::PushStyleColor ( ImGuiCol_PlotHistogram,
                             p0_color                 );
     ImGui::ProgressBar    ( p0_ratio, ImVec2 ( -1.0f,
                                                 0.0f ),
-                            SK_FormatString (
-                              "%3.1f%% Low FPS: %5.2f",
-                                percentile0.cutoff,
-                                percentile0.computed_fps
-                                            ).c_str ()
-                          );
+                            p0_txt );
+
     if ( data_timespan > 0.0                   &&
          std::isnormal ( percentile1.computed_fps )
        )
     { percentile1.has_data = true;
-    
+
       float p1_ratio =
           percentile1.computed_fps / mean.computed_fps;
 
@@ -1015,16 +1020,20 @@ SK_ImGui_DrawFramePercentiles (void)
               0.88f, luminance )
                    );
 
+      static char p1_txt [64] = { };
+             int  p1_len      =
+        SK_FormatStringView ( std::string_view (p1_txt, 64),
+                                "%3.1f%% Low FPS: %5.2f",
+                                  percentile1.cutoff,
+                                  percentile1.computed_fps );
+
+      p1_txt [std::max (0, std::min (64, p1_len))] = '\0';
+
       ImGui::PushStyleColor ( ImGuiCol_PlotHistogram,
                               p1_color                 );
       ImGui::ProgressBar    ( p1_ratio, ImVec2 ( -1.0f,
                                                   0.0f ),
-                              SK_FormatString (
-                                "%3.1f%% Low FPS: %5.2f",
-                                  percentile1.cutoff,
-                                  percentile1.computed_fps
-                                              ).c_str ()
-                              );
+                              p1_txt );
       ImGui::PopStyleColor  (2);
     }
 

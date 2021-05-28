@@ -572,6 +572,11 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   freed += log.formatted_output.reclaim ();
   freed += dxgi.mode_list.reclaim       ();
 
+  freed += osd .szFileSize.reclaim      ();
+  freed += osd.wszFileSize.reclaim      ();
+  freed += osd .szTemperature.reclaim   ();
+  freed += osd.wszTemperature.reclaim   ();
+
   for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
   {
     if (segment != nullptr)

@@ -120,7 +120,7 @@ SK_Inject_GetRecord (DWORD dwPid)
                  __SK_InjectionHistory [idx].process.inject         = __SK_InjectionHistory_inject  [idx];
                  __SK_InjectionHistory [idx].process.eject          = __SK_InjectionHistory_eject   [idx];
                  __SK_InjectionHistory [idx].process.crashed        = __SK_InjectionHistory_crash   [idx];
-                 
+
                  __SK_InjectionHistory [idx].render.api             = __SK_InjectionHistory_api     [idx];
                  __SK_InjectionHistory [idx].render.frames          = __SK_InjectionHistory_frames  [idx];
 
@@ -151,7 +151,7 @@ SK_Inject_AuditRecord ( DWORD                 dwPid,
         wcsncpy_s (
            __SK_InjectionHistory [idx].process.win_title,   128, pData->process.win_title,      _TRUNCATE);
         wcsncpy_s (
-           __SK_InjectionHistory [idx].platform.uwp_full_name,                 
+           __SK_InjectionHistory [idx].platform.uwp_full_name,
                                    PACKAGE_FULL_NAME_MAX_LENGTH, pData->platform.uwp_full_name, _TRUNCATE);
 
         wcsncpy_s (&__SK_InjectionHistory_name         [idx * MAX_PATH], MAX_PATH-1,
@@ -166,7 +166,7 @@ SK_Inject_AuditRecord ( DWORD                 dwPid,
          __SK_InjectionHistory_inject [idx] = pData->process.inject;
          __SK_InjectionHistory_eject  [idx] = pData->process.eject;
          __SK_InjectionHistory_crash  [idx] = pData->process.crashed;
-         
+
          __SK_InjectionHistory_api    [idx] = pData->render.api;
          __SK_InjectionHistory_frames [idx] = pData->render.frames;
 
@@ -177,7 +177,7 @@ SK_Inject_AuditRecord ( DWORD                 dwPid,
          __SK_InjectionHistory [idx].process.inject       = __SK_InjectionHistory_inject [idx];
          __SK_InjectionHistory [idx].process.eject        = __SK_InjectionHistory_eject  [idx];
          __SK_InjectionHistory [idx].process.crashed      = __SK_InjectionHistory_crash  [idx];
-                 
+
          __SK_InjectionHistory [idx].render.api           = __SK_InjectionHistory_api    [idx];
          __SK_InjectionHistory [idx].render.frames        = __SK_InjectionHistory_frames [idx];
          __SK_InjectionHistory [idx].platform.steam_appid = __SK_InjectionHistory_AppId  [idx];
@@ -455,14 +455,14 @@ IsWindows8OrGreater (void)
   OSVERSIONINFO
     ovi                     = { 0 };
     ovi.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
-  
+
   GetVersionEx (&ovi);
 
   if ( (ovi.dwMajorVersion == 6 &&
         ovi.dwMinorVersion >= 2) ||
          ovi.dwMajorVersion > 6
      ) return true;
-  
+
   return false;
 } //IsWindows8OrGreater
 #pragma warning (default : 4996)
@@ -566,15 +566,15 @@ GetModuleLoadCount (HMODULE hDll)
 
     if (LdrEntry.DllBase == (void *)hDll)
     {
-      //  
+      //
       //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_data_table_entry.htm
       //
       int offDdagNode =
         (0x14 - BITNESS) * sizeof(void*);   // See offset on LDR_DDAG_NODE *DdagNode;
-      
+
       ULONG count        = 0;
       char* addrDdagNode = ((char*)pLdrEntry) + offDdagNode;
-      
+
       //
       //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_ddag_node.htm
       //  See offset on ULONG LoadCount;
@@ -583,7 +583,7 @@ GetModuleLoadCount (HMODULE hDll)
            (! ReadMem (              addr + 3 * sizeof (void *),
                                     &count,     sizeof (count))) )
           return 0;
-      
+
       return
         (int)count;
     } //if
@@ -620,7 +620,7 @@ SK_Inject_SpawnUnloadListener (void)
         {
           LONG idx =
             InterlockedIncrement (&num_hooked_pids);
-      
+
           if (idx < MAX_HOOKED_PROCS)
           {
             WriteULongRelease (
@@ -629,22 +629,22 @@ SK_Inject_SpawnUnloadListener (void)
             );
           }
         }
-      
+
         // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
         SetThreadDescription_pfn
             _SetThreadDescriptionWin10 =
             (SetThreadDescription_pfn)GetProcAddress (GetModuleHandle (L"Kernel32"),
             "SetThreadDescription");
-      
+
         if (_SetThreadDescriptionWin10 != nullptr) {
             _SetThreadDescriptionWin10 (
               g_hPacifierThread,
                 L"[SK] Global Hook Pacifier"
             );
         }
-      
+
         SetThreadPriority (g_hPacifierThread, THREAD_PRIORITY_TIME_CRITICAL);
-      
+
         HANDLE signals [] = {
               hHookTeardown,
           __SK_DLL_TeardownEvent
@@ -653,7 +653,7 @@ SK_Inject_SpawnUnloadListener (void)
         if (hHookTeardown != SK_INVALID_HANDLE)
         {
           InterlockedIncrement  (&injected_procs);
-      
+
           MsgWaitForMultipleObjectsEx (
             2, signals, INFINITE, QS_ALLINPUT, 0x0
           );
@@ -779,7 +779,7 @@ SKX_RemoveCBTHook (void)
 
   if ( hHookOrig != nullptr &&
          UnhookWindowsHookEx (hHookOrig) )
-  {    
+  {
     if (SK_GetHostAppUtil ()->isInjectionTool ())
     {
       InterlockedDecrement (&injected_procs);
@@ -1138,8 +1138,8 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 
     *wszIn = L'\0';
 
-    std::wstring      ver_dir;
-    SK_FormatStringW (ver_dir, LR"(%s\Version)", SK_GetConfigPath ());
+    std::wstring          ver_dir =
+      SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
 
     const DWORD dwAttribs =
       GetFileAttributesW (ver_dir.c_str ());
@@ -1284,8 +1284,8 @@ SK_Inject_SwitchToRenderWrapper (void)
 
     *wszIn = L'\0';
 
-    std::wstring      ver_dir;
-    SK_FormatStringW (ver_dir, LR"(%s\Version)", SK_GetConfigPath ());
+    std::wstring        ver_dir =
+      SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
 
     const DWORD dwAttribs =
       GetFileAttributesW (ver_dir.c_str ());

@@ -272,7 +272,7 @@ SK_D3D12_UpdateRenderStatsEx (ID3D12GraphicsCommandList *pList, IDXGISwapChain3 
     case SK::DXGI::PipelineStatsD3D12::StatQueryD3D12::Sample:
       if (pipeline_stats.query.fence._resolvOnFrame.load () != SK_GetFramesDrawn ())
       {
-        if (WAIT_OBJECT_0 == WaitForSingleObject (pipeline_stats.query.fence.event, 0))
+        if (WAIT_OBJECT_0 == SK_WaitForSingleObject (pipeline_stats.query.fence.event, 0))
         {
           pipeline_stats.readback ();
           pipeline_stats.query._currentDataPhase.store (SK::DXGI::PipelineStatsD3D12::StatQueryD3D12::None);

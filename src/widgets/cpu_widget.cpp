@@ -1529,27 +1529,32 @@ public:
      *PPROCESSOR_POWER_INFORMATION;
 #pragma pack(pop)
 
-    SYSTEM_INFO        sinfo = { };
-    SK_GetSystemInfo (&sinfo);
-
-    PPROCESSOR_POWER_INFORMATION pwi =
-      reinterpret_cast <PPROCESSOR_POWER_INFORMATION>   (
-        SK_TLS_Bottom ()->scratch_memory->cpu_info.alloc (
-          sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
-      )
-    );
-
-    CallNtPowerInformation ( ProcessorInformation,
-                             nullptr, 0,
-                             pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
-    );
-
     static auto& cpu_stats = *SK_WMI_CPUStats;
 
-    if (                   pwi != nullptr                                         &&
-         last_update           < ( SK::ControlPanel::current_time - update_freq ) &&
+    if ( last_update           < ( SK::ControlPanel::current_time - update_freq ) &&
           cpu_stats.num_cpus   > 0 )
     {
+      // Processor count is not going to change at run-time or I will eat my hat
+      static SYSTEM_INFO             sinfo = { };
+      SK_RunOnce (SK_GetSystemInfo (&sinfo));
+
+      SK_TLS *pTLS =
+            SK_TLS_Bottom ();
+
+      PPROCESSOR_POWER_INFORMATION pwi =
+        reinterpret_cast <PPROCESSOR_POWER_INFORMATION>   (
+          pTLS != nullptr ? pTLS->scratch_memory->cpu_info.alloc (
+            sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors )
+                          : nullptr
+      );
+
+      if (pwi == nullptr) return; // Ohnoes (!!)
+
+      CallNtPowerInformation ( ProcessorInformation,
+                               nullptr, 0,
+                               pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
+      );
+
       if (   cpu_records.size () < ( static_cast <size_t> (cpu_stats.num_cpus) + 1 )
          ) { cpu_records.resize    ( static_cast <size_t> (cpu_stats.num_cpus) + 1 ); }
 
@@ -1629,6 +1634,9 @@ public:
   void draw (void) override
   {
     if (ImGui::GetFont () == nullptr) return;
+
+    SK_TLS *pTLS =
+          SK_TLS_Bottom ();
 
     const  float font_size    = ImGui::GetFont ()->FontSize;
     static char  szAvg [1024] = { };
@@ -1896,19 +1904,19 @@ public:
     };
 
     ImGui::BeginGroup ();
-    if (show_mode_buttons || show_install_button) {
-    if (                                EastWest &
-         static_cast <int> (DockAnchor::East) )
+    if (show_mode_buttons || show_install_button)
     {
-      ImGui::BeginGroup  ();
-      _DrawButtonPanel (  static_cast <int> (getDockingPoint()) &
-                        ( static_cast <int> (DockAnchor::North) |
-                          static_cast <int> (DockAnchor::South) ) );
-      ImGui::EndGroup    ();
-      ImGui::SameLine    ();
+      if (                                EastWest &
+           static_cast <int> (DockAnchor::East) )
+      {
+        ImGui::BeginGroup  ();
+        _DrawButtonPanel (  static_cast <int> (getDockingPoint()) &
+                          ( static_cast <int> (DockAnchor::North) |
+                            static_cast <int> (DockAnchor::South) ) );
+        ImGui::EndGroup    ();
+        ImGui::SameLine    ();
+      }
     }
-}
-
     ImGui::PushItemWidth (last_longest_line);
     ImGui::BeginGroup    ();
     {
@@ -1922,18 +1930,18 @@ public:
       double dTemp =
         __SK_CPU.cores [0].temperature_C;// SK_CPU_UpdateCoreSensors (0)->temperature_C
 
-      extern std::string
-      SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit);
+      extern std::string_view
+      SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_TLS* pTLS);
 
-      static std::string temp;
+      static std::string temp ("", 16);
 
       temp.assign (
         SK_FormatTemperature (
           dTemp,
             Celsius,
               config.system.prefer_fahrenheit ? Fahrenheit :
-                                                Celsius )
-      );
+                                                Celsius, pTLS ).data ()
+        );
 
       //static SK_CPUCore_PowerLog package_power;
 
@@ -2173,7 +2181,7 @@ public:
 
             if (fabs (core_sensors.temperature_C - 0.0) > std::numeric_limits <double>::epsilon ())
             {
-              static std::string core_temp;
+              static std::string core_temp ("", 16);
 
               //if (! SK_CPU_IsZen ())
               //{
@@ -2182,7 +2190,7 @@ public:
                     core_sensors.temperature_C,
                       Celsius,
                         config.system.prefer_fahrenheit ? Fahrenheit :
-                                                          Celsius )
+                                                          Celsius, pTLS ).data ()
                 );
               //}
 
@@ -2279,7 +2287,7 @@ public:
                           static_cast <int> (DockAnchor::South) ) );
       ImGui::EndGroup    ();
     }
-    ImGui::EndGroup ();
+    ImGui::EndGroup      ();
 
     show_mode_buttons =
       true;// (SK_ImGui_Visible || ImGui::IsWindowHovered ());
@@ -2304,7 +2312,7 @@ public:
   }
 
 protected:
-  const DWORD update_freq        = 666UL;
+  const DWORD update_freq        = 150UL;
 
 private:
   struct active_scheme_s : power_scheme_s {

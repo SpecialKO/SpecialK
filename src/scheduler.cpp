@@ -296,6 +296,7 @@ NtWaitForMultipleObjects_Original = nullptr;
 
 #define STATUS_SUCCESS                   ((NTSTATUS)0x00000000L) // ntsubauth
 #define STATUS_ALERTED                   ((NTSTATUS)0x00000101L)
+#define STATUS_ACCESS_DENIED             ((NTSTATUS)0xc0000022L)
 
 DWORD
 WINAPI
@@ -346,6 +347,10 @@ WINAPI
 SK_WaitForSingleObject (_In_ HANDLE hHandle,
                         _In_ DWORD  dwMilliseconds )
 {
+#if 1
+  return
+    WaitForSingleObject (hHandle, dwMilliseconds);
+#else
   if (dwMilliseconds == INFINITE)
   {
     return
@@ -360,6 +365,7 @@ SK_WaitForSingleObject (_In_ HANDLE hHandle,
 
   return
     SK_WaitForSingleObject_Micro ( hHandle, &usecs );
+#endif
 }
 
 NTSTATUS
@@ -423,6 +429,50 @@ extern volatile LONG SK_POE2_ThreadBoostsKilled;
 extern          bool SK_POE2_FixUnityEmployment;
 extern          bool SK_POE2_Stage2UnityFix;
 extern          bool SK_POE2_Stage3UnityFix;
+
+#if 0
+DWORD
+WINAPI
+SK_WaitForSingleObject ( HANDLE hWaitObj,
+                         DWORD  dwTimeout )
+{
+  if (   NtWaitForSingleObject_Original == nullptr)
+    return WaitForSingleObject (hWaitObj, dwTimeout);
+
+  LARGE_INTEGER
+    liTimeout;
+    liTimeout.QuadPart =
+  static_cast <LONGLONG> (dwTimeout) * 1000LL;
+
+  NTSTATUS ntStatus =
+    NtWaitForSingleObject_Original ( hWaitObj, FALSE, &liTimeout );
+
+  switch (ntStatus)
+  {
+    case STATUS_ACCESS_DENIED:
+      SetLastError (ERROR_ACCESS_DENIED);
+      return WAIT_FAILED;
+
+    // Alerted states should not happen in WaitForSingleObject
+    case STATUS_ALERTED:
+    case STATUS_USER_APC:
+      return WAIT_FAILED;
+
+    case STATUS_SUCCESS:
+      return WAIT_OBJECT_0;
+
+    case STATUS_TIMEOUT:
+      return WAIT_TIMEOUT;
+
+    case STATUS_INVALID_HANDLE:
+      SetLastError (ERROR_INVALID_HANDLE);
+      return WAIT_FAILED;
+
+    default:
+      return WAIT_FAILED;
+  }
+}
+#endif
 
 NTSTATUS
 WINAPI

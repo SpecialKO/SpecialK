@@ -1167,13 +1167,13 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
       kWriteBuffer.second.clear ();
       kWriteBuffer.first = SK_GetFramesDrawn ();
 
-      for (const auto datum : data)
+      for (const auto& datum : data)
       {
         if (datum.when.QuadPart >= 0)
         {
-          if (_isreal (datum.val))
+          if (_disreal (datum.val))
           {
-            kWriteBuffer.second.push_back (datum.val);
+            kWriteBuffer.second.emplace_back (datum.val);
           }
         }
       }

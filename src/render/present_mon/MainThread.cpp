@@ -25,7 +25,7 @@ SOFTWARE.
 
 enum {
   HOTKEY_ID      = 0x80,
-  
+
   // Timer ID's must be non-zero
   DELAY_TIMER_ID = 1,
   TIMED_TIMER_ID = 2,
@@ -40,7 +40,7 @@ EnableScrollLock (bool enable)
 {
   auto const& args =
     GetCommandLineArgs ();
-  
+
   auto enabled =
     (GetKeyState (VK_SCROLL) & 1) == 1;
 
@@ -55,25 +55,25 @@ EnableScrollLock (bool enable)
     {
       gHotkeyIgnoreCount += 1;
     }
-  
+
     // Send SCROLLLOCK press message.
     auto extraInfo =
       GetMessageExtraInfo ();
 
     INPUT input [2] = { };
-  
+
     input [0].type           = INPUT_KEYBOARD;
     input [0].ki.wVk         = VK_SCROLL;
     input [0].ki.dwExtraInfo = extraInfo;
-  
+
     input [1].type           = INPUT_KEYBOARD;
     input [1].ki.wVk         = VK_SCROLL;
     input [1].ki.dwFlags     = KEYEVENTF_KEYUP;
     input [1].ki.dwExtraInfo = extraInfo;
-  
+
     auto sendCount =
       SendInput (2, input, sizeof (INPUT));
-  
+
     if (sendCount != 2)
       fprintf (stderr, "warning: could not toggle scroll lock.\n");
   }
@@ -174,7 +174,7 @@ HandleWindowMessage (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   auto const& args =
     GetCommandLineArgs ();
-  
+
   switch (uMsg)
   {
     case WM_TIMER:
@@ -200,27 +200,27 @@ HandleWindowMessage (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         } break;
       }
     } break;
-  
+
     case WM_HOTKEY:
     {
       if (gHotkeyIgnoreCount > 0)
       {   gHotkeyIgnoreCount -= 1;
           break;
       }
-      
+
       if (IsRecording ())
         StopRecording ();
-      
+
       else if (args.mDelay == 0)
         StartRecording ();
-      
+
       else
         SetTimer (hWnd, DELAY_TIMER_ID, args.mDelay * 1000, (TIMERPROC) nullptr);
 
       return 0;
     } break;
   }
-  
+
   return
     DefWindowProc (hWnd, uMsg, wParam, lParam);
 }
@@ -346,7 +346,7 @@ SK_PresentMon_Main (int argc, char **argv)
   SetConsoleCtrlHandler(HandleCtrlEvent, FALSE);
   */
   DestroyWindow (gWnd);
-  
+
   UnregisterClass (wndClass.lpszClassName, nullptr);
 
   return 0;

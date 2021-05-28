@@ -40,13 +40,13 @@ bool InPerfLogUsersGroup (void)
   {
     return false;
   }
-  
+
   BOOL
     isMember = FALSE;
 
   if (! CheckTokenMembership (nullptr, sidPerfLogUsers, &isMember))
     isMember = FALSE;
-  
+
   FreeSid (sidPerfLogUsers);
 
   return
@@ -71,7 +71,7 @@ EnableDebugPrivilege (void)
     FreeLibrary (hModule);
     return false;
   }
-  
+
   HANDLE hToken = NULL;
 
   if ( FALSE ==
@@ -82,13 +82,13 @@ EnableDebugPrivilege (void)
     FreeLibrary (hModule);
     return false;
   }
-  
+
   // Try to enable required privilege
   TOKEN_PRIVILEGES
     tp                           = {                  };
     tp.PrivilegeCount            =                    1;
     tp.Privileges [0].Attributes = SE_PRIVILEGE_ENABLED;
-  
+
   if ( FALSE ==
          pLookupPrivilegeValue ( nullptr, L"SeDebugPrivilege",
             &tp.Privileges [0].Luid
@@ -100,7 +100,7 @@ EnableDebugPrivilege (void)
 
     return false;
   }
-  
+
   auto adjustResult =
     pAdjustTokenPrivileges (
           hToken, FALSE, &tp, sizeof (tp),
@@ -108,10 +108,10 @@ EnableDebugPrivilege (void)
 
   auto adjustError =
       GetLastError ();
-  
+
   CloseHandle (hToken);
   FreeLibrary (hModule);
-  
+
   return
    ( adjustResult != 0         &&
      adjustError  != ERROR_NOT_ALL_ASSIGNED );
@@ -120,69 +120,8 @@ EnableDebugPrivilege (void)
 int
 RestartAsAdministrator ( int argc, char **argv )
 {
-  // Get the exe path
-  char exe_path [MAX_PATH] = { };
-  GetModuleFileNameA (NULL, exe_path, sizeof (exe_path));
-  
-  // Combine arguments into single string and remove -restart_as_admin to
-  // prevent an endless loop if the escalation fails.
-  std::string args;
-  for (int i = 1; i < argc; ++i)
-  {
-    if ( _stricmp (argv [i], "-restart_as_admin") == 0 )
-      continue;
-    
-    auto addQuotes =
-      argv [i][0] != '\"' && strchr (argv [i], ' ') != nullptr;
+  UNREFERENCED_PARAMETER (argc);
+  UNREFERENCED_PARAMETER (argv);
 
-    if (addQuotes) args += '\"';
-                   args += argv [i];
-    if (addQuotes) args += '\"';
-                   args +=  ' ';
-  }
-  
-  // Re-run the process with the runas verb
-  DWORD code = 2;
-  
-  SHELLEXECUTEINFOA
-    info              = {                     };
-    info.cbSize       =           sizeof (info);
-    //    return info.hProcess for explicit wait
-    info.fMask        = SEE_MASK_NOCLOSEPROCESS;
-    info.lpVerb       =                 "runas";
-    info.lpFile       =                exe_path;
-    info.lpParameters =           args.c_str ();
-    info.nShow        =          SW_SHOWDEFAULT;
-
-  auto ok =
-    ShellExecuteExA (&info);
-
-  if (ok)
-  {
-    WaitForSingleObject (info.hProcess, INFINITE);
-    GetExitCodeProcess  (info.hProcess, &code);
-    CloseHandle         (info.hProcess);
-  }
-  
-  else
-  {
-    fprintf (stderr, "error: failed to elevate privilege ");
-
-    int err =
-      GetLastError ();
-
-    switch (err)
-    {
-      case ERROR_FILE_NOT_FOUND:    fprintf (stderr, "(file not found).\n");    break;
-      case ERROR_PATH_NOT_FOUND:    fprintf (stderr, "(path not found).\n");    break;
-      case ERROR_DLL_NOT_FOUND:     fprintf (stderr, "(dll not found).\n");     break;
-      case ERROR_ACCESS_DENIED:     fprintf (stderr, "(access denied).\n");     break;
-      case ERROR_CANCELLED:         fprintf (stderr, "(cancelled).\n");         break;
-      case ERROR_NOT_ENOUGH_MEMORY: fprintf (stderr, "(out of memory).\n");     break;
-      case ERROR_SHARING_VIOLATION: fprintf (stderr, "(sharing violation).\n"); break;
-      default:                      fprintf (stderr, "(%u).\n", err);           break;
-    }
-  }
-  
-  return code;
+  return 1;
 }

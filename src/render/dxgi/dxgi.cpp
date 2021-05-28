@@ -1853,14 +1853,20 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
   DXGI_SWAP_CHAIN_DESC1   swapDesc1 = { };
   pSwapChain3->GetDesc1 (&swapDesc1);
 
-  DXGI_SWAP_CHAIN_DESC
-                  swapDesc = { };
-  This->GetDesc (&swapDesc);
-
-  if (IsWindow (swapDesc.OutputWindow) &&
-                swapDesc.OutputWindow != 0)
+  static bool init_once  = false;
+  if (        init_once == false)
   {
-    SK_RunOnce (SK_InstallWindowHook (swapDesc.OutputWindow));
+    DXGI_SWAP_CHAIN_DESC
+                    swapDesc = { };
+    This->GetDesc (&swapDesc);
+
+    if (IsWindow (swapDesc.OutputWindow) &&
+                  swapDesc.OutputWindow  != 0)
+    {
+              init_once = true;
+
+      SK_InstallWindowHook (swapDesc.OutputWindow);
+    }
   }
 
   rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_FLOAT);

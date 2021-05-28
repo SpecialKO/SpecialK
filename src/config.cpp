@@ -2587,7 +2587,7 @@ auto DeclKeybind =
   scheduling.priority.raise_in_fg->load  (config.priority.raise_fg);
 
   if (config.priority.raise_always)
-    SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
+    SetPriorityClass (GetCurrentProcess (), ABOVE_NORMAL_PRIORITY_CLASS);
 
   render.framerate.enforcement_policy->load (config.render.framerate.enforcement_policy);
 

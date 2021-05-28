@@ -3102,8 +3102,8 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
       ShellExecuteEx (&sexec_info);
 
-      WaitForSingleObject (sexec_info.hProcess, INFINITE);
-      CloseHandle         (sexec_info.hProcess);
+      SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
+      CloseHandle            (sexec_info.hProcess);
     }
   }
 
@@ -3177,8 +3177,8 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
       ShellExecuteEx (&sexec_info);
 
-      WaitForSingleObject (sexec_info.hProcess, INFINITE);
-      CloseHandle         (sexec_info.hProcess);
+      SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
+      CloseHandle            (sexec_info.hProcess);
 
       // ------------------
 
@@ -3194,8 +3194,8 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
       ShellExecuteEx (&sexec_info);
 
-      WaitForSingleObject (sexec_info.hProcess, INFINITE);
-      CloseHandle         (sexec_info.hProcess);
+      SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
+      CloseHandle            (sexec_info.hProcess);
 
       wchar_t wszTemp [MAX_PATH + 2] = { };
 
@@ -3283,7 +3283,7 @@ SK_WinRing0_Uninstall (void)
     DWORD dwWaitState = 1;
 
     do { if (   WAIT_OBJECT_0 ==
-                WaitForSingleObject (pinfo.hProcess, 50UL) )
+             SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
       {       dwWaitState  = WAIT_OBJECT_0;                }
       else  { dwWaitState++; SK_Sleep (4);                 }
     } while ( dwWaitState < 25 &&
@@ -3373,7 +3373,7 @@ SK_WinRing0_Install (void)
     DWORD dwWaitState = 1;
 
     do { if (   WAIT_OBJECT_0 ==
-                WaitForSingleObject (pinfo.hProcess, 50UL) )
+             SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
       {       dwWaitState  = WAIT_OBJECT_0;                }
       else  { dwWaitState++; SK_Sleep (4);                 }
     } while ( dwWaitState < 25 &&
@@ -3482,9 +3482,9 @@ SK_FormatString (char const* const _Format, ...)
 
 int
 __cdecl
-SK_FormatString (std::string& out, char const* const _Format, ...)
+SK_FormatStringView (std::string_view& out, char const* const _Format, ...)
 {
-  intptr_t len = 0;
+  int len = 0;
 
   va_list   _ArgList;
   va_start (_ArgList, _Format);
@@ -3494,13 +3494,13 @@ SK_FormatString (std::string& out, char const* const _Format, ...)
   }
   va_end (_ArgList);
 
-  if (out.capacity () < (size_t)len)
-                    out.resize (len);
+  len =
+    std::min ((int)out.size () - 1, len);
 
   va_start (_ArgList, _Format);
   {
     len =
-      vsnprintf (out.data (), len, _Format, _ArgList);
+      vsnprintf ((char *)&out [0], len, _Format, _ArgList);
   }
   va_end (_ArgList);
 
@@ -3530,8 +3530,8 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
 
   wchar_t* pData =
     ( ReadAcquire (&__SK_DLL_Attached) &&
-              (pTLS = SK_TLS_Bottom ()) != nullptr )              ?
-    (wchar_t *)pTLS->scratch_memory->eula.alloc (alloc_size, true) :
+              (pTLS = SK_TLS_Bottom ()) != nullptr )                ?
+    (wchar_t *)pTLS->scratch_memory->eula.alloc  (alloc_size, true) :
     (wchar_t *)SK_LocalAlloc (              LPTR, alloc_size      );
 
   if (! pData)
@@ -3550,7 +3550,7 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
 
 int
 __cdecl
-SK_FormatStringW (std::wstring& out, wchar_t const* const _Format, ...)
+SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
 {
   int len = 0;
 
@@ -3562,13 +3562,13 @@ SK_FormatStringW (std::wstring& out, wchar_t const* const _Format, ...)
   }
   va_end (_ArgList);
 
-  if (out.capacity () < (size_t)len)
-                    out.resize (len);
+  len =
+    std::min ((int)out.size () - 1, len);
 
   va_start (_ArgList, _Format);
   {
     len =
-      _vsnwprintf ((wchar_t*)out.data (), len, _Format, _ArgList);
+      _vsnwprintf ((wchar_t *)out.data (), len, _Format, _ArgList);
   }
   va_end (_ArgList);
 
@@ -4689,8 +4689,8 @@ SK_ShellExecuteW ( _In_opt_ HWND    hwnd,
 
   if (args.hThread != 0)
   {
-    WaitForSingleObject (args.hThread, INFINITE);
-    CloseHandle         (args.hThread);
+    SK_WaitForSingleObject (args.hThread, INFINITE);
+    CloseHandle            (args.hThread);
   }
 
   return
@@ -4749,8 +4749,8 @@ SK_ShellExecuteA ( _In_opt_ HWND   hwnd,
 
   if (args.hThread != 0)
   {
-    WaitForSingleObject (args.hThread, INFINITE);
-    CloseHandle         (args.hThread);
+    SK_WaitForSingleObject (args.hThread, INFINITE);
+    CloseHandle            (args.hThread);
   }
 
   return
@@ -4786,7 +4786,7 @@ SK_timeGetTime (void)
   if (SK_QueryPerformanceCounter (&qpcNow))
     return   static_cast <DWORD> ((qpcNow.QuadPart /
                                    qpcFreqAsMS) & 0xFFFFFFFFLL);
-  
+
 
   static HMODULE hModWinMM =
     LoadLibraryEx ( L"winmm.dll", nullptr,

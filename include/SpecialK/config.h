@@ -739,8 +739,8 @@ struct sk_config_t
 
   struct priority_scheduling_s {
     bool    raise_always = false;
-    bool    raise_bg     =  true;
-    bool    raise_fg     = false;
+    bool    raise_bg     = false;
+    bool    raise_fg     =  true;
   } priority;
 };
 

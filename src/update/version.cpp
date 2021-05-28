@@ -532,17 +532,21 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
       double seconds =
         SK_DeltaPerfMS (liStartTime.QuadPart, 1) / 1000.0;
 
-      SK_LOG0 ( (L"Fetched %ws from [%ws] in %4.1f seconds (%ws/sec)",
-                 SK_File_SizeToString (
-                   static_cast <uint64_t> (dwTotal)
-                 ).c_str (), wszRemoteRepoURL, seconds,
-                 SK_File_SizeToString (
-                   static_cast <uint64_t> (
-                     static_cast < double>  (dwTotal) /
-                                            seconds
-                                          )
-                 ).c_str ()
-                ), L"AutoUpdate"
+      std::wstring total_str (
+        SK_File_SizeToString (
+          static_cast <uint64_t> (dwTotal)
+                             ).data ());
+      std::wstring  rate_str (
+        SK_File_SizeToString (
+          static_cast <uint64_t> (
+            static_cast < double>  (dwTotal) / seconds
+                                 )
+                             ).data ());
+
+      SK_LOG0 ( ( L"Fetched %ws from [%ws] in %4.1f seconds (%ws/sec)",
+                  total_str.c_str (), wszRemoteRepoURL, seconds,
+                   rate_str.c_str () ),
+                 L"AutoUpdate"
               );
     }
   }
@@ -1016,17 +1020,21 @@ SK_FetchVersionInfo2 ( const wchar_t* wszProduct,
       double seconds =
         SK_DeltaPerfMS (liStartTime.QuadPart, 1) / 1000.0;
 
-      SK_LOG0 ( (L"Fetched %ws from [%ws] in %4.1f seconds (%ws/sec)",
-                 SK_File_SizeToString (
-                   static_cast <uint64_t> (dwTotal)
-                 ).c_str (), wszRemoteRepoURL, seconds,
-                 SK_File_SizeToString (
-                   static_cast <uint64_t> (
-                     static_cast < double>  (dwTotal) /
-                                            seconds
-                                          )
-                 ).c_str ()
-                ), L"AutoUpdate"
+      std::wstring total_str (
+        SK_File_SizeToString (
+          static_cast <uint64_t> (dwTotal)
+                             ).data ());
+      std::wstring  rate_str (
+        SK_File_SizeToString (
+          static_cast <uint64_t> (
+            static_cast < double>  (dwTotal) / seconds
+                                 )
+                             ).data ());
+
+      SK_LOG0 ( ( L"Fetched %ws from [%ws] in %4.1f seconds (%ws/sec)",
+                    total_str.c_str (), wszRemoteRepoURL, seconds,
+                     rate_str.c_str () ),
+                  L"AutoUpdate"
               );
     }
   }

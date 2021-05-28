@@ -846,34 +846,58 @@ ActivateWindow ( HWND hWnd,
   {
     InterlockedIncrement (&SK_RenderBackend::flip_skip);
 
+    struct {
+      INT   GPU       = 0;
+      DWORD dwProcess = NORMAL_PRIORITY_CLASS;
+
+      bool proposeChange (INT _GPU, DWORD _dwProcess)
+      {
+        SK_ComPtr <ID3D11Device> pDev11 =
+          SK_GetCurrentRenderBackend ().getDevice <ID3D11Device> ();
+        SK_ComPtr <ID3D12Device> pDev12 =
+          SK_GetCurrentRenderBackend ().getDevice <ID3D12Device> ();
+
+        SK_ComQIPtr <IDXGIDevice>
+            pDXGIDev (pDev12);
+        if (pDXGIDev == nullptr)
+            pDXGIDev = pDev11;
+
+        bool success = false;
+
+        if (_GPU != GPU || _dwProcess != dwProcess)
+        {
+          if (SetPriorityClass (GetCurrentProcess (), _dwProcess))
+          {                               dwProcess = _dwProcess;
+            success = true;
+          }
+
+          if (             pDXGIDev != nullptr)
+          { if (SUCCEEDED (pDXGIDev->SetGPUThreadPriority (_GPU)))
+                                                     GPU = _GPU;
+          }
+        }
+
+        return success;
+      }
+    } static prio;
+
+    if (! active)
+    {
+      if (config.priority.raise_bg || config.priority.raise_always)
+      {
+        bool bBackgroundBoost = false;
+
+        if (SK_WantBackgroundRender ())
+          bBackgroundBoost = config.priority.raise_bg;
+
+        if (config.priority.raise_always || bBackgroundBoost)
+             prio.proposeChange (5, ABOVE_NORMAL_PRIORITY_CLASS);
+        else prio.proposeChange (0,       NORMAL_PRIORITY_CLASS);
+      } else prio.proposeChange (0,       NORMAL_PRIORITY_CLASS);
+    }
+
     if ((! active) && SK_WantBackgroundRender ())
     {
-      SK_ComPtr <ID3D11Device> pDev11 =
-        SK_GetCurrentRenderBackend ().getDevice <ID3D11Device> ();
-      SK_ComPtr <ID3D12Device> pDev12 =
-        SK_GetCurrentRenderBackend ().getDevice <ID3D12Device> ();
-
-      SK_ComQIPtr <IDXGIDevice>
-          pDXGIDev (pDev11);
-      if (pDXGIDev == nullptr)
-          pDXGIDev = pDev12;
-
-      if ((config.priority.raise_bg) || config.priority.raise_always)
-      {
-        if (pDXGIDev != nullptr)
-            pDXGIDev->SetGPUThreadPriority (6);
-
-        SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
-      }
-
-      else
-      {
-        if (pDXGIDev != nullptr)
-            pDXGIDev->SetGPUThreadPriority (0);
-
-        SetPriorityClass (GetCurrentProcess (), NORMAL_PRIORITY_CLASS);
-      }
-
       //if (game_window.active)
       {
         INPUT
@@ -919,33 +943,11 @@ ActivateWindow ( HWND hWnd,
       };
     }
 
-    else
+    else if (active)
     {
-      SK_ComPtr <ID3D11Device> pDev11 =
-        SK_GetCurrentRenderBackend ().getDevice <ID3D11Device> ();
-      SK_ComPtr <ID3D12Device> pDev12 =
-        SK_GetCurrentRenderBackend ().getDevice <ID3D12Device> ();
-
-      SK_ComQIPtr <IDXGIDevice>
-          pDXGIDev (pDev11);
-      if (pDXGIDev == nullptr)
-          pDXGIDev = pDev12;
-
       if (config.priority.raise_fg || config.priority.raise_always)
-      {
-        if (pDXGIDev != nullptr)
-            pDXGIDev->SetGPUThreadPriority (6);
-
-        SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
-      }
-
-      else
-      {
-        if (pDXGIDev != nullptr)
-            pDXGIDev->SetGPUThreadPriority (0);
-
-        SetPriorityClass (GetCurrentProcess (), NORMAL_PRIORITY_CLASS);
-      }
+           prio.proposeChange (5, ABOVE_NORMAL_PRIORITY_CLASS);
+      else prio.proposeChange (0,       NORMAL_PRIORITY_CLASS);
     }
     SK_Console::getInstance ()->reset ();
 

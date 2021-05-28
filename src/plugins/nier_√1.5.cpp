@@ -453,7 +453,7 @@ SK_NIER_RAD_GamepadLatencyTester (void)
 
       do
       {
-        WaitForSingleObject (hStartStop, INFINITE);
+        SK_WaitForSingleObject (hStartStop, INFINITE);
 
         if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &states [i % 2]))
         {

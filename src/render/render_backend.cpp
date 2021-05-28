@@ -3019,6 +3019,9 @@ SK_RenderBackend_V2::driverSleepNV (int site)
          ReadULong64Acquire  (&frames_drawn) )
       return;
 
+    SK_Thread_ScopedPriority
+            __scoped_prio (THREAD_PRIORITY_TIME_CRITICAL);
+
     //if ( lastParams.bLowLatencyBoost  != sleepParams.bLowLatencyBoost ||
     //     lastParams.bLowLatencyMode   != sleepParams.bLowLatencyMode  ||
     //     lastParams.minimumIntervalUs != sleepParams.minimumIntervalUs )

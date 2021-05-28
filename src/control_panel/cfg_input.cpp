@@ -339,11 +339,11 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::TextUnformatted ("GetKeyboardState\t");
         if (win32.cursorpos > 0)
           ImGui::TextUnformatted ("GetCursorPos\t");
-        
+
         ImGui::EndGroup     ();
         ImGui::SameLine     ();
         ImGui::BeginGroup   ();
-        
+
         if (win32.asynckeystate > 0)
           ImGui::Text ("%lu", win32.asynckeystate);
         if (win32.keystate > 0)
@@ -821,10 +821,10 @@ extern float SK_ImGui_PulseNav_Strength;
             XINPUT_STATE states [2] = { };
             ULONGLONG    times  [2] = { };
             int                   i = 0;
-            
+
             do
             {
-              WaitForSingleObject (hStartStop, INFINITE);
+              SK_WaitForSingleObject (hStartStop, INFINITE);
 
               if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &states [i % 2]))
               {
@@ -852,7 +852,7 @@ extern float SK_ImGui_PulseNav_Strength;
             return 0;
           }, (LPVOID)hStartStop);
         }
-        
+
         static bool started = false;
 
         if (ImGui::Button (started ? "Stop Gamepad Latency Test" :
@@ -861,7 +861,7 @@ extern float SK_ImGui_PulseNav_Strength;
           if (! started) { started = true;  SetEvent   (hStartStop); }
           else           { started = false; ResetEvent (hStartStop); }
         }
-        
+
         static double high_min = std::numeric_limits <double>::max (),
                       high_max,
                       avg;

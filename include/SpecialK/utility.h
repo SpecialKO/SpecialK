@@ -123,9 +123,9 @@ __cdecl        SK_FormatString              (char    const* const _Format, ...);
 std::wstring
 __cdecl        SK_FormatStringW             (wchar_t const* const _Format, ...);
 int
-__cdecl        SK_FormatString              (std::string& out, char const* const _Format, ...);
+__cdecl        SK_FormatStringView          (std::string_view&  out,    char const* const _Format, ...);
 int
-__cdecl        SK_FormatStringW             (std::wstring& out, wchar_t const* const _Format, ...);
+__cdecl        SK_FormatStringViewW         (std::wstring_view& out, wchar_t const* const _Format, ...);
 
 void           SK_StripTrailingSlashesW     (wchar_t *wszInOut);
 void           SK_StripTrailingSlashesA     (char    *szInOut);
@@ -143,12 +143,23 @@ BOOL           SK_File_ApplyAttribMask      (const wchar_t* file,      DWORD    
 BOOL           SK_File_SetHidden            (const wchar_t* file,      bool           hidden);
 BOOL           SK_File_SetTemporary         (const wchar_t* file,      bool           temp);
 uint64_t       SK_File_GetSize              (const wchar_t* wszFile);
-std::wstring   SK_File_SizeToString         (uint64_t       size,      SK_UNITS       unit = Auto);
-std::string    SK_File_SizeToStringA        (uint64_t       size,      SK_UNITS       unit = Auto);
-std::wstring   SK_File_SizeToStringF        (uint64_t       size,      int            width,
-                                             int            precision, SK_UNITS       unit = Auto);
-std::string    SK_File_SizeToStringAF       (uint64_t       size,      int            width,
-                                             int            precision, SK_UNITS       unit = Auto);
+
+//
+// These all return a view of Thread Local Memory; the returned view is not valid across multiple calls.
+//
+//   -:- Copy the returned data ASAP
+//
+std::wstring_view
+               SK_File_SizeToString         (uint64_t       size,      SK_UNITS       unit = Auto, SK_TLS *pTLS = nullptr);
+std::string_view
+               SK_File_SizeToStringA        (uint64_t       size,      SK_UNITS       unit = Auto, SK_TLS *pTLS = nullptr);
+std::wstring_view
+               SK_File_SizeToStringF        (uint64_t       size,      int            width,
+                                             int            precision, SK_UNITS       unit = Auto, SK_TLS *pTLS = nullptr);
+std::string_view
+               SK_File_SizeToStringAF       (uint64_t       size,      int            width,
+                                             int            precision, SK_UNITS       unit = Auto, SK_TLS *pTLS = nullptr);
+
 bool           SK_File_IsDirectory          (const wchar_t* wszPath);
 bool           SK_File_CanUserWriteToPath   (const wchar_t* wszPath);
 

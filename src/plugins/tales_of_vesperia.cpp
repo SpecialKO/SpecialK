@@ -683,11 +683,10 @@ SK_TVFix_PlugInCfg (void)
         if (SK_D3D11_MipmapCacheSize > 0)
         {
           ImGui::ProgressBar ( static_cast <float> (static_cast <long double> (ulBytesAvailable.QuadPart) /
-                                                    static_cast <long double> (ulBytesTotal.QuadPart)       ),
-                                 ImVec2 (-1, 0),
-              SK_WideCharToUTF8 (
-                SK_File_SizeToStringF (ulBytesAvailable.QuadPart, 2, 3) + L" Remaining Storage Capacity"
-              ).c_str ()
+                                                    static_cast <long double> (    ulBytesTotal.QuadPart) ),
+                                 ImVec2 (-1, 0), (std::string (
+                          SK_File_SizeToStringAF (ulBytesAvailable.QuadPart, 2, 3).data ()
+                ) + " Remaining Storage Capacity").c_str ()
           );
         }
       }

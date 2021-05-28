@@ -611,7 +611,7 @@ SK_DQXI_PlugInCfg (void)
         ImGui::TreePush   ("");
         ImGui::Text ( "%ui files using %ws",
                      repo.files,
-                     SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
+                     SK_File_SizeToString (repo.liSize.QuadPart).data ()
         );
 
         if (ImGui::IsItemHovered ())

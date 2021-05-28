@@ -519,6 +519,7 @@ GetProcAddress_Detour     (
   // Ignore ordinals for these bypasses
   if ((uintptr_t)lpProcName > 65535UL)
   {
+#ifdef _PROC_ADDR_REHOOK_MESSAGE_PUMP
     extern BOOL
       WINAPI
       PeekMessageA_Detour (
@@ -546,6 +547,7 @@ GetProcAddress_Detour     (
       WINAPI
       GetMessageA_Detour ( LPMSG lpMsg,          HWND hWnd,
                            UINT   wMsgFilterMin, UINT wMsgFilterMax );
+#endif
 
     ////
     //// Compat Hack No Longer Needed, but is a handy way to disable
@@ -595,47 +597,49 @@ GetProcAddress_Detour     (
  ////       );
  ////   }
 
-/////////    if ( *lpProcName == 'P'      &&
-///////// StrStrA (lpProcName,   "PeekM") == lpProcName )
-/////////    {
-/////////      if (! lstrcmpA (lpProcName, "PeekMessageA"))
-/////////      {
-/////////        return
-/////////          (FARPROC)PeekMessageA_Detour;
-/////////      }
-/////////
-/////////      else if (! lstrcmpA (lpProcName, "PeekMessageW"))
-/////////      {
-/////////        return
-/////////          (FARPROC) PeekMessageW_Detour;
-/////////      }
-/////////
-/////////      return
-/////////        GetProcAddress_Original (
-/////////          hModule, lpProcName
-/////////        );
-/////////    }
-/////////
-/////////    else if ( *lpProcName == 'G'     &&
-/////////      StrStrA (lpProcName,   "GetM") == lpProcName )
-/////////    {
-/////////      if (! lstrcmpA (lpProcName, "GetMessageA"))
-/////////      {
-/////////        return
-/////////          (FARPROC) GetMessageA_Detour;
-/////////      }
-/////////
-/////////      else if (! lstrcmpA (lpProcName, "GetMessageW"))
-/////////      {
-/////////        return
-/////////          (FARPROC) GetMessageW_Detour;
-/////////      }
-/////////
-/////////      return
-/////////        GetProcAddress_Original (
-/////////          hModule, lpProcName
-/////////        );
-/////////    }
+#ifdef _PROC_ADDR_REHOOK_MESSAGE_PUMP
+    if ( *lpProcName == 'P'      &&
+ StrStrA (lpProcName,   "PeekM") == lpProcName )
+    {
+      if (! lstrcmpA (lpProcName, "PeekMessageA"))
+      {
+        return
+          (FARPROC)PeekMessageA_Detour;
+      }
+
+      else if (! lstrcmpA (lpProcName, "PeekMessageW"))
+      {
+        return
+          (FARPROC) PeekMessageW_Detour;
+      }
+
+      return
+        GetProcAddress_Original (
+          hModule, lpProcName
+        );
+    }
+
+    else if ( *lpProcName == 'G'     &&
+      StrStrA (lpProcName,   "GetM") == lpProcName )
+    {
+      if (! lstrcmpA (lpProcName, "GetMessageA"))
+      {
+        return
+          (FARPROC) GetMessageA_Detour;
+      }
+
+      else if (! lstrcmpA (lpProcName, "GetMessageW"))
+      {
+        return
+          (FARPROC) GetMessageW_Detour;
+      }
+
+      return
+        GetProcAddress_Original (
+          hModule, lpProcName
+        );
+    }
+#endif
 
     // MSI Nahimic workaround
     if ( *lpProcName == 'N' &&

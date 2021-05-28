@@ -202,15 +202,19 @@ SK_ImGui_DrawTexCache_Chart (void)
 
         ImGui::SameLine ();
 
+        SK_TLS* pTLS =
+              SK_TLS_Bottom ();
+
         ImGui::BeginGroup ();
         if (fully_resident != 0)
-          ImGui::TextColored (ImColor (0.1f, 0.98f, 0.1f),   "\t\t%ws", SK_File_SizeToStringF (size_vram,   2, 3).c_str ());
-
+          ImGui::TextColored (ImColor (0.1f, 0.98f, 0.1f),   "\t\t%ws",
+                                      SK_File_SizeToStringF (size_vram,   2, 3, Auto, pTLS).data ());
         if (shared_memory != 0)
-          ImGui::TextColored (ImColor (0.98f, 0.98f, 0.25f), "\t\t%ws", SK_File_SizeToStringF (size_shared, 2, 3).c_str ());
-
+          ImGui::TextColored (ImColor (0.98f, 0.98f, 0.25f), "\t\t%ws",
+                                      SK_File_SizeToStringF (size_shared, 2, 3, Auto, pTLS).data ());
         if (on_disk != 0)
-          ImGui::TextColored (ImColor (0.98f, 0.1f, 0.1f),   "\t\t%ws", SK_File_SizeToStringF (size_disk,   2, 3).c_str ());
+          ImGui::TextColored (ImColor (0.98f, 0.1f, 0.1f),   "\t\t%ws",
+                                      SK_File_SizeToStringF (size_disk,   2, 3, Auto, pTLS).data ());
         ImGui::EndGroup ();
       }
     }
@@ -896,13 +900,22 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 }
 
 void
-SK::ControlPanel::D3D11::TextureMenu (void)
+SK::ControlPanel::D3D11::TextureMenu (SK_TLS *pTLS)
 {
   if (ImGui::BeginMenu ("Browse Texture Assets"))
   {
     wchar_t wszPath [MAX_PATH + 2] = { };
 
-    if (ImGui::MenuItem ("Injectable Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures->injectable_texture_bytes).c_str ()).c_str (), nullptr))
+    if (pTLS == nullptr)
+        pTLS =
+      SK_TLS_Bottom ();
+
+    if ( ImGui::MenuItem (
+           "Injectable Textures", SK_FormatString ( "%ws",
+                         SK_File_SizeToString ( SK_D3D11_Textures->injectable_texture_bytes, Auto, pTLS ).data ()
+                                              ).c_str (), nullptr
+                         )
+       )
     {
       wcscpy      (wszPath, SK_D3D11_res_root->c_str ());
       PathAppendW (wszPath, LR"(inject\textures)");
@@ -910,8 +923,13 @@ SK::ControlPanel::D3D11::TextureMenu (void)
       SK_ShellExecuteW (nullptr, L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
     }
 
-    if ((! SK_D3D11_Textures->dumped_textures.empty ()) &&
-          ImGui::MenuItem ("Dumped Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures->dumped_texture_bytes).c_str ()).c_str (), nullptr))
+    if ( (! SK_D3D11_Textures->dumped_textures.empty ()) &&
+         ImGui::MenuItem (
+           "Dumped Textures", SK_FormatString ( "%ws",
+                         SK_File_SizeToString ( SK_D3D11_Textures->dumped_texture_bytes, Auto, pTLS ).data ()
+                                              ).c_str (), nullptr
+                         )
+       )
     {
       wcscpy      (wszPath, SK_D3D11_res_root->c_str ());
       PathAppendW (wszPath, LR"(dump\textures)");

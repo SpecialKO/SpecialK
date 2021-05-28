@@ -99,7 +99,7 @@ public:
     d3d9_tex      = nullptr;
     original_pool = D3DPOOL_DEFAULT;
   }
-  
+
   ISKTextureD3D9* d3d9_tex;
   size_t          size;
   int             refs;
@@ -541,8 +541,8 @@ public:
       {
         shutdown ();
 
-        WaitForSingleObject (spool_thread_, INFINITE);
-        CloseHandle         (spool_thread_);
+        SK_WaitForSingleObject (spool_thread_, INFINITE);
+        CloseHandle            (spool_thread_);
       }
 
       CloseHandle (events_.results_waiting);
@@ -555,7 +555,7 @@ public:
     void getFinished (std::vector <TexLoadRequest *>& results)
     {
       const DWORD dwResults =
-        WaitForSingleObject (events_.results_waiting, 0);
+        SK_WaitForSingleObject (events_.results_waiting, 0);
 
       // Nothing waiting
       if (dwResults != WAIT_OBJECT_0 && (0 == ReadAcquire (&jobs_done_)))
@@ -620,7 +620,7 @@ public:
       while (dwResults != WAIT_OBJECT_0)
       {
         dwResults =
-          WaitForSingleObject (events_.jobs_added, 0);
+          SK_WaitForSingleObject (events_.jobs_added, 0);
       }
 
       if (0 == ReadAcquire (&jobs_waiting_))

@@ -1040,7 +1040,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       if (dTemp > 0.0)
       {
         extern std::string
-        SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit);
+        SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_TLS* pTLS);
 
         log_entry.append (
           std::wstring (L", Temperature: ") +
@@ -1049,7 +1049,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                 dTemp,
                   Celsius,
                     config.system.prefer_fahrenheit ? Fahrenheit :
-                                                      Celsius )
+                                                      Celsius, pTLS )
             )
         );
       }

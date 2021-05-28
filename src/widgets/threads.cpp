@@ -1114,7 +1114,7 @@ public:
                 ULONG64 ullFrameStart = SK_GetFramesDrawn ();
                 while ( ullFrameStart > SK_GetFramesDrawn () - 2 )
                 {
-                  if ( WaitForSingleObject (pParams->hSignalShutdown, 33) != WAIT_TIMEOUT )
+                  if ( SK_WaitForSingleObject (pParams->hSignalShutdown, 33) != WAIT_TIMEOUT )
                   {
                     dwWaitState = WAIT_SHUTDOWN_THREAD;
                     break;
@@ -1405,7 +1405,7 @@ public:
 
     bool update = false;
 
-    if (WaitForSingleObject (data_thread->hSignalConsume, 0) == WAIT_OBJECT_0)
+    if (SK_WaitForSingleObject (data_thread->hSignalConsume, 0) == WAIT_OBJECT_0)
     {
       // The producer is double-buffered, this always points to the last finished
       //   data collection cycle.
@@ -1607,10 +1607,10 @@ public:
           ImGui::SameLine     ();
 
           ImGui::BeginGroup   ();
-          if (ReadAcquire64 (&pTLS->memory->local_bytes)   != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->local_bytes),   2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory->global_bytes)  != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->global_bytes),  2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory->heap_bytes)    != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->heap_bytes),    2, 3).c_str ());
-          if (ReadAcquire64 (&pTLS->memory->virtual_bytes) != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->virtual_bytes), 2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory->local_bytes)   != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->local_bytes),   2, 3, Auto, pTLS).data ());
+          if (ReadAcquire64 (&pTLS->memory->global_bytes)  != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->global_bytes),  2, 3, Auto, pTLS).data ());
+          if (ReadAcquire64 (&pTLS->memory->heap_bytes)    != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->heap_bytes),    2, 3, Auto, pTLS).data ());
+          if (ReadAcquire64 (&pTLS->memory->virtual_bytes) != 0) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->memory->virtual_bytes), 2, 3, Auto, pTLS).data ());
           ImGui::EndGroup     ();
 
           ImGui::SameLine     ();
@@ -1636,8 +1636,8 @@ public:
           ImGui::SameLine   ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->disk->bytes_read))    ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->disk->bytes_read),    2, 3).c_str  ());
-          if (ReadAcquire64 (&pTLS->disk->bytes_written)) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->disk->bytes_written), 2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->disk->bytes_read))    ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->disk->bytes_read),    2, 3, Auto, pTLS).data ());
+          if (ReadAcquire64 (&pTLS->disk->bytes_written)) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->disk->bytes_written), 2, 3, Auto, pTLS).data ());
           ImGui::EndGroup   ();
         }
 
@@ -1654,8 +1654,8 @@ public:
           ImGui::SameLine   ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->net->bytes_sent))     ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->net->bytes_sent),     2, 3).c_str  ());
-          if (ReadAcquire64 (&pTLS->net->bytes_received)) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->net->bytes_received), 2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->net->bytes_sent))     ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->net->bytes_sent),     2, 3, Auto, pTLS).data ());
+          if (ReadAcquire64 (&pTLS->net->bytes_received)) ImGui::TextUnformatted (SK_File_SizeToStringAF (ReadAcquire64 (&pTLS->net->bytes_received), 2, 3, Auto, pTLS).data ());
           ImGui::EndGroup   ();
         }
 

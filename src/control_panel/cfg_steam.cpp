@@ -482,7 +482,7 @@ SK::ControlPanel::Steam::Draw (void)
           if (
             ImGui::MenuItem ( SK_FormatString (
                                 "Steam is currently wasting %ws on %i redistributable files!",
-                                  SK_File_SizeToStringF (redist_size, 5, 2).c_str (),
+                                  SK_File_SizeToStringF (redist_size, 5, 2).data,
                                     redist_count
                               ).c_str (), "" )
              )

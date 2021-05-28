@@ -718,7 +718,7 @@ SK_YS8_ControlPanel (void)
                                                     static_cast <long double> (ulBytesTotal.QuadPart)       ),
                                  ImVec2 (-1.0f, 0.0f),
               SK_WideCharToUTF8 (
-                SK_File_SizeToStringF (ulBytesAvailable.QuadPart, 2, 3) + L" Remaining Storage Capacity"
+                std::wstring (SK_File_SizeToStringF (ulBytesAvailable.QuadPart, 2, 3).data ()) + L" Remaining Storage Capacity"
               ).c_str ()
           );
         }
@@ -862,9 +862,9 @@ SK_YS8_ControlPanel (void)
 
         ImGui::ProgressBar ( float (((long double)llSkipped) /
                                      (long double)(llTotalBytes)), ImVec2 (-1.0f, 0.0f),
-          SK_FormatString ("%ws out of %ws were avoided\t\t\t\tDirty Hash (%ws :: Load=%4.2f)", SK_File_SizeToString (llSkipped).c_str (),
-                                                                                                SK_File_SizeToString (llTotalBytes).c_str (),
-                                                                                                SK_File_SizeToString (ys8_dirty_resources->size () * (sizeof (uintptr_t) + 1)).c_str (),
+          SK_FormatString ("%ws out of %ws were avoided\t\t\t\tDirty Hash (%ws :: Load=%4.2f)", std::wstring (SK_File_SizeToString (llSkipped).                                              data ()).c_str (),
+                                                                                                std::wstring (SK_File_SizeToString (llTotalBytes).                                           data ()).c_str (),
+                                                                                                std::wstring (SK_File_SizeToString (ys8_dirty_resources->size () * (sizeof (uintptr_t) + 1)).data ()).c_str (),
                                                                                                                       ys8_dirty_resources->load_factor ()).c_str ());
         ImGui::PopStyleColor ();
       }
@@ -1002,7 +1002,7 @@ const
         ImGui::MenuItem (eval_dir_utf8.c_str (), SK_WideCharToUTF8 (
                                                    SK_File_SizeToStringF (
                                                      _SK_RecursiveFileSizeProbe ( probe_dir.c_str (), true ), 3, 2
-                                                   )
+                                                   ).data ()
                                                  ).c_str ()
                         );
 
@@ -1073,7 +1073,7 @@ const
         SK_ImGui_Warning (
           SK_FormatStringW ( L"Imported %lu files and %s of data into %s\\%s ; [%s]",
                                work.first,
-         SK_File_SizeToString (work.second).c_str (),
+         SK_File_SizeToString (work.second).data (),
                                wszWorkDir, wszSubdir, backup ? L"With Backups" :
                                                                      L"No Backup Made!" ).c_str ()
         );

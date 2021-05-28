@@ -110,7 +110,6 @@ struct SK_TlsRecord {
 SK_TlsRecord* SK_GetTLS     (SK_TLS** ppTLS);
 SK_TLS*       SK_CleanupTLS (void);
 
-
 template <typename _T>
 class SK_TLS_HeapDataStore
 {
@@ -288,6 +287,13 @@ public:
   struct {
     SK_TLS_HeapDataStore <DXGI_MODE_DESC> mode_list;
   } dxgi;
+
+  struct {
+    SK_TLS_HeapDataStore <wchar_t> wszTemperature;
+    SK_TLS_HeapDataStore <char>     szTemperature;
+    SK_TLS_HeapDataStore <wchar_t>    wszFileSize;
+    SK_TLS_HeapDataStore <char>        szFileSize;
+  } osd;
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };

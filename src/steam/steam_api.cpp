@@ -4464,7 +4464,7 @@ SteamAPI_InitSafe_Detour (void)
 
       SK_SteamAPI_ContextInit (hSteamAPI);
 
-      if (SK_GetFramesDrawn () > 1)
+      if (ReadAcquire (&__SK_Init) > 0)
         SK_ApplyQueuedHooks ();
 
       steam_log->Log (
@@ -4633,8 +4633,9 @@ SteamAPI_Init_Detour (void)
         SK_GetModuleHandleW (steam_dll_str);
 
       SK_SteamAPI_ContextInit (hSteamAPI);
-      if (SK_GetFramesDrawn () > 1)
-        SK_ApplyQueuedHooks   (         );
+
+      if (ReadAcquire (&__SK_Init) > 0)
+        SK_ApplyQueuedHooks ();
 
       steam_log->Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
                          ReadAcquire (&init_tries) + 1,
@@ -4752,7 +4753,10 @@ SteamAPI_Delay_Init (LPVOID)
     }
 
     if (SteamAPI_Init_Original != nullptr)
-        SteamAPI_Init_Detour ();
+    {
+      SK_ApplyQueuedHooks  ();
+      SteamAPI_Init_Detour ();
+    }
   }
 
   SK_Thread_CloseSelf ();

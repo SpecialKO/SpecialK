@@ -33,7 +33,7 @@ UpdateConsole ( uint32_t           processId,
 {
   auto const& args =
     GetCommandLineArgs ();
-  
+
   // Don't display non-target or empty processes
   if ((! processInfo.mTargetProcess)      ||
          processInfo.mModuleName.empty () ||
@@ -41,27 +41,27 @@ UpdateConsole ( uint32_t           processId,
   {
     return;
   }
-  
+
   auto empty = true;
-  
+
   for ( auto const& pair : processInfo.mSwapChain )
   {
   //auto        address = pair.first;
     auto const& chain   = pair.second;
-  
+
     // Only show swapchain data if there at least two presents in the
     // history.
     if (chain.mPresentHistoryCount < 2)
       continue;
-  
+
     //auto const& present0 =
     //  *chain.mPresentHistory [
-    //  (chain.mNextPresentIndex - chain.mPresentHistoryCount) % 
+    //  (chain.mNextPresentIndex - chain.mPresentHistoryCount) %
     //                         SwapChainData::PRESENT_HISTORY_MAX_COUNT
     //                         ];
     auto const& presentN =
       *chain.mPresentHistory [
-      (chain.mNextPresentIndex - 1)                          % 
+      (chain.mNextPresentIndex - 1)                          %
                              SwapChainData::PRESENT_HISTORY_MAX_COUNT
                              ];
 
@@ -70,7 +70,7 @@ UpdateConsole ( uint32_t           processId,
     ///                         (chain.mPresentHistoryCount - 1);
     auto dspAvg = 0.0;
     auto latAvg = 0.0;
-  
+
     PresentEvent* displayN = nullptr;
 
     if (args.mTrackDisplay)
@@ -100,7 +100,7 @@ UpdateConsole ( uint32_t           processId,
           displayCount++;
         }
       }
-  
+
       if (displayCount >= 2)
         dspAvg = QpcDeltaToSeconds (displayN->ScreenTime - display0ScreenTime) /
                                                             (displayCount - 1);
@@ -108,7 +108,7 @@ UpdateConsole ( uint32_t           processId,
       if (displayCount >= 1)
         latAvg = QpcDeltaToSeconds (latSum)                / displayCount;
     }
-  
+
     if (std::exchange (empty, false))
       SK_FormatString ("%s[%d]:", processInfo.mModuleName.c_str (), processId);
 
@@ -122,29 +122,29 @@ UpdateConsole ( uint32_t           processId,
                                                      //1000.0 * cpuAvg,
                                                           //1.0 / cpuAvg
       );
-  
+
     /////////if (dspAvg > 0.0)
     /////////{
     /////////  SKIF_PresentDebugStr [idx] += SK_FormatString (", %.1lf fps displayed", 1.0 / dspAvg);
     /////////
     /////////}
-  
+
     //if (latAvg > 0.0)
     //{
     //  SK_PresentDebugStr [idx] += SK_FormatString (", %.2lf ms latency", 1000.0 * latAvg);
     //}
     //
     //SK_PresentDebugStr [idx] += ")";
-  
+
     if (displayN != nullptr)
     {
       SK_PresentDebugStr [idx] += SK_FormatString (" %s ", PresentModeToString (displayN->PresentMode));
     //ConsolePrint (" %s", PresentModeToString (displayN->PresentMode));
     }
-  
+
   //SKIF_PresentDebugStr [idx] += "\n";
   }
-  
+
   if (! empty)
   {
     WriteRelease (&SK_PresentIdx, (ReadAcquire (&SK_PresentIdx) + 1) % 2);
