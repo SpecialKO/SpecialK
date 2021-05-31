@@ -21,12 +21,14 @@ SOFTWARE.
 */
 
 #include <SpecialK/render/present_mon/PresentMon.hpp>
+#include <SpecialK/thread.h>
 
 static std::thread *pThread = nullptr;
 
-static void
+void
 Consume (TRACEHANDLE traceHandle)
 {
+  SetCurrentThreadDescription (L"[SK] PresentMon <Consume>");
   SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
 
   // You must call OpenTrace() prior to calling this function
@@ -54,7 +56,7 @@ Consume (TRACEHANDLE traceHandle)
   // is no harm in calling ExitMainThread() if MainThread is already exiting
   // (and caused ProcessTrace() to exit via 2, 3, or 4 above) because the
   // message queue isn't beeing listened too anymore in that case.
-  ExitMainThread();
+////ExitMainThread();
 }
 
 void

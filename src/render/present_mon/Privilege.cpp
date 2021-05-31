@@ -25,6 +25,8 @@ SOFTWARE.
 #include <stdio.h>
 #include <string>
 
+#include <SpecialK/utility.h>
+
 bool InPerfLogUsersGroup (void)
 {
   // PERFLOG_USERS = S-1-5-32-559
@@ -56,12 +58,13 @@ bool InPerfLogUsersGroup (void)
 bool
 EnableDebugPrivilege (void)
 {
-  auto hModule = LoadLibraryW (L"advapi32.dll");
+  auto hModule =
+    LoadLibraryEx ( L"advapi32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32 );
 
-  auto pOpenProcessToken      = (decltype(&OpenProcessToken))      GetProcAddress(hModule, "OpenProcessToken"     );
-  auto pGetTokenInformation   = (decltype(&GetTokenInformation))   GetProcAddress(hModule, "GetTokenInformation"  );
-  auto pLookupPrivilegeValue  = (decltype(&LookupPrivilegeValueW)) GetProcAddress(hModule, "LookupPrivilegeValueW");
-  auto pAdjustTokenPrivileges = (decltype(&AdjustTokenPrivileges)) GetProcAddress(hModule, "AdjustTokenPrivileges");
+  auto pOpenProcessToken      = (decltype(&OpenProcessToken))      SK_GetProcAddress (hModule, "OpenProcessToken"     );
+  auto pGetTokenInformation   = (decltype(&GetTokenInformation))   SK_GetProcAddress (hModule, "GetTokenInformation"  );
+  auto pLookupPrivilegeValue  = (decltype(&LookupPrivilegeValueW)) SK_GetProcAddress (hModule, "LookupPrivilegeValueW");
+  auto pAdjustTokenPrivileges = (decltype(&AdjustTokenPrivileges)) SK_GetProcAddress (hModule, "AdjustTokenPrivileges");
 
   if ( pOpenProcessToken      == nullptr ||
        pGetTokenInformation   == nullptr ||

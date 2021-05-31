@@ -21,6 +21,9 @@ SOFTWARE.
 */
 
 #include <SpecialK/render/present_mon/PresentMon.hpp>
+#include <SpecialK/thread.h>
+
+extern HANDLE __SK_DLL_TeardownEvent;
 
 #include <algorithm>
 #include <shlwapi.h>
@@ -296,11 +299,11 @@ HandleTerminatedProcess (uint32_t processId)
     // Quit if this is the last process tracked for -terminate_on_proc_exit.
     gTargetProcessCount -= 1;
 
-    if ( args.mTerminateOnProcExit     &&
-                   gTargetProcessCount == 0 )
-    {
-      ExitMainThread ();
-    }
+    ////////if ( args.mTerminateOnProcExit     &&
+    ////////               gTargetProcessCount == 0 )
+    ////////{
+    ////////  ExitMainThread ();
+    ////////}
   }
 
   gProcesses.erase (iter);
@@ -668,12 +671,14 @@ done:
       terminatedProcesses->begin () + terminatedProcessIndex );
   }
 
-  if (DebugDone ())
-    ExitMainThread ();
+  //////if (DebugDone ())
+  //////  ExitMainThread ();
 }
 
 void Output (void)
 {
+  SetCurrentThreadDescription (L"[SK] PresentMon <Output>");
+
 #if !DEBUG_VERBOSE
   auto const& args =
     GetCommandLineArgs ();
@@ -741,14 +746,11 @@ void Output (void)
 
     // Everything is processed and output out at this point, so if we're
     // quiting we don't need to update the rest.
-    if (quit)
+    if (SK_WaitForSingleObject (__SK_DLL_TeardownEvent, 33) == WAIT_OBJECT_0)
       break;
 
     // Update tracking information.
     CheckForTerminatedRealtimeProcesses (&terminatedProcesses);
-
-    // Sleep to reduce overhead.
-    Sleep (100);
   }
 
   // Output warning if events were lost.

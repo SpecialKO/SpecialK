@@ -209,7 +209,7 @@ struct LateStageReprojectionEvent {
             GpuStopToCopyStartInMs +
             CopyStartToCopyStopInMs;
     }
-    
+
     inline float GetLsrMotionToPhotonLatencyMs() const
     {
         return InputLatchToGpuSubmissionInMs +
@@ -239,7 +239,7 @@ struct MRTraceConsumer
     std::vector<std::shared_ptr<LateStageReprojectionEvent>> mCompletedLSRs;
 
     // A high-level description of the sequence of events:
-    // HolographicFrameStart (by HolographicFrameId, for App's CPU frame render start time) -> HolographicFrameStop (by HolographicFrameId, for App's CPU frame render end/Present time) -> 
+    // HolographicFrameStart (by HolographicFrameId, for App's CPU frame render start time) -> HolographicFrameStop (by HolographicFrameId, for App's CPU frame render end/Present time) ->
     //  AcquireForRendering (by PresentationSource, for DWM's CPU frame compose start time) -> ReleaseFromRendering (by PresentationSource, for DWM's CPU frame compose end/GPU Submit time) ->
     //  BeginLsrProcessing (by PresentId and PresentationSource, for LSR's start time) -> AcquireForPresentation (by PresentationSource, for LSR's CPU frame render start time) -> HolographicFrameMetadata_GetNewPoseForReprojection (by HolographicFrameId and PresentId, for linking HolographicFrameId to PresentId) ->
     //  LatchedInput (by PresentId, for LSR's pose latency) -> ReleaseFromPresentation (by PresentationSource, for LSR's CPU frame end/GPU Submit time) -> OnTimePresentationTiming/LatePresentationTiming (for detailed LSR timing information)
@@ -265,7 +265,7 @@ struct MRTraceConsumer
     void CompletePresentationSource(uint64_t presentationSourcePtr);
 
     decltype(mPresentationSourceByPtr.begin()) FindOrCreatePresentationSource(uint64_t presentationSourcePtr);
-    
+
     void HolographicFrameStart(std::shared_ptr<HolographicFrame> p);
     void HolographicFrameStop(std::shared_ptr<HolographicFrame> p);
 

@@ -27,6 +27,7 @@ SOFTWARE.
 #endif
 
 #include <SpecialK/render/present_mon/PresentMon.hpp>
+#include <SpecialK/utility.h>
 #include <algorithm>
 
 enum {
@@ -282,7 +283,7 @@ static bool ParseValue(char** argv, int argc, int* i, UINT* value)
 //////
 //////fprintf(stderr, "PresentMon %s\n", "XXX");
 //////
-//////// Layout usage 
+//////// Layout usage
 //////size_t argWidth = 0;
 //////for (size_t i = 0; i < _countof(s); i += 2) {
 //////    auto arg = s[i];
@@ -331,11 +332,16 @@ bool ParseCommandLine(int argc, char** argv)
 {
     auto args = &gCommandLineArgs;
 
+    static std::string pid_session_str (
+      SK_FormatString ( "SK::PresentMon <pid %x>",
+                         GetCurrentProcessId () )
+                                + "\0" );
+
     args->mTargetProcessNames.clear  ();
     args->mExcludeProcessNames.clear ();
     args->mOutputCsvFileName      = nullptr;
     args->mEtlFileName            = nullptr;
-    args->mSessionName            = "SKIF_PresentMon";
+    args->mSessionName            = pid_session_str.data ();
     args->mTargetPid              = 0;
     args->mDelay                  = 0;
     args->mTimer                  = 0;
@@ -358,7 +364,7 @@ bool ParseCommandLine(int argc, char** argv)
     args->mHotkeySupport          = false;
     args->mTryToElevate           = false;
     args->mMultiCsv               = false;
-    args->mStopExistingSession    = true/*false*/;
+    args->mStopExistingSession    = false;
 
     bool DEPRECATED_dontRestart = false;
     bool DEPRECATED_simple = false;

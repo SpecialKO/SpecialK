@@ -24,7 +24,7 @@ SOFTWARE.
 #include <SpecialK/utility.h>
 #include <imgui/font_awesome.h>
 
-extern std::string   SK_PresentDebugStr [2];
+extern char          SK_PresentDebugStr [2][128];
 extern volatile LONG SK_PresentIdx;
 
 #include <SpecialK/render/backend.h>
@@ -127,12 +127,9 @@ UpdateConsole ( uint32_t           processId,
     int idx =
       (ReadAcquire (&SK_PresentIdx) + 1) % 2;
 
-    if (SK_PresentDebugStr [idx].capacity () < 128)
-        SK_PresentDebugStr [idx].resize       (128);
-
     std::string_view
       present_debug_view (
-        SK_PresentDebugStr [idx].data (),      128);
+        SK_PresentDebugStr [idx],      128);
 
     static auto& rb =
       SK_GetCurrentRenderBackend ();
